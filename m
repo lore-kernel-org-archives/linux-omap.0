@@ -1,72 +1,52 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH RFC] usb: musb: fail unaligned DMA transfers on v1.8 and
- above
-Date: Mon, 01 Nov 2010 15:43:08 +0300
-Message-ID: <4CCEB5DC.5000509@ru.mvista.com>
-References: <1288502759-18618-1-git-send-email-gadiyar@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 0/2] OMAP: DSS2: Add new display panel
+Date: Mon, 01 Nov 2010 16:15:30 +0200
+Message-ID: <1288620930.5614.16.camel@tubuntu>
+References: <1288276982-17225-1-git-send-email-eballetbo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1288502759-18618-1-git-send-email-gadiyar-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:45851 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756439Ab0KAOQW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Nov 2010 10:16:22 -0400
+In-Reply-To: <1288276982-17225-1-git-send-email-eballetbo@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Enric Balletbo i Serra <eballetbo@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "hvaibhav@ti.com" <hvaibhav@ti.com>, "notasas@gmail.com" <notasas@gmail.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, "mike@compulab.co.il" <mike@compulab.co.il>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hello.
+Hi,
 
-On 31-10-2010 8:25, Anand Gadiyar wrote:
+On Thu, 2010-10-28 at 16:43 +0200, ext Enric Balletbo i Serra wrote:
+> Hi,
+> 
+> Next patches adds support for the two new LCD panel display used
+> on IGEP boards.
+> 
+>  Powertip PH480272T LCD 4.3inch (480x242) display
+>  Seiko 70WVW1TZ3 LCD 7.0inch WVGA (800x480) display
+> 
+> Please, consider adding in next merge window.
+> 
+> Cheers,
+> 
+> Enric Balletbo i Serra (2):
+>   OMAP: DSS2: Add Powertip PH480272T display panel
+>   OMAP: DSS2: Add Seiko 70WVW1TZ3 display panel
 
-> The Inventra DMA engine in version 1.8 and later of the MUSB
-> controller cannot handle DMA addresses that are not aligned
-> to a 4 byte boundary. It ends up ignoring the last two bits
-> programmed in the DMA_ADDR register. This is a deliberate
-> design change in the controller and is documented in the
-> programming guide.
+These both are "dummy" panels, and the driver is basically a copy of the
+existing drivers. I don't think I will merge any more of these, sorry.
 
-> Earlier versions of the controller could handle these
-> accesses just fine.
+What we need is a common driver for all these dummy panels, and the
+driver would contain configurations for all the supported panels. The
+board file would pass the name of the panel used in that board to the
+driver, and the driver would use the configurations for that panel.
 
-> Fail dma_channel_program if we see an unaligned address when
-> using the newer controllers, so that the caller can carry out
-> the transfer using PIO mode.
-> (Current callers already have this backup path in place).
+This has been discussed a few times in l-o list, but I haven't found
+time to implement it and nobody else has done it either.
 
-> Signed-off-by: Anand Gadiyar<gadiyar-l0cyMroinI0@public.gmane.org>
-> Cc: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
-> Cc: Ming Lei<tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Ajay Kumar Gupta<ajay.gupta-l0cyMroinI0@public.gmane.org>
-> Cc: Mike Frysinger<vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-[...]
+ Tomi
 
-> Index: mainline/drivers/usb/musb/musbhsdma.c
-> ===================================================================
-> --- mainline.orig/drivers/usb/musb/musbhsdma.c
-> +++ mainline/drivers/usb/musb/musbhsdma.c
-[...]
-> @@ -167,6 +169,18 @@ static int dma_channel_program(struct dm
->   	BUG_ON(channel->status == MUSB_DMA_STATUS_UNKNOWN ||
->   		channel->status == MUSB_DMA_STATUS_BUSY);
->
-> +	/*
-> +	 * The DMA engine in RTL1.8 and above cannot handle
-> +	 * DMA addresses that are not aligned to a 4 byte boundary.
-> +	 * It ends up masking the last two bits of the address
-> +	 * programmed in DMA_ADDR.
-> +	 *
-> +	 * Fail such DMA transfers, so that the backup PIO mode
-> +	 * can carry out the transfer
-> +	 */
-> +	if ((musb->hwvers >= MUSB_HWVERS_1800) && (dma_addr %4))
 
-    Also need space after %.
-
-> +		return false;
-> +
-
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
