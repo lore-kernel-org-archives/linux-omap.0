@@ -1,53 +1,75 @@
-From: Namhyung Kim <namhyung@gmail.com>
-Subject: [PATCH] OMAP: Fix build failure on MEMBLOCK_REAL_LIMIT
-Date: Tue,  2 Nov 2010 01:30:08 +0900
-Message-ID: <1288629008-29767-1-git-send-email-namhyung@gmail.com>
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: Re: [PATCH 0/2] OMAP: DSS2: Add new display panel
+Date: Mon, 1 Nov 2010 12:45:06 -0400
+Message-ID: <AANLkTi=fV58ApDqUE21YMK0_vhLdPbPr7F7YpYh0-2Vc@mail.gmail.com>
+References: <1288276982-17225-1-git-send-email-eballetbo@gmail.com>
+	<1288620930.5614.16.camel@tubuntu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:53332 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751721Ab0KAQaU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Nov 2010 12:30:20 -0400
-Received: by vws13 with SMTP id 13so3805839vws.19
-        for <linux-omap@vger.kernel.org>; Mon, 01 Nov 2010 09:30:19 -0700 (PDT)
+Received: from mail-px0-f174.google.com ([209.85.212.174]:39145 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750815Ab0KAQpH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Nov 2010 12:45:07 -0400
+Received: by pxi15 with SMTP id 15so529094pxi.19
+        for <linux-omap@vger.kernel.org>; Mon, 01 Nov 2010 09:45:06 -0700 (PDT)
+In-Reply-To: <1288620930.5614.16.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "hvaibhav@ti.com" <hvaibhav@ti.com>, "notasas@gmail.com" <notasas@gmail.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, "mike@compulab.co.il" <mike@compulab.co.il>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-The MEMBLOCK_REAL_LIMIT symbol was removed by the commit e63075a3c937
-(memblock: Introduce default allocation limit and use it to replace
-explicit ones) so it breaks beagle board build as follows:
+On Mon, Nov 1, 2010 at 10:15 AM, Tomi Valkeinen
+<tomi.valkeinen@nokia.com> wrote:
+> Hi,
+>
+> On Thu, 2010-10-28 at 16:43 +0200, ext Enric Balletbo i Serra wrote:
+>> Hi,
+>>
+>> Next patches adds support for the two new LCD panel display used
+>> on IGEP boards.
+>>
+>> =A0Powertip PH480272T LCD 4.3inch (480x242) display
+>> =A0Seiko 70WVW1TZ3 LCD 7.0inch WVGA (800x480) display
+>>
+>> Please, consider adding in next merge window.
+>>
+>> Cheers,
+>>
+>> Enric Balletbo i Serra (2):
+>> =A0 OMAP: DSS2: Add Powertip PH480272T display panel
+>> =A0 OMAP: DSS2: Add Seiko 70WVW1TZ3 display panel
+>
+> These both are "dummy" panels, and the driver is basically a copy of =
+the
+> existing drivers. I don't think I will merge any more of these, sorry=
+=2E
+>
+> What we need is a common driver for all these dummy panels, and the
+> driver would contain configurations for all the supported panels. The
+> board file would pass the name of the panel used in that board to the
+> driver, and the driver would use the configurations for that panel.
+>
 
-  CC      drivers/video/omap2/vram.o
-drivers/video/omap2/vram.c: In function 'omap_vram_reserve_sdram_memblock':
-drivers/video/omap2/vram.c:573: error: 'MEMBLOCK_REAL_LIMIT' undeclared (first use in this function)
-drivers/video/omap2/vram.c:573: error: (Each undeclared identifier is reported only once
-drivers/video/omap2/vram.c:573: error: for each function it appears in.)
-make[5]: *** [drivers/video/omap2/vram.o] Error 1
-make[4]: *** [drivers/video/omap2] Error 2
-make[3]: *** [drivers/video] Error 2
-make[2]: *** [drivers] Error 2
-make[1]: *** [sub-make] Error 2
-make: *** [all] Error 2
+It looks like that we just need one file name displays.c to do those
+generic things and pass the configuration from board files to this
+driver, such as timing or other things.
 
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
----
- drivers/video/omap2/vram.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+> This has been discussed a few times in l-o list, but I haven't found
+> time to implement it and nobody else has done it either.
+>
 
-diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
-index fed2a72..39b85f7 100644
---- a/drivers/video/omap2/vram.c
-+++ b/drivers/video/omap2/vram.c
-@@ -570,7 +570,8 @@ void __init omap_vram_reserve_sdram_memblock(void)
- 			return;
- 		}
- 	} else {
--		paddr = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_REAL_LIMIT);
-+		paddr = memblock_alloc_base(size, PAGE_SIZE,
-+					    MEMBLOCK_ALLOC_ACCESSIBLE);
- 	}
- 
- 	omap_vram_add_region(paddr, size);
--- 
-1.7.0.4
+I'm quite happy to do this, thanks,
 
+--=20
+Bryan Wu <bryan.wu@canonical.com>
+Kernel Developer =A0 =A0+86.138-1617-6545 Mobile
+Ubuntu Kernel Team
+Canonical Ltd. =A0 =A0 =A0www.canonical.com
+Ubuntu - Linux for human beings | www.ubuntu.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
