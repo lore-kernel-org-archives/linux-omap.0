@@ -1,88 +1,33 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 08/11] OMAP4: Adding dev atrributes to OMAP4 smartreflex hwmod data
-Date: Tue, 02 Nov 2010 13:10:21 +0000
-Message-ID: <87aalrg9c2.fsf@deeprootsystems.com>
-References: <1285419086-13047-1-git-send-email-thara@ti.com>
-	<1285419086-13047-9-git-send-email-thara@ti.com>
-	<4CC6B8AC.8090007@ti.com>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: [PATCH v3 2/2] drivers: cleanup Kconfig stuff
+Date: Tue, 2 Nov 2010 09:11:47 -0400
+Message-ID: <20101102131146.GA21476@opensource.wolfsonmicro.com>
+References: <1288656853-4625-1-git-send-email-felipe.contreras@gmail.com>
+ <1288656853-4625-3-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36218 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752375Ab0KBNKc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 09:10:32 -0400
-Received: by wwe15 with SMTP id 15so7350404wwe.1
-        for <linux-omap@vger.kernel.org>; Tue, 02 Nov 2010 06:10:31 -0700 (PDT)
-In-Reply-To: <4CC6B8AC.8090007@ti.com> (Benoit Cousson's message of "Tue, 26
-	Oct 2010 13:17:00 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1288656853-4625-3-git-send-email-felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-main <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Liam Girdwood <lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Hao Wu <hao.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alan Cox <alan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Mike Rapoport <mike-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+On Tue, Nov 02, 2010 at 02:14:13AM +0200, Felipe Contreras wrote:
 
-> On 9/25/2010 2:51 PM, Gopinath, Thara wrote:
->> This patch adds dev attributes for smartreflex modules
->> in the OMAP4 hwmod database. This patch also updates the
->> smartreflex rev in the smartreflex class data structure
->> in the OMAP4 hwmod database.
->>
->> Signed-off-by: Thara Gopinath<thara@ti.com>
->> ---
->>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   56 ++++++++++++++++++++++++++++
->>   arch/arm/plat-omap/include/plat/control.h  |   12 ++++++
->>   2 files changed, 68 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> index ba3c215..82657b5 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> @@ -22,6 +22,8 @@
->>
->>   #include<plat/omap_hwmod.h>
->>   #include<plat/cpu.h>
->> +#include<plat/smartreflex.h>
->> +#include<plat/control.h>
->>
->>   #include "omap_hwmod_common_data.h"
->>
->> @@ -474,6 +476,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_smartreflex_sysc = {
->>   static struct omap_hwmod_class omap44xx_smartreflex_hwmod_class = {
->>   	.name = "smartreflex",
->>   	.sysc =&omap44xx_smartreflex_sysc,
->> +	.rev  = 2,
->>   };
->>
->>   /* smartreflex_core */
->> @@ -505,6 +508,22 @@ static struct omap_hwmod_ocp_if *omap44xx_smartreflex_core_slaves[] = {
->>   	&omap44xx_l4_cfg__smartreflex_core,
->>   };
->>
->> +static u32 omap44xx_sr_core_efuse_offs[] = {
->> +	OMAP44XX_CONTROL_FUSE_CORE_OPP50, OMAP44XX_CONTROL_FUSE_CORE_OPP100,
->> +};
->> +
->> +static u32 omap44xx_sr_core_test_nvalues[] = {
->> +	0x0, 0x0
->> +};
->
-> At first, I thought it was a good idea to put such data here, but now
-> after the discussion about timer hwmod data, I realize I was wrong.
->
-> These informations belong to omap_volt_data. For each OPP you should
-> provide the efuse offset an the SW nvalues.
-> BTW, you should not call them test Nvalues, these are perfectly valid
-> and can be potentially used in production. There are just not as
-> optimized as a efuse Nvalue.
+>  config REGULATOR_TWL4030
+>  	bool "TI TWL4030/TWL5030/TWL6030/TPS695x0 PMIC"
+>  	depends on TWL4030_CORE
+> +	default y
+>  	help
+>  	  This driver supports the voltage regulators provided by
+>  	  this family of companion chips.
 
-Just to clarify... 
-
-Benoit, what's your opinion of my comment that these values don't belong
-in the volt_data.
-
-As they are only used in the SR layer, they should remain there, IMO.
-The only thing needed in volt_data is an efuse id/offset.
-
-Kevin
+This default is not suitable for non-OMAP platforms, it should be
+conditional on OMAP or something if we're going to do this (though
+generally we handle this with defconfigs rather than in Kconfig).
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
