@@ -1,47 +1,42 @@
-From: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] drivers: cleanup Kconfig stuff
-Date: Tue, 2 Nov 2010 16:02:18 +0200
-Message-ID: <AANLkTim6E+e=D88C8g+YDVwS1D5JPeXvVRw-JVoVxh2i@mail.gmail.com>
-References: <1288656853-4625-1-git-send-email-felipe.contreras@gmail.com>
-	<1288656853-4625-3-git-send-email-felipe.contreras@gmail.com>
-	<20101102131146.GA21476@opensource.wolfsonmicro.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH 2.6.37-rc1] OMAP1: camera.h: readd missing include
+Date: Tue, 2 Nov 2010 15:04:01 +0100
+Message-ID: <201011021504.03168.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101102131146.GA21476-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-main <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Liam Girdwood <lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Hao Wu <hao.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alan Cox <alan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Mike Rapoport <mike-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:36540 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751977Ab0KBOFX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Nov 2010 10:05:23 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
 
-On Tue, Nov 2, 2010 at 3:11 PM, Mark Brown
-<broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org> wrote:
-> On Tue, Nov 02, 2010 at 02:14:13AM +0200, Felipe Contreras wrote:
->
->> =C2=A0config REGULATOR_TWL4030
->> =C2=A0 =C2=A0 =C2=A0 bool "TI TWL4030/TWL5030/TWL6030/TPS695x0 PMIC"
->> =C2=A0 =C2=A0 =C2=A0 depends on TWL4030_CORE
->> + =C2=A0 =C2=A0 default y
->> =C2=A0 =C2=A0 =C2=A0 help
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 This driver supports the voltage regulat=
-ors provided by
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 this family of companion chips.
->
-> This default is not suitable for non-OMAP platforms, it should be
-> conditional on OMAP or something if we're going to do this (though
-> generally we handle this with defconfigs rather than in Kconfig).
+#include <media/omap1_camera.h> directive, required for successfull 
+compilation of dependant boards (board-ams-delta for now), has been lost 
+somehow from arch/arm/mach-omap1/include/mach/camera.h on creation. Readd it.
 
-This would only be enabled when TWL4030_CORE is enabled, so non-OMAP
-platforms would not get affected.
+Created and tested against linux-2.6.37-rc1.
 
-I guess you have seen the complaint from Linus regarding ARM relying
-too much on defconfigs. This helps in order to simplify defconfigs,
-and eventually getting rid of them completely.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/mach-omap1/include/mach/camera.h |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- linux-2.6.37-rc1/arch/arm/mach-omap1/include/mach/camera.h.orig	2010-11-01 22:41:04.000000000 +0100
++++ linux-2.6.37-rc1/arch/arm/mach-omap1/include/mach/camera.h	2010-11-01 23:18:44.000000000 +0100
+@@ -1,6 +1,8 @@
+ #ifndef __ASM_ARCH_CAMERA_H_
+ #define __ASM_ARCH_CAMERA_H_
+ 
++#include <media/omap1_camera.h>
++
+ void omap1_camera_init(void *);
+ 
+ static inline void omap1_set_camera_info(struct omap1_cam_platform_data *info)
