@@ -1,81 +1,67 @@
-From: shubhrajyoti@ti.com
-Subject: [PATCH v2 ] McBSP: Fix the free variable update at remove
-Date: Tue,  2 Nov 2010 16:33:34 +0530
-Message-ID: <1288695814-8915-1-git-send-email-shubhrajyoti@ti.com>
+From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Subject: RE: [PATCH v2] McBSP: Fix the free variable update at remove.
+Date: Tue, 2 Nov 2010 16:35:20 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003FF767E64@dbde02.ent.ti.com>
+References: <1288693488-10200-1-git-send-email-shubhrajyoti@ti.com>
+ <20101102123256.b6bee4b7.jhnikula@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56595 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33870 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752479Ab0KBLDj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Nov 2010 07:03:39 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id oA2B3akh022076
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 2 Nov 2010 06:03:38 -0500
+	id S1752302Ab0KBLF0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 07:05:26 -0400
+In-Reply-To: <20101102123256.b6bee4b7.jhnikula@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-At remove the free variable is wrongly updated.Attempting to solve the same.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-Reported-by: Vikram Pandita <vikram.pandita@ti.com>
----
--[v2] Instead of using 0/1 use true/false
- arch/arm/plat-omap/mcbsp.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index eac4b97..07c0525 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -755,7 +755,7 @@ int omap_mcbsp_request(unsigned int id)
- 		goto err_kfree;
- 	}
- 
--	mcbsp->free = 0;
-+	mcbsp->free = false;
- 	mcbsp->reg_cache = reg_cache;
- 	spin_unlock(&mcbsp->lock);
- 
-@@ -815,7 +815,7 @@ err_clk_disable:
- 	clk_disable(mcbsp->iclk);
- 
- 	spin_lock(&mcbsp->lock);
--	mcbsp->free = 1;
-+	mcbsp->free = true;
- 	mcbsp->reg_cache = NULL;
- err_kfree:
- 	spin_unlock(&mcbsp->lock);
-@@ -858,7 +858,7 @@ void omap_mcbsp_free(unsigned int id)
- 	if (mcbsp->free)
- 		dev_err(mcbsp->dev, "McBSP%d was not reserved\n", mcbsp->id);
- 	else
--		mcbsp->free = 1;
-+		mcbsp->free = true;
- 	mcbsp->reg_cache = NULL;
- 	spin_unlock(&mcbsp->lock);
- 
-@@ -1771,7 +1771,7 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&mcbsp->lock);
- 	mcbsp->id = id + 1;
--	mcbsp->free = 1;
-+	mcbsp->free = true;
- 	mcbsp->dma_tx_lch = -1;
- 	mcbsp->dma_rx_lch = -1;
- 
-@@ -1845,7 +1845,7 @@ static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
- 
- 		mcbsp->fclk = NULL;
- 		mcbsp->iclk = NULL;
--		mcbsp->free = 0;
-+		mcbsp->free = true;
- 		mcbsp->dev = NULL;
- 	}
- 
--- 
-1.7.0.4
-
+> -----Original Message-----
+> From: Jarkko Nikula [mailto:jhnikula@gmail.com]
+> Sent: Tuesday, November 02, 2010 4:03 PM
+> To: Datta, Shubhrajyoti
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v2] McBSP: Fix the free variable update at remove.
+> 
+> On Tue,  2 Nov 2010 15:54:48 +0530
+> shubhrajyoti@ti.com wrote:
+> 
+> > From: Shubhrajyoti D <shubhrajyoti@ti.com>
+> >
+> > At remove the free variable is wrongly updated.Attempting to solve the
+> same.
+> >
+> > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> > ---
+> > -[v2] Instead of using 0/1 use a macro
+> >
+> >  arch/arm/plat-omap/include/plat/mcbsp.h |    3 +++
+> >  arch/arm/plat-omap/mcbsp.c              |   10 +++++-----
+> >  2 files changed, 8 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-
+> omap/include/plat/mcbsp.h
+> > index b87d83c..8988733 100644
+> > --- a/arch/arm/plat-omap/include/plat/mcbsp.h
+> > +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
+> > @@ -37,6 +37,9 @@ static struct platform_device omap_mcbsp##port_nr = {
+> 	\
+> >  	.id	= OMAP_MCBSP##port_nr,			\
+> >  }
+> >
+> > +#define TRUE			1
+> > +#define FALSE			0
+> > +
+> Use 'true' & 'false' in the code instead and then there is no need to
+> redefine these. They are defined in include/linux/stddef.h which is
+> probably included already by some another file.
+> 
+Yes missed it. Will fix that.
+> 
+> --
+> Jarkko
