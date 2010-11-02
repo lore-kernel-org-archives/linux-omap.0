@@ -1,42 +1,31 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 2.6.37-rc1] OMAP1: camera.h: readd missing include
-Date: Tue, 2 Nov 2010 15:04:01 +0100
-Message-ID: <201011021504.03168.jkrzyszt@tis.icnet.pl>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] omap: tidspbridge: fix build failure on MEMBLOCK_REAL_LIMIT
+Date: Tue, 2 Nov 2010 16:05:47 +0200
+Message-ID: <AANLkTi=fGA__ZXHOUz-VH5dhq7jWG7ZuPOzPdrN7xBM+@mail.gmail.com>
+References: <1288704660-21683-1-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:36540 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751977Ab0KBOFX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Nov 2010 10:05:23 -0400
-Content-Disposition: inline
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:62438 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752994Ab0KBOFu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 10:05:50 -0400
+Received: by bwz11 with SMTP id 11so5557930bwz.19
+        for <linux-omap@vger.kernel.org>; Tue, 02 Nov 2010 07:05:49 -0700 (PDT)
+In-Reply-To: <1288704660-21683-1-git-send-email-gadiyar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Tony Lindgren <tony@atomide.com>
 
-#include <media/omap1_camera.h> directive, required for successfull 
-compilation of dependant boards (board-ams-delta for now), has been lost 
-somehow from arch/arm/mach-omap1/include/mach/camera.h on creation. Readd it.
+On Tue, Nov 2, 2010 at 3:31 PM, Anand Gadiyar <gadiyar@ti.com> wrote:
+> MEMBLOCK_REAL_LIMIT symbol was removed by the commit e63075a3c937
+> (memblock: Introduce default allocation limit and use it to replace
+> explicit ones). This breaks build as below when CONFIG_TIDSPBRIDGE
+> is selected. Fix this.
 
-Created and tested against linux-2.6.37-rc1.
+I would rather apply this:
+http://article.gmane.org/gmane.linux.ports.arm.omap/45076
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
-
- arch/arm/mach-omap1/include/mach/camera.h |    2 ++
- 1 file changed, 2 insertions(+)
-
---- linux-2.6.37-rc1/arch/arm/mach-omap1/include/mach/camera.h.orig	2010-11-01 22:41:04.000000000 +0100
-+++ linux-2.6.37-rc1/arch/arm/mach-omap1/include/mach/camera.h	2010-11-01 23:18:44.000000000 +0100
-@@ -1,6 +1,8 @@
- #ifndef __ASM_ARCH_CAMERA_H_
- #define __ASM_ARCH_CAMERA_H_
- 
-+#include <media/omap1_camera.h>
-+
- void omap1_camera_init(void *);
- 
- static inline void omap1_set_camera_info(struct omap1_cam_platform_data *info)
+-- 
+Felipe Contreras
