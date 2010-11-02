@@ -1,43 +1,55 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Subject: Re: [PATCH v3 2/2] drivers: cleanup Kconfig stuff
-Date: Tue, 2 Nov 2010 10:35:35 -0400
-Message-ID: <20101102143534.GG21476@opensource.wolfsonmicro.com>
+Date: Tue, 2 Nov 2010 10:39:50 -0400
+Message-ID: <20101102143949.GH21476@opensource.wolfsonmicro.com>
 References: <1288656853-4625-1-git-send-email-felipe.contreras@gmail.com>
  <1288656853-4625-3-git-send-email-felipe.contreras@gmail.com>
  <20101102131146.GA21476@opensource.wolfsonmicro.com>
  <AANLkTim6E+e=D88C8g+YDVwS1D5JPeXvVRw-JVoVxh2i@mail.gmail.com>
+ <20101102141208.GU31158@pengutronix.de>
+ <AANLkTikwGBij05h1GgW0dpvcJedmcOQ1HWCaxaBdhZta@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:56255 "EHLO
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:56279 "EHLO
 	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753417Ab0KBOfj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 10:35:39 -0400
+	by vger.kernel.org with ESMTP id S1751555Ab0KBOjq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 10:39:46 -0400
 Content-Disposition: inline
-In-Reply-To: <AANLkTim6E+e=D88C8g+YDVwS1D5JPeXvVRw-JVoVxh2i@mail.gmail.com>
+In-Reply-To: <AANLkTikwGBij05h1GgW0dpvcJedmcOQ1HWCaxaBdhZta@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-usb <linux-usb@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Greg KH <greg@kroah.com>, Samuel Ortiz <sameo@linux.intel.com>, Liam Girdwood <lrg@slimlogic.co.uk>, David Brownell <dbrownell@users.sourceforge.net>, Greg Kroah-Hartman <gregkh@suse.de>, Hao Wu <hao.wu@intel.com>, Alan Cox <alan@linux.intel.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Mike Rapoport <mike@compulab.co.il>
+Cc: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, linux-usb <linux-usb@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Greg KH <greg@kroah.com>, Samuel Ortiz <sameo@linux.intel.com>, Liam Girdwood <lrg@slimlogic.co.uk>, David Brownell <dbrownell@users.sourceforge.net>, Greg Kroah-Hartman <gregkh@suse.de>, Hao Wu <hao.wu@intel.com>, Alan Cox <alan@linux.intel.com>, Mike Rapoport <mike@compulab.co.il>
 
-On Tue, Nov 02, 2010 at 04:02:18PM +0200, Felipe Contreras wrote:
-> On Tue, Nov 2, 2010 at 3:11 PM, Mark Brown
+On Tue, Nov 02, 2010 at 04:18:18PM +0200, Felipe Contreras wrote:
+> 2010/11/2 Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>:
 
-> > This default is not suitable for non-OMAP platforms, it should be
-> > conditional on OMAP or something if we're going to do this (though
-> > generally we handle this with defconfigs rather than in Kconfig).
+> > Well, all platforms that have TWL4030_CORE will get REGULATOR_TWL40=
+30 by
+> > default, too. =A0(TWL4030_CORE doesn't depend on something omapish.=
+)
 
-> This would only be enabled when TWL4030_CORE is enabled, so non-OMAP
-> platforms would not get affected.
+> Yes, I think TWL4030_CORE should depend on OMAP3, but I think some
+> people might not like that. That's why I wanted to make that a
+> separate patch.
 
-TWL4030 can be enabled on other platforms - it's not tied to OMAP
-(mostly to enable build coverage).
+It did originally but that dependency was removed to allow build
+coverage for non-OMAP users.
 
-> I guess you have seen the complaint from Linus regarding ARM relying
-> too much on defconfigs. This helps in order to simplify defconfigs,
-> and eventually getting rid of them completely.
-
-This solution doesn't seem like it scales so well either, it just shifts
-it into the Kconfig files (where everything is all in central files
-shared by everyone which has its own problems).  Certainly the goal of
-replacing defconfig files with Kconfig seems unattainable.
+>=20
+> > For me this looks OK. =A0It would be still better if it removed
+> > CONFIG_REGULATOR_TWL4030=3Dy from arch/arm/configs/omap2plus_defcon=
+fig.
+>=20
+> Yes, but I want to run 'make savedefconfig'; there's many changes
+> lingering like that.
+>=20
+> --=20
+> Felipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
