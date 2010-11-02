@@ -1,42 +1,51 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v3 2/2] drivers: cleanup Kconfig stuff
-Date: Tue, 2 Nov 2010 16:34:53 -0400
-Message-ID: <20101102203452.GB32103@opensource.wolfsonmicro.com>
-References: <1288656853-4625-1-git-send-email-felipe.contreras@gmail.com>
- <1288656853-4625-3-git-send-email-felipe.contreras@gmail.com>
- <20101102131146.GA21476@opensource.wolfsonmicro.com>
- <AANLkTim6E+e=D88C8g+YDVwS1D5JPeXvVRw-JVoVxh2i@mail.gmail.com>
- <20101102141208.GU31158@pengutronix.de>
- <AANLkTikwGBij05h1GgW0dpvcJedmcOQ1HWCaxaBdhZta@mail.gmail.com>
- <20101102143949.GH21476@opensource.wolfsonmicro.com>
- <AANLkTik6G25x3t9W01e_LRNVRv99CbWY3GFU93mz1wEg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: [PATCH 0/3] OMAP: DSS2: introduce generic panel display driver
+Date: Tue,  2 Nov 2010 16:39:49 -0400
+Message-ID: <1288730392-11223-1-git-send-email-bryan.wu@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58685 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752341Ab0KBUeq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 16:34:46 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTik6G25x3t9W01e_LRNVRv99CbWY3GFU93mz1wEg@mail.gmail.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:39500 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751548Ab0KBUkM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 16:40:12 -0400
+Received: by gyg4 with SMTP id 4so4392948gyg.19
+        for <linux-omap@vger.kernel.org>; Tue, 02 Nov 2010 13:40:11 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, linux-usb <linux-usb@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Greg KH <greg@kroah.com>, Samuel Ortiz <sameo@linux.intel.com>, Liam Girdwood <lrg@slimlogic.co.uk>, David Brownell <dbrownell@users.sourceforge.net>, Greg Kroah-Hartman <gregkh@suse.de>, Hao Wu <hao.wu@intel.com>, Alan Cox <alan@linux.intel.com>, Mike Rapoport <mike@compulab.co.il>
+To: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com, notasas@gmail.com
 
-On Tue, Nov 02, 2010 at 09:46:47PM +0200, Felipe Contreras wrote:
-> On Tue, Nov 2, 2010 at 4:39 PM, Mark Brown
+There are 4 duplicated panel drivers in DSS2 display driver. They are similar
+and generic panel driver can support all them with specific panel configuration.
+And new panel driver can be easily supported by adding panel configurations
+into generic panel driver.
 
-> > It did originally but that dependency was removed to allow build
-> > coverage for non-OMAP users.
+This patchset introduces generic panel driver, remove 3 panel drivers and enable
+generic panel driver in board files. And it is based on 2.6.37-rc1.
 
-> I'm not sure removing that dependency is worth it. There's probably a
-> lot of code in the kernel that can be built without meeting the
-> specified dependencies. Maybe there should be a way to differentiate
-> soft from hard dependencies for this particular use-case. But I guess
-> for now the lack of dependency should be ok.
+Building with omap2plus_defconfig is successful.
 
-It's really useful for subsystem maintainers - it means you can do
-changes over the subsystem without having to have a build lots and lots
-of different configs per chip to make sure everything still at least
-compiles.
+Keep sharp_ls_panel, since it contains blacklight control code which will be
+moved out later.
+
+Bryan Wu (3):
+  OMAP: DSS2: Add generic panel display driver
+  OMAP: DSS2: remove generic panel driver duplicated panel drivers
+  OMAP: use generic panel driver in board files
+
+ arch/arm/mach-omap2/board-3430sdp.c                |    1 +
+ arch/arm/mach-omap2/board-am3517evm.c              |    4 +-
+ arch/arm/mach-omap2/board-cm-t35.c                 |    4 +-
+ arch/arm/mach-omap2/board-devkit8000.c             |    2 +
+ arch/arm/mach-omap2/board-igep0020.c               |    1 +
+ arch/arm/mach-omap2/board-omap3beagle.c            |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c               |    1 +
+ arch/arm/mach-omap2/board-omap3stalker.c           |    2 +
+ arch/arm/plat-omap/include/plat/display.h          |   28 +++-
+ drivers/video/omap2/displays/Kconfig               |   16 +--
+ drivers/video/omap2/displays/Makefile              |    2 -
+ drivers/video/omap2/displays/panel-generic.c       |  153 ++++++++++++++++--
+ .../video/omap2/displays/panel-sharp-lq043t1dg01.c |  165 --------------------
+ .../video/omap2/displays/panel-toppoly-tdo35s.c    |  164 -------------------
+ 14 files changed, 175 insertions(+), 369 deletions(-)
+ delete mode 100644 drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
+ delete mode 100644 drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+
