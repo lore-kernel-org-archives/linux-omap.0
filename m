@@ -1,52 +1,79 @@
-From: "Webmail Help Desk" <jomilson@fc.unesp.br>
-Subject: Urgent...(Webmail upgrade notice)
-Date: Tue, 02 Nov 2010 06:06:51 -0200
-Message-ID: <20101102060651.23291z3fz5vcsm1n__7673.20908275924$1288688345$gmane$org@webmail.fc.unesp.br>
-Reply-To: web_admin10@mail2consultant.com
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: n810 video
+Date: Tue, 02 Nov 2010 11:09:50 +0200
+Message-ID: <1288688990.5614.54.camel@tubuntu>
+References: <AANLkTinV0PK=77MYkVQF2RRG4g2w_U==pbiO++j7jst-@mail.gmail.com>
+	 <AANLkTi=VcyzFBDGyko2RNpbdNhtv0pHKax8X6HnpVNuN@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.fc.unesp.br ([200.145.159.3]:53867 "EHLO mail.fc.unesp.br"
+Received: from smtp.nokia.com ([147.243.1.47]:17226 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751980Ab0KBI6N convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 04:58:13 -0400
-Content-Disposition: inline
+	id S1752317Ab0KBJJS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Nov 2010 05:09:18 -0400
+In-Reply-To: <AANLkTi=VcyzFBDGyko2RNpbdNhtv0pHKax8X6HnpVNuN@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Grazvydas Ignotas <notasas@gmail.com>, "Maksim A. Boyko" <maksim.a.boyko@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hi,
+
+On Mon, 2010-11-01 at 17:07 +0100, ext Grazvydas Ignotas wrote:
+> hi,
+> 
+> On Sat, Oct 30, 2010 at 11:40 AM, Maksim A. Boyko
+> <maksim.a.boyko@gmail.com> wrote:
+> > Hi,
+> >
+> > I try to switch on "OMAP2/3 Display Subsystem Support" and "Omap frame
+> > buffer support" on n810  (commit 8b4b01).
+> >
+> > In OMAP2/3 Display Subsystem Support I used:
+> > CONFIG_OMAP2_VRAM_SIZE=4
+> > CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
+> > CONFIG_OMAP2_DSS_DPI=y
+> > CONFIG_OMAP2_DSS_VENC=y
+> > CONFIG_PANEL_GENERIC=y
+> >
+> > In Omap frame buffer support I used:
+> > CONFIG_FB=y
+> > CONFIG_FB_OMAP_LCDC_EXTERNAL=y
+> > CONFIG_FB_OMAP_LCDC_BLIZZARD=y
+> > CONFIG_FB_OMAP_LCD_MIPID=y
+> > CONFIG_FB_OMAP_BOOTLOADER_INIT=y
+> > CONFIG_FB_OMAP=y
+> > CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
+> >
+> > I create fb device:
+> > #mknod /dev/fb0 c 29 0
+> > #chgrp video  /dev/fb0
+> > #chmod 660  /dev/fb0
+> >
+> > But XServer 1.7.7-8 from debian squeeze armel don't work in both
+> > cases. Tail of Xorg.0.log
+> >
+> > (II) LoadModule: "omapfb"
+> > (II) Loading /usr/lib/xorg/modules/drivers/omapfb_drv.so
+> > (II) Module omapfb: vendor="X.Org Foundation"
+> >        compiled for 1.7.4, module version = 0.1.1
+> >        ABI class: X.Org Video Driver, version 6.0
+> > (II) omapfb: Driver for OMAP framebuffer (omapfb) and external LCD controllers:
+> >        omap1/2/3, S1D13745, HWA742
+> > (WW) Falling back to old probe method for OMAPFB
+> > (WW) Could not open '/dev/fb0': No such device or address(EE) No
+> > devices detected
+> 
+> The kernel driver probably failed to start, check your dmesg. I guess
+> you'll need to update arch/arm/mach-omap2/board-n8x0.c and add dss2
+> platform_data (see other board-* files for some examples).
+
+Unfortunately there's no support in DSS2 for N800's Blizzard chip, so
+you'll have to use the older omapfb driver. Or alternatively port the
+Blizzard driver to DSS2, and probably make some fixes for DSS2's RFBI
+support.
+
+ Tomi
 
 
-
-Dear account user,
-
-We are updating our database, and e-mail account center. We are =20
-deleting all unused webmail account and create more space for new =20
-accounts. To ensure  that you do not experience service disruption =20
-during this period, you need to provide the below details:
-
-CONFIRM YOUR ACCOUNT BELOW
-1. E-mail:.................................
-2. Username :....................................
-2. Password :...................................
-3. Confirm password :...............................
-
-You will receive confirmation of a new alphanumeric password that is =20
-only valid during this period, and may be changed by this process. We =20
-regret any inconvenience this may cost you.
-
-Please reply to this message so we can give you better services online =
-=20
-with our new and improved webmail functionality and improvements.
-
-Webmail Upgrade Team =A9 2010
-Warning Code: ID67565434.
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
