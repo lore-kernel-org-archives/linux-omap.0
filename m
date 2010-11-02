@@ -1,67 +1,162 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Subject: RE: [PATCH v2] McBSP: Fix the free variable update at remove.
-Date: Tue, 2 Nov 2010 16:35:20 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003FF767E64@dbde02.ent.ti.com>
-References: <1288693488-10200-1-git-send-email-shubhrajyoti@ti.com>
- <20101102123256.b6bee4b7.jhnikula@gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v4 2/9] OMAP3: PM: Adding smartreflex driver support.
+Date: Tue, 02 Nov 2010 12:50:57 +0100
+Message-ID: <4CCFFB21.5060305@ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB030D310D1D@dbde02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB035ECA9D57@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33870 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:35933 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752302Ab0KBLF0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 07:05:26 -0400
-In-Reply-To: <20101102123256.b6bee4b7.jhnikula@gmail.com>
-Content-Language: en-US
+	id S1751004Ab0KBLua (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Nov 2010 07:50:30 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035ECA9D57@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
+On 10/28/2010 5:27 PM, Gopinath, Thara wrote:
+>
+>
+>>> -----Original Message-----
+>>> From: Varadarajan, Charulatha
+>>> Sent: Thursday, October 28, 2010 11:09 AM
+>>> To: Gopinath, Thara; linux-omap@vger.kernel.org
+>>> Cc: paul@pwsan.com; khilman@deeprootsystems.com; Cousson, Benoit; Sripathy,
+>>> Vishwanath; Sawant, Anand; Gopinath, Thara
+>>> Subject: RE: [PATCH v4 2/9] OMAP3: PM: Adding smartreflex driver support.
+>>>
+>>>
+>>> Thara,
+>>>
+>>>> -----Original Message-----
+>>>> From: linux-omap-owner@vger.kernel.org
+>>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Thara Gopinath
+>>>> Sent: Wednesday, October 27, 2010 9:41 PM
+>>>> To: linux-omap@vger.kernel.org
+>>>> Cc: paul@pwsan.com; khilman@deeprootsystems.com; Cousson,
+>>>> Benoit; Sripathy, Vishwanath; Sawant, Anand; Gopinath, Thara
+>>>> Subject: [PATCH v4 2/9] OMAP3: PM: Adding smartreflex driver support.
+>>>>
+>>>> SmartReflex modules do adaptive voltage control for real-time
+>>>> voltage adjustments. With Smartreflex the power supply voltage
+>>>> can be adapted to the silicon performance(manufacturing process,
+>>>> temperature induced performance, age induced performance etc).
+>>>>
+>>>> There are differnet classes of smartreflex implementation.
+>>>> 	Class-0: Manufacturing Test Calibration
+>>>> 	Class-1: Boot-Time Software Calibration
+>>>> 	Class-2: Continuous Software Calibration
+>>>> 	Class-3: Continuous Hardware Calibration
+>>>> 	Class-4: Fully Integrated Power Management
+>>>>
+>>>> OMAP3 has two smartreflex modules one associated with VDD MPU and the
+>>>> other associated with VDD CORE.
+>>>> This patch adds support for  smartreflex driver. The driver
+>>>> is designed
+>>>> for Class-1 , Class-2 and Class-3 support and is  a platform driver.
+>>>> Smartreflex driver can be enabled through a Kconfig option
+>>>> "SmartReflex support" under "System type"->"TI OMAP
+>>>> implementations" menu.
+>>>>
+>>>> Smartreflex autocompensation feature can be enabled runtime through
+>>>> a debug fs option.
+>>>> To enable smartreflex autocompensation feature
+>>>> 	echo 1>  /debug/voltage/vdd_<X>/smartreflex/autocomp
+>>>> To disable smartreflex autocompensation feature
+>>>> 	echo 0>  /debug/voltage/vdd_<X>/smartreflex/autocomp
+>>>>
+>>>> where X can be mpu, core , iva etc.
+>>>>
+>>>> This patch contains code originally in linux omap pm branch.
+>>>> Major contributors to this driver are
+>>>> Lesly A M, Rajendra Nayak, Kalle Jokiniemi, Paul Walmsley,
+>>>> Nishant Menon, Kevin Hilman.
+>>>>
+>>>> Signed-off-by: Thara Gopinath<thara@ti.com>
+>>>> ---
+>>>>   arch/arm/mach-omap2/Makefile                  |    1 +
+>>>>   arch/arm/mach-omap2/smartreflex.c             |  975
+>>>> +++++++++++++++++++++++++
+>>>>   arch/arm/plat-omap/Kconfig                    |   36 +
+>>>>   arch/arm/plat-omap/include/plat/smartreflex.h |  271 +++++++
+>>>>   4 files changed, 1283 insertions(+), 0 deletions(-)
+>>>>   create mode 100644 arch/arm/mach-omap2/smartreflex.c
+>>>>   create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
+>>>>
+>>>
+>>> <<snip>>
+>>>
+>>>> +static int __init omap_sr_probe(struct platform_device *pdev)
+>>>> +{
+>>>> +	struct omap_sr *sr_info = kzalloc(sizeof(struct
+>>>> omap_sr), GFP_KERNEL);
+>>>> +	struct omap_device *odev = to_omap_device(pdev);
+>>>
+>>> Patch3 should be ordered before patch2 in your series. Otherwise,
+>>> this would fail during a git-bisect.
+>
+> Again why ?? All patches individually compile and boot.
+>>>
+>>>> +	struct omap_sr_data *pdata = pdev->dev.platform_data;
+>>>> +	struct resource *mem, *irq;
+>>>> +	struct dentry *vdd_dbg_dir, *dbg_dir;
+>>>> +	int ret = 0;
+>>>> +
+>>>> +	if (!sr_info) {
+>>>> +		dev_err(&pdev->dev, "%s: unable to allocate sr_info\n",
+>>>> +			__func__);
+>>>> +		return -ENOMEM;
+>>>> +	}
+>>>> +
+>>>> +	if (!pdata) {
+>>>> +		dev_err(&pdev->dev, "%s: platform data
+>>>> missing\n", __func__);
+>>>> +		return -EINVAL;
+>>>> +	}
+>>>> +
+>>>> +	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>>> +	if (!mem) {
+>>>> +		dev_err(&pdev->dev, "%s: no mem resource\n", __func__);
+>>>> +		ret = -ENODEV;
+>>>> +		goto err_free_devinfo;
+>>>> +	}
+>>>> +
+>>>> +	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+>>>> +
+>>>> +	pm_runtime_enable(&pdev->dev);
+>>>> +
+>>>> +	sr_info->pdev = pdev;
+>>>> +	sr_info->srid = pdev->id;
+>>>> +	sr_info->voltdm = pdata->voltdm;
+>>>> +	sr_info->autocomp_active = false;
+>>>> +	sr_info->ip_type = odev->hwmods[0]->class->rev;
+>>>
+>>> I am not sure if it is okay to get hwmods-info in the driver.
+>>> To avoid too many indirections, it can be obtained before
+>>> omap_device_build() of the device and passed to the driver.
+> mmm. yep we could do it also. Maybe Kevin/Benoit needs to confirm the
+> correct way of doing this.
 
+Yep, I fully agree with Charu. You'd better copy that information at 
+omap_device build time. Getting hwmod internal stuff directly is bad.
 
-> -----Original Message-----
-> From: Jarkko Nikula [mailto:jhnikula@gmail.com]
-> Sent: Tuesday, November 02, 2010 4:03 PM
-> To: Datta, Shubhrajyoti
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v2] McBSP: Fix the free variable update at remove.
-> 
-> On Tue,  2 Nov 2010 15:54:48 +0530
-> shubhrajyoti@ti.com wrote:
-> 
-> > From: Shubhrajyoti D <shubhrajyoti@ti.com>
-> >
-> > At remove the free variable is wrongly updated.Attempting to solve the
-> same.
-> >
-> > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> > ---
-> > -[v2] Instead of using 0/1 use a macro
-> >
-> >  arch/arm/plat-omap/include/plat/mcbsp.h |    3 +++
-> >  arch/arm/plat-omap/mcbsp.c              |   10 +++++-----
-> >  2 files changed, 8 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-
-> omap/include/plat/mcbsp.h
-> > index b87d83c..8988733 100644
-> > --- a/arch/arm/plat-omap/include/plat/mcbsp.h
-> > +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-> > @@ -37,6 +37,9 @@ static struct platform_device omap_mcbsp##port_nr = {
-> 	\
-> >  	.id	= OMAP_MCBSP##port_nr,			\
-> >  }
-> >
-> > +#define TRUE			1
-> > +#define FALSE			0
-> > +
-> Use 'true' & 'false' in the code instead and then there is no need to
-> redefine these. They are defined in include/linux/stddef.h which is
-> probably included already by some another file.
-> 
-Yes missed it. Will fix that.
-> 
-> --
-> Jarkko
+Benoit
+
+>
+> Regards
+> Thara
+>>>
+>>>> +	sr_info->base = ioremap(mem->start, resource_size(mem));
+>>>> +	if (!sr_info->base) {
+>>>> +		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
+>>>> +		ret = -ENOMEM;
+>>>> +		goto err_release_region;
+>>>> +	}
+>>>
+>>> <<snip>>
+>>>
+>>> -V Charulatha
+
