@@ -1,33 +1,41 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] drivers: cleanup Kconfig stuff
-Date: Tue, 2 Nov 2010 09:11:47 -0400
-Message-ID: <20101102131146.GA21476@opensource.wolfsonmicro.com>
-References: <1288656853-4625-1-git-send-email-felipe.contreras@gmail.com>
- <1288656853-4625-3-git-send-email-felipe.contreras@gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2 2/4] OMAP3: PM: update DSP reset code to use new SCM DSP boot control functions
+Date: Tue, 02 Nov 2010 13:27:18 +0000
+Message-ID: <874obzg8jt.fsf@deeprootsystems.com>
+References: <1288109763-9446-1-git-send-email-omar.ramirez@ti.com>
+	<1288109763-9446-3-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1288656853-4625-3-git-send-email-felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-main <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Liam Girdwood <lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Hao Wu <hao.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alan Cox <alan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Mike Rapoport <mike-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:62866 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752372Ab0KBN1d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 09:27:33 -0400
+Received: by wyf28 with SMTP id 28so6711653wyf.19
+        for <linux-omap@vger.kernel.org>; Tue, 02 Nov 2010 06:27:31 -0700 (PDT)
+In-Reply-To: <1288109763-9446-3-git-send-email-omar.ramirez@ti.com> (Omar
+	Ramirez Luna's message of "Tue, 26 Oct 2010 11:16:01 -0500")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kalle Jokiniemi <kalle.jokiniemi@digia.com>, Rajendra Nayak <rnayak@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Tero Kristo <tero.kristo@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Rene Sapiens <rene.sapiens@ti.com>, Ernesto Ramos <ernesto@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Nov 02, 2010 at 02:14:13AM +0200, Felipe Contreras wrote:
+Omar Ramirez Luna <omar.ramirez@ti.com> writes:
 
->  config REGULATOR_TWL4030
->  	bool "TI TWL4030/TWL5030/TWL6030/TPS695x0 PMIC"
->  	depends on TWL4030_CORE
-> +	default y
->  	help
->  	  This driver supports the voltage regulators provided by
->  	  this family of companion chips.
+> From: Paul Walmsley <paul@pwsan.com>
+>
+> Update the DSP reset code in pm34xx.c to use one of the new SCM DSP
+> boot control functions, omap2430_ctrl_set_dsp_bootmode().
+>
+> This reset code should be moved out to a separate function to be
+> called by the hwmod reset process at some point.  Also, 2430
+> should be initializing the DSP in a similar fashion.
+>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-This default is not suitable for non-OMAP platforms, it should be
-conditional on OMAP or something if we're going to do this (though
-generally we handle this with defconfigs rather than in Kconfig).
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+In PATCH 0/x, please report on what platforms this was tested.
+
+Kevin
