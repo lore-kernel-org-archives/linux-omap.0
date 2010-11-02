@@ -1,52 +1,40 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 0/2] OMAP: DSS2: Add new display panel
-Date: Tue, 02 Nov 2010 11:19:06 +0200
-Message-ID: <1288689546.5614.60.camel@tubuntu>
-References: <1288276982-17225-1-git-send-email-eballetbo@gmail.com>
-	 <1288620930.5614.16.camel@tubuntu>
-	 <AANLkTi=fV58ApDqUE21YMK0_vhLdPbPr7F7YpYh0-2Vc@mail.gmail.com>
+Subject: Re: [PATCH] OMAP: Fix build failure on MEMBLOCK_REAL_LIMIT
+Date: Tue, 02 Nov 2010 11:43:02 +0200
+Message-ID: <1288690982.5614.78.camel@tubuntu>
+References: <1288629008-29767-1-git-send-email-namhyung@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:48642 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632Ab0KBJSw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 05:18:52 -0400
-In-Reply-To: <AANLkTi=fV58ApDqUE21YMK0_vhLdPbPr7F7YpYh0-2Vc@mail.gmail.com>
+Received: from smtp.nokia.com ([147.243.1.47]:33575 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750771Ab0KBJmb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Nov 2010 05:42:31 -0400
+In-Reply-To: <1288629008-29767-1-git-send-email-namhyung@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Bryan Wu <bryan.wu@canonical.com>
-Cc: ext Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "hvaibhav@ti.com" <hvaibhav@ti.com>, "notasas@gmail.com" <notasas@gmail.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, "mike@compulab.co.il" <mike@compulab.co.il>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: ext Namhyung Kim <namhyung@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2010-11-01 at 17:45 +0100, ext Bryan Wu wrote:
-> On Mon, Nov 1, 2010 at 10:15 AM, Tomi Valkeinen
-> <tomi.valkeinen@nokia.com> wrote:
-
-> > What we need is a common driver for all these dummy panels, and the
-> > driver would contain configurations for all the supported panels. The
-> > board file would pass the name of the panel used in that board to the
-> > driver, and the driver would use the configurations for that panel.
-> >
+On Mon, 2010-11-01 at 17:30 +0100, ext Namhyung Kim wrote:
+> The MEMBLOCK_REAL_LIMIT symbol was removed by the commit e63075a3c937
+> (memblock: Introduce default allocation limit and use it to replace
+> explicit ones) so it breaks beagle board build as follows:
 > 
-> It looks like that we just need one file name displays.c to do those
-> generic things and pass the configuration from board files to this
-> driver, such as timing or other things.
+>   CC      drivers/video/omap2/vram.o
+> drivers/video/omap2/vram.c: In function 'omap_vram_reserve_sdram_memblock':
+> drivers/video/omap2/vram.c:573: error: 'MEMBLOCK_REAL_LIMIT' undeclared (first use in this function)
+> drivers/video/omap2/vram.c:573: error: (Each undeclared identifier is reported only once
+> drivers/video/omap2/vram.c:573: error: for each function it appears in.)
+> make[5]: *** [drivers/video/omap2/vram.o] Error 1
+> make[4]: *** [drivers/video/omap2] Error 2
+> make[3]: *** [drivers/video] Error 2
+> make[2]: *** [drivers] Error 2
+> make[1]: *** [sub-make] Error 2
+> make: *** [all] Error 2
 
-Not quite. If you pass timing information from the board files then
-every board file has to define all the timings, even if they are using
-the same panel.
-
-That's why the configs should be in the panel driver, and the board file
-only has to define which panel is actually connected.
-
-> > This has been discussed a few times in l-o list, but I haven't found
-> > time to implement it and nobody else has done it either.
-> >
-> 
-> I'm quite happy to do this, thanks,
-
-Thanks, I appreciate that.
+Thanks, applied to my tree.
 
  Tomi
 
