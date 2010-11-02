@@ -1,55 +1,64 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v3 2/2] drivers: cleanup Kconfig stuff
-Date: Tue, 2 Nov 2010 10:39:50 -0400
-Message-ID: <20101102143949.GH21476@opensource.wolfsonmicro.com>
-References: <1288656853-4625-1-git-send-email-felipe.contreras@gmail.com>
- <1288656853-4625-3-git-send-email-felipe.contreras@gmail.com>
- <20101102131146.GA21476@opensource.wolfsonmicro.com>
- <AANLkTim6E+e=D88C8g+YDVwS1D5JPeXvVRw-JVoVxh2i@mail.gmail.com>
- <20101102141208.GU31158@pengutronix.de>
- <AANLkTikwGBij05h1GgW0dpvcJedmcOQ1HWCaxaBdhZta@mail.gmail.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH 2.6.37-rc1] ASoC: OMAP: fix OMAP1 compilation
+	problem
+Date: Tue, 2 Nov 2010 15:50:32 +0100
+Message-ID: <201011021550.34885.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:56279 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751555Ab0KBOjq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 10:39:46 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <AANLkTikwGBij05h1GgW0dpvcJedmcOQ1HWCaxaBdhZta@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: Paul Walmsley <paul@pwsan.com>, alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, e3-hacking@earth.li, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, linux-usb <linux-usb@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Greg KH <greg@kroah.com>, Samuel Ortiz <sameo@linux.intel.com>, Liam Girdwood <lrg@slimlogic.co.uk>, David Brownell <dbrownell@users.sourceforge.net>, Greg Kroah-Hartman <gregkh@suse.de>, Hao Wu <hao.wu@intel.com>, Alan Cox <alan@linux.intel.com>, Mike Rapoport <mike@compulab.co.il>
 
-On Tue, Nov 02, 2010 at 04:18:18PM +0200, Felipe Contreras wrote:
-> 2010/11/2 Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>:
+In the new code introduced with commit cf4c87abe238ec17cd0255b4e21abd949d7f811e,
+"OMAP: McBSP: implement McBSP CLKR and FSR signal muxing via mach-omap2/mcbsp.c",
+the way omap1 build is supposed to bypass omap2 specific functionality doesn't 
+optimize out all omap2 specific stuff. This breaks linking phase for omap1 
+machines, giving "undefined reference to `omap2_mcbsp1_mux_clkr_src'" 
+and "undefined reference to `omap2_mcbsp1_mux_fsr_src'" errors. Fix it.
 
-> > Well, all platforms that have TWL4030_CORE will get REGULATOR_TWL40=
-30 by
-> > default, too. =A0(TWL4030_CORE doesn't depend on something omapish.=
-)
+Created and tested against linux-2.6.37-rc1.
 
-> Yes, I think TWL4030_CORE should depend on OMAP3, but I think some
-> people might not like that. That's why I wanted to make that a
-> separate patch.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
 
-It did originally but that dependency was removed to allow build
-coverage for non-OMAP users.
+ sound/soc/omap/omap-mcbsp.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
->=20
-> > For me this looks OK. =A0It would be still better if it removed
-> > CONFIG_REGULATOR_TWL4030=3Dy from arch/arm/configs/omap2plus_defcon=
-fig.
->=20
-> Yes, but I want to run 'make savedefconfig'; there's many changes
-> lingering like that.
->=20
-> --=20
-> Felipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- linux-2.6.37-rc1/sound/soc/omap/omap-mcbsp.c.orig	2010-11-01 22:43:16.000000000 +0100
++++ linux-2.6.37-rc1/sound/soc/omap/omap-mcbsp.c	2010-11-02 15:41:42.000000000 +0100
+@@ -644,15 +644,23 @@ static int omap_mcbsp_dai_set_dai_sysclk
+ 
+ 
+ 	case OMAP_MCBSP_CLKR_SRC_CLKR:
++		if (cpu_class_is_omap1())
++			break;
+ 		omap2_mcbsp1_mux_clkr_src(CLKR_SRC_CLKR);
+ 		break;
+ 	case OMAP_MCBSP_CLKR_SRC_CLKX:
++		if (cpu_class_is_omap1())
++			break;
+ 		omap2_mcbsp1_mux_clkr_src(CLKR_SRC_CLKX);
+ 		break;
+ 	case OMAP_MCBSP_FSR_SRC_FSR:
++		if (cpu_class_is_omap1())
++			break;
+ 		omap2_mcbsp1_mux_fsr_src(FSR_SRC_FSR);
+ 		break;
+ 	case OMAP_MCBSP_FSR_SRC_FSX:
++		if (cpu_class_is_omap1())
++			break;
+ 		omap2_mcbsp1_mux_fsr_src(FSR_SRC_FSX);
+ 		break;
+ 	default:
