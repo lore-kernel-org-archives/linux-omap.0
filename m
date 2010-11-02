@@ -1,76 +1,67 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: Re: [PATCH 1/3] OMAP: DSS2: Add dummy panel display driver
-Date: Tue, 2 Nov 2010 15:13:37 -0400
-Message-ID: <AANLkTik=yXT8jP=-_Yqhr4Z6VEcPSz-yrQ-UV5cnhn-k@mail.gmail.com>
-References: <1288714390-6159-1-git-send-email-bryan.wu@canonical.com>
-	<1288714390-6159-2-git-send-email-bryan.wu@canonical.com>
-	<AANLkTikd-hMcFkanO4SUceJuvrMoLxxcB4Fw3HvU_8-w@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v3 2/2] drivers: cleanup Kconfig stuff
+Date: Tue, 2 Nov 2010 21:43:30 +0200
+Message-ID: <AANLkTimuT8__KJE1V9f8PoFCxUjYW6n=35mLH4wBVdvM@mail.gmail.com>
+References: <1288656853-4625-1-git-send-email-felipe.contreras@gmail.com>
+	<1288656853-4625-3-git-send-email-felipe.contreras@gmail.com>
+	<20101102131146.GA21476@opensource.wolfsonmicro.com>
+	<AANLkTim6E+e=D88C8g+YDVwS1D5JPeXvVRw-JVoVxh2i@mail.gmail.com>
+	<20101102143534.GG21476@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:61420 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752434Ab0KBTNj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 15:13:39 -0400
-Received: by gwj21 with SMTP id 21so4340695gwj.19
-        for <linux-omap@vger.kernel.org>; Tue, 02 Nov 2010 12:13:38 -0700 (PDT)
-In-Reply-To: <AANLkTikd-hMcFkanO4SUceJuvrMoLxxcB4Fw3HvU_8-w@mail.gmail.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:52745 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751077Ab0KBTnd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 15:43:33 -0400
+In-Reply-To: <20101102143534.GG21476@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-usb <linux-usb@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Greg KH <greg@kroah.com>, Samuel Ortiz <sameo@linux.intel.com>, Liam Girdwood <lrg@slimlogic.co.uk>, David Brownell <dbrownell@users.sourceforge.net>, Greg Kroah-Hartman <gregkh@suse.de>, Hao Wu <hao.wu@intel.com>, Alan Cox <alan@linux.intel.com>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Mike Rapoport <mike@compulab.co.il>
 
-On Tue, Nov 2, 2010 at 1:21 PM, Grazvydas Ignotas <notasas@gmail.com> w=
-rote:
-> On Tue, Nov 2, 2010 at 6:13 PM, Bryan Wu <bryan.wu@canonical.com> wro=
-te:
->> Dummy panel driver includes the driver and 4 similar panel configura=
-tions. It
->> will match the panel name which is passed from platform data and set=
-up the
->> right configurations.
->>
->> With dummy panel driver, we can remove those 4 duplicated panel disp=
-lay
->> drivers. In the future, it is simple for us just add new panel confi=
-guration
->> date in panel-dummy.h to support new display panel.
->>
->> Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+On Tue, Nov 2, 2010 at 4:35 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Tue, Nov 02, 2010 at 04:02:18PM +0200, Felipe Contreras wrote:
+>> On Tue, Nov 2, 2010 at 3:11 PM, Mark Brown
 >
-> <snip>
+>> > This default is not suitable for non-OMAP platforms, it should be
+>> > conditional on OMAP or something if we're going to do this (though
+>> > generally we handle this with defconfigs rather than in Kconfig).
 >
->> diff --git a/drivers/video/omap2/displays/panel-dummy.h b/drivers/vi=
-deo/omap2/displays/panel-dummy.h
->> new file mode 100644
->> index 0000000..ac2b7a2
->> --- /dev/null
->> +++ b/drivers/video/omap2/displays/panel-dummy.h
+>> This would only be enabled when TWL4030_CORE is enabled, so non-OMAP
+>> platforms would not get affected.
 >
-> There is no benefit of having this header, just add all data directly
-> in .c file.
->
-> <snip>
->
->> + =A0 =A0 =A0 /* Sharp LQ043T1DG01 */
->> + =A0 =A0 =A0 {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 { =A0 =A0 =A0 .x_res =A0 =A0 =A0 =A0 =A0=
-=3D 480,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .y_res =A0 =A0 =A0 =A0=
- =A0=3D 272,
->
-> missing newline after {
->
+> TWL4030 can be enabled on other platforms - it's not tied to OMAP
+> (mostly to enable build coverage).
 
-Thanks, I will take these 2 comments.
+Yes, but if you are manually enabling TWL4030_CORE and REGULATOR,
+REGULATOR_TWL4030 makes sense. If somebody doesn't want it for some
+reason, it can be manually disabled.
+
+>> I guess you have seen the complaint from Linus regarding ARM relying
+>> too much on defconfigs. This helps in order to simplify defconfigs,
+>> and eventually getting rid of them completely.
+>
+> This solution doesn't seem like it scales so well either, it just shi=
+fts
+> it into the Kconfig files (where everything is all in central files
+> shared by everyone which has its own problems). =C2=A0Certainly the g=
+oal of
+> replacing defconfig files with Kconfig seems unattainable.
+
+The difference is that Kconfig files are needed, and part of linux
+itself. The defconfig files should be optional, there are many, and
+not necessarily in the linux tree (e.g. meego kernel configs).
+
+However, even if you forget about Kconfig vs defconfig, it should be
+possible to create a .config file from nothing, and when you do that,
+having REGULATOR_TWL4030 enabled when you enable REGULATOR support
+just makes sense (if you have enabled TWL4030_CORE).
 
 --=20
-Bryan Wu <bryan.wu@canonical.com>
-Kernel Developer =A0 =A0+86.138-1617-6545 Mobile
-Ubuntu Kernel Team
-Canonical Ltd. =A0 =A0 =A0www.canonical.com
-Ubuntu - Linux for human beings | www.ubuntu.com
+=46elipe Contreras
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
