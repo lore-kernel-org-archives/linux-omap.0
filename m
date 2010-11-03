@@ -1,48 +1,64 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 2.6.37-rc1] ASoC: OMAP: fix OMAP1
-	compilation problem
-Date: Wed, 3 Nov 2010 10:20:28 +0200
-Message-ID: <20101103102028.8ff19cac.jhnikula@gmail.com>
-References: <201011021550.34885.jkrzyszt@tis.icnet.pl>
-	<alpine.DEB.2.00.1011021058380.22589@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH] OMAP3630: DSS2: Enable Pre-Multiplied Alpha Support
+Date: Wed, 03 Nov 2010 11:21:13 +0200
+Message-ID: <1288776073.5614.183.camel@tubuntu>
+References: <1288174567-24734-1-git-send-email-samreen@ti.com>
+	 <1288709767.5614.138.camel@tubuntu>
+	 <FCCFB4CDC6E5564B9182F639FC356087034BE1E990@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <alpine.DEB.2.00.1011021058380.22589@utopia.booyaka.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, e3-hacking@earth.li, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:41187 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753685Ab0KCJU5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Nov 2010 05:20:57 -0400
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087034BE1E990@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Taneja, Archit" <archit@ti.com>
+Cc: "Nilofer, Samreen" <samreen@ti.com>, "Syrjala Ville (Nokia-MS/Helsinki)" <ville.syrjala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linufbdev@vger.kernel.org" <linufbdev@vger.kernel.org>, Rajkumar N <rajkumar.nagarajan@ti.com>, Sudeep Basavaraj <sudeep.basavaraj@ti.com>
 
-On Tue, 2 Nov 2010 10:58:59 -0600 (MDT)
-Paul Walmsley <paul@pwsan.com> wrote:
-
-> On Tue, 2 Nov 2010, Janusz Krzysztofik wrote:
+On Wed, 2010-11-03 at 08:57 +0100, ext Taneja, Archit wrote:
+> Hi,
 > 
-> > In the new code introduced with commit cf4c87abe238ec17cd0255b4e21abd949d7f811e,
-> > "OMAP: McBSP: implement McBSP CLKR and FSR signal muxing via mach-omap2/mcbsp.c",
-> > the way omap1 build is supposed to bypass omap2 specific functionality doesn't 
-> > optimize out all omap2 specific stuff. This breaks linking phase for omap1 
-> > machines, giving "undefined reference to `omap2_mcbsp1_mux_clkr_src'" 
-> > and "undefined reference to `omap2_mcbsp1_mux_fsr_src'" errors. Fix it.
+> linux-omap-owner@vger.kernel.org wrote:
+> > Alpha Support
 > > 
-> > Created and tested against linux-2.6.37-rc1.
+> 
+> [snip]
+> 
+> >> 
+> >> +static void _dispc_set_pre_mult_alpha(enum omap_plane plane, bool +enable) {
+> >> +	if (!dss_has_feature(FEAT_PREMUL_ALPHA))
+> >> +		return;
+> >> +
+> >> +	BUG_ON(!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
+> >> +		plane == OMAP_DSS_VIDEO1);
 > > 
-> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > What is the rationale for having the function return, if
+> > FEAT_PREMUL_ALPHA is not supported, but BUG if plane is video1 and
+> > GLOBAL_ALPHA_VID1 is not supported?
 > 
-> Acked-by: Paul Walmsley <paul@pwsan.com>
+> Premultiplied alpha is available on omap36xx and above, but on 36xx
+> since global alpha itself isn't supported for video1 then writing to
+> the pre multiplied alpha bit is incorrect.
 > 
-> Thanks Janusz.
-> 
-Yep, this must go to 2.6.37.
+> It could have been possible to make a new feature like FEAT_PRE_MULT_VID1
+> but I think its redundant as FEAT_GLOBAL_ALPHA_VID1 is enough to determine
+> if we should set the pre multiplied alpha bit for video1 plane or not.
 
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+I was referring to the first check using return, and the second using
+BUG(). If nobody is supposed to call that function when
+
+!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) && plane == OMAP_DSS_VIDEO1)
+
+then why is it ok to call that function when 
+
+!dss_has_feature(FEAT_PREMUL_ALPHA)
+
+Shouldn't they both be either returns or BUGs?
+
+  Tomi
+
+
