@@ -1,42 +1,60 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH RESEND v5 4/5] omap: nand: ecc layout select from board file
-Date: Wed, 3 Nov 2010 15:02:36 +0200
-Message-ID: <AANLkTikKMnzHR5DZqzGdJJbnCXhCpxKA7K2C2ZtPhNke@mail.gmail.com>
-References: <1285596710-25658-1-git-send-email-s-ghorai@ti.com>
-	<1285596710-25658-5-git-send-email-s-ghorai@ti.com>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [alsa-devel] [PATCH 2.6.37-rc1] ASoC: OMAP: fix OMAP1
+ compilation problem
+Date: Wed, 03 Nov 2010 14:16:32 +0000
+Message-ID: <1288793792.3277.51.camel@odin>
+References: <201011021550.34885.jkrzyszt@tis.icnet.pl>
+	 <alpine.DEB.2.00.1011021058380.22589@utopia.booyaka.com>
+	 <20101103102028.8ff19cac.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:59167 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754633Ab0KCNCh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Nov 2010 09:02:37 -0400
-Received: by qyk12 with SMTP id 12so69012qyk.19
-        for <linux-omap@vger.kernel.org>; Wed, 03 Nov 2010 06:02:36 -0700 (PDT)
-In-Reply-To: <1285596710-25658-5-git-send-email-s-ghorai@ti.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:44466 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755109Ab0KCOQi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Nov 2010 10:16:38 -0400
+Received: by wyf28 with SMTP id 28so640519wyf.19
+        for <linux-omap@vger.kernel.org>; Wed, 03 Nov 2010 07:16:37 -0700 (PDT)
+In-Reply-To: <20101103102028.8ff19cac.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sukumar Ghorai <s-ghorai@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Vimal Singh <vimalsingh@ti.com>, Artem.Bityutskiy@nokia.com
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>, alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, e3-hacking@earth.li, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Sep 27, 2010 at 5:11 PM, Sukumar Ghorai <s-ghorai@ti.com> wrote=
-:
-> This patch makes it possible to select sw or hw (different layout opt=
-ions)
-> ecc scheme supported by omap nand driver. =A0And hw ecc layout select=
-ed for
-> sdp and zoom boards, by default.
->
-> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-> Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+On Wed, 2010-11-03 at 10:20 +0200, Jarkko Nikula wrote:
+> On Tue, 2 Nov 2010 10:58:59 -0600 (MDT)
+> Paul Walmsley <paul@pwsan.com> wrote:
+> 
+> > On Tue, 2 Nov 2010, Janusz Krzysztofik wrote:
+> > 
+> > > In the new code introduced with commit cf4c87abe238ec17cd0255b4e21abd949d7f811e,
+> > > "OMAP: McBSP: implement McBSP CLKR and FSR signal muxing via mach-omap2/mcbsp.c",
+> > > the way omap1 build is supposed to bypass omap2 specific functionality doesn't 
+> > > optimize out all omap2 specific stuff. This breaks linking phase for omap1 
+> > > machines, giving "undefined reference to `omap2_mcbsp1_mux_clkr_src'" 
+> > > and "undefined reference to `omap2_mcbsp1_mux_fsr_src'" errors. Fix it.
+> > > 
+> > > Created and tested against linux-2.6.37-rc1.
+> > > 
+> > > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > 
+> > Acked-by: Paul Walmsley <paul@pwsan.com>
+> > 
+> > Thanks Janusz.
+> > 
+> Yep, this must go to 2.6.37.
+> 
+> Acked-by: Jarkko Nikula <jhnikula@gmail.com>
 
-Any news on this? Commit 2c01946c accidentally (?) enabled hardware
-ECC and now my board is broken, as the driver always used sw ecc and
-my NAND partitions are formatted accordingly. We should at least
-switch the default back to sw ecc, don't you think?
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Applied.
+
+Thanks
+
+Liam
+-- 
+Freelance Developer, SlimLogic Ltd
+ASoC and Voltage Regulator Maintainer.
+http://www.slimlogic.co.uk
+
