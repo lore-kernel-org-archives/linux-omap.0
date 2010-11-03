@@ -1,89 +1,94 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: OMAP3 low power mode broken on l-o
-Date: Wed, 3 Nov 2010 13:48:56 +0100
-Message-ID: <AANLkTimucOpcrMoCytiSbrNevrNAtErpxCEUL=AF5zce@mail.gmail.com>
-References: <AANLkTikzVLW08MrZUPWmVx6+w4E8sXN5NHwM1R7Ya8zX@mail.gmail.com>
-	<87sjzjetfy.fsf@deeprootsystems.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: [PATCH 3/3] OMAP: use generic panel driver in board files
+Date: Wed, 3 Nov 2010 18:26:10 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034BE1EB1A@dbde02.ent.ti.com>
+References: <1288730392-11223-1-git-send-email-bryan.wu@canonical.com>
+ <1288730392-11223-4-git-send-email-bryan.wu@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:57349 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754725Ab0KCMs5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Nov 2010 08:48:57 -0400
-Received: by gxk23 with SMTP id 23so434400gxk.19
-        for <linux-omap@vger.kernel.org>; Wed, 03 Nov 2010 05:48:57 -0700 (PDT)
-In-Reply-To: <87sjzjetfy.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51651 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753073Ab0KCM40 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Nov 2010 08:56:26 -0400
+In-Reply-To: <1288730392-11223-4-git-send-email-bryan.wu@canonical.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: Bryan Wu <bryan.wu@canonical.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.
 
-Hi Kevin,
+Hi,
 
-On Tue, Nov 2, 2010 at 2:38 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
->
->> The low power mode on the latest l-o master branch is broken, so I
->> investigated a bit. Here are the results. This has been tested on
->> OMAP3EVM and Beagleboard.
->>
->> The problem is that the CORE does not reach the desired mode (RET,
->> OFF). It is caused by the I2C1 fclk that is left enabled at suspend
->> time.
->> Extra printks has been added in the clock enable and disable functio=
-ns
->> for I2C and a stack dump has been added in the suspend path if the
->> clock is still enabled, cf. log below.
->>
->> In the devices suspend sequence the RTC gets suspended, which trigge=
-rs
->> a read of the TWL RTC through the I2C bus, which in turn enables the
->> I2C1 fclk. That clock is only disabled on devices resume.
->>
->> I am guessing this is linked to the recent changes in the I2C for HW=
-MOD support.
->> What is the correct fix to have the I2C modules correctly shut off
->> before the suspend?
->
-> I2C clocks are supposed to be disabled after each transaction. =A0Thi=
-s
-> isn't happening.
->
-> My guess is that the 'put' that happens after TX doesn't actually
-> actually result in a call to omap_device_idle() since system suspend =
-is
-> active. =A0Static suspend/resume take the runtime PM lock, effectivel=
-y
-> disabling runtime PM suspend during static suspend.
->
-> I have a patch/workaround for this problem which is part of my pm-cor=
-e
-> branch, but I did not submit for 2.6.37 as I'm not entirely convinced=
- of
-> it yet. =A0Basically, in the OMAP bus-methods for static suspend/resu=
-me I
-> tinker with the runtime PM usecounting such that the devices can idle=
-=2E
->
-> Please take a look at the tip patch in my pm-suspend branch, try it o=
-ut
-> and see if it fixes your problem.
-Indeed the patch fixes the problem. The pm_runtime_get/put_sync
-methods are correctly called for I2C and so the low power mode is hit.
+linux-omap-owner@vger.kernel.org wrote:
+> Introduce some fields in struct panel, which will be used to
+> match the right panel configurations in generic panel driver.
+> 
+> Still keep sharp_ls_panel, since the sharp_ls_panel driver
+> contains blacklight control driver code which will be moved
+> out later. Then we can use generic driver for sharp_ls_panel.
+> 
+> Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
 
->
-> Thanks,
->
-> Kevin
->
+[snip]
 
-Thanks,
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/plat-omap/include/plat/display.h
+> b/arch/arm/plat-omap/include/plat/display.h
+> index c915a66..6e1fbbd 100644
+> --- a/arch/arm/plat-omap/include/plat/display.h
+> +++ b/arch/arm/plat-omap/include/plat/display.h
+> @@ -346,6 +346,24 @@ struct omap_overlay_manager {
+>  	int (*disable)(struct omap_overlay_manager *mgr);  };
+> 
+> +struct omap_display_panel {
+> +	struct omap_video_timings timings;
+> +
+> +	int acbi;	/* ac-bias pin transitions per interrupt */ +	/* Unit: line
+> clocks */ +	int acb;	/* ac-bias pin frequency */
+> +
+> +	enum omap_panel_config config;
+> +
+> +	int power_on_delay;
+> +	int power_off_delay;
+> +	/*
+> +	 * Used to match device to panel configuration
+> +	 * when use generic panel driver
+> +	 */
+> +	const char *name;
+> +};
+> +
+>  struct omap_dss_device {
+>  	struct device dev;
+> 
+> @@ -395,15 +413,7 @@ struct omap_dss_device {
+>  		} venc;
+>  	} phy;
+> 
+> -	struct {
+> -		struct omap_video_timings timings;
+> -
+> -		int acbi;	/* ac-bias pin transitions per
+> interrupt */
+> -		/* Unit: line clocks */
+> -		int acb;	/* ac-bias pin frequency */
+> -
+> -		enum omap_panel_config config;
+> -	} panel;
+> +	struct omap_display_panel panel;
+> 
+>  	struct {
+>  		u8 pixel_size;
+
+I don't think that changing the omap_dss_device structure is the best way
+to go about this. Members like power_on_delay and power_off_delay may not
+be required by all types of panels. Same goes for the new "name" member since
+its only used by the dummy dpi panels.
+
+I think it would be better to go with the approach taken in panel-taal.c
+where a struct "panel_config" exists to take care of extra requirements.
+
+The omap_dss_device struct should contain only those members which would be
+needed by the interface driver files like dsi.c, dpi.c etc. The rest should be
+taken care of the panel drivers internally.
+
+Archit
