@@ -1,87 +1,89 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH] OMAP3630: DSS2: Enable Pre-Multiplied Alpha Support
-Date: Wed, 3 Nov 2010 17:27:21 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034BE1EACA@dbde02.ent.ti.com>
-References: <1288174567-24734-1-git-send-email-samreen@ti.com>
-	 <1288709767.5614.138.camel@tubuntu>
-	 <FCCFB4CDC6E5564B9182F639FC356087034BE1E990@dbde02.ent.ti.com>
- <1288776073.5614.183.camel@tubuntu>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: OMAP3 low power mode broken on l-o
+Date: Wed, 3 Nov 2010 13:48:56 +0100
+Message-ID: <AANLkTimucOpcrMoCytiSbrNevrNAtErpxCEUL=AF5zce@mail.gmail.com>
+References: <AANLkTikzVLW08MrZUPWmVx6+w4E8sXN5NHwM1R7Ya8zX@mail.gmail.com>
+	<87sjzjetfy.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60398 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753795Ab0KCL5b convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Nov 2010 07:57:31 -0400
-In-Reply-To: <1288776073.5614.183.camel@tubuntu>
-Content-Language: en-US
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:57349 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754725Ab0KCMs5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Nov 2010 08:48:57 -0400
+Received: by gxk23 with SMTP id 23so434400gxk.19
+        for <linux-omap@vger.kernel.org>; Wed, 03 Nov 2010 05:48:57 -0700 (PDT)
+In-Reply-To: <87sjzjetfy.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "Nilofer, Samreen" <samreen@ti.com>, "Syrjala Ville (Nokia-MS/Helsinki)" <ville.syrjala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linufbdev@vger.kernel.org" <linufbdev@vger.kernel.org>, Rajkumar N <rajkumar.nagarajan@ti.com>, Sudeep Basavaraj <sudeep.basavaraj@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+Hi Kevin,
 
-Tomi Valkeinen wrote:
-> On Wed, 2010-11-03 at 08:57 +0100, ext Taneja, Archit wrote:
->> Hi,
->> 
->> linux-omap-owner@vger.kernel.org wrote:
->>> Alpha Support
->>> 
->> 
->> [snip]
->> 
->>>> 
->>>> +static void _dispc_set_pre_mult_alpha(enum omap_plane plane, bool
->>>> +enable) { +	if (!dss_has_feature(FEAT_PREMUL_ALPHA))
->>>> +		return;
->>>> +
->>>> +	BUG_ON(!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
->>>> +		plane == OMAP_DSS_VIDEO1);
->>> 
->>> What is the rationale for having the function return, if
->>> FEAT_PREMUL_ALPHA is not supported, but BUG if plane is video1 and
->>> GLOBAL_ALPHA_VID1 is not supported?
->> 
->> Premultiplied alpha is available on omap36xx and above, but on 36xx
->> since global alpha itself isn't supported for video1 then writing to
->> the pre multiplied alpha bit is incorrect.
->> 
->> It could have been possible to make a new feature like
->> FEAT_PRE_MULT_VID1 but I think its redundant as FEAT_GLOBAL_ALPHA_VID1
->> is enough to determine if we should set the pre multiplied
-> alpha bit for video1 plane or not.
-> 
-> I was referring to the first check using return, and the
-> second using BUG(). If nobody is supposed to call that function when
-> 
-> !dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) && plane == OMAP_DSS_VIDEO1)
-> 
-> then why is it ok to call that function when
-> 
-> !dss_has_feature(FEAT_PREMUL_ALPHA)
-> 
-> Shouldn't they both be either returns or BUGs?
-> 
+On Tue, Nov 2, 2010 at 2:38 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Jean Pihet <jean.pihet@newoldbits.com> writes:
+>
+>> The low power mode on the latest l-o master branch is broken, so I
+>> investigated a bit. Here are the results. This has been tested on
+>> OMAP3EVM and Beagleboard.
+>>
+>> The problem is that the CORE does not reach the desired mode (RET,
+>> OFF). It is caused by the I2C1 fclk that is left enabled at suspend
+>> time.
+>> Extra printks has been added in the clock enable and disable functio=
+ns
+>> for I2C and a stack dump has been added in the suspend path if the
+>> clock is still enabled, cf. log below.
+>>
+>> In the devices suspend sequence the RTC gets suspended, which trigge=
+rs
+>> a read of the TWL RTC through the I2C bus, which in turn enables the
+>> I2C1 fclk. That clock is only disabled on devices resume.
+>>
+>> I am guessing this is linked to the recent changes in the I2C for HW=
+MOD support.
+>> What is the correct fix to have the I2C modules correctly shut off
+>> before the suspend?
+>
+> I2C clocks are supposed to be disabled after each transaction. =A0Thi=
+s
+> isn't happening.
+>
+> My guess is that the 'put' that happens after TX doesn't actually
+> actually result in a call to omap_device_idle() since system suspend =
+is
+> active. =A0Static suspend/resume take the runtime PM lock, effectivel=
+y
+> disabling runtime PM suspend during static suspend.
+>
+> I have a patch/workaround for this problem which is part of my pm-cor=
+e
+> branch, but I did not submit for 2.6.37 as I'm not entirely convinced=
+ of
+> it yet. =A0Basically, in the OMAP bus-methods for static suspend/resu=
+me I
+> tinker with the runtime PM usecounting such that the devices can idle=
+=2E
+>
+> Please take a look at the tip patch in my pm-suspend branch, try it o=
+ut
+> and see if it fixes your problem.
+Indeed the patch fixes the problem. The pm_runtime_get/put_sync
+methods are correctly called for I2C and so the low power mode is hit.
 
-If you see the current code, _dispc_setup_global_alpha() does the same thing,
-and in the call to it in _dispc_setup_plane() is:
+>
+> Thanks,
+>
+> Kevin
+>
 
-...
-...
-	if (plane != OMAP_DSS_VIDEO1)
-		_dispc_setup_global_alpha(plane, global_alpha);
-...
-...
-
-So, I guess this BUG_ON is probably not required for both setup_global_alpha
-and setup_pre_multiplied_alpha if you take care while calling these functions
-from _dispc_setup_plane().
-
-But this is the same with _dispc_set_scaling(), _dispc_set_vid_size() etc where
-we have a BUG_ON(plane == OMAP_DSS_GFX) even when we take care of not calling it
-for the GFX pipe.
-
-Archit
+Thanks,
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
