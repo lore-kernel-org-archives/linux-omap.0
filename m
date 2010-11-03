@@ -1,415 +1,249 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: [PATCH 2/3] OMAP: DSS2: remove generic panel driver duplicated panel drivers
-Date: Tue,  2 Nov 2010 16:39:51 -0400
-Message-ID: <1288730392-11223-3-git-send-email-bryan.wu@canonical.com>
-References: <1288730392-11223-1-git-send-email-bryan.wu@canonical.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: [PATCH] OMAP3630: DSS2: Enable Pre-Multiplied Alpha Support
+Date: Wed, 3 Nov 2010 13:27:29 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034BE1E990@dbde02.ent.ti.com>
+References: <1288174567-24734-1-git-send-email-samreen@ti.com>
+ <1288709767.5614.138.camel@tubuntu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:39906 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752704Ab0KBUkR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Nov 2010 16:40:17 -0400
-Received: by vws13 with SMTP id 13so153529vws.19
-        for <linux-omap@vger.kernel.org>; Tue, 02 Nov 2010 13:40:16 -0700 (PDT)
-In-Reply-To: <1288730392-11223-1-git-send-email-bryan.wu@canonical.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33973 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752717Ab0KCH5j convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Nov 2010 03:57:39 -0400
+In-Reply-To: <1288709767.5614.138.camel@tubuntu>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com, notasas@gmail.com
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "Nilofer, Samreen" <samreen@ti.com>
+Cc: "Syrjala Ville (Nokia-MS/Helsinki)" <ville.syrjala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linufbdev@vger.kernel.org" <linufbdev@vger.kernel.org>, Rajkumar N <rajkumar.nagarajan@ti.com>, Sudeep Basavaraj <sudeep.basavaraj@ti.com>
 
-Still keep sharp_ls_panel driver, because it contains blacklight control driver.
+Hi,
 
-Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
----
- drivers/video/omap2/displays/Kconfig               |   12 --
- drivers/video/omap2/displays/Makefile              |    2 -
- .../video/omap2/displays/panel-sharp-lq043t1dg01.c |  165 --------------------
- .../video/omap2/displays/panel-toppoly-tdo35s.c    |  164 -------------------
- 4 files changed, 0 insertions(+), 343 deletions(-)
- delete mode 100644 drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
- delete mode 100644 drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+linux-omap-owner@vger.kernel.org wrote:
+> Alpha Support
+> 
 
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index 1a455d7..ae1aabe 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -16,24 +16,12 @@ config PANEL_SHARP_LS037V7DW01
-         help
-           LCD Panel used in TI's SDP3430 and EVM boards
- 
--config PANEL_SHARP_LQ043T1DG01
--        tristate "Sharp LQ043T1DG01 LCD Panel"
--        depends on OMAP2_DSS
--        help
--          LCD Panel used in TI's OMAP3517 EVM boards
--
- config PANEL_TAAL
-         tristate "Taal DSI Panel"
-         depends on OMAP2_DSS_DSI
-         help
-           Taal DSI command mode panel from TPO.
- 
--config PANEL_TOPPOLY_TDO35S
--        tristate "Toppoly TDO35S LCD Panel support"
--        depends on OMAP2_DSS
--        help
--          LCD Panel used in CM-T35
--
- config PANEL_TPO_TD043MTEA1
-         tristate "TPO TD043MTEA1 LCD Panel"
-         depends on OMAP2_DSS && SPI
-diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
-index aa38609..004335c 100644
---- a/drivers/video/omap2/displays/Makefile
-+++ b/drivers/video/omap2/displays/Makefile
-@@ -1,8 +1,6 @@
- obj-$(CONFIG_PANEL_GENERIC) += panel-generic.o
- obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
--obj-$(CONFIG_PANEL_SHARP_LQ043T1DG01) += panel-sharp-lq043t1dg01.o
- 
- obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
--obj-$(CONFIG_PANEL_TOPPOLY_TDO35S) += panel-toppoly-tdo35s.o
- obj-$(CONFIG_PANEL_TPO_TD043MTEA1) += panel-tpo-td043mtea1.o
- obj-$(CONFIG_PANEL_ACX565AKM) += panel-acx565akm.o
-diff --git a/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c b/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
-deleted file mode 100644
-index 0c6896c..0000000
---- a/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
-+++ /dev/null
-@@ -1,165 +0,0 @@
--/*
-- * LCD panel driver for Sharp LQ043T1DG01
-- *
-- * Copyright (C) 2009 Texas Instruments Inc
-- * Author: Vaibhav Hiremath <hvaibhav@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License version 2 as published by
-- * the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but WITHOUT
-- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-- * more details.
-- *
-- * You should have received a copy of the GNU General Public License along with
-- * this program.  If not, see <http://www.gnu.org/licenses/>.
-- */
--
--#include <linux/module.h>
--#include <linux/delay.h>
--#include <linux/device.h>
--#include <linux/err.h>
--
--#include <plat/display.h>
--
--static struct omap_video_timings sharp_lq_timings = {
--	.x_res = 480,
--	.y_res = 272,
--
--	.pixel_clock	= 9000,
--
--	.hsw		= 42,
--	.hfp		= 3,
--	.hbp		= 2,
--
--	.vsw		= 11,
--	.vfp		= 3,
--	.vbp		= 2,
--};
--
--static int sharp_lq_panel_power_on(struct omap_dss_device *dssdev)
--{
--	int r;
--
--	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
--		return 0;
--
--	r = omapdss_dpi_display_enable(dssdev);
--	if (r)
--		goto err0;
--
--	/* wait couple of vsyncs until enabling the LCD */
--	msleep(50);
--
--	if (dssdev->platform_enable) {
--		r = dssdev->platform_enable(dssdev);
--		if (r)
--			goto err1;
--	}
--
--	return 0;
--err1:
--	omapdss_dpi_display_disable(dssdev);
--err0:
--	return r;
--}
--
--static void sharp_lq_panel_power_off(struct omap_dss_device *dssdev)
--{
--	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
--		return;
--
--	if (dssdev->platform_disable)
--		dssdev->platform_disable(dssdev);
--
--	/* wait at least 5 vsyncs after disabling the LCD */
--	msleep(100);
--
--	omapdss_dpi_display_disable(dssdev);
--}
--
--static int sharp_lq_panel_probe(struct omap_dss_device *dssdev)
--{
--
--	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
--		OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IEO;
--	dssdev->panel.acb = 0x0;
--	dssdev->panel.timings = sharp_lq_timings;
--
--	return 0;
--}
--
--static void sharp_lq_panel_remove(struct omap_dss_device *dssdev)
--{
--}
--
--static int sharp_lq_panel_enable(struct omap_dss_device *dssdev)
--{
--	int r = 0;
--
--	r = sharp_lq_panel_power_on(dssdev);
--	if (r)
--		return r;
--
--	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
--
--	return 0;
--}
--
--static void sharp_lq_panel_disable(struct omap_dss_device *dssdev)
--{
--	sharp_lq_panel_power_off(dssdev);
--
--	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
--}
--
--static int sharp_lq_panel_suspend(struct omap_dss_device *dssdev)
--{
--	sharp_lq_panel_power_off(dssdev);
--	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
--	return 0;
--}
--
--static int sharp_lq_panel_resume(struct omap_dss_device *dssdev)
--{
--	int r = 0;
--
--	r = sharp_lq_panel_power_on(dssdev);
--	if (r)
--		return r;
--
--	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
--
--	return 0;
--}
--
--static struct omap_dss_driver sharp_lq_driver = {
--	.probe		= sharp_lq_panel_probe,
--	.remove		= sharp_lq_panel_remove,
--
--	.enable		= sharp_lq_panel_enable,
--	.disable	= sharp_lq_panel_disable,
--	.suspend	= sharp_lq_panel_suspend,
--	.resume		= sharp_lq_panel_resume,
--
--	.driver         = {
--		.name   = "sharp_lq_panel",
--		.owner  = THIS_MODULE,
--	},
--};
--
--static int __init sharp_lq_panel_drv_init(void)
--{
--	return omap_dss_register_driver(&sharp_lq_driver);
--}
--
--static void __exit sharp_lq_panel_drv_exit(void)
--{
--	omap_dss_unregister_driver(&sharp_lq_driver);
--}
--
--module_init(sharp_lq_panel_drv_init);
--module_exit(sharp_lq_panel_drv_exit);
--MODULE_LICENSE("GPL");
-diff --git a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-deleted file mode 100644
-index 526e906..0000000
---- a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-+++ /dev/null
-@@ -1,164 +0,0 @@
--/*
-- * LCD panel driver for Toppoly TDO35S
-- *
-- * Copyright (C) 2009 CompuLab, Ltd.
-- * Author: Mike Rapoport <mike@compulab.co.il>
-- *
-- * Based on generic panel support
-- * Copyright (C) 2008 Nokia Corporation
-- * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License version 2 as published by
-- * the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but WITHOUT
-- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-- * more details.
-- *
-- * You should have received a copy of the GNU General Public License along with
-- * this program.  If not, see <http://www.gnu.org/licenses/>.
-- */
--
--#include <linux/module.h>
--#include <linux/delay.h>
--
--#include <plat/display.h>
--
--static struct omap_video_timings toppoly_tdo_panel_timings = {
--	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
--	.x_res		= 480,
--	.y_res		= 640,
--
--	.pixel_clock	= 26000,
--
--	.hfp		= 104,
--	.hsw		= 8,
--	.hbp		= 8,
--
--	.vfp		= 4,
--	.vsw		= 2,
--	.vbp		= 2,
--};
--
--static int toppoly_tdo_panel_power_on(struct omap_dss_device *dssdev)
--{
--	int r;
--
--	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
--		return 0;
--
--	r = omapdss_dpi_display_enable(dssdev);
--	if (r)
--		goto err0;
--
--	if (dssdev->platform_enable) {
--		r = dssdev->platform_enable(dssdev);
--		if (r)
--			goto err1;
--	}
--
--	return 0;
--err1:
--	omapdss_dpi_display_disable(dssdev);
--err0:
--	return r;
--}
--
--static void toppoly_tdo_panel_power_off(struct omap_dss_device *dssdev)
--{
--	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
--		return;
--
--	if (dssdev->platform_disable)
--		dssdev->platform_disable(dssdev);
--
--	omapdss_dpi_display_disable(dssdev);
--}
--
--static int toppoly_tdo_panel_probe(struct omap_dss_device *dssdev)
--{
--	dssdev->panel.config = OMAP_DSS_LCD_TFT |
--			       OMAP_DSS_LCD_IVS |
--			       OMAP_DSS_LCD_IHS |
--			       OMAP_DSS_LCD_IPC |
--			       OMAP_DSS_LCD_ONOFF;
--
--	dssdev->panel.timings = toppoly_tdo_panel_timings;
--
--	return 0;
--}
--
--static void toppoly_tdo_panel_remove(struct omap_dss_device *dssdev)
--{
--}
--
--static int toppoly_tdo_panel_enable(struct omap_dss_device *dssdev)
--{
--	int r = 0;
--
--	r = toppoly_tdo_panel_power_on(dssdev);
--	if (r)
--		return r;
--
--	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
--
--	return 0;
--}
--
--static void toppoly_tdo_panel_disable(struct omap_dss_device *dssdev)
--{
--	toppoly_tdo_panel_power_off(dssdev);
--
--	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
--}
--
--static int toppoly_tdo_panel_suspend(struct omap_dss_device *dssdev)
--{
--	toppoly_tdo_panel_power_off(dssdev);
--	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
--	return 0;
--}
--
--static int toppoly_tdo_panel_resume(struct omap_dss_device *dssdev)
--{
--	int r = 0;
--
--	r = toppoly_tdo_panel_power_on(dssdev);
--	if (r)
--		return r;
--
--	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
--
--	return 0;
--}
--
--static struct omap_dss_driver generic_driver = {
--	.probe		= toppoly_tdo_panel_probe,
--	.remove		= toppoly_tdo_panel_remove,
--
--	.enable		= toppoly_tdo_panel_enable,
--	.disable	= toppoly_tdo_panel_disable,
--	.suspend	= toppoly_tdo_panel_suspend,
--	.resume		= toppoly_tdo_panel_resume,
--
--	.driver         = {
--		.name   = "toppoly_tdo35s_panel",
--		.owner  = THIS_MODULE,
--	},
--};
--
--static int __init toppoly_tdo_panel_drv_init(void)
--{
--	return omap_dss_register_driver(&generic_driver);
--}
--
--static void __exit toppoly_tdo_panel_drv_exit(void)
--{
--	omap_dss_unregister_driver(&generic_driver);
--}
--
--module_init(toppoly_tdo_panel_drv_init);
--module_exit(toppoly_tdo_panel_drv_exit);
--MODULE_LICENSE("GPL");
--- 
-1.7.1
+[snip]
 
+>> 
+>> +static void _dispc_set_pre_mult_alpha(enum omap_plane plane, bool +enable) {
+>> +	if (!dss_has_feature(FEAT_PREMUL_ALPHA))
+>> +		return;
+>> +
+>> +	BUG_ON(!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
+>> +		plane == OMAP_DSS_VIDEO1);
+> 
+> What is the rationale for having the function return, if
+> FEAT_PREMUL_ALPHA is not supported, but BUG if plane is video1 and
+> GLOBAL_ALPHA_VID1 is not supported?
+
+Premultiplied alpha is available on omap36xx and above, but on 36xx
+since global alpha itself isn't supported for video1 then writing to
+the pre multiplied alpha bit is incorrect.
+
+It could have been possible to make a new feature like FEAT_PRE_MULT_VID1
+but I think its redundant as FEAT_GLOBAL_ALPHA_VID1 is enough to determine
+if we should set the pre multiplied alpha bit for video1 plane or not.
+
+> 
+>> +
+>> +	REG_FLD_MOD(dispc_reg_att[plane], enable ? 1 : 0, 28, 28); } +
+>>  static void _dispc_setup_global_alpha(enum omap_plane plane, u8
+>>  	global_alpha)  { if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
+>> @@ -1507,7 +1518,8 @@ static int _dispc_setup_plane(enum omap_plane plane, 
+>>  		bool ilace, enum omap_dss_rotation_type rotation_type,
+>>  		u8 rotation, int mirror,
+>> -		u8 global_alpha)
+>> +		u8 global_alpha,
+>> +		u8 pre_mult_alpha)
+>>  {
+>>  	const int maxdownscale = cpu_is_omap34xx() ? 4 : 2;  	bool five_taps = 0;
+>> @@ -1693,8 +1705,11 @@ static int _dispc_setup_plane(enum omap_plane plane,
+>> 
+>>  	_dispc_set_rotation_attrs(plane, rotation, mirror, color_mode);
+>> 
+>> -	if (plane != OMAP_DSS_VIDEO1)
+>> +	if ((plane != OMAP_DSS_VIDEO1) ||
+>> +		dss_has_feature(FEAT_GLOBAL_ALPHA_VID1)) {
+>> +		_dispc_set_pre_mult_alpha(plane, pre_mult_alpha);
+>>  		_dispc_setup_global_alpha(plane, global_alpha);
+>> +	}
+>> 
+>>  	return 0;
+>>  }
+>> @@ -3139,7 +3154,8 @@ int dispc_setup_plane(enum omap_plane plane,
+>>  		       enum omap_color_mode color_mode,
+>>  		       bool ilace,
+>>  		       enum omap_dss_rotation_type rotation_type,
+>> -		       u8 rotation, bool mirror, u8 global_alpha)
+>> +		       u8 rotation, bool mirror, u8 global_alpha, +		       u8
+>>  pre_mult_alpha) {
+>>  	int r = 0;
+>> 
+>> @@ -3161,7 +3177,8 @@ int dispc_setup_plane(enum omap_plane plane,  			  
+>>  			   color_mode, ilace, rotation_type,
+>>  			   rotation, mirror,
+>> -			   global_alpha);
+>> +			   global_alpha,
+>> +			   pre_mult_alpha);
+>> 
+>>  	enable_clocks(0);
+>> 
+>> diff --git a/drivers/video/omap2/dss/dss.h
+>> b/drivers/video/omap2/dss/dss.h index 5c7940d..2bb515c 100644
+>> --- a/drivers/video/omap2/dss/dss.h
+>> +++ b/drivers/video/omap2/dss/dss.h
+>> @@ -359,7 +359,8 @@ int dispc_setup_plane(enum omap_plane plane,  		     
+>>  		      bool ilace, enum omap_dss_rotation_type rotation_type,
+>>  		      u8 rotation, bool mirror,
+>> -		      u8 global_alpha);
+>> +		      u8 global_alpha,
+>> +		      u8 pre_mult_alpha);
+>> 
+>>  bool dispc_go_busy(enum omap_channel channel);  void dispc_go(enum
+>> omap_channel channel); diff --git
+>> a/drivers/video/omap2/dss/dss_features.c
+>> b/drivers/video/omap2/dss/dss_features.c
+>> index 867f68d..1abb8c5 100644
+>> --- a/drivers/video/omap2/dss/dss_features.c
+>> +++ b/drivers/video/omap2/dss/dss_features.c
+>> @@ -134,7 +134,7 @@ static struct omap_dss_features omap2_dss_features = { 
+>> }; 
+>> 
+>>  /* OMAP3 DSS Features */
+>> -static struct omap_dss_features omap3_dss_features = {
+>> +static struct omap_dss_features omap3430_dss_features = {
+>>  	.reg_fields = omap3_dss_reg_fields,
+>>  	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
+>> 
+>> @@ -146,6 +146,18 @@ static struct omap_dss_features omap3_dss_features = {
+>>  	.supported_color_modes = omap3_dss_supported_color_modes,  };
+>> 
+>> +static struct omap_dss_features omap3630_dss_features = {
+>> +	.reg_fields = omap3_dss_reg_fields,
+>> +	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields), +
+>> +	.has_feature    = FEAT_GLOBAL_ALPHA | FEAT_PREMUL_ALPHA, +
+>> +	.num_mgrs = 2,
+>> +	.num_ovls = 3,
+>> +	.supported_displays = omap3_dss_supported_displays,
+>> +	.supported_color_modes = omap3_dss_supported_color_modes, }; +
+>>  /* Functions returning values related to a DSS feature */  int
+>> dss_feat_get_num_mgrs(void)  { @@ -186,6 +198,8 @@ void
+>>  	dss_features_init(void)  { if (cpu_is_omap24xx())
+>>  		omap_current_dss_features = &omap2_dss_features;
+>> -	else
+>> -		omap_current_dss_features = &omap3_dss_features; +	else if
+>> (cpu_is_omap3630()) +		omap_current_dss_features = &omap3630_dss_features;
+>> +	else if (cpu_is_omap34xx()) +		omap_current_dss_features =
+>> &omap3430_dss_features;  } 
+>> diff --git a/drivers/video/omap2/dss/dss_features.h
+>> b/drivers/video/omap2/dss/dss_features.h
+>> index cb231ea..f287da8 100644
+>> --- a/drivers/video/omap2/dss/dss_features.h
+>> +++ b/drivers/video/omap2/dss/dss_features.h
+>> @@ -27,6 +27,7 @@
+>>  enum dss_feat_id {
+>>  	FEAT_GLOBAL_ALPHA	= 1 << 0,
+>>  	FEAT_GLOBAL_ALPHA_VID1	= 1 << 1,
+>> +	FEAT_PREMUL_ALPHA	= 1 << 2,
+>>  };
+>> 
+>>  /* DSS register field id */
+>> diff --git a/drivers/video/omap2/dss/manager.c
+>> b/drivers/video/omap2/dss/manager.c
+>> index 545e9b9..873b334 100644
+>> --- a/drivers/video/omap2/dss/manager.c
+>> +++ b/drivers/video/omap2/dss/manager.c
+>> @@ -406,6 +406,7 @@ struct overlay_cache_data {
+>>  	u16 out_width;	/* if 0, out_width == width */
+>>  	u16 out_height;	/* if 0, out_height == height */
+>>  	u8 global_alpha;
+>> +	u8 pre_mult_alpha;
+>> 
+>>  	enum omap_channel channel;
+>>  	bool replication;
+>> @@ -842,7 +843,8 @@ static int configure_overlay(enum omap_plane plane) 
+>>  			c->rotation_type, c->rotation,
+>>  			c->mirror,
+>> -			c->global_alpha);
+>> +			c->global_alpha,
+>> +			c->pre_mult_alpha);
+>> 
+>>  	if (r) {
+>>  		/* this shouldn't happen */
+>> @@ -1265,6 +1267,7 @@ static int omap_dss_mgr_apply(struct
+>>  		omap_overlay_manager *mgr) oc->out_width = ovl->info.out_width;
+>>  		oc->out_height = ovl->info.out_height;
+>>  		oc->global_alpha = ovl->info.global_alpha;
+>> +		oc->pre_mult_alpha = ovl->info.pre_mult_alpha;
+>> 
+>>  		oc->replication =
+>>  			dss_use_replication(dssdev,
+> ovl->info.color_mode); diff --git
+>> a/drivers/video/omap2/dss/overlay.c
+>> b/drivers/video/omap2/dss/overlay.c
+>> index 75642c2..f704d06 100644
+>> --- a/drivers/video/omap2/dss/overlay.c
+>> +++ b/drivers/video/omap2/dss/overlay.c
+>> @@ -257,6 +257,37 @@ static ssize_t
+> overlay_global_alpha_store(struct omap_overlay *ovl,
+>>  	return size;
+>>  }
+>> 
+>> +static ssize_t
+> overlay_pre_multiplication_alpha_show(struct omap_overlay *ovl,
+>> +		char *buf)
+>> +{
+>> +	return snprintf(buf, PAGE_SIZE, "%d\n",
+>> +			ovl->info.pre_mult_alpha);
+>> +}
+>> +
+>> +static ssize_t
+> overlay_pre_multiplication_alpha_store(struct omap_overlay *ovl,
+>> +		const char *buf, size_t size)
+>> +{
+>> +	int r;
+>> +	struct omap_overlay_info info;
+>> +
+>> +	ovl->get_overlay_info(ovl, &info);
+>> +
+>> +	/* only GFX and Video2 plane support pre alpha multiplication */
+> 
+> Shouldn't you check what the supported features are, instead
+> of having a comment?
+> 
+>> +	info.pre_mult_alpha = simple_strtoul(buf, NULL, 10); +
+>> +	r = ovl->set_overlay_info(ovl, &info);
+>> +	if (r)
+>> +		return r;
+>> +
+>> +	if (ovl->manager) {
+>> +		r = ovl->manager->apply(ovl->manager);
+>> +		if (r)
+>> +			return r;
+>> +	}
+>> +
+>> +	return size;
+>> +}
+>> +
+>>  struct overlay_attribute {
+>>  	struct attribute attr;
+>>  	ssize_t (*show)(struct omap_overlay *, char *); @@ -280,6 +311,9 @@
+>> static OVERLAY_ATTR(enabled, S_IRUGO|S_IWUSR,
+>>  		overlay_enabled_show, overlay_enabled_store);  static
+>> OVERLAY_ATTR(global_alpha, S_IRUGO|S_IWUSR,
+>>  		overlay_global_alpha_show, overlay_global_alpha_store);
+>> +static OVERLAY_ATTR(pre_multiplication_alpha, S_IRUGO|S_IWUSR,
+>> +		overlay_pre_multiplication_alpha_show,
+>> +		overlay_pre_multiplication_alpha_store);
+>> 
+>>  static struct attribute *overlay_sysfs_attrs[] = { 
+>> &overlay_attr_name.attr, @@ -290,6 +324,7 @@ static struct attribute
+>>  	*overlay_sysfs_attrs[] = { &overlay_attr_output_size.attr,
+>>  	&overlay_attr_enabled.attr,
+>>  	&overlay_attr_global_alpha.attr,
+>> +	&overlay_attr_pre_multiplication_alpha.attr,
+>>  	NULL
+>>  };
