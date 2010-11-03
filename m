@@ -1,77 +1,66 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v3 06/13] OMAP3: DMA: hwmod: add system DMA
-Date: Wed, 3 Nov 2010 18:29:03 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC03B4C3@dbde02.ent.ti.com>
-References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
- <1288099513-1854-7-git-send-email-manjugk@ti.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: [PATCH 0/3] OMAP: DSS2: introduce generic panel display driver
+Date: Wed, 3 Nov 2010 18:29:47 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034BE1EB1C@dbde02.ent.ti.com>
+References: <1288730392-11223-1-git-send-email-bryan.wu@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51853 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754725Ab0KCM7M convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Nov 2010 08:59:12 -0400
-In-Reply-To: <1288099513-1854-7-git-send-email-manjugk@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51814 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754725Ab0KCNAA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Nov 2010 09:00:00 -0400
+In-Reply-To: <1288730392-11223-1-git-send-email-bryan.wu@canonical.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Bryan Wu <bryan.wu@canonical.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.
 
-Kevin/Benoit, 
+Hi,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G, 
-> Manjunath Kondaiah
-> Sent: Tuesday, October 26, 2010 6:55 PM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org; Cousson, Benoit; 
-> Kevin Hilman; Shilimkar, Santosh
-> Subject: [PATCH v3 06/13] OMAP3: DMA: hwmod: add system DMA
+Bryan Wu <bryan.wu@canonical.com> wrote:
+> There are 4 duplicated panel drivers in DSS2 display driver.
+> They are similar and generic panel driver can support all
+> them with specific panel configuration.
+> And new panel driver can be easily supported by adding panel
+> configurations into generic panel driver.
 > 
-> Add OMAP3 DMA hwmod structures.
+> This patchset introduces generic panel driver, remove 3 panel
+> drivers and enable generic panel driver in board files. And
+> it is based on 2.6.37-rc1.
 > 
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   93 
-> ++++++++++++++++++++++++++++
->  1 files changed, 93 insertions(+), 0 deletions(-)
+> Building with omap2plus_defconfig is successful.
 > 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c 
-> b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index ed6bf4a..4a5231c 100644
-[...]
-> +	.prcm = {
-> +		.omap2 = {
-> +			.prcm_reg_id		= 1,
-> +			.module_bit		= 
-> OMAP3430_ST_SDMA_SHIFT,
-> +			.idlest_reg_id		= 1,
-> +			.idlest_idle_bit	= 
-> OMAP3430_ST_SDMA_SHIFT,
+> Keep sharp_ls_panel, since it contains blacklight control
+> code which will be moved out later.
+> 
+> Bryan Wu (3):
+>   OMAP: DSS2: Add generic panel display driver
+>   OMAP: DSS2: remove generic panel driver duplicated panel drivers
+>   OMAP: use generic panel driver in board files
+> 
+>  arch/arm/mach-omap2/board-3430sdp.c                |    1 +
+>  arch/arm/mach-omap2/board-am3517evm.c              |    4 +-
+>  arch/arm/mach-omap2/board-cm-t35.c                 |    4 +-
+>  arch/arm/mach-omap2/board-devkit8000.c             |    2 +
+>  arch/arm/mach-omap2/board-igep0020.c               |    1 +
+>  arch/arm/mach-omap2/board-omap3beagle.c            |    1 +
+>  arch/arm/mach-omap2/board-omap3evm.c               |    1 +
+>  arch/arm/mach-omap2/board-omap3stalker.c           |    2 +
+>  arch/arm/plat-omap/include/plat/display.h          |   28 +++-
+>  drivers/video/omap2/displays/Kconfig               |   16 +--
+>  drivers/video/omap2/displays/Makefile              |    2 -
+>  drivers/video/omap2/displays/panel-generic.c       |  153 ++++++++++++++++--
+>  .../video/omap2/displays/panel-sharp-lq043t1dg01.c |  165
+>  -------------------- .../video/omap2/displays/panel-toppoly-tdo35s.c    | 
+>  164 ------------------- 14 files changed, 175 insertions(+), 369 deletions(-)
+> delete mode 100644
+> drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c  delete mode 100644
+> drivers/video/omap2/displays/panel-toppoly-tdo35s.c
 
-Looks like the .module_offs field is missing here. Since
-ST_SDMA bit belongs to CM_IDLEST1_CORE register, .module_offs should
-be CORE_MOD.
+This series will break the build if we try to compile after applying
+only the first or the first two patches of the series since things used
+by the first patch are introduced in the last patch.
 
-But, it is observed that, using .module_offs results in warning dump 
-during bootup. This is due to, ST_SDMA bit in standby mode. Since
-there is no fclk for DMA, this bit will never change till DMA channel
-is requested for data transfer.
-
-We might have to bypass calling "omap2_cm_wait_module_ready" in 
-"_wait_target_ready" in omap_hwmod.c
-
-With exising flags, we can use "HWMOD_NO_IDLEST" flag, but this
-flag has different meaning. How about using new flag like
-"HWMOD_NO_FCLK_OPCLK" and if it is set, return without calling 
-"omap2_cm_wait_module_ready"
-
-Any better suggestion to handle this issue?
-
--Manjunath
+Archit
