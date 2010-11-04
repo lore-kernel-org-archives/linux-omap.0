@@ -1,13 +1,11 @@
-From: "Sapiens, Rene" <rene.sapiens@ti.com>
-Subject: Re: [PATCH 1/8] staging: tidspbridge: overwrite DSP error codes
-Date: Wed, 3 Nov 2010 18:34:44 -0600
-Message-ID: <AANLkTikAS0oHpGLYesoXa8YMpOwV4e8M3f7ZEhbrm4b9@mail.gmail.com>
-References: <1288827394-7505-1-git-send-email-rene.sapiens@ti.com>
+From: Rene Sapiens <rene.sapiens@ti.com>
+Subject: [PATCH] staging: tidspbridge: overwrite DSP error codes
+Date: Wed,  3 Nov 2010 18:31:24 -0600
+Message-ID: <1288830684-7828-1-git-send-email-rene.sapiens@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1288827394-7505-1-git-send-email-rene.sapiens@ti.com>
 List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
 	<mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
 List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel>
@@ -21,16 +19,92 @@ To: greg@kroah.com
 Cc: nm@ti.com, devel@driverdev.osuosl.org, felipe.contreras@gmail.com, gregkh@suse.de, ernesto@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rene Sapiens <rene.sapiens@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 3, 2010 at 5:36 PM, Rene Sapiens <rene.sapiens@ti.com> wrote:
-> When calling the DSP's remote functions, the DSP returns error
-> codes different from the ones managed by the kernel, the
-> function's return value is shared with the MPU using a shared
-> structure. This patch overwrites those error codes by kernel
-> specifics and deletes unnecessary code.
->
+When calling the DSP's remote functions, the DSP returns error
+codes different from the ones managed by the kernel, the
+function's return value is shared with the MPU using a shared
+structure. This patch overwrites those error codes by kernel
+specifics and deletes unnecessary code.
 
-The series of patches that follow this one do not apply yet, so please omit this
-patch, i will send it again as a single one.
+Signed-off-by: Rene Sapiens <rene.sapiens@ti.com>
+---
+ drivers/staging/tidspbridge/rmgr/disp.c |   44 +++++-------------------------
+ 1 files changed, 8 insertions(+), 36 deletions(-)
 
-Regards,
-Rene
+diff --git a/drivers/staging/tidspbridge/rmgr/disp.c b/drivers/staging/tidspbridge/rmgr/disp.c
+index b7ce435..560069a 100644
+--- a/drivers/staging/tidspbridge/rmgr/disp.c
++++ b/drivers/staging/tidspbridge/rmgr/disp.c
+@@ -460,17 +460,6 @@ int disp_node_create(struct disp_object *disp_obj,
+ 		DBC_ASSERT(ul_bytes < (RMS_COMMANDBUFSIZE * sizeof(rms_word)));
+ 		status = send_message(disp_obj, node_get_timeout(hnode),
+ 				      ul_bytes, node_env);
+-		if (status >= 0) {
+-			/*
+-			 * Message successfully received from RMS.
+-			 * Return the status of the Node's create function
+-			 * on the DSP-side
+-			 */
+-			status = (((rms_word *) (disp_obj->pbuf))[0]);
+-			if (status < 0)
+-				dev_dbg(bridge, "%s: DSP-side failed: 0x%x\n",
+-					__func__, status);
+-		}
+ 	}
+ func_end:
+ 	return status;
+@@ -513,18 +502,6 @@ int disp_node_delete(struct disp_object *disp_obj,
+ 			status = send_message(disp_obj, node_get_timeout(hnode),
+ 					      sizeof(struct rms_command),
+ 					      &dw_arg);
+-			if (status >= 0) {
+-				/*
+-				 * Message successfully received from RMS.
+-				 * Return the status of the Node's delete
+-				 * function on the DSP-side
+-				 */
+-				status = (((rms_word *) (disp_obj->pbuf))[0]);
+-				if (status < 0)
+-					dev_dbg(bridge, "%s: DSP-side failed: "
+-						"0x%x\n", __func__, status);
+-			}
+-
+ 		}
+ 	}
+ 	return status;
+@@ -566,18 +543,6 @@ int disp_node_run(struct disp_object *disp_obj,
+ 			status = send_message(disp_obj, node_get_timeout(hnode),
+ 					      sizeof(struct rms_command),
+ 					      &dw_arg);
+-			if (status >= 0) {
+-				/*
+-				 * Message successfully received from RMS.
+-				 * Return the status of the Node's execute
+-				 * function on the DSP-side
+-				 */
+-				status = (((rms_word *) (disp_obj->pbuf))[0]);
+-				if (status < 0)
+-					dev_dbg(bridge, "%s: DSP-side failed: "
+-						"0x%x\n", __func__, status);
+-			}
+-
+ 		}
+ 	}
+ 
+@@ -739,7 +704,14 @@ static int send_message(struct disp_object *disp_obj, u32 timeout,
+ 		} else {
+ 			if (CHNL_IS_IO_COMPLETE(chnl_ioc_obj)) {
+ 				DBC_ASSERT(chnl_ioc_obj.pbuf == pbuf);
+-				status = (*((rms_word *) chnl_ioc_obj.pbuf));
++				if (*((int *)chnl_ioc_obj.pbuf) < 0) {
++					/* Translate DSP's to kernel error */
++					status = -EREMOTEIO;
++					dev_dbg(bridge, "%s: DSP-side failed:"
++						" DSP errcode = 0x%x, Kernel "
++						"errcode = %d\n", __func__,
++						*(int *)pbuf, status);
++				}
+ 				*pdw_arg =
+ 				    (((rms_word *) (chnl_ioc_obj.pbuf))[1]);
+ 			} else {
+-- 
+1.6.3.3
