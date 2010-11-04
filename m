@@ -1,236 +1,107 @@
-From: Samreen <samreen@ti.com>
-Subject: [PATCH v2 2/2] OMAP3630: DSS2: Enable Pre-Multiplied Alpha Support
-Date: Thu,  4 Nov 2010 16:58:42 +0530
-Message-ID: <1288870122-22836-3-git-send-email-samreen@ti.com>
-References: <1288870122-22836-1-git-send-email-samreen@ti.com>
- <1288870122-22836-2-git-send-email-samreen@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v3 06/13] OMAP3: DMA: hwmod: add system DMA
+Date: Thu, 04 Nov 2010 08:30:29 -0400
+Message-ID: <4CD2A765.404@ti.com>
+References: <1288099513-1854-1-git-send-email-manjugk@ti.com> <1288099513-1854-7-git-send-email-manjugk@ti.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402DC03B4C3@dbde02.ent.ti.com> <4CD2368D.50107@ti.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402DC03B7B4@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59424 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:34554 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154Ab0KDLeH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Nov 2010 07:34:07 -0400
-In-Reply-To: <1288870122-22836-2-git-send-email-samreen@ti.com>
+	with ESMTP id S1750791Ab0KDM3s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Nov 2010 08:29:48 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC03B7B4@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, ville.syrjala@nokia.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Rajkumar N <rajkumar.nagarajan@ti.com>, Sudeep Basavaraj <sudeep.basavaraj@ti.com>, Samreen <samreen@ti.com>, Archit Taneja <archit@ti.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Rajkumar N <rajkumar.nagarajan@ti.com>
+On 11/4/2010 3:01 AM, G, Manjunath Kondaiah wrote:
+> Hi Benoit,
+>
+>> From: Cousson, Benoit
+>> Sent: Thursday, November 04, 2010 9:59 AM
+>>
+>> Hi Manjunath,
+>>
+>> On 11/3/2010 8:59 AM, G, Manjunath Kondaiah wrote:
+>>> Kevin/Benoit,
+>>>
+>>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G,
+>>>> Manjunath Kondaiah
+>>>> Sent: Tuesday, October 26, 2010 6:55 PM
+>>>>
+>>>> Add OMAP3 DMA hwmod structures.
+>>>>
+>>>> Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
+>>>> Cc: Benoit Cousson<b-cousson@ti.com>
+>>>> Cc: Kevin Hilman<khilman@deeprootsystems.com>
+>>>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>>>> ---
+>>>>    arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   93
+>>>> ++++++++++++++++++++++++++++
+>>>>    1 files changed, 93 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+>>>> b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+>>>> index ed6bf4a..4a5231c 100644
+>>> [...]
+>>>> +	.prcm = {
+>>>> +		.omap2 = {
+>>>> +			.prcm_reg_id		= 1,
+>>>> +			.module_bit		=
+>>>> OMAP3430_ST_SDMA_SHIFT,
+>>>> +			.idlest_reg_id		= 1,
+>>>> +			.idlest_idle_bit	=
+>>>> OMAP3430_ST_SDMA_SHIFT,
+>>>
+>>> Looks like the .module_offs field is missing here. Since
+>>> ST_SDMA bit belongs to CM_IDLEST1_CORE register, .module_offs should
+>>> be CORE_MOD.
+>>>
+>>> But, it is observed that, using .module_offs results in warning dump
+>>> during bootup. This is due to, ST_SDMA bit in standby mode. Since
+>>> there is no fclk for DMA, this bit will never change till
+>> DMA channel
+>>> is requested for data transfer.
+>>>
+>>> We might have to bypass calling "omap2_cm_wait_module_ready" in
+>>> "_wait_target_ready" in omap_hwmod.c
+>>>
+>>> With exising flags, we can use "HWMOD_NO_IDLEST" flag, but this
+>>> flag has different meaning. How about using new flag like
+>>> "HWMOD_NO_FCLK_OPCLK" and if it is set, return without calling
+>>> "omap2_cm_wait_module_ready"
+>>>
+>>> Any better suggestion to handle this issue?
+>>
+>> Well, yes, use HWMOD_NO_IDLEST and remove idlest_reg_id&
+>> idlest_idle_bit entries in the omap2 structure.
+>>
+>> ST_SDMA is the standby status of the SDMA, but there is no
+>> idle status
+>> on that IP, so you cannot do anything.
+>> The standby will just reflect the activity of the master port of the
+>> DMA, but it will give you no information about the slave port
+>> and thus
+>> we do not have any module ready information.
+>
+> Thanks for the feedback.
+>
+> This change is introduced as per kevin's review comment at:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34278.html
 
-Enable dss to process color formats with pre-mulitplied alpha.
-With this we can have alpha values defined for each pixel
-and hence can have different blending values for each pixel.
-sysfs entry has been created for this and pre-multiplied alpha
-support is turned off by default.
+Well this register is confusing, because he uses the same naming 
+convention but with a difference meaning:
 
-Signed-off-by: Sudeep Basavaraj <sudeep.basavaraj@ti.com>
-Signed-off-by: Rajkumar N <rajkumar.nagarajan@ti.com>
-Signed-off-by: Samreen <samreen@ti.com>
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- arch/arm/plat-omap/include/plat/display.h |    1 +
- drivers/video/omap2/dss/dispc.c           |   30 ++++++++++++++++-----
- drivers/video/omap2/dss/dss.h             |    3 +-
- drivers/video/omap2/dss/manager.c         |    5 +++-
- drivers/video/omap2/dss/overlay.c         |   41 +++++++++++++++++++++++++++++
- 5 files changed, 71 insertions(+), 9 deletions(-)
+ST_SDMA: System DMA standby status.
+- 0x0: System DMA is active.
+- 0x1: System DMA is in standby mode.
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index c915a66..d433baf 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -268,6 +268,7 @@ struct omap_overlay_info {
- 	u16 out_width;	/* if 0, out_width == width */
- 	u16 out_height;	/* if 0, out_height == height */
- 	u8 global_alpha;
-+	u8 pre_mult_alpha;
- };
- 
- struct omap_overlay {
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index fa40fa5..2179618 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -773,13 +773,26 @@ static void _dispc_set_vid_size(enum omap_plane plane, int width, int height)
- 	dispc_write_reg(vsi_reg[plane-1], val);
- }
- 
-+static void _dispc_set_pre_mult_alpha(enum omap_plane plane, bool enable)
-+{
-+	if (!dss_has_feature(FEAT_PRE_MULT_ALPHA))
-+		return;
-+
-+	if (!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
-+		plane == OMAP_DSS_VIDEO1)
-+		return;
-+
-+	REG_FLD_MOD(dispc_reg_att[plane], enable ? 1 : 0, 28, 28);
-+}
-+
- static void _dispc_setup_global_alpha(enum omap_plane plane, u8 global_alpha)
- {
- 	if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
- 		return;
- 
--	BUG_ON(!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
--			plane == OMAP_DSS_VIDEO1);
-+	if (!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
-+		plane == OMAP_DSS_VIDEO1)
-+		return;
- 
- 	if (plane == OMAP_DSS_GFX)
- 		REG_FLD_MOD(DISPC_GLOBAL_ALPHA, global_alpha, 7, 0);
-@@ -1507,7 +1520,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 		bool ilace,
- 		enum omap_dss_rotation_type rotation_type,
- 		u8 rotation, int mirror,
--		u8 global_alpha)
-+		u8 global_alpha,
-+		u8 pre_mult_alpha)
- {
- 	const int maxdownscale = cpu_is_omap34xx() ? 4 : 2;
- 	bool five_taps = 0;
-@@ -1693,8 +1707,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 
- 	_dispc_set_rotation_attrs(plane, rotation, mirror, color_mode);
- 
--	if (plane != OMAP_DSS_VIDEO1)
--		_dispc_setup_global_alpha(plane, global_alpha);
-+	_dispc_set_pre_mult_alpha(plane, pre_mult_alpha);
-+	_dispc_setup_global_alpha(plane, global_alpha);
- 
- 	return 0;
- }
-@@ -3139,7 +3153,8 @@ int dispc_setup_plane(enum omap_plane plane,
- 		       enum omap_color_mode color_mode,
- 		       bool ilace,
- 		       enum omap_dss_rotation_type rotation_type,
--		       u8 rotation, bool mirror, u8 global_alpha)
-+		       u8 rotation, bool mirror, u8 global_alpha,
-+		       u8 pre_mult_alpha)
- {
- 	int r = 0;
- 
-@@ -3161,7 +3176,8 @@ int dispc_setup_plane(enum omap_plane plane,
- 			   color_mode, ilace,
- 			   rotation_type,
- 			   rotation, mirror,
--			   global_alpha);
-+			   global_alpha,
-+			   pre_mult_alpha);
- 
- 	enable_clocks(0);
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 5c7940d..2bb515c 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -359,7 +359,8 @@ int dispc_setup_plane(enum omap_plane plane,
- 		      bool ilace,
- 		      enum omap_dss_rotation_type rotation_type,
- 		      u8 rotation, bool mirror,
--		      u8 global_alpha);
-+		      u8 global_alpha,
-+		      u8 pre_mult_alpha);
- 
- bool dispc_go_busy(enum omap_channel channel);
- void dispc_go(enum omap_channel channel);
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 545e9b9..873b334 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -406,6 +406,7 @@ struct overlay_cache_data {
- 	u16 out_width;	/* if 0, out_width == width */
- 	u16 out_height;	/* if 0, out_height == height */
- 	u8 global_alpha;
-+	u8 pre_mult_alpha;
- 
- 	enum omap_channel channel;
- 	bool replication;
-@@ -842,7 +843,8 @@ static int configure_overlay(enum omap_plane plane)
- 			c->rotation_type,
- 			c->rotation,
- 			c->mirror,
--			c->global_alpha);
-+			c->global_alpha,
-+			c->pre_mult_alpha);
- 
- 	if (r) {
- 		/* this shouldn't happen */
-@@ -1265,6 +1267,7 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
- 		oc->out_width = ovl->info.out_width;
- 		oc->out_height = ovl->info.out_height;
- 		oc->global_alpha = ovl->info.global_alpha;
-+		oc->pre_mult_alpha = ovl->info.pre_mult_alpha;
- 
- 		oc->replication =
- 			dss_use_replication(dssdev, ovl->info.color_mode);
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index 75642c2..41a2902 100644
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -257,6 +257,43 @@ static ssize_t overlay_global_alpha_store(struct omap_overlay *ovl,
- 	return size;
- }
- 
-+static ssize_t overlay_pre_mult_alpha_show(struct omap_overlay *ovl,
-+		char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n",
-+			ovl->info.pre_mult_alpha);
-+}
-+
-+static ssize_t overlay_pre_mult_alpha_store(struct omap_overlay *ovl,
-+		const char *buf, size_t size)
-+{
-+	int r;
-+	struct omap_overlay_info info;
-+
-+	ovl->get_overlay_info(ovl, &info);
-+
-+	/* only GFX and Video2 plane support pre alpha multiplied
-+	 * set zero for Video1 plane
-+	 */
-+	if (!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
-+		ovl->id == OMAP_DSS_VIDEO1)
-+		info.pre_mult_alpha = 0;
-+	else
-+		info.pre_mult_alpha = simple_strtoul(buf, NULL, 10);
-+
-+	r = ovl->set_overlay_info(ovl, &info);
-+	if (r)
-+		return r;
-+
-+	if (ovl->manager) {
-+		r = ovl->manager->apply(ovl->manager);
-+		if (r)
-+			return r;
-+	}
-+
-+	return size;
-+}
-+
- struct overlay_attribute {
- 	struct attribute attr;
- 	ssize_t (*show)(struct omap_overlay *, char *);
-@@ -280,6 +317,9 @@ static OVERLAY_ATTR(enabled, S_IRUGO|S_IWUSR,
- 		overlay_enabled_show, overlay_enabled_store);
- static OVERLAY_ATTR(global_alpha, S_IRUGO|S_IWUSR,
- 		overlay_global_alpha_show, overlay_global_alpha_store);
-+static OVERLAY_ATTR(pre_mult_alpha, S_IRUGO|S_IWUSR,
-+		overlay_pre_mult_alpha_show,
-+		overlay_pre_mult_alpha_store);
- 
- static struct attribute *overlay_sysfs_attrs[] = {
- 	&overlay_attr_name.attr,
-@@ -290,6 +330,7 @@ static struct attribute *overlay_sysfs_attrs[] = {
- 	&overlay_attr_output_size.attr,
- 	&overlay_attr_enabled.attr,
- 	&overlay_attr_global_alpha.attr,
-+	&overlay_attr_pre_mult_alpha.attr,
- 	NULL
- };
- 
--- 
-1.5.6.3
+> I am ok to use "HWMOD_NO_IDLEST" if kevin also agrees
 
+He will... Otherwise I will throw him into the New England Aquarium like 
+Linus :-)
+
+Benoit
