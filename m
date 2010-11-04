@@ -1,105 +1,56 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v3 06/13] OMAP3: DMA: hwmod: add system DMA
-Date: Thu, 4 Nov 2010 12:31:24 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC03B7B4@dbde02.ent.ti.com>
-References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
- <1288099513-1854-7-git-send-email-manjugk@ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DC03B4C3@dbde02.ent.ti.com>
- <4CD2368D.50107@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v3 0/3] V4L/DVB: OMAP_VOUT: Allow omap_vout to build without VRFB
+Date: Thu,  4 Nov 2010 13:26:23 +0530
+Message-ID: <1288857386-15431-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38637 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55306 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750956Ab0KDHBg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Nov 2010 03:01:36 -0400
-In-Reply-To: <4CD2368D.50107@ti.com>
-Content-Language: en-US
+	id S1753020Ab0KDHzk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Nov 2010 03:55:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: hvaibhav@ti.com
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi Benoit, 
+This lets omap_vout driver build and run without VRFB. It works along the
+lines of the following patch series:
 
-> -----Original Message-----
-> From: Cousson, Benoit 
-> Sent: Thursday, November 04, 2010 9:59 AM
-> To: G, Manjunath Kondaiah
-> Cc: Kevin Hilman; linux-arm-kernel@lists.infradead.org; 
-> Shilimkar, Santosh; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v3 06/13] OMAP3: DMA: hwmod: add system DMA
-> 
-> Hi Manjunath,
-> 
-> On 11/3/2010 8:59 AM, G, Manjunath Kondaiah wrote:
-> > Kevin/Benoit,
-> >
-> >> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G,
-> >> Manjunath Kondaiah
-> >> Sent: Tuesday, October 26, 2010 6:55 PM
-> >>
-> >> Add OMAP3 DMA hwmod structures.
-> >>
-> >> Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
-> >> Cc: Benoit Cousson<b-cousson@ti.com>
-> >> Cc: Kevin Hilman<khilman@deeprootsystems.com>
-> >> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> >> ---
-> >>   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   93
-> >> ++++++++++++++++++++++++++++
-> >>   1 files changed, 93 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> >> b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> >> index ed6bf4a..4a5231c 100644
-> > [...]
-> >> +	.prcm = {
-> >> +		.omap2 = {
-> >> +			.prcm_reg_id		= 1,
-> >> +			.module_bit		=
-> >> OMAP3430_ST_SDMA_SHIFT,
-> >> +			.idlest_reg_id		= 1,
-> >> +			.idlest_idle_bit	=
-> >> OMAP3430_ST_SDMA_SHIFT,
-> >
-> > Looks like the .module_offs field is missing here. Since
-> > ST_SDMA bit belongs to CM_IDLEST1_CORE register, .module_offs should
-> > be CORE_MOD.
-> >
-> > But, it is observed that, using .module_offs results in warning dump
-> > during bootup. This is due to, ST_SDMA bit in standby mode. Since
-> > there is no fclk for DMA, this bit will never change till 
-> DMA channel
-> > is requested for data transfer.
-> >
-> > We might have to bypass calling "omap2_cm_wait_module_ready" in
-> > "_wait_target_ready" in omap_hwmod.c
-> >
-> > With exising flags, we can use "HWMOD_NO_IDLEST" flag, but this
-> > flag has different meaning. How about using new flag like
-> > "HWMOD_NO_FCLK_OPCLK" and if it is set, return without calling
-> > "omap2_cm_wait_module_ready"
-> >
-> > Any better suggestion to handle this issue?
-> 
-> Well, yes, use HWMOD_NO_IDLEST and remove idlest_reg_id & 
-> idlest_idle_bit entries in the omap2 structure.
-> 
-> ST_SDMA is the standby status of the SDMA, but there is no 
-> idle status 
-> on that IP, so you cannot do anything.
-> The standby will just reflect the activity of the master port of the 
-> DMA, but it will give you no information about the slave port 
-> and thus 
-> we do not have any module ready information.
+OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
+https://patchwork.kernel.org/patch/105371/
 
-Thanks for the feedback.
+Since VRFB is tightly coupled with the omap_vout driver, a handful of vrfb
+specific functions have been defined and placed in omap_vout_vrfb.c
 
-This change is introduced as per kevin's review comment at:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34278.html
+A new enum called vout_rotation_type is introduced to differentiate between no
+rotation and vrfb rotation. A member rotation_type is introduced in omapvideo_info,
+this allows to call vrfb specific functions only if the rotation type is VOUT_ROT_VRFB
+When the rotation_type is set to VOUT_ROT_NONE, the S_CTRL ioctl prevents the user setting
+a non zero rotation or non zero mirror value.
 
-I am ok to use "HWMOD_NO_IDLEST" if kevin also agrees 
+Archit Taneja (3):
+  V4L/DVB: OMAP_VOUT: Move some functions and preprocessor defines from
+    omap_vout
+  V4L/DVB: OMAP_VOUT: Create a seperate vrfb functions library
+  V4L/DVB: OMAP_VOUT: Use rotation_type to choose between vrfb rotation
+    and no rotation
 
--Manjunath
+ drivers/media/video/omap/Kconfig          |    2 +-
+ drivers/media/video/omap/Makefile         |    1 +
+ drivers/media/video/omap/omap_vout.c      |  560 +++++------------------------
+ drivers/media/video/omap/omap_vout_vrfb.c |  411 +++++++++++++++++++++
+ drivers/media/video/omap/omap_vout_vrfb.h |   42 +++
+ drivers/media/video/omap/omap_voutdef.h   |   77 ++++
+ drivers/media/video/omap/omap_voutlib.c   |   44 +++
+ drivers/media/video/omap/omap_voutlib.h   |    2 +
+ 8 files changed, 659 insertions(+), 480 deletions(-)
+ create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
+ create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
+--
+Version 3:
+ - Introduce a new enum at V4L2 driver level which cleanly differentiates
+   between vrfb rotation and no rotation, incorporate comments given for v2
+Version 2:
+ - Don't try to enable SDRAM rotation , return an error if non zero rotation
+   is attempted when rotation_type is set to SDMA rotation.
+Version 1:
+   http://www.mail-archive.com/linux-media@vger.kernel.org/msg21937.html
