@@ -1,42 +1,84 @@
 From: Samreen <samreen@ti.com>
-Subject: [PATCH v2 0/2] OMAP3: DSS2: Pre-Multiplied Alpha support
-Date: Thu,  4 Nov 2010 16:58:40 +0530
-Message-ID: <1288870122-22836-1-git-send-email-samreen@ti.com>
+Subject: [PATCH v2 1/2] OMAP3: DSS2: Split OMAP3 has feature for 3430 & 3630
+Date: Thu,  4 Nov 2010 16:58:41 +0530
+Message-ID: <1288870122-22836-2-git-send-email-samreen@ti.com>
+References: <1288870122-22836-1-git-send-email-samreen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59417 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154Ab0KDLd5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Nov 2010 07:33:57 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:33692 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751154Ab0KDLeC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Nov 2010 07:34:02 -0400
+In-Reply-To: <1288870122-22836-1-git-send-email-samreen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, ville.syrjala@nokia.com, Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Samreen <samreen@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, ville.syrjala@nokia.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Samreen <samreen@ti.com>, Archit Taneja <archit@ti.com>
 
-Enable Pre multiplied alpha support on OMAP3630
+Splitting the OMAP3 dss has feature separately for
+omap3430 & omap3630
 
-The first patch splits the omap3 dss has features for omap3430
-and omap3630 separately
-The second patch adds the support for pre multiplied alpha
+Signed-off-by: Samreen <samreen@ti.com>
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/dss/dss_features.c |   20 +++++++++++++++++---
+ drivers/video/omap2/dss/dss_features.h |    1 +
+ 2 files changed, 18 insertions(+), 3 deletions(-)
 
-Version2:
-   - Split the patch into dss has feature patch and pre multiplied
-   alpha support
-   - Remove the BUG_ON in functions setting pre multiplied alpha
-   and global alpha 
-   - Uniformly use "pre_mult_alpha" naming convention
-
-Rajkumar N (1):
-  OMAP3630: DSS2: Enable Pre-Multiplied Alpha Support
-
-Samreen (1):
-  OMAP3: DSS2: Split OMAP3 has feature for 3430 & 3630
-
- arch/arm/plat-omap/include/plat/display.h |    1 +
- drivers/video/omap2/dss/dispc.c           |   30 ++++++++++++++++-----
- drivers/video/omap2/dss/dss.h             |    3 +-
- drivers/video/omap2/dss/dss_features.c    |   20 ++++++++++++--
- drivers/video/omap2/dss/dss_features.h    |    1 +
- drivers/video/omap2/dss/manager.c         |    5 +++-
- drivers/video/omap2/dss/overlay.c         |   41 +++++++++++++++++++++++++++++
- 7 files changed, 89 insertions(+), 12 deletions(-)
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index 867f68d..854deba 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -134,7 +134,7 @@ static struct omap_dss_features omap2_dss_features = {
+ };
+ 
+ /* OMAP3 DSS Features */
+-static struct omap_dss_features omap3_dss_features = {
++static struct omap_dss_features omap3430_dss_features = {
+ 	.reg_fields = omap3_dss_reg_fields,
+ 	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
+ 
+@@ -146,6 +146,18 @@ static struct omap_dss_features omap3_dss_features = {
+ 	.supported_color_modes = omap3_dss_supported_color_modes,
+ };
+ 
++static struct omap_dss_features omap3630_dss_features = {
++	.reg_fields = omap3_dss_reg_fields,
++	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
++
++	.has_feature    = FEAT_GLOBAL_ALPHA | FEAT_PRE_MULT_ALPHA,
++
++	.num_mgrs = 2,
++	.num_ovls = 3,
++	.supported_displays = omap3_dss_supported_displays,
++	.supported_color_modes = omap3_dss_supported_color_modes,
++};
++
+ /* Functions returning values related to a DSS feature */
+ int dss_feat_get_num_mgrs(void)
+ {
+@@ -186,6 +198,8 @@ void dss_features_init(void)
+ {
+ 	if (cpu_is_omap24xx())
+ 		omap_current_dss_features = &omap2_dss_features;
+-	else
+-		omap_current_dss_features = &omap3_dss_features;
++	else if (cpu_is_omap3630())
++		omap_current_dss_features = &omap3630_dss_features;
++	else if (cpu_is_omap34xx())
++		omap_current_dss_features = &omap3430_dss_features;
+ }
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+index cb231ea..aeb2eea 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -27,6 +27,7 @@
+ enum dss_feat_id {
+ 	FEAT_GLOBAL_ALPHA	= 1 << 0,
+ 	FEAT_GLOBAL_ALPHA_VID1	= 1 << 1,
++	FEAT_PRE_MULT_ALPHA	= 1 << 2,
+ };
+ 
+ /* DSS register field id */
+-- 
+1.5.6.3
 
