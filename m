@@ -1,101 +1,99 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 3/6] OMAP4: PM: Program correct init voltages for
- scalable VDDs
-Date: Thu, 4 Nov 2010 10:20:10 -0700
-Message-ID: <20101104172010.GB9264@atomide.com>
+Subject: Re: [PATCH v3 1/6] OMAP4: Add the new voltage to vsel calculation
+ formula
+Date: Thu, 4 Nov 2010 10:24:17 -0700
+Message-ID: <20101104172417.GC9264@atomide.com>
 References: <1288196196-15469-1-git-send-email-thara@ti.com>
- <1288196196-15469-4-git-send-email-thara@ti.com>
+ <1288196196-15469-2-git-send-email-thara@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63788 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751740Ab0KDRUP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Nov 2010 13:20:15 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50910 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760Ab0KDRYW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Nov 2010 13:24:22 -0400
 Content-Disposition: inline
-In-Reply-To: <1288196196-15469-4-git-send-email-thara@ti.com>
+In-Reply-To: <1288196196-15469-2-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Thara Gopinath <thara@ti.com>
 Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
 
-Hi Thara,
-
-* Thara Gopinath <thara@ti.com> [101027 09:08]:
-> By default the system boots up at nominal voltage for every
-> voltage domain in the system. This patch puts vdd_mpu, vdd_iva
-> and vdd_core to the correct boot up voltage as per the opp tables
-> specified. This patch implements this by matching the rate of
-> the main clock of the voltage domain with the opp table and
-> picking up the correct voltage.
+* Thara Gopinath <thara@ti.com> [101027 09:07]:
+> TWL6030 the power IC used along with OMAP4 in OMAP4 SDPs,
+> blaze boards and panda boards has a different formula
+> from that of TWL4030 for voltage to vsel and
+> vsel to voltage calculation. This patch implements the new
+> formula depending on the PMIC type.
 > 
 > Signed-off-by: Thara Gopinath <thara@ti.com>
 > ---
->  arch/arm/mach-omap2/pm.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
+>  arch/arm/plat-omap/opp_twl_tps.c |   71 ++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 71 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index 353e155..0651667 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -211,6 +211,10 @@ static int __init omap2_common_pm_init(void)
->  	if (cpu_is_omap34xx()) {
->  		omap2_set_init_voltage("mpu", "dpll1_ck", mpu_dev);
->  		omap2_set_init_voltage("core", "l3_ick", l3_dev);
-> +	} else if (cpu_is_omap44xx()) {
-> +		omap2_set_init_voltage("mpu", "dpll_mpu_ck", mpu_dev);
-> +		omap2_set_init_voltage("core", "l3_div_ck", l3_dev);
-> +		omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", iva_dev);
->  	}
+> diff --git a/arch/arm/plat-omap/opp_twl_tps.c b/arch/arm/plat-omap/opp_twl_tps.c
+> index 4448fc5..358b67b 100644
+> --- a/arch/arm/plat-omap/opp_twl_tps.c
+> +++ b/arch/arm/plat-omap/opp_twl_tps.c
+> @@ -15,9 +15,16 @@
 >  
->  	omap_pm_if_init();
+>  #include <linux/module.h>
+>  
+> +#include <linux/i2c/twl.h>
+> +
+>  #include <plat/opp_twl_tps.h>
+>  #include <plat/voltage.h>
+>  
+> +static bool is_offset_valid;
+> +static u8 smps_offset;
+> +
+> +#define REG_SMPS_OFFSET         0xE0
+> +
+>  /**
+>   * omap_twl_vsel_to_vdc - convert TWL/TPS VSEL value to microvolts DC
+>   * @vsel: TWL/TPS VSEL value to convert
+> @@ -27,6 +34,38 @@
+>   */
+>  unsigned long omap_twl_vsel_to_uv(const u8 vsel)
+>  {
+> +	if (twl_class_is_6030()) {
+> +		/*
+> +		 * In TWL6030 depending on the value of SMPS_OFFSET
+> +		 * efuse register the voltage range supported in
+> +		 * standard mode can be either between 0.6V - 1.3V or
+> +		 * 0.7V - 1.4V. In TWL6030 ES1.0 SMPS_OFFSET efuse
+> +		 * is programmed to all 0's where as starting from
+> +		 * TWL6030 ES1.1 the efuse is programmed to 1
+> +		 */
+> +		if (!is_offset_valid) {
+> +			twl_i2c_read_u8(TWL6030_MODULE_ID0, &smps_offset, 0xE0);
+> +			is_offset_valid = true;
+> +		}
+> +
+> +		if (smps_offset & 0x8) {
+> +			return ((((vsel - 1) * 125) + 7000)) * 100;
+> +		} else {
+> +			/*
+> +			 * In case of the supported voltage range being
+> +			 * between 0.6V - 1.3V, there is not specific
+> +			 * formula for voltage to vsel conversion above
+> +			 * 1.3V. There are special hardcoded values for
+> +			 * voltages above 1.3V. Currently we are hardcodig
+> +			 * only for 1.35 V which is used for 1GH OPP for
+> +			 * OMAP4430.
+> +			 */
+> +			if (vsel == 0x3A)
+> +				return 1350000;
+> +			return ((((vsel - 1) * 125) + 6000)) * 100;
+> +		}
+> +	}
+> +
+>  	return (((vsel * 125) + 6000)) * 100;
+>  }
 
-In general, we want to avoid adding these "if cpu_is_ompa34xx else if"
-things all over the place. That makes the code hard to maintain and
-requires patching all over the place to add support for new omaps.
-
-Instead, please do something like this:
-
-static int __init omap_common_whatever_init(struct whatever_data *d)
-{
-	...
-
-	return 0;
-}
-
-static int __init omap3_whatever_init(void)
-{
-	struct whatever_data *d;
-
-	if (!cpu_is_omap34xx())
-		return -ENODEV;
-
-	/* Initialize omap3 specific things */
-	...
-
-	return omap_common_whatever_init(d);
-}
-device_initcall(omap3_whatever_init);
-
-static int __init omap4_whatever_init(void)
-{
-	struct whatever_data *d;
-
-	if (!cpu_is_omap44xx())
-		return -ENODEV;
-
-	/* Initialize omap4 specific things */
-	...
-
-	return omap_common_whatever_init(d);
-}
-device_initcall(omap4_whatever_init);
-...
-
-This way the common code stays readable and does not need
-to be patched when support for new omaps is added. Also the
-code for unselected omaps gets optimized out and an extra
-level of code indentation is left out.
+Here too you will want to restructure things a bit so you can avoid
+adding the "if twl_class_is_whatever else if" tests. Usually the best
+way is to set separate functions for different chips during the init.
 
 Regards,
 
