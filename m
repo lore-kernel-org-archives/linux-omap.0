@@ -1,65 +1,102 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH RESEND v5 4/5] omap: nand: ecc layout select from board file
-Date: Thu, 4 Nov 2010 17:54:00 +0200
-Message-ID: <AANLkTikbcHM4MpWm9ar-hLZBh3g5PkD3PK6FxY_bGd8u@mail.gmail.com>
-References: <1285596710-25658-1-git-send-email-s-ghorai@ti.com>
-	<1285596710-25658-5-git-send-email-s-ghorai@ti.com>
-	<AANLkTikKMnzHR5DZqzGdJJbnCXhCpxKA7K2C2ZtPhNke@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0356BABFAE@dbde02.ent.ti.com>
-	<AANLkTinOhBNUt+gvNb0MWiyHD8ZYgLDJPz8tc=p+CsVW@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0356BAC2B6@dbde02.ent.ti.com>
-	<AANLkTinNrZNuZnFfJKGLF9J3zsHsOTK0+VmUmYH88+c3@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0356BAC323@dbde02.ent.ti.com>
-	<AANLkTik3gO1Rm2U8-Rm2t2M83sdCjz_Oktpve_gDrbNM@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0356BAC331@dbde02.ent.ti.com>
-	<AANLkTinfO5e9JewdTDxasTRrUAXhGaQs=n6=HnqOQP7S@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0356BAC3BB@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 3/6] OMAP4: PM: Program correct init voltages for
+ scalable VDDs
+Date: Thu, 4 Nov 2010 10:20:10 -0700
+Message-ID: <20101104172010.GB9264@atomide.com>
+References: <1288196196-15469-1-git-send-email-thara@ti.com>
+ <1288196196-15469-4-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:38122 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752494Ab0KDPyB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Nov 2010 11:54:01 -0400
-Received: by qyk10 with SMTP id 10so1523018qyk.19
-        for <linux-omap@vger.kernel.org>; Thu, 04 Nov 2010 08:54:01 -0700 (PDT)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B0356BAC3BB@dbde02.ent.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63788 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751740Ab0KDRUP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Nov 2010 13:20:15 -0400
+Content-Disposition: inline
+In-Reply-To: <1288196196-15469-4-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Artem.Bityutskiy@nokia.com" <Artem.Bityutskiy@nokia.com>, Vimal Singh <vimal.newwork@gmail.com>, Tony Lindgren <tony@atomide.com>
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
 
-On Thu, Nov 4, 2010 at 2:52 PM, Ghorai, Sukumar <s-ghorai@ti.com> wrote:
->> -----Original Message-----
->> It has changed in 2.5.36, take a look how it was in 2.6.35, when it
->> worked for me:
->> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-
->> 2.6.git;a=blob;f=drivers/mtd/nand/omap2.c;h=ee87325c7712a8eeee4bbc683f9301
->> 4c9901f337;hb=9fe6206f400646a2322096b56c59891d530e8d51
->>
->> notice how 2.5.36 has CONFIG_MTD_NAND_OMAP_HWECC defined and 2.6.35
->> doesn't.
->>
->> The test case is simple:
->> format and use NAND on 2.6.35 or earlier, works fine.
->> upgrade to 2.6.36 or 2.6.37-rc1 and try to mount the same NAND
->> partition - lots of ECC errors.
->
-> [Ghorai] I tested this and working fine in zoom3.
->
-> And as you mentioned there may be an issue we need to identify,
-> So remove this #define form 2.6.36 and let me know the test result.
+Hi Thara,
 
-After removing #define it works, but only without
-CONFIG_MTD_NAND_OMAP_PREFETCH. With prefetch enabled, sub-page reads
-return ECC errors, for example:
+* Thara Gopinath <thara@ti.com> [101027 09:08]:
+> By default the system boots up at nominal voltage for every
+> voltage domain in the system. This patch puts vdd_mpu, vdd_iva
+> and vdd_core to the correct boot up voltage as per the opp tables
+> specified. This patch implements this by matching the rate of
+> the main clock of the voltage domain with the opp table and
+> picking up the correct voltage.
+> 
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 353e155..0651667 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -211,6 +211,10 @@ static int __init omap2_common_pm_init(void)
+>  	if (cpu_is_omap34xx()) {
+>  		omap2_set_init_voltage("mpu", "dpll1_ck", mpu_dev);
+>  		omap2_set_init_voltage("core", "l3_ick", l3_dev);
+> +	} else if (cpu_is_omap44xx()) {
+> +		omap2_set_init_voltage("mpu", "dpll_mpu_ck", mpu_dev);
+> +		omap2_set_init_voltage("core", "l3_div_ck", l3_dev);
+> +		omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", iva_dev);
+>  	}
+>  
+>  	omap_pm_if_init();
 
-nanddump -p -l 1024 -s 512 /dev/mtd3
-ECC: 3 uncorrectable bitflip(s) at offset 0x00000200
+In general, we want to avoid adding these "if cpu_is_ompa34xx else if"
+things all over the place. That makes the code hard to maintain and
+requires patching all over the place to add support for new omaps.
 
-nanddump -p -l 1024 -s 0 /dev/mtd3
-nanddump -p -l 1024 -s 1024 /dev/mtd3
-works ok.
+Instead, please do something like this:
 
-Sub-pages need to be working for UBI, my NAND partitions are formatted
-with UBIFS.
+static int __init omap_common_whatever_init(struct whatever_data *d)
+{
+	...
+
+	return 0;
+}
+
+static int __init omap3_whatever_init(void)
+{
+	struct whatever_data *d;
+
+	if (!cpu_is_omap34xx())
+		return -ENODEV;
+
+	/* Initialize omap3 specific things */
+	...
+
+	return omap_common_whatever_init(d);
+}
+device_initcall(omap3_whatever_init);
+
+static int __init omap4_whatever_init(void)
+{
+	struct whatever_data *d;
+
+	if (!cpu_is_omap44xx())
+		return -ENODEV;
+
+	/* Initialize omap4 specific things */
+	...
+
+	return omap_common_whatever_init(d);
+}
+device_initcall(omap4_whatever_init);
+...
+
+This way the common code stays readable and does not need
+to be patched when support for new omaps is added. Also the
+code for unselected omaps gets optimized out and an extra
+level of code indentation is left out.
+
+Regards,
+
+Tony
