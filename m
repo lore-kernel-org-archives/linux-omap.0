@@ -1,46 +1,111 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2.6.37-rc1] OMAP1: camera.h: readd missing include
-Date: Fri, 5 Nov 2010 09:57:53 -0700
-Message-ID: <20101105165753.GO9264@atomide.com>
-References: <201011021504.03168.jkrzyszt@tis.icnet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ionut Nicu <ionut.nicu@gmail.com>
+Subject: [PATCH v4 2/3] staging: tidspbridge: mgr_enum_node_info cleanup
+Date: Fri,  5 Nov 2010 19:01:49 +0200
+Message-ID: <1288976510-25470-3-git-send-email-ionut.nicu@mindbit.ro>
+References: <1288976510-25470-1-git-send-email-ionut.nicu@mindbit.ro>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63206 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753090Ab0KEQ6K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 12:58:10 -0400
-Content-Disposition: inline
-In-Reply-To: <201011021504.03168.jkrzyszt@tis.icnet.pl>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:57816 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752862Ab0KERCU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 13:02:20 -0400
+Received: by bwz11 with SMTP id 11so2857773bwz.19
+        for <linux-omap@vger.kernel.org>; Fri, 05 Nov 2010 10:02:19 -0700 (PDT)
+In-Reply-To: <1288976510-25470-1-git-send-email-ionut.nicu@mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
+To: Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [101102 06:56]:
-> #include <media/omap1_camera.h> directive, required for successfull 
-> compilation of dependant boards (board-ams-delta for now), has been lost 
-> somehow from arch/arm/mach-omap1/include/mach/camera.h on creation. Readd it.
-> 
-> Created and tested against linux-2.6.37-rc1.
+Reorganized mgr_enum_node_info code to increase its
+readability.
 
-I've updated the description to use add instead of readd as it
-never was there from Linux kernel change log point of view in
-the first place:
+Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+---
+ drivers/staging/tidspbridge/rmgr/mgr.c |   51 ++++++++++----------------------
+ 1 files changed, 16 insertions(+), 35 deletions(-)
 
-OMAP1: camera.h: add missing include
+diff --git a/drivers/staging/tidspbridge/rmgr/mgr.c b/drivers/staging/tidspbridge/rmgr/mgr.c
+index 2eab6a5..16410a5 100644
+--- a/drivers/staging/tidspbridge/rmgr/mgr.c
++++ b/drivers/staging/tidspbridge/rmgr/mgr.c
+@@ -134,8 +134,7 @@ int mgr_enum_node_info(u32 node_id, struct dsp_ndbprops *pndb_props,
+ 			      u32 undb_props_size, u32 *pu_num_nodes)
+ {
+ 	int status = 0;
+-	struct dsp_uuid node_uuid, temp_uuid;
+-	u32 temp_index = 0;
++	struct dsp_uuid node_uuid;
+ 	u32 node_index = 0;
+ 	struct dcd_genericobj gen_obj;
+ 	struct mgr_object *pmgr_obj = NULL;
+@@ -149,24 +148,27 @@ int mgr_enum_node_info(u32 node_id, struct dsp_ndbprops *pndb_props,
+ 	*pu_num_nodes = 0;
+ 	/* Get the Manager Object from the driver data */
+ 	if (!drv_datap || !drv_datap->mgr_object) {
+-		status = -ENODATA;
+ 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
+-		goto func_cont;
+-	} else {
+-		pmgr_obj = drv_datap->mgr_object;
++		return -ENODATA;
+ 	}
++	pmgr_obj = drv_datap->mgr_object;
+ 
+ 	DBC_ASSERT(pmgr_obj);
+ 	/* Forever loop till we hit failed or no more items in the
+ 	 * Enumeration. We will exit the loop other than 0; */
+-	while (status == 0) {
+-		status = dcd_enumerate_object(temp_index++, DSP_DCDNODETYPE,
+-					      &temp_uuid);
+-		if (status == 0) {
+-			node_index++;
+-			if (node_id == (node_index - 1))
+-				node_uuid = temp_uuid;
+-
++	while (!status) {
++		status = dcd_enumerate_object(node_index++, DSP_DCDNODETYPE,
++				&node_uuid);
++		if (status)
++			break;
++		*pu_num_nodes = node_index;
++		if (node_id == (node_index - 1)) {
++			status = dcd_get_object_def(pmgr_obj->hdcd_mgr,
++					&node_uuid, DSP_DCDNODETYPE, &gen_obj);
++			if (status)
++				break;
++			/* Get the Obj def */
++			*pndb_props = gen_obj.obj_data.node_obj.ndb_props;
+ 		}
+ 	}
+ 
+@@ -174,27 +176,6 @@ int mgr_enum_node_info(u32 node_id, struct dsp_ndbprops *pndb_props,
+ 	if (status > 0)
+ 		status = 0;
+ 
+-	if (!status) {
+-		if (node_id > (node_index - 1)) {
+-			status = -EINVAL;
+-		} else {
+-			status = dcd_get_object_def(pmgr_obj->hdcd_mgr,
+-						    (struct dsp_uuid *)
+-						    &node_uuid, DSP_DCDNODETYPE,
+-						    &gen_obj);
+-			if (!status) {
+-				/* Get the Obj def */
+-				*pndb_props =
+-				    gen_obj.obj_data.node_obj.ndb_props;
+-				*pu_num_nodes = node_index;
+-			}
+-		}
+-	}
+-
+-func_cont:
+-	DBC_ENSURE((!status && *pu_num_nodes > 0) ||
+-		   (status && *pu_num_nodes == 0));
+-
+ 	return status;
+ }
+ 
+-- 
+1.7.2.3
 
-#include <media/omap1_camera.h> directive is required to
-compile the dependant boards (board-ams-delta for now).
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-[tony@atomide.com: updated comments]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Also, for the future patches, please always Cc linux-arm-kernel
-mailing list as well so I don't have to repost the patches
-before merging.
-
-Regards,
-
-Tony
