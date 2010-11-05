@@ -1,47 +1,98 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH RFC] usb: musb: fail unaligned DMA transfers on v1.8
- and above
-Date: Fri, 5 Nov 2010 14:26:31 +0200
-Message-ID: <20101105122631.GA1952@legolas.emea.dhcp.ti.com>
-References: <1288502759-18618-1-git-send-email-gadiyar@ti.com>
+Subject: Re: USB Ethernet gadget seems doesn't work with current mainline
+Date: Fri, 5 Nov 2010 14:28:01 +0200
+Message-ID: <20101105122801.GB1952@legolas.emea.dhcp.ti.com>
+References: <AANLkTimeU1+F5F+Bpfh0E3E7S6=aZ=bbK0=6zmpJcm_H@mail.gmail.com>
+ <AANLkTinVb5Rf-P+UU5gGVnE8uf=qjiuZDDM4UsfksmN3@mail.gmail.com>
+ <AANLkTik7wMEvQODefZ7xRJZct_qExDMDp=hH74VxknOp@mail.gmail.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=iso-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34861 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751953Ab0KEM0P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Nov 2010 08:26:15 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:35935 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754284Ab0KEM1h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 08:27:37 -0400
 Content-Disposition: inline
-In-Reply-To: <1288502759-18618-1-git-send-email-gadiyar@ti.com>
+In-Reply-To: <AANLkTik7wMEvQODefZ7xRJZct_qExDMDp=hH74VxknOp@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, "Balbi, Felipe" <balbi@ti.com>, Ming Lei <tom.leiming@gmail.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, Mike Frysinger <vapier@gentoo.org>
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Enric =?iso-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>
 
-On Sun, Oct 31, 2010 at 12:25:59AM -0500, Gadiyar, Anand wrote:
->The Inventra DMA engine in version 1.8 and later of the MUSB
->controller cannot handle DMA addresses that are not aligned
->to a 4 byte boundary. It ends up ignoring the last two bits
->programmed in the DMA_ADDR register. This is a deliberate
->design change in the controller and is documented in the
->programming guide.
+On Fri, Nov 05, 2010 at 05:09:57AM -0500, Ming Lei wrote:
+>2010/11/5 Grazvydas Ignotas <notasas@gmail.com>:
+>> hi,
+>>
+>> On Fri, Nov 5, 2010 at 10:39 AM, Enric Balletb=F2 i Serra
+>> <eballetbo@gmail.com> wrote:
+>>> Hello all,
+>>>
+>>> With current mainline and stable 2.6.35.y branch I've some strange
+>>> features with USB ethernet gadget ...
+>>>
+>>> =A0root@igep0020:~# uname -a
+>>> =A0Linux igep0020 2.6.37-rc1+ #1 Fri Nov 5 09:22:53 CET 2010 armv7l
+>>> unknown unknown GNU/Linux
+>>>
+>>> =A0root@igep0020:~# ifconfig
+>>> =A0usb0 =A0 =A0 =A0Link encap:Ethernet =A0HWaddr 5A:A9:54:25:4C:04
+>>> =A0 =A0 =A0 =A0 =A0inet addr:192.168.7.2 =A0Bcast:192.168.7.255 =A0=
+Mask:255.255.255.0
+>>> =A0 =A0 =A0 =A0 =A0inet6 addr: fe80::58a9:54ff:fe25:4c04/64 Scope:L=
+ink
+>>> =A0 =A0 =A0 =A0 =A0UP BROADCAST RUNNING MULTICAST =A0MTU:1500 =A0Me=
+tric:1
+>>> =A0 =A0 =A0 =A0 =A0RX packets:0 errors:0 dropped:0 overruns:0 frame=
+:0
+>>> =A0 =A0 =A0 =A0 =A0TX packets:28 errors:0 dropped:0 overruns:0 carr=
+ier:0
+>>> =A0 =A0 =A0 =A0 =A0collisions:0 txqueuelen:1000
+>>> =A0 =A0 =A0 =A0 =A0RX bytes:0 (0.0 B) =A0TX bytes:4951 (4.8 KiB)
+>>>
+>>> Pinging seems not work
+>>>
+>>> =A0root@igep0020:~# ping -c5 192.168.7.1
+>>> =A0PING 192.168.7.1 (192.168.7.1): 56 data bytes
+>>> =A0--- 192.168.7.1 ping statistics ---
+>>> =A05 packets transmitted, 0 packets received, 100% packet loss
+>>>
+>>> Curiously if I unplug and plug the USB cable, and ping again ...
+>>>
+>>> =A0root@igep0020:~# ping -c5 192.168.7.1
+>>> =A0PING 192.168.7.1 (192.168.7.1): 56 data bytes
+>>> =A064 bytes from 192.168.7.1: seq=3D0 ttl=3D64 time=3D0.397 ms
+>>> =A064 bytes from 192.168.7.1: seq=3D1 ttl=3D64 time=3D0.489 ms
+>>> =A064 bytes from 192.168.7.1: seq=3D2 ttl=3D64 time=3D0.397 ms
+>>> =A064 bytes from 192.168.7.1: seq=3D3 ttl=3D64 time=3D0.366 ms
+>>> =A064 bytes from 192.168.7.1: seq=3D4 ttl=3D64 time=3D0.396 ms
+>>>
+>>> =A0--- 192.168.7.1 ping statistics ---
+>>> =A05 packets transmitted, 5 packets received, 0% packet loss
+>>> =A0round-trip min/avg/max =3D 0.366/0.409/0.489 ms
+>>>
+>>> Works, anyone knows if the ethernet gadget is broken in current
+>>> mainline or have observed this feature ?
+>>
+>> Please try this patch:
+>> http://marc.info/?l=3Dlinux-usb&m=3D128576496614332&w=3D2
+>>
+>> Report back if it works, maybe then that patch will finally get merg=
+ed..
+>>
 >
->Earlier versions of the controller could handle these
->accesses just fine.
+>No, the patch is not merged to now.
 >
->Fail dma_channel_program if we see an unaligned address when
->using the newer controllers, so that the caller can carry out
->the transfer using PIO mode.
->(Current callers already have this backup path in place).
->
->Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
->Cc: Felipe Balbi <balbi@ti.com>
->Cc: Ming Lei <tom.leiming@gmail.com>
->Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>
->Cc: Mike Frysinger <vapier@gentoo.org>
+>Felipe,  seems it is time to send out this musb bugfix patches.
 
-please fix comment from Sergei and resend without RFC.
+already queued.
 
--- 
+--=20
 balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
