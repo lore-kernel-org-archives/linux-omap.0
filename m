@@ -1,46 +1,43 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] omap3: feature: fix OMAP3_IVA_MASK
-Date: Fri,  5 Nov 2010 12:05:21 -0400
-Message-ID: <1288973121-14073-1-git-send-email-nm@ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH v2 1/3] staging: tidspbridge: fix mgr_enum_node_info
+Date: Fri, 5 Nov 2010 09:09:04 -0700
+Message-ID: <20101105160904.GA28784@kroah.com>
+References: <1288970148-22191-1-git-send-email-ionut.nicu@mindbit.ro> <1288970148-22191-2-git-send-email-ionut.nicu@mindbit.ro> <AANLkTimgHvTz9sSG+opnnkeGQ2LH7hVV5x-iJOMvffgE@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:60210 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752753Ab0KEQFv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 12:05:51 -0400
-Received: by gyh4 with SMTP id 4so2266987gyh.19
-        for <linux-omap@vger.kernel.org>; Fri, 05 Nov 2010 09:05:50 -0700 (PDT)
+Received: from kroah.org ([198.145.64.141]:52945 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752859Ab0KEQIt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Nov 2010 12:08:49 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTimgHvTz9sSG+opnnkeGQ2LH7hVV5x-iJOMvffgE@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Arno Steffen <arno.steffen@googlemail.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Ionut Nicu <ionut.nicu@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-From: Arno Steffen <arno.steffen@googlemail.com>
+On Fri, Nov 05, 2010 at 06:01:47PM +0200, Felipe Contreras wrote:
+> On Fri, Nov 5, 2010 at 5:15 PM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
+> > The current code was always returning a non-zero status value
+> > to userspace applications when this ioctl was called.
+> >
+> > The error code was ENODATA, which isn't actually an error,
+> > it's always returned by dcd_enumerate_object() when it hits the
+> > end of list.
+> >
+> > Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> > Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+> 
+> You should leave the original author (me).
 
-OMAP3_IVA_MASK should use OMAP3_IVA_SHIFT instead of OMAP3_SGX_SHIFT
+Ick, yes, that is very bad.
 
-Signed-off-by: Arno Steffen <arno.steffen@googlemail.com>
----
-Sending on behalf of Arno - he pointed at the change and everything
-except for the patch ;)
-Reported here:
-http://marc.info/?l=linux-omap&m=128896969832702&w=2
+Ionut, please go re-read Documentation/SubmittingPatches for how to
+properly attribute the original author of the patch.  Please resend all
+of these patches after ensuring that you have the proper authors
+credited.
 
- arch/arm/mach-omap2/control.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+thanks,
 
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index b6c6b7c..5325297 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -309,7 +309,7 @@
- #define		FEAT_SGX_NONE		2
- 
- #define OMAP3_IVA_SHIFT			12
--#define OMAP3_IVA_MASK			(1 << OMAP3_SGX_SHIFT)
-+#define OMAP3_IVA_MASK			(1 << OMAP3_IVA_SHIFT)
- #define		FEAT_IVA		0
- #define		FEAT_IVA_NONE		1
- 
--- 
-1.7.1
-
+greg k-h
