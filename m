@@ -1,57 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: dma: Add read-back to DMA interrupt handler to
- avoid spurious interrupts
-Date: Fri, 5 Nov 2010 09:51:02 -0700
-Message-ID: <20101105165102.GN9264@atomide.com>
-References: <1288017324-2181-1-git-send-email-mathias.nyman@nokia.com>
+Subject: Re: [PATCH 2.6.37-rc1] OMAP1: camera.h: readd missing include
+Date: Fri, 5 Nov 2010 09:57:53 -0700
+Message-ID: <20101105165753.GO9264@atomide.com>
+References: <201011021504.03168.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62749 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752542Ab0KEQvS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 12:51:18 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63206 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753090Ab0KEQ6K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 12:58:10 -0400
 Content-Disposition: inline
-In-Reply-To: <1288017324-2181-1-git-send-email-mathias.nyman@nokia.com>
+In-Reply-To: <201011021504.03168.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mathias Nyman <mathias.nyman@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
 
-* Mathias Nyman <mathias.nyman@nokia.com> [101025 07:22]:
-> Flush the writes to IRQSTATUS_L0 register in the DMA interrupt handler by reading the register
-> directly after write. This prevents the spurious DMA interrupts noted when using VDD_OPP 1
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [101102 06:56]:
+> #include <media/omap1_camera.h> directive, required for successfull 
+> compilation of dependant boards (board-ams-delta for now), has been lost 
+> somehow from arch/arm/mach-omap1/include/mach/camera.h on creation. Readd it.
+> 
+> Created and tested against linux-2.6.37-rc1.
 
-Adding this to omap-fixes. For future arch/arm/*omap*/ patches,
-please always Cc also linux-arm-kernel list. That way I can
-apply the patch without a need to repost.
+I've updated the description to use add instead of readd as it
+never was there from Linux kernel change log point of view in
+the first place:
+
+OMAP1: camera.h: add missing include
+
+#include <media/omap1_camera.h> directive is required to
+compile the dependant boards (board-ams-delta for now).
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+[tony@atomide.com: updated comments]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Also, for the future patches, please always Cc linux-arm-kernel
+mailing list as well so I don't have to repost the patches
+before merging.
 
 Regards,
 
 Tony
- 
-> Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com>
-> ---
->  arch/arm/plat-omap/dma.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index f5c5b8d..2c28265 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -1983,6 +1983,8 @@ static int omap2_dma_handle_ch(int ch)
->  
->  	dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(ch));
->  	dma_write(1 << ch, IRQSTATUS_L0);
-> +	/* read back the register to flush the write */
-> +	dma_read(IRQSTATUS_L0);
->  
->  	/* If the ch is not chained then chain_id will be -1 */
->  	if (dma_chan[ch].chain_id != -1) {
-> -- 
-> 1.5.6.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
