@@ -1,44 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] cbus: tahvo: move platform_device to board file
-Date: Fri, 5 Nov 2010 09:40:20 -0700
-Message-ID: <20101105164020.GK9264@atomide.com>
-References: <1285936419-28426-1-git-send-email-balbi@ti.com>
- <1285936419-28426-4-git-send-email-balbi@ti.com>
- <20101001123737.GT2925@legolas.emea.dhcp.ti.com>
- <20101105163602.GJ9264@atomide.com>
+Subject: Re: [PATCH 0/4] Horray, more CBUS patches
+Date: Fri, 5 Nov 2010 09:44:46 -0700
+Message-ID: <20101105164445.GL9264@atomide.com>
+References: <1287473358-25634-1-git-send-email-balbi@ti.com>
+ <20101019103825.e7906b0b.jhnikula@gmail.com>
+ <20101019073807.GA12470@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64152 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54143 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752902Ab0KEQkf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 12:40:35 -0400
+	with ESMTP id S1752646Ab0KEQpA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 12:45:00 -0400
 Content-Disposition: inline
-In-Reply-To: <20101105163602.GJ9264@atomide.com>
+In-Reply-To: <20101019073807.GA12470@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [101105 09:27]:
-> * Felipe Balbi <balbi@ti.com> [101001 05:29]:
-> > On Fri, Oct 01, 2010 at 07:33:38AM -0500, Balbi, Felipe wrote:
-> > >@@ -255,9 +269,24 @@ static void __init n8x0_cbus_init(void)
-> > >		return;
-> > >	}
-> > >
-> > >-	set_irq_type(gpio_to_irq(108), IRQ_TYPE_EDGE_RISING);
-> > >-	retu_resource[0].start = gpio_to_irq(108);
-> > >-	platform_device_register(&retu_device);
-> > 
-> > hmmm, these three deleted lines look suspicious :-(
-> > 
-> > Let these cook for a while, I'll get back to them in a day or two. CBUS
-> > is making me crazy :-p
+* Felipe Balbi <balbi@ti.com> [101019 00:29]:
+> On Tue, Oct 19, 2010 at 02:38:25AM -0500, Jarkko Nikula wrote:
+> >On Tue, 19 Oct 2010 10:29:14 +0300
+> >Felipe Balbi <balbi@ti.com> wrote:
+> >
+> >>I believe now everything is fine. Still, it's only
+> >>compile tested with n770_defconfig and omap2plus_defconfig.
+> >>
+> >>Felipe Balbi (4):
+> >>  cbus: remove unneded includes
+> >>  cbus: retu: move platform_device to board file
+> >>  cbus: tahvo: move platform_device to board file
+> >>  cbus: tahvo-usb: move platform_device to board file
+> >>
+> >omap2plus_defconfig doesn't include CONFIG_CBUS(_x) so you must enable
+> >them manually.
 > 
-> Marking these as changes needed then in pw.k.o.
+> I did that, don't worry
 
-Ah already archived and looking at the later set now,
-never mind..
+Adding these patches to the cbus branch.
 
 Tony
