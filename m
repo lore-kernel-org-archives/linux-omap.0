@@ -1,41 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 0/3] Various code improvements for IGEP v2 board.
-Date: Fri, 5 Nov 2010 14:49:17 -0700
-Message-ID: <20101105214917.GZ9264@atomide.com>
-References: <1287852540-4951-1-git-send-email-eballetbo@gmail.com>
+Subject: Re: [Patch v4] OMAP: AM3517/05: Add craneboard support
+Date: Fri, 5 Nov 2010 14:54:09 -0700
+Message-ID: <20101105215409.GA9264@atomide.com>
+References: <1288336394-6320-1-git-send-email-srinath@mistralsolutions.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50854 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56579 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752616Ab0KEVte (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 17:49:34 -0400
+	with ESMTP id S1752646Ab0KEVy0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 17:54:26 -0400
 Content-Disposition: inline
-In-Reply-To: <1287852540-4951-1-git-send-email-eballetbo@gmail.com>
+In-Reply-To: <1288336394-6320-1-git-send-email-srinath@mistralsolutions.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
+To: srinath@mistralsolutions.com
+Cc: linux-omap@vger.kernel.org, jdk@ti.com, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com
 
-* Enric Balletbo i Serra <eballetbo@gmail.com> [101023 09:40]:
+* srinath@mistralsolutions.com <srinath@mistralsolutions.com> [101029 00:19]:
+> From: Srinath <srinath@mistralsolutions.com>
 > 
-> Hello,
+> Craneboard is a hardware development platform based on the
+> Sitara AM3517 ARM Cortex - A8 microprocessor device. This is a
+> low cost reference design.
 > 
-> The comments of this post also apply to IGEP v2 board (thanks Laurent)
+> This patch adds basic board file. Detailed support will follow in
+> subsequent patches.
 > 
->   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36402.html
-> 
-> Changes since v1:
->  - Split patch in a serie.
->  - [1/3] onenand_setup = NULL, is a static variable, removed from code.
-> 
-> This patch apply on top of tmlind/omap-for-linux branch.
-> 
-> $ git diff --stat tmlind/omap-for-linus 
->  arch/arm/mach-omap2/board-igep0020.c |   35 ++++++++++-----------------------
->  1 files changed, 11 insertions(+), 24 deletions(-)
+>   [1] http://www.ti.com/sitara
+>   [2] http://www.ti.com/arm
+>   [3] http://tiexpressdsp.com/index.php?title=Applications_Processors_Crossreference
+>   [4] http://marc.info/?l=linux-omap&m=125615009412281&w=2
+>   [5] http://www.mistralsolutions.com/products/craneboard.php
 
-Thanks, I'll queue these for 2.6.38 merge window.
+Are all these links needed? To me it seems that [2] and [5]
+should be enough?
+ 
+> History and comments:
+> http://marc.info/?l=linux-omap&w=2&r=1&s=craneboard&q=b
+
+This history and comments link you can leave out, the official
+history starts when it gets to the mainline kernel tree.
+
+Anyways, please repost one more time with linux-arm-kernel
+mailing list Cc'd so I don't have to repost your patch
+before merging.
 
 Regards,
 
