@@ -1,65 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] arm: omap1: devices: need to return with a value
-Date: Fri, 5 Nov 2010 14:31:06 -0700
-Message-ID: <20101105213106.GV9264@atomide.com>
-References: <1287473455-25773-1-git-send-email-balbi@ti.com>
- <1287473455-25773-2-git-send-email-balbi@ti.com>
- <20101019080150.GC11713@pengutronix.de>
+Subject: Re: [PATCH 0/2] Combine zoom board-files
+Date: Fri, 5 Nov 2010 14:43:58 -0700
+Message-ID: <20101105214358.GX9264@atomide.com>
+References: <1287555912-16058-1-git-send-email-balbi@ti.com>
+ <20101104123345.GA1952@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51988 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646Ab0KEVb0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 17:31:26 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61455 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751954Ab0KEVoO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 17:44:14 -0400
 Content-Disposition: inline
-In-Reply-To: <20101019080150.GC11713@pengutronix.de>
+In-Reply-To: <20101104123345.GA1952@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>
 
-* Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> [101019 00:53]=
-:
-> On Tue, Oct 19, 2010 at 10:30:54AM +0300, Felipe Balbi wrote:
-> > Get rid of the following warning:
-> >=20
-> > arch/arm/mach-omap1/devices.c: In function 'omap_init_wdt':
-> > arch/arm/mach-omap1/devices.c:298: warning: 'return' with
-> > no value, in function returning non-void
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >  arch/arm/mach-omap1/devices.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> >=20
-> > diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/de=
-vices.c
-> > index 63d68cf..a037aba 100644
-> > --- a/arch/arm/mach-omap1/devices.c
-> > +++ b/arch/arm/mach-omap1/devices.c
-> > @@ -295,7 +295,7 @@ static struct platform_device omap_wdt_device =3D=
- {
-> >  static int __init omap_init_wdt(void)
-> >  {
-> >  	if (!cpu_is_omap16xx())
-> > -		return;
-> > +		return -ENODEV;
-> > =20
-> >  	platform_device_register(&omap_wdt_device);
-> >  	return 0;
-> It's unrelated to this patch, but using
->=20
-> 	return platform_device_register(&omap_wdt_device);
->=20
-> would be a bit cleaner.
+* Felipe Balbi <balbi@ti.com> [101104 05:24]:
+> Hi,
+> 
+> On Wed, Oct 20, 2010 at 01:25:10AM -0500, Balbi, Felipe wrote:
+> >Those boards are so similar that they don't
+> >deserve separate board files.
+> >
+> >Felipe Balbi (2):
+> > arm: omap: combine zoom2 and zoom3 board-files
+> > arm: omap: zoom: substitute gpio number with symbolic name
+> 
+> a gentle ping on these two patches. Here are patchwork links:
+> 
+> [1] https://patchwork.kernel.org/patch/267491/
+> [2] https://patchwork.kernel.org/patch/267501/
+> 
+> they are also rebased on top of today's l-o and compile tested with
+> omap2plus_defconfig, attached to this mail.
 
-=46elipe, care to update this one?
+Looks good to me, but please can you please repost with also
+linux-arm-kernel list Cc'd? That way I don't have to repost
+before merging.
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
