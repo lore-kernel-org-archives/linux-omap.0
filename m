@@ -1,275 +1,585 @@
 From: Ionut Nicu <ionut.nicu@gmail.com>
-Subject: [PATCH v2 09/12] staging: tidspbridge: remove custom linked list
-Date: Fri,  5 Nov 2010 17:13:13 +0200
-Message-ID: <1288969996-22103-10-git-send-email-ionut.nicu@mindbit.ro>
+Subject: [PATCH v2 11/12] staging: tidspbridge: pmgr code cleanup
+Date: Fri,  5 Nov 2010 17:13:15 +0200
+Message-ID: <1288969996-22103-12-git-send-email-ionut.nicu@mindbit.ro>
 References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:33152 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753297Ab0KEPOZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 11:14:25 -0400
-Received: by mail-gw0-f46.google.com with SMTP id 21so2210883gwj.19
-        for <linux-omap@vger.kernel.org>; Fri, 05 Nov 2010 08:14:24 -0700 (PDT)
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:52110 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753297Ab0KEPOe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 11:14:34 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 11so2758099bwz.19
+        for <linux-omap@vger.kernel.org>; Fri, 05 Nov 2010 08:14:33 -0700 (PDT)
 In-Reply-To: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 Cc: Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Sapiens Rene <rene.sapiens@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-Now that all users of lst_list have been converted to the
-standard linux list_head API, we can remove the associated
-header file.
+Reorganized some code in the pmgr module to increase
+its readability. No functional changes were done.
 
 Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
 ---
- drivers/staging/tidspbridge/TODO                   |    1 -
- .../staging/tidspbridge/include/dspbridge/list.h   |  225 --------------------
- 2 files changed, 0 insertions(+), 226 deletions(-)
- delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/list.h
+ drivers/staging/tidspbridge/pmgr/cmm.c |  354 ++++++++++++++-----------------
+ drivers/staging/tidspbridge/pmgr/dev.c |   20 +--
+ 2 files changed, 166 insertions(+), 208 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/TODO b/drivers/staging/tidspbridge/TODO
-index 187363f..1c51e2d 100644
---- a/drivers/staging/tidspbridge/TODO
-+++ b/drivers/staging/tidspbridge/TODO
-@@ -6,7 +6,6 @@
- * Eliminate general services and libraries - use or extend existing kernel
-   libraries instead (e.g. gcf/lcm in nldr.c, global helpers in gen/)
- * Eliminate direct manipulation of OMAP_SYSC_BASE
--* Eliminate list.h : seem like a redundant wrapper to existing kernel lists
- * Eliminate DSP_SUCCEEDED macros and their imposed redundant indentations
-   (adopt the kernel way of checking for return values)
- * Audit interfaces exposed to user space
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/list.h b/drivers/staging/tidspbridge/include/dspbridge/list.h
-deleted file mode 100644
-index 6837b61..0000000
---- a/drivers/staging/tidspbridge/include/dspbridge/list.h
-+++ /dev/null
-@@ -1,225 +0,0 @@
--/*
-- * list.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Declarations of list management control structures and definitions
-- * of inline list management functions.
-- *
-- * Copyright (C) 2008 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
+diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c b/drivers/staging/tidspbridge/pmgr/cmm.c
+index 603ed55..898f3de 100644
+--- a/drivers/staging/tidspbridge/pmgr/cmm.c
++++ b/drivers/staging/tidspbridge/pmgr/cmm.c
+@@ -250,26 +250,23 @@ int cmm_create(struct cmm_object **ph_cmm_mgr,
+ 	*ph_cmm_mgr = NULL;
+ 	/* create, zero, and tag a cmm mgr object */
+ 	cmm_obj = kzalloc(sizeof(struct cmm_object), GFP_KERNEL);
+-	if (cmm_obj != NULL) {
+-		if (mgr_attrts == NULL)
+-			mgr_attrts = &cmm_dfltmgrattrs;	/* set defaults */
 -
--#ifndef LIST_
--#define LIST_
+-		/* 4 bytes minimum */
+-		DBC_ASSERT(mgr_attrts->ul_min_block_size >= 4);
+-		/* save away smallest block allocation for this cmm mgr */
+-		cmm_obj->ul_min_block_size = mgr_attrts->ul_min_block_size;
+-		cmm_obj->dw_page_size = PAGE_SIZE;
 -
--#include <dspbridge/host_os.h>
--#include <linux/list.h>
+-		/* Note: DSP SM seg table(aDSPSMSegTab[]) zero'd by
+-		 * MEM_ALLOC_OBJECT */
 -
--#define LST_IS_EMPTY(l)      list_empty(&(l)->head)
--
--struct lst_list {
--	struct list_head head;
--};
--
--/*
-- *  ======== lst_first ========
-- *  Purpose:
-- *      Returns a pointer to the first element of the list, or NULL if the list
-- *      is empty.
-- *  Parameters:
-- *      lst:  Pointer to list control structure.
-- *  Returns:
-- *      Pointer to first list element, or NULL.
-- *  Requires:
-- *      - LST initialized.
-- *      - lst != NULL.
-- *  Ensures:
-- */
--static inline struct list_head *lst_first(struct lst_list *lst)
--{
--	if (lst && !list_empty(&lst->head))
--		return lst->head.next;
--	return NULL;
--}
--
--/*
-- *  ======== lst_get_head ========
-- *  Purpose:
-- *      Pops the head off the list and returns a pointer to it.
-- *  Details:
-- *      If the list is empty, returns NULL.
-- *      Else, removes the element at the head of the list, making the next
-- *      element the head of the list.
-- *      The head is removed by making the tail element of the list point its
-- *      "next" pointer at the next element after the head, and by making the
-- *      "prev" pointer of the next element after the head point at the tail
-- *      element.  So the next element after the head becomes the new head of
-- *      the list.
-- *  Parameters:
-- *      lst:    Pointer to list control structure of list whose head
-- *              element is to be removed
-- *  Returns:
-- *      Pointer to element that was at the head of the list (success)
-- *      NULL          No elements in list
-- *  Requires:
-- *      - LST initialized.
-- *      - lst != NULL.
-- *  Ensures:
-- *  Notes:
-- *      Because the tail of the list points forward (its "next" pointer) to
-- *      the head of the list, and the head of the list points backward (its
-- *      "prev" pointer) to the tail of the list, this list is circular.
-- */
--static inline struct list_head *lst_get_head(struct lst_list *lst)
--{
--	struct list_head *elem_list;
--
--	if (!lst || list_empty(&lst->head))
--		return NULL;
--
--	elem_list = lst->head.next;
--	lst->head.next = elem_list->next;
--	elem_list->next->prev = &lst->head;
--
--	return elem_list;
--}
--
--/*
-- *  ======== lst_init_elem ========
-- *  Purpose:
-- *      Initializes a list element to default (cleared) values
-- *  Details:
-- *  Parameters:
-- *      elem_list:  Pointer to list element to be reset
-- *  Returns:
-- *  Requires:
-- *      LST initialized.
-- *  Ensures:
-- *  Notes:
-- *      This function must not be called to "reset" an element in the middle
-- *      of a list chain -- that would break the chain.
-- *
-- */
--static inline void lst_init_elem(struct list_head *elem_list)
--{
--	if (elem_list) {
--		elem_list->next = NULL;
--		elem_list->prev = NULL;
+-		/* create node free list */
+-		INIT_LIST_HEAD(&cmm_obj->node_free_list);
+-		mutex_init(&cmm_obj->cmm_lock);
+-		*ph_cmm_mgr = cmm_obj;
+-	} else {
+-		status = -ENOMEM;
 -	}
--}
++	if (!cmm_obj)
++		return -ENOMEM;
++
++	if (mgr_attrts == NULL)
++		mgr_attrts = &cmm_dfltmgrattrs;	/* set defaults */
++
++	/* 4 bytes minimum */
++	DBC_ASSERT(mgr_attrts->ul_min_block_size >= 4);
++	/* save away smallest block allocation for this cmm mgr */
++	cmm_obj->ul_min_block_size = mgr_attrts->ul_min_block_size;
++	cmm_obj->dw_page_size = PAGE_SIZE;
++
++	/* create node free list */
++	INIT_LIST_HEAD(&cmm_obj->node_free_list);
++	mutex_init(&cmm_obj->cmm_lock);
++	*ph_cmm_mgr = cmm_obj;
++
+ 	return status;
+ }
+ 
+@@ -346,13 +343,12 @@ void cmm_exit(void)
+  *  Purpose:
+  *      Free the given buffer.
+  */
+-int cmm_free_buf(struct cmm_object *hcmm_mgr, void *buf_pa,
+-			u32 ul_seg_id)
++int cmm_free_buf(struct cmm_object *hcmm_mgr, void *buf_pa, u32 ul_seg_id)
+ {
+ 	struct cmm_object *cmm_mgr_obj = (struct cmm_object *)hcmm_mgr;
+ 	int status = -EFAULT;
+ 	struct cmm_mnode *curr, *tmp;
+-	struct cmm_allocator *allocator = NULL;
++	struct cmm_allocator *allocator;
+ 	struct cmm_attrs *pattrs;
+ 
+ 	DBC_REQUIRE(refs > 0);
+@@ -366,21 +362,22 @@ int cmm_free_buf(struct cmm_object *hcmm_mgr, void *buf_pa,
+ 		status = -EFAULT;
+ 		return status;
+ 	}
+-	/* get the allocator for this segment id */
++
+ 	allocator = get_allocator(cmm_mgr_obj, ul_seg_id);
+-	if (allocator != NULL) {
+-		mutex_lock(&cmm_mgr_obj->cmm_lock);
+-		list_for_each_entry_safe(curr, tmp, &allocator->in_use_list,
+-				link) {
+-			if (curr->dw_pa == (u32) buf_pa) {
+-				list_del(&curr->link);
+-				add_to_free_list(allocator, curr);
+-				status = 0;
+-				break;
+-			}
++	if (!allocator)
++		return status;
++
++	mutex_lock(&cmm_mgr_obj->cmm_lock);
++	list_for_each_entry_safe(curr, tmp, &allocator->in_use_list, link) {
++		if (curr->dw_pa == (u32) buf_pa) {
++			list_del(&curr->link);
++			add_to_free_list(allocator, curr);
++			status = 0;
++			break;
+ 		}
+-		mutex_unlock(&cmm_mgr_obj->cmm_lock);
+ 	}
++	mutex_unlock(&cmm_mgr_obj->cmm_lock);
++
+ 	return status;
+ }
+ 
+@@ -438,31 +435,30 @@ int cmm_get_info(struct cmm_object *hcmm_mgr,
+ 	for (ul_seg = 1; ul_seg <= CMM_MAXGPPSEGS; ul_seg++) {
+ 		/* get the allocator object for this segment id */
+ 		altr = get_allocator(cmm_mgr_obj, ul_seg);
+-		if (altr != NULL) {
+-			cmm_info_obj->ul_num_gppsm_segs++;
+-			cmm_info_obj->seg_info[ul_seg - 1].dw_seg_base_pa =
+-			    altr->shm_base - altr->ul_dsp_size;
+-			cmm_info_obj->seg_info[ul_seg - 1].ul_total_seg_size =
+-			    altr->ul_dsp_size + altr->ul_sm_size;
+-			cmm_info_obj->seg_info[ul_seg - 1].dw_gpp_base_pa =
+-			    altr->shm_base;
+-			cmm_info_obj->seg_info[ul_seg - 1].ul_gpp_size =
+-			    altr->ul_sm_size;
+-			cmm_info_obj->seg_info[ul_seg - 1].dw_dsp_base_va =
+-			    altr->dw_dsp_base;
+-			cmm_info_obj->seg_info[ul_seg - 1].ul_dsp_size =
+-			    altr->ul_dsp_size;
+-			cmm_info_obj->seg_info[ul_seg - 1].dw_seg_base_va =
+-			    altr->dw_vm_base - altr->ul_dsp_size;
+-			cmm_info_obj->seg_info[ul_seg - 1].ul_in_use_cnt = 0;
+-			/* Count inUse blocks */
+-			list_for_each_entry(curr, &altr->in_use_list, link) {
+-				cmm_info_obj->ul_total_in_use_cnt++;
+-				cmm_info_obj->seg_info[ul_seg -
+-						       1].ul_in_use_cnt++;
+-			}
++		if (!altr)
++			continue;
++		cmm_info_obj->ul_num_gppsm_segs++;
++		cmm_info_obj->seg_info[ul_seg - 1].dw_seg_base_pa =
++			altr->shm_base - altr->ul_dsp_size;
++		cmm_info_obj->seg_info[ul_seg - 1].ul_total_seg_size =
++			altr->ul_dsp_size + altr->ul_sm_size;
++		cmm_info_obj->seg_info[ul_seg - 1].dw_gpp_base_pa =
++			altr->shm_base;
++		cmm_info_obj->seg_info[ul_seg - 1].ul_gpp_size =
++			altr->ul_sm_size;
++		cmm_info_obj->seg_info[ul_seg - 1].dw_dsp_base_va =
++			altr->dw_dsp_base;
++		cmm_info_obj->seg_info[ul_seg - 1].ul_dsp_size =
++			altr->ul_dsp_size;
++		cmm_info_obj->seg_info[ul_seg - 1].dw_seg_base_va =
++			altr->dw_vm_base - altr->ul_dsp_size;
++		cmm_info_obj->seg_info[ul_seg - 1].ul_in_use_cnt = 0;
++
++		list_for_each_entry(curr, &altr->in_use_list, link) {
++			cmm_info_obj->ul_total_in_use_cnt++;
++			cmm_info_obj->seg_info[ul_seg - 1].ul_in_use_cnt++;
+ 		}
+-	}			/* end for */
++	}
+ 	mutex_unlock(&cmm_mgr_obj->cmm_lock);
+ 	return status;
+ }
+@@ -508,23 +504,25 @@ int cmm_register_gppsm_seg(struct cmm_object *hcmm_mgr,
+ 	DBC_REQUIRE(dw_gpp_base_pa != 0);
+ 	DBC_REQUIRE(gpp_base_va != 0);
+ 	DBC_REQUIRE((c_factor <= CMM_ADDTODSPPA) &&
+-		    (c_factor >= CMM_SUBFROMDSPPA));
++			(c_factor >= CMM_SUBFROMDSPPA));
++
+ 	dev_dbg(bridge, "%s: dw_gpp_base_pa %x ul_size %x dsp_addr_offset %x "
+-		"dw_dsp_base %x ul_dsp_size %x gpp_base_va %x\n", __func__,
+-		dw_gpp_base_pa, ul_size, dsp_addr_offset, dw_dsp_base,
+-		ul_dsp_size, gpp_base_va);
+-	if (!hcmm_mgr) {
+-		status = -EFAULT;
+-		return status;
+-	}
++			"dw_dsp_base %x ul_dsp_size %x gpp_base_va %x\n",
++			__func__, dw_gpp_base_pa, ul_size, dsp_addr_offset,
++			dw_dsp_base, ul_dsp_size, gpp_base_va);
++
++	if (!hcmm_mgr)
++		return -EFAULT;
++
+ 	/* make sure we have room for another allocator */
+ 	mutex_lock(&cmm_mgr_obj->cmm_lock);
++
+ 	slot_seg = get_slot(cmm_mgr_obj);
+ 	if (slot_seg < 0) {
+-		/* get a slot number */
+ 		status = -EPERM;
+ 		goto func_end;
+ 	}
++
+ 	/* Check if input ul_size is big enough to alloc at least one block */
+ 	if (ul_size < cmm_mgr_obj->ul_min_block_size) {
+ 		status = -EINVAL;
+@@ -533,37 +531,35 @@ int cmm_register_gppsm_seg(struct cmm_object *hcmm_mgr,
+ 
+ 	/* create, zero, and tag an SM allocator object */
+ 	psma = kzalloc(sizeof(struct cmm_allocator), GFP_KERNEL);
+-	if (psma != NULL) {
+-		psma->hcmm_mgr = hcmm_mgr;	/* ref to parent */
+-		psma->shm_base = dw_gpp_base_pa;	/* SM Base phys */
+-		psma->ul_sm_size = ul_size;	/* SM segment size in bytes */
+-		psma->dw_vm_base = gpp_base_va;
+-		psma->dw_dsp_phys_addr_offset = dsp_addr_offset;
+-		psma->c_factor = c_factor;
+-		psma->dw_dsp_base = dw_dsp_base;
+-		psma->ul_dsp_size = ul_dsp_size;
+-		if (psma->dw_vm_base == 0) {
+-			status = -EPERM;
+-			goto func_end;
+-		}
+-		/* return the actual segment identifier */
+-		*sgmt_id = (u32) slot_seg + 1;
+-		/* create memory free list */
+-		INIT_LIST_HEAD(&psma->free_list);
 -
--/*
-- *  ======== lst_insert_before ========
-- *  Purpose:
-- *     Insert the element before the existing element.
-- *  Parameters:
-- *      lst:            Pointer to list control structure.
-- *      elem_list:          Pointer to element in list to insert.
-- *      elem_existing:  Pointer to existing list element.
-- *  Returns:
-- *  Requires:
-- *      - LST initialized.
-- *      - lst != NULL.
-- *      - elem_list != NULL.
-- *      - elem_existing != NULL.
-- *  Ensures:
-- */
--static inline void lst_insert_before(struct lst_list *lst,
--				     struct list_head *elem_list,
--				     struct list_head *elem_existing)
--{
--	if (lst && elem_list && elem_existing)
--		list_add_tail(elem_list, elem_existing);
--}
+-		/* create memory in-use list */
+-		INIT_LIST_HEAD(&psma->in_use_list);
 -
--/*
-- *  ======== lst_next ========
-- *  Purpose:
-- *      Returns a pointer to the next element of the list, or NULL if the next
-- *      element is the head of the list or the list is empty.
-- *  Parameters:
-- *      lst:        Pointer to list control structure.
-- *      cur_elem:   Pointer to element in list to remove.
-- *  Returns:
-- *      Pointer to list element, or NULL.
-- *  Requires:
-- *      - LST initialized.
-- *      - lst != NULL.
-- *      - cur_elem != NULL.
-- *  Ensures:
-- */
--static inline struct list_head *lst_next(struct lst_list *lst,
--					 struct list_head *cur_elem)
--{
--	if (lst && !list_empty(&lst->head) && cur_elem &&
--	    (cur_elem->next != &lst->head))
--		return cur_elem->next;
--	return NULL;
--}
+-		/* Get a mem node for this hunk-o-memory */
+-		new_node = get_node(cmm_mgr_obj, dw_gpp_base_pa,
+-				    psma->dw_vm_base, ul_size);
+-		/* Place node on the SM allocator's free list */
+-		if (new_node) {
+-			list_add_tail(&new_node->link, &psma->free_list);
+-		} else {
+-			status = -ENOMEM;
+-			goto func_end;
+-		}
++	if (!psma) {
++		status = -ENOMEM;
++		goto func_end;
++	}
++
++	psma->hcmm_mgr = hcmm_mgr;	/* ref to parent */
++	psma->shm_base = dw_gpp_base_pa;	/* SM Base phys */
++	psma->ul_sm_size = ul_size;	/* SM segment size in bytes */
++	psma->dw_vm_base = gpp_base_va;
++	psma->dw_dsp_phys_addr_offset = dsp_addr_offset;
++	psma->c_factor = c_factor;
++	psma->dw_dsp_base = dw_dsp_base;
++	psma->ul_dsp_size = ul_dsp_size;
++	if (psma->dw_vm_base == 0) {
++		status = -EPERM;
++		goto func_end;
++	}
++	/* return the actual segment identifier */
++	*sgmt_id = (u32) slot_seg + 1;
++
++	INIT_LIST_HEAD(&psma->free_list);
++	INIT_LIST_HEAD(&psma->in_use_list);
++
++	/* Get a mem node for this hunk-o-memory */
++	new_node = get_node(cmm_mgr_obj, dw_gpp_base_pa,
++			psma->dw_vm_base, ul_size);
++	/* Place node on the SM allocator's free list */
++	if (new_node) {
++		list_add_tail(&new_node->link, &psma->free_list);
+ 	} else {
+ 		status = -ENOMEM;
+ 		goto func_end;
+@@ -572,12 +568,11 @@ int cmm_register_gppsm_seg(struct cmm_object *hcmm_mgr,
+ 	cmm_mgr_obj->pa_gppsm_seg_tab[slot_seg] = psma;
+ 
+ func_end:
+-	if (status && psma) {
+-		/* Cleanup allocator */
++	/* Cleanup allocator */
++	if (status && psma)
+ 		un_register_gppsm_seg(psma);
+-	}
 -
--/*
-- *  ======== lst_put_tail ========
-- *  Purpose:
-- *      Adds the specified element to the tail of the list
-- *  Details:
-- *      Sets new element's "prev" pointer to the address previously held by
-- *      the head element's prev pointer.  This is the previous tail member of
-- *      the list.
-- *      Sets the new head's prev pointer to the address of the element.
-- *      Sets next pointer of the previous tail member of the list to point to
-- *      the new element (rather than the head, which it had been pointing at).
-- *      Sets new element's next pointer to the address of the head element.
-- *      Sets head's prev pointer to the address of the new element.
-- *  Parameters:
-- *      lst:    Pointer to list control structure to which *elem_list will be
-- *              added
-- *      elem_list:  Pointer to list element to be added
-- *  Returns:
-- *      Void
-- *  Requires:
-- *      *elem_list and *lst must both exist.
-- *      LST initialized.
-- *  Ensures:
-- *  Notes:
-- *      Because the tail is always "just before" the head of the list (the
-- *      tail's "next" pointer points at the head of the list, and the head's
-- *      "prev" pointer points at the tail of the list), the list is circular.
-- */
--static inline void lst_put_tail(struct lst_list *lst,
--				struct list_head *elem_list)
--{
--	if (lst && elem_list)
--		list_add_tail(elem_list, &lst->head);
--}
+ 	mutex_unlock(&cmm_mgr_obj->cmm_lock);
++
+ 	return status;
+ }
+ 
+@@ -595,36 +590,36 @@ int cmm_un_register_gppsm_seg(struct cmm_object *hcmm_mgr,
+ 	u32 ul_id = ul_seg_id;
+ 
+ 	DBC_REQUIRE(ul_seg_id > 0);
+-	if (hcmm_mgr) {
+-		if (ul_seg_id == CMM_ALLSEGMENTS)
+-			ul_id = 1;
 -
--/*
-- *  ======== lst_remove_elem ========
-- *  Purpose:
-- *      Removes (unlinks) the given element from the list, if the list is not
-- *      empty.  Does not free the list element.
-- *  Parameters:
-- *      lst:        Pointer to list control structure.
-- *      cur_elem:   Pointer to element in list to remove.
-- *  Returns:
-- *  Requires:
-- *      - LST initialized.
-- *      - lst != NULL.
-- *      - cur_elem != NULL.
-- *  Ensures:
-- */
--static inline void lst_remove_elem(struct lst_list *lst,
--				   struct list_head *cur_elem)
--{
--	if (lst && !list_empty(&lst->head) && cur_elem)
--		list_del_init(cur_elem);
--}
+-		if ((ul_id > 0) && (ul_id <= CMM_MAXGPPSEGS)) {
+-			while (ul_id <= CMM_MAXGPPSEGS) {
+-				mutex_lock(&cmm_mgr_obj->cmm_lock);
+-				/* slot = seg_id-1 */
+-				psma = cmm_mgr_obj->pa_gppsm_seg_tab[ul_id - 1];
+-				if (psma != NULL) {
+-					un_register_gppsm_seg(psma);
+-					/* Set alctr ptr to NULL for future
+-					 * reuse */
+-					cmm_mgr_obj->pa_gppsm_seg_tab[ul_id -
+-								      1] = NULL;
+-				} else if (ul_seg_id != CMM_ALLSEGMENTS) {
+-					status = -EPERM;
+-				}
+-				mutex_unlock(&cmm_mgr_obj->cmm_lock);
+-				if (ul_seg_id != CMM_ALLSEGMENTS)
+-					break;
 -
--#endif /* LIST_ */
+-				ul_id++;
+-			}	/* end while */
+-		} else {
+-			status = -EINVAL;
++	if (!hcmm_mgr)
++		return -EFAULT;
++
++	if (ul_seg_id == CMM_ALLSEGMENTS)
++		ul_id = 1;
++
++	if ((ul_id <= 0) || (ul_id > CMM_MAXGPPSEGS))
++		return -EINVAL;
++
++	/* FIXME: CMM_MAXGPPSEGS == 1. why use a while cycle? Seems to me like
++	 * the ul_seg_id is not needed here. It must be always 1
++	 */
++	while (ul_id <= CMM_MAXGPPSEGS) {
++		mutex_lock(&cmm_mgr_obj->cmm_lock);
++		/* slot = seg_id-1 */
++		psma = cmm_mgr_obj->pa_gppsm_seg_tab[ul_id - 1];
++		if (psma != NULL) {
++			un_register_gppsm_seg(psma);
++			/* Set alctr ptr to NULL for future
++			 * reuse */
++			cmm_mgr_obj->pa_gppsm_seg_tab[ul_id - 1] = NULL;
++		} else if (ul_seg_id != CMM_ALLSEGMENTS) {
++			status = -EPERM;
+ 		}
+-	} else {
+-		status = -EFAULT;
+-	}
++		mutex_unlock(&cmm_mgr_obj->cmm_lock);
++		if (ul_seg_id != CMM_ALLSEGMENTS)
++			break;
++
++		ul_id++;
++	}	/* end while */
+ 	return status;
+ }
+ 
+@@ -690,26 +685,29 @@ static s32 get_slot(struct cmm_object *cmm_mgr_obj)
+ static struct cmm_mnode *get_node(struct cmm_object *cmm_mgr_obj, u32 dw_pa,
+ 				  u32 dw_va, u32 ul_size)
+ {
+-	struct cmm_mnode *pnode = NULL;
++	struct cmm_mnode *pnode;
+ 
+ 	DBC_REQUIRE(cmm_mgr_obj != NULL);
+ 	DBC_REQUIRE(dw_pa != 0);
+ 	DBC_REQUIRE(dw_va != 0);
+ 	DBC_REQUIRE(ul_size != 0);
++
+ 	/* Check cmm mgr's node freelist */
+ 	if (list_empty(&cmm_mgr_obj->node_free_list)) {
+ 		pnode = kzalloc(sizeof(struct cmm_mnode), GFP_KERNEL);
++		if (!pnode)
++			return NULL;
+ 	} else {
+ 		/* surely a valid element */
+ 		pnode = list_first_entry(&cmm_mgr_obj->node_free_list,
+ 				struct cmm_mnode, link);
+-		list_del(&pnode->link);
+-	}
+-	if (pnode) {
+-		pnode->dw_pa = dw_pa;	/* Physical addr of start of block */
+-		pnode->dw_va = dw_va;	/* Virtual   "            " */
+-		pnode->ul_size = ul_size;	/* Size of block */
++		list_del_init(&pnode->link);
+ 	}
++
++	pnode->dw_pa = dw_pa;
++	pnode->dw_va = dw_va;
++	pnode->ul_size = ul_size;
++
+ 	return pnode;
+ }
+ 
+@@ -740,11 +738,10 @@ static struct cmm_mnode *get_free_block(struct cmm_allocator *allocator,
+ 		return NULL;
+ 
+ 	list_for_each_entry_safe(node, tmp, &allocator->free_list, link) {
+-		if (usize <= (u32) node->ul_size) {
++		if (usize <= node->ul_size) {
+ 			list_del(&node->link);
+ 			return node;
+ 		}
+-
+ 	}
+ 
+ 	return NULL;
+@@ -756,56 +753,34 @@ static struct cmm_mnode *get_free_block(struct cmm_allocator *allocator,
+  *      Coalesce node into the freelist in ascending size order.
+  */
+ static void add_to_free_list(struct cmm_allocator *allocator,
+-			     struct cmm_mnode *pnode)
++			     struct cmm_mnode *node)
+ {
+-	struct cmm_mnode *node_prev = NULL;
+-	struct cmm_mnode *node_next = NULL;
+-	struct cmm_mnode *mnode_obj;
+-	u32 dw_this_pa;
+-	u32 dw_next_pa;
++	struct cmm_mnode *curr;
+ 
+-	DBC_REQUIRE(pnode != NULL);
++	DBC_REQUIRE(node != NULL);
+ 	DBC_REQUIRE(allocator != NULL);
+-	dw_this_pa = pnode->dw_pa;
+-	dw_next_pa = NEXT_PA(pnode);
+-	list_for_each_entry(mnode_obj, &allocator->free_list, link) {
+-		if (dw_this_pa == NEXT_PA(mnode_obj)) {
+-			/* found the block ahead of this one */
+-			node_prev = mnode_obj;
+-		} else if (dw_next_pa == mnode_obj->dw_pa) {
+-			node_next = mnode_obj;
++
++	list_for_each_entry(curr, &allocator->free_list, link) {
++		if (NEXT_PA(curr) == node->dw_pa) {
++			curr->ul_size += node->ul_size;
++			delete_node(allocator->hcmm_mgr, node);
++			return;
++		}
++		if (curr->dw_pa == NEXT_PA(node)) {
++			curr->dw_pa = node->dw_pa;
++			curr->dw_va = node->dw_va;
++			curr->ul_size += node->ul_size;
++			delete_node(allocator->hcmm_mgr, node);
++			return;
+ 		}
+-		if ((node_prev != NULL) && (node_next != NULL))
+-			break;
+-	}
+-	if (node_prev != NULL) {
+-		/* combine with previous block */
+-		list_del(&node_prev->link);
+-		/* grow node to hold both */
+-		pnode->ul_size += node_prev->ul_size;
+-		pnode->dw_pa = node_prev->dw_pa;
+-		pnode->dw_va = node_prev->dw_va;
+-		/* place node on mgr nodeFreeList */
+-		delete_node(allocator->hcmm_mgr, node_prev);
+-	}
+-	if (node_next != NULL) {
+-		/* combine with next block */
+-		list_del(&node_next->link);
+-		/* grow da node */
+-		pnode->ul_size += node_next->ul_size;
+-		/* place node on mgr nodeFreeList */
+-		delete_node(allocator->hcmm_mgr, node_next);
+ 	}
+-	/* Now, let's add to freelist in increasing size order */
+-	list_for_each_entry(mnode_obj, &allocator->free_list, link) {
+-		if (pnode->ul_size <= mnode_obj->ul_size) {
+-			/* insert our node before the current traversed node  */
+-			list_add_tail(&pnode->link, &mnode_obj->link);
++	list_for_each_entry(curr, &allocator->free_list, link) {
++		if (curr->ul_size >= node->ul_size) {
++			list_add_tail(&node->link, &curr->link);
+ 			return;
+ 		}
+ 	}
+-	/* add our pnode to the end of the freelist */
+-	list_add_tail(&pnode->link, &allocator->free_list);
++	list_add_tail(&node->link, &allocator->free_list);
+ }
+ 
+ /*
+@@ -817,19 +792,10 @@ static void add_to_free_list(struct cmm_allocator *allocator,
+ static struct cmm_allocator *get_allocator(struct cmm_object *cmm_mgr_obj,
+ 					   u32 ul_seg_id)
+ {
+-	struct cmm_allocator *allocator = NULL;
+-
+ 	DBC_REQUIRE(cmm_mgr_obj != NULL);
+ 	DBC_REQUIRE((ul_seg_id > 0) && (ul_seg_id <= CMM_MAXGPPSEGS));
+-	allocator = cmm_mgr_obj->pa_gppsm_seg_tab[ul_seg_id - 1];
+-	if (allocator != NULL) {
+-		/* make sure it's for real */
+-		if (!allocator) {
+-			allocator = NULL;
+-			DBC_ASSERT(false);
+-		}
+-	}
+-	return allocator;
++
++	return cmm_mgr_obj->pa_gppsm_seg_tab[ul_seg_id - 1];
+ }
+ 
+ /*
+diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/tidspbridge/pmgr/dev.c
+index 99cef4d..060e962 100644
+--- a/drivers/staging/tidspbridge/pmgr/dev.c
++++ b/drivers/staging/tidspbridge/pmgr/dev.c
+@@ -76,7 +76,7 @@ struct dev_object {
+ 	struct ldr_module *module_obj;	/* Bridge Module handle. */
+ 	u32 word_size;		/* DSP word size: quick access. */
+ 	struct drv_object *hdrv_obj;	/* Driver Object */
+-	struct list_head proc_list;	/* List of Processor attached to
++	struct list_head proc_list;	/* List of Processors attached to
+ 					 * this device */
+ 	struct node_mgr *hnode_mgr;
+ };
+@@ -734,16 +734,15 @@ bool dev_init(void)
+  *  Purpose:
+  *      Notify all clients of this device of a change in device status.
+  */
+-int dev_notify_clients(struct dev_object *hdev_obj, u32 ret)
++int dev_notify_clients(struct dev_object *dev_obj, u32 ret)
+ {
+-	struct dev_object *dev_obj = hdev_obj;
+ 	struct list_head *curr;
+ 
+ 	/* FIXME: this code needs struct proc_object to have a list_head
+ 	 * at the begining. If not, this can go horribly wrong.
+ 	 */
+ 	list_for_each(curr, &dev_obj->proc_list)
+-		proc_notify_clients((void *)curr, (u32) ret);
++		proc_notify_clients((void *)curr, ret);
+ 
+ 	return 0;
+ }
+@@ -927,7 +926,6 @@ static int init_cod_mgr(struct dev_object *dev_obj)
+ int dev_insert_proc_object(struct dev_object *hdev_obj,
+ 				  u32 proc_obj, bool *already_attached)
+ {
+-	int status = 0;
+ 	struct dev_object *dev_obj = (struct dev_object *)hdev_obj;
+ 
+ 	DBC_REQUIRE(refs > 0);
+@@ -943,9 +941,7 @@ int dev_insert_proc_object(struct dev_object *hdev_obj,
+ 	 */
+ 	list_add_tail((struct list_head *)proc_obj, &dev_obj->proc_list);
+ 
+-	DBC_ENSURE(!status && !list_empty(&dev_obj->proc_list));
+-
+-	return status;
++	return 0;
+ }
+ 
+ /*
+@@ -988,14 +984,10 @@ int dev_remove_proc_object(struct dev_object *hdev_obj, u32 proc_obj)
+ 	return status;
+ }
+ 
+-int dev_get_dev_type(struct dev_object *device_obj, u8 *dev_type)
++int dev_get_dev_type(struct dev_object *dev_obj, u8 *dev_type)
+ {
+-	int status = 0;
+-	struct dev_object *dev_obj = (struct dev_object *)device_obj;
+-
+ 	*dev_type = dev_obj->dev_type;
+-
+-	return status;
++	return 0;
+ }
+ 
+ /*
 -- 
 1.7.2.3
 
