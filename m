@@ -1,1495 +1,773 @@
 From: Ionut Nicu <ionut.nicu@gmail.com>
-Subject: [PATCH v2 10/12] staging: tidspbridge: core code cleanup
-Date: Fri,  5 Nov 2010 17:13:14 +0200
-Message-ID: <1288969996-22103-11-git-send-email-ionut.nicu@mindbit.ro>
+Subject: [PATCH v2 12/12] staging: tidspbridge: rmgr code cleanup
+Date: Fri,  5 Nov 2010 17:13:16 +0200
+Message-ID: <1288969996-22103-13-git-send-email-ionut.nicu@mindbit.ro>
 References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:52110 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753297Ab0KEPOa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 11:14:30 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 11so2758099bwz.19
-        for <linux-omap@vger.kernel.org>; Fri, 05 Nov 2010 08:14:29 -0700 (PDT)
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:44531 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753297Ab0KEPOh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 11:14:37 -0400
+Received: by gxk23 with SMTP id 23so2221624gxk.19
+        for <linux-omap@vger.kernel.org>; Fri, 05 Nov 2010 08:14:36 -0700 (PDT)
 In-Reply-To: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 Cc: Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Sapiens Rene <rene.sapiens@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-Reorganized some code in the core module to increase its
-readability. Most of the changes reduce the code
-indentation level and simplifiy the code. No functional
-changes were done.
+Reorganized some code in the rmgr module to increase
+its readability. No functional changes were done.
 
 Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
 ---
- drivers/staging/tidspbridge/core/chnl_sm.c |  451 +++++++++++++---------------
- drivers/staging/tidspbridge/core/io_sm.c   |  191 ++++++-------
- drivers/staging/tidspbridge/core/msg_sm.c  |  447 ++++++++++++---------------
- 3 files changed, 498 insertions(+), 591 deletions(-)
+ drivers/staging/tidspbridge/rmgr/drv.c  |  171 +++++++++-----------
+ drivers/staging/tidspbridge/rmgr/node.c |   82 +++++-----
+ drivers/staging/tidspbridge/rmgr/rmm.c  |  267 +++++++++++++------------------
+ 3 files changed, 229 insertions(+), 291 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/core/chnl_sm.c b/drivers/staging/tidspbridge/core/chnl_sm.c
-index 83403bb..ba6313f 100644
---- a/drivers/staging/tidspbridge/core/chnl_sm.c
-+++ b/drivers/staging/tidspbridge/core/chnl_sm.c
-@@ -105,35 +105,31 @@ int bridge_chnl_add_io_req(struct chnl_object *chnl_obj, void *host_buf,
- 	is_eos = (byte_size == 0);
- 
- 	/* Validate args */
--	if (!host_buf || !pchnl) {
--		status = -EFAULT;
--	} else if (is_eos && CHNL_IS_INPUT(pchnl->chnl_mode)) {
--		status = -EPERM;
--	} else {
--		/*
--		 * Check the channel state: only queue chirp if channel state
--		 * allows it.
--		 */
--		dw_state = pchnl->dw_state;
--		if (dw_state != CHNL_STATEREADY) {
--			if (dw_state & CHNL_STATECANCEL)
--				status = -ECANCELED;
--			else if ((dw_state & CHNL_STATEEOS) &&
--				 CHNL_IS_OUTPUT(pchnl->chnl_mode))
--				status = -EPIPE;
--			else
--				/* No other possible states left */
--				DBC_ASSERT(0);
--		}
-+	if (!host_buf || !pchnl)
-+		return -EFAULT;
-+
-+	if (is_eos && CHNL_IS_INPUT(pchnl->chnl_mode))
-+		return -EPERM;
-+
-+	/*
-+	 * Check the channel state: only queue chirp if channel state
-+	 * allows it.
-+	 */
-+	dw_state = pchnl->dw_state;
-+	if (dw_state != CHNL_STATEREADY) {
-+		if (dw_state & CHNL_STATECANCEL)
-+			return -ECANCELED;
-+		if ((dw_state & CHNL_STATEEOS) &&
-+				CHNL_IS_OUTPUT(pchnl->chnl_mode))
-+			return -EPIPE;
-+		/* No other possible states left */
-+		DBC_ASSERT(0);
- 	}
- 
- 	dev_obj = dev_get_first();
- 	dev_get_bridge_context(dev_obj, &dev_ctxt);
- 	if (!dev_ctxt)
--		status = -EFAULT;
--
--	if (status)
--		goto func_end;
-+		return -EFAULT;
- 
- 	if (pchnl->chnl_type == CHNL_PCPY && pchnl->chnl_id > 1 && host_buf) {
- 		if (!(host_buf < (void *)USERMODE_ADDR)) {
-@@ -142,18 +138,16 @@ int bridge_chnl_add_io_req(struct chnl_object *chnl_obj, void *host_buf,
- 		}
- 		/* if addr in user mode, then copy to kernel space */
- 		host_sys_buf = kmalloc(buf_size, GFP_KERNEL);
--		if (host_sys_buf == NULL) {
--			status = -ENOMEM;
--			goto func_end;
--		}
-+		if (host_sys_buf == NULL)
-+			return -ENOMEM;
-+
- 		if (CHNL_IS_OUTPUT(pchnl->chnl_mode)) {
- 			status = copy_from_user(host_sys_buf, host_buf,
--						buf_size);
-+					buf_size);
- 			if (status) {
- 				kfree(host_sys_buf);
- 				host_sys_buf = NULL;
--				status = -EFAULT;
--				goto func_end;
-+				return -EFAULT;
- 			}
- 		}
- 	}
-@@ -167,65 +161,62 @@ func_cont:
- 	omap_mbox_disable_irq(dev_ctxt->mbox, IRQ_RX);
- 	if (pchnl->chnl_type == CHNL_PCPY) {
- 		/* This is a processor-copy channel. */
--		if (!status && CHNL_IS_OUTPUT(pchnl->chnl_mode)) {
-+		if (CHNL_IS_OUTPUT(pchnl->chnl_mode)) {
- 			/* Check buffer size on output channels for fit. */
--			if (byte_size >
--			    io_buf_size(pchnl->chnl_mgr_obj->hio_mgr))
-+			if (byte_size > io_buf_size(
-+						pchnl->chnl_mgr_obj->hio_mgr)) {
- 				status = -EINVAL;
--
-+				goto out;
-+			}
- 		}
- 	}
--	if (!status) {
--		/* Get a free chirp: */
--		if (!list_empty(&pchnl->free_packets_list)) {
--			chnl_packet_obj = list_first_entry(
--					&pchnl->free_packets_list,
--					struct chnl_irp, link);
--			list_del(&chnl_packet_obj->link);
--		} else
--			status = -EIO;
--
--	}
--	if (!status) {
--		/* Enqueue the chirp on the chnl's IORequest queue: */
--		chnl_packet_obj->host_user_buf = chnl_packet_obj->host_sys_buf =
--		    host_buf;
--		if (pchnl->chnl_type == CHNL_PCPY && pchnl->chnl_id > 1)
--			chnl_packet_obj->host_sys_buf = host_sys_buf;
--
--		/*
--		 * Note: for dma chans dw_dsp_addr contains dsp address
--		 * of SM buffer.
--		 */
--		DBC_ASSERT(chnl_mgr_obj->word_size != 0);
--		/* DSP address */
--		chnl_packet_obj->dsp_tx_addr =
--		    dw_dsp_addr / chnl_mgr_obj->word_size;
--		chnl_packet_obj->byte_size = byte_size;
--		chnl_packet_obj->buf_size = buf_size;
--		/* Only valid for output channel */
--		chnl_packet_obj->dw_arg = dw_arg;
--		chnl_packet_obj->status = (is_eos ? CHNL_IOCSTATEOS :
--					   CHNL_IOCSTATCOMPLETE);
--		list_add_tail(&chnl_packet_obj->link, &pchnl->pio_requests);
--		pchnl->cio_reqs++;
--		DBC_ASSERT(pchnl->cio_reqs <= pchnl->chnl_packets);
--		/*
--		 * If end of stream, update the channel state to prevent
--		 * more IOR's.
--		 */
--		if (is_eos)
--			pchnl->dw_state |= CHNL_STATEEOS;
--
--		/* Legacy DSM Processor-Copy */
--		DBC_ASSERT(pchnl->chnl_type == CHNL_PCPY);
--		/* Request IO from the DSP */
--		io_request_chnl(chnl_mgr_obj->hio_mgr, pchnl,
--				(CHNL_IS_INPUT(pchnl->chnl_mode) ? IO_INPUT :
--				 IO_OUTPUT), &mb_val);
--		sched_dpc = true;
- 
--	}
-+	/* Get a free chirp: */
-+	if (list_empty(&pchnl->free_packets_list)) {
-+		status = -EIO;
-+		goto out;
-+	}
-+	chnl_packet_obj = list_first_entry(&pchnl->free_packets_list,
-+			struct chnl_irp, link);
-+	list_del(&chnl_packet_obj->link);
-+
-+	/* Enqueue the chirp on the chnl's IORequest queue: */
-+	chnl_packet_obj->host_user_buf = chnl_packet_obj->host_sys_buf =
-+		host_buf;
-+	if (pchnl->chnl_type == CHNL_PCPY && pchnl->chnl_id > 1)
-+		chnl_packet_obj->host_sys_buf = host_sys_buf;
-+
-+	/*
-+	 * Note: for dma chans dw_dsp_addr contains dsp address
-+	 * of SM buffer.
-+	 */
-+	DBC_ASSERT(chnl_mgr_obj->word_size != 0);
-+	/* DSP address */
-+	chnl_packet_obj->dsp_tx_addr = dw_dsp_addr / chnl_mgr_obj->word_size;
-+	chnl_packet_obj->byte_size = byte_size;
-+	chnl_packet_obj->buf_size = buf_size;
-+	/* Only valid for output channel */
-+	chnl_packet_obj->dw_arg = dw_arg;
-+	chnl_packet_obj->status = (is_eos ? CHNL_IOCSTATEOS :
-+			CHNL_IOCSTATCOMPLETE);
-+	list_add_tail(&chnl_packet_obj->link, &pchnl->pio_requests);
-+	pchnl->cio_reqs++;
-+	DBC_ASSERT(pchnl->cio_reqs <= pchnl->chnl_packets);
-+	/*
-+	 * If end of stream, update the channel state to prevent
-+	 * more IOR's.
-+	 */
-+	if (is_eos)
-+		pchnl->dw_state |= CHNL_STATEEOS;
-+
-+	/* Legacy DSM Processor-Copy */
-+	DBC_ASSERT(pchnl->chnl_type == CHNL_PCPY);
-+	/* Request IO from the DSP */
-+	io_request_chnl(chnl_mgr_obj->hio_mgr, pchnl,
-+			(CHNL_IS_INPUT(pchnl->chnl_mode) ? IO_INPUT :
-+			 IO_OUTPUT), &mb_val);
-+	sched_dpc = true;
-+out:
- 	omap_mbox_enable_irq(dev_ctxt->mbox, IRQ_RX);
- 	spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
- 	if (mb_val != 0)
-@@ -235,7 +226,6 @@ func_cont:
- 	if (sched_dpc)
- 		iosm_schedule(chnl_mgr_obj->hio_mgr);
- 
--func_end:
- 	return status;
- }
- 
-@@ -250,7 +240,6 @@ func_end:
+diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
+index 18fae55..4eff419 100644
+--- a/drivers/staging/tidspbridge/rmgr/drv.c
++++ b/drivers/staging/tidspbridge/rmgr/drv.c
+@@ -293,40 +293,28 @@ int drv_proc_update_strm_res(u32 num_bufs, void *strm_resources)
   */
- int bridge_chnl_cancel_io(struct chnl_object *chnl_obj)
+ int drv_create(struct drv_object **drv_obj)
  {
 -	int status = 0;
- 	struct chnl_object *pchnl = (struct chnl_object *)chnl_obj;
- 	u32 chnl_id = -1;
- 	s8 chnl_mode;
-@@ -258,22 +247,23 @@ int bridge_chnl_cancel_io(struct chnl_object *chnl_obj)
- 	struct chnl_mgr *chnl_mgr_obj = NULL;
+ 	struct drv_object *pdrv_object = NULL;
+ 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
  
- 	/* Check args: */
--	if (pchnl && pchnl->chnl_mgr_obj) {
--		chnl_id = pchnl->chnl_id;
--		chnl_mode = pchnl->chnl_mode;
--		chnl_mgr_obj = pchnl->chnl_mgr_obj;
--	} else {
--		status = -EFAULT;
--	}
--	if (status)
--		goto func_end;
-+	if (!pchnl || !pchnl->chnl_mgr_obj)
+ 	DBC_REQUIRE(drv_obj != NULL);
+ 	DBC_REQUIRE(refs > 0);
+ 
++	if (!drv_datap)
 +		return -EFAULT;
 +
-+	chnl_id = pchnl->chnl_id;
-+	chnl_mode = pchnl->chnl_mode;
-+	chnl_mgr_obj = pchnl->chnl_mgr_obj;
+ 	pdrv_object = kzalloc(sizeof(struct drv_object), GFP_KERNEL);
+-	if (pdrv_object) {
+-		/* Create and Initialize List of device objects */
+-		INIT_LIST_HEAD(&pdrv_object->dev_list);
+-		INIT_LIST_HEAD(&pdrv_object->dev_node_string);
+-	} else {
+-		status = -ENOMEM;
+-	}
+-	/* Store the DRV Object in the driver data */
+-	if (!status) {
+-		if (drv_datap) {
+-			drv_datap->drv_object = (void *)pdrv_object;
+-		} else {
+-			status = -EPERM;
+-			pr_err("%s: Failed to store DRV object\n", __func__);
+-		}
+-	}
++	if (!pdrv_object)
++		return -ENOMEM;
  
- 	/*  Mark this channel as cancelled, to prevent further IORequests or
- 	 *  IORequests or dispatching. */
- 	spin_lock_bh(&chnl_mgr_obj->chnl_mgr_lock);
-+
- 	pchnl->dw_state |= CHNL_STATECANCEL;
--	if (list_empty(&pchnl->pio_requests))
--		goto func_cont;
-+
-+	if (list_empty(&pchnl->pio_requests)) {
-+		spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
-+		return 0;
-+	}
+-	if (!status) {
+-		*drv_obj = pdrv_object;
+-	} else {
+-		/* Free the DRV Object */
+-		kfree(pdrv_object);
+-	}
++	/* Create and Initialize List of device objects */
++	INIT_LIST_HEAD(&pdrv_object->dev_list);
++	INIT_LIST_HEAD(&pdrv_object->dev_node_string);
  
- 	if (pchnl->chnl_type == CHNL_PCPY) {
- 		/* Indicate we have no more buffers available for transfer: */
-@@ -297,10 +287,10 @@ int bridge_chnl_cancel_io(struct chnl_object *chnl_obj)
- 		pchnl->cio_reqs--;
- 		DBC_ASSERT(pchnl->cio_reqs >= 0);
- 	}
--func_cont:
-+
- 	spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
--func_end:
+-	DBC_ENSURE(status || pdrv_object);
 -	return status;
++	/* Store the DRV Object in the driver data */
++	drv_datap->drv_object = (void *)pdrv_object;
++	*drv_obj = pdrv_object;
 +
 +	return 0;
  }
  
  /*
-@@ -317,53 +307,47 @@ int bridge_chnl_close(struct chnl_object *chnl_obj)
- 	struct chnl_object *pchnl = (struct chnl_object *)chnl_obj;
+@@ -413,19 +401,19 @@ int drv_get_dev_object(u32 index, struct drv_object *hdrv_obj,
+  */
+ u32 drv_get_first_dev_object(void)
+ {
+-	u32 dw_dev_object = 0;
+ 	struct drv_object *pdrv_obj;
+ 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
  
- 	/* Check args: */
--	if (!pchnl) {
--		status = -EFAULT;
--		goto func_cont;
--	}
--	{
--		/* Cancel IO: this ensures no further IO requests or
--		 * notifications. */
--		status = bridge_chnl_cancel_io(chnl_obj);
-+	if (!pchnl)
-+		return -EFAULT;
-+	/* Cancel IO: this ensures no further IO requests or
-+	 * notifications. */
-+	status = bridge_chnl_cancel_io(chnl_obj);
-+	if (status)
-+		return status;
-+	/* Assert I/O on this channel is now cancelled: Protects
-+	 * from io_dpc. */
-+	DBC_ASSERT((pchnl->dw_state & CHNL_STATECANCEL));
-+	/* Invalidate channel object: Protects from
-+	 * CHNL_GetIOCompletion(). */
-+	/* Free the slot in the channel manager: */
-+	pchnl->chnl_mgr_obj->ap_channel[pchnl->chnl_id] = NULL;
-+	spin_lock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
-+	pchnl->chnl_mgr_obj->open_channels -= 1;
-+	spin_unlock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
-+	if (pchnl->ntfy_obj) {
-+		ntfy_delete(pchnl->ntfy_obj);
-+		kfree(pchnl->ntfy_obj);
-+		pchnl->ntfy_obj = NULL;
-+	}
-+	/* Reset channel event: (NOTE: user_event freed in user
-+	 * context.). */
-+	if (pchnl->sync_event) {
-+		sync_reset_event(pchnl->sync_event);
-+		kfree(pchnl->sync_event);
-+		pchnl->sync_event = NULL;
+-	if (drv_datap && drv_datap->drv_object) {
+-		pdrv_obj = drv_datap->drv_object;
+-		if (!list_empty(&pdrv_obj->dev_list))
+-			dw_dev_object = (u32) pdrv_obj->dev_list.next;
+-	} else {
++	if (!drv_datap || !drv_datap->drv_object) {
+ 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
++		return 0;
  	}
--func_cont:
--	if (!status) {
--		/* Assert I/O on this channel is now cancelled: Protects
--		 * from io_dpc. */
--		DBC_ASSERT((pchnl->dw_state & CHNL_STATECANCEL));
--		/* Invalidate channel object: Protects from
--		 * CHNL_GetIOCompletion(). */
--		/* Free the slot in the channel manager: */
--		pchnl->chnl_mgr_obj->ap_channel[pchnl->chnl_id] = NULL;
--		spin_lock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
--		pchnl->chnl_mgr_obj->open_channels -= 1;
--		spin_unlock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
--		if (pchnl->ntfy_obj) {
--			ntfy_delete(pchnl->ntfy_obj);
--			kfree(pchnl->ntfy_obj);
--			pchnl->ntfy_obj = NULL;
--		}
--		/* Reset channel event: (NOTE: user_event freed in user
--		 * context.). */
--		if (pchnl->sync_event) {
--			sync_reset_event(pchnl->sync_event);
--			kfree(pchnl->sync_event);
--			pchnl->sync_event = NULL;
--		}
--		/* Free I/O request and I/O completion queues: */
--		free_chirp_list(&pchnl->pio_completions);
--		pchnl->cio_cs = 0;
-+	/* Free I/O request and I/O completion queues: */
-+	free_chirp_list(&pchnl->pio_completions);
-+	pchnl->cio_cs = 0;
  
--		free_chirp_list(&pchnl->pio_requests);
--		pchnl->cio_reqs = 0;
-+	free_chirp_list(&pchnl->pio_requests);
-+	pchnl->cio_reqs = 0;
- 
--		free_chirp_list(&pchnl->free_packets_list);
-+	free_chirp_list(&pchnl->free_packets_list);
+-	return dw_dev_object;
++	pdrv_obj = drv_datap->drv_object;
++	if (list_empty(&pdrv_obj->dev_list))
++		return 0;
 +
-+	/* Release channel object. */
-+	kfree(pchnl);
++	return (u32) pdrv_obj->dev_list.next;
+ }
  
--		/* Release channel object. */
--		kfree(pchnl);
--		pchnl = NULL;
+ /*
+@@ -436,21 +424,19 @@ u32 drv_get_first_dev_object(void)
+  */
+ u32 drv_get_first_dev_extension(void)
+ {
+-	u32 dw_dev_extension = 0;
+ 	struct drv_object *pdrv_obj;
+ 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
+ 
+-	if (drv_datap && drv_datap->drv_object) {
+-		pdrv_obj = drv_datap->drv_object;
+-		if (!list_empty(&pdrv_obj->dev_node_string)) {
+-			dw_dev_extension =
+-			    (u32) pdrv_obj->dev_node_string.next;
+-		}
+-	} else {
++	if (!drv_datap || !drv_datap->drv_object) {
+ 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
++		return 0;
+ 	}
+ 
+-	return dw_dev_extension;
++	pdrv_obj = drv_datap->drv_object;
++	if (list_empty(&pdrv_obj->dev_node_string))
++		return 0;
++
++	return (u32) pdrv_obj->dev_node_string.next;
+ }
+ 
+ /*
+@@ -462,26 +448,27 @@ u32 drv_get_first_dev_extension(void)
+  */
+ u32 drv_get_next_dev_object(u32 hdev_obj)
+ {
+-	u32 dw_next_dev_object = 0;
+ 	struct drv_object *pdrv_obj;
+ 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
+ 	struct list_head *curr;
+ 
+ 	DBC_REQUIRE(hdev_obj != 0);
+ 
+-	if (drv_datap && drv_datap->drv_object) {
+-		pdrv_obj = drv_datap->drv_object;
+-		if (!list_empty(&pdrv_obj->dev_list)) {
+-			curr = (struct list_head *)hdev_obj;
+-			if (curr->next == &pdrv_obj->dev_list)
+-				return 0;
+-			dw_next_dev_object = (u32) curr->next;
+-		}
+-	} else {
++	if (!drv_datap || !drv_datap->drv_object) {
+ 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
++		return 0;
+ 	}
+ 
+-	return dw_next_dev_object;
++	pdrv_obj = drv_datap->drv_object;
++	if (list_empty(&pdrv_obj->dev_list))
++		return 0;
++
++	curr = (struct list_head *)hdev_obj;
++
++	if (curr->next == &pdrv_obj->dev_list)
++		return 0;
++
++	return (u32)curr->next;
+ }
+ 
+ /*
+@@ -494,26 +481,27 @@ u32 drv_get_next_dev_object(u32 hdev_obj)
+  */
+ u32 drv_get_next_dev_extension(u32 dev_extension)
+ {
+-	u32 dw_dev_extension = 0;
+ 	struct drv_object *pdrv_obj;
+ 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
+ 	struct list_head *curr;
+ 
+ 	DBC_REQUIRE(dev_extension != 0);
+ 
+-	if (drv_datap && drv_datap->drv_object) {
+-		pdrv_obj = drv_datap->drv_object;
+-		if (!list_empty(&pdrv_obj->dev_node_string)) {
+-			curr = (struct list_head *)dev_extension;
+-			if (curr->next == &pdrv_obj->dev_node_string)
+-				return 0;
+-			dw_dev_extension = (u32) curr->next;
+-		}
+-	} else {
++	if (!drv_datap || !drv_datap->drv_object) {
+ 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
++		return 0;
+ 	}
+ 
+-	return dw_dev_extension;
++	pdrv_obj = drv_datap->drv_object;
++	if (list_empty(&pdrv_obj->dev_node_string))
++		return 0;
++
++	curr = (struct list_head *)dev_extension;
++
++	if (curr->next == &pdrv_obj->dev_node_string)
++		return 0;
++
++	return (u32) curr->next;
+ }
+ 
+ /*
+@@ -601,40 +589,28 @@ int drv_request_resources(u32 dw_context, u32 *dev_node_strg)
+ 	DBC_REQUIRE(dw_context != 0);
+ 	DBC_REQUIRE(dev_node_strg != NULL);
+ 
+-	/*
+-	 *  Allocate memory to hold the string. This will live untill
+-	 *  it is freed in the Release resources. Update the driver object
+-	 *  list.
+-	 */
+-
+ 	if (!drv_datap || !drv_datap->drv_object)
+-		status = -ENODATA;
+-	else
+-		pdrv_object = drv_datap->drv_object;
+-
+-	if (!status) {
+-		pszdev_node = kzalloc(sizeof(struct drv_ext), GFP_KERNEL);
+-		if (pszdev_node) {
+-			strncpy(pszdev_node->sz_string,
+-				(char *)dw_context, MAXREGPATHLENGTH - 1);
+-			pszdev_node->sz_string[MAXREGPATHLENGTH - 1] = '\0';
+-			/* Update the Driver Object List */
+-			*dev_node_strg = (u32) pszdev_node->sz_string;
+-			list_add_tail(&pszdev_node->link,
+-					&pdrv_object->dev_node_string);
+-		} else {
+-			status = -ENOMEM;
+-			*dev_node_strg = 0;
+-		}
+-	} else {
+-		dev_dbg(bridge, "%s: Failed to get Driver Object from Registry",
+-			__func__);
+-		*dev_node_strg = 0;
 -	}
--	DBC_ENSURE(status || !pchnl);
++		return -ENODATA;
++
++	pdrv_object = drv_datap->drv_object;
++	*dev_node_strg = 0;
++
++	pszdev_node = kzalloc(sizeof(struct drv_ext), GFP_KERNEL);
++	if (!pszdev_node)
++		return -ENOMEM;
++
++	strncpy(pszdev_node->sz_string, (char *)dw_context,
++			MAXREGPATHLENGTH - 1);
++	pszdev_node->sz_string[MAXREGPATHLENGTH - 1] = '\0';
++	*dev_node_strg = (u32) pszdev_node->sz_string;
++
++	/* Update the Driver Object List */
++	list_add_tail((struct list_head *)pszdev_node,
++			&pdrv_object->dev_node_string);
+ 
+ 	DBC_ENSURE((!status && dev_node_strg != NULL &&
+-		    !list_empty(&pdrv_object->dev_node_string)) ||
+-		   (status && *dev_node_strg == 0));
++				!list_empty(&pdrv_object->dev_node_string)) ||
++			(status && *dev_node_strg == 0));
+ 
+ 	return status;
+ }
+@@ -646,7 +622,6 @@ int drv_request_resources(u32 dw_context, u32 *dev_node_strg)
+  */
+ int drv_release_resources(u32 dw_context, struct drv_object *hdrv_obj)
+ {
+-	int status = 0;
+ 	struct drv_ext *pszdev_node;
+ 
+ 	/*
+@@ -659,12 +634,12 @@ int drv_release_resources(u32 dw_context, struct drv_object *hdrv_obj)
+ 		if ((u32) pszdev_node == dw_context) {
+ 			/* Found it */
+ 			/* Delete from the Driver object list */
+-			list_del(&pszdev_node->link);
+-			kfree(pszdev_node);
++			list_del((struct list_head *)pszdev_node);
++			kfree((void *)pszdev_node);
+ 			break;
+ 		}
+ 	}
+-	return status;
++	return 0;
+ }
+ 
+ /*
+diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
+index 34ae0ad..23775fd 100644
+--- a/drivers/staging/tidspbridge/rmgr/node.c
++++ b/drivers/staging/tidspbridge/rmgr/node.c
+@@ -1554,27 +1554,26 @@ int node_enum_nodes(struct node_mgr *hnode_mgr, void **node_tab,
+ 	DBC_REQUIRE(pu_num_nodes != NULL);
+ 	DBC_REQUIRE(pu_allocated != NULL);
+ 
+-	if (!hnode_mgr) {
+-		status = -EFAULT;
+-		goto func_end;
+-	}
+-	/* Enter critical section */
++	if (!hnode_mgr)
++		return -EFAULT;
++
+ 	mutex_lock(&hnode_mgr->node_mgr_lock);
+ 
+ 	if (hnode_mgr->num_nodes > node_tab_size) {
+ 		*pu_allocated = hnode_mgr->num_nodes;
+ 		*pu_num_nodes = 0;
+ 		status = -EINVAL;
+-	} else {
+-		i = 0;
+-		list_for_each_entry(hnode, &hnode_mgr->node_list, list_elem)
+-			node_tab[i++] = hnode;
+-		*pu_allocated = *pu_num_nodes = hnode_mgr->num_nodes;
++		goto out_unlock;
+ 	}
+-	/* end of sync_enter_cs */
+-	/* Exit critical section */
++
++	i = 0;
++	list_for_each_entry(hnode, &hnode_mgr->node_list, list_elem) {
++		DBC_ASSERT(hnode);
++		node_tab[i++] = hnode;
++	}
++	*pu_allocated = *pu_num_nodes = hnode_mgr->num_nodes;
++out_unlock:
+ 	mutex_unlock(&hnode_mgr->node_mgr_lock);
+-func_end:
  	return status;
  }
  
-@@ -696,32 +680,22 @@ func_end:
- int bridge_chnl_get_mgr_info(struct chnl_mgr *hchnl_mgr, u32 ch_id,
- 				 struct chnl_mgrinfo *mgr_info)
+@@ -1657,8 +1656,7 @@ int node_get_attr(struct node_object *hnode,
+ 	mutex_lock(&hnode_mgr->node_mgr_lock);
+ 	pattr->cb_struct = sizeof(struct dsp_nodeattr);
+ 	/* dsp_nodeattrin */
+-	pattr->in_node_attr_in.cb_struct =
+-		sizeof(struct dsp_nodeattrin);
++	pattr->in_node_attr_in.cb_struct = sizeof(struct dsp_nodeattrin);
+ 	pattr->in_node_attr_in.prio = hnode->prio;
+ 	pattr->in_node_attr_in.utimeout = hnode->utimeout;
+ 	pattr->in_node_attr_in.heap_size =
+@@ -2540,38 +2538,40 @@ static void delete_node_mgr(struct node_mgr *hnode_mgr)
  {
--	int status = 0;
- 	struct chnl_mgr *chnl_mgr_obj = (struct chnl_mgr *)hchnl_mgr;
+ 	struct node_object *hnode, *tmp;
  
--	if (mgr_info != NULL) {
--		if (ch_id <= CHNL_MAXCHANNELS) {
--			if (hchnl_mgr) {
--				/* Return the requested information: */
--				mgr_info->chnl_obj =
--				    chnl_mgr_obj->ap_channel[ch_id];
--				mgr_info->open_channels =
--				    chnl_mgr_obj->open_channels;
--				mgr_info->dw_type = chnl_mgr_obj->dw_type;
--				/* total # of chnls */
--				mgr_info->max_channels =
--				    chnl_mgr_obj->max_channels;
--			} else {
--				status = -EFAULT;
--			}
--		} else {
--			status = -ECHRNG;
+-	if (hnode_mgr) {
+-		/* Free resources */
+-		if (hnode_mgr->hdcd_mgr)
+-			dcd_destroy_manager(hnode_mgr->hdcd_mgr);
++	if (!hnode_mgr)
++		return;
+ 
+-		/* Remove any elements remaining in lists */
+-		list_for_each_entry_safe(hnode, tmp, &hnode_mgr->node_list,
+-				list_elem) {
+-			list_del(&hnode->list_elem);
+-			delete_node(hnode, NULL);
 -		}
--	} else {
--		status = -EFAULT;
--	}
-+	if (!mgr_info || !hchnl_mgr)
-+		return -EFAULT;
+-		mutex_destroy(&hnode_mgr->node_mgr_lock);
+-		if (hnode_mgr->ntfy_obj) {
+-			ntfy_delete(hnode_mgr->ntfy_obj);
+-			kfree(hnode_mgr->ntfy_obj);
+-		}
++	/* Free resources */
++	if (hnode_mgr->hdcd_mgr)
++		dcd_destroy_manager(hnode_mgr->hdcd_mgr);
  
--	return status;
-+	if (ch_id > CHNL_MAXCHANNELS)
-+		return -ECHRNG;
+-		if (hnode_mgr->disp_obj)
+-			disp_delete(hnode_mgr->disp_obj);
++	/* Remove any elements remaining in lists */
++	list_for_each_entry_safe(hnode, tmp, &hnode_mgr->node_list, list_elem) {
++		list_del(&hnode->list_elem);
++		delete_node(hnode, NULL);
++	}
+ 
+-		if (hnode_mgr->strm_mgr_obj)
+-			strm_delete(hnode_mgr->strm_mgr_obj);
++	mutex_destroy(&hnode_mgr->node_mgr_lock);
+ 
+-		/* Delete the loader */
+-		if (hnode_mgr->nldr_obj)
+-			hnode_mgr->nldr_fxns.pfn_delete(hnode_mgr->nldr_obj);
++	if (hnode_mgr->ntfy_obj) {
++		ntfy_delete(hnode_mgr->ntfy_obj);
++		kfree(hnode_mgr->ntfy_obj);
++	}
+ 
+-		if (hnode_mgr->loader_init)
+-			hnode_mgr->nldr_fxns.pfn_exit();
++	if (hnode_mgr->disp_obj)
++		disp_delete(hnode_mgr->disp_obj);
+ 
+-		kfree(hnode_mgr);
+-	}
++	if (hnode_mgr->strm_mgr_obj)
++		strm_delete(hnode_mgr->strm_mgr_obj);
 +
-+	/* Return the requested information: */
-+	mgr_info->chnl_obj = chnl_mgr_obj->ap_channel[ch_id];
-+	mgr_info->open_channels = chnl_mgr_obj->open_channels;
-+	mgr_info->dw_type = chnl_mgr_obj->dw_type;
-+	/* total # of chnls */
-+	mgr_info->max_channels = chnl_mgr_obj->max_channels;
++	/* Delete the loader */
++	if (hnode_mgr->nldr_obj)
++		hnode_mgr->nldr_fxns.pfn_delete(hnode_mgr->nldr_obj);
++
++	if (hnode_mgr->loader_init)
++		hnode_mgr->nldr_fxns.pfn_exit();
++
++	kfree(hnode_mgr);
+ }
+ 
+ /*
+diff --git a/drivers/staging/tidspbridge/rmgr/rmm.c b/drivers/staging/tidspbridge/rmgr/rmm.c
+index 93db337..9d673f5 100644
+--- a/drivers/staging/tidspbridge/rmgr/rmm.c
++++ b/drivers/staging/tidspbridge/rmgr/rmm.c
+@@ -96,10 +96,9 @@ static bool free_block(struct rmm_target_obj *target, u32 segid, u32 addr,
+ int rmm_alloc(struct rmm_target_obj *target, u32 segid, u32 size,
+ 		     u32 align, u32 *dsp_address, bool reserve)
+ {
+-	struct rmm_ovly_sect *sect, *prev_sect = NULL;
++	struct rmm_ovly_sect *sect, *prev = NULL;
+ 	struct rmm_ovly_sect *new_sect;
+ 	u32 addr;
+-	int status = 0;
+ 
+ 	DBC_REQUIRE(target);
+ 	DBC_REQUIRE(dsp_address != NULL);
+@@ -108,54 +107,38 @@ int rmm_alloc(struct rmm_target_obj *target, u32 segid, u32 size,
+ 	DBC_REQUIRE(refs > 0);
+ 
+ 	if (!reserve) {
+-		if (!alloc_block(target, segid, size, align, dsp_address)) {
+-			status = -ENOMEM;
+-		} else {
+-			/* Increment the number of allocated blocks in this
+-			 * segment */
+-			target->seg_tab[segid].number++;
+-		}
+-		goto func_end;
++		if (!alloc_block(target, segid, size, align, dsp_address))
++			return -ENOMEM;
++		/* Increment the number of allocated blocks in this segment */
++		target->seg_tab[segid].number++;
++		return 0;
+ 	}
++
++	new_sect = kzalloc(sizeof(struct rmm_ovly_sect), GFP_KERNEL);
++	if (!new_sect)
++		return -ENOMEM;
++
++	addr = *dsp_address;
++	new_sect->addr = addr;
++	new_sect->size = size;
++	new_sect->page = segid;
++
+ 	/* An overlay section - See if block is already in use. If not,
+ 	 * insert into the list in ascending address size. */
+-	addr = *dsp_address;
+-	/*  Find place to insert new list element. List is sorted from
+-	 *  smallest to largest address. */
+ 	list_for_each_entry(sect, &target->ovly_list, list_elem) {
+ 		if (addr <= sect->addr) {
+-			/* Check for overlap with sect */
+-			if ((addr + size > sect->addr) || (prev_sect &&
+-							   (prev_sect->addr +
+-							    prev_sect->size >
+-							    addr))) {
+-				status = -ENXIO;
++			if (prev && (prev->addr + prev->size >  addr)) {
++				kfree(new_sect);
++				return -ENXIO;
+ 			}
+-			break;
+-		}
+-		prev_sect = sect;
+-	}
+-	if (!status) {
+-		/* No overlap - allocate list element for new section. */
+-		new_sect = kzalloc(sizeof(struct rmm_ovly_sect), GFP_KERNEL);
+-		if (new_sect == NULL) {
+-			status = -ENOMEM;
+-		} else {
+-			new_sect->addr = addr;
+-			new_sect->size = size;
+-			new_sect->page = segid;
+-			if (sect == NULL)
+-				/* Put new section at the end of the list */
+-				list_add_tail(&new_sect->list_elem,
+-						&target->ovly_list);
+-			else
+-				/* Put new section just before sect */
+-				list_add_tail(&new_sect->list_elem,
+-						&sect->list_elem);
++			list_add_tail(&new_sect->list_elem, &sect->list_elem);
++			return 0;
+ 		}
++		prev = sect;
+ 	}
+-func_end:
+-	return status;
++	list_add_tail(&new_sect->list_elem, &target->ovly_list);
 +
 +	return 0;
  }
  
  /*
-@@ -771,112 +745,107 @@ int bridge_chnl_open(struct chnl_object **chnl,
- 	DBC_REQUIRE(pattrs != NULL);
- 	DBC_REQUIRE(hchnl_mgr != NULL);
- 	*chnl = NULL;
-+
- 	/* Validate Args: */
--	if (pattrs->uio_reqs == 0) {
--		status = -EINVAL;
-+	if (!pattrs->uio_reqs)
+@@ -173,71 +156,57 @@ int rmm_create(struct rmm_target_obj **target_obj,
+ 	DBC_REQUIRE(target_obj != NULL);
+ 	DBC_REQUIRE(num_segs == 0 || seg_tab != NULL);
+ 
++	if (num_segs <= 0)
 +		return -EINVAL;
 +
-+	if (!hchnl_mgr)
-+		return -EFAULT;
-+
-+	if (ch_id != CHNL_PICKFREE) {
-+		if (ch_id >= chnl_mgr_obj->max_channels)
-+			return -ECHRNG;
-+		if (chnl_mgr_obj->ap_channel[ch_id] != NULL)
-+			return -EALREADY;
- 	} else {
--		if (!hchnl_mgr) {
--			status = -EFAULT;
--		} else {
--			if (ch_id != CHNL_PICKFREE) {
--				if (ch_id >= chnl_mgr_obj->max_channels)
--					status = -ECHRNG;
--				else if (chnl_mgr_obj->ap_channel[ch_id] !=
--					 NULL)
--					status = -EALREADY;
--			} else {
--				/* Check for free channel */
--				status =
--				    search_free_channel(chnl_mgr_obj, &ch_id);
--			}
--		}
-+		/* Check for free channel */
-+		status = search_free_channel(chnl_mgr_obj, &ch_id);
-+		if (status)
-+			return status;
- 	}
+ 	/* Allocate DBL target object */
+ 	target = kzalloc(sizeof(struct rmm_target_obj), GFP_KERNEL);
+-
+-	if (target == NULL)
+-		status = -ENOMEM;
+-
 -	if (status)
--		goto func_end;
- 
- 	DBC_ASSERT(ch_id < chnl_mgr_obj->max_channels);
-+
- 	/* Create channel object: */
- 	pchnl = kzalloc(sizeof(struct chnl_object), GFP_KERNEL);
--	if (!pchnl) {
--		status = -ENOMEM;
--		goto func_end;
--	}
-+	if (!pchnl)
+-		goto func_cont;
++	if (!target)
 +		return -ENOMEM;
-+
- 	/* Protect queues from io_dpc: */
- 	pchnl->dw_state = CHNL_STATECANCEL;
-+
- 	/* Allocate initial IOR and IOC queues: */
--	status = create_chirp_list(&pchnl->free_packets_list,
--			pattrs->uio_reqs);
-+	status = create_chirp_list(&pchnl->free_packets_list, pattrs->uio_reqs);
- 	if (status)
--		goto func_end;
-+		goto out_err;
  
- 	status = create_chirp_list(&pchnl->pio_requests, 0);
- 	if (status)
--		goto func_end;
-+		goto out_err;
- 
- 	status = create_chirp_list(&pchnl->pio_completions, 0);
- 	if (status)
--		goto func_end;
-+		goto out_err;
- 
- 	pchnl->chnl_packets = pattrs->uio_reqs;
- 	pchnl->cio_cs = 0;
- 	pchnl->cio_reqs = 0;
-+
- 	sync_event = kzalloc(sizeof(struct sync_object), GFP_KERNEL);
--	if (sync_event)
--		sync_init_event(sync_event);
--	else
-+	if (!sync_event) {
+ 	target->num_segs = num_segs;
+-	if (!(num_segs > 0))
+-		goto func_cont;
+-
++	INIT_LIST_HEAD(&target->ovly_list);
+ 	/* Allocate the memory for freelist from host's memory */
+-	target->free_list = kzalloc(num_segs * sizeof(struct rmm_header *),
+-							GFP_KERNEL);
+-	if (target->free_list == NULL) {
++	target->free_list = kzalloc(num_segs *
++			sizeof(struct rmm_header *), GFP_KERNEL);
++	if (!target->free_list) {
  		status = -ENOMEM;
--
--	if (!status) {
--		pchnl->ntfy_obj = kmalloc(sizeof(struct ntfy_object),
--							GFP_KERNEL);
--		if (pchnl->ntfy_obj)
--			ntfy_init(pchnl->ntfy_obj);
--		else
--			status = -ENOMEM;
-+		goto out_err;
- 	}
-+	sync_init_event(sync_event);
- 
--	if (!status) {
--		/* Initialize CHNL object fields: */
--		pchnl->chnl_mgr_obj = chnl_mgr_obj;
--		pchnl->chnl_id = ch_id;
--		pchnl->chnl_mode = chnl_mode;
--		pchnl->user_event = sync_event;
--		pchnl->sync_event = sync_event;
--		/* Get the process handle */
--		pchnl->process = current->tgid;
--		pchnl->pcb_arg = 0;
--		pchnl->bytes_moved = 0;
--		/* Default to proc-copy */
--		pchnl->chnl_type = CHNL_PCPY;
--	}
-+	pchnl->ntfy_obj = kmalloc(sizeof(struct ntfy_object), GFP_KERNEL);
-+	if (!pchnl->ntfy_obj) {
-+		status = -ENOMEM;
+-	} else {
+-		/* Allocate headers for each element on the free list */
+-		for (i = 0; i < (s32) num_segs; i++) {
+-			target->free_list[i] =
+-				kzalloc(sizeof(struct rmm_header), GFP_KERNEL);
+-			if (target->free_list[i] == NULL) {
+-				status = -ENOMEM;
+-				break;
+-			}
+-		}
+-		/* Allocate memory for initial segment table */
+-		target->seg_tab = kzalloc(num_segs * sizeof(struct rmm_segment),
+-								GFP_KERNEL);
+-		if (target->seg_tab == NULL) {
 +		goto out_err;
 +	}
-+	ntfy_init(pchnl->ntfy_obj);
-+
-+	/* Initialize CHNL object fields: */
-+	pchnl->chnl_mgr_obj = chnl_mgr_obj;
-+	pchnl->chnl_id = ch_id;
-+	pchnl->chnl_mode = chnl_mode;
-+	pchnl->user_event = sync_event;
-+	pchnl->sync_event = sync_event;
-+	/* Get the process handle */
-+	pchnl->process = current->tgid;
-+	pchnl->pcb_arg = 0;
-+	pchnl->bytes_moved = 0;
-+	/* Default to proc-copy */
-+	pchnl->chnl_type = CHNL_PCPY;
-+
-+	/* Insert channel object in channel manager: */
-+	chnl_mgr_obj->ap_channel[pchnl->chnl_id] = pchnl;
-+	spin_lock_bh(&chnl_mgr_obj->chnl_mgr_lock);
-+	chnl_mgr_obj->open_channels++;
-+	spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
-+	/* Return result... */
-+	pchnl->dw_state = CHNL_STATEREADY;
-+	*chnl = pchnl;
- 
--	if (status) {
--		/* Free memory */
--		free_chirp_list(&pchnl->pio_completions);
--		pchnl->cio_cs = 0;
--		free_chirp_list(&pchnl->pio_requests);
--		free_chirp_list(&pchnl->free_packets_list);
-+	return status;
-+
-+out_err:
-+	/* Free memory */
-+	free_chirp_list(&pchnl->pio_completions);
-+	free_chirp_list(&pchnl->pio_requests);
-+	free_chirp_list(&pchnl->free_packets_list);
-+
-+	if (sync_event)
- 		kfree(sync_event);
--		sync_event = NULL;
- 
--		if (pchnl->ntfy_obj) {
--			ntfy_delete(pchnl->ntfy_obj);
--			kfree(pchnl->ntfy_obj);
--			pchnl->ntfy_obj = NULL;
--		}
--		kfree(pchnl);
--	} else {
--		/* Insert channel object in channel manager: */
--		chnl_mgr_obj->ap_channel[pchnl->chnl_id] = pchnl;
--		spin_lock_bh(&chnl_mgr_obj->chnl_mgr_lock);
--		chnl_mgr_obj->open_channels++;
--		spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
--		/* Return result... */
--		pchnl->dw_state = CHNL_STATEREADY;
--		*chnl = pchnl;
-+	if (pchnl->ntfy_obj) {
-+		ntfy_delete(pchnl->ntfy_obj);
-+		kfree(pchnl->ntfy_obj);
-+		pchnl->ntfy_obj = NULL;
- 	}
--func_end:
--	DBC_ENSURE((!status && pchnl) || (*chnl == NULL));
-+	kfree(pchnl);
-+
- 	return status;
- }
- 
-diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/staging/tidspbridge/core/io_sm.c
-index 9851f32..de2cc3b 100644
---- a/drivers/staging/tidspbridge/core/io_sm.c
-+++ b/drivers/staging/tidspbridge/core/io_sm.c
-@@ -1064,29 +1064,29 @@ static void input_msg(struct io_mgr *pio_mgr, struct msg_mgr *hmsg_mgr)
- 	input_empty = msg_ctr_obj->buf_empty;
- 	num_msgs = msg_ctr_obj->size;
- 	if (input_empty)
--		goto func_end;
-+		return;
- 
- 	msg_input = pio_mgr->msg_input;
- 	for (i = 0; i < num_msgs; i++) {
- 		/* Read the next message */
- 		addr = (u32) &(((struct msg_dspmsg *)msg_input)->msg.dw_cmd);
- 		msg.msg.dw_cmd =
--		    read_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr);
-+			read_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr);
- 		addr = (u32) &(((struct msg_dspmsg *)msg_input)->msg.dw_arg1);
- 		msg.msg.dw_arg1 =
--		    read_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr);
-+			read_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr);
- 		addr = (u32) &(((struct msg_dspmsg *)msg_input)->msg.dw_arg2);
- 		msg.msg.dw_arg2 =
--		    read_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr);
-+			read_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr);
- 		addr = (u32) &(((struct msg_dspmsg *)msg_input)->msgq_id);
- 		msg.msgq_id =
--		    read_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr);
-+			read_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr);
- 		msg_input += sizeof(struct msg_dspmsg);
- 
- 		/* Determine which queue to put the message in */
- 		dev_dbg(bridge,	"input msg: dw_cmd=0x%x dw_arg1=0x%x "
--			"dw_arg2=0x%x msgq_id=0x%x\n", msg.msg.dw_cmd,
--			msg.msg.dw_arg1, msg.msg.dw_arg2, msg.msgq_id);
-+				"dw_arg2=0x%x msgq_id=0x%x\n", msg.msg.dw_cmd,
-+				msg.msg.dw_arg1, msg.msg.dw_arg2, msg.msgq_id);
- 		/*
- 		 * Interrupt may occur before shared memory and message
- 		 * input locations have been set up. If all nodes were
-@@ -1094,47 +1094,43 @@ static void input_msg(struct io_mgr *pio_mgr, struct msg_mgr *hmsg_mgr)
- 		 */
- 		list_for_each_entry(msg_queue_obj, &hmsg_mgr->queue_list,
- 				list_elem) {
--			if (msg.msgq_id == msg_queue_obj->msgq_id) {
--				/* Found it */
--				if (msg.msg.dw_cmd == RMS_EXITACK) {
--					/*
--					 * Call the node exit notification.
--					 * The exit message does not get
--					 * queued.
--					 */
--					(*hmsg_mgr->on_exit) ((void *)
--							msg_queue_obj->arg,
--							msg.msg.dw_arg1);
--					break;
--				}
-+			if (msg.msgq_id != msg_queue_obj->msgq_id)
-+				continue;
-+			/* Found it */
-+			if (msg.msg.dw_cmd == RMS_EXITACK) {
- 				/*
--				 * Not an exit acknowledgement, queue
--				 * the message.
-+				 * Call the node exit notification.
-+				 * The exit message does not get
-+				 * queued.
- 				 */
--				if (!list_empty(&msg_queue_obj->msg_free_list)) {
--					pmsg = list_first_entry(
--						&msg_queue_obj->msg_free_list,
--						struct msg_frame, list_elem);
--					list_del(&pmsg->list_elem);
--					pmsg->msg_data = msg;
--					list_add_tail(&pmsg->list_elem,
--						&msg_queue_obj->msg_used_list);
--					ntfy_notify
--						(msg_queue_obj->ntfy_obj,
--						 DSP_NODEMESSAGEREADY);
--					sync_set_event
--						(msg_queue_obj->sync_event);
--				} else {
--					/*
--					 * No free frame to copy the
--					 * message into.
--					 */
--					pr_err("%s: no free msg frames,"
--							" discarding msg\n",
--							__func__);
--				}
-+				(*hmsg_mgr->on_exit)(msg_queue_obj->arg,
-+						msg.msg.dw_arg1);
- 				break;
- 			}
-+			/*
-+			 * Not an exit acknowledgement, queue
-+			 * the message.
-+			 */
-+			if (list_empty(&msg_queue_obj->msg_free_list)) {
-+				/*
-+				 * No free frame to copy the
-+				 * message into.
-+				 */
-+				pr_err("%s: no free msg frames,"
-+						" discarding msg\n",
-+						__func__);
-+				break;
-+			}
-+
-+			pmsg = list_first_entry(&msg_queue_obj->msg_free_list,
-+					struct msg_frame, list_elem);
-+			list_del(&pmsg->list_elem);
-+			pmsg->msg_data = msg;
-+			list_add_tail(&pmsg->list_elem,
-+					&msg_queue_obj->msg_used_list);
-+			ntfy_notify(msg_queue_obj->ntfy_obj,
-+					DSP_NODEMESSAGEREADY);
-+			sync_set_event(msg_queue_obj->sync_event);
++	/* Allocate headers for each element on the free list */
++	for (i = 0; i < num_segs; i++) {
++		target->free_list[i] =
++			kzalloc(sizeof(struct rmm_header), GFP_KERNEL);
++		if (!target->free_list[i]) {
+ 			status = -ENOMEM;
+-		} else {
+-			/* Initialize segment table and free list */
+-			sptr = target->seg_tab;
+-			for (i = 0, tmp = seg_tab; num_segs > 0;
+-			     num_segs--, i++) {
+-				*sptr = *tmp;
+-				hptr = target->free_list[i];
+-				hptr->addr = tmp->base;
+-				hptr->size = tmp->length;
+-				hptr->next = NULL;
+-				tmp++;
+-				sptr++;
+-			}
++			goto out_err;
  		}
  	}
- 	/* Set the post SWI flag */
-@@ -1144,8 +1140,6 @@ static void input_msg(struct io_mgr *pio_mgr, struct msg_mgr *hmsg_mgr)
- 		msg_ctr_obj->post_swi = true;
- 		sm_interrupt_dsp(pio_mgr->hbridge_context, MBX_PCPY_CLASS);
- 	}
--func_end:
--	return;
- }
- 
- /*
-@@ -1276,73 +1270,68 @@ static void output_msg(struct io_mgr *pio_mgr, struct msg_mgr *hmsg_mgr)
- {
- 	u32 num_msgs = 0;
- 	u32 i;
--	u8 *msg_output;
-+	struct msg_dspmsg *msg_output;
- 	struct msg_frame *pmsg;
- 	struct msg_ctrl *msg_ctr_obj;
--	u32 output_empty;
- 	u32 val;
- 	u32 addr;
- 
- 	msg_ctr_obj = pio_mgr->msg_output_ctrl;
- 
- 	/* Check if output has been cleared */
--	output_empty = msg_ctr_obj->buf_empty;
--	if (output_empty) {
--		num_msgs = (hmsg_mgr->msgs_pending > hmsg_mgr->max_msgs) ?
--		    hmsg_mgr->max_msgs : hmsg_mgr->msgs_pending;
--		msg_output = pio_mgr->msg_output;
--		/* Copy num_msgs messages into shared memory */
--		for (i = 0; i < num_msgs; i++) {
--			if (!list_empty(&hmsg_mgr->msg_used_list)) {
--				pmsg = list_first_entry(
--						&hmsg_mgr->msg_used_list,
--						struct msg_frame, list_elem);
--				list_del(&pmsg->list_elem);
--				val = (pmsg->msg_data).msgq_id;
--				addr = (u32) &(((struct msg_dspmsg *)
--						 msg_output)->msgq_id);
--				write_ext32_bit_dsp_data(
--					pio_mgr->hbridge_context, addr, val);
--				val = (pmsg->msg_data).msg.dw_cmd;
--				addr = (u32) &((((struct msg_dspmsg *)
--						  msg_output)->msg).dw_cmd);
--				write_ext32_bit_dsp_data(
--					pio_mgr->hbridge_context, addr, val);
--				val = (pmsg->msg_data).msg.dw_arg1;
--				addr = (u32) &((((struct msg_dspmsg *)
--						  msg_output)->msg).dw_arg1);
--				write_ext32_bit_dsp_data(
--					pio_mgr->hbridge_context, addr, val);
--				val = (pmsg->msg_data).msg.dw_arg2;
--				addr = (u32) &((((struct msg_dspmsg *)
--						  msg_output)->msg).dw_arg2);
--				write_ext32_bit_dsp_data(
--					pio_mgr->hbridge_context, addr, val);
--				msg_output += sizeof(struct msg_dspmsg);
--				list_add_tail(&pmsg->list_elem,
--						&hmsg_mgr->msg_free_list);
--				sync_set_event(hmsg_mgr->sync_event);
--			}
--		}
-+	if (!msg_ctr_obj->buf_empty)
-+		return;
-+
-+	num_msgs = (hmsg_mgr->msgs_pending > hmsg_mgr->max_msgs) ?
-+		hmsg_mgr->max_msgs : hmsg_mgr->msgs_pending;
-+	msg_output = (struct msg_dspmsg *) pio_mgr->msg_output;
-+
-+	/* Copy num_msgs messages into shared memory */
-+	for (i = 0; i < num_msgs; i++) {
-+		if (list_empty(&hmsg_mgr->msg_used_list))
-+			continue;
-+
-+		pmsg = list_first_entry(&hmsg_mgr->msg_used_list,
-+				struct msg_frame, list_elem);
-+		list_del(&pmsg->list_elem);
-+
-+		val = (pmsg->msg_data).msgq_id;
-+		addr = (u32) &msg_output->msgq_id;
-+		write_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr, val);
-+
-+		val = (pmsg->msg_data).msg.dw_cmd;
-+		addr = (u32) &msg_output->msg.dw_cmd;
-+		write_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr, val);
-+
-+		val = (pmsg->msg_data).msg.dw_arg1;
-+		addr = (u32) &msg_output->msg.dw_arg1;
-+		write_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr, val);
-+
-+		val = (pmsg->msg_data).msg.dw_arg2;
-+		addr = (u32) &msg_output->msg.dw_arg2;
-+		write_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr, val);
- 
--		if (num_msgs > 0) {
--			hmsg_mgr->msgs_pending -= num_msgs;
-+		msg_output++;
-+		list_add_tail(&pmsg->list_elem, &hmsg_mgr->msg_free_list);
-+		sync_set_event(hmsg_mgr->sync_event);
-+	}
-+
-+	if (num_msgs > 0) {
-+		hmsg_mgr->msgs_pending -= num_msgs;
- #if _CHNL_WORDSIZE == 2
--			/*
--			 * Access can be different SM access word size
--			 * (e.g. 16/32 bit words)
--			 */
--			msg_ctr_obj->size = (u16) num_msgs;
-+		/*
-+		 * Access can be different SM access word size
-+		 * (e.g. 16/32 bit words)
-+		 */
-+		msg_ctr_obj->size = (u16) num_msgs;
- #else
--			msg_ctr_obj->size = num_msgs;
-+		msg_ctr_obj->size = num_msgs;
- #endif
--			msg_ctr_obj->buf_empty = false;
--			/* Set the post SWI flag */
--			msg_ctr_obj->post_swi = true;
--			/* Tell the DSP we have written the output. */
--			sm_interrupt_dsp(pio_mgr->hbridge_context,
--						MBX_PCPY_CLASS);
--		}
-+		msg_ctr_obj->buf_empty = false;
-+		/* Set the post SWI flag */
-+		msg_ctr_obj->post_swi = true;
-+		/* Tell the DSP we have written the output. */
-+		sm_interrupt_dsp(pio_mgr->hbridge_context, MBX_PCPY_CLASS);
- 	}
- }
- 
-diff --git a/drivers/staging/tidspbridge/core/msg_sm.c b/drivers/staging/tidspbridge/core/msg_sm.c
-index de2cb83..8666121 100644
---- a/drivers/staging/tidspbridge/core/msg_sm.c
-+++ b/drivers/staging/tidspbridge/core/msg_sm.c
-@@ -55,49 +55,42 @@ int bridge_msg_create(struct msg_mgr **msg_man,
- 	struct io_mgr *hio_mgr;
- 	int status = 0;
- 
--	if (!msg_man || !msg_callback || !hdev_obj) {
--		status = -EFAULT;
--		goto func_end;
--	}
-+	if (!msg_man || !msg_callback || !hdev_obj)
-+		return -EFAULT;
-+
- 	dev_get_io_mgr(hdev_obj, &hio_mgr);
--	if (!hio_mgr) {
--		status = -EFAULT;
--		goto func_end;
--	}
-+	if (!hio_mgr)
-+		return -EFAULT;
-+
- 	*msg_man = NULL;
- 	/* Allocate msg_ctrl manager object */
- 	msg_mgr_obj = kzalloc(sizeof(struct msg_mgr), GFP_KERNEL);
--
--	if (msg_mgr_obj) {
--		msg_mgr_obj->on_exit = msg_callback;
--		msg_mgr_obj->hio_mgr = hio_mgr;
--		/* List of MSG_QUEUEs */
--		INIT_LIST_HEAD(&msg_mgr_obj->queue_list);
--		/*  Queues of message frames for messages to the DSP. Message
--		 * frames will only be added to the free queue when a
--		 * msg_queue object is created. */
--		INIT_LIST_HEAD(&msg_mgr_obj->msg_free_list);
--		INIT_LIST_HEAD(&msg_mgr_obj->msg_used_list);
--		spin_lock_init(&msg_mgr_obj->msg_mgr_lock);
--
--		/*  Create an event to be used by bridge_msg_put() in waiting
--		 *  for an available free frame from the message manager. */
--		msg_mgr_obj->sync_event =
--				kzalloc(sizeof(struct sync_object), GFP_KERNEL);
--		if (!msg_mgr_obj->sync_event)
--			status = -ENOMEM;
--		else
--			sync_init_event(msg_mgr_obj->sync_event);
--
--		if (!status)
--			*msg_man = msg_mgr_obj;
--		else
--			delete_msg_mgr(msg_mgr_obj);
--
--	} else {
--		status = -ENOMEM;
-+	if (!msg_mgr_obj)
-+		return -ENOMEM;
-+
-+	msg_mgr_obj->on_exit = msg_callback;
-+	msg_mgr_obj->hio_mgr = hio_mgr;
-+	/* List of MSG_QUEUEs */
-+	INIT_LIST_HEAD(&msg_mgr_obj->queue_list);
-+	/*  Queues of message frames for messages to the DSP. Message
-+	 * frames will only be added to the free queue when a
-+	 * msg_queue object is created. */
-+	INIT_LIST_HEAD(&msg_mgr_obj->msg_free_list);
-+	INIT_LIST_HEAD(&msg_mgr_obj->msg_used_list);
-+	spin_lock_init(&msg_mgr_obj->msg_mgr_lock);
-+
-+	/*  Create an event to be used by bridge_msg_put() in waiting
-+	 *  for an available free frame from the message manager. */
-+	msg_mgr_obj->sync_event =
-+		kzalloc(sizeof(struct sync_object), GFP_KERNEL);
-+	if (!msg_mgr_obj->sync_event) {
-+		kfree(msg_mgr_obj);
-+		return -ENOMEM;
- 	}
--func_end:
-+	sync_init_event(msg_mgr_obj->sync_event);
-+
-+	*msg_man = msg_mgr_obj;
-+
- 	return status;
- }
- 
-@@ -106,8 +99,7 @@ func_end:
-  *      Create a msg_queue for sending/receiving messages to/from a node
-  *      on the DSP.
-  */
--int bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
--				struct msg_queue **msgq,
-+int bridge_msg_create_queue(struct msg_mgr *hmsg_mgr, struct msg_queue **msgq,
- 				u32 msgq_id, u32 max_msgs, void *arg)
- {
- 	u32 i;
-@@ -115,18 +107,15 @@ int bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
- 	struct msg_queue *msg_q;
- 	int status = 0;
- 
--	if (!hmsg_mgr || msgq == NULL) {
--		status = -EFAULT;
--		goto func_end;
--	}
-+	if (!hmsg_mgr || msgq == NULL)
-+		return -EFAULT;
- 
- 	*msgq = NULL;
- 	/* Allocate msg_queue object */
- 	msg_q = kzalloc(sizeof(struct msg_queue), GFP_KERNEL);
--	if (!msg_q) {
--		status = -ENOMEM;
--		goto func_end;
--	}
-+	if (!msg_q)
-+		return -ENOMEM;
-+
- 	msg_q->max_msgs = max_msgs;
- 	msg_q->hmsg_mgr = hmsg_mgr;
- 	msg_q->arg = arg;	/* Node handle */
-@@ -137,78 +126,68 @@ int bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
- 
- 	/*  Create event that will be signalled when a message from
- 	 *  the DSP is available. */
--	if (!status) {
--		msg_q->sync_event = kzalloc(sizeof(struct sync_object),
--							GFP_KERNEL);
--		if (msg_q->sync_event)
--			sync_init_event(msg_q->sync_event);
--		else
--			status = -ENOMEM;
-+	msg_q->sync_event = kzalloc(sizeof(struct sync_object), GFP_KERNEL);
-+	if (!msg_q->sync_event) {
-+		status = -ENOMEM;
-+		goto out_err;
-+
- 	}
-+	sync_init_event(msg_q->sync_event);
- 
- 	/* Create a notification list for message ready notification. */
--	if (!status) {
--		msg_q->ntfy_obj = kmalloc(sizeof(struct ntfy_object),
--							GFP_KERNEL);
--		if (msg_q->ntfy_obj)
--			ntfy_init(msg_q->ntfy_obj);
--		else
--			status = -ENOMEM;
-+	msg_q->ntfy_obj = kmalloc(sizeof(struct ntfy_object), GFP_KERNEL);
-+	if (!msg_q->ntfy_obj) {
-+		status = -ENOMEM;
-+		goto out_err;
- 	}
-+	ntfy_init(msg_q->ntfy_obj);
- 
- 	/*  Create events that will be used to synchronize cleanup
- 	 *  when the object is deleted. sync_done will be set to
- 	 *  unblock threads in MSG_Put() or MSG_Get(). sync_done_ack
- 	 *  will be set by the unblocked thread to signal that it
- 	 *  is unblocked and will no longer reference the object. */
--	if (!status) {
--		msg_q->sync_done = kzalloc(sizeof(struct sync_object),
--							GFP_KERNEL);
--		if (msg_q->sync_done)
--			sync_init_event(msg_q->sync_done);
--		else
--			status = -ENOMEM;
-+	msg_q->sync_done = kzalloc(sizeof(struct sync_object), GFP_KERNEL);
-+	if (!msg_q->sync_done) {
-+		status = -ENOMEM;
-+		goto out_err;
- 	}
-+	sync_init_event(msg_q->sync_done);
- 
--	if (!status) {
--		msg_q->sync_done_ack = kzalloc(sizeof(struct sync_object),
--							GFP_KERNEL);
--		if (msg_q->sync_done_ack)
--			sync_init_event(msg_q->sync_done_ack);
--		else
--			status = -ENOMEM;
-+	msg_q->sync_done_ack = kzalloc(sizeof(struct sync_object), GFP_KERNEL);
-+	if (!msg_q->sync_done_ack) {
-+		status = -ENOMEM;
-+		goto out_err;
- 	}
-+	sync_init_event(msg_q->sync_done_ack);
- 
--	if (!status) {
--		/* Enter critical section */
--		spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
--		/* Initialize message frames and put in appropriate queues */
--		for (i = 0; i < max_msgs && !status; i++) {
--			status = add_new_msg(&hmsg_mgr->msg_free_list);
--			if (!status) {
--				num_allocated++;
--				status = add_new_msg(&msg_q->msg_free_list);
--			}
--		}
--		if (status) {
--			/*  Stay inside CS to prevent others from taking any
--			 *  of the newly allocated message frames. */
--			delete_msg_queue(msg_q, num_allocated);
--		} else {
--			list_add_tail(&msg_q->list_elem,
--					&hmsg_mgr->queue_list);
--			*msgq = msg_q;
--			/* Signal that free frames are now available */
--			if (!list_empty(&hmsg_mgr->msg_free_list))
--				sync_set_event(hmsg_mgr->sync_event);
--
-+	/* Enter critical section */
-+	spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
-+	/* Initialize message frames and put in appropriate queues */
-+	for (i = 0; i < max_msgs && !status; i++) {
-+		status = add_new_msg(&hmsg_mgr->msg_free_list);
-+		if (!status) {
-+			num_allocated++;
-+			status = add_new_msg(&msg_q->msg_free_list);
- 		}
--		/* Exit critical section */
-+	}
-+	if (status) {
- 		spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
--	} else {
--		delete_msg_queue(msg_q, 0);
-+		goto out_err;
- 	}
--func_end:
-+
-+	list_add_tail(&msg_q->list_elem, &hmsg_mgr->queue_list);
-+	*msgq = msg_q;
-+	/* Signal that free frames are now available */
-+	if (!list_empty(&hmsg_mgr->msg_free_list))
-+		sync_set_event(hmsg_mgr->sync_event);
-+
-+	/* Exit critical section */
-+	spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
-+
-+	return 0;
-+out_err:
-+	delete_msg_queue(msg_q, num_allocated);
- 	return status;
- }
- 
-@@ -232,7 +211,7 @@ void bridge_msg_delete_queue(struct msg_queue *msg_queue_obj)
- 	u32 io_msg_pend;
- 
- 	if (!msg_queue_obj || !msg_queue_obj->hmsg_mgr)
--		goto func_end;
-+		return;
- 
- 	hmsg_mgr = msg_queue_obj->hmsg_mgr;
- 	msg_queue_obj->done = true;
-@@ -252,10 +231,7 @@ void bridge_msg_delete_queue(struct msg_queue *msg_queue_obj)
- 	delete_msg_queue(msg_queue_obj, msg_queue_obj->max_msgs);
- 	if (list_empty(&hmsg_mgr->msg_free_list))
- 		sync_reset_event(hmsg_mgr->sync_event);
--
- 	spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
--func_end:
--	return;
- }
- 
- /*
-@@ -267,19 +243,15 @@ int bridge_msg_get(struct msg_queue *msg_queue_obj,
- {
- 	struct msg_frame *msg_frame_obj;
- 	struct msg_mgr *hmsg_mgr;
--	bool got_msg = false;
- 	struct sync_object *syncs[2];
- 	u32 index;
- 	int status = 0;
- 
--	if (!msg_queue_obj || pmsg == NULL) {
--		status = -ENOMEM;
--		goto func_end;
--	}
-+	if (!msg_queue_obj || pmsg == NULL)
-+		return -ENOMEM;
- 
- 	hmsg_mgr = msg_queue_obj->hmsg_mgr;
- 
--	/* Enter critical section */
- 	spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
- 	/* If a message is already there, get it */
- 	if (!list_empty(&msg_queue_obj->msg_used_list)) {
-@@ -291,59 +263,51 @@ int bridge_msg_get(struct msg_queue *msg_queue_obj,
- 				&msg_queue_obj->msg_free_list);
- 		if (list_empty(&msg_queue_obj->msg_used_list))
- 			sync_reset_event(msg_queue_obj->sync_event);
-+		spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
-+		return 0;
-+	}
- 
--		got_msg = true;
--	} else {
--		if (msg_queue_obj->done)
--			status = -EPERM;
--		else
--			msg_queue_obj->io_msg_pend++;
--
-+	if (msg_queue_obj->done) {
-+		spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
-+		return -EPERM;
- 	}
--	/* Exit critical section */
-+	msg_queue_obj->io_msg_pend++;
- 	spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
--	if (!status && !got_msg) {
--		/*  Wait til message is available, timeout, or done. We don't
--		 *  have to schedule the DPC, since the DSP will send messages
--		 *  when they are available. */
--		syncs[0] = msg_queue_obj->sync_event;
--		syncs[1] = msg_queue_obj->sync_done;
--		status = sync_wait_on_multiple_events(syncs, 2, utimeout,
--						      &index);
--		/* Enter critical section */
--		spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
--		if (msg_queue_obj->done) {
--			msg_queue_obj->io_msg_pend--;
--			/* Exit critical section */
--			spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
--			/*  Signal that we're not going to access msg_queue_obj
--			 *  anymore, so it can be deleted. */
--			(void)sync_set_event(msg_queue_obj->sync_done_ack);
--			status = -EPERM;
--		} else {
--			if (!status && !list_empty(&msg_queue_obj->
--						msg_used_list)) {
--				/* Get msg from used list */
--				msg_frame_obj = list_first_entry(
--						&msg_queue_obj->msg_used_list,
--						struct msg_frame, list_elem);
--				list_del(&msg_frame_obj->list_elem);
--				/* Copy message into pmsg and put frame on the
--				 * free list */
--				*pmsg = msg_frame_obj->msg_data.msg;
--				list_add_tail(&msg_frame_obj->list_elem,
--						&msg_queue_obj->msg_free_list);
--			}
--			msg_queue_obj->io_msg_pend--;
--			/* Reset the event if there are still queued messages */
--			if (!list_empty(&msg_queue_obj->msg_used_list))
--				sync_set_event(msg_queue_obj->sync_event);
--
--			/* Exit critical section */
--			spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
--		}
-+
-+	/*  Wait til message is available, timeout, or done. We don't
-+	 *  have to schedule the DPC, since the DSP will send messages
-+	 *  when they are available. */
-+	syncs[0] = msg_queue_obj->sync_event;
-+	syncs[1] = msg_queue_obj->sync_done;
-+	status = sync_wait_on_multiple_events(syncs, 2, utimeout, &index);
-+
-+	spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
-+	if (msg_queue_obj->done) {
-+		msg_queue_obj->io_msg_pend--;
-+		spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
-+		/*  Signal that we're not going to access msg_queue_obj
-+		 *  anymore, so it can be deleted. */
-+		sync_set_event(msg_queue_obj->sync_done_ack);
-+		return -EPERM;
- 	}
--func_end:
-+	if (!status && !list_empty(&msg_queue_obj->msg_used_list)) {
-+		/* Get msg from used list */
-+		msg_frame_obj = list_first_entry(&msg_queue_obj->msg_used_list,
-+				struct msg_frame, list_elem);
-+		list_del(&msg_frame_obj->list_elem);
-+		/* Copy message into pmsg and put frame on the
-+		 * free list */
-+		*pmsg = msg_frame_obj->msg_data.msg;
-+		list_add_tail(&msg_frame_obj->list_elem,
-+				&msg_queue_obj->msg_free_list);
-+	}
-+	msg_queue_obj->io_msg_pend--;
-+	/* Reset the event if there are still queued messages */
-+	if (!list_empty(&msg_queue_obj->msg_used_list))
-+		sync_set_event(msg_queue_obj->sync_event);
-+
-+	spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
-+
- 	return status;
- }
- 
-@@ -356,15 +320,13 @@ int bridge_msg_put(struct msg_queue *msg_queue_obj,
- {
- 	struct msg_frame *msg_frame_obj;
- 	struct msg_mgr *hmsg_mgr;
--	bool put_msg = false;
- 	struct sync_object *syncs[2];
- 	u32 index;
--	int status = 0;
-+	int status;
-+
-+	if (!msg_queue_obj || !pmsg || !msg_queue_obj->hmsg_mgr)
-+		return -EFAULT;
- 
--	if (!msg_queue_obj || !pmsg || !msg_queue_obj->hmsg_mgr) {
--		status = -ENOMEM;
--		goto func_end;
--	}
- 	hmsg_mgr = msg_queue_obj->hmsg_mgr;
- 
- 	spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
-@@ -380,7 +342,7 @@ int bridge_msg_put(struct msg_queue *msg_queue_obj,
- 		list_add_tail(&msg_frame_obj->list_elem,
- 				&hmsg_mgr->msg_used_list);
- 		hmsg_mgr->msgs_pending++;
--		put_msg = true;
-+
- 		if (list_empty(&hmsg_mgr->msg_free_list))
- 			sync_reset_event(hmsg_mgr->sync_event);
- 
-@@ -388,70 +350,69 @@ int bridge_msg_put(struct msg_queue *msg_queue_obj,
- 		spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
- 		/* Schedule a DPC, to do the actual data transfer: */
- 		iosm_schedule(hmsg_mgr->hio_mgr);
--	} else {
--		if (msg_queue_obj->done)
--			status = -EPERM;
--		else
--			msg_queue_obj->io_msg_pend++;
-+		return 0;
-+	}
- 
-+	if (msg_queue_obj->done) {
- 		spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
-+		return -EPERM;
- 	}
--	if (!status && !put_msg) {
--		/* Wait til a free message frame is available, timeout,
--		 * or done */
--		syncs[0] = hmsg_mgr->sync_event;
--		syncs[1] = msg_queue_obj->sync_done;
--		status = sync_wait_on_multiple_events(syncs, 2, utimeout,
--						      &index);
--		if (status)
--			goto func_end;
--		/* Enter critical section */
--		spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
--		if (msg_queue_obj->done) {
--			msg_queue_obj->io_msg_pend--;
--			/* Exit critical section */
--			spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
--			/*  Signal that we're not going to access msg_queue_obj
--			 *  anymore, so it can be deleted. */
--			(void)sync_set_event(msg_queue_obj->sync_done_ack);
--			status = -EPERM;
--		} else {
--			if (list_empty(&hmsg_mgr->msg_free_list)) {
--				status = -EFAULT;
--				goto func_cont;
--			}
--			/* Get msg from free list */
--			msg_frame_obj = list_first_entry(
--					&hmsg_mgr->msg_free_list,
--					struct msg_frame, list_elem);
--			list_del(&msg_frame_obj->list_elem);
--			/*
--			 * Copy message into pmsg and put frame on the
--			 * used list.
--			 */
--			msg_frame_obj->msg_data.msg = *pmsg;
--			msg_frame_obj->msg_data.msgq_id =
--				msg_queue_obj->msgq_id;
--			list_add_tail(&msg_frame_obj->list_elem,
--					&hmsg_mgr->msg_used_list);
--			hmsg_mgr->msgs_pending++;
--			/*
--			 * Schedule a DPC, to do the actual
--			 * data transfer.
--			 */
--			iosm_schedule(hmsg_mgr->hio_mgr);
--
--			msg_queue_obj->io_msg_pend--;
--			/* Reset event if there are still frames available */
--			if (!list_empty(&hmsg_mgr->msg_free_list))
--				sync_set_event(hmsg_mgr->sync_event);
 -func_cont:
--			/* Exit critical section */
--			spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
--		}
-+	msg_queue_obj->io_msg_pend++;
-+
-+	spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
-+
-+	/* Wait til a free message frame is available, timeout,
-+	 * or done */
-+	syncs[0] = hmsg_mgr->sync_event;
-+	syncs[1] = msg_queue_obj->sync_done;
-+	status = sync_wait_on_multiple_events(syncs, 2, utimeout, &index);
-+	if (status)
-+		return status;
-+
-+	/* Enter critical section */
-+	spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
-+	if (msg_queue_obj->done) {
-+		msg_queue_obj->io_msg_pend--;
-+		/* Exit critical section */
-+		spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
-+		/*  Signal that we're not going to access msg_queue_obj
-+		 *  anymore, so it can be deleted. */
-+		sync_set_event(msg_queue_obj->sync_done_ack);
-+		return -EPERM;
+-	/* Initialize overlay memory list */
+-	if (!status)
+-		INIT_LIST_HEAD(&target->ovly_list);
+-
+-	if (!status) {
+-		*target_obj = target;
+-	} else {
+-		*target_obj = NULL;
+-		if (target)
+-			rmm_delete(target);
+-
++	/* Allocate memory for initial segment table */
++	target->seg_tab = kzalloc(num_segs * sizeof(struct rmm_segment),
++			GFP_KERNEL);
++	if (!target->seg_tab) {
++		status = -ENOMEM;
++		goto out_err;
++	}
++	/* Initialize segment table and free list */
++	sptr = target->seg_tab;
++	for (i = 0, tmp = seg_tab; num_segs > 0; num_segs--, i++) {
++		*sptr = *tmp;
++		hptr = target->free_list[i];
++		hptr->addr = tmp->base;
++		hptr->size = tmp->length;
++		hptr->next = NULL;
++		tmp++;
++		sptr++;
  	}
--func_end:
--	return status;
+ 
+-	DBC_ENSURE((!status && *target_obj)
+-		   || (status && *target_obj == NULL));
++	*target_obj = target;
+ 
++	return 0;
++out_err:
++	*target_obj = NULL;
++	rmm_delete(target);
+ 	return status;
+ }
+ 
+@@ -298,14 +267,12 @@ bool rmm_free(struct rmm_target_obj *target, u32 segid, u32 dsp_addr, u32 size,
+ 	bool ret = false;
+ 
+ 	DBC_REQUIRE(target);
+-
+ 	DBC_REQUIRE(reserved || segid < target->num_segs);
+ 	DBC_REQUIRE(reserved || (dsp_addr >= target->seg_tab[segid].base &&
+-				 (dsp_addr + size) <= (target->seg_tab[segid].
+-						   base +
+-						   target->seg_tab[segid].
+-						   length)));
+-
++				(dsp_addr + size) <= (target->seg_tab[segid].
++					base +
++					target->seg_tab[segid].
++					length)));
+ 	/*
+ 	 *  Free or unreserve memory.
+ 	 */
+@@ -313,21 +280,20 @@ bool rmm_free(struct rmm_target_obj *target, u32 segid, u32 dsp_addr, u32 size,
+ 		ret = free_block(target, segid, dsp_addr, size);
+ 		if (ret)
+ 			target->seg_tab[segid].number--;
++		return ret;
++	}
+ 
+-	} else {
+-		/* Unreserve memory */
+-		list_for_each_entry_safe(sect, tmp, &target->ovly_list,
+-				list_elem) {
+-			if (dsp_addr == sect->addr) {
+-				DBC_ASSERT(size == sect->size);
+-				/* Remove from list */
+-				list_del(&sect->list_elem);
+-				kfree(sect);
+-				ret = true;
+-				break;
+-			}
++	/* Unreserve memory */
++	list_for_each_entry_safe(sect, tmp, &target->ovly_list, list_elem) {
++		if (sect->addr == dsp_addr) {
++			DBC_ASSERT(size == sect->size);
++			/* Remove from list */
++			list_del(&sect->list_elem);
++			kfree(sect);
++			break;
+ 		}
+ 	}
 +
-+	if (list_empty(&hmsg_mgr->msg_free_list)) {
-+		spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
-+		return -EFAULT;
+ 	return ret;
+ }
+ 
+@@ -463,51 +429,48 @@ static bool free_block(struct rmm_target_obj *target, u32 segid, u32 addr,
+ 	struct rmm_header *head;
+ 	struct rmm_header *thead;
+ 	struct rmm_header *rhead;
+-	bool ret = true;
+ 
+ 	/* Create a memory header to hold the newly free'd block. */
+ 	rhead = kzalloc(sizeof(struct rmm_header), GFP_KERNEL);
+-	if (rhead == NULL) {
+-		ret = false;
+-	} else {
+-		/* search down the free list to find the right place for addr */
+-		head = target->free_list[segid];
++	if (!rhead)
++		return false;
+ 
+-		if (addr >= head->addr) {
+-			while (head->next != NULL && addr > head->next->addr)
+-				head = head->next;
+-
+-			thead = head->next;
+-
+-			head->next = rhead;
+-			rhead->next = thead;
+-			rhead->addr = addr;
+-			rhead->size = size;
+-		} else {
+-			*rhead = *head;
+-			head->next = rhead;
+-			head->addr = addr;
+-			head->size = size;
+-			thead = rhead->next;
+-		}
++	/* search down the free list to find the right place for addr */
++	head = target->free_list[segid];
+ 
+-		/* join with upper block, if possible */
+-		if (thead != NULL && (rhead->addr + rhead->size) ==
+-		    thead->addr) {
+-			head->next = rhead->next;
+-			thead->size = size + thead->size;
+-			thead->addr = addr;
+-			kfree(rhead);
+-			rhead = thead;
+-		}
++	if (addr >= head->addr) {
++		while (head->next != NULL && addr > head->next->addr)
++			head = head->next;
+ 
+-		/* join with the lower block, if possible */
+-		if ((head->addr + head->size) == rhead->addr) {
+-			head->next = rhead->next;
+-			head->size = head->size + rhead->size;
+-			kfree(rhead);
+-		}
++		thead = head->next;
++		head->next = rhead;
++		rhead->next = thead;
++		rhead->addr = addr;
++		rhead->size = size;
++	} else {
++		*rhead = *head;
++		head->next = rhead;
++		head->addr = addr;
++		head->size = size;
++		thead = rhead->next;
+ 	}
+ 
+-	return ret;
++	/* join with upper block, if possible */
++	if (thead != NULL && (rhead->addr + rhead->size) ==
++			thead->addr) {
++		head->next = rhead->next;
++		thead->size = size + thead->size;
++		thead->addr = addr;
++		kfree(rhead);
++		rhead = thead;
 +	}
 +
-+	/* Get msg from free list */
-+	msg_frame_obj = list_first_entry(&hmsg_mgr->msg_free_list,
-+			struct msg_frame, list_elem);
-+	/*
-+	 * Copy message into pmsg and put frame on the
-+	 * used list.
-+	 */
-+	list_del(&msg_frame_obj->list_elem);
-+	msg_frame_obj->msg_data.msg = *pmsg;
-+	msg_frame_obj->msg_data.msgq_id = msg_queue_obj->msgq_id;
-+	list_add_tail(&msg_frame_obj->list_elem, &hmsg_mgr->msg_used_list);
-+	hmsg_mgr->msgs_pending++;
-+	/*
-+	 * Schedule a DPC, to do the actual
-+	 * data transfer.
-+	 */
-+	iosm_schedule(hmsg_mgr->hio_mgr);
++	/* join with the lower block, if possible */
++	if ((head->addr + head->size) == rhead->addr) {
++		head->next = rhead->next;
++		head->size = head->size + rhead->size;
++		kfree(rhead);
++	}
 +
-+	msg_queue_obj->io_msg_pend--;
-+	/* Reset event if there are still frames available */
-+	if (!list_empty(&hmsg_mgr->msg_free_list))
-+		sync_set_event(hmsg_mgr->sync_event);
-+
-+	/* Exit critical section */
-+	spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
-+
-+	return 0;
- }
- 
- /*
-@@ -518,16 +479,14 @@ void bridge_msg_set_queue_id(struct msg_queue *msg_queue_obj, u32 msgq_id)
- static int add_new_msg(struct list_head *msg_list)
- {
- 	struct msg_frame *pmsg;
--	int status = 0;
- 
- 	pmsg = kzalloc(sizeof(struct msg_frame), GFP_ATOMIC);
--	if (pmsg != NULL) {
--		list_add_tail(&pmsg->list_elem, msg_list);
--	} else {
--		status = -ENOMEM;
--	}
-+	if (!pmsg)
-+		return -ENOMEM;
- 
--	return status;
-+	list_add_tail(&pmsg->list_elem, msg_list);
-+
-+	return 0;
- }
- 
- /*
-@@ -536,17 +495,13 @@ static int add_new_msg(struct list_head *msg_list)
- static void delete_msg_mgr(struct msg_mgr *hmsg_mgr)
- {
- 	if (!hmsg_mgr)
--		goto func_end;
-+		return;
- 
- 	/* FIXME: free elements from queue_list? */
- 	free_msg_list(&hmsg_mgr->msg_free_list);
- 	free_msg_list(&hmsg_mgr->msg_used_list);
--
- 	kfree(hmsg_mgr->sync_event);
--
- 	kfree(hmsg_mgr);
--func_end:
--	return;
- }
- 
- /*
-@@ -559,7 +514,7 @@ static void delete_msg_queue(struct msg_queue *msg_queue_obj, u32 num_to_dsp)
- 	u32 i;
- 
- 	if (!msg_queue_obj || !msg_queue_obj->hmsg_mgr)
--		goto func_end;
-+		return;
- 
- 	hmsg_mgr = msg_queue_obj->hmsg_mgr;
- 
-@@ -586,9 +541,6 @@ static void delete_msg_queue(struct msg_queue *msg_queue_obj, u32 num_to_dsp)
- 	kfree(msg_queue_obj->sync_done_ack);
- 
- 	kfree(msg_queue_obj);
--func_end:
--	return;
--
- }
- 
- /*
-@@ -599,13 +551,10 @@ static void free_msg_list(struct list_head *msg_list)
- 	struct msg_frame *pmsg, *tmp;
- 
- 	if (!msg_list)
--		goto func_end;
-+		return;
- 
- 	list_for_each_entry_safe(pmsg, tmp, msg_list, list_elem) {
- 		list_del(&pmsg->list_elem);
- 		kfree(pmsg);
- 	}
--
--func_end:
--	return;
++	return true;
  }
 -- 
 1.7.2.3
