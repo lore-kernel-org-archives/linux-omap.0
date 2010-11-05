@@ -1,401 +1,78 @@
 From: Bryan Wu <bryan.wu@canonical.com>
-Subject: [PATCH 1/3] OMAP: use generic panel data in board files
-Date: Fri,  5 Nov 2010 15:43:54 -0400
-Message-ID: <1288986236-30210-2-git-send-email-bryan.wu@canonical.com>
+Subject: [PATCH 2/3] OMAP: DSS2: Add generic panel display driver
+Date: Fri,  5 Nov 2010 15:43:55 -0400
+Message-ID: <1288986236-30210-3-git-send-email-bryan.wu@canonical.com>
 References: <1288986236-30210-1-git-send-email-bryan.wu@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:42618 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751980Ab0KEToW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 15:44:22 -0400
-Received: by qyk12 with SMTP id 12so3034524qyk.19
-        for <linux-omap@vger.kernel.org>; Fri, 05 Nov 2010 12:44:21 -0700 (PDT)
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:42175 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754618Ab0KETo0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 15:44:26 -0400
+Received: by mail-qw0-f46.google.com with SMTP id 8so785823qwb.19
+        for <linux-omap@vger.kernel.org>; Fri, 05 Nov 2010 12:44:25 -0700 (PDT)
 In-Reply-To: <1288986236-30210-1-git-send-email-bryan.wu@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com, notasas@gmail.com
 
-Introduce struct panel config data in panel.h, which will be used to match
-the right panel configurations in generic DPI panel driver and other future
-dsi panel drivers.
+Generic panel driver includes the driver and 4 similar panel configurations. It
+will match the panel name which is passed from platform data and setup the
+right configurations.
 
-Still keep sharp_ls_panel, since the sharp_ls_panel driver contains blacklight
-control driver code which will be moved out later. Then we can use generic DPI
-driver for sharp_ls_panel.
+With generic panel driver, we can remove those 4 duplicated panel display
+drivers. In the future, it is simple for us just add new panel configuration
+date in panel-generic.c to support new display panel.
 
 Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c               |   10 +++-
- arch/arm/mach-omap2/board-am3517evm.c             |   19 +++++--
- arch/arm/mach-omap2/board-cm-t35.c                |   19 +++++--
- arch/arm/mach-omap2/board-devkit8000.c            |   22 +++++---
- arch/arm/mach-omap2/board-igep0020.c              |   10 +++-
- arch/arm/mach-omap2/board-omap3beagle.c           |   10 +++-
- arch/arm/mach-omap2/board-omap3evm.c              |   10 +++-
- arch/arm/mach-omap2/board-omap3stalker.c          |   19 +++++--
- arch/arm/plat-omap/include/plat/nokia-dsi-panel.h |   31 -----------
- arch/arm/plat-omap/include/plat/panel.h           |   57 +++++++++++++++++++++
- drivers/video/omap2/displays/panel-taal.c         |   26 ++++------
- 11 files changed, 148 insertions(+), 85 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
- create mode 100644 arch/arm/plat-omap/include/plat/panel.h
+ drivers/video/omap2/displays/Kconfig     |    8 +
+ drivers/video/omap2/displays/Makefile    |    1 +
+ drivers/video/omap2/displays/panel-dpi.c |  306 ++++++++++++++++++++++++++++++
+ 3 files changed, 315 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/displays/panel-dpi.c
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 4e3742c..859b4e5 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -38,6 +38,7 @@
- #include <plat/dma.h>
- #include <plat/gpmc.h>
- #include <plat/display.h>
-+#include <plat/panel.h>
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+index 12327bb..9602d3f 100644
+--- a/drivers/video/omap2/displays/Kconfig
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -1,6 +1,14 @@
+ menu "OMAP2/3 Display Device Drivers"
+         depends on OMAP2_DSS
  
- #include <plat/gpmc-smc91x.h>
- 
-@@ -270,11 +271,14 @@ static struct omap_dss_device sdp3430_lcd_device = {
- 	.platform_disable	= sdp3430_panel_disable_lcd,
- };
- 
-+static struct panel_data dvi_panel = {
-+	.name		= "generic",
-+};
++config PANEL_DPI
++        tristate "Generic DPI Panel"
++        help
++	  Generic DPI panel driver.
++	  Supports DVI output for Beagle and OMAP3 SDP.
++	  Supports LCD Panel used in TI SDP3430 and EVM boards,
++	  OMAP3517 EVM boards and CM-T35.
 +
- static struct omap_dss_device sdp3430_dvi_device = {
- 	.name			= "dvi",
--	.driver_name		= "generic_panel",
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.phy.dpi.data_lines	= 24,
-+	.driver_name		= "dpi_panel",
-+	.data			= &dvi_panel,
- 	.platform_enable	= sdp3430_panel_enable_dvi,
- 	.platform_disable	= sdp3430_panel_disable_dvi,
- };
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 0739950..9b2b6ff 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -35,6 +35,7 @@
- #include <plat/common.h>
- #include <plat/usb.h>
- #include <plat/display.h>
-+#include <plat/panel.h>
- 
- #include "mux.h"
- #include "control.h"
-@@ -303,11 +304,14 @@ static void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
- 	lcd_enabled = 0;
- }
- 
-+static struct panel_data lcd_panel = {
-+	.name		= "sharp_lq",
-+};
-+
- static struct omap_dss_device am3517_evm_lcd_device = {
--	.type			= OMAP_DISPLAY_TYPE_DPI,
- 	.name			= "lcd",
--	.driver_name		= "sharp_lq_panel",
--	.phy.dpi.data_lines 	= 16,
-+	.driver_name		= "dpi_panel",
-+	.data			= &lcd_panel,
- 	.platform_enable	= am3517_evm_panel_enable_lcd,
- 	.platform_disable	= am3517_evm_panel_disable_lcd,
- };
-@@ -346,11 +350,14 @@ static void am3517_evm_panel_disable_dvi(struct omap_dss_device *dssdev)
- 	dvi_enabled = 0;
- }
- 
-+static struct panel_data dvi_panel = {
-+	.name		= "generic",
-+};
-+
- static struct omap_dss_device am3517_evm_dvi_device = {
--	.type			= OMAP_DISPLAY_TYPE_DPI,
- 	.name			= "dvi",
--	.driver_name		= "generic_panel",
--	.phy.dpi.data_lines	= 24,
-+	.driver_name		= "dpi_panel",
-+	.data			= &dvi_panel,
- 	.platform_enable	= am3517_evm_panel_enable_dvi,
- 	.platform_disable	= am3517_evm_panel_disable_dvi,
- };
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 63f764e..326aa15 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -46,6 +46,7 @@
- #include <plat/gpmc.h>
- #include <plat/usb.h>
- #include <plat/display.h>
-+#include <plat/panel.h>
- #include <plat/mcspi.h>
- 
- #include <mach/hardware.h>
-@@ -351,20 +352,26 @@ static void cm_t35_panel_disable_tv(struct omap_dss_device *dssdev)
- {
- }
- 
-+static struct panel_data lcd_panel = {
-+	.name		= "toppoly_tdo35s",
-+};
-+
- static struct omap_dss_device cm_t35_lcd_device = {
- 	.name			= "lcd",
--	.driver_name		= "toppoly_tdo35s_panel",
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.phy.dpi.data_lines	= 18,
-+	.driver_name		= "dpi_panel",
-+	.data			= &lcd_panel,
- 	.platform_enable	= cm_t35_panel_enable_lcd,
- 	.platform_disable	= cm_t35_panel_disable_lcd,
- };
- 
-+static struct panel_data dvi_panel = {
-+	.name		= "generic",
-+};
-+
- static struct omap_dss_device cm_t35_dvi_device = {
- 	.name			= "dvi",
--	.driver_name		= "generic_panel",
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.phy.dpi.data_lines	= 24,
-+	.driver_name		= "dpi_panel",
-+	.data			= &dvi_panel,
- 	.platform_enable	= cm_t35_panel_enable_dvi,
- 	.platform_disable	= cm_t35_panel_disable_dvi,
- };
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 067f437..c38ece3 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -46,6 +46,7 @@
- #include <plat/nand.h>
- #include <plat/usb.h>
- #include <plat/display.h>
-+#include <plat/panel.h>
- 
- #include <plat/mcspi.h>
- #include <linux/input/matrix_keypad.h>
-@@ -149,21 +150,26 @@ static struct regulator_consumer_supply devkit8000_vmmc1_supply =
- static struct regulator_consumer_supply devkit8000_vio_supply =
- 	REGULATOR_SUPPLY("vcc", "spi2.0");
- 
-+static struct panel_data lcd_panel = {
-+	.name		= "generic",
-+};
-+
- static struct omap_dss_device devkit8000_lcd_device = {
- 	.name                   = "lcd",
--	.driver_name            = "generic_panel",
--	.type                   = OMAP_DISPLAY_TYPE_DPI,
--	.phy.dpi.data_lines     = 24,
--	.reset_gpio             = -EINVAL, /* will be replaced */
-+	.driver_name            = "dpi_panel",
-+	.data			= &lcd_panel,
- 	.platform_enable        = devkit8000_panel_enable_lcd,
- 	.platform_disable       = devkit8000_panel_disable_lcd,
- };
-+
-+static struct panel_data dvi_panel = {
-+	.name		= "generic",
-+};
-+
- static struct omap_dss_device devkit8000_dvi_device = {
- 	.name                   = "dvi",
--	.driver_name            = "generic_panel",
--	.type                   = OMAP_DISPLAY_TYPE_DPI,
--	.phy.dpi.data_lines     = 24,
--	.reset_gpio             = -EINVAL, /* will be replaced */
-+	.driver_name            = "dpi_panel",
-+	.data			= &dvi_panel,
- 	.platform_enable        = devkit8000_panel_enable_dvi,
- 	.platform_disable       = devkit8000_panel_disable_dvi,
- };
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 5e035a5..c2475bb 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -30,6 +30,7 @@
- #include <plat/gpmc.h>
- #include <plat/usb.h>
- #include <plat/display.h>
-+#include <plat/panel.h>
- #include <plat/onenand.h>
- 
- #include "mux.h"
-@@ -433,11 +434,14 @@ static void igep2_disable_dvi(struct omap_dss_device *dssdev)
- 	gpio_direction_output(IGEP2_GPIO_DVI_PUP, 0);
- }
- 
-+static struct panel_data dvi_panel = {
-+	.name		= "generic",
-+};
-+
- static struct omap_dss_device igep2_dvi_device = {
--	.type			= OMAP_DISPLAY_TYPE_DPI,
- 	.name			= "dvi",
--	.driver_name		= "generic_panel",
--	.phy.dpi.data_lines	= 24,
-+	.driver_name		= "dpi_panel",
-+	.data			= &dvi_panel,
- 	.platform_enable	= igep2_enable_dvi,
- 	.platform_disable	= igep2_disable_dvi,
- };
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 14f4224..1d2a634 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -41,6 +41,7 @@
- #include <plat/board.h>
- #include <plat/common.h>
- #include <plat/display.h>
-+#include <plat/panel.h>
- #include <plat/gpmc.h>
- #include <plat/nand.h>
- #include <plat/usb.h>
-@@ -194,11 +195,14 @@ static void beagle_disable_dvi(struct omap_dss_device *dssdev)
- 		gpio_set_value(dssdev->reset_gpio, 0);
- }
- 
-+static struct panel_data dvi_panel = {
-+	.name = "generic",
-+};
-+
- static struct omap_dss_device beagle_dvi_device = {
--	.type = OMAP_DISPLAY_TYPE_DPI,
- 	.name = "dvi",
--	.driver_name = "generic_panel",
--	.phy.dpi.data_lines = 24,
-+	.driver_name = "dpi_panel",
-+	.data = &dvi_panel,
- 	.reset_gpio = 170,
- 	.platform_enable = beagle_enable_dvi,
- 	.platform_disable = beagle_disable_dvi,
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index b04365c..981de08 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -43,6 +43,7 @@
- #include <plat/common.h>
- #include <plat/mcspi.h>
- #include <plat/display.h>
-+#include <plat/panel.h>
- 
- #include "mux.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
-@@ -301,11 +302,14 @@ static void omap3_evm_disable_dvi(struct omap_dss_device *dssdev)
- 	dvi_enabled = 0;
- }
- 
-+static struct panel_data dvi_panel = {
-+	.name =		"generic",
-+};
-+
- static struct omap_dss_device omap3_evm_dvi_device = {
- 	.name			= "dvi",
--	.driver_name		= "generic_panel",
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.phy.dpi.data_lines	= 24,
-+	.driver_name		= "dpi_panel",
-+	.data			= &dvi_panel,
- 	.platform_enable	= omap3_evm_enable_dvi,
- 	.platform_disable	= omap3_evm_disable_dvi,
- };
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index f252721..85bcfd6 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -40,6 +40,7 @@
- #include <plat/nand.h>
- #include <plat/usb.h>
- #include <plat/display.h>
-+#include <plat/panel.h>
- 
- #include <plat/mcspi.h>
- #include <linux/input/matrix_keypad.h>
-@@ -160,11 +161,14 @@ static void omap3_stalker_disable_lcd(struct omap_dss_device *dssdev)
- 	lcd_enabled = 0;
- }
- 
-+static struct panel_data lcd_panel = {
-+	.name		= "generic",
-+};
-+
- static struct omap_dss_device omap3_stalker_lcd_device = {
- 	.name			= "lcd",
--	.driver_name		= "generic_panel",
--	.phy.dpi.data_lines	= 24,
--	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.driver_name		= "dpi_panel",
-+	.data			= &lcd_panel,
- 	.platform_enable	= omap3_stalker_enable_lcd,
- 	.platform_disable	= omap3_stalker_disable_lcd,
- };
-@@ -208,11 +212,14 @@ static void omap3_stalker_disable_dvi(struct omap_dss_device *dssdev)
- 	dvi_enabled = 0;
- }
- 
-+static struct panel_data dvi_panel = {
-+	.name		= "generic",
-+};
-+
- static struct omap_dss_device omap3_stalker_dvi_device = {
- 	.name			= "dvi",
--	.driver_name		= "generic_panel",
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.phy.dpi.data_lines	= 24,
-+	.driver_name		= "dpi_panel",
-+	.data			= &dvi_panel,
- 	.platform_enable	= omap3_stalker_enable_dvi,
- 	.platform_disable	= omap3_stalker_disable_dvi,
- };
-diff --git a/arch/arm/plat-omap/include/plat/nokia-dsi-panel.h b/arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
-deleted file mode 100644
-index 01ab657..0000000
---- a/arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
-+++ /dev/null
-@@ -1,31 +0,0 @@
--#ifndef __ARCH_ARM_PLAT_OMAP_NOKIA_DSI_PANEL_H
--#define __ARCH_ARM_PLAT_OMAP_NOKIA_DSI_PANEL_H
--
--#include "display.h"
--
--/**
-- * struct nokia_dsi_panel_data - Nokia DSI panel driver configuration
-- * @name: panel name
-- * @use_ext_te: use external TE
-- * @ext_te_gpio: external TE GPIO
-- * @use_esd_check: perform ESD checks
-- * @max_backlight_level: maximum backlight level
-- * @set_backlight: pointer to backlight set function
-- * @get_backlight: pointer to backlight get function
-- */
--struct nokia_dsi_panel_data {
--	const char *name;
--
--	int reset_gpio;
--
--	bool use_ext_te;
--	int ext_te_gpio;
--
--	bool use_esd_check;
--
--	int max_backlight_level;
--	int (*set_backlight)(struct omap_dss_device *dssdev, int level);
--	int (*get_backlight)(struct omap_dss_device *dssdev);
--};
--
--#endif /* __ARCH_ARM_PLAT_OMAP_NOKIA_DSI_PANEL_H */
-diff --git a/arch/arm/plat-omap/include/plat/panel.h b/arch/arm/plat-omap/include/plat/panel.h
+ config PANEL_GENERIC
+         tristate "Generic Panel"
+         help
+diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
+index aa38609..1265772 100644
+--- a/drivers/video/omap2/displays/Makefile
++++ b/drivers/video/omap2/displays/Makefile
+@@ -1,3 +1,4 @@
++obj-$(CONFIG_PANEL_DPI) += panel-dpi.o
+ obj-$(CONFIG_PANEL_GENERIC) += panel-generic.o
+ obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
+ obj-$(CONFIG_PANEL_SHARP_LQ043T1DG01) += panel-sharp-lq043t1dg01.o
+diff --git a/drivers/video/omap2/displays/panel-dpi.c b/drivers/video/omap2/displays/panel-dpi.c
 new file mode 100644
-index 0000000..84c6ffd
+index 0000000..1007ecb
 --- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/panel.h
-@@ -0,0 +1,57 @@
++++ b/drivers/video/omap2/displays/panel-dpi.c
+@@ -0,0 +1,306 @@
 +/*
-+ * Header for panel driver
++ * Generic DPI Panels support
 + *
 + * Copyright (C) 2010 Canonical Ltd.
 + * Author: Bryan Wu <bryan.wu@canonical.com>
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License version 2 as published by
@@ -410,151 +87,290 @@ index 0000000..84c6ffd
 + * this program.  If not, see <http://www.gnu.org/licenses/>.
 + */
 +
-+#ifndef __ARCH_ARM_PLAT_OMAP_PANEL_H
-+#define __ARCH_ARM_PLAT_OMAP_PANEL_H
++#include <linux/module.h>
++#include <linux/delay.h>
 +
-+#include "display.h"
++#include <plat/panel.h>
 +
-+/**
-+ * struct panel_data - panel driver configuration
-+ * @name: panel name
-+ * @use_ext_te: use external TE
-+ * @ext_te_gpio: external TE GPIO
-+ * @use_esd_check: perform ESD checks
-+ * @max_backlight_level: maximum backlight level
-+ * @set_backlight: pointer to backlight set function
-+ * @get_backlight: pointer to backlight get function
-+ */
-+struct panel_data {
++struct panel_config {
++	struct omap_video_timings timings;
++
++	int acbi;	/* ac-bias pin transitions per interrupt */
++	/* Unit: line clocks */
++	int acb;	/* ac-bias pin frequency */
++
++	enum omap_panel_config config;
++
++	/*
++	 * Used to match device to panel configuration
++	 * when use generic panel driver
++	 */
 +	const char *name;
 +
-+	int reset_gpio;
-+
-+	bool use_ext_te;
-+	int ext_te_gpio;
-+
-+	bool use_esd_check;
-+
-+	int max_backlight_level;
-+	int (*set_backlight)(struct omap_dss_device *dssdev, int level);
-+	int (*get_backlight)(struct omap_dss_device *dssdev);
++	int data_lines;
 +};
 +
-+static inline struct panel_data
-+*get_panel_data(const struct omap_dss_device *dssdev)
++/* Panel configurations */
++static struct panel_config dpi_panels[] = {
++	/* Generic Panel */
++	{
++		{
++			.x_res		= 640,
++			.y_res		= 480,
++
++			.pixel_clock	= 23500,
++
++			.hfp		= 48,
++			.hsw		= 32,
++			.hbp		= 80,
++
++			.vfp		= 3,
++			.vsw		= 4,
++			.vbp		= 7,
++		},
++		.acbi			= 0x0,
++		.acb			= 0x0,
++		.config			= OMAP_DSS_LCD_TFT,
++		.name			= "generic",
++		.data_lines		= 24,
++	},
++
++	/* Sharp LQ043T1DG01 */
++	{
++		{
++			.x_res		= 480,
++			.y_res		= 272,
++
++			.pixel_clock	= 9000,
++
++			.hsw		= 42,
++			.hfp		= 3,
++			.hbp		= 2,
++
++			.vsw		= 11,
++			.vfp		= 3,
++			.vbp		= 2,
++		},
++		.acbi			= 0x0,
++		.acb			= 0x0,
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IEO,
++		.name			= "sharp_lq",
++		.data_lines		= 16,
++	},
++
++	/* Sharp LS037V7DW01 */
++	{
++		{
++			.x_res		= 480,
++			.y_res		= 640,
++
++			.pixel_clock	= 19200,
++
++			.hsw		= 2,
++			.hfp		= 1,
++			.hbp		= 28,
++
++			.vsw		= 1,
++			.vfp		= 1,
++			.vbp		= 1,
++		},
++		.acbi			= 0x0,
++		.acb			= 0x28,
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++						OMAP_DSS_LCD_IHS,
++		.name			= "sharp_ls",
++		.data_lines		= 16,
++	},
++
++	/* Toppoly TDO35S */
++	{
++		{
++			.x_res		= 480,
++			.y_res		= 640,
++
++			.pixel_clock	= 26000,
++
++			.hfp		= 104,
++			.hsw		= 8,
++			.hbp		= 8,
++
++			.vfp		= 4,
++			.vsw		= 2,
++			.vbp		= 2,
++		},
++		.acbi			= 0x0,
++		.acb			= 0x0,
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC |
++					OMAP_DSS_LCD_ONOFF,
++		.name			= "toppoly_tdo35s",
++		.data_lines		= 18,
++	},
++};
++
++static int dpi_panel_power_on(struct omap_dss_device *dssdev)
 +{
-+	return (struct panel_data *) dssdev->data;
++	int r;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
++		return 0;
++
++	r = omapdss_dpi_display_enable(dssdev);
++	if (r)
++		goto err0;
++
++	if (dssdev->platform_enable) {
++		r = dssdev->platform_enable(dssdev);
++		if (r)
++			goto err1;
++	}
++
++	return 0;
++err1:
++	omapdss_dpi_display_disable(dssdev);
++err0:
++	return r;
 +}
 +
++static void dpi_panel_power_off(struct omap_dss_device *dssdev)
++{
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
++		return;
 +
-+#endif /* __ARCH_ARM_PLAT_OMAP_PANEL_H */
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index e1c765d..170ef63 100644
---- a/drivers/video/omap2/displays/panel-taal.c
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -34,7 +34,7 @@
- #include <linux/mutex.h>
- 
- #include <plat/display.h>
--#include <plat/nokia-dsi-panel.h>
-+#include <plat/panel.h>
- 
- /* DSI Virtual channel. Hardcoded for now. */
- #define TCH 0
-@@ -233,12 +233,6 @@ struct taal_data {
- 	struct panel_config *panel_config;
- };
- 
--static inline struct nokia_dsi_panel_data
--*get_panel_data(const struct omap_dss_device *dssdev)
--{
--	return (struct nokia_dsi_panel_data *) dssdev->data;
--}
--
- static void taal_esd_work(struct work_struct *work);
- 
- static void hw_guard_start(struct taal_data *td, int guard_msec)
-@@ -422,7 +416,7 @@ static int taal_bl_update_status(struct backlight_device *dev)
- {
- 	struct omap_dss_device *dssdev = dev_get_drvdata(&dev->dev);
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
--	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++
++	omapdss_dpi_display_disable(dssdev);
++}
++
++static int dpi_panel_probe(struct omap_dss_device *dssdev)
++{
 +	struct panel_data *panel_data = get_panel_data(dssdev);
- 	int r;
- 	int level;
- 
-@@ -639,7 +633,7 @@ static struct attribute_group taal_attr_group = {
- static void taal_hw_reset(struct omap_dss_device *dssdev)
- {
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
--	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
-+	struct panel_data *panel_data = get_panel_data(dssdev);
- 
- 	if (panel_data->reset_gpio == -1)
- 		return;
-@@ -663,7 +657,7 @@ static int taal_probe(struct omap_dss_device *dssdev)
- 	struct backlight_properties props;
- 	struct taal_data *td;
- 	struct backlight_device *bldev;
--	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
-+	struct panel_data *panel_data = get_panel_data(dssdev);
- 	struct panel_config *panel_config = NULL;
- 	int r, i;
- 
-@@ -802,7 +796,7 @@ err:
- static void taal_remove(struct omap_dss_device *dssdev)
- {
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
--	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
-+	struct panel_data *panel_data = get_panel_data(dssdev);
- 	struct backlight_device *bldev;
- 
- 	dev_dbg(&dssdev->dev, "remove\n");
-@@ -942,7 +936,7 @@ static void taal_power_off(struct omap_dss_device *dssdev)
- static int taal_enable(struct omap_dss_device *dssdev)
- {
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
--	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
-+	struct panel_data *panel_data = get_panel_data(dssdev);
- 	int r;
- 
- 	dev_dbg(&dssdev->dev, "enable\n");
-@@ -1035,7 +1029,7 @@ err:
- static int taal_resume(struct omap_dss_device *dssdev)
- {
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
--	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
-+	struct panel_data *panel_data = get_panel_data(dssdev);
- 	int r;
- 
- 	dev_dbg(&dssdev->dev, "resume\n");
-@@ -1122,7 +1116,7 @@ static int taal_update(struct omap_dss_device *dssdev,
- 				    u16 x, u16 y, u16 w, u16 h)
- {
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
--	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
-+	struct panel_data *panel_data = get_panel_data(dssdev);
- 	int r;
- 
- 	dev_dbg(&dssdev->dev, "update %d, %d, %d x %d\n", x, y, w, h);
-@@ -1187,7 +1181,7 @@ static int taal_sync(struct omap_dss_device *dssdev)
- static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable)
- {
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
--	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
-+	struct panel_data *panel_data = get_panel_data(dssdev);
- 	int r;
- 
- 	if (enable)
-@@ -1453,7 +1447,7 @@ static void taal_esd_work(struct work_struct *work)
- 	struct taal_data *td = container_of(work, struct taal_data,
- 			esd_work.work);
- 	struct omap_dss_device *dssdev = td->dssdev;
--	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
-+	struct panel_data *panel_data = get_panel_data(dssdev);
- 	u8 state1, state2;
- 	int r;
- 
++	struct panel_config *panel_config = NULL;
++	int i;
++
++	dev_dbg(&dssdev->dev, "probe\n");
++
++	if (!panel_data || !panel_data->name)
++		return -EINVAL;
++
++	for (i = 0; i < ARRAY_SIZE(dpi_panels); i++) {
++		if (strcmp(panel_data->name, dpi_panels[i].name) == 0) {
++			panel_config = &dpi_panels[i];
++			break;
++		}
++	}
++
++	if (!panel_config)
++		return -EINVAL;
++
++	dssdev->type = OMAP_DISPLAY_TYPE_DPI;
++	dssdev->panel.config = panel_config->config;
++	dssdev->panel.timings = panel_config->timings;
++	dssdev->panel.acb = panel_config->acb;
++	dssdev->panel.acbi = panel_config->acbi;
++	dssdev->phy.dpi.data_lines = panel_config->data_lines;
++
++	return 0;
++}
++
++static void dpi_panel_remove(struct omap_dss_device *dssdev)
++{
++}
++
++static int dpi_panel_enable(struct omap_dss_device *dssdev)
++{
++	int r = 0;
++
++	r = dpi_panel_power_on(dssdev);
++	if (r)
++		return r;
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	return 0;
++}
++
++static void dpi_panel_disable(struct omap_dss_device *dssdev)
++{
++	dpi_panel_power_off(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++}
++
++static int dpi_panel_suspend(struct omap_dss_device *dssdev)
++{
++	dpi_panel_power_off(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
++
++	return 0;
++}
++
++static int dpi_panel_resume(struct omap_dss_device *dssdev)
++{
++	int r = 0;
++
++	r = dpi_panel_power_on(dssdev);
++	if (r)
++		return r;
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	return 0;
++}
++
++static void dpi_panel_set_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	dpi_set_timings(dssdev, timings);
++}
++
++static void dpi_panel_get_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	*timings = dssdev->panel.timings;
++}
++
++static int dpi_panel_check_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	return dpi_check_timings(dssdev, timings);
++}
++
++static struct omap_dss_driver dpi_driver = {
++	.probe		= dpi_panel_probe,
++	.remove		= dpi_panel_remove,
++
++	.enable		= dpi_panel_enable,
++	.disable	= dpi_panel_disable,
++	.suspend	= dpi_panel_suspend,
++	.resume		= dpi_panel_resume,
++
++	.set_timings	= dpi_panel_set_timings,
++	.get_timings	= dpi_panel_get_timings,
++	.check_timings	= dpi_panel_check_timings,
++
++	.driver         = {
++		.name   = "dpi_panel",
++		.owner  = THIS_MODULE,
++	},
++};
++
++static int __init dpi_panel_drv_init(void)
++{
++	return omap_dss_register_driver(&dpi_driver);
++}
++
++static void __exit dpi_panel_drv_exit(void)
++{
++	omap_dss_unregister_driver(&dpi_driver);
++}
++
++module_init(dpi_panel_drv_init);
++module_exit(dpi_panel_drv_exit);
++MODULE_LICENSE("GPL");
 -- 
 1.7.1
 
