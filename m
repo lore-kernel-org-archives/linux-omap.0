@@ -1,41 +1,60 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 0/2] OMAP1: drop AMS_DELTA_FIQ config option
-Date: Thu, 4 Nov 2010 18:53:11 -0700
-Message-ID: <20101105015311.GA25690@core.coreip.homeip.net>
-References: <201011050126.01426.jkrzyszt@tis.icnet.pl>
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: USB Ethernet gadget seems doesn't work with current mainline
+Date: Fri, 5 Nov 2010 09:39:44 +0100
+Message-ID: <AANLkTimeU1+F5F+Bpfh0E3E7S6=aZ=bbK0=6zmpJcm_H@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:64487 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751613Ab0KEBxV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Nov 2010 21:53:21 -0400
-Received: by gwj21 with SMTP id 21so1913853gwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 04 Nov 2010 18:53:21 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <201011050126.01426.jkrzyszt@tis.icnet.pl>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:52321 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752043Ab0KEIjp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 04:39:45 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-Hi Janusz,
+Hello all,
 
-On Fri, Nov 05, 2010 at 01:26:00AM +0100, Janusz Krzysztofik wrote:
-> This set of patches removes a config option that was used to select a FIQ 
-> handler to be build for Amstrad Delta, as required by the on-board serio 
-> interface driver. Not having any problem reports received since it was 
-> introduced in 2.6.35, the FIQ handler can now be built by default, thus 
-> reqiring no extra config option.
-> 
-> 1/2: serio: Amstrad Delta: no longer select AMS_DELTA_FIQ from serio Kconfig
-> 2/2: OMAP1: Amstrad Delta: always build with FIQ handler linked in
-> 
+With current mainline and stable 2.6.35.y branch I've some strange
+features with USB ethernet gadget ...
 
-It does not makes ense to split these 2, please fold together and merge
-through Tony's tree.
+  root@igep0020:~# uname -a
+  Linux igep0020 2.6.37-rc1+ #1 Fri Nov 5 09:22:53 CET 2010 armv7l
+unknown unknown GNU/Linux
 
-Thanks.
+  root@igep0020:~# ifconfig
+  usb0      Link encap:Ethernet  HWaddr 5A:A9:54:25:4C:04
+          inet addr:192.168.7.2  Bcast:192.168.7.255  Mask:255.255.255.0
+          inet6 addr: fe80::58a9:54ff:fe25:4c04/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:28 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:0 (0.0 B)  TX bytes:4951 (4.8 KiB)
 
--- 
-Dmitry
+Pinging seems not work
+
+  root@igep0020:~# ping -c5 192.168.7.1
+  PING 192.168.7.1 (192.168.7.1): 56 data bytes
+  --- 192.168.7.1 ping statistics ---
+  5 packets transmitted, 0 packets received, 100% packet loss
+
+Curiously if I unplug and plug the USB cable, and ping again ...
+
+  root@igep0020:~# ping -c5 192.168.7.1
+  PING 192.168.7.1 (192.168.7.1): 56 data bytes
+  64 bytes from 192.168.7.1: seq=0 ttl=64 time=0.397 ms
+  64 bytes from 192.168.7.1: seq=1 ttl=64 time=0.489 ms
+  64 bytes from 192.168.7.1: seq=2 ttl=64 time=0.397 ms
+  64 bytes from 192.168.7.1: seq=3 ttl=64 time=0.366 ms
+  64 bytes from 192.168.7.1: seq=4 ttl=64 time=0.396 ms
+
+  --- 192.168.7.1 ping statistics ---
+  5 packets transmitted, 5 packets received, 0% packet loss
+ round-trip min/avg/max = 0.366/0.409/0.489 ms
+
+Works, anyone knows if the ethernet gadget is broken in current
+mainline or have observed this feature ?
+
+Thanks in advance,
+   Enric
