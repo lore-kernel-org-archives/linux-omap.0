@@ -1,42 +1,40 @@
-From: Marco Stornelli <marco.stornelli@gmail.com>
-Subject: [PATCH] arm: fix compilation warning during compilation
-Date: Sat, 06 Nov 2010 10:06:35 +0100
-Message-ID: <4CD51A9B.7010806@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux Kernel <linux-kernel@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Rick Bronson <rick@efn.org>
+Subject: Mistral AM37x (with AM3715) devel board networking broken
+Date: Sat, 06 Nov 2010 08:20:55 -0700
+Message-ID: <E1PEkZb-0003Te-AB@amazonia.comcast.net>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from efn.org ([206.192.230.249]:58081 "EHLO samwise.efn.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753481Ab0KFPxf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 6 Nov 2010 11:53:35 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: srinath@mistralsolutions.com
 
-From: Marco Stornelli <marco.stornelli@gmail.com>
+Hi,
 
-During compilation of 2.6.36 for Beagle board, there a are a couple of warnings. This patch fix them.
+  Should I be able to use the latest omap-linux-2.6 on this board?  I
+tried:
 
-Signed-off-by: Marco Stornelli <marco.stornelli@gmail.com>
----
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+cd linux-omap-2.6; make omap2plus_defconfig ARCH=arm; make
 
---- linux-2.6.36-orig/arch/arm/plat-omap/include/plat/usb.h	2010-10-20 22:30:22.000000000 +0200
-+++ linux-2.6.36/arch/arm/plat-omap/include/plat/usb.h	2010-11-01 09:44:13.000000000 +0100
-@@ -105,7 +105,7 @@ static inline void omap1_usb_init(struct
- #if defined(CONFIG_ARCH_OMAP_OTG) || defined(CONFIG_ARCH_OMAP_OTG_MODULE)
- void omap2_usbfs_init(struct omap_usb_config *pdata);
- #else
--static inline omap2_usbfs_init(struct omap_usb_config *pdata)
-+static inline void omap2_usbfs_init(struct omap_usb_config *pdata)
- {
- }
- #endif
---- linux-2.6.36-orig/arch/arm/mach-omap2/mux.c	2010-10-20 22:30:22.000000000 +0200
-+++ linux-2.6.36/arch/arm/mach-omap2/mux.c	2010-11-01 10:21:29.000000000 +0100
-@@ -87,7 +87,7 @@ static char *omap_mux_options;
- int __init omap_mux_init_gpio(int gpio, int val)
- {
- 	struct omap_mux_entry *e;
--	struct omap_mux *gpio_mux;
-+	struct omap_mux *gpio_mux = NULL;
- 	u16 old_mode;
- 	u16 mux_mode;
- 	int found = 0;
+  I get some warnings when it boots but it fails to setup the
+networking (smsc911x) correctly.  The boot log is here
+http://www.efn.org/~rick/pub/boot1.log
+
+  Just wondered if anyone has any ideas?
+
+  Thanks much for any help.
+
+  Rick
+                                                                   _
+                                                                  | |
+                                                                  / /__
+.----------------------------------------------------------._____/ (___)
+| Rick Bronson    rick at efn dot org    Tel 541-485-7264  |       (___)
+| Amazonia Computing http://www.efn.org/~rick      __ o    |_____  (___)
+| 5050 Donald Street       Embedded Linux         _`\<,    |     \_(___)
+| Eugene, OR  97405     Software Engineering   __( )/( )__ |
+`----------------------------------------------------------'
