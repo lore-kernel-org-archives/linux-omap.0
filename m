@@ -1,30 +1,39 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 0/2] Combine zoom board-files
-Date: Fri, 05 Nov 2010 19:52:46 -0500
-Message-ID: <693938210fadb93f45a4835269e635e8@secure211.sgcpanel.com>
-References: <1287555912-16058-1-git-send-email-balbi@ti.com> <20101104123345.GA1952@legolas.emea.dhcp.ti.com> <20101105214358.GX9264@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH v2 7/7] omap: mailbox: remove unreachable return
+Date: Fri,  5 Nov 2010 19:17:24 -0600
+Message-ID: <1289006244-27147-8-git-send-email-omar.ramirez@ti.com>
+References: <1289006244-27147-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:59755 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754362Ab0KFAwr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 20:52:47 -0400
-In-Reply-To: <20101105214358.GX9264@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47153 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751343Ab0KFB1r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Nov 2010 21:27:47 -0400
+In-Reply-To: <1289006244-27147-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Suman Anna <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Charulatha V <charu@ti.com>, C A Subramaniam <subramaniam.ca@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+Remove unreachable return statement.
 
-On Fri, 5 Nov 2010 14:43:58 -0700, Tony Lindgren <tony@atomide.com> wrote:
-> Looks good to me, but please can you please repost with also
-> linux-arm-kernel list Cc'd? That way I don't have to repost
-> before merging.
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ arch/arm/mach-omap2/mailbox.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-Sure, will do that first thing on monday. Sorry that I forgot.
-
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 5e9ea0f..335eb2b 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -434,8 +434,6 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 	return 0;
+-
+-	return ret;
+ }
+ 
+ static int __devexit omap2_mbox_remove(struct platform_device *pdev)
 -- 
-balbi
+1.7.1
+
