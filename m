@@ -1,61 +1,211 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: Mistral AM37x (with AM3715) devel board networking broken
-Date: Sun, 7 Nov 2010 00:32:17 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930233D96C6C@dbde02.ent.ti.com>
-References: <E1PEkZb-0003Te-AB@amazonia.comcast.net>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/6] omap: iommu: remove redundant clock usage
+Date: Sat, 06 Nov 2010 15:11:02 -0400
+Message-ID: <4CD5A846.4020607@ti.com>
+References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com> <1289006396-27230-2-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49813 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49921 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752901Ab0KFTGE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Nov 2010 15:06:04 -0400
-In-Reply-To: <E1PEkZb-0003Te-AB@amazonia.comcast.net>
-Content-Language: en-US
+	id S1751828Ab0KFTKa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 6 Nov 2010 15:10:30 -0400
+In-Reply-To: <1289006396-27230-2-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rick Bronson <rick@efn.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "srinath@mistralsolutions.com" <srinath@mistralsolutions.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-> From: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.org] On Behalf Of Rick Bronson [rick@efn.org]
-> Sent: Saturday, November 06, 2010 8:50 PM
-> To: linux-omap@vger.kernel.org
-> Cc: srinath@mistralsolutions.com
-> Subject: Mistral AM37x (with AM3715) devel board networking broken
-> 
-> Hi,
-> 
->   Should I be able to use the latest omap-linux-2.6 on this board?  I
-> tried:
-> 
-> git clone git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-> cd linux-omap-2.6; make omap2plus_defconfig ARCH=arm; make
-> 
->   I get some warnings when it boots but it fails to setup the
-> networking (smsc911x) correctly.  The boot log is here
-> http://www.efn.org/~rick/pub/boot1.log
-> 
->   Just wondered if anyone has any ideas?
-> 
-[sp] On first looks I would suspect the u-boot. 2009.11 seems to be quite old.
-     Can you try using version 2010.09?
+On 11/5/2010 9:19 PM, Ramirez Luna, Omar wrote:
+> iommu driver is meant to provide control of mmu hardware blocks
 
-~sanjeev
-> 
->   Thanks much for any help.
-> 
->   Rick
->                                                                    _
->                                                                   | |
->                                                                   / /__
-> .----------------------------------------------------------._____/ (___)
-> | Rick Bronson    rick at efn dot org    Tel 541-485-7264  |       (___)
-> | Amazonia Computing http://www.efn.org/~rick      __ o    |_____  (___)
-> | 5050 Donald Street       Embedded Linux         _`\<,    |     \_(___)
-> | Eugene, OR  97405     Software Engineering   __( )/( )__ |
-> `----------------------------------------------------------'
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A dot is missing here, and a capital letter should follow.
+
+> its current users (MMUs) are part of larger subsystems and do not
+> have a dedicated clock as the one they use is shared with the
+> entire subsystem, it doesn't make sense to enable/disable on each
+> register read/write operation as the driver using its interface
+> should also be handling the same clock.
+>
+> iommu should only enable/disable the clock on mmu request/free from
+> the driver wanting to use it.
+
+Mmm, I'm not necessarily convinced by that explanation.
+If in a next revision, we change the clock partitioning and provide a 
+dedicated clock for the mmu, it will not work anymore.
+I don't thing you should assume anything about the current partitioning.
+
+That being said, when you will change that code to switch to runtime PM, 
+you will end up managing the module state in the ISR context.
+
+Regards,
+Benoit
+
+
+>
+> Signed-off-by: Omar Ramirez Luna<omar.ramirez@ti.com>
+> ---
+>   arch/arm/plat-omap/iommu.c |   38 +++++---------------------------------
+>   1 files changed, 5 insertions(+), 33 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> index 6cd151b..de992c8 100644
+> --- a/arch/arm/plat-omap/iommu.c
+> +++ b/arch/arm/plat-omap/iommu.c
+> @@ -108,7 +108,6 @@ static int iommu_enable(struct iommu *obj)
+>
+>   	err = arch_iommu->enable(obj);
+>
+> -	clk_disable(obj->clk);
+>   	return err;
+>   }
+>
+> @@ -117,8 +116,6 @@ static void iommu_disable(struct iommu *obj)
+>   	if (!obj)
+>   		return;
+>
+> -	clk_enable(obj->clk);
+> -
+>   	arch_iommu->disable(obj);
+>
+>   	clk_disable(obj->clk);
+> @@ -237,20 +234,16 @@ static struct cr_regs __iotlb_read_cr(struct iommu *obj, int n)
+>    **/
+>   int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
+>   {
+> -	int err = 0;
+>   	struct iotlb_lock l;
+>   	struct cr_regs *cr;
+>
+>   	if (!obj || !obj->nr_tlb_entries || !e)
+>   		return -EINVAL;
+>
+> -	clk_enable(obj->clk);
+> -
+>   	iotlb_lock_get(obj,&l);
+>   	if (l.base == obj->nr_tlb_entries) {
+>   		dev_warn(obj->dev, "%s: preserve entries full\n", __func__);
+> -		err = -EBUSY;
+> -		goto out;
+> +		return -EBUSY;
+>   	}
+>   	if (!e->prsvd) {
+>   		int i;
+> @@ -262,8 +255,7 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
+>
+>   		if (i == obj->nr_tlb_entries) {
+>   			dev_dbg(obj->dev, "%s: full: no entry\n", __func__);
+> -			err = -EBUSY;
+> -			goto out;
+> +			return -EBUSY;
+>   		}
+>
+>   		iotlb_lock_get(obj,&l);
+> @@ -273,10 +265,8 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
+>   	}
+>
+>   	cr = iotlb_alloc_cr(obj, e);
+> -	if (IS_ERR(cr)) {
+> -		clk_disable(obj->clk);
+> +	if (IS_ERR(cr))
+>   		return PTR_ERR(cr);
+> -	}
+>
+>   	iotlb_load_cr(obj, cr);
+>   	kfree(cr);
+> @@ -287,9 +277,8 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
+>   	if (++l.vict == obj->nr_tlb_entries)
+>   		l.vict = l.base;
+>   	iotlb_lock_set(obj,&l);
+> -out:
+> -	clk_disable(obj->clk);
+> -	return err;
+> +
+> +	return 0;
+>   }
+>   EXPORT_SYMBOL_GPL(load_iotlb_entry);
+>
+> @@ -305,8 +294,6 @@ void flush_iotlb_page(struct iommu *obj, u32 da)
+>   	int i;
+>   	struct cr_regs cr;
+>
+> -	clk_enable(obj->clk);
+> -
+>   	for_each_iotlb_cr(obj, obj->nr_tlb_entries, i, cr) {
+>   		u32 start;
+>   		size_t bytes;
+> @@ -324,7 +311,6 @@ void flush_iotlb_page(struct iommu *obj, u32 da)
+>   			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
+>   		}
+>   	}
+> -	clk_disable(obj->clk);
+>
+>   	if (i == obj->nr_tlb_entries)
+>   		dev_dbg(obj->dev, "%s: no page for %08x\n", __func__, da);
+> @@ -359,15 +345,11 @@ void flush_iotlb_all(struct iommu *obj)
+>   {
+>   	struct iotlb_lock l;
+>
+> -	clk_enable(obj->clk);
+> -
+>   	l.base = 0;
+>   	l.vict = 0;
+>   	iotlb_lock_set(obj,&l);
+>
+>   	iommu_write_reg(obj, 1, MMU_GFLUSH);
+> -
+> -	clk_disable(obj->clk);
+>   }
+>   EXPORT_SYMBOL_GPL(flush_iotlb_all);
+>
+> @@ -382,9 +364,7 @@ EXPORT_SYMBOL_GPL(flush_iotlb_all);
+>    */
+>   void iommu_set_twl(struct iommu *obj, bool on)
+>   {
+> -	clk_enable(obj->clk);
+>   	arch_iommu->set_twl(obj, on);
+> -	clk_disable(obj->clk);
+>   }
+>   EXPORT_SYMBOL_GPL(iommu_set_twl);
+>
+> @@ -395,12 +375,8 @@ ssize_t iommu_dump_ctx(struct iommu *obj, char *buf, ssize_t bytes)
+>   	if (!obj || !buf)
+>   		return -EINVAL;
+>
+> -	clk_enable(obj->clk);
+> -
+>   	bytes = arch_iommu->dump_ctx(obj, buf, bytes);
+>
+> -	clk_disable(obj->clk);
+> -
+>   	return bytes;
+>   }
+>   EXPORT_SYMBOL_GPL(iommu_dump_ctx);
+> @@ -412,7 +388,6 @@ static int __dump_tlb_entries(struct iommu *obj, struct cr_regs *crs, int num)
+>   	struct cr_regs tmp;
+>   	struct cr_regs *p = crs;
+>
+> -	clk_enable(obj->clk);
+>   	iotlb_lock_get(obj,&saved);
+>
+>   	for_each_iotlb_cr(obj, num, i, tmp) {
+> @@ -422,7 +397,6 @@ static int __dump_tlb_entries(struct iommu *obj, struct cr_regs *crs, int num)
+>   	}
+>
+>   	iotlb_lock_set(obj,&saved);
+> -	clk_disable(obj->clk);
+>
+>   	return  p - crs;
+>   }
+> @@ -795,9 +769,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+>   	if (!err)
+>   		return IRQ_HANDLED;
+>
+> -	clk_enable(obj->clk);
+>   	stat = iommu_report_fault(obj,&da);
+> -	clk_disable(obj->clk);
+>   	if (!stat)
+>   		return IRQ_HANDLED;
+>
+
