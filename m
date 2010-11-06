@@ -1,68 +1,170 @@
-From: Ionut Nicu <ionut.nicu@mindbit.ro>
-Subject: Re: [PATCH v2 06/12] staging: tidspbridge: convert core to
- list_head
-Date: Sat, 06 Nov 2010 19:31:43 +0200
-Message-ID: <1289064703.9931.49.camel@atlantis.mindbit.ro>
-References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>
-	 <1288969996-22103-7-git-send-email-ionut.nicu@mindbit.ro>
-	 <AANLkTinEa8y1AfeNDKa6gDcDoL-s6BKU_RLyr4BRUDDJ@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 4/7] omap: mailbox: initial hwmod support
+Date: Sat, 06 Nov 2010 13:44:25 -0400
+Message-ID: <4CD593F9.6070200@ti.com>
+References: <1289006244-27147-1-git-send-email-omar.ramirez@ti.com> <1289006244-27147-5-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.mindbit.ro ([80.86.127.26]:54893 "EHLO ns.mindbit.ro"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46968 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751232Ab0KFRbx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 6 Nov 2010 13:31:53 -0400
-In-Reply-To: <AANLkTinEa8y1AfeNDKa6gDcDoL-s6BKU_RLyr4BRUDDJ@mail.gmail.com>
+	id S1751629Ab0KFRnd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 6 Nov 2010 13:43:33 -0400
+In-Reply-To: <1289006244-27147-5-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sapiens, Rene" <rene.sapiens@ti.com>
-Cc: Ionut Nicu <ionut.nicu@gmail.com>, Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Anna, Suman" <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Rene,
+Hi Felipe,
 
-On Fri, 2010-11-05 at 16:12 -0600, Sapiens, Rene wrote:
-> Hi Ionut,
-> 
-> On Fri, Nov 5, 2010 at 9:13 AM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
-> > Convert the core module of the tidspbridge driver
-> > to use struct list_head instead of struct lst_list.
-> >
-> > Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
-> 
-> <snip>
-> 
-> > diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/staging/tidspbridge/core/io_sm.c
-> > index 194bada..9851f32 100644
-> > --- a/drivers/staging/tidspbridge/core/io_sm.c
-> > +++ b/drivers/staging/tidspbridge/core/io_sm.c
-> 
-> <snip>
-> 
-> > @@ -1106,47 +1103,38 @@ static void input_msg(struct io_mgr *pio_mgr, struct msg_mgr *hmsg_mgr)
-> >                                         * queued.
-> >                                         */
-> >                                        (*hmsg_mgr->on_exit) ((void *)
-> > -                                                          msg_queue_obj->arg,
-> > -                                                          msg.msg.dw_arg1);
-> > +                                                       msg_queue_obj->arg,
-> > +                                                       msg.msg.dw_arg1);
-> > +                                       break;
-> > +                               }
-> > +                               /*
-> > +                                * Not an exit acknowledgement, queue
-> > +                                * the message.
-> > +                                */
-> > +                               if (!list_empty(&msg_queue_obj->msg_free_list)) {
-> 
-> You are going beyond the 80 chars.
-> 
+On 11/5/2010 9:17 PM, Ramirez Luna, Omar wrote:
+> From: Felipe Contreras<felipe.contreras@gmail.com>
+>
+> hwmod support for omap mailbox module.
+>
+> Signed-off-by: Felipe Contreras<felipe.contreras@gmail.com>
+> Signed-off-by: Omar Ramirez Luna<omar.ramirez@ti.com>
+> ---
+>   arch/arm/mach-omap2/devices.c |  100 ++++++----------------------------------
+>   1 files changed, 15 insertions(+), 85 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index eaf3799..d977572 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -141,95 +141,25 @@ static inline void omap_init_camera(void)
+>   #endif
+>
+>   #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
+> -
+> -#define MBOX_REG_SIZE   0x120
+> -
+> -#ifdef CONFIG_ARCH_OMAP2
+> -static struct resource omap2_mbox_resources[] = {
+> -	{
+> -		.start		= OMAP24XX_MAILBOX_BASE,
+> -		.end		= OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= INT_24XX_MAIL_U0_MPU,
+> -		.flags		= IORESOURCE_IRQ,
+> -		.name		= "dsp",
+> -	},
+> -	{
+> -		.start		= INT_24XX_MAIL_U3_MPU,
+> -		.flags		= IORESOURCE_IRQ,
+> -		.name		= "iva",
+> -	},
+> -};
+> -static int omap2_mbox_resources_sz = ARRAY_SIZE(omap2_mbox_resources);
+> -#else
+> -#define omap2_mbox_resources		NULL
+> -#define omap2_mbox_resources_sz		0
+> -#endif
+> -
+> -#ifdef CONFIG_ARCH_OMAP3
+> -static struct resource omap3_mbox_resources[] = {
+> -	{
+> -		.start		= OMAP34XX_MAILBOX_BASE,
+> -		.end		= OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= INT_24XX_MAIL_U0_MPU,
+> -		.flags		= IORESOURCE_IRQ,
+> -		.name		= "dsp",
+> -	},
+> -};
+> -static int omap3_mbox_resources_sz = ARRAY_SIZE(omap3_mbox_resources);
+> -#else
+> -#define omap3_mbox_resources		NULL
+> -#define omap3_mbox_resources_sz		0
+> -#endif
+> -
+> -#ifdef CONFIG_ARCH_OMAP4
+> -
+> -#define OMAP4_MBOX_REG_SIZE	0x130
+> -static struct resource omap4_mbox_resources[] = {
+> -	{
+> -		.start          = OMAP44XX_MAILBOX_BASE,
+> -		.end            = OMAP44XX_MAILBOX_BASE +
+> -					OMAP4_MBOX_REG_SIZE - 1,
+> -		.flags          = IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start          = OMAP44XX_IRQ_MAIL_U0,
+> -		.flags          = IORESOURCE_IRQ,
+> -		.name		= "mbox",
+> -	},
+> -};
+> -static int omap4_mbox_resources_sz = ARRAY_SIZE(omap4_mbox_resources);
+> -#else
+> -#define omap4_mbox_resources		NULL
+> -#define omap4_mbox_resources_sz		0
+> -#endif
+> -
+> -static struct platform_device mbox_device = {
+> -	.name		= "omap-mailbox",
+> -	.id		= -1,
+> -};
+> -
+>   static inline void omap_init_mbox(void)
+>   {
+> -	if (cpu_is_omap24xx()) {
+> -		mbox_device.resource = omap2_mbox_resources;
+> -		mbox_device.num_resources = omap2_mbox_resources_sz;
+> -	} else if (cpu_is_omap34xx()) {
+> -		mbox_device.resource = omap3_mbox_resources;
+> -		mbox_device.num_resources = omap3_mbox_resources_sz;
+> -	} else if (cpu_is_omap44xx()) {
+> -		mbox_device.resource = omap4_mbox_resources;
+> -		mbox_device.num_resources = omap4_mbox_resources_sz;
+> -	} else {
+> -		pr_err("%s: platform not supported\n", __func__);
+> +	struct omap_hwmod *oh;
+> +	struct omap_device *od;
+> +
+> +	oh = omap_hwmod_lookup("mailbox");
+> +	if (!oh) {
+> +		pr_err("%s: unable to find hwmod\n", __func__);
+> +		return;
+> +	}
+> +
+> +	od = omap_device_build("omap-mailbox", -1, oh,
 
-I thought about it too when using scripts/checkpatch.pl on this patch.
-The thing is that it's 81 chars and breaking it into two lines makes it
-look uglier. Also, this gets fixed in patch 10/12 (core code cleanup).
+If possible, it will be better to use the "omap_" prefix in order to 
+start having some consitency in the omap devices name.
 
-Regards,
-Ionut.
+Today, we have a little bit of a mess:
+
+i2c_omap.1
+omap2_mcspi.1
+omap-mcbsp.1
+mmci-omap-hs.0
+musb_hdrc
+omap-aes
+omap-sham
+omap_hdq.0
+omap_rng
+omap_wdt
+omapdss
+
+
+Thanks,
+Benoit
+
+> +			NULL, 0,
+> +			NULL, 0,
+> +			0);
+> +	if (!od) {
+> +		pr_err("%s: could not build device\n", __func__);
+>   		return;
+>   	}
+> -	platform_device_register(&mbox_device);
+>   }
+>   #else
+>   static inline void omap_init_mbox(void) { }
 
