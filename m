@@ -1,100 +1,119 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH v2] OMAP1: drop AMS_DELTA_FIQ config option
-Date: Sat, 6 Nov 2010 02:55:58 +0100
-Message-ID: <201011060256.00485.jkrzyszt@tis.icnet.pl>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 6/6] omap: iommu: code reorganization and cleanup
+Date: Sat, 6 Nov 2010 10:34:48 +0200
+Message-ID: <AANLkTikhTmmy0fcOMfA0tUE=wuj03X1KajmB4A-ygxPz@mail.gmail.com>
+References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>
+	<1289006396-27230-7-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:56906 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751174Ab0KFB5p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Nov 2010 21:57:45 -0400
-Content-Disposition: inline
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:35781 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752280Ab0KFIet (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Nov 2010 04:34:49 -0400
+Received: by bwz11 with SMTP id 11so3386168bwz.19
+        for <linux-omap@vger.kernel.org>; Sat, 06 Nov 2010 01:34:48 -0700 (PDT)
+In-Reply-To: <1289006396-27230-7-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, Hari Kanigeri <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Charulatha V <charu@ti.com>, Ramesh Gupta <grgupta@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This patches removes a config option that was used to select a FIQ 
-handler to be build for Amstrad Delta, as required by the on-board serio 
-interface driver. Not having any problem reports received since it was 
-introduced in 2.6.35, the FIQ handler can now be built and initialized by 
-default, thus reqiring no extra config option.
-
-This change was requested by Tony Lindgren, the OMAP subsystem maintainer.
-
-Created and tested against linux-2.6.37-rc1
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
-v1 -> v2 changes:
-- it does not make sense to split into 2 patches, fold together - requested by 
-  Dmitry Torokhov - thanks.
-
- arch/arm/mach-omap1/Kconfig           |   11 +----------
- arch/arm/mach-omap1/Makefile          |    4 ++--
- arch/arm/mach-omap1/board-ams-delta.c |    2 --
- drivers/input/serio/Kconfig           |    1 -
- 4 files changed, 3 insertions(+), 15 deletions(-)
-
---- linux-2.6.37-rc1/arch/arm/mach-omap1/board-ams-delta.c.orig	2010-11-01 22:41:04.000000000 +0100
-+++ linux-2.6.37-rc1/arch/arm/mach-omap1/board-ams-delta.c	2010-11-04 21:25:33.000000000 +0100
-@@ -307,9 +307,7 @@ static void __init ams_delta_init(void)
- #endif
- 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
- 
--#ifdef CONFIG_AMS_DELTA_FIQ
- 	ams_delta_init_fiq();
--#endif
- 
- 	omap_writew(omap_readw(ARM_RSTCT1) | 0x0004, ARM_RSTCT1);
- }
---- linux-2.6.37-rc1/arch/arm/mach-omap1/Makefile.orig	2010-11-01 22:41:04.000000000 +0100
-+++ linux-2.6.37-rc1/arch/arm/mach-omap1/Makefile	2010-11-04 21:27:45.000000000 +0100
-@@ -39,8 +39,8 @@ obj-$(CONFIG_MACH_OMAP_PALMTE)		+= board
- obj-$(CONFIG_MACH_OMAP_PALMZ71)		+= board-palmz71.o
- obj-$(CONFIG_MACH_OMAP_PALMTT)		+= board-palmtt.o
- obj-$(CONFIG_MACH_NOKIA770)		+= board-nokia770.o
--obj-$(CONFIG_MACH_AMS_DELTA)		+= board-ams-delta.o
--obj-$(CONFIG_AMS_DELTA_FIQ)		+= ams-delta-fiq.o ams-delta-fiq-handler.o
-+obj-$(CONFIG_MACH_AMS_DELTA)		+= board-ams-delta.o ams-delta-fiq.o \
-+					   ams-delta-fiq-handler.o
- obj-$(CONFIG_MACH_SX1)			+= board-sx1.o board-sx1-mmc.o
- obj-$(CONFIG_MACH_HERALD)		+= board-htcherald.o
- 
---- linux-2.6.37-rc1/arch/arm/mach-omap1/Kconfig.orig	2010-11-01 22:41:04.000000000 +0100
-+++ linux-2.6.37-rc1/arch/arm/mach-omap1/Kconfig	2010-11-04 21:28:06.000000000 +0100
-@@ -152,20 +152,11 @@ config MACH_NOKIA770
- config MACH_AMS_DELTA
- 	bool "Amstrad E3 (Delta)"
- 	depends on ARCH_OMAP1 && ARCH_OMAP15XX
-+	select FIQ
- 	help
- 	  Support for the Amstrad E3 (codename Delta) videophone. Say Y here
- 	  if you have such a device.
- 
--config AMS_DELTA_FIQ
--	bool "Fast Interrupt Request (FIQ) support for the E3"
--	depends on MACH_AMS_DELTA
--	select FIQ
--	help
--	  Provide a FIQ handler for the E3.
--	  This allows for fast handling of interrupts generated
--	  by the clock line of the E3 mailboard (or a PS/2 keyboard)
--	  connected to the GPIO based external keyboard port.
--
- config MACH_OMAP_GENERIC
- 	bool "Generic OMAP board"
- 	depends on ARCH_OMAP1 && (ARCH_OMAP15XX || ARCH_OMAP16XX)
---- linux-2.6.37-rc1/drivers/input/serio/Kconfig.orig	2010-11-01 22:41:51.000000000 +0100
-+++ linux-2.6.37-rc1/drivers/input/serio/Kconfig	2010-11-04 21:28:55.000000000 +0100
-@@ -214,7 +214,6 @@ config SERIO_AMS_DELTA
- 	tristate "Amstrad Delta (E3) mailboard support"
- 	depends on MACH_AMS_DELTA
- 	default y
--	select AMS_DELTA_FIQ
- 	---help---
- 	  Say Y here if you have an E3 and want to use its mailboard,
- 	  or any standard AT keyboard connected to the mailboard port.
+T24gU2F0LCBOb3YgNiwgMjAxMCBhdCAzOjE5IEFNLCBPbWFyIFJhbWlyZXogTHVuYSA8b21hci5y
+YW1pcmV6QHRpLmNvbT4gd3JvdGU6Cj4gU2luY2Ugb21hcC1pb21tdSBpcyBub3cgdXNpbmcgaHdt
+b2QsIHRoZXJlIGFyZSBzdHJ1Y3R1cmVzIGFuZAo+IGFycmF5cyB0aGF0IGNhbiBiZSBjbGVhbmVk
+IHVwIHRvIGluY3JlYXNlIHRoZSByZWFkYWJpbGl0eSBvZgo+IHRoZSBjb2RlLgo+Cj4gU2lnbmVk
+LW9mZi1ieTogT21hciBSYW1pcmV6IEx1bmEgPG9tYXIucmFtaXJlekB0aS5jb20+CgpOQUsuCgo+
+IC0tLQo+IMKgYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwLWlvbW11LmMgwqAgwqAgwqAgwqB8IMKg
+IDk1ICsrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiDCoGFyY2gvYXJtL3BsYXQtb21h
+cC9pbmNsdWRlL3BsYXQvaW9tbXUuaCB8IMKgIMKgMiArLQo+IMKgMiBmaWxlcyBjaGFuZ2VkLCAz
+NCBpbnNlcnRpb25zKCspLCA2MyBkZWxldGlvbnMoLSkKPgo+IGRpZmYgLS1naXQgYS9hcmNoL2Fy
+bS9tYWNoLW9tYXAyL29tYXAtaW9tbXUuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcC1pb21t
+dS5jCj4gaW5kZXggMGE3NmJjZS4uMTM1NDc0YiAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNo
+LW9tYXAyL29tYXAtaW9tbXUuYwo+ICsrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcC1pb21t
+dS5jCj4gQEAgLTE3LDUzICsxNywxNyBAQAo+IMKgI2luY2x1ZGUgPHBsYXQvb21hcF9od21vZC5o
+Pgo+IMKgI2luY2x1ZGUgPHBsYXQvb21hcF9kZXZpY2UuaD4KPgo+IC1zdHJ1Y3QgaW9tbXVfZGV2
+aWNlIHsKPiAtIMKgIMKgIMKgIHN0cnVjdCBpb21tdV9wbGF0Zm9ybV9kYXRhIHBkYXRhOwo+ICtz
+dGF0aWMgY2hhciAqb21hcDNfZGV2aWNlc1tdID0gewoKU2hvdWxkbid0IHRoaXMgYmUgX19pbml0
+PwoKPiArIMKgIMKgIMKgICJpc3AiLAoKI2lmIGRlZmluZWQoQ09ORklHX01QVV9CUklER0VfSU9N
+TVUpCgo+ICsgwqAgwqAgwqAgIml2YTIiLAoKI2VuZGlmCgo+ICsgwqAgwqAgwqAgTlVMTCwKPiDC
+oH07CgpJZiB5b3Ugd2FudCB0byBnZXQgcmlkIG9mIENPTkZJR19NUFVfQlJJREdFX0lPTU1VLCBk
+byBpdCBpbiBhIHNlcGFyYXRlIHBhdGNoLgoKPiAtc3RhdGljIGludCBudW1faW9tbXVfZGV2aWNl
+czsKPiAtCj4gLSNpZmRlZiBDT05GSUdfQVJDSF9PTUFQMwo+IC1zdGF0aWMgc3RydWN0IGlvbW11
+X2RldmljZSBvbWFwM19kZXZpY2VzW10gPSB7Cj4gLSDCoCDCoCDCoCB7Cj4gLSDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCAucGRhdGEgPSB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCAubmFtZSA9ICJpc3AiLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgfSwKPiAtIMKgIMKgIMKg
+IH0sCj4gLSNpZiBkZWZpbmVkKENPTkZJR19NUFVfQlJJREdFX0lPTU1VKQo+IC0gwqAgwqAgwqAg
+ewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLnBkYXRhID0gewo+IC0gwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgPSAiaXZhMiIsCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCB9LAo+IC0gwqAgwqAgwqAgfSwKPiAtI2VuZGlmCj4gLX07Cj4gLSNkZWZpbmUgTlJfT01BUDNf
+SU9NTVVfREVWSUNFUyBBUlJBWV9TSVpFKG9tYXAzX2RldmljZXMpCj4gLSNlbHNlCj4gLSNkZWZp
+bmUgb21hcDNfZGV2aWNlcyDCoCDCoCDCoCDCoCDCoE5VTEwKPiAtI2RlZmluZSBOUl9PTUFQM19J
+T01NVV9ERVZJQ0VTIDAKPiAtI2VuZGlmCj4gLQo+IC0jaWZkZWYgQ09ORklHX0FSQ0hfT01BUDQK
+PiAtc3RhdGljIHN0cnVjdCBpb21tdV9kZXZpY2Ugb21hcDRfZGV2aWNlc1tdID0gewo+IC0gwqAg
+wqAgwqAgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLnBkYXRhID0gewo+IC0gwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgPSAiZHVjYXRpIiwKPiAtIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIH0sCj4gLSDCoCDCoCDCoCB9LAo+IC0jaWYgZGVmaW5lZChDT05GSUdfTVBVX1RF
+U0xBX0lPTU1VKQo+IC0gwqAgwqAgwqAgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLnBkYXRh
+ID0gewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgPSAidGVzbGEi
+LAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgfSwKPiAtIMKgIMKgIMKgIH0sCj4gLSNlbmRpZgo+
+ICsKPiArc3RhdGljIGNoYXIgKm9tYXA0X2RldmljZXNbXSA9IHsKPiArIMKgIMKgIMKgICJkdWNh
+dGkiLAo+ICsgwqAgwqAgwqAgInRlc2xhIiwKPiArIMKgIMKgIMKgIE5VTEwsCj4gwqB9Owo+IC0j
+ZGVmaW5lIE5SX09NQVA0X0lPTU1VX0RFVklDRVMgQVJSQVlfU0laRShvbWFwNF9kZXZpY2VzKQo+
+IC0jZWxzZQo+IC0jZGVmaW5lIG9tYXA0X2RldmljZXMgwqAgwqAgwqAgwqAgwqBOVUxMCj4gLSNk
+ZWZpbmUgTlJfT01BUDRfSU9NTVVfREVWSUNFUyAwCj4gLSNlbmRpZgo+Cj4gwqBzdGF0aWMgc3Ry
+dWN0IG9tYXBfZGV2aWNlX3BtX2xhdGVuY3kgaW9tbXVfbGF0ZW5jaWVzW10gPSB7Cj4gwqAgwqAg
+wqAgwqBbMF0gPSB7Cj4gQEAgLTczLDM2ICszNywyOCBAQCBzdGF0aWMgc3RydWN0IG9tYXBfZGV2
+aWNlX3BtX2xhdGVuY3kgaW9tbXVfbGF0ZW5jaWVzW10gPSB7Cj4gwqAgwqAgwqAgwqB9LAo+IMKg
+fTsKPgo+IC1zdGF0aWMgaW50IF9faW5pdCBvbWFwX2lvbW11X2luaXQodm9pZCkKPiArc3RhdGlj
+IGludCBfX2luaXQgb21hcF9pb21tdV9hZGQoY2hhciAqKmRldmljZXMpCj4gwqB7Cj4gwqAgwqAg
+wqAgwqBpbnQgaTsKPgo+IC0gwqAgwqAgwqAgaWYgKGNwdV9pc19vbWFwMzR4eCgpKSB7Cj4gLSDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCBkZXZpY2VzID0gb21hcDNfZGV2aWNlczsKPiAtIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIG51bV9pb21tdV9kZXZpY2VzID0gTlJfT01BUDNfSU9NTVVfREVWSUNFUzsK
+PiAtIMKgIMKgIMKgIH0gZWxzZSBpZiAoY3B1X2lzX29tYXA0NHh4KCkpIHsKPiAtIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIGRldmljZXMgPSBvbWFwNF9kZXZpY2VzOwo+IC0gwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgbnVtX2lvbW11X2RldmljZXMgPSBOUl9PTUFQNF9JT01NVV9ERVZJQ0VTOwo+IC0gwqAg
+wqAgwqAgfSBlbHNlCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCByZXR1cm4gLUVOT0RFVjsKPiAt
+Cj4gLSDCoCDCoCDCoCBmb3IgKGkgPSAwOyBpIDwgbnVtX2lvbW11X2RldmljZXM7IGkrKykgewo+
+ICsgwqAgwqAgwqAgZm9yIChpID0gMDsgZGV2aWNlc1tpXTsgaSsrKSB7Cj4gwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqBzdHJ1Y3Qgb21hcF9od21vZCAqb2g7Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqBzdHJ1Y3Qgb21hcF9kZXZpY2UgKm9kOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3RydWN0
+IGlvbW11X3BsYXRmb3JtX2RhdGEgcGRhdGE7Cj4KPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIG9o
+ID0gb21hcF9od21vZF9sb29rdXAoZGV2aWNlc1tpXS5wZGF0YS5uYW1lKTsKPiArIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIG9oID0gb21hcF9od21vZF9sb29rdXAoZGV2aWNlc1tpXSk7Cj4gwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqBpZiAoIW9oKSB7Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqBwcl9lcnIoIiVzOiBod21vZCBub3QgZm91bmRcbiIsIF9fZnVuY19fKTsKPiDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHJldHVybiAtRU5PREVWOwo+IMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgfQo+Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCBkZXZpY2VzW2ldLnBk
+YXRhLm1tdV9hdHRyID0KPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIChzdHJ1Y3Qgb21hcF9tbXVfZGV2X2F0dHIgKilvaC0+ZGV2X2F0dHI7Cj4gLSDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCBkZXZpY2VzW2ldLnBkYXRhLmRldmljZV9lbmFibGUgPSBvbWFwX2Rl
+dmljZV9lbmFibGU7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCBkZXZpY2VzW2ldLnBkYXRhLmRl
+dmljZV9kaXNhYmxlID0gb21hcF9kZXZpY2VfaWRsZTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IHBkYXRhLm5hbWUgPSBkZXZpY2VzW2ldOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcGRhdGEu
+bW11X2F0dHIgPSAoc3RydWN0IG9tYXBfbW11X2Rldl9hdHRyICopb2gtPmRldl9hdHRyOwoKTm8g
+bmVlZCBmb3IgY2FzdGluZyBvbiBhICd2b2lkIConLgoKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IHBkYXRhLmRldmljZV9lbmFibGUgPSBvbWFwX2RldmljZV9lbmFibGU7Cj4gKyDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCBwZGF0YS5kZXZpY2VfZGlzYWJsZSA9IG9tYXBfZGV2aWNlX2lkbGU7Cj4KPiDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoG9kID0gb21hcF9kZXZpY2VfYnVpbGQoIm9tYXAtaW9tbXUi
+LCBpLCBvaCwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+ICZkZXZpY2VzW2ldLnBkYXRhLCBzaXplb2YoZGV2aWNlc1tpXS5wZGF0YSksCj4gKyDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAmcGRhdGEsIHNpemVvZihwZGF0
+YSksCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBpb21t
+dV9sYXRlbmNpZXMsIEFSUkFZX1NJWkUoaW9tbXVfbGF0ZW5jaWVzKSwKPiDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoDApOwo+IMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgaWYgKCFvZCkgewo+IEBAIC0xMTAsOCArNjYsMjMgQEAgc3RhdGljIGludCBfX2luaXQg
+b21hcF9pb21tdV9pbml0KHZvaWQpCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqByZXR1cm4gLUVQRVJNOwo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgfQo+IMKgIMKgIMKgIMKg
+fQo+ICsKPiDCoCDCoCDCoCDCoHJldHVybiAwOwo+IMKgfQo+ICsKPiArc3RhdGljIGludCBfX2lu
+aXQgb21hcF9pb21tdV9pbml0KHZvaWQpCj4gK3sKPiArIMKgIMKgIMKgIGludCBlcnI7Cj4gKwo+
+ICsgwqAgwqAgwqAgaWYgKGNwdV9pc19vbWFwMzR4eCgpKQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgZXJyID0gb21hcF9pb21tdV9hZGQob21hcDNfZGV2aWNlcyk7Cj4gKyDCoCDCoCDCoCBlbHNl
+IGlmIChjcHVfaXNfb21hcDQ0eHgoKSkKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGVyciA9IG9t
+YXBfaW9tbXVfYWRkKG9tYXA0X2RldmljZXMpOwo+ICsgwqAgwqAgwqAgZWxzZQo+ICsgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgcmV0dXJuIC1FTk9ERVY7Cj4gKwo+ICsgwqAgwqAgwqAgcmV0dXJuIGVy
+cjsKPiArfQoKSSBkb24ndCBzZWUgd2hhdCdzIHRoZSBwb2ludCBvZiBoYXZpbmcgYSBzZXBhcmF0
+ZSBvbWFwX2lvbW11X2FkZC4gVGhlCmNvZGUgb2Ygb21hcF9pb21tdV9hZGQoKSBjYW4gYmUgbW92
+ZWQgdG8gdGhlIGVuZCBvZiBvbWFwX2lvbW11X2luaXQoKQp2ZXJ5IGVhc2lseS4KCkNoZWVycy4K
+Ci0tIApGZWxpcGUgQ29udHJlcmFzCg==
