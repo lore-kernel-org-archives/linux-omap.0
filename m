@@ -1,131 +1,131 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 3/7] OMAP4: hwmod data: add mailbox data
-Date: Sat, 06 Nov 2010 13:18:46 -0400
-Message-ID: <4CD58DF6.6040600@ti.com>
-References: <1289006244-27147-1-git-send-email-omar.ramirez@ti.com> <1289006244-27147-4-git-send-email-omar.ramirez@ti.com>
+From: Ionut Nicu <ionut.nicu@mindbit.ro>
+Subject: Re: [PATCH v2 06/12] staging: tidspbridge: convert core to
+ list_head
+Date: Sat, 06 Nov 2010 19:21:23 +0200
+Message-ID: <1289064083.9931.43.camel@atlantis.mindbit.ro>
+References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>
+	 <1288969996-22103-7-git-send-email-ionut.nicu@mindbit.ro>
+	 <AANLkTim+W3dn1j6SnVS6gc=aeZ0pH+VjSn+YiSJLangz@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53719 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750922Ab0KFRSG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Nov 2010 13:18:06 -0400
-In-Reply-To: <1289006244-27147-4-git-send-email-omar.ramirez@ti.com>
+Received: from ns.mindbit.ro ([80.86.127.26]:60127 "EHLO ns.mindbit.ro"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751192Ab0KFRVg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 6 Nov 2010 13:21:36 -0400
+In-Reply-To: <AANLkTim+W3dn1j6SnVS6gc=aeZ0pH+VjSn+YiSJLangz@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Anna, Suman" <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Sapiens, Rene" <rene.sapiens@ti.com>
+Cc: Ionut Nicu <ionut.nicu@gmail.com>, Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-I don't know why, but this patch has nothing to do with my original one.
-Can you stick to the original code?
-Of course, if you have valid comments or need to add extra data, you 
-can, but in this case, I do not see any needed change.
+Hi Rene,
 
-On 11/5/2010 9:17 PM, Ramirez Luna, Omar wrote:
-> From: Benoit Cousson<b-cousson@ti.com>
->
-> hwmod data for omap4 mailbox.
->
-> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
-> Signed-off-by: Omar Ramirez Luna<omar.ramirez@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   63 ++++++++++++++++++++++++++++
->   1 files changed, 63 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index 0d5c6eb..f7525e3 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -1043,6 +1043,66 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
->   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
->   };
->
-> +/* mailbox */
+On Fri, 2010-11-05 at 15:07 -0600, Sapiens, Rene wrote:
+> Hi Ionut,
+> 
+> On Fri, Nov 5, 2010 at 9:13 AM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
+> > Convert the core module of the tidspbridge driver
+> > to use struct list_head instead of struct lst_list.
+> >
+> 
+> <snip>
+> 
+> >        if (!status) {
+> >                /* Get a free chirp: */
+> > -               chnl_packet_obj =
+> > -                   (struct chnl_irp *)lst_get_head(pchnl->free_packets_list);
+> > -               if (chnl_packet_obj == NULL)
+> > +               if (!list_empty(&pchnl->free_packets_list)) {
+> > +                       chnl_packet_obj = list_first_entry(
+> > +                                       &pchnl->free_packets_list,
+> > +                                       struct chnl_irp, link);
+> > +                       list_del(&chnl_packet_obj->link);
+> > +               } else
+> >                        status = -EIO;
+> 
+> What do you think if we close the braces, since the first conditional
+> has more than one statement?
+> 
 
-The original comment is missing.
+Can you clarify? I don't think I understand which brace we need to close
+here.
 
-> +
-> +static struct omap_hwmod_class_sysconfig omap44xx_mailbox_sysc = {
-> +	.rev_offs	= 0x0000,
-> +	.sysc_offs	= 0x0010,
-> +	.sysc_flags	= (SYSC_HAS_RESET_STATUS | SYSC_HAS_SIDLEMODE |
-> +			   SYSC_HAS_SOFTRESET),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.sysc_fields	=&omap_hwmod_sysc_type2,
-> +};
-> +
-> +static struct omap_hwmod_class omap44xx_mailbox_hwmod_class = {
-> +	.name = "mailbox",
-> +	.sysc =&omap44xx_mailbox_sysc,
-> +};
-> +
-> +static struct omap_hwmod omap44xx_mailbox_hwmod;
-> +
-> +static struct omap_hwmod_addr_space omap44xx_mailbox_addrs[] = {
-> +	{
-> +		.pa_start	= OMAP44XX_MAILBOX_BASE,
+> <snip>
+> 
+> > @@ -286,18 +286,16 @@ int bridge_chnl_cancel_io(struct chnl_object *chnl_obj)
+> >                }
+> >        }
+> >        /* Move all IOR's to IOC queue: */
+> > -       while (!LST_IS_EMPTY(pchnl->pio_requests)) {
+> > -               chnl_packet_obj =
+> > -                   (struct chnl_irp *)lst_get_head(pchnl->pio_requests);
+> > -               if (chnl_packet_obj) {
+> > -                       chnl_packet_obj->byte_size = 0;
+> > -                       chnl_packet_obj->status |= CHNL_IOCSTATCANCEL;
+> > -                       lst_put_tail(pchnl->pio_completions,
+> > -                                    (struct list_head *)chnl_packet_obj);
+> > -                       pchnl->cio_cs++;
+> > -                       pchnl->cio_reqs--;
+> > -                       DBC_ASSERT(pchnl->cio_reqs >= 0);
+> > -               }
+> > +       while (!list_empty(&pchnl->pio_requests)) {
+> > +               chnl_packet_obj = list_first_entry(&pchnl->pio_requests,
+> > +                               struct chnl_irp, link);
+> > +               list_del(&chnl_packet_obj->link);
+> > +               chnl_packet_obj->byte_size = 0;
+> > +               chnl_packet_obj->status |= CHNL_IOCSTATCANCEL;
+> > +               list_add_tail(&chnl_packet_obj->link, &pchnl->pio_completions);
+> > +               pchnl->cio_cs++;
+> > +               pchnl->cio_reqs--;
+> > +               DBC_ASSERT(pchnl->cio_reqs >= 0);
+> 
+> Why don't we use list_for_each_entry_safe() instead?
+> 
 
-If that physical address is not used elsewhere, and it should be the 
-case, there is no need to create a define for it. That's why the 
-physical address was directly used here.
-There is no added value to create a define for that.
+Agreed, it will look better.
 
-> +		.pa_end		= OMAP44XX_MAILBOX_BASE + SZ_4K - 1,
-> +		.flags		= ADDR_TYPE_RT,
-> +	},
-> +};
-> +
-> +/* l4_cfg ->  mailbox */
-> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__mailbox = {
-> +	.master		=&omap44xx_l4_cfg_hwmod,
-> +	.slave		=&omap44xx_mailbox_hwmod,
-> +	.clk		= "l4_div_ck",
-> +	.addr		= omap44xx_mailbox_addrs,
-> +	.addr_cnt	= ARRAY_SIZE(omap44xx_mailbox_addrs),
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* mailbox slave ports */
-> +static struct omap_hwmod_ocp_if *omap44xx_mailbox_slaves[] = {
-> +	&omap44xx_l4_cfg__mailbox,
-> +};
-> +
-> +static struct omap_hwmod_irq_info omap44xx_mailbox_irqs[] = {
-> +	{ .name = "mbox", .irq = 26 + OMAP44XX_IRQ_GIC_START, },
-> +};
-> +
-> +static struct omap_hwmod omap44xx_mailbox_hwmod = {
-> +	.name		= "mailbox",
-> +	.class		=&omap44xx_mailbox_hwmod_class,
-> +	.prcm		= {
-> +		.omap4 = {
-> +			.clkctrl_reg = OMAP4430_CM_L4CFG_MAILBOX_CLKCTRL,
-> +		},
-> +	},
-> +	.mpu_irqs	= omap44xx_mailbox_irqs,
-> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mailbox_irqs),
 
-The order is different than the previous one.
+> >        }
+> >  func_cont:
+> >        spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
+> 
+> <snip>
+> 
+> > @@ -818,9 +804,19 @@ int bridge_chnl_open(struct chnl_object **chnl,
+> >        /* Protect queues from io_dpc: */
+> >        pchnl->dw_state = CHNL_STATECANCEL;
+> >        /* Allocate initial IOR and IOC queues: */
+> > -       pchnl->free_packets_list = create_chirp_list(pattrs->uio_reqs);
+> > -       pchnl->pio_requests = create_chirp_list(0);
+> > -       pchnl->pio_completions = create_chirp_list(0);
+> > +       status = create_chirp_list(&pchnl->free_packets_list,
+> > +                       pattrs->uio_reqs);
+> > +       if (status)
+> > +               goto func_end;
+> > +
+> > +       status = create_chirp_list(&pchnl->pio_requests, 0);
+> > +       if (status)
+> > +               goto func_end;
+> > +
+> > +       status = create_chirp_list(&pchnl->pio_completions, 0);
+> > +       if (status)
+> > +               goto func_end;
+> > +
+> 
+> With these goto you are not freeing the memory allocated for pchnl, please free
+> it at func_end.
+> 
 
-Benoit
+Thanks for catching this. Freeing it at func_end is not a very good
+idea, because it's also freed above. 
 
-> +	.slaves		= omap44xx_mailbox_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_mailbox_slaves),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-> +};
-> +
->   static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
->   	/* dmm class */
->   	&omap44xx_dmm_hwmod,
-> @@ -1077,6 +1137,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
->   	&omap44xx_uart2_hwmod,
->   	&omap44xx_uart3_hwmod,
->   	&omap44xx_uart4_hwmod,
-> +
-> +	/* mailbox */
-> +	&omap44xx_mailbox_hwmod,
->   	NULL,
->   };
->
+What do you think if I replace the last two calls for
+create_chirp_list() with just INIT_LIST_HEAD()? This way we'll have only
+one error check where we'll also kfree(pchnl) and we'll have 2 less
+un-necessary function calls / error checks.
+
+Regards,
+Ionut.
 
