@@ -1,49 +1,62 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 7/7] omap: mailbox: remove unreachable return
-Date: Sat, 06 Nov 2010 14:21:39 -0400
-Message-ID: <4CD59CB3.2060306@ti.com>
-References: <1289006244-27147-1-git-send-email-omar.ramirez@ti.com> <1289006244-27147-8-git-send-email-omar.ramirez@ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH v2 08/12] staging: tidspbridge: convert rmgr to
+	list_head
+Date: Sat, 6 Nov 2010 11:26:10 -0700
+Message-ID: <20101106182610.GA7306@kroah.com>
+References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro> <1288969996-22103-9-git-send-email-ionut.nicu@mindbit.ro> <AANLkTinvM3W1WRNjw8zd=Yi6_J6uEw-h0efLjMrndCgn@mail.gmail.com> <1289067507.9931.95.camel@atlantis.mindbit.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50043 "EHLO comal.ext.ti.com"
+Received: from kroah.org ([198.145.64.141]:54003 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751580Ab0KFSU2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 6 Nov 2010 14:20:28 -0400
-In-Reply-To: <1289006244-27147-8-git-send-email-omar.ramirez@ti.com>
+	id S1751654Ab0KFSZi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 6 Nov 2010 14:25:38 -0400
+Content-Disposition: inline
+In-Reply-To: <1289067507.9931.95.camel@atlantis.mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Anna, Suman" <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Ionut Nicu <ionut.nicu@mindbit.ro>
+Cc: "Sapiens, Rene" <rene.sapiens@ti.com>, Ionut Nicu <ionut.nicu@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On 11/5/2010 9:17 PM, Ramirez Luna, Omar wrote:
-> Remove unreachable return statement.
->
-> Signed-off-by: Omar Ramirez Luna<omar.ramirez@ti.com>
-> ---
->   arch/arm/mach-omap2/mailbox.c |    2 --
->   1 files changed, 0 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-> index 5e9ea0f..335eb2b 100644
-> --- a/arch/arm/mach-omap2/mailbox.c
-> +++ b/arch/arm/mach-omap2/mailbox.c
-> @@ -434,8 +434,6 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
->   		return ret;
->   	}
+On Sat, Nov 06, 2010 at 08:18:27PM +0200, Ionut Nicu wrote:
+> Hi Rene,
+> 
+> On Fri, 2010-11-05 at 18:07 -0600, Sapiens, Rene wrote:
+> > Hi Ionut,
+> > 
+> > On Fri, Nov 5, 2010 at 9:13 AM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
+> > > Convert the rmgr module of the tidspbridge driver
+> > > to use struct list_head instead of struct lst_list.
+> > >
+> > > Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+> > 
+> > <snip>
+> > 
+> > > diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
+> > 
+> > <snip>
+> > 
+> > > @@ -492,16 +465,17 @@ u32 drv_get_next_dev_object(u32 hdev_obj)
+> > >        u32 dw_next_dev_object = 0;
+> > >        struct drv_object *pdrv_obj;
+> > >        struct drv_data *drv_datap = dev_get_drvdata(bridge);
+> > > +       struct list_head *curr;
+> > >
+> > >        DBC_REQUIRE(hdev_obj != 0);
+> > 
+> > can we remove the DBC_REQUIRE and always check for !hdev_obj?
+> > 
+> 
+> Sounds ok to me.
+> 
+> As a general remark, I personally think that the DBC_* macros should be
+> replaced with BUG_ON, WARN_ON, but that's a subject for other patches.
+> What do you think? 
 
-Please add a blank line here.
+They should probably be deleted, I will not add any BUG_ON to a driver,
+nor should anyone else.  That's just rude behavior to crash the system,
+don't you think?
 
-Otherwise you can add: Acked-by: Benoit Cousson <b-cousson@ti.com>
+thanks,
 
-Thanks,
-Benoit
-
->   	return 0;
-> -
-> -	return ret;
->   }
->
->   static int __devexit omap2_mbox_remove(struct platform_device *pdev)
-
+greg k-h
