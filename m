@@ -1,179 +1,190 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 6/6] omap: iommu: code reorganization and cleanup
-Date: Fri,  5 Nov 2010 19:19:56 -0600
-Message-ID: <1289006396-27230-7-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 2/6] OMAP3: hwmod data: Add mmu for iva2 and isp
+Date: Fri,  5 Nov 2010 19:19:52 -0600
+Message-ID: <1289006396-27230-3-git-send-email-omar.ramirez@ti.com>
 References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47258 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751343Ab0KFBa2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Nov 2010 21:30:28 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:50818 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157Ab0KFBaa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2010 21:30:30 -0400
 In-Reply-To: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Cc: Russell King <linux@arm.linux.org.uk>, Hari Kanigeri <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Charulatha V <charu@ti.com>, Ramesh Gupta <grgupta@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Since omap-iommu is now using hwmod, there are structures and
-arrays that can be cleaned up to increase the readability of
-the code.
+Add mmu hwmod data for iva2 and isp.
+
+Plus a define for the iva2 base register.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/mach-omap2/omap-iommu.c        |   95 +++++++++++--------------------
- arch/arm/plat-omap/include/plat/iommu.h |    2 +-
- 2 files changed, 34 insertions(+), 63 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  103 ++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/iommu.h    |    8 ++
+ arch/arm/plat-omap/include/plat/omap34xx.h |    2 +
+ 3 files changed, 113 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-index 0a76bce..135474b 100644
---- a/arch/arm/mach-omap2/omap-iommu.c
-+++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -17,53 +17,17 @@
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 60d977e..ff80efc 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -21,6 +21,7 @@
+ #include <plat/l4_3xxx.h>
+ #include <plat/i2c.h>
+ #include <plat/omap34xx.h>
++#include <plat/iommu.h>
  
--struct iommu_device {
--	struct iommu_platform_data pdata;
-+static char *omap3_devices[] = {
-+	"isp",
-+	"iva2",
-+	NULL,
- };
--static struct iommu_device *devices;
--static int num_iommu_devices;
--
--#ifdef CONFIG_ARCH_OMAP3
--static struct iommu_device omap3_devices[] = {
--	{
--		.pdata = {
--			.name = "isp",
--		},
--	},
--#if defined(CONFIG_MPU_BRIDGE_IOMMU)
--	{
--		.pdata = {
--			.name = "iva2",
--		},
--	},
--#endif
--};
--#define NR_OMAP3_IOMMU_DEVICES ARRAY_SIZE(omap3_devices)
--#else
--#define omap3_devices		NULL
--#define NR_OMAP3_IOMMU_DEVICES	0
--#endif
--
--#ifdef CONFIG_ARCH_OMAP4
--static struct iommu_device omap4_devices[] = {
--	{
--		.pdata = {
--			.name = "ducati",
--		},
--	},
--#if defined(CONFIG_MPU_TESLA_IOMMU)
--	{
--		.pdata = {
--			.name = "tesla",
--		},
--	},
--#endif
-+
-+static char *omap4_devices[] = {
-+	"ducati",
-+	"tesla",
-+	NULL,
- };
--#define NR_OMAP4_IOMMU_DEVICES ARRAY_SIZE(omap4_devices)
--#else
--#define omap4_devices		NULL
--#define NR_OMAP4_IOMMU_DEVICES	0
--#endif
+ #include "omap_hwmod_common_data.h"
  
- static struct omap_device_pm_latency iommu_latencies[] = {
- 	[0] = {
-@@ -73,36 +37,28 @@ static struct omap_device_pm_latency iommu_latencies[] = {
- 	},
+@@ -801,6 +802,106 @@ static struct omap_hwmod omap3xxx_mailbox_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
  };
  
--static int __init omap_iommu_init(void)
-+static int __init omap_iommu_add(char **devices)
- {
- 	int i;
- 
--	if (cpu_is_omap34xx()) {
--		devices = omap3_devices;
--		num_iommu_devices = NR_OMAP3_IOMMU_DEVICES;
--	} else if (cpu_is_omap44xx()) {
--		devices = omap4_devices;
--		num_iommu_devices = NR_OMAP4_IOMMU_DEVICES;
--	} else
--		return -ENODEV;
--
--	for (i = 0; i < num_iommu_devices; i++) {
-+	for (i = 0; devices[i]; i++) {
- 		struct omap_hwmod *oh;
- 		struct omap_device *od;
-+		struct iommu_platform_data pdata;
- 
--		oh = omap_hwmod_lookup(devices[i].pdata.name);
-+		oh = omap_hwmod_lookup(devices[i]);
- 		if (!oh) {
- 			pr_err("%s: hwmod not found\n", __func__);
- 			return -ENODEV;
- 		}
- 
--		devices[i].pdata.mmu_attr =
--				(struct omap_mmu_dev_attr *)oh->dev_attr;
--		devices[i].pdata.device_enable = omap_device_enable;
--		devices[i].pdata.device_disable = omap_device_idle;
-+		pdata.name = devices[i];
-+		pdata.mmu_attr = (struct omap_mmu_dev_attr *)oh->dev_attr;
-+		pdata.device_enable = omap_device_enable;
-+		pdata.device_disable = omap_device_idle;
- 
- 		od = omap_device_build("omap-iommu", i, oh,
--				&devices[i].pdata, sizeof(devices[i].pdata),
-+				&pdata, sizeof(pdata),
- 				iommu_latencies, ARRAY_SIZE(iommu_latencies),
- 				0);
- 		if (!od) {
-@@ -110,8 +66,23 @@ static int __init omap_iommu_init(void)
- 			return -EPERM;
- 		}
- 	}
++/* mmu */
 +
- 	return 0;
- }
++static struct omap_hwmod_class omap3xxx_mmu_hwmod_class = {
++	.name = "mmu",
++};
 +
-+static int __init omap_iommu_init(void)
-+{
-+	int err;
++/* isp mmu */
 +
-+	if (cpu_is_omap34xx())
-+		err = omap_iommu_add(omap3_devices);
-+	else if (cpu_is_omap44xx())
-+		err = omap_iommu_add(omap4_devices);
-+	else
-+		return -ENODEV;
++static struct omap_hwmod omap3xxx_isp_mmu_hwmod;
 +
-+	return err;
-+}
- module_init(omap_iommu_init);
++static struct omap_hwmod_addr_space omap3xxx_isp_mmu_addrs[] = {
++	{
++		.pa_start	= OMAP3430_ISP_MMU_BASE,
++		.pa_end		= OMAP3430_ISP_MMU_BASE + SZ_256 - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++};
++
++/* l4_core -> isp mmu */
++static struct omap_hwmod_ocp_if omap3xxx_l4_core__isp_mmu = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap3xxx_isp_mmu_hwmod,
++	.addr		= omap3xxx_isp_mmu_addrs,
++	.clk		= "cam_ick",
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_isp_mmu_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* isp mmu slave ports */
++static struct omap_hwmod_ocp_if *omap3xxx_isp_mmu_slaves[] = {
++	&omap3xxx_l4_core__isp_mmu,
++};
++
++static struct omap_hwmod_irq_info omap3xxx_isp_mmu_irqs[] = {
++	{ .name = "isp", .irq = INT_24XX_CAM_IRQ, },
++};
++
++static struct omap_mmu_dev_attr isp_mmu_dev_attr = {
++	.nr_tlb_entries = 8,
++};
++
++static struct omap_hwmod omap3xxx_isp_mmu_hwmod = {
++	.name		= "isp",
++	.class		= &omap3xxx_mmu_hwmod_class,
++	.mpu_irqs	= omap3xxx_isp_mmu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_isp_mmu_irqs),
++	.slaves		= omap3xxx_isp_mmu_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_isp_mmu_slaves),
++	.dev_attr	= &isp_mmu_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.flags		= HWMOD_NO_IDLEST,
++};
++
++/* iva2 mmu */
++
++static struct omap_hwmod omap3xxx_iva2_mmu_hwmod;
++
++static struct omap_hwmod_addr_space omap3xxx_iva2_mmu_addrs[] = {
++	{
++		.pa_start	= OMAP34XX_IVA2_MMU_BASE,
++		.pa_end		= OMAP34XX_IVA2_MMU_BASE + SZ_256 - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++};
++
++/* l3_main -> iva2 mmu */
++static struct omap_hwmod_ocp_if omap3xxx_l3_main__iva2_mmu = {
++	.master		= &omap3xxx_l3_main_hwmod,
++	.slave		= &omap3xxx_iva2_mmu_hwmod,
++	.addr		= omap3xxx_iva2_mmu_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_iva2_mmu_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* iva2 mmu slave ports */
++static struct omap_hwmod_ocp_if *omap3xxx_iva2_mmu_slaves[] = {
++	&omap3xxx_l3_main__iva2_mmu,
++};
++
++static struct omap_hwmod_irq_info omap3xxx_iva2_mmu_irqs[] = {
++	{ .name = "iva2", .irq = INT_24XX_DSP_MMU, },
++};
++
++static struct omap_mmu_dev_attr iva2_mmu_dev_attr = {
++	.nr_tlb_entries = 32,
++};
++
++static struct omap_hwmod omap3xxx_iva2_mmu_hwmod = {
++	.name		= "iva2",
++	.class		= &omap3xxx_mmu_hwmod_class,
++	.mpu_irqs	= omap3xxx_iva2_mmu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_iva2_mmu_irqs),
++	.main_clk	= "iva2_ck",
++	.slaves		= omap3xxx_iva2_mmu_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_iva2_mmu_slaves),
++	.dev_attr	= &iva2_mmu_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.flags		= HWMOD_NO_IDLEST,
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_main_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+@@ -817,6 +918,8 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_i2c2_hwmod,
+ 	&omap3xxx_i2c3_hwmod,
+ 	&omap3xxx_mailbox_hwmod,
++	&omap3xxx_isp_mmu_hwmod,
++	&omap3xxx_iva2_mmu_hwmod,
+ 	NULL,
+ };
  
- static void __exit omap_iommu_exit(void)
 diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
-index fd8ffeb..2205c3c 100644
+index 33c7d41..91a75a5 100644
 --- a/arch/arm/plat-omap/include/plat/iommu.h
 +++ b/arch/arm/plat-omap/include/plat/iommu.h
-@@ -109,7 +109,7 @@ struct omap_mmu_dev_attr {
+@@ -99,6 +99,14 @@ struct iommu_functions {
+ 	ssize_t (*dump_ctx)(struct iommu *obj, char *buf, ssize_t len);
  };
  
++/* omap_mmu_dev_attr - OMAP mmu device attributes for omap_hwmod
++ * @nr_tlb_entries: number of entries supported by the translation look-aside
++ *                   buffer (TLB).
++ */
++struct omap_mmu_dev_attr {
++	int nr_tlb_entries;
++};
++
  struct iommu_platform_data {
--	const char *name;
-+	char *name;
- 	struct omap_mmu_dev_attr *mmu_attr;
+ 	const char *name;
+ 	const char *clk_name;
+diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
+index 98fc8b4..697f8f9 100644
+--- a/arch/arm/plat-omap/include/plat/omap34xx.h
++++ b/arch/arm/plat-omap/include/plat/omap34xx.h
+@@ -82,6 +82,8 @@
  
- 	int (*device_enable)(struct platform_device *pdev);
+ #define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
+ 
++#define OMAP34XX_IVA2_MMU_BASE	0x5D000000
++
+ /* Security */
+ #define OMAP34XX_SEC_BASE	(L4_34XX_BASE + 0xA0000)
+ #define OMAP34XX_SEC_SHA1MD5_BASE	(OMAP34XX_SEC_BASE + 0x23000)
 -- 
 1.7.1
 
