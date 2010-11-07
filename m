@@ -1,107 +1,45 @@
 From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH 3/6] OMAP4: hwmod data: add mmu hwmod for ducati and tesla
-Date: Sun, 7 Nov 2010 10:18:47 -0600
-Message-ID: <AANLkTim=5bgGo1cnkWJCPF4HmMnQrBhP_sPCK3rRKUPS@mail.gmail.com>
+Subject: Re: [PATCH 4/6] omap: iommu: intial hwmod support
+Date: Sun, 7 Nov 2010 10:21:54 -0600
+Message-ID: <AANLkTikMOJkgXvmC4WxPR2iiuJFO_20HjWrr6kgp3SZG@mail.gmail.com>
 References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>
-	<1289006396-27230-4-git-send-email-omar.ramirez@ti.com>
-	<4CD5BEFF.40301@ti.com>
+	<1289006396-27230-5-git-send-email-omar.ramirez@ti.com>
+	<4CD5C333.8090608@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:56121 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753368Ab0KGQSs convert rfc822-to-8bit
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:49630 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753463Ab0KGQVy convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Nov 2010 11:18:48 -0500
-Received: by iwn5 with SMTP id 5so5052166iwn.1
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 08:18:48 -0800 (PST)
-In-Reply-To: <4CD5BEFF.40301@ti.com>
+	Sun, 7 Nov 2010 11:21:54 -0500
+Received: by mail-iw0-f180.google.com with SMTP id 37so4703730iwn.39
+        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 08:21:54 -0800 (PST)
+In-Reply-To: <4CD5C333.8090608@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Cousson, Benoit" <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Sat, Nov 6, 2010 at 3:47 PM, Cousson, Benoit <b-cousson@ti.com> wrot=
+On Sat, Nov 6, 2010 at 4:05 PM, Cousson, Benoit <b-cousson@ti.com> wrot=
 e:
-> On 11/5/2010 9:19 PM, Ramirez Luna, Omar wrote:
->>
->> Add mmu hwmod data for ducati and tesla.
+>> =A0static struct iommu_device omap3_devices[] =3D {
 >
-> s/ducati/ipu/
-> s/tesla/dsp/
->
-> Please do not use internal codename.
+> You should not need that at all, you are just duplicating the data th=
+at are
+> already in hwmod, and then you are going to create real platform_devi=
+ce.
 
-Tried to avoid confusion with what was originally in the driver, agree
-with the change.
+ok, will try that.
 
-> Here again, you completely changed the omap4 existing data for (almos=
-t)
-> nothing.
+>> =A0 =A0 =A0 =A0for (i =3D 0; i< =A0num_iommu_devices; i++) {
 >
-> I agree, the original code was not considering the mmu as a hwmod but=
- only
-> the core of the subsystem: mmu + cache.
->
-> But as far as I can see, you just added a new mmu class, a dev_attr, =
-and the
-> hwmod remain almost the same.
-> Otherwise, you replaced the proper names by the bad one, and you remo=
-ved
-> important data (hw reset for ex).
->
-> Please start from the original code and fix what is missing or wrong =
-but do
-> not re-write everything.
+> Don't do that, just iterate over the hwmod class using
+> omap_hwmod_for_each_by_class. Please have a look at the drivers with
+> multiple devices that are already using hwmod (i2c, uart...).
 
-I wrote this one from scratch, I didn't see that there were pieces to
-handle some stuff since the code is buried in a private tree.
-
-I cared to dug up the mailbox one, but completely missed this one.
-
->> +/* mmu */
->> +
->> +static struct omap_hwmod_class omap44xx_mmu_hwmod_class =3D {
->> + =A0 =A0 =A0 .name =3D "mmu",
->> +};
->
-> That change is OK. The remaining part seems to be completely broken.
->
->> +
->> +/* ducati mmu */
->> +
->> +static struct omap_hwmod omap44xx_ducati_mmu_hwmod;
->> +
->> +static struct omap_hwmod_addr_space omap44xx_ducati_mmu_addrs[] =3D=
- {
->> + =A0 =A0 =A0 {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D OMAP4_MMU1_B=
-ASE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D OMAP4_MMU1=
-_BASE + SZ_4K - 1,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYP=
-E_RT,
->> + =A0 =A0 =A0 },
->> +};
->> +
->> +/* l3_main_1 -> =A0ducati mmu */
->> +static struct omap_hwmod_ocp_if omap44xx_l3_main_1__ducati_mmu =3D =
-{
->> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D&omap44xx_l3_main_1_hwmod,
->> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D&omap44xx_ducati_mmu_hwmo=
-d,
->> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap44xx_ducati_mmu_addr=
-s,
->> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "dpll_mpu_m2_ck",
->
-> Are you sure of that?
-
-No, this was supposed to be the hwmod main_clk... the ocp_if clk
-should be l3_div.
-
-I will add these changes and the ones you mention as "mmu + cache",
-and see how it goes from there.
+And this too.
 
 Regards,
 
