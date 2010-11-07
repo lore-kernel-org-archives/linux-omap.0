@@ -1,51 +1,94 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 08/12] staging: tidspbridge: convert rmgr to list_head
-Date: Sun, 07 Nov 2010 08:24:10 -0600
-Message-ID: <4CD6B68A.5010107@ti.com>
-References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>	 <1288969996-22103-9-git-send-email-ionut.nicu@mindbit.ro>	 <AANLkTinvM3W1WRNjw8zd=Yi6_J6uEw-h0efLjMrndCgn@mail.gmail.com>	 <1289067507.9931.95.camel@atlantis.mindbit.ro>	 <20101106182610.GA7306@kroah.com> <1289131884.9931.166.camel@atlantis.mindbit.ro>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v2 1/7] OMAP2: hwmod data: add mailbox data
+Date: Sun, 7 Nov 2010 08:27:47 -0600
+Message-ID: <AANLkTi=wx-Nr7S1iWK2K__XZtEmE2pKNkejtFbsae+X5@mail.gmail.com>
+References: <1289006244-27147-1-git-send-email-omar.ramirez@ti.com>
+	<1289006244-27147-2-git-send-email-omar.ramirez@ti.com>
+	<4CD58BAA.8020909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:38039 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752920Ab0KGOYU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 09:24:20 -0500
-Received: by gxk1 with SMTP id 1so3367005gxk.18
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 06:24:19 -0800 (PST)
-In-Reply-To: <1289131884.9931.166.camel@atlantis.mindbit.ro>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:58198 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752941Ab0KGO1s convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 7 Nov 2010 09:27:48 -0500
+Received: by iwn41 with SMTP id 41so2915793iwn.19
+        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 06:27:47 -0800 (PST)
+In-Reply-To: <4CD58BAA.8020909@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ionut Nicu <ionut.nicu@mindbit.ro>
-Cc: Greg KH <greg@kroah.com>, "Sapiens, Rene" <rene.sapiens@ti.com>, Ionut Nicu <ionut.nicu@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Anna, Suman" <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Ionut Nicu wrote, on 11/07/2010 06:11 AM:
+ Hi Benoit,
 
-> Just out of curiosity, in what cases is it acceptable to use
-> BUG_ON/WARN_ON?
-here is my rule for BUG_ON Vs WARN_ON:
+On Sat, Nov 6, 2010 at 12:08 PM, Cousson, Benoit <b-cousson@ti.com> wro=
+te:
+>> +/* l4_core -> =A0mailbox */
+>> +static struct omap_hwmod_ocp_if omap2420_l4_core__mailbox =3D {
+>> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D&omap2420_l4_core_hwmod,
+>> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D&omap2420_mailbox_hwmod,
+>> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap2420_mailbox_addrs,
+>> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "mailboxes_ick",
+>
+> Could you try to be consistent with the omap4 format? it is easier to=
+ diff
+> between Soc version: .clk is before .addr
 
-imagine this code to be running on your Phone while you are doing 
-sometime important, and this case gets hit - choose:
-a) you stop the entire phone - BUG_ON
-b) provide a cryptic info - WARN_ON - just the func name with not much 
-additional data
-c) provide detailed info : in the order of my personal preference:
-	dev_dbg/dev_info/dev_err/... -> if there is anychange of getting to the 
-struct device * representing the device
-	pr_err/pr_info/pr_warning -> if there is no other alternative
+In all the randomness of how the data files look, I didn't now omap4
+was the standard. For this one, I tried to follow the
+"omap_hwmod_ocp_if" structure definition where 'clk' is the 4th member
+of that structure.
 
-keep in mind - few months from now, code would change, function line 
-numbers change etc.. - I'd usually NOT TOUCH BUG_ON, NOT use WARN_ON 
-unless I am threatened by maintainer, and choose one of (c) based on the 
-location in the code I am at..
+I'll change it to mimic omap4 looks...
 
-I know that some folks think that when a case is reached, they'd like to 
-do a BUG_ON so that the issue is caught and fixed immediately - SORRY, I 
-disagree as I see the code running in a endproduct - and BUG_ONs cause 
-system hang and reboots in an end product - which as a personal user of 
-a great Linux phone like N900 is definitely not my personal preference.
+>> +static struct omap_hwmod omap2420_mailbox_hwmod =3D {
+>> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "mailbox",
+>> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D&omap2420_mailbox_hwmod_c=
+lass,
+>> + =A0 =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .omap2 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .prcm_reg_id =3D 1,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_bit =3D OMAP24=
+XX_EN_MAILBOXES_SHIFT,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_offs =3D CORE_=
+MOD,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_reg_id =3D 1,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_idle_bit =3D O=
+MAP24XX_ST_MAILBOXES_SHIFT,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+>> + =A0 =A0 =A0 },
+>
+> Same things with the format, put that after irqs_cnt and before slave=
+s.
 
--- 
-Regards,
-Nishanth Menon
+more or less the same, since 'prcm' was above in the definition order
+I kept it a bit up of where it is supposed to be.
+
+I'll change it too
+
+>> @@ -569,6 +635,7 @@ static __initdata struct omap_hwmod *omap2420_hw=
+mods[]
+>> =3D {
+>> =A0 =A0 =A0 =A0&omap2420_uart3_hwmod,
+>> =A0 =A0 =A0 =A0&omap2420_i2c1_hwmod,
+>> =A0 =A0 =A0 =A0&omap2420_i2c2_hwmod,
+>
+> Add a blank line between each class. OK it was not done for i2c, but =
+it
+> should.
+>
+> All the comments are applicable to the 2430 and 3430 data as well.
+
+Will do.
+
+Thanks for your comments,
+
+Omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
