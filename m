@@ -1,47 +1,87 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] omap: dsp: remove shm from normal memory
-Date: Sun, 7 Nov 2010 23:11:25 +0200
-Message-ID: <AANLkTi=E1L0NpZz3gSjQ30Fox09mKD9wqKcy=yBJnUds@mail.gmail.com>
-References: <1287473844-6228-1-git-send-email-felipe.contreras@gmail.com>
-	<1287473844-6228-2-git-send-email-felipe.contreras@gmail.com>
-	<20101105163417.GI9264@atomide.com>
-	<AANLkTi=4cT=JByCHmRiHBimoN55Kidt+deUhQLozGvez@mail.gmail.com>
-	<20101105181636.GP9264@atomide.com>
+Subject: [GIT PULL] fixes for tidspbridge 2.6.37-rc1
+Date: Sun, 7 Nov 2010 23:36:09 +0200
+Message-ID: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:61081 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751163Ab0KGVL0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 16:11:26 -0500
-Received: by bwz11 with SMTP id 11so4235397bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 13:11:25 -0800 (PST)
-In-Reply-To: <20101105181636.GP9264@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>
 
-On Fri, Nov 5, 2010 at 8:16 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Felipe Contreras <felipe.contreras@gmail.com> [101105 10:44]:
->> On Fri, Nov 5, 2010 at 6:34 PM, Tony Lindgren <tony@atomide.com> wrote:
->> > * Felipe Contreras <felipe.contreras@gmail.com> [101019 00:28]:
->> >> Also, don't be picky about the location.
->> >
->> > As this code is in CONFIG_TIDSPBRIDGE block and AFAIK that is
->> > not working, this should probably wait for the next merge window?
->>
->> I plan to send a patch to revert the iommu changes to staging so that
->> it does work... But this patch would be needed as well.
->
-> OK. Let's wait and see what your minimal set of fixes to make it
-> work looks.
+Hi Greg,
 
-Huh? Reverting the iommu changes will affect only tidspbridge (staging
-tree) the omap codes is not affected at all. I say this patch needs to
-be merged regardless.
+The situation of tidspbridge driver on staging has been pretty sad,
+basically, it has never worked. This is a step backwards from the
+previous situation where it was clear which branch to use to get it
+working. Unfortunately, the ARM and OMAP trees haven't made it easy,
+as changes in those trees have broken it even further.
 
-Anyway, I'm about to send a pull request.
+My proposal to get this fixed is:
+
+1) Revert back the iommu changes
+
+Presumably, in order to get the migration to omap iommu working many
+dependencies are needed, which haven't been merged yet. And at least I
+have never seen it working, although Fernando claims to have the right
+set of patches to do so. I say merging this was premature.
+
+I have reverted back those changes in:
+ git://gitorious.org/~felipec/linux-omap/felipec.git fc-dsp-iommu-revert-v37-rc1
+
+That would have been enough for 2.6.36, but...
+
+2) Apply the fixes for recent omap control changes
+
+On 2.6.37-rc1, omap platform internals changed, so the build is broken
+again. Paul Walmsley provided some reference patches that I have
+modified slightly.
+
+3) Fix for memblock
+
+Changes in memblock also broke this driver, one patch of mine should
+fix that, as well as prepare it for imminent changes from the ARM
+tree.
+
+All the changes are in:
+ git://gitorious.org/~felipec/linux-omap/felipec.git fc-dsp-fix-v37-rc1
+
+With this, the driver should work on 2.6.37, and would be the first
+time it does so on staging.
+
+I didn't see any point in sending the patches to review the reverts,
+I'm going to send the rest of the patches on top of the branch
+fc-dsp-iommu-revert-v37-rc1.
+
+These are the changes since v2.6.37-rc1:
+
+Felipe Contreras (13):
+      Revert "staging: tidspbridge - update Kconfig to select IOMMU module"
+      Revert "staging: tidspbridge - remove dmm custom module"
+      Revert "staging: tidspbridge - deprecate
+reserve/unreserve_memory funtions"
+      Revert "staging: tidspbridge - remove reserved memory clean up"
+      Revert "staging: tidspbridge: remove dw_dmmu_base from cfg_hostres struct"
+      Revert "staging: tidspbridge - move all iommu related code to a new file"
+      Revert "staging: tidspbridge - remove hw directory"
+      Revert "staging: tidspbridge - fix mmufault support"
+      Revert "staging: tidspbridge - remove custom mmu code from tiomap3430.c"
+      Revert "staging: tidspbridge - rename bridge_brd_mem_map/unmap
+to a proper name"
+      Revert "staging: tidspbridge - move shared memory iommu maps to
+tiomap3430.c"
+      Revert "staging: tidspbridge: replace iommu custom for
+opensource implementation"
+      omap: dsp: remove shm from normal memory
+
+Paul Walmsley (4):
+      omap: control: add functions for DSP boot
+      omap: pm: use control functions in DSP reset code
+      omap: dsp: add boot control functions
+      staging: tidspbridge: use boot control functions
+
+Cheers.
 
 -- 
 Felipe Contreras
