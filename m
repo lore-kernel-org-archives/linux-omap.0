@@ -1,41 +1,51 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 0/5] omap: dsp: fixes for 2.6.37-rc1
-Date: Sun, 7 Nov 2010 14:02:13 -0800
-Message-ID: <20101107220213.GB21070@kroah.com>
-References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com> <1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] OMAP: Fix build failure on MEMBLOCK_REAL_LIMIT
+Date: Mon, 8 Nov 2010 00:44:15 +0200
+Message-ID: <AANLkTim+EHnfAQT4HnOROutZ9U=P_PeEidCdOCz8DuRj@mail.gmail.com>
+References: <1288629008-29767-1-git-send-email-namhyung@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:34445 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751313Ab0KGWIj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Nov 2010 17:08:39 -0500
-Content-Disposition: inline
-In-Reply-To: <1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:51632 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981Ab0KGWoR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 17:44:17 -0500
+Received: by bwz11 with SMTP id 11so4281503bwz.19
+        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 14:44:15 -0800 (PST)
+In-Reply-To: <1288629008-29767-1-git-send-email-namhyung@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
+To: Namhyung Kim <namhyung@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org
 
-On Sun, Nov 07, 2010 at 11:43:24PM +0200, Felipe Contreras wrote:
-> Hi,
-> 
-> Paul already sent these, but I did some minor modifications, mostly to minimize
-> the amount of changes.
-> 
-> Also, I'm re-sending my memblock patch so that the driver can actually be
-> compiled.
-> 
-> With these, and reverting the iommu patches[1], the driver should be working. I
-> don't see a more straight-forward way to achieve that.
+On Mon, Nov 1, 2010 at 6:30 PM, Namhyung Kim <namhyung@gmail.com> wrote=
+:
+> --- a/drivers/video/omap2/vram.c
+> +++ b/drivers/video/omap2/vram.c
+> @@ -570,7 +570,8 @@ void __init omap_vram_reserve_sdram_memblock(void=
+)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0return;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 paddr =3D memblock=
+_alloc_base(size, PAGE_SIZE, MEMBLOCK_REAL_LIMIT);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 paddr =3D memblock=
+_alloc_base(size, PAGE_SIZE,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 MEMBLOCK_ALLOC_ACCESSIBLE);
 
-I can't take these through the staging tree unless I get an ack from the
-omap maintainers.
+This is exactly the same as:
+ paddr =3D memblock_alloc(size, PAGE_SIZE);
 
-And as you are adding new infrastructure to the core kernel, this really
-needed to be there before .37-rc1, I don't think it's acceptable to
-merge this late in the development cycle.
+Let's use that instead.
 
-thanks,
-
-greg k-h
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
