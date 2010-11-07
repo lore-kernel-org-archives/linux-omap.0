@@ -1,15 +1,15 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 4/5] omap: dsp: add boot control functions
-Date: Sun,  7 Nov 2010 23:43:28 +0200
-Message-ID: <1289166209-32251-5-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 3/5] omap: pm: use control functions in DSP reset code
+Date: Sun,  7 Nov 2010 23:43:27 +0200
+Message-ID: <1289166209-32251-4-git-send-email-felipe.contreras@gmail.com>
 References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-fx0-f46.google.com ([209.85.161.46]:44122 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753171Ab0KGVpG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 16:45:06 -0500
+	with ESMTP id S1753218Ab0KGVou (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 16:44:50 -0500
 Received: by mail-fx0-f46.google.com with SMTP id 16so3600214fxm.19
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 13:45:05 -0800 (PST)
+        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 13:44:50 -0800 (PST)
 In-Reply-To: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,53 +18,50 @@ Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, P
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Would be needed to avoid using SCM directly.
+Update the DSP reset code in pm34xx.c to use one of the new SCM DSP boot
+control functions, omap_ctrl_set_dsp_bootmode().
+
+This reset code should be moved out to a separate function to be called
+by the hwmod reset process at some point.  Also, 2430 should be
+initializing the DSP in a similar fashion.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- arch/arm/mach-omap2/dsp.c             |    4 ++++
- arch/arm/plat-omap/include/plat/dsp.h |    4 ++++
- 2 files changed, 8 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/dsp.c b/arch/arm/mach-omap2/dsp.c
-index 6feeeae..6a21ac6 100644
---- a/arch/arm/mach-omap2/dsp.c
-+++ b/arch/arm/mach-omap2/dsp.c
-@@ -12,6 +12,7 @@
-  */
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 75c0cd1..86e7e99 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -37,6 +37,7 @@
+ #include <plat/prcm.h>
+ #include <plat/gpmc.h>
+ #include <plat/dma.h>
++#include <plat/dsp.h>
  
- #include <linux/platform_device.h>
-+#include "control.h"
- #include "prm.h"
- #include "cm.h"
- #ifdef CONFIG_BRIDGE_DVFS
-@@ -31,6 +32,9 @@ static struct omap_dsp_platform_data omap_dsp_pdata __initdata = {
- 	.cpu_set_freq = omap_pm_cpu_set_freq,
- 	.cpu_get_freq = omap_pm_cpu_get_freq,
- #endif
-+	.set_dsp_bootaddr = omap_ctrl_set_dsp_bootaddr,
-+	.set_dsp_bootmode = omap_ctrl_set_dsp_bootmode,
-+
- 	.dsp_prm_read = prm_read_mod_reg,
- 	.dsp_prm_write = prm_write_mod_reg,
- 	.dsp_prm_rmw_bits = prm_rmw_mod_reg_bits,
-diff --git a/arch/arm/plat-omap/include/plat/dsp.h b/arch/arm/plat-omap/include/plat/dsp.h
-index 079691d..b2cf15b 100644
---- a/arch/arm/plat-omap/include/plat/dsp.h
-+++ b/arch/arm/plat-omap/include/plat/dsp.h
-@@ -10,7 +10,11 @@ struct omap_dsp_platform_data {
- 	unsigned long (*cpu_get_freq) (void);
- 	unsigned long mpu_speed[6];
+ #include <asm/tlbflush.h>
  
-+	void (*set_dsp_bootaddr)(u32 pa);
-+	void (*set_dsp_bootmode)(u8 mode);
-+
- 	/* functions to write and read PRCM registers */
-+	/* XXX None of this should be here */
- 	void (*dsp_prm_write)(u32, s16 , u16);
- 	u32 (*dsp_prm_read)(s16 , u16);
- 	u32 (*dsp_prm_rmw_bits)(u32, u32, s16, s16);
+@@ -614,6 +615,7 @@ static struct platform_suspend_ops omap_pm_ops = {
+  * function forces the IVA2 into idle state so it can go
+  * into retention/off and thus allow full-chip retention/off.
+  *
++ * XXX This should be handled by the hwmod.
+  **/
+ static void __init omap3_iva_idle(void)
+ {
+@@ -635,9 +637,7 @@ static void __init omap3_iva_idle(void)
+ 	cm_write_mod_reg(OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_MASK,
+ 			 OMAP3430_IVA2_MOD, CM_FCLKEN);
+ 
+-	/* Set IVA2 boot mode to 'idle' */
+-	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
+-			 OMAP343X_CONTROL_IVA2_BOOTMOD);
++	omap_ctrl_set_dsp_bootmode(OMAP_DSP_BOOTMODE_IDLE);
+ 
+ 	/* Un-reset IVA2 */
+ 	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
 -- 
 1.7.3.2.3.gf8529
 
