@@ -1,90 +1,117 @@
 From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v2 1/7] OMAP2: hwmod data: add mailbox data
-Date: Sun, 7 Nov 2010 08:27:47 -0600
-Message-ID: <AANLkTi=wx-Nr7S1iWK2K__XZtEmE2pKNkejtFbsae+X5@mail.gmail.com>
+Subject: Re: [PATCH v2 3/7] OMAP4: hwmod data: add mailbox data
+Date: Sun, 7 Nov 2010 09:07:45 -0600
+Message-ID: <AANLkTi=mkBROke+4Yf25QndYB=0pE+k0tE2NKxUM5xU_@mail.gmail.com>
 References: <1289006244-27147-1-git-send-email-omar.ramirez@ti.com>
-	<1289006244-27147-2-git-send-email-omar.ramirez@ti.com>
-	<4CD58BAA.8020909@ti.com>
+	<1289006244-27147-4-git-send-email-omar.ramirez@ti.com>
+	<4CD58DF6.6040600@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:58198 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752941Ab0KGO1s convert rfc822-to-8bit
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:47438 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752938Ab0KGPHs convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Nov 2010 09:27:48 -0500
-Received: by iwn41 with SMTP id 41so2915793iwn.19
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 06:27:47 -0800 (PST)
-In-Reply-To: <4CD58BAA.8020909@ti.com>
+	Sun, 7 Nov 2010 10:07:48 -0500
+Received: by mail-iw0-f180.google.com with SMTP id 37so4651219iwn.39
+        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 07:07:46 -0800 (PST)
+In-Reply-To: <4CD58DF6.6040600@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Cousson, Benoit" <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Anna, Suman" <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
- Hi Benoit,
-
-On Sat, Nov 6, 2010 at 12:08 PM, Cousson, Benoit <b-cousson@ti.com> wro=
+On Sat, Nov 6, 2010 at 12:18 PM, Cousson, Benoit <b-cousson@ti.com> wro=
 te:
->> +/* l4_core -> =A0mailbox */
->> +static struct omap_hwmod_ocp_if omap2420_l4_core__mailbox =3D {
->> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D&omap2420_l4_core_hwmod,
->> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D&omap2420_mailbox_hwmod,
->> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap2420_mailbox_addrs,
->> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "mailboxes_ick",
+> I don't know why, but this patch has nothing to do with my original o=
+ne.
+> Can you stick to the original code?
+
+no, apart from the ordering of structure members, that I will change,
+since keeping the order of the original structure doesn't fly, I don't
+see anything that needs to be changed.
+
+- The magic numbers replaced for the defines, afaik it gives more clari=
+ty.
+- mailbox irq has a name.
+- overall defining block was improved:
+
+        class
+        ocp_if
+        slave ports
+        hwmod
+
+If you see, each dependent reference is right before the structure
+that is using it, which at least to me establishes some order, as of
+today this ordering doesn't exists.
+
+e.g. you are defining some hwmod and some how you are populating all
+the members, if you are looking at your omap_hwmod struct and want to
+see the irqs defined you need to scroll beyond the supposed first
+reference in omap_hwmod (right now above ocp_if)
+
 >
-> Could you try to be consistent with the omap4 format? it is easier to=
- diff
-> between Soc version: .clk is before .addr
+> On 11/5/2010 9:17 PM, Ramirez Luna, Omar wrote:
+>> +/* mailbox */
+>
+> The original comment is missing.
 
-In all the randomness of how the data files look, I didn't now omap4
-was the standard. For this one, I tried to follow the
-"omap_hwmod_ocp_if" structure definition where 'clk' is the 4th member
-of that structure.
+<quote>
+/*
+ * 'mailbox' class
+ * mailbox module allowing communication between the on-chip processors
+ * useusing a queued mailbox-interrupt mechanism.
+ */
+</quote>
 
-I'll change it to mimic omap4 looks...
+I don't think it adds anything to the patch, should we start
+commenting on the functionality of the drivers for each hwmod?
 
->> +static struct omap_hwmod omap2420_mailbox_hwmod =3D {
+>> +
+>> +static struct omap_hwmod omap44xx_mailbox_hwmod;
+>> +
+>> +static struct omap_hwmod_addr_space omap44xx_mailbox_addrs[] =3D {
+>> + =A0 =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D OMAP44XX_MAI=
+LBOX_BASE,
+>
+> If that physical address is not used elsewhere, and it should be the =
+case,
+> there is no need to create a define for it. That's why the physical a=
+ddress
+> was directly used here.
+> There is no added value to create a define for that.
+
+yes there is, apart from readability where '0x4a0f4000' doesn't say muc=
+h
+
+for me at least, if reviewing I need to open the TRM check if that is
+the address and move on, with the define you know that someone have
+checked the address before (when creating the define)
+
+besides the define was already there
+
+>> +static struct omap_hwmod omap44xx_mailbox_hwmod =3D {
 >> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "mailbox",
->> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D&omap2420_mailbox_hwmod_c=
+>> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D&omap44xx_mailbox_hwmod_c=
 lass,
 >> + =A0 =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .omap2 =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .prcm_reg_id =3D 1,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_bit =3D OMAP24=
-XX_EN_MAILBOXES_SHIFT,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_offs =3D CORE_=
-MOD,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_reg_id =3D 1,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_idle_bit =3D O=
-MAP24XX_ST_MAILBOXES_SHIFT,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .omap4 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .clkctrl_reg =3D OMAP4=
+430_CM_L4CFG_MAILBOX_CLKCTRL,
 >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
 >> + =A0 =A0 =A0 },
+>> + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap44xx_mailbox_irqs,
+>> + =A0 =A0 =A0 .mpu_irqs_cnt =A0 =3D ARRAY_SIZE(omap44xx_mailbox_irqs=
+),
 >
-> Same things with the format, put that after irqs_cnt and before slave=
-s.
+> The order is different than the previous one.
 
-more or less the same, since 'prcm' was above in the definition order
-I kept it a bit up of where it is supposed to be.
+as the order is given by omap4 data, and not the definition of the
+structure, I'll keep the consistency with omap4 then.
 
-I'll change it too
-
->> @@ -569,6 +635,7 @@ static __initdata struct omap_hwmod *omap2420_hw=
-mods[]
->> =3D {
->> =A0 =A0 =A0 =A0&omap2420_uart3_hwmod,
->> =A0 =A0 =A0 =A0&omap2420_i2c1_hwmod,
->> =A0 =A0 =A0 =A0&omap2420_i2c2_hwmod,
->
-> Add a blank line between each class. OK it was not done for i2c, but =
-it
-> should.
->
-> All the comments are applicable to the 2430 and 3430 data as well.
-
-Will do.
-
-Thanks for your comments,
+Regards,
 
 Omar
 --
