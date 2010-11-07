@@ -1,66 +1,75 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH 6/6] omap: iommu: code reorganization and cleanup
-Date: Sun, 7 Nov 2010 10:27:39 -0600
-Message-ID: <AANLkTimt5YcOFKasa-q4ybpfTGh7361VpUjPOFa3a_ee@mail.gmail.com>
-References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>
-	<1289006396-27230-7-git-send-email-omar.ramirez@ti.com>
-	<4CD5C88E.5050009@ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH v2 08/12] staging: tidspbridge: convert rmgr to
+	list_head
+Date: Sun, 7 Nov 2010 07:59:54 -0800
+Message-ID: <20101107155954.GB13736@kroah.com>
+References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro> <1288969996-22103-9-git-send-email-ionut.nicu@mindbit.ro> <AANLkTinvM3W1WRNjw8zd=Yi6_J6uEw-h0efLjMrndCgn@mail.gmail.com> <1289067507.9931.95.camel@atlantis.mindbit.ro> <20101106182610.GA7306@kroah.com> <1289131884.9931.166.camel@atlantis.mindbit.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:54525 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753463Ab0KGQ1k convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Nov 2010 11:27:40 -0500
-Received: by mail-iw0-f181.google.com with SMTP id 3so6019835iwn.26
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 08:27:39 -0800 (PST)
-In-Reply-To: <4CD5C88E.5050009@ti.com>
+Received: from kroah.org ([198.145.64.141]:44494 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753520Ab0KGQ2v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 7 Nov 2010 11:28:51 -0500
+Content-Disposition: inline
+In-Reply-To: <1289131884.9931.166.camel@atlantis.mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Ionut Nicu <ionut.nicu@mindbit.ro>
+Cc: "Sapiens, Rene" <rene.sapiens@ti.com>, Ionut Nicu <ionut.nicu@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Sat, Nov 6, 2010 at 4:28 PM, Cousson, Benoit <b-cousson@ti.com> wrot=
-e:
-> On 11/5/2010 9:19 PM, Ramirez Luna, Omar wrote:
->>
->> Since omap-iommu is now using hwmod, there are structures and
->> arrays that can be cleaned up to increase the readability of
->> the code.
->
-> This patch should be merged with the previous one as well.
+On Sun, Nov 07, 2010 at 02:11:24PM +0200, Ionut Nicu wrote:
+> Hi Greg,
+> 
+> On Sat, 2010-11-06 at 11:26 -0700, Greg KH wrote:
+> > On Sat, Nov 06, 2010 at 08:18:27PM +0200, Ionut Nicu wrote:
+> > > Hi Rene,
+> > > 
+> > > On Fri, 2010-11-05 at 18:07 -0600, Sapiens, Rene wrote:
+> > > > Hi Ionut,
+> > > > 
+> > > > On Fri, Nov 5, 2010 at 9:13 AM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
+> > > > > Convert the rmgr module of the tidspbridge driver
+> > > > > to use struct list_head instead of struct lst_list.
+> > > > >
+> > > > > Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+> > > > 
+> > > > <snip>
+> > > > 
+> > > > > diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
+> > > > 
+> > > > <snip>
+> > > > 
+> > > > > @@ -492,16 +465,17 @@ u32 drv_get_next_dev_object(u32 hdev_obj)
+> > > > >        u32 dw_next_dev_object = 0;
+> > > > >        struct drv_object *pdrv_obj;
+> > > > >        struct drv_data *drv_datap = dev_get_drvdata(bridge);
+> > > > > +       struct list_head *curr;
+> > > > >
+> > > > >        DBC_REQUIRE(hdev_obj != 0);
+> > > > 
+> > > > can we remove the DBC_REQUIRE and always check for !hdev_obj?
+> > > > 
+> > > 
+> > > Sounds ok to me.
+> > > 
+> > > As a general remark, I personally think that the DBC_* macros should be
+> > > replaced with BUG_ON, WARN_ON, but that's a subject for other patches.
+> > > What do you think? 
+> > 
+> > They should probably be deleted, I will not add any BUG_ON to a driver,
+> > nor should anyone else.  That's just rude behavior to crash the system,
+> > don't you think?
+> > 
+> 
+> You're right. Removing them sounds like a better plan. There over 1000
+> DBC_* lines in this driver, so I guess it will clean it up a little bit.
+> 
+> Just out of curiosity, in what cases is it acceptable to use
+> BUG_ON/WARN_ON?
 
-No problem.
+In a driver, almost never.  Use dev_err() and friends instead.
 
-> I do not see the need to split in 3 patches these changes.
-> It will be much readable and will avoid people, like me, doing commen=
-t on a
-> piece of code you will remove 2 patches later.
-> That cleanup must be done when the hwmod is introduced since that cod=
-e was
-> already useless at that time.
+thanks,
 
-Yes, I was trying to avoid mixing changes so the review could be
-focused on the replacements only, it seems it backfired.
-
-Will do it in one patch and see how it looks.
-
->> +static char *omap4_devices[] =3D {
->> + =A0 =A0 =A0 "ducati",
->> + =A0 =A0 =A0 "tesla",
->> + =A0 =A0 =A0 NULL,
->
-> Not needed if you iterate over the class.
-
-Ok.
-
-Regards,
-
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+greg k-h
