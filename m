@@ -1,61 +1,47 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2 6/7] omap: mailbox: fix detection for previously
- supported chips
-Date: Sun, 7 Nov 2010 23:05:10 +0200
-Message-ID: <AANLkTikw+46=41pn8Tq1pn7C3ESydasmqA9wfk2SSh4L@mail.gmail.com>
-References: <1289006244-27147-1-git-send-email-omar.ramirez@ti.com>
-	<1289006244-27147-7-git-send-email-omar.ramirez@ti.com>
-	<4CD59A56.4070003@ti.com>
-	<AANLkTin+oBj6CTpWKB9ZBYRVjR_8_tPcY_Y4+T5PecRA@mail.gmail.com>
+Subject: Re: [PATCH] omap: dsp: remove shm from normal memory
+Date: Sun, 7 Nov 2010 23:11:25 +0200
+Message-ID: <AANLkTi=E1L0NpZz3gSjQ30Fox09mKD9wqKcy=yBJnUds@mail.gmail.com>
+References: <1287473844-6228-1-git-send-email-felipe.contreras@gmail.com>
+	<1287473844-6228-2-git-send-email-felipe.contreras@gmail.com>
+	<20101105163417.GI9264@atomide.com>
+	<AANLkTi=4cT=JByCHmRiHBimoN55Kidt+deUhQLozGvez@mail.gmail.com>
+	<20101105181636.GP9264@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:49747 "EHLO
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:61081 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751163Ab0KGVFN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 16:05:13 -0500
-Received: by bwz11 with SMTP id 11so4231543bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 13:05:12 -0800 (PST)
-In-Reply-To: <AANLkTin+oBj6CTpWKB9ZBYRVjR_8_tPcY_Y4+T5PecRA@mail.gmail.com>
+	with ESMTP id S1751163Ab0KGVL0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 16:11:26 -0500
+Received: by bwz11 with SMTP id 11so4235397bwz.19
+        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 13:11:25 -0800 (PST)
+In-Reply-To: <20101105181636.GP9264@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, "Anna, Suman" <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>
 
-On Sun, Nov 7, 2010 at 5:15 PM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
-> On Sat, Nov 6, 2010 at 1:11 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
->>> -#if defined(CONFIG_ARCH_OMAP3430)
->>> +#if defined(CONFIG_ARCH_OMAP3)
+On Fri, Nov 5, 2010 at 8:16 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Felipe Contreras <felipe.contreras@gmail.com> [101105 10:44]:
+>> On Fri, Nov 5, 2010 at 6:34 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Felipe Contreras <felipe.contreras@gmail.com> [101019 00:28]:
+>> >> Also, don't be picky about the location.
+>> >
+>> > As this code is in CONFIG_TIDSPBRIDGE block and AFAIK that is
+>> > not working, this should probably wait for the next merge window?
 >>
->> Ideally you should get rid of all the CONFIG_ARCH_OMAPXXX or cpu_is_omap in
->> that code. This is a driver, it should be generic.
->> If you have to handle differences between OMAP version, please do that in
->> the devices, not in the driver.
->>
->> This patch just contains a few of them, but the original mailbox.c file is
->> full of that kind of test.
->> I know that you are not the original writer of this code, but since the
->> clean it, it will be good to remove all the legacy code.
+>> I plan to send a patch to revert the iommu changes to staging so that
+>> it does work... But this patch would be needed as well.
 >
-> I mentioned it in the cover-letter, I should have put it here too, my bad.
->
-> <quote>
-> This is meant as a short term solution until proper cleanup is done,
-> as suggested in:
->
-> http://marc.info/?l=linux-arm-kernel&m=128534253231481&w=2
-> </quote>
->
-> Does nobody care that the driver is not working right now for some
-> chips (since it was working before!!) and are willing to wait for more
-> time until the proper cleanup is done?
->
-> For me it is a hassle, because if I need to do something on 3630 I
-> have to merge this patch, then apply what I'm working into, then
-> remove the patch, apply everything again to see no dependencies are
-> there, then send.
+> OK. Let's wait and see what your minimal set of fixes to make it
+> work looks.
 
-Huh? The mailbox is working for me on tidspbridge on 2.6.37-rc1.
+Huh? Reverting the iommu changes will affect only tidspbridge (staging
+tree) the omap codes is not affected at all. I say this patch needs to
+be merged regardless.
+
+Anyway, I'm about to send a pull request.
 
 -- 
 Felipe Contreras
