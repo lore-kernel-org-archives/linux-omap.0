@@ -1,65 +1,46 @@
 From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH 1/6] omap: iommu: remove redundant clock usage
-Date: Sun, 7 Nov 2010 09:55:25 -0600
-Message-ID: <AANLkTik3Qkf5cyYq-sP9gq0sG8fnYGHq7zvD7VuB-Vxy@mail.gmail.com>
+Subject: Re: [PATCH 2/6] OMAP3: hwmod data: Add mmu for iva2 and isp
+Date: Sun, 7 Nov 2010 10:00:26 -0600
+Message-ID: <AANLkTinn4_s-PX08H62AL-tn+8wxXXQjhUNq6d+aDOo+@mail.gmail.com>
 References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>
-	<1289006396-27230-2-git-send-email-omar.ramirez@ti.com>
-	<4CD5A846.4020607@ti.com>
+	<1289006396-27230-3-git-send-email-omar.ramirez@ti.com>
+	<4CD5A96D.1000806@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:44119 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753309Ab0KGPz0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 10:55:26 -0500
-Received: by mail-iw0-f175.google.com with SMTP id 42so5029381iwn.6
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 07:55:25 -0800 (PST)
-In-Reply-To: <4CD5A846.4020607@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:50872 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752717Ab0KGQA1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 11:00:27 -0500
+Received: by mail-iw0-f178.google.com with SMTP id 1so5075900iwn.9
+        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 08:00:26 -0800 (PST)
+In-Reply-To: <4CD5A96D.1000806@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Cousson, Benoit" <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Sat, Nov 6, 2010 at 2:11 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
+On Sat, Nov 6, 2010 at 2:15 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
 > On 11/5/2010 9:19 PM, Ramirez Luna, Omar wrote:
 >>
->> iommu driver is meant to provide control of mmu hardware blocks
+>> Add mmu hwmod data for iva2 and isp.
 >
-> A dot is missing here, and a capital letter should follow.
+> s/iva2/iva/
 
-Actually it is a comma, it is meant to be part of the same paragraph.
+Where this terminology can be found? I'm basing this naming on what
+was there or TRM. For omap3 there is no such thing as iva, it is iva2.
 
->
->> its current users (MMUs) are part of larger subsystems and do not
->> have a dedicated clock as the one they use is shared with the
->> entire subsystem, it doesn't make sense to enable/disable on each
->> register read/write operation as the driver using its interface
->> should also be handling the same clock.
->>
->> iommu should only enable/disable the clock on mmu request/free from
->> the driver wanting to use it.
->
-> Mmm, I'm not necessarily convinced by that explanation.
-> If in a next revision, we change the clock partitioning and provide a
-> dedicated clock for the mmu, it will not work anymore.
-> I don't thing you should assume anything about the current partitioning.
+I can change it but I just wanted to know.
 
-HW wise, only one clock feeds the mmu, iva2_ck is used to generate
-three clocks but this inside the IVA2 module. I'm assuming omap4 dsp
-is the same.
+> If you do need the version information, you should use the rev field in the
+> hwmod class.
 
-ISP also depends on cam_ick (among others), and mmu is inside ISP module afaik.
+I don't.
 
->From what I have checked on omap4 TRM it is the same, mmu doesn't have
-a direct clock, it relies on the main ipu clock to function, but it is
-my first glance to omap4 and I might be wrong.
+> All the comments about the structure fields order I did on your mailbox
+> series will apply here as well.
 
-> That being said, when you will change that code to switch to runtime PM, you
-> will end up managing the module state in the ISR context.
-
-Mainly this patch was sent on my laziness to add device enable/disable
-calls on all the parts the code is using clk disable/enable, given
-that they are not really needed.
+Same for my comments.
 
 Regards,
 
