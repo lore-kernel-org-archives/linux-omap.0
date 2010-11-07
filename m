@@ -1,40 +1,66 @@
-From: Rick Bronson <rick@efn.org>
-Subject: RE: Mistral AM37x (with AM3715) devel board networking broken
-Date: Sun, 07 Nov 2010 07:44:40 -0800
-Message-ID: <E1PF7Q8-0004IQ-8y@amazonia.comcast.net>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH 1/6] omap: iommu: remove redundant clock usage
+Date: Sun, 7 Nov 2010 09:55:25 -0600
+Message-ID: <AANLkTik3Qkf5cyYq-sP9gq0sG8fnYGHq7zvD7VuB-Vxy@mail.gmail.com>
+References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>
+	<1289006396-27230-2-git-send-email-omar.ramirez@ti.com>
+	<4CD5A846.4020607@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from efn.org ([206.192.230.249]:48089 "EHLO samwise.efn.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753309Ab0KGPol (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Nov 2010 10:44:41 -0500
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:44119 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753309Ab0KGPz0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 10:55:26 -0500
+Received: by mail-iw0-f175.google.com with SMTP id 42so5029381iwn.6
+        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 07:55:25 -0800 (PST)
+In-Reply-To: <4CD5A846.4020607@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: srinath@mistralsolutions.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-sanjeev,
+On Sat, Nov 6, 2010 at 2:11 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
+> On 11/5/2010 9:19 PM, Ramirez Luna, Omar wrote:
+>>
+>> iommu driver is meant to provide control of mmu hardware blocks
+>
+> A dot is missing here, and a capital letter should follow.
 
-  Thanks much for the help.
+Actually it is a comma, it is meant to be part of the same paragraph.
 
-> [sp] On first looks I would suspect the u-boot. 2009.11 seems to be quite old.
->      Can you try using version 2010.09?
+>
+>> its current users (MMUs) are part of larger subsystems and do not
+>> have a dedicated clock as the one they use is shared with the
+>> entire subsystem, it doesn't make sense to enable/disable on each
+>> register read/write operation as the driver using its interface
+>> should also be handling the same clock.
+>>
+>> iommu should only enable/disable the clock on mmu request/free from
+>> the driver wanting to use it.
+>
+> Mmm, I'm not necessarily convinced by that explanation.
+> If in a next revision, we change the clock partitioning and provide a
+> dedicated clock for the mmu, it will not work anymore.
+> I don't thing you should assume anything about the current partitioning.
 
-  I had tried 2010.09 on this board originally but found that it
-wasn't stable, it was almost like the SDRAM wasn't set up correctly.
-I'd get random panic's on bad pointers in Linux.  But I tried it
-anyway on this new kernel and it does set up the networking about 1 in
-5 boots.  Here is a boot where it set up the network
-http://www.efn.org/~rick/pub/boot4.log, it still has the warnings though.
+HW wise, only one clock feeds the mmu, iva2_ck is used to generate
+three clocks but this inside the IVA2 module. I'm assuming omap4 dsp
+is the same.
 
-  Please check my setup of u-boot, here is what I did:
+ISP also depends on cam_ick (among others), and mmu is inside ISP module afaik.
 
-wget ftp://ftp.denx.de/pub/u-boot/u-boot-2010.09.tar.bz2
-tar jxf u-boot-2010.09.tar.bz2
-cd u-boot-2010.09; make omap3_evm_config; make
+>From what I have checked on omap4 TRM it is the same, mmu doesn't have
+a direct clock, it relies on the main ipu clock to function, but it is
+my first glance to omap4 and I might be wrong.
 
-  Is this the correct config (omap3_evm_config) to use for this board?
-Maybe you could tell me what exact u-boot and kernel you'd recommend
-and the steps to get them for this board.
+> That being said, when you will change that code to switch to runtime PM, you
+> will end up managing the module state in the ISR context.
 
-  Thanks,
+Mainly this patch was sent on my laziness to add device enable/disable
+calls on all the parts the code is using clk disable/enable, given
+that they are not really needed.
 
-  Rick
+Regards,
+
+Omar
