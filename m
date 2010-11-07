@@ -1,76 +1,41 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 5/5] staging: tidspbridge: use boot control functions
-Date: Sun,  7 Nov 2010 23:43:29 +0200
-Message-ID: <1289166209-32251-6-git-send-email-felipe.contreras@gmail.com>
-References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 0/5] omap: dsp: fixes for 2.6.37-rc1
+Date: Sun, 7 Nov 2010 14:02:13 -0800
+Message-ID: <20101107220213.GB21070@kroah.com>
+References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com> <1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:44122 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218Ab0KGVpX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 16:45:23 -0500
-Received: by mail-fx0-f46.google.com with SMTP id 16so3600214fxm.19
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 13:45:22 -0800 (PST)
-In-Reply-To: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
+Received: from kroah.org ([198.145.64.141]:34445 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751313Ab0KGWIj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 7 Nov 2010 17:08:39 -0500
+Content-Disposition: inline
+In-Reply-To: <1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+On Sun, Nov 07, 2010 at 11:43:24PM +0200, Felipe Contreras wrote:
+> Hi,
+> 
+> Paul already sent these, but I did some minor modifications, mostly to minimize
+> the amount of changes.
+> 
+> Also, I'm re-sending my memblock patch so that the driver can actually be
+> compiled.
+> 
+> With these, and reverting the iommu patches[1], the driver should be working. I
+> don't see a more straight-forward way to achieve that.
 
-Use the new functions from SCM layer instead of handling registers
-directly with __raw_writel, as explained in:
+I can't take these through the staging tree unless I get an ack from the
+omap maintainers.
 
-http://marc.info/?l=linux-omap&m=128779652429922&w=2
+And as you are adding new infrastructure to the core kernel, this really
+needed to be there before .37-rc1, I don't think it's acceptable to
+merge this late in the development cycle.
 
-This fixes the build on 2.6.37 since control.h is not available for
-drivers any more.
+thanks,
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/staging/tidspbridge/core/tiomap3430.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index cb38743..84de0c2 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -23,7 +23,7 @@
- #include <dspbridge/host_os.h>
- #include <linux/mm.h>
- #include <linux/mmzone.h>
--#include <plat/control.h>
-+#include <plat/dsp.h>
- 
- /*  ----------------------------------- DSP/BIOS Bridge */
- #include <dspbridge/dbdefs.h>
-@@ -412,19 +412,18 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 
- 		/* Assert RST1 i.e only the RST only for DSP megacell */
- 		if (!status) {
-+			u8 bootmode;
- 			(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST1_IVA2_MASK,
- 					OMAP3430_RST1_IVA2_MASK, OMAP3430_IVA2_MOD,
- 					OMAP2_RM_RSTCTRL);
- 			/* Mask address with 1K for compatibility */
--			__raw_writel(dsp_addr & OMAP3_IVA2_BOOTADDR_MASK,
--					OMAP343X_CTRL_REGADDR(
--					OMAP343X_CONTROL_IVA2_BOOTADDR));
-+			dsp_addr &= OMAP3_IVA2_BOOTADDR_MASK;
-+			(*pdata->set_dsp_bootaddr)(dsp_addr);
- 			/*
- 			 * Set bootmode to self loop if dsp_debug flag is true
- 			 */
--			__raw_writel((dsp_debug) ? OMAP3_IVA2_BOOTMOD_IDLE : 0,
--					OMAP343X_CTRL_REGADDR(
--					OMAP343X_CONTROL_IVA2_BOOTMOD));
-+			bootmode = dsp_debug ? OMAP_DSP_BOOTMODE_IDLE : 0;
-+			(*pdata->set_dsp_bootmode)(bootmode);
- 		}
- 	}
- 	if (!status) {
--- 
-1.7.3.2.3.gf8529
-
+greg k-h
