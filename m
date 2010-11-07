@@ -1,23 +1,76 @@
-From: public.avatar@gmail.com ([AvataR])
-Subject: UbiFS + HWECC(?) + BeagleBoard = fail
-Date: Sun, 07 Nov 2010 09:40:23 +0200
-Message-ID: <87iq09wpi0.fsf@gmail.com>
+From: Ionut Nicu <ionut.nicu@mindbit.ro>
+Subject: Re: [PATCH v2 08/12] staging: tidspbridge: convert rmgr to
+ list_head
+Date: Sun, 07 Nov 2010 14:11:24 +0200
+Message-ID: <1289131884.9931.166.camel@atlantis.mindbit.ro>
+References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>
+	 <1288969996-22103-9-git-send-email-ionut.nicu@mindbit.ro>
+	 <AANLkTinvM3W1WRNjw8zd=Yi6_J6uEw-h0efLjMrndCgn@mail.gmail.com>
+	 <1289067507.9931.95.camel@atlantis.mindbit.ro>
+	 <20101106182610.GA7306@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:50328 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751717Ab0KGHk0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 02:40:26 -0500
-Received: by bwz11 with SMTP id 11so3894176bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 00:40:25 -0700 (PDT)
+Received: from ns.mindbit.ro ([80.86.127.26]:51375 "EHLO ns.mindbit.ro"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752305Ab0KGMLf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 7 Nov 2010 07:11:35 -0500
+In-Reply-To: <20101106182610.GA7306@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: "Sapiens, Rene" <rene.sapiens@ti.com>, Ionut Nicu <ionut.nicu@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi. After moving to upstream 2.6.3{5,6,7} kernels, i forced to use jffs2
-instead of ubifs, because of lot CRC errors. If i use prefetch/dma, i
-can attach to ubi, make volume, write data, reboot - and got lots of CRC
-errors. Without prefetch i just couldn't do anything to ubi. 
+Hi Greg,
 
-Looks like hw/sw bug in ubi
+On Sat, 2010-11-06 at 11:26 -0700, Greg KH wrote:
+> On Sat, Nov 06, 2010 at 08:18:27PM +0200, Ionut Nicu wrote:
+> > Hi Rene,
+> > 
+> > On Fri, 2010-11-05 at 18:07 -0600, Sapiens, Rene wrote:
+> > > Hi Ionut,
+> > > 
+> > > On Fri, Nov 5, 2010 at 9:13 AM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
+> > > > Convert the rmgr module of the tidspbridge driver
+> > > > to use struct list_head instead of struct lst_list.
+> > > >
+> > > > Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+> > > 
+> > > <snip>
+> > > 
+> > > > diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
+> > > 
+> > > <snip>
+> > > 
+> > > > @@ -492,16 +465,17 @@ u32 drv_get_next_dev_object(u32 hdev_obj)
+> > > >        u32 dw_next_dev_object = 0;
+> > > >        struct drv_object *pdrv_obj;
+> > > >        struct drv_data *drv_datap = dev_get_drvdata(bridge);
+> > > > +       struct list_head *curr;
+> > > >
+> > > >        DBC_REQUIRE(hdev_obj != 0);
+> > > 
+> > > can we remove the DBC_REQUIRE and always check for !hdev_obj?
+> > > 
+> > 
+> > Sounds ok to me.
+> > 
+> > As a general remark, I personally think that the DBC_* macros should be
+> > replaced with BUG_ON, WARN_ON, but that's a subject for other patches.
+> > What do you think? 
+> 
+> They should probably be deleted, I will not add any BUG_ON to a driver,
+> nor should anyone else.  That's just rude behavior to crash the system,
+> don't you think?
+> 
+
+You're right. Removing them sounds like a better plan. There over 1000
+DBC_* lines in this driver, so I guess it will clean it up a little bit.
+
+Just out of curiosity, in what cases is it acceptable to use
+BUG_ON/WARN_ON?
+
+Thanks,
+Ionut.
+
