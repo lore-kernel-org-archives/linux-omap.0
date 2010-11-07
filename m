@@ -1,114 +1,40 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH 0/6] omap: iommu: hwmod support and code reorganization
-Date: Sun, 7 Nov 2010 09:43:59 -0600
-Message-ID: <AANLkTinzR9uj816_o+j-1121Aw8Qc_p4uBGHRA31LU7f@mail.gmail.com>
-References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>
-	<4CD59F04.2000406@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Rick Bronson <rick@efn.org>
+Subject: RE: Mistral AM37x (with AM3715) devel board networking broken
+Date: Sun, 07 Nov 2010 07:44:40 -0800
+Message-ID: <E1PF7Q8-0004IQ-8y@amazonia.comcast.net>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58575 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753309Ab0KGPoC convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Nov 2010 10:44:02 -0500
-Received: by mail-iw0-f170.google.com with SMTP id 5so5023212iwn.1
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 07:43:59 -0800 (PST)
-In-Reply-To: <4CD59F04.2000406@ti.com>
+Received: from efn.org ([206.192.230.249]:48089 "EHLO samwise.efn.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753309Ab0KGPol (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 7 Nov 2010 10:44:41 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: srinath@mistralsolutions.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sat, Nov 6, 2010 at 1:31 PM, Cousson, Benoit <b-cousson@ti.com> wrot=
-e:
-> s/ducati/ipu/
-> s/tesla/dsp/
->
-> Please do not use internal codename for the changelog or even for the=
- code.
+sanjeev,
 
-I picked this terminology from the driver, I didn't want to cause
-confusion, agree to the change.
+  Thanks much for the help.
 
-> On 11/5/2010 9:19 PM, Ramirez Luna, Omar wrote:
->>
->> Boot tested on omap 3430 and 3630, functionality on iva2 only.
->>
->> Introduced hwmod data and support for omap3 (iva2 mmu& =A0isp mmu) a=
-nd
->> omap4 (ducati mmu& =A0tesla mmu).
->>
->> Minor cleanup due to this changes.
->>
->> There is an issue (present without patches too):
->>
->> Doing a cycle of insmod-rmmod to iommu module and then full
->> insmod of bridgedriver (with all dependencies) causes the next
->> read of iommu registers to dump an unhandled fault log; this,
->> because when rmmod of iommu is called it tries to clean the
->> iommu tables and flush any old entry prior to removing the driver,
->> however these reads/writes are attempted while the MMU is under
->> reset and will timeout on the L3 IVA target agent, which will leave
->> MMU unusable until the proper restore sequence to clear this L3
->> error is executed.
->>
->> Fix would be to move page table allocation to iommu get and its
->> correspondent free to iommu put, however it will fall entirely
->> under iommu user responsibility, as it needs to clear the mmu
->> reset bit, before calling iommu functions that read/write into
->> mmu registers (which should apply only for first boot or on
->> baseimage reload); trading this restriction in order to keep
->> the same generic iommu code for all omap iommu devices.
->>
->> This issue has been seen on omap3 iva2 mmu, same restriction should
->
-> I'm still not really understanding that issue.
-> In theory, the reset is deasserted when the omap_device is enabled an=
-d will
-> be re-asserted when the omap_device will be disable.
+> [sp] On first looks I would suspect the u-boot. 2009.11 seems to be quite old.
+>      Can you try using version 2010.09?
 
-Probably I'm missing the bits telling hwmod to handle its reset bit, I
-will recheck.
+  I had tried 2010.09 on this board originally but found that it
+wasn't stable, it was almost like the SDRAM wasn't set up correctly.
+I'd get random panic's on bad pointers in Linux.  But I tried it
+anyway on this new kernel and it does set up the networking about 1 in
+5 boots.  Here is a boot where it set up the network
+http://www.efn.org/~rick/pub/boot4.log, it still has the warnings though.
 
-> Why is the mmu already under reset when the iommu is trying to clean =
-the
-> tables?
+  Please check my setup of u-boot, here is what I did:
 
-However, the driver disables the device on a call named iommu_put
-(where, from your comment, reset should be re-asserted ), and cleans
-the TLBs and page tables on removal of the driver (after iommu_put).
+wget ftp://ftp.denx.de/pub/u-boot/u-boot-2010.09.tar.bz2
+tar jxf u-boot-2010.09.tar.bz2
+cd u-boot-2010.09; make omap3_evm_config; make
 
-> Could please describe the complete sequence?
+  Is this the correct config (omap3_evm_config) to use for this board?
+Maybe you could tell me what exact u-boot and kernel you'd recommend
+and the steps to get them for this board.
 
-I'm assuming the dependencies are installed.
+  Thanks,
 
-on boot up:
-1. insmod iommu.ko
-- device_enable is not called, unless a call to iommu_get is given,
-this will mean that the driver has one user and thus device_enable is
-called (however right now it doesn't matter if you call iommu_get or
-not)
-
-2. rmmod iommu.ko
-- remove function will try to cleanup the TLBs writing into MMU
-registers, since MMU is on reset it will trigger a timeout on its TA.
-
-3. insmod bridgedriver.ko
-- it is dependent on iommu.ko so it should have been installed before.
-Whenever bridge calls iommu_get, the external abort will be caused due
-to a read to MMU.
-
-As I commented, cleaning the page tables could be moved from driver's
-remove function to iommu_put, if omap device enable/disable is
-handling the reset bit probably this issue shouldn't be hit.
-
-Regards,
-
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  Rick
