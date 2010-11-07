@@ -1,118 +1,51 @@
-From: Ionut Nicu <ionut.nicu@mindbit.ro>
-Subject: Re: [PATCH v2 07/12] staging: tidspbridge: convert pmgr to
- list_head
-Date: Sun, 07 Nov 2010 15:39:10 +0200
-Message-ID: <1289137150.9931.231.camel@atlantis.mindbit.ro>
-References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>
-	 <1288969996-22103-8-git-send-email-ionut.nicu@mindbit.ro>
-	 <AANLkTin7qBbn4jZrKSivPUYUAkN2cS-3cyQOeFuowUp7@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2 08/12] staging: tidspbridge: convert rmgr to list_head
+Date: Sun, 07 Nov 2010 08:24:10 -0600
+Message-ID: <4CD6B68A.5010107@ti.com>
+References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>	 <1288969996-22103-9-git-send-email-ionut.nicu@mindbit.ro>	 <AANLkTinvM3W1WRNjw8zd=Yi6_J6uEw-h0efLjMrndCgn@mail.gmail.com>	 <1289067507.9931.95.camel@atlantis.mindbit.ro>	 <20101106182610.GA7306@kroah.com> <1289131884.9931.166.camel@atlantis.mindbit.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.mindbit.ro ([80.86.127.26]:37831 "EHLO ns.mindbit.ro"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752904Ab0KGNjV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Nov 2010 08:39:21 -0500
-In-Reply-To: <AANLkTin7qBbn4jZrKSivPUYUAkN2cS-3cyQOeFuowUp7@mail.gmail.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:38039 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752920Ab0KGOYU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 09:24:20 -0500
+Received: by gxk1 with SMTP id 1so3367005gxk.18
+        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 06:24:19 -0800 (PST)
+In-Reply-To: <1289131884.9931.166.camel@atlantis.mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sapiens, Rene" <rene.sapiens@ti.com>
-Cc: Ionut Nicu <ionut.nicu@gmail.com>, Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Ionut Nicu <ionut.nicu@mindbit.ro>
+Cc: Greg KH <greg@kroah.com>, "Sapiens, Rene" <rene.sapiens@ti.com>, Ionut Nicu <ionut.nicu@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Rene,
+Ionut Nicu wrote, on 11/07/2010 06:11 AM:
 
-On Fri, 2010-11-05 at 16:41 -0600, Sapiens, Rene wrote:
-> Hi Ionut,
-> 
-> On Fri, Nov 5, 2010 at 9:13 AM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
-> > Convert the pmgr module of the tidspbridge driver
-> > to use struct list_head instead of struct lst_list.
-> 
-> <snip>
-> 
-> > + * Memory is coalesced back to the appropriate heap when a buffer is
-> 
-> What is being fixed here?
-> 
+> Just out of curiosity, in what cases is it acceptable to use
+> BUG_ON/WARN_ON?
+here is my rule for BUG_ON Vs WARN_ON:
 
-It was a typo (s/coelesced/coalesced/).
+imagine this code to be running on your Phone while you are doing 
+sometime important, and this case gets hit - choose:
+a) you stop the entire phone - BUG_ON
+b) provide a cryptic info - WARN_ON - just the func name with not much 
+additional data
+c) provide detailed info : in the order of my personal preference:
+	dev_dbg/dev_info/dev_err/... -> if there is anychange of getting to the 
+struct device * representing the device
+	pr_err/pr_info/pr_warning -> if there is no other alternative
 
-> >  * freed.
-> >  *
-> >  * Notes:
-> 
-> <snip>
-> 
-> > @@ -833,67 +768,44 @@ static void add_to_free_list(struct cmm_allocator *allocator,
-> >        DBC_REQUIRE(allocator != NULL);
-> >        dw_this_pa = pnode->dw_pa;
-> >        dw_next_pa = NEXT_PA(pnode);
-> 
-> i think it would be good to return with error if !allocator or !pnode
-> and remove the	resulting duplicated DBC_REQUIRE.
-> 
+keep in mind - few months from now, code would change, function line 
+numbers change etc.. - I'd usually NOT TOUCH BUG_ON, NOT use WARN_ON 
+unless I am threatened by maintainer, and choose one of (c) based on the 
+location in the code I am at..
 
-Yeah I think pnode should be checked for null. Can allocator ever be
-null?
+I know that some folks think that when a case is reached, they'd like to 
+do a BUG_ON so that the issue is caught and fixed immediately - SORRY, I 
+disagree as I see the code running in a endproduct - and BUG_ONs cause 
+system hang and reboots in an end product - which as a personal user of 
+a great Linux phone like N900 is definitely not my personal preference.
 
-> > -       mnode_obj = (struct cmm_mnode *)lst_first(allocator->free_list_head);
-> > -       while (mnode_obj) {
-> > +       list_for_each_entry(mnode_obj, &allocator->free_list, link) {
-> >                if (dw_this_pa == NEXT_PA(mnode_obj)) {
-> 
-> <snip>
-> 
-> > @@ -748,18 +736,16 @@ bool dev_init(void)
-> >  */
-> >  int dev_notify_clients(struct dev_object *hdev_obj, u32 ret)
-> >  {
-> > -       int status = 0;
-> > -
-> >        struct dev_object *dev_obj = hdev_obj;
-> > -       void *proc_obj;
-> > +       struct list_head *curr;
-> 
-> can we add a check for !dev_obj and !dev_obj->proc_list just to be
-> sure that we get always the correct pointer?
-> 
-
-proc_list isn't a pointer. Can dev_obj ever be null?
-
-> <snip>
-> 
-> > @@ -947,15 +933,17 @@ int dev_insert_proc_object(struct dev_object *hdev_obj,
-> >        DBC_REQUIRE(refs > 0);
-> >        DBC_REQUIRE(dev_obj);
-> >        DBC_REQUIRE(proc_obj != 0);
-> > -       DBC_REQUIRE(dev_obj->proc_list != NULL);
-> >        DBC_REQUIRE(already_attached != NULL);
-> 
-> can we check for !hdev_obj, !already_attached even if we have the
-> DBC_REQUIRE?, maybe we can actually remove the DBC_REQUIRE that could
-> be redundant after applying this.
-> 
-
-Same question here.
-
-> > -       if (!LST_IS_EMPTY(dev_obj->proc_list))
-> > +       if (!list_empty(&dev_obj->proc_list))
-> >                *already_attached = true;
-> 
-> <snip>
-> 
-> > @@ -986,15 +974,12 @@ int dev_remove_proc_object(struct dev_object *hdev_obj, u32 proc_obj)
-> >
-> >        DBC_REQUIRE(dev_obj);
-> >        DBC_REQUIRE(proc_obj != 0);
-> > -       DBC_REQUIRE(dev_obj->proc_list != NULL);
-> > -       DBC_REQUIRE(!LST_IS_EMPTY(dev_obj->proc_list));
-> > +       DBC_REQUIRE(!list_empty(&dev_obj->proc_list));
-> >
-> 
->  The same comment as above.
-> 
-
+-- 
 Regards,
-Ionut.
-
+Nishanth Menon
