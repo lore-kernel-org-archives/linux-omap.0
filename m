@@ -1,15 +1,15 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 3/5] omap: pm: use control functions in DSP reset code
-Date: Sun,  7 Nov 2010 23:43:27 +0200
-Message-ID: <1289166209-32251-4-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 5/5] staging: tidspbridge: use boot control functions
+Date: Sun,  7 Nov 2010 23:43:29 +0200
+Message-ID: <1289166209-32251-6-git-send-email-felipe.contreras@gmail.com>
 References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-fx0-f46.google.com ([209.85.161.46]:44122 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218Ab0KGVou (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 16:44:50 -0500
+	with ESMTP id S1753218Ab0KGVpX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 16:45:23 -0500
 Received: by mail-fx0-f46.google.com with SMTP id 16so3600214fxm.19
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 13:44:50 -0800 (PST)
+        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 13:45:22 -0800 (PST)
 In-Reply-To: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,50 +18,59 @@ Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, P
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Update the DSP reset code in pm34xx.c to use one of the new SCM DSP boot
-control functions, omap_ctrl_set_dsp_bootmode().
+Use the new functions from SCM layer instead of handling registers
+directly with __raw_writel, as explained in:
 
-This reset code should be moved out to a separate function to be called
-by the hwmod reset process at some point.  Also, 2430 should be
-initializing the DSP in a similar fashion.
+http://marc.info/?l=linux-omap&m=128779652429922&w=2
+
+This fixes the build on 2.6.37 since control.h is not available for
+drivers any more.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/staging/tidspbridge/core/tiomap3430.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 75c0cd1..86e7e99 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -37,6 +37,7 @@
- #include <plat/prcm.h>
- #include <plat/gpmc.h>
- #include <plat/dma.h>
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
+index cb38743..84de0c2 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+@@ -23,7 +23,7 @@
+ #include <dspbridge/host_os.h>
+ #include <linux/mm.h>
+ #include <linux/mmzone.h>
+-#include <plat/control.h>
 +#include <plat/dsp.h>
  
- #include <asm/tlbflush.h>
+ /*  ----------------------------------- DSP/BIOS Bridge */
+ #include <dspbridge/dbdefs.h>
+@@ -412,19 +412,18 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
  
-@@ -614,6 +615,7 @@ static struct platform_suspend_ops omap_pm_ops = {
-  * function forces the IVA2 into idle state so it can go
-  * into retention/off and thus allow full-chip retention/off.
-  *
-+ * XXX This should be handled by the hwmod.
-  **/
- static void __init omap3_iva_idle(void)
- {
-@@ -635,9 +637,7 @@ static void __init omap3_iva_idle(void)
- 	cm_write_mod_reg(OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_MASK,
- 			 OMAP3430_IVA2_MOD, CM_FCLKEN);
- 
--	/* Set IVA2 boot mode to 'idle' */
--	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
--			 OMAP343X_CONTROL_IVA2_BOOTMOD);
-+	omap_ctrl_set_dsp_bootmode(OMAP_DSP_BOOTMODE_IDLE);
- 
- 	/* Un-reset IVA2 */
- 	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
+ 		/* Assert RST1 i.e only the RST only for DSP megacell */
+ 		if (!status) {
++			u8 bootmode;
+ 			(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST1_IVA2_MASK,
+ 					OMAP3430_RST1_IVA2_MASK, OMAP3430_IVA2_MOD,
+ 					OMAP2_RM_RSTCTRL);
+ 			/* Mask address with 1K for compatibility */
+-			__raw_writel(dsp_addr & OMAP3_IVA2_BOOTADDR_MASK,
+-					OMAP343X_CTRL_REGADDR(
+-					OMAP343X_CONTROL_IVA2_BOOTADDR));
++			dsp_addr &= OMAP3_IVA2_BOOTADDR_MASK;
++			(*pdata->set_dsp_bootaddr)(dsp_addr);
+ 			/*
+ 			 * Set bootmode to self loop if dsp_debug flag is true
+ 			 */
+-			__raw_writel((dsp_debug) ? OMAP3_IVA2_BOOTMOD_IDLE : 0,
+-					OMAP343X_CTRL_REGADDR(
+-					OMAP343X_CONTROL_IVA2_BOOTMOD));
++			bootmode = dsp_debug ? OMAP_DSP_BOOTMODE_IDLE : 0;
++			(*pdata->set_dsp_bootmode)(bootmode);
+ 		}
+ 	}
+ 	if (!status) {
 -- 
 1.7.3.2.3.gf8529
 
