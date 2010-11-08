@@ -1,115 +1,82 @@
-From: "Sapiens, Rene" <rene.sapiens@ti.com>
-Subject: Re: [PATCH v2 06/12] staging: tidspbridge: convert core to list_head
-Date: Mon, 8 Nov 2010 13:16:22 -0600
-Message-ID: <AANLkTikxaqWoBynTqMhrZ0mPti4JHiXvkz9=su-OKeRF@mail.gmail.com>
-References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>
-	<1288969996-22103-7-git-send-email-ionut.nicu@mindbit.ro>
-	<AANLkTinEa8y1AfeNDKa6gDcDoL-s6BKU_RLyr4BRUDDJ@mail.gmail.com>
-	<1289064703.9931.49.camel@atlantis.mindbit.ro>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/5] omap: dsp: fixes for 2.6.37-rc1
+Date: Mon, 8 Nov 2010 11:16:49 -0800
+Message-ID: <20101108191648.GR9264@atomide.com>
+References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
+ <1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
+ <20101107220213.GB21070@kroah.com>
+ <AANLkTin=reP=SJvo19=bPjYY2Owxa7a9EPKk-Jui97B4@mail.gmail.com>
+ <20101108164538.GJ9264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:38213 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751649Ab0KHTQX convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Nov 2010 14:16:23 -0500
-Received: by mail-wy0-f181.google.com with SMTP id 40so7098888wyb.40
-        for <linux-omap@vger.kernel.org>; Mon, 08 Nov 2010 11:16:22 -0800 (PST)
-In-Reply-To: <1289064703.9931.49.camel@atlantis.mindbit.ro>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60823 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751798Ab0KHTQ5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Nov 2010 14:16:57 -0500
+Content-Disposition: inline
+In-Reply-To: <20101108164538.GJ9264@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ionut Nicu <ionut.nicu@mindbit.ro>
-Cc: Ionut Nicu <ionut.nicu@gmail.com>, Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Greg KH <greg@kroah.com>, linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Paul Walmsley <paul@pwsan.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
 
-Hi Ionut,
+* Tony Lindgren <tony@atomide.com> [101108 08:37]:
+> * Felipe Contreras <felipe.contreras@gmail.com> [101107 14:38]:
+> 
+> Thanks for putting together all these patches, that already helps
+> people working on it a great deal.
+> 
+> However, these patches are in the no-no category for -rc cycle, they're
+> in the "fixes for features that never worked in the first place"
+> category. Linus will not take it and I don't want to take it. We just
+> have to follow the standard Linux development cycle.
+>  
+> > Anyway, there's an alternative that doesn't require omap to ack:
+> > 
+> > --- a/drivers/staging/tidspbridge/core/tiomap3430.c
+> > +++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+> > @@ -23,7 +23,6 @@
+> >  #include <dspbridge/host_os.h>
+> >  #include <linux/mm.h>
+> >  #include <linux/mmzone.h>
+> > -#include <plat/control.h>
+> > 
+> >  /*  ----------------------------------- DSP/BIOS Bridge */
+> >  #include <dspbridge/dbdefs.h>
+> > @@ -74,6 +73,18 @@
+> >  #define PAGES_II_LVL_TABLE   512
+> >  #define PHYS_TO_PAGE(phys)      pfn_to_page((phys) >> PAGE_SHIFT)
+> > 
+> > +/*
+> > + * This is a totally ugly layer violation, but needed until
+> > + * omap_ctrl_set_dsp_boot*() are provided.
+> > + */
+> > +#define OMAP3_IVA2_BOOTMOD_IDLE 1
+> > +#define OMAP2_CONTROL_GENERAL 0x270
+> > +#define OMAP343X_CONTROL_IVA2_BOOTADDR (OMAP2_CONTROL_GENERAL + 0x0190)
+> > +#define OMAP343X_CONTROL_IVA2_BOOTMOD (OMAP2_CONTROL_GENERAL + 0x0194)
+> > +
+> > +#define OMAP343X_CTRL_REGADDR(reg) \
+> > +       OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
+> > +
+> >  /* Forward Declarations: */
+> >  static int bridge_brd_monitor(struct bridge_dev_context *dev_ctxt);
+> >  static int bridge_brd_read(struct bridge_dev_context *dev_ctxt,
+> 
+> If this makes the dspbridge usable, that sounds like the way to go
+> for the -rc cycle.
+> 
+> But I don't think this the only patch needed then?
 
-On Sat, Nov 6, 2010 at 11:31 AM, Ionut Nicu <ionut.nicu@mindbit.ro> wro=
-te:
-> Hi Rene,
->
-> On Fri, 2010-11-05 at 16:12 -0600, Sapiens, Rene wrote:
->> Hi Ionut,
->>
->> On Fri, Nov 5, 2010 at 9:13 AM, Ionut Nicu <ionut.nicu@gmail.com> wr=
-ote:
->> > Convert the core module of the tidspbridge driver
->> > to use struct list_head instead of struct lst_list.
->> >
->> > Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
->>
->> <snip>
->>
->> > diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/st=
-aging/tidspbridge/core/io_sm.c
->> > index 194bada..9851f32 100644
->> > --- a/drivers/staging/tidspbridge/core/io_sm.c
->> > +++ b/drivers/staging/tidspbridge/core/io_sm.c
->>
->> <snip>
->>
->> > @@ -1106,47 +1103,38 @@ static void input_msg(struct io_mgr *pio_m=
-gr, struct msg_mgr *hmsg_mgr)
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 * queued.
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 */
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0(*hmsg_mgr->on_exit) ((void *)
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0msg_queue_obj->arg,
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0msg.msg.dw_arg1);
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 msg_queue_obj->arg,
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 msg.msg.dw_arg1);
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 break;
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*=
- Not an exit acknowledgement, queue
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*=
- the message.
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*=
-/
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (=
-!list_empty(&msg_queue_obj->msg_free_list)) {
->>
->> You are going beyond the 80 chars.
->>
->
-> I thought about it too when using scripts/checkpatch.pl on this patch=
-=2E
-> The thing is that it's 81 chars and breaking it into two lines makes =
-it
-> look uglier. Also, this gets fixed in patch 10/12 (core code cleanup)=
-=2E
+I guess it would be this fix + omap: dsp: remove shm from normal memory +
+revert some drivers/staging/tidspbridge patches?
 
-I think that it would be better to see every patch as a single element =
-which
-would accomplish with all the standards, what if the patch 10/12 doesn'=
-t get
-merged?...
+It's still quite a bit of patches for the -rc cycle..
 
-Probably we can keep this line uglier in this patch and make it prettie=
-r in the
-10/12 one or even better, make it prettier in this patch.
+If you want, I can keep merging your branch into linux-omap master
+branch for testing while we're waiting for the next merge window. 
 
->
-> Regards,
-> Ionut.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
