@@ -1,106 +1,111 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 0/6] omap: iommu: hwmod support and code reorganization
-Date: Mon, 8 Nov 2010 16:56:35 -0500
-Message-ID: <4CD87213.7050509@ti.com>
-References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>	<4CD59F04.2000406@ti.com> <AANLkTinzR9uj816_o+j-1121Aw8Qc_p4uBGHRA31LU7f@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 0/5] omap: dsp: fixes for 2.6.37-rc1
+Date: Tue, 9 Nov 2010 00:56:38 +0200
+Message-ID: <AANLkTimNZKVPuHpyLb58r+fNyggdK5HqVhc_ZwAs9=o9@mail.gmail.com>
+References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
+	<1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
+	<20101107220213.GB21070@kroah.com>
+	<AANLkTin=reP=SJvo19=bPjYY2Owxa7a9EPKk-Jui97B4@mail.gmail.com>
+	<20101108164538.GJ9264@atomide.com>
+	<20101108191648.GR9264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43884 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755568Ab0KHVzv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Nov 2010 16:55:51 -0500
-In-Reply-To: <AANLkTinzR9uj816_o+j-1121Aw8Qc_p4uBGHRA31LU7f@mail.gmail.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:56155 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754546Ab0KHW4j convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Nov 2010 17:56:39 -0500
+Received: by bwz15 with SMTP id 15so476290bwz.19
+        for <linux-omap@vger.kernel.org>; Mon, 08 Nov 2010 14:56:38 -0800 (PST)
+In-Reply-To: <20101108191648.GR9264@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Greg KH <greg@kroah.com>, linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Paul Walmsley <paul@pwsan.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
 
-On 11/7/2010 10:43 AM, Ramirez Luna, Omar wrote:
-> On Sat, Nov 6, 2010 at 1:31 PM, Cousson, Benoit<b-cousson@ti.com>  wrote:
->> s/ducati/ipu/
->> s/tesla/dsp/
+On Mon, Nov 8, 2010 at 9:16 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Tony Lindgren <tony@atomide.com> [101108 08:37]:
+>> * Felipe Contreras <felipe.contreras@gmail.com> [101107 14:38]:
 >>
->> Please do not use internal codename for the changelog or even for the code.
->
-> I picked this terminology from the driver, I didn't want to cause
-> confusion, agree to the change.
->
->> On 11/5/2010 9:19 PM, Ramirez Luna, Omar wrote:
->>>
->>> Boot tested on omap 3430 and 3630, functionality on iva2 only.
->>>
->>> Introduced hwmod data and support for omap3 (iva2 mmu&    isp mmu) and
->>> omap4 (ducati mmu&    tesla mmu).
->>>
->>> Minor cleanup due to this changes.
->>>
->>> There is an issue (present without patches too):
->>>
->>> Doing a cycle of insmod-rmmod to iommu module and then full
->>> insmod of bridgedriver (with all dependencies) causes the next
->>> read of iommu registers to dump an unhandled fault log; this,
->>> because when rmmod of iommu is called it tries to clean the
->>> iommu tables and flush any old entry prior to removing the driver,
->>> however these reads/writes are attempted while the MMU is under
->>> reset and will timeout on the L3 IVA target agent, which will leave
->>> MMU unusable until the proper restore sequence to clear this L3
->>> error is executed.
->>>
->>> Fix would be to move page table allocation to iommu get and its
->>> correspondent free to iommu put, however it will fall entirely
->>> under iommu user responsibility, as it needs to clear the mmu
->>> reset bit, before calling iommu functions that read/write into
->>> mmu registers (which should apply only for first boot or on
->>> baseimage reload); trading this restriction in order to keep
->>> the same generic iommu code for all omap iommu devices.
->>>
->>> This issue has been seen on omap3 iva2 mmu, same restriction should
+>> Thanks for putting together all these patches, that already helps
+>> people working on it a great deal.
 >>
->> I'm still not really understanding that issue.
->> In theory, the reset is deasserted when the omap_device is enabled and will
->> be re-asserted when the omap_device will be disable.
+>> However, these patches are in the no-no category for -rc cycle, they=
+'re
+>> in the "fixes for features that never worked in the first place"
+>> category. Linus will not take it and I don't want to take it. We jus=
+t
+>> have to follow the standard Linux development cycle.
+>>
+>> > Anyway, there's an alternative that doesn't require omap to ack:
+>> >
+>> > --- a/drivers/staging/tidspbridge/core/tiomap3430.c
+>> > +++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+>> > @@ -23,7 +23,6 @@
+>> > =C2=A0#include <dspbridge/host_os.h>
+>> > =C2=A0#include <linux/mm.h>
+>> > =C2=A0#include <linux/mmzone.h>
+>> > -#include <plat/control.h>
+>> >
+>> > =C2=A0/* =C2=A0----------------------------------- DSP/BIOS Bridge=
+ */
+>> > =C2=A0#include <dspbridge/dbdefs.h>
+>> > @@ -74,6 +73,18 @@
+>> > =C2=A0#define PAGES_II_LVL_TABLE =C2=A0 512
+>> > =C2=A0#define PHYS_TO_PAGE(phys) =C2=A0 =C2=A0 =C2=A0pfn_to_page((=
+phys) >> PAGE_SHIFT)
+>> >
+>> > +/*
+>> > + * This is a totally ugly layer violation, but needed until
+>> > + * omap_ctrl_set_dsp_boot*() are provided.
+>> > + */
+>> > +#define OMAP3_IVA2_BOOTMOD_IDLE 1
+>> > +#define OMAP2_CONTROL_GENERAL 0x270
+>> > +#define OMAP343X_CONTROL_IVA2_BOOTADDR (OMAP2_CONTROL_GENERAL + 0=
+x0190)
+>> > +#define OMAP343X_CONTROL_IVA2_BOOTMOD (OMAP2_CONTROL_GENERAL + 0x=
+0194)
+>> > +
+>> > +#define OMAP343X_CTRL_REGADDR(reg) \
+>> > + =C2=A0 =C2=A0 =C2=A0 OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE + (r=
+eg))
+>> > +
+>> > =C2=A0/* Forward Declarations: */
+>> > =C2=A0static int bridge_brd_monitor(struct bridge_dev_context *dev=
+_ctxt);
+>> > =C2=A0static int bridge_brd_read(struct bridge_dev_context *dev_ct=
+xt,
+>>
+>> If this makes the dspbridge usable, that sounds like the way to go
+>> for the -rc cycle.
+>>
+>> But I don't think this the only patch needed then?
 >
-> Probably I'm missing the bits telling hwmod to handle its reset bit, I
-> will recheck.
+> I guess it would be this fix + omap: dsp: remove shm from normal memo=
+ry +
+> revert some drivers/staging/tidspbridge patches?
+>
+> It's still quite a bit of patches for the -rc cycle..
 
-After reading the other patches of that series, this is what I realized 
-as well. You need the entries with hw reset information to make that works.
+=46ine, then all you need to do is ack one patch:
+http://article.gmane.org/gmane.linux.ports.arm.omap/45076
 
->
->> Why is the mmu already under reset when the iommu is trying to clean the
->> tables?
->
-> However, the driver disables the device on a call named iommu_put
-> (where, from your comment, reset should be re-asserted ), and cleans
-> the TLBs and page tables on removal of the driver (after iommu_put).
->
->> Could please describe the complete sequence?
->
-> I'm assuming the dependencies are installed.
->
-> on boot up:
-> 1. insmod iommu.ko
-> - device_enable is not called, unless a call to iommu_get is given,
-> this will mean that the driver has one user and thus device_enable is
-> called (however right now it doesn't matter if you call iommu_get or
-> not)
->
-> 2. rmmod iommu.ko
-> - remove function will try to cleanup the TLBs writing into MMU
-> registers, since MMU is on reset it will trigger a timeout on its TA.
->
-> 3. insmod bridgedriver.ko
-> - it is dependent on iommu.ko so it should have been installed before.
-> Whenever bridge calls iommu_get, the external abort will be caused due
-> to a read to MMU.
->
-> As I commented, cleaning the page tables could be moved from driver's
-> remove function to iommu_put, if omap device enable/disable is
-> handling the reset bit probably this issue shouldn't be hit.
+I sent this 20 days ago, it's 3 lines of diff, and it fixes a break
+issue that was introduced on 2.6.37-rc1. This would not have made
+sense before .37 because of the memblock changes that just got in. You
+should have picked this one for the .37 merge window, there was
+nothing preventing that. But it's still not too late because this is
+not new code, it's a fix.
 
-Yep, I think so as well.
+But you don't need to pick this one, all you need to do is ack it.
 
-Regards,
-Benoit
+The rest is for Greg to decide.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
