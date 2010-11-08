@@ -1,98 +1,66 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 1/2] video: omap: vram: remove from normal memory
-Date: Mon, 8 Nov 2010 00:49:48 +0200
-Message-ID: <AANLkTin+0B1GbiJkf9X88-08Yc6LROSorPyCyydvCtkK@mail.gmail.com>
-References: <AANLkTik_6byuzkZ+mKunTi6HJTHu49C4XGebfTjCaEeE@mail.gmail.com>
-	<1287146784-5517-1-git-send-email-felipe.contreras@gmail.com>
-	<1287407452.6781.64.camel@tubuntu>
-	<1287410618.6781.110.camel@tubuntu>
-	<20101018225534.GH13341@atomide.com>
-	<1287489785.2216.10.camel@tubuntu>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: Re: [PATCH RFC] usb: musb: fail unaligned DMA transfers on v1.8 and
+ above
+Date: Mon, 08 Nov 2010 11:51:55 +0530
+Message-ID: <4CD79703.6010503@ti.com>
+References: <1288502759-18618-1-git-send-email-gadiyar@ti.com> <AANLkTimAmGNtH3OTF9+G55jVYrokwe6bqENhaxHmtdv+@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:56461 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439Ab0KGWtv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Nov 2010 17:49:51 -0500
-Received: by bwz11 with SMTP id 11so4284056bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 07 Nov 2010 14:49:50 -0800 (PST)
-In-Reply-To: <1287489785.2216.10.camel@tubuntu>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:46273 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750994Ab0KHGWF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Nov 2010 01:22:05 -0500
+In-Reply-To: <AANLkTimAmGNtH3OTF9+G55jVYrokwe6bqENhaxHmtdv+@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, Russell King <linux@arm.linux.org.uk>, "mike@compulab.co.il" <mike@compulab.co.il>
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, Felipe Balbi <balbi@ti.com>, Ajay Kumar Gupta <ajay.gupta@ti.com>, Mike Frysinger <vapier@gentoo.org>, hemahk@ti.com
 
-On Tue, Oct 19, 2010 at 3:03 PM, Tomi Valkeinen
-<tomi.valkeinen@nokia.com> wrote:
-> On Tue, 2010-10-19 at 00:55 +0200, ext Tony Lindgren wrote:
->> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [101018 06:55]:
->> > On Mon, 2010-10-18 at 16:10 +0300, Tomi Valkeinen wrote:
->> > > Hi,
->> > >
->> > > On Fri, 2010-10-15 at 14:46 +0200, ext Felipe Contreras wrote:
->> > > > So that we can ioremap happily.
->> > > >
->> > > > Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
->> > > > Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
->> > > > ---
->> > > > =C2=A0drivers/video/omap2/vram.c | =C2=A0 =C2=A02 ++
->> > > > =C2=A01 files changed, 2 insertions(+), 0 deletions(-)
->> > > >
->> > > > diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/=
-vram.c
->> > > > index f6fdc20..1a99777 100644
->> > > > --- a/drivers/video/omap2/vram.c
->> > > > +++ b/drivers/video/omap2/vram.c
->> > > > @@ -575,6 +575,8 @@ void __init omap_vram_reserve_sdram_memblo=
-ck(void)
->> > > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->> > > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
->> > > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 paddr =
-=3D memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_REAL_LIMIT);
->> > > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 memblock_fr=
-ee(paddr, size);
->> > > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 memblock_re=
-move(paddr, size);
->> > > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->> > > >
->> > > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_vram_add_region(paddr, size);
->> > >
->> > > I tested this on OMAP3 SDP board, on top of my DSS2 tree. I can =
-boot up
->> > > fine, but my test program crashes the kernel (dump below).
->> > >
->> > > This crash doesn't happen if I have the "HACK: OMAP: DSS2: OMAPF=
-B: use
->> > > phys_to_virt for RAM mappings" patch in (I removed that during t=
-esting
->> > > this patch).
->> > >
->> > > I don't know yet what is crashing the kernel, but I'd guess it's=
- the
->> > > fact that my test program reallocates the framebuffer memory wit=
-h
->> > > OMAPFB_SETUP_MEM ioctl.
->> >
->> > Ah, sorry, I was missing the patch from Russel which you mentioned=
- in
->> > another mail (http://article.gmane.org/gmane.linux.kernel/1047146)=
-=2E With
->> > that patch included things seem to work.
+On 10/31/2010 3:29 PM, Ming Lei wrote:
+> 2010/10/31 Anand Gadiyar<gadiyar@ti.com>:
+>> The Inventra DMA engine in version 1.8 and later of the MUSB
+>> controller cannot handle DMA addresses that are not aligned
+>> to a 4 byte boundary. It ends up ignoring the last two bits
+>> programmed in the DMA_ADDR register. This is a deliberate
+>> design change in the controller and is documented in the
+>> programming guide.
 >>
->> Tomi, I assume you're queuing these? If so, for both:
+>> Earlier versions of the controller could handle these
+>> accesses just fine.
 >>
->> Acked-by: Tony Lindgren <tony@atomide.com>
+>> Fail dma_channel_program if we see an unaligned address when
+>> using the newer controllers, so that the caller can carry out
+>> the transfer using PIO mode.
+>> (Current callers already have this backup path in place).
+>>
+>> Signed-off-by: Anand Gadiyar<gadiyar@ti.com>
+>> Cc: Felipe Balbi<balbi@ti.com>
+>> Cc: Ming Lei<tom.leiming@gmail.com>
+>> Cc: Ajay Kumar Gupta<ajay.gupta@ti.com>
+>> Cc: Mike Frysinger<vapier@gentoo.org>
 >
-> Yes, I can queue them (when the required memblock stuff is in).
+> Tested-by: Ming Lei<tom.leiming@gmail.com>
+>
+> This patch is verified OK about g_ether function on beagle xM board,
+> but the revised patch "usb: musb: gadget: Unmapping the dma buffer
+> when switching to PIO mode" [1] should be applied first.
+>
+>> ---
+>> Patch based on linux-next as of 20101029.
+>>
+>> I believe Blackfin is also affected by this, but I'm not sure how
+>> they're working around this. Mike?
+>
+> MUSB on Blackfin will fallback to PIO too, so no any working around
+> for it, right?
+>
 
-Now it's in :) (v2.6.37-rc1)
+I meant Blackfin should also have hit this issue so far. I'm making
+a change based on the MUSB revision - so this change will affect 
+Blackfin for sure - they use revision 1.9 and 2.0 I think. So I'm just 
+wondering if they really are affected, or they've simply never hit this 
+scenario before.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Anand
