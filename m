@@ -1,86 +1,91 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH 1/3] OMAP: use generic panel data in board files
-Date: Mon, 08 Nov 2010 14:19:23 +0200
-Message-ID: <1289218763.3297.47.camel@tubuntu>
-References: <1288986236-30210-1-git-send-email-bryan.wu@canonical.com>
-	 <1288986236-30210-2-git-send-email-bryan.wu@canonical.com>
-	 <FCCFB4CDC6E5564B9182F639FC356087034BF2D67E@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 0/7] OMAP: DSS2: Overlay Manager LCD2 support in DISPC
+Date: Mon,  8 Nov 2010 17:54:18 +0530
+Message-ID: <1289219065-1362-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:50615 "EHLO mgw-sa01.nokia.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50603 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752284Ab0KHMSQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Nov 2010 07:18:16 -0500
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087034BF2D67E@dbde02.ent.ti.com>
+	id S1751449Ab0KHMX1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Nov 2010 07:23:27 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Taneja, Archit" <archit@ti.com>
-Cc: Bryan Wu <bryan.wu@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "notasas@gmail.com" <notasas@gmail.com>
+To: tomi.valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi,
+This patch series which incorporates changes in DSS2 to enable
+omap_dss_device instances to use the new Overlay Manager LCD2 in
+DISPC.
 
-On Fri, 2010-11-05 at 22:17 +0100, ext Taneja, Archit wrote:
-> Hi,
-> 
-> linux-omap-owner@vger.kernel.org wrote:
-> > Introduce struct panel config data in panel.h, which will be
-> > used to match the right panel configurations in generic DPI
-> > panel driver and other future dsi panel drivers.
-> >
-> > Still keep sharp_ls_panel, since the sharp_ls_panel driver
-> > contains blacklight control driver code which will be moved
-> > out later. Then we can use generic DPI driver for sharp_ls_panel.
-> >
-> > Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
-> > ---
-> >  arch/arm/mach-omap2/board-3430sdp.c               |   10 +++-
-> >  arch/arm/mach-omap2/board-am3517evm.c             |   19 +++++--
-> >  arch/arm/mach-omap2/board-cm-t35.c                |   19 +++++--
-> >  arch/arm/mach-omap2/board-devkit8000.c            |   22 +++++---
-> >  arch/arm/mach-omap2/board-igep0020.c              |   10 +++-
-> >  arch/arm/mach-omap2/board-omap3beagle.c           |   10 +++-
-> >  arch/arm/mach-omap2/board-omap3evm.c              |   10 +++-
-> >  arch/arm/mach-omap2/board-omap3stalker.c          |   19 +++++--
-> >  arch/arm/plat-omap/include/plat/nokia-dsi-panel.h |   31 -----------
-> >  arch/arm/plat-omap/include/plat/panel.h           |   57
-> >  +++++++++++++++++++++ drivers/video/omap2/displays/panel-taal.c         |
-> >  26 ++++------ 11 files changed, 148 insertions(+), 85 deletions(-)  delete
-> > mode 100644 arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
-> >  create mode 100644 arch/arm/plat-omap/include/plat/panel.h
-> 
-> I am not totally sure about the need of removal of nokia-dsi-panel.h
-> and the addition of a generic panel.h.
-> 
-> I guess the reason why nokia-dsi-panel.h was introduced (and others that
-> will be introduced in future) was to easily represent panel-specific data
-> across different boards that use the same panel.
+On OMAP4, we have a new DISPC channel for Overlay Manager LCD2. This
+channel's video port is a source port for RFBI, DSI2 and DPI. The
+Primary channel's video port is connected to RFBI and DSI1.
 
-Right. Don't touch panel-taal.c or nokia-dsi-panel.h, they are not
-related to this DPI panel stuff.
+There is a set of regsiters for LCD2 channel similar to the existing
+LCD channel, like DISPC_CONTROL2, DISPC_DIVISOR2, DISPC_CONFIG2 and so
+on.
 
-> For example, if there is a new panel which for some reson uses 2 pins, one
-> for switching off and one for switching on the panel, then it would make sense
-> to introduce a structure for this panel having members on_gpio and off_gpio, this
-> struct could then be passed and accessed through dssdev->data in the panel's probe
-> giving us the option to have different gpio numbers for different boards but finally
-> being accessed in the same way by the driver.
-> 
-> So, there isn't a need to generalize this struct and the corresponding header file
-> for all panels and make it available for all board files.
-> 
-> As far as the dummy panels are concerned, since the "name" is the only criteria to
-> differentiate the panel, I think passing the name to the data member of omap_dss_device
-> should itself be enough for the generic dpi driver to handle things.
+In order to decide which LCD Overlay Manager to configure(LCD/LCD2),
+there is a need for the omap_dss_device instances to tell the interface
+drivers(DSI, DPI, RFBI etc) which LCD channel they want to connect to, so
+that the corresponding registers get configured. Therefore, a new
+enum omap_channel member is introduced to omap_dss_device.
 
-I think it's a bit confusing to just put a string to the void *data
-member, but fortunately we don't need to ponder about that: the generic
-DPI panel should be told about reset_gpio, max_backlight_level,
-platform_enable/disable and set/get_backlight, which need to be passed
-in a struct. So a header and a struct is needed for this generic DPI
-driver.
+This design was made keeping in mind the possible addition of more
+Overlay Managers in future OMAPs, this code is also backward compatible
+with OMAP3 as omap_dss_device instances in OMAP3 will stick only with
+OMAP_DSS_CHANNEL_LCD.
 
- Tomi
+This will apply over current lo-dss2 branch and the following:
 
+Premultiplied alpha support:
+https://patchwork.kernel.org/patch/301872/
+https://patchwork.kernel.org/patch/301882/
+and,
+DSS2: Fix: Read correct bit in dispc_enable_alpha_blending():
+https://patchwork.kernel.org/patch/308152/
 
+Archit Taneja (2):
+  OMAP: DSS2: Add dss_features for omap4 and overlay manager related
+    features
+  OMAP: DSS2: Use dss_features to handle DISPC bits removed on OMAP4
+
+Sumit Semwal (5):
+  OMAP: DSS2: Represent DISPC register defines with channel as
+    parameter
+  OMAP: DSS2: Introduce omap_channel as a omap_dss_device parameter
+  OMAP: DSS2: Change remaining Dispc functions for new 'channel'
+    argument
+  OMAP: DSS2: LCD2 Channel Changes for DISPC
+  OMAP: DSS2: Add new Overlay Manager
+
+ arch/arm/plat-omap/include/plat/display.h |    7 +
+ drivers/video/omap2/dss/dispc.c           |  573 +++++++++++++++++++----------
+ drivers/video/omap2/dss/dpi.c             |   33 +-
+ drivers/video/omap2/dss/dsi.c             |   21 +-
+ drivers/video/omap2/dss/dss.h             |   36 +-
+ drivers/video/omap2/dss/dss_features.c    |   43 ++-
+ drivers/video/omap2/dss/dss_features.h    |    7 +-
+ drivers/video/omap2/dss/manager.c         |   73 +++--
+ drivers/video/omap2/dss/overlay.c         |   14 +-
+ drivers/video/omap2/dss/rfbi.c            |   19 +-
+ drivers/video/omap2/dss/sdi.c             |   22 +-
+ 11 files changed, 559 insertions(+), 289 deletions(-)
+--
+ Version 4:
+- Broken into smaller patches in order to build in between patches.
+- Some basic cleanup
+ Version 3:
+- Patches are reworked over dss2 features framework. Number of patches
+  are reduced.
+  Version 2:
+- The DISPC_BASE macro now isn't changed for OMAP4, a future
+  hwmod patch will take care of this dynamically.
+- Supported_displays member of manager is now assigned correctly
+  for OMAP2.
+- DISPC Registers common to LCD and LCD2 channels are not defined
+  separately, now there is a parameter which differentiates between
+  the 2 channels.
+- Secondary LCD manager is now named as lcd2 instead of 2lcd, the
+  patch given in the link below allows DSS2 interpret this correctly.
+  Version 1:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31458.html
