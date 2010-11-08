@@ -1,74 +1,48 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH] arm: fix compilation warning during compilation
-Date: Mon, 8 Nov 2010 10:13:02 +0100
-Message-ID: <20101108091302.GO16938@pengutronix.de>
-References: <4CD51A9B.7010806@gmail.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: OMAP3 Feature list buggy
+Date: Mon, 8 Nov 2010 13:00:58 +0200
+Message-ID: <AANLkTi=CQAMWM2pK6EYo-VprOAd_gJQuOMxK5u0Lrokw@mail.gmail.com>
+References: <AANLkTingmCrQGX9RQpYy0vgSbgLt+F6exgbnsMP0CuXY@mail.gmail.com>
+	<20101108070223.GH1818@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4CD51A9B.7010806@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marco Stornelli <marco.stornelli@gmail.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Sanjeev Premi <premi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:54319 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752542Ab0KHLA7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Nov 2010 06:00:59 -0500
+Received: by gwj21 with SMTP id 21so3201048gwj.19
+        for <linux-omap@vger.kernel.org>; Mon, 08 Nov 2010 03:00:58 -0800 (PST)
+In-Reply-To: <20101108070223.GH1818@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Arno Steffen <arno.steffen@googlemail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello,
+On Mon, Nov 8, 2010 at 9:02 AM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Fri, Nov 05, 2010 at 10:08:13AM -0500, Arno Steffen wrote:
+>>
+>> There is a copy/paste bug in arch/arm/plat-omaop/include/control:
+>>
+>> Please replace:
+>>
+>> #define OMAP3_IVA_MASK =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << OMAP=
+3_SGX_SHIFT)
+>>
+>> by:
+>>
+>> #define OMAP3_IVA_MASK =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << OMAP=
+3_IVA_SHIFT)
+>
+> care to send a patch ?
 
-On Sat, Nov 06, 2010 at 10:06:35AM +0100, Marco Stornelli wrote:
-> From: Marco Stornelli <marco.stornelli@gmail.com>
->=20
-> During compilation of 2.6.36 for Beagle board, there a are a couple o=
-f warnings. This patch fix them.
-Please break lines for commit logs at around 76 chars and mention the
-exact compiler warning being fixed.
-
->=20
-> Signed-off-by: Marco Stornelli <marco.stornelli@gmail.com>
-> ---
->=20
-> --- linux-2.6.36-orig/arch/arm/plat-omap/include/plat/usb.h	2010-10-2=
-0 22:30:22.000000000 +0200
-> +++ linux-2.6.36/arch/arm/plat-omap/include/plat/usb.h	2010-11-01 09:=
-44:13.000000000 +0100
-> @@ -105,7 +105,7 @@ static inline void omap1_usb_init(struct
->  #if defined(CONFIG_ARCH_OMAP_OTG) || defined(CONFIG_ARCH_OMAP_OTG_MO=
-DULE)
->  void omap2_usbfs_init(struct omap_usb_config *pdata);
->  #else
-> -static inline omap2_usbfs_init(struct omap_usb_config *pdata)
-> +static inline void omap2_usbfs_init(struct omap_usb_config *pdata)
->  {
->  }
->  #endif
-> --- linux-2.6.36-orig/arch/arm/mach-omap2/mux.c	2010-10-20 22:30:22.0=
-00000000 +0200
-> +++ linux-2.6.36/arch/arm/mach-omap2/mux.c	2010-11-01 10:21:29.000000=
-000 +0100
-> @@ -87,7 +87,7 @@ static char *omap_mux_options;
->  int __init omap_mux_init_gpio(int gpio, int val)
->  {
->  	struct omap_mux_entry *e;
-> -	struct omap_mux *gpio_mux;
-> +	struct omap_mux *gpio_mux =3D NULL;
-this warning is already fixed by ca82876 (omap2: fix assorted compiler
-warnings).
-
-As this warning is a false positive (i.e. gpio_mux is never used
-uninitialized), making the line read
-
-	struct omap_mux *uninitialized_var(gpio_mux);
-
-(IMHO) would have been a bit better for both, readabily and (probably)
-generated code.
-
-Thanks
-Uwe
-
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
+already sent by Nismath it seems:
+http://marc.info/?l=3Dlinux-omap&m=3D128897315505284&w=3D2
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
