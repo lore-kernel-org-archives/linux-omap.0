@@ -1,320 +1,94 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 7/7] OMAP: DSS2: Add new Overlay Manager
-Date: Mon,  8 Nov 2010 17:54:25 +0530
-Message-ID: <1289219065-1362-8-git-send-email-archit@ti.com>
-References: <1289219065-1362-1-git-send-email-archit@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 1/3] OMAP: use generic panel data in board files
+Date: Mon, 08 Nov 2010 14:26:03 +0200
+Message-ID: <1289219163.3297.54.camel@tubuntu>
+References: <1288986236-30210-1-git-send-email-bryan.wu@canonical.com>
+	 <1288986236-30210-2-git-send-email-bryan.wu@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50653 "EHLO arroyo.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.47]:42989 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752304Ab0KHMYK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Nov 2010 07:24:10 -0500
-In-Reply-To: <1289219065-1362-1-git-send-email-archit@ti.com>
+	id S1752284Ab0KHMYy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Nov 2010 07:24:54 -0500
+In-Reply-To: <1288986236-30210-2-git-send-email-bryan.wu@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: linux-omap@vger.kernel.org, Sumit Semwal <sumit.semwal@ti.com>, Mukund Mittal <mmittal@ti.com>, Samreen <samreen@ti.com>
+To: ext Bryan Wu <bryan.wu@canonical.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "gadiyar@ti.com" <gadiyar@ti.com>, "notasas@gmail.com" <notasas@gmail.com>
 
-From: Sumit Semwal <sumit.semwal@ti.com>
+Hi,
 
-Add new Overlay Manager in manager.c, make changes needed
-for LCD2 channel.
+On Fri, 2010-11-05 at 20:43 +0100, ext Bryan Wu wrote:
+> Introduce struct panel config data in panel.h, which will be used to match
+> the right panel configurations in generic DPI panel driver and other future
+> dsi panel drivers.
+> 
+> Still keep sharp_ls_panel, since the sharp_ls_panel driver contains blacklight
+> control driver code which will be moved out later. Then we can use generic DPI
+> driver for sharp_ls_panel.
 
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Signed-off-by: Mukund Mittal <mmittal@ti.com>
-Signed-off-by: Samreen <samreen@ti.com>
----
- drivers/video/omap2/dss/dispc.c   |   21 +++++------
- drivers/video/omap2/dss/dss.h     |    4 +-
- drivers/video/omap2/dss/manager.c |   73 +++++++++++++++++++++++--------------
- drivers/video/omap2/dss/overlay.c |   14 ++++++-
- 4 files changed, 70 insertions(+), 42 deletions(-)
+As mentioned in the other mail, don't touch panel-taal or
+nokia-dsi-panel.h. They are not related to this change.
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index e34c129..ab4ca0b 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1592,8 +1592,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 		bool ilace,
- 		enum omap_dss_rotation_type rotation_type,
- 		u8 rotation, int mirror,
--		u8 global_alpha,
--		u8 pre_mult_alpha)
-+		u8 global_alpha, u8 pre_mult_alpha,
-+		enum omap_channel channel)
- {
- 	const int maxdownscale = cpu_is_omap34xx() ? 4 : 2;
- 	bool five_taps = 0;
-@@ -1692,8 +1692,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 		five_taps = height > out_height * 2;
- 
- 		if (!five_taps) {
--			fclk = calc_fclk(OMAP_DSS_CHANNEL_LCD, width, height,
--					out_width, out_height);
-+			fclk = calc_fclk(channel, width, height, out_width,
-+					out_height);
- 
- 			/* Try 5-tap filter if 3-tap fclk is too high */
- 			if (cpu_is_omap34xx() && height > out_height &&
-@@ -1707,9 +1707,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 		}
- 
- 		if (five_taps)
--			fclk = calc_fclk_five_taps(OMAP_DSS_CHANNEL_LCD, width,
--					height, out_width, out_height,
--					color_mode);
-+			fclk = calc_fclk_five_taps(channel, width, height,
-+					out_width, out_height, color_mode);
- 
- 		DSSDBG("required fclk rate = %lu Hz\n", fclk);
- 		DSSDBG("current fclk rate = %lu Hz\n", dispc_fclk_rate());
-@@ -3331,17 +3330,17 @@ int dispc_setup_plane(enum omap_plane plane,
- 		       bool ilace,
- 		       enum omap_dss_rotation_type rotation_type,
- 		       u8 rotation, bool mirror, u8 global_alpha,
--		       u8 pre_mult_alpha)
-+		       u8 pre_mult_alpha, enum omap_channel channel)
- {
- 	int r = 0;
- 
- 	DSSDBG("dispc_setup_plane %d, pa %x, sw %d, %d,%d, %dx%d -> "
--	       "%dx%d, ilace %d, cmode %x, rot %d, mir %d\n",
-+	       "%dx%d, ilace %d, cmode %x, rot %d, mir %d chan %d\n",
- 	       plane, paddr, screen_width, pos_x, pos_y,
- 	       width, height,
- 	       out_width, out_height,
- 	       ilace, color_mode,
--	       rotation, mirror);
-+	       rotation, mirror, channel);
- 
- 	enable_clocks(1);
- 
-@@ -3354,7 +3353,7 @@ int dispc_setup_plane(enum omap_plane plane,
- 			   rotation_type,
- 			   rotation, mirror,
- 			   global_alpha,
--			   pre_mult_alpha);
-+			   pre_mult_alpha, channel);
- 
- 	enable_clocks(0);
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 599df58..3072a76 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -359,8 +359,8 @@ int dispc_setup_plane(enum omap_plane plane,
- 		      bool ilace,
- 		      enum omap_dss_rotation_type rotation_type,
- 		      u8 rotation, bool mirror,
--		      u8 global_alpha,
--		      u8 pre_mult_alpha);
-+		      u8 global_alpha, u8 pre_mult_alpha,
-+		      enum omap_channel channel);
- 
- bool dispc_go_busy(enum omap_channel channel);
- void dispc_go(enum omap_channel channel);
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 873b334..c345378 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -513,11 +513,14 @@ static int dss_mgr_wait_for_vsync(struct omap_overlay_manager *mgr)
- 	unsigned long timeout = msecs_to_jiffies(500);
- 	u32 irq;
- 
--	if (mgr->device->type == OMAP_DISPLAY_TYPE_VENC)
-+	if (mgr->device->type == OMAP_DISPLAY_TYPE_VENC) {
- 		irq = DISPC_IRQ_EVSYNC_ODD;
--	else
--		irq = DISPC_IRQ_VSYNC;
--
-+	} else {
-+		if (mgr->device->channel == OMAP_DSS_CHANNEL_LCD)
-+			irq = DISPC_IRQ_VSYNC;
-+		else
-+			irq = DISPC_IRQ_VSYNC2;
-+	}
- 	return omap_dispc_wait_for_irq_interruptible_timeout(irq, timeout);
- }
- 
-@@ -525,7 +528,6 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- {
- 	unsigned long timeout = msecs_to_jiffies(500);
- 	struct manager_cache_data *mc;
--	enum omap_channel channel;
- 	u32 irq;
- 	int r;
- 	int i;
-@@ -536,7 +538,6 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- 
- 	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
- 		irq = DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN;
--		channel = OMAP_DSS_CHANNEL_DIGIT;
- 	} else {
- 		if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
- 			enum omap_dss_update_mode mode;
-@@ -544,11 +545,14 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- 			if (mode != OMAP_DSS_UPDATE_AUTO)
- 				return 0;
- 
--			irq = DISPC_IRQ_FRAMEDONE;
-+			irq = (dssdev->channel == OMAP_DSS_CHANNEL_LCD) ?
-+				DISPC_IRQ_FRAMEDONE
-+				: DISPC_IRQ_FRAMEDONE2;
- 		} else {
--			irq = DISPC_IRQ_VSYNC;
-+			irq = (dssdev->channel == OMAP_DSS_CHANNEL_LCD) ?
-+				DISPC_IRQ_VSYNC
-+				: DISPC_IRQ_VSYNC2;
- 		}
--		channel = OMAP_DSS_CHANNEL_LCD;
- 	}
- 
- 	mc = &dss_cache.manager_cache[mgr->id];
-@@ -595,7 +599,6 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
- {
- 	unsigned long timeout = msecs_to_jiffies(500);
--	enum omap_channel channel;
- 	struct overlay_cache_data *oc;
- 	struct omap_dss_device *dssdev;
- 	u32 irq;
-@@ -612,7 +615,6 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
- 
- 	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
- 		irq = DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN;
--		channel = OMAP_DSS_CHANNEL_DIGIT;
- 	} else {
- 		if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
- 			enum omap_dss_update_mode mode;
-@@ -620,11 +622,14 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
- 			if (mode != OMAP_DSS_UPDATE_AUTO)
- 				return 0;
- 
--			irq = DISPC_IRQ_FRAMEDONE;
-+			irq = (dssdev->channel == OMAP_DSS_CHANNEL_LCD) ?
-+				DISPC_IRQ_FRAMEDONE
-+				: DISPC_IRQ_FRAMEDONE2;
- 		} else {
--			irq = DISPC_IRQ_VSYNC;
-+			irq = (dssdev->channel == OMAP_DSS_CHANNEL_LCD) ?
-+				DISPC_IRQ_VSYNC
-+				: DISPC_IRQ_VSYNC2;
- 		}
--		channel = OMAP_DSS_CHANNEL_LCD;
- 	}
- 
- 	oc = &dss_cache.overlay_cache[ovl->id];
-@@ -844,7 +849,8 @@ static int configure_overlay(enum omap_plane plane)
- 			c->rotation,
- 			c->mirror,
- 			c->global_alpha,
--			c->pre_mult_alpha);
-+			c->pre_mult_alpha,
-+			c->channel);
- 
- 	if (r) {
- 		/* this shouldn't happen */
-@@ -896,10 +902,10 @@ static int configure_dispc(void)
- 	r = 0;
- 	busy = false;
- 
--	mgr_busy[0] = dispc_go_busy(0);
--	mgr_busy[1] = dispc_go_busy(1);
--	mgr_go[0] = false;
--	mgr_go[1] = false;
-+	for (i = 0; i < num_mgrs; i++) {
-+		mgr_busy[i] = dispc_go_busy(i);
-+		mgr_go[i] = false;
-+	}
- 
- 	/* Commit overlay settings */
- 	for (i = 0; i < num_ovls; ++i) {
-@@ -1158,9 +1164,10 @@ static void dss_apply_irq_handler(void *data, u32 mask)
- 	const int num_mgrs = dss_feat_get_num_mgrs();
- 	int i, r;
- 	bool mgr_busy[MAX_DSS_MANAGERS];
-+	u32 irq_mask;
- 
--	mgr_busy[0] = dispc_go_busy(0);
--	mgr_busy[1] = dispc_go_busy(1);
-+	for (i = 0; i < num_mgrs; i++)
-+		mgr_busy[i] = dispc_go_busy(i);
- 
- 	spin_lock(&dss_cache.lock);
- 
-@@ -1191,9 +1198,12 @@ static void dss_apply_irq_handler(void *data, u32 mask)
- 			goto end;
- 	}
- 
--	omap_dispc_unregister_isr(dss_apply_irq_handler, NULL,
--			DISPC_IRQ_VSYNC	| DISPC_IRQ_EVSYNC_ODD |
--			DISPC_IRQ_EVSYNC_EVEN);
-+	irq_mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_ODD |
-+			DISPC_IRQ_EVSYNC_EVEN;
-+	if (dss_has_feature(FEAT_MGR_LCD2))
-+		irq_mask |= DISPC_IRQ_VSYNC2;
-+
-+	omap_dispc_unregister_isr(dss_apply_irq_handler, NULL, irq_mask);
- 	dss_cache.irq_enabled = false;
- 
- end:
-@@ -1386,9 +1396,14 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
- 	r = 0;
- 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
- 	if (!dss_cache.irq_enabled) {
--		r = omap_dispc_register_isr(dss_apply_irq_handler, NULL,
--				DISPC_IRQ_VSYNC	| DISPC_IRQ_EVSYNC_ODD |
--				DISPC_IRQ_EVSYNC_EVEN);
-+		u32 mask;
-+
-+		mask = DISPC_IRQ_VSYNC	| DISPC_IRQ_EVSYNC_ODD |
-+			DISPC_IRQ_EVSYNC_EVEN;
-+		if (dss_has_feature(FEAT_MGR_LCD2))
-+			mask |= DISPC_IRQ_VSYNC2;
-+
-+		r = omap_dispc_register_isr(dss_apply_irq_handler, NULL, mask);
- 		dss_cache.irq_enabled = true;
- 	}
- 	configure_dispc();
-@@ -1480,6 +1495,10 @@ int dss_init_overlay_managers(struct platform_device *pdev)
- 			mgr->name = "tv";
- 			mgr->id = OMAP_DSS_CHANNEL_DIGIT;
- 			break;
-+		case 2:
-+			mgr->name = "lcd2";
-+			mgr->id = OMAP_DSS_CHANNEL_LCD2;
-+			break;
- 		}
- 
- 		mgr->set_device = &omap_dss_set_device;
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index 41a2902..456efef 100644
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -664,12 +664,22 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force)
- 	int i;
- 	struct omap_overlay_manager *lcd_mgr;
- 	struct omap_overlay_manager *tv_mgr;
-+	struct omap_overlay_manager *lcd2_mgr = NULL;
- 	struct omap_overlay_manager *mgr = NULL;
- 
- 	lcd_mgr = omap_dss_get_overlay_manager(OMAP_DSS_OVL_MGR_LCD);
- 	tv_mgr = omap_dss_get_overlay_manager(OMAP_DSS_OVL_MGR_TV);
--
--	if (dssdev->type != OMAP_DISPLAY_TYPE_VENC) {
-+	if (dss_has_feature(FEAT_MGR_LCD2))
-+		lcd2_mgr = omap_dss_get_overlay_manager(OMAP_DSS_OVL_MGR_LCD2);
-+
-+	if (dssdev->channel == OMAP_DSS_CHANNEL_LCD2) {
-+		if (!lcd2_mgr->device || force) {
-+			if (lcd2_mgr->device)
-+				lcd2_mgr->unset_device(lcd2_mgr);
-+			lcd2_mgr->set_device(lcd2_mgr, dssdev);
-+			mgr = lcd2_mgr;
-+		}
-+	} else if (dssdev->type != OMAP_DISPLAY_TYPE_VENC) {
- 		if (!lcd_mgr->device || force) {
- 			if (lcd_mgr->device)
- 				lcd_mgr->unset_device(lcd_mgr);
--- 
-1.7.0.4
+The panel.h file should be spesific for the generic panel driver, so
+name the .c and .h files similarly. (yes, panel-taal.c and
+nokia-dsi-panel.h are not good examples for this, but I have a patch
+fixing it, I just haven't had time to push it forward =).
+
+And remember that the kernel should compile and work after each
+individual patch in the patch set. In this patch you set the boards to
+use dvi_panel driver, but there is no dvi_panel driver yet.
+
+Also some comments inline.
+
+> Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+> ---
+>  arch/arm/mach-omap2/board-3430sdp.c               |   10 +++-
+>  arch/arm/mach-omap2/board-am3517evm.c             |   19 +++++--
+>  arch/arm/mach-omap2/board-cm-t35.c                |   19 +++++--
+>  arch/arm/mach-omap2/board-devkit8000.c            |   22 +++++---
+>  arch/arm/mach-omap2/board-igep0020.c              |   10 +++-
+>  arch/arm/mach-omap2/board-omap3beagle.c           |   10 +++-
+>  arch/arm/mach-omap2/board-omap3evm.c              |   10 +++-
+>  arch/arm/mach-omap2/board-omap3stalker.c          |   19 +++++--
+>  arch/arm/plat-omap/include/plat/nokia-dsi-panel.h |   31 -----------
+>  arch/arm/plat-omap/include/plat/panel.h           |   57 +++++++++++++++++++++
+>  drivers/video/omap2/displays/panel-taal.c         |   26 ++++------
+>  11 files changed, 148 insertions(+), 85 deletions(-)
+>  delete mode 100644 arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
+>  create mode 100644 arch/arm/plat-omap/include/plat/panel.h
+> 
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+> index 4e3742c..859b4e5 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -38,6 +38,7 @@
+>  #include <plat/dma.h>
+>  #include <plat/gpmc.h>
+>  #include <plat/display.h>
+> +#include <plat/panel.h>
+> 
+>  #include <plat/gpmc-smc91x.h>
+> 
+> @@ -270,11 +271,14 @@ static struct omap_dss_device sdp3430_lcd_device = {
+>         .platform_disable       = sdp3430_panel_disable_lcd,
+>  };
+> 
+> +static struct panel_data dvi_panel = {
+> +       .name           = "generic",
+> +};
+> +
+>  static struct omap_dss_device sdp3430_dvi_device = {
+>         .name                   = "dvi",
+> -       .driver_name            = "generic_panel",
+> -       .type                   = OMAP_DISPLAY_TYPE_DPI,
+> -       .phy.dpi.data_lines     = 24,
+
+Why do you remove type and datalines configuration? You do this for the
+other panels also.
+
+ Tomi
+
 
