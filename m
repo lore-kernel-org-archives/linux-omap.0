@@ -1,51 +1,46 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [GIT PULL] fixes for tidspbridge 2.6.37-rc1
-Date: Tue, 9 Nov 2010 01:00:59 +0200
-Message-ID: <AANLkTikB0zhN13u5OtRwviOv-rFDW-vFTmq0t7ALuO7N@mail.gmail.com>
-References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/6] OMAP3: hwmod data: Add mmu for iva2 and isp
+Date: Mon, 8 Nov 2010 18:05:53 -0500
+Message-ID: <4CD88251.4060400@ti.com>
+References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>	<1289006396-27230-3-git-send-email-omar.ramirez@ti.com>	<4CD5A96D.1000806@ti.com> <AANLkTinn4_s-PX08H62AL-tn+8wxXXQjhUNq6d+aDOo+@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49634 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755457Ab0KHXEu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Nov 2010 18:04:50 -0500
+In-Reply-To: <AANLkTinn4_s-PX08H62AL-tn+8wxXXQjhUNq6d+aDOo+@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Sun, Nov 7, 2010 at 11:36 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> The situation of tidspbridge driver on staging has been pretty sad,
-> basically, it has never worked. This is a step backwards from the
-> previous situation where it was clear which branch to use to get it
-> working. Unfortunately, the ARM and OMAP trees haven't made it easy,
-> as changes in those trees have broken it even further.
+On 11/7/2010 11:00 AM, Ramirez Luna, Omar wrote:
+> On Sat, Nov 6, 2010 at 2:15 PM, Cousson, Benoit<b-cousson@ti.com>  wrote:
+>> On 11/5/2010 9:19 PM, Ramirez Luna, Omar wrote:
+>>>
+>>> Add mmu hwmod data for iva2 and isp.
+>>
+>> s/iva2/iva/
+>
+> Where this terminology can be found? I'm basing this naming on what
+> was there or TRM. For omap3 there is no such thing as iva, it is iva2.
 
-Here's another try, this one has only one patch that needs omap
-maintainers to ack.
+IVA2 means IVA v2, before we had an IVA (v1) then IVA v1.1...
 
- git://gitorious.org/~felipec/linux-omap/felipec.git fc-dsp-fix-v37-rc1-min
+The goal is to use the same name for the IP with similar functionality 
+across OMAPs version in order to have generic code in the driver.
 
-These are the changes since v2.6.37-rc1:
+IVA, IVA2, IVAHD are all doing similar things, so the only way to 
+identify the same functionality is by using the same name.
+Thanks to the rev field, you can differentiate the various version 
+during device creation.
+That will allow you to query the hwmod on every version of OMAPs using 
+the same "iva" name. Otherwise you will have to use the cpu_is_omap_XXX 
+to select iva, iva2 or ivahd depending of the SoC.
 
-Felipe Contreras (14):
-      Revert "staging: tidspbridge - update Kconfig to select IOMMU module"
-      Revert "staging: tidspbridge - remove dmm custom module"
-      Revert "staging: tidspbridge - deprecate
-reserve/unreserve_memory funtions"
-      Revert "staging: tidspbridge - remove reserved memory clean up"
-      Revert "staging: tidspbridge: remove dw_dmmu_base from cfg_hostres struct"
-      Revert "staging: tidspbridge - move all iommu related code to a new file"
-      Revert "staging: tidspbridge - remove hw directory"
-      Revert "staging: tidspbridge - fix mmufault support"
-      Revert "staging: tidspbridge - remove custom mmu code from tiomap3430.c"
-      Revert "staging: tidspbridge - rename bridge_brd_mem_map/unmap
-to a proper name"
-      Revert "staging: tidspbridge - move shared memory iommu maps to
-tiomap3430.c"
-      Revert "staging: tidspbridge: replace iommu custom for
-opensource implementation"
-      staging: tidspbridge: hack to make it compile on v37-rc1
-      omap: dsp: remove shm from normal memory
+Does that make sense to you?
 
--- 
-Felipe Contreras
+Benoit
