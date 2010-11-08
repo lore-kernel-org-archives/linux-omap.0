@@ -1,82 +1,162 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] omap: dsp: fixes for 2.6.37-rc1
-Date: Mon, 8 Nov 2010 11:16:49 -0800
-Message-ID: <20101108191648.GR9264@atomide.com>
-References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
- <1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
- <20101107220213.GB21070@kroah.com>
- <AANLkTin=reP=SJvo19=bPjYY2Owxa7a9EPKk-Jui97B4@mail.gmail.com>
- <20101108164538.GJ9264@atomide.com>
+From: "Sapiens, Rene" <rene.sapiens@ti.com>
+Subject: Re: [PATCH v2 07/12] staging: tidspbridge: convert pmgr to list_head
+Date: Mon, 8 Nov 2010 13:17:19 -0600
+Message-ID: <AANLkTim46tmBtL8jBC_Kv4G77ZtKE-U9Bfh4r86XtMcb@mail.gmail.com>
+References: <1288969996-22103-1-git-send-email-ionut.nicu@mindbit.ro>
+	<1288969996-22103-8-git-send-email-ionut.nicu@mindbit.ro>
+	<AANLkTin7qBbn4jZrKSivPUYUAkN2cS-3cyQOeFuowUp7@mail.gmail.com>
+	<1289137150.9931.231.camel@atlantis.mindbit.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60823 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798Ab0KHTQ5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Nov 2010 14:16:57 -0500
-Content-Disposition: inline
-In-Reply-To: <20101108164538.GJ9264@atomide.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:59095 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751715Ab0KHTRc convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Nov 2010 14:17:32 -0500
+Received: by eya28 with SMTP id 28so3039010eya.6
+        for <linux-omap@vger.kernel.org>; Mon, 08 Nov 2010 11:17:19 -0800 (PST)
+In-Reply-To: <1289137150.9931.231.camel@atlantis.mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Greg KH <greg@kroah.com>, linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Paul Walmsley <paul@pwsan.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
+To: Ionut Nicu <ionut.nicu@mindbit.ro>
+Cc: Ionut Nicu <ionut.nicu@gmail.com>, Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [101108 08:37]:
-> * Felipe Contreras <felipe.contreras@gmail.com> [101107 14:38]:
-> 
-> Thanks for putting together all these patches, that already helps
-> people working on it a great deal.
-> 
-> However, these patches are in the no-no category for -rc cycle, they're
-> in the "fixes for features that never worked in the first place"
-> category. Linus will not take it and I don't want to take it. We just
-> have to follow the standard Linux development cycle.
->  
-> > Anyway, there's an alternative that doesn't require omap to ack:
-> > 
-> > --- a/drivers/staging/tidspbridge/core/tiomap3430.c
-> > +++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-> > @@ -23,7 +23,6 @@
-> >  #include <dspbridge/host_os.h>
-> >  #include <linux/mm.h>
-> >  #include <linux/mmzone.h>
-> > -#include <plat/control.h>
-> > 
-> >  /*  ----------------------------------- DSP/BIOS Bridge */
-> >  #include <dspbridge/dbdefs.h>
-> > @@ -74,6 +73,18 @@
-> >  #define PAGES_II_LVL_TABLE   512
-> >  #define PHYS_TO_PAGE(phys)      pfn_to_page((phys) >> PAGE_SHIFT)
-> > 
-> > +/*
-> > + * This is a totally ugly layer violation, but needed until
-> > + * omap_ctrl_set_dsp_boot*() are provided.
-> > + */
-> > +#define OMAP3_IVA2_BOOTMOD_IDLE 1
-> > +#define OMAP2_CONTROL_GENERAL 0x270
-> > +#define OMAP343X_CONTROL_IVA2_BOOTADDR (OMAP2_CONTROL_GENERAL + 0x0190)
-> > +#define OMAP343X_CONTROL_IVA2_BOOTMOD (OMAP2_CONTROL_GENERAL + 0x0194)
-> > +
-> > +#define OMAP343X_CTRL_REGADDR(reg) \
-> > +       OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
-> > +
-> >  /* Forward Declarations: */
-> >  static int bridge_brd_monitor(struct bridge_dev_context *dev_ctxt);
-> >  static int bridge_brd_read(struct bridge_dev_context *dev_ctxt,
-> 
-> If this makes the dspbridge usable, that sounds like the way to go
-> for the -rc cycle.
-> 
-> But I don't think this the only patch needed then?
+Hi Ionut,
 
-I guess it would be this fix + omap: dsp: remove shm from normal memory +
-revert some drivers/staging/tidspbridge patches?
+On Sun, Nov 7, 2010 at 7:39 AM, Ionut Nicu <ionut.nicu@mindbit.ro> wrot=
+e:
+> Hi Rene,
+>
+> On Fri, 2010-11-05 at 16:41 -0600, Sapiens, Rene wrote:
+>> Hi Ionut,
+>>
+>> On Fri, Nov 5, 2010 at 9:13 AM, Ionut Nicu <ionut.nicu@gmail.com> wr=
+ote:
+>> > Convert the pmgr module of the tidspbridge driver
+>> > to use struct list_head instead of struct lst_list.
+>>
+>> <snip>
+>>
+>> > + * Memory is coalesced back to the appropriate heap when a buffer=
+ is
+>>
+>> What is being fixed here?
+>>
+>
+> It was a typo (s/coelesced/coalesced/).
 
-It's still quite a bit of patches for the -rc cycle..
+Ok, thanks
 
-If you want, I can keep merging your branch into linux-omap master
-branch for testing while we're waiting for the next merge window. 
+>
+>> > =A0* freed.
+>> > =A0*
+>> > =A0* Notes:
+>>
+>> <snip>
+>>
+>> > @@ -833,67 +768,44 @@ static void add_to_free_list(struct cmm_allo=
+cator *allocator,
+>> > =A0 =A0 =A0 =A0DBC_REQUIRE(allocator !=3D NULL);
+>> > =A0 =A0 =A0 =A0dw_this_pa =3D pnode->dw_pa;
+>> > =A0 =A0 =A0 =A0dw_next_pa =3D NEXT_PA(pnode);
+>>
+>> i think it would be good to return with error if !allocator or !pnod=
+e
+>> and remove the =A0 =A0 =A0 =A0resulting duplicated DBC_REQUIRE.
+>>
+>
+> Yeah I think pnode should be checked for null. Can allocator ever be
+> null?
 
-Regards,
+It seems that it can actually be NULL, by a possible bug that i just
+saw (will send the patch), but taking a deeper look it seems that if
+allocator is NULL this function would never be called.
 
-Tony
+>
+>> > - =A0 =A0 =A0 mnode_obj =3D (struct cmm_mnode *)lst_first(allocato=
+r->free_list_head);
+>> > - =A0 =A0 =A0 while (mnode_obj) {
+>> > + =A0 =A0 =A0 list_for_each_entry(mnode_obj, &allocator->free_list=
+, link) {
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (dw_this_pa =3D=3D NEXT_PA(mnode=
+_obj)) {
+>>
+>> <snip>
+>>
+>> > @@ -748,18 +736,16 @@ bool dev_init(void)
+>> > =A0*/
+>> > =A0int dev_notify_clients(struct dev_object *hdev_obj, u32 ret)
+>> > =A0{
+>> > - =A0 =A0 =A0 int status =3D 0;
+>> > -
+>> > =A0 =A0 =A0 =A0struct dev_object *dev_obj =3D hdev_obj;
+>> > - =A0 =A0 =A0 void *proc_obj;
+>> > + =A0 =A0 =A0 struct list_head *curr;
+>>
+>> can we add a check for !dev_obj and !dev_obj->proc_list just to be
+>> sure that we get always the correct pointer?
+>>
+>
+> proc_list isn't a pointer. Can dev_obj ever be null?
+
+I suppose that adding an extra check in all functions for the received
+parameter would be redundant when those parameters come only from
+our driver and were previously checked, also performance would be
+affected; so relying on the having of the correct parameters in the pat=
+h
+that calls this function it seems that dev_notify_clients() is not call=
+ed
+with dev_obj with a NULL value.
+
+>
+>> <snip>
+>>
+>> > @@ -947,15 +933,17 @@ int dev_insert_proc_object(struct dev_object=
+ *hdev_obj,
+>> > =A0 =A0 =A0 =A0DBC_REQUIRE(refs > 0);
+>> > =A0 =A0 =A0 =A0DBC_REQUIRE(dev_obj);
+>> > =A0 =A0 =A0 =A0DBC_REQUIRE(proc_obj !=3D 0);
+>> > - =A0 =A0 =A0 DBC_REQUIRE(dev_obj->proc_list !=3D NULL);
+>> > =A0 =A0 =A0 =A0DBC_REQUIRE(already_attached !=3D NULL);
+>>
+>> can we check for !hdev_obj, !already_attached even if we have the
+>> DBC_REQUIRE?, maybe we can actually remove the DBC_REQUIRE that coul=
+d
+>> be redundant after applying this.
+>>
+>
+> Same question here.
+
+The same comment.
+
+>
+>> > - =A0 =A0 =A0 if (!LST_IS_EMPTY(dev_obj->proc_list))
+>> > + =A0 =A0 =A0 if (!list_empty(&dev_obj->proc_list))
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*already_attached =3D true;
+>>
+>> <snip>
+>>
+>> > @@ -986,15 +974,12 @@ int dev_remove_proc_object(struct dev_object=
+ *hdev_obj, u32 proc_obj)
+>> >
+>> > =A0 =A0 =A0 =A0DBC_REQUIRE(dev_obj);
+>> > =A0 =A0 =A0 =A0DBC_REQUIRE(proc_obj !=3D 0);
+>> > - =A0 =A0 =A0 DBC_REQUIRE(dev_obj->proc_list !=3D NULL);
+>> > - =A0 =A0 =A0 DBC_REQUIRE(!LST_IS_EMPTY(dev_obj->proc_list));
+>> > + =A0 =A0 =A0 DBC_REQUIRE(!list_empty(&dev_obj->proc_list));
+>> >
+>>
+>> =A0The same comment as above.
+>>
+>
+> Regards,
+> Ionut.
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
