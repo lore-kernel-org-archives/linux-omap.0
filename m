@@ -1,423 +1,106 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: [PATCH 1/3] OMAP: DSS2: Add generic DPI panel display driver
-Date: Mon,  8 Nov 2010 16:44:58 -0500
-Message-ID: <1289252700-3482-2-git-send-email-bryan.wu@canonical.com>
-References: <1289252700-3482-1-git-send-email-bryan.wu@canonical.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 0/6] omap: iommu: hwmod support and code reorganization
+Date: Mon, 8 Nov 2010 16:56:35 -0500
+Message-ID: <4CD87213.7050509@ti.com>
+References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>	<4CD59F04.2000406@ti.com> <AANLkTinzR9uj816_o+j-1121Aw8Qc_p4uBGHRA31LU7f@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:52267 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755796Ab0KHVpN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Nov 2010 16:45:13 -0500
-Received: by mail-gw0-f46.google.com with SMTP id 21so3764502gwj.19
-        for <linux-omap@vger.kernel.org>; Mon, 08 Nov 2010 13:45:13 -0800 (PST)
-In-Reply-To: <1289252700-3482-1-git-send-email-bryan.wu@canonical.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43884 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755568Ab0KHVzv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Nov 2010 16:55:51 -0500
+In-Reply-To: <AANLkTinzR9uj816_o+j-1121Aw8Qc_p4uBGHRA31LU7f@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com, notasas@gmail.com
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Generic DPI panel driver includes the driver and 4 similar panel configurations. It
-will match the panel name which is passed from platform data and setup the
-right configurations.
+On 11/7/2010 10:43 AM, Ramirez Luna, Omar wrote:
+> On Sat, Nov 6, 2010 at 1:31 PM, Cousson, Benoit<b-cousson@ti.com>  wrote:
+>> s/ducati/ipu/
+>> s/tesla/dsp/
+>>
+>> Please do not use internal codename for the changelog or even for the code.
+>
+> I picked this terminology from the driver, I didn't want to cause
+> confusion, agree to the change.
+>
+>> On 11/5/2010 9:19 PM, Ramirez Luna, Omar wrote:
+>>>
+>>> Boot tested on omap 3430 and 3630, functionality on iva2 only.
+>>>
+>>> Introduced hwmod data and support for omap3 (iva2 mmu&    isp mmu) and
+>>> omap4 (ducati mmu&    tesla mmu).
+>>>
+>>> Minor cleanup due to this changes.
+>>>
+>>> There is an issue (present without patches too):
+>>>
+>>> Doing a cycle of insmod-rmmod to iommu module and then full
+>>> insmod of bridgedriver (with all dependencies) causes the next
+>>> read of iommu registers to dump an unhandled fault log; this,
+>>> because when rmmod of iommu is called it tries to clean the
+>>> iommu tables and flush any old entry prior to removing the driver,
+>>> however these reads/writes are attempted while the MMU is under
+>>> reset and will timeout on the L3 IVA target agent, which will leave
+>>> MMU unusable until the proper restore sequence to clear this L3
+>>> error is executed.
+>>>
+>>> Fix would be to move page table allocation to iommu get and its
+>>> correspondent free to iommu put, however it will fall entirely
+>>> under iommu user responsibility, as it needs to clear the mmu
+>>> reset bit, before calling iommu functions that read/write into
+>>> mmu registers (which should apply only for first boot or on
+>>> baseimage reload); trading this restriction in order to keep
+>>> the same generic iommu code for all omap iommu devices.
+>>>
+>>> This issue has been seen on omap3 iva2 mmu, same restriction should
+>>
+>> I'm still not really understanding that issue.
+>> In theory, the reset is deasserted when the omap_device is enabled and will
+>> be re-asserted when the omap_device will be disable.
+>
+> Probably I'm missing the bits telling hwmod to handle its reset bit, I
+> will recheck.
 
-With generic DPI panel driver, we can remove those 4 duplicated panel display
-drivers. In the future, it is simple for us just add new panel configuration
-date in panel-generic-dpi.c to support new display panel.
+After reading the other patches of that series, this is what I realized 
+as well. You need the entries with hw reset information to make that works.
 
-Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
----
- .../arm/plat-omap/include/plat/panel-generic-dpi.h |   31 ++
- drivers/video/omap2/displays/Kconfig               |    8 +
- drivers/video/omap2/displays/Makefile              |    1 +
- drivers/video/omap2/displays/panel-generic-dpi.c   |  314 ++++++++++++++++++++
- 4 files changed, 354 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/plat/panel-generic-dpi.h
- create mode 100644 drivers/video/omap2/displays/panel-generic-dpi.c
+>
+>> Why is the mmu already under reset when the iommu is trying to clean the
+>> tables?
+>
+> However, the driver disables the device on a call named iommu_put
+> (where, from your comment, reset should be re-asserted ), and cleans
+> the TLBs and page tables on removal of the driver (after iommu_put).
+>
+>> Could please describe the complete sequence?
+>
+> I'm assuming the dependencies are installed.
+>
+> on boot up:
+> 1. insmod iommu.ko
+> - device_enable is not called, unless a call to iommu_get is given,
+> this will mean that the driver has one user and thus device_enable is
+> called (however right now it doesn't matter if you call iommu_get or
+> not)
+>
+> 2. rmmod iommu.ko
+> - remove function will try to cleanup the TLBs writing into MMU
+> registers, since MMU is on reset it will trigger a timeout on its TA.
+>
+> 3. insmod bridgedriver.ko
+> - it is dependent on iommu.ko so it should have been installed before.
+> Whenever bridge calls iommu_get, the external abort will be caused due
+> to a read to MMU.
+>
+> As I commented, cleaning the page tables could be moved from driver's
+> remove function to iommu_put, if omap device enable/disable is
+> handling the reset bit probably this issue shouldn't be hit.
 
-diff --git a/arch/arm/plat-omap/include/plat/panel-generic-dpi.h b/arch/arm/plat-omap/include/plat/panel-generic-dpi.h
-new file mode 100644
-index 0000000..da50756
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/panel-generic-dpi.h
-@@ -0,0 +1,31 @@
-+/*
-+ * Header for generic DPI panel driver
-+ *
-+ * Copyright (C) 2010 Canonical Ltd.
-+ * Author: Bryan Wu <bryan.wu@canonical.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef __ARCH_ARM_PLAT_OMAP_GENERIC_DPI_PANEL_H
-+#define __ARCH_ARM_PLAT_OMAP_GENERIC_DPI_PANEL_H
-+
-+/**
-+ * struct panel_data - panel driver configuration
-+ * @name: panel name
-+ */
-+struct generic_dpi_panel_data {
-+	const char *name;
-+};
-+
-+#endif /* __ARCH_ARM_PLAT_OMAP_GENERIC_DPI_PANEL_H */
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index 12327bb..cb3e339 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -1,6 +1,14 @@
- menu "OMAP2/3 Display Device Drivers"
-         depends on OMAP2_DSS
- 
-+config PANEL_GENERIC_DPI
-+        tristate "Generic DPI Panel"
-+        help
-+	  Generic DPI panel driver.
-+	  Supports DVI output for Beagle and OMAP3 SDP.
-+	  Supports LCD Panel used in TI SDP3430 and EVM boards,
-+	  OMAP3517 EVM boards and CM-T35.
-+
- config PANEL_GENERIC
-         tristate "Generic Panel"
-         help
-diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
-index aa38609..022058c 100644
---- a/drivers/video/omap2/displays/Makefile
-+++ b/drivers/video/omap2/displays/Makefile
-@@ -1,3 +1,4 @@
-+obj-$(CONFIG_PANEL_GENERIC_DPI) += panel-generic-dpi.o
- obj-$(CONFIG_PANEL_GENERIC) += panel-generic.o
- obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
- obj-$(CONFIG_PANEL_SHARP_LQ043T1DG01) += panel-sharp-lq043t1dg01.o
-diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-new file mode 100644
-index 0000000..b252e0f
---- /dev/null
-+++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -0,0 +1,314 @@
-+/*
-+ * Generic DPI Panels support
-+ *
-+ * Copyright (C) 2010 Canonical Ltd.
-+ * Author: Bryan Wu <bryan.wu@canonical.com>
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+
-+#include <plat/display.h>
-+#include <plat/panel-generic-dpi.h>
-+
-+struct panel_config {
-+	struct omap_video_timings timings;
-+
-+	int acbi;	/* ac-bias pin transitions per interrupt */
-+	/* Unit: line clocks */
-+	int acb;	/* ac-bias pin frequency */
-+
-+	enum omap_panel_config config;
-+
-+	/*
-+	 * Used to match device to panel configuration
-+	 * when use generic panel driver
-+	 */
-+	const char *name;
-+
-+	int data_lines;
-+};
-+
-+/* Panel configurations */
-+static struct panel_config generic_dpi_panels[] = {
-+	/* Generic Panel */
-+	{
-+		{
-+			.x_res		= 640,
-+			.y_res		= 480,
-+
-+			.pixel_clock	= 23500,
-+
-+			.hfp		= 48,
-+			.hsw		= 32,
-+			.hbp		= 80,
-+
-+			.vfp		= 3,
-+			.vsw		= 4,
-+			.vbp		= 7,
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x0,
-+		.config			= OMAP_DSS_LCD_TFT,
-+		.name			= "generic",
-+		.data_lines		= 24,
-+	},
-+
-+	/* Sharp LQ043T1DG01 */
-+	{
-+		{
-+			.x_res		= 480,
-+			.y_res		= 272,
-+
-+			.pixel_clock	= 9000,
-+
-+			.hsw		= 42,
-+			.hfp		= 3,
-+			.hbp		= 2,
-+
-+			.vsw		= 11,
-+			.vfp		= 3,
-+			.vbp		= 2,
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x0,
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+					OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IEO,
-+		.name			= "sharp_lq",
-+		.data_lines		= 16,
-+	},
-+
-+	/* Sharp LS037V7DW01 */
-+	{
-+		{
-+			.x_res		= 480,
-+			.y_res		= 640,
-+
-+			.pixel_clock	= 19200,
-+
-+			.hsw		= 2,
-+			.hfp		= 1,
-+			.hbp		= 28,
-+
-+			.vsw		= 1,
-+			.vfp		= 1,
-+			.vbp		= 1,
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x28,
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+						OMAP_DSS_LCD_IHS,
-+		.name			= "sharp_ls",
-+		.data_lines		= 16,
-+	},
-+
-+	/* Toppoly TDO35S */
-+	{
-+		{
-+			.x_res		= 480,
-+			.y_res		= 640,
-+
-+			.pixel_clock	= 26000,
-+
-+			.hfp		= 104,
-+			.hsw		= 8,
-+			.hbp		= 8,
-+
-+			.vfp		= 4,
-+			.vsw		= 2,
-+			.vbp		= 2,
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x0,
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+					OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC |
-+					OMAP_DSS_LCD_ONOFF,
-+		.name			= "toppoly_tdo35s",
-+		.data_lines		= 18,
-+	},
-+};
-+
-+static inline struct generic_dpi_panel_data
-+*get_panel_data(const struct omap_dss_device *dssdev)
-+{
-+	return (struct generic_dpi_panel_data *) dssdev->data;
-+}
-+
-+
-+static int generic_dpi_panel_power_on(struct omap_dss_device *dssdev)
-+{
-+	int r;
-+
-+	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-+		return 0;
-+
-+	r = omapdss_dpi_display_enable(dssdev);
-+	if (r)
-+		goto err0;
-+
-+	if (dssdev->platform_enable) {
-+		r = dssdev->platform_enable(dssdev);
-+		if (r)
-+			goto err1;
-+	}
-+
-+	return 0;
-+err1:
-+	omapdss_dpi_display_disable(dssdev);
-+err0:
-+	return r;
-+}
-+
-+static void generic_dpi_panel_power_off(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
-+		return;
-+
-+	if (dssdev->platform_disable)
-+		dssdev->platform_disable(dssdev);
-+
-+	omapdss_dpi_display_disable(dssdev);
-+}
-+
-+static int generic_dpi_panel_probe(struct omap_dss_device *dssdev)
-+{
-+	struct generic_dpi_panel_data *panel_data = get_panel_data(dssdev);
-+	struct panel_config *panel_config = NULL;
-+	int i;
-+
-+	dev_dbg(&dssdev->dev, "probe\n");
-+
-+	if (!panel_data || !panel_data->name)
-+		return -EINVAL;
-+
-+	for (i = 0; i < ARRAY_SIZE(generic_dpi_panels); i++) {
-+		if (strcmp(panel_data->name, generic_dpi_panels[i].name) == 0) {
-+			panel_config = &generic_dpi_panels[i];
-+			break;
-+		}
-+	}
-+
-+	if (!panel_config)
-+		return -EINVAL;
-+
-+	dssdev->type = OMAP_DISPLAY_TYPE_DPI;
-+	dssdev->panel.config = panel_config->config;
-+	dssdev->panel.timings = panel_config->timings;
-+	dssdev->panel.acb = panel_config->acb;
-+	dssdev->panel.acbi = panel_config->acbi;
-+	dssdev->phy.dpi.data_lines = panel_config->data_lines;
-+
-+	return 0;
-+}
-+
-+static void generic_dpi_panel_remove(struct omap_dss_device *dssdev)
-+{
-+}
-+
-+static int generic_dpi_panel_enable(struct omap_dss_device *dssdev)
-+{
-+	int r = 0;
-+
-+	r = generic_dpi_panel_power_on(dssdev);
-+	if (r)
-+		return r;
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+	return 0;
-+}
-+
-+static void generic_dpi_panel_disable(struct omap_dss_device *dssdev)
-+{
-+	generic_dpi_panel_power_off(dssdev);
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-+}
-+
-+static int generic_dpi_panel_suspend(struct omap_dss_device *dssdev)
-+{
-+	generic_dpi_panel_power_off(dssdev);
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
-+
-+	return 0;
-+}
-+
-+static int generic_dpi_panel_resume(struct omap_dss_device *dssdev)
-+{
-+	int r = 0;
-+
-+	r = generic_dpi_panel_power_on(dssdev);
-+	if (r)
-+		return r;
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+	return 0;
-+}
-+
-+static void generic_dpi_panel_set_timings(struct omap_dss_device *dssdev,
-+		struct omap_video_timings *timings)
-+{
-+	dpi_set_timings(dssdev, timings);
-+}
-+
-+static void generic_dpi_panel_get_timings(struct omap_dss_device *dssdev,
-+		struct omap_video_timings *timings)
-+{
-+	*timings = dssdev->panel.timings;
-+}
-+
-+static int generic_dpi_panel_check_timings(struct omap_dss_device *dssdev,
-+		struct omap_video_timings *timings)
-+{
-+	return dpi_check_timings(dssdev, timings);
-+}
-+
-+static struct omap_dss_driver dpi_driver = {
-+	.probe		= generic_dpi_panel_probe,
-+	.remove		= generic_dpi_panel_remove,
-+
-+	.enable		= generic_dpi_panel_enable,
-+	.disable	= generic_dpi_panel_disable,
-+	.suspend	= generic_dpi_panel_suspend,
-+	.resume		= generic_dpi_panel_resume,
-+
-+	.set_timings	= generic_dpi_panel_set_timings,
-+	.get_timings	= generic_dpi_panel_get_timings,
-+	.check_timings	= generic_dpi_panel_check_timings,
-+
-+	.driver         = {
-+		.name   = "generic_dpi_panel",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+static int __init generic_dpi_panel_drv_init(void)
-+{
-+	return omap_dss_register_driver(&dpi_driver);
-+}
-+
-+static void __exit generic_dpi_panel_drv_exit(void)
-+{
-+	omap_dss_unregister_driver(&dpi_driver);
-+}
-+
-+module_init(generic_dpi_panel_drv_init);
-+module_exit(generic_dpi_panel_drv_exit);
-+MODULE_LICENSE("GPL");
--- 
-1.7.1
+Yep, I think so as well.
 
+Regards,
+Benoit
