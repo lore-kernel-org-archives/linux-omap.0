@@ -1,97 +1,86 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: Mistral AM37x (with AM3715) devel board networking broken
-Date: Mon, 8 Nov 2010 17:36:51 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59302348EE00F@dbde02.ent.ti.com>
-References: <E1PF7Q8-0004IQ-8y@amazonia.comcast.net>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH 1/3] OMAP: use generic panel data in board files
+Date: Mon, 08 Nov 2010 14:19:23 +0200
+Message-ID: <1289218763.3297.47.camel@tubuntu>
+References: <1288986236-30210-1-git-send-email-bryan.wu@canonical.com>
+	 <1288986236-30210-2-git-send-email-bryan.wu@canonical.com>
+	 <FCCFB4CDC6E5564B9182F639FC356087034BF2D67E@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36437 "EHLO comal.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.47]:50615 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750701Ab0KHMG7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Nov 2010 07:06:59 -0500
-In-Reply-To: <E1PF7Q8-0004IQ-8y@amazonia.comcast.net>
-Content-Language: en-US
+	id S1752284Ab0KHMSQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Nov 2010 07:18:16 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087034BF2D67E@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rick Bronson <rick@efn.org>, "srinath@mistralsolutions.com" <srinath@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "ext Taneja, Archit" <archit@ti.com>
+Cc: Bryan Wu <bryan.wu@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "notasas@gmail.com" <notasas@gmail.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Rick Bronson
-> Sent: Sunday, November 07, 2010 9:15 PM
-> To: srinath@mistralsolutions.com; linux-omap@vger.kernel.org
-> Subject: RE: Mistral AM37x (with AM3715) devel board networking broken
+Hi,
+
+On Fri, 2010-11-05 at 22:17 +0100, ext Taneja, Archit wrote:
+> Hi,
 > 
-> sanjeev,
+> linux-omap-owner@vger.kernel.org wrote:
+> > Introduce struct panel config data in panel.h, which will be
+> > used to match the right panel configurations in generic DPI
+> > panel driver and other future dsi panel drivers.
+> >
+> > Still keep sharp_ls_panel, since the sharp_ls_panel driver
+> > contains blacklight control driver code which will be moved
+> > out later. Then we can use generic DPI driver for sharp_ls_panel.
+> >
+> > Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+> > ---
+> >  arch/arm/mach-omap2/board-3430sdp.c               |   10 +++-
+> >  arch/arm/mach-omap2/board-am3517evm.c             |   19 +++++--
+> >  arch/arm/mach-omap2/board-cm-t35.c                |   19 +++++--
+> >  arch/arm/mach-omap2/board-devkit8000.c            |   22 +++++---
+> >  arch/arm/mach-omap2/board-igep0020.c              |   10 +++-
+> >  arch/arm/mach-omap2/board-omap3beagle.c           |   10 +++-
+> >  arch/arm/mach-omap2/board-omap3evm.c              |   10 +++-
+> >  arch/arm/mach-omap2/board-omap3stalker.c          |   19 +++++--
+> >  arch/arm/plat-omap/include/plat/nokia-dsi-panel.h |   31 -----------
+> >  arch/arm/plat-omap/include/plat/panel.h           |   57
+> >  +++++++++++++++++++++ drivers/video/omap2/displays/panel-taal.c         |
+> >  26 ++++------ 11 files changed, 148 insertions(+), 85 deletions(-)  delete
+> > mode 100644 arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
+> >  create mode 100644 arch/arm/plat-omap/include/plat/panel.h
 > 
->   Thanks much for the help.
+> I am not totally sure about the need of removal of nokia-dsi-panel.h
+> and the addition of a generic panel.h.
 > 
-> > [sp] On first looks I would suspect the u-boot. 2009.11 
-> seems to be quite old.
-> >      Can you try using version 2010.09?
+> I guess the reason why nokia-dsi-panel.h was introduced (and others that
+> will be introduced in future) was to easily represent panel-specific data
+> across different boards that use the same panel.
+
+Right. Don't touch panel-taal.c or nokia-dsi-panel.h, they are not
+related to this DPI panel stuff.
+
+> For example, if there is a new panel which for some reson uses 2 pins, one
+> for switching off and one for switching on the panel, then it would make sense
+> to introduce a structure for this panel having members on_gpio and off_gpio, this
+> struct could then be passed and accessed through dssdev->data in the panel's probe
+> giving us the option to have different gpio numbers for different boards but finally
+> being accessed in the same way by the driver.
 > 
->   I had tried 2010.09 on this board originally but found that it
-> wasn't stable, it was almost like the SDRAM wasn't set up correctly.
-> I'd get random panic's on bad pointers in Linux.  But I tried it
-> anyway on this new kernel and it does set up the networking about 1 in
-> 5 boots.  Here is a boot where it set up the network
-> http://www.efn.org/~rick/pub/boot4.log, it still has the 
-> warnings though.
-
-[sp] If you noticed, earlier u-boot version was identifying your board as:
-
-U-Boot 2009.11 (Oct 30 2010 - 13:14:45)                                         
-                                                                                
-OMAP34xx/35xx-GP ES1.0, CPU-OPP2 L3-165MHz                                      
-OMAP3 EVM board + LPDDR/NAND                                                    
-
-Now,
-
-U-Boot 2010.09 (Nov 07 2010 - 07:08:44)                                         
-                                                                                
-OMAP3630/3730-GP ES1.0, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz                
-OMAP3 EVM board + LPDDR/NAND     
-
-That's ai improvement.
-
-However, in your log, I see folloing:
-
-[    0.000000] Total of 96 interrupts on 1 active controller
-[    0.000000] Could not get gpios_ick
-[    0.000000] Could not get gpios_fck
-
-Looks like there are some changes - either in your Kconfig or
-elsewhere in the code that "get" gpio clocks is failing.
-
-The SMSC chip is "virtually" non-existent for the Linux kernel
-here onwards.
-
-My kernel version is "Linux-2.6.36-rc8-09072-g661df74-"
-
-I have not yet looked at, but there is possible "break" on on mainline for EVM due to gpio related changes.
-You could be experiencing this break...
-
-~sanjeev
-
+> So, there isn't a need to generalize this struct and the corresponding header file
+> for all panels and make it available for all board files.
 > 
->   Please check my setup of u-boot, here is what I did:
-> 
-> wget ftp://ftp.denx.de/pub/u-boot/u-boot-2010.09.tar.bz2
-> tar jxf u-boot-2010.09.tar.bz2
-> cd u-boot-2010.09; make omap3_evm_config; make
-> 
->   Is this the correct config (omap3_evm_config) to use for this board?
-> Maybe you could tell me what exact u-boot and kernel you'd recommend
-> and the steps to get them for this board.
-> 
->   Thanks,
-> 
->   Rick
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> As far as the dummy panels are concerned, since the "name" is the only criteria to
+> differentiate the panel, I think passing the name to the data member of omap_dss_device
+> should itself be enough for the generic dpi driver to handle things.
+
+I think it's a bit confusing to just put a string to the void *data
+member, but fortunately we don't need to ponder about that: the generic
+DPI panel should be told about reset_gpio, max_backlight_level,
+platform_enable/disable and set/get_backlight, which need to be passed
+in a struct. So a header and a struct is needed for this generic DPI
+driver.
+
+ Tomi
+
+
