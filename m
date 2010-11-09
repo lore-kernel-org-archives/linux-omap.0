@@ -1,94 +1,62 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [GIT PULL] fixes for tidspbridge 2.6.37-rc1
-Date: Tue, 9 Nov 2010 12:40:51 -0600
-Message-ID: <AANLkTimDUx-by0MStp3O0L0xGW-okdCqAbDrJHuCewd7@mail.gmail.com>
-References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
-	<AANLkTikB0zhN13u5OtRwviOv-rFDW-vFTmq0t7ALuO7N@mail.gmail.com>
-	<201011091729.17679.arnd@arndb.de>
-	<20101109165509.GA9698@kroah.com>
-	<AANLkTinFW431t9XFqHc=wZAws9gjT0ikrc03J83kH7iF@mail.gmail.com>
-	<20101109172511.GA10958@kroah.com>
-	<AANLkTi=CKERMcSLXwQa7G55P69DO--UPN9HgOScHP_yO@mail.gmail.com>
-	<20101109175828.GA27627@kroah.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2] OMAP: hwmod: Update the sysc_cache in case module context is lost
+Date: Tue, 09 Nov 2010 12:55:18 -0800
+Message-ID: <8762w6p689.fsf@deeprootsystems.com>
+References: <1288098021-31097-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:41781 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753253Ab0KISkx convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Nov 2010 13:40:53 -0500
-In-Reply-To: <20101109175828.GA27627@kroah.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:59531 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754730Ab0KIUzW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 15:55:22 -0500
+Received: by gyh4 with SMTP id 4so4677139gyh.19
+        for <linux-omap@vger.kernel.org>; Tue, 09 Nov 2010 12:55:22 -0800 (PST)
+In-Reply-To: <1288098021-31097-1-git-send-email-rnayak@ti.com> (Rajendra
+	Nayak's message of "Tue, 26 Oct 2010 18:30:21 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Arnd Bergmann <arnd@arndb.de>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi,
+Rajendra Nayak <rnayak@ti.com> writes:
 
-> Seriously, I'm getting very confused here, and am very annoyed by the
-> whole thing.
+> Do not skip the sysc programming in the hmwod framework based
+> on the cached value alone, since at times the module might have lost
+> context (due to the Powerdomain in which the module belongs
+> transitions to either Open Switch RET or OFF).
 >
-> Here's what I don't like:
-> =A0- the original driver didn't even seem to work properly
-> =A0- people sent me patches they never tested and broke things even w=
-orse
-> =A0- some people have no respect for the omap maintainers and what th=
-ey
-> =A0 =A0think about things, or even basic knowledge of the kernel
-> =A0 =A0development cycle.
-> =A0- I do not have this hardware so I can't test anything.
+> Identifying if a module has lost context requires atleast one
+> register read, and since a register read has more latency than
+> a write, it makes sense to do a blind write always.
 >
-> So, from now on, I'm not taking ANYONES patches for this driver unles=
-s
-> it gets an ack from the driver maintainer, Omar Luna.
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c |    7 +++----
+>  1 files changed, 3 insertions(+), 4 deletions(-)
 >
-> Actually, no, I'm not going to take any patch unless it _comes from_
-> Omar. =A0Omar, please work to queue up patches and test them, and the=
-n
-> send them to me for merging.
->
-> Any questions?
->
-> If anyone doesn't like this because they feel that the current driver=
- is
-> broken, well, I can easily solve that by just deleting the whole thin=
-g
-> from the tree right now. =A0Would that be a better idea?
-
-I'm fine to queue the patches.
-
-=46or now, yes, the driver is/has-been broken, and everybody has been
-trying for the last two cycles to fix some dependencies (and
-unfortunately we do it at the last minute or even after it can't be
-done anymore, *sometimes*)... I have been kindly educated by both LO
-and staging tree maintainers that it is just a bad practice to hurry
-things up and not comply with the development standards.
-
-If 2.6.36 or .37 tidspbridge is needed I'll keep each branch with
-their dependent patches in d.o-z (TI's git server), if anybody
-(Felipe) wants to keep their own branches I'm fine with that I can
-sync with them privately to hear any concerns or something else.
-
-I'll create the branches and sent an announce to both lists.
-
-All dependencies need to be acked long before 2.6.38-rc1 and it is the
-responsibility of the senders to track their acceptance.
-
-Thanks for your suggestions and bearing with this situation, I'll
-follow them and solve your dislikes about it (the hardware part it
-might not be possible :/).
-
-BTW, the testing environment for tidspbridge will be gst-dsp, any
-stress testsuites will be run in addition, I'll detail more of it in
-the upcoming mail.
-
-Regards,
-
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index 5a30658..aadd6dc 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -209,10 +209,9 @@ static void _write_sysconfig(u32 v, struct omap_hwmod *oh)
+>  
+>  	/* XXX ensure module interface clock is up */
+>  
+> -	if (oh->_sysc_cache != v) {
+> -		oh->_sysc_cache = v;
+> -		omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
+> -	}
+> +	/* Module might have lost context, always update cache and register */
+> +	oh->_sysc_cache = v;
+> +	omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
+>  }
+>  
+>  /**
