@@ -1,111 +1,40 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 13/13] OMAP: PM: DMA: Enable runtime pm
-Date: Tue, 09 Nov 2010 14:48:25 -0800
-Message-ID: <87fwvajepy.fsf@deeprootsystems.com>
-References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
-	<1288099513-1854-14-git-send-email-manjugk@ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [GIT PULL] fixes for tidspbridge 2.6.37-rc1
+Date: Tue, 9 Nov 2010 14:52:29 -0800
+Message-ID: <20101109225229.GA992@kroah.com>
+References: <AANLkTikB0zhN13u5OtRwviOv-rFDW-vFTmq0t7ALuO7N@mail.gmail.com>
+ <201011091729.17679.arnd@arndb.de>
+ <20101109165509.GA9698@kroah.com>
+ <AANLkTinFW431t9XFqHc=wZAws9gjT0ikrc03J83kH7iF@mail.gmail.com>
+ <20101109172511.GA10958@kroah.com>
+ <AANLkTi=CKERMcSLXwQa7G55P69DO--UPN9HgOScHP_yO@mail.gmail.com>
+ <20101109175828.GA27627@kroah.com>
+ <AANLkTin0Lszi6MVo8GBWmpvMQRL3V+VGbtGdaMkBe5XO@mail.gmail.com>
+ <20101109221035.GB19847@kroah.com>
+ <AANLkTimB5=OZWSaOGXKL49oWT+PnjADq5hT3w_ii0ZMb@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:43657 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755488Ab0KIWs2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 17:48:28 -0500
-Received: by pva4 with SMTP id 4so403164pva.19
-        for <linux-omap@vger.kernel.org>; Tue, 09 Nov 2010 14:48:28 -0800 (PST)
-In-Reply-To: <1288099513-1854-14-git-send-email-manjugk@ti.com> (Manjunath
-	Kondaiah G.'s message of "Tue, 26 Oct 2010 18:55:13 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTimB5=OZWSaOGXKL49oWT+PnjADq5hT3w_ii0ZMb@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+On Wed, Nov 10, 2010 at 12:39:47AM +0200, Felipe Contreras wrote:
+> On Wed, Nov 10, 2010 at 12:10 AM, Greg KH <greg@kroah.com> wrote:
+> > On Tue, Nov 09, 2010 at 11:53:29PM +0200, Felipe Contreras wrote:
+> >> You mean after this pull, or should Omar re-send this pull request?
+> >
+> > I'm not pulling _anything_ at the moment for this driver.
+> >
+> > I want to see patches, not a pull request please, as these need to be
+> > reviewed very closely.
+> 
+> It's a revert from a non-working state to a working state, there's not
+> much to review there. So if Omar sends the patches with my and his
+> s-o-b, would you apply the patches?
 
-> Enable runtime pm and use pm_runtime_get and pm_runtime_put
-> for OMAP DMA driver.
->
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/plat-omap/dma.c |   13 +++++++++++++
->  1 files changed, 13 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 41b14b0..feac7ee 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -35,6 +35,7 @@
->  #include <linux/io.h>
->  #include <linux/slab.h>
->  #include <linux/delay.h>
-> +#include <linux/pm_runtime.h>
->  
->  #include <asm/system.h>
->  #include <mach/hardware.h>
-> @@ -367,6 +368,8 @@ int omap_request_dma(int dev_id, const char *dev_name,
->  	chan = dma_chan + free_ch;
->  	chan->dev_id = dev_id;
->  
-> +	pm_runtime_get(&pd->dev);
-
-The _get() call is asynchronous.  So if the device was actually
-idled/disabled, immediately after this call it may still be
-idle/disabled.   When using the asynchronous versions of the API, the
-device should not be touched until the driver's ->runtime_resume()
-callback is called.
-
->  	if (d->dev_caps & IS_WORD_16)
->  		p->clear_lch_regs(free_ch);
->  	else
-> @@ -452,6 +455,7 @@ void omap_free_dma(int lch)
->  		omap_clear_dma(lch);
->  		p->clear_dma_sglist_mode(lch);
->  	}
-> +	pm_runtime_put(&pd->dev);
->  	spin_lock_irqsave(&dma_chan_lock, flags);
->  	dma_chan[lch].dev_id = -1;
->  	dma_chan[lch].next_lch = -1;
-> @@ -819,6 +823,11 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
->  	dma_chan_count		= d->chan_count;
->  	dma_chan		= d->chan;
->  
-> +	/* Enable run time PM */
-
-comment is redundant
-
-> +	pm_runtime_enable(&pd->dev);
-> +
-> +	/* Accessing hw registers, get clock */
-
-comment is wrong, driver doesn't know anything about clocks.
-Just drop comment as it doesn't tell you anything that the following
-'get' doesn't.
-
-> +	pm_runtime_get(&pd->dev);
-
-see above Re: async calls.
-
->  	for (ch = 0; ch < dma_chan_count; ch++) {
->  		unsigned long flags;
->  		omap_clear_dma(ch);
-> @@ -846,6 +855,10 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
->  		dma_chan[0].dev_id = 0;
->  		dma_chan[1].dev_id = 1;
->  	}
-> +
-> +	if (!omap_dma_reserve_channels)
-> +		pm_runtime_put(&pd->dev);
-> +
-
-So if the reserve channels feature is used, PM is essentially disabled
-for sDMA.  You should add a warning here to that effect as well.
-
-
->  	return 0;
->  
->  exit_release_region:
-
-Kevin
+Was my previous email about not taking anything unless it went through
+Omar not specific enough?
