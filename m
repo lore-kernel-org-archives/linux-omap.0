@@ -1,22 +1,32 @@
-From: Anand Gadiyar <gadiyar@ti.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
 Subject: RE: [PATCH V2] hwmon: twl4030: Driver for twl4030 madc module
-Date: Tue, 9 Nov 2010 19:10:07 +0530
-Message-ID: <6d8d369473ef89e6b2c20252b7007b8a@mail.gmail.com>
+Date: Tue, 9 Nov 2010 19:16:49 +0530
+Message-ID: <FF55437E1F14DA4BAEB721A458B6701706FD41D1D2@dbde02.ent.ti.com>
 References: <1289294457-5330-1-git-send-email-j-keerthy@ti.com>
+ <6d8d369473ef89e6b2c20252b7007b8a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:35873 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751629Ab0KINkL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 08:40:11 -0500
-Received: by mail-wy0-f175.google.com with SMTP id 34so43902wyb.20
-        for <linux-omap@vger.kernel.org>; Tue, 09 Nov 2010 05:40:09 -0800 (PST)
-In-Reply-To: <1289294457-5330-1-git-send-email-j-keerthy@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38763 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753257Ab0KINrl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 08:47:41 -0500
+In-Reply-To: <6d8d369473ef89e6b2c20252b7007b8a@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: J KEERTHY <j-keerthy@ti.com>, lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com, khali@linux-fr.org
-Cc: mikko.k.ylinen@nokia.com, Felipe Balbi <balbi@ti.com>, amit.kucheria@canonical.com, linux-omap@vger.kernel.org, Balaji T Krishnamoorthy <balajitk@ti.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "guenter.roeck@ericsson.com" <guenter.roeck@ericsson.com>, "sameo@linux.intel.com" <sameo@l>
+Cc: "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "Balbi, Felipe" <balbi@ti.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+
+Hello Anand,
+
+-----Original Message-----
+From: Gadiyar, Anand 
+Sent: Tuesday, November 09, 2010 7:10 PM
+To: J, KEERTHY; lm-sensors@lm-sensors.org; guenter.roeck@ericsson.com; sameo@linux.intel.com; khali@linux-fr.org
+Cc: mikko.k.ylinen@nokia.com; Balbi, Felipe; amit.kucheria@canonical.com; linux-omap@vger.kernel.org; Krishnamoorthy, Balaji T
+Subject: RE: [PATCH V2] hwmon: twl4030: Driver for twl4030 madc module
 
 > Introducing a driver for MADC on TWL4030 powerIC. MADC stands for
 monitoring
@@ -46,4 +56,9 @@ You need to provide some label text here, otherwise this option
 will not show up in the kernel configuration tools, and hence
 cannot be turned on or off from there.
 
+Ok. I get it. I will add a label.
+
 - Anand
+
+Thanks,
+Keerthy
