@@ -1,50 +1,69 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH 2/6] OMAP3: hwmod data: Add mmu for iva2 and isp
-Date: Mon, 8 Nov 2010 17:52:40 -0600
-Message-ID: <AANLkTimexv8gb0HtDKf28w_1GWik6TtZSYZGpWQUVHyk@mail.gmail.com>
-References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>
-	<1289006396-27230-3-git-send-email-omar.ramirez@ti.com>
-	<4CD5A96D.1000806@ti.com>
-	<AANLkTinn4_s-PX08H62AL-tn+8wxXXQjhUNq6d+aDOo+@mail.gmail.com>
-	<4CD88251.4060400@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 3/6] OMAP4: hwmod data: add mmu hwmod for ducati and tesla
+Date: Tue, 9 Nov 2010 01:03:15 +0100
+Message-ID: <4CD88FC3.9050205@ti.com>
+References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>	<1289006396-27230-4-git-send-email-omar.ramirez@ti.com>	<4CD5BEFF.40301@ti.com>	<AANLkTim=5bgGo1cnkWJCPF4HmMnQrBhP_sPCK3rRKUPS@mail.gmail.com>	<4CD885DD.7020909@ti.com> <AANLkTi=JhdGqB-mXnvjT_Y4cCOu2i8bwfQyy=FAC1Chh@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53518 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751552Ab0KHXwl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Nov 2010 18:52:41 -0500
-Received: by mail-iw0-f173.google.com with SMTP id 36so6837591iwn.4
-        for <linux-omap@vger.kernel.org>; Mon, 08 Nov 2010 15:52:40 -0800 (PST)
-In-Reply-To: <4CD88251.4060400@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:49801 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752650Ab0KIAC7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Nov 2010 19:02:59 -0500
+In-Reply-To: <AANLkTi=JhdGqB-mXnvjT_Y4cCOu2i8bwfQyy=FAC1Chh@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Nov 8, 2010 at 5:05 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
->>>> Add mmu hwmod data for iva2 and isp.
->>>
->>> s/iva2/iva/
+On 11/9/2010 12:48 AM, Ramirez Luna, Omar wrote:
+> On Mon, Nov 8, 2010 at 5:21 PM, Cousson, Benoit<b-cousson@ti.com>  wrote:
+>>> I wrote this one from scratch, I didn't see that there were pieces to
+>>> handle some stuff since the code is buried in a private tree.
 >>
->> Where this terminology can be found? I'm basing this naming on what
->> was there or TRM. For omap3 there is no such thing as iva, it is iva2.
+>> Not true at all... It was sent to l-o:
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32854.html
 >
-> IVA2 means IVA v2, before we had an IVA (v1) then IVA v1.1...
->
-> The goal is to use the same name for the IP with similar functionality
-> across OMAPs version in order to have generic code in the driver.
->
-> IVA, IVA2, IVAHD are all doing similar things, so the only way to identify
-> the same functionality is by using the same name.
-> Thanks to the rev field, you can differentiate the various version during
-> device creation.
-> That will allow you to query the hwmod on every version of OMAPs using the
-> same "iva" name. Otherwise you will have to use the cpu_is_omap_XXX to
-> select iva, iva2 or ivahd depending of the SoC.
->
-> Does that make sense to you?
+> I did review v3 of this patch set, care to point the exact place for
+> mmu hwmod on this patch set. It seems [v2 5/7] had mailbox, but I
+> don't think v3 made it to the list.
 
-That makes sense, thanks for the explanation.
+The patch itself may did not reach the list due to his size, that's why 
+I added the link to the GIT.
 
-Omar
+Both dsp and ipu contain the mmu + cache related information.
+
+static struct omap_hwmod omap44xx_dsp_hwmod
+static struct omap_hwmod omap44xx_ipu_hwmod
+
+At that time I didn't know how that stuff was supposed to be used by the 
+driver. I already changed the structure a little bit based on Hari's 
+comment, so if you do need mmu entry only, since that structure seems to 
+handle only that, it might makes sense to rename them in order to 
+consider them part of the mmu class.
+It should be then mmu_dsp and mmu_ipu, because in that case, it will 
+represent the mmu class instances for the dsp and the ipu.
+
+I'm perfectly fine to update that part if needed.
+
+Regards,
+Benoit
+
+>> And stored in a supposedly private tree, which appears to be public:
+>> http://dev.omapzoom.org/?p=swarch/linux-omap-adv.git;a=summary
+>
+> I took whatever was in:
+>
+> http://dev.omapzoom.org/?p=integration/kernel-omap4.git;a=shortlog;h=refs/heads/L24.11
+
+>
+>> Please do not do any change on that code base, just use the original code
+>> and update it if needed.
+>
+> Will do, as taken from the tree you mention.
+>
+> Regards,
+>
+> Omar
+
