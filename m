@@ -1,64 +1,156 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH V2] hwmon: twl4030: Driver for twl4030 madc module
-Date: Tue, 9 Nov 2010 19:16:49 +0530
-Message-ID: <FF55437E1F14DA4BAEB721A458B6701706FD41D1D2@dbde02.ent.ti.com>
-References: <1289294457-5330-1-git-send-email-j-keerthy@ti.com>
- <6d8d369473ef89e6b2c20252b7007b8a@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: srinath@mistralsolutions.com
+Subject: [Patch v5] OMAP: AM3517/05: Add craneboard support
+Date: Tue,  9 Nov 2010 19:43:52 +0530
+Message-ID: <1289312032-16574-1-git-send-email-srinath@mistralsolutions.com>
+References: <[PATCH] OMAP: AM3517/05: Add craneboard support>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38763 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753257Ab0KINrl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 08:47:41 -0500
-In-Reply-To: <6d8d369473ef89e6b2c20252b7007b8a@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:41343 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089Ab0KIOc3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 09:32:29 -0500
+In-Reply-To: <[PATCH] OMAP: AM3517/05: Add craneboard support>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "guenter.roeck@ericsson.com" <guenter.roeck@ericsson.com>, "sameo@linux.intel.com" <sameo@l>
-Cc: "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "Balbi, Felipe" <balbi@ti.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, Srinath <srinath@mistralsolutions.com>
 
-Hello Anand,
+From: Srinath <srinath@mistralsolutions.com>
 
------Original Message-----
-From: Gadiyar, Anand 
-Sent: Tuesday, November 09, 2010 7:10 PM
-To: J, KEERTHY; lm-sensors@lm-sensors.org; guenter.roeck@ericsson.com; sameo@linux.intel.com; khali@linux-fr.org
-Cc: mikko.k.ylinen@nokia.com; Balbi, Felipe; amit.kucheria@canonical.com; linux-omap@vger.kernel.org; Krishnamoorthy, Balaji T
-Subject: RE: [PATCH V2] hwmon: twl4030: Driver for twl4030 madc module
+Craneboard is a hardware development platform based on the
+Sitara AM3517 ARM Cortex - A8 microprocessor device. This is a
+low cost reference design.
 
-> Introducing a driver for MADC on TWL4030 powerIC. MADC stands for
-monitoring
-> ADC. This driver monitors the real time conversion of analog signals
-like
-> battery temperature, battery type, battery level etc. User can also ask
-for
-> the conversion on a particular channel using the sysfs nodes.
->
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
+This patch adds basic board file. Detailed support will follow in
+subsequent patches.
 
-...
+  [1] http://www.ti.com/arm
+  [2] http://www.mistralsolutions.com/products/craneboard.php
 
+Signed-off-by: Srinath <srinath@mistralsolutions.com>
+---
+ arch/arm/mach-omap2/Kconfig                  |    5 ++
+ arch/arm/mach-omap2/Makefile                 |    2 +
+ arch/arm/mach-omap2/board-am3517crane.c      |   69 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+ 4 files changed, 77 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-am3517crane.c
 
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index a56f6ad..fef75f2 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -1171,6 +1171,12 @@ config SENSORS_MC13783_ADC
->          help
->            Support for the A/D converter on MC13783 PMIC.
->
-> +config SENSORS_TWL4030_MADC
-> +	tristate
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index ab784bf..3688515 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -174,6 +174,11 @@ config MACH_OMAP3517EVM
+ 	default y
+ 	select OMAP_PACKAGE_CBB
+ 
++config MACH_CRANEBOARD
++	bool "AM3517/05 CRANE board"
++	depends on ARCH_OMAP3
++	select OMAP_PACKAGE_CBB
++
+ config MACH_OMAP3_PANDORA
+ 	bool "OMAP3 Pandora"
+ 	depends on ARCH_OMAP3
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index b0810b9..d43bd33 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -174,6 +174,8 @@ obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o \
+ 
+ obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
+ 
++obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
++
+ obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o \
+ 					   hsmmc.o
+ # Platform specific device init code
+diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
+new file mode 100644
+index 0000000..13ead33
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-am3517crane.c
+@@ -0,0 +1,69 @@
++/*
++ * Support for AM3517/05 Craneboard
++ * http://www.mistralsolutions.com/products/craneboard.php
++ *
++ * Copyright (C) 2010 Mistral Solutions Pvt Ltd. <www.mistralsolutions.com>
++ * Author: R.Srinath <srinath@mistralsolutions.com>
++ *
++ * Based on mach-omap2/board-am3517evm.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as  published by the
++ * Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
++ * whether express or implied; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/gpio.h>
++
++#include <mach/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++
++#include <plat/board.h>
++#include <plat/common.h>
++
++#include "mux.h"
++
++/* Board initialization */
++static struct omap_board_config_kernel am3517_crane_config[] __initdata = {
++};
++
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
++
++static void __init am3517_crane_init_irq(void)
++{
++	omap_board_config = am3517_crane_config;
++	omap_board_config_size = ARRAY_SIZE(am3517_crane_config);
++
++	omap2_init_common_hw(NULL, NULL);
++	omap_init_irq();
++	omap_gpio_init();
++}
++
++static void __init am3517_crane_init(void)
++{
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
++	omap_serial_init();
++}
++
++MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
++	.boot_params	= 0x80000100,
++	.map_io		= omap3_map_io,
++	.reserve	= omap_reserve,
++	.init_irq	= am3517_crane_init_irq,
++	.init_machine	= am3517_crane_init,
++	.timer		= &omap_timer,
++MACHINE_END
+diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+index 9036e37..229fbf2 100644
+--- a/arch/arm/plat-omap/include/plat/uncompress.h
++++ b/arch/arm/plat-omap/include/plat/uncompress.h
+@@ -145,6 +145,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
+ 		/* omap3 based boards using UART3 */
+ 		DEBUG_LL_OMAP3(3, cm_t35);
+ 		DEBUG_LL_OMAP3(3, cm_t3517);
++		DEBUG_LL_OMAP3(3, craneboard);
+ 		DEBUG_LL_OMAP3(3, igep0020);
+ 		DEBUG_LL_OMAP3(3, igep0030);
+ 		DEBUG_LL_OMAP3(3, nokia_rx51);
+-- 
+1.7.1.226.g770c5
 
-You need to provide some label text here, otherwise this option
-will not show up in the kernel configuration tools, and hence
-cannot be turned on or off from there.
-
-Ok. I get it. I will add a label.
-
-- Anand
-
-Thanks,
-Keerthy
