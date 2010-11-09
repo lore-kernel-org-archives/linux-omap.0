@@ -1,79 +1,77 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
 Subject: Re: [GIT PULL] fixes for tidspbridge 2.6.37-rc1
-Date: Tue, 9 Nov 2010 23:53:29 +0200
-Message-ID: <AANLkTin0Lszi6MVo8GBWmpvMQRL3V+VGbtGdaMkBe5XO@mail.gmail.com>
+Date: Wed, 10 Nov 2010 00:04:58 +0200
+Message-ID: <AANLkTikK=Vr4PkQYzBqS97beuZbTUWq5Xp=7=Uw6QcCn@mail.gmail.com>
 References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
 	<AANLkTikB0zhN13u5OtRwviOv-rFDW-vFTmq0t7ALuO7N@mail.gmail.com>
 	<201011091729.17679.arnd@arndb.de>
-	<20101109165509.GA9698@kroah.com>
-	<AANLkTinFW431t9XFqHc=wZAws9gjT0ikrc03J83kH7iF@mail.gmail.com>
-	<20101109172511.GA10958@kroah.com>
-	<AANLkTi=CKERMcSLXwQa7G55P69DO--UPN9HgOScHP_yO@mail.gmail.com>
-	<20101109175828.GA27627@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:36842 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754142Ab0KIVxb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 16:53:31 -0500
-In-Reply-To: <20101109175828.GA27627@kroah.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:57442 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751265Ab0KIWE7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 17:04:59 -0500
+In-Reply-To: <201011091729.17679.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Tue, Nov 9, 2010 at 7:58 PM, Greg KH <greg@kroah.com> wrote:
-> If it is easy to revert and push later, then the "revert just this
-> piece" should be done now.
+On Tue, Nov 9, 2010 at 6:29 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 09 November 2010, Felipe Contreras wrote:
+>> Felipe Contreras (14):
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge - update Kconfig t=
+o select IOMMU module"
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge - remove dmm custo=
+m module"
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge - deprecate reserv=
+e/unreserve_memory funtions"
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge - remove reserved =
+memory clean up"
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge: remove dw_dmmu_ba=
+se from cfg_hostres struct"
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge - move all iommu r=
+elated code to a new file"
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge - remove hw direct=
+ory"
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge - fix mmufault sup=
+port"
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge - remove custom mm=
+u code from tiomap3430.c"
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge - rename bridge_br=
+d_mem_map/unmap to a proper name"
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge - move shared memo=
+ry iommu maps to tiomap3430.c"
+>> =C2=A0 =C2=A0 =C2=A0 Revert "staging: tidspbridge: replace iommu cus=
+tom for opensource implementation"
 >
-> Seriously, I'm getting very confused here, and am very annoyed by the
-> whole thing.
-
-With good reason.
-
-> Here's what I don't like:
-> =C2=A0- the original driver didn't even seem to work properly
-
-It _was_ working properly, when it was a separate branch, but the
-merge to staging wasn't done correctly, so it has never worked there.
-
-> =C2=A0- people sent me patches they never tested and broke things eve=
-n worse
-
-Part of the blame goes to TI. Even if you have the hardware, it's not
-straightforward to test this. I have struggled to improve the
-situation on user-space with the gst-dsp and dsp-tools projects, which
-btw have not received support from TI, but apparently they were not
-used to test this (neither was the "official" solution from TI which
-is much harder to set up).
-
-> =C2=A0- some people have no respect for the omap maintainers and what=
- they
-> =C2=A0 =C2=A0think about things, or even basic knowledge of the kerne=
+> That adds quite a lot of crap back in that was removed by Fernando ea=
+rlier:
+>
+> =C2=A044 files changed, 3733 insertions(+), 847 deletions(-)
+>
+> It may have been premature to merge the patches as you say, but now t=
+hat
+> they are in, I'd vote for giving Fernando a chance to fix up any dama=
+ge
+> that was done in the process rather than just reverting all the usefu=
 l
-> =C2=A0 =C2=A0development cycle.
+> changes.
 
-I don't think this is the case. The opinion of the OMAP maintainers is
-valuable in order to cleanup the mess that is this driver. But _first_
-it has to work. Most people are not developers, they just want to use
-this driver.
+The changes from Fernando require changes in other trees: arm, omap.
+These cannot get into 2.6.37, and I have my doubts they would get into
+2.6.38, as I haven't seen those ack'ed yet.
 
-> =C2=A0- I do not have this hardware so I can't test anything.
->
-> So, from now on, I'm not taking ANYONES patches for this driver unles=
-s
-> it gets an ack from the driver maintainer, Omar Luna.
->
-> Actually, no, I'm not going to take any patch unless it _comes from_
-> Omar. =C2=A0Omar, please work to queue up patches and test them, and =
-then
-> send them to me for merging.
->
-> Any questions?
+Moreover, I have applied all the patches Fernando has sent, and I
+still haven't seen this driver working with the new iommu code.
 
-You mean after this pull, or should Omar re-send this pull request?
+So, sure, these patches are good, we (Nokia), requested them years
+ago, but right now there's no way to get this driver working with them
+on 2.6.37. I would rather have a working driver for once on a vanilla
+kernel. It is really tiring to point people to different places to get
+working code depending on which week they ask.
 
 --=20
 =46elipe Contreras
