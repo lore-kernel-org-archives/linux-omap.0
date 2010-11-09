@@ -1,62 +1,57 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2] OMAP: hwmod: Update the sysc_cache in case module context is lost
-Date: Tue, 09 Nov 2010 12:55:18 -0800
-Message-ID: <8762w6p689.fsf@deeprootsystems.com>
-References: <1288098021-31097-1-git-send-email-rnayak@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [GIT PULL] fixes for tidspbridge 2.6.37-rc1
+Date: Tue, 9 Nov 2010 23:26:04 +0200
+Message-ID: <AANLkTimmd=jKk_x4DNao_NG9dEiQtQvOQ=TePn-Dgc_b@mail.gmail.com>
+References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
+	<AANLkTikB0zhN13u5OtRwviOv-rFDW-vFTmq0t7ALuO7N@mail.gmail.com>
+	<201011091729.17679.arnd@arndb.de>
+	<AANLkTikMjAh+LAFaWELyiJc+ou+N8v_7xhrwHRbBZZQF@mail.gmail.com>
+	<20101109173536.GE9264@atomide.com>
+	<AANLkTinLORQ7Hyn7nqkNZhRbP8iTGRfAXibgY2VeZTPq@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:59531 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754730Ab0KIUzW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 15:55:22 -0500
-Received: by gyh4 with SMTP id 4so4677139gyh.19
-        for <linux-omap@vger.kernel.org>; Tue, 09 Nov 2010 12:55:22 -0800 (PST)
-In-Reply-To: <1288098021-31097-1-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Tue, 26 Oct 2010 18:30:21 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinLORQ7Hyn7nqkNZhRbP8iTGRfAXibgY2VeZTPq@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Rajendra Nayak <rnayak@ti.com> writes:
-
-> Do not skip the sysc programming in the hmwod framework based
-> on the cached value alone, since at times the module might have lost
-> context (due to the Powerdomain in which the module belongs
-> transitions to either Open Switch RET or OFF).
+On Tue, Nov 9, 2010 at 7:52 PM, Guzman Lugo, Fernando
+<fernando.lugo@ti.com> wrote:
+> On Tue, Nov 9, 2010 at 11:35 AM, Tony Lindgren <tony@atomide.com> wro=
+te:
+>> * Guzman Lugo, Fernando <fernando.lugo@ti.com> [101109 08:36]:
+>>>
+>>> tidspbridge iommu change are working fine all the patches and few f=
+ixes after
+>>> that are alredy sent. what breaks tidspbridge, is the unmerged
+>>> dependencies in linux omap tree, specifically the iommu module patc=
+hes
+>>> and the SG patch.
+>>
+>> Care to post a series of the missing patches listed above?
 >
-> Identifying if a module has lost context requires atleast one
-> register read, and since a register read has more latency than
-> a write, it makes sense to do a blind write always.
+> Here are the missing patches:
 >
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c |    7 +++----
->  1 files changed, 3 insertions(+), 4 deletions(-)
+> Fernando Guzman Lugo (4):
+> =C2=A0iovmm: no gap checking for fixed address
+> =C2=A0iovmm: add superpages support to fixed da address
+> =C2=A0iovmm: replace __iounmap with omap_iounmap
+> =C2=A0iommu: create new api to set valid da range
 >
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 5a30658..aadd6dc 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -209,10 +209,9 @@ static void _write_sysconfig(u32 v, struct omap_hwmod *oh)
->  
->  	/* XXX ensure module interface clock is up */
->  
-> -	if (oh->_sysc_cache != v) {
-> -		oh->_sysc_cache = v;
-> -		omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
-> -	}
-> +	/* Module might have lost context, always update cache and register */
-> +	oh->_sysc_cache = v;
-> +	omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
->  }
->  
->  /**
+> and
+> =C2=A0scatterlist: define SG chain for arm architecture
+
+Those are not the only patches needed, you would also need:
+ omap: iommu: make iva2 iommu selectable
+ staging: tidspbridge: enable iva2 iommu
+
+And the one that actually uses the new API for the da range which
+hasn't even been submitted to the mailing list.
+
+Personally, I haven't seen the new iommu code working correctly.
+
+--=20
+=46elipe Contreras
