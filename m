@@ -1,156 +1,45 @@
-From: srinath@mistralsolutions.com
-Subject: [Patch v5] OMAP: AM3517/05: Add craneboard support
-Date: Tue,  9 Nov 2010 19:43:52 +0530
-Message-ID: <1289312032-16574-1-git-send-email-srinath@mistralsolutions.com>
-References: <[PATCH] OMAP: AM3517/05: Add craneboard support>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] fixes for tidspbridge 2.6.37-rc1
+Date: Tue, 9 Nov 2010 17:29:17 +0100
+Message-ID: <201011091729.17679.arnd@arndb.de>
+References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com> <AANLkTikB0zhN13u5OtRwviOv-rFDW-vFTmq0t7ALuO7N@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:41343 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089Ab0KIOc3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 09:32:29 -0500
-In-Reply-To: <[PATCH] OMAP: AM3517/05: Add craneboard support>
+Received: from moutng.kundenserver.de ([212.227.126.186]:57336 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752104Ab0KIQ32 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 11:29:28 -0500
+In-Reply-To: <AANLkTikB0zhN13u5OtRwviOv-rFDW-vFTmq0t7ALuO7N@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, Srinath <srinath@mistralsolutions.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>
 
-From: Srinath <srinath@mistralsolutions.com>
+On Tuesday 09 November 2010, Felipe Contreras wrote:
+> Felipe Contreras (14):
+>       Revert "staging: tidspbridge - update Kconfig to select IOMMU module"
+>       Revert "staging: tidspbridge - remove dmm custom module"
+>       Revert "staging: tidspbridge - deprecate reserve/unreserve_memory funtions"
+>       Revert "staging: tidspbridge - remove reserved memory clean up"
+>       Revert "staging: tidspbridge: remove dw_dmmu_base from cfg_hostres struct"
+>       Revert "staging: tidspbridge - move all iommu related code to a new file"
+>       Revert "staging: tidspbridge - remove hw directory"
+>       Revert "staging: tidspbridge - fix mmufault support"
+>       Revert "staging: tidspbridge - remove custom mmu code from tiomap3430.c"
+>       Revert "staging: tidspbridge - rename bridge_brd_mem_map/unmap to a proper name"
+>       Revert "staging: tidspbridge - move shared memory iommu maps to tiomap3430.c"
+>       Revert "staging: tidspbridge: replace iommu custom for opensource implementation"
 
-Craneboard is a hardware development platform based on the
-Sitara AM3517 ARM Cortex - A8 microprocessor device. This is a
-low cost reference design.
+That adds quite a lot of crap back in that was removed by Fernando earlier:
 
-This patch adds basic board file. Detailed support will follow in
-subsequent patches.
+ 44 files changed, 3733 insertions(+), 847 deletions(-)
 
-  [1] http://www.ti.com/arm
-  [2] http://www.mistralsolutions.com/products/craneboard.php
+It may have been premature to merge the patches as you say, but now that
+they are in, I'd vote for giving Fernando a chance to fix up any damage
+that was done in the process rather than just reverting all the useful
+changes.
 
-Signed-off-by: Srinath <srinath@mistralsolutions.com>
----
- arch/arm/mach-omap2/Kconfig                  |    5 ++
- arch/arm/mach-omap2/Makefile                 |    2 +
- arch/arm/mach-omap2/board-am3517crane.c      |   69 ++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/uncompress.h |    1 +
- 4 files changed, 77 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-am3517crane.c
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index ab784bf..3688515 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -174,6 +174,11 @@ config MACH_OMAP3517EVM
- 	default y
- 	select OMAP_PACKAGE_CBB
- 
-+config MACH_CRANEBOARD
-+	bool "AM3517/05 CRANE board"
-+	depends on ARCH_OMAP3
-+	select OMAP_PACKAGE_CBB
-+
- config MACH_OMAP3_PANDORA
- 	bool "OMAP3 Pandora"
- 	depends on ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index b0810b9..d43bd33 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -174,6 +174,8 @@ obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o \
- 
- obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
- 
-+obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
-+
- obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o \
- 					   hsmmc.o
- # Platform specific device init code
-diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-new file mode 100644
-index 0000000..13ead33
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -0,0 +1,69 @@
-+/*
-+ * Support for AM3517/05 Craneboard
-+ * http://www.mistralsolutions.com/products/craneboard.php
-+ *
-+ * Copyright (C) 2010 Mistral Solutions Pvt Ltd. <www.mistralsolutions.com>
-+ * Author: R.Srinath <srinath@mistralsolutions.com>
-+ *
-+ * Based on mach-omap2/board-am3517evm.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as  published by the
-+ * Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-+ * whether express or implied; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/gpio.h>
-+
-+#include <mach/hardware.h>
-+#include <asm/mach-types.h>
-+#include <asm/mach/arch.h>
-+#include <asm/mach/map.h>
-+
-+#include <plat/board.h>
-+#include <plat/common.h>
-+
-+#include "mux.h"
-+
-+/* Board initialization */
-+static struct omap_board_config_kernel am3517_crane_config[] __initdata = {
-+};
-+
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
-+
-+static void __init am3517_crane_init_irq(void)
-+{
-+	omap_board_config = am3517_crane_config;
-+	omap_board_config_size = ARRAY_SIZE(am3517_crane_config);
-+
-+	omap2_init_common_hw(NULL, NULL);
-+	omap_init_irq();
-+	omap_gpio_init();
-+}
-+
-+static void __init am3517_crane_init(void)
-+{
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-+	omap_serial_init();
-+}
-+
-+MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
-+	.boot_params	= 0x80000100,
-+	.map_io		= omap3_map_io,
-+	.reserve	= omap_reserve,
-+	.init_irq	= am3517_crane_init_irq,
-+	.init_machine	= am3517_crane_init,
-+	.timer		= &omap_timer,
-+MACHINE_END
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index 9036e37..229fbf2 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -145,6 +145,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		/* omap3 based boards using UART3 */
- 		DEBUG_LL_OMAP3(3, cm_t35);
- 		DEBUG_LL_OMAP3(3, cm_t3517);
-+		DEBUG_LL_OMAP3(3, craneboard);
- 		DEBUG_LL_OMAP3(3, igep0020);
- 		DEBUG_LL_OMAP3(3, igep0030);
- 		DEBUG_LL_OMAP3(3, nokia_rx51);
--- 
-1.7.1.226.g770c5
-
+	Arnd
