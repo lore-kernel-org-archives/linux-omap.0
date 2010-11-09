@@ -1,51 +1,45 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 10/13] OMAP: DMA: Convert DMA library into DMA platform Driver
-Date: Tue, 09 Nov 2010 14:26:08 -0800
-Message-ID: <8739rakubj.fsf@deeprootsystems.com>
-References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
-	<1288099513-1854-11-git-send-email-manjugk@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [GIT PULL] fixes for tidspbridge 2.6.37-rc1
+Date: Wed, 10 Nov 2010 00:39:47 +0200
+Message-ID: <AANLkTimB5=OZWSaOGXKL49oWT+PnjADq5hT3w_ii0ZMb@mail.gmail.com>
+References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
+	<AANLkTikB0zhN13u5OtRwviOv-rFDW-vFTmq0t7ALuO7N@mail.gmail.com>
+	<201011091729.17679.arnd@arndb.de>
+	<20101109165509.GA9698@kroah.com>
+	<AANLkTinFW431t9XFqHc=wZAws9gjT0ikrc03J83kH7iF@mail.gmail.com>
+	<20101109172511.GA10958@kroah.com>
+	<AANLkTi=CKERMcSLXwQa7G55P69DO--UPN9HgOScHP_yO@mail.gmail.com>
+	<20101109175828.GA27627@kroah.com>
+	<AANLkTin0Lszi6MVo8GBWmpvMQRL3V+VGbtGdaMkBe5XO@mail.gmail.com>
+	<20101109221035.GB19847@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:36829 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755063Ab0KIW0L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 17:26:11 -0500
-Received: by pva4 with SMTP id 4so399311pva.19
-        for <linux-omap@vger.kernel.org>; Tue, 09 Nov 2010 14:26:10 -0800 (PST)
-In-Reply-To: <1288099513-1854-11-git-send-email-manjugk@ti.com> (Manjunath
-	Kondaiah G.'s message of "Tue, 26 Oct 2010 18:55:10 +0530")
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39683 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753899Ab0KIWju (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 17:39:50 -0500
+In-Reply-To: <20101109221035.GB19847@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Greg KH <greg@kroah.com>
+Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-
-> Convert DMA library into DMA platform driver and make use
-> of platform data provided by HWMOD data base for OMAP2PLUS onwards.
-> For OMAP1 processors, the DMA driver in mach-omap uses resource
-> structures for getting platform data.
+On Wed, Nov 10, 2010 at 12:10 AM, Greg KH <greg@kroah.com> wrote:
+> On Tue, Nov 09, 2010 at 11:53:29PM +0200, Felipe Contreras wrote:
+>> You mean after this pull, or should Omar re-send this pull request?
 >
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> I'm not pulling _anything_ at the moment for this driver.
+>
+> I want to see patches, not a pull request please, as these need to be
+> reviewed very closely.
 
-[...]
+It's a revert from a non-working state to a working state, there's not
+much to review there. So if Omar sends the patches with my and his
+s-o-b, would you apply the patches?
 
-> diff --git a/arch/arm/mach-omap2/include/mach/dma.h b/arch/arm/mach-omap2/include/mach/dma.h
-> index d0a7d5b..d13c5c0 100644
-> --- a/arch/arm/mach-omap2/include/mach/dma.h
-> +++ b/arch/arm/mach-omap2/include/mach/dma.h
-> @@ -29,4 +29,7 @@
->  #ifndef __ASM_ARCH_OMAP2_DMA_H
->  #define __ASM_ARCH_OMAP2_DMA_H
->  
-> +/* Should be part of hwmod data base ? */
-> +#define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	32	/* REVISIT: Is this 32 + 2? */
-> +
+Getting these patches in one way or the other seems to be the only way
+we can get this driver to work on 2.6.37.
 
-There are no users of this in this patch, all users are removed.
-
-Kevin
+-- 
+Felipe Contreras
