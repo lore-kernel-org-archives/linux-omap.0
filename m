@@ -1,69 +1,142 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 3/6] OMAP4: hwmod data: add mmu hwmod for ducati and tesla
-Date: Tue, 9 Nov 2010 01:03:15 +0100
-Message-ID: <4CD88FC3.9050205@ti.com>
-References: <1289006396-27230-1-git-send-email-omar.ramirez@ti.com>	<1289006396-27230-4-git-send-email-omar.ramirez@ti.com>	<4CD5BEFF.40301@ti.com>	<AANLkTim=5bgGo1cnkWJCPF4HmMnQrBhP_sPCK3rRKUPS@mail.gmail.com>	<4CD885DD.7020909@ti.com> <AANLkTi=JhdGqB-mXnvjT_Y4cCOu2i8bwfQyy=FAC1Chh@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 01/13] OMAP: DMA: Replace read/write macros with
+ functions
+Date: Mon, 8 Nov 2010 16:40:45 -0800
+Message-ID: <20101109004045.GU9264@atomide.com>
+References: <1289225272-9767-1-git-send-email-manjugk@ti.com>
+ <1289225272-9767-2-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49801 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752650Ab0KIAC7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Nov 2010 19:02:59 -0500
-In-Reply-To: <AANLkTi=JhdGqB-mXnvjT_Y4cCOu2i8bwfQyy=FAC1Chh@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50036 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966Ab0KIAk4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Nov 2010 19:40:56 -0500
+Content-Disposition: inline
+In-Reply-To: <1289225272-9767-2-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 11/9/2010 12:48 AM, Ramirez Luna, Omar wrote:
-> On Mon, Nov 8, 2010 at 5:21 PM, Cousson, Benoit<b-cousson@ti.com>  wrote:
->>> I wrote this one from scratch, I didn't see that there were pieces to
->>> handle some stuff since the code is buried in a private tree.
->>
->> Not true at all... It was sent to l-o:
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32854.html
->
-> I did review v3 of this patch set, care to point the exact place for
-> mmu hwmod on this patch set. It seems [v2 5/7] had mailbox, but I
-> don't think v3 made it to the list.
+Hi,
 
-The patch itself may did not reach the list due to his size, that's why 
-I added the link to the GIT.
+* G, Manjunath Kondaiah <manjugk@ti.com> [101108 05:58]:
 
-Both dsp and ipu contain the mmu + cache related information.
+> +static u16 reg_map_omap1[] = {
+> +	[GCR1]		= 0x400,
+> +	[GSCR]		= 0x404,
+> +	[GRST]		= 0x408,
+...
+> +};
 
-static struct omap_hwmod omap44xx_dsp_hwmod
-static struct omap_hwmod omap44xx_ipu_hwmod
+The above you should move to mach-omap1/dma.c and pass it in the init
+function to plat-omap/dma.c. Let's try to make the common code clean
+of omap1/2/3/4 specific data.
 
-At that time I didn't know how that stuff was supposed to be used by the 
-driver. I already changed the structure a little bit based on Hari's 
-comment, so if you do need mmu entry only, since that structure seems to 
-handle only that, it might makes sense to rename them in order to 
-consider them part of the mmu class.
-It should be then mmu_dsp and mmu_ipu, because in that case, it will 
-represent the mmu class instances for the dsp and the ipu.
+> +static u16 reg_map_omap2[] = {
+> +	[REVISION]		= 0x00,
+> +	[GCR2]			= 0x78,
+> +	[IRQSTATUS_L0]		= 0x08,
+...
+> +};
 
-I'm perfectly fine to update that part if needed.
+And the above you should move to mach-omap2/dma.c.
+
+It's OK to do it in a later patch if you prefer that, but in that case
+the patch description here should mention it.
+
+>  	if (cpu_class_is_omap2() && dma_trigger) {
+>  		u32 val;
+>  
+> -		val = dma_read(CCR(lch));
+> +		l = dma_read(CSDP2, lch);
+> +		l &= ~0x03;
+> +		l |= data_type;
+> +		dma_write(l, CSDP2, lch);
+> +
+> +		val = dma_read(CCR2, lch);
+
+This seems to be doing more than just change the read function?
+
+Please keep any functional changes separate. Let's first get the
+hwmod based initialization done without any functional changes
+to avoid breaking things.
+  
+> @@ -475,11 +654,19 @@ void omap_set_dma_src_data_pack(int lch, int enable)
+>  {
+>  	u32 l;
+>  
+> -	l = dma_read(CSDP(lch));
+> +	if (cpu_class_is_omap1())
+> +		l = dma_read(CSDP1, lch);
+> +	else
+> +		l = dma_read(CSDP2, lch);
+> +
+>  	l &= ~(1 << 6);
+>  	if (enable)
+>  		l |= (1 << 6);
+> -	dma_write(l, CSDP(lch));
+> +
+> +	if (cpu_class_is_omap1())
+> +		dma_write(l, CSDP1, lch);
+> +	else
+> +		dma_write(l, CSDP2, lch);
+>  }
+
+Since you now have the register mapping table, why do you still need
+to separate between CSDP1 and CSDP2 registers?
+
+You should now be able to call them just CSDP, and then the register
+can be mapped to the right offset for omap1 and omap2+.
+
+So this should be just:
+
+void omap_set_dma_src_data_pack(int lch, int enable)
+{
+	u32 l;
+
+	l = p->dma_read(CSDP, lch);
+	l &= ~(1 << 6);
+	if (enable)
+		l |= (1 << 6);
+	p->dma_write(l, CSDP, lch);
+}
+
+Please check the other functions for this too, that should
+leave out quite a bit of if cpu_class_is_omap1 clutter.
+
+And looking at it more, you should only have one enum for the
+registers, not separate enum for both omap1 and omap2+. The
+enum should be common for all of them. If needed, the enum
+should be separate for common register and channel specific
+registers.
+
+Some 32-bit registers for omap1 have the lower and upper registers,
+because of the 16-bit register access. So those still need to be
+handled separately for omap1. That can be handled automatically
+for omap1 (untested):
+
+static inline u32 omap1_dma_read(int reg, int lch)
+{
+	u32 va, val, ch_offset = 0;
+
+	if (reg > OMAP1_CH_COMMON_START)
+		ch_offset = 0x40 * lch;
+
+	va = dma_base + reg_map_omap1[reg] + ch_offset;
+	val = __raw_readw(va);
+
+	/* Some channel registers also have an associated upper register */
+	if (reg >= CSSA) {
+		16 upper = __raw_readw(va + 2);
+		val |= (upper << 16);
+	}
+
+	return val;
+}
+...
 
 Regards,
-Benoit
 
->> And stored in a supposedly private tree, which appears to be public:
->> http://dev.omapzoom.org/?p=swarch/linux-omap-adv.git;a=summary
->
-> I took whatever was in:
->
-> http://dev.omapzoom.org/?p=integration/kernel-omap4.git;a=shortlog;h=refs/heads/L24.11
-
->
->> Please do not do any change on that code base, just use the original code
->> and update it if needed.
->
-> Will do, as taken from the tree you mention.
->
-> Regards,
->
-> Omar
-
+Tony
