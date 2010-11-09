@@ -1,73 +1,35 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: I2C: hwmod: Fix PRCM module offset
-Date: Tue, 09 Nov 2010 09:31:41 -0800
-Message-ID: <87zktiqu82.fsf@deeprootsystems.com>
-References: <1289226250-11366-1-git-send-email-manjugk@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] fixes for tidspbridge 2.6.37-rc1
+Date: Tue, 9 Nov 2010 09:35:36 -0800
+Message-ID: <20101109173536.GE9264@atomide.com>
+References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
+ <AANLkTikB0zhN13u5OtRwviOv-rFDW-vFTmq0t7ALuO7N@mail.gmail.com>
+ <201011091729.17679.arnd@arndb.de>
+ <AANLkTikMjAh+LAFaWELyiJc+ou+N8v_7xhrwHRbBZZQF@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:53438 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752278Ab0KIRbs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 12:31:48 -0500
-Received: by pva4 with SMTP id 4so280904pva.19
-        for <linux-omap@vger.kernel.org>; Tue, 09 Nov 2010 09:31:48 -0800 (PST)
-In-Reply-To: <1289226250-11366-1-git-send-email-manjugk@ti.com> (Manjunath
-	Kondaiah G.'s message of "Mon, 8 Nov 2010 19:54:10 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54078 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752508Ab0KIRfv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 12:35:51 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTikMjAh+LAFaWELyiJc+ou+N8v_7xhrwHRbBZZQF@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Felipe Contreras <felipe.contreras@gmail.com>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+* Guzman Lugo, Fernando <fernando.lugo@ti.com> [101109 08:36]:
+> 
+> tidspbridge iommu change are working fine all the patches and few fixes after
+> that are alredy sent. what breaks tidspbridge, is the unmerged
+> dependencies in linux omap tree, specifically the iommu module patches
+> and the SG patch.
 
-> The commit '311225e6' is missing '.module_offs' in prcm
-> structure in omap3 hwmod data base which results in accessing
-> wrong register for I2Cx IDLEST bit monitoring.
->
-> Added module offsets for accessing register CM_IDLEST1_CORE.
->
-> Patch tested on Zoom3 using omap2plus_defconfig
+Care to post a series of the missing patches listed above?
 
-Thanks, will fold this into original series.
+That way we can at least start merging those into linux-omap for
+testing while waiting for the next merge window.
 
-Kevin
-
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Signed-off-by: Charulatha V <charu@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index d0d8030..22831e9 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -642,6 +642,7 @@ static struct omap_hwmod omap3xxx_i2c1_hwmod = {
->  	.main_clk	= "i2c1_fck",
->  	.prcm		= {
->  		.omap2 = {
-> +			.module_offs = CORE_MOD,
->  			.prcm_reg_id = 1,
->  			.module_bit = OMAP3430_EN_I2C1_SHIFT,
->  			.idlest_reg_id = 1,
-> @@ -683,6 +684,7 @@ static struct omap_hwmod omap3xxx_i2c2_hwmod = {
->  	.main_clk	= "i2c2_fck",
->  	.prcm		= {
->  		.omap2 = {
-> +			.module_offs = CORE_MOD,
->  			.prcm_reg_id = 1,
->  			.module_bit = OMAP3430_EN_I2C2_SHIFT,
->  			.idlest_reg_id = 1,
-> @@ -724,6 +726,7 @@ static struct omap_hwmod omap3xxx_i2c3_hwmod = {
->  	.main_clk	= "i2c3_fck",
->  	.prcm		= {
->  		.omap2 = {
-> +			.module_offs = CORE_MOD,
->  			.prcm_reg_id = 1,
->  			.module_bit = OMAP3430_EN_I2C3_SHIFT,
->  			.idlest_reg_id = 1,
+Tony
