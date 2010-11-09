@@ -1,77 +1,84 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 03/13] OMAP: DMA: Introduce DMA device attributes
-Date: Tue, 09 Nov 2010 13:46:53 -0800
-Message-ID: <87iq06mape.fsf@deeprootsystems.com>
-References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
-	<1288099513-1854-4-git-send-email-manjugk@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [GIT PULL] fixes for tidspbridge 2.6.37-rc1
+Date: Tue, 9 Nov 2010 23:53:29 +0200
+Message-ID: <AANLkTin0Lszi6MVo8GBWmpvMQRL3V+VGbtGdaMkBe5XO@mail.gmail.com>
+References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
+	<AANLkTikB0zhN13u5OtRwviOv-rFDW-vFTmq0t7ALuO7N@mail.gmail.com>
+	<201011091729.17679.arnd@arndb.de>
+	<20101109165509.GA9698@kroah.com>
+	<AANLkTinFW431t9XFqHc=wZAws9gjT0ikrc03J83kH7iF@mail.gmail.com>
+	<20101109172511.GA10958@kroah.com>
+	<AANLkTi=CKERMcSLXwQa7G55P69DO--UPN9HgOScHP_yO@mail.gmail.com>
+	<20101109175828.GA27627@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:37884 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753708Ab0KIVq6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 16:46:58 -0500
-Received: by gyh4 with SMTP id 4so4724090gyh.19
-        for <linux-omap@vger.kernel.org>; Tue, 09 Nov 2010 13:46:57 -0800 (PST)
-In-Reply-To: <1288099513-1854-4-git-send-email-manjugk@ti.com> (Manjunath
-	Kondaiah G.'s message of "Tue, 26 Oct 2010 18:55:03 +0530")
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:36842 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754142Ab0KIVxb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2010 16:53:31 -0500
+In-Reply-To: <20101109175828.GA27627@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Greg KH <greg@kroah.com>
+Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-
-> This patch introduces OMAP DMA device attributes for using the same in
-> DMA platform driver for all OMAP's and HWMOD database(OMAP2PLUS onwards)
+On Tue, Nov 9, 2010 at 7:58 PM, Greg KH <greg@kroah.com> wrote:
+> If it is easy to revert and push later, then the "revert just this
+> piece" should be done now.
 >
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/plat-omap/include/plat/dma.h |   20 ++++++++++++++++++++
->  1 files changed, 20 insertions(+), 0 deletions(-)
+> Seriously, I'm getting very confused here, and am very annoyed by the
+> whole thing.
+
+With good reason.
+
+> Here's what I don't like:
+> =C2=A0- the original driver didn't even seem to work properly
+
+It _was_ working properly, when it was a separate branch, but the
+merge to staging wasn't done correctly, so it has never worked there.
+
+> =C2=A0- people sent me patches they never tested and broke things eve=
+n worse
+
+Part of the blame goes to TI. Even if you have the hardware, it's not
+straightforward to test this. I have struggled to improve the
+situation on user-space with the gst-dsp and dsp-tools projects, which
+btw have not received support from TI, but apparently they were not
+used to test this (neither was the "official" solution from TI which
+is much harder to set up).
+
+> =C2=A0- some people have no respect for the omap maintainers and what=
+ they
+> =C2=A0 =C2=A0think about things, or even basic knowledge of the kerne=
+l
+> =C2=A0 =C2=A0development cycle.
+
+I don't think this is the case. The opinion of the OMAP maintainers is
+valuable in order to cleanup the mess that is this driver. But _first_
+it has to work. Most people are not developers, they just want to use
+this driver.
+
+> =C2=A0- I do not have this hardware so I can't test anything.
 >
-> diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
-> index 5e28d26..9757b22 100644
-> --- a/arch/arm/plat-omap/include/plat/dma.h
-> +++ b/arch/arm/plat-omap/include/plat/dma.h
-> @@ -296,6 +296,22 @@
->  #define DMA_ERRATA_i88			(1 << 4)
->  #define DMA_ERRATA_3_3			(1 << 5)
->  
-> +/* Attributes for OMAP DMA Contrllers */
-> +#define ENABLE_1510_MODE		(1 << 0x0)
-> +#define DMA_LINKED_LCH			(1 << 0x1)
-> +#define GLOBAL_PRIORITY			(1 << 0x2)
-> +#define RESERVE_CHANNEL			(1 << 0x3)
-> +#define SRC_PORT			(1 << 0x4)
-> +#define DST_PORT			(1 << 0x5)
-> +#define IS_CSSA_32			(1 << 0x6)
-> +#define IS_CDSA_32			(1 << 0x7)
-> +#define SRC_INDEX			(1 << 0x8)
-> +#define DST_INDEX			(1 << 0x9)
-> +#define IS_BURST_ONLY4			(1 << 0xA)
-> +#define CLEAR_CSR_ON_READ		(1 << 0xB)
-> +#define IS_WORD_16			(1 << 0xC)
-> +#define IS_RW_PRIORITY			(1 << 0xD)
+> So, from now on, I'm not taking ANYONES patches for this driver unles=
+s
+> it gets an ack from the driver maintainer, Omar Luna.
+>
+> Actually, no, I'm not going to take any patch unless it _comes from_
+> Omar. =C2=A0Omar, please work to queue up patches and test them, and =
+then
+> send them to me for merging.
+>
+> Any questions?
 
-Please use BIT() for these.
+You mean after this pull, or should Omar re-send this pull request?
 
->  enum omap_dma_burst_mode {
->  	OMAP_DMA_DATA_BURST_DIS = 0,
->  	OMAP_DMA_DATA_BURST_4,
-> @@ -361,6 +377,10 @@ struct omap_dma_channel_params {
->  #endif
->  };
->  
-> +struct omap_dma_dev_attr {
-> +	u32 dev_caps;
-> +	u16 lch_count;
-> +};
->  
->  extern void omap_set_dma_priority(int lch, int dst_port, int priority);
->  extern int omap_request_dma(int dev_id, const char *dev_name,
-
-Kevin
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
