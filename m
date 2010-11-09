@@ -1,74 +1,62 @@
-From: Deepak Chitriki <deepak.chitriki@ti.com>
-Subject: [PATCH] omap: mailbox - Enable IRQ after allocating queues
-Date: Mon,  8 Nov 2010 22:44:52 -0600
-Message-ID: <1289277892-16854-1-git-send-email-deepak.chitriki@ti.com>
+From: Rick Bronson <rick@efn.org>
+Subject: RE: Mistral AM37x (with AM3715) devel board networking broken
+Date: Mon, 08 Nov 2010 20:53:39 -0800
+Message-ID: <E1PFgDD-0002jm-KX@amazonia.comcast.net>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37986 "EHLO comal.ext.ti.com"
+Received: from efn.org ([206.192.230.249]:34961 "EHLO samwise.efn.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751418Ab0KIEo7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Nov 2010 23:44:59 -0500
+	id S1751418Ab0KIExj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Nov 2010 23:53:39 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi.DOYU@nokia.com
-Cc: linux-omap@vger.kernel.org, fernando.lugo@ti.com, Deepak Chitriki <deepak.chitriki@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: premi@ti.com
 
-Currently we are enabling the IRQ before queue's are allocated.But in some
-corner cases as soon as we enable the interruption,the ISR will be executed
-but the queue's wont be ready.Because of this we may be reading some garbage
-message in the mailbox which may lead to panic.
+Hi Sanjeev,
 
-This patch is based on the analysis of Fernando Guzman Lugo.
+  Thanks much for the help.
 
-Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
----
- arch/arm/plat-omap/mailbox.c |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
+> I tried building the latest on l-o master and was able to boot consistently
+> in 4 times I tried. Didn't notice the gpio clock related error I noticed in
+> your boot log.
+> 
+> 
+> U-Boot 2010.09 (Nov 08 2010 - 17:11:45)
+> 
+> OMAP3630/3730-GP ES2.0, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz
+> OMAP3 EVM board + LPDDR/NAND
 
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index c59c9c3..1513e16 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -256,14 +256,6 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
- 		mutex_unlock(&mbox_configured_lock);
- 	}
- 
--	ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
--				mbox->name, mbox);
--	if (ret) {
--		printk(KERN_ERR
--			"failed to register mailbox interrupt:%d\n", ret);
--		goto fail_request_irq;
--	}
--
- 	mq = mbox_queue_alloc(mbox, NULL, mbox_tx_tasklet);
- 	if (!mq) {
- 		ret = -ENOMEM;
-@@ -278,13 +270,21 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
- 	}
- 	mbox->rxq = mq;
- 
-+	ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
-+				mbox->name, mbox);
-+	if (ret) {
-+		printk(KERN_ERR
-+			"failed to register mailbox interrupt:%d\n", ret);
-+		goto fail_request_irq;
-+	}
-+
- 	return 0;
- 
-- fail_alloc_rxq:
-+fail_request_irq:
-+	mbox_queue_free(mbox->rxq);
-+fail_alloc_rxq:
- 	mbox_queue_free(mbox->txq);
-- fail_alloc_txq:
--	free_irq(mbox->irq, mbox);
-- fail_request_irq:
-+fail_alloc_txq:
- 	if (mbox->ops->shutdown)
- 		mbox->ops->shutdown(mbox);
- 
--- 
-1.7.0.4
+ Note that mine is ES1.0 (yours is ES2.0):
 
+OMAP3630/3730-GP ES1.0, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz                
+
+  Not sure if that's any clue.
+
+  Tonight I got the latest stuff:
+
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+
+  and built it up with:
+
+make omap2plus_defconfig ARCH=arm
+
+  And got this
+
+http://www.efn.org/~rick/pub/boot6.log
+
+  It's basically the same, I get the 3 warnings and sometimes eth0 works
+and sometimes it doesn't.  Note that my board works flawlessly with
+the kernel on the SD Card.
+
+  What compiler are you using?  I tried CodeSourcery
+2009q1 and 2010q1 with the same results.
+
+  How did you configure your u-boot?
+
+  Could you send me your boot up text?  Could you send me your
+u-boot.bin (and or your uImage) so I can try it?  I might help me
+figure out what's going on.
+
+ Thanks again.
+
+ Rick
