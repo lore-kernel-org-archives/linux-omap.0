@@ -1,61 +1,86 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 10/13] OMAP: DMA: Convert DMA library into DMA platform Driver
-Date: Wed, 10 Nov 2010 09:56:46 -0800
-Message-ID: <878w11awpt.fsf@deeprootsystems.com>
-References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
-	<1288099513-1854-11-git-send-email-manjugk@ti.com>
-	<8739rakubj.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7CC0@dbde02.ent.ti.com>
-	<87sjz9cfkv.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7D81@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hari Kanigeri <h-kanigeri2@ti.com>
+Subject: [PATCH v2 1/6] OMAP: mailbox: change full flag per mailbox queue instead of global
+Date: Wed, 10 Nov 2010 12:00:13 -0600
+Message-ID: <1289412018-18860-2-git-send-email-h-kanigeri2@ti.com>
+References: <1289412018-18860-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:59754 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751997Ab0KJR4v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 12:56:51 -0500
-Received: by qyk12 with SMTP id 12so3294473qyk.19
-        for <linux-omap@vger.kernel.org>; Wed, 10 Nov 2010 09:56:51 -0800 (PST)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7D81@dbde02.ent.ti.com>
-	(Manjunath Kondaiah G.'s message of "Wed, 10 Nov 2010 22:53:16 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:59119 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754676Ab0KJR7E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 12:59:04 -0500
+In-Reply-To: <1289412018-18860-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Fernando Guzman Lugo <x0095840@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+From: Fernando Guzman Lugo <x0095840@ti.com>
 
->> >> > +#define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	32	/* 
->> >> REVISIT: Is this 32 + 2? */
->> >> > +
->> >> 
->> >> There are no users of this in this patch, all users are removed.
->> >
->> > This macro is used in hwmod data base. Do you mean hard coding this
->> > value in hwmod db and remove header?
->> 
->> What I mean is that from a reviewers perspective of this patch, you
->> added a new #define that is not used anywhere in this patch.  
->> a #define
->> should be added along with any users of it.
->
-> No. This macro is used in omap2+ hwmod db through plat/dma.h which includes
-> mach/dma.h
+As pointed by Ohad Ben-Cohen, the variable rq_full flag is a
+global variable, so if there are multiple mailbox users
+there will be conflics. Now there is a full flag per
+mailbox queue.
 
-Which is not part of this patch.
+Version 2:
+- Rebase to the latest.
+Version 3:
+- Remove spin_lock protection. When the full flag is
+true the interrupt for that mailbox is disabled. So there
+is no race condition if full flag is modified before
+calling omap_mbox_enable_irq.
 
-Again, as a general rule, don't introduce code (#defines, headers,
-functions, anything) in a patch if it is not used.
+Reported-by: Ohad Ben-Cohen <ohad@wizery.com>
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+---
+ arch/arm/plat-omap/include/plat/mailbox.h |    1 +
+ arch/arm/plat-omap/mailbox.c              |    7 +++++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
->> 
->> That being said, the number of channels of the DMA IP sounds like
->> something that should indeed be associated with the hwmod as it is a
->> fixed HW feature.
->>
-> If so, I can remove this  macro and hard code in hwmod db.
-
-OK, good.
-
-Kevin
+diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
+index 9976565..13f2ef3 100644
+--- a/arch/arm/plat-omap/include/plat/mailbox.h
++++ b/arch/arm/plat-omap/include/plat/mailbox.h
+@@ -48,6 +48,7 @@ struct omap_mbox_queue {
+ 	struct tasklet_struct	tasklet;
+ 	int	(*callback)(void *);
+ 	struct omap_mbox	*mbox;
++	bool full;
+ };
+ 
+ struct omap_mbox {
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index d2fafb8..9ce3570 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -33,7 +33,6 @@
+ 
+ static struct workqueue_struct *mboxd;
+ static struct omap_mbox **mboxes;
+-static bool rq_full;
+ 
+ static int mbox_configured;
+ static DEFINE_MUTEX(mbox_configured_lock);
+@@ -148,6 +147,10 @@ static void mbox_rx_work(struct work_struct *work)
+ 
+ 		if (mq->callback)
+ 			mq->callback((void *)msg);
++		if (mq->full) {
++			mq->full = false;
++			omap_mbox_enable_irq(mq->mbox, IRQ_RX);
++		}
+ 	}
+ }
+ 
+@@ -170,7 +173,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
+ 	while (!mbox_fifo_empty(mbox)) {
+ 		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
+ 			omap_mbox_disable_irq(mbox, IRQ_RX);
+-			rq_full = true;
++			mq->full = true;
+ 			goto nomem;
+ 		}
+ 
+-- 
+1.7.0
 
