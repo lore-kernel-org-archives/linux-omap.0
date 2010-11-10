@@ -1,22 +1,22 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v3 01/13] OMAP: DMA: Replace read/write macros with
- functions
-Date: Wed, 10 Nov 2010 22:46:04 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7D7B@dbde02.ent.ti.com>
+Subject: RE: [PATCH v3 10/13] OMAP: DMA: Convert DMA library into DMA
+ platform Driver
+Date: Wed, 10 Nov 2010 22:53:16 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7D81@dbde02.ent.ti.com>
 References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
-	<1288099513-1854-2-git-send-email-manjugk@ti.com>
-	<87y692mb4e.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7CBD@dbde02.ent.ti.com>
- <877hgldv40.fsf@deeprootsystems.com>
+	<1288099513-1854-11-git-send-email-manjugk@ti.com>
+	<8739rakubj.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7CC0@dbde02.ent.ti.com>
+ <87sjz9cfkv.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58310 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58857 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932071Ab0KJRQO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 12:16:14 -0500
-In-Reply-To: <877hgldv40.fsf@deeprootsystems.com>
+	id S1757117Ab0KJRXY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 12:23:24 -0500
+In-Reply-To: <87sjz9cfkv.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -27,87 +27,36 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel
 
 > -----Original Message-----
 > From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Wednesday, November 10, 2010 9:33 PM
+> Sent: Wednesday, November 10, 2010 9:54 PM
 > To: G, Manjunath Kondaiah
 > Cc: linux-omap@vger.kernel.org; 
 > linux-arm-kernel@lists.infradead.org; Cousson, Benoit; 
 > Shilimkar, Santosh
-> Subject: Re: [PATCH v3 01/13] OMAP: DMA: Replace read/write 
-> macros with functions
+> Subject: Re: [PATCH v3 10/13] OMAP: DMA: Convert DMA library 
+> into DMA platform Driver
 > 
-> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+[...]
+> >> > +#define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	32	/* 
+> >> REVISIT: Is this 32 + 2? */
+> >> > +
+> >> 
+> >> There are no users of this in this patch, all users are removed.
+> >
+> > This macro is used in hwmod data base. Do you mean hard coding this
+> > value in hwmod db and remove header?
 > 
-> [...]
+> What I mean is that from a reviewers perspective of this patch, you
+> added a new #define that is not used anywhere in this patch.  
+> a #define
+> should be added along with any users of it.
+
+No. This macro is used in omap2+ hwmod db through plat/dma.h which includes
+mach/dma.h
+
 > 
-> >> > +		if (reg > OMAP1_CH_COMMON_START)
-> >> > +			__raw_writew(val, dma_base +
-> >> > +				(reg_map_omap1[reg] + 
-> 0x40 * lch));
-> >> > +		else
-> >> > +			__raw_writew(val, dma_base + 
-> >> reg_map_omap1[reg]);
-> >> > +	} else {
-> >> > +		if (reg > OMAP2_CH_COMMON_START)
-> >> > +			__raw_writel(val, dma_base +
-> >> > +				(reg_map_omap2[reg] + 
-> 0x60 * lch));
-> >> > +		else
-> >> > +			__raw_writel(val, dma_base + 
-> >> reg_map_omap2[reg]);
-> >> > +	}
-> >> > +}
-> >> 
-> >> The register base offset, register array and the stride (offset
-> >> between instances: 0x40 or 0x60) are detectable at init time, and
-> >> there's no reason to have conditional code for them.  IOW, they
-> >> should be init time constants.  Doing so would greatly simply these
-> >> functions.  In fact the CH_COMMON_START could also be an init time
-> >> constant as well.  So, given the following init_time constants:
-> >> dma_ch_common_start, dma_stride, reg_map, the above would 
-> be reduced
-> >> to something actually worth inlining, for example (not actually
-> >> tested):
-> >> 
-> >> static inline void dma_write(u32 val, int reg, int lch)
-> >> {
-> >>         u8 stride = (reg > dma_ch_common_start) ? dma_stride : 0;
-> >> 
-> >>         __raw_writel(val, dma_base + (reg_map[reg] + 
-> stride * lch));
-> >> }
-> >> 
-> >> Same applies to dma_read().
-> >
-> > Thanks for the suggestion. It is taken care along with 
-> Tony's comment
-> > for handling these read/write's between omap1 and omap2+.
-> >
-> > Here is code snippet for handling both omap1(includes 16 bit
-> > registers) and omap2+ 
-> >
-> > static inline void dma_write(u32 val, int reg, int lch)
-> > {
-> >         u8  stride;
-> >         u32 offset;
-> >
-> >         stride = (reg >= dma_common_ch_start) ? dma_stride : 0;
-> >         offset = reg_map[reg] + (stride * lch);
-> >
-> >         if (dma_stride  == 0x40) {
-> 
-> The use of hard-coded constants still isn't right here.    This is
-> bascally the same as a cpu_is_omap1 check.  After you separate out the
-> device files, I thought you had separate omap1 and omap2+ versions of
-> these, so I don't follow the need for this.
+> That being said, the number of channels of the DMA IP sounds like
+> something that should indeed be associated with the hwmod as it is a
+> fixed HW feature.
+If so, I can remove this  macro and hard code in hwmod db.
 
-This code will be moved to respective mach-omapx dma files and this 
-conditional check vanishes automatically in PATCH 10/13. Since this patch
-targets  replacing read/write macros with inline functions, no functionality
-changes(except change in logic for handling  16bit registers for omap1) 
-are done with new patch hence handling omap1 and omap2+ is 
-done this way.
-
-I hope having the conditional check in this interim patch is ok.
-
--Manjunath 
-
+-Manjunath
