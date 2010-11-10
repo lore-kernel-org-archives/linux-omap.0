@@ -1,90 +1,91 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 04/11] OMAP3: PM: Adding smartreflex device file.
-Date: Wed, 10 Nov 2010 10:55:17 -0800
-Message-ID: <87y69180ve.fsf@deeprootsystems.com>
-References: <1285166719-19352-1-git-send-email-thara@ti.com>
-	<1285166719-19352-5-git-send-email-thara@ti.com>
-	<1287084563.14514.155.camel@localhost>
-	<5A47E75E594F054BAF48C5E4FC4B92AB035EB95EA6@dbde02.ent.ti.com>
-	<87aam6b33n.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB035EB95F70@dbde02.ent.ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 0/6] [v2] omap:mailbox-enhancements and fixes
+Date: Wed, 10 Nov 2010 19:58:36 +0100
+Message-ID: <4CDAEB5C.6000703@ti.com>
+References: <1289393121-7911-1-git-send-email-h-kanigeri2@ti.com>	<4CDACB0E.3050403@ti.com> <AANLkTi=jL-aV0Xn3rcnZwaYLz9nY5QwXbGPHsdq1R2Gz@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:49520 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755613Ab0KJSzV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 13:55:21 -0500
-Received: by pva4 with SMTP id 4so234645pva.19
-        for <linux-omap@vger.kernel.org>; Wed, 10 Nov 2010 10:55:20 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035EB95F70@dbde02.ent.ti.com>
-	(Thara Gopinath's message of "Sat, 23 Oct 2010 16:25:44 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35508 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753608Ab0KJS52 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Nov 2010 13:57:28 -0500
+In-Reply-To: <AANLkTi=jL-aV0Xn3rcnZwaYLz9nY5QwXbGPHsdq1R2Gz@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Hari Kanigeri <hari.kanigeri@gmail.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-"Gopinath, Thara" <thara@ti.com> writes:
-
->>>"Gopinath, Thara" <thara@ti.com> writes:
->>>
->>>>>>On Wed, 2010-09-22 at 20:15 +0530, Thara Gopinath wrote:
->>>>>>> This patch adds support for device registration of various
->>>>>>> smartreflex module present in the system. This patch introduces
->>>>>>> the platform data for smartreflex devices which include
->>>>>>> the efused and test n-target vaules, module enable/disable
->>>>>>> pointers and a parameter to indicate whether smartreflex
->>>>>>> autocompensation needs to be enabled on init or not.
->>>>>>> Currently auocompensation is enabled on init by default
->>>>>>> for OMAP3430 ES3.1 chip.
->>>>>>>
->>>>>>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>>
->>>[...]
->>>
->>>>>>> +	sr_data->voltdm = omap_voltage_domain_get(sr_dev_data->vdd_name);
->>>>>>> +	if (IS_ERR(sr_data->voltdm)) {
->>>>>>> +		pr_err("%s: Unable to get voltage domain pointer for VDD
->>>%s\n",
->>>>>>> +			__func__, sr_dev_data->vdd_name);
->>>>>>> +		goto exit;
->>>>>>> +	}
->>>>>>> +
->>>>>>> +	sr_dev_data->volts_supported = omap_voltage_get_volttable(
->>>>>>> +			sr_data->voltdm, &sr_dev_data->volt_data);
->>>>>>>
->>>>>>> +	if (!sr_dev_data->volts_supported) {
->>>>>>> +		pr_warning("%s: No Voltage table registerd fo VDD%d."
->>>>>>> +			"Something really wrong\n\n", __func__, i + 1);
->>>>>>> +		goto exit;
->>>>>>> +	}
->>>>>>> +
->>>>>>> +	sr_set_nvalues(sr_dev_data, sr_data);
->>>>>>
->>>>>>First question: why does this N-value init need to be done in the device
->>>>>>init?  It seems better to be a part of the SR driver probe.
->>>>
->>>> OMAP3 and OMAP4 has different ways of reading the efuse registers. I
->>>> would like it to be in device file so that we can have the necessary
->>>> checks. The driver should not be bothered about getting of the
->>>> n-values.
->>>
->>>Bothered?   The driver's job is to probe the HW.  The device code
->>>can tell the driver where the N-values are located (register offsets,
->>>via platform_data), but IMO, should not be reading the values from HW.
+On 11/10/2010 5:56 PM, Hari Kanigeri wrote:
+> Benoit,
 >
-> But then we will have to put cpu_is_omap34xx() and cpu_is_omap44xx()
-> checks in the driver. Also omap_ctrl_readl API will have to be used
-> from the driver.
+> Thanks for your comments.
+>
+> On Wed, Nov 10, 2010 at 10:40 AM, Cousson, Benoit<b-cousson@ti.com>  wrote:
+>> Hi Hari,
+>>
+>> On 11/10/2010 1:45 PM, Hari Kanigeri wrote:
+>>>
+>>> Thanks to Rene Sapiens and Omar Ramirez for their inputs on initial patch
+>>> set.
+>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37278.html
+>>>
+>>> The patch set addresses the following review comments from Rene and Omar.
+>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37626.html
+>>> https://patchwork.kernel.org/patch/255091/
+>>> https://patchwork.kernel.org/patch/255081/
+>>>
+>>> Following patches are changed because of above review comments:
+>>> omap:mailbox-send message in process context
+>>> omap:mailbox-add notification support for multiple readers
+>>>
+>>> Following patch is dropped from initial patch set
+>>> omap:mailbox-resolve multiple receiver problem
+>>>
+>>> The patch set is tested on omap4 SDP board.
+>>>
+>>> Fernando Guzman Lugo (1):
+>>>    mailbox: change full flag per mailbox queue instead of global
+>>>
+>>> Hari Kanigeri (5):
+>>>    omap:mailbox: fix rx interrupt disable in omap4
+>>>    omap:mailbox-fix checkpatch warnings
+>>
+>> That one is weird? How can you submit a patch that fix checkpatch?
+>
+> Why weird if the patch is fixing the checkpatch warnings that were
+> already present in the code ?
 
-OK, so read them in the device file, and register the values with the SR
-layer (not the voltage layer.)  They should be registered using some
-register function, not by directly manipulating structures internal to
-that layer.
+OK, so you meant that this is fixing some already existing warnings in 
+mainline code?
+My point was that checkpatch is supposed to check patch... but it's true 
+that is can check the code as well. I was assuming that all the code in 
+mainline is supposed to be already checkpatch proof :-)
+It seems that this is not the case.
 
-Also, I don't see why sr_dev_data->volts_supported has to be determined
-at runtime.  That could be set in the hwmod data using ARRAY_SIZE of the
-efuse offsets.
+It might be interesting to run it on every plat-omap / mach-omap files...
 
-Kevin
+Thanks,
+Benoit
+
+> The other option is to leave the checkpatch warnings in the code :)
+>
+>> In theory you should not send any patch that generate checkpatch error or
+>> warning.
+>>
+>>>    omap:mailbox-send message in process context
+>>>    omap:mailbox-add notification support for multiple readers
+>>>    omap:clocks44x-add dummy clock for mailbox
+>>
+>> We are trying to enforce some consistency in the subjects name so you should
+>> name your patches like that:
+>
+> Good point, thanks for pointing about consistency. I wasn't aware
+> about the rule to use OMAP in caps.
+> I will fix it.
+>
+> Thank you,
+> Best regards,
+> Hari
 
