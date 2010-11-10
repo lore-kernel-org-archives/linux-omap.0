@@ -1,87 +1,60 @@
-From: Hari Kanigeri <hari.kanigeri@gmail.com>
-Subject: Re: [PATCH 0/6] [v2] omap:mailbox-enhancements and fixes
-Date: Wed, 10 Nov 2010 10:56:23 -0600
-Message-ID: <AANLkTi=jL-aV0Xn3rcnZwaYLz9nY5QwXbGPHsdq1R2Gz@mail.gmail.com>
-References: <1289393121-7911-1-git-send-email-h-kanigeri2@ti.com>
-	<4CDACB0E.3050403@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2 2/2] spi: Force CS to be in inactive state after
+ off-mode transition
+Date: Wed, 10 Nov 2010 10:07:41 -0700
+Message-ID: <AANLkTinHnfvi8EHQx6jEmsse5R1w9n5FoFyvgd6m8Khy@mail.gmail.com>
+References: <4CDA74DB.1060102@free-electrons.com> <20101110155718.GA2266@angua.secretlab.ca>
+ <4CDACB44.4060803@free-electrons.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:44550 "EHLO
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:57714 "EHLO
 	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757125Ab0KJQ4Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 11:56:24 -0500
-Received: by pva4 with SMTP id 4so165539pva.19
-        for <linux-omap@vger.kernel.org>; Wed, 10 Nov 2010 08:56:24 -0800 (PST)
-In-Reply-To: <4CDACB0E.3050403@ti.com>
+	with ESMTP id S1757117Ab0KJRID convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 12:08:03 -0500
+Received: by pva4 with SMTP id 4so173920pva.19
+        for <linux-omap@vger.kernel.org>; Wed, 10 Nov 2010 09:08:03 -0800 (PST)
+In-Reply-To: <4CDACB44.4060803@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Cc: spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-omap <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Benoit,
-
-Thanks for your comments.
-
-On Wed, Nov 10, 2010 at 10:40 AM, Cousson, Benoit <b-cousson@ti.com> wr=
-ote:
-> Hi Hari,
+On Wed, Nov 10, 2010 at 9:41 AM, Gregory CLEMENT
+<gregory.clement@free-electrons.com> wrote:
+> On 11/10/2010 04:57 PM, Grant Likely wrote:
+>>
+>> On Wed, Nov 10, 2010 at 11:32:59AM +0100, Gregory CLEMENT wrote:
+>>>
+>>> When SPI wake up from OFF mode, CS is in the wrong state: force it
+>>> to the inactive state.
+>>>
+>>> During the system life, I monitored the CS behavior using a
+>>> oscilloscope. I also activated debug in omap2_mcspi, so I saw when
+>>> driver disable the clocks and restore context when device is not
+>>> used.
+>>> Each time the CS was in the correct state.
+>>> It was only when system was put suspend to ram with off-mode
+>>> activated that on resume the CS was in wrong state( ie activated).
+>>
+>> Sounds like a bug in the suspend/resume path of the spi_master, not
+>> the spi_device. =A0Trying to work around it via the spi_device resum=
+e
+>> path is the wrong approach.
+>>
 >
-> On 11/10/2010 1:45 PM, Hari Kanigeri wrote:
->>
->> Thanks to Rene Sapiens and Omar Ramirez for their inputs on initial =
-patch
->> set.
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37278.html
->>
->> The patch set addresses the following review comments from Rene and =
-Omar.
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37626.html
->> https://patchwork.kernel.org/patch/255091/
->> https://patchwork.kernel.org/patch/255081/
->>
->> Following patches are changed because of above review comments:
->> omap:mailbox-send message in process context
->> omap:mailbox-add notification support for multiple readers
->>
->> Following patch is dropped from initial patch set
->> omap:mailbox-resolve multiple receiver problem
->>
->> The patch set is tested on omap4 SDP board.
->>
->> Fernando Guzman Lugo (1):
->> =A0 mailbox: change full flag per mailbox queue instead of global
->>
->> Hari Kanigeri (5):
->> =A0 omap:mailbox: fix rx interrupt disable in omap4
->> =A0 omap:mailbox-fix checkpatch warnings
+> OK it was not clear to me that spi_resume() and spi_suspend() were sp=
+ecifics
+> to devices as these functions belong to a bus structure.
 >
-> That one is weird? How can you submit a patch that fix checkpatch?
+> So you suggest to use the suspend/resume functions of the platform_dr=
+iver
+> structure of omap2_mcspi_driver, right?
 
-Why weird if the patch is fixing the checkpatch warnings that were
-already present in the code ?
-The other option is to leave the checkpatch warnings in the code :)
+correct.
 
-> In theory you should not send any patch that generate checkpatch erro=
-r or
-> warning.
->
->> =A0 omap:mailbox-send message in process context
->> =A0 omap:mailbox-add notification support for multiple readers
->> =A0 omap:clocks44x-add dummy clock for mailbox
->
-> We are trying to enforce some consistency in the subjects name so you=
- should
-> name your patches like that:
-
-Good point, thanks for pointing about consistency. I wasn't aware
-about the rule to use OMAP in caps.
-I will fix it.
-
-Thank you,
-Best regards,
-Hari
+g.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
