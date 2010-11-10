@@ -1,55 +1,67 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 02/13] OMAP: DMA: Introduce errata handling feature
-Date: Wed, 10 Nov 2010 08:26:13 -0800
-Message-ID: <87hbfpcfh6.fsf@deeprootsystems.com>
-References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
-	<1288099513-1854-3-git-send-email-manjugk@ti.com>
-	<87sjzakuxp.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7CBE@dbde02.ent.ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 0/6] [v2] omap:mailbox-enhancements and fixes
+Date: Wed, 10 Nov 2010 17:40:46 +0100
+Message-ID: <4CDACB0E.3050403@ti.com>
+References: <1289393121-7911-1-git-send-email-h-kanigeri2@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:40785 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756837Ab0KJQ0P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 11:26:15 -0500
-Received: by pzk28 with SMTP id 28so146605pzk.19
-        for <linux-omap@vger.kernel.org>; Wed, 10 Nov 2010 08:26:15 -0800 (PST)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7CBE@dbde02.ent.ti.com>
-	(Manjunath Kondaiah G.'s message of "Wed, 10 Nov 2010 19:32:03 +0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:55196 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757010Ab0KJQkX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Nov 2010 11:40:23 -0500
+In-Reply-To: <1289393121-7911-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Hari Kanigeri <h-kanigeri2@ti.com>
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+Hi Hari,
 
-[...]
-
->> > +	if (omap_type() == OMAP3430_REV_ES1_0)
->> > +		SET_DMA_ERRATA(DMA_ERRATA_i88);
->> > +
->> > +	/*
->> > +	 * Errata 3.2/3.3: sometimes 0 is returned if CSAC/CDAC is
->> 
->> This doesn't look like a unique errata identifier.  Chapter 3 
->> is usually
->> the 'Cautions' section, and I don't listed in either the 34xx (v5.9),
->> 36xx (v1.3) or 44xx (v1.3) errata docs under this number, and 
->> don't see
->> that number in either of the 24xx errata docs either.   
->> Please clarify.
+On 11/10/2010 1:45 PM, Hari Kanigeri wrote:
+> Thanks to Rene Sapiens and Omar Ramirez for their inputs on initial patch
+> set.
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37278.html
 >
-> Even I tried to find this info from errata docs prior to migrating
-> all errata's to generic errata handling. This code was exising earlier,
-> hence I retained it "as is", no documentation exists for this errata.
+> The patch set addresses the following review comments from Rene and Omar.
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37626.html
+> https://patchwork.kernel.org/patch/255091/
+> https://patchwork.kernel.org/patch/255081/
 >
+> Following patches are changed because of above review comments:
+> omap:mailbox-send message in process context
+> omap:mailbox-add notification support for multiple readers
+>
+> Following patch is dropped from initial patch set
+> omap:mailbox-resolve multiple receiver problem
+>
+> The patch set is tested on omap4 SDP board.
+>
+> Fernando Guzman Lugo (1):
+>    mailbox: change full flag per mailbox queue instead of global
+>
+> Hari Kanigeri (5):
+>    omap:mailbox: fix rx interrupt disable in omap4
+>    omap:mailbox-fix checkpatch warnings
 
-Hmm, OK.  
+That one is weird? How can you submit a patch that fix checkpatch?
+In theory you should not send any patch that generate checkpatch error 
+or warning.
 
-According to the code, it seems to affect every IP execpt 1510, yet it's
-not documented in any of the errata docs.  
+>    omap:mailbox-send message in process context
+>    omap:mailbox-add notification support for multiple readers
+>    omap:clocks44x-add dummy clock for mailbox
 
-I wonder what happens if it is removed?
+We are trying to enforce some consistency in the subjects name so you 
+should name your patches like that:
 
-Kevin
+     OMAP: mailbox: fix rx interrupt disable in omap4
+     OMAP: mailbox: fix checkpatch warnings
+     OMAP: mailbox: send message in process context
+     OMAP: mailbox: add notification support for multiple readers
+     OMAP4: clocks: add dummy clock for mailbox
+
+
+Regards,
+Benoit
