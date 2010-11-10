@@ -1,40 +1,44 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH v2 6/6] OMAP4: clocks: add dummy clock for mailbox
-Date: Wed, 10 Nov 2010 12:00:18 -0600
-Message-ID: <1289412018-18860-7-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH v2 2/6] OMAP: mailbox: fix rx interrupt disable in omap4
+Date: Wed, 10 Nov 2010 12:00:14 -0600
+Message-ID: <1289412018-18860-3-git-send-email-h-kanigeri2@ti.com>
 References: <1289412018-18860-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33161 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56330 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754676Ab0KJR7C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Nov 2010 12:59:02 -0500
+	id S1754613Ab0KJR7B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Nov 2010 12:59:01 -0500
 In-Reply-To: <1289412018-18860-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-In omap4, there is no explicit configuration register to enable mailbox clocks.
-Defining dummy clock for mailbox clock module to keep the mailbox driver
-backward compatible with previous omaps.
+disabling rx interrupt on omap4 is different than its pre-decessors.
+The bit in OMAP4_MAILBOX_IRQENABLE_CLR should be set to disable the
+interrupts instead of clearing the bit.
 
 Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 ---
- arch/arm/mach-omap2/clock44xx_data.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/mailbox.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index e10db7a..bdd9b85 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -2687,6 +2687,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"uart3_ick",			&dummy_ck,	CK_443X),
- 	CLK(NULL,	"uart4_ick",			&dummy_ck,	CK_443X),
- 	CLK("omap_wdt",	"ick",				&dummy_ck,	CK_443X),
-+	CLK(NULL,	"mailboxes_ick",	&dummy_ck,	CK_443X),
- };
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 42dbfa4..82b5ced 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -195,7 +195,10 @@ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
+ 	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
+ 	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+ 	l = mbox_read_reg(p->irqdisable);
+-	l &= ~bit;
++	if (cpu_is_omap44xx())
++		l |= bit;
++	else
++		l &= ~bit;
+ 	mbox_write_reg(l, p->irqdisable);
+ }
  
- int __init omap4xxx_clk_init(void)
 -- 
 1.7.0
 
