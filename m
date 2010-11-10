@@ -1,68 +1,137 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: Mistral AM37x (with AM3715) devel board networking broken
-Date: Wed, 10 Nov 2010 18:34:30 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593023499226F@dbde02.ent.ti.com>
-References: <E1PFgDD-0002jm-KX@amazonia.comcast.net>
- <AANLkTimwkLX2_WcfYYXA3QY1mPsKxbHAWmamWZLw3TUO@mail.gmail.com>
+From: Adrian Hunter <hunter.programmer@gmail.com>
+Subject: Re: [PATCH v5 2/3] OMAP3: DMA: Errata i541: sDMA FIFO draining does
+ not finish
+Date: Wed, 10 Nov 2010 15:46:51 +0200
+Message-ID: <4CDAA24B.70601@gmail.com>
+References: <1286261141-1039-1-git-send-email-peter.ujfalusi@nokia.com> <1286261141-1039-3-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60882 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755994Ab0KJNEj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 08:04:39 -0500
-In-Reply-To: <AANLkTimwkLX2_WcfYYXA3QY1mPsKxbHAWmamWZLw3TUO@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:28305 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756084Ab0KJNr0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 08:47:26 -0500
+In-Reply-To: <1286261141-1039-3-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, Rick Bronson <rick@efn.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <rmk+kernel@arm.linux.org.uk>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org=20
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gadiyar, Anand
-> Sent: Tuesday, November 09, 2010 10:32 AM
-> To: Rick Bronson
-> Cc: linux-omap@vger.kernel.org; Premi, Sanjeev
-> Subject: Re: Mistral AM37x (with AM3715) devel board networking broke=
-n
->=20
-> On Tue, Nov 9, 2010 at 10:23 AM, Rick Bronson <rick@efn.org> wrote:
-> > Hi Sanjeev,
-> >
-> > =A0Thanks much for the help.
-> >
-> >> I tried building the latest on l-o master and was able to=20
-> boot consistently
-> >> in 4 times I tried. Didn't notice the gpio clock related=20
-> error I noticed in
-> >> your boot log.
-> >>
-> >>
-> >> U-Boot 2010.09 (Nov 08 2010 - 17:11:45)
-> >>
-> >> OMAP3630/3730-GP ES2.0, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz
-> >> OMAP3 EVM board + LPDDR/NAND
-> >
-> > =A0Note that mine is ES1.0 (yours is ES2.0):
-> >
-> > OMAP3630/3730-GP ES1.0, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz
-> >
-> > =A0Not sure if that's any clue.
-> >
->=20
-> That's interesting - there shouldn't b e an ES2.0 of the=20
-> 3630/3730. The highest
-> revision is an ES1.2.
->=20
+On 05/10/10 09:45, Peter Ujfalusi wrote:
+> Implement the suggested workaround for OMAP3 regarding to sDMA draining
+> issue, when the channel is disabled on the fly.
+> This errata affects the following configuration:
+> sDMA transfer is source synchronized
+> Buffering is enabled
+> SmartStandby is selected.
+>
+> The issue can be easily reproduced by creating overrun situation while
+> recording audio.
+> Either introduce load to the CPU:
+> nice -19 arecord -D hw:0 -M -B 10000 -F 5000 -f dat>  /dev/null&  \
+> dd if=/dev/urandom of=/dev/null
+>
+> or suspending the arecord, and resuming it:
+> arecord -D hw:0 -M -B 10000 -F 5000 -f dat>  /dev/null
+> CTRL+Z; fg; CTRL+Z; fg; ...
+>
+> In case of overrun audio stops DMA, and restarts it (without reseting
+> the sDMA channel). When we hit this errata in stop case (sDMA drain did
+> not complete), at the coming start the sDMA will not going to be
+> operational (it is still draining).
+> This leads to DMA stall condition.
+> On OMAP3 we can recover with sDMA channel reset, it has been observed
+> that by introducing unrelated sDMA activity might also help (reading
+> from MMC for example).
+>
+> The same errata exists for OMAP2, where the suggestion is to disable the
+> buffering to avoid this type of error.
+> On OMAP3 the suggestion is to set sDMA to NoStandby before disabling
+> the channel, and wait for the drain to finish, than configure sDMA to
+> SmartStandby again.
+>
+> Signed-off-by: Peter Ujfalusi<peter.ujfalusi@nokia.com>
+> Acked-by: Jarkko Nikula<jhnikula@gmail.com>
+> Acked-by : Santosh Shilimkar<santosh.shilimkar@ti.com>
+> Acked-by : G, Manjunath Kondaiah<manjugk@ti.com>
+> ---
+>   arch/arm/plat-omap/dma.c              |   36 +++++++++++++++++++++++++++++++-
+>   arch/arm/plat-omap/include/plat/dma.h |    3 ++
+>   2 files changed, 37 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index 420cef3..f5c5b8d 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -30,6 +30,7 @@
+>   #include<linux/irq.h>
+>   #include<linux/io.h>
+>   #include<linux/slab.h>
+> +#include<linux/delay.h>
+>
+>   #include<asm/system.h>
+>   #include<mach/hardware.h>
+> @@ -1024,8 +1025,39 @@ void omap_stop_dma(int lch)
+>   		dma_write(0, CICR(lch));
+>
+>   	l = dma_read(CCR(lch));
+> -	l&= ~OMAP_DMA_CCR_EN;
+> -	dma_write(l, CCR(lch));
+> +	/* OMAP3 Errata i541: sDMA FIFO draining does not finish */
 
-Now, I notice it too. Checking the u-boot sources now.
+Is this also needed in omap_free_dma or omap_clear_dma?
 
-[snip]...[snip]
+> +	if (cpu_is_omap34xx()&&  (l&  OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
+> +		int i = 0;
+> +		u32 sys_cf;
+> +
+> +		/* Configure No-Standby */
+> +		l = dma_read(OCP_SYSCONFIG);
+> +		sys_cf = l;
+> +		l&= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
+> +		l |= DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_NO_IDLE);
+> +		dma_write(l , OCP_SYSCONFIG);
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Are accesses of OCP_SYSCONFIG synchronised?
+
+> +
+> +		l = dma_read(CCR(lch));
+> +		l&= ~OMAP_DMA_CCR_EN;
+> +		dma_write(l, CCR(lch));
+> +
+> +		/* Wait for sDMA FIFO drain */
+> +		l = dma_read(CCR(lch));
+> +		while (i<  100&&  (l&  (OMAP_DMA_CCR_RD_ACTIVE |
+> +					OMAP_DMA_CCR_WR_ACTIVE))) {
+> +			udelay(5);
+> +			i++;
+> +			l = dma_read(CCR(lch));
+> +		}
+> +		if (i>= 100)
+> +			printk(KERN_ERR "DMA drain did not complete on "
+> +					"lch %d\n", lch);
+> +		/* Restore OCP_SYSCONFIG */
+> +		dma_write(sys_cf, OCP_SYSCONFIG);
+> +	} else {
+> +		l&= ~OMAP_DMA_CCR_EN;
+> +		dma_write(l, CCR(lch));
+> +	}
+>
+>   	if (!omap_dma_in_1510_mode()&&  dma_chan[lch].next_lch != -1) {
+>   		int next_lch, cur_lch = lch;
+> diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+> index 6f70f7c..0cce4ca 100644
+> --- a/arch/arm/plat-omap/include/plat/dma.h
+> +++ b/arch/arm/plat-omap/include/plat/dma.h
+> @@ -337,6 +337,9 @@
+>   #define OMAP2_DMA_MISALIGNED_ERR_IRQ	(1<<  11)
+>
+>   #define OMAP_DMA_CCR_EN			(1<<  7)
+> +#define OMAP_DMA_CCR_RD_ACTIVE		(1<<  9)
+> +#define OMAP_DMA_CCR_WR_ACTIVE		(1<<  10)
+> +#define OMAP_DMA_CCR_SEL_SRC_DST_SYNC	(1<<  24)
+>   #define OMAP_DMA_CCR_BUFFERING_DISABLE	(1<<  25)
+>
+>   #define OMAP_DMA_DATA_TYPE_S8		0x00
+
