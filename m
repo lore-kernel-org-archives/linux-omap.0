@@ -1,135 +1,93 @@
-From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Subject: [PATCH 7/7] omap-sham: removed redundunt locking
-Date: Wed, 10 Nov 2010 19:28:15 +0200
-Message-ID: <c017e0b866e7cb5e00835add592b2d68b304842f.1289410038.git.dmitry.kasatkin@nokia.com>
-References: <cover.1289410038.git.dmitry.kasatkin@nokia.com>
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <cover.1289410038.git.dmitry.kasatkin@nokia.com>
-In-Reply-To: <cover.1289410038.git.dmitry.kasatkin@nokia.com>
-References: <cover.1289410038.git.dmitry.kasatkin@nokia.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: herbert@gondor.hengli.com.au
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: BeagleBoard not resuming from uart with latest pm-core ?
+Date: Wed, 10 Nov 2010 09:32:53 -0800
+Message-ID: <87pqudaxtm.fsf@deeprootsystems.com>
+References: <20101110164414.4529cbda@surf>
+	<AANLkTi=Dzv2XE-X_z6yiCaRjgWrST5QGDE9dFDnDy9pT@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:47370 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751858Ab0KJRc5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 12:32:57 -0500
+Received: by ywh2 with SMTP id 2so57470ywh.19
+        for <linux-omap@vger.kernel.org>; Wed, 10 Nov 2010 09:32:57 -0800 (PST)
+In-Reply-To: <AANLkTi=Dzv2XE-X_z6yiCaRjgWrST5QGDE9dFDnDy9pT@mail.gmail.com>
+	(Jean Pihet's message of "Wed, 10 Nov 2010 17:07:08 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, linux-omap@vger.kernel.org
 
-Locking for queuing and dequeuing is combined.
-test_and_set_bit() is also replaced with checking under dd->lock.
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
----
- drivers/crypto/omap-sham.c |   47 +++++++++++++++++++------------------------
- 1 files changed, 21 insertions(+), 26 deletions(-)
+> l-o is currently broken wrt to suspend and idle.
+> Solutions are being worked on for the moment.
+>
+> Kevin, are there solutions available yet?
 
-diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index db20628..6340c5e 100644
---- a/drivers/crypto/omap-sham.c
-+++ b/drivers/crypto/omap-sham.c
-@@ -84,9 +84,7 @@
- #define FLAGS_CPU		0x0200
- #define FLAGS_HMAC		0x0400
- #define FLAGS_ERROR		0x0800
--
--/* 3rd byte */
--#define FLAGS_BUSY		16
-+#define FLAGS_BUSY		0x1000
- 
- #define OP_UPDATE	1
- #define OP_FINAL	2
-@@ -629,32 +627,37 @@ static void omap_sham_finish_req(struct ahash_request *req, int err)
- 	if ((ctx->flags & FLAGS_FINAL) || err)
- 		omap_sham_cleanup(req);
- 
--	clear_bit(FLAGS_BUSY, &ctx->dd->flags);
-+	ctx->dd->flags &= ~FLAGS_BUSY;
- 
- 	if (req->base.complete)
- 		req->base.complete(&req->base, err);
- }
- 
--static int omap_sham_handle_queue(struct omap_sham_dev *dd)
-+static int omap_sham_handle_queue(struct omap_sham_dev *dd,
-+				  struct ahash_request *req)
- {
- 	struct crypto_async_request *async_req, *backlog;
- 	struct omap_sham_reqctx *ctx;
--	struct ahash_request *req, *prev_req;
-+	struct ahash_request *prev_req;
- 	unsigned long flags;
--	int err = 0;
--
--	if (test_and_set_bit(FLAGS_BUSY, &dd->flags))
--		return 0;
-+	int err = 0, ret = 0;
- 
- 	spin_lock_irqsave(&dd->lock, flags);
--	backlog = crypto_get_backlog(&dd->queue);
-+	if (req)
-+		ret = ahash_enqueue_request(&dd->queue, req);
-+	if (dd->flags & FLAGS_BUSY) {
-+		spin_unlock_irqrestore(&dd->lock, flags);
-+		return ret;
-+	}
- 	async_req = crypto_dequeue_request(&dd->queue);
--	if (!async_req)
--		clear_bit(FLAGS_BUSY, &dd->flags);
-+	if (async_req) {
-+		dd->flags |= FLAGS_BUSY;
-+		backlog = crypto_get_backlog(&dd->queue);
-+	}
- 	spin_unlock_irqrestore(&dd->lock, flags);
- 
- 	if (!async_req)
--		return 0;
-+		return ret;
- 
- 	if (backlog)
- 		backlog->complete(backlog, -EINPROGRESS);
-@@ -690,7 +693,7 @@ static int omap_sham_handle_queue(struct omap_sham_dev *dd)
- 
- 	dev_dbg(dd->dev, "exit, err: %d\n", err);
- 
--	return err;
-+	return ret;
- }
- 
- static int omap_sham_enqueue(struct ahash_request *req, unsigned int op)
-@@ -698,18 +701,10 @@ static int omap_sham_enqueue(struct ahash_request *req, unsigned int op)
- 	struct omap_sham_reqctx *ctx = ahash_request_ctx(req);
- 	struct omap_sham_ctx *tctx = crypto_tfm_ctx(req->base.tfm);
- 	struct omap_sham_dev *dd = tctx->dd;
--	unsigned long flags;
--	int err;
- 
- 	ctx->op = op;
- 
--	spin_lock_irqsave(&dd->lock, flags);
--	err = ahash_enqueue_request(&dd->queue, req);
--	spin_unlock_irqrestore(&dd->lock, flags);
--
--	omap_sham_handle_queue(dd);
--
--	return err;
-+	return omap_sham_handle_queue(dd, req);
- }
- 
- static int omap_sham_update(struct ahash_request *req)
-@@ -1041,7 +1036,7 @@ static void omap_sham_done_task(unsigned long data)
- 		/* finish curent request */
- 		omap_sham_finish_req(req, err);
- 		/* start new request */
--		omap_sham_handle_queue(dd);
-+		omap_sham_handle_queue(dd, NULL);
- 	}
- }
- 
-@@ -1049,7 +1044,7 @@ static void omap_sham_queue_task(unsigned long data)
- {
- 	struct omap_sham_dev *dd = (struct omap_sham_dev *)data;
- 
--	omap_sham_handle_queue(dd);
-+	omap_sham_handle_queue(dd, NULL);
- }
- 
- static irqreturn_t omap_sham_irq(int irq, void *dev_id)
--- 
-1.7.0.4
+The solution to your previous problem (ensuring runtime PM transitions
+work during system PM) is included in my pm-core branch, but is not yet
+the final solution.  I've been disussing this issue with the runtime PM
+maintainers for a final solution.  Until then, I will carry this in
+pm-core.
+
+The other problem that I'm aware of so far I've only seen on boards wit=
+h
+UART2 console (beagle, Overo, n900.)  The printk messages that warn of
+'new worst case [de]activate latency" seem to be racing with UART
+disable code.  This makes sense, since this printk is printed to the
+UART immediately after the UART is disabled, which is going to cause
+problems with the current approach to UART pm we have in
+mach-omap2/serial.c.   I have not yet fully debugged this and found a
+workaround.=20
+
+Of course, any help debugging these problems is appreciated.  I will no=
+t
+get to debugging this until I catch up on the mailing list backlog.
+
+Kevin
+
+
+> On Wed, Nov 10, 2010 at 4:44 PM, Thomas Petazzoni
+> <thomas.petazzoni@free-electrons.com> wrote:
+>> Hello,
+>>
+>> I've updated my tree to the last pm-core branch today (I'm at commit
+>> 42289e226ec996a13ab8a2aaef5ad9dda61ee57e), and I've built the
+>> omap2plus_defconfig with no change (except adding an initramfs). On =
+my
+>> BeagleBoard, I enable the wakeup from UART
+>> in /sys/devices/platform/omap/omap-hsuart.2/tty/ttyO2/power/wakeup,
+>> then trigger suspend to RAM. It enters suspend to RAM, but then
+>> it doesn't wakeup when I send data through the UART.
+>>
+>> Is it a known problem, or is again a mistake on my side ?
+>>
+>> Thanks,
+>>
+>> Thomas
+>> --
+>> Thomas Petazzoni, Free Electrons
+>> Kernel, drivers, real-time and embedded Linux
+>> development, consulting, training and support.
+>> http://free-electrons.com
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
+tml
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
