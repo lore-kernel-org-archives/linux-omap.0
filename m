@@ -1,62 +1,113 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v2 2/2] spi: Force CS to be in inactive state after
- off-mode transition
-Date: Wed, 10 Nov 2010 10:07:41 -0700
-Message-ID: <AANLkTinHnfvi8EHQx6jEmsse5R1w9n5FoFyvgd6m8Khy@mail.gmail.com>
-References: <4CDA74DB.1060102@free-electrons.com> <20101110155718.GA2266@angua.secretlab.ca>
- <4CDACB44.4060803@free-electrons.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v3 01/13] OMAP: DMA: Replace read/write macros with
+ functions
+Date: Wed, 10 Nov 2010 22:46:04 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7D7B@dbde02.ent.ti.com>
+References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
+	<1288099513-1854-2-git-send-email-manjugk@ti.com>
+	<87y692mb4e.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7CBD@dbde02.ent.ti.com>
+ <877hgldv40.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:57714 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757117Ab0KJRID convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 12:08:03 -0500
-Received: by pva4 with SMTP id 4so173920pva.19
-        for <linux-omap@vger.kernel.org>; Wed, 10 Nov 2010 09:08:03 -0800 (PST)
-In-Reply-To: <4CDACB44.4060803@free-electrons.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:58310 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932071Ab0KJRQO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 12:16:14 -0500
+In-Reply-To: <877hgldv40.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Cc: spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-omap <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-On Wed, Nov 10, 2010 at 9:41 AM, Gregory CLEMENT
-<gregory.clement@free-electrons.com> wrote:
-> On 11/10/2010 04:57 PM, Grant Likely wrote:
->>
->> On Wed, Nov 10, 2010 at 11:32:59AM +0100, Gregory CLEMENT wrote:
->>>
->>> When SPI wake up from OFF mode, CS is in the wrong state: force it
->>> to the inactive state.
->>>
->>> During the system life, I monitored the CS behavior using a
->>> oscilloscope. I also activated debug in omap2_mcspi, so I saw when
->>> driver disable the clocks and restore context when device is not
->>> used.
->>> Each time the CS was in the correct state.
->>> It was only when system was put suspend to ram with off-mode
->>> activated that on resume the CS was in wrong state( ie activated).
->>
->> Sounds like a bug in the suspend/resume path of the spi_master, not
->> the spi_device. =A0Trying to work around it via the spi_device resum=
-e
->> path is the wrong approach.
->>
->
-> OK it was not clear to me that spi_resume() and spi_suspend() were sp=
-ecifics
-> to devices as these functions belong to a bus structure.
->
-> So you suggest to use the suspend/resume functions of the platform_dr=
-iver
-> structure of omap2_mcspi_driver, right?
 
-correct.
 
-g.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Wednesday, November 10, 2010 9:33 PM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; Cousson, Benoit; 
+> Shilimkar, Santosh
+> Subject: Re: [PATCH v3 01/13] OMAP: DMA: Replace read/write 
+> macros with functions
+> 
+> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> 
+> [...]
+> 
+> >> > +		if (reg > OMAP1_CH_COMMON_START)
+> >> > +			__raw_writew(val, dma_base +
+> >> > +				(reg_map_omap1[reg] + 
+> 0x40 * lch));
+> >> > +		else
+> >> > +			__raw_writew(val, dma_base + 
+> >> reg_map_omap1[reg]);
+> >> > +	} else {
+> >> > +		if (reg > OMAP2_CH_COMMON_START)
+> >> > +			__raw_writel(val, dma_base +
+> >> > +				(reg_map_omap2[reg] + 
+> 0x60 * lch));
+> >> > +		else
+> >> > +			__raw_writel(val, dma_base + 
+> >> reg_map_omap2[reg]);
+> >> > +	}
+> >> > +}
+> >> 
+> >> The register base offset, register array and the stride (offset
+> >> between instances: 0x40 or 0x60) are detectable at init time, and
+> >> there's no reason to have conditional code for them.  IOW, they
+> >> should be init time constants.  Doing so would greatly simply these
+> >> functions.  In fact the CH_COMMON_START could also be an init time
+> >> constant as well.  So, given the following init_time constants:
+> >> dma_ch_common_start, dma_stride, reg_map, the above would 
+> be reduced
+> >> to something actually worth inlining, for example (not actually
+> >> tested):
+> >> 
+> >> static inline void dma_write(u32 val, int reg, int lch)
+> >> {
+> >>         u8 stride = (reg > dma_ch_common_start) ? dma_stride : 0;
+> >> 
+> >>         __raw_writel(val, dma_base + (reg_map[reg] + 
+> stride * lch));
+> >> }
+> >> 
+> >> Same applies to dma_read().
+> >
+> > Thanks for the suggestion. It is taken care along with 
+> Tony's comment
+> > for handling these read/write's between omap1 and omap2+.
+> >
+> > Here is code snippet for handling both omap1(includes 16 bit
+> > registers) and omap2+ 
+> >
+> > static inline void dma_write(u32 val, int reg, int lch)
+> > {
+> >         u8  stride;
+> >         u32 offset;
+> >
+> >         stride = (reg >= dma_common_ch_start) ? dma_stride : 0;
+> >         offset = reg_map[reg] + (stride * lch);
+> >
+> >         if (dma_stride  == 0x40) {
+> 
+> The use of hard-coded constants still isn't right here.    This is
+> bascally the same as a cpu_is_omap1 check.  After you separate out the
+> device files, I thought you had separate omap1 and omap2+ versions of
+> these, so I don't follow the need for this.
+
+This code will be moved to respective mach-omapx dma files and this 
+conditional check vanishes automatically in PATCH 10/13. Since this patch
+targets  replacing read/write macros with inline functions, no functionality
+changes(except change in logic for handling  16bit registers for omap1) 
+are done with new patch hence handling omap1 and omap2+ is 
+done this way.
+
+I hope having the conditional check in this interim patch is ok.
+
+-Manjunath 
+
