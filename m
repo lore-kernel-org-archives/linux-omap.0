@@ -1,45 +1,92 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 3/3] OMAP: DSS: Fix documentation regarding 'vram' kernel parameter
-Date: Wed, 10 Nov 2010 11:45:20 +0200
-Message-ID: <1289382320-17412-3-git-send-email-tomi.valkeinen@nokia.com>
-References: <1289382320-17412-1-git-send-email-tomi.valkeinen@nokia.com>
+From: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Subject: [PATCH v2 1/2] spi: Add hook on suspend/resume for spi master
+Date: Wed, 10 Nov 2010 11:32:54 +0100
+Message-ID: <4CDA74D6.1040107@free-electrons.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:30917 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753745Ab0KJJnq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Nov 2010 04:43:46 -0500
-In-Reply-To: <1289382320-17412-1-git-send-email-tomi.valkeinen@nokia.com>
+Received: from mail.free-electrons.com ([88.190.12.23]:44545 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752747Ab0KJKnJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 05:43:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-omap <linux-omap@vger.kernel.org>
+Cc: David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@deeprootsystems.com>
 
-The DSS documentation didn't mention the option to give the VRAM start
-address.
+Some spi masters need to do some actions when system is going to suspend
+or when it will be resumed.
+Spi driver offer possibility to handle suspend and resume only for device.
+Spi master will do its suspend actions after the devices and will do
+its resume action before the devices.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
 ---
- Documentation/arm/OMAP/DSS |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+  drivers/spi/spi.c       |   14 ++++++++++++++
+  include/linux/spi/spi.h |    5 +++++
+  2 files changed, 19 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
-index 0af0e9e..888ae7b 100644
---- a/Documentation/arm/OMAP/DSS
-+++ b/Documentation/arm/OMAP/DSS
-@@ -255,9 +255,10 @@ framebuffer parameters.
- Kernel boot arguments
- ---------------------
- 
--vram=<size>
--	- Amount of total VRAM to preallocate. For example, "10M". omapfb
--	  allocates memory for framebuffers from VRAM.
-+vram=<size>[,<physaddr>]
-+	- Amount of total VRAM to preallocate and optionally a physical start
-+	  memory address. For example, "10M". omapfb allocates memory for
-+	  framebuffers from VRAM.
- 
- omapfb.mode=<display>:<mode>[,...]
- 	- Default video mode for specified displays. For example,
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 709c836..1094aef 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -106,6 +106,11 @@ static int spi_suspend(struct device *dev, 
+pm_message_t message)
+  {
+  	int			value = 0;
+  	struct spi_driver	*drv = to_spi_driver(dev->driver);
++	struct spi_device 	*spi_dev = to_spi_device(dev);
++	struct spi_master 	*master = NULL;
++
++	if (spi_dev)
++		master = spi_dev->master;
+   	/* suspend will stop irqs and dma; no more i/o */
+  	if (drv) {
+@@ -114,6 +119,9 @@ static int spi_suspend(struct device *dev, 
+pm_message_t message)
+  		else
+  			dev_dbg(dev, "... can't suspend\n");
+  	}
++	if (master && master->suspend )
++		master->suspend(spi_dev);
++
+  	return value;
+  }
+  @@ -121,7 +129,11 @@ static int spi_resume(struct device *dev)
+  {
+  	int			value = 0;
+  	struct spi_driver	*drv = to_spi_driver(dev->driver);
++	struct spi_device 	*spi_dev = to_spi_device(dev);
++	struct spi_master 	*master = NULL;
+  +	if (spi_dev)
++		master = spi_dev->master;
+  	/* resume may restart the i/o queue */
+  	if (drv) {
+  		if (drv->resume)
+@@ -129,6 +141,8 @@ static int spi_resume(struct device *dev)
+  		else
+  			dev_dbg(dev, "... can't resume\n");
+  	}
++	if (master && master->resume )
++		master->resume(spi_dev);
+  	return value;
+  }
+  diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+index b4d7710..e98c630 100644
+--- a/include/linux/spi/spi.h
++++ b/include/linux/spi/spi.h
+@@ -307,6 +307,11 @@ struct spi_master {
+   	/* called on release() to free memory provided by spi_master */
+  	void			(*cleanup)(struct spi_device *spi);
++
++	/* called on suspend() and resume() if spi_master has to do
++	 * some actions */
++	void (*suspend)(struct spi_device *spi);
++	void (*resume)(struct spi_device *spi);
+  };
+   static inline void *spi_master_get_devdata(struct spi_master *master)
 -- 
-1.7.1
+1.7.0.4
+
 
