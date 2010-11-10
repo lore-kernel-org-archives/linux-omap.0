@@ -1,67 +1,61 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 2/5] omap-aes: DMA initialization fixes for OMAP off
- mode
-Date: Wed, 10 Nov 2010 19:48:20 +0200
-Message-ID: <1289411300.2785.1.camel@eowin>
-References: <y>
-	 <5625ae87a8364e1b10ebadfacbb7d27a5bcb12a5.1289409924.git.dmitry.kasatkin@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v3 10/13] OMAP: DMA: Convert DMA library into DMA platform Driver
+Date: Wed, 10 Nov 2010 09:56:46 -0800
+Message-ID: <878w11awpt.fsf@deeprootsystems.com>
+References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
+	<1288099513-1854-11-git-send-email-manjugk@ti.com>
+	<8739rakubj.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7CC0@dbde02.ent.ti.com>
+	<87sjz9cfkv.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7D81@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:53357 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754361Ab0KJRsa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 12:48:30 -0500
-In-Reply-To: <5625ae87a8364e1b10ebadfacbb7d27a5bcb12a5.1289409924.git.dmitry.kasatkin@nokia.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:59754 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751997Ab0KJR4v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 12:56:51 -0500
+Received: by qyk12 with SMTP id 12so3294473qyk.19
+        for <linux-omap@vger.kernel.org>; Wed, 10 Nov 2010 09:56:51 -0800 (PST)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A7D81@dbde02.ent.ti.com>
+	(Manjunath Kondaiah G.'s message of "Wed, 10 Nov 2010 22:53:16 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Cc: herbert@gondor.hengli.com.au, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Hi,
+"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
 
-On Wed, 2010-11-10 at 19:26 +0200, Dmitry Kasatkin wrote:
-> diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-> index 9d65611..04cab70 100644
-> --- a/drivers/crypto/omap-aes.c
-> +++ b/drivers/crypto/omap-aes.c
-> @@ -99,7 +99,7 @@ struct omap_aes_reqctx {
->  struct omap_aes_dev {
->  	struct list_head	list;
->  	unsigned long		phys_base;
-> -	void __iomem 		*io_base;
-> +	void __iomem		*io_base;
->  	struct clk		*iclk;
->  	struct omap_aes_ctx	*ctx;
->  	struct device		*dev;
+>> >> > +#define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	32	/* 
+>> >> REVISIT: Is this 32 + 2? */
+>> >> > +
+>> >> 
+>> >> There are no users of this in this patch, all users are removed.
+>> >
+>> > This macro is used in hwmod data base. Do you mean hard coding this
+>> > value in hwmod db and remove header?
+>> 
+>> What I mean is that from a reviewers perspective of this patch, you
+>> added a new #define that is not used anywhere in this patch.  
+>> a #define
+>> should be added along with any users of it.
+>
+> No. This macro is used in omap2+ hwmod db through plat/dma.h which includes
+> mach/dma.h
 
-this hunk is not part of this patch.
+Which is not part of this patch.
 
-> @@ -752,7 +752,7 @@ static struct crypto_alg algs[] = {
->  	.cra_flags		= CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
->  	.cra_blocksize		= AES_BLOCK_SIZE,
->  	.cra_ctxsize		= sizeof(struct omap_aes_ctx),
-> -	.cra_alignmask	 	= 0,
-> +	.cra_alignmask		= 0,
->  	.cra_type		= &crypto_ablkcipher_type,
->  	.cra_module		= THIS_MODULE,
->  	.cra_init		= omap_aes_cra_init,
+Again, as a general rule, don't introduce code (#defines, headers,
+functions, anything) in a patch if it is not used.
 
-not part of this patch.
+>> 
+>> That being said, the number of channels of the DMA IP sounds like
+>> something that should indeed be associated with the hwmod as it is a
+>> fixed HW feature.
+>>
+> If so, I can remove this  macro and hard code in hwmod db.
 
-> @@ -772,7 +772,7 @@ static struct crypto_alg algs[] = {
->  	.cra_flags		= CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
->  	.cra_blocksize		= AES_BLOCK_SIZE,
->  	.cra_ctxsize		= sizeof(struct omap_aes_ctx),
-> -	.cra_alignmask	 	= 0,
-> +	.cra_alignmask		= 0,
->  	.cra_type		= &crypto_ablkcipher_type,
->  	.cra_module		= THIS_MODULE,
->  	.cra_init		= omap_aes_cra_init,
+OK, good.
 
-not part of this patch
-
--- 
-balbi
+Kevin
 
