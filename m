@@ -1,17 +1,17 @@
-From: Adrian Hunter <hunter.programmer@gmail.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
 Subject: Re: [PATCH v5 2/3] OMAP3: DMA: Errata i541: sDMA FIFO draining does
  not finish
-Date: Wed, 10 Nov 2010 15:46:51 +0200
-Message-ID: <4CDAA24B.70601@gmail.com>
+Date: Wed, 10 Nov 2010 15:52:42 +0200
+Message-ID: <4CDAA3AA.7070003@nokia.com>
 References: <1286261141-1039-1-git-send-email-peter.ujfalusi@nokia.com> <1286261141-1039-3-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:28305 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756084Ab0KJNr0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 08:47:26 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:61067 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756083Ab0KJNxU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 08:53:20 -0500
 In-Reply-To: <1286261141-1039-3-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
