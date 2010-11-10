@@ -1,57 +1,52 @@
 From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH 3/5] omap: mailbox: add omap_device latency information
-Date: Tue, 9 Nov 2010 21:03:08 -0600
-Message-ID: <AANLkTin206xbPBf_LbS_vEXkXdG5XPaS9O0wrtEaz=yi@mail.gmail.com>
+Subject: Re: [PATCH 1/5] omap: mailbox: initial hwmod support for omap3
+Date: Tue, 9 Nov 2010 21:08:43 -0600
+Message-ID: <AANLkTikgTauasO4noxWcNWh+bSgFYyKhLxY=88OKuDUY@mail.gmail.com>
 References: <1288129984-22957-1-git-send-email-omar.ramirez@ti.com>
-	<1288129984-22957-4-git-send-email-omar.ramirez@ti.com>
-	<87hbfqf491.fsf@deeprootsystems.com>
+	<1288129984-22957-2-git-send-email-omar.ramirez@ti.com>
+	<87k4kmgj92.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:47914 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752350Ab0KJDDJ convert rfc822-to-8bit
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:55362 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752202Ab0KJDIp convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Nov 2010 22:03:09 -0500
-Received: by iwn6 with SMTP id 6so213401iwn.29
-        for <linux-omap@vger.kernel.org>; Tue, 09 Nov 2010 19:03:09 -0800 (PST)
-In-Reply-To: <87hbfqf491.fsf@deeprootsystems.com>
+	Tue, 9 Nov 2010 22:08:45 -0500
+Received: by mail-iw0-f169.google.com with SMTP id 9so210406iwn.14
+        for <linux-omap@vger.kernel.org>; Tue, 09 Nov 2010 19:08:44 -0800 (PST)
+In-Reply-To: <87k4kmgj92.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Dmitry Kasatkin <dmitry.kasatkin@nokia.com>, Suman Anna <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, C A Subramaniam <subramaniam.ca@ti.com>, linux-omap@vger.kernel.org
 
-On Tue, Nov 9, 2010 at 5:48 PM, Kevin Hilman
+On Tue, Nov 9, 2010 at 5:38 PM, Kevin Hilman
 <khilman@deeprootsystems.com> wrote:
->> =A0#if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK=
-_MODULE)
->> +static struct omap_device_pm_latency mbox_latencies[] =3D {
->> + =A0 =A0 [0] =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 .activate_func =3D omap_device_enable_cloc=
-ks,
->> + =A0 =A0 =A0 =A0 =A0 =A0 .activate_lat =3D 50000, /* FIXME random v=
-alue */
->> + =A0 =A0 =A0 =A0 =A0 =A0 .deactivate_func =3D omap_device_enable_cl=
-ocks,
->> + =A0 =A0 =A0 =A0 =A0 =A0 .deactivate_lat =3D 50000, /* FIXME random=
- value */
->> + =A0 =A0 },
->> +};
+>> ---
+>> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0100=
+ ++++-----------------------
+>> =A0arch/arm/mach-omap2/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
+1 +
+>> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0 54 +++++++++++++=
+++
 >
-> hmm, I'm hoping you're not expecting this to merge when using random =
-values.
+> please separate out the addition of hwmod_data into it's own patch th=
+at
+> comes before this. =A0As mentioned by Charu, all the hwmod data could=
+ be
+> added early in the series, before this conversion is done.
 
-This was changed on the second iteration of the patch [1], and is
-still a WIP as some more comments have been made. I'll keep your
-current comments though.
+Yes, this was changed in v2 [1], thanks for your comments, they will
+be addressed in the next version.
 
 Regards,
 
 Omar
 
 ---
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38169.htm=
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38171.htm=
 l
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
