@@ -1,116 +1,68 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 00/02] staging: tidspbridge: 2.6.37-rcX fixes
-Date: Wed, 10 Nov 2010 19:50:23 -0600
-Message-ID: <1289440225-27221-1-git-send-email-omar.ramirez@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devel-bounces@linuxdriverproject.org>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
-	<mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel>
-List-Post: <mailto:devel@linuxdriverproject.org>
-List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
-	<mailto:devel-request@linuxdriverproject.org?subject=subscribe>
-Sender: devel-bounces@linuxdriverproject.org
-Errors-To: devel-bounces@linuxdriverproject.org
-To: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: devel@driverdev.osuosl.org, Omar Ramirez Luna <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-kernel@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>, linux-omap@vger.kernel.org, Rene Sapiens <rene.sapiens@ti.com>, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 02/02] staging: tidspbridge: hardcode SCM macros while fix is upstreamed
+Date: Wed, 10 Nov 2010 19:50:25 -0600
+Message-ID: <1289440225-27221-3-git-send-email-omar.ramirez@ti.com>
+References: <1289440225-27221-1-git-send-email-omar.ramirez@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60131 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932219Ab0KKCBD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Nov 2010 21:01:03 -0500
+In-Reply-To: <1289440225-27221-1-git-send-email-omar.ramirez@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Rene Sapiens <rene.sapiens@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org
 
-Hi Greg,
+From: Felipe Contreras <felipe.contreras@gmail.com>
 
-Please consider the following patch set for tidspbridge driver in
-staging tree, the following has been tested on an omap3430 based board
-+ gst-dsp environment. Many thanks to Felipe Contreras for piling this up,
-as I'm just propagating his patches.
+On 2.6.37-rc1, omap platform internals for SCM have changed,
+so the build is broken again.
 
-First two patches:
-1. omap: dsp: remove shm from normal memory
-2. staging: tidspbridge: hardcode SCM macros while fix is upstreamed
+drivers/staging/tidspbridge/core/tiomap3430.c:26:
+    fatal error: plat/control.h: No such file or directory
 
-Resolve a couple of build breaks due to adaptations for memblock
-and SCM layer.
+This is a totally ugly layer violation, but needed until
+omap_ctrl_set_dsp_boot*() are provided.
 
-(2) Is meant as a temporary fix, until the patches to fix this
-    (currently in review) are upstreamed. [1]
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ drivers/staging/tidspbridge/core/tiomap3430.c |   14 +++++++++++++-
+ 1 files changed, 13 insertions(+), 1 deletions(-)
 
-The rest of the series, is the revert of iommu migration changes. These
-are needed because, without modifications made to iommu module, they do not
-work; these modifications (on iommu code) didn't make it for the previous
-merge window either.
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
+index f22bc12..d302e30 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+@@ -23,7 +23,6 @@
+ #include <dspbridge/host_os.h>
+ #include <linux/mm.h>
+ #include <linux/mmzone.h>
+-#include <plat/control.h>
+ 
+ /*  ----------------------------------- DSP/BIOS Bridge */
+ #include <dspbridge/dbdefs.h>
+@@ -68,6 +67,19 @@
+ #define OMAP3_IVA2_BOOTADDR_MASK 0xFFFFFC00
+ #define PAGES_II_LVL_TABLE   512
+ 
++/*
++ * This is a totally ugly layer violation, but needed until
++ * omap_ctrl_set_dsp_boot*() are provided.
++ */
++#define OMAP3_IVA2_BOOTMOD_IDLE 1
++#define OMAP2_CONTROL_GENERAL 0x270
++#define OMAP343X_CONTROL_IVA2_BOOTADDR (OMAP2_CONTROL_GENERAL + 0x0190)
++#define OMAP343X_CONTROL_IVA2_BOOTMOD (OMAP2_CONTROL_GENERAL + 0x0194)
++
++#define OMAP343X_CTRL_REGADDR(reg) \
++	OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
++
++
+ /* Forward Declarations: */
+ static int bridge_brd_monitor(struct bridge_dev_context *dev_ctxt);
+ static int bridge_brd_read(struct bridge_dev_context *dev_ctxt,
+-- 
+1.7.1
 
-I will avoid posting the reverts (unless required), they can be found
-(along with the two patches of this series) at:
-
-git://dev.omapzoom.org/pub/scm/tidspbridge/kernel-dspbridge.git 
-	tidspbridge-2.6.37-rc1
-
-Felipe Contreras (14):
-  omap: dsp: remove shm from normal memory
-  staging: tidspbridge: hardcode SCM macros while fix is upstreamed
-
-  Revert "staging: tidspbridge - update Kconfig to select IOMMU module"
-  Revert "staging: tidspbridge - remove dmm custom module"
-  Revert "staging: tidspbridge - deprecate reserve/unreserve_memory
-    funtions"
-  Revert "staging: tidspbridge - remove reserved memory clean up"
-  Revert "staging: tidspbridge: remove dw_dmmu_base from cfg_hostres
-    struct"
-  Revert "staging: tidspbridge - move all iommu related code to a new
-    file"
-  Revert "staging: tidspbridge - remove hw directory"
-  Revert "staging: tidspbridge - fix mmufault support"
-  Revert "staging: tidspbridge - remove custom mmu code from
-    tiomap3430.c"
-  Revert "staging: tidspbridge - rename bridge_brd_mem_map/unmap to a
-    proper name"
-  Revert "staging: tidspbridge - move shared memory iommu maps to
-    tiomap3430.c"
-  Revert "staging: tidspbridge: replace iommu custom for opensource
-    implementation"
-
- arch/arm/plat-omap/devices.c                       |    4 +-
- drivers/staging/tidspbridge/Kconfig                |    1 -
- drivers/staging/tidspbridge/Makefile               |    7 +-
- drivers/staging/tidspbridge/core/_deh.h            |    5 +-
- drivers/staging/tidspbridge/core/_tiomap.h         |   19 +-
- drivers/staging/tidspbridge/core/dsp-mmu.c         |  317 ------
- drivers/staging/tidspbridge/core/io_sm.c           |  180 +++-
- drivers/staging/tidspbridge/core/tiomap3430.c      | 1083 ++++++++++++++++++--
- drivers/staging/tidspbridge/core/tiomap3430_pwr.c  |    4 +
- drivers/staging/tidspbridge/core/tiomap_io.c       |   17 +-
- drivers/staging/tidspbridge/core/ue_deh.c          |  115 ++-
- drivers/staging/tidspbridge/hw/EasiGlobal.h        |   41 +
- drivers/staging/tidspbridge/hw/MMUAccInt.h         |   76 ++
- drivers/staging/tidspbridge/hw/MMURegAcM.h         |  225 ++++
- drivers/staging/tidspbridge/hw/hw_defs.h           |   58 ++
- drivers/staging/tidspbridge/hw/hw_mmu.c            |  562 ++++++++++
- drivers/staging/tidspbridge/hw/hw_mmu.h            |  163 +++
- .../tidspbridge/include/dspbridge/cfgdefs.h        |    1 +
- .../staging/tidspbridge/include/dspbridge/dev.h    |   24 +
- .../staging/tidspbridge/include/dspbridge/dmm.h    |   75 ++
- .../staging/tidspbridge/include/dspbridge/drv.h    |   10 +
- .../tidspbridge/include/dspbridge/dsp-mmu.h        |   67 --
- .../tidspbridge/include/dspbridge/dspdefs.h        |   44 +
- .../tidspbridge/include/dspbridge/dspioctl.h       |    7 +
- .../staging/tidspbridge/include/dspbridge/proc.h   |   46 +
- drivers/staging/tidspbridge/pmgr/dev.c             |   63 ++-
- drivers/staging/tidspbridge/pmgr/dmm.c             |  533 ++++++++++
- drivers/staging/tidspbridge/pmgr/dspapi.c          |   34 +-
- drivers/staging/tidspbridge/rmgr/drv.c             |   15 +
- drivers/staging/tidspbridge/rmgr/drv_interface.c   |    2 +
- drivers/staging/tidspbridge/rmgr/node.c            |   48 +-
- drivers/staging/tidspbridge/rmgr/proc.c            |  197 ++++-
- 32 files changed, 3471 insertions(+), 572 deletions(-)
- delete mode 100644 drivers/staging/tidspbridge/core/dsp-mmu.c
- create mode 100644 drivers/staging/tidspbridge/hw/EasiGlobal.h
- create mode 100644 drivers/staging/tidspbridge/hw/MMUAccInt.h
- create mode 100644 drivers/staging/tidspbridge/hw/MMURegAcM.h
- create mode 100644 drivers/staging/tidspbridge/hw/hw_defs.h
- create mode 100644 drivers/staging/tidspbridge/hw/hw_mmu.c
- create mode 100644 drivers/staging/tidspbridge/hw/hw_mmu.h
- create mode 100644 drivers/staging/tidspbridge/include/dspbridge/dmm.h
- delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/dsp-mmu.h
- create mode 100644 drivers/staging/tidspbridge/pmgr/dmm.c
