@@ -1,54 +1,44 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 00/02] staging: tidspbridge: 2.6.37-rcX fixes
-Date: Thu, 11 Nov 2010 05:17:56 -0800
-Message-ID: <20101111131756.GA26064@kroah.com>
-References: <1289440225-27221-1-git-send-email-omar.ramirez@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:55781 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755759Ab0KKNS1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Nov 2010 08:18:27 -0500
-Content-Disposition: inline
-In-Reply-To: <1289440225-27221-1-git-send-email-omar.ramirez@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>
+Subject: [PATCHv2] OMAP: Serial: Define OMAP uart MDR1 register definitions
+Date: Thu, 11 Nov 2010 16:13:32 +0200
+Message-ID: <1289484812-17278-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, devel@driverdev.osuosl.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-kernel@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>, linux-omap@vger.kernel.org, Rene Sapiens <rene.sapiens@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Nov 10, 2010 at 07:50:23PM -0600, Omar Ramirez Luna wrote:
-> Hi Greg,
-> 
-> Please consider the following patch set for tidspbridge driver in
-> staging tree, the following has been tested on an omap3430 based board
-> + gst-dsp environment. Many thanks to Felipe Contreras for piling this up,
-> as I'm just propagating his patches.
-> 
-> First two patches:
-> 1. omap: dsp: remove shm from normal memory
-> 2. staging: tidspbridge: hardcode SCM macros while fix is upstreamed
-> 
-> Resolve a couple of build breaks due to adaptations for memblock
-> and SCM layer.
-> 
-> (2) Is meant as a temporary fix, until the patches to fix this
->     (currently in review) are upstreamed. [1]
-> 
-> The rest of the series, is the revert of iommu migration changes. These
-> are needed because, without modifications made to iommu module, they do not
-> work; these modifications (on iommu code) didn't make it for the previous
-> merge window either.
-> 
-> I will avoid posting the reverts (unless required), they can be found
-> (along with the two patches of this series) at:
-> 
-> git://dev.omapzoom.org/pub/scm/tidspbridge/kernel-dspbridge.git 
-> 	tidspbridge-2.6.37-rc1
+From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
 
-I've pulled from this tree and pushed it out to the staging-linus branch
-to get sent to Linus before .37 is released.
+Define MDR1 register serial definitions used in serial and
+bluetooth drivers. Remove magic numbers there.
+*v2	added OMAP keyword
 
-thanks,
+Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
+---
+ include/linux/serial_reg.h |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-greg k-h
+diff --git a/include/linux/serial_reg.h b/include/linux/serial_reg.h
+index c7a0ce1..6f38234 100644
+--- a/include/linux/serial_reg.h
++++ b/include/linux/serial_reg.h
+@@ -341,5 +341,17 @@
+ #define UART_OMAP_SYSS		0x16	/* System status register */
+ #define UART_OMAP_WER		0x17	/* Wake-up enable register */
+ 
++/*
++ * These are the definitions for the MDR1 register
++ */
++#define UART_OMAP_MDR1_16X_MODE		0x00	/* UART 16x mode */
++#define UART_OMAP_MDR1_SIR_MODE		0x01	/* SIR mode */
++#define UART_OMAP_MDR1_16X_ABAUD_MODE	0x02	/* UART 16x auto-baud */
++#define UART_OMAP_MDR1_13X_MODE		0x03	/* UART 13x mode */
++#define UART_OMAP_MDR1_MIR_MODE		0x04	/* MIR mode */
++#define UART_OMAP_MDR1_FIR_MODE		0x05	/* FIR mode */
++#define UART_OMAP_MDR1_CIR_MODE		0x06	/* CIR mode */
++#define UART_OMAP_MDR1_DISABLE		0x07	/* Disable (default state) */
++
+ #endif /* _LINUX_SERIAL_REG_H */
+ 
+-- 
+1.7.0.4
