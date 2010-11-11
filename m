@@ -1,114 +1,194 @@
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Subject: Re: [PATCH v2 2/2] spi: Force CS to be in inactive state after off-mode
- transition
-Date: Thu, 11 Nov 2010 12:57:33 +0100
-Message-ID: <4CDBDA2D.7060903@free-electrons.com>
-References: <4CDA74DB.1060102@free-electrons.com> <505AAE016A4D4EB5AC8F2EA48803AFD7@wipblrx0099946>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC v2 4/7] OMAP4: mux: Add CBL package data for OMAP4430 ES1
+Date: Thu, 11 Nov 2010 13:33:56 +0100
+Message-ID: <4CDBE2B4.9090806@ti.com>
+References: <1287526956-21853-1-git-send-email-b-cousson@ti.com> <1287526956-21853-5-git-send-email-b-cousson@ti.com> <20101111015600.GN9264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:49691 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755557Ab0KKL5n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Nov 2010 06:57:43 -0500
-In-Reply-To: <505AAE016A4D4EB5AC8F2EA48803AFD7@wipblrx0099946>
+Received: from comal.ext.ti.com ([198.47.26.152]:40278 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753482Ab0KKMeC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Nov 2010 07:34:02 -0500
+In-Reply-To: <20101111015600.GN9264@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On 11/11/2010 10:34 AM, Hemanth V wrote:
-> ----- Original Message ----- From: "Gregory CLEMENT"
-> <gregory.clement@free-electrons.com>
-> To: "spi-devel-general" <spi-devel-general@lists.sourceforge.net>;
-> "linux-omap" <linux-omap@vger.kernel.org>
-> Cc: "David Brownell" <dbrownell@users.sourceforge.net>; "Grant Likely"
-> <grant.likely@secretlab.ca>; "Kevin Hilman" <khilman@deeprootsystems.com>
-> Sent: Wednesday, November 10, 2010 4:02 PM
-> Subject: [PATCH v2 2/2] spi: Force CS to be in inactive state after
-> off-mode transition
+Hi Tony,
+
+On 11/11/2010 2:56 AM, Tony Lindgren wrote:
+> * Benoit Cousson<b-cousson@ti.com>  [101019 15:14]:
+>> Add data for OMAP4430 generated from HW pinout&  register database.
+>> The data set is split in two partitions for both core and wkup.
+>
+> We should drop patch 3/7 and merge the following patch to your
+> 4/7 patch.
+
+OK
+
+>
+> Basically let's keep the omap_mux_read/write around for now,
+> by adding omap_mux_get for dealing with the partition
+> information.
+
+Thanks for that.
+
+I'll send the update today.
+
+Regards,
+Benoit
+
+>
+> Regards,
+>
+> Tony
 >
 >
->> When SPI wake up from OFF mode, CS is in the wrong state: force it to
->> the inactive state.
->>
->> During the system life, I monitored the CS behavior using a
->> oscilloscope. I also activated debug in omap2_mcspi, so I saw when
->> driver disable the clocks and restore context when device is not used.
->> Each time the CS was in the correct state.
->> It was only when system was put suspend to ram with off-mode activated
->> that on resume the CS was in wrong state( ie activated).
->>
+> From: Tony Lindgren<tony@atomide.com>
+> Date: Wed, 10 Nov 2010 09:55:47 -0800
+> Subject: [PATCH] omap: mux: Fix support for partitions for dynamic muxing
 >
-> Just to confirm the understanding. Are saying CHCONF[6] EPOL bit
-> setting and CS state did not match and is actually a hardware bug. If so
-> could u let us know which platform u are testing this on.
+> Revert some parts of Benoit's patch to not make
+> omap_mux_read/write static at this point.
 >
-
-Well I am not sure it is related to CHCONF[6] EPOL bit. During exchange 
-on SPI, CS is in the good state. But when system wake up from an 
-off-mode, CS is in its active state (high state for our configuration). 
-I thought it was more a problem with CHCONF[20] FORCE bit, indeed this 
-bit is at 0, so CS should be in low state. It is only when we first set 
-this bit to 1 and then to 0, that CS go to low state.
-It sounds like an hardware bug on this bit, or let's say an undocumented 
-feature ;)
-CS stay in high state until the next transaction on the SPI bus, indeed 
-as the driver use CHCONF[20] FORCE bit during exchange, it will do the 
-transition on this bit. That's why nobody noticed it until now, because 
-from the software point of view it works.
-
-I didn't test it with CHCONF[6] EPOL bit set to 1.
-
-Our silicon revision was OMAP3530-GP ES3.1.
-
-> Thanks
-> Hemanth
+> We may need to do remuxing for system wide idle states,
+> and also for driver specific idle states.
 >
->> Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
->> ---
->> drivers/spi/omap2_mcspi.c | 10 ++++++++++
->> 1 files changed, 10 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
->> index 2a651e6..938f14c 100644
->> --- a/drivers/spi/omap2_mcspi.c
->> +++ b/drivers/spi/omap2_mcspi.c
->> @@ -1139,6 +1139,15 @@ static u8 __initdata spi4_txdma_id[] = {
->> };
->> #endif
->> +/* When SPI wake up, CS is in wrong state: force it to unactive state*/
->> +static void omap2_mcspi_resume(struct spi_device *spi)
->> +{
->> + omap2_mcspi_enable_clocks( spi_master_get_devdata(spi->master));
->> + /* We need to togle CS state for OMAP take this chang in account*/
->> + omap2_mcspi_force_cs(spi, 1);
->> + omap2_mcspi_force_cs(spi, 0);
->> + omap2_mcspi_disable_clocks( spi_master_get_devdata(spi->master));
->> +}
->> static int __init omap2_mcspi_probe(struct platform_device *pdev)
->> {
->> struct spi_master *master;
->> @@ -1194,6 +1203,7 @@ static int __init omap2_mcspi_probe(struct
->> platform_device *pdev)
->> master->transfer = omap2_mcspi_transfer;
->> master->cleanup = omap2_mcspi_cleanup;
->> master->num_chipselect = num_chipselect;
->> + master->resume = omap2_mcspi_resume;
->> dev_set_drvdata(&pdev->dev, master);
->> -- 1.7.0.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>
+> So we still need to have omap_mux_read/write around for
+> the platform level driver code.
 >
+> Also add omap_mux_get for getting the partition data so
+> platform level device code can use it.
+>
+> Signed-off-by: Tony Lindgren<tony@atomide.com>
+>
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> index 3fec4d6..3fda20d 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -293,6 +293,8 @@ static struct omap_board_mux rx51_mmc2_off_mux[] = {
+>   	{ .reg_offset = OMAP_MUX_TERMINATOR },
+>   };
+>
+> +static struct omap_mux_partition *partition;
+> +
+>   /*
+>    * Current flows to eMMC when eMMC is off and the data lines are pulled up,
+>    * so pull them down. N.B. we pull 8 lines because we are using 8 lines.
+> @@ -300,9 +302,9 @@ static struct omap_board_mux rx51_mmc2_off_mux[] = {
+>   static void rx51_mmc2_remux(struct device *dev, int slot, int power_on)
+>   {
+>   	if (power_on)
+> -		omap_mux_write_array(rx51_mmc2_on_mux);
+> +		omap_mux_write_array(partition, rx51_mmc2_on_mux);
+>   	else
+> -		omap_mux_write_array(rx51_mmc2_off_mux);
+> +		omap_mux_write_array(partition, rx51_mmc2_off_mux);
+>   }
+>
+>   static struct omap2_hsmmc_info mmc[] __initdata = {
+> @@ -922,7 +924,11 @@ void __init rx51_peripherals_init(void)
+>   	rx51_init_wl1251();
+>   	spi_register_board_info(rx51_peripherals_spi_board_info,
+>   				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+> -	omap2_hsmmc_init(mmc);
+> +
+> +	partition = omap_mux_get("core");
+> +	if (partition)
+> +		omap2_hsmmc_init(mmc);
+> +
+>   	platform_device_register(&rx51_charger_device);
+>   }
+>
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 9b9128e..6d91bb8 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -49,7 +49,19 @@ struct omap_mux_entry {
+>   static LIST_HEAD(mux_partitions);
+>   static DEFINE_MUTEX(muxmode_mutex);
+>
+> -static u16 omap_mux_read(struct omap_mux_partition *partition, u16 reg)
+> +struct omap_mux_partition * omap_mux_get(const char *name)
+> +{
+> +	struct omap_mux_partition *partition;
+> +
+> +	list_for_each_entry(partition,&mux_partitions, node) {
+> +		if (!strcmp(name, partition->name))
+> +			return partition;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +u16 omap_mux_read(struct omap_mux_partition *partition, u16 reg)
+>   {
+>   	if (partition->flags&  OMAP_MUX_REG_8BIT)
+>   		return __raw_readb(partition->base + reg);
+> @@ -57,7 +69,7 @@ static u16 omap_mux_read(struct omap_mux_partition *partition, u16 reg)
+>   		return __raw_readw(partition->base + reg);
+>   }
+>
+> -static void omap_mux_write(struct omap_mux_partition *partition, u16 val,
+> +void omap_mux_write(struct omap_mux_partition *partition, u16 val,
+>   			   u16 reg)
+>   {
+>   	if (partition->flags&  OMAP_MUX_REG_8BIT)
+> @@ -66,7 +78,7 @@ static void omap_mux_write(struct omap_mux_partition *partition, u16 val,
+>   		__raw_writew(val, partition->base + reg);
+>   }
+>
+> -static void omap_mux_write_array(struct omap_mux_partition *partition,
+> +void omap_mux_write_array(struct omap_mux_partition *partition,
+>   				 struct omap_board_mux *board_mux)
+>   {
+>   	while (board_mux->reg_offset != OMAP_MUX_TERMINATOR) {
+> diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+> index dad32f6..6656043 100644
+> --- a/arch/arm/mach-omap2/mux.h
+> +++ b/arch/arm/mach-omap2/mux.h
+> @@ -186,6 +186,40 @@ u16 omap_mux_get_gpio(int gpio);
+>   void omap_mux_set_gpio(u16 val, int gpio);
+>
+>   /**
+> + * omap_mux_get() - get a mux partition by name
+> + * @name:		Name of the mux partition
+> + *
+> + */
+> +struct omap_mux_partition * omap_mux_get(const char *name);
+> +
+> +/**
+> + * omap_mux_read() - read mux register
+> + * @partition:		Mux partition
+> + * @mux_offset:		Offset of the mux register
+> + *
+> + */
+> +u16 omap_mux_read(struct omap_mux_partition *p, u16 mux_offset);
+> +
+> +/**
+> + * omap_mux_write() - write mux register
+> + * @partition:		Mux partition
+> + * @val:		New mux register value
+> + * @mux_offset:		Offset of the mux register
+> + *
+> + * This should be only needed for dynamic remuxing of non-gpio signals.
+> + */
+> +void omap_mux_write(struct omap_mux_partition *p, u16 val, u16 mux_offset);
+> +
+> +/**
+> + * omap_mux_write_array() - write an array of mux registers
+> + * @partition:		Mux partition
+> + * @board_mux:		Array of mux registers terminated by MAP_MUX_TERMINATOR
+> + *
+> + * This should be only needed for dynamic remuxing of non-gpio signals.
+> + */
+> +void omap_mux_write_array(struct omap_mux_partition *p, struct omap_board_mux *board_mux);
+> +
+> +/**
+>    * omap2420_mux_init() - initialize mux system with board specific set
+>    * @board_mux:		Board specific mux table
+>    * @flags:		OMAP package type used for the board
 
-
--- 
-Gregory Clement, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
