@@ -1,49 +1,61 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: BeagleBoard not resuming from uart with latest pm-core ?
-Date: Thu, 11 Nov 2010 08:00:33 -0800
-Message-ID: <87oc9vx332.fsf@deeprootsystems.com>
-References: <20101110164414.4529cbda@surf>
-	<AANLkTi=Dzv2XE-X_z6yiCaRjgWrST5QGDE9dFDnDy9pT@mail.gmail.com>
-	<87pqudaxtm.fsf@deeprootsystems.com>
-	<20101111114153.GP16966@nokia.com>
+Subject: Re: [PATCHv2] OMAP: Serial: Define OMAP uart MDR1 register definitions
+Date: Thu, 11 Nov 2010 08:02:27 -0800
+Message-ID: <87hbfnx2zw.fsf@deeprootsystems.com>
+References: <1289484812-17278-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:44086 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753370Ab0KKQAh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Nov 2010 11:00:37 -0500
-Received: by pxi15 with SMTP id 15so417132pxi.19
-        for <linux-omap@vger.kernel.org>; Thu, 11 Nov 2010 08:00:36 -0800 (PST)
-In-Reply-To: <20101111114153.GP16966@nokia.com> (Peter De Schrijver's message
-	of "Thu, 11 Nov 2010 13:41:53 +0200")
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:63796 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753370Ab0KKQCb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Nov 2010 11:02:31 -0500
+In-Reply-To: <1289484812-17278-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+	(Emeltchenko Andrei's message of "Thu, 11 Nov 2010 16:13:32 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
+Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com> writes:
 
-> On Wed, Nov 10, 2010 at 06:32:53PM +0100, ext Kevin Hilman wrote:
->> Jean Pihet <jean.pihet@newoldbits.com> writes:
->> 
->> > l-o is currently broken wrt to suspend and idle.
->> > Solutions are being worked on for the moment.
->> >
->> > Kevin, are there solutions available yet?
->> 
->> The solution to your previous problem (ensuring runtime PM transitions
->> work during system PM) is included in my pm-core branch, but is not yet
->> the final solution.  I've been disussing this issue with the runtime PM
->> maintainers for a final solution.  Until then, I will carry this in
->> pm-core.
->> 
->> The other problem that I'm aware of so far I've only seen on boards with
->> UART2 console (beagle, Overo, n900.)  The printk messages that warn of
+> From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
 >
-> N900 uses UART3 as its console... UART2 is bluetooth iirc.
+> Define MDR1 register serial definitions used in serial and
+> bluetooth drivers. Remove magic numbers there.
 
-You're right, beagle and Overo are also UART3, so s/UART2/UART3/ in my
-above comment.
+Remove magic numbers where?  This patch doesn't remove anything.
+
+> *v2	added OMAP keyword
+
+This info should go after the '---' as it is not needed in the final
+git history.
 
 Kevin
+
+> Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
+> ---
+>  include/linux/serial_reg.h |   12 ++++++++++++
+>  1 files changed, 12 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/linux/serial_reg.h b/include/linux/serial_reg.h
+> index c7a0ce1..6f38234 100644
+> --- a/include/linux/serial_reg.h
+> +++ b/include/linux/serial_reg.h
+> @@ -341,5 +341,17 @@
+>  #define UART_OMAP_SYSS		0x16	/* System status register */
+>  #define UART_OMAP_WER		0x17	/* Wake-up enable register */
+>  
+> +/*
+> + * These are the definitions for the MDR1 register
+> + */
+> +#define UART_OMAP_MDR1_16X_MODE		0x00	/* UART 16x mode */
+> +#define UART_OMAP_MDR1_SIR_MODE		0x01	/* SIR mode */
+> +#define UART_OMAP_MDR1_16X_ABAUD_MODE	0x02	/* UART 16x auto-baud */
+> +#define UART_OMAP_MDR1_13X_MODE		0x03	/* UART 13x mode */
+> +#define UART_OMAP_MDR1_MIR_MODE		0x04	/* MIR mode */
+> +#define UART_OMAP_MDR1_FIR_MODE		0x05	/* FIR mode */
+> +#define UART_OMAP_MDR1_CIR_MODE		0x06	/* CIR mode */
+> +#define UART_OMAP_MDR1_DISABLE		0x07	/* Disable (default state) */
+> +
+>  #endif /* _LINUX_SERIAL_REG_H */
