@@ -1,89 +1,58 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC v2 3/7] OMAP: mux: Add support for control module split
- in several partitions
-Date: Thu, 11 Nov 2010 17:50:20 +0100
-Message-ID: <4CDC1ECC.8080600@ti.com>
-References: <1287526956-21853-1-git-send-email-b-cousson@ti.com> <1287526956-21853-4-git-send-email-b-cousson@ti.com> <20101111163547.GO9264@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC v2 0/7] OMAP4: mux: Add the OMAP4430 ES1 & ES2 support
+Date: Thu, 11 Nov 2010 08:53:25 -0800
+Message-ID: <20101111165325.GQ9264@atomide.com>
+References: <1287526956-21853-1-git-send-email-b-cousson@ti.com>
+ <20101019230642.GF3038@atomide.com>
+ <4CBF568B.2010909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57843 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753892Ab0KKQu0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Nov 2010 11:50:26 -0500
-In-Reply-To: <20101111163547.GO9264@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49748 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752492Ab0KKQx3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Nov 2010 11:53:29 -0500
+Content-Disposition: inline
+In-Reply-To: <4CBF568B.2010909@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>
 
-On 11/11/2010 5:35 PM, Tony Lindgren wrote:
-> * Benoit Cousson<b-cousson@ti.com>  [101019 15:14]:
->> --- a/arch/arm/mach-omap2/mux.h
->> +++ b/arch/arm/mach-omap2/mux.h
->> +
->> +/**
->> + * struct mux_partition - contain partition related information
->> + * @name: name of the current partition
->> + * @flags: flags specific to this partition
->> + * @phys: physical address
->> + * @size: partition size
->> + * @base: virtual address after ioremap
->> + * @muxmodes: list of nodes that belong to a partition
->> + * @node: list node for the partitions linked list
->> + */
->> +struct omap_mux_partition {
->> +	const char		*name;
->> +	u32			flags;
->> +	u32			phys;
->> +	u32			size;
->> +	void __iomem		*base;
->> +	struct list_head	muxmodes;
->> +	struct list_head	node;
->> +};
->
-> With the omap_mux_parition..
->
->>   /**
->>    * struct omap_mux - data for omap mux register offset and it's value
->>    * @reg_offset:	mux register offset from the mux base
->>    * @gpio:	GPIO number
->> + * @id:		Partition identifier
->>    * @muxnames:	available signal modes for a ball
->>    */
->>   struct omap_mux {
->> @@ -82,6 +114,7 @@ struct omap_mux {
->>   	char	*muxnames[OMAP_MUX_NR_MODES];
->>   #ifdef CONFIG_DEBUG_FS
->>   	char	*balls[OMAP_MUX_NR_SIDES];
->> +	struct omap_mux_partition *partition;
->>   #endif
->>   #endif
->>   };
->> @@ -89,6 +122,7 @@ struct omap_mux {
->>   /**
->>    * struct omap_ball - data for balls on omap package
->>    * @reg_offset:	mux register offset from the mux base
->> + * @id:		Partition identifier
->>    * @balls:	available balls on the package
->>    */
->>   struct omap_ball {
->> @@ -100,6 +134,7 @@ struct omap_ball {
->>    * struct omap_board_mux - data for initializing mux registers
->>    * @reg_offset:	mux register offset from the mux base
->>    * @mux_value:	desired mux value to set
->> + * @id:		Partition identifier
->>    */
->>   struct omap_board_mux {
->>   	u16	reg_offset;
->
-> ..I think the above changes are no longer needed.
+* Cousson, Benoit <b-cousson@ti.com> [101020 13:43]:
+> 
+> On 10/20/2010 1:06 AM, Tony Lindgren wrote:
+> >* Benoit Cousson<b-cousson@ti.com>  [101019 15:14]:
+> >>
+> >>It takes into account your proposal to store partition
+> >>information in a partition structure instead of inside every pad entries.
+> >>The mechanism relies on the uniqueness of the pad name in each partition to
+> >>find the correct partition during iteration.
+> >
+> >OK, using the offset defines won't be unique necessarily..
+> 
+> They should. The defines are all based on pad names that are all
+> unique. Assuming HW folks didn't messed up the spec...
 
-Oops yep, I forgot to remove the @id in the kerneldoc.
-I was about to send the next revision, maybe I should wait a little bit 
-more.
+Just for the record to avoid confusion.. What I meant is the
+offset values from the partition base are not unique even
+if the define names are unique:
 
-Thanks,
-Benoit
+/* ctrl_module_pad_core registers offset */
+#define OMAP4_CTRL_MODULE_PAD_GPMC_AD0_OFFSET                   0x0040
+#define OMAP4_CTRL_MODULE_PAD_GPMC_AD1_OFFSET                   0x0042
+#define OMAP4_CTRL_MODULE_PAD_GPMC_AD2_OFFSET                   0x0044
+...
 
+/* ctrl_module_pad_wkup registers offset */
+#define OMAP4_CTRL_MODULE_PAD_SIM_IO_OFFSET                     0x0040
+#define OMAP4_CTRL_MODULE_PAD_SIM_CLK_OFFSET                    0x0042
+#define OMAP4_CTRL_MODULE_PAD_SIM_RESET_OFFSET                  0x0044
+...
+
+So now we have to use either a unique pad name, or a combination of
+partition + offset.
+
+Regards,
+
+Tony
