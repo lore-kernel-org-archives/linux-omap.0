@@ -1,88 +1,40 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 04/14] OMAP: Introduce API to register a device with a voltagedomain
-Date: Wed, 10 Nov 2010 16:49:26 -0800
-Message-ID: <87sjz8y99l.fsf@deeprootsystems.com>
-References: <1288366708-32302-1-git-send-email-thara@ti.com>
-	<1288366708-32302-5-git-send-email-thara@ti.com>
+From: Hari Kanigeri <hari.kanigeri@gmail.com>
+Subject: Re: [PATCH 6/6] omap:clocks44x-add dummy clock for mailbox
+Date: Wed, 10 Nov 2010 19:37:15 -0600
+Message-ID: <AANLkTimD-dzC_UhJTK7=BZ27cMWRqy49LwOuVJxGz4hx@mail.gmail.com>
+References: <1289393121-7911-1-git-send-email-h-kanigeri2@ti.com>
+	<1289393121-7911-7-git-send-email-h-kanigeri2@ti.com>
+	<alpine.DEB.2.00.1011101626570.28301@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:43675 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757401Ab0KKAta (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 19:49:30 -0500
-Received: by ywc21 with SMTP id 21so199254ywc.19
-        for <linux-omap@vger.kernel.org>; Wed, 10 Nov 2010 16:49:30 -0800 (PST)
-In-Reply-To: <1288366708-32302-5-git-send-email-thara@ti.com> (Thara
-	Gopinath's message of "Fri, 29 Oct 2010 21:08:18 +0530")
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:62356 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932078Ab0KKBhQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 20:37:16 -0500
+Received: by gyh4 with SMTP id 4so901336gyh.19
+        for <linux-omap@vger.kernel.org>; Wed, 10 Nov 2010 17:37:15 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1011101626570.28301@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-Thara Gopinath <thara@ti.com> writes:
+Paul,
 
-> This patch adds an API in the voltage layer that
-> can be used  during omap_device_build to register the built
-> device with the voltage domain. This API is to be typically called
-> only once per device during the device registeration. This approach
-> makes it easy during dvfs to scale all the devices associated with
-> a voltage domain and then scale the voltage domain.
+On Wed, Nov 10, 2010 at 5:27 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hello Hari
 >
-> Signed-off-by: Thara Gopinath <thara@ti.com>
+> On Wed, 10 Nov 2010, Hari Kanigeri wrote:
+>
+>> In omap4, there is no explicit configuration register to enable mailbox clocks.
+>> Defining dummy clock for mailbox clock module to keep the mailbox driver
+>> backward compatible with previous omaps.
+>
+> If you split this off from the rest of your series, I'll queue it for .38.
+>
 
-[...]
+Thanks. I will send this patch separately.
 
->  /* Generic voltage init functions */
-> @@ -1240,6 +1251,40 @@ int omap_voltage_add_request(struct voltagedomain *voltdm, struct device *dev,
->  	return 0;
->  }
->  
-> +int omap_voltage_add_dev(struct voltagedomain *voltdm, struct device *dev)
-
-minor nit: I prefer this be a 'register' function,
-e.g. omap_voltage_register (or _register_dev)
-
-[...]
-
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index abe933c..7c902a6 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -86,6 +86,7 @@
->  
->  #include <plat/omap_device.h>
->  #include <plat/omap_hwmod.h>
-> +#include <plat/voltage.h>
->  
->  /* These parameters are passed to _omap_device_{de,}activate() */
->  #define USE_WAKEUP_LAT			0
-> @@ -453,6 +454,17 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->  	for (i = 0; i < oh_cnt; i++) {
->  		hwmods[i]->od = od;
->  		_add_optional_clock_alias(od, hwmods[i]);
-> +		if (hwmods[i]->vdd_name) {
-
-Use:
-
-                if (!is_early_device && hwmods[i]->vdd_name)              
-
-> +			struct omap_hwmod *oh = hwmods[i];
-> +			struct voltagedomain *voltdm;
-> +
-> +			if (is_early_device)
-> +				continue;
-
-and drop this check
-
-
-> +			voltdm = omap_voltage_domain_lookup(oh->vdd_name);
-> +			if (!omap_voltage_add_dev(voltdm, &od->pdev.dev))
-> +				oh->voltdm = voltdm;
-> +		}
->  	}
->  
->  	if (ret)
-
-Kevin
-
+Best regards,
+Hari
