@@ -1,73 +1,41 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/5] omap: control: add functions for DSP boot
-Date: Thu, 11 Nov 2010 13:12:56 +0200
-Message-ID: <AANLkTi=eF+UkXFzMfTi5m-xp9UByzmX+7Yg6C9Vx3E5k@mail.gmail.com>
-References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
-	<1289166209-32251-3-git-send-email-felipe.contreras@gmail.com>
-	<alpine.DEB.2.00.1011101658010.28301@utopia.booyaka.com>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: Re: BeagleBoard not resuming from uart with latest pm-core ?
+Date: Thu, 11 Nov 2010 13:41:53 +0200
+Message-ID: <20101111114153.GP16966@nokia.com>
+References: <20101110164414.4529cbda@surf> <AANLkTi=Dzv2XE-X_z6yiCaRjgWrST5QGDE9dFDnDy9pT@mail.gmail.com> <87pqudaxtm.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:63051 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754690Ab0KKLM6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Nov 2010 06:12:58 -0500
-Received: by bwz15 with SMTP id 15so1794475bwz.19
-        for <linux-omap@vger.kernel.org>; Thu, 11 Nov 2010 03:12:56 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1011101658010.28301@utopia.booyaka.com>
+Received: from smtp.nokia.com ([147.243.128.24]:28260 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755119Ab0KKLm3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Nov 2010 06:42:29 -0500
+Content-Disposition: inline
+In-Reply-To: <87pqudaxtm.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Nov 11, 2010 at 2:00 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hello Felipe,
->
-> On Sun, 7 Nov 2010, Felipe Contreras wrote:
->
->> From: Paul Walmsley <paul@pwsan.com>
->>
->> Add two functions for OMAP2430/OMAP3 IVA2 DSP boot control. =C2=A0Th=
-ese
->> registers wound up in the System Control Module. =C2=A0Other kernel =
-code that
->> wishes to control the DSP's boot process should now use these functi=
-ons
->> to do so; subsequent patches implement this in the two in-tree users=
- of
->> these functions.
->>
->> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
->
-> I see that you modified my original patch, but it seems that you also
-> dropped my Signed-off-by:.
+On Wed, Nov 10, 2010 at 06:32:53PM +0100, ext Kevin Hilman wrote:
+> Jean Pihet <jean.pihet@newoldbits.com> writes:
+> 
+> > l-o is currently broken wrt to suspend and idle.
+> > Solutions are being worked on for the moment.
+> >
+> > Kevin, are there solutions available yet?
+> 
+> The solution to your previous problem (ensuring runtime PM transitions
+> work during system PM) is included in my pm-core branch, but is not yet
+> the final solution.  I've been disussing this issue with the runtime PM
+> maintainers for a final solution.  Until then, I will carry this in
+> pm-core.
+> 
+> The other problem that I'm aware of so far I've only seen on boards with
+> UART2 console (beagle, Overo, n900.)  The printk messages that warn of
 
-Yes, because you didn't s-o-b my changes. I got that complaint from Cat=
-alin.
+N900 uses UART3 as its console... UART2 is bluetooth iirc.
 
-> This is a tricky situation, to be sure.
-> Probably the best thing to do in these cases if you don't wish to ask=
- me
-> to review the modified patch, =C2=A0is to keep my original Signed-off=
--by: --
-> since I wrote the patch, originally -- and then, immediately before y=
-our
-> Signed-off-by:, to add a bracketed note saying what you changed, e.g.=
-,
->
-> [felipe.contreras@gmail.com: dropped some changes, etc.]
->
-> That way the provenance of the patch is clear.
+CHeers,
 
-Ok. I was hoping you would review the patch and put your s-o-b.
-
-Cheers.
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Peter.
