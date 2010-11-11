@@ -1,68 +1,46 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 02/02] staging: tidspbridge: hardcode SCM macros while fix is upstreamed
-Date: Wed, 10 Nov 2010 19:50:25 -0600
-Message-ID: <1289440225-27221-3-git-send-email-omar.ramirez@ti.com>
-References: <1289440225-27221-1-git-send-email-omar.ramirez@ti.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH v5 2/3] OMAP3: DMA: Errata i541: sDMA FIFO draining does
+ not finish
+Date: Thu, 11 Nov 2010 09:17:18 +0200
+Message-ID: <4CDB987E.2020806@nokia.com>
+References: <1286261141-1039-1-git-send-email-peter.ujfalusi@nokia.com> <1286261141-1039-3-git-send-email-peter.ujfalusi@nokia.com> <4CDAA3AA.7070003@nokia.com> <alpine.DEB.2.00.1011101628410.28301@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60131 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932219Ab0KKCBD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Nov 2010 21:01:03 -0500
-In-Reply-To: <1289440225-27221-1-git-send-email-omar.ramirez@ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:55174 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757694Ab0KKHRt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Nov 2010 02:17:49 -0500
+In-Reply-To: <alpine.DEB.2.00.1011101628410.28301@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Rene Sapiens <rene.sapiens@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Ujfalusi Peter (Nokia-MS/Tampere)" <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <rmk+kernel@arm.linux.org.uk>
 
-From: Felipe Contreras <felipe.contreras@gmail.com>
+On 11/11/10 01:30, ext Paul Walmsley wrote:
+> Hello Adrian,
+>
+> On Wed, 10 Nov 2010, Adrian Hunter wrote:
+>
+>> On 05/10/10 09:45, Peter Ujfalusi wrote:
+>>
+>>> +	if (cpu_is_omap34xx()&&   (l&   OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
+>>> +		int i = 0;
+>>> +		u32 sys_cf;
+>>> +
+>>> +		/* Configure No-Standby */
+>>> +		l = dma_read(OCP_SYSCONFIG);
+>>> +		sys_cf = l;
+>>> +		l&= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
+>>> +		l |= DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_NO_IDLE);
+>>> +		dma_write(l , OCP_SYSCONFIG);
+>>
+>> Are accesses of OCP_SYSCONFIG synchronised?
+>
+> Do you mean, with respect to later reads and writes from the SDMA device?
+> If so, then yes, later reads and writes to the SDMA are guaranteed to
+> complete in order.  But perhaps I am misunderstanding what you mean?
 
-On 2.6.37-rc1, omap platform internals for SCM have changed,
-so the build is broken again.
-
-drivers/staging/tidspbridge/core/tiomap3430.c:26:
-    fatal error: plat/control.h: No such file or directory
-
-This is a totally ugly layer violation, but needed until
-omap_ctrl_set_dsp_boot*() are provided.
-
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- drivers/staging/tidspbridge/core/tiomap3430.c |   14 +++++++++++++-
- 1 files changed, 13 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index f22bc12..d302e30 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -23,7 +23,6 @@
- #include <dspbridge/host_os.h>
- #include <linux/mm.h>
- #include <linux/mmzone.h>
--#include <plat/control.h>
- 
- /*  ----------------------------------- DSP/BIOS Bridge */
- #include <dspbridge/dbdefs.h>
-@@ -68,6 +67,19 @@
- #define OMAP3_IVA2_BOOTADDR_MASK 0xFFFFFC00
- #define PAGES_II_LVL_TABLE   512
- 
-+/*
-+ * This is a totally ugly layer violation, but needed until
-+ * omap_ctrl_set_dsp_boot*() are provided.
-+ */
-+#define OMAP3_IVA2_BOOTMOD_IDLE 1
-+#define OMAP2_CONTROL_GENERAL 0x270
-+#define OMAP343X_CONTROL_IVA2_BOOTADDR (OMAP2_CONTROL_GENERAL + 0x0190)
-+#define OMAP343X_CONTROL_IVA2_BOOTMOD (OMAP2_CONTROL_GENERAL + 0x0194)
-+
-+#define OMAP343X_CTRL_REGADDR(reg) \
-+	OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
-+
-+
- /* Forward Declarations: */
- static int bridge_brd_monitor(struct bridge_dev_context *dev_ctxt);
- static int bridge_brd_read(struct bridge_dev_context *dev_ctxt,
--- 
-1.7.1
-
+I just meant it looks racy e.g.  two threads call omap_dma_stop() (or
+another function that changes OCP_SYSCONFIG) at the same time
