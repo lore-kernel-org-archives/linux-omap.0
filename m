@@ -1,154 +1,44 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 05/14] OMAP: Introduce device specific set rate and get rate in omap_device structure
-Date: Thu, 11 Nov 2010 14:59:28 -0800
-Message-ID: <87eiarv54f.fsf@deeprootsystems.com>
-References: <1288366708-32302-1-git-send-email-thara@ti.com>
-	<1288366708-32302-6-git-send-email-thara@ti.com>
+Subject: Re: [PATCH v3 04/13] OMAP2420: DMA: hwmod: add system DMA
+Date: Thu, 11 Nov 2010 15:04:00 -0800
+Message-ID: <871v6rv4wv.fsf@deeprootsystems.com>
+References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
+	<1288099513-1854-5-git-send-email-manjugk@ti.com>
+	<87mxpihyzh.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:55779 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360Ab0KKW7c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Nov 2010 17:59:32 -0500
-Received: by pxi15 with SMTP id 15so508491pxi.19
-        for <linux-omap@vger.kernel.org>; Thu, 11 Nov 2010 14:59:31 -0800 (PST)
-In-Reply-To: <1288366708-32302-6-git-send-email-thara@ti.com> (Thara
-	Gopinath's message of "Fri, 29 Oct 2010 21:08:19 +0530")
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:33064 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752676Ab0KKXEF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Nov 2010 18:04:05 -0500
+Received: by gxk23 with SMTP id 23so1553711gxk.19
+        for <linux-omap@vger.kernel.org>; Thu, 11 Nov 2010 15:04:04 -0800 (PST)
+In-Reply-To: <87mxpihyzh.fsf@deeprootsystems.com> (Kevin Hilman's message of
+	"Tue, 09 Nov 2010 15:13:38 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Thara Gopinath <thara@ti.com> writes:
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-> This patch extends the omap_device structure to contain
-> pointers to scale the operating rate of the
-> device and to retrieve the operating rate of the device.
-> This patch also adds the three new APIs in the omap device layer
-> namely omap_device_set_rate that can be called to set a new operating
-> rate for a device, omap_device_get_rate that can be called to retrieve
-> the operating frequency for a device and omap_device_populate_rate_fns
-> to populte the device specific set_rate and get_rate API's.
-> The omap_device_set_rate and omap_device_get_rate does some routine error
-> checks and finally calls into the device specific set_rate
-> and get_rate APIs populated through omap_device_populate_rate_fns.
+> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
 >
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
->  arch/arm/plat-omap/include/plat/omap_device.h |    9 +++++
->  arch/arm/plat-omap/omap_device.c              |   49 +++++++++++++++++++++++++
->  2 files changed, 58 insertions(+), 0 deletions(-)
+>> Add OMAP2420 DMA hwmod structures.
 >
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-> index 28e2d1a..2a37345 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -50,6 +50,8 @@ extern struct device omap_device_parent;
->   * @hwmods: (one .. many per omap_device)
->   * @hwmods_cnt: ARRAY_SIZE() of @hwmods
->   * @pm_lats: ptr to an omap_device_pm_latency table
-> + * @set_rate: fn ptr to change the operating rate.
-> + * @get_rate: fn ptr to retrieve the current operating rate.
->   * @pm_lats_cnt: ARRAY_SIZE() of what is passed to @pm_lats
->   * @pm_lat_level: array index of the last odpl entry executed - -1 if never
->   * @dev_wakeup_lat: dev wakeup latency in nanoseconds
-> @@ -67,6 +69,8 @@ struct omap_device {
->  	struct platform_device		pdev;
->  	struct omap_hwmod		**hwmods;
->  	struct omap_device_pm_latency	*pm_lats;
-> +	int (*set_rate)(struct device *dev, unsigned long rate);
-> +	unsigned long (*get_rate) (struct device *dev);
+> s/structures/data/
+>
+> Also, as pointed out in many other hwmod reviews, when adding hwmod
+> data, subject should be something like: 
+>
+>       OMAP2420: hwmod_data: add system DMA
+>
 
-minor nit, but I prefer the function pointers at the end.
+Oops... no underscore here please.  IOW:
 
->  	u32				dev_wakeup_lat;
->  	u32				_dev_wakeup_lat_limit;
->  	u8				pm_lats_cnt;
-> @@ -107,6 +111,11 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od);
->  int omap_device_align_pm_lat(struct platform_device *pdev,
->  			     u32 new_wakeup_lat_limit);
->  struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
-> +int omap_device_set_rate(struct device *dev, unsigned long freq);
-> +unsigned long omap_device_get_rate(struct device *dev);
-> +void omap_device_populate_rate_fns(struct device *dev,
-> +		int (*set_rate)(struct device *dev, unsigned long rate),
-> +		unsigned long (*get_rate) (struct device *dev));
+        OMAP2420: hwmod data: add system DMA
 
-how about omap_device_register_callbacks()
-
->  /* Other */
->  
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index 7c902a6..ffe06eb 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -785,6 +785,55 @@ int omap_device_enable_clocks(struct omap_device *od)
->  	return 0;
->  }
->  
-> +int omap_device_set_rate(struct device *dev, unsigned long freq)
-> +{
-> +	struct platform_device *pdev;
-> +	struct omap_device *od;
-> +
-> +	pdev = container_of(dev, struct platform_device, dev);
-
-        pdev = to_platform_device(dev)
-
-This helper is already defined in platform_device.h.
-
-> +	od = _find_by_pdev(pdev);
-> +
-> +	if (!od->set_rate) {
-> +		dev_err(dev, "%s: No set_rate API for scaling device\n",
-> +			__func__);
-> +		return -ENODATA;
-> +	}
-> +
-> +	return od->set_rate(dev, freq);
-> +}
-> +
-> +unsigned long omap_device_get_rate(struct device *dev)
-> +{
-> +	struct platform_device *pdev;
-> +	struct omap_device *od;
-> +
-> +	pdev = container_of(dev, struct platform_device, dev);
-
-        pdev = to_platform_device(dev)
-
-> +	od = _find_by_pdev(pdev);
-> +
-> +
-> +	if (!od->get_rate) {
-> +		dev_err(dev, "%s: No get rate API for the device\n",
-> +			__func__);
-> +		return 0;
-> +	}
-> +
-> +	return od->get_rate(dev);
-> +}
-> +
-> +void omap_device_populate_rate_fns(struct device *dev,
-> +		int (*set_rate)(struct device *dev, unsigned long rate),
-> +		unsigned long (*get_rate) (struct device *dev))
-> +{
-> +	struct platform_device *pdev;
-> +	struct omap_device *od;
-> +
-> +	pdev = container_of(dev, struct platform_device, dev);
-
-        pdev = to_platform_device(dev)
-
-> +	od = _find_by_pdev(pdev);
-> +
-> +	od->set_rate = set_rate;
-> +	od->get_rate = get_rate;
-> +}
-> +
->  struct device omap_device_parent = {
->  	.init_name	= "omap",
->  	.parent         = &platform_bus,
+Sorry for the confusion,
 
 Kevin
