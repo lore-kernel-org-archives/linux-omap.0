@@ -1,76 +1,150 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 0/7] OMAP4: mux: Add the OMAP4430 ES1.0 & ES2.x support
-Date: Thu, 11 Nov 2010 22:35:14 +0100
-Message-ID: <1289511321-18532-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 1/7] OMAP: mux: Replace printk with pr_xxx macros
+Date: Thu, 11 Nov 2010 22:35:15 +0100
+Message-ID: <1289511321-18532-2-git-send-email-b-cousson@ti.com>
+References: <1289511321-18532-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50260 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52503 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752464Ab0KKVfp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Nov 2010 16:35:45 -0500
+	id S1751360Ab0KKVf5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Nov 2010 16:35:57 -0500
+In-Reply-To: <1289511321-18532-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi Tony,
+Replace all the printk(KERN_XXX... with pr_xxx macros.
 
-Here is the version updated with your fixes.
-This is the first non RFC version to make Nishant M. happy;-)
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/mux.c |   38 +++++++++++++++++++-------------------
+ 1 files changed, 19 insertions(+), 19 deletions(-)
 
-Thanks to you, the RX-51 is now handled properly and the low level API
-is still public like before for dynamic mux use.
-
-The pandaboard is now supported thanks to Sricharan, and a couple of bugs
-are fixed, thanks to Dan who reported them.
-
-The series is based on mainline (2.6.37-rc1) and is available here:
-git://gitorious.org/omap-pm/linux.git ctrl-wip/mux-omap4-v3
-
-Tested on SDP4430 ES1.0, ES2.0 and ES2.1 with omap2plus_defconfig.
-Still require some test on OMAP3 and OMAP2.
-
-Thanks,
-Benoit
-
-
-RFC v2:
-    http://www.spinics.net/lists/linux-omap/msg38995.html
-    
-    - Take into account Tony's proposal to store partition information
-    in a partition structure instead of inside every pad entries.
-    - Remove some cpu_is_xxx calls from the core code by adding a
-    couple of flags during partition init.
-
-RFC v1:
-    http://www.spinics.net/lists/linux-omap/msg37158.html    
-
-
-Benoit Cousson (6):
-  OMAP: mux: Replace printk with pr_xxx macros
-  OMAP: mux: Add support for control module split in several partitions
-  OMAP4: mux: Add CBL package data for OMAP4430 ES1
-  OMAP4: sdp4430: Select CBL package for ES1 and initialize mux
-  OMAP4: mux: Add CBS package data for OMAP4430 ES2
-  OMAP4: sdp4430: Select CBS package for ES2
-
-sricharan (1):
-  OMAP4: pandaboard: Select CBL & CBS package and initialize mux
-
- arch/arm/mach-omap2/Kconfig                  |   10 +
- arch/arm/mach-omap2/Makefile                 |    1 +
- arch/arm/mach-omap2/board-4430sdp.c          |   14 +
- arch/arm/mach-omap2/board-omap4panda.c       |   16 +
- arch/arm/mach-omap2/board-rx51-peripherals.c |   12 +-
- arch/arm/mach-omap2/mux.c                    |  342 ++++--
- arch/arm/mach-omap2/mux.h                    |   84 ++-
- arch/arm/mach-omap2/mux2420.c                |    7 +-
- arch/arm/mach-omap2/mux2430.c                |    7 +-
- arch/arm/mach-omap2/mux34xx.c                |    7 +-
- arch/arm/mach-omap2/mux44xx.c                | 1625 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/mux44xx.h                |  298 +++++
- 12 files changed, 2279 insertions(+), 144 deletions(-)
- create mode 100644 arch/arm/mach-omap2/mux44xx.c
- create mode 100644 arch/arm/mach-omap2/mux44xx.h
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 074536a..979e9d1 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -102,13 +102,13 @@ int __init omap_mux_init_gpio(int gpio, int val)
+ 	}
+ 
+ 	if (found == 0) {
+-		printk(KERN_ERR "mux: Could not set gpio%i\n", gpio);
++		pr_err("mux: Could not set gpio%i\n", gpio);
+ 		return -ENODEV;
+ 	}
+ 
+ 	if (found > 1) {
+-		printk(KERN_INFO "mux: Multiple gpio paths (%d) for gpio%i\n",
+-				found, gpio);
++		pr_info("mux: Multiple gpio paths (%d) for gpio%i\n",
++			found, gpio);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -118,8 +118,8 @@ int __init omap_mux_init_gpio(int gpio, int val)
+ 		mux_mode |= OMAP_MUX_MODE3;
+ 	else
+ 		mux_mode |= OMAP_MUX_MODE4;
+-	printk(KERN_DEBUG "mux: Setting signal %s.gpio%i 0x%04x -> 0x%04x\n",
+-			gpio_mux->muxnames[0], gpio, old_mode, mux_mode);
++	pr_debug("mux: Setting signal %s.gpio%i 0x%04x -> 0x%04x\n",
++		 gpio_mux->muxnames[0], gpio, old_mode, mux_mode);
+ 	omap_mux_write(mux_mode, gpio_mux->reg_offset);
+ 
+ 	return 0;
+@@ -161,9 +161,9 @@ int __init omap_mux_init_signal(const char *muxname, int val)
+ 
+ 				old_mode = omap_mux_read(m->reg_offset);
+ 				mux_mode = val | i;
+-				printk(KERN_DEBUG "mux: Setting signal "
+-					"%s.%s 0x%04x -> 0x%04x\n",
+-					m0_entry, muxname, old_mode, mux_mode);
++				pr_debug("mux: Setting signal "
++					 "%s.%s 0x%04x -> 0x%04x\n",
++					 m0_entry, muxname, old_mode, mux_mode);
+ 				omap_mux_write(mux_mode, m->reg_offset);
+ 				found++;
+ 			}
+@@ -174,12 +174,12 @@ int __init omap_mux_init_signal(const char *muxname, int val)
+ 		return 0;
+ 
+ 	if (found > 1) {
+-		printk(KERN_ERR "mux: Multiple signal paths (%i) for %s\n",
+-				found, muxname);
++		pr_err("mux: Multiple signal paths (%i) for %s\n",
++		       found, muxname);
+ 		return -EINVAL;
+ 	}
+ 
+-	printk(KERN_ERR "mux: Could not set signal %s\n", muxname);
++	pr_err("mux: Could not set signal %s\n", muxname);
+ 
+ 	return -ENODEV;
+ }
+@@ -462,8 +462,8 @@ static void __init omap_mux_package_fixup(struct omap_mux *p,
+ 			s++;
+ 		}
+ 		if (!found)
+-			printk(KERN_ERR "mux: Unknown entry offset 0x%x\n",
+-					p->reg_offset);
++			pr_err("mux: Unknown entry offset 0x%x\n",
++			       p->reg_offset);
+ 		p++;
+ 	}
+ }
+@@ -487,8 +487,8 @@ static void __init omap_mux_package_init_balls(struct omap_ball *b,
+ 			s++;
+ 		}
+ 		if (!found)
+-			printk(KERN_ERR "mux: Unknown ball offset 0x%x\n",
+-					b->reg_offset);
++			pr_err("mux: Unknown ball offset 0x%x\n",
++			       b->reg_offset);
+ 		b++;
+ 	}
+ }
+@@ -615,7 +615,7 @@ u16 omap_mux_get_gpio(int gpio)
+ 
+ 	offset = omap_mux_get_by_gpio(gpio);
+ 	if (offset == OMAP_MUX_TERMINATOR) {
+-		printk(KERN_ERR "mux: Could not get gpio%i\n", gpio);
++		pr_err("mux: Could not get gpio%i\n", gpio);
+ 		return offset;
+ 	}
+ 
+@@ -629,7 +629,7 @@ void omap_mux_set_gpio(u16 val, int gpio)
+ 
+ 	offset = omap_mux_get_by_gpio(gpio);
+ 	if (offset == OMAP_MUX_TERMINATOR) {
+-		printk(KERN_ERR "mux: Could not set gpio%i\n", gpio);
++		pr_err("mux: Could not set gpio%i\n", gpio);
+ 		return;
+ 	}
+ 
+@@ -687,7 +687,7 @@ static void __init omap_mux_init_list(struct omap_mux *superset)
+ 
+ 		entry = omap_mux_list_add(superset);
+ 		if (!entry) {
+-			printk(KERN_ERR "mux: Could not add entry\n");
++			pr_err("mux: Could not add entry\n");
+ 			return;
+ 		}
+ 		superset++;
+@@ -738,7 +738,7 @@ int __init omap_mux_init(u32 mux_pbase, u32 mux_size,
+ 	mux_phys = mux_pbase;
+ 	mux_base = ioremap(mux_pbase, mux_size);
+ 	if (!mux_base) {
+-		printk(KERN_ERR "mux: Could not ioremap\n");
++		pr_err("mux: Could not ioremap\n");
+ 		return -ENODEV;
+ 	}
+ 
+-- 
+1.7.0.4
 
