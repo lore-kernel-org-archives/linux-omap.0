@@ -1,180 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC v2 4/7] OMAP4: mux: Add CBL package data for OMAP4430 ES1
-Date: Wed, 10 Nov 2010 17:56:01 -0800
-Message-ID: <20101111015600.GN9264@atomide.com>
-References: <1287526956-21853-1-git-send-email-b-cousson@ti.com>
- <1287526956-21853-5-git-send-email-b-cousson@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH 01/02] omap: dsp: remove shm from normal memory
+Date: Wed, 10 Nov 2010 19:50:24 -0600
+Message-ID: <1289440225-27221-2-git-send-email-omar.ramirez@ti.com>
+References: <1289440225-27221-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61190 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932191Ab0KKB4G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 20:56:06 -0500
-Content-Disposition: inline
-In-Reply-To: <1287526956-21853-5-git-send-email-b-cousson@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:35366 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932192Ab0KKCBB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Nov 2010 21:01:01 -0500
+In-Reply-To: <1289440225-27221-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Rene Sapiens <rene.sapiens@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org
 
-* Benoit Cousson <b-cousson@ti.com> [101019 15:14]:
-> Add data for OMAP4430 generated from HW pinout & register database.
-> The data set is split in two partitions for both core and wkup.
+From: Felipe Contreras <felipe.contreras@gmail.com>
 
-We should drop patch 3/7 and merge the following patch to your
-4/7 patch.
+Also, don't be picky about the location, which incidentally fixes the
+build since MEMBLOCK_REAL_LIMIT is gone on 2.6.37.
 
-Basically let's keep the omap_mux_read/write around for now,
-by adding omap_mux_get for dealing with the partition
-information.
+arch/arm/plat-omap/devices.c: In function 'omap_dsp_reserve_sdram_memblock':
+arch/arm/plat-omap/devices.c:287: error: 'MEMBLOCK_REAL_LIMIT'
+    undeclared (first use in this function)
 
-Regards,
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ arch/arm/plat-omap/devices.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Tony
-
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 10 Nov 2010 09:55:47 -0800
-Subject: [PATCH] omap: mux: Fix support for partitions for dynamic muxing
-
-Revert some parts of Benoit's patch to not make
-omap_mux_read/write static at this point.
-
-We may need to do remuxing for system wide idle states,
-and also for driver specific idle states.
-
-So we still need to have omap_mux_read/write around for
-the platform level driver code.
-
-Also add omap_mux_get for getting the partition data so
-platform level device code can use it.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 3fec4d6..3fda20d 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -293,6 +293,8 @@ static struct omap_board_mux rx51_mmc2_off_mux[] = {
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index 6f42a18..fc81912 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -284,12 +284,14 @@ void __init omap_dsp_reserve_sdram_memblock(void)
+ 	if (!size)
+ 		return;
  
-+static struct omap_mux_partition *partition;
-+
- /*
-  * Current flows to eMMC when eMMC is off and the data lines are pulled up,
-  * so pull them down. N.B. we pull 8 lines because we are using 8 lines.
-@@ -300,9 +302,9 @@ static struct omap_board_mux rx51_mmc2_off_mux[] = {
- static void rx51_mmc2_remux(struct device *dev, int slot, int power_on)
- {
- 	if (power_on)
--		omap_mux_write_array(rx51_mmc2_on_mux);
-+		omap_mux_write_array(partition, rx51_mmc2_on_mux);
- 	else
--		omap_mux_write_array(rx51_mmc2_off_mux);
-+		omap_mux_write_array(partition, rx51_mmc2_off_mux);
+-	paddr = __memblock_alloc_base(size, SZ_1M, MEMBLOCK_REAL_LIMIT);
++	paddr = memblock_alloc(size, SZ_1M);
+ 	if (!paddr) {
+ 		pr_err("%s: failed to reserve %x bytes\n",
+ 				__func__, size);
+ 		return;
+ 	}
++	memblock_free(paddr, size);
++	memblock_remove(paddr, size);
+ 
+ 	omap_dsp_phys_mempool_base = paddr;
  }
- 
- static struct omap2_hsmmc_info mmc[] __initdata = {
-@@ -922,7 +924,11 @@ void __init rx51_peripherals_init(void)
- 	rx51_init_wl1251();
- 	spi_register_board_info(rx51_peripherals_spi_board_info,
- 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
--	omap2_hsmmc_init(mmc);
-+
-+	partition = omap_mux_get("core");
-+	if (partition)
-+		omap2_hsmmc_init(mmc);
-+
- 	platform_device_register(&rx51_charger_device);
- }
- 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 9b9128e..6d91bb8 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -49,7 +49,19 @@ struct omap_mux_entry {
- static LIST_HEAD(mux_partitions);
- static DEFINE_MUTEX(muxmode_mutex);
- 
--static u16 omap_mux_read(struct omap_mux_partition *partition, u16 reg)
-+struct omap_mux_partition * omap_mux_get(const char *name)
-+{
-+	struct omap_mux_partition *partition;
-+
-+	list_for_each_entry(partition, &mux_partitions, node) {
-+		if (!strcmp(name, partition->name))
-+			return partition;
-+	}
-+
-+	return NULL;
-+}
-+
-+u16 omap_mux_read(struct omap_mux_partition *partition, u16 reg)
- {
- 	if (partition->flags & OMAP_MUX_REG_8BIT)
- 		return __raw_readb(partition->base + reg);
-@@ -57,7 +69,7 @@ static u16 omap_mux_read(struct omap_mux_partition *partition, u16 reg)
- 		return __raw_readw(partition->base + reg);
- }
- 
--static void omap_mux_write(struct omap_mux_partition *partition, u16 val,
-+void omap_mux_write(struct omap_mux_partition *partition, u16 val,
- 			   u16 reg)
- {
- 	if (partition->flags & OMAP_MUX_REG_8BIT)
-@@ -66,7 +78,7 @@ static void omap_mux_write(struct omap_mux_partition *partition, u16 val,
- 		__raw_writew(val, partition->base + reg);
- }
- 
--static void omap_mux_write_array(struct omap_mux_partition *partition,
-+void omap_mux_write_array(struct omap_mux_partition *partition,
- 				 struct omap_board_mux *board_mux)
- {
- 	while (board_mux->reg_offset != OMAP_MUX_TERMINATOR) {
-diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-index dad32f6..6656043 100644
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -186,6 +186,40 @@ u16 omap_mux_get_gpio(int gpio);
- void omap_mux_set_gpio(u16 val, int gpio);
- 
- /**
-+ * omap_mux_get() - get a mux partition by name
-+ * @name:		Name of the mux partition
-+ *
-+ */
-+struct omap_mux_partition * omap_mux_get(const char *name);
-+
-+/**
-+ * omap_mux_read() - read mux register
-+ * @partition:		Mux partition
-+ * @mux_offset:		Offset of the mux register
-+ *
-+ */
-+u16 omap_mux_read(struct omap_mux_partition *p, u16 mux_offset);
-+
-+/**
-+ * omap_mux_write() - write mux register
-+ * @partition:		Mux partition
-+ * @val:		New mux register value
-+ * @mux_offset:		Offset of the mux register
-+ *
-+ * This should be only needed for dynamic remuxing of non-gpio signals.
-+ */
-+void omap_mux_write(struct omap_mux_partition *p, u16 val, u16 mux_offset);
-+
-+/**
-+ * omap_mux_write_array() - write an array of mux registers
-+ * @partition:		Mux partition
-+ * @board_mux:		Array of mux registers terminated by MAP_MUX_TERMINATOR
-+ *
-+ * This should be only needed for dynamic remuxing of non-gpio signals.
-+ */
-+void omap_mux_write_array(struct omap_mux_partition *p, struct omap_board_mux *board_mux);
-+
-+/**
-  * omap2420_mux_init() - initialize mux system with board specific set
-  * @board_mux:		Board specific mux table
-  * @flags:		OMAP package type used for the board
+-- 
+1.7.1
+
