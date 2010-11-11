@@ -1,44 +1,46 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v5 2/3] OMAP3: DMA: Errata i541: sDMA FIFO draining does
- not finish
-Date: Wed, 10 Nov 2010 16:30:53 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1011101628410.28301@utopia.booyaka.com>
-References: <1286261141-1039-1-git-send-email-peter.ujfalusi@nokia.com> <1286261141-1039-3-git-send-email-peter.ujfalusi@nokia.com> <4CDAA3AA.7070003@nokia.com>
+Subject: Re: [PATCH 2/5] omap: control: add functions for DSP boot
+Date: Wed, 10 Nov 2010 17:00:12 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1011101658010.28301@utopia.booyaka.com>
+References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com> <1289166209-32251-3-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58685 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:54684 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757478Ab0KJXay (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 18:30:54 -0500
-In-Reply-To: <4CDAA3AA.7070003@nokia.com>
+	with ESMTP id S932109Ab0KKAAM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Nov 2010 19:00:12 -0500
+In-Reply-To: <1289166209-32251-3-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <rmk+kernel@arm.linux.org.uk>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
 
-Hello Adrian,
+Hello Felipe,
 
-On Wed, 10 Nov 2010, Adrian Hunter wrote:
+On Sun, 7 Nov 2010, Felipe Contreras wrote:
 
-> On 05/10/10 09:45, Peter Ujfalusi wrote:
+> From: Paul Walmsley <paul@pwsan.com>
 > 
-> > +	if (cpu_is_omap34xx()&&  (l&  OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
-> > +		int i = 0;
-> > +		u32 sys_cf;
-> > +
-> > +		/* Configure No-Standby */
-> > +		l = dma_read(OCP_SYSCONFIG);
-> > +		sys_cf = l;
-> > +		l&= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
-> > +		l |= DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_NO_IDLE);
-> > +		dma_write(l , OCP_SYSCONFIG);
+> Add two functions for OMAP2430/OMAP3 IVA2 DSP boot control.  These
+> registers wound up in the System Control Module.  Other kernel code that
+> wishes to control the DSP's boot process should now use these functions
+> to do so; subsequent patches implement this in the two in-tree users of
+> these functions.
 > 
-> Are accesses of OCP_SYSCONFIG synchronised?
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 
-Do you mean, with respect to later reads and writes from the SDMA device?  
-If so, then yes, later reads and writes to the SDMA are guaranteed to 
-complete in order.  But perhaps I am misunderstanding what you mean?
+I see that you modified my original patch, but it seems that you also 
+dropped my Signed-off-by:.  This is a tricky situation, to be sure.  
+Probably the best thing to do in these cases if you don't wish to ask me 
+to review the modified patch,  is to keep my original Signed-off-by: -- 
+since I wrote the patch, originally -- and then, immediately before your 
+Signed-off-by:, to add a bracketed note saying what you changed, e.g.,
 
+[felipe.contreras@gmail.com: dropped some changes, etc.]
+
+That way the provenance of the patch is clear.
+
+regards
 
 - Paul
