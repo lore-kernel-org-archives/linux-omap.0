@@ -1,56 +1,76 @@
-From: Rick Bronson <rick@efn.org>
-Subject: RE: Mistral AM37x (with AM3715) devel board networking broken
-Date: Thu, 11 Nov 2010 12:10:32 -0800
-Message-ID: <E1PGdTc-0002PY-Rp@amazonia.comcast.net>
-References: <B85A65D85D7EB246BE421B3FB0FBB5930234992A00@dbde02.ent.ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 0/7] OMAP4: mux: Add the OMAP4430 ES1.0 & ES2.x support
+Date: Thu, 11 Nov 2010 22:35:14 +0100
+Message-ID: <1289511321-18532-1-git-send-email-b-cousson@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from efn.org ([206.192.230.249]:44509 "EHLO samwise.efn.org"
+Received: from comal.ext.ti.com ([198.47.26.152]:50260 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752107Ab0KKUKd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Nov 2010 15:10:33 -0500
-In-reply-to: <B85A65D85D7EB246BE421B3FB0FBB5930234992A00@dbde02.ent.ti.com>
-	(premi@ti.com)
+	id S1752464Ab0KKVfp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Nov 2010 16:35:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: premi@ti.com
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-Hi,
+Hi Tony,
 
-  I've found the problem and below is the fix.  It appears your
-SMSC9200 is faster than mine ;-)  Once in a while mine gets through the
-smsc911x_soft_reset() in 100 us but most of the time it takes a full
-250 ms.
+Here is the version updated with your fixes.
+This is the first non RFC version to make Nishant M. happy;-)
 
-  Rick
+Thanks to you, the RX-51 is now handled properly and the low level API
+is still public like before for dynamic mux use.
 
---- linux/drivers/net/smsc911x.c.~1~	2010-11-08 19:53:03.000000000 -0800
-+++ linux/drivers/net/smsc911x.c	2010-11-11 12:00:18.000000000 -0800
-@@ -791,8 +791,8 @@
- 		return -ENODEV;
- 	}
- 
--	SMSC_TRACE(PROBE, "PHY %d: addr %d, phy_id 0x%08X",
--			phy_addr, phydev->addr, phydev->phy_id);
-+	SMSC_TRACE(PROBE, "PHY %s: addr %d, phy_id 0x%08X",
-+			dev_name(&phydev->dev), phydev->addr, phydev->phy_id);
- 
- 	ret = phy_connect_direct(dev, phydev,
- 			&smsc911x_phy_adjust_link, 0,
-@@ -1124,11 +1124,11 @@
- 
- 	/* Reset the LAN911x */
- 	smsc911x_reg_write(pdata, HW_CFG, HW_CFG_SRST_);
--	timeout = 10;
--	do {
--		udelay(10);
--		temp = smsc911x_reg_read(pdata, HW_CFG);
--	} while ((--timeout) && (temp & HW_CFG_SRST_));
-+	timeout = 10000;  /* this can take up to 1/4 sec */
-+	while ((smsc911x_reg_read(pdata, HW_CFG) & HW_CFG_SRST_) && timeout) {
-+		udelay(100);
-+		timeout--;
-+	}
- 
- 	if (unlikely(temp & HW_CFG_SRST_)) {
- 		SMSC_WARNING(DRV, "Failed to complete reset");
+The pandaboard is now supported thanks to Sricharan, and a couple of bugs
+are fixed, thanks to Dan who reported them.
+
+The series is based on mainline (2.6.37-rc1) and is available here:
+git://gitorious.org/omap-pm/linux.git ctrl-wip/mux-omap4-v3
+
+Tested on SDP4430 ES1.0, ES2.0 and ES2.1 with omap2plus_defconfig.
+Still require some test on OMAP3 and OMAP2.
+
+Thanks,
+Benoit
+
+
+RFC v2:
+    http://www.spinics.net/lists/linux-omap/msg38995.html
+    
+    - Take into account Tony's proposal to store partition information
+    in a partition structure instead of inside every pad entries.
+    - Remove some cpu_is_xxx calls from the core code by adding a
+    couple of flags during partition init.
+
+RFC v1:
+    http://www.spinics.net/lists/linux-omap/msg37158.html    
+
+
+Benoit Cousson (6):
+  OMAP: mux: Replace printk with pr_xxx macros
+  OMAP: mux: Add support for control module split in several partitions
+  OMAP4: mux: Add CBL package data for OMAP4430 ES1
+  OMAP4: sdp4430: Select CBL package for ES1 and initialize mux
+  OMAP4: mux: Add CBS package data for OMAP4430 ES2
+  OMAP4: sdp4430: Select CBS package for ES2
+
+sricharan (1):
+  OMAP4: pandaboard: Select CBL & CBS package and initialize mux
+
+ arch/arm/mach-omap2/Kconfig                  |   10 +
+ arch/arm/mach-omap2/Makefile                 |    1 +
+ arch/arm/mach-omap2/board-4430sdp.c          |   14 +
+ arch/arm/mach-omap2/board-omap4panda.c       |   16 +
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   12 +-
+ arch/arm/mach-omap2/mux.c                    |  342 ++++--
+ arch/arm/mach-omap2/mux.h                    |   84 ++-
+ arch/arm/mach-omap2/mux2420.c                |    7 +-
+ arch/arm/mach-omap2/mux2430.c                |    7 +-
+ arch/arm/mach-omap2/mux34xx.c                |    7 +-
+ arch/arm/mach-omap2/mux44xx.c                | 1625 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/mux44xx.h                |  298 +++++
+ 12 files changed, 2279 insertions(+), 144 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/mux44xx.c
+ create mode 100644 arch/arm/mach-omap2/mux44xx.h
+
