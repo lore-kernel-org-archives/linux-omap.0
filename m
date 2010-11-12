@@ -1,83 +1,57 @@
-From: Andrei Emeltchenko <andrei.emeltchenko.news@gmail.com>
-Subject: Re: [PATCHv2] OMAP: Serial: Define OMAP uart MDR1 register definitions
-Date: Fri, 12 Nov 2010 09:51:11 +0200
-Message-ID: <AANLkTimL25m4X0Apynis-H7g7FVDLU7Cw8mV+q2fptK8@mail.gmail.com>
-References: <1289484812-17278-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
-	<87hbfnx2zw.fsf@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH v2] OMAP2+: PM: omap_device: API for set/get MSTANDBY
+ mode
+Date: Fri, 12 Nov 2010 01:17:50 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1011110722530.28301@utopia.booyaka.com>
+References: <1288095101-1294-1-git-send-email-manjugk@ti.com> <alpine.DEB.2.00.1011101548400.28301@utopia.booyaka.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A8115@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87hbfnx2zw.fsf@deeprootsystems.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:33719 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752052Ab0KLIRv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Nov 2010 03:17:51 -0500
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A8115@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi,
+Hello Manju,
 
-On Thu, Nov 11, 2010 at 6:02 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com> writes:
->
->> From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
->>
->> Define MDR1 register serial definitions used in serial and
->> bluetooth drivers. Remove magic numbers there.
->
-> Remove magic numbers where? =A0This patch doesn't remove anything.
+On Thu, 11 Nov 2010, G, Manjunath Kondaiah wrote:
 
-We have code which is not yet upstream, it will come through Bluetooth
-subtree at some point, I am also going to remove magic in
-omapX/serial.c drivers in the next patches.
+> > -----Original Message-----
+> > From: Paul Walmsley [mailto:paul@pwsan.com] 
+> > Sent: Thursday, November 11, 2010 4:45 AM
 
-Do you think I need to add those patches?
+> Requirement is - switch to no standby for short time and should be
+> reverted back to original standby mode. 
+> All the combinations are not required.
 
->
->> *v2 =A0 added OMAP keyword
->
-> This info should go after the '---' as it is not needed in the final
-> git history.
+OK, good.
 
-OK, will remove it.
+> > 2.  Rather than just using a single omap_device_mstandby() 
+> > function call, 
+> > I'd rather see something like omap_device_require_no_standby() and 
+> > omap_device_release_no_standby(). 
+> 
+> s/standby/mstandby ?
 
->
-> Kevin
->
->> Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
->> ---
->> =A0include/linux/serial_reg.h | =A0 12 ++++++++++++
->> =A01 files changed, 12 insertions(+), 0 deletions(-)
->>
->> diff --git a/include/linux/serial_reg.h b/include/linux/serial_reg.h
->> index c7a0ce1..6f38234 100644
->> --- a/include/linux/serial_reg.h
->> +++ b/include/linux/serial_reg.h
->> @@ -341,5 +341,17 @@
->> =A0#define UART_OMAP_SYSS =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x16 =A0 =A0/*=
- System status register */
->> =A0#define UART_OMAP_WER =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x17 =A0 =A0=
-/* Wake-up enable register */
->>
->> +/*
->> + * These are the definitions for the MDR1 register
->> + */
->> +#define UART_OMAP_MDR1_16X_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x00 =A0=
- =A0/* UART 16x mode */
->> +#define UART_OMAP_MDR1_SIR_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x01 =A0=
- =A0/* SIR mode */
->> +#define UART_OMAP_MDR1_16X_ABAUD_MODE =A0 =A0 =A0 =A00x02 =A0 =A0/*=
- UART 16x auto-baud */
->> +#define UART_OMAP_MDR1_13X_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x03 =A0=
- =A0/* UART 13x mode */
->> +#define UART_OMAP_MDR1_MIR_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x04 =A0=
- =A0/* MIR mode */
->> +#define UART_OMAP_MDR1_FIR_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x05 =A0=
- =A0/* FIR mode */
->> +#define UART_OMAP_MDR1_CIR_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x06 =A0=
- =A0/* CIR mode */
->> +#define UART_OMAP_MDR1_DISABLE =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x07 =A0=
- =A0/* Disable (default state) */
->> +
->> =A0#endif /* _LINUX_SERIAL_REG_H */
->
+Thanks, that makes more sense.
+
+> > omap_device_require_no_standby() would 
+> > force the initiator port into no-standby.  
+> > omap_device_release_no_standby() would return the initiator port 
+> > MSTANDBYMODE to whatever the state should be (this depends on whether 
+> > HWMOD_SWSUP_MSTDBY is set). 
+>  
+> How do we get previous stand by state in this API since standby mode is 
+> changed with "omap_device_require_no_standby"
+
+I don't think it is needed.  The API is only valid while the hwmod is 
+enabled, I think.  So *require_no_mstandby() would force the hwmod into 
+no-MSTANDBY mode, and *release_no_mstandby() would place it into smart 
+standby if HWMOD_SWSUP_MSTDBY is not set, and no standby if it is set.
+
+- Paul
