@@ -1,20 +1,28 @@
-From: cal-neva@sbcglobal.net
-Subject: =?utf-8?B?WW91ciBFbWFpbCBJRCBoYXMgd29uIMKjMSwwMDAsMDAwLjAwIFBvdW5kcyBp?=
- =?utf-8?B?biBHTkxEIFhNQVMgUFJPTU8uc2VuZCBpbmZv4oCP?=
-Date: Fri, 12 Nov 2010 01:14:05 -0800 (PST)
-Message-ID: <152499.53852.qm@web81607.mail.mud.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from web81607.mail.mud.yahoo.com ([68.142.199.159]:23636 "HELO
-	web81607.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755459Ab0KLJUs convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Nov 2010 04:20:48 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>
+Subject: [PATCHv3 0/4] OMAP: Serial: remove magic and diplicates
+Date: Fri, 12 Nov 2010 11:21:38 +0200
+Message-ID: <1289553702-28041-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Names...
-Address...
-Tel...
+From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
+
+Add MDR1 Serial register definition to serial_reg and remove duplicated
+code.
+*v2 add OMAP keyword to MDR1 definition
+*v3 remove magic from serial drivers
+
+Andrei Emeltchenko (4):
+  OMAP: Serial: Define OMAP uart MDR1 register definitions
+  OMAP1: Serial: remobe magic from MDR1 register
+  OMAP2: Serial: remobe magic from MDR1 register
+  OMAP: Serial: remove redefined MDR1 register definitions
+
+ arch/arm/mach-omap1/serial.c                  |    6 ++++--
+ arch/arm/mach-omap2/serial.c                  |   15 +++++++++------
+ arch/arm/plat-omap/include/plat/omap-serial.h |    3 ---
+ drivers/serial/omap-serial.c                  |    6 +++---
+ include/linux/serial_reg.h                    |   12 ++++++++++++
+ 5 files changed, 28 insertions(+), 14 deletions(-)
