@@ -1,29 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH v2] OMAP2+: PM: omap_device: API for set/get MSTANDBY
- mode
-Date: Fri, 12 Nov 2010 07:58:35 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1011120758060.28692@utopia.booyaka.com>
-References: <1288095101-1294-1-git-send-email-manjugk@ti.com> <alpine.DEB.2.00.1011101548400.28301@utopia.booyaka.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A8115@dbde02.ent.ti.com> <alpine.DEB.2.00.1011110722530.28301@utopia.booyaka.com>
- <alpine.DEB.2.00.1011120715550.28692@utopia.booyaka.com> <alpine.DEB.2.00.1011120717050.28692@utopia.booyaka.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402DC24F0B1@dbde02.ent.ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCHv4 0/4] OMAP: Serial: remove magic and diplicates
+Date: Fri, 12 Nov 2010 07:01:43 -0800
+Message-ID: <20101112150143.GA18096@kroah.com>
+References: <1289567043-6213-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38001 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757474Ab0KLO6g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Nov 2010 09:58:36 -0500
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC24F0B1@dbde02.ent.ti.com>
+Received: from kroah.org ([198.145.64.141]:41475 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932100Ab0KLPEL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Nov 2010 10:04:11 -0500
+Content-Disposition: inline
+In-Reply-To: <1289567043-6213-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.arm.linux.org.uk, linux-serial@vger.kernel.org
 
-On Fri, 12 Nov 2010, G, Manjunath Kondaiah wrote:
+On Fri, Nov 12, 2010 at 03:03:59PM +0200, Emeltchenko Andrei wrote:
+> From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
+> 
+> Add MDR1 Serial register definition to serial_reg and remove duplicated
+> code, remove magic MDR1 register numbers from serial drivers.
+> 
+> *v2 add OMAP keyword to MDR1 definition
+> *v3 remove magic from serial drivers
+> *v4 taking comments from Manjunath and Govindraj: typos, CC
+> 
+> Andrei Emeltchenko (4):
+>   OMAP: Serial: Define OMAP uart MDR1 register definitions
+>   OMAP1: Serial: remove magic numbers for MDR1 reg
+>   OMAP2: Serial: remove magic numbers for MDR1 reg
+>   OMAP: Serial: remove redefined MDR1 register definitions
 
-> Thanks. Looks like, it is HWMOD_SWSUP_MSTANDBY, typo in omap_hwmod.h
-> description.
+Looks good, do you want these to go through the omap tree, or the serial
+tree?
 
-Maybe you can fix that also in your patch...
+If they go through the omap tree, feel free to add:
+	Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
 
+thanks,
 
-- Paul
+greg k-h
