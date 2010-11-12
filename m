@@ -1,40 +1,75 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [RFC 2/8] OMAP: powerdomain: Infrastructure to put arch specific
- code
-Date: Fri, 12 Nov 2010 07:43:18 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1011120741500.28692@utopia.booyaka.com>
-References: <1285245291-26442-1-git-send-email-rnayak@ti.com> <1285245291-26442-2-git-send-email-rnayak@ti.com> <1285245291-26442-3-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1010120131560.16871@utopia.booyaka.com>
- <0680EC522D0CC943BC586913CF3768C003FF83459E@dbde02.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v2] OMAP2+: PM: omap_device: API for set/get MSTANDBY
+ mode
+Date: Fri, 12 Nov 2010 20:13:52 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC24F0B1@dbde02.ent.ti.com>
+References: <1288095101-1294-1-git-send-email-manjugk@ti.com>
+ <alpine.DEB.2.00.1011101548400.28301@utopia.booyaka.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A8115@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1011110722530.28301@utopia.booyaka.com>
+ <alpine.DEB.2.00.1011120715550.28692@utopia.booyaka.com>
+ <alpine.DEB.2.00.1011120717050.28692@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34832 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752952Ab0KLOnT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Nov 2010 09:43:19 -0500
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003FF83459E@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51038 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752902Ab0KLOn7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Nov 2010 09:43:59 -0500
+In-Reply-To: <alpine.DEB.2.00.1011120717050.28692@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
-
-Hi Rajendra,
-
-On Fri, 12 Nov 2010, Nayak, Rajendra wrote:
-
-> With these 2 changes I now have the series build/booting/functional at 
-> the end of each patch in the series. Was there anything else you meant 
-> when you said the series had issues with patches 1, 2 and 8 applied 
-> would not boot?
-
-If you've got it building, booting, and functional at the end of every 
-patch, then I guess not ;-)
-
-> Also I wanted to post the next version of the series removing the 
-> dependencies with the prm/cm accessor api fix series since that still 
-> needs rework. Hope that's fine.
-
-That's great, we can queue it up for merging in the meantime.
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
 
-- Paul
+
+
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com] 
+> Sent: Friday, November 12, 2010 7:47 PM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; Kevin Hilman; Gadiyar, Anand; 
+> Cousson, Benoit
+> Subject: RE: [PATCH v2] OMAP2+: PM: omap_device: API for 
+> set/get MSTANDBY mode
+> 
+> On Fri, 12 Nov 2010, Paul Walmsley wrote:
+> 
+> > On Fri, 12 Nov 2010, Paul Walmsley wrote:
+> > 
+> > > On Thu, 11 Nov 2010, G, Manjunath Kondaiah wrote:
+> > > 
+> > > > How do we get previous stand by state in this API since 
+> standby mode is 
+> > > > changed with "omap_device_require_no_standby"
+> > > 
+> > > I don't think it is needed.  The API is only valid while 
+> the hwmod is 
+> > > enabled, I think.  So *require_no_mstandby() would force 
+> the hwmod into 
+> > > no-MSTANDBY mode, and *release_no_mstandby() would place 
+> it into smart 
+> > > standby if HWMOD_SWSUP_MSTDBY is not set, and no standby 
+> if it is set.
+> > 
+> > Oops, this last "no standby" should have been "force standby."
+> 
+> Urk, never mind.  Since the hwmod is enabled, it should be 
+> "no standby."  
+
+Thanks. Looks like, it is HWMOD_SWSUP_MSTANDBY, typo in omap_hwmod.h
+description.
+
+To summarize:
+idlemode = (oh->flags & HWMOD_SWSUP_MSTANDBY) ?
+                        HWMOD_IDLEMODE_NO : HWMOD_IDLEMODE_SMART;
+_set_master_standbymode(oh, idlemode, &v);
+	
+> -ENOCOFFEE
+
+Now, return 0.
+
+-Manjunath
