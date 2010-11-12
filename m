@@ -1,60 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/4] arm: omap1: devices: need to return with a value
-Date: Thu, 11 Nov 2010 17:03:34 -0800
-Message-ID: <20101112010334.3827.77064.stgit@baageli.muru.com>
-References: <20101112010245.3827.75329.stgit@baageli.muru.com>
+From: Andrei Emeltchenko <andrei.emeltchenko.news@gmail.com>
+Subject: Re: [PATCHv2] OMAP: Serial: Define OMAP uart MDR1 register definitions
+Date: Fri, 12 Nov 2010 09:51:11 +0200
+Message-ID: <AANLkTimL25m4X0Apynis-H7g7FVDLU7Cw8mV+q2fptK8@mail.gmail.com>
+References: <1289484812-17278-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+	<87hbfnx2zw.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51164 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756699Ab0KLBDj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Nov 2010 20:03:39 -0500
-In-Reply-To: <20101112010245.3827.75329.stgit@baageli.muru.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87hbfnx2zw.fsf@deeprootsystems.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-From: Felipe Balbi <balbi@ti.com>
+Hi,
 
-Get rid of the following warning:
+On Thu, Nov 11, 2010 at 6:02 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com> writes:
+>
+>> From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
+>>
+>> Define MDR1 register serial definitions used in serial and
+>> bluetooth drivers. Remove magic numbers there.
+>
+> Remove magic numbers where? =A0This patch doesn't remove anything.
 
-arch/arm/mach-omap1/devices.c: In function 'omap_init_wdt':
-arch/arm/mach-omap1/devices.c:298: warning: 'return' with
-no value, in function returning non-void
+We have code which is not yet upstream, it will come through Bluetooth
+subtree at some point, I am also going to remove magic in
+omapX/serial.c drivers in the next patches.
 
-while at that, also change:
+Do you think I need to add those patches?
 
-platform_device_register();
-return 0;
+>
+>> *v2 =A0 added OMAP keyword
+>
+> This info should go after the '---' as it is not needed in the final
+> git history.
 
-into:
+OK, will remove it.
 
-return platform_device_register();
-
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap1/devices.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index ea0d80a..e7f9ee6 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -321,10 +321,9 @@ static struct platform_device omap_wdt_device = {
- static int __init omap_init_wdt(void)
- {
- 	if (!cpu_is_omap16xx())
--		return;
-+		return -ENODEV;
- 
--	platform_device_register(&omap_wdt_device);
--	return 0;
-+	return platform_device_register(&omap_wdt_device);
- }
- subsys_initcall(omap_init_wdt);
- #endif
-
+>
+> Kevin
+>
+>> Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
+>> ---
+>> =A0include/linux/serial_reg.h | =A0 12 ++++++++++++
+>> =A01 files changed, 12 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/include/linux/serial_reg.h b/include/linux/serial_reg.h
+>> index c7a0ce1..6f38234 100644
+>> --- a/include/linux/serial_reg.h
+>> +++ b/include/linux/serial_reg.h
+>> @@ -341,5 +341,17 @@
+>> =A0#define UART_OMAP_SYSS =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x16 =A0 =A0/*=
+ System status register */
+>> =A0#define UART_OMAP_WER =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x17 =A0 =A0=
+/* Wake-up enable register */
+>>
+>> +/*
+>> + * These are the definitions for the MDR1 register
+>> + */
+>> +#define UART_OMAP_MDR1_16X_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x00 =A0=
+ =A0/* UART 16x mode */
+>> +#define UART_OMAP_MDR1_SIR_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x01 =A0=
+ =A0/* SIR mode */
+>> +#define UART_OMAP_MDR1_16X_ABAUD_MODE =A0 =A0 =A0 =A00x02 =A0 =A0/*=
+ UART 16x auto-baud */
+>> +#define UART_OMAP_MDR1_13X_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x03 =A0=
+ =A0/* UART 13x mode */
+>> +#define UART_OMAP_MDR1_MIR_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x04 =A0=
+ =A0/* MIR mode */
+>> +#define UART_OMAP_MDR1_FIR_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x05 =A0=
+ =A0/* FIR mode */
+>> +#define UART_OMAP_MDR1_CIR_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A00x06 =A0=
+ =A0/* CIR mode */
+>> +#define UART_OMAP_MDR1_DISABLE =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x07 =A0=
+ =A0/* Disable (default state) */
+>> +
+>> =A0#endif /* _LINUX_SERIAL_REG_H */
+>
