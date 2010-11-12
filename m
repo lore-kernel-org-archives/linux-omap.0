@@ -1,7 +1,7 @@
 From: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>
-Subject: [PATCHv3 3/4] OMAP2: Serial: remobe magic from MDR1 register
-Date: Fri, 12 Nov 2010 11:21:41 +0200
-Message-ID: <1289553702-28041-4-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+Subject: [PATCHv3 2/4] OMAP1: Serial: remobe magic from MDR1 register
+Date: Fri, 12 Nov 2010 11:21:40 +0200
+Message-ID: <1289553702-28041-3-git-send-email-Andrei.Emeltchenko.news@gmail.com>
 References: <1289553702-28041-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1289553702-28041-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
@@ -12,57 +12,30 @@ List-Id: linux-omap@vger.kernel.org
 From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
 
 Change magic number to ones defined in serial_reg
-for omap2 serial driver
+for omap1 serial driver
 
 Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
 ---
- arch/arm/mach-omap2/serial.c |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap1/serial.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index becf0e3..edd7c99 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -168,9 +168,9 @@ static inline void serial_write_reg(struct omap_uart_state *uart, int offset,
- 
- static inline void __init omap_uart_reset(struct omap_uart_state *uart)
+diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
+index b78d074..c73d1b7 100644
+--- a/arch/arm/mach-omap1/serial.c
++++ b/arch/arm/mach-omap1/serial.c
+@@ -52,9 +52,11 @@ static inline void omap_serial_outp(struct plat_serial8250_port *p, int offset,
+  */
+ static void __init omap_serial_reset(struct plat_serial8250_port *p)
  {
--	serial_write_reg(uart, UART_OMAP_MDR1, 0x07);
-+	serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
- 	serial_write_reg(uart, UART_OMAP_SCR, 0x08);
--	serial_write_reg(uart, UART_OMAP_MDR1, 0x00);
-+	serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
- }
+-	omap_serial_outp(p, UART_OMAP_MDR1, 0x07);	/* disable UART */
++	omap_serial_outp(p, UART_OMAP_MDR1,
++			UART_OMAP_MDR1_DISABLE);	/* disable UART */
+ 	omap_serial_outp(p, UART_OMAP_SCR, 0x08);	/* TX watermark */
+-	omap_serial_outp(p, UART_OMAP_MDR1, 0x00);	/* enable UART */
++	omap_serial_outp(p, UART_OMAP_MDR1,
++			UART_OMAP_MDR1_16X_MODE);	/* enable UART */
  
- #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
-@@ -246,9 +246,10 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
- 	uart->context_valid = 0;
- 
- 	if (uart->errata & UART_ERRATA_i202_MDR1_ACCESS)
--		omap_uart_mdr1_errataset(uart, 0x07, 0xA0);
-+		omap_uart_mdr1_errataset(uart, UART_OMAP_MDR1_DISABLE, 0xA0);
- 	else
--		serial_write_reg(uart, UART_OMAP_MDR1, 0x7);
-+		serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
-+
- 	serial_write_reg(uart, UART_LCR, 0xBF); /* Config B mode */
- 	efr = serial_read_reg(uart, UART_EFR);
- 	serial_write_reg(uart, UART_EFR, UART_EFR_ECB);
-@@ -267,11 +268,13 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
- 	serial_write_reg(uart, UART_OMAP_SCR, uart->scr);
- 	serial_write_reg(uart, UART_OMAP_WER, uart->wer);
- 	serial_write_reg(uart, UART_OMAP_SYSC, uart->sysc);
-+
- 	if (uart->errata & UART_ERRATA_i202_MDR1_ACCESS)
--		omap_uart_mdr1_errataset(uart, 0x00, 0xA1);
-+		omap_uart_mdr1_errataset(uart, UART_OMAP_MDR1_16X_MODE, 0xA1);
- 	else
- 		/* UART 16x mode */
--		serial_write_reg(uart, UART_OMAP_MDR1, 0x00);
-+		serial_write_reg(uart, UART_OMAP_MDR1,
-+				UART_OMAP_MDR1_16X_MODE);
- }
- #else
- static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
+ 	if (!cpu_is_omap15xx()) {
+ 		omap_serial_outp(p, UART_OMAP_SYSC, 0x01);
 -- 
 1.7.0.4
