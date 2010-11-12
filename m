@@ -1,44 +1,37 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCHv4 0/4] OMAP: Serial: remove magic and diplicates
-Date: Fri, 12 Nov 2010 07:01:43 -0800
-Message-ID: <20101112150143.GA18096@kroah.com>
-References: <1289567043-6213-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+From: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Subject: [PATCH v3 0/1] Put the OMAP2 SPI CS in inactive state when returning
+ from suspend
+Date: Fri, 12 Nov 2010 17:45:16 +0100
+Message-ID: <4CDD6F1C.7030809@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:41475 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932100Ab0KLPEL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Nov 2010 10:04:11 -0500
-Content-Disposition: inline
-In-Reply-To: <1289567043-6213-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+Received: from mail.free-electrons.com ([88.190.12.23]:44447 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932641Ab0KLQpZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Nov 2010 11:45:25 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.arm.linux.org.uk, linux-serial@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>, spi-devel-general <spi-devel-general@lists.sourceforge.net>
+Cc: David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Fri, Nov 12, 2010 at 03:03:59PM +0200, Emeltchenko Andrei wrote:
-> From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
-> 
-> Add MDR1 Serial register definition to serial_reg and remove duplicated
-> code, remove magic MDR1 register numbers from serial drivers.
-> 
-> *v2 add OMAP keyword to MDR1 definition
-> *v3 remove magic from serial drivers
-> *v4 taking comments from Manjunath and Govindraj: typos, CC
-> 
-> Andrei Emeltchenko (4):
->   OMAP: Serial: Define OMAP uart MDR1 register definitions
->   OMAP1: Serial: remove magic numbers for MDR1 reg
->   OMAP2: Serial: remove magic numbers for MDR1 reg
->   OMAP: Serial: remove redefined MDR1 register definitions
+We notice that when system wake up from OFF mode, then CS is in inactive 
+state until the first SPI transfer.
+For our design it lead to some conflict on this I/O.
+Inactive state for CS when there is no transfer should be the correct 
+behavior: this is the purpose of these patches.
 
-Looks good, do you want these to go through the omap tree, or the serial
-tree?
+* Change from v2:
+Use directly resume function of spi_master instead of using function 
+from spi_device as Grant Likely pointed it out.
+Force this transition explicitly for each CS used by a device.
 
-If they go through the omap tree, feel free to add:
-	Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-thanks,
+Gregory CLEMENT (1):
+   OMAP2: Spi: Force CS to be in inactive state after off-mode
+     transition
 
-greg k-h
+  drivers/spi/omap2_mcspi.c |   29 +++++++++++++++++++++++++++++
+  1 files changed, 29 insertions(+), 0 deletions(-)
+
