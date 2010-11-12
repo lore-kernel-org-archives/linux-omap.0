@@ -1,7 +1,7 @@
 From: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>
-Subject: [PATCHv3 1/4] OMAP: Serial: Define OMAP uart MDR1 register definitions
-Date: Fri, 12 Nov 2010 11:21:39 +0200
-Message-ID: <1289553702-28041-2-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+Subject: [PATCHv3 4/4] OMAP: Serial: remove redefined MDR1 register definitions
+Date: Fri, 12 Nov 2010 11:21:42 +0200
+Message-ID: <1289553702-28041-5-git-send-email-Andrei.Emeltchenko.news@gmail.com>
 References: <1289553702-28041-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1289553702-28041-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
@@ -11,35 +11,52 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
 
-Define MDR1 register serial definitions used in serial and
-bluetooth drivers. Remove magic numbers there.
+Use definitions defined in serial_reg
 
 Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
 ---
- include/linux/serial_reg.h |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/plat/omap-serial.h |    3 ---
+ drivers/serial/omap-serial.c                  |    6 +++---
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/serial_reg.h b/include/linux/serial_reg.h
-index c7a0ce1..6f38234 100644
---- a/include/linux/serial_reg.h
-+++ b/include/linux/serial_reg.h
-@@ -341,5 +341,17 @@
- #define UART_OMAP_SYSS		0x16	/* System status register */
- #define UART_OMAP_WER		0x17	/* Wake-up enable register */
+diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+index c8dae02..6a17880 100644
+--- a/arch/arm/plat-omap/include/plat/omap-serial.h
++++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+@@ -31,9 +31,6 @@
+  */
+ #define OMAP_SERIAL_NAME	"ttyO"
  
-+/*
-+ * These are the definitions for the MDR1 register
-+ */
-+#define UART_OMAP_MDR1_16X_MODE		0x00	/* UART 16x mode */
-+#define UART_OMAP_MDR1_SIR_MODE		0x01	/* SIR mode */
-+#define UART_OMAP_MDR1_16X_ABAUD_MODE	0x02	/* UART 16x auto-baud */
-+#define UART_OMAP_MDR1_13X_MODE		0x03	/* UART 13x mode */
-+#define UART_OMAP_MDR1_MIR_MODE		0x04	/* MIR mode */
-+#define UART_OMAP_MDR1_FIR_MODE		0x05	/* FIR mode */
-+#define UART_OMAP_MDR1_CIR_MODE		0x06	/* CIR mode */
-+#define UART_OMAP_MDR1_DISABLE		0x07	/* Disable (default state) */
-+
- #endif /* _LINUX_SERIAL_REG_H */
+-#define OMAP_MDR1_DISABLE	0x07
+-#define OMAP_MDR1_MODE13X	0x03
+-#define OMAP_MDR1_MODE16X	0x00
+ #define OMAP_MODE13X_SPEED	230400
+ 
+ /*
+diff --git a/drivers/serial/omap-serial.c b/drivers/serial/omap-serial.c
+index 14365f7..03a96db 100644
+--- a/drivers/serial/omap-serial.c
++++ b/drivers/serial/omap-serial.c
+@@ -753,7 +753,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 
+ 	/* Protocol, Baud Rate, and Interrupt Settings */
+ 
+-	serial_out(up, UART_OMAP_MDR1, OMAP_MDR1_DISABLE);
++	serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
+ 	serial_out(up, UART_LCR, OMAP_UART_LCR_CONF_MDB);
+ 
+ 	up->efr = serial_in(up, UART_EFR);
+@@ -774,9 +774,9 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	serial_out(up, UART_LCR, cval);
+ 
+ 	if (baud > 230400 && baud != 3000000)
+-		serial_out(up, UART_OMAP_MDR1, OMAP_MDR1_MODE13X);
++		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_13X_MODE);
+ 	else
+-		serial_out(up, UART_OMAP_MDR1, OMAP_MDR1_MODE16X);
++		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
+ 
+ 	/* Hardware Flow Control Configuration */
  
 -- 
 1.7.0.4
