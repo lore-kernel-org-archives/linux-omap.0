@@ -1,96 +1,34 @@
-From: Andrei Emeltchenko <andrei.emeltchenko.news@gmail.com>
-Subject: Re: [PATCHv4 0/4] OMAP: Serial: remove magic and diplicates
-Date: Fri, 12 Nov 2010 15:48:19 +0200
-Message-ID: <AANLkTikd51vvT+=1TUU08s8Pxo7oNBX415=rnQEf6Wtv@mail.gmail.com>
-References: <1289567043-6213-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DC24F05C@dbde02.ent.ti.com>
-	<AANLkTin-j1Aww+Nu4zRdAP5TH-t+ftpW6VEWUdejb1Pn@mail.gmail.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DC24F069@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH v2] OMAP2+: PM: omap_device: API for set/get MSTANDBY
+ mode
+Date: Fri, 12 Nov 2010 07:16:39 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1011120715550.28692@utopia.booyaka.com>
+References: <1288095101-1294-1-git-send-email-manjugk@ti.com> <alpine.DEB.2.00.1011101548400.28301@utopia.booyaka.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402DC1A8115@dbde02.ent.ti.com> <alpine.DEB.2.00.1011110722530.28301@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC24F069@dbde02.ent.ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:47867 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932225Ab0KLOQk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Nov 2010 09:16:40 -0500
+In-Reply-To: <alpine.DEB.2.00.1011110722530.28301@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi,
+On Fri, 12 Nov 2010, Paul Walmsley wrote:
 
->> -----Original Message-----
->> From: Andrei Emeltchenko [mailto:andrei.emeltchenko.news@gmail.com]
->> Sent: Friday, November 12, 2010 6:50 PM
->> To: G, Manjunath Kondaiah
->> Cc: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
->> linux-arm@lists.arm.linux.org.uk; linux-serial@vger.kernel.org
->> Subject: Re: [PATCHv4 0/4] OMAP: Serial: remove magic and diplicates
->>
->> On Fri, Nov 12, 2010 at 3:17 PM, G, Manjunath Kondaiah
->> <manjugk@ti.com> wrote:
->> >
->> >
->> >> -----Original Message-----
->> >> From: linux-omap-owner@vger.kernel.org
->> >> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->> >> Emeltchenko Andrei
->> >> Sent: Friday, November 12, 2010 6:34 PM
->> >> To: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
->> >> linux-arm@lists.arm.linux.org.uk; linux-serial@vger.kernel.org
->> >> Subject: [PATCHv4 0/4] OMAP: Serial: remove magic and diplicates
->> >
->> > s/diplicates/duplicates
->> >
->> >>
->> >> From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
->> >>
->> >> Add MDR1 Serial register definition to serial_reg and remove
->> >> duplicated
->> >> code, remove magic MDR1 register numbers from serial drivers.
->> >>
->> >> *v2 add OMAP keyword to MDR1 definition
->> >> *v3 remove magic from serial drivers
->> >> *v4 taking comments from Manjunath and Govindraj: typos, CC
->> >>
->> >> Andrei Emeltchenko (4):
->> >> =A0 OMAP: Serial: Define OMAP uart MDR1 register definitions
->> >> =A0 OMAP1: Serial: remove magic numbers for MDR1 reg
->> >> =A0 OMAP2: Serial: remove magic numbers for MDR1 reg
->> >> =A0 OMAP: Serial: remove redefined MDR1 register definitions
->> >>
->> >> =A0arch/arm/mach-omap1/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A06 ++++--
->> >> =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 15
->> +++++++++------
->> >> =A0arch/arm/plat-omap/include/plat/omap-serial.h | =A0 =A03 ---
->> >> =A0drivers/serial/omap-serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A06 +++---
->> >> =A0include/linux/serial_reg.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 12 ++++++++++++
->> >> =A05 files changed, 28 insertions(+), 14 deletions(-)
->> >
->> > Do you think patch series is required for these changes? How about
->> > merging with single patch?
->>
->> I can merge, sometimes somebody need patches to be split,
->
-> why? can you give example?
+> On Thu, 11 Nov 2010, G, Manjunath Kondaiah wrote:
+> 
+> > How do we get previous stand by state in this API since standby mode is 
+> > changed with "omap_device_require_no_standby"
+> 
+> I don't think it is needed.  The API is only valid while the hwmod is 
+> enabled, I think.  So *require_no_mstandby() would force the hwmod into 
+> no-MSTANDBY mode, and *release_no_mstandby() would place it into smart 
+> standby if HWMOD_SWSUP_MSTDBY is not set, and no standby if it is set.
 
-Maybe I got it wrong.
+Oops, this last "no standby" should have been "force standby."
 
-> Please read: http://lwn.net/Articles/139918/
-> "if you make a single change to numerous files, group those changes i=
-nto
-> a single patch. =A0Thus a single logical change is contained within a
-> single patch."
-
-I have squashed those patches to the single one.
-
-Regards,
-Andrei
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
