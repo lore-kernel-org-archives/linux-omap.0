@@ -1,7 +1,7 @@
 From: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>
-Subject: [PATCHv4 2/4] OMAP1: Serial: remove magic numbers for MDR1 reg
-Date: Fri, 12 Nov 2010 15:04:01 +0200
-Message-ID: <1289567043-6213-3-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+Subject: [PATCHv4 4/4] OMAP: Serial: remove redefined MDR1 register definitions
+Date: Fri, 12 Nov 2010 15:04:03 +0200
+Message-ID: <1289567043-6213-5-git-send-email-Andrei.Emeltchenko.news@gmail.com>
 References: <1289567043-6213-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1289567043-6213-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
@@ -11,31 +11,52 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
 
-Change magic number to ones defined in serial_reg
-for omap1 serial driver
+Use definitions defined in serial_reg
 
 Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
 ---
- arch/arm/mach-omap1/serial.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/include/plat/omap-serial.h |    3 ---
+ drivers/serial/omap-serial.c                  |    6 +++---
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index b78d074..c73d1b7 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -52,9 +52,11 @@ static inline void omap_serial_outp(struct plat_serial8250_port *p, int offset,
+diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+index c8dae02..6a17880 100644
+--- a/arch/arm/plat-omap/include/plat/omap-serial.h
++++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+@@ -31,9 +31,6 @@
   */
- static void __init omap_serial_reset(struct plat_serial8250_port *p)
- {
--	omap_serial_outp(p, UART_OMAP_MDR1, 0x07);	/* disable UART */
-+	omap_serial_outp(p, UART_OMAP_MDR1,
-+			UART_OMAP_MDR1_DISABLE);	/* disable UART */
- 	omap_serial_outp(p, UART_OMAP_SCR, 0x08);	/* TX watermark */
--	omap_serial_outp(p, UART_OMAP_MDR1, 0x00);	/* enable UART */
-+	omap_serial_outp(p, UART_OMAP_MDR1,
-+			UART_OMAP_MDR1_16X_MODE);	/* enable UART */
+ #define OMAP_SERIAL_NAME	"ttyO"
  
- 	if (!cpu_is_omap15xx()) {
- 		omap_serial_outp(p, UART_OMAP_SYSC, 0x01);
+-#define OMAP_MDR1_DISABLE	0x07
+-#define OMAP_MDR1_MODE13X	0x03
+-#define OMAP_MDR1_MODE16X	0x00
+ #define OMAP_MODE13X_SPEED	230400
+ 
+ /*
+diff --git a/drivers/serial/omap-serial.c b/drivers/serial/omap-serial.c
+index 14365f7..03a96db 100644
+--- a/drivers/serial/omap-serial.c
++++ b/drivers/serial/omap-serial.c
+@@ -753,7 +753,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 
+ 	/* Protocol, Baud Rate, and Interrupt Settings */
+ 
+-	serial_out(up, UART_OMAP_MDR1, OMAP_MDR1_DISABLE);
++	serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
+ 	serial_out(up, UART_LCR, OMAP_UART_LCR_CONF_MDB);
+ 
+ 	up->efr = serial_in(up, UART_EFR);
+@@ -774,9 +774,9 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	serial_out(up, UART_LCR, cval);
+ 
+ 	if (baud > 230400 && baud != 3000000)
+-		serial_out(up, UART_OMAP_MDR1, OMAP_MDR1_MODE13X);
++		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_13X_MODE);
+ 	else
+-		serial_out(up, UART_OMAP_MDR1, OMAP_MDR1_MODE16X);
++		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
+ 
+ 	/* Hardware Flow Control Configuration */
+ 
 -- 
 1.7.0.4
