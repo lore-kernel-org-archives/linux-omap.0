@@ -1,28 +1,68 @@
 From: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>
-Subject: [PATCHv3 0/4] OMAP: Serial: remove magic and diplicates
-Date: Fri, 12 Nov 2010 11:21:38 +0200
-Message-ID: <1289553702-28041-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+Subject: [PATCHv3 3/4] OMAP2: Serial: remobe magic from MDR1 register
+Date: Fri, 12 Nov 2010 11:21:41 +0200
+Message-ID: <1289553702-28041-4-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+References: <1289553702-28041-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1289553702-28041-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
 
-Add MDR1 Serial register definition to serial_reg and remove duplicated
-code.
-*v2 add OMAP keyword to MDR1 definition
-*v3 remove magic from serial drivers
+Change magic number to ones defined in serial_reg
+for omap2 serial driver
 
-Andrei Emeltchenko (4):
-  OMAP: Serial: Define OMAP uart MDR1 register definitions
-  OMAP1: Serial: remobe magic from MDR1 register
-  OMAP2: Serial: remobe magic from MDR1 register
-  OMAP: Serial: remove redefined MDR1 register definitions
+Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
+---
+ arch/arm/mach-omap2/serial.c |   15 +++++++++------
+ 1 files changed, 9 insertions(+), 6 deletions(-)
 
- arch/arm/mach-omap1/serial.c                  |    6 ++++--
- arch/arm/mach-omap2/serial.c                  |   15 +++++++++------
- arch/arm/plat-omap/include/plat/omap-serial.h |    3 ---
- drivers/serial/omap-serial.c                  |    6 +++---
- include/linux/serial_reg.h                    |   12 ++++++++++++
- 5 files changed, 28 insertions(+), 14 deletions(-)
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index becf0e3..edd7c99 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -168,9 +168,9 @@ static inline void serial_write_reg(struct omap_uart_state *uart, int offset,
+ 
+ static inline void __init omap_uart_reset(struct omap_uart_state *uart)
+ {
+-	serial_write_reg(uart, UART_OMAP_MDR1, 0x07);
++	serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
+ 	serial_write_reg(uart, UART_OMAP_SCR, 0x08);
+-	serial_write_reg(uart, UART_OMAP_MDR1, 0x00);
++	serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
+ }
+ 
+ #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
+@@ -246,9 +246,10 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
+ 	uart->context_valid = 0;
+ 
+ 	if (uart->errata & UART_ERRATA_i202_MDR1_ACCESS)
+-		omap_uart_mdr1_errataset(uart, 0x07, 0xA0);
++		omap_uart_mdr1_errataset(uart, UART_OMAP_MDR1_DISABLE, 0xA0);
+ 	else
+-		serial_write_reg(uart, UART_OMAP_MDR1, 0x7);
++		serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
++
+ 	serial_write_reg(uart, UART_LCR, 0xBF); /* Config B mode */
+ 	efr = serial_read_reg(uart, UART_EFR);
+ 	serial_write_reg(uart, UART_EFR, UART_EFR_ECB);
+@@ -267,11 +268,13 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
+ 	serial_write_reg(uart, UART_OMAP_SCR, uart->scr);
+ 	serial_write_reg(uart, UART_OMAP_WER, uart->wer);
+ 	serial_write_reg(uart, UART_OMAP_SYSC, uart->sysc);
++
+ 	if (uart->errata & UART_ERRATA_i202_MDR1_ACCESS)
+-		omap_uart_mdr1_errataset(uart, 0x00, 0xA1);
++		omap_uart_mdr1_errataset(uart, UART_OMAP_MDR1_16X_MODE, 0xA1);
+ 	else
+ 		/* UART 16x mode */
+-		serial_write_reg(uart, UART_OMAP_MDR1, 0x00);
++		serial_write_reg(uart, UART_OMAP_MDR1,
++				UART_OMAP_MDR1_16X_MODE);
+ }
+ #else
+ static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
+-- 
+1.7.0.4
