@@ -1,90 +1,70 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCHv4 0/4] OMAP: Serial: remove magic and diplicates
-Date: Fri, 12 Nov 2010 18:57:02 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DC24F069@dbde02.ent.ti.com>
-References: <1289567043-6213-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DC24F05C@dbde02.ent.ti.com>
- <AANLkTin-j1Aww+Nu4zRdAP5TH-t+ftpW6VEWUdejb1Pn@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 2/2] omap: rx51: mark reserved memory earlier
+Date: Fri, 12 Nov 2010 15:28:12 +0200
+Message-ID: <1289568492.3297.277.camel@tubuntu>
+References: <AANLkTik_6byuzkZ+mKunTi6HJTHu49C4XGebfTjCaEeE@mail.gmail.com>
+	 <1287146784-5517-2-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <AANLkTin-j1Aww+Nu4zRdAP5TH-t+ftpW6VEWUdejb1Pn@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-serial-owner@vger.kernel.org
-To: Andrei Emeltchenko <andrei.emeltchenko.news@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm@lists.arm.linux.org.uk" <linux-arm@lists.arm.linux.org.uk>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.47]:23875 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757317Ab0KLN3G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Nov 2010 08:29:06 -0500
+In-Reply-To: <1287146784-5517-2-git-send-email-felipe.contreras@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, "mike@compulab.co.il" <mike@compulab.co.il>, Russell King <linux@arm.linux.org.uk>
 
-=20
+Hi,
 
-> -----Original Message-----
-> From: Andrei Emeltchenko [mailto:andrei.emeltchenko.news@gmail.com]=20
-> Sent: Friday, November 12, 2010 6:50 PM
-> To: G, Manjunath Kondaiah
-> Cc: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;=20
-> linux-arm@lists.arm.linux.org.uk; linux-serial@vger.kernel.org
-> Subject: Re: [PATCHv4 0/4] OMAP: Serial: remove magic and diplicates
->=20
-> On Fri, Nov 12, 2010 at 3:17 PM, G, Manjunath Kondaiah=20
-> <manjugk@ti.com> wrote:
-> >
-> >
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org
-> >> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
-> >> Emeltchenko Andrei
-> >> Sent: Friday, November 12, 2010 6:34 PM
-> >> To: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
-> >> linux-arm@lists.arm.linux.org.uk; linux-serial@vger.kernel.org
-> >> Subject: [PATCHv4 0/4] OMAP: Serial: remove magic and diplicates
-> >
-> > s/diplicates/duplicates
-> >
-> >>
-> >> From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
-> >>
-> >> Add MDR1 Serial register definition to serial_reg and remove
-> >> duplicated
-> >> code, remove magic MDR1 register numbers from serial drivers.
-> >>
-> >> *v2 add OMAP keyword to MDR1 definition
-> >> *v3 remove magic from serial drivers
-> >> *v4 taking comments from Manjunath and Govindraj: typos, CC
-> >>
-> >> Andrei Emeltchenko (4):
-> >> =A0 OMAP: Serial: Define OMAP uart MDR1 register definitions
-> >> =A0 OMAP1: Serial: remove magic numbers for MDR1 reg
-> >> =A0 OMAP2: Serial: remove magic numbers for MDR1 reg
-> >> =A0 OMAP: Serial: remove redefined MDR1 register definitions
-> >>
-> >> =A0arch/arm/mach-omap1/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A06 ++++--
-> >> =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 15=20
-> +++++++++------
-> >> =A0arch/arm/plat-omap/include/plat/omap-serial.h | =A0 =A03 ---
-> >> =A0drivers/serial/omap-serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A06 +++---
-> >> =A0include/linux/serial_reg.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0| =A0 12 ++++++++++++
-> >> =A05 files changed, 28 insertions(+), 14 deletions(-)
-> >
-> > Do you think patch series is required for these changes? How about
-> > merging with single patch?
->=20
-> I can merge, sometimes somebody need patches to be split,=20
+On Fri, 2010-10-15 at 14:46 +0200, ext Felipe Contreras wrote:
+> So that omap_vram_set_sdram_vram() is called before
+> omap_vram_reserve_sdram_memblock().
 
-why? can you give example?
+Is this still valid after the latest memblock stuff? I presume it is.
+I'm not able to test this, and you said you didn't test it, so I'm a bit
+uneasy about applying =).
 
-Please read: http://lwn.net/Articles/139918/
-"if you make a single change to numerous files, group those changes int=
-o=20
-a single patch.  Thus a single logical change is contained within a=20
-single patch."
+ Tomi
 
--Manjunath--
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> 
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> ---
+>  arch/arm/mach-omap2/board-rx51.c |    9 +++++++--
+>  1 files changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+> index a58e8cb..861079b 100644
+> --- a/arch/arm/mach-omap2/board-rx51.c
+> +++ b/arch/arm/mach-omap2/board-rx51.c
+> @@ -144,17 +144,22 @@ static void __init rx51_init(void)
+>  static void __init rx51_map_io(void)
+>  {
+>  	omap2_set_globals_3xxx();
+> -	rx51_video_mem_init();
+>  	omap34xx_map_common_io();
+>  }
+>  
+> +static void __init rx51_reserve(void)
+> +{
+> +	rx51_video_mem_init();
+> +	omap_reserve();
+> +}
+> +
+>  MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
+>  	/* Maintainer: Lauri Leukkunen <lauri.leukkunen@nokia.com> */
+>  	.phys_io	= 0x48000000,
+>  	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
+>  	.boot_params	= 0x80000100,
+>  	.map_io		= rx51_map_io,
+> -	.reserve	= omap_reserve,
+> +	.reserve	= rx51_reserve,
+>  	.init_irq	= rx51_init_irq,
+>  	.init_machine	= rx51_init,
+>  	.timer		= &omap_timer,
+
+
