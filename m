@@ -1,62 +1,67 @@
-From: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>
-Subject: [PATCHv3 4/4] OMAP: Serial: remove redefined MDR1 register definitions
-Date: Fri, 12 Nov 2010 11:21:42 +0200
-Message-ID: <1289553702-28041-5-git-send-email-Andrei.Emeltchenko.news@gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCHv3 0/4] OMAP: Serial: remove magic and diplicates
+Date: Fri, 12 Nov 2010 17:04:00 +0530
+Message-ID: <AANLkTimd4AruJa2BvqOFw-aP9VpHubsx5Xrwkma+Um5X@mail.gmail.com>
 References: <1289553702-28041-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:63347 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752711Ab0KLLeD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Nov 2010 06:34:03 -0500
 In-Reply-To: <1289553702-28041-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
+Looks fine to me.
 
-Use definitions defined in serial_reg
+I think you need to CC this patch series to
+arm list and serial list as well.
 
-Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
----
- arch/arm/plat-omap/include/plat/omap-serial.h |    3 ---
- drivers/serial/omap-serial.c                  |    6 +++---
- 2 files changed, 3 insertions(+), 6 deletions(-)
+Thanks,
+Govindraj.R
 
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index c8dae02..6a17880 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -31,9 +31,6 @@
-  */
- #define OMAP_SERIAL_NAME	"ttyO"
- 
--#define OMAP_MDR1_DISABLE	0x07
--#define OMAP_MDR1_MODE13X	0x03
--#define OMAP_MDR1_MODE16X	0x00
- #define OMAP_MODE13X_SPEED	230400
- 
- /*
-diff --git a/drivers/serial/omap-serial.c b/drivers/serial/omap-serial.c
-index 14365f7..03a96db 100644
---- a/drivers/serial/omap-serial.c
-+++ b/drivers/serial/omap-serial.c
-@@ -753,7 +753,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 
- 	/* Protocol, Baud Rate, and Interrupt Settings */
- 
--	serial_out(up, UART_OMAP_MDR1, OMAP_MDR1_DISABLE);
-+	serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
- 	serial_out(up, UART_LCR, OMAP_UART_LCR_CONF_MDB);
- 
- 	up->efr = serial_in(up, UART_EFR);
-@@ -774,9 +774,9 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	serial_out(up, UART_LCR, cval);
- 
- 	if (baud > 230400 && baud != 3000000)
--		serial_out(up, UART_OMAP_MDR1, OMAP_MDR1_MODE13X);
-+		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_13X_MODE);
- 	else
--		serial_out(up, UART_OMAP_MDR1, OMAP_MDR1_MODE16X);
-+		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
- 
- 	/* Hardware Flow Control Configuration */
- 
--- 
-1.7.0.4
+
+On Fri, Nov 12, 2010 at 2:51 PM, Emeltchenko Andrei
+<Andrei.Emeltchenko.news@gmail.com> wrote:
+> From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
+>
+> Add MDR1 Serial register definition to serial_reg and remove duplicat=
+ed
+> code.
+> *v2 add OMAP keyword to MDR1 definition
+> *v3 remove magic from serial drivers
+>
+> Andrei Emeltchenko (4):
+> =A0OMAP: Serial: Define OMAP uart MDR1 register definitions
+> =A0OMAP1: Serial: remobe magic from MDR1 register
+> =A0OMAP2: Serial: remobe magic from MDR1 register
+> =A0OMAP: Serial: remove redefined MDR1 register definitions
+>
+> =A0arch/arm/mach-omap1/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0 =A06 ++++--
+> =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0 15 +++++++++------
+> =A0arch/arm/plat-omap/include/plat/omap-serial.h | =A0 =A03 ---
+> =A0drivers/serial/omap-serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0 =A06 +++---
+> =A0include/linux/serial_reg.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 12 ++++++++++++
+> =A05 files changed, 28 insertions(+), 14 deletions(-)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at =A0http://www.tux.org/lkml/
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
