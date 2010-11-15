@@ -1,132 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/7] OMAP: mux: Add support for control module split in
- several partitions
-Date: Mon, 15 Nov 2010 12:03:17 -0800
-Message-ID: <20101115200316.GK9264@atomide.com>
-References: <1289511321-18532-1-git-send-email-b-cousson@ti.com>
- <1289511321-18532-3-git-send-email-b-cousson@ti.com>
+Subject: Re: [PATCH v3 0/2] OMAP3: Display Support
+Date: Mon, 15 Nov 2010 12:20:47 -0800
+Message-ID: <20101115202047.GL9264@atomide.com>
+References: <1289801344-3100-1-git-send-email-samreen@ti.com>
+ <1289832102.2668.22.camel@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63601 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756093Ab0KOUDW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 15:03:22 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64266 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933648Ab0KOUU6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 15:20:58 -0500
 Content-Disposition: inline
-In-Reply-To: <1289511321-18532-3-git-send-email-b-cousson@ti.com>
+In-Reply-To: <1289832102.2668.22.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Samreen <samreen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mukund Mittal <mmittal@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vikram Pandita <vikram.pandita@ti.com>
 
-* Benoit Cousson <b-cousson@ti.com> [101111 13:26]:
-> Starting on OMAP4, the pin mux configuration is located in two
-> different partitions of the control module (CODE_PAD and WKUP_PAD).
-> The first one is inside the core power domain whereas the second
-> one is inside the wakeup.
-> - Add the capability to add any number of partition during board init
-> time depending of Soc partitioning.
-> - Add some init flags as well in order to avoid explicit Soc version
-> check inside the mux core code.
-> - Add a comment with mux0 mode on top of omap_mux/board/<partition>
-> if the current mux mode is not the default one.
+* Tomi Valkeinen <tomi.valkeinen@nokia.com> [101115 06:32]:
+> On Mon, 2010-11-15 at 07:09 +0100, ext Samreen wrote:
+> > This patch series adds the Display Support for OMAP3 platforms
+> > and the corresponding changes in the board files.
+> > 
+> > Version3:
+> >    - Rebase to the latest LO
+> > Version2:
+> >    - Optimised to configure INTBR from gpio to PWM1 mode setting and 
+> >    enabling of the PWM1 mode only when its not in PWM1 mode.
+> > 
+> > Kishore Y (2):
+> >   OMAP3: ZOOM2/3/3630SDP: Add display board file for OMAP3
+> >   OMAP3: Enable display on ZOOM2/3/3630SDP
+> > 
+> >  arch/arm/mach-omap2/Makefile                  |    3 +
+> >  arch/arm/mach-omap2/board-3630sdp.c           |    1 +
+> >  arch/arm/mach-omap2/board-zoom-display.c      |  168 +++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/board-zoom-peripherals.c  |   49 +++++++-
+> >  arch/arm/mach-omap2/board-zoom2.c             |    1 +
+> >  arch/arm/mach-omap2/board-zoom3.c             |    1 +
+> >  arch/arm/mach-omap2/include/mach/board-zoom.h |    3 +
+> >  7 files changed, 224 insertions(+), 2 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/board-zoom-display.c
+> 
+> Thanks, applied.
 
-Here's one more patch that I'd like to merge into this patch to avoid
-repeating the partition for each mux entry.
-
-Assuming no more comments, I'll queue these for 2.6.38 merge window.
-
-Regards,
+This series needs to be posted to linux-arm-kernel list also
+for review. Samreen, can you please repost?
 
 Tony
-
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 15 Nov 2010 11:52:20 -0800
-Subject: [PATCH] omap: mux: Save memory for struct omap_mux
-
-There's no need to repeat the partition for each mux entry.
-We can look up the partition for debugfs.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -348,14 +348,37 @@ static const struct file_operations omap_mux_dbg_board_fops = {
- 	.release	= single_release,
- };
- 
-+static struct omap_mux_partition * omap_mux_get_partition(struct omap_mux *mux)
-+{
-+	struct omap_mux_partition *partition;
-+
-+	list_for_each_entry(partition, &mux_partitions, node) {
-+		struct list_head *muxmodes = &partition->muxmodes;
-+		struct omap_mux_entry *e;
-+
-+		list_for_each_entry(e, muxmodes, node) {
-+			struct omap_mux *m = &e->mux;
-+
-+			if (m == mux)
-+				return partition;
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
- static int omap_mux_dbg_signal_show(struct seq_file *s, void *unused)
- {
- 	struct omap_mux *m = s->private;
--	struct omap_mux_partition *partition = m->partition;
-+	struct omap_mux_partition *partition;
- 	const char *none = "NA";
- 	u16 val;
- 	int mode;
- 
-+	partition = omap_mux_get_partition(m);
-+	if (!partition)
-+		return 0;
-+
- 	val = omap_mux_read(partition, m->reg_offset);
- 	mode = val & OMAP_MUX_MODE7;
- 
-@@ -391,6 +414,7 @@ static ssize_t omap_mux_dbg_signal_write(struct file *file,
- 	struct omap_mux *m;
- 	unsigned long val;
- 	int buf_size, ret;
-+	struct omap_mux_partition *partition;
- 
- 	if (count > OMAP_MUX_MAX_ARG_CHAR)
- 		return -EINVAL;
-@@ -411,7 +435,11 @@ static ssize_t omap_mux_dbg_signal_write(struct file *file,
- 	seqf = file->private_data;
- 	m = seqf->private;
- 
--	omap_mux_write(m->partition, (u16)val, m->reg_offset);
-+	partition = omap_mux_get_partition(m);
-+	if (!partition)
-+		return -ENODEV;
-+
-+	omap_mux_write(partition, (u16)val, m->reg_offset);
- 	*ppos += count;
- 
- 	return count;
-@@ -440,7 +468,6 @@ static void __init omap_mux_dbg_create_entry(
- 
- 	list_for_each_entry(e, &partition->muxmodes, node) {
- 		struct omap_mux *m = &e->mux;
--		m->partition = partition;
- 
- 		(void)debugfs_create_file(m->muxnames[0], S_IWUGO, mux_dbg_dir,
- 					  m, &omap_mux_dbg_signal_fops);
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -121,7 +121,6 @@ struct omap_mux {
- 	char	*muxnames[OMAP_MUX_NR_MODES];
- #ifdef CONFIG_DEBUG_FS
- 	char	*balls[OMAP_MUX_NR_SIDES];
--	struct omap_mux_partition *partition;
- #endif
- #endif
- };
