@@ -1,144 +1,79 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/7] OMAP: mux: Add support for control module split in
- several partitions
-Date: Mon, 15 Nov 2010 22:46:50 +0100
-Message-ID: <4CE1AA4A.10602@ti.com>
-References: <1289511321-18532-1-git-send-email-b-cousson@ti.com> <1289511321-18532-3-git-send-email-b-cousson@ti.com> <20101115200316.GK9264@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v4 7/9] OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
+Date: Mon, 15 Nov 2010 14:12:53 -0800
+Message-ID: <878w0ume1m.fsf@deeprootsystems.com>
+References: <1288195856-11011-1-git-send-email-thara@ti.com>
+	<1288195856-11011-8-git-send-email-thara@ti.com>
+	<87wrol56x9.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB035EFF4E67@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41340 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758557Ab0KOVq0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Nov 2010 16:46:26 -0500
-In-Reply-To: <20101115200316.GK9264@atomide.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:47611 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755853Ab0KOWNA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 17:13:00 -0500
+Received: by qwb8 with SMTP id 8so986qwb.19
+        for <linux-omap@vger.kernel.org>; Mon, 15 Nov 2010 14:12:59 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035EFF4E67@dbde02.ent.ti.com>
+	(Thara Gopinath's message of "Mon, 15 Nov 2010 16:30:17 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Hi Tony,
+"Gopinath, Thara" <thara@ti.com> writes:
 
-On 11/15/2010 9:03 PM, Tony Lindgren wrote:
-> * Benoit Cousson<b-cousson@ti.com>  [101111 13:26]:
->> Starting on OMAP4, the pin mux configuration is located in two
->> different partitions of the control module (CODE_PAD and WKUP_PAD).
->> The first one is inside the core power domain whereas the second
->> one is inside the wakeup.
->> - Add the capability to add any number of partition during board init
->> time depending of Soc partitioning.
->> - Add some init flags as well in order to avoid explicit Soc version
->> check inside the mux core code.
->> - Add a comment with mux0 mode on top of omap_mux/board/<partition>
->> if the current mux mode is not the default one.
+>>>-----Original Message-----
+>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>Sent: Thursday, November 11, 2010 12:43 AM
+>>>To: Gopinath, Thara
+>>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
+>>>Vishwanath; Sawant, Anand
+>>>Subject: Re: [PATCH v4 7/9] OMAP3: PM: Adding debug support to Voltage and
+>>>Smartreflex drivers
+>>>
+>>>Thara Gopinath <thara@ti.com> writes:
+>>>
+>>>> This patch adds debug support to the voltage and smartreflex drivers.
+>>>> This means a whole bunch of voltage processor and smartreflex
+>>>> parameters are now visible through the pm debugfs.
+>>>> The voltage parameters can be viewed at
+>>>>         /debug/voltage/vdd_<x>/<parameter>
+>>>> and the smartreflex parameters can be viewed at
+>>>>         /debug/vdd_<x>/smartreflex/<parameter>
+>>>>
+>>>> To enable overriding of these parameters from user side, write 1
+>>>> into
+>>>> 	/debug/voltage/vdd_<x>/override_volt_params
+>>>
+>>>Please just git rid of any sort of override parameter from sysfs.
+>>>
+>>>Instead, you can detect in the sysfs code itself if any parameters were
+>>>changed and then set the vdd->user_override flag.
 >
-> Here's one more patch that I'd like to merge into this patch to avoid
-> repeating the partition for each mux entry.
+> But when will I unset this flag??
 
-The memory vendors will not like you ;-)
+You can't.
 
-> Assuming no more comments, I'll queue these for 2.6.38 merge window.
+And, AFAICT, it wasn't clear from the current code or docs whether this
+could work or was expected to work either, e.g., if you set
+override_volt_params back to zero, to the original values all get reused?
 
-I'll update the series and re-post tomorrow.
+If you want to provide this feature, then it should be documented and
+made clear that this is an intended goal.
 
-Thanks,
-Benoit
+Thinking about this more, the main thing I don't like about this
+approach is that the active code paths (enable & disable) have to check
+each time if any of these values have been overidden.
 
->
-> Regards,
->
-> Tony
->
->
-> From: Tony Lindgren<tony@atomide.com>
-> Date: Mon, 15 Nov 2010 11:52:20 -0800
-> Subject: [PATCH] omap: mux: Save memory for struct omap_mux
->
-> There's no need to repeat the partition for each mux entry.
-> We can look up the partition for debugfs.
->
-> Signed-off-by: Tony Lindgren<tony@atomide.com>
->
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -348,14 +348,37 @@ static const struct file_operations omap_mux_dbg_board_fops = {
->   	.release	= single_release,
->   };
->
-> +static struct omap_mux_partition * omap_mux_get_partition(struct omap_mux *mux)
-> +{
-> +	struct omap_mux_partition *partition;
-> +
-> +	list_for_each_entry(partition,&mux_partitions, node) {
-> +		struct list_head *muxmodes =&partition->muxmodes;
-> +		struct omap_mux_entry *e;
-> +
-> +		list_for_each_entry(e, muxmodes, node) {
-> +			struct omap_mux *m =&e->mux;
-> +
-> +			if (m == mux)
-> +				return partition;
-> +		}
-> +	}
-> +
-> +	return NULL;
-> +}
-> +
->   static int omap_mux_dbg_signal_show(struct seq_file *s, void *unused)
->   {
->   	struct omap_mux *m = s->private;
-> -	struct omap_mux_partition *partition = m->partition;
-> +	struct omap_mux_partition *partition;
->   	const char *none = "NA";
->   	u16 val;
->   	int mode;
->
-> +	partition = omap_mux_get_partition(m);
-> +	if (!partition)
-> +		return 0;
-> +
->   	val = omap_mux_read(partition, m->reg_offset);
->   	mode = val&  OMAP_MUX_MODE7;
->
-> @@ -391,6 +414,7 @@ static ssize_t omap_mux_dbg_signal_write(struct file *file,
->   	struct omap_mux *m;
->   	unsigned long val;
->   	int buf_size, ret;
-> +	struct omap_mux_partition *partition;
->
->   	if (count>  OMAP_MUX_MAX_ARG_CHAR)
->   		return -EINVAL;
-> @@ -411,7 +435,11 @@ static ssize_t omap_mux_dbg_signal_write(struct file *file,
->   	seqf = file->private_data;
->   	m = seqf->private;
->
-> -	omap_mux_write(m->partition, (u16)val, m->reg_offset);
-> +	partition = omap_mux_get_partition(m);
-> +	if (!partition)
-> +		return -ENODEV;
-> +
-> +	omap_mux_write(partition, (u16)val, m->reg_offset);
->   	*ppos += count;
->
->   	return count;
-> @@ -440,7 +468,6 @@ static void __init omap_mux_dbg_create_entry(
->
->   	list_for_each_entry(e,&partition->muxmodes, node) {
->   		struct omap_mux *m =&e->mux;
-> -		m->partition = partition;
->
->   		(void)debugfs_create_file(m->muxnames[0], S_IWUGO, mux_dbg_dir,
->   					  m,&omap_mux_dbg_signal_fops);
-> --- a/arch/arm/mach-omap2/mux.h
-> +++ b/arch/arm/mach-omap2/mux.h
-> @@ -121,7 +121,6 @@ struct omap_mux {
->   	char	*muxnames[OMAP_MUX_NR_MODES];
->   #ifdef CONFIG_DEBUG_FS
->   	char	*balls[OMAP_MUX_NR_SIDES];
-> -	struct omap_mux_partition *partition;
->   #endif
->   #endif
->   };
->
+Rather than have several places in the active code paths where this
+override value is checked, there the sysfs methods should simply update
+the values that are used by the core code.  This way, the core would 
+not need to know about where the values came from (defalts, volt_data,
+user override, etc.)
 
+If you want to provide a way to revert this, then maybe writing -1 will
+should switch that value back to the HW default, or volt_data default.
+
+Kevin
