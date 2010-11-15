@@ -1,34 +1,36 @@
 From: "Gopinath, Thara" <thara@ti.com>
 Subject: RE: [PATCH v2] OMAP4: Extend clock database.
-Date: Mon, 15 Nov 2010 11:42:48 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EFF4CB7@dbde02.ent.ti.com>
+Date: Mon, 15 Nov 2010 11:43:33 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EFF4CBA@dbde02.ent.ti.com>
 References: <1288189933-30847-1-git-send-email-thara@ti.com>
- <87sjzado13.fsf@deeprootsystems.com>
+ <alpine.DEB.2.00.1010300335370.16124@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34459 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39490 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753452Ab0KOGM6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 01:12:58 -0500
-In-Reply-To: <87sjzado13.fsf@deeprootsystems.com>
+	id S1754206Ab0KOGNk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 01:13:40 -0500
+In-Reply-To: <alpine.DEB.2.00.1010300335370.16124@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
 
 
 >>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Wednesday, November 10, 2010 5:54 AM
+>>From: Paul Walmsley [mailto:paul@pwsan.com]
+>>Sent: Saturday, October 30, 2010 3:07 PM
 >>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit
+>>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com; Cousson, Benoit
 >>Subject: Re: [PATCH v2] OMAP4: Extend clock database.
 >>
->>Thara Gopinath <thara@ti.com> writes:
+>>Thara,
+>>
+>>On Wed, 27 Oct 2010, Thara Gopinath wrote:
 >>
 >>> This patch extends the OMAP4 clock data to include
 >>> various x2 clock nodes as the clock framework
@@ -39,15 +41,34 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" 
 >>>
 >>> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 >>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/clock44xx_data.c |  427 ++++++++++++++++++++----------
+>>----
+>>>  1 files changed, 248 insertions(+), 179 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-
+>>omap2/clock44xx_data.c
+>>> index 1599836..94896af 100644
+>>> --- a/arch/arm/mach-omap2/clock44xx_data.c
+>>> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+>>> @@ -17,10 +17,6 @@
+>>>   * This program is free software; you can redistribute it and/or modify
+>>>   * it under the terms of the GNU General Public License version 2 as
+>>>   * published by the Free Software Foundation.
+>>> - *
+>>> - * XXX Some of the ES1 clocks have been removed/changed; once support
+>>> - * is added for discriminating clocks by ES level, these should be added
+>>back
+>>> - * in.
+>>>   */
 >>
->>The subject could be a bit more descriptive here, something like:
->>
->>    OMAP4: clock: add various DPLL x2 clock nodes
->>
->>or something similar.
+>>Please don't remove this comment unless you're also adding the ES1 clocks
+>>back.
 
-Will fix and post V3
->>
->>Thanks,
->>
->>Kevin
+Hello Paul,
+
+I did not remove this. The script did :-). But I will manually add it
+back and post v3.
+
+Regards
+Thara
