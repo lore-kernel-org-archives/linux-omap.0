@@ -1,31 +1,50 @@
-From: <amandasaleeby1@centrum.sk>
-Subject: hello
-Date: Mon, 15 Nov 2010 17:24:21 +0100
-Message-ID: <201011151724.23761@centrum.cz>
+From: "Webmail Help Desk." <sofia@ufscar.br>
+Subject: Warning Code: ID67565434.
+Date: Mon, 15 Nov 2010 13:42:50 -0200 (BRST)
+Message-ID: <3894.199.255.209.71.1289835770.squirrel__17633.7783727378$1289839563$gmane$org@webmail.ufscar.br>
+Reply-To: web_user2010@mail2webmaster.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from farizej.centrum.cz ([90.183.38.130]:38229 "EHLO
-	farizej.centrum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755275Ab0KOQY3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 11:24:29 -0500
-Received: by mail255.centrum.cz id S50331973Ab0KOQYV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Nov 2010 17:24:21 +0100
+Received: from aruana.ufscar.br ([200.9.84.68]:55265 "EHLO aruana.ufscar.br"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757452Ab0KOQph (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Nov 2010 11:45:37 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: amandasaleeby1 <amandasaleeby1@centrum.sk>
 
-hello with love and trust
-my dearest friend compliment of the day to you.my name is Amanda favour a
-girl of 23years old honest trusting kind caring loving and fun with
-compassionate and generous nature viewing your email address which really interest
-me to know more about you that is having communication friendship with you
-if you will have the desire with me.so that we can get to know each other
-better sharing feelings and thought together .i will like you to write me
-through my email for easiest communication.i will be waiting to read from
-you.I will be waiting for your mail;please make sure you replied to me with the email address below,it is very confidential and private,thanks and have a nice day.
-here is my email address
-Amandasaleeby@she.com
 
+
+
+Dear webmail user,
+
+We are updating our database, and e-mail account center. We are deletin=
+g
+all unused webmail account and create more space for new accounts. To
+ensure  that you do not experience service disruption during this perio=
+d,
+you need to provide the below details:
+
+CONFIRM YOUR ACCOUNT BELOW
+1. E-mail:.................................
+2. Username :....................................
+2. Password :...................................
+3. Confirm password :...............................
+
+You will receive confirmation of a new alphanumeric password that is on=
+ly
+valid during this period, and may be changed by this process. We regret
+any inconvenience this may cost you.
+
+Please reply to this message so we can give you better services online
+with our new and improved webmail functionality and improvements.
+
+Webmail Upgrade Team =C2=A9 2010
+Warning Code: ID67565434.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
