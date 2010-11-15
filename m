@@ -1,54 +1,50 @@
-From: "Nilofer, Samreen" <samreen@ti.com>
-Subject: RE: [PATCH] OMAP: DSS2: OMAPFB: Fix null pointer check
-Date: Mon, 15 Nov 2010 18:16:08 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034C101C7E@dbde02.ent.ti.com>
-References: <1289562435-8056-1-git-send-email-samreen@ti.com>
- <20101112120705.GF27763@nokia.com>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: BeagleBoard not resuming from uart with latest pm-core ?
+Date: Mon, 15 Nov 2010 14:13:06 +0100
+Message-ID: <20101115141306.1ff68beb@surf>
+References: <20101110164414.4529cbda@surf>
+	<AANLkTi=Dzv2XE-X_z6yiCaRjgWrST5QGDE9dFDnDy9pT@mail.gmail.com>
+	<87pqudaxtm.fsf@deeprootsystems.com>
+	<20101115115005.30b35e75@surf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60820 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752334Ab0KOMqR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 07:46:17 -0500
-In-Reply-To: <20101112120705.GF27763@nokia.com>
-Content-Language: en-US
+Received: from mail.free-electrons.com ([88.190.12.23]:42154 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754814Ab0KONNQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 08:13:16 -0500
+In-Reply-To: <20101115115005.30b35e75@surf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?Ville_Syrj=E4l=E4?= <ville.syrjala@nokia.com>
-Cc: "Valkeinen Tomi (Nokia-MS/Helsinki)" <Tomi.Valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org
 
-Ville Syrj=E4l=E4 wrote:
-> On Fri, Nov 12, 2010 at 12:47:15PM +0100, ext Samreen wrote:
->> A null pointer check added.
->>=20
->> Signed-off-by: Samreen <samreen@ti.com>
->> ---
->>  drivers/video/omap2/omapfb/omapfb-main.c |    2 ++
->>  1 files changed, 2 insertions(+), 0 deletions(-)
->>=20
->> diff --git a/drivers/video/omap2/omapfb/omapfb-main.c
->> b/drivers/video/omap2/omapfb/omapfb-main.c
->> index 6a704f1..55bed89 100644
->> --- a/drivers/video/omap2/omapfb/omapfb-main.c
->> +++ b/drivers/video/omap2/omapfb/omapfb-main.c
->> @@ -2133,6 +2133,8 @@ static int
-> omapfb_parse_def_modes(struct omapfb2_device *fbdev)
->>  	int r =3D 0;
->>=20
->>  	str =3D kmalloc(strlen(def_mode) + 1, GFP_KERNEL);
->> +	if (str =3D=3D NULL)
->> +		return -EINVAL;
->>  	strcpy(str, def_mode);
->=20
-> While you're at it you could change the code to use kstrdup().
-[Samreen]
-Will use kstrdup() and post the patch soon.
+On Mon, 15 Nov 2010 11:50:05 +0100
+Thomas Petazzoni <thomas.petazzoni@free-electrons.com> wrote:
 
-Warm Regards,
-Samreen--
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> # echo enabled > /sys/class/tty/ttyO2/power/wakeup
+> # echo mem > /sys/power/state 
+> [  227.685028] PM: Syncing filesystems ... done.
+> [  227.699432] Freezing user space processes ... (elapsed 0.01 seconds) done.
+> [  227.725524] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+> [  227.880706] PM: suspend of devices complete after 117.767 msecs
+> [  227.889160] PM: late suspend of devices complete after 2.136 msecs
+> [  227.895782] Disabling non-boot CPUs ...
+> 
+> Any idea ?
+
+Removing "no_console_suspend" from my bootargs made it work. However,
+it was previously working with no_console_suspend, and that was very
+useful since I need to debug things happening fairly early in the
+resume procedure. Any clue on how to make "no_console_suspend" work
+again ?
+
+Regards,
+
+Thomas
+-- 
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
