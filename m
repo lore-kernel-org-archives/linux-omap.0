@@ -1,85 +1,75 @@
-From: sricharan <r.sricharan@ti.com>
-Subject: [PATCH 3/5] OMAP4: mcbsp: Initialise the mcbsp mux pins
-Date: Mon, 15 Nov 2010 13:08:03 +0530
-Message-ID: <1289806685-20688-4-git-send-email-r.sricharan@ti.com>
-References: <1289806685-20688-1-git-send-email-r.sricharan@ti.com>
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: Re: [PATCH] Fix IGEPv2 second MMC channel power supply
+Date: Mon, 15 Nov 2010 09:32:22 +0100
+Message-ID: <AANLkTimuf1khCKLc4Bc23gONxqPGmq1N3j3kSjkzccPu@mail.gmail.com>
+References: <1289734452-31625-1-git-send-email-maz@misterjones.org>
+	<14a0f1b94e21549cf4ad2f33647364e3@secure211.sgcpanel.com>
+	<AANLkTi=wJ24iqN8+tPw=AOO1H7u0oxaO=SaBh5-Lxr_m@mail.gmail.com>
+	<20101114185207.252e3c1f@taxman.wild-wind.fr.eu.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39687 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757576Ab0KOHf3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Nov 2010 02:35:29 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id oAF7ZP6P026155
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 15 Nov 2010 01:35:28 -0600
-Received: from localhost.localdomain (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id oAF7ZO9c024066
-	for <linux-omap@vger.kernel.org>; Mon, 15 Nov 2010 13:05:25 +0530 (IST)
-In-Reply-To: <1289806685-20688-1-git-send-email-r.sricharan@ti.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:47605 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757675Ab0KOIcX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 03:32:23 -0500
+Received: by qyk4 with SMTP id 4so1840765qyk.19
+        for <linux-omap@vger.kernel.org>; Mon, 15 Nov 2010 00:32:22 -0800 (PST)
+In-Reply-To: <20101114185207.252e3c1f@taxman.wild-wind.fr.eu.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Marc Zyngier <maz@misterjones.org>
+Cc: Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-Use the mux framework to initialise the mcbsp mux pins
+Hi,
 
-Signed-off-by: sricharan <r.sricharan@ti.com>
----
- arch/arm/mach-omap2/mcbsp.c |   33 ++++++++++++++++++++++++++++++++-
- 1 files changed, 32 insertions(+), 1 deletions(-)
+2010/11/14 Marc Zyngier <maz@misterjones.org>:
+> On Sun, 14 Nov 2010 19:11:46 +0100
+> Enric Balletb=C3=B2 i Serra <eballetbo@gmail.com> wrote:
+>
+>> Why we need to define an unexistent regulator in board file ? This
+>> should not be done enabling the CONFIG_DUMMY_REGULATOR in your kerne=
+l
+>> configuration =C2=A0?
+>
+> I'm not adding another regulator, but instead simply exposing the fac=
+t
+> (or rather my guess) that the same regulator (vmmc1) is powering the
+> two MMC channels. Not having access to the board schematics, I can't
+> tell if that reflects the reality or not.
+>
+> But using CONFIG_DUMMY_REGULATOR seems the wrong idea to me, as it's
+> just papering over the issue. We should be exposing what's really on
+> the board (a fixed regulator if that's the case).
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index f9c9df5..491e3f6 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -25,6 +25,7 @@
- 
- #include "control.h"
- 
-+#include "mux.h"
- 
- /* McBSP internal signal muxing functions */
- 
-@@ -287,9 +288,39 @@ static int __init omap2_mcbsp_init(void)
- 	if (cpu_is_omap34xx())
- 		omap_mcbsp_register_board_cfg(omap34xx_mcbsp_pdata,
- 						OMAP34XX_MCBSP_PDATA_SZ);
--	if (cpu_is_omap44xx())
-+	if (cpu_is_omap44xx()) {
- 		omap_mcbsp_register_board_cfg(omap44xx_mcbsp_pdata,
- 						OMAP44XX_MCBSP_PDATA_SZ);
-+		/* MCBSP1 PIN MUX configurations */
-+		omap_mux_init_signal("abe_mcbsp1_clkx.abe_slimbus1_clock",
-+							OMAP_PIN_INPUT);
-+		omap_mux_init_signal("abe_mcbsp1_dr.abe_slimbus1_data",
-+							OMAP_PIN_INPUT);
-+		omap_mux_init_signal("abe_mcbsp1_dx.abe_mcbsp1_dx",
-+							OMAP_PIN_OUTPUT);
-+		omap_mux_init_signal("abe_mcbsp1_fsx.abe_mcbsp1_fsx",
-+							OMAP_PIN_INPUT);
-+
-+		/* MCBSP2 PIN MUX configurations */
-+		omap_mux_init_signal("abe_mcbsp2_clkx.abe_mcbsp2_clkx",
-+							OMAP_PIN_INPUT);
-+		omap_mux_init_signal("abe_mcbsp2_dr.abe_mcbsp2_dr",
-+							OMAP_PIN_INPUT);
-+		omap_mux_init_signal("abe_mcbsp2_dx.abe_mcbsp2_dx",
-+							OMAP_PIN_OUTPUT);
-+		omap_mux_init_signal("abe_mcbsp2_fsx.abe_mcbsp2_fsx",
-+							OMAP_PIN_INPUT);
-+
-+		/* MCBSP 3 is configured as MCPDM */
-+		omap_mux_init_signal("abe_pdm_ul_data.abe_pdm_ul_data",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("abe_pdm_dl_data.abe_pdm_dl_data",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("abe_pdm_frame.abe_pdm_frame",
-+						OMAP_PIN_INPUT_PULLUP);
-+		omap_mux_init_signal("abe_pdm_lb_clk.abe_pdm_lb_clk",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+	}
- 
- 	return omap_mcbsp_init();
- }
--- 
-1.7.0.4
+So the DUMMY_REGULATOR is only a workaround when a regulator is not
+defined and shouldn't be used ? Sorry if this is a stupid question but
+regulator interface is not too clear for me.
 
+The reality is this :
+
+ -------     --------
+| 3V3 |   | 1V8 |
+ -------    --------
+    |          |
+ -----------------
+|   WIFI/BT  |
+ -----------------
+        | ( MMC2  at 1V8 )
+ ----------------
+|   OMAP   |
+ ---------------
+
+3V3 is a fixed regulator
+1V8 is a fixed regulator (VIO from TWL4030)
+
+So, which you think is the right solution ?
+
+Cheers,
+   Enric
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
