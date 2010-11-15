@@ -1,88 +1,132 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v4 1/9] OMAP3: PM: Adding voltage driver support for OMAP3
-Date: Mon, 15 Nov 2010 11:43:49 -0800
-Message-ID: <87bp5qnzii.fsf@deeprootsystems.com>
-References: <1288195856-11011-1-git-send-email-thara@ti.com>
-	<1288195856-11011-2-git-send-email-thara@ti.com>
-	<87hbfp9gli.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB035EFF4E51@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/7] OMAP: mux: Add support for control module split in
+ several partitions
+Date: Mon, 15 Nov 2010 12:03:17 -0800
+Message-ID: <20101115200316.GK9264@atomide.com>
+References: <1289511321-18532-1-git-send-email-b-cousson@ti.com>
+ <1289511321-18532-3-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:61486 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932119Ab0KOTnx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 14:43:53 -0500
-Received: by pzk28 with SMTP id 28so999409pzk.19
-        for <linux-omap@vger.kernel.org>; Mon, 15 Nov 2010 11:43:53 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035EFF4E51@dbde02.ent.ti.com>
-	(Thara Gopinath's message of "Mon, 15 Nov 2010 16:11:47 +0530")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63601 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756093Ab0KOUDW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 15:03:22 -0500
+Content-Disposition: inline
+In-Reply-To: <1289511321-18532-3-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-"Gopinath, Thara" <thara@ti.com> writes:
+* Benoit Cousson <b-cousson@ti.com> [101111 13:26]:
+> Starting on OMAP4, the pin mux configuration is located in two
+> different partitions of the control module (CODE_PAD and WKUP_PAD).
+> The first one is inside the core power domain whereas the second
+> one is inside the wakeup.
+> - Add the capability to add any number of partition during board init
+> time depending of Soc partitioning.
+> - Add some init flags as well in order to avoid explicit Soc version
+> check inside the mux core code.
+> - Add a comment with mux0 mode on top of omap_mux/board/<partition>
+> if the current mux mode is not the default one.
 
->>>
+Here's one more patch that I'd like to merge into this patch to avoid
+repeating the partition for each mux entry.
 
-[...]
+Assuming no more comments, I'll queue these for 2.6.38 merge window.
 
->>>
->>>cpu_is_* checks are only acceptable at init time.  This one happens
->>>during every scale.  These VC settings should be set at init time only.
->>>
->>>Same issue with forceupdate_scale.
->
-> These masks are needed only in vc bypass voltage scaling API. I was
-> thinking that for using in just one API I need not maintain these
-> variables in the generic vdd structure. But yes this will add a
-> cpu_is_* check in this API.  Is it preferred to have these variables
-> defined in the common vdd structures and populated during init even if
-> used only in one API?
+Regards,
 
-Yes.
-
-[...]
-
->>>> +void omap_vp_enable(struct voltagedomain *voltdm)
->>>> +{
->>>> +   struct omap_vdd_info *vdd;
->>>> +   u32 vpconfig;
->>>> +
->>>> +   if (!voltdm || IS_ERR(voltdm)) {
->>>> +           pr_warning("%s: VDD specified does not exist!\n", __func__);
->>>> +           return;
->>>> +   }
->>>> +
->>>> +   vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
->>>> +
->>>> +   /* If VP is already enabled, do nothing. Return */
->>>> +   if (voltage_read_reg(vdd->vp_offs.vpconfig) &
->>>> +                           vdd->vp_reg.vpconfig_vpenable)
->>>> +           return;
->>>
->>>Minor: is a register access here required?  Why not just keep an
->>>'vp_enabled' flag as part of the vdd struct?
->
-> I do not want to have the complications of maintaining a flag and
-> ensuring exclusivity. 
-
-Whether you use a flag or a register access, the ability to ensure 
-exclusivity does not change.
-
-> But do you think having a register read here is bad? 
-
-Yes.
-
-s/bad/unnecessary/
-
-> Latency cannot be much as it is a single register read. If you really
-> think we should have a flag, I can change it.
-
-The PRCM is on L4, so accesses to PRCM registers are all slow and should
-be avoided if possible.  This is an easy case where a register access
-can be prevented simply by caching.
+Tony
 
 
-Kevin
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 15 Nov 2010 11:52:20 -0800
+Subject: [PATCH] omap: mux: Save memory for struct omap_mux
+
+There's no need to repeat the partition for each mux entry.
+We can look up the partition for debugfs.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -348,14 +348,37 @@ static const struct file_operations omap_mux_dbg_board_fops = {
+ 	.release	= single_release,
+ };
+ 
++static struct omap_mux_partition * omap_mux_get_partition(struct omap_mux *mux)
++{
++	struct omap_mux_partition *partition;
++
++	list_for_each_entry(partition, &mux_partitions, node) {
++		struct list_head *muxmodes = &partition->muxmodes;
++		struct omap_mux_entry *e;
++
++		list_for_each_entry(e, muxmodes, node) {
++			struct omap_mux *m = &e->mux;
++
++			if (m == mux)
++				return partition;
++		}
++	}
++
++	return NULL;
++}
++
+ static int omap_mux_dbg_signal_show(struct seq_file *s, void *unused)
+ {
+ 	struct omap_mux *m = s->private;
+-	struct omap_mux_partition *partition = m->partition;
++	struct omap_mux_partition *partition;
+ 	const char *none = "NA";
+ 	u16 val;
+ 	int mode;
+ 
++	partition = omap_mux_get_partition(m);
++	if (!partition)
++		return 0;
++
+ 	val = omap_mux_read(partition, m->reg_offset);
+ 	mode = val & OMAP_MUX_MODE7;
+ 
+@@ -391,6 +414,7 @@ static ssize_t omap_mux_dbg_signal_write(struct file *file,
+ 	struct omap_mux *m;
+ 	unsigned long val;
+ 	int buf_size, ret;
++	struct omap_mux_partition *partition;
+ 
+ 	if (count > OMAP_MUX_MAX_ARG_CHAR)
+ 		return -EINVAL;
+@@ -411,7 +435,11 @@ static ssize_t omap_mux_dbg_signal_write(struct file *file,
+ 	seqf = file->private_data;
+ 	m = seqf->private;
+ 
+-	omap_mux_write(m->partition, (u16)val, m->reg_offset);
++	partition = omap_mux_get_partition(m);
++	if (!partition)
++		return -ENODEV;
++
++	omap_mux_write(partition, (u16)val, m->reg_offset);
+ 	*ppos += count;
+ 
+ 	return count;
+@@ -440,7 +468,6 @@ static void __init omap_mux_dbg_create_entry(
+ 
+ 	list_for_each_entry(e, &partition->muxmodes, node) {
+ 		struct omap_mux *m = &e->mux;
+-		m->partition = partition;
+ 
+ 		(void)debugfs_create_file(m->muxnames[0], S_IWUGO, mux_dbg_dir,
+ 					  m, &omap_mux_dbg_signal_fops);
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -121,7 +121,6 @@ struct omap_mux {
+ 	char	*muxnames[OMAP_MUX_NR_MODES];
+ #ifdef CONFIG_DEBUG_FS
+ 	char	*balls[OMAP_MUX_NR_SIDES];
+-	struct omap_mux_partition *partition;
+ #endif
+ #endif
+ };
