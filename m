@@ -1,64 +1,61 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: omap4: hsmmc: Fix improper card detection while booting
-Date: Mon, 15 Nov 2010 11:13:36 +0200
-Message-ID: <20101115091336.GK2431@legolas.emea.dhcp.ti.com>
-References: <6576.10.24.255.17.1289812139.squirrel@dbdmail.itg.ti.com>
-Reply-To: balbi@ti.com
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 1/3] OMAP: DSS2: Add generic DPI panel display driver
+Date: Mon, 15 Nov 2010 11:16:43 +0200
+Message-ID: <1289812603.2668.5.camel@tubuntu>
+References: <1289322724-20998-1-git-send-email-bryan.wu@canonical.com>
+	 <1289322724-20998-2-git-send-email-bryan.wu@canonical.com>
+	 <1289399707.3297.250.camel@tubuntu>
+	 <AANLkTimt+rZ3nTHK01VciYyh-pKMiCmLZYcJjqz6OTY8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6576.10.24.255.17.1289812139.squirrel@dbdmail.itg.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
-Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.24]:56337 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754031Ab0KOJQx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Nov 2010 04:16:53 -0500
+In-Reply-To: <AANLkTimt+rZ3nTHK01VciYyh-pKMiCmLZYcJjqz6OTY8@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Bryan Wu <bryan.wu@canonical.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "gadiyar@ti.com" <gadiyar@ti.com>
 
-On Mon, Nov 15, 2010 at 03:08:59AM -0600, Kadiyala, Kishore wrote:
->While booting OMAP4 ES2.0 boards, cards on MMC1 and MMC2 controllers
->are not getting detected some times.
->
->During reset of command/data line, wrong pointer to base address
->was passed while read operation to SYSCTL register, thus impacting
->the updated reset logic.
->Passing correct base address fixes the issue.
->
->Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
->Acked-by: Felipie Balbi <balbi@ti.com>
+On Sun, 2010-11-14 at 02:42 +0100, ext Bryan Wu wrote:
+> On Wed, Nov 10, 2010 at 10:35 PM, Tomi Valkeinen
+> <tomi.valkeinen@nokia.com> wrote:
+> > Hi,
+> >
+> > On Tue, 2010-11-09 at 18:12 +0100, ext Bryan Wu wrote:
+> >> Generic DPI panel driver includes the driver and 4 similar panel configurations. It
+> >> will match the panel name which is passed from platform data and setup the
+> >> right configurations.
+> >>
+> >> With generic DPI panel driver, we can remove those 4 duplicated panel display
+> >> drivers. In the future, it is simple for us just add new panel configuration
+> >> date in panel-generic-dpi.c to support new display panel.
+> >
+> > This is looking good, but still a couple of comments inline:
+> >
 
-you got it wrong, here's the correct one :-)
+<snip>
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+> > I think otherwise the patches look good. At some point we should add
+> > backlight support also, so that we can remove a few drivers more (and
+> > get rid of the extra backlight stuff in omap_dss_device struct).
+> >
+> 
+> Yeah, I plan to do that. But IMHO, how about just move those backlight
+> support as backlight drivers and only remain display control in this
+> directory.
 
->Cc: Tony Lindgren <tony@atomide.com>
->Cc: Chris Ball   <cjb@laptop.org>
->Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
->---
-> drivers/mmc/host/omap_hsmmc.c |    2 +-
-> 1 files changed, 1 insertions(+), 1 deletions(-)
->
->diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->index 82a1079..5d46021 100644
->--- a/drivers/mmc/host/omap_hsmmc.c
->+++ b/drivers/mmc/host/omap_hsmmc.c
->@@ -1002,7 +1002,7 @@ static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsmmc_host
->*host,
-> 	 * Monitor a 0->1 transition first
-> 	 */
-> 	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET) {
->-		while ((!(OMAP_HSMMC_READ(host, SYSCTL) & bit))
->+		while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
-> 					&& (i++ < limit))
-> 			cpu_relax();
-> 	}
->-- 
->1.7.1
->
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hmm, yes, perhaps that would work for these DPI panels.
 
--- 
-balbi
+The reason I originally put the backlight driver inside the panel driver
+is that there are many panels for which the backlight is a part of the
+panel, in the sense that the backlight is controlled by sending messages
+to the panel. For these the backlight needs to be somewhat integrated
+into the panel driver.
+
+ Tomi
+
+
