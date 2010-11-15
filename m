@@ -1,142 +1,53 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v3 3/3] OMAP3: remove OPP interfaces from OMAP PM layer
-Date: Mon, 15 Nov 2010 13:27:41 -0600
-Message-ID: <1289849261-29767-4-git-send-email-nm@ti.com>
-References: <[PATCH 0/3 v2] omap: opp: Add opp data>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: BeagleBoard not resuming from uart with latest pm-core ?
+Date: Mon, 15 Nov 2010 11:29:28 -0800
+Message-ID: <8762vypeqv.fsf@deeprootsystems.com>
+References: <20101110164414.4529cbda@surf>
+	<AANLkTi=Dzv2XE-X_z6yiCaRjgWrST5QGDE9dFDnDy9pT@mail.gmail.com>
+	<87pqudaxtm.fsf@deeprootsystems.com> <20101115115005.30b35e75@surf>
+	<20101115141306.1ff68beb@surf>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56799 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933606Ab0KOT1p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Nov 2010 14:27:45 -0500
-In-Reply-To: <[PATCH 0/3 v2] omap: opp: Add opp data>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:51282 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933579Ab0KOT3c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 14:29:32 -0500
+Received: by ywg8 with SMTP id 8so103697ywg.19
+        for <linux-omap@vger.kernel.org>; Mon, 15 Nov 2010 11:29:31 -0800 (PST)
+In-Reply-To: <20101115141306.1ff68beb@surf> (Thomas Petazzoni's message of
+	"Mon, 15 Nov 2010 14:13:06 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Tony <tony@atomide.com>
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org
 
-From: Kevin Hilman <khilman@deeprootsystems.com>
+Thomas Petazzoni <thomas.petazzoni@free-electrons.com> writes:
 
-With new OPP layer, OPP users will access OPP API directly instead of
-using OMAP PM layer, so remove all notions of OPPs from the OMAP PM
-layer.
+> On Mon, 15 Nov 2010 11:50:05 +0100
+> Thomas Petazzoni <thomas.petazzoni@free-electrons.com> wrote:
+>
+>> # echo enabled > /sys/class/tty/ttyO2/power/wakeup
+>> # echo mem > /sys/power/state 
+>> [  227.685028] PM: Syncing filesystems ... done.
+>> [  227.699432] Freezing user space processes ... (elapsed 0.01 seconds) done.
+>> [  227.725524] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+>> [  227.880706] PM: suspend of devices complete after 117.767 msecs
+>> [  227.889160] PM: late suspend of devices complete after 2.136 msecs
+>> [  227.895782] Disabling non-boot CPUs ...
+>> 
+>> Any idea ?
+>
+> Removing "no_console_suspend" from my bootargs made it work. However,
+> it was previously working with no_console_suspend, and that was very
+> useful since I need to debug things happening fairly early in the
+> resume procedure. Any clue on how to make "no_console_suspend" work
+> again ?
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-v3: no longer explicitly calling the init_table, instead
-    depending on the device_initcall to initialize as needed
+Until we convert the omap-serial driver to use runtime PM (currently
+under development), no_console_suspend is going to be unpredictable at
+best.  Until then, there will be races with the current UART PM code.
 
-v2: https://patchwork.kernel.org/patch/266931/
+Kevin
 
- arch/arm/mach-omap2/io.c                  |    3 +-
- arch/arm/plat-omap/include/plat/omap-pm.h |   31 +++++++++-------------------
- arch/arm/plat-omap/omap-pm-noop.c         |   11 +---------
- 3 files changed, 12 insertions(+), 33 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 40562dd..2fe4e02 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -327,8 +327,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 	else if (cpu_is_omap44xx())
- 		omap44xx_hwmod_init();
- 
--	/* The OPP tables have to be registered before a clk init */
--	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
-+	omap_pm_if_early_init();
- 
- 	if (cpu_is_omap2420())
- 		omap2420_clk_init();
-diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
-index 728fbb9..62c3fe9 100644
---- a/arch/arm/plat-omap/include/plat/omap-pm.h
-+++ b/arch/arm/plat-omap/include/plat/omap-pm.h
-@@ -17,27 +17,10 @@
- #include <linux/device.h>
- #include <linux/cpufreq.h>
- #include <linux/clk.h>
-+#include <linux/opp.h>
- 
- #include "powerdomain.h"
- 
--/**
-- * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
-- * @rate: target clock rate
-- * @opp_id: OPP ID
-- * @min_vdd: minimum VDD1 voltage (in millivolts) for this OPP
-- *
-- * Operating performance point data.  Can vary by OMAP chip and board.
-- */
--struct omap_opp {
--	unsigned long rate;
--	u8 opp_id;
--	u16 min_vdd;
--};
--
--extern struct omap_opp *mpu_opps;
--extern struct omap_opp *dsp_opps;
--extern struct omap_opp *l3_opps;
--
- /*
-  * agent_id values for use with omap_pm_set_min_bus_tput():
-  *
-@@ -59,9 +42,11 @@ extern struct omap_opp *l3_opps;
-  * framework starts.  The "_if_" is to avoid name collisions with the
-  * PM idle-loop code.
-  */
--int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
--				 struct omap_opp *dsp_opp_table,
--				 struct omap_opp *l3_opp_table);
-+#ifdef CONFIG_OMAP_PM_NONE
-+#define omap_pm_if_early_init() 0
-+#else
-+int __init omap_pm_if_early_init(void);
-+#endif
- 
- /**
-  * omap_pm_if_init - OMAP PM init code called after clock fw init
-@@ -69,7 +54,11 @@ int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
-  * The main initialization code.  OPP tables are passed in here.  The
-  * "_if_" is to avoid name collisions with the PM idle-loop code.
-  */
-+#ifdef CONFIG_OMAP_PM_NONE
-+#define omap_pm_if_init() 0
-+#else
- int __init omap_pm_if_init(void);
-+#endif
- 
- /**
-  * omap_pm_if_exit - OMAP PM exit code
-diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-index e129ce8..ca75abb 100644
---- a/arch/arm/plat-omap/omap-pm-noop.c
-+++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -26,10 +26,6 @@
- 
- #include <plat/powerdomain.h>
- 
--struct omap_opp *dsp_opps;
--struct omap_opp *mpu_opps;
--struct omap_opp *l3_opps;
--
- /*
-  * Device-driver-originated constraints (via board-*.c files)
-  */
-@@ -308,13 +304,8 @@ int omap_pm_get_dev_context_loss_count(struct device *dev)
- 
- 
- /* Should be called before clk framework init */
--int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
--				 struct omap_opp *dsp_opp_table,
--				 struct omap_opp *l3_opp_table)
-+int __init omap_pm_if_early_init(void)
- {
--	mpu_opps = mpu_opp_table;
--	dsp_opps = dsp_opp_table;
--	l3_opps = l3_opp_table;
- 	return 0;
- }
- 
--- 
-1.6.3.3
 
