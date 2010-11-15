@@ -1,69 +1,146 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-next 20101115 fails to boot on zoom3
-Date: Mon, 15 Nov 2010 09:34:16 -0800
-Message-ID: <20101115173415.GI9264@atomide.com>
-References: <4CE135B0.8070405@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH v3 2/3] omap4: opp: add OPP table data
+Date: Mon, 15 Nov 2010 13:27:40 -0600
+Message-ID: <1289849261-29767-3-git-send-email-nm@ti.com>
+References: <[PATCH 0/3 v2] omap: opp: Add opp data>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49414 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933013Ab0KOReU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 12:34:20 -0500
-Content-Disposition: inline
-In-Reply-To: <4CE135B0.8070405@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54324 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757357Ab0KOT1o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Nov 2010 14:27:44 -0500
+In-Reply-To: <[PATCH 0/3 v2] omap: opp: Add opp data>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Tony <tony@atomide.com>
 
-* Anand Gadiyar <gadiyar@ti.com> [101115 05:19]:
-> Hi all,
-> 
-> Linux-next as of 20101115 fails to boot up on a zoom3. earlyprintk throws
-> the following crash.
-> 
-> [    0.000000] MUX: Add partition: #1: core, flags: 0
-> [    0.000000] Unable to handle kernel paging request at virtual address 01000268
+This patch adds OPP tables for OMAP4. New file has been added to keep
+the OMAP4 opp tables and the registration of these tables with the
+generic opp framework by OMAP SoC OPP interface.
 
-I'll merge the following fix into Benoit's patch. Looks like hese patches
-need still a bit more testing :)
+Based on:
+http://dev.omapzoom.org/?p=santosh/kernel-omap4-base.git;a=blob;f=arch/arm/mach-omap2/opp44xx_data.c;h=252e3d0cb6050a64f390b9311c1c4977d74f762a;hb=refs/heads/omap4_next
 
-Regards,
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+Warning: http://lkml.org/lkml/2010/11/9/389
+Introduces ARCH_HAS_OPP which needs to be enabled as well
+for OMAP4 in Kconfig
+v3:
+	* switched to using device_initcall to autoinitialize the
+	  opp tables
+v2: https://patchwork.kernel.org/patch/266921/
 
-Tony
+ arch/arm/mach-omap2/Kconfig        |    1 +
+ arch/arm/mach-omap2/opp.c          |   18 +++++++++++++++++
+ arch/arm/mach-omap2/opp4xxx_data.h |   37 ++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h           |    5 ++++
+ 4 files changed, 61 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/opp4xxx_data.h
 
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 15 Nov 2010 09:30:11 -0800
-Subject: [PATCH] omap: mux: Fix omap_mux_write_array
-
-Otherwise we can get:
-
-MUX: Add partition: #1: core, flags: 0
-Unable to handle kernel paging request at virtual address 01000268
-
-Also fix a cosmetic issue in omap_mux_init while.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -796,7 +796,7 @@ static void omap_mux_init_signals(struct omap_mux_partition *partition,
- 				  struct omap_board_mux *board_mux)
- {
- 	omap_mux_set_cmdline_signals();
--	omap_mux_write_array(partition->base, board_mux);
-+	omap_mux_write_array(partition, board_mux);
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 93a91ff..0f1855a 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -45,6 +45,7 @@ config ARCH_OMAP4
+ 	select ARM_GIC
+ 	select PL310_ERRATA_588369
+ 	select ARM_ERRATA_720789
++ 	select PM_OPP if PM
+ 
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
+diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
+index 79c711c..d1012bd 100644
+--- a/arch/arm/mach-omap2/opp.c
++++ b/arch/arm/mach-omap2/opp.c
+@@ -152,3 +152,21 @@ int __init omap3_opp_init(void)
  }
+ device_initcall(omap3_opp_init);
  
++/* omap4 opps */
++#include "opp4xxx_data.h"
++/**
++ * omap4_opp_init() - initialize omap4 opp table
++ */
++int __init omap4_opp_init(void)
++{
++	int r = -ENODEV;
++
++	if (!cpu_is_omap44xx())
++		return r;
++
++	r = omap_init_opp_table(omap44xx_opp_def_list,
++			ARRAY_SIZE(omap44xx_opp_def_list));
++
++	return r;
++}
++device_initcall(omap4_opp_init);
+diff --git a/arch/arm/mach-omap2/opp4xxx_data.h b/arch/arm/mach-omap2/opp4xxx_data.h
+new file mode 100644
+index 0000000..2e5fe67
+--- /dev/null
++++ b/arch/arm/mach-omap2/opp4xxx_data.h
+@@ -0,0 +1,37 @@
++/*
++ * OMAP4 OPP table definitions.
++ *
++ * Copyright (C) 2009 - 2010 Texas Instruments Incorporated.
++ *	Nishanth Menon
++ * Copyright (C) 2009 - 2010 Deep Root Systems, LLC.
++ *	Kevin Hilman
++ * Copyright (C) 2010 Nokia Corporation.
++ *      Eduardo Valentin
++ * Copyright (C) 2010 Texas Instruments Incorporated.
++ *	Thara Gopinath
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __ASM_PLAT_OPP_OMAP4XXX_H__
++#define __ASM_PLAT_OPP_OMAP4XXX_H__
++
++static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
++	/* MPU OPP1 - OPP50 */
++	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
++	/* MPU OPP2 - OPP100 */
++	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
++	/* MPU OPP3 - OPP-Turbo */
++	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
++	/* MPU OPP4 - OPP-SB */
++	OPP_INITIALIZER("mpu", false, 1008000000, 1350000),
++	/* L3 OPP1 - OPP50 */
++	OPP_INITIALIZER("l3_main_1", true, 100000000, 930000),
++	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
++	OPP_INITIALIZER("l3_main_1", true, 200000000, 1100000),
++	/* TODO: add IVA, DSP, aess, fdif, gpu */
++};
++
++#endif		/*  __ASM_PLAT_OPP_OMAP4XXX_H__ */
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 2031f15..a43e069 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -22,11 +22,16 @@ extern int omap3_idle_init(void);
+ 
+ #if defined(CONFIG_PM_OPP)
+ extern int omap3_opp_init(void);
++extern int omap4_opp_init(void);
  #else
-@@ -816,7 +816,7 @@ static void omap_mux_init_signals(struct omap_mux_partition *partition,
+ static inline int omap3_opp_init(void)
+ {
+ 	return -EINVAL;
+ }
++static inline int omap4_opp_init(void)
++{
++	return -EINVAL;
++}
+ #endif
  
- static u32 mux_partitions_cnt;
- 
--int __init omap_mux_init(const char * name, u32 flags,
-+int __init omap_mux_init(const char *name, u32 flags,
- 			 u32 mux_pbase, u32 mux_size,
- 			 struct omap_mux *superset,
- 			 struct omap_mux *package_subset,
+ struct cpuidle_params {
+-- 
+1.6.3.3
+
