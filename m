@@ -1,67 +1,47 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH 1/3] OMAP: DSS2: Add generic DPI panel display driver
-Date: Mon, 15 Nov 2010 14:13:21 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034C101A63@dbde02.ent.ti.com>
-References: <1289322724-20998-1-git-send-email-bryan.wu@canonical.com>
-	<1289322724-20998-2-git-send-email-bryan.wu@canonical.com>
-	<1289399707.3297.250.camel@tubuntu>
-	<AANLkTimt+rZ3nTHK01VciYyh-pKMiCmLZYcJjqz6OTY8@mail.gmail.com>
-	<FCCFB4CDC6E5564B9182F639FC356087034C012B11@dbde02.ent.ti.com>
- <AANLkTikuRUaVRLLSHzgV_neaEwA4=xary=HQz=ax-Ytm@mail.gmail.com>
+From: "kishore kadiyala" <kishore.kadiyala@ti.com>
+Subject: omap4: hsmmc: Fix improper card detection while booting
+Date: Mon, 15 Nov 2010 14:38:59 +0530 (IST)
+Message-ID: <6576.10.24.255.17.1289812139.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43563 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751457Ab0KOIni convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 03:43:38 -0500
-In-Reply-To: <AANLkTikuRUaVRLLSHzgV_neaEwA4=xary=HQz=ax-Ytm@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan Wu <bryan.wu@canonical.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Gadiyar, Anand" <gadiyar@ti.com>
 
-Hi,
+While booting OMAP4 ES2.0 boards, cards on MMC1 and MMC2 controllers
+are not getting detected some times.
 
-Bryan Wu wrote:
-> On Mon, Nov 15, 2010 at 12:05 PM, Taneja, Archit
-> <archit@ti.com> wrote:
->> Hi,
->> 
->> bryan.wu@canonical.com wrote:
->>> On Wed, Nov 10, 2010 at 10:35 PM, Tomi Valkeinen
->> 
->> [snip]
->> 
->>>> 
->>>> For both panel power on and off some panels require some sleep times:
->>>> when powering on, the video interface has to be enabled for some
->>>> time before the panel can be enabled, and similarly when powering
->>>> off the video interface needs to be on for some time after the panel has
->>>> been disabled. 
->>>> 
->>> 
->>> Actually, in my previous version patches, I introduced
->>> .power_on_delay and .power_off_delay in panel_configs, which contains
->>> the sleep value for msleep(). But Archit told me this is not
->>> necessary, so I removed that.
->> 
->> I had asked you to remove it from omap_dss_device to a more specific
->> struct for the generic dpi driver :)
->> 
-> 
-> Yeah, no problem.
-> 
->> It should be in the 'panel_generic_dpi_data' struct now.
->> 
-> 
-> I think the delay value is related to panel, which can be
-> found in sharp_ls and sharp_lq drivers. So it might be in the "panel_configs"
-> struct?
+During reset of command/data line, wrong pointer to base address
+was passed while read operation to SYSCTL register, thus impacting
+the updated reset logic.
+Passing correct base address fixes the issue.
 
-Yes, I think that makes more sense.
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Acked-by: Felipie Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Chris Ball   <cjb@laptop.org>
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Thanks,
-Archit
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 82a1079..5d46021 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1002,7 +1002,7 @@ static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsmmc_host
+*host,
+ 	 * Monitor a 0->1 transition first
+ 	 */
+ 	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET) {
+-		while ((!(OMAP_HSMMC_READ(host, SYSCTL) & bit))
++		while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
+ 					&& (i++ < limit))
+ 			cpu_relax();
+ 	}
+-- 
+1.7.1
+
+
