@@ -1,48 +1,48 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: BeagleBoard not resuming from uart with latest pm-core ?
-Date: Mon, 15 Nov 2010 15:14:30 +0100
-Message-ID: <20101115151430.15c899e5@surf>
-References: <20101110164414.4529cbda@surf>
-	<AANLkTi=Dzv2XE-X_z6yiCaRjgWrST5QGDE9dFDnDy9pT@mail.gmail.com>
-	<87pqudaxtm.fsf@deeprootsystems.com>
-	<20101115115005.30b35e75@surf>
-	<20101115141306.1ff68beb@surf>
-	<AANLkTi=PGuYZAPO7nxko=A1PgJMMnB5Wxk86scvs1TPe@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH v3 0/2] OMAP3: Display Support
+Date: Mon, 15 Nov 2010 16:41:42 +0200
+Message-ID: <1289832102.2668.22.camel@tubuntu>
+References: <1289801344-3100-1-git-send-email-samreen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:41449 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755593Ab0KOOOj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 09:14:39 -0500
-In-Reply-To: <AANLkTi=PGuYZAPO7nxko=A1PgJMMnB5Wxk86scvs1TPe@mail.gmail.com>
+Received: from smtp.nokia.com ([147.243.128.24]:28024 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757411Ab0KOOlv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Nov 2010 09:41:51 -0500
+In-Reply-To: <1289801344-3100-1-git-send-email-samreen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org
+To: ext Samreen <samreen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mukund Mittal <mmittal@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vikram Pandita <vikram.pandita@ti.com>
 
-Hello Govindraj,
-
-On Mon, 15 Nov 2010 19:24:05 +0530
-Govindraj <govindraj.ti@gmail.com> wrote:
-
-> Can you check if you have below two patches in the kernel you have?
+On Mon, 2010-11-15 at 07:09 +0100, ext Samreen wrote:
+> This patch series adds the Display Support for OMAP3 platforms
+> and the corresponding changes in the board files.
 > 
-> http://www.spinics.net/lists/linux-serial/msg02684.html
-> http://www.spinics.net/lists/linux-serial/msg02683.html
+> Version3:
+>    - Rebase to the latest LO
+> Version2:
+>    - Optimised to configure INTBR from gpio to PWM1 mode setting and 
+>    enabling of the PWM1 mode only when its not in PWM1 mode.
 > 
-> If not there can you check applying these two patch
+> Kishore Y (2):
+>   OMAP3: ZOOM2/3/3630SDP: Add display board file for OMAP3
+>   OMAP3: Enable display on ZOOM2/3/3630SDP
+> 
+>  arch/arm/mach-omap2/Makefile                  |    3 +
+>  arch/arm/mach-omap2/board-3630sdp.c           |    1 +
+>  arch/arm/mach-omap2/board-zoom-display.c      |  168 +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-zoom-peripherals.c  |   49 +++++++-
+>  arch/arm/mach-omap2/board-zoom2.c             |    1 +
+>  arch/arm/mach-omap2/board-zoom3.c             |    1 +
+>  arch/arm/mach-omap2/include/mach/board-zoom.h |    3 +
+>  7 files changed, 224 insertions(+), 2 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-zoom-display.c
 
-I have both of these patches in my kernel (I'm running the latest
-pm-core from Kevin's repository). See
-http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=history;f=drivers/serial/serial_core.c;h=c4ea14670d4486fc142df31d806c528d2752c238;hb=pm-core.
+Thanks, applied.
 
-Thanks for the hint, anyway.
+ Tomi
 
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+
