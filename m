@@ -1,63 +1,37 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: [PATCH] omap4: enable L2 prefetching
-Date: Mon, 15 Nov 2010 17:09:26 +0000
-Message-ID: <yw1xaala8qex.fsf@unicorn.mansr.com>
-References: <1289838044-32016-1-git-send-email-nm@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH v2] OMAP4: Extend clock database.
+Date: Mon, 15 Nov 2010 10:14:27 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1011151013390.28692@utopia.booyaka.com>
+References: <1288189933-30847-1-git-send-email-thara@ti.com> <alpine.DEB.2.00.1010300335370.16124@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB035EFF4CBA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:40481 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932132Ab0KORJo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Nov 2010 12:09:44 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1PI2Yo-0005kR-Rt
-	for linux-omap@vger.kernel.org; Mon, 15 Nov 2010 18:09:42 +0100
-Received: from unicorn.mansr.com ([78.86.181.103])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Mon, 15 Nov 2010 18:09:42 +0100
-Received: from mans by unicorn.mansr.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Mon, 15 Nov 2010 18:09:42 +0100
+Received: from utopia.booyaka.com ([72.9.107.138]:44211 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756641Ab0KORO2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Nov 2010 12:14:28 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035EFF4CBA@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Nishanth Menon <nm@ti.com> writes:
+Hi Thara,
 
-> From: Mans Rullgard <mans@mansr.com>
->
-> Enabling L2 prefetching improves performance as shown on Panda
-> ES2.1 board with mem test, and it has measurable impact on
-> performances. I think we should consider it, even though it damages
-> "writes" a bit. (rebased to k.org)
-> Usually the prefetch is used at both levels together L1 + L2, however=
-,
-> to enable the CP15 prefetch engines, these are under security, and on
-> GP devices, we cannot enable it(e.g. on PandaBoard). However, just
-> enabling PL310 prefetch seems to provide performance improvement,
-> as shown in the data below (from Ubuntu) and would be a great thing
-> to pull in.
+On Mon, 15 Nov 2010, Gopinath, Thara wrote:
 
-What this does is enable automatic next line prefetching.  With this
-enabled, whenever the PL310 receives a cachable read request, it
-automatically prefetches the following cache line as well.  A larger
-offset can be programmed in secure mode, but the TI ROM authors
-neglected to include this.
+> >>-----Original Message-----
+> >>From: Paul Walmsley [mailto:paul@pwsan.com]
+> >>Sent: Saturday, October 30, 2010 3:07 PM
+> >>
+> >>Please don't remove this comment unless you're also adding the ES1 clocks
+> >>back.
+> 
+> I did not remove this. The script did :-). But I will manually add it
+> back and post v3.
 
-Testing with FFmpeg showed a speedup of 10% with this patch in some
-cases.
+The best thing to do is probably to change the script to add the comment 
+in...
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
