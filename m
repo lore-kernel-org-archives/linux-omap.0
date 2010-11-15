@@ -1,47 +1,142 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v3 0/3] OMAP: Add opp data
-Date: Mon, 15 Nov 2010 13:27:38 -0600
-Message-ID: <1289849261-29767-1-git-send-email-nm@ti.com>
+Subject: [PATCH v3 3/3] OMAP3: remove OPP interfaces from OMAP PM layer
+Date: Mon, 15 Nov 2010 13:27:41 -0600
+Message-ID: <1289849261-29767-4-git-send-email-nm@ti.com>
 References: <[PATCH 0/3 v2] omap: opp: Add opp data>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54326 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56799 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757919Ab0KOT1o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Nov 2010 14:27:44 -0500
+	id S933606Ab0KOT1p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Nov 2010 14:27:45 -0500
 In-Reply-To: <[PATCH 0/3 v2] omap: opp: Add opp data>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Tony <tony@atomide.com>
 
-Series version 3 incorporating changes for the comments
-for using device_initcall to initialize the opp layer
+From: Kevin Hilman <khilman@deeprootsystems.com>
 
-patches based on kernel.org 2.6.37-rc1
+With new OPP layer, OPP users will access OPP API directly instead of
+using OMAP PM layer, so remove all notions of OPPs from the OMAP PM
+layer.
 
-V2: http://marc.info/?t=128753665300003&r=1&w=2
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+v3: no longer explicitly calling the init_table, instead
+    depending on the device_initcall to initialize as needed
 
-Kevin Hilman (1):
-  OMAP3: remove OPP interfaces from OMAP PM layer
+v2: https://patchwork.kernel.org/patch/266931/
 
-Nishanth Menon (2):
-  omap: opp: add OMAP3 OPP table data and common init
-  omap4: opp: add OPP table data
-
- Documentation/arm/OMAP/omap_pm            |   26 +++++
- arch/arm/mach-omap2/Kconfig               |    2 +
- arch/arm/mach-omap2/Makefile              |    2 +
  arch/arm/mach-omap2/io.c                  |    3 +-
- arch/arm/mach-omap2/opp.c                 |  172 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/opp3xxx_data.h        |   82 ++++++++++++++
- arch/arm/mach-omap2/opp4xxx_data.h        |   37 ++++++
- arch/arm/mach-omap2/pm.h                  |   14 +++
- arch/arm/plat-omap/include/plat/omap-pm.h |   31 ++----
- arch/arm/plat-omap/omap-pm-noop.c         |   11 +--
- 10 files changed, 347 insertions(+), 33 deletions(-)
- create mode 100644 arch/arm/mach-omap2/opp.c
- create mode 100644 arch/arm/mach-omap2/opp3xxx_data.h
- create mode 100644 arch/arm/mach-omap2/opp4xxx_data.h
+ arch/arm/plat-omap/include/plat/omap-pm.h |   31 +++++++++-------------------
+ arch/arm/plat-omap/omap-pm-noop.c         |   11 +---------
+ 3 files changed, 12 insertions(+), 33 deletions(-)
 
- Regards,
- Nishanth Menon
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 40562dd..2fe4e02 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -327,8 +327,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ 	else if (cpu_is_omap44xx())
+ 		omap44xx_hwmod_init();
+ 
+-	/* The OPP tables have to be registered before a clk init */
+-	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
++	omap_pm_if_early_init();
+ 
+ 	if (cpu_is_omap2420())
+ 		omap2420_clk_init();
+diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
+index 728fbb9..62c3fe9 100644
+--- a/arch/arm/plat-omap/include/plat/omap-pm.h
++++ b/arch/arm/plat-omap/include/plat/omap-pm.h
+@@ -17,27 +17,10 @@
+ #include <linux/device.h>
+ #include <linux/cpufreq.h>
+ #include <linux/clk.h>
++#include <linux/opp.h>
+ 
+ #include "powerdomain.h"
+ 
+-/**
+- * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
+- * @rate: target clock rate
+- * @opp_id: OPP ID
+- * @min_vdd: minimum VDD1 voltage (in millivolts) for this OPP
+- *
+- * Operating performance point data.  Can vary by OMAP chip and board.
+- */
+-struct omap_opp {
+-	unsigned long rate;
+-	u8 opp_id;
+-	u16 min_vdd;
+-};
+-
+-extern struct omap_opp *mpu_opps;
+-extern struct omap_opp *dsp_opps;
+-extern struct omap_opp *l3_opps;
+-
+ /*
+  * agent_id values for use with omap_pm_set_min_bus_tput():
+  *
+@@ -59,9 +42,11 @@ extern struct omap_opp *l3_opps;
+  * framework starts.  The "_if_" is to avoid name collisions with the
+  * PM idle-loop code.
+  */
+-int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
+-				 struct omap_opp *dsp_opp_table,
+-				 struct omap_opp *l3_opp_table);
++#ifdef CONFIG_OMAP_PM_NONE
++#define omap_pm_if_early_init() 0
++#else
++int __init omap_pm_if_early_init(void);
++#endif
+ 
+ /**
+  * omap_pm_if_init - OMAP PM init code called after clock fw init
+@@ -69,7 +54,11 @@ int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
+  * The main initialization code.  OPP tables are passed in here.  The
+  * "_if_" is to avoid name collisions with the PM idle-loop code.
+  */
++#ifdef CONFIG_OMAP_PM_NONE
++#define omap_pm_if_init() 0
++#else
+ int __init omap_pm_if_init(void);
++#endif
+ 
+ /**
+  * omap_pm_if_exit - OMAP PM exit code
+diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+index e129ce8..ca75abb 100644
+--- a/arch/arm/plat-omap/omap-pm-noop.c
++++ b/arch/arm/plat-omap/omap-pm-noop.c
+@@ -26,10 +26,6 @@
+ 
+ #include <plat/powerdomain.h>
+ 
+-struct omap_opp *dsp_opps;
+-struct omap_opp *mpu_opps;
+-struct omap_opp *l3_opps;
+-
+ /*
+  * Device-driver-originated constraints (via board-*.c files)
+  */
+@@ -308,13 +304,8 @@ int omap_pm_get_dev_context_loss_count(struct device *dev)
+ 
+ 
+ /* Should be called before clk framework init */
+-int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
+-				 struct omap_opp *dsp_opp_table,
+-				 struct omap_opp *l3_opp_table)
++int __init omap_pm_if_early_init(void)
+ {
+-	mpu_opps = mpu_opp_table;
+-	dsp_opps = dsp_opp_table;
+-	l3_opps = l3_opp_table;
+ 	return 0;
+ }
+ 
+-- 
+1.6.3.3
+
