@@ -1,88 +1,78 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH 0/3] OMAP: wd_timer: update integration code to use new
- hwmod changes
-Date: Tue, 16 Nov 2010 16:07:34 +0530
-Message-ID: <AANLkTi=nKOL_iojREzfjA-G1hFR1QzTMJ_1WrGR2_FZo@mail.gmail.com>
-References: <20101116102205.27991.37909.stgit@twilight.localdomain>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH v4 3/7] OMAP: DSS2: Introduce omap_channel as a
+ omap_dss_device parameter
+Date: Tue, 16 Nov 2010 12:55:57 +0200
+Message-ID: <1289904957.2668.75.camel@tubuntu>
+References: <1289219065-1362-1-git-send-email-archit@ti.com>
+	 <1289219065-1362-4-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:41754 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932793Ab0KPKiQ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Nov 2010 05:38:16 -0500
-Received: by mail-iw0-f176.google.com with SMTP id 33so675956iwn.35
-        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 02:38:15 -0800 (PST)
-In-Reply-To: <20101116102205.27991.37909.stgit@twilight.localdomain>
+Received: from smtp.nokia.com ([147.243.1.47]:17926 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933067Ab0KPK4E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Nov 2010 05:56:04 -0500
+In-Reply-To: <1289219065-1362-4-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: ext Archit Taneja <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sumit Semwal <sumit.semwal@ti.com>, Mukund Mittal <mmittal@ti.com>, Samreen <samreen@ti.com>
 
-Paul,
+Hi,
 
-Thanks for the series.
-
-On Tue, Nov 16, 2010 at 15:55, Paul Walmsley <paul@pwsan.com> wrote:
-> Update the OMAP watchdog timer integration code to take advantage of
-> the new hwmod upgrades added by the "OMAP2+: hwmod core upgrades for
-> 2.6.38: first set" series, posted previously. =A0So that series needs
-> to be applied before these patches.
->
-> Charu, it would be great if you could take a look at these.
-
-It looks fine for me.
-
--V Charulatha
-
->
-> Tested on an OMAP34xx BeagleBoard with omap2plus_defconfig.
->
->
-> - Paul
->
+On Mon, 2010-11-08 at 13:24 +0100, ext Archit Taneja wrote:
+> From: Sumit Semwal <sumit.semwal@ti.com>
+> 
+> A new member 'channel' is introduced in omap_dss_device structure to determine
+> which channel the panel uses. The dispc functions used by interface drivers
+> (dsi, sdi etc) will use this member to differentiate between the 2 channels.
+> 
+> The following dispc functions are changed to incorporate channel as an argument:
+>         -dispc_enable_fifohandcheck()
+>         -dispc_set_lcd_size()
+>         -dispc_set_parallel_interface_mode()
+>         -dispc_set_tft_data_lines()
+>         -dispc_set_lcd_display_type()
+>         -dispc_set_lcd_timings()
+> 
+> The calls to these functions from the interface drivers have been changed to
+> incorporate the new channel argument.
+> 
+> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+> Signed-off-by: Mukund Mittal <mmittal@ti.com>
+> Signed-off-by: Samreen <samreen@ti.com>
 > ---
->
-> wdt_2.6.38
-> =A0 text =A0 =A0data =A0 =A0 bss =A0 =A0 dec =A0 =A0 hex filename
-> 5709076 =A0470560 5608992 11788628 b3e154 vmlinux.omap2plus_defconfig=
-=2Eorig
-> 5708892 =A0470560 5608992 11788444 b3e09c vmlinux.omap2plus_defconfig=
-=2Epatched
->
-> Paul Walmsley (3):
-> =A0 =A0 =A0OMAP2+: wd_timer: separate watchdog disable code from the =
-rest of mach-omap2/devices.c
-> =A0 =A0 =A0OMAP2+: wd_timer: disable on boot via hwmod postsetup mech=
-anism
-> =A0 =A0 =A0OMAP: wd_timer: remove old, dead probing code
->
->
-> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A0=
-2 -
-> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 64 =
-+---------------------------
-> =A0arch/arm/mach-omap2/io.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- 18 ++++++++
-> =A0arch/arm/mach-omap2/omap_hwmod_2420_data.c | =A0 =A06 ++-
-> =A0arch/arm/mach-omap2/omap_hwmod_2430_data.c | =A0 =A06 ++-
-> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0 =A06 ++-
-> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0 =A06 ++-
-> =A0arch/arm/mach-omap2/wd_timer.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 54 ++=
-++++++++++++++++++++++
-> =A0arch/arm/mach-omap2/wd_timer.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 17 ++=
-+++++
-> =A0arch/arm/plat-omap/devices.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 38 =
------------------
-> =A010 files changed, 108 insertions(+), 109 deletions(-)
-> =A0create mode 100644 arch/arm/mach-omap2/wd_timer.c
-> =A0create mode 100644 arch/arm/mach-omap2/wd_timer.h
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  arch/arm/plat-omap/include/plat/display.h |    1 +
+>  drivers/video/omap2/dss/dispc.c           |   49 ++++++++++++++++-------------
+>  drivers/video/omap2/dss/dpi.c             |   11 +++---
+>  drivers/video/omap2/dss/dsi.c             |   13 ++++---
+>  drivers/video/omap2/dss/dss.h             |   19 ++++++-----
+>  drivers/video/omap2/dss/rfbi.c            |   19 ++++++-----
+>  drivers/video/omap2/dss/sdi.c             |   14 +++++---
+>  7 files changed, 70 insertions(+), 56 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+> index 586944d..3e6eec1 100644
+> --- a/arch/arm/plat-omap/include/plat/display.h
+> +++ b/arch/arm/plat-omap/include/plat/display.h
+> @@ -434,6 +434,7 @@ struct omap_dss_device {
+>         struct omap_overlay_manager *manager;
+> 
+>         enum omap_dss_display_state state;
+> +       enum omap_channel channel;
+
+Isn't this the same as dssdev->manager->id?
+
+Yes, this channel stuff is a bit confusing, even the enum "omap_channel"
+is badly named (should at least have "dss" in it). But
+omap_overlay_manager should represent the output pipe, so I don't think
+there's need for channel field in dss_device.
+
+I think in many places we could even pass omap_overlay_manager pointer
+around, instead of omap_channel. However, for low level dispc functions
+it's perhaps cleaner to pass the channel ID though.
+
+ Tomi
+
+
