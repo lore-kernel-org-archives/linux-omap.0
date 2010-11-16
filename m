@@ -1,83 +1,117 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/7] OMAP: mux: Add support for control module split in
- several partitions
-Date: Tue, 16 Nov 2010 19:37:42 +0100
-Message-ID: <4CE2CF76.6080001@ti.com>
-References: <1289511321-18532-1-git-send-email-b-cousson@ti.com> <1289511321-18532-3-git-send-email-b-cousson@ti.com> <20101115200316.GK9264@atomide.com> <4CE1AA4A.10602@ti.com> <20101116164149.GQ9264@atomide.com> <4CE2B951.2070609@ti.com> <20101116173703.GU9264@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] Add OMAP Support for Generic PWM Devices using Dual-mode Timers
+Date: Tue, 16 Nov 2010 10:43:34 -0800
+Message-ID: <87mxp9f6sp.fsf@deeprootsystems.com>
+References: <C90809D7.1FED0%marathon96@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47357 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754767Ab0KPShs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Nov 2010 13:37:48 -0500
-In-Reply-To: <20101116173703.GU9264@atomide.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:39959 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754902Ab0KPSni (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 13:43:38 -0500
+Received: by gwj17 with SMTP id 17so567441gwj.19
+        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 10:43:38 -0800 (PST)
+In-Reply-To: <C90809D7.1FED0%marathon96@gmail.com> (Grant Erickson's message
+	of "Tue, 16 Nov 2010 10:13:43 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Grant Erickson <marathon96@gmail.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On 11/16/2010 6:37 PM, Tony Lindgren wrote:
-> * Cousson, Benoit<b-cousson@ti.com>  [101116 08:53]:
->> Hi Tony,
->>
->> On 11/16/2010 5:41 PM, Tony Lindgren wrote:
->>> * Cousson, Benoit<b-cousson@ti.com>   [101115 13:36]:
->>>> Hi Tony,
->>>>
->>>> On 11/15/2010 9:03 PM, Tony Lindgren wrote:
->>>>> * Benoit Cousson<b-cousson@ti.com>    [101111 13:26]:
->>>>>> Starting on OMAP4, the pin mux configuration is located in two
->>>>>> different partitions of the control module (CODE_PAD and WKUP_PAD).
->>>>>> The first one is inside the core power domain whereas the second
->>>>>> one is inside the wakeup.
->>>>>> - Add the capability to add any number of partition during board init
->>>>>> time depending of Soc partitioning.
->>>>>> - Add some init flags as well in order to avoid explicit Soc version
->>>>>> check inside the mux core code.
->>>>>> - Add a comment with mux0 mode on top of omap_mux/board/<partition>
->>>>>> if the current mux mode is not the default one.
->>>>>
->>>>> Here's one more patch that I'd like to merge into this patch to avoid
->>>>> repeating the partition for each mux entry.
->>>>
->>>> The memory vendors will not like you ;-)
->>>>
->>>>> Assuming no more comments, I'll queue these for 2.6.38 merge window.
->>>>
->>>> I'll update the series and re-post tomorrow.
->>>
->>> Thanks, no need to post them again, I already have them queued
->>> locally, they will hit for-next and linux-omap master today.
->>
->> OK, but I already did it because there is a checkpatch issue in your
->> first patch and I received another patch from Dan to add __func__ in
->> the pr_xxx macros.
->> I can repost, or you can get the update in my GIT (ctrl-wip/mux-omap4-v4).
+Grant Erickson <marathon96@gmail.com> writes:
+
+> On 11/16/10 9:01 AM, Kevin Hilman wrote:
+>> Grant Erickson <marathon96@gmail.com> writes:
+>>> This patch adds support to request and use one or more of the OMAP
+>>> dual-mode timers as a generic PWM device compatible with other generic
+>>> PWM drivers such as the PWM backlight or PWM beeper driver.
+>> 
+>> How will this co-exist with the PWM on the twl6030 PMIC
+>> (drivers/mfd/twl6030-pwm.c.)? Both are exporting the same API.
 >
-> OK, if they're changed maybe repost the whole series one more time,
-> and then I'll merge in your branch assuming no more comments.
+> That's an excellent question. This driver started life in the 2.6.32 tree
+> where twl6030-pwm.c didn't exist. Thanks for the heads-up.
 >
->>> BTW, next time you do a git branch, please base it on Linus recent
->>> -rc tag instead of linux-omap master branch. We don't want the
->>> history of linux-omap master branch merged to the mainline tree..
->>
->> Euh, this is what I already did for this series. Quoting myself:
->>
->> "The series is based on mainline (2.6.37-rc1) and is available here:
->> git://gitorious.org/omap-pm/linux.git ctrl-wip/mux-omap4-v3"
->>
->> Did I messed up something?
+> The right short-term solution is to probably change the configuration from:
 >
-> No, mux-omap4-v4 branch looks OK. I guess what I tried pulling
-> was something older.
+>     config HAVE_PWM
+>
+> to:
+>
+>     config OMAP_PWM
+>         select HAVE_PWM
+>
+> and then have it conflict with TWL6030_PWM if that's enabled.
 
-The v2 was done before the 2.6.37-rc1 and was dependent of the ES2 
-support that's why it was based on l-o/master. Starting on v3, I rebased 
-everything on mainline.
+And what happens when other PWM sources are added?
 
-I'll post the v4 revision.
+>> Regarding multilpe PWM drivers, there has been discussion on the
+>> linux-embedded list[1] regarding a more generic PWM framework, and a few
+>> other projects working on PWM for OMAP[2].  Someone needs to step up and
+>> consolidate/push this work forward as there is a clear need for a more
+>> generic PWM infrastructure on various SoCs.  Your work is another
+>> example of similar work that needs to be coordinated with the other projects.
+>> 
+>>> Boards can register such devices using platform data such as in the following
+>>> example:
+>>> 
+>>> static struct omap2_pwm_platform_config pwm_config = {
+>>>    .timer_id           = 10,   // GPT10_PWM_EVT
+>>>    .polarity           = 1     // Active-high
+>>> };
+>> 
+>> Board code should not have to know which timers are PWM capable.  This
+>> information is fixed at the SoC level.
+>
+> Fair enough; however, board code does have to know which PWM outputs are
+> tied to which piece of hardware being driven by it. In the OMAP3, there
+> isn't an any-to-any mapping of PWM timers to PWM-capable output pins.
+>
+> So, in this case, I explicitly:
+>
+> 1) configure that pin multiplexer as GPT10_PWM_EVT.
+> 2) make available GPT10_PWM_EVT as a generic PWM because that's the one
+>    precisely tied to the display backlight.
+> 3) ensure that the backlight driver asks for the right generic PWM
+>    associated with it.
+>   
+>> This information is available and is part of the in-progress conversion
+>> of the timers to use the omap_hwmod infrastructure.  There are subsets
+>> of the timers that have various features (1ms timers, PWM capable, etc.)
+>> Using hwmod classes, they can be grouped together such that board code
+>> does not have to know which timers on which SoC are PWM capable.   It
+>> can simply request a timer with certain capabilities.
+>> 
+>> Kevin
+>> 
+>> [1] http://marc.info/?l=linux-embedded&m=128594628918269&w=2
+>> [2] http://marc.info/?l=linux-embedded&m=128599642406671&w=2
+>
+> I'll take a look at those references.
+>
+> With the appropriate configuration change to avoid the conflict with
+> TWL6030-PWM, it's probably better to have this driver in-tree than not.
 
-Benoit
+Well, Tony will make the final call here, but I disagree that this
+should merge in its current form.
 
+Before something like this can merge, I would rather see
+
+1) generic PWM framework pushed along and merged
+2) the dmtimer hwmod conversion finished
+
+Yes, I know it's a lot more work to fix the core/framework code before
+having a feature included, but having something more generic that can
+actually support multiple PWM sources is clearly needed. 
+
+Kevin
+
+> It'll give those working on the PWM abstraction and rework another working
+> use case to integrate and work from.
+>
+> Thanks for the feedback and the references.
+>
+> Best,
+>
+> Grant
