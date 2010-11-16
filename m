@@ -1,117 +1,82 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Add OMAP Support for Generic PWM Devices using Dual-mode Timers
-Date: Tue, 16 Nov 2010 10:43:34 -0800
-Message-ID: <87mxp9f6sp.fsf@deeprootsystems.com>
-References: <C90809D7.1FED0%marathon96@gmail.com>
+Subject: Re: [PATCH] omap4: enable L2 prefetching
+Date: Tue, 16 Nov 2010 10:49:15 -0800
+Message-ID: <878w0tf6j8.fsf@deeprootsystems.com>
+References: <1289838044-32016-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:39959 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754902Ab0KPSni (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 13:43:38 -0500
-Received: by gwj17 with SMTP id 17so567441gwj.19
-        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 10:43:38 -0800 (PST)
-In-Reply-To: <C90809D7.1FED0%marathon96@gmail.com> (Grant Erickson's message
-	of "Tue, 16 Nov 2010 10:13:43 -0800")
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:62624 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754269Ab0KPStT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 13:49:19 -0500
+Received: by ywg8 with SMTP id 8so571768ywg.19
+        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 10:49:18 -0800 (PST)
+In-Reply-To: <1289838044-32016-1-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Mon, 15 Nov 2010 10:20:44 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Erickson <marathon96@gmail.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Mans Rullgard <mans@mansr.com>
 
-Grant Erickson <marathon96@gmail.com> writes:
+Nishanth Menon <nm@ti.com> writes:
 
-> On 11/16/10 9:01 AM, Kevin Hilman wrote:
->> Grant Erickson <marathon96@gmail.com> writes:
->>> This patch adds support to request and use one or more of the OMAP
->>> dual-mode timers as a generic PWM device compatible with other generic
->>> PWM drivers such as the PWM backlight or PWM beeper driver.
->> 
->> How will this co-exist with the PWM on the twl6030 PMIC
->> (drivers/mfd/twl6030-pwm.c.)? Both are exporting the same API.
+> From: Mans Rullgard <mans@mansr.com>
 >
-> That's an excellent question. This driver started life in the 2.6.32 tree
-> where twl6030-pwm.c didn't exist. Thanks for the heads-up.
->
-> The right short-term solution is to probably change the configuration from:
->
->     config HAVE_PWM
->
-> to:
->
->     config OMAP_PWM
->         select HAVE_PWM
->
-> and then have it conflict with TWL6030_PWM if that's enabled.
+> Enabling L2 prefetching improves performance as shown on Panda
+> ES2.1 board with mem test, and it has measurable impact on
+> performances. I think we should consider it, even though it damages
+> "writes" a bit. (rebased to k.org)
+> Usually the prefetch is used at both levels together L1 + L2, however,
+> to enable the CP15 prefetch engines, these are under security, and on
+> GP devices, we cannot enable it(e.g. on PandaBoard). However, just
+> enabling PL310 prefetch seems to provide performance improvement,
+> as shown in the data below (from Ubuntu) and would be a great thing
+> to pull in.
 
-And what happens when other PWM sources are added?
+[...]
 
->> Regarding multilpe PWM drivers, there has been discussion on the
->> linux-embedded list[1] regarding a more generic PWM framework, and a few
->> other projects working on PWM for OMAP[2].  Someone needs to step up and
->> consolidate/push this work forward as there is a clear need for a more
->> generic PWM infrastructure on various SoCs.  Your work is another
->> example of similar work that needs to be coordinated with the other projects.
->> 
->>> Boards can register such devices using platform data such as in the following
->>> example:
->>> 
->>> static struct omap2_pwm_platform_config pwm_config = {
->>>    .timer_id           = 10,   // GPT10_PWM_EVT
->>>    .polarity           = 1     // Active-high
->>> };
->> 
->> Board code should not have to know which timers are PWM capable.  This
->> information is fixed at the SoC level.
+>  arch/arm/mach-omap2/omap4-common.c |    6 +++++-
+>  1 files changed, 5 insertions(+), 1 deletions(-)
 >
-> Fair enough; however, board code does have to know which PWM outputs are
-> tied to which piece of hardware being driven by it. In the OMAP3, there
-> isn't an any-to-any mapping of PWM timers to PWM-capable output pins.
+> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+> index 2f89555..a5e6126 100644
+> --- a/arch/arm/mach-omap2/omap4-common.c
+> +++ b/arch/arm/mach-omap2/omap4-common.c
+> @@ -64,6 +64,10 @@ static int __init omap_l2_cache_init(void)
+>  	l2cache_base = ioremap(OMAP44XX_L2CACHE_BASE, SZ_4K);
+>  	BUG_ON(!l2cache_base);
+>  
 >
-> So, in this case, I explicitly:
+> +	if (omap_rev() != OMAP4430_REV_ES1_0)
+> +		omap_smc1(0x109, 0x7e470000);
 >
-> 1) configure that pin multiplexer as GPT10_PWM_EVT.
-> 2) make available GPT10_PWM_EVT as a generic PWM because that's the one
->    precisely tied to the display backlight.
-> 3) ensure that the backlight driver asks for the right generic PWM
->    associated with it.
->   
->> This information is available and is part of the in-progress conversion
->> of the timers to use the omap_hwmod infrastructure.  There are subsets
->> of the timers that have various features (1ms timers, PWM capable, etc.)
->> Using hwmod classes, they can be grouped together such that board code
->> does not have to know which timers on which SoC are PWM capable.   It
->> can simply request a timer with certain capabilities.
->> 
->> Kevin
->> 
->> [1] http://marc.info/?l=linux-embedded&m=128594628918269&w=2
->> [2] http://marc.info/?l=linux-embedded&m=128599642406671&w=2
->
-> I'll take a look at those references.
->
-> With the appropriate configuration change to avoid the conflict with
-> TWL6030-PWM, it's probably better to have this driver in-tree than not.
+>  	/* Enable PL310 L2 Cache controller */
+>  	omap_smc1(0x102, 0x1);
+>  
+> @@ -75,7 +79,7 @@ static int __init omap_l2_cache_init(void)
+>  	if (omap_rev() == OMAP4430_REV_ES1_0)
+>  		l2x0_init(l2cache_base, 0x0e050000, 0xc0000fff);
+>  	else
+> -		l2x0_init(l2cache_base, 0x0e070000, 0xc0000fff);
+> +		l2x0_init(l2cache_base, 0x7e470000, 0xc0000fff);
+>  
+>  	/*
+>  	 * Override default outer_cache.disable with a OMAP4
 
-Well, Tony will make the final call here, but I disagree that this
-should merge in its current form.
+Adding/updaing the in-code comments would be helpful as well.
 
-Before something like this can merge, I would rather see
+The exiting use of all the hard-coded constants in this code is rather
+unreadable and would be much more readable with symbolic constants, and
+this change just continues the pattern.
 
-1) generic PWM framework pushed along and merged
-2) the dmtimer hwmod conversion finished
-
-Yes, I know it's a lot more work to fix the core/framework code before
-having a feature included, but having something more generic that can
-actually support multiple PWM sources is clearly needed. 
+Ideally, switching this code to use symbolic constants and then adding
+the new feature would be a cleaner approach.
 
 Kevin
 
-> It'll give those working on the PWM abstraction and rework another working
-> use case to integrate and work from.
->
-> Thanks for the feedback and the references.
->
-> Best,
->
-> Grant
+
+
+
+
+
