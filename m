@@ -1,70 +1,69 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/7] OMAP: mux: Add support for control module split in
- several partitions
-Date: Tue, 16 Nov 2010 18:03:13 +0100
-Message-ID: <4CE2B951.2070609@ti.com>
-References: <1289511321-18532-1-git-send-email-b-cousson@ti.com> <1289511321-18532-3-git-send-email-b-cousson@ti.com> <20101115200316.GK9264@atomide.com> <4CE1AA4A.10602@ti.com> <20101116164149.GQ9264@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/5] crypto: omap-aes: change in prevention of OCP bus
+ error
+Date: Tue, 16 Nov 2010 09:13:55 -0800
+Message-ID: <20101116171355.GR9264@atomide.com>
+References: <cover.1289409924.git.dmitry.kasatkin@nokia.com>
+ <78e86640037f10904b37250f0c578c6e0ca2c256.1289409924.git.dmitry.kasatkin@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41039 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752768Ab0KPRDT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Nov 2010 12:03:19 -0500
-In-Reply-To: <20101116164149.GQ9264@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <78e86640037f10904b37250f0c578c6e0ca2c256.1289409924.git.dmitry.kasatkin@nokia.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+Cc: herbert@gondor.hengli.com.au, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Hi Tony,
+Hi,
 
-On 11/16/2010 5:41 PM, Tony Lindgren wrote:
-> * Cousson, Benoit<b-cousson@ti.com>  [101115 13:36]:
->> Hi Tony,
->>
->> On 11/15/2010 9:03 PM, Tony Lindgren wrote:
->>> * Benoit Cousson<b-cousson@ti.com>   [101111 13:26]:
->>>> Starting on OMAP4, the pin mux configuration is located in two
->>>> different partitions of the control module (CODE_PAD and WKUP_PAD).
->>>> The first one is inside the core power domain whereas the second
->>>> one is inside the wakeup.
->>>> - Add the capability to add any number of partition during board init
->>>> time depending of Soc partitioning.
->>>> - Add some init flags as well in order to avoid explicit Soc version
->>>> check inside the mux core code.
->>>> - Add a comment with mux0 mode on top of omap_mux/board/<partition>
->>>> if the current mux mode is not the default one.
->>>
->>> Here's one more patch that I'd like to merge into this patch to avoid
->>> repeating the partition for each mux entry.
->>
->> The memory vendors will not like you ;-)
->>
->>> Assuming no more comments, I'll queue these for 2.6.38 merge window.
->>
->> I'll update the series and re-post tomorrow.
->
-> Thanks, no need to post them again, I already have them queued
-> locally, they will hit for-next and linux-omap master today.
+* Dmitry Kasatkin <dmitry.kasatkin@nokia.com> [101110 09:18]:
+> Suggested to use udelay() instead of nop as on the higher
+> core frequencies it might not be enough time.
+> 
+> Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+> ---
+>  drivers/crypto/omap-aes.c |   10 ++++++----
+>  1 files changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+> index 799ca51..9d65611 100644
+> --- a/drivers/crypto/omap-aes.c
+> +++ b/drivers/crypto/omap-aes.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/io.h>
+>  #include <linux/crypto.h>
+>  #include <linux/interrupt.h>
+> +#include <linux/delay.h>
+>  #include <crypto/scatterwalk.h>
+>  #include <crypto/aes.h>
+>  
+> @@ -187,11 +188,12 @@ static int omap_aes_hw_init(struct omap_aes_dev *dd)
+>  		omap_aes_write_mask(dd, AES_REG_MASK, AES_REG_MASK_SOFTRESET,
+>  					AES_REG_MASK_SOFTRESET);
+>  		/*
+> -		 * prevent OCP bus error (SRESP) in case an access to the module
+> -		 * is performed while the module is coming out of soft reset
+> +		 * prevent OCP bus error (SRESP) on OMAP3630 in case an access
+> +		 * to the module is performed while the module is
+> +		 * coming out of soft reset
+>  		 */
+> -		__asm__ __volatile__("nop");
+> -		__asm__ __volatile__("nop");
+> +		if (cpu_is_omap3630())
+> +			udelay(1);
+>  
+>  		err = omap_aes_wait(dd, AES_REG_SYSSTATUS,
+>  				AES_REG_SYSSTATUS_RESETDONE);
 
-OK, but I already did it because there is a checkpatch issue in your 
-first patch and I received another patch from Dan to add __func__ in the 
-pr_xxx macros.
-I can repost, or you can get the update in my GIT (ctrl-wip/mux-omap4-v4).
+Please don't add more cpu_is_omapxxxx tests into drivers, those
+will be limited to arch/arm/*omap*/ platform init code soonish.
+The drivers should be generic.
 
-> BTW, next time you do a git branch, please base it on Linus recent
-> -rc tag instead of linux-omap master branch. We don't want the
-> history of linux-omap master branch merged to the mainline tree..
-
-Euh, this is what I already did for this series. Quoting myself:
-
-"The series is based on mainline (2.6.37-rc1) and is available here:
-git://gitorious.org/omap-pm/linux.git ctrl-wip/mux-omap4-v3"
-
-Did I messed up something?
+Instead, check the crypto hardware version during init. If that
+does not work, pass u32 flags in the platform data and define
+OMAP_AES_SOFT_RESET_ERROR bit.
 
 Regards,
-Benoit
 
+Tony
