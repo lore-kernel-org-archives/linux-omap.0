@@ -1,107 +1,65 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v4 1/1] OMAP2: Spi: Force CS to be in inactive state
- after off-mode transition
-Date: Tue, 16 Nov 2010 00:54:34 -0700
-Message-ID: <20101116075434.GG4074@angua.secretlab.ca>
-References: <4CDDD16A.5070200@free-electrons.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Subject: [PATCH] i2c-omap: Set latency requirements only once for several messages
+Date: Tue, 16 Nov 2010 10:28:20 +0200
+Message-ID: <1289896100-28881-1-git-send-email-samu.p.onkalo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:56889 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757118Ab0KPHyh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 02:54:37 -0500
-Received: by pzk28 with SMTP id 28so51312pzk.19
-        for <linux-omap@vger.kernel.org>; Mon, 15 Nov 2010 23:54:36 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4CDDD16A.5070200@free-electrons.com>
+Received: from smtp.nokia.com ([147.243.128.24]:17429 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757230Ab0KPI2m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Nov 2010 03:28:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, spi-devel-general <spi-devel-general@lists.sourceforge.net>, David Brownell <dbrownell@users.sourceforge.net>, Kevin Hilman <khilman@deeprootsystems.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, samu.p.onkalo@nokia.com
 
-On Sat, Nov 13, 2010 at 12:44:42AM +0100, Gregory CLEMENT wrote:
-> When SPI wake up from OFF mode, CS is in the wrong state: force it
-> to the inactive state.
-> 
-> During the system life, I monitored the CS behavior using a oscilloscope.
-> I also activated debug in omap2_mcspi, so I saw when driver disable
-> the clocks and restore context when device is not used.
-> Each time the CS was in the correct state.
-> It was only when system was put suspend to ram with off-mode
-> activated that on resume the CS was in wrong state( ie activated).
-> 
-> Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Ordinary I2C read consist of two messages. First a write operation
+to tell register address and then read operation to get data.
+CPU wake up latency is set and removed twice in read case.
+Set latency requirement before the message processing loop
+and remove the requirement after the loop to remove latency
+adjustment operations between the messages.
 
-Looks okay to me, but I'd like to get an ack from other users before I
-merge it.  Also some minor comments below.
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+---
+ drivers/i2c/busses/i2c-omap.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-> ---
->  drivers/spi/omap2_mcspi.c |   35 +++++++++++++++++++++++++++++++++++
->  1 files changed, 35 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index 2a651e6..43d92fc 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -1305,11 +1305,46 @@ static int __exit omap2_mcspi_remove(struct
-> platform_device *pdev)
->  /* work with hotplug and coldplug */
->  MODULE_ALIAS("platform:omap2_mcspi");
->  +#ifdef	CONFIG_PM
-> +/* When SPI wake up from off-mode, CS is in activate state. If it was in
-> + * unactive state when driver was suspend, then force it to
-> unactive state at
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index b33c785..3e9323e 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -616,12 +616,8 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	 * REVISIT: We should abort the transfer on signals, but the bus goes
+ 	 * into arbitration and we're currently unable to recover from it.
+ 	 */
+-	if (dev->set_mpu_wkup_lat != NULL)
+-		dev->set_mpu_wkup_lat(dev->dev, dev->latency);
+ 	r = wait_for_completion_timeout(&dev->cmd_complete,
+ 					OMAP_I2C_TIMEOUT);
+-	if (dev->set_mpu_wkup_lat != NULL)
+-		dev->set_mpu_wkup_lat(dev->dev, -1);
+ 	dev->buf_len = 0;
+ 	if (r < 0)
+ 		return r;
+@@ -672,12 +668,18 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 	if (r < 0)
+ 		goto out;
+ 
++	if (dev->set_mpu_wkup_lat != NULL)
++		dev->set_mpu_wkup_lat(dev->dev, dev->latency);
++
+ 	for (i = 0; i < num; i++) {
+ 		r = omap_i2c_xfer_msg(adap, &msgs[i], (i == (num - 1)));
+ 		if (r != 0)
+ 			break;
+ 	}
+ 
++	if (dev->set_mpu_wkup_lat != NULL)
++		dev->set_mpu_wkup_lat(dev->dev, -1);
++
+ 	if (r == 0)
+ 		r = num;
+ 
+-- 
+1.6.0.4
 
-Patch is line-wrap damaged.  Check your mailer configuration.
-
-> + * wake up.
-> + */
-> +static int omap2_mcspi_resume(struct platform_device *pdev)
-> +{
-> +	struct spi_master	*master;
-> +	struct omap2_mcspi_cs *cs;
-> +	struct omap2_mcspi	*mcspi;
-> +
-> +	master = dev_get_drvdata(&pdev->dev);
-> +	mcspi = spi_master_get_devdata(master);
-
-These 5 lines can be collapsed a bit:
-	struct spi_master *master = dev_get_drvdata(&pdev->dev);
-	struct omap2_mcspi *mcspi = spi_master_get_devdata(master);
-	struct omap2_mcspi_cs *cs;
-
-> +	omap2_mcspi_enable_clocks(mcspi);
-> +	list_for_each_entry(cs, &omap2_mcspi_ctx[master->bus_num - 1].cs,
-> +			    node) {
-> +		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
-> +
-> +			/* We need to togle CS state for OMAP take this
-
-spelling.  s/togle/toggle
-
-> +			 * change in account.
-> +			 */
-> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 1);
-> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
-> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 0);
-> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
-> +		}
-> +	}
-> +	omap2_mcspi_disable_clocks(mcspi);
-> +	return 0;
-> +}
-> +#else
-> +#define	omap2_mcspi_resume	NULL
-> +#endif
-> +
->  static struct platform_driver omap2_mcspi_driver = {
->  	.driver = {
->  		.name =		"omap2_mcspi",
->  		.owner =	THIS_MODULE,
->  	},
-> +	.resume =	omap2_mcspi_resume,
->  	.remove =	__exit_p(omap2_mcspi_remove),
->  };
->  -- 1.7.0.4
-> 
