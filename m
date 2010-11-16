@@ -1,42 +1,85 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4] OMAP3: DSS: Kconfig changes to enable display
- options on OMAP3
-Date: Tue, 16 Nov 2010 11:38:43 -0800
-Message-ID: <20101116193843.GZ9264@atomide.com>
-References: <1288063074-8879-1-git-send-email-samreen@ti.com>
- <FCCFB4CDC6E5564B9182F639FC356087034C101F0B@dbde02.ent.ti.com>
- <1289915437.2668.107.camel@tubuntu>
+From: Grant Erickson <marathon96@gmail.com>
+Subject: Re: [PATCH] Add OMAP Support for Generic PWM Devices using Dual-mode
+ Timers
+Date: Tue, 16 Nov 2010 11:39:42 -0800
+Message-ID: <C9081DFE.1FEE7%marathon96@gmail.com>
+References: <87mxp9f6sp.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17247 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756145Ab0KPTiz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 14:38:55 -0500
-Content-Disposition: inline
-In-Reply-To: <1289915437.2668.107.camel@tubuntu>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:54540 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932190Ab0KPTjs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 14:39:48 -0500
+Received: by pwj1 with SMTP id 1so42721pwj.19
+        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 11:39:47 -0800 (PST)
+In-Reply-To: <87mxp9f6sp.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "ext Nilofer, Samreen" <samreen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-* Tomi Valkeinen <tomi.valkeinen@nokia.com> [101116 05:41]:
-> On Tue, 2010-11-16 at 07:09 +0100, ext Nilofer, Samreen wrote:
-> > Hi,
-> >   Any more comments on this patch?
+On 11/16/10 10:43 AM, Kevin Hilman wrote:
+> Grant Erickson <marathon96@gmail.com> writes:
+>> On 11/16/10 9:01 AM, Kevin Hilman wrote:
+>>> Grant Erickson <marathon96@gmail.com> writes:
+>>>> This patch adds support to request and use one or more of the OMAP
+>>>> dual-mode timers as a generic PWM device compatible with other generic
+>>>> PWM drivers such as the PWM backlight or PWM beeper driver.
+>>> 
+>>> How will this co-exist with the PWM on the twl6030 PMIC
+>>> (drivers/mfd/twl6030-pwm.c.)? Both are exporting the same API.
+>> 
+>> That's an excellent question. This driver started life in the 2.6.32 tree
+>> where twl6030-pwm.c didn't exist. Thanks for the heads-up.
+>> 
+>> The right short-term solution is to probably change the configuration from:
+>> 
+>>     config HAVE_PWM
+>> 
+>> to:
+>> 
+>>     config OMAP_PWM
+>>         select HAVE_PWM
+>> 
+>> and then have it conflict with TWL6030_PWM if that's enabled.
 > 
-> I'm not sure if enabling kernel options by default is a good thing.
-> Somehow I remember that enabling things by default is not looked kindly
-> at. Shouldn't they be enabled in the arch/arm/configs config file, if
-> they are wanted?
+> And what happens when other PWM sources are added?
+
+More conflicts, of course.
+
+>> With the appropriate configuration change to avoid the conflict with
+>> TWL6030-PWM, it's probably better to have this driver in-tree than not.
 > 
-> Tony, do you have opinnion on this? Should DSS features be enabled by
-> default in the Kconfig files, or only in the board config file?
+> Well, Tony will make the final call here, but I disagree that this
+> should merge in its current form.
 
-The best thing would be to have DSS y if ARCH_OMAP2PLUS or similar,
-then have all the features built in and pass the configuration options
-in platform_data. That still allows disabling certain features with
-Kconfig if needed for memory consumption etc. But the omap2plus_defconfig
-should "just work" on all the boards.
+Understood.
 
-Tony
+> Before something like this can merge, I would rather see
+> 
+> 1) generic PWM framework pushed along and merged
+> 2) the dmtimer hwmod conversion finished
+> 
+> Yes, I know it's a lot more work to fix the core/framework code before
+> having a feature included, but having something more generic that can
+> actually support multiple PWM sources is clearly needed.
+
+No disagreement on the long-term architectural and design goals. All good
+stuff.
+
+However, patches have to be submitted against the repository and branch we
+have today, not those we might have tomorrow.
+
+When (1) is in place in the linux-omap GIT, I am happy to work on
+refactoring the driver as necessary.
+
+Thanks again for your feedback and input.
+
+Best,
+
+Grant 
+
+
