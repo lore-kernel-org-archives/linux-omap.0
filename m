@@ -1,120 +1,228 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 2/6] OMAP: powerdomain: Infrastructure to put arch specific code
-Date: Tue, 16 Nov 2010 21:08:02 +0530
-Message-ID: <1289921886-5139-3-git-send-email-rnayak@ti.com>
+Subject: [PATCH 4/6] OMAP: powerdomain: Arch specific funcs for logic control
+Date: Tue, 16 Nov 2010 21:08:04 +0530
+Message-ID: <1289921886-5139-5-git-send-email-rnayak@ti.com>
 References: <1289921886-5139-1-git-send-email-rnayak@ti.com>
  <1289921886-5139-2-git-send-email-rnayak@ti.com>
+ <1289921886-5139-3-git-send-email-rnayak@ti.com>
+ <1289921886-5139-4-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57129 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753064Ab0KPPiT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 10:38:19 -0500
-In-Reply-To: <1289921886-5139-2-git-send-email-rnayak@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45837 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753436Ab0KPPiU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Nov 2010 10:38:20 -0500
+In-Reply-To: <1289921886-5139-4-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, b-cousson@ti.com, khilman@deeprootsystems.com, Rajendra Nayak <rnayak@ti.com>
 
-Put infrastructure in place, so arch specific func pointers
-can be hooked up to the platform-independent part of the
-framework.
+Define the following architecture specific funtions for omap2/3/4
+.pwrdm_set_logic_retst
+.pwrdm_read_logic_pwrst
+.pwrdm_read_prev_logic_pwrst
+.pwrdm_read_logic_retst
+
+Convert the platform-independent framework to call these functions.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/io.c                      |    2 +-
- arch/arm/plat-omap/include/plat/powerdomain.h |   22 +++++++++++++++++++++-
- arch/arm/plat-omap/powerdomain.c              |   10 ++++++++--
- 3 files changed, 30 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/powerdomains2xxx.c |   34 +++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomains44xx.c |   26 ++++++++++++++++
+ arch/arm/plat-omap/powerdomain.c       |   51 ++++++++++++++------------------
+ 3 files changed, 82 insertions(+), 29 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 40562dd..76c531a 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -316,7 +316,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- {
- 	u8 skip_setup_idle = 0;
+diff --git a/arch/arm/mach-omap2/powerdomains2xxx.c b/arch/arm/mach-omap2/powerdomains2xxx.c
+index dfeb8af..779529d 100644
+--- a/arch/arm/mach-omap2/powerdomains2xxx.c
++++ b/arch/arm/mach-omap2/powerdomains2xxx.c
+@@ -45,9 +45,43 @@ static int omap2_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
+ 				OMAP3430_LASTPOWERSTATEENTERED_MASK);
+ }
  
--	pwrdm_init(powerdomains_omap);
-+	pwrdm_init(powerdomains_omap, NULL);
- 	clkdm_init(clockdomains_omap, clkdm_autodeps);
- 	if (cpu_is_omap242x())
- 		omap2420_hwmod_init();
-diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
-index 9ca420d..35e1ef7 100644
---- a/arch/arm/plat-omap/include/plat/powerdomain.h
-+++ b/arch/arm/plat-omap/include/plat/powerdomain.h
-@@ -117,8 +117,28 @@ struct powerdomain {
- #endif
++static int omap2_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
++{
++	u32 v;
++
++	v = pwrst << __ffs(OMAP3430_LOGICL1CACHERETSTATE_MASK);
++	prm_rmw_mod_reg_bits(OMAP3430_LOGICL1CACHERETSTATE_MASK, v,
++				pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL);
++
++	return 0;
++}
++
++static int omap2_pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
++{
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP2_PM_PWSTST,
++					OMAP3430_LOGICSTATEST_MASK);
++}
++
++
++static int omap2_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
++{
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST,
++					OMAP3430_LASTLOGICSTATEENTERED_MASK);
++}
++
++static int omap2_pwrdm_read_logic_retst(struct powerdomain *pwrdm)
++{
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL,
++					OMAP3430_LOGICSTATEST_MASK);
++}
++
+ struct pwrdm_functions omap2_pwrdm_functions = {
+ 	.pwrdm_set_next_pwrst	= omap2_pwrdm_set_next_pwrst,
+ 	.pwrdm_read_next_pwrst	= omap2_pwrdm_read_next_pwrst,
+ 	.pwrdm_read_pwrst	= omap2_pwrdm_read_pwrst,
+ 	.pwrdm_read_prev_pwrst	= omap2_pwrdm_read_prev_pwrst,
++	.pwrdm_set_logic_retst	= omap2_pwrdm_set_logic_retst,
++	.pwrdm_read_logic_pwrst	= omap2_pwrdm_read_logic_pwrst,
++	.pwrdm_read_prev_logic_pwrst	= omap2_pwrdm_read_prev_logic_pwrst,
++	.pwrdm_read_logic_retst	= omap2_pwrdm_read_logic_retst,
  };
+diff --git a/arch/arm/mach-omap2/powerdomains44xx.c b/arch/arm/mach-omap2/powerdomains44xx.c
+index b3aaf9b..016a425 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx.c
++++ b/arch/arm/mach-omap2/powerdomains44xx.c
+@@ -45,9 +45,35 @@ static int omap4_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
+ 				OMAP4430_LASTPOWERSTATEENTERED_MASK);
+ }
  
-+struct pwrdm_functions {
-+	int	(*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8 pwrst);
-+	int	(*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_read_prev_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_set_logic_retst)(struct powerdomain *pwrdm, u8 pwrst);
-+	int	(*pwrdm_set_mem_onst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
-+	int	(*pwrdm_set_mem_retst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
-+	int	(*pwrdm_read_logic_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_read_prev_logic_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_read_logic_retst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_read_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
-+	int	(*pwrdm_read_prev_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
-+	int	(*pwrdm_read_mem_retst)(struct powerdomain *pwrdm, u8 bank);
-+	int	(*pwrdm_clear_all_prev_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_enable_hdwr_sar)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_disable_hdwr_sar)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_set_lowpwrstchange)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
-+};
- 
--void pwrdm_init(struct powerdomain **pwrdm_list);
-+void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_functions *custom_funcs);
- 
- struct powerdomain *pwrdm_lookup(const char *name);
- 
++static int omap4_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
++{
++	u32 v;
++
++	v = pwrst << __ffs(OMAP4430_LOGICRETSTATE_MASK);
++	prm_rmw_mod_reg_bits(OMAP4430_LOGICRETSTATE_MASK, v,
++				pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
++
++	return 0;
++}
++
++static int omap4_pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
++{
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP4_PM_PWSTST,
++					OMAP4430_LOGICSTATEST_MASK);
++}
++
++static int omap4_pwrdm_read_logic_retst(struct powerdomain *pwrdm)
++{
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL,
++					OMAP4430_LOGICRETSTATE_MASK);
++}
++
+ struct pwrdm_functions omap4_pwrdm_functions = {
+ 	.pwrdm_set_next_pwrst	= omap4_pwrdm_set_next_pwrst,
+ 	.pwrdm_read_next_pwrst	= omap4_pwrdm_read_next_pwrst,
+ 	.pwrdm_read_pwrst	= omap4_pwrdm_read_pwrst,
+ 	.pwrdm_read_prev_pwrst	= omap4_pwrdm_read_prev_pwrst,
++	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
++	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
++	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
+ };
 diff --git a/arch/arm/plat-omap/powerdomain.c b/arch/arm/plat-omap/powerdomain.c
-index 9204799..9e2d712 100644
+index 73d6dad..9177fbb 100644
 --- a/arch/arm/plat-omap/powerdomain.c
 +++ b/arch/arm/plat-omap/powerdomain.c
-@@ -80,6 +80,8 @@ static u16 pwrstst_reg_offs;
- /* pwrdm_list contains all registered struct powerdomains */
- static LIST_HEAD(pwrdm_list);
- 
-+static struct pwrdm_functions *arch_pwrdm;
-+
- /* Private functions */
- 
- static struct powerdomain *_pwrdm_lookup(const char *name)
-@@ -218,7 +220,7 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
-  * registered.  No return value.  XXX pwrdm_list is not really a
-  * "list"; it is an array.  Rename appropriately.
+@@ -531,7 +531,7 @@ int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
   */
--void pwrdm_init(struct powerdomain **pwrdm_list)
-+void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_functions *custom_funcs)
+ int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
  {
- 	struct powerdomain **p = NULL;
+-	u32 v;
++	int ret = -EINVAL;
  
-@@ -234,6 +236,11 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
- 		return;
- 	}
+ 	if (!pwrdm)
+ 		return -EINVAL;
+@@ -542,17 +542,10 @@ int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+ 	pr_debug("powerdomain: setting next logic powerstate for %s to %0x\n",
+ 		 pwrdm->name, pwrst);
  
-+	if (!custom_funcs)
-+		WARN(1, "No custom pwrdm functions registered\n");
-+	else
-+		arch_pwrdm = custom_funcs;
-+
- 	if (pwrdm_list) {
- 		for (p = pwrdm_list; *p; p++)
- 			_pwrdm_register(*p);
-@@ -1074,4 +1081,3 @@ int pwrdm_post_transition(void)
- 	pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
- 	return 0;
+-	/*
+-	 * The register bit names below may not correspond to the
+-	 * actual names of the bits in each powerdomain's register,
+-	 * but the type of value returned is the same for each
+-	 * powerdomain.
+-	 */
+-	v = pwrst << __ffs(OMAP3430_LOGICL1CACHERETSTATE_MASK);
+-	prm_rmw_mod_reg_bits(OMAP3430_LOGICL1CACHERETSTATE_MASK, v,
+-			     pwrdm->prcm_offs, pwrstctrl_reg_offs);
++	if (arch_pwrdm && arch_pwrdm->pwrdm_set_logic_retst)
++		ret = arch_pwrdm->pwrdm_set_logic_retst(pwrdm, pwrst);
+ 
+-	return 0;
++	return ret;
  }
--
+ 
+ /**
+@@ -695,11 +688,15 @@ int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+  */
+ int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
+ {
++	int ret = -EINVAL;
++
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
+-	return prm_read_mod_bits_shift(pwrdm->prcm_offs, pwrstst_reg_offs,
+-				       OMAP3430_LOGICSTATEST_MASK);
++	if (arch_pwrdm && arch_pwrdm->pwrdm_read_logic_pwrst)
++		ret = arch_pwrdm->pwrdm_read_logic_pwrst(pwrdm);
++
++	return ret;
+ }
+ 
+ /**
+@@ -712,17 +709,15 @@ int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
+  */
+ int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
+ {
++	int ret = -EINVAL;
++
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
+-	/*
+-	 * The register bit names below may not correspond to the
+-	 * actual names of the bits in each powerdomain's register,
+-	 * but the type of value returned is the same for each
+-	 * powerdomain.
+-	 */
+-	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST,
+-					OMAP3430_LASTLOGICSTATEENTERED_MASK);
++	if (arch_pwrdm && arch_pwrdm->pwrdm_read_prev_logic_pwrst)
++		ret = arch_pwrdm->pwrdm_read_prev_logic_pwrst(pwrdm);
++
++	return ret;
+ }
+ 
+ /**
+@@ -735,17 +730,15 @@ int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
+  */
+ int pwrdm_read_logic_retst(struct powerdomain *pwrdm)
+ {
++	int ret = -EINVAL;
++
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
+-	/*
+-	 * The register bit names below may not correspond to the
+-	 * actual names of the bits in each powerdomain's register,
+-	 * but the type of value returned is the same for each
+-	 * powerdomain.
+-	 */
+-	return prm_read_mod_bits_shift(pwrdm->prcm_offs, pwrstctrl_reg_offs,
+-				       OMAP3430_LOGICSTATEST_MASK);
++	if (arch_pwrdm && arch_pwrdm->pwrdm_read_logic_retst)
++		ret = arch_pwrdm->pwrdm_read_logic_retst(pwrdm);
++
++	return ret;
+ }
+ 
+ /**
 -- 
 1.7.0.4
 
