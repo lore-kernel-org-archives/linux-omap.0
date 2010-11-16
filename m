@@ -1,61 +1,49 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: [PATCH 2/6] OMAP: powerdomain: Infrastructure to put arch
- specific code
-Date: Tue, 16 Nov 2010 17:11:17 +0100
-Message-ID: <20101116171117.46a13d0a@surf>
-References: <1289921886-5139-1-git-send-email-rnayak@ti.com>
-	<1289921886-5139-2-git-send-email-rnayak@ti.com>
-	<1289921886-5139-3-git-send-email-rnayak@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v3 1/3] omap: opp: add OMAP3 OPP table data and common init
+Date: Tue, 16 Nov 2010 08:16:07 -0800
+Message-ID: <8762vxjlbs.fsf@deeprootsystems.com>
+References: <1289849261-29767-2-git-send-email-nm@ti.com>
+	<20101116122128.5c6cc050@surf> <4CE2710A.3010804@ti.com>
+	<20101116134220.1bb818c0@surf> <4CE2A1DA.3020203@ti.com>
+	<20101116165039.7e6b8e16@surf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:45779 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754646Ab0KPQL2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 11:11:28 -0500
-In-Reply-To: <1289921886-5139-3-git-send-email-rnayak@ti.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:40298 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753682Ab0KPQQM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 11:16:12 -0500
+Received: by gyh4 with SMTP id 4so424557gyh.19
+        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 08:16:11 -0800 (PST)
+In-Reply-To: <20101116165039.7e6b8e16@surf> (Thomas Petazzoni's message of
+	"Tue, 16 Nov 2010 16:50:39 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, khilman@deeprootsystems.com
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Tony <tony@atomide.com>
 
-On Tue, 16 Nov 2010 21:08:02 +0530
-Rajendra Nayak <rnayak@ti.com> wrote:
+Thomas Petazzoni <thomas.petazzoni@free-electrons.com> writes:
 
-> +struct pwrdm_functions {
-> +	int	(*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8 pwrst);
-> +	int	(*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_read_prev_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_set_logic_retst)(struct powerdomain *pwrdm, u8 pwrst);
-> +	int	(*pwrdm_set_mem_onst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
-> +	int	(*pwrdm_set_mem_retst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
-> +	int	(*pwrdm_read_logic_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_read_prev_logic_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_read_logic_retst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_read_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
-> +	int	(*pwrdm_read_prev_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
-> +	int	(*pwrdm_read_mem_retst)(struct powerdomain *pwrdm, u8 bank);
-> +	int	(*pwrdm_clear_all_prev_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_enable_hdwr_sar)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_disable_hdwr_sar)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_set_lowpwrstchange)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
-> +};
+> On Tue, 16 Nov 2010 09:23:06 -0600
+> Nishanth Menon <nm@ti.com> wrote:
+>
+>> my initial implementation had forced board files to call the 
+>> opp_init_table, then changed that here:
+>> http://marc.info/?l=linux-omap&m=127431810922704&w=2
+>> Kevin seemed happy with the change here:
+>> http://marc.info/?l=linux-omap&m=127507237109393&w=2
+>
+> Ok, if Kevin is happy with this solution, fair enough. Sorry for the
+> noise, and thanks for your answers.
 
-It would probably be great to have some short documentation on this
-structure, to detail what are the different operations, what they
-should do, etc.
+Yes, I'm not a big fan of the init function called multiple times
+either, but I really want to minimize what board files have to do.
 
-By the way, would pwrdm_operations be more linux-ish than
-pwrdm_functions ?
+Historically, we tend to add all the init functions to every board file,
+and this is getting cumbersome to understand and maintain.  What we need
+is for common code to take care of sensible defaults for all boards, and
+then only boards with non-default behavior have to have custom code.
 
-Thanks,
+Kevin
 
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+
