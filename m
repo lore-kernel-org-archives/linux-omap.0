@@ -1,87 +1,64 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 7/8] OMAP4: pandaboard: Select CBL & CBS package and initialize mux
-Date: Tue, 16 Nov 2010 21:55:36 +0100
-Message-ID: <1289940937-31593-8-git-send-email-b-cousson@ti.com>
-References: <1289940937-31593-1-git-send-email-b-cousson@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v3 1/3] omap: opp: add OMAP3 OPP table data and common
+ init
+Date: Tue, 16 Nov 2010 15:11:14 -0600
+Message-ID: <4CE2F372.1010009@ti.com>
+References: <1289849261-29767-2-git-send-email-nm@ti.com> <20101115235153.25f7021e@surf> <4CE1D5FD.2010109@ti.com> <20101116203510.GF9264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52115 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755360Ab0KPU4G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 15:56:06 -0500
-In-Reply-To: <1289940937-31593-1-git-send-email-b-cousson@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:36570 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758916Ab0KPVLR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Nov 2010 16:11:17 -0500
+Received: by mail-gy0-f180.google.com with SMTP id 8so767199gyg.11
+        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 13:11:16 -0800 (PST)
+In-Reply-To: <20101116203510.GF9264@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, sricharan <r.sricharan@ti.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>
 
-From: sricharan <r.sricharan@ti.com>
+Tony Lindgren had written, on 11/16/2010 02:35 PM, the following:
+> * Nishanth Menon <nm@ti.com> [101115 16:43]:
+>> Thomas Petazzoni had written, on 11/15/2010 04:51 PM, the following:
+>>> Hello,
+>>>
+>>> On Mon, 15 Nov 2010 13:27:39 -0600
+>>> Nishanth Menon <nm@ti.com> wrote:
+>>>
+>>>> +++ b/arch/arm/mach-omap2/opp3xxx_data.h
+>>>> +
+>>>> +static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+>>>> +
+>>>> +static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+>>> Do we really want to have structure definitions in an header file ?
+>>> Unless I'm wrong, this means that if the opp3xxx_data.h file is
+>>> included in two different C files, the structures will be present twice.
+>> The intent here - DONT DO precisely THAT!
+>>> As far as I could see, most of the kernel instantiate structure in C
+>>> files instead.
+>> The intent here though was that opp3xx.h and opp4xx.h are private to
+>> just opp.c to prevent misuse elsewhere. hmm.. thinking a bit,
+>> find drivers/ -iname "*.c"|xargs grep "#include"| grep -v "\.h"
+>> shows numerous examples of .c files being included in c files. I
+>> dont have an issue of renaming these headers as .c file instead (I
+>> had carried them over as .h from old implementation, but we can
+>> change it), main point being, I just dont want folks mucking around
+>> and hacking stuff with the defines.
+> 
+> What usually works best is to have common opp.c, then have opp34xx.c
+> that has initcall that registers the data in opp.c.
+> 
+> That leaves out if cpu_is_omapxxx else if stuff in opp.c and then
+> adding support for new omaps is just a matter of doing oppxxxx.c.
 
-The mux framework allows the change of pad configuration by drivers
-when needed. Prior to this the mux framework has to be initialised
-with all the mux parameters specific to the board. The mux init is
-already present in the board file for SDP. Adding the mux init
-for panda boards.
-
-Signed-off-by: sricharan <r.sricharan@ti.com>
-Acked-by: Anand Gadiyar <gadiyar@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/Kconfig            |    2 ++
- arch/arm/mach-omap2/board-omap4panda.c |   16 ++++++++++++++++
- 2 files changed, 18 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 39229cf..186d270 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -290,6 +290,8 @@ config MACH_OMAP4_PANDA
- 	bool "OMAP4 Panda Board"
- 	default y
- 	depends on ARCH_OMAP4
-+	select OMAP_PACKAGE_CBL
-+	select OMAP_PACKAGE_CBS
- 
- config OMAP3_EMU
- 	bool "OMAP3 debugging peripherals"
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 1ecd0a6..801f814 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -40,6 +40,7 @@
- 
- #include "hsmmc.h"
- #include "control.h"
-+#include "mux.h"
- 
- #define GPIO_HUB_POWER		1
- #define GPIO_HUB_NRESET		62
-@@ -368,8 +369,23 @@ static int __init omap4_panda_i2c_init(void)
- 	omap_register_i2c_bus(4, 400, NULL, 0);
- 	return 0;
- }
-+
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
-+
- static void __init omap4_panda_init(void)
- {
-+	int package = OMAP_PACKAGE_CBS;
-+
-+	if (omap_rev() == OMAP4430_REV_ES1_0)
-+		package = OMAP_PACKAGE_CBL;
-+	omap4_mux_init(board_mux, package);
-+
- 	omap4_panda_i2c_init();
- 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
- 	omap_serial_init();
+Series rev4 already posted here:
+http://marc.info/?l=linux-omap&m=128993367212640&w=2
+I believe I have taken care of the comments there - do let me know if I 
+screwed anything up here..
 -- 
-1.7.0.4
-
+Regards,
+Nishanth Menon
