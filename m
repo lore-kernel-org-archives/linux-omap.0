@@ -1,53 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 1/3] omap: opp: add OMAP3 OPP table data and common
- init
-Date: Tue, 16 Nov 2010 12:37:51 -0800
-Message-ID: <20101116203751.GG9264@atomide.com>
-References: <1289849261-29767-2-git-send-email-nm@ti.com>
- <20101116122128.5c6cc050@surf>
- <4CE2710A.3010804@ti.com>
- <20101116134220.1bb818c0@surf>
- <4CE2A1DA.3020203@ti.com>
- <20101116165039.7e6b8e16@surf>
- <8762vxjlbs.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 2/3] OMAP: use generic DPI panel driver in board files
+Date: Tue, 16 Nov 2010 12:41:04 -0800
+Message-ID: <20101116204104.GH9264@atomide.com>
+References: <1289881031-21354-1-git-send-email-bryan.wu@canonical.com>
+ <1289881031-21354-3-git-send-email-bryan.wu@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52207 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57185 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755272Ab0KPUiC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 15:38:02 -0500
+	with ESMTP id S1754409Ab0KPUlP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 15:41:15 -0500
 Content-Disposition: inline
-In-Reply-To: <8762vxjlbs.fsf@deeprootsystems.com>
+In-Reply-To: <1289881031-21354-3-git-send-email-bryan.wu@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Bryan Wu <bryan.wu@canonical.com>
+Cc: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
 
-* Kevin Hilman <khilman@deeprootsystems.com> [101116 08:06]:
-> Thomas Petazzoni <thomas.petazzoni@free-electrons.com> writes:
+* Bryan Wu <bryan.wu@canonical.com> [101115 20:08]:
+> Still keep sharp_ls_panel, since the sharp_ls_panel driver contains blacklight
+> control driver code which will be moved out later. Then we can use generic DPI
+> driver for sharp_ls_panel.
 > 
-> > On Tue, 16 Nov 2010 09:23:06 -0600
-> > Nishanth Menon <nm@ti.com> wrote:
-> >
-> >> my initial implementation had forced board files to call the 
-> >> opp_init_table, then changed that here:
-> >> http://marc.info/?l=linux-omap&m=127431810922704&w=2
-> >> Kevin seemed happy with the change here:
-> >> http://marc.info/?l=linux-omap&m=127507237109393&w=2
-> >
-> > Ok, if Kevin is happy with this solution, fair enough. Sorry for the
-> > noise, and thanks for your answers.
-> 
-> Yes, I'm not a big fan of the init function called multiple times
-> either, but I really want to minimize what board files have to do.
-> 
-> Historically, we tend to add all the init functions to every board file,
-> and this is getting cumbersome to understand and maintain.  What we need
-> is for common code to take care of sensible defaults for all boards, and
-> then only boards with non-default behavior have to have custom code.
+> Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+> ---
+>  arch/arm/mach-omap2/board-3430sdp.c      |   12 +++++++++---
+>  arch/arm/mach-omap2/board-am3517evm.c    |   23 +++++++++++++++++------
+>  arch/arm/mach-omap2/board-cm-t35.c       |   23 +++++++++++++++++------
+>  arch/arm/mach-omap2/board-devkit8000.c   |   26 ++++++++++++++++++--------
+>  arch/arm/mach-omap2/board-igep0020.c     |   12 +++++++++---
+>  arch/arm/mach-omap2/board-omap3beagle.c  |   12 +++++++++---
+>  arch/arm/mach-omap2/board-omap3evm.c     |   12 +++++++++---
+>  arch/arm/mach-omap2/board-omap3stalker.c |   23 +++++++++++++++++------
+>  8 files changed, 105 insertions(+), 38 deletions(-)
 
-Yeah. The initial comment from Thomas with data in .h file should
-be fixed though.
+Here's my ack for these changes once Tomi is happy with the
+series:
 
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
