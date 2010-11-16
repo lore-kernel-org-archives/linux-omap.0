@@ -1,46 +1,64 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v3 1/3] omap: opp: add OMAP3 OPP table data and common
- init
-Date: Tue, 16 Nov 2010 09:56:46 -0600
-Message-ID: <4CE2A9BE.2010304@ti.com>
-References: <[PATCH 0/3 v2] omap: opp: Add opp data>	<1289849261-29767-2-git-send-email-nm@ti.com>	<20101116122128.5c6cc050@surf>	<4CE2710A.3010804@ti.com>	<20101116134220.1bb818c0@surf>	<4CE2A1DA.3020203@ti.com> <20101116165039.7e6b8e16@surf>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: [PATCH 5/6] OMAP: powerdomain: Arch specific funcs for mem
+ control
+Date: Tue, 16 Nov 2010 17:09:38 +0100
+Message-ID: <20101116170938.0d83e1e4@surf>
+References: <1289921886-5139-1-git-send-email-rnayak@ti.com>
+	<1289921886-5139-2-git-send-email-rnayak@ti.com>
+	<1289921886-5139-3-git-send-email-rnayak@ti.com>
+	<1289921886-5139-4-git-send-email-rnayak@ti.com>
+	<1289921886-5139-5-git-send-email-rnayak@ti.com>
+	<1289921886-5139-6-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:49938 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754151Ab0KPP4v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Nov 2010 10:56:51 -0500
-Received: by mail-yx0-f179.google.com with SMTP id 22so408468yxn.10
-        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 07:56:50 -0800 (PST)
-In-Reply-To: <20101116165039.7e6b8e16@surf>
+Received: from mail.free-electrons.com ([88.190.12.23]:60663 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753819Ab0KPQJu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 11:09:50 -0500
+In-Reply-To: <1289921886-5139-6-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony <tony@atomide.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, khilman@deeprootsystems.com
 
-Thomas Petazzoni had written, on 11/16/2010 09:50 AM, the following:
-> On Tue, 16 Nov 2010 09:23:06 -0600
-> Nishanth Menon <nm@ti.com> wrote:
-> 
->> my initial implementation had forced board files to call the 
->> opp_init_table, then changed that here:
->> http://marc.info/?l=linux-omap&m=127431810922704&w=2
->> Kevin seemed happy with the change here:
->> http://marc.info/?l=linux-omap&m=127507237109393&w=2
-> 
-> Ok, if Kevin is happy with this solution, fair enough. Sorry for the
-> noise, and thanks for your answers.
-Thanks for taking the time to review and the comments. It is always a 
-good idea to evolve to a better solution.
+Hello,
 
-If there are no further comments, I will post a v4 later today 
-incorporating comments:
-a) return error instead of 0 if opp table is already initialized
-b) change the .h to .c
+On Tue, 16 Nov 2010 21:08:05 +0530
+Rajendra Nayak <rnayak@ti.com> wrote:
 
+> Define the following architecture specific funtions for omap2/3/4
+
+funtions -> functions.
+
+> +/* Common Internal functions used across OMAP rev's*/
+> +int _get_mem_bank_onstate_mask(u8 bank)
+> +{
+> +	switch (bank) {
+> +	case 0:
+> +		return OMAP_MEM0_ONSTATE_MASK;
+> +	case 1:
+> +		return OMAP_MEM1_ONSTATE_MASK;
+> +	case 2:
+> +		return OMAP_MEM2_ONSTATE_MASK;
+> +	case 3:
+> +		return OMAP_MEM3_ONSTATE_MASK;
+> +	case 4:
+> +		return OMAP_MEM4_ONSTATE_MASK;
+> +	default:
+> +		WARN_ON(1); /* should never happen */
+> +		return -EEXIST;
+
+EEXIST is the error code for "File exists", so here I would rather
+expect something like ENOENT. But I understand that it was already
+-EEXIST in the existing code.
+
+Thanks,
+
+Thomas
 -- 
-Regards,
-Nishanth Menon
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
