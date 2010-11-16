@@ -1,51 +1,76 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: [PATCH v3 1/3] omap: opp: add OMAP3 OPP table data and common
- init
-Date: Tue, 16 Nov 2010 12:21:28 +0100
-Message-ID: <20101116122128.5c6cc050@surf>
-References: <[PATCH 0/3 v2] omap: opp: Add opp data>
-	<1289849261-29767-2-git-send-email-nm@ti.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: [PATCH v4 3/7] OMAP: DSS2: Introduce omap_channel as a
+ omap_dss_device parameter
+Date: Tue, 16 Nov 2010 16:52:16 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034C10218C@dbde02.ent.ti.com>
+References: <1289219065-1362-1-git-send-email-archit@ti.com>
+	 <1289219065-1362-4-git-send-email-archit@ti.com>
+ <1289904957.2668.75.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:41133 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932917Ab0KPLVh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 06:21:37 -0500
-In-Reply-To: <1289849261-29767-2-git-send-email-nm@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45087 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932917Ab0KPLWZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 06:22:25 -0500
+In-Reply-To: <1289904957.2668.75.camel@tubuntu>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony <tony@atomide.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
 
-Hello,
+Hi,
 
-On Mon, 15 Nov 2010 13:27:39 -0600
-Nishanth Menon <nm@ti.com> wrote:
+Tomi Valkeinen wrote:
+> Hi,
+> 
 
-> +	/*
-> +	 * Allow multiple calls, but initialize only if not already initalized
+[snip]
 
-Minor: s/initalized/initialized/.
+>> diff --git a/arch/arm/plat-omap/include/plat/display.h
+>> b/arch/arm/plat-omap/include/plat/display.h
+>> index 586944d..3e6eec1 100644
+>> --- a/arch/arm/plat-omap/include/plat/display.h
+>> +++ b/arch/arm/plat-omap/include/plat/display.h
+>> @@ -434,6 +434,7 @@ struct omap_dss_device {
+>>         struct omap_overlay_manager *manager;
+>> 
+>>         enum omap_dss_display_state state;
+>> +       enum omap_channel channel;
+> 
+> Isn't this the same as dssdev->manager->id?
+> 
+> Yes, this channel stuff is a bit confusing, even the enum "omap_channel"
+> is badly named (should at least have "dss" in it). But
+> omap_overlay_manager should represent the output pipe, so I
+> don't think there's need for channel field in dss_device.
 
-> +	 * even if the previous call failed, coz, no reason we'd succeed again
-> +	 */
-> +	if (omap_table_init)
-> +		return 0;
-> +	omap_table_init = 1;
+The panel somehow needs to tell which manager it is connected to. We went with
+with the way of declaring a new member 'channel' and setting that parameter up in the
+board file.
 
-Do we really need this ? I personaly don't really like this quite of
-"Hey, I'm already initialized, let's do nothing silently then". Unless
-there are strong reasons for which this function could be called twice,
-I'd rather not have this, or turn this into a BUG_ON(omap_table_init ==
-1).
+The current way to relate the manager and device is done by checking the dssdev->type
+in dss_recheck_connections() and then calling set_device()
 
-Regards,
+This is not sufficient any more since two of the managers can support similar types of
+displays.
 
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+So in the channel approach the following happens:
+
+-mgr->id's are initialized at bootup.
+-devices and managers are connected using 'channel'.
+-mgr->id automatically becomes equal to channel.
+
+Can we set something like dssdev->manager->id in the board file itself?
+
+Archit
+
+> 
+> I think in many places we could even pass
+> omap_overlay_manager pointer around, instead of omap_channel.
+> However, for low level dispc functions it's perhaps cleaner
+> to pass the channel ID though.
+> 
+>  Tomi
