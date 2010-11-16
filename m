@@ -1,58 +1,102 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap4: enable L2 prefetching
-Date: Tue, 16 Nov 2010 10:11:57 -0800
-Message-ID: <20101116181157.GY9264@atomide.com>
-References: <1289838044-32016-1-git-send-email-nm@ti.com>
- <yw1xaala8qex.fsf@unicorn.mansr.com>
+From: Grant Erickson <marathon96@gmail.com>
+Subject: Re: [PATCH] Add OMAP Support for Generic PWM Devices using Dual-mode
+ Timers
+Date: Tue, 16 Nov 2010 10:13:43 -0800
+Message-ID: <C90809D7.1FED0%marathon96@gmail.com>
+References: <874obhi4nb.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45399 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754817Ab0KPSMG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 13:12:06 -0500
-Content-Disposition: inline
-In-Reply-To: <yw1xaala8qex.fsf@unicorn.mansr.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:44322 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754817Ab0KPSNu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 13:13:50 -0500
+Received: by pzk28 with SMTP id 28so267812pzk.19
+        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 10:13:50 -0800 (PST)
+In-Reply-To: <874obhi4nb.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?TcOlbnMgUnVsbGfDpXJk?= <mans@mansr.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-* M=C3=A5ns Rullg=C3=A5rd <mans@mansr.com> [101115 09:01]:
-> Nishanth Menon <nm@ti.com> writes:
->=20
-> > From: Mans Rullgard <mans@mansr.com>
-> >
-> > Enabling L2 prefetching improves performance as shown on Panda
-> > ES2.1 board with mem test, and it has measurable impact on
-> > performances. I think we should consider it, even though it damages
-> > "writes" a bit. (rebased to k.org)
-> > Usually the prefetch is used at both levels together L1 + L2, howev=
-er,
-> > to enable the CP15 prefetch engines, these are under security, and =
-on
-> > GP devices, we cannot enable it(e.g. on PandaBoard). However, just
-> > enabling PL310 prefetch seems to provide performance improvement,
-> > as shown in the data below (from Ubuntu) and would be a great thing
-> > to pull in.
->=20
-> What this does is enable automatic next line prefetching.  With this
-> enabled, whenever the PL310 receives a cachable read request, it
-> automatically prefetches the following cache line as well.  A larger
-> offset can be programmed in secure mode, but the TI ROM authors
-> neglected to include this.
->=20
-> Testing with FFmpeg showed a speedup of 10% with this patch in some
-> cases.
+On 11/16/10 9:01 AM, Kevin Hilman wrote:
+> Grant Erickson <marathon96@gmail.com> writes:
+>> This patch adds support to request and use one or more of the OMAP
+>> dual-mode timers as a generic PWM device compatible with other generic
+>> PWM drivers such as the PWM backlight or PWM beeper driver.
+> 
+> How will this co-exist with the PWM on the twl6030 PMIC
+> (drivers/mfd/twl6030-pwm.c.)? Both are exporting the same API.
 
-M=C3=A5ns and Nishant, care to repost this with the updated comments?
+That's an excellent question. This driver started life in the 2.6.32 tree
+where twl6030-pwm.c didn't exist. Thanks for the heads-up.
 
-Regards,
+The right short-term solution is to probably change the configuration from:
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    config HAVE_PWM
+
+to:
+
+    config OMAP_PWM
+        select HAVE_PWM
+
+and then have it conflict with TWL6030_PWM if that's enabled.
+
+> Regarding multilpe PWM drivers, there has been discussion on the
+> linux-embedded list[1] regarding a more generic PWM framework, and a few
+> other projects working on PWM for OMAP[2].  Someone needs to step up and
+> consolidate/push this work forward as there is a clear need for a more
+> generic PWM infrastructure on various SoCs.  Your work is another
+> example of similar work that needs to be coordinated with the other projects.
+> 
+>> Boards can register such devices using platform data such as in the following
+>> example:
+>> 
+>> static struct omap2_pwm_platform_config pwm_config = {
+>>    .timer_id           = 10,   // GPT10_PWM_EVT
+>>    .polarity           = 1     // Active-high
+>> };
+> 
+> Board code should not have to know which timers are PWM capable.  This
+> information is fixed at the SoC level.
+
+Fair enough; however, board code does have to know which PWM outputs are
+tied to which piece of hardware being driven by it. In the OMAP3, there
+isn't an any-to-any mapping of PWM timers to PWM-capable output pins.
+
+So, in this case, I explicitly:
+
+1) configure that pin multiplexer as GPT10_PWM_EVT.
+2) make available GPT10_PWM_EVT as a generic PWM because that's the one
+   precisely tied to the display backlight.
+3) ensure that the backlight driver asks for the right generic PWM
+   associated with it.
+  
+> This information is available and is part of the in-progress conversion
+> of the timers to use the omap_hwmod infrastructure.  There are subsets
+> of the timers that have various features (1ms timers, PWM capable, etc.)
+> Using hwmod classes, they can be grouped together such that board code
+> does not have to know which timers on which SoC are PWM capable.   It
+> can simply request a timer with certain capabilities.
+> 
+> Kevin
+> 
+> [1] http://marc.info/?l=linux-embedded&m=128594628918269&w=2
+> [2] http://marc.info/?l=linux-embedded&m=128599642406671&w=2
+
+I'll take a look at those references.
+
+With the appropriate configuration change to avoid the conflict with
+TWL6030-PWM, it's probably better to have this driver in-tree than not.
+It'll give those working on the PWM abstraction and rework another working
+use case to integrate and work from.
+
+Thanks for the feedback and the references.
+
+Best,
+
+Grant
+
+
