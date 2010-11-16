@@ -1,29 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3/3] OMAP: wd_timer: remove old, dead probing code
-Date: Tue, 16 Nov 2010 09:29:21 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1011160928480.32653@utopia.booyaka.com>
-References: <20101116102205.27991.37909.stgit@twilight.localdomain> <20101116102518.27991.38133.stgit@twilight.localdomain> <4CE27D7F.1030107@ru.mvista.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/7] OMAP: mux: Add support for control module split in
+ several partitions
+Date: Tue, 16 Nov 2010 08:41:49 -0800
+Message-ID: <20101116164149.GQ9264@atomide.com>
+References: <1289511321-18532-1-git-send-email-b-cousson@ti.com>
+ <1289511321-18532-3-git-send-email-b-cousson@ti.com>
+ <20101115200316.GK9264@atomide.com>
+ <4CE1AA4A.10602@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38083 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754502Ab0KPQ3W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 11:29:22 -0500
-In-Reply-To: <4CE27D7F.1030107@ru.mvista.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58586 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754627Ab0KPQm3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 11:42:29 -0500
+Content-Disposition: inline
+In-Reply-To: <4CE1AA4A.10602@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha Varadarajan <charu@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-On Tue, 16 Nov 2010, Sergei Shtylyov wrote:
-
-> On 16-11-2010 13:25, Paul Walmsley wrote:
+* Cousson, Benoit <b-cousson@ti.com> [101115 13:36]:
+> Hi Tony,
 > 
-> > After commit f2ce62312650211f6cf665cd6dc519c334c4071e, watchdog
+> On 11/15/2010 9:03 PM, Tony Lindgren wrote:
+> >* Benoit Cousson<b-cousson@ti.com>  [101111 13:26]:
+> >>Starting on OMAP4, the pin mux configuration is located in two
+> >>different partitions of the control module (CODE_PAD and WKUP_PAD).
+> >>The first one is inside the core power domain whereas the second
+> >>one is inside the wakeup.
+> >>- Add the capability to add any number of partition during board init
+> >>time depending of Soc partitioning.
+> >>- Add some init flags as well in order to avoid explicit Soc version
+> >>check inside the mux core code.
+> >>- Add a comment with mux0 mode on top of omap_mux/board/<partition>
+> >>if the current mux mode is not the default one.
+> >
+> >Here's one more patch that I'd like to merge into this patch to avoid
+> >repeating the partition for each mux entry.
 > 
->    Linus has asked to also specify the commit summary in parens...
+> The memory vendors will not like you ;-)
+> 
+> >Assuming no more comments, I'll queue these for 2.6.38 merge window.
+> 
+> I'll update the series and re-post tomorrow.
 
-Thanks, will do.
+Thanks, no need to post them again, I already have them queued
+locally, they will hit for-next and linux-omap master today.
 
-- Paul
+BTW, next time you do a git branch, please base it on Linus recent
+-rc tag instead of linux-omap master branch. We don't want the
+history of linux-omap master branch merged to the mainline tree..
+
+Only if there are conflicts, then the git branches should be
+based on some other static commit that needs to be agreed separately.
+
+Regards,
+
+Tony
