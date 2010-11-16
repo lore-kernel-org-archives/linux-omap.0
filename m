@@ -1,61 +1,70 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Add OMAP Support for Generic PWM Devices using Dual-mode Timers
-Date: Tue, 16 Nov 2010 09:01:44 -0800
-Message-ID: <874obhi4nb.fsf@deeprootsystems.com>
-References: <1289762929-7682-1-git-send-email-marathon96@gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/7] OMAP: mux: Add support for control module split in
+ several partitions
+Date: Tue, 16 Nov 2010 18:03:13 +0100
+Message-ID: <4CE2B951.2070609@ti.com>
+References: <1289511321-18532-1-git-send-email-b-cousson@ti.com> <1289511321-18532-3-git-send-email-b-cousson@ti.com> <20101115200316.GK9264@atomide.com> <4CE1AA4A.10602@ti.com> <20101116164149.GQ9264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:41311 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934Ab0KPRBs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 12:01:48 -0500
-Received: by qwh6 with SMTP id 6so723061qwh.19
-        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 09:01:48 -0800 (PST)
-In-Reply-To: <1289762929-7682-1-git-send-email-marathon96@gmail.com> (Grant
-	Erickson's message of "Sun, 14 Nov 2010 11:28:49 -0800")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41039 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752768Ab0KPRDT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Nov 2010 12:03:19 -0500
+In-Reply-To: <20101116164149.GQ9264@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Erickson <marathon96@gmail.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Grant Erickson <marathon96@gmail.com> writes:
+Hi Tony,
 
-> This patch adds support to request and use one or more of the OMAP
-> dual-mode timers as a generic PWM device compatible with other generic
-> PWM drivers such as the PWM backlight or PWM beeper driver.
-
-How will this co-exist with the PWM on the twl6030 PMIC
-(drivers/mfd/twl6030-pwm.c.)    Both are exporting the same API.
-
-Regarding multilpe PWM drivers, there has been discussion on the
-linux-embedded list[1] regarding a more generic PWM framework, and a few
-other projects working on PWM for OMAP[2].  Someone needs to step up and
-consolidate/push this work forward as there is a clear need for a more
-generic PWM infrastructure on various SoCs.  Your work is another
-example of similar work that needs to be coordinated with the other projects.
-
-> Boards can register such devices using platform data such as in the following
-> example:
+On 11/16/2010 5:41 PM, Tony Lindgren wrote:
+> * Cousson, Benoit<b-cousson@ti.com>  [101115 13:36]:
+>> Hi Tony,
+>>
+>> On 11/15/2010 9:03 PM, Tony Lindgren wrote:
+>>> * Benoit Cousson<b-cousson@ti.com>   [101111 13:26]:
+>>>> Starting on OMAP4, the pin mux configuration is located in two
+>>>> different partitions of the control module (CODE_PAD and WKUP_PAD).
+>>>> The first one is inside the core power domain whereas the second
+>>>> one is inside the wakeup.
+>>>> - Add the capability to add any number of partition during board init
+>>>> time depending of Soc partitioning.
+>>>> - Add some init flags as well in order to avoid explicit Soc version
+>>>> check inside the mux core code.
+>>>> - Add a comment with mux0 mode on top of omap_mux/board/<partition>
+>>>> if the current mux mode is not the default one.
+>>>
+>>> Here's one more patch that I'd like to merge into this patch to avoid
+>>> repeating the partition for each mux entry.
+>>
+>> The memory vendors will not like you ;-)
+>>
+>>> Assuming no more comments, I'll queue these for 2.6.38 merge window.
+>>
+>> I'll update the series and re-post tomorrow.
 >
-> 	static struct omap2_pwm_platform_config pwm_config = {
-> 	    .timer_id           = 10,   // GPT10_PWM_EVT
-> 	    .polarity           = 1     // Active-high
-> 	};
+> Thanks, no need to post them again, I already have them queued
+> locally, they will hit for-next and linux-omap master today.
 
-Board code should not have to know which timers are PWM capable.  This
-information is fixed at the SoC level.  
+OK, but I already did it because there is a checkpatch issue in your 
+first patch and I received another patch from Dan to add __func__ in the 
+pr_xxx macros.
+I can repost, or you can get the update in my GIT (ctrl-wip/mux-omap4-v4).
 
-This information is available and is part of the in-progress conversion
-of the timers to use the omap_hwmod infrastructure.  There are subsets
-of the timers that have various features (1ms timers, PWM capable, etc.)
-Using hwmod classes, they can be grouped together such that board code
-does not have to know which timers on which SoC are PWM capable.   It
-can simply request a timer with certain capabilities.
+> BTW, next time you do a git branch, please base it on Linus recent
+> -rc tag instead of linux-omap master branch. We don't want the
+> history of linux-omap master branch merged to the mainline tree..
 
-Kevin
+Euh, this is what I already did for this series. Quoting myself:
 
-[1] http://marc.info/?l=linux-embedded&m=128594628918269&w=2
-[2] http://marc.info/?l=linux-embedded&m=128599642406671&w=2
+"The series is based on mainline (2.6.37-rc1) and is available here:
+git://gitorious.org/omap-pm/linux.git ctrl-wip/mux-omap4-v3"
 
+Did I messed up something?
+
+Regards,
+Benoit
 
