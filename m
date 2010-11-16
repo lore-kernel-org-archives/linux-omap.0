@@ -1,38 +1,95 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH v2] OMAP: DSS2: OMAPFB: Add null pointer check
-Date: Tue, 16 Nov 2010 15:36:41 +0200
-Message-ID: <1289914601.2668.97.camel@tubuntu>
-References: <1289908147-12468-1-git-send-email-samreen@ti.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
+Date: Tue, 16 Nov 2010 20:02:36 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0356E0F690@dbde02.ent.ti.com>
+References: <1285594634-19277-1-git-send-email-s-ghorai@ti.com>
+ <1285594634-19277-2-git-send-email-s-ghorai@ti.com>
+ <20100928222727.GS3117@atomide.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B0356AEEDE2@dbde02.ent.ti.com>
+ <20101105211238.GT9264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:28961 "EHLO mgw-da02.nokia.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38870 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752521Ab0KPOR0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Nov 2010 09:17:26 -0500
-In-Reply-To: <1289908147-12468-1-git-send-email-samreen@ti.com>
+	id S1754749Ab0KPOcr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 09:32:47 -0500
+In-Reply-To: <20101105211238.GT9264@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Samreen <samreen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 2010-11-16 at 12:49 +0100, ext Samreen wrote:
-> A null pointer check added. And using kstrdup()
-> instead of kmalloc() & strcpy()
+
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Saturday, November 06, 2010 2:43 AM
+> To: Ghorai, Sukumar
+> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
 > 
-> Signed-off-by: Samreen <samreen@ti.com>
-> ---
-> Version2:
->    - Using kstrdup() instead of kmalloc() & strcpy()
->    - Using ENOMEM as error code instead of EINVAL
->    - Subject changed appropriately
+> * Ghorai, Sukumar <s-ghorai@ti.com> [101028 07:02]:
+> > Tony,
+> >
+> > > -----Original Message-----
+> > > From: Ghorai, Sukumar
+> > > Sent: Wednesday, September 29, 2010 12:08 PM
+> > > To: 'Tony Lindgren'
+> > > Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-
+> arm-
+> > > kernel@lists.infradead.org
+> > > Subject: RE: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
+> > >
+> > >
+> > [..snip..]
+> >
+> > > > > diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-
+> > > > omap2/board-3430sdp.c
+> > > > > index 67b95b5..549cd62 100644
+> > > > > --- a/arch/arm/mach-omap2/board-3430sdp.c
+> > > > > +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> > > > > @@ -328,6 +328,7 @@ static void __init omap_3430sdp_init_irq(void)
+> > > > >  	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
+> > > > >  	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
+> > > > >  	omap_init_irq();
+> > > > > +	gpmc_init();
+> > > > >  	omap_gpio_init();
+> > > > >  }
+> > > > ...
+> > > >
+> > > > You can avoid adding gpmc_init() by making it a subsys_initcall().
+> > > > Just make sure you return early from it with if
+> (!cpu_class_is_omap2()).
+> > > [Ghorai] will do
+> > > >
+> > [Ghorai] I was trying this and no success, as nand_init() get called
+> before  subsys_initcall(gpmc_init);
+> >
+> > 126 MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
+> > ..
+> > 130         .init_irq       = omap_zoom_init_irq,
+> > 131         .init_machine   = omap_zoom_init,
+> > ..
+> >
+> > Step-(n):
+> > 	kernel_init() -> customize_machine()
+> >              -> omap_zoom_init() -> gpmc_nand_init() -> which call gpmc
+> >                 functions, that's crashing, as gpmc is not initialized.
+> >
+> > Step-(n+1):
+> > 	Followed by subsys_initcall(gpmc_init)
+> >
+> > So I will incorporate the other input and will re-submit.
+> > [..snip..]
 > 
-> The link to v1 of patch is:
-> https://patchwork.kernel.org/patch/319642/
-
-Thanks, applied.
-
- Tomi
-
-
+> I don't see why you could not make gpmc_nand_init happen later?
+> Also, some of these calls can be moved to omap2_init_common_hw()?
+> 
+[Ghorai] is it that gpmc_nand_init() better to call inside omap2_init_common_hw()? 
+27 files used the omap2_init_common_hw(); including omap4, and 
+15 files used the gpmc_nand_init directly or via board_nand_init()
+Just thinking how to put gpmc_nand_init() inside omap2_init_common_hw(), when board may not have the nand.
