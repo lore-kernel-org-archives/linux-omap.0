@@ -1,65 +1,71 @@
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
-Subject: [PATCH] i2c-omap: Set latency requirements only once for several messages
-Date: Tue, 16 Nov 2010 10:28:20 +0200
-Message-ID: <1289896100-28881-1-git-send-email-samu.p.onkalo@nokia.com>
+From: Marc Zyngier <maz@misterjones.org>
+Subject: Re: [PATCH] Fix IGEPv2 second MMC channel power supply
+Date: Tue, 16 Nov 2010 09:20:22 +0000
+Message-ID: <20101116092022.7b4ea99f@taxman.wild-wind.fr.eu.org>
+References: <1289734452-31625-1-git-send-email-maz@misterjones.org>
+	<14a0f1b94e21549cf4ad2f33647364e3@secure211.sgcpanel.com>
+	<AANLkTi=wJ24iqN8+tPw=AOO1H7u0oxaO=SaBh5-Lxr_m@mail.gmail.com>
+	<20101114185207.252e3c1f@taxman.wild-wind.fr.eu.org>
+	<AANLkTimuf1khCKLc4Bc23gONxqPGmq1N3j3kSjkzccPu@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:17429 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757230Ab0KPI2m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Nov 2010 03:28:42 -0500
+Received: from inca-roads.misterjones.org ([213.251.177.50]:46217 "EHLO
+	inca-roads.misterjones.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934022Ab0KPJUZ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Nov 2010 04:20:25 -0500
+In-Reply-To: <AANLkTimuf1khCKLc4Bc23gONxqPGmq1N3j3kSjkzccPu@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, samu.p.onkalo@nokia.com
+To: Enric =?ISO-8859-1?B?QmFsbGV0YvI=?= i Serra <eballetbo@gmail.com>
+Cc: Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-Ordinary I2C read consist of two messages. First a write operation
-to tell register address and then read operation to get data.
-CPU wake up latency is set and removed twice in read case.
-Set latency requirement before the message processing loop
-and remove the requirement after the loop to remove latency
-adjustment operations between the messages.
+On Mon, 15 Nov 2010 09:32:22 +0100
+Enric Balletb=F2 i Serra <eballetbo@gmail.com> wrote:
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
----
- drivers/i2c/busses/i2c-omap.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+Hi Enric,
+>=20
+> So the DUMMY_REGULATOR is only a workaround when a regulator is not
+> defined and shouldn't be used ? Sorry if this is a stupid question bu=
+t
+> regulator interface is not too clear for me.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index b33c785..3e9323e 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -616,12 +616,8 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	 * REVISIT: We should abort the transfer on signals, but the bus goes
- 	 * into arbitration and we're currently unable to recover from it.
- 	 */
--	if (dev->set_mpu_wkup_lat != NULL)
--		dev->set_mpu_wkup_lat(dev->dev, dev->latency);
- 	r = wait_for_completion_timeout(&dev->cmd_complete,
- 					OMAP_I2C_TIMEOUT);
--	if (dev->set_mpu_wkup_lat != NULL)
--		dev->set_mpu_wkup_lat(dev->dev, -1);
- 	dev->buf_len = 0;
- 	if (r < 0)
- 		return r;
-@@ -672,12 +668,18 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
- 	if (r < 0)
- 		goto out;
- 
-+	if (dev->set_mpu_wkup_lat != NULL)
-+		dev->set_mpu_wkup_lat(dev->dev, dev->latency);
-+
- 	for (i = 0; i < num; i++) {
- 		r = omap_i2c_xfer_msg(adap, &msgs[i], (i == (num - 1)));
- 		if (r != 0)
- 			break;
- 	}
- 
-+	if (dev->set_mpu_wkup_lat != NULL)
-+		dev->set_mpu_wkup_lat(dev->dev, -1);
-+
- 	if (r == 0)
- 		r = num;
- 
--- 
-1.6.0.4
+My understanding is that DUMMY_REGULATOR kicks in when the regulator
+setup is incomplete, and when it's better to fix things behind the
+user's back rather than leaving him with a broken device.
 
+> The reality is this :
+>=20
+>  -------     --------
+> | 3V3 |   | 1V8 |
+>  -------    --------
+>     |          |
+>  -----------------
+> |   WIFI/BT  |
+>  -----------------
+>         | ( MMC2  at 1V8 )
+>  ----------------
+> |   OMAP   |
+>  ---------------
+>=20
+> 3V3 is a fixed regulator
+> 1V8 is a fixed regulator (VIO from TWL4030)
+>=20
+> So, which you think is the right solution ?
+
+I think we should provide a fixed regulator to the device, wired to
+the .vio field of twl4030_platform_data. I'll submit a patch later
+today, once I get a chance to test it on my board.
+
+Cheers,
+
+	M.
+--=20
+I'm the slime oozin' out from your TV set...
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
