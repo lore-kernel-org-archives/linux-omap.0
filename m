@@ -1,55 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Add OMAP Support for Generic PWM Devices using
- Dual-mode Timers
-Date: Tue, 16 Nov 2010 12:20:31 -0800
-Message-ID: <20101116202031.GD9264@atomide.com>
-References: <C9081DFE.1FEE7%marathon96@gmail.com>
- <87hbfhcagv.fsf@deeprootsystems.com>
+Subject: Re: [PATCH v3 1/3] omap: opp: add OMAP3 OPP table data and common
+ init
+Date: Tue, 16 Nov 2010 12:35:11 -0800
+Message-ID: <20101116203510.GF9264@atomide.com>
+References: <1289849261-29767-2-git-send-email-nm@ti.com>
+ <20101115235153.25f7021e@surf>
+ <4CE1D5FD.2010109@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25411 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48352 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014Ab0KPUUm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 15:20:42 -0500
+	with ESMTP id S1753799Ab0KPUfV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 15:35:21 -0500
 Content-Disposition: inline
-In-Reply-To: <87hbfhcagv.fsf@deeprootsystems.com>
+In-Reply-To: <4CE1D5FD.2010109@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Grant Erickson <marathon96@gmail.com>, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [101116 11:43]:
-> Grant Erickson <marathon96@gmail.com> writes:
-> 
-> [...]
-> 
-> >> Before something like this can merge, I would rather see
-> >> 
-> >> 1) generic PWM framework pushed along and merged
-> >> 2) the dmtimer hwmod conversion finished
-> >> 
-> >> Yes, I know it's a lot more work to fix the core/framework code before
-> >> having a feature included, but having something more generic that can
-> >> actually support multiple PWM sources is clearly needed.
+* Nishanth Menon <nm@ti.com> [101115 16:43]:
+> Thomas Petazzoni had written, on 11/15/2010 04:51 PM, the following:
+> >Hello,
 > >
-> > No disagreement on the long-term architectural and design goals. All good
-> > stuff.
+> >On Mon, 15 Nov 2010 13:27:39 -0600
+> >Nishanth Menon <nm@ti.com> wrote:
 > >
-> > However, patches have to be submitted against the repository and branch we
-> > have today, not those we might have tomorrow.
-> 
-> This comment is where we diverge. 
-> 
-> An alternative to waiting for the generic framework cleanup/refactor
-> work is to contribute to it and help it along.
+> >>+++ b/arch/arm/mach-omap2/opp3xxx_data.h
+> >>+
+> >>+static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+> >>+
+> >>+static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+> >
+> >Do we really want to have structure definitions in an header file ?
+> >Unless I'm wrong, this means that if the opp3xxx_data.h file is
+> >included in two different C files, the structures will be present twice.
+> The intent here - DONT DO precisely THAT!
+> >
+> >As far as I could see, most of the kernel instantiate structure in C
+> >files instead.
+> The intent here though was that opp3xx.h and opp4xx.h are private to
+> just opp.c to prevent misuse elsewhere. hmm.. thinking a bit,
+> find drivers/ -iname "*.c"|xargs grep "#include"| grep -v "\.h"
+> shows numerous examples of .c files being included in c files. I
+> dont have an issue of renaming these headers as .c file instead (I
+> had carried them over as .h from old implementation, but we can
+> change it), main point being, I just dont want folks mucking around
+> and hacking stuff with the defines.
 
-Yeah I agree, with Kevin. We should not export any more omap specific
-functions in arch/arm/*omap*/ as they always lead into maintenance
-nightmares later on. We still have several merge cycles of work just
-to get rid of the existing exported functions.
+What usually works best is to have common opp.c, then have opp34xx.c
+that has initcall that registers the data in opp.c.
+
+That leaves out if cpu_is_omapxxx else if stuff in opp.c and then
+adding support for new omaps is just a matter of doing oppxxxx.c.
 
 Regards,
 
 Tony
-
