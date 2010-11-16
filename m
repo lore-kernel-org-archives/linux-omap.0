@@ -1,61 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/7] OMAP: mux: Add support for control module split in
- several partitions
-Date: Tue, 16 Nov 2010 08:41:49 -0800
-Message-ID: <20101116164149.GQ9264@atomide.com>
-References: <1289511321-18532-1-git-send-email-b-cousson@ti.com>
- <1289511321-18532-3-git-send-email-b-cousson@ti.com>
- <20101115200316.GK9264@atomide.com>
- <4CE1AA4A.10602@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/8] OMAP2+: hwmod core upgrades for 2.6.38: first set
+Date: Tue, 16 Nov 2010 09:47:26 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1011160945100.32653@utopia.booyaka.com>
+References: <20101116101615.22777.49212.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58586 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754627Ab0KPQm3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 11:42:29 -0500
-Content-Disposition: inline
-In-Reply-To: <4CE1AA4A.10602@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:46110 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751767Ab0KPQr1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 11:47:27 -0500
+In-Reply-To: <20101116101615.22777.49212.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Cousson, Benoit <b-cousson@ti.com> [101115 13:36]:
-> Hi Tony,
+On Tue, 16 Nov 2010, Paul Walmsley wrote:
+
+> This patch series contains upgrades for the OMAP2+ hwmod core
+> code, intended for 2.6.38.  Most of these patches were developed
+> in response to use-cases discovered while converting device
+> drivers to use the hwmod code.
 > 
-> On 11/15/2010 9:03 PM, Tony Lindgren wrote:
-> >* Benoit Cousson<b-cousson@ti.com>  [101111 13:26]:
-> >>Starting on OMAP4, the pin mux configuration is located in two
-> >>different partitions of the control module (CODE_PAD and WKUP_PAD).
-> >>The first one is inside the core power domain whereas the second
-> >>one is inside the wakeup.
-> >>- Add the capability to add any number of partition during board init
-> >>time depending of Soc partitioning.
-> >>- Add some init flags as well in order to avoid explicit Soc version
-> >>check inside the mux core code.
-> >>- Add a comment with mux0 mode on top of omap_mux/board/<partition>
-> >>if the current mux mode is not the default one.
-> >
-> >Here's one more patch that I'd like to merge into this patch to avoid
-> >repeating the partition for each mux entry.
-> 
-> The memory vendors will not like you ;-)
-> 
-> >Assuming no more comments, I'll queue these for 2.6.38 merge window.
-> 
-> I'll update the series and re-post tomorrow.
+> Tested on an OMAP34xx BeagleBoard with omap2plus_defconfig.
 
-Thanks, no need to post them again, I already have them queued
-locally, they will hit for-next and linux-omap master today.
+Just FYI, this branch 'hwmod_a_2.6.38' is available at 
+git://git.pwsan.com/linux-2.6
 
-BTW, next time you do a git branch, please base it on Linus recent
--rc tag instead of linux-omap master branch. We don't want the
-history of linux-omap master branch merged to the mainline tree..
+Warning: it's based on Tony's tree, not the mainline, due to the recent 
+board file changes.
 
-Only if there are conflicts, then the git branches should be
-based on some other static commit that needs to be agreed separately.
 
-Regards,
-
-Tony
+- Paul
