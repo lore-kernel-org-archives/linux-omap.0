@@ -1,494 +1,458 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/8] OMAP2+: io: split omap2_init_common_hw()
-Date: Tue, 16 Nov 2010 03:18:05 -0700
-Message-ID: <20101116101801.22777.41352.stgit@twilight.localdomain>
+Subject: [PATCH 6/8] OMAP2+: hwmod: upgrade per-hwmod mutex to a spinlock
+Date: Tue, 16 Nov 2010 03:18:10 -0700
+Message-ID: <20101116101809.22777.92945.stgit@twilight.localdomain>
 References: <20101116101615.22777.49212.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51522 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:51541 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934146Ab0KPKTM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 05:19:12 -0500
+	with ESMTP id S934208Ab0KPKTP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 05:19:15 -0500
 In-Reply-To: <20101116101615.22777.49212.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Split omap2_init_common_hw() into two functions.  The first,
-omap2_init_common_infrastructure(), initializes the hwmod code and
-data, the OMAP PM code, and the clock code and data.  The second,
-omap2_init_common_devices(), handles any other early device
-initialization that, for whatever reason, has not been or cannot be
-moved to initcalls or early platform devices.
+Change the per-hwmod mutex to a spinlock.  (The per-hwmod lock
+serializes most post-initialization hwmod operations such as enable,
+idle, and shutdown.)  Spinlocks are needed, because in some cases,
+hwmods must be enabled from timer interrupt disabled-context, such as
+an ISR.  The current use-case that is driving this is the OMAP GPIO
+block ISR: it can trigger interrupts even with its clocks disabled,
+but these clocks are needed for register accesses in the ISR to succeed=
+=2E
 
-This patch is required for the hwmod postsetup patch, which allows
-board files to change the state that hwmods should be placed into at
-the conclusion of the hwmod _setup() function.  For example, for a
-board whose creators wish to ensure watchdog coverage across the
-entire kernel boot process, code to change the watchdog's postsetup
-state will be added in the board-*.c file between the
-omap2_init_common_infrastructure() and omap2_init_common_devices() function
-calls.
+This patch also effectively reverts commit
+848240223c35fcc71c424ad51a8e8aef42d3879c - this patch makes
+_omap_hwmod_enable() and _omap_hwmod_init() static, renames them back
+to _enable() and _idle(), and changes their callers to call the
+spinlocking versions.  Previously, since omap_hwmod_{enable,init}()
+attempted to take mutexes, these functions could not be called while
+the timer interrupt was disabled; but now that the functions use
+spinlocks and save and restore the IRQ state, it is appropriate to
+call them directly.
+
+Kevin Hilman <khilman@deeprootsystems.com> originally proposed this
+patch - thanks Kevin.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c        |    3 ++-
- arch/arm/mach-omap2/board-3430sdp.c        |    3 ++-
- arch/arm/mach-omap2/board-3630sdp.c        |    5 +++--
- arch/arm/mach-omap2/board-4430sdp.c        |    3 ++-
- arch/arm/mach-omap2/board-am3517evm.c      |    4 ++--
- arch/arm/mach-omap2/board-apollon.c        |    3 ++-
- arch/arm/mach-omap2/board-cm-t35.c         |    3 ++-
- arch/arm/mach-omap2/board-cm-t3517.c       |    3 ++-
- arch/arm/mach-omap2/board-devkit8000.c     |    5 +++--
- arch/arm/mach-omap2/board-generic.c        |    3 ++-
- arch/arm/mach-omap2/board-h4.c             |    3 ++-
- arch/arm/mach-omap2/board-igep0020.c       |    4 +++-
- arch/arm/mach-omap2/board-igep0030.c       |    4 +++-
- arch/arm/mach-omap2/board-ldp.c            |    3 ++-
- arch/arm/mach-omap2/board-n8x0.c           |    3 ++-
- arch/arm/mach-omap2/board-omap3beagle.c    |    5 +++--
- arch/arm/mach-omap2/board-omap3evm.c       |    3 ++-
- arch/arm/mach-omap2/board-omap3logic.c     |    3 ++-
- arch/arm/mach-omap2/board-omap3pandora.c   |    5 +++--
- arch/arm/mach-omap2/board-omap3stalker.c   |    3 ++-
- arch/arm/mach-omap2/board-omap3touchbook.c |    5 +++--
- arch/arm/mach-omap2/board-omap4panda.c     |    3 ++-
- arch/arm/mach-omap2/board-overo.c          |    5 +++--
- arch/arm/mach-omap2/board-rx51.c           |    3 ++-
- arch/arm/mach-omap2/board-zoom.c           |    9 +++++----
- arch/arm/mach-omap2/io.c                   |   16 ++++++++++++----
- arch/arm/plat-omap/include/plat/io.h       |    5 +++--
- 27 files changed, 76 insertions(+), 41 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c             |  105 +++++++++++++++---=
+--------
+ arch/arm/mach-omap2/serial.c                 |    9 --
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    6 +
+ 3 files changed, 64 insertions(+), 56 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index b527f8d..7de5e5a 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -143,7 +143,8 @@ static void __init omap_2430sdp_init_irq(void)
- {
- 	omap_board_config = sdp2430_config;
- 	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
+p_hwmod.c
+index 0e85278..589c282 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -135,6 +135,7 @@
+ #include <linux/err.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
++#include <linux/spinlock.h>
+=20
+ #include <plat/common.h>
+ #include <plat/cpu.h>
+@@ -1193,17 +1194,14 @@ static int _reset(struct omap_hwmod *oh)
  }
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 4e3742c..2452dac8c 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -326,7 +326,8 @@ static void __init omap_3430sdp_init_irq(void)
- 	omap_board_config = sdp3430_config;
- 	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
- 	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
--	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(hyb18m512160af6_sdrc_params, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
+=20
+ /**
+- * _omap_hwmod_enable - enable an omap_hwmod
++ * _enable - enable an omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+  * Enables an omap_hwmod @oh such that the MPU can access the hwmod's
+- * register target.  (This function has a full name --
+- * _omap_hwmod_enable() rather than simply _enable() -- because it is
+- * currently required by the pm34xx.c idle loop.)  Returns -EINVAL if
+- * the hwmod is in the wrong state or passes along the return value of
+- * _wait_target_ready().
++ * register target.  Returns -EINVAL if the hwmod is in the wrong
++ * state or passes along the return value of _wait_target_ready().
+  */
+-int _omap_hwmod_enable(struct omap_hwmod *oh)
++static int _enable(struct omap_hwmod *oh)
+ {
+ 	int r;
+=20
+@@ -1250,16 +1248,14 @@ int _omap_hwmod_enable(struct omap_hwmod *oh)
  }
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index bbcf580..40e816a 100644
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -73,8 +73,9 @@ static void __init omap_sdp_init_irq(void)
+=20
+ /**
+- * _omap_hwmod_idle - idle an omap_hwmod
++ * _idle - idle an omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+  * Idles an omap_hwmod @oh.  This should be called once the hwmod has
+- * no further work.  (This function has a full name --
+- * _omap_hwmod_idle() rather than simply _idle() -- because it is
+- * currently required by the pm34xx.c idle loop.)  Returns -EINVAL if
+- * the hwmod is in the wrong state or returns 0.
++ * no further work.  Returns -EINVAL if the hwmod is in the wrong
++ * state or returns 0.
+  */
+-int _omap_hwmod_idle(struct omap_hwmod *oh)
++static int _idle(struct omap_hwmod *oh)
  {
- 	omap_board_config = sdp_config;
- 	omap_board_config_size = ARRAY_SIZE(sdp_config);
--	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
--			h8mbx00u0mer0em_sdrc_params);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(h8mbx00u0mer0em_sdrc_params,
-+				  h8mbx00u0mer0em_sdrc_params);
- 	omap_init_irq();
- 	omap_gpio_init();
+ 	if (oh->_state !=3D _HWMOD_STATE_ENABLED) {
+ 		WARN(1, "omap_hwmod: %s: idle state can only be entered from "
+@@ -1305,11 +1301,11 @@ static int _shutdown(struct omap_hwmod *oh)
+ 	if (oh->class->pre_shutdown) {
+ 		prev_state =3D oh->_state;
+ 		if (oh->_state =3D=3D _HWMOD_STATE_IDLE)
+-			_omap_hwmod_enable(oh);
++			_enable(oh);
+ 		ret =3D oh->class->pre_shutdown(oh);
+ 		if (ret) {
+ 			if (prev_state =3D=3D _HWMOD_STATE_IDLE)
+-				_omap_hwmod_idle(oh);
++				_idle(oh);
+ 			return ret;
+ 		}
+ 	}
+@@ -1382,7 +1378,7 @@ static int _setup(struct omap_hwmod *oh, void *da=
+ta)
+ 	if ((oh->flags & HWMOD_INIT_NO_RESET) && oh->rst_lines_cnt =3D=3D 1)
+ 		return 0;
+=20
+-	r =3D _omap_hwmod_enable(oh);
++	r =3D _enable(oh);
+ 	if (r) {
+ 		pr_warning("omap_hwmod: %s: cannot be enabled (%d)\n",
+ 			   oh->name, oh->_state);
+@@ -1394,7 +1390,7 @@ static int _setup(struct omap_hwmod *oh, void *da=
+ta)
+=20
+ 		/*
+ 		 * OCP_SYSCONFIG bits need to be reprogrammed after a softreset.
+-		 * The _omap_hwmod_enable() function should be split to
++		 * The _enable() function should be split to
+ 		 * avoid the rewrite of the OCP_SYSCONFIG register.
+ 		 */
+ 		if (oh->class->sysc) {
+@@ -1416,7 +1412,7 @@ static int _setup(struct omap_hwmod *oh, void *da=
+ta)
+ 		postsetup_state =3D _HWMOD_STATE_ENABLED;
+=20
+ 	if (postsetup_state =3D=3D _HWMOD_STATE_IDLE)
+-		_omap_hwmod_idle(oh);
++		_idle(oh);
+ 	else if (postsetup_state =3D=3D _HWMOD_STATE_DISABLED)
+ 		_shutdown(oh);
+ 	else if (postsetup_state !=3D _HWMOD_STATE_ENABLED)
+@@ -1522,7 +1518,7 @@ int omap_hwmod_register(struct omap_hwmod *oh)
+=20
+ 	list_add_tail(&oh->node, &omap_hwmod_list);
+=20
+-	mutex_init(&oh->_mutex);
++	spin_lock_init(&oh->_lock);
+=20
+ 	oh->_state =3D _HWMOD_STATE_REGISTERED;
+=20
+@@ -1682,18 +1678,18 @@ int omap_hwmod_unregister(struct omap_hwmod *oh=
+)
+ int omap_hwmod_enable(struct omap_hwmod *oh)
+ {
+ 	int r;
++	unsigned long flags;
+=20
+ 	if (!oh)
+ 		return -EINVAL;
+=20
+-	mutex_lock(&oh->_mutex);
+-	r =3D _omap_hwmod_enable(oh);
+-	mutex_unlock(&oh->_mutex);
++	spin_lock_irqsave(&oh->_lock, flags);
++	r =3D _enable(oh);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return r;
  }
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index df5a425..d6f4798 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -217,7 +217,8 @@ static void __init omap_4430sdp_init_irq(void)
- {
- 	omap_board_config = sdp4430_config;
- 	omap_board_config_size = ARRAY_SIZE(sdp4430_config);
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(1);
- #endif
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 0739950..14039f5 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -389,8 +389,8 @@ static void __init am3517_evm_init_irq(void)
- {
- 	omap_board_config = am3517_evm_config;
- 	omap_board_config_size = ARRAY_SIZE(am3517_evm_config);
+=20
 -
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index 2c6db1a..294bfdf 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -278,7 +278,8 @@ static void __init omap_apollon_init_irq(void)
+ /**
+  * omap_hwmod_idle - idle an omap_hwmod
+  * @oh: struct omap_hwmod *
+@@ -1703,12 +1699,14 @@ int omap_hwmod_enable(struct omap_hwmod *oh)
+  */
+ int omap_hwmod_idle(struct omap_hwmod *oh)
  {
- 	omap_board_config = apollon_config;
- 	omap_board_config_size = ARRAY_SIZE(apollon_config);
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
- 	apollon_init_smc91x();
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 63f764e..583b2ca 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -683,7 +683,8 @@ static void __init cm_t35_init_irq(void)
- 	omap_board_config = cm_t35_config;
- 	omap_board_config_size = ARRAY_SIZE(cm_t35_config);
- 
--	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
- 			     mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
- 	omap_gpio_init();
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index 1dd303e..3820a3c 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -248,7 +248,8 @@ static void __init cm_t3517_init_irq(void)
- 	omap_board_config = cm_t3517_config;
- 	omap_board_config_size = ARRAY_SIZE(cm_t3517_config);
- 
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 53ac762..39cc593 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -444,8 +444,9 @@ static struct platform_device keys_gpio = {
- 
- static void __init devkit8000_init_irq(void)
- {
--	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
--			     mt46h32m32lf6_sdrc_params);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
-+				  mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index b1c2c9a..0e3d81e 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -37,7 +37,8 @@ static void __init omap_generic_init_irq(void)
- {
- 	omap_board_config = generic_config;
- 	omap_board_config_size = ARRAY_SIZE(generic_config);
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
- 	omap_init_irq();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index 929993b..259a765 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -291,7 +291,8 @@ static void __init omap_h4_init_irq(void)
- {
- 	omap_board_config = h4_config;
- 	omap_board_config_size = ARRAY_SIZE(h4_config);
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
- 	h4_init_flash();
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index fe76b59..dc01b89 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -482,7 +482,9 @@ static struct platform_device *igep2_devices[] __initdata = {
- 
- static void __init igep2_init_irq(void)
- {
--	omap2_init_common_hw(m65kxxxxam_sdrc_params, m65kxxxxam_sdrc_params);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(m65kxxxxam_sdrc_params,
-+				  m65kxxxxam_sdrc_params);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-igep0030.c b/arch/arm/mach-omap2/board-igep0030.c
-index 22b0b25..a8907c5 100644
---- a/arch/arm/mach-omap2/board-igep0030.c
-+++ b/arch/arm/mach-omap2/board-igep0030.c
-@@ -289,7 +289,9 @@ static struct twl4030_usb_data igep3_twl4030_usb_data = {
- 
- static void __init igep3_init_irq(void)
- {
--	omap2_init_common_hw(m65kxxxxam_sdrc_params, m65kxxxxam_sdrc_params);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(m65kxxxxam_sdrc_params,
-+				  m65kxxxxam_sdrc_params);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 001fd97..0e373f3 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -292,7 +292,8 @@ static void __init omap_ldp_init_irq(void)
- {
- 	omap_board_config = ldp_config;
- 	omap_board_config_size = ARRAY_SIZE(ldp_config);
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
- 	ldp_init_smsc911x();
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index ebd460e..20dc4c1 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -741,7 +741,8 @@ static void __init n8x0_map_io(void)
- 
- static void __init n8x0_init_irq(void)
- {
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 14f4224..4b48e55 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -484,8 +484,9 @@ static struct platform_device keys_gpio = {
- 
- static void __init omap3_beagle_init_irq(void)
- {
--	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
--			     mt46h32m32lf6_sdrc_params);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
-+				  mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index b04365c..c82a80a 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -623,7 +623,8 @@ static void __init omap3_evm_init_irq(void)
- {
- 	omap_board_config = omap3_evm_config;
- 	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
--	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(mt46h32m32lf6_sdrc_params, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-index 5f7d2c1..8ee2478 100644
---- a/arch/arm/mach-omap2/board-omap3logic.c
-+++ b/arch/arm/mach-omap2/board-omap3logic.c
-@@ -197,7 +197,8 @@ static inline void __init board_smsc911x_init(void)
- 
- static void __init omap3logic_init_irq(void)
- {
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 89ed1be..a9eb59d 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -636,8 +636,9 @@ static struct spi_board_info omap3pandora_spi_board_info[] __initdata = {
- 
- static void __init omap3pandora_init_irq(void)
- {
--	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
--			     mt46h32m32lf6_sdrc_params);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
-+				  mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index f252721..a92d4ea 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -584,7 +584,8 @@ static void __init omap3_stalker_init_irq(void)
- {
- 	omap_board_config = omap3_stalker_config;
- 	omap_board_config_size = ARRAY_SIZE(omap3_stalker_config);
--	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(mt46h32m32lf6_sdrc_params, NULL);
- 	omap_init_irq();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 41104bb..f9281de 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -422,8 +422,9 @@ static void __init omap3_touchbook_init_irq(void)
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_board_config = omap3_touchbook_config;
- 	omap_board_config_size = ARRAY_SIZE(omap3_touchbook_config);
--	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
--			     mt46h32m32lf6_sdrc_params);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
-+				  mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 1ecd0a6..53ea55e 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -76,7 +76,8 @@ static struct platform_device *panda_devices[] __initdata = {
- 
- static void __init omap4_panda_init_irq(void)
- {
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
- 	gic_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 7053bc0..03fa2fd 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -413,8 +413,9 @@ static void __init overo_init_irq(void)
- {
- 	omap_board_config = overo_config;
- 	omap_board_config_size = ARRAY_SIZE(overo_config);
--	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
--			     mt46h32m32lf6_sdrc_params);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
-+				  mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index 36f2cf4..74f1f92 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -105,8 +105,9 @@ static void __init rx51_init_irq(void)
- 	omap_board_config = rx51_config;
- 	omap_board_config_size = ARRAY_SIZE(rx51_config);
- 	omap3_pm_init_cpuidle(rx51_cpuidle_params);
-+	omap2_init_common_infrastructure();
- 	sdrc_params = rx51_get_sdram_timings();
--	omap2_init_common_hw(sdrc_params, sdrc_params);
-+	omap2_init_common_devices(sdrc_params, sdrc_params);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-zoom.c b/arch/arm/mach-omap2/board-zoom.c
-index 3da69e4..057638f 100644
---- a/arch/arm/mach-omap2/board-zoom.c
-+++ b/arch/arm/mach-omap2/board-zoom.c
-@@ -35,12 +35,13 @@
- 
- static void __init omap_zoom_init_irq(void)
- {
-+	omap2_init_common_infrastructure();
- 	if (machine_is_omap_zoom2())
--		omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
--				mt46h32m32lf6_sdrc_params);
-+		omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
-+					  mt46h32m32lf6_sdrc_params);
- 	else if (machine_is_omap_zoom3())
--		omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
--				h8mbx00u0mer0em_sdrc_params);
-+		omap2_init_common_devices(h8mbx00u0mer0em_sdrc_params,
-+					  h8mbx00u0mer0em_sdrc_params);
- 
- 	omap_init_irq();
- 	omap_gpio_init();
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 40562dd..90ce77a 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -311,11 +311,8 @@ static int __init _omap2_init_reprogram_sdrc(void)
- 	return v;
- }
- 
--void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
--				 struct omap_sdrc_params *sdrc_cs1)
-+void __init omap2_init_common_infrastructure(void)
- {
--	u8 skip_setup_idle = 0;
--
- 	pwrdm_init(powerdomains_omap);
- 	clkdm_init(clockdomains_omap, clkdm_autodeps);
- 	if (cpu_is_omap242x())
-@@ -340,6 +337,17 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 		omap4xxx_clk_init();
- 	else
- 		pr_err("Could not init clock framework - unknown CPU\n");
-+}
++	unsigned long flags;
 +
-+/*
-+ * XXX Ideally, this function will dwindle into nothingness over time;
-+ * almost all device init code should be possible through initcalls
-+ * and other generalized mechanisms
-+ */
-+void __init omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs0,
-+				      struct omap_sdrc_params *sdrc_cs1)
-+{
-+	u8 skip_setup_idle = 0;
- 
- 	omap_serial_early_init();
- 
-diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
-index 128b549..f0ad64c 100644
---- a/arch/arm/plat-omap/include/plat/io.h
-+++ b/arch/arm/plat-omap/include/plat/io.h
-@@ -291,8 +291,9 @@ static inline void omap44xx_map_common_io(void)
+ 	if (!oh)
+ 		return -EINVAL;
+=20
+-	mutex_lock(&oh->_mutex);
+-	_omap_hwmod_idle(oh);
+-	mutex_unlock(&oh->_mutex);
++	spin_lock_irqsave(&oh->_lock, flags);
++	_idle(oh);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return 0;
  }
- #endif
- 
--extern void omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
--				 struct omap_sdrc_params *sdrc_cs1);
-+extern void omap2_init_common_infrastructure(void);
-+extern void omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs0,
-+				      struct omap_sdrc_params *sdrc_cs1);
- 
- #define __arch_ioremap(p,s,t)	omap_ioremap(p,s,t)
- #define __arch_iounmap(v)	omap_iounmap(v)
+@@ -1723,12 +1721,14 @@ int omap_hwmod_idle(struct omap_hwmod *oh)
+  */
+ int omap_hwmod_shutdown(struct omap_hwmod *oh)
+ {
++	unsigned long flags;
++
+ 	if (!oh)
+ 		return -EINVAL;
+=20
+-	mutex_lock(&oh->_mutex);
++	spin_lock_irqsave(&oh->_lock, flags);
+ 	_shutdown(oh);
+-	mutex_unlock(&oh->_mutex);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return 0;
+ }
+@@ -1741,9 +1741,11 @@ int omap_hwmod_shutdown(struct omap_hwmod *oh)
+  */
+ int omap_hwmod_enable_clocks(struct omap_hwmod *oh)
+ {
+-	mutex_lock(&oh->_mutex);
++	unsigned long flags;
++
++	spin_lock_irqsave(&oh->_lock, flags);
+ 	_enable_clocks(oh);
+-	mutex_unlock(&oh->_mutex);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return 0;
+ }
+@@ -1756,9 +1758,11 @@ int omap_hwmod_enable_clocks(struct omap_hwmod *=
+oh)
+  */
+ int omap_hwmod_disable_clocks(struct omap_hwmod *oh)
+ {
+-	mutex_lock(&oh->_mutex);
++	unsigned long flags;
++
++	spin_lock_irqsave(&oh->_lock, flags);
+ 	_disable_clocks(oh);
+-	mutex_unlock(&oh->_mutex);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return 0;
+ }
+@@ -1802,13 +1806,14 @@ void omap_hwmod_ocp_barrier(struct omap_hwmod *=
+oh)
+ int omap_hwmod_reset(struct omap_hwmod *oh)
+ {
+ 	int r;
++	unsigned long flags;
+=20
+ 	if (!oh)
+ 		return -EINVAL;
+=20
+-	mutex_lock(&oh->_mutex);
++	spin_lock_irqsave(&oh->_lock, flags);
+ 	r =3D _reset(oh);
+-	mutex_unlock(&oh->_mutex);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return r;
+ }
+@@ -2005,13 +2010,15 @@ int omap_hwmod_del_initiator_dep(struct omap_hw=
+mod *oh,
+  */
+ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
+ {
++	unsigned long flags;
++
+ 	if (!oh->class->sysc ||
+ 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
+ 		return -EINVAL;
+=20
+-	mutex_lock(&oh->_mutex);
++	spin_lock_irqsave(&oh->_lock, flags);
+ 	_enable_wakeup(oh);
+-	mutex_unlock(&oh->_mutex);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return 0;
+ }
+@@ -2030,13 +2037,15 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod =
+*oh)
+  */
+ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
+ {
++	unsigned long flags;
++
+ 	if (!oh->class->sysc ||
+ 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
+ 		return -EINVAL;
+=20
+-	mutex_lock(&oh->_mutex);
++	spin_lock_irqsave(&oh->_lock, flags);
+ 	_disable_wakeup(oh);
+-	mutex_unlock(&oh->_mutex);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return 0;
+ }
+@@ -2056,13 +2065,14 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod=
+ *oh)
+ int omap_hwmod_assert_hardreset(struct omap_hwmod *oh, const char *nam=
+e)
+ {
+ 	int ret;
++	unsigned long flags;
+=20
+ 	if (!oh)
+ 		return -EINVAL;
+=20
+-	mutex_lock(&oh->_mutex);
++	spin_lock_irqsave(&oh->_lock, flags);
+ 	ret =3D _assert_hardreset(oh, name);
+-	mutex_unlock(&oh->_mutex);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return ret;
+ }
+@@ -2082,13 +2092,14 @@ int omap_hwmod_assert_hardreset(struct omap_hwm=
+od *oh, const char *name)
+ int omap_hwmod_deassert_hardreset(struct omap_hwmod *oh, const char *n=
+ame)
+ {
+ 	int ret;
++	unsigned long flags;
+=20
+ 	if (!oh)
+ 		return -EINVAL;
+=20
+-	mutex_lock(&oh->_mutex);
++	spin_lock_irqsave(&oh->_lock, flags);
+ 	ret =3D _deassert_hardreset(oh, name);
+-	mutex_unlock(&oh->_mutex);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return ret;
+ }
+@@ -2107,13 +2118,14 @@ int omap_hwmod_deassert_hardreset(struct omap_h=
+wmod *oh, const char *name)
+ int omap_hwmod_read_hardreset(struct omap_hwmod *oh, const char *name)
+ {
+ 	int ret;
++	unsigned long flags;
+=20
+ 	if (!oh)
+ 		return -EINVAL;
+=20
+-	mutex_lock(&oh->_mutex);
++	spin_lock_irqsave(&oh->_lock, flags);
+ 	ret =3D _read_hardreset(oh, name);
+-	mutex_unlock(&oh->_mutex);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return ret;
+ }
+@@ -2181,6 +2193,7 @@ int omap_hwmod_for_each_by_class(const char *clas=
+sname,
+ int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state)
+ {
+ 	int ret;
++	unsigned long flags;
+=20
+ 	if (!oh)
+ 		return -EINVAL;
+@@ -2190,7 +2203,7 @@ int omap_hwmod_set_postsetup_state(struct omap_hw=
+mod *oh, u8 state)
+ 	    state !=3D _HWMOD_STATE_IDLE)
+ 		return -EINVAL;
+=20
+-	mutex_lock(&oh->_mutex);
++	spin_lock_irqsave(&oh->_lock, flags);
+=20
+ 	if (oh->_state !=3D _HWMOD_STATE_REGISTERED) {
+ 		ret =3D -EINVAL;
+@@ -2201,7 +2214,7 @@ int omap_hwmod_set_postsetup_state(struct omap_hw=
+mod *oh, u8 state)
+ 	ret =3D 0;
+=20
+ ohsps_unlock:
+-	mutex_unlock(&oh->_mutex);
++	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+ 	return ret;
+ }
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.=
+c
+index becf0e3..1be0031 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -105,21 +105,16 @@ struct omap_uart_state {
+ static LIST_HEAD(uart_list);
+ static u8 num_uarts;
+=20
+-/*
+- * Since these idle/enable hooks are used in the idle path itself
+- * which has interrupts disabled, use the non-locking versions of
+- * the hwmod enable/disable functions.
+- */
+ static int uart_idle_hwmod(struct omap_device *od)
+ {
+-	_omap_hwmod_idle(od->hwmods[0]);
++	omap_hwmod_idle(od->hwmods[0]);
+=20
+ 	return 0;
+ }
+=20
+ static int uart_enable_hwmod(struct omap_device *od)
+ {
+-	_omap_hwmod_enable(od->hwmods[0]);
++	omap_hwmod_enable(od->hwmods[0]);
+=20
+ 	return 0;
+ }
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/pl=
+at-omap/include/plat/omap_hwmod.h
+index e4c4fd4..b588f47 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -32,7 +32,7 @@
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+ #include <linux/ioport.h>
+-#include <linux/mutex.h>
++#include <linux/spinlock.h>
+ #include <plat/cpu.h>
+=20
+ struct omap_device;
+@@ -472,7 +472,7 @@ struct omap_hwmod_class {
+  * @_postsetup_state: internal-use state to leave the hwmod in after _=
+setup()
+  * @flags: hwmod flags (documented below)
+  * @omap_chip: OMAP chips this hwmod is present on
+- * @_mutex: mutex serializing operations on this hwmod
++ * @_lock: spinlock serializing operations on this hwmod
+  * @node: list node for hwmod list (internal use)
+  *
+  * @main_clk refers to this module's "main clock," which for our
+@@ -502,7 +502,7 @@ struct omap_hwmod {
+ 	void				*dev_attr;
+ 	u32				_sysc_cache;
+ 	void __iomem			*_mpu_rt_va;
+-	struct mutex			_mutex;
++	spinlock_t			_lock;
+ 	struct list_head		node;
+ 	u16				flags;
+ 	u8				_mpu_port_index;
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
