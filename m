@@ -1,380 +1,424 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v4 1/3] omap: opp: add OMAP3 OPP table data and common init
-Date: Tue, 16 Nov 2010 12:54:19 -0600
-Message-ID: <1289933661-19505-2-git-send-email-nm@ti.com>
-References: <[PATCH v3 1/3] omap: opp: add OMAP3 OPP table data and common init>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] Add OMAP Support for Generic PWM Devices using
+ Dual-mode Timers
+Date: Wed, 17 Nov 2010 00:24:42 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247387A4A@dbde02.ent.ti.com>
+References: <1289762929-7682-1-git-send-email-marathon96@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43730 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:43752 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756943Ab0KPSy1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 13:54:27 -0500
-In-Reply-To: <[PATCH v3 1/3] omap: opp: add OMAP3 OPP table data and common init>
+	with ESMTP id S1757027Ab0KPSyt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 13:54:49 -0500
+In-Reply-To: <1289762929-7682-1-git-send-email-marathon96@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Tony <tony@atomide.com>, Kevin <khilman@deeprootsystems.com>, Thomas <thomas.petazzoni@free-electrons.com>
+To: Grant Erickson <marathon96@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
 
-Add OPP data for OMAP34xx and OMAP36xx and initialization functions
-to populate OPP tables based on current SoC.
-introduce an OMAP generic opp initialization routine which OMAP3
-and OMAP4+ SoCs can use to register their OPP definitions.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Grant Erickson
+> Sent: Monday, November 15, 2010 12:59 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Tony Lindgren
+> Subject: [PATCH] Add OMAP Support for Generic PWM Devices 
+> using Dual-mode Timers
+> 
+> This patch adds support to request and use one or more of the OMAP
+> dual-mode timers as a generic PWM device compatible with other generic
+> PWM drivers such as the PWM backlight or PWM beeper driver.
+> 
+> Boards can register such devices using platform data such as 
+> in the following
+> example:
+> 
+> 	static struct omap2_pwm_platform_config pwm_config = {
+> 	    .timer_id           = 10,   // GPT10_PWM_EVT
+> 	    .polarity           = 1     // Active-high
+> 	};
+> 
+> 	static struct platform_device pwm_device = {
+> 	    .name               = "omap-pwm",
+> 	    .id                 = 0,
+> 	    .dev                = {
+> 	        .platform_data  = &pwm_config
+> 	    }
+> 	};
+> 
+> Signed-off-by: Grant Erickson <marathon96@gmail.com>
 
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Warning: http://lkml.org/lkml/2010/11/9/389
-Introduces ARCH_HAS_OPP which needs to be enabled as well
-for OMAP3 in the Kconfig
-v4:
-	Comments from Thomas addressed:
-	* Data switched to .c file and the c file included in opp.c
-	* init_table will fail with -EEXIST if already called
-	* minor comment improvements
-	Not addressed:
-	* request for board files to explicitly call init table
-	  as discussed http://marc.info/?l=linux-omap&m=128992417530385&w=2
+[snip]...[snip]
 
-v3: http://marc.info/?t=128984939100006&r=1&w=2
-	* added documentation for custom opp modification
-	  by board files
-	* switched to using device_initcall to autoinitialize the
-	  opp tables
-v2: https://patchwork.kernel.org/patch/266911/
+[sp] Few additional comments that should be considered while submitting
+     next patch revision.
 
- Documentation/arm/OMAP/omap_pm     |   26 +++++++
- arch/arm/mach-omap2/Kconfig        |    1 +
- arch/arm/mach-omap2/Makefile       |    2 +
- arch/arm/mach-omap2/opp.c          |  134 ++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/opp3xxx_data.c |   98 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h           |    9 +++
- 6 files changed, 270 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/opp.c
- create mode 100644 arch/arm/mach-omap2/opp3xxx_data.c
+> +/* Preprocessor Definitions */
+> +
+> +#undef OMAP_PWM_DEBUG
+> +
+> +#if defined(OMAP_PWM_DEBUG)
+> +#define DBG(args...)			\
+> +	do {						\
+> +		pr_info(args);			\
+> +	} while (0)
+> +#define DEV_DBG(dev, args...)	\
+> +	do {						\
+> +		dev_info(dev, args);	\
+> +	} while (0)
+> +#else
+> +#define DBG(args...)			\
+> +	do { } while (0)
+> +#define DEV_DBG(dev, args...)	\
+> +	do { } while (0)
+> +#endif /* defined(OMAP_PWM_DEBUG) */
 
-diff --git a/Documentation/arm/OMAP/omap_pm b/Documentation/arm/OMAP/omap_pm
-index 5389440..88341f0 100644
---- a/Documentation/arm/OMAP/omap_pm
-+++ b/Documentation/arm/OMAP/omap_pm
-@@ -127,3 +127,29 @@ implementation needs:
- 10. (*pdata->cpu_set_freq)(unsigned long f)
- 
- 11. (*pdata->cpu_get_freq)(void)
-+
-+Customizing OPP for platform
-+============================
-+Defining CONFIG_PM should enable OPP layer for the silicon
-+and the registration of OPP table should take place automatically.
-+However, in special cases, the default OPP table may need to be
-+tweaked, for e.g.:
-+ * enable default OPPs which are disabled by default, but which
-+   could be enabled on a platform
-+ * Disable an unsupported OPP on the platform
-+ * Define and add a custom opp table entry
-+in these cases, the board file needs to do additional steps as follows:
-+arch/arm/mach-omapx/board-xyz.c
-+	#include "pm.h"
-+	....
-+	static void __init omap_xyz_init_irq(void)
-+	{
-+		....
-+		/* Initialize the default table */
-+		omapx_opp_init();
-+		/* Do customization to the defaults */
-+		....
-+	}
-+NOTE: omapx_opp_init will be omap3_opp_init or as required
-+based on the omap family.
-+
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index ab784bf..93a91ff 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -35,6 +35,7 @@ config ARCH_OMAP3
- 	select CPU_V7
- 	select USB_ARCH_HAS_EHCI
- 	select ARM_L1_CACHE_SHIFT_6 if !ARCH_OMAP4
-+ 	select PM_OPP if PM
- 
- config ARCH_OMAP4
- 	bool "TI OMAP4"
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 60e51bc..1650a62 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -64,6 +64,8 @@ endif
- 
- endif
- 
-+obj-$(CONFIG_PM_OPP)		+= opp.o
-+
- # PRCM
- obj-$(CONFIG_ARCH_OMAP2)		+= cm.o
- obj-$(CONFIG_ARCH_OMAP3)		+= cm.o
-diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
-new file mode 100644
-index 0000000..66e12be
---- /dev/null
-+++ b/arch/arm/mach-omap2/opp.c
-@@ -0,0 +1,134 @@
-+/*
-+ *  OMAP SoC specific OPP wrapper function
-+ *
-+ * Copyright (C) 2009 - 2010 Texas Instruments Incorporated.
-+ *	Nishanth Menon
-+ * Copyright (C) 2009 - 2010 Deep Root Systems, LLC.
-+ *	Kevin Hilman
-+ * Copyright (C) 2010 Nokia Corporation.
-+ *      Eduardo Valentin
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/err.h>
-+#include <linux/opp.h>
-+
-+#include <plat/cpu.h>
-+#include <plat/omap_device.h>
-+
-+#include "pm.h"
-+
-+/**
-+ * struct omap_opp_def - OMAP OPP Definition
-+ * @hwmod_name:	Name of the hwmod for this domain
-+ * @freq:	Frequency in hertz corresponding to this OPP
-+ * @u_volt:	Nominal voltage in microvolts corresponding to this OPP
-+ * @enabled:	True/false - is this OPP enabled/disabled by default
-+ *
-+ * OMAP SOCs have a standard set of tuples consisting of frequency and voltage
-+ * pairs that the device will support per voltage domain. This is called
-+ * Operating Points or OPP. The actual definitions of OMAP Operating Points
-+ * varies over silicon within the same family of devices. For a specific
-+ * domain, you can have a set of {frequency, voltage} pairs and this is denoted
-+ * by an array of omap_opp_def. As the kernel boots and more information is
-+ * available, a set of these are activated based on the precise nature of
-+ * device the kernel boots up on. It is interesting to remember that each IP
-+ * which belongs to a voltage domain may define their own set of OPPs on top
-+ * of this - but this is handled by the appropriate driver.
-+ */
-+struct omap_opp_def {
-+	char *hwmod_name;
-+
-+	unsigned long freq;
-+	unsigned long u_volt;
-+
-+	bool default_available;
-+};
-+
-+/*
-+ * Initialization wrapper used to define an OPP for OMAP variants.
-+ */
-+#define OPP_INITIALIZER(_hwmod_name, _enabled, _freq, _uv)	\
-+{								\
-+	.hwmod_name	= _hwmod_name,				\
-+	.default_available	= _enabled,			\
-+	.freq		= _freq,				\
-+	.u_volt		= _uv,					\
-+}
-+
-+/* Temp variable to allow multiple calls */
-+static u8 __initdata omap_table_init;
-+
-+/**
-+ * omap_init_opp_table() - Initialize opp table as per the CPU type
-+ * @opp_def:		opp default list for this silicon
-+ * @opp_def_size:	number of opp entries for this silicon
-+ *
-+ * Register the initial OPP table with the OPP library based on the CPU
-+ * type.
-+ */
-+static int __init omap_init_opp_table(struct omap_opp_def *opp_def,
-+		u32 opp_def_size)
-+{
-+	int i, r;
-+
-+	if (!opp_def || !opp_def_size) {
-+		pr_err("%s: invalid params!\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Initialize only if not already initialized even if the previous
-+	 * call failed, because, no reason we'd succeed again.
-+	 */
-+	if (omap_table_init)
-+		return -EEXIST;
-+	omap_table_init = 1;
-+
-+	/* Lets now register with OPP library */
-+	for (i = 0; i < opp_def_size; i++) {
-+		struct omap_hwmod *oh;
-+		struct device *dev;
-+
-+		if (!opp_def->hwmod_name) {
-+			pr_err("%s: NULL name of omap_hwmod, failing [%d].\n",
-+				__func__, i);
-+			return -EINVAL;
-+		}
-+		oh = omap_hwmod_lookup(opp_def->hwmod_name);
-+		if (!oh || !oh->od) {
-+			pr_warn("%s: no hwmod or odev for %s, [%d] "
-+				"cannot add OPPs.\n", __func__,
-+				opp_def->hwmod_name, i);
-+			return -EINVAL;
-+		}
-+		dev = &oh->od->pdev.dev;
-+
-+		r = opp_add(dev, opp_def->freq, opp_def->u_volt);
-+		if (r) {
-+			dev_err(dev, "%s: add OPP %ld failed for %s [%d] "
-+				"result=%d\n",
-+			       __func__, opp_def->freq,
-+			       opp_def->hwmod_name, i, r);
-+		} else {
-+			if (!opp_def->default_available)
-+				r = opp_disable(dev, opp_def->freq);
-+			if (r)
-+				dev_err(dev, "%s: disable %ld failed for %s "
-+					"[%d] result=%d\n",
-+					__func__, opp_def->freq,
-+					opp_def->hwmod_name, i, r);
-+		}
-+		opp_def++;
-+	}
-+
-+	return 0;
-+}
-+
-+/* omap3 opps */
-+#include "opp3xxx_data.c"
-+
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-new file mode 100644
-index 0000000..46cbd53
---- /dev/null
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -0,0 +1,98 @@
-+/*
-+ * OMAP3 OPP table definitions.
-+ *
-+ * Copyright (C) 2009 - 2010 Texas Instruments Incorporated.
-+ *	Nishanth Menon
-+ *	Kevin Hilman
-+ * Copyright (C) 2010 Nokia Corporation.
-+ *      Eduardo Valentin
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
-+	/* MPU OPP1 */
-+	OPP_INITIALIZER("mpu", true, 125000000, 975000),
-+	/* MPU OPP2 */
-+	OPP_INITIALIZER("mpu", true, 250000000, 1075000),
-+	/* MPU OPP3 */
-+	OPP_INITIALIZER("mpu", true, 500000000, 1200000),
-+	/* MPU OPP4 */
-+	OPP_INITIALIZER("mpu", true, 550000000, 1270000),
-+	/* MPU OPP5 */
-+	OPP_INITIALIZER("mpu", true, 600000000, 1350000),
-+
-+	/*
-+	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-+	 * almost the same than the one at 83MHz thus providing very little
-+	 * gain for the power point of view. In term of energy it will even
-+	 * increase the consumption due to the very negative performance
-+	 * impact that frequency will do to the MPU and the whole system in
-+	 * general.
-+	 */
-+	OPP_INITIALIZER("l3_main", false, 41500000, 975000),
-+	/* L3 OPP2 */
-+	OPP_INITIALIZER("l3_main", true, 83000000, 1050000),
-+	/* L3 OPP3 */
-+	OPP_INITIALIZER("l3_main", true, 166000000, 1150000),
-+
-+
-+	/* DSP OPP1 */
-+	OPP_INITIALIZER("iva", true, 90000000, 975000),
-+	/* DSP OPP2 */
-+	OPP_INITIALIZER("iva", true, 180000000, 1075000),
-+	/* DSP OPP3 */
-+	OPP_INITIALIZER("iva", true, 360000000, 1200000),
-+	/* DSP OPP4 */
-+	OPP_INITIALIZER("iva", true, 400000000, 1270000),
-+	/* DSP OPP5 */
-+	OPP_INITIALIZER("iva", true, 430000000, 1350000),
-+};
-+
-+static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
-+	/* MPU OPP1 - OPP50 */
-+	OPP_INITIALIZER("mpu", true,  300000000, 1012500),
-+	/* MPU OPP2 - OPP100 */
-+	OPP_INITIALIZER("mpu", true,  600000000, 1200000),
-+	/* MPU OPP3 - OPP-Turbo */
-+	OPP_INITIALIZER("mpu", false, 800000000, 1325000),
-+	/* MPU OPP4 - OPP-SB */
-+	OPP_INITIALIZER("mpu", false, 1000000000, 1375000),
-+
-+	/* L3 OPP1 - OPP50 */
-+	OPP_INITIALIZER("l3_main", true, 100000000, 1000000),
-+	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
-+	OPP_INITIALIZER("l3_main", true, 200000000, 1200000),
-+
-+	/* DSP OPP1 - OPP50 */
-+	OPP_INITIALIZER("iva", true,  260000000, 1012500),
-+	/* DSP OPP2 - OPP100 */
-+	OPP_INITIALIZER("iva", true,  520000000, 1200000),
-+	/* DSP OPP3 - OPP-Turbo */
-+	OPP_INITIALIZER("iva", false, 660000000, 1325000),
-+	/* DSP OPP4 - OPP-SB */
-+	OPP_INITIALIZER("iva", false, 800000000, 1375000),
-+};
-+
-+/**
-+ * omap3_opp_init() - initialize omap3 opp table
-+ */
-+int __init omap3_opp_init(void)
-+{
-+	int r = -ENODEV;
-+
-+	if (!cpu_is_omap34xx())
-+		return r;
-+
-+	if (cpu_is_omap3630())
-+		r = omap_init_opp_table(omap36xx_opp_def_list,
-+			ARRAY_SIZE(omap36xx_opp_def_list));
-+	else
-+		r = omap_init_opp_table(omap34xx_opp_def_list,
-+			ARRAY_SIZE(omap34xx_opp_def_list));
-+
-+	return r;
-+}
-+device_initcall(omap3_opp_init);
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 0d75bfd..2031f15 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -20,6 +20,15 @@ extern int omap3_can_sleep(void);
- extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- extern int omap3_idle_init(void);
- 
-+#if defined(CONFIG_PM_OPP)
-+extern int omap3_opp_init(void);
-+#else
-+static inline int omap3_opp_init(void)
-+{
-+	return -EINVAL;
-+}
-+#endif
-+
- struct cpuidle_params {
- 	u8  valid;
- 	u32 sleep_latency;
--- 
-1.6.3.3
+[sp] pr_info(), dev_info() are already macros - conditional to DEBUG.
+     We should use them instead of defining another layer.
 
+> +
+> +#define DM_TIMER_LOAD_MIN		0xFFFFFFFE
+> +
+> +/* Type Definitions */
+> +
+> +/**
+> + * struct pwm_device - opaque internal PWM device instance state
+> + * @head: list head for all PWMs managed by this driver.
+> + * @pdev: corresponding platform device associated with this 
+> device instance.
+> + * @dm_timer: corresponding dual-mode timer associated with 
+> this device
+> + *  instance.
+> + * @config: platform-specific configuration data.
+> + * @label: description label.
+> + * @use_count: use count.
+> + * @pwm_id: generic PWM ID requested for this device instance.
+> + *
+> + * As far as clients of the PWM driver are concerned, PWM devices are
+> + * opaque abstract objects. Consequently, this structure is used for
+> + * tracking internal device instance state but is otherwise just a
+> + * instance reference externally.
+> + */
+> +
+> +struct pwm_device {
+> +	struct list_head				   head;
+> +	struct platform_device			  *pdev;
+> +	struct omap_dm_timer			  *dm_timer;
+> +	struct omap2_pwm_platform_config   config;
+> +	const char						
+>   *label;
+> +	unsigned int					   use_count;
+> +	unsigned int					   pwm_id;
+> +};
+
+[sp] This block has mix of tabs and white spaces. We should be consistent.
+     There are similar instances below as well...
+
+     You may also want to line up the field names - they start at different columns.
+
+> +
+> +/* Function Prototypes */
+> +
+> +static int __devinit omap_pwm_probe(struct platform_device *pdev);
+> +static int __devexit omap_pwm_remove(struct platform_device *pdev);
+> +
+> +/* Global Variables */
+> +
+> +static struct platform_driver omap_pwm_driver = {
+> +	.driver		= {
+> +		.name	= "omap-pwm",
+> +		.owner	= THIS_MODULE,
+> +	},
+> +	.probe		= omap_pwm_probe,
+> +	.remove		= __devexit_p(omap_pwm_remove)
+> +};
+> +
+> +/* List and associated lock for managing generic PWM devices bound to
+> + * this driver.
+> + */
+> +
+[sp] White space not needed. Similar instances below as well.
+
+> +static DEFINE_MUTEX(pwm_lock);
+> +static LIST_HEAD(pwm_list);
+> +
+
+[snip]...[snip]
+
+> +/**
+> + * pwm_config - configures the generic PWM device to the 
+> specified parameters.
+> + * @pwm: A pointer to the PWM device to configure.
+> + * @duty_ns: The duty period of the PWM, in nanoseconds.
+> + * @period_ns: The overall period of the PWM, in nanoseconds.
+> + *
+> + * Returns 0 if the generic PWM device was successfully configured;
+> + * otherwise, < 0 on error.
+> + */
+> +int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+> +{
+> +	int status = 0;
+> +	const bool enable = true;
+> +	const bool autoreload = true;
+> +	const bool toggle = true;
+> +	const int trigger = OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE;
+
+[sp] Based on code abobe, I believe that OMAP...COMPARE is macro;
+     shouldn't we use it as is - where trigger is used in code below?
+
+> +	int load_value, match_value;
+> +	unsigned long clk_rate;
+> +
+> +	DEV_DBG(&pwm->pdev->dev,
+> +			"duty cycle: %d, period %d\n",
+> +			duty_ns, period_ns);
+> +
+> +	clk_rate = clk_get_rate(omap_dm_timer_get_fclk(pwm->dm_timer));
+> +
+> +	/* Calculate the appropriate load and match values based on the
+> +	 * specified period and duty cycle. The load value determines the
+> +	 * cycle time and the match value determines the duty cycle.
+> +	 */
+> +
+> +	load_value = pwm_calc_value(clk_rate, period_ns);
+> +	match_value = pwm_calc_value(clk_rate, period_ns - duty_ns);
+> +
+> +	/* We MUST enable yet stop the associated dual-mode timer before
+> +	 * attempting to write its registers.
+> +	 */
+> +
+> +	omap_dm_timer_enable(pwm->dm_timer);
+> +	omap_dm_timer_stop(pwm->dm_timer);
+> +
+> +	omap_dm_timer_set_load(pwm->dm_timer, autoreload, load_value);
+> +	omap_dm_timer_set_match(pwm->dm_timer, enable, match_value);
+> +
+> +	DEV_DBG(&pwm->pdev->dev,
+> +			"load value: %#08x (%d), "
+> +			"match value: %#08x (%d)\n",
+> +			load_value, load_value,
+> +			match_value, match_value);
+> +
+> +	omap_dm_timer_set_pwm(pwm->dm_timer,
+> +						  !pwm->config.polarity,
+> +						  toggle,
+> +						  trigger);
+> +
+> +	/* Set the counter to generate an overflow event immediately. */
+> +
+> +	omap_dm_timer_write_counter(pwm->dm_timer, DM_TIMER_LOAD_MIN);
+
+[sp] I am assuming that call to this function would be followed by
+     another call to pwm_enable().
+
+     omap_dm_timer_write_counter() is being called in pwm_enable()
+     with exactly same arguments. Is is necessary duplication?
+     If no, call here should be removed.
+
+> +
+> +	/* Now that we're done configuring the dual-mode timer, disable it
+> +	 * again. We'll enable and start it later, when requested.
+> +	 */
+> +
+> +	omap_dm_timer_disable(pwm->dm_timer);
+> +
+> +	return status;
+> +}
+> +EXPORT_SYMBOL(pwm_config);
+> +
+> +/**
+> + * pwm_enable - enable the generic PWM device.
+> + * @pwm: A pointer to the generic PWM device to enable.
+> + *
+> + * Returns 0 if the generic PWM device was successfully enabled;
+> + * otherwise, < 0 on error.
+> + */
+> +int pwm_enable(struct pwm_device *pwm)
+> +{
+> +	int status = 0;
+
+[sp] This variable isn't assigned/modified below. Not required.
+     function can simply return 0.
+
+> +
+> +	/* Enable the counter--always--before attempting to write its
+> +	 * registers and then set the timer to its minimum load value to
+> +	 * ensure we get an overflow event right away once we start it.
+> +	 */
+> +
+> +	omap_dm_timer_enable(pwm->dm_timer);
+> +	omap_dm_timer_write_counter(pwm->dm_timer, DM_TIMER_LOAD_MIN);
+> +	omap_dm_timer_start(pwm->dm_timer);
+> +
+> +	return status;
+> +}
+> +EXPORT_SYMBOL(pwm_enable);
+> +
+> +/**
+> + * pwm_disable - disable the generic PWM device.
+> + * @pwm: A pointer to the generic PWM device to disable.
+> + */
+> +void pwm_disable(struct pwm_device *pwm)
+> +{
+> +	omap_dm_timer_enable(pwm->dm_timer);
+> +	omap_dm_timer_stop(pwm->dm_timer);
+> +	omap_dm_timer_disable(pwm->dm_timer);
+> +}
+> +EXPORT_SYMBOL(pwm_disable);
+> +
+> +/**
+> + * omap_pwm_probe - check for the PWM and bind it to the driver.
+> + * @pdev: A pointer to the platform device node associated with the
+> + *        PWM instance to be probed for driver binding.
+> + *
+> + * Returns 0 if the PWM instance was successfully bound to 
+> the driver;
+> + * otherwise, < 0 on error.
+> + */
+> +static int __devinit omap_pwm_probe(struct platform_device *pdev)
+> +{
+> +	struct pwm_device *pwm = NULL;
+> +	struct omap2_pwm_platform_config *pdata = NULL;
+> +	int status = 0;
+> +
+> +	pdata = ((struct omap2_pwm_platform_config 
+> *)(pdev->dev.platform_data));
+> +
+> +	BUG_ON(pdata == NULL);
+> +
+> +	if (pdata == NULL) {
+> +		dev_err(&pdev->dev, "Could not find required 
+> platform data.\n");
+> +		status = -ENOENT;
+> +		goto done;
+
+[sp] We can simply return status from here. goto and label can be avoided.
+
+> +	}
+> +
+> +	/* Allocate memory for the driver-private PWM data and state */
+> +
+> +	pwm = kzalloc(sizeof(struct pwm_device), GFP_KERNEL);
+> +
+> +	if (pwm == NULL) {
+> +		dev_err(&pdev->dev, "Could not allocate memory.\n");
+> +		status = -ENOMEM;
+> +		goto done;
+
+[sp] We can simply return status from here. goto and label can be avoided.
+
+> +	}
+> +
+> +	/* Request the OMAP dual-mode timer that will be bound to and
+> +	 * associated with this generic PWM.
+> +	 */
+> +
+> +	pwm->dm_timer = omap_dm_timer_request_specific(pdata->timer_id);
+> +
+> +	if (pwm->dm_timer == NULL) {
+> +		status = -ENOENT;
+> +		goto err_free;
+> +	}
+> +
+> +	/* Configure the source for the dual-mode timer backing this
+> +	 * generic PWM device. The clock source will ultimately 
+> determine
+> +	 * how small or large the PWM frequency can be.
+> +	 *
+> +	 * At some point, it's probably worth revisiting moving this to
+> +	 * the configure method and choosing either the slow- or
+> +	 * system-clock source as appropriate for the desired 
+> PWM period.
+> +	 */
+> +
+> +	omap_dm_timer_set_source(pwm->dm_timer, OMAP_TIMER_SRC_SYS_CLK);
+> +
+> +	/* Cache away other miscellaneous driver-private data and state
+> +	 * information and add the driver-private data to the platform
+> +	 * device.
+> +	 */
+> +
+> +	pwm->pdev = pdev;
+> +	pwm->pwm_id = pdev->id;
+> +	pwm->config = *pdata;
+> +
+> +	platform_set_drvdata(pdev, pwm);
+> +
+> +	/* Finally, push the added generic PWM device to the end of the
+> +	 * list of available generic PWM devices.
+> +	 */
+> +
+> +	mutex_lock(&pwm_lock);
+> +	list_add_tail(&pwm->head, &pwm_list);
+> +	mutex_unlock(&pwm_lock);
+> +
+> +	status = 0;
+> +	goto done;
+> +
+> + err_free:
+> +	kfree(pwm);
+> +
+> + done:
+> +	return status;
+> +}
+> +
+> +/**
+> + * omap_pwm_remove - unbind the specified PWM platform 
+> device from the driver.
+> + * @pdev: A pointer to the platform device node associated with the
+> + *        PWM instance to be unbound/removed.
+> + *
+> + * Returns 0 if the PWM was successfully removed as a 
+> platform device;
+> + * otherwise, < 0 on error.
+> + */
+> +static int __devexit omap_pwm_remove(struct platform_device *pdev)
+> +{
+> +	struct pwm_device *pwm = NULL;
+> +	int status = 0;
+> +
+> +	/* Attempt to get the driver-private data from the 
+> platform device
+> +	 * node.
+> +	 */
+> +
+> +	pwm = platform_get_drvdata(pdev);
+> +
+> +	if (pwm == NULL) {
+> +		status = -ENODEV;
+> +		goto done;
+
+[sp] We can simply return status from here. goto and label can be avoided.
+
+> +	}
+> +
+> +	/* Remove the generic PWM device from the list of available
+> +	 * generic PWM devices.
+> +	 */
+> +
+> +	mutex_lock(&pwm_lock);
+> +	list_del(&pwm->head);
+> +	mutex_unlock(&pwm_lock);
+> +
+> +	/* Unbind the OMAP dual-mode timer associated with the 
+> generic PWM
+> +	 * device.
+> +	 */
+> +
+> +	omap_dm_timer_free(pwm->dm_timer);
+> +
+> +	/* Finally, release the memory associated with the 
+> driver-private
+> +	 * data and state.
+> +	 */
+> +
+> +	kfree(pwm);
+> +
+> + done:
+> +	return status;
+> +}
+
+[snip]...[snip]
