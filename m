@@ -1,36 +1,64 @@
-From: Grant Erickson <marathon96@gmail.com>
-Subject: Re: [PATCH] Add OMAP Support for Generic PWM Devices using Dual-mode
- Timers
-Date: Tue, 16 Nov 2010 10:00:55 -0800
-Message-ID: <C90806D7.1FE84%marathon96@gmail.com>
-References: <20101116124217.GA17805@legolas.emea.dhcp.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: omap4: hsmmc: Fix improper card detection while booting
+Date: Tue, 16 Nov 2010 10:08:33 -0800
+Message-ID: <20101116180833.GX9264@atomide.com>
+References: <6576.10.24.255.17.1289812139.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:45811 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753696Ab0KPSBH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 13:01:07 -0500
-Received: by pxi15 with SMTP id 15so256957pxi.19
-        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 10:01:07 -0800 (PST)
-In-Reply-To: <20101116124217.GA17805@legolas.emea.dhcp.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36203 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754817Ab0KPSIm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2010 13:08:42 -0500
+Content-Disposition: inline
+In-Reply-To: <6576.10.24.255.17.1289812139.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: kishore kadiyala <kishore.kadiyala@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 11/16/10 4:42 AM, Felipe Balbi wrote:
-> On Sun, Nov 14, 2010 at 01:28:49PM -0600, Grant Erickson wrote:
->> +MODULE_LICENSE("GPLv2");
+* kishore kadiyala <kishore.kadiyala@ti.com> [101115 00:59]:
+> While booting OMAP4 ES2.0 boards, cards on MMC1 and MMC2 controllers
+> are not getting detected some times.
 > 
-> module license should be GPL v2
+> During reset of command/data line, wrong pointer to base address
+> was passed while read operation to SYSCTL register, thus impacting
+> the updated reset logic.
+> Passing correct base address fixes the issue.
+> 
+> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> Acked-by: Felipie Balbi <balbi@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Chris Ball   <cjb@laptop.org>
+> Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-Thanks for the feedback. I'll make that adjustment.
+Good find:
 
-Best,
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Grant
-
-
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 82a1079..5d46021 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1002,7 +1002,7 @@ static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsmmc_host
+> *host,
+>  	 * Monitor a 0->1 transition first
+>  	 */
+>  	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET) {
+> -		while ((!(OMAP_HSMMC_READ(host, SYSCTL) & bit))
+> +		while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
+>  					&& (i++ < limit))
+>  			cpu_relax();
+>  	}
+> -- 
+> 1.7.1
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
