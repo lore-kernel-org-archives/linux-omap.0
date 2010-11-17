@@ -1,67 +1,82 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] OMAP: Serial: Define register access modes in LCR
-Date: Wed, 17 Nov 2010 09:31:15 -0800
-Message-ID: <20101117173115.GA12349@kroah.com>
-References: <1289982712-7309-1-git-send-email-Andrei.Emeltchenko.news@gmail.com>
- <20101117161729.GF10992@kroah.com>
- <87hbff7tbf.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: add comments for erratas i540 and i478 workarounds
+Date: Wed, 17 Nov 2010 09:40:59 -0800
+Message-ID: <87aal77sr8.fsf@deeprootsystems.com>
+References: <1290009410-7316-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87hbff7tbf.fsf@deeprootsystems.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Emeltchenko Andrei <Andrei.Emeltchenko.news@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.infradead.org, linux-serial@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:43198 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933709Ab0KQRlD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Nov 2010 12:41:03 -0500
+Received: by ywg8 with SMTP id 8so1251813ywg.19
+        for <linux-omap@vger.kernel.org>; Wed, 17 Nov 2010 09:41:03 -0800 (PST)
+In-Reply-To: <1290009410-7316-1-git-send-email-j-pihet@ti.com> (Jean Pihet's
+	message of "Wed, 17 Nov 2010 16:56:50 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Wed, Nov 17, 2010 at 09:28:52AM -0800, Kevin Hilman wrote:
-> Greg KH <greg@kroah.com> writes:
->=20
-> > On Wed, Nov 17, 2010 at 10:31:52AM +0200, Emeltchenko Andrei wrote:
-> >> From: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
-> >>=20
-> >> Access to some registers depends on register access mode
-> >> Three different modes are available for OMAP (at least)
-> >> =E2=80=A2 Operational mode     LCR_REG[7] =3D 0x0
-> >> =E2=80=A2 Configuration mode A LCR_REG[7] =3D 0x1 and LCR_REG[7:0]=
-! =3D 0xBF
-> >> =E2=80=A2 Configuration mode B LCR_REG[7] =3D 0x1 and LCR_REG[7:0]=
-  =3D 0xBF
-> >>=20
-> >> Define access modes and remove redefinitions and magic numbers
-> >> in serial drivers (and later in bluetooth driver).
-> >>=20
-> >> Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@nokia.com>
-> >> ---
-> >>  arch/arm/mach-omap2/serial.c                  |   12 ++++----
-> >>  arch/arm/plat-omap/include/plat/omap-serial.h |    9 ------
-> >>  drivers/serial/8250.c                         |   26 +++++++++---=
-------
-> >>  drivers/serial/omap-serial.c                  |   34 ++++++++++++=
-------------
-> >>  include/linux/serial_reg.h                    |    7 +++++
-> >
-> > What tree should this go through?  THe omap or serial one?
->=20
-> Since this only affects OMAP drivers, we can take this through OMAP.
->=20
-> That will also help us avoid conflicts, as we'll hopefully be convert=
-ing
-> the omap-serial driver to runtime PM for this next merge window as we=
-ll.
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-=46ine with me, feel free to add:
-	Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+> From: Jean Pihet <jean.pihet@newoldbits.com>
+>
+> Add comments and IDs for the following erratas:
+> - i540: MPU cannot exit from Standby,
+> - i478: Unexpected Cold-Reset is generated when device is coming
+>    back from OFF mode
+>
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
 
-to it.
+Nice, it's great to have the errata numbers in the code.
 
-thanks,
+Minor comment, please fix up the multi-line comment style to follow
+CodingStyle.  Search for 'multi-line' in Documentation/CodingStyle.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/irq.c              |    3 ++-
+>  arch/arm/mach-omap2/powerdomains34xx.h |    6 ++++++
+>  2 files changed, 8 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+> index 32eeabe..e28b417 100644
+> --- a/arch/arm/mach-omap2/irq.c
+> +++ b/arch/arm/mach-omap2/irq.c
+> @@ -284,7 +284,8 @@ void omap3_intc_suspend(void)
+>  
+>  void omap3_intc_prepare_idle(void)
+>  {
+> -	/* Disable autoidle as it can stall interrupt controller */
+> +	/* Disable autoidle as it can stall interrupt controller,
+> +	 * Cf. errata ID i540 for 3430 (all revisions up to 3.1.x) */
+>  	intc_bank_write_reg(0, &irq_banks[0], INTC_SYSCONFIG);
+>  }
+>  
+> diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
+> index fa90486..349f2bf 100644
+> --- a/arch/arm/mach-omap2/powerdomains34xx.h
+> +++ b/arch/arm/mach-omap2/powerdomains34xx.h
+> @@ -80,6 +80,10 @@ static struct powerdomain mpu_3xxx_pwrdm = {
+>   * 3430s upto ES3.0 and 3630ES1.0. Hence this feature
+>   * needs to be disabled on these chips.
+>   * Refer: 3430 errata ID i459 and 3630 errata ID i579
+> + *
+> + * Note: setting the SAR flag could help for errata ID i478
+> + *  which applies to 3430 <= ES3.1, but since the SAR feature
+> + *  is broken, do not use it.
+>   */
+>  static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
+>  	.name		  = "core_pwrdm",
+> @@ -108,6 +112,8 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
+>  					  CHIP_GE_OMAP3630ES1_1),
+>  	.pwrsts		  = PWRSTS_OFF_RET_ON,
+>  	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+> +	/* Setting the SAR flag for errata ID i478 which applies
+> +	 *  to 3430 <= ES3.1 */
+>  	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
+>  	.banks		  = 2,
+>  	.pwrsts_mem_ret	  = {
