@@ -1,42 +1,56 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: [PATCH] OMAP: DSS2: Add back authors of panel-generic.c based drivers
-Date: Thu, 18 Nov 2010 09:45:59 +0800
-Message-ID: <1290044759-2903-1-git-send-email-bryan.wu@canonical.com>
+From: HATZFELD =?utf-8?b?aMOpbMOobmU=?=
+	<helene.hatzfeld@culture.gouv.fr>
+Subject: (unknown)
+Date: Thu, 18 Nov 2010 00:56:14 +0100
+Message-ID: <20101118005614.uusp4sbzco8w8ksc__12527.4889557206$1290045994$gmane$org@messagerie.int.culture.fr>
+Reply-To: moneygramservices02@pkuit.com
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset=UTF-8;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:56217 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752958Ab0KRBqK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Nov 2010 20:46:10 -0500
+Received: from lares.culture.fr ([143.126.211.20]:55416 "EHLO lares.culture.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754207Ab0KRCG2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Nov 2010 21:06:28 -0500
+Subject: 
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com, hvaibhav@ti.com, mike@compulab.co.il, premi@ti.com
 
-Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
----
- drivers/video/omap2/displays/panel-generic-dpi.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-index 6702cf6..07eb30e 100644
---- a/drivers/video/omap2/displays/panel-generic-dpi.c
-+++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -4,6 +4,16 @@
-  * Copyright (C) 2010 Canonical Ltd.
-  * Author: Bryan Wu <bryan.wu@canonical.com>
-  *
-+ * LCD panel driver for Sharp LQ043T1DG01
-+ *
-+ * Copyright (C) 2009 Texas Instruments Inc
-+ * Author: Vaibhav Hiremath <hvaibhav@ti.com>
-+ *
-+ * LCD panel driver for Toppoly TDO35S
-+ *
-+ * Copyright (C) 2009 CompuLab, Ltd.
-+ * Author: Mike Rapoport <mike@compulab.co.il>
-+ *
-  * Copyright (C) 2008 Nokia Corporation
-  * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-  *
--- 
-1.7.1
+The Central Bank of Nigeria, (CBN), working in relationship with
+HSBC London has concluded that our working
+partner has helped us to send you first payment of US$7,500 to you as
+instructed by Mr. David Cameron and will
+keep sending you $5000 twice a week until
+the payment of (US$820,000) is completed
+within six months and here is the information
+
+MONEY TRANSFER REFRENCE:2116-3297
+
+
+SENDER'S NAME: Mike Marx
+AMOUNT: US$5000
+
+To track your funds forward money gram
+Transfer agent your Full Names and
+Mobile Number via Email to:
+
+Mr Allen Davis
+E-mail:moneygramservices@pkuit.com
+D/L: Tel:+44 702 407 3631
+          +234-816-311-8957
+
+Please direct all enquiring to:
+moneygramservices02@pkuit.com
+
+Best Regards,
+Mr Allen Davis
+
+
+
+
 
