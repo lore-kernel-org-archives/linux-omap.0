@@ -1,162 +1,165 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH v4 3/7] OMAP: DSS2: Introduce omap_channel as a
- omap_dss_device parameter
-Date: Wed, 17 Nov 2010 18:26:15 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087035E84A66B@dbde02.ent.ti.com>
-References: <1289219065-1362-1-git-send-email-archit@ti.com>
-	 <1289219065-1362-4-git-send-email-archit@ti.com>
-	 <1289904957.2668.75.camel@tubuntu>
-	 <FCCFB4CDC6E5564B9182F639FC356087034C10218C@dbde02.ent.ti.com>
- <1289914375.2668.96.camel@tubuntu>
- <FCCFB4CDC6E5564B9182F639FC356087035E84A4B3@dbde02.ent.ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] omap: prcm: switch to a chained IRQ handler mechanism
+Date: Wed, 17 Nov 2010 14:32:26 +0100
+Message-ID: <4CE3D96A.5010004@ti.com>
+References: <1289996179-17698-1-git-send-email-thomas.petazzoni@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59880 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754276Ab0KQM4X convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Nov 2010 07:56:23 -0500
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087035E84A4B3@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:53883 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933867Ab0KQNcc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Nov 2010 08:32:32 -0500
+In-Reply-To: <1289996179-17698-1-git-send-email-thomas.petazzoni@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Petazzoni-XID, Thomas" <t-petazzoni@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi,
+Hi Thomas,
 
-Tomi Valkeinen wrote:
-> Hi,
-> 
-> Tomi Valkeinen wrote:
->> On Tue, 2010-11-16 at 12:22 +0100, ext Taneja, Archit wrote:
->>> Hi,
->>> 
->>> Tomi Valkeinen wrote:
->>>> Hi,
->>>> 
->>> 
->>> [snip]
->>> 
->>>>> diff --git a/arch/arm/plat-omap/include/plat/display.h
->>>>> b/arch/arm/plat-omap/include/plat/display.h
->>>>> index 586944d..3e6eec1 100644
->>>>> --- a/arch/arm/plat-omap/include/plat/display.h
->>>>> +++ b/arch/arm/plat-omap/include/plat/display.h
->>>>> @@ -434,6 +434,7 @@ struct omap_dss_device {
->>>>>         struct omap_overlay_manager *manager;
->>>>> 
->>>>>         enum omap_dss_display_state state;
->>>>> +       enum omap_channel channel;
->>>> 
->>>> Isn't this the same as dssdev->manager->id?
->>>> 
->>>> Yes, this channel stuff is a bit confusing, even the enum "omap_channel"
->>>> is badly named (should at least have "dss" in it). But
->>>> omap_overlay_manager should represent the output pipe, so I don't
->>>> think there's need for channel field in dss_device.
->>> 
->>> The panel somehow needs to tell which manager it is connected to. We
->>> went with with the way of declaring a new member 'channel' and
->>> setting that parameter up in the board file.
->>> 
->>> The current way to relate the manager and device is done by checking
->>> the dssdev->type in dss_recheck_connections() and then calling set_device()
->>> 
->>> This is not sufficient any more since two of the managers can support
->>> similar types of displays. 
->>> 
->>> So in the channel approach the following happens:
->>> 
->>> -mgr->id's are initialized at bootup.
->>> -devices and managers are connected using 'channel'.
->>> -mgr->id automatically becomes equal to channel.
->>> 
->>> Can we set something like dssdev->manager->id in the board file itself?
->> 
->> Right, now I see.
->> 
->> The dss_recheck_connections() felt like a hack when I wrote it =).
->> Clearly we need some way to define in the board file which panel connects to
->> which manager. 
->> 
-> 
-> It wasn't needed probably for OMAP3 since all non-venc panels
-> connect to LCD and venc to VENC type.
-> 
-> Now that I think of it, what channel would we mention if the
-> panel is used in dsi l4 update mode or dma mode? It should
-> have no manager at all.
-> 
->> Perhaps move the channel-field up, just below "enum omap_display_type
->> type". The lines in the beginning of omap_dss_device are things which
->> define the interface etc, and later there are miscallaneous dynamic
->> things. And this belongs to the former.
->> 
->> Now, if we have the channel defined in this way in the
->> omap_dss_device, I'm wondering if:
->> 1) the manager pointer is needed at all, as the channel tells which
->> manager it is? 2) if we keep the manager pointer (as a helper
->> shortcut), should the code use generally use
-> dssdev->channel or dssdev->manager->id?
-> 
-> I think manager->id makes more sense considering your logic below.
-> 
->> 3) having this channel field requires a change to every board file,
->> because the channel has to be defined?
->> 
-> 
-> Yes, that is something that has to be done for all 'DIGIT'
-> panels across all boards.
-> 
->> And answering to myself, I guess the manager pointer is needed, because
->> DSS2 supports (at least in theory) multiple panels in the same
->> interface (not at the same time, of course). This means that we could
->> have to panels, with the same interface and channel, but only one
->> would be in use. So the one in use should have manager pointing to the
->> correct manager, and the other would have manager NULL.
->> 
-> 
-> Yes, passing dssdev->channel would make things worse if 2
-> panels are connected to same interface.
-> 
->> And thus perhaps using dssdev->channel only for connecting the right
->> manager to right panel, and using
->> dssdev->manager->id for other uses would be the best? The
->> values would of course be the same, but at least we'd get a crash if
->> somehow an unconnected display is being used for configuration.
->> 
-> 
-> Even in the current kernel on 3430sdp, the board file adds
-> sharp_ls, venc and generic panels If I boot up with venc as
-> default display, mgr0 has dvi as its display and mgr1 has tv.
-> So if I try to enable sharp_ls panel I get a crash when we
-> first try to access dssdev->manager in dpi_display_enable().
-> We should have a way to prevent enabling a panel if it isn't
-> connected to a manager. We should also have a way to allow a
-> panel to have no channel at all (something like
-> OMAP_DSS_CHANNEL_NONE) if we are using something like dsi l4 update.
-> 
-> I won't add this extra channel now though, we need to think
-> of a better way later.
-> 
+On 11/17/2010 1:16 PM, Thomas Petazzoni wrote:
+> From: Thomas Petazzoni<t-petazzoni@ti.com>
 
-Also, do you think when a display unsets a manager and sets a new manager
-the channel should be changed? Or should it purely be a one time thing
-for choosing the correct manager and not use it anywhere else?
+[...]
+
+>   static int __init omap3_pm_init(void)
+
+That code is purely OMAP3 specific, do you think it might scale well on 
+OMAP4?
+BTW, you should maybe change the subject with "OMAP3: prcm: ..." to 
+reflect that.
+
+>   {
+>   	struct power_state *pwrst, *tmp;
+>   	struct clockdomain *neon_clkdm, *per_clkdm, *mpu_clkdm, *core_clkdm;
+> -	int ret;
+> +	int ret, i;
+>
+>   	if (!cpu_is_omap34xx())
+>   		return -ENODEV;
+> @@ -1013,19 +1053,34 @@ static int __init omap3_pm_init(void)
+>   	 * supervised mode for powerdomains */
+>   	prcm_setup_regs();
+>
+> -	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
+> -			  (irq_handler_t)prcm_interrupt_handler,
+> -			  IRQF_DISABLED, "prcm", NULL);
+> +	for (i = OMAP_PRCM_IRQ_BASE; i<  OMAP_PRCM_IRQ_END; i++) {
+> +		set_irq_chip(i,&prcm_irq_chip);
+> +		set_irq_handler(i, handle_level_irq);
+> +		set_irq_flags(i, IRQF_VALID);
+> +	}
+> +
+> +	set_irq_chained_handler(INT_34XX_PRCM_MPU_IRQ, prcm_irq_handler);
+> +
+> +	ret = request_irq(INT_34XX_PRCM_WKUP_EN, _prcm_int_handle_wakeup,
+> +			  IRQF_NO_SUSPEND, "prcm_wkup", NULL);
+>   	if (ret) {
+>   		printk(KERN_ERR "request_irq failed to register for 0x%x\n",
+
+OK, I know, this is not your code, but it might be good to get rid of 
+the "printk(KERN_ERR..." and use pr_err instead.
+
+> -		       INT_34XX_PRCM_MPU_IRQ);
+> +		       INT_34XX_PRCM_WKUP_EN);
+>   		goto err1;
+>   	}
+>
+> +	ret = request_irq(INT_34XX_PRCM_IO_EN, _prcm_int_handle_wakeup,
+> +			  IRQF_NO_SUSPEND, "prcm_io", NULL);
+> +	if (ret) {
+> +		printk(KERN_ERR "request_irq failed to register for 0x%x\n",
+> +		       INT_34XX_PRCM_IO_EN);
+> +		goto err2;
+> +	}
+> +
+>   	ret = pwrdm_for_each(pwrdms_setup, NULL);
+>   	if (ret) {
+>   		printk(KERN_ERR "Failed to setup powerdomains\n");
+> -		goto err2;
+> +		goto err3;
+>   	}
+>
+>   	(void) clkdm_for_each(clkdms_setup, NULL);
+> @@ -1033,7 +1088,7 @@ static int __init omap3_pm_init(void)
+>   	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
+>   	if (mpu_pwrdm == NULL) {
+>   		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
+> -		goto err2;
+> +		goto err3;
+>   	}
+>
+>   	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
+> @@ -1080,7 +1135,9 @@ static int __init omap3_pm_init(void)
+>   err1:
+>   	return ret;
+>   err2:
+> -	free_irq(INT_34XX_PRCM_MPU_IRQ, NULL);
+> +	free_irq(INT_34XX_PRCM_WKUP_EN, NULL);
+> +err3:
+> +	free_irq(INT_34XX_PRCM_IO_EN, NULL);
+>   	list_for_each_entry_safe(pwrst, tmp,&pwrst_list, node) {
+>   		list_del(&pwrst->node);
+>   		kfree(pwrst);
+> diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+> index 65e20a6..6c5eb1c 100644
+> --- a/arch/arm/plat-omap/include/plat/irqs.h
+> +++ b/arch/arm/plat-omap/include/plat/irqs.h
+> @@ -363,7 +363,43 @@
+>   #define OMAP_MAX_GPIO_LINES	192
+>   #define IH_GPIO_BASE		(128 + IH2_BASE)
+>   #define IH_MPUIO_BASE		(OMAP_MAX_GPIO_LINES + IH_GPIO_BASE)
+> -#define OMAP_IRQ_END		(IH_MPUIO_BASE + 16)
+> +#define OMAP_MPUIO_IRQ_END	(IH_MPUIO_BASE + 16)
+> +
+> +/* 32 IRQs for the PRCM */
+> +#define OMAP_PRCM_IRQ_BASE                 (OMAP_MPUIO_IRQ_END)
+> +#define INT_34XX_PRCM_WKUP_EN              (OMAP_PRCM_IRQ_BASE +  0)
+> +#define INT_34XX_PRCM_EVGENON_EN           (OMAP_PRCM_IRQ_BASE +  2)
+> +#define INT_34XX_PRCM_EVGENOFF_EN          (OMAP_PRCM_IRQ_BASE +  3)
+> +#define INT_34XX_PRCM_TRANSITION_EN        (OMAP_PRCM_IRQ_BASE +  4)
+> +#define INT_34XX_PRCM_CORE_DPLL_RECAL_EN   (OMAP_PRCM_IRQ_BASE +  5)
+> +#define INT_34XX_PRCM_PERIPH_DPLL_RECAL_EN (OMAP_PRCM_IRQ_BASE +  6)
+> +#define INT_34XX_PRCM_MPU_DPLL_RECAL_EN_EN (OMAP_PRCM_IRQ_BASE +  7)
+> +#define INT_34XX_PRCM_IVA2_DPLL_RECAL_EN   (OMAP_PRCM_IRQ_BASE +  8)
+> +#define INT_34XX_PRCM_IO_EN                (OMAP_PRCM_IRQ_BASE +  9)
+> +#define INT_34XX_PRCM_VP1_OPPCHANGEDONE_EN (OMAP_PRCM_IRQ_BASE + 10)
+> +#define INT_34XX_PRCM_VP1_MINVDD_EN        (OMAP_PRCM_IRQ_BASE + 11)
+> +#define INT_34XX_PRCM_VP1_MAXVDD_EN        (OMAP_PRCM_IRQ_BASE + 12)
+> +#define INT_34XX_PRCM_VP1_NOSMPSACK_EN     (OMAP_PRCM_IRQ_BASE + 13)
+> +#define INT_34XX_PRCM_VP1_EQVALUE_EN       (OMAP_PRCM_IRQ_BASE + 14)
+> +#define INT_34XX_PRCM_VP1_TRANXDONE_EN     (OMAP_PRCM_IRQ_BASE + 15)
+> +#define INT_34XX_PRCM_VP2_OPPCHANGEDONE_EN (OMAP_PRCM_IRQ_BASE + 16)
+> +#define INT_34XX_PRCM_VP2_MINVDD_EN        (OMAP_PRCM_IRQ_BASE + 17)
+> +#define INT_34XX_PRCM_VP2_MAXVDD_EN        (OMAP_PRCM_IRQ_BASE + 18)
+> +#define INT_34XX_PRCM_VP2_NOSMPSACK_EN     (OMAP_PRCM_IRQ_BASE + 19)
+> +#define INT_34XX_PRCM_VP2_EQVALUE_EN       (OMAP_PRCM_IRQ_BASE + 20)
+> +#define INT_34XX_PRCM_VP2_TRANXDONE_EN     (OMAP_PRCM_IRQ_BASE + 21)
+> +#define INT_34XX_PRCM_VC_SAERR_EN          (OMAP_PRCM_IRQ_BASE + 22)
+> +#define INT_34XX_PRCM_VC_RAERR_EN          (OMAP_PRCM_IRQ_BASE + 23)
+> +#define INT_34XX_PRCM_VC_TIMEOUT_ERR_EN    (OMAP_PRCM_IRQ_BASE + 24)
+> +#define INT_34XX_PRCM_SND_PERIPH_RECAL_EN  (OMAP_PRCM_IRQ_BASE + 25)
+> +#define INT_36XX_PRCM_ABB_LDO_TRANXDONE_EN (OMAP_PRCM_IRQ_BASE + 26)
+> +#define INT_36XX_PRCM_VC_VP1_ACK_EN        (OMAP_PRCM_IRQ_BASE + 27)
+> +#define INT_36XX_PRCM_VC_BYPASS_ACK_EN     (OMAP_PRCM_IRQ_BASE + 28)
+> +#define OMAP_PRCM_NR_IRQS                  32
+> +#define OMAP_PRCM_IRQ_END                  (OMAP_PRCM_IRQ_BASE + \
+> +					    OMAP_PRCM_NR_IRQS)
+
+We are in the process of getting rid of all the IRQ defines thanks to 
+hwmod. Maybe we should consider moving that to hwmod data? I'm not sure 
+exactly how we will handle that case but it might worth considering it.
+
+If we do want to make that code OMAP generic, we will probably have to.
+
+
+That being said, that patch is already a good improvement compared to 
+the previous solution. So maybe we should do that in several phases.
+
+Kevin,
+Any thoughts on that?
 
 Thanks,
-
-Archit
-
->> Does this make sense?
-> 
-> Yes, it does, I'll make these changes, and more if you can
-> think of any.
-> 
-> Archit--
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-omap" in the body of a message to
-> majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+Benoit
