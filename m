@@ -1,75 +1,91 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH v4] OMAP3: DSS: Kconfig changes to enable display
- options on OMAP3
-Date: Wed, 17 Nov 2010 14:28:11 +0200
-Message-ID: <1289996891.26444.16.camel@tubuntu>
-References: <1288063074-8879-1-git-send-email-samreen@ti.com>
-	 <FCCFB4CDC6E5564B9182F639FC356087034C101F0B@dbde02.ent.ti.com>
-	 <1289915437.2668.107.camel@tubuntu> <20101116193843.GZ9264@atomide.com>
-	 <8762vxcaco.fsf@deeprootsystems.com>  <20101116201054.GC9264@atomide.com>
+Subject: Re: [PATCH 1/3] OMAP: DSS2: Add generic DPI panel display driver
+Date: Wed, 17 Nov 2010 14:44:01 +0200
+Message-ID: <1289997841.26444.21.camel@tubuntu>
+References: <1289960640-8782-1-git-send-email-bryan.wu@canonical.com>
+	 <1289960640-8782-2-git-send-email-bryan.wu@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:46544 "EHLO mgw-da01.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:45881 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933291Ab0KQM2X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Nov 2010 07:28:23 -0500
-In-Reply-To: <20101116201054.GC9264@atomide.com>
+	id S933640Ab0KQMoJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Nov 2010 07:44:09 -0500
+In-Reply-To: <1289960640-8782-2-git-send-email-bryan.wu@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "ext Nilofer, Samreen" <samreen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: ext Bryan Wu <bryan.wu@canonical.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
 
-On Tue, 2010-11-16 at 21:10 +0100, ext Tony Lindgren wrote:
-> * Kevin Hilman <khilman@deeprootsystems.com> [101116 11:45]:
-> > Tony Lindgren <tony@atomide.com> writes:
-> > 
-> > > * Tomi Valkeinen <tomi.valkeinen@nokia.com> [101116 05:41]:
-> > >> On Tue, 2010-11-16 at 07:09 +0100, ext Nilofer, Samreen wrote:
-> > >> > Hi,
-> > >> >   Any more comments on this patch?
-> > >> 
-> > >> I'm not sure if enabling kernel options by default is a good thing.
-> > >> Somehow I remember that enabling things by default is not looked kindly
-> > >> at. Shouldn't they be enabled in the arch/arm/configs config file, if
-> > >> they are wanted?
-> > >> 
-> > >> Tony, do you have opinnion on this? Should DSS features be enabled by
-> > >> default in the Kconfig files, or only in the board config file?
-> > >
-> > > The best thing would be to have DSS y if ARCH_OMAP2PLUS or similar,
-> > > then have all the features built in and pass the configuration options
-> > > in platform_data. That still allows disabling certain features with
-> > > Kconfig if needed for memory consumption etc. But the omap2plus_defconfig
-> > > should "just work" on all the boards.
-> > 
-> > Personally, I'd much rather see DSS core and optional features default
-> > to being built as a module.
-> > 
-> > Other than a splash screen, there's no reason DSS is needed for a
-> > minimal boot.
+On Wed, 2010-11-17 at 10:23 +0800, ext Bryan Wu wrote:
+> Generic DPI panel driver includes the driver and 4 similar panel configurations. It
+> will match the panel name which is passed from platform data and setup the
+> right configurations.
 > 
-> Sure a module would be even better. My point is that the selection of
-> all the features should be enabled by default and the board options come
-> from platform_data.
+> With generic DPI panel driver, we can remove those 4 duplicated panel display
+> drivers. In the future, it is simple for us just add new panel configuration
+> date in panel-generic-dpi.c to support new display panel.
+> 
+> Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+> ---
+>  .../arm/plat-omap/include/plat/panel-generic-dpi.h |   37 ++
+>  drivers/video/omap2/displays/Kconfig               |    8 +
+>  drivers/video/omap2/displays/Makefile              |    1 +
+>  drivers/video/omap2/displays/panel-generic-dpi.c   |  348 ++++++++++++++++++++
+>  4 files changed, 394 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/include/plat/panel-generic-dpi.h
+>  create mode 100644 drivers/video/omap2/displays/panel-generic-dpi.c
+> 
 
-Ok, let's build DSS & all panel drivers as modules by default.
+<snip>
 
-Somehow I've gotten the impression from linux ml that enabling features
-by default is bad. But perhaps it's more about intervening features than
-normal drivers.
+> +static int generic_dpi_panel_probe(struct omap_dss_device *dssdev)
+> +{
+> +	struct panel_generic_dpi_data *panel_data = get_panel_data(dssdev);
+> +	struct panel_config *panel_config = NULL;
+> +	struct panel_drv_data *drv_data = NULL;
+> +	int i;
+> +
+> +	dev_dbg(&dssdev->dev, "probe\n");
+> +
+> +	if (!panel_data || !panel_data->name)
+> +		return -EINVAL;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(generic_dpi_panels); i++) {
+> +		if (strcmp(panel_data->name, generic_dpi_panels[i].name) == 0) {
+> +			panel_config = &generic_dpi_panels[i];
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (!panel_config)
+> +		return -EINVAL;
+> +
+> +	dssdev->panel.config = panel_config->config;
+> +	dssdev->panel.timings = panel_config->timings;
+> +	dssdev->panel.acb = panel_config->acb;
+> +	dssdev->panel.acbi = panel_config->acbi;
+> +
+> +	drv_data = kzalloc(sizeof(*drv_data), GFP_KERNEL);
+> +	if (!drv_data)
+> +		return -ENOMEM;
+> +
+> +	drv_data->dssdev = dssdev;
+> +	drv_data->panel_config = panel_config;
+> +
+> +	dev_set_drvdata(&dssdev->dev, drv_data);
+> +
+> +	return 0;
+> +}
+> +
+> +static void generic_dpi_panel_remove(struct omap_dss_device *dssdev)
+> +{
+> +}
 
-Samreen, will you change the patch to set DSS & panel drivers to be
-built as modules by default? Optimally all display interfaces should be
-enabled, but I believe at least SDI and DSI are currently slightly
-broken, because they prevent DSS from initializing if SDI/DSI regulator
-is not defined in the board file. So perhaps we should start with only
-DPI and VENC enabled (plus all the DPI panels).
+You need to free the drv_data here.
 
-Also, this patch could be based on top of Bryan Wu's new generic panel
-patch set, which I'll perhaps apply today to my tree if I find no more
-to comment about.
+Perhaps this will be the last fix =).
 
  Tomi
 
