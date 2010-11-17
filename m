@@ -1,79 +1,59 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: Re: [PATCH 1/3] OMAP: DSS2: Add generic DPI panel display driver
-Date: Wed, 17 Nov 2010 14:31:13 +0800
-Message-ID: <AANLkTikcF1OnJjrUmame2HUjTadZLrgZwpam6RuGuKos@mail.gmail.com>
-References: <1289881031-21354-1-git-send-email-bryan.wu@canonical.com>
-	<1289881031-21354-2-git-send-email-bryan.wu@canonical.com>
-	<1289920866.2668.138.camel@tubuntu>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: BeagleBoard not resuming from uart with latest pm-core ?
+Date: Wed, 17 Nov 2010 08:20:20 +0100
+Message-ID: <20101117082020.5903ab08@surf>
+References: <20101110164414.4529cbda@surf>
+	<AANLkTi=Dzv2XE-X_z6yiCaRjgWrST5QGDE9dFDnDy9pT@mail.gmail.com>
+	<87pqudaxtm.fsf@deeprootsystems.com>
+	<20101115115005.30b35e75@surf>
+	<20101115141306.1ff68beb@surf>
+	<AANLkTi=PGuYZAPO7nxko=A1PgJMMnB5Wxk86scvs1TPe@mail.gmail.com>
+	<20101115151430.15c899e5@surf>
+	<87pqu4c1t9.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:61101 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933323Ab0KQGbO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Nov 2010 01:31:14 -0500
-Received: by qyk12 with SMTP id 12so5988624qyk.19
-        for <linux-omap@vger.kernel.org>; Tue, 16 Nov 2010 22:31:13 -0800 (PST)
-In-Reply-To: <1289920866.2668.138.camel@tubuntu>
+Received: from mail.free-electrons.com ([88.190.12.23]:57938 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759799Ab0KQHUa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Nov 2010 02:20:30 -0500
+In-Reply-To: <87pqu4c1t9.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "gadiyar@ti.com" <gadiyar@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Govindraj <govindraj.ti@gmail.com>, Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org
 
-On Tue, Nov 16, 2010 at 11:21 PM, Tomi Valkeinen
-<tomi.valkeinen@nokia.com> wrote:
-> Hi,
->
-> On Tue, 2010-11-16 at 05:17 +0100, ext Bryan Wu wrote:
->> Generic DPI panel driver includes the driver and 4 similar panel con=
-figurations. It
->> will match the panel name which is passed from platform data and set=
-up the
->> right configurations.
->>
->> With generic DPI panel driver, we can remove those 4 duplicated pane=
-l display
->> drivers. In the future, it is simple for us just add new panel confi=
-guration
->> date in panel-generic-dpi.c to support new display panel.
->>
->> Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
->> ---
->> =A0.../arm/plat-omap/include/plat/panel-generic-dpi.h | =A0 37 +++
+Hello,
 
-[snip]
+On Tue, 16 Nov 2010 14:59:30 -0800
+Kevin Hilman <khilman@deeprootsystems.com> wrote:
 
->> +
->> +static power_on_delay =3D 0;
->> +
->> +static power_off_delay =3D 0;
->
-> This is not right. There may be multiple panels in a single board, an=
-d
-> these would be shared by both of the panels.
->
-> What you need to do is have a struct, which contains pointer to the
-> panel configuration used with that particular dssdev, and set the str=
-uct
-> with dev_set_drvdata().
->
-> Check panel-taal.c for an example. There's struct taal_data, which
-> contains also quite a bit other data, but also a pointer to the panel
-> config.
->
+> Hmm, using pm-core, I can hit full-chip retention in suspend on my
+> Beagle C4.
+> 
+> However, upgrading to a recent x-loader and u-boot, I can reproduce
+> the problem.
 
-Exactly, I just fixed it and sent the updated patchset.
+Ok, as you told me on IRC yesterday.
 
-Thanks,
---=20
-Bryan Wu <bryan.wu@canonical.com>
-Kernel Developer =A0 =A0+86.138-1617-6545 Mobile
-Ubuntu Kernel Team
-Canonical Ltd. =A0 =A0 =A0www.canonical.com
-Ubuntu - Linux for human beings | www.ubuntu.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The problem is an old one that seems to have resurfaced.  Namely,
+> u-boot leaves the MUSB block in a state that prevents it from idling,
+> and thus prevents CORE from hitting RET.
+> 
+> I have a series of hacks for this in the PM branch (see my
+> pm-otg-reset branch) that fixes the problem, but is not clean.  This
+> will work until the omap_hwmod conversion for MUSB is done.   One of
+> the perks we get from omap_hwmod is that a reset is done for each
+> hwmod ensuring that any (mis)configuration of the bootloader is
+> cleared and the HW is in a known default state.
+
+Ah, that's nice indeed. Are the hwmod conversion patches of musb
+already available somewhere (even preliminary versions) ?
+
+Thomas
+-- 
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
