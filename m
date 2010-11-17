@@ -1,181 +1,84 @@
-From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Subject: Re: [PATCH 1/7] crypto: updates omap sham device related platform
- code
-Date: Wed, 17 Nov 2010 12:17:04 +0200
-Message-ID: <4CE3ABA0.9090309@nokia.com>
-References: <cover.1289410038.git.dmitry.kasatkin@nokia.com> <e4868e47717a76b44193fdd71c36629d5785d896.1289410038.git.dmitry.kasatkin@nokia.com> <20101116171948.GS9264@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] omap3: feature: fix OMAP3_IVA_MASK
+Date: Wed, 17 Nov 2010 05:35:36 -0600
+Message-ID: <4CE3BE08.208@ti.com>
+References: <1288973121-14073-1-git-send-email-nm@ti.com> <20101116212715.GK9264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <20101116171948.GS9264@atomide.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: "herbert@gondor.hengli.com.au" <herbert@gondor.hengli.com.au>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:57703 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932962Ab0KQLfn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Nov 2010 06:35:43 -0500
+Received: by gxk7 with SMTP id 7so1225362gxk.0
+        for <linux-omap@vger.kernel.org>; Wed, 17 Nov 2010 03:35:43 -0800 (PST)
+In-Reply-To: <20101116212715.GK9264@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Arno Steffen <arno.steffen@googlemail.com>
 
-Hi,
-
-This patch was already applied months ago.
-It appeared by mistake as "git format-patch" took it somehow.
-
-Please ignore it...
-
-- Dmitry
-
-On 16/11/10 19:19, ext Tony Lindgren wrote:
-> * Dmitry Kasatkin <dmitry.kasatkin@nokia.com> [101110 09:20]:
->   
->> - registration with multi OMAP kernels support
->> - clocks
+Tony Lindgren wrote, on 11/16/2010 03:27 PM:
+> * Nishanth Menon<nm@ti.com>  [101105 17:29]:
+>> From: Arno Steffen<arno.steffen@googlemail.com>
 >>
->> Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+>> OMAP3_IVA_MASK should use OMAP3_IVA_SHIFT instead of OMAP3_SGX_SHIFT
+>>
+>> Signed-off-by: Arno Steffen<arno.steffen@googlemail.com>
 >> ---
->>  arch/arm/mach-omap2/clock2420_data.c       |    2 +-
->>  arch/arm/mach-omap2/clock2430_data.c       |    2 +-
->>  arch/arm/mach-omap2/clock3xxx_data.c       |    2 +-
->>  arch/arm/mach-omap2/devices.c              |   58 +++++++++++++++++++++++-----
->>  arch/arm/plat-omap/include/plat/omap34xx.h |    5 ++
->>  5 files changed, 56 insertions(+), 13 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
->> index d932b14..1820a55 100644
->> --- a/arch/arm/mach-omap2/clock2420_data.c
->> +++ b/arch/arm/mach-omap2/clock2420_data.c
->> @@ -1836,7 +1836,7 @@ static struct omap_clk omap2420_clks[] = {
->>  	CLK(NULL,	"vlynq_ick",	&vlynq_ick,	CK_242X),
->>  	CLK(NULL,	"vlynq_fck",	&vlynq_fck,	CK_242X),
->>  	CLK(NULL,	"des_ick",	&des_ick,	CK_242X),
->> -	CLK(NULL,	"sha_ick",	&sha_ick,	CK_242X),
->> +	CLK("omap-sham",	"ick",	&sha_ick,	CK_242X),
->>  	CLK("omap_rng",	"ick",		&rng_ick,	CK_242X),
->>  	CLK(NULL,	"aes_ick",	&aes_ick,	CK_242X),
->>  	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
->> diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
->> index 0438b6e..5884ac6 100644
->> --- a/arch/arm/mach-omap2/clock2430_data.c
->> +++ b/arch/arm/mach-omap2/clock2430_data.c
->> @@ -1924,7 +1924,7 @@ static struct omap_clk omap2430_clks[] = {
->>  	CLK(NULL,	"sdma_ick",	&sdma_ick,	CK_243X),
->>  	CLK(NULL,	"sdrc_ick",	&sdrc_ick,	CK_243X),
->>  	CLK(NULL,	"des_ick",	&des_ick,	CK_243X),
->> -	CLK(NULL,	"sha_ick",	&sha_ick,	CK_243X),
->> +	CLK("omap-sham",	"ick",	&sha_ick,	CK_243X),
->>  	CLK("omap_rng",	"ick",		&rng_ick,	CK_243X),
->>  	CLK(NULL,	"aes_ick",	&aes_ick,	CK_243X),
->>  	CLK(NULL,	"pka_ick",	&pka_ick,	CK_243X),
->> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
->> index 9cba556..52638df 100644
->> --- a/arch/arm/mach-omap2/clock3xxx_data.c
->> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
->> @@ -3360,7 +3360,7 @@ static struct omap_clk omap3xxx_clks[] = {
->>  	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2 | CK_AM35XX),
->>  	CLK(NULL,	"icr_ick",	&icr_ick,	CK_343X),
->>  	CLK(NULL,	"aes2_ick",	&aes2_ick,	CK_343X),
->> -	CLK(NULL,	"sha12_ick",	&sha12_ick,	CK_343X),
->> +	CLK("omap-sham",	"ick",	&sha12_ick,	CK_343X),
->>  	CLK(NULL,	"des2_ick",	&des2_ick,	CK_343X),
->>  	CLK("mmci-omap-hs.1",	"ick",	&mmchs2_ick,	CK_3XXX),
->>  	CLK("mmci-omap-hs.0",	"ick",	&mmchs1_ick,	CK_3XXX),
->>     
-> This looks OK.
+>> Sending on behalf of Arno - he pointed at the change and everything
+>> except for the patch ;)
+>> Reported here:
+>> http://marc.info/?l=linux-omap&m=128896969832702&w=2
 >
->   
->> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
->> index 2271b9b..beac46c 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
->> @@ -26,6 +26,7 @@
->>  #include <plat/mux.h>
->>  #include <mach/gpio.h>
->>  #include <plat/mmc.h>
->> +#include <plat/dma.h>
->>  
->>  #include "mux.h"
->>  
->> @@ -453,8 +454,10 @@ static void omap_init_mcspi(void)
->>  static inline void omap_init_mcspi(void) {}
->>  #endif
->>  
->> -#ifdef CONFIG_OMAP_SHA1_MD5
->> -static struct resource sha1_md5_resources[] = {
->> +#if defined(CONFIG_CRYPTO_DEV_OMAP_SHAM) || defined(CONFIG_CRYPTO_DEV_OMAP_SHAM_MODULE)
->> +
->> +#ifdef CONFIG_ARCH_OMAP24XX
->> +static struct resource omap2_sham_resources[] = {
->>  	{
->>  		.start	= OMAP24XX_SEC_SHA1MD5_BASE,
->>  		.end	= OMAP24XX_SEC_SHA1MD5_BASE + 0x64,
->> @@ -465,20 +468,55 @@ static struct resource sha1_md5_resources[] = {
->>  		.flags	= IORESOURCE_IRQ,
->>  	}
->>  };
->> +static int omap2_sham_resources_sz = ARRAY_SIZE(omap2_sham_resources);
->> +#else
->> +#define omap2_sham_resources		NULL
->> +#define omap2_sham_resources_sz		0
->> +#endif
->>  
->> -static struct platform_device sha1_md5_device = {
->> -	.name		= "OMAP SHA1/MD5",
->> +#ifdef CONFIG_ARCH_OMAP34XX
->> +static struct resource omap3_sham_resources[] = {
->> +	{
->> +		.start	= OMAP34XX_SEC_SHA1MD5_BASE,
->> +		.end	= OMAP34XX_SEC_SHA1MD5_BASE + 0x64,
->> +		.flags	= IORESOURCE_MEM,
->> +	},
->> +	{
->> +		.start	= INT_34XX_SHA1MD52_IRQ,
->> +		.flags	= IORESOURCE_IRQ,
->> +	},
->> +	{
->> +		.start	= OMAP34XX_DMA_SHA1MD5_RX,
->> +		.flags	= IORESOURCE_DMA,
->> +	}
->> +};
->> +static int omap3_sham_resources_sz = ARRAY_SIZE(omap3_sham_resources);
->> +#else
->> +#define omap3_sham_resources		NULL
->> +#define omap3_sham_resources_sz		0
->> +#endif
->> +
->> +static struct platform_device sham_device = {
->> +	.name		= "omap-sham",
->>  	.id		= -1,
->> -	.num_resources	= ARRAY_SIZE(sha1_md5_resources),
->> -	.resource	= sha1_md5_resources,
->>  };
->>  
->> -static void omap_init_sha1_md5(void)
->> +static void omap_init_sham(void)
->>  {
->> -	platform_device_register(&sha1_md5_device);
->> +	if (cpu_is_omap24xx()) {
->> +		sham_device.resource = omap2_sham_resources;
->> +		sham_device.num_resources = omap2_sham_resources_sz;
->> +	} else if (cpu_is_omap34xx()) {
->> +		sham_device.resource = omap3_sham_resources;
->> +		sham_device.num_resources = omap3_sham_resources_sz;
->> +	} else {
->> +		pr_err("%s: platform not supported\n", __func__);
->> +		return;
->> +	}
->> +	platform_device_register(&sham_device);
->>  }
->>  #else
->> -static inline void omap_init_sha1_md5(void) { }
->> +static inline void omap_init_sham(void) { }
->>  #endif
->>  
->>  /*-------------------------------------------------------------------------*/
->>     
-> Here you might want to look into doing this using hwmod, it would
-> clear out a lot of this init code.
+> Hmm, until we have an official verbal-patch-to-unified-diff translator,
+> I guess the right thing to do here is to make it be:
+>
+> From: Nishanth Menon<nm@ti.com>
+>
+> OMAP3_IVA_MASK should use OMAP3_IVA_SHIFT instead of OMAP3_SGX_SHIFT
+>
+> Reported-by: Arno Steffen<arno.steffen@googlemail.com>
+> Signed-off-by: Nishanth Menon<nm@ti.com>
+>
+> Can you please repost or confirm that's OK for you?
+
+I would prefer if Arno resubmit the patch under his name - but if he 
+cannot do so, I can take ownership.
+
+Arno,
+please comment.
+
 >
 > Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-crypto" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+>
+>>   arch/arm/mach-omap2/control.h |    2 +-
+>>   1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+>> index b6c6b7c..5325297 100644
+>> --- a/arch/arm/mach-omap2/control.h
+>> +++ b/arch/arm/mach-omap2/control.h
+>> @@ -309,7 +309,7 @@
+>>   #define		FEAT_SGX_NONE		2
+>>
+>>   #define OMAP3_IVA_SHIFT			12
+>> -#define OMAP3_IVA_MASK			(1<<  OMAP3_SGX_SHIFT)
+>> +#define OMAP3_IVA_MASK			(1<<  OMAP3_IVA_SHIFT)
+>>   #define		FEAT_IVA		0
+>>   #define		FEAT_IVA_NONE		1
+>>
+>> --
+>> 1.7.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+Regards,
+Nishanth Menon
