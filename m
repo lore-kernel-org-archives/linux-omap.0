@@ -1,45 +1,53 @@
-From: Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [PATCH v4] OMAP3: DSS: Kconfig changes to enable display options on OMAP3
-Date: Thu, 18 Nov 2010 15:18:50 +0900
-Message-ID: <20101118061850.GB17539@linux-sh.org>
-References: <1288063074-8879-1-git-send-email-samreen@ti.com> <FCCFB4CDC6E5564B9182F639FC356087034C101F0B@dbde02.ent.ti.com> <1289915437.2668.107.camel@tubuntu> <20101116193843.GZ9264@atomide.com> <8762vxcaco.fsf@deeprootsystems.com> <20101116201054.GC9264@atomide.com> <1289996891.26444.16.camel@tubuntu>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH] OMAP: DSS2: Add back authors of panel-generic.c based
+ drivers
+Date: Thu, 18 Nov 2010 11:07:34 +0200
+Message-ID: <1290071254.3431.0.camel@tubuntu>
+References: <1290044759-2903-1-git-send-email-bryan.wu@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:43916 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754734Ab0KRGT1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 01:19:27 -0500
-Content-Disposition: inline
-In-Reply-To: <1289996891.26444.16.camel@tubuntu>
+Received: from smtp.nokia.com ([147.243.128.26]:54891 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751145Ab0KRJHs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Nov 2010 04:07:48 -0500
+In-Reply-To: <1290044759-2903-1-git-send-email-bryan.wu@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "ext Nilofer, Samreen" <samreen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: ext Bryan Wu <bryan.wu@canonical.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com, hvaibhav@ti.com, mike@compulab.co.il, premi@ti.com
 
-On Wed, Nov 17, 2010 at 02:28:11PM +0200, Tomi Valkeinen wrote:
-> On Tue, 2010-11-16 at 21:10 +0100, ext Tony Lindgren wrote:
-> > Sure a module would be even better. My point is that the selection of
-> > all the features should be enabled by default and the board options come
-> > from platform_data.
+On Thu, 2010-11-18 at 09:45 +0800, ext Bryan Wu wrote:
+> Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+> ---
+>  drivers/video/omap2/displays/panel-generic-dpi.c |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
 > 
-> Ok, let's build DSS & all panel drivers as modules by default.
-> 
-> Somehow I've gotten the impression from linux ml that enabling features
-> by default is bad. But perhaps it's more about intervening features than
-> normal drivers.
-> 
-The general rule is to avoid default enabling unless you really need it,
-but it still remains optional (which is why it's not being selected,
-instead). Some, like gpiolib, have come up with WANT/NEED options for the
-platform code to select in order to work out the desired behaviour, and
-you may benefit from a similar approach for your subsystem if it's really
-that integral for some parts.
+> diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+> index 6702cf6..07eb30e 100644
+> --- a/drivers/video/omap2/displays/panel-generic-dpi.c
+> +++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+> @@ -4,6 +4,16 @@
+>   * Copyright (C) 2010 Canonical Ltd.
+>   * Author: Bryan Wu <bryan.wu@canonical.com>
+>   *
+> + * LCD panel driver for Sharp LQ043T1DG01
+> + *
+> + * Copyright (C) 2009 Texas Instruments Inc
+> + * Author: Vaibhav Hiremath <hvaibhav@ti.com>
+> + *
+> + * LCD panel driver for Toppoly TDO35S
+> + *
+> + * Copyright (C) 2009 CompuLab, Ltd.
+> + * Author: Mike Rapoport <mike@compulab.co.il>
+> + *
+>   * Copyright (C) 2008 Nokia Corporation
+>   * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+>   *
 
-The flip side of course is that if you expect your users to primarily be
-using the defconfigs provided, you can simply leave it default disabled
-in the Kconfig and set the options you want in the defconfigs.
+Thanks, applied.
 
-Unless you can say with certainty that all OMAP3 boards are going to want
-DSS enabled or modular by default, it's almost always better to just
-leave it up to the defconfigs.
+ Tomi
+
+
