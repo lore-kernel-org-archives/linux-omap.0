@@ -1,39 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] OMAP3 PM: move omap3 sleep to ddr
-Date: Thu, 18 Nov 2010 09:52:15 -0800
-Message-ID: <20101118175215.GE9264@atomide.com>
-References: <1290091906-32539-1-git-send-email-j-pihet@ti.com>
- <1290091906-32539-2-git-send-email-j-pihet@ti.com>
- <d2e0f972ca73d80e4929b605a9c2475f@mail.gmail.com>
- <87tyjey6h3.fsf@deeprootsystems.com>
- <4CE55A88.6010300@ti.com>
+Subject: Re: [PATCH] OMAP MUX framework changes
+Date: Thu, 18 Nov 2010 09:57:14 -0800
+Message-ID: <20101118175714.GF9264@atomide.com>
+References: <1290017211-2217-1-git-send-email-dmurphy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52768 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755363Ab0KRRwU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 12:52:20 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16704 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760036Ab0KRR5R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 12:57:17 -0500
 Content-Disposition: inline
-In-Reply-To: <4CE55A88.6010300@ti.com>
+In-Reply-To: <1290017211-2217-1-git-send-email-dmurphy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, Jean Pihet-XID <j-pihet@ti.com>
+To: Dan Murphy <dmurphy@ti.com>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com, khilman@deeprootsystems.com
 
-* Nishanth Menon <nm@ti.com> [101118 08:46]:
-> 
-> But after wfi in wait_sdrc_ok as part of the code executing in SRAM
-> today omap34xx_cpu_suspend -> we are waiting for DPLL3 lock prior to
-> accessing DDR -> how do we execute that logic in SDRAM?
+Hi Dan,
 
-I too am a bit concerned how this will all keep working. For light
-testing it may be running OK if it happens to run from cache..
+* Dan Murphy <dmurphy@ti.com> [101117 09:58]:
+> @@ -81,10 +81,14 @@ void omap_mux_write(struct omap_mux_partition *partition, u16 val,
+>  void omap_mux_write_array(struct omap_mux_partition *partition,
+>  				 struct omap_board_mux *board_mux)
+>  {
+> -	while (board_mux->reg_offset != OMAP_MUX_TERMINATOR) {
+> -		omap_mux_write(partition, board_mux->value,
+> -			       board_mux->reg_offset);
+> -		board_mux++;
+> +	if (partition) {
+> +		while (board_mux->reg_offset != OMAP_MUX_TERMINATOR) {
+> +			omap_mux_write(partition, board_mux->value,
+> +				       board_mux->reg_offset);
+> +			board_mux++;
+> +		}
+> +	} else {
+> +		pr_err("%s: Partition was NULL\n", __func__);
+>  	}
+>  }
+>  
 
-Also, moving the code out of SRAM will limit the options for what we
-may need to do with DDR or L3.
+Can you please make this into a separate patch. And instead of
+indenting the code more, just do something like:
 
-Retention is something to consider, are there issues with that?
+	if (!partition)
+		return -EINVAL;
 
 Regards,
 
