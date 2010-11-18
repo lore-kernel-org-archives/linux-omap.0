@@ -1,52 +1,39 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] OMAP: DSS2: Add back authors of panel-generic.c based
- drivers
-Date: Thu, 18 Nov 2010 11:07:34 +0200
-Message-ID: <1290071254.3431.0.camel@tubuntu>
-References: <1290044759-2903-1-git-send-email-bryan.wu@canonical.com>
+Subject: Re: [PATCH 0/3] OMAP: DSS2: introduce generic panel display driver
+ (try #8)
+Date: Thu, 18 Nov 2010 11:11:09 +0200
+Message-ID: <1290071469.3431.4.camel@tubuntu>
+References: <1290000875-11508-1-git-send-email-bryan.wu@canonical.com>
+	 <1290003526.26444.30.camel@tubuntu>
+	 <AANLkTinP=xJ66qTZA4JTXFNH+xqvKWgV-XhExoPr6o-C@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:54891 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.24]:17478 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751145Ab0KRJHs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Nov 2010 04:07:48 -0500
-In-Reply-To: <1290044759-2903-1-git-send-email-bryan.wu@canonical.com>
+	id S1751145Ab0KRJLQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Nov 2010 04:11:16 -0500
+In-Reply-To: <AANLkTinP=xJ66qTZA4JTXFNH+xqvKWgV-XhExoPr6o-C@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext Bryan Wu <bryan.wu@canonical.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com, hvaibhav@ti.com, mike@compulab.co.il, premi@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
 
-On Thu, 2010-11-18 at 09:45 +0800, ext Bryan Wu wrote:
-> Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
-> ---
->  drivers/video/omap2/displays/panel-generic-dpi.c |   10 ++++++++++
->  1 files changed, 10 insertions(+), 0 deletions(-)
+On Thu, 2010-11-18 at 10:14 +0800, ext Bryan Wu wrote:
+> On Wed, Nov 17, 2010 at 10:18 PM, Tomi Valkeinen
+
+> > Are you also interested in solving the backlight issue? =)
 > 
-> diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-> index 6702cf6..07eb30e 100644
-> --- a/drivers/video/omap2/displays/panel-generic-dpi.c
-> +++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-> @@ -4,6 +4,16 @@
->   * Copyright (C) 2010 Canonical Ltd.
->   * Author: Bryan Wu <bryan.wu@canonical.com>
->   *
-> + * LCD panel driver for Sharp LQ043T1DG01
-> + *
-> + * Copyright (C) 2009 Texas Instruments Inc
-> + * Author: Vaibhav Hiremath <hvaibhav@ti.com>
-> + *
-> + * LCD panel driver for Toppoly TDO35S
-> + *
-> + * Copyright (C) 2009 CompuLab, Ltd.
-> + * Author: Mike Rapoport <mike@compulab.co.il>
-> + *
->   * Copyright (C) 2008 Nokia Corporation
->   * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
->   *
+> Yeah, can I start with
+> drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c. I plan to move
+> the blacklight code to drivers/video/blacklight/ and let sharp_ls to
+> use panel-generic-dpi.c driver.
 
-Thanks, applied.
+Yes, I think that's a good solution for the panels which have a separate
+backlight (ie. all these "dummy" panels"). However, I'm not sure how
+that would work for panels with more integrated backlight, for example
+Taal. But we don't need to worry about that right now.
 
  Tomi
 
