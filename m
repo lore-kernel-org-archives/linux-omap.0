@@ -1,32 +1,70 @@
-From: Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [PATCH v4] OMAP3: DSS: Kconfig changes to enable display options on OMAP3
-Date: Fri, 19 Nov 2010 03:38:57 +0900
-Message-ID: <20101118183856.GA24547@linux-sh.org>
-References: <1288063074-8879-1-git-send-email-samreen@ti.com> <FCCFB4CDC6E5564B9182F639FC356087034C101F0B@dbde02.ent.ti.com> <1289915437.2668.107.camel@tubuntu> <20101116193843.GZ9264@atomide.com> <8762vxcaco.fsf@deeprootsystems.com> <20101116201054.GC9264@atomide.com> <1289996891.26444.16.camel@tubuntu> <20101118061850.GB17539@linux-sh.org> <20101118164414.GC9264@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/5] OMAP4: hsmmc: Initialise the mmc mux pins
+Date: Thu, 18 Nov 2010 11:03:00 -0800
+Message-ID: <20101118190300.GJ9264@atomide.com>
+References: <1289806685-20688-1-git-send-email-r.sricharan@ti.com>
+ <1289806685-20688-2-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:56639 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755829Ab0KRSjf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 13:39:35 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:46330 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755858Ab0KRTDE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 14:03:04 -0500
 Content-Disposition: inline
-In-Reply-To: <20101118164414.GC9264@atomide.com>
+In-Reply-To: <1289806685-20688-2-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "ext Nilofer, Samreen" <samreen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: sricharan <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Nov 18, 2010 at 08:44:14AM -0800, Tony Lindgren wrote:
-> * Paul Mundt <lethal@linux-sh.org> [101117 22:09]:
-> > Unless you can say with certainty that all OMAP3 boards are going to want
-> > DSS enabled or modular by default, it's almost always better to just
-> > leave it up to the defconfigs.
+* sricharan <r.sricharan@ti.com> [101114 23:26]:
+> Use the mux framework to initialise the mmc mux pins.
 > 
-> I wish we could just do "default m if ARCH_OMAP2PLUS_TYPICAL"..
-> But meanwhile setting it as a module in omap2plus_defconfig does
-> the trick though like you say.
+> Signed-off-by: sricharan <r.sricharan@ti.com>
+> ---
+>  arch/arm/mach-omap2/devices.c |   83 +++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 83 insertions(+), 0 deletions(-)
 > 
-Something like this should be quite doable if the Kconfig fragments work
-is ever completed. If this is something that interests you you may wish
-to give it a bit of a nudge :-)
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index eaf3799..56b1ac9 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -784,6 +784,89 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+>  		 * For MMC3 the pins need to be muxed in the board-*.c files
+>  		 */
+>  	}
+> +
+> +	if (cpu_is_omap44xx()) {
+> +		switch (controller_nr) {
+> +		case 0:
+> +			/* MMC 1 */
+> +			omap_mux_init_signal("sdmmc1_clk.sdmmc1_clk",
+> +						OMAP_PIN_INPUT_PULLUP);
+> +			omap_mux_init_signal("sdmmc1_cmd.sdmmc1_cmd",
+> +						OMAP_PIN_INPUT_PULLUP);
+> +			omap_mux_init_signal("sdmmc1_dat0.sdmmc1_dat0",
+> +						OMAP_PIN_INPUT_PULLUP);
+> +			if (mmc_controller->slots[0].caps &
+> +				(MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
+> +				omap_mux_init_signal("sdmmc1_dat1.sdmmc1_dat1",
+> +						OMAP_PIN_INPUT_PULLUP);
+> +				omap_mux_init_signal("sdmmc1_dat2.sdmmc1_dat2",
+> +						OMAP_PIN_INPUT_PULLUP);
+> +				omap_mux_init_signal("sdmmc1_dat3.sdmmc1_dat3",
+> +						OMAP_PIN_INPUT_PULLUP);
+> +			}
+
+This does not solve the selected pins issue. For example, you don't know
+if it's sdmmc1_dat1.sdmmc1_dat1 or gpmc_ad9.sdmmc_dat1. That selection
+is board specific.
+
+So you either have to pass the selected pins from the board-*.c file,
+or do the muxing in board-*.c file. It depends on the the case.
+
+How about take a look at specifying the pin names in board-*.c in
+struct omap_mmc_platform_data?
+
+Regards,
+
+Tony
