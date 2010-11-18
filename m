@@ -1,69 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] OMAP4: hsmmc: Initialise the mmc mux pins
-Date: Thu, 18 Nov 2010 11:03:00 -0800
-Message-ID: <20101118190300.GJ9264@atomide.com>
+Subject: Re: [PATCH 0/5] OMAP4: mux: Initialise OMAP4 mux pins.
+Date: Thu, 18 Nov 2010 11:06:51 -0800
+Message-ID: <20101118190650.GK9264@atomide.com>
 References: <1289806685-20688-1-git-send-email-r.sricharan@ti.com>
- <1289806685-20688-2-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:46330 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755858Ab0KRTDE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 14:03:04 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56297 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107Ab0KRTG4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 14:06:56 -0500
 Content-Disposition: inline
-In-Reply-To: <1289806685-20688-2-git-send-email-r.sricharan@ti.com>
+In-Reply-To: <1289806685-20688-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: sricharan <r.sricharan@ti.com>
 Cc: linux-omap@vger.kernel.org
 
 * sricharan <r.sricharan@ti.com> [101114 23:26]:
-> Use the mux framework to initialise the mmc mux pins.
-> 
-> Signed-off-by: sricharan <r.sricharan@ti.com>
-> ---
->  arch/arm/mach-omap2/devices.c |   83 +++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 83 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index eaf3799..56b1ac9 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -784,6 +784,89 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
->  		 * For MMC3 the pins need to be muxed in the board-*.c files
->  		 */
->  	}
-> +
-> +	if (cpu_is_omap44xx()) {
-> +		switch (controller_nr) {
-> +		case 0:
-> +			/* MMC 1 */
-> +			omap_mux_init_signal("sdmmc1_clk.sdmmc1_clk",
-> +						OMAP_PIN_INPUT_PULLUP);
-> +			omap_mux_init_signal("sdmmc1_cmd.sdmmc1_cmd",
-> +						OMAP_PIN_INPUT_PULLUP);
-> +			omap_mux_init_signal("sdmmc1_dat0.sdmmc1_dat0",
-> +						OMAP_PIN_INPUT_PULLUP);
-> +			if (mmc_controller->slots[0].caps &
-> +				(MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
-> +				omap_mux_init_signal("sdmmc1_dat1.sdmmc1_dat1",
-> +						OMAP_PIN_INPUT_PULLUP);
-> +				omap_mux_init_signal("sdmmc1_dat2.sdmmc1_dat2",
-> +						OMAP_PIN_INPUT_PULLUP);
-> +				omap_mux_init_signal("sdmmc1_dat3.sdmmc1_dat3",
-> +						OMAP_PIN_INPUT_PULLUP);
-> +			}
+> This series updates the core device drivers to use mux framework
+> for OMAP4 SDP and PANDA board. It's generated against the
+> linux-omap master branch. It has a dependency on the Benoit's
+> omap4 mux data series.
 
-This does not solve the selected pins issue. For example, you don't know
-if it's sdmmc1_dat1.sdmmc1_dat1 or gpmc_ad9.sdmmc_dat1. That selection
-is board specific.
+<snip>
+ 
+> 2. Do PAD configuration independently for each module
+> Pros:
+> 	a. Avoids repetition of similar data for different boards.
+> 	b. Gives a knowledge of how pins are configured for a module
+> 	   to the respective owners.
+> 	c. Pads are not initialised unless they are really needed.
+> Cons:
+> 	a. Can become difficult to maintain if lot of data tend to be 
+> 	   different across boards.
 
-So you either have to pass the selected pins from the board-*.c file,
-or do the muxing in board-*.c file. It depends on the the case.
+For the common modules, we should have generic platform init code
+using hwmod. And that init code is the logical place to do the muxing.
 
-How about take a look at specifying the pin names in board-*.c in
-struct omap_mmc_platform_data?
+We also need to consider that the pin muxing is board specific.
+So in cases where the are alternative signal paths, we need to pass
+the signal names from board-*.c file to the platform driver init code.
 
 Regards,
 
