@@ -1,49 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4] OMAP3: DSS: Kconfig changes to enable display
- options on OMAP3
-Date: Thu, 18 Nov 2010 11:10:26 -0800
-Message-ID: <20101118191026.GL9264@atomide.com>
-References: <1288063074-8879-1-git-send-email-samreen@ti.com>
- <FCCFB4CDC6E5564B9182F639FC356087034C101F0B@dbde02.ent.ti.com>
- <1289915437.2668.107.camel@tubuntu>
- <20101116193843.GZ9264@atomide.com>
- <8762vxcaco.fsf@deeprootsystems.com>
- <20101116201054.GC9264@atomide.com>
- <1289996891.26444.16.camel@tubuntu>
- <20101118061850.GB17539@linux-sh.org>
- <20101118164414.GC9264@atomide.com>
- <20101118183856.GA24547@linux-sh.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hari Kanigeri <h-kanigeri2@ti.com>
+Subject: [PATCH v3 3/5] OMAP: mailbox: fix checkpatch warnings
+Date: Thu, 18 Nov 2010 13:15:40 -0600
+Message-ID: <1290107742-16760-4-git-send-email-h-kanigeri2@ti.com>
+References: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61247 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751107Ab0KRTKf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 14:10:35 -0500
-Content-Disposition: inline
-In-Reply-To: <20101118183856.GA24547@linux-sh.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54484 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751107Ab0KRTNr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Nov 2010 14:13:47 -0500
+In-Reply-To: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Mundt <lethal@linux-sh.org>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "ext Nilofer, Samreen" <samreen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-* Paul Mundt <lethal@linux-sh.org> [101118 10:29]:
-> On Thu, Nov 18, 2010 at 08:44:14AM -0800, Tony Lindgren wrote:
-> > * Paul Mundt <lethal@linux-sh.org> [101117 22:09]:
-> > > Unless you can say with certainty that all OMAP3 boards are going to want
-> > > DSS enabled or modular by default, it's almost always better to just
-> > > leave it up to the defconfigs.
-> > 
-> > I wish we could just do "default m if ARCH_OMAP2PLUS_TYPICAL"..
-> > But meanwhile setting it as a module in omap2plus_defconfig does
-> > the trick though like you say.
-> > 
-> Something like this should be quite doable if the Kconfig fragments work
-> is ever completed. If this is something that interests you you may wish
-> to give it a bit of a nudge :-)
+Fix the checkpatch warnings observed in mailbox module
 
-Yeah maybe eventually at some point.. Got several merge cycles of
-other things to fix.. And the defconfig can be used for now :)
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+---
+ arch/arm/plat-omap/mailbox.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-Tony
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 9ce3570..abfc495 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -279,11 +279,11 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
+ 
+ 	return 0;
+ 
+- fail_alloc_rxq:
++fail_alloc_rxq:
+ 	mbox_queue_free(mbox->txq);
+- fail_alloc_txq:
++fail_alloc_txq:
+ 	free_irq(mbox->irq, mbox);
+- fail_request_irq:
++fail_request_irq:
+ 	if (mbox->ops->shutdown)
+ 		mbox->ops->shutdown(mbox);
+ 
+@@ -394,7 +394,8 @@ static int __init omap_mbox_init(void)
+ 
+ 	/* kfifo size sanity check: alignment and minimal size */
+ 	mbox_kfifo_size = ALIGN(mbox_kfifo_size, sizeof(mbox_msg_t));
+-	mbox_kfifo_size = max_t(unsigned int, mbox_kfifo_size, sizeof(mbox_msg_t));
++	mbox_kfifo_size = max_t(unsigned int, mbox_kfifo_size,
++							sizeof(mbox_msg_t));
+ 
+ 	return 0;
+ }
+-- 
+1.7.0
 
