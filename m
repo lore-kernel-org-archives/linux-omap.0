@@ -1,33 +1,45 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: omap4: hsmmc: Fix improper card detection while booting
-Date: Thu, 18 Nov 2010 03:39:09 +0000
-Message-ID: <20101118033909.GD23555@void.printf.net>
-References: <6576.10.24.255.17.1289812139.squirrel@dbdmail.itg.ti.com>
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCH v4] OMAP3: DSS: Kconfig changes to enable display options on OMAP3
+Date: Thu, 18 Nov 2010 15:18:50 +0900
+Message-ID: <20101118061850.GB17539@linux-sh.org>
+References: <1288063074-8879-1-git-send-email-samreen@ti.com> <FCCFB4CDC6E5564B9182F639FC356087034C101F0B@dbde02.ent.ti.com> <1289915437.2668.107.camel@tubuntu> <20101116193843.GZ9264@atomide.com> <8762vxcaco.fsf@deeprootsystems.com> <20101116201054.GC9264@atomide.com> <1289996891.26444.16.camel@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:43916 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754734Ab0KRGT1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 01:19:27 -0500
 Content-Disposition: inline
-In-Reply-To: <6576.10.24.255.17.1289812139.squirrel@dbdmail.itg.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: kishore kadiyala <kishore.kadiyala@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1289996891.26444.16.camel@tubuntu>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "ext Nilofer, Samreen" <samreen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-Hi Kishore,
-
-On Mon, Nov 15, 2010 at 02:38:59PM +0530, kishore kadiyala wrote:
-> While booting OMAP4 ES2.0 boards, cards on MMC1 and MMC2 controllers
-> are not getting detected some times.
+On Wed, Nov 17, 2010 at 02:28:11PM +0200, Tomi Valkeinen wrote:
+> On Tue, 2010-11-16 at 21:10 +0100, ext Tony Lindgren wrote:
+> > Sure a module would be even better. My point is that the selection of
+> > all the features should be enabled by default and the board options come
+> > from platform_data.
 > 
-> During reset of command/data line, wrong pointer to base address
-> was passed while read operation to SYSCTL register, thus impacting
-> the updated reset logic.
-> Passing correct base address fixes the issue.
+> Ok, let's build DSS & all panel drivers as modules by default.
 > 
-> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> Somehow I've gotten the impression from linux ml that enabling features
+> by default is bad. But perhaps it's more about intervening features than
+> normal drivers.
+> 
+The general rule is to avoid default enabling unless you really need it,
+but it still remains optional (which is why it's not being selected,
+instead). Some, like gpiolib, have come up with WANT/NEED options for the
+platform code to select in order to work out the desired behaviour, and
+you may benefit from a similar approach for your subsystem if it's really
+that integral for some parts.
 
-Thanks, I've taken this into the MMC for-linus branch for .37 now.
+The flip side of course is that if you expect your users to primarily be
+using the defconfigs provided, you can simply leave it default disabled
+in the Kconfig and set the options you want in the defconfigs.
 
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Unless you can say with certainty that all OMAP3 boards are going to want
+DSS enabled or modular by default, it's almost always better to just
+leave it up to the defconfigs.
