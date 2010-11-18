@@ -1,38 +1,61 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH v3 0/5] OMAP: mailbox: enhancements and fixes
-Date: Thu, 18 Nov 2010 13:15:37 -0600
-Message-ID: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH v3 4/5] OMAP: mailbox: send message in process context
+Date: Thu, 18 Nov 2010 13:15:41 -0600
+Message-ID: <1290107742-16760-5-git-send-email-h-kanigeri2@ti.com>
+References: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59999 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753157Ab0KRTNt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 14:13:49 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:43250 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753593Ab0KRTNu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Nov 2010 14:13:50 -0500
+In-Reply-To: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-Sending the patch set by seperating the clock related patch seperated
-out based on Paul Walmsey's comment.
-http://www.spinics.net/lists/arm-kernel/msg103692.html
-The clock patch will be sent out as a seperate patch.
+Schedule the Tasklet to send only when mailbox fifo is full and there are
+pending messages in kifo, else send the message directly in the Process
+context. This would avoid needless scheduling of Tasklet for every message
+transfer
 
-The previous versions of this patch set can be found here
-http://www.spinics.net/lists/linux-omap/msg39988.html
-http://www.spinics.net/lists/linux-omap/msg39931.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37278.html
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+---
+ arch/arm/plat-omap/mailbox.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-Fernando Guzman Lugo (1):
-  OMAP: mailbox: change full flag per mailbox queue instead of global
-
-Hari Kanigeri (4):
-  OMAP: mailbox: fix rx interrupt disable in omap4
-  OMAP: mailbox: fix checkpatch warnings
-  OMAP: mailbox: send message in process context
-  OMAP: mailbox: add notification support for multiple readers
-
- arch/arm/mach-omap2/mailbox.c             |    5 +-
- arch/arm/plat-omap/include/plat/mailbox.h |    8 +-
- arch/arm/plat-omap/mailbox.c              |  127 +++++++++++++++++------------
- 3 files changed, 82 insertions(+), 58 deletions(-)
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index abfc495..b14bc34 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -92,20 +92,25 @@ int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+ 	struct omap_mbox_queue *mq = mbox->txq;
+ 	int ret = 0, len;
+ 
+-	spin_lock(&mq->lock);
++	spin_lock_bh(&mq->lock);
+ 
+ 	if (kfifo_avail(&mq->fifo) < sizeof(msg)) {
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
+ 
++	if (kfifo_is_empty(&mq->fifo) && !__mbox_poll_for_space(mbox)) {
++		mbox_fifo_write(mbox, msg);
++		goto out;
++	}
++
+ 	len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+ 	WARN_ON(len != sizeof(msg));
+ 
+ 	tasklet_schedule(&mbox->txq->tasklet);
+ 
+ out:
+-	spin_unlock(&mq->lock);
++	spin_unlock_bh(&mq->lock);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(omap_mbox_msg_send);
+-- 
+1.7.0
 
