@@ -1,58 +1,32 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 1/2] OMAP3 PM: move omap3 sleep to ddr
-Date: Thu, 18 Nov 2010 19:34:46 +0100
-Message-ID: <AANLkTi=m1MXATmUzXNxbggoUS01AbyeGZm9WMgWUqdNo@mail.gmail.com>
-References: <1290091906-32539-1-git-send-email-j-pihet@ti.com>
-	<1290091906-32539-2-git-send-email-j-pihet@ti.com>
-	<d2e0f972ca73d80e4929b605a9c2475f@mail.gmail.com>
-	<87tyjey6h3.fsf@deeprootsystems.com>
-	<4CE55A88.6010300@ti.com>
-	<20101118175215.GE9264@atomide.com>
-	<AANLkTi=bhULQsXhnN9ugDm7k=2P4E7-SvXEnx06pBwmu@mail.gmail.com>
-	<20101118182752.GI9264@atomide.com>
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCH v4] OMAP3: DSS: Kconfig changes to enable display options on OMAP3
+Date: Fri, 19 Nov 2010 03:38:57 +0900
+Message-ID: <20101118183856.GA24547@linux-sh.org>
+References: <1288063074-8879-1-git-send-email-samreen@ti.com> <FCCFB4CDC6E5564B9182F639FC356087034C101F0B@dbde02.ent.ti.com> <1289915437.2668.107.camel@tubuntu> <20101116193843.GZ9264@atomide.com> <8762vxcaco.fsf@deeprootsystems.com> <20101116201054.GC9264@atomide.com> <1289996891.26444.16.camel@tubuntu> <20101118061850.GB17539@linux-sh.org> <20101118164414.GC9264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:36445 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760103Ab0KRSes (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 13:34:48 -0500
-Received: by qyk2 with SMTP id 2so1327691qyk.19
-        for <linux-omap@vger.kernel.org>; Thu, 18 Nov 2010 10:34:47 -0800 (PST)
-In-Reply-To: <20101118182752.GI9264@atomide.com>
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:56639 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755829Ab0KRSjf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 13:39:35 -0500
+Content-Disposition: inline
+In-Reply-To: <20101118164414.GC9264@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, Jean Pihet-XID <j-pihet@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "ext Nilofer, Samreen" <samreen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-On Thu, Nov 18, 2010 at 7:27 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Jean Pihet <jean.pihet@newoldbits.com> [101118 10:06]:
->> On Thu, Nov 18, 2010 at 6:52 PM, Tony Lindgren <tony@atomide.com> wrote:
->>
->> About the DPLL lock:
->> 1) wait_sdrc_ok is only called when back from the non-OFF modes,
->> 2) I checked that when running wait_sdrc_ok the CORE is already out of
->> idle and the DPLL is already locked. Note: l-o code has no support for
->> the voltages OFF and the external clocks OFF.
->>
->> What to conclude from 1) and 2)? In my test setup ot looks like
->> wait_sdrc_ok is of no use, but I agree this a premature conclusion.
->
-> Yeah we should figure out in which cases wait_sdrc_ok is needed.
->
-> BTW, are you sure you're hitting core idle in your tests?
-Yes it is OK from the console messages and the counters values in
-/debug/pm_debug/count.
-
-Let me confirm asap with the PRCM registers dump.
-
->
-> Regards,
->
-> Tony
->
-
-Thanks,
-Jean
-
->
+On Thu, Nov 18, 2010 at 08:44:14AM -0800, Tony Lindgren wrote:
+> * Paul Mundt <lethal@linux-sh.org> [101117 22:09]:
+> > Unless you can say with certainty that all OMAP3 boards are going to want
+> > DSS enabled or modular by default, it's almost always better to just
+> > leave it up to the defconfigs.
+> 
+> I wish we could just do "default m if ARCH_OMAP2PLUS_TYPICAL"..
+> But meanwhile setting it as a module in omap2plus_defconfig does
+> the trick though like you say.
+> 
+Something like this should be quite doable if the Kconfig fragments work
+is ever completed. If this is something that interests you you may wish
+to give it a bit of a nudge :-)
