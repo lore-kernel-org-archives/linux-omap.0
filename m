@@ -1,37 +1,42 @@
-From: Charles Manning <manningc2@actrix.gen.nz>
-Subject: No more software ECC in omap2.c NAND driver. Why?
-Date: Thu, 18 Nov 2010 14:06:15 +1300
-Message-ID: <201011181406.15212.manningc2@actrix.gen.nz>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: [PATCH] OMAP: DSS2: Add back authors of panel-generic.c based drivers
+Date: Thu, 18 Nov 2010 09:45:59 +0800
+Message-ID: <1290044759-2903-1-git-send-email-bryan.wu@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.scorch.co.nz ([27.110.127.199]:36166 "HELO scorch.co.nz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753641Ab0KRBM5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Nov 2010 20:12:57 -0500
-Content-Disposition: inline
+Received: from adelie.canonical.com ([91.189.90.139]:56217 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752958Ab0KRBqK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Nov 2010 20:46:10 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com, hvaibhav@ti.com, mike@compulab.co.il, premi@ti.com
 
-Between 2.6.35 and 2.6.36 there have need quite a few changes in the NAND 
-driver, including a change from software to hardware ECC.
+Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+---
+ drivers/video/omap2/displays/panel-generic-dpi.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-The new code has hardware ECC forced on by:
-
-#define CONFIG_MTD_NAND_OMAP_HWECC
-
-I am surprised that this was done. Surely this should have been a Kconfig 
-option to select either sw ECC or hw ECC?
-
-Does moving to hardware ECC to the exclusion of software ECC reduce 
-functionality?
-
-Does the new hwecc scheme still support sub-page writes or does it only 
-provide full page writes? If sub-page writes are lost then this has  a ripple 
-effect in breaking the way some UBI stuff works.
-
--- Charles
+diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+index 6702cf6..07eb30e 100644
+--- a/drivers/video/omap2/displays/panel-generic-dpi.c
++++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+@@ -4,6 +4,16 @@
+  * Copyright (C) 2010 Canonical Ltd.
+  * Author: Bryan Wu <bryan.wu@canonical.com>
+  *
++ * LCD panel driver for Sharp LQ043T1DG01
++ *
++ * Copyright (C) 2009 Texas Instruments Inc
++ * Author: Vaibhav Hiremath <hvaibhav@ti.com>
++ *
++ * LCD panel driver for Toppoly TDO35S
++ *
++ * Copyright (C) 2009 CompuLab, Ltd.
++ * Author: Mike Rapoport <mike@compulab.co.il>
++ *
+  * Copyright (C) 2008 Nokia Corporation
+  * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+  *
+-- 
+1.7.1
 
