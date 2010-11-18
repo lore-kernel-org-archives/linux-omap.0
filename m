@@ -1,71 +1,42 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: No more software ECC in omap2.c NAND driver. Why?
-Date: Thu, 18 Nov 2010 20:03:24 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036977BBA2@dbde02.ent.ti.com>
-References: <201011181406.15212.manningc2@actrix.gen.nz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: OMAP3 sleep code clean-up
+Date: Thu, 18 Nov 2010 15:51:44 +0100
+Message-ID: <1290091906-32539-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50604 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757894Ab0KROdd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 09:33:33 -0500
-In-Reply-To: <201011181406.15212.manningc2@actrix.gen.nz>
-Content-Language: en-US
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:55955 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756668Ab0KROwm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 09:52:42 -0500
+Received: by wwa36 with SMTP id 36so3423123wwa.1
+        for <linux-omap@vger.kernel.org>; Thu, 18 Nov 2010 06:52:41 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charles Manning <manningc2@actrix.gen.nz>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>
+To: linux-omap@vger.kernel.org
 
+Vishwanath BS <vishwanath.bs@ti.com>, Jean Pihet <j-pihet@ti.com>:
 
+ [PATCH 1/2]: OMAP3 PM: move omap3 sleep to ddr
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Charles Manning
-> Sent: Thursday, November 18, 2010 6:36 AM
-> To: linux-omap@vger.kernel.org
-> Subject: No more software ECC in omap2.c NAND driver. Why?
-> 
-> Between 2.6.35 and 2.6.36 there have need quite a few changes in the NAND
-> driver, including a change from software to hardware ECC.
-> 
-> The new code has hardware ECC forced on by:
-> 
-> #define CONFIG_MTD_NAND_OMAP_HWECC
-> 
-> I am surprised that this was done. Surely this should have been a Kconfig
-> option to select either sw ECC or hw ECC?
-> 
-> Does moving to hardware ECC to the exclusion of software ECC reduce
-> functionality?
+   For historical reasons the OMAP3 sleep code is run from SRAM.
+   This code can run from DDR which provides better performance and
+   leaves the SRAM available for other uses.
 
-[Ghorai] This is wrongly added by me, during last few patches. So I have
-send the fix as you mentioned too as.
-[PATCH] omap: nand: remove hardware ECC as default
+   Tested on ZOOM3, OMAP3EVM, Beagleboard, n900
+   with full RET and OFF modes.
 
-And please let me know still if it has any issue. 
+ [PATCH 2/2] OMAP3: clean up ASM idle code
 
-And I am re-working on the patches for the different ecc schema including
-s/w, h/w or different, to pass it form board file.
+   Clean up of the ASM code:
+   - reworked and simplified the execution paths, for better
+      readability and to avoid duplication of code,
+   - reworked the comments for better readability,
+   - reworked the code formating and alignment,
+   - added comments for the i443 errata workarounds,
+   - replaced the cache flush code by a call to the kernel
+      common code for ARMv7 (v7_flush_kern_cache_all), which is
+      better maintained and so more mature,
+   - clean up of non used symbols.
 
-> 
-> Does the new hwecc scheme still support sub-page writes or does it only
-> provide full page writes? If sub-page writes are lost then this has  a
-> ripple
-> effect in breaking the way some UBI stuff works.
+   Tested on Zoom3, OMAP3EVM, Beagleboard, n900
+   with full RET and OFF mode.
 
-[Ghorai] 
-1. do you think this sub-page read/write support was there before, say in
-2.6.35? And breaks in 2.6.36?
-  
-2. In that case would you please let know what are the size(s) used for 
-sub-page/read write?
-
-> 
-> -- Charles
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
