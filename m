@@ -1,82 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] OMAP4: mux: Initialise OMAP4 mux pins.
-Date: Thu, 18 Nov 2010 13:26:26 -0800
-Message-ID: <20101118212626.GN9264@atomide.com>
-References: <1289806685-20688-1-git-send-email-r.sricharan@ti.com>
- <20101118190650.GK9264@atomide.com>
- <4CE59573.80408@ti.com>
+Subject: Re: [PATCH] OMAP MUX framework changes
+Date: Thu, 18 Nov 2010 13:29:44 -0800
+Message-ID: <20101118212944.GO9264@atomide.com>
+References: <1290017211-2217-1-git-send-email-dmurphy@ti.com>
+ <20101118175714.GF9264@atomide.com>
+ <4CE59443.3000401@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:39877 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759795Ab0KRV0b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 16:26:31 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38876 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754896Ab0KRV3v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 16:29:51 -0500
 Content-Disposition: inline
-In-Reply-To: <4CE59573.80408@ti.com>
+In-Reply-To: <4CE59443.3000401@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "R, Sricharan" <r.sricharan@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Murphy, Dan" <dmurphy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-* Cousson, Benoit <b-cousson@ti.com> [101118 12:56]:
-> On 11/18/2010 8:06 PM, Tony Lindgren wrote:
-> >* sricharan<r.sricharan@ti.com>  [101114 23:26]:
-> >>This series updates the core device drivers to use mux framework
-> >>for OMAP4 SDP and PANDA board. It's generated against the
-> >>linux-omap master branch. It has a dependency on the Benoit's
-> >>omap4 mux data series.
-> >
-> ><snip>
-> >
-> >>2. Do PAD configuration independently for each module
-> >>Pros:
-> >>	a. Avoids repetition of similar data for different boards.
-> >>	b. Gives a knowledge of how pins are configured for a module
-> >>	   to the respective owners.
-> >>	c. Pads are not initialised unless they are really needed.
-> >>Cons:
-> >>	a. Can become difficult to maintain if lot of data tend to be
-> >>	   different across boards.
-> >
-> >For the common modules, we should have generic platform init code
-> >using hwmod. And that init code is the logical place to do the muxing.
-> >
-> >We also need to consider that the pin muxing is board specific.
-> >So in cases where the are alternative signal paths, we need to pass
-> >the signal names from board-*.c file to the platform driver init code.
+* Cousson, Benoit <b-cousson@ti.com> [101118 12:52]:
+> Hi Tony,
 > 
-> What about the omap_board_mux array in board file? Do you want to
-> get rid of it, or is the plan is to use that for pads that does not
-> belong to any driver or pads that are purely board specific?
+> On 11/18/2010 6:57 PM, Tony Lindgren wrote:
+> >Hi Dan,
+> 
+> [...]
+> 
+> >Can you please make this into a separate patch. And instead of
+> >indenting the code more, just do something like:
+> >
+> >	if (!partition)
+> >		return -EINVAL;
+> 
+> Do you want me to merge that in my current OMAP4 series branch?
 
-Well we might as well keep it around for now as that's the way
-some people prefer to do the muxing. But yeah, eventually that
-could be for only board specific unused pads.
-
-I'll post some sample patches related to the uart (re)muxing
-within next few days, then let's see how that will work for
-other devices.
-
-Here's the rough plan in case you have some ideas on it:
-
-1. board-*.c code calls omap_serial_init_port with struct omap_device_mux
-   array that contains the pin names
-
-2. serial.c init code muxes the pins the right way and sets
-   wake-up events for omap3 & 4. It also populates the runtime
-   remux values needed for omap2 uart
-
-3. serial.c init code saves the struct omap_device_mux pointer
-   to the related hwmod entry
-
-4. omap_device_idle/shutdown can then call omap_remux if the
-   omap_device_mux entry exists
-   ...
-
-This should solve how devices need to initialize the pads.
-It should also work for all devices that may require runtime
-remuxing, like some USB transceivers and eMMC.
+I got that already pulled, so I'd prefer not to touch that
+branch any longer unless we have to. Sounds like this can
+be a separate patch.
 
 Regards,
 
