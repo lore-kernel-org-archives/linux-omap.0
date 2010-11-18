@@ -1,44 +1,38 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH v3 2/5] OMAP: mailbox: fix rx interrupt disable in omap4
-Date: Thu, 18 Nov 2010 13:15:39 -0600
-Message-ID: <1290107742-16760-3-git-send-email-h-kanigeri2@ti.com>
-References: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH v3 0/5] OMAP: mailbox: enhancements and fixes
+Date: Thu, 18 Nov 2010 13:15:37 -0600
+Message-ID: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54486 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753157Ab0KRTNu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Nov 2010 14:13:50 -0500
-In-Reply-To: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59999 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753157Ab0KRTNt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Nov 2010 14:13:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-disabling rx interrupt on omap4 is different than its pre-decessors.
-The bit in OMAP4_MAILBOX_IRQENABLE_CLR should be set to disable the
-interrupts instead of clearing the bit.
+Sending the patch set by seperating the clock related patch seperated
+out based on Paul Walmsey's comment.
+http://www.spinics.net/lists/arm-kernel/msg103692.html
+The clock patch will be sent out as a seperate patch.
 
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
----
- arch/arm/mach-omap2/mailbox.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+The previous versions of this patch set can be found here
+http://www.spinics.net/lists/linux-omap/msg39988.html
+http://www.spinics.net/lists/linux-omap/msg39931.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37278.html
 
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 42dbfa4..82b5ced 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -195,7 +195,10 @@ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
- 	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
- 	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
- 	l = mbox_read_reg(p->irqdisable);
--	l &= ~bit;
-+	if (cpu_is_omap44xx())
-+		l |= bit;
-+	else
-+		l &= ~bit;
- 	mbox_write_reg(l, p->irqdisable);
- }
- 
--- 
-1.7.0
+Fernando Guzman Lugo (1):
+  OMAP: mailbox: change full flag per mailbox queue instead of global
+
+Hari Kanigeri (4):
+  OMAP: mailbox: fix rx interrupt disable in omap4
+  OMAP: mailbox: fix checkpatch warnings
+  OMAP: mailbox: send message in process context
+  OMAP: mailbox: add notification support for multiple readers
+
+ arch/arm/mach-omap2/mailbox.c             |    5 +-
+ arch/arm/plat-omap/include/plat/mailbox.h |    8 +-
+ arch/arm/plat-omap/mailbox.c              |  127 +++++++++++++++++------------
+ 3 files changed, 82 insertions(+), 58 deletions(-)
 
