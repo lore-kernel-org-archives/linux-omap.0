@@ -1,85 +1,60 @@
 From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: No more software ECC in omap2.c NAND driver. Why?
-Date: Fri, 19 Nov 2010 12:35:53 +0200
-Message-ID: <AANLkTi=XLc==mqGcBck5P+xutxAOENX1o9Bz8qPN=fC_@mail.gmail.com>
-References: <201011181406.15212.manningc2@actrix.gen.nz>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B036977BBA2@dbde02.ent.ti.com>
+Subject: Re: [PATCH] omap: nand: remove hardware ECC as default
+Date: Fri, 19 Nov 2010 12:44:07 +0200
+Message-ID: <AANLkTik8rX+wYWQ8VmRGb6cxZrUHQmoPm5mGOvk=Z80j@mail.gmail.com>
+References: <1290090130-20835-1-git-send-email-s-ghorai@ti.com>
+	<20101118180137.GG9264@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:65175 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752768Ab0KSKfy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 05:35:54 -0500
-Received: by qyk35 with SMTP id 35so15738qyk.19
-        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 02:35:53 -0800 (PST)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B036977BBA2@dbde02.ent.ti.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:34999 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752819Ab0KSKoI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 05:44:08 -0500
+Received: by qwd7 with SMTP id 7so58945qwd.19
+        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 02:44:08 -0800 (PST)
+In-Reply-To: <20101118180137.GG9264@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: Charles Manning <manningc2@actrix.gen.nz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sukumar Ghorai <s-ghorai@ti.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Charles Manning <manningc2@actrix.gen.nz>
 
-On Thu, Nov 18, 2010 at 4:33 PM, Ghorai, Sukumar <s-ghorai@ti.com> wrot=
-e:
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Charles Manning
->> Sent: Thursday, November 18, 2010 6:36 AM
->> To: linux-omap@vger.kernel.org
->> Subject: No more software ECC in omap2.c NAND driver. Why?
+On Thu, Nov 18, 2010 at 8:01 PM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Sukumar Ghorai <s-ghorai@ti.com> [101118 06:12]:
+>> CONFIG_MTD_NAND_OMAP_HWECC defined wronly in patch submitted during =
+2.6.36
+>> that using the hardware ECC by default
+
+wrongly
+
 >>
->> Between 2.6.35 and 2.6.36 there have need quite a few changes in the=
- NAND
->> driver, including a change from software to hardware ECC.
+>> Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+>> ---
+>> =A0drivers/mtd/nand/omap2.c | =A0 =A01 -
+>> =A01 files changed, 0 insertions(+), 1 deletions(-)
 >>
->> The new code has hardware ECC forced on by:
+>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+>> index cd41c58..15682ec 100644
+>> --- a/drivers/mtd/nand/omap2.c
+>> +++ b/drivers/mtd/nand/omap2.c
+>> @@ -7,7 +7,6 @@
+>> =A0 * it under the terms of the GNU General Public License version 2=
+ as
+>> =A0 * published by the Free Software Foundation.
+>> =A0 */
+>> -#define CONFIG_MTD_NAND_OMAP_HWECC
 >>
->> #define CONFIG_MTD_NAND_OMAP_HWECC
->>
->> I am surprised that this was done. Surely this should have been a Kc=
-onfig
->> option to select either sw ECC or hw ECC?
->>
->> Does moving to hardware ECC to the exclusion of software ECC reduce
->> functionality?
+>> =A0#include <linux/platform_device.h>
+>> =A0#include <linux/dma-mapping.h>
 >
-> [Ghorai] This is wrongly added by me, during last few patches. So I h=
-ave
-> send the fix as you mentioned too as.
-> [PATCH] omap: nand: remove hardware ECC as default
->
-> And please let me know still if it has any issue.
+> This looks like a fix for the -rc cycle. Can you please update
+> the description a bit to specify which commit broke it and
+> what the error is now?
 
-=46or me it makes normal sw ECC page IO work, but for subpages to work =
-I
-have to disable the prefetch option.
-
-> And I am re-working on the patches for the different ecc schema inclu=
-ding
-> s/w, h/w or different, to pass it form board file.
->
->>
->> Does the new hwecc scheme still support sub-page writes or does it o=
-nly
->> provide full page writes? If sub-page writes are lost then this has =
-=A0a
->> ripple
->> effect in breaking the way some UBI stuff works.
->
-> [Ghorai]
-> 1. do you think this sub-page read/write support was there before, sa=
-y in
-> 2.6.35? And breaks in 2.6.36?
-
-It certainly was there for sw ECC as we've been using UBI from 2.6.27
-to 2.6.35 just fine.
-
-> 2. In that case would you please let know what are the size(s) used f=
-or
-> sub-page/read write?
-
-512 bytes.
+Well it broke NAND for beagle and pandora at least, as those have been
+using sw ecc, all IO simply results in ECC errors with that define.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
