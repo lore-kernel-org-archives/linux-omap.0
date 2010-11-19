@@ -1,88 +1,76 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 1/2] OMAP3 PM: move omap3 sleep to ddr
-Date: Fri, 19 Nov 2010 17:26:03 +0100
-Message-ID: <AANLkTi=oXK_S5_AxwxGT=JSgMfhm2HrKSbNCgPViLn=e@mail.gmail.com>
-References: <1290091906-32539-1-git-send-email-j-pihet@ti.com>
-	<1290091906-32539-2-git-send-email-j-pihet@ti.com>
-	<d2e0f972ca73d80e4929b605a9c2475f@mail.gmail.com>
-	<87tyjey6h3.fsf@deeprootsystems.com>
-	<4CE55A88.6010300@ti.com>
-	<20101118175215.GE9264@atomide.com>
-	<AANLkTi=bhULQsXhnN9ugDm7k=2P4E7-SvXEnx06pBwmu@mail.gmail.com>
-	<20101118182752.GI9264@atomide.com>
-	<AANLkTi=m1MXATmUzXNxbggoUS01AbyeGZm9WMgWUqdNo@mail.gmail.com>
-	<AANLkTikztB6aSir83P4odPznmvXGvq0uzYhRN2UWC1Dr@mail.gmail.com>
-	<92CDD168D1E81F4F9D3839DC45903FC6A5E5A085@dlee03.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: srinath@mistralsolutions.com
+Subject: [Patch v1] AM35xx: Craneboard: Add USB EHCI support
+Date: Fri, 19 Nov 2010 21:37:42 +0530
+Message-ID: <1290182862-21837-1-git-send-email-srinath@mistralsolutions.com>
+References: <[PATCH] AM35xx-Craneboard-Add-USB-EHCI-support>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:39340 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755321Ab0KSQ0E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 11:26:04 -0500
-Received: by qwd6 with SMTP id 6so173576qwd.19
-        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 08:26:04 -0800 (PST)
-In-Reply-To: <92CDD168D1E81F4F9D3839DC45903FC6A5E5A085@dlee03.ent.ti.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:37799 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755568Ab0KSQ2o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 11:28:44 -0500
+In-Reply-To: <[PATCH] AM35xx-Craneboard-Add-USB-EHCI-support>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Derrick, David" <dderrick@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Pihet-XID, Jean" <j-pihet@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, Srinath <srinath@mistralsolutions.com>
 
-On Fri, Nov 19, 2010 at 5:14 PM, Derrick, David <dderrick@ti.com> wrote:
->>-----Original Message-----
->>From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
->>Sent: Friday, November 19, 2010 9:37 AM
->
->>On Thu, Nov 18, 2010 at 7:34 PM, Jean Pihet <jean.pihet@newoldbits.com> >wrote:
->>> On Thu, Nov 18, 2010 at 7:27 PM, Tony Lindgren <tony@atomide.com> wrote:
->>>> * Jean Pihet <jean.pihet@newoldbits.com> [101118 10:06]:
->>>>> On Thu, Nov 18, 2010 at 6:52 PM, Tony Lindgren <tony@atomide.com> wrote:
->>>>>
->>>>> About the DPLL lock:
->>>>> 1) wait_sdrc_ok is only called when back from the non-OFF modes,
->>>>> 2) I checked that when running wait_sdrc_ok the CORE is already out of
->>>>> idle and the DPLL is already locked. Note: l-o code has no support for
->>>>> the voltages OFF and the external clocks OFF.
->>>>>
->>>>> What to conclude from 1) and 2)? In my test setup ot looks like
->>>>> wait_sdrc_ok is of no use, but I agree this a premature conclusion.
->>>>
->>>> Yeah we should figure out in which cases wait_sdrc_ok is needed.
->>>>
->>>> BTW, are you sure you're hitting core idle in your tests?
->>> Yes it is OK from the console messages and the counters values in
->>> /debug/pm_debug/count.
->>>
->>> Let me confirm asap with the PRCM registers dump.
->
->>Here is what I experimented:
->>1) added a cache flush (v7_flush_kern_cache_all) just before WFI, in all >cases,
->>2) checked the real state entered in low power mode from the console
->>messages, the output of /debug/pm_debug/count and PRCM registers dump
->
->>2) is OK, which means that the RET and OFF modes are correctly hit.
->
->>Can I conclude from 1) that the wake-up code is not running from the
->>cache in RETention?
->
-> [Derrick, David]
->
-> To add some context to the wait_sdrc_ok function and why it was added:
->
-> wait_sdrc_ok was added because the DLL takes 500 L3 clock cycles
-> to lock. So you do not want to go back to DDR before DLL is locked. Also, we
-> found some times DLL never locked so we introduced the DLL kick procedure to
-> force it to lock.
+From: Srinath <srinath@mistralsolutions.com>
 
-Ok thanks for the details.
-Does that mean that it is unsafe to run the sleep code (in
-sleep34xx.S) from DDR?
+AM3517/05 Craneboard has one EHCI interface on board using port1.
 
->
-> Regards,
-> David
->
->
+GPIO35 is used as power enable.
+GPIO38 is used as port1 PHY reset.
 
-Regards,
-Jean
+Signed-off-by: Srinath <srinath@mistralsolutions.com>
+---
+ arch/arm/mach-omap2/board-am3517crane.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
+index 13ead33..0e1a806 100644
+--- a/arch/arm/mach-omap2/board-am3517crane.c
++++ b/arch/arm/mach-omap2/board-am3517crane.c
+@@ -28,8 +28,10 @@
+ 
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/usb.h>
+ 
+ #include "mux.h"
++#include "control.h"
+ 
+ /* Board initialization */
+ static struct omap_board_config_kernel am3517_crane_config[] __initdata = {
+@@ -53,10 +55,29 @@ static void __init am3517_crane_init_irq(void)
+ 	omap_gpio_init();
+ }
+ 
++static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
++	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
++	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++
++	.phy_reset  = true,
++	.reset_gpio_port[0]  = 38,
++	.reset_gpio_port[1]  = -EINVAL,
++	.reset_gpio_port[2]  = -EINVAL
++};
++
+ static void __init am3517_crane_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap_serial_init();
++
++	/* Configure GPIO for EHCI port */
++	omap_mux_init_gpio(35, OMAP_PIN_OUTPUT);
++	gpio_request(35, "usb_ehci_enable");
++	gpio_direction_output(35, 1);
++	gpio_set_value(35, 1);
++	omap_mux_init_gpio(38, OMAP_PIN_OUTPUT);
++	usb_ehci_init(&ehci_pdata);
+ }
+ 
+ MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
+-- 
+1.7.1.226.g770c5
+
