@@ -1,76 +1,84 @@
-From: srinath@mistralsolutions.com
-Subject: [Patch v1] AM35xx: Craneboard: Add USB EHCI support
-Date: Fri, 19 Nov 2010 21:37:42 +0530
-Message-ID: <1290182862-21837-1-git-send-email-srinath@mistralsolutions.com>
-References: <[PATCH] AM35xx-Craneboard-Add-USB-EHCI-support>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2] OMAP3: PM: PRCM interrupt: Fix warning "MPU wakeup but no wakeup sources"
+Date: Fri, 19 Nov 2010 08:36:24 -0800
+Message-ID: <8739qxe0dz.fsf@deeprootsystems.com>
+References: <1290175355-32444-1-git-send-email-ext-madhusudhan.1.gowda@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:37799 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755568Ab0KSQ2o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 11:28:44 -0500
-In-Reply-To: <[PATCH] AM35xx-Craneboard-Add-USB-EHCI-support>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:43376 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755753Ab0KSQg2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 11:36:28 -0500
+Received: by gyb11 with SMTP id 11so21430gyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 08:36:28 -0800 (PST)
+In-Reply-To: <1290175355-32444-1-git-send-email-ext-madhusudhan.1.gowda@nokia.com>
+	(Madhusudhan Gowda's message of "Fri, 19 Nov 2010 16:02:35 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, Srinath <srinath@mistralsolutions.com>
+To: Madhusudhan Gowda <ext-madhusudhan.1.gowda@nokia.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com
 
-From: Srinath <srinath@mistralsolutions.com>
+Madhusudhan Gowda <ext-madhusudhan.1.gowda@nokia.com> writes:
 
-AM3517/05 Craneboard has one EHCI interface on board using port1.
+> A corner case where prcm_interrupt handler is handling the WKST_WKUP and
+> before acknowledging the wakeup sources if an IO Pad wakeup ST_IO is
+> indicated then hits the below warning since the wakeup sources are already
+> cleared.
+> 	WARN(c == 0, "prcm: WARNING: PRCM indicated "
+> 		"MPU wakeup but no wakeup sources "
+> 		"are marked\n");
+>
+> Since the above warning condition is only valid if the prcm_interrupt
+> handler is called but no wakeup sources are marked in first iteration.
+>
+> The patch fixes this corner case.
+>
+> Updated after Paul Walmsley's "only handle selected PRCM interrupts" patch.
 
-GPIO35 is used as power enable.
-GPIO38 is used as port1 PHY reset.
+Can you have a look at the recent work by Thomas Petazzoni:
 
-Signed-off-by: Srinath <srinath@mistralsolutions.com>
----
- arch/arm/mach-omap2/board-am3517crane.c |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+    [PATCH] omap: prcm: switch to a chained IRQ handler mechanism
 
-diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-index 13ead33..0e1a806 100644
---- a/arch/arm/mach-omap2/board-am3517crane.c
-+++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -28,8 +28,10 @@
- 
- #include <plat/board.h>
- #include <plat/common.h>
-+#include <plat/usb.h>
- 
- #include "mux.h"
-+#include "control.h"
- 
- /* Board initialization */
- static struct omap_board_config_kernel am3517_crane_config[] __initdata = {
-@@ -53,10 +55,29 @@ static void __init am3517_crane_init_irq(void)
- 	omap_gpio_init();
- }
- 
-+static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
-+	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-+	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+
-+	.phy_reset  = true,
-+	.reset_gpio_port[0]  = 38,
-+	.reset_gpio_port[1]  = -EINVAL,
-+	.reset_gpio_port[2]  = -EINVAL
-+};
-+
- static void __init am3517_crane_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_serial_init();
-+
-+	/* Configure GPIO for EHCI port */
-+	omap_mux_init_gpio(35, OMAP_PIN_OUTPUT);
-+	gpio_request(35, "usb_ehci_enable");
-+	gpio_direction_output(35, 1);
-+	gpio_set_value(35, 1);
-+	omap_mux_init_gpio(38, OMAP_PIN_OUTPUT);
-+	usb_ehci_init(&ehci_pdata);
- }
- 
- MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
--- 
-1.7.1.226.g770c5
+where the PRCM IRQ handler is broken up to see if this problem still
+exists?  I suspect the problem is gone as each type of interrupt is
+separated out, but should be verified.
 
+Kevin
+
+>
+> Signed-off-by: Madhusudhan Gowda <ext-madhusudhan.1.gowda@nokia.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |    7 +++++--
+>  1 files changed, 5 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 75c0cd1..2ed3662 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -266,6 +266,7 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+>  {
+>  	u32 irqenable_mpu, irqstatus_mpu;
+>  	int c = 0;
+> +	int ct = 0;
+>  
+>  	irqenable_mpu = prm_read_mod_reg(OCP_MOD,
+>  					 OMAP3_PRM_IRQENABLE_MPU_OFFSET);
+> @@ -277,13 +278,15 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+>  		if (irqstatus_mpu & (OMAP3430_WKUP_ST_MASK |
+>  				     OMAP3430_IO_ST_MASK)) {
+>  			c = _prcm_int_handle_wakeup();
+> +			ct++;
+>  
+>  			/*
+>  			 * Is the MPU PRCM interrupt handler racing with the
+>  			 * IVA2 PRCM interrupt handler ?
+>  			 */
+> -			WARN(c == 0, "prcm: WARNING: PRCM indicated MPU wakeup "
+> -			     "but no wakeup sources are marked\n");
+> +			WARN(!c && (ct == 1), "prcm: WARNING: PRCM indicated "
+> +					"MPU wakeup but no wakeup sources "
+> +					"are marked\n");
+>  		} else {
+>  			/* XXX we need to expand our PRCM interrupt handler */
+>  			WARN(1, "prcm: WARNING: PRCM interrupt received, but "
