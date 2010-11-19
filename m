@@ -1,68 +1,52 @@
-From: Madhusudhan Gowda <ext-madhusudhan.1.gowda@nokia.com>
-Subject: [PATCH] OMAP3: PM: PRCM interrupt: Fix warning "MPU wakeup but no wakeup sources"
-Date: Fri, 19 Nov 2010 13:26:33 +0200
-Message-ID: <1290165993-23847-1-git-send-email-ext-madhusudhan.1.gowda@nokia.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] OMAP3: PM: PRCM interrupt: Fix warning "MPU wakeup but
+ no wakeup sources"
+Date: Fri, 19 Nov 2010 13:47:27 +0200
+Message-ID: <20101119114727.GM2329@legolas.emea.dhcp.ti.com>
+References: <1290165993-23847-1-git-send-email-ext-madhusudhan.1.gowda@nokia.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:23466 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753091Ab0KSLhb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Nov 2010 06:37:31 -0500
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:35538 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751257Ab0KSLrW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Nov 2010 06:47:22 -0500
+Received: by mail-gw0-f46.google.com with SMTP id 17so2958317gwj.5
+        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 03:47:22 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1290165993-23847-1-git-send-email-ext-madhusudhan.1.gowda@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, Madhusudhan Gowda <ext-madhusudhan.1.gowda@nokia.com>
+To: Madhusudhan Gowda <ext-madhusudhan.1.gowda@nokia.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com
 
-A corner case where prcm_interrupt handler is handling the WKST_WKUP and
-before acknowledging the wakeup sources if an IO Pad wakeup ST_IO is
-indicated then hits the below warning since the wakeup sources are already
-cleared.
-	WARN(c == 0, "prcm: WARNING: PRCM indicated "
-		"MPU wakeup but no wakeup sources "
-		"are marked\n");
+Hi,
 
-Since the above warning condition is only valid if the prcm_interrupt
-handler is called but no wakeup sources are marked in first iteration.
+On Fri, Nov 19, 2010 at 01:26:33PM +0200, Madhusudhan Gowda wrote:
+>@@ -277,13 +278,16 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+> 		if (irqstatus_mpu & (OMAP3430_WKUP_ST_MASK |
+> 				     OMAP3430_IO_ST_MASK)) {
+> 			c = _prcm_int_handle_wakeup();
+>+			ct++;
+>
+> 			/*
+> 			 * Is the MPU PRCM interrupt handler racing with the
+> 			 * IVA2 PRCM interrupt handler ?
+> 			 */
+>-			WARN(c == 0, "prcm: WARNING: PRCM indicated MPU wakeup "
+>-			     "but no wakeup sources are marked\n");
+>+			if (ct == 1)
+>+				WARN(c == 0, "prcm: WARNING: PRCM indicated "
+>+					"MPU wakeup but no wakeup sources "
+>+					"are marked\n");
 
-The patch fixes this corner case.
+WARN(!c && (ct == 1), "prcm: WARNING: PRCM indicated "
+	"MPU wakeup but no wakeup sources "
+	"are marked\n");
 
-Updated after Paul Walmsley's "only handle selected PRCM interrupts" patch.
+would do it? Then you don't need the extra if ().
 
-Signed-off-by: Madhusudhan Gowda <ext-madhusudhan.1.gowda@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 75c0cd1..d9a35d7 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -266,6 +266,7 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- {
- 	u32 irqenable_mpu, irqstatus_mpu;
- 	int c = 0;
-+	int ct = 0;
- 
- 	irqenable_mpu = prm_read_mod_reg(OCP_MOD,
- 					 OMAP3_PRM_IRQENABLE_MPU_OFFSET);
-@@ -277,13 +278,16 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- 		if (irqstatus_mpu & (OMAP3430_WKUP_ST_MASK |
- 				     OMAP3430_IO_ST_MASK)) {
- 			c = _prcm_int_handle_wakeup();
-+			ct++;
- 
- 			/*
- 			 * Is the MPU PRCM interrupt handler racing with the
- 			 * IVA2 PRCM interrupt handler ?
- 			 */
--			WARN(c == 0, "prcm: WARNING: PRCM indicated MPU wakeup "
--			     "but no wakeup sources are marked\n");
-+			if (ct == 1)
-+				WARN(c == 0, "prcm: WARNING: PRCM indicated "
-+					"MPU wakeup but no wakeup sources "
-+					"are marked\n");
- 		} else {
- 			/* XXX we need to expand our PRCM interrupt handler */
- 			WARN(1, "prcm: WARNING: PRCM interrupt received, but "
 -- 
-1.6.3.3
-
+balbi
