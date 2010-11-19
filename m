@@ -1,20 +1,20 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 13/13] OMAP3630: PM: Errata i583: disable coreoff if < ES1.2
-Date: Fri, 19 Nov 2010 11:07:13 +0100
-Message-ID: <AANLkTimqoLvHK3xzg9kVWn7wNexBKN=iiKrCjnwJY40y@mail.gmail.com>
+Subject: Re: [PATCH 09/13] OMAP3: PM: Apply errata i540 before save secure ram
+Date: Fri, 19 Nov 2010 11:09:45 +0100
+Message-ID: <AANLkTi=Biq8y_FQunP9ih9fO1csvwkX_sCPR7yLA+n3U@mail.gmail.com>
 References: <1290131698-6194-1-git-send-email-nm@ti.com>
-	<1290131698-6194-14-git-send-email-nm@ti.com>
+	<1290131698-6194-10-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:33660 "EHLO
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:47560 "EHLO
 	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752553Ab0KSKHO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 05:07:14 -0500
-Received: by qwd7 with SMTP id 7so24886qwd.19
-        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 02:07:13 -0800 (PST)
-In-Reply-To: <1290131698-6194-14-git-send-email-nm@ti.com>
+	with ESMTP id S1752355Ab0KSKJq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 05:09:46 -0500
+Received: by qwd7 with SMTP id 7so27360qwd.19
+        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 02:09:46 -0800 (PST)
+In-Reply-To: <1290131698-6194-10-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
@@ -23,89 +23,53 @@ Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin <khilman@deeprootsystems.com>
 On Fri, Nov 19, 2010 at 2:54 AM, Nishanth Menon <nm@ti.com> wrote:
 > From: Eduardo Valentin <eduardo.valentin@nokia.com>
 >
-> Limitation i583: Self_Refresh Exit issue after OFF mode
+> We need to disable the autoidle bit from MPU INTC,
+> otherwise INTC would get stall, and we would never
+> come out of WFI. This must be done before save secure ram
+> as well because save secure ram also does WFI.
 >
-> Issue:
-> When device is waking up from OFF mode, then SDRC state machine sends
-> inappropriate sequence violating JEDEC standards.
+> This patch is just a addition to the current W/A we have for i540,
+> in order to cover the WFI inside the save secure ram.
 >
-> Impact:
-> OMAP3630 < ES1.2 is impacted as follows depending on the platform:
-> CS0: for 38.4MHz as internal sysclk, DDR content seen to be stable, w=
-hile
-> =A0 =A0 =A0 =A0for all other sysclk frequencies, varied levels of ins=
-tability
-> =A0 =A0 =A0 =A0seen based on varied parameters.
-> CS1: impacted
->
-> This patch takes option #3 as recommended by the Silicon errata:
-> Avoid core power domain transitioning to OFF mode. Power consumption
-> impact is expected in this case.
-> To do this, we route OFF requests to RET request on the impacted revi=
-sions
-> of silicon.
->
-> [nm@ti.com: rebased the code to 2.6.37-rc2- short circuit code change=
-d a bit]
-> Signed-off-by: Nishanth Menon <nm@ti.com>
 > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 > ---
-> =A0arch/arm/mach-omap2/pm34xx.c | =A0 14 ++++++++++++++
-> =A01 files changed, 14 insertions(+), 0 deletions(-)
+> =A0arch/arm/mach-omap2/pm34xx.c | =A0 10 ++++++++--
+> =A01 files changed, 8 insertions(+), 2 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
 x.c
-> index 0102d60..1890e49 100644
+> index f520b38..c7e2db0 100644
 > --- a/arch/arm/mach-omap2/pm34xx.c
 > +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -86,6 +86,7 @@ static int secure_ram_saved;
+> @@ -422,6 +422,14 @@ void omap_sram_idle(void)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap3_=
+per_save_context();
+> =A0 =A0 =A0 =A0}
 >
-> =A0#define PER_WAKEUP_ERRATA_i582 (1 << 0)
-> =A0#define RTA_ERRATA_i608 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << 1)
-> +#define SDRC_WAKEUP_ERRATA_i583 =A0 =A0 =A0 =A0(1 << 0)
-This value should be (1 << 2).
-
-> =A0static u16 pm34xx_errata;
-> =A0#define IS_PM34XX_ERRATA(id) =A0 (pm34xx_errata & (id))
->
-> @@ -437,6 +438,17 @@ void omap_sram_idle(void)
-> =A0 =A0 =A0 =A0omap3_intc_prepare_idle();
->
-> =A0 =A0 =A0 =A0/* CORE */
 > + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* Errata i583: implementation for ES rev < Es1.2 on =
-3630
-> + =A0 =A0 =A0 =A0* We cannot enable OFF mode in a stable form for pre=
-vious
-> + =A0 =A0 =A0 =A0* revisions, transition instead to RET
+> + =A0 =A0 =A0 =A0* We need to disable the autoidle bit from MPU INTC,
+> + =A0 =A0 =A0 =A0* otherwise INTC would get stall, and we would never
+> + =A0 =A0 =A0 =A0* come out of WFI. This is done here because
+> + =A0 =A0 =A0 =A0* save secure ram also does WFI.
 > + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 if (IS_PM34XX_ERRATA(SDRC_WAKEUP_ERRATA_i583) &&
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (core_next_state =3D=3D=
- PWRDM_POWER_OFF)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_set_next_pwrst(core_pwrdm, PWRDM_=
-POWER_RET);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 core_next_state =3D PWRDM_POWER_RET;
-> + =A0 =A0 =A0 }
+The comment should mention the errata ID i540, for easier readability
+and maintenance.
+
+> + =A0 =A0 =A0 omap3_intc_prepare_idle();
 > +
+> =A0 =A0 =A0 =A0/* CORE */
 > =A0 =A0 =A0 =A0if (core_next_state < PWRDM_POWER_ON) {
 > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_uart_prepare_idle(0);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_uart_prepare_idle(1);
-> @@ -1050,6 +1062,8 @@ static void pm_errata_configure(void)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm34xx_errata |=3D PER_WAKEUP_ERRATA_i=
-582;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (cpu_is_omap3630() && (omap_rev() >=
- OMAP3630_REV_ES1_1))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm34xx_errata &=3D ~PE=
-R_WAKEUP_ERRATA_i582;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap3630() && (omap_rev() < =
-OMAP3630_REV_ES1_2))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm34xx_errata |=3D SDRC=
-_WAKEUP_ERRATA_i583;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (cpu_is_omap3630())
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm34xx_errata |=3D RTA=
-_ERRATA_i608;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Enable the l2 cache toggling in sle=
-ep logic */
+> @@ -433,8 +441,6 @@ void omap_sram_idle(void)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 omap3_intc_prepare_idle();
+> -
+> =A0 =A0 =A0 =A0/*
+> =A0 =A0 =A0 =A0* On EMU/HS devices ROM code restores a SRDC value
+> =A0 =A0 =A0 =A0* from scratchpad which has automatic self refresh on =
+timeout
 > --
 > 1.6.3.3
 >
