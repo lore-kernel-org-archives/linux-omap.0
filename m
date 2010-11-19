@@ -1,68 +1,65 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: Re: [PATCH v3 5/5] OMAP: mailbox: add notification support for
- multiple readers
-Date: Fri, 19 Nov 2010 07:57:58 -0600
-Message-ID: <AANLkTi=VoUixouRAz-a+y9Jf6z94OtLe9UzWjnod743s@mail.gmail.com>
-References: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
-	<1290107742-16760-6-git-send-email-h-kanigeri2@ti.com>
-	<20101119085007.GK6446@legolas.emea.dhcp.ti.com>
-	<AANLkTimSxGZufLk1RzQuBSg2vBF1p9BXFP8abVZVoLFs@mail.gmail.com>
-	<20101119120938.GN2329@legolas.emea.dhcp.ti.com>
-	<AANLkTinVf8--zmGa7svapcVpEp2BPXf33DtdruLtoJx5@mail.gmail.com>
-	<20101119125353.GB5818@legolas.emea.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:60634 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751125Ab0KSN57 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Nov 2010 08:57:59 -0500
-Received: by mail-qy0-f175.google.com with SMTP id 2so59700qyk.20
-        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 05:57:59 -0800 (PST)
-In-Reply-To: <20101119125353.GB5818@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+Subject: [PATCH v3 2/8] omap-sham: DMA initialization fixes for off mode
+Date: Fri, 19 Nov 2010 16:04:23 +0200
+Message-ID: <63992389ec0d39e7aee4b02e059c52dfeb985c17.1290174993.git.dmitry.kasatkin@nokia.com>
+References: <cover.1290174993.git.dmitry.kasatkin@nokia.com>
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <cover.1290174993.git.dmitry.kasatkin@nokia.com>
+In-Reply-To: <cover.1290174993.git.dmitry.kasatkin@nokia.com>
+References: <cover.1290174993.git.dmitry.kasatkin@nokia.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: herbert@gondor.hengli.com.au
+Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Fernando Guzman Lugo <x0095840@ti.com>
 
-Felipe,
+DMA parameters for constant data were initialized during driver probe().
+It seems that those settings sometimes are lost when devices goes to off mode.
+This patch makes DMA initialization just before use.
+It solves off mode problems.
 
-On Fri, Nov 19, 2010 at 6:53 AM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi Hari,
->
-> On Fri, Nov 19, 2010 at 06:29:39AM -0600, Kanigeri, Hari wrote:
->>
->> How do you know that a response is received for a particular sender ?
->
-> think of it as FIFO. So the first completed message is the first in your
-> list of requests. Ain't that easy ? :-)
+Fixes: NB#202786 - Aegis & SHA1 block off mode changes
 
-Actually it isn't that easy ;) because there is no guarantee that the
-completed message is the first one in the list of requests.
-Responses could be asynchronous and we cannot depend on serialized
-handling of requests on BIOS...even in some cases you might not even
-get a response for particular request in which case you have to handle
-that in IPC module.
+Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+---
+ drivers/crypto/omap-sham.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
-eg: Process A sends a message to M3 core to kick off some translation
-in some codec, the thread handling this request running on BIOS would
-kick off the translation and wait for the completion before sending
-the response. In the mean time BIOS will be handling other requests
-coming to it, and shouldn't be blocked until the completion of first
-request.
-
-
->
-> Still it doesn't the fact that currently you allow for that. There are
-> malware writers everywhere. But hey, it would be cool to have mailbox
-> appear on securityfocus.com :-p
->
-
-Agree about malware writers. Add PM interfaces as well to the list as
-one can misuse them as well ;)
-
-
-Thank you,
-Best regards,
-Hari Kanigeri
+diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+index 2222370..9dfbc4a 100644
+--- a/drivers/crypto/omap-sham.c
++++ b/drivers/crypto/omap-sham.c
+@@ -318,6 +318,16 @@ static int omap_sham_xmit_dma(struct omap_sham_dev *dd, dma_addr_t dma_addr,
+ 	omap_set_dma_src_params(dd->dma_lch, 0, OMAP_DMA_AMODE_POST_INC,
+ 				dma_addr, 0, 0);
+ 
++	omap_set_dma_dest_params(dd->dma_lch, 0,
++			OMAP_DMA_AMODE_CONSTANT,
++			dd->phys_base + SHA_REG_DIN(0), 0, 16);
++
++	omap_set_dma_dest_burst_mode(dd->dma_lch,
++			OMAP_DMA_DATA_BURST_16);
++
++	omap_set_dma_src_burst_mode(dd->dma_lch,
++			OMAP_DMA_DATA_BURST_4);
++
+ 	err = omap_sham_write_ctrl(dd, length, final, 1);
+ 	if (err)
+ 		return err;
+@@ -1071,15 +1081,6 @@ static int omap_sham_dma_init(struct omap_sham_dev *dd)
+ 		dev_err(dd->dev, "Unable to request DMA channel\n");
+ 		return err;
+ 	}
+-	omap_set_dma_dest_params(dd->dma_lch, 0,
+-			OMAP_DMA_AMODE_CONSTANT,
+-			dd->phys_base + SHA_REG_DIN(0), 0, 16);
+-
+-	omap_set_dma_dest_burst_mode(dd->dma_lch,
+-			OMAP_DMA_DATA_BURST_16);
+-
+-	omap_set_dma_src_burst_mode(dd->dma_lch,
+-			OMAP_DMA_DATA_BURST_4);
+ 
+ 	return 0;
+ }
+-- 
+1.7.0.4
