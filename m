@@ -1,14 +1,19 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH 1/5] ARM: l2x0: Add aux control register bitfields
-Date: Fri, 19 Nov 2010 18:13:22 +0000
-Message-ID: <1290190402.14953.10.camel@e102109-lin.cambridge.arm.com>
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Subject: Re: [PATCH 5/5] omap4: l2x0: Enable early BRESP bit
+Date: Fri, 19 Nov 2010 18:32:27 +0000
+Message-ID: <yw1xfwux411g.fsf@unicorn.mansr.com>
 References: <1290187866-26941-1-git-send-email-santosh.shilimkar@ti.com>
 	<1290187866-26941-2-git-send-email-santosh.shilimkar@ti.com>
+	<1290187866-26941-3-git-send-email-santosh.shilimkar@ti.com>
+	<1290187866-26941-4-git-send-email-santosh.shilimkar@ti.com>
+	<1290187866-26941-5-git-send-email-santosh.shilimkar@ti.com>
+	<1290187866-26941-6-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1290187866-26941-2-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <1290187866-26941-6-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Fri, 19 Nov 2010 23:01:06 +0530")
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,12 +27,20 @@ To: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: nm@ti.com, mans@mansr.com, tony@atomide.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 2010-11-19 at 17:31 +0000, Santosh Shilimkar wrote:
-> This patch adds the PL310 Auxiliary Control Register bitfields
-> so that SOC's can use these bit fields to construct the AUXCTRL
-> value to be passed/programmed instead of hardcoding it.
-> 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+> The AXI protocol specifies that the write response can only
+> be sent back to an AXI master when the last write data has been
+> accepted. This optimization enables the PL310 to send the write
+> response of certain write transactions as soon as the store buffer
+> accepts the write address. This behavior is not compatible with
+> the AXI protocol and is disabled by default. You enable this
+> optimization by setting the Early BRESP Enable bit in the
+> Auxiliary Control Register (bit [30]).
+
+Did you measure the performance difference this makes, if any?
+
+-- =
+
+M=E5ns Rullg=E5rd
+mans@mansr.com
