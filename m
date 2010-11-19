@@ -1,109 +1,85 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 00/13] OMAP3: OFF mode fixes
-Date: Fri, 19 Nov 2010 11:18:49 +0100
-Message-ID: <AANLkTikLuJ2nY-VC=zNAs9TF5NCcjN48JXZF=p=WNf_X@mail.gmail.com>
-References: <1290131698-6194-1-git-send-email-nm@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: No more software ECC in omap2.c NAND driver. Why?
+Date: Fri, 19 Nov 2010 12:35:53 +0200
+Message-ID: <AANLkTi=XLc==mqGcBck5P+xutxAOENX1o9Bz8qPN=fC_@mail.gmail.com>
+References: <201011181406.15212.manningc2@actrix.gen.nz>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B036977BBA2@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:57631 "EHLO
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:65175 "EHLO
 	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752502Ab0KSKSu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 05:18:50 -0500
-Received: by qyk30 with SMTP id 30so367523qyk.19
-        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 02:18:49 -0800 (PST)
-In-Reply-To: <1290131698-6194-1-git-send-email-nm@ti.com>
+	with ESMTP id S1752768Ab0KSKfy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 05:35:54 -0500
+Received: by qyk35 with SMTP id 35so15738qyk.19
+        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 02:35:53 -0800 (PST)
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B036977BBA2@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin <khilman@deeprootsystems.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Tony <tony@atomide.com>
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: Charles Manning <manningc2@actrix.gen.nz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On Thu, Nov 18, 2010 at 4:33 PM, Ghorai, Sukumar <s-ghorai@ti.com> wrot=
+e:
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Charles Manning
+>> Sent: Thursday, November 18, 2010 6:36 AM
+>> To: linux-omap@vger.kernel.org
+>> Subject: No more software ECC in omap2.c NAND driver. Why?
+>>
+>> Between 2.6.35 and 2.6.36 there have need quite a few changes in the=
+ NAND
+>> driver, including a change from software to hardware ECC.
+>>
+>> The new code has hardware ECC forced on by:
+>>
+>> #define CONFIG_MTD_NAND_OMAP_HWECC
+>>
+>> I am surprised that this was done. Surely this should have been a Kc=
+onfig
+>> option to select either sw ECC or hw ECC?
+>>
+>> Does moving to hardware ECC to the exclusion of software ECC reduce
+>> functionality?
+>
+> [Ghorai] This is wrongly added by me, during last few patches. So I h=
+ave
+> send the fix as you mentioned too as.
+> [PATCH] omap: nand: remove hardware ECC as default
+>
+> And please let me know still if it has any issue.
 
-On Fri, Nov 19, 2010 at 2:54 AM, Nishanth Menon <nm@ti.com> wrote:
-> Bunch of fixes as part of phase 1 targetting mainly OMAP3630 HS devic=
-es
-> for OFF mode logic.
->
-> It is important to note - for proper functionality of HS OFF mode on =
-OMAP3630,
-> =A0 CONFIG_OMAP3_L2_AUX_SECURE_SAVE_RESTORE=3Dy and
-> =A0 CONFIG_OMAP3_L2_AUX_SECURE_SERVICE_SET_ID should be set to the co=
-rrect
-> =A0 service that the security PPA supports on the platform.
->
-> Based on kernel.org 2.6.37-rc2 tag
->
-> Smoke tested on:
-> SDP3630 -GP
-> Zoom3 (3630): GP & EMU (Es1.1, ES1.2)
-> SDP3430 - GP & EMU (ES3.1)
->
-> These are fixes for corner case bugs seen, so tests of off and ret do=
-ne with
-> wakeup timer - behavior between 2.6.37-rc2 before and after applying =
-patch
-> seen consistent.
->
-> Request for testing this series for comparison between master and thi=
-s
-> series requested for additional platforms where available.
->
-> Archana Sriram (1):
-> =A0OMAP3: PM: Errata i582: per domain reset issue: uart
->
-> Eduardo Valentin (3):
-> =A0OMAP3: PM: Deny MPU idle while saving secure RAM
-> =A0OMAP3: PM: Apply errata i540 before save secure ram
-> =A0OMAP3630: PM: Errata i583: disable coreoff if < ES1.2
->
-> Nishanth Menon (3):
-> =A0OMAP3: PM: make secure ram save size configurable
-> =A0OMAP3: PM: Fix secure save size for OMAP3
-> =A0OMAP3630: PM: Errata i608: disable RTA
->
-> Peter 'p2' De Schrijver (2):
-> =A0OMAP3: PM: Errata i581 suppport: dll kick strategy
-> =A0OMAP3630: PM: Disable L2 cache while invalidating L2 cache
->
-> Richard Woodruff (1):
-> =A0OMAP3: PM: Update clean_l2 to use v7_flush_dcache_all
->
-> Tero Kristo (3):
-> =A0OMAP3: PM: Save secure RAM context before entering WFI
-> =A0OMAP3: PM: optional save secure RAM context every core off cycle
-> =A0OMAP3: PM: allocate secure RAM context memory from low-mem
->
-> =A0arch/arm/mach-omap2/control.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A05 +-
-> =A0arch/arm/mach-omap2/control.h =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A05 +
-> =A0arch/arm/mach-omap2/io.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 11 =
-++
-> =A0arch/arm/mach-omap2/pm.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 40 =
-+++++++
-> =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0184 ++++=
-++++++++++++++++++++-----
-> =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 80 ++++=
-+++++++++
-> =A0arch/arm/mach-omap2/sleep34xx.S =A0 =A0 =A0 =A0 =A0| =A0187 ++++++=
-++++++++++++-----------
-> =A0arch/arm/plat-omap/include/plat/serial.h | =A0 =A04 +
-> =A08 files changed, 412 insertions(+), 104 deletions(-)
->
-> Regards,
-> Nishanth Menon
->
+=46or me it makes normal sw ECC page IO work, but for subpages to work =
+I
+have to disable the prefetch option.
 
-This is a nice set of changes, thanks! I sent my remarks.
+> And I am re-working on the patches for the different ecc schema inclu=
+ding
+> s/w, h/w or different, to pass it form board file.
+>
+>>
+>> Does the new hwecc scheme still support sub-page writes or does it o=
+nly
+>> provide full page writes? If sub-page writes are lost then this has =
+=A0a
+>> ripple
+>> effect in breaking the way some UBI stuff works.
+>
+> [Ghorai]
+> 1. do you think this sub-page read/write support was there before, sa=
+y in
+> 2.6.35? And breaks in 2.6.36?
 
-After having reviewed the patches I think the best is to merge those
-in, then apply the clean-up and possibly the move to DDR patches on
-top of that.
+It certainly was there for sw ECC as we've been using UBI from 2.6.27
+to 2.6.35 just fine.
 
-What do you think?
+> 2. In that case would you please let know what are the size(s) used f=
+or
+> sub-page/read write?
 
-Regards,
-Jean
+512 bytes.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
