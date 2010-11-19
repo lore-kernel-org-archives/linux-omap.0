@@ -1,73 +1,118 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 09/13] OMAP3: PM: Apply errata i540 before save secure ram
-Date: Fri, 19 Nov 2010 09:15:10 -0800
-Message-ID: <87sjyxb5gh.fsf@deeprootsystems.com>
-References: <1290131698-6194-1-git-send-email-nm@ti.com>
-	<1290131698-6194-10-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 08/13] OMAP3: PM: Deny MPU idle while saving secure RAM
+Date: Fri, 19 Nov 2010 11:16:22 -0600
+Message-ID: <4CE6B0E6.8090102@ti.com>
+References: <1290131698-6194-1-git-send-email-nm@ti.com>	<1290131698-6194-9-git-send-email-nm@ti.com> <87eiahckba.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:62461 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754194Ab0KSRPO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 12:15:14 -0500
-Received: by yxf34 with SMTP id 34so2830490yxf.19
-        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 09:15:13 -0800 (PST)
-In-Reply-To: <1290131698-6194-10-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Thu, 18 Nov 2010 19:54:54 -0600")
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:38270 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755814Ab0KSRQo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Nov 2010 12:16:44 -0500
+Received: by mail-vw0-f48.google.com with SMTP id 18so1972505vws.7
+        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 09:16:43 -0800 (PST)
+In-Reply-To: <87eiahckba.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, Jean Pihet <jean.pihet@newoldbits.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Tony <tony@atomide.com>
 
-Nishanth Menon <nm@ti.com> writes:
+Kevin Hilman had written, on 11/19/2010 11:08 AM, the following:
+> Nishanth Menon <nm@ti.com> writes:
+> 
+>> From: Eduardo Valentin <eduardo.valentin@nokia.com>
+>>
+>> Deny MPU idle before save secure ram and allow it after save secure RAM.
+>> We want to deny MPU going to low power state because, there is a short
+>> time window where a wakeup event would happen around the time the MPU
+>> is going to idle. Since the first thing ROM code does after WFI is to
+>> read INTCPS register, we could reach a situation where the INTCPS is
+>> in idle, but the read is sent to it. That would produce a data abord
+>> during the save of secure ram, which will hang the system. we need
+>> to prevent clock transitions as well during this timeframe.
+> 
+> This changelog needs to be a bit clearer about exacly why MPU would be
+> going to a low power state during a secure-mode call.  IIUC, it's
+> because the ROM code might do a WFI.  Since it's completely
+> non-intuitive (and broken, at least to me) that the ROM code would do a
+> WFI, this should be stated explicitly in the changelog, and probably in
+> the code too. 
+yep, ROM code does use WFI in this path - I unfortunately cannot go into 
+the details on why it does it :( - will modify the commit to be explicit 
+and state that it does use WFI in this path.
 
-> From: Eduardo Valentin <eduardo.valentin@nokia.com>
->
-> We need to disable the autoidle bit from MPU INTC,
-> otherwise INTC would get stall, and we would never
-> come out of WFI. This must be done before save secure ram
-> as well because save secure ram also does WFI.
->
-> This patch is just a addition to the current W/A we have for i540,
-> in order to cover the WFI inside the save secure ram.
+> 
+> Also, this approach only solves this problem for this particular
+> secure-mode call.  Presumably there are other secure-mode calls that
+> might WFI as well, and will have the same problem. As I'm not familiar
+> with secure ROM or PPAs, so I don't know if this is true or not.  If it
+> is, then somethen more general should be done.
+After a long review, the impacted section is this logic alone.
 
-This 'in addition' doesn't really make sense to me.  This doesn't add
-anything to the current workaround, it just changes the order of
-operations.
+> 
+> Also, do we care about other powerdomains (besides MPU) going idle
+> during a secure mode call?
 
-Kevin
+not for this case.
 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> ---
->  arch/arm/mach-omap2/pm34xx.c |   10 ++++++++--
->  1 files changed, 8 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index f520b38..c7e2db0 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -422,6 +422,14 @@ void omap_sram_idle(void)
->  				omap3_per_save_context();
->  	}
->  
-> +	/*
-> +	 * We need to disable the autoidle bit from MPU INTC,
-> +	 * otherwise INTC would get stall, and we would never
-> +	 * come out of WFI. This is done here because
-> +	 * save secure ram also does WFI.
-> +	 */
-> +	omap3_intc_prepare_idle();
-> +
->  	/* CORE */
->  	if (core_next_state < PWRDM_POWER_ON) {
->  		omap_uart_prepare_idle(0);
-> @@ -433,8 +441,6 @@ void omap_sram_idle(void)
->  		}
->  	}
->  
-> -	omap3_intc_prepare_idle();
-> -
->  	/*
->  	* On EMU/HS devices ROM code restores a SRDC value
->  	* from scratchpad which has automatic self refresh on timeout
+> 
+> Because of those issues, some other proposals have been floated for this
+> problem.  In particular, explicitly setting some of the powerdomain next
+> states (at least MPU & CORE) to ON when we're not in the normal idle
+> path so that would also prevent this problem.
+We need to do save secureram for hitting OFF - depending on the PPA - we 
+may need to do save secureram in every iteration, the criteria needed 
+here to workaround the "limitation" we have in ROM Code is to deny 
+idling the clocks as well for this path as done here.
+
+
+> 
+> I guess we need some more details on which secure mode calls can trigger
+> this problem.  If this is an isolated case, I'm OK with this fix.  If
+> it's more general, I'd like to see a more general fix.
+
+As mentioned above, This is an isolated case based on our analysis.
+
+> 
+> Kevin
+> 
+>> [nm@ti.com: rebased to 2.6.37-rc2, used omap2_clkdm_deny_idle for
+>> clock prevention]
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+>> ---
+>>  arch/arm/mach-omap2/pm34xx.c |    4 ++++
+>>  1 files changed, 4 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+>> index 7877f74..f520b38 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -194,15 +194,19 @@ int __init omap3_secure_copy_data_set(struct omap3_secure_copy_data *data)
+>>  static void omap3_save_secure_ram_context(u32 target_mpu_state)
+>>  {
+>>  	if (!secure_ram_saved && omap_type() != OMAP2_DEVICE_TYPE_GP) {
+>> +		struct clockdomain *clkd = mpu_pwrdm->pwrdm_clkdms[0];
+>> +
+>>  		/*
+>>  		 * MPU next state must be set to POWER_ON temporarily,
+>>  		 * otherwise the WFI executed inside the ROM code
+>>  		 * will hang the system.
+>>  		 */
+>>  		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+>> +		omap2_clkdm_deny_idle(clkd);
+>>  		secure_ram_save_status = _omap_save_secure_sram((u32 *)
+>>  				(omap3_secure_ram_storage));
+>>  		pwrdm_set_next_pwrst(mpu_pwrdm, target_mpu_state);
+>> +		omap2_clkdm_allow_idle(clkd);
+>>  		if (!secure_copy_data.save_every_cycle)
+>>  			secure_ram_saved = 1;
+>>  	}
+
+
+-- 
+Regards,
+Nishanth Menon
