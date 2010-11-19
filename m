@@ -1,86 +1,81 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 13/13] OMAP3630: PM: Errata i583: disable coreoff if < ES1.2
-Date: Thu, 18 Nov 2010 19:54:58 -0600
-Message-ID: <1290131698-6194-14-git-send-email-nm@ti.com>
-References: <1290131698-6194-1-git-send-email-nm@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 5/8] OMAP2+: hwmod: rename omap_hwmod_mutex to
+ _hwmod_list_mutex
+Date: Thu, 18 Nov 2010 22:29:20 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1011182225480.7544@utopia.booyaka.com>
+References: <20101116101615.22777.49212.stgit@twilight.localdomain> <20101116101808.22777.52852.stgit@twilight.localdomain> <4CE2C01D.8010703@ti.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-586682693-1290144560=:7544"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38906 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759319Ab0KSBzD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Nov 2010 20:55:03 -0500
-In-Reply-To: <1290131698-6194-1-git-send-email-nm@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:60777 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810Ab0KSF3W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 00:29:22 -0500
+In-Reply-To: <4CE2C01D.8010703@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Kevin <khilman@deeprootsystems.com>, Jean Pihet <jean.pihet@newoldbits.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Tony <tony@atomide.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Limitation i583: Self_Refresh Exit issue after OFF mode
+--155748971-586682693-1290144560=:7544
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Issue:
-When device is waking up from OFF mode, then SDRC state machine sends
-inappropriate sequence violating JEDEC standards.
+Hi Beno=C3=AEt,
 
-Impact:
-OMAP3630 < ES1.2 is impacted as follows depending on the platform:
-CS0: for 38.4MHz as internal sysclk, DDR content seen to be stable, while
-	for all other sysclk frequencies, varied levels of instability
-	seen based on varied parameters.
-CS1: impacted
+On Tue, 16 Nov 2010, Cousson, Benoit wrote:
 
-This patch takes option #3 as recommended by the Silicon errata:
-Avoid core power domain transitioning to OFF mode. Power consumption
-impact is expected in this case.
-To do this, we route OFF requests to RET request on the impacted revisions
-of silicon.
+> Funny, I was about to send you a RFC to get rid of that mutex :-)
+>=20
+> Today that mutex is preventing us to be re-entrant during hwmod lookup an=
+d
+> for_each_by_class iteration, and we'd like to in order to manage link bet=
+ween
+> 2 hwmods.
+>=20
+> The context is the link between mcbsp and sidetone on OMAP3. Since this m=
+odule
+> are tightly coupled, I was suggesting to Kishon to add the sidetone refer=
+ence
+> directly in the mcbsp hwmod in order to create a omap_device that will ha=
+ndle
+> the 2 hwmods at the same time.
+>=20
+> Since we are using the iteration to get all the hwmod that belongs to the
+> mcbsp class we cannot call the lookup function to get the sidetone hwmod =
+at
+> that time.
+> For the moment we need to do 2 iteration and use intermediate storage to
+> workaround that.
+>=20
+> After checking the purpose of the mutex, I was wondering if this is usefu=
+l.
+> For the moment the creation of the hwmod list is done only at init time, =
+and
+> nothing is supposed to change that at runtime except the unregister funct=
+ion.
+>=20
+> So I've started to get rid of this function, then of the mutex and I adde=
+d the
+> __init to all these registration functions to avoid the usage at runtime.=
+ It
+> will save a little bit of memory as well.
+>=20
+> Thanks to that we can now use the omap_hwmod_lookup inside the
+> omap_hwmod_for_each_by_class.
+>=20
+> Does that make sense to you?
+> I can send you the patches if you want.
 
-[nm@ti.com: rebased the code to 2.6.37-rc2- short circuit code changed a bit]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+Yep, that sounds fine to me.  I'll plan to drop the mutex rename patch=20
+once you send your patch to avoid the noise.  I guess that=20
+omap_hwmod_register() can become static also, and can be renamed to=20
+_register(), and we'll just use omap_hwmod_init() as the entry point to=20
+register hwmods.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 0102d60..1890e49 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -86,6 +86,7 @@ static int secure_ram_saved;
- 
- #define PER_WAKEUP_ERRATA_i582	(1 << 0)
- #define RTA_ERRATA_i608		(1 << 1)
-+#define SDRC_WAKEUP_ERRATA_i583	(1 << 0)
- static u16 pm34xx_errata;
- #define IS_PM34XX_ERRATA(id)	(pm34xx_errata & (id))
- 
-@@ -437,6 +438,17 @@ void omap_sram_idle(void)
- 	omap3_intc_prepare_idle();
- 
- 	/* CORE */
-+	/*
-+	 * Errata i583: implementation for ES rev < Es1.2 on 3630
-+	 * We cannot enable OFF mode in a stable form for previous
-+	 * revisions, transition instead to RET
-+	 */
-+	if (IS_PM34XX_ERRATA(SDRC_WAKEUP_ERRATA_i583) &&
-+			(core_next_state == PWRDM_POWER_OFF)) {
-+		pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
-+		core_next_state = PWRDM_POWER_RET;
-+	}
-+
- 	if (core_next_state < PWRDM_POWER_ON) {
- 		omap_uart_prepare_idle(0);
- 		omap_uart_prepare_idle(1);
-@@ -1050,6 +1062,8 @@ static void pm_errata_configure(void)
- 		pm34xx_errata |= PER_WAKEUP_ERRATA_i582;
- 		if (cpu_is_omap3630() && (omap_rev() > OMAP3630_REV_ES1_1))
- 			pm34xx_errata &= ~PER_WAKEUP_ERRATA_i582;
-+		if (cpu_is_omap3630() && (omap_rev() < OMAP3630_REV_ES1_2))
-+			pm34xx_errata |= SDRC_WAKEUP_ERRATA_i583;
- 		if (cpu_is_omap3630())
- 			pm34xx_errata |= RTA_ERRATA_i608;
- 		/* Enable the l2 cache toggling in sleep logic */
--- 
-1.6.3.3
 
+- Paul
+--155748971-586682693-1290144560=:7544--
