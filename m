@@ -1,92 +1,93 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] omap4: enable L2 prefetching
-Date: Fri, 19 Nov 2010 22:16:59 +0530
-Message-ID: <0b37256331b9279146e923fa58ce7ab8@mail.gmail.com>
-References: <1289838044-32016-1-git-send-email-nm@ti.com> <878w0tf6j8.fsf@deeprootsystems.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [Patch v1] AM35xx: Craneboard: Add USB EHCI support
+Date: Fri, 19 Nov 2010 18:59:19 +0200
+Message-ID: <4CE6ACE7.9010203@compulab.co.il>
+References: <[PATCH] AM35xx-Craneboard-Add-USB-EHCI-support> <1290182862-21837-1-git-send-email-srinath@mistralsolutions.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:58422 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752531Ab0KSQrE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Nov 2010 11:47:04 -0500
-Received: by mail-qw0-f41.google.com with SMTP id 2so129116qwi.0
-        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 08:47:03 -0800 (PST)
-In-Reply-To: <878w0tf6j8.fsf@deeprootsystems.com>
+Received: from compulab.co.il ([67.18.134.219]:33663 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754242Ab0KSQ7e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Nov 2010 11:59:34 -0500
+In-Reply-To: <1290182862-21837-1-git-send-email-srinath@mistralsolutions.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Mans Rullgard <mans@mansr.com>
+To: srinath@mistralsolutions.com
+Cc: linux-omap@vger.kernel.org, jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Wednesday, November 17, 2010 12:19 AM
-> To: Nishanth Menon
-> Cc: linux-omap; linux-arm; Mans Rullgard
-> Subject: Re: [PATCH] omap4: enable L2 prefetching
->
-> Nishanth Menon <nm@ti.com> writes:
->
-> > From: Mans Rullgard <mans@mansr.com>
-> >
-> > Enabling L2 prefetching improves performance as shown on Panda
-> > ES2.1 board with mem test, and it has measurable impact on
-> > performances. I think we should consider it, even though it damages
-> > "writes" a bit. (rebased to k.org)
-> > Usually the prefetch is used at both levels together L1 + L2, however,
-> > to enable the CP15 prefetch engines, these are under security, and on
-> > GP devices, we cannot enable it(e.g. on PandaBoard). However, just
-> > enabling PL310 prefetch seems to provide performance improvement,
-> > as shown in the data below (from Ubuntu) and would be a great thing
-> > to pull in.
->
-> [...]
->
-> >  arch/arm/mach-omap2/omap4-common.c |    6 +++++-
-> >  1 files changed, 5 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-
-> omap2/omap4-common.c
-> > index 2f89555..a5e6126 100644
-> > --- a/arch/arm/mach-omap2/omap4-common.c
-> > +++ b/arch/arm/mach-omap2/omap4-common.c
-> > @@ -64,6 +64,10 @@ static int __init omap_l2_cache_init(void)
-> >  	l2cache_base = ioremap(OMAP44XX_L2CACHE_BASE, SZ_4K);
-> >  	BUG_ON(!l2cache_base);
-> >
-> >
-> > +	if (omap_rev() != OMAP4430_REV_ES1_0)
-> > +		omap_smc1(0x109, 0x7e470000);
-> >
-> >  	/* Enable PL310 L2 Cache controller */
-> >  	omap_smc1(0x102, 0x1);
-> >
-> > @@ -75,7 +79,7 @@ static int __init omap_l2_cache_init(void)
-> >  	if (omap_rev() == OMAP4430_REV_ES1_0)
-> >  		l2x0_init(l2cache_base, 0x0e050000, 0xc0000fff);
-> >  	else
-> > -		l2x0_init(l2cache_base, 0x0e070000, 0xc0000fff);
-> > +		l2x0_init(l2cache_base, 0x7e470000, 0xc0000fff);
-> >
-> >  	/*
-> >  	 * Override default outer_cache.disable with a OMAP4
->
-> Adding/updaing the in-code comments would be helpful as well.
->
-> The exiting use of all the hard-coded constants in this code is rather
-> unreadable and would be much more readable with symbolic constants, and
-> this change just continues the pattern.
->
-> Ideally, switching this code to use symbolic constants and then adding
-> the new feature would be a cleaner approach.
->
-I have cleaned up a code a bit based on the comments from Kevin and
-also updated change log in Man's patch. Also added couple of
-relevant patches as part of this series which I haven't posted yet.
+ Hi Srinath,
 
-Will post the series on the list soon
+On 11/19/10 18:07, srinath@mistralsolutions.com wrote:
+> From: Srinath <srinath@mistralsolutions.com>
+>
+> AM3517/05 Craneboard has one EHCI interface on board using port1.
+>
+> GPIO35 is used as power enable.
+> GPIO38 is used as port1 PHY reset.
+>
+> Signed-off-by: Srinath <srinath@mistralsolutions.com>
+> ---
+>  arch/arm/mach-omap2/board-am3517crane.c |   21 +++++++++++++++++++++
+>  1 files changed, 21 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
+> index 13ead33..0e1a806 100644
+> --- a/arch/arm/mach-omap2/board-am3517crane.c
+> +++ b/arch/arm/mach-omap2/board-am3517crane.c
+> @@ -28,8 +28,10 @@
+>  
+>  #include <plat/board.h>
+>  #include <plat/common.h>
+> +#include <plat/usb.h>
+>  
+>  #include "mux.h"
+> +#include "control.h"
+>  
+>  /* Board initialization */
+>  static struct omap_board_config_kernel am3517_crane_config[] __initdata = {
+> @@ -53,10 +55,29 @@ static void __init am3517_crane_init_irq(void)
+>  	omap_gpio_init();
+>  }
+>  
+> +static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
+> +	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+> +	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+> +	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+> +
+> +	.phy_reset  = true,
+> +	.reset_gpio_port[0]  = 38,
+> +	.reset_gpio_port[1]  = -EINVAL,
+> +	.reset_gpio_port[2]  = -EINVAL
+> +};
+> +
+>  static void __init am3517_crane_init(void)
+>  {
+>  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+>  	omap_serial_init();
+> +
+> +	/* Configure GPIO for EHCI port */
+> +	omap_mux_init_gpio(35, OMAP_PIN_OUTPUT);
+> +	gpio_request(35, "usb_ehci_enable");
 
+gpio_request() can fail, you should check this
+and you should not use this gpio if the request fails.
+Also, may be the regulators framework is more appropriate
+for power enable line, but I'm not sure...
+
+> +	gpio_direction_output(35, 1);
+> +	gpio_set_value(35, 1);
+> +	omap_mux_init_gpio(38, OMAP_PIN_OUTPUT);
+
+Shouldn't the omap_mux_init_gpio() be called before you request the gpio?
+
+> +	usb_ehci_init(&ehci_pdata);
+>  }
+>  
+>  MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
+
+-- 
 Regards,
-Santosh
+Igor.
+
