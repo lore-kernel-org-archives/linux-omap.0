@@ -1,102 +1,168 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 00/13] OMAP3: OFF mode fixes
-Date: Fri, 19 Nov 2010 06:03:00 -0600
-Message-ID: <4CE66774.4090807@ti.com>
-References: <1290131698-6194-1-git-send-email-nm@ti.com> <AANLkTikLuJ2nY-VC=zNAs9TF5NCcjN48JXZF=p=WNf_X@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 5/5] OMAP: mailbox: add notification support for
+ multiple readers
+Date: Fri, 19 Nov 2010 14:09:38 +0200
+Message-ID: <20101119120938.GN2329@legolas.emea.dhcp.ti.com>
+References: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
+ <1290107742-16760-6-git-send-email-h-kanigeri2@ti.com>
+ <20101119085007.GK6446@legolas.emea.dhcp.ti.com>
+ <AANLkTimSxGZufLk1RzQuBSg2vBF1p9BXFP8abVZVoLFs@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:46923 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753287Ab0KSMDL (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:42036 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753662Ab0KSMJb (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Nov 2010 07:03:11 -0500
-Received: by mail-gy0-f182.google.com with SMTP id 13so3142254gyg.41
-        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 04:03:10 -0800 (PST)
-In-Reply-To: <AANLkTikLuJ2nY-VC=zNAs9TF5NCcjN48JXZF=p=WNf_X@mail.gmail.com>
+	Fri, 19 Nov 2010 07:09:31 -0500
+Received: by gyf3 with SMTP id 3so2701313gyf.34
+        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 04:09:31 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <AANLkTimSxGZufLk1RzQuBSg2vBF1p9BXFP8abVZVoLFs@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin <khilman@deeprootsystems.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Tony <tony@atomide.com>
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: balbi@ti.com, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Fernando Guzman Lugo <x0095840@ti.com>
 
-Jean Pihet wrote, on 11/19/2010 04:18 AM:
-> Hi,
->
-> On Fri, Nov 19, 2010 at 2:54 AM, Nishanth Menon<nm@ti.com>  wrote:
->> Bunch of fixes as part of phase 1 targetting mainly OMAP3630 HS devices
->> for OFF mode logic.
->>
->> It is important to note - for proper functionality of HS OFF mode on OMAP3630,
->>    CONFIG_OMAP3_L2_AUX_SECURE_SAVE_RESTORE=y and
->>    CONFIG_OMAP3_L2_AUX_SECURE_SERVICE_SET_ID should be set to the correct
->>    service that the security PPA supports on the platform.
->>
->> Based on kernel.org 2.6.37-rc2 tag
->>
->> Smoke tested on:
->> SDP3630 -GP
->> Zoom3 (3630): GP&  EMU (Es1.1, ES1.2)
->> SDP3430 - GP&  EMU (ES3.1)
->>
->> These are fixes for corner case bugs seen, so tests of off and ret done with
->> wakeup timer - behavior between 2.6.37-rc2 before and after applying patch
->> seen consistent.
->>
->> Request for testing this series for comparison between master and this
->> series requested for additional platforms where available.
->>
->> Archana Sriram (1):
->>   OMAP3: PM: Errata i582: per domain reset issue: uart
->>
->> Eduardo Valentin (3):
->>   OMAP3: PM: Deny MPU idle while saving secure RAM
->>   OMAP3: PM: Apply errata i540 before save secure ram
->>   OMAP3630: PM: Errata i583: disable coreoff if<  ES1.2
->>
->> Nishanth Menon (3):
->>   OMAP3: PM: make secure ram save size configurable
->>   OMAP3: PM: Fix secure save size for OMAP3
->>   OMAP3630: PM: Errata i608: disable RTA
->>
->> Peter 'p2' De Schrijver (2):
->>   OMAP3: PM: Errata i581 suppport: dll kick strategy
->>   OMAP3630: PM: Disable L2 cache while invalidating L2 cache
->>
->> Richard Woodruff (1):
->>   OMAP3: PM: Update clean_l2 to use v7_flush_dcache_all
->>
->> Tero Kristo (3):
->>   OMAP3: PM: Save secure RAM context before entering WFI
->>   OMAP3: PM: optional save secure RAM context every core off cycle
->>   OMAP3: PM: allocate secure RAM context memory from low-mem
->>
->>   arch/arm/mach-omap2/control.c            |    5 +-
->>   arch/arm/mach-omap2/control.h            |    5 +
->>   arch/arm/mach-omap2/io.c                 |   11 ++
->>   arch/arm/mach-omap2/pm.h                 |   40 +++++++
->>   arch/arm/mach-omap2/pm34xx.c             |  184 ++++++++++++++++++++++++-----
->>   arch/arm/mach-omap2/serial.c             |   80 +++++++++++++
->>   arch/arm/mach-omap2/sleep34xx.S          |  187 ++++++++++++++++++-----------
->>   arch/arm/plat-omap/include/plat/serial.h |    4 +
->>   8 files changed, 412 insertions(+), 104 deletions(-)
->>
->> Regards,
->> Nishanth Menon
->>
->
-> This is a nice set of changes, thanks! I sent my remarks.
->
-> After having reviewed the patches I think the best is to merge those
-> in, then apply the clean-up and possibly the move to DDR patches on
-> top of that.
->
-> What do you think?
+On Fri, Nov 19, 2010 at 05:50:19AM -0600, Kanigeri, Hari wrote:
+>Thanks for your comments :).
 
-I have the same feel as well.. thanks for your review. I suggest we take 
-some more test feedback as well to ensure that there are no more mess 
-ups I might have done as the paths are critical.
+np.
 
--- 
-Regards,
-Nishanth Menon
+>I think handling of per-message callback should be handled at one
+>level above mailbox, like in IPC modules such as dspbridge,
+>syslink..etc.
+
+then you'll have duplication of functionality :-)
+
+>Mailbox module should be free of any protocols and should take care of
+
+it's not a protocol that I'm proposing. It's just one way to give
+mailbox users a more async API.
+
+>just writing to the mailbox fifo and delivering the message to the
+>interested listener(s).
+
+exactly. Only to the interested listener. With your patch, you'll be
+delivering the message to all listeners and listeners have to check if
+that particular message belongs to them.
+
+>> What will happen is that every user will have to check if every mess=
+age
+>> belongs to them based on the notifications.
+>>
+>> Imagine a hypothetical situation where you have 100 users each with =
+100
+>> messages. You will have 100 * 100 (10.000)
+>> "does-this-message-belongs-to-me" checks.
+>>
+>
+>Ideally one shouldn't design their IPC this way. They should have a
+>IPC driver and the knowledge of notification to multiple users should
+>be routed from there.
+
+only if the message is interesting for N listeners. But if each
+listeners will have its own message towards the other side of the link,
+then mailbox should only give the result to one listener.
+
+>What my patch is addressing is ensure that the users of mailbox don't
+>mess with the mailbox's internal pointer, and also provide the
+>flexibility of multiple listeners. Designers of IPC should make their
+>own judgment whether to use the flexibility option based on their use
+>cases.
+
+but with your patch, you are delivering the same message to all
+listeners. You give the oportunity even for some attacks. I could fiddl=
+e
+with other listeners' message just by attaching a notifier_block and
+checking what's the content of every message.
+
+>> Rather than doing it this way, I would, as the easiest path, add a
+>> "callback" parameter to omap_mbox_request_send() and then, internall=
+y,
+>> allocate a e.g. struct omap_mbox_request and add that to a list of p=
+ending
+>> messages. Something like:
+>>
+>> struct omap_mbox_request {
+>> =A0 =A0 =A0 =A0struct omap_mbox =A0 =A0 =A0 =A0*mbox;
+>> =A0 =A0 =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (*complet=
+e)(void *context);
+>> =A0 =A0 =A0 =A0void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*context;
+>> =A0 =A0 =A0 =A0void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*buf;
+>> =A0 =A0 =A0 =A0unsigned =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0len;
+>> =A0 =A0 =A0 =A0struct list_head =A0 =A0 =A0 =A0list;
+>> };
+>>
+>> [...]
+>>
+>> int omap_mbox_request_send(struct omap_mbox *mbox, mbox_msg_t msg, i=
+nt
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*complete)(void *context), void *con=
+text, gfp_t flags)
+>> {
+>> =A0 =A0 =A0 =A0struct omap_mbox_queue =A0*mq =3D mbox->txq;
+>> =A0 =A0 =A0 =A0struct omap_mbox_request =A0 =A0 =A0 =A0*req;
+>> =A0 =A0 =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D 0=
+;
+>> =A0 =A0 =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 len;
+>>
+>> =A0 =A0 =A0 =A0req =3D kzalloc(sizeof(*req), flags);
+>> =A0 =A0 =A0 =A0if (!req) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0[...]
+>> =A0 =A0 =A0 =A0}
+>>
+>> =A0 =A0 =A0 =A0memcpy(req->buf, &msg, sizeof(msg));
+>> =A0 =A0 =A0 =A0req->len =3D sizeof(msg));
+>> =A0 =A0 =A0 =A0req->mbox =3D msg;
+>> =A0 =A0 =A0 =A0req->complete =3D complete;
+>> =A0 =A0 =A0 =A0req->context =3D context;
+>> =A0 =A0 =A0 =A0INIT_LIST_HEAD(&req->list);
+>>
+>> =A0 =A0 =A0 =A0list_add_tail(&req->list, &mq->req_list);
+>>
+>> =A0 =A0 =A0 =A0/* kick the tasklet here */
+>>
+>> =A0 =A0 =A0 =A0return 0;
+>> }
+>>
+>> then on your tasklet, you simply iterate over the list and start sen=
+ding
+>> one by one and calling callback when it completes. You would be givi=
+ng
+>> your users a more asynchronous API and you wouldn't need this notifi=
+er
+>> which, IMO, isn't a good solution at all.
+>>
+>
+>Your ideas are good. But this type of intelligence is already inbuilt
+>in IPC drivers such as dspbridge and syslink. And I think mailbox
+>driver should be free of protocols.
+
+Like I said before, this is not a protocol. And if both dspbridge and
+syslink have the same kind of thing, don't you think it's a duplication=
+?
+Don't you, also, think common features should be done at framework
+levels ? Since we don't have an IPC framework, we consider the mailbox
+driver a framework for using the OMAP mailbox, then the API I proposed
+is just one way to address the problem you described. There's nothing
+like a protocol here.
+
+In any case, you are the one taking care of those drivers and it's your
+call how to handle multiple users, but keep in mind you'll be allowing
+anyone to see all messages that are going through mailbox just by
+attaching a notifier block :-) If that's ok for you, if you don't see
+any troubles with that, go for it. If you also don't see any troubles
+with having hundreds of users each with hundreds of messages and you
+notifying all of them about all messages as a problem, go for it :-p
+
+--=20
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
