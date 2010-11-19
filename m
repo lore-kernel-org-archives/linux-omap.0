@@ -1,60 +1,77 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 5/5] OMAP: mailbox: add notification support for
- multiple readers
-Date: Fri, 19 Nov 2010 14:53:53 +0200
-Message-ID: <20101119125353.GB5818@legolas.emea.dhcp.ti.com>
-References: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
- <1290107742-16760-6-git-send-email-h-kanigeri2@ti.com>
- <20101119085007.GK6446@legolas.emea.dhcp.ti.com>
- <AANLkTimSxGZufLk1RzQuBSg2vBF1p9BXFP8abVZVoLFs@mail.gmail.com>
- <20101119120938.GN2329@legolas.emea.dhcp.ti.com>
- <AANLkTinVf8--zmGa7svapcVpEp2BPXf33DtdruLtoJx5@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 09/13] OMAP3: PM: Apply errata i540 before save secure ram
+Date: Fri, 19 Nov 2010 13:54:32 +0100
+Message-ID: <AANLkTikCwf0AR0v4ncfjptG=qRrH3Hs47RhDHK-zDkyG@mail.gmail.com>
+References: <1290131698-6194-1-git-send-email-nm@ti.com>
+	<1290131698-6194-10-git-send-email-nm@ti.com>
+	<AANLkTi=Biq8y_FQunP9ih9fO1csvwkX_sCPR7yLA+n3U@mail.gmail.com>
+	<4CE669B8.3040002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:49113 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753493Ab0KSMx7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Nov 2010 07:53:59 -0500
-Received: by gyd10 with SMTP id 10so311995gyd.16
-        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 04:53:46 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <AANLkTinVf8--zmGa7svapcVpEp2BPXf33DtdruLtoJx5@mail.gmail.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:34092 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753731Ab0KSMyd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Nov 2010 07:54:33 -0500
+Received: by qyk33 with SMTP id 33so4781qyk.19
+        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 04:54:32 -0800 (PST)
+In-Reply-To: <4CE669B8.3040002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: balbi@ti.com, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Fernando Guzman Lugo <x0095840@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin <khilman@deeprootsystems.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Tony <tony@atomide.com>
 
-Hi Hari,
+On Fri, Nov 19, 2010 at 1:12 PM, Nishanth Menon <nm@ti.com> wrote:
+> Jean Pihet wrote, on 11/19/2010 04:09 AM:
+> [...]
+>>>
+>>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm3=
+4xx.c
+>>> index f520b38..c7e2db0 100644
+>>> --- a/arch/arm/mach-omap2/pm34xx.c
+>>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>>> @@ -422,6 +422,14 @@ void omap_sram_idle(void)
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap=
+3_per_save_context();
+>>> =A0 =A0 =A0 =A0}
+>>>
+>>> + =A0 =A0 =A0 /*
+>>> + =A0 =A0 =A0 =A0* We need to disable the autoidle bit from MPU INT=
+C,
+>>> + =A0 =A0 =A0 =A0* otherwise INTC would get stall, and we would nev=
+er
+>>> + =A0 =A0 =A0 =A0* come out of WFI. This is done here because
+>>> + =A0 =A0 =A0 =A0* save secure ram also does WFI.
+>>> + =A0 =A0 =A0 =A0*/
+>>
+>> The comment should mention the errata ID i540, for easier readabilit=
+y
+>> and maintenance.
+>
+> Thanks for your review. I agree + I was given an offline feedback:
+>
+> 1 bug =3D Erratum
+> 1+ bug =3D Errata
+Argh I did the same mistake. My latin lessons must be too for away now =
+;-)
 
-On Fri, Nov 19, 2010 at 06:29:39AM -0600, Kanigeri, Hari wrote:
->How do you know that a response is received for a particular sender ?
+>
+> ;) I should be fixing my grammar throughout all patches - so I believ=
+e they
+> all become Erratum ID: etc.. will try to fix them as well in my v2.
+>
 
-think of it as FIFO. So the first completed message is the first in your
-list of requests. Ain't that easy ? :-)
+Thanks,
+Jean
 
->By reading mailbox payload or by reading some shared memory ? I think
->this itself would constitute building up protocol in mailbox driver.
-
-I believe you're thinking too complicated :-p
-
->I fully agree with you about common framework, and the proposed
->solution for the common IPC framework is Syslink. This was discussed
->during the recent LPC meeting to come up with a common IPC framework
->that is currently missing in Kernel.
->I can share with you the details if you are interested.
-
-Don't bother, I know all I wanted to know so far :-p
-
->As I said if some one does that then it is a misuse on their part :).
->The messages should be routed through IPC driver. And let's not forget
->the main motivation of this patch as well.
-
-Still it doesn't the fact that currently you allow for that. There are
-malware writers everywhere. But hey, it would be cool to have mailbox
-appear on securityfocus.com :-p
-
--- 
-balbi
+>
+> --
+> Regards,
+> Nishanth Menon
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
