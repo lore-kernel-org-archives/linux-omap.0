@@ -1,66 +1,105 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [Patch v1] AM35xx: Craneboard: Add USB EHCI support
-Date: Sat, 20 Nov 2010 14:39:11 +0300
-Message-ID: <4CE7B35F.6000704@ru.mvista.com>
-References: <[PATCH] AM35xx-Craneboard-Add-USB-EHCI-support> <1290182862-21837-1-git-send-email-srinath@mistralsolutions.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH ver. 2] PM: add synchronous runtime interface for interrupt handlers
+Date: Sat, 20 Nov 2010 13:56:11 +0100
+Message-ID: <201011201356.11782.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1011191044400.1344-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1290182862-21837-1-git-send-email-srinath@mistralsolutions.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: srinath@mistralsolutions.com
-Cc: linux-omap@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, umeshk@mistralsolutions.com, tony@atomide.com, nagendra@mistralsolutions.com, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, jdk@ti.com, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:39701 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753065Ab0KTM5X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 20 Nov 2010 07:57:23 -0500
+In-Reply-To: <Pine.LNX.4.44L0.1011191044400.1344-100000@iolanthe.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-Hello.
-
-On 19-11-2010 19:07, srinath@mistralsolutions.com wrote:
-
-> From: Srinath<srinath@mistralsolutions.com>
-
-> AM3517/05 Craneboard has one EHCI interface on board using port1.
-
-> GPIO35 is used as power enable.
-> GPIO38 is used as port1 PHY reset.
-
-> Signed-off-by: Srinath<srinath@mistralsolutions.com>
+On Friday, November 19, 2010, Alan Stern wrote:
+> This patch (as1431b) makes the synchronous runtime-PM interface
+> suitable for use in interrupt handlers.  Subsystems can call the new
+> pm_runtime_irq_safe() function to tell the PM core that a device's
+> runtime-PM callbacks should be invoked with interrupts disabled
+> (runtime_suspend and runtime_resume callbacks will be invoked with the
+> spinlock held as well).  This permits the pm_runtime_get_sync() and
+> pm_runtime_put_sync() routines to be called from within interrupt
+> handlers.
+> 
+> When a device is declared irq-safe in this way, the PM core increments
+> the parent's usage count, so the parent will never be runtime
+> suspended.  This prevents difficult situations in which an irq-safe
+> device can't resume because it is forced to wait for its non-irq-safe
+> parent.
+> 
+> Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+> 
 > ---
->   arch/arm/mach-omap2/board-am3517crane.c |   21 +++++++++++++++++++++
->   1 files changed, 21 insertions(+), 0 deletions(-)
-
-> diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-> index 13ead33..0e1a806 100644
-> --- a/arch/arm/mach-omap2/board-am3517crane.c
-> +++ b/arch/arm/mach-omap2/board-am3517crane.c
-[...]
-> @@ -53,10 +55,29 @@ static void __init am3517_crane_init_irq(void)
->   	omap_gpio_init();
->   }
->
-> +static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
-> +	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-> +	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-> +	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+> 
+> Index: usb-2.6/include/linux/pm.h
+> ===================================================================
+> --- usb-2.6.orig/include/linux/pm.h
+> +++ usb-2.6/include/linux/pm.h
+> @@ -486,6 +486,7 @@ struct dev_pm_info {
+>  	unsigned int		run_wake:1;
+>  	unsigned int		runtime_auto:1;
+>  	unsigned int		no_callbacks:1;
+> +	unsigned int		irq_safe:1;
+>  	unsigned int		use_autosuspend:1;
+>  	unsigned int		timer_autosuspends:1;
+>  	enum rpm_request	request;
+> Index: usb-2.6/include/linux/pm_runtime.h
+> ===================================================================
+> --- usb-2.6.orig/include/linux/pm_runtime.h
+> +++ usb-2.6/include/linux/pm_runtime.h
+> @@ -40,6 +40,7 @@ extern int pm_generic_runtime_idle(struc
+>  extern int pm_generic_runtime_suspend(struct device *dev);
+>  extern int pm_generic_runtime_resume(struct device *dev);
+>  extern void pm_runtime_no_callbacks(struct device *dev);
+> +extern void pm_runtime_irq_safe(struct device *dev);
+>  extern void __pm_runtime_use_autosuspend(struct device *dev, bool use);
+>  extern void pm_runtime_set_autosuspend_delay(struct device *dev, int delay);
+>  extern unsigned long pm_runtime_autosuspend_expiration(struct device *dev);
+> @@ -123,6 +124,7 @@ static inline int pm_generic_runtime_idl
+>  static inline int pm_generic_runtime_suspend(struct device *dev) { return 0; }
+>  static inline int pm_generic_runtime_resume(struct device *dev) { return 0; }
+>  static inline void pm_runtime_no_callbacks(struct device *dev) {}
+> +static inline void pm_runtime_irq_safe(struct device *dev) {}
+>  
+>  static inline void pm_runtime_mark_last_busy(struct device *dev) {}
+>  static inline void __pm_runtime_use_autosuspend(struct device *dev,
+> Index: usb-2.6/drivers/base/power/runtime.c
+> ===================================================================
+> --- usb-2.6.orig/drivers/base/power/runtime.c
+> +++ usb-2.6/drivers/base/power/runtime.c
+> @@ -223,11 +223,19 @@ static int rpm_idle(struct device *dev, 
+>  		callback = NULL;
+>  
+>  	if (callback) {
+> -		spin_unlock_irq(&dev->power.lock);
+> +		if (dev->power.irq_safe) {
+> +			spin_unlock(&dev->power.lock);
+>  
+> -		callback(dev);
+> +			callback(dev);
+>  
+> -		spin_lock_irq(&dev->power.lock);
+> +			spin_lock(&dev->power.lock);
+> +		} else {
+> +			spin_unlock_irq(&dev->power.lock);
 > +
-> +	.phy_reset  = true,
-> +	.reset_gpio_port[0]  = 38,
-> +	.reset_gpio_port[1]  = -EINVAL,
-> +	.reset_gpio_port[2]  = -EINVAL
-> +};
+> +			callback(dev);
 > +
->   static void __init am3517_crane_init(void)
->   {
->   	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->   	omap_serial_init();
-> +
-> +	/* Configure GPIO for EHCI port */
-> +	omap_mux_init_gpio(35, OMAP_PIN_OUTPUT);
-> +	gpio_request(35, "usb_ehci_enable");
-> +	gpio_direction_output(35, 1);
-> +	gpio_set_value(35, 1);
+> +			spin_lock_irq(&dev->power.lock);
+> +		}
+>  	}
 
-    There's no need to call gpio_set_value(), as gpio_direction_output() has 
-already set the GPIO's value.
+I didn't like this change before and I still don't like it.  Quite frankly, I'm
+not sure I can convince Linus to pull it. :-)
 
-WBR, Sergei
+Why don't we simply execute the callback under the spinlock in the
+IRQ safe case?
+
+Rafael
