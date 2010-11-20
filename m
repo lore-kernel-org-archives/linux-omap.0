@@ -1,51 +1,107 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v4] OMAP2+: PM: omap device: API's for handling mstandby
- mode
-Date: Fri, 19 Nov 2010 09:32:42 -0600
-Message-ID: <4CE6989A.7070007@ti.com>
-References: <1290151312-347-1-git-send-email-manjugk@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCHv4 10/14] OMAP: dmtimer: access routines to interrupt registers
+Date: Sat, 20 Nov 2010 08:09:34 +0530
+Message-ID: <1290220778-22244-11-git-send-email-tarun.kanti@ti.com>
+References: <1290220778-22244-1-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-2-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-4-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-5-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-6-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-7-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-8-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-9-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-10-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:55354 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754679Ab0KSPcq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Nov 2010 10:32:46 -0500
-Received: by vws1 with SMTP id 1so2355811vws.9
-        for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 07:32:45 -0800 (PST)
-In-Reply-To: <1290151312-347-1-git-send-email-manjugk@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:40055 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755071Ab0KSPgi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Nov 2010 10:36:38 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id oAJFaZOj024129
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 09:36:37 -0600
+In-Reply-To: <1290220778-22244-10-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Partha Basak <p-basak2@ti.com>
 
-G, Manjunath Kondaiah had written, on 11/19/2010 01:21 AM, the following:
-> Certain errata's in OMAP2+ processors will require forcing
-> master standby to "no standby" mode before completing on going
-> operation. Without this, the results will be unpredictable.
-> 
-[..]
-> These API's are required for multiple DMA errata's which require
-> putting DMA controller in no mstandby mode before stopping dma.
-> 
-> The applicable errata's:
-> 1. Errata ID: i557(Applicable for omap36xx all ES versions)
-> The channel hangs when the Pause bit (DMA4_CDPi [7] ) is cleared
-> through config port while in Standby.
-> 
-> 2. Errata ID: i541(all omap2plus except omap4)
-> sDMA FIFO draining does not finish
-> 
-> 3. OMAP3430 ES1.0(Errata ID:i88) will require DMA to be put in
-> no mstandby mode before disabling the channel after completing
-> the data transfer operation.
+Add low level read/write routines to access dmtimer interrupt
+registers. These routines would be used later when we support
+OMAP 4 new IP revision. When that happens the present read/write
+routines would be used to access dmtimer functional registers
+only.
 
-Minor feedback from what I got from an offline comment:
-1 bug = Erratum
-1+ bug = Errata
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Signed-off-by: Partha Basak <p-basak2@ti.com>
+Reviewed-by: Cousson, Benoit <b-cousson@ti.com>
+---
+ arch/arm/plat-omap/dmtimer.c |   51 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 51 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 958acb8..0479ab0 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -307,6 +307,57 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
+ 	writel(value, timer->io_base + (reg & 0xff));
+ }
+ 
++/**
++ * omap_dm_timer_read_intr_reg - read timer interrupt registers in posted
++ * and non-posted mode
++ * @timer:      timer pointer over which read operation to perform
++ * @reg:        lowest byte holds the register offset
++ *
++ * The posted mode bit is encoded in reg. Note that in posted mode write
++ * pending bit must be checked. Otherwise a read of a non completed write
++ * will produce an error.
++ */
++static inline
++u32 omap_dm_timer_read_intr_reg(struct omap_dm_timer *timer, u32 reg)
++{
++	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
++
++	reg += pdata->intr_offst;
++	if (timer->posted)
++		while (readl(timer->io_base +
++			((OMAP_TIMER_WRITE_PEND_REG + pdata->func_offst)
++				& 0xff)) & (reg >> WPSHIFT))
++			cpu_relax();
++	return readl(timer->io_base + (reg & 0xff));
++}
++
++/**
++ * omap_dm_timer_write_intr_reg - write timer interrupt registers in posted
++ * and non-posted mode
++ * @timer:      timer pointer over which write operation is to perform
++ * @reg:        lowest byte holds the register offset
++ * @value:      data to write into the register
++ *
++ * The posted mode bit is encoded in reg. Note that in posted mode the write
++ * pending bit must be checked. Otherwise a write on a register which has a
++ * pending write will be lost.
++ */
++static inline
++void omap_dm_timer_write_intr_reg(struct omap_dm_timer *timer, u32 reg,
++						u32 value)
++{
++	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
++
++	reg += pdata->intr_offst;
++	if (timer->posted)
++		while (readl(timer->io_base +
++			((OMAP_TIMER_WRITE_PEND_REG + pdata->func_offst)
++				& 0xff)) & (reg >> WPSHIFT))
++			cpu_relax();
++	writel(value, timer->io_base + (reg & 0xff));
++}
++
++
+ static void omap_dm_timer_wait_for_reset(struct omap_dm_timer *timer)
+ {
+ 	int c;
 -- 
-Regards,
-Nishanth Menon
+1.6.0.4
+
