@@ -1,105 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH ver. 2] PM: add synchronous runtime interface for interrupt handlers
-Date: Sat, 20 Nov 2010 13:56:11 +0100
-Message-ID: <201011201356.11782.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1011191044400.1344-100000@iolanthe.rowland.org>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: Re: [PATCH v3 5/5] OMAP: mailbox: add notification support for
+ multiple readers
+Date: Sat, 20 Nov 2010 07:26:20 -0600
+Message-ID: <AANLkTimUD8Yi8KK_tsjm4CQPtp6VdYr51K4L=9MkNcOZ@mail.gmail.com>
+References: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
+	<1290107742-16760-6-git-send-email-h-kanigeri2@ti.com>
+	<20101119085007.GK6446@legolas.emea.dhcp.ti.com>
+	<AANLkTimSxGZufLk1RzQuBSg2vBF1p9BXFP8abVZVoLFs@mail.gmail.com>
+	<20101119120938.GN2329@legolas.emea.dhcp.ti.com>
+	<AANLkTinVf8--zmGa7svapcVpEp2BPXf33DtdruLtoJx5@mail.gmail.com>
+	<20101119125353.GB5818@legolas.emea.dhcp.ti.com>
+	<AANLkTi=VoUixouRAz-a+y9Jf6z94OtLe9UzWjnod743s@mail.gmail.com>
+	<1290176736.15533.17.camel@eowin>
+	<AANLkTi=EMBrb0eHZyzPen2DHGR4ARh1T8ojT7jOVQ67u@mail.gmail.com>
+	<1290208036.15533.24.camel@eowin>
+	<AANLkTi=OH1y=Q39yqd5m+PXEvM1pX6p_SmH_HFYDHHsK@mail.gmail.com>
+	<1290252669.15533.28.camel@eowin>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39701 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753065Ab0KTM5X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 20 Nov 2010 07:57:23 -0500
-In-Reply-To: <Pine.LNX.4.44L0.1011191044400.1344-100000@iolanthe.rowland.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:42773 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753696Ab0KTN0V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 20 Nov 2010 08:26:21 -0500
+Received: by mail-vw0-f51.google.com with SMTP id 2so2943811vws.10
+        for <linux-omap@vger.kernel.org>; Sat, 20 Nov 2010 05:26:20 -0800 (PST)
+In-Reply-To: <1290252669.15533.28.camel@eowin>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: balbi@ti.com, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Fernando Guzman Lugo <x0095840@ti.com>
 
-On Friday, November 19, 2010, Alan Stern wrote:
-> This patch (as1431b) makes the synchronous runtime-PM interface
-> suitable for use in interrupt handlers.  Subsystems can call the new
-> pm_runtime_irq_safe() function to tell the PM core that a device's
-> runtime-PM callbacks should be invoked with interrupts disabled
-> (runtime_suspend and runtime_resume callbacks will be invoked with the
-> spinlock held as well).  This permits the pm_runtime_get_sync() and
-> pm_runtime_put_sync() routines to be called from within interrupt
-> handlers.
-> 
-> When a device is declared irq-safe in this way, the PM core increments
-> the parent's usage count, so the parent will never be runtime
-> suspended.  This prevents difficult situations in which an irq-safe
-> device can't resume because it is forced to wait for its non-irq-safe
-> parent.
-> 
-> Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-> 
-> ---
-> 
-> Index: usb-2.6/include/linux/pm.h
-> ===================================================================
-> --- usb-2.6.orig/include/linux/pm.h
-> +++ usb-2.6/include/linux/pm.h
-> @@ -486,6 +486,7 @@ struct dev_pm_info {
->  	unsigned int		run_wake:1;
->  	unsigned int		runtime_auto:1;
->  	unsigned int		no_callbacks:1;
-> +	unsigned int		irq_safe:1;
->  	unsigned int		use_autosuspend:1;
->  	unsigned int		timer_autosuspends:1;
->  	enum rpm_request	request;
-> Index: usb-2.6/include/linux/pm_runtime.h
-> ===================================================================
-> --- usb-2.6.orig/include/linux/pm_runtime.h
-> +++ usb-2.6/include/linux/pm_runtime.h
-> @@ -40,6 +40,7 @@ extern int pm_generic_runtime_idle(struc
->  extern int pm_generic_runtime_suspend(struct device *dev);
->  extern int pm_generic_runtime_resume(struct device *dev);
->  extern void pm_runtime_no_callbacks(struct device *dev);
-> +extern void pm_runtime_irq_safe(struct device *dev);
->  extern void __pm_runtime_use_autosuspend(struct device *dev, bool use);
->  extern void pm_runtime_set_autosuspend_delay(struct device *dev, int delay);
->  extern unsigned long pm_runtime_autosuspend_expiration(struct device *dev);
-> @@ -123,6 +124,7 @@ static inline int pm_generic_runtime_idl
->  static inline int pm_generic_runtime_suspend(struct device *dev) { return 0; }
->  static inline int pm_generic_runtime_resume(struct device *dev) { return 0; }
->  static inline void pm_runtime_no_callbacks(struct device *dev) {}
-> +static inline void pm_runtime_irq_safe(struct device *dev) {}
->  
->  static inline void pm_runtime_mark_last_busy(struct device *dev) {}
->  static inline void __pm_runtime_use_autosuspend(struct device *dev,
-> Index: usb-2.6/drivers/base/power/runtime.c
-> ===================================================================
-> --- usb-2.6.orig/drivers/base/power/runtime.c
-> +++ usb-2.6/drivers/base/power/runtime.c
-> @@ -223,11 +223,19 @@ static int rpm_idle(struct device *dev, 
->  		callback = NULL;
->  
->  	if (callback) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		if (dev->power.irq_safe) {
-> +			spin_unlock(&dev->power.lock);
->  
-> -		callback(dev);
-> +			callback(dev);
->  
-> -		spin_lock_irq(&dev->power.lock);
-> +			spin_lock(&dev->power.lock);
-> +		} else {
-> +			spin_unlock_irq(&dev->power.lock);
-> +
-> +			callback(dev);
-> +
-> +			spin_lock_irq(&dev->power.lock);
-> +		}
->  	}
+Felipe,
 
-I didn't like this change before and I still don't like it.  Quite frankly, I'm
-not sure I can convince Linus to pull it. :-)
+On Sat, Nov 20, 2010 at 5:31 AM, Felipe Balbi <me@felipebalbi.com> wrote:
+> Hi Hari,
+>
+> On Fri, 2010-11-19 at 22:01 -0600, Kanigeri, Hari wrote:
+>> Of course :), profiling was done before releasing this code and no
+>> difference observed with or without blocking notifier. All the OMAP4
+>
+> would you share some numbers ?
 
-Why don't we simply execute the callback under the spinlock in the
-IRQ safe case?
+Sure. On an average, 135 us for round trip message from A9 userspace
+Process to a thread running on M3 that handles this message.
+The test is with the entire IPC stack on both ends.
 
-Rafael
+Thank you,
+Best regards,
+Hari
