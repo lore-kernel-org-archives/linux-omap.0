@@ -1,88 +1,109 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [PATCH ver. 2] PM: add synchronous runtime interface
- for interrupt handlers
-Date: Sat, 20 Nov 2010 14:41:00 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1011201437450.8483-100000@netrider.rowland.org>
-References: <Pine.LNX.4.44L0.1011201152210.5871-100000@netrider.rowland.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Cosmin Cojocar <cosmin.cojocar@gmail.com>
+Subject: [PATCH 1/1] serial: omap-serial: Add support for kernel debugger
+Date: Sat, 20 Nov 2010 21:51:36 +0100
+Message-ID: <1290286296-3589-1-git-send-email-cosmin.cojocar@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:35551 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754827Ab0KTTlD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Nov 2010 14:41:03 -0500
-In-Reply-To: <Pine.LNX.4.44L0.1011201152210.5871-100000@netrider.rowland.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:37024 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752168Ab0KTUwp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Nov 2010 15:52:45 -0500
+Received: by fxm13 with SMTP id 13so1644778fxm.19
+        for <linux-omap@vger.kernel.org>; Sat, 20 Nov 2010 12:52:44 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Partha Basak <p-basak2@ti.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org
+To: govindraj.raja@ti.com
+Cc: manjugk@ti.com, khilman@deeprootsystems.com, ben-linux@fluff.org, tklauser@distanz.ch, feng.tang@intel.com, gregkh@suse.de, alan@linux.intel.com, linux-omap@vger.kernel.org, Cosmin Cojocar <cosmin.cojocar@gmail.com>
 
-On Sat, 20 Nov 2010, Alan Stern wrote:
+The kgdb invokes the poll_put_char and poll_get_char when communicating
+with the host. This patch also changes the initialization order because the
+kgdb will check at the very beginning, if there is a valid serial
+driver.
 
-> On Sat, 20 Nov 2010, Rafael J. Wysocki wrote:
-> 
-> > On Friday, November 19, 2010, Alan Stern wrote:
-> > > This patch (as1431b) makes the synchronous runtime-PM interface
-> > > suitable for use in interrupt handlers.  Subsystems can call the new
-> > > pm_runtime_irq_safe() function to tell the PM core that a device's
-> > > runtime-PM callbacks should be invoked with interrupts disabled
-> > > (runtime_suspend and runtime_resume callbacks will be invoked with the
-> > > spinlock held as well).  This permits the pm_runtime_get_sync() and
-> > > pm_runtime_put_sync() routines to be called from within interrupt
-> > > handlers.
-> > > 
-> > > When a device is declared irq-safe in this way, the PM core increments
-> > > the parent's usage count, so the parent will never be runtime
-> > > suspended.  This prevents difficult situations in which an irq-safe
-> > > device can't resume because it is forced to wait for its non-irq-safe
-> > > parent.
-> > > 
-> > > Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-> 
-> > > --- usb-2.6.orig/drivers/base/power/runtime.c
-> > > +++ usb-2.6/drivers/base/power/runtime.c
-> > > @@ -223,11 +223,19 @@ static int rpm_idle(struct device *dev, 
-> > >  		callback = NULL;
-> > >  
-> > >  	if (callback) {
-> > > -		spin_unlock_irq(&dev->power.lock);
-> > > +		if (dev->power.irq_safe) {
-> > > +			spin_unlock(&dev->power.lock);
-> > >  
-> > > -		callback(dev);
-> > > +			callback(dev);
-> > >  
-> > > -		spin_lock_irq(&dev->power.lock);
-> > > +			spin_lock(&dev->power.lock);
-> > > +		} else {
-> > > +			spin_unlock_irq(&dev->power.lock);
-> > > +
-> > > +			callback(dev);
-> > > +
-> > > +			spin_lock_irq(&dev->power.lock);
-> > > +		}
-> > >  	}
-> > 
-> > I didn't like this change before and I still don't like it.  Quite frankly, I'm
-> > not sure I can convince Linus to pull it. :-)
-> > 
-> > Why don't we simply execute the callback under the spinlock in the
-> > IRQ safe case?
-> 
-> Because it wouldn't work.  The job of the runtime_idle callback is to
-> call pm_runtime_suspend when needed.  But if the callback runs under
-> the spinlock then pm_runtime_suspend would hang when it tries to grab
-> the lock.
-> 
-> I don't think Linus will object to this.  What he doesn't like is when
-> some code drops a lock, reacquires it, and then behaves as though the
-> lock had been held all along.  That's not the case here; rpm_idle()  
-> does not depend on any state remaining unchanged across the callback.
+Signed-off-by: Cosmin Cojocar <cosmin.cojocar@gmail.com>
+---
+ drivers/serial/Makefile      |    2 +-
+ drivers/serial/omap-serial.c |   38 ++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 37 insertions(+), 3 deletions(-)
 
-One other thing I forgot to mention...  If Linus doesn't like the way
-the new code drops the spinlock and then reacquires it, then he must
-also not like the existing code, which does the same thing.  The only
-difference lies in whether or not interrupts are re-enabled.
-
-Alan Stern
+diff --git a/drivers/serial/Makefile b/drivers/serial/Makefile
+index c570576..ad86113 100644
+--- a/drivers/serial/Makefile
++++ b/drivers/serial/Makefile
+@@ -80,6 +80,7 @@ obj-$(CONFIG_SERIAL_NETX) += netx-serial.o
+ obj-$(CONFIG_SERIAL_OF_PLATFORM) += of_serial.o
+ obj-$(CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL) += nwpserial.o
+ obj-$(CONFIG_SERIAL_KS8695) += serial_ks8695.o
++obj-$(CONFIG_SERIAL_OMAP) += omap-serial.o
+ obj-$(CONFIG_KGDB_SERIAL_CONSOLE) += kgdboc.o
+ obj-$(CONFIG_SERIAL_QE) += ucc_uart.o
+ obj-$(CONFIG_SERIAL_TIMBERDALE)	+= timbuart.o
+@@ -88,4 +89,3 @@ obj-$(CONFIG_SERIAL_ALTERA_JTAGUART) += altera_jtaguart.o
+ obj-$(CONFIG_SERIAL_ALTERA_UART) += altera_uart.o
+ obj-$(CONFIG_SERIAL_MRST_MAX3110)	+= mrst_max3110.o
+ obj-$(CONFIG_SERIAL_MFD_HSU)	+= mfd.o
+-obj-$(CONFIG_SERIAL_OMAP) += omap-serial.o
+diff --git a/drivers/serial/omap-serial.c b/drivers/serial/omap-serial.c
+index 03a96db..df6ba03 100644
+--- a/drivers/serial/omap-serial.c
++++ b/drivers/serial/omap-serial.c
+@@ -866,14 +866,44 @@ serial_omap_type(struct uart_port *port)
+ 	return up->name;
+ }
+ 
++#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
++
++#ifdef CONFIG_CONSOLE_POLL
++static void serial_omap_poll_put_char(struct uart_port *port, unsigned char ch)
++{
++	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	unsigned int status;
++
++	do {
++		status = serial_in(up, UART_LSR);
++		udelay(1);
++	} while ((status & BOTH_EMPTY) != BOTH_EMPTY);
++
++	serial_out(up, UART_TX, ch);
++}
++
++static int serial_omap_poll_get_char(struct uart_port *port)
++{
++	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	unsigned int status;
++	int ch;
++
++	do {
++		status = serial_in(up, UART_LSR);
++		udelay(1);
++	} while ((status & UART_LSR_DR) != UART_LSR_DR);
++
++	ch = (int)serial_in(up, UART_RX);
++	return ch;
++}
++#endif
++
+ #ifdef CONFIG_SERIAL_OMAP_CONSOLE
+ 
+ static struct uart_omap_port *serial_omap_console_ports[4];
+ 
+ static struct uart_driver serial_omap_reg;
+ 
+-#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+-
+ static inline void wait_for_xmitr(struct uart_omap_port *up)
+ {
+ 	unsigned int status, tmout = 10000;
+@@ -1022,6 +1052,10 @@ static struct uart_ops serial_omap_pops = {
+ 	.request_port	= serial_omap_request_port,
+ 	.config_port	= serial_omap_config_port,
+ 	.verify_port	= serial_omap_verify_port,
++#ifdef CONFIG_CONSOLE_POLL
++	.poll_put_char  = serial_omap_poll_put_char,
++	.poll_get_char  = serial_omap_poll_get_char,
++#endif
+ };
+ 
+ static struct uart_driver serial_omap_reg = {
+-- 
+1.6.3.3
 
