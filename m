@@ -1,211 +1,160 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCHv4 7/14] OMAP: dmtimer: use list instead of static array
-Date: Sat, 20 Nov 2010 08:09:31 +0530
-Message-ID: <1290220778-22244-8-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCHv4 2/14] OMAP: dmtimer: infrastructure to support hwmod
+Date: Sat, 20 Nov 2010 08:09:26 +0530
+Message-ID: <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
 References: <1290220778-22244-1-git-send-email-tarun.kanti@ti.com>
  <1290220778-22244-2-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-4-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-5-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-6-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-7-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52656 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:40050 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755080Ab0KSPgh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Nov 2010 10:36:37 -0500
+	id S1754955Ab0KSPgg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Nov 2010 10:36:36 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id oAJFaYtr021869
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id oAJFaWKw024123
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 09:36:36 -0600
-In-Reply-To: <1290220778-22244-7-git-send-email-tarun.kanti@ti.com>
+	for <linux-omap@vger.kernel.org>; Fri, 19 Nov 2010 09:36:35 -0600
+In-Reply-To: <1290220778-22244-2-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Thara Gopinath <thara@ti.com>
 
-Convert dmtimers static array in functions into list structure.
-Please note that the static arrays will be completely removed
-in subsequent patches when dmtimer is converted to platform driver.
+(1) Add new fields and data structures to support dmtimer conversion
+to platform driver.
+(2) Constants to identify IP revision so that Highlander IP in OMAP 4
+can be distinguished.
+(3) field to identify OMAP4 abe timers.
+(4) Interface function to support early boot.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c |   67 +++++++++++++++++++++++-------------------
- 1 files changed, 37 insertions(+), 30 deletions(-)
+ arch/arm/mach-omap2/dmtimer.h             |   32 +++++++++++++++++++++++++++++
+ arch/arm/plat-omap/dmtimer.c              |    8 +++++++
+ arch/arm/plat-omap/include/plat/dmtimer.h |   19 +++++++++++++++++
+ 3 files changed, 59 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/dmtimer.h
 
+diff --git a/arch/arm/mach-omap2/dmtimer.h b/arch/arm/mach-omap2/dmtimer.h
+new file mode 100644
+index 0000000..4d4493b
+--- /dev/null
++++ b/arch/arm/mach-omap2/dmtimer.h
+@@ -0,0 +1,32 @@
++/**
++ * OMAP Dual-Mode Timers - early initialization interface
++ *
++ * function interface called first to start dmtimer early initialization.
++ *
++ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
++ * Tarun Kanti DebBarma <tarun.kanti@ti.com>
++ *
++ * Copyright (C) 2010 Texas Instruments Incorporated
++ * Thara Gopinath <thara@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef __ASM_ARCH_DMTIMER_H
++#define __ASM_ARCH_DMTIMER_H
++
++/*
++ * dmtimer is required during early part of boot sequence even before
++ * device model and pm_runtime if fully up and running. this function
++ * provides hook to omap2_init_common_hw() which is triggered from
++ * start_kernel()->init_irq() of kernel initialization sequence.
++ */
++void __init omap2_dm_timer_early_init(void);
++
++#endif
 diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 10daa9d..124fd21 100644
+index 1d706cf..10daa9d 100644
 --- a/arch/arm/plat-omap/dmtimer.c
 +++ b/arch/arm/plat-omap/dmtimer.c
-@@ -168,6 +168,7 @@ struct omap_dm_timer {
+@@ -3,6 +3,12 @@
+  *
+  * OMAP Dual-Mode Timers
+  *
++ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
++ * Tarun Kanti DebBarma <tarun.kanti@ti.com>
++ *
++ * Copyright (C) 2010 Texas Instruments Incorporated
++ * Thara Gopinath <thara@ti.com>
++ *
+  * Copyright (C) 2005 Nokia Corporation
+  * OMAP2 support by Juha Yrjola
+  * API improvements and OMAP2 clock framework support by Timo Teras
+@@ -151,6 +157,7 @@
+ 		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
+ 
+ struct omap_dm_timer {
++	int id;
+ 	unsigned long phys_base;
+ 	int irq;
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+@@ -160,6 +167,7 @@ struct omap_dm_timer {
+ 	unsigned reserved:1;
  	unsigned enabled:1;
  	unsigned posted:1;
- 	struct platform_device *pdev;
-+	struct list_head node;
++	struct platform_device *pdev;
  };
  
  static int dm_timer_count;
-@@ -290,7 +291,8 @@ static struct omap_dm_timer *dm_timers;
- static const char **dm_source_names;
- static struct clk **dm_source_clocks;
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index dfa3aff..2bb837e 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -3,6 +3,11 @@
+  *
+  * OMAP Dual-Mode Timers
+  *
++ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
++ * Tarun Kanti DebBarma <tarun.kanti@ti.com>
++ * Thara Gopinath <thara@ti.com>
++ * Platform device conversion and hwmod support.
++ *
+  * Copyright (C) 2005 Nokia Corporation
+  * Author: Lauri Leukkunen <lauri.leukkunen@nokia.com>
+  * PWM and clock framwork support by Timo Teras.
+@@ -29,6 +34,8 @@
+ #ifndef __ASM_ARCH_DMTIMER_H
+ #define __ASM_ARCH_DMTIMER_H
  
--static spinlock_t dm_timer_lock;
-+static LIST_HEAD(omap_timer_list);
-+static DEFINE_SPINLOCK(dm_timer_lock);
++#include <linux/platform_device.h>
++
+ /* clock sources */
+ #define OMAP_TIMER_SRC_SYS_CLK			0x00
+ #define OMAP_TIMER_SRC_32_KHZ			0x01
+@@ -44,11 +51,23 @@
+ #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
+ #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE	0x02
  
- /*
-  * Reads timer registers in posted and non-posted mode. The posted mode bit
-@@ -340,7 +342,7 @@ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
- {
- 	u32 l;
++/* timer ip constants */
++#define OMAP_TIMER_IP_VERSION_1			0x1
++#define OMAP_TIMER_IP_VERSION_2			0x2
++
+ struct omap_dm_timer;
+ extern struct omap_dm_timer *gptimer_wakeup;
+ extern struct sys_timer omap_timer;
+ struct clk;
  
--	if (!cpu_class_is_omap2() || timer != &dm_timers[0]) {
-+	if (!cpu_class_is_omap2() || timer->id != 1) {
- 		omap_dm_timer_write_reg(timer, OMAP_TIMER_IF_CTRL_REG, 0x06);
- 		omap_dm_timer_wait_for_reset(timer);
- 	}
-@@ -371,23 +373,24 @@ static void omap_dm_timer_prepare(struct omap_dm_timer *timer)
++struct dmtimer_platform_data {
++	int (*set_timer_src) (struct platform_device *pdev, int source);
++	int timer_ip_type;
++	u8 func_offst;
++	u8 intr_offst;
++	u32 is_early_init:1;
++};
++
+ int omap_dm_timer_init(void);
  
- struct omap_dm_timer *omap_dm_timer_request(void)
- {
--	struct omap_dm_timer *timer = NULL;
-+	struct omap_dm_timer *timer = NULL, *t;
- 	unsigned long flags;
--	int i;
- 
- 	spin_lock_irqsave(&dm_timer_lock, flags);
--	for (i = 0; i < dm_timer_count; i++) {
--		if (dm_timers[i].reserved)
-+	list_for_each_entry(t, &omap_timer_list, node) {
-+		if (t->reserved)
- 			continue;
- 
--		timer = &dm_timers[i];
-+		timer = t;
- 		timer->reserved = 1;
- 		break;
- 	}
- 	spin_unlock_irqrestore(&dm_timer_lock, flags);
- 
--	if (timer != NULL)
-+	if (timer)
- 		omap_dm_timer_prepare(timer);
-+	else
-+		pr_debug("%s: free timer not available.\n", __func__);
- 
- 	return timer;
- }
-@@ -395,23 +398,23 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_request);
- 
- struct omap_dm_timer *omap_dm_timer_request_specific(int id)
- {
--	struct omap_dm_timer *timer;
-+	struct omap_dm_timer *timer = NULL, *t;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&dm_timer_lock, flags);
--	if (id <= 0 || id > dm_timer_count || dm_timers[id-1].reserved) {
--		spin_unlock_irqrestore(&dm_timer_lock, flags);
--		printk("BUG: warning at %s:%d/%s(): unable to get timer %d\n",
--		       __FILE__, __LINE__, __func__, id);
--		dump_stack();
--		return NULL;
-+	list_for_each_entry(t, &omap_timer_list, node) {
-+		if (t->id == id && !t->reserved) {
-+			timer = t;
-+			timer->reserved = 1;
-+			break;
-+		}
- 	}
--
--	timer = &dm_timers[id-1];
--	timer->reserved = 1;
- 	spin_unlock_irqrestore(&dm_timer_lock, flags);
- 
--	omap_dm_timer_prepare(timer);
-+	if (timer)
-+		omap_dm_timer_prepare(timer);
-+	else
-+		pr_debug("%s: timer%d not available.\n", __func__, id);
- 
- 	return timer;
- }
-@@ -474,24 +477,29 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_get_irq);
-  */
- __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
- {
--	int i;
-+	int i = 0;
-+	struct omap_dm_timer *timer = NULL;
-+	unsigned long flags;
- 
- 	/* If ARMXOR cannot be idled this function call is unnecessary */
- 	if (!(inputmask & (1 << 1)))
- 		return inputmask;
- 
- 	/* If any active timer is using ARMXOR return modified mask */
--	for (i = 0; i < dm_timer_count; i++) {
-+	spin_lock_irqsave(&dm_timer_lock, flags);
-+	list_for_each_entry(timer, &omap_timer_list, node) {
- 		u32 l;
- 
--		l = omap_dm_timer_read_reg(&dm_timers[i], OMAP_TIMER_CTRL_REG);
-+		l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
- 		if (l & OMAP_TIMER_CTRL_ST) {
- 			if (((omap_readl(MOD_CONF_CTRL_1) >> (i * 2)) & 0x03) == 0)
- 				inputmask &= ~(1 << 1);
- 			else
- 				inputmask &= ~(1 << 2);
- 		}
-+		i++;
- 	}
-+	spin_unlock_irqrestore(&dm_timer_lock, flags);
- 
- 	return inputmask;
- }
-@@ -722,13 +730,9 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_write_counter);
- 
- int omap_dm_timers_active(void)
- {
--	int i;
--
--	for (i = 0; i < dm_timer_count; i++) {
--		struct omap_dm_timer *timer;
--
--		timer = &dm_timers[i];
-+	struct omap_dm_timer *timer;
- 
-+	list_for_each_entry(timer, &omap_timer_list, node) {
- 		if (!timer->enabled)
- 			continue;
- 
-@@ -743,14 +747,13 @@ EXPORT_SYMBOL_GPL(omap_dm_timers_active);
- 
- int __init omap_dm_timer_init(void)
- {
-+	unsigned long flags;
- 	struct omap_dm_timer *timer;
- 	int i, map_size = SZ_8K;	/* Module 4KB + L4 4KB except on omap1 */
- 
- 	if (!(cpu_is_omap16xx() || cpu_class_is_omap2()))
- 		return -ENODEV;
- 
--	spin_lock_init(&dm_timer_lock);
--
- 	if (cpu_class_is_omap1()) {
- 		dm_timers = omap1_dm_timers;
- 		dm_timer_count = omap1_dm_timer_count;
-@@ -795,6 +798,10 @@ int __init omap_dm_timer_init(void)
- 			timer->fclk = clk_get(NULL, clk_name);
- 		}
- #endif
-+		timer->id = i + 1; /* id starts from 1*/
-+		spin_lock_irqsave(&dm_timer_lock, flags);
-+		list_add_tail(&timer->node, &omap_timer_list);
-+		spin_unlock_irqrestore(&dm_timer_lock, flags);
- 	}
- 
- 	return 0;
+ struct omap_dm_timer *omap_dm_timer_request(void);
 -- 
 1.6.0.4
 
