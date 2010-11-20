@@ -1,53 +1,51 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 5/5] omap4: l2x0: Enable early BRESP bit
-Date: Sat, 20 Nov 2010 15:38:42 +0530
-Message-ID: <fc42ca6f03504dea078f111b3ef03a4a@mail.gmail.com>
-References: <1290187866-26941-1-git-send-email-santosh.shilimkar@ti.com><1290187866-26941-2-git-send-email-santosh.shilimkar@ti.com><1290187866-26941-3-git-send-email-santosh.shilimkar@ti.com><1290187866-26941-4-git-send-email-santosh.shilimkar@ti.com><1290187866-26941-5-git-send-email-santosh.shilimkar@ti.com><1290187866-26941-6-git-send-email-santosh.shilimkar@ti.com>
- <yw1xfwux411g.fsf@unicorn.mansr.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH v3 5/5] OMAP: mailbox: add notification support for
+ multiple readers
+Date: Sat, 20 Nov 2010 13:31:09 +0200
+Message-ID: <1290252669.15533.28.camel@eowin>
+References: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
+	 <1290107742-16760-6-git-send-email-h-kanigeri2@ti.com>
+	 <20101119085007.GK6446@legolas.emea.dhcp.ti.com>
+	 <AANLkTimSxGZufLk1RzQuBSg2vBF1p9BXFP8abVZVoLFs@mail.gmail.com>
+	 <20101119120938.GN2329@legolas.emea.dhcp.ti.com>
+	 <AANLkTinVf8--zmGa7svapcVpEp2BPXf33DtdruLtoJx5@mail.gmail.com>
+	 <20101119125353.GB5818@legolas.emea.dhcp.ti.com>
+	 <AANLkTi=VoUixouRAz-a+y9Jf6z94OtLe9UzWjnod743s@mail.gmail.com>
+	 <1290176736.15533.17.camel@eowin>
+	 <AANLkTi=EMBrb0eHZyzPen2DHGR4ARh1T8ojT7jOVQ67u@mail.gmail.com>
+	 <1290208036.15533.24.camel@eowin>
+	 <AANLkTi=OH1y=Q39yqd5m+PXEvM1pX6p_SmH_HFYDHHsK@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:38464 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750895Ab0KTKIp convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 20 Nov 2010 05:08:45 -0500
-Received: by vws7 with SMTP id 7so524916vws.31
-        for <linux-omap@vger.kernel.org>; Sat, 20 Nov 2010 02:08:44 -0800 (PST)
-In-Reply-To: <yw1xfwux411g.fsf@unicorn.mansr.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:37364 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752417Ab0KTLaw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Nov 2010 06:30:52 -0500
+In-Reply-To: <AANLkTi=OH1y=Q39yqd5m+PXEvM1pX6p_SmH_HFYDHHsK@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, tony@atomide.com, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: balbi@ti.com, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Fernando Guzman Lugo <x0095840@ti.com>
 
-> -----Original Message-----
-> From: M=E5ns Rullg=E5rd [mailto:mans@mansr.com]
-> Sent: Saturday, November 20, 2010 12:02 AM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; nm@ti.com; mans@mansr.com;
-> tony@atomide.com; khilman@deeprootsystems.com; linux-arm-
-> kernel@lists.infradead.org
-> Subject: Re: [PATCH 5/5] omap4: l2x0: Enable early BRESP bit
->
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->
-> > The AXI protocol specifies that the write response can only
-> > be sent back to an AXI master when the last write data has been
-> > accepted. This optimization enables the PL310 to send the write
-> > response of certain write transactions as soon as the store buffer
-> > accepts the write address. This behavior is not compatible with
-> > the AXI protocol and is disabled by default. You enable this
-> > optimization by setting the Early BRESP Enable bit in the
-> > Auxiliary Control Register (bit [30]).
->
-> Did you measure the performance difference this makes, if any?
->
-I didn't do any special runs for this bit alone. Just checked
-with hardware team and they confirmed that you would gain a bit
-on writes and it's good to enable it.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Hari,
+
+On Fri, 2010-11-19 at 22:01 -0600, Kanigeri, Hari wrote:
+> Of course :), profiling was done before releasing this code and no
+> difference observed with or without blocking notifier. All the OMAP4
+
+would you share some numbers ?
+
+> use cases are exercising this code. Just curious , are you doubting
+> the blocking notifier mechanism ?
+
+a little bit. Yeah. It added about 600ms of time spent on musb's probe
+when we were using blocking notifier for charger detection. When we
+moved to atomic notifier, that was solved. Anyway, you can never be sure
+when that will be scheduled and if cpu is really busy, it might pose a
+great deal.
+
+-- 
+balbi
+
