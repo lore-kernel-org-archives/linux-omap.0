@@ -1,57 +1,49 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 00/13] OMAP3: OFF mode fixes
-Date: Sat, 20 Nov 2010 15:26:42 +0530
-Message-ID: <414b757858278de2048cf851f96e541e@mail.gmail.com>
-References: <1290131698-6194-1-git-send-email-nm@ti.com> <877hg92ep4.fsf@deeprootsystems.com>
- <4CE6EE0B.1090809@ti.com>
+Subject: RE: [PATCH 08/13] OMAP3: PM: Deny MPU idle while saving secure RAM
+Date: Sat, 20 Nov 2010 15:32:32 +0530
+Message-ID: <ef750caa9d50a66e559e586103292c48@mail.gmail.com>
+References: <1290131698-6194-1-git-send-email-nm@ti.com><1290131698-6194-9-git-send-email-nm@ti.com><87eiahckba.fsf@deeprootsystems.com><9f54a2ec7fc8c27fc57c2aac9bad5405@mail.gmail.com><4CE6B2D4.1030201@ti.com><7ae7a7b138d09fc819e16f213e81d3bd@mail.gmail.com><877hg9ayox.fsf@deeprootsystems.com>
+ <4CE6DB9E.9000708@ti.com><87y68p3uee.fsf@deeprootsystems.com>
+ <4CE6E5CE.7010502@ti.com> <87sjyx2f73.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:38253 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750761Ab0KTJ4r (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47753 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752333Ab0KTKCf (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 20 Nov 2010 04:56:47 -0500
-Received: by vws6 with SMTP id 6so567520vws.6
-        for <linux-omap@vger.kernel.org>; Sat, 20 Nov 2010 01:56:46 -0800 (PST)
-In-Reply-To: <4CE6EE0B.1090809@ti.com>
+	Sat, 20 Nov 2010 05:02:35 -0500
+Received: by qwd7 with SMTP id 7so685466qwd.40
+        for <linux-omap@vger.kernel.org>; Sat, 20 Nov 2010 02:02:34 -0800 (PST)
+In-Reply-To: <87sjyx2f73.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>, Nishanth Menon <nm@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, Jean Pihet <jean.pihet@newoldbits.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Tony <tony@atomide.com>
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Nishanth Menon
-> Sent: Saturday, November 20, 2010 3:07 AM
-> To: Kevin Hilman
-> Cc: linux-omap; Jean Pihet; Vishwanath Sripathy; Tony
-> Subject: Re: [PATCH 00/13] OMAP3: OFF mode fixes
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Saturday, November 20, 2010 2:40 AM
+> To: Nishanth Menon
+> Cc: Santosh Shilimkar; linux-omap; Jean Pihet; Vishwanath Sripathy; Tony
+> Subject: Re: [PATCH 08/13] OMAP3: PM: Deny MPU idle while saving secure
+> RAM
 >
-> Kevin Hilman had written, on 11/19/2010 03:20 PM, the following:
+> Nishanth Menon <nm@ti.com> writes:
 >
-> >> Request for testing this series for comparison between master and
-this
-> >> series requested for additional platforms where available.
-> >
-> > I haven't yet been through the entire series, but some general
-comments
-> > to share before the weekend:
-> thanks for comments so far. I will wait for the complete series to be
-> reviewed before reposting a v2.
+> > Kevin Hilman had written, on 11/19/2010 02:55 PM, the following:
+> > [...]
+> >> Now, based on what you say below, it seems like there is no way to
+> >> guarantee that SMIs don't do this, so I guess we have no choice but
+to
+> >> protect them all.
+> > In that way, I do like the patch from Santosh - with the relevant
+> > changes we will need to incorporate. Do keep in mind that SMI is a
+> > secure service - In theory, there could be(and to my knowledge, are)
+> > custom secure services to do all kind of other things that are not
+> > power management related[1] -
 >
-> >
-> > The secure mode code is growing in size and complexity, so I think it
-> > should be removed from pm34xx.c and moved into it's own file
-> > (secure3xxx.c ?)   This will help keep pm34xx.c lean, and it can call
-> > into secure code as needed.
-
-We already have omap44xx-smc.S. I could make this generic. One problem
-with
-The secure APIs, they are consistent in all OMAP version. For example
-Secure
-SAR save has a different API and signature on OMAP3 and OMAP4.
-But this is something doable.
-
-Regards,
-Santosh
+> All the more reason that this secure mode code should be moved out of
+> the core idle path into its own driver.
+>
+I also think this is better idea.
