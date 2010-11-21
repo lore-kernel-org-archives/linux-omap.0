@@ -1,464 +1,36 @@
 From: Ionut Nicu <ionut.nicu@gmail.com>
-Subject: [PATCH v3 07/12] staging: tidspbridge: convert pmgr to list_head
-Date: Sun, 21 Nov 2010 12:46:25 +0200
-Message-ID: <1290336390-2581-8-git-send-email-ionut.nicu@mindbit.ro>
+Subject: [PATCH v3 08/12] staging: tidspbridge: convert rmgr to list_head
+Date: Sun, 21 Nov 2010 12:46:26 +0200
+Message-ID: <1290336390-2581-9-git-send-email-ionut.nicu@mindbit.ro>
 References: <1290336390-2581-1-git-send-email-ionut.nicu@mindbit.ro>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:43575 "EHLO
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:63930 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752529Ab0KUKrJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Nov 2010 05:47:09 -0500
-Received: by mail-fx0-f46.google.com with SMTP id 13so1867561fxm.19
-        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 02:47:09 -0800 (PST)
+	with ESMTP id S1751376Ab0KUKrM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Nov 2010 05:47:12 -0500
+Received: by mail-fx0-f46.google.com with SMTP id 13so1867548fxm.19
+        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 02:47:11 -0800 (PST)
 In-Reply-To: <1290336390-2581-1-git-send-email-ionut.nicu@mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Omar Ramirez Luna <omar.ramirez@ti.com>
 Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-Convert the pmgr module of the tidspbridge driver
+Convert the rmgr module of the tidspbridge driver
 to use struct list_head instead of struct lst_list.
 
 Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
 ---
- drivers/staging/tidspbridge/pmgr/cmm.c |  237 ++++++++++----------------------
- drivers/staging/tidspbridge/pmgr/dev.c |   59 +++-----
- 2 files changed, 98 insertions(+), 198 deletions(-)
+ drivers/staging/tidspbridge/rmgr/drv.c  |  115 ++++++++----------------------
+ drivers/staging/tidspbridge/rmgr/node.c |   53 ++++----------
+ drivers/staging/tidspbridge/rmgr/proc.c |    2 -
+ drivers/staging/tidspbridge/rmgr/rmm.c  |   75 +++++++-------------
+ 4 files changed, 72 insertions(+), 173 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c b/drivers/staging/tidspbridge/pmgr/cmm.c
-index 8dbdd20..d7ca2a4 100644
---- a/drivers/staging/tidspbridge/pmgr/cmm.c
-+++ b/drivers/staging/tidspbridge/pmgr/cmm.c
-@@ -12,7 +12,7 @@
-  * describes a block of physically contiguous shared memory used for
-  * future allocations by CMM.
-  *
-- * Memory is coelesced back to the appropriate heap when a buffer is
-+ * Memory is coalesced back to the appropriate heap when a buffer is
-  * freed.
-  *
-  * Notes:
-@@ -30,6 +30,7 @@
-  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-  */
- #include <linux/types.h>
-+#include <linux/list.h>
- 
- /*  ----------------------------------- DSP/BIOS Bridge */
- #include <dspbridge/dbdefs.h>
-@@ -38,7 +39,6 @@
- #include <dspbridge/dbc.h>
- 
- /*  ----------------------------------- OS Adaptation Layer */
--#include <dspbridge/list.h>
- #include <dspbridge/sync.h>
- 
- /*  ----------------------------------- Platform Manager */
-@@ -73,9 +73,9 @@ struct cmm_allocator {		/* sma */
- 	u32 ul_dsp_size;	/* DSP seg size in bytes */
- 	struct cmm_object *hcmm_mgr;	/* back ref to parent mgr */
- 	/* node list of available memory */
--	struct lst_list *free_list_head;
-+	struct list_head free_list;
- 	/* node list of memory in use */
--	struct lst_list *in_use_list_head;
-+	struct list_head in_use_list;
- };
- 
- struct cmm_xlator {		/* Pa<->Va translator object */
-@@ -97,7 +97,7 @@ struct cmm_object {
- 	 * Cmm Lock is used to serialize access mem manager for multi-threads.
- 	 */
- 	struct mutex cmm_lock;	/* Lock to access cmm mgr */
--	struct lst_list *node_free_list_head;	/* Free list of memory nodes */
-+	struct list_head node_free_list;	/* Free list of memory nodes */
- 	u32 ul_min_block_size;	/* Min SM block; default 16 bytes */
- 	u32 dw_page_size;	/* Memory Page size (1k/4k) */
- 	/* GPP SM segment ptrs */
-@@ -215,8 +215,7 @@ void *cmm_calloc_buf(struct cmm_object *hcmm_mgr, u32 usize,
- 			pnode->client_proc = current->tgid;
- 
- 			/* put our node on InUse list */
--			lst_put_tail(allocator->in_use_list_head,
--				     (struct list_head *)pnode);
-+			list_add_tail(&pnode->link, &allocator->in_use_list);
- 			buf_pa = (void *)pnode->dw_pa;	/* physical address */
- 			/* clear mem */
- 			pbyte = (u8 *) pnode->dw_va;
-@@ -265,18 +264,9 @@ int cmm_create(struct cmm_object **ph_cmm_mgr,
- 		 * MEM_ALLOC_OBJECT */
- 
- 		/* create node free list */
--		cmm_obj->node_free_list_head =
--				kzalloc(sizeof(struct lst_list),
--						GFP_KERNEL);
--		if (cmm_obj->node_free_list_head == NULL) {
--			status = -ENOMEM;
--			cmm_destroy(cmm_obj, true);
--		} else {
--			INIT_LIST_HEAD(&cmm_obj->
--				       node_free_list_head->head);
--			mutex_init(&cmm_obj->cmm_lock);
--			*ph_cmm_mgr = cmm_obj;
--		}
-+		INIT_LIST_HEAD(&cmm_obj->node_free_list);
-+		mutex_init(&cmm_obj->cmm_lock);
-+		*ph_cmm_mgr = cmm_obj;
- 	} else {
- 		status = -ENOMEM;
- 	}
-@@ -294,7 +284,7 @@ int cmm_destroy(struct cmm_object *hcmm_mgr, bool force)
- 	struct cmm_info temp_info;
- 	int status = 0;
- 	s32 slot_seg;
--	struct cmm_mnode *pnode;
-+	struct cmm_mnode *node, *tmp;
- 
- 	DBC_REQUIRE(refs > 0);
- 	if (!hcmm_mgr) {
-@@ -324,15 +314,10 @@ int cmm_destroy(struct cmm_object *hcmm_mgr, bool force)
- 			}
- 		}
- 	}
--	if (cmm_mgr_obj->node_free_list_head != NULL) {
--		/* Free the free nodes */
--		while (!LST_IS_EMPTY(cmm_mgr_obj->node_free_list_head)) {
--			pnode = (struct cmm_mnode *)
--			    lst_get_head(cmm_mgr_obj->node_free_list_head);
--			kfree(pnode);
--		}
--		/* delete NodeFreeList list */
--		kfree(cmm_mgr_obj->node_free_list_head);
-+	list_for_each_entry_safe(node, tmp, &cmm_mgr_obj->node_free_list,
-+			link) {
-+		list_del(&node->link);
-+		kfree(node);
- 	}
- 	mutex_unlock(&cmm_mgr_obj->cmm_lock);
- 	if (!status) {
-@@ -366,7 +351,7 @@ int cmm_free_buf(struct cmm_object *hcmm_mgr, void *buf_pa,
- {
- 	struct cmm_object *cmm_mgr_obj = (struct cmm_object *)hcmm_mgr;
- 	int status = -EFAULT;
--	struct cmm_mnode *mnode_obj = NULL;
-+	struct cmm_mnode *curr, *tmp;
- 	struct cmm_allocator *allocator = NULL;
- 	struct cmm_attrs *pattrs;
- 
-@@ -385,22 +370,14 @@ int cmm_free_buf(struct cmm_object *hcmm_mgr, void *buf_pa,
- 	allocator = get_allocator(cmm_mgr_obj, ul_seg_id);
- 	if (allocator != NULL) {
- 		mutex_lock(&cmm_mgr_obj->cmm_lock);
--		mnode_obj =
--		    (struct cmm_mnode *)lst_first(allocator->in_use_list_head);
--		while (mnode_obj) {
--			if ((u32) buf_pa == mnode_obj->dw_pa) {
--				/* Found it */
--				lst_remove_elem(allocator->in_use_list_head,
--						(struct list_head *)mnode_obj);
--				/* back to freelist */
--				add_to_free_list(allocator, mnode_obj);
--				status = 0;	/* all right! */
-+		list_for_each_entry_safe(curr, tmp, &allocator->in_use_list,
-+				link) {
-+			if (curr->dw_pa == (u32) buf_pa) {
-+				list_del(&curr->link);
-+				add_to_free_list(allocator, curr);
-+				status = 0;
- 				break;
- 			}
--			/* next node. */
--			mnode_obj = (struct cmm_mnode *)
--			    lst_next(allocator->in_use_list_head,
--				     (struct list_head *)mnode_obj);
- 		}
- 		mutex_unlock(&cmm_mgr_obj->cmm_lock);
- 	}
-@@ -443,7 +420,7 @@ int cmm_get_info(struct cmm_object *hcmm_mgr,
- 	u32 ul_seg;
- 	int status = 0;
- 	struct cmm_allocator *altr;
--	struct cmm_mnode *mnode_obj = NULL;
-+	struct cmm_mnode *curr;
- 
- 	DBC_REQUIRE(cmm_info_obj != NULL);
- 
-@@ -478,17 +455,11 @@ int cmm_get_info(struct cmm_object *hcmm_mgr,
- 			cmm_info_obj->seg_info[ul_seg - 1].dw_seg_base_va =
- 			    altr->dw_vm_base - altr->ul_dsp_size;
- 			cmm_info_obj->seg_info[ul_seg - 1].ul_in_use_cnt = 0;
--			mnode_obj = (struct cmm_mnode *)
--			    lst_first(altr->in_use_list_head);
- 			/* Count inUse blocks */
--			while (mnode_obj) {
-+			list_for_each_entry(curr, &altr->in_use_list, link) {
- 				cmm_info_obj->ul_total_in_use_cnt++;
- 				cmm_info_obj->seg_info[ul_seg -
- 						       1].ul_in_use_cnt++;
--				/* next node. */
--				mnode_obj = (struct cmm_mnode *)
--				    lst_next(altr->in_use_list_head,
--					     (struct list_head *)mnode_obj);
- 			}
- 		}
- 	}			/* end for */
-@@ -578,30 +549,17 @@ int cmm_register_gppsm_seg(struct cmm_object *hcmm_mgr,
- 		/* return the actual segment identifier */
- 		*sgmt_id = (u32) slot_seg + 1;
- 		/* create memory free list */
--		psma->free_list_head = kzalloc(sizeof(struct lst_list),
--							GFP_KERNEL);
--		if (psma->free_list_head == NULL) {
--			status = -ENOMEM;
--			goto func_end;
--		}
--		INIT_LIST_HEAD(&psma->free_list_head->head);
-+		INIT_LIST_HEAD(&psma->free_list);
- 
- 		/* create memory in-use list */
--		psma->in_use_list_head = kzalloc(sizeof(struct
--						lst_list), GFP_KERNEL);
--		if (psma->in_use_list_head == NULL) {
--			status = -ENOMEM;
--			goto func_end;
--		}
--		INIT_LIST_HEAD(&psma->in_use_list_head->head);
-+		INIT_LIST_HEAD(&psma->in_use_list);
- 
- 		/* Get a mem node for this hunk-o-memory */
- 		new_node = get_node(cmm_mgr_obj, dw_gpp_base_pa,
- 				    psma->dw_vm_base, ul_size);
- 		/* Place node on the SM allocator's free list */
- 		if (new_node) {
--			lst_put_tail(psma->free_list_head,
--				     (struct list_head *)new_node);
-+			list_add_tail(&new_node->link, &psma->free_list);
- 		} else {
- 			status = -ENOMEM;
- 			goto func_end;
-@@ -680,41 +638,22 @@ int cmm_un_register_gppsm_seg(struct cmm_object *hcmm_mgr,
-  */
- static void un_register_gppsm_seg(struct cmm_allocator *psma)
- {
--	struct cmm_mnode *mnode_obj = NULL;
--	struct cmm_mnode *next_node = NULL;
-+	struct cmm_mnode *curr, *tmp;
- 
- 	DBC_REQUIRE(psma != NULL);
--	if (psma->free_list_head != NULL) {
--		/* free nodes on free list */
--		mnode_obj = (struct cmm_mnode *)lst_first(psma->free_list_head);
--		while (mnode_obj) {
--			next_node =
--			    (struct cmm_mnode *)lst_next(psma->free_list_head,
--							 (struct list_head *)
--							 mnode_obj);
--			lst_remove_elem(psma->free_list_head,
--					(struct list_head *)mnode_obj);
--			kfree((void *)mnode_obj);
--			/* next node. */
--			mnode_obj = next_node;
--		}
--		kfree(psma->free_list_head);	/* delete freelist */
--		/* free nodes on InUse list */
--		mnode_obj =
--		    (struct cmm_mnode *)lst_first(psma->in_use_list_head);
--		while (mnode_obj) {
--			next_node =
--			    (struct cmm_mnode *)lst_next(psma->in_use_list_head,
--							 (struct list_head *)
--							 mnode_obj);
--			lst_remove_elem(psma->in_use_list_head,
--					(struct list_head *)mnode_obj);
--			kfree((void *)mnode_obj);
--			/* next node. */
--			mnode_obj = next_node;
--		}
--		kfree(psma->in_use_list_head);	/* delete InUse list */
-+
-+	/* free nodes on free list */
-+	list_for_each_entry_safe(curr, tmp, &psma->free_list, link) {
-+		list_del(&curr->link);
-+		kfree(curr);
- 	}
-+
-+	/* free nodes on InUse list */
-+	list_for_each_entry_safe(curr, tmp, &psma->in_use_list, link) {
-+		list_del(&curr->link);
-+		kfree(curr);
-+	}
-+
- 	if ((void *)psma->dw_vm_base != NULL)
- 		MEM_UNMAP_LINEAR_ADDRESS((void *)psma->dw_vm_base);
- 
-@@ -758,15 +697,15 @@ static struct cmm_mnode *get_node(struct cmm_object *cmm_mgr_obj, u32 dw_pa,
- 	DBC_REQUIRE(dw_va != 0);
- 	DBC_REQUIRE(ul_size != 0);
- 	/* Check cmm mgr's node freelist */
--	if (LST_IS_EMPTY(cmm_mgr_obj->node_free_list_head)) {
-+	if (list_empty(&cmm_mgr_obj->node_free_list)) {
- 		pnode = kzalloc(sizeof(struct cmm_mnode), GFP_KERNEL);
- 	} else {
- 		/* surely a valid element */
--		pnode = (struct cmm_mnode *)
--		    lst_get_head(cmm_mgr_obj->node_free_list_head);
-+		pnode = list_first_entry(&cmm_mgr_obj->node_free_list,
-+				struct cmm_mnode, link);
-+		list_del(&pnode->link);
- 	}
- 	if (pnode) {
--		lst_init_elem((struct list_head *)pnode);	/* set self */
- 		pnode->dw_pa = dw_pa;	/* Physical addr of start of block */
- 		pnode->dw_va = dw_va;	/* Virtual   "            " */
- 		pnode->ul_size = ul_size;	/* Size of block */
-@@ -783,9 +722,7 @@ static struct cmm_mnode *get_node(struct cmm_object *cmm_mgr_obj, u32 dw_pa,
- static void delete_node(struct cmm_object *cmm_mgr_obj, struct cmm_mnode *pnode)
- {
- 	DBC_REQUIRE(pnode != NULL);
--	lst_init_elem((struct list_head *)pnode);	/* init .self ptr */
--	lst_put_tail(cmm_mgr_obj->node_free_list_head,
--		     (struct list_head *)pnode);
-+	list_add_tail(&pnode->link, &cmm_mgr_obj->node_free_list);
- }
- 
- /*
-@@ -797,28 +734,26 @@ static void delete_node(struct cmm_object *cmm_mgr_obj, struct cmm_mnode *pnode)
- static struct cmm_mnode *get_free_block(struct cmm_allocator *allocator,
- 					u32 usize)
- {
--	if (allocator) {
--		struct cmm_mnode *mnode_obj = (struct cmm_mnode *)
--		    lst_first(allocator->free_list_head);
--		while (mnode_obj) {
--			if (usize <= (u32) mnode_obj->ul_size) {
--				lst_remove_elem(allocator->free_list_head,
--						(struct list_head *)mnode_obj);
--				return mnode_obj;
--			}
--			/* next node. */
--			mnode_obj = (struct cmm_mnode *)
--			    lst_next(allocator->free_list_head,
--				     (struct list_head *)mnode_obj);
-+	struct cmm_mnode *node, *tmp;
-+
-+	if (!allocator)
-+		return NULL;
-+
-+	list_for_each_entry_safe(node, tmp, &allocator->free_list, link) {
-+		if (usize <= (u32) node->ul_size) {
-+			list_del(&node->link);
-+			return node;
- 		}
-+
- 	}
-+
- 	return NULL;
- }
- 
- /*
-  *  ======== add_to_free_list ========
-  *  Purpose:
-- *      Coelesce node into the freelist in ascending size order.
-+ *      Coalesce node into the freelist in ascending size order.
-  */
- static void add_to_free_list(struct cmm_allocator *allocator,
- 			     struct cmm_mnode *pnode)
-@@ -829,71 +764,51 @@ static void add_to_free_list(struct cmm_allocator *allocator,
- 	u32 dw_this_pa;
- 	u32 dw_next_pa;
- 
--	DBC_REQUIRE(pnode != NULL);
--	DBC_REQUIRE(allocator != NULL);
-+	if (!pnode) {
-+		pr_err("%s: failed - pnode is NULL\n", __func__);
-+		return;
-+	}
-+
- 	dw_this_pa = pnode->dw_pa;
- 	dw_next_pa = NEXT_PA(pnode);
--	mnode_obj = (struct cmm_mnode *)lst_first(allocator->free_list_head);
--	while (mnode_obj) {
-+	list_for_each_entry(mnode_obj, &allocator->free_list, link) {
- 		if (dw_this_pa == NEXT_PA(mnode_obj)) {
- 			/* found the block ahead of this one */
- 			node_prev = mnode_obj;
- 		} else if (dw_next_pa == mnode_obj->dw_pa) {
- 			node_next = mnode_obj;
- 		}
--		if ((node_prev == NULL) || (node_next == NULL)) {
--			/* next node. */
--			mnode_obj = (struct cmm_mnode *)
--			    lst_next(allocator->free_list_head,
--				     (struct list_head *)mnode_obj);
--		} else {
--			/* got 'em */
-+		if ((node_prev != NULL) && (node_next != NULL))
- 			break;
--		}
--	}			/* while */
-+	}
- 	if (node_prev != NULL) {
- 		/* combine with previous block */
--		lst_remove_elem(allocator->free_list_head,
--				(struct list_head *)node_prev);
-+		list_del(&node_prev->link);
- 		/* grow node to hold both */
- 		pnode->ul_size += node_prev->ul_size;
- 		pnode->dw_pa = node_prev->dw_pa;
- 		pnode->dw_va = node_prev->dw_va;
- 		/* place node on mgr nodeFreeList */
--		delete_node((struct cmm_object *)allocator->hcmm_mgr,
--			    node_prev);
-+		delete_node(allocator->hcmm_mgr, node_prev);
- 	}
- 	if (node_next != NULL) {
- 		/* combine with next block */
--		lst_remove_elem(allocator->free_list_head,
--				(struct list_head *)node_next);
-+		list_del(&node_next->link);
- 		/* grow da node */
- 		pnode->ul_size += node_next->ul_size;
- 		/* place node on mgr nodeFreeList */
--		delete_node((struct cmm_object *)allocator->hcmm_mgr,
--			    node_next);
-+		delete_node(allocator->hcmm_mgr, node_next);
- 	}
- 	/* Now, let's add to freelist in increasing size order */
--	mnode_obj = (struct cmm_mnode *)lst_first(allocator->free_list_head);
--	while (mnode_obj) {
--		if (pnode->ul_size <= mnode_obj->ul_size)
--			break;
--
--		/* next node. */
--		mnode_obj =
--		    (struct cmm_mnode *)lst_next(allocator->free_list_head,
--						 (struct list_head *)mnode_obj);
--	}
--	/* if mnode_obj is NULL then add our pnode to the end of the freelist */
--	if (mnode_obj == NULL) {
--		lst_put_tail(allocator->free_list_head,
--			     (struct list_head *)pnode);
--	} else {
--		/* insert our node before the current traversed node */
--		lst_insert_before(allocator->free_list_head,
--				  (struct list_head *)pnode,
--				  (struct list_head *)mnode_obj);
-+	list_for_each_entry(mnode_obj, &allocator->free_list, link) {
-+		if (pnode->ul_size <= mnode_obj->ul_size) {
-+			/* insert our node before the current traversed node  */
-+			list_add_tail(&pnode->link, &mnode_obj->link);
-+			return;
-+		}
- 	}
-+	/* add our pnode to the end of the freelist */
-+	list_add_tail(&pnode->link, &allocator->free_list);
- }
- 
- /*
-diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/tidspbridge/pmgr/dev.c
-index 132e960..46076ce 100644
---- a/drivers/staging/tidspbridge/pmgr/dev.c
-+++ b/drivers/staging/tidspbridge/pmgr/dev.c
+diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
+index 81b1b90..2ca3a23 100644
+--- a/drivers/staging/tidspbridge/rmgr/drv.c
++++ b/drivers/staging/tidspbridge/rmgr/drv.c
 @@ -16,6 +16,7 @@
   * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
   */
@@ -467,140 +39,609 @@ index 132e960..46076ce 100644
  
  /*  ----------------------------------- Host OS */
  #include <dspbridge/host_os.h>
-@@ -28,7 +29,6 @@
+@@ -26,9 +27,6 @@
+ /*  ----------------------------------- Trace & Debug */
+ #include <dspbridge/dbc.h>
  
- /*  ----------------------------------- OS Adaptation Layer */
- #include <dspbridge/ldr.h>
+-/*  ----------------------------------- OS Adaptation Layer */
 -#include <dspbridge/list.h>
+-
+ /*  ----------------------------------- This */
+ #include <dspbridge/drv.h>
+ #include <dspbridge/dev.h>
+@@ -42,8 +40,8 @@
  
- /*  ----------------------------------- Platform Manager */
- #include <dspbridge/cod.h>
-@@ -60,7 +60,6 @@
- 
- /* The Bridge device object: */
- struct dev_object {
--	/* LST requires "link" to be first field! */
- 	struct list_head link;	/* Link to next dev_object. */
- 	u8 dev_type;		/* Device Type */
- 	struct cfg_devnode *dev_node_obj;	/* Platform specific dev id */
-@@ -79,7 +78,7 @@ struct dev_object {
- 	struct ldr_module *module_obj;	/* Bridge Module handle. */
- 	u32 word_size;		/* DSP word size: quick access. */
- 	struct drv_object *hdrv_obj;	/* Driver Object */
--	struct lst_list *proc_list;	/* List of Proceeosr attached to
-+	struct list_head proc_list;	/* List of Processor attached to
- 					 * this device */
- 	struct node_mgr *hnode_mgr;
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ struct drv_object {
+-	struct lst_list *dev_list;
+-	struct lst_list *dev_node_string;
++	struct list_head dev_list;
++	struct list_head dev_node_string;
  };
-@@ -255,19 +254,12 @@ int dev_create_device(struct dev_object **device_obj,
- 				    (struct dev_object *)dev_obj, NULL);
- 	}
- 	/* Add the new DEV_Object to the global list: */
--	if (!status) {
--		lst_init_elem(&dev_obj->link);
-+	if (!status)
- 		status = drv_insert_dev_object(hdrv_obj, dev_obj);
--	}
-+
- 	/* Create the Processor List */
--	if (!status) {
--		dev_obj->proc_list = kzalloc(sizeof(struct lst_list),
--							GFP_KERNEL);
--		if (!(dev_obj->proc_list))
--			status = -EPERM;
--		else
--			INIT_LIST_HEAD(&dev_obj->proc_list->head);
--	}
-+	if (!status)
-+		INIT_LIST_HEAD(&dev_obj->proc_list);
- leave:
- 	/*  If all went well, return a handle to the dev object;
- 	 *  else, cleanup and return NULL in the OUT parameter. */
-@@ -275,7 +267,6 @@ leave:
- 		*device_obj = dev_obj;
- 	} else {
- 		if (dev_obj) {
--			kfree(dev_obj->proc_list);
- 			if (dev_obj->cod_mgr)
- 				cod_delete(dev_obj->cod_mgr);
- 			if (dev_obj->dmm_mgr)
-@@ -403,9 +394,6 @@ int dev_destroy_device(struct dev_object *hdev_obj)
- 		} else
- 			status = -EPERM;
- 		if (!status) {
--			kfree(dev_obj->proc_list);
--			dev_obj->proc_list = NULL;
--
- 			/* Remove this DEV_Object from the global list: */
- 			drv_remove_dev_object(dev_obj->hdrv_obj, dev_obj);
- 			/* Free The library * LDR_FreeModule
-@@ -801,18 +789,16 @@ bool dev_init(void)
-  */
- int dev_notify_clients(struct dev_object *hdev_obj, u32 ret)
- {
--	int status = 0;
--
- 	struct dev_object *dev_obj = hdev_obj;
--	void *proc_obj;
-+	struct list_head *curr;
- 
--	for (proc_obj = (void *)lst_first(dev_obj->proc_list);
--	     proc_obj != NULL;
--	     proc_obj = (void *)lst_next(dev_obj->proc_list,
--					 (struct list_head *)proc_obj))
--		proc_notify_clients(proc_obj, (u32) ret);
-+	/* FIXME: this code needs struct proc_object to have a list_head
-+	 * at the begining. If not, this can go horribly wrong.
-+	 */
-+	list_for_each(curr, &dev_obj->proc_list)
-+		proc_notify_clients((void *)curr, (u32) ret);
- 
--	return status;
-+	return 0;
- }
  
  /*
-@@ -1000,15 +986,17 @@ int dev_insert_proc_object(struct dev_object *hdev_obj,
+@@ -316,22 +314,8 @@ int drv_create(struct drv_object **drv_obj)
+ 	pdrv_object = kzalloc(sizeof(struct drv_object), GFP_KERNEL);
+ 	if (pdrv_object) {
+ 		/* Create and Initialize List of device objects */
+-		pdrv_object->dev_list = kzalloc(sizeof(struct lst_list),
+-							GFP_KERNEL);
+-		if (pdrv_object->dev_list) {
+-			/* Create and Initialize List of device Extension */
+-			pdrv_object->dev_node_string =
+-				kzalloc(sizeof(struct lst_list), GFP_KERNEL);
+-			if (!(pdrv_object->dev_node_string)) {
+-				status = -EPERM;
+-			} else {
+-				INIT_LIST_HEAD(&pdrv_object->
+-					       dev_node_string->head);
+-				INIT_LIST_HEAD(&pdrv_object->dev_list->head);
+-			}
+-		} else {
+-			status = -ENOMEM;
+-		}
++		INIT_LIST_HEAD(&pdrv_object->dev_list);
++		INIT_LIST_HEAD(&pdrv_object->dev_node_string);
+ 	} else {
+ 		status = -ENOMEM;
+ 	}
+@@ -348,8 +332,6 @@ int drv_create(struct drv_object **drv_obj)
+ 	if (!status) {
+ 		*drv_obj = pdrv_object;
+ 	} else {
+-		kfree(pdrv_object->dev_list);
+-		kfree(pdrv_object->dev_node_string);
+ 		/* Free the DRV Object */
+ 		kfree(pdrv_object);
+ 	}
+@@ -386,13 +368,6 @@ int drv_destroy(struct drv_object *driver_obj)
  	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(dev_obj);
- 	DBC_REQUIRE(proc_obj != 0);
--	DBC_REQUIRE(dev_obj->proc_list != NULL);
- 	DBC_REQUIRE(already_attached != NULL);
--	if (!LST_IS_EMPTY(dev_obj->proc_list))
-+	if (!list_empty(&dev_obj->proc_list))
- 		*already_attached = true;
+ 	DBC_REQUIRE(pdrv_object);
  
- 	/* Add DevObject to tail. */
--	lst_put_tail(dev_obj->proc_list, (struct list_head *)proc_obj);
-+	/* FIXME: this code needs struct proc_object to have a list_head
-+	 * at the begining. If not, this can go horribly wrong.
-+	 */
-+	list_add_tail((struct list_head *)proc_obj, &dev_obj->proc_list);
+-	/*
+-	 *  Delete the List if it exists.Should not come here
+-	 *  as the drv_remove_dev_object and the Last drv_request_resources
+-	 *  removes the list if the lists are empty.
+-	 */
+-	kfree(pdrv_object->dev_list);
+-	kfree(pdrv_object->dev_node_string);
+ 	kfree(pdrv_object);
+ 	/* Update the DRV Object in the driver data */
+ 	if (drv_datap) {
+@@ -424,7 +399,7 @@ int drv_get_dev_object(u32 index, struct drv_object *hdrv_obj,
+ 	DBC_REQUIRE(device_obj != NULL);
+ 	DBC_REQUIRE(index >= 0);
+ 	DBC_REQUIRE(refs > 0);
+-	DBC_ASSERT(!(LST_IS_EMPTY(pdrv_obj->dev_list)));
++	DBC_ASSERT(!(list_empty(&pdrv_obj->dev_list)));
  
--	DBC_ENSURE(!status && !LST_IS_EMPTY(dev_obj->proc_list));
-+	DBC_ENSURE(!status && !list_empty(&dev_obj->proc_list));
+ 	dev_obj = (struct dev_object *)drv_get_first_dev_object();
+ 	for (i = 0; i < index; i++) {
+@@ -455,9 +430,8 @@ u32 drv_get_first_dev_object(void)
  
- 	return status;
+ 	if (drv_datap && drv_datap->drv_object) {
+ 		pdrv_obj = drv_datap->drv_object;
+-		if ((pdrv_obj->dev_list != NULL) &&
+-		    !LST_IS_EMPTY(pdrv_obj->dev_list))
+-			dw_dev_object = (u32) lst_first(pdrv_obj->dev_list);
++		if (!list_empty(&pdrv_obj->dev_list))
++			dw_dev_object = (u32) pdrv_obj->dev_list.next;
+ 	} else {
+ 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
+ 	}
+@@ -479,10 +453,9 @@ u32 drv_get_first_dev_extension(void)
+ 
+ 	if (drv_datap && drv_datap->drv_object) {
+ 		pdrv_obj = drv_datap->drv_object;
+-		if ((pdrv_obj->dev_node_string != NULL) &&
+-		    !LST_IS_EMPTY(pdrv_obj->dev_node_string)) {
++		if (!list_empty(&pdrv_obj->dev_node_string)) {
+ 			dw_dev_extension =
+-			    (u32) lst_first(pdrv_obj->dev_node_string);
++			    (u32) pdrv_obj->dev_node_string.next;
+ 		}
+ 	} else {
+ 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
+@@ -503,16 +476,15 @@ u32 drv_get_next_dev_object(u32 hdev_obj)
+ 	u32 dw_next_dev_object = 0;
+ 	struct drv_object *pdrv_obj;
+ 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
+-
+-	DBC_REQUIRE(hdev_obj != 0);
++	struct list_head *curr;
+ 
+ 	if (drv_datap && drv_datap->drv_object) {
+ 		pdrv_obj = drv_datap->drv_object;
+-		if ((pdrv_obj->dev_list != NULL) &&
+-		    !LST_IS_EMPTY(pdrv_obj->dev_list)) {
+-			dw_next_dev_object = (u32) lst_next(pdrv_obj->dev_list,
+-							    (struct list_head *)
+-							    hdev_obj);
++		if (!list_empty(&pdrv_obj->dev_list)) {
++			curr = (struct list_head *)hdev_obj;
++			if (list_is_last(curr, &pdrv_obj->dev_list))
++				return 0;
++			dw_next_dev_object = (u32) curr->next;
+ 		}
+ 	} else {
+ 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
+@@ -534,16 +506,15 @@ u32 drv_get_next_dev_extension(u32 dev_extension)
+ 	u32 dw_dev_extension = 0;
+ 	struct drv_object *pdrv_obj;
+ 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
+-
+-	DBC_REQUIRE(dev_extension != 0);
++	struct list_head *curr;
+ 
+ 	if (drv_datap && drv_datap->drv_object) {
+ 		pdrv_obj = drv_datap->drv_object;
+-		if ((pdrv_obj->dev_node_string != NULL) &&
+-		    !LST_IS_EMPTY(pdrv_obj->dev_node_string)) {
+-			dw_dev_extension =
+-			    (u32) lst_next(pdrv_obj->dev_node_string,
+-					   (struct list_head *)dev_extension);
++		if (!list_empty(&pdrv_obj->dev_node_string)) {
++			curr = (struct list_head *)dev_extension;
++			if (list_is_last(curr, &pdrv_obj->dev_node_string))
++				return 0;
++			dw_dev_extension = (u32) curr->next;
+ 		}
+ 	} else {
+ 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
+@@ -584,11 +555,8 @@ int drv_insert_dev_object(struct drv_object *driver_obj,
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(hdev_obj != NULL);
+ 	DBC_REQUIRE(pdrv_object);
+-	DBC_ASSERT(pdrv_object->dev_list);
+-
+-	lst_put_tail(pdrv_object->dev_list, (struct list_head *)hdev_obj);
+ 
+-	DBC_ENSURE(!LST_IS_EMPTY(pdrv_object->dev_list));
++	list_add_tail((struct list_head *)hdev_obj, &pdrv_object->dev_list);
+ 
+ 	return 0;
  }
-@@ -1039,15 +1027,12 @@ int dev_remove_proc_object(struct dev_object *hdev_obj, u32 proc_obj)
+@@ -610,26 +578,17 @@ int drv_remove_dev_object(struct drv_object *driver_obj,
+ 	DBC_REQUIRE(pdrv_object);
+ 	DBC_REQUIRE(hdev_obj != NULL);
  
- 	DBC_REQUIRE(dev_obj);
- 	DBC_REQUIRE(proc_obj != 0);
--	DBC_REQUIRE(dev_obj->proc_list != NULL);
--	DBC_REQUIRE(!LST_IS_EMPTY(dev_obj->proc_list));
-+	DBC_REQUIRE(!list_empty(&dev_obj->proc_list));
+-	DBC_REQUIRE(pdrv_object->dev_list != NULL);
+-	DBC_REQUIRE(!LST_IS_EMPTY(pdrv_object->dev_list));
++	DBC_REQUIRE(!list_empty(&pdrv_object->dev_list));
  
- 	/* Search list for dev_obj: */
--	for (cur_elem = lst_first(dev_obj->proc_list); cur_elem != NULL;
--	     cur_elem = lst_next(dev_obj->proc_list, cur_elem)) {
--		/* If found, remove it. */
-+	list_for_each(cur_elem, &dev_obj->proc_list) {
- 		if ((u32) cur_elem == proc_obj) {
--			lst_remove_elem(dev_obj->proc_list, cur_elem);
+ 	/* Search list for p_proc_object: */
+-	for (cur_elem = lst_first(pdrv_object->dev_list); cur_elem != NULL;
+-	     cur_elem = lst_next(pdrv_object->dev_list, cur_elem)) {
++	list_for_each(cur_elem, &pdrv_object->dev_list) {
+ 		/* If found, remove it. */
+ 		if ((struct dev_object *)cur_elem == hdev_obj) {
+-			lst_remove_elem(pdrv_object->dev_list, cur_elem);
 +			list_del(cur_elem);
  			status = 0;
  			break;
  		}
+ 	}
+-	/* Remove list if empty. */
+-	if (LST_IS_EMPTY(pdrv_object->dev_list)) {
+-		kfree(pdrv_object->dev_list);
+-		pdrv_object->dev_list = NULL;
+-	}
+-	DBC_ENSURE((pdrv_object->dev_list == NULL) ||
+-		   !LST_IS_EMPTY(pdrv_object->dev_list));
+ 
+ 	return status;
+ }
+@@ -663,14 +622,13 @@ int drv_request_resources(u32 dw_context, u32 *dev_node_strg)
+ 	if (!status) {
+ 		pszdev_node = kzalloc(sizeof(struct drv_ext), GFP_KERNEL);
+ 		if (pszdev_node) {
+-			lst_init_elem(&pszdev_node->link);
+ 			strncpy(pszdev_node->sz_string,
+ 				(char *)dw_context, MAXREGPATHLENGTH - 1);
+ 			pszdev_node->sz_string[MAXREGPATHLENGTH - 1] = '\0';
+ 			/* Update the Driver Object List */
+ 			*dev_node_strg = (u32) pszdev_node->sz_string;
+-			lst_put_tail(pdrv_object->dev_node_string,
+-				     (struct list_head *)pszdev_node);
++			list_add_tail(&pszdev_node->link,
++					&pdrv_object->dev_node_string);
+ 		} else {
+ 			status = -ENOMEM;
+ 			*dev_node_strg = 0;
+@@ -682,7 +640,7 @@ int drv_request_resources(u32 dw_context, u32 *dev_node_strg)
+ 	}
+ 
+ 	DBC_ENSURE((!status && dev_node_strg != NULL &&
+-		    !LST_IS_EMPTY(pdrv_object->dev_node_string)) ||
++		    !list_empty(&pdrv_object->dev_node_string)) ||
+ 		   (status && *dev_node_strg == 0));
+ 
+ 	return status;
+@@ -696,7 +654,6 @@ int drv_request_resources(u32 dw_context, u32 *dev_node_strg)
+ int drv_release_resources(u32 dw_context, struct drv_object *hdrv_obj)
+ {
+ 	int status = 0;
+-	struct drv_object *pdrv_object = (struct drv_object *)hdrv_obj;
+ 	struct drv_ext *pszdev_node;
+ 
+ 	/*
+@@ -706,23 +663,13 @@ int drv_release_resources(u32 dw_context, struct drv_object *hdrv_obj)
+ 	for (pszdev_node = (struct drv_ext *)drv_get_first_dev_extension();
+ 	     pszdev_node != NULL; pszdev_node = (struct drv_ext *)
+ 	     drv_get_next_dev_extension((u32) pszdev_node)) {
+-		if (!pdrv_object->dev_node_string) {
+-			/* When this could happen? */
+-			continue;
+-		}
+ 		if ((u32) pszdev_node == dw_context) {
+ 			/* Found it */
+ 			/* Delete from the Driver object list */
+-			lst_remove_elem(pdrv_object->dev_node_string,
+-					(struct list_head *)pszdev_node);
+-			kfree((void *)pszdev_node);
++			list_del(&pszdev_node->link);
++			kfree(pszdev_node);
+ 			break;
+ 		}
+-		/* Delete the List if it is empty */
+-		if (LST_IS_EMPTY(pdrv_object->dev_node_string)) {
+-			kfree(pdrv_object->dev_node_string);
+-			pdrv_object->dev_node_string = NULL;
+-		}
+ 	}
+ 	return status;
+ }
+diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
+index f213652..7fbdad1 100644
+--- a/drivers/staging/tidspbridge/rmgr/node.c
++++ b/drivers/staging/tidspbridge/rmgr/node.c
+@@ -18,6 +18,8 @@
+ 
+ #include <linux/types.h>
+ #include <linux/bitmap.h>
++#include <linux/list.h>
++
+ /*  ----------------------------------- Host OS */
+ #include <dspbridge/host_os.h>
+ 
+@@ -28,7 +30,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/list.h>
+ #include <dspbridge/memdefs.h>
+ #include <dspbridge/proc.h>
+ #include <dspbridge/strm.h>
+@@ -129,7 +130,7 @@ struct node_mgr {
+ 	struct bridge_drv_interface *intf_fxns;
+ 	struct dcd_manager *hdcd_mgr;	/* Proc/Node data manager */
+ 	struct disp_object *disp_obj;	/* Node dispatcher */
+-	struct lst_list *node_list;	/* List of all allocated nodes */
++	struct list_head node_list;	/* List of all allocated nodes */
+ 	u32 num_nodes;		/* Number of nodes in node_list */
+ 	u32 num_created;	/* Number of nodes *created* on DSP */
+ 	DECLARE_BITMAP(pipe_map, MAXPIPES); /* Pipe connection bitmap */
+@@ -639,13 +640,12 @@ func_cont:
+ 	if (!status) {
+ 		/* Add the node to the node manager's list of allocated
+ 		 * nodes. */
+-		lst_init_elem((struct list_head *)pnode);
+ 		NODE_SET_STATE(pnode, NODE_ALLOCATED);
+ 
+ 		mutex_lock(&hnode_mgr->node_mgr_lock);
+ 
+-		lst_put_tail(hnode_mgr->node_list, (struct list_head *) pnode);
+-			++(hnode_mgr->num_nodes);
++		list_add_tail(&pnode->list_elem, &hnode_mgr->node_list);
++		++(hnode_mgr->num_nodes);
+ 
+ 		/* Exit critical section */
+ 		mutex_unlock(&hnode_mgr->node_mgr_lock);
+@@ -1301,11 +1301,6 @@ int node_create_mgr(struct node_mgr **node_man,
+ 		return -ENOMEM;
+ 
+ 	node_mgr_obj->hdev_obj = hdev_obj;
+-	node_mgr_obj->node_list = kzalloc(sizeof(struct lst_list), GFP_KERNEL);
+-	if (!node_mgr_obj->node_list) {
+-		status = -ENOMEM;
+-		goto out_err;
+-	}
+ 
+ 	node_mgr_obj->ntfy_obj = kmalloc(sizeof(struct ntfy_object),
+ 			GFP_KERNEL);
+@@ -1315,7 +1310,7 @@ int node_create_mgr(struct node_mgr **node_man,
+ 	}
+ 	ntfy_init(node_mgr_obj->ntfy_obj);
+ 
+-	INIT_LIST_HEAD(&node_mgr_obj->node_list->head);
++	INIT_LIST_HEAD(&node_mgr_obj->node_list);
+ 
+ 	dev_get_dev_type(hdev_obj, &dev_type);
+ 
+@@ -1527,7 +1522,7 @@ func_cont1:
+ 	}
+ 	/* Free host side resources even if a failure occurred */
+ 	/* Remove node from hnode_mgr->node_list */
+-	lst_remove_elem(hnode_mgr->node_list, (struct list_head *)pnode);
++	list_del(&pnode->list_elem);
+ 	hnode_mgr->num_nodes--;
+ 	/* Decrement count of nodes created on DSP */
+ 	if ((state != NODE_ALLOCATED) || ((state == NODE_ALLOCATED) &&
+@@ -1579,7 +1574,7 @@ int node_enum_nodes(struct node_mgr *hnode_mgr, void **node_tab,
+ 			   u32 *pu_allocated)
+ {
+ 	struct node_object *hnode;
+-	u32 i;
++	u32 i = 0;
+ 	int status = 0;
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(node_tab != NULL || node_tab_size == 0);
+@@ -1598,15 +1593,8 @@ int node_enum_nodes(struct node_mgr *hnode_mgr, void **node_tab,
+ 		*pu_num_nodes = 0;
+ 		status = -EINVAL;
+ 	} else {
+-		hnode = (struct node_object *)lst_first(hnode_mgr->
+-			node_list);
+-		for (i = 0; i < hnode_mgr->num_nodes; i++) {
+-			DBC_ASSERT(hnode);
+-			node_tab[i] = hnode;
+-			hnode = (struct node_object *)lst_next
+-				(hnode_mgr->node_list,
+-				(struct list_head *)hnode);
+-		}
++		list_for_each_entry(hnode, &hnode_mgr->node_list, list_elem)
++			node_tab[i++] = hnode;
+ 		*pu_allocated = *pu_num_nodes = hnode_mgr->num_nodes;
+ 	}
+ 	/* end of sync_enter_cs */
+@@ -2593,7 +2581,7 @@ func_end:
+  */
+ static void delete_node_mgr(struct node_mgr *hnode_mgr)
+ {
+-	struct node_object *hnode;
++	struct node_object *hnode, *tmp;
+ 
+ 	if (hnode_mgr) {
+ 		/* Free resources */
+@@ -2601,13 +2589,10 @@ static void delete_node_mgr(struct node_mgr *hnode_mgr)
+ 			dcd_destroy_manager(hnode_mgr->hdcd_mgr);
+ 
+ 		/* Remove any elements remaining in lists */
+-		if (hnode_mgr->node_list) {
+-			while ((hnode = (struct node_object *)
+-				lst_get_head(hnode_mgr->node_list)))
+-				delete_node(hnode, NULL);
+-
+-			DBC_ASSERT(LST_IS_EMPTY(hnode_mgr->node_list));
+-			kfree(hnode_mgr->node_list);
++		list_for_each_entry_safe(hnode, tmp, &hnode_mgr->node_list,
++				list_elem) {
++			list_del(&hnode->list_elem);
++			delete_node(hnode, NULL);
+ 		}
+ 		mutex_destroy(&hnode_mgr->node_mgr_lock);
+ 		if (hnode_mgr->ntfy_obj) {
+@@ -3147,23 +3132,17 @@ int node_find_addr(struct node_mgr *node_mgr, u32 sym_addr,
+ {
+ 	struct node_object *node_obj;
+ 	int status = -ENOENT;
+-	u32 n;
+ 
+ 	pr_debug("%s(0x%x, 0x%x, 0x%x, 0x%x,  %s)\n", __func__,
+ 			(unsigned int) node_mgr,
+ 			sym_addr, offset_range,
+ 			(unsigned int) sym_addr_output, sym_name);
+ 
+-	node_obj = (struct node_object *)(node_mgr->node_list->head.next);
+-
+-	for (n = 0; n < node_mgr->num_nodes; n++) {
++	list_for_each_entry(node_obj, &node_mgr->node_list, list_elem) {
+ 		status = nldr_find_addr(node_obj->nldr_node_obj, sym_addr,
+ 			offset_range, sym_addr_output, sym_name);
+-
+ 		if (!status)
+ 			break;
+-
+-		node_obj = (struct node_object *) (node_obj->list_elem.next);
+ 	}
+ 
+ 	return status;
+diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
+index b47d7aa..d5f6719 100644
+--- a/drivers/staging/tidspbridge/rmgr/proc.c
++++ b/drivers/staging/tidspbridge/rmgr/proc.c
+@@ -29,7 +29,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/list.h>
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/sync.h>
+ /*  ----------------------------------- Bridge Driver */
+@@ -357,7 +356,6 @@ proc_attach(u32 processor_id,
+ 		 * Return handle to this Processor Object:
+ 		 * Find out if the Device is already attached to a
+ 		 * Processor. If so, return AlreadyAttached status */
+-		lst_init_elem(&p_proc_object->link);
+ 		status = dev_insert_proc_object(p_proc_object->hdev_obj,
+ 						(u32) p_proc_object,
+ 						&p_proc_object->
+diff --git a/drivers/staging/tidspbridge/rmgr/rmm.c b/drivers/staging/tidspbridge/rmgr/rmm.c
+index 761e8f4..aae8657 100644
+--- a/drivers/staging/tidspbridge/rmgr/rmm.c
++++ b/drivers/staging/tidspbridge/rmgr/rmm.c
+@@ -38,6 +38,10 @@
+  */
+ 
+ #include <linux/types.h>
++#include <linux/list.h>
++
++/*  ----------------------------------- Host OS */
++#include <dspbridge/host_os.h>
+ 
+ /*  ----------------------------------- DSP/BIOS Bridge */
+ #include <dspbridge/dbdefs.h>
+@@ -45,9 +49,6 @@
+ /*  ----------------------------------- Trace & Debug */
+ #include <dspbridge/dbc.h>
+ 
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/list.h>
+-
+ /*  ----------------------------------- This */
+ #include <dspbridge/rmm.h>
+ 
+@@ -79,7 +80,7 @@ struct rmm_target_obj {
+ 	struct rmm_segment *seg_tab;
+ 	struct rmm_header **free_list;
+ 	u32 num_segs;
+-	struct lst_list *ovly_list;	/* List of overlay memory in use */
++	struct list_head ovly_list;	/* List of overlay memory in use */
+ };
+ 
+ static u32 refs;		/* module reference count */
+@@ -95,8 +96,7 @@ static bool free_block(struct rmm_target_obj *target, u32 segid, u32 addr,
+ int rmm_alloc(struct rmm_target_obj *target, u32 segid, u32 size,
+ 		     u32 align, u32 *dsp_address, bool reserve)
+ {
+-	struct rmm_ovly_sect *sect;
+-	struct rmm_ovly_sect *prev_sect = NULL;
++	struct rmm_ovly_sect *sect, *prev_sect = NULL;
+ 	struct rmm_ovly_sect *new_sect;
+ 	u32 addr;
+ 	int status = 0;
+@@ -120,10 +120,9 @@ int rmm_alloc(struct rmm_target_obj *target, u32 segid, u32 size,
+ 	/* An overlay section - See if block is already in use. If not,
+ 	 * insert into the list in ascending address size. */
+ 	addr = *dsp_address;
+-	sect = (struct rmm_ovly_sect *)lst_first(target->ovly_list);
+ 	/*  Find place to insert new list element. List is sorted from
+ 	 *  smallest to largest address. */
+-	while (sect != NULL) {
++	list_for_each_entry(sect, &target->ovly_list, list_elem) {
+ 		if (addr <= sect->addr) {
+ 			/* Check for overlap with sect */
+ 			if ((addr + size > sect->addr) || (prev_sect &&
+@@ -135,9 +134,6 @@ int rmm_alloc(struct rmm_target_obj *target, u32 segid, u32 size,
+ 			break;
+ 		}
+ 		prev_sect = sect;
+-		sect = (struct rmm_ovly_sect *)lst_next(target->ovly_list,
+-							(struct list_head *)
+-							sect);
+ 	}
+ 	if (!status) {
+ 		/* No overlap - allocate list element for new section. */
+@@ -145,20 +141,17 @@ int rmm_alloc(struct rmm_target_obj *target, u32 segid, u32 size,
+ 		if (new_sect == NULL) {
+ 			status = -ENOMEM;
+ 		} else {
+-			lst_init_elem((struct list_head *)new_sect);
+ 			new_sect->addr = addr;
+ 			new_sect->size = size;
+ 			new_sect->page = segid;
+-			if (sect == NULL) {
++			if (list_is_last(sect, &target->ovly_list))
+ 				/* Put new section at the end of the list */
+-				lst_put_tail(target->ovly_list,
+-					     (struct list_head *)new_sect);
+-			} else {
++				list_add_tail(&new_sect->list_elem,
++						&target->ovly_list);
++			else
+ 				/* Put new section just before sect */
+-				lst_insert_before(target->ovly_list,
+-						  (struct list_head *)new_sect,
+-						  (struct list_head *)sect);
+-			}
++				list_add_tail(&new_sect->list_elem,
++						&sect->list_elem);
+ 		}
+ 	}
+ func_end:
+@@ -230,14 +223,8 @@ int rmm_create(struct rmm_target_obj **target_obj,
+ 	}
+ func_cont:
+ 	/* Initialize overlay memory list */
+-	if (!status) {
+-		target->ovly_list = kzalloc(sizeof(struct lst_list),
+-							GFP_KERNEL);
+-		if (target->ovly_list == NULL)
+-			status = -ENOMEM;
+-		else
+-			INIT_LIST_HEAD(&target->ovly_list->head);
+-	}
++	if (!status)
++		INIT_LIST_HEAD(&target->ovly_list);
+ 
+ 	if (!status) {
+ 		*target_obj = target;
+@@ -259,7 +246,7 @@ func_cont:
+  */
+ void rmm_delete(struct rmm_target_obj *target)
+ {
+-	struct rmm_ovly_sect *ovly_section;
++	struct rmm_ovly_sect *sect, *tmp;
+ 	struct rmm_header *hptr;
+ 	struct rmm_header *next;
+ 	u32 i;
+@@ -268,13 +255,9 @@ void rmm_delete(struct rmm_target_obj *target)
+ 
+ 	kfree(target->seg_tab);
+ 
+-	if (target->ovly_list) {
+-		while ((ovly_section = (struct rmm_ovly_sect *)lst_get_head
+-			(target->ovly_list))) {
+-			kfree(ovly_section);
+-		}
+-		DBC_ASSERT(LST_IS_EMPTY(target->ovly_list));
+-		kfree(target->ovly_list);
++	list_for_each_entry_safe(sect, tmp, &target->ovly_list, list_elem) {
++		list_del(&sect->list_elem);
++		kfree(sect);
+ 	}
+ 
+ 	if (target->free_list != NULL) {
+@@ -311,8 +294,8 @@ void rmm_exit(void)
+ bool rmm_free(struct rmm_target_obj *target, u32 segid, u32 dsp_addr, u32 size,
+ 	      bool reserved)
+ {
+-	struct rmm_ovly_sect *sect;
+-	bool ret = true;
++	struct rmm_ovly_sect *sect, *tmp;
++	bool ret = false;
+ 
+ 	DBC_REQUIRE(target);
+ 
+@@ -333,24 +316,16 @@ bool rmm_free(struct rmm_target_obj *target, u32 segid, u32 dsp_addr, u32 size,
+ 
+ 	} else {
+ 		/* Unreserve memory */
+-		sect = (struct rmm_ovly_sect *)lst_first(target->ovly_list);
+-		while (sect != NULL) {
++		list_for_each_entry_safe(sect, tmp, &target->ovly_list,
++				list_elem) {
+ 			if (dsp_addr == sect->addr) {
+ 				DBC_ASSERT(size == sect->size);
+ 				/* Remove from list */
+-				lst_remove_elem(target->ovly_list,
+-						(struct list_head *)sect);
++				list_del(&sect->list_elem);
+ 				kfree(sect);
+-				break;
++				return true;
+ 			}
+-			sect =
+-			    (struct rmm_ovly_sect *)lst_next(target->ovly_list,
+-							     (struct list_head
+-							      *)sect);
+ 		}
+-		if (sect == NULL)
+-			ret = false;
+-
+ 	}
+ 	return ret;
+ }
 -- 
 1.7.3.2
 
