@@ -1,314 +1,110 @@
 From: Ionut Nicu <ionut.nicu@gmail.com>
-Subject: [PATCH v3 03/12] staging: tidspbridge: switch to linux bitmap API
-Date: Sun, 21 Nov 2010 12:46:21 +0200
-Message-ID: <1290336390-2581-4-git-send-email-ionut.nicu@mindbit.ro>
+Subject: [PATCH v3 02/12] staging: tidspbridge: remove utildefs
+Date: Sun, 21 Nov 2010 12:46:20 +0200
+Message-ID: <1290336390-2581-3-git-send-email-ionut.nicu@mindbit.ro>
 References: <1290336390-2581-1-git-send-email-ionut.nicu@mindbit.ro>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:43575 "EHLO
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:63930 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751384Ab0KUKq6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Nov 2010 05:46:58 -0500
-Received: by mail-fx0-f46.google.com with SMTP id 13so1867561fxm.19
-        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 02:46:57 -0800 (PST)
+	with ESMTP id S1752161Ab0KUKq4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Nov 2010 05:46:56 -0500
+Received: by mail-fx0-f46.google.com with SMTP id 13so1867548fxm.19
+        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 02:46:55 -0800 (PST)
 In-Reply-To: <1290336390-2581-1-git-send-email-ionut.nicu@mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Omar Ramirez Luna <omar.ramirez@ti.com>
 Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-Replace the tidspbridge generic bitmap operations
-with the linux standard bitmap implementation.
+Remove a header file that was not very useful to
+the dspbridge driver.
 
 Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
 ---
- drivers/staging/tidspbridge/rmgr/node.c |  166 ++++++++++++++-----------------
- 1 files changed, 74 insertions(+), 92 deletions(-)
+ .../tidspbridge/include/dspbridge/utildefs.h       |   39 --------------------
+ drivers/staging/tidspbridge/pmgr/cmm.c             |    9 +----
+ 2 files changed, 1 insertions(+), 47 deletions(-)
+ delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/utildefs.h
 
-diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
-index 1562f3c..ab35806 100644
---- a/drivers/staging/tidspbridge/rmgr/node.c
-+++ b/drivers/staging/tidspbridge/rmgr/node.c
-@@ -17,6 +17,7 @@
-  */
- 
- #include <linux/types.h>
-+#include <linux/bitmap.h>
- /*  ----------------------------------- Host OS */
- #include <dspbridge/host_os.h>
- 
-@@ -50,7 +51,6 @@
- #include <dspbridge/dspioctl.h>
- 
- /*  ----------------------------------- Others */
--#include <dspbridge/gb.h>
- #include <dspbridge/uuidutil.h>
- 
- /*  ----------------------------------- This */
-@@ -132,11 +132,14 @@ struct node_mgr {
- 	struct lst_list *node_list;	/* List of all allocated nodes */
- 	u32 num_nodes;		/* Number of nodes in node_list */
- 	u32 num_created;	/* Number of nodes *created* on DSP */
--	struct gb_t_map *pipe_map;	/* Pipe connection bit map */
--	struct gb_t_map *pipe_done_map;	/* Pipes that are half free */
--	struct gb_t_map *chnl_map;	/* Channel allocation bit map */
--	struct gb_t_map *dma_chnl_map;	/* DMA Channel allocation bit map */
--	struct gb_t_map *zc_chnl_map;	/* Zero-Copy Channel alloc bit map */
-+	DECLARE_BITMAP(pipe_map, MAXPIPES); /* Pipe connection bitmap */
-+	DECLARE_BITMAP(pipe_done_map, MAXPIPES); /* Pipes that are half free */
-+	/* Channel allocation bitmap */
-+	DECLARE_BITMAP(chnl_map, CHNL_MAXCHANNELS);
-+	/* DMA Channel allocation bitmap */
-+	DECLARE_BITMAP(dma_chnl_map, CHNL_MAXCHANNELS);
-+	/* Zero-Copy Channel alloc bitmap */
-+	DECLARE_BITMAP(zc_chnl_map, CHNL_MAXCHANNELS);
- 	struct ntfy_object *ntfy_obj;	/* Manages registered notifications */
- 	struct mutex node_mgr_lock;	/* For critical sections */
- 	u32 ul_fxn_addrs[NUMRMSFXNS];	/* RMS function addresses */
-@@ -847,8 +850,8 @@ int node_connect(struct node_object *node1, u32 stream1,
- 	struct node_object *dev_node_obj;
- 	struct node_object *hnode;
- 	struct stream_chnl *pstream;
--	u32 pipe_id = GB_NOBITS;
--	u32 chnl_id = GB_NOBITS;
-+	u32 pipe_id;
-+	u32 chnl_id;
- 	s8 chnl_mode;
- 	u32 dw_length;
- 	int status = 0;
-@@ -951,10 +954,11 @@ int node_connect(struct node_object *node1, u32 stream1,
- 				      && (node2_type == NODE_TASK
- 					  || node2_type == NODE_DAISSOCKET))) {
- 		/* Find available pipe */
--		pipe_id = gb_findandset(hnode_mgr->pipe_map);
--		if (pipe_id == GB_NOBITS) {
-+		pipe_id = find_first_zero_bit(hnode_mgr->pipe_map, MAXPIPES);
-+		if (pipe_id == MAXPIPES) {
- 			status = -ECONNREFUSED;
- 		} else {
-+			set_bit(pipe_id, hnode_mgr->pipe_map);
- 			node1->outputs[stream1].type = NODECONNECT;
- 			node2->inputs[stream2].type = NODECONNECT;
- 			node1->outputs[stream1].dev_id = pipe_id;
-@@ -971,7 +975,7 @@ int node_connect(struct node_object *node1, u32 stream1,
- 
- 				output->sz_device = NULL;
- 				input->sz_device = NULL;
--				gb_clear(hnode_mgr->pipe_map, pipe_id);
-+				clear_bit(pipe_id, hnode_mgr->pipe_map);
- 				status = -ENOMEM;
- 			} else {
- 				/* Copy "/dbpipe<pipId>" name to device names */
-@@ -996,34 +1000,47 @@ int node_connect(struct node_object *node1, u32 stream1,
- 		 *  called for this node. */
- 		if (pattrs) {
- 			if (pattrs->strm_mode == STRMMODE_RDMA) {
--				chnl_id =
--				    gb_findandset(hnode_mgr->dma_chnl_map);
-+				chnl_id = find_first_zero_bit(
-+						hnode_mgr->dma_chnl_map,
-+						CHNL_MAXCHANNELS);
- 				/* dma chans are 2nd transport chnl set
- 				 * ids(e.g. 16-31) */
--				(chnl_id != GB_NOBITS) ?
--				    (chnl_id =
--				     chnl_id +
--				     hnode_mgr->ul_num_chnls) : chnl_id;
-+				if (chnl_id != CHNL_MAXCHANNELS) {
-+					set_bit(chnl_id,
-+						hnode_mgr->dma_chnl_map);
-+					chnl_id = chnl_id +
-+						hnode_mgr->ul_num_chnls;
-+				}
- 			} else if (pattrs->strm_mode == STRMMODE_ZEROCOPY) {
--				chnl_id = gb_findandset(hnode_mgr->zc_chnl_map);
-+				chnl_id = find_first_zero_bit(
-+						hnode_mgr->zc_chnl_map,
-+						CHNL_MAXCHANNELS);
- 				/* zero-copy chans are 3nd transport set
- 				 * (e.g. 32-47) */
--				(chnl_id != GB_NOBITS) ? (chnl_id = chnl_id +
--							  (2 *
--							   hnode_mgr->
--							   ul_num_chnls))
--				    : chnl_id;
-+				if (chnl_id != CHNL_MAXCHANNELS) {
-+					set_bit(chnl_id,
-+						hnode_mgr->zc_chnl_map);
-+					chnl_id = chnl_id +
-+						(2 * hnode_mgr->ul_num_chnls);
-+				}
- 			} else {	/* must be PROCCOPY */
- 				DBC_ASSERT(pattrs->strm_mode ==
- 					   STRMMODE_PROCCOPY);
--				chnl_id = gb_findandset(hnode_mgr->chnl_map);
-+				chnl_id = find_first_zero_bit(
-+						hnode_mgr->chnl_map,
-+						CHNL_MAXCHANNELS);
- 				/* e.g. 0-15 */
-+				if (chnl_id != CHNL_MAXCHANNELS)
-+					set_bit(chnl_id, hnode_mgr->chnl_map);
- 			}
- 		} else {
- 			/* default to PROCCOPY */
--			chnl_id = gb_findandset(hnode_mgr->chnl_map);
-+			chnl_id = find_first_zero_bit(hnode_mgr->chnl_map,
-+					CHNL_MAXCHANNELS);
-+			if (chnl_id != CHNL_MAXCHANNELS)
-+				set_bit(chnl_id, hnode_mgr->chnl_map);
- 		}
--		if (chnl_id == GB_NOBITS) {
-+		if (chnl_id == CHNL_MAXCHANNELS) {
- 			status = -ECONNREFUSED;
- 			goto func_cont2;
- 		}
-@@ -1033,18 +1050,19 @@ int node_connect(struct node_object *node1, u32 stream1,
- 
- 		if (pattrs) {
- 			if (pattrs->strm_mode == STRMMODE_RDMA) {
--				gb_clear(hnode_mgr->dma_chnl_map, chnl_id -
--					 hnode_mgr->ul_num_chnls);
-+				clear_bit(chnl_id - hnode_mgr->ul_num_chnls,
-+						hnode_mgr->dma_chnl_map);
- 			} else if (pattrs->strm_mode == STRMMODE_ZEROCOPY) {
--				gb_clear(hnode_mgr->zc_chnl_map, chnl_id -
--					 (2 * hnode_mgr->ul_num_chnls));
-+				clear_bit(chnl_id -
-+						(2 * hnode_mgr->ul_num_chnls),
-+						hnode_mgr->zc_chnl_map);
- 			} else {
- 				DBC_ASSERT(pattrs->strm_mode ==
- 					   STRMMODE_PROCCOPY);
--				gb_clear(hnode_mgr->chnl_map, chnl_id);
-+				clear_bit(chnl_id, hnode_mgr->chnl_map);
- 			}
- 		} else {
--			gb_clear(hnode_mgr->chnl_map, chnl_id);
-+			clear_bit(chnl_id, hnode_mgr->chnl_map);
- 		}
- 		status = -ENOMEM;
- func_cont2:
-@@ -1321,22 +1339,14 @@ int node_create_mgr(struct node_mgr **node_man,
- 	if (node_mgr_obj) {
- 		node_mgr_obj->hdev_obj = hdev_obj;
- 		node_mgr_obj->node_list = kzalloc(sizeof(struct lst_list),
--							GFP_KERNEL);
--		node_mgr_obj->pipe_map = gb_create(MAXPIPES);
--		node_mgr_obj->pipe_done_map = gb_create(MAXPIPES);
--		if (node_mgr_obj->node_list == NULL
--		    || node_mgr_obj->pipe_map == NULL
--		    || node_mgr_obj->pipe_done_map == NULL) {
--			status = -ENOMEM;
--		} else {
--			INIT_LIST_HEAD(&node_mgr_obj->node_list->head);
--			node_mgr_obj->ntfy_obj = kmalloc(
-+				GFP_KERNEL);
-+		INIT_LIST_HEAD(&node_mgr_obj->node_list->head);
-+		node_mgr_obj->ntfy_obj = kmalloc(
- 				sizeof(struct ntfy_object), GFP_KERNEL);
--			if (node_mgr_obj->ntfy_obj)
--				ntfy_init(node_mgr_obj->ntfy_obj);
--			else
--				status = -ENOMEM;
--		}
-+		if (node_mgr_obj->ntfy_obj)
-+			ntfy_init(node_mgr_obj->ntfy_obj);
-+		else
-+			status = -ENOMEM;
- 		node_mgr_obj->num_created = 0;
- 	} else {
- 		status = -ENOMEM;
-@@ -1372,27 +1382,14 @@ int node_create_mgr(struct node_mgr **node_man,
- 		/* Get msg_ctrl queue manager */
- 		dev_get_msg_mgr(hdev_obj, &node_mgr_obj->msg_mgr_obj);
- 		mutex_init(&node_mgr_obj->node_mgr_lock);
--		node_mgr_obj->chnl_map = gb_create(node_mgr_obj->ul_num_chnls);
--		/* dma chnl map. ul_num_chnls is # per transport */
--		node_mgr_obj->dma_chnl_map =
--		    gb_create(node_mgr_obj->ul_num_chnls);
--		node_mgr_obj->zc_chnl_map =
--		    gb_create(node_mgr_obj->ul_num_chnls);
--		if ((node_mgr_obj->chnl_map == NULL)
--		    || (node_mgr_obj->dma_chnl_map == NULL)
--		    || (node_mgr_obj->zc_chnl_map == NULL)) {
--			status = -ENOMEM;
--		} else {
--			/* Block out reserved channels */
--			for (i = 0; i < node_mgr_obj->ul_chnl_offset; i++)
--				gb_set(node_mgr_obj->chnl_map, i);
-+		/* Block out reserved channels */
-+		for (i = 0; i < node_mgr_obj->ul_chnl_offset; i++)
-+			set_bit(i, node_mgr_obj->chnl_map);
- 
--			/* Block out channels reserved for RMS */
--			gb_set(node_mgr_obj->chnl_map,
--			       node_mgr_obj->ul_chnl_offset);
--			gb_set(node_mgr_obj->chnl_map,
--			       node_mgr_obj->ul_chnl_offset + 1);
--		}
-+		/* Block out channels reserved for RMS */
-+		set_bit(node_mgr_obj->ul_chnl_offset, node_mgr_obj->chnl_map);
-+		set_bit(node_mgr_obj->ul_chnl_offset + 1,
-+				node_mgr_obj->chnl_map);
- 	}
- 	if (!status) {
- 		/* NO RM Server on the IVA */
-@@ -2657,21 +2654,6 @@ static void delete_node_mgr(struct node_mgr *hnode_mgr)
- 			kfree(hnode_mgr->ntfy_obj);
- 		}
- 
--		if (hnode_mgr->pipe_map)
--			gb_delete(hnode_mgr->pipe_map);
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/utildefs.h b/drivers/staging/tidspbridge/include/dspbridge/utildefs.h
+deleted file mode 100644
+index 8fe5414..0000000
+--- a/drivers/staging/tidspbridge/include/dspbridge/utildefs.h
++++ /dev/null
+@@ -1,39 +0,0 @@
+-/*
+- * utildefs.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Global UTIL constants and types, shared between DSP API and DSPSYS.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
 -
--		if (hnode_mgr->pipe_done_map)
--			gb_delete(hnode_mgr->pipe_done_map);
+-#ifndef UTILDEFS_
+-#define UTILDEFS_
 -
--		if (hnode_mgr->chnl_map)
--			gb_delete(hnode_mgr->chnl_map);
+-/* constants taken from configmg.h */
+-#define UTIL_MAXMEMREGS     9
+-#define UTIL_MAXIOPORTS     20
+-#define UTIL_MAXIRQS        7
+-#define UTIL_MAXDMACHNLS    7
 -
--		if (hnode_mgr->dma_chnl_map)
--			gb_delete(hnode_mgr->dma_chnl_map);
+-/* misc. constants */
+-#define UTIL_MAXARGVS       10
 -
--		if (hnode_mgr->zc_chnl_map)
--			gb_delete(hnode_mgr->zc_chnl_map);
+-/* Platform specific important info */
+-struct util_sysinfo {
+-	/* Granularity of page protection; usually 1k or 4k */
+-	u32 dw_page_size;
+-	u32 dw_allocation_granularity;	/* VM granularity, usually 64K */
+-	u32 dw_number_of_processors;	/* Used as sanity check */
+-};
 -
- 		if (hnode_mgr->disp_obj)
- 			disp_delete(hnode_mgr->disp_obj);
+-#endif /* UTILDEFS_ */
+diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c b/drivers/staging/tidspbridge/pmgr/cmm.c
+index 93a7c4f..8dbdd20 100644
+--- a/drivers/staging/tidspbridge/pmgr/cmm.c
++++ b/drivers/staging/tidspbridge/pmgr/cmm.c
+@@ -40,7 +40,6 @@
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/list.h>
+ #include <dspbridge/sync.h>
+-#include <dspbridge/utildefs.h>
  
-@@ -2786,25 +2768,25 @@ static void free_stream(struct node_mgr *hnode_mgr, struct stream_chnl stream)
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/dev.h>
+@@ -245,7 +244,6 @@ int cmm_create(struct cmm_object **ph_cmm_mgr,
  {
- 	/* Free up the pipe id unless other node has not yet been deleted. */
- 	if (stream.type == NODECONNECT) {
--		if (gb_test(hnode_mgr->pipe_done_map, stream.dev_id)) {
-+		if (test_bit(stream.dev_id, hnode_mgr->pipe_done_map)) {
- 			/* The other node has already been deleted */
--			gb_clear(hnode_mgr->pipe_done_map, stream.dev_id);
--			gb_clear(hnode_mgr->pipe_map, stream.dev_id);
-+			clear_bit(stream.dev_id, hnode_mgr->pipe_done_map);
-+			clear_bit(stream.dev_id, hnode_mgr->pipe_map);
- 		} else {
- 			/* The other node has not been deleted yet */
--			gb_set(hnode_mgr->pipe_done_map, stream.dev_id);
-+			set_bit(stream.dev_id, hnode_mgr->pipe_done_map);
- 		}
- 	} else if (stream.type == HOSTCONNECT) {
- 		if (stream.dev_id < hnode_mgr->ul_num_chnls) {
--			gb_clear(hnode_mgr->chnl_map, stream.dev_id);
-+			clear_bit(stream.dev_id, hnode_mgr->chnl_map);
- 		} else if (stream.dev_id < (2 * hnode_mgr->ul_num_chnls)) {
- 			/* dsp-dma */
--			gb_clear(hnode_mgr->dma_chnl_map, stream.dev_id -
--				 (1 * hnode_mgr->ul_num_chnls));
-+			clear_bit(stream.dev_id - (1 * hnode_mgr->ul_num_chnls),
-+					hnode_mgr->dma_chnl_map);
- 		} else if (stream.dev_id < (3 * hnode_mgr->ul_num_chnls)) {
- 			/* zero-copy */
--			gb_clear(hnode_mgr->zc_chnl_map, stream.dev_id -
--				 (2 * hnode_mgr->ul_num_chnls));
-+			clear_bit(stream.dev_id - (2 * hnode_mgr->ul_num_chnls),
-+					hnode_mgr->zc_chnl_map);
- 		}
- 	}
- }
+ 	struct cmm_object *cmm_obj = NULL;
+ 	int status = 0;
+-	struct util_sysinfo sys_info;
+ 
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(ph_cmm_mgr != NULL);
+@@ -261,12 +259,7 @@ int cmm_create(struct cmm_object **ph_cmm_mgr,
+ 		DBC_ASSERT(mgr_attrts->ul_min_block_size >= 4);
+ 		/* save away smallest block allocation for this cmm mgr */
+ 		cmm_obj->ul_min_block_size = mgr_attrts->ul_min_block_size;
+-		/* save away the systems memory page size */
+-		sys_info.dw_page_size = PAGE_SIZE;
+-		sys_info.dw_allocation_granularity = PAGE_SIZE;
+-		sys_info.dw_number_of_processors = 1;
+-
+-		cmm_obj->dw_page_size = sys_info.dw_page_size;
++		cmm_obj->dw_page_size = PAGE_SIZE;
+ 
+ 		/* Note: DSP SM seg table(aDSPSMSegTab[]) zero'd by
+ 		 * MEM_ALLOC_OBJECT */
 -- 
 1.7.3.2
 
