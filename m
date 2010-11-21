@@ -1,109 +1,89 @@
-From: Cosmin Cojocar <cosmin.cojocar@gmail.com>
-Subject: [PATCH 1/1] serial: omap-serial: Add support for kernel debugger
-Date: Sat, 20 Nov 2010 21:51:36 +0100
-Message-ID: <1290286296-3589-1-git-send-email-cosmin.cojocar@gmail.com>
+From: Ionut Nicu <ionut.nicu@gmail.com>
+Subject: [PATCH v3 00/12] staging: tidspbridge: various cleanups
+Date: Sun, 21 Nov 2010 12:46:18 +0200
+Message-ID: <1290336390-2581-1-git-send-email-ionut.nicu@mindbit.ro>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:37024 "EHLO
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:63930 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168Ab0KTUwp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Nov 2010 15:52:45 -0500
-Received: by fxm13 with SMTP id 13so1644778fxm.19
-        for <linux-omap@vger.kernel.org>; Sat, 20 Nov 2010 12:52:44 -0800 (PST)
+	with ESMTP id S1751869Ab0KUKqx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Nov 2010 05:46:53 -0500
+Received: by fxm13 with SMTP id 13so1867548fxm.19
+        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 02:46:51 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: govindraj.raja@ti.com
-Cc: manjugk@ti.com, khilman@deeprootsystems.com, ben-linux@fluff.org, tklauser@distanz.ch, feng.tang@intel.com, gregkh@suse.de, alan@linux.intel.com, linux-omap@vger.kernel.org, Cosmin Cojocar <cosmin.cojocar@gmail.com>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-The kgdb invokes the poll_put_char and poll_get_char when communicating
-with the host. This patch also changes the initialization order because the
-kgdb will check at the very beginning, if there is a valid serial
-driver.
+This set of patches replaces some of the redundant components of
+the tidspbridge driver, such as:
 
-Signed-off-by: Cosmin Cojocar <cosmin.cojocar@gmail.com>
----
- drivers/serial/Makefile      |    2 +-
- drivers/serial/omap-serial.c |   38 ++++++++++++++++++++++++++++++++++++--
- 2 files changed, 37 insertions(+), 3 deletions(-)
+* wrapper functions for kmalloc/kfree
+* custom bitmap implementation
+* custom linked list implementation (list_head wrapper)
 
-diff --git a/drivers/serial/Makefile b/drivers/serial/Makefile
-index c570576..ad86113 100644
---- a/drivers/serial/Makefile
-+++ b/drivers/serial/Makefile
-@@ -80,6 +80,7 @@ obj-$(CONFIG_SERIAL_NETX) += netx-serial.o
- obj-$(CONFIG_SERIAL_OF_PLATFORM) += of_serial.o
- obj-$(CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL) += nwpserial.o
- obj-$(CONFIG_SERIAL_KS8695) += serial_ks8695.o
-+obj-$(CONFIG_SERIAL_OMAP) += omap-serial.o
- obj-$(CONFIG_KGDB_SERIAL_CONSOLE) += kgdboc.o
- obj-$(CONFIG_SERIAL_QE) += ucc_uart.o
- obj-$(CONFIG_SERIAL_TIMBERDALE)	+= timbuart.o
-@@ -88,4 +89,3 @@ obj-$(CONFIG_SERIAL_ALTERA_JTAGUART) += altera_jtaguart.o
- obj-$(CONFIG_SERIAL_ALTERA_UART) += altera_uart.o
- obj-$(CONFIG_SERIAL_MRST_MAX3110)	+= mrst_max3110.o
- obj-$(CONFIG_SERIAL_MFD_HSU)	+= mfd.o
--obj-$(CONFIG_SERIAL_OMAP) += omap-serial.o
-diff --git a/drivers/serial/omap-serial.c b/drivers/serial/omap-serial.c
-index 03a96db..df6ba03 100644
---- a/drivers/serial/omap-serial.c
-+++ b/drivers/serial/omap-serial.c
-@@ -866,14 +866,44 @@ serial_omap_type(struct uart_port *port)
- 	return up->name;
- }
- 
-+#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
-+
-+#ifdef CONFIG_CONSOLE_POLL
-+static void serial_omap_poll_put_char(struct uart_port *port, unsigned char ch)
-+{
-+	struct uart_omap_port *up = (struct uart_omap_port *)port;
-+	unsigned int status;
-+
-+	do {
-+		status = serial_in(up, UART_LSR);
-+		udelay(1);
-+	} while ((status & BOTH_EMPTY) != BOTH_EMPTY);
-+
-+	serial_out(up, UART_TX, ch);
-+}
-+
-+static int serial_omap_poll_get_char(struct uart_port *port)
-+{
-+	struct uart_omap_port *up = (struct uart_omap_port *)port;
-+	unsigned int status;
-+	int ch;
-+
-+	do {
-+		status = serial_in(up, UART_LSR);
-+		udelay(1);
-+	} while ((status & UART_LSR_DR) != UART_LSR_DR);
-+
-+	ch = (int)serial_in(up, UART_RX);
-+	return ch;
-+}
-+#endif
-+
- #ifdef CONFIG_SERIAL_OMAP_CONSOLE
- 
- static struct uart_omap_port *serial_omap_console_ports[4];
- 
- static struct uart_driver serial_omap_reg;
- 
--#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
--
- static inline void wait_for_xmitr(struct uart_omap_port *up)
- {
- 	unsigned int status, tmout = 10000;
-@@ -1022,6 +1052,10 @@ static struct uart_ops serial_omap_pops = {
- 	.request_port	= serial_omap_request_port,
- 	.config_port	= serial_omap_config_port,
- 	.verify_port	= serial_omap_verify_port,
-+#ifdef CONFIG_CONSOLE_POLL
-+	.poll_put_char  = serial_omap_poll_put_char,
-+	.poll_get_char  = serial_omap_poll_get_char,
-+#endif
- };
- 
- static struct uart_driver serial_omap_reg = {
+with the standard linux kernel interfaces.
+
+The patches also do some code reorganization for increasing readability.
+Most of the changes reduce the code indentation level and simplify the code.
+No functional changes were done.
+
+There are many places in this driver that need this kind of cleanup, but
+these patches only fix the functions that were touched while converting
+the code to use linux bitmap and list_head.
+
+Changes since v1:
+
+* Split the bitmap patch into multiple patches
+* Split the list_head patch into multiple patches
+
+Changes since v2:
+
+* Fixes to the list_head patches based on Rene Sapiens' review
+
+Ionut Nicu (12):
+  staging: tidspbridge: remove gs memory allocator
+  staging: tidspbridge: remove utildefs
+  staging: tidspbridge: switch to linux bitmap API
+  staging: tidspbridge: remove gb bitmap implementation
+  staging: tidspbridge: rmgr/node.c code cleanup
+  staging: tidspbridge: convert core to list_head
+  staging: tidspbridge: convert pmgr to list_head
+  staging: tidspbridge: convert rmgr to list_head
+  staging: tidspbridge: remove custom linked list
+  staging: tidspbridge: core code cleanup
+  staging: tidspbridge: pmgr code cleanup
+  staging: tidspbridge: rmgr code cleanup
+
+ drivers/staging/tidspbridge/Makefile               |    2 +-
+ drivers/staging/tidspbridge/TODO                   |    1 -
+ drivers/staging/tidspbridge/core/_msg_sm.h         |   12 +-
+ drivers/staging/tidspbridge/core/chnl_sm.c         |  630 +++++++---------
+ drivers/staging/tidspbridge/core/io_sm.c           |  266 +++----
+ drivers/staging/tidspbridge/core/msg_sm.c          |  601 ++++++---------
+ drivers/staging/tidspbridge/gen/gb.c               |  166 -----
+ drivers/staging/tidspbridge/gen/gh.c               |   38 +-
+ drivers/staging/tidspbridge/gen/gs.c               |   88 ---
+ .../tidspbridge/include/dspbridge/_chnl_sm.h       |    8 +-
+ .../tidspbridge/include/dspbridge/cmmdefs.h        |    1 -
+ drivers/staging/tidspbridge/include/dspbridge/gb.h |   79 --
+ drivers/staging/tidspbridge/include/dspbridge/gs.h |   59 --
+ .../staging/tidspbridge/include/dspbridge/list.h   |  225 ------
+ .../staging/tidspbridge/include/dspbridge/sync.h   |    1 +
+ .../tidspbridge/include/dspbridge/utildefs.h       |   39 -
+ drivers/staging/tidspbridge/pmgr/cmm.c             |  535 +++++---------
+ drivers/staging/tidspbridge/pmgr/dev.c             |   73 +--
+ drivers/staging/tidspbridge/rmgr/drv.c             |  242 ++----
+ drivers/staging/tidspbridge/rmgr/node.c            |  775 +++++++++-----------
+ drivers/staging/tidspbridge/rmgr/proc.c            |    2 -
+ drivers/staging/tidspbridge/rmgr/rmm.c             |  313 ++++-----
+ 22 files changed, 1448 insertions(+), 2708 deletions(-)
+ delete mode 100644 drivers/staging/tidspbridge/gen/gb.c
+ delete mode 100644 drivers/staging/tidspbridge/gen/gs.c
+ delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/gb.h
+ delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/gs.h
+ delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/list.h
+ delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/utildefs.h
+
 -- 
-1.6.3.3
+1.7.3.2
 
