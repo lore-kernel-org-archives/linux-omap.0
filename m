@@ -1,43 +1,58 @@
 From: Ionut Nicu <ionut.nicu@gmail.com>
-Subject: [PATCH v3 02/12] staging: tidspbridge: remove utildefs
-Date: Sun, 21 Nov 2010 12:46:20 +0200
-Message-ID: <1290336390-2581-3-git-send-email-ionut.nicu@mindbit.ro>
+Subject: [PATCH v3 04/12] staging: tidspbridge: remove gb bitmap implementation
+Date: Sun, 21 Nov 2010 12:46:22 +0200
+Message-ID: <1290336390-2581-5-git-send-email-ionut.nicu@mindbit.ro>
 References: <1290336390-2581-1-git-send-email-ionut.nicu@mindbit.ro>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-fx0-f46.google.com ([209.85.161.46]:63930 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752161Ab0KUKq4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Nov 2010 05:46:56 -0500
+	with ESMTP id S1752359Ab0KUKrA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Nov 2010 05:47:00 -0500
 Received: by mail-fx0-f46.google.com with SMTP id 13so1867548fxm.19
-        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 02:46:55 -0800 (PST)
+        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 02:47:00 -0800 (PST)
 In-Reply-To: <1290336390-2581-1-git-send-email-ionut.nicu@mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Omar Ramirez Luna <omar.ramirez@ti.com>
 Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-Remove a header file that was not very useful to
-the dspbridge driver.
+Now that all users of gb have been converted to the
+standard linux bitmap API, we can remove it from the
+gen library.
 
 Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
 ---
- .../tidspbridge/include/dspbridge/utildefs.h       |   39 --------------------
- drivers/staging/tidspbridge/pmgr/cmm.c             |    9 +----
- 2 files changed, 1 insertions(+), 47 deletions(-)
- delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/utildefs.h
+ drivers/staging/tidspbridge/Makefile               |    2 +-
+ drivers/staging/tidspbridge/gen/gb.c               |  165 --------------------
+ drivers/staging/tidspbridge/include/dspbridge/gb.h |   79 ----------
+ 3 files changed, 1 insertions(+), 245 deletions(-)
+ delete mode 100644 drivers/staging/tidspbridge/gen/gb.c
+ delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/gb.h
 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/utildefs.h b/drivers/staging/tidspbridge/include/dspbridge/utildefs.h
+diff --git a/drivers/staging/tidspbridge/Makefile b/drivers/staging/tidspbridge/Makefile
+index 648e392..fd6a276 100644
+--- a/drivers/staging/tidspbridge/Makefile
++++ b/drivers/staging/tidspbridge/Makefile
+@@ -1,6 +1,6 @@
+ obj-$(CONFIG_TIDSPBRIDGE)	+= bridgedriver.o
+ 
+-libgen = gen/gb.o gen/gh.o gen/uuidutil.o
++libgen = gen/gh.o gen/uuidutil.o
+ libcore = core/chnl_sm.o core/msg_sm.o core/io_sm.o core/tiomap3430.o \
+ 		core/tiomap3430_pwr.o core/tiomap_io.o \
+ 		core/ue_deh.o core/wdt.o core/dsp-clock.o core/sync.o
+diff --git a/drivers/staging/tidspbridge/gen/gb.c b/drivers/staging/tidspbridge/gen/gb.c
 deleted file mode 100644
-index 8fe5414..0000000
---- a/drivers/staging/tidspbridge/include/dspbridge/utildefs.h
+index 3c0e04c..0000000
+--- a/drivers/staging/tidspbridge/gen/gb.c
 +++ /dev/null
-@@ -1,39 +0,0 @@
+@@ -1,165 +0,0 @@
 -/*
-- * utildefs.h
+- * gb.c
 - *
 - * DSP-BIOS Bridge driver support functions for TI OMAP processors.
 - *
-- * Global UTIL constants and types, shared between DSP API and DSPSYS.
+- * Generic bitmap operations.
 - *
 - * Copyright (C) 2005-2006 Texas Instruments, Inc.
 - *
@@ -50,61 +65,238 @@ index 8fe5414..0000000
 - * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 - */
 -
--#ifndef UTILDEFS_
--#define UTILDEFS_
+-/*  ----------------------------------- DSP/BIOS Bridge */
+-#include <linux/types.h>
+-/*  ----------------------------------- This */
+-#include <dspbridge/gb.h>
 -
--/* constants taken from configmg.h */
--#define UTIL_MAXMEMREGS     9
--#define UTIL_MAXIOPORTS     20
--#define UTIL_MAXIRQS        7
--#define UTIL_MAXDMACHNLS    7
--
--/* misc. constants */
--#define UTIL_MAXARGVS       10
--
--/* Platform specific important info */
--struct util_sysinfo {
--	/* Granularity of page protection; usually 1k or 4k */
--	u32 dw_page_size;
--	u32 dw_allocation_granularity;	/* VM granularity, usually 64K */
--	u32 dw_number_of_processors;	/* Used as sanity check */
+-struct gb_t_map {
+-	u32 len;
+-	u32 wcnt;
+-	u32 *words;
 -};
 -
--#endif /* UTILDEFS_ */
-diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c b/drivers/staging/tidspbridge/pmgr/cmm.c
-index 93a7c4f..8dbdd20 100644
---- a/drivers/staging/tidspbridge/pmgr/cmm.c
-+++ b/drivers/staging/tidspbridge/pmgr/cmm.c
-@@ -40,7 +40,6 @@
- /*  ----------------------------------- OS Adaptation Layer */
- #include <dspbridge/list.h>
- #include <dspbridge/sync.h>
--#include <dspbridge/utildefs.h>
- 
- /*  ----------------------------------- Platform Manager */
- #include <dspbridge/dev.h>
-@@ -245,7 +244,6 @@ int cmm_create(struct cmm_object **ph_cmm_mgr,
- {
- 	struct cmm_object *cmm_obj = NULL;
- 	int status = 0;
--	struct util_sysinfo sys_info;
- 
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(ph_cmm_mgr != NULL);
-@@ -261,12 +259,7 @@ int cmm_create(struct cmm_object **ph_cmm_mgr,
- 		DBC_ASSERT(mgr_attrts->ul_min_block_size >= 4);
- 		/* save away smallest block allocation for this cmm mgr */
- 		cmm_obj->ul_min_block_size = mgr_attrts->ul_min_block_size;
--		/* save away the systems memory page size */
--		sys_info.dw_page_size = PAGE_SIZE;
--		sys_info.dw_allocation_granularity = PAGE_SIZE;
--		sys_info.dw_number_of_processors = 1;
+-/*
+- *  ======== gb_clear ========
+- *  purpose:
+- *      Clears a bit in the bit map.
+- */
 -
--		cmm_obj->dw_page_size = sys_info.dw_page_size;
-+		cmm_obj->dw_page_size = PAGE_SIZE;
- 
- 		/* Note: DSP SM seg table(aDSPSMSegTab[]) zero'd by
- 		 * MEM_ALLOC_OBJECT */
+-void gb_clear(struct gb_t_map *map, u32 bitn)
+-{
+-	u32 mask;
+-
+-	mask = 1L << (bitn % BITS_PER_LONG);
+-	map->words[bitn / BITS_PER_LONG] &= ~mask;
+-}
+-
+-/*
+- *  ======== gb_create ========
+- *  purpose:
+- *      Creates a bit map.
+- */
+-
+-struct gb_t_map *gb_create(u32 len)
+-{
+-	struct gb_t_map *map;
+-	u32 i;
+-	map = kzalloc(sizeof(struct gb_t_map), GFP_KERNEL);
+-	if (map != NULL) {
+-		map->len = len;
+-		map->wcnt = len / BITS_PER_LONG + 1;
+-		map->words = kzalloc(map->wcnt * sizeof(u32), GFP_KERNEL);
+-		if (map->words != NULL) {
+-			for (i = 0; i < map->wcnt; i++)
+-				map->words[i] = 0L;
+-
+-		} else {
+-			kfree(map);
+-			map = NULL;
+-		}
+-	}
+-
+-	return map;
+-}
+-
+-/*
+- *  ======== gb_delete ========
+- *  purpose:
+- *      Frees a bit map.
+- */
+-
+-void gb_delete(struct gb_t_map *map)
+-{
+-	kfree(map->words);
+-	kfree(map);
+-}
+-
+-/*
+- *  ======== gb_findandset ========
+- *  purpose:
+- *      Finds a free bit and sets it.
+- */
+-u32 gb_findandset(struct gb_t_map *map)
+-{
+-	u32 bitn;
+-
+-	bitn = gb_minclear(map);
+-
+-	if (bitn != GB_NOBITS)
+-		gb_set(map, bitn);
+-
+-	return bitn;
+-}
+-
+-/*
+- *  ======== gb_minclear ========
+- *  purpose:
+- *      returns the location of the first unset bit in the bit map.
+- */
+-u32 gb_minclear(struct gb_t_map *map)
+-{
+-	u32 bit_location = 0;
+-	u32 bit_acc = 0;
+-	u32 i;
+-	u32 bit;
+-	u32 *word;
+-
+-	for (word = map->words, i = 0; i < map->wcnt; word++, i++) {
+-		if (~*word) {
+-			for (bit = 0; bit < BITS_PER_LONG; bit++, bit_acc++) {
+-				if (bit_acc == map->len)
+-					return GB_NOBITS;
+-
+-				if (~*word & (1L << bit)) {
+-					bit_location = i * BITS_PER_LONG + bit;
+-					return bit_location;
+-				}
+-
+-			}
+-		} else {
+-			bit_acc += BITS_PER_LONG;
+-		}
+-	}
+-
+-	return GB_NOBITS;
+-}
+-
+-/*
+- *  ======== gb_set ========
+- *  purpose:
+- *      Sets a bit in the bit map.
+- */
+-
+-void gb_set(struct gb_t_map *map, u32 bitn)
+-{
+-	u32 mask;
+-
+-	mask = 1L << (bitn % BITS_PER_LONG);
+-	map->words[bitn / BITS_PER_LONG] |= mask;
+-}
+-
+-/*
+- *  ======== gb_test ========
+- *  purpose:
+- *      Returns true if the bit is set in the specified location.
+- */
+-
+-bool gb_test(struct gb_t_map *map, u32 bitn)
+-{
+-	bool state;
+-	u32 mask;
+-	u32 word;
+-
+-	mask = 1L << (bitn % BITS_PER_LONG);
+-	word = map->words[bitn / BITS_PER_LONG];
+-	state = word & mask ? true : false;
+-
+-	return state;
+-}
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/gb.h b/drivers/staging/tidspbridge/include/dspbridge/gb.h
+deleted file mode 100644
+index fda783a..0000000
+--- a/drivers/staging/tidspbridge/include/dspbridge/gb.h
++++ /dev/null
+@@ -1,79 +0,0 @@
+-/*
+- * gb.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Generic bitmap manager.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#ifndef GB_
+-#define GB_
+-
+-#define GB_NOBITS (~0)
+-#include <dspbridge/host_os.h>
+-
+-struct gb_t_map;
+-
+-/*
+- *  ======== gb_clear ========
+- *  Clear the bit in position bitn in the bitmap map.  Bit positions are
+- *  zero based.
+- */
+-
+-extern void gb_clear(struct gb_t_map *map, u32 bitn);
+-
+-/*
+- *  ======== gb_create ========
+- *  Create a bit map with len bits.  Initially all bits are cleared.
+- */
+-
+-extern struct gb_t_map *gb_create(u32 len);
+-
+-/*
+- *  ======== gb_delete ========
+- *  Delete previously created bit map
+- */
+-
+-extern void gb_delete(struct gb_t_map *map);
+-
+-/*
+- *  ======== gb_findandset ========
+- *  Finds a clear bit, sets it, and returns the position
+- */
+-
+-extern u32 gb_findandset(struct gb_t_map *map);
+-
+-/*
+- *  ======== gb_minclear ========
+- *  gb_minclear returns the minimum clear bit position.  If no bit is
+- *  clear, gb_minclear returns -1.
+- */
+-extern u32 gb_minclear(struct gb_t_map *map);
+-
+-/*
+- *  ======== gb_set ========
+- *  Set the bit in position bitn in the bitmap map.  Bit positions are
+- *  zero based.
+- */
+-
+-extern void gb_set(struct gb_t_map *map, u32 bitn);
+-
+-/*
+- *  ======== gb_test ========
+- *  Returns TRUE if the bit in position bitn is set in map; otherwise
+- *  gb_test returns FALSE.  Bit positions are zero based.
+- */
+-
+-extern bool gb_test(struct gb_t_map *map, u32 bitn);
+-
+-#endif /*GB_ */
 -- 
 1.7.3.2
 
