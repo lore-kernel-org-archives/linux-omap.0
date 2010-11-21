@@ -1,82 +1,88 @@
-From: Charles Manning <manningc2@actrix.gen.nz>
-Subject: Re: No more software ECC in omap2.c NAND driver. Why?
-Date: Mon, 22 Nov 2010 10:01:22 +1300
-Message-ID: <201011221001.22909.manningc2@actrix.gen.nz>
-References: <201011181406.15212.manningc2@actrix.gen.nz> <2A3DCF3DA181AD40BDE86A3150B27B6B036977BBA2@dbde02.ent.ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH ver. 2] PM: add synchronous runtime interface for interrupt handlers
+Date: Mon, 22 Nov 2010 00:41:06 +0100
+Message-ID: <201011220041.06440.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1011201152210.5871-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.scorch.co.nz ([27.110.127.199]:47015 "HELO scorch.co.nz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1755586Ab0KUVB1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 21 Nov 2010 16:01:27 -0500
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B036977BBA2@dbde02.ent.ti.com>
-Content-Disposition: inline
+Received: from ogre.sisk.pl ([217.79.144.158]:41605 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754768Ab0KUXlr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 21 Nov 2010 18:41:47 -0500
+In-Reply-To: <Pine.LNX.4.44L0.1011201152210.5871-100000@netrider.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-On Friday 19 November 2010 03:33:24 Ghorai, Sukumar wrote:
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Charles Manning
-> > Sent: Thursday, November 18, 2010 6:36 AM
-> > To: linux-omap@vger.kernel.org
-> > Subject: No more software ECC in omap2.c NAND driver. Why?
-> >
-> > Between 2.6.35 and 2.6.36 there have need quite a few changes in the NAND
-> > driver, including a change from software to hardware ECC.
-> >
-> > The new code has hardware ECC forced on by:
-> >
-> > #define CONFIG_MTD_NAND_OMAP_HWECC
-> >
-> > I am surprised that this was done. Surely this should have been a Kconfig
-> > option to select either sw ECC or hw ECC?
-> >
-> > Does moving to hardware ECC to the exclusion of software ECC reduce
-> > functionality?
->
-> [Ghorai] This is wrongly added by me, during last few patches. So I have
-> send the fix as you mentioned too as.
-> [PATCH] omap: nand: remove hardware ECC as default
->
-> And please let me know still if it has any issue.
+On Saturday, November 20, 2010, Alan Stern wrote:
+> On Sat, 20 Nov 2010, Rafael J. Wysocki wrote:
+> 
+> > On Friday, November 19, 2010, Alan Stern wrote:
+> > > This patch (as1431b) makes the synchronous runtime-PM interface
+> > > suitable for use in interrupt handlers.  Subsystems can call the new
+> > > pm_runtime_irq_safe() function to tell the PM core that a device's
+> > > runtime-PM callbacks should be invoked with interrupts disabled
+> > > (runtime_suspend and runtime_resume callbacks will be invoked with the
+> > > spinlock held as well).  This permits the pm_runtime_get_sync() and
+> > > pm_runtime_put_sync() routines to be called from within interrupt
+> > > handlers.
+> > > 
+> > > When a device is declared irq-safe in this way, the PM core increments
+> > > the parent's usage count, so the parent will never be runtime
+> > > suspended.  This prevents difficult situations in which an irq-safe
+> > > device can't resume because it is forced to wait for its non-irq-safe
+> > > parent.
+> > > 
+> > > Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+> 
+> > > --- usb-2.6.orig/drivers/base/power/runtime.c
+> > > +++ usb-2.6/drivers/base/power/runtime.c
+> > > @@ -223,11 +223,19 @@ static int rpm_idle(struct device *dev, 
+> > >  		callback = NULL;
+> > >  
+> > >  	if (callback) {
+> > > -		spin_unlock_irq(&dev->power.lock);
+> > > +		if (dev->power.irq_safe) {
+> > > +			spin_unlock(&dev->power.lock);
+> > >  
+> > > -		callback(dev);
+> > > +			callback(dev);
+> > >  
+> > > -		spin_lock_irq(&dev->power.lock);
+> > > +			spin_lock(&dev->power.lock);
+> > > +		} else {
+> > > +			spin_unlock_irq(&dev->power.lock);
+> > > +
+> > > +			callback(dev);
+> > > +
+> > > +			spin_lock_irq(&dev->power.lock);
+> > > +		}
+> > >  	}
+> > 
+> > I didn't like this change before and I still don't like it.  Quite frankly, I'm
+> > not sure I can convince Linus to pull it. :-)
+> > 
+> > Why don't we simply execute the callback under the spinlock in the
+> > IRQ safe case?
+> 
+> Because it wouldn't work.  The job of the runtime_idle callback is to
+> call pm_runtime_suspend when needed.  But if the callback runs under
+> the spinlock then pm_runtime_suspend would hang when it tries to grab
+> the lock.
 
-Just recompiling with the CONFIG_MTD_NAND_OMAP_HWECC define commented out did 
-not result in a working system. I suspect there is more tto the problem than 
-this.
+Yes, in the _idle case.  I actually should have put my comment under
+the change in rpm_callback(), which is what I really meant.
 
->
-> And I am re-working on the patches for the different ecc schema including
-> s/w, h/w or different, to pass it form board file.
->
-> > Does the new hwecc scheme still support sub-page writes or does it only
-> > provide full page writes? If sub-page writes are lost then this has  a
-> > ripple
-> > effect in breaking the way some UBI stuff works.
->
-> [Ghorai]
-> 1. do you think this sub-page read/write support was there before, say in
-> 2.6.35? And breaks in 2.6.36?
+Moreover, I'm not sure if we need an "IRQ safe" version of _idle.  Why do
+we need it, exactly?
 
- 2.6.35 works with subpages of 512 bytes. Tested with UBIFS.
+> I don't think Linus will object to this.
 
->
-> 2. In that case would you please let know what are the size(s) used for
-> sub-page/read write?
+Well, I guess we'll see. :-)
 
-AFAIK, 512 is all that is needed. There is no need for any smaller or larger.
-
-sub-page reads are not available on all flash types and sub-page writing 
-causes extra write disturb. However, 512-byte sub-page writing is valuable.
-
-This of course needs the ECC to be partitioned and performed in chunks of 256 
-or 512 so that the subpages can be written individually.
-
--- CHarles
-
-
+Thanks,
+Rafael
