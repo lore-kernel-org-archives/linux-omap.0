@@ -1,74 +1,43 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH] omap4: 4430sdp: enable the ehci port on 4430SDP
-Date: Mon, 22 Nov 2010 00:13:19 +0530
-Message-ID: <1290364999-4783-1-git-send-email-gadiyar@ti.com>
+From: Jacek Burghardt <JacekBurghardt@caias.us>
+Subject: Re: [PATCH v3 5/5] OMAP: mailbox: add notification support for
+	multiple readers
+Date: Sun, 21 Nov 2010 20:03:23 +0000
+Message-ID: <3r3uw0pt42hbqvtsfo5996q6.1290369799122@email.android.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37344 "EHLO arroyo.ext.ti.com"
+Received: from host6.netdorm.com ([64.182.105.6]:52508 "EHLO host6.netdorm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755482Ab0KUSn0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 21 Nov 2010 13:43:26 -0500
+	id S1750859Ab0KUUoU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Nov 2010 15:44:20 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, Anand Gadiyar <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Felipe Balbi <me@felipebalbi.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, "balbi@ti.com" <balbi@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, linux omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-From: Keshava Munegowda <keshava_mgowda@ti.com>
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
-Depends on the series I just sent out for adding OMAP4 ehci support,
-but can be applied independently of that.
 
- arch/arm/mach-omap2/board-4430sdp.c |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
+Felipe Balbi <me@felipebalbi.com> wrote:
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index df5a425..d7cb968 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -42,6 +42,7 @@
- #define ETH_KS8851_IRQ			34
- #define ETH_KS8851_POWER_ON		48
- #define ETH_KS8851_QUART		138
-+#define OMAP4SDP_MDM_PWR_EN_GPIO	157
- #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
- #define OMAP4_SFH7741_ENABLE_GPIO		188
- 
-@@ -225,6 +226,16 @@ static void __init omap_4430sdp_init_irq(void)
- 	omap_gpio_init();
- }
- 
-+static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-+	.port_mode[0]	= EHCI_HCD_OMAP_MODE_PHY,
-+	.port_mode[1]	= EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[2]	= EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.phy_reset	= false,
-+	.reset_gpio_port[0]  = -EINVAL,
-+	.reset_gpio_port[1]  = -EINVAL,
-+	.reset_gpio_port[2]  = -EINVAL,
-+};
-+
- static struct omap_musb_board_data musb_board_data = {
- 	.interface_type		= MUSB_INTERFACE_UTMI,
- 	.mode			= MUSB_PERIPHERAL,
-@@ -514,6 +525,15 @@ static void __init omap_4430sdp_init(void)
- 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
- 	omap_serial_init();
- 	omap4_twl6030_hsmmc_init(mmc);
-+
-+	/* Power on the ULPI PHY */
-+	if (gpio_is_valid(OMAP4SDP_MDM_PWR_EN_GPIO)) {
-+		/* FIXME: Assumes pad is already muxed for GPIO mode */
-+		gpio_request(OMAP4SDP_MDM_PWR_EN_GPIO, "USBB1 PHY VMDM_3V3");
-+		gpio_direction_output(OMAP4SDP_MDM_PWR_EN_GPIO, 1);
-+	}
-+	usb_ehci_init(&ehci_pdata);
-+
- 	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
- 	usb_nop_xceiv_register();
- 	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
--- 
-1.7.0.4
 
+Hi Hari,
+
+On Fri, 2010-11-19 at 22:01 -0600, Kanigeri, Hari wrote:
+> Of course :), profiling was done before releasing this code and no
+> difference observed with or without blocking notifier. All the OMAP4
+
+would you share some numbers ?
+
+> use cases are exercising this code. Just curious , are you doubting
+> the blocking notifier mechanism ?
+
+a little bit. Yeah. It added about 600ms of time spent on musb's probe
+when we were using blocking notifier for charger detection. When we
+moved to atomic notifier, that was solved. Anyway, you can never be sure
+when that will be scheduled and if cpu is really busy, it might pose a
+great deal.
+
+--
+balbi
