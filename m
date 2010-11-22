@@ -1,51 +1,88 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCHv4 8/14] OMAP: dmtimer: platform driver
-Date: Mon, 22 Nov 2010 12:43:16 +0530
-Message-ID: <AANLkTinEafdEmcsc9adZWU=rJ79obz2vDybBZ38SS3bC@mail.gmail.com>
-References: <1290220778-22244-1-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-2-git-send-email-tarun.kanti@ti.com> <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-4-git-send-email-tarun.kanti@ti.com> <1290220778-22244-5-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-6-git-send-email-tarun.kanti@ti.com> <1290220778-22244-7-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-8-git-send-email-tarun.kanti@ti.com> <1290220778-22244-9-git-send-email-tarun.kanti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v5 0/7] OMAP: DSS2: Overlay Manager LCD2 support in DISPC
+Date: Mon, 22 Nov 2010 12:52:58 +0530
+Message-ID: <1290410585-29418-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:42578 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750856Ab0KVHN5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Nov 2010 02:13:57 -0500
-Received: by mail-iw0-f174.google.com with SMTP id 34so2525573iwn.19
-        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 23:13:57 -0800 (PST)
-In-Reply-To: <1290220778-22244-9-git-send-email-tarun.kanti@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36291 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751179Ab0KVHXP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Nov 2010 02:23:15 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>
+To: tomi.valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-<<snip>>
+This patch series which incorporates changes in DSS2 to enable
+omap_dss_device instances to use the new Overlay Manager LCD2 in
+DISPC.
 
-> +static struct platform_driver omap_dmtimer_driver =3D {
-> + =A0 =A0 =A0 .probe =A0=3D omap_dm_timer_probe,
-> + =A0 =A0 =A0 .remove =3D omap_dm_timer_remove,
-> + =A0 =A0 =A0 .driver =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "omap-timer",
+On OMAP4, we have a new DISPC channel for Overlay Manager LCD2. This
+channel's video port is a source port for RFBI, DSI2 and DPI. The
+Primary channel's video port is connected to RFBI and DSI1.
 
-Comment from Benoit on omap devices name ( see [1] ):
+There is a set of regsiters for LCD2 channel similar to the existing
+LCD channel, like DISPC_CONTROL2, DISPC_DIVISOR2, DISPC_CONFIG2 and so
+on.
 
-"If possible, it will be better to use the "omap_" prefix in order to
-start having some consitency in the omap devices name. "
+In order to decide which LCD Overlay Manager to configure(LCD/LCD2),
+there is a need for the omap_dss_device instances to tell the interface
+drivers(DSI, DPI, RFBI etc) which LCD channel they want to connect to, so
+that the corresponding registers get configured. Therefore, a new
+enum omap_channel member is introduced to omap_dss_device.
 
-[1] https://patchwork.kernel.org/patch/305082/
+This design was made keeping in mind the possible addition of more
+Overlay Managers in future OMAPs, this code is also backward compatible
+with OMAP3 as omap_dss_device instances in OMAP3 will stick only with
+OMAP_DSS_CHANNEL_LCD.
 
-> + =A0 =A0 =A0 },
-> +};
-> +
+Archit Taneja (2):
+  OMAP: DSS2: Add dss_features for omap4 and overlay manager related
+    features
+  OMAP: DSS2: Use dss_features to handle DISPC bits removed on OMAP4
 
-<<snip>>
+Sumit Semwal (5):
+  OMAP: DSS2: Represent DISPC register defines with channel as
+    parameter
+  OMAP: DSS2: Introduce omap_channel as a omap_dss_device parameter
+  OMAP: DSS2: Change remaining Dispc functions for new 'channel'
+    argument
+  OMAP: DSS2: LCD2 Channel Changes for DISPC
+  OMAP: DSS2: Add new Overlay Manager
+
+ arch/arm/plat-omap/include/plat/display.h |    8 +
+ drivers/video/omap2/dss/dispc.c           |  558 ++++++++++++++++++++---------
+ drivers/video/omap2/dss/dpi.c             |   40 ++-
+ drivers/video/omap2/dss/dsi.c             |   25 +-
+ drivers/video/omap2/dss/dss.h             |   36 ++-
+ drivers/video/omap2/dss/dss_features.c    |   43 +++-
+ drivers/video/omap2/dss/dss_features.h    |    7 +-
+ drivers/video/omap2/dss/manager.c         |   77 +++--
+ drivers/video/omap2/dss/overlay.c         |   14 +-
+ drivers/video/omap2/dss/rfbi.c            |   20 +-
+ drivers/video/omap2/dss/sdi.c             |   24 +-
+ 11 files changed, 586 insertions(+), 266 deletions(-)
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Version 5:
+- Replaced dssdev->channel with dssdev->manager->id in interface driver
+  calls, dssdev->channel is only used once in dss_recheck_connections()
+  to set up the connection between panel device and dispc managers
+- DISPC_CONTROL and DISPC_CONFIG registers are not defined with channel
+  as a parameter.
+ Version 4:
+- Broken into smaller patches in order to build in between patches.
+- Some basic cleanup
+ Version 3:
+- Patches are reworked over dss2 features framework. Number of patches
+  are reduced.
+  Version 2:
+- The DISPC_BASE macro now isn't changed for OMAP4, a future
+  hwmod patch will take care of this dynamically.
+- Supported_displays member of manager is now assigned correctly
+  for OMAP2.
+- DISPC Registers common to LCD and LCD2 channels are not defined
+  separately, now there is a parameter which differentiates between
+  the 2 channels.
+- Secondary LCD manager is now named as lcd2 instead of 2lcd, the
+  patch given in the link below allows DSS2 interpret this correctly.
+  Version 1:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31458.html
