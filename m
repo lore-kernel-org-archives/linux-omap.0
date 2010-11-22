@@ -1,45 +1,99 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH ver. 2] PM: add synchronous runtime interface for interrupt handlers
-Date: Mon, 22 Nov 2010 00:45:19 +0100
-Message-ID: <201011220045.20059.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1011201437450.8483-100000@netrider.rowland.org>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCHv4 6/14] OMAP4: dmtimer: add hwmod database
+Date: Mon, 22 Nov 2010 11:32:11 +0530
+Message-ID: <AANLkTikvUzdo9XN-WxoLoyimDi+j6wwTh+T9veF7_H9P@mail.gmail.com>
+References: <1290220778-22244-1-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-2-git-send-email-tarun.kanti@ti.com> <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-4-git-send-email-tarun.kanti@ti.com> <1290220778-22244-5-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-6-git-send-email-tarun.kanti@ti.com> <1290220778-22244-7-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41620 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754297Ab0KUXqJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 21 Nov 2010 18:46:09 -0500
-In-Reply-To: <Pine.LNX.4.44L0.1011201437450.8483-100000@netrider.rowland.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:50826 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750792Ab0KVGIY convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Nov 2010 01:08:24 -0500
+Received: by mail-iw0-f177.google.com with SMTP id 8so7699018iwn.8
+        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 22:08:23 -0800 (PST)
+In-Reply-To: <1290220778-22244-7-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Partha Basak <p-basak2@ti.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>
 
-On Saturday, November 20, 2010, Alan Stern wrote:
-> On Sat, 20 Nov 2010, Alan Stern wrote:
-> 
-> > On Sat, 20 Nov 2010, Rafael J. Wysocki wrote:
-> > 
-> > > On Friday, November 19, 2010, Alan Stern wrote:
-...
-> > 
-> > I don't think Linus will object to this.  What he doesn't like is when
-> > some code drops a lock, reacquires it, and then behaves as though the
-> > lock had been held all along.  That's not the case here; rpm_idle()  
-> > does not depend on any state remaining unchanged across the callback.
-> 
-> One other thing I forgot to mention...  If Linus doesn't like the way
-> the new code drops the spinlock and then reacquires it, then he must
-> also not like the existing code, which does the same thing.  The only
-> difference lies in whether or not interrupts are re-enabled.
+These comments are from other hwmod reviews.
 
-The problem I have with this change is that switching interrupts off really is
-a part of the locking operation, so using spin_unlock() after spin_lock_irq...()
-is kind of like releasing the lock partially, which I don't think is valid
-(even if we're going to reacquire the lock immediately).
+On Sat, Nov 20, 2010 at 08:09, Tarun Kanti DebBarma <tarun.kanti@ti.com=
+> wrote:
+> From: Cousson, Benoit <b-cousson@ti.com>
 
-Thanks,
-Rafael
+Subject should be something like: ( See [1] )
+OMAP4: hwmod data: add dmtimer
+
+Same is applicable to other hwmod DB patches for OMAP2420, OMAP2430
+& OMAP3 to add dmtimer data
+
+>
+> Add hwmod database for OMAP4.
+>
+> Signed-off-by: Cousson, Benoit <b-cousson@ti.com>
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0622 ++++++++++++++=
+++++++++++++++
+
+<<snip>>
+
+> + =A0 =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP44=
+30),
+> +};
+> +
+> +/*
+> =A0* 'wd_timer' class
+> =A0* 32-bit watchdog upward counter that generates a pulse on the res=
+et pin on
+> =A0* overflow condition
+> @@ -1068,6 +1678,18 @@ static __initdata struct omap_hwmod *omap44xx_=
+hwmods[] =3D {
+>
+> =A0 =A0 =A0 =A0/* mpu class */
+> =A0 =A0 =A0 =A0&omap44xx_mpu_hwmod,
+> + =A0 =A0 =A0 /* timer class */
+> + =A0 =A0 =A0 &omap44xx_timer1_hwmod,
+> + =A0 =A0 =A0 &omap44xx_timer2_hwmod,
+> + =A0 =A0 =A0 &omap44xx_timer3_hwmod,
+> + =A0 =A0 =A0 &omap44xx_timer4_hwmod,
+> + =A0 =A0 =A0 &omap44xx_timer5_hwmod,
+> + =A0 =A0 =A0 &omap44xx_timer6_hwmod,
+> + =A0 =A0 =A0 &omap44xx_timer7_hwmod,
+> + =A0 =A0 =A0 &omap44xx_timer8_hwmod,
+> + =A0 =A0 =A0 &omap44xx_timer9_hwmod,
+> + =A0 =A0 =A0 &omap44xx_timer10_hwmod,
+> + =A0 =A0 =A0 &omap44xx_timer11_hwmod,
+
+Add a blank line between each class. See [2]
+Same is applicable to other hwmod DB patches for OMAP2420, OMAP2430
+& OMAP3 to add dmtimer data
+
+[1] https://patchwork.kernel.org/patch/282472/
+[2] https://patchwork.kernel.org/patch/308422/
+
+> =A0 =A0 =A0 =A0/* wd_timer class */
+> =A0 =A0 =A0 =A0&omap44xx_wd_timer2_hwmod,
+> =A0 =A0 =A0 =A0&omap44xx_wd_timer3_hwmod,
+> --
+> 1.6.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
