@@ -1,54 +1,72 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: Re: DSP Bridge video decode of above VGA videos
-Date: Mon, 22 Nov 2010 07:23:04 -0600
-Message-ID: <AANLkTinCT-zQaGyLfS-NZU9Pue+2hmrLDckHYKqD_u8m@mail.gmail.com>
-References: <AANLkTim2PQ9kAvSi12987gAykMAuPg7f3XM3zQNo5Tip@mail.gmail.com>
+From: Gabi Voiculescu <boy3dfx2@yahoo.com>
+Subject: Re: newbie: can I ask a question about linux-omap-pm on this mailing list?
+Date: Mon, 22 Nov 2010 06:05:43 -0800 (PST)
+Message-ID: <891232.80252.qm@web113817.mail.gq1.yahoo.com>
+References: <AANLkTin0jiOn2FWhrnG0e+nuF1i22r8bv5YM2DGzkF3g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:42470 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754583Ab0KVNXH convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Nov 2010 08:23:07 -0500
-Received: by mail-qw0-f48.google.com with SMTP id 7so36492qwb.21
-        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 05:23:04 -0800 (PST)
-In-Reply-To: <AANLkTim2PQ9kAvSi12987gAykMAuPg7f3XM3zQNo5Tip@mail.gmail.com>
+Received: from nm26.bullet.mail.sp2.yahoo.com ([98.139.91.96]:24408 "HELO
+	nm26.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755373Ab0KVOFp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Nov 2010 09:05:45 -0500
+In-Reply-To: <AANLkTin0jiOn2FWhrnG0e+nuF1i22r8bv5YM2DGzkF3g@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: James Adams <james.r.adams@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-James,
+Thank you for your reply.
 
-On Mon, Nov 22, 2010 at 7:14 AM, James Adams <james.r.adams@gmail.com> =
-wrote:
-> Hi All,
->
-> We are running Android on a custom Gumstix Overo Water platform. We
-> have ported the 25.12 Zoom2 release to do this.
->
-> It is almost working except that when trying to decode H264 videos
-> with resolution above 640x480 (either horizontally or vertically, e.g=
-=2E
-> 640*544) the DSP module appears to crash. Decoding anything at VGA or
-> below is working fine.
->
-> DSP bridge is configured with 0x600000 memory (but larger doesn't see=
-m
-> to help). =A0Is anyone aware of other configuration options that we
-> should be checking (e.g. in DSP bridge, OMAP video drivers, or
-> android?) that might cause large video decodes to fail?
+I am a newbie when it comes down to Linux git repositories.
+I am trying to do a 2.6.32 paravirtualization on top of L4, to run on the beagleboard(omap3 CPU), using as native kernel one from the linux-omap-pm repository. 
 
-Can you please post any error/failure logs ?
+Why 2.6.32? It seems we have to run some userland modules that were written to be compatible with that version of Linux.
+
+One part of the problem is to select the best suitable native commit for this purpose.
+
+I am now trying to identify the best native commit from linux-omap-pm that fits the bill: working 2.6.32 + pm features for omap3 processors.
+
+My initial attempt was to use pm-2.6.32 branch (git checkout --track -b pm-2.6.32 origin/pm-2.6.32). 
+
+I realized there are issues with some devices: the USB host (EHCI) detecting hubs.
+
+I have some problems navigating the linux-omap-pm git repository and I would really appreciate some feedback on these questions:
+
+1. Was the pm-2.6.32 branch designed to add pm features to the TI 2.6.32-omap and Torvalds 2.6.32?
+ 1.1. if true, the pm-2.6.32 was focused on omap1 (not omap3) features?
+ 1.2. if not true, is there a better branch/commit/tag that deals with pm features on the omap3 SOC?
+ 1.3. As far as you know has any testing been performed on omap3 with a version of Linux close to 2.6.32?
 
 
-Thank you,
-Best regards,
-Hari Kanigeri
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thank you for your input,
+Gabi Voiculescu
+--- On Mon, 11/22/10, S, Venkatraman <svenkatr@ti.com> wrote:
+
+> From: S, Venkatraman <svenkatr@ti.com>
+> Subject: Re: newbie: can I ask a question about linux-omap-pm on this mailing list?
+> To: "Gabi Voiculescu" <boy3dfx2@yahoo.com>
+> Cc: "linux-omap" <linux-omap@vger.kernel.org>
+> Date: Monday, November 22, 2010, 12:36 PM
+> > Hi.
+> >
+> > I want to ask a newbie questions regarding
+> linux-omap-pm repositories(http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary).
+> >
+> > I know this mailing list is for the linux-omap
+> repository. I have searched the web for a mailing list
+> specific for linux-omap-pm without success.
+> >
+> > Is this the right mailing list to pose my question?
+> > If not, can you point me to a better one?
+> >
+> 
+> You have come to the right place. The linux-omap-pm tree is
+> maintained
+> by Kevin Hilman, and he checks this mailing list
+> regularly.
+> Ask away...
+> 
+
+
+      
