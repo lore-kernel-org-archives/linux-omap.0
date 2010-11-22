@@ -1,80 +1,54 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: RE: [PATCH] OMAP3: disable idle early in the suspend sequence
-Date: Mon, 22 Nov 2010 18:05:55 +0530
-Message-ID: <baa166f04ffdef2ae7003165b13a0b2c@mail.gmail.com>
-References: <1290422697-2300-1-git-send-email-j-pihet@ti.com><21f7524db02d0a4c2a9f71587937d200@mail.gmail.com>
- <AANLkTikUkA=Uwd+UGStdiuV_LCBLZaKo4KRp2bj_UwH3@mail.gmail.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: DSS2 and 2.6.36
+Date: Mon, 22 Nov 2010 18:19:09 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404BC762ADB@dbde02.ent.ti.com>
+References: <A1FC6DD0-C6CA-4E03-B4DD-C3AD4CCC9619@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:50711 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755014Ab0KVMf7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Nov 2010 07:35:59 -0500
-Received: by mail-qy0-f176.google.com with SMTP id 10so149110qyk.0
-        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 04:35:59 -0800 (PST)
-In-Reply-To: <AANLkTikUkA=Uwd+UGStdiuV_LCBLZaKo4KRp2bj_UwH3@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54286 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755433Ab0KVMtQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 07:49:16 -0500
+In-Reply-To: <A1FC6DD0-C6CA-4E03-B4DD-C3AD4CCC9619@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, Jean Pihet-XID <j-pihet@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Grant Erickson <marathon96@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 > -----Original Message-----
-> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
-> Sent: Monday, November 22, 2010 5:01 PM
-> To: Rajendra Nayak
-> Cc: linux-omap@vger.kernel.org; Jean Pihet-XID; Kevin Hilman
-> Subject: Re: [PATCH] OMAP3: disable idle early in the suspend sequence
->
-> On Mon, Nov 22, 2010 at 11:53 AM, Rajendra Nayak <rnayak@ti.com> wrote:
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org
-> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Jean Pihet
-> >> Sent: Monday, November 22, 2010 4:15 PM
-> >> To: linux-omap@vger.kernel.org
-> >> Cc: Jean Pihet; Kevin Hilman
-> >> Subject: [PATCH] OMAP3: disable idle early in the suspend sequence
-> >>
-> >> Some bad interaction between the idle and the suspend paths has been
-> >> noticed: the idle code is called during the suspend enter and exit
-> >> sequences. This could cause corruption or lock-up of resources.
-> >
-> > Can you elaborate more on what kind of issues were seen?
->
-> Trying to get the PRCM registers dump after a suspend/resume does not
-> show the correct registers values, cf. Kevin's patch at
-> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-
-> pm.git;a=commitdiff;h=9fc4891d4a21d2b644a463d62c77ef97da55f091.
->
-> Digging a bit further I found out that the idle routine is called >50
-> times while the suspend/resume sequence still is on-going. The root
-> cause is because disable_hlt is called from omap3_pm_prepare which
-> runs after omap3_pm_begin (and the same issue in the resume sequence).
-> This leaves a time window for idle to kick-in while the suspend
-> sequence is busy saving/restoring the system state. This is a
-> potential bug that just waits to show up soon or later, especially if
-> more code is added in the suspend prepare and finish functions.
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Grant Erickson
+> Sent: Friday, November 12, 2010 11:35 PM
+> To: linux-omap@vger.kernel.org
+> Subject: DSS2 and 2.6.36
+> 
+> I have a Mistral AM37x development board and am working on transitioning
+> it from the 2.6.32 provided with the SDK to 2.6.36 and have run into some
+> issues with the OMAP2 DSS driver that it seems others have encountered as
+> well (e.g. "DSS2 broken with 36-rc1"
 
-Ok. Thanks. Basically we had some similar issues on OMAP4. I am yet to
-root
-cause, but the initial hunch was there was a race between idle and suspend
-and I did pretty much the same change in pm44xx.c.
-That fixed the issue but only partially, so am still in the process of
-debugging
-it further to see what exactly is the issue. So was just curious to know
-what
-issues you ran into on OMAP3.
-Will update once I know whats happening on OMAP4.
-
->
-> Does the changelog need an update?
-
-No, The changelog looks fine to me.
+[Hiremath, Vaibhav] Are you using 2.6.36 stable version or 2.6.36-rcX? I would suggest you to use latest kernel, I started using 2.6.36 stable version and it is working fine for me.
 
 Thanks,
-Rajendra
+Vaibhav
 
->
-> Regards,
-> Jean
+> <http://marc.info/?t=128196295000004&r=1&w=2 and "[PATCH 1/2] video: omap:
+> vram: remove from normal memory"
+> <http://marc.info/?t=128714705300004&r=1&w=2>).
+> 
+> Is 2.6.37-rcY the preferred canonical tree to fast-forward to pick up the
+> remap/allocation/reserve changes for this or is there another preferred
+> tree (e.g. git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-
+> omap-2.6.git or git://gitorious.org/linux-omap-dss2/linux.git)?
+> 
+> Best,
+> 
+> Grant
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
