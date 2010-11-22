@@ -1,88 +1,133 @@
-From: Grant Erickson <marathon96@gmail.com>
-Subject: Re: No more software ECC in omap2.c NAND driver. Why?
-Date: Sun, 21 Nov 2010 22:39:10 -0800
-Message-ID: <C90F500E.2033D%marathon96@gmail.com>
-References: <2A3DCF3DA181AD40BDE86A3150B27B6B0369C42A32@dbde02.ent.ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCHv4 12/14] OMAP: dmtimer: switch-over to platform device driver
+Date: Mon, 22 Nov 2010 12:14:31 +0530
+Message-ID: <AANLkTik6PVX5XjX0T2GHhiEm4nb+P=V4UwXLWUr0XQNj@mail.gmail.com>
+References: <1290220778-22244-1-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-2-git-send-email-tarun.kanti@ti.com> <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-4-git-send-email-tarun.kanti@ti.com> <1290220778-22244-5-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-6-git-send-email-tarun.kanti@ti.com> <1290220778-22244-7-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-8-git-send-email-tarun.kanti@ti.com> <1290220778-22244-9-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-10-git-send-email-tarun.kanti@ti.com> <1290220778-22244-11-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-12-git-send-email-tarun.kanti@ti.com> <1290220778-22244-13-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:47418 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751179Ab0KVGj0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 01:39:26 -0500
-Received: by iwn34 with SMTP id 34so2494507iwn.19
-        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 22:39:25 -0800 (PST)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B0369C42A32@dbde02.ent.ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:46263 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751519Ab0KVGpN convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Nov 2010 01:45:13 -0500
+Received: by mail-iw0-f169.google.com with SMTP id 33so2986408iwn.28
+        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 22:45:12 -0800 (PST)
+In-Reply-To: <1290220778-22244-13-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>, Charles Manning <manningc2@actrix.gen.nz>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On 11/21/10 10:27 PM, Ghorai, Sukumar wrote:
->> -----Original Message-----
->> From: Grant Erickson [mailto:marathon96@gmail.com]
->> Sent: Monday, November 22, 2010 11:39 AM
->> To: Charles Manning
->> Cc: linux-omap@vger.kernel.org; Grazvydas Ignotas; Ghorai, Sukumar
->> Subject: Re: No more software ECC in omap2.c NAND driver. Why?
->> 
->> On 11/21/10 1:01 PM, Charles Manning wrote:
->>> Just recompiling with the CONFIG_MTD_NAND_OMAP_HWECC define commented
->> out did
->>> not result in a working system. I suspect there is more tto the problem
->> than
->>> this.
->> 
->> FWIW, I had the exact same issues with my Mistral AM37x EVM board. I not
->> only had to remove/deassert CONFIG_MTD_NAND_OMAP_HWECC, but also had to
->> roll
->> back nand_base.c and nand_bbt.c back to their 2.6.32 versions (later ones
->> between .32 and .35 might have worked but I didn't bother trying) to be
->> able
->> to read, error-free and correctly, NAND that was erased and written with a
->> .32-era kernel.
+<<snip>>
+
+> -/*
+> - * Reads timer registers in posted and non-posted mode. The posted m=
+ode bit
+> - * is encoded in reg. Note that in posted mode write pending bit mus=
+t be
+> - * checked. Otherwise a read of a non completed write will produce a=
+n error.
+> +/**
+> + * omap_dm_timer_read_reg - read timer registers in posted and non-p=
+osted mode
+> + * @timer: =A0 =A0 =A0timer pointer over which read operation to per=
+form
+> + * @reg: =A0 =A0 =A0 =A0lowest byte holds the register offset
+> + *
+> + * The posted mode bit is encoded in reg. Note that in posted mode w=
+rite
+> + * pending bit must be checked. Otherwise a read of a non completed =
+write
+> + * will produce an error.
+> =A0*/
+> =A0static inline u32 omap_dm_timer_read_reg(struct omap_dm_timer *tim=
+er, u32 reg)
+> =A0{
+> + =A0 =A0 =A0 struct dmtimer_platform_data *pdata =3D timer->pdev->de=
+v.platform_data;
+> +
+> + =A0 =A0 =A0 if (reg >=3D OMAP_TIMER_WAKEUP_EN_REG)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D pdata->func_offst;
+> +
+> =A0 =A0 =A0 =A0if (timer->posted)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (readl(timer->io_base + (OMAP_TIM=
+ER_WRITE_PEND_REG & 0xff))
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 & (reg =
+>> WPSHIFT))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (readl(timer->io_base +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ((OMAP_TIMER_WRITE_PEND=
+_REG + pdata->func_offst)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 & 0xff)=
+) & (reg >> WPSHIFT))
+
+You may add a timeout in this.
+
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpu_relax();
+> =A0 =A0 =A0 =A0return readl(timer->io_base + (reg & 0xff));
+> =A0}
 >
-> [Ghorai] are you trying again?
-> How do you flush the FS (form u-boot or from kernel, nandwrite)? And let me
-> know the test you are doing, to know the steps to reproduce in my platform -
-> zoom/sdp.
+> -/*
+> - * Writes timer registers in posted and non-posted mode. The posted =
+mode bit
+> - * is encoded in reg. Note that in posted mode the write pending bit=
+ must be
+> - * checked. Otherwise a write on a register which has a pending writ=
+e will be
+> - * lost.
+> +/**
+> + * omap_dm_timer_write_reg - write timer registers in posted and non=
+-posted mode
+> + * @timer: =A0 =A0 =A0timer pointer over which write operation is to=
+ perform
+> + * @reg: =A0 =A0 =A0 =A0lowest byte holds the register offset
+> + * @value: =A0 =A0 =A0data to write into the register
+> + *
+> + * The posted mode bit is encoded in reg. Note that in posted mode t=
+he write
+> + * pending bit must be checked. Otherwise a write on a register whic=
+h has a
+> + * pending write will be lost.
+> =A0*/
+> =A0static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u=
+32 reg,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0u32 value)
+> =A0{
+> + =A0 =A0 =A0 struct dmtimer_platform_data *pdata =3D timer->pdev->de=
+v.platform_data;
+> +
+> + =A0 =A0 =A0 if (reg >=3D OMAP_TIMER_WAKEUP_EN_REG)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D pdata->func_offst;
+> +
+> =A0 =A0 =A0 =A0if (timer->posted)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (readl(timer->io_base + (OMAP_TIM=
+ER_WRITE_PEND_REG & 0xff))
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 & (reg =
+>> WPSHIFT))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (readl(timer->io_base +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ((OMAP_TIMER_WRITE_PEND=
+_REG + pdata->func_offst)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 & 0xff)=
+) & (reg >> WPSHIFT))
 
-The board (Mistral AM37x) NAND (Micron 256 MiB) was originally bootstrapped
-over SD/MMC from u-boot using the following script:
+Ditto.
 
-    mmc init
-    mw.b ${loadaddr} 0xff 0x40000
-    nand erase 0 0x40000
-    fatload mmc 0 ${loadaddr} mlo
-    nandecc hw
-    nand write.i ${loadaddr} 0 0x40000
-    mw.b ${loadaddr} 0xff 0x180000
-    nand erase 0x00040000 0x180000
-    nand erase 0x001c0000 0x180000
-    fatload mmc 0 ${loadaddr} u-boot.bin
-    nandecc sw
-    nand write.i ${loadaddr} 0x00040000 0x180000
-    nand write.i ${loadaddr} 0x001c0000 0x180000
-    mw.b ${loadaddr} 0xff 0x800000
-    nand erase 0x00400000 0x800000
-    nand erase 0x03a00000 0x800000
-    fatload mmc 0 ${loadaddr} uImage
-    nand write.i ${loadaddr} 0x00400000 0x800000
-    nand write.i ${loadaddr} 0x03a00000 0x800000
-    mw.b ${loadaddr} 0xff 0x2000000
-    nand erase 0x00c00000 0x2000000
-    nand erase 0x04200000 0x2000000
-    fatload mmc 0 ${loadaddr} root.jff
-    nand write.i ${loadaddr} 0x00c00000 0x2000000
-    nand write.i ${loadaddr} 0x04200000 0x2000000
-
-Following that, the board is updated, from Linux, using 'flash_eraseall -q'
-and 'nandwrite -p -q' on all partitions, except that containing MLO.
-
-Best,
-
-Grant
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpu_relax();
+> =A0 =A0 =A0 =A0writel(value, timer->io_base + (reg & 0xff));
+> =A0}
 
 
+<<snip>>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
