@@ -1,45 +1,64 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: Re: [PATCH] omap4: 4430sdp: enable the ehci port on 4430SDP
-Date: Mon, 22 Nov 2010 17:24:08 +0530
-Message-ID: <4CEA59E0.8080705@ti.com>
-References: <1290364999-4783-1-git-send-email-gadiyar@ti.com> <20101122101737.GN2446@legolas.emea.dhcp.ti.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: Re: [PATCH v3 2/5] OMAP: mailbox: fix rx interrupt disable in omap4
+Date: Mon, 22 Nov 2010 05:58:04 -0600
+Message-ID: <AANLkTi=RegCd+VrhbPpmt-xC5RxetdzsGkAy5v-z=9fV@mail.gmail.com>
+References: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
+	<1290107742-16760-3-git-send-email-h-kanigeri2@ti.com>
+	<4CE5B68F.8000502@ti.com>
+	<AANLkTinVOKZoSRkXyfzUap5mOmRE5nNsvCiw_QDUxb85@mail.gmail.com>
+	<20101119083250.GH6446@legolas.emea.dhcp.ti.com>
+	<AANLkTimzaB6aFo2=iEpR=2a3T_3oWQa6iBxQxWhBBCiw@mail.gmail.com>
+	<4CE68E9A.5040903@ti.com>
+	<20101122100815.GM2446@legolas.emea.dhcp.ti.com>
+	<AANLkTim4bHJHFdOEXt-hM7Yt2wGsVTcfJExwzzcUKXmq@mail.gmail.com>
+	<20101122115153.GE2446@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:53912 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754912Ab0KVLyP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Nov 2010 06:54:15 -0500
-Received: by gwaa18 with SMTP id a18so2182176gwa.37
-        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 03:54:14 -0800 (PST)
-In-Reply-To: <20101122101737.GN2446@legolas.emea.dhcp.ti.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:43876 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754954Ab0KVL6G convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Nov 2010 06:58:06 -0500
+Received: by qwc9 with SMTP id 9so748572qwc.33
+        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 03:58:05 -0800 (PST)
+In-Reply-To: <20101122115153.GE2446@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-On 11/22/2010 3:47 PM, Felipe Balbi wrote:
-> On Mon, Nov 22, 2010 at 12:13:19AM +0530, Anand Gadiyar wrote:
->> From: Keshava Munegowda <keshava_mgowda@ti.com>
+=46elipe,
+
+On Mon, Nov 22, 2010 at 5:51 AM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Mon, Nov 22, 2010 at 05:46:53AM -0600, Kanigeri, Hari wrote:
+>>>
+>>> From the dmtimer stuff, it looks like the driver defines the versio=
+n
 >>
->> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
->> Cc: Tony Lindgren <tony@atomide.com>
-> 
-> Tony, if you give me your Ack I can take this with Greg since it depends
-> on the series I'm checking now.
-> 
+>> types, which hwmod uses to define the rev field.
+>>
+>> /* timer ip constants */
+>> #define OMAP_TIMER_IP_LEGACY =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+0x1
+>> #define OMAP_TIMER_IP_VERSION_2 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x2
+>
+> in that case, it's the same as if you pass in a flag via platform_dat=
+a.
+> You might as well call it rev, then the diff when converting to hwmod
+> will be smaller maybe :-p
 
-This one can go through Tony - I deliberately left it out of the EHCI series.
-
-The dependency is needed for the EHCI port to actually be usable, however we
-can register the device in the board file independently of the driver.
-
-I forgot to update the patch description - I'll wait some more for any
-more comments and then repost with a proper description.
-
-- Anand
+I agree with you, the changes should be minimal converting to hwmod.
 
 
+Thank you,
+Best regards,
+Hari Kanigeri
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
