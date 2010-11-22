@@ -1,34 +1,70 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] musb_gadget: fix compilation warning
-Date: Mon, 22 Nov 2010 12:41:13 +0200
-Message-ID: <20101122104113.GS2446@legolas.emea.dhcp.ti.com>
-References: <1290415961-21177-1-git-send-email-ajay.gupta@ti.com>
- <1290415961-21177-2-git-send-email-ajay.gupta@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1290415961-21177-2-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: [PATCH] OMAP3: disable idle early in the suspend sequence
+Date: Mon, 22 Nov 2010 11:44:57 +0100
+Message-ID: <1290422697-2300-1-git-send-email-j-pihet@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:54592 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753303Ab0KVKpv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 05:45:51 -0500
+Received: by wwa36 with SMTP id 36so7171213wwa.1
+        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 02:45:50 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Mon, Nov 22, 2010 at 02:22:41PM +0530, Ajay Kumar Gupta wrote:
->Fixes below compilation warning when musb driver is compiled for
->PIO mode.
->drivers/usb/musb/musb_gadget.c: In function 'musb_g_rx':
->drivers/usb/musb/musb_gadget.c:840:
->		warning: label 'exit' defined but not used
->
->Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Some bad interaction between the idle and the suspend paths has been
+noticed: the idle code is called during the suspend enter and exit
+sequences. This could cause corruption or lock-up of resources.
 
-Applied, thanks
+The solution is to move the call to disable_hlt at the very beginning
+of the suspend sequence (in omap3_pm_begin instead of omap3_pm_prepare),
+and the call to enable_hlt at the very end of the suspend sequence
+(in omap3_pm_end instead of omap3_pm_finish).
 
+Tested with RET and OFF on Beagle and OMAP3EVM.
+
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 75c0cd1..022fdff 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -508,7 +508,6 @@ static suspend_state_t suspend_state;
+ 
+ static int omap3_pm_prepare(void)
+ {
+-	disable_hlt();
+ 	return 0;
+ }
+ 
+@@ -576,12 +575,12 @@ static int omap3_pm_enter(suspend_state_t unused)
+ 
+ static void omap3_pm_finish(void)
+ {
+-	enable_hlt();
+ }
+ 
+ /* Hooks to enable / disable UART interrupts during suspend */
+ static int omap3_pm_begin(suspend_state_t state)
+ {
++	disable_hlt();
+ 	suspend_state = state;
+ 	omap_uart_enable_irqs(0);
+ 	return 0;
+@@ -591,6 +590,7 @@ static void omap3_pm_end(void)
+ {
+ 	suspend_state = PM_SUSPEND_ON;
+ 	omap_uart_enable_irqs(1);
++	enable_hlt();
+ 	return;
+ }
+ 
 -- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.2.3
+
