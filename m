@@ -1,90 +1,87 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: disable idle early in the suspend sequence
-Date: Mon, 22 Nov 2010 09:51:15 -0800
-Message-ID: <87y68luu0c.fsf@deeprootsystems.com>
-References: <1290422697-2300-1-git-send-email-j-pihet@ti.com>
+Subject: Re: [Patch v2] AM35xx: Craneboard: Add USB EHCI support
+Date: Mon, 22 Nov 2010 09:56:21 -0800
+Message-ID: <87oc9hutru.fsf@deeprootsystems.com>
+References: <1290414736-21973-1-git-send-email-srinath@mistralsolutions.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:44112 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756026Ab0KVRvV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 12:51:21 -0500
-Received: by gyb11 with SMTP id 11so1475482gyb.19
-        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 09:51:20 -0800 (PST)
-In-Reply-To: <1290422697-2300-1-git-send-email-j-pihet@ti.com> (Jean Pihet's
-	message of "Mon, 22 Nov 2010 11:44:57 +0100")
+Received: from mail-px0-f174.google.com ([209.85.212.174]:62792 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753438Ab0KVR40 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 12:56:26 -0500
+In-Reply-To: <1290414736-21973-1-git-send-email-srinath@mistralsolutions.com>
+	(srinath@mistralsolutions.com's message of "Mon, 22 Nov 2010 14:02:16
+	+0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>
+To: srinath@mistralsolutions.com
+Cc: linux-omap@vger.kernel.org, jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, sshtylyov@mvista.com
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+srinath@mistralsolutions.com writes:
 
-> Some bad interaction between the idle and the suspend paths has been
-> noticed: the idle code is called during the suspend enter and exit
-> sequences. This could cause corruption or lock-up of resources.
-
-> The solution is to move the call to disable_hlt at the very beginning
-> of the suspend sequence (in omap3_pm_begin instead of omap3_pm_prepare),
-> and the call to enable_hlt at the very end of the suspend sequence
-> (in omap3_pm_end instead of omap3_pm_finish).
+> From: Srinath <srinath@mistralsolutions.com>
 >
-> Tested with RET and OFF on Beagle and OMAP3EVM.
-
-I think the description could have a little more detail.  Something like:
-
-Idle path should be disabled during the entire suspend/resume sequence.
-Currently it is disabled in ->prepare() and re-enabled in ->finish(),
-but the suspend sequence starts with ->begin() and ends with ->end(),
-leaving windows where the suspend/resume sequence is still underway and
-idle code could execute.
-
-To fix, move idle disable and enable into ->begin() and ->end()
-respectively to ensure idle path is disabled for the entire
-suspend/resume sequence.
-
+> AM3517/05 Craneboard has one EHCI interface on board using port1.
 >
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> GPIO35 is used as power enable.
+> GPIO38 is used as port1 PHY reset.
+>
+> Signed-off-by: Srinath <srinath@mistralsolutions.com>
 > ---
->  arch/arm/mach-omap2/pm34xx.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
+>  arch/arm/mach-omap2/board-am3517crane.c |   20 ++++++++++++++++++++
+>  1 files changed, 20 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 75c0cd1..022fdff 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -508,7 +508,6 @@ static suspend_state_t suspend_state;
+> diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
+> index 13ead33..91791bc 100644
+> --- a/arch/arm/mach-omap2/board-am3517crane.c
+> +++ b/arch/arm/mach-omap2/board-am3517crane.c
+> @@ -28,8 +28,10 @@
 >  
->  static int omap3_pm_prepare(void)
->  {
-> -	disable_hlt();
->  	return 0;
+>  #include <plat/board.h>
+>  #include <plat/common.h>
+> +#include <plat/usb.h>
+>  
+>  #include "mux.h"
+> +#include "control.h"
+>  
+>  /* Board initialization */
+>  static struct omap_board_config_kernel am3517_crane_config[] __initdata = {
+> @@ -53,10 +55,28 @@ static void __init am3517_crane_init_irq(void)
+>  	omap_gpio_init();
 >  }
->  
-> @@ -576,12 +575,12 @@ static int omap3_pm_enter(suspend_state_t unused)
->  
->  static void omap3_pm_finish(void)
+>>  
+> +static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
+> +	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+> +	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+> +	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+> +
+> +	.phy_reset  = true,
+> +	.reset_gpio_port[0]  = 38,
+> +	.reset_gpio_port[1]  = -EINVAL,
+> +	.reset_gpio_port[2]  = -EINVAL
+> +};
+> +
+>  static void __init am3517_crane_init(void)
 >  {
-> -	enable_hlt();
->  }
+>  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+>  	omap_serial_init();
+> +
+> +	/* Configure GPIO for EHCI port */
+> +	omap_mux_init_gpio(35, OMAP_PIN_OUTPUT);
 
-Might as well remove these empty functions now.
+Please define a symbolic constant for these GPIO numbers instead of using
+hard-coded constants.
 
->  /* Hooks to enable / disable UART interrupts during suspend */
->  static int omap3_pm_begin(suspend_state_t state)
->  {
-> +	disable_hlt();
->  	suspend_state = state;
->  	omap_uart_enable_irqs(0);
->  	return 0;
-> @@ -591,6 +590,7 @@ static void omap3_pm_end(void)
->  {
->  	suspend_state = PM_SUSPEND_ON;
->  	omap_uart_enable_irqs(1);
-> +	enable_hlt();
->  	return;
+> +	gpio_request(35, "usb_ehci_enable");
+
+GPIO APIs can fail.  Please check return value and act accordingly.
+
+> +	gpio_direction_output(35, 1);
+> +	omap_mux_init_gpio(38, OMAP_PIN_OUTPUT);
+> +	usb_ehci_init(&ehci_pdata);
 >  }
+>  
+>  MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
 
 Kevin
