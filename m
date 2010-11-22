@@ -1,64 +1,50 @@
-From: "Sapiens, Rene" <rene.sapiens@ti.com>
-Subject: Re: DSP Bridge video decode of above VGA videos
-Date: Mon, 22 Nov 2010 15:42:32 -0600
-Message-ID: <AANLkTim6++ATTJ=BCssvLYKRek0EXKVPMGgKH1WMNuRM@mail.gmail.com>
-References: <AANLkTim2PQ9kAvSi12987gAykMAuPg7f3XM3zQNo5Tip@mail.gmail.com>
-	<AANLkTinCT-zQaGyLfS-NZU9Pue+2hmrLDckHYKqD_u8m@mail.gmail.com>
-	<AANLkTimhKaS4y+k0t_x39aw8LvO-tNUH-=x3V9jk7BsC@mail.gmail.com>
-	<AANLkTi=71zFhuBh3MArYjSEvJ+YXciF_9d2cn+5ojTb6@mail.gmail.com>
-	<AANLkTinkMPb4Htv4GN8--PZP0UdkWuyXiLYvRC3QasWD@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/8] OMAP2+: hwmod core upgrades for 2.6.38: first set
+Date: Mon, 22 Nov 2010 13:56:54 -0800
+Message-ID: <87y68lnhsp.fsf@deeprootsystems.com>
+References: <20101116101615.22777.49212.stgit@twilight.localdomain>
+	<alpine.DEB.2.00.1011160945100.32653@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:60746 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754424Ab0KVVmy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Nov 2010 16:42:54 -0500
-Received: by wyj26 with SMTP id 26so8713201wyj.18
-        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 13:42:33 -0800 (PST)
-In-Reply-To: <AANLkTinkMPb4Htv4GN8--PZP0UdkWuyXiLYvRC3QasWD@mail.gmail.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:59026 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757256Ab0KVV46 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 16:56:58 -0500
+Received: by gwb19 with SMTP id 19so312866gwb.19
+        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 13:56:58 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1011160945100.32653@utopia.booyaka.com> (Paul
+	Walmsley's message of "Tue, 16 Nov 2010 09:47:26 -0700 (MST)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: James Adams <james.r.adams@gmail.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-James,
+Paul Walmsley <paul@pwsan.com> writes:
 
-On Mon, Nov 22, 2010 at 11:12 AM, James Adams <james.r.adams@gmail.com> wrote:
-> Hi Rene,
+> On Tue, 16 Nov 2010, Paul Walmsley wrote:
 >
-> We have got the watchdog timer enabled at the moment (interval 5 seconds).
-> The code does indeed point to the line as you say.
-> I tried using dump_stack and it was getting triggered by an interrupt
-> calling handle_hibernation_fromDSP which then called functions
-> eventually triggering the SYNC_entercs (via DEV_getfirst if I remember
-> right)
-> I certainly don't understand why this should happen, but it seems to
-> happen quite a lot (probably every 5 seconds...) and the lower
-> resolution videos didn't seem to mind so I have been ignoring it.
+>> This patch series contains upgrades for the OMAP2+ hwmod core
+>> code, intended for 2.6.38.  Most of these patches were developed
+>> in response to use-cases discovered while converting device
+>> drivers to use the hwmod code.
+>> 
+>> Tested on an OMAP34xx BeagleBoard with omap2plus_defconfig.
 >
+> Just FYI, this branch 'hwmod_a_2.6.38' is available at 
+> git://git.pwsan.com/linux-2.6
+>
+> Warning: it's based on Tony's tree, not the mainline, due to the recent 
+> board file changes.
 
-Looking at the drivers/dsp/bridge/wmd/tiomap3430_pwr.c file tagged
-with L25.12 release at [1]  I don't see feasible the path to have
-handle_hibernation_fromDSP() to get to SYNC_entercs(), so probably you
-have a newer or older version of the file.
+Looks like Tony has collected the board file changes into his
+devel-board branch.  Can this rebased there?
 
-Basically what i was looking with those assertions is to see if those
-could be because of  a DSP WDT overflow. Also those assertions can
-fail because of the calling of IO_DispatchMsg by io_dpc(), if that's
-the case there should not be a problem. On the other hand if there is
-a WDT overflow those assertions could also fail.
+That way, I can included it as part of the PM branch testing without
+having to pull in master.
 
-Can you double check by printing the call stack again when the
-assertion fails, just to see why for your case
-handle_hibernation_fromDSP() is failing in the assertion?
+Thanks,
 
-> Is it a bad idea to use WDT?
+Kevin
 
-No,  it is ok  to use it.
 
-Regards,
-Rene Sapiens
---
-[1] http://git.omapzoom.org/?p=kernel/omap.git;a=blob;f=drivers/dsp/bridge/wmd/tiomap3430_pwr.c;h=f698b4475584e92467e03ecec96bc887948275f9;hb=64b404e9f457f19537972e7f2424f4c73a8a7789#l116
