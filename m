@@ -1,331 +1,439 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v5 7/7] OMAP: DSS2: Add new Overlay Manager
-Date: Mon, 22 Nov 2010 12:53:05 +0530
-Message-ID: <1290410585-29418-8-git-send-email-archit@ti.com>
-References: <1290410585-29418-1-git-send-email-archit@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCHv4 11/14] OMAP2+: dmtimer: convert to platform devices
+Date: Mon, 22 Nov 2010 12:54:46 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0372E3FFB0@dbde02.ent.ti.com>
+References: <1290220778-22244-1-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-2-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-4-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-5-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-6-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-7-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-8-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-9-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-10-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-11-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-12-git-send-email-tarun.kanti@ti.com>
+ <AANLkTikxf-+iM0QMvkms6Ykz64x043-B1pNA96pi=OFh@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58890 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:58921 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751612Ab0KVHXu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 02:23:50 -0500
-In-Reply-To: <1290410585-29418-1-git-send-email-archit@ti.com>
+	with ESMTP id S1751199Ab0KVHYv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 02:24:51 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id oAM7OmaR012349
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 01:24:50 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id oAM7OlnU028156
+	for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 12:54:47 +0530 (IST)
+In-Reply-To: <AANLkTikxf-+iM0QMvkms6Ykz64x043-B1pNA96pi=OFh@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: linux-omap@vger.kernel.org, Sumit Semwal <sumit.semwal@ti.com>, Mukund Mittal <mmittal@ti.com>, Samreen <samreen@ti.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-From: Sumit Semwal <sumit.semwal@ti.com>
+> -----Original Message-----
+> From: Varadarajan, Charulatha
+> Sent: Monday, November 22, 2010 12:04 PM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org; Gopinath, Thara; Basak, Partha
+> Subject: Re: [PATCHv4 11/14] OMAP2+: dmtimer: convert to platform devices
+>
+> On Sat, Nov 20, 2010 at 08:09, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> wrote:
+> > From: Thara Gopinath <thara@ti.com>
+> >
+> > Add routines to converts dmtimers to platform devices. The device data
+> > is obtained from hwmod database of respective platform and is registered
+> > to device model after successful binding to driver. It also provides
+> > provision to access timers during early boot when pm_runtime framework
+> > is not completely up and running.
+> >
+> > Signed-off-by: Thara Gopinath <thara@ti.com>
+> > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > [p-basak2@ti.com: pm_runtime logic]
+>
+> Where is runtime logic in this patch? The patch description says
+> "pm_runtime
+> framework is not completely up and running"
+I have put in the wrong place.
 
-Add new Overlay Manager in manager.c, make changes needed
-for LCD2 channel.
+>
+> > Signed-off-by: Partha Basak <p-basak2@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/Makefile  |    2 +-
+> >  arch/arm/mach-omap2/dmtimer.c |  296
+> +++++++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 297 insertions(+), 1 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/dmtimer.c
+> >
+> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> > index ce7b1f0..148f4d7 100644
+> > --- a/arch/arm/mach-omap2/Makefile
+> > +++ b/arch/arm/mach-omap2/Makefile
+> > @@ -4,7 +4,7 @@
+> >
+> >  # Common support
+> >  obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o
+> pm.o \
+> > -        common.o
+> > +        common.o dmtimer.o
+> >
+> >  omap-2-3-common                                = irq.o sdrc.o
+> prm2xxx_3xxx.o
+> >  hwmod-common                           = omap_hwmod.o \
+> > diff --git a/arch/arm/mach-omap2/dmtimer.c b/arch/arm/mach-
+> omap2/dmtimer.c
+> > new file mode 100644
+> > index 0000000..b5951b1
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/dmtimer.c
+> > @@ -0,0 +1,296 @@
+> > +/**
+> > + * OMAP2PLUS Dual-Mode Timers - platform device registration
+> > + *
+> > + * Contains first level initialization routines which extracts timers
+> > + * information from hwmod database and registers with linux device
+> model.
+> > + * It also has low level function to chnage the timer input clock
+> source.
+> > + *
+> > + * Copyright (C) 2010 Texas Instruments Incorporated -
+> http://www.ti.com/
+> > + * Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > + *
+> > + * Copyright (C) 2010 Texas Instruments Incorporated
+> > + * Thara Gopinath <thara@ti.com>
+>
+> Don't repeat the same copyright information twice:
+> "Copyright (C) 2010 Texas Instruments Incorporated"
+>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+> > + * kind, whether express or implied; without even the implied warranty
+> > + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > + * GNU General Public License for more details.
+> > + */
+> > +#undef DEBUG
+> > +
+> > +#include <linux/clk.h>
+> > +#include <linux/delay.h>
+> > +#include <linux/io.h>
+> > +#include <linux/err.h>
+> > +#include <linux/slab.h>
+> > +
+> > +#include <mach/irqs.h>
+> > +#include <plat/dmtimer.h>
+> > +#include <plat/powerdomain.h>
+> > +#include <plat/omap_hwmod.h>
+> > +#include <plat/omap_device.h>
+> > +#include <linux/pm_runtime.h>
+>
+> Why is "linux/pm_runtime.h" required in this file? I don't find any use
+> here.
+> Also check if "plat/powerdomain.h" is required.
+Thanks, this is a clean up problem. Lot of implementations were optimized.
+But missed to cleanup the headers which include powerdomain.h, delay.h and
+Irqs.h
 
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Signed-off-by: Mukund Mittal <mmittal@ti.com>
-Signed-off-by: Samreen <samreen@ti.com>
----
- drivers/video/omap2/dss/dispc.c   |   21 +++++-----
- drivers/video/omap2/dss/dss.h     |    4 +-
- drivers/video/omap2/dss/manager.c |   77 +++++++++++++++++++++++--------------
- drivers/video/omap2/dss/overlay.c |   14 ++++++-
- 4 files changed, 72 insertions(+), 44 deletions(-)
+>
+> > +
+> > +static int early_timer_count __initdata = 1;
+> > +
+> > +/**
+> > + * omap2_dm_timer_set_src - change the timer input clock source
+> > + * @pdev:      timer platform device pointer
+> > + * @timer_clk: current clock source
+> > + * @source:    array index of parent clock source
+> > + */
+> > +static int omap2_dm_timer_set_src(struct platform_device *pdev, int
+> source)
+> > +{
+> > +       int ret;
+> > +       struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
+> > +       struct clk *fclk = clk_get(&pdev->dev, "fck");
+> > +       struct clk *new_fclk;
+> > +       char *fclk_name = "32k_ck"; /* default name */
+> > +
+> > +       switch(source) {
+> > +       case OMAP_TIMER_SRC_SYS_CLK:
+> > +               fclk_name = "sys_ck";
+> > +               break;
+> > +
+> > +       case OMAP_TIMER_SRC_32_KHZ:
+> > +               fclk_name = "32k_ck";
+> > +               break;
+> > +
+> > +       case OMAP_TIMER_SRC_EXT_CLK:
+> > +               if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_1) {
+> > +                       fclk_name = "alt_ck";
+> > +                       break;
+> > +               }
+> > +               dev_dbg(&pdev->dev, "%s:%d: invalid clk src.\n",
+> > +                       __func__, __LINE__);
+> > +               return -EINVAL;
+> > +       }
+> > +
+> > +
+> > +       if (IS_ERR_OR_NULL(fclk)) {
+> > +               dev_dbg(&pdev->dev, "%s:%d: clk_get() FAILED\n",
+> > +                       __func__, __LINE__);
+> > +               return -EINVAL;
+> > +       }
+> > +
+> > +       new_fclk = clk_get(&pdev->dev, fclk_name);
+> > +       if (IS_ERR_OR_NULL(new_fclk)) {
+> > +               dev_dbg(&pdev->dev, "%s:%d: clk_get() %s FAILED\n",
+> > +                       __func__, __LINE__, fclk_name);
+> > +               clk_put(fclk);
+> > +               return -EINVAL;
+> > +       }
+> > +
+> > +       ret = clk_set_parent(fclk, new_fclk);
+> > +       if (IS_ERR_VALUE(ret)) {
+> > +               dev_dbg(&pdev->dev, "%s:clk_set_parent() to %s
+> FAILED\n",
+> > +                       __func__, fclk_name);
+> > +               ret = -EINVAL;
+> > +       }
+> > +
+> > +       clk_put(new_fclk);
+> > +       clk_put(fclk);
+> > +
+> > +       return ret;
+> > +}
+> > +
+> > +struct omap_device_pm_latency omap2_dmtimer_latency[] = {
+> > +       {
+> > +               .deactivate_func = omap_device_idle_hwmods,
+> > +               .activate_func   = omap_device_enable_hwmods,
+> > +               .flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> > +       },
+> > +};
+> > +
+> > +/**
+> > + * omap_dm_timer_early_init - build and register early timer device
+> > + * with an associated timer hwmod
+> > + * @oh: timer hwmod pointer to be used to build timer device
+> > + * @user: parameter that can be passed from calling hwmod API
+> > + *
+> > + * early init is called in the last part of omap2_init_common_hw
+> > + * for each early timer class using omap_hwmod_for_each_by_class.
+> > + * it registers each of the timer devices present in the system.
+> > + * at the end of function call memory is allocated for omap_device
+> > + * and hwmod for early timer and the device is registered to the
+> > + * framework ready to be probed by the driver.
+> > + */
+> > +static int __init omap2_timer_early_init(struct omap_hwmod *oh, void
+> *user)
+>
+> Again a repeat comment from other hwmod reviews:
+> if "user" is not used, rename it as "unused"
+Ok.
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index ad8fbcc..1863bce 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1610,8 +1610,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 		bool ilace,
- 		enum omap_dss_rotation_type rotation_type,
- 		u8 rotation, int mirror,
--		u8 global_alpha,
--		u8 pre_mult_alpha)
-+		u8 global_alpha, u8 pre_mult_alpha,
-+		enum omap_channel channel)
- {
- 	const int maxdownscale = cpu_is_omap34xx() ? 4 : 2;
- 	bool five_taps = 0;
-@@ -1710,8 +1710,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 		five_taps = height > out_height * 2;
- 
- 		if (!five_taps) {
--			fclk = calc_fclk(OMAP_DSS_CHANNEL_LCD, width, height,
--					out_width, out_height);
-+			fclk = calc_fclk(channel, width, height, out_width,
-+					out_height);
- 
- 			/* Try 5-tap filter if 3-tap fclk is too high */
- 			if (cpu_is_omap34xx() && height > out_height &&
-@@ -1725,9 +1725,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 		}
- 
- 		if (five_taps)
--			fclk = calc_fclk_five_taps(OMAP_DSS_CHANNEL_LCD, width,
--					height, out_width, out_height,
--					color_mode);
-+			fclk = calc_fclk_five_taps(channel, width, height,
-+					out_width, out_height, color_mode);
- 
- 		DSSDBG("required fclk rate = %lu Hz\n", fclk);
- 		DSSDBG("current fclk rate = %lu Hz\n", dispc_fclk_rate());
-@@ -3374,17 +3373,17 @@ int dispc_setup_plane(enum omap_plane plane,
- 		       bool ilace,
- 		       enum omap_dss_rotation_type rotation_type,
- 		       u8 rotation, bool mirror, u8 global_alpha,
--		       u8 pre_mult_alpha)
-+		       u8 pre_mult_alpha, enum omap_channel channel)
- {
- 	int r = 0;
- 
- 	DSSDBG("dispc_setup_plane %d, pa %x, sw %d, %d,%d, %dx%d -> "
--	       "%dx%d, ilace %d, cmode %x, rot %d, mir %d\n",
-+	       "%dx%d, ilace %d, cmode %x, rot %d, mir %d chan %d\n",
- 	       plane, paddr, screen_width, pos_x, pos_y,
- 	       width, height,
- 	       out_width, out_height,
- 	       ilace, color_mode,
--	       rotation, mirror);
-+	       rotation, mirror, channel);
- 
- 	enable_clocks(1);
- 
-@@ -3397,7 +3396,7 @@ int dispc_setup_plane(enum omap_plane plane,
- 			   rotation_type,
- 			   rotation, mirror,
- 			   global_alpha,
--			   pre_mult_alpha);
-+			   pre_mult_alpha, channel);
- 
- 	enable_clocks(0);
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 2959f82..dd51d3f 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -359,8 +359,8 @@ int dispc_setup_plane(enum omap_plane plane,
- 		      bool ilace,
- 		      enum omap_dss_rotation_type rotation_type,
- 		      u8 rotation, bool mirror,
--		      u8 global_alpha,
--		      u8 pre_mult_alpha);
-+		      u8 global_alpha, u8 pre_mult_alpha,
-+		      enum omap_channel channel);
- 
- bool dispc_go_busy(enum omap_channel channel);
- void dispc_go(enum omap_channel channel);
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 873b334..172d4e6 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -513,11 +513,14 @@ static int dss_mgr_wait_for_vsync(struct omap_overlay_manager *mgr)
- 	unsigned long timeout = msecs_to_jiffies(500);
- 	u32 irq;
- 
--	if (mgr->device->type == OMAP_DISPLAY_TYPE_VENC)
-+	if (mgr->device->type == OMAP_DISPLAY_TYPE_VENC) {
- 		irq = DISPC_IRQ_EVSYNC_ODD;
--	else
--		irq = DISPC_IRQ_VSYNC;
--
-+	} else {
-+		if (mgr->id == OMAP_DSS_CHANNEL_LCD)
-+			irq = DISPC_IRQ_VSYNC;
-+		else
-+			irq = DISPC_IRQ_VSYNC2;
-+	}
- 	return omap_dispc_wait_for_irq_interruptible_timeout(irq, timeout);
- }
- 
-@@ -525,7 +528,6 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- {
- 	unsigned long timeout = msecs_to_jiffies(500);
- 	struct manager_cache_data *mc;
--	enum omap_channel channel;
- 	u32 irq;
- 	int r;
- 	int i;
-@@ -536,7 +538,6 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- 
- 	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
- 		irq = DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN;
--		channel = OMAP_DSS_CHANNEL_DIGIT;
- 	} else {
- 		if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
- 			enum omap_dss_update_mode mode;
-@@ -544,11 +545,14 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- 			if (mode != OMAP_DSS_UPDATE_AUTO)
- 				return 0;
- 
--			irq = DISPC_IRQ_FRAMEDONE;
-+			irq = (dssdev->manager->id == OMAP_DSS_CHANNEL_LCD) ?
-+				DISPC_IRQ_FRAMEDONE
-+				: DISPC_IRQ_FRAMEDONE2;
- 		} else {
--			irq = DISPC_IRQ_VSYNC;
-+			irq = (dssdev->manager->id == OMAP_DSS_CHANNEL_LCD) ?
-+				DISPC_IRQ_VSYNC
-+				: DISPC_IRQ_VSYNC2;
- 		}
--		channel = OMAP_DSS_CHANNEL_LCD;
- 	}
- 
- 	mc = &dss_cache.manager_cache[mgr->id];
-@@ -595,7 +599,6 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
- {
- 	unsigned long timeout = msecs_to_jiffies(500);
--	enum omap_channel channel;
- 	struct overlay_cache_data *oc;
- 	struct omap_dss_device *dssdev;
- 	u32 irq;
-@@ -612,7 +615,6 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
- 
- 	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
- 		irq = DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN;
--		channel = OMAP_DSS_CHANNEL_DIGIT;
- 	} else {
- 		if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
- 			enum omap_dss_update_mode mode;
-@@ -620,11 +622,14 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
- 			if (mode != OMAP_DSS_UPDATE_AUTO)
- 				return 0;
- 
--			irq = DISPC_IRQ_FRAMEDONE;
-+			irq = (dssdev->manager->id == OMAP_DSS_CHANNEL_LCD) ?
-+				DISPC_IRQ_FRAMEDONE
-+				: DISPC_IRQ_FRAMEDONE2;
- 		} else {
--			irq = DISPC_IRQ_VSYNC;
-+			irq = (dssdev->manager->id == OMAP_DSS_CHANNEL_LCD) ?
-+				DISPC_IRQ_VSYNC
-+				: DISPC_IRQ_VSYNC2;
- 		}
--		channel = OMAP_DSS_CHANNEL_LCD;
- 	}
- 
- 	oc = &dss_cache.overlay_cache[ovl->id];
-@@ -844,7 +849,8 @@ static int configure_overlay(enum omap_plane plane)
- 			c->rotation,
- 			c->mirror,
- 			c->global_alpha,
--			c->pre_mult_alpha);
-+			c->pre_mult_alpha,
-+			c->channel);
- 
- 	if (r) {
- 		/* this shouldn't happen */
-@@ -896,10 +902,10 @@ static int configure_dispc(void)
- 	r = 0;
- 	busy = false;
- 
--	mgr_busy[0] = dispc_go_busy(0);
--	mgr_busy[1] = dispc_go_busy(1);
--	mgr_go[0] = false;
--	mgr_go[1] = false;
-+	for (i = 0; i < num_mgrs; i++) {
-+		mgr_busy[i] = dispc_go_busy(i);
-+		mgr_go[i] = false;
-+	}
- 
- 	/* Commit overlay settings */
- 	for (i = 0; i < num_ovls; ++i) {
-@@ -1158,9 +1164,10 @@ static void dss_apply_irq_handler(void *data, u32 mask)
- 	const int num_mgrs = dss_feat_get_num_mgrs();
- 	int i, r;
- 	bool mgr_busy[MAX_DSS_MANAGERS];
-+	u32 irq_mask;
- 
--	mgr_busy[0] = dispc_go_busy(0);
--	mgr_busy[1] = dispc_go_busy(1);
-+	for (i = 0; i < num_mgrs; i++)
-+		mgr_busy[i] = dispc_go_busy(i);
- 
- 	spin_lock(&dss_cache.lock);
- 
-@@ -1181,8 +1188,8 @@ static void dss_apply_irq_handler(void *data, u32 mask)
- 		goto end;
- 
- 	/* re-read busy flags */
--	mgr_busy[0] = dispc_go_busy(0);
--	mgr_busy[1] = dispc_go_busy(1);
-+	for (i = 0; i < num_mgrs; i++)
-+		mgr_busy[i] = dispc_go_busy(i);
- 
- 	/* keep running as long as there are busy managers, so that
- 	 * we can collect overlay-applied information */
-@@ -1191,9 +1198,12 @@ static void dss_apply_irq_handler(void *data, u32 mask)
- 			goto end;
- 	}
- 
--	omap_dispc_unregister_isr(dss_apply_irq_handler, NULL,
--			DISPC_IRQ_VSYNC	| DISPC_IRQ_EVSYNC_ODD |
--			DISPC_IRQ_EVSYNC_EVEN);
-+	irq_mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_ODD |
-+			DISPC_IRQ_EVSYNC_EVEN;
-+	if (dss_has_feature(FEAT_MGR_LCD2))
-+		irq_mask |= DISPC_IRQ_VSYNC2;
-+
-+	omap_dispc_unregister_isr(dss_apply_irq_handler, NULL, irq_mask);
- 	dss_cache.irq_enabled = false;
- 
- end:
-@@ -1386,9 +1396,14 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
- 	r = 0;
- 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
- 	if (!dss_cache.irq_enabled) {
--		r = omap_dispc_register_isr(dss_apply_irq_handler, NULL,
--				DISPC_IRQ_VSYNC	| DISPC_IRQ_EVSYNC_ODD |
--				DISPC_IRQ_EVSYNC_EVEN);
-+		u32 mask;
-+
-+		mask = DISPC_IRQ_VSYNC	| DISPC_IRQ_EVSYNC_ODD |
-+			DISPC_IRQ_EVSYNC_EVEN;
-+		if (dss_has_feature(FEAT_MGR_LCD2))
-+			mask |= DISPC_IRQ_VSYNC2;
-+
-+		r = omap_dispc_register_isr(dss_apply_irq_handler, NULL, mask);
- 		dss_cache.irq_enabled = true;
- 	}
- 	configure_dispc();
-@@ -1480,6 +1495,10 @@ int dss_init_overlay_managers(struct platform_device *pdev)
- 			mgr->name = "tv";
- 			mgr->id = OMAP_DSS_CHANNEL_DIGIT;
- 			break;
-+		case 2:
-+			mgr->name = "lcd2";
-+			mgr->id = OMAP_DSS_CHANNEL_LCD2;
-+			break;
- 		}
- 
- 		mgr->set_device = &omap_dss_set_device;
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index 41a2902..456efef 100644
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -664,12 +664,22 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force)
- 	int i;
- 	struct omap_overlay_manager *lcd_mgr;
- 	struct omap_overlay_manager *tv_mgr;
-+	struct omap_overlay_manager *lcd2_mgr = NULL;
- 	struct omap_overlay_manager *mgr = NULL;
- 
- 	lcd_mgr = omap_dss_get_overlay_manager(OMAP_DSS_OVL_MGR_LCD);
- 	tv_mgr = omap_dss_get_overlay_manager(OMAP_DSS_OVL_MGR_TV);
--
--	if (dssdev->type != OMAP_DISPLAY_TYPE_VENC) {
-+	if (dss_has_feature(FEAT_MGR_LCD2))
-+		lcd2_mgr = omap_dss_get_overlay_manager(OMAP_DSS_OVL_MGR_LCD2);
-+
-+	if (dssdev->channel == OMAP_DSS_CHANNEL_LCD2) {
-+		if (!lcd2_mgr->device || force) {
-+			if (lcd2_mgr->device)
-+				lcd2_mgr->unset_device(lcd2_mgr);
-+			lcd2_mgr->set_device(lcd2_mgr, dssdev);
-+			mgr = lcd2_mgr;
-+		}
-+	} else if (dssdev->type != OMAP_DISPLAY_TYPE_VENC) {
- 		if (!lcd_mgr->device || force) {
- 			if (lcd_mgr->device)
- 				lcd_mgr->unset_device(lcd_mgr);
--- 
-1.7.0.4
-
+>
+> > +{
+> > +       int id;
+> > +       int ret = 0;
+> > +       char *name = "omap-timer";
+> > +       struct dmtimer_platform_data *pdata;
+> > +       struct omap_device *od;
+> > +
+> > +       pr_debug("%s:%s\n", __func__, oh->name);
+> > +
+> > +       pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+> > +       if (!pdata) {
+> > +               pr_err("%s: No memory for [%s]\n", __func__, oh->name);
+> > +               return -ENOMEM;
+> > +       }
+> > +
+> > +       pdata->is_early_init = 1;
+> > +
+> > +       /* hook clock set/get functions */
+> > +       pdata->set_timer_src = omap2_dm_timer_set_src;
+> > +
+> > +       /* read timer ip version */
+> > +       pdata->timer_ip_type = oh->class->rev;
+> > +       if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
+> > +               pdata->func_offst = 0x14;
+> > +               pdata->intr_offst = 0x10;
+> > +       } else {
+> > +               pdata->func_offst = 0;
+> > +               pdata->intr_offst = 0;
+> > +       }
+> > +
+> > +       /*
+> > +        * extract the id from name filed in hwmod database
+> > +        * and use the same for constructing ids' for the
+> > +        * timer devices. in a way, we are avoiding usage of
+> > +        * static variable witin the function to do the same.
+> > +        * CAUTION: we have to be careful and make sure the
+> > +        * name in hwmod database does not change in which case
+> > +        * we might either make corresponding change here or
+> > +        * switch back static variable mechanism.
+> > +        */
+> > +       sscanf(oh->name, "timer%2d", &id);
+> > +
+> > +       od = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
+> > +                       omap2_dmtimer_latency,
+> > +                       ARRAY_SIZE(omap2_dmtimer_latency), 1);
+> > +
+> > +       if (IS_ERR(od)) {
+> > +               pr_err("%s: Cant build omap_device for %s:%s.\n",
+> > +                       __func__, name, oh->name);
+> > +               ret = -EINVAL;
+> > +       } else
+> > +               early_timer_count++;
+> > +       /*
+> > +        * pdata can be freed because omap_device_build
+> > +        * creates its own memory pool
+> > +        */
+>
+> No need to mention this.
+OK, I will remove.
+>
+> > +       kfree(pdata);
+> > +
+> > +       return ret;
+> > +}
+> > +
+> > +/**
+> > + * omap2_dm_timer_init - build and register timer device with an
+> > + * associated timer hwmod
+> > + * @oh:        timer hwmod pointer to be used to build timer device
+> > + * @user:      parameter that can be passed from calling hwmod API
+> > + *
+> > + * called by omap_hwmod_for_each_by_class to register each of the timer
+> > + * devices present in the system. the number of timer devices is known
+> > + * by parsing through the hwmod database for a given class name. at the
+> > + * end of function call memory is allocated for omap_device and hwmod
+> > + * for timer and the device is registered to the framework ready to be
+> > + * proved by the driver.
+> > + */
+> > +static int __init omap2_timer_init(struct omap_hwmod *oh, void *user)
+>
+> omap2_timer_init() and omap2_timer_early_init() looks similar except for
+> pdata->is_early_init value. Why not have a common function and call it
+> with appropriate pdata->is_early_init value?
+>
+> > +{
+> > +       int id;
+> > +       int ret = 0;
+> > +       char *name = "omap-timer";
+> > +       struct omap_device *od;
+> > +       struct dmtimer_platform_data *pdata;
+> > +
+> > +       if (!oh) {
+> > +               pr_err("%s:NULL hwmod pointer (oh)\n", __func__);
+> > +               return -EINVAL;
+> > +       }
+> > +       pr_debug("%s:%s\n", __func__, oh->name);
+> > +
+> > +       pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+> > +       if (!pdata) {
+> > +               pr_err("%s:No memory for [%s]\n",  __func__, oh->name);
+> > +               return -ENOMEM;
+> > +       }
+> > +
+> > +       pdata->is_early_init = 0;
+> > +
+> > +       /* hook clock set/get functions */
+> > +       pdata->set_timer_src = omap2_dm_timer_set_src;
+> > +
+> > +       /* read timer ip version */
+> > +       pdata->timer_ip_type = oh->class->rev;
+> > +       if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
+> > +               pdata->func_offst = 0x14;
+> > +               pdata->intr_offst = 0x10;
+> > +       } else {
+> > +               pdata->func_offst = 0;
+> > +               pdata->intr_offst = 0;
+> > +        }
+> > +
+> > +       /*
+> > +        * extract the id from name filed in hwmod database
+> > +        * and use the same for constructing ids' for the
+> > +        * timer devices. in a way, we are avoiding usage of
+> > +        * static variable witin the function to do the same.
+> > +        * CAUTION: we have to be careful and make sure the
+> > +        * name in hwmod database does not change in which case
+> > +        * we might either make corresponding change here or
+> > +        * switch back static variable mechanism.
+> > +        */
+> > +       sscanf(oh->name, "timer%2d", &id);
+> > +
+> > +       od = omap_device_build(name, id, oh,
+> > +                       pdata, sizeof(*pdata),
+> > +                       omap2_dmtimer_latency,
+> > +                       ARRAY_SIZE(omap2_dmtimer_latency), 0);
+> > +
+> > +       if (IS_ERR(od)) {
+> > +               pr_err("%s: Cant build omap_device for %s:%s.\n",
+> > +                       __func__, name, oh->name);
+> > +               ret =  -EINVAL;
+> > +       }
+> > +       /*
+> > +        * pdata can be freed because omap_device_build
+> > +        * creates its own memory pool
+> > +        */
+>
+> Ditto.
+OK.
+>
+> > +       kfree(pdata);
+> > +       return ret;
+> > +}
+> > +
+> > +/**
+> > + * omap2_dm_timer_early_init - top level early timer initialization
+> > + * called in the last part of omap2_init_common_hw
+> > + *
+> > + * uses dedicated hwmod api to parse through hwmod database for
+> > + * given class name and then build and register the timer device.
+> > + * at the end driver is registered and early probe initiated.
+> > + */
+> > +void __init omap2_dm_timer_early_init(void)
+> > +{
+> > +       if (omap_hwmod_for_each_by_class("timer",
+> > +               omap2_timer_early_init, NULL)) {
+> > +               pr_debug("%s: device registration FAILED\n", __func__);
+> > +               return;
+> > +       }
+> > +       early_platform_driver_register_all("earlytimer");
+> > +       early_platform_driver_probe("earlytimer", early_timer_count, 0);
+> > +}
+> > +
+> > +/**
+> > + * omap_timer_init - top level timer device initialization
+> > + *
+> > + * uses dedicated hwmod api to parse through hwmod database for
+> > + * given class names and then build and register the timer device.
+> > + */
+> > +static int __init omap2_dmtimer_device_init(void)
+> > +{
+> > +       int ret = omap_hwmod_for_each_by_class("timer",
+> omap2_timer_init, NULL);
+> > +
+> > +       if (unlikely(ret))
+> > +               pr_debug("%s: device registration FAILED\n", __func__);
+> > +
+> > +       return ret;
+> > +}
+> > +arch_initcall(omap2_dmtimer_device_init);
+> > --
+> > 1.6.0.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
