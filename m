@@ -1,91 +1,54 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: RE: [PATCH 2/6] OMAP: powerdomain: Infrastructure to put arch
- specific code
-Date: Mon, 22 Nov 2010 11:51:58 +0530
-Message-ID: <83e82c84a0393aee1b1a9262149a819a@mail.gmail.com>
-References: <1289921886-5139-1-git-send-email-rnayak@ti.com><1289921886-5139-2-git-send-email-rnayak@ti.com><1289921886-5139-3-git-send-email-rnayak@ti.com>
- <20101116171117.46a13d0a@surf>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: No more software ECC in omap2.c NAND driver. Why?
+Date: Mon, 22 Nov 2010 11:57:01 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0369C42A32@dbde02.ent.ti.com>
+References: <201011221001.22909.manningc2@actrix.gen.nz>
+ <C90F48F4.2031A%marathon96@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:43083 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750792Ab0KVGWI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Nov 2010 01:22:08 -0500
-Received: by mail-qy0-f179.google.com with SMTP id 9so311652qyk.17
-        for <linux-omap@vger.kernel.org>; Sun, 21 Nov 2010 22:22:08 -0800 (PST)
-In-Reply-To: <20101116171117.46a13d0a@surf>
+Received: from comal.ext.ti.com ([198.47.26.152]:57007 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750792Ab0KVG1K convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 01:27:10 -0500
+In-Reply-To: <C90F48F4.2031A%marathon96@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>, khilman@deeprootsystems.com
+To: Grant Erickson <marathon96@gmail.com>, Charles Manning <manningc2@actrix.gen.nz>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>
 
-Hi Thomas,
+
 
 > -----Original Message-----
-> From: Thomas Petazzoni [mailto:thomas.petazzoni@free-electrons.com]
-> Sent: Tuesday, November 16, 2010 9:41 PM
-> To: Rajendra Nayak
-> Cc: linux-omap@vger.kernel.org; paul@pwsan.com; b-cousson@ti.com;
-khilman@deeprootsystems.com
-> Subject: Re: [PATCH 2/6] OMAP: powerdomain: Infrastructure to put arch
-specific code
->
-> On Tue, 16 Nov 2010 21:08:02 +0530
-> Rajendra Nayak <rnayak@ti.com> wrote:
->
-> > +struct pwrdm_functions {
-> > +	int	(*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8
-pwrst);
-> > +	int	(*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
-> > +	int	(*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
-> > +	int	(*pwrdm_read_prev_pwrst)(struct powerdomain *pwrdm);
-> > +	int	(*pwrdm_set_logic_retst)(struct powerdomain *pwrdm, u8
-pwrst);
-> > +	int	(*pwrdm_set_mem_onst)(struct powerdomain *pwrdm, u8 bank,
-u8 pwrst);
-> > +	int	(*pwrdm_set_mem_retst)(struct powerdomain *pwrdm, u8 bank,
-u8 pwrst);
-> > +	int	(*pwrdm_read_logic_pwrst)(struct powerdomain *pwrdm);
-> > +	int	(*pwrdm_read_prev_logic_pwrst)(struct powerdomain *pwrdm);
-> > +	int	(*pwrdm_read_logic_retst)(struct powerdomain *pwrdm);
-> > +	int	(*pwrdm_read_mem_pwrst)(struct powerdomain *pwrdm, u8
-bank);
-> > +	int	(*pwrdm_read_prev_mem_pwrst)(struct powerdomain *pwrdm, u8
-bank);
-> > +	int	(*pwrdm_read_mem_retst)(struct powerdomain *pwrdm, u8
-bank);
-> > +	int	(*pwrdm_clear_all_prev_pwrst)(struct powerdomain *pwrdm);
-> > +	int	(*pwrdm_enable_hdwr_sar)(struct powerdomain *pwrdm);
-> > +	int	(*pwrdm_disable_hdwr_sar)(struct powerdomain *pwrdm);
-> > +	int	(*pwrdm_set_lowpwrstchange)(struct powerdomain *pwrdm);
-> > +	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
-> > +};
->
-> It would probably be great to have some short documentation on this
-> structure, to detail what are the different operations, what they
-> should do, etc.
+> From: Grant Erickson [mailto:marathon96@gmail.com]
+> Sent: Monday, November 22, 2010 11:39 AM
+> To: Charles Manning
+> Cc: linux-omap@vger.kernel.org; Grazvydas Ignotas; Ghorai, Sukumar
+> Subject: Re: No more software ECC in omap2.c NAND driver. Why?
+> 
+> On 11/21/10 1:01 PM, Charles Manning wrote:
+> > Just recompiling with the CONFIG_MTD_NAND_OMAP_HWECC define commented
+> out did
+> > not result in a working system. I suspect there is more tto the problem
+> than
+> > this.
+> 
+> FWIW, I had the exact same issues with my Mistral AM37x EVM board. I not
+> only had to remove/deassert CONFIG_MTD_NAND_OMAP_HWECC, but also had to
+> roll
+> back nand_base.c and nand_bbt.c back to their 2.6.32 versions (later ones
+> between .32 and .35 might have worked but I didn't bother trying) to be
+> able
+> to read, error-free and correctly, NAND that was erased and written with a
+> .32-era kernel.
+[Ghorai] are you trying again?
+How do you flush the FS (form u-boot or from kernel, nandwrite)? And let me know the test you are doing, to know the steps to reproduce in my platform - zoom/sdp.
+ 
+> 
+> Best,
+> 
+> Grant Erickson
+> 
 
-Sure, I can add some kerneldoc style headers to the structure to better
-understand
-what these functions should do on each OMAP.
-
->
-> By the way, would pwrdm_operations be more linux-ish than
-> pwrdm_functions ?
-
-I agree. I'll do this as well before I post a V2.
-
-Thanks for the review.
-Regards,
-Rajendra
->
-> Thanks,
->
-> Thomas
-> --
-> Thomas Petazzoni, Free Electrons
-> Kernel, drivers, real-time and embedded Linux
-> development, consulting, training and support.
-> http://free-electrons.com
