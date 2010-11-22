@@ -1,94 +1,80 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] OMAP3: disable idle early in the suspend sequence
-Date: Mon, 22 Nov 2010 20:40:02 +0100
-Message-ID: <AANLkTinb=QoQERdrCUU4nqoEn1Ukj9d3oRyuJW0bgvKA@mail.gmail.com>
-References: <1290422697-2300-1-git-send-email-j-pihet@ti.com>
-	<87y68luu0c.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/5] omap4: l2x0: Construct the AUXCTRL value using defines
+Date: Mon, 22 Nov 2010 12:11:01 -0800
+Message-ID: <8762vpp19m.fsf@deeprootsystems.com>
+References: <1290187866-26941-1-git-send-email-santosh.shilimkar@ti.com>
+	<1290187866-26941-2-git-send-email-santosh.shilimkar@ti.com>
+	<1290187866-26941-3-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:60460 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756684Ab0KVTkD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 14:40:03 -0500
-Received: by qyk11 with SMTP id 11so602425qyk.19
-        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 11:40:03 -0800 (PST)
-In-Reply-To: <87y68luu0c.fsf@deeprootsystems.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:41410 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755512Ab0KVULG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 15:11:06 -0500
+Received: by gwb19 with SMTP id 19so224146gwb.19
+        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 12:11:05 -0800 (PST)
+In-Reply-To: <1290187866-26941-3-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Fri, 19 Nov 2010 23:01:03 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, nm@ti.com, mans@mansr.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-On Mon, Nov 22, 2010 at 6:51 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
->
->> Some bad interaction between the idle and the suspend paths has been
->> noticed: the idle code is called during the suspend enter and exit
->> sequences. This could cause corruption or lock-up of resources.
->
->> The solution is to move the call to disable_hlt at the very beginnin=
-g
->> of the suspend sequence (in omap3_pm_begin instead of omap3_pm_prepa=
-re),
->> and the call to enable_hlt at the very end of the suspend sequence
->> (in omap3_pm_end instead of omap3_pm_finish).
->>
->> Tested with RET and OFF on Beagle and OMAP3EVM.
->
-> I think the description could have a little more detail. =A0Something=
- like:
->
-> Idle path should be disabled during the entire suspend/resume sequenc=
-e.
-> Currently it is disabled in ->prepare() and re-enabled in ->finish(),
-> but the suspend sequence starts with ->begin() and ends with ->end(),
-> leaving windows where the suspend/resume sequence is still underway a=
-nd
-> idle code could execute.
->
-> To fix, move idle disable and enable into ->begin() and ->end()
-> respectively to ensure idle path is disabled for the entire
-> suspend/resume sequence.
->
-Ok thx for the suggestion.
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
->>
->> @@ -576,12 +575,12 @@ static int omap3_pm_enter(suspend_state_t unus=
-ed)
->>
->> =A0static void omap3_pm_finish(void)
->> =A0{
->> - =A0 =A0 enable_hlt();
->> =A0}
+> This patch removes the hardcoded value of auxctrl value and
+> construct it using bitfields
 >
-> Might as well remove these empty functions now.
->
->> =A0/* Hooks to enable / disable UART interrupts during suspend */
->> =A0static int omap3_pm_begin(suspend_state_t state)
->> =A0{
->> + =A0 =A0 disable_hlt();
->> =A0 =A0 =A0 suspend_state =3D state;
->> =A0 =A0 =A0 omap_uart_enable_irqs(0);
->> =A0 =A0 =A0 return 0;
->> @@ -591,6 +590,7 @@ static void omap3_pm_end(void)
->> =A0{
->> =A0 =A0 =A0 suspend_state =3D PM_SUSPEND_ON;
->> =A0 =A0 =A0 omap_uart_enable_irqs(1);
->> + =A0 =A0 enable_hlt();
->> =A0 =A0 =A0 return;
->> =A0}
->
-> Kevin
->
+> Bit 25 is reserved and is always set to 1. Same value
+> of this bit is retained in this patch
 
-Ok resent!
+Is this OMAP specific, or is this ARM generic?
 
-Thx,
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Tested-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap4-common.c |   13 +++++++++++--
+>  1 files changed, 11 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+> index 2f89555..c814604 100644
+> --- a/arch/arm/mach-omap2/omap4-common.c
+> +++ b/arch/arm/mach-omap2/omap4-common.c
+> @@ -53,6 +53,8 @@ static void omap4_l2x0_disable(void)
+>  
+>  static int __init omap_l2_cache_init(void)
+>  {
+> +	u32 aux_ctrl = 0;
+> +
+>  	/*
+>  	 * To avoid code running on other OMAPs in
+>  	 * multi-omap builds
+> @@ -72,10 +74,17 @@ static int __init omap_l2_cache_init(void)
+>  	 * Way size - 32KB (es1.0)
+>  	 * Way size - 64KB (es2.0 +)
+>  	 */
+> +	aux_ctrl = ((1 << L2X0_AUX_CTRL_ASSOCIATIVITY_SHIFT) |
+> +			(0x1 << 25) |
+
+it doesn't look right to have a single hard-coded constant here among
+the others.   Either give this a name (RESERVED_ALWAYS_1, or something)
+or add a comment to the code like is done in the changelog.
+
+> +			(0x1 << L2X0_AUX_CTRL_NS_LOCKDOWN_SHIFT) |
+> +			(0x1 << L2X0_AUX_CTRL_NS_INT_CTRL_SHIFT));
+> +
+>  	if (omap_rev() == OMAP4430_REV_ES1_0)
+> -		l2x0_init(l2cache_base, 0x0e050000, 0xc0000fff);
+> +		aux_ctrl |= 0x2 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT;
+>  	else
+> -		l2x0_init(l2cache_base, 0x0e070000, 0xc0000fff);
+> +		aux_ctrl |= 0x3 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT;
+> +
+> +	l2x0_init(l2cache_base, aux_ctrl, L2X0_AUX_CTRL_MASK);
+>  
+>  	/*
+>  	 * Override default outer_cache.disable with a OMAP4
+
+Kevin
+
