@@ -1,215 +1,133 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 1/4] OMAP: hwmod: Make omap_hwmod_register private and remove omap_hwmod_unregister
-Date: Mon, 22 Nov 2010 09:50:57 +0100
-Message-ID: <1290415860-15632-2-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 3/4] OMAP: hwmod: Remove omap_hwmod_mutex
+Date: Mon, 22 Nov 2010 09:50:59 +0100
+Message-ID: <1290415860-15632-4-git-send-email-b-cousson@ti.com>
 References: <1290415860-15632-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40132 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34898 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751940Ab0KVIvK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Nov 2010 03:51:10 -0500
+	id S1752319Ab0KVIvS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Nov 2010 03:51:18 -0500
 In-Reply-To: <1290415860-15632-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Do not allow omap_hwmod_register to be used outside the core
-hwmod code. An omap_hwmod should be register only at init time.
-Remove the omap_hwmod_unregister that is not used today since the
-hwmod list will be build once at init time and never be modified
-at runtime.
+The hwmod list will be built are init time and never
+modified at runtime. There is no need anymore to protect
+the list from concurrent access using the mutex.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |  135 ++++++++++---------------
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 -
- 2 files changed, 54 insertions(+), 83 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   26 ++++----------------------
+ 1 files changed, 4 insertions(+), 22 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 5a30658..9cedea0 100644
+index 8e47006..f221587 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1374,6 +1374,58 @@ static int _setup(struct omap_hwmod *oh, void *data)
- 	return 0;
- }
+@@ -156,8 +156,6 @@
+ /* omap_hwmod_list contains all registered struct omap_hwmods */
+ static LIST_HEAD(omap_hwmod_list);
  
-+/**
-+ * _register - register a struct omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Registers the omap_hwmod @oh.  Returns -EEXIST if an omap_hwmod
-+ * already has been registered by the same name; -EINVAL if the
-+ * omap_hwmod is in the wrong state, if @oh is NULL, if the
-+ * omap_hwmod's class field is NULL; if the omap_hwmod is missing a
-+ * name, or if the omap_hwmod's class is missing a name; or 0 upon
-+ * success.
-+ *
-+ * XXX The data should be copied into bootmem, so the original data
-+ * should be marked __initdata and freed after init.  This would allow
-+ * unneeded omap_hwmods to be freed on multi-OMAP configurations.  Note
-+ * that the copy process would be relatively complex due to the large number
-+ * of substructures.
-+ */
-+static int _register(struct omap_hwmod *oh)
-+{
-+	int ret, ms_id;
-+
-+	if (!oh || !oh->name || !oh->class || !oh->class->name ||
-+	    (oh->_state != _HWMOD_STATE_UNKNOWN))
-+		return -EINVAL;
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+
-+	pr_debug("omap_hwmod: %s: registering\n", oh->name);
-+
-+	if (_lookup(oh->name)) {
-+		ret = -EEXIST;
-+		goto ohr_unlock;
-+	}
-+
-+	ms_id = _find_mpu_port_index(oh);
-+	if (!IS_ERR_VALUE(ms_id)) {
-+		oh->_mpu_port_index = ms_id;
-+		oh->_mpu_rt_va = _find_mpu_rt_base(oh, oh->_mpu_port_index);
-+	} else {
-+		oh->_int_flags |= _HWMOD_NO_MPU_PORT;
-+	}
-+
-+	list_add_tail(&oh->node, &omap_hwmod_list);
-+
-+	oh->_state = _HWMOD_STATE_REGISTERED;
-+
-+	ret = 0;
-+
-+ohr_unlock:
-+	mutex_unlock(&omap_hwmod_mutex);
-+	return ret;
-+}
- 
- 
- /* Public functions */
-@@ -1427,59 +1479,6 @@ int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode)
- }
- 
- /**
-- * omap_hwmod_register - register a struct omap_hwmod
-- * @oh: struct omap_hwmod *
-- *
-- * Registers the omap_hwmod @oh.  Returns -EEXIST if an omap_hwmod
-- * already has been registered by the same name; -EINVAL if the
-- * omap_hwmod is in the wrong state, if @oh is NULL, if the
-- * omap_hwmod's class field is NULL; if the omap_hwmod is missing a
-- * name, or if the omap_hwmod's class is missing a name; or 0 upon
-- * success.
-- *
-- * XXX The data should be copied into bootmem, so the original data
-- * should be marked __initdata and freed after init.  This would allow
-- * unneeded omap_hwmods to be freed on multi-OMAP configurations.  Note
-- * that the copy process would be relatively complex due to the large number
-- * of substructures.
-- */
--int omap_hwmod_register(struct omap_hwmod *oh)
--{
--	int ret, ms_id;
+-static DEFINE_MUTEX(omap_hwmod_mutex);
 -
--	if (!oh || !oh->name || !oh->class || !oh->class->name ||
--	    (oh->_state != _HWMOD_STATE_UNKNOWN))
--		return -EINVAL;
--
+ /* mpu_oh: used to add/remove MPU initiator from sleepdep list */
+ static struct omap_hwmod *mpu_oh;
+ 
+@@ -874,7 +872,6 @@ static void _shutdown_sysc(struct omap_hwmod *oh)
+  * @name: find an omap_hwmod by name
+  *
+  * Return a pointer to an omap_hwmod by name, or NULL if not found.
+- * Caller must hold omap_hwmod_mutex.
+  */
+ static struct omap_hwmod *_lookup(const char *name)
+ {
+@@ -1399,14 +1396,10 @@ static int __init _register(struct omap_hwmod *oh)
+ 	    (oh->_state != _HWMOD_STATE_UNKNOWN))
+ 		return -EINVAL;
+ 
 -	mutex_lock(&omap_hwmod_mutex);
 -
--	pr_debug("omap_hwmod: %s: registering\n", oh->name);
--
+ 	pr_debug("omap_hwmod: %s: registering\n", oh->name);
+ 
 -	if (_lookup(oh->name)) {
 -		ret = -EEXIST;
 -		goto ohr_unlock;
 -	}
--
--	ms_id = _find_mpu_port_index(oh);
--	if (!IS_ERR_VALUE(ms_id)) {
--		oh->_mpu_port_index = ms_id;
--		oh->_mpu_rt_va = _find_mpu_rt_base(oh, oh->_mpu_port_index);
--	} else {
--		oh->_int_flags |= _HWMOD_NO_MPU_PORT;
--	}
--
--	list_add_tail(&oh->node, &omap_hwmod_list);
--
--	oh->_state = _HWMOD_STATE_REGISTERED;
--
--	ret = 0;
--
++	if (_lookup(oh->name))
++		return -EEXIST;
+ 
+ 	ms_id = _find_mpu_port_index(oh);
+ 	if (!IS_ERR_VALUE(ms_id)) {
+@@ -1422,8 +1415,6 @@ static int __init _register(struct omap_hwmod *oh)
+ 
+ 	ret = 0;
+ 
 -ohr_unlock:
 -	mutex_unlock(&omap_hwmod_mutex);
--	return ret;
--}
--
--/**
-  * omap_hwmod_lookup - look up a registered omap_hwmod by name
-  * @name: name of the omap_hwmod to look up
-  *
-@@ -1558,8 +1557,8 @@ int omap_hwmod_init(struct omap_hwmod **ohs)
- 	oh = *ohs;
- 	while (oh) {
- 		if (omap_chip_is(oh->omap_chip)) {
--			r = omap_hwmod_register(oh);
--			WARN(r, "omap_hwmod: %s: omap_hwmod_register returned "
-+			r = _register(oh);
-+			WARN(r, "omap_hwmod: %s: _register returned "
- 			     "%d\n", oh->name, r);
- 		}
- 		oh = *++ohs;
-@@ -1597,32 +1596,6 @@ int omap_hwmod_late_init(u8 skip_setup_idle)
+ 	return ret;
  }
  
- /**
-- * omap_hwmod_unregister - unregister an omap_hwmod
-- * @oh: struct omap_hwmod *
-- *
-- * Unregisters a previously-registered omap_hwmod @oh.  There's probably
-- * no use case for this, so it is likely to be removed in a later version.
-- *
-- * XXX Free all of the bootmem-allocated structures here when that is
-- * implemented.  Make it clear that core code is the only code that is
-- * expected to unregister modules.
-- */
--int omap_hwmod_unregister(struct omap_hwmod *oh)
--{
--	if (!oh)
--		return -EINVAL;
--
--	pr_debug("omap_hwmod: %s: unregistering\n", oh->name);
--
+@@ -1492,9 +1483,7 @@ struct omap_hwmod *omap_hwmod_lookup(const char *name)
+ 	if (!name)
+ 		return NULL;
+ 
 -	mutex_lock(&omap_hwmod_mutex);
--	iounmap(oh->_mpu_rt_va);
--	list_del(&oh->node);
+ 	oh = _lookup(name);
+-	mutex_unlock(&omap_hwmod_mutex);
+ 
+ 	return oh;
+ }
+@@ -1520,13 +1509,11 @@ int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh, void *data),
+ 	if (!fn)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&omap_hwmod_mutex);
+ 	list_for_each_entry(temp_oh, &omap_hwmod_list, node) {
+ 		ret = (*fn)(temp_oh, data);
+ 		if (ret)
+ 			break;
+ 	}
+-	mutex_unlock(&omap_hwmod_mutex);
+ 
+ 	return ret;
+ }
+@@ -2048,9 +2035,8 @@ int omap_hwmod_read_hardreset(struct omap_hwmod *oh, const char *name)
+  * @fn: callback function pointer to call for each hwmod in class @classname
+  * @user: arbitrary context data to pass to the callback function
+  *
+- * For each omap_hwmod of class @classname, call @fn.  Takes
+- * omap_hwmod_mutex to prevent the hwmod list from changing during the
+- * iteration.  If the callback function returns something other than
++ * For each omap_hwmod of class @classname, call @fn.
++ * If the callback function returns something other than
+  * zero, the iterator is terminated, and the callback function's return
+  * value is passed back to the caller.  Returns 0 upon success, -EINVAL
+  * if @classname or @fn are NULL, or passes back the error code from @fn.
+@@ -2069,8 +2055,6 @@ int omap_hwmod_for_each_by_class(const char *classname,
+ 	pr_debug("omap_hwmod: %s: looking for modules of class %s\n",
+ 		 __func__, classname);
+ 
+-	mutex_lock(&omap_hwmod_mutex);
+-
+ 	list_for_each_entry(temp_oh, &omap_hwmod_list, node) {
+ 		if (!strcmp(temp_oh->class->name, classname)) {
+ 			pr_debug("omap_hwmod: %s: %s: calling callback fn\n",
+@@ -2081,8 +2065,6 @@ int omap_hwmod_for_each_by_class(const char *classname,
+ 		}
+ 	}
+ 
 -	mutex_unlock(&omap_hwmod_mutex);
 -
--	return 0;
--}
--
--/**
-  * omap_hwmod_enable - enable an omap_hwmod
-  * @oh: struct omap_hwmod *
-  *
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 7eaa8ed..51e86d7 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -504,8 +504,6 @@ struct omap_hwmod {
- };
- 
- int omap_hwmod_init(struct omap_hwmod **ohs);
--int omap_hwmod_register(struct omap_hwmod *oh);
--int omap_hwmod_unregister(struct omap_hwmod *oh);
- struct omap_hwmod *omap_hwmod_lookup(const char *name);
- int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh, void *data),
- 			void *data);
+ 	if (ret)
+ 		pr_debug("omap_hwmod: %s: iterator terminated early: %d\n",
+ 			 __func__, ret);
 -- 
 1.7.0.4
 
