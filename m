@@ -1,55 +1,88 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/2] AM35x: musb: fix compilation error
-Date: Mon, 22 Nov 2010 14:22:40 +0530
-Message-ID: <1290415961-21177-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: "Srinath R" <srinath@mistralsolutions.com>
+Subject: RE: [Patch v1] AM35xx: Craneboard: Add USB EHCI support
+Date: Mon, 22 Nov 2010 14:25:48 +0530
+Message-ID: <000501cb8a23$12ec36f0$38c4a4d0$@com>
+References: <[PATCH] AM35xx-Craneboard-Add-USB-EHCI-support> <1290182862-21837-1-git-send-email-srinath@mistralsolutions.com> <4CE7B35F.6000704@ru.mvista.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4CE7B35F.6000704@ru.mvista.com>
+Content-Language: en-us
+Sender: linux-kernel-owner@vger.kernel.org
+To: 'Sergei Shtylyov' <sshtylyov@mvista.com>
+Cc: linux-omap@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, umeshk@mistralsolutions.com, tony@atomide.com, nagendra@mistralsolutions.com, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, jdk@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Fixes compilation error as control.h APIs are not available to
-drivers/usb/musb/am35x.c file. Earlier it was getting included
-from <plat/control.h> but now moved to new location by another
-pacth.
+Hi Sergei,
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
----
-Patch created against latest Linus's tree (v2.6.37-rc3)
+Thanks for review, I will modify and resend patch.
 
- arch/arm/plat-omap/include/plat/usb.h |    2 ++
- drivers/usb/musb/am35x.c              |    1 -
- 2 files changed, 2 insertions(+), 1 deletions(-)
+With Regards
+Srinath
 
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index 59c7fe7..f1b8b40 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -6,6 +6,8 @@
- #include <linux/usb/musb.h>
- #include <plat/board.h>
- 
-+#include "../../../mach-omap2/control.h"
-+
- #define OMAP3_HS_USB_PORTS	3
- enum ehci_hcd_omap_mode {
- 	EHCI_HCD_OMAP_MODE_UNKNOWN,
-diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
-index b0aabf3..30f524a 100644
---- a/drivers/usb/musb/am35x.c
-+++ b/drivers/usb/musb/am35x.c
-@@ -30,7 +30,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/control.h>
- #include <plat/usb.h>
- 
- #include "musb_core.h"
--- 
-1.6.2.4
+-----Original Message-----
+From: Sergei Shtylyov [mailto:sshtylyov@mvista.com] 
+Sent: Saturday, November 20, 2010 5:09 PM
+To: srinath@mistralsolutions.com
+Cc: linux-omap@vger.kernel.org; nm@ti.com; linux@arm.linux.org.uk;
+umeshk@mistralsolutions.com; tony@atomide.com;
+nagendra@mistralsolutions.com; linux-kernel@vger.kernel.org;
+khilman@deeprootsystems.com; jdk@ti.com;
+linux-arm-kernel@lists.infradead.org
+Subject: Re: [Patch v1] AM35xx: Craneboard: Add USB EHCI support
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hello.
+
+On 19-11-2010 19:07, srinath@mistralsolutions.com wrote:
+
+> From: Srinath<srinath@mistralsolutions.com>
+
+> AM3517/05 Craneboard has one EHCI interface on board using port1.
+
+> GPIO35 is used as power enable.
+> GPIO38 is used as port1 PHY reset.
+
+> Signed-off-by: Srinath<srinath@mistralsolutions.com>
+> ---
+>   arch/arm/mach-omap2/board-am3517crane.c |   21 +++++++++++++++++++++
+>   1 files changed, 21 insertions(+), 0 deletions(-)
+
+> diff --git a/arch/arm/mach-omap2/board-am3517crane.c
+b/arch/arm/mach-omap2/board-am3517crane.c
+> index 13ead33..0e1a806 100644
+> --- a/arch/arm/mach-omap2/board-am3517crane.c
+> +++ b/arch/arm/mach-omap2/board-am3517crane.c
+[...]
+> @@ -53,10 +55,29 @@ static void __init am3517_crane_init_irq(void)
+>   	omap_gpio_init();
+>   }
+>
+> +static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
+> +	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+> +	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+> +	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+> +
+> +	.phy_reset  = true,
+> +	.reset_gpio_port[0]  = 38,
+> +	.reset_gpio_port[1]  = -EINVAL,
+> +	.reset_gpio_port[2]  = -EINVAL
+> +};
+> +
+>   static void __init am3517_crane_init(void)
+>   {
+>   	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+>   	omap_serial_init();
+> +
+> +	/* Configure GPIO for EHCI port */
+> +	omap_mux_init_gpio(35, OMAP_PIN_OUTPUT);
+> +	gpio_request(35, "usb_ehci_enable");
+> +	gpio_direction_output(35, 1);
+> +	gpio_set_value(35, 1);
+
+    There's no need to call gpio_set_value(), as gpio_direction_output() has
+
+already set the GPIO's value.
+
+WBR, Sergei
