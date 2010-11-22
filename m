@@ -1,58 +1,61 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: No more software ECC in omap2.c NAND driver. Why?
-Date: Mon, 22 Nov 2010 12:59:55 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0369C42AB7@dbde02.ent.ti.com>
-References: <2A3DCF3DA181AD40BDE86A3150B27B6B0369C42A32@dbde02.ent.ti.com>
- <C90F500E.2033D%marathon96@gmail.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCHv4 11/14] OMAP2+: dmtimer: convert to platform devices
+Date: Mon, 22 Nov 2010 13:54:41 +0530
+Message-ID: <AANLkTi=R6wZ486qMm+9Ktbhb_w0aysq80JfpE8+ujRL0@mail.gmail.com>
+References: <1290220778-22244-1-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-2-git-send-email-tarun.kanti@ti.com> <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-4-git-send-email-tarun.kanti@ti.com> <1290220778-22244-5-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-6-git-send-email-tarun.kanti@ti.com> <1290220778-22244-7-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-8-git-send-email-tarun.kanti@ti.com> <1290220778-22244-9-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-10-git-send-email-tarun.kanti@ti.com> <1290220778-22244-11-git-send-email-tarun.kanti@ti.com>
+ <1290220778-22244-12-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59592 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751940Ab0KVHaE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 02:30:04 -0500
-In-Reply-To: <C90F500E.2033D%marathon96@gmail.com>
-Content-Language: en-US
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:51212 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750991Ab0KVIZW convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Nov 2010 03:25:22 -0500
+Received: by mail-iw0-f179.google.com with SMTP id 2so8190645iwn.38
+        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 00:25:22 -0800 (PST)
+In-Reply-To: <1290220778-22244-12-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Erickson <marathon96@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>, Charles Manning <manningc2@actrix.gen.nz>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>, Partha Basak <p-basak2@ti.com>
 
+<<snip>>
 
+> +/**
+> + * omap_timer_init - top level timer device initialization
+> + *
+> + * uses dedicated hwmod api to parse through hwmod database for
+> + * given class names and then build and register the timer device.
+> + */
+> +static int __init omap2_dmtimer_device_init(void)
+> +{
+> + =A0 =A0 =A0 int ret =3D omap_hwmod_for_each_by_class("timer", omap2=
+_timer_init, NULL);
+> +
+> + =A0 =A0 =A0 if (unlikely(ret))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("%s: device registration FAILE=
+D\n", __func__);
+> +
+> + =A0 =A0 =A0 return ret;
+> +}
+> +arch_initcall(omap2_dmtimer_device_init);
 
-[..snip..]
-> 
-> The board (Mistral AM37x) NAND (Micron 256 MiB) was originally
-> bootstrapped
-> over SD/MMC from u-boot using the following script:
-[Ghorai] let me know the nand details - x8/x16, small/big page?
+While introducing this, calls to omap_dm_timer_init() should be
+removed. Else, the init
+will happen twice for dmtimer devices
 
-> 
-[..snip..]
->     nandecc sw
-[..snip..]
->     fatload mmc 0 ${loadaddr} root.jff
-[Ghorai] How you create the root.jff
-mkfs.jffs2 --output=root.jffs2 --root=.. --pagesize=?? --eraseblock=?? -n
-
->     nand write.i ${loadaddr} 0x00c00000 0x2000000
->     nand write.i ${loadaddr} 0x04200000 0x2000000
-[Ghorai] why you writing in two places?
-
-> 
-> Following that, the board is updated, from Linux, using 'flash_eraseall -
-> q'
-> and 'nandwrite -p -q' on all partitions, except that containing MLO.
-[Ghorai] 
-1. can you send the exact comment you used to write in nand? Which partition?
-
-2. What is the last kernel you used and was working perfectly? 
-
-3. If possible revert the following patches and let me know the status?
-f450d86790ebf72ac93c7ea5addd6fa278aae64c..2430f9df61e2ea47ea468dfe22b7e2db97111fb4
-2c01946c6b9ebaa5a89710bc42ca224a7f52f227
-948d38e799f0ab87cf8ed9113fcdaaee61acf321
-
-
-
+> --
+> 1.6.0.4
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
