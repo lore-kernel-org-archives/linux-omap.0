@@ -1,116 +1,46 @@
-From: Cosmin Cojocar <cosmin.cojocar@gmail.com>
-Subject: [PATCH v2 1/1] serial: omap-serial: Add support for kernel debugger
-Date: Tue, 23 Nov 2010 00:05:26 +0100
-Message-ID: <1290467126-20310-1-git-send-email-cosmin.cojocar@gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v4 2/3] omap4: opp: add OPP table data
+Date: Mon, 22 Nov 2010 15:12:45 -0800
+Message-ID: <87mxp1kl5e.fsf@deeprootsystems.com>
+References: <1289933661-19505-3-git-send-email-nm@ti.com>
+	<87oc9hm0zz.fsf@deeprootsystems.com> <4CEAF45B.5050907@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:54475 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757527Ab0KVXFk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 18:05:40 -0500
-Received: by eye27 with SMTP id 27so4339389eye.19
-        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 15:05:39 -0800 (PST)
+Received: from mail-px0-f174.google.com ([209.85.212.174]:33870 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757660Ab0KVXMr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 18:12:47 -0500
+Received: by pxi15 with SMTP id 15so1691755pxi.19
+        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 15:12:47 -0800 (PST)
+In-Reply-To: <4CEAF45B.5050907@ti.com> (Nishanth Menon's message of "Mon, 22
+	Nov 2010 16:53:15 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: govindraj.raja@ti.com
-Cc: manjugk@ti.com, khilman@deeprootsystems.com, tony@atomide.com, ben-linux@fluff.org, tklauser@distanz.ch, feng.tang@intel.com, alan@linux.intel.com, gregkh@suse.de, linux-omap@vger.kernel.org, Cosmin Cojocar <cosmin.cojocar@gmail.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony <tony@atomide.com>, Thomas <thomas.petazzoni@free-electrons.com>
 
-The kgdb invokes the poll_put_char and poll_get_char when communicating
-with the host. This patch also changes the initialization order because the
-kgdb will check at the very beginning, if there is a valid serial
-driver.
+Nishanth Menon <nm@ti.com> writes:
 
-Signed-off-by: Cosmin Cojocar <cosmin.cojocar@gmail.com>
----
- drivers/serial/Makefile      |    2 +-
- drivers/serial/omap-serial.c |   44 ++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 39 insertions(+), 7 deletions(-)
+> Kevin Hilman wrote, on 11/22/2010 04:45 PM:
+>>>   static inline int omap3_opp_init(void)
+>>> >    {
+>>> >    	return -EINVAL;
+>>> >    }
+>>> >  +static inline int omap4_opp_init(void)
+>>> >  +{
+>>> >  +	return -EINVAL;
+>>> >  +}
+>>> >    #endif
+>> Now that these are device_initcalls, seems like they can be made static
+>> and not callable externally.
+>
+> how do we handle boards that need custom opp table modifications?
 
-diff --git a/drivers/serial/Makefile b/drivers/serial/Makefile
-index c570576..ad86113 100644
---- a/drivers/serial/Makefile
-+++ b/drivers/serial/Makefile
-@@ -80,6 +80,7 @@ obj-$(CONFIG_SERIAL_NETX) += netx-serial.o
- obj-$(CONFIG_SERIAL_OF_PLATFORM) += of_serial.o
- obj-$(CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL) += nwpserial.o
- obj-$(CONFIG_SERIAL_KS8695) += serial_ks8695.o
-+obj-$(CONFIG_SERIAL_OMAP) += omap-serial.o
- obj-$(CONFIG_KGDB_SERIAL_CONSOLE) += kgdboc.o
- obj-$(CONFIG_SERIAL_QE) += ucc_uart.o
- obj-$(CONFIG_SERIAL_TIMBERDALE)	+= timbuart.o
-@@ -88,4 +89,3 @@ obj-$(CONFIG_SERIAL_ALTERA_JTAGUART) += altera_jtaguart.o
- obj-$(CONFIG_SERIAL_ALTERA_UART) += altera_uart.o
- obj-$(CONFIG_SERIAL_MRST_MAX3110)	+= mrst_max3110.o
- obj-$(CONFIG_SERIAL_MFD_HSU)	+= mfd.o
--obj-$(CONFIG_SERIAL_OMAP) += omap-serial.o
-diff --git a/drivers/serial/omap-serial.c b/drivers/serial/omap-serial.c
-index 03a96db..f18b73d 100644
---- a/drivers/serial/omap-serial.c
-+++ b/drivers/serial/omap-serial.c
-@@ -866,12 +866,6 @@ serial_omap_type(struct uart_port *port)
- 	return up->name;
- }
- 
--#ifdef CONFIG_SERIAL_OMAP_CONSOLE
--
--static struct uart_omap_port *serial_omap_console_ports[4];
--
--static struct uart_driver serial_omap_reg;
--
- #define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
- 
- static inline void wait_for_xmitr(struct uart_omap_port *up)
-@@ -905,6 +899,40 @@ static inline void wait_for_xmitr(struct uart_omap_port *up)
- 	}
- }
- 
-+#ifdef CONFIG_CONSOLE_POLL
-+
-+static void serial_omap_poll_put_char(struct uart_port *port, unsigned char ch)
-+{
-+	struct uart_omap_port *up = (struct uart_omap_port *)port;
-+	unsigned int status;
-+
-+	do {
-+		status = serial_in(up, UART_LSR);
-+		udelay(1);
-+	} while ((status & BOTH_EMPTY) != BOTH_EMPTY);
-+
-+	serial_out(up, UART_TX, ch);
-+}
-+
-+static int serial_omap_poll_get_char(struct uart_port *port)
-+{
-+	struct uart_omap_port *up = (struct uart_omap_port *)port;
-+	unsigned int status = serial_in(up, UART_LSR);
-+
-+	if (!(status & UART_LSR_DR))
-+		return NO_POLL_CHAR;
-+
-+	return serial_in(up, UART_RX);
-+}
-+
-+#endif /* CONFIG_CONSOLE_POLL */
-+
-+#ifdef CONFIG_SERIAL_OMAP_CONSOLE
-+
-+static struct uart_omap_port *serial_omap_console_ports[4];
-+
-+static struct uart_driver serial_omap_reg;
-+
- static void serial_omap_console_putchar(struct uart_port *port, int ch)
- {
- 	struct uart_omap_port *up = (struct uart_omap_port *)port;
-@@ -1022,6 +1050,10 @@ static struct uart_ops serial_omap_pops = {
- 	.request_port	= serial_omap_request_port,
- 	.config_port	= serial_omap_config_port,
- 	.verify_port	= serial_omap_verify_port,
-+#ifdef CONFIG_CONSOLE_POLL
-+	.poll_put_char  = serial_omap_poll_put_char,
-+	.poll_get_char  = serial_omap_poll_get_char,
-+#endif
- };
- 
- static struct uart_driver serial_omap_reg = {
--- 
-1.6.3.3
+um..., er... ok, I was just testing to see if you were awake today.  :/
+
+Clearly I'm not remembering even my own feature suggestions.  Sorry for
+the noise.  Guess I'm trying to review too many different series today.
+
+Kevin
 
