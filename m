@@ -1,49 +1,47 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH 1/3] OMAP2+: wd_timer: separate watchdog disable code
- from the	rest of mach-omap2/devices.c
-Date: Mon, 22 Nov 2010 16:37:28 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0372E400F0@dbde02.ent.ti.com>
-References: <20101116102205.27991.37909.stgit@twilight.localdomain>
- <20101116102512.27991.28535.stgit@twilight.localdomain>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] OMAP3: disable idle early in the suspend sequence
+Date: Mon, 22 Nov 2010 13:11:05 +0200
+Message-ID: <20101122111105.GZ2446@legolas.emea.dhcp.ti.com>
+References: <1290422697-2300-1-git-send-email-j-pihet@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49687 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753366Ab0KVLHg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 06:07:36 -0500
-In-Reply-To: <20101116102512.27991.28535.stgit@twilight.localdomain>
-Content-Language: en-US
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:39597 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753444Ab0KVLK6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Nov 2010 06:10:58 -0500
+Received: by gxk4 with SMTP id 4so4670688gxk.35
+        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 03:10:58 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1290422697-2300-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi Paul,
+Hi,
 
-<<snip>>
-...
-> +
-> +int omap2_wd_timer_disable(struct omap_hwmod *oh)
-> +{
-> +	void __iomem *base;
-> +	int ret;
-> +
-> +	if (!oh) {
-> +		pr_err("%s: Could not look up wdtimer_hwmod\n", __func__);
-> +		return -EINVAL;
-> +	}
-> +
-Just a minor observation. I was wondering if we need this check because
-omap_hwmod_for_each_by_class(...) would call this only for valid oh.
+On Mon, Nov 22, 2010 at 11:44:57AM +0100, Jean Pihet wrote:
+>Some bad interaction between the idle and the suspend paths has been
+>noticed: the idle code is called during the suspend enter and exit
+>sequences. This could cause corruption or lock-up of resources.
+>
+>The solution is to move the call to disable_hlt at the very beginning
+>of the suspend sequence (in omap3_pm_begin instead of omap3_pm_prepare),
+>and the call to enable_hlt at the very end of the suspend sequence
+>(in omap3_pm_end instead of omap3_pm_finish).
+>
+>Tested with RET and OFF on Beagle and OMAP3EVM.
+>
+>Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
+This patch will look weird on git log, it's going to be From: Jean Pihet
+<jean.pihet@newoldbits.com> and Signed-off-by: Jean Pihet
+<j-pihet@ti.com>. Maybe you should change user.email variable on your
+.gitconfig and use envelope sender as your newoldbits.com address ?
 
-        list_for_each_entry(temp_oh, &omap_hwmod_list, node) {
-                if (!strcmp(temp_oh->class->name, classname)) {
-                        pr_debug("omap_hwmod: %s: %s: calling callback fn\n",
-                                 __func__, temp_oh->name);
-                        ret = (*fn)(temp_oh, user);
-
---
-Tarun
+-- 
+balbi
