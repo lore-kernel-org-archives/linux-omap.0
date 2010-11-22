@@ -1,72 +1,58 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCHv4 8/14] OMAP: dmtimer: platform driver
-Date: Mon, 22 Nov 2010 12:56:27 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0372E3FFB2@dbde02.ent.ti.com>
-References: <1290220778-22244-1-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-2-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-4-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-5-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-6-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-7-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-8-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-9-git-send-email-tarun.kanti@ti.com>
- <AANLkTinEafdEmcsc9adZWU=rJ79obz2vDybBZ38SS3bC@mail.gmail.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: No more software ECC in omap2.c NAND driver. Why?
+Date: Mon, 22 Nov 2010 12:59:55 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0369C42AB7@dbde02.ent.ti.com>
+References: <2A3DCF3DA181AD40BDE86A3150B27B6B0369C42A32@dbde02.ent.ti.com>
+ <C90F500E.2033D%marathon96@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39545 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59592 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751714Ab0KVH0c convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 02:26:32 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id oAM7QTaU023413
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 01:26:31 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id oAM7QSFQ028563
-	for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 12:56:28 +0530 (IST)
-In-Reply-To: <AANLkTinEafdEmcsc9adZWU=rJ79obz2vDybBZ38SS3bC@mail.gmail.com>
+	id S1751940Ab0KVHaE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 02:30:04 -0500
+In-Reply-To: <C90F500E.2033D%marathon96@gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
+To: Grant Erickson <marathon96@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>, Charles Manning <manningc2@actrix.gen.nz>
 
-> -----Original Message-----
-> From: Varadarajan, Charulatha [mailto:charu@ti.com]
-> Sent: Monday, November 22, 2010 12:43 PM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org; Gopinath, Thara
-> Subject: Re: [PATCHv4 8/14] OMAP: dmtimer: platform driver
->=20
-> <<snip>>
->=20
-> > +static struct platform_driver omap_dmtimer_driver =3D {
-> > + =A0 =A0 =A0 .probe =A0=3D omap_dm_timer_probe,
-> > + =A0 =A0 =A0 .remove =3D omap_dm_timer_remove,
-> > + =A0 =A0 =A0 .driver =3D {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "omap-timer",
->=20
-> Comment from Benoit on omap devices name ( see [1] ):
->=20
-> "If possible, it will be better to use the "omap_" prefix in order to
-> start having some consitency in the omap devices name. "
-I can change.
---
-Tarun
 
->=20
-> [1] https://patchwork.kernel.org/patch/305082/
->=20
-> > + =A0 =A0 =A0 },
-> > +};
-> > +
->=20
-> <<snip>>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+[..snip..]
+> 
+> The board (Mistral AM37x) NAND (Micron 256 MiB) was originally
+> bootstrapped
+> over SD/MMC from u-boot using the following script:
+[Ghorai] let me know the nand details - x8/x16, small/big page?
+
+> 
+[..snip..]
+>     nandecc sw
+[..snip..]
+>     fatload mmc 0 ${loadaddr} root.jff
+[Ghorai] How you create the root.jff
+mkfs.jffs2 --output=root.jffs2 --root=.. --pagesize=?? --eraseblock=?? -n
+
+>     nand write.i ${loadaddr} 0x00c00000 0x2000000
+>     nand write.i ${loadaddr} 0x04200000 0x2000000
+[Ghorai] why you writing in two places?
+
+> 
+> Following that, the board is updated, from Linux, using 'flash_eraseall -
+> q'
+> and 'nandwrite -p -q' on all partitions, except that containing MLO.
+[Ghorai] 
+1. can you send the exact comment you used to write in nand? Which partition?
+
+2. What is the last kernel you used and was working perfectly? 
+
+3. If possible revert the following patches and let me know the status?
+f450d86790ebf72ac93c7ea5addd6fa278aae64c..2430f9df61e2ea47ea468dfe22b7e2db97111fb4
+2c01946c6b9ebaa5a89710bc42ca224a7f52f227
+948d38e799f0ab87cf8ed9113fcdaaee61acf321
+
+
+
