@@ -1,42 +1,34 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 07/11] arm: omap4: add USBHOST and related base
- addresses
-Date: Mon, 22 Nov 2010 12:24:46 +0200
-Message-ID: <20101122102446.GR2446@legolas.emea.dhcp.ti.com>
-References: <1290364814-4417-1-git-send-email-gadiyar@ti.com>
- <1290364814-4417-2-git-send-email-gadiyar@ti.com>
- <1290364814-4417-3-git-send-email-gadiyar@ti.com>
- <1290364814-4417-4-git-send-email-gadiyar@ti.com>
- <1290364814-4417-5-git-send-email-gadiyar@ti.com>
- <1290364814-4417-6-git-send-email-gadiyar@ti.com>
- <1290364814-4417-7-git-send-email-gadiyar@ti.com>
- <1290364814-4417-8-git-send-email-gadiyar@ti.com>
-Reply-To: balbi@ti.com
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: newbie: can I ask a question about linux-omap-pm on this mailing list?
+Date: Mon, 22 Nov 2010 16:06:20 +0530
+Message-ID: <AANLkTin0jiOn2FWhrnG0e+nuF1i22r8bv5YM2DGzkF3g@mail.gmail.com>
+References: <422561.31323.qm@web113819.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:54173 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753357Ab0KVKaD (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:47071 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753349Ab0KVKgW (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Nov 2010 05:30:03 -0500
-Content-Disposition: inline
-In-Reply-To: <1290364814-4417-8-git-send-email-gadiyar@ti.com>
+	Mon, 22 Nov 2010 05:36:22 -0500
+Received: by mail-wy0-f179.google.com with SMTP id 36so7267806wyg.24
+        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 02:36:21 -0800 (PST)
+In-Reply-To: <422561.31323.qm@web113819.mail.gq1.yahoo.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@suse.de>
+To: Gabi Voiculescu <boy3dfx2@yahoo.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Mon, Nov 22, 2010 at 12:10:10AM +0530, Anand Gadiyar wrote:
->Add base addresses for USBHOST, USBTLL, EHCI and OHCI to
->the header file.
+> Hi.
 >
->This will disappear when the drivers are converted to use
->the hwmod database, however this patch is needed until then.
+> I want to ask a newbie questions regarding linux-omap-pm repositories(http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary).
 >
->Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> I know this mailing list is for the linux-omap repository. I have searched the web for a mailing list specific for linux-omap-pm without success.
+>
+> Is this the right mailing list to pose my question?
+> If not, can you point me to a better one?
+>
 
-Tony, I need an Ack here again :-p
-
--- 
-balbi
+You have come to the right place. The linux-omap-pm tree is maintained
+by Kevin Hilman, and he checks this mailing list regularly.
+Ask away...
