@@ -1,73 +1,44 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: [PATCH 1/2] OMAP3 PM: move omap3 sleep to ddr
-Date: Mon, 22 Nov 2010 12:07:16 +0200
-Message-ID: <20101122100716.GC26003@nokia.com>
-References: <1290091906-32539-2-git-send-email-j-pihet@ti.com> <d2e0f972ca73d80e4929b605a9c2475f@mail.gmail.com> <87tyjey6h3.fsf@deeprootsystems.com> <4CE55A88.6010300@ti.com> <20101118175215.GE9264@atomide.com> <AANLkTi=bhULQsXhnN9ugDm7k=2P4E7-SvXEnx06pBwmu@mail.gmail.com> <20101118182752.GI9264@atomide.com> <AANLkTi=m1MXATmUzXNxbggoUS01AbyeGZm9WMgWUqdNo@mail.gmail.com> <AANLkTikztB6aSir83P4odPznmvXGvq0uzYhRN2UWC1Dr@mail.gmail.com> <92CDD168D1E81F4F9D3839DC45903FC6A5E5A085@dlee03.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 2/5] OMAP: mailbox: fix rx interrupt disable in omap4
+Date: Mon, 22 Nov 2010 12:08:15 +0200
+Message-ID: <20101122100815.GM2446@legolas.emea.dhcp.ti.com>
+References: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
+ <1290107742-16760-3-git-send-email-h-kanigeri2@ti.com>
+ <4CE5B68F.8000502@ti.com>
+ <AANLkTinVOKZoSRkXyfzUap5mOmRE5nNsvCiw_QDUxb85@mail.gmail.com>
+ <20101119083250.GH6446@legolas.emea.dhcp.ti.com>
+ <AANLkTimzaB6aFo2=iEpR=2a3T_3oWQa6iBxQxWhBBCiw@mail.gmail.com>
+ <4CE68E9A.5040903@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:43413 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753184Ab0KVKHy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Nov 2010 05:07:54 -0500
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:36609 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753241Ab0KVKIJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Nov 2010 05:08:09 -0500
+Received: by gyd8 with SMTP id 8so4186509gyd.9
+        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 02:08:09 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <92CDD168D1E81F4F9D3839DC45903FC6A5E5A085@dlee03.ent.ti.com>
+In-Reply-To: <4CE68E9A.5040903@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Derrick, David" <dderrick@ti.com>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Pihet-XID, Jean" <j-pihet@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Nov 19, 2010 at 05:14:15PM +0100, ext Derrick, David wrote:
-> >-----Original Message-----
-> >From: Jean Pihet [mailto:jean.pihet@newoldbits.com] 
-> >Sent: Friday, November 19, 2010 9:37 AM
-> 
-> >On Thu, Nov 18, 2010 at 7:34 PM, Jean Pihet <jean.pihet@newoldbits.com> >wrote:
-> >> On Thu, Nov 18, 2010 at 7:27 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >>> * Jean Pihet <jean.pihet@newoldbits.com> [101118 10:06]:
-> >>>> On Thu, Nov 18, 2010 at 6:52 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >>>>
-> >>>> About the DPLL lock:
-> >>>> 1) wait_sdrc_ok is only called when back from the non-OFF modes,
-> >>>> 2) I checked that when running wait_sdrc_ok the CORE is already out of
-> >>>> idle and the DPLL is already locked. Note: l-o code has no support for
-> >>>> the voltages OFF and the external clocks OFF.
-> >>>>
-> >>>> What to conclude from 1) and 2)? In my test setup ot looks like
-> >>>> wait_sdrc_ok is of no use, but I agree this a premature conclusion.
-> >>>
-> >>> Yeah we should figure out in which cases wait_sdrc_ok is needed.
-> >>>
-> >>> BTW, are you sure you're hitting core idle in your tests?
-> >> Yes it is OK from the console messages and the counters values in
-> >> /debug/pm_debug/count.
-> >>
-> >> Let me confirm asap with the PRCM registers dump.
-> 
-> >Here is what I experimented:
-> >1) added a cache flush (v7_flush_kern_cache_all) just before WFI, in all >cases,
-> >2) checked the real state entered in low power mode from the console
-> >messages, the output of /debug/pm_debug/count and PRCM registers dump
-> 
-> >2) is OK, which means that the RET and OFF modes are correctly hit.
-> 
-> >Can I conclude from 1) that the wake-up code is not running from the
-> >cache in RETention?
-> 
-> [Derrick, David] 
-> 
-> To add some context to the wait_sdrc_ok function and why it was added:
-> 
-> wait_sdrc_ok was added because the DLL takes 500 L3 clock cycles 
-> to lock. So you do not want to go back to DDR before DLL is locked. Also, we 
-> found some times DLL never locked so we introduced the DLL kick procedure to 
-> force it to lock.
-> 
+On Fri, Nov 19, 2010 at 03:50:02PM +0100, Cousson, Benoit wrote:
+>Most of the time, we do not want to use the IP revision because it is 
+>un-accurate and does not reflect the change we'd like to track.
+>For example some time a minor change in the RTL that will not impact 
+>the SW at all might trigger a change in the IP revision, whereas on 
+>the other hand a major bug fix that will impact the SW is not capture 
+>in the IP revision... yeah, that's bad, but this can happen.
+>
+>That's why we are relying on a rev field in the hwmod.
 
-The root cause for the DLL not locking has been found though and a
-workaround implemented. So it should work now :) That still leaves the
-500 L3 cycle delay though.
+But then, what's inside this rev field ? Is it some internal revision of
+hwmod or do you read from the hw ?
 
-Cheers,
-
-Peter.
+-- 
+balbi
