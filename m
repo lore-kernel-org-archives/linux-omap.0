@@ -1,38 +1,55 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] OMAP3: disable idle early in the suspend sequence
-Date: Mon, 22 Nov 2010 13:45:56 +0200
-Message-ID: <20101122114556.GD2446@legolas.emea.dhcp.ti.com>
-References: <1290422697-2300-1-git-send-email-j-pihet@ti.com>
- <20101122111105.GZ2446@legolas.emea.dhcp.ti.com>
- <AANLkTikJfiJHnbBKWAfWn5xk2SOQiSAvHdjD0p78u4MA@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: Re: [PATCH v3 2/5] OMAP: mailbox: fix rx interrupt disable in omap4
+Date: Mon, 22 Nov 2010 05:46:53 -0600
+Message-ID: <AANLkTim4bHJHFdOEXt-hM7Yt2wGsVTcfJExwzzcUKXmq@mail.gmail.com>
+References: <1290107742-16760-1-git-send-email-h-kanigeri2@ti.com>
+	<1290107742-16760-3-git-send-email-h-kanigeri2@ti.com>
+	<4CE5B68F.8000502@ti.com>
+	<AANLkTinVOKZoSRkXyfzUap5mOmRE5nNsvCiw_QDUxb85@mail.gmail.com>
+	<20101119083250.GH6446@legolas.emea.dhcp.ti.com>
+	<AANLkTimzaB6aFo2=iEpR=2a3T_3oWQa6iBxQxWhBBCiw@mail.gmail.com>
+	<4CE68E9A.5040903@ti.com>
+	<20101122100815.GM2446@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:38267 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753434Ab0KVLpw (ORCPT
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:57283 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753864Ab0KVLqy (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Nov 2010 06:45:52 -0500
-Received: by gxk25 with SMTP id 25so4349908gxk.36
-        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 03:45:52 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <AANLkTikJfiJHnbBKWAfWn5xk2SOQiSAvHdjD0p78u4MA@mail.gmail.com>
+	Mon, 22 Nov 2010 06:46:54 -0500
+Received: by qyk29 with SMTP id 29so724468qyk.11
+        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 03:46:53 -0800 (PST)
+In-Reply-To: <20101122100815.GM2446@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: balbi@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: balbi@ti.com
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-Hi,
-
-On Mon, Nov 22, 2010 at 12:38:21PM +0100, Jean Pihet wrote:
->The original patch has the ti.com address in both the From: and
->Signed-off-by: fields, but the From: on the ML still shows otherwise.
->Weird...
+On Mon, Nov 22, 2010 at 4:08 AM, Felipe Balbi <balbi@ti.com> wrote:
+> On Fri, Nov 19, 2010 at 03:50:02PM +0100, Cousson, Benoit wrote:
+>>
+>> Most of the time, we do not want to use the IP revision because it is
+>> un-accurate and does not reflect the change we'd like to track.
+>> For example some time a minor change in the RTL that will not impact the
+>> SW at all might trigger a change in the IP revision, whereas on the other
+>> hand a major bug fix that will impact the SW is not capture in the IP
+>> revision... yeah, that's bad, but this can happen.
+>>
+>> That's why we are relying on a rev field in the hwmod.
 >
->Any idea how to fix that?
+> But then, what's inside this rev field ? Is it some internal revision of
+> hwmod or do you read from the hw ?
+>
 
-how about setting sendemail.envelopesender ??
+>From the dmtimer stuff, it looks like the driver defines the version
+types, which hwmod uses to define the rev field.
 
--- 
-balbi
+/* timer ip constants */
+#define OMAP_TIMER_IP_LEGACY			0x1
+#define OMAP_TIMER_IP_VERSION_2			0x2
+
+
+Thank you,
+Best regards,
+Hari Kanigeri
