@@ -1,50 +1,105 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/8] OMAP2+: hwmod core upgrades for 2.6.38: first set
-Date: Mon, 22 Nov 2010 13:56:54 -0800
-Message-ID: <87y68lnhsp.fsf@deeprootsystems.com>
-References: <20101116101615.22777.49212.stgit@twilight.localdomain>
-	<alpine.DEB.2.00.1011160945100.32653@utopia.booyaka.com>
+Subject: Re: [PATCH] OMAP3: disable idle during the entire suspend/resume sequence
+Date: Mon, 22 Nov 2010 14:12:43 -0800
+Message-ID: <87pqtxnh2c.fsf@deeprootsystems.com>
+References: <1290454603-5513-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:59026 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757256Ab0KVV46 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 16:56:58 -0500
-Received: by gwb19 with SMTP id 19so312866gwb.19
-        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 13:56:58 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1011160945100.32653@utopia.booyaka.com> (Paul
-	Walmsley's message of "Tue, 16 Nov 2010 09:47:26 -0700 (MST)")
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:65447 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751365Ab0KVWMs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 17:12:48 -0500
+Received: by vws13 with SMTP id 13so3833474vws.19
+        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 14:12:47 -0800 (PST)
+In-Reply-To: <1290454603-5513-1-git-send-email-j-pihet@ti.com> (jean pihet's
+	message of "Mon, 22 Nov 2010 20:36:43 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: jean.pihet@newoldbits.com
+Cc: linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-Paul Walmsley <paul@pwsan.com> writes:
+jean.pihet@newoldbits.com writes:
 
-> On Tue, 16 Nov 2010, Paul Walmsley wrote:
+> From: Jean Pihet <j-pihet@ti.com>
 >
->> This patch series contains upgrades for the OMAP2+ hwmod core
->> code, intended for 2.6.38.  Most of these patches were developed
->> in response to use-cases discovered while converting device
->> drivers to use the hwmod code.
->> 
->> Tested on an OMAP34xx BeagleBoard with omap2plus_defconfig.
+> Idle path should be disabled during the entire suspend/resume sequence.
+> Currently it is disabled in ->prepare() and re-enabled in ->finish(),
+> but the suspend sequence starts with ->begin() and ends with ->end(),
+> leaving windows where the suspend/resume sequence is still underway and
+> idle code could execute.
 >
-> Just FYI, this branch 'hwmod_a_2.6.38' is available at 
-> git://git.pwsan.com/linux-2.6
+> The fix is to move the idle disable (disable_hlt) and enable (enable_hlt)
+> into ->begin() and ->end() respectively to ensure that the idle path
+> is disabled for the entire suspend/resume sequence.
+> Remvoving omap3_pm_prepare and omap3_pm_finish since there are now empty.
 >
-> Warning: it's based on Tony's tree, not the mainline, due to the recent 
-> board file changes.
+> Tested with RET and OFF on Beagle and OMAP3EVM.
+>
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>
+> Comment rework suggested by Kevin.
+>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-Looks like Tony has collected the board file changes into his
-devel-board branch.  Can this rebased there?
+Thanks, 
 
-That way, I can included it as part of the PM branch testing without
-having to pull in master.
-
-Thanks,
+Unless there are any objections, I'll queue for .38 instead of .37-rc
+since this isn't technically a regression.
 
 Kevin
 
-
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |   15 ++-------------
+>  1 files changed, 2 insertions(+), 13 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 75c0cd1..2e0621e 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -506,12 +506,6 @@ out:
+>  #ifdef CONFIG_SUSPEND
+>  static suspend_state_t suspend_state;
+>  
+> -static int omap3_pm_prepare(void)
+> -{
+> -	disable_hlt();
+> -	return 0;
+> -}
+> -
+>  static int omap3_pm_suspend(void)
+>  {
+>  	struct power_state *pwrst;
+> @@ -574,14 +568,10 @@ static int omap3_pm_enter(suspend_state_t unused)
+>  	return ret;
+>  }
+>  
+> -static void omap3_pm_finish(void)
+> -{
+> -	enable_hlt();
+> -}
+> -
+>  /* Hooks to enable / disable UART interrupts during suspend */
+>  static int omap3_pm_begin(suspend_state_t state)
+>  {
+> +	disable_hlt();
+>  	suspend_state = state;
+>  	omap_uart_enable_irqs(0);
+>  	return 0;
+> @@ -591,15 +581,14 @@ static void omap3_pm_end(void)
+>  {
+>  	suspend_state = PM_SUSPEND_ON;
+>  	omap_uart_enable_irqs(1);
+> +	enable_hlt();
+>  	return;
+>  }
+>  
+>  static struct platform_suspend_ops omap_pm_ops = {
+>  	.begin		= omap3_pm_begin,
+>  	.end		= omap3_pm_end,
+> -	.prepare	= omap3_pm_prepare,
+>  	.enter		= omap3_pm_enter,
+> -	.finish		= omap3_pm_finish,
+>  	.valid		= suspend_valid_only_mem,
+>  };
+>  #endif /* CONFIG_SUSPEND */
