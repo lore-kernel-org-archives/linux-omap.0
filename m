@@ -1,158 +1,403 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH] ARM: io: Fix namespace conflicts.
-Date: Tue, 23 Nov 2010 15:01:17 +0100
-Message-ID: <20101123140116.GP4693@pengutronix.de>
-References: <1286967121-5888-1-git-send-email-charu@ti.com>
+From: James Adams <james.r.adams@gmail.com>
+Subject: Re: DSP Bridge video decode of above VGA videos
+Date: Tue, 23 Nov 2010 14:34:29 +0000
+Message-ID: <AANLkTikYfYxUWBLL0qdnAEpoKSMGB6DTNXhUXJh_Enqv@mail.gmail.com>
+References: <AANLkTim2PQ9kAvSi12987gAykMAuPg7f3XM3zQNo5Tip@mail.gmail.com>
+	<AANLkTinCT-zQaGyLfS-NZU9Pue+2hmrLDckHYKqD_u8m@mail.gmail.com>
+	<AANLkTimhKaS4y+k0t_x39aw8LvO-tNUH-=x3V9jk7BsC@mail.gmail.com>
+	<AANLkTi=71zFhuBh3MArYjSEvJ+YXciF_9d2cn+5ojTb6@mail.gmail.com>
+	<AANLkTinkMPb4Htv4GN8--PZP0UdkWuyXiLYvRC3QasWD@mail.gmail.com>
+	<AANLkTim6++ATTJ=BCssvLYKRek0EXKVPMGgKH1WMNuRM@mail.gmail.com>
+	<AANLkTinpR2S1vGaRr=DMALxWjb1X-4TPkhwXZbZhXbwj@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49328 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751061Ab0KWOBT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Nov 2010 09:01:19 -0500
-Content-Disposition: inline
-In-Reply-To: <1286967121-5888-1-git-send-email-charu@ti.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:55499 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754406Ab0KWOeb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Nov 2010 09:34:31 -0500
+Received: by pzk6 with SMTP id 6so408472pzk.19
+        for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 06:34:30 -0800 (PST)
+In-Reply-To: <AANLkTinpR2S1vGaRr=DMALxWjb1X-4TPkhwXZbZhXbwj@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Sourav Poddar <sourav.poddar@ti.com>, linux@arm.linux.org.uk
+To: "Sapiens, Rene" <rene.sapiens@ti.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, linux-omap@vger.kernel.org
 
-Hello,
+A bit more information about why videos are not playing in a port of
+Zoom2 to gumstix:
 
-On Wed, Oct 13, 2010 at 04:22:01PM +0530, Varadarajan, Charulatha wrote=
-:
-> From: Sourav Poddar <sourav.poddar@ti.com>
->=20
-> Having __v as the variable name for the definition of different macro=
-s leads to
-> the namespace pollution. For example,
-> readl(p)
-> unrolls to:
-> ({ u32 __v =3D ({ u32 __v =3D (( __u32)(__le32)(( __le32) ((void)0,
-> *(volatile unsigned int *)((p))))); __v; }); __asm__ __volatile__ ("m=
-cr
-> p15,
-> , %0, c7, c10, 5" : : "r" (0) : "memory"); __v; });
->=20
-> ({ u32 __v =3D ({ u32 __v
-> causes sparse warning: "warning: symbol '__v' shadows an earlier one"
->=20
-> Using variable names which use the function name prefix across the
-> various macros avoids the namespace pollution.
->=20
-> With this change, ~200 sparse warnings in omap2plus_defconfig build a=
-re
-> fixed.
->=20
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> Signed-off-by: Charulatha V <charu@ti.com>
-> Reviewed by: Nishanth Menon <nm@ti.com>
-> ---
->  Links related to the previous discussions are as follows:
-> =20
->  http://www.spinics.net/lists/linux-omap/msg38569.html
->  http://marc.info/?t=3D128506336700011&r=3D1&w=3D2
->=20
->  arch/arm/include/asm/io.h |   32 +++++++++++++++++++++-----------
->  1 files changed, 21 insertions(+), 11 deletions(-)
->=20
-> diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
-> index 1261b1f..01e4a7b 100644
-> --- a/arch/arm/include/asm/io.h
-> +++ b/arch/arm/include/asm/io.h
-> @@ -131,11 +131,11 @@ static inline void __iomem *__typesafe_io(unsig=
-ned long addr)
->  #define outl(v,p)		__raw_writel((__force __u32) \
->  					cpu_to_le32(v),__io(p))
-> =20
-> -#define inb(p)	({ __u8 __v =3D __raw_readb(__io(p)); __v; })
-> -#define inw(p)	({ __u16 __v =3D le16_to_cpu((__force __le16) \
-> -			__raw_readw(__io(p))); __v; })
-> -#define inl(p)	({ __u32 __v =3D le32_to_cpu((__force __le32) \
-> -			__raw_readl(__io(p))); __v; })
-> +#define inb(p)	({ __u8 __inbv =3D __raw_readb(__io(p)); __inbv; })
-> +#define inw(p)	({ __u16 __inwv =3D le16_to_cpu((__force __le16) \
-> +			__raw_readw(__io(p))); __inwv; })
-> +#define inl(p)	({ __u32 __inlv =3D le32_to_cpu((__force __le32) \
-> +			__raw_readl(__io(p))); __inlv; })
-I wonder if it's not better to make these static inlines instead.  Then
-no naming conflicts can occur.  And maybe we'd catch some more strange
-things because p gets a proper type.
+1)
+I can switch to use the software codec by simply removing the
+/system/etc/01_Vendor_ti_omx.cfg file.
 
-I don't know how this influences gcc though.
+2)
+If I use the OpenCORE unit tests I can successfully decode:
+   VGA movies with software codec
+   1280*544 movie with software codec
+   VGA movies with DSP codec
+but it fails for the 1280x544 movie with DSP codec.
 
-Ah, and maybe some more tricks need to be applied, because at least som=
+This is the error log:
+   pvplayer_engine_test -test 1 1 -source wall720p.mp4
+   SDK Labeled: PVDEV_CORE_RELEASE_6.506.4.1 built on 20090312
+
+   Test Program for pvPlayer engine class.
+     Input file name 'wall720p.mp4'
+     Test case range 1 to 1
+     Compressed output Video(No) Audio(No)
+     Log level 8; Log node 0 Log Text 0 Log Mem 0
+
+   Starting Test 1: Open-Play-Stop-Reset
+
+   ****************LCML ERROR : DSP ************************
+   Error: Create the Node : Err Num =3D 8000800c
+   ****************LCML ERROR : DSP ************************
+
+3)
+I can't find this 8000800c number defined anywhere in the Android tree.
+Any idea what it means?
+
+4)
+Using the software codec from inside the Android Gallery application I
+still get the same errors as mentioned before about missing video buffe=
+r
+addresses.
+
+Thanks for any advice people can give, I am feeling increasingly
+bewildered by all the levels of OpenCore, OMX, OpenMax, DSP bridge...
+
+
+On Tue, Nov 23, 2010 at 9:30 AM, James Adams <james.r.adams@gmail.com> =
+wrote:
+> Hi Rene,
+>
+> This email contains 2 error logs. =A0The first comes from trying to s=
+witch
+> to using the software decoder.
+> Is there something else I need to do to revert to software codecs
+> perhaps?
+>
+> The second error log is the stack trace when the watchdog timer calls
+> SYNC_EnterCS.
+>
+> I am sorry for troubling you with all these newbie questions, I've do=
+ne
+> quite a lot of Linux driver work before and have written my own embed=
+ded
+> H264 and MPEG4 codecs, but I have only been looking at Android for a
+> couple of weeks and am finding it rather overwhelming how much there =
+is
+> to learn!
+>
+> If I try to switch back to software codecs by commenting out the
+> OMX.TI.Video.Decoder line in
+> hardware/ti/omx/system/src/openmax_il/omx_core/src/OMX_Core.c then I =
+get
+> the following errors:
+>
+> D/omx_interface( =A0934): TIOMXInterface: creating interface
+> D/omx_interface( =A0934): Calling DLOPEN on OMX_CORE_LIBRARY
+> (libOMX_Core.so)
+> D/omx_interface( =A0934): DLOPEN SUCCEEDED (libOMX_Core.so)
+> D/omx_interface( =A0934): TIOMXInterface: library lookup success
+> D/TIOMX_CORE( =A0934): init count =3D 1
+> I/ActivityManager( =A0966): Displayed activity
+> com.android.gallery/com.android.cam
+> era.MovieView: 540 ms (total 540 ms)
+> V/MovieView( 1145): hasFocus
+> D/VideoMio34xx( =A0934): Vendor(34xx) Specific CloseFrameBuf
+> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
+ync()
+> Video F
+> ormat Key, Value X-YUV-420
+> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
+ync()
+> Error,
+> unrecognized key x-pvmf/mediaxfer/output/rate;type=3Drel;valtype=3Din=
+t32
+> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
+ync()
+> Error,
+> unrecognized key x-pvmf/port/formattype;valtype=3Dint32
+> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
+ync()
+> Video W
+> idth, Value 320
+> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
+ync()
+> Video H
+> eight, Value 240
+> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
+ync()
+> Video D
+> isplay Height, Value 240
+> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
+ync()
+> Video D
+> isplay Width, Value 320
+> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
+ync()
+> Number
+> of Buffer, Value 2
+> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
+ync()
+> Buffer
+> Size, Value 115200
+> D/VideoMio34xx( =A0934): Calling Vendor(34xx) Specific initCheck
+> D/TIOverlay( =A0966): overlay_createOverlay:IN w=3D320 h=3D240 format=
+=3D22
+> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_createOverlay() ######
+> I/TIOverlay( =A0966): Opened video1/fd=3D60/obj=3D002dcf20/shm=3D59/s=
+ize=3D4096
+> D/TIOverlay( =A0966): overlay_createOverlay: OUT
+> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_setParameter() ######
+> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_setPosition() ######
+> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_setParameter() ######
+> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_setParameter() ######
+> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_setParameter() ######
+> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_setParameter() ######
+> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_setParameter() ######
+> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_commit() ######
+> I/TIOverlay( =A0966): Position/X0/Y0/W240/H320
+> I/TIOverlay( =A0966): Adjusted Position/X0/Y0/W320/H240
+> I/TIOverlay( =A0966): Rotation/90
+> I/TIOverlay( =A0966): ColorKey/0
+> I/TIOverlay( =A0966): shared->dispH =3D 320, shared->dispW =3D 240
+> I/Overlay-V4L2( =A0966): dumping driver state:
+> I/Overlay-V4L2( =A0966): output pixfmt:
+> I/Overlay-V4L2( =A0966): w: 320
+> I/Overlay-V4L2( =A0966): h: 240
+> I/Overlay-V4L2( =A0966): color: 7
+> I/Overlay-V4L2( =A0966): UYVY
+> I/Overlay-V4L2( =A0966): v4l2_overlay window:
+> I/Overlay-V4L2( =A0966): window l: 0
+> I/Overlay-V4L2( =A0966): window t: 0
+> I/Overlay-V4L2( =A0966): window w: 320
+> I/Overlay-V4L2( =A0966): window h: 240
+> I/Overlay-V4L2( =A0966): output crop:
+> I/Overlay-V4L2( =A0966): crop l: 0
+> I/Overlay-V4L2( =A0966): crop t: 0
+> I/Overlay-V4L2( =A0966): crop w: 320
+> I/Overlay-V4L2( =A0966): crop h: 240
+> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_device_open() ######
+> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_initialize() ######
+> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_data_setParameter() ######
+> I/VideoMio34xx( =A0934): Actual resolution: 320x240
+> I/VideoMio34xx( =A0934): Video resolution: 320x240
+> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_getBufferCount() ######
+> D/VideoMio34xx( =A0934): number of buffers =3D 6
+> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_getBufferAddress() ######
+> I/TIOverlay( =A0934): Buffer/0/addr=3D40eb9000/len=3D155648
+> D/VideoMio34xx( =A0934): buffer =3D 0 allocated addr=3D0x40eb9000
+> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_getBufferAddress() ######
+> I/TIOverlay( =A0934): Buffer/1/addr=3D40edf000/len=3D155648
+> D/VideoMio34xx( =A0934): buffer =3D 1 allocated addr=3D0x40edf000
+> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_getBufferAddress() ######
+> I/TIOverlay( =A0934): Buffer/2/addr=3D40f05000/len=3D155648
+> D/VideoMio34xx( =A0934): buffer =3D 2 allocated addr=3D0x40f05000
+> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_getBufferAddress() ######
+> I/TIOverlay( =A0934): Buffer/3/addr=3D40f2b000/len=3D155648
+> D/VideoMio34xx( =A0934): buffer =3D 3 allocated addr=3D0x40f2b000
+> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_getBufferAddress() ######
+> I/TIOverlay( =A0934): Buffer/4/addr=3D40f51000/len=3D155648
+> D/VideoMio34xx( =A0934): buffer =3D 4 allocated addr=3D0x40f51000
+> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
+###
+> Calling ove
+> rlay_getBufferAddress() ######
+> I/TIOverlay( =A0934): Buffer/5/addr=3D40f77000/len=3D155648
+> D/VideoMio34xx( =A0934): buffer =3D 5 allocated addr=3D0x40f77000
+> I/VideoMio34xx( =A0934): Ln 598 iVideoSubFormat X-YUV-420-PLANAR. do =
+NOT
+> allocate
+> decoder buffer from overlay
+> W/MediaPlayer( 1145): info/warning (1, 44)
+> I/MediaPlayer( 1145): Info (1,44)
+> D/MediaPlayer( 1145): getMetadata
+> D/Omap3ALSA( =A0934): open called for devices 00000000 in mode 0...
+> E/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::writeAsync: aD=
+ata
+> does not
+> match any v4l buffer address
+> I/Omap3ALSA( =A0934): Initialized ALSA PLAYBACK device default
+> E/AudioHardwareALSA( =A0934): RE-OPEN AFTER STANDBY:: took 79 msecs
+> W/AudioFlinger( =A0934): write blocked for 79 msecs, 2 delayed writes=
+,
+> thread 0x25
+> 1a8
+> E/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::writeAsync: aD=
+ata
+> does not
+> match any v4l buffer address
+> E/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::writeAsync: aD=
+ata
+> does not
+> match any v4l buffer address
+> E/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::writeAsync: aD=
+ata
+> does not
+> match any v4l buffer address
+>
+> The stack trace is shown below.
+>
+> [<c0412864>] (dump_stack+0x0/0x14) from [<c0278c18>]
+> (SYNC_EnterCS+0x48/0xe4)
+> [<c0278bd0>] (SYNC_EnterCS+0x0/0xe4) from [<c0279e24>]
+> (REG_GetValue+0x60/0xa0)
+> =A0r5:c05ba390 r4:c04f092c
+> [<c0279dc4>] (REG_GetValue+0x0/0xa0) from [<c027987c>]
+> (CFG_GetObject+0x60/0xe0)
+> =A0r7:cfa87a80 r6:00000002 r5:cf98fe94 r4:00000002
+> [<c027981c>] (CFG_GetObject+0x0/0xe0) from [<c02913c0>]
+> (DRV_GetFirstDevObject+0
+> x1c/0x4c)
+> =A0r5:c05ba3c0 r4:00000000
+> [<c02913a4>] (DRV_GetFirstDevObject+0x0/0x4c) from [<c02858e4>]
+> (DEV_GetFirst+0x
+> 10/0x44)
+> [<c02858d4>] (DEV_GetFirst+0x0/0x44) from [<c027d430>]
+> (dsp_wdt_enable+0x44/0xe0
+> )
+> =A0r5:c05ba3c0 r4:00000000
+> [<c027d3ec>] (dsp_wdt_enable+0x0/0xe0) from [<c02820fc>]
+> (handle_hibernation_fro
+> mDSP+0x148/0x1ec)
+> =A0r5:cfaa0000 r4:00008000
+> [<c0281fb4>] (handle_hibernation_fromDSP+0x0/0x1ec) from [<c02810c0>]
+> (WMD_DEV_C
+> trl+0xfc/0x130)
+> =A0r7:cf98e000 r6:cf98ff34 r5:cc5f6a88 r4:cfb89e00
+> [<c0280fc4>] (WMD_DEV_Ctrl+0x0/0x130) from [<c027dc24>]
+> (io_mbox_msg+0x70/0x1d8)
+> =A0r7:cf98e000 r6:c05496c4 r5:cc5f6a88 r4:cfb89e00
+> [<c027dbb4>] (io_mbox_msg+0x0/0x1d8) from [<c0059308>]
+> (mbox_rx_work+0xf4/0x100)
+> =A0r5:cc5f6a88 r4:0000200a
+> [<c0059214>] (mbox_rx_work+0x0/0x100) from [<c007ebb0>]
+> (run_workqueue+0xc8/0x18
+> 4)
+> [<c007eae8>] (run_workqueue+0x0/0x184) from [<c007f2dc>]
+> (worker_thread+0x104/0x
+> 118)
+> =A0r9:00000000 r8:00000000 r7:cf811040 r6:cf94e140 r5:cf94e148
+> r4:cf98e000
+> [<c007f1d8>] (worker_thread+0x0/0x118) from [<c0082cb4>]
+> (kthread+0x54/0x80)
+> =A0r7:00000000 r6:00000000 r5:c007f1d8 r4:cf94e140
+> [<c0082c60>] (kthread+0x0/0x80) from [<c0070b1c>] (do_exit+0x0/0x7bc)
+> =A0r5:00000000 r4:00000000
+> drivers/dsp/bridge/services/sync.c, line 358: Assertion (0) failed.
+>
+>
+> On Mon, Nov 22, 2010 at 9:42 PM, Sapiens, Rene <rene.sapiens@ti.com> =
+wrote:
+>> James,
+>>
+>> On Mon, Nov 22, 2010 at 11:12 AM, James Adams <james.r.adams@gmail.c=
+om> wrote:
+>>> Hi Rene,
+>>>
+>>> We have got the watchdog timer enabled at the moment (interval 5 se=
+conds).
+>>> The code does indeed point to the line as you say.
+>>> I tried using dump_stack and it was getting triggered by an interru=
+pt
+>>> calling handle_hibernation_fromDSP which then called functions
+>>> eventually triggering the SYNC_entercs (via DEV_getfirst if I remem=
+ber
+>>> right)
+>>> I certainly don't understand why this should happen, but it seems t=
+o
+>>> happen quite a lot (probably every 5 seconds...) and the lower
+>>> resolution videos didn't seem to mind so I have been ignoring it.
+>>>
+>>
+>> Looking at the drivers/dsp/bridge/wmd/tiomap3430_pwr.c file tagged
+>> with L25.12 release at [1] =A0I don't see feasible the path to have
+>> handle_hibernation_fromDSP() to get to SYNC_entercs(), so probably y=
+ou
+>> have a newer or older version of the file.
+>>
+>> Basically what i was looking with those assertions is to see if thos=
 e
-macros can be overwritten per architecture.
-
-Just my 0.02=E2=82=AC
-Uwe
-
-> =20
->  #define outsb(p,d,l)		__raw_writesb(__io(p),d,l)
->  #define outsw(p,d,l)		__raw_writesw(__io(p),d,l)
-> @@ -200,9 +200,12 @@ extern void _memset_io(volatile void __iomem *, =
-int, size_t);
->  #define __iowmb()		do { } while (0)
->  #endif
-> =20
-> -#define readb(c)		({ u8  __v =3D readb_relaxed(c); __iormb(); __v; }=
-)
-> -#define readw(c)		({ u16 __v =3D readw_relaxed(c); __iormb(); __v; }=
-)
-> -#define readl(c)		({ u32 __v =3D readl_relaxed(c); __iormb(); __v; }=
-)
-> +#define readb(c)		({ u8  __readbv =3D readb_relaxed(c); \
-> +					 __iormb(); __readbv; })
-> +#define readw(c)		({ u16 __readwv =3D readw_relaxed(c); \
-> +					 __iormb(); __readwv; })
-> +#define readl(c)		({ u32 __readlv =3D readl_relaxed(c);\
-> +					 __iormb(); __readlv; })
-> =20
->  #define writeb(v,c)		({ __iowmb(); writeb_relaxed(v,c); })
->  #define writew(v,c)		({ __iowmb(); writew_relaxed(v,c); })
-> @@ -258,9 +261,16 @@ extern void _memset_io(volatile void __iomem *, =
-int, size_t);
->   * io{read,write}{8,16,32} macros
->   */
->  #ifndef ioread8
-> -#define ioread8(p)	({ unsigned int __v =3D __raw_readb(p); __iormb()=
-; __v; })
-> -#define ioread16(p)	({ unsigned int __v =3D le16_to_cpu((__force __l=
-e16)__raw_readw(p)); __iormb(); __v; })
-> -#define ioread32(p)	({ unsigned int __v =3D le32_to_cpu((__force __l=
-e32)__raw_readl(p)); __iormb(); __v; })
-> +#define ioread8(p)	({ unsigned int __ioread8v =3D __raw_readb(p); \
-> +					 __iormb(); __ioread8v; })
-> +#define ioread16(p)	({ unsigned int __ioread16v =3D \
-> +					 le16_to_cpu((__force __le16) \
-> +					__raw_readw(p)); __iormb(); \
-> +					 __ioread16v; })
-> +#define ioread32(p)	({ unsigned int __ioread32v =3D \
-> +					 le32_to_cpu((__force __le32) \
-> +					__raw_readl(p)); __iormb(); \
-> +					 __ioread32v; })
-> =20
->  #define iowrite8(v,p)	({ __iowmb(); (void)__raw_writeb(v, p); })
->  #define iowrite16(v,p)	({ __iowmb(); (void)__raw_writew((__force __u=
-16)cpu_to_le16(v), p); })
-> --=20
-> 1.7.0.4
->=20
->=20
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->=20
-
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=C3=B6nig     =
-       |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
+>> could be because of =A0a DSP WDT overflow. Also those assertions can
+>> fail because of the calling of IO_DispatchMsg by io_dpc(), if that's
+>> the case there should not be a problem. On the other hand if there i=
+s
+>> a WDT overflow those assertions could also fail.
+>>
+>> Can you double check by printing the call stack again when the
+>> assertion fails, just to see why for your case
+>> handle_hibernation_fromDSP() is failing in the assertion?
+>>
+>>> Is it a bad idea to use WDT?
+>>
+>> No, =A0it is ok =A0to use it.
+>>
+>> Regards,
+>> Rene Sapiens
+>> --
+>> [1] http://git.omapzoom.org/?p=3Dkernel/omap.git;a=3Dblob;f=3Ddriver=
+s/dsp/bridge/wmd/tiomap3430_pwr.c;h=3Df698b4475584e92467e03ecec96bc8879=
+48275f9;hb=3D64b404e9f457f19537972e7f2424f4c73a8a7789#l116
+>>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
