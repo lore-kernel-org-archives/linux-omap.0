@@ -1,51 +1,79 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH v4 0/5] OMAP: mailbox: fixes and enhancements
-Date: Tue, 23 Nov 2010 15:26:52 -0600
-Message-ID: <1290547617-16640-1-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH v4 1/5] OMAP: mailbox: change full flag per mailbox queue instead of global
+Date: Tue, 23 Nov 2010 15:26:53 -0600
+Message-ID: <1290547617-16640-2-git-send-email-h-kanigeri2@ti.com>
+References: <1290547617-16640-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60200 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42732 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750894Ab0KWVZE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Nov 2010 16:25:04 -0500
+	id S1750787Ab0KWVZ4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Nov 2010 16:25:56 -0500
+In-Reply-To: <1290547617-16640-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-Thanks to Benoit and Felipe Balbi for their comments.
+From: Fernando Guzman Lugo <x0095840@ti.com>
 
-Here is the revised set taking into account comments received.
-========================
+The variable rq_full flag is a global variable, so if there are multiple
+mailbox users there will be conflicts. Now there is a full flag per
+mailbox queue.
 
-- Added more description for checkpatch warnings
-- Created revision field to check for mailbox IP version to use for rx
-  interrupt disable functionality.
-- Cleaned up description in change full flag per mailbox patch.
+Reported-by: Ohad Ben-Cohen <ohad@wizery.com>
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+---
+ arch/arm/plat-omap/include/plat/mailbox.h |    1 +
+ arch/arm/plat-omap/mailbox.c              |    9 +++++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-References:
-http://marc.info/?l=linux-omap&m=129012283514652&w=2
-http://marc.info/?l=linux-omap&m=129016767426046&w=2
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38826.html
-
-The previous versions of this patch set can be found here
-=======================
-
-http://www.spinics.net/lists/arm-kernel/msg104544.html
-http://www.spinics.net/lists/linux-omap/msg39988.html
-http://www.spinics.net/lists/linux-omap/msg39931.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37278.html
-
-Fernando Guzman Lugo (1):
-  OMAP: mailbox: change full flag per mailbox queue instead of global
-
-Hari Kanigeri (4):
-  OMAP: mailbox: fix rx interrupt disable in omap4
-  OMAP: mailbox: fix checkpatch warnings
-  OMAP: mailbox: send message in process context
-  OMAP: mailbox: add notification support for multiple readers
-
- arch/arm/mach-omap2/mailbox.c             |    7 ++-
- arch/arm/plat-omap/include/plat/mailbox.h |   12 ++-
- arch/arm/plat-omap/mailbox.c              |  135 +++++++++++++++++------------
- 3 files changed, 96 insertions(+), 58 deletions(-)
+diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
+index 9976565..13f2ef3 100644
+--- a/arch/arm/plat-omap/include/plat/mailbox.h
++++ b/arch/arm/plat-omap/include/plat/mailbox.h
+@@ -48,6 +48,7 @@ struct omap_mbox_queue {
+ 	struct tasklet_struct	tasklet;
+ 	int	(*callback)(void *);
+ 	struct omap_mbox	*mbox;
++	bool full;
+ };
+ 
+ struct omap_mbox {
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index d2fafb8..48e161c 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -33,7 +33,6 @@
+ 
+ static struct workqueue_struct *mboxd;
+ static struct omap_mbox **mboxes;
+-static bool rq_full;
+ 
+ static int mbox_configured;
+ static DEFINE_MUTEX(mbox_configured_lock);
+@@ -148,6 +147,12 @@ static void mbox_rx_work(struct work_struct *work)
+ 
+ 		if (mq->callback)
+ 			mq->callback((void *)msg);
++		spin_lock_irq(&mq->lock);
++		if (mq->full) {
++			mq->full = false;
++			omap_mbox_enable_irq(mq->mbox, IRQ_RX);
++		}
++		spin_unlock_irq(&mq->lock);
+ 	}
+ }
+ 
+@@ -170,7 +175,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
+ 	while (!mbox_fifo_empty(mbox)) {
+ 		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
+ 			omap_mbox_disable_irq(mbox, IRQ_RX);
+-			rq_full = true;
++			mq->full = true;
+ 			goto nomem;
+ 		}
+ 
+-- 
+1.7.0
 
