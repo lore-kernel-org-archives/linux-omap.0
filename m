@@ -1,70 +1,126 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH ver. 2] PM: add synchronous runtime interface for interrupt
- handlers
-Date: Mon, 22 Nov 2010 22:19:22 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1011222204440.26293-100000@netrider.rowland.org>
-References: <201011230001.20241.rjw@sisk.pl>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: RFC: hwmod, iclks, auto-idle and autodeps
+Date: Mon, 22 Nov 2010 21:01:09 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1011221948220.20215@utopia.booyaka.com>
+References: <87ipzv38o2.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:58723 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751491Ab0KWDTX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 22:19:23 -0500
-In-Reply-To: <201011230001.20241.rjw@sisk.pl>
+Received: from utopia.booyaka.com ([72.9.107.138]:46172 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750923Ab0KWEBK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 23:01:10 -0500
+In-Reply-To: <87ipzv38o2.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Partha Basak <p-basak2@ti.com>, Charulatha Varadarajan <charu@ti.com>, linux-omap@vger.kernel.org
 
-On Tue, 23 Nov 2010, Rafael J. Wysocki wrote:
+Hi
 
-> > > Moreover, I'm not sure if we need an "IRQ safe" version of _idle.  Why do
-> > > we need it, exactly?
-> > 
-> > Because pm_runtime_put_sync() calls rpm_idle().  If there were no 
-> > irq-safe version of rpm_idle() then drivers wouldn't be able to call 
-> > pm_runtime_put_sync() from within an interrupt handler.
+Kevin and I discussed this privately, this is just to summarize for 
+everyone else.
+
+On Wed, 17 Nov 2010, Kevin Hilman wrote:
+
+> There have been a few discussions over the few months about how to
+> properly use omap_hwmod to manage certain IPs that have the interface
+> clock as the functional clock (e.g. OMAP3 GPIOs.)  The goal of this RFC
+> is to come to a conclusion about what should be done, and how to go
+> about implementing it.
 > 
-> Right.  Which they can't do now, can they?
+> In the initial conversion of the GPIO core to omap_hwmod, main_clk was 
+> left NULL so that hwmod was not managing the clock on every hwmod 
+> enable/disable.
 
-True.  That was the point of this patch -- to allow interrupt handlers
-to do runtime PM, which they can't do now.
+Since GPIO has a register target, main_clk cannot be null.  There's an 
+erroneous comment in plat/omap_hwmod.h about this; I'll add it to my list 
+of things to fix.
 
-> Why do you think we should allow them to do that?
+> This behavior matched current mainline GPIO code, which does not 
+> dynamically disable/enable GPIO iclks after init time. Instead, it 
+> relies on the module-level auto idle feature in HW.
+> 
+> However, without dynamically managing the clock in hwmod, this meant
+> that there were no autodeps tracked for GPIO and thus the PER
+> powerdomain could transition independently of MPU/CORE.
 
-Are you suggesting that interrupt handlers stick to pm_runtime_suspend 
-and pm_runtime_resume, and ignore pm_runtime_get_sync and 
-pm_runtime_put_sync?
+The current GPIO driver works only because it exploits some incidental 
+properties of the OMAP core code.  It implicitly relies on CM_AUTOIDLE = 1 
+on its iclk for power management to work, since the driver never disables 
+its iclk.  The driver also relies on the addition of MPU/IVA2 autodeps to 
+avoid losing logic context once all devices in PER go idle.  And by never 
+explicitly disabling its iclk, the driver avoids dealing with the various 
+GPIO wakeup/interrupt modes, causing its context save/restore to be 
+implemented as a weird hack in pm34xx.c.
 
-Recall that after probing is finished, the driver core does a
-pm_runtime_put_sync.  That might happen while an interrupt handler is
-running on another CPU.  If the interrupt handler didn't increment the
-usage_count, the driver core could cause the device to suspend while
-the interrupt handler was still using it.
+That said, there definitely is one real limitation/bug in the OMAP PM core 
+code that the GPIO driver has to work around.  The current core code 
+doesn't try to keep a powerdomain powered when an IP block inside the 
+powerdomain is still considered to be in use but all its system-sourced 
+clocks are cut.  This can result in unexpected context loss and 
+malfunction in some GPIO and McBSP cases, possibly some other modules also 
+that can be externally clocked and contain FIFOs/buffers, or that can 
+generate asynchronous wakeups.  There's a patch in the works here that 
+will require a powerdomain to stay on as long as a hwmod in that 
+powerdomain is enabled.  Once omap_hwmod_idle() is called for that hwmod, 
+the lower-bound on the power state of the powerdomain is removed.
 
-Or are you suggesting that interrupt handlers use pm_runtime_get_sync 
-and implement a poor-man's version of pm_runtime_put_sync by doing:
+So in the context of the PM runtime conversion of the GPIO driver, the 
+thing to do is to only do a pm_runtime_put*() once the GPIO module is 
+really ready to be powered down.  After that call, the GPIO block may lose 
+its logic context, and it may not be able to generate interrupts or 
+wakeups.  We may enforce the latter in the hwmod code for debugging 
+purposes by forcing the module into idle and instructing the PRCM to 
+ignore wakeups from the module in omap_hwmod_idle().  IO ring/chain 
+wakeups may still occur, but these are independent of the GPIO block.
 
-	pm_runtime_put_no_idle();
-	pm_runtime_suspend();
+The rest of the time, if the GPIO driver wants to use idle-mode wakeups 
+(presumably higher wakeup latency, but lower power consumption), it should 
+just clk_disable() its clocks, but not call pm_runtime_put*().  After the 
+previously-mentioned improvement to the powerdomain/hwmod code is 
+completed and applied, that should result in the powerdomain staying 
+powered, but all clocks being disabled.  Otherwise, if the GPIO driver
+wants to use active-mode interrupts (presumably lower wakeup latency, but 
+higher power consumption), then the driver should just leave its clocks 
+enabled and never call pm_runtime_put*().
 
-Is there some particular reason for denying interrupt handlers the
-ability to use pm_runtime_put_sync?  It seems odd to disallow that 
-while allowing pm_runtime_get_sync.
+Both of these latter modes will block some low-power states.  At some 
+point, the selection of the interrupt/wakeup mode -- GPIO active, GPIO 
+idle, IO ring/chain -- should be made based on the required wakeup latency 
+of the GPIO user.  Multiple modes may need to used simultaneously, since 
+individual modes are restricted to certain power states (e.g. IO ring is 
+only available in CORE off, IO chain is only available in CORE/PER 
+retention)
 
-Or maybe you think that when pm_runtime_put_sync detects the 
-usage_count has decremented to 0 and the device is irq-safe, it should 
-call rpm_suspend directly instead of calling rpm_idle?
+> The initial solution to this was to set the iclk to be the main_clk of 
+> the hwmod, such that autodeps were managed dynamically as well.  This 
+> led to a change in functionality in current code, since the iclk was now 
+> being manually enabled/disabled at runtime instead of being left for HW 
+> to manage by module autoidle.  It also led to problems in correctly 
+> handling asynchronous GPIO wakeups.
 
-In short, I don't see any reason not to present the same API to
-interrupt handlers for irq-safe devices as we present to
-process-context drivers for ordinary devices.
+If idle-mode wakeup is used, then the PRCM ISR code that notes the GPIO 
+wakeup event either needs to enable the GPIO main clock before calling its 
+ISR, or the GPIO ISR needs to enable its main clock first thing.  If 
+active-mode interrupts are used, then the GPIO ISR doesn't need to enable 
+its main clock since it is already running at that point.
 
-> Anyway, though, if the only reason of doing this is to allow interrupt handlers
-> to call pm_runtime_put_sync(), then I rather wouldn't do it at all.
+> Alternatively, would it make sense to do something different with
+> autodeps, such that modules like this that don't have a separate
+> functional clock still have autodeps handled, possibly by using an
+> optional clock?
+> 
+> Does extending autodeps make sense since, IIUC, we won't really need
+> them after all devices are using hwmod?
 
-Why not?
+The goal is definitely to get rid of the autodeps.  They are an old CDP 
+artifact that shouldn't be necessary once the device power control is 
+cleaned up.  The autodeps are almost certainly wasting power - they are 
+added for every clockdomain for both the MPU and IVA2 processor modules.
+Hopefully they should be removable after the hwmod conversion is complete 
+and targeted dependencies have been added for chip limitations/bugs (e.g. 
+the PER/CORE dependency issues)
 
-Alan Stern
 
+- Paul
