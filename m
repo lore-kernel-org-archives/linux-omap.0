@@ -1,405 +1,190 @@
-From: James Adams <james.r.adams@gmail.com>
-Subject: Re: DSP Bridge video decode of above VGA videos
-Date: Tue, 23 Nov 2010 14:34:29 +0000
-Message-ID: <AANLkTikYfYxUWBLL0qdnAEpoKSMGB6DTNXhUXJh_Enqv@mail.gmail.com>
-References: <AANLkTim2PQ9kAvSi12987gAykMAuPg7f3XM3zQNo5Tip@mail.gmail.com>
-	<AANLkTinCT-zQaGyLfS-NZU9Pue+2hmrLDckHYKqD_u8m@mail.gmail.com>
-	<AANLkTimhKaS4y+k0t_x39aw8LvO-tNUH-=x3V9jk7BsC@mail.gmail.com>
-	<AANLkTi=71zFhuBh3MArYjSEvJ+YXciF_9d2cn+5ojTb6@mail.gmail.com>
-	<AANLkTinkMPb4Htv4GN8--PZP0UdkWuyXiLYvRC3QasWD@mail.gmail.com>
-	<AANLkTim6++ATTJ=BCssvLYKRek0EXKVPMGgKH1WMNuRM@mail.gmail.com>
-	<AANLkTinpR2S1vGaRr=DMALxWjb1X-4TPkhwXZbZhXbwj@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv4 2/14] OMAP: dmtimer: infrastructure to support hwmod
+Date: Tue, 23 Nov 2010 15:48:52 +0100
+Message-ID: <4CEBD454.8070003@ti.com>
+References: <1290220778-22244-1-git-send-email-tarun.kanti@ti.com> <1290220778-22244-2-git-send-email-tarun.kanti@ti.com> <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:55499 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754406Ab0KWOeb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Nov 2010 09:34:31 -0500
-Received: by pzk6 with SMTP id 6so408472pzk.19
-        for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 06:34:30 -0800 (PST)
-In-Reply-To: <AANLkTinpR2S1vGaRr=DMALxWjb1X-4TPkhwXZbZhXbwj@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37678 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752109Ab0KWOsz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Nov 2010 09:48:55 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id oANEmsDh020418
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 08:48:54 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id oANEmshr015332
+	for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 08:48:54 -0600 (CST)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id oANEmsWK026642
+	for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 08:48:54 -0600 (CST)
+In-Reply-To: <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sapiens, Rene" <rene.sapiens@ti.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
-A bit more information about why videos are not playing in a port of
-Zoom2 to gumstix:
-
-1)
-I can switch to use the software codec by simply removing the
-/system/etc/01_Vendor_ti_omx.cfg file.
-
-2)
-If I use the OpenCORE unit tests I can successfully decode:
-   VGA movies with software codec
-   1280*544 movie with software codec
-   VGA movies with DSP codec
-but it fails for the 1280x544 movie with DSP codec.
-
-This is the error log:
-   pvplayer_engine_test -test 1 1 -source wall720p.mp4
-   SDK Labeled: PVDEV_CORE_RELEASE_6.506.4.1 built on 20090312
-
-   Test Program for pvPlayer engine class.
-     Input file name 'wall720p.mp4'
-     Test case range 1 to 1
-     Compressed output Video(No) Audio(No)
-     Log level 8; Log node 0 Log Text 0 Log Mem 0
-
-   Starting Test 1: Open-Play-Stop-Reset
-
-   ****************LCML ERROR : DSP ************************
-   Error: Create the Node : Err Num =3D 8000800c
-   ****************LCML ERROR : DSP ************************
-
-3)
-I can't find this 8000800c number defined anywhere in the Android tree.
-Any idea what it means?
-
-4)
-Using the software codec from inside the Android Gallery application I
-still get the same errors as mentioned before about missing video buffe=
-r
-addresses.
-
-Thanks for any advice people can give, I am feeling increasingly
-bewildered by all the levels of OpenCore, OMX, OpenMax, DSP bridge...
-
-
-On Tue, Nov 23, 2010 at 9:30 AM, James Adams <james.r.adams@gmail.com> =
-wrote:
-> Hi Rene,
+On 11/20/2010 3:39 AM, DebBarma, Tarun Kanti wrote:
+> (1) Add new fields and data structures to support dmtimer conversion
+> to platform driver.
+> (2) Constants to identify IP revision so that Highlander IP in OMAP 4
+> can be distinguished.
+> (3) field to identify OMAP4 abe timers.
+> (4) Interface function to support early boot.
 >
-> This email contains 2 error logs. =A0The first comes from trying to s=
-witch
-> to using the software decoder.
-> Is there something else I need to do to revert to software codecs
-> perhaps?
+> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> Signed-off-by: Thara Gopinath<thara@ti.com>
+> ---
+>   arch/arm/mach-omap2/dmtimer.h             |   32 +++++++++++++++++++++++++++++
+>   arch/arm/plat-omap/dmtimer.c              |    8 +++++++
+>   arch/arm/plat-omap/include/plat/dmtimer.h |   19 +++++++++++++++++
+>   3 files changed, 59 insertions(+), 0 deletions(-)
+>   create mode 100644 arch/arm/mach-omap2/dmtimer.h
 >
-> The second error log is the stack trace when the watchdog timer calls
-> SYNC_EnterCS.
+> diff --git a/arch/arm/mach-omap2/dmtimer.h b/arch/arm/mach-omap2/dmtimer.h
+> new file mode 100644
+> index 0000000..4d4493b
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/dmtimer.h
+> @@ -0,0 +1,32 @@
+> +/**
+> + * OMAP Dual-Mode Timers - early initialization interface
+> + *
+> + * function interface called first to start dmtimer early initialization.
+> + *
+> + * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
+> + * Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> + *
+> + * Copyright (C) 2010 Texas Instruments Incorporated
+> + * Thara Gopinath<thara@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+> + * kind, whether express or implied; without even the implied warranty
+> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +#ifndef __ASM_ARCH_DMTIMER_H
+> +#define __ASM_ARCH_DMTIMER_H
+> +
+> +/*
+> + * dmtimer is required during early part of boot sequence even before
+> + * device model and pm_runtime if fully up and running. this function
+> + * provides hook to omap2_init_common_hw() which is triggered from
+> + * start_kernel()->init_irq() of kernel initialization sequence.
+> + */
+> +void __init omap2_dm_timer_early_init(void);
+> +
+> +#endif
+> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> index 1d706cf..10daa9d 100644
+> --- a/arch/arm/plat-omap/dmtimer.c
+> +++ b/arch/arm/plat-omap/dmtimer.c
+> @@ -3,6 +3,12 @@
+>    *
+>    * OMAP Dual-Mode Timers
+>    *
+> + * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
+> + * Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> + *
+> + * Copyright (C) 2010 Texas Instruments Incorporated
+> + * Thara Gopinath<thara@ti.com>
+
+You can remove the copyright and put Thara's name below yours.
+It should be the case for other field as well.
+
+> + *
+>    * Copyright (C) 2005 Nokia Corporation
+>    * OMAP2 support by Juha Yrjola
+>    * API improvements and OMAP2 clock framework support by Timo Teras
+> @@ -151,6 +157,7 @@
+>   		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR<<  WPSHIFT))
 >
-> I am sorry for troubling you with all these newbie questions, I've do=
-ne
-> quite a lot of Linux driver work before and have written my own embed=
-ded
-> H264 and MPEG4 codecs, but I have only been looking at Android for a
-> couple of weeks and am finding it rather overwhelming how much there =
-is
-> to learn!
+>   struct omap_dm_timer {
+> +	int id;
+>   	unsigned long phys_base;
+>   	int irq;
+>   #ifdef CONFIG_ARCH_OMAP2PLUS
+> @@ -160,6 +167,7 @@ struct omap_dm_timer {
+>   	unsigned reserved:1;
+>   	unsigned enabled:1;
+>   	unsigned posted:1;
+> +	struct platform_device *pdev;
+>   };
+
+What that structure is used for? Is it some legacy structure that will 
+be removed in next patches? It seems to be a wrapper on top of the 
+device that should not be used anymore after platform_driver migration.
+
 >
-> If I try to switch back to software codecs by commenting out the
-> OMX.TI.Video.Decoder line in
-> hardware/ti/omx/system/src/openmax_il/omx_core/src/OMX_Core.c then I =
-get
-> the following errors:
+>   static int dm_timer_count;
+> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+> index dfa3aff..2bb837e 100644
+> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
+> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+> @@ -3,6 +3,11 @@
+>    *
+>    * OMAP Dual-Mode Timers
+>    *
+> + * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
+> + * Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> + * Thara Gopinath<thara@ti.com>
+
+Add a blank line here.
+
+> + * Platform device conversion and hwmod support.
+> + *
+>    * Copyright (C) 2005 Nokia Corporation
+>    * Author: Lauri Leukkunen<lauri.leukkunen@nokia.com>
+>    * PWM and clock framwork support by Timo Teras.
+> @@ -29,6 +34,8 @@
+>   #ifndef __ASM_ARCH_DMTIMER_H
+>   #define __ASM_ARCH_DMTIMER_H
 >
-> D/omx_interface( =A0934): TIOMXInterface: creating interface
-> D/omx_interface( =A0934): Calling DLOPEN on OMX_CORE_LIBRARY
-> (libOMX_Core.so)
-> D/omx_interface( =A0934): DLOPEN SUCCEEDED (libOMX_Core.so)
-> D/omx_interface( =A0934): TIOMXInterface: library lookup success
-> D/TIOMX_CORE( =A0934): init count =3D 1
-> I/ActivityManager( =A0966): Displayed activity
-> com.android.gallery/com.android.cam
-> era.MovieView: 540 ms (total 540 ms)
-> V/MovieView( 1145): hasFocus
-> D/VideoMio34xx( =A0934): Vendor(34xx) Specific CloseFrameBuf
-> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
-ync()
-> Video F
-> ormat Key, Value X-YUV-420
-> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
-ync()
-> Error,
-> unrecognized key x-pvmf/mediaxfer/output/rate;type=3Drel;valtype=3Din=
-t32
-> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
-ync()
-> Error,
-> unrecognized key x-pvmf/port/formattype;valtype=3Dint32
-> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
-ync()
-> Video W
-> idth, Value 320
-> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
-ync()
-> Video H
-> eight, Value 240
-> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
-ync()
-> Video D
-> isplay Height, Value 240
-> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
-ync()
-> Video D
-> isplay Width, Value 320
-> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
-ync()
-> Number
-> of Buffer, Value 2
-> D/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::setParametersS=
-ync()
-> Buffer
-> Size, Value 115200
-> D/VideoMio34xx( =A0934): Calling Vendor(34xx) Specific initCheck
-> D/TIOverlay( =A0966): overlay_createOverlay:IN w=3D320 h=3D240 format=
-=3D22
-> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_createOverlay() ######
-> I/TIOverlay( =A0966): Opened video1/fd=3D60/obj=3D002dcf20/shm=3D59/s=
-ize=3D4096
-> D/TIOverlay( =A0966): overlay_createOverlay: OUT
-> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_setParameter() ######
-> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_setPosition() ######
-> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_setParameter() ######
-> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_setParameter() ######
-> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_setParameter() ######
-> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_setParameter() ######
-> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_setParameter() ######
-> D/TIOverlay( =A0966): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_commit() ######
-> I/TIOverlay( =A0966): Position/X0/Y0/W240/H320
-> I/TIOverlay( =A0966): Adjusted Position/X0/Y0/W320/H240
-> I/TIOverlay( =A0966): Rotation/90
-> I/TIOverlay( =A0966): ColorKey/0
-> I/TIOverlay( =A0966): shared->dispH =3D 320, shared->dispW =3D 240
-> I/Overlay-V4L2( =A0966): dumping driver state:
-> I/Overlay-V4L2( =A0966): output pixfmt:
-> I/Overlay-V4L2( =A0966): w: 320
-> I/Overlay-V4L2( =A0966): h: 240
-> I/Overlay-V4L2( =A0966): color: 7
-> I/Overlay-V4L2( =A0966): UYVY
-> I/Overlay-V4L2( =A0966): v4l2_overlay window:
-> I/Overlay-V4L2( =A0966): window l: 0
-> I/Overlay-V4L2( =A0966): window t: 0
-> I/Overlay-V4L2( =A0966): window w: 320
-> I/Overlay-V4L2( =A0966): window h: 240
-> I/Overlay-V4L2( =A0966): output crop:
-> I/Overlay-V4L2( =A0966): crop l: 0
-> I/Overlay-V4L2( =A0966): crop t: 0
-> I/Overlay-V4L2( =A0966): crop w: 320
-> I/Overlay-V4L2( =A0966): crop h: 240
-> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_device_open() ######
-> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_initialize() ######
-> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_data_setParameter() ######
-> I/VideoMio34xx( =A0934): Actual resolution: 320x240
-> I/VideoMio34xx( =A0934): Video resolution: 320x240
-> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_getBufferCount() ######
-> D/VideoMio34xx( =A0934): number of buffers =3D 6
-> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_getBufferAddress() ######
-> I/TIOverlay( =A0934): Buffer/0/addr=3D40eb9000/len=3D155648
-> D/VideoMio34xx( =A0934): buffer =3D 0 allocated addr=3D0x40eb9000
-> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_getBufferAddress() ######
-> I/TIOverlay( =A0934): Buffer/1/addr=3D40edf000/len=3D155648
-> D/VideoMio34xx( =A0934): buffer =3D 1 allocated addr=3D0x40edf000
-> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_getBufferAddress() ######
-> I/TIOverlay( =A0934): Buffer/2/addr=3D40f05000/len=3D155648
-> D/VideoMio34xx( =A0934): buffer =3D 2 allocated addr=3D0x40f05000
-> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_getBufferAddress() ######
-> I/TIOverlay( =A0934): Buffer/3/addr=3D40f2b000/len=3D155648
-> D/VideoMio34xx( =A0934): buffer =3D 3 allocated addr=3D0x40f2b000
-> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_getBufferAddress() ######
-> I/TIOverlay( =A0934): Buffer/4/addr=3D40f51000/len=3D155648
-> D/VideoMio34xx( =A0934): buffer =3D 4 allocated addr=3D0x40f51000
-> D/TIOverlay( =A0934): =A0hardware/ti/omap3/liboverlay/overlay.cpp ###=
-###
-> Calling ove
-> rlay_getBufferAddress() ######
-> I/TIOverlay( =A0934): Buffer/5/addr=3D40f77000/len=3D155648
-> D/VideoMio34xx( =A0934): buffer =3D 5 allocated addr=3D0x40f77000
-> I/VideoMio34xx( =A0934): Ln 598 iVideoSubFormat X-YUV-420-PLANAR. do =
-NOT
-> allocate
-> decoder buffer from overlay
-> W/MediaPlayer( 1145): info/warning (1, 44)
-> I/MediaPlayer( 1145): Info (1,44)
-> D/MediaPlayer( 1145): getMetadata
-> D/Omap3ALSA( =A0934): open called for devices 00000000 in mode 0...
-> E/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::writeAsync: aD=
-ata
-> does not
-> match any v4l buffer address
-> I/Omap3ALSA( =A0934): Initialized ALSA PLAYBACK device default
-> E/AudioHardwareALSA( =A0934): RE-OPEN AFTER STANDBY:: took 79 msecs
-> W/AudioFlinger( =A0934): write blocked for 79 msecs, 2 delayed writes=
-,
-> thread 0x25
-> 1a8
-> E/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::writeAsync: aD=
-ata
-> does not
-> match any v4l buffer address
-> E/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::writeAsync: aD=
-ata
-> does not
-> match any v4l buffer address
-> E/VideoMio34xx( =A0934): AndroidSurfaceOutputOmap34xx::writeAsync: aD=
-ata
-> does not
-> match any v4l buffer address
+> +#include<linux/platform_device.h>
+> +
+>   /* clock sources */
+>   #define OMAP_TIMER_SRC_SYS_CLK			0x00
+>   #define OMAP_TIMER_SRC_32_KHZ			0x01
+> @@ -44,11 +51,23 @@
+>   #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
+>   #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPAR	0x02
 >
-> The stack trace is shown below.
+> +/* timer ip constants */
+
+Maybe you should have a better comment here?
+Something closer to your changelog: IP revision identifier so that 
+Highlander IP in OMAP 4 can be distinguished.
+
+> +#define OMAP_TIMER_IP_VERSION_1			0x1
+> +#define OMAP_TIMER_IP_VERSION_2			0x2
+> +
+>   struct omap_dm_timer;
+>   extern struct omap_dm_timer *gptimer_wakeup;
+>   extern struct sys_timer omap_timer;
+>   struct clk;
 >
-> [<c0412864>] (dump_stack+0x0/0x14) from [<c0278c18>]
-> (SYNC_EnterCS+0x48/0xe4)
-> [<c0278bd0>] (SYNC_EnterCS+0x0/0xe4) from [<c0279e24>]
-> (REG_GetValue+0x60/0xa0)
-> =A0r5:c05ba390 r4:c04f092c
-> [<c0279dc4>] (REG_GetValue+0x0/0xa0) from [<c027987c>]
-> (CFG_GetObject+0x60/0xe0)
-> =A0r7:cfa87a80 r6:00000002 r5:cf98fe94 r4:00000002
-> [<c027981c>] (CFG_GetObject+0x0/0xe0) from [<c02913c0>]
-> (DRV_GetFirstDevObject+0
-> x1c/0x4c)
-> =A0r5:c05ba3c0 r4:00000000
-> [<c02913a4>] (DRV_GetFirstDevObject+0x0/0x4c) from [<c02858e4>]
-> (DEV_GetFirst+0x
-> 10/0x44)
-> [<c02858d4>] (DEV_GetFirst+0x0/0x44) from [<c027d430>]
-> (dsp_wdt_enable+0x44/0xe0
-> )
-> =A0r5:c05ba3c0 r4:00000000
-> [<c027d3ec>] (dsp_wdt_enable+0x0/0xe0) from [<c02820fc>]
-> (handle_hibernation_fro
-> mDSP+0x148/0x1ec)
-> =A0r5:cfaa0000 r4:00008000
-> [<c0281fb4>] (handle_hibernation_fromDSP+0x0/0x1ec) from [<c02810c0>]
-> (WMD_DEV_C
-> trl+0xfc/0x130)
-> =A0r7:cf98e000 r6:cf98ff34 r5:cc5f6a88 r4:cfb89e00
-> [<c0280fc4>] (WMD_DEV_Ctrl+0x0/0x130) from [<c027dc24>]
-> (io_mbox_msg+0x70/0x1d8)
-> =A0r7:cf98e000 r6:c05496c4 r5:cc5f6a88 r4:cfb89e00
-> [<c027dbb4>] (io_mbox_msg+0x0/0x1d8) from [<c0059308>]
-> (mbox_rx_work+0xf4/0x100)
-> =A0r5:cc5f6a88 r4:0000200a
-> [<c0059214>] (mbox_rx_work+0x0/0x100) from [<c007ebb0>]
-> (run_workqueue+0xc8/0x18
-> 4)
-> [<c007eae8>] (run_workqueue+0x0/0x184) from [<c007f2dc>]
-> (worker_thread+0x104/0x
-> 118)
-> =A0r9:00000000 r8:00000000 r7:cf811040 r6:cf94e140 r5:cf94e148
-> r4:cf98e000
-> [<c007f1d8>] (worker_thread+0x0/0x118) from [<c0082cb4>]
-> (kthread+0x54/0x80)
-> =A0r7:00000000 r6:00000000 r5:c007f1d8 r4:cf94e140
-> [<c0082c60>] (kthread+0x0/0x80) from [<c0070b1c>] (do_exit+0x0/0x7bc)
-> =A0r5:00000000 r4:00000000
-> drivers/dsp/bridge/services/sync.c, line 358: Assertion (0) failed.
+> +struct dmtimer_platform_data {
+> +	int (*set_timer_src) (struct platform_device *pdev, int source);
+> +	int timer_ip_type;
+> +	u8 func_offst;
+> +	u8 intr_offst;
+
+You can probably keep "offset" since you save only one character...
+
+Regards,
+Benoit
+
+> +	u32 is_early_init:1;
+> +};
+> +
+>   int omap_dm_timer_init(void);
 >
->
-> On Mon, Nov 22, 2010 at 9:42 PM, Sapiens, Rene <rene.sapiens@ti.com> =
-wrote:
->> James,
->>
->> On Mon, Nov 22, 2010 at 11:12 AM, James Adams <james.r.adams@gmail.c=
-om> wrote:
->>> Hi Rene,
->>>
->>> We have got the watchdog timer enabled at the moment (interval 5 se=
-conds).
->>> The code does indeed point to the line as you say.
->>> I tried using dump_stack and it was getting triggered by an interru=
-pt
->>> calling handle_hibernation_fromDSP which then called functions
->>> eventually triggering the SYNC_entercs (via DEV_getfirst if I remem=
-ber
->>> right)
->>> I certainly don't understand why this should happen, but it seems t=
-o
->>> happen quite a lot (probably every 5 seconds...) and the lower
->>> resolution videos didn't seem to mind so I have been ignoring it.
->>>
->>
->> Looking at the drivers/dsp/bridge/wmd/tiomap3430_pwr.c file tagged
->> with L25.12 release at [1] =A0I don't see feasible the path to have
->> handle_hibernation_fromDSP() to get to SYNC_entercs(), so probably y=
-ou
->> have a newer or older version of the file.
->>
->> Basically what i was looking with those assertions is to see if thos=
-e
->> could be because of =A0a DSP WDT overflow. Also those assertions can
->> fail because of the calling of IO_DispatchMsg by io_dpc(), if that's
->> the case there should not be a problem. On the other hand if there i=
-s
->> a WDT overflow those assertions could also fail.
->>
->> Can you double check by printing the call stack again when the
->> assertion fails, just to see why for your case
->> handle_hibernation_fromDSP() is failing in the assertion?
->>
->>> Is it a bad idea to use WDT?
->>
->> No, =A0it is ok =A0to use it.
->>
->> Regards,
->> Rene Sapiens
->> --
->> [1] http://git.omapzoom.org/?p=3Dkernel/omap.git;a=3Dblob;f=3Ddriver=
-s/dsp/bridge/wmd/tiomap3430_pwr.c;h=3Df698b4475584e92467e03ecec96bc8879=
-48275f9;hb=3D64b404e9f457f19537972e7f2424f4c73a8a7789#l116
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   struct omap_dm_timer *omap_dm_timer_request(void);
+
