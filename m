@@ -1,112 +1,418 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v2 3/4] OMAP4: hwmod data: Add hwspinlock
-Date: Tue, 23 Nov 2010 17:38:59 +0200
-Message-ID: <1290526740-27624-4-git-send-email-ohad@wizery.com>
-References: <1290526740-27624-1-git-send-email-ohad@wizery.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv4 11/14] OMAP2+: dmtimer: convert to platform devices
+Date: Tue, 23 Nov 2010 18:51:18 +0100
+Message-ID: <4CEBFF16.8060908@ti.com>
+References: <1290220778-22244-1-git-send-email-tarun.kanti@ti.com> <1290220778-22244-2-git-send-email-tarun.kanti@ti.com> <1290220778-22244-3-git-send-email-tarun.kanti@ti.com> <1290220778-22244-4-git-send-email-tarun.kanti@ti.com> <1290220778-22244-5-git-send-email-tarun.kanti@ti.com> <1290220778-22244-6-git-send-email-tarun.kanti@ti.com> <1290220778-22244-7-git-send-email-tarun.kanti@ti.com> <1290220778-22244-8-git-send-email-tarun.kanti@ti.com> <1290220778-22244-9-git-send-email-tarun.kanti@ti.com> <1290220778-22244-10-git-send-email-tarun.kanti@ti.com> <1290220778-22244-11-git-send-email-tarun.kanti@ti.com> <1290220778-22244-12-git-send-email-tarun.kanti@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:51462 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755450Ab0KWPhv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Nov 2010 10:37:51 -0500
-In-Reply-To: <1290526740-27624-1-git-send-email-ohad@wizery.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48340 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755218Ab0KWRvV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Nov 2010 12:51:21 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id oANHpKQJ021746
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 11:51:21 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id oANHpKFk008144
+	for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 11:51:20 -0600 (CST)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id oANHpKFq011907
+	for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 11:51:20 -0600 (CST)
+In-Reply-To: <1290220778-22244-12-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-From: Benoit Cousson <b-cousson@ti.com>
+On 11/20/2010 3:39 AM, Tarun Kanti DebBarma wrote:
+> From: Thara Gopinath<thara@ti.com>
+>
+> Add routines to converts dmtimers to platform devices. The device data
+> is obtained from hwmod database of respective platform and is registered
+> to device model after successful binding to driver. It also provides
+> provision to access timers during early boot when pm_runtime framework
+> is not completely up and running.
+>
+> Signed-off-by: Thara Gopinath<thara@ti.com>
+> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> [p-basak2@ti.com: pm_runtime logic]
+> Signed-off-by: Partha Basak<p-basak2@ti.com>
+> ---
+>   arch/arm/mach-omap2/Makefile  |    2 +-
+>   arch/arm/mach-omap2/dmtimer.c |  296 +++++++++++++++++++++++++++++++++++++++++
+>   2 files changed, 297 insertions(+), 1 deletions(-)
+>   create mode 100644 arch/arm/mach-omap2/dmtimer.c
+>
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index ce7b1f0..148f4d7 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -4,7 +4,7 @@
+>
+>   # Common support
+>   obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o pm.o \
+> -	 common.o
+> +	 common.o dmtimer.o
+>
+>   omap-2-3-common				= irq.o sdrc.o prm2xxx_3xxx.o
+>   hwmod-common				= omap_hwmod.o \
+> diff --git a/arch/arm/mach-omap2/dmtimer.c b/arch/arm/mach-omap2/dmtimer.c
+> new file mode 100644
+> index 0000000..b5951b1
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/dmtimer.c
+> @@ -0,0 +1,296 @@
+> +/**
+> + * OMAP2PLUS Dual-Mode Timers - platform device registration
+> + *
+> + * Contains first level initialization routines which extracts timers
+> + * information from hwmod database and registers with linux device model.
+> + * It also has low level function to chnage the timer input clock source.
 
-Add hwspinlock hwmod data for OMAP4 chip
+typo.
 
-Signed-off-by: Cousson, Benoit <b-cousson@ti.com>
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   63 ++++++++++++++++++++++++++++
- 1 files changed, 63 insertions(+), 0 deletions(-)
+> + *
+> + * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
+> + * Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> + *
+> + * Copyright (C) 2010 Texas Instruments Incorporated
+> + * Thara Gopinath<thara@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+> + * kind, whether express or implied; without even the implied warranty
+> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +#undef DEBUG
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 0d5c6eb..07c3654 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1043,6 +1043,66 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
- 
-+/*
-+ * 'spinlock' class
-+ * spinlock provides hardware assistance for synchronizing the processes
-+ * running on multiple processors
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap44xx_spinlock_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap44xx_spinlock_hwmod_class = {
-+	.name = "spinlock",
-+	.sysc = &omap44xx_spinlock_sysc,
-+};
-+
-+/* spinlock */
-+static struct omap_hwmod omap44xx_spinlock_hwmod;
-+static struct omap_hwmod_addr_space omap44xx_spinlock_addrs[] = {
-+	{
-+		.pa_start	= 0x4a0f6000,
-+		.pa_end		= 0x4a0f6fff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_cfg -> spinlock */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__spinlock = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_spinlock_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_spinlock_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_spinlock_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* spinlock slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_spinlock_slaves[] = {
-+	&omap44xx_l4_cfg__spinlock,
-+};
-+
-+static struct omap_hwmod omap44xx_spinlock_hwmod = {
-+	.name		= "spinlock",
-+	.class		= &omap44xx_spinlock_hwmod_class,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_L4CFG_HW_SEM_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_spinlock_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_spinlock_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
- static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	/* dmm class */
- 	&omap44xx_dmm_hwmod,
-@@ -1077,6 +1137,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_uart2_hwmod,
- 	&omap44xx_uart3_hwmod,
- 	&omap44xx_uart4_hwmod,
-+
-+	/* spinlock class */
-+	&omap44xx_spinlock_hwmod,
- 	NULL,
- };
- 
--- 
-1.7.0.4
+I guess, that undef should not be there?
 
+> +
+> +#include<linux/clk.h>
+> +#include<linux/delay.h>
+> +#include<linux/io.h>
+> +#include<linux/err.h>
+> +#include<linux/slab.h>
+> +
+> +#include<mach/irqs.h>
+
+Do you still need that?
+
+> +#include<plat/dmtimer.h>
+> +#include<plat/powerdomain.h>
+
+Why do you need powerdomain in that file?
+
+> +#include<plat/omap_hwmod.h>
+> +#include<plat/omap_device.h>
+> +#include<linux/pm_runtime.h>
+> +
+> +static int early_timer_count __initdata = 1;
+> +
+> +/**
+> + * omap2_dm_timer_set_src - change the timer input clock source
+> + * @pdev:	timer platform device pointer
+> + * @timer_clk:	current clock source
+> + * @source:	array index of parent clock source
+> + */
+> +static int omap2_dm_timer_set_src(struct platform_device *pdev, int source)
+> +{
+> +	int ret;
+> +	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
+> +	struct clk *fclk = clk_get(&pdev->dev, "fck");
+> +	struct clk *new_fclk;
+> +	char *fclk_name = "32k_ck"; /* default name */
+> +
+> +	switch(source) {
+> +	case OMAP_TIMER_SRC_SYS_CLK:
+> +		fclk_name = "sys_ck";
+> +		break;
+> +
+> +	case OMAP_TIMER_SRC_32_KHZ:
+> +		fclk_name = "32k_ck";
+> +		break;
+> +
+> +	case OMAP_TIMER_SRC_EXT_CLK:
+> +		if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_1) {
+> +			fclk_name = "alt_ck";
+> +			break;
+> +		}
+> +		dev_dbg(&pdev->dev, "%s:%d: invalid clk src.\n",
+> +			__func__, __LINE__);
+> +		return -EINVAL;
+> +	}
+
+Do you really have to maintain the source enum? Cannot you just pass the 
+char* to this API?
+It will avoid that code, and make that API much more flexible if we have 
+to add extra clock source in the future.
+If the clock does not exist in a particular Soc, the clk_get will fail 
+and that's all you have to know.
+
+> +
+> +
+> +	if (IS_ERR_OR_NULL(fclk)) {
+> +		dev_dbg(&pdev->dev, "%s:%d: clk_get() FAILED\n",
+> +			__func__, __LINE__);
+> +		return -EINVAL;
+> +	}
+> +
+> +	new_fclk = clk_get(&pdev->dev, fclk_name);
+> +	if (IS_ERR_OR_NULL(new_fclk)) {
+> +		dev_dbg(&pdev->dev, "%s:%d: clk_get() %s FAILED\n",
+> +			__func__, __LINE__, fclk_name);
+> +		clk_put(fclk);
+> +		return -EINVAL;
+> +	}
+> +
+> +	ret = clk_set_parent(fclk, new_fclk);
+> +	if (IS_ERR_VALUE(ret)) {
+> +		dev_dbg(&pdev->dev, "%s:clk_set_parent() to %s FAILED\n",
+> +			__func__, fclk_name);
+> +		ret = -EINVAL;
+> +	}
+> +
+> +	clk_put(new_fclk);
+> +	clk_put(fclk);
+> +
+> +	return ret;
+> +}
+> +
+> +struct omap_device_pm_latency omap2_dmtimer_latency[] = {
+> +	{
+> +		.deactivate_func = omap_device_idle_hwmods,
+> +		.activate_func   = omap_device_enable_hwmods,
+> +		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> +	},
+> +};
+> +
+> +/**
+> + * omap_dm_timer_early_init - build and register early timer device
+> + * with an associated timer hwmod
+> + * @oh: timer hwmod pointer to be used to build timer device
+> + * @user: parameter that can be passed from calling hwmod API
+> + *
+> + * early init is called in the last part of omap2_init_common_hw
+> + * for each early timer class using omap_hwmod_for_each_by_class.
+> + * it registers each of the timer devices present in the system.
+
+typo: It
+
+> + * at the end of function call memory is allocated for omap_device
+
+Typo: At... There are tons of typo like that in your patches, so I'm not 
+going to highlight them all. You should do a check of the whole series.
+
+> + * and hwmod for early timer and the device is registered to the
+> + * framework ready to be probed by the driver.
+> + */
+> +static int __init omap2_timer_early_init(struct omap_hwmod *oh, void *user)
+> +{
+> +	int id;
+> +	int ret = 0;
+> +	char *name = "omap-timer";
+
+Please use "omap_timer" instead in order to be consistent with other 
+omap devices.
+
+> +	struct dmtimer_platform_data *pdata;
+> +	struct omap_device *od;
+> +
+> +	pr_debug("%s:%s\n", __func__, oh->name);
+> +
+> +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+> +	if (!pdata) {
+> +		pr_err("%s: No memory for [%s]\n", __func__, oh->name);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	pdata->is_early_init = 1;
+> +
+> +	/* hook clock set/get functions */
+> +	pdata->set_timer_src = omap2_dm_timer_set_src;
+> +
+> +	/* read timer ip version */
+> +	pdata->timer_ip_type = oh->class->rev;
+> +	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
+> +		pdata->func_offst = 0x14;
+> +		pdata->intr_offst = 0x10;
+
+You should use the defines here instead of the hard coded values.
+XXX_TIOCP_CFG, XXX_IRQSTATUS_RAW - XXX_TIOCP_CFG...
+
+> +	} else {
+> +		pdata->func_offst = 0;
+> +		pdata->intr_offst = 0;
+> +	}
+> +
+> +	/*
+> +	 * extract the id from name filed in hwmod database
+> +	 * and use the same for constructing ids' for the
+> +	 * timer devices. in a way, we are avoiding usage of
+> +	 * static variable witin the function to do the same.
+> +	 * CAUTION: we have to be careful and make sure the
+> +	 * name in hwmod database does not change in which case
+> +	 * we might either make corresponding change here or
+> +	 * switch back static variable mechanism.
+> +	 */
+> +	sscanf(oh->name, "timer%2d",&id);
+> +
+> +	od = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
+> +			omap2_dmtimer_latency,
+> +			ARRAY_SIZE(omap2_dmtimer_latency), 1);
+> +
+> +	if (IS_ERR(od)) {
+> +		pr_err("%s: Cant build omap_device for %s:%s.\n",
+> +			__func__, name, oh->name);
+> +		ret = -EINVAL;
+> +	} else
+> +		early_timer_count++;
+
+Blank line here.
+
+> +	/*
+> +	 * pdata can be freed because omap_device_build
+> +	 * creates its own memory pool
+> +	 */
+> +	kfree(pdata);
+> +
+> +	return ret;
+> +}
+> +
+> +/**
+> + * omap2_dm_timer_init - build and register timer device with an
+> + * associated timer hwmod
+> + * @oh:	timer hwmod pointer to be used to build timer device
+> + * @user:	parameter that can be passed from calling hwmod API
+> + *
+> + * called by omap_hwmod_for_each_by_class to register each of the timer
+> + * devices present in the system. the number of timer devices is known
+> + * by parsing through the hwmod database for a given class name. at the
+> + * end of function call memory is allocated for omap_device and hwmod
+> + * for timer and the device is registered to the framework ready to be
+> + * proved by the driver.
+> + */
+> +static int __init omap2_timer_init(struct omap_hwmod *oh, void *user)
+> +{
+> +	int id;
+> +	int ret = 0;
+> +	char *name = "omap-timer";
+> +	struct omap_device *od;
+> +	struct dmtimer_platform_data *pdata;
+> +
+> +	if (!oh) {
+> +		pr_err("%s:NULL hwmod pointer (oh)\n", __func__);
+> +		return -EINVAL;
+> +	}
+> +	pr_debug("%s:%s\n", __func__, oh->name);
+> +
+> +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+> +	if (!pdata) {
+> +		pr_err("%s:No memory for [%s]\n",  __func__, oh->name);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	pdata->is_early_init = 0;
+> +
+> +	/* hook clock set/get functions */
+> +	pdata->set_timer_src = omap2_dm_timer_set_src;
+> +
+> +	/* read timer ip version */
+> +	pdata->timer_ip_type = oh->class->rev;
+> +	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
+> +		pdata->func_offst = 0x14;
+> +		pdata->intr_offst = 0x10;
+> +	} else {
+> +		pdata->func_offst = 0;
+> +		pdata->intr_offst = 0;
+> +        }
+> +
+> +	/*
+> +	 * extract the id from name filed in hwmod database
+> +	 * and use the same for constructing ids' for the
+> +	 * timer devices. in a way, we are avoiding usage of
+> +	 * static variable witin the function to do the same.
+
+typo: within
+
+> +	 * CAUTION: we have to be careful and make sure the
+> +	 * name in hwmod database does not change in which case
+> +	 * we might either make corresponding change here or
+> +	 * switch back static variable mechanism.
+> +	 */
+> +	sscanf(oh->name, "timer%2d",&id);
+> +
+> +	od = omap_device_build(name, id, oh,
+> +			pdata, sizeof(*pdata),
+> +			omap2_dmtimer_latency,
+> +			ARRAY_SIZE(omap2_dmtimer_latency), 0);
+> +
+> +	if (IS_ERR(od)) {
+> +		pr_err("%s: Cant build omap_device for %s:%s.\n",
+
+typo: can't
+
+> +			__func__, name, oh->name);
+> +		ret =  -EINVAL;
+> +	}
+
+Blank line here.
+
+> +	/*
+> +	 * pdata can be freed because omap_device_build
+> +	 * creates its own memory pool
+> +	 */
+> +	kfree(pdata);
+> +	return ret;
+> +}
+
+That function is a pure duplication of the omap2_timer_early_init one. 
+You can probably use the "user" extra parameters to handle the small 
+differences between them (is_early_init).
+
+> +
+> +/**
+> + * omap2_dm_timer_early_init - top level early timer initialization
+> + * called in the last part of omap2_init_common_hw
+> + *
+> + * uses dedicated hwmod api to parse through hwmod database for
+> + * given class name and then build and register the timer device.
+> + * at the end driver is registered and early probe initiated.
+> + */
+> +void __init omap2_dm_timer_early_init(void)
+> +{
+> +	if (omap_hwmod_for_each_by_class("timer",
+> +		omap2_timer_early_init, NULL)) {
+
+For better readability, you'd better not call that function directly in 
+the if statement.
+
+> +		pr_debug("%s: device registration FAILED\n", __func__);
+> +		return;
+> +	}
+
+Blank line here.
+
+> +	early_platform_driver_register_all("earlytimer");
+> +	early_platform_driver_probe("earlytimer", early_timer_count, 0);
+> +}
+> +
+> +/**
+> + * omap_timer_init - top level timer device initialization
+> + *
+> + * uses dedicated hwmod api to parse through hwmod database for
+> + * given class names and then build and register the timer device.
+> + */
+> +static int __init omap2_dmtimer_device_init(void)
+
+Most of the functions here are using _dm_timer_. You should align this 
+name too.
+
+Benoit
