@@ -1,70 +1,70 @@
-From: Bank Agent <info10hsbcloan@gmail.com>
-Subject: 576 - 950 - 33
-Date: Mon, 22 Nov 2010 18:31:17 -0800
-Message-ID: <AANLkTinJykFAVf2DuSffUGB3nsQ=s44pJcbmqO0zA=X6@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH ver. 2] PM: add synchronous runtime interface for interrupt
+ handlers
+Date: Mon, 22 Nov 2010 22:19:22 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1011222204440.26293-100000@netrider.rowland.org>
+References: <201011230001.20241.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:43578 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863Ab0KWCbW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 21:31:22 -0500
-Received: by iwn38 with SMTP id 38so749518iwn.19
-        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 18:31:22 -0800 (PST)
+Received: from netrider.rowland.org ([192.131.102.5]:58723 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751491Ab0KWDTX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 22:19:23 -0500
+In-Reply-To: <201011230001.20241.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-Darlehensantr=E4ge
-576 - 950 - 33
+On Tue, 23 Nov 2010, Rafael J. Wysocki wrote:
 
-Brauchen Sie einen Kredit f=FCr die Wirtschaft?
-Wollen Sie auszahlen einige Rechnungen?
-Sie haben keine Sicherheiten und brauchen ein Darlehen?
-Bitte f=FCllen Sie das unten Angaben zu Ihrem Kredit-Prozess
-Vorname .........................
-Nachname ..........................
-Wohnadresse ...........
-Sex ... ... ... ... ... ..
-Land .......................
-Telefon :..................
-Betrag des Darlehens erforderlich ....................
-Laufzeit des Darlehens .................................
-Zweck des Darlehens ...................
-Monatliches Einkommen ..................
-Beruf ..........................
-Alter ......................................
+> > > Moreover, I'm not sure if we need an "IRQ safe" version of _idle.  Why do
+> > > we need it, exactly?
+> > 
+> > Because pm_runtime_put_sync() calls rpm_idle().  If there were no 
+> > irq-safe version of rpm_idle() then drivers wouldn't be able to call 
+> > pm_runtime_put_sync() from within an interrupt handler.
+> 
+> Right.  Which they can't do now, can they?
 
+True.  That was the point of this patch -- to allow interrupt handlers
+to do runtime PM, which they can't do now.
 
+> Why do you think we should allow them to do that?
 
-BEDINGUNGEN
-1. Die H=F6he des Darlehens f=FCr anzuwendende akkumulieren Interesse.
-2. Das Darlehen Kapital, Zinsen und R=FCckzahlungen f=E4llig sind zahlb=
-ar
-in monatlichen Zahlungen.
-3. Ihr Kreditantrag wird genehmigt und eine Zulassungsnummer wird euch
-gegeben werden, wenn Sie halten fit f=FCr die Bewerbung sind.
-4 Zinsen Rate: Der vereinbarte Zinssatz f=FCr unsere Darlehen gew=E4hre=
-n
-6% pro Jahr.
-5. Das Darlehen wird Ihnen innerhalb von ein oder zwei Wochen werden
-der Verarbeitung gesendet
-6. Nach der Unterzeichnung des Darlehensvertrags Dokument, das Sie
-haben das Recht, die H=F6he des Darlehens die Sie ben=F6tigen.
+Are you suggesting that interrupt handlers stick to pm_runtime_suspend 
+and pm_runtime_resume, and ignore pm_runtime_get_sync and 
+pm_runtime_put_sync?
 
-Gr=FC=DFe,
+Recall that after probing is finished, the driver core does a
+pm_runtime_put_sync.  That might happen while an interrupt handler is
+running on another CPU.  If the interrupt handler didn't increment the
+usage_count, the driver core could cause the device to suspend while
+the interrupt handler was still using it.
 
+Or are you suggesting that interrupt handlers use pm_runtime_get_sync 
+and implement a poor-man's version of pm_runtime_put_sync by doing:
 
---=20
-Mr. Xavi Peterson
-21 Bishops gate,
-Easter Avenue,EC2, london.
-+447024056627
-HSBC HOME LOAN
+	pm_runtime_put_no_idle();
+	pm_runtime_suspend();
 
- =A9 2010
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is there some particular reason for denying interrupt handlers the
+ability to use pm_runtime_put_sync?  It seems odd to disallow that 
+while allowing pm_runtime_get_sync.
+
+Or maybe you think that when pm_runtime_put_sync detects the 
+usage_count has decremented to 0 and the device is irq-safe, it should 
+call rpm_suspend directly instead of calling rpm_idle?
+
+In short, I don't see any reason not to present the same API to
+interrupt handlers for irq-safe devices as we present to
+process-context drivers for ordinary devices.
+
+> Anyway, though, if the only reason of doing this is to allow interrupt handlers
+> to call pm_runtime_put_sync(), then I rather wouldn't do it at all.
+
+Why not?
+
+Alan Stern
+
