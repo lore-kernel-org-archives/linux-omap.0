@@ -1,69 +1,27 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v4 2/3] omap4: opp: add OPP table data
-Date: Mon, 22 Nov 2010 16:09:52 -0800
-Message-ID: <87tyj8kii7.fsf@deeprootsystems.com>
-References: <1289933661-19505-3-git-send-email-nm@ti.com>
-	<87aal1kktu.fsf@deeprootsystems.com> <4CEAFD00.4090200@ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH v3 1/1] serial: omap-serial: Add support for kernel
+ debugger
+Date: Mon, 22 Nov 2010 16:10:41 -0800
+Message-ID: <20101123001041.GA31259@kroah.com>
+References: <1290468252-23539-1-git-send-email-cosmin.cojocar@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:35512 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932388Ab0KWAJy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Nov 2010 19:09:54 -0500
-Received: by pwi7 with SMTP id 7so68405pwi.19
-        for <linux-omap@vger.kernel.org>; Mon, 22 Nov 2010 16:09:54 -0800 (PST)
-In-Reply-To: <4CEAFD00.4090200@ti.com> (Nishanth Menon's message of "Mon, 22
-	Nov 2010 17:30:08 -0600")
+Received: from kroah.org ([198.145.64.141]:43727 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932369Ab0KWAK4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Nov 2010 19:10:56 -0500
+Content-Disposition: inline
+In-Reply-To: <1290468252-23539-1-git-send-email-cosmin.cojocar@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony <tony@atomide.com>, Thomas <thomas.petazzoni@free-electrons.com>
+To: Cosmin Cojocar <cosmin.cojocar@gmail.com>
+Cc: govindraj.raja@ti.com, manjugk@ti.com, khilman@deeprootsystems.com, tony@atomide.com, ben-linux@fluff.org, tklauser@distanz.ch, feng.tang@intel.com, alan@linux.intel.com, gregkh@suse.de, linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+On Tue, Nov 23, 2010 at 12:24:12AM +0100, Cosmin Cojocar wrote:
+> The kgdb invokes the poll_put_char and poll_get_char when communicating
+> with the host. This patch also changes the initialization order because the
+> kgdb will check at the very beginning, if there is a valid serial
+> driver.
 
-> Kevin Hilman wrote, on 11/22/2010 05:19 PM:
->> Nishanth Menon<nm@ti.com>  writes:
->>
->>> This patch adds OPP tables for OMAP4. New file has been added to keep
->>> the OMAP4 opp tables and the registration of these tables with the
->>> generic opp framework by OMAP SoC OPP interface.
->>
->> [...]
->>
->>> diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
->>> index 66e12be..48a553f 100644
->>> --- a/arch/arm/mach-omap2/opp.c
->>> +++ b/arch/arm/mach-omap2/opp.c
->>> @@ -131,4 +131,5 @@ static int __init omap_init_opp_table(struct omap_opp_def *opp_def,
->>>
->>>   /* omap3 opps */
->>>   #include "opp3xxx_data.c"
->>> -
->>> +/* omap4 opps */
->>> +#include "opp4xxx_data.c"
->>
->> I'm not sure I like the including of C files.  Any reason you prefer
->> this to just adding them to the Makefile?  e.g. opp24xx_dta.c are
->> compiled in via Makefile and these two are included.
->
-> I dont buy it. I am seeing us go around in circles for this:
-> http://marc.info/?l=linux-omap&m=128986880406272&w=2
-> a) we dont want others to use specifics implemented in opp.c in other
-> files (e.g. board files)
-
-not sure how this is prevented.
-
-> b) we have many similar usage in linux kernel - so this usage is not
-> first time.
-> c) opp2xx usage is very different from opp3/4 usage
-
-I'm not going to insist on one way or the other, just stating my
-preference for not including C files from C files without good
-justification.  You've stated your reasons, I guess Tony can decide.
-
-Kevin
-
-
-
-
+What was the difference between v2 and v3?
