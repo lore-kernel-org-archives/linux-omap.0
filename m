@@ -1,93 +1,56 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 00/13] OMAP3: OFF mode fixes
-Date: Tue, 23 Nov 2010 14:32:25 +0530
-Message-ID: <8ef3de873d51409a38f19becb0d339cb@mail.gmail.com>
-References: <1290131698-6194-1-git-send-email-nm@ti.com> <87r5edp3so.fsf@deeprootsystems.com>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage
+ domain instance in the voltage driver.
+Date: Tue, 23 Nov 2010 10:26:41 +0100
+Message-ID: <20101123102641.6a45dcaa@surf>
+References: <1282130412-12027-1-git-send-email-thara@ti.com>
+	<1282130412-12027-2-git-send-email-thara@ti.com>
+	<87eiddgjr7.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03291AD889@dbde02.ent.ti.com>
+	<87r5ha3hlk.fsf@deeprootsystems.com>
+	<20100903173046.GA32226@rakim.wolfsonmicro.main>
+	<87pqwu1zcw.fsf@deeprootsystems.com>
+	<20100903182052.GB32226@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:54956 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750793Ab0KWJC3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Nov 2010 04:02:29 -0500
-Received: by mail-qy0-f174.google.com with SMTP id 11so1690281qyk.19
-        for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 01:02:28 -0800 (PST)
-In-Reply-To: <87r5edp3so.fsf@deeprootsystems.com>
+Received: from mail.free-electrons.com ([88.190.12.23]:32849 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752433Ab0KWJ06 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Nov 2010 04:26:58 -0500
+In-Reply-To: <20100903182052.GB32226@rakim.wolfsonmicro.main>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Jean Pihet <jean.pihet@newoldbits.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Tony <tony@atomide.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Tuesday, November 23, 2010 12:46 AM
-> To: Nishanth Menon
-> Cc: linux-omap; Jean Pihet; Vishwanath Sripathy; Tony
-> Subject: Re: [PATCH 00/13] OMAP3: OFF mode fixes
->
-> Nishanth Menon <nm@ti.com> writes:
->
-> > Bunch of fixes as part of phase 1 targetting mainly OMAP3630 HS
-devices
-> > for OFF mode logic.
-> >
-> > It is important to note - for proper functionality of HS OFF mode on
-> OMAP3630,
-> >    CONFIG_OMAP3_L2_AUX_SECURE_SAVE_RESTORE=y and
-> >    CONFIG_OMAP3_L2_AUX_SECURE_SERVICE_SET_ID should be set to the
-> correct
-> >    service that the security PPA supports on the platform.
-> >
-> > Based on kernel.org 2.6.37-rc2 tag
-> >
-> > Smoke tested on:
-> > SDP3630 -GP
-> > Zoom3 (3630): GP & EMU (Es1.1, ES1.2)
-> > SDP3430 - GP & EMU (ES3.1)
-> >
-> > These are fixes for corner case bugs seen, so tests of off and ret
-done
-> with
-> > wakeup timer - behavior between 2.6.37-rc2 before and after applying
-> patch
-> > seen consistent.
-> >
-> > Request for testing this series for comparison between master and this
-> > series requested for additional platforms where available.
->
-> After some more thought and review, here's what I think should be the
-> approach moving this forward:
->
-> This can be broken up into 3 independent series as follows:
->
-> 1) fix for UART erratum (patch 10)
-> 2) fixes for idle path errata (patches 1, 2, 11, 12, 13)
-> 3) secure ram save path (the rest)
->
-> For (3), I'd like to see the secure ram management moved out of the PM
-> core, and into it's own library/driver.  Strictly speaking, context
-> save/restore for secure ram is not a function of the PM idle core.   As
-> with every other device, context save/restore is the responsibility of
-> the driver(s) using that device.
->
-> For secure RAM, the restore is handled by ROM code, but the save should
-> be managed by the secure driver(s).  IOW, any secure driver should be
-> using runtime PM and when the secure driver is no longer in use, it
-> should ensure secure RAM context is saved using its runtime_suspend
-> method to save secure RAM.  The code in this series should be moved out
-> into a library/driver which can be called by secure drivers in their
-> runtime PM hooks.
->
-I agree with you Kevin here except one point. The secure RAM contents
-are not just secure driver data but the ROM code infrastructure as well.
-And we should treat ROM code as a hardware. Secure services
-don't give  you garrulity of saving per each secure module. To
-get CPU OFF working on secure device, secure RAM must be saved.
-So I still think it is CPU specific code and pretty much relevant
-to CPU IDLE OFF state considering ROM code.
-Ofcourse this not related to GP device because we never enter Secure
-world again after the boot-up.
-So moving this code to a separate file is fine but it still related
-to CPU.
+Hello Mark,
+
+On Fri, 3 Sep 2010 19:20:52 +0100
+Mark Brown <broonie@opensource.wolfsonmicro.com> wrote:
+
+> > re-add? was it there at one point and removed?  Any pointers to the
+> > old code?
+> 
+> It was present in the pre-merge regulator API which you can find in
+> the bowels of:
+> 
+>    git://opensource.wolfsonmicro.com/linux-2.6-audioplus
+> 
+> but was removed to simplify review during the merge.  It's fairly
+> simple to do, it's just that there's been no demand.
+
+I'm finally taking the time to look more closely into this. I've tried
+to find the original implementation of multi-consumer tracking, but
+couldn't find it in the different branches of the linux-2.6-audioplus.
+Do you have a more specific pointer ?
+
+Thanks,
+
+Thomas
+-- 
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
