@@ -1,317 +1,419 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH v7 01/11] OMAP: GPIO: prepare for platform driver
-Date: Tue, 23 Nov 2010 20:26:43 +0530
-Message-ID: <1290524213-395-2-git-send-email-charu@ti.com>
+Subject: [PATCH v7 07/11] OMAP3: hwmod data: Add GPIO
+Date: Tue, 23 Nov 2010 20:26:49 +0530
+Message-ID: <1290524213-395-8-git-send-email-charu@ti.com>
 References: <1290524213-395-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46534 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46539 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754259Ab0KWO5W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Nov 2010 09:57:22 -0500
+	id S1754966Ab0KWO5Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Nov 2010 09:57:24 -0500
 In-Reply-To: <1290524213-395-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, p-basak2@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, p-basak2@ti.com, "Varadarajan, Charulatha" <charu@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Prepare for implementing GPIO as a platform driver.
-
-Modifies omap_gpio_init() to make use of omap_gpio_chip_init()
-and omap_gpio_mod_init(). omap_gpio_mod_init() does the module init
-by clearing the status register and initializing the GPIO control register.
-omap_gpio_chip_init() initializes the chip request, free, get, set and
-other function pointers and sets the gpio irq handler.
-
-This is only to reorganize the code so that the "omap gpio platform driver
-implementation patch" looks cleaner and better to review.
+Add GPIO hwmod data for OMAP3
 
 Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/plat-omap/gpio.c |  234 +++++++++++++++++++++++----------------------
- 1 files changed, 118 insertions(+), 116 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  360 ++++++++++++++++++++++++++++
+ 1 files changed, 360 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index e0e2fa7..48bccf2 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -190,14 +190,12 @@ struct gpio_bank {
- 	u32 suspend_wakeup;
- 	u32 saved_wakeup;
- #endif
--#ifdef CONFIG_ARCH_OMAP2PLUS
- 	u32 non_wakeup_gpios;
- 	u32 enabled_non_wakeup_gpios;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index a8bed84..9ca2206 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -20,6 +20,7 @@
+ #include <plat/serial.h>
+ #include <plat/l4_3xxx.h>
+ #include <plat/i2c.h>
++#include <plat/gpio.h>
+ #include <plat/omap34xx.h>
  
- 	u32 saved_datain;
- 	u32 saved_fallingdetect;
- 	u32 saved_risingdetect;
--#endif
- 	u32 level_mask;
- 	u32 toggle_mask;
- 	spinlock_t lock;
-@@ -1718,10 +1716,125 @@ static void __init omap_gpio_show_rev(void)
-  */
- static struct lock_class_key gpio_lock_class;
+ #include "omap_hwmod_common_data.h"
+@@ -45,6 +46,12 @@ static struct omap_hwmod omap3xxx_wd_timer2_hwmod;
+ static struct omap_hwmod omap3xxx_i2c1_hwmod;
+ static struct omap_hwmod omap3xxx_i2c2_hwmod;
+ static struct omap_hwmod omap3xxx_i2c3_hwmod;
++static struct omap_hwmod omap3xxx_gpio1_hwmod;
++static struct omap_hwmod omap3xxx_gpio2_hwmod;
++static struct omap_hwmod omap3xxx_gpio3_hwmod;
++static struct omap_hwmod omap3xxx_gpio4_hwmod;
++static struct omap_hwmod omap3xxx_gpio5_hwmod;
++static struct omap_hwmod omap3xxx_gpio6_hwmod;
  
-+static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
-+{
-+	if (cpu_class_is_omap2()) {
-+		if (cpu_is_omap44xx()) {
-+			__raw_writel(0xffffffff, bank->base +
-+					OMAP4_GPIO_IRQSTATUSCLR0);
-+			__raw_writel(0x00000000, bank->base +
-+					 OMAP4_GPIO_DEBOUNCENABLE);
-+			/* Initialize interface clk ungated, module enabled */
-+			__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
-+		} else if (cpu_is_omap34xx()) {
-+			__raw_writel(0x00000000, bank->base +
-+					OMAP24XX_GPIO_IRQENABLE1);
-+			__raw_writel(0xffffffff, bank->base +
-+					OMAP24XX_GPIO_IRQSTATUS1);
-+			__raw_writel(0x00000000, bank->base +
-+					OMAP24XX_GPIO_DEBOUNCE_EN);
-+
-+			/* Initialize interface clk ungated, module enabled */
-+			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
-+		} else if (cpu_is_omap24xx()) {
-+			static const u32 non_wakeup_gpios[] = {
-+				0xe203ffc0, 0x08700040
-+			};
-+			if (id < ARRAY_SIZE(non_wakeup_gpios))
-+				bank->non_wakeup_gpios = non_wakeup_gpios[id];
-+		}
-+	} else if (cpu_class_is_omap1()) {
-+		if (bank_is_mpuio(bank))
-+			__raw_writew(0xffff, bank->base
-+						+ OMAP_MPUIO_GPIO_MASKIT);
-+		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
-+			__raw_writew(0xffff, bank->base
-+						+ OMAP1510_GPIO_INT_MASK);
-+			__raw_writew(0x0000, bank->base
-+						+ OMAP1510_GPIO_INT_STATUS);
-+		}
-+		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
-+			__raw_writew(0x0000, bank->base
-+						+ OMAP1610_GPIO_IRQENABLE1);
-+			__raw_writew(0xffff, bank->base
-+						+ OMAP1610_GPIO_IRQSTATUS1);
-+			__raw_writew(0x0014, bank->base
-+						+ OMAP1610_GPIO_SYSCONFIG);
-+
-+			/*
-+			 * Enable system clock for GPIO module.
-+			 * The CAM_CLK_CTRL *is* really the right place.
-+			 */
-+			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
-+						ULPD_CAM_CLK_CTRL);
-+		}
-+		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
-+			__raw_writel(0xffffffff, bank->base
-+						+ OMAP7XX_GPIO_INT_MASK);
-+			__raw_writel(0x00000000, bank->base
-+						+ OMAP7XX_GPIO_INT_STATUS);
-+		}
-+	}
-+}
-+
-+static void __init omap_gpio_chip_init(struct gpio_bank *bank)
-+{
-+	int j, bank_width = 16;
-+	static int gpio;
-+
-+	if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX)
-+		bank_width = 32; /* 7xx has 32-bit GPIOs */
-+
-+	if ((bank->method == METHOD_GPIO_24XX) ||
-+			(bank->method == METHOD_GPIO_44XX))
-+		bank_width = 32;
-+
-+	bank->mod_usage = 0;
-+	/*
-+	 * REVISIT eventually switch from OMAP-specific gpio structs
-+	 * over to the generic ones
-+	 */
-+	bank->chip.request = omap_gpio_request;
-+	bank->chip.free = omap_gpio_free;
-+	bank->chip.direction_input = gpio_input;
-+	bank->chip.get = gpio_get;
-+	bank->chip.direction_output = gpio_output;
-+	bank->chip.set_debounce = gpio_debounce;
-+	bank->chip.set = gpio_set;
-+	bank->chip.to_irq = gpio_2irq;
-+	if (bank_is_mpuio(bank)) {
-+		bank->chip.label = "mpuio";
-+#ifdef CONFIG_ARCH_OMAP16XX
-+		bank->chip.dev = &omap_mpuio_device.dev;
-+#endif
-+		bank->chip.base = OMAP_MPUIO(0);
-+	} else {
-+		bank->chip.label = "gpio";
-+		bank->chip.base = gpio;
-+		gpio += bank_width;
-+	}
-+	bank->chip.ngpio = bank_width;
-+
-+	gpiochip_add(&bank->chip);
-+
-+	for (j = bank->virtual_irq_start;
-+		     j < bank->virtual_irq_start + bank_width; j++) {
-+		lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
-+		set_irq_chip_data(j, bank);
-+		if (bank_is_mpuio(bank))
-+			set_irq_chip(j, &mpuio_irq_chip);
-+		else
-+			set_irq_chip(j, &gpio_irq_chip);
-+		set_irq_handler(j, handle_simple_irq);
-+		set_irq_flags(j, IRQF_VALID);
-+	}
-+	set_irq_chained_handler(bank->irq, gpio_irq_handler);
-+	set_irq_data(bank->irq, bank);
-+}
-+
- static int __init _omap_gpio_init(void)
- {
- 	int i;
--	int gpio = 0;
- 	struct gpio_bank *bank;
- 	int bank_size = SZ_8K;	/* Module 4KB + L4 4KB except on omap1 */
- 	char clk_name[11];
-@@ -1828,7 +1941,6 @@ static int __init _omap_gpio_init(void)
- 	}
- #endif
- 	for (i = 0; i < gpio_bank_count; i++) {
--		int j, gpio_count = 16;
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
+@@ -739,6 +746,351 @@ static struct omap_hwmod omap3xxx_i2c3_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
  
- 		bank = &gpio_bank[i];
- 		spin_lock_init(&bank->lock);
-@@ -1840,107 +1952,8 @@ static int __init _omap_gpio_init(void)
- 			continue;
- 		}
++/* l4_wkup -> gpio1 */
++static struct omap_hwmod_addr_space omap3xxx_gpio1_addrs[] = {
++	{
++		.pa_start	= 0x48310000,
++		.pa_end		= 0x483101ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__gpio1 = {
++	.master		= &omap3xxx_l4_wkup_hwmod,
++	.slave		= &omap3xxx_gpio1_hwmod,
++	.addr		= omap3xxx_gpio1_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio1_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per -> gpio2 */
++static struct omap_hwmod_addr_space omap3xxx_gpio2_addrs[] = {
++	{
++		.pa_start	= 0x49050000,
++		.pa_end		= 0x490501ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio2 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_gpio2_hwmod,
++	.addr		= omap3xxx_gpio2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per -> gpio3 */
++static struct omap_hwmod_addr_space omap3xxx_gpio3_addrs[] = {
++	{
++		.pa_start	= 0x49052000,
++		.pa_end		= 0x490521ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio3 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_gpio3_hwmod,
++	.addr		= omap3xxx_gpio3_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio3_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per -> gpio4 */
++static struct omap_hwmod_addr_space omap3xxx_gpio4_addrs[] = {
++	{
++		.pa_start	= 0x49054000,
++		.pa_end		= 0x490541ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio4 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_gpio4_hwmod,
++	.addr		= omap3xxx_gpio4_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio4_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per -> gpio5 */
++static struct omap_hwmod_addr_space omap3xxx_gpio5_addrs[] = {
++	{
++		.pa_start	= 0x49056000,
++		.pa_end		= 0x490561ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio5 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_gpio5_hwmod,
++	.addr		= omap3xxx_gpio5_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio5_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per -> gpio6 */
++static struct omap_hwmod_addr_space omap3xxx_gpio6_addrs[] = {
++	{
++		.pa_start	= 0x49058000,
++		.pa_end		= 0x490581ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio6 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_gpio6_hwmod,
++	.addr		= omap3xxx_gpio6_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio6_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/*
++ * 'gpio' class
++ * general purpose io module
++ */
++
++static struct omap_hwmod_class_sysconfig omap3xxx_gpio_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
++			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields    = &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap3xxx_gpio_hwmod_class = {
++	.name = "gpio",
++	.sysc = &omap3xxx_gpio_sysc,
++	.rev = 1,
++};
++
++/* gpio_dev_attr*/
++static struct omap_gpio_dev_attr gpio_dev_attr = {
++	.bank_width = 32,
++	.dbck_flag = true,
++};
++
++/* gpio1 */
++static struct omap_hwmod_irq_info omap3xxx_gpio1_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = 29 }, /* INT_34XX_GPIO_BANK1 */
++};
++
++static struct omap_hwmod_opt_clk gpio1_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio1_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio1_slaves[] = {
++	&omap3xxx_l4_wkup__gpio1,
++};
++
++static struct omap_hwmod omap3xxx_gpio1_hwmod = {
++	.name		= "gpio1",
++	.mpu_irqs	= omap3xxx_gpio1_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio1_irqs),
++	.main_clk	= "gpio1_ick",
++	.opt_clks	= gpio1_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio1_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO1_SHIFT,
++			.module_offs = WKUP_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_GPIO1_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio1_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* gpio2 */
++static struct omap_hwmod_irq_info omap3xxx_gpio2_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = 30 }, /* INT_34XX_GPIO_BANK2 */
++};
++
++static struct omap_hwmod_opt_clk gpio2_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio2_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio2_slaves[] = {
++	&omap3xxx_l4_per__gpio2,
++};
++
++static struct omap_hwmod omap3xxx_gpio2_hwmod = {
++	.name		= "gpio2",
++	.mpu_irqs	= omap3xxx_gpio2_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio2_irqs),
++	.main_clk	= "gpio2_ick",
++	.opt_clks	= gpio2_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio2_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO2_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_GPIO2_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio2_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* gpio3 */
++static struct omap_hwmod_irq_info omap3xxx_gpio3_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = 31 }, /* INT_34XX_GPIO_BANK3 */
++};
++
++static struct omap_hwmod_opt_clk gpio3_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio3_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio3_slaves[] = {
++	&omap3xxx_l4_per__gpio3,
++};
++
++static struct omap_hwmod omap3xxx_gpio3_hwmod = {
++	.name		= "gpio3",
++	.mpu_irqs	= omap3xxx_gpio3_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio3_irqs),
++	.main_clk	= "gpio3_ick",
++	.opt_clks	= gpio3_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio3_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO3_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_GPIO3_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio3_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio3_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* gpio4 */
++static struct omap_hwmod_irq_info omap3xxx_gpio4_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = 32 }, /* INT_34XX_GPIO_BANK4 */
++};
++
++static struct omap_hwmod_opt_clk gpio4_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio4_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio4_slaves[] = {
++	&omap3xxx_l4_per__gpio4,
++};
++
++static struct omap_hwmod omap3xxx_gpio4_hwmod = {
++	.name		= "gpio4",
++	.mpu_irqs	= omap3xxx_gpio4_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio4_irqs),
++	.main_clk	= "gpio4_ick",
++	.opt_clks	= gpio4_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio4_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO4_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_GPIO4_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio4_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio4_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* gpio5 */
++static struct omap_hwmod_irq_info omap3xxx_gpio5_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = 33 }, /* INT_34XX_GPIO_BANK5 */
++};
++
++static struct omap_hwmod_opt_clk gpio5_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio5_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio5_slaves[] = {
++	&omap3xxx_l4_per__gpio5,
++};
++
++static struct omap_hwmod omap3xxx_gpio5_hwmod = {
++	.name		= "gpio5",
++	.mpu_irqs	= omap3xxx_gpio5_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio5_irqs),
++	.main_clk	= "gpio5_ick",
++	.opt_clks	= gpio5_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio5_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO5_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_GPIO5_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio5_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio5_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* gpio6 */
++static struct omap_hwmod_irq_info omap3xxx_gpio6_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = 34 }, /* INT_34XX_GPIO_BANK6 */
++};
++
++static struct omap_hwmod_opt_clk gpio6_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio6_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio6_slaves[] = {
++	&omap3xxx_l4_per__gpio6,
++};
++
++static struct omap_hwmod omap3xxx_gpio6_hwmod = {
++	.name		= "gpio6",
++	.mpu_irqs	= omap3xxx_gpio6_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio6_irqs),
++	.main_clk	= "gpio6_ick",
++	.opt_clks	= gpio6_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio6_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO6_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_GPIO6_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio6_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio6_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_main_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+@@ -754,6 +1106,14 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_i2c1_hwmod,
+ 	&omap3xxx_i2c2_hwmod,
+ 	&omap3xxx_i2c3_hwmod,
++
++	/* gpio class */
++	&omap3xxx_gpio1_hwmod,
++	&omap3xxx_gpio2_hwmod,
++	&omap3xxx_gpio3_hwmod,
++	&omap3xxx_gpio4_hwmod,
++	&omap3xxx_gpio5_hwmod,
++	&omap3xxx_gpio6_hwmod,
+ 	NULL,
+ };
  
--		if (bank_is_mpuio(bank))
--			__raw_writew(0xffff, bank->base + OMAP_MPUIO_GPIO_MASKIT);
--		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
--			__raw_writew(0xffff, bank->base + OMAP1510_GPIO_INT_MASK);
--			__raw_writew(0x0000, bank->base + OMAP1510_GPIO_INT_STATUS);
--		}
--		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
--			__raw_writew(0x0000, bank->base + OMAP1610_GPIO_IRQENABLE1);
--			__raw_writew(0xffff, bank->base + OMAP1610_GPIO_IRQSTATUS1);
--			__raw_writew(0x0014, bank->base + OMAP1610_GPIO_SYSCONFIG);
--		}
--		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
--			__raw_writel(0xffffffff, bank->base + OMAP7XX_GPIO_INT_MASK);
--			__raw_writel(0x00000000, bank->base + OMAP7XX_GPIO_INT_STATUS);
--
--			gpio_count = 32; /* 7xx has 32-bit GPIOs */
--		}
--
--#ifdef CONFIG_ARCH_OMAP2PLUS
--		if ((bank->method == METHOD_GPIO_24XX) ||
--				(bank->method == METHOD_GPIO_44XX)) {
--			static const u32 non_wakeup_gpios[] = {
--				0xe203ffc0, 0x08700040
--			};
--
--			if (cpu_is_omap44xx()) {
--				__raw_writel(0xffffffff, bank->base +
--						OMAP4_GPIO_IRQSTATUSCLR0);
--				__raw_writew(0x0015, bank->base +
--						OMAP4_GPIO_SYSCONFIG);
--				__raw_writel(0x00000000, bank->base +
--						 OMAP4_GPIO_DEBOUNCENABLE);
--				/*
--				 * Initialize interface clock ungated,
--				 * module enabled
--				 */
--				__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
--			} else {
--				__raw_writel(0x00000000, bank->base +
--						OMAP24XX_GPIO_IRQENABLE1);
--				__raw_writel(0xffffffff, bank->base +
--						OMAP24XX_GPIO_IRQSTATUS1);
--				__raw_writew(0x0015, bank->base +
--						OMAP24XX_GPIO_SYSCONFIG);
--				__raw_writel(0x00000000, bank->base +
--						OMAP24XX_GPIO_DEBOUNCE_EN);
--
--				/*
--				 * Initialize interface clock ungated,
--				 * module enabled
--				 */
--				__raw_writel(0, bank->base +
--						OMAP24XX_GPIO_CTRL);
--			}
--			if (cpu_is_omap24xx() &&
--			    i < ARRAY_SIZE(non_wakeup_gpios))
--				bank->non_wakeup_gpios = non_wakeup_gpios[i];
--			gpio_count = 32;
--		}
--#endif
--
--		bank->mod_usage = 0;
--		/* REVISIT eventually switch from OMAP-specific gpio structs
--		 * over to the generic ones
--		 */
--		bank->chip.request = omap_gpio_request;
--		bank->chip.free = omap_gpio_free;
--		bank->chip.direction_input = gpio_input;
--		bank->chip.get = gpio_get;
--		bank->chip.direction_output = gpio_output;
--		bank->chip.set_debounce = gpio_debounce;
--		bank->chip.set = gpio_set;
--		bank->chip.to_irq = gpio_2irq;
--		if (bank_is_mpuio(bank)) {
--			bank->chip.label = "mpuio";
--#ifdef CONFIG_ARCH_OMAP16XX
--			bank->chip.dev = &omap_mpuio_device.dev;
--#endif
--			bank->chip.base = OMAP_MPUIO(0);
--		} else {
--			bank->chip.label = "gpio";
--			bank->chip.base = gpio;
--			gpio += gpio_count;
--		}
--		bank->chip.ngpio = gpio_count;
--
--		gpiochip_add(&bank->chip);
--
--		for (j = bank->virtual_irq_start;
--		     j < bank->virtual_irq_start + gpio_count; j++) {
--			lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
--			set_irq_chip_data(j, bank);
--			if (bank_is_mpuio(bank))
--				set_irq_chip(j, &mpuio_irq_chip);
--			else
--				set_irq_chip(j, &gpio_irq_chip);
--			set_irq_handler(j, handle_simple_irq);
--			set_irq_flags(j, IRQF_VALID);
--		}
--		set_irq_chained_handler(bank->irq, gpio_irq_handler);
--		set_irq_data(bank->irq, bank);
-+		omap_gpio_mod_init(bank, i);
-+		omap_gpio_chip_init(bank);
- 
- 		if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
- 			sprintf(clk_name, "gpio%d_dbck", i + 1);
-@@ -1950,17 +1963,6 @@ static int __init _omap_gpio_init(void)
- 		}
- 	}
- 
--	/* Enable system clock for GPIO module.
--	 * The CAM_CLK_CTRL *is* really the right place. */
--	if (cpu_is_omap16xx())
--		omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04, ULPD_CAM_CLK_CTRL);
--
--	/* Enable autoidle for the OCP interface */
--	if (cpu_is_omap24xx())
--		omap_writel(1 << 0, 0x48019010);
--	if (cpu_is_omap34xx())
--		omap_writel(1 << 0, 0x48306814);
--
- 	omap_gpio_show_rev();
- 
- 	return 0;
 -- 
 1.7.0.4
 
