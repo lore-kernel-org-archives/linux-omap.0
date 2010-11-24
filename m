@@ -1,114 +1,91 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH v4 1/5] OMAP: mailbox: change full flag per mailbox queue
- instead of global
-Date: Wed, 24 Nov 2010 18:34:47 +0530
-Message-ID: <AANLkTimpRk97TksnVkxozJH0Z4kqWk6c5DJ85mKvB1eE@mail.gmail.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: Re: [PATCH v4 5/5] OMAP: mailbox: add notification support for
+ multiple readers
+Date: Wed, 24 Nov 2010 07:09:16 -0600
+Message-ID: <AANLkTin8kxk=R5xQyp-ZcKVr-0eiM82L=QcF1PC2g-5n@mail.gmail.com>
 References: <1290547617-16640-1-git-send-email-h-kanigeri2@ti.com>
- <1290547617-16640-2-git-send-email-h-kanigeri2@ti.com> <AANLkTikORr1tukDhfnJv0XhxCHSzvAP=KqicM5x30HHG@mail.gmail.com>
- <AANLkTimQU+wer+mLQPpsaG4r_Jt9HfxKLVVoCpCvpZWG@mail.gmail.com>
+	<1290547617-16640-6-git-send-email-h-kanigeri2@ti.com>
+	<AANLkTi=tzuzOMa6kPp-a6+yn6xMLGtdVSvAxPFP5RU5q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:57371 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752576Ab0KXNGP convert rfc822-to-8bit
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:60946 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754641Ab0KXNJT convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Nov 2010 08:06:15 -0500
-Received: by iwn2 with SMTP id 2so11022118iwn.38
-        for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 05:06:15 -0800 (PST)
-In-Reply-To: <AANLkTimQU+wer+mLQPpsaG4r_Jt9HfxKLVVoCpCvpZWG@mail.gmail.com>
+	Wed, 24 Nov 2010 08:09:19 -0500
+Received: by mail-qy0-f181.google.com with SMTP id 12so3137554qyk.5
+        for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 05:09:17 -0800 (PST)
+In-Reply-To: <AANLkTi=tzuzOMa6kPp-a6+yn6xMLGtdVSvAxPFP5RU5q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
 Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>
 
-On Wed, Nov 24, 2010 at 18:17, Kanigeri, Hari <h-kanigeri2@ti.com> wrot=
-e:
-> On Tue, Nov 23, 2010 at 11:21 PM, Varadarajan, Charulatha <charu@ti.c=
-om> wrote:
->> On Wed, Nov 24, 2010 at 02:56, Hari Kanigeri <h-kanigeri2@ti.com> wr=
-ote:
->>> From: Fernando Guzman Lugo <x0095840@ti.com>
->>>
->>> The variable rq_full flag is a global variable, so if there are mul=
-tiple
->>> mailbox users there will be conflicts. Now there is a full flag per
->>> mailbox queue.
->>>
->>> Reported-by: Ohad Ben-Cohen <ohad@wizery.com>
->>> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
->>> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
->>> ---
->>> =A0arch/arm/plat-omap/include/plat/mailbox.h | =A0 =A01 +
->>> =A0arch/arm/plat-omap/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
-9 +++++++--
->>> =A02 files changed, 8 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/p=
-lat-omap/include/plat/mailbox.h
->>> index 9976565..13f2ef3 100644
->>> --- a/arch/arm/plat-omap/include/plat/mailbox.h
->>> +++ b/arch/arm/plat-omap/include/plat/mailbox.h
->>> @@ -48,6 +48,7 @@ struct omap_mbox_queue {
->>> =A0 =A0 =A0 =A0struct tasklet_struct =A0 tasklet;
->>> =A0 =A0 =A0 =A0int =A0 =A0 (*callback)(void *);
->>> =A0 =A0 =A0 =A0struct omap_mbox =A0 =A0 =A0 =A0*mbox;
->>> + =A0 =A0 =A0 bool full;
->>> =A0};
->>>
->>> =A0struct omap_mbox {
->>> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mail=
-box.c
->>> index d2fafb8..48e161c 100644
->>> --- a/arch/arm/plat-omap/mailbox.c
->>> +++ b/arch/arm/plat-omap/mailbox.c
->>> @@ -33,7 +33,6 @@
->>>
->>> =A0static struct workqueue_struct *mboxd;
->>> =A0static struct omap_mbox **mboxes;
->>> -static bool rq_full;
->>>
->>> =A0static int mbox_configured;
->>> =A0static DEFINE_MUTEX(mbox_configured_lock);
->>> @@ -148,6 +147,12 @@ static void mbox_rx_work(struct work_struct *w=
-ork)
->>>
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (mq->callback)
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mq->callback((void *=
-)msg);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irq(&mq->lock);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (mq->full) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mq->full =3D false;
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_mbox_enable_irq(=
-mq->mbox, IRQ_RX);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irq(&mq->lock);
->>> =A0 =A0 =A0 =A0}
->>> =A0}
->>>
->>> @@ -170,7 +175,7 @@ static void __mbox_rx_interrupt(struct omap_mbo=
-x *mbox)
->>> =A0 =A0 =A0 =A0while (!mbox_fifo_empty(mbox)) {
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (unlikely(kfifo_avail(&mq->fifo) =
-< sizeof(msg))) {
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_mbox_disable_ir=
-q(mbox, IRQ_RX);
->>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 rq_full =3D true;
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mq->full =3D true;
+On Tue, Nov 23, 2010 at 11:29 PM, Varadarajan, Charulatha <charu@ti.com=
+> wrote:
+> On Wed, Nov 24, 2010 at 02:56, Hari Kanigeri <h-kanigeri2@ti.com> wro=
+te:
+>> In the current mailbox driver, the mailbox internal pointer for
+>> callback can be directly manipulated by the Users, so a second
+>> User can easily corrupt the first user's callback pointer.
+>> The initial effort to correct this issue can be referred here:
+>> https://patchwork.kernel.org/patch/107520/
 >>
->> Should this also be inside spin_lock_irq?
+>> Along with fixing the above stated issue, this patch =A0adds the
+>> flexibility option to register notifications from
+>> multiple readers to the events received on a mailbox instance.
+>> The discussion regarding this can be referred here.
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30671.html
+>>
+>> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+>> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+>> ---
+>> =A0arch/arm/plat-omap/include/plat/mailbox.h | =A0 =A07 +-
+>> =A0arch/arm/plat-omap/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0104 =
+++++++++++++++++-------------
+>> =A02 files changed, 62 insertions(+), 49 deletions(-)
 >>
 >
-> Not needed. this is already run from interrupt context.
-
-oh ok.
-
+> <<snip>>
 >
-> Thank you,
-> Best regards,
-> Hari
+>> @@ -363,10 +372,13 @@ int omap_mbox_register(struct device *parent, =
+struct omap_mbox **list)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D PTR_ERR(mbox-=
+>dev);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_out;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+>> +
 >
+> Do this change in the patch where the below code was added.
+
+I am sorry I didn't get you. you mean BLOCKING_INIT_NOTIFIER_HEAD line
+? yes, it is needed for this patch.
+>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (cpu_is_omap44xx())
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mbox->rev =3D OMAP_MB=
+OX_IP_VERSION_2;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mbox->rev =3D OMAP_MB=
+OX_IP_LEGACY;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 BLOCKING_INIT_NOTIFIER_HEAD(&mbox->not=
+ifier);
+>> =A0 =A0 =A0 =A0}
+>> =A0 =A0 =A0 =A0return 0;
+>>
+>> --
+>> 1.7.0
+>>
+>
+
+
+
+--=20
+Thank you,
+Best regards,
+Hari Kanigeri
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
