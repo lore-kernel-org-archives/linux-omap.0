@@ -1,121 +1,85 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 00/13] OMAP3: OFF mode fixes
-Date: Wed, 24 Nov 2010 14:52:27 +0530
-Message-ID: <dfe358793629e4b10d1a5007fb273164@mail.gmail.com>
-References: <1290131698-6194-1-git-send-email-nm@ti.com><87r5edp3so.fsf@deeprootsystems.com><8ef3de873d51409a38f19becb0d339cb@mail.gmail.com>
- <87pqtveq1e.fsf@deeprootsystems.com> efb598510f2d2522872f58145c03910d@mail.gmail.com
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
+Date: Wed, 24 Nov 2010 10:57:37 +0200
+Message-ID: <1290589057.13243.22.camel@tubuntu>
+References: <19F8576C6E063C45BE387C64729E739404BC762E9A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:58748 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752149Ab0KXJWf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Nov 2010 04:22:35 -0500
-Received: by mail-qw0-f41.google.com with SMTP id 8so1053541qwj.14
-        for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 01:22:34 -0800 (PST)
-In-Reply-To: efb598510f2d2522872f58145c03910d@mail.gmail.com
+Received: from smtp.nokia.com ([147.243.1.48]:56800 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752142Ab0KXJcg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Nov 2010 04:32:36 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404BC762E9A@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Jean Pihet <jean.pihet@newoldbits.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Tony <tony@atomide.com>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-(Sorry. You will see two replies from me on your email)
-> -----Original Message-----
-> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
-> Sent: Wednesday, November 24, 2010 11:04 AM
-> To: 'Kevin Hilman'
-> Cc: Nishanth Menon; 'linux-omap'; 'Jean Pihet'; Vishwanath Sripathy;
-> 'Tony'
-> Subject: RE: [PATCH 00/13] OMAP3: OFF mode fixes
->
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> > Sent: Wednesday, November 24, 2010 2:06 AM
-> > To: Santosh Shilimkar
-> > Cc: Nishanth Menon; linux-omap; Jean Pihet; Vishwanath Sripathy; Tony
-> > Subject: Re: [PATCH 00/13] OMAP3: OFF mode fixes
-> >
-[...]
-> > > And we should treat ROM code as a hardware. Secure services
-> > > don't give  you garrulity of saving per each secure module. To
-> > > get CPU OFF working on secure device, secure RAM must be saved.
-> > > So I still think it is CPU specific code and pretty much relevant
-> > > to CPU IDLE OFF state considering ROM code.
-> > > Ofcourse this not related to GP device because we never enter Secure
-> > > world again after the boot-up.
-> > > So moving this code to a separate file is fine but it still related
-> > > to CPU.
-> >
-> > Sure, it's still *related* to the CPU, but what I am arguing is that
-it
-> > should not be related to CPU *idle*.
-> >
-> > My undersanding is this (please correct me):
-> >
-> > Secure RAM context only needs to be saved/updated when something in it
-> > changes changes (e.g. secure driver usage.)  Therefore, any
-> > driver/device usage that has a side effect of changing secure RAM
-should
-> > be responsible for updating secure RAM.
-> >
-> This assumption holds true largely but not completely. There are more
-> Secure APIs which are outside of any secure driver usage which can also
-> alter the state of secure RAM. OMAP4, we have more APIs apart from
-secure
-> RAM where the secure HW registers, firewalls, cache controllers,
-interrupt
-> controllers are managed using secure APIs. All of this is must for
-correct
-> CPU OFF functioning.
->
-> > The approach taken in $SUBJECT series is basically: since we don't
-know
-> > who is using/changing secure RAM, we better save it (or have the
-option
-> > to) during every off-mode transition.  This approach is what I do not
-> > like.  It's pushing work (and intellegence) that should be in the
-> > drivers into the PM core where it does not belong.
-> >
-> The problem is because the secure RAM is not portioned per device basis
-> but managed as a whole. If we had per secure device portioning then the
-> respective device drivers saving it's context would have worked
-perfectly.
-> And the fact is it's not the secure device driver context, but it's a
-> Secure software context which runs in parallel with HLOS on HS devices.
->
-> > Rather, I want to follow the same approach we follow for every other
-> > device driver.  Drivers must assume they can lose context.  Therefore
-> > it's up to them to save it.
-> >
-> > IOW, the drivers that *change* secure RAM should be responsible for
-> > ensuring that any of the changes they make are saved.
-> >
-> As I mentioned above its not just the driver context but the whole
-> secure software context. I will check with ROM team if it can be made
-> more granular for future OMAPs so that we can have the usual strategy
-> of respective components taking care of there save/restore. This will
-> also save huge latency we incure while saving whole RAM on every MPU
-> OFF transition.
->
-I had a discussion with ROM team and they conformed that the secure
-context can get changed with protected applications (PA for FW, secure
-keys) as well as with secure drivers like crypto, aes etc.
+On Tue, 2010-11-23 at 23:46 +0530, ext Hiremath, Vaibhav wrote:
+> Hi,
+> 
+> While supporting one of customer I came across one interesting issue and finding with WAITFORVSYNC ioctl - 
+> 
+> Problem Statement - 
+> -------------------
+> With WAITFORVSYNC lots of tearing artifacts are visible on LCD output, but WAITFORGO works fine without any issues.
+> 
+> Debugging/Findings - 
+> --------------------
+> 
+> Technically both, WAITFORVSYNC and WAITFORGO wait on VSYNC interrupt - but there is slight difference in their implementation/processing. 
 
-This can be centralized and some APIs can be provided by the secure
-middleware to know whether the context needs to be save or not.
-Secure middleware manages all the secure driver interfaces as well
-as PA's. This is the centralized place where all state knowledge is
-available. This component also can take care of doing a secure context
-save job based on needs. The only concern from them was that
-which security middleware to be used is not fixed and its
-upto customers to decide. Few of them develop this on there own.
+No, that's not quite right.
 
-So with clarity now, I concur with your idea of moving out the secure
-context save from CPUIDLE code.
-The only problem I see is how do we support multiple security
-middleware's with a common infrastructure.
+WAITFORVSYNC waits for the next vsync.
 
-Regards
-Santosh
+WAITFORGO waits until the the config changes for the particular overlay
+have been applied to the HW, which may take multiple vsyncs if there are
+already pending config changes. Or, if there are no changes to be
+applied, it doesn't wait at all.
+
+> WAITFORGO ioctl ensures that dirty & shadow_dirty flags (software flag) are cleared, making sure that hardware state and software state always stays in sync. It makes 4 attempts to do so - inside loop it checks for dirty flags and call wait_for_vsync API. In ideal usecase scenario it should come out in single iteration. 
+> 
+> On the other hand WAITFORVSYNC is unconditional wait on VSYNC interrupt. The processing continues with an assumption that HW and SW states are in sync.
+> 
+> Since WAITFORGO ioctl seems to be working in all conditions I started debugging with it and I observed that dirty and shadow_dirty flags are getting cleared on 2nd attempt in some cases. This forced me to think about the window between VFP start and VSYNC.
+> 
+> 
+> Root-cause (How the behavior impact software)-
+> ----------------------------------------------
+> 
+> The DSS registers are shadow registers, meaning: after updating the HW registers software must write 1 to GO_LCD bit to indicate that we are finished with register update and HW can now read it on next VFP start (not the vsync). This is the way software and hardware handshaking is done.
+> 
+> In Linux Display driver, we have 2 flags, dirty and shadow_dirty, first one indicates software bookkeeping registers are updated and later indicates that shadow registers are written but DSS HW has not yet read it (which happens on VFP start).
+> 
+> Now, if the PAN ioctl is called in the above mentioned window then DSS hardware is not going to read the shadow register (setting dirty flags), DMA will still happen on old buffer. Then immediately after PAN ioctl we are calling WAITFORVSYNC ioctl, which is unconditional wait for VSYNC interrupt and then application moves on writing to another buffer (which is now same as where DMA is happening). So here we are breaking and going out-of-sync to handle our ping-pong mechanism in application. As soon as the flow breaks, we see the artefacts on screen.
+> 
+> I have created Public Wiki page explaining above issue with more details and pictorial diagrams, you can refer it under http://processors.wiki.ti.com/index.php/OMAP35x_Linux_-_DSS_FAQ
+> 
+> 
+> Suggestions/Recommendation - 
+> --------------------------
+> 
+> From User application point of view, user won't care about driver internal implementation. Application believes that WAITFORVSYNC will only return after displaying (DMAing) previous buffer and now with addition to FBIO_WAITFORVSYNC standard ioctl interface this is very well expected from user application as a standard behavior.
+> 
+> I would recommend having WAITFORGO like implementation under WAITFORVSYNC, merging WAITFORGO with WAITFORVSYNC, and killing WAITFORGO (since we have FBIO_WAITFORVSYNC standard ioctl). 
+> Also WAITFORGO ioctl is OMAP specific custom ioctl.  
+
+I have to say that I'm not quite sure what WAITFORVSYNC should do. The
+name implies that it should wait for the next vsync, which is what it
+does for omapfb.
+
+Changing it to WAITFORGO would alter the behaviour. Sometimes it would
+not wait at all, sometimes it could wait for multiple vsyncs.
+
+But I see the problem. Perhaps we should have a WAITFORVSYNC which would
+wait until the changes are applied, or the next VSYNC if there are no
+changes. That doesn't quite sound like what WAITFORVSYNC name implies,
+but it would perhaps be more right (from users point of view) than the
+current implementation.
+
+ Tomi
+
+
