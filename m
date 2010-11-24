@@ -1,165 +1,154 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: Re: [PATCH 02/13] OMAP3: PM: Errata i581 suppport: dll kick strategy
-Date: Wed, 24 Nov 2010 22:21:50 +0530
-Message-ID: <AANLkTi=cb1LDS0nJr+gS47qc2qpw_kRz8+ZxV_x2gSJ0@mail.gmail.com>
-References: <1290131698-6194-1-git-send-email-nm@ti.com>
-	<1290131698-6194-3-git-send-email-nm@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH v5 2/3] omap4: opp: add OPP table data
+Date: Wed, 24 Nov 2010 10:54:06 -0600
+Message-ID: <1290617647-3604-3-git-send-email-nm@ti.com>
+References: <1290617647-3604-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:39541 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753697Ab0KXQvx convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Nov 2010 11:51:53 -0500
-Received: by mail-fx0-f51.google.com with SMTP id 10so2443115fxm.38
-        for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 08:51:52 -0800 (PST)
-In-Reply-To: <1290131698-6194-3-git-send-email-nm@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58780 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755503Ab0KXQyO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Nov 2010 11:54:14 -0500
+In-Reply-To: <1290617647-3604-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin <khilman@deeprootsystems.com>, Jean Pihet <jean.pihet@newoldbits.com>, Tony <tony@atomide.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Benoit <b-cousson@ti.com>, Tony <tony@atomide.com>, Kevin <khilman@deeprootsystems.com>, Thomas <thomas.petazzoni@free-electrons.com>
 
-Nishant,
+This patch adds OPP tables for OMAP4. New file has been added to keep
+the OMAP4 opp tables and the registration of these tables with the
+generic opp framework by OMAP SoC OPP interface.
 
-On Fri, Nov 19, 2010 at 7:24 AM, Nishanth Menon <nm@ti.com> wrote:
-> From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
->
-> Errata i581 impacts OMAP3 platforms.
-> PRCM DPLL control FSM removes SDRC_IDLEREQ before DPLL3 locks causing
-> the DPLL not to be locked at times.
->
-> IMPORTANT: this is not a complete workaround implementation as recomm=
-ended
-> by the silicon errata. this is a support logic for detecting lockups =
-and
-> attempting to recover where possible and is known to provide stabilit=
-y
-> in multiple platforms.
+Based on:
+http://dev.omapzoom.org/?p=santosh/kernel-omap4-base.git;a=blob;f=arch/arm/mach-omap2/opp44xx_data.c;h=252e3d0cb6050a64f390b9311c1c4977d74f762a;hb=refs/heads/omap4_next
 
-How does this WA work when Core enters off mode? SRAM contents are
-lost when Core enters off. So how this code is copied to SRAM upon
-wakeup? Where is this code placed when Core entered off mode?
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+v5:
+	added ARCH_HAS_OPP after rebase to rc3
+V4: http://marc.info/?t=128993379200006&r=1&w=2
+	switched data to .c file
+v3: http://marc.info/?l=linux-omap&m=128984926712794&w=2
+	* switched to using device_initcall to autoinitialize the
+	  opp tables
+v2: https://patchwork.kernel.org/patch/266921/
 
-Vishwa
->
-> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-> ---
-> =A0arch/arm/mach-omap2/sleep34xx.S | =A0 52 +++++++++++++++++++++++++=
-++++++++++---
-> =A01 files changed, 47 insertions(+), 5 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sl=
-eep34xx.S
-> index 8f207b2..5a4468f 100644
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -42,6 +42,7 @@
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP34=
-30_PM_PREPWSTST)
-> =A0#define PM_PWSTCTRL_MPU_P =A0 =A0 =A0OMAP3430_PRM_BASE + MPU_MOD +=
- OMAP2_PM_PWSTCTRL
-> =A0#define CM_IDLEST1_CORE_V =A0 =A0 =A0OMAP34XX_CM_REGADDR(CORE_MOD,=
- CM_IDLEST1)
-> +#define CM_IDLEST_CKGEN_V =A0 =A0 =A0OMAP34XX_CM_REGADDR(PLL_MOD, CM=
-_IDLEST)
-> =A0#define SRAM_BASE_P =A0 =A0 =A0 =A0 =A0 =A00x40200000
-> =A0#define CONTROL_STAT =A0 =A0 =A0 =A0 =A0 0x480022F0
-> =A0#define SCRATCHPAD_MEM_OFFS =A0 =A00x310 /* Move this as correct p=
-lace is
-> @@ -554,31 +555,67 @@ skip_l2_inval:
->
-> =A0/* Make sure SDRC accesses are ok */
-> =A0wait_sdrc_ok:
-> +
-> +/* DPLL3 must be locked before accessing the SDRC. Maybe the HW ensu=
-res this. */
-> + =A0 =A0 =A0 ldr =A0 =A0 r4, cm_idlest_ckgen
-> +wait_dpll3_lock:
-> + =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
-> + =A0 =A0 =A0 tst =A0 =A0 r5, #1
-> + =A0 =A0 =A0 beq =A0 =A0 wait_dpll3_lock
-> +
-> =A0 =A0 =A0 =A0 ldr =A0 =A0 r4, cm_idlest1_core
-> +wait_sdrc_ready:
-> =A0 =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
-> - =A0 =A0 =A0 =A0and =A0 =A0 r5, r5, #0x2
-> - =A0 =A0 =A0 =A0cmp =A0 =A0 r5, #0
-> - =A0 =A0 =A0 =A0bne =A0 =A0 wait_sdrc_ok
-> + =A0 =A0 =A0 =A0tst =A0 =A0 r5, #0x2
-> + =A0 =A0 =A0 =A0bne =A0 =A0 wait_sdrc_ready
-> + =A0 =A0 =A0 /* allow DLL powerdown upon hw idle req */
-> =A0 =A0 =A0 =A0 ldr =A0 =A0 r4, sdrc_power
-> =A0 =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
-> =A0 =A0 =A0 =A0 bic =A0 =A0 r5, r5, #0x40
-> =A0 =A0 =A0 =A0 str =A0 =A0 r5, [r4]
-> -wait_dll_lock:
-> +is_dll_in_lock_mode:
-> +
-> =A0 =A0 =A0 =A0 /* Is dll in lock mode? */
-> =A0 =A0 =A0 =A0 ldr =A0 =A0 r4, sdrc_dlla_ctrl
-> =A0 =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
-> =A0 =A0 =A0 =A0 tst =A0 =A0 r5, #0x4
-> =A0 =A0 =A0 =A0 bxne =A0 =A0lr
-> =A0 =A0 =A0 =A0 /* wait till dll locks */
-> - =A0 =A0 =A0 =A0ldr =A0 =A0 r4, sdrc_dlla_status
-> +wait_dll_lock_timed:
-> + =A0 =A0 =A0 ldr =A0 =A0 r4, wait_dll_lock_counter
-> + =A0 =A0 =A0 add =A0 =A0 r4, r4, #1
-> + =A0 =A0 =A0 str =A0 =A0 r4, wait_dll_lock_counter
-> + =A0 =A0 =A0 ldr =A0 =A0 r4, sdrc_dlla_status
-> + =A0 =A0 =A0 =A0mov =A0 =A0r6, #8 =A0 =A0 =A0 =A0 =A0/* Wait 20uS fo=
-r lock */
-> +wait_dll_lock:
-> + =A0 =A0 =A0 subs =A0 =A0r6, r6, #0x1
-> + =A0 =A0 =A0 beq =A0 =A0 kick_dll
-> =A0 =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
-> =A0 =A0 =A0 =A0 and =A0 =A0 r5, r5, #0x4
-> =A0 =A0 =A0 =A0 cmp =A0 =A0 r5, #0x4
-> =A0 =A0 =A0 =A0 bne =A0 =A0 wait_dll_lock
-> =A0 =A0 =A0 =A0 bx =A0 =A0 =A0lr
->
-> + =A0 =A0 =A0 /* disable/reenable DLL if not locked */
-> +kick_dll:
-> + =A0 =A0 =A0 ldr =A0 =A0 r4, sdrc_dlla_ctrl
-> + =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
-> + =A0 =A0 =A0 mov =A0 =A0 r6, r5
-> + =A0 =A0 =A0 bic =A0 =A0 r6, #(1<<3) =A0 =A0 /* disable dll */
-> + =A0 =A0 =A0 str =A0 =A0 r6, [r4]
-> + =A0 =A0 =A0 dsb
-> + =A0 =A0 =A0 orr =A0 =A0 r6, r6, #(1<<3) /* enable dll */
-> + =A0 =A0 =A0 str =A0 =A0 r6, [r4]
-> + =A0 =A0 =A0 dsb
-> + =A0 =A0 =A0 ldr =A0 =A0 r4, kick_counter
-> + =A0 =A0 =A0 add =A0 =A0 r4, r4, #1
-> + =A0 =A0 =A0 str =A0 =A0 r4, kick_counter
-> + =A0 =A0 =A0 b =A0 =A0 =A0 wait_dll_lock_timed
-> +
-> =A0cm_idlest1_core:
-> =A0 =A0 =A0 =A0.word =A0 CM_IDLEST1_CORE_V
-> +cm_idlest_ckgen:
-> + =A0 =A0 =A0 .word =A0 CM_IDLEST_CKGEN_V
-> =A0sdrc_dlla_status:
-> =A0 =A0 =A0 =A0.word =A0 SDRC_DLLA_STATUS_V
-> =A0sdrc_dlla_ctrl:
-> @@ -615,5 +652,10 @@ control_stat:
-> =A0 =A0 =A0 =A0.word =A0 CONTROL_STAT
-> =A0kernel_flush:
-> =A0 =A0 =A0 =A0.word v7_flush_dcache_all
-> + =A0 =A0 =A0 /* these 2 words need to be at the end !!! */
-> +kick_counter:
-> + =A0 =A0 =A0 .word =A0 0
-> +wait_dll_lock_counter:
-> + =A0 =A0 =A0 .word =A0 0
-> =A0ENTRY(omap34xx_cpu_suspend_sz)
-> =A0 =A0 =A0 =A0.word =A0 . - omap34xx_cpu_suspend
-> --
-> 1.6.3.3
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/mach-omap2/Kconfig        |    2 +
+ arch/arm/mach-omap2/Makefile       |    1 +
+ arch/arm/mach-omap2/opp4xxx_data.c |   57 ++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h           |    5 +++
+ 4 files changed, 65 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/opp4xxx_data.c
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 102a7df..f85188d 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -46,6 +46,8 @@ config ARCH_OMAP4
+ 	select ARM_GIC
+ 	select PL310_ERRATA_588369
+ 	select ARM_ERRATA_720789
++	select ARCH_HAS_OPP
++	select PM_OPP if PM
+ 
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index fbbb6b3..ea217f5 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -51,6 +51,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sdrc2xxx.o
+ ifeq ($(CONFIG_PM_OPP),y)
+ obj-y					+= opp.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= opp3xxx_data.o
++obj-$(CONFIG_ARCH_OMAP4)		+= opp4xxx_data.o
+ endif
+ 
+ # Power Management
+diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
+new file mode 100644
+index 0000000..a11fa56
+--- /dev/null
++++ b/arch/arm/mach-omap2/opp4xxx_data.c
+@@ -0,0 +1,57 @@
++/*
++ * OMAP4 OPP table definitions.
++ *
++ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
++ *	Nishanth Menon
++ *	Kevin Hilman
++ *	Thara Gopinath
++ * Copyright (C) 2010 Nokia Corporation.
++ *      Eduardo Valentin
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#include <linux/module.h>
++
++#include <plat/cpu.h>
++
++#include "omap_opp_data.h"
++
++static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
++	/* MPU OPP1 - OPP50 */
++	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
++	/* MPU OPP2 - OPP100 */
++	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
++	/* MPU OPP3 - OPP-Turbo */
++	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
++	/* MPU OPP4 - OPP-SB */
++	OPP_INITIALIZER("mpu", false, 1008000000, 1350000),
++	/* L3 OPP1 - OPP50 */
++	OPP_INITIALIZER("l3_main_1", true, 100000000, 930000),
++	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
++	OPP_INITIALIZER("l3_main_1", true, 200000000, 1100000),
++	/* TODO: add IVA, DSP, aess, fdif, gpu */
++};
++
++/**
++ * omap4_opp_init() - initialize omap4 opp table
++ */
++static int __init omap4_opp_init(void)
++{
++	int r = -ENODEV;
++
++	if (!cpu_is_omap44xx())
++		return r;
++
++	r = omap_init_opp_table(omap44xx_opp_def_list,
++			ARRAY_SIZE(omap44xx_opp_def_list));
++
++	return r;
++}
++device_initcall(omap4_opp_init);
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 2031f15..a43e069 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -22,11 +22,16 @@ extern int omap3_idle_init(void);
+ 
+ #if defined(CONFIG_PM_OPP)
+ extern int omap3_opp_init(void);
++extern int omap4_opp_init(void);
+ #else
+ static inline int omap3_opp_init(void)
+ {
+ 	return -EINVAL;
+ }
++static inline int omap4_opp_init(void)
++{
++	return -EINVAL;
++}
+ #endif
+ 
+ struct cpuidle_params {
+-- 
+1.6.3.3
+
