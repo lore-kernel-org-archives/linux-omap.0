@@ -1,151 +1,125 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v4 2/3] omap4: opp: add OPP table data
-Date: Tue, 23 Nov 2010 16:16:22 -0800
-Message-ID: <877hg3d19l.fsf@deeprootsystems.com>
-References: <1289933661-19505-3-git-send-email-nm@ti.com>
-	<87aal1kktu.fsf@deeprootsystems.com> <4CEAFD00.4090200@ti.com>
-	<87tyj8kii7.fsf@deeprootsystems.com> <4CEBDB7A.8010807@ti.com>
-	<4CEC413C.3070904@ti.com> <4CEC46B6.1020700@ti.com>
-	<4CEC4E7E.7020503@ti.com>
+From: "Sapiens, Rene" <rene.sapiens@ti.com>
+Subject: Re: DSP Bridge video decode of above VGA videos
+Date: Tue, 23 Nov 2010 18:17:02 -0600
+Message-ID: <AANLkTi=oTopYGPPcH_Ux-pfG4BNvmVJCCoHaxR=k-eiQ@mail.gmail.com>
+References: <AANLkTim2PQ9kAvSi12987gAykMAuPg7f3XM3zQNo5Tip@mail.gmail.com>
+	<AANLkTinCT-zQaGyLfS-NZU9Pue+2hmrLDckHYKqD_u8m@mail.gmail.com>
+	<AANLkTimhKaS4y+k0t_x39aw8LvO-tNUH-=x3V9jk7BsC@mail.gmail.com>
+	<AANLkTi=71zFhuBh3MArYjSEvJ+YXciF_9d2cn+5ojTb6@mail.gmail.com>
+	<AANLkTinkMPb4Htv4GN8--PZP0UdkWuyXiLYvRC3QasWD@mail.gmail.com>
+	<AANLkTim6++ATTJ=BCssvLYKRek0EXKVPMGgKH1WMNuRM@mail.gmail.com>
+	<AANLkTinpR2S1vGaRr=DMALxWjb1X-4TPkhwXZbZhXbwj@mail.gmail.com>
+	<AANLkTikYfYxUWBLL0qdnAEpoKSMGB6DTNXhUXJh_Enqv@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:56940 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752677Ab0KXAQ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Nov 2010 19:16:28 -0500
-Received: by gxk22 with SMTP id 22so424734gxk.19
-        for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 16:16:27 -0800 (PST)
-In-Reply-To: <4CEC4E7E.7020503@ti.com> (Benoit Cousson's message of "Wed, 24
-	Nov 2010 00:30:06 +0100")
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:58128 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754351Ab0KXARF convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Nov 2010 19:17:05 -0500
+Received: by mail-ew0-f46.google.com with SMTP id 5so2809028ewy.33
+        for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 16:17:04 -0800 (PST)
+In-Reply-To: <AANLkTikYfYxUWBLL0qdnAEpoKSMGB6DTNXhUXJh_Enqv@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Tony <tony@atomide.com>, Thomas <thomas.petazzoni@free-electrons.com>
+To: James Adams <james.r.adams@gmail.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, linux-omap@vger.kernel.org
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+Hi James,
 
-> On 11/23/2010 11:56 PM, Menon, Nishanth wrote:
->> Cousson, Benoit had written, on 11/23/2010 04:33 PM, the following:
->>> Hi Nishanth,
->>>
->>> On 11/23/2010 4:19 PM, Menon, Nishanth wrote:
->>>> Kevin Hilman had written, on 11/22/2010 06:09 PM, the following:
->>>>> Nishanth Menon<nm@ti.com>   writes:
->>>>>
->>>>>> Kevin Hilman wrote, on 11/22/2010 05:19 PM:
->>>>>>> Nishanth Menon<nm@ti.com>    writes:
->>>>>>>
->>>>>>>> This patch adds OPP tables for OMAP4. New file has been added to keep
->>>>>>>> the OMAP4 opp tables and the registration of these tables with the
->>>>>>>> generic opp framework by OMAP SoC OPP interface.
->>>>>>> [...]
->>>>>>>
->>>>>>>> diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
->>>>>>>> index 66e12be..48a553f 100644
->>>>>>>> --- a/arch/arm/mach-omap2/opp.c
->>>>>>>> +++ b/arch/arm/mach-omap2/opp.c
->>>>>>>> @@ -131,4 +131,5 @@ static int __init omap_init_opp_table(struct
->>>>>>>> omap_opp_def *opp_def,
->>>>>>>>
->>>>>>>>     /* omap3 opps */
->>>>>>>>     #include "opp3xxx_data.c"
->>>>>>>> -
->>>>>>>> +/* omap4 opps */
->>>>>>>> +#include "opp4xxx_data.c"
->>>>>>> I'm not sure I like the including of C files.  Any reason you prefer
->>>>>>> this to just adding them to the Makefile?  e.g. opp24xx_dta.c are
->>>>>>> compiled in via Makefile and these two are included.
->>>>>> I dont buy it. I am seeing us go around in circles for this:
->>>>>> http://marc.info/?l=linux-omap&m=128986880406272&w=2
->>>>>> a) we dont want others to use specifics implemented in opp.c in other
->>>>>> files (e.g. board files)
->>>>>
->>>>> not sure how this is prevented.
->>>> The approach is as follows:
->>>> the #defines and struct definitions are in opp.c
->>>> opp{3,4}xxx_data.c use the same - by itself wont build because they need
->>>> the defines in opp.c
->>>> that way, there is no possibility of clean hacks possible except to
->>>> follow the current mechanism for a future omap silicon
->>>>
->>>> The main objective was to restrict the potential of board developers
->>>> from hacking the default OPP table - which would be possible by exposing
->>>> the headers for board files - which as Thomas rightly pointed out in the
->>>>     thread I pointed out,  opens up a possibility for board files to
->>>> include them as well and re-instantiate the table again..
->> [...]
->>>
->>> FYI, Paul changed the clock and hwmod data files from include to C
->>> files, because Russell didn't like at all the include of data file.
->>>
->>> Why cannot we handle the opp data the same way we are managing clock,
->>> hwmod or even pad mux data for various Soc?
->>
->> Objective:
->> I do not want folks to start creating their own custom "default" OPP
->> tables for silicon and registering with OPP framework. intent is to have
->> the default OPP tables in one place - here.
->>
->> Solution I followed:
->> make the following:
->> a) struct omap_opp_def
->> b) OPP_INITIALIZER
->> c) omap_init_opp_table
->> not available for anyone other than opp.c - they are defined in opp.c
->> and not available externally.
->>
->> If these were in a header, I am inviting failure of my objective. yes, I
->> could review it when posted to l-o and NAK it, but wont prevent private
->> trees from basically(IMHO) misusing the framework
->>
->> Options available:
->> a) v1,2,3 of the series basically used a header opp{3,4}xxx_data .h
->> in v3, I received a comment (IMHO rightly so) that a header defining a
->> static array implies capability for some other file to include the
->> header and misuse it (basically headers are meant to share data structs
->> between x and y - if you dont intend to do that, then put it in a c file)
->> b) in v4, I converted the data header to a .c and included the data.c in
->> opp.c.
->>
->> NOTE:
->> a) padconf, hwmod, clock are designed to be reused by rest of
->> mach-omap2. opp defines are meant to be isolated. I dont really have a
->> preference c or header file for the data, just that I want to, by design
->> "make any hacks attempts - *really ugly*"
+On Tue, Nov 23, 2010 at 8:34 AM, James Adams <james.r.adams@gmail.com> =
+wrote:
+> A bit more information about why videos are not playing in a port of
+> Zoom2 to gumstix:
 >
-> Mmm, I'm not convince that this will prevent anybody to do dirty stuff
-> anyway.
-> Doing "dirty" stuff to avoid even more dirty stuff is kind of a weird
-> approach... for my point of view at least...
+> 2)
+> If I use the OpenCORE unit tests I can successfully decode:
+> =A0 VGA movies with software codec
+> =A0 1280*544 movie with software codec
+> =A0 VGA movies with DSP codec
+> but it fails for the 1280x544 movie with DSP codec.
 >
-> And no, this is not that different than the hwmod data or clock
-> data... These data are never manipulated directly by anybody but the
-> core code.
+> This is the error log:
+> =A0 pvplayer_engine_test -test 1 1 -source wall720p.mp4
+> =A0 SDK Labeled: PVDEV_CORE_RELEASE_6.506.4.1 built on 20090312
 >
->> b) Inclusion of c in c files are not uniquely introduced here.
->> $ find . -iname "*.c"|xargs grep "#include"| grep -v "\.h"|grep
->> ":#include"|wc -l
->> 558
+> =A0 Test Program for pvPlayer engine class.
+> =A0 =A0 Input file name 'wall720p.mp4'
+> =A0 =A0 Test case range 1 to 1
+> =A0 =A0 Compressed output Video(No) Audio(No)
+> =A0 =A0 Log level 8; Log node 0 Log Text 0 Log Mem 0
 >
-> That does not mean that we have to keep doing it.
-> There are probably much more lines of code that does not stick to the
-> CodingStyle ;-)
+> =A0 Starting Test 1: Open-Play-Stop-Reset
 >
->> Hope this clarifies.
-> Yes, but that still does not justify that for my point of view.
+> =A0 ****************LCML ERROR : DSP ************************
+> =A0 Error: Create the Node : Err Num =3D 8000800c
+> =A0 ****************LCML ERROR : DSP ************************
+>
 
-OK, let's settle this.
+It looks that your system is getting ride of memory and it is failing
+in the creation stage of a DSP node.
+I  suggest you to free all the not needed resources before trying to
+decode the 1280x544 movie with the DSP decoders, There are a couple of
+minor allocations done during the node create stage.
+To debug it you can take a look to the bridge code:
+drivers/dsp/bridge/
+Basically communication with the DSP is handled by such driver[1].
+The error should be coming from drivers/dsp/bridge/rmgr/node.c
+in the node_create() function.
 
-Nishanth, as stated by Benoit, this kind of thing has been NAK'd in the
-past upstream, so let's learn from that and not repeat it.
+> 3)
+> I can't find this 8000800c number defined anywhere in the Android tre=
+e.
+> Any idea what it means?
 
-We don't need to take extreme measures to prevent folks from doing dirty
-hacks, especially when such measures are controversial by standard
-coding practices and convention.
+=46or this version of the bridge driver  0x8000800c should mean a
+"DSP_EMEMORY" error, find it in [2]. You can take a look in the driver
+mentioned above for the place where you are getting that error.
+=46unctions where you can get that error in the node's create phase are=
+:
 
-Let's please just make this behave like clock & hwmod data and move on.
+1) drivers/dsp/bridge/rmgr/Nldr.c
+LoadLib()
 
-Kevin
+2) drivers/dsp/bridge/pmgr/Dbll.c
+DBLL_open()
+
+3) drivers/dsp/bridge/rmgr/Dbdcd.c
+GetDepLibInfo()
 
 
+4) drivers/dsp/bridge/pmgr/Dbll.c
+DBLL_load()
+
+5) drivers/dsp/bridge/rmgr/rmm.c
+RMM_alloc()
+    - When calling to allocBlock()
+    - When allocate list element for new section.
+
+
+>
+> 4)
+> Using the software codec from inside the Android Gallery application =
+I
+> still get the same errors as mentioned before about missing video buf=
+fer
+> addresses.
+
+In general, OpenCore/Omx question should go to a different list, since
+it is not kernel specific, i would suggest you to contact your vendor
+to point you to the correct support team.
+
+Regards,
+Rene Sapiens
+--
+[1] http://omapzoom.org/wiki/DSPBridge_Project#Documents
+[2] http://git.omapzoom.org/?p=3Dkernel/omap.git;a=3Dblob;f=3Darch/arm/=
+plat-omap/include/dspbridge/errbase.h;h=3Df04c005c06adb253a3b2f8886ba38=
+e4475b578b3;hb=3Drefs/heads/p-android-omap-2.6.29-eclair#l130
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
