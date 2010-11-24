@@ -1,32 +1,58 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v4 2/3] omap4: opp: add OPP table data
-Date: Tue, 23 Nov 2010 20:34:23 -0600
-Message-ID: <4CEC79AF.8020405@ti.com>
-References: <1289933661-19505-3-git-send-email-nm@ti.com>	<87aal1kktu.fsf@deeprootsystems.com> <4CEAFD00.4090200@ti.com>	<87tyj8kii7.fsf@deeprootsystems.com> <4CEBDB7A.8010807@ti.com>	<4CEC413C.3070904@ti.com> <4CEC46B6.1020700@ti.com>	<4CEC4E7E.7020503@ti.com> <877hg3d19l.fsf@deeprootsystems.com>
+From: TAO HU <tghk48@motorola.com>
+Subject: OMAP4 ES2.0 Unhandled fault: imprecise external abort
+Date: Wed, 24 Nov 2010 11:11:44 +0800
+Message-ID: <AANLkTinXqSA0botGAGzEtk8_xOVt0W05k9+0w4v1gqF0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:45662 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751238Ab0KXCeb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Nov 2010 21:34:31 -0500
-Received: by mail-gy0-f176.google.com with SMTP id 1so618158gyf.7
-        for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 18:34:31 -0800 (PST)
-In-Reply-To: <877hg3d19l.fsf@deeprootsystems.com>
+Received: from exprod5og105.obsmtp.com ([64.18.0.180]:47564 "EHLO
+	exprod5og105.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751955Ab0KXDLw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Nov 2010 22:11:52 -0500
+Received: from il27vts01 (il27vts01.cig.mot.com [10.17.196.85])
+	by mdgate2.corp.mot.com (8.14.3/8.14.3) with SMTP id oAO3AM7Y010661
+	for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 20:10:22 -0700 (MST)
+Received: from mail-ey0-f182.google.com (mail-ey0-f182.google.com [209.85.215.182])
+	by mdgate2.corp.mot.com (8.14.3/8.14.3) with ESMTP id oAO2xr7W007471
+	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=OK)
+	for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 20:10:22 -0700 (MST)
+Received: by mail-ey0-f182.google.com with SMTP id 7so20377279eyb.27
+        for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 19:11:44 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Tony <tony@atomide.com>, Thomas <thomas.petazzoni@free-electrons.com>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-Kevin Hilman wrote, on 11/23/2010 06:16 PM:
-[..]
-> Let's please just make this behave like clock&  hwmod data and move on.
+Hi, All
 
-I suppose we could do that in the interest of world peace and global 
-warming ;) hopefully the v5 will the last set.
+We got following errors on OMAP ES2.0 board.
+
+And noticed a similar case was reported at below link
+http://www.opensubscriber.com/message/kernel-team@lists.ubuntu.com/14591440.html
+
+Is any conclusion/fix available?
+
+<1>[ 348.873840] Unhandled fault: imprecise external abort (0x1406) at
+0x462d301c
+<1>[ 348.885040] Unhandled fault: imprecise external abort (0x1406) at
+0xbe8fec78
+<1>[ 348.897247] Unhandled fault: imprecise external abort (0x1406) at
+0xbe8fec78
+<1>[ 348.954772] Unhandled fault: imprecise external abort (0x1406) at
+0xb000c454
+<1>[ 348.967590] Unhandled fault: imprecise external abort (0x1406) at
+0xb000c454
+<1>[ 348.989471] Unhandled fault: imprecise external abort (0x1406) at
+0xbeb02fb8
+<4>[ 349.006683] Process 2664(coredump) has RLIMIT_CORE set to 1
+<4>[ 349.012481] Aborting core
+<1>[ 349.023040] Unhandled fault: imprecise external abort (0x1406) at
+0xbeb02fb8
+<1>[ 349.041625] Unhandled fault: imprecise external abort (0x1406) at
+0xbed6cfbc
+<4>[ 349.061370] Process 2665(kkkkkkkkkkkkkkk) has RLIMIT_CORE set to 1
+<4>[ 349.067810] Aborting core
+<0>[ 349.077362] Kernel panic - not syncing: Attempted to kill init!
 
 -- 
-Regards,
-Nishanth Menon
+Best Regards
+Hu Tao
