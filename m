@@ -1,48 +1,64 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] OMAP: ZOOM2: Change GPIO to enable LCD NEC
- NL8048HL11-01B on OMAP34x-II MDP
-Date: Wed, 24 Nov 2010 10:47:15 +0200
-Message-ID: <1290588435.13243.12.camel@tubuntu>
-References: <1290560402-2507-1-git-send-email-omar.ramirez@ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH v4 2/5] OMAP: mailbox: fix rx interrupt disable in omap4
+Date: Wed, 24 Nov 2010 14:20:40 +0530
+Message-ID: <AANLkTimevr4qgRZQW+DOEBND15VxA0MjkW3pkwND92JL@mail.gmail.com>
+References: <1290547617-16640-1-git-send-email-h-kanigeri2@ti.com>
+ <1290547617-16640-3-git-send-email-h-kanigeri2@ti.com> <AANLkTimNW8ixBPyuwckZYnijXmT+t-XSY37xMUVvubLB@mail.gmail.com>
+ <20101124082245.GF2468@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:45495 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751601Ab0KXIrh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Nov 2010 03:47:37 -0500
-In-Reply-To: <1290560402-2507-1-git-send-email-omar.ramirez@ti.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:56250 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750744Ab0KXIvV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Nov 2010 03:51:21 -0500
+Received: by iwn3 with SMTP id 3so12356328iwn.40
+        for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 00:51:20 -0800 (PST)
+In-Reply-To: <20101124082245.GF2468@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Yanick Saugy <yanick.saugy@heig-vd.ch>
+To: balbi@ti.com
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <b-cousson@ti.com>
 
-Hi,
+On Wed, Nov 24, 2010 at 13:52, Felipe Balbi <balbi@ti.com> wrote:
+> On Wed, Nov 24, 2010 at 10:46:04AM +0530, Varadarajan, Charulatha wro=
+te:
+>>>
+>>> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mail=
+box.c
+>>> index 48e161c..a1c6bd9 100644
+>>> --- a/arch/arm/plat-omap/mailbox.c
+>>> +++ b/arch/arm/plat-omap/mailbox.c
+>>> @@ -358,6 +358,10 @@ int omap_mbox_register(struct device *parent, =
+struct
+>>> omap_mbox **list)
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D PTR_ERR(mbox=
+->dev);
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_out;
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap44xx())
+>>
+>> Do not use cpu_is* checks in plat-omap/*
+>
+> see the previous thread.
 
-On Tue, 2010-11-23 at 19:00 -0600, ext Omar Ramirez Luna wrote:
-> From: Yanick Saugy <yanick.saugy@heig-vd.ch>
-> 
-> The PIN which controls LCD's reset signal (VGA_nRESET/h_GPIO_96) was not
-> configured as a GPIO. We had to modify the OMAP MUX, and select this PIN
-> (CAM_XCLKA) as an output GPIO (OMAP_MUX_MODE4). (kernel 2.6.35)
-> 
-> Be aware of changing this PIN will probably disable the camera, because
-> it was previously configured as a camera clock.
-> 
-> Signed-off-by: Yanick Saugy <yanick.saugy@heig-vd.ch>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-> ---
-> 
-> I'm not sure if this patch was forgotten, hence resending. Without
-> it, a blanks screen is seen on zoom2 board.
+Referring to [1], I do not find why cpu_is* checks is used in plat-omap=
+ and
+why it can't be avoided.
 
-Yes, I seem to have missed this.
+In [1], it was suggested to create the pdata field that will be
+populated at init
+time using the cpu_is* check. But in this version, I am finding that
+this is done
+in plat-omap. This can be handled in mach-omap layer itself and can be =
+passed
+as a pdata field which can be extracted during probe.
 
-But I'm a bit confused. You say that this will disable camera. Is there
-a camera connected to the board, and it won't work after this? 
-
- Tomi
-
-
+[1] https://patchwork.kernel.org/patch/337131/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
