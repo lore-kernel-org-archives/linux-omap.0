@@ -1,179 +1,232 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [PATCH v5 06/14] OMAP4: hwmod data: add system DMA
-Date: Wed, 24 Nov 2010 18:21:42 +0530
-Message-ID: <1290603110-14119-7-git-send-email-manjugk@ti.com>
+Subject: [PATCH v5 07/14] OMAP1: DMA: Implement in platform device model
+Date: Wed, 24 Nov 2010 18:21:43 +0530
+Message-ID: <1290603110-14119-8-git-send-email-manjugk@ti.com>
 References: <1290603110-14119-1-git-send-email-manjugk@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50320 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53673 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753808Ab0KXMw1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Nov 2010 07:52:27 -0500
+	id S1753808Ab0KXMwb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Nov 2010 07:52:31 -0500
 In-Reply-To: <1290603110-14119-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Benoit Cousson <b-cousson@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-From: Benoit Cousson <b-cousson@ti.com>
+Implement OMAP1 DMA as platform device and add support for
+registering through platform device layer using resource
+structures.
 
-Add OMAP4 DMA hwmod data
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
 Cc: linux-arm-kernel@lists.infradead.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  100 ++++++++++++++++++++++++++++
- 1 files changed, 100 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap1/dma.c |  179 +++++++++++++++++++++++++++++++++++++=
+++++++++
+ 1 files changed, 179 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/dma.c
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 0d5c6eb..7197204 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -22,6 +22,7 @@
- 
- #include <plat/omap_hwmod.h>
- #include <plat/cpu.h>
-+#include <plat/dma.h>
- 
- #include "omap_hwmod_common_data.h"
- 
-@@ -35,6 +36,7 @@
- #define OMAP44XX_DMA_REQ_START  1
- 
- /* Backward references (IPs with Bus Master capability) */
-+static struct omap_hwmod omap44xx_dma_system_hwmod;
- static struct omap_hwmod omap44xx_dmm_hwmod;
- static struct omap_hwmod omap44xx_emif_fw_hwmod;
- static struct omap_hwmod omap44xx_l3_instr_hwmod;
-@@ -215,6 +217,14 @@ static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l3_main_2 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* dma_system -> l3_main_2 */
-+static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 = {
-+	.master		= &omap44xx_dma_system_hwmod,
-+	.slave		= &omap44xx_l3_main_2_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_cfg -> l3_main_2 */
- static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_2 = {
- 	.master		= &omap44xx_l4_cfg_hwmod,
-@@ -226,6 +236,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_2 = {
- /* l3_main_2 slave ports */
- static struct omap_hwmod_ocp_if *omap44xx_l3_main_2_slaves[] = {
- 	&omap44xx_l3_main_1__l3_main_2,
-+	&omap44xx_dma_system__l3_main_2,
- 	&omap44xx_l4_cfg__l3_main_2,
- };
- 
-@@ -1043,6 +1054,92 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
- 
+diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+new file mode 100644
+index 0000000..b56ee21
+--- /dev/null
++++ b/arch/arm/mach-omap1/dma.c
+@@ -0,0 +1,179 @@
 +/*
-+ * 'dma' class
-+ * dma controller for data exchange between memory to memory (i.e. internal or
-+ * external memory) and gp peripherals to memory or memory to gp peripherals
++ * OMAP1/OMAP7xx - specific DMA driver
++ *
++ * Copyright (C) 2003 - 2008 Nokia Corporation
++ * Author: Juha Yrj=C3=B6l=C3=A4 <juha.yrjola@nokia.com>
++ * DMA channel linking for 1610 by Samuel Ortiz <samuel.ortiz@nokia.co=
+m>
++ * Graphics DMA and LCD DMA graphics tranformations
++ * by Imre Deak <imre.deak@nokia.com>
++ * OMAP2/3 support Copyright (C) 2004-2007 Texas Instruments, Inc.
++ * Some functions based on earlier dma-omap.c Copyright (C) 2001 Ridge=
+Run, Inc.
++ *
++ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.c=
+om/
++ * Converted DMA library into platform driver
++ *                   - G, Manjunath Kondaiah <manjugk@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
-+static struct omap_hwmod_class_sysconfig omap44xx_dma_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x002c,
-+	.syss_offs	= 0x0028,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_MIDLEMODE | SYSC_HAS_CLOCKACTIVITY |
-+			   SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/slab.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/device.h>
 +
-+static struct omap_hwmod_class omap44xx_dma_hwmod_class = {
-+	.name = "dma",
-+	.sysc = &omap44xx_dma_sysc,
-+};
++#include <plat/dma.h>
++#include <plat/tc.h>
++#include <plat/irqs.h>
 +
-+/* dma attributes */
-+static struct omap_dma_dev_attr dma_dev_attr = {
-+	.dev_caps  = RESERVE_CHANNEL | DMA_LINKED_LCH | GLOBAL_PRIORITY |
-+				IS_CSSA_32 | IS_CDSA_32 | IS_RW_PRIORITY,
-+	.lch_count = 32,
-+};
++#define OMAP1_DMA_BASE			(0xfffed800)
 +
-+/* dma_system */
-+static struct omap_hwmod_irq_info omap44xx_dma_system_irqs[] = {
-+	{ .name = "0", .irq = 12 + OMAP44XX_IRQ_GIC_START },
-+	{ .name = "1", .irq = 13 + OMAP44XX_IRQ_GIC_START },
-+	{ .name = "2", .irq = 14 + OMAP44XX_IRQ_GIC_START },
-+	{ .name = "3", .irq = 15 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_dma_system_addrs[] = {
-+	{
-+		.pa_start	= 0x4a056000,
-+		.pa_end		= 0x4a0560ff,
-+		.flags		= ADDR_TYPE_RT
++static struct resource res[] __initdata =3D {
++	[0] =3D {
++		.start	=3D OMAP1_DMA_BASE,
++		.end	=3D OMAP1_DMA_BASE + SZ_2K - 1,
++		.flags	=3D IORESOURCE_MEM,
++	},
++	[1] =3D {
++		.name   =3D "0",
++		.start  =3D INT_DMA_CH0_6,
++		.flags  =3D IORESOURCE_IRQ,
++	},
++	[2] =3D {
++		.name   =3D "1",
++		.start  =3D INT_DMA_CH1_7,
++		.flags  =3D IORESOURCE_IRQ,
++	},
++	[3] =3D {
++		.name   =3D "2",
++		.start  =3D INT_DMA_CH2_8,
++		.flags  =3D IORESOURCE_IRQ,
++	},
++	[4] =3D {
++		.name   =3D "3",
++		.start  =3D INT_DMA_CH3,
++		.flags  =3D IORESOURCE_IRQ,
++	},
++	[5] =3D {
++		.name   =3D "4",
++		.start  =3D INT_DMA_CH4,
++		.flags  =3D IORESOURCE_IRQ,
++	},
++	[6] =3D {
++		.name   =3D "5",
++		.start  =3D INT_DMA_CH5,
++		.flags  =3D IORESOURCE_IRQ,
++	},
++	[7] =3D {
++		.name   =3D "6",
++		.start  =3D INT_DMA_LCD,
++		.flags  =3D IORESOURCE_IRQ,
++	},
++	/* irq's for omap16xx and omap7xx */
++	[8] =3D {
++		.name   =3D "7",
++		.start  =3D 53 + IH2_BASE,
++		.flags  =3D IORESOURCE_IRQ,
++	},
++	[9] =3D {
++		.name   =3D "8",
++		.start  =3D 54 + IH2_BASE,
++		.flags  =3D IORESOURCE_IRQ,
++	},
++	[10] =3D {
++		.name  =3D "9",
++		.start =3D 55 + IH2_BASE,
++		.flags =3D IORESOURCE_IRQ,
++	},
++	[11] =3D {
++		.name  =3D "10",
++		.start =3D 56 + IH2_BASE,
++		.flags =3D IORESOURCE_IRQ,
++	},
++	[12] =3D {
++		.name  =3D "11",
++		.start =3D 57 + IH2_BASE,
++		.flags =3D IORESOURCE_IRQ,
++	},
++	[13] =3D {
++		.name  =3D "12",
++		.start =3D 58 + IH2_BASE,
++		.flags =3D IORESOURCE_IRQ,
++	},
++	[14] =3D {
++		.name  =3D "13",
++		.start =3D 59 + IH2_BASE,
++		.flags =3D IORESOURCE_IRQ,
++	},
++	[15] =3D {
++		.name  =3D "14",
++		.start =3D 60 + IH2_BASE,
++		.flags =3D IORESOURCE_IRQ,
++	},
++	[16] =3D {
++		.name  =3D "15",
++		.start =3D 61 + IH2_BASE,
++		.flags =3D IORESOURCE_IRQ,
++	},
++	[17] =3D {
++		.name  =3D "16",
++		.start =3D 62 + IH2_BASE,
++		.flags =3D IORESOURCE_IRQ,
 +	},
 +};
 +
-+/* dma_system master ports */
-+static struct omap_hwmod_ocp_if *omap44xx_dma_system_masters[] = {
-+	&omap44xx_dma_system__l3_main_2,
-+};
++static int __init omap1_system_dma_init(void)
++{
++	struct omap_system_dma_plat_info	*p;
++	struct platform_device			*pdev;
++	int ret;
 +
-+/* l4_cfg -> dma_system */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__dma_system = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_dma_system_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_dma_system_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_dma_system_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
++	pdev =3D platform_device_alloc("omap_dma_system", 0);
++	if (!pdev) {
++		pr_err("%s: Unable to device alloc for dma\n",
++			__func__);
++		return -ENOMEM;
++	}
 +
-+/* dma_system slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_dma_system_slaves[] = {
-+	&omap44xx_l4_cfg__dma_system,
-+};
++	ret =3D platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
++	if (ret) {
++		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
++			__func__, pdev->name, pdev->id);
++		goto exit_device_del;
++	}
 +
-+static struct omap_hwmod omap44xx_dma_system_hwmod = {
-+	.name		= "dma_system",
-+	.class		= &omap44xx_dma_hwmod_class,
-+	.mpu_irqs	= omap44xx_dma_system_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dma_system_irqs),
-+	.main_clk	= "l3_div_ck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_SDMA_SDMA_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_dma_system_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_dma_system_slaves),
-+	.masters	= omap44xx_dma_system_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap44xx_dma_system_masters),
-+	.dev_attr	= &dma_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.flags		= HWMOD_NO_IDLEST,
-+};
++	p =3D kzalloc(sizeof(struct omap_system_dma_plat_info), GFP_KERNEL);
++	if (!p) {
++		dev_err(&pdev->dev, "%s: Unable to allocate 'p' for %s\n",
++			__func__, pdev->name);
++		ret =3D -ENOMEM;
++		goto exit_device_put;
++	}
 +
- static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	/* dmm class */
- 	&omap44xx_dmm_hwmod,
-@@ -1077,6 +1174,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_uart2_hwmod,
- 	&omap44xx_uart3_hwmod,
- 	&omap44xx_uart4_hwmod,
++	ret =3D platform_device_add_data(pdev, p, sizeof(*p));
++	if (ret) {
++		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
++			__func__, pdev->name, pdev->id);
++		goto exit_device_put;
++	}
 +
-+	/* dma class */
-+	&omap44xx_dma_system_hwmod,
- 	NULL,
- };
- 
--- 
++	ret =3D platform_device_add(pdev);
++	if (ret) {
++		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
++			__func__, pdev->name, pdev->id);
++		goto exit_device_put;
++	}
++
++	return ret;
++
++exit_device_put:
++	platform_device_put(pdev);
++exit_device_del:
++	platform_device_del(pdev);
++
++	return ret;
++}
++arch_initcall(omap1_system_dma_init);
+--=20
 1.7.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
