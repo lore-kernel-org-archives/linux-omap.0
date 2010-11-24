@@ -1,144 +1,433 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v3 3/3] OMAP3: remove OPP interfaces from OMAP PM layer
-Date: Wed, 24 Nov 2010 10:54:07 -0600
-Message-ID: <1290617647-3604-4-git-send-email-nm@ti.com>
+Subject: [PATCH v5 1/3] omap: opp: add OMAP3 OPP table data and common init
+Date: Wed, 24 Nov 2010 10:54:05 -0600
+Message-ID: <1290617647-3604-2-git-send-email-nm@ti.com>
 References: <1290617647-3604-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58779 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754012Ab0KXQyO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Nov 2010 11:54:14 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55522 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755548Ab0KXQyP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Nov 2010 11:54:15 -0500
 In-Reply-To: <1290617647-3604-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Benoit <b-cousson@ti.com>, Tony <tony@atomide.com>, Kevin <khilman@deeprootsystems.com>, Thomas <thomas.petazzoni@free-electrons.com>
 
-From: Kevin Hilman <khilman@deeprootsystems.com>
+Add OPP data for OMAP34xx and OMAP36xx and initialization functions
+to populate OPP tables based on current SoC.
+introduce an OMAP generic opp initialization routine which OMAP3
+and OMAP4+ SoCs can use to register their OPP definitions.
 
-With new OPP layer, OPP users will access OPP API directly instead of
-using OMAP PM layer, so remove all notions of OPPs from the OMAP PM
-layer.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
+v5: introduced new header for data structures to be used by data files
+	bit of licensing + whitespace cleanups
+	introduced ARCH_HAS_OPP after rebasing to rc3
 
-posted for completeness sake - no change involved
-v3: no longer explicitly calling the init_table, instead
-    depending on the device_initcall to initialize as needed
+v4: http://marc.info/?t=128993379200008&r=1&w=2
+	Comments from Thomas addressed:
+	* Data switched to .c file and included in opp.c
+	* init_table will fail with -EEXIST if already called
+	* minor comment improvements
+	Not addressed:
+	* request for board files to explicitly call init table
+	  as discussed http://marc.info/?l=linux-omap&m=128992417530385&w=2
 
-v2: https://patchwork.kernel.org/patch/266931/
+v3: http://marc.info/?t=128984939100006&r=1&w=2
+	* added documentation for custom opp modification
+	  by board files
+	* switched to using device_initcall to autoinitialize the
+	  opp tables
+v2: https://patchwork.kernel.org/patch/266911/
 
- arch/arm/mach-omap2/io.c                  |    3 +-
- arch/arm/plat-omap/include/plat/omap-pm.h |   31 +++++++++-------------------
- arch/arm/plat-omap/omap-pm-noop.c         |   11 +---------
- 3 files changed, 12 insertions(+), 33 deletions(-)
+ Documentation/arm/OMAP/omap_pm      |   25 ++++++++
+ arch/arm/mach-omap2/Kconfig         |    2 +
+ arch/arm/mach-omap2/Makefile        |    6 ++
+ arch/arm/mach-omap2/omap_opp_data.h |   72 +++++++++++++++++++++++
+ arch/arm/mach-omap2/opp.c           |   93 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/opp3xxx_data.c  |  107 +++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h            |    9 +++
+ 7 files changed, 314 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_opp_data.h
+ create mode 100644 arch/arm/mach-omap2/opp.c
+ create mode 100644 arch/arm/mach-omap2/opp3xxx_data.c
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 40562dd..2fe4e02 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -327,8 +327,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 	else if (cpu_is_omap44xx())
- 		omap44xx_hwmod_init();
+diff --git a/Documentation/arm/OMAP/omap_pm b/Documentation/arm/OMAP/omap_pm
+index 5389440..9012bb0 100644
+--- a/Documentation/arm/OMAP/omap_pm
++++ b/Documentation/arm/OMAP/omap_pm
+@@ -127,3 +127,28 @@ implementation needs:
+ 10. (*pdata->cpu_set_freq)(unsigned long f)
  
--	/* The OPP tables have to be registered before a clk init */
--	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
-+	omap_pm_if_early_init();
+ 11. (*pdata->cpu_get_freq)(void)
++
++Customizing OPP for platform
++============================
++Defining CONFIG_PM should enable OPP layer for the silicon
++and the registration of OPP table should take place automatically.
++However, in special cases, the default OPP table may need to be
++tweaked, for e.g.:
++ * enable default OPPs which are disabled by default, but which
++   could be enabled on a platform
++ * Disable an unsupported OPP on the platform
++ * Define and add a custom opp table entry
++in these cases, the board file needs to do additional steps as follows:
++arch/arm/mach-omapx/board-xyz.c
++	#include "pm.h"
++	....
++	static void __init omap_xyz_init_irq(void)
++	{
++		....
++		/* Initialize the default table */
++		omapx_opp_init();
++		/* Do customization to the defaults */
++		....
++	}
++NOTE: omapx_opp_init will be omap3_opp_init or as required
++based on the omap family.
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index ab784bf..102a7df 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -35,6 +35,8 @@ config ARCH_OMAP3
+ 	select CPU_V7
+ 	select USB_ARCH_HAS_EHCI
+ 	select ARM_L1_CACHE_SHIFT_6 if !ARCH_OMAP4
++	select ARCH_HAS_OPP
++	select PM_OPP if PM
  
- 	if (cpu_is_omap2420())
- 		omap2420_clk_init();
-diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
-index 728fbb9..62c3fe9 100644
---- a/arch/arm/plat-omap/include/plat/omap-pm.h
-+++ b/arch/arm/plat-omap/include/plat/omap-pm.h
-@@ -17,27 +17,10 @@
- #include <linux/device.h>
- #include <linux/cpufreq.h>
- #include <linux/clk.h>
+ config ARCH_OMAP4
+ 	bool "TI OMAP4"
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 60e51bc..fbbb6b3 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -47,6 +47,12 @@ obj-$(CONFIG_ARCH_OMAP3)		+= mux34xx.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= sdrc2xxx.o
+ # obj-$(CONFIG_ARCH_OMAP3)		+= sdrc3xxx.o
+ 
++# OPP table initialization
++ifeq ($(CONFIG_PM_OPP),y)
++obj-y					+= opp.o
++obj-$(CONFIG_ARCH_OMAP3)		+= opp3xxx_data.o
++endif
++
+ # Power Management
+ ifeq ($(CONFIG_PM),y)
+ obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
+new file mode 100644
+index 0000000..46ac27d
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap_opp_data.h
+@@ -0,0 +1,72 @@
++/*
++ * OMAP SoC specific OPP Data helpers
++ *
++ * Copyright (C) 2009-2010 Texas Instruments Incorporated - http://www.ti.com/
++ *	Nishanth Menon
++ *	Kevin Hilman
++ * Copyright (C) 2010 Nokia Corporation.
++ *      Eduardo Valentin
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef __ARCH_ARM_MACH_OMAP2_OMAP_OPP_DATA_H
++#define __ARCH_ARM_MACH_OMAP2_OMAP_OPP_DATA_H
++
++#include <plat/omap_hwmod.h>
++
++/*
++ * *BIG FAT WARNING*:
++ * USE the following ONLY in opp data initialization common to an SoC.
++ * DO NOT USE these in board files/pm core etc.
++ */
++
++/**
++ * struct omap_opp_def - OMAP OPP Definition
++ * @hwmod_name:	Name of the hwmod for this domain
++ * @freq:	Frequency in hertz corresponding to this OPP
++ * @u_volt:	Nominal voltage in microvolts corresponding to this OPP
++ * @default_available:	True/false - is this OPP available by default
++ *
++ * OMAP SOCs have a standard set of tuples consisting of frequency and voltage
++ * pairs that the device will support per voltage domain. This is called
++ * Operating Points or OPP. The actual definitions of OMAP Operating Points
++ * varies over silicon within the same family of devices. For a specific
++ * domain, you can have a set of {frequency, voltage} pairs and this is denoted
++ * by an array of omap_opp_def. As the kernel boots and more information is
++ * available, a set of these are activated based on the precise nature of
++ * device the kernel boots up on. It is interesting to remember that each IP
++ * which belongs to a voltage domain may define their own set of OPPs on top
++ * of this - but this is handled by the appropriate driver.
++ */
++struct omap_opp_def {
++	char *hwmod_name;
++
++	unsigned long freq;
++	unsigned long u_volt;
++
++	bool default_available;
++};
++
++/*
++ * Initialization wrapper used to define an OPP for OMAP variants.
++ */
++#define OPP_INITIALIZER(_hwmod_name, _enabled, _freq, _uv)	\
++{								\
++	.hwmod_name	= _hwmod_name,				\
++	.default_available	= _enabled,			\
++	.freq		= _freq,				\
++	.u_volt		= _uv,					\
++}
++
++/* Use this to initialize the default table */
++extern int __init omap_init_opp_table(struct omap_opp_def *opp_def,
++		u32 opp_def_size);
++
++#endif		/* __ARCH_ARM_MACH_OMAP2_OMAP_OPP_DATA_H */
+diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
+new file mode 100644
+index 0000000..ab8b35b
+--- /dev/null
++++ b/arch/arm/mach-omap2/opp.c
+@@ -0,0 +1,93 @@
++/*
++ * OMAP SoC specific OPP wrapper function
++ *
++ * Copyright (C) 2009-2010 Texas Instruments Incorporated - http://www.ti.com/
++ *	Nishanth Menon
++ *	Kevin Hilman
++ * Copyright (C) 2010 Nokia Corporation.
++ *      Eduardo Valentin
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#include <linux/module.h>
 +#include <linux/opp.h>
++
++#include <plat/omap_device.h>
++
++#include "omap_opp_data.h"
++
++/* Temp variable to allow multiple calls */
++static u8 __initdata omap_table_init;
++
++/**
++ * omap_init_opp_table() - Initialize opp table as per the CPU type
++ * @opp_def:		opp default list for this silicon
++ * @opp_def_size:	number of opp entries for this silicon
++ *
++ * Register the initial OPP table with the OPP library based on the CPU
++ * type. This is meant to be used only by SoC specific registration.
++ */
++int __init omap_init_opp_table(struct omap_opp_def *opp_def,
++		u32 opp_def_size)
++{
++	int i, r;
++
++	if (!opp_def || !opp_def_size) {
++		pr_err("%s: invalid params!\n", __func__);
++		return -EINVAL;
++	}
++
++	/*
++	 * Initialize only if not already initialized even if the previous
++	 * call failed, because, no reason we'd succeed again.
++	 */
++	if (omap_table_init)
++		return -EEXIST;
++	omap_table_init = 1;
++
++	/* Lets now register with OPP library */
++	for (i = 0; i < opp_def_size; i++) {
++		struct omap_hwmod *oh;
++		struct device *dev;
++
++		if (!opp_def->hwmod_name) {
++			pr_err("%s: NULL name of omap_hwmod, failing [%d].\n",
++				__func__, i);
++			return -EINVAL;
++		}
++		oh = omap_hwmod_lookup(opp_def->hwmod_name);
++		if (!oh || !oh->od) {
++			pr_warn("%s: no hwmod or odev for %s, [%d] "
++				"cannot add OPPs.\n", __func__,
++				opp_def->hwmod_name, i);
++			return -EINVAL;
++		}
++		dev = &oh->od->pdev.dev;
++
++		r = opp_add(dev, opp_def->freq, opp_def->u_volt);
++		if (r) {
++			dev_err(dev, "%s: add OPP %ld failed for %s [%d] "
++				"result=%d\n",
++			       __func__, opp_def->freq,
++			       opp_def->hwmod_name, i, r);
++		} else {
++			if (!opp_def->default_available)
++				r = opp_disable(dev, opp_def->freq);
++			if (r)
++				dev_err(dev, "%s: disable %ld failed for %s "
++					"[%d] result=%d\n",
++					__func__, opp_def->freq,
++					opp_def->hwmod_name, i, r);
++		}
++		opp_def++;
++	}
++
++	return 0;
++}
+diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+new file mode 100644
+index 0000000..0486fce
+--- /dev/null
++++ b/arch/arm/mach-omap2/opp3xxx_data.c
+@@ -0,0 +1,107 @@
++/*
++ * OMAP3 OPP table definitions.
++ *
++ * Copyright (C) 2009-2010 Texas Instruments Incorporated - http://www.ti.com/
++ *	Nishanth Menon
++ *	Kevin Hilman
++ * Copyright (C) 2010 Nokia Corporation.
++ *      Eduardo Valentin
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#include <linux/module.h>
++
++#include <plat/cpu.h>
++
++#include "omap_opp_data.h"
++
++static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
++	/* MPU OPP1 */
++	OPP_INITIALIZER("mpu", true, 125000000, 975000),
++	/* MPU OPP2 */
++	OPP_INITIALIZER("mpu", true, 250000000, 1075000),
++	/* MPU OPP3 */
++	OPP_INITIALIZER("mpu", true, 500000000, 1200000),
++	/* MPU OPP4 */
++	OPP_INITIALIZER("mpu", true, 550000000, 1270000),
++	/* MPU OPP5 */
++	OPP_INITIALIZER("mpu", true, 600000000, 1350000),
++
++	/*
++	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
++	 * almost the same than the one at 83MHz thus providing very little
++	 * gain for the power point of view. In term of energy it will even
++	 * increase the consumption due to the very negative performance
++	 * impact that frequency will do to the MPU and the whole system in
++	 * general.
++	 */
++	OPP_INITIALIZER("l3_main", false, 41500000, 975000),
++	/* L3 OPP2 */
++	OPP_INITIALIZER("l3_main", true, 83000000, 1050000),
++	/* L3 OPP3 */
++	OPP_INITIALIZER("l3_main", true, 166000000, 1150000),
++
++	/* DSP OPP1 */
++	OPP_INITIALIZER("iva", true, 90000000, 975000),
++	/* DSP OPP2 */
++	OPP_INITIALIZER("iva", true, 180000000, 1075000),
++	/* DSP OPP3 */
++	OPP_INITIALIZER("iva", true, 360000000, 1200000),
++	/* DSP OPP4 */
++	OPP_INITIALIZER("iva", true, 400000000, 1270000),
++	/* DSP OPP5 */
++	OPP_INITIALIZER("iva", true, 430000000, 1350000),
++};
++
++static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
++	/* MPU OPP1 - OPP50 */
++	OPP_INITIALIZER("mpu", true,  300000000, 1012500),
++	/* MPU OPP2 - OPP100 */
++	OPP_INITIALIZER("mpu", true,  600000000, 1200000),
++	/* MPU OPP3 - OPP-Turbo */
++	OPP_INITIALIZER("mpu", false, 800000000, 1325000),
++	/* MPU OPP4 - OPP-SB */
++	OPP_INITIALIZER("mpu", false, 1000000000, 1375000),
++
++	/* L3 OPP1 - OPP50 */
++	OPP_INITIALIZER("l3_main", true, 100000000, 1000000),
++	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
++	OPP_INITIALIZER("l3_main", true, 200000000, 1200000),
++
++	/* DSP OPP1 - OPP50 */
++	OPP_INITIALIZER("iva", true,  260000000, 1012500),
++	/* DSP OPP2 - OPP100 */
++	OPP_INITIALIZER("iva", true,  520000000, 1200000),
++	/* DSP OPP3 - OPP-Turbo */
++	OPP_INITIALIZER("iva", false, 660000000, 1325000),
++	/* DSP OPP4 - OPP-SB */
++	OPP_INITIALIZER("iva", false, 800000000, 1375000),
++};
++
++/**
++ * omap3_opp_init() - initialize omap3 opp table
++ */
++static int __init omap3_opp_init(void)
++{
++	int r = -ENODEV;
++
++	if (!cpu_is_omap34xx())
++		return r;
++
++	if (cpu_is_omap3630())
++		r = omap_init_opp_table(omap36xx_opp_def_list,
++			ARRAY_SIZE(omap36xx_opp_def_list));
++	else
++		r = omap_init_opp_table(omap34xx_opp_def_list,
++			ARRAY_SIZE(omap34xx_opp_def_list));
++
++	return r;
++}
++device_initcall(omap3_opp_init);
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 0d75bfd..2031f15 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -20,6 +20,15 @@ extern int omap3_can_sleep(void);
+ extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap3_idle_init(void);
  
- #include "powerdomain.h"
- 
--/**
-- * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
-- * @rate: target clock rate
-- * @opp_id: OPP ID
-- * @min_vdd: minimum VDD1 voltage (in millivolts) for this OPP
-- *
-- * Operating performance point data.  Can vary by OMAP chip and board.
-- */
--struct omap_opp {
--	unsigned long rate;
--	u8 opp_id;
--	u16 min_vdd;
--};
--
--extern struct omap_opp *mpu_opps;
--extern struct omap_opp *dsp_opps;
--extern struct omap_opp *l3_opps;
--
- /*
-  * agent_id values for use with omap_pm_set_min_bus_tput():
-  *
-@@ -59,9 +42,11 @@ extern struct omap_opp *l3_opps;
-  * framework starts.  The "_if_" is to avoid name collisions with the
-  * PM idle-loop code.
-  */
--int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
--				 struct omap_opp *dsp_opp_table,
--				 struct omap_opp *l3_opp_table);
-+#ifdef CONFIG_OMAP_PM_NONE
-+#define omap_pm_if_early_init() 0
++#if defined(CONFIG_PM_OPP)
++extern int omap3_opp_init(void);
 +#else
-+int __init omap_pm_if_early_init(void);
++static inline int omap3_opp_init(void)
++{
++	return -EINVAL;
++}
 +#endif
- 
- /**
-  * omap_pm_if_init - OMAP PM init code called after clock fw init
-@@ -69,7 +54,11 @@ int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
-  * The main initialization code.  OPP tables are passed in here.  The
-  * "_if_" is to avoid name collisions with the PM idle-loop code.
-  */
-+#ifdef CONFIG_OMAP_PM_NONE
-+#define omap_pm_if_init() 0
-+#else
- int __init omap_pm_if_init(void);
-+#endif
- 
- /**
-  * omap_pm_if_exit - OMAP PM exit code
-diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-index e129ce8..ca75abb 100644
---- a/arch/arm/plat-omap/omap-pm-noop.c
-+++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -26,10 +26,6 @@
- 
- #include <plat/powerdomain.h>
- 
--struct omap_opp *dsp_opps;
--struct omap_opp *mpu_opps;
--struct omap_opp *l3_opps;
--
- /*
-  * Device-driver-originated constraints (via board-*.c files)
-  */
-@@ -308,13 +304,8 @@ int omap_pm_get_dev_context_loss_count(struct device *dev)
- 
- 
- /* Should be called before clk framework init */
--int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
--				 struct omap_opp *dsp_opp_table,
--				 struct omap_opp *l3_opp_table)
-+int __init omap_pm_if_early_init(void)
- {
--	mpu_opps = mpu_opp_table;
--	dsp_opps = dsp_opp_table;
--	l3_opps = l3_opp_table;
- 	return 0;
- }
- 
++
+ struct cpuidle_params {
+ 	u8  valid;
+ 	u32 sleep_latency;
 -- 
 1.6.3.3
 
