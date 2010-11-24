@@ -1,474 +1,349 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCHv4 11/14] OMAP2+: dmtimer: convert to platform devices
-Date: Wed, 24 Nov 2010 13:00:50 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037343776B@dbde02.ent.ti.com>
-References: <1290220778-22244-1-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-2-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-3-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-4-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-5-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-6-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-7-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-8-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-9-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-10-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-11-git-send-email-tarun.kanti@ti.com>
- <1290220778-22244-12-git-send-email-tarun.kanti@ti.com>
- <4CEBFF16.8060908@ti.com>
+From: "Kamoolkar, Mugdha" <mugdha@ti.com>
+Subject: RE: [PATCH v2 1/4] drivers: hwspinlock: add generic framework
+Date: Wed, 24 Nov 2010 13:14:30 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59302479315FB@dbde02.ent.ti.com>
+References: <1290526740-27624-1-git-send-email-ohad@wizery.com>
+ <1290526740-27624-2-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59092 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750871Ab0KXHay convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Nov 2010 02:30:54 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id oAO7Upji000439
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 01:30:53 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id oAO7UoBk005175
-	for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 13:00:51 +0530 (IST)
-In-Reply-To: <4CEBFF16.8060908@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40893 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751104Ab0KXHpL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Nov 2010 02:45:11 -0500
+In-Reply-To: <1290526740-27624-2-git-send-email-ohad@wizery.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.inf
+Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Anna, Suman" <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
+
+Ohad,
 
 > -----Original Message-----
-> From: Cousson, Benoit
-> Sent: Tuesday, November 23, 2010 11:21 PM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org; Gopinath, Thara; Basak, Partha
-> Subject: Re: [PATCHv4 11/14] OMAP2+: dmtimer: convert to platform devices
-> 
-> On 11/20/2010 3:39 AM, Tarun Kanti DebBarma wrote:
-> > From: Thara Gopinath<thara@ti.com>
-> >
-> > Add routines to converts dmtimers to platform devices. The device data
-> > is obtained from hwmod database of respective platform and is registered
-> > to device model after successful binding to driver. It also provides
-> > provision to access timers during early boot when pm_runtime framework
-> > is not completely up and running.
-> >
-> > Signed-off-by: Thara Gopinath<thara@ti.com>
-> > Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
-> > [p-basak2@ti.com: pm_runtime logic]
-> > Signed-off-by: Partha Basak<p-basak2@ti.com>
-> > ---
-> >   arch/arm/mach-omap2/Makefile  |    2 +-
-> >   arch/arm/mach-omap2/dmtimer.c |  296
-> +++++++++++++++++++++++++++++++++++++++++
-> >   2 files changed, 297 insertions(+), 1 deletions(-)
-> >   create mode 100644 arch/arm/mach-omap2/dmtimer.c
-> >
-> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> > index ce7b1f0..148f4d7 100644
-> > --- a/arch/arm/mach-omap2/Makefile
-> > +++ b/arch/arm/mach-omap2/Makefile
-> > @@ -4,7 +4,7 @@
-> >
-> >   # Common support
-> >   obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-
-> gp.o pm.o \
-> > -	 common.o
-> > +	 common.o dmtimer.o
-> >
-> >   omap-2-3-common				= irq.o sdrc.o prm2xxx_3xxx.o
-> >   hwmod-common				= omap_hwmod.o \
-> > diff --git a/arch/arm/mach-omap2/dmtimer.c b/arch/arm/mach-
-> omap2/dmtimer.c
-> > new file mode 100644
-> > index 0000000..b5951b1
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/dmtimer.c
-> > @@ -0,0 +1,296 @@
-> > +/**
-> > + * OMAP2PLUS Dual-Mode Timers - platform device registration
-> > + *
-> > + * Contains first level initialization routines which extracts timers
-> > + * information from hwmod database and registers with linux device
-> model.
-> > + * It also has low level function to chnage the timer input clock
-> source.
-> 
-> typo.
-Will change.
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Ohad Ben-Cohen
+> Sent: Tuesday, November 23, 2010 9:09 PM
+> To: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org
+> Cc: akpm@linux-foundation.org; Greg KH; Tony Lindgren; Cousson, Benoit;
+> Grant Likely; Kanigeri, Hari; Anna, Suman; Kevin Hilman; Arnd Bergmann;
+> Ohad Ben-Cohen
+> Subject: [PATCH v2 1/4] drivers: hwspinlock: add generic framework
+>
+> Add a common, platform-independent, hwspinlock framework.
+>
+> Hardware spinlock devices are needed, e.g., in order to access data
+> that is shared between remote processors, that otherwise have no
+> alternative mechanism to accomplish synchronization and mutual exclusion
+> operations.
+>
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Cc: Hari Kanigeri <h-kanigeri2@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+>  Documentation/hwspinlock.txt         |  339 ++++++++++++++++++++
+>  drivers/Kconfig                      |    2 +
+>  drivers/Makefile                     |    1 +
+>  drivers/hwspinlock/Kconfig           |   13 +
+>  drivers/hwspinlock/Makefile          |    5 +
+>  drivers/hwspinlock/hwspinlock.h      |   61 ++++
+>  drivers/hwspinlock/hwspinlock_core.c |  561
+> ++++++++++++++++++++++++++++++++++
+>  include/linux/hwspinlock.h           |  376 +++++++++++++++++++++++
+>  8 files changed, 1358 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/hwspinlock.txt
+>  create mode 100644 drivers/hwspinlock/Kconfig
+>  create mode 100644 drivers/hwspinlock/Makefile
+>  create mode 100644 drivers/hwspinlock/hwspinlock.h
+>  create mode 100644 drivers/hwspinlock/hwspinlock_core.c
+>  create mode 100644 include/linux/hwspinlock.h
+>
+> diff --git a/Documentation/hwspinlock.txt b/Documentation/hwspinlock.txt
+> new file mode 100644
+> index 0000000..ccbf5de
+> --- /dev/null
+> +++ b/Documentation/hwspinlock.txt
+> @@ -0,0 +1,339 @@
+> +Common Hardware Spinlock Framework
+> +
+> +1. Introduction
+> +
+> +Hardware spinlock modules provide hardware assistance for synchronization
+> +and mutual exclusion between heterogeneous processors and those not
+> operating
+> +under a single, shared operating system.
+> +
+> +For example, OMAP4 has dual Cortex-A9, dual Cortex-M3 and a C64x+ DSP,
+> +each of which is running a different Operating System (the master, A9,
+> +is usually running Linux and the slave processors, the M3 and the DSP,
+> +are running some flavor of RTOS).
+> +
+> +A generic hwspinlock framework allows platform-independent drivers to use
+> +the hwspinlock device in order to access data structures that are shared
+> +between remote processors, that otherwise have no alternative mechanism
+> +to accomplish synchronization and mutual exclusion operations.
+> +
+> +This is necessary, for example, for Inter-processor communications:
+> +on OMAP4, cpu-intensive multimedia tasks are offloaded by the host to the
+> +remote M3 and/or C64x+ slave processors (by an IPC subsystem called
+> Syslink).
+> +
+> +To achieve fast message-based communications, a minimal kernel support
+> +is needed to deliver messages arriving from a remote processor to the
+> +appropriate user process.
+> +
+> +This communication is based on simple data structures that is shared
+> between
+> +the remote processors, and access to it is synchronized using the
+> hwspinlock
+> +module (remote processor directly places new messages in this shared data
+> +structure).
+> +
+> +A common hwspinlock interface makes it possible to have generic,
+> platform-
+> +independent, drivers.
+> +
+> +2. User API
+> +
+> +  struct hwspinlock *hwspinlock_request(void);
+> +   - dynamically assign an hwspinlock and return its address, or NULL
+> +     in case an unused hwspinlock isn't available. Users of this
+> +     API will usually want to communicate the lock's id to the remote core
+> +     before it can be used to achieve synchronization.
+> +     Can be called from an atomic context (this function will not sleep) but
+> +     not from within interrupt context.
+How do multiple clients get a handle that they can use? Are they expected to
+share the handle they get from the call above? What if they are independent
+clients with no means of communication between them? There may be a need of
+an API that returns the handle for a specific ID. For example, a module over
+the hwspinlock driver that does some level of management of IDs (e.g. name
+to ID mapping) and enables users to get multi-core as well as multi-client
+protection on Linux.
 
-> 
-> > + *
-> > + * Copyright (C) 2010 Texas Instruments Incorporated -
-> http://www.ti.com/
-> > + * Tarun Kanti DebBarma<tarun.kanti@ti.com>
-> > + *
-> > + * Copyright (C) 2010 Texas Instruments Incorporated
-> > + * Thara Gopinath<thara@ti.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> > + * kind, whether express or implied; without even the implied warranty
-> > + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> > + * GNU General Public License for more details.
-> > + */
-> > +#undef DEBUG
-> 
-> I guess, that undef should not be there?
-Will remove.
+For example:
+struct hwspinlock *hwspinlock_get_handle(unsigned int id);
 
-> 
-> > +
-> > +#include<linux/clk.h>
-> > +#include<linux/delay.h>
-> > +#include<linux/io.h>
-> > +#include<linux/err.h>
-> > +#include<linux/slab.h>
-> > +
-> > +#include<mach/irqs.h>
-> 
-> Do you still need that?
-It have been already removed. Thanks.
+> +
+> +  struct hwspinlock *hwspinlock_request_specific(unsigned int id);
+> +   - assign a specific hwspinlock id and return its address, or NULL
+> +     if that hwspinlock is already in use. Usually board code will
+> +     be calling this function in order to reserve specific hwspinlock
+> +     ids for predefined purposes.
+> +     Can be called from an atomic context (this function will not sleep) but
+> +     not from within interrupt context.
+> +
+> +  int hwspinlock_free(struct hwspinlock *hwlock);
+> +   - free a previously-assigned hwspinlock; returns 0 on success, or an
+> +     appropriate error code on failure (e.g. -EINVAL if the hwspinlock
+> +     is already free).
+> +     Can be called from an atomic context (this function will not sleep) but
+> +     not from within interrupt context.
+> +
+> +  int hwspin_lock(struct hwspinlock *hwlock);
+> +   - lock a previously assigned hwspinlock. If the hwspinlock is already
+> +     taken, the function will busy loop waiting for it to be released.
+> +     Note: if a faulty remote core never releases this lock, this function
+> +     will deadlock.
+> +     This function will fail only if hwlock is invalid. Otherwise, it will
+> +     always succeed (or deadlock; see above) and it will never sleep.
+> +     Upon a successful return from this function, preemption is disabled so
+> +     the caller must not sleep, and is advised to release the hwspinlock as
+> +     soon as possible, in order to minimize remote cores polling on the
+> +     hardware interconnect.
+Why are some of the APIs hwspinlock_ and others hwspin_?
 
-> 
-> > +#include<plat/dmtimer.h>
-> > +#include<plat/powerdomain.h>
-> 
-> Why do you need powerdomain in that file?
-This is also removed. After code optimization and cleanup this got missed.
+> +
+> +  int hwspin_lock_irq(struct hwspinlock *hwlock);
+> +   - lock a previously assigned hwspinlock. If the hwspinlock is already
+> +     taken, the function will busy loop waiting for it to be released.
+> +     Note: if a faulty remote core never releases this lock, this
+> function
+> +     will deadlock.
+> +     This function will fail only if hwlock is invalid. Otherwise, it will
+> +     always succeed (or deadlock; see above) and it will never sleep.
+> +     Upon a successful return from this function, preemption is disabled and
+> +     the local interrupts are disabled. The caller must not sleep, and is
+> +     advised to release the hwspinlock as soon as possible.
+> +
+> +  int hwspin_lock_irqsave(struct hwspinlock *hwlock, unsigned long *flags);
+> +   - lock a previously assigned hwspinlock. If the hwspinlock is already
+> +     taken, the function will busy loop waiting for it to be released.
+> +     Note: if a faulty remote core never releases this lock, this function
+> +     will deadlock.
+> +     This function will fail only if hwlock is invalid. Otherwise, it will
+> +     always succeed (or deadlock; see above) and it will never sleep.
+> +     Upon a successful return from this function, preemption is disabled,
+> +     the local interrupts are disabled, and their previous state is saved
+> +     in the given flags placeholder. The caller must not sleep, and is
+> +     advised to release the hwspinlock as soon as possible.
+> +
+> +  int hwspin_lock_timeout(struct hwspinlock *hwlock, unsigned long timeout);
+> +   - lock a previously-assigned hwspinlock with a timeout limit (specified in
+> +     jiffies). If the hwspinlock is already taken, the function will busy
+> loop
+> +     waiting for it to be released, but give up when the timeout meets
+> jiffies.
+> +     If timeout is 0, the function will never give up (therefore if a faulty
+> +     remote core never releases the hwspinlock, it will deadlock).
+If timeout is 0, shouldn't it rather behave as a trylock? If timeout is
+MAX_SCHEDULE_TIMEOUT, then it should behave as a wait-forever.
 
-> 
-> > +#include<plat/omap_hwmod.h>
-> > +#include<plat/omap_device.h>
-> > +#include<linux/pm_runtime.h>
-> > +
-> > +static int early_timer_count __initdata = 1;
-> > +
-> > +/**
-> > + * omap2_dm_timer_set_src - change the timer input clock source
-> > + * @pdev:	timer platform device pointer
-> > + * @timer_clk:	current clock source
-> > + * @source:	array index of parent clock source
-> > + */
-> > +static int omap2_dm_timer_set_src(struct platform_device *pdev, int
-> source)
-> > +{
-> > +	int ret;
-> > +	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
-> > +	struct clk *fclk = clk_get(&pdev->dev, "fck");
-> > +	struct clk *new_fclk;
-> > +	char *fclk_name = "32k_ck"; /* default name */
-> > +
-> > +	switch(source) {
-> > +	case OMAP_TIMER_SRC_SYS_CLK:
-> > +		fclk_name = "sys_ck";
-> > +		break;
-> > +
-> > +	case OMAP_TIMER_SRC_32_KHZ:
-> > +		fclk_name = "32k_ck";
-> > +		break;
-> > +
-> > +	case OMAP_TIMER_SRC_EXT_CLK:
-> > +		if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_1) {
-> > +			fclk_name = "alt_ck";
-> > +			break;
-> > +		}
-> > +		dev_dbg(&pdev->dev, "%s:%d: invalid clk src.\n",
-> > +			__func__, __LINE__);
-> > +		return -EINVAL;
-> > +	}
-> 
-> Do you really have to maintain the source enum? Cannot you just pass the
-> char* to this API?
-> It will avoid that code, and make that API much more flexible if we have
-> to add extra clock source in the future.
-> If the clock does not exist in a particular Soc, the clk_get will fail
-> and that's all you have to know.
-Right now the exported APIs use integer constants to identify different
-Sources. So this can not be changed without wider implications.
-Besides I have seen Paul Walmsley implementing in this way.
-So you can suggest and I am OK.
+> +     Upon a successful return from this function, preemption is disabled so
+> +     the caller must not sleep, and is advised to release the hwspinlock as
+> +     soon as possible, in order to minimize remote cores polling on the
+> +     hardware interconnect.
+> +     Returns 0 when successful and an appropriate error code otherwise (most
+> +     notably -ETIMEDOUT if the hwspinlock is still busy after timeout meets
+> +     jiffies). The function will never sleep.
+> +
+> +  int hwspin_lock_timeout_irq(struct hwspinlock *hwlock, unsigned long
+> timeout);
+> +   - lock a previously-assigned hwspinlock with a timeout limit (specified in
+> +     jiffies). If the hwspinlock is already taken, the function will busy
+> loop
+> +     waiting for it to be released, but give up when the timeout meets
+> jiffies.
+> +     If timeout is 0, the function will never give up (therefore if a faulty
+> +     remote core never releases the hwspinlock, it will deadlock).
+Same comment as above for 0 timeout.
 
-> 
-> > +
-> > +
-> > +	if (IS_ERR_OR_NULL(fclk)) {
-> > +		dev_dbg(&pdev->dev, "%s:%d: clk_get() FAILED\n",
-> > +			__func__, __LINE__);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	new_fclk = clk_get(&pdev->dev, fclk_name);
-> > +	if (IS_ERR_OR_NULL(new_fclk)) {
-> > +		dev_dbg(&pdev->dev, "%s:%d: clk_get() %s FAILED\n",
-> > +			__func__, __LINE__, fclk_name);
-> > +		clk_put(fclk);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	ret = clk_set_parent(fclk, new_fclk);
-> > +	if (IS_ERR_VALUE(ret)) {
-> > +		dev_dbg(&pdev->dev, "%s:clk_set_parent() to %s FAILED\n",
-> > +			__func__, fclk_name);
-> > +		ret = -EINVAL;
-> > +	}
-> > +
-> > +	clk_put(new_fclk);
-> > +	clk_put(fclk);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +struct omap_device_pm_latency omap2_dmtimer_latency[] = {
-> > +	{
-> > +		.deactivate_func = omap_device_idle_hwmods,
-> > +		.activate_func   = omap_device_enable_hwmods,
-> > +		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-> > +	},
-> > +};
-> > +
-> > +/**
-> > + * omap_dm_timer_early_init - build and register early timer device
-> > + * with an associated timer hwmod
-> > + * @oh: timer hwmod pointer to be used to build timer device
-> > + * @user: parameter that can be passed from calling hwmod API
-> > + *
-> > + * early init is called in the last part of omap2_init_common_hw
-> > + * for each early timer class using omap_hwmod_for_each_by_class.
-> > + * it registers each of the timer devices present in the system.
-> 
-> typo: It
-> 
-> > + * at the end of function call memory is allocated for omap_device
-> 
-> Typo: At... There are tons of typo like that in your patches, so I'm not
-> going to highlight them all. You should do a check of the whole series.
-Yes, I will make the correction.
+> +     Upon a successful return from this function, preemption and the local
+> +     interrupts are disabled, so the caller must not sleep, and is advised to
+> +     release the hwspinlock as soon as possible.
+> +     Returns 0 when successful and an appropriate error code otherwise (most
+> +     notably -ETIMEDOUT if the hwspinlock is still busy after timeout meets
+> +     jiffies). The function will never sleep.
+> +
+> +  int hwspin_lock_timeout_irqsave(struct hwspinlock *hwlock, unsigned long
+> to,
+> +                                                     unsigned long *flags);
+> +   - lock a previously-assigned hwspinlock with a timeout limit (specified in
+> +     jiffies). If the hwspinlock is already taken, the function will busy
+> loop
+> +     waiting for it to be released, but give up when the timeout meets
+> jiffies.
+> +     If timeout is 0, the function will never give up (therefore if a faulty
+> +     remote core never releases the hwspinlock, it will deadlock).
+Same comment as above for 0 timeout.
 
-> 
-> > + * and hwmod for early timer and the device is registered to the
-> > + * framework ready to be probed by the driver.
-> > + */
-> > +static int __init omap2_timer_early_init(struct omap_hwmod *oh, void
-> *user)
-> > +{
-> > +	int id;
-> > +	int ret = 0;
-> > +	char *name = "omap-timer";
-> 
-> Please use "omap_timer" instead in order to be consistent with other
-> omap devices.
-Yes, I have already made the change.
+> +     Upon a successful return from this function, preemption is disabled,
+> +     local interrupts are disabled and their previous state is saved at the
+> +     given flags placeholder. The caller must not sleep, and is advised to
+> +     release the hwspinlock as soon as possible.
+> +     Returns 0 when successful and an appropriate error code otherwise (most
+> +     notably -ETIMEDOUT if the hwspinlock is still busy after timeout meets
+> +     jiffies). The function will never sleep.
+> +
+> +  int hwspin_trylock(struct hwspinlock *hwlock);
+> +   - attempt to lock a previously-assigned hwspinlock, but immediately fail
+> if
+> +     it is already taken.
+> +     Upon a successful return from this function, preemption is disabled so
+> +     caller must not sleep, and is advised to release the hwspinlock as soon
+> as
+> +     possible, in order to minimize remote cores polling on the hardware
+> +     interconnect.
+> +     Returns 0 on success and an appropriate error code otherwise (most
+> +     notably -EBUSY if the hwspinlock was already taken).
+> +     The function will never sleep.
+Is this function needed at all if timeout 0 behaves similar to trylock?
 
-> 
-> > +	struct dmtimer_platform_data *pdata;
-> > +	struct omap_device *od;
-> > +
-> > +	pr_debug("%s:%s\n", __func__, oh->name);
-> > +
-> > +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-> > +	if (!pdata) {
-> > +		pr_err("%s: No memory for [%s]\n", __func__, oh->name);
-> > +		return -ENOMEM;
-> > +	}
-> > +
-> > +	pdata->is_early_init = 1;
-> > +
-> > +	/* hook clock set/get functions */
-> > +	pdata->set_timer_src = omap2_dm_timer_set_src;
-> > +
-> > +	/* read timer ip version */
-> > +	pdata->timer_ip_type = oh->class->rev;
-> > +	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
-> > +		pdata->func_offst = 0x14;
-> > +		pdata->intr_offst = 0x10;
-> 
-> You should use the defines here instead of the hard coded values.
-> XXX_TIOCP_CFG, XXX_IRQSTATUS_RAW - XXX_TIOCP_CFG...
-Ok.
+> +
+> +  int hwspin_trylock_irq(struct hwspinlock *hwlock);
+> +   - attempt to lock a previously-assigned hwspinlock, but immediately fail
+> if
+> +     it is already taken.
+> +     Upon a successful return from this function, preemption and the local
+> +     interrupts are disabled so caller must not sleep, and is advised to
+> +     release the hwspinlock as soon as possible.
+> +     Returns 0 on success and an appropriate error code otherwise (most
+> +     notably -EBUSY if the hwspinlock was already taken).
+> +     The function will never sleep.
+Same comment as above for trylock.
 
-> 
-> > +	} else {
-> > +		pdata->func_offst = 0;
-> > +		pdata->intr_offst = 0;
-> > +	}
-> > +
-> > +	/*
-> > +	 * extract the id from name filed in hwmod database
-> > +	 * and use the same for constructing ids' for the
-> > +	 * timer devices. in a way, we are avoiding usage of
-> > +	 * static variable witin the function to do the same.
-> > +	 * CAUTION: we have to be careful and make sure the
-> > +	 * name in hwmod database does not change in which case
-> > +	 * we might either make corresponding change here or
-> > +	 * switch back static variable mechanism.
-> > +	 */
-> > +	sscanf(oh->name, "timer%2d",&id);
-> > +
-> > +	od = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
-> > +			omap2_dmtimer_latency,
-> > +			ARRAY_SIZE(omap2_dmtimer_latency), 1);
-> > +
-> > +	if (IS_ERR(od)) {
-> > +		pr_err("%s: Cant build omap_device for %s:%s.\n",
-> > +			__func__, name, oh->name);
-> > +		ret = -EINVAL;
-> > +	} else
-> > +		early_timer_count++;
-> 
-> Blank line here.
-Ok.
-> 
-> > +	/*
-> > +	 * pdata can be freed because omap_device_build
-> > +	 * creates its own memory pool
-> > +	 */
-> > +	kfree(pdata);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +/**
-> > + * omap2_dm_timer_init - build and register timer device with an
-> > + * associated timer hwmod
-> > + * @oh:	timer hwmod pointer to be used to build timer device
-> > + * @user:	parameter that can be passed from calling hwmod API
-> > + *
-> > + * called by omap_hwmod_for_each_by_class to register each of the timer
-> > + * devices present in the system. the number of timer devices is known
-> > + * by parsing through the hwmod database for a given class name. at the
-> > + * end of function call memory is allocated for omap_device and hwmod
-> > + * for timer and the device is registered to the framework ready to be
-> > + * proved by the driver.
-> > + */
-> > +static int __init omap2_timer_init(struct omap_hwmod *oh, void *user)
-> > +{
-> > +	int id;
-> > +	int ret = 0;
-> > +	char *name = "omap-timer";
-> > +	struct omap_device *od;
-> > +	struct dmtimer_platform_data *pdata;
-> > +
-> > +	if (!oh) {
-> > +		pr_err("%s:NULL hwmod pointer (oh)\n", __func__);
-> > +		return -EINVAL;
-> > +	}
-> > +	pr_debug("%s:%s\n", __func__, oh->name);
-> > +
-> > +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-> > +	if (!pdata) {
-> > +		pr_err("%s:No memory for [%s]\n",  __func__, oh->name);
-> > +		return -ENOMEM;
-> > +	}
-> > +
-> > +	pdata->is_early_init = 0;
-> > +
-> > +	/* hook clock set/get functions */
-> > +	pdata->set_timer_src = omap2_dm_timer_set_src;
-> > +
-> > +	/* read timer ip version */
-> > +	pdata->timer_ip_type = oh->class->rev;
-> > +	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
-> > +		pdata->func_offst = 0x14;
-> > +		pdata->intr_offst = 0x10;
-> > +	} else {
-> > +		pdata->func_offst = 0;
-> > +		pdata->intr_offst = 0;
-> > +        }
-> > +
-> > +	/*
-> > +	 * extract the id from name filed in hwmod database
-> > +	 * and use the same for constructing ids' for the
-> > +	 * timer devices. in a way, we are avoiding usage of
-> > +	 * static variable witin the function to do the same.
-> 
-> typo: within
-Ok.
+> +
+> +  int hwspin_trylock_irqsave(struct hwspinlock *hwlock, unsigned long
+> *flags);
+> +   - attempt to lock a previously-assigned hwspinlock, but immediately fail
+> if
+> +     it is already taken.
+> +     Upon a successful return from this function, preemption is disabled,
+> +     the local interrupts are disabled and their previous state is saved
+> +     at the given flags placeholder. The caller must not sleep, and is
+> advised
+> +     to release the hwspinlock as soon as possible.
+> +     Returns 0 on success and an appropriate error code otherwise (most
+> +     notably -EBUSY if the hwspinlock was already taken).
+> +     The function will never sleep.
+Same comment as above for trylock.
 
-> 
-> > +	 * CAUTION: we have to be careful and make sure the
-> > +	 * name in hwmod database does not change in which case
-> > +	 * we might either make corresponding change here or
-> > +	 * switch back static variable mechanism.
-> > +	 */
-> > +	sscanf(oh->name, "timer%2d",&id);
-> > +
-> > +	od = omap_device_build(name, id, oh,
-> > +			pdata, sizeof(*pdata),
-> > +			omap2_dmtimer_latency,
-> > +			ARRAY_SIZE(omap2_dmtimer_latency), 0);
-> > +
-> > +	if (IS_ERR(od)) {
-> > +		pr_err("%s: Cant build omap_device for %s:%s.\n",
-> 
-> typo: can't
-Ok.
+<snip>
 
-> 
-> > +			__func__, name, oh->name);
-> > +		ret =  -EINVAL;
-> > +	}
-> 
-> Blank line here.
-Ok.
-> 
-> > +	/*
-> > +	 * pdata can be freed because omap_device_build
-> > +	 * creates its own memory pool
-> > +	 */
-> > +	kfree(pdata);
-> > +	return ret;
-> > +}
-> 
-> That function is a pure duplication of the omap2_timer_early_init one.
-> You can probably use the "user" extra parameters to handle the small
-> differences between them (is_early_init).
-Sounds good! I will try.
+> +
+> +4. API for implementors
+> +
+> +  int hwspinlock_register(struct hwspinlock *hwlock);
+> +   - to be called from the underlying platform-specific implementation, in
+> +     order to register a new hwspinlock instance. Can be called from an
+> atomic
+> +     context (this function will not sleep) but not from within interrupt
+> +     context. Returns 0 on success, or appropriate error code on failure.
+> +
+> +  struct hwspinlock *hwspinlock_unregister(unsigned int id);
+> +   - to be called from the underlying vendor-specific implementation, in
+> order
+> +     to unregister an existing (and unused) hwspinlock instance.
+> +     Can be called from an atomic context (will not sleep) but not from
+> +     within interrupt context.
+> +     Returns the address of hwspinlock on success, or NULL on error (e.g.
+> +     if the hwspinlock is sill in use).
+Does this need to be called for all hwspinlocks? For example, if there are
+64 hwspinlocks on a device, do these APIs need to be called 64 times? Is there
+any other way to directly register all 64 hwspinlocks in a single shot?
 
-> 
-> > +
-> > +/**
-> > + * omap2_dm_timer_early_init - top level early timer initialization
-> > + * called in the last part of omap2_init_common_hw
-> > + *
-> > + * uses dedicated hwmod api to parse through hwmod database for
-> > + * given class name and then build and register the timer device.
-> > + * at the end driver is registered and early probe initiated.
-> > + */
-> > +void __init omap2_dm_timer_early_init(void)
-> > +{
-> > +	if (omap_hwmod_for_each_by_class("timer",
-> > +		omap2_timer_early_init, NULL)) {
-> 
-> For better readability, you'd better not call that function directly in
-> the if statement.
-Ok.
+<snip>
 
-> 
-> > +		pr_debug("%s: device registration FAILED\n", __func__);
-> > +		return;
-> > +	}
-> 
-> Blank line here.
-Ok.
-> 
-> > +	early_platform_driver_register_all("earlytimer");
-> > +	early_platform_driver_probe("earlytimer", early_timer_count, 0);
-> > +}
-> > +
-> > +/**
-> > + * omap_timer_init - top level timer device initialization
-> > + *
-> > + * uses dedicated hwmod api to parse through hwmod database for
-> > + * given class names and then build and register the timer device.
-> > + */
-> > +static int __init omap2_dmtimer_device_init(void)
-> 
-> Most of the functions here are using _dm_timer_. You should align this
-> name too.
-Ok, thanks.
---
-Tarun
+> +int __hwspin_lock_timeout(struct hwspinlock *hwlock, unsigned long to,
+> +                                     int mode, unsigned long *flags)
+> +{
+> +     int ret;
+> +
+> +     for (;;) {
+> +             /* Try to take the hwspinlock */
+> +             ret = __hwspin_trylock(hwlock, mode, flags);
+> +             if (ret != -EBUSY)
+> +                     break;
+> +
+> +             /*
+> +              * The lock is already taken, let's check if the user wants
+> +              * us to try again
+> +              */
+> +             if (to && time_is_before_eq_jiffies(to))
+> +                     return -ETIMEDOUT;
+> +
+> +             /*
+> +              * Allow platform-specific relax handlers to prevent
+> +              * hogging the interconnect (no sleeping, though)
+> +              */
+> +             if (hwlock->ops->relax)
+> +                     hwlock->ops->relax(hwlock);
+There should be a way to have an escape mechanism for the case where a deadlock
+has occurred due to remote side taking the spinlock and crashing.
+Is it possible to have a max loop or time check here and then exit with error
+if that max is reached, because there was an expected condition? Hanging the
+kernel because of a remote crash causes problems in implementing slave error
+handling.
+
+> +     }
+> +
+> +     return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(__hwspin_lock_timeout);
+
+<snip>
+
