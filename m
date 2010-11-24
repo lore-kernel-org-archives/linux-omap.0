@@ -1,78 +1,160 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH v4 5/5] OMAP: mailbox: add notification support for
- multiple readers
-Date: Wed, 24 Nov 2010 10:59:54 +0530
-Message-ID: <AANLkTi=tzuzOMa6kPp-a6+yn6xMLGtdVSvAxPFP5RU5q@mail.gmail.com>
-References: <1290547617-16640-1-git-send-email-h-kanigeri2@ti.com> <1290547617-16640-6-git-send-email-h-kanigeri2@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 00/13] OMAP3: OFF mode fixes
+Date: Wed, 24 Nov 2010 11:04:09 +0530
+Message-ID: <efb598510f2d2522872f58145c03910d@mail.gmail.com>
+References: <1290131698-6194-1-git-send-email-nm@ti.com><87r5edp3so.fsf@deeprootsystems.com><8ef3de873d51409a38f19becb0d339cb@mail.gmail.com>
+ <87pqtveq1e.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:37465 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750710Ab0KXFaf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Nov 2010 00:30:35 -0500
-Received: by iwn1 with SMTP id 1so11826218iwn.37
-        for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 21:30:35 -0800 (PST)
-In-Reply-To: <1290547617-16640-6-git-send-email-h-kanigeri2@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:45813 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750817Ab0KXFeM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Nov 2010 00:34:12 -0500
+Received: by mail-qy0-f179.google.com with SMTP id 11so2324033qyk.10
+        for <linux-omap@vger.kernel.org>; Tue, 23 Nov 2010 21:34:11 -0800 (PST)
+In-Reply-To: <87pqtveq1e.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hari Kanigeri <h-kanigeri2@ti.com>
-Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Jean Pihet <jean.pihet@newoldbits.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Tony <tony@atomide.com>
 
-On Wed, Nov 24, 2010 at 02:56, Hari Kanigeri <h-kanigeri2@ti.com> wrote=
-:
-> In the current mailbox driver, the mailbox internal pointer for
-> callback can be directly manipulated by the Users, so a second
-> User can easily corrupt the first user's callback pointer.
-> The initial effort to correct this issue can be referred here:
-> https://patchwork.kernel.org/patch/107520/
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Wednesday, November 24, 2010 2:06 AM
+> To: Santosh Shilimkar
+> Cc: Nishanth Menon; linux-omap; Jean Pihet; Vishwanath Sripathy; Tony
+> Subject: Re: [PATCH 00/13] OMAP3: OFF mode fixes
 >
-> Along with fixing the above stated issue, this patch =A0adds the
-> flexibility option to register notifications from
-> multiple readers to the events received on a mailbox instance.
-> The discussion regarding this can be referred here.
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30671.html
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 >
-> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> ---
-> =A0arch/arm/plat-omap/include/plat/mailbox.h | =A0 =A07 +-
-> =A0arch/arm/plat-omap/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0104 +=
-+++++++++++++++-------------
-> =A02 files changed, 62 insertions(+), 49 deletions(-)
+> >> -----Original Message-----
+> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> >> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> >> Sent: Tuesday, November 23, 2010 12:46 AM
+> >> To: Nishanth Menon
+> >> Cc: linux-omap; Jean Pihet; Vishwanath Sripathy; Tony
+> >> Subject: Re: [PATCH 00/13] OMAP3: OFF mode fixes
+> >>
+> >> Nishanth Menon <nm@ti.com> writes:
+> >>
+> >> > Bunch of fixes as part of phase 1 targetting mainly OMAP3630 HS
+> > devices
+> >> > for OFF mode logic.
+> >> >
+> >> > It is important to note - for proper functionality of HS OFF mode
+on
+> >> OMAP3630,
+> >> >    CONFIG_OMAP3_L2_AUX_SECURE_SAVE_RESTORE=y and
+> >> >    CONFIG_OMAP3_L2_AUX_SECURE_SERVICE_SET_ID should be set to the
+> >> correct
+> >> >    service that the security PPA supports on the platform.
+> >> >
+> >> > Based on kernel.org 2.6.37-rc2 tag
+> >> >
+> >> > Smoke tested on:
+> >> > SDP3630 -GP
+> >> > Zoom3 (3630): GP & EMU (Es1.1, ES1.2)
+> >> > SDP3430 - GP & EMU (ES3.1)
+> >> >
+> >> > These are fixes for corner case bugs seen, so tests of off and ret
+> > done
+> >> with
+> >> > wakeup timer - behavior between 2.6.37-rc2 before and after
+applying
+> >> patch
+> >> > seen consistent.
+> >> >
+> >> > Request for testing this series for comparison between master and
+> this
+> >> > series requested for additional platforms where available.
+> >>
+> >> After some more thought and review, here's what I think should be the
+> >> approach moving this forward:
+> >>
+> >> This can be broken up into 3 independent series as follows:
+> >>
+> >> 1) fix for UART erratum (patch 10)
+> >> 2) fixes for idle path errata (patches 1, 2, 11, 12, 13)
+> >> 3) secure ram save path (the rest)
+> >>
+> >> For (3), I'd like to see the secure ram management moved out of the
+PM
+> >> core, and into it's own library/driver.  Strictly speaking, context
+> >> save/restore for secure ram is not a function of the PM idle core.
+As
+> >> with every other device, context save/restore is the responsibility
+of
+> >> the driver(s) using that device.
+> >>
+> >> For secure RAM, the restore is handled by ROM code, but the save
+should
+> >> be managed by the secure driver(s).  IOW, any secure driver should be
+> >> using runtime PM and when the secure driver is no longer in use, it
+> >> should ensure secure RAM context is saved using its runtime_suspend
+> >> method to save secure RAM.  The code in this series should be moved
+out
+> >> into a library/driver which can be called by secure drivers in their
+> >> runtime PM hooks.
+> >>
+> > I agree with you Kevin here except one point. The secure RAM contents
+> > are not just secure driver data but the ROM code infrastructure as
+well.
+> > And we should treat ROM code as a hardware. Secure services
+> > don't give  you garrulity of saving per each secure module. To
+> > get CPU OFF working on secure device, secure RAM must be saved.
+> > So I still think it is CPU specific code and pretty much relevant
+> > to CPU IDLE OFF state considering ROM code.
+> > Ofcourse this not related to GP device because we never enter Secure
+> > world again after the boot-up.
+> > So moving this code to a separate file is fine but it still related
+> > to CPU.
 >
+> Sure, it's still *related* to the CPU, but what I am arguing is that it
+> should not be related to CPU *idle*.
+>
+> My undersanding is this (please correct me):
+>
+> Secure RAM context only needs to be saved/updated when something in it
+> changes changes (e.g. secure driver usage.)  Therefore, any
+> driver/device usage that has a side effect of changing secure RAM should
+> be responsible for updating secure RAM.
+>
+This assumption holds true largely but not completely. There are more
+Secure APIs which are outside of any secure driver usage which can also
+alter the state of secure RAM. OMAP4, we have more APIs apart from secure
+RAM where the secure HW registers, firewalls, cache controllers, interrupt
+controllers are managed using secure APIs. All of this is must for correct
+CPU OFF functioning.
 
-<<snip>>
-
-> @@ -363,10 +372,13 @@ int omap_mbox_register(struct device *parent, s=
-truct omap_mbox **list)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D PTR_ERR(mbox->=
-dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_out;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> +
-
-Do this change in the patch where the below code was added.
-
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (cpu_is_omap44xx())
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mbox->rev =3D OMAP_MBO=
-X_IP_VERSION_2;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mbox->rev =3D OMAP_MBO=
-X_IP_LEGACY;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 BLOCKING_INIT_NOTIFIER_HEAD(&mbox->noti=
-fier);
-> =A0 =A0 =A0 =A0}
-> =A0 =A0 =A0 =A0return 0;
+> The approach taken in $SUBJECT series is basically: since we don't know
+> who is using/changing secure RAM, we better save it (or have the option
+> to) during every off-mode transition.  This approach is what I do not
+> like.  It's pushing work (and intellegence) that should be in the
+> drivers into the PM core where it does not belong.
 >
-> --
-> 1.7.0
+The problem is because the secure RAM is not portioned per device basis
+but managed as a whole. If we had per secure device portioning then the
+respective device drivers saving it's context would have worked perfectly.
+And the fact is it's not the secure device driver context, but it's a
+Secure software context which runs in parallel with HLOS on HS devices.
+
+> Rather, I want to follow the same approach we follow for every other
+> device driver.  Drivers must assume they can lose context.  Therefore
+> it's up to them to save it.
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> IOW, the drivers that *change* secure RAM should be responsible for
+> ensuring that any of the changes they make are saved.
+>
+As I mentioned above its not just the driver context but the whole
+secure software context. I will check with ROM team if it can be made
+more granular for future OMAPs so that we can have the usual strategy
+of respective components taking care of there save/restore. This will
+also save huge latency we incure while saving whole RAM on every MPU
+OFF transition.
+
+
+Regards,
+Santosh
