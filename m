@@ -1,51 +1,57 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC/PATCH v6 03/12] media: Entities, pads and links
-Date: Thu, 25 Nov 2010 13:36:50 +0000
-Message-ID: <20101125133650.GA24208@opensource.wolfsonmicro.com>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1290652099-15102-4-git-send-email-laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1290652099-15102-4-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, lennart@poettering.net
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCH] OMAP PM: Optimize cpufreq transition latency
+Date: Thu, 25 Nov 2010 19:08:11 +0530
+Message-ID: <1290692291-25073-1-git-send-email-vishwanath.bs@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57107 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752092Ab0KYNjK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Nov 2010 08:39:10 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linaro-dev@lists.linaro.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-On Thu, Nov 25, 2010 at 03:28:10AM +0100, Laurent Pinchart wrote:
+Currently cpufreq transition latency value does not really reflect the actual
+OMAP OPP transition delay. This patch has the actual latency value.
+I did profile the DVFS latency on OMAP3430, OMAP3630 and OMAP4 for worstcase(MPU and Core together) and found that in none of these platforms, transiton value 
+goes beyong 10ms. Added a buffer of 20ms to avoid too frequent ondemand timer 
+expiry.
+With this change, performance of ondemand governor is improved when tested
+using cpufreqbench tool. Without this patch, cpufreq-bench reported ondemand
+performance as 40% of performance governor, and with this patch it's around 70%
+(using below procedure).
 
-> +Links have flags that describe the link capabilities and state.
+cpufreq-bench: 
+http://lwn.net/Articles/339862/
+http://ftp.riken.go.jp/archives/Linux/suse/people/ckornacker/cpufreq-bench/
 
-> +	MEDIA_LINK_FLAG_ACTIVE indicates that the link is active and can be
-> +	used to transfer media data. When two or more links target a sink pad,
-> +	only one of them can be active at a time.
+Command used for performance testing:
+cpufreq-bench -l 50000 -s 100000 -x 50000 -y 100000 -g ondemand -r 5 -n 5 -v
 
-Is this supposed to reflect the current state (if the link is carrying
-data right now) or if it's possible for the link to carry data?
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+---
+ arch/arm/plat-omap/cpu-omap.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 arch/arm/plat-omap/cpu-omap.c
 
-> +struct media_entity {
-> +	struct list_head list;
-> +	struct media_device *parent;	/* Media device this entity belongs to*/
-> +	u32 id;				/* Entity ID, unique in the parent media
-> +					 * device context */
-> +	const char *name;		/* Entity name */
-> +	u32 type;			/* Entity type (MEDIA_ENTITY_TYPE_*) */
-> +	u32 revision;			/* Entity revision, driver specific */
-> +	unsigned long flags;		/* Entity flags (MEDIA_ENTITY_FLAG_*) */
-> +	u32 group_id;			/* Entity group ID */
-> +
-> +	u16 num_pads;			/* Number of input and output pads */
-> +	u16 num_links;			/* Number of existing links, both active
-> +					 * and inactive */
-> +	u16 num_backlinks;		/* Number of backlinks */
-> +	u16 max_links;			/* Maximum number of links */
-> +
-> +	struct media_pad *pads;		/* Pads array (num_pads elements) */
-> +	struct media_link *links;	/* Links array (max_links elements)*/
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+old mode 100644
+new mode 100755
+index c47faf8..d3fc423
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -158,8 +158,8 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
+ 	policy->max = policy->cpuinfo.max_freq;
+ 	policy->cur = omap_getspeed(0);
+ 
+-	/* FIXME: what's the actual transition time? */
+-	policy->cpuinfo.transition_latency = 300 * 1000;
++	/* Program the actual transition time for worstcase */
++	policy->cpuinfo.transition_latency = 30 * 1000;
+ 
+ 	return 0;
+ }
+-- 
+1.7.0.4
 
-Hrm.  This is getting kind of large, especially considering the volume
-of data we're holding per node and link already in ASoC.  On the other
-hand we may over time be able to refactor some of the existing stuff
-(especially the link management) to use this structure.
