@@ -1,60 +1,23 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH v5 1/1] OMAP2: Spi: Force CS to be in inactive state after off-mode transition
-Date: Wed, 24 Nov 2010 19:55:25 -0800 (PST)
-Message-ID: <249691.92718.qm@web180302.mail.gq1.yahoo.com>
-References: <87y68i447o.fsf@deeprootsystems.com>
+Subject: Re: [PATCH v2 1/4] drivers: hwspinlock: add generic framework
+Date: Wed, 24 Nov 2010 19:59:37 -0800 (PST)
+Message-ID: <536589.12568.qm@web180310.mail.gq1.yahoo.com>
+References: <AANLkTi=JSuJCqceJ3iw3TnV5OeJd+e5T3CyHtWVzBRu_@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm10.bullet.mail.sp2.yahoo.com ([98.139.91.80]:42969 "HELO
-	nm10.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751396Ab0KYDz1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Nov 2010 22:55:27 -0500
-In-Reply-To: <87y68i447o.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTi=JSuJCqceJ3iw3TnV5OeJd+e5T3CyHtWVzBRu_@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: MugdhaKamoolkar <mugdha@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, BenoitCousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, HariKanigeri <h-kanigeri2@ti.com>, SumanAnna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
-To: Gregory CLEMENT <gregory.clement@free-electrons.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap <linux-omap@vger.kernel.org>
 
+My rule of thumb is that nothing is "generic"
+until at least three whatever-it-is instances
+plug in to it.  Sometimes this is called
+the "Rule of Three".
 
+Other than OMAP, what's providing hardware
+spinlocks that plug into this framework?
 
---- On Wed, 11/24/10, Kevin Hilman <khilman@deeprootsystems.com> wrote:
-
->  I'm not SPI-aware enough to ack
-> this patch or
-> test it thoroughly.
-
-Heh, my excuse is usually "not enough time"
-or sometimes "no test setup" ... ;)
-
-In this case I can at least ack the fix in
-principle.  CS active means an active trransfer,
-which must not happen during OFF  or other
-suspend states.
-
-
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
-
-
-
-> Also, in the last patch I suggested you do more of a
-> save/restore of
-> this value instead of a restore to a hard-coded
-> value.=A0 IOW, save the
-> value in the suspend method, restore it in resume.
-
-
-More correct to restart
-message queue processing
-after resume, if it's non-empty, and to have
-cleanly stopped it (between messages) before
-entering suspend states like OFF.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Dave
