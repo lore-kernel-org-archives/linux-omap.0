@@ -1,221 +1,317 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH v8 00/11] OMAP: GPIO: Implement GPIO as platform device
-Date: Thu, 25 Nov 2010 18:18:27 +0530
-Message-ID: <1290689318-10191-1-git-send-email-charu@ti.com>
+Subject: [PATCH v8 01/11] OMAP: GPIO: prepare for platform driver
+Date: Thu, 25 Nov 2010 18:18:28 +0530
+Message-ID: <1290689318-10191-2-git-send-email-charu@ti.com>
+References: <1290689318-10191-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36993 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36992 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753267Ab0KYMtD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Nov 2010 07:49:03 -0500
+	id S1753266Ab0KYMtC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Nov 2010 07:49:02 -0500
+In-Reply-To: <1290689318-10191-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, p-basak2@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
 
-Implement OMAP GPIO module in platform device model. OMAP2+ specific GPIO
-module uses hwmod FW.
+Prepare for implementing GPIO as a platform driver.
 
-Tested on OMAP2430, OMAP4430, OMAP3430 SDP boards, OMAP4430 Blaze board
-and zoom3 board. Verified that this patch series does not break the OMAP1
-build.
+Modifies omap_gpio_init() to make use of omap_gpio_chip_init()
+and omap_gpio_mod_init(). omap_gpio_mod_init() does the module init
+by clearing the status register and initializing the GPIO control register.
+omap_gpio_chip_init() initializes the chip request, free, get, set and
+other function pointers and sets the gpio irq handler.
 
-This patch series are created on top of origin/pm-core. see [1] for why
-this series is rebased on origin/pm-core.
-[1] http://www.spinics.net/lists/linux-omap/msg40691.html
+This is only to reorganize the code so that the "omap gpio platform driver
+implementation patch" looks cleaner and better to review.
 
-Version History:
----------------
-v8 Series:
--Rebase on top of pm-core as per Kevin's suggestion
- (only patch 11 (board file changes) required rebasing)
--Include Acked-by Benoit in hwmod related patches
--Remove omap24xx.h and omap34xx.h includes from hwmod db of
- OMAP2420, 2430 and OMAP3
--Remove irq name from hwmod database
+Signed-off-by: Charulatha V <charu@ti.com>
+---
+ arch/arm/plat-omap/gpio.c |  234 +++++++++++++++++++++++----------------------
+ 1 files changed, 118 insertions(+), 116 deletions(-)
 
-v7 Series:
-Some links for v7 series:
-http://www.spinics.net/lists/linux-omap/msg40691.html
-https://patchwork.kernel.org/patch/349631/
-https://patchwork.kernel.org/patch/349681/
-https://patchwork.kernel.org/patch/349651/
-https://patchwork.kernel.org/patch/349671/
-https://patchwork.kernel.org/patch/349691/
-
-Comments Fixed in v7:
-- Use gpio iclks as main_clk in OMAP3 & OMAP4
-- Implement GPIO as a platform device (use hwmod FW for OMAP2+)
- and the implementation is similar to current GPIO code. Does not
- modify the gpio suspend/ resume/ prepare for odle and resume after
- idle code and these modifications would be done in a separate patch
- series. This was suggested by Kevin in another internal email thread.
-
-v6 Series:
-Some links for v6 series:
-https://patchwork.kernel.org/patch/189742/
-https://patchwork.kernel.org/patch/189822/
-https://patchwork.kernel.org/patch/189832/
-Comments Fixed in v6:
--use PM runtime APIs for gpio in cpu idle/resume after
- idle path when interrupts are enabled.
--Do not use omap_device_* calls in the gpio driver
--Use clock alias names for debounce clocks while using clock
- framework APIs to do clk_get.
--do a kfree of pdata after doing omap_device_build()
--use PM runtime APIs during probe before and after accessing
- gpio registers
--Remove sysconfig register access from GPIO driver
--Use ARRAY_SIZE instead on size_of in OMAP1 gpio_init
-
-v5 Series:
-Some links for v5 series:
-https://patchwork.kernel.org/patch/117790/
-https://patchwork.kernel.org/patch/117789/
-https://patchwork.kernel.org/patch/117788/
-https://patchwork.kernel.org/patch/117785/
-https://patchwork.kernel.org/patch/117796/
-Comments Fixed in v5:
-- Use dev_pm_ops instead of sys_dev_class
-- Use runtime suspend/resume hooks for GPIO device
-- extend the usage of mod_usage flag to all cpu classes.(Earlier it was
-   used only for OMAP2+)
-- Make gpio_context as part of gpio_bank structure
-
-v4 Series:
-Some links for v4 series:
-https://patchwork.kernel.org/patch/107411/
-Comments Fixed in v4:
-- Remove gpio_bank_count from dev_attr field and derive it from
-   hwmod class iteration count
-- Add TODOs for future omap gpio code cleanup related activity
-- Rename gpio's platform_data 'method' to 'bank_type'
-- Rename gpio's platform_data 'gpio_bank_bits' to 'gpio_bank_width'
-- Add 'rev' field to gpio class in hwmod datbase and get 'bank_type'
-   based on 'rev' field
-- Filename removed from file description when a new file is created
-
-v3 Series:
-Some of the v3 links:
-https://patchwork.kernel.org/patch/106224/
-Comments Fixed in v3:
-- .module_offs populated in hwmod structures
-- If not defined CONFIG_PM_RUNTIME is not handled in GPIO driver
-- No changes to mach-omap2/clockxxxx-data.c to handle clocks by dev ptr
-    as it is taken care using clock get by name in hwmod & omap_device layer
-- Using "ick" instead of "arm_gpio_ck" for OMAP15xx clock
-- SoC base addresses moved to plat-omap/omapXXXX.h that should be
-    used only by the omap_hwmod_xxxx_data.c file
-- OMAP2/3 hwmod structures naming convention changed as it is
-    followed in OMAP4
-- omap24xx_gpio_init() uses cpu_is_omap24xx() instead of separate
-    checks for 2420 & 2430 in OMAP2 specific init call (mach-omap layer)
-- Reason for using postcore_initcall is added to patch description
-- Comments added for usage of dbck_flag and other elements
-    in dev_attr structure
-- Uses dev_dbg() and dev_err() instead of pr_dbg() and pr_err()
-- Corrects the gpio clock details in OMAP4 hwmod database
-
-v2 series:
-Some important links to patch v2 series and comments:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30262.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28787.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30263.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30295.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30259.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28933.html
-Comments Fixed in V2:
-- GPIO dev attr was added for SoC specific chip info (eg., gpio bank count)
-- Removed omap_gpio_init() usage from board files 
-- platform_get_resource() used instead of pdata->base for
-    OMAP2+ base addresses
-- postcore_initcall used for gpio init instead of making
-    GPIO as an early platform device. SoC specific gpio_init
-    needs to be done before machine_init functions access gpio
-    APIs. Hence making SoC specific gpio_init as postcore_initcall.
-- getting gpio dbck is moved to omap_set_gpio_debounce()
-    instead of doing it in probe
-
-v1 series:
-Some important links to patch v1 series and comments:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26934.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg27860.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28183.html
-Highlights in v1:
-- Introduces SoC specific functions at mach-omap layer
-- Implements GPIO as a platform device
-- Make gpio an early device and make it implemented in
-    HWMOD FW adapted way for OMAP2+
-
-Benoit Cousson (1):
-  OMAP4: hwmod data: Add GPIO
-
-Varadarajan, Charulatha (10):
-  OMAP: GPIO: prepare for platform driver
-  OMAP15xx: GPIO: Introduce support for GPIO init
-  OMAP16xx: GPIO: Introduce support for GPIO init
-  OMAP7xx: GPIO: Introduce support for GPIO init
-  OMAP2420: hwmod data: Add GPIO
-  OMAP2430: hwmod data: Add GPIO
-  OMAP3: hwmod data: Add GPIO
-  OMAP2+: GPIO: device registration
-  OMAP: GPIO: Implement GPIO as a platform device
-  OMAP: GPIO: Remove omap_gpio_init()
-
- arch/arm/mach-omap1/Makefile               |    6 +
- arch/arm/mach-omap1/board-ams-delta.c      |    1 -
- arch/arm/mach-omap1/board-fsample.c        |    1 -
- arch/arm/mach-omap1/board-h2.c             |    1 -
- arch/arm/mach-omap1/board-h3.c             |    1 -
- arch/arm/mach-omap1/board-htcherald.c      |    2 -
- arch/arm/mach-omap1/board-innovator.c      |    1 -
- arch/arm/mach-omap1/board-nokia770.c       |    1 -
- arch/arm/mach-omap1/board-osk.c            |    1 -
- arch/arm/mach-omap1/board-palmte.c         |    1 -
- arch/arm/mach-omap1/board-palmz71.c        |    1 -
- arch/arm/mach-omap1/board-perseus2.c       |    1 -
- arch/arm/mach-omap1/board-sx1.c            |    1 -
- arch/arm/mach-omap1/board-voiceblue.c      |    1 -
- arch/arm/mach-omap1/clock_data.c           |    4 +-
- arch/arm/mach-omap1/gpio15xx.c             |   98 +++++
- arch/arm/mach-omap1/gpio16xx.c             |  199 +++++++++
- arch/arm/mach-omap1/gpio7xx.c              |  261 ++++++++++++
- arch/arm/mach-omap2/Makefile               |    2 +-
- arch/arm/mach-omap2/board-2430sdp.c        |    1 -
- arch/arm/mach-omap2/board-3430sdp.c        |    1 -
- arch/arm/mach-omap2/board-3630sdp.c        |    1 -
- arch/arm/mach-omap2/board-4430sdp.c        |    1 -
- arch/arm/mach-omap2/board-am3517crane.c    |    2 -
- arch/arm/mach-omap2/board-am3517evm.c      |    1 -
- arch/arm/mach-omap2/board-apollon.c        |    1 -
- arch/arm/mach-omap2/board-cm-t35.c         |    1 -
- arch/arm/mach-omap2/board-cm-t3517.c       |    1 -
- arch/arm/mach-omap2/board-devkit8000.c     |    1 -
- arch/arm/mach-omap2/board-h4.c             |    1 -
- arch/arm/mach-omap2/board-igep0020.c       |    1 -
- arch/arm/mach-omap2/board-igep0030.c       |    1 -
- arch/arm/mach-omap2/board-ldp.c            |    1 -
- arch/arm/mach-omap2/board-n8x0.c           |    1 -
- arch/arm/mach-omap2/board-omap3beagle.c    |    1 -
- arch/arm/mach-omap2/board-omap3evm.c       |    1 -
- arch/arm/mach-omap2/board-omap3logic.c     |    1 -
- arch/arm/mach-omap2/board-omap3pandora.c   |    1 -
- arch/arm/mach-omap2/board-omap3stalker.c   |    1 -
- arch/arm/mach-omap2/board-omap3touchbook.c |    1 -
- arch/arm/mach-omap2/board-omap4panda.c     |    1 -
- arch/arm/mach-omap2/board-overo.c          |    1 -
- arch/arm/mach-omap2/board-rx51.c           |    1 -
- arch/arm/mach-omap2/board-zoom2.c          |    1 -
- arch/arm/mach-omap2/board-zoom3.c          |    1 -
- arch/arm/mach-omap2/gpio.c                 |  104 +++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |  230 ++++++++++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |  280 +++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  361 ++++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  341 +++++++++++++++
- arch/arm/plat-omap/gpio.c                  |  622 +++++++++-------------------
- arch/arm/plat-omap/include/plat/gpio.h     |   24 +-
- 52 files changed, 2104 insertions(+), 469 deletions(-)
- create mode 100644 arch/arm/mach-omap1/gpio15xx.c
- create mode 100644 arch/arm/mach-omap1/gpio16xx.c
- create mode 100644 arch/arm/mach-omap1/gpio7xx.c
- create mode 100644 arch/arm/mach-omap2/gpio.c
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index e0e2fa7..48bccf2 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -190,14 +190,12 @@ struct gpio_bank {
+ 	u32 suspend_wakeup;
+ 	u32 saved_wakeup;
+ #endif
+-#ifdef CONFIG_ARCH_OMAP2PLUS
+ 	u32 non_wakeup_gpios;
+ 	u32 enabled_non_wakeup_gpios;
+ 
+ 	u32 saved_datain;
+ 	u32 saved_fallingdetect;
+ 	u32 saved_risingdetect;
+-#endif
+ 	u32 level_mask;
+ 	u32 toggle_mask;
+ 	spinlock_t lock;
+@@ -1718,10 +1716,125 @@ static void __init omap_gpio_show_rev(void)
+  */
+ static struct lock_class_key gpio_lock_class;
+ 
++static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
++{
++	if (cpu_class_is_omap2()) {
++		if (cpu_is_omap44xx()) {
++			__raw_writel(0xffffffff, bank->base +
++					OMAP4_GPIO_IRQSTATUSCLR0);
++			__raw_writel(0x00000000, bank->base +
++					 OMAP4_GPIO_DEBOUNCENABLE);
++			/* Initialize interface clk ungated, module enabled */
++			__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
++		} else if (cpu_is_omap34xx()) {
++			__raw_writel(0x00000000, bank->base +
++					OMAP24XX_GPIO_IRQENABLE1);
++			__raw_writel(0xffffffff, bank->base +
++					OMAP24XX_GPIO_IRQSTATUS1);
++			__raw_writel(0x00000000, bank->base +
++					OMAP24XX_GPIO_DEBOUNCE_EN);
++
++			/* Initialize interface clk ungated, module enabled */
++			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
++		} else if (cpu_is_omap24xx()) {
++			static const u32 non_wakeup_gpios[] = {
++				0xe203ffc0, 0x08700040
++			};
++			if (id < ARRAY_SIZE(non_wakeup_gpios))
++				bank->non_wakeup_gpios = non_wakeup_gpios[id];
++		}
++	} else if (cpu_class_is_omap1()) {
++		if (bank_is_mpuio(bank))
++			__raw_writew(0xffff, bank->base
++						+ OMAP_MPUIO_GPIO_MASKIT);
++		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
++			__raw_writew(0xffff, bank->base
++						+ OMAP1510_GPIO_INT_MASK);
++			__raw_writew(0x0000, bank->base
++						+ OMAP1510_GPIO_INT_STATUS);
++		}
++		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
++			__raw_writew(0x0000, bank->base
++						+ OMAP1610_GPIO_IRQENABLE1);
++			__raw_writew(0xffff, bank->base
++						+ OMAP1610_GPIO_IRQSTATUS1);
++			__raw_writew(0x0014, bank->base
++						+ OMAP1610_GPIO_SYSCONFIG);
++
++			/*
++			 * Enable system clock for GPIO module.
++			 * The CAM_CLK_CTRL *is* really the right place.
++			 */
++			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
++						ULPD_CAM_CLK_CTRL);
++		}
++		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
++			__raw_writel(0xffffffff, bank->base
++						+ OMAP7XX_GPIO_INT_MASK);
++			__raw_writel(0x00000000, bank->base
++						+ OMAP7XX_GPIO_INT_STATUS);
++		}
++	}
++}
++
++static void __init omap_gpio_chip_init(struct gpio_bank *bank)
++{
++	int j, bank_width = 16;
++	static int gpio;
++
++	if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX)
++		bank_width = 32; /* 7xx has 32-bit GPIOs */
++
++	if ((bank->method == METHOD_GPIO_24XX) ||
++			(bank->method == METHOD_GPIO_44XX))
++		bank_width = 32;
++
++	bank->mod_usage = 0;
++	/*
++	 * REVISIT eventually switch from OMAP-specific gpio structs
++	 * over to the generic ones
++	 */
++	bank->chip.request = omap_gpio_request;
++	bank->chip.free = omap_gpio_free;
++	bank->chip.direction_input = gpio_input;
++	bank->chip.get = gpio_get;
++	bank->chip.direction_output = gpio_output;
++	bank->chip.set_debounce = gpio_debounce;
++	bank->chip.set = gpio_set;
++	bank->chip.to_irq = gpio_2irq;
++	if (bank_is_mpuio(bank)) {
++		bank->chip.label = "mpuio";
++#ifdef CONFIG_ARCH_OMAP16XX
++		bank->chip.dev = &omap_mpuio_device.dev;
++#endif
++		bank->chip.base = OMAP_MPUIO(0);
++	} else {
++		bank->chip.label = "gpio";
++		bank->chip.base = gpio;
++		gpio += bank_width;
++	}
++	bank->chip.ngpio = bank_width;
++
++	gpiochip_add(&bank->chip);
++
++	for (j = bank->virtual_irq_start;
++		     j < bank->virtual_irq_start + bank_width; j++) {
++		lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
++		set_irq_chip_data(j, bank);
++		if (bank_is_mpuio(bank))
++			set_irq_chip(j, &mpuio_irq_chip);
++		else
++			set_irq_chip(j, &gpio_irq_chip);
++		set_irq_handler(j, handle_simple_irq);
++		set_irq_flags(j, IRQF_VALID);
++	}
++	set_irq_chained_handler(bank->irq, gpio_irq_handler);
++	set_irq_data(bank->irq, bank);
++}
++
+ static int __init _omap_gpio_init(void)
+ {
+ 	int i;
+-	int gpio = 0;
+ 	struct gpio_bank *bank;
+ 	int bank_size = SZ_8K;	/* Module 4KB + L4 4KB except on omap1 */
+ 	char clk_name[11];
+@@ -1828,7 +1941,6 @@ static int __init _omap_gpio_init(void)
+ 	}
+ #endif
+ 	for (i = 0; i < gpio_bank_count; i++) {
+-		int j, gpio_count = 16;
+ 
+ 		bank = &gpio_bank[i];
+ 		spin_lock_init(&bank->lock);
+@@ -1840,107 +1952,8 @@ static int __init _omap_gpio_init(void)
+ 			continue;
+ 		}
+ 
+-		if (bank_is_mpuio(bank))
+-			__raw_writew(0xffff, bank->base + OMAP_MPUIO_GPIO_MASKIT);
+-		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
+-			__raw_writew(0xffff, bank->base + OMAP1510_GPIO_INT_MASK);
+-			__raw_writew(0x0000, bank->base + OMAP1510_GPIO_INT_STATUS);
+-		}
+-		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
+-			__raw_writew(0x0000, bank->base + OMAP1610_GPIO_IRQENABLE1);
+-			__raw_writew(0xffff, bank->base + OMAP1610_GPIO_IRQSTATUS1);
+-			__raw_writew(0x0014, bank->base + OMAP1610_GPIO_SYSCONFIG);
+-		}
+-		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
+-			__raw_writel(0xffffffff, bank->base + OMAP7XX_GPIO_INT_MASK);
+-			__raw_writel(0x00000000, bank->base + OMAP7XX_GPIO_INT_STATUS);
+-
+-			gpio_count = 32; /* 7xx has 32-bit GPIOs */
+-		}
+-
+-#ifdef CONFIG_ARCH_OMAP2PLUS
+-		if ((bank->method == METHOD_GPIO_24XX) ||
+-				(bank->method == METHOD_GPIO_44XX)) {
+-			static const u32 non_wakeup_gpios[] = {
+-				0xe203ffc0, 0x08700040
+-			};
+-
+-			if (cpu_is_omap44xx()) {
+-				__raw_writel(0xffffffff, bank->base +
+-						OMAP4_GPIO_IRQSTATUSCLR0);
+-				__raw_writew(0x0015, bank->base +
+-						OMAP4_GPIO_SYSCONFIG);
+-				__raw_writel(0x00000000, bank->base +
+-						 OMAP4_GPIO_DEBOUNCENABLE);
+-				/*
+-				 * Initialize interface clock ungated,
+-				 * module enabled
+-				 */
+-				__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
+-			} else {
+-				__raw_writel(0x00000000, bank->base +
+-						OMAP24XX_GPIO_IRQENABLE1);
+-				__raw_writel(0xffffffff, bank->base +
+-						OMAP24XX_GPIO_IRQSTATUS1);
+-				__raw_writew(0x0015, bank->base +
+-						OMAP24XX_GPIO_SYSCONFIG);
+-				__raw_writel(0x00000000, bank->base +
+-						OMAP24XX_GPIO_DEBOUNCE_EN);
+-
+-				/*
+-				 * Initialize interface clock ungated,
+-				 * module enabled
+-				 */
+-				__raw_writel(0, bank->base +
+-						OMAP24XX_GPIO_CTRL);
+-			}
+-			if (cpu_is_omap24xx() &&
+-			    i < ARRAY_SIZE(non_wakeup_gpios))
+-				bank->non_wakeup_gpios = non_wakeup_gpios[i];
+-			gpio_count = 32;
+-		}
+-#endif
+-
+-		bank->mod_usage = 0;
+-		/* REVISIT eventually switch from OMAP-specific gpio structs
+-		 * over to the generic ones
+-		 */
+-		bank->chip.request = omap_gpio_request;
+-		bank->chip.free = omap_gpio_free;
+-		bank->chip.direction_input = gpio_input;
+-		bank->chip.get = gpio_get;
+-		bank->chip.direction_output = gpio_output;
+-		bank->chip.set_debounce = gpio_debounce;
+-		bank->chip.set = gpio_set;
+-		bank->chip.to_irq = gpio_2irq;
+-		if (bank_is_mpuio(bank)) {
+-			bank->chip.label = "mpuio";
+-#ifdef CONFIG_ARCH_OMAP16XX
+-			bank->chip.dev = &omap_mpuio_device.dev;
+-#endif
+-			bank->chip.base = OMAP_MPUIO(0);
+-		} else {
+-			bank->chip.label = "gpio";
+-			bank->chip.base = gpio;
+-			gpio += gpio_count;
+-		}
+-		bank->chip.ngpio = gpio_count;
+-
+-		gpiochip_add(&bank->chip);
+-
+-		for (j = bank->virtual_irq_start;
+-		     j < bank->virtual_irq_start + gpio_count; j++) {
+-			lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
+-			set_irq_chip_data(j, bank);
+-			if (bank_is_mpuio(bank))
+-				set_irq_chip(j, &mpuio_irq_chip);
+-			else
+-				set_irq_chip(j, &gpio_irq_chip);
+-			set_irq_handler(j, handle_simple_irq);
+-			set_irq_flags(j, IRQF_VALID);
+-		}
+-		set_irq_chained_handler(bank->irq, gpio_irq_handler);
+-		set_irq_data(bank->irq, bank);
++		omap_gpio_mod_init(bank, i);
++		omap_gpio_chip_init(bank);
+ 
+ 		if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 			sprintf(clk_name, "gpio%d_dbck", i + 1);
+@@ -1950,17 +1963,6 @@ static int __init _omap_gpio_init(void)
+ 		}
+ 	}
+ 
+-	/* Enable system clock for GPIO module.
+-	 * The CAM_CLK_CTRL *is* really the right place. */
+-	if (cpu_is_omap16xx())
+-		omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04, ULPD_CAM_CLK_CTRL);
+-
+-	/* Enable autoidle for the OCP interface */
+-	if (cpu_is_omap24xx())
+-		omap_writel(1 << 0, 0x48019010);
+-	if (cpu_is_omap34xx())
+-		omap_writel(1 << 0, 0x48306814);
+-
+ 	omap_gpio_show_rev();
+ 
+ 	return 0;
+-- 
+1.7.0.4
 
