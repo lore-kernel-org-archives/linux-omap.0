@@ -1,76 +1,159 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v7 00/11] OMAP: GPIO: Implement GPIO as a platform device
-Date: Wed, 24 Nov 2010 17:40:17 -0800
-Message-ID: <87lj4i2nb2.fsf@deeprootsystems.com>
-References: <1290524213-395-1-git-send-email-charu@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 3/3] OMAP3: remove OPP interfaces from OMAP PM layer
+Date: Wed, 24 Nov 2010 19:08:46 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1011241908350.20215@utopia.booyaka.com>
+References: <1290617647-3604-1-git-send-email-nm@ti.com> <1290617647-3604-4-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:42209 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752555Ab0KYBkY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Nov 2010 20:40:24 -0500
-Received: by gxk22 with SMTP id 22so216695gxk.19
-        for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 17:40:23 -0800 (PST)
-In-Reply-To: <1290524213-395-1-git-send-email-charu@ti.com> (Charulatha
-	Varadarajan's message of "Tue, 23 Nov 2010 20:26:42 +0530")
+Received: from utopia.booyaka.com ([72.9.107.138]:53127 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754332Ab0KYCIs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Nov 2010 21:08:48 -0500
+In-Reply-To: <1290617647-3604-4-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, p-basak2@ti.com
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Benoit <b-cousson@ti.com>, Tony <tony@atomide.com>, Kevin <khilman@deeprootsystems.com>, Thomas <thomas.petazzoni@free-electrons.com>
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+On Wed, 24 Nov 2010, Nishanth Menon wrote:
 
-> Implement OMAP GPIO module in platform device model. OMAP2+ specific =
-GPIO
-> module uses hwmod FW.
->
-> Tested on OMAP2430, OMAP44430, OMAP3430 SDP boards, OMAP4430 Blaze bo=
-ard
-> and zoom3 board. Verified that this patch series does not break the O=
-MAP1
-> build.
->
-> Version History:
-> ---------------
-> v7 Series:
-> - Use gpio iclks as main_clk in OMAP3 & OMAP4
-> - Implement GPIO as a platform device (use hwmod FW for OMAP2+)
->  and the implementation is similar to current GPIO code. Does not
->  modify the gpio suspend/ resume/ prepare for odle and resume after
->  idle code and these modifications would be done in a separate patch
->  series. This was suggested by Kevin in another internal email thread=
-=2E
+> From: Kevin Hilman <khilman@deeprootsystems.com>
+> 
+> With new OPP layer, OPP users will access OPP API directly instead of
+> using OMAP PM layer, so remove all notions of OPPs from the OMAP PM
+> layer.
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-OK, I'm ready to merge this series, and we can deal with the runtime PM
-conversion in another series as that's where the tricky part lies.
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-However, I'd like one more rebase/retest due to some other dependencies=
-=2E
-Can you rebase/retest using my current pm-core branch?   That includes
-several dependencies that are also targetted for 2.6.38:
+> ---
+> 
+> posted for completeness sake - no change involved
+> v3: no longer explicitly calling the init_table, instead
+>     depending on the device_initcall to initialize as needed
+> 
+> v2: https://patchwork.kernel.org/patch/266931/
+> 
+>  arch/arm/mach-omap2/io.c                  |    3 +-
+>  arch/arm/plat-omap/include/plat/omap-pm.h |   31 +++++++++-------------------
+>  arch/arm/plat-omap/omap-pm-noop.c         |   11 +---------
+>  3 files changed, 12 insertions(+), 33 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 40562dd..2fe4e02 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -327,8 +327,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+>  	else if (cpu_is_omap44xx())
+>  		omap44xx_hwmod_init();
+>  
+> -	/* The OPP tables have to be registered before a clk init */
+> -	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
+> +	omap_pm_if_early_init();
+>  
+>  	if (cpu_is_omap2420())
+>  		omap2420_clk_init();
+> diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
+> index 728fbb9..62c3fe9 100644
+> --- a/arch/arm/plat-omap/include/plat/omap-pm.h
+> +++ b/arch/arm/plat-omap/include/plat/omap-pm.h
+> @@ -17,27 +17,10 @@
+>  #include <linux/device.h>
+>  #include <linux/cpufreq.h>
+>  #include <linux/clk.h>
+> +#include <linux/opp.h>
+>  
+>  #include "powerdomain.h"
+>  
+> -/**
+> - * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
+> - * @rate: target clock rate
+> - * @opp_id: OPP ID
+> - * @min_vdd: minimum VDD1 voltage (in millivolts) for this OPP
+> - *
+> - * Operating performance point data.  Can vary by OMAP chip and board.
+> - */
+> -struct omap_opp {
+> -	unsigned long rate;
+> -	u8 opp_id;
+> -	u16 min_vdd;
+> -};
+> -
+> -extern struct omap_opp *mpu_opps;
+> -extern struct omap_opp *dsp_opps;
+> -extern struct omap_opp *l3_opps;
+> -
+>  /*
+>   * agent_id values for use with omap_pm_set_min_bus_tput():
+>   *
+> @@ -59,9 +42,11 @@ extern struct omap_opp *l3_opps;
+>   * framework starts.  The "_if_" is to avoid name collisions with the
+>   * PM idle-loop code.
+>   */
+> -int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
+> -				 struct omap_opp *dsp_opp_table,
+> -				 struct omap_opp *l3_opp_table);
+> +#ifdef CONFIG_OMAP_PM_NONE
+> +#define omap_pm_if_early_init() 0
+> +#else
+> +int __init omap_pm_if_early_init(void);
+> +#endif
+>  
+>  /**
+>   * omap_pm_if_init - OMAP PM init code called after clock fw init
+> @@ -69,7 +54,11 @@ int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
+>   * The main initialization code.  OPP tables are passed in here.  The
+>   * "_if_" is to avoid name collisions with the PM idle-loop code.
+>   */
+> +#ifdef CONFIG_OMAP_PM_NONE
+> +#define omap_pm_if_init() 0
+> +#else
+>  int __init omap_pm_if_init(void);
+> +#endif
+>  
+>  /**
+>   * omap_pm_if_exit - OMAP PM exit code
+> diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+> index e129ce8..ca75abb 100644
+> --- a/arch/arm/plat-omap/omap-pm-noop.c
+> +++ b/arch/arm/plat-omap/omap-pm-noop.c
+> @@ -26,10 +26,6 @@
+>  
+>  #include <plat/powerdomain.h>
+>  
+> -struct omap_opp *dsp_opps;
+> -struct omap_opp *mpu_opps;
+> -struct omap_opp *l3_opps;
+> -
+>  /*
+>   * Device-driver-originated constraints (via board-*.c files)
+>   */
+> @@ -308,13 +304,8 @@ int omap_pm_get_dev_context_loss_count(struct device *dev)
+>  
+>  
+>  /* Should be called before clk framework init */
+> -int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
+> -				 struct omap_opp *dsp_opp_table,
+> -				 struct omap_opp *l3_opp_table)
+> +int __init omap_pm_if_early_init(void)
+>  {
+> -	mpu_opps = mpu_opp_table;
+> -	dsp_opps = dsp_opp_table;
+> -	l3_opps = l3_opp_table;
+>  	return 0;
+>  }
+>  
+> -- 
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-- misc. PM fixes
-- i2c hwmod + runtime PM conversion (my pm-hwmod-i2c branch)
-- several board file changes/updates (Tony's devel-board branch)
-- hwmod core fixes (Paul's hwmod_a_2.6.38 branch)
-- wdt hwmod cleanups (Paul's wdt_2.6.38 branch)
 
-Also, can you collect the acks from Beno=C3=AEt and update your changel=
-ogs to
-include them.  Thanks.
-
-Please be sure your board file changes are updated for the board file
-changes in the devel-board branch.
-
-Thanks,=20
-
-Kevin
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
