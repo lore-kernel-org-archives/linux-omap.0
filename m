@@ -1,91 +1,143 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: OMAP2+: PM/serial: hold console semaphore while OMAP UARTs are disabled
-Date: Wed, 24 Nov 2010 16:42:27 -0800
-Message-ID: <87oc9e5j4c.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.1011241646310.20215@utopia.booyaka.com>
+Subject: Re: [PATCH v5 1/1] OMAP2: Spi: Force CS to be in inactive state after off-mode transition
+Date: Wed, 24 Nov 2010 16:49:47 -0800
+Message-ID: <87y68i447o.fsf@deeprootsystems.com>
+References: <4CED8F6E.3000808@free-electrons.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:39280 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751367Ab0KYAma (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Nov 2010 19:42:30 -0500
-Received: by pzk6 with SMTP id 6so83585pzk.19
-        for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 16:42:30 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1011241646310.20215@utopia.booyaka.com> (Paul
-	Walmsley's message of "Wed, 24 Nov 2010 16:49:05 -0700 (MST)")
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:57496 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751367Ab0KYAtw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Nov 2010 19:49:52 -0500
+Received: by gwj20 with SMTP id 20so201198gwj.19
+        for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 16:49:52 -0800 (PST)
+In-Reply-To: <4CED8F6E.3000808@free-electrons.com> (Gregory CLEMENT's message
+	of "Wed, 24 Nov 2010 23:19:26 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tom.leiming@gmail.com, pramod.gurav@ti.com, thomas.petazzoni@free-electrons.com, jean.pihet@newoldbits.com, govindraj.raja@ti.com
+To: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, spi-devel-general@lists.sourceforge.net, David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>
 
-Paul Walmsley <paul@pwsan.com> writes:
+Gregory CLEMENT <gregory.clement@free-electrons.com> writes:
 
-> The console semaphore must be held while the OMAP UART devices are
-> disabled, lest a console write cause an ARM abort (and a kernel crash)
-> when the underlying console device is inaccessible.  These crashes
-> only occur when the console is on one of the OMAP internal serial
-> ports.
+> As request by Grant Likely, there is no more cover letter. Full changelog is following.
+> I am still reluctant to add this changelog in the patch description, as it adds no value to
+> the patch itself: when it was needed I try to updat comments or patch description.
+
+You're right, the changelog should not be in the patch description.
+This bit of meta-description and changelog should go after the '---'
+just after your signoff.  That way, git tools can still auto-apply the
+email, and git ignores stuff after the '---' so it doesn't end up in the
+git history.
+
+> I understand that Grant Likely would need an ack from other user as this patch fix a corner case.
+> Kevin Hilman made a few comments on this patch so he could add his "Ack by" or at least his "Review by".
+
+I haven't actually tested it, only reviewed it, so you can add a
+Reviewed by for me, but I'm not SPI-aware enough to ack this patch or
+test it thoroughly.  Also,  I have some more comments below...
+
+Also, in the last patch I suggested you do more of a save/restore of
+this value instead of a restore to a hard-coded value.  IOW, save the
+value in the suspend method, restore it in resume. I thought you had
+agreed to that.  I'm not an SPI expert, so not sure if it makes sense,
+but it seems more robust that way and more future proof.
+
 >
-> While this problem has been latent in the PM idle loop for some time,
-> the crash was not triggerable with an unmodified kernel until commit
-> 6f251e9db1093c187addc309b5f2f7fe3efd2995 ("OMAP: UART: omap_device
-> conversions, remove implicit 8520 assumptions").  After this patch, a
-> console write often occurs after the console UART has been disabled in
-> the idle loop, crashing the system.  Several users have encountered
-> this bug:
+> Changelog:
+> * Change from v1 to v2:
+> Rebase on linus/master (after 2.6.37-rc1)
+> Do some clean-up and fix indentation on both patches
+> Add more explanations for patch 2
 >
->     http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38396.html
+> * Change from v2 to v3:
+> Use directly resume function of spi_master instead of using function
+> from spi_device as Grant Likely pointed it out.
+> Force this transition explicitly for each CS used by a device.
 >
->     http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36602.html
+> * Change from v3 to v4:
+> Patch clean-up according to Kevin Hilman and checkpatch.
+> Now force CS to be in inactive state only if it was inactive when it was
+> suspended.
 >
-> The same commit also introduced new code that disabled the UARTs
-> during init, in omap_serial_init_port().  The kernel will also crash
-> in this code when earlyconsole and extra debugging is enabled:
+> * Change from v4 to v5:
+> Rebase on linus/master (after 2.6.37-rc3)
+> Collapse some lines as pointed by Grant Likely
+> Fix a spelling
 >
->     http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36411.html
 >
-> The minimal fix for the -rc series is to hold the console semaphore
-> while the OMAP UARTs are disabled.  This is a somewhat overbroad fix,
-> since the console may not be located on an OMAP UART, as is the case
-> with the GPMC UART on Zoom3.  While it is technically possible to
-> determine which devices the console or earlyconsole is actually
-> running on, it is not a trivial problem to solve, and the code to do
-> so is not really appropriate for the -rc series.
+> == CUT HERE ==
+> When SPI wake up from OFF mode, CS is in the wrong state: force it to the inactive state.
 >
-> The right long-term fix is to ensure that no code outside of the OMAP
-> serial driver can disable an OMAP UART.  As I understand it, code to
-> implement this is under development by TI.
+> During the system life, I monitored the CS behavior using a oscilloscope.
+> I also activated debug in omap2_mcspi, so I saw when driver disable the clocks and restore context when device is not used.
+> Each time the CS was in the correct state.
+> It was only when system was put suspend to ram with off-mode activated that on resume the CS was in wrong state( ie activated).
+>
+> Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+> ---
 
-Yes, what is underway is a conversion of the omap-serial driver to use
-runtime PM so we can finally rid ourselves of the hackery in
-mach-omap2/serial.c.  The PM stuff there is a real mess to understand
-and maintain, and rather fragile, obviously.  Once the serial driver
-itself is in charge of when to disable the UARTs, this becomes a much
-easier problem to manage.
+This is where any changelog and extra info for reviewers should go.
 
-> This patch is a collaboration between Paul Walmsley <paul@pwsan.com>
-> and Tony Lindgren <tony@atomide.com>.  Thanks to Ming Lei
-> <tom.leiming@gmail.com> and Pramod <pramod.gurav@ti.com> for their
-> feedback on earlier versions of this patch.
+>  drivers/spi/omap2_mcspi.c |   33 +++++++++++++++++++++++++++++++++
+>  1 files changed, 33 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+> index 2a651e6..dcc024a 100644
+> --- a/drivers/spi/omap2_mcspi.c
+> +++ b/drivers/spi/omap2_mcspi.c
+> @@ -1305,11 +1305,44 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
+>  /* work with hotplug and coldplug */
+>  MODULE_ALIAS("platform:omap2_mcspi");
+>
+> +#ifdef	CONFIG_PM
+> +/* When SPI wake up from off-mode, CS is in activate state. If it was in
+> + * unactive state when driver was suspend, then force it to unactive state at
+> + * wake up.
+> + */
 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Ming Lei <tom.leiming@gmail.com>
-> Cc: Pramod <pramod.gurav@ti.com>
-> Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-> Cc: Jean Pihet <jean.pihet@newoldbits.com>
-> Cc: Govindraj.R <govindraj.raja@ti.com>
+please fix multi-line comment style.  Search for 'multi-line' in
+CodingStyle.
 
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> +static int omap2_mcspi_resume(struct platform_device *pdev)
+> +{
+> +	struct spi_master	*master = dev_get_drvdata(&pdev->dev);
+> +	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
+> +	struct omap2_mcspi_cs *cs;
+> +
+> +	omap2_mcspi_enable_clocks(mcspi);
+> +	list_for_each_entry(cs, &omap2_mcspi_ctx[master->bus_num - 1].cs,
+> +			    node) {
+> +		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
+> +
+> +			/* We need to toggle CS state for OMAP take this
+> +			 * change in account.
+> +			 */
 
-Very nice.  I've been exploring various solutions to this problem as
-well, but this one is much cleaner.  Also, I hadn't discovered the 'try'
-version of the console semaphore, so was running into recursive locking.
+multi-line coding style
 
-Anyways, tested on omap35xx: omap3evm (uart1/core console) and beagle
-(uart3/per console) and omap34xx/n900 (uart3/per console) using both
-retention-idle and off-idle.
+> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 1);
+> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
+> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 0);
+> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
+> +		}
+> +	}
+> +	omap2_mcspi_disable_clocks(mcspi);
+> +	return 0;
+> +}
+> +#else
+> +#define	omap2_mcspi_resume	NULL
+> +#endif
+> +
+>  static struct platform_driver omap2_mcspi_driver = {
+>  	.driver = {
+>  		.name =		"omap2_mcspi",
+>  		.owner =	THIS_MODULE,
+>  	},
+> +	.resume =	omap2_mcspi_resume,
+>  	.remove =	__exit_p(omap2_mcspi_remove),
+>  };
+>  -- 1.7.0.4
 
 Kevin
