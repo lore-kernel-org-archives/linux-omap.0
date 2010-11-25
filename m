@@ -1,32 +1,35 @@
-From: Andy Walls <awalls@md.metrocast.net>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Subject: Re: [RFC/PATCH v6 02/12] media: Media device
-Date: Thu, 25 Nov 2010 12:20:31 -0500
-Message-ID: <1q7hf5w7lvslx3nba6ooh9j2.1290705631030@email.android.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Clemens Ladisch <clemens@ladisch.de>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, lennart@poettering.net
+Date: Thu, 25 Nov 2010 18:30:39 +0100
+Message-ID: <201011251830.40522.laurent.pinchart@ideasonboard.com>
+References: <1q7hf5w7lvslx3nba6ooh9j2.1290705631030@email.android.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1q7hf5w7lvslx3nba6ooh9j2.1290705631030@email.android.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Clemens Ladisch <clemens@ladisch.de>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, lennart@poettering.net
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIHNpZ25lZG5lc3Mgb2YgY2hhciBpcyBhbWJpZ3VvdXMgZm9yIDggYml0IGRhdGEsIHdoaWNo
-IGlzIHdoeSBhbiBBUEkgd291bGQgbm9ybWFsbHkgdXNlIHU4IChvciBzOCwgSSBndWVzcykuCgpT
-aW5jZSB0aGlzIGlzIGtub3duIHRvIGJlIGNoYXJhY3RlciBkYXRhLCBJIHdvdWxkIHRoaW5rIGNo
-YXIgd291bGQgYmUgZmluZS4gIEkgYW0gYXNzdW1pbmcgQyBjb21waWxlcnMgd291bGQgbmV2ZXIg
-YXNzdW1lIG11bHRpYnl0ZSAiY2hhciJzLgoKUmVnYXJkcywKQW5keQoKTGF1cmVudCBQaW5jaGFy
-dCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9hcmQuY29tPiB3cm90ZToKCj5IaSBDbGVtZW5z
-LAo+Cj5UaGFua3MgZm9yIHRoZSByZXZpZXcuCj4KPk9uIFRodXJzZGF5IDI1IE5vdmVtYmVyIDIw
-MTAgMTA6MzM6MDIgQ2xlbWVucyBMYWRpc2NoIHdyb3RlOgo+PiBMYXVyZW50IFBpbmNoYXJ0IHdy
-b3RlOgo+PiA+ICtzdHJ1Y3QgbWVkaWFfZGV2aWNlIHsKPj4gPiAuLi4KPj4gPiArCXU4IG1vZGVs
-WzMyXTsKPj4gPiArCXU4IHNlcmlhbFs0MF07Cj4+ID4gKwl1OCBidXNfaW5mb1szMl07Cj4+IAo+
-PiBBbGwgZHJpdmVycyBhbmQgdXNlcnNwYWNlIGFwcGxpY2F0aW9ucyBoYXZlIHRvIHRyZWF0IHRo
-aXMgYXMgY2hhcltdLCBzbwo+PiB3aHkgdThbXT8KPgo+R29vZCBxdWVzdGlvbi4gSSd2ZSBjb3Bp
-ZWQgdGhlIFY0TDIgcHJhY3RpY2Ugb2YgdXNpbmcgdTggKG9yIF9fdTgpIGZvciBmaXhlZC0KPmxl
-bmd0aCBzdHJpbmdzIGluIHN0cnVjdHVyZXMuIEkgY2FuJ3QgdGhpbmsgb2YgYW55IHJlYXNvbiBm
-b3IgdGhhdC4KPgo+SSB3aWxsIHJlcGxhY2UgdTggd2l0aCBjaGFyIHVubGVzcyBzb21lb25lIGNv
-bWVzIHVwIHdpdGggYSBnb29kIHJlYXNvbiB0byBrZWVwIAo+dTguCj4KPi0tIAo+UmVnYXJkcywK
-Pgo+TGF1cmVudCBQaW5jaGFydAo+LS0KPlRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBz
-ZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4KPnRoZSBib2R5IG9mIGEg
-bWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj5Nb3JlIG1ham9yZG9tbyBpbmZv
-IGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwK
+Hi Andy,
+
+On Thursday 25 November 2010 18:20:31 Andy Walls wrote:
+> The signedness of char is ambiguous for 8 bit data, which is why an API
+> would normally use u8 (or s8, I guess).
+> 
+> Since this is known to be character data, I would think char would be fine.
+
+I think so too.
+
+> I am assuming C compilers would never assume multibyte "char"s.
+
+Not on sane platforms I guess. We would have problems much worse than MC API 
+breakage in that case anyway :-)
+
+-- 
+Regards,
+
+Laurent Pinchart
