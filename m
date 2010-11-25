@@ -1,81 +1,32 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: OMAP2+: PM/serial: hold console semaphore while OMAP UARTs are disabled
-Date: Thu, 25 Nov 2010 17:47:33 +0100
-Message-ID: <AANLkTina+O1GgMgS0qDKix=d4HOtT1fFrCotTuCCxACv@mail.gmail.com>
-References: <alpine.DEB.2.00.1011241646310.20215@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:45528 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753834Ab0KYQrf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Nov 2010 11:47:35 -0500
-Received: by qyk12 with SMTP id 12so2042229qyk.19
-        for <linux-omap@vger.kernel.org>; Thu, 25 Nov 2010 08:47:34 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1011241646310.20215@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [RFC/PATCH v6 02/12] media: Media device
+Date: Thu, 25 Nov 2010 12:20:31 -0500
+Message-ID: <1q7hf5w7lvslx3nba6ooh9j2.1290705631030@email.android.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Clemens Ladisch <clemens@ladisch.de>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, lennart@poettering.net
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, tom.leiming@gmail.com, pramod.gurav@ti.com, thomas.petazzoni@free-electrons.com, govindraj.raja@ti.com
 
-Hi,
-
-On Thu, Nov 25, 2010 at 12:49 AM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> The console semaphore must be held while the OMAP UART devices are
-> disabled, lest a console write cause an ARM abort (and a kernel crash=
-)
-> when the underlying console device is inaccessible. =A0These crashes
-> only occur when the console is on one of the OMAP internal serial
-> ports.
-This does not fix the issue for me on Beagle (console on ttyO2).
-
-Doing:
-  / # echo 5 > /sys/devices/platform/omap/omap-hsuart.0/sleep_timeout
-  / # echo 5 > /sys/devices/platform/omap/omap-hsuart.1/sleep_timeout
-  / # echo 5 > /sys/devices/platform/omap/omap-hsuart.2/sleep_timeout
-and waiting 5 seconds hangs the console.
-
-However enabling sleep_while_idle before configuring the UART2 timeout
-makes it work ok:
-  / # echo 5 > /sys/devices/platform/omap/omap-hsuart.0/sleep_timeout
-  / # echo 5 > /sys/devices/platform/omap/omap-hsuart.1/sleep_timeout
-  / # echo 1 > /debug/pm_debug/sleep_while_idle
-  / # echo 5 > /sys/devices/platform/omap/omap-hsuart.2/sleep_timeout
-
-This result is similar to what I tested on a recent l-o master w/o the =
-fix.
-Am I missing something?
-
-One more remark. With OFF mode enabled I noticed that PER can go OFF
-without CORE going OFF, which could trigger the errata i582. I think
-this is another latent problem.
-
-/ # cat /debug/pm_debug/count
-usbhost_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1=
--OFF:0
-sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF=
-:0
-per_pwrdm (ON),OFF:3797,RET:2382,INA:0,ON:6180,RET-LOGIC-OFF:0,RET-MEMB=
-ANK1-OFF:0
-dss_pwrdm (OFF),OFF:1,RET:1,INA:1,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF=
-:0
-cam_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF=
-:0
-core_pwrdm (ON),OFF:778,RET:3019,INA:0,ON:3798,RET-LOGIC-OFF:0,RET-MEMB=
-ANK1-OFF:0,RET-MEMBANK2-OFF:0
-neon_pwrdm (ON),OFF:4367,RET:1806,INA:6,ON:6180,RET-LOGIC-OFF:0
-mpu_pwrdm (ON),OFF:4367,RET:1806,INA:6,ON:6180,RET-LOGIC-OFF:0,RET-MEMB=
-ANK1-OFF:0
-iva2_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OF=
-=46:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-=2E..
-
-Any thoughts?
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+VGhlIHNpZ25lZG5lc3Mgb2YgY2hhciBpcyBhbWJpZ3VvdXMgZm9yIDggYml0IGRhdGEsIHdoaWNo
+IGlzIHdoeSBhbiBBUEkgd291bGQgbm9ybWFsbHkgdXNlIHU4IChvciBzOCwgSSBndWVzcykuCgpT
+aW5jZSB0aGlzIGlzIGtub3duIHRvIGJlIGNoYXJhY3RlciBkYXRhLCBJIHdvdWxkIHRoaW5rIGNo
+YXIgd291bGQgYmUgZmluZS4gIEkgYW0gYXNzdW1pbmcgQyBjb21waWxlcnMgd291bGQgbmV2ZXIg
+YXNzdW1lIG11bHRpYnl0ZSAiY2hhciJzLgoKUmVnYXJkcywKQW5keQoKTGF1cmVudCBQaW5jaGFy
+dCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9hcmQuY29tPiB3cm90ZToKCj5IaSBDbGVtZW5z
+LAo+Cj5UaGFua3MgZm9yIHRoZSByZXZpZXcuCj4KPk9uIFRodXJzZGF5IDI1IE5vdmVtYmVyIDIw
+MTAgMTA6MzM6MDIgQ2xlbWVucyBMYWRpc2NoIHdyb3RlOgo+PiBMYXVyZW50IFBpbmNoYXJ0IHdy
+b3RlOgo+PiA+ICtzdHJ1Y3QgbWVkaWFfZGV2aWNlIHsKPj4gPiAuLi4KPj4gPiArCXU4IG1vZGVs
+WzMyXTsKPj4gPiArCXU4IHNlcmlhbFs0MF07Cj4+ID4gKwl1OCBidXNfaW5mb1szMl07Cj4+IAo+
+PiBBbGwgZHJpdmVycyBhbmQgdXNlcnNwYWNlIGFwcGxpY2F0aW9ucyBoYXZlIHRvIHRyZWF0IHRo
+aXMgYXMgY2hhcltdLCBzbwo+PiB3aHkgdThbXT8KPgo+R29vZCBxdWVzdGlvbi4gSSd2ZSBjb3Bp
+ZWQgdGhlIFY0TDIgcHJhY3RpY2Ugb2YgdXNpbmcgdTggKG9yIF9fdTgpIGZvciBmaXhlZC0KPmxl
+bmd0aCBzdHJpbmdzIGluIHN0cnVjdHVyZXMuIEkgY2FuJ3QgdGhpbmsgb2YgYW55IHJlYXNvbiBm
+b3IgdGhhdC4KPgo+SSB3aWxsIHJlcGxhY2UgdTggd2l0aCBjaGFyIHVubGVzcyBzb21lb25lIGNv
+bWVzIHVwIHdpdGggYSBnb29kIHJlYXNvbiB0byBrZWVwIAo+dTguCj4KPi0tIAo+UmVnYXJkcywK
+Pgo+TGF1cmVudCBQaW5jaGFydAo+LS0KPlRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBz
+ZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4KPnRoZSBib2R5IG9mIGEg
+bWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj5Nb3JlIG1ham9yZG9tbyBpbmZv
+IGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwK
