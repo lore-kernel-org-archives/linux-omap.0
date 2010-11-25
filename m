@@ -1,38 +1,56 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [RFC/PATCH v6 02/12] media: Media device
-Date: Thu, 25 Nov 2010 18:06:27 +0000
-Message-ID: <20101125180627.16aa89c0@lxorguk.ukuu.org.uk>
-References: <1q7hf5w7lvslx3nba6ooh9j2.1290705631030@email.android.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP2+: PM/serial: hold console semaphore while OMAP UARTs are
+ disabled
+Date: Thu, 25 Nov 2010 11:15:24 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1011251103480.20215@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1011241646310.20215@utopia.booyaka.com> <AANLkTina+O1GgMgS0qDKix=d4HOtT1fFrCotTuCCxACv@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-747078943-1290708548=:20215"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:52512 "EHLO
-	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751823Ab0KYSHg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Nov 2010 13:07:36 -0500
-In-Reply-To: <1q7hf5w7lvslx3nba6ooh9j2.1290705631030@email.android.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:60399 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753425Ab0KYSPZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Nov 2010 13:15:25 -0500
+In-Reply-To: <AANLkTina+O1GgMgS0qDKix=d4HOtT1fFrCotTuCCxACv@mail.gmail.com>
+Content-ID: <alpine.DEB.2.00.1011251114530.20215@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Clemens Ladisch <clemens@ladisch.de>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, lennart@poettering.net
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, tom.leiming@gmail.com, pramod.gurav@ti.com, thomas.petazzoni@free-electrons.com, govindraj.raja@ti.com
 
-On Thu, 25 Nov 2010 12:20:31 -0500
-Andy Walls <awalls@md.metrocast.net> wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> The signedness of char is ambiguous for 8 bit data, which is why an API would normally use u8 (or s8, I guess).
-> 
-> Since this is known to be character data, I would think char would be fine.  I am assuming C compilers would never assume multibyte "char"s.
+--155748971-747078943-1290708548=:20215
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1011251114531.20215@utopia.booyaka.com>
 
-char is 8bit in all modern C. I have used C compilers with configurable 9
-or 7 bit char and such a machine is never going to run Linux without
-serious insanity. Even grep in 9bit char is not fun...
+Hi
 
-The advantage of using u8 is that any casting goes the way you expect
-whereas when working with UTF-8 things like
+On Thu, 25 Nov 2010, Jean Pihet wrote:
 
-	int x = name[0];
+> On Thu, Nov 25, 2010 at 12:49 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> >
+> > The console semaphore must be held while the OMAP UART devices are
+> > disabled, lest a console write cause an ARM abort (and a kernel crash)
+> > when the underlying console device is inaccessible. =A0These crashes
+> > only occur when the console is on one of the OMAP internal serial
+> > ports.
+> This does not fix the issue for me on Beagle (console on ttyO2).
+>=20
+> Doing:
+>   / # echo 5 > /sys/devices/platform/omap/omap-hsuart.0/sleep_timeout
+>   / # echo 5 > /sys/devices/platform/omap/omap-hsuart.1/sleep_timeout
+>   / # echo 5 > /sys/devices/platform/omap/omap-hsuart.2/sleep_timeout
+> and waiting 5 seconds hangs the console.
 
-may not produce the expected result otherwise.
+By the way, I just tried this on a Beagle 35xx rev C2, with Tony's commit=
+=20
+063d907edaf3fbf9776c189c3e02f2c7a129d18c, and did not see any hang.   Are=
+=20
+you using a linux-omap kernel?
 
-Alan
+
+- Paul
+--155748971-747078943-1290708548=:20215--
