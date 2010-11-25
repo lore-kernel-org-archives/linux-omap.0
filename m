@@ -1,48 +1,89 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2.6.37-rc1] ASoC: OMAP: fix OMAP1 compilation problem
-Date: Thu, 25 Nov 2010 10:45:19 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1011251043400.20215@utopia.booyaka.com>
-References: <201011021550.34885.jkrzyszt@tis.icnet.pl> <20101124235342.GC31536@atomide.com> <20101125090201.256972a4.jhnikula@gmail.com> <201011251347.44912.jkrzyszt@tis.icnet.pl>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC/PATCH v6 05/12] media: Reference count and power handling
+Date: Thu, 25 Nov 2010 19:49:05 +0200
+Message-ID: <4CEEA191.1000706@maxwell.research.nokia.com>
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <1290652099-15102-6-git-send-email-laurent.pinchart@ideasonboard.com> <20101125134908.GC24208@opensource.wolfsonmicro.com> <201011251643.17313.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37273 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753649Ab0KYRpU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Nov 2010 12:45:20 -0500
-In-Reply-To: <201011251347.44912.jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <201011251643.17313.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, lrg@slimlogic.co.uk, lennart@poettering.net
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Liam Girdwood <lrg@slimlogic.co.uk>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 25 Nov 2010, Janusz Krzysztofik wrote:
+Laurent Pinchart wrote:
+> Hi Mark,
 
-> Thursday 25 November 2010 08:02:01 Jarkko Nikula wrote:
-> > On Wed, 24 Nov 2010 15:53:42 -0800
-> >
-> > Tony Lindgren <tony@atomide.com> wrote:
-> > > * Tony Lindgren <tony@atomide.com> [101124 15:25]:
-> > > > Anyways, Paul's patch should be merged during the -rc cycle
-> > > > because it is currently blocking Amstrad delta being built:
-> > > >
-> > > > http://armlinux.simtec.co.uk/kautobuild/
-> > >
-> > > Turns out I'm several hours behind.. The build is
-> > > working with Janusz commit 233538501f707b0176f09af7039fec1e3fcac6e7
-> > > now in mainline.
-> > >
-> > > I guess no need to merge Paul's fix then?
-> >
-> > Not necessary I think if compilers are happy with Janusz's fix. If not,
-> > then very strong reasong to start looking for platform data solution
-> > as soon as possible :-)
+Hi Laurent, others,
+
+> On Thursday 25 November 2010 14:49:08 Mark Brown wrote:
+>> On Thu, Nov 25, 2010 at 03:28:12AM +0100, Laurent Pinchart wrote:
+>>> 	If the entity is of node type, the power change is distributed to
+>>> 	all connected entities. For non-nodes it only affects that very
+>>> 	node. A mutex is used to serialise access to the entity graph.
+>>
+>> ASoC has its own power management stuff which doesn't *quite* map onto
+>> this one as-is.  The power determination stuff is essentially identical
+>> (and this is actually nicer) but we have a separate postprocessing stage
+>> that actually applies the changes in a sequence which minimises audible
+>> issues caused by doing things in a bad order (eg, power down a PGA
+>> before you turn off inputs).  This is noddy enough to implement, though
+>> - we just need a pre and post run notifications to set up and implement
+>> the changes I think.
 > 
-> Fine with me if you prefere reverting my changes and using Paul's fix as a 
-> better short term solution instead.
+> That sounds feasible. Sakari, you've implemented power management, what do you 
+> think about this ?
 
-And I'm fine with Janusz's patch.  My patch was written in response to 
-Mark's comments about compilers...
+I first have to admit that I don't know ALSA almost at all.
+
+Currently when two media entities are connected they will be powered up
+for the duration of the link setup, just in case the drivers would need
+to access hardware for some reason. I don't think we have a need for
+that at the moment, it's so just because it seemed to be the right thing
+to do.
+
+Essentially the idea is that the drivers do not need to be involved with
+the power state handling and the device would be powered always when
+they are run, but not be powered when it's not necessary.
+
+That feature put aside, then what's left is what Laurent described; the
+entities will be powered up based on opening subdev and video nodes
+(V4L2 case, for ALSA it'd be different kind of ALSA nodes). But I don't
+think there's necessarily even need to remove this feature.
+
+Subdev is a V4L2 specific concept and I don't know if ALSA would benefit
+from something similar. If you want to be able to access the individual
+enties from user space, then similar arrangement might be useful.
+
+There are use cases to only use subdev nodes on V4L2: camera LED flash
+in torch mode, for example. There is no need to power on the rest of the
+system.
+
+I don't see a problem in applying restrictions on power on / off
+sequence. They would probably be useful also on the V4L2 side in the future.
 
 
-- Paul
+Could the restrictions be described as dependencies only, i.e. entity 1
+power-up requires entity 2 to be powered first, also meaning that entity
+2 could be powered down only after entity 1 has been powered down?
+
+This type of restrictions would fit quite well to the current model as
+it would essentially mean just media_entity_get() for the dependent
+entities, and media_entity_put() when the original entity is powered
+down. This would work recursively.
+
+In the case of audio, most if not all devices (right?) would be always
+powered up in certain order. At the same time this would be good for the
+flash in torch mode case.
+
+
+Comments, opinions? :-)
+
+
+Best regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
