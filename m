@@ -1,45 +1,73 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC/PATCH v6 03/12]  media: Entities,
- pads and links
-Date: Thu, 25 Nov 2010 15:35:46 +0000
-Message-ID: <20101125153546.GI22298@rakim.wolfsonmicro.main>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<4CEE2E7D.6060608@ladisch.de>
-	<20101125134135.GB24208@opensource.wolfsonmicro.com>
-	<201011251629.54575.laurent.pinchart@ideasonboard.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v6 03/12] media: Entities, pads and links
+Date: Thu, 25 Nov 2010 16:40:41 +0100
+Message-ID: <201011251640.42206.laurent.pinchart@ideasonboard.com>
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <1290652099-15102-4-git-send-email-laurent.pinchart@ideasonboard.com> <20101125133650.GA24208@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <201011251629.54575.laurent.pinchart@ideasonboard.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: alsa-devel@alsa-project.org, sakari.ailus@maxwell.research.nokia.com, Clemens Ladisch <clemens@ladisch.de>, linux-kernel@vger.kernel.org, lennart@poettering.net, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101125133650.GA24208@opensource.wolfsonmicro.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, lennart@poettering.net
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 25, 2010 at 04:29:53PM +0100, Laurent Pinchart wrote:
+Hi Mark,
 
-> It depends on how you define nodes. I can certainly imagine a graph with 100 
-> controls, but maybe several controls can be part of the same node ? On the 
-> video side we've decided to split entities depending on the possible data 
-> paths configurations. As I'm not a fluent ascii-art speaker, please have a 
-> look at pages 4 and 5 of http://www.ideasonboard.org/media/20101103-lpc-
-> media.pdf
+On Thursday 25 November 2010 14:36:50 Mark Brown wrote:
+> On Thu, Nov 25, 2010 at 03:28:10AM +0100, Laurent Pinchart wrote:
+> > +Links have flags that describe the link capabilities and state.
+> > 
+> > +	MEDIA_LINK_FLAG_ACTIVE indicates that the link is active and can be
+> > +	used to transfer media data. When two or more links target a sink pad,
+> > +	only one of them can be active at a time.
+> 
+> Is this supposed to reflect the current state (if the link is carrying
+> data right now) or if it's possible for the link to carry data?
 
-Please take a look at:
+It's supposed to reflect whether the link can carry data. Think of the active 
+flag as a valve on a pipe. If the valve is open, the link is active. If the 
+valve is closed, the link is inactive. This is unrelated to whether water 
+actually flows through the pipe.
 
-	http://www.wolfsonmicro.com/products/WM8994
+Immutable links have no valve (in theory you could have an inactive immutable 
+link, but that's not very useful, unless we define immutable as no user-
+controllable valve, in which case it might be better to rename it as read-
+only, or create separate immutable and read-only flags - just brainstorming 
+here).
 
-for an example of a modern smartphone CODEC.  This has in the ballpark
-of 75-100 nodes (I've not counted exactly) represented in the routing
-graph in the driver today.  This does not include any audio routing
-available in other components such as the CPU.
+> > +struct media_entity {
+> > +	struct list_head list;
+> > +	struct media_device *parent;	/* Media device this entity belongs to*/
+> > +	u32 id;				/* Entity ID, unique in the parent media
+> > +					 * device context */
+> > +	const char *name;		/* Entity name */
+> > +	u32 type;			/* Entity type (MEDIA_ENTITY_TYPE_*) */
+> > +	u32 revision;			/* Entity revision, driver specific */
+> > +	unsigned long flags;		/* Entity flags (MEDIA_ENTITY_FLAG_*) */
+> > +	u32 group_id;			/* Entity group ID */
+> > +
+> > +	u16 num_pads;			/* Number of input and output pads */
+> > +	u16 num_links;			/* Number of existing links, both active
+> > +					 * and inactive */
+> > +	u16 num_backlinks;		/* Number of backlinks */
+> > +	u16 max_links;			/* Maximum number of links */
+> > +
+> > +	struct media_pad *pads;		/* Pads array (num_pads elements) */
+> > +	struct media_link *links;	/* Links array (max_links elements)*/
+> 
+> Hrm.  This is getting kind of large, especially considering the volume
+> of data we're holding per node and link already in ASoC.  On the other
+> hand we may over time be able to refactor some of the existing stuff
+> (especially the link management) to use this structure.
+
+That's the idea :-) In the long term (hopefully not that long) I would like to 
+see both sources of information merged. That's why I'm interested in your 
+requirements to make sure this will be possible.
+
+-- 
+Regards,
+
+Laurent Pinchart
