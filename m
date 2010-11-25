@@ -1,48 +1,83 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 2.6.37-rc1] ASoC: OMAP: fix OMAP1 compilation problem
-Date: Thu, 25 Nov 2010 09:02:01 +0200
-Message-ID: <20101125090201.256972a4.jhnikula@gmail.com>
-References: <201011021550.34885.jkrzyszt@tis.icnet.pl>
-	<alpine.DEB.2.00.1011221745490.20215@utopia.booyaka.com>
-	<20101123092630.7267a7ab.jhnikula@gmail.com>
-	<20101124233511.GZ31536@atomide.com>
-	<20101124235342.GC31536@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/PATCH v3 6/7] omap3: Export omap3isp platform device
+ structure
+Date: Thu, 25 Nov 2010 09:02:41 +0200
+Message-ID: <20101125070241.GX2468@legolas.emea.dhcp.ti.com>
+References: <1290653678-15556-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1290653678-15556-7-git-send-email-laurent.pinchart@ideasonboard.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:49914 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751373Ab0KYHBq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Nov 2010 02:01:46 -0500
-Received: by eye27 with SMTP id 27so271230eye.19
-        for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 23:01:44 -0800 (PST)
-In-Reply-To: <20101124235342.GC31536@atomide.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:44362 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751373Ab0KYHCs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Nov 2010 02:02:48 -0500
+Received: by mail-gy0-f182.google.com with SMTP id 3so10895468gyf.27
+        for <linux-omap@vger.kernel.org>; Wed, 24 Nov 2010 23:02:47 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1290653678-15556-7-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Liam Girdwood <lrg@slimlogic.co.uk>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
 
-On Wed, 24 Nov 2010 15:53:42 -0800
-Tony Lindgren <tony@atomide.com> wrote:
+On Thu, Nov 25, 2010 at 03:54:37AM +0100, Laurent Pinchart wrote:
+>From: Stanimir Varbanov <svarbanov@mm-sol.com>
+>
+>The omap3isp platform device requires platform data. As the data can be
+>provided by a kernel module, the device can't be registered during arch
+>initialization.
+>
+>Remove the omap3isp platform device registration from
+>omap_init_camera(), and export the platform device structure to let
+>board code register/unregister it.
 
-> * Tony Lindgren <tony@atomide.com> [101124 15:25]:
-> > 
-> > Anyways, Paul's patch should be merged during the -rc cycle
-> > because it is currently blocking Amstrad delta being built:
-> > 
-> > http://armlinux.simtec.co.uk/kautobuild/
-> 
-> Turns out I'm several hours behind.. The build is
-> working with Janusz commit 233538501f707b0176f09af7039fec1e3fcac6e7
-> now in mainline.
-> 
-> I guess no need to merge Paul's fix then?
-> 
-Not necessary I think if compilers are happy with Janusz's fix. If not,
-then very strong reasong to start looking for platform data solution
-as soon as possible :-)
+instead, why don't you...
 
+>diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+>index d5da345..c2275d3 100644
+>--- a/arch/arm/mach-omap2/devices.c
+>+++ b/arch/arm/mach-omap2/devices.c
+>@@ -34,6 +34,8 @@
+> #include "mux.h"
+> #include "control.h"
+>
+>+#include "devices.h"
+>+
+> #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+>
+> static struct resource cam_resources[] = {
+>@@ -144,16 +146,28 @@ static struct resource omap3isp_resources[] = {
+> 	}
+> };
+>
+>-static struct platform_device omap3isp_device = {
+>+static void omap3isp_release(struct device *dev)
+>+{
+>+	/* Zero the device structure to avoid re-initialization complaints from
+>+	 * kobject when the device will be re-registered.
+>+	 */
+>+	memset(dev, 0, sizeof(*dev));
+>+	dev->release = omap3isp_release;
+>+}
+>+
+>+struct platform_device omap3isp_device = {
+> 	.name		= "omap3isp",
+> 	.id		= -1,
+> 	.num_resources	= ARRAY_SIZE(omap3isp_resources),
+> 	.resource	= omap3isp_resources,
+>+	.dev = {
+>+		.release	= omap3isp_release,
+>+	},
+> };
+>+EXPORT_SYMBOL_GPL(omap3isp_device);
+>
+> static inline void omap_init_camera(void)
+
+pass platform_data as an argument to this call ? Then remove the static
+inline and export this one ?
 
 -- 
-Jarkko
+balbi
