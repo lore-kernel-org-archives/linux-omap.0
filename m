@@ -1,78 +1,112 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH v7 05/11] OMAP2420: hwmod data: Add GPIO
-Date: Thu, 25 Nov 2010 15:03:39 +0530
-Message-ID: <AANLkTinEbi6V3tsCMDt4zj1jZLEzREeoq1L2ub87CbBg@mail.gmail.com>
-References: <1290524213-395-1-git-send-email-charu@ti.com> <1290524213-395-6-git-send-email-charu@ti.com>
- <4CED8DF7.6040606@ti.com> <AANLkTimRK=eKBG3pqGN8Ota5EO8EdmEibQN5C3Lwfheq@mail.gmail.com>
- <4CEE1807.9040404@ti.com> <AANLkTik1p0gqe6s8t-q0koehWBhc6nceU9=T74k3iw9_@mail.gmail.com>
+From: Clemens Ladisch <clemens@ladisch.de>
+Subject: Re: [RFC/PATCH v6 03/12]  media: Entities,
+	pads and links
+Date: Thu, 25 Nov 2010 10:38:05 +0100
+Message-ID: <4CEE2E7D.6060608@ladisch.de>
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1290652099-15102-4-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:55525 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751374Ab0KYJeY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Nov 2010 04:34:24 -0500
-Received: by mail-iw0-f180.google.com with SMTP id 37so861585iwn.39
-        for <linux-omap@vger.kernel.org>; Thu, 25 Nov 2010 01:34:21 -0800 (PST)
-In-Reply-To: <AANLkTik1p0gqe6s8t-q0koehWBhc6nceU9=T74k3iw9_@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1290652099-15102-4-git-send-email-laurent.pinchart@ideasonboard.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: alsa-devel@alsa-project.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, lennart@poettering.net, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "Basak, Partha" <p-basak2@ti.com>
 
-On Thu, Nov 25, 2010 at 14:01, Varadarajan, Charulatha <charu@ti.com> w=
-rote:
-> On Thu, Nov 25, 2010 at 13:32, Cousson, Benoit <b-cousson@ti.com> wro=
-te:
->> On 11/25/2010 5:36 AM, Varadarajan, Charulatha wrote:
->>>
->>> Benoit,
->>>
->>> On Thu, Nov 25, 2010 at 03:43, Cousson, Benoit<b-cousson@ti.com> =A0=
-wrote:
->>>>
->>>> On 11/23/2010 3:56 PM, Varadarajan, Charulatha wrote:
->>>>>
->>>>> Add GPIO hwmod data for OMAP2420
->>>>>
->>>>> Signed-off-by: Charulatha V<charu@ti.com>
->>>>> ---
->>>>> =A0arch/arm/mach-omap2/omap_hwmod_2420_data.c | =A0229
->>>>> ++++++++++++++++++++++++++++
->>>>> =A0arch/arm/plat-omap/include/plat/gpio.h =A0 =A0 | =A0 =A05 +
->>>>> =A02 files changed, 234 insertions(+), 0 deletions(-)
->>>>>
->>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
->>>>> b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
->>>>> index a1a3dd6..c951061 100644
->>>>> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
->>>>> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
->>>>> @@ -17,6 +17,7 @@
->>>>> =A0#include<plat/dma.h>
->>>>> =A0#include<plat/serial.h>
->>>>> =A0#include<plat/i2c.h>
->>>>> +#include<plat/gpio.h>
->>>>> =A0#include<plat/omap24xx.h>
->>>>
->>>> Do you still need that header file?
->>>
->>> Yes, for the gpio_dev_attr
->>
->> I'm still confused, gpio_dev_attr just contains an int and a bool:
->
-> I am talking about gpio.h file which is required for using
-> omap_gpio_dev_attr. If you are pointing out omap24xx.h file,
-> I am not sure. It was in the original code.
+Laurent Pinchart wrote:
+> A link is a point-to-point oriented connection between two pads, either
+> on the same entity or on different entities. Data flows from a source
+> pad to a sink pad.
+> 
+> Links are stored in the source entity.
 
-Okay. I checked. omap24xx.h file is no more required here
-and I am deleting this header include from this file. Same for
-OMAP2430 and OMAP3xxx hwmod database files too.
+In the descriptors of USB Audio and HDAudio devices, the links are
+stored only in the sink.  But AFAICS this doesn't matter in the media
+driver API.
 
--V Charulatha
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +Links have flags that describe the link capabilities and state.
+> +
+> +	MEDIA_LINK_FLAG_ACTIVE indicates that the link is active and can be
+> +	used to transfer media data. When two or more links target a sink pad,
+> +	only one of them can be active at a time.
+> +	MEDIA_LINK_FLAG_IMMUTABLE indicates that the link active state can't
+> +	be modified at runtime. If MEDIA_LINK_FLAG_IMMUTABLE is set, then
+> +	MEDIA_LINK_FLAG_ACTIVE must also be set since an immutable link is
+> +	always active.
+
+So the intended userspace API for controlling routing is to change the
+ACTIVE flag of links?
+
+In USB and HD audio devices, all links are immutable, and the routing
+is controlled by 'selector' entities that activate exactly one of their
+input pads.  In userspace, this entity shows up as a mixer control.
+I guess it would be possible to map the ACTIVE flag onto these controls.
+
+Alternatively, entities can have 'mute' mixer controls associated with
+their pads.  In this case, multiple unmuted inputs would be mixed
+together.
+
+> +#define MEDIA_ENTITY_TYPE_MASK               0x00ff0000
+> +#define MEDIA_ENTITY_SUBTYPE_MASK            0x0000ffff
+> +
+> +#define MEDIA_ENTITY_TYPE_NODE               (1 << MEDIA_ENTITY_TYPE_SHIFT)
+> ...
+> +#define MEDIA_ENTITY_TYPE_NODE_ALSA          (MEDIA_ENTITY_TYPE_NODE + 3)
+
+ALSA has PCM and MIDI devices, and several types of mixer controls.
+(It also has hardware dependent and timer devices, but I don't think
+these would need topology information.)  So we need at least these:
+  MEDIA_ENTITY_TYPE_NODE_ALSA_PCM
+  MEDIA_ENTITY_TYPE_NODE_ALSA_MIDI
+  MEDIA_ENTITY_TYPE_SUBDEV_ALSA_CONTROL
+
+Furthermore, topology information is also needed for entities not
+associated with a mixer control, such as microphones, speakers, jacks/
+connectors, and effect units.  These entities are defined in the USB and
+HD audio specifications, but are not yet handled by ALSA.
+
+> +struct media_entity {
+> ...
+> +	union {
+> +		/* Node specifications */
+> +		struct {
+> +			u32 major;
+> +			u32 minor;
+> +		} v4l;
+> +		struct {
+> +			u32 major;
+> +			u32 minor;
+> +		} fb;
+> +		int alsa;
+> +		int dvb;
+> +
+> +		/* Sub-device specifications */
+> +		/* Nothing needed yet */
+> +	};
+
+ALSA devices are not addressed by their device node but with card/device/
+subdevice numbers; mixer controls have numeric IDs, unique per card:
+
+		struct {
+			int card;
+			int device;
+			int subdevice;
+		} alsa_device;
+		struct {
+			int card;
+			int numid;
+		} alsa_control;
+
+
+Regards,
+Clemens
