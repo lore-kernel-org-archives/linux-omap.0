@@ -1,101 +1,58 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: Re: [PATCH] [OMAP] HTCHERALD: MMC, I2C, HTCPLD, SPI, TSC2046
-Date: Thu, 25 Nov 2010 08:23:59 -0700
-Message-ID: <AANLkTinBkwGSVR=YFu1pz4kTrn=d36xFYLxNpyOjpQuw@mail.gmail.com>
-References: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com>
- <1282106146-7727-1-git-send-email-darkstar6262@gmail.com> <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com>
- <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
- <AANLkTikNLn-VuCQb2q7wZVbYORxV6uhia_oOBsQg3ZiJ@mail.gmail.com>
- <20100924225254.GK4211@atomide.com> <AANLkTinmfEYq9SRNRWY9xOkwS-FE_LDyBOeGLoyYLNtZ@mail.gmail.com>
- <20100930184841.GL3117@atomide.com> <AANLkTimsk+vbi15xz5bxJyQrF0yXF3i7Dn=TajjV3tkU@mail.gmail.com>
- <20100930191535.GM3117@atomide.com> <20100930221111.GO3117@atomide.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC/PATCH v6 03/12]  media: Entities,
+ pads and links
+Date: Thu, 25 Nov 2010 15:28:28 +0000
+Message-ID: <20101125152827.GH22298@rakim.wolfsonmicro.main>
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1290652099-15102-4-git-send-email-laurent.pinchart@ideasonboard.com>
+	<4CEE2E7D.6060608@ladisch.de>
+	<201011251621.38757.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:63784 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751941Ab0KYPYX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Nov 2010 10:24:23 -0500
-Received: by wwb39 with SMTP id 39so168761wwb.1
-        for <linux-omap@vger.kernel.org>; Thu, 25 Nov 2010 07:24:21 -0800 (PST)
-In-Reply-To: <20100930221111.GO3117@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <201011251621.38757.laurent.pinchart@ideasonboard.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: alsa-devel@alsa-project.org, sakari.ailus@maxwell.research.nokia.com, Clemens Ladisch <clemens@ladisch.de>, linux-kernel@vger.kernel.org, lennart@poettering.net, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-2010/9/30 Tony Lindgren <tony@atomide.com>:
-> * Tony Lindgren <tony@atomide.com> [100930 12:07]:
->> * Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com> [100930 11:57]:
->> > 2010/9/30 Tony Lindgren <tony@atomide.com>:
->> > > * Cory Maccarrone <darkstar6262@gmail.com> [100930 11:34]:
->> > >> > Looks like also board-sx1-mmc.c and board-h[23]-mmc.c have th=
-e
->> > >> > same spotty voltage range.
->> > >> > Cory, care to do a patch that fixes it for all of them?
->> > >> Yeah, I can do that. =C2=A0I'll resubmit this patch too with th=
-e fixed up ranges.
->> > > Turns out I already did it :) Care to test/ack this one?
->> >
->> > [...]
->> > > diff --git a/arch/arm/mach-omap1/board-sx1-mmc.c b/arch/arm/mach=
--omap1/board-sx1-mmc.c
->> > > index 5b33ae8..be5a365 100644
->> > > --- a/arch/arm/mach-omap1/board-sx1-mmc.c
->> > > +++ b/arch/arm/mach-omap1/board-sx1-mmc.c
->> > > @@ -44,7 +44,8 @@ static struct omap_mmc_platform_data mmc1_data=
- =3D {
->> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0.nr_slots =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D 1,
->> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0.slots[0] =C2=A0 =C2=A0 =C2=A0 =3D {
->> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0.set_powe=
-r =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D mmc_set_power,
->> > > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .ocr_mask =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D MMC_VDD_28_29 | MMC_V=
-DD_30_31 |
->> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .ocr_mask =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D MMC_VDD_28_29 | MMC_V=
-DD_29_30 |
->> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 MMC_VDD_30_31 | MMC_VDD_31_32 |
->> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0MMC_VDD_32_33 | MMC_VDD_33_34,
->> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0.name =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D "mmcblk=
-",
->> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0},
->> > [...]
->> >
->> > Al least this one seems wrong (haven't checked others) as the
->> > mmc_set_power() ignores vdd parameter. This suggests that the boar=
-d
->> > supports only one particular voltage, not the whole range.
->>
->> Hmm yeah good catch. With the external power it's board specific.
->
-> Most likely they all support only 3.3V cards except for n8x0. Not cha=
-nging
-> the n8x0 for what voltages it handles although it may be missing the
-> MMC_VDD_27_28 voltage. Here's the updated patch.
->
-> Regards,
->
-> Tony
->
-> From: Tony Lindgren <tony@atomide.com>
-> Subject: [PATCH] omap: Fix spotty MMC voltages
-> ...
+On Thu, Nov 25, 2010 at 04:21:38PM +0100, Laurent Pinchart wrote:
+> On Thursday 25 November 2010 10:38:05 Clemens Ladisch wrote:
 
-=46inally got around to testing this, and it indeed works perfectly for
-me.  I still get a bunch of weird CMD5 and CMD8 errors on init, but no
-ill effects were introduced by it, and the card works fine.
+> > ALSA has PCM and MIDI devices, and several types of mixer controls.
+> > (It also has hardware dependent and timer devices, but I don't think
+> > these would need topology information.)  So we need at least these:
+> >   MEDIA_ENTITY_TYPE_NODE_ALSA_PCM
+> >   MEDIA_ENTITY_TYPE_NODE_ALSA_MIDI
+> >   MEDIA_ENTITY_TYPE_SUBDEV_ALSA_CONTROL
 
-- Cory
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I agree about PCM and MIDI, but I'm not sure about controls. If controls are 
+> part of an entity, the entity will be reported through the media controller 
+> API. If information about that entity can be queried through existing APIs 
+> (ALSA, V4L, ...) those APIs should be used. For instance, on the V4L side, 
+> V4L2 sub-devices are mapped to entities and also have a device node which can 
+> be used to enumerate the controls supported by the subdev. The media 
+> controller only reports the entity -> major:minor mapping to let applications 
+> find the device and query it directly.
+
+For audio we don't currently have a sensible API for associating
+controls with any sort of map of how the device is laid out, userspace
+has to play guessing games.
+
+> I think we will need a new ioctl in the media controller API to report 
+> advanced information about an entity. This could be used to report controls 
+> implemented by an ALSA element if ALSA doesn't provide a way to do that 
+> directly. Another use case, which make me think that such an ioctl would be 
+> needed, is to report UVC extension units type (16-byte GUID) to userspace.
+
+That seems reasonable.
