@@ -1,123 +1,47 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v6 11/12] v4l: Make video_device inherit from media_entity
-Date: Thu, 25 Nov 2010 12:38:15 +0100
-Message-ID: <201011251238.15331.hverkuil@xs4all.nl>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <1290652099-15102-12-git-send-email-laurent.pinchart@ideasonboard.com>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: Re: [PATCH 02/13] OMAP3: PM: Errata i581 suppport: dll kick
+	strategy
+Date: Thu, 25 Nov 2010 14:22:28 +0200
+Message-ID: <20101125122228.GT26003@nokia.com>
+References: <1290131698-6194-1-git-send-email-nm@ti.com> <1290131698-6194-3-git-send-email-nm@ti.com> <AANLkTi=cb1LDS0nJr+gS47qc2qpw_kRz8+ZxV_x2gSJ0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1290652099-15102-12-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, lennart@poettering.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.47]:57392 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751695Ab0KYMXQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Nov 2010 07:23:16 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTi=cb1LDS0nJr+gS47qc2qpw_kRz8+ZxV_x2gSJ0@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Kevin <khilman@deeprootsystems.com>, Jean Pihet <jean.pihet@newoldbits.com>, Tony <tony@atomide.com>
 
-On Thursday, November 25, 2010 03:28:18 Laurent Pinchart wrote:
-> V4L2 devices are media entities. As such they need to inherit from
-> (include) the media_entity structure.
+On Wed, Nov 24, 2010 at 05:51:50PM +0100, ext Sripathy, Vishwanath wrote:
+> Nishant,
 > 
-> When registering/unregistering the device, the media entity is
-> automatically registered/unregistered. The entity is acquired on device
-> open and released on device close.
+> On Fri, Nov 19, 2010 at 7:24 AM, Nishanth Menon <nm@ti.com> wrote:
+> > From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+> >
+> > Errata i581 impacts OMAP3 platforms.
+> > PRCM DPLL control FSM removes SDRC_IDLEREQ before DPLL3 locks causing
+> > the DPLL not to be locked at times.
+> >
+> > IMPORTANT: this is not a complete workaround implementation as recommended
+> > by the silicon errata. this is a support logic for detecting lockups and
+> > attempting to recover where possible and is known to provide stability
+> > in multiple platforms.
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
->  Documentation/video4linux/v4l2-framework.txt |   38 +++++++++++++++++++--
->  drivers/media/video/v4l2-dev.c               |   47 +++++++++++++++++++++++---
->  include/media/v4l2-dev.h                     |    7 ++++
->  3 files changed, 84 insertions(+), 8 deletions(-)
+> How does this WA work when Core enters off mode? SRAM contents are
+> lost when Core enters off. So how this code is copied to SRAM upon
+> wakeup? Where is this code placed when Core entered off mode?
 > 
 
-<snip>
+This code is mostly important for inactive and retention. The ROM code
+waits for the maximum dll lock time when resuming from off mode. So for
+off mode this code isn't really needed.
 
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> index 035db52..511e1ee 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -278,6 +278,9 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
->  static int v4l2_open(struct inode *inode, struct file *filp)
->  {
->  	struct video_device *vdev;
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	struct media_entity *entity = NULL;
-> +#endif
->  	int ret = 0;
->  
->  	/* Check if the video device is available */
-> @@ -291,6 +294,16 @@ static int v4l2_open(struct inode *inode, struct file *filp)
->  	/* and increase the device refcount */
->  	video_get(vdev);
->  	mutex_unlock(&videodev_lock);
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
-> +		entity = media_entity_get(&vdev->entity);
-> +		if (!entity) {
-> +			ret = -EBUSY;
-> +			video_put(vdev);
-> +			return ret;
-> +		}
-> +	}
-> +#endif
->  	if (vdev->fops->open) {
->  		if (vdev->lock)
->  			mutex_lock(vdev->lock);
-> @@ -303,8 +316,13 @@ static int v4l2_open(struct inode *inode, struct file *filp)
->  	}
->  
->  	/* decrease the refcount in case of an error */
-> -	if (ret)
-> +	if (ret) {
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +		if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-> +			media_entity_put(entity);
-> +#endif
->  		video_put(vdev);
-> +	}
->  	return ret;
->  }
->  
-> @@ -321,7 +339,10 @@ static int v4l2_release(struct inode *inode, struct file *filp)
->  		if (vdev->lock)
->  			mutex_unlock(vdev->lock);
->  	}
-> -
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-> +		media_entity_put(&vdev->entity);
-> +#endif
->  	/* decrease the refcount unconditionally since the release()
->  	   return value is ignored. */
->  	video_put(vdev);
-> @@ -558,12 +579,25 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
->  	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
->  		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
->  			name_base, nr, video_device_node_name(vdev));
-> -
-> -	/* Part 5: Activate this minor. The char device can now be used. */
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	/* Part 5: Register the entity. */
-> +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
-> +		vdev->entity.type = MEDIA_ENTITY_TYPE_NODE_V4L;
-> +		vdev->entity.name = vdev->name;
-> +		vdev->entity.v4l.major = VIDEO_MAJOR;
-> +		vdev->entity.v4l.minor = vdev->minor;
-> +		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
-> +			&vdev->entity);
-> +		if (ret < 0)
-> +			printk(KERN_ERR "error\n"); /* TODO */
+Cheers,
 
-Was this forgotten, or will this be fixed in the next version? It looks
-out-of-place...
-
-> +	}
-> +#endif
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Peter.
