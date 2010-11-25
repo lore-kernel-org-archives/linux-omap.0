@@ -1,40 +1,123 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH v3 6/7] omap3: Export omap3isp platform device
- structure
-Date: Thu, 25 Nov 2010 13:23:11 +0200
-Message-ID: <20101125112311.GV2468@legolas.emea.dhcp.ti.com>
-References: <1290653678-15556-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1290653678-15556-7-git-send-email-laurent.pinchart@ideasonboard.com>
- <20101125070241.GX2468@legolas.emea.dhcp.ti.com>
- <201011251218.00331.laurent.pinchart@ideasonboard.com>
-Reply-To: balbi@ti.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH v6 11/12] v4l: Make video_device inherit from media_entity
+Date: Thu, 25 Nov 2010 12:38:15 +0100
+Message-ID: <201011251238.15331.hverkuil@xs4all.nl>
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <1290652099-15102-12-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:48388 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751581Ab0KYLXT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Nov 2010 06:23:19 -0500
-Content-Disposition: inline
-In-Reply-To: <201011251218.00331.laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1290652099-15102-12-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, linux-media@vger.kernel.org
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, lennart@poettering.net
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thursday, November 25, 2010 03:28:18 Laurent Pinchart wrote:
+> V4L2 devices are media entities. As such they need to inherit from
+> (include) the media_entity structure.
+> 
+> When registering/unregistering the device, the media entity is
+> automatically registered/unregistered. The entity is acquired on device
+> open and released on device close.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  Documentation/video4linux/v4l2-framework.txt |   38 +++++++++++++++++++--
+>  drivers/media/video/v4l2-dev.c               |   47 +++++++++++++++++++++++---
+>  include/media/v4l2-dev.h                     |    7 ++++
+>  3 files changed, 84 insertions(+), 8 deletions(-)
+> 
 
-On Thu, Nov 25, 2010 at 12:17:59PM +0100, Laurent Pinchart wrote:
->> pass platform_data as an argument to this call ? Then remove the static
->> inline and export this one ?
->
->Yes indeed, why ? :-)
->
->I guess things like that are difficult to spot when you've had your nose on
->the code for too long. Thanks for the review, I'll fix this.
+<snip>
 
-no problem :-)
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> index 035db52..511e1ee 100644
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -278,6 +278,9 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
+>  static int v4l2_open(struct inode *inode, struct file *filp)
+>  {
+>  	struct video_device *vdev;
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	struct media_entity *entity = NULL;
+> +#endif
+>  	int ret = 0;
+>  
+>  	/* Check if the video device is available */
+> @@ -291,6 +294,16 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+>  	/* and increase the device refcount */
+>  	video_get(vdev);
+>  	mutex_unlock(&videodev_lock);
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
+> +		entity = media_entity_get(&vdev->entity);
+> +		if (!entity) {
+> +			ret = -EBUSY;
+> +			video_put(vdev);
+> +			return ret;
+> +		}
+> +	}
+> +#endif
+>  	if (vdev->fops->open) {
+>  		if (vdev->lock)
+>  			mutex_lock(vdev->lock);
+> @@ -303,8 +316,13 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+>  	}
+>  
+>  	/* decrease the refcount in case of an error */
+> -	if (ret)
+> +	if (ret) {
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +		if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
+> +			media_entity_put(entity);
+> +#endif
+>  		video_put(vdev);
+> +	}
+>  	return ret;
+>  }
+>  
+> @@ -321,7 +339,10 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+>  		if (vdev->lock)
+>  			mutex_unlock(vdev->lock);
+>  	}
+> -
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
+> +		media_entity_put(&vdev->entity);
+> +#endif
+>  	/* decrease the refcount unconditionally since the release()
+>  	   return value is ignored. */
+>  	video_put(vdev);
+> @@ -558,12 +579,25 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+>  	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
+>  		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
+>  			name_base, nr, video_device_node_name(vdev));
+> -
+> -	/* Part 5: Activate this minor. The char device can now be used. */
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	/* Part 5: Register the entity. */
+> +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
+> +		vdev->entity.type = MEDIA_ENTITY_TYPE_NODE_V4L;
+> +		vdev->entity.name = vdev->name;
+> +		vdev->entity.v4l.major = VIDEO_MAJOR;
+> +		vdev->entity.v4l.minor = vdev->minor;
+> +		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
+> +			&vdev->entity);
+> +		if (ret < 0)
+> +			printk(KERN_ERR "error\n"); /* TODO */
+
+Was this forgotten, or will this be fixed in the next version? It looks
+out-of-place...
+
+> +	}
+> +#endif
+
+Regards,
+
+	Hans
 
 -- 
-balbi
+Hans Verkuil - video4linux developer - sponsored by Cisco
