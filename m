@@ -1,32 +1,20 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/2] enabled vdda_dac regulator support tvout on rx51
-Date: Thu, 25 Nov 2010 16:11:12 +0000
-Message-ID: <20101125161112.GB15099@sirena.org.uk>
-References: <1290700343-26640-1-git-send-email-ext-srikar.1.bhavanarayana@nokia.com> <1290700343-26640-2-git-send-email-ext-srikar.1.bhavanarayana@nokia.com>
+From: "=?ISO-8859-1?Q?Western Union Money Transfer?="
+	<info@westernuniononline.com>
+Subject: Western Union Claims
+Date: Thu, 25 Nov 2010 14:03:56 -0200
+Message-ID: <20101125160356.616962170C3__35122.7617044517$1290701990$gmane$org@hm2598.locaweb.com.br>
+Reply-To: wuclaimdept@att.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:33493 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753873Ab0KYQLT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Nov 2010 11:11:19 -0500
-Content-Disposition: inline
-In-Reply-To: <1290700343-26640-2-git-send-email-ext-srikar.1.bhavanarayana@nokia.com>
+Received: from hm1315-14.locaweb.com.br ([201.76.49.68]:44632 "EHLO
+	hm1315-14.locaweb.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752478Ab0KYQTl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Nov 2010 11:19:41 -0500
+References: 
+In-Reply-To: 
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Srikar <ext-srikar.1.bhavanarayana@nokia.com>
-Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Thu, Nov 25, 2010 at 05:52:23PM +0200, Srikar wrote:
 
-> +static struct regulator_consumer_supply rx51_vdac_supply[] = {
-> +	{
-> +#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-
-The ifdefs here aren't really saving much...
-
-> +		.supply	= "vdda_dac",
-> +		.dev	= &rx51_display_device.dev,
-
-dev_name is preferred, though I'm not sure if we'll ever get round to
-phasing out plain dev.
+You have a money transfer by Western Union.Send info,Name,Country,phone.
