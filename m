@@ -1,35 +1,93 @@
-From: Grant Likely <grant.likely@secretlab.ca>
+From: Ohad Ben-Cohen <ohad@wizery.com>
 Subject: Re: [PATCH v2 1/4] drivers: hwspinlock: add generic framework
-Date: Fri, 26 Nov 2010 00:18:49 -0700
-Message-ID: <AANLkTimkovvHzgdnGtGpTH1pz8QLi9K0-rcWVHCdMJbu@mail.gmail.com>
-References: <1290526740-27624-1-git-send-email-ohad@wizery.com>
- <1290526740-27624-2-git-send-email-ohad@wizery.com> <20101126045912.GC6598@lixom.net>
+Date: Fri, 26 Nov 2010 09:34:53 +0200
+Message-ID: <AANLkTi=sZ-4BBLAJNU5B41cAxtroGkpNomgEYO4vtx8z@mail.gmail.com>
+References: <AANLkTi=JSuJCqceJ3iw3TnV5OeJd+e5T3CyHtWVzBRu_@mail.gmail.com>
+ <536589.12568.qm@web180310.mail.gq1.yahoo.com> <AANLkTinQdNC0XaOqNyDbdYE6ZcP0QyzpN492j=Kovuea@mail.gmail.com>
+ <1290716548.2529.136.camel@helium>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:51589 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126Ab0KZHTK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Nov 2010 02:19:10 -0500
-In-Reply-To: <20101126045912.GC6598@lixom.net>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1290716548.2529.136.camel@helium>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: MugdhaKamoolkar <mugdha@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, BenoitCousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, HariKanigeri <h-kanigeri2@ti.com>, SumanAnna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hari Kanigeri <h-kanigeri2@ti.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Kevin Hilman <khilman@deeprootsystems.com>, akpm@linux-foundation.org, Suman Anna <s-anna@ti.com>
 
-On Thu, Nov 25, 2010 at 9:59 PM, Olof Johansson <olof@lixom.net> wrote:
-> On Tue, Nov 23, 2010 at 05:38:57PM +0200, Ohad Ben-Cohen wrote:
->> +#define pr_fmt(fmt) =A0 =A0"%s: " fmt, __func__
+On Thu, Nov 25, 2010 at 10:22 PM, David Brownell <david-b@pacbell.net> =
+wrote:
+> So there's no strong reason to think this is
+> actually "ggeneric". =A0Function names no longer
+> specify OMAP, but without other hardware under
+> the interface, calling it "generic" reflects
+> more optimism than reality. =A0(That was the
+> implication of my observations...)
+
+Well, it's not omap-specific anymore. Drivers can stay
+platform-agnostic, and other vendors can plug in anything they need in
+order to use the same drivers (including software implementations as
+mentioned below).
+
+As I mentioned, the other two options are going back to an omap
+specific driver (which will omapify drivers who use it), or putting
+the driver in the omap arch folders (which some people doesn't seem to
+like, e.g. http://www.spinics.net/lists/linux-arm-msm/msg00324.html).
+
+Which one of those would you prefer to see ?
+
+I guess that by now we have all three implementations so it's pretty
+easy to switch :)
+
+> To find other hardware spinlocks, you might be
+> able to look at fault tolerant multiprocessors.
+> Ages ago I worked with one of those, where any
+> spinlock failures integrated with CPU/OS fault
+> detection; HW cwould yank (checkpointed) CPU boards
+> off the bus so they could be recovered (some
+> might continue later from checkpoints, etc.)...
+
+Is that HW supported by Linux today ?
+
+Any chance you can share a link or any other info about it ?
+
+>> This way platforms [2] can easily plug into the framework anything
+>> they need to achieve multi-core synchronization. E.g., even in case =
+a
+>> platform doesn't have dedicated silicon, but still need this
+>> functionality, it can still plug in an implementation which is based
+>> on Peterson's shared memory mutual exclusion algorithm
 >
-> Not used.
+> And maybe also standard Linux spinlocks?
 
-pr_fmt() is a magic #define that changes the behaviour of the pr_*()
-macros.  See include/linux/kernel.h
+Umm, possibly. Though I admit it sounds awkward a bit. It feels like
+platforms, on which a mere spinlock is enough to achieve multi core
+synchronization, will not really need any of the IPC drivers that are
+going to use this hwspinlock framework. But I guess we need to see a
+use case first.
 
-g.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> I seem to recall some iterations of the real-time patches doing a lot=
+ of
+> work to generalize spinlocks, since they needed multiple variants. =A0=
+It
+> might be worth following in those footsteps. =A0(Though I'm not sure =
+they
+> were thinking much about hardware support .
+
+Any chance you can point me at a specific discussion or patchset that
+you feel may be relevant ?
+
+Thanks!
+Ohad.
+
+>
+> - Dave
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
