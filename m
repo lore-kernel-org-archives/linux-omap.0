@@ -1,46 +1,52 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 1/4] drivers: hwspinlock: add generic framework
-Date: Fri, 26 Nov 2010 09:18:32 +0000
-Message-ID: <20101126091832.GE9310@n2100.arm.linux.org.uk>
-References: <1290526740-27624-1-git-send-email-ohad@wizery.com> <1290526740-27624-2-git-send-email-ohad@wizery.com> <20101126045912.GC6598@lixom.net> <AANLkTin5Tfcuy0WcHJ22rWC8niwZCj8SZAMKLz0p9jwc@mail.gmail.com>
+From: <ext-srikar.1.bhavanarayana@nokia.com>
+Subject: RE: [PATCH 2/2] enabled vdda_dac regulator support tvout on rx51
+Date: Fri, 26 Nov 2010 09:42:55 +0000
+Message-ID: <FE7260A13DF09F4ABF54F0E4A700232104A1B1@008-AM1MPN1-001.mgdnok.nokia.com>
+References: <1290700343-26640-1-git-send-email-ext-srikar.1.bhavanarayana@nokia.com>
+ <1290700343-26640-2-git-send-email-ext-srikar.1.bhavanarayana@nokia.com>,<20101125161112.GB15099@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTin5Tfcuy0WcHJ22rWC8niwZCj8SZAMKLz0p9jwc@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Olof Johansson <olof@lixom.net>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@deeprootsystems.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.26]:37628 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753395Ab0KZJpf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Nov 2010 04:45:35 -0500
+In-Reply-To: <20101125161112.GB15099@sirena.org.uk>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: broonie@opensource.wolfsonmicro.com
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Fri, Nov 26, 2010 at 10:53:10AM +0200, Ohad Ben-Cohen wrote:
-> >> +int __hwspin_trylock(struct hwspinlock *hwlock, int mode, unsigne=
-d long *flags)
-> >> +{
-> >> + =A0 =A0 int ret;
-> >> +
-> >> + =A0 =A0 if (unlikely(!hwlock)) {
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("invalid hwlock\n");
-> >
-> > These kind of errors can get very spammy for buggy drivers.
->=20
-> Yeah, but that's the purpose - I want to catch such egregious drivers
-> who try to crash the kernel.
+> +#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
 
-That can be better - because you get a backtrace, and it causes people
-to report the problem rather than just ignore it.  It may also prevent
-the driver author releasing his code (as it won't work on their
-initial testing.)
+The ifdefs here aren't really saving much...
+>>> In the same file board-rx51-peripheral.c,Under these  rx51_display_device is
+defined  as extern  and also in board-rx51-video.c the under same #defines Complete display functionality is implemented
+currently so used  not to break compilation when #defines are not enabled .
 
-> > It's likely
-> > more useful to either do a WARN_ON(), and/or move them under a debu=
-g
-> > config option.
->=20
-> Why would you prefer to compile out reporting of such extremely buggy
-> behavior ?
+>>.dev_name is preferred, though I'm not sure if we'll ever get round to
+phasing out plain dev.
+>>>>It is difficult to modify currently.
 
-If it's "extremely buggy behaviour" then the drivers deserve to crash.
-Such stuff should cause them not to get out the door.  A simple printk
-with an error return can just be ignored.
+________________________________________
+From: ext Mark Brown [broonie@opensource.wolfsonmicro.com]
+Sent: Thursday, November 25, 2010 6:11 PM
+To: Bhavanarayana Srikar.1 (EXT-Elektrobit/Helsinki)
+Cc: tony@atomide.com; linux@arm.linux.org.uk; linux-omap@vger.kernel.org
+Subject: Re: [PATCH 2/2] enabled vdda_dac regulator support tvout on rx51
+
+On Thu, Nov 25, 2010 at 05:52:23PM +0200, Srikar wrote:
+
+> +static struct regulator_consumer_supply rx51_vdac_supply[] = {
+> +     {
+> +#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
+
+The ifdefs here aren't really saving much...
+
+> +             .supply = "vdda_dac",
+> +             .dev    = &rx51_display_device.dev,
+
+dev_name is preferred, though I'm not sure if we'll ever get round to
+phasing out plain dev.
