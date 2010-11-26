@@ -1,112 +1,167 @@
 From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v6 6/7] omap: nand: ecc layout select from board file
-Date: Fri, 26 Nov 2010 21:04:36 +0530
-Message-ID: <1290785677-16005-7-git-send-email-s-ghorai@ti.com>
+Subject: [PATCH v6 5/7] omap3: nand: configurable fifo threshold to gain the throughput
+Date: Fri, 26 Nov 2010 21:04:35 +0530
+Message-ID: <1290785677-16005-6-git-send-email-s-ghorai@ti.com>
 References: <1290785677-16005-1-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56001 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:56002 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752286Ab0KZPev (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Nov 2010 10:34:51 -0500
+	with ESMTP id S1753648Ab0KZPew (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Nov 2010 10:34:52 -0500
 In-Reply-To: <1290785677-16005-1-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimalsingh@ti.com>
 
-This patch makes it possible to select sw or hw (different layout options)
-ecc scheme supported by omap nand driver.  And hw ecc layout selected for
-sdp and zoom boards, by default.
+Configure the FIFO THREASHOLD value different for read and write to keep busy
+both filling and to drain out of FIFO at reading and writing.
 
 Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
 ---
- arch/arm/mach-omap2/board-flash.c      |    1 +
- arch/arm/plat-omap/include/plat/gpmc.h |    7 +++++++
- arch/arm/plat-omap/include/plat/nand.h |    2 ++
- drivers/mtd/nand/omap2.c               |    5 +----
- 4 files changed, 11 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/gpmc.c             |   11 +++++++----
+ arch/arm/plat-omap/include/plat/gpmc.h |    5 ++++-
+ drivers/mtd/nand/omap2.c               |   24 +++++++++++++++---------
+ 3 files changed, 26 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
-index 78abcd9..3340427 100644
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -150,6 +150,7 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs)
- 	if (cpu_is_omap3630())
- 		board_nand_data.devsize = 1;
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index cfaf357..b26b1a5 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -59,7 +59,6 @@
+ #define GPMC_CHUNK_SHIFT	24		/* 16 MB */
+ #define GPMC_SECTION_SHIFT	28		/* 128 MB */
  
-+	board_nand_data.ecc_opt = OMAP_ECC_HAMMING_CODE_DIFF_LAYOUT;
- 	board_nand_data.gpmc_irq = OMAP_GPMC_IRQ_BASE + cs;
- 	gpmc_nand_init(&board_nand_data);
- }
+-#define PREFETCH_FIFOTHRESHOLD	(0x40 << 8)
+ #define CS_NUM_SHIFT		24
+ #define ENABLE_PREFETCH		(0x1 << 7)
+ #define DMA_MPU_MODE		2
+@@ -595,15 +594,19 @@ EXPORT_SYMBOL(gpmc_nand_write);
+ /**
+  * gpmc_prefetch_enable - configures and starts prefetch transfer
+  * @cs: cs (chip select) number
++ * @fifo_th: fifo threshold to be used for read/ write
+  * @dma_mode: dma mode enable (1) or disable (0)
+  * @u32_count: number of bytes to be transferred
+  * @is_write: prefetch read(0) or write post(1) mode
+  */
+-int gpmc_prefetch_enable(int cs, int dma_mode,
++int gpmc_prefetch_enable(int cs, int fifo_th, int dma_mode,
+ 				unsigned int u32_count, int is_write)
+ {
+ 
+-	if (!(gpmc_read_reg(GPMC_PREFETCH_CONTROL))) {
++	if (fifo_th > PREFETCH_FIFOTHRESHOLD_MAX) {
++		printk(KERN_ERR "PREFETCH Fifo Threshold is not supported\n");
++		return -1;
++	} else if (!(gpmc_read_reg(GPMC_PREFETCH_CONTROL))) {
+ 		/* Set the amount of bytes to be prefetched */
+ 		gpmc_write_reg(GPMC_PREFETCH_CONFIG2, u32_count);
+ 
+@@ -611,7 +614,7 @@ int gpmc_prefetch_enable(int cs, int dma_mode,
+ 		 * enable the engine. Set which cs is has requested for.
+ 		 */
+ 		gpmc_write_reg(GPMC_PREFETCH_CONFIG1, ((cs << CS_NUM_SHIFT) |
+-					PREFETCH_FIFOTHRESHOLD |
++					PREFETCH_FIFOTHRESHOLD(fifo_th) |
+ 					ENABLE_PREFETCH |
+ 					(dma_mode << DMA_MPU_MODE) |
+ 					(0x1 & is_write)));
 diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index fb82335..ca6e8db 100644
+index 054e704..fb82335 100644
 --- a/arch/arm/plat-omap/include/plat/gpmc.h
 +++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -86,6 +86,13 @@
- #define PREFETCH_FIFOTHRESHOLD_MAX	0x40
- #define PREFETCH_FIFOTHRESHOLD(val)	(val << 8)
+@@ -83,6 +83,9 @@
+ #define GPMC_IRQ_FIFOEVENTENABLE	0x01
+ #define GPMC_IRQ_COUNT_EVENT		0x02
  
-+enum omap_ecc {
-+	OMAP_ECC_HAMMING_CODE_DIFF_LAYOUT = 0,
-+		/* 1-bit s/w ecc and layout different from romcode */
-+	OMAP_ECC_HAMMING_CODE_HW,/* 1-bit ecc, romcode layout */
-+	OMAP_ECC_HAMMING_CODE_SW,/* 1-bit ecc, romcode layout */
-+};
++#define PREFETCH_FIFOTHRESHOLD_MAX	0x40
++#define PREFETCH_FIFOTHRESHOLD(val)	(val << 8)
 +
  /*
   * Note that all values in this struct are in nanoseconds, while
   * the register values are in gpmc_fck cycles.
-diff --git a/arch/arm/plat-omap/include/plat/nand.h b/arch/arm/plat-omap/include/plat/nand.h
-index ae5e053..d86d1ec 100644
---- a/arch/arm/plat-omap/include/plat/nand.h
-+++ b/arch/arm/plat-omap/include/plat/nand.h
-@@ -8,6 +8,7 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <plat/gpmc.h>
- #include <linux/mtd/partitions.h>
- 
- enum nand_io {
-@@ -31,6 +32,7 @@ struct omap_nand_platform_data {
- 	enum nand_io		xfer_type;
- 	unsigned long		phys_base;
- 	int			devsize;
-+	enum omap_ecc           ecc_opt;
- };
- 
- /* minimum size for IO mapping */
+@@ -133,7 +136,7 @@ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+ extern void gpmc_cs_free(int cs);
+ extern int gpmc_cs_set_reserved(int cs, int reserved);
+ extern int gpmc_cs_reserved(int cs);
+-extern int gpmc_prefetch_enable(int cs, int dma_mode,
++extern int gpmc_prefetch_enable(int cs, int fifo_th, int dma_mode,
+ 					unsigned int u32_count, int is_write);
+ extern int gpmc_prefetch_reset(int cs);
+ extern void omap3_gpmc_save_context(void);
 diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index fea9f59..0937001 100644
+index c4bbbd0..fea9f59 100644
 --- a/drivers/mtd/nand/omap2.c
 +++ b/drivers/mtd/nand/omap2.c
-@@ -7,6 +7,7 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
-+#define CONFIG_MTD_NAND_OMAP_HWECC
+@@ -243,7 +243,8 @@ static void omap_read_buf_pref(struct mtd_info *mtd, u_char *buf, int len)
+ 	}
  
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
-@@ -618,8 +619,6 @@ static int omap_verify_buf(struct mtd_info *mtd, const u_char * buf, int len)
- 	return 0;
- }
+ 	/* configure and start prefetch transfer */
+-	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
++	ret = gpmc_prefetch_enable(info->gpmc_cs,
++			PREFETCH_FIFOTHRESHOLD_MAX, 0x0, len, 0x0);
+ 	if (ret) {
+ 		/* PFPW engine is busy, use cpu copy method */
+ 		if (info->nand.options & NAND_BUSWIDTH_16)
+@@ -287,7 +288,8 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
+ 	}
  
--#ifdef CONFIG_MTD_NAND_OMAP_HWECC
--
- /**
-  * gen_true_ecc - This function will generate true ECC value
-  * @ecc_buf: buffer to store ecc code
-@@ -839,8 +838,6 @@ static void omap_enable_hwecc(struct mtd_info *mtd, int mode)
- 	gpmc_enable_hwecc(info->gpmc_cs, mode, dev_width, info->nand.ecc.size);
- }
+ 	/*  configure and start prefetch transfer */
+-	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x1);
++	ret = gpmc_prefetch_enable(info->gpmc_cs,
++			PREFETCH_FIFOTHRESHOLD_MAX, 0x0, len, 0x1);
+ 	if (ret) {
+ 		/* PFPW engine is busy, use cpu copy method */
+ 		if (info->nand.options & NAND_BUSWIDTH_16)
+@@ -340,10 +342,11 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 	dma_addr_t dma_addr;
+ 	int ret;
  
--#endif
--
- /**
-  * omap_wait - wait until the command is done
-  * @mtd: MTD device structure
+-	/* The fifo depth is 64 bytes. We have a sync at each frame and frame
+-	 * length is 64 bytes.
++	/* The fifo depth is 64 bytes max.
++	 * But configure the FIFO-threahold to 32 to get a sync at each frame
++	 * and frame length is 32 bytes.
+ 	 */
+-	int buf_len = len >> 6;
++	int buf_len = len >> 5;
+ 
+ 	if (addr >= high_memory) {
+ 		struct page *p1;
+@@ -382,7 +385,8 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 					OMAP24XX_DMA_GPMC, OMAP_DMA_SRC_SYNC);
+ 	}
+ 	/*  configure and start prefetch transfer */
+-	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x1, len, is_write);
++	ret = gpmc_prefetch_enable(info->gpmc_cs,
++			PREFETCH_FIFOTHRESHOLD_MAX/2, 0x1, len, is_write);
+ 	if (ret)
+ 		/* PFPW engine is busy, use cpu copy methode */
+ 		goto out_copy;
+@@ -518,7 +522,8 @@ static void omap_read_buf_irq_pref(struct mtd_info *mtd, u_char *buf, int len)
+ 	init_completion(&info->comp);
+ 
+ 	/*  configure and start prefetch transfer */
+-	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
++	ret = gpmc_prefetch_enable(info->gpmc_cs,
++			PREFETCH_FIFOTHRESHOLD_MAX/2, 0x0, len, 0x0);
+ 	if (ret)
+ 		/* PFPW engine is busy, use cpu copy methode */
+ 		goto out_copy;
+@@ -563,8 +568,9 @@ static void omap_write_buf_irq_pref(struct mtd_info *mtd,
+ 	info->buf = (u_char *) buf;
+ 	init_completion(&info->comp);
+ 
+-	/*  configure and start prefetch transfer */
+-	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x1);
++	/* configure and start prefetch transfer : size=24 */
++	ret = gpmc_prefetch_enable(info->gpmc_cs,
++			(PREFETCH_FIFOTHRESHOLD_MAX*3)/8, 0x0, len, 0x1);
+ 	if (ret)
+ 		/* PFPW engine is busy, use cpu copy methode */
+ 		goto out_copy;
 -- 
 1.7.0.4
 
