@@ -1,57 +1,39 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
-Date: Fri, 26 Nov 2010 15:11:57 +0200
-Message-ID: <AANLkTi=roWN7EpBy1+9HwntaaHd6Nh0rA9cScxfpRkOC@mail.gmail.com>
-References: <19F8576C6E063C45BE387C64729E739404BC762E9A@dbde02.ent.ti.com>
-	<1290589057.13243.22.camel@tubuntu>
-	<19F8576C6E063C45BE387C64729E739404BCCA3A55@dbde02.ent.ti.com>
-	<20101124163100.GB5681@nokia.com>
-	<19F8576C6E063C45BE387C64729E739404BCCA3CAE@dbde02.ent.ti.com>
-	<yw1xeia81nts.fsf@unicorn.mansr.com>
-	<19F8576C6E063C45BE387C64729E739404BCCA401F@dbde02.ent.ti.com>
-	<20101126125539.GG8094@nokia.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v6 00/12] Media controller (core and V4L2)
+Date: Fri, 26 Nov 2010 15:07:24 +0100
+Message-ID: <201011261507.30191.laurent.pinchart@ideasonboard.com>
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <20101125142803.GA15099@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:34324 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752341Ab0KZNL7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Nov 2010 08:11:59 -0500
-In-Reply-To: <20101126125539.GG8094@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101125142803.GA15099@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, lrg@slimlogic.co.uk, sakari.ailus@maxwell.research.nokia.com, lennart@poettering.net
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@nokia.com>
-Cc: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>, =?UTF-8?B?TcOlbnMgUnVsbGfDpXJk?= <mans@mansr.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-On Fri, Nov 26, 2010 at 2:55 PM, Ville Syrj=C3=A4l=C3=A4 <ville.syrjala=
-@nokia.com> wrote:
-> On Fri, Nov 26, 2010 at 05:38:11PM +0530, ext Hiremath, Vaibhav wrote=
-:
->> With this finding, in case of OMAP3 we have to use OMAPFB_WAITFORGO =
-(breaking standard applications).
->
-> Applications using the standard fbdev API won't work with manual upda=
-te
-> displays anyway. You need omapfb specific code to handle it so having
-> another small difference is not a big deal.
->
-> In DirectFB the that's trivial since there's already a simple omap
-> gfxdriver where you could override the default flip functionality wit=
-h
-> WAITFORGO based stuff.
->
-> Or, as I said, you could add another standard ioctl and fix up usersp=
-ace
-> to use it where appropriate and if the kernel driver supports it.
+Hi Mark,
 
-That sounds more appealing to me: there's no point in having
-omap-specific interfaces if they can be standard.
+On Thursday 25 November 2010 15:28:04 Mark Brown wrote:
+> On Thu, Nov 25, 2010 at 03:28:07AM +0100, Laurent Pinchart wrote:
+> > I want to emphasize that the media controller API does *not* replace the
+> > V4L, DVB or ALSA APIs. It complements them.
+> 
+> Overall this looks relatively good and should be mappable onto the
+> embedded audio stack.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks a lot for the review.
+
+> I'd need to sit down and actually do that to go into too much specific
+> detail but the only real issue I see is working out how the control aspects
+> of this interact with the control in ALSA. The simplest thing would be to
+> have the userspace API be read only for ALSA devices, I guess.
+
+That sounds good, especially for the first step.
+
+-- 
+Regards,
+
+Laurent Pinchart
