@@ -1,108 +1,133 @@
-From: MyungJoo Ham <myungjoo.ham@gmail.com>
-Subject: Re: [RFC][PATCH 1/1] ARM: Add initial hibernation support
-Date: Fri, 26 Nov 2010 16:39:43 +0900
-Message-ID: <AANLkTin-ZCb7bdYhtUe00cPMs7m+Kjp0=4EEQ38i0q5Y@mail.gmail.com>
-References: <1277908081-17195-1-git-send-email-Hiroshi.DOYU@nokia.com>
-	<1277908081-17195-2-git-send-email-Hiroshi.DOYU@nokia.com>
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Subject: Re: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
+Date: Fri, 26 Nov 2010 08:38:55 +0000
+Message-ID: <yw1xeia81nts.fsf@unicorn.mansr.com>
+References: <19F8576C6E063C45BE387C64729E739404BC762E9A@dbde02.ent.ti.com> <1290589057.13243.22.camel@tubuntu> <19F8576C6E063C45BE387C64729E739404BCCA3A55@dbde02.ent.ti.com> <20101124163100.GB5681@nokia.com> <19F8576C6E063C45BE387C64729E739404BCCA3CAE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:43648 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753186Ab0KZHjp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Nov 2010 02:39:45 -0500
-Received: by fxm15 with SMTP id 15so471274fxm.19
-        for <linux-omap@vger.kernel.org>; Thu, 25 Nov 2010 23:39:44 -0800 (PST)
-In-Reply-To: <1277908081-17195-2-git-send-email-Hiroshi.DOYU@nokia.com>
+Received: from lo.gmane.org ([80.91.229.12]:57164 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752035Ab0KZIjN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Nov 2010 03:39:13 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1PLtpo-0001pl-9c
+	for linux-omap@vger.kernel.org; Fri, 26 Nov 2010 09:39:12 +0100
+Received: from unicorn.mansr.com ([78.86.181.103])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 26 Nov 2010 09:39:12 +0100
+Received: from mans by unicorn.mansr.com with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 26 Nov 2010 09:39:12 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, Yoshiya.Hirase@nokia.com, teerth@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Wed, Jun 30, 2010 at 11:28 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>=
- wrote:
-> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+
+>> -----Original Message-----
+>> From: Ville Syrj=E4l=E4 [mailto:ville.syrjala@nokia.com]
+>> Sent: Wednesday, November 24, 2010 10:01 PM
+>> To: Hiremath, Vaibhav
+>> Cc: Tomi Valkeinen; linux-omap@vger.kernel.org
+>> Subject: Re: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
+>>=20
+>> On Wed, Nov 24, 2010 at 03:39:44PM +0530, ext Hiremath, Vaibhav wrot=
+e:
+>> >
+>> > > -----Original Message-----
+>> > > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+>> > > Sent: Wednesday, November 24, 2010 2:28 PM
+>> > > To: Hiremath, Vaibhav
+>> > > Cc: linux-omap@vger.kernel.org
+>> > > Subject: Re: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
+>> > >
+>> > > On Tue, 2010-11-23 at 23:46 +0530, ext Hiremath, Vaibhav wrote:
+>> > > > Hi,
+> <snip>
+>> >
+>> > > Changing it to WAITFORGO would alter the behaviour. Sometimes it=
+ would
+>> > > not wait at all, sometimes it could wait for multiple vsyncs.
+>> > [Hiremath, Vaibhav] I am quite not sure, whether it makes sense fr=
+om
+>> application point of view to wait for vsync if config is not changed=
+=2E What
+>> could be the use-case for such requirement, where application won't =
+change
+>> anything but still would like to wait on vsync?
+>> >
+>> > And as far as wait on multiple vsync is concerned, it does make se=
+nse to
+>> coat "WAITFORVSYNC ioctl makes sure that your change got applied to =
+HW".
+>> >
+>> > I am not aware of other architectures, but I believe this is somet=
+hing
+>> OMAP specific stuff. And for other platforms, WAITFORVSYNC means cha=
+nges
+>> applied to HW (why does apps care about whether it is vsync or anyth=
+ing
+>> else?).
+>>=20
+>> WAITFORVSYNC waits for the next vsync (or actually vblank in many
+>> cases).=20
+> [Hiremath, Vaibhav] Please note that this doesn't include VFP
+> (vertical front porch), since you are going to get VSYNC only after
+> VFP.
 >
-> Hibernation (a.k.a: Suspend-To-Disk) support for ARM
+>> That's it. I don't see any point in trying to shoehorn
+>> other functionality into it.
+>>=20
+>> If you want to standardise WAITFORGO type of stuff then just add
+>> another standard ioctl for it.
+>>=20
+> [Hiremath, Vaibhav] I still believe we should not only look at the
+> name of IOCTL (WAITFORVSYNC) and define what it should do, it may
+> change based on your platform/HW to get the desired functionality
+> out of it.
+
+It is impossible to know what every user expects from it.  A user may
+very well be using WAITFORVSYNC for timing purposes.  If it then were
+to sometimes wait more than one vsync, it would be useless.
+
+> In OMAP there is chance of miss-match between user application and
+> Display HW if user uses FBIO_WAITFORVSYNC ioctl in multi-buffer
+> use-case.
 >
-> Based on the original work from Romit and Raghu at TI. The original
-> patch(*1) was sent to LOML by Teerth Reddy <teerth@ti.com>
+> while (1) {
+> 	Update/Create the next buffer
+> 	FBIO_PAN
+> 	FBIO_WAITFORVSYNC //assuming HW-SW stay in sync (which is not)
+> }
 >
-> *1: https://patchwork.kernel.org/patch/96442/
->
-> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> There is definitely an issue with above use-case which has been
+> un-doubtfully conformed now.
 
-(snip)
+The bug could still be argued to be in the application.
 
-> +config ARCH_HIBERNATION_POSSIBLE
-> + =A0 =A0 =A0 def_bool y
-> + =A0 =A0 =A0 depends on CPU_V7 && !SMP
-> +
+> At least in case of OMAP, WAITFORVSYNC is useless in multiple
+> buffering use-case, application has to use WAITFORGO.
 
-(snip)
+Why does it take so long for the changes to reach the hardware?  Once
+written to the registers, the values are latched at the next vsync, so
+the delay is higher up the stack.  Is there any way it could be
+eliminated?  This would not only fix the "bug" under discussion here,
+but also reduce the latency of page flipping.
 
-> +/*
-> + * FIXME: Only support for Cortex A8 now
-> + */
+> As far as WAITFORGO is concerned, I think GO bit concept is
+> something OMAP notion/term and doesn't make sense to standardize
+> it. Atleast I am not aware of any other architecture having GO bit.
 
-(snip)
-
-> --- a/arch/arm/kernel/vmlinux.lds.S
-> +++ b/arch/arm/kernel/vmlinux.lds.S
-> @@ -149,7 +149,6 @@ SECTIONS
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0__init_end =3D .;
-> =A0#endif
->
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 NOSAVE_DATA
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0CACHELINE_ALIGNED_DATA(32)
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/*
-> @@ -172,6 +171,8 @@ SECTIONS
-> =A0 =A0 =A0 =A0}
-> =A0 =A0 =A0 =A0_edata_loc =3D __data_loc + SIZEOF(.data);
->
-> + =A0 =A0 =A0 NOSAVE_DATA
-> +
-> =A0#ifdef CONFIG_HAVE_TCM
-> =A0 =A0 =A0 =A0 /*
-> =A0 =A0 =A0 =A0 * We align everything to a page boundary so we can
-> --
-
-I have been working on the hibernation feature on S5PC210 (ARM Cortex
-A9 MP-Core) based on this patch and it's working find with minor
-modifications. (and will send as soon as clutters are removed and
-tested further)
-
-However, I've got a question on your patch: is it really necessary to
-patch [arch/arm/kernel/vmlinux.lds.S] file? Without patching that
-file, it works fine at my system (although it's based on 2.6.36, not
-37 rc #) and with that patch, the linker spits an error. If it's
-necessary to patch [arch/arm/kernel/vmlinux.lds.S], could you please
-explain a bit about it?
-
-Thank you.
-
-
-- MyungJoo
-
-> 1.7.1.rc2
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->
-
-
+Naming is minor detail.  Feel free to suggest a better one.
 
 --=20
-MyungJoo Ham, Ph.D.
-Mobile Software Platform Lab,
-Digital Media and Communications (DMC) Business
-Samsung Electronics
-cell: 82-10-6714-2858
+M=E5ns Rullg=E5rd
+mans@mansr.com
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
