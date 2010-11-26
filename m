@@ -1,71 +1,37 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 1/4] drivers: hwspinlock: add generic framework
-Date: Fri, 26 Nov 2010 10:45:48 +0000
-Message-ID: <20101126104548.GG9310@n2100.arm.linux.org.uk>
-References: <1290526740-27624-1-git-send-email-ohad@wizery.com> <1290526740-27624-2-git-send-email-ohad@wizery.com> <20101126045912.GC6598@lixom.net> <AANLkTin5Tfcuy0WcHJ22rWC8niwZCj8SZAMKLz0p9jwc@mail.gmail.com> <20101126091832.GE9310@n2100.arm.linux.org.uk> <AANLkTimS-cSi1B5LdtwhJWhKDuFKOYG1j_p-iQiH=zRe@mail.gmail.com>
+From: Arno Steffen <arno.steffen@googlemail.com>
+Subject: [PATCH] OMAP3_IVA_MASK should use OMAP3_IVA_SHIFT instead of OMAP3_SGX_SHIFT
+Date: Fri, 26 Nov 2010 12:41:37 +0100
+Message-ID: <AANLkTi=rVpQWnRmzw2XF3TzoQW6E9fHLKfrdZUi8-cJo@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTimS-cSi1B5LdtwhJWhKDuFKOYG1j_p-iQiH=zRe@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Olof Johansson <olof@lixom.net>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@deeprootsystems.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:48089 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902Ab0KZLli (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Nov 2010 06:41:38 -0500
+Received: by iwn7 with SMTP id 7so605142iwn.19
+        for <linux-omap@vger.kernel.org>; Fri, 26 Nov 2010 03:41:38 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Fri, Nov 26, 2010 at 12:16:39PM +0200, Ohad Ben-Cohen wrote:
-> On Fri, Nov 26, 2010 at 11:18 AM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Fri, Nov 26, 2010 at 10:53:10AM +0200, Ohad Ben-Cohen wrote:
-> >> >> +int __hwspin_trylock(struct hwspinlock *hwlock, int mode, unsi=
-gned long *flags)
-> >> >> +{
-> >> >> + =A0 =A0 int ret;
-> >> >> +
-> >> >> + =A0 =A0 if (unlikely(!hwlock)) {
-> >> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("invalid hwlock\n");
-> >> >
-> >> > These kind of errors can get very spammy for buggy drivers.
-> >>
-> >> Yeah, but that's the purpose - I want to catch such egregious driv=
-ers
-> >> who try to crash the kernel.
-> >
-> > That can be better - because you get a backtrace, and it causes peo=
-ple
-> > to report the problem rather than just ignore it. =A0It may also pr=
-event
-> > the driver author releasing his code (as it won't work on their
-> > initial testing.)
-> >
-> ...
-> >
-> > If it's "extremely buggy behaviour" then the drivers deserve to cra=
-sh.
-> > Such stuff should cause them not to get out the door. =A0A simple p=
-rintk
-> > with an error return can just be ignored.
->=20
-> I like this approach too, but recently we had a few privilege
-> escalation exploits which involved NULL dereference kernel bugs
-> (process context mapped address 0 despite a positive mmap_min_addr).
+Signed-off-by: Arno Steffen <arno.steffen@googlemail.com>
+---
+ arch/arm/mach-omap2/control.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-That's not a concern on ARM.  The prevention of having a user page mapp=
-ed
-at virtual address 0 does not rely on mmap_min_addr - in fact, we can't
-use this as it's tuneable to enforce this requirement.
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index b6c6b7c..5325297 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -309,7 +309,7 @@
+ #define		FEAT_SGX_NONE		2
 
-It's highly illegal on ARM - as ARM CPUs without vector remap place the
-hardware vectors at virtual address 0, and as such allowing the user to
-map a page there will take the system down.  So we have this code in th=
-e
-mmap path:
+ #define OMAP3_IVA_SHIFT			12
+-#define OMAP3_IVA_MASK			(1 << OMAP3_SGX_SHIFT)
++#define OMAP3_IVA_MASK			(1 << OMAP3_IVA_SHIFT)
+ #define		FEAT_IVA		0
+ #define		FEAT_IVA_NONE		1
 
-#define arch_mmap_check(addr, len, flags) \
-        (((flags) & MAP_FIXED && (addr) < FIRST_USER_ADDRESS) ? -EINVAL=
- : 0)
-
-which prevents any attempt what so ever, irrespective of the mmap_min_a=
-ddr
-setting, to create a userspace induced mapping at address 0.
+-- 
+1.7.0.4
