@@ -1,39 +1,65 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 1/4] drivers: hwspinlock: add generic framework
-Date: Fri, 26 Nov 2010 22:53:39 +0000
-Message-ID: <20101126225339.GA26864@n2100.arm.linux.org.uk>
-References: <1290526740-27624-1-git-send-email-ohad@wizery.com> <1290526740-27624-2-git-send-email-ohad@wizery.com> <20101126045912.GC6598@lixom.net> <AANLkTin5Tfcuy0WcHJ22rWC8niwZCj8SZAMKLz0p9jwc@mail.gmail.com> <20101126091832.GE9310@n2100.arm.linux.org.uk> <AANLkTimS-cSi1B5LdtwhJWhKDuFKOYG1j_p-iQiH=zRe@mail.gmail.com> <20101126104548.GG9310@n2100.arm.linux.org.uk> <AANLkTi=h3gPN63NKKJ4wjumKNx9qDtxCKvOSbtRkr1wx@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=h3gPN63NKKJ4wjumKNx9qDtxCKvOSbtRkr1wx@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Olof Johansson <olof@lixom.net>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@deeprootsystems.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] omap: zoom: wl1271 slot is MMC_CAP_POWER_OFF_CARD
+Date: Sat, 27 Nov 2010 01:59:24 +0200
+Message-ID: <1290815964-30088-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Nov 27, 2010 at 12:18:55AM +0200, Ohad Ben-Cohen wrote:
-> But then there's the other (quite reasonable) claim that says we
-> shouldn't crash the machine because of a non fatal bug: if a crappy
-> driver messes up, the user (not the developer) will most probably
-> prefer the machine to keep running with degraded functionality rather
-> than boot.
+This patch complements ed919b0 "mmc: sdio: fix runtime PM anomalies by
+introducing MMC_CAP_POWER_OFF_CARD" by declaring MMC_CAP_POWER_OFF_CARD
+on the ZOOM's wl1271 mmc slot.
 
-There's also the quite reasonable expectation that we shouldn't corrupt
-user data.  With locking interfaces, if someone abuses them and they
-fail to work, then the risk is data corruption due to races.  The safe
-thing in that case is to panic - terminate that thread before it does
-anything unsafe, thereby preventing data corruption.
+This is required in order not to break runtime PM support for the wl1271
+sdio driver.
 
-Yes, it may mean that something becomes unavailable, but that's better
-than corrupting data.
+Signed-off-by: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+---
+Quick summary:
 
-Take a look at the kernel's own spinlock implementation.  Do we do lots
-of checks in there for things like someone passing a NULL pointer to
-the spinlock, or do we get an oops instead?
+After adding SDIO runtime PM support, we realized there are some
+board/host/card setups that are incapable of powering off the card
+after boot. For details, see:
+http://thread.gmane.org/gmane.linux.kernel.mmc/4342/focus=4579
 
-Also look at the list implementation.  Do we check for NULL pointers
-there, or do we get an oops instead?
+As a result, we added MMC_CAP_POWER_OFF_CARD which should be explicitly set
+by setups that _do_ support powering off the card.
 
-Same for mutex.  The same goes for lots of other infrastructure interfaces.
+This ensures we don't break existing functionality: SDIO core will enable
+runtime PM for cards only if that cap is set.
+As a result, the card will be powered down after boot, and will only
+be powered up again when a driver is loaded (and then it's up to the
+driver whether power will be kept or not).
+
+To complement that fix (which was just merged upstream), we need this
+patch too in 2.6.37, otherwise wl1271_sdio will break.
+
+Pandora/Beagle wl12xx users: you need a similar patch as well, as this one
+only takes care of ZOOM (I don't have those other setups and preferred not to
+send a patch without testing).
+
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 86c9b21..9db9203 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -216,7 +216,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 	{
+ 		.name		= "wl1271",
+ 		.mmc		= 3,
+-		.caps		= MMC_CAP_4_BIT_DATA,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
+ 		.gpio_wp	= -EINVAL,
+ 		.gpio_cd	= -EINVAL,
+ 		.nonremovable	= true,
+-- 
+1.7.0.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
