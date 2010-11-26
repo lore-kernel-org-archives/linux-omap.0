@@ -1,39 +1,35 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Subject: [Query]McSPI testing help on N800
-Date: Fri, 26 Nov 2010 12:17:10 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C004137FE3F8@dbde02.ent.ti.com>
-References: <1290524213-395-1-git-send-email-charu@ti.com>
- <1290524213-395-2-git-send-email-charu@ti.com>
- <20101126043829.GB6598@lixom.net>
- <AANLkTi=9RpAw4gi92M_7JLkS+VHPUp_YPdwRRin0u8Jx@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2 1/4] drivers: hwspinlock: add generic framework
+Date: Fri, 26 Nov 2010 00:18:49 -0700
+Message-ID: <AANLkTimkovvHzgdnGtGpTH1pz8QLi9K0-rcWVHCdMJbu@mail.gmail.com>
+References: <1290526740-27624-1-git-send-email-ohad@wizery.com>
+ <1290526740-27624-2-git-send-email-ohad@wizery.com> <20101126045912.GC6598@lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46060 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750860Ab0KZGrP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Nov 2010 01:47:15 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id oAQ6lB3I025632
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 26 Nov 2010 00:47:14 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id oAQ6lBZQ023735
-	for <linux-omap@vger.kernel.org>; Fri, 26 Nov 2010 12:17:11 +0530 (IST)
-In-Reply-To: <AANLkTi=9RpAw4gi92M_7JLkS+VHPUp_YPdwRRin0u8Jx@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:51589 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752126Ab0KZHTK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Nov 2010 02:19:10 -0500
+In-Reply-To: <20101126045912.GC6598@lixom.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Olof Johansson <olof@lixom.net>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hari Kanigeri <h-kanigeri2@ti.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Kevin Hilman <khilman@deeprootsystems.com>, akpm@linux-foundation.org, Suman Anna <s-anna@ti.com>
 
-Hello,
+On Thu, Nov 25, 2010 at 9:59 PM, Olof Johansson <olof@lixom.net> wrote:
+> On Tue, Nov 23, 2010 at 05:38:57PM +0200, Ohad Ben-Cohen wrote:
+>> +#define pr_fmt(fmt) =A0 =A0"%s: " fmt, __func__
+>
+> Not used.
 
-We were wondering how to test McSPI on N800.
-Is there any peripheral connected to McSPI?
+pr_fmt() is a magic #define that changes the behaviour of the pr_*()
+macros.  See include/linux/kernel.h
 
-Any inputs are welcome.
-
-Thanking you,
-With Regards,
-Shubhro
+g.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
