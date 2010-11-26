@@ -1,38 +1,42 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC/PATCH v6 03/12] media: Entities, pads and links
-Date: Fri, 26 Nov 2010 14:14:42 +0000
-Message-ID: <20101126141442.GI30360@rakim.wolfsonmicro.main>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <201011251640.42206.laurent.pinchart@ideasonboard.com>
- <20101125154952.GJ22298@rakim.wolfsonmicro.main>
- <201011261513.37491.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201011261513.37491.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, lennart@poettering.net
+From: Sukumar Ghorai <s-ghorai@ti.com>
+Subject: [PATCH 1/7] omap3630: nand: fix device size to work in polled mode
+Date: Fri, 26 Nov 2010 21:04:31 +0530
+Message-ID: <1290785677-16005-2-git-send-email-s-ghorai@ti.com>
+References: <1290785677-16005-1-git-send-email-s-ghorai@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46019 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751946Ab0KZPeq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Nov 2010 10:34:46 -0500
+In-Reply-To: <1290785677-16005-1-git-send-email-s-ghorai@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>
 
-On Fri, Nov 26, 2010 at 03:13:36PM +0100, Laurent Pinchart wrote:
-> On Thursday 25 November 2010 16:49:52 Mark Brown wrote:
-> > On Thu, Nov 25, 2010 at 04:40:41PM +0100, Laurent Pinchart wrote:
+zoom3 and 3630-sdp having the x16 nand device.
+This patch configure gpmc as x16 and select the currect function in driver
+for polled mode (without prefetch enable) transfer.
 
-> > > It's supposed to reflect whether the link can carry data. Think of the
-> > > active flag as a valve on a pipe. If the valve is open, the link is
-> > > active. If the valve is closed, the link is inactive. This is unrelated
-> > > to whether water actually flows through the pipe.
+Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+---
+ arch/arm/mach-omap2/board-flash.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-> > This seems a confusing name, then - I'd expect an active link to be one
-> > which is actually carrying data rather than one which is available to
-> > carry data.  How a more neutrally worded name such as "connected" (which
-> > is what ASoC uses currently)?
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index fd38c05..001c605 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -145,6 +145,9 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs)
+ 	board_nand_data.parts		= nand_parts;
+ 	board_nand_data.nr_parts		= nr_parts;
+ 
++	if (cpu_is_omap3630())
++		board_nand_data.devsize = 1;
++
+ 	gpmc_nand_init(&board_nand_data);
+ }
+ #else
+-- 
+1.7.0.4
 
-> In our current vocabulary "connected" refers to entities between which a link 
-> exist, regardless of the link state ("valve opened" or "valve closed"). I'm 
-> not totally happy with "active" either, but if we replace it with "connected" 
-> we need another word to replace current uses of "connected".
-
-Linked?
