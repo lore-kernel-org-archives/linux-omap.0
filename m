@@ -1,70 +1,310 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC/PATCH v6 05/12] media: Reference count and power handling
-Date: Thu, 25 Nov 2010 21:47:09 +0000
-Message-ID: <20101125214633.GC25162@opensource.wolfsonmicro.com>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1290652099-15102-6-git-send-email-laurent.pinchart@ideasonboard.com>
- <20101125134908.GC24208@opensource.wolfsonmicro.com>
- <201011251643.17313.laurent.pinchart@ideasonboard.com>
- <4CEEA191.1000706@maxwell.research.nokia.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH v7 01/11] OMAP: GPIO: prepare for platform driver
+Date: Thu, 25 Nov 2010 22:38:29 -0600
+Message-ID: <20101126043829.GB6598@lixom.net>
+References: <1290524213-395-1-git-send-email-charu@ti.com>
+	<1290524213-395-2-git-send-email-charu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <4CEEA191.1000706@maxwell.research.nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, lrg@slimlogic.co.uk, lennart@poettering.net
+In-Reply-To: <1290524213-395-2-git-send-email-charu@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: paul@pwsan.com, b-cousson@ti.com, khilman@deeprootsystems.com, p-basak2@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 25, 2010 at 07:49:05PM +0200, Sakari Ailus wrote:
+Hi,
 
-> Currently when two media entities are connected they will be powered up
-> for the duration of the link setup, just in case the drivers would need
-> to access hardware for some reason. I don't think we have a need for
-> that at the moment, it's so just because it seemed to be the right thing
-> to do.
+On Tue, Nov 23, 2010 at 08:26:43PM +0530, Varadarajan, Charulatha wrote:
+> +static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
+> +{
+> +	if (cpu_class_is_omap2()) {
 
-This is *really* bad for audio, powering things on and off needlessly
-can cause audible effects for users.  If the individual drivers need to
-do something they can go and implement that but powering things up by
-default seems like it'll at best waste power most of the time.
+Why check class when you're checking for all possible variants anyway?
 
-> Essentially the idea is that the drivers do not need to be involved with
-> the power state handling and the device would be powered always when
-> they are run, but not be powered when it's not necessary.
+> +		if (cpu_is_omap44xx()) {
+> +			__raw_writel(0xffffffff, bank->base +
+> +					OMAP4_GPIO_IRQSTATUSCLR0);
+> +			__raw_writel(0x00000000, bank->base +
+> +					 OMAP4_GPIO_DEBOUNCENABLE);
+> +			/* Initialize interface clk ungated, module enabled */
+> +			__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
+> +		} else if (cpu_is_omap34xx()) {
+> +			__raw_writel(0x00000000, bank->base +
+> +					OMAP24XX_GPIO_IRQENABLE1);
+> +			__raw_writel(0xffffffff, bank->base +
+> +					OMAP24XX_GPIO_IRQSTATUS1);
+> +			__raw_writel(0x00000000, bank->base +
+> +					OMAP24XX_GPIO_DEBOUNCE_EN);
+> +
+> +			/* Initialize interface clk ungated, module enabled */
+> +			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
+> +		} else if (cpu_is_omap24xx()) {
+> +			static const u32 non_wakeup_gpios[] = {
+> +				0xe203ffc0, 0x08700040
+> +			};
+> +			if (id < ARRAY_SIZE(non_wakeup_gpios))
+> +				bank->non_wakeup_gpios = non_wakeup_gpios[id];
+> +		}
+> +	} else if (cpu_class_is_omap1()) {
+> +		if (bank_is_mpuio(bank))
+> +			__raw_writew(0xffff, bank->base
+> +						+ OMAP_MPUIO_GPIO_MASKIT);
 
-This is what DAPM does in ASoC at the minute.  What it does is that
-every time there is a change in the device configuration which might
-have affected the power state it walks the graph of power nodes in the
-system.  If there has been a change in the state the core will generate
-a power transition sequence and apply it.  The devices have no knowledge
-of this (though they can insert manual sequences for nodes if they need
-to), for the most part they just describe the graph and the register
-bits that control the power for the nodes and the routing.
+Above is using else if, this is using if. I don't see how you can ever
+hit more than one of these anyway.
 
-> Subdev is a V4L2 specific concept and I don't know if ALSA would benefit
-> from something similar. If you want to be able to access the individual
-> enties from user space, then similar arrangement might be useful.
+Besides, why check for both cpu and method? When do they ever
+diverge? (same goes for other places)
 
-ALSA already has this feature (at least in the embedded case, HDA has
-some of these features too).
+The plat-omap/gpio.c driver is pretty hard to read because of all the
+ifdeffing and tests for platforms. It would make sense to abstract out
+some of the operations into separate functions and use function pointers
+for them, IMHO. (Not an issue for this patch, just a reflection).
 
-> I don't see a problem in applying restrictions on power on / off
-> sequence. They would probably be useful also on the V4L2 side in the future.
-
-> Could the restrictions be described as dependencies only, i.e. entity 1
-> power-up requires entity 2 to be powered first, also meaning that entity
-> 2 could be powered down only after entity 1 has been powered down?
-
-No.  Audio power sequencing tends to work better if sorted by the type
-of object rather than the route (though using the route as a lower order
-sort key can be useful).  It's also useful to coalesce the I/O on the
-hardware for performance (both speed and user experience).
-
-The way we're currently doing it the sequencing is actually separated
-from the graph walk - the result of the graph walk is a set of things
-that need doing which is then implemented in a separate step.  I think
-this would be the easiest way to integrate with what you're doing at the
-minute, keep the same split and then ASoC can do the postprocessing of
-the results of the graph walk in the same way as it does currently.
+> +		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
+> +			__raw_writew(0xffff, bank->base
+> +						+ OMAP1510_GPIO_INT_MASK);
+> +			__raw_writew(0x0000, bank->base
+> +						+ OMAP1510_GPIO_INT_STATUS);
+> +		}
+> +		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
+> +			__raw_writew(0x0000, bank->base
+> +						+ OMAP1610_GPIO_IRQENABLE1);
+> +			__raw_writew(0xffff, bank->base
+> +						+ OMAP1610_GPIO_IRQSTATUS1);
+> +			__raw_writew(0x0014, bank->base
+> +						+ OMAP1610_GPIO_SYSCONFIG);
+> +
+> +			/*
+> +			 * Enable system clock for GPIO module.
+> +			 * The CAM_CLK_CTRL *is* really the right place.
+> +			 */
+> +			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
+> +						ULPD_CAM_CLK_CTRL);
+> +		}
+> +		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
+> +			__raw_writel(0xffffffff, bank->base
+> +						+ OMAP7XX_GPIO_INT_MASK);
+> +			__raw_writel(0x00000000, bank->base
+> +						+ OMAP7XX_GPIO_INT_STATUS);
+> +		}
+> +	}
+> +}
+> +
+> +static void __init omap_gpio_chip_init(struct gpio_bank *bank)
+> +{
+> +	int j, bank_width = 16;
+> +	static int gpio;
+> +
+> +	if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX)
+> +		bank_width = 32; /* 7xx has 32-bit GPIOs */
+> +
+> +	if ((bank->method == METHOD_GPIO_24XX) ||
+> +			(bank->method == METHOD_GPIO_44XX))
+> +		bank_width = 32;
+> +
+> +	bank->mod_usage = 0;
+> +	/*
+> +	 * REVISIT eventually switch from OMAP-specific gpio structs
+> +	 * over to the generic ones
+> +	 */
+> +	bank->chip.request = omap_gpio_request;
+> +	bank->chip.free = omap_gpio_free;
+> +	bank->chip.direction_input = gpio_input;
+> +	bank->chip.get = gpio_get;
+> +	bank->chip.direction_output = gpio_output;
+> +	bank->chip.set_debounce = gpio_debounce;
+> +	bank->chip.set = gpio_set;
+> +	bank->chip.to_irq = gpio_2irq;
+> +	if (bank_is_mpuio(bank)) {
+> +		bank->chip.label = "mpuio";
+> +#ifdef CONFIG_ARCH_OMAP16XX
+> +		bank->chip.dev = &omap_mpuio_device.dev;
+> +#endif
+> +		bank->chip.base = OMAP_MPUIO(0);
+> +	} else {
+> +		bank->chip.label = "gpio";
+> +		bank->chip.base = gpio;
+> +		gpio += bank_width;
+> +	}
+> +	bank->chip.ngpio = bank_width;
+> +
+> +	gpiochip_add(&bank->chip);
+> +
+> +	for (j = bank->virtual_irq_start;
+> +		     j < bank->virtual_irq_start + bank_width; j++) {
+> +		lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
+> +		set_irq_chip_data(j, bank);
+> +		if (bank_is_mpuio(bank))
+> +			set_irq_chip(j, &mpuio_irq_chip);
+> +		else
+> +			set_irq_chip(j, &gpio_irq_chip);
+> +		set_irq_handler(j, handle_simple_irq);
+> +		set_irq_flags(j, IRQF_VALID);
+> +	}
+> +	set_irq_chained_handler(bank->irq, gpio_irq_handler);
+> +	set_irq_data(bank->irq, bank);
+> +}
+> +
+>  static int __init _omap_gpio_init(void)
+>  {
+>  	int i;
+> -	int gpio = 0;
+>  	struct gpio_bank *bank;
+>  	int bank_size = SZ_8K;	/* Module 4KB + L4 4KB except on omap1 */
+>  	char clk_name[11];
+> @@ -1828,7 +1941,6 @@ static int __init _omap_gpio_init(void)
+>  	}
+>  #endif
+>  	for (i = 0; i < gpio_bank_count; i++) {
+> -		int j, gpio_count = 16;
+>  
+>  		bank = &gpio_bank[i];
+>  		spin_lock_init(&bank->lock);
+> @@ -1840,107 +1952,8 @@ static int __init _omap_gpio_init(void)
+>  			continue;
+>  		}
+>  
+> -		if (bank_is_mpuio(bank))
+> -			__raw_writew(0xffff, bank->base + OMAP_MPUIO_GPIO_MASKIT);
+> -		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
+> -			__raw_writew(0xffff, bank->base + OMAP1510_GPIO_INT_MASK);
+> -			__raw_writew(0x0000, bank->base + OMAP1510_GPIO_INT_STATUS);
+> -		}
+> -		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
+> -			__raw_writew(0x0000, bank->base + OMAP1610_GPIO_IRQENABLE1);
+> -			__raw_writew(0xffff, bank->base + OMAP1610_GPIO_IRQSTATUS1);
+> -			__raw_writew(0x0014, bank->base + OMAP1610_GPIO_SYSCONFIG);
+> -		}
+> -		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
+> -			__raw_writel(0xffffffff, bank->base + OMAP7XX_GPIO_INT_MASK);
+> -			__raw_writel(0x00000000, bank->base + OMAP7XX_GPIO_INT_STATUS);
+> -
+> -			gpio_count = 32; /* 7xx has 32-bit GPIOs */
+> -		}
+> -
+> -#ifdef CONFIG_ARCH_OMAP2PLUS
+> -		if ((bank->method == METHOD_GPIO_24XX) ||
+> -				(bank->method == METHOD_GPIO_44XX)) {
+> -			static const u32 non_wakeup_gpios[] = {
+> -				0xe203ffc0, 0x08700040
+> -			};
+> -
+> -			if (cpu_is_omap44xx()) {
+> -				__raw_writel(0xffffffff, bank->base +
+> -						OMAP4_GPIO_IRQSTATUSCLR0);
+> -				__raw_writew(0x0015, bank->base +
+> -						OMAP4_GPIO_SYSCONFIG);
+> -				__raw_writel(0x00000000, bank->base +
+> -						 OMAP4_GPIO_DEBOUNCENABLE);
+> -				/*
+> -				 * Initialize interface clock ungated,
+> -				 * module enabled
+> -				 */
+> -				__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
+> -			} else {
+> -				__raw_writel(0x00000000, bank->base +
+> -						OMAP24XX_GPIO_IRQENABLE1);
+> -				__raw_writel(0xffffffff, bank->base +
+> -						OMAP24XX_GPIO_IRQSTATUS1);
+> -				__raw_writew(0x0015, bank->base +
+> -						OMAP24XX_GPIO_SYSCONFIG);
+> -				__raw_writel(0x00000000, bank->base +
+> -						OMAP24XX_GPIO_DEBOUNCE_EN);
+> -
+> -				/*
+> -				 * Initialize interface clock ungated,
+> -				 * module enabled
+> -				 */
+> -				__raw_writel(0, bank->base +
+> -						OMAP24XX_GPIO_CTRL);
+> -			}
+> -			if (cpu_is_omap24xx() &&
+> -			    i < ARRAY_SIZE(non_wakeup_gpios))
+> -				bank->non_wakeup_gpios = non_wakeup_gpios[i];
+> -			gpio_count = 32;
+> -		}
+> -#endif
+> -
+> -		bank->mod_usage = 0;
+> -		/* REVISIT eventually switch from OMAP-specific gpio structs
+> -		 * over to the generic ones
+> -		 */
+> -		bank->chip.request = omap_gpio_request;
+> -		bank->chip.free = omap_gpio_free;
+> -		bank->chip.direction_input = gpio_input;
+> -		bank->chip.get = gpio_get;
+> -		bank->chip.direction_output = gpio_output;
+> -		bank->chip.set_debounce = gpio_debounce;
+> -		bank->chip.set = gpio_set;
+> -		bank->chip.to_irq = gpio_2irq;
+> -		if (bank_is_mpuio(bank)) {
+> -			bank->chip.label = "mpuio";
+> -#ifdef CONFIG_ARCH_OMAP16XX
+> -			bank->chip.dev = &omap_mpuio_device.dev;
+> -#endif
+> -			bank->chip.base = OMAP_MPUIO(0);
+> -		} else {
+> -			bank->chip.label = "gpio";
+> -			bank->chip.base = gpio;
+> -			gpio += gpio_count;
+> -		}
+> -		bank->chip.ngpio = gpio_count;
+> -
+> -		gpiochip_add(&bank->chip);
+> -
+> -		for (j = bank->virtual_irq_start;
+> -		     j < bank->virtual_irq_start + gpio_count; j++) {
+> -			lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
+> -			set_irq_chip_data(j, bank);
+> -			if (bank_is_mpuio(bank))
+> -				set_irq_chip(j, &mpuio_irq_chip);
+> -			else
+> -				set_irq_chip(j, &gpio_irq_chip);
+> -			set_irq_handler(j, handle_simple_irq);
+> -			set_irq_flags(j, IRQF_VALID);
+> -		}
+> -		set_irq_chained_handler(bank->irq, gpio_irq_handler);
+> -		set_irq_data(bank->irq, bank);
+> +		omap_gpio_mod_init(bank, i);
+> +		omap_gpio_chip_init(bank);
+>  
+>  		if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+>  			sprintf(clk_name, "gpio%d_dbck", i + 1);
+> @@ -1950,17 +1963,6 @@ static int __init _omap_gpio_init(void)
+>  		}
+>  	}
+>  
+> -	/* Enable system clock for GPIO module.
+> -	 * The CAM_CLK_CTRL *is* really the right place. */
+> -	if (cpu_is_omap16xx())
+> -		omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04, ULPD_CAM_CLK_CTRL);
+> -
+> -	/* Enable autoidle for the OCP interface */
+> -	if (cpu_is_omap24xx())
+> -		omap_writel(1 << 0, 0x48019010);
+> -	if (cpu_is_omap34xx())
+> -		omap_writel(1 << 0, 0x48306814);
+> -
+>  	omap_gpio_show_rev();
+>  
+>  	return 0;
+> -- 
+> 1.7.0.4
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
