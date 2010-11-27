@@ -1,65 +1,118 @@
-From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] omap: zoom: wl1271 slot is MMC_CAP_POWER_OFF_CARD
-Date: Sat, 27 Nov 2010 01:59:24 +0200
-Message-ID: <1290815964-30088-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH v2 1/4] drivers: hwspinlock: add generic framework
+Date: Fri, 26 Nov 2010 17:24:47 -0800
+Message-ID: <1290821087.2529.252.camel@helium>
+References: <AANLkTi=JSuJCqceJ3iw3TnV5OeJd+e5T3CyHtWVzBRu_@mail.gmail.com>
+	 <536589.12568.qm@web180310.mail.gq1.yahoo.com>
+	 <AANLkTinQdNC0XaOqNyDbdYE6ZcP0QyzpN492j=Kovuea@mail.gmail.com>
+	 <1290716548.2529.136.camel@helium>
+	 <AANLkTi=sZ-4BBLAJNU5B41cAxtroGkpNomgEYO4vtx8z@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTi=sZ-4BBLAJNU5B41cAxtroGkpNomgEYO4vtx8z@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: MugdhaKamoolkar <mugdha@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, BenoitCousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, HariKanigeri <h-kanigeri2@ti.com>, SumanAnna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
 
-This patch complements ed919b0 "mmc: sdio: fix runtime PM anomalies by
-introducing MMC_CAP_POWER_OFF_CARD" by declaring MMC_CAP_POWER_OFF_CARD
-on the ZOOM's wl1271 mmc slot.
+On Fri, 2010-11-26 at 09:34 +0200, Ohad Ben-Cohen wrote:
+> On Thu, Nov 25, 2010 at 10:22 PM, David Brownell <david-b@pacbell.net> wrote:
+> > So there's no strong reason to think this is
+> > actually "ggeneric".  Function names no longer
+> > specify OMAP, but without other hardware under
+> > the interface, calling it "generic" reflects
+> > more optimism than reality.  (That was the
+> > implication of my observations...)
+> 
+> Well, it's not omap-specific anymore.
 
-This is required in order not to break runtime PM support for the wl1271
-sdio driver.
+You haven't (and evidently can't) show non-OMAP hardware under your
+calls, though ... so in a practical sense, it's still OMAP-specific code
+(since nothing else is working).  (And for that matter, what non-OMAP
+code should try using these locks??)
 
-Signed-off-by: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
----
-Quick summary:
+Your intent "generic" is fine, but you've not achieved it and thus I
+think you shouldn't imply that you have.   Dropping the word "generic"
+should  suffice; it _is_ a framework, and maybe the next person working
+with hardware spinlocks can finish generalizing (and add use cases).
 
-After adding SDIO runtime PM support, we realized there are some
-board/host/card setups that are incapable of powering off the card
-after boot. For details, see:
-http://thread.gmane.org/gmane.linux.kernel.mmc/4342/focus=4579
+> > To find other hardware spinlocks, you might be
+> > able to look at fault tolerant multiprocessors.
 
-As a result, we added MMC_CAP_POWER_OFF_CARD which should be explicitly set
-by setups that _do_ support powering off the card.
+(For much the same reasons as the various ASMP chips care
+about HW spinlocks:...  SMP can use pure software spinlocks, but when
+there are special hardware (or system) circumstances, they may not
+be sufficiently robust/ or reliable.  (Consider just the impact of
+differeent memory and caching models, ARM vs DSP in the OMAP case.
 
-This ensures we don't break existing functionality: SDIO core will enable
-runtime PM for cards only if that cap is set.
-As a result, the card will be powered down after boot, and will only
-be powered up again when a driver is loaded (and then it's up to the
-driver whether power will be kept or not).
+Non-Academic specs on fault tolerant computers may be hard to
+come by, unfortunately ... They're very specialized and often
+ have lots of funky proprietary logic that vendors don't want
+reverse-engineered.  Hardware voting is just the start.  The
+software to make the fault tolerance robust/reliable gets to
+be very tricky ... and without it, why bother with expensive
+hardware mechanisms.
 
-To complement that fix (which was just merged upstream), we need this
-patch too in 2.6.37, otherwise wl1271_sdio will break.
+The same issues come up with aerospace and some industrial
+systems, where reliability affects mission-readiness and, for
+industrial apps, safety.
 
-Pandora/Beagle wl12xx users: you need a similar patch as well, as this one
-only takes care of ZOOM (I don't have those other setups and preferred not to
-send a patch without testing).
+> > Ages ago I worked with one of those, where any
+> > spinlock failures integrated with CPU/OS fault
+> > detection; HW cwould yank (checkpointed) CPU boards
+> > off the bus so they could be recovered (some
+> > might continue later from checkpoints, etc.)...
+> 
+> Is that HW supported by Linux today ?
 
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Not mainline, and unlikely any branch.  Fault tolerant
+operating systems can't be as simple as Linux, and I think
+that trying to add fault tolerance to it would not only turn it
+into a very different animal, but would lose most developers.
 
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 86c9b21..9db9203 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -216,7 +216,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
- 	{
- 		.name		= "wl1271",
- 		.mmc		= 3,
--		.caps		= MMC_CAP_4_BIT_DATA,
-+		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
- 		.gpio_wp	= -EINVAL,
- 		.gpio_cd	= -EINVAL,
- 		.nonremovable	= true,
--- 
-1.7.0.4
+(The mantra I recall was "No single Point Failures".  Linux
+has lots of such failure modes, and removing them would be a
+multi-year effort, even just inside the kernel.  (How would you
+recover from a bus failure?  Fan failure?  Power supply death?
+(All such hardware must be duplicated, with recovery supported
+by both hardware and software...)  (Where "recover" includes
+ "keep running without losing data or other computations.)
+(Last I knew, Linux didn't even have much support for checkpoint
+and restore of kernel state ... hibernation is related, but
+seems to be constantly in flux.  (Don't think it's aiming to
+tolerate CPU failures after a hibernation checkpoint either.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+(Heck ... on my Ubuntu, "Network Manager" isn't even competent to
+switch over cleanly from Ethernet to WLAN (and don't get me talking
+about other ways it's broken.  LOTS of stupid fault handling, and
+that's arguably mission-critical for the whole system ... multiple
+single point failure modes.  That's FAR from fault-tolerant.
+
+> Any chance you can share a link or any other info about it ?
+
+I googled for "sequoia systems fault tolerance" and found some stuff
+that looked like it summarized some of the original hardware.
+
+I can't think, off the top of my head, of other kinds of system that
+need and use hardware spinlocks, but likely they do exist. (Mainframe
+tech might use them too, as part of the subset of fault-tolerant HW
+tech they build on. If you want to provide a "generic" framework you
+should find and support some (or Tom-Sawyer such support... :)
+> 
+> >
+> > I seem to recall some iterations of the real-time patches doing a lot of
+> > work to generalize spinlocks, since they needed multiple variants.  It
+> > might be worth following in those footsteps.  (Though I'm not sure they
+> > were thinking much about hardware support .
+> 
+> Any chance you can point me at a specific discussion or patchset that
+> you feel may be relevant ?
+
+Haven't looked at RT in a long time.  Just look at the current RT
+patchset to see if it still has several spinlock variants.  ISTR the
+"raw" spinlock stuff came from there not long ago.  Much compile-time
+magic was involved in switching between variants.
+
+- Dave
