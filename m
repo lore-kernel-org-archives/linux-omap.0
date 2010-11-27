@@ -1,33 +1,33 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH v3 0/8] omap-sham: OMAP SHA1/MD5 driver fixes and
-	improvements
-Date: Sat, 27 Nov 2010 16:39:01 +0800
-Message-ID: <20101127083901.GA2429@gondor.apana.org.au>
-References: <cover.1290174993.git.dmitry.kasatkin@nokia.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 2/2] enabled vdda_dac regulator support tvout on rx51
+Date: Sat, 27 Nov 2010 10:20:07 +0000
+Message-ID: <20101127101852.GA27579@opensource.wolfsonmicro.com>
+References: <1290700343-26640-1-git-send-email-ext-srikar.1.bhavanarayana@nokia.com>
+ <1290700343-26640-2-git-send-email-ext-srikar.1.bhavanarayana@nokia.com>
+ <20101125161112.GB15099@sirena.org.uk>
+ <4CEF8453.3070904@nokia.com>
+ <20101126125949.GD30360@rakim.wolfsonmicro.main>
+ <20101126174517.GE2990@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from helcar.apana.org.au ([209.40.204.226]:60957 "EHLO
-	fornost.hengli.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078Ab0K0IjE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Nov 2010 03:39:04 -0500
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:39445 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752308Ab0K0KT7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 27 Nov 2010 05:19:59 -0500
 Content-Disposition: inline
-In-Reply-To: <cover.1290174993.git.dmitry.kasatkin@nokia.com>
+In-Reply-To: <20101126174517.GE2990@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Srikar <ext-srikar.1.bhavanarayana@nokia.com>, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Fri, Nov 19, 2010 at 04:04:21PM +0200, Dmitry Kasatkin wrote:
-> Hi,
-> 
-> Here is a set of patches which provides fixes and improvements.
-> 
-> Based on Herbert feedback it also includes fixes so that calling final()
-> is not mandatory.
+On Fri, Nov 26, 2010 at 09:45:17AM -0800, Tony Lindgren wrote:
 
-All applied.  Thanks Dmitry!
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+> By the way, all the board specific data should be __initdata eventually.
+> Now we're hogging memory for the regulators for all the boards compiled in..
+
+Yeah.  Some of it will need to be __devinitdata for hotpluggable things
+but most of it should be __initdata.  I'll update the regulator API to
+copy the constraints before the next merge window.
