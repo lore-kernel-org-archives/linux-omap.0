@@ -1,57 +1,26 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v6 03/12] media: Entities, pads and links
-Date: Sun, 28 Nov 2010 16:57:00 +0100
-Message-ID: <201011281657.00408.hverkuil@xs4all.nl>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <20101126141442.GI30360@rakim.wolfsonmicro.main> <201011281334.46386.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4069 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753300Ab0K1P50 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Nov 2010 10:57:26 -0500
-In-Reply-To: <201011281334.46386.laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC/PATCH v6 05/12] media: Reference count and power handling
+Date: Sun, 28 Nov 2010 18:25:39 +0000
+Message-ID: <6C806F24-FF45-4BF6-ACB0-1EE10AC584BD@opensource.wolfsonmicro.com>
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <4CEEA191.1000706@maxwell.research.nokia.com> <20101125214633.GC25162@opensource.wolfsonmicro.com> <201011281333.39214.laurent.pinchart@ideasonboard.com> (sfid-20101128_154847_234366_292E6E7B)
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201011281333.39214.laurent.pinchart@ideasonboard.com> (sfid-20101128_154847_234366_292E6E7B)
+Sender: linux-kernel-owner@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, lennart@poettering.net
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, lrg@slimlogic.co.uk, lennart@poettering.net
+List-Id: linux-omap@vger.kernel.org
 
-On Sunday, November 28, 2010 13:34:45 Laurent Pinchart wrote:
-> Hi Mark,
-> 
-> On Friday 26 November 2010 15:14:42 Mark Brown wrote:
-> > On Fri, Nov 26, 2010 at 03:13:36PM +0100, Laurent Pinchart wrote:
-> > > On Thursday 25 November 2010 16:49:52 Mark Brown wrote:
-> > > > On Thu, Nov 25, 2010 at 04:40:41PM +0100, Laurent Pinchart wrote:
-> > > > > It's supposed to reflect whether the link can carry data. Think of
-> > > > > the active flag as a valve on a pipe. If the valve is open, the link
-> > > > > is active. If the valve is closed, the link is inactive. This is
-> > > > > unrelated to whether water actually flows through the pipe.
-> > > > 
-> > > > This seems a confusing name, then - I'd expect an active link to be one
-> > > > which is actually carrying data rather than one which is available to
-> > > > carry data.  How a more neutrally worded name such as "connected"
-> > > > (which is what ASoC uses currently)?
-> > > 
-> > > In our current vocabulary "connected" refers to entities between which a
-> > > link exist, regardless of the link state ("valve opened" or "valve
-> > > closed"). I'm not totally happy with "active" either, but if we replace
-> > > it with "connected" we need another word to replace current uses of
-> > > "connected".
-> > 
-> > Linked?
-> 
-> That's a good option. Hans, do you want to comment on this ?
-> 
-> 
+On 28 Nov 2010, at 12:33, Laurent Pinchart wrote:
 
-Fine by me! It's better than 'active'.
+> Throwing an idea here, what about making power management modular ? The MC 
+> core would then call back to drivers to handle use count changes. The 
+> media_entity_use_change() function would be exported (and renamed), so that 
+> drivers could use it if they want graph-based power management. ALSA would 
+> have its own use count handler.
 
-Regards,
+We need more than just the count handler - we need a complete list of everything that has been changed in the whole system. The graph walk itself is fine but we need to be able to do postprocessing of the delta that is generated. Like I said pre- and post- callbacks may well cover it.
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Note that this is specifically for ASoC, not ALSA in general.
