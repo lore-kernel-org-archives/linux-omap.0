@@ -1,36 +1,55 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH] omap: zoom: wl1271 slot is MMC_CAP_POWER_OFF_CARD
-Date: Sun, 28 Nov 2010 02:39:24 +0000
-Message-ID: <20101128023924.GA6019@void.printf.net>
-References: <1290815964-30088-1-git-send-email-ohad@wizery.com>
+From: Scott Ellis <scott@jumpnowtek.com>
+Subject: Re: How to (get a struct device* to) map a DMA buffer for McBSP?
+Date: Sun, 28 Nov 2010 11:00:55 +0000 (UTC)
+Message-ID: <loom.20101128T114509-177@post.gmane.org>
+References: <AANLkTimuvMArMjGqVAfHLyh-eE0f9Un03UMHZHyP=_N1@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1290815964-30088-1-git-send-email-ohad@wizery.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-wireless@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>, Luciano Coelho <luciano.coelho@nokia.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from lo.gmane.org ([80.91.229.12]:38133 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751999Ab0K1LZH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 28 Nov 2010 06:25:07 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1PMfNR-00047r-D4
+	for linux-omap@vger.kernel.org; Sun, 28 Nov 2010 12:25:05 +0100
+Received: from 173-162-152-37-NewEngland.hfc.comcastbusiness.net ([173.162.152.37])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sun, 28 Nov 2010 12:25:05 +0100
+Received: from scott by 173-162-152-37-NewEngland.hfc.comcastbusiness.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sun, 28 Nov 2010 12:25:05 +0100
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi,
+I had exactly the same problem. It looks like the struct omap_mcbsp array was
+intended to be accessible
 
-On Sat, Nov 27, 2010 at 01:59:24AM +0200, Ohad Ben-Cohen wrote:
-> This patch complements ed919b0 "mmc: sdio: fix runtime PM anomalies by
-> introducing MMC_CAP_POWER_OFF_CARD" by declaring MMC_CAP_POWER_OFF_CARD
-> on the ZOOM's wl1271 mmc slot.
-> 
-> This is required in order not to break runtime PM support for the wl1271
-> sdio driver.
-> 
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+>From include/plat/mcbsp.h
+extern struct omap_mcbsp **mcbsp_ptr;
 
-Looks good.  Tony, feel free to take this for .37 through your tree.
+I couldn't get access to mcbsp_ptr in an out of tree module. So I added this
 
-Signed-off-by: Chris Ball <cjb@laptop.org>
+arch/arm/plat-omap/include/plat/mcbsp.h
++struct omap_mcbsp* omap_mcbsp_get_mcbsp_ptr(u8 id);
 
-Thanks,
+arch/arm/plat-omap/mcbsp.c
++struct omap_mcbsp* omap_mcbsp_get_mcbsp_ptr(u8 id)
++{
++	if (!omap_mcbsp_check_valid_id(id))
++		return NULL;
++
++	return id_to_mcbsp_ptr(id);
++}
++EXPORT_SYMBOL(omap_mcbsp_get_mcbsp_ptr);
++
 
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+This was to could get access to .phys_base and .dma_rx_sync for my own DMA ops.
+
+Is there a better way?
+
+
