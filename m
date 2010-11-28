@@ -1,55 +1,43 @@
-From: Scott Ellis <scott@jumpnowtek.com>
-Subject: Re: How to (get a struct device* to) map a DMA buffer for McBSP?
-Date: Sun, 28 Nov 2010 11:00:55 +0000 (UTC)
-Message-ID: <loom.20101128T114509-177@post.gmane.org>
-References: <AANLkTimuvMArMjGqVAfHLyh-eE0f9Un03UMHZHyP=_N1@mail.gmail.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: Inventra Highspeed Dual Role Controller on TI OMAP 3503
+Date: Sun, 28 Nov 2010 05:32:43 -0600
+Message-ID: <3524d254e36b505f20c17018a9126a0f@secure211.sgcpanel.com>
+References: <43044DC2-2B10-43E3-AE5D-4D53A0337CA5@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:38133 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751999Ab0K1LZH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 28 Nov 2010 06:25:07 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1PMfNR-00047r-D4
-	for linux-omap@vger.kernel.org; Sun, 28 Nov 2010 12:25:05 +0100
-Received: from 173-162-152-37-NewEngland.hfc.comcastbusiness.net ([173.162.152.37])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sun, 28 Nov 2010 12:25:05 +0100
-Received: from scott by 173-162-152-37-NewEngland.hfc.comcastbusiness.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sun, 28 Nov 2010 12:25:05 +0100
+Received: from ns1.siteground211.com ([209.62.36.12]:36088 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752605Ab0K1Lcp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Nov 2010 06:32:45 -0500
+In-Reply-To: <43044DC2-2B10-43E3-AE5D-4D53A0337CA5@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-I had exactly the same problem. It looks like the struct omap_mcbsp array was
-intended to be accessible
+Hi,
 
->From include/plat/mcbsp.h
-extern struct omap_mcbsp **mcbsp_ptr;
+On Fri, 26 Nov 2010 21:36:56 +0400, Elvis Dowson <elvis.dowson@mac.com>
+wrote:
+> Hi,
+>        Is the Inventra Highspeed Dual Role Controller silicon IP
+available
+>        on the TI OMAP 3503?
 
-I couldn't get access to mcbsp_ptr in an out of tree module. So I added this
+yes it is there.
 
-arch/arm/plat-omap/include/plat/mcbsp.h
-+struct omap_mcbsp* omap_mcbsp_get_mcbsp_ptr(u8 id);
+> The kernel config help documentation mentions only TI OMAP 353x and I'm
+> not sure if that implies that it isn't present in the TI OMAP 3503
+> processor.
 
-arch/arm/plat-omap/mcbsp.c
-+struct omap_mcbsp* omap_mcbsp_get_mcbsp_ptr(u8 id)
-+{
-+	if (!omap_mcbsp_check_valid_id(id))
-+		return NULL;
-+
-+	return id_to_mcbsp_ptr(id);
-+}
-+EXPORT_SYMBOL(omap_mcbsp_get_mcbsp_ptr);
-+
+that's no official documentation. It's better to check device's datasheet
+when you have such questions. Besides, imagine the pain it would be to
+patch that Kconfig entry everytime we have a new release of an OMAP
+processor. Maybe it would be better to say something like: "available
+on many OMAP processors" instead of mentioning each and every one of
+them.
 
-This was to could get access to .phys_base and .dma_rx_sync for my own DMA ops.
-
-Is there a better way?
-
-
+-- 
+balbi
