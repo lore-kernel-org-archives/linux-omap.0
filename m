@@ -1,28 +1,36 @@
-From: Western Union Money Transfer <info@yahoo.com>
-Subject: You've earned 1,000,000.00 USD
-Date: Sat, 27 Nov 2010 07:31:38 +0200
-Message-ID: <20101127073138.11345u4lmit4656i@webmail.mofa-gov.ps>
-Reply-To: transfer_westernu@att.net
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH] omap: zoom: wl1271 slot is MMC_CAP_POWER_OFF_CARD
+Date: Sun, 28 Nov 2010 02:39:24 +0000
+Message-ID: <20101128023924.GA6019@void.printf.net>
+References: <1290815964-30088-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cpanel.palnet.com ([217.66.226.39]:49851 "EHLO
-	cpanel.palnet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751499Ab0K0Qhr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Nov 2010 11:37:47 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1290815964-30088-1-git-send-email-ohad@wizery.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-wireless@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>, Luciano Coelho <luciano.coelho@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
-You have earned 1,000,000.00 USD,Send info:Names,Age,Country,phone number
-To:(transfer_westernu@att.net)
+On Sat, Nov 27, 2010 at 01:59:24AM +0200, Ohad Ben-Cohen wrote:
+> This patch complements ed919b0 "mmc: sdio: fix runtime PM anomalies by
+> introducing MMC_CAP_POWER_OFF_CARD" by declaring MMC_CAP_POWER_OFF_CARD
+> on the ZOOM's wl1271 mmc slot.
+> 
+> This is required in order not to break runtime PM support for the wl1271
+> sdio driver.
+> 
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 
+Looks good.  Tony, feel free to take this for .37 through your tree.
 
+Signed-off-by: Chris Ball <cjb@laptop.org>
 
+Thanks,
 
-
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
