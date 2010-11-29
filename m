@@ -1,96 +1,139 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/7] [OMAP] gpio: Allow for extended GPIO space
-Date: Mon, 29 Nov 2010 11:37:37 -0800
-Message-ID: <20101129193737.GH17222@atomide.com>
-References: <1279598741-18607-1-git-send-email-darkstar6262@gmail.com>
- <1279598741-18607-2-git-send-email-darkstar6262@gmail.com>
- <20100802105150.GB12293@atomide.com>
- <AANLkTinCxh39iLjVnmc0=VVE8aQahpo9XMjg0B7CiffW@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 1/5 v2] OMAP3: PM: Update clean_l2 to use v7_flush_dcache_all
+Date: Mon, 29 Nov 2010 14:19:49 -0600
+Message-ID: <1291061993-4740-2-git-send-email-nm@ti.com>
+References: <1291061993-4740-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:30077 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751975Ab0K2Thp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2010 14:37:45 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTinCxh39iLjVnmc0=VVE8aQahpo9XMjg0B7CiffW@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34782 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752147Ab0K2UT4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Nov 2010 15:19:56 -0500
+In-Reply-To: <1291061993-4740-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Jean <jean.pihet@newoldbits.com>, Tony <tony@atomide.com>, Kevin <khilman@deeprootsystems.com>, Vishwa <vishwanath.bs@ti.com>
 
-* Cory Maccarrone <darkstar6262@gmail.com> [101125 07:23]:
-> On Mon, Aug 2, 2010 at 4:51 AM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> > * Cory Maccarrone <darkstar6262@gmail.com> [100720 06:59]:
-> >> This change copies from the s3c24xx the ability for a board to spe=
-cify
-> >> if it wants 64 or 128 more GPIOs in the board space. =C2=A0This is=
- needed
-> >> to get the HTC Herald board's extra htcpld gpios to work as actual
-> >> gpios.
-> >
-> > <snip>
-> >
-> >> +config OMAP_GPIO_EXTRA
-> >> + =C2=A0 =C2=A0 int
-> >> + =C2=A0 =C2=A0 default 128 if OMAP_GPIO_EXTRA128
-> >> + =C2=A0 =C2=A0 default 64 if OMAP_GPIO_EXTRA64
-> >> + =C2=A0 =C2=A0 default 0
-> >> +
-> >> +config OMAP_GPIO_EXTRA64
-> >> + =C2=A0 =C2=A0 bool
-> >> + =C2=A0 =C2=A0 help
-> >> + =C2=A0 =C2=A0 =C2=A0 Add an extra 64 gpio numbers to the availab=
-le GPIO pool. This is
-> >> + =C2=A0 =C2=A0 =C2=A0 available for boards that need extra gpios =
-for external devices.
-> >> +
-> >> +config OMAP_GPIO_EXTRA128
-> >> + =C2=A0 =C2=A0 bool
-> >> + =C2=A0 =C2=A0 help
-> >> + =C2=A0 =C2=A0 =C2=A0 Add an extra 128 gpio numbers to the availa=
-ble GPIO pool. This is
-> >> + =C2=A0 =C2=A0 =C2=A0 available for boards that need extra gpios =
-for external devices.
-> >> +
-> >
-> > Let's wait on this and the following patch a a little, I believe th=
-ere
-> > are already patches in the works to deal with this for the multi-ar=
-m
-> > support. So this should get solved eventually in a generic way.
-> >
-> > Regards,
-> >
-> > Tony
-> >
->=20
-> Has anything happened with this recently?  I haven't been keeping up
-> too much, and I notice the latest linus-tree kernel still needs these
-> patches (or something similar) for me to be able to use the htcpld on
-> herald.
+From: Richard Woodruff <r-woodruff2@ti.com>
 
-Well I'm working on a patch series that combines all mach-omap1 defconf=
-igs
-into one, still need to sort out few places to make it work.
+Analysis in TI kernel with ETM showed that using cache mapped flush
+in kernel instead of SO mapped flush cost drops by 65% (3.39mS down
+to 1.17mS) for clean_l2 which is used during sleep sequences.
+Overall:
+	- speed up
+	- unfortunately there isn't a good alternative flush method today
+	- code reduction and less maintenance and potential bug in
+	  unmaintained code
 
-That means we must be able to compile in all the needed options without
-breaking things, so let's not make this a Kconfig option. Or at least
-it should be possible to enable it for all mach-omap1 machines.
+This also fixes the bug with the clean_l2 function usage.
 
-AFAIK, you should be able to just define it the same way as TWL4030_IRQ=
-_BASE
-in arch/arm/plat-omap/include/plat/irqs.h, maybe based it on
-CONFIG_ARCH_OMAP7XX?
+Reported-by: Tony Lindgren <tony@atomide.com>
 
-Regards,
+[nm@ti.com: ported rkw's proposal to 2.6.37-rc2]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
+---
+v2: typo correction 'reuse'
+v1: http://marc.info/?l=linux-omap&m=129013171325210&w=2
+ arch/arm/mach-omap2/sleep34xx.S |   79 ++++++--------------------------------
+ 1 files changed, 13 insertions(+), 66 deletions(-)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index 2fb205a..2c20fcf 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -520,72 +520,17 @@ clean_caches:
+ 	cmp	r9, #1 /* Check whether L2 inval is required or not*/
+ 	bne	skip_l2_inval
+ clean_l2:
+-	/* read clidr */
+-	mrc     p15, 1, r0, c0, c0, 1
+-	/* extract loc from clidr */
+-	ands    r3, r0, #0x7000000
+-	/* left align loc bit field */
+-	mov     r3, r3, lsr #23
+-	/* if loc is 0, then no need to clean */
+-	beq     finished
+-	/* start clean at cache level 0 */
+-	mov     r10, #0
+-loop1:
+-	/* work out 3x current cache level */
+-	add     r2, r10, r10, lsr #1
+-	/* extract cache type bits from clidr*/
+-	mov     r1, r0, lsr r2
+-	/* mask of the bits for current cache only */
+-	and     r1, r1, #7
+-	/* see what cache we have at this level */
+-	cmp     r1, #2
+-	/* skip if no cache, or just i-cache */
+-	blt     skip
+-	/* select current cache level in cssr */
+-	mcr     p15, 2, r10, c0, c0, 0
+-	/* isb to sych the new cssr&csidr */
+-	isb
+-	/* read the new csidr */
+-	mrc     p15, 1, r1, c0, c0, 0
+-	/* extract the length of the cache lines */
+-	and     r2, r1, #7
+-	/* add 4 (line length offset) */
+-	add     r2, r2, #4
+-	ldr     r4, assoc_mask
+-	/* find maximum number on the way size */
+-	ands    r4, r4, r1, lsr #3
+-	/* find bit position of way size increment */
+-	clz     r5, r4
+-	ldr     r7, numset_mask
+-	/* extract max number of the index size*/
+-	ands    r7, r7, r1, lsr #13
+-loop2:
+-	mov     r9, r4
+-	/* create working copy of max way size*/
+-loop3:
+-	/* factor way and cache number into r11 */
+-	orr     r11, r10, r9, lsl r5
+-	/* factor index number into r11 */
+-	orr     r11, r11, r7, lsl r2
+-	/*clean & invalidate by set/way */
+-	mcr     p15, 0, r11, c7, c10, 2
+-	/* decrement the way*/
+-	subs    r9, r9, #1
+-	bge     loop3
+-	/*decrement the index */
+-	subs    r7, r7, #1
+-	bge     loop2
+-skip:
+-	add     r10, r10, #2
+-	/* increment cache number */
+-	cmp     r3, r10
+-	bgt     loop1
+-finished:
+-	/*swith back to cache level 0 */
+-	mov     r10, #0
+-	/* select current cache level in cssr */
+-	mcr     p15, 2, r10, c0, c0, 0
+-	isb
++	/*
++	 * Jump out to kernel flush routine
++	 *  - reuse that code is better
++	 *  - it executes in a cached space so is faster than refetch per-block
++	 *  - should be faster and will change with kernel
++	 *  - 'might' have to copy address, load and jump to it
++	 */
++	ldr r1, kernel_flush
++	mov lr, pc
++	bx  r1
++
+ skip_l2_inval:
+ 	/* Data memory barrier and Data sync barrier */
+ 	mov     r1, #0
+@@ -668,5 +613,7 @@ cache_pred_disable_mask:
+ 	.word	0xFFFFE7FB
+ control_stat:
+ 	.word	CONTROL_STAT
++kernel_flush:
++	.word v7_flush_dcache_all
+ ENTRY(omap34xx_cpu_suspend_sz)
+ 	.word	. - omap34xx_cpu_suspend
+-- 
+1.6.3.3
+
