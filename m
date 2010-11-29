@@ -1,12 +1,12 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 2/5 v2] OMAP3: PM: Erratum i581 support: dll kick strategy
-Date: Mon, 29 Nov 2010 14:19:50 -0600
-Message-ID: <1291061993-4740-3-git-send-email-nm@ti.com>
+Subject: [PATCH 5/5] OMAP3630: PM: Erratum i583: disable coreoff if < ES1.2
+Date: Mon, 29 Nov 2010 14:19:53 -0600
+Message-ID: <1291061993-4740-6-git-send-email-nm@ti.com>
 References: <1291061993-4740-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34488 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34784 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753255Ab0K2UT4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753250Ab0K2UT4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 29 Nov 2010 15:19:56 -0500
 In-Reply-To: <1291061993-4740-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,127 +14,76 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Jean <jean.pihet@newoldbits.com>, Tony <tony@atomide.com>, Kevin <khilman@deeprootsystems.com>, Vishwa <vishwanath.bs@ti.com>
 
-From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-Erratum i581 impacts OMAP3 platforms.
-PRCM DPLL control FSM removes SDRC_IDLEREQ before DPLL3 locks causing
-the DPLL not to be locked at times.
+Limitation i583: Self_Refresh Exit issue after OFF mode
 
-IMPORTANT:
-*) This is not a complete workaround implementation as recommended
-by the silicon erratum. this is a support logic for detecting lockups and
-attempting to recover where possible and is known to provide stability
-in multiple platforms.
-*) This code is mostly important for inactive and retention. The ROM code
-waits for the maximum dll lock time when resuming from off mode. So for
-off mode this code isn't really needed.
+Issue:
+When device is waking up from OFF mode, then SDRC state machine sends
+inappropriate sequence violating JEDEC standards.
 
-This should eventually get refactored as part of cleanups to sleep34xx.S
+Impact:
+OMAP3630 < ES1.2 is impacted as follows depending on the platform:
+CS0: for 38.4MHz as internal sysclk, DDR content seen to be stable, while
+	for all other sysclk frequencies, varied levels of instability
+	seen based on varied parameters.
+CS1: impacted
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+This patch takes option #3 as recommended by the Silicon erratum:
+Avoid core power domain transitioning to OFF mode. Power consumption
+impact is expected in this case.
+To do this, we route OFF requests to RET request on the impacted revisions
+of silicon.
+
+[nm@ti.com: rebased the code to 2.6.37-rc2- short circuit code changed a bit]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
-v2: typo correction- erratum, support, added comment from Peter from the
-	thread to commit message
-v1: http://marc.info/?l=linux-omap&m=129013172525234&w=2
- arch/arm/mach-omap2/sleep34xx.S |   52 +++++++++++++++++++++++++++++++++++---
- 1 files changed, 47 insertions(+), 5 deletions(-)
+v2: rebased to this patch series instead of depending on hs changes
+    fix typo for macro definition
+v1: http://marc.info/?l=linux-omap&m=129013173425266&w=2
+ arch/arm/mach-omap2/pm34xx.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 2c20fcf..3fbd1e5 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -42,6 +42,7 @@
- 				OMAP3430_PM_PREPWSTST)
- #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + OMAP2_PM_PWSTCTRL
- #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
-+#define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
- #define SRAM_BASE_P		0x40200000
- #define CONTROL_STAT		0x480022F0
- #define SCRATCHPAD_MEM_OFFS	0x310 /* Move this as correct place is
-@@ -554,31 +555,67 @@ skip_l2_inval:
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index e0ade5f..6f33631 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -55,6 +55,7 @@
+ #define OMAP343X_CONTROL_REG_VALUE_OFFSET  0xc8
  
- /* Make sure SDRC accesses are ok */
- wait_sdrc_ok:
-+
-+/* DPLL3 must be locked before accessing the SDRC. Maybe the HW ensures this. */
-+	ldr	r4, cm_idlest_ckgen
-+wait_dpll3_lock:
-+	ldr	r5, [r4]
-+	tst	r5, #1
-+	beq	wait_dpll3_lock
-+
-         ldr     r4, cm_idlest1_core
-+wait_sdrc_ready:
-         ldr     r5, [r4]
--        and     r5, r5, #0x2
--        cmp     r5, #0
--        bne     wait_sdrc_ok
-+        tst     r5, #0x2
-+        bne     wait_sdrc_ready
-+	/* allow DLL powerdown upon hw idle req */
-         ldr     r4, sdrc_power
-         ldr     r5, [r4]
-         bic     r5, r5, #0x40
-         str     r5, [r4]
--wait_dll_lock:
-+is_dll_in_lock_mode:
-+
-         /* Is dll in lock mode? */
-         ldr     r4, sdrc_dlla_ctrl
-         ldr     r5, [r4]
-         tst     r5, #0x4
-         bxne    lr
-         /* wait till dll locks */
--        ldr     r4, sdrc_dlla_status
-+wait_dll_lock_timed:
-+	ldr	r4, wait_dll_lock_counter
-+	add	r4, r4, #1
-+	str	r4, wait_dll_lock_counter
-+	ldr	r4, sdrc_dlla_status
-+        mov	r6, #8		/* Wait 20uS for lock */
-+wait_dll_lock:
-+	subs	r6, r6, #0x1
-+	beq	kick_dll
-         ldr     r5, [r4]
-         and     r5, r5, #0x4
-         cmp     r5, #0x4
-         bne     wait_dll_lock
-         bx      lr
+ #define RTA_ERRATUM_i608		(1 << 0)
++#define SDRC_WAKEUP_ERRATUM_i583	(1 << 1)
+ static u16 pm34xx_errata;
+ #define IS_PM34XX_ERRATUM(id)		(pm34xx_errata & (id))
  
-+	/* disable/reenable DLL if not locked */
-+kick_dll:
-+	ldr	r4, sdrc_dlla_ctrl
-+	ldr	r5, [r4]
-+	mov	r6, r5
-+	bic	r6, #(1<<3)	/* disable dll */
-+	str	r6, [r4]
-+	dsb
-+	orr	r6, r6, #(1<<3)	/* enable dll */
-+	str	r6, [r4]
-+	dsb
-+	ldr	r4, kick_counter
-+	add	r4, r4, #1
-+	str	r4, kick_counter
-+	b	wait_dll_lock_timed
+@@ -399,6 +400,17 @@ void omap_sram_idle(void)
+ 	}
+ 
+ 	/* CORE */
++	/*
++	 * Erratum i583: implementation for ES rev < Es1.2 on 3630
++	 * We cannot enable OFF mode in a stable form for previous
++	 * revisions, transition instead to RET
++	 */
++	if (IS_PM34XX_ERRATUM(SDRC_WAKEUP_ERRATUM_i583) &&
++			(core_next_state == PWRDM_POWER_OFF)) {
++		pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
++		core_next_state = PWRDM_POWER_RET;
++	}
 +
- cm_idlest1_core:
- 	.word	CM_IDLEST1_CORE_V
-+cm_idlest_ckgen:
-+	.word	CM_IDLEST_CKGEN_V
- sdrc_dlla_status:
- 	.word	SDRC_DLLA_STATUS_V
- sdrc_dlla_ctrl:
-@@ -615,5 +652,10 @@ control_stat:
- 	.word	CONTROL_STAT
- kernel_flush:
- 	.word v7_flush_dcache_all
-+	/* these 2 words need to be at the end !!! */
-+kick_counter:
-+	.word	0
-+wait_dll_lock_counter:
-+	.word	0
- ENTRY(omap34xx_cpu_suspend_sz)
- 	.word	. - omap34xx_cpu_suspend
+ 	if (core_next_state < PWRDM_POWER_ON) {
+ 		omap_uart_prepare_idle(0);
+ 		omap_uart_prepare_idle(1);
+@@ -991,6 +1003,8 @@ static void pm_errata_configure(void)
+ 		/* Enable the l2 cache toggling in sleep logic */
+ 		if (cpu_is_omap3630())
+ 			enable_omap3630_toggle_l2_on_restore();
++		if (cpu_is_omap3630() && (omap_rev() < OMAP3630_REV_ES1_2))
++			pm34xx_errata |= SDRC_WAKEUP_ERRATUM_i583;
+ 	}
+ }
+ 
 -- 
 1.6.3.3
 
