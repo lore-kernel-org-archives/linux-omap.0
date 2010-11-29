@@ -1,12 +1,12 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 1/5 v2] OMAP3: PM: Update clean_l2 to use v7_flush_dcache_all
-Date: Mon, 29 Nov 2010 14:19:49 -0600
-Message-ID: <1291061993-4740-2-git-send-email-nm@ti.com>
+Subject: [PATCH 4/5 v2] OMAP3630: PM: Disable L2 cache while invalidating L2 cache
+Date: Mon, 29 Nov 2010 14:19:52 -0600
+Message-ID: <1291061993-4740-5-git-send-email-nm@ti.com>
 References: <1291061993-4740-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34782 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34487 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752147Ab0K2UT4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753214Ab0K2UT4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 29 Nov 2010 15:19:56 -0500
 In-Reply-To: <1291061993-4740-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,126 +14,117 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Jean <jean.pihet@newoldbits.com>, Tony <tony@atomide.com>, Kevin <khilman@deeprootsystems.com>, Vishwa <vishwanath.bs@ti.com>
 
-From: Richard Woodruff <r-woodruff2@ti.com>
+From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-Analysis in TI kernel with ETM showed that using cache mapped flush
-in kernel instead of SO mapped flush cost drops by 65% (3.39mS down
-to 1.17mS) for clean_l2 which is used during sleep sequences.
-Overall:
-	- speed up
-	- unfortunately there isn't a good alternative flush method today
-	- code reduction and less maintenance and potential bug in
-	  unmaintained code
+This disables L2 cache before invalidating it and reenables it afterwards.
+This is be done according to ARM documentation. Currently this is identified
+as being needed on OMAP3630 as the disable/enable is done from "public side"
+while, on OMAP3430, this is done in the "secure side".
 
-This also fixes the bug with the clean_l2 function usage.
-
-Reported-by: Tony Lindgren <tony@atomide.com>
-
-[nm@ti.com: ported rkw's proposal to 2.6.37-rc2]
+[nm@ti.com: ported to 2.6.37-rc2, added hooks to enable the logic only on 3630]
 Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 ---
-v2: typo correction 'reuse'
-v1: http://marc.info/?l=linux-omap&m=129013171325210&w=2
- arch/arm/mach-omap2/sleep34xx.S |   79 ++++++--------------------------------
- 1 files changed, 13 insertions(+), 66 deletions(-)
+v2: rebased out to this series independent of HS bugfixes
+v1: http://marc.info/?l=linux-omap&m=129013171125204&w=2
 
+ arch/arm/mach-omap2/pm.h        |    6 ++++++
+ arch/arm/mach-omap2/pm34xx.c    |    3 +++
+ arch/arm/mach-omap2/sleep34xx.S |   30 ++++++++++++++++++++++++++++++
+ 3 files changed, 39 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 0d75bfd..aff39d0 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -85,4 +85,10 @@ extern unsigned int save_secure_ram_context_sz;
+ extern unsigned int omap24xx_cpu_suspend_sz;
+ extern unsigned int omap34xx_cpu_suspend_sz;
+ 
++#if defined(CONFIG_PM)
++extern void enable_omap3630_toggle_l2_on_restore(void);
++#else
++static inline void enable_omap3630_toggle_l2_on_restore(void) { }
++#endif
++
+ #endif
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index bd426cc..e0ade5f 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -988,6 +988,9 @@ static void pm_errata_configure(void)
+ 	if (cpu_is_omap34xx()) {
+ 		if (cpu_is_omap3630())
+ 			pm34xx_errata |= RTA_ERRATUM_i608;
++		/* Enable the l2 cache toggling in sleep logic */
++		if (cpu_is_omap3630())
++			enable_omap3630_toggle_l2_on_restore();
+ 	}
+ }
+ 
 diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 2fb205a..2c20fcf 100644
+index cc3507b..d2eda01 100644
 --- a/arch/arm/mach-omap2/sleep34xx.S
 +++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -520,72 +520,17 @@ clean_caches:
- 	cmp	r9, #1 /* Check whether L2 inval is required or not*/
- 	bne	skip_l2_inval
- clean_l2:
--	/* read clidr */
--	mrc     p15, 1, r0, c0, c0, 1
--	/* extract loc from clidr */
--	ands    r3, r0, #0x7000000
--	/* left align loc bit field */
--	mov     r3, r3, lsr #23
--	/* if loc is 0, then no need to clean */
--	beq     finished
--	/* start clean at cache level 0 */
--	mov     r10, #0
--loop1:
--	/* work out 3x current cache level */
--	add     r2, r10, r10, lsr #1
--	/* extract cache type bits from clidr*/
--	mov     r1, r0, lsr r2
--	/* mask of the bits for current cache only */
--	and     r1, r1, #7
--	/* see what cache we have at this level */
--	cmp     r1, #2
--	/* skip if no cache, or just i-cache */
--	blt     skip
--	/* select current cache level in cssr */
--	mcr     p15, 2, r10, c0, c0, 0
--	/* isb to sych the new cssr&csidr */
--	isb
--	/* read the new csidr */
--	mrc     p15, 1, r1, c0, c0, 0
--	/* extract the length of the cache lines */
--	and     r2, r1, #7
--	/* add 4 (line length offset) */
--	add     r2, r2, #4
--	ldr     r4, assoc_mask
--	/* find maximum number on the way size */
--	ands    r4, r4, r1, lsr #3
--	/* find bit position of way size increment */
--	clz     r5, r4
--	ldr     r7, numset_mask
--	/* extract max number of the index size*/
--	ands    r7, r7, r1, lsr #13
--loop2:
--	mov     r9, r4
--	/* create working copy of max way size*/
--loop3:
--	/* factor way and cache number into r11 */
--	orr     r11, r10, r9, lsl r5
--	/* factor index number into r11 */
--	orr     r11, r11, r7, lsl r2
--	/*clean & invalidate by set/way */
--	mcr     p15, 0, r11, c7, c10, 2
--	/* decrement the way*/
--	subs    r9, r9, #1
--	bge     loop3
--	/*decrement the index */
--	subs    r7, r7, #1
--	bge     loop2
--skip:
--	add     r10, r10, #2
--	/* increment cache number */
--	cmp     r3, r10
--	bgt     loop1
--finished:
--	/*swith back to cache level 0 */
--	mov     r10, #0
--	/* select current cache level in cssr */
--	mcr     p15, 2, r10, c0, c0, 0
--	isb
-+	/*
-+	 * Jump out to kernel flush routine
-+	 *  - reuse that code is better
-+	 *  - it executes in a cached space so is faster than refetch per-block
-+	 *  - should be faster and will change with kernel
-+	 *  - 'might' have to copy address, load and jump to it
-+	 */
-+	ldr r1, kernel_flush
-+	mov lr, pc
-+	bx  r1
+@@ -111,6 +111,19 @@ ENTRY(get_omap3630_restore_pointer_sz)
+         .word   . - get_omap3630_restore_pointer
+ 
+ 	.text
++/*
++ * L2 cache needs to be toggled for stable OFF mode functionality on 3630.
++ * This function sets up a fflag that will allow for this toggling to take
++ * place on 3630. Hopefully some version in the future maynot need this
++ */
++ENTRY(enable_omap3630_toggle_l2_on_restore)
++        stmfd   sp!, {lr}     @ save registers on stack
++	/* Setup so that we will disable and enable l2 */
++	mov	r1, #0x1
++	str	r1, l2dis_3630
++        ldmfd   sp!, {pc}     @ restore regs and return
 +
- skip_l2_inval:
- 	/* Data memory barrier and Data sync barrier */
- 	mov     r1, #0
-@@ -668,5 +613,7 @@ cache_pred_disable_mask:
- 	.word	0xFFFFE7FB
- control_stat:
- 	.word	CONTROL_STAT
-+kernel_flush:
-+	.word v7_flush_dcache_all
- ENTRY(omap34xx_cpu_suspend_sz)
- 	.word	. - omap34xx_cpu_suspend
++	.text
+ /* Function call to get the restore pointer for for ES3 to resume from OFF */
+ ENTRY(get_es3_restore_pointer)
+ 	stmfd	sp!, {lr}	@ save registers on stack
+@@ -283,6 +296,14 @@ restore:
+         moveq   r9, #0x3        @ MPU OFF => L1 and L2 lost
+ 	movne	r9, #0x1	@ Only L1 and L2 lost => avoid L2 invalidation
+ 	bne	logic_l1_restore
++
++	ldr	r0, l2dis_3630
++	cmp	r0, #0x1	@ should we disable L2 on 3630?
++	bne	skipl2dis
++	mrc	p15, 0, r0, c1, c0, 1
++	bic	r0, r0, #2	@ disable L2 cache
++	mcr	p15, 0, r0, c1, c0, 1
++skipl2dis:
+ 	ldr	r0, control_stat
+ 	ldr	r1, [r0]
+ 	and	r1, #0x700
+@@ -343,6 +364,13 @@ smi:    .word 0xE1600070		@ Call SMI monitor (smieq)
+ 	mov	r12, #0x2
+ 	.word 0xE1600070	@ Call SMI monitor (smieq)
+ logic_l1_restore:
++	ldr	r1, l2dis_3630
++	cmp	r1, #0x1	@ Do we need to re-enable L2 on 3630?
++	bne	skipl2reen
++	mrc	p15, 0, r1, c1, c0, 1
++	orr	r1, r1, #2	@ re-enable L2 cache
++	mcr	p15, 0, r1, c1, c0, 1
++skipl2reen:
+ 	mov	r1, #0
+ 	/* Invalidate all instruction caches to PoU
+ 	 * and flush branch target cache */
+@@ -678,6 +706,8 @@ control_mem_rta:
+ 	.word	CONTROL_MEM_RTA_CTRL
+ kernel_flush:
+ 	.word v7_flush_dcache_all
++l2dis_3630:
++	.word 0
+ 	/* these 2 words need to be at the end !!! */
+ kick_counter:
+ 	.word	0
 -- 
 1.6.3.3
 
