@@ -1,54 +1,66 @@
-From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 0/4] arm: omap4: Add support for EHCI
-Date: Mon, 29 Nov 2010 22:56:08 +0530
-Message-ID: <1291051572-24084-1-git-send-email-gadiyar@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH v2 0/8] usb: ehci-omap: add OMAP4 support
+Date: Mon, 29 Nov 2010 22:55:29 +0530
+Message-ID: <1291051537-23743-1-git-send-email-gadiyar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58494 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754996Ab0K2RZw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Nov 2010 12:25:52 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@suse.de>, Anand Gadiyar <gadiyar@ti.com>
 
-This series adds the platform init code for the EHCI
-controller on OMAP4 and allows the EHCI driver to be
-built on OMAP4. The patches are based on v2.6.37-rc3,
-and they apply cleanly on linux-next as of today.
+This series adds support for the EHCI controller on
+OMAP4 chips. (This enables the ethernet controller
+on the Pandaboard - finally!).
 
-Pin-muxing is done at one shot in the usb-ehci.c file, as
-is done on OMAP3. None of the signals are on multiple pads,
-so this was easy. This part depends on the mux framework
-series from Benoit which is already queued up.
+I've tested the series on an OMAP4 SDP, a Pandaboard,
+and a beagleboard - all with a single kernel binary.
 
-Also register the controller on the OMAP4 SDP. This is
-already done for the Pandaboard.
+The complete series (including the part that can go via
+linux-omap) is available in my development tree at [1]
+in the omap4-ehci-upstream-v2 branch.
 
-This is a precursor to adapting the driver to hwmod;
-I didn't want to hold up the EHCI driver so long - as the
-ethernet controller on the Pandaboard needs EHCI to work.
-I'll send out RFC patches for this work in a while.
+What changed in v2:
+- Split out OMAP platform code into a separate series
+  which can go through linux-omap
+- Add a changelog for one patch which I missed out in v1
+- Explicitly CC Paul for the clkdev aliases, and Tony
+  for a change to a platform header file needed for build.
 
-The complete series (including the series going via
-linux-usb) is available in my development tree [1] in the
-omap4-ehci-upstream-v2 branch, if anyone wants to test.
+Dependencies:
+- None
+
+What's pending:
+- OHCI support
+- Support for TLL and HSIC modes
+- Factoring out code common to ehci-omap and ohci-omap3
+- Conversion to use omap_device and the hwmod database
+- Runtime PM support
 
 - Anand
 
 [1] git://dev.omapzoom.org/pub/scm/anand/linux-omap-usb.git
 
-Anand Gadiyar (3):
-  arm: omap4: add USBHOST and related base addresses
-  arm: omap4: usb: add platform init code for EHCI
-  arm: omap4: select USB_ARCH_HAS_EHCI
+Anand Gadiyar (5):
+  omap: clock: add clkdev aliases for EHCI clocks
+  usb: ehci-omap: use clkdev aliases for functional clocks
+  usb: ehci-omap: add helpers for checking port mode
+  omap: usb: ehci: introduce HSIC mode
+  usb: ehci-omap: Add OMAP4 support
 
-Keshava Munegowda (1):
-  omap4: 4430sdp: enable the ehci port on 4430SDP
+Keshava Munegowda (3):
+  usb: ehci-omap: update clock names to be more generic
+  usb: ehci-omap: don't hard-code TLL channel count
+  usb: ehci: introduce CONFIG_USB_EHCI_HCD_OMAP
 
- arch/arm/mach-omap2/Kconfig                |    1 +
- arch/arm/mach-omap2/board-4430sdp.c        |   20 ++++
- arch/arm/mach-omap2/usb-ehci.c             |  144 ++++++++++++++++++++++++++--
- arch/arm/plat-omap/include/plat/omap44xx.h |    5 +
- 4 files changed, 162 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c  |    5 +
+ arch/arm/mach-omap2/clock44xx_data.c  |    5 +
+ arch/arm/plat-omap/include/plat/usb.h |    1 +
+ drivers/usb/host/Kconfig              |    8 +
+ drivers/usb/host/ehci-hcd.c           |    2 +-
+ drivers/usb/host/ehci-omap.c          |  314 +++++++++++++++++++++++++--------
+ 6 files changed, 264 insertions(+), 71 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
