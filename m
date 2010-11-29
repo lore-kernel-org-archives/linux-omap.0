@@ -1,40 +1,95 @@
 From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH v2 7/8] omap: usb: ehci: introduce HSIC mode
-Date: Mon, 29 Nov 2010 22:55:36 +0530
-Message-ID: <1291051537-23743-8-git-send-email-gadiyar@ti.com>
+Subject: [PATCH v2 4/8] omap: clock: add clkdev aliases for EHCI clocks
+Date: Mon, 29 Nov 2010 22:55:33 +0530
+Message-ID: <1291051537-23743-5-git-send-email-gadiyar@ti.com>
 References: <1291051537-23743-1-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53607 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53352 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752926Ab0K2RZt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752261Ab0K2RZt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 29 Nov 2010 12:25:49 -0500
 In-Reply-To: <1291051537-23743-1-git-send-email-gadiyar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@suse.de>, Anand Gadiyar <gadiyar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@suse.de>, Anand Gadiyar <gadiyar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-The EHCI controller in OMAP4 supports a new interface mode - HSIC.
-Add this to the list of modes supported on OMAP3.
+Add clkdev aliases for the USBHOST and USBTLL clocks on OMAP3 and
+OMAP4, so that the driver can refer to the clocks using a common alias.
+
+This will disappear when the driver is converted to use the hwmod
+database, but until then this patch is needed.
 
 Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/include/plat/usb.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c |    5 +++++
+ arch/arm/mach-omap2/clock44xx_data.c |    5 +++++
+ 2 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index 59c7fe7..9b1893f 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -11,6 +11,7 @@ enum ehci_hcd_omap_mode {
- 	EHCI_HCD_OMAP_MODE_UNKNOWN,
- 	EHCI_HCD_OMAP_MODE_PHY,
- 	EHCI_HCD_OMAP_MODE_TLL,
-+	EHCI_HCD_OMAP_MODE_HSIC,
- };
- 
- enum ohci_omap3_port_mode {
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index d85ecd5..a04cb03 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3278,6 +3278,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"cpefuse_fck",	&cpefuse_fck,	CK_3430ES2 | CK_AM35XX),
+ 	CLK(NULL,	"ts_fck",	&ts_fck,	CK_3430ES2 | CK_AM35XX),
+ 	CLK(NULL,	"usbtll_fck",	&usbtll_fck,	CK_3430ES2 | CK_AM35XX),
++	CLK("ehci-omap.0",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2 | CK_AM35XX),
+ 	CLK("omap-mcbsp.1",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
+ 	CLK("omap-mcbsp.5",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
+ 	CLK(NULL,	"core_96m_fck",	&core_96m_fck,	CK_3XXX),
+@@ -3313,6 +3314,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_343X),
+ 	CLK(NULL,	"core_l4_ick",	&core_l4_ick,	CK_3XXX),
+ 	CLK(NULL,	"usbtll_ick",	&usbtll_ick,	CK_3430ES2 | CK_AM35XX),
++	CLK("ehci-omap.0",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2 | CK_AM35XX),
+ 	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2 | CK_AM35XX),
+ 	CLK(NULL,	"icr_ick",	&icr_ick,	CK_343X),
+ 	CLK("omap-aes",	"ick",	&aes2_ick,	CK_343X),
+@@ -3358,8 +3360,11 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"cam_ick",	&cam_ick,	CK_343X),
+ 	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck,	CK_343X),
+ 	CLK(NULL,	"usbhost_120m_fck", &usbhost_120m_fck, CK_3430ES2 | CK_AM35XX),
++	CLK("ehci-omap.0",	"hs_fck", &usbhost_120m_fck, CK_3430ES2 | CK_AM35XX),
+ 	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2 | CK_AM35XX),
++	CLK("ehci-omap.0",	"fs_fck", &usbhost_48m_fck, CK_3430ES2 | CK_AM35XX),
+ 	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2 | CK_AM35XX),
++	CLK("ehci-omap.0",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2 | CK_AM35XX),
+ 	CLK(NULL,	"usim_fck",	&usim_fck,	CK_3430ES2),
+ 	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_3XXX),
+ 	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_3XXX),
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 1599836..f473e89 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -2937,6 +2937,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"uart3_fck",			&uart3_fck,	CK_443X),
+ 	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_443X),
+ 	CLK(NULL,	"usb_host_fs_fck",		&usb_host_fs_fck,	CK_443X),
++	CLK("ehci-omap.0",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_utmi_p3_clk",	&usb_host_hs_utmi_p3_clk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_hsic60m_p1_clk",	&usb_host_hs_hsic60m_p1_clk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_hsic60m_p2_clk",	&usb_host_hs_hsic60m_p2_clk,	CK_443X),
+@@ -2948,6 +2949,8 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"usb_host_hs_hsic480m_p2_clk",	&usb_host_hs_hsic480m_p2_clk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_func48mclk",	&usb_host_hs_func48mclk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_fck",		&usb_host_hs_fck,	CK_443X),
++	CLK("ehci-omap.0",	"hs_fck",		&usb_host_hs_fck,	CK_443X),
++	CLK("ehci-omap.0",	"usbhost_ick",		&dummy_ck,		CK_443X),
+ 	CLK(NULL,	"otg_60m_gfclk",		&otg_60m_gfclk,	CK_443X),
+ 	CLK(NULL,	"usb_otg_hs_xclk",		&usb_otg_hs_xclk,	CK_443X),
+ 	CLK("musb_hdrc",	"ick",				&usb_otg_hs_ick,	CK_443X),
+@@ -2956,6 +2959,8 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"usb_tll_hs_usb_ch0_clk",	&usb_tll_hs_usb_ch0_clk,	CK_443X),
+ 	CLK(NULL,	"usb_tll_hs_usb_ch1_clk",	&usb_tll_hs_usb_ch1_clk,	CK_443X),
+ 	CLK(NULL,	"usb_tll_hs_ick",		&usb_tll_hs_ick,	CK_443X),
++	CLK("ehci-omap.0",	"usbtll_ick",		&usb_tll_hs_ick,	CK_443X),
++	CLK("ehci-omap.0",	"usbtll_fck",		&dummy_ck,	CK_443X),
+ 	CLK(NULL,	"usim_ck",			&usim_ck,	CK_443X),
+ 	CLK(NULL,	"usim_fclk",			&usim_fclk,	CK_443X),
+ 	CLK(NULL,	"usim_fck",			&usim_fck,	CK_443X),
 -- 
 1.7.0.4
 
