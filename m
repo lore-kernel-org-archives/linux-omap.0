@@ -1,125 +1,54 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v5 1/1] OMAP2: Spi: Force CS to be in inactive state after off-mode transition
-Date: Mon, 29 Nov 2010 15:22:53 +0100
-Message-ID: <877hfw1a6a.fsf@deeprootsystems.com>
-References: <4CED8F6E.3000808@free-electrons.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] OMAP3_IVA_MASK should use OMAP3_IVA_SHIFT instead of
+ OMAP3_SGX_SHIFT
+Date: Mon, 29 Nov 2010 08:29:57 -0600
+Message-ID: <4CF3B8E5.8040109@ti.com>
+References: <AANLkTi=rVpQWnRmzw2XF3TzoQW6E9fHLKfrdZUi8-cJo@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:65098 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753860Ab0K2OXE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2010 09:23:04 -0500
-Received: by yxt3 with SMTP id 3so1505805yxt.19
-        for <linux-omap@vger.kernel.org>; Mon, 29 Nov 2010 06:23:03 -0800 (PST)
-In-Reply-To: <4CED8F6E.3000808@free-electrons.com> (Gregory CLEMENT's message
-	of "Wed, 24 Nov 2010 23:19:26 +0100")
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:55052 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752833Ab0K2OaB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Nov 2010 09:30:01 -0500
+Received: by mail-gy0-f170.google.com with SMTP id 2so1941255gyf.1
+        for <linux-omap@vger.kernel.org>; Mon, 29 Nov 2010 06:30:00 -0800 (PST)
+In-Reply-To: <AANLkTi=rVpQWnRmzw2XF3TzoQW6E9fHLKfrdZUi8-cJo@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, spi-devel-general@lists.sourceforge.net, David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>
+To: Arno Steffen <arno.steffen@googlemail.com>
+Cc: linux-omap@vger.kernel.org, "tony@atomide.com" <tony@atomide.com>
 
-Gregory CLEMENT <gregory.clement@free-electrons.com> writes:
+Arno Steffen had written, on 11/26/2010 05:41 AM, the following:
 
-> As request by Grant Likely, there is no more cover letter. Full changelog is following.
-> I am still reluctant to add this changelog in the patch description, as it adds no value to
-> the patch itself: when it was needed I try to updat comments or patch description.
-> I understand that Grant Likely would need an ack from other user as this patch fix a corner case.
-> Kevin Hilman made a few comments on this patch so he could add his "Ack by" or at least his "Review by".
+minor comment:
+$subject could be the commit message probably.. and a smaller subject 
+like OMAP3: fix typo in OMAP3_IVA_MASK could be used
 
-A couple more comments...
+otherwise, looks good to me.
 
->
-> Changelog:
-> * Change from v1 to v2:
-> Rebase on linus/master (after 2.6.37-rc1)
-> Do some clean-up and fix indentation on both patches
-> Add more explanations for patch 2
->
-> * Change from v2 to v3:
-> Use directly resume function of spi_master instead of using function
-> from spi_device as Grant Likely pointed it out.
-> Force this transition explicitly for each CS used by a device.
->
-> * Change from v3 to v4:
-> Patch clean-up according to Kevin Hilman and checkpatch.
-> Now force CS to be in inactive state only if it was inactive when it was
-> suspended.
->
-> * Change from v4 to v5:
-> Rebase on linus/master (after 2.6.37-rc3)
-> Collapse some lines as pointed by Grant Likely
-> Fix a spelling
->
->
-> == CUT HERE ==
-> When SPI wake up from OFF mode, CS is in the wrong state: force it to the inactive state.
->
-> During the system life, I monitored the CS behavior using a oscilloscope.
-> I also activated debug in omap2_mcspi, so I saw when driver disable the clocks and restore context when device is not used.
-> Each time the CS was in the correct state.
-> It was only when system was put suspend to ram with off-mode activated that on resume the CS was in wrong state( ie activated).
->
-> Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+> Signed-off-by: Arno Steffen <arno.steffen@googlemail.com>
 > ---
->  drivers/spi/omap2_mcspi.c |   33 +++++++++++++++++++++++++++++++++
->  1 files changed, 33 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index 2a651e6..dcc024a 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -1305,11 +1305,44 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
->  /* work with hotplug and coldplug */
->  MODULE_ALIAS("platform:omap2_mcspi");
->
-> +#ifdef	CONFIG_PM
+>  arch/arm/mach-omap2/control.h |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+> index b6c6b7c..5325297 100644
+> --- a/arch/arm/mach-omap2/control.h
+> +++ b/arch/arm/mach-omap2/control.h
+> @@ -309,7 +309,7 @@
+>  #define		FEAT_SGX_NONE		2
+> 
+>  #define OMAP3_IVA_SHIFT			12
+> -#define OMAP3_IVA_MASK			(1 << OMAP3_SGX_SHIFT)
+> +#define OMAP3_IVA_MASK			(1 << OMAP3_IVA_SHIFT)
+>  #define		FEAT_IVA		0
+>  #define		FEAT_IVA_NONE		1
+> 
 
-You should use CONFIG_SUSPEND here
 
-> +/* When SPI wake up from off-mode, CS is in activate state. If it was in
-> + * unactive state when driver was suspend, then force it to unactive state at
-> + * wake up.
-> + */
-> +static int omap2_mcspi_resume(struct platform_device *pdev)
-> +{
-> +	struct spi_master	*master = dev_get_drvdata(&pdev->dev);
-> +	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
-> +	struct omap2_mcspi_cs *cs;
-> +
-> +	omap2_mcspi_enable_clocks(mcspi);
-> +	list_for_each_entry(cs, &omap2_mcspi_ctx[master->bus_num - 1].cs,
-> +			    node) {
-> +		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
-> +
-> +			/* We need to toggle CS state for OMAP take this
-> +			 * change in account.
-> +			 */
-> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 1);
-> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
-> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 0);
-> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
-> +		}
-> +	}
-> +	omap2_mcspi_disable_clocks(mcspi);
-> +	return 0;
-> +}
-> +#else
-> +#define	omap2_mcspi_resume	NULL
-> +#endif
-> +
->  static struct platform_driver omap2_mcspi_driver = {
->  	.driver = {
->  		.name =		"omap2_mcspi",
->  		.owner =	THIS_MODULE,
->  	},
-> +	.resume =	omap2_mcspi_resume,
-
-This is adding legacy PM methods.  Instead, you should add a struct
-dev_pm_ops and add the resume method there.
-
-Kevin
-
->  	.remove =	__exit_p(omap2_mcspi_remove),
->  };
->  -- 1.7.0.4
+-- 
+Regards,
+Nishanth Menon
