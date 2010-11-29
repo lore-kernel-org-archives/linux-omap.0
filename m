@@ -1,12 +1,12 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v2 09/17] OMAP2,3: DSS: Move clocks from core driver to dss driver
-Date: Mon, 29 Nov 2010 17:21:35 +0530
-Message-ID: <1291031503-21036-10-git-send-email-svadivu@ti.com>
+Subject: [PATCH v2 06/17] OMAP2,3 board files DSS Driver register moved to devices.c
+Date: Mon, 29 Nov 2010 17:21:32 +0530
+Message-ID: <1291031503-21036-7-git-send-email-svadivu@ti.com>
 References: <1291031503-21036-1-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36843 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34156 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753576Ab0K2Lv6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753577Ab0K2Lv6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 29 Nov 2010 06:51:58 -0500
 In-Reply-To: <1291031503-21036-1-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,923 +16,505 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-clks are moved to dss platform driver.  clk_get/put
-APIs use dss device instead of core platform device.
-It leaves the core driver "omap_display" to take care of
-panel registration with the custom bus.  dss driver would
-take care of the clocks needed by DISPC,RFBI,DSI,VENC.
-TODO:  The clock content would be adapted to omap_hwmod in a
-seperate series.
+Move DSS driver register from board file to devices.c
+Regulator initialisation done with driver name instead
+of device structure name.
+Changed driver name from omapdss to omap_display as the
+driver takes care of panel information.
+Board files that have dss registeration are updated.
+3430sdp, am3517evm, cm-t35, devkit8000, igep0020,
+omap3evm, omap3pandora, omap3stalker, rx-51
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- drivers/video/omap2/dss/core.c |  372 +--------------------------------------
- drivers/video/omap2/dss/dss.c  |  380 +++++++++++++++++++++++++++++++++++++++-
- drivers/video/omap2/dss/dss.h  |   14 +-
- 3 files changed, 390 insertions(+), 376 deletions(-)
+ arch/arm/mach-omap2/board-3430sdp.c          |   25 ++++---------------------
+ arch/arm/mach-omap2/board-am3517evm.c        |   14 +-------------
+ arch/arm/mach-omap2/board-cm-t35.c           |   22 +++++-----------------
+ arch/arm/mach-omap2/board-devkit8000.c       |   12 ++----------
+ arch/arm/mach-omap2/board-igep0020.c         |   20 +++-----------------
+ arch/arm/mach-omap2/board-omap3beagle.c      |   14 +++-----------
+ arch/arm/mach-omap2/board-omap3evm.c         |   22 ++++------------------
+ arch/arm/mach-omap2/board-omap3pandora.c     |   16 ++++------------
+ arch/arm/mach-omap2/board-omap3stalker.c     |   16 +++-------------
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +--------
+ arch/arm/mach-omap2/board-rx51-video.c       |   15 +--------------
+ 11 files changed, 31 insertions(+), 154 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index d165434..a6b3b61 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -34,32 +34,18 @@
- #include <linux/regulator/consumer.h>
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 4e3742c..7ff747e 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -301,22 +301,8 @@ static struct omap_dss_board_info sdp3430_dss_data = {
+ 	.default_device	= &sdp3430_lcd_device,
+ };
  
- #include <plat/display.h>
--#include <plat/clock.h>
- 
- #include "dss.h"
- #include "dss_features.h"
- 
- static struct {
- 	struct platform_device *pdev;
--	int		ctx_id;
+-static struct platform_device sdp3430_dss_device = {
+-	.name		= "omapdss",
+-	.id		= -1,
+-	.dev		= {
+-		.platform_data = &sdp3430_dss_data,
+-	},
+-};
 -
--	struct clk      *dss_ick;
--	struct clk	*dss1_fck;
--	struct clk	*dss2_fck;
--	struct clk      *dss_54m_fck;
--	struct clk	*dss_96m_fck;
--	unsigned	num_clks_enabled;
- 
- 	struct regulator *vdds_dsi_reg;
- 	struct regulator *vdds_sdi_reg;
- 	struct regulator *vdda_dac_reg;
- } core;
- 
--static void dss_clk_enable_all_no_ctx(void);
--static void dss_clk_disable_all_no_ctx(void);
--static void dss_clk_enable_no_ctx(enum dss_clock clks);
--static void dss_clk_disable_no_ctx(enum dss_clock clks);
+-static struct regulator_consumer_supply sdp3430_vdda_dac_supply = {
+-	.supply		= "vdda_dac",
+-	.dev		= &sdp3430_dss_device.dev,
+-};
 -
- static char *def_disp_name;
- module_param_named(def_disp, def_disp_name, charp, 0);
- MODULE_PARM_DESC(def_disp_name, "default display name");
-@@ -69,297 +55,6 @@ unsigned int dss_debug;
- module_param_named(debug, dss_debug, bool, 0644);
+-static struct platform_device *sdp3430_devices[] __initdata = {
+-	&sdp3430_dss_device,
+-};
++static struct regulator_consumer_supply sdp3430_vdda_dac_supply =
++	REGULATOR_SUPPLY("vdda_dac", "omap_display");
+ 
+ static struct omap_board_config_kernel sdp3430_config[] __initdata = {
+ };
+@@ -540,10 +526,7 @@ static struct regulator_init_data sdp3430_vdac = {
+ 
+ /* VPLL2 for digital video outputs */
+ static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
+-	{
+-		.supply		= "vdds_dsi",
+-		.dev		= &sdp3430_dss_device.dev,
+-	}
++	REGULATOR_SUPPLY("vdds_dsi", "omap_display"),
+ };
+ 
+ static struct regulator_init_data sdp3430_vpll2 = {
+@@ -797,7 +780,7 @@ static void __init omap_3430sdp_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3430_i2c_init();
+-	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
++	omap_display_init(&sdp3430_dss_data);
+ 	if (omap_rev() > OMAP3430_REV_ES1_0)
+ 		ts_gpio = SDP3430_TS_GPIO_IRQ_SDPV2;
+ 	else
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 0739950..19a8be7 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -367,23 +367,12 @@ static struct omap_dss_board_info am3517_evm_dss_data = {
+ 	.default_device	= &am3517_evm_lcd_device,
+ };
+ 
+-static struct platform_device am3517_evm_dss_device = {
+-	.name		= "omapdss",
+-	.id		= -1,
+-	.dev		= {
+-		.platform_data	= &am3517_evm_dss_data,
+-	},
+-};
+-
+ /*
+  * Board initialization
+  */
+ static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
+ };
+ 
+-static struct platform_device *am3517_evm_devices[] __initdata = {
+-	&am3517_evm_dss_device,
+-};
+ 
+ static void __init am3517_evm_init_irq(void)
+ {
+@@ -487,8 +476,7 @@ static void __init am3517_evm_init(void)
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 
+ 	am3517_evm_i2c_init();
+-	platform_add_devices(am3517_evm_devices,
+-				ARRAY_SIZE(am3517_evm_devices));
++	omap_display_init(&am3517_evm_dss_data);
+ 
+ 	omap_serial_init();
+ 
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 63f764e..fac5fe1 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -390,14 +390,6 @@ static struct omap_dss_board_info cm_t35_dss_data = {
+ 	.default_device	= &cm_t35_dvi_device,
+ };
+ 
+-static struct platform_device cm_t35_dss_device = {
+-	.name		= "omapdss",
+-	.id		= -1,
+-	.dev		= {
+-		.platform_data = &cm_t35_dss_data,
+-	},
+-};
+-
+ static struct omap2_mcspi_device_config tdo24m_mcspi_config = {
+ 	.turbo_mode	= 0,
+ 	.single_channel	= 1,	/* 0: slave, 1: master */
+@@ -457,7 +449,7 @@ static void __init cm_t35_init_display(void)
+ 	msleep(50);
+ 	gpio_set_value(lcd_en_gpio, 1);
+ 
+-	err = platform_device_register(&cm_t35_dss_device);
++	err = omap_display_init(&cm_t35_dss_data);
+ 	if (err) {
+ 		pr_err("CM-T35: failed to register DSS device\n");
+ 		goto err_dev_reg;
+@@ -484,15 +476,11 @@ static struct regulator_consumer_supply cm_t35_vsim_supply = {
+ 	.supply			= "vmmc_aux",
+ };
+ 
+-static struct regulator_consumer_supply cm_t35_vdac_supply = {
+-	.supply		= "vdda_dac",
+-	.dev		= &cm_t35_dss_device.dev,
+-};
++static struct regulator_consumer_supply cm_t35_vdac_supply =
++	REGULATOR_SUPPLY("vdda_dac", "omap_display");
+ 
+-static struct regulator_consumer_supply cm_t35_vdvi_supply = {
+-	.supply		= "vdvi",
+-	.dev		= &cm_t35_dss_device.dev,
+-};
++static struct regulator_consumer_supply cm_t35_vdvi_supply =
++	REGULATOR_SUPPLY("vdvi", "omap_display");
+ 
+ /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+ static struct regulator_init_data cm_t35_vmmc1 = {
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 53ac762..cbc3330 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -188,16 +188,8 @@ static struct omap_dss_board_info devkit8000_dss_data = {
+ 	.default_device = &devkit8000_lcd_device,
+ };
+ 
+-static struct platform_device devkit8000_dss_device = {
+-	.name		= "omapdss",
+-	.id		= -1,
+-	.dev		= {
+-		.platform_data = &devkit8000_dss_data,
+-	},
+-};
+-
+ static struct regulator_consumer_supply devkit8000_vdda_dac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss");
++	REGULATOR_SUPPLY("vdda_dac", "omap_display");
+ 
+ static uint32_t board_keymap[] = {
+ 	KEY(0, 0, KEY_1),
+@@ -561,7 +553,6 @@ static void __init omap_dm9000_init(void)
+ }
+ 
+ static struct platform_device *devkit8000_devices[] __initdata = {
+-	&devkit8000_dss_device,
+ 	&leds_gpio,
+ 	&keys_gpio,
+ 	&omap_dm9000_dev,
+@@ -783,6 +774,7 @@ static void __init devkit8000_init(void)
+ 	platform_add_devices(devkit8000_devices,
+ 			ARRAY_SIZE(devkit8000_devices));
+ 
++	omap_display_init(&devkit8000_dss_data);
+ 	spi_register_board_info(devkit8000_spi_board_info,
+ 	ARRAY_SIZE(devkit8000_spi_board_info));
+ 
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index fe76b59..3acdcfd 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -441,18 +441,8 @@ static struct omap_dss_board_info igep2_dss_data = {
+ 	.default_device	= &igep2_dvi_device,
+ };
+ 
+-static struct platform_device igep2_dss_device = {
+-	.name	= "omapdss",
+-	.id	= -1,
+-	.dev	= {
+-		.platform_data = &igep2_dss_data,
+-	},
+-};
+-
+-static struct regulator_consumer_supply igep2_vpll2_supply = {
+-	.supply	= "vdds_dsi",
+-	.dev	= &igep2_dss_device.dev,
+-};
++static struct regulator_consumer_supply igep2_vpll2_supply =
++	REGULATOR_SUPPLY("vdds_dsi", "omap_display");
+ 
+ static struct regulator_init_data igep2_vpll2 = {
+ 	.constraints = {
+@@ -476,10 +466,6 @@ static void __init igep2_display_init(void)
+ 		pr_err("IGEP v2: Could not obtain gpio GPIO_DVI_PUP\n");
+ }
+ 
+-static struct platform_device *igep2_devices[] __initdata = {
+-	&igep2_dss_device,
+-};
+-
+ static void __init igep2_init_irq(void)
+ {
+ 	omap2_init_common_hw(m65kxxxxam_sdrc_params, m65kxxxxam_sdrc_params);
+@@ -620,7 +606,7 @@ static void __init igep2_init(void)
+ 	igep2_get_revision();
+ 	/* Register I2C busses and drivers */
+ 	igep2_i2c_init();
+-	platform_add_devices(igep2_devices, ARRAY_SIZE(igep2_devices));
++	omap_display_init(&igep2_dss_data);
+ 	omap_serial_init();
+ 	usb_musb_init(&musb_board_data);
+ 	usb_ehci_init(&ehci_pdata);
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 14f4224..d3866ca 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -222,19 +222,11 @@ static struct omap_dss_board_info beagle_dss_data = {
+ 	.default_device = &beagle_dvi_device,
+ };
+ 
+-static struct platform_device beagle_dss_device = {
+-	.name          = "omapdss",
+-	.id            = -1,
+-	.dev            = {
+-		.platform_data = &beagle_dss_data,
+-	},
+-};
+-
+ static struct regulator_consumer_supply beagle_vdac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss");
++	REGULATOR_SUPPLY("vdda_dac", "omap_display");
+ 
+ static struct regulator_consumer_supply beagle_vdvi_supply =
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
++	REGULATOR_SUPPLY("vdds_dsi", "omap_display");
+ 
+ static void __init beagle_display_init(void)
+ {
+@@ -496,7 +488,6 @@ static void __init omap3_beagle_init_irq(void)
+ static struct platform_device *omap3_beagle_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&keys_gpio,
+-	&beagle_dss_device,
+ };
+ 
+ static void __init omap3beagle_flash_init(void)
+@@ -565,6 +556,7 @@ static void __init omap3_beagle_init(void)
+ 	omap3_beagle_i2c_init();
+ 	platform_add_devices(omap3_beagle_devices,
+ 			ARRAY_SIZE(omap3_beagle_devices));
++	omap_display_init(&beagle_dss_data);
+ 	omap_serial_init();
+ 
+ 	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index b04365c..b230f8e 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -322,14 +322,6 @@ static struct omap_dss_board_info omap3_evm_dss_data = {
+ 	.default_device	= &omap3_evm_lcd_device,
+ };
+ 
+-static struct platform_device omap3_evm_dss_device = {
+-	.name		= "omapdss",
+-	.id		= -1,
+-	.dev		= {
+-		.platform_data = &omap3_evm_dss_data,
+-	},
+-};
+-
+ static struct regulator_consumer_supply omap3evm_vmmc1_supply = {
+ 	.supply			= "vmmc",
+ };
+@@ -494,10 +486,8 @@ static struct twl4030_codec_data omap3evm_codec_data = {
+ 	.audio = &omap3evm_audio_data,
+ };
+ 
+-static struct regulator_consumer_supply omap3_evm_vdda_dac_supply = {
+-	.supply		= "vdda_dac",
+-	.dev		= &omap3_evm_dss_device.dev,
+-};
++static struct regulator_consumer_supply omap3_evm_vdda_dac_supply =
++	REGULATOR_SUPPLY("vdda_dac", "omap_display");
+ 
+ /* VDAC for DSS driving S-Video */
+ static struct regulator_init_data omap3_evm_vdac = {
+@@ -516,7 +506,7 @@ static struct regulator_init_data omap3_evm_vdac = {
+ 
+ /* VPLL2 for digital video outputs */
+ static struct regulator_consumer_supply omap3_evm_vpll2_supply =
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
++	REGULATOR_SUPPLY("vdds_dsi", "omap_display");
+ 
+ static struct regulator_init_data omap3_evm_vpll2 = {
+ 	.constraints = {
+@@ -628,10 +618,6 @@ static void __init omap3_evm_init_irq(void)
+ 	omap_gpio_init();
+ }
+ 
+-static struct platform_device *omap3_evm_devices[] __initdata = {
+-	&omap3_evm_dss_device,
+-};
+-
+ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
+ 
+ 	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+@@ -671,7 +657,7 @@ static void __init omap3_evm_init(void)
+ 
+ 	omap3_evm_i2c_init();
+ 
+-	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
++	omap_display_init(&omap3_evm_dss_data);
+ 
+ 	spi_register_board_info(omap3evm_spi_board_info,
+ 				ARRAY_SIZE(omap3evm_spi_board_info));
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 89ed1be..391c92b 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -253,14 +253,6 @@ static struct omap_dss_board_info pandora_dss_data = {
+ 	.default_device	= &pandora_lcd_device,
+ };
+ 
+-static struct platform_device pandora_dss_device = {
+-	.name		= "omapdss",
+-	.id		= -1,
+-	.dev		= {
+-		.platform_data = &pandora_dss_data,
+-	},
+-};
+-
+ static void pandora_wl1251_init_card(struct mmc_card *card)
+ {
+ 	/*
+@@ -350,11 +342,11 @@ static struct regulator_consumer_supply pandora_vmmc3_supply =
+ 	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.2");
+ 
+ static struct regulator_consumer_supply pandora_vdda_dac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss");
++	REGULATOR_SUPPLY("vdda_dac", "omap_display");
+ 
+ static struct regulator_consumer_supply pandora_vdds_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
++	REGULATOR_SUPPLY("vdds_sdi", "omap_display"),
++	REGULATOR_SUPPLY("vdds_dsi", "omap_display"),
+ };
+ 
+ static struct regulator_consumer_supply pandora_vcc_lcd_supply =
+@@ -690,7 +682,6 @@ fail:
+ static struct platform_device *omap3pandora_devices[] __initdata = {
+ 	&pandora_leds_gpio,
+ 	&pandora_keys_gpio,
+-	&pandora_dss_device,
+ 	&pandora_wl1251_data,
+ 	&pandora_vwlan_device,
+ };
+@@ -728,6 +719,7 @@ static void __init omap3pandora_init(void)
+ 	pandora_wl1251_init();
+ 	platform_add_devices(omap3pandora_devices,
+ 			ARRAY_SIZE(omap3pandora_devices));
++	omap_display_init(&pandora_dss_data);
+ 	omap_serial_init();
+ 	spi_register_board_info(omap3pandora_spi_board_info,
+ 			ARRAY_SIZE(omap3pandora_spi_board_info));
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index f252721..b50c4a6 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -229,14 +229,6 @@ static struct omap_dss_board_info omap3_stalker_dss_data = {
+ 	.default_device	= &omap3_stalker_dvi_device,
+ };
+ 
+-static struct platform_device omap3_stalker_dss_device = {
+-	.name	= "omapdss",
+-	.id	= -1,
+-	.dev	= {
+-		.platform_data	= &omap3_stalker_dss_data,
+-	},
+-};
+-
+ static struct regulator_consumer_supply omap3stalker_vmmc1_supply = {
+ 	.supply		= "vmmc",
+ };
+@@ -437,10 +429,8 @@ static struct twl4030_codec_data omap3stalker_codec_data = {
+ 	.audio		= &omap3stalker_audio_data,
+ };
+ 
+-static struct regulator_consumer_supply omap3_stalker_vdda_dac_supply = {
+-	.supply		= "vdda_dac",
+-	.dev		= &omap3_stalker_dss_device.dev,
+-};
++static struct regulator_consumer_supply omap3_stalker_vdda_dac_supply =
++	REGULATOR_SUPPLY("vdda_dac", "omap_display");
+ 
+ /* VDAC for DSS driving S-Video */
+ static struct regulator_init_data omap3_stalker_vdac = {
+@@ -593,7 +583,6 @@ static void __init omap3_stalker_init_irq(void)
+ }
+ 
+ static struct platform_device *omap3_stalker_devices[] __initdata = {
+-	&omap3_stalker_dss_device,
+ 	&keys_gpio,
+ };
+ 
+@@ -635,6 +624,7 @@ static void __init omap3_stalker_init(void)
+ 	platform_add_devices(omap3_stalker_devices,
+ 			     ARRAY_SIZE(omap3_stalker_devices));
+ 
++	omap_display_init(&omap3_stalker_dss_data);
+ 	spi_register_board_info(omap3stalker_spi_board_info,
+ 				ARRAY_SIZE(omap3stalker_spi_board_info));
+ 
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 3fda20d..e75d1f8 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -356,16 +356,9 @@ static struct regulator_consumer_supply rx51_vio_supplies[] = {
+ 	REGULATOR_SUPPLY("DVDD", "2-0018"),
+ };
+ 
+-#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
+-extern struct platform_device rx51_display_device;
+-#endif
+-
+ static struct regulator_consumer_supply rx51_vaux1_consumers[] = {
+ #if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
+-	{
+-		.supply	= "vdds_sdi",
+-		.dev	= &rx51_display_device.dev,
+-	},
++	REGULATOR_SUPPLY("vdds_sdi", "omap_display"),
  #endif
+ };
  
--/* CONTEXT */
--static int dss_get_ctx_id(void)
--{
--	struct omap_dss_board_info *pdata = core.pdev->dev.platform_data;
--	int r;
--
--	if (!pdata->get_last_off_on_transaction_id)
--		return 0;
--	r = pdata->get_last_off_on_transaction_id(&core.pdev->dev);
--	if (r < 0) {
--		dev_err(&core.pdev->dev, "getting transaction ID failed, "
--				"will force context restore\n");
--		r = -1;
--	}
--	return r;
--}
--
--int dss_need_ctx_restore(void)
--{
--	int id = dss_get_ctx_id();
--
--	if (id < 0 || id != core.ctx_id) {
--		DSSDBG("ctx id %d -> id %d\n",
--				core.ctx_id, id);
--		core.ctx_id = id;
--		return 1;
--	} else {
--		return 0;
--	}
--}
--
--static void save_all_ctx(void)
--{
--	DSSDBG("save context\n");
--
--	dss_clk_enable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK1);
--
--	dss_save_context();
--	dispc_save_context();
--#ifdef CONFIG_OMAP2_DSS_DSI
--	dsi_save_context();
--#endif
--
--	dss_clk_disable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK1);
--}
--
--static void restore_all_ctx(void)
--{
--	DSSDBG("restore context\n");
--
--	dss_clk_enable_all_no_ctx();
--
--	dss_restore_context();
--	dispc_restore_context();
--#ifdef CONFIG_OMAP2_DSS_DSI
--	dsi_restore_context();
--#endif
--
--	dss_clk_disable_all_no_ctx();
--}
--
--#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
--/* CLOCKS */
--static void core_dump_clocks(struct seq_file *s)
--{
--	int i;
--	struct clk *clocks[5] = {
--		core.dss_ick,
--		core.dss1_fck,
--		core.dss2_fck,
--		core.dss_54m_fck,
--		core.dss_96m_fck
--	};
--
--	seq_printf(s, "- CORE -\n");
--
--	seq_printf(s, "internal clk count\t\t%u\n", core.num_clks_enabled);
--
--	for (i = 0; i < 5; i++) {
--		if (!clocks[i])
--			continue;
--		seq_printf(s, "%-15s\t%lu\t%d\n",
--				clocks[i]->name,
--				clk_get_rate(clocks[i]),
--				clocks[i]->usecount);
--	}
--}
--#endif /* defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) */
--
--static int dss_get_clock(struct clk **clock, const char *clk_name)
--{
--	struct clk *clk;
--
--	clk = clk_get(&core.pdev->dev, clk_name);
--
--	if (IS_ERR(clk)) {
--		DSSERR("can't get clock %s", clk_name);
--		return PTR_ERR(clk);
--	}
--
--	*clock = clk;
--
--	DSSDBG("clk %s, rate %ld\n", clk_name, clk_get_rate(clk));
--
--	return 0;
--}
--
--static int dss_get_clocks(void)
--{
--	int r;
--
--	core.dss_ick = NULL;
--	core.dss1_fck = NULL;
--	core.dss2_fck = NULL;
--	core.dss_54m_fck = NULL;
--	core.dss_96m_fck = NULL;
--
--	r = dss_get_clock(&core.dss_ick, "ick");
--	if (r)
--		goto err;
--
--	r = dss_get_clock(&core.dss1_fck, "dss1_fck");
--	if (r)
--		goto err;
--
--	r = dss_get_clock(&core.dss2_fck, "dss2_fck");
--	if (r)
--		goto err;
--
--	r = dss_get_clock(&core.dss_54m_fck, "tv_fck");
--	if (r)
--		goto err;
--
--	r = dss_get_clock(&core.dss_96m_fck, "video_fck");
--	if (r)
--		goto err;
--
--	return 0;
--
--err:
--	if (core.dss_ick)
--		clk_put(core.dss_ick);
--	if (core.dss1_fck)
--		clk_put(core.dss1_fck);
--	if (core.dss2_fck)
--		clk_put(core.dss2_fck);
--	if (core.dss_54m_fck)
--		clk_put(core.dss_54m_fck);
--	if (core.dss_96m_fck)
--		clk_put(core.dss_96m_fck);
--
--	return r;
--}
--
--static void dss_put_clocks(void)
--{
--	if (core.dss_96m_fck)
--		clk_put(core.dss_96m_fck);
--	clk_put(core.dss_54m_fck);
--	clk_put(core.dss1_fck);
--	clk_put(core.dss2_fck);
--	clk_put(core.dss_ick);
--}
--
--unsigned long dss_clk_get_rate(enum dss_clock clk)
--{
--	switch (clk) {
--	case DSS_CLK_ICK:
--		return clk_get_rate(core.dss_ick);
--	case DSS_CLK_FCK1:
--		return clk_get_rate(core.dss1_fck);
--	case DSS_CLK_FCK2:
--		return clk_get_rate(core.dss2_fck);
--	case DSS_CLK_54M:
--		return clk_get_rate(core.dss_54m_fck);
--	case DSS_CLK_96M:
--		return clk_get_rate(core.dss_96m_fck);
--	}
--
--	BUG();
--	return 0;
--}
--
--static unsigned count_clk_bits(enum dss_clock clks)
--{
--	unsigned num_clks = 0;
--
--	if (clks & DSS_CLK_ICK)
--		++num_clks;
--	if (clks & DSS_CLK_FCK1)
--		++num_clks;
--	if (clks & DSS_CLK_FCK2)
--		++num_clks;
--	if (clks & DSS_CLK_54M)
--		++num_clks;
--	if (clks & DSS_CLK_96M)
--		++num_clks;
--
--	return num_clks;
--}
--
--static void dss_clk_enable_no_ctx(enum dss_clock clks)
--{
--	unsigned num_clks = count_clk_bits(clks);
--
--	if (clks & DSS_CLK_ICK)
--		clk_enable(core.dss_ick);
--	if (clks & DSS_CLK_FCK1)
--		clk_enable(core.dss1_fck);
--	if (clks & DSS_CLK_FCK2)
--		clk_enable(core.dss2_fck);
--	if (clks & DSS_CLK_54M)
--		clk_enable(core.dss_54m_fck);
--	if (clks & DSS_CLK_96M)
--		clk_enable(core.dss_96m_fck);
--
--	core.num_clks_enabled += num_clks;
--}
--
--void dss_clk_enable(enum dss_clock clks)
--{
--	bool check_ctx = core.num_clks_enabled == 0;
--
--	dss_clk_enable_no_ctx(clks);
--
--	if (check_ctx && cpu_is_omap34xx() && dss_need_ctx_restore())
--		restore_all_ctx();
--}
--
--static void dss_clk_disable_no_ctx(enum dss_clock clks)
--{
--	unsigned num_clks = count_clk_bits(clks);
--
--	if (clks & DSS_CLK_ICK)
--		clk_disable(core.dss_ick);
--	if (clks & DSS_CLK_FCK1)
--		clk_disable(core.dss1_fck);
--	if (clks & DSS_CLK_FCK2)
--		clk_disable(core.dss2_fck);
--	if (clks & DSS_CLK_54M)
--		clk_disable(core.dss_54m_fck);
--	if (clks & DSS_CLK_96M)
--		clk_disable(core.dss_96m_fck);
--
--	core.num_clks_enabled -= num_clks;
--}
--
--void dss_clk_disable(enum dss_clock clks)
--{
--	if (cpu_is_omap34xx()) {
--		unsigned num_clks = count_clk_bits(clks);
--
--		BUG_ON(core.num_clks_enabled < num_clks);
--
--		if (core.num_clks_enabled == num_clks)
--			save_all_ctx();
--	}
--
--	dss_clk_disable_no_ctx(clks);
--}
--
--static void dss_clk_enable_all_no_ctx(void)
--{
--	enum dss_clock clks;
--
--	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
--	if (cpu_is_omap34xx())
--		clks |= DSS_CLK_96M;
--	dss_clk_enable_no_ctx(clks);
--}
--
--static void dss_clk_disable_all_no_ctx(void)
--{
--	enum dss_clock clks;
--
--	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
--	if (cpu_is_omap34xx())
--		clks |= DSS_CLK_96M;
--	dss_clk_disable_no_ctx(clks);
--}
--
--static void dss_clk_disable_all(void)
--{
--	enum dss_clock clks;
--
--	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
--	if (cpu_is_omap34xx())
--		clks |= DSS_CLK_96M;
--	dss_clk_disable(clks);
--}
--
- /* REGULATORS */
+diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
+index 85503fe..e989588 100644
+--- a/arch/arm/mach-omap2/board-rx51-video.c
++++ b/arch/arm/mach-omap2/board-rx51-video.c
+@@ -59,18 +59,6 @@ static struct omap_dss_board_info rx51_dss_board_info = {
+ 	.default_device	= &rx51_lcd_device,
+ };
  
- struct regulator *dss_get_vdds_dsi(void)
-@@ -404,18 +99,7 @@ struct regulator *dss_get_vdda_dac(void)
- 	return reg;
- }
- 
--/* DEBUGFS */
- #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
--static void dss_debug_dump_clocks(struct seq_file *s)
--{
--	core_dump_clocks(s);
--	dss_dump_clocks(s);
--	dispc_dump_clocks(s);
--#ifdef CONFIG_OMAP2_DSS_DSI
--	dsi_dump_clocks(s);
--#endif
--}
+-struct platform_device rx51_display_device = {
+-	.name	= "omapdss",
+-	.id	= -1,
+-	.dev	= {
+-		.platform_data = &rx51_dss_board_info,
+-	},
+-};
 -
- static int dss_debug_show(struct seq_file *s, void *unused)
+-static struct platform_device *rx51_video_devices[] __initdata = {
+-	&rx51_display_device,
+-};
+-
+ static int __init rx51_video_init(void)
  {
- 	void (*func)(struct seq_file *) = s->private;
-@@ -508,14 +192,7 @@ static int omap_dss_probe(struct platform_device *pdev)
- 	dss_init_overlay_managers(pdev);
- 	dss_init_overlays(pdev);
+ 	if (!machine_is_nokia_rx51())
+@@ -88,8 +76,7 @@ static int __init rx51_video_init(void)
  
--	r = dss_get_clocks();
--	if (r)
--		goto err_clocks;
--
--	dss_clk_enable_all_no_ctx();
--
--	core.ctx_id = dss_get_ctx_id();
--	DSSDBG("initial ctx id %u\n", core.ctx_id);
-+	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
+ 	gpio_direction_output(RX51_LCD_RESET_GPIO, 1);
  
- #ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
- 	/* DISPC_CONTROL */
-@@ -589,7 +266,7 @@ static int omap_dss_probe(struct platform_device *pdev)
- 			pdata->default_device = dssdev;
- 	}
- 
--	dss_clk_disable_all();
-+	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
- 
- 	return 0;
- 
-@@ -612,9 +289,6 @@ err_dpi:
- err_rfbi:
- 	dss_exit();
- err_dss:
--	dss_clk_disable_all_no_ctx();
--	dss_put_clocks();
--err_clocks:
- 
- 	return r;
- }
-@@ -623,7 +297,6 @@ static int omap_dss_remove(struct platform_device *pdev)
- {
- 	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
- 	int i;
--	int c;
- 
- 	dss_uninitialize_debugfs();
- 
-@@ -638,47 +311,6 @@ static int omap_dss_remove(struct platform_device *pdev)
- 
- 	dss_exit();
- 
--	/* these should be removed at some point */
--	c = core.dss_ick->usecount;
--	if (c > 0) {
--		DSSERR("warning: dss_ick usecount %d, disabling\n", c);
--		while (c-- > 0)
--			clk_disable(core.dss_ick);
--	}
--
--	c = core.dss1_fck->usecount;
--	if (c > 0) {
--		DSSERR("warning: dss1_fck usecount %d, disabling\n", c);
--		while (c-- > 0)
--			clk_disable(core.dss1_fck);
--	}
--
--	c = core.dss2_fck->usecount;
--	if (c > 0) {
--		DSSERR("warning: dss2_fck usecount %d, disabling\n", c);
--		while (c-- > 0)
--			clk_disable(core.dss2_fck);
--	}
--
--	c = core.dss_54m_fck->usecount;
--	if (c > 0) {
--		DSSERR("warning: dss_54m_fck usecount %d, disabling\n", c);
--		while (c-- > 0)
--			clk_disable(core.dss_54m_fck);
--	}
--
--	if (core.dss_96m_fck) {
--		c = core.dss_96m_fck->usecount;
--		if (c > 0) {
--			DSSERR("warning: dss_96m_fck usecount %d, disabling\n",
--					c);
--			while (c-- > 0)
--				clk_disable(core.dss_96m_fck);
--		}
--	}
--
--	dss_put_clocks();
--
- 	dss_uninit_overlays(pdev);
- 	dss_uninit_overlay_managers(pdev);
- 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 6d0bd89..59a632d 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -31,6 +31,7 @@
- #include <linux/clk.h>
- 
- #include <plat/display.h>
-+#include <plat/clock.h>
- #include "dss.h"
- 
- #define DSS_BASE			0x48050000
-@@ -59,10 +60,19 @@ struct dss_reg {
- 	dss_write_reg(idx, FLD_MOD(dss_read_reg(idx), val, start, end))
- 
- static struct {
-+	struct platform_device *pdev;
- 	void __iomem    *base;
-+	int		ctx_id;
- 
- 	struct clk	*dpll4_m4_ck;
- 
-+	struct clk      *dss_ick;
-+	struct clk	*dss1_fck;
-+	struct clk	*dss2_fck;
-+	struct clk      *dss_54m_fck;
-+	struct clk	*dss_96m_fck;
-+	unsigned	num_clks_enabled;
-+
- 	unsigned long	cache_req_pck;
- 	unsigned long	cache_prate;
- 	struct dss_clock_info cache_dss_cinfo;
-@@ -74,6 +84,11 @@ static struct {
- 	u32		ctx[DSS_SZ_REGS / sizeof(u32)];
- } dss;
- 
-+static void dss_clk_enable_all_no_ctx(void);
-+static void dss_clk_disable_all_no_ctx(void);
-+static void dss_clk_enable_no_ctx(enum dss_clock clks);
-+static void dss_clk_disable_no_ctx(enum dss_clock clks);
-+
- static int _omap_dss_wait_reset(void);
- 
- static inline void dss_write_reg(const struct dss_reg idx, u32 val)
-@@ -639,14 +654,377 @@ void dss_exit(void)
- 	iounmap(dss.base);
- }
- 
-+/* CONTEXT */
-+static int dss_get_ctx_id(void)
-+{
-+	struct omap_display_platform_data *pdata = dss.pdev->dev.platform_data;
-+	int r;
-+
-+	if (!pdata->board_data->get_last_off_on_transaction_id)
-+		return 0;
-+	r = pdata->board_data->get_last_off_on_transaction_id(&dss.pdev->dev);
-+	if (r < 0) {
-+		dev_err(&dss.pdev->dev, "getting transaction ID failed, "
-+				"will force context restore\n");
-+		r = -1;
-+	}
-+	return r;
-+}
-+
-+int dss_need_ctx_restore(void)
-+{
-+	int id = dss_get_ctx_id();
-+
-+	if (id < 0 || id != dss.ctx_id) {
-+		DSSDBG("ctx id %d -> id %d\n",
-+				dss.ctx_id, id);
-+		dss.ctx_id = id;
-+		return 1;
-+	} else {
-+		return 0;
-+	}
-+}
-+
-+static void save_all_ctx(void)
-+{
-+	DSSDBG("save context\n");
-+
-+	dss_clk_enable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK1);
-+
-+	dss_save_context();
-+	dispc_save_context();
-+#ifdef CONFIG_OMAP2_DSS_DSI
-+	dsi_save_context();
-+#endif
-+
-+	dss_clk_disable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK1);
-+}
-+
-+static void restore_all_ctx(void)
-+{
-+	DSSDBG("restore context\n");
-+
-+	dss_clk_enable_all_no_ctx();
-+
-+	dss_restore_context();
-+	dispc_restore_context();
-+#ifdef CONFIG_OMAP2_DSS_DSI
-+	dsi_restore_context();
-+#endif
-+
-+	dss_clk_disable_all_no_ctx();
-+}
-+
-+static int dss_get_clock(struct clk **clock, const char *clk_name)
-+{
-+	struct clk *clk;
-+
-+	clk = clk_get(&dss.pdev->dev, clk_name);
-+
-+	if (IS_ERR(clk)) {
-+		DSSERR("can't get clock %s", clk_name);
-+		return PTR_ERR(clk);
-+	}
-+
-+	*clock = clk;
-+
-+	DSSDBG("clk %s, rate %ld\n", clk_name, clk_get_rate(clk));
-+
-+	return 0;
-+}
-+
-+static int dss_get_clocks(void)
-+{
-+	int r;
-+
-+	dss.dss_ick = NULL;
-+	dss.dss1_fck = NULL;
-+	dss.dss2_fck = NULL;
-+	dss.dss_54m_fck = NULL;
-+	dss.dss_96m_fck = NULL;
-+
-+	r = dss_get_clock(&dss.dss_ick, "ick");
-+	if (r)
-+		goto err;
-+
-+	r = dss_get_clock(&dss.dss1_fck, "dss1_fck");
-+	if (r)
-+		goto err;
-+
-+	r = dss_get_clock(&dss.dss2_fck, "dss2_fck");
-+	if (r)
-+		goto err;
-+
-+	r = dss_get_clock(&dss.dss_54m_fck, "tv_fck");
-+	if (r)
-+		goto err;
-+
-+	r = dss_get_clock(&dss.dss_96m_fck, "video_fck");
-+	if (r)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	if (dss.dss_ick)
-+		clk_put(dss.dss_ick);
-+	if (dss.dss1_fck)
-+		clk_put(dss.dss1_fck);
-+	if (dss.dss2_fck)
-+		clk_put(dss.dss2_fck);
-+	if (dss.dss_54m_fck)
-+		clk_put(dss.dss_54m_fck);
-+	if (dss.dss_96m_fck)
-+		clk_put(dss.dss_96m_fck);
-+
-+	return r;
-+}
-+
-+static void dss_put_clocks(void)
-+{
-+	if (dss.dss_96m_fck)
-+		clk_put(dss.dss_96m_fck);
-+	clk_put(dss.dss_54m_fck);
-+	clk_put(dss.dss1_fck);
-+	clk_put(dss.dss2_fck);
-+	clk_put(dss.dss_ick);
-+}
-+
-+unsigned long dss_clk_get_rate(enum dss_clock clk)
-+{
-+	switch (clk) {
-+	case DSS_CLK_ICK:
-+		return clk_get_rate(dss.dss_ick);
-+	case DSS_CLK_FCK1:
-+		return clk_get_rate(dss.dss1_fck);
-+	case DSS_CLK_FCK2:
-+		return clk_get_rate(dss.dss2_fck);
-+	case DSS_CLK_54M:
-+		return clk_get_rate(dss.dss_54m_fck);
-+	case DSS_CLK_96M:
-+		return clk_get_rate(dss.dss_96m_fck);
-+	}
-+
-+	BUG();
-+	return 0;
-+}
-+
-+static unsigned count_clk_bits(enum dss_clock clks)
-+{
-+	unsigned num_clks = 0;
-+
-+	if (clks & DSS_CLK_ICK)
-+		++num_clks;
-+	if (clks & DSS_CLK_FCK1)
-+		++num_clks;
-+	if (clks & DSS_CLK_FCK2)
-+		++num_clks;
-+	if (clks & DSS_CLK_54M)
-+		++num_clks;
-+	if (clks & DSS_CLK_96M)
-+		++num_clks;
-+
-+	return num_clks;
-+}
-+
-+static void dss_clk_enable_no_ctx(enum dss_clock clks)
-+{
-+	unsigned num_clks = count_clk_bits(clks);
-+
-+	if (clks & DSS_CLK_ICK)
-+		clk_enable(dss.dss_ick);
-+	if (clks & DSS_CLK_FCK1)
-+		clk_enable(dss.dss1_fck);
-+	if (clks & DSS_CLK_FCK2)
-+		clk_enable(dss.dss2_fck);
-+	if (clks & DSS_CLK_54M)
-+		clk_enable(dss.dss_54m_fck);
-+	if (clks & DSS_CLK_96M)
-+		clk_enable(dss.dss_96m_fck);
-+
-+	dss.num_clks_enabled += num_clks;
-+}
-+
-+void dss_clk_enable(enum dss_clock clks)
-+{
-+	bool check_ctx = dss.num_clks_enabled == 0;
-+
-+	dss_clk_enable_no_ctx(clks);
-+
-+	if (check_ctx && cpu_is_omap34xx() && dss_need_ctx_restore())
-+		restore_all_ctx();
-+}
-+
-+static void dss_clk_disable_no_ctx(enum dss_clock clks)
-+{
-+	unsigned num_clks = count_clk_bits(clks);
-+
-+	if (clks & DSS_CLK_ICK)
-+		clk_disable(dss.dss_ick);
-+	if (clks & DSS_CLK_FCK1)
-+		clk_disable(dss.dss1_fck);
-+	if (clks & DSS_CLK_FCK2)
-+		clk_disable(dss.dss2_fck);
-+	if (clks & DSS_CLK_54M)
-+		clk_disable(dss.dss_54m_fck);
-+	if (clks & DSS_CLK_96M)
-+		clk_disable(dss.dss_96m_fck);
-+
-+	dss.num_clks_enabled -= num_clks;
-+}
-+
-+void dss_clk_disable(enum dss_clock clks)
-+{
-+	if (cpu_is_omap34xx()) {
-+		unsigned num_clks = count_clk_bits(clks);
-+
-+		BUG_ON(dss.num_clks_enabled < num_clks);
-+
-+		if (dss.num_clks_enabled == num_clks)
-+			save_all_ctx();
-+	}
-+
-+	dss_clk_disable_no_ctx(clks);
-+}
-+
-+static void dss_clk_enable_all_no_ctx(void)
-+{
-+	enum dss_clock clks;
-+
-+	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
-+	if (cpu_is_omap34xx())
-+		clks |= DSS_CLK_96M;
-+	dss_clk_enable_no_ctx(clks);
-+}
-+
-+static void dss_clk_disable_all_no_ctx(void)
-+{
-+	enum dss_clock clks;
-+
-+	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
-+	if (cpu_is_omap34xx())
-+		clks |= DSS_CLK_96M;
-+	dss_clk_disable_no_ctx(clks);
-+}
-+
-+static void dss_clk_disable_all(void)
-+{
-+	enum dss_clock clks;
-+
-+	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
-+	if (cpu_is_omap34xx())
-+		clks |= DSS_CLK_96M;
-+	dss_clk_disable(clks);
-+}
-+
-+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
-+/* CLOCKS */
-+static void core_dump_clocks(struct seq_file *s)
-+{
-+	int i;
-+	struct clk *clocks[5] = {
-+		dss.dss_ick,
-+		dss.dss1_fck,
-+		dss.dss2_fck,
-+		dss.dss_54m_fck,
-+		dss.dss_96m_fck
-+	};
-+
-+	seq_printf(s, "- CORE -\n");
-+
-+	seq_printf(s, "internal clk count\t\t%u\n", dss.num_clks_enabled);
-+
-+	for (i = 0; i < 5; i++) {
-+		if (!clocks[i])
-+			continue;
-+		seq_printf(s, "%-15s\t%lu\t%d\n",
-+				clocks[i]->name,
-+				clk_get_rate(clocks[i]),
-+				clocks[i]->usecount);
-+	}
-+}
-+#endif /* defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) */
-+
-+/* DEBUGFS */
-+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
-+void dss_debug_dump_clocks(struct seq_file *s)
-+{
-+	core_dump_clocks(s);
-+	dss_dump_clocks(s);
-+	dispc_dump_clocks(s);
-+#ifdef CONFIG_OMAP2_DSS_DSI
-+	dsi_dump_clocks(s);
-+#endif
-+}
-+#endif
-+
-+
- /* DSS HW IP initialisation */
- static int omap_dsshw_probe(struct platform_device *pdev)
- {
--	return 0;
-+	int r;
-+
-+	dss.pdev = pdev;
-+
-+	r = dss_get_clocks();
-+	if (r)
-+		goto err_clocks;
-+
-+	dss_clk_enable_all_no_ctx();
-+
-+	dss.ctx_id = dss_get_ctx_id();
-+	DSSDBG("initial ctx id %u\n", dss.ctx_id);
-+
-+	dss_clk_disable_all_no_ctx();
-+err_clocks:
-+
-+	return r;
- }
- 
- static int omap_dsshw_remove(struct platform_device *pdev)
- {
-+	int c;
-+
-+	/* these should be removed at some point */
-+	c = dss.dss_ick->usecount;
-+	if (c > 0) {
-+		DSSERR("warning: dss_ick usecount %d, disabling\n", c);
-+		while (c-- > 0)
-+			clk_disable(dss.dss_ick);
-+	}
-+
-+	c = dss.dss1_fck->usecount;
-+	if (c > 0) {
-+		DSSERR("warning: dss1_fck usecount %d, disabling\n", c);
-+		while (c-- > 0)
-+			clk_disable(dss.dss1_fck);
-+	}
-+
-+	c = dss.dss2_fck->usecount;
-+	if (c > 0) {
-+		DSSERR("warning: dss2_fck usecount %d, disabling\n", c);
-+		while (c-- > 0)
-+			clk_disable(dss.dss2_fck);
-+	}
-+
-+	c = dss.dss_54m_fck->usecount;
-+	if (c > 0) {
-+		DSSERR("warning: dss_54m_fck usecount %d, disabling\n", c);
-+		while (c-- > 0)
-+			clk_disable(dss.dss_54m_fck);
-+	}
-+
-+	if (dss.dss_96m_fck) {
-+		c = dss.dss_96m_fck->usecount;
-+		if (c > 0) {
-+			DSSERR("warning: dss_96m_fck usecount %d, disabling\n",
-+					c);
-+			while (c-- > 0)
-+				clk_disable(dss.dss_96m_fck);
-+		}
-+	}
-+
-+	dss_put_clocks();
+-	platform_add_devices(rx51_video_devices,
+-				ARRAY_SIZE(rx51_video_devices));
++	omap_display_init(&rx51_dss_board_info);
  	return 0;
  }
  
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 5c7940d..0029aff 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -169,11 +169,6 @@ struct seq_file;
- struct platform_device;
- 
- /* core */
--void dss_clk_enable(enum dss_clock clks);
--void dss_clk_disable(enum dss_clock clks);
--unsigned long dss_clk_get_rate(enum dss_clock clk);
--int dss_need_ctx_restore(void);
--void dss_dump_clocks(struct seq_file *s);
- struct bus_type *dss_get_bus(void);
- struct regulator *dss_get_vdds_dsi(void);
- struct regulator *dss_get_vdds_sdi(void);
-@@ -219,8 +214,17 @@ void dss_exit(void);
- 
- void dss_save_context(void);
- void dss_restore_context(void);
-+void dss_clk_enable(enum dss_clock clks);
-+void dss_clk_disable(enum dss_clock clks);
-+unsigned long dss_clk_get_rate(enum dss_clock clk);
-+int dss_need_ctx_restore(void);
-+void dss_dump_clocks(struct seq_file *s);
-+
- 
- void dss_dump_regs(struct seq_file *s);
-+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
-+void dss_debug_dump_clocks(struct seq_file *s);
-+#endif
- 
- void dss_sdi_init(u8 datapairs);
- int dss_sdi_enable(void);
 -- 
 1.6.3.3
 
