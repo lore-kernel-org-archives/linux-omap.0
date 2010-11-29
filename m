@@ -1,150 +1,47 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
 Subject: Re: [PATCH v2 1/4] drivers: hwspinlock: add generic framework
-Date: Mon, 29 Nov 2010 11:46:40 +0200
-Message-ID: <AANLkTi=AtYTL-w5Jajypnbj=G_MGzyeLxtusu5V72eG+@mail.gmail.com>
-References: <1290526740-27624-1-git-send-email-ohad@wizery.com>
- <1290526740-27624-2-git-send-email-ohad@wizery.com> <20101126045912.GC6598@lixom.net>
- <AANLkTin5Tfcuy0WcHJ22rWC8niwZCj8SZAMKLz0p9jwc@mail.gmail.com>
- <20101126091832.GE9310@n2100.arm.linux.org.uk> <AANLkTimS-cSi1B5LdtwhJWhKDuFKOYG1j_p-iQiH=zRe@mail.gmail.com>
- <20101126104548.GG9310@n2100.arm.linux.org.uk> <AANLkTi=h3gPN63NKKJ4wjumKNx9qDtxCKvOSbtRkr1wx@mail.gmail.com>
- <20101126225339.GA26864@n2100.arm.linux.org.uk>
+Date: Mon, 29 Nov 2010 11:57:58 +0200
+Message-ID: <AANLkTimxP0ejc5i8cbEmdFidvCgH1pk5-Vc_WEGM2Hwa@mail.gmail.com>
+References: <AANLkTi=JSuJCqceJ3iw3TnV5OeJd+e5T3CyHtWVzBRu_@mail.gmail.com>
+ <536589.12568.qm@web180310.mail.gq1.yahoo.com> <AANLkTinQdNC0XaOqNyDbdYE6ZcP0QyzpN492j=Kovuea@mail.gmail.com>
+ <1290716548.2529.136.camel@helium> <AANLkTi=sZ-4BBLAJNU5B41cAxtroGkpNomgEYO4vtx8z@mail.gmail.com>
+ <1290821087.2529.252.camel@helium>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101126225339.GA26864@n2100.arm.linux.org.uk>
+In-Reply-To: <1290821087.2529.252.camel@helium>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Olof Johansson <olof@lixom.net>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@deeprootsystems.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: David Brownell <david-b@pacbell.net>
+Cc: MugdhaKamoolkar <mugdha@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, BenoitCousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, HariKanigeri <h-kanigeri2@ti.com>, SumanAnna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Nov 27, 2010 at 12:53 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Sat, Nov 27, 2010 at 12:18:55AM +0200, Ohad Ben-Cohen wrote:
->> But then there's the other (quite reasonable) claim that says we
->> shouldn't crash the machine because of a non fatal bug: if a crappy
->> driver messes up, the user (not the developer) will most probably
->> prefer the machine to keep running with degraded functionality rathe=
-r
->> than boot.
+On Sat, Nov 27, 2010 at 3:24 AM, David Brownell <david-b@pacbell.net> w=
+rote:
+> Your intent "generic" is fine, but you've not achieved it and thus I
+> think you shouldn't imply that you have. =A0 Dropping the word "gener=
+ic"
+> should =A0suffice; it _is_ a framework, and maybe the next person wor=
+king
+> with hardware spinlocks can finish generalizing (and add use cases).
+
+Sure, I can drop the word "generic".
+
+> Haven't looked at RT in a long time. =A0Just look at the current RT
+> patchset to see if it still has several spinlock variants. =A0ISTR th=
+e
+> "raw" spinlock stuff came from there not long ago. =A0Much compile-ti=
+me
+> magic was involved in switching between variants.
+
+I'll take a look there and see if I catch anything relevant.
+
+Thanks,
+Ohad.
+
+
 >
-> There's also the quite reasonable expectation that we shouldn't corru=
-pt
-> user data. =A0With locking interfaces, if someone abuses them and the=
-y
-> fail to work, then the risk is data corruption due to races. =A0The s=
-afe
-> thing in that case is to panic - terminate that thread before it does
-> anything unsafe, thereby preventing data corruption.
-
-Makes sense.
-
-I considered hwspinlock as a peripheral which doesn't qualify to take
-down the system on failure, but in general I agree that there indeed
-might be critical user data involved. Especially if this is a
-framework and not just another driver.
-
-But as a framework that can be used on non ARM architectures as well,
-I do prefer to check for NULL pointers and not rely on the Oops.
-
-If we had a macro that would be compiled out on architectures that
-reliably produces an Oops on NULL dereference, but otherwise, would
-BUG_ON on them, that should satisfy everyone.
-
-The BUG_ON_MAPPABLE_NULL() macro below should achieve exactly that,
-please tell me what you think, thanks!
-
- arch/arm/include/asm/mman.h |    1 +
- include/asm-generic/bug.h   |   40 +++++++++++++++++++++++++++++++++++=
-+++++
- 2 files changed, 41 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/include/asm/mman.h b/arch/arm/include/asm/mman.h
-index 41f99c5..d4ee003 100644
---- a/arch/arm/include/asm/mman.h
-+++ b/arch/arm/include/asm/mman.h
-@@ -1,4 +1,5 @@
- #include <asm-generic/mman.h>
-+#include <asm/pgtable.h>
-
- #define arch_mmap_check(addr, len, flags) \
- 	(((flags) & MAP_FIXED && (addr) < FIRST_USER_ADDRESS) ? -EINVAL : 0)
-diff --git a/include/asm-generic/bug.h b/include/asm-generic/bug.h
-index c2c9ba0..d211d9c 100644
---- a/include/asm-generic/bug.h
-+++ b/include/asm-generic/bug.h
-@@ -2,6 +2,11 @@
- #define _ASM_GENERIC_BUG_H
-
- #include <linux/compiler.h>
-+#include <asm/mman.h>
-+
-+#ifndef arch_mmap_check
-+#define arch_mmap_check(addr, len, flags)	(0)
-+#endif
-
- #ifdef CONFIG_BUG
-
-@@ -53,6 +58,41 @@ struct bug_entry {
- #define BUG_ON(condition) do { if (unlikely(condition)) BUG(); } while=
-(0)
- #endif
-
-+/**
-+ * BUG_ON_MAPPABLE_NULL() - panic on NULL only if address 0 is mappabl=
-e
-+ * @addr:	address to check
-+ *
-+ * In general, NULL dereference Oopses are not desirable, since they t=
-ake down
-+ * the system with them and make the user extremely unhappy. So as a g=
-eneral
-+ * rule kernel code should avoid dereferencing NULL pointers by doing =
-a
-+ * simple check (when appropriate), and if needed, continue operating
-+ * with reduced functionality rather than crash.
-+ *
-+ * _Critical_ kernel code, OTOH, that should not (/cannot) keep runnin=
-g when
-+ * given an unexpected NULL pointer, should just crash. On some archit=
-ectures,
-+ * a NULL dereference will always reliably produce an Oops. On others,=
- where
-+ * the zero address can be mmapped, an Oops is not guaranteed. Relying=
- on
-+ * NULL dereference Oopses to happen on these architectures might lead=
- to
-+ * data corruptions (system will keep running despite a critical bug a=
-nd
-+ * the results will be horribly undefined). In addition, these situati=
-ons
-+ * can also have security implications - we have seen several privileg=
-e
-+ * escalation exploits with which an attacker gained full control over=
- the
-+ * system due to NULL dereference bugs.
-+ *
-+ * This macro will BUG_ON if @addr is NULL on architectures where the =
-zero
-+ * addresses can be mapped. On other architectures, where the zero add=
-ress
-+ * can never be mapped, this macro is compiled out, so the system will=
- just
-+ * Oops when the @addr is dereferenced.
-+ *
-+ * As with BUG_ON, use this macro only if a NULL @addr cannot be toler=
-ated.
-+ * If proceeding with degraded functionality is an option, it's much
-+ * better to just simply check for the NULL and returning instead of c=
-rashing
-+ * the system.
-+ */
-+#define BUG_ON_MAPPABLE_NULL(addr) do { \
-+	if (arch_mmap_check(0, 1, MAP_FIXED) =3D=3D 0) BUG_ON(!addr); \
-+} while(0)
-+
- /*
-  * WARN(), WARN_ON(), WARN_ON_ONCE, and so on can be used to report
-  * significant issues that need prompt attention if they should ever
---=20
-1.7.0.4
+> - Dave
+>
+>
+>
