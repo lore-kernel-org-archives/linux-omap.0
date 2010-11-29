@@ -1,38 +1,33 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/2] enabled vdda_dac regulator support tvout on rx51
-Date: Mon, 29 Nov 2010 18:37:03 +0000
-Message-ID: <20101129183703.GS30360@rakim.wolfsonmicro.main>
-References: <1290700343-26640-1-git-send-email-ext-srikar.1.bhavanarayana@nokia.com>
- <1290700343-26640-2-git-send-email-ext-srikar.1.bhavanarayana@nokia.com>
- <20101125161112.GB15099@sirena.org.uk>
- <4CEF8453.3070904@nokia.com>
- <20101126125949.GD30360@rakim.wolfsonmicro.main>
- <20101126174517.GE2990@atomide.com>
- <20101127101852.GA27579@opensource.wolfsonmicro.com>
- <20101129181830.GC17222@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 4/8] omap: clock: add clkdev aliases for EHCI clocks
+Date: Mon, 29 Nov 2010 11:40:18 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1011291139560.2515@utopia.booyaka.com>
+References: <1291051537-23743-1-git-send-email-gadiyar@ti.com> <1291051537-23743-5-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:59619 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752039Ab0K2ShH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Nov 2010 13:37:07 -0500
-Content-Disposition: inline
-In-Reply-To: <20101129181830.GC17222@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:60794 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751422Ab0K2SkT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2010 13:40:19 -0500
+In-Reply-To: <1291051537-23743-5-git-send-email-gadiyar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Srikar <ext-srikar.1.bhavanarayana@nokia.com>, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@suse.de>
 
-On Mon, Nov 29, 2010 at 10:18:31AM -0800, Tony Lindgren wrote:
-> * Mark Brown <broonie@opensource.wolfsonmicro.com> [101127 02:10]:
+On Mon, 29 Nov 2010, Anand Gadiyar wrote:
 
-> > Yeah.  Some of it will need to be __devinitdata for hotpluggable things
-> > but most of it should be __initdata.  I'll update the regulator API to
-> > copy the constraints before the next merge window.
+> Add clkdev aliases for the USBHOST and USBTLL clocks on OMAP3 and
+> OMAP4, so that the driver can refer to the clocks using a common alias.
+> 
+> This will disappear when the driver is converted to use the hwmod
+> database, but until then this patch is needed.
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
 
-> OK sounds good to me.
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-FWIW the patch is "regulator: Copy constraints from regulators when
-initialising them", posted for review today.
+
+- Paul
