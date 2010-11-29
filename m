@@ -1,33 +1,63 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 4/8] omap: clock: add clkdev aliases for EHCI clocks
-Date: Mon, 29 Nov 2010 11:40:18 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1011291139560.2515@utopia.booyaka.com>
-References: <1291051537-23743-1-git-send-email-gadiyar@ti.com> <1291051537-23743-5-git-send-email-gadiyar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap serial console with PM fixes
+Date: Mon, 29 Nov 2010 11:02:44 -0800
+Message-ID: <20101129190244.GD17222@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60794 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751422Ab0K2SkT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2010 13:40:19 -0500
-In-Reply-To: <1291051537-23743-5-git-send-email-gadiyar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@suse.de>
 
-On Mon, 29 Nov 2010, Anand Gadiyar wrote:
+Hi Linus,
 
-> Add clkdev aliases for the USBHOST and USBTLL clocks on OMAP3 and
-> OMAP4, so that the driver can refer to the clocks using a common alias.
-> 
-> This will disappear when the driver is converted to use the hwmod
-> database, but until then this patch is needed.
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
+Please pull two patches to fix omap serial console with PM enabled:
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Both fix issues are related to conversion from 8250 to omap-serial done
+in commit 6f251e9db1093c187addc309b5f2f7fe3efd2995 ("OMAP: UART: omap_device
+conversions, remove implicit 8520 assumptions").
+
+With the commit above, we are now idling devices using omap generic
+code instead of tinkering with the uart registers directly. However,
+we may now have pr_debug and pr_warning in the idle path that we
+did not have earlier.
+
+Without the second patch in this series the system may hang when PM
+is enabled. The first patch in the series fixes a related issue if only
+some of the uarts are enabled.
+
+Apologies for the rather intrusive fix this late. The long term fix
+is to let omap-serial.c manage it's own idle state but that's not ready
+yet and can't be done as a fix.
+
+An alternative fix for the -rc series would be to remove the pr_debug
+and pr_warning from the idle path, but that really only fixes the
+symptoms, not the cause.
+
+Regards,
+
+Tony
 
 
-- Paul
+The following changes since commit 0b9466ccea3c4ec363737288dd9467bf978c9c2d:
+
+  Merge master.kernel.org:/home/rmk/linux-2.6-arm (2010-11-25 07:41:10 +0900)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Kevin Hilman (1):
+      OMAP: UART: don't resume UARTs that are not enabled.
+
+Paul Walmsley (1):
+      OMAP2+: PM/serial: hold console semaphore while OMAP UARTs are disabled
+
+ arch/arm/mach-omap2/pm24xx.c |    7 +++++++
+ arch/arm/mach-omap2/pm34xx.c |   10 ++++++++++
+ arch/arm/mach-omap2/serial.c |    7 ++++++-
+ 3 files changed, 23 insertions(+), 1 deletions(-)
