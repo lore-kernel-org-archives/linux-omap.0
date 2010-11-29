@@ -1,32 +1,28 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: Inventra Highspeed Dual Role Controller on TI OMAP 3503
-Date: Mon, 29 Nov 2010 10:07:20 +0200
-Message-ID: <20101129080720.GE26003@nokia.com>
-References: <43044DC2-2B10-43E3-AE5D-4D53A0337CA5@mac.com> <3524d254e36b505f20c17018a9126a0f@secure211.sgcpanel.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCHv5 0/4] omap: iovmm - fixes for iovmm module
+Date: Mon, 29 Nov 2010 10:47:29 +0200 (EET)
+Message-ID: <20101129.104729.97149649.Hiroshi.DOYU@nokia.com>
+References: <1288033806-1496-1-git-send-email-x0095840@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:24434 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:46465 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750831Ab0K2IIF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Nov 2010 03:08:05 -0500
-Content-Disposition: inline
-In-Reply-To: <3524d254e36b505f20c17018a9126a0f@secure211.sgcpanel.com>
+	id S1751700Ab0K2IsJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Nov 2010 03:48:09 -0500
+In-Reply-To: <1288033806-1496-1-git-send-email-x0095840@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Felipe Balbi <me@felipebalbi.com>
-Cc: Elvis Dowson <elvis.dowson@mac.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: x0095840@ti.com, h-kanigeri2@ti.com
+Cc: felipe.contreras@nokia.com, tony@atomide.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> that's no official documentation. It's better to check device's datasheet
-> when you have such questions. Besides, imagine the pain it would be to
-> patch that Kconfig entry everytime we have a new release of an OMAP
-> processor. Maybe it would be better to say something like: "available
-> on many OMAP processors" instead of mentioning each and every one of
-> them.
+From: ext Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCHv5 0/4] omap: iovmm - fixes for iovmm module
+Date: Mon, 25 Oct 2010 21:10:02 +0200
 
-It would be even better if the availability could be discovered at
-runtime.
+> Version 5:
+> * Changes in "iommu: create new api to set valid da range"
+>   - Change range variables to platform data structure.
 
-Cheers,
-
-Peter.
+Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
