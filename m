@@ -1,13 +1,13 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v2 11/17] OMAP2,3: DSS: DSS Move init,exit to driver
-Date: Mon, 29 Nov 2010 17:21:37 +0530
-Message-ID: <1291031503-21036-12-git-send-email-svadivu@ti.com>
+Subject: [PATCH v2 05/17] OMAP2,3 DSS Driver register moved to mach_omap2
+Date: Mon, 29 Nov 2010 17:21:31 +0530
+Message-ID: <1291031503-21036-6-git-send-email-svadivu@ti.com>
 References: <1291031503-21036-1-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36837 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753520Ab0K2Lv4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Nov 2010 06:51:56 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:48974 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753561Ab0K2Lv6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2010 06:51:58 -0500
 In-Reply-To: <1291031503-21036-1-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,97 +16,102 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Move init exit methods to its driver probe remove.
-pdev member has to be maintained by its own drivers.
+Move DSS driver register from board file to devices.c
+Changed device name from omapdss to omap_display as the
+driver takes care of panel information.
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- drivers/video/omap2/dss/core.c |   16 ----------------
- drivers/video/omap2/dss/dss.c  |   16 ++++++++++++++++
- 2 files changed, 16 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/devices.c             |   32 +++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/display.h |    4 +++
+ drivers/video/omap2/dss/core.c            |    2 +-
+ 3 files changed, 37 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 0d5f6dd..5b0f551 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -192,18 +192,6 @@ static int omap_dss_probe(struct platform_device *pdev)
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 5a0c148..0f6eabe 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -28,6 +28,7 @@
+ #include <mach/gpio.h>
+ #include <plat/mmc.h>
+ #include <plat/dma.h>
++#include <plat/display.h>
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
  
- 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
+@@ -923,6 +924,37 @@ static inline void omap_hdq_init(void) {}
+ #endif
  
--#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
--	/* DISPC_CONTROL */
--	if (omap_readl(0x48050440) & 1)	/* LCD enabled? */
--		skip_init = 1;
--#endif
--
--	r = dss_init(skip_init);
--	if (r) {
--		DSSERR("Failed to initialize DSS\n");
--		goto err_dss;
--	}
--
- 	r = rfbi_init();
- 	if (r) {
- 		DSSERR("Failed to initialize rfbi\n");
-@@ -285,8 +273,6 @@ err_dispc:
- err_dpi:
- 	rfbi_exit();
- err_rfbi:
--	dss_exit();
--err_dss:
- 
- 	return r;
- }
-@@ -307,8 +293,6 @@ static int omap_dss_remove(struct platform_device *pdev)
- 		sdi_exit();
- 	}
- 
--	dss_exit();
--
- 	dss_uninit_overlays(pdev);
- 	dss_uninit_overlay_managers(pdev);
- 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 99dd490..b622d04 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -964,6 +964,7 @@ void dss_debug_dump_clocks(struct seq_file *s)
- static int omap_dsshw_probe(struct platform_device *pdev)
- {
- 	int r;
-+	int skip_init = 0;
- 
- 	dss.pdev = pdev;
- 
-@@ -978,6 +979,19 @@ static int omap_dsshw_probe(struct platform_device *pdev)
- 	dss.ctx_id = dss_get_ctx_id();
- 	DSSDBG("initial ctx id %u\n", dss.ctx_id);
- 
-+#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
-+	/* DISPC_CONTROL */
-+	if (omap_readl(0x48050440) & 1)	/* LCD enabled? */
-+		skip_init = 1;
+ /*---------------------------------------------------------------------------*/
++#ifdef CONFIG_OMAP2_DSS
++
++static struct platform_device omap_display_device = {
++	.name          = "omap_display",
++	.id            = -1,
++	.dev            = {
++		.platform_data = NULL,
++	},
++};
++
++int __init omap_display_init(struct omap_dss_board_info
++					*board_data)
++{
++	int r = 0;
++	omap_display_device.dev.platform_data = board_data;
++
++	r = platform_device_register(&omap_display_device);
++	if (r < 0)
++		printk(KERN_ERR "Unable to register OMAP-Display device\n");
++
++	return r;
++}
++
++#else
++int __init omap_display_init(struct omap_dss_board_info *board_data)
++{
++return 0;
++}
 +#endif
 +
-+	r = dss_init(skip_init);
-+	if (r) {
-+		DSSERR("Failed to initialize DSS\n");
-+		goto err_dss;
-+	}
-+
-+err_dss:
- 	dss_clk_disable_all_no_ctx();
- err_clocks:
++/*---------------------------------------------------------------------------*/
  
-@@ -988,6 +1002,8 @@ static int omap_dsshw_remove(struct platform_device *pdev)
- {
- 	int c;
+ #if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
+ 	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
+diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+index c915a66..871bbae 100644
+--- a/arch/arm/plat-omap/include/plat/display.h
++++ b/arch/arm/plat-omap/include/plat/display.h
+@@ -23,6 +23,7 @@
+ #include <linux/list.h>
+ #include <linux/kobject.h>
+ #include <linux/device.h>
++#include <linux/platform_device.h>
+ #include <asm/atomic.h>
  
-+	dss_exit();
+ #define DISPC_IRQ_FRAMEDONE		(1 << 0)
+@@ -220,6 +221,9 @@ struct omap_dss_board_info {
+ 	struct omap_dss_device *default_device;
+ };
+ 
++/* Init with the board info */
++extern int omap_display_init(struct omap_dss_board_info *board_data);
 +
- 	/* these should be removed at some point */
- 	c = dss.dss_ick->usecount;
- 	if (c > 0) {
+ struct omap_video_timings {
+ 	/* Unit: pixels */
+ 	u16 x_res;
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 8e89f60..48d20d8 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -715,7 +715,7 @@ static struct platform_driver omap_dss_driver = {
+ 	.suspend	= omap_dss_suspend,
+ 	.resume		= omap_dss_resume,
+ 	.driver         = {
+-		.name   = "omapdss",
++		.name   = "omap_display",
+ 		.owner  = THIS_MODULE,
+ 	},
+ };
 -- 
 1.6.3.3
 
