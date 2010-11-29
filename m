@@ -1,139 +1,92 @@
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Subject: Re: [PATCH v5 1/1] OMAP2: Spi: Force CS to be in inactive state after
- off-mode transition
-Date: Mon, 29 Nov 2010 18:03:29 +0100
-Message-ID: <4CF3DCE1.3030007@free-electrons.com>
-References: <4CED8F6E.3000808@free-electrons.com> <877hfw1a6a.fsf@deeprootsystems.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH v2 3/6] TI816X: Update common OMAP machine specific
+ sources
+Date: Mon, 29 Nov 2010 22:47:15 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0369E7C04D@dbde02.ent.ti.com>
+References: <1281546664-11477-1-git-send-email-hemantp@ti.com>
+ <20100916222459.GQ29610@atomide.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B03569BEEA3@dbde02.ent.ti.com>
+ <20101105205943.GS9264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:34542 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295Ab0K2RDj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2010 12:03:39 -0500
-In-Reply-To: <877hfw1a6a.fsf@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53034 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754893Ab0K2RRY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2010 12:17:24 -0500
+In-Reply-To: <20101105205943.GS9264@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, spi-devel-general@lists.sourceforge.net, David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-On 11/29/2010 03:22 PM, Kevin Hilman wrote:
-> Gregory CLEMENT <gregory.clement@free-electrons.com> writes:
-> 
->> As request by Grant Likely, there is no more cover letter. Full changelog is following.
->> I am still reluctant to add this changelog in the patch description, as it adds no value to
->> the patch itself: when it was needed I try to updat comments or patch description.
->> I understand that Grant Likely would need an ack from other user as this patch fix a corner case.
->> Kevin Hilman made a few comments on this patch so he could add his "Ack by" or at least his "Review by".
-> 
-> A couple more comments...
-> 
->>
->> Changelog:
->> * Change from v1 to v2:
->> Rebase on linus/master (after 2.6.37-rc1)
->> Do some clean-up and fix indentation on both patches
->> Add more explanations for patch 2
->>
->> * Change from v2 to v3:
->> Use directly resume function of spi_master instead of using function
->> from spi_device as Grant Likely pointed it out.
->> Force this transition explicitly for each CS used by a device.
->>
->> * Change from v3 to v4:
->> Patch clean-up according to Kevin Hilman and checkpatch.
->> Now force CS to be in inactive state only if it was inactive when it was
->> suspended.
->>
->> * Change from v4 to v5:
->> Rebase on linus/master (after 2.6.37-rc3)
->> Collapse some lines as pointed by Grant Likely
->> Fix a spelling
->>
->>
->> == CUT HERE ==
->> When SPI wake up from OFF mode, CS is in the wrong state: force it to the inactive state.
->>
->> During the system life, I monitored the CS behavior using a oscilloscope.
->> I also activated debug in omap2_mcspi, so I saw when driver disable the clocks and restore context when device is not used.
->> Each time the CS was in the correct state.
->> It was only when system was put suspend to ram with off-mode activated that on resume the CS was in wrong state( ie activated).
->>
->> Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
->> ---
->>  drivers/spi/omap2_mcspi.c |   33 +++++++++++++++++++++++++++++++++
->>  1 files changed, 33 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
->> index 2a651e6..dcc024a 100644
->> --- a/drivers/spi/omap2_mcspi.c
->> +++ b/drivers/spi/omap2_mcspi.c
->> @@ -1305,11 +1305,44 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
->>  /* work with hotplug and coldplug */
->>  MODULE_ALIAS("platform:omap2_mcspi");
->>
->> +#ifdef	CONFIG_PM
-> 
-> You should use CONFIG_SUSPEND here
+Tony Lindgren wrote on Saturday, November 06, 2010 2:30 AM:
 
-OK I will do this.
-
+> * Pedanekar, Hemant <hemantp@ti.com> [101022 10:58]:
+>> Tony Lindgren wrote on Friday, September 17, 2010 3:55 AM:
+>> 
+>>> * Hemant Pedanekar <hemantp@ti.com> [100811 10:03]:
+>>>> This patch updates the common machine spcific source files with support
+>>>> for TI816X. 
+>>>> 
+>>>> Note that the nr_irqs is overridden in INTC driver since the number of
+>>>> IRQs on TI816X are different (128) comapared to other OMAPs (96).
+>>> 
+>>> <snip>
+>>> 
+>>>> --- a/arch/arm/mach-omap2/id.c
+>>>> +++ b/arch/arm/mach-omap2/id.c
+>>>> @@ -419,6 +441,9 @@ void __init omap2_check_revision(void)
+>>>>  	} else if (cpu_is_omap44xx()) {
+>>>>  		omap4_check_revision();
+>>>>  		return;
+>>>> +	} else if (cpu_is_ti816x()) {
+>>>> +		ti816x_check_revision();
+>>>> +		return;
+>>>>  	} else {
+>>>>  		pr_err("OMAP revision unknown, please fix!\n");
+>>>>  	}
+>>> 
+>>> This does not look right, at this point you should just know
+>>> the processor class set by the set_globals call.
+>>> 
+>>> Please take a look at plat-omap/common.c and add an entry for
+>>> omap2_set_globals_ti816x. This gets called very early from the board-*.c
+>>> file, so you can initialize things.
+>> 
+>> Tony,
+>> 
+>> Do you mean following changes in the patch I sent earlier?
 > 
->> +/* When SPI wake up from off-mode, CS is in activate state. If it was in
->> + * unactive state when driver was suspend, then force it to unactive state at
->> + * wake up.
->> + */
->> +static int omap2_mcspi_resume(struct platform_device *pdev)
->> +{
->> +	struct spi_master	*master = dev_get_drvdata(&pdev->dev);
->> +	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
->> +	struct omap2_mcspi_cs *cs;
->> +
->> +	omap2_mcspi_enable_clocks(mcspi);
->> +	list_for_each_entry(cs, &omap2_mcspi_ctx[master->bus_num - 1].cs,
->> +			    node) {
->> +		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
->> +
->> +			/* We need to toggle CS state for OMAP take this
->> +			 * change in account.
->> +			 */
->> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 1);
->> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
->> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 0);
->> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
->> +		}
->> +	}
->> +	omap2_mcspi_disable_clocks(mcspi);
->> +	return 0;
->> +}
->> +#else
->> +#define	omap2_mcspi_resume	NULL
->> +#endif
->> +
->>  static struct platform_driver omap2_mcspi_driver = {
->>  	.driver = {
->>  		.name =		"omap2_mcspi",
->>  		.owner =	THIS_MODULE,
->>  	},
->> +	.resume =	omap2_mcspi_resume,
+> No, I'm mostly wondering how come you can't use cpu_is_omap34xx
+> for ti816x and then detect based on the values set in
+> omap2_set_globals. Then cpu_is_ti816x just becomes a set of features.
 > 
-> This is adding legacy PM methods.  Instead, you should add a struct
-> dev_pm_ops and add the resume method there.
-
-OK, I shouldn't copy and paste an old driver!
-Thanks for your advices.
-
+> In general, we should initialize more things in set_globals
+> if necessary rather than sprinkle cpu_is_omap tests all over
+> the place to add support for new omaps.
 > 
-> Kevin
-> 
->>  	.remove =	__exit_p(omap2_mcspi_remove),
->>  };
->>  -- 1.7.0.4
 
+Tony,
 
--- 
-Gregory Clement, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+Though based on Cortex A8, TI816X series has differences in PRCM, PLL, clock
+structure compared to OMAP3.
+
+Many of the OMAP3 specific checks are not applicable for TI816X. For example, 
+consider following:
+File - arch/arm/mach-omap2/omap_hwmod.c 
+Function - _wait_target_ready()
+
+	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+		ret = omap2_cm_wait_module_ready(oh->prcm.omap2.module_offs,
+				oh->prcm.omap2.idlest_reg_id,
+				oh->prcm.omap2.idlest_idle_bit);
+
+The above code inside cpu_is_omap34xx() check is not applicable for TI816X as
+there are no CM_IDELST registers.
+
+Thanks
+-
+Hemant
