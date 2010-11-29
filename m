@@ -1,13 +1,13 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v2 15/17] OMAP2,3: DSS: DSI Move init, exit to driver
-Date: Mon, 29 Nov 2010 17:21:41 +0530
-Message-ID: <1291031503-21036-16-git-send-email-svadivu@ti.com>
+Subject: [PATCH v2 07/17] OMAP2,3: DSS: Build omap_device for each DSS HWIP
+Date: Mon, 29 Nov 2010 17:21:33 +0530
+Message-ID: <1291031503-21036-8-git-send-email-svadivu@ti.com>
 References: <1291031503-21036-1-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36846 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753611Ab0K2LwA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Nov 2010 06:52:00 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:48977 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753609Ab0K2Lv7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2010 06:51:59 -0500
 In-Reply-To: <1291031503-21036-1-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,117 +16,105 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Move init exit methods to its driver probe, remove.
-pdev member has to be maintained by its own drivers.
-regulator has to be privately handled in each driver.
+Looks up the hwmod database for each of the given DSS HW IP
+and builds omap_device which inturn does the platform device
+register for each of DSS HW IP
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |    1 +
- drivers/video/omap2/dss/core.c      |    8 --------
- drivers/video/omap2/dss/dsi.c       |   28 ++++++++++++++++++++++++++--
- 3 files changed, 27 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/devices.c             |   50 +++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/display.h |    6 +++
+ 2 files changed, 56 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 2e3c68b..2c3ddd8 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -527,6 +527,7 @@ static struct regulator_init_data sdp3430_vdac = {
- /* VPLL2 for digital video outputs */
- static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
- 	REGULATOR_SUPPLY("vdds_dsi", "omap_display"),
-+	REGULATOR_SUPPLY("vdds_dsi", "omap_dsi1"),
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 0f6eabe..9ae546e 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -934,10 +934,60 @@ static struct platform_device omap_display_device = {
+ 	},
  };
  
- static struct regulator_init_data sdp3430_vpll2 = {
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 6f9fc38..21944d7 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -190,11 +190,6 @@ static int omap_dss_probe(struct platform_device *pdev)
- 			goto err_sdi;
- 		}
- 
--		r = dsi_init(pdev);
--		if (r) {
--			DSSERR("Failed to initialize DSI\n");
--			goto err_dsi;
--		}
- 	}
- 
- 	r = dss_initialize_debugfs();
-@@ -227,9 +222,6 @@ err_register:
- 	dss_uninitialize_debugfs();
- err_debugfs:
- 	if (cpu_is_omap34xx())
--		dsi_exit();
--err_dsi:
--	if (cpu_is_omap34xx())
- 		sdi_exit();
- err_sdi:
- 	dpi_exit();
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 037d366..a8f3335 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -222,6 +222,7 @@ struct dsi_irq_stats {
- 
- static struct
++static struct omap_device_pm_latency omap_dss_latency[] = {
++	[0] = {
++		.deactivate_func        = omap_device_idle_hwmods,
++		.activate_func          = omap_device_enable_hwmods,
++	},
++};
++
+ int __init omap_display_init(struct omap_dss_board_info
+ 					*board_data)
  {
-+	struct platform_device *pdev;
- 	void __iomem	*base;
- 
- 	struct dsi_clock_info current_cinfo;
-@@ -3271,7 +3272,7 @@ int dsi_init(struct platform_device *pdev)
- 		goto err1;
- 	}
- 
--	dsi.vdds_dsi_reg = dss_get_vdds_dsi();
-+	dsi.vdds_dsi_reg = dsi_get_vdds_dsi();
- 	if (IS_ERR(dsi.vdds_dsi_reg)) {
- 		DSSERR("can't get VDDS_DSI regulator\n");
- 		r = PTR_ERR(dsi.vdds_dsi_reg);
-@@ -3306,11 +3307,20 @@ void dsi_exit(void)
- /* DSI1 HW IP initialisation */
- static int omap_dsi1hw_probe(struct platform_device *pdev)
- {
--	return 0;
-+	int r;
-+	dsi.pdev = pdev;
-+	r = dsi_init(pdev);
-+	if (r) {
-+		DSSERR("Failed to initialize DSI\n");
-+		goto err_dsi;
+ 	int r = 0;
++	struct omap_hwmod *oh;
++	struct omap_device *od;
++	int i;
++	struct omap_display_platform_data pdata;
++	char *omap2_oh_name[] = { "dss_dss", "dss_dispc", "dss_rfbi",
++				"dss_venc" };
++	char *omap3_oh_name[] = { "dss_dss", "dss_dispc", "dss_rfbi",
++				"dss_venc", "dss_dsi1" };
++	char *omap2_dev_name[] = { "omap_dss", "omap_dispc", "omap_rfbi",
++				"omap_venc" };
++	char *omap3_dev_name[] = { "omap_dss", "omap_dispc", "omap_rfbi",
++				"omap_venc", "omap_dsi1" };
++	char *(*oh_name)[];
++	char *(*dev_name)[];
++	int oh_count;
++
++	if (cpu_is_omap24xx()) {
++		oh_name = &omap2_oh_name;
++		dev_name = &omap2_dev_name;
++		oh_count = ARRAY_SIZE(omap2_oh_name);
++	} else {
++		oh_name = &omap3_oh_name;
++		dev_name = &omap3_dev_name;
++		oh_count = ARRAY_SIZE(omap3_oh_name);
 +	}
-+err_dsi:
-+	return r;
- }
- 
- static int omap_dsi1hw_remove(struct platform_device *pdev)
- {
-+	dsi_exit();
- 	return 0;
- }
- 
-@@ -3330,4 +3340,18 @@ static int __init omap_dsi1_init(void)
- 
- device_initcall(omap_dsi1_init);
- 
-+static struct regulator *dsi_get_vdds_dsi(void)
-+{
-+	struct regulator *reg;
 +
-+	if (dsi.vdds_dsi_reg != NULL)
-+		return dsi.vdds_dsi_reg;
++	pdata.board_data	=	board_data;
++	pdata.board_data->get_last_off_on_transaction_id = NULL;
 +
-+	reg = regulator_get(&dsi.pdev->dev, "vdds_dsi");
-+	if (!IS_ERR(reg))
-+		dsi.vdds_dsi_reg = reg;
++	for (i = 0; i < oh_count; i++) {
++		oh = omap_hwmod_lookup((*oh_name)[i]);
++		if (!oh) {
++			pr_err("Could not look up %s\n", (*oh_name)[i]);
++			return r;
++		}
++		od = omap_device_build((*dev_name)[i], -1, oh, &pdata,
++				sizeof(struct omap_display_platform_data),
++				omap_dss_latency,
++				ARRAY_SIZE(omap_dss_latency), 0);
 +
-+	return reg;
-+}
-+
++		WARN((IS_ERR(od)), "Could not build omap_device for %s\n",
++				(*oh_name)[i]);
++	}
+ 	omap_display_device.dev.platform_data = board_data;
  
+ 	r = platform_device_register(&omap_display_device);
+diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+index 871bbae..23afd6d 100644
+--- a/arch/arm/plat-omap/include/plat/display.h
++++ b/arch/arm/plat-omap/include/plat/display.h
+@@ -26,6 +26,7 @@
+ #include <linux/platform_device.h>
+ #include <asm/atomic.h>
+ 
++
+ #define DISPC_IRQ_FRAMEDONE		(1 << 0)
+ #define DISPC_IRQ_VSYNC			(1 << 1)
+ #define DISPC_IRQ_EVSYNC_EVEN		(1 << 2)
+@@ -224,6 +225,11 @@ struct omap_dss_board_info {
+ /* Init with the board info */
+ extern int omap_display_init(struct omap_dss_board_info *board_data);
+ 
++struct omap_display_platform_data {
++	struct omap_dss_board_info *board_data;
++	/* TODO: Additional members to be added when PM is considered */
++};
++
+ struct omap_video_timings {
+ 	/* Unit: pixels */
+ 	u16 x_res;
 -- 
 1.6.3.3
 
