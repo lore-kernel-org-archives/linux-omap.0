@@ -1,79 +1,61 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH v5 1/4] OMAP: mailbox: change full flag per mailbox queue instead of global
-Date: Mon, 29 Nov 2010 14:24:11 -0600
-Message-ID: <1291062254-9057-2-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH v5 3/4] OMAP: mailbox: send message in process context
+Date: Mon, 29 Nov 2010 14:24:13 -0600
+Message-ID: <1291062254-9057-4-git-send-email-h-kanigeri2@ti.com>
 References: <1291062254-9057-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51634 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750939Ab0K2UWO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2010 15:22:14 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:40547 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751684Ab0K2UWT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Nov 2010 15:22:19 -0500
 In-Reply-To: <1291062254-9057-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Charulatha Varadarajan <charu@ti.com>, Omar Ramirez <omar.ramirez@ti.com>, Fernando Guzman <fernando.lugo@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Charulatha Varadarajan <charu@ti.com>, Omar Ramirez <omar.ramirez@ti.com>, Fernando Guzman <fernando.lugo@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-From: Fernando Guzman Lugo <x0095840@ti.com>
+Schedule the Tasklet to send only when mailbox fifo is full and there are
+pending messages in kfifo, else send the message directly in the Process
+context. This would avoid needless scheduling of Tasklet for every message
+transfer
 
-The variable rq_full flag is a global variable, so if there are multiple
-mailbox users there will be conflicts. Now there is a full flag per
-mailbox queue.
-
-Reported-by: Ohad Ben-Cohen <ohad@wizery.com>
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 ---
- arch/arm/plat-omap/include/plat/mailbox.h |    1 +
- arch/arm/plat-omap/mailbox.c              |    9 +++++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/mailbox.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
-index 9976565..13f2ef3 100644
---- a/arch/arm/plat-omap/include/plat/mailbox.h
-+++ b/arch/arm/plat-omap/include/plat/mailbox.h
-@@ -48,6 +48,7 @@ struct omap_mbox_queue {
- 	struct tasklet_struct	tasklet;
- 	int	(*callback)(void *);
- 	struct omap_mbox	*mbox;
-+	bool full;
- };
- 
- struct omap_mbox {
 diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index d2fafb8..48e161c 100644
+index d9aa87c..cc58b44 100644
 --- a/arch/arm/plat-omap/mailbox.c
 +++ b/arch/arm/plat-omap/mailbox.c
-@@ -33,7 +33,6 @@
+@@ -92,20 +92,25 @@ int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+ 	struct omap_mbox_queue *mq = mbox->txq;
+ 	int ret = 0, len;
  
- static struct workqueue_struct *mboxd;
- static struct omap_mbox **mboxes;
--static bool rq_full;
+-	spin_lock(&mq->lock);
++	spin_lock_bh(&mq->lock);
  
- static int mbox_configured;
- static DEFINE_MUTEX(mbox_configured_lock);
-@@ -148,6 +147,12 @@ static void mbox_rx_work(struct work_struct *work)
- 
- 		if (mq->callback)
- 			mq->callback((void *)msg);
-+		spin_lock_irq(&mq->lock);
-+		if (mq->full) {
-+			mq->full = false;
-+			omap_mbox_enable_irq(mq->mbox, IRQ_RX);
-+		}
-+		spin_unlock_irq(&mq->lock);
+ 	if (kfifo_avail(&mq->fifo) < sizeof(msg)) {
+ 		ret = -ENOMEM;
+ 		goto out;
  	}
+ 
++	if (kfifo_is_empty(&mq->fifo) && !__mbox_poll_for_space(mbox)) {
++		mbox_fifo_write(mbox, msg);
++		goto out;
++	}
++
+ 	len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+ 	WARN_ON(len != sizeof(msg));
+ 
+ 	tasklet_schedule(&mbox->txq->tasklet);
+ 
+ out:
+-	spin_unlock(&mq->lock);
++	spin_unlock_bh(&mq->lock);
+ 	return ret;
  }
- 
-@@ -170,7 +175,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
- 	while (!mbox_fifo_empty(mbox)) {
- 		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
- 			omap_mbox_disable_irq(mbox, IRQ_RX);
--			rq_full = true;
-+			mq->full = true;
- 			goto nomem;
- 		}
- 
+ EXPORT_SYMBOL(omap_mbox_msg_send);
 -- 
 1.7.0
 
