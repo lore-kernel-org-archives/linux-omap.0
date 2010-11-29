@@ -1,129 +1,315 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/6] OMAP: powerdomain: Infrastructure to put arch specific
- code
-Date: Sun, 28 Nov 2010 17:07:52 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1011281706300.2515@utopia.booyaka.com>
-References: <1289921886-5139-1-git-send-email-rnayak@ti.com> <1289921886-5139-2-git-send-email-rnayak@ti.com> <1289921886-5139-3-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH 3/6] OMAP: powerdomain: Arch specific funcs for state
+ control
+Date: Sun, 28 Nov 2010 17:14:53 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1011281708120.2515@utopia.booyaka.com>
+References: <1289921886-5139-1-git-send-email-rnayak@ti.com> <1289921886-5139-2-git-send-email-rnayak@ti.com> <1289921886-5139-3-git-send-email-rnayak@ti.com> <1289921886-5139-4-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45178 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:52431 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754229Ab0K2AHx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Nov 2010 19:07:53 -0500
-In-Reply-To: <1289921886-5139-3-git-send-email-rnayak@ti.com>
+	with ESMTP id S1754332Ab0K2AOy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Nov 2010 19:14:54 -0500
+In-Reply-To: <1289921886-5139-4-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rajendra Nayak <rnayak@ti.com>
 Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, khilman@deeprootsystems.com
 
-One minor comment here:
+Some comments below:
 
 On Tue, 16 Nov 2010, Rajendra Nayak wrote:
 
-> Put infrastructure in place, so arch specific func pointers
-> can be hooked up to the platform-independent part of the
-> framework.
+> Define the following architecture specific funtions for omap2/3/4
+> .pwrdm_set_next_pwrst
+> .pwrdm_read_next_pwrst
+> .pwrdm_read_pwrst
+> .pwrdm_read_prev_pwrst
+> 
+> Convert the platform-independent framework to call these functions.
 > 
 > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > Cc: Paul Walmsley <paul@pwsan.com>
 > Cc: Benoit Cousson <b-cousson@ti.com>
 > Cc: Kevin Hilman <khilman@deeprootsystems.com>
 > ---
->  arch/arm/mach-omap2/io.c                      |    2 +-
->  arch/arm/plat-omap/include/plat/powerdomain.h |   22 +++++++++++++++++++++-
->  arch/arm/plat-omap/powerdomain.c              |   10 ++++++++--
->  3 files changed, 30 insertions(+), 4 deletions(-)
+>  arch/arm/mach-omap2/Makefile           |    5 +++
+>  arch/arm/mach-omap2/io.c               |    5 ++-
+>  arch/arm/mach-omap2/powerdomains.h     |    8 +++++
+>  arch/arm/mach-omap2/powerdomains2xxx.c |   53 ++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/powerdomains44xx.c |   53 ++++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/powerdomain.c       |   33 ++++++++++++++------
+>  6 files changed, 146 insertions(+), 11 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/powerdomains2xxx.c
+>  create mode 100644 arch/arm/mach-omap2/powerdomains44xx.c
 > 
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 4bfadc5..5f843fc 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -94,6 +94,11 @@ obj-$(CONFIG_ARCH_OMAP2430)		+= omap_hwmod_2430_data.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
+>  
+> +#powerdomain framework
+> +obj-$(CONFIG_ARCH_OMAP2)		+= powerdomains2xxx.o
+> +obj-$(CONFIG_ARCH_OMAP3)		+= powerdomains2xxx.o
+
+We're going to need a separate file for OMAP3, because there are some 
+PRCM powerdomain features that are not present on OMAP2.
+
+Please move the functions that are common between OMAP2xxx and OMAP3 into 
+a separate file -- maybe something like powerdomain_2xxx_3xxx.o.  Then 
+powerdomain2xxx.c and powerdomain3xxx.c can just put pointers into 
+pwrdm_functions in that file for the common stuff.  Unfortunately, we 
+won't be able to keep those common functions static at that point.
+
+> +obj-$(CONFIG_ARCH_OMAP4)		+= powerdomains44xx.o
+> +
+>  # EMU peripherals
+>  obj-$(CONFIG_OMAP3_EMU)			+= emu.o
+>  
 > diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 40562dd..76c531a 100644
+> index 76c531a..c68e989 100644
 > --- a/arch/arm/mach-omap2/io.c
 > +++ b/arch/arm/mach-omap2/io.c
-> @@ -316,7 +316,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+> @@ -316,7 +316,10 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
 >  {
 >  	u8 skip_setup_idle = 0;
 >  
-> -	pwrdm_init(powerdomains_omap);
-> +	pwrdm_init(powerdomains_omap, NULL);
+> -	pwrdm_init(powerdomains_omap, NULL);
+> +	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+> +		pwrdm_init(powerdomains_omap, &omap2_pwrdm_functions);
+> +	else if (cpu_is_omap44xx())
+> +		pwrdm_init(powerdomains_omap, &omap4_pwrdm_functions);
 >  	clkdm_init(clockdomains_omap, clkdm_autodeps);
 >  	if (cpu_is_omap242x())
 >  		omap2420_hwmod_init();
-> diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
-> index 9ca420d..35e1ef7 100644
-> --- a/arch/arm/plat-omap/include/plat/powerdomain.h
-> +++ b/arch/arm/plat-omap/include/plat/powerdomain.h
-> @@ -117,8 +117,28 @@ struct powerdomain {
->  #endif
+> diff --git a/arch/arm/mach-omap2/powerdomains.h b/arch/arm/mach-omap2/powerdomains.h
+> index 105cbca..b25b989 100644
+> --- a/arch/arm/mach-omap2/powerdomains.h
+> +++ b/arch/arm/mach-omap2/powerdomains.h
+> @@ -88,8 +88,16 @@ static struct powerdomain wkup_omap2_pwrdm = {
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
 >  };
 >  
-> +struct pwrdm_functions {
-> +	int	(*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8 pwrst);
-> +	int	(*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_read_prev_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_set_logic_retst)(struct powerdomain *pwrdm, u8 pwrst);
-> +	int	(*pwrdm_set_mem_onst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
-> +	int	(*pwrdm_set_mem_retst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
-> +	int	(*pwrdm_read_logic_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_read_prev_logic_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_read_logic_retst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_read_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
-> +	int	(*pwrdm_read_prev_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
-> +	int	(*pwrdm_read_mem_retst)(struct powerdomain *pwrdm, u8 bank);
-> +	int	(*pwrdm_clear_all_prev_pwrst)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_enable_hdwr_sar)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_disable_hdwr_sar)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_set_lowpwrstchange)(struct powerdomain *pwrdm);
-> +	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
+> +extern struct pwrdm_functions omap2_pwrdm_functions;
+> +#else
+> +static struct pwrdm_functions omap2_pwrdm_functions;
+>  #endif
+>  
+> +#ifdef CONFIG_ARCH_OMAP4
+> +extern struct pwrdm_functions omap4_pwrdm_functions;
+> +#else
+> +static struct pwrdm_functions omap4_pwrdm_functions;
+> +#endif
+>  
+>  /* As powerdomains are added or removed above, this list must also be changed */
+>  static struct powerdomain *powerdomains_omap[] __initdata = {
+> diff --git a/arch/arm/mach-omap2/powerdomains2xxx.c b/arch/arm/mach-omap2/powerdomains2xxx.c
+> new file mode 100644
+> index 0000000..dfeb8af
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/powerdomains2xxx.c
+> @@ -0,0 +1,53 @@
+> +/*
+> + * OMAP2 and OMAP3 powerdomain control
+> + *
+> + * Copyright (C) 2009-2010 Texas Instruments, Inc.
+> + * Copyright (C) 2007-2009 Nokia Corporation
+> + *
+> + * Derived from mach-omap2/powerdomain.c written by Paul Walmsley
+> + * Rajendra Nayak <rnayak@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/io.h>
+> +#include <linux/errno.h>
+> +#include <linux/delay.h>
+> +#include <plat/powerdomain.h>
+> +#include <plat/prcm.h>
+> +#include "powerdomains.h"
+> +
+> +static int omap2_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+> +{
+> +	prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
+> +				(pwrst << OMAP_POWERSTATE_SHIFT),
+> +				pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL);
+> +	return 0;
+> +}
+> +
+> +static int omap2_pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
+> +{
+> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
+> +				OMAP2_PM_PWSTCTRL, OMAP_POWERSTATE_MASK);
+> +}
+> +
+> +static int omap2_pwrdm_read_pwrst(struct powerdomain *pwrdm)
+> +{
+> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
+> +				OMAP2_PM_PWSTST, OMAP_POWERSTATEST_MASK);
+> +}
+> +
+> +static int omap2_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
+> +{
+> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST,
+> +				OMAP3430_LASTPOWERSTATEENTERED_MASK);
+> +}
+
+this is OMAP3 only...
+
+> +
+> +struct pwrdm_functions omap2_pwrdm_functions = {
+> +	.pwrdm_set_next_pwrst	= omap2_pwrdm_set_next_pwrst,
+> +	.pwrdm_read_next_pwrst	= omap2_pwrdm_read_next_pwrst,
+> +	.pwrdm_read_pwrst	= omap2_pwrdm_read_pwrst,
+> +	.pwrdm_read_prev_pwrst	= omap2_pwrdm_read_prev_pwrst,
 > +};
->  
-> -void pwrdm_init(struct powerdomain **pwrdm_list);
-> +void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_functions *custom_funcs);
->  
->  struct powerdomain *pwrdm_lookup(const char *name);
->  
+> diff --git a/arch/arm/mach-omap2/powerdomains44xx.c b/arch/arm/mach-omap2/powerdomains44xx.c
+> new file mode 100644
+> index 0000000..b3aaf9b
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/powerdomains44xx.c
+> @@ -0,0 +1,53 @@
+> +/*
+> + * OMAP4 powerdomain control
+> + *
+> + * Copyright (C) 2009-2010 Texas Instruments, Inc.
+> + * Copyright (C) 2007-2009 Nokia Corporation
+> + *
+> + * Derived from mach-omap2/powerdomain.c written by Paul Walmsley
+> + * Rajendra Nayak <rnayak@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/io.h>
+> +#include <linux/errno.h>
+> +#include <linux/delay.h>
+> +#include <plat/powerdomain.h>
+> +#include <plat/prcm.h>
+> +#include "powerdomains.h"
+> +
+> +static int omap4_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+> +{
+> +	prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
+> +				(pwrst << OMAP_POWERSTATE_SHIFT),
+> +				pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
+> +	return 0;
+> +}
+> +
+> +static int omap4_pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
+> +{
+> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
+> +				OMAP4_PM_PWSTCTRL, OMAP_POWERSTATE_MASK);
+> +}
+> +
+> +static int omap4_pwrdm_read_pwrst(struct powerdomain *pwrdm)
+> +{
+> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
+> +				OMAP4_PM_PWSTST, OMAP_POWERSTATEST_MASK);
+> +}
+> +
+> +static int omap4_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
+> +{
+> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP4_PM_PWSTST,
+> +				OMAP4430_LASTPOWERSTATEENTERED_MASK);
+> +}
+> +
+> +struct pwrdm_functions omap4_pwrdm_functions = {
+> +	.pwrdm_set_next_pwrst	= omap4_pwrdm_set_next_pwrst,
+> +	.pwrdm_read_next_pwrst	= omap4_pwrdm_read_next_pwrst,
+> +	.pwrdm_read_pwrst	= omap4_pwrdm_read_pwrst,
+> +	.pwrdm_read_prev_pwrst	= omap4_pwrdm_read_prev_pwrst,
+> +};
 > diff --git a/arch/arm/plat-omap/powerdomain.c b/arch/arm/plat-omap/powerdomain.c
-> index 9204799..9e2d712 100644
+> index 9e2d712..73d6dad 100644
 > --- a/arch/arm/plat-omap/powerdomain.c
 > +++ b/arch/arm/plat-omap/powerdomain.c
-> @@ -80,6 +80,8 @@ static u16 pwrstst_reg_offs;
->  /* pwrdm_list contains all registered struct powerdomains */
->  static LIST_HEAD(pwrdm_list);
->  
-> +static struct pwrdm_functions *arch_pwrdm;
-> +
->  /* Private functions */
->  
->  static struct powerdomain *_pwrdm_lookup(const char *name)
-> @@ -218,7 +220,7 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
->   * registered.  No return value.  XXX pwrdm_list is not really a
->   * "list"; it is an array.  Rename appropriately.
+> @@ -438,6 +438,8 @@ int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm)
 >   */
-> -void pwrdm_init(struct powerdomain **pwrdm_list)
-> +void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_functions *custom_funcs)
+>  int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
 >  {
->  	struct powerdomain **p = NULL;
->  
-> @@ -234,6 +236,11 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
->  		return;
->  	}
->  
-> +	if (!custom_funcs)
-> +		WARN(1, "No custom pwrdm functions registered\n");
-
-It's probably best to prefix this message with "powerdomain: "
-
-> +	else
-> +		arch_pwrdm = custom_funcs;
+> +	int ret = -EINVAL;
 > +
->  	if (pwrdm_list) {
->  		for (p = pwrdm_list; *p; p++)
->  			_pwrdm_register(*p);
-> @@ -1074,4 +1081,3 @@ int pwrdm_post_transition(void)
->  	pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
->  	return 0;
+>  	if (!pwrdm)
+>  		return -EINVAL;
+>  
+> @@ -447,11 +449,10 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>  	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
+>  		 pwrdm->name, pwrst);
+>  
+> -	prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
+> -			     (pwrst << OMAP_POWERSTATE_SHIFT),
+> -			     pwrdm->prcm_offs, pwrstctrl_reg_offs);
+> +	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst)
+> +		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+>  
+> -	return 0;
+> +	return ret;
 >  }
-> -
+>  
+>  /**
+> @@ -464,11 +465,15 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>   */
+>  int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
+>  {
+> +	int ret = -EINVAL;
+> +
+>  	if (!pwrdm)
+>  		return -EINVAL;
+>  
+> -	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
+> -				 pwrstctrl_reg_offs, OMAP_POWERSTATE_MASK);
+> +	if (arch_pwrdm && arch_pwrdm->pwrdm_read_next_pwrst)
+> +		ret = arch_pwrdm->pwrdm_read_next_pwrst(pwrdm);
+> +
+> +	return ret;
+>  }
+>  
+>  /**
+> @@ -481,11 +486,15 @@ int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
+>   */
+>  int pwrdm_read_pwrst(struct powerdomain *pwrdm)
+>  {
+> +	int ret = -EINVAL;
+> +
+>  	if (!pwrdm)
+>  		return -EINVAL;
+>  
+> -	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
+> -				 pwrstst_reg_offs, OMAP_POWERSTATEST_MASK);
+> +	if (arch_pwrdm && arch_pwrdm->pwrdm_read_pwrst)
+> +		ret = arch_pwrdm->pwrdm_read_pwrst(pwrdm);
+> +
+> +	return ret;
+>  }
+>  
+>  /**
+> @@ -498,11 +507,15 @@ int pwrdm_read_pwrst(struct powerdomain *pwrdm)
+>   */
+>  int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
+>  {
+> +	int ret = -EINVAL;
+> +
+>  	if (!pwrdm)
+>  		return -EINVAL;
+>  
+> -	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST,
+> -					OMAP3430_LASTPOWERSTATEENTERED_MASK);
+> +	if (arch_pwrdm && arch_pwrdm->pwrdm_read_prev_pwrst)
+> +		ret = arch_pwrdm->pwrdm_read_prev_pwrst(pwrdm);
+> +
+> +	return ret;
+>  }
+>  
+>  /**
 > -- 
 > 1.7.0.4
 > 
