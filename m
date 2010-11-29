@@ -1,54 +1,42 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] OMAP3_IVA_MASK should use OMAP3_IVA_SHIFT instead of
- OMAP3_SGX_SHIFT
-Date: Mon, 29 Nov 2010 08:29:57 -0600
-Message-ID: <4CF3B8E5.8040109@ti.com>
-References: <AANLkTi=rVpQWnRmzw2XF3TzoQW6E9fHLKfrdZUi8-cJo@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] arm: plat-omap: counter_32k: use IS_ERR() instead of NULL check
+Date: Mon, 29 Nov 2010 16:29:22 +0100
+Message-ID: <87tyj0ywq5.fsf@deeprootsystems.com>
+References: <1290791163-21190-1-git-send-email-segoon@openwall.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:55052 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752833Ab0K2OaB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Nov 2010 09:30:01 -0500
-Received: by mail-gy0-f170.google.com with SMTP id 2so1941255gyf.1
-        for <linux-omap@vger.kernel.org>; Mon, 29 Nov 2010 06:30:00 -0800 (PST)
-In-Reply-To: <AANLkTi=rVpQWnRmzw2XF3TzoQW6E9fHLKfrdZUi8-cJo@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1290791163-21190-1-git-send-email-segoon@openwall.com> (Vasiliy
+	Kulikov's message of "Fri, 26 Nov 2010 20:06:02 +0300")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vasiliy Kulikov <segoon@openwall.com>
+Cc: kernel-janitors@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Arno Steffen <arno.steffen@googlemail.com>
-Cc: linux-omap@vger.kernel.org, "tony@atomide.com" <tony@atomide.com>
 
-Arno Steffen had written, on 11/26/2010 05:41 AM, the following:
+Vasiliy Kulikov <segoon@openwall.com> writes:
 
-minor comment:
-$subject could be the commit message probably.. and a smaller subject 
-like OMAP3: fix typo in OMAP3_IVA_MASK could be used
+> clk_get() returns ERR_PTR() on error, not NULL.
+>
+> Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
 
-otherwise, looks good to me.
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-> Signed-off-by: Arno Steffen <arno.steffen@googlemail.com>
 > ---
->  arch/arm/mach-omap2/control.h |    2 +-
+>  Cannot compile this driver, so it is not tested at all.
+>
+>  arch/arm/plat-omap/counter_32k.c |    2 +-
 >  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-> index b6c6b7c..5325297 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -309,7 +309,7 @@
->  #define		FEAT_SGX_NONE		2
-> 
->  #define OMAP3_IVA_SHIFT			12
-> -#define OMAP3_IVA_MASK			(1 << OMAP3_SGX_SHIFT)
-> +#define OMAP3_IVA_MASK			(1 << OMAP3_IVA_SHIFT)
->  #define		FEAT_IVA		0
->  #define		FEAT_IVA_NONE		1
-> 
-
-
--- 
-Regards,
-Nishanth Menon
+>
+> diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+> index 155fe43..c1e0d00 100644
+> --- a/arch/arm/plat-omap/counter_32k.c
+> +++ b/arch/arm/plat-omap/counter_32k.c
+> @@ -164,7 +164,7 @@ static int __init omap_init_clocksource_32k(void)
+>  			return -ENODEV;
+>  
+>  		sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
+> -		if (sync_32k_ick)
+> +		if (!IS_ERR(sync_32k_ick))
+>  			clk_enable(sync_32k_ick);
+>  
+>  		clocksource_32k.mult = clocksource_hz2mult(32768,
