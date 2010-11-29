@@ -1,65 +1,70 @@
-From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 3/8] usb: ehci: introduce CONFIG_USB_EHCI_HCD_OMAP
-Date: Mon, 29 Nov 2010 22:55:32 +0530
-Message-ID: <1291051537-23743-4-git-send-email-gadiyar@ti.com>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH v2 2/8] usb: ehci-omap: don't hard-code TLL channel count
+Date: Mon, 29 Nov 2010 22:55:31 +0530
+Message-ID: <1291051537-23743-3-git-send-email-gadiyar@ti.com>
 References: <1291051537-23743-1-git-send-email-gadiyar@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1291051537-23743-1-git-send-email-gadiyar-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53353 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752006Ab0K2RZt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Nov 2010 12:25:49 -0500
+In-Reply-To: <1291051537-23743-1-git-send-email-gadiyar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@suse.de>, Keshava Munegowda <keshava_mgowda@ti.com>, Anand Gadiyar <gadiyar@ti.com>
 
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
 
-Introduce the CONFIG_USB_EHCI_HCD_OMAP option to select
-EHCI support on OMAP3 and later chips. This scales better
-than having a long line of dependencies for each new OMAP
-with EHCI support.
+Make the TLL channel count a parameter instead of a hardcoded
+value. This allows us to be flexible with future OMAP revisions
+which could have a different number of channels.
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 ---
- drivers/usb/host/Kconfig    |    8 ++++++++
- drivers/usb/host/ehci-hcd.c |    2 +-
- 2 files changed, 9 insertions(+), 1 deletions(-)
+ drivers/usb/host/ehci-omap.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
-index 6f4f8e6..7c1f843 100644
---- a/drivers/usb/host/Kconfig
-+++ b/drivers/usb/host/Kconfig
-@@ -133,6 +133,14 @@ config USB_EHCI_MXC
- 	---help---
- 	  Variation of ARC USB block used in some Freescale chips.
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index d042bde..d60efdc 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -191,13 +191,14 @@ struct ehci_hcd_omap {
  
-+config USB_EHCI_HCD_OMAP
-+	bool "EHCI support for OMAP3 and later chips"
-+	depends on USB_EHCI_HCD && ARCH_OMAP
-+	default y
-+	--- help ---
-+	  Enables support for the on-chip EHCI controller on
-+	  OMAP3 and later chips.
-+
- config USB_EHCI_HCD_PPC_OF
- 	bool "EHCI support for PPC USB controller on OF platform bus"
- 	depends on USB_EHCI_HCD && PPC_OF
-diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-index 502a7e6..1c80441 100644
---- a/drivers/usb/host/ehci-hcd.c
-+++ b/drivers/usb/host/ehci-hcd.c
-@@ -1171,7 +1171,7 @@ MODULE_LICENSE ("GPL");
- #define	PLATFORM_DRIVER		ehci_hcd_au1xxx_driver
- #endif
+ /*-------------------------------------------------------------------------*/
  
--#ifdef CONFIG_ARCH_OMAP3
-+#ifdef CONFIG_USB_EHCI_HCD_OMAP
- #include "ehci-omap.c"
- #define        PLATFORM_DRIVER         ehci_hcd_omap_driver
- #endif
+-static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask)
++static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask,
++				u8 tll_channel_count)
+ {
+ 	unsigned reg;
+ 	int i;
+ 
+ 	/* Program the 3 TLL channels upfront */
+-	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
++	for (i = 0; i < tll_channel_count; i++) {
+ 		reg = ehci_omap_readl(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i));
+ 
+ 		/* Disable AutoIdle, BitStuffing and use SDR Mode */
+@@ -217,7 +218,7 @@ static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask)
+ 	ehci_omap_writel(omap->tll_base, OMAP_TLL_SHARED_CONF, reg);
+ 
+ 	/* Enable channels now */
+-	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
++	for (i = 0; i < tll_channel_count; i++) {
+ 		reg = ehci_omap_readl(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i));
+ 
+ 		/* Enable only the reg that is needed */
+@@ -438,7 +439,7 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+ 			tll_ch_mask |= OMAP_TLL_CHANNEL_3_EN_MASK;
+ 
+ 		/* Enable UTMI mode for required TLL channels */
+-		omap_usb_utmi_init(omap, tll_ch_mask);
++		omap_usb_utmi_init(omap, tll_ch_mask, OMAP_TLL_CHANNEL_COUNT);
+ 	}
+ 
+ 	if (omap->phy_reset) {
 -- 
 1.7.0.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
