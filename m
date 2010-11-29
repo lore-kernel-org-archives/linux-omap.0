@@ -1,46 +1,40 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH v2 1/4] arm: omap4: add USBHOST and related base addresses
-Date: Mon, 29 Nov 2010 22:56:09 +0530
-Message-ID: <1291051572-24084-2-git-send-email-gadiyar@ti.com>
+From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 3/4] arm: omap4: select USB_ARCH_HAS_EHCI
+Date: Mon, 29 Nov 2010 22:56:11 +0530
+Message-ID: <1291051572-24084-4-git-send-email-gadiyar@ti.com>
 References: <1291051572-24084-1-git-send-email-gadiyar@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41416 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755337Ab0K2R0V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2010 12:26:21 -0500
-In-Reply-To: <1291051572-24084-1-git-send-email-gadiyar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1291051572-24084-1-git-send-email-gadiyar-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@suse.de>, Anand Gadiyar <gadiyar@ti.com>
 
-Add base addresses for USBHOST, USBTLL, EHCI and OHCI to
-the header file.
+The OMAP4 has an on-chip EHCI controller. Select USB_ARCH_HAS_EHCI
+to allow the EHCI driver to be built on OMAP4.
 
-This will disappear when the drivers are converted to use
-the hwmod database, however this patch is needed until then.
-
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- arch/arm/plat-omap/include/plat/omap44xx.h |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
-index 8b3f12f..ea2b8a6 100644
---- a/arch/arm/plat-omap/include/plat/omap44xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap44xx.h
-@@ -52,5 +52,10 @@
- #define OMAP4_MMU1_BASE			0x55082000
- #define OMAP4_MMU2_BASE			0x4A066000
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index ab784bf..766727c 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -44,6 +44,7 @@ config ARCH_OMAP4
+ 	select ARM_GIC
+ 	select PL310_ERRATA_588369
+ 	select ARM_ERRATA_720789
++	select USB_ARCH_HAS_EHCI
  
-+#define OMAP44XX_USBTLL_BASE		(L4_44XX_BASE + 0x62000)
-+#define OMAP44XX_UHH_CONFIG_BASE	(L4_44XX_BASE + 0x64000)
-+#define OMAP44XX_HSUSB_OHCI_BASE	(L4_44XX_BASE + 0x64800)
-+#define OMAP44XX_HSUSB_EHCI_BASE	(L4_44XX_BASE + 0x64C00)
-+
- #endif /* __ASM_ARCH_OMAP44XX_H */
- 
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
 -- 
 1.7.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
