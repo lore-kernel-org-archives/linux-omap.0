@@ -1,52 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap4: 4430sdp: enable the ehci port on 4430SDP
-Date: Tue, 30 Nov 2010 10:25:25 -0800
-Message-ID: <20101130182524.GR17222@atomide.com>
-References: <1290364999-4783-1-git-send-email-gadiyar@ti.com>
- <20101122101737.GN2446@legolas.emea.dhcp.ti.com>
- <4CEA59E0.8080705@ti.com>
- <20101122120608.GG2446@legolas.emea.dhcp.ti.com>
+Subject: Re: [PATCH 1/2] AM35x: musb: fix compilation error
+Date: Tue, 30 Nov 2010 10:30:10 -0800
+Message-ID: <20101130183010.GS17222@atomide.com>
+References: <1290415961-21177-1-git-send-email-ajay.gupta@ti.com>
+ <20101122102230.GP2446@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32104 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755943Ab0K3SZ3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 13:25:29 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:39103 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752792Ab0K3SaN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 13:30:13 -0500
 Content-Disposition: inline
-In-Reply-To: <20101122120608.GG2446@legolas.emea.dhcp.ti.com>
+In-Reply-To: <20101122102230.GP2446@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [101122 03:56]:
-> On Mon, Nov 22, 2010 at 05:24:08PM +0530, Anand Gadiyar wrote:
-> >On 11/22/2010 3:47 PM, Felipe Balbi wrote:
-> >>On Mon, Nov 22, 2010 at 12:13:19AM +0530, Anand Gadiyar wrote:
-> >>>From: Keshava Munegowda <keshava_mgowda@ti.com>
-> >>>
-> >>>Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-> >>>Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> >>>Cc: Tony Lindgren <tony@atomide.com>
-> >>
-> >>Tony, if you give me your Ack I can take this with Greg since it depends
-> >>on the series I'm checking now.
-> >>
-> >
-> >This one can go through Tony - I deliberately left it out of the EHCI series.
-> >
-> >The dependency is needed for the EHCI port to actually be usable, however we
-> >can register the device in the board file independently of the driver.
-> >
-> >I forgot to update the patch description - I'll wait some more for any
-> >more comments and then repost with a proper description.
+* Felipe Balbi <balbi@ti.com> [101122 02:12]:
+> Hi,
 > 
-> Ok, so it's Tony's call now. Tony, if you want to take this together
-> with OMAP changes, just let me know and I'll drop this patch from my
-> branch, if you want me to take it through Greg, then give me an Acked-by
-> :-)
+> On Mon, Nov 22, 2010 at 02:22:40PM +0530, Ajay Kumar Gupta wrote:
+> >Fixes compilation error as control.h APIs are not available to
+> >drivers/usb/musb/am35x.c file. Earlier it was getting included
+> >from <plat/control.h> but now moved to new location by another
+> >pacth.
+> >
+> >Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> 
+> Tony ? Do you ack the usage of that header ?
 
-No please keep it along with the other USB patches:
+NAK. Drivers should not mess with the control registers directly.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Instead, the following should be done in the platform init code:
+
+$ grep -r omap_ctrl_read drivers/usb
+drivers/usb/musb/am35x.c:       devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
+drivers/usb/musb/am35x.c:       while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
+drivers/usb/musb/am35x.c:       devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
+drivers/usb/musb/am35x.c:               lvl_intr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+drivers/usb/musb/am35x.c:       u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
+drivers/usb/musb/am35x.c:       sw_reset = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
+drivers/usb/musb/am35x.c:       lvl_intr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+
+You can pass a function pointer like board_set_power or simila
+in platform_data.
+
+Regards,
+
+Tony
