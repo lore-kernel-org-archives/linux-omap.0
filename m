@@ -1,83 +1,169 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 2/2] OMAP: DMA: clear interrupt status correctly
-Date: Tue, 30 Nov 2010 19:55:27 +0530
-Message-ID: <541b3a50479779f3e814aa93d506cbdd@mail.gmail.com>
-References: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com>
- <20101130132355.13286.77389.sendpatchset@ahunter-work.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: [PATCH] OMAP: kill all section mismatch warning for omap2plus_defconfig
+Date: Tue, 30 Nov 2010 22:42:38 +0800
+Message-ID: <1291128158-15447-1-git-send-email-bryan.wu@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:52691 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752479Ab0K3OZh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Nov 2010 09:25:37 -0500
-Received: by mail-qw0-f48.google.com with SMTP id 9so301868qwj.21
-        for <linux-omap@vger.kernel.org>; Tue, 30 Nov 2010 06:25:28 -0800 (PST)
-In-Reply-To: <20101130132355.13286.77389.sendpatchset@ahunter-work.research.nokia.com>
+Received: from adelie.canonical.com ([91.189.90.139]:56636 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752179Ab0K3Omj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 09:42:39 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>, Tony Lindgren <tony@atomide.com>
-Cc: Manjunath Kondaiah G <manjugk@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
-> Sent: Tuesday, November 30, 2010 6:54 PM
-> To: Tony Lindgren
-> Cc: Santosh Shilimkar; Manjunatha GK; Adrian Hunter; linux-omap Mailing
-> List
-> Subject: [PATCH 2/2] OMAP: DMA: clear interrupt status correctly
->
-> From 85934ded48552fde84b083575ac2006f1542324b Mon Sep 17 00:00:00 2001
-> From: Adrian Hunter <adrian.hunter@nokia.com>
-> Date: Wed, 24 Nov 2010 13:23:21 +0200
-> Subject: [PATCH 2/2] OMAP: DMA: clear interrupt status correctly
->
-> When clearing the DMA channel, clear all status bits.
->
-> When handling a DMA interrupt, clear only the interrupt
-> status bits that have been read and are passed to the
-> channel's interrupt handler, not every status bit.
->
-> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/plat-omap/dma.c |    7 +++----
->  1 files changed, 3 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 6158c99..3300e67 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -49,7 +49,7 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
->  #endif
->
->  #define OMAP_DMA_ACTIVE			0x01
-> -#define OMAP2_DMA_CSR_CLEAR_MASK	0xffe
-> +#define OMAP2_DMA_CSR_CLEAR_MASK	0xffffffff
->
->  #define OMAP_FUNC_MUX_ARM_BASE		(0xfffe1000 + 0xec)
->
-> @@ -2010,7 +2010,7 @@ static int omap2_dma_handle_ch(int ch)
->  		printk(KERN_INFO "DMA misaligned error with device %d\n",
->  		       dma_chan[ch].dev_id);
->
-> -	dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(ch));
-> +	dma_write(status, CSR(ch));
->  	dma_write(1 << ch, IRQSTATUS_L0);
->  	/* read back the register to flush the write */
->  	dma_read(IRQSTATUS_L0);
-> @@ -2030,10 +2030,9 @@ static int omap2_dma_handle_ch(int ch)
->  			OMAP_DMA_CHAIN_INCQHEAD(chain_id);
->
->  		status = dma_read(CSR(ch));
-> +		dma_write(status, CSR(ch));
->  	}
->
-> -	dma_write(status, CSR(ch));
-> -
->  	if (likely(dma_chan[ch].callback != NULL))
->  		dma_chan[ch].callback(ch, status, dma_chan[ch].data);
->
-> --
-> 1.7.0.4
+This patch will kill following section mismatch warnings and it's built based on 2.6.37-rc4
+
+WARNING: vmlinux.o(.text+0x24a00): Section mismatch in reference from the function zoom_twl_gpio_setup() to the (unknown reference) .init.data:(unknown)
+The function zoom_twl_gpio_setup() references
+the (unknown reference) __initdata (unknown).
+This is often because zoom_twl_gpio_setup lacks a __initdata
+annotation or the annotation of (unknown) is wrong.
+
+WARNING: vmlinux.o(.text+0x24bfc): Section mismatch in reference from the function cm_t35_twl_gpio_setup() to the (unknown reference) .init.data:(unknown)
+The function cm_t35_twl_gpio_setup() references
+the (unknown reference) __initdata (unknown).
+This is often because cm_t35_twl_gpio_setup lacks a __initdata
+annotation or the annotation of (unknown) is wrong.
+
+WARNING: vmlinux.o(.data+0x1d3e0): Section mismatch in reference from the variable h4_config to the (unknown reference) .init.data:(unknown)
+The variable h4_config references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+
+WARNING: vmlinux.o(.data+0x1dc08): Section mismatch in reference from the variable sdp2430_config to the (unknown reference) .init.data:(unknown)
+The variable sdp2430_config references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+
+WARNING: vmlinux.o(.data+0x1e1d8): Section mismatch in reference from the variable apollon_config to the (unknown reference) .init.data:(unknown)
+The variable apollon_config references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+
+WARNING: vmlinux.o(.data+0x473fc): Section mismatch in reference from the variable twl_driver to the function .init.text:twl_probe()
+The variable twl_driver references
+the function __init twl_probe()
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+
+Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+---
+ arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
+ arch/arm/mach-omap2/board-apollon.c          |    2 +-
+ arch/arm/mach-omap2/board-cm-t35.c           |   11 +++--------
+ arch/arm/mach-omap2/board-h4.c               |    2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
+ drivers/mfd/twl-core.c                       |    2 +-
+ 6 files changed, 8 insertions(+), 13 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index b527f8d..9ab8bb1 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -135,7 +135,7 @@ static inline void board_smc91x_init(void)
+ 
+ #endif
+ 
+-static struct omap_board_config_kernel sdp2430_config[] = {
++static struct omap_board_config_kernel sdp2430_config[] __initdata = {
+ 	{OMAP_TAG_LCD, &sdp2430_lcd_config},
+ };
+ 
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index 2c6db1a..5c432d8 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -270,7 +270,7 @@ static struct omap_lcd_config apollon_lcd_config __initdata = {
+ 	.ctrl_name	= "internal",
+ };
+ 
+-static struct omap_board_config_kernel apollon_config[] = {
++static struct omap_board_config_kernel apollon_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&apollon_lcd_config },
+ };
+ 
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 63f764e..cd97159 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -600,8 +600,8 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
+ 	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+ 
+ 	.phy_reset  = true,
+-	.reset_gpio_port[0]  = -EINVAL,
+-	.reset_gpio_port[1]  = -EINVAL,
++	.reset_gpio_port[0]  = OMAP_MAX_GPIO_LINES + 6,
++	.reset_gpio_port[1]  = OMAP_MAX_GPIO_LINES + 7,
+ 	.reset_gpio_port[2]  = -EINVAL
+ };
+ 
+@@ -630,12 +630,6 @@ static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
+ 	cm_t35_vmmc1_supply.dev = mmc[0].dev;
+ 	cm_t35_vsim_supply.dev = mmc[0].dev;
+ 
+-	/* setup USB with proper PHY reset GPIOs */
+-	ehci_pdata.reset_gpio_port[0] = gpio + 6;
+-	ehci_pdata.reset_gpio_port[1] = gpio + 7;
+-
+-	usb_ehci_init(&ehci_pdata);
+-
+ 	return 0;
+ }
+ 
+@@ -805,6 +799,7 @@ static void __init cm_t35_init(void)
+ 	cm_t35_init_display();
+ 
+ 	usb_musb_init(&musb_board_data);
++	usb_ehci_init(&ehci_pdata);
+ }
+ 
+ MACHINE_START(CM_T35, "Compulab CM-T35")
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 929993b..5549f2c 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -283,7 +283,7 @@ static struct omap_usb_config h4_usb_config __initdata = {
+ 	.hmc_mode	= 0x00,		/* 0:dev|otg 1:disable 2:disable */
+ };
+ 
+-static struct omap_board_config_kernel h4_config[] = {
++static struct omap_board_config_kernel h4_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&h4_lcd_config },
+ };
+ 
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 86c9b21..9b79188 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -196,7 +196,7 @@ struct wl12xx_platform_data omap_zoom_wlan_data __initdata = {
+ 	.board_ref_clock = 1,
+ };
+ 
+-static struct omap2_hsmmc_info mmc[] __initdata = {
++static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.name		= "external",
+ 		.mmc		= 1,
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 35275ba..3aa46ff 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -969,7 +969,7 @@ static int twl_remove(struct i2c_client *client)
+ }
+ 
+ /* NOTE:  this driver only handles a single twl4030/tps659x0 chip */
+-static int __init
++static int __devinit
+ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+ 	int				status;
+-- 
+1.7.1
+
