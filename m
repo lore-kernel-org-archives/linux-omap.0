@@ -1,7 +1,7 @@
 From: Anton Vorontsov <avorontsov@mvista.com>
-Subject: [PATCH 5/8] ARM: S5PV310: Switch to generic SCU routines
-Date: Tue, 30 Nov 2010 20:17:05 +0300
-Message-ID: <20101130171705.GE24034@oksana.dev.rtsoft.ru>
+Subject: [PATCH 3/8] ARM: VExpress: Switch to generic SCU routines
+Date: Tue, 30 Nov 2010 20:17:01 +0300
+Message-ID: <20101130171701.GC24034@oksana.dev.rtsoft.ru>
 References: <20101130171626.GA6165@oksana.dev.rtsoft.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -17,36 +17,31 @@ This shrinks platform-specific code quite a bit.
 
 Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
 ---
- arch/arm/mach-s5pv310/Makefile  |    2 +-
- arch/arm/mach-s5pv310/headsmp.S |   41 -------------
- arch/arm/mach-s5pv310/hotplug.c |    5 +-
- arch/arm/mach-s5pv310/platsmp.c |  125 ++-------------------------------------
- 4 files changed, 9 insertions(+), 164 deletions(-)
- delete mode 100644 arch/arm/mach-s5pv310/headsmp.S
+ arch/arm/mach-vexpress/Makefile  |    2 +-
+ arch/arm/mach-vexpress/headsmp.S |   39 ----------
+ arch/arm/mach-vexpress/platsmp.c |  150 ++++----------------------------------
+ 3 files changed, 15 insertions(+), 176 deletions(-)
+ delete mode 100644 arch/arm/mach-vexpress/headsmp.S
 
-diff --git a/arch/arm/mach-s5pv310/Makefile b/arch/arm/mach-s5pv310/Makefile
-index 84afc64..b72abd2 100644
---- a/arch/arm/mach-s5pv310/Makefile
-+++ b/arch/arm/mach-s5pv310/Makefile
-@@ -15,7 +15,7 @@ obj-				:=
- obj-$(CONFIG_CPU_S5PV310)	+= cpu.o init.o clock.o irq-combiner.o
- obj-$(CONFIG_CPU_S5PV310)	+= setup-i2c0.o time.o gpiolib.o irq-eint.o
+diff --git a/arch/arm/mach-vexpress/Makefile b/arch/arm/mach-vexpress/Makefile
+index 1b71b77..6533d11 100644
+--- a/arch/arm/mach-vexpress/Makefile
++++ b/arch/arm/mach-vexpress/Makefile
+@@ -4,5 +4,5 @@
  
--obj-$(CONFIG_SMP)		+= platsmp.o headsmp.o
-+obj-$(CONFIG_SMP)		+= platsmp.o
- obj-$(CONFIG_LOCAL_TIMERS)	+= localtimer.o
- obj-$(CONFIG_HOTPLUG_CPU)	+= hotplug.o
- 
-diff --git a/arch/arm/mach-s5pv310/headsmp.S b/arch/arm/mach-s5pv310/headsmp.S
+ obj-y					:= v2m.o
+ obj-$(CONFIG_ARCH_VEXPRESS_CA9X4)	+= ct-ca9x4.o
+-obj-$(CONFIG_SMP)			+= platsmp.o headsmp.o
++obj-$(CONFIG_SMP)			+= platsmp.o
+ obj-$(CONFIG_LOCAL_TIMERS)		+= localtimer.o
+diff --git a/arch/arm/mach-vexpress/headsmp.S b/arch/arm/mach-vexpress/headsmp.S
 deleted file mode 100644
-index 164b7b0..0000000
---- a/arch/arm/mach-s5pv310/headsmp.S
+index 8a78ff6..0000000
+--- a/arch/arm/mach-vexpress/headsmp.S
 +++ /dev/null
-@@ -1,41 +0,0 @@
+@@ -1,39 +0,0 @@
 -/*
-- *  linux/arch/arm/mach-s5pv310/headsmp.S
-- *
-- *  Cloned from linux/arch/arm/mach-realview/headsmp.S
+- *  linux/arch/arm/mach-vexpress/headsmp.S
 - *
 - *  Copyright (c) 2003 ARM Limited
 - *  All Rights Reserved
@@ -61,11 +56,11 @@ index 164b7b0..0000000
 -	__INIT
 -
 -/*
-- * s5pv310 specific entry point for secondary CPUs.  This provides
-- * a "holding pen" into which all secondary cores are held until we're
-- * ready for them to initialise.
+- * Versatile Express specific entry point for secondary CPUs.  This
+- * provides a "holding pen" into which all secondary cores are held
+- * until we're ready for them to initialise.
 - */
--ENTRY(s5pv310_secondary_startup)
+-ENTRY(vexpress_secondary_startup)
 -	mrc	p15, 0, r0, c0, c0, 5
 -	and	r0, r0, #15
 -	adr	r4, 1f
@@ -84,38 +79,13 @@ index 164b7b0..0000000
 -
 -1:	.long	.
 -	.long	pen_release
-diff --git a/arch/arm/mach-s5pv310/hotplug.c b/arch/arm/mach-s5pv310/hotplug.c
-index ea951ef..ff1bc05 100644
---- a/arch/arm/mach-s5pv310/hotplug.c
-+++ b/arch/arm/mach-s5pv310/hotplug.c
-@@ -14,10 +14,9 @@
- #include <linux/errno.h>
- #include <linux/smp.h>
- 
-+#include <asm/smp_scu.h>
- #include <asm/cacheflush.h>
- 
--extern volatile int pen_release;
--
- static inline void cpu_enter_lowpower(void)
- {
- 	unsigned int v;
-@@ -72,7 +71,7 @@ static inline void platform_do_lowpower(unsigned int cpu)
- 		    :
- 		    : "memory", "cc");
- 
--		if (pen_release == cpu) {
-+		if (scu_pen_release == cpu) {
- 			/*
- 			 * OK, proper wakeup, we're done
- 			 */
-diff --git a/arch/arm/mach-s5pv310/platsmp.c b/arch/arm/mach-s5pv310/platsmp.c
-index d474426..1a3f681 100644
---- a/arch/arm/mach-s5pv310/platsmp.c
-+++ b/arch/arm/mach-s5pv310/platsmp.c
-@@ -14,37 +14,25 @@
- */
- 
+diff --git a/arch/arm/mach-vexpress/platsmp.c b/arch/arm/mach-vexpress/platsmp.c
+index 276f916..2d4146f 100644
+--- a/arch/arm/mach-vexpress/platsmp.c
++++ b/arch/arm/mach-vexpress/platsmp.c
+@@ -9,15 +9,9 @@
+  * published by the Free Software Foundation.
+  */
  #include <linux/init.h>
 -#include <linux/errno.h>
 -#include <linux/delay.h>
@@ -129,21 +99,21 @@ index d474426..1a3f681 100644
  #include <asm/smp_scu.h>
  #include <asm/unified.h>
  
- #include <mach/hardware.h>
- #include <mach/regs-clock.h>
+@@ -27,21 +21,11 @@
  
--extern void s5pv310_secondary_startup(void);
+ #include "core.h"
+ 
+-extern void vexpress_secondary_startup(void);
 -
- /*
-  * control for which core is the next to come out of the secondary
-  * boot "holding pen"
-  */
- 
+-/*
+- * control for which core is the next to come out of the secondary
+- * boot "holding pen"
+- */
 -volatile int __cpuinitdata pen_release = -1;
 -
  static void __iomem *scu_base_addr(void)
  {
- 	return (void __iomem *)(S5P_VA_SCU);
+ 	return MMIO_P2V(A9_MPCORE_SCU);
  }
  
 -static DEFINE_SPINLOCK(boot_lock);
@@ -151,7 +121,7 @@ index d474426..1a3f681 100644
  void __cpuinit platform_secondary_init(unsigned int cpu)
  {
  	trace_hardirqs_off();
-@@ -56,65 +44,12 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
+@@ -53,138 +37,32 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
  	 */
  	gic_cpu_init(0, gic_cpu_base_addr);
  
@@ -181,12 +151,10 @@ index d474426..1a3f681 100644
 -	spin_lock(&boot_lock);
 -
 -	/*
--	 * The secondary processor is waiting to be released from
--	 * the holding pen - release it, then wait for it to flag
--	 * that it has been released by resetting pen_release.
--	 *
--	 * Note that "pen_release" is the hardware CPU ID, whereas
--	 * "cpu" is Linux's internal ID.
+-	 * This is really belt and braces; we hold unintended secondary
+-	 * CPUs in the holding pen until we're ready for them.  However,
+-	 * since we haven't sent them a soft interrupt, they shouldn't
+-	 * be there.
 -	 */
 -	pen_release = cpu;
 -	__cpuc_flush_dcache_area((void *)&pen_release, sizeof(pen_release));
@@ -218,9 +186,10 @@ index d474426..1a3f681 100644
 +	return scu_boot_secondary(cpu, idle);
  }
  
- /*
-@@ -124,69 +59,21 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- 
+-/*
+- * Initialise the CPU possible map early - this describes the CPUs
+- * which may be present or become present in the system.
+- */
  void __init smp_init_cpus(void)
  {
 -	void __iomem *scu_base = scu_base_addr();
@@ -231,22 +200,31 @@ index d474426..1a3f681 100644
 -	/* sanity check */
 -	if (ncores == 0) {
 -		printk(KERN_ERR
--		       "S5PV310: strange CM count of 0? Default to 1\n");
+-		       "vexpress: strange CM count of 0? Default to 1\n");
 -
 -		ncores = 1;
 -	}
--
++	scu_init_cpus(scu_base_addr());
++}
+ 
 -	if (ncores > NR_CPUS) {
 -		printk(KERN_WARNING
--		       "S5PV310: no. of cores (%d) greater than configured "
+-		       "vexpress: no. of cores (%d) greater than configured "
 -		       "maximum of %d - clipping\n",
 -		       ncores, NR_CPUS);
 -		ncores = NR_CPUS;
 -	}
--
++/* If there are more than one CPU let them know where to start. */
++static void __init smp_point_cpus(void)
++{
++	if (num_present_cpus() <= 1)
++		return;
+ 
 -	for (i = 0; i < ncores; i++)
 -		set_cpu_possible(i, true);
-+	scu_init_cpus(scu_base_addr());
++	writel(~0, MMIO_P2V(V2M_SYS_FLAGSCLR));
++	writel(BSYM(virt_to_phys(scu_secondary_startup)),
++	       MMIO_P2V(V2M_SYS_FLAGSSET));
  }
  
  void __init smp_prepare_cpus(unsigned int max_cpus)
@@ -256,9 +234,10 @@ index d474426..1a3f681 100644
 -	int i;
 -
 -	smp_store_cpu_info(cpu);
-+	scu_prepare_cpus(scu_base_addr(), max_cpus);
- 
--	/* are we trying to boot more cores than exist? */
+-
+-	/*
+-	 * are we trying to boot more cores than exist?
+-	 */
 -	if (max_cpus > ncores)
 -		max_cpus = ncores;
 -
@@ -273,8 +252,8 @@ index d474426..1a3f681 100644
 -	 * Initialise the SCU if there are more than one CPU and let
 -	 * them know where to start.
 -	 */
- 	if (max_cpus > 1) {
- 		/*
+-	if (max_cpus > 1) {
+-		/*
 -		 * Enable the local timer or broadcast device for the
 -		 * boot CPU, but only if we have more than one CPU.
 -		 */
@@ -283,15 +262,17 @@ index d474426..1a3f681 100644
 -		scu_enable(scu_base_addr());
 -
 -		/*
- 		 * Write the address of secondary startup into the
- 		 * system-wide flags register. The boot monitor waits
- 		 * until it receives a soft interrupt, and then the
- 		 * secondary CPU branches to this address.
- 		 */
--	__raw_writel(BSYM(virt_to_phys(s5pv310_secondary_startup)), S5P_VA_SYSRAM);
-+		__raw_writel(BSYM(virt_to_phys(scu_secondary_startup)),
-+			     S5P_VA_SYSRAM);
- 	}
+-		 * Write the address of secondary startup into the
+-		 * system-wide flags register. The boot monitor waits
+-		 * until it receives a soft interrupt, and then the
+-		 * secondary CPU branches to this address.
+-		 */
+-		writel(~0, MMIO_P2V(V2M_SYS_FLAGSCLR));
+-		writel(BSYM(virt_to_phys(vexpress_secondary_startup)),
+-			MMIO_P2V(V2M_SYS_FLAGSSET));
+-	}
++	scu_prepare_cpus(scu_base_addr(), max_cpus);
++	smp_point_cpus();
  }
 -- 
 1.7.0.5
