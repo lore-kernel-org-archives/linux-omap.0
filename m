@@ -1,67 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2] omap: nand: remove hardware ECC as default
-Date: Tue, 30 Nov 2010 10:09:59 -0800
-Message-ID: <20101130180958.GQ17222@atomide.com>
-References: <1290177926-3526-1-git-send-email-s-ghorai@ti.com>
- <20101130180542.GP17222@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/8] ARM: cns3xxx: Add support for SMP
+Date: Tue, 30 Nov 2010 18:14:42 +0000
+Message-ID: <20101130181442.GA9137@n2100.arm.linux.org.uk>
+References: <20101130171626.GA6165@oksana.dev.rtsoft.ru> <20101130171700.GB24034@oksana.dev.rtsoft.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:23878 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755572Ab0K3SKD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 13:10:03 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20101130180542.GP17222@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20101130171700.GB24034@oksana.dev.rtsoft.ru>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anton Vorontsov <avorontsov@mvista.com>
+Cc: Kukjin Kim <kgene.kim@samsung.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Jamie Iles <jamie.iles@picochip.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Colin Cross <ccross@android.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Sukumar Ghorai <s-ghorai@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [101130 09:56]:
-> * Sukumar Ghorai <s-ghorai@ti.com> [101119 06:36]:
-> > CONFIG_MTD_NAND_OMAP_HWECC defined wrongly in patch submitted for 2.6.36.
-> > This flag enables hw ecc by default. Boards like beagle and pandora uses
-> > sw ecc for write (e.g. binary flushed from u-boot) and read from kernel.
-> > https://patchwork.kernel.org/patch/111036/
+On Tue, Nov 30, 2010 at 08:17:00PM +0300, Anton Vorontsov wrote:
+> Nothing fancy needs to be done, just use generic SCU routines.
+> 
+> Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
 
-Although instead of the link above it should say:
+This I assume is an age old patch.
 
-Commit 2c01946c6b9ebaa5a89710bc42ca224a7f52f227 (omap3 nand: cleanup
-virtual address usages) wrongly enabled CONFIG_MTD_NAND_OMAP_HWECC
-which breaks boards like beagle and pandora that use software ECC
-for write.
- 
-> > Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
-> 
-> This should go in as a fix for the -rc via MTD list if possible.
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> > ---
-> >  drivers/mtd/nand/omap2.c |    1 -
-> >  1 files changed, 0 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> > index cd41c58..15682ec 100644
-> > --- a/drivers/mtd/nand/omap2.c
-> > +++ b/drivers/mtd/nand/omap2.c
-> > @@ -7,7 +7,6 @@
-> >   * it under the terms of the GNU General Public License version 2 as
-> >   * published by the Free Software Foundation.
-> >   */
-> > -#define CONFIG_MTD_NAND_OMAP_HWECC
-> >  
-> >  #include <linux/platform_device.h>
-> >  #include <linux/dma-mapping.h>
-> > -- 
-> > 1.7.0.4
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-cns3xxx/include/mach/smp.h b/arch/arm/mach-cns3xxx/include/mach/smp.h
+> new file mode 100644
+> index 0000000..44aa7ea
+> --- /dev/null
+> +++ b/arch/arm/mach-cns3xxx/include/mach/smp.h
+> @@ -0,0 +1,28 @@
+> +/*
+> + * Copyright 2002 ARM Ltd.
+> + * Copyright 2008 Cavium Networks
+> + *
+> + * This file is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License, Version 2, as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef __MACH_SMP_H
+> +#define __MACH_SMP_H
+> +
+> +#include <asm/hardware/gic.h>
+> +
+> +#define hard_smp_processor_id()				\
+> +	({						\
+> +		unsigned int cpunum;			\
+> +		__asm__("mrc p15, 0, %0, c0, c0, 5"	\
+> +			: "=r" (cpunum));		\
+> +		cpunum &= 0x0F;				\
+> +	})
+
+#include <asm/smp_mpidr.h>
+
+replaces this, but it's not actually necessary - it's only used by some
+bug checking code in the CPU hotplug code.  I'm shortly going to be
+deleting all hard_smp_processor_id() implementations.
