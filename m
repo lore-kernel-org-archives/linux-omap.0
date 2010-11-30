@@ -1,169 +1,56 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: [PATCH] OMAP: kill all section mismatch warning for omap2plus_defconfig
-Date: Tue, 30 Nov 2010 22:42:38 +0800
-Message-ID: <1291128158-15447-1-git-send-email-bryan.wu@canonical.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:56636 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752179Ab0K3Omj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 09:42:39 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 6/8] usb: ehci-omap: add helpers for checking port
+ mode
+Date: Tue, 30 Nov 2010 20:14:36 +0530
+Message-ID: <4CF50DD4.5080006@ti.com>
+References: <1291051537-23743-1-git-send-email-gadiyar@ti.com> <1291051537-23743-7-git-send-email-gadiyar@ti.com> <4CF4ED4E.1080707@ru.mvista.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4CF4ED4E.1080707-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This patch will kill following section mismatch warnings and it's built based on 2.6.37-rc4
+On 11/30/2010 5:55 PM, Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 29-11-2010 20:25, Anand Gadiyar wrote:
+> 
+>> Introduce helper functions to test port mode. These checks are
+>> performed in several places in the driver, and these helpers
+>> improve readability.
+> 
+>> Signed-off-by: Anand Gadiyar<gadiyar-l0cyMroinI0@public.gmane.org>
+> [...]
+> 
+>> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+>> index 7a4682c..dd9d5c1 100644
+>> --- a/drivers/usb/host/ehci-omap.c
+>> +++ b/drivers/usb/host/ehci-omap.c
+> [...]
+>> @@ -387,27 +390,27 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+>>       /* Bypass the TLL module for PHY mode operation */
+>>       if (cpu_is_omap3430()&&  (omap_rev()<= OMAP3430_REV_ES2_1)) {
+>>           dev_dbg(omap->dev, "OMAP3 ES version<= ES2.1\n");
+>> -        if ((omap->port_mode[0] == EHCI_HCD_OMAP_MODE_PHY) ||
+>> -            (omap->port_mode[1] == EHCI_HCD_OMAP_MODE_PHY) ||
+>> -                (omap->port_mode[2] == EHCI_HCD_OMAP_MODE_PHY))
+>> +        if (is_ehci_phy_mode(omap->port_mode[0]) ||
+>> +            is_ehci_phy_mode(omap->port_mode[1]) ||
+>> +                is_ehci_phy_mode(omap->port_mode[2]))
+> 
+>    Why there's another indentation level whenre there shouldn't be one?
+> 
 
-WARNING: vmlinux.o(.text+0x24a00): Section mismatch in reference from the function zoom_twl_gpio_setup() to the (unknown reference) .init.data:(unknown)
-The function zoom_twl_gpio_setup() references
-the (unknown reference) __initdata (unknown).
-This is often because zoom_twl_gpio_setup lacks a __initdata
-annotation or the annotation of (unknown) is wrong.
+No particular reason, other than that it was a find-and-replace change.
+I can fix it up if you insist.
 
-WARNING: vmlinux.o(.text+0x24bfc): Section mismatch in reference from the function cm_t35_twl_gpio_setup() to the (unknown reference) .init.data:(unknown)
-The function cm_t35_twl_gpio_setup() references
-the (unknown reference) __initdata (unknown).
-This is often because cm_t35_twl_gpio_setup lacks a __initdata
-annotation or the annotation of (unknown) is wrong.
+- Anand
 
-WARNING: vmlinux.o(.data+0x1d3e0): Section mismatch in reference from the variable h4_config to the (unknown reference) .init.data:(unknown)
-The variable h4_config references
-the (unknown reference) __initdata (unknown)
-If the reference is valid then annotate the
-variable with __init* or __refdata (see linux/init.h) or name the variable:
-*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
-
-WARNING: vmlinux.o(.data+0x1dc08): Section mismatch in reference from the variable sdp2430_config to the (unknown reference) .init.data:(unknown)
-The variable sdp2430_config references
-the (unknown reference) __initdata (unknown)
-If the reference is valid then annotate the
-variable with __init* or __refdata (see linux/init.h) or name the variable:
-*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
-
-WARNING: vmlinux.o(.data+0x1e1d8): Section mismatch in reference from the variable apollon_config to the (unknown reference) .init.data:(unknown)
-The variable apollon_config references
-the (unknown reference) __initdata (unknown)
-If the reference is valid then annotate the
-variable with __init* or __refdata (see linux/init.h) or name the variable:
-*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
-
-WARNING: vmlinux.o(.data+0x473fc): Section mismatch in reference from the variable twl_driver to the function .init.text:twl_probe()
-The variable twl_driver references
-the function __init twl_probe()
-If the reference is valid then annotate the
-variable with __init* or __refdata (see linux/init.h) or name the variable:
-*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
-
-Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
----
- arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
- arch/arm/mach-omap2/board-apollon.c          |    2 +-
- arch/arm/mach-omap2/board-cm-t35.c           |   11 +++--------
- arch/arm/mach-omap2/board-h4.c               |    2 +-
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
- drivers/mfd/twl-core.c                       |    2 +-
- 6 files changed, 8 insertions(+), 13 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index b527f8d..9ab8bb1 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -135,7 +135,7 @@ static inline void board_smc91x_init(void)
- 
- #endif
- 
--static struct omap_board_config_kernel sdp2430_config[] = {
-+static struct omap_board_config_kernel sdp2430_config[] __initdata = {
- 	{OMAP_TAG_LCD, &sdp2430_lcd_config},
- };
- 
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index 2c6db1a..5c432d8 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -270,7 +270,7 @@ static struct omap_lcd_config apollon_lcd_config __initdata = {
- 	.ctrl_name	= "internal",
- };
- 
--static struct omap_board_config_kernel apollon_config[] = {
-+static struct omap_board_config_kernel apollon_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&apollon_lcd_config },
- };
- 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 63f764e..cd97159 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -600,8 +600,8 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
- 	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
- 
- 	.phy_reset  = true,
--	.reset_gpio_port[0]  = -EINVAL,
--	.reset_gpio_port[1]  = -EINVAL,
-+	.reset_gpio_port[0]  = OMAP_MAX_GPIO_LINES + 6,
-+	.reset_gpio_port[1]  = OMAP_MAX_GPIO_LINES + 7,
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-@@ -630,12 +630,6 @@ static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
- 	cm_t35_vmmc1_supply.dev = mmc[0].dev;
- 	cm_t35_vsim_supply.dev = mmc[0].dev;
- 
--	/* setup USB with proper PHY reset GPIOs */
--	ehci_pdata.reset_gpio_port[0] = gpio + 6;
--	ehci_pdata.reset_gpio_port[1] = gpio + 7;
--
--	usb_ehci_init(&ehci_pdata);
--
- 	return 0;
- }
- 
-@@ -805,6 +799,7 @@ static void __init cm_t35_init(void)
- 	cm_t35_init_display();
- 
- 	usb_musb_init(&musb_board_data);
-+	usb_ehci_init(&ehci_pdata);
- }
- 
- MACHINE_START(CM_T35, "Compulab CM-T35")
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index 929993b..5549f2c 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -283,7 +283,7 @@ static struct omap_usb_config h4_usb_config __initdata = {
- 	.hmc_mode	= 0x00,		/* 0:dev|otg 1:disable 2:disable */
- };
- 
--static struct omap_board_config_kernel h4_config[] = {
-+static struct omap_board_config_kernel h4_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&h4_lcd_config },
- };
- 
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 86c9b21..9b79188 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -196,7 +196,7 @@ struct wl12xx_platform_data omap_zoom_wlan_data __initdata = {
- 	.board_ref_clock = 1,
- };
- 
--static struct omap2_hsmmc_info mmc[] __initdata = {
-+static struct omap2_hsmmc_info mmc[] = {
- 	{
- 		.name		= "external",
- 		.mmc		= 1,
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 35275ba..3aa46ff 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -969,7 +969,7 @@ static int twl_remove(struct i2c_client *client)
- }
- 
- /* NOTE:  this driver only handles a single twl4030/tps659x0 chip */
--static int __init
-+static int __devinit
- twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
- 	int				status;
--- 
-1.7.1
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
