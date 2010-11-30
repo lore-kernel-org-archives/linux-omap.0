@@ -1,389 +1,131 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: [PATCH] ARM: omap: Enable low-level omap3 PM code to work with CONFIG_THUMB2_KERNEL
-Date: Tue, 30 Nov 2010 13:31:17 +0000
-Message-ID: <1291123877-6600-1-git-send-email-dave.martin@linaro.org>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
+Date: Tue, 30 Nov 2010 15:32:25 +0200
+Message-ID: <1291123945.24627.223.camel@tubuntu>
+References: <19F8576C6E063C45BE387C64729E739404BC762E9A@dbde02.ent.ti.com>
+	 <1290589057.13243.22.camel@tubuntu>
+	 <19F8576C6E063C45BE387C64729E739404BCCA3A55@dbde02.ent.ti.com>
+	 <20101124163100.GB5681@nokia.com>
+	 <19F8576C6E063C45BE387C64729E739404BCCA3CAE@dbde02.ent.ti.com>
+	 <yw1xeia81nts.fsf@unicorn.mansr.com>
+	 <19F8576C6E063C45BE387C64729E739404BCCA401F@dbde02.ent.ti.com>
+	 <20101126125539.GG8094@nokia.com> <20101130063440.GF17114@linux-sh.org>
+	 <20101130063934.GG17114@linux-sh.org>
+	 <19F8576C6E063C45BE387C64729E739404BCCA455A@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:48762 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967Ab0K3Nbc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 08:31:32 -0500
-Received: by wwa36 with SMTP id 36so6067057wwa.1
-        for <linux-omap@vger.kernel.org>; Tue, 30 Nov 2010 05:31:30 -0800 (PST)
+Received: from smtp.nokia.com ([147.243.1.47]:58489 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751222Ab0K3Ncy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Nov 2010 08:32:54 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404BCCA455A@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Dave Martin <dave.martin@linaro.org>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Paul Mundt <lethal@linux-sh.org>, Ville Syrj?l? <ville.syrjala@nokia.com>, M?ns Rullg?rd <mans@mansr.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-sleep34xx.S, sram34xx.S:
+On Tue, 2010-11-30 at 12:29 +0530, ext Hiremath, Vaibhav wrote:
+> > -----Original Message-----
+> > From: Paul Mundt [mailto:lethal@linux-sh.org]
+> > Sent: Tuesday, November 30, 2010 12:10 PM
+> > To: Ville Syrj?l?
+> > Cc: Hiremath, Vaibhav; M?ns Rullg?rd; linux-omap@vger.kernel.org; linux-
+> > fbdev@vger.kernel.org
+> > Subject: Re: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
+> > 
+> > On Tue, Nov 30, 2010 at 03:34:40PM +0900, Paul Mundt wrote:
+> > > On Fri, Nov 26, 2010 at 02:55:39PM +0200, Ville Syrj?l? wrote:
+> > > > On Fri, Nov 26, 2010 at 05:38:11PM +0530, ext Hiremath, Vaibhav wrote:
+> > > > > With this finding, in case of OMAP3 we have to use OMAPFB_WAITFORGO
+> > > > > (breaking standard applications).
+> > > >
+> > > > Applications using the standard fbdev API won't work with manual
+> > update
+> > > > displays anyway. You need omapfb specific code to handle it so having
+> > > > another small difference is not a big deal.
+> > > >
+> > > > In DirectFB the that's trivial since there's already a simple omap
+> > > > gfxdriver where you could override the default flip functionality with
+> > > > WAITFORGO based stuff.
+> > > >
+> > > > Or, as I said, you could add another standard ioctl and fix up
+> > userspace
+> > > > to use it where appropriate and if the kernel driver supports it.
+> > > >
+> > > It seems like the WAITFORGO semantics could be layered on top of drivers
+> > > using deferred I/O pretty easily, but the question is whether this is
+> > > something that userspace plans to make general use of or not. If the
+> > only
+> > > user of it in userspace code is OMAP-specific, then there's probably not
+> > > a lot of point in moving it over to be generic, but if there are
+> > > sufficient cases where userspace cares about this information
+> > independent
+> > > of WAITFORVSYNC for manual update displays, then we can certainly look
+> > at
+> > > moving it over for those cases.
+> > 
+> > Also, WAITFORGO is a pretty abysmal name. It seems like what you want is
+> > a WAITFORHWSYNC or something similar.
+> [Hiremath, Vaibhav] Yes exactly, this name fits to the use-case and sounds ok to me. 
+> 
+> Tomi,
+> Any comments?
 
-  * Added ENDPROC() directives for all exported function symbols.
-    Without these, exported function symbols are not correctly
-    identified as Thumb by the linker, causing incorrect linkage.
-    This is needed to avoid some calls to the functions ending up
-    with the CPU in the wrong instruction set.
+Ah, I seem to have been dropped out from this mail thread...
 
-  * Added .align directives where needed to ensure that .word won't
-    be misaligned.  (Note that ENTRY() implies .align; no extra
-    .align has been added for these cases.)
+Yes, WAITFORHWSYNC sounds much better.
 
-  * Exported new "base address" symbols for functions which get
-    copied to sram by code outside sleep34xx.S (applies to
-    save_secure_ram_context and omap32xx_cpu_suspend), and fix up
-    the relevant address arithmetic so that these will be copied
-    and called correctly by the Thumb code in the rest of the
-    kernel.
+But there seems to be some misunderstanding of what this is about.
+Deferred IO or manual update displays are not directly related to this.
+This is about configuration registers, ie. address, size, etc. of the
+framebuffer, not about the contents of the framebuffer.
 
-  * Explicitly build a few parts of sleep34xx.S as ARM.
+The reason why WAITFORGO was implemented is: 
 
-      * lock_scratchpad_sem is kept as ARM because of the need to
-        synchronise with hardware (?) using the SWP instruction.
+OMAP has user writeable shadow registers and hidden real registers for
+display controller. The shadow registers are latched to real registers
+on VFP, but only if GO bit has been set. The GO bit is cleared by the HW
+when latching has been done.
 
-      * save_secure_ram_context and omap34xx_cpu_suspend are built
-        as ARM in case the Secure World firmware expects to decode
-        the comment field from the SMC (aka smi) instructions.
+If the GO bit is set, we cannot touch the shadow registers because we
+don't know when the VFP  will happen. That's why there's additionally a
+SW cache for the config, so that we don't need to block when the GO bit
+is up and the user wants to change the config. The driver "flushes" the
+SW config to real registers in VSYNC interrupt handler.
 
-        This can be undone later if the firmware is confirmed as
-        able to decode the Thumb SMC encoding (or ignores the
-        comment field).
+This is why the user may need to wait multiple vsyncs until the config
+has really been written to the real HW registers, and WAITFORGO waits
+for this. But if there has not been any config changes, WAITFORGO
+doesn't wait at all.
 
-      * es3_sdrc_fix should presumably only be called from the
-        low-level wakeup code.  To minimise the diff, switched this
-        to ARM and demoted it to be a local symbol, since I believe
-        it shouldn't be called from outside anyway.
+So WAITFORVSYNC and WAITFORGO do quite a different thing on OMAP. It is
+true what Hiremath says, WAITFORVSYNC is difficult (impossible?) to use
+properly on OMAP as if the config write happens between VFP and VSYNC,
+the config is not actually yet in the real registers.
 
-     To prevent future maintainence problems, it would probably be
-     a good idea to demote _all_ functions which aren't called
-     externally to local.  (i.e., everything except for
-     get_es3_restore_pointer, get_restore_pointer,
-     omap34xx_cpu_suspend and save_secure_ram_context).
+But I'm still not comfortable with just moving WAITFORGO over
+WAITFORVSYNC. At least we should then change WAITFORGO to always wait at
+least for the next vsync, so that it wouldn't return immediately when
+there are no pending changes. This would make WAITFORGO act like
+WAITFORVSYNC in many cases, but not always.
 
-     For now, I've left these as-is to minimise disruption.
+And to add to the confusion, there are multiple overlays on OMAP. They
+may be currently shared by multiple users (for example omapfb and v4l2).
+If the user uses WAITFORVSYNC, the call will return for every vsync, as
+expected. If he uses WAITFORGO, the call will return in random number of
+vsyncs from the user's point of view, because the other user may be
+competing from the same resource.
 
-   * Use a separate base register instead of PC-relative stores in
-     sram34xx.S.  This isn't permitted in Thumb-2, but at least
-     some versions of gas will silently output non-working code,
-     leading to unpredictable run-time behaviour.
+One could still argue that always using WAITFORGO is better, as there's
+the problem with WAITFORVSYNC that Hiremath described. But then again,
+WAITFORGO acts differently than what (I think) WAITFORVSYNC should do.
 
-pm34xx.c, pm.h, sram.c, sram.h:
+So summa summarum, I didn't know how to solve this perfectly earlier,
+and thus I implemented WAITFORGO, and I still don't know what would be
+the perfect solution.
 
-  * Resolve some memory addressing issues where a function symbol's
-    value is assumed to be equal to the start address of the
-    function body for the purpose of copying some low-level code
-    from sleep34xx.S to SRAM.
+ Tomi
 
-    This assumption breaks for Thumb, since Thumb functions symbols
-    have bit 0 set to indicate the Thumb-ness.  This would result
-    in a non-working, off-by-one copy of the function body.
-
-Tested on Beagle xM A2:
-  * CONFIG_THUMB2_KERNEL && !CONFIG_SMP_ON_UP
-  * CONFIG_THUMB2_KERNEL && CONFIG_SMP_ON_UP
-  * !CONFIG_THUMB2_KERNEL && !CONFIG_SMP_ON_UP
-  * !CONFIG_THUMB2_KERNEL && CONFIG_SMP_ON_UP
-
-Signed-off-by: Dave Martin <dave.martin@linaro.org>
----
-KernelVersion: 2.6.37-rc4
-
- arch/arm/mach-omap2/pm.h               |    2 +
- arch/arm/mach-omap2/pm34xx.c           |   13 ++++++++--
- arch/arm/mach-omap2/sleep34xx.S        |   37 +++++++++++++++++++++++++++++--
- arch/arm/mach-omap2/sram34xx.S         |   34 +++++++++++++++++++++-------
- arch/arm/plat-omap/include/plat/sram.h |    1 +
- arch/arm/plat-omap/sram.c              |   10 +++++++-
- 6 files changed, 80 insertions(+), 17 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 0d75bfd..c333bfd 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -80,7 +80,9 @@ extern void save_secure_ram_context(u32 *addr);
- extern void omap3_save_scratchpad_contents(void);
- 
- extern unsigned int omap24xx_idle_loop_suspend_sz;
-+extern char *const omap34xx_cpu_suspend_base;
- extern unsigned int omap34xx_suspend_sz;
-+extern char *const save_secure_ram_context_base;
- extern unsigned int save_secure_ram_context_sz;
- extern unsigned int omap24xx_cpu_suspend_sz;
- extern unsigned int omap34xx_cpu_suspend_sz;
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 0ec8a04..93f0ee8 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -982,11 +982,18 @@ static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
- 
- void omap_push_sram_idle(void)
- {
--	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
-+	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend_base,
- 					omap34xx_cpu_suspend_sz);
--	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
--		_omap_save_secure_sram = omap_sram_push(save_secure_ram_context,
-+	_omap_sram_idle += (char *)omap34xx_cpu_suspend -
-+		omap34xx_cpu_suspend_base;
-+
-+	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
-+		_omap_save_secure_sram = omap_sram_push(
-+				save_secure_ram_context_base,
- 				save_secure_ram_context_sz);
-+		_omap_save_secure_sram += (char *)save_secure_ram_context -
-+			save_secure_ram_context_base;
-+	}
- }
- 
- static int __init omap3_pm_init(void)
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 2fb205a..06ae955 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -61,6 +61,7 @@
- 
-         .text
- /* Function to acquire the semaphore in scratchpad */
-+	.arm			@ Do this in ARM for now, due to use of SWP.
- ENTRY(lock_scratchpad_sem)
- 	stmfd	sp!, {lr}	@ save registers on stack
- wait_sem:
-@@ -74,6 +75,9 @@ wait_loop:
- 	cmp	r2, r0		@ did we succeed ?
- 	beq	wait_sem	@ no - try again
- 	ldmfd	sp!, {pc}	@ restore regs and return
-+ENDPROC(lock_scratchpad_sem)
-+ THUMB(	.thumb		)
-+	.align
- sdrc_scratchpad_sem:
-         .word SDRC_SCRATCHPAD_SEM_V
- ENTRY(lock_scratchpad_sem_sz)
-@@ -87,6 +91,7 @@ ENTRY(unlock_scratchpad_sem)
- 	mov	r2,#0
- 	str	r2,[r3]
- 	ldmfd	sp!, {pc}	@ restore regs and return
-+ENDPROC(unlock_scratchpad_sem)
- ENTRY(unlock_scratchpad_sem_sz)
-         .word   . - unlock_scratchpad_sem
- 
-@@ -96,6 +101,7 @@ ENTRY(get_restore_pointer)
-         stmfd   sp!, {lr}     @ save registers on stack
- 	adr	r0, restore
-         ldmfd   sp!, {pc}     @ restore regs and return
-+ENDPROC(get_restore_pointer)
- ENTRY(get_restore_pointer_sz)
-         .word   . - get_restore_pointer
- 
-@@ -105,10 +111,16 @@ ENTRY(get_es3_restore_pointer)
- 	stmfd	sp!, {lr}	@ save registers on stack
- 	adr	r0, restore_es3
- 	ldmfd	sp!, {pc}	@ restore regs and return
-+ENDPROC(get_es3_restore_pointer)
- ENTRY(get_es3_restore_pointer_sz)
- 	.word	. - get_es3_restore_pointer
- 
--ENTRY(es3_sdrc_fix)
-+@ For simplicity, make this ARM so it gets called OK from es3_restore.
-+@ Demote to a local symbol, since this gives this function an ARM ABI interface
-+@ which won't be callable directly from a Thumb-2 kernel.  This code
-+@ shouldn't be called from outside anyway...
-+	.arm
-+es3_sdrc_fix:
- 	ldr	r4, sdrc_syscfg		@ get config addr
- 	ldr	r5, [r4]		@ get value
- 	tst	r5, #0x100		@ is part access blocked
-@@ -134,6 +146,9 @@ ENTRY(es3_sdrc_fix)
- 	mov	r5, #0x2		@ autorefresh command
- 	str	r5, [r4]		@ kick off refreshes
- 	bx	lr
-+ENDPROC(es3_sdrc_fix)
-+ THUMB(	.thumb		)
-+	.align
- sdrc_syscfg:
- 	.word	SDRC_SYSCONFIG_P
- sdrc_mr_0:
-@@ -150,8 +165,12 @@ sdrc_manual_1:
- 	.word	SDRC_MANUAL_1_P
- ENTRY(es3_sdrc_fix_sz)
- 	.word	. - es3_sdrc_fix
-+ THUMB(	.thumb		)
- 
- /* Function to call rom code to save secure ram context */
-+	.arm			@ Do this in ARM for now, due to use of SMC,
-+				@ in case the Secure World firmware may depends
-+				@ on decoding the SMC instruction.
- ENTRY(save_secure_ram_context)
- 	stmfd	sp!, {r1-r12, lr}	@ save registers on stack
- save_secure_ram_debug:
-@@ -175,6 +194,9 @@ save_secure_ram_debug:
- 	nop
- 	nop
- 	ldmfd	sp!, {r1-r12, pc}
-+ENDPROC(save_secure_ram_context)
-+ THUMB(	.thumb		)
-+	.align
- sram_phy_addr_mask:
- 	.word	SRAM_BASE_P
- high_mask:
-@@ -183,6 +205,8 @@ api_params:
- 	.word	0x4, 0x0, 0x0, 0x1, 0x1
- ENTRY(save_secure_ram_context_sz)
- 	.word	. - save_secure_ram_context
-+ENTRY(save_secure_ram_context_base)
-+	.word	save_secure_ram_context_base
- 
- /*
-  * Forces OMAP into idle state
-@@ -193,6 +217,7 @@ ENTRY(save_secure_ram_context_sz)
-  * Note: This code get's copied to internal SRAM at boot. When the OMAP
-  *	 wakes up it continues execution at the point it went to sleep.
-  */
-+	.arm			@ Do this in ARM for now, due to use of SMC.
- ENTRY(omap34xx_cpu_suspend)
- 	stmfd	sp!, {r0-r12, lr}		@ save registers on stack
- loop:
-@@ -563,10 +588,12 @@ loop2:
- 	mov     r9, r4
- 	/* create working copy of max way size*/
- loop3:
-+	mov     r1, r9, lsl r5
-+	mov     r2, r7, lsl r2
- 	/* factor way and cache number into r11 */
--	orr     r11, r10, r9, lsl r5
-+	orr     r11, r10, r1
- 	/* factor index number into r11 */
--	orr     r11, r11, r7, lsl r2
-+	orr     r11, r11, r2
- 	/*clean & invalidate by set/way */
- 	mcr     p15, 0, r11, c7, c10, 2
- 	/* decrement the way*/
-@@ -631,7 +658,9 @@ wait_dll_lock:
-         cmp     r5, #0x4
-         bne     wait_dll_lock
-         bx      lr
-+ENDPROC(omap34xx_cpu_suspend)
- 
-+	.align
- cm_idlest1_core:
- 	.word	CM_IDLEST1_CORE_V
- sdrc_dlla_status:
-@@ -670,3 +699,5 @@ control_stat:
- 	.word	CONTROL_STAT
- ENTRY(omap34xx_cpu_suspend_sz)
- 	.word	. - omap34xx_cpu_suspend
-+ENTRY(omap34xx_cpu_suspend_base)
-+	.word	omap34xx_cpu_suspend
-diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index 3637274..65fd54f 100644
---- a/arch/arm/mach-omap2/sram34xx.S
-+++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -105,29 +105,42 @@
-  * can satisfy the above requirement can enable the CONFIG_OMAP3_SDRC_AC_TIMING
-  * option.
-  */
-+__omap3_sram_configure_core_dpll_base:	@ Separate local symbol with the Thumb
-+					@ bit _not_ set (for base address when
-+					@ copying to sram).
- ENTRY(omap3_sram_configure_core_dpll)
- 	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
- 
- 					@ pull the extra args off the stack
- 					@  and store them in SRAM
-+
-+@ PC-relative stores lead to undefined behaviour in Thumb-2: use a r7 as a
-+@ base instead.
-+@ Be careful not to clobber r7 when maintaing this file.
-+ THUMB(	adr	r7, omap3_sram_configure_core_dpll			)
-+	.macro strtext Rt:req, label:req
-+ ARM(	str	\Rt, \label						)
-+ THUMB(	str	\Rt, [r7, \label - omap3_sram_configure_core_dpll]	)
-+	.endm
-+
- 	ldr	r4, [sp, #52]
--	str     r4, omap_sdrc_rfr_ctrl_0_val
-+	strtext	r4, omap_sdrc_rfr_ctrl_0_val
- 	ldr	r4, [sp, #56]
--	str     r4, omap_sdrc_actim_ctrl_a_0_val
-+	strtext	r4, omap_sdrc_actim_ctrl_a_0_val
- 	ldr	r4, [sp, #60]
--	str     r4, omap_sdrc_actim_ctrl_b_0_val
-+	strtext	r4, omap_sdrc_actim_ctrl_b_0_val
- 	ldr	r4, [sp, #64]
--	str     r4, omap_sdrc_mr_0_val
-+	strtext	r4, omap_sdrc_mr_0_val
- 	ldr	r4, [sp, #68]
--	str     r4, omap_sdrc_rfr_ctrl_1_val
-+	strtext	r4, omap_sdrc_rfr_ctrl_1_val
- 	cmp	r4, #0			@ if SDRC_RFR_CTRL_1 is 0,
- 	beq	skip_cs1_params		@  do not use cs1 params
- 	ldr	r4, [sp, #72]
--	str     r4, omap_sdrc_actim_ctrl_a_1_val
-+	strtext	r4, omap_sdrc_actim_ctrl_a_1_val
- 	ldr	r4, [sp, #76]
--	str     r4, omap_sdrc_actim_ctrl_b_1_val
-+	strtext	r4, omap_sdrc_actim_ctrl_b_1_val
- 	ldr	r4, [sp, #80]
--	str     r4, omap_sdrc_mr_1_val
-+	strtext	r4, omap_sdrc_mr_1_val
- skip_cs1_params:
- 	mrc	p15, 0, r8, c1, c0, 0	@ read ctrl register
- 	bic	r10, r8, #0x800		@ clear Z-bit, disable branch prediction
-@@ -264,7 +277,9 @@ configure_sdrc:
- skip_cs1_prog:
- 	ldr	r12, [r11]		@ posted-write barrier for SDRC
- 	bx	lr
-+ENDPROC(omap3_sram_configure_core_dpll)
- 
-+	.align
- omap3_sdrc_power:
- 	.word OMAP34XX_SDRC_REGADDR(SDRC_POWER)
- omap3_cm_clksel1_pll:
-@@ -316,4 +331,5 @@ core_m2_mask_val:
- 
- ENTRY(omap3_sram_configure_core_dpll_sz)
- 	.word	. - omap3_sram_configure_core_dpll
--
-+ENTRY(omap3_sram_configure_core_dpll_base)
-+	.word	__omap3_sram_configure_core_dpll_base
-diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
-index 5905100..2f27167 100644
---- a/arch/arm/plat-omap/include/plat/sram.h
-+++ b/arch/arm/plat-omap/include/plat/sram.h
-@@ -67,6 +67,7 @@ extern u32 omap3_sram_configure_core_dpll(
- 			u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
- 			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
- extern unsigned long omap3_sram_configure_core_dpll_sz;
-+extern char *omap3_sram_configure_core_dpll_base;
- 
- #ifdef CONFIG_PM
- extern void omap_push_sram_idle(void);
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index e2c8eeb..61282f4 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -386,8 +386,11 @@ void omap3_sram_restore_context(void)
- 	omap_sram_ceil = omap_sram_base + omap_sram_size;
- 
- 	_omap3_sram_configure_core_dpll =
--		omap_sram_push(omap3_sram_configure_core_dpll,
-+		omap_sram_push(omap3_sram_configure_core_dpll_base,
- 			       omap3_sram_configure_core_dpll_sz);
-+	_omap3_sram_configure_core_dpll +=
-+		(char *)omap3_sram_configure_core_dpll -
-+		omap3_sram_configure_core_dpll_base;
- 	omap_push_sram_idle();
- }
- #endif /* CONFIG_PM */
-@@ -395,8 +398,11 @@ void omap3_sram_restore_context(void)
- static int __init omap34xx_sram_init(void)
- {
- 	_omap3_sram_configure_core_dpll =
--		omap_sram_push(omap3_sram_configure_core_dpll,
-+		omap_sram_push(omap3_sram_configure_core_dpll_base,
- 			       omap3_sram_configure_core_dpll_sz);
-+	_omap3_sram_configure_core_dpll +=
-+		(char *)omap3_sram_configure_core_dpll -
-+		omap3_sram_configure_core_dpll_base;
- 	omap_push_sram_idle();
- 	return 0;
- }
--- 
-1.7.1
 
