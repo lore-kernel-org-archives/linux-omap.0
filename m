@@ -1,50 +1,73 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH v2 6/8] usb: ehci-omap: add helpers for checking port
- mode
-Date: Tue, 30 Nov 2010 15:25:50 +0300
-Message-ID: <4CF4ED4E.1080707@ru.mvista.com>
-References: <1291051537-23743-1-git-send-email-gadiyar@ti.com> <1291051537-23743-7-git-send-email-gadiyar@ti.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: PATCH V4 1/2] input: CMA3000 Accelerometer Driver
+Date: Tue, 30 Nov 2010 18:20:43 +0530
+Message-ID: <5B8D58FB9E1C487FA94F2498E0B9E9AB@wipblrx0099946>
+References: <37129.10.24.255.17.1291028260.squirrel@dbdmail.itg.ti.com> <4CF38E4D.3070309@cam.ac.uk> <20101130075911.GC15731@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:52395 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429Ab0K3M1o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 07:27:44 -0500
-In-Reply-To: <1291051537-23743-7-git-send-email-gadiyar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, saaguirre@ti.com, Shubhrajyoti@ti.com, Jonathan Cameron <jic23@cam.ac.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@suse.de>
 
-Hello.
+----- Original Message ----- 
+From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
+>
+> Yep, almost there.
+>
+> Hemanth, does the driver still work if you apply the patch below?
 
-On 29-11-2010 20:25, Anand Gadiyar wrote:
+Yes works pretty well, Thanks for your efforts
 
-> Introduce helper functions to test port mode. These checks are
-> performed in several places in the driver, and these helpers
-> improve readability.
+Some minor changes as below required.
 
-> Signed-off-by: Anand Gadiyar<gadiyar@ti.com>
-[...]
+<snip>
 
-> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-> index 7a4682c..dd9d5c1 100644
-> --- a/drivers/usb/host/ehci-omap.c
-> +++ b/drivers/usb/host/ehci-omap.c
-[...]
-> @@ -387,27 +390,27 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
->   	/* Bypass the TLL module for PHY mode operation */
->   	if (cpu_is_omap3430()&&  (omap_rev()<= OMAP3430_REV_ES2_1)) {
->   		dev_dbg(omap->dev, "OMAP3 ES version<= ES2.1\n");
-> -		if ((omap->port_mode[0] == EHCI_HCD_OMAP_MODE_PHY) ||
-> -			(omap->port_mode[1] == EHCI_HCD_OMAP_MODE_PHY) ||
-> -				(omap->port_mode[2] == EHCI_HCD_OMAP_MODE_PHY))
-> +		if (is_ehci_phy_mode(omap->port_mode[0]) ||
-> +			is_ehci_phy_mode(omap->port_mode[1]) ||
-> +				is_ehci_phy_mode(omap->port_mode[2]))
+> +struct cma3000_accl_data {
+> + const struct cma3000_bus_ops *bus_ops;
+> + const struct cma3000_platform_data *pdata;
+> +
+> + struct device *dev;
+> + struct input_dev *input_dev;
+> +
+> + int bit_to_mg;
+> + int irq;
+> +
+> + int g_range;
+> + u8 mode;
+> +
+> + struct mutex mutex;
 
-    Why there's another indentation level whenre there shouldn't be one?
+Need a comment to overcome checkpatch warning.
 
-WBR, Sergei
+>
+> - pr_info("CMA3000 Accelerometer : Revision %x\n", ret);
+> + data->dev = dev;
+> + data->input_dev = input_dev;
+> + data->bus_ops = bops;
+> + data->pdata = pdata;
+
+Need to add data->irq = irq, else exit routine will dump stack
+
+>
+> - data->input_dev->name = "cma3000-accelerometer";
+> + data->g_range = pdata->g_range;
+> + if (data->g_range != CMARANGE_2G && data->g_range != CMA3000_RANGE8G) {
+
+Need to change this to "data->g_range != CMARANGE_2G   && data->g_range != 
+CMARANGE_8G "
+
+> - input_set_abs_params(data->input_dev, ABS_Z, -g_range,
+> - g_range, fuzz_z, 0);
+> - input_set_abs_params(data->input_dev, ABS_MISC, 0,
+> - 1, 0, 0);
+
+We use this ABS_MISC event to report free fall.
+
+
+
