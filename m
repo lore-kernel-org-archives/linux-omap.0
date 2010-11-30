@@ -1,150 +1,69 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH 1/2] OMAP: DMA: prevent races while setting M idle mode to nostandby
-Date: Tue, 30 Nov 2010 15:23:47 +0200
-Message-ID: <20101130132347.13286.40388.sendpatchset@ahunter-work.research.nokia.com>
+Subject: [PATCH 2/2] OMAP: DMA: clear interrupt status correctly
+Date: Tue, 30 Nov 2010 15:23:55 +0200
+Message-ID: <20101130132355.13286.77389.sendpatchset@ahunter-work.research.nokia.com>
 References: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:39215 "EHLO mgw-da01.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.24]:39218 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750977Ab0K3NYU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1750908Ab0K3NYU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 30 Nov 2010 08:24:20 -0500
 In-Reply-To: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>, Manjunatha GK <manjugk@ti.com>, Santosh Shilimkar <Santosh.shilimkar@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+Cc: Santosh Shilimkar <Santosh.shilimkar@ti.com>, Manjunatha GK <manjugk@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
->From 8c0f4490d93b67326ff24f6ce1c7e925b08d96b3 Mon Sep 17 00:00:00 2001
+>From 85934ded48552fde84b083575ac2006f1542324b Mon Sep 17 00:00:00 2001
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Mon, 22 Nov 2010 11:32:48 +0200
-Subject: [PATCH 1/2] OMAP: DMA: prevent races while setting M idle mode to nostandby
+Date: Wed, 24 Nov 2010 13:23:21 +0200
+Subject: [PATCH 2/2] OMAP: DMA: clear interrupt status correctly
 
-In a couple of OMAP errata cases, sDMA M idle mode must be
-set temporarily to nostandby.  If two DMA users were to do
-that at the same time, a race condition would arise.
-Prevent that by using a spin lock and counting up/down the
-number of times nostandby is set/reset.
+When clearing the DMA channel, clear all status bits.
+
+When handling a DMA interrupt, clear only the interrupt
+status bits that have been read and are passed to the
+channel's interrupt handler, not every status bit.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 ---
- arch/arm/plat-omap/dma.c |   59 ++++++++++++++++++++++++++++++++++-----------
- 1 files changed, 44 insertions(+), 15 deletions(-)
+ arch/arm/plat-omap/dma.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index a863f55..6158c99 100644
+index 6158c99..3300e67 100644
 --- a/arch/arm/plat-omap/dma.c
 +++ b/arch/arm/plat-omap/dma.c
-@@ -139,6 +139,9 @@ static spinlock_t dma_chan_lock;
- static struct omap_dma_lch *dma_chan;
- static void __iomem *omap_dma_base;
+@@ -49,7 +49,7 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
+ #endif
  
-+static u32 midlemode_saved;
-+static int midlemode_save_cnt;
-+
- static const u8 omap1_dma_irq[OMAP1_LOGICAL_DMA_CH_COUNT] = {
- 	INT_DMA_CH0_6, INT_DMA_CH1_7, INT_DMA_CH2_8, INT_DMA_CH3,
- 	INT_DMA_CH4, INT_DMA_CH5, INT_1610_DMA_CH6, INT_1610_DMA_CH7,
-@@ -1016,6 +1019,41 @@ void omap_start_dma(int lch)
- }
- EXPORT_SYMBOL(omap_start_dma);
+ #define OMAP_DMA_ACTIVE			0x01
+-#define OMAP2_DMA_CSR_CLEAR_MASK	0xffe
++#define OMAP2_DMA_CSR_CLEAR_MASK	0xffffffff
  
-+static void midlemode_nostandby(void)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&dma_chan_lock, flags);
-+	if (!midlemode_save_cnt) {
-+		u32 l;
-+
-+		midlemode_saved = dma_read(OCP_SYSCONFIG);
-+		l = midlemode_saved;
-+		l &= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
-+		l |= DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_NO_IDLE);
-+		dma_write(l, OCP_SYSCONFIG);
-+	}
-+	midlemode_save_cnt += 1;
-+	spin_unlock_irqrestore(&dma_chan_lock, flags);
-+}
-+
-+static void midlemode_restore(void)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&dma_chan_lock, flags);
-+	midlemode_save_cnt -= 1;
-+	if (!midlemode_save_cnt) {
-+		u32 l;
-+
-+		l = dma_read(OCP_SYSCONFIG);
-+		l &= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
-+		l |= midlemode_saved & DMA_SYSCONFIG_MIDLEMODE_MASK;
-+		dma_write(l, OCP_SYSCONFIG);
-+	}
-+	spin_unlock_irqrestore(&dma_chan_lock, flags);
-+}
-+
- void omap_stop_dma(int lch)
- {
- 	u32 l;
-@@ -1028,16 +1066,10 @@ void omap_stop_dma(int lch)
- 	/* OMAP3 Errata i541: sDMA FIFO draining does not finish */
- 	if (cpu_is_omap34xx() && (l & OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
- 		int i = 0;
--		u32 sys_cf;
+ #define OMAP_FUNC_MUX_ARM_BASE		(0xfffe1000 + 0xec)
  
- 		/* Configure No-Standby */
--		l = dma_read(OCP_SYSCONFIG);
--		sys_cf = l;
--		l &= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
--		l |= DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_NO_IDLE);
--		dma_write(l , OCP_SYSCONFIG);
-+		midlemode_nostandby();
+@@ -2010,7 +2010,7 @@ static int omap2_dma_handle_ch(int ch)
+ 		printk(KERN_INFO "DMA misaligned error with device %d\n",
+ 		       dma_chan[ch].dev_id);
  
--		l = dma_read(CCR(lch));
- 		l &= ~OMAP_DMA_CCR_EN;
- 		dma_write(l, CCR(lch));
+-	dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(ch));
++	dma_write(status, CSR(ch));
+ 	dma_write(1 << ch, IRQSTATUS_L0);
+ 	/* read back the register to flush the write */
+ 	dma_read(IRQSTATUS_L0);
+@@ -2030,10 +2030,9 @@ static int omap2_dma_handle_ch(int ch)
+ 			OMAP_DMA_CHAIN_INCQHEAD(chain_id);
  
-@@ -1053,7 +1085,7 @@ void omap_stop_dma(int lch)
- 			printk(KERN_ERR "DMA drain did not complete on "
- 					"lch %d\n", lch);
- 		/* Restore OCP_SYSCONFIG */
--		dma_write(sys_cf, OCP_SYSCONFIG);
-+		midlemode_restore();
- 	} else {
- 		l &= ~OMAP_DMA_CCR_EN;
- 		dma_write(l, CCR(lch));
-@@ -1711,7 +1743,6 @@ int omap_stop_dma_chain_transfers(int chain_id)
- {
- 	int *channels;
- 	u32 l, i;
--	u32 sys_cf;
+ 		status = dma_read(CSR(ch));
++		dma_write(status, CSR(ch));
+ 	}
  
- 	/* Check for input params */
- 	if (unlikely((chain_id < 0 || chain_id >= dma_lch_count))) {
-@@ -1730,11 +1761,9 @@ int omap_stop_dma_chain_transfers(int chain_id)
- 	 * DMA Errata:
- 	 * Special programming model needed to disable DMA before end of block
- 	 */
--	sys_cf = dma_read(OCP_SYSCONFIG);
--	l = sys_cf;
--	/* Middle mode reg set no Standby */
--	l &= ~((1 << 12)|(1 << 13));
--	dma_write(l, OCP_SYSCONFIG);
-+
-+	/* M idle mode reg set no Standby */
-+	midlemode_nostandby();
+-	dma_write(status, CSR(ch));
+-
+ 	if (likely(dma_chan[ch].callback != NULL))
+ 		dma_chan[ch].callback(ch, status, dma_chan[ch].data);
  
- 	for (i = 0; i < dma_linked_lch[chain_id].no_of_lchs_linked; i++) {
- 
-@@ -1754,7 +1783,7 @@ int omap_stop_dma_chain_transfers(int chain_id)
- 	OMAP_DMA_CHAIN_QINIT(chain_id);
- 
- 	/* Errata - put in the old value */
--	dma_write(sys_cf, OCP_SYSCONFIG);
-+	midlemode_restore();
- 
- 	return 0;
- }
 -- 
 1.7.0.4
 
