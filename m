@@ -1,104 +1,43 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH 4/5 v2] OMAP3630: PM: Disable L2 cache while invalidating
- L2 cache
-Date: Tue, 30 Nov 2010 11:42:12 +0530
-Message-ID: <AANLkTi=ynHCz_dGM___7wD1+dx=GTLm+NSTYxbCeP8xc@mail.gmail.com>
-References: <1291061993-4740-1-git-send-email-nm@ti.com> <1291061993-4740-5-git-send-email-nm@ti.com>
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
+Date: Tue, 30 Nov 2010 15:34:40 +0900
+Message-ID: <20101130063440.GF17114@linux-sh.org>
+References: <19F8576C6E063C45BE387C64729E739404BC762E9A@dbde02.ent.ti.com> <1290589057.13243.22.camel@tubuntu> <19F8576C6E063C45BE387C64729E739404BCCA3A55@dbde02.ent.ti.com> <20101124163100.GB5681@nokia.com> <19F8576C6E063C45BE387C64729E739404BCCA3CAE@dbde02.ent.ti.com> <yw1xeia81nts.fsf@unicorn.mansr.com> <19F8576C6E063C45BE387C64729E739404BCCA401F@dbde02.ent.ti.com> <20101126125539.GG8094@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:44586 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752845Ab0K3GMy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Nov 2010 01:12:54 -0500
-Received: by mail-iw0-f170.google.com with SMTP id 9so688323iwn.15
-        for <linux-omap@vger.kernel.org>; Mon, 29 Nov 2010 22:12:53 -0800 (PST)
-In-Reply-To: <1291061993-4740-5-git-send-email-nm@ti.com>
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:47866 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751957Ab0K3Gfi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 01:35:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20101126125539.GG8094@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Jean <jean.pihet@newoldbits.com>, Tony <tony@atomide.com>, Kevin <khilman@deeprootsystems.com>, Vishwa <vishwanath.bs@ti.com>
+To: Ville Syrj?l? <ville.syrjala@nokia.com>
+Cc: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>, M?ns Rullg?rd <mans@mansr.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-Nishant,
-
-On Tue, Nov 30, 2010 at 01:49, Nishanth Menon <nm@ti.com> wrote:
-> From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
->
-> This disables L2 cache before invalidating it and reenables it afterw=
-ards.
-> This is be done according to ARM documentation. Currently this is ide=
-ntified
-> as being needed on OMAP3630 as the disable/enable is done from "publi=
-c side"
-> while, on OMAP3430, this is done in the "secure side".
->
-> [nm@ti.com: ported to 2.6.37-rc2, added hooks to enable the logic onl=
-y on 3630]
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-> ---
-> v2: rebased out to this series independent of HS bugfixes
-> v1: http://marc.info/?l=3Dlinux-omap&m=3D129013171125204&w=3D2
->
-> =A0arch/arm/mach-omap2/pm.h =A0 =A0 =A0 =A0| =A0 =A06 ++++++
-> =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0| =A0 =A03 +++
-> =A0arch/arm/mach-omap2/sleep34xx.S | =A0 30 +++++++++++++++++++++++++=
-+++++
-> =A03 files changed, 39 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 0d75bfd..aff39d0 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -85,4 +85,10 @@ extern unsigned int save_secure_ram_context_sz;
-> =A0extern unsigned int omap24xx_cpu_suspend_sz;
-> =A0extern unsigned int omap34xx_cpu_suspend_sz;
->
-> +#if defined(CONFIG_PM)
-> +extern void enable_omap3630_toggle_l2_on_restore(void);
-> +#else
-> +static inline void enable_omap3630_toggle_l2_on_restore(void) { }
-> +#endif
-> +
-> =A0#endif
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
-x.c
-> index bd426cc..e0ade5f 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -988,6 +988,9 @@ static void pm_errata_configure(void)
-> =A0 =A0 =A0 =A0if (cpu_is_omap34xx()) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (cpu_is_omap3630())
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm34xx_errata |=3D RTA=
-_ERRATUM_i608;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Enable the l2 cache toggling in slee=
-p logic */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap3630())
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 enable_omap3630_toggle_=
-l2_on_restore();
-
-
-This can simply be like this:
-=2E..
-=2E..
--         if (cpu_is_omap3630())
-+         if (cpu_is_omap3630()) {
-                         pm34xx_errata |=3D RTA_ERRATUM_i608;
-+                        /* Enable the l2 cache toggling in sleep logic=
- */
-+                       enable_omap3630_toggle_l2_on_restore();
-+          }
-=2E..
-=2E..
-
-> =A0 =A0 =A0 =A0}
-> =A0}
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, Nov 26, 2010 at 02:55:39PM +0200, Ville Syrj?l? wrote:
+> On Fri, Nov 26, 2010 at 05:38:11PM +0530, ext Hiremath, Vaibhav wrote:
+> > With this finding, in case of OMAP3 we have to use OMAPFB_WAITFORGO
+> > (breaking standard applications).
+> 
+> Applications using the standard fbdev API won't work with manual update
+> displays anyway. You need omapfb specific code to handle it so having
+> another small difference is not a big deal.
+> 
+> In DirectFB the that's trivial since there's already a simple omap
+> gfxdriver where you could override the default flip functionality with
+> WAITFORGO based stuff.
+> 
+> Or, as I said, you could add another standard ioctl and fix up userspace
+> to use it where appropriate and if the kernel driver supports it.
+> 
+It seems like the WAITFORGO semantics could be layered on top of drivers
+using deferred I/O pretty easily, but the question is whether this is
+something that userspace plans to make general use of or not. If the only
+user of it in userspace code is OMAP-specific, then there's probably not
+a lot of point in moving it over to be generic, but if there are
+sufficient cases where userspace cares about this information independent
+of WAITFORVSYNC for manual update displays, then we can certainly look at
+moving it over for those cases.
