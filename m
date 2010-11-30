@@ -1,33 +1,80 @@
 From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Subject: [PATCHv2 0/6] omap-aes off mode and error handling fixes
-Date: Tue, 30 Nov 2010 10:13:26 +0200
-Message-ID: <cover.1291104329.git.dmitry.kasatkin@nokia.com>
+Subject: [PATCHv2 1/6] omap-aes: DMA initialization fixes for OMAP off mode
+Date: Tue, 30 Nov 2010 10:13:27 +0200
+Message-ID: <6acc6d289f5a7bc795ecd1c7df9355a1723092dd.1291104329.git.dmitry.kasatkin@nokia.com>
+References: <cover.1291104329.git.dmitry.kasatkin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:51518 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:51526 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753975Ab0K3IM6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754250Ab0K3IM6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 30 Nov 2010 03:12:58 -0500
+In-Reply-To: <cover.1291104329.git.dmitry.kasatkin@nokia.com>
+In-Reply-To: <cover.1291104329.git.dmitry.kasatkin@nokia.com>
+References: <cover.1291104329.git.dmitry.kasatkin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: herbert@gondor.hengli.com.au
 Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
 
-Changes to v1:
-- omap type specific handling removed
-- fixed backlog handling bug in "redundunt locking is removed"
-- aes module initialized once per request instead of dma transaction
-  more efficient and right way to do it
-- checkpatch fixes in separate patch
+DMA parameters for constant data were initialized during driver probe().
+It seems that those settings sometimes are lost when devices goes to off mode.
+This patch makes DMA initialization just before use.
+It solves off mode problems.
 
+Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+---
+ drivers/crypto/omap-aes.c |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
-Dmitry Kasatkin (6):
-  omap-aes: DMA initialization fixes for OMAP off mode
-  omap-aes: redundant locking is removed
-  omap-aes: error handling implementation improved
-  omap-aes: unnecessary code removed
-  omap-aes: initialize aes module once per request
-  omap-aes: checkpatch --file warning fixes
-
- drivers/crypto/omap-aes.c |  260 +++++++++++++++++++++++---------------------
- 1 files changed, 136 insertions(+), 124 deletions(-)
+diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+index 799ca51..41c91f3 100644
+--- a/drivers/crypto/omap-aes.c
++++ b/drivers/crypto/omap-aes.c
+@@ -339,18 +339,6 @@ static int omap_aes_dma_init(struct omap_aes_dev *dd)
+ 		goto err_dma_out;
+ 	}
+ 
+-	omap_set_dma_dest_params(dd->dma_lch_in, 0, OMAP_DMA_AMODE_CONSTANT,
+-				 dd->phys_base + AES_REG_DATA, 0, 4);
+-
+-	omap_set_dma_dest_burst_mode(dd->dma_lch_in, OMAP_DMA_DATA_BURST_4);
+-	omap_set_dma_src_burst_mode(dd->dma_lch_in, OMAP_DMA_DATA_BURST_4);
+-
+-	omap_set_dma_src_params(dd->dma_lch_out, 0, OMAP_DMA_AMODE_CONSTANT,
+-				dd->phys_base + AES_REG_DATA, 0, 4);
+-
+-	omap_set_dma_src_burst_mode(dd->dma_lch_out, OMAP_DMA_DATA_BURST_4);
+-	omap_set_dma_dest_burst_mode(dd->dma_lch_out, OMAP_DMA_DATA_BURST_4);
+-
+ 	return 0;
+ 
+ err_dma_out:
+@@ -443,6 +431,12 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm, dma_addr_t dma_addr_in,
+ 	len32 = DIV_ROUND_UP(length, sizeof(u32));
+ 
+ 	/* IN */
++	omap_set_dma_dest_params(dd->dma_lch_in, 0, OMAP_DMA_AMODE_CONSTANT,
++				 dd->phys_base + AES_REG_DATA, 0, 4);
++
++	omap_set_dma_dest_burst_mode(dd->dma_lch_in, OMAP_DMA_DATA_BURST_4);
++	omap_set_dma_src_burst_mode(dd->dma_lch_in, OMAP_DMA_DATA_BURST_4);
++
+ 	omap_set_dma_transfer_params(dd->dma_lch_in, OMAP_DMA_DATA_TYPE_S32,
+ 				     len32, 1, OMAP_DMA_SYNC_PACKET, dd->dma_in,
+ 					OMAP_DMA_DST_SYNC);
+@@ -451,6 +445,12 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm, dma_addr_t dma_addr_in,
+ 				dma_addr_in, 0, 0);
+ 
+ 	/* OUT */
++	omap_set_dma_src_params(dd->dma_lch_out, 0, OMAP_DMA_AMODE_CONSTANT,
++				dd->phys_base + AES_REG_DATA, 0, 4);
++
++	omap_set_dma_src_burst_mode(dd->dma_lch_out, OMAP_DMA_DATA_BURST_4);
++	omap_set_dma_dest_burst_mode(dd->dma_lch_out, OMAP_DMA_DATA_BURST_4);
++
+ 	omap_set_dma_transfer_params(dd->dma_lch_out, OMAP_DMA_DATA_TYPE_S32,
+ 				     len32, 1, OMAP_DMA_SYNC_PACKET,
+ 					dd->dma_out, OMAP_DMA_SRC_SYNC);
+-- 
+1.7.0.4
 
