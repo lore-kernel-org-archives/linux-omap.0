@@ -1,90 +1,60 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/8] ARM: SCU: Add common routines for secondary CPU
-	bootup
-Date: Tue, 30 Nov 2010 23:32:04 +0000
-Message-ID: <20101130233204.GB14383@n2100.arm.linux.org.uk>
-References: <20101130171626.GA6165@oksana.dev.rtsoft.ru> <20101130171658.GA24034@oksana.dev.rtsoft.ru>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH] OMAP: ZOOM2: Change GPIO to enable LCD NEC NL8048HL11-01B
+ on OMAP34x-II MDP
+Date: Tue, 30 Nov 2010 17:33:26 -0600
+Message-ID: <AANLkTi=skA_LhqLCYfUeubodLn4dY=_sC=R=Z3+-1nGk@mail.gmail.com>
+References: <1290560402-2507-1-git-send-email-omar.ramirez@ti.com>
+	<1290588435.13243.12.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20101130171658.GA24034@oksana.dev.rtsoft.ru>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anton Vorontsov <avorontsov@mvista.com>
-Cc: Kukjin Kim <kgene.kim@samsung.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Jamie Iles <jamie.iles@picochip.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Colin Cross <ccross@android.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:51018 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752180Ab0K3Xd1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Nov 2010 18:33:27 -0500
+Received: by mail-iw0-f177.google.com with SMTP id 4so540410iwn.8
+        for <linux-omap@vger.kernel.org>; Tue, 30 Nov 2010 15:33:26 -0800 (PST)
+In-Reply-To: <1290588435.13243.12.camel@tubuntu>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Yanick Saugy <yanick.saugy@heig-vd.ch>
 
-On Tue, Nov 30, 2010 at 08:16:58PM +0300, Anton Vorontsov wrote:
-> +/*
-> + * Initialise the CPU possible map early - this describes the CPUs
-> + * which may be present or become present in the system.
-> + */
-> +void __init scu_init_cpus(void __iomem *scu_base)
-> +{
-> +	unsigned int ncores = scu_base ? scu_get_core_count(scu_base) : 1;
-> +	unsigned int i;
-> +
-> +	/* sanity check */
-> +	if (ncores == 0) {
-> +		pr_err("%s: strange CM count of 0? Default to 1\n", __func__);
-> +		ncores = 1;
-> +	}
-> +
-> +	if (ncores > NR_CPUS) {
-> +		pr_warn("%s: no. of cores (%d) greater than configured "
-> +		       "maximum of %d - clipping\n", __func__, ncores, NR_CPUS);
-> +		ncores = NR_CPUS;
-> +	}
-> +
-> +	for (i = 0; i < ncores; i++)
-> +		set_cpu_possible(i, true);
-> +}
-> +
-> +void __init scu_prepare_cpus(void __iomem *scu_base, unsigned int max_cpus)
-> +{
-> +	unsigned int ncores = num_possible_cpus();
-> +	unsigned int cpu = smp_processor_id();
-> +	int i;
-> +
-> +	smp_store_cpu_info(cpu);
-> +
-> +	/*
-> +	 * are we trying to boot more cores than exist?
-> +	 */
-> +	if (max_cpus > ncores)
-> +		max_cpus = ncores;
-> +
-> +	/*
-> +	 * Initialise the present map, which describes the set of CPUs
-> +	 * actually populated at the present time.
-> +	 */
-> +	for (i = 0; i < max_cpus; i++)
-> +		set_cpu_present(i, true);
-> +
-> +	/*
-> +	 * Initialise the SCU if there are more than one CPU and let
-> +	 * them know where to start.
-> +	 */
-> +	if (max_cpus > 1) {
-> +		/*
-> +		 * Enable the local timer or broadcast device for the
-> +		 * boot CPU, but only if we have more than one CPU.
-> +		 */
-> +		percpu_timer_setup();
-> +
-> +		scu_enable(scu_base);
-> +	}
-> +}
+On Wed, Nov 24, 2010 at 2:47 AM, Tomi Valkeinen
+<tomi.valkeinen@nokia.com> wrote:
+> Hi,
+>
+> On Tue, 2010-11-23 at 19:00 -0600, ext Omar Ramirez Luna wrote:
+>> From: Yanick Saugy <yanick.saugy@heig-vd.ch>
+>>
+>> The PIN which controls LCD's reset signal (VGA_nRESET/h_GPIO_96) was not
+>> configured as a GPIO. We had to modify the OMAP MUX, and select this PIN
+>> (CAM_XCLKA) as an output GPIO (OMAP_MUX_MODE4). (kernel 2.6.35)
+>>
+>> Be aware of changing this PIN will probably disable the camera, because
+>> it was previously configured as a camera clock.
+>>
+>> Signed-off-by: Yanick Saugy <yanick.saugy@heig-vd.ch>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
+>> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+>> ---
+>>
+>> I'm not sure if this patch was forgotten, hence resending. Without
+>> it, a blanks screen is seen on zoom2 board.
+>
+> Yes, I seem to have missed this.
+>
+> But I'm a bit confused. You say that this will disable camera. Is there
+> a camera connected to the board, and it won't work after this?
 
-Note that I'll go with factoring this out into arch/arm/kernel/smp_scu.c
-for the time being, but I'm not convinced about the other parts yet.
+I'm not quite familiar with the camera, but will try to check it
+(might take some time).
 
-> +	sub	r4, r4, r5
-> +	add	r6, r6, r4
-> +#if __LINUX_ARM_ARCH__ >= 7
-> +	dsb
-> +#endif
+Yes, there is a camera module connected to zoom2 board, but I don't
+know for sure if both share this pin (which at least from author's
+comment and existing code appears to be the case).
 
-Another question though - probably for Linus though - why is the u8500
-code needing this dsb whereas other ARMv7 implementations don't appear
-to require it?
+Regards,
+
+Omar
