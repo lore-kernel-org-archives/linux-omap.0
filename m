@@ -1,55 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 09/11] omap: usb: ehci: introduce HSIC mode
-Date: Tue, 30 Nov 2010 10:42:04 -0800
-Message-ID: <20101130184203.GV17222@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 00/12] usb: ehci-omap: add OMAP4 support
+Date: Tue, 30 Nov 2010 10:47:12 -0800
+Message-ID: <20101130184711.GW17222@atomide.com>
 References: <1290364814-4417-1-git-send-email-gadiyar@ti.com>
- <1290364814-4417-2-git-send-email-gadiyar@ti.com>
- <1290364814-4417-3-git-send-email-gadiyar@ti.com>
- <1290364814-4417-4-git-send-email-gadiyar@ti.com>
- <1290364814-4417-5-git-send-email-gadiyar@ti.com>
- <1290364814-4417-6-git-send-email-gadiyar@ti.com>
- <1290364814-4417-7-git-send-email-gadiyar@ti.com>
- <1290364814-4417-8-git-send-email-gadiyar@ti.com>
- <1290364814-4417-9-git-send-email-gadiyar@ti.com>
- <1290364814-4417-10-git-send-email-gadiyar@ti.com>
+ <20101130174406.GB19977@kroah.com>
+ <AANLkTi=hr3bz6xS8DB+ShE0E_HzFGhtCqi+1NqsWQQa5@mail.gmail.com>
+ <20101130183007.GA27476@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57543 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754155Ab0K3SmH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 13:42:07 -0500
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1290364814-4417-10-git-send-email-gadiyar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20101130183007.GA27476-l3A5Bk7waGM@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
+Cc: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Greg KH <gregkh@suse.de>
 
-* Anand Gadiyar <gadiyar@ti.com> [101121 10:30]:
-> The EHCI controller in OMAP4 supports a new interface mode - HSIC.
-> Add this to the list of modes supported on OMAP3.
+* Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org> [101130 10:22]:
+> On Tue, Nov 30, 2010 at 11:53:11PM +0530, Gadiyar, Anand wrote:
+> > 
+> > The only other change is I added back patch descriptions to a couple
+> > of patches that I missed out on in v1.
+> > 
+> > I'm okay with either option. Both series could also go via your tree if
+> > it's okay with Tony.
 > 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> Ah, sorry, I see that now.
+> 
+> Tony, it's up to you, what is easier for you?
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+I prefer to merge it via linux-usb. Just replied to the arch/arm/*omap*/
+related patches in this series with my ack.
 
-> ---
->  arch/arm/plat-omap/include/plat/usb.h |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-> index 59c7fe7..9b1893f 100644
-> --- a/arch/arm/plat-omap/include/plat/usb.h
-> +++ b/arch/arm/plat-omap/include/plat/usb.h
-> @@ -11,6 +11,7 @@ enum ehci_hcd_omap_mode {
->  	EHCI_HCD_OMAP_MODE_UNKNOWN,
->  	EHCI_HCD_OMAP_MODE_PHY,
->  	EHCI_HCD_OMAP_MODE_TLL,
-> +	EHCI_HCD_OMAP_MODE_HSIC,
->  };
->  
->  enum ohci_omap3_port_mode {
-> -- 
-> 1.7.0.4
-> 
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
