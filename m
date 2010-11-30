@@ -1,49 +1,62 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: Re: [PATCH 00/12] usb: ehci-omap: add OMAP4 support
-Date: Wed, 1 Dec 2010 00:22:07 +0530
-Message-ID: <AANLkTik3a6Yyt1oOHXK_2caTnzhxLOrBeE2Ue860AD+D@mail.gmail.com>
-References: <1290364814-4417-1-git-send-email-gadiyar@ti.com>
- <20101130174406.GB19977@kroah.com> <AANLkTi=hr3bz6xS8DB+ShE0E_HzFGhtCqi+1NqsWQQa5@mail.gmail.com>
- <20101130183007.GA27476@suse.de> <20101130184711.GW17222@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/4] drivers: hwspinlock: add generic framework
+Date: Tue, 30 Nov 2010 11:00:58 -0800
+Message-ID: <20101130190058.GX17222@atomide.com>
+References: <1290526740-27624-1-git-send-email-ohad@wizery.com>
+ <1290526740-27624-2-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:52892 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756111Ab0K3Sw3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Nov 2010 13:52:29 -0500
-In-Reply-To: <20101130184711.GW17222@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1290526740-27624-2-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Greg KH <gregkh@suse.de>, Greg KH <greg@kroah.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Wed, Dec 1, 2010 at 12:17 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Greg KH <gregkh@suse.de> [101130 10:22]:
->> On Tue, Nov 30, 2010 at 11:53:11PM +0530, Gadiyar, Anand wrote:
->> >
->> > The only other change is I added back patch descriptions to a couple
->> > of patches that I missed out on in v1.
->> >
->> > I'm okay with either option. Both series could also go via your tree if
->> > it's okay with Tony.
->>
->> Ah, sorry, I see that now.
->>
->> Tony, it's up to you, what is easier for you?
->
-> I prefer to merge it via linux-usb. Just replied to the arch/arm/*omap*/
-> related patches in this series with my ack.
->
+* Ohad Ben-Cohen <ohad@wizery.com> [101123 07:27]:
+> Add a common, platform-independent, hwspinlock framework.
+> 
+> Hardware spinlock devices are needed, e.g., in order to access data
+> that is shared between remote processors, that otherwise have no
+> alternative mechanism to accomplish synchronization and mutual exclusion
+> operations.
 
-Great, thanks!
+<snip>
 
-Greg,
+> +  int hwspin_lock(struct hwspinlock *hwlock);
+> +   - lock a previously assigned hwspinlock. If the hwspinlock is already
+> +     taken, the function will busy loop waiting for it to be released.
+> +     Note: if a faulty remote core never releases this lock, this function
+> +     will deadlock.
+> +     This function will fail only if hwlock is invalid. Otherwise, it will
+> +     always succeed (or deadlock; see above) and it will never sleep.
+> +     Upon a successful return from this function, preemption is disabled so
+> +     the caller must not sleep, and is advised to release the hwspinlock as
+> +     soon as possible, in order to minimize remote cores polling on the
+> +     hardware interconnect.
+...
 
-If it's easier for you, I can set up a branch for you to pull.
+> +  int hwspin_lock_timeout(struct hwspinlock *hwlock, unsigned long timeout);
+> +   - lock a previously-assigned hwspinlock with a timeout limit (specified in
+> +     jiffies). If the hwspinlock is already taken, the function will busy loop
+> +     waiting for it to be released, but give up when the timeout meets jiffies.
+> +     If timeout is 0, the function will never give up (therefore if a faulty
+> +     remote core never releases the hwspinlock, it will deadlock).
+> +     Upon a successful return from this function, preemption is disabled so
+> +     the caller must not sleep, and is advised to release the hwspinlock as
+> +     soon as possible, in order to minimize remote cores polling on the
+> +     hardware interconnect.
+> +     Returns 0 when successful and an appropriate error code otherwise (most
+> +     notably -ETIMEDOUT if the hwspinlock is still busy after timeout meets
+> +     jiffies). The function will never sleep.
 
-Otherwise, the two series I posted yesterday should apply
-cleanly on top of your usb-next branch.
+Do we even need the hwspin_lock variants, why can't we always use the
+hwspin_lock_timeout variants?
 
-- Anand
+To me the idea of looping waiting for some external system to release
+a lock is not a good idea..
+
+Regards,
+
+Tony
