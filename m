@@ -1,72 +1,39 @@
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Subject: Re: [PATCH v5 1/1] OMAP2: Spi: Force CS to be in inactive state after
- off-mode transition
-Date: Tue, 30 Nov 2010 09:26:04 +0100
-Message-ID: <4CF4B51C.7030902@free-electrons.com>
-References: <509131.41359.qm@web180304.mail.gq1.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: [PATCH 0/3] OMAP: Introduce Backlight driver for Sharp LS037V7DW01 LCD panel
+Date: Tue, 30 Nov 2010 20:07:37 +0800
+Message-ID: <1291118860-10325-1-git-send-email-bryan.wu@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:37336 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754027Ab0K3I0R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 03:26:17 -0500
-In-Reply-To: <509131.41359.qm@web180304.mail.gq1.yahoo.com>
+Received: from adelie.canonical.com ([91.189.90.139]:50655 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751662Ab0K3MHn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 07:07:43 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, spi-devel-general@lists.sourceforge.net, Grant Likely <grant.likely@secretlab.ca>
+To: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com, rpurdie@rpsys.net
 
-On 11/30/2010 04:08 AM, David Brownell wrote:
->>> Now force CS to be in inactive state only if it was
->> inactive when it was suspended.
-> 
-> Note that it's a bug if CS is active in
-> any suspend state (including OFF).  That
-> strongly suggests $SUBJECT is an incomplete
-> workaround for that other bug...
-> 
+After instroducing generic DPI panel driver for OMAP DSS2 system, we need to
+split out backlight driver from Sharp LS037V7DW01 panel driver before we move
+to the generic DPI panel driver.
 
-It is not the case, at least it is not what we
-observed. In suspend state, CS is inactive.
+This patchset introcuded backlight driver and cleanup the old Sharp LS037V7DW01
+panel driver related code.
 
->>>
->>> When SPI wake up from OFF mode, CS is in the wrong
->> state: force it to the inactive state.
-> 
-> Best report the bug that the suspend/OFF state
-> was mis-handled...  That is, it didn't
-> correctly ENTER that OFF mode...
-> 
-> In fact ... I'd like to see that fixed more
-> than the $SUBJECT issue, so the root cause
-> gets resolved...
+It's built on mainline 2.6.37-rc4
 
-As far as I know, it enter correctly that OFF mode.
-It is only at wake up, that CS become active while
-there is no SPI message being processed. It is the
-point of my patch.
+Bryan Wu (3):
+  Backlight: driver for Sharp LS037V7DW01 panel on OMAP machine
+  OMAP: move Sharp LS LCD panel device to generic DPI panel driver and new backlight driver
+  OMAP: DSS2: remove Sharp LS037V7DW01 panel driver
 
-My first patch version forced unconditionally CS to
-inactive state at wake up. It was correct from the
-point of view of the SPI but not for suspend/resume.
-Resume should only restore the state of the driver
-just before suspend. If resume force the inactive
-state it could mask a bug in the suspend path.
-But as I wrote before, as far as I know there is no
-bug when driver enter suspend mode, at this moment
-CS is inactive.
+ arch/arm/mach-omap2/board-3430sdp.c                |   18 ++-
+ arch/arm/mach-omap2/board-omap3evm.c               |   20 ++-
+ drivers/video/backlight/Kconfig                    |   10 +
+ drivers/video/backlight/Makefile                   |    1 +
+ drivers/video/backlight/sharp_ls037v7dw01.c        |  144 ++++++++++++
+ drivers/video/omap2/displays/Kconfig               |    7 -
+ drivers/video/omap2/displays/Makefile              |    1 -
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |  232 --------------------
+ 8 files changed, 187 insertions(+), 246 deletions(-)
+ create mode 100644 drivers/video/backlight/sharp_ls037v7dw01.c
+ delete mode 100644 drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
 
-> 
-> CS should only be active while a SPI message
-> is being processed, and such processing must
-> have completed before suspend/OFF/... starts
-> 
-I agree and this driver seems to respect this point.
-
--- 
-Gregory Clement, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
