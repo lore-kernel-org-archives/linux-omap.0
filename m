@@ -1,243 +1,26 @@
-From: "Janorkar, Mayuresh" <mayur@ti.com>
-Subject: RE: [PATCH 1/3] Backlight: driver for Sharp LS037V7DW01 panel on
- OMAP machine
-Date: Tue, 30 Nov 2010 18:39:38 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB0322C02493@dbde02.ent.ti.com>
-References: <1291118860-10325-1-git-send-email-bryan.wu@canonical.com>
- <1291118860-10325-2-git-send-email-bryan.wu@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: [PATCH 0/2] Minor DMA fixes
+Date: Tue, 30 Nov 2010 15:23:41 +0200
+Message-ID: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40364 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925Ab0K3NKF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 08:10:05 -0500
-In-Reply-To: <1291118860-10325-2-git-send-email-bryan.wu@canonical.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([147.243.1.48]:30195 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750977Ab0K3NYB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Nov 2010 08:24:01 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan Wu <bryan.wu@canonical.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.
+To: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <Santosh.shilimkar@ti.com>, Manjunatha GK <manjugk@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
+Hi
 
+Adrian Hunter (2):
+      OMAP: DMA: prevent races while setting M idle mode to nostandby
+      OMAP: DMA: clear interrupt status correctly
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Bryan Wu
-> Sent: Tuesday, November 30, 2010 5:38 PM
-> To: tomi.valkeinen@nokia.com; linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org; Gadiyar, Anand; rpurdie@rpsys.net
-> Subject: [PATCH 1/3] Backlight: driver for Sharp LS037V7DW01 panel on OMAP
-> machine
-> 
-> This driver is split from drivers/video/backlight/sharp_ls037v7dw01.c
-> 
-> Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
-> ---
->  drivers/video/backlight/Kconfig             |   10 ++
->  drivers/video/backlight/Makefile            |    1 +
->  drivers/video/backlight/sharp_ls037v7dw01.c |  144
-> +++++++++++++++++++++++++++
->  3 files changed, 155 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/video/backlight/sharp_ls037v7dw01.c
-> 
-> diff --git a/drivers/video/backlight/Kconfig
-> b/drivers/video/backlight/Kconfig
-> index e54a337..46b2415 100644
-> --- a/drivers/video/backlight/Kconfig
-> +++ b/drivers/video/backlight/Kconfig
-> @@ -307,6 +307,16 @@ config BACKLIGHT_PCF50633
->  	  If you have a backlight driven by a NXP PCF50633 MFD, say Y here
-> to
->  	  enable its driver.
-> 
-> +config BACKLIGHT_SHARP_LS037V7DW01
-> +	tristate "Backlight driver for SHARP LS037V7DW01 Panel"
-> +	depends on PANEL_GENERIC_DPI
-> +	help
-> +	  If you are using Sharp LS037V7DW01 LCD panel, say Y here to enable
-> this driver.
-> +
-> +	  To compile this driver as a module, choose M here: the module will
-> +	  be called sharp_ls037v7dw01.
-> +
-> +
-[Mayuresh]: Please do not introduce extra new lines.
->  endif # BACKLIGHT_CLASS_DEVICE
-> 
->  endif # BACKLIGHT_LCD_SUPPORT
-> diff --git a/drivers/video/backlight/Makefile
-> b/drivers/video/backlight/Makefile
-> index 44c0f81..c756f49 100644
-> --- a/drivers/video/backlight/Makefile
-> +++ b/drivers/video/backlight/Makefile
-> @@ -35,4 +35,5 @@ obj-$(CONFIG_BACKLIGHT_ADP5520)	+= adp5520_bl.o
->  obj-$(CONFIG_BACKLIGHT_ADP8860)	+= adp8860_bl.o
->  obj-$(CONFIG_BACKLIGHT_88PM860X) += 88pm860x_bl.o
->  obj-$(CONFIG_BACKLIGHT_PCF50633)	+= pcf50633-backlight.o
-> +obj-$(CONFIG_BACKLIGHT_SHARP_LS037V7DW01)	+= sharp_ls037v7dw01.o
-> 
-> diff --git a/drivers/video/backlight/sharp_ls037v7dw01.c
-> b/drivers/video/backlight/sharp_ls037v7dw01.c
-> new file mode 100644
-> index 0000000..e90595e
-> --- /dev/null
-> +++ b/drivers/video/backlight/sharp_ls037v7dw01.c
-> @@ -0,0 +1,144 @@
-> +/*
-> + * Backlight driver for Sharp LS037V7DW01
-> + *
-> + * Copyright (C) 2010 Canonical Ltd.
-> + * Author: Bryan Wu <bryan.wu@canonical.com>
-> + *
-> + * Copyright (C) 2008 Nokia Corporation
-> + * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> it
-> + * under the terms of the GNU General Public License version 2 as
-> published by
-> + * the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-> for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> along with
-> + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/device.h>
-> +#include <linux/backlight.h>
-> +#include <linux/fb.h>
-> +#include <linux/err.h>
-> +
-> +/* This OMAP platform header file is required by this driver */
-> +#include <plat/display.h>
-> +
-> +static int sharp_ls_bl_update_status(struct backlight_device *bl)
-> +{
-> +	struct omap_dss_device *dssdev = bl_get_data(bl);
-> +	int level;
-> +
-> +	if (!dssdev->set_backlight)
-> +		return -EINVAL;
-> +
-> +	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
-> +			bl->props.power == FB_BLANK_UNBLANK)
-> +		level = bl->props.brightness;
-> +	else
-> +		level = 0;
-> +
-> +	return dssdev->set_backlight(dssdev, level);
-> +}
-> +
-> +static int sharp_ls_bl_get_brightness(struct backlight_device *bl)
-> +{
-> +	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
-> +			bl->props.power == FB_BLANK_UNBLANK)
-> +		return bl->props.brightness;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct backlight_ops sharp_ls_bl_ops = {
-> +	.get_brightness = sharp_ls_bl_get_brightness,
-> +	.update_status  = sharp_ls_bl_update_status,
-> +};
-> +
-> +static int __devinit sharp_ls_bl_probe(struct platform_device *pdev)
-> +{
-> +	struct backlight_properties props;
-> +	struct backlight_device *bl;
-> +	struct omap_dss_device *dssdev = pdev->dev.platform_data;
-> +
-> +	if (!dssdev)
-> +		return -EINVAL;
-> +
-> +	memset(&props, 0, sizeof(struct backlight_properties));
-> +	props.max_brightness = dssdev->max_backlight_level;
-> +
-> +	bl = backlight_device_register("sharp-ls-bl", &dssdev->dev, dssdev,
-> +			&sharp_ls_bl_ops, &props);
-> +	if (IS_ERR(bl))
-> +		return PTR_ERR(bl);
-> +
-> +	bl->props.fb_blank = FB_BLANK_UNBLANK;
-> +	bl->props.power = FB_BLANK_UNBLANK;
-> +	bl->props.brightness = dssdev->max_backlight_level;
-> +	backlight_update_status(bl);
-> +
-> +	platform_set_drvdata(pdev, bl);
-> +	return 0;
-> +}
-> +
-> +static int __devexit sharp_ls_bl_remove(struct platform_device *pdev)
-> +{
-> +	struct backlight_device *bl = platform_get_drvdata(pdev);
-> +
-> +	bl->props.power = FB_BLANK_POWERDOWN;
-> +	backlight_update_status(bl);
-> +	backlight_device_unregister(bl);
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_PM
-> +static int sharp_ls_bl_suspend(struct platform_device *dev, pm_message_t
-> state)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int sharp_ls_bl_resume(struct platform_device *dev)
-> +{
-> +	struct backlight_device *bl = platform_get_drvdata(dev);
-> +
-> +	backlight_update_status(bl);
-> +	return 0;
-> +}
-> +#else
-> +#define sharp_ls_bl_suspend	NULL
-> +#define sharp_ls_bl_resume	NULL
-> +#endif
-> +
-> +static struct platform_driver sharp_ls_bl_driver = {
-> +	.driver		= {
-> +		.name	= "sharp-ls-bl",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +	.probe		= sharp_ls_bl_probe,
-> +	.remove		= __devexit_p(sharp_ls_bl_remove),
-> +	.suspend	= sharp_ls_bl_suspend,
-> +	.resume		= sharp_ls_bl_resume,
-> +};
-> +
-> +static int __init sharp_ls_bl_init(void)
-> +{
-> +	return platform_driver_register(&sharp_ls_bl_driver);
-> +}
-> +module_init(sharp_ls_bl_init);
-> +
-> +static void __exit sharp_ls_bl_exit(void)
-> +{
-> +	platform_driver_unregister(&sharp_ls_bl_driver);
-> +}
-> +module_exit(sharp_ls_bl_exit);
-> +
-> +MODULE_DESCRIPTION("Sharp LS037V7DW01 Backlight Driver");
-> +MODULE_AUTHOR("Bryan Wu <bryan.wu@canonical.com>");
-> +MODULE_LICENSE("GPL");
-> +MODULE_ALIAS("platform:sharp-ls-bl");
-> --
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/plat-omap/dma.c |   66 ++++++++++++++++++++++++++++++++-------------
+ 1 files changed, 47 insertions(+), 19 deletions(-)
+ 
+Regards
+Adrian
+
