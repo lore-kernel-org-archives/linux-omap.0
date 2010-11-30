@@ -1,61 +1,36 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 4/5 v2] OMAP3630: PM: Disable L2 cache while invalidating
- L2 cache
-Date: Tue, 30 Nov 2010 08:18:08 -0600
-Message-ID: <4CF507A0.9030304@ti.com>
-References: <1291061993-4740-1-git-send-email-nm@ti.com> <1291061993-4740-5-git-send-email-nm@ti.com> <AANLkTi=ynHCz_dGM___7wD1+dx=GTLm+NSTYxbCeP8xc@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH] arm: omap2: io: fix clk_get() error check
+Date: Tue, 30 Nov 2010 16:17:58 +0200
+Message-ID: <1291126678-2782-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:43658 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751349Ab0K3OSN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Nov 2010 09:18:13 -0500
-Received: by mail-gy0-f179.google.com with SMTP id 8so3108745gyg.38
-        for <linux-omap@vger.kernel.org>; Tue, 30 Nov 2010 06:18:12 -0800 (PST)
-In-Reply-To: <AANLkTi=ynHCz_dGM___7wD1+dx=GTLm+NSTYxbCeP8xc@mail.gmail.com>
+Received: from smtp.nokia.com ([147.243.1.48]:17852 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753203Ab0K3OSb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Nov 2010 09:18:31 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Jean <jean.pihet@newoldbits.com>, Tony <tony@atomide.com>, Kevin <khilman@deeprootsystems.com>, Vishwa <vishwanath.bs@ti.com>
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Varadarajan, Charulatha had written, on 11/30/2010 12:12 AM, the following:
+clk_get() return value should be checked with IS_ERR().
 
->> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
->> index bd426cc..e0ade5f 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -988,6 +988,9 @@ static void pm_errata_configure(void)
->>        if (cpu_is_omap34xx()) {
->>                if (cpu_is_omap3630())
->>                        pm34xx_errata |= RTA_ERRATUM_i608;
->> +               /* Enable the l2 cache toggling in sleep logic */
->> +               if (cpu_is_omap3630())
->> +                       enable_omap3630_toggle_l2_on_restore();
-> 
-> 
-> This can simply be like this:
-> ...
-> ...
-> -         if (cpu_is_omap3630())
-> +         if (cpu_is_omap3630()) {
->                          pm34xx_errata |= RTA_ERRATUM_i608;
-> +                        /* Enable the l2 cache toggling in sleep logic */
-> +                       enable_omap3630_toggle_l2_on_restore();
-> +          }
-There are two ways to arrange code there:
-a) based on silicon revision enable all erratas
-b) arrange it per errata case
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ arch/arm/mach-omap2/io.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-In the original series there are additional erratas like the uart one 
-which basically makes (a) a dirty implementation. I chose to go with 
-(b). but personally, I am open to either and have no strong feeling abt 
-it. mebbe others can also comment as to which way you'd like to see this 
-organized.
-
-
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 40562dd..a1939b1 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -297,7 +297,7 @@ static int __init _omap2_init_reprogram_sdrc(void)
+ 		return 0;
+ 
+ 	dpll3_m2_ck = clk_get(NULL, "dpll3_m2_ck");
+-	if (!dpll3_m2_ck)
++	if (IS_ERR(dpll3_m2_ck))
+ 		return -EINVAL;
+ 
+ 	rate = clk_get_rate(dpll3_m2_ck);
 -- 
-Regards,
-Nishanth Menon
+1.5.6.5
+
