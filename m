@@ -1,52 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] AM35x: musb: fix compilation error
-Date: Tue, 30 Nov 2010 10:30:10 -0800
-Message-ID: <20101130183010.GS17222@atomide.com>
-References: <1290415961-21177-1-git-send-email-ajay.gupta@ti.com>
- <20101122102230.GP2446@legolas.emea.dhcp.ti.com>
+From: Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH 00/12] usb: ehci-omap: add OMAP4 support
+Date: Tue, 30 Nov 2010 10:30:07 -0800
+Message-ID: <20101130183007.GA27476@suse.de>
+References: <1290364814-4417-1-git-send-email-gadiyar@ti.com>
+ <20101130174406.GB19977@kroah.com>
+ <AANLkTi=hr3bz6xS8DB+ShE0E_HzFGhtCqi+1NqsWQQa5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:39103 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752792Ab0K3SaN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 13:30:13 -0500
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20101122102230.GP2446@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <AANLkTi=hr3bz6xS8DB+ShE0E_HzFGhtCqi+1NqsWQQa5-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [101122 02:12]:
-> Hi,
-> 
-> On Mon, Nov 22, 2010 at 02:22:40PM +0530, Ajay Kumar Gupta wrote:
-> >Fixes compilation error as control.h APIs are not available to
-> >drivers/usb/musb/am35x.c file. Earlier it was getting included
-> >from <plat/control.h> but now moved to new location by another
-> >pacth.
+On Tue, Nov 30, 2010 at 11:53:11PM +0530, Gadiyar, Anand wrote:
+> On Tue, Nov 30, 2010 at 11:14 PM, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org> wrote:
+> > On Mon, Nov 22, 2010 at 12:10:03AM +0530, Anand Gadiyar wrote:
+> >> This series adds support for the EHCI controller on
+> >> OMAP4 chips. (This enables the ethernet controller
+> >> on the Pandaboard - finally!).
+> >>
+> >> I'm sorry for the really long delay - I know this has
+> >> been in the works for a while.
+> >>
+> >> I've tested the series on an OMAP4 SDP and a Pandaboard.
+> >> I'll be testing OMAP3 tomorrow.
+> >>
+> >> Dependencies:
+> >> One patch depends on the mux framework patches by Benoit
+> >> - which are already in linux-next; however the series
+> >> compiles cleanly against current Linus' tree.
+> >>
+> >> What's pending:
+> >> - OHCI support
+> >> - Support for TLL and HSIC modes
+> >> - Factoring out code common to ehci-omap and ohci-omap3
+> >> - Conversion to use omap_device and the hwmod database
+> >> - Runtime PM support
 > >
-> >Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> 
-> Tony ? Do you ack the usage of that header ?
+> > Do you want these to go in through the USB or OMAP tree? =A0Either =
+is fine
+> > with me.
+> >
+> > thanks,
+> >
+> > greg k-h
+> >
+>=20
+> I reposted a v2 series splitting them up into two parts - one that co=
+uld
+> potentially go via the USB tree [1], and the other that is platform c=
+hanges
+> that touches only mach-omap2/* files and could go via the OMAP tree [=
+2].
+>=20
+> The only other change is I added back patch descriptions to a couple
+> of patches that I missed out on in v1.
+>=20
+> I'm okay with either option. Both series could also go via your tree =
+if
+> it's okay with Tony.
 
-NAK. Drivers should not mess with the control registers directly.
+Ah, sorry, I see that now.
 
-Instead, the following should be done in the platform init code:
+Tony, it's up to you, what is easier for you?
 
-$ grep -r omap_ctrl_read drivers/usb
-drivers/usb/musb/am35x.c:       devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-drivers/usb/musb/am35x.c:       while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
-drivers/usb/musb/am35x.c:       devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-drivers/usb/musb/am35x.c:               lvl_intr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-drivers/usb/musb/am35x.c:       u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-drivers/usb/musb/am35x.c:       sw_reset = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
-drivers/usb/musb/am35x.c:       lvl_intr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+thanks,
 
-You can pass a function pointer like board_set_power or simila
-in platform_data.
-
-Regards,
-
-Tony
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
