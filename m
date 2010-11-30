@@ -1,76 +1,38 @@
-From: Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH 00/12] usb: ehci-omap: add OMAP4 support
-Date: Tue, 30 Nov 2010 10:30:07 -0800
-Message-ID: <20101130183007.GA27476@suse.de>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 04/11] omap: clock: add clkdev aliases for EHCI clocks
+Date: Tue, 30 Nov 2010 10:40:35 -0800
+Message-ID: <20101130184034.GT17222@atomide.com>
 References: <1290364814-4417-1-git-send-email-gadiyar@ti.com>
- <20101130174406.GB19977@kroah.com>
- <AANLkTi=hr3bz6xS8DB+ShE0E_HzFGhtCqi+1NqsWQQa5@mail.gmail.com>
+ <1290364814-4417-2-git-send-email-gadiyar@ti.com>
+ <1290364814-4417-3-git-send-email-gadiyar@ti.com>
+ <1290364814-4417-4-git-send-email-gadiyar@ti.com>
+ <1290364814-4417-5-git-send-email-gadiyar@ti.com>
+ <20101122101913.GO2446@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <AANLkTi=hr3bz6xS8DB+ShE0E_HzFGhtCqi+1NqsWQQa5-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20101122101913.GO2446-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 30, 2010 at 11:53:11PM +0530, Gadiyar, Anand wrote:
-> On Tue, Nov 30, 2010 at 11:14 PM, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org> wrote:
-> > On Mon, Nov 22, 2010 at 12:10:03AM +0530, Anand Gadiyar wrote:
-> >> This series adds support for the EHCI controller on
-> >> OMAP4 chips. (This enables the ethernet controller
-> >> on the Pandaboard - finally!).
-> >>
-> >> I'm sorry for the really long delay - I know this has
-> >> been in the works for a while.
-> >>
-> >> I've tested the series on an OMAP4 SDP and a Pandaboard.
-> >> I'll be testing OMAP3 tomorrow.
-> >>
-> >> Dependencies:
-> >> One patch depends on the mux framework patches by Benoit
-> >> - which are already in linux-next; however the series
-> >> compiles cleanly against current Linus' tree.
-> >>
-> >> What's pending:
-> >> - OHCI support
-> >> - Support for TLL and HSIC modes
-> >> - Factoring out code common to ehci-omap and ohci-omap3
-> >> - Conversion to use omap_device and the hwmod database
-> >> - Runtime PM support
+* Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [101122 02:09]:
+> On Mon, Nov 22, 2010 at 12:10:07AM +0530, Anand Gadiyar wrote:
+> >Add clkdev aliases for the USBHOST and USBTLL clocks on OMAP3 and
+> >OMAP4, so that the driver can refer to the clocks using a common alias.
 > >
-> > Do you want these to go in through the USB or OMAP tree? =A0Either =
-is fine
-> > with me.
+> >This will disappear when the driver is converted to use the hwmod
+> >database, but until then this patch is needed.
 > >
-> > thanks,
-> >
-> > greg k-h
-> >
->=20
-> I reposted a v2 series splitting them up into two parts - one that co=
-uld
-> potentially go via the USB tree [1], and the other that is platform c=
-hanges
-> that touches only mach-omap2/* files and could go via the OMAP tree [=
-2].
->=20
-> The only other change is I added back patch descriptions to a couple
-> of patches that I missed out on in v1.
->=20
-> I'm okay with either option. Both series could also go via your tree =
-if
-> it's okay with Tony.
+> >Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+> 
+> Tony, I need your Ack here too.
 
-Ah, sorry, I see that now.
+Looks good to me:
 
-Tony, it's up to you, what is easier for you?
-
-thanks,
-
-greg k-h
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
