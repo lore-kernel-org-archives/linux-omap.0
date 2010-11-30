@@ -1,55 +1,75 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/8] ARM: cns3xxx: Add support for SMP
-Date: Tue, 30 Nov 2010 18:14:42 +0000
-Message-ID: <20101130181442.GA9137@n2100.arm.linux.org.uk>
-References: <20101130171626.GA6165@oksana.dev.rtsoft.ru> <20101130171700.GB24034@oksana.dev.rtsoft.ru>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Re: [PATCH 00/12] usb: ehci-omap: add OMAP4 support
+Date: Tue, 30 Nov 2010 23:53:11 +0530
+Message-ID: <AANLkTi=hr3bz6xS8DB+ShE0E_HzFGhtCqi+1NqsWQQa5@mail.gmail.com>
+References: <1290364814-4417-1-git-send-email-gadiyar@ti.com> <20101130174406.GB19977@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20101130171700.GB24034@oksana.dev.rtsoft.ru>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anton Vorontsov <avorontsov@mvista.com>
-Cc: Kukjin Kim <kgene.kim@samsung.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Jamie Iles <jamie.iles@picochip.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Colin Cross <ccross@android.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:43707 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755854Ab0K3SXe convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Nov 2010 13:23:34 -0500
+In-Reply-To: <20101130174406.GB19977@kroah.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@suse.de>
 
-On Tue, Nov 30, 2010 at 08:17:00PM +0300, Anton Vorontsov wrote:
-> Nothing fancy needs to be done, just use generic SCU routines.
-> 
-> Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
+On Tue, Nov 30, 2010 at 11:14 PM, Greg KH <greg@kroah.com> wrote:
+> On Mon, Nov 22, 2010 at 12:10:03AM +0530, Anand Gadiyar wrote:
+>> This series adds support for the EHCI controller on
+>> OMAP4 chips. (This enables the ethernet controller
+>> on the Pandaboard - finally!).
+>>
+>> I'm sorry for the really long delay - I know this has
+>> been in the works for a while.
+>>
+>> I've tested the series on an OMAP4 SDP and a Pandaboard.
+>> I'll be testing OMAP3 tomorrow.
+>>
+>> Dependencies:
+>> One patch depends on the mux framework patches by Benoit
+>> - which are already in linux-next; however the series
+>> compiles cleanly against current Linus' tree.
+>>
+>> What's pending:
+>> - OHCI support
+>> - Support for TLL and HSIC modes
+>> - Factoring out code common to ehci-omap and ohci-omap3
+>> - Conversion to use omap_device and the hwmod database
+>> - Runtime PM support
+>
+> Do you want these to go in through the USB or OMAP tree? =A0Either is=
+ fine
+> with me.
+>
+> thanks,
+>
+> greg k-h
+>
 
-This I assume is an age old patch.
+I reposted a v2 series splitting them up into two parts - one that coul=
+d
+potentially go via the USB tree [1], and the other that is platform cha=
+nges
+that touches only mach-omap2/* files and could go via the OMAP tree [2]=
+=2E
 
-> diff --git a/arch/arm/mach-cns3xxx/include/mach/smp.h b/arch/arm/mach-cns3xxx/include/mach/smp.h
-> new file mode 100644
-> index 0000000..44aa7ea
-> --- /dev/null
-> +++ b/arch/arm/mach-cns3xxx/include/mach/smp.h
-> @@ -0,0 +1,28 @@
-> +/*
-> + * Copyright 2002 ARM Ltd.
-> + * Copyright 2008 Cavium Networks
-> + *
-> + * This file is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License, Version 2, as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifndef __MACH_SMP_H
-> +#define __MACH_SMP_H
-> +
-> +#include <asm/hardware/gic.h>
-> +
-> +#define hard_smp_processor_id()				\
-> +	({						\
-> +		unsigned int cpunum;			\
-> +		__asm__("mrc p15, 0, %0, c0, c0, 5"	\
-> +			: "=r" (cpunum));		\
-> +		cpunum &= 0x0F;				\
-> +	})
+The only other change is I added back patch descriptions to a couple
+of patches that I missed out on in v1.
 
-#include <asm/smp_mpidr.h>
+I'm okay with either option. Both series could also go via your tree if
+it's okay with Tony.
 
-replaces this, but it's not actually necessary - it's only used by some
-bug checking code in the CPU hotplug code.  I'm shortly going to be
-deleting all hard_smp_processor_id() implementations.
+- Anand
+
+[1]<http://marc.info/?l=3Dlinux-usb&m=3D129105160923756&w=3D2>
+[2] <http://marc.info/?l=3Dlinux-usb&m=3D129105160723737&w=3D2>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
