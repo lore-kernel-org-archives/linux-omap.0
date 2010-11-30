@@ -1,157 +1,72 @@
-From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Subject: [PATCHv2 5/6] omap-aes: initialize aes module once per request
-Date: Tue, 30 Nov 2010 10:13:31 +0200
-Message-ID: <2756a865d1d272569f341891796b352853e6fd21.1291104329.git.dmitry.kasatkin@nokia.com>
-References: <cover.1291104329.git.dmitry.kasatkin@nokia.com>
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <cover.1291104329.git.dmitry.kasatkin@nokia.com>
-In-Reply-To: <cover.1291104329.git.dmitry.kasatkin@nokia.com>
-References: <cover.1291104329.git.dmitry.kasatkin@nokia.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: herbert@gondor.hengli.com.au
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+From: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Subject: Re: [PATCH v5 1/1] OMAP2: Spi: Force CS to be in inactive state after
+ off-mode transition
+Date: Tue, 30 Nov 2010 09:26:04 +0100
+Message-ID: <4CF4B51C.7030902@free-electrons.com>
+References: <509131.41359.qm@web180304.mail.gq1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.free-electrons.com ([88.190.12.23]:37336 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754027Ab0K3I0R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Nov 2010 03:26:17 -0500
+In-Reply-To: <509131.41359.qm@web180304.mail.gq1.yahoo.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, spi-devel-general@lists.sourceforge.net, Grant Likely <grant.likely@secretlab.ca>
 
-AES module was initialized for every DMA transaction.
-That is redundant.
-Now it is initialized once per request.
+On 11/30/2010 04:08 AM, David Brownell wrote:
+>>> Now force CS to be in inactive state only if it was
+>> inactive when it was suspended.
+> 
+> Note that it's a bug if CS is active in
+> any suspend state (including OFF).  That
+> strongly suggests $SUBJECT is an incomplete
+> workaround for that other bug...
+> 
 
-Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
----
- drivers/crypto/omap-aes.c |   54 +++++++++++++++++++++++---------------------
- 1 files changed, 28 insertions(+), 26 deletions(-)
+It is not the case, at least it is not what we
+observed. In suspend state, CS is inactive.
 
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index 0b21dce..b69da4f 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -176,6 +176,11 @@ static int omap_aes_wait(struct omap_aes_dev *dd, u32 offset, u32 bit)
- 
- static int omap_aes_hw_init(struct omap_aes_dev *dd)
- {
-+	/*
-+	 * clocks are enabled when request starts and disabled when finished.
-+	 * It may be long delays between requests.
-+	 * Device might go to off mode to save power.
-+	 */
- 	clk_enable(dd->iclk);
- 
- 	if (!(dd->flags & FLAGS_INIT)) {
-@@ -190,10 +195,9 @@ static int omap_aes_hw_init(struct omap_aes_dev *dd)
- 		__asm__ __volatile__("nop");
- 
- 		if (omap_aes_wait(dd, AES_REG_SYSSTATUS,
--				AES_REG_SYSSTATUS_RESETDONE)) {
--			clk_disable(dd->iclk);
-+				AES_REG_SYSSTATUS_RESETDONE))
- 			return -ETIMEDOUT;
--		}
-+
- 		dd->flags |= FLAGS_INIT;
- 		dd->err = 0;
- 	}
-@@ -243,9 +247,19 @@ static int omap_aes_write_ctrl(struct omap_aes_dev *dd)
- 
- 	omap_aes_write_mask(dd, AES_REG_CTRL, val, mask);
- 
--	/* start DMA or disable idle mode */
--	omap_aes_write_mask(dd, AES_REG_MASK, AES_REG_MASK_START,
--			    AES_REG_MASK_START);
-+	/* IN */
-+	omap_set_dma_dest_params(dd->dma_lch_in, 0, OMAP_DMA_AMODE_CONSTANT,
-+				 dd->phys_base + AES_REG_DATA, 0, 4);
-+
-+	omap_set_dma_dest_burst_mode(dd->dma_lch_in, OMAP_DMA_DATA_BURST_4);
-+	omap_set_dma_src_burst_mode(dd->dma_lch_in, OMAP_DMA_DATA_BURST_4);
-+
-+	/* OUT */
-+	omap_set_dma_src_params(dd->dma_lch_out, 0, OMAP_DMA_AMODE_CONSTANT,
-+				dd->phys_base + AES_REG_DATA, 0, 4);
-+
-+	omap_set_dma_src_burst_mode(dd->dma_lch_out, OMAP_DMA_DATA_BURST_4);
-+	omap_set_dma_dest_burst_mode(dd->dma_lch_out, OMAP_DMA_DATA_BURST_4);
- 
- 	return 0;
- }
-@@ -419,7 +433,6 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm, dma_addr_t dma_addr_in,
- 	struct omap_aes_ctx *ctx = crypto_tfm_ctx(tfm);
- 	struct omap_aes_dev *dd = ctx->dd;
- 	int len32;
--	int err;
- 
- 	pr_debug("len: %d\n", length);
- 
-@@ -432,12 +445,6 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm, dma_addr_t dma_addr_in,
- 	len32 = DIV_ROUND_UP(length, sizeof(u32));
- 
- 	/* IN */
--	omap_set_dma_dest_params(dd->dma_lch_in, 0, OMAP_DMA_AMODE_CONSTANT,
--				 dd->phys_base + AES_REG_DATA, 0, 4);
--
--	omap_set_dma_dest_burst_mode(dd->dma_lch_in, OMAP_DMA_DATA_BURST_4);
--	omap_set_dma_src_burst_mode(dd->dma_lch_in, OMAP_DMA_DATA_BURST_4);
--
- 	omap_set_dma_transfer_params(dd->dma_lch_in, OMAP_DMA_DATA_TYPE_S32,
- 				     len32, 1, OMAP_DMA_SYNC_PACKET, dd->dma_in,
- 					OMAP_DMA_DST_SYNC);
-@@ -446,12 +453,6 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm, dma_addr_t dma_addr_in,
- 				dma_addr_in, 0, 0);
- 
- 	/* OUT */
--	omap_set_dma_src_params(dd->dma_lch_out, 0, OMAP_DMA_AMODE_CONSTANT,
--				dd->phys_base + AES_REG_DATA, 0, 4);
--
--	omap_set_dma_src_burst_mode(dd->dma_lch_out, OMAP_DMA_DATA_BURST_4);
--	omap_set_dma_dest_burst_mode(dd->dma_lch_out, OMAP_DMA_DATA_BURST_4);
--
- 	omap_set_dma_transfer_params(dd->dma_lch_out, OMAP_DMA_DATA_TYPE_S32,
- 				     len32, 1, OMAP_DMA_SYNC_PACKET,
- 					dd->dma_out, OMAP_DMA_SRC_SYNC);
-@@ -459,13 +460,13 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm, dma_addr_t dma_addr_in,
- 	omap_set_dma_dest_params(dd->dma_lch_out, 0, OMAP_DMA_AMODE_POST_INC,
- 				 dma_addr_out, 0, 0);
- 
--	err = omap_aes_write_ctrl(dd);
--	if (err)
--		return err;
--
- 	omap_start_dma(dd->dma_lch_in);
- 	omap_start_dma(dd->dma_lch_out);
- 
-+	/* start DMA or disable idle mode */
-+	omap_aes_write_mask(dd, AES_REG_MASK, AES_REG_MASK_START,
-+			    AES_REG_MASK_START);
-+
- 	return 0;
- }
- 
-@@ -545,6 +546,7 @@ static void omap_aes_finish_req(struct omap_aes_dev *dd, int err)
- 
- 	pr_debug("err: %d\n", err);
- 
-+	clk_disable(dd->iclk);
- 	dd->flags &= ~FLAGS_BUSY;
- 
- 	req->base.complete(&req->base, err);
-@@ -562,8 +564,6 @@ static int omap_aes_crypt_dma_stop(struct omap_aes_dev *dd)
- 	omap_stop_dma(dd->dma_lch_in);
- 	omap_stop_dma(dd->dma_lch_out);
- 
--	clk_disable(dd->iclk);
--
- 	if (dd->flags & FLAGS_FAST) {
- 		dma_unmap_sg(dd->dev, dd->out_sg, 1, DMA_FROM_DEVICE);
- 		dma_unmap_sg(dd->dev, dd->in_sg, 1, DMA_TO_DEVICE);
-@@ -629,7 +629,9 @@ static int omap_aes_handle_queue(struct omap_aes_dev *dd,
- 	dd->ctx = ctx;
- 	ctx->dd = dd;
- 
--	err = omap_aes_crypt_dma_start(dd);
-+	err = omap_aes_write_ctrl(dd);
-+	if (!err)
-+		err = omap_aes_crypt_dma_start(dd);
- 	if (err) {
- 		/* aes_task will not finish it, so do it here */
- 		omap_aes_finish_req(dd, err);
+>>>
+>>> When SPI wake up from OFF mode, CS is in the wrong
+>> state: force it to the inactive state.
+> 
+> Best report the bug that the suspend/OFF state
+> was mis-handled...  That is, it didn't
+> correctly ENTER that OFF mode...
+> 
+> In fact ... I'd like to see that fixed more
+> than the $SUBJECT issue, so the root cause
+> gets resolved...
+
+As far as I know, it enter correctly that OFF mode.
+It is only at wake up, that CS become active while
+there is no SPI message being processed. It is the
+point of my patch.
+
+My first patch version forced unconditionally CS to
+inactive state at wake up. It was correct from the
+point of view of the SPI but not for suspend/resume.
+Resume should only restore the state of the driver
+just before suspend. If resume force the inactive
+state it could mask a bug in the suspend path.
+But as I wrote before, as far as I know there is no
+bug when driver enter suspend mode, at this moment
+CS is inactive.
+
+> 
+> CS should only be active while a SPI message
+> is being processed, and such processing must
+> have completed before suspend/OFF/... starts
+> 
+I agree and this driver seems to respect this point.
+
 -- 
-1.7.0.4
+Gregory Clement, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
