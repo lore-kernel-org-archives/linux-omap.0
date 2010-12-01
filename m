@@ -1,60 +1,36 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/2] AM35x: musb: fix compilation error
-Date: Wed, 1 Dec 2010 17:38:28 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404BCE39717@dbde02.ent.ti.com>
-References: <1290415961-21177-1-git-send-email-ajay.gupta@ti.com>
- <20101122102230.GP2446@legolas.emea.dhcp.ti.com>
- <20101130183010.GS17222@atomide.com>
- <20101201084100.GC2796@legolas.emea.dhcp.ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH 1/2] OMAP: DMA: prevent races while setting M idle mode to nostandby
+Date: Wed, 1 Dec 2010 14:21:34 +0200
+Message-ID: <201012011421.34412.peter.ujfalusi@nokia.com>
+References: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com>  <20101130132347.13286.40388.sendpatchset@ahunter-work.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101201084100.GC2796-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.47]:40547 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751900Ab0LAMWA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Dec 2010 07:22:00 -0500
+In-Reply-To: <20101130132347.13286.40388.sendpatchset@ahunter-work.research.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hunter Adrian (Nokia-MS/Helsinki)" <adrian.hunter@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Manjunatha GK <manjugk@ti.com>, Santosh Shilimkar <Santosh.shilimkar@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-> >> Tony ? Do you ack the usage of that header ?
-> >
-> >NAK. Drivers should not mess with the control registers directly.
-> >
-> >Instead, the following should be done in the platform init code:
-> >
-> >$ grep -r omap_ctrl_read drivers/usb
-> >drivers/usb/musb/am35x.c:       devconf2 =
-> omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-> >drivers/usb/musb/am35x.c:       while
-> (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
-> >drivers/usb/musb/am35x.c:       devconf2 =
-> omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-> >drivers/usb/musb/am35x.c:               lvl_intr =
-> omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-> >drivers/usb/musb/am35x.c:       u32 devconf2 =
-> omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-> >drivers/usb/musb/am35x.c:       sw_reset =
-> omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
-> >drivers/usb/musb/am35x.c:       lvl_intr =
-> omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-> >
-> >You can pass a function pointer like board_set_power or simila in
-> >platform_data.
-
-We would need control register apis for accessing USB PHY control
-, IPSS reset and interrupt clear register. This would require to
-add three different function pointer and that would mostly be
-custom to AM35x. Will that be acceptable from musb perspective ?
-
--Ajay
+On Tuesday 30 November 2010 15:23:47 Hunter Adrian (Nokia-MS/Helsinki) wrote:
+> From 8c0f4490d93b67326ff24f6ce1c7e925b08d96b3 Mon Sep 17 00:00:00 2001
+> From: Adrian Hunter <adrian.hunter@nokia.com>
+> Date: Mon, 22 Nov 2010 11:32:48 +0200
+> Subject: [PATCH 1/2] OMAP: DMA: prevent races while setting M idle mode to
+> nostandby
 > 
-> That was my feeling too. Anand, care to update ?!?
-
+> In a couple of OMAP errata cases, sDMA M idle mode must be
+> set temporarily to nostandby.  If two DMA users were to do
+> that at the same time, a race condition would arise.
+> Prevent that by using a spin lock and counting up/down the
+> number of times nostandby is set/reset.
 > 
-> --
-> balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+
+Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
