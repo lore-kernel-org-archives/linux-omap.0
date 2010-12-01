@@ -1,54 +1,36 @@
 From: Greg KH <greg@kroah.com>
-Subject: Re: [RFC v2 6/8] TILER-DMM: Geometry and view manipulation
- functions
-Date: Tue, 30 Nov 2010 16:55:49 -0800
-Message-ID: <20101201005549.GB29171@kroah.com>
-References: <1291147139-23472-1-git-send-email-davidsin@ti.com>
- <1291147139-23472-7-git-send-email-davidsin@ti.com>
+Subject: Re: [PATCH v3 1/1] serial: omap-serial: Add support for kernel
+ debugger
+Date: Tue, 30 Nov 2010 17:28:23 -0800
+Message-ID: <20101201012823.GA21050@kroah.com>
+References: <1290468252-23539-1-git-send-email-cosmin.cojocar@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from kroah.org ([198.145.64.141]:51194 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753428Ab0LAB2g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Nov 2010 20:28:36 -0500
 Content-Disposition: inline
-In-Reply-To: <1291147139-23472-7-git-send-email-davidsin@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Sin <davidsin@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lajos Molnar <molnar@ti.com>
+In-Reply-To: <1290468252-23539-1-git-send-email-cosmin.cojocar@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Cosmin Cojocar <cosmin.cojocar@gmail.com>
+Cc: govindraj.raja@ti.com, manjugk@ti.com, khilman@deeprootsystems.com, tony@atomide.com, ben-linux@fluff.org, tklauser@distanz.ch, feng.tang@intel.com, alan@linux.intel.com, gregkh@suse.de, linux-omap@vger.kernel.org
 
-On Tue, Nov 30, 2010 at 01:58:57PM -0600, David Sin wrote:
-> From: Lajos Molnar <molnar@ti.com>
+On Tue, Nov 23, 2010 at 12:24:12AM +0100, Cosmin Cojocar wrote:
+> The kgdb invokes the poll_put_char and poll_get_char when communicating
+> with the host. This patch also changes the initialization order because the
+> kgdb will check at the very beginning, if there is a valid serial
+> driver.
 > 
-> This patch contains information on TILER geometry, as well as
-> tiler_view_t object manipulation functions.
-> 
-> It also contains an internal TILER header file to share geometric
-> information with other TILER files.
-> 
-> Signed-off-by: Lajos Molnar <molnar@ti.com>
-> Signed-off-by: David Sin <davidsin@ti.com>
+> Signed-off-by: Cosmin Cojocar <cosmin.cojocar@gmail.com>
 > ---
->  drivers/misc/tiler/_tiler.h     |   48 +++++
+>  drivers/serial/Makefile      |    2 +-
 
-Ick, no, just name it "tiler.h" please.  There should not be any need to
-put _ in front of a .h file.
-
-> +u32 tiler_bpp(const struct tiler_block_t *b)
-> +{
-> +	enum tiler_fmt fmt = tiler_fmt(b->phys);
-> +	BUG_ON(fmt == TILFMT_INVALID || fmt == TILFMT_PAGE);
-
-Don't cause the kernel to crash within a driver for no good reason like
-this.  Please fix these to WARN_ON if it's really something that can
-happen.
-
-If not, then just remove it.
-
-> +
-> +	return geom[fmt].bpp;
-> +}
-> +EXPORT_SYMBOL(tiler_bpp);
-
-EXPORT_SYMBOL_GPL() perhaps for all of these?
+This fails to apply to the linux-next tree due to Makefile changes in
+this area.  Can you rediff it and resend it to me so that I can apply
+it?
 
 thanks,
 
