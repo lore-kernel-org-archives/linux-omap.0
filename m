@@ -1,95 +1,93 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
-Date: Wed, 01 Dec 2010 14:58:43 +0000
-Message-ID: <yw1xoc95zgik.fsf@unicorn.mansr.com>
-References: <19F8576C6E063C45BE387C64729E739404BC762E9A@dbde02.ent.ti.com>
-	<1290589057.13243.22.camel@tubuntu>
-	<19F8576C6E063C45BE387C64729E739404BCCA3A55@dbde02.ent.ti.com>
-	<20101124163100.GB5681@nokia.com>
-	<19F8576C6E063C45BE387C64729E739404BCCA3CAE@dbde02.ent.ti.com>
-	<yw1xeia81nts.fsf@unicorn.mansr.com>
-	<19F8576C6E063C45BE387C64729E739404BCCA401F@dbde02.ent.ti.com>
-	<20101126125539.GG8094@nokia.com>
-	<20101130063440.GF17114@linux-sh.org>
-	<20101130063934.GG17114@linux-sh.org>
-	<19F8576C6E063C45BE387C64729E739404BCCA455A@dbde02.ent.ti.com>
-	<1291123945.24627.223.camel@tubuntu>
-	<AANLkTi=R9KO5V1i8wru6TLMq-k5skr1hfZa43MgS=9HS@mail.gmail.com>
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [PATCH v2 13/14] OMAP3: Add voltage dependency table for VDD1.
+Date: Wed, 1 Dec 2010 21:01:28 +0530
+Message-ID: <dadde3c3b13cc1797009cca1153c6974@mail.gmail.com>
+References: <1288366708-32302-1-git-send-email-thara@ti.com> <1288366708-32302-14-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from unicorn.mansr.com ([78.86.181.103]:36600 "EHLO
-	unicorn.mansr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173Ab0LAO6p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 09:58:45 -0500
-In-Reply-To: <AANLkTi=R9KO5V1i8wru6TLMq-k5skr1hfZa43MgS=9HS@mail.gmail.com> (Jonghun Han's message of "Wed, 1 Dec 2010 23:43:50 +0900")
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:32880 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752688Ab0LAPbU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 10:31:20 -0500
+Received: by mail-fx0-f53.google.com with SMTP id 4so2286869fxm.26
+        for <linux-omap@vger.kernel.org>; Wed, 01 Dec 2010 07:31:19 -0800 (PST)
+In-Reply-To: <1288366708-32302-14-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jonghun Han <jonghun79.han@gmail.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "ext Hiremath, Vaibhav" <hvaibhav@ti.com>, Paul Mundt <lethal@linux-sh.org>, Ville Syrj?l? <ville.syrjala@nokia.com>, M?ns Rullg?rd <mans@mansr.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@deeprootsystems.com
 
-Jonghun Han <jonghun79.han@gmail.com> writes:
+Thara,
 
-> Tomi Valkeinen wrote:
+> -----Original Message-----
+> From: Gopinath, Thara
+> Sent: Friday, October 29, 2010 9:08 PM
+> To: linux-omap@vger.kernel.org
+> Cc: paul@pwsan.com; khilman@deeprootsystems.com; Cousson, Benoit;
+> Sripathy, Vishwanath; Sawant, Anand; Gopinath, Thara
+> Subject: [PATCH v2 13/14] OMAP3: Add voltage dependency table for
+> VDD1.
 >
-> 2010/11/30 Tomi Valkeinen <tomi.valkeinen@nokia.com>:
->> On Tue, 2010-11-30 at 12:29 +0530, ext Hiremath, Vaibhav wrote:
->>> > -----Original Message-----
->>> > From: Paul Mundt [mailto:lethal@linux-sh.org]
->>> > Sent: Tuesday, November 30, 2010 12:10 PM
->>> > To: Ville Syrj?l?
->>> > Cc: Hiremath, Vaibhav; M?ns Rullg?rd; linux-omap@vger.kernel.org;=
- linux-
->>> > fbdev@vger.kernel.org
->>> > Subject: Re: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
->>> >
->>> > On Tue, Nov 30, 2010 at 03:34:40PM +0900, Paul Mundt wrote:
+> In OMAP3, for perfomrance reasons when VDD1 is at voltage above
+> 1.075V, VDD2 should be at 1.15V for perfomrance reasons. This
+> patch introduce this cross VDD dependency for OMAP3 VDD1.
 >
-> <snip>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/mach-omap2/voltage.c |   19 +++++++++++++++++++
+>  1 files changed, 19 insertions(+), 0 deletions(-)
 >
->> OMAP has user writeable shadow registers and hidden real registers f=
-or
->> display controller. The shadow registers are latched to real registe=
-rs
->> on VFP, but only if GO bit has been set. The GO bit is cleared by th=
-e HW
->> when latching has been done.
->>
->> If the GO bit is set, we cannot touch the shadow registers because w=
-e
->> don't know when the VFP =A0will happen. That's why there's additiona=
-lly a
->> SW cache for the config, so that we don't need to block when the GO =
-bit
->> is up and the user wants to change the config. The driver "flushes" =
-the
->> SW config to real registers in VSYNC interrupt handler.
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-
+> omap2/voltage.c
+> index 6f85f75..241fac5 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -350,6 +350,23 @@ static struct omap_volt_data
+> omap44xx_vdd_core_volt_data[] = {
+>  	{.volt_nominal = 1100000, .sr_errminlimit = 0xF9, .vp_errgain =
+> 0x16},
+>  };
 >
-> Does the driver flush the config to real register directly not a
-> shadow register in VSYNC ISR? Does it mean display controller use
-> the config flushed to the real register from the VSYNC ?
+> +/* OMAP 3430 MPU Core VDD dependency table */
+> +static struct omap_vdd_dep_volt omap34xx_vdd1_vdd2_data[] = {
+> +	{.main_vdd_volt = 975000, .dep_vdd_volt = 1050000},
+> +	{.main_vdd_volt = 1075000, .dep_vdd_volt = 1050000},
+> +	{.main_vdd_volt = 1200000, .dep_vdd_volt = 1150000},
+> +	{.main_vdd_volt = 1270000, .dep_vdd_volt = 1150000},
+> +	{.main_vdd_volt = 1350000, .dep_vdd_volt = 1150000},
+> +	{.main_vdd_volt = 0, .dep_vdd_volt = 0},
+> +};
+> +
+> +static struct omap_vdd_dep_info omap34xx_vdd1_dep_info[] = {
+> +	{
+> +		.name	= "core",
+> +		.dep_table = omap34xx_vdd1_vdd2_data,
+> +	},
+> +};
 
-The hardware latches the shadow registers to the active registers at
-start of VFP.
+Dependency table for 3630 is missing. Pls add the same.
+Also voltage values for 3630 does not match those on OPP table. Pls align
+them.
 
-> I don't know OMAP in detail. But as I know other SoCs also work like =
-it.
+Vishwa
+> +
+>  /* By default VPFORCEUPDATE is the chosen method of voltage scaling
+> */
+>  static bool voltscale_vpforceupdate = true;
 >
-> Can Go bit is cleared by SW?
-
-No.
-
-> And does each overlay(FB) have its own Go bit?
-
-No.  There is one GO bit per video output, i.e. one each for LCD and TV=
-=2E
-
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> @@ -574,6 +591,8 @@ static void __init
+> omap3_vdd_data_configure(struct omap_vdd_info *vdd)
+>  			vdd->volt_data = omap34xx_vdd1_volt_data;
+>  			vdd->volt_data_count =
+>
+> 	ARRAY_SIZE(omap34xx_vdd1_volt_data);
+> +			vdd->dep_vdd_info = omap34xx_vdd1_dep_info;
+> +			vdd->nr_dep_vdd =
+> ARRAY_SIZE(omap34xx_vdd1_dep_info);
+>  		}
+>
+>  		vdd->vp_reg.tranxdone_status =
+> OMAP3430_VP1_TRANXDONE_ST_MASK;
+> --
+> 1.7.0.4
