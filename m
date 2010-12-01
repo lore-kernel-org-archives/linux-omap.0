@@ -1,36 +1,67 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 1/2] OMAP: DMA: prevent races while setting M idle mode to nostandby
-Date: Wed, 1 Dec 2010 14:21:34 +0200
-Message-ID: <201012011421.34412.peter.ujfalusi@nokia.com>
-References: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com>  <20101130132347.13286.40388.sendpatchset@ahunter-work.research.nokia.com>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH 0/7 v2] OMAP: McSPI: Hwmod adaptation + runtime conversion
+Date: Wed, 1 Dec 2010 19:31:12 +0530 (IST)
+Message-ID: <33183.10.24.255.18.1291212072.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:40547 "EHLO mgw-sa01.nokia.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44534 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751900Ab0LAMWA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Dec 2010 07:22:00 -0500
-In-Reply-To: <20101130132347.13286.40388.sendpatchset@ahunter-work.research.nokia.com>
+	id S1754954Ab0LAOB1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Dec 2010 09:01:27 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter Adrian (Nokia-MS/Helsinki)" <adrian.hunter@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, Manjunatha GK <manjugk@ti.com>, Santosh Shilimkar <Santosh.shilimkar@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org
+Cc: Charulatha V <charu@ti.com>, Cousson@dbdmail.itg.ti.com, Benoit <b-cousson@ti.com>
 
-On Tuesday 30 November 2010 15:23:47 Hunter Adrian (Nokia-MS/Helsinki) wrote:
-> From 8c0f4490d93b67326ff24f6ce1c7e925b08d96b3 Mon Sep 17 00:00:00 2001
-> From: Adrian Hunter <adrian.hunter@nokia.com>
-> Date: Mon, 22 Nov 2010 11:32:48 +0200
-> Subject: [PATCH 1/2] OMAP: DMA: prevent races while setting M idle mode to
-> nostandby
-> 
-> In a couple of OMAP errata cases, sDMA M idle mode must be
-> set temporarily to nostandby.  If two DMA users were to do
-> that at the same time, a race condition would arise.
-> Prevent that by using a spin lock and counting up/down the
-> number of times nostandby is set/reset.
-> 
-> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+Changes invloves:
+----------------
+1) Addition of hwmod data for omap2/3/4.
+1) McSPI driver hwmod adaptation with cleanup of base address
+   macros and using omap-device API's.
+2) Runtime Conversion of McSPI driver
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Changes from v1:
+---------------
+1) Fixing patch 5/5 comments for hwmod+runtime
+   Split the patch 5/5 to hwmod adaptation
+   and then runtime conversion
+   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg33387.html
+
+Testing Updates:
+----------------
+Was tested using data transfer test module available at:
+http://dev.omapzoom.org/?p=richo/device_driver_test.git;a=blob;f=mcspi/test_code/
+utils/mcspi_modules/omap_mcspi_datatest.c;
+h=e42ec10c5c844abdde6a7175a268b379fbbdb655;
+hb=5d9a755d50e58de861c5e8991f2f607bc49b5dc3
+
+System wide suspend and ret/off counts observation,
+ensured that no behavioral difference with and without
+this patch series.
+
+Benoit Cousson (1):
+  OMAP4: hwmod data: Add McSPI
+
+Charulatha V (5):
+  OMAP2420: hwmod data: Add McSPI
+  OMAP2430: hwmod data: Add McSPI
+  OMAP3: hwmod data: Add McSPI
+  OMAP3: clocks: Update clock domain name for mcspi fck
+  OMAP: devices: Modify McSPI device to adapt to hwmod framework
+
+Govindraj.R (1):
+  OMAP: runtime: McSPI driver runtime conversion
+
+ arch/arm/mach-omap2/clock3xxx_data.c       |    4 +
+ arch/arm/mach-omap2/devices.c              |  189 ++++---------------
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |  156 ++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |  219 ++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  280 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  267 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/mcspi.h    |   11 +
+ drivers/spi/omap2_mcspi.c                  |  225 +++++++---------------
+ 8 files changed, 1051 insertions(+), 300 deletions(-)
+
+
