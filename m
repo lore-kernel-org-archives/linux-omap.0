@@ -1,60 +1,55 @@
-From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Subject: RE: [PATCH 1/2] AM35x: musb: fix compilation error
-Date: Wed, 01 Dec 2010 21:32:22 +0200
-Message-ID: <1291231942.15533.32.camel@eowin>
-References: <1290415961-21177-1-git-send-email-ajay.gupta@ti.com>
-	 <20101122102230.GP2446@legolas.emea.dhcp.ti.com>
-	 <20101130183010.GS17222@atomide.com>
-	 <20101201084100.GC2796@legolas.emea.dhcp.ti.com>
-	 <19F8576C6E063C45BE387C64729E739404BCE39717@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 0/5] Split powerdomain framework into plat
+ specific/independent
+Date: Wed, 1 Dec 2010 13:09:29 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012011254460.2515@utopia.booyaka.com>
+References: <1291131848-31640-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404BCE39717-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:52758 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756377Ab0LAUJa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 15:09:30 -0500
+In-Reply-To: <1291131848-31640-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, b-cousson@ti.com
 
-On Wed, 2010-12-01 at 17:38 +0530, Gupta, Ajay Kumar wrote:
-> > >> Tony ? Do you ack the usage of that header ?
-> > >
-> > >NAK. Drivers should not mess with the control registers directly.
-> > >
-> > >Instead, the following should be done in the platform init code:
-> > >
-> > >$ grep -r omap_ctrl_read drivers/usb
-> > >drivers/usb/musb/am35x.c:       devconf2 =
-> > omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-> > >drivers/usb/musb/am35x.c:       while
-> > (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
-> > >drivers/usb/musb/am35x.c:       devconf2 =
-> > omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-> > >drivers/usb/musb/am35x.c:               lvl_intr =
-> > omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-> > >drivers/usb/musb/am35x.c:       u32 devconf2 =
-> > omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-> > >drivers/usb/musb/am35x.c:       sw_reset =
-> > omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
-> > >drivers/usb/musb/am35x.c:       lvl_intr =
-> > omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-> > >
-> > >You can pass a function pointer like board_set_power or simila in
-> > >platform_data.
-> 
-> We would need control register apis for accessing USB PHY control
-> , IPSS reset and interrupt clear register. This would require to
-> add three different function pointer and that would mostly be
-> custom to AM35x. Will that be acceptable from musb perspective ?
 
-why don't you add a proper otg_transceiver driver for am35x ?
-Is it like omap4's internal phy ? A separate block ?
+Hi,
 
--- 
-balbi
+thanks for making the requested changes.  However, this series results in 
+compilation warnings:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  CC      arch/arm/mach-omap2/powerdomain2xxx_3xxx.o
+arch/arm/mach-omap2/powerdomains.h:116: warning: 'powerdomains_omap' 
+defined but not used
+  CC      arch/arm/mach-omap2/powerdomain44xx.o
+arch/arm/mach-omap2/powerdomains.h:116: warning: 'powerdomains_omap' 
+defined but not used
+
+
+and sparse warnings:
+
+
+WARNING: externs should be avoided in .c files
+#115: FILE: arch/arm/mach-omap2/powerdomain-common.c:50:
++int _get_mem_bank_onstate_mask(u8 bank);
+
+WARNING: externs should be avoided in .c files
+#116: FILE: arch/arm/mach-omap2/powerdomain-common.c:51:
++int _get_mem_bank_retst_mask(u8 bank);
+
+WARNING: externs should be avoided in .c files
+#117: FILE: arch/arm/mach-omap2/powerdomain-common.c:52:
++int _get_mem_bank_stst_mask(u8 bank);
+
+
+Please fix these and re-send.
+
+
+regards
+
+- Paul
