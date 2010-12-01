@@ -1,220 +1,188 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [RFC v2 0/8] TI DMM-TILER driver
-Date: Wed, 1 Dec 2010 12:17:22 +0530
-Message-ID: <AANLkTi=39XEC9ie=bAapymAtx6k+ej49N5B1+_gfRhmE@mail.gmail.com>
-References: <1291147139-23472-1-git-send-email-davidsin@ti.com>
+From: "Basak, Partha" <p-basak2@ti.com>
+Subject: RE: [PATCH 6/7] [RFC] OMAP: hwmod: SYSCONFIG register modification
+ for MCBSP
+Date: Wed, 1 Dec 2010 12:44:57 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247AFD66A@dbde02.ent.ti.com>
+References: <1286296662-7639-1-git-send-email-kishon@ti.com>
+	<1286296662-7639-6-git-send-email-kishon@ti.com>	<4CAECB70.4030705@ti.com>
+	<4CB2AC44.6000804@ti.com>
+	<AANLkTi=a80MLvj5YuC==evfGqY6xUToHcBU3TyWEBHAo@mail.gmail.com>
+ <AANLkTimExJBgLTfO2Q7zgohHquShvm9kP64=DLjQv21u@mail.gmail.com>
+ <4CF52044.6040904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1291147139-23472-1-git-send-email-davidsin@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Sin <davidsin@ti.com>
-Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53246 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751833Ab0LAHPO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 02:15:14 -0500
+In-Reply-To: <4CF52044.6040904@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "ext-eero.nurkkala@nokia.com" <ext-eero.nurkkala@nokia.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>
 
-On Wed, Dec 1, 2010 at 01:28, David Sin <davidsin@ti.com> wrote:
-> Tiling and Isometric Lightweight Engine for Rotation (TILER) driver
->
-> Dynamic Memory Manager (DMM) is a hardware block made by Texas Instru=
-ments.
-> Within the DMM exists at least one TILER hardware component. =A0Its p=
-urpose is to
-> organize video/image memory in a 2-dimensional fashion to limit memor=
-y
-> bandwidth and facilitate 0 effort rotation and mirroring. =A0The TILE=
-R driver
-> facilitates allocating, freeing, as well as mapping 2D blocks (areas)=
- in the
-> TILER container(s). =A0It also facilitates rotating and mirroring the=
- allocated
-> blocks or its rectangular subsections.
->
-> TERMINOLOGY
->
-> "slot"
->
-> The basic TILER driver operates on blocks of slots. =A0A slot is the =
-granularity
-> of the TILER hardware device. =A0For all current uses it is 4K, but c=
-ould also be
-> 16 or 64K. =A0The DMM-TILER TRM refers to this as "page" but we want =
-to separate
-> this concept from the MMU pages.
->
-> "page"
->
-> The granularity of the MMU, used by the kernel. =A0This is 4K.
->
-> "block"
->
-> The TILER hardware component supports 1D and 2D blocks. =A0A 2D block=
- is a
-> rectangular arrangement of slots with arbitrary width and height in a=
- 2D
-> container. =A0A 1D block is a linear arrangement of slots with arbitr=
-ary length
-> =A0in a 1D container. =A0This TILER driver only supports 2D blocks.
->
-> "container"
->
-> The TILER driver supports an arbitrary TILER container size. =A0Howev=
-er, for
-> all current implementations it is 256 by 128 slots. =A0The container =
-currently can
-> only be used as a 2D container.
->
-> "reserved area"
->
-> Each block resides within a reserved area in the container. =A0This a=
-rea may
-> be larger than the actual set of slots that a block occupies. =A0The =
-reason for
-> this is to protect access from one block into another. =A0Since TILER=
- container is
-> mmap-ped into user space as individual pages, all slots that are span=
-ned by
-> that page become visible to the user. =A0The tiler driver allows rest=
-ricting the
-> granularity of the reserved area (default alignment) as well as the m=
-apped
-> area (granularity).
->
-> Changes made from RFC v1: http://www.spinics.net/lists/linux-omap/msg=
-33867.html
->
-> Santosh Shilimkar:
-> 1) Correct documentation location
-> 2) Remove ioremap of RAM
-> 3) Implement probe function and hwmod
-> 4) Correct commenting style
-> 5) Reduce use of barrier instances
->
-> Linus Walleij:
-> 1) Define TCM acryonym
->
-> Russell King:
-> 1) Implement probe function
-> 2) Fix spelling mistake
-> 3) Remove GFP_ATOMIC flag when calling dma_alloc_coherent for PAT arr=
-ay mem
-> 4) Replace alloc_page and flush range calls with dma_alloc_coherent
->
-> Nishanth Menon:
-> 1) Address infinite while loop when reading dmm register
->
-> Benoit Cousson:
-> 1) Fix source file headers
-> 2) Correct logical errors in device file
->
-> Kevin Hilman:
-> 1) Move DMM/TILER source code into driver/misc/tiler until a recommen=
-dation
-> is made as to where it should go
->
-> List of pending items in proposed order:
->
-> * Determine driver source code location
-> =A0(Currently, resides in drivers/misc/tiler)
-> * Add area packing support (multiple blocks can reside in the same ba=
-nd/area)
-> =A0to optimize area use
-> * Add group-ID support (to specify which blocks can reside together i=
-n the
-> =A0same area)
-> * Add multiple search directions to TCM-SiTA
-> * Add 1D block support (including adding 1D search algo to TCM-SiTA)
-> * Optimize mutex handling (don.t hold mutex during memory
-> =A0allocation/mapping/cache flushing)
-> * Add block reference counting, support for sharing blocks
-> * Move all kernel-API-s to tiler-iface.c
-> * Support orphaned block support (in preparation for process cleanup =
-support)
-> * Change block identification from physical address to key-ID pair
-> =A0(in preparation for user space support, and process security)
-> * Add support for process security (blocks from separate processes ne=
-ver
-> =A0reside in the same band)
-> * Support file interface (ioctl and mmap)
-> * Support for buffers (ordered list of blocks that are mapped to user=
-space
-> =A0together, such as YUV420sp)
-> * Support 1D user buffer mapping into TILER container
-> * Support for block pre-reservation (to further optimize area use)
->
-> David Sin (1):
-> =A0TILER-DMM: DMM-PAT driver for TI TILER
->
-> Lajos Molnar (6):
-> =A0TILER-DMM: Container manager interface and utility definitons
-> =A0TILER-DMM: TILER Memory Manager interface and implementation
-> =A0TILER-DMM: TILER interface file and documentation
-> =A0TILER-DMM: Geometry and view manipulation functions
-> =A0TILER-DMM: Main TILER driver implementation
-> =A0TILER-DMM: Linking TILER driver into the Linux kernel build
->
-> Ravi Ramachandra (1):
-> =A0TILER-DMM: Sample TCM implementation: Simple TILER Allocator (SiTA=
-)
->
-> =A0Documentation/arm/OMAP/TILER =A0 =A0 =A0 =A0 =A0 =A0 | =A0126 ++++=
-+++++
-> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A01 +
-> =A0arch/arm/mach-omap2/dmm-omap44xx.c =A0 =A0 =A0 | =A0 81 ++++++
-> =A0arch/arm/mach-omap2/include/mach/dmm.h =A0 | =A0 92 +++++++
-> =A0arch/arm/mach-omap2/include/mach/tiler.h | =A0173 ++++++++++++
-> =A0drivers/misc/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- =A05 +
-> =A0drivers/misc/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- =A01 +
-> =A0drivers/misc/tiler/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 72 ++=
-+++
-> =A0drivers/misc/tiler/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A07 =
-+
-> =A0drivers/misc/tiler/_tiler.h =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 48 ++=
-++
-> =A0drivers/misc/tiler/dmm-main.c =A0 =A0 =A0 =A0 =A0 =A0| =A0187 ++++=
-+++++++++
-> =A0drivers/misc/tiler/tcm.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0171 =
-++++++++++++
-> =A0drivers/misc/tiler/tcm/Makefile =A0 =A0 =A0 =A0 =A0| =A0 =A01 +
-> =A0drivers/misc/tiler/tcm/_tcm-sita.h =A0 =A0 =A0 | =A0 61 +++++
-> =A0drivers/misc/tiler/tcm/tcm-sita.c =A0 =A0 =A0 =A0| =A0422 ++++++++=
-++++++++++++++++++++++
-> =A0drivers/misc/tiler/tcm/tcm-sita.h =A0 =A0 =A0 =A0| =A0 28 ++
-> =A0drivers/misc/tiler/tcm/tcm-utils.h =A0 =A0 =A0 | =A0 51 ++++
-> =A0drivers/misc/tiler/tiler-geom.c =A0 =A0 =A0 =A0 =A0| =A0362 ++++++=
-+++++++++++++++++++
-> =A0drivers/misc/tiler/tiler-iface.c =A0 =A0 =A0 =A0 | =A0 66 +++++
-> =A0drivers/misc/tiler/tiler-main.c =A0 =A0 =A0 =A0 =A0| =A0405 ++++++=
-++++++++++++++++++++++
-> =A0drivers/misc/tiler/tmm-pat.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0266 ++++=
-+++++++++++++++
-> =A0drivers/misc/tiler/tmm.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0103 =
-++++++++
-> =A022 files changed, 2729 insertions(+), 0 deletions(-)
-> =A0create mode 100644 Documentation/arm/OMAP/TILER
-> =A0create mode 100644 arch/arm/mach-omap2/dmm-omap44xx.c
-> =A0create mode 100644 arch/arm/mach-omap2/include/mach/dmm.h
-> =A0create mode 100644 arch/arm/mach-omap2/include/mach/tiler.h
-> =A0create mode 100644 drivers/misc/tiler/Kconfig
-> =A0create mode 100644 drivers/misc/tiler/Makefile
-> =A0create mode 100644 drivers/misc/tiler/_tiler.h
-> =A0create mode 100644 drivers/misc/tiler/dmm-main.c
-> =A0create mode 100644 drivers/misc/tiler/tcm.h
-> =A0create mode 100644 drivers/misc/tiler/tcm/Makefile
-> =A0create mode 100644 drivers/misc/tiler/tcm/_tcm-sita.h
-> =A0create mode 100644 drivers/misc/tiler/tcm/tcm-sita.c
-> =A0create mode 100644 drivers/misc/tiler/tcm/tcm-sita.h
-> =A0create mode 100644 drivers/misc/tiler/tcm/tcm-utils.h
-> =A0create mode 100644 drivers/misc/tiler/tiler-geom.c
-> =A0create mode 100644 drivers/misc/tiler/tiler-iface.c
-> =A0create mode 100644 drivers/misc/tiler/tiler-main.c
-> =A0create mode 100644 drivers/misc/tiler/tmm-pat.c
-> =A0create mode 100644 drivers/misc/tiler/tmm.h
 
-The dmm driver is making use of omap_hwmod fw. But I could not see a pa=
-tch
-to add  dmm hwmod data to omap4 hwmod base in this series. Is this patc=
-h series
-tested?
+
+> -----Original Message-----
+> From: Cousson, Benoit
+> Sent: Tuesday, November 30, 2010 9:33 PM
+> To: ABRAHAM, KISHON VIJAY; Paul Walmsley
+> Cc: Kevin Hilman; Basak, Partha; linux-omap@vger.kernel.org; Kamat,
+> Nishant; Varadarajan, Charulatha; Datta, Shubhrajyoti; ext-
+> eero.nurkkala@nokia.com; eduardo.valentin@nokia.com
+> Subject: Re: [PATCH 6/7] [RFC] OMAP: hwmod: SYSCONFIG register
+> modification for MCBSP
+> 
+> Hi Kishon,
+> 
+> Sorry, for the delay.
+> 
+> On 11/22/2010 4:59 PM, ABRAHAM, KISHON VIJAY wrote:
+> > Resending the mail in plain text format..
+> >
+> > On Mon, Nov 22, 2010 at 9:20 PM, ABRAHAM, KISHON VIJAY<kishon@ti.com>
+> wrote:
+> >>
+> >> On Mon, Oct 11, 2010 at 11:48 AM, ABRAHAM, KISHON
+> VIJAY<kishon@ti.com>  wrote:
+> >>>
+> >>> On Friday 08 October 2010 01:12 PM, Cousson, Benoit wrote:
+> >>>> Hi Kishon,
+> >>>>
+> >>>> On 10/5/2010 6:37 PM, ABRAHAM, KISHON VIJAY wrote:
+> >>>>> MCBSP 2 and 3 in OMAP3 has sidetone feature which requires
+> >>>>> autoidle to be disabled before starting the sidetone. Also
+> SYSCONFIG
+> >>>>> register has to be set with smart idle or no idle depending on
+> the
+> >>>>> dma op mode (threshold or element sync). For doing these
+> operations
+> >>>>> dynamically at runtime, hwmod API'S are used to modify SYSCONFIG
+> >>> register
+> >>>>> directly.
+> >>>>
+> >>>> OK, it looks like we don't have the choice... But for the
+> >>>> implementation, please discussed with Manju on that, He is doing
+> the
+> >>>> similar thing for the smartstandby issue on SDMA.
+> >>>
+> >>>    OK.
+> >>
+> >>
+> >>        Looks like we have a problem when we write an API similar to
+> the one written
+> >>        by Manju (omap_hwmod_set_master_standbymode()) [1]. In the
+> case of McBSP,
+> >>        I have to modify omap_hwmod_set_slave_idlemode() (which is
+> already existing),
+> >>        to include something like
+> >>
+> >>                          +    if (sf&  SYSC_HAS_SIDLEMODE) {
+> >>                          +        if (idlemode)
+> >>                          +            idlemode = HWMOD_IDLEMODE_NO;
+> >>                          +        else
+> >>                          +            idlemode = (oh->flags&
+> HWMOD_SWSUP_SIDLE) ?
+> >>                          +                HWMOD_IDLEMODE_NO :
+> HWMOD_IDLEMODE_SMART;
+> >>                          +    }
+> 
+> How to you enable HWMOD_IDLEMODE_FORCE mode in that case?
+> 
+> >>        Then an API like omap_device_require_no_idle() and
+> omap_device_release_no_idle()
+> >>        would be written similar to omap_device_require_no_mstandby
+> and
+> >>        omap_device_release_no_mstandby() (see [1]) that calls
+> >>        omap_hwmod_set_slave_idlemode() with true/false. Passing true
+> to
+> >>        omap_hwmod_set_slave_idlemode() will write SIDLE bits with
+> >>        HWMOD_IDLEMODE_NO and false to it will write
+> >>        HWMOD_IDLEMODE_NO/HWMOD_IDLEMODE_SMART depending on
+> >>        HWMOD_SWSUP_SIDLE to SIDLE bits.
+> >>
+> >>        This works fine for McBSP since only two modes come to play
+> here
+> >>        (HWMOD_IDLEMODE_NO/HWMOD_IDLEMODE_SMART).
+> >>
+> >>        But omap_hwmod_set_slave_idlemode() API is used by UART
+> >>        (serial.c Please refer [2]) which writes SIDLE bits to
+> >>        HWMOD_IDLEMODE_NO/HWMOD_IDLEMODE_SMART/ and
+> >>        HWMOD_IDLEMODE_FORCE.
+> 
+> That code should not be there. It was a temporary hacks that should be
+> replaced eventually with a clean omap_device API like the one you are
+> currently implementing.
+> There are a bunch of direct access to omap_hwmod struct that need to be
+> removed as well.
+> 
+> >>        Modifying omap_hwmod_set_slave_idlemode() will require
+> >>            1) serial.c to be modified to call functions like
+> 'omap_device_require_no_idle(),
+> >>                omap_device_release_no_idle()' and
+> 'omap_device_require_force_idle() and
+> >>                omap_device_release_force_idle()' instead of
+> >>                omap_hwmod_set_slave_idlemode() which is currently
+> present.
+> 
+> Yep, you're right.
+> 
+> >>
+> >>        There are 2 problems associated with it
+> >>        1) The first problem is having a single API like
+> omap_hwmod_set_slave_idlemode() to
+> >>            set two different values like HWMOD_IDLEMODE_NO or
+> >>            HWMOD_IDLEMODE_FORCE (intended to be called by
+> omap_device_require_no_idle()
+> >>            and omap_device_require_force_idle() respectively).
+> According to the new design
+> >>            omap_hwmod_set_slave_idlemode() is intended to take only
+> true/false as
+> >>            arguments.
+> >>
+> >>        2) The second problem is having the release API's
+> (omap_device_release_no_idle() and
+> >>             omap_device_release_force_idle()) to restore the
+> SYSCONFIG to the previous state.
+> >>             Remember, this was not problem for McBSP since only two
+> modes were needed.
+> 
+> And what about 3 APIs?
+> 
+> omap_device_force_idle
+> omap_device_no_idle
+> omap_device_smart_idle
+
+Want to reiterate Paul Walmsley's comments on Manju's DMA email dated 11/11/2010
+<snip>
+2.  Rather than just using a single omap_device_mstandby() function call, 
+I'd rather see something like omap_device_require_no_standby() and 
+omap_device_release_no_standby().  omap_device_require_no_standby() would 
+force the initiator port into no-standby.  
+omap_device_release_no_standby() would return the initiator port 
+MSTANDBYMODE to whatever the state should be (this depends on whether 
+HWMOD_SWSUP_MSTDBY is set).  I'd rather not have the drivers manage the 
+contents of the MSTANDBYMODE bits directly.  Then you should be able to 
+drop _get_master_standbymode() and omap_hwmod_get_master_idlemode() also.  
+Can you please make these changes?
+<snip>
+
+The key point is, in the absence of any special situation like errata etc, the IdleMode settings should 
+be dicated solely by the hwmod flags. We should have a mechanism though to supersede this setting & request
+/release customized settings to handle errata etc.
+
+So, it makes sense to have request/release API pairs. In this case,
+omap_device_request_no_idle() & omap_device_release_no_idle().
+
+omap_hwmod_set_slave_idlemode should continue to take absolute values instead of true/false to support
+all possible settings of IdleMode.
+
+> 
+> It is probably much more appropriate than a require / release in that
+> case?
+> 
+> Regards,
+> Benoit
