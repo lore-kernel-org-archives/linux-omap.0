@@ -1,87 +1,82 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP: PM debug: fix wake-on-timer debugfs dependency
-Date: Wed,  1 Dec 2010 11:55:46 +0100
-Message-ID: <1291200946-29342-1-git-send-email-khilman@deeprootsystems.com>
+From: "Janorkar, Mayuresh" <mayur@ti.com>
+Subject: [PATCH] OMAP: DSS2: Adding check_timings and set_timings for
+ panel-taal
+Date: Wed, 1 Dec 2010 16:29:42 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB0322C02A6E@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:37467 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754000Ab0LAKzw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 05:55:52 -0500
-Received: by qwb7 with SMTP id 7so6924013qwb.19
-        for <linux-omap@vger.kernel.org>; Wed, 01 Dec 2010 02:55:51 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:49181 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752147Ab0LAK7t convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 05:59:49 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Janorkar, Mayuresh" <mayur@ti.com>
 
-Wakeup-on-timer code does not have/need debugfs dependency.  Move
-the function out of debugfs ifdef.
+From: Mayuresh Janorkar <mayur@ti.com>
 
-Fixes compile error when CONFIG_DEBUG_FS is disabled but PM debug is
-enabled.
+This patch would add two APIs for panel-taal:
+check_timings and set_timings.
 
-Reported-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+These are required by omapfb in case we wish to set default mode through bootargs.
+e.g.: omapfb.mode="lcd:640x480-16" (display device:width X height - bits per pixel)
+
+omapfb_set_def_mode function in omapfb-main.c essentially needs these functions
+otherwise it would return -EINVAL and default mode sent through bootargs
+would be ignored.
+
+Signed-off-by: Mayuresh Janorkar <mayur@ti.com>
 ---
-Applies to Tony's omap-fixes branch, targeted for .37-rc.
+ drivers/video/omap2/displays/panel-taal.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
-Apologies for duplicates, original had wrong address for linux-omap ML
-
- arch/arm/mach-omap2/pm-debug.c |   34 +++++++++++++++++-----------------
- 1 files changed, 17 insertions(+), 17 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 5e81517..a8afb61 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -161,6 +161,23 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
- 		printk(KERN_INFO "%-20s: 0x%08x\n", regs[i].name, regs[i].val);
+diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
+index e1c765d..e29c308 100644
+--- a/drivers/video/omap2/displays/panel-taal.c
++++ b/drivers/video/omap2/displays/panel-taal.c
+@@ -476,6 +476,29 @@ static void taal_get_timings(struct omap_dss_device *dssdev,
+ 	*timings = dssdev->panel.timings;
  }
  
-+void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
++static void taal_set_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
 +{
-+	u32 tick_rate, cycles;
-+
-+	if (!seconds && !milliseconds)
-+		return;
-+
-+	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
-+	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
-+	omap_dm_timer_stop(gptimer_wakeup);
-+	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
-+
-+	pr_info("PM: Resume timer in %u.%03u secs"
-+		" (%d ticks at %d ticks/sec.)\n",
-+		seconds, milliseconds, cycles, tick_rate);
++	/* TAAL panel's timing struct has only x_res and y_res
++	 * other timing parameters are not set
++	 */
++	dssdev->panel.timings.x_res = timings->x_res;
++	dssdev->panel.timings.y_res = timings->y_res;
 +}
 +
- #ifdef CONFIG_DEBUG_FS
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
-@@ -354,23 +371,6 @@ void pm_dbg_update_time(struct powerdomain *pwrdm, int prev)
- 	pwrdm->timer = t;
- }
- 
--void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
--{
--	u32 tick_rate, cycles;
--
--	if (!seconds && !milliseconds)
--		return;
--
--	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
--	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
--	omap_dm_timer_stop(gptimer_wakeup);
--	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
--
--	pr_info("PM: Resume timer in %u.%03u secs"
--		" (%d ticks at %d ticks/sec.)\n",
--		seconds, milliseconds, cycles, tick_rate);
--}
--
- static int clkdm_dbg_show_counter(struct clockdomain *clkdm, void *user)
++static int taal_check_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
++{
++	/* TAAL panel's timing struct has only x_res and y_res
++	 * other timing parameters are not set
++	 */
++	if (!timings || timings->x_res != dssdev->panel.timings.x_res ||
++		timings->y_res != dssdev->panel.timings.y_res)
++		return -EINVAL;
++
++	return 0;
++}
++
+ static void taal_get_resolution(struct omap_dss_device *dssdev,
+ 		u16 *xres, u16 *yres)
  {
- 	struct seq_file *s = (struct seq_file *)user;
+@@ -1563,6 +1586,8 @@ static struct omap_dss_driver taal_driver = {
+ 	.memory_read	= taal_memory_read,
+ 
+ 	.get_timings	= taal_get_timings,
++	.set_timings	= taal_set_timings,
++	.check_timings	= taal_check_timings,
+ 
+ 	.driver         = {
+ 		.name   = "taal",
 -- 
-1.7.2.1
+1.7.0.4
 
