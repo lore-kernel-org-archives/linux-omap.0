@@ -1,321 +1,290 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 7/7 v2] OMAP: runtime: McSPI driver runtime conversion
-Date: Wed, 1 Dec 2010 19:32:11 +0530 (IST)
-Message-ID: <33542.10.24.255.18.1291212131.squirrel@dbdmail.itg.ti.com>
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: Re: [PATCH 1/3] Backlight: driver for Sharp LS037V7DW01 panel on OMAP machine
+Date: Wed, 1 Dec 2010 22:21:24 +0800
+Message-ID: <AANLkTimjoDJoG2GLjPamhROAHLBx77=a=DP+K2a7uPYe@mail.gmail.com>
+References: <1291118860-10325-1-git-send-email-bryan.wu@canonical.com>
+	<1291118860-10325-2-git-send-email-bryan.wu@canonical.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB0322C02493@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58358 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755141Ab0LAOC1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 09:02:27 -0500
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:48701 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754862Ab0LAOVZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 09:21:25 -0500
+Received: by qyk11 with SMTP id 11so2656572qyk.19
+        for <linux-omap@vger.kernel.org>; Wed, 01 Dec 2010 06:21:24 -0800 (PST)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB0322C02493@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org
-Cc: Charulatha V <charu@ti.com>, khilman@deeprootsystems.com, tony@atomide.com, p-basak2@ti.com, grant.likely@secretlab.ca
+To: "Janorkar, Mayuresh" <mayur@ti.com>
+Cc: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>
 
-McSPI runtime conversion.
-Changes involves:
-1) remove clock framework apis to use runtime framework apis.
-2) context restore from runtime resume which is a callback for get_sync.
-3) Remove SYSCONFIG(sysc) register handling
-        (a) Remove context save and restore of sysc reg and remove soft reset
-            done from sysc reg as this will be done with hwmod framework.
-        (b) Also cleanup sysc reg bit macros.
-4) Rename the omap2_mcspi_reset function to omap2_mcspi_master_setup
-   function as with hwmod changes soft reset will be done in
-   hwmod framework itself and use the return value from clock
-   enable function to return for failure scenarios.
+On Tue, Nov 30, 2010 at 9:09 PM, Janorkar, Mayuresh <mayur@ti.com> wrot=
+e:
+>
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Bryan Wu
+>> Sent: Tuesday, November 30, 2010 5:38 PM
+>> To: tomi.valkeinen@nokia.com; linux-omap@vger.kernel.org; linux-arm-
+>> kernel@lists.infradead.org; Gadiyar, Anand; rpurdie@rpsys.net
+>> Subject: [PATCH 1/3] Backlight: driver for Sharp LS037V7DW01 panel o=
+n OMAP
+>> machine
+>>
+>> This driver is split from drivers/video/backlight/sharp_ls037v7dw01.=
+c
+>>
+>> Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+>> ---
+>> =A0drivers/video/backlight/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 | =A0 10 =
+++
+>> =A0drivers/video/backlight/Makefile =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
+1 +
+>> =A0drivers/video/backlight/sharp_ls037v7dw01.c | =A0144
+>> +++++++++++++++++++++++++++
+>> =A03 files changed, 155 insertions(+), 0 deletions(-)
+>> =A0create mode 100644 drivers/video/backlight/sharp_ls037v7dw01.c
+>>
+>> diff --git a/drivers/video/backlight/Kconfig
+>> b/drivers/video/backlight/Kconfig
+>> index e54a337..46b2415 100644
+>> --- a/drivers/video/backlight/Kconfig
+>> +++ b/drivers/video/backlight/Kconfig
+>> @@ -307,6 +307,16 @@ config BACKLIGHT_PCF50633
+>> =A0 =A0 =A0 =A0 If you have a backlight driven by a NXP PCF50633 MFD=
+, say Y here
+>> to
+>> =A0 =A0 =A0 =A0 enable its driver.
+>>
+>> +config BACKLIGHT_SHARP_LS037V7DW01
+>> + =A0 =A0 tristate "Backlight driver for SHARP LS037V7DW01 Panel"
+>> + =A0 =A0 depends on PANEL_GENERIC_DPI
+>> + =A0 =A0 help
+>> + =A0 =A0 =A0 If you are using Sharp LS037V7DW01 LCD panel, say Y he=
+re to enable
+>> this driver.
+>> +
+>> + =A0 =A0 =A0 To compile this driver as a module, choose M here: the=
+ module will
+>> + =A0 =A0 =A0 be called sharp_ls037v7dw01.
+>> +
+>> +
+> [Mayuresh]: Please do not introduce extra new lines.
 
-Signed-off-by: Charulatha V <charu@ti.com>
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-Reviewed-by: Partha Basak <p-basak2@ti.com>
----
- drivers/spi/omap2_mcspi.c |  120 +++++++++++++++++---------------------------
- 1 files changed, 46 insertions(+), 74 deletions(-)
+No problem, I will remove this for next try.
 
-diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-index ad3811e..a1b157f 100644
---- a/drivers/spi/omap2_mcspi.c
-+++ b/drivers/spi/omap2_mcspi.c
-@@ -33,6 +33,7 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/slab.h>
-+#include <linux/pm_runtime.h>
-
- #include <linux/spi/spi.h>
-
-@@ -46,7 +47,6 @@
- #define OMAP2_MCSPI_MAX_CTRL 		4
-
- #define OMAP2_MCSPI_REVISION		0x00
--#define OMAP2_MCSPI_SYSCONFIG		0x10
- #define OMAP2_MCSPI_SYSSTATUS		0x14
- #define OMAP2_MCSPI_IRQSTATUS		0x18
- #define OMAP2_MCSPI_IRQENABLE		0x1c
-@@ -63,13 +63,6 @@
-
- /* per-register bitmasks: */
-
--#define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	BIT(4)
--#define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	BIT(2)
--#define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	BIT(0)
--#define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	BIT(1)
--
--#define OMAP2_MCSPI_SYSSTATUS_RESETDONE	BIT(0)
--
- #define OMAP2_MCSPI_MODULCTRL_SINGLE	BIT(0)
- #define OMAP2_MCSPI_MODULCTRL_MS	BIT(2)
- #define OMAP2_MCSPI_MODULCTRL_STEST	BIT(3)
-@@ -122,13 +115,12 @@ struct omap2_mcspi {
- 	spinlock_t		lock;
- 	struct list_head	msg_queue;
- 	struct spi_master	*master;
--	struct clk		*ick;
--	struct clk		*fck;
- 	/* Virtual base address of the controller */
- 	void __iomem		*base;
- 	unsigned long		phys;
- 	/* SPI1 has 4 channels, while SPI2 has 2 */
- 	struct omap2_mcspi_dma	*dma_channels;
-+	struct  device          *dev;
- };
-
- struct omap2_mcspi_cs {
-@@ -144,7 +136,6 @@ struct omap2_mcspi_cs {
-  * corresponding registers are modified.
-  */
- struct omap2_mcspi_regs {
--	u32 sysconfig;
- 	u32 modulctrl;
- 	u32 wakeupenable;
- 	struct list_head cs;
-@@ -268,9 +259,6 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
- 	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
- 			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
-
--	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
--			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
--
- 	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
- 			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
-
-@@ -280,20 +268,12 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
- }
- static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
- {
--	clk_disable(mcspi->ick);
--	clk_disable(mcspi->fck);
-+	pm_runtime_put_sync(mcspi->dev);
- }
-
- static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
- {
--	if (clk_enable(mcspi->ick))
--		return -ENODEV;
--	if (clk_enable(mcspi->fck))
--		return -ENODEV;
--
--	omap2_mcspi_restore_ctx(mcspi);
--
--	return 0;
-+	return pm_runtime_get_sync(mcspi->dev);
- }
-
- static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit)
-@@ -819,8 +799,9 @@ static int omap2_mcspi_setup(struct spi_device *spi)
- 			return ret;
- 	}
-
--	if (omap2_mcspi_enable_clocks(mcspi))
--		return -ENODEV;
-+	ret = omap2_mcspi_enable_clocks(mcspi);
-+	if (ret < 0)
-+		return ret;
-
- 	ret = omap2_mcspi_setup_transfer(spi, NULL);
- 	omap2_mcspi_disable_clocks(mcspi);
-@@ -863,10 +844,11 @@ static void omap2_mcspi_work(struct work_struct *work)
- 	struct omap2_mcspi	*mcspi;
-
- 	mcspi = container_of(work, struct omap2_mcspi, work);
--	spin_lock_irq(&mcspi->lock);
-
--	if (omap2_mcspi_enable_clocks(mcspi))
--		goto out;
-+	if (omap2_mcspi_enable_clocks(mcspi) < 0)
-+		return;
-+
-+	spin_lock_irq(&mcspi->lock);
-
- 	/* We only enable one channel at a time -- the one whose message is
- 	 * at the head of the queue -- although this controller would gladly
-@@ -979,10 +961,9 @@ static void omap2_mcspi_work(struct work_struct *work)
- 		spin_lock_irq(&mcspi->lock);
- 	}
-
--	omap2_mcspi_disable_clocks(mcspi);
--
--out:
- 	spin_unlock_irq(&mcspi->lock);
-+
-+	omap2_mcspi_disable_clocks(mcspi);
- }
-
- static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
-@@ -1063,25 +1044,15 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message
-*m)
- 	return 0;
- }
-
--static int __init omap2_mcspi_reset(struct omap2_mcspi *mcspi)
-+static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
- {
- 	struct spi_master	*master = mcspi->master;
- 	u32			tmp;
-+	int ret = 0;
-
--	if (omap2_mcspi_enable_clocks(mcspi))
--		return -1;
--
--	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
--			OMAP2_MCSPI_SYSCONFIG_SOFTRESET);
--	do {
--		tmp = mcspi_read_reg(master, OMAP2_MCSPI_SYSSTATUS);
--	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
--
--	tmp = OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
--		OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
--		OMAP2_MCSPI_SYSCONFIG_SMARTIDLE;
--	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG, tmp);
--	omap2_mcspi_ctx[master->bus_num - 1].sysconfig = tmp;
-+	ret = omap2_mcspi_enable_clocks(mcspi);
-+	if (ret < 0)
-+		return ret;
-
- 	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
- 	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
-@@ -1092,6 +1063,18 @@ static int __init omap2_mcspi_reset(struct omap2_mcspi *mcspi)
- 	return 0;
- }
-
-+static int omap_mcspi_runtime_resume(struct device *dev)
-+{
-+	struct omap2_mcspi	*mcspi;
-+	struct spi_master	*master;
-+
-+	master = dev_get_drvdata(dev);
-+	mcspi = spi_master_get_devdata(master);
-+	omap2_mcspi_restore_ctx(mcspi);
-+
-+	return 0;
-+}
-+
-
- static int __init omap2_mcspi_probe(struct platform_device *pdev)
- {
-@@ -1142,34 +1125,22 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
- 	if (!mcspi->base) {
- 		dev_dbg(&pdev->dev, "can't ioremap MCSPI\n");
- 		status = -ENOMEM;
--		goto err1aa;
-+		goto err2;
- 	}
-
-+	mcspi->dev = &pdev->dev;
- 	INIT_WORK(&mcspi->work, omap2_mcspi_work);
-
- 	spin_lock_init(&mcspi->lock);
- 	INIT_LIST_HEAD(&mcspi->msg_queue);
- 	INIT_LIST_HEAD(&omap2_mcspi_ctx[master->bus_num - 1].cs);
-
--	mcspi->ick = clk_get(&pdev->dev, "ick");
--	if (IS_ERR(mcspi->ick)) {
--		dev_dbg(&pdev->dev, "can't get mcspi_ick\n");
--		status = PTR_ERR(mcspi->ick);
--		goto err1a;
--	}
--	mcspi->fck = clk_get(&pdev->dev, "fck");
--	if (IS_ERR(mcspi->fck)) {
--		dev_dbg(&pdev->dev, "can't get mcspi_fck\n");
--		status = PTR_ERR(mcspi->fck);
--		goto err2;
--	}
--
- 	mcspi->dma_channels = kcalloc(master->num_chipselect,
- 			sizeof(struct omap2_mcspi_dma),
- 			GFP_KERNEL);
-
- 	if (mcspi->dma_channels == NULL)
--		goto err3;
-+		goto err2;
-
- 	for (i = 0; i < master->num_chipselect; i++) {
- 		char dma_ch_name[14];
-@@ -1199,8 +1170,10 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
- 		mcspi->dma_channels[i].dma_tx_sync_dev = dma_res->start;
- 	}
-
--	if (omap2_mcspi_reset(mcspi) < 0)
--		goto err4;
-+	pm_runtime_enable(&pdev->dev);
-+
-+	if (status || omap2_mcspi_master_setup(mcspi) < 0)
-+		goto err3;
-
- 	status = spi_register_master(master);
- 	if (status < 0)
-@@ -1209,17 +1182,13 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
- 	return status;
-
- err4:
--	kfree(mcspi->dma_channels);
-+	spi_master_put(master);
- err3:
--	clk_put(mcspi->fck);
-+	kfree(mcspi->dma_channels);
- err2:
--	clk_put(mcspi->ick);
--err1a:
--	iounmap(mcspi->base);
--err1aa:
- 	release_mem_region(r->start, (r->end - r->start) + 1);
-+	iounmap(mcspi->base);
- err1:
--	spi_master_put(master);
- 	return status;
- }
-
-@@ -1235,9 +1204,7 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
- 	mcspi = spi_master_get_devdata(master);
- 	dma_channels = mcspi->dma_channels;
-
--	clk_put(mcspi->fck);
--	clk_put(mcspi->ick);
--
-+	omap2_mcspi_disable_clocks(mcspi);
- 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	release_mem_region(r->start, (r->end - r->start) + 1);
-
-@@ -1252,10 +1219,15 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
- /* work with hotplug and coldplug */
- MODULE_ALIAS("platform:omap2_mcspi");
-
-+static const struct dev_pm_ops omap_mcspi_dev_pm_ops = {
-+	.runtime_resume	= omap_mcspi_runtime_resume,
-+};
-+
- static struct platform_driver omap2_mcspi_driver = {
- 	.driver = {
- 		.name =		"omap2_mcspi",
- 		.owner =	THIS_MODULE,
-+		.pm = &omap_mcspi_dev_pm_ops,
- 	},
- 	.remove =	__exit_p(omap2_mcspi_remove),
- };
--- 
-1.7.1
+>> =A0endif # BACKLIGHT_CLASS_DEVICE
+>>
+>> =A0endif # BACKLIGHT_LCD_SUPPORT
+>> diff --git a/drivers/video/backlight/Makefile
+>> b/drivers/video/backlight/Makefile
+>> index 44c0f81..c756f49 100644
+>> --- a/drivers/video/backlight/Makefile
+>> +++ b/drivers/video/backlight/Makefile
+>> @@ -35,4 +35,5 @@ obj-$(CONFIG_BACKLIGHT_ADP5520) =A0 =A0 +=3D adp55=
+20_bl.o
+>> =A0obj-$(CONFIG_BACKLIGHT_ADP8860) =A0 =A0 =A0+=3D adp8860_bl.o
+>> =A0obj-$(CONFIG_BACKLIGHT_88PM860X) +=3D 88pm860x_bl.o
+>> =A0obj-$(CONFIG_BACKLIGHT_PCF50633) =A0 =A0 +=3D pcf50633-backlight.=
+o
+>> +obj-$(CONFIG_BACKLIGHT_SHARP_LS037V7DW01) =A0 =A0+=3D sharp_ls037v7=
+dw01.o
+>>
+>> diff --git a/drivers/video/backlight/sharp_ls037v7dw01.c
+>> b/drivers/video/backlight/sharp_ls037v7dw01.c
+>> new file mode 100644
+>> index 0000000..e90595e
+>> --- /dev/null
+>> +++ b/drivers/video/backlight/sharp_ls037v7dw01.c
+>> @@ -0,0 +1,144 @@
+>> +/*
+>> + * Backlight driver for Sharp LS037V7DW01
+>> + *
+>> + * Copyright (C) 2010 Canonical Ltd.
+>> + * Author: Bryan Wu <bryan.wu@canonical.com>
+>> + *
+>> + * Copyright (C) 2008 Nokia Corporation
+>> + * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or mo=
+dify
+>> it
+>> + * under the terms of the GNU General Public License version 2 as
+>> published by
+>> + * the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful, =
+but
+>> WITHOUT
+>> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILI=
+TY or
+>> + * FITNESS FOR A PARTICULAR PURPOSE. =A0See the GNU General Public =
+License
+>> for
+>> + * more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public Licens=
+e
+>> along with
+>> + * this program. =A0If not, see <http://www.gnu.org/licenses/>.
+>> + */
+>> +
+>> +#include <linux/module.h>
+>> +#include <linux/device.h>
+>> +#include <linux/backlight.h>
+>> +#include <linux/fb.h>
+>> +#include <linux/err.h>
+>> +
+>> +/* This OMAP platform header file is required by this driver */
+>> +#include <plat/display.h>
+>> +
+>> +static int sharp_ls_bl_update_status(struct backlight_device *bl)
+>> +{
+>> + =A0 =A0 struct omap_dss_device *dssdev =3D bl_get_data(bl);
+>> + =A0 =A0 int level;
+>> +
+>> + =A0 =A0 if (!dssdev->set_backlight)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> +
+>> + =A0 =A0 if (bl->props.fb_blank =3D=3D FB_BLANK_UNBLANK &&
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bl->props.power =3D=3D FB_=
+BLANK_UNBLANK)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 level =3D bl->props.brightness;
+>> + =A0 =A0 else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 level =3D 0;
+>> +
+>> + =A0 =A0 return dssdev->set_backlight(dssdev, level);
+>> +}
+>> +
+>> +static int sharp_ls_bl_get_brightness(struct backlight_device *bl)
+>> +{
+>> + =A0 =A0 if (bl->props.fb_blank =3D=3D FB_BLANK_UNBLANK &&
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bl->props.power =3D=3D FB_=
+BLANK_UNBLANK)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return bl->props.brightness;
+>> +
+>> + =A0 =A0 return 0;
+>> +}
+>> +
+>> +static const struct backlight_ops sharp_ls_bl_ops =3D {
+>> + =A0 =A0 .get_brightness =3D sharp_ls_bl_get_brightness,
+>> + =A0 =A0 .update_status =A0=3D sharp_ls_bl_update_status,
+>> +};
+>> +
+>> +static int __devinit sharp_ls_bl_probe(struct platform_device *pdev=
+)
+>> +{
+>> + =A0 =A0 struct backlight_properties props;
+>> + =A0 =A0 struct backlight_device *bl;
+>> + =A0 =A0 struct omap_dss_device *dssdev =3D pdev->dev.platform_data=
+;
+>> +
+>> + =A0 =A0 if (!dssdev)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> +
+>> + =A0 =A0 memset(&props, 0, sizeof(struct backlight_properties));
+>> + =A0 =A0 props.max_brightness =3D dssdev->max_backlight_level;
+>> +
+>> + =A0 =A0 bl =3D backlight_device_register("sharp-ls-bl", &dssdev->d=
+ev, dssdev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &sharp_ls_bl_ops, &props);
+>> + =A0 =A0 if (IS_ERR(bl))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(bl);
+>> +
+>> + =A0 =A0 bl->props.fb_blank =3D FB_BLANK_UNBLANK;
+>> + =A0 =A0 bl->props.power =3D FB_BLANK_UNBLANK;
+>> + =A0 =A0 bl->props.brightness =3D dssdev->max_backlight_level;
+>> + =A0 =A0 backlight_update_status(bl);
+>> +
+>> + =A0 =A0 platform_set_drvdata(pdev, bl);
+>> + =A0 =A0 return 0;
+>> +}
+>> +
+>> +static int __devexit sharp_ls_bl_remove(struct platform_device *pde=
+v)
+>> +{
+>> + =A0 =A0 struct backlight_device *bl =3D platform_get_drvdata(pdev)=
+;
+>> +
+>> + =A0 =A0 bl->props.power =3D FB_BLANK_POWERDOWN;
+>> + =A0 =A0 backlight_update_status(bl);
+>> + =A0 =A0 backlight_device_unregister(bl);
+>> +
+>> + =A0 =A0 return 0;
+>> +}
+>> +
+>> +#ifdef CONFIG_PM
+>> +static int sharp_ls_bl_suspend(struct platform_device *dev, pm_mess=
+age_t
+>> state)
+>> +{
+>> + =A0 =A0 return 0;
+>> +}
+>> +
+>> +static int sharp_ls_bl_resume(struct platform_device *dev)
+>> +{
+>> + =A0 =A0 struct backlight_device *bl =3D platform_get_drvdata(dev);
+>> +
+>> + =A0 =A0 backlight_update_status(bl);
+>> + =A0 =A0 return 0;
+>> +}
+>> +#else
+>> +#define sharp_ls_bl_suspend =A0NULL
+>> +#define sharp_ls_bl_resume =A0 NULL
+>> +#endif
+>> +
+>> +static struct platform_driver sharp_ls_bl_driver =3D {
+>> + =A0 =A0 .driver =A0 =A0 =A0 =A0 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "sharp-ls-bl",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .owner =A0=3D THIS_MODULE,
+>> + =A0 =A0 },
+>> + =A0 =A0 .probe =A0 =A0 =A0 =A0 =A0=3D sharp_ls_bl_probe,
+>> + =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D __devexit_p(sharp_ls_bl_remove=
+),
+>> + =A0 =A0 .suspend =A0 =A0 =A0 =A0=3D sharp_ls_bl_suspend,
+>> + =A0 =A0 .resume =A0 =A0 =A0 =A0 =3D sharp_ls_bl_resume,
+>> +};
+>> +
+>> +static int __init sharp_ls_bl_init(void)
+>> +{
+>> + =A0 =A0 return platform_driver_register(&sharp_ls_bl_driver);
+>> +}
+>> +module_init(sharp_ls_bl_init);
+>> +
+>> +static void __exit sharp_ls_bl_exit(void)
+>> +{
+>> + =A0 =A0 platform_driver_unregister(&sharp_ls_bl_driver);
+>> +}
+>> +module_exit(sharp_ls_bl_exit);
+>> +
+>> +MODULE_DESCRIPTION("Sharp LS037V7DW01 Backlight Driver");
+>> +MODULE_AUTHOR("Bryan Wu <bryan.wu@canonical.com>");
+>> +MODULE_LICENSE("GPL");
+>> +MODULE_ALIAS("platform:sharp-ls-bl");
+>> --
+>> 1.7.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
 
+
+--=20
+Bryan Wu <bryan.wu@canonical.com>
+Kernel Developer =A0 =A0+86.138-1617-6545 Mobile
+Ubuntu Kernel Team
+Canonical Ltd. =A0 =A0 =A0www.canonical.com
+Ubuntu - Linux for human beings | www.ubuntu.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
