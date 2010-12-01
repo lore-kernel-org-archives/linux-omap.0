@@ -1,17 +1,17 @@
 From: Vishwanath Sripathy <vishwanath.bs@ti.com>
 Subject: RE: [PATCH v2 13/14] OMAP3: Add voltage dependency table for VDD1.
-Date: Wed, 1 Dec 2010 21:01:28 +0530
-Message-ID: <dadde3c3b13cc1797009cca1153c6974@mail.gmail.com>
+Date: Wed, 1 Dec 2010 21:02:13 +0530
+Message-ID: <10d2210af9889a27da106af6ad195486@mail.gmail.com>
 References: <1288366708-32302-1-git-send-email-thara@ti.com> <1288366708-32302-14-git-send-email-thara@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:32880 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752688Ab0LAPbU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 10:31:20 -0500
-Received: by mail-fx0-f53.google.com with SMTP id 4so2286869fxm.26
-        for <linux-omap@vger.kernel.org>; Wed, 01 Dec 2010 07:31:19 -0800 (PST)
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:60735 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751222Ab0LAPch (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 10:32:37 -0500
+Received: by mail-fx0-f54.google.com with SMTP id 16so5374658fxm.41
+        for <linux-omap@vger.kernel.org>; Wed, 01 Dec 2010 07:32:36 -0800 (PST)
 In-Reply-To: <1288366708-32302-14-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
