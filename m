@@ -1,59 +1,239 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH v8 01-b/11] OMAP: GPIO: Make omap_gpio_show_rev bank
- specific
-Date: Wed, 1 Dec 2010 10:34:35 -0800
-Message-ID: <20101201183435.GJ17222@atomide.com>
-References: <1290689318-10191-1-git-send-email-charu@ti.com>
- <1290689318-10191-2-git-send-email-charu@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [PATCH v6] OMAP2+: PM: omap device: API's for handling mstandby mode
+Date: Thu,  2 Dec 2010 00:17:08 +0530
+Message-ID: <1291229228-4438-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45446 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755618Ab0LASen (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 13:34:43 -0500
-Content-Disposition: inline
-In-Reply-To: <1290689318-10191-2-git-send-email-charu@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54994 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752371Ab0LASqg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Dec 2010 13:46:36 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, p-basak2@ti.com
+To: linux-omap@vger.kernel.org
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 
-Otherwise GPIO init on 16xx may try to access uninitialized GPIO
-bank as the MPUIO bank does not have a revision register.
+Certain errata in OMAP2+ processors will require forcing
+master standby to "no standby" mode before completing on going
+operation. Without this, the results will be unpredictable.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Since current implementation of PM run time framework does not support
+changing sysconfig settings during middle of the on going operation,
+these API's will support the same. One API will force the device's
+sysconfig mstandby mode settings to "no standby" and other API will
+release "no standby" mode and sets it to "smart standby" or "no
+standby? depending on HWMOD_SWSUP_MSTANDBY value.
 
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -1689,16 +1689,16 @@ static struct clk * gpio5_fck;
- static struct clk *gpio_iclks[OMAP34XX_NR_GPIOS];
- #endif
- 
--static void __init omap_gpio_show_rev(void)
-+static void __init omap_gpio_show_rev(struct gpio_bank *bank)
- {
- 	u32 rev;
- 
--	if (cpu_is_omap16xx())
--		rev = __raw_readw(gpio_bank[1].base + OMAP1610_GPIO_REVISION);
-+	if (cpu_is_omap16xx() && !(bank->method != METHOD_MPUIO))
-+		rev = __raw_readw(bank->base + OMAP1610_GPIO_REVISION);
- 	else if (cpu_is_omap24xx() || cpu_is_omap34xx())
--		rev = __raw_readl(gpio_bank[0].base + OMAP24XX_GPIO_REVISION);
-+		rev = __raw_readl(bank->base + OMAP24XX_GPIO_REVISION);
- 	else if (cpu_is_omap44xx())
--		rev = __raw_readl(gpio_bank[0].base + OMAP4_GPIO_REVISION);
-+		rev = __raw_readl(bank->base + OMAP4_GPIO_REVISION);
- 	else
- 		return;
- 
-@@ -1958,7 +1958,7 @@ static int __init _omap_gpio_init(void)
- 		}
- 	}
- 
--	omap_gpio_show_rev();
-+	omap_gpio_show_rev(bank);
- 
- 	return 0;
+These API's should be used by device drivers only incase of
+erratum applicable to their modules if there is no other methods
+to resolve.
+
+These API's are required for multiple DMA errata which require
+putting DMA controller in no mstandby mode before stopping dma.
+
+The applicable errata:
+1. Erratum ID: i557(Applicable for omap36xx all ES versions)
+The channel hangs when the Pause bit (DMA4_CDPi [7] ) is cleared
+through config port while in Standby.
+
+2. Erratum ID: i541
+sDMA FIFO draining does not finish. Applicable to all omap2+ except
+omap4.
+
+3. Erratum ID:i88
+The sDMA to be put in no mstandby mode before disabling the channel
+after completing the data transfer operation.
+Applicable only for OMAP3430 ES1.0
+
+Also fixes typo HWMOD_SWSUP_MSTDBY to HWMOD_SWSUP_MSTANDBY in
+omap_hwmod.h
+
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org
+
+---
+Change summary:
+v3: Review comments incorporated for:
+https://patchwork.kernel.org/patch/282212/
+v4: added mutex changes
+v5: typo fixes for errata and erratum
+v6: fixed oh increment bug and also mutex(missing in v5)
+
+ arch/arm/mach-omap2/omap_hwmod.c              |   47 +++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    4 +-
+ arch/arm/plat-omap/omap_device.c              |   60 +++++++++++++++++++++++++
+ 4 files changed, 111 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 5a30658..023bca9 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1427,6 +1427,52 @@ int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode)
  }
+ 
+ /**
++ * omap_hwmod_set_master_standbymode - set the hwmod's OCP mstandby mode
++ * @oh: struct omap_hwmod *
++ * @midlemode: flag to set mstandby to either "no standby" or "smart standby"
++ *
++ * Sets the IP block's OCP mstandby mode in hardware, and updates our
++ * local copy.  Intended to be used by drivers that have some erratum
++ * that requires direct manipulation of the MIDLEMODE bits.  Returns
++ * -EINVAL if @oh is null, or passes along the return value from
++ * _set_master_standbymode().
++ *
++ * Any users of this function should be scrutinized carefully.
++ */
++int omap_hwmod_set_master_standbymode(struct omap_hwmod *oh, u8 idlemode)
++{
++	u32 v;
++	u8 sf;
++	int retval = 0;
++
++	if (!oh)
++		return -EINVAL;
++
++	if (!oh->class->sysc)
++		return -EINVAL;
++
++	mutex_lock(&omap_hwmod_mutex);
++
++	v = oh->_sysc_cache;
++	sf = oh->class->sysc->sysc_flags;
++
++	if (sf & SYSC_HAS_MIDLEMODE) {
++		if (idlemode)
++			idlemode = HWMOD_IDLEMODE_NO;
++		else
++			idlemode = (oh->flags & HWMOD_SWSUP_MSTANDBY) ?
++				HWMOD_IDLEMODE_NO : HWMOD_IDLEMODE_SMART;
++	}
++	retval = _set_master_standbymode(oh, idlemode, &v);
++	if (!retval)
++		_write_sysconfig(v, oh);
++
++	mutex_unlock(&omap_hwmod_mutex);
++
++	return retval;
++}
++
++/**
+  * omap_hwmod_register - register a struct omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+@@ -2116,4 +2162,3 @@ int omap_hwmod_for_each_by_class(const char *classname,
+ 
+ 	return ret;
+ }
+-
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index 28e2d1a..4fbf7c1 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -116,6 +116,8 @@ int omap_device_enable_hwmods(struct omap_device *od);
+ int omap_device_disable_clocks(struct omap_device *od);
+ int omap_device_enable_clocks(struct omap_device *od);
+ 
++int omap_device_require_no_mstandby(struct platform_device *pdev);
++int omap_device_release_no_mstandby(struct platform_device *pdev);
+ 
+ /*
+  * Entries should be kept in latency order ascending
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 7eaa8ed..c7ff65a 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -354,7 +354,7 @@ struct omap_hwmod_omap4_prcm {
+  *
+  * HWMOD_SWSUP_SIDLE: omap_hwmod code should manually bring module in and out
+  *     of idle, rather than relying on module smart-idle
+- * HWMOD_SWSUP_MSTDBY: omap_hwmod code should manually bring module in and out
++ * HWMOD_SWSUP_MSTANDBY: omap_hwmod code should manually bring module in and out
+  *     of standby, rather than relying on module smart-standby
+  * HWMOD_INIT_NO_RESET: don't reset this module at boot - important for
+  *     SDRAM controller, etc.
+@@ -526,6 +526,8 @@ int omap_hwmod_disable_clocks(struct omap_hwmod *oh);
+ 
+ int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode);
+ 
++int omap_hwmod_set_master_standbymode(struct omap_hwmod *oh, u8 idlemode);
++
+ int omap_hwmod_reset(struct omap_hwmod *oh);
+ void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
+ 
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index abe933c..2d42ab2 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -584,6 +584,66 @@ int omap_device_idle(struct platform_device *pdev)
+ }
+ 
+ /**
++ * omap_device_require_no_mstandby - set no mstandby mode of an omap_device
++ * @od: struct omap_device * to idle
++ *
++ * Sets the IP block's OCP master standby to no mstandby mode in hardware.
++ *
++ * Intended to be used by drivers that have some erratum that requires direct
++ * manipulation of the MSTANDBYMODE bits. Returns -EINVAL if the
++ * omap_device is not currently enabled or passes along the return value
++ * of omap_hwmod_set_master_standbymode().
++ */
++int omap_device_require_no_mstandby(struct platform_device *pdev)
++{
++	int ret  = 0, i;
++	struct omap_device *od;
++
++	od = _find_by_pdev(pdev);
++	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
++		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
++		     od->pdev.name, od->pdev.id, __func__, od->_state);
++		return -EINVAL;
++	}
++
++	for (i = 0; i < od->hwmods_cnt; i++)
++		ret = omap_hwmod_set_master_standbymode(od->hwmods[i], true);
++
++	return ret;
++}
++
++/**
++ * omap_device_release_no_mstandby - releases no mstandby mode of an omap_device
++ * @od: struct omap_device * to idle
++ *
++ * Release no mstandby mode and sets the master standby to either no standby or
++ * smart standby in IP block's OCP in hardware depending on status of the flag
++ * HWMOD_SWSUP_MSTANDBY.
++ *
++ * Intended to be used by drivers that have some erratum that requires direct
++ * manipulation of the MSTANDBYMODE bits. Returns -EINVAL if the
++ * omap_device is not currently enabled or passes along the return value
++ * of omap_hwmod_set_master_standbymode().
++ */
++int omap_device_release_no_mstandby(struct platform_device *pdev)
++{
++	int ret  = 0, i;
++	struct omap_device *od;
++
++	od = _find_by_pdev(pdev);
++	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
++		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
++		     od->pdev.name, od->pdev.id, __func__, od->_state);
++		return -EINVAL;
++	}
++
++	for (i = 0; i < od->hwmods_cnt; i++)
++		ret = omap_hwmod_set_master_standbymode(od->hwmods[i], false);
++
++	return ret;
++}
++
++/**
+  * omap_device_shutdown - shut down an omap_device
+  * @od: struct omap_device * to shut down
+  *
+-- 
+1.7.1
+
