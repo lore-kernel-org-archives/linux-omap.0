@@ -1,81 +1,80 @@
-From: Rick Bronson <rick@efn.org>
-Subject: Re: UART RX wakeup from sleep not working
-Date: Thu, 02 Dec 2010 10:49:31 -0800
-Message-ID: <E1POEDj-0002sN-R2@amazonia.comcast.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 09/14] OMAP: DMA: Convert DMA library into platform
+ driver
+Date: Thu, 2 Dec 2010 10:49:25 -0800
+Message-ID: <20101202184925.GT17222@atomide.com>
+References: <1290603110-14119-1-git-send-email-manjugk@ti.com>
+ <1290603110-14119-10-git-send-email-manjugk@ti.com>
+ <20101202184419.GR17222@atomide.com>
+ <20101202184617.GS17222@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from efn.org ([206.192.230.249]:34512 "EHLO samwise.efn.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753162Ab0LBStc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Dec 2010 13:49:32 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52981 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753162Ab0LBSte (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 13:49:34 -0500
+Content-Disposition: inline
+In-Reply-To: <20101202184617.GS17222@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-Hi Paul,
-
-  Thanks much for the help.
-
-> If the OMAP is in full-chip retention, the UART's asynchronous wakeup
-> mechanism won't work, which appears to be what you're trying to use.
-> That will only work when PER is fully powered, as far as I know.  You'll
-> need to use the IO chain wakeup feature instead.  My guess is that you
-> need to make sure that your UART input pads have the WAKEUPENABLE bits set
-> in the CONTROL_PADCONF registers.  I think that should do it.
-
-  I put debug code in and the IO chain wakeup feature is enabled and
-the WAKEUPENABLE bit is set on the pad in question.  With the IO chain
-feature what's the wakeup mechanism?  Does it generate an interrupt?
-
-  I've updated my assumptions:
-
-Assumptions (using UART3)
-
-1.  OMAP3730 is in sleep mode via
-    echo 1 > /mnt/dbg/pm_debug/sleep_while_idle
-2.  The UARTi.SCR_REG[4] RX_CTS_WU_EN bit is set to 1.
-3.  The UARTi.IER_REG[4] SLEEP_MODE bit to 1
-4.  The UARTi.SYSC_REG[2] ENAWAKEUP bit is set to 1
-5.  The UARTi.WER_REG EVENT_4_RX_ACTIVITY bit is set to 1
-6.  The UARTi.SSR_REG RX_CTS_DSR_WAKE_UP_STS bit is set to 1
-7.  The PRCM.PM_WKEN_WKUP EN_IO_CHAIN bit is set to 1 via omap3_enable_io_chain()
-8.  The PRCM.PM_WKEN_WKUP[8] EN_IO bit is set to 1 via omap3_enable_io_chain()
-9.  CONTROL_PADCONF_UART3_RTS_SD[14] WAKEUPENABLE0 is set to 1
-10. CONTROL_PADCONF_UART3_RTS_SD INPUTENABLE is set to 1
-
-  Thanks again,
-
- Rick
-
-> Hello Rick,
+* Tony Lindgren <tony@atomide.com> [101202 10:36]:
+> * Tony Lindgren <tony@atomide.com> [101202 10:34]:
+> > 
+> > This fails on omap1 as d is not allocated. Please merge the
+> > following fix.
 > 
-> On Wed, 1 Dec 2010, Rick Bronson wrote:
-> 
-> >   I'm having trouble getting the UART wakeup from sleep via activity
-> > on the RX pin working.
-> >
-> > --------------------------------------------------------
-> > Assumptions (using UART3)
-> >
-> > 1. Using Arago Linux 2.6.32
-> > 2. OMAP3730 is in sleep mode via
-> >    echo 1 > /mnt/dbg/pm_debug/sleep_while_idle
-> > 3. The UARTi.SCR_REG[4] RX_CTS_WU_EN bit is set to 1.
-> > 4. The UARTi.IER_REG[4] SLEEP_MODE bit to 1
-> > 5. The UARTi.SYSC_REG[2] ENAWAKEUP bit is set to 1
-> > 6. The UARTi.WER_REG EVENT_4_RX_ACTIVITY bit is set to 1
-> > 7. The UARTi.SSR_REG RX_CTS_DSR_WAKE_UP_STS bit is set to 1
-> >
-> > Expectations
-> >
-> >   When a character arrives on the RX pin of UART3 when in sleep mode,
-> > the OMAP3730 exits sleep mode immediately via a RX_CTS_DSR_WAKE_UP
-> > interrupt.
-> >
-> > Problem
-> >
-> >   The interrupt does happen but only after the UART clocks have been
-> > enabled.  The OMAP3730 seems to exit sleep mode only when the UART
-> > clocks are re-enabled via omap_uart_enable_clocks() in
-> > arch/arm/mach-omap2/serial.c
-> 
+> And another fix here:
+
+One more fix below.
+
+Note that even with these three fixes, 5912OSK still fails to
+boot to init. Maybe something wrong with the framebuffer DMA?
+
+Tony
+
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 2 Dec 2010 10:34:18 -0800
+Subject: [PATCH] Fix omap1_system_dma_init to initialize d->lch_count earlier
+
+Otherwise the kzalloc will allocate wrong amount of memory.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap1/dma.c
++++ b/arch/arm/mach-omap1/dma.c
+@@ -309,13 +309,7 @@ static int __init omap1_system_dma_init(void)
+ 		goto exit_release_p;
+ 	}
+ 
+-	d->chan = kzalloc(sizeof(struct omap_dma_lch) *
+-					(d->lch_count), GFP_KERNEL);
+-	if (!d->chan) {
+-		dev_err(&pdev->dev, "%s: Memory allocation failed"
+-					"for d->chan!!!\n", __func__);
+-		goto exit_release_d;
+-	}
++	d->lch_count		= OMAP1_LOGICAL_DMA_CH_COUNT;
+ 
+ 	/* Valid attributes for omap1 plus processors */
+ 	if (cpu_is_omap15xx())
+@@ -330,7 +324,14 @@ static int __init omap1_system_dma_init(void)
+ 	d->dev_caps		|= CLEAR_CSR_ON_READ;
+ 	d->dev_caps		|= IS_WORD_16;
+ 
+-	d->lch_count		= OMAP1_LOGICAL_DMA_CH_COUNT;
++
++	d->chan = kzalloc(sizeof(struct omap_dma_lch) *
++					(d->lch_count), GFP_KERNEL);
++	if (!d->chan) {
++		dev_err(&pdev->dev, "%s: Memory allocation failed"
++					"for d->chan!!!\n", __func__);
++		goto exit_release_d;
++	}
+ 
+ 	if (cpu_is_omap15xx())
+ 		d->chan_count = 9;
