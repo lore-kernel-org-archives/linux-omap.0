@@ -1,96 +1,143 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH v6] OMAP2+: PM: omap device: API's for handling
- mstandby mode
-Date: Thu, 2 Dec 2010 11:42:04 +0530
-Message-ID: <20101202061139.GA5645@GLPP-machine>
-References: <1291229228-4438-1-git-send-email-manjugk@ti.com>
- <4CF6AD2C.4020907@nokia.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH v4 1/9] OMAP3: PM: Adding voltage driver support for
+ OMAP3
+Date: Thu, 2 Dec 2010 11:43:07 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03736F43CB@dbde02.ent.ti.com>
+References: <1288195856-11011-1-git-send-email-thara@ti.com>
+	<1288195856-11011-2-git-send-email-thara@ti.com>
+ <87hbfp9gli.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:47710 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751912Ab0LBGLj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 01:11:39 -0500
-Received: by mail-gy0-f169.google.com with SMTP id 10so4383504gyg.14
-        for <linux-omap@vger.kernel.org>; Wed, 01 Dec 2010 22:11:37 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4CF6AD2C.4020907@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40931 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756959Ab0LBGNO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 01:13:14 -0500
+In-Reply-To: <87hbfp9gli.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-* Adrian Hunter <adrian.hunter@nokia.com> [2010-12-01 22:16:44 +0200]:
 
-> On 01/12/10 20:47, ext G, Manjunath Kondaiah wrote:
-> >Certain errata in OMAP2+ processors will require forcing
-> >master standby to "no standby" mode before completing on going
-> >operation. Without this, the results will be unpredictable.
-> >
-> >Since current implementation of PM run time framework does not support
-> >changing sysconfig settings during middle of the on going operation,
-> >these API's will support the same. One API will force the device's
-> >sysconfig mstandby mode settings to "no standby" and other API will
-> >release "no standby" mode and sets it to "smart standby" or "no
-> >standby? depending on HWMOD_SWSUP_MSTANDBY value.
-> >
-> >These API's should be used by device drivers only incase of
-> >erratum applicable to their modules if there is no other methods
-> >to resolve.
-> >
-> >These API's are required for multiple DMA errata which require
-> >putting DMA controller in no mstandby mode before stopping dma.
-> >
-> >The applicable errata:
-> >1. Erratum ID: i557(Applicable for omap36xx all ES versions)
-> >The channel hangs when the Pause bit (DMA4_CDPi [7] ) is cleared
-> >through config port while in Standby.
-> >
-> >2. Erratum ID: i541
-> >sDMA FIFO draining does not finish. Applicable to all omap2+ except
-> >omap4.
-> >
-> >3. Erratum ID:i88
-> >The sDMA to be put in no mstandby mode before disabling the channel
-> >after completing the data transfer operation.
-> >Applicable only for OMAP3430 ES1.0
-> >
-> >Also fixes typo HWMOD_SWSUP_MSTDBY to HWMOD_SWSUP_MSTANDBY in
-> >omap_hwmod.h
-> >
-> >Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
-> >Cc: Kevin Hilman<khilman@deeprootsystems.com>
-> >Cc: Paul Walmsley<paul@pwsan.com>
-> >Cc: linux-arm-kernel@lists.infradead.org
-> >
-> >---
-> >Change summary:
-> >v3: Review comments incorporated for:
-> >https://patchwork.kernel.org/patch/282212/
-> >v4: added mutex changes
-> >v5: typo fixes for errata and erratum
-> >v6: fixed oh increment bug and also mutex(missing in v5)
-> >
-> >  arch/arm/mach-omap2/omap_hwmod.c              |   47 +++++++++++++++++++-
-> >  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
-> >  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    4 +-
-> >  arch/arm/plat-omap/omap_device.c              |   60 +++++++++++++++++++++++++
-> >  4 files changed, 111 insertions(+), 2 deletions(-)
-> >
-> 
-> Does not seem to handle overlapping requests to set/clear
-> midle mode.
 
-We can have use count so that we can avoid register access during
-middle of operation if mstandby mode is already changed to "no standby"
-mode.
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Thursday, November 11, 2010 12:00 AM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
+>>Vishwanath; Sawant, Anand
+>>Subject: Re: [PATCH v4 1/9] OMAP3: PM: Adding voltage driver support for
+>>OMAP3
+>>
+>>Thara Gopinath <thara@ti.com> writes:
+>>
+>>> This patch adds voltage driver support for OMAP3. The driver
+>>> allows  configuring the voltage controller and voltage
+>>> processors during init and exports APIs to enable/disable
+>>> voltage processors, scale voltage and reset voltage.
+>>> The driver also maintains the global voltage table on a per
+>>> VDD basis which contains the various voltages supported by the
+>>> VDD along with per voltage dependent data like smartreflex
+>>> n-target value, errminlimit and voltage processor errorgain.
+>>> The driver allows scaling of VDD voltages either through
+>>> "vc bypass method" or through "vp forceupdate method" the
+>>> choice being configurable through the board file.
+>>>
+>>> This patch contains code originally in linux omap pm branch
+>>> smartreflex driver.  Major contributors to this driver are
+>>> Lesly A M, Rajendra Nayak, Kalle Jokiniemi, Paul Walmsley,
+>>> Nishant Menon, Kevin Hilman.
+>>>
+>>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>
+>>All comments below are cut-and-paste from v3 review, and were not
+>>addressed in this update.
+>>
+>>> ---
+>>>  arch/arm/mach-omap2/Makefile              |    3 +-
+>>>  arch/arm/mach-omap2/voltage.c             | 1158
+>>+++++++++++++++++++++++++++++
+>>>  arch/arm/plat-omap/include/plat/voltage.h |  141 ++++
+>>>  3 files changed, 1301 insertions(+), 1 deletions(-)
+>>>  create mode 100644 arch/arm/mach-omap2/voltage.c
+>>>  create mode 100644 arch/arm/plat-omap/include/plat/voltage.h
+>>>
+>>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+>>> index 0b6d9af..bfdabcc 100644
+>>> --- a/arch/arm/mach-omap2/Makefile
+>>> +++ b/arch/arm/mach-omap2/Makefile
+>>> @@ -51,7 +51,8 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sdrc2xxx.o
+>>>  ifeq ($(CONFIG_PM),y)
+>>>  obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+>>>  obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o
+>>> -obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o
+>>pm_bus.o
+>>> +obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
+>>> +					   cpuidle34xx.o pm_bus.o
+>>>  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
+>>>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+>>>
+>>> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+>>> new file mode 100644
+>>> index 0000000..5aa5109
+>>> --- /dev/null
+>>> +++ b/arch/arm/mach-omap2/voltage.c
+>>> @@ -0,0 +1,1158 @@
+>>> +/*
+>>> + * OMAP3/OMAP4 Voltage Management Routines
+>>> + *
+>>> + * Author: Thara Gopinath	<thara@ti.com>
+>>> + *
+>>> + * Copyright (C) 2007 Texas Instruments, Inc.
+>>> + * Rajendra Nayak <rnayak@ti.com>
+>>> + * Lesly A M <x0080970@ti.com>
+>>> + *
+>>> + * Copyright (C) 2008 Nokia Corporation
+>>> + * Kalle Jokiniemi
+>>> + *
+>>> + * Copyright (C) 2010 Texas Instruments, Inc.
+>>> + * Thara Gopinath <thara@ti.com>
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or modify
+>>> + * it under the terms of the GNU General Public License version 2 as
+>>> + * published by the Free Software Foundation.
+>>> + */
+>>> +
+>>> +#include <linux/delay.h>
+>>> +#include <linux/io.h>
+>>> +#include <linux/clk.h>
+>>> +#include <linux/err.h>
+>>> +#include <linux/debugfs.h>
+>>> +#include <linux/slab.h>
+>>> +
+>>> +#include <plat/common.h>
+>>> +#include <plat/voltage.h>
+>>> +
+>>> +#include "prm-regbits-34xx.h"
+>>> +
+>>> +#define VP_IDLE_TIMEOUT		200
+>>> +#define VP_TRANXDONE_TIMEOUT	300
+>>> +#define VOLTAGE_DIR_SIZE	16
+>>> +
+>>> +static struct dentry *voltage_dir;
+>>> +/* PRM voltage module */
+>>> +static u32 volt_mod;
+>>
+>>There's no need for this to be a global, this should be a member of
+>>vdd_info (or the voltage domain.)  That means the read/write functions
+>>will have to take an additional argument (vdd or voltdm) but that's
+>>cleaner to me.
 
-> 
-> Also, there is a mutex but don't these functions get called
-> sometimes in interrupt context?
+Kevin,
 
-I feel we should leave this to caller of these API's. The caller should 
-make sure that, he disables interrupts if it is used in interrupt context.
+The voltage_read and voltage_write APIs are used not only for the per vdd registers. We also access the vc registers through them and passing vdd or voltdm is not an option. Two options we have are 
+	1. Keep the existing implementation
+	2. Have volt_mod/prm_mod per vdd basis in the omap_vdd_info struct. Introduce a new struct for storing vc parameters per SoC basis and have a prm_mod there also. Scrap voltage_read and voltage_write APIs and use prm_read and prm_write instead. The last step is because we do not want a voltage_read / voltage_write which looks exactly similar to prm_read/prm_write and do nothing but call into prm_read/prm_write.
 
--Manjunath
+Do let me know your thoughts as I m in the midst of the rework. I am assuming you would prefer option 2 and proceeding :-)! 
+
+Regards
+Thara
