@@ -1,99 +1,320 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH v5 3/7] OMAP: DSS2: Introduce omap_channel as a
- omap_dss_device parameter
-Date: Thu, 2 Dec 2010 15:17:57 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087035F0A4A5C@dbde02.ent.ti.com>
-References: <1290410585-29418-1-git-send-email-archit@ti.com>
-	 <1290410585-29418-4-git-send-email-archit@ti.com>
-	 <1291217886.10133.171.camel@tubuntu>
-	 <FCCFB4CDC6E5564B9182F639FC356087035EFD6FE6@dbde02.ent.ti.com>
- <1291282030.778.9.camel@tubuntu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH v2] arm: mach-omap2: remove NULL board_mux from board files
+Date: Thu,  2 Dec 2010 11:53:42 +0200
+Message-ID: <1291283622-16359-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39377 "EHLO arroyo.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.48]:45121 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756971Ab0LBJsH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 04:48:07 -0500
-In-Reply-To: <1291282030.778.9.camel@tubuntu>
-Content-Language: en-US
+	id S1751043Ab0LBJxK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 2 Dec 2010 04:53:10 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+If CONFIG_OMAP_MUX is not enabled, we can define board_mux in the header
+file instead of forcing every single board to define it.
 
-[snip]
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
 
->> I am assuming that you are referring to 'DISPC_IRQ_MASK_ERROR' and the
->> registering/unregistering of irq masks in manager.c
-> 
-> Not only the irqs, but also, for example, code like this:
-> 
-> 
->         if (channel == OMAP_DSS_CHANNEL_LCD ||
->                         channel == OMAP_DSS_CHANNEL_LCD2)
->                 bit = 5; /* GOLCD */
->         else
->                 bit = 6; /* GODIGIT */
-> 
->         if (channel == OMAP_DSS_CHANNEL_LCD2)
->                 return REG_GET(DISPC_CONTROL2, bit, bit) == 1;         else
->                 return REG_GET(DISPC_CONTROL, bit, bit) == 1;
-> 
+v2: Use a static variable to avoid namespace pollution.
 
-Things would be bad only for DISPC_CONTROL and DISPC_CONFIG since
-we couldn't parametrize them based on channel. Others look scalable,
-I don't know if there will be more such registers on OMAP5, but we
-can ask HW Team to keep them specific to the channel.
+ arch/arm/mach-omap2/board-2430sdp.c        |    2 --
+ arch/arm/mach-omap2/board-3430sdp.c        |    2 --
+ arch/arm/mach-omap2/board-3630sdp.c        |    2 --
+ arch/arm/mach-omap2/board-am3517evm.c      |    2 --
+ arch/arm/mach-omap2/board-apollon.c        |    2 --
+ arch/arm/mach-omap2/board-h4.c             |    2 --
+ arch/arm/mach-omap2/board-igep0020.c       |    2 --
+ arch/arm/mach-omap2/board-igep0030.c       |    2 --
+ arch/arm/mach-omap2/board-ldp.c            |    2 --
+ arch/arm/mach-omap2/board-n8x0.c           |    2 --
+ arch/arm/mach-omap2/board-omap3beagle.c    |    2 --
+ arch/arm/mach-omap2/board-omap3evm.c       |    2 --
+ arch/arm/mach-omap2/board-omap3logic.c     |    2 --
+ arch/arm/mach-omap2/board-omap3pandora.c   |    2 --
+ arch/arm/mach-omap2/board-omap3stalker.c   |    2 --
+ arch/arm/mach-omap2/board-omap3touchbook.c |    2 --
+ arch/arm/mach-omap2/board-overo.c          |    2 --
+ arch/arm/mach-omap2/board-rx51.c           |    2 --
+ arch/arm/mach-omap2/board-zoom2.c          |    2 --
+ arch/arm/mach-omap2/board-zoom3.c          |    2 --
+ arch/arm/mach-omap2/mux.h                  |    2 ++
+ 21 files changed, 2 insertions(+), 40 deletions(-)
 
-> So lots of the functions contain ifs based on the channel. I
-> don't know right now what would be the best way to make the
-> code cleaner (probably some kinds of look-up tables, but they
-> incur some overhead), and as I said, it's cosmetical and can
-> be cleaned up later (presuming we come up with a good way).
-> 
->> I guess we could have a dss_features function which could return the
->> mask based on what omap it is. But this way the mask values/contents
->> would be totally invisble in manager.c and dispc.c, one
-> would need to check it in dss_features.c, which also isn't readable.
-> 
-> Right. I agree that that solution isn't perhaps the best one either.
-> 
->> One thing which I would like to add is that this series
-> doesn't need to touch any board file for now.
->> The present dss_recheck_connections() doesn't try to differentiate
->> between LCD and DIGIT channels, it just uses 'omap_display_type' to
->> differentiate between them. Only a panel which needs to connect to
->> LCD2 has to do this, This method wouldn't have worked if we didn't
->> switch to uniform use of dssdev->manager->id instead of
->> dssdev->channel. We will need to change
-> dss_recheck_connections() in the future to make it more uniform.
-> 
-> Ok.
-> 
-> If you can split this patch into the two parts I suggested
-> (if that's ok for you, you didn't comment on that one), and
-> check if there's anything to add to the commit descriptions,
-> I think we can go and apply this patch set.
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index b527f8d..ee7ac99 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -218,8 +218,6 @@ static struct omap_usb_config sdp2430_usb_config __initdata = {
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static void __init omap_2430sdp_init(void)
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 4e3742c..ad4cb26 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -663,8 +663,6 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+index bbcf580..4cd96d7 100644
+--- a/arch/arm/mach-omap2/board-3630sdp.c
++++ b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -83,8 +83,6 @@ static void __init omap_sdp_init_irq(void)
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 0739950..63035d8 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -442,8 +442,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 	OMAP3_MUX(SAD2D_MCAD23, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ 
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index 2c6db1a..b01d6e4 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -314,8 +314,6 @@ static void __init apollon_usb_init(void)
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static void __init omap_apollon_init(void)
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 929993b..263da1d 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -321,8 +321,6 @@ static struct i2c_board_info __initdata h4_i2c_board_info[] = {
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static void __init omap_h4_init(void)
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 5e035a5..8093f1a 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -577,8 +577,6 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ #if defined(CONFIG_LIBERTAS_SDIO) || defined(CONFIG_LIBERTAS_SDIO_MODULE)
+diff --git a/arch/arm/mach-omap2/board-igep0030.c b/arch/arm/mach-omap2/board-igep0030.c
+index 22b0b25..8dc6ed3 100644
+--- a/arch/arm/mach-omap2/board-igep0030.c
++++ b/arch/arm/mach-omap2/board-igep0030.c
+@@ -366,8 +366,6 @@ void __init igep3_wifi_bt_init(void) {}
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static void __init igep3_init(void)
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 001fd97..84b4ea6 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -381,8 +381,6 @@ static struct platform_device *ldp_devices[] __initdata = {
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index e823c70..dd353ff 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -653,8 +653,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 	OMAP2420_MUX(EAC_AC_DOUT, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static void __init n8x0_init_machine(void)
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 14f4224..d42c8c9 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -548,8 +548,6 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index b04365c..8f1e69a 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -654,8 +654,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index 5f7d2c1..e2e9562 100644
+--- a/arch/arm/mach-omap2/board-omap3logic.c
++++ b/arch/arm/mach-omap2/board-omap3logic.c
+@@ -206,8 +206,6 @@ static void __init omap3logic_init_irq(void)
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux       NULL
+ #endif
+ 
+ static void __init omap3logic_init(void)
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 89ed1be..445b158 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -711,8 +711,6 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index f252721..ba65fe8 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -616,8 +616,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 		  OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE),
+ 	{.reg_offset = OMAP_MUX_TERMINATOR},
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 41104bb..8d530a6 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -413,8 +413,6 @@ static struct omap_board_config_kernel omap3_touchbook_config[] __initdata = {
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static void __init omap3_touchbook_init_irq(void)
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 7053bc0..133b5ea 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -438,8 +438,6 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 36f2cf4..f3b6e10 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -117,8 +117,6 @@ extern void __init rx51_peripherals_init(void);
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 2992a9f..4449fc4 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -53,8 +53,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 	OMAP3_MUX(ETK_D6, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static struct mtd_partition zoom_nand_partitions[] = {
+diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+index 5adde12..f03971d 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -97,8 +97,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 	OMAP3_MUX(ETK_D6, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+ #endif
+ 
+ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+index 350c04f..e224ab5 100644
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -133,6 +133,8 @@ static inline int omap_mux_init_signal(char *muxname, int val)
+ 	return 0;
+ }
+ 
++static struct omap_board_mux *board_mux __initdata __attribute__((unused));
++
+ #endif
+ 
+ /**
+-- 
+1.5.6.5
 
-If I split this into 2 parts, the first patch will be just a line
-addition in display.h, I was beaten up by the community because of
-this in the previous version. One line patches in a series aren't
-taken very kindly :|. What I can do is clearly mention the 2 sets
-of things which this commit does, if you think that is good enough.
-
-> 
-> Btw, on what platforms have you tested this (or generally any
-> patches you send?). I only have 3430SDP currently that I can
-> easily use to test, so my testing is a bit limited.
-> 
-
-This one I had tested throughly on 3430SDP, bootup on zoom2 and zoom3.
-I couldn't test on omap2, we have a n800 board but we don't know what panel
-driver we need to use, board-n8x0.c doesn't tell anything about. If you can
-tell me what panel driver to use etc I can try out.
-
-Archit
