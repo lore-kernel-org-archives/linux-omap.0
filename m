@@ -1,67 +1,51 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 6/7] [RFC] OMAP: hwmod: SYSCONFIG register modification for MCBSP
-Date: Thu, 02 Dec 2010 11:54:23 +0100
-Message-ID: <87mxoo4f8g.fsf@deeprootsystems.com>
-References: <1286296662-7639-1-git-send-email-kishon@ti.com>
-	<1286296662-7639-6-git-send-email-kishon@ti.com>
-	<4CAECB70.4030705@ti.com> <4CB2AC44.6000804@ti.com>
-	<AANLkTi=a80MLvj5YuC==evfGqY6xUToHcBU3TyWEBHAo@mail.gmail.com>
-	<AANLkTimExJBgLTfO2Q7zgohHquShvm9kP64=DLjQv21u@mail.gmail.com>
-	<4CF52044.6040904@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB5930247AFD66A@dbde02.ent.ti.com>
-	<4CF62E5A.2080004@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH v5 3/7] OMAP: DSS2: Introduce omap_channel as a
+ omap_dss_device parameter
+Date: Thu, 02 Dec 2010 13:00:33 +0200
+Message-ID: <1291287633.778.24.camel@tubuntu>
+References: <1290410585-29418-1-git-send-email-archit@ti.com>
+	 <1290410585-29418-4-git-send-email-archit@ti.com>
+	 <1291217886.10133.171.camel@tubuntu>
+	 <FCCFB4CDC6E5564B9182F639FC356087035EFD6FE6@dbde02.ent.ti.com>
+	 <1291282030.778.9.camel@tubuntu>
+	 <FCCFB4CDC6E5564B9182F639FC356087035F0A4A5C@dbde02.ent.ti.com>
+	 <1291285184.778.17.camel@tubuntu>
+	 <FCCFB4CDC6E5564B9182F639FC356087035F0A4AB8@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:53512 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838Ab0LBKyr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 05:54:47 -0500
-Received: by qwb7 with SMTP id 7so8220773qwb.19
-        for <linux-omap@vger.kernel.org>; Thu, 02 Dec 2010 02:54:46 -0800 (PST)
-In-Reply-To: <4CF62E5A.2080004@ti.com> (Benoit Cousson's message of "Wed, 1
-	Dec 2010 12:15:38 +0100")
+Received: from smtp.nokia.com ([147.243.128.26]:49788 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756919Ab0LBLAm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 2 Dec 2010 06:00:42 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087035F0A4AB8@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Basak, Partha" <p-basak2@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "ext-eero.nurkkala@nokia.com" <ext-eero.nurkkala@nokia.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, "Govindraj.R" <govindraj.raja@ti.com>
+To: "ext Taneja, Archit" <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+On Thu, 2010-12-02 at 16:00 +0530, ext Taneja, Archit wrote:
+> Hi,
 
-[...]
+> > Unfortunately the panel driver for N800 has not been ported to DSS2.
+> 
+> I can possibly try with a 2430sdp, but I don't see the "omapdss" platform_device
+> board-2430dsp.c. Are you aware of any omap2 setup which I can use to test?
 
->
-> The issue is not really for the mcbsp but for the serial that need to
-> handle the 3 different states.
->
-> 	if (enable) {
-> 		/**
-> 		 * Errata 2.15: [UART]:Cannot Acknowledge Idle Requests
-> 		 * in Smartidle Mode When Configured for DMA Operations.
-> 		 */
-> 		if (uart->dma_enabled)
-> 			idlemode = HWMOD_IDLEMODE_FORCE;
-> 		else
-> 			idlemode = HWMOD_IDLEMODE_SMART;
-> 	} else {
-> 		idlemode = HWMOD_IDLEMODE_NO;
-> 	}
->
-> You do need to explicitly set the 3 modes, hence the following 3 APIs:
-> omap_device_force_idle
-> omap_device_no_idle
-> omap_device_smart_idle
->
-> You can potentially add another API to restore the default idle mode:
->
-> omap_device_default_idle
->
-> That seems much simpler than 3 pairs of APIs.
+Hmm, I guess no OMAP2 board has been ported to use DSS2. I have 2430SDP,
+but unfortunately it's been broken for long time now. 
 
-My $0.02... based on the fact that we already have some IPs needing to
-conrol all 3 modes, I think having the 3 functions above is better than
-having 3 pairs of request/release functions.
+I believe 2430SDP would be easy to port, but as it's been quite a while
+since I ran DSS2 on OMAP2, it may well be that there are some DSS bugs
+with OMAP2.
 
-Kevin
+If you want, you can try to get 2430sdp running, and at some point it
+would be very good to have at least one OMAP2 board with DSS2 running.
+But perhaps it's not so important right now.
+
+ Tomi
+
+Ps. I'll be on vacation tomorrow and next week.
 
 
