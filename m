@@ -1,68 +1,55 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 0/5] omap4: l2x0 fixes and cleanup
-Date: Thu, 2 Dec 2010 17:27:31 +0530
-Message-ID: <cc00e38ed5f706eff13e0fad542af71c@mail.gmail.com>
-References: <1290187866-26941-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: [GIT PULL] OMAP: mailbox and iommu changes: for-next for v2.6.38
+Date: Thu, 2 Dec 2010 06:07:23 -0600
+Message-ID: <AANLkTind+DH5emar2L9EiV-pqpCvQHQGnFevh9Bncrpz@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:38142 "EHLO
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:47839 "EHLO
 	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751633Ab0LBL5c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 06:57:32 -0500
-Received: by mail-qy0-f171.google.com with SMTP id 32so3725787qyk.16
-        for <linux-omap@vger.kernel.org>; Thu, 02 Dec 2010 03:57:32 -0800 (PST)
-In-Reply-To: <1290187866-26941-1-git-send-email-santosh.shilimkar@ti.com>
+	by vger.kernel.org with ESMTP id S1755394Ab0LBMHY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 07:07:24 -0500
+Received: by pxi1 with SMTP id 1so1495836pxi.13
+        for <linux-omap@vger.kernel.org>; Thu, 02 Dec 2010 04:07:24 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: Nishanth Menon <nm@ti.com>, mans@mansr.com, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-Tony,
-> -----Original Message-----
-> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
-> Sent: Friday, November 19, 2010 11:01 PM
-> To: linux-omap@vger.kernel.org
-> Cc: nm@ti.com; mans@mansr.com; tony@atomide.com;
-> khilman@deeprootsystems.com; linux-arm-kernel@lists.infradead.org;
-Santosh
-> Shilimkar
-> Subject: [PATCH 0/5] omap4: l2x0 fixes and cleanup
->
-> This series is outcome of the below discussion thread.
-> 	http://www.spinics.net/lists/arm-kernel/msg104254.html
->
-> The series in brief has following patches
-> 	- adds PL310 aux-control register bitfields
-> 	- Use these bitfields instead of hardcoded values as part of init
-> 	- Enable PL310 intsruction, Data prefetch hints and  BRESP to
-> 		improve performance
-> 	- Set share-override bit to avoid non-cached buffer corruption
->
-> Thanks to Nishant Menon for testing this series on OMAP4 panda using
-> the memspeed utility. Have boot tested this series on OMAP4 SDP with
-> omap2plus_defconfig.
->
-How about merging this series in omap-testing if you are ok
-with it. Patch  " ARM: l2x0: Add aux control register bitfields"
-is already acked by Catalin.
+Hi Tony,
 
-> The following changes since commit
-> e53beacd23d9cb47590da6a7a7f6d417b941a994:
->   Linus Torvalds (1):
->         Linux 2.6.37-rc2
->
-> Mans Rullgard (1):
->       omap4: l2x0: enable instruction and data prefetching
->
-> Santosh Shilimkar (4):
->       ARM: l2x0: Add aux control register bitfields
->       omap4: l2x0: Construct the AUXCTRL value using defines
->       omap4: l2x0: Set share override bit
->       omap4: l2x0: Enable early BRESP bit
->
->  arch/arm/include/asm/hardware/cache-l2x0.h |   12 ++++++++++-
->  arch/arm/mach-omap2/omap4-common.c         |   30
-+++++++++++++++++++++--
-> ----
->  2 files changed, 34 insertions(+), 8 deletions(-)
+The following changes since commit e8a7e48bb248a1196484d3f8afa53bded2b24e71:
+  Linus Torvalds (1):
+        Linux 2.6.37-rc4
+
+are available in the git repository at:
+
+  git://gitorious.org/iommu_mailbox/iommu_mailbox.git for_2.6.38
+
+Fernando Guzman Lugo (5):
+      OMAP: mailbox: change full flag per mailbox queue instead of global
+      omap: iovmm - no gap checking for fixed address
+      omap: iovmm - add superpages support to fixed da address
+      omap: iovmm - replace __iounmap with omap_iounmap
+      omap: iommu - create new api to set valid da range
+
+Kanigeri, Hari (3):
+      OMAP: mailbox: fix checkpatch warnings
+      OMAP: mailbox: send message in process context
+      OMAP: mailbox: add notification support for multiple readers
+
+Omar Ramirez Luna (2):
+      OMAP: mailbox: remove unreachable return
+      OMAP: mailbox: fix detection for previously supported chips
+
+ arch/arm/mach-omap2/mailbox.c             |   19 +++--
+ arch/arm/plat-omap/include/plat/iommu.h   |    3 +
+ arch/arm/plat-omap/include/plat/mailbox.h |    8 +-
+ arch/arm/plat-omap/iommu.c                |   33 +++++++
+ arch/arm/plat-omap/iovmm.c                |   84 +++++++++++--------
+ arch/arm/plat-omap/mailbox.c              |  130 +++++++++++++++++------------
+ 6 files changed, 177 insertions(+), 100 deletions(-)
+
+Thank you,
+Best regards,
+Hari Kanigeri
