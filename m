@@ -1,33 +1,38 @@
 From: "Hemanth V" <hemanthv@ti.com>
-Subject: [PATCH 3/3] omap4: Platform changes for CMA3000 Accelerometer
-     driver
-Date: Thu, 2 Dec 2010 13:00:25 +0530 (IST)
-Message-ID: <54753.10.24.255.17.1291275025.squirrel@dbdmail.itg.ti.com>
+Subject: [RESEND] [PATCH 3/3] omap4: Platform changes for CMA3000
+     Accelerometer driver
+Date: Thu, 2 Dec 2010 13:14:40 +0530 (IST)
+Message-ID: <62022.10.24.255.17.1291275880.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58324 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:58893 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754003Ab0LBHa0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 02:30:26 -0500
+	with ESMTP id S1751043Ab0LBHom (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 02:44:42 -0500
 Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id oB27UPdg025717
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id oB27ifuN027036
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 2 Dec 2010 01:30:25 -0600
+	for <linux-omap@vger.kernel.org>; Thu, 2 Dec 2010 01:44:41 -0600
 Received: from dbdmail.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id oB27UNEg014697
-	for <linux-omap@vger.kernel.org>; Thu, 2 Dec 2010 01:30:24 -0600 (CST)
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id oB27idVi018472
+	for <linux-omap@vger.kernel.org>; Thu, 2 Dec 2010 01:44:40 -0600 (CST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
->From 0ce7ea442ffbe89f563baa993669a4216b2ccffa Mon Sep 17 00:00:00 2001
+Pl ignore the earlier patch, which seems to have rebasing issues.
+
+Thanks
+Hemanth
+
+>From 42cb400c1bd3878977bc8fd416c9c39f81bed674 Mon Sep 17 00:00:00 2001
 From: Hemanth V <hemanthv@ti.com>
 Date: Thu, 2 Dec 2010 12:44:19 +0530
 Subject: [PATCH] omap4: Platform changes for CMA3000 Accelerometer driver
 
-Update 4430SDP board file with platform data for accelerometer driver
+Update 4430 SDP board file with platform data for accelerometer driver
 
 Signed-off-by: Hemanth V <hemanthv@ti.com>
 ---
@@ -37,7 +42,7 @@ CMA3000 Driver is queued up for 2.6.38 merge window
  1 files changed, 30 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index ea56c30..c336673 100644
+index ea56c30..6bda335 100644
 --- a/arch/arm/mach-omap2/board-4430sdp.c
 +++ b/arch/arm/mach-omap2/board-4430sdp.c
 @@ -24,6 +24,8 @@
@@ -97,15 +102,17 @@ index ea56c30..c336673 100644
  };
  static int __init omap4_i2c_init(void)
  {
-@@ -531,6 +560,7 @@ static void __init omap_sfh7741prox_init(void)
- 			 __func__, OMAP4_SFH7741_ENABLE_GPIO, error);
- 		gpio_free(OMAP4_SFH7741_ENABLE_GPIO);
+@@ -570,6 +599,7 @@ static void __init omap_4430sdp_init(void)
+ 		spi_register_board_info(sdp4430_spi_board_info,
+ 				ARRAY_SIZE(sdp4430_spi_board_info));
  	}
 +	omap_cma3000accl_init();
  }
 
- #ifdef CONFIG_OMAP_MUX
+ static void __init omap_4430sdp_map_io(void)
 -- 
 1.5.4.3
+
+
 
 
