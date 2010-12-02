@@ -1,87 +1,106 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH v5 3/7] OMAP: DSS2: Introduce omap_channel as a
- omap_dss_device parameter
-Date: Thu, 2 Dec 2010 13:27:34 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087035EFD6FE6@dbde02.ent.ti.com>
-References: <1290410585-29418-1-git-send-email-archit@ti.com>
-	 <1290410585-29418-4-git-send-email-archit@ti.com>
- <1291217886.10133.171.camel@tubuntu>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH v6] OMAP2+: PM: omap device: API's for handling mstandby
+ mode
+Date: Thu, 02 Dec 2010 09:58:10 +0200
+Message-ID: <4CF75192.3090705@nokia.com>
+References: <1291229228-4438-1-git-send-email-manjugk@ti.com> <4CF6AD2C.4020907@nokia.com> <20101202061139.GA5645@GLPP-machine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34441 "EHLO arroyo.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.48]:34756 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752352Ab0LBH5m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 02:57:42 -0500
-In-Reply-To: <1291217886.10133.171.camel@tubuntu>
-Content-Language: en-US
+	id S1751223Ab0LBH7W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 2 Dec 2010 02:59:22 -0500
+In-Reply-To: <20101202061139.GA5645@GLPP-machine>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+On 02/12/10 08:12, ext G, Manjunath Kondaiah wrote:
+> * Adrian Hunter<adrian.hunter@nokia.com>  [2010-12-01 22:16:44 +0200]:
+>
+>> On 01/12/10 20:47, ext G, Manjunath Kondaiah wrote:
+>>> Certain errata in OMAP2+ processors will require forcing
+>>> master standby to "no standby" mode before completing on going
+>>> operation. Without this, the results will be unpredictable.
+>>>
+>>> Since current implementation of PM run time framework does not support
+>>> changing sysconfig settings during middle of the on going operation,
+>>> these API's will support the same. One API will force the device's
+>>> sysconfig mstandby mode settings to "no standby" and other API will
+>>> release "no standby" mode and sets it to "smart standby" or "no
+>>> standby? depending on HWMOD_SWSUP_MSTANDBY value.
+>>>
+>>> These API's should be used by device drivers only incase of
+>>> erratum applicable to their modules if there is no other methods
+>>> to resolve.
+>>>
+>>> These API's are required for multiple DMA errata which require
+>>> putting DMA controller in no mstandby mode before stopping dma.
+>>>
+>>> The applicable errata:
+>>> 1. Erratum ID: i557(Applicable for omap36xx all ES versions)
+>>> The channel hangs when the Pause bit (DMA4_CDPi [7] ) is cleared
+>>> through config port while in Standby.
+>>>
+>>> 2. Erratum ID: i541
+>>> sDMA FIFO draining does not finish. Applicable to all omap2+ except
+>>> omap4.
+>>>
+>>> 3. Erratum ID:i88
+>>> The sDMA to be put in no mstandby mode before disabling the channel
+>>> after completing the data transfer operation.
+>>> Applicable only for OMAP3430 ES1.0
+>>>
+>>> Also fixes typo HWMOD_SWSUP_MSTDBY to HWMOD_SWSUP_MSTANDBY in
+>>> omap_hwmod.h
+>>>
+>>> Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
+>>> Cc: Kevin Hilman<khilman@deeprootsystems.com>
+>>> Cc: Paul Walmsley<paul@pwsan.com>
+>>> Cc: linux-arm-kernel@lists.infradead.org
+>>>
+>>> ---
+>>> Change summary:
+>>> v3: Review comments incorporated for:
+>>> https://patchwork.kernel.org/patch/282212/
+>>> v4: added mutex changes
+>>> v5: typo fixes for errata and erratum
+>>> v6: fixed oh increment bug and also mutex(missing in v5)
+>>>
+>>>   arch/arm/mach-omap2/omap_hwmod.c              |   47 +++++++++++++++++++-
+>>>   arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+>>>   arch/arm/plat-omap/include/plat/omap_hwmod.h  |    4 +-
+>>>   arch/arm/plat-omap/omap_device.c              |   60 +++++++++++++++++++++++++
+>>>   4 files changed, 111 insertions(+), 2 deletions(-)
+>>>
+>>
+>> Does not seem to handle overlapping requests to set/clear
+>> midle mode.
+>
+> We can have use count so that we can avoid register access during
+> middle of operation if mstandby mode is already changed to "no standby"
+> mode.
 
-Tomi Valkeinen wrote:
-> Hi,
-> 
-> On Mon, 2010-11-22 at 12:53 +0530, ext Archit Taneja wrote:
->> From: Sumit Semwal <sumit.semwal@ti.com>
->> 
->> A new member 'channel' is introduced in omap_dss_device structure to
->> determine which channel the panel uses. The dss_recheck_connections()
->> called in dss_driver_probe() to set the correct manager to the
->> corresponding omap_dss_device. The interface drivers (dsi.c, sdi.c
->> etc) now call dispc functions with dssdev->manager->id as a
-> parameter to specify the DISPC channel.
->> 
->> The following dispc functions are changed to incorporate channel as an
->> argument: 
->> 	-dispc_enable_fifohandcheck()
->> 	-dispc_set_lcd_size()
->> 	-dispc_set_parallel_interface_mode()
->> 	-dispc_set_tft_data_lines()
->> 	-dispc_set_lcd_display_type()
->> 	-dispc_set_lcd_timings()
-> 
-> This patch combines two separate things: 1) the new
-> channel-field + related changes (dss_recheck_connections),
-> and 2) converting dispc functions to accept channel as a parameter.
-> 
-> Generally about the whole patch set, I think this is starting
-> to look ok. But two things, which are cosmetical:
-> 
-> - I wouldn't mind a bit more verbose commit descriptions. Of
-> course it's easy to say "write better descriptions", and I
-> don't have any direct advice for this. However, remember that
-> the 0000-patch won't be in the git log, so all important
-> information should be available also from the patch descriptions.
+Exactly
 
-I will update the comments.
+>
+>>
+>> Also, there is a mutex but don't these functions get called
+>> sometimes in interrupt context?
+>
+> I feel we should leave this to caller of these API's. The caller should
+> make sure that, he disables interrupts if it is used in interrupt context.
 
-> 
-> - The files are getting quite crowded with code that checks
-> for the channel and then do the work with bits/irqs depending
-> on the channel.
-> This makes the code a bit difficult to read. I don't have any
-> clear ideas right now how to make it clearer, but some
-> methods to generalize these kinds of functions would be nice.
-> But this is not so important for the time being, and we can improve it later.
+How does that help?  It seems to me that a mutex cannot be used for this.
 
-I am assuming that you are referring to 'DISPC_IRQ_MASK_ERROR' and the registering/unregistering of
-irq masks in manager.c
-
-I guess we could have a dss_features function which could return the mask based on what omap
-it is. But this way the mask values/contents would be totally invisble in manager.c and dispc.c, one
-would need to check it in dss_features.c, which also isn't readable.
-
-One thing which I would like to add is that this series doesn't need to touch any board file for now.
-The present dss_recheck_connections() doesn't try to differentiate between LCD and DIGIT channels, it just
-uses 'omap_display_type' to differentiate between them. Only a panel which needs to connect to LCD2 has to do this,
-This method wouldn't have worked if we didn't switch to uniform use of dssdev->manager->id instead of
-dssdev->channel. We will need to change dss_recheck_connections() in the future to make it more uniform.
-
-Regards,
-Archit
+>
+> -Manjunath
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
