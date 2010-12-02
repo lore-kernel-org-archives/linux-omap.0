@@ -1,75 +1,96 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [RFC v2 1/8] TILER-DMM: DMM-PAT driver for TI TILER
-Date: Thu, 2 Dec 2010 10:46:20 +0530
-Message-ID: <AANLkTikEY+0gGB9dbVFZvhwWbd5jGEGo7oDNs_y5xL=s@mail.gmail.com>
-References: <1291147139-23472-1-git-send-email-davidsin@ti.com>
- <1291147139-23472-2-git-send-email-davidsin@ti.com> <AANLkTi=q1HzYBpMH_pP+S5BtBQpHs62+zNfd_MtWHFuu@mail.gmail.com>
- <AANLkTi=YUYuxQE8pDZrN5-PJq1Q3jw7cP2yZKCXNAvPP@mail.gmail.com> <AANLkTik1o4Ka_UnwWvmjVhQGrPwrOpPGG4mmu4zSiH+U@mail.gmail.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCH v6] OMAP2+: PM: omap device: API's for handling
+ mstandby mode
+Date: Thu, 2 Dec 2010 11:42:04 +0530
+Message-ID: <20101202061139.GA5645@GLPP-machine>
+References: <1291229228-4438-1-git-send-email-manjugk@ti.com>
+ <4CF6AD2C.4020907@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTik1o4Ka_UnwWvmjVhQGrPwrOpPGG4mmu4zSiH+U@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: David Sin <davidsin@ti.com>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lajos Molnar <molnar@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:47710 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751912Ab0LBGLj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 01:11:39 -0500
+Received: by mail-gy0-f169.google.com with SMTP id 10so4383504gyg.14
+        for <linux-omap@vger.kernel.org>; Wed, 01 Dec 2010 22:11:37 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <4CF6AD2C.4020907@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Dec 2, 2010 at 07:57, Kanigeri, Hari <h-kanigeri2@ti.com> wrote=
-:
-> On Wed, Dec 1, 2010 at 8:10 PM, Kanigeri, Hari <h-kanigeri2@ti.com> w=
-rote:
->> On Wed, Dec 1, 2010 at 12:04 AM, Varadarajan, Charulatha <charu@ti.c=
-om> wrote:
->>> David,
->>
->>>
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!oh)
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto error;
->>>> +
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 data->base =3D oh->_mpu_rt_va;
->>>
->>> not required. Make use of platform_get APIs in probe to extract the
->>> base, dma and irq info using pdev.
->>
->> Not sure about using platform_get APIs. I think one has to use
->> omap_hwmod_get_mpu_rt_va to get the address, which internally return=
-s
->> oh-<_mpu_rt_va.
-> small correction... omap_device_get_rt_va and not omap_hwmod_get_mpu_=
-rt_va.
+* Adrian Hunter <adrian.hunter@nokia.com> [2010-12-01 22:16:44 +0200]:
 
-To get the base address & irq, you need not have to use
-omap_device_get_rt_va and pass it as
-pdata and then use it during probe. Instead in probe, you may do
-something like the following:
+> On 01/12/10 20:47, ext G, Manjunath Kondaiah wrote:
+> >Certain errata in OMAP2+ processors will require forcing
+> >master standby to "no standby" mode before completing on going
+> >operation. Without this, the results will be unpredictable.
+> >
+> >Since current implementation of PM run time framework does not support
+> >changing sysconfig settings during middle of the on going operation,
+> >these API's will support the same. One API will force the device's
+> >sysconfig mstandby mode settings to "no standby" and other API will
+> >release "no standby" mode and sets it to "smart standby" or "no
+> >standby? depending on HWMOD_SWSUP_MSTANDBY value.
+> >
+> >These API's should be used by device drivers only incase of
+> >erratum applicable to their modules if there is no other methods
+> >to resolve.
+> >
+> >These API's are required for multiple DMA errata which require
+> >putting DMA controller in no mstandby mode before stopping dma.
+> >
+> >The applicable errata:
+> >1. Erratum ID: i557(Applicable for omap36xx all ES versions)
+> >The channel hangs when the Pause bit (DMA4_CDPi [7] ) is cleared
+> >through config port while in Standby.
+> >
+> >2. Erratum ID: i541
+> >sDMA FIFO draining does not finish. Applicable to all omap2+ except
+> >omap4.
+> >
+> >3. Erratum ID:i88
+> >The sDMA to be put in no mstandby mode before disabling the channel
+> >after completing the data transfer operation.
+> >Applicable only for OMAP3430 ES1.0
+> >
+> >Also fixes typo HWMOD_SWSUP_MSTDBY to HWMOD_SWSUP_MSTANDBY in
+> >omap_hwmod.h
+> >
+> >Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
+> >Cc: Kevin Hilman<khilman@deeprootsystems.com>
+> >Cc: Paul Walmsley<paul@pwsan.com>
+> >Cc: linux-arm-kernel@lists.infradead.org
+> >
+> >---
+> >Change summary:
+> >v3: Review comments incorporated for:
+> >https://patchwork.kernel.org/patch/282212/
+> >v4: added mutex changes
+> >v5: typo fixes for errata and erratum
+> >v6: fixed oh increment bug and also mutex(missing in v5)
+> >
+> >  arch/arm/mach-omap2/omap_hwmod.c              |   47 +++++++++++++++++++-
+> >  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+> >  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    4 +-
+> >  arch/arm/plat-omap/omap_device.c              |   60 +++++++++++++++++++++++++
+> >  4 files changed, 111 insertions(+), 2 deletions(-)
+> >
+> 
+> Does not seem to handle overlapping requests to set/clear
+> midle mode.
 
-static int __devinit  dev_probe (*pdev) {
-   struct resource *res;
-   void __iomem *base;
-   u16 irq;
-   ....
-   ....
-   res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-   if (unlikely(!res)) {
-              ....
-              return -ENODEV;
-   }
+We can have use count so that we can avoid register access during
+middle of operation if mstandby mode is already changed to "no standby"
+mode.
 
-   base =3D ioremap(res->start, resource_size(res));
-   if (base) {
-               ....
-               return -ENOMEM;
-   }
+> 
+> Also, there is a mutex but don't these functions get called
+> sometimes in interrupt context?
 
-   res =3D platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-   if (unlikely(!res)) {
-               ....
-               return -ENODEV;
-   }
-   irq =3D res->start;
-   ....
-   ....
-}
+I feel we should leave this to caller of these API's. The caller should 
+make sure that, he disables interrupts if it is used in interrupt context.
 
--V Charulatha
+-Manjunath
