@@ -1,42 +1,30 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: Re: [RFC v2 1/8] TILER-DMM: DMM-PAT driver for TI TILER
-Date: Wed, 1 Dec 2010 20:27:24 -0600
-Message-ID: <AANLkTik1o4Ka_UnwWvmjVhQGrPwrOpPGG4mmu4zSiH+U@mail.gmail.com>
-References: <1291147139-23472-1-git-send-email-davidsin@ti.com>
-	<1291147139-23472-2-git-send-email-davidsin@ti.com>
-	<AANLkTi=q1HzYBpMH_pP+S5BtBQpHs62+zNfd_MtWHFuu@mail.gmail.com>
-	<AANLkTi=YUYuxQE8pDZrN5-PJq1Q3jw7cP2yZKCXNAvPP@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 00/14] OMAP: DMA: hwmod and DMA as platform device
+Date: Wed, 1 Dec 2010 18:37:46 -0800
+Message-ID: <20101202023746.GO17222@atomide.com>
+References: <1290603110-14119-1-git-send-email-manjugk@ti.com>
+ <20101125112811.GA27574@GLPP-machine>
+ <20101201190412.GA8149@GLPP-machine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTi=YUYuxQE8pDZrN5-PJq1Q3jw7cP2yZKCXNAvPP@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: David Sin <davidsin@ti.com>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lajos Molnar <molnar@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65067 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755478Ab0LBChz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2010 21:37:55 -0500
+Content-Disposition: inline
+In-Reply-To: <20101201190412.GA8149@GLPP-machine>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Wed, Dec 1, 2010 at 8:10 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wro=
-te:
-> On Wed, Dec 1, 2010 at 12:04 AM, Varadarajan, Charulatha <charu@ti.co=
-m> wrote:
->> David,
->
->>
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!oh)
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto error;
->>> +
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 data->base =3D oh->_mpu_rt_va;
->>
->> not required. Make use of platform_get APIs in probe to extract the
->> base, dma and irq info using pdev.
->
-> Not sure about using platform_get APIs. I think one has to use
-> omap_hwmod_get_mpu_rt_va to get the address, which internally returns
-> oh-<_mpu_rt_va.
-small correction... omap_device_get_rt_va and not omap_hwmod_get_mpu_rt=
-_va.
+Hi,
 
-Thank you,
-Best regards,
-Hari Kanigeri
+* G, Manjunath Kondaiah <manjugk@ti.com> [101201 10:53]:
+>
+> Do you have any further comments for this series?
+
+I'll be looking at it on Thursday.
+
+Tony
