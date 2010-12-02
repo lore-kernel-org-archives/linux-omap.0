@@ -1,118 +1,87 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: [RESEND] [PATCH 3/3] omap4: Platform changes for CMA3000
-     Accelerometer driver
-Date: Thu, 2 Dec 2010 13:14:40 +0530 (IST)
-Message-ID: <62022.10.24.255.17.1291275880.squirrel@dbdmail.itg.ti.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: [PATCH v5 3/7] OMAP: DSS2: Introduce omap_channel as a
+ omap_dss_device parameter
+Date: Thu, 2 Dec 2010 13:27:34 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087035EFD6FE6@dbde02.ent.ti.com>
+References: <1290410585-29418-1-git-send-email-archit@ti.com>
+	 <1290410585-29418-4-git-send-email-archit@ti.com>
+ <1291217886.10133.171.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58893 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751043Ab0LBHom (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 02:44:42 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id oB27ifuN027036
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 2 Dec 2010 01:44:41 -0600
-Received: from dbdmail.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id oB27idVi018472
-	for <linux-omap@vger.kernel.org>; Thu, 2 Dec 2010 01:44:40 -0600 (CST)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34441 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752352Ab0LBH5m convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 02:57:42 -0500
+In-Reply-To: <1291217886.10133.171.camel@tubuntu>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
 
-Pl ignore the earlier patch, which seems to have rebasing issues.
+Hi,
 
-Thanks
-Hemanth
+Tomi Valkeinen wrote:
+> Hi,
+> 
+> On Mon, 2010-11-22 at 12:53 +0530, ext Archit Taneja wrote:
+>> From: Sumit Semwal <sumit.semwal@ti.com>
+>> 
+>> A new member 'channel' is introduced in omap_dss_device structure to
+>> determine which channel the panel uses. The dss_recheck_connections()
+>> called in dss_driver_probe() to set the correct manager to the
+>> corresponding omap_dss_device. The interface drivers (dsi.c, sdi.c
+>> etc) now call dispc functions with dssdev->manager->id as a
+> parameter to specify the DISPC channel.
+>> 
+>> The following dispc functions are changed to incorporate channel as an
+>> argument: 
+>> 	-dispc_enable_fifohandcheck()
+>> 	-dispc_set_lcd_size()
+>> 	-dispc_set_parallel_interface_mode()
+>> 	-dispc_set_tft_data_lines()
+>> 	-dispc_set_lcd_display_type()
+>> 	-dispc_set_lcd_timings()
+> 
+> This patch combines two separate things: 1) the new
+> channel-field + related changes (dss_recheck_connections),
+> and 2) converting dispc functions to accept channel as a parameter.
+> 
+> Generally about the whole patch set, I think this is starting
+> to look ok. But two things, which are cosmetical:
+> 
+> - I wouldn't mind a bit more verbose commit descriptions. Of
+> course it's easy to say "write better descriptions", and I
+> don't have any direct advice for this. However, remember that
+> the 0000-patch won't be in the git log, so all important
+> information should be available also from the patch descriptions.
 
->From 42cb400c1bd3878977bc8fd416c9c39f81bed674 Mon Sep 17 00:00:00 2001
-From: Hemanth V <hemanthv@ti.com>
-Date: Thu, 2 Dec 2010 12:44:19 +0530
-Subject: [PATCH] omap4: Platform changes for CMA3000 Accelerometer driver
+I will update the comments.
 
-Update 4430 SDP board file with platform data for accelerometer driver
+> 
+> - The files are getting quite crowded with code that checks
+> for the channel and then do the work with bits/irqs depending
+> on the channel.
+> This makes the code a bit difficult to read. I don't have any
+> clear ideas right now how to make it clearer, but some
+> methods to generalize these kinds of functions would be nice.
+> But this is not so important for the time being, and we can improve it later.
 
-Signed-off-by: Hemanth V <hemanthv@ti.com>
----
-CMA3000 Driver is queued up for 2.6.38 merge window
+I am assuming that you are referring to 'DISPC_IRQ_MASK_ERROR' and the registering/unregistering of
+irq masks in manager.c
 
- arch/arm/mach-omap2/board-4430sdp.c |   30 ++++++++++++++++++++++++++++++
- 1 files changed, 30 insertions(+), 0 deletions(-)
+I guess we could have a dss_features function which could return the mask based on what omap
+it is. But this way the mask values/contents would be totally invisble in manager.c and dispc.c, one
+would need to check it in dss_features.c, which also isn't readable.
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index ea56c30..6bda335 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -24,6 +24,8 @@
- #include <linux/regulator/machine.h>
- #include <linux/leds.h>
- #include <linux/leds_pwm.h>
-+#include <linux/input/cma3000.h>
-+#include <linux/interrupt.h>
+One thing which I would like to add is that this series doesn't need to touch any board file for now.
+The present dss_recheck_connections() doesn't try to differentiate between LCD and DIGIT channels, it just
+uses 'omap_display_type' to differentiate between them. Only a panel which needs to connect to LCD2 has to do this,
+This method wouldn't have worked if we didn't switch to uniform use of dssdev->manager->id instead of
+dssdev->channel. We will need to change dss_recheck_connections() in the future to make it more uniform.
 
- #include <mach/hardware.h>
- #include <mach/omap4-common.h>
-@@ -45,6 +47,7 @@
- #define ETH_KS8851_POWER_ON		48
- #define ETH_KS8851_QUART		138
- #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
-+#define OMAP4_CMA3000ACCL_GPIO			186
- #define OMAP4_SFH7741_ENABLE_GPIO		188
-
- static struct gpio_led sdp4430_gpio_leds[] = {
-@@ -477,6 +480,27 @@ static struct twl4030_platform_data sdp4430_twldata = {
- 	.vaux3		= &sdp4430_vaux3,
- };
-
-+static struct cma3000_platform_data cma3000_platform_data = {
-+	.fuzz_x		= 25,
-+	.fuzz_y		= 25,
-+	.fuzz_z		= 25,
-+	.g_range	= CMARANGE_8G,
-+	.mode		= CMAMODE_MOTDET,
-+	.mdthr		= 0x8,
-+	.mdfftmr	= 0x33,
-+	.ffthr		= 0x8,
-+	.irqflags	= IRQF_TRIGGER_HIGH,
-+};
-+
-+static void omap_cma3000accl_init(void)
-+{
-+	if (gpio_request(OMAP4_CMA3000ACCL_GPIO, "Accelerometer") < 0) {
-+		pr_err("Accelerometer GPIO request failed\n");
-+		return;
-+	}
-+	gpio_direction_input(OMAP4_CMA3000ACCL_GPIO);
-+}
-+
- static struct i2c_board_info __initdata sdp4430_i2c_boardinfo[] = {
- 	{
- 		I2C_BOARD_INFO("twl6030", 0x48),
-@@ -497,6 +521,11 @@ static struct i2c_board_info __initdata sdp4430_i2c_4_boardinfo[] = {
- 	{
- 		I2C_BOARD_INFO("hmc5843", 0x1e),
- 	},
-+	{
-+		I2C_BOARD_INFO("cma3000_d01", 0x1c),
-+		.platform_data = &cma3000_platform_data,
-+		.irq = OMAP_GPIO_IRQ(OMAP4_CMA3000ACCL_GPIO),
-+	},
- };
- static int __init omap4_i2c_init(void)
- {
-@@ -570,6 +599,7 @@ static void __init omap_4430sdp_init(void)
- 		spi_register_board_info(sdp4430_spi_board_info,
- 				ARRAY_SIZE(sdp4430_spi_board_info));
- 	}
-+	omap_cma3000accl_init();
- }
-
- static void __init omap_4430sdp_map_io(void)
--- 
-1.5.4.3
-
-
-
+Regards,
+Archit
 
