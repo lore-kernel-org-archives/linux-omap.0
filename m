@@ -1,52 +1,58 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 0/6] OMAP3&4: clock data: Fixes and add new clocks nodes
-Date: Thu, 2 Dec 2010 11:44:47 +0100
-Message-ID: <1291286693-32538-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 2/6] OMAP3: clock data: Add "wkup_clkdm" in sr1_fck and sr2_fck
+Date: Thu, 2 Dec 2010 11:44:49 +0100
+Message-ID: <1291286693-32538-3-git-send-email-b-cousson@ti.com>
+References: <1291286693-32538-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53342 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751517Ab0LBKpu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Dec 2010 05:45:50 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:38803 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752636Ab0LBKp5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 05:45:57 -0500
+In-Reply-To: <1291286693-32538-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi Paul,
+The smartreflex modules belong to an ALWON_FCLK clock domain that
+does not have any SW control. The gating of that interface clock
+is triggered by a transition of the WKUP clock domain to idle.
 
-Here is a collections of fixes and clock nodes addition done on OMAP3 and OMAP4
-clock data files.
+Attach both smartreflex instances on OMAP3 to the WKUP clock domain.
 
-I have included the one that Thara already submitted after fixing the various
-comments done on the original revision.
+The missing clock domain field in srX_fck clock nodes was reported by
+Kevin during the discussion about smartreflex on OMAP3:
+https://patchwork.kernel.org/patch/199342/
 
-The series is based on 2.6.37-rc4 and is available here:
-git://gitorious.org/omap-pm/linux.git for_2.6.38/clock
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/clock3xxx_data.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Regards,
-Benoit
-
-
-Benoit Cousson (2):
-  OMAP4: clock data: Add control for pad_clks_ck and slimbus_clk
-  OMAP3: clock data: Add "wkup_clkdm" in sr1_fck and sr2_fck
-
-Jonathan Bergsagel (1):
-  OMAP4: clock data: Add missing fields in iva_hsd_byp_clk_mux_ck
-
-Rajendra Nayak (2):
-  OMAP4: clock data: Add SCRM auxiliary clock nodes
-  OMAP4: clock data: Export control to enable/disable CORE/PER M3
-    clocks
-
-Thara Gopinath (1):
-  OMAP4: clock data: Add missing DPLL x2 clock nodes
-
- arch/arm/mach-omap2/clock3xxx_data.c |    2 +
- arch/arm/mach-omap2/clock44xx_data.c |  620 ++++++++++++++++++++++++----------
- arch/arm/mach-omap2/scrm_44xx.h      |  148 ++++++++
- 3 files changed, 590 insertions(+), 180 deletions(-)
- create mode 100644 arch/arm/mach-omap2/scrm_44xx.h
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index d85ecd5..741f6a0 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3044,6 +3044,7 @@ static struct clk sr1_fck = {
+ 	.parent		= &sys_ck,
+ 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_SR1_SHIFT,
++	.clkdm_name	= "wkup_clkdm",
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+@@ -3054,6 +3055,7 @@ static struct clk sr2_fck = {
+ 	.parent		= &sys_ck,
+ 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_SR2_SHIFT,
++	.clkdm_name	= "wkup_clkdm",
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-- 
+1.7.0.4
 
