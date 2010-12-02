@@ -1,105 +1,64 @@
-From: "Srinath R" <srinath@mistralsolutions.com>
-Subject: RE: [Patch v3] AM35xx: Craneboard: Add USB EHCI support
-Date: Thu, 2 Dec 2010 12:51:16 +0530
-Message-ID: <001b01cb91f1$865da120$9318e360$@com>
-References: <1291222730-17614-1-git-send-email-srinath@mistralsolutions.com> <20101202062539.GB5645@GLPP-machine>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP2+: PM/serial: hold console semaphore while OMAP UARTs are
+ disabled
+Date: Thu, 2 Dec 2010 00:23:57 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012020022390.2515@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1011241646310.20215@utopia.booyaka.com> <AANLkTina+O1GgMgS0qDKix=d4HOtT1fFrCotTuCCxACv@mail.gmail.com> <alpine.DEB.2.00.1011251017390.20215@utopia.booyaka.com> <AANLkTik5cRQPodAYtacTD5EdQYnDbvGgOoNfNfHuW+fq@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1619880180-1291274637=:2515"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:57370 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756133Ab0LBHUa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 02:20:30 -0500
-In-Reply-To: <20101202062539.GB5645@GLPP-machine>
-Content-Language: en-us
+Received: from utopia.booyaka.com ([72.9.107.138]:36109 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754003Ab0LBHX6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 02:23:58 -0500
+In-Reply-To: <AANLkTik5cRQPodAYtacTD5EdQYnDbvGgOoNfNfHuW+fq@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "'G, Manjunath Kondaiah'" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, tom.leiming@gmail.com, pramod.gurav@ti.com, thomas.petazzoni@free-electrons.com, govindraj.raja@ti.com
 
-Hi Manjunath, 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Thanks for the review, Please find my response inline.
+--155748971-1619880180-1291274637=:2515
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-With Regards
-Srinath
+Hello Jean
 
------Original Message-----
-From: G, Manjunath Kondaiah [mailto:manjugk@ti.com] 
-Sent: Thursday, December 02, 2010 11:56 AM
-To: srinath@mistralsolutions.com
-Cc: linux-omap@vger.kernel.org; jdk@ti.com; tony@atomide.com;
-linux-kernel@vger.kernel.org; linux@arm.linux.org.uk;
-linux-arm-kernel@lists.infradead.org; khilman@deeprootsystems.com;
-nm@ti.com; nagendra@mistralsolutions.com; umeshk@mistralsolutions.com
-Subject: Re: [Patch v3] AM35xx: Craneboard: Add USB EHCI support
+On Thu, 25 Nov 2010, Jean Pihet wrote:
 
-* srinath@mistralsolutions.com <srinath@mistralsolutions.com> [2010-12-01
-22:28:50 +0530]:
+> On Thu, Nov 25, 2010 at 6:35 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Thu, 25 Nov 2010, Jean Pihet wrote:
+> >> On Thu, Nov 25, 2010 at 12:49 AM, Paul Walmsley <paul@pwsan.com> wrote=
+:
+> >> >
+> >> > The console semaphore must be held while the OMAP UART devices are
+> >> > disabled, lest a console write cause an ARM abort (and a kernel cras=
+h)
+> >> > when the underlying console device is inaccessible. =A0These crashes
+> >> > only occur when the console is on one of the OMAP internal serial
+> >> > ports.
+> >> This does not fix the issue for me on Beagle (console on ttyO2).
+> >>
+> >> Doing:
+> >> =A0 / # echo 5 > /sys/devices/platform/omap/omap-hsuart.0/sleep_timeou=
+t
+> >> =A0 / # echo 5 > /sys/devices/platform/omap/omap-hsuart.1/sleep_timeou=
+t
+> >> =A0 / # echo 5 > /sys/devices/platform/omap/omap-hsuart.2/sleep_timeou=
+t
+> >> and waiting 5 seconds hangs the console.
+> >
+> > By the way, you write that the above situation "hangs the console." =A0=
+Is it
+> > just the case that the console dies and the rest of the system is still
+> > alive, or does the whole system crash?
+> The console hangs, the rest of the system still runs.
 
-> From: Srinath <srinath@mistralsolutions.com>
-> 
-> AM3517/05 Craneboard has one EHCI interface on board using port1.
-> 
-> GPIO35 is used as power enable.
-> GPIO38 is used as port1 PHY reset.
-> 
-> History:
->
-http://marc.info/?l=linux-omap&w=2&r=1&s=Craneboard%3A+Add+USB+EHCI+support&
-q=t
-> 
-> Signed-off-by: Srinath <srinath@mistralsolutions.com>
-> ---
->  arch/arm/mach-omap2/board-am3517crane.c |   40
-+++++++++++++++++++++++++++++++
->  1 files changed, 40 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-am3517crane.c
-b/arch/arm/mach-omap2/board-am3517crane.c
-> index 13ead33..6fd5dfe 100644
-> --- a/arch/arm/mach-omap2/board-am3517crane.c
-> +++ b/arch/arm/mach-omap2/board-am3517crane.c
-> @@ -28,8 +28,13 @@
->  
-[...]
->  static void __init am3517_crane_init(void)
->  {
-> +	int ret;
-> +
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->  	omap_serial_init();
-> +
-> +	/* Configure GPIO for EHCI port */
-> +	omap_mux_init_gpio(GPIO_USB_POWER, OMAP_PIN_OUTPUT);
+Just out of curiosity, if you send a few breaks to the OMAP over serial,=20
+does that cause the console to pay attention again?  CTRL-A F in minicom.
 
-This is non void function. You can consider return value for further
-processing.
 
-<Srinath> Sure, I will put check and resend patch 
-> +
-> +	ret = gpio_request(GPIO_USB_POWER, "usb_ehci_enable");
-> +	if (ret < 0) {
-> +		pr_err("Cannot request GPIO %d\n", GPIO_USB_POWER);
-> +		return;
-> +	}
-> +
-> +	ret = gpio_direction_output(GPIO_USB_POWER, 1);
-> +	if (ret < 0)
-> +		goto err;
-> +
-> +	omap_mux_init_gpio(GPIO_USB_NRESET, OMAP_PIN_OUTPUT);
-
--Ditto-
-<Srinath> Sure, I will put check and resend patch
-
-Also, why there is no gpio_request for "GPIO_USB_NRESET"
-
-<Srinath> This is taken care by USB driver in drivers/usb/host/ehci-omap.c
-
--Manjunath
-
-[...]
-
+- Paul
+--155748971-1619880180-1291274637=:2515--
