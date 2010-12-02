@@ -1,72 +1,71 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [Patch v3] AM35xx: Craneboard: Add USB EHCI support
-Date: Thu, 2 Dec 2010 11:55:40 +0530
-Message-ID: <20101202062539.GB5645@GLPP-machine>
-References: <1291222730-17614-1-git-send-email-srinath@mistralsolutions.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH 5/7 v2] OMAP3: clocks: Update clock domain name for mcspi fck
+Date: Thu, 2 Dec 2010 12:01:34 +0530
+Message-ID: <AANLkTiky2Xb_iZpKzfOmEmiF9hSCqOrw6Wm-EQWMxe08@mail.gmail.com>
+References: <33288.10.24.255.18.1291212111.squirrel@dbdmail.itg.ti.com> <alpine.DEB.2.00.1012011759490.2515@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1291222730-17614-1-git-send-email-srinath@mistralsolutions.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: srinath@mistralsolutions.com
-Cc: linux-omap@vger.kernel.org, jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:47972 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753944Ab0LBGb4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 01:31:56 -0500
+Received: by wwa36 with SMTP id 36so8335053wwa.1
+        for <linux-omap@vger.kernel.org>; Wed, 01 Dec 2010 22:31:54 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1012011759490.2515@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-* srinath@mistralsolutions.com <srinath@mistralsolutions.com> [2010-12-01 22:28:50 +0530]:
+On Thu, Dec 2, 2010 at 6:31 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hello Govindraj
+>
+> On Wed, 1 Dec 2010, Govindraj.R wrote:
+>
+>> From: Charulatha V <charu@ti.com>
+>>
+>> Update clock3xxx_data for mcspi1-4 with appropriate clock domain nam=
+e.
+>>
+>> Signed-off-by: Charulatha V <charu@ti.com>
+>
+> Looks like this is missing your Signed-off-by:.
 
-> From: Srinath <srinath@mistralsolutions.com>
-> 
-> AM3517/05 Craneboard has one EHCI interface on board using port1.
-> 
-> GPIO35 is used as power enable.
-> GPIO38 is used as port1 PHY reset.
-> 
-> History:
-> http://marc.info/?l=linux-omap&w=2&r=1&s=Craneboard%3A+Add+USB+EHCI+support&q=t
-> 
-> Signed-off-by: Srinath <srinath@mistralsolutions.com>
-> ---
->  arch/arm/mach-omap2/board-am3517crane.c |   40 +++++++++++++++++++++++++++++++
->  1 files changed, 40 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-> index 13ead33..6fd5dfe 100644
-> --- a/arch/arm/mach-omap2/board-am3517crane.c
-> +++ b/arch/arm/mach-omap2/board-am3517crane.c
-> @@ -28,8 +28,13 @@
->  
-[...]
->  static void __init am3517_crane_init(void)
->  {
-> +	int ret;
-> +
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->  	omap_serial_init();
-> +
-> +	/* Configure GPIO for EHCI port */
-> +	omap_mux_init_gpio(GPIO_USB_POWER, OMAP_PIN_OUTPUT);
+Yes, I will add it
 
-This is non void function. You can consider return value for further
-processing.
+>
+> Also, please submit this patch separately and I will take it as part =
+of
+> the clock patches for 2.6.38.
+>
 
-> +
-> +	ret = gpio_request(GPIO_USB_POWER, "usb_ehci_enable");
-> +	if (ret < 0) {
-> +		pr_err("Cannot request GPIO %d\n", GPIO_USB_POWER);
-> +		return;
-> +	}
-> +
-> +	ret = gpio_direction_output(GPIO_USB_POWER, 1);
-> +	if (ret < 0)
-> +		goto err;
-> +
-> +	omap_mux_init_gpio(GPIO_USB_NRESET, OMAP_PIN_OUTPUT);
+Yes sure. Will send out as a separate patch
 
--Ditto-
+--
+Thanks,
+Govindraj.R
 
-Also, why there is no gpio_request for "GPIO_USB_NRESET"
 
--Manjunath
+> regards
+>
+> - Paul
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
-[...]
+
+
+--=20
+---
+Regards,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
