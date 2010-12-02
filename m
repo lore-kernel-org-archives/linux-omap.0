@@ -1,39 +1,79 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 7/8] perf timechart: Map power:cpu_idle events to the corresponding cpuidle state
-Date: Thu, 2 Dec 2010 17:51:39 +0100
-Message-ID: <201012021751.39865.trenn@suse.de>
-References: <1291308148-28628-1-git-send-email-trenn@suse.de> <1291308148-28628-7-git-send-email-trenn@suse.de> <1291308148-28628-8-git-send-email-trenn@suse.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 10/14] OMAP: DMA: Use DMA device attributes
+Date: Thu, 2 Dec 2010 09:07:25 -0800
+Message-ID: <20101202170724.GQ17222@atomide.com>
+References: <1290603110-14119-1-git-send-email-manjugk@ti.com>
+ <1290603110-14119-11-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1291308148-28628-8-git-send-email-trenn@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@linux.intel.com>, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:21503 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752812Ab0LBRHc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 12:07:32 -0500
+Content-Disposition: inline
+In-Reply-To: <1290603110-14119-11-git-send-email-manjugk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Thursday 02 December 2010 17:42:27 Thomas Renninger wrote:
-> Before, power:cpu_idle events were very specific X86 Intel mwait events.
-> This got fixed with previous patches and cpu_idle events are now thrown by
-> all cpuidle drivers and can be mapped to the corresponding cpuidle state
-> in /sys.
+* G, Manjunath Kondaiah <manjugk@ti.com> [101124 04:43]:
+> Existing DMA API's are using cpu_*is_* checks for differentiating
+> omap1 and omap2+ code and handle cpu_*is_* checks with DMA device
+> attributes.
 > 
-> This patch reads out the corresponding cpuidle name of a cpu_idle event
-> and uses it in the title line of the chart (c-states Cx in x86, omap2
-> - DDR self refresh states for various arm archs).
-> 
-> It also reads out the corresponding abbr(eviation) and uses the string
-> to draw the cpu idle occurences. This needs a short (3 letter) string
-> to keep the overview in the chart.
+> Also, move OMAP1 and OMAP2+ specific API's into respective mach-omap
+> dma driver files.
 
-I forgot two other changes:
-  - Fixes black c-state drawings in eog and firefox:
-    class="rect.cX" is wrong and must be class="cX"
-  - Use green color instead of red for idle drawings. This does not clash
-    with the Block IO drawings (also red) and better fits the "green IT"
-    background the C-states are about :) (that was not really the reason,
-    green was one of the last not used colors)...
+This patch is unreadable and needs to be split.
 
- Thomas
+Also, why are you making duplicate copies of the same generic
+functions?
+
+Now you've copied these into mach-omap1/dma.c: 
+
+> +set_src_params(int lch, unsigned long src_start, int src_ei, int src_fi)
+> +{
+> +	dma_write(src_start, CSSA, lch);
+> +
+> +	dma_write(src_ei, CSEI, lch);
+> +	dma_write(src_fi, CSFI, lch);
+> +}
+> +
+> +static void set_dest_params(int lch, unsigned long dest_start, int dst_ei,
+> +								int dst_fi)
+> +{
+> +	dma_write(dest_start, CDSA, lch);
+> +
+> +	dma_write(dst_ei, CDEI, lch);
+> +	dma_write(dst_fi, CDFI, lch);
+> +}
+...
+
+And then again the same functions in mach-omap2/dma.c:
+
+> +static void omap2_set_src_params(int lch, unsigned long src_start, int src_ei,
+> +								int src_fi)
+> +{
+> +	dma_write(src_start, CSSA, lch);
+> +
+> +	dma_write(src_ei, CSEI, lch);
+> +	dma_write(src_fi, CSFI, lch);
+> +}
+> +
+> +static void omap2_set_dest_params(int lch, unsigned long dest_start, int dst_ei,
+> +								int dst_fi)
+> +{
+> +	dma_write(dest_start, CDSA, lch);
+> +
+> +	dma_write(dst_ei, CDEI, lch);
+> +	dma_write(dst_fi, CDFI, lch);
+> +}
+...
+
+All the common functions should stay in plat-omap/dma.c.
+
+Rgards,
+
+Tony
