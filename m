@@ -1,55 +1,50 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: [GIT PULL] OMAP: mailbox and iommu changes: for-next for v2.6.38
-Date: Thu, 2 Dec 2010 06:07:23 -0600
-Message-ID: <AANLkTind+DH5emar2L9EiV-pqpCvQHQGnFevh9Bncrpz@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCHv5 3/4] omap: iovmm - replace __iounmap with omap_iounmap
+Date: Thu, 2 Dec 2010 12:32:02 +0000
+Message-ID: <20101202123202.GA10461@n2100.arm.linux.org.uk>
+References: <1288033806-1496-1-git-send-email-x0095840@ti.com> <1288033806-1496-2-git-send-email-x0095840@ti.com> <1288033806-1496-3-git-send-email-x0095840@ti.com> <1288033806-1496-4-git-send-email-x0095840@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:47839 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755394Ab0LBMHY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 07:07:24 -0500
-Received: by pxi1 with SMTP id 1so1495836pxi.13
-        for <linux-omap@vger.kernel.org>; Thu, 02 Dec 2010 04:07:24 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1288033806-1496-4-git-send-email-x0095840@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Fernando Guzman Lugo <x0095840@ti.com>
+Cc: Hiroshi.DOYU@nokia.com, tony@atomide.com, linux-kernel@vger.kernel.org, felipe.contreras@nokia.com, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
+On Mon, Oct 25, 2010 at 02:10:05PM -0500, Fernando Guzman Lugo wrote:
+> Omap platform is omap_iounmap function.
+> 
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> ---
+>  arch/arm/plat-omap/iovmm.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+> index 93a34d9..5489ca9 100644
+> --- a/arch/arm/plat-omap/iovmm.c
+> +++ b/arch/arm/plat-omap/iovmm.c
+> @@ -821,7 +821,7 @@ void iommu_kunmap(struct iommu *obj, u32 da)
+>  	struct sg_table *sgt;
+>  	typedef void (*func_t)(const void *);
+>  
+> -	sgt = unmap_vm_area(obj, da, (func_t)__iounmap,
+> +	sgt = unmap_vm_area(obj, da, (func_t)omap_iounmap,
+>  			    IOVMF_LINEAR | IOVMF_MMIO);
+>  	if (!sgt)
+>  		dev_dbg(obj->dev, "%s: No sgt\n", __func__);
 
-The following changes since commit e8a7e48bb248a1196484d3f8afa53bded2b24e71:
-  Linus Torvalds (1):
-        Linux 2.6.37-rc4
+Err, this is wrong.  Why are you breaking the layer separation and going
+for the implementation detail of iounmap()?
 
-are available in the git repository at:
+plat/io.h:
+#define __arch_ioremap(p,s,t)   omap_ioremap(p,s,t)
+#define __arch_iounmap(v)       omap_iounmap(v)
 
-  git://gitorious.org/iommu_mailbox/iommu_mailbox.git for_2.6.38
+void __iomem *omap_ioremap(unsigned long phys, size_t size, unsigned int type);
+void omap_iounmap(volatile void __iomem *addr);
 
-Fernando Guzman Lugo (5):
-      OMAP: mailbox: change full flag per mailbox queue instead of global
-      omap: iovmm - no gap checking for fixed address
-      omap: iovmm - add superpages support to fixed da address
-      omap: iovmm - replace __iounmap with omap_iounmap
-      omap: iommu - create new api to set valid da range
-
-Kanigeri, Hari (3):
-      OMAP: mailbox: fix checkpatch warnings
-      OMAP: mailbox: send message in process context
-      OMAP: mailbox: add notification support for multiple readers
-
-Omar Ramirez Luna (2):
-      OMAP: mailbox: remove unreachable return
-      OMAP: mailbox: fix detection for previously supported chips
-
- arch/arm/mach-omap2/mailbox.c             |   19 +++--
- arch/arm/plat-omap/include/plat/iommu.h   |    3 +
- arch/arm/plat-omap/include/plat/mailbox.h |    8 +-
- arch/arm/plat-omap/iommu.c                |   33 +++++++
- arch/arm/plat-omap/iovmm.c                |   84 +++++++++++--------
- arch/arm/plat-omap/mailbox.c              |  130 +++++++++++++++++------------
- 6 files changed, 177 insertions(+), 100 deletions(-)
-
-Thank you,
-Best regards,
-Hari Kanigeri
+asm/io.h:
+#define ioremap(cookie,size)            __arch_ioremap((cookie), (size), MT_DEVICE)
+#define iounmap(cookie)                 __arch_iounmap(cookie)
