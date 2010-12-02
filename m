@@ -1,92 +1,87 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: Unbalanced IRQ wake disable during resume from static suspend
-Date: Thu, 2 Dec 2010 14:38:34 +0530
-Message-ID: <1c6ea016b8c01ee8b470e95fdcae4ee0@mail.gmail.com>
-References: <alpine.DEB.2.00.1012020057550.2515@utopia.booyaka.com> <alpine.DEB.2.00.1012020112540.2515@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH v5 3/7] OMAP: DSS2: Introduce omap_channel as a
+ omap_dss_device parameter
+Date: Thu, 02 Dec 2010 11:27:10 +0200
+Message-ID: <1291282030.778.9.camel@tubuntu>
+References: <1290410585-29418-1-git-send-email-archit@ti.com>
+	 <1290410585-29418-4-git-send-email-archit@ti.com>
+	 <1291217886.10133.171.camel@tubuntu>
+	 <FCCFB4CDC6E5564B9182F639FC356087035EFD6FE6@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:47127 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751680Ab0LBJIp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 04:08:45 -0500
-Received: by mail-qw0-f43.google.com with SMTP id 3so2745334qwk.2
-        for <linux-omap@vger.kernel.org>; Thu, 02 Dec 2010 01:08:44 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1012020112540.2515@utopia.booyaka.com>
+Received: from smtp.nokia.com ([147.243.128.26]:17496 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757058Ab0LBJ1S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 2 Dec 2010 04:27:18 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087035EFD6FE6@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Govindraj <govindraj.ti@gmail.com>
-Cc: khilman@deeprootsystems.com
+To: "ext Taneja, Archit" <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
 
-Paul,
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> Sent: Thursday, December 02, 2010 1:44 PM
-> To: linux-omap@vger.kernel.org; Govindraj
-> Cc: khilman@deeprootsystems.com
-> Subject: Re: Unbalanced IRQ wake disable during resume from static
-suspend
->
-> On Thu, 2 Dec 2010, Paul Walmsley wrote:
->
-> > On current linux-omap master (commit
-> > 7fd1cffc56ca9944fec583eb2ecda5ce88b36bff "Linux-omap rebuilt: Updated
-to
-> > -rc4"), when resuming from static suspend, several "Unbalanced IRQ
-> > wake disable" warnings are generated, one for each of the serial
-ports.
-> > This is on Beagle 35xx rev C2.
->
-> Just to follow up on this, these messages are not logged when
-> /sys/devices/platform/omap/omap-hsuart.*/tty/ttyO*/power/wakeup are set
-to
-> 'disabled'.
->
-> Also this is with omap2plus_defconfig.
->
-Just a wild guess here but is this because the 'set_wake' is
-not setup and then fw might be returning some error whenever
-driver invoke this API as part of enable_irq_wake() callback
+On Thu, 2010-12-02 at 13:27 +0530, ext Taneja, Archit wrote:
+> Hi,
+> 
+> Tomi Valkeinen wrote:
+> > Hi,
+> > 
 
-If that being the case, below patch might might help. Can
-somebody try this out ?
+> > - The files are getting quite crowded with code that checks
+> > for the channel and then do the work with bits/irqs depending
+> > on the channel.
+> > This makes the code a bit difficult to read. I don't have any
+> > clear ideas right now how to make it clearer, but some
+> > methods to generalize these kinds of functions would be nice.
+> > But this is not so important for the time being, and we can improve it later.
+> 
+> I am assuming that you are referring to 'DISPC_IRQ_MASK_ERROR' and the registering/unregistering of
+> irq masks in manager.c
 
-Regards,
-Santosh
+Not only the irqs, but also, for example, code like this:
 
-omap: irq: Dummy handler for enable_irq_wake
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/irq.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+        if (channel == OMAP_DSS_CHANNEL_LCD ||
+                        channel == OMAP_DSS_CHANNEL_LCD2)
+                bit = 5; /* GOLCD */
+        else
+                bit = 6; /* GODIGIT */
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 32eeabe..6a964d3 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -143,11 +143,21 @@ static void omap_mask_ack_irq(unsigned int irq)
- 	omap_ack_irq(irq);
- }
+        if (channel == OMAP_DSS_CHANNEL_LCD2)
+                return REG_GET(DISPC_CONTROL2, bit, bit) == 1;
+        else
+                return REG_GET(DISPC_CONTROL, bit, bit) == 1;
 
-+#ifdef CONFIG_PM
-+static int omap_set_wake(unsigned int irq, unsigned int on)
-+{
-+	return 0;
-+}
-+#else
-+#define omap_set_wake NULL
-+#endif
-+
- static struct irq_chip omap_irq_chip = {
- 	.name	= "INTC",
- 	.ack	= omap_mask_ack_irq,
- 	.mask	= omap_mask_irq,
- 	.unmask	= omap_unmask_irq,
-+	.set_wake = omap_set_wake,
- };
+So lots of the functions contain ifs based on the channel. I don't know
+right now what would be the best way to make the code cleaner (probably
+some kinds of look-up tables, but they incur some overhead), and as I
+said, it's cosmetical and can be cleaned up later (presuming we come up
+with a good way).
 
- static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank)
--- 
-1.6.0.4
+> I guess we could have a dss_features function which could return the mask based on what omap
+> it is. But this way the mask values/contents would be totally invisble in manager.c and dispc.c, one
+> would need to check it in dss_features.c, which also isn't readable.
+
+Right. I agree that that solution isn't perhaps the best one either.
+
+> One thing which I would like to add is that this series doesn't need to touch any board file for now.
+> The present dss_recheck_connections() doesn't try to differentiate between LCD and DIGIT channels, it just
+> uses 'omap_display_type' to differentiate between them. Only a panel which needs to connect to LCD2 has to do this,
+> This method wouldn't have worked if we didn't switch to uniform use of dssdev->manager->id instead of
+> dssdev->channel. We will need to change dss_recheck_connections() in the future to make it more uniform.
+
+Ok.
+
+If you can split this patch into the two parts I suggested (if that's ok
+for you, you didn't comment on that one), and check if there's anything
+to add to the commit descriptions, I think we can go and apply this
+patch set.
+
+Btw, on what platforms have you tested this (or generally any patches
+you send?). I only have 3430SDP currently that I can easily use to test,
+so my testing is a bit limited.
+
+ Tomi
+
+
