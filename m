@@ -1,48 +1,46 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v8 00/11] OMAP: GPIO: Implement GPIO as platform device
-Date: Thu, 02 Dec 2010 10:58:12 +0100
-Message-ID: <87zkso4hu3.fsf@deeprootsystems.com>
-References: <1290689318-10191-1-git-send-email-charu@ti.com>
-	<20101201183357.GI17222@atomide.com>
+Subject: Re: [PATCH] arm: omap2: io: fix clk_get() error check
+Date: Thu, 02 Dec 2010 11:11:02 +0100
+Message-ID: <87vd3c4h8p.fsf@deeprootsystems.com>
+References: <1291126678-2782-1-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:46345 "EHLO
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:51554 "EHLO
 	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752459Ab0LBJ6W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 04:58:22 -0500
-Received: by qwb7 with SMTP id 7so8166683qwb.19
-        for <linux-omap@vger.kernel.org>; Thu, 02 Dec 2010 01:58:21 -0800 (PST)
-In-Reply-To: <20101201183357.GI17222@atomide.com> (Tony Lindgren's message of
-	"Wed, 1 Dec 2010 10:33:57 -0800")
+	with ESMTP id S1752636Ab0LBKLJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 05:11:09 -0500
+Received: by qwb7 with SMTP id 7so8179515qwb.19
+        for <linux-omap@vger.kernel.org>; Thu, 02 Dec 2010 02:11:08 -0800 (PST)
+In-Reply-To: <1291126678-2782-1-git-send-email-aaro.koskinen@nokia.com> (Aaro
+	Koskinen's message of "Tue, 30 Nov 2010 16:17:58 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, p-basak2@ti.com
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Aaro Koskinen <aaro.koskinen@nokia.com> writes:
 
-> * Varadarajan, Charulatha <charu@ti.com> [101125 04:39]:
->> Implement OMAP GPIO module in platform device model. OMAP2+ specific GPIO
->> module uses hwmod FW.
->> 
->> Tested on OMAP2430, OMAP4430, OMAP3430 SDP boards, OMAP4430 Blaze board
->> and zoom3 board. Verified that this patch series does not break the OMAP1
->> build.
+> clk_get() return value should be checked with IS_ERR().
 >
-> I've boot tested this on N800 + 5912OSK.
->
-> I'll apply these patches into devel-gpio branch and start merging these
-> into linux-omap master branch and into for-next for the next merge window.
->
-> I've also added one minor fix for 16xx, will post that separately.
-
-Tony, you can also add 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 
 Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-for this series, as v8 now looks good for me.
-
-Thanks Charu,
-
-Kevin
+> ---
+>  arch/arm/mach-omap2/io.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 40562dd..a1939b1 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -297,7 +297,7 @@ static int __init _omap2_init_reprogram_sdrc(void)
+>  		return 0;
+>  
+>  	dpll3_m2_ck = clk_get(NULL, "dpll3_m2_ck");
+> -	if (!dpll3_m2_ck)
+> +	if (IS_ERR(dpll3_m2_ck))
+>  		return -EINVAL;
+>  
+>  	rate = clk_get_rate(dpll3_m2_ck);
