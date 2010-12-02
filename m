@@ -1,49 +1,46 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v6] OMAP2+: PM: omap device: API's for handling mstandby
- mode
-Date: Thu, 2 Dec 2010 09:22:38 +0100
-Message-ID: <4CF7574E.7060705@ti.com>
-References: <1291229228-4438-1-git-send-email-manjugk@ti.com> <4CF6AD2C.4020907@nokia.com> <20101202061139.GA5645@GLPP-machine> <4CF75192.3090705@nokia.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] AM35x: musb: fix compilation error
+Date: Thu, 2 Dec 2010 10:29:04 +0200
+Message-ID: <20101202082904.GH5429@legolas.emea.dhcp.ti.com>
+References: <1290415961-21177-1-git-send-email-ajay.gupta@ti.com>
+ <20101122102230.GP2446@legolas.emea.dhcp.ti.com>
+ <20101130183010.GS17222@atomide.com>
+ <20101201084100.GC2796@legolas.emea.dhcp.ti.com>
+ <19F8576C6E063C45BE387C64729E739404BCE39717@dbde02.ent.ti.com>
+ <1291231942.15533.32.camel@eowin>
+ <19F8576C6E063C45BE387C64729E739404BCE398D7@dbde02.ent.ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35550 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752289Ab0LBIWp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Dec 2010 03:22:45 -0500
-In-Reply-To: <4CF75192.3090705@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404BCE398D7-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Adrian and Manju,
-
-On 12/2/2010 8:58 AM, Adrian Hunter wrote:
-> On 02/12/10 08:12, ext G, Manjunath Kondaiah wrote:
->> * Adrian Hunter<adrian.hunter@nokia.com>   [2010-12-01 22:16:44 +0200]:
->>> On 01/12/10 20:47, ext G, Manjunath Kondaiah wrote:
-
-[...]
-
->>> Also, there is a mutex but don't these functions get called
->>> sometimes in interrupt context?
+On Thu, Dec 02, 2010 at 10:22:11AM +0530, Gupta, Ajay Kumar wrote:
+>> > We would need control register apis for accessing USB PHY control
+>> > , IPSS reset and interrupt clear register. This would require to
+>> > add three different function pointer and that would mostly be
+>> > custom to AM35x. Will that be acceptable from musb perspective ?
 >>
->> I feel we should leave this to caller of these API's. The caller should
->> make sure that, he disables interrupts if it is used in interrupt context.
+>> why don't you add a proper otg_transceiver driver for am35x ?
+>> Is it like omap4's internal phy ? A separate block ?
 >
-> How does that help?  It seems to me that a mutex cannot be used for this.
+>AM35x PHY is built inside the ip and we need to configure it through
+>PHY control register.
+>
+>Additionally we also need to access IPSS reset and Intr clear register
+>as well which would not fit inside otg_transceiver.
 
-That mutex is the one that was protecting the hwmod list and should not 
-be used, we do have a per-hwmod mutex.
-But it will disappear soon, Paul already submitted a patch to replace it 
-by a spinlock (8297db801c424f95ef3ebfbd28e62b94798d35dd)
+how about passing an extra struct resource if am35x ? Then you could
+ioremap that base on am35x.c and use normal musb_read/write functions.
 
-Please note that the goal of this API is to not be used at all :-)
-It is there because of dirty HW bugs in several IPs.
-So I'm fine to limit its usability and to prevent its usage everywhere.
-Thanks to the spinlock it will anyway no longer be an issue.
-
-Thanks,
-Benoit
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
