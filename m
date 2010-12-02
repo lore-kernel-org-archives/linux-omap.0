@@ -1,105 +1,72 @@
-From: Hari Kanigeri <hari.kanigeri@gmail.com>
-Subject: Re: [RFC v2 1/8] TILER-DMM: DMM-PAT driver for TI TILER
-Date: Thu, 2 Dec 2010 04:23:00 -0600
-Message-ID: <AANLkTim6vtSnGrTXjy71UVu79+3QgHcUv3+7AWP=DTgA@mail.gmail.com>
-References: <1291147139-23472-1-git-send-email-davidsin@ti.com>
-	<1291147139-23472-2-git-send-email-davidsin@ti.com>
-	<AANLkTi=q1HzYBpMH_pP+S5BtBQpHs62+zNfd_MtWHFuu@mail.gmail.com>
-	<AANLkTi=YUYuxQE8pDZrN5-PJq1Q3jw7cP2yZKCXNAvPP@mail.gmail.com>
-	<AANLkTik1o4Ka_UnwWvmjVhQGrPwrOpPGG4mmu4zSiH+U@mail.gmail.com>
-	<AANLkTikEY+0gGB9dbVFZvhwWbd5jGEGo7oDNs_y5xL=s@mail.gmail.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: [PATCH v5 3/7] OMAP: DSS2: Introduce omap_channel as a
+ omap_dss_device parameter
+Date: Thu, 2 Dec 2010 16:00:12 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087035F0A4AB8@dbde02.ent.ti.com>
+References: <1290410585-29418-1-git-send-email-archit@ti.com>
+	 <1290410585-29418-4-git-send-email-archit@ti.com>
+	 <1291217886.10133.171.camel@tubuntu>
+	 <FCCFB4CDC6E5564B9182F639FC356087035EFD6FE6@dbde02.ent.ti.com>
+	 <1291282030.778.9.camel@tubuntu>
+	 <FCCFB4CDC6E5564B9182F639FC356087035F0A4A5C@dbde02.ent.ti.com>
+ <1291285184.778.17.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:33668 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755131Ab0LBKXE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 05:23:04 -0500
-In-Reply-To: <AANLkTikEY+0gGB9dbVFZvhwWbd5jGEGo7oDNs_y5xL=s@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:59663 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751043Ab0LBKaW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 05:30:22 -0500
+In-Reply-To: <1291285184.778.17.camel@tubuntu>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, David Sin <davidsin@ti.com>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lajos Molnar <molnar@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
 
-On Wed, Dec 1, 2010 at 11:16 PM, Varadarajan, Charulatha <charu@ti.com>=
- wrote:
-> On Thu, Dec 2, 2010 at 07:57, Kanigeri, Hari <h-kanigeri2@ti.com> wro=
-te:
->> On Wed, Dec 1, 2010 at 8:10 PM, Kanigeri, Hari <h-kanigeri2@ti.com> =
-wrote:
->>> On Wed, Dec 1, 2010 at 12:04 AM, Varadarajan, Charulatha <charu@ti.=
-com> wrote:
->>>> David,
->>>
->>>>
->>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!oh)
->>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto error;
->>>>> +
->>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 data->base =3D oh->_mpu_rt_va;
->>>>
->>>> not required. Make use of platform_get APIs in probe to extract th=
-e
->>>> base, dma and irq info using pdev.
->>>
->>> Not sure about using platform_get APIs. I think one has to use
->>> omap_hwmod_get_mpu_rt_va to get the address, which internally retur=
-ns
->>> oh-<_mpu_rt_va.
->> small correction... omap_device_get_rt_va and not omap_hwmod_get_mpu=
-_rt_va.
->
-> To get the base address & irq, you need not have to use
-> omap_device_get_rt_va and pass it as
-> pdata and then use it during probe. Instead in probe, you may do
-> something like the following:
+Hi,
 
-If hwmod framework is already doing the ioremap on device address,
-then it is better to use it rather than duplicating the ioremap part
-again in probe function.
-=46rom what I understand regarding omap_device_get_rt_va() function, it
-is added so that Driver's can avoid doing ioremap.
-check Santosh's comment on this API
-http://www.spinics.net/lists/arm-kernel/msg92260.html
+Tomi Valkeinen wrote:
+> On Thu, 2010-12-02 at 15:17 +0530, ext Taneja, Archit wrote:
+>> Hi,
+> 
+>>> If you can split this patch into the two parts I suggested (if
+>>> that's ok for you, you didn't comment on that one), and check if
+>>> there's anything to add to the commit descriptions, I think we can
+>>> go and apply this patch set.
+>> 
+>> If I split this into 2 parts, the first patch will be just a line
+>> addition in display.h, I was beaten up by the community because of
+>> this in the previous version. One line patches in a series aren't
+>> taken very kindly :|. What I can do is clearly mention the 2 sets of
+>> things which this commit does, if you think that is good enough.
+> 
+> Ah, hmm... I thought this patch also changed
+> dss_recheck_connections() to use the new field, but now that
+> I look at it, it doesn't. Why do you add the new
+> channel-member here, if it's not used? Shouldn't it be added
+> later, together with dss_recheck_connections()?
 
->
-> static int __devinit =A0dev_probe (*pdev) {
-> =A0 struct resource *res;
-> =A0 void __iomem *base;
-> =A0 u16 irq;
-> =A0 ....
-> =A0 ....
-> =A0 res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> =A0 if (unlikely(!res)) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0....
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENODEV;
-> =A0 }
->
-> =A0 base =3D ioremap(res->start, resource_size(res));
-> =A0 if (base) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ....
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
-> =A0 }
->
-> =A0 res =3D platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-> =A0 if (unlikely(!res)) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ....
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
-> =A0 }
-> =A0 irq =3D res->start;
-> =A0 ....
-> =A0 ....
-> }
->
-> -V Charulatha
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, that makes more sense now, I had to introduce it early because
+I used to call dssdev->channel and not dssdev->manager->id before.
+
+The new version can have it with the dss_recheck_connections() change
+
+> 
+>>> Btw, on what platforms have you tested this (or generally any
+>>> patches you send?). I only have 3430SDP currently that I can easily
+>>> use to test, so my testing is a bit limited.
+>>> 
+>> 
+>> This one I had tested throughly on 3430SDP, bootup on zoom2 and zoom3.
+>> I couldn't test on omap2, we have a n800 board but we don't know what
+>> panel driver we need to use, board-n8x0.c doesn't tell anything about.
+>> If you can tell me what panel driver to use etc I can try out.
+> 
+> Unfortunately the panel driver for N800 has not been ported to DSS2.
+
+I can possibly try with a 2430sdp, but I don't see the "omapdss" platform_device
+board-2430dsp.c. Are you aware of any omap2 setup which I can use to test?
+
+Archit
