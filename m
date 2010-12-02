@@ -1,52 +1,42 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: Re: [PATCHv5 0/4] omap: iovmm - fixes for iovmm module
-Date: Wed, 1 Dec 2010 19:36:34 -0600
-Message-ID: <AANLkTimQcXrgxGjZonSUSkXqoHfAVVhXuHnGKBkMKc9X@mail.gmail.com>
-References: <1288033806-1496-1-git-send-email-x0095840@ti.com>
-	<20101129.104729.97149649.Hiroshi.DOYU@nokia.com>
-	<1291231567-notmuch-felipe.contreras@nokia.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: Re: [RFC v2 1/8] TILER-DMM: DMM-PAT driver for TI TILER
+Date: Wed, 1 Dec 2010 20:10:00 -0600
+Message-ID: <AANLkTi=YUYuxQE8pDZrN5-PJq1Q3jw7cP2yZKCXNAvPP@mail.gmail.com>
+References: <1291147139-23472-1-git-send-email-davidsin@ti.com>
+	<1291147139-23472-2-git-send-email-davidsin@ti.com>
+	<AANLkTi=q1HzYBpMH_pP+S5BtBQpHs62+zNfd_MtWHFuu@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1291231567-notmuch-felipe.contreras@nokia.com>
+In-Reply-To: <AANLkTi=q1HzYBpMH_pP+S5BtBQpHs62+zNfd_MtWHFuu@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@nokia.com>
-Cc: Hiroshi.DOYU@nokia.com, x0095840@ti.com, h-kanigeri2@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: David Sin <davidsin@ti.com>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lajos Molnar <molnar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 1, 2010 at 1:27 PM, Felipe Contreras
-<felipe.contreras@nokia.com> wrote:
-> Hiroshi.DOYU@nokia.com wrote:
->> From: ext Fernando Guzman Lugo <x0095840@ti.com>
->> Subject: [PATCHv5 0/4] omap: iovmm - fixes for iovmm module
->> Date: Mon, 25 Oct 2010 21:10:02 +0200
->>
->> > Version 5:
->> > * Changes in "iommu: create new api to set valid da range"
->> > =A0 - Change range variables to platform data structure.
->>
->> Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
->
-> Does that means you are going to send a pull request with these for .=
-38?
->
-> Fernando, is there a branch where you have all the changes needed in
-> tidspbridge?
-
-No, I dont have that branch.
+On Wed, Dec 1, 2010 at 12:04 AM, Varadarajan, Charulatha <charu@ti.com>=
+ wrote:
+> David,
 
 >
-> I guess the only patch missing would be the one for linux-arm.
-
-Yes, after merging them, the only missing is the SG chain patch.
-
-Regards,
-=46ernando.
-
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!oh)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto error;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 data->base =3D oh->_mpu_rt_va;
 >
-> Cheers.
->
-> --
-> Felipe Contreras
->
+> not required. Make use of platform_get APIs in probe to extract the
+> base, dma and irq info using pdev.
+
+Not sure about using platform_get APIs. I think one has to use
+omap_hwmod_get_mpu_rt_va to get the address, which internally returns
+oh-<_mpu_rt_va.
+omap_hwmod_get_mpu_rt_va was added so that the individual drivers can
+avoid doing the ioremap.
+check the discussion regarding this.
+http://www.spinics.net/lists/linux-omap/msg33048.html
+
+
+Thank you,
+Best regards,
+Hari Kanigeri
