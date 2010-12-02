@@ -1,79 +1,48 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: OMAP2+: PM/serial: hold console semaphore while OMAP UARTs are disabled
-Date: Thu, 2 Dec 2010 16:12:53 +0100
-Message-ID: <AANLkTi=hiwspQ4hM0Ok+MHjn5iHme4XRTKZPGa0Z2=Xy@mail.gmail.com>
-References: <alpine.DEB.2.00.1011241646310.20215@utopia.booyaka.com>
-	<AANLkTina+O1GgMgS0qDKix=d4HOtT1fFrCotTuCCxACv@mail.gmail.com>
-	<alpine.DEB.2.00.1011251017390.20215@utopia.booyaka.com>
-	<AANLkTik5cRQPodAYtacTD5EdQYnDbvGgOoNfNfHuW+fq@mail.gmail.com>
-	<alpine.DEB.2.00.1012020022390.2515@utopia.booyaka.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 1/8] ARM: SCU: Add common routines for secondary CPU bootup
+Date: Thu, 2 Dec 2010 15:19:05 +0000
+Message-ID: <AANLkTikpjq-8BVanF5W76j0ZdDBur8DyHWSH8GGgJBQs@mail.gmail.com>
+References: <20101130171626.GA6165@oksana.dev.rtsoft.ru>
+	<20101130171658.GA24034@oksana.dev.rtsoft.ru>
+	<20101130233204.GB14383@n2100.arm.linux.org.uk>
+	<20101201002527.GC14383@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:61021 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757762Ab0LBPMz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 10:12:55 -0500
-Received: by gxk1 with SMTP id 1so1196001gxk.19
-        for <linux-omap@vger.kernel.org>; Thu, 02 Dec 2010 07:12:54 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1012020022390.2515@utopia.booyaka.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:51920 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757662Ab0LBPTI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 10:19:08 -0500
+In-Reply-To: <20101201002527.GC14383@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, tom.leiming@gmail.com, pramod.gurav@ti.com, thomas.petazzoni@free-electrons.com, govindraj.raja@ti.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Anton Vorontsov <avorontsov@mvista.com>, Kukjin Kim <kgene.kim@samsung.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, Jamie Iles <jamie.iles@picochip.com>, Colin Cross <ccross@android.com>, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello Paul,
+On 1 December 2010 00:25, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Tue, Nov 30, 2010 at 11:32:04PM +0000, Russell King - ARM Linux wr=
+ote:
+>> Note that I'll go with factoring this out into arch/arm/kernel/smp_s=
+cu.c
+>> for the time being, but I'm not convinced about the other parts yet.
+>
+> IOW, something like the attached. =C2=A0I've gone a little further an=
+d removed
+> the now unnecessary scu_enable() and scu_get_core_count() global func=
+tions,
+> making scu_enable() static, and eliminating scu_get_core_count() enti=
+rely.
 
-On Thu, Dec 2, 2010 at 8:23 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hello Jean
->
-> On Thu, 25 Nov 2010, Jean Pihet wrote:
->
->> On Thu, Nov 25, 2010 at 6:35 PM, Paul Walmsley <paul@pwsan.com> wrot=
-e:
->> > On Thu, 25 Nov 2010, Jean Pihet wrote:
->> >> On Thu, Nov 25, 2010 at 12:49 AM, Paul Walmsley <paul@pwsan.com> =
-wrote:
->> >> >
->> >> > The console semaphore must be held while the OMAP UART devices =
-are
->> >> > disabled, lest a console write cause an ARM abort (and a kernel=
- crash)
->> >> > when the underlying console device is inaccessible. =A0These cr=
-ashes
->> >> > only occur when the console is on one of the OMAP internal seri=
-al
->> >> > ports.
->> >> This does not fix the issue for me on Beagle (console on ttyO2).
->> >>
->> >> Doing:
->> >> =A0 / # echo 5 > /sys/devices/platform/omap/omap-hsuart.0/sleep_t=
-imeout
->> >> =A0 / # echo 5 > /sys/devices/platform/omap/omap-hsuart.1/sleep_t=
-imeout
->> >> =A0 / # echo 5 > /sys/devices/platform/omap/omap-hsuart.2/sleep_t=
-imeout
->> >> and waiting 5 seconds hangs the console.
->> >
->> > By the way, you write that the above situation "hangs the console.=
-" =A0Is it
->> > just the case that the console dies and the rest of the system is =
-still
->> > alive, or does the whole system crash?
->> The console hangs, the rest of the system still runs.
->
-> Just out of curiosity, if you send a few breaks to the OMAP over seri=
-al,
-> does that cause the console to pay attention again? =A0CTRL-A F in mi=
-nicom.
-Yes it helps. In most cases sending 2-3 breaks resumes the UART console=
-=2E
+There is some benefit in leaving get_core_count() in the platform
+code. For example, the SCU on Cortex-A15 doesn't expose the core count
+register and we have to get it from somewhere else (for now from some
+L2 cache controller register but in the future it may be hardcoded,
+passed via FDT or simply trying to boot maxcpus).
 
->
-> - Paul
-
-Jean
+--=20
+Catalin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
