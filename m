@@ -1,74 +1,61 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH 2/2] arm: mach-omap2: rx51: clean up dummy onenand init
-Date: Thu,  2 Dec 2010 17:51:24 +0200
-Message-ID: <1291305084-9159-2-git-send-email-aaro.koskinen@nokia.com>
-References: <1291305084-9159-1-git-send-email-aaro.koskinen@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:43342 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754668Ab0LBPus (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Dec 2010 10:50:48 -0500
-In-Reply-To: <1291305084-9159-1-git-send-email-aaro.koskinen@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 1/8] ARM: SCU: Add common routines for secondary CPU
+ bootup
+Date: Thu, 02 Dec 2010 16:28:40 +0000
+Message-ID: <1291307320.11271.51.camel@e102109-lin.cambridge.arm.com>
+References: <20101130171626.GA6165@oksana.dev.rtsoft.ru>
+	 <20101130171658.GA24034@oksana.dev.rtsoft.ru>
+	 <20101130233204.GB14383@n2100.arm.linux.org.uk>
+	 <20101201002527.GC14383@n2100.arm.linux.org.uk>
+	 <AANLkTikpjq-8BVanF5W76j0ZdDBur8DyHWSH8GGgJBQs@mail.gmail.com>
+	 <20101202152428.GD10461@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101202152428.GD10461@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Anton Vorontsov <avorontsov@mvista.com>, Kukjin Kim <kgene.kim@samsung.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, Jamie Iles <jamie.iles@picochip.com>, Colin Cross <ccross@android.com>, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Uwe =?ISO-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-When OneNAND support is disabled, the platform code defines NULL
-board_onenand_data and empty init function for us. By utilizing this we
-can avoid cluttering board files with dummy definitions/wrappers.
+On Thu, 2010-12-02 at 15:24 +0000, Russell King - ARM Linux wrote:
+> On Thu, Dec 02, 2010 at 03:19:05PM +0000, Catalin Marinas wrote:
+> > On 1 December 2010 00:25, Russell King - ARM Linux
+> > <linux@arm.linux.org.uk> wrote:
+> > > On Tue, Nov 30, 2010 at 11:32:04PM +0000, Russell King - ARM Linux wrote:
+> > >> Note that I'll go with factoring this out into arch/arm/kernel/smp_scu.c
+> > >> for the time being, but I'm not convinced about the other parts yet.
+> > >
+> > > IOW, something like the attached.  I've gone a little further and removed
+> > > the now unnecessary scu_enable() and scu_get_core_count() global functions,
+> > > making scu_enable() static, and eliminating scu_get_core_count() entirely.
+> >
+> > There is some benefit in leaving get_core_count() in the platform
+> > code. For example, the SCU on Cortex-A15 doesn't expose the core count
+> > register and we have to get it from somewhere else (for now from some
+> > L2 cache controller register but in the future it may be hardcoded,
+> > passed via FDT or simply trying to boot maxcpus).
+> 
+> I notice that there's no way to tell what revision of SCU is implemented
+> on _any_ mpcore platform.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   28 ++++++++-----------------
- 1 files changed, 9 insertions(+), 19 deletions(-)
+C-A15 doesn't have any SCU registers exposed (and it's enabled by
+default).
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 3fec4d6..14a6fbd 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -815,25 +815,15 @@ static struct mtd_partition onenand_partitions[] = {
- 	},
- };
- 
--static struct omap_onenand_platform_data board_onenand_data = {
--	.cs		= 0,
--	.gpio_irq	= 65,
--	.parts		= onenand_partitions,
--	.nr_parts	= ARRAY_SIZE(onenand_partitions),
--	.flags		= ONENAND_SYNC_READWRITE,
-+static struct omap_onenand_platform_data board_onenand_data[] = {
-+	{
-+		.cs		= 0,
-+		.gpio_irq	= 65,
-+		.parts		= onenand_partitions,
-+		.nr_parts	= ARRAY_SIZE(onenand_partitions),
-+		.flags		= ONENAND_SYNC_READWRITE,
-+	}
- };
--
--static void __init board_onenand_init(void)
--{
--	gpmc_onenand_init(&board_onenand_data);
--}
--
--#else
--
--static inline void board_onenand_init(void)
--{
--}
--
- #endif
- 
- #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
-@@ -916,7 +906,7 @@ error:
- void __init rx51_peripherals_init(void)
- {
- 	rx51_i2c_init();
--	board_onenand_init();
-+	gpmc_onenand_init(board_onenand_data);
- 	board_smc91x_init();
- 	rx51_add_gpio_keys();
- 	rx51_init_wl1251();
+> In light of that, I think there's no point what so ever trying to
+> consolidate this code - even the control register bits vary in
+> unpredictable ways between different MPcore implementations.
+
+The SCU is part of the core TRM, so I don't expect it to be the same
+across various MP cores (and A15 is an example).
+
+You may want to consolidate functions like scu_prepare_cpus (maybe call
+it smp_prepare_cpus) and something that calls set_cpu_possible() but
+with platform callbacks for getting the number of calls and initialising
+the SMP (SCU for most platforms).
+
+Whether this is worth, I don't know.
+
 -- 
-1.5.6.5
-
+Catalin
