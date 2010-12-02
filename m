@@ -1,50 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP4 build error - omapfb
-Date: Thu, 2 Dec 2010 14:00:24 -0800
-Message-ID: <20101202220024.GX17222@atomide.com>
-References: <20101202212541.GH10461@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH] OMAP MUX framework changes
+Date: Thu, 2 Dec 2010 14:02:37 -0800
+Message-ID: <20101202220237.GY17222@atomide.com>
+References: <1290017211-2217-1-git-send-email-dmurphy@ti.com>
+ <20101119174721.GT9264@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54394 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756209Ab0LBWAp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 17:00:45 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35030 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757867Ab0LBWCq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 17:02:46 -0500
 Content-Disposition: inline
-In-Reply-To: <20101202212541.GH10461@n2100.arm.linux.org.uk>
+In-Reply-To: <20101119174721.GT9264@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Dan Murphy <dmurphy@ti.com>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com, khilman@deeprootsystems.com
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [101202 13:15]:
-> drivers/built-in.o: In function `omapfb_do_probe':
-> drivers/video/omap/omapfb_main.c:1773: undefined reference to `omap2_int_ctrl'
+* Tony Lindgren <tony@atomide.com> [101119 09:38]:
+> * Dan Murphy <dmurphy@ti.com> [101117 09:58]:
+> > --- a/arch/arm/mach-omap2/mux.c
+> > +++ b/arch/arm/mach-omap2/mux.c
+> >  
+> > +static struct omap_mux *omap_mux_get_by_mux(struct omap_mux_partition *partition,
+> > +					char *name)
+> > +{
+> > +	struct omap_mux_entry *e;
+> > +	int i = 0;
+> > +
+> > +	list_for_each_entry(e, &partition->muxmodes, node) {
+> > +		struct omap_mux *m = &e->mux;
+> > +		for (i = 0; i < OMAP_MUX_NR_MODES; i++) {
+> > +			if (m->muxnames[i] == NULL)
+> > +				break;
+> > +			else if (!strcmp(name, m->muxnames[i]))
+> > +				return m;
+> > +		}
+> > +	}
+> > +
+> > +	return NULL;
+> > +}
 > 
-> Looks like there's a missing dependency for CONFIG_FB_OMAP.  As the
-> only place omap2_int_ctrl is defined is in drivers/video/omap/dispc.c,
-> and this isn't built for OMAP4, maybe FB_OMAP is missing a dependency
-> such that it's only available for OMAP1, OMAP2 and OMAP3 ?
+> Hmm turns out we almost have this already in _omap_mux_init_signal.
+> Also we need to know the mux mode value to make use of this, so
+> how about the patch below instead?
 
-This is something for Tomi, adding fbdev and Tomi to Cc.
+Will post a better version soon.
 
 Tony
- 
-> diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
-> index 455c605..083c8fe 100644
-> --- a/drivers/video/omap/Kconfig
-> +++ b/drivers/video/omap/Kconfig
-> @@ -1,7 +1,7 @@
->  config FB_OMAP
->  	tristate "OMAP frame buffer support (EXPERIMENTAL)"
-> -	depends on FB && ARCH_OMAP && (OMAP2_DSS = "n")
-> -
-> +	depends on FB && (OMAP2_DSS = "n")
-> +	depends on ARCH_OMAP1 || ARCH_OMAP2 || ARCH_OMAP3
->  	select FB_CFB_FILLRECT
->  	select FB_CFB_COPYAREA
->  	select FB_CFB_IMAGEBLIT
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
