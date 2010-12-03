@@ -1,44 +1,45 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Unbalanced IRQ wake disable during resume from static suspend
-Date: Fri, 3 Dec 2010 03:00:28 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012030251230.17078@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1012020057550.2515@utopia.booyaka.com> <alpine.DEB.2.00.1012020112540.2515@utopia.booyaka.com> <1c6ea016b8c01ee8b470e95fdcae4ee0@mail.gmail.com> <AANLkTikqvVK2BWpiik5SVWPRzC6NMKs=Udvrtru5BfR-@mail.gmail.com>
- <09fd160109a43efec9a472055d541c9e@mail.gmail.com> <87y6882rc9.fsf@deeprootsystems.com>
+Subject: RE: Unbalanced IRQ wake disable during resume from static suspend
+Date: Fri, 3 Dec 2010 03:23:09 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012030315510.17078@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1012020057550.2515@utopia.booyaka.com> <alpine.DEB.2.00.1012020112540.2515@utopia.booyaka.com> <1c6ea016b8c01ee8b470e95fdcae4ee0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35561 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:41364 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932353Ab0LCKA3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 05:00:29 -0500
-In-Reply-To: <87y6882rc9.fsf@deeprootsystems.com>
+	with ESMTP id S1752441Ab0LCKXK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 05:23:10 -0500
+In-Reply-To: <1c6ea016b8c01ee8b470e95fdcae4ee0@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj <govindraj.ti@gmail.com>, linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Govindraj <govindraj.ti@gmail.com>, khilman@deeprootsystems.com
 
-Hi Kevin
+Hello Santosh
 
-On Thu, 2 Dec 2010, Kevin Hilman wrote:
+On Thu, 2 Dec 2010, Santosh Shilimkar wrote:
 
-> I guess this hasn't been seen before since we haven't tested the sysfs
-> wakeup interface for the omap-serial driver.  For on-chip OMAP UARTs,
-> using the sysfs interface isn't needed as the serial core is already
-> doing device_init_wakeup(dev, true);
+> Just a wild guess here but is this because the 'set_wake' is
+> not setup and then fw might be returning some error whenever
+> driver invoke this API as part of enable_irq_wake() callback
+> 
+> If that being the case, below patch might might help. Can
+> somebody try this out ?
 
-Is this the code you're referring to, in serial_core.c?
+This patch might remove the warnings, but I doubt that it solves the root 
+cause.  In any case, it doesn't seem correct to unconditionally return 0 
+(success) from an omap_irq_wake() function, given that the OMAP INTC has 
+no functionality in this regard.
 
-	tty_dev = tty_register_device(drv->tty_driver, uport->line, uport->dev);
-	if (likely(!IS_ERR(tty_dev))) {
-		device_init_wakeup(tty_dev, 1);
-		device_set_wakeup_enable(tty_dev, 0);
-	} else
+The real problem appears to be in drivers/serial/serial_core.c.  
+uart_suspend_port() doesn't check the return value of enable_irq_wake().  
+Seems to me that it needs to save that return value somewhere and not 
+bother calling disable_irq_wake() in uart_resume_port() if 
+enable_irq_wake() returned an error.
 
-I may be misreading it, but it appears that the code leaves wakeups 
-disabled for the serial port, by default.
-
-As an aside, this code is somewhat perplexing: it doesn't seem accurate to 
-assume that every serial device really is capable of waking up the system.
+That's the patch that I'd suggest that you guys put together and send to 
+the Linux serial people.
 
 
 - Paul
