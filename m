@@ -1,100 +1,970 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 0/6] Split powerdomain framework into plat specific/independent
-Date: Fri,  3 Dec 2010 17:08:47 +0530
-Message-ID: <1291376333-13603-1-git-send-email-rnayak@ti.com>
+Subject: [PATCH v3 5/6] OMAP: powerdomain: Arch specific funcs for mem control
+Date: Fri,  3 Dec 2010 17:08:52 +0530
+Message-ID: <1291376333-13603-6-git-send-email-rnayak@ti.com>
+References: <1291376333-13603-1-git-send-email-rnayak@ti.com>
+ <1291376333-13603-2-git-send-email-rnayak@ti.com>
+ <1291376333-13603-3-git-send-email-rnayak@ti.com>
+ <1291376333-13603-4-git-send-email-rnayak@ti.com>
+ <1291376333-13603-5-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51058 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758470Ab0LCLjG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Dec 2010 06:39:06 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:34810 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758493Ab0LCLjG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 06:39:06 -0500
+In-Reply-To: <1291376333-13603-5-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, b-cousson@ti.com, khilman@deeprootsystems.com, Rajendra Nayak <rnayak@ti.com>
 
-OMAP4 powerdomains have some inherent differences as compared
-to OMAP2/3 powerdomains, starting with register offsets being different
-to clubbing of multiple controls into one register and in some cases
-splitting of control into multiple registers.
-There are also new features like lowpowerstatechange bits and features
-like HW SAR which are no longer present in the older form.
+Define the following architecture specific funtions for omap2/3/4
+.pwrdm_set_mem_onst
+.pwrdm_set_mem_retst
+.pwrdm_read_mem_pwrst
+.pwrdm_read_prev_mem_pwrst
+.pwrdm_read_mem_retst
+.pwrdm_clear_all_prev_pwrst
+.pwrdm_enable_hdwr_sar
+.pwrdm_disable_hdwr_sar
+.pwrdm_wait_transition
+.pwrdm_set_lowpwrstchange
 
-Supporting all these in the existing powerdomain framework would mean adding
-a lot of cpu_is_* checks which makes code unmaintainable going fwd.
+Convert the platform-independent framework to call these functions.
 
-Hence this series is an attempt to split the existing powerdomain framework
-into platform independent part (which does error checking, usecounting et al)
-which can be reused across OMAP's and hook up platform specific functions to
-do low level programming which varies across OMAP's.
-
-The series is boot tested on OMAP 2430sdp/3430sdp and 4430sdp platforms.
-Additionally on 3430sdp, Retention and OFF support in system suspend is
-also validated with a minimal kernel config (omap3_pm_defconfig from
-Kevins tree hosted here 
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git)
-
-The series is based on 2.6.37-rc4 and is available here:
-git://gitorious.org/omap-pm/linux.git powerdomain-split-v3
-
-regards,
-Rajendra
-
-Version History
----------------
-Version v3
-* Additional patch to move static allocs in 
-powerdomins.h to powerdomains_data.c 
-* Sparse warning fixes
-
-Version v2
-* powerdomain.c retained in mach-omap2 instead
-of moving it to plat-omap
-* All common powerdomain functions now in
-powerdomain-common.c file instead of powerdomains.c
-* OMAP2/3 common and specific functions in
-powerdomain2xxx_3xxx.c file.
-* Other minor review comment fixes
-
-Version v1
-http://marc.info/?l=linux-omap&m=128992190426815&w=2
-Fixes all issues discussed on the RFC series and also has
-a few other changes
-* The below patch is dropped as the dependent patches for this are
-still under discussion.
-[RFC 6/8] OMAP: PRM: split the prm accessor api funcs for omap2/3 and omap4
-http://marc.info/?l=linux-omap&m=128524531505429&w=2
-* The below patch is also dropped as there are more than one context
-registers to be handled in some powerdomains and hence needs to be
-handled differently
-[RFC 7/8] omap4: powerdomain: add context_offset field
-http://marc.info/?l=linux-omap&m=128524531805435&w=2
-
-The RFC series of these patches was posted here
-
-Rajendra Nayak (5):
-  OMAP: powerdomain: Move static allocations from powerdomains.h to a
-    .c file
-  OMAP: powerdomain: Infrastructure to put arch specific code
-  OMAP: powerdomain: Arch specific funcs for state control
-  OMAP: powerdomain: Arch specific funcs for logic control
-  OMAP: powerdomain: Arch specific funcs for mem control
-
-Santosh Shilimkar (1):
-  OMAP4: powerdomain: Add pwrdm_clear_all_prev_pwrst
-
- arch/arm/mach-omap2/Makefile                  |    8 +-
- arch/arm/mach-omap2/clockdomains.h            |    5 +
- arch/arm/mach-omap2/io.c                      |    3 +-
- arch/arm/mach-omap2/powerdomain-common.c      |  111 +++++++
- arch/arm/mach-omap2/powerdomain.c             |  396 +++++++------------------
- arch/arm/mach-omap2/powerdomain2xxx_3xxx.c    |  227 ++++++++++++++
- arch/arm/mach-omap2/powerdomain44xx.c         |  175 +++++++++++
- arch/arm/mach-omap2/powerdomains.h            |  152 ++--------
- arch/arm/mach-omap2/powerdomains_data.c       |  159 ++++++++++
- arch/arm/plat-omap/include/plat/powerdomain.h |   44 +++-
- 10 files changed, 857 insertions(+), 423 deletions(-)
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/Makefile               |    9 +-
+ arch/arm/mach-omap2/powerdomain-common.c   |  111 ++++++++++
+ arch/arm/mach-omap2/powerdomain.c          |  303 +++++----------------------
+ arch/arm/mach-omap2/powerdomain2xxx_3xxx.c |  131 ++++++++++++
+ arch/arm/mach-omap2/powerdomain44xx.c      |   85 ++++++++
+ arch/arm/mach-omap2/powerdomains.h         |    5 +
+ 6 files changed, 393 insertions(+), 251 deletions(-)
  create mode 100644 arch/arm/mach-omap2/powerdomain-common.c
- create mode 100644 arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
- create mode 100644 arch/arm/mach-omap2/powerdomain44xx.c
- create mode 100644 arch/arm/mach-omap2/powerdomains_data.c
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index bba0d17..a00a9b3 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -9,7 +9,7 @@ obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o pm.o \
+ omap-2-3-common				= irq.o sdrc.o prm2xxx_3xxx.o
+ hwmod-common				= omap_hwmod.o \
+ 					  omap_hwmod_common_data.o
+-prcm-common				= prcm.o powerdomain.o powerdomains_data.o
++prcm-common				= prcm.o
+ clock-common				= clock.o clock_common_data.o \
+ 					  clockdomain.o clkt_dpll.o \
+ 					  clkt_clksel.o
+@@ -95,9 +95,10 @@ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
+ 
+ #powerdomain framework
+-obj-$(CONFIG_ARCH_OMAP2)		+= powerdomain2xxx_3xxx.o
+-obj-$(CONFIG_ARCH_OMAP3)		+= powerdomain2xxx_3xxx.o
+-obj-$(CONFIG_ARCH_OMAP4)		+= powerdomain44xx.o
++powerdomain-common			+= powerdomain.o powerdomains_data.o powerdomain-common.o
++obj-$(CONFIG_ARCH_OMAP2)		+= $(powerdomain-common) powerdomain2xxx_3xxx.o
++obj-$(CONFIG_ARCH_OMAP3)		+= $(powerdomain-common) powerdomain2xxx_3xxx.o
++obj-$(CONFIG_ARCH_OMAP4)		+= $(powerdomain-common) powerdomain44xx.o
+ 
+ # EMU peripherals
+ obj-$(CONFIG_OMAP3_EMU)			+= emu.o
+diff --git a/arch/arm/mach-omap2/powerdomain-common.c b/arch/arm/mach-omap2/powerdomain-common.c
+new file mode 100644
+index 0000000..26c38e7
+--- /dev/null
++++ b/arch/arm/mach-omap2/powerdomain-common.c
+@@ -0,0 +1,111 @@
++/*
++ *  linux/arch/arm/mach-omap2/powerdomain-common.c
++ *  Contains common powerdomain framework functions
++ *
++ *  Copyright (C) 2010 Texas Instruments, Inc.
++ *  Copyright (C) 2010 Nokia Corporation
++ *
++ * Derived from mach-omap2/powerdomain.c written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/errno.h>
++#include <linux/kernel.h>
++#include "pm.h"
++#include "cm.h"
++#include "cm-regbits-34xx.h"
++#include "cm-regbits-44xx.h"
++#include "prm-regbits-34xx.h"
++#include "prm-regbits-44xx.h"
++#include "powerdomains.h"
++
++/*
++ * OMAP3 and OMAP4 specific register bit initialisations
++ * Notice that the names here are not according to each power
++ * domain but the bit mapping used applies to all of them
++ */
++/* OMAP3 and OMAP4 Memory Onstate Masks (common across all power domains) */
++#define OMAP_MEM0_ONSTATE_MASK OMAP3430_SHAREDL1CACHEFLATONSTATE_MASK
++#define OMAP_MEM1_ONSTATE_MASK OMAP3430_L1FLATMEMONSTATE_MASK
++#define OMAP_MEM2_ONSTATE_MASK OMAP3430_SHAREDL2CACHEFLATONSTATE_MASK
++#define OMAP_MEM3_ONSTATE_MASK OMAP3430_L2FLATMEMONSTATE_MASK
++#define OMAP_MEM4_ONSTATE_MASK OMAP4430_OCP_NRET_BANK_ONSTATE_MASK
++
++/* OMAP3 and OMAP4 Memory Retstate Masks (common across all power domains) */
++#define OMAP_MEM0_RETSTATE_MASK OMAP3430_SHAREDL1CACHEFLATRETSTATE_MASK
++#define OMAP_MEM1_RETSTATE_MASK OMAP3430_L1FLATMEMRETSTATE_MASK
++#define OMAP_MEM2_RETSTATE_MASK OMAP3430_SHAREDL2CACHEFLATRETSTATE_MASK
++#define OMAP_MEM3_RETSTATE_MASK OMAP3430_L2FLATMEMRETSTATE_MASK
++#define OMAP_MEM4_RETSTATE_MASK OMAP4430_OCP_NRET_BANK_RETSTATE_MASK
++
++/* OMAP3 and OMAP4 Memory Status bits */
++#define OMAP_MEM0_STATEST_MASK OMAP3430_SHAREDL1CACHEFLATSTATEST_MASK
++#define OMAP_MEM1_STATEST_MASK OMAP3430_L1FLATMEMSTATEST_MASK
++#define OMAP_MEM2_STATEST_MASK OMAP3430_SHAREDL2CACHEFLATSTATEST_MASK
++#define OMAP_MEM3_STATEST_MASK OMAP3430_L2FLATMEMSTATEST_MASK
++#define OMAP_MEM4_STATEST_MASK OMAP4430_OCP_NRET_BANK_STATEST_MASK
++
++/* Common Internal functions used across OMAP rev's*/
++int _get_mem_bank_onstate_mask(u8 bank)
++{
++	switch (bank) {
++	case 0:
++		return OMAP_MEM0_ONSTATE_MASK;
++	case 1:
++		return OMAP_MEM1_ONSTATE_MASK;
++	case 2:
++		return OMAP_MEM2_ONSTATE_MASK;
++	case 3:
++		return OMAP_MEM3_ONSTATE_MASK;
++	case 4:
++		return OMAP_MEM4_ONSTATE_MASK;
++	default:
++		WARN_ON(1); /* should never happen */
++		return -EEXIST;
++	}
++	return 0;
++}
++
++int _get_mem_bank_retst_mask(u8 bank)
++{
++	switch (bank) {
++	case 0:
++		return OMAP_MEM0_RETSTATE_MASK;
++	case 1:
++		return OMAP_MEM1_RETSTATE_MASK;
++	case 2:
++		return OMAP_MEM2_RETSTATE_MASK;
++	case 3:
++		return OMAP_MEM3_RETSTATE_MASK;
++	case 4:
++		return OMAP_MEM4_RETSTATE_MASK;
++	default:
++		WARN_ON(1); /* should never happen */
++		return -EEXIST;
++	}
++	return 0;
++}
++
++int _get_mem_bank_stst_mask(u8 bank)
++{
++	switch (bank) {
++	case 0:
++		return OMAP_MEM0_STATEST_MASK;
++	case 1:
++		return OMAP_MEM1_STATEST_MASK;
++	case 2:
++		return OMAP_MEM2_STATEST_MASK;
++	case 3:
++		return OMAP_MEM3_STATEST_MASK;
++	case 4:
++		return OMAP_MEM4_STATEST_MASK;
++	default:
++		WARN_ON(1); /* should never happen */
++		return -EEXIST;
++	}
++	return 0;
++}
++
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 562a3fe..6206721 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -15,23 +15,10 @@
+ #undef DEBUG
+ 
+ #include <linux/kernel.h>
+-#include <linux/module.h>
+ #include <linux/types.h>
+-#include <linux/delay.h>
+-#include <linux/spinlock.h>
+ #include <linux/list.h>
+ #include <linux/errno.h>
+-#include <linux/err.h>
+-#include <linux/io.h>
+-
+-#include <asm/atomic.h>
+-
+-#include "cm.h"
+-#include "cm-regbits-34xx.h"
+-#include "cm-regbits-44xx.h"
+-#include "prm.h"
+-#include "prm-regbits-34xx.h"
+-#include "prm-regbits-44xx.h"
++#include <linux/string.h>
+ 
+ #include <plat/cpu.h>
+ #include <plat/powerdomain.h>
+@@ -45,37 +32,6 @@ enum {
+ 	PWRDM_STATE_PREV,
+ };
+ 
+-/* Variable holding value of the CPU dependent PWRSTCTRL Register Offset */
+-static u16 pwrstctrl_reg_offs;
+-
+-/* Variable holding value of the CPU dependent PWRSTST Register Offset */
+-static u16 pwrstst_reg_offs;
+-
+-/* OMAP3 and OMAP4 specific register bit initialisations
+- * Notice that the names here are not according to each power
+- * domain but the bit mapping used applies to all of them
+- */
+-
+-/* OMAP3 and OMAP4 Memory Onstate Masks (common across all power domains) */
+-#define OMAP_MEM0_ONSTATE_MASK OMAP3430_SHAREDL1CACHEFLATONSTATE_MASK
+-#define OMAP_MEM1_ONSTATE_MASK OMAP3430_L1FLATMEMONSTATE_MASK
+-#define OMAP_MEM2_ONSTATE_MASK OMAP3430_SHAREDL2CACHEFLATONSTATE_MASK
+-#define OMAP_MEM3_ONSTATE_MASK OMAP3430_L2FLATMEMONSTATE_MASK
+-#define OMAP_MEM4_ONSTATE_MASK OMAP4430_OCP_NRET_BANK_ONSTATE_MASK
+-
+-/* OMAP3 and OMAP4 Memory Retstate Masks (common across all power domains) */
+-#define OMAP_MEM0_RETSTATE_MASK OMAP3430_SHAREDL1CACHEFLATRETSTATE_MASK
+-#define OMAP_MEM1_RETSTATE_MASK OMAP3430_L1FLATMEMRETSTATE_MASK
+-#define OMAP_MEM2_RETSTATE_MASK OMAP3430_SHAREDL2CACHEFLATRETSTATE_MASK
+-#define OMAP_MEM3_RETSTATE_MASK OMAP3430_L2FLATMEMRETSTATE_MASK
+-#define OMAP_MEM4_RETSTATE_MASK OMAP4430_OCP_NRET_BANK_RETSTATE_MASK
+-
+-/* OMAP3 and OMAP4 Memory Status bits */
+-#define OMAP_MEM0_STATEST_MASK OMAP3430_SHAREDL1CACHEFLATSTATEST_MASK
+-#define OMAP_MEM1_STATEST_MASK OMAP3430_L1FLATMEMSTATEST_MASK
+-#define OMAP_MEM2_STATEST_MASK OMAP3430_SHAREDL2CACHEFLATSTATEST_MASK
+-#define OMAP_MEM3_STATEST_MASK OMAP3430_L2FLATMEMSTATEST_MASK
+-#define OMAP_MEM4_STATEST_MASK OMAP4430_OCP_NRET_BANK_STATEST_MASK
+ 
+ /* pwrdm_list contains all registered struct powerdomains */
+ static LIST_HEAD(pwrdm_list);
+@@ -225,18 +181,6 @@ void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_ops *custom_funcs)
+ {
+ 	struct powerdomain **p = NULL;
+ 
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+-		pwrstctrl_reg_offs = OMAP2_PM_PWSTCTRL;
+-		pwrstst_reg_offs = OMAP2_PM_PWSTST;
+-	} else if (cpu_is_omap44xx()) {
+-		pwrstctrl_reg_offs = OMAP4_PM_PWSTCTRL;
+-		pwrstst_reg_offs = OMAP4_PM_PWSTST;
+-	} else {
+-		printk(KERN_ERR "Power Domain struct not supported for " \
+-							"this CPU\n");
+-		return;
+-	}
+-
+ 	if (!custom_funcs)
+ 		WARN(1, "powerdomain: No custom pwrdm functions registered\n");
+ 	else
+@@ -566,7 +510,7 @@ int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+  */
+ int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+ {
+-	u32 m;
++	int ret = -EINVAL;
+ 
+ 	if (!pwrdm)
+ 		return -EINVAL;
+@@ -580,37 +524,10 @@ int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+ 	pr_debug("powerdomain: setting next memory powerstate for domain %s "
+ 		 "bank %0x while pwrdm-ON to %0x\n", pwrdm->name, bank, pwrst);
+ 
+-	/*
+-	 * The register bit names below may not correspond to the
+-	 * actual names of the bits in each powerdomain's register,
+-	 * but the type of value returned is the same for each
+-	 * powerdomain.
+-	 */
+-	switch (bank) {
+-	case 0:
+-		m = OMAP_MEM0_ONSTATE_MASK;
+-		break;
+-	case 1:
+-		m = OMAP_MEM1_ONSTATE_MASK;
+-		break;
+-	case 2:
+-		m = OMAP_MEM2_ONSTATE_MASK;
+-		break;
+-	case 3:
+-		m = OMAP_MEM3_ONSTATE_MASK;
+-		break;
+-	case 4:
+-		m = OMAP_MEM4_ONSTATE_MASK;
+-		break;
+-	default:
+-		WARN_ON(1); /* should never happen */
+-		return -EEXIST;
+-	}
+-
+-	prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)),
+-			     pwrdm->prcm_offs, pwrstctrl_reg_offs);
++	if (arch_pwrdm && arch_pwrdm->pwrdm_set_mem_onst)
++		ret = arch_pwrdm->pwrdm_set_mem_onst(pwrdm, bank, pwrst);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ /**
+@@ -631,7 +548,7 @@ int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+  */
+ int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+ {
+-	u32 m;
++	int ret = -EINVAL;
+ 
+ 	if (!pwrdm)
+ 		return -EINVAL;
+@@ -645,37 +562,10 @@ int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+ 	pr_debug("powerdomain: setting next memory powerstate for domain %s "
+ 		 "bank %0x while pwrdm-RET to %0x\n", pwrdm->name, bank, pwrst);
+ 
+-	/*
+-	 * The register bit names below may not correspond to the
+-	 * actual names of the bits in each powerdomain's register,
+-	 * but the type of value returned is the same for each
+-	 * powerdomain.
+-	 */
+-	switch (bank) {
+-	case 0:
+-		m = OMAP_MEM0_RETSTATE_MASK;
+-		break;
+-	case 1:
+-		m = OMAP_MEM1_RETSTATE_MASK;
+-		break;
+-	case 2:
+-		m = OMAP_MEM2_RETSTATE_MASK;
+-		break;
+-	case 3:
+-		m = OMAP_MEM3_RETSTATE_MASK;
+-		break;
+-	case 4:
+-		m = OMAP_MEM4_RETSTATE_MASK;
+-		break;
+-	default:
+-		WARN_ON(1); /* should never happen */
+-		return -EEXIST;
+-	}
+-
+-	prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)), pwrdm->prcm_offs,
+-			     pwrstctrl_reg_offs);
++	if (arch_pwrdm && arch_pwrdm->pwrdm_set_mem_retst)
++		ret = arch_pwrdm->pwrdm_set_mem_retst(pwrdm, bank, pwrst);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ /**
+@@ -754,46 +644,21 @@ int pwrdm_read_logic_retst(struct powerdomain *pwrdm)
+  */
+ int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+ {
+-	u32 m;
++	int ret = -EINVAL;
+ 
+ 	if (!pwrdm)
+-		return -EINVAL;
++		return ret;
+ 
+ 	if (pwrdm->banks < (bank + 1))
+-		return -EEXIST;
++		return ret;
+ 
+ 	if (pwrdm->flags & PWRDM_HAS_MPU_QUIRK)
+ 		bank = 1;
+ 
+-	/*
+-	 * The register bit names below may not correspond to the
+-	 * actual names of the bits in each powerdomain's register,
+-	 * but the type of value returned is the same for each
+-	 * powerdomain.
+-	 */
+-	switch (bank) {
+-	case 0:
+-		m = OMAP_MEM0_STATEST_MASK;
+-		break;
+-	case 1:
+-		m = OMAP_MEM1_STATEST_MASK;
+-		break;
+-	case 2:
+-		m = OMAP_MEM2_STATEST_MASK;
+-		break;
+-	case 3:
+-		m = OMAP_MEM3_STATEST_MASK;
+-		break;
+-	case 4:
+-		m = OMAP_MEM4_STATEST_MASK;
+-		break;
+-	default:
+-		WARN_ON(1); /* should never happen */
+-		return -EEXIST;
+-	}
++	if (arch_pwrdm && arch_pwrdm->pwrdm_read_mem_pwrst)
++		ret = arch_pwrdm->pwrdm_read_mem_pwrst(pwrdm, bank);
+ 
+-	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
+-					 pwrstst_reg_offs, m);
++	return ret;
+ }
+ 
+ /**
+@@ -809,43 +674,21 @@ int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+  */
+ int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+ {
+-	u32 m;
++	int ret = -EINVAL;
+ 
+ 	if (!pwrdm)
+-		return -EINVAL;
++		return ret;
+ 
+ 	if (pwrdm->banks < (bank + 1))
+-		return -EEXIST;
++		return ret;
+ 
+ 	if (pwrdm->flags & PWRDM_HAS_MPU_QUIRK)
+ 		bank = 1;
+ 
+-	/*
+-	 * The register bit names below may not correspond to the
+-	 * actual names of the bits in each powerdomain's register,
+-	 * but the type of value returned is the same for each
+-	 * powerdomain.
+-	 */
+-	switch (bank) {
+-	case 0:
+-		m = OMAP3430_LASTMEM1STATEENTERED_MASK;
+-		break;
+-	case 1:
+-		m = OMAP3430_LASTMEM2STATEENTERED_MASK;
+-		break;
+-	case 2:
+-		m = OMAP3430_LASTSHAREDL2CACHEFLATSTATEENTERED_MASK;
+-		break;
+-	case 3:
+-		m = OMAP3430_LASTL2FLATMEMSTATEENTERED_MASK;
+-		break;
+-	default:
+-		WARN_ON(1); /* should never happen */
+-		return -EEXIST;
+-	}
++	if (arch_pwrdm && arch_pwrdm->pwrdm_read_prev_mem_pwrst)
++		ret = arch_pwrdm->pwrdm_read_prev_mem_pwrst(pwrdm, bank);
+ 
+-	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
+-					OMAP3430_PM_PREPWSTST, m);
++	return ret;
+ }
+ 
+ /**
+@@ -860,43 +703,18 @@ int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+  */
+ int pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
+ {
+-	u32 m;
++	int ret = -EINVAL;
+ 
+ 	if (!pwrdm)
+-		return -EINVAL;
++		return ret;
+ 
+ 	if (pwrdm->banks < (bank + 1))
+-		return -EEXIST;
++		return ret;
+ 
+-	/*
+-	 * The register bit names below may not correspond to the
+-	 * actual names of the bits in each powerdomain's register,
+-	 * but the type of value returned is the same for each
+-	 * powerdomain.
+-	 */
+-	switch (bank) {
+-	case 0:
+-		m = OMAP_MEM0_RETSTATE_MASK;
+-		break;
+-	case 1:
+-		m = OMAP_MEM1_RETSTATE_MASK;
+-		break;
+-	case 2:
+-		m = OMAP_MEM2_RETSTATE_MASK;
+-		break;
+-	case 3:
+-		m = OMAP_MEM3_RETSTATE_MASK;
+-		break;
+-	case 4:
+-		m = OMAP_MEM4_RETSTATE_MASK;
+-		break;
+-	default:
+-		WARN_ON(1); /* should never happen */
+-		return -EEXIST;
+-	}
++	if (arch_pwrdm && arch_pwrdm->pwrdm_read_mem_retst)
++		ret = arch_pwrdm->pwrdm_read_mem_retst(pwrdm, bank);
+ 
+-	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
+-					pwrstctrl_reg_offs, m);
++	return ret;
+ }
+ 
+ /**
+@@ -910,8 +728,10 @@ int pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
+  */
+ int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
+ {
++	int ret = -EINVAL;
++
+ 	if (!pwrdm)
+-		return -EINVAL;
++		return ret;
+ 
+ 	/*
+ 	 * XXX should get the powerdomain's current state here;
+@@ -921,9 +741,10 @@ int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
+ 	pr_debug("powerdomain: clearing previous power state reg for %s\n",
+ 		 pwrdm->name);
+ 
+-	prm_write_mod_reg(0, pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST);
++	if (arch_pwrdm && arch_pwrdm->pwrdm_clear_all_prev_pwrst)
++		ret = arch_pwrdm->pwrdm_clear_all_prev_pwrst(pwrdm);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ /**
+@@ -939,19 +760,21 @@ int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
+  */
+ int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm)
+ {
++	int ret = -EINVAL;
++
+ 	if (!pwrdm)
+-		return -EINVAL;
++		return ret;
+ 
+ 	if (!(pwrdm->flags & PWRDM_HAS_HDWR_SAR))
+-		return -EINVAL;
++		return ret;
+ 
+ 	pr_debug("powerdomain: %s: setting SAVEANDRESTORE bit\n",
+ 		 pwrdm->name);
+ 
+-	prm_rmw_mod_reg_bits(0, 1 << OMAP3430ES2_SAVEANDRESTORE_SHIFT,
+-			     pwrdm->prcm_offs, pwrstctrl_reg_offs);
++	if (arch_pwrdm && arch_pwrdm->pwrdm_enable_hdwr_sar)
++		ret = arch_pwrdm->pwrdm_enable_hdwr_sar(pwrdm);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ /**
+@@ -967,19 +790,21 @@ int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm)
+  */
+ int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm)
+ {
++	int ret = -EINVAL;
++
+ 	if (!pwrdm)
+-		return -EINVAL;
++		return ret;
+ 
+ 	if (!(pwrdm->flags & PWRDM_HAS_HDWR_SAR))
+-		return -EINVAL;
++		return ret;
+ 
+ 	pr_debug("powerdomain: %s: clearing SAVEANDRESTORE bit\n",
+ 		 pwrdm->name);
+ 
+-	prm_rmw_mod_reg_bits(1 << OMAP3430ES2_SAVEANDRESTORE_SHIFT, 0,
+-			     pwrdm->prcm_offs, pwrstctrl_reg_offs);
++	if (arch_pwrdm && arch_pwrdm->pwrdm_disable_hdwr_sar)
++		ret = arch_pwrdm->pwrdm_disable_hdwr_sar(pwrdm);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ /**
+@@ -1006,6 +831,8 @@ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm)
+  */
+ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
+ {
++	int ret = -EINVAL;
++
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
+@@ -1015,11 +842,10 @@ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
+ 	pr_debug("powerdomain: %s: setting LOWPOWERSTATECHANGE bit\n",
+ 		 pwrdm->name);
+ 
+-	prm_rmw_mod_reg_bits(OMAP4430_LOWPOWERSTATECHANGE_MASK,
+-			     (1 << OMAP4430_LOWPOWERSTATECHANGE_SHIFT),
+-			     pwrdm->prcm_offs, pwrstctrl_reg_offs);
++	if (arch_pwrdm && arch_pwrdm->pwrdm_set_lowpwrstchange)
++		ret = arch_pwrdm->pwrdm_set_lowpwrstchange(pwrdm);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ /**
+@@ -1034,32 +860,15 @@ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
+  */
+ int pwrdm_wait_transition(struct powerdomain *pwrdm)
+ {
+-	u32 c = 0;
++	int ret = -EINVAL;
+ 
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
+-	/*
+-	 * REVISIT: pwrdm_wait_transition() may be better implemented
+-	 * via a callback and a periodic timer check -- how long do we expect
+-	 * powerdomain transitions to take?
+-	 */
++	if (arch_pwrdm && arch_pwrdm->pwrdm_wait_transition)
++		ret = arch_pwrdm->pwrdm_wait_transition(pwrdm);
+ 
+-	/* XXX Is this udelay() value meaningful? */
+-	while ((prm_read_mod_reg(pwrdm->prcm_offs, pwrstst_reg_offs) &
+-		OMAP_INTRANSITION_MASK) &&
+-	       (c++ < PWRDM_TRANSITION_BAILOUT))
+-			udelay(1);
+-
+-	if (c > PWRDM_TRANSITION_BAILOUT) {
+-		printk(KERN_ERR "powerdomain: waited too long for "
+-		       "powerdomain %s to complete transition\n", pwrdm->name);
+-		return -EAGAIN;
+-	}
+-
+-	pr_debug("powerdomain: completed transition in %d loops\n", c);
+-
+-	return 0;
++	return ret;
+ }
+ 
+ int pwrdm_state_switch(struct powerdomain *pwrdm)
+diff --git a/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c b/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
+index b7ea191..1a6e8ce 100644
+--- a/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
+@@ -41,6 +41,50 @@ static int omap2_pwrdm_read_pwrst(struct powerdomain *pwrdm)
+ 				OMAP2_PM_PWSTST, OMAP_POWERSTATEST_MASK);
+ }
+ 
++static int omap2_pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank,
++								u8 pwrst)
++{
++	u32 m;
++
++	m = _get_mem_bank_onstate_mask(bank);
++
++	prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)), pwrdm->prcm_offs,
++				OMAP2_PM_PWSTCTRL);
++
++	return 0;
++}
++
++static int omap2_pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank,
++								u8 pwrst)
++{
++	u32 m;
++
++	m = _get_mem_bank_retst_mask(bank);
++
++	prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)), pwrdm->prcm_offs,
++				OMAP2_PM_PWSTCTRL);
++
++	return 0;
++}
++
++static int omap2_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
++{
++	u32 m;
++
++	m = _get_mem_bank_stst_mask(bank);
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP2_PM_PWSTST, m);
++}
++
++static int omap2_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
++{
++	u32 m;
++
++	m = _get_mem_bank_retst_mask(bank);
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL, m);
++}
++
+ static int omap2_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+ {
+ 	u32 v;
+@@ -52,6 +96,33 @@ static int omap2_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+ 	return 0;
+ }
+ 
++static int omap2_pwrdm_wait_transition(struct powerdomain *pwrdm)
++{
++	u32 c = 0;
++
++	/*
++	 * REVISIT: pwrdm_wait_transition() may be better implemented
++	 * via a callback and a periodic timer check -- how long do we expect
++	 * powerdomain transitions to take?
++	 */
++
++	/* XXX Is this udelay() value meaningful? */
++	while ((prm_read_mod_reg(pwrdm->prcm_offs, OMAP2_PM_PWSTST) &
++		OMAP_INTRANSITION_MASK) &&
++		(c++ < PWRDM_TRANSITION_BAILOUT))
++			udelay(1);
++
++	if (c > PWRDM_TRANSITION_BAILOUT) {
++		printk(KERN_ERR "powerdomain: waited too long for "
++			"powerdomain %s to complete transition\n", pwrdm->name);
++		return -EAGAIN;
++	}
++
++	pr_debug("powerdomain: completed transition in %d loops\n", c);
++
++	return 0;
++}
++
+ /* Applicable only for OMAP3. Not supported on OMAP2 */
+ static int omap3_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
+ {
+@@ -77,11 +148,62 @@ static int omap3_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
+ 				OMAP3430_LASTLOGICSTATEENTERED_MASK);
+ }
+ 
++static int omap3_get_mem_bank_lastmemst_mask(u8 bank)
++{
++	switch (bank) {
++	case 0:
++		return OMAP3430_LASTMEM1STATEENTERED_MASK;
++	case 1:
++		return OMAP3430_LASTMEM2STATEENTERED_MASK;
++	case 2:
++		return OMAP3430_LASTSHAREDL2CACHEFLATSTATEENTERED_MASK;
++	case 3:
++		return OMAP3430_LASTL2FLATMEMSTATEENTERED_MASK;
++	default:
++		WARN_ON(1); /* should never happen */
++		return -EEXIST;
++	}
++	return 0;
++}
++
++static int omap3_pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
++{
++	u32 m;
++
++	m = omap3_get_mem_bank_lastmemst_mask(bank);
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
++				OMAP3430_PM_PREPWSTST, m);
++}
++
++static int omap3_pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
++{
++	prm_write_mod_reg(0, pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST);
++	return 0;
++}
++
++static int omap3_pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm)
++{
++	return prm_rmw_mod_reg_bits(0, 1 << OMAP3430ES2_SAVEANDRESTORE_SHIFT,
++				pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL);
++}
++
++static int omap3_pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm)
++{
++	return prm_rmw_mod_reg_bits(1 << OMAP3430ES2_SAVEANDRESTORE_SHIFT, 0,
++				pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL);
++}
++
+ struct pwrdm_ops omap2_pwrdm_operations = {
+ 	.pwrdm_set_next_pwrst	= omap2_pwrdm_set_next_pwrst,
+ 	.pwrdm_read_next_pwrst	= omap2_pwrdm_read_next_pwrst,
+ 	.pwrdm_read_pwrst	= omap2_pwrdm_read_pwrst,
+ 	.pwrdm_set_logic_retst	= omap2_pwrdm_set_logic_retst,
++	.pwrdm_set_mem_onst	= omap2_pwrdm_set_mem_onst,
++	.pwrdm_set_mem_retst	= omap2_pwrdm_set_mem_retst,
++	.pwrdm_read_mem_pwrst	= omap2_pwrdm_read_mem_pwrst,
++	.pwrdm_read_mem_retst	= omap2_pwrdm_read_mem_retst,
++	.pwrdm_wait_transition	= omap2_pwrdm_wait_transition,
+ };
+ 
+ struct pwrdm_ops omap3_pwrdm_operations = {
+@@ -93,4 +215,13 @@ struct pwrdm_ops omap3_pwrdm_operations = {
+ 	.pwrdm_read_logic_pwrst	= omap3_pwrdm_read_logic_pwrst,
+ 	.pwrdm_read_logic_retst	= omap3_pwrdm_read_logic_retst,
+ 	.pwrdm_read_prev_logic_pwrst	= omap3_pwrdm_read_prev_logic_pwrst,
++	.pwrdm_set_mem_onst	= omap2_pwrdm_set_mem_onst,
++	.pwrdm_set_mem_retst	= omap2_pwrdm_set_mem_retst,
++	.pwrdm_read_mem_pwrst	= omap2_pwrdm_read_mem_pwrst,
++	.pwrdm_read_mem_retst	= omap2_pwrdm_read_mem_retst,
++	.pwrdm_read_prev_mem_pwrst	= omap3_pwrdm_read_prev_mem_pwrst,
++	.pwrdm_clear_all_prev_pwrst	= omap3_pwrdm_clear_all_prev_pwrst,
++	.pwrdm_enable_hdwr_sar	= omap3_pwrdm_enable_hdwr_sar,
++	.pwrdm_disable_hdwr_sar	= omap3_pwrdm_disable_hdwr_sar,
++	.pwrdm_wait_transition	= omap2_pwrdm_wait_transition,
+ };
+diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
+index 996790a..4c828b9 100644
+--- a/arch/arm/mach-omap2/powerdomain44xx.c
++++ b/arch/arm/mach-omap2/powerdomain44xx.c
+@@ -47,6 +47,14 @@ static int omap4_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
+ 				OMAP4430_LASTPOWERSTATEENTERED_MASK);
+ }
+ 
++static int omap4_pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
++{
++	prm_rmw_mod_reg_bits(OMAP4430_LOWPOWERSTATECHANGE_MASK,
++				(1 << OMAP4430_LOWPOWERSTATECHANGE_SHIFT),
++				pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
++	return 0;
++}
++
+ static int omap4_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+ {
+ 	u32 v;
+@@ -58,6 +66,32 @@ static int omap4_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+ 	return 0;
+ }
+ 
++static int omap4_pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank,
++								u8 pwrst)
++{
++	u32 m;
++
++	m = _get_mem_bank_onstate_mask(bank);
++
++	prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)), pwrdm->prcm_offs,
++				OMAP4_PM_PWSTCTRL);
++
++	return 0;
++}
++
++static int omap4_pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank,
++								u8 pwrst)
++{
++	u32 m;
++
++	m = _get_mem_bank_retst_mask(bank);
++
++	prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)), pwrdm->prcm_offs,
++				OMAP4_PM_PWSTCTRL);
++
++	return 0;
++}
++
+ static int omap4_pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
+ {
+ 	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP4_PM_PWSTST,
+@@ -70,12 +104,63 @@ static int omap4_pwrdm_read_logic_retst(struct powerdomain *pwrdm)
+ 				OMAP4430_LOGICRETSTATE_MASK);
+ }
+ 
++static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
++{
++	u32 m;
++
++	m = _get_mem_bank_stst_mask(bank);
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP4_PM_PWSTST, m);
++}
++
++static int omap4_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
++{
++	u32 m;
++
++	m = _get_mem_bank_retst_mask(bank);
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL, m);
++}
++
++static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
++{
++	u32 c = 0;
++
++	/*
++	 * REVISIT: pwrdm_wait_transition() may be better implemented
++	 * via a callback and a periodic timer check -- how long do we expect
++	 * powerdomain transitions to take?
++	 */
++
++	/* XXX Is this udelay() value meaningful? */
++	while ((prm_read_mod_reg(pwrdm->prcm_offs, OMAP4_PM_PWSTST) &
++		OMAP_INTRANSITION_MASK) &&
++		(c++ < PWRDM_TRANSITION_BAILOUT))
++			udelay(1);
++
++	if (c > PWRDM_TRANSITION_BAILOUT) {
++		printk(KERN_ERR "powerdomain: waited too long for "
++			"powerdomain %s to complete transition\n", pwrdm->name);
++		return -EAGAIN;
++	}
++
++	pr_debug("powerdomain: completed transition in %d loops\n", c);
++
++	return 0;
++}
++
+ struct pwrdm_ops omap4_pwrdm_operations = {
+ 	.pwrdm_set_next_pwrst	= omap4_pwrdm_set_next_pwrst,
+ 	.pwrdm_read_next_pwrst	= omap4_pwrdm_read_next_pwrst,
+ 	.pwrdm_read_pwrst	= omap4_pwrdm_read_pwrst,
+ 	.pwrdm_read_prev_pwrst	= omap4_pwrdm_read_prev_pwrst,
++	.pwrdm_set_lowpwrstchange	= omap4_pwrdm_set_lowpwrstchange,
+ 	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
+ 	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
+ 	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
++	.pwrdm_read_mem_pwrst	= omap4_pwrdm_read_mem_pwrst,
++	.pwrdm_read_mem_retst	= omap4_pwrdm_read_mem_retst,
++	.pwrdm_set_mem_onst	= omap4_pwrdm_set_mem_onst,
++	.pwrdm_set_mem_retst	= omap4_pwrdm_set_mem_retst,
++	.pwrdm_wait_transition	= omap4_pwrdm_wait_transition,
+ };
+diff --git a/arch/arm/mach-omap2/powerdomains.h b/arch/arm/mach-omap2/powerdomains.h
+index c98b5fe..7cba478 100644
+--- a/arch/arm/mach-omap2/powerdomains.h
++++ b/arch/arm/mach-omap2/powerdomains.h
+@@ -33,4 +33,9 @@ extern struct pwrdm_ops omap4_pwrdm_operations;
+ static struct pwrdm_ops omap4_pwrdm_operations;
+ #endif /* CONFIG_ARCH_OMAP4 */
+ 
++/* Common Internal functions used across OMAP rev's */
++int _get_mem_bank_onstate_mask(u8 bank);
++int _get_mem_bank_retst_mask(u8 bank);
++int _get_mem_bank_stst_mask(u8 bank);
++
+ #endif /* ARCH_ARM_MACH_OMAP2_POWERDOMAINS */
+-- 
+1.7.0.4
 
