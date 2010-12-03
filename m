@@ -1,32 +1,39 @@
-From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] musb: am35x: fix compile error due to control apis
-Date: Sat, 4 Dec 2010 00:20:33 +0530
-Message-ID: <73b778ec731792828bed71d9e801da79@mail.gmail.com>
-References: <1291399965-19623-1-git-send-email-ajay.gupta@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1291399965-19623-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH -next] omap2430: hwmod: remove stray declaration
+Date: Sat,  4 Dec 2010 00:45:30 +0530
+Message-ID: <1291403730-3165-1-git-send-email-gadiyar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52800 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751643Ab0LCTPk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Dec 2010 14:15:40 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Anand Gadiyar <gadiyar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Ajay Kumar Gupta wrote:
-> As the control.h have been moved to new location and it's
-> uses are not allowed to drivers directly so moving the phy
-> control, interrupt clear and reset functionality to board
-> files.
->
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> ---
-> Patch created against today's linus tree.
+Patch "OMAP2xxx: hwmod: add I2C hwmods for OMAP2420, 2430"
+in linux-next as of 20101203 introduced the following build
+warning - fix this by removing the stray i2c_dev_attr.
 
-I hope this is a short-term fix only; otherwise you will need
-to duplicate this code in all boards that use an AM3517.
+arch/arm/mach-omap2/omap_hwmod_2430_data.c:483: warning: 'i2c_dev_attr' defined but not used
 
-- Anand
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    2 --
+ 1 file changed, 2 deletions(-)
+
+Index: mainline/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ mainline/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -480,8 +480,6 @@ static struct omap_hwmod_class i2c_class
+ 	.sysc		= &i2c_sysc,
+ };
+ 
+-static struct omap_i2c_dev_attr i2c_dev_attr;
+-
+ /* I2C1 */
+ 
+ static struct omap_i2c_dev_attr i2c1_dev_attr = {
