@@ -1,58 +1,98 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] i2c-omap: Set latency requirements only once for several
- messages
-Date: Fri, 3 Dec 2010 01:31:38 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012030128490.17078@utopia.booyaka.com>
-References: <1290074660-2640-1-git-send-email-samu.p.onkalo@nokia.com> <20101203023751.GF20097@trinity.fluff.org> <90C2C3D80A94B8448891D39FF568E87605D718DD@008-AM1MPN1-012.mgdnok.nokia.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v7] OMAP2+: PM: omap device: API's for handling mstandby
+ mode
+Date: Fri, 3 Dec 2010 09:38:35 +0100
+Message-ID: <4CF8AC8B.9040800@ti.com>
+References: <1291298392-28729-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44508 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932224Ab0LCIbj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 03:31:39 -0500
-In-Reply-To: <90C2C3D80A94B8448891D39FF568E87605D718DD@008-AM1MPN1-012.mgdnok.nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:50636 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751800Ab0LCIin (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Dec 2010 03:38:43 -0500
+In-Reply-To: <1291298392-28729-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: samu.p.onkalo@nokia.com
-Cc: ben-i2c@fluff.org, ben-linux@fluff.org, linux-i2c@vger.kernel.org, khilman@deeprootsystems.com, linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hello Ben, Samu,
+On 12/2/2010 2:59 PM, G, Manjunath Kondaiah wrote:
+> Certain errata in OMAP2+ processors will require forcing
+> master standby to "no standby" mode before completing on going
+> operation. Without this, the results will be unpredictable.
+>
+> Since current implementation of PM run time framework does not support
+> changing sysconfig settings during middle of the on going operation,
+> these API's will support the same. One API will force the device's
+> sysconfig mstandby mode settings to "no standby" and other API will
+> release "no standby" mode and sets it to "smart standby" or "no
+> standby? depending on HWMOD_SWSUP_MSTANDBY value.
+>
+> The hwmod API "omap_hwmod_set_master_standbymode" will use
+> no_stdby_cnt(introduced in omap_hwmod structure) for controlling
+> access to sysconfig register settings in case of overlapping
+> request/release API's are called. It also disables interrupts during
+> syconfig register access.
+>
+> These API's should be used by device drivers only incase of
+> erratum applicable to their modules if there is no other methods
+> to resolve.
+>
+> These API's are required for multiple DMA errata which require
+> putting DMA controller in no mstandby mode before stopping dma.
+>
+> The applicable errata:
+> 1. Erratum ID: i557(Applicable for omap36xx all ES versions)
+> The channel hangs when the Pause bit (DMA4_CDPi [7] ) is cleared
+> through config port while in Standby.
+>
+> 2. Erratum ID: i541
+> sDMA FIFO draining does not finish. Applicable to all omap2+ except
+> omap4.
+>
+> 3. Erratum ID:i88
+> The sDMA to be put in no mstandby mode before disabling the channel
+> after completing the data transfer operation.
+> Applicable only for OMAP3430 ES1.0
+>
+> Also fixes typo HWMOD_SWSUP_MSTDBY to HWMOD_SWSUP_MSTANDBY in
+> omap_hwmod.h
+>
+> Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
+> Cc: Kevin Hilman<khilman@deeprootsystems.com>
+> Cc: Paul Walmsley<paul@pwsan.com>
+> Cc: linux-arm-kernel@lists.infradead.org
 
-On Fri, 3 Dec 2010, samu.p.onkalo@nokia.com wrote:
+You have to CC lakml during send-email, but it should not be in the 
+changelog.
 
-> >-----Original Message-----
-> >From: ext Ben Dooks [mailto:ben-i2c@fluff.org]
-> >Sent: 03 December, 2010 04:38
-> >To: Onkalo Samu.P (Nokia-MS/Tampere)
-> >Cc: ben-linux@fluff.org; linux-i2c@vger.kernel.org;
-> >khilman@deeprootsystems.com; paul@pwsan.com; linux-omap@vger.kernel.org
-> >Subject: Re: [PATCH] i2c-omap: Set latency requirements only once for
-> >several messages
-> >
-> >On Thu, Nov 18, 2010 at 12:04:20PM +0200, Samu Onkalo wrote:
-> >> Ordinary I2C read consist of two messages. First a write operation
-> >> to tell register address and then read operation to get data.
-> >> CPU wake up latency is set and removed twice in read case.
-> >> Set latency requirement before the message processing loop
-> >> and remove the requirement after the loop to remove latency
-> >> adjustment operations between the messages.
-> >>
-> >> Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-> >> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> >> Acked-by: Paul Walmsley <paul@pwsan.com>
-> >
-> >I'll queue this for -rc unless it is going in via the omap list
-> >or it should wait for merge window?
-> >
-> 
-> I first sent this to omap-list and I got instructions to send this to you.
-> So I assume that you should queue this. Kevin, Paul, is -rc ok for you?
+On the other hand, it is a good practice to add all the authors of the 
+file you change in CC.
 
-I'd suggest that this go in through Ben, and go in as part of the 2.6.38 
-merge window, rather than the .37-rc.  The patch doesn't fix any 
-regressions introduced in the 2.6.37 merge window, and there's no impact 
-on system stability, as far as I know.
+> ---
+> v3: Review comments incorporated for:
+> https://patchwork.kernel.org/patch/282212/
+>
+> v4: added mutex changes
+> https://patchwork.kernel.org/patch/338611/
+>
+> v5: typo fixes for errata and erratum
+> https://patchwork.kernel.org/patch/352481/
+>
+> v6: fixed oh increment bug and also mutex(missing in v5)
+> https://patchwork.kernel.org/patch/372231/
+>
+> v7: replaced mutex lock with spin lock. Added use count for controlling
+> access to sysconfig registers in case if overlapping request/release API's
+> are used.
 
+I'm not sure it should be done here. I'd rather keep that code in the 
+DMA, since this is the only user of that feature.
+These hwmod APIs are rather low level and should never be used except 
+for workaround. So I'd prefer keeping this API simple and not sexy at 
+all in order to prevent people to abuse it.
 
-- Paul
+Regards,
+Benoit
