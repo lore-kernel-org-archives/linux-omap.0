@@ -1,39 +1,119 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH -next] omap2430: hwmod: remove stray declaration
-Date: Sat,  4 Dec 2010 00:45:30 +0530
-Message-ID: <1291403730-3165-1-git-send-email-gadiyar@ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH] musb: am35x: fix compile error due to control apis
+Date: Fri, 03 Dec 2010 22:23:33 +0300
+Message-ID: <4CF943B5.2000303@ru.mvista.com>
+References: <1291399965-19623-1-git-send-email-ajay.gupta@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52800 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751643Ab0LCTPk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Dec 2010 14:15:40 -0500
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:45018 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751689Ab0LCTZE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 14:25:04 -0500
+In-Reply-To: <1291399965-19623-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Anand Gadiyar <gadiyar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
 
-Patch "OMAP2xxx: hwmod: add I2C hwmods for OMAP2420, 2430"
-in linux-next as of 20101203 introduced the following build
-warning - fix this by removing the stray i2c_dev_attr.
+Hello.
 
-arch/arm/mach-omap2/omap_hwmod_2430_data.c:483: warning: 'i2c_dev_attr' defined but not used
+Ajay Kumar Gupta wrote:
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    2 --
- 1 file changed, 2 deletions(-)
+> As the control.h have been moved to new location and it's
+> uses are not allowed to drivers directly so moving the phy
+> control, interrupt clear and reset functionality to board
+> files.
 
-Index: mainline/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-===================================================================
---- mainline.orig/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ mainline/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -480,8 +480,6 @@ static struct omap_hwmod_class i2c_class
- 	.sysc		= &i2c_sysc,
- };
- 
--static struct omap_i2c_dev_attr i2c_dev_attr;
--
- /* I2C1 */
- 
- static struct omap_i2c_dev_attr i2c1_dev_attr = {
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+[...]
+
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+> index 7260558..1f32fdb 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -33,6 +33,82 @@
+>  
+>  #ifdef CONFIG_USB_MUSB_SOC
+>  
+> +static void am35x_musb_phy_power(u8 on)
+> +{
+> +	unsigned long timeout = jiffies + msecs_to_jiffies(100);
+> +	u32 devconf2;
+> +
+> +	if (on) {
+> +		/*
+> +		 * Start the on-chip PHY and its PLL.
+> +		 */
+> +		devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
+> +
+> +		devconf2 &= ~(CONF2_RESET | CONF2_PHYPWRDN | CONF2_OTGPWRDN);
+> +		devconf2 |= CONF2_PHY_PLLON;
+> +
+> +		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+> +
+> +		printk(KERN_INFO "Waiting for PHY clock good...\n");
+
+    pr_info().
+
+> +		while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
+> +				& CONF2_PHYCLKGD)) {
+> +			cpu_relax();
+> +
+> +			if (time_after(jiffies, timeout)) {
+> +				printk(KERN_ERR "musb PHY clock good timed out\n");
+
+    pr_err().
+
+> diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+> index 59c7fe7..4299097 100644
+> --- a/arch/arm/plat-omap/include/plat/usb.h
+> +++ b/arch/arm/plat-omap/include/plat/usb.h
+> @@ -69,6 +69,9 @@ struct omap_musb_board_data {
+>  	u8	mode;
+>  	u16	power;
+>  	unsigned extvbus:1;
+> +	void	(*set_phy_power) (u8 on);
+> +	void	(*clear_irq) (void);
+> +	void	(*set_mode) (u8 mode);
+
+    Should be no spaces between ) and (. scripts/checkpatch.pl used to complain 
+about such things, now it's silent though...
+
+> @@ -364,37 +324,21 @@ eoi:
+>  
+>  int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
+>  {
+> -	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
+> +	struct device *dev = musb->controller;
+> +	struct musb_hdrc_platform_data *plat = dev->platform_data;
+> +	struct omap_musb_board_data *data = plat->board_data;
+>  
+> -	devconf2 &= ~CONF2_OTGMODE;
+> -	switch (musb_mode) {
+> -#ifdef	CONFIG_USB_MUSB_HDRC_HCD
+> -	case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
+> -		devconf2 |= CONF2_FORCE_HOST;
+> -		break;
+> -#endif
+> -#ifdef	CONFIG_USB_GADGET_MUSB_HDRC
+> -	case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
+> -		devconf2 |= CONF2_FORCE_DEVICE;
+> -		break;
+> -#endif
+> -#ifdef	CONFIG_USB_MUSB_OTG
+> -	case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
+> -		devconf2 |= CONF2_NO_OVERRIDE;
+> -		break;
+> -#endif
+> -	default:
+> -		DBG(2, "Trying to set unsupported mode %u\n", musb_mode);
+> -	}
+> +	if (data->set_mode)
+> +		data->set_mode(musb_mode);
+
+    You should return -EIO if data->set_mode is NULL.
+
+WBR, Sergei
+
