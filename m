@@ -1,76 +1,103 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH] OMAP: pm.c correct the initcall for an early init.
-Date: Fri, 3 Dec 2010 14:17:10 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03736F4913@dbde02.ent.ti.com>
-References: <1291201283-21185-1-git-send-email-thara@ti.com>
- <878w0847vo.fsf@deeprootsystems.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCH v7] OMAP2+: PM: omap device: API's for handling
+ mstandby mode
+Date: Fri, 3 Dec 2010 15:17:47 +0530
+Message-ID: <20101203092514.GA10048@GLPP-machine>
+References: <1291298392-28729-1-git-send-email-manjugk@ti.com>
+ <4CF8AC8B.9040800@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54118 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751631Ab0LCIrQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 03:47:16 -0500
-In-Reply-To: <878w0847vo.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:42005 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932303Ab0LCJrW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 04:47:22 -0500
+Received: by gyd12 with SMTP id 12so4938156gyd.34
+        for <linux-omap@vger.kernel.org>; Fri, 03 Dec 2010 01:47:20 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <4CF8AC8B.9040800@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+
+* Cousson, Benoit <b-cousson@ti.com> [2010-12-03 09:38:35 +0100]:
+
+> On 12/2/2010 2:59 PM, G, Manjunath Kondaiah wrote:
+> >Certain errata in OMAP2+ processors will require forcing
+> >master standby to "no standby" mode before completing on going
+> >operation. Without this, the results will be unpredictable.
+> >
+> >Since current implementation of PM run time framework does not support
+> >changing sysconfig settings during middle of the on going operation,
+> >these API's will support the same. One API will force the device's
+> >sysconfig mstandby mode settings to "no standby" and other API will
+> >release "no standby" mode and sets it to "smart standby" or "no
+> >standby? depending on HWMOD_SWSUP_MSTANDBY value.
+> >
+> >The hwmod API "omap_hwmod_set_master_standbymode" will use
+> >no_stdby_cnt(introduced in omap_hwmod structure) for controlling
+> >access to sysconfig register settings in case of overlapping
+> >request/release API's are called. It also disables interrupts during
+> >syconfig register access.
+> >
+> >These API's should be used by device drivers only incase of
+> >erratum applicable to their modules if there is no other methods
+> >to resolve.
+> >
+> >These API's are required for multiple DMA errata which require
+> >putting DMA controller in no mstandby mode before stopping dma.
+> >
+> >The applicable errata:
+> >1. Erratum ID: i557(Applicable for omap36xx all ES versions)
+> >The channel hangs when the Pause bit (DMA4_CDPi [7] ) is cleared
+> >through config port while in Standby.
+> >
+> >2. Erratum ID: i541
+> >sDMA FIFO draining does not finish. Applicable to all omap2+ except
+> >omap4.
+> >
+> >3. Erratum ID:i88
+> >The sDMA to be put in no mstandby mode before disabling the channel
+> >after completing the data transfer operation.
+> >Applicable only for OMAP3430 ES1.0
+> >
+> >Also fixes typo HWMOD_SWSUP_MSTDBY to HWMOD_SWSUP_MSTANDBY in
+> >omap_hwmod.h
+> >
+> >Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
+> >Cc: Kevin Hilman<khilman@deeprootsystems.com>
+> >Cc: Paul Walmsley<paul@pwsan.com>
+> >Cc: linux-arm-kernel@lists.infradead.org
+> 
+> You have to CC lakml during send-email, but it should not be in the
+> changelog.
+> 
+> On the other hand, it is a good practice to add all the authors of
+> the file you change in CC.
+> 
+> >---
+> >v3: Review comments incorporated for:
+> >https://patchwork.kernel.org/patch/282212/
+> >
+> >v4: added mutex changes
+> >https://patchwork.kernel.org/patch/338611/
+> >
+> >v5: typo fixes for errata and erratum
+> >https://patchwork.kernel.org/patch/352481/
+> >
+> >v6: fixed oh increment bug and also mutex(missing in v5)
+> >https://patchwork.kernel.org/patch/372231/
+> >
+> >v7: replaced mutex lock with spin lock. Added use count for controlling
+> >access to sysconfig registers in case if overlapping request/release API's
+> >are used.
+> 
+> I'm not sure it should be done here. I'd rather keep that code in
+> the DMA, since this is the only user of that feature.
+
+Are you referring to spin lock or usage count? 
+
+-Manjunath
 
 
-
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Thursday, December 02, 2010 7:03 PM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org
->>Subject: Re: [PATCH] OMAP: pm.c correct the initcall for an early init.
->>
->>Thara Gopinath <thara@ti.com> writes:
->>
->>> omap2_common_pm_init is the API where generic system devices like
->>> mpu, l3 etc get initialized. This has to happen really early on
->>> during the boot and not at a later time. This is especially important
->>> with the new opp changes as these devices need to be built before the
->>> opp tables init happen. Today both are device initcalls and it works
->>> just because of the order of compilation
->>
->>Why postcore?  there are several other inicalls earlier than
->>device_initcall.
-
-Because the init in omap_device is a core_initcall. With respect
-to opp layer, making this anything above device_initcall will work. But
-then tomorrow some other module needs these generic devices in their init,
-we will again have to bump up the init priority of this fn.
-It is a good thing to do this early on in the boot cycle rather
-than later.
-
->>
->>Also, does this actually work?  Is the driver core initialized at
->>postcore_initcall time such that omap_devices w/platform_device
->>creation actually works?
-
-Yes by post_initcall the omap_device initializations would
-have happened. In fact these initializations happen as
-core_initcall.
-
->>
->>Kevin
->>
->>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>> ---
->>>  arch/arm/mach-omap2/pm.c |    2 +-
->>>  1 files changed, 1 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
->>> index 59ca03b..6ec2ee1 100644
->>> --- a/arch/arm/mach-omap2/pm.c
->>> +++ b/arch/arm/mach-omap2/pm.c
->>> @@ -143,5 +143,5 @@ static int __init omap2_common_pm_init(void)
->>>
->>>  	return 0;
->>>  }
->>> -device_initcall(omap2_common_pm_init);
->>> +postcore_initcall(omap2_common_pm_init);
