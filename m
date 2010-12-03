@@ -1,113 +1,87 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v3 3/4] OMAP4: hwmod data: Add hwspinlock
-Date: Sat,  4 Dec 2010 01:50:46 +0200
-Message-ID: <1291420247-18171-4-git-send-email-ohad@wizery.com>
-References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: UART RX wakeup from sleep not working
+Date: Fri, 3 Dec 2010 16:48:52 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012031607380.17078@utopia.booyaka.com>
+References: <E1PObOH-0005EB-5j@amazonia.comcast.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:33284 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754332Ab0LCXsT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 18:48:19 -0500
-In-Reply-To: <1291420247-18171-1-git-send-email-ohad@wizery.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:49730 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754377Ab0LCXsx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 18:48:53 -0500
+In-Reply-To: <E1PObOH-0005EB-5j@amazonia.comcast.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>, Paul Walmsley <paul@pwsan.com>
+To: Rick Bronson <rick@efn.org>
+Cc: linux-omap@vger.kernel.org
 
-From: Benoit Cousson <b-cousson@ti.com>
+Hi Rick
 
-Add hwspinlock hwmod data for OMAP4 chip
+On Fri, 3 Dec 2010, Rick Bronson wrote:
 
-Signed-off-by: Cousson, Benoit <b-cousson@ti.com>
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   64 ++++++++++++++++++++++++++++
- 1 files changed, 64 insertions(+), 0 deletions(-)
+> > This may be a stupid question, but are you using serial flow control?  If
+> > not, enabling wakeup on the RTS line isn't going to help.
+> 
+>   Not a stupid question at all.  We are very pin constrained so we
+> only have RX and TX, so no modem lines at all.  I was hoping to get
+> the wakeup mechanism to be fired off of in incoming "polling"
+> character on the RX line.  The first character gets lost but wakes us
+> up, then we respond to the next polling character to let the other
+> side know we're awake, then he sends the packet.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index d258936..e577d54 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1376,6 +1376,67 @@ static struct omap_hwmod omap44xx_gpio6_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio6_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
-+
-+/*
-+ * 'spinlock' class
-+ * spinlock provides hardware assistance for synchronizing the processes
-+ * running on multiple processors
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap44xx_spinlock_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap44xx_spinlock_hwmod_class = {
-+	.name = "spinlock",
-+	.sysc = &omap44xx_spinlock_sysc,
-+};
-+
-+/* spinlock */
-+static struct omap_hwmod omap44xx_spinlock_hwmod;
-+static struct omap_hwmod_addr_space omap44xx_spinlock_addrs[] = {
-+	{
-+		.pa_start	= 0x4a0f6000,
-+		.pa_end		= 0x4a0f6fff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_cfg -> spinlock */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__spinlock = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_spinlock_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_spinlock_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_spinlock_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* spinlock slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_spinlock_slaves[] = {
-+	&omap44xx_l4_cfg__spinlock,
-+};
-+
-+static struct omap_hwmod omap44xx_spinlock_hwmod = {
-+	.name		= "spinlock",
-+	.class		= &omap44xx_spinlock_hwmod_class,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_L4CFG_HW_SEM_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_spinlock_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_spinlock_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
- static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	/* dmm class */
- 	&omap44xx_dmm_hwmod,
-@@ -1418,6 +1479,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_uart2_hwmod,
- 	&omap44xx_uart3_hwmod,
- 	&omap44xx_uart4_hwmod,
-+
-+	/* spinlock class */
-+	&omap44xx_spinlock_hwmod,
- 	NULL,
- };
- 
--- 
-1.7.0.4
+So then setting WAKEUPENABLE on the RTS line won't help, since you're not 
+using that line as an input line.  (According to Figure 17-1 "UART Module" 
+that's a transmit line anyway, so the appropriate flow control line would 
+need to be CTS for incoming data, not RTS.  But you're not using flow 
+control so that won't help either.)
 
+You might want to try setting WAKEUPENABLE on the pad that is muxed to 
+your RX line, which is where you're receiving bits.  Note that there are 
+multiple mux pad targets for that signal, so you need to know which pad 
+your board is actually using to figure out what register to write to.
+
+(By the way, all the documentation references in this and the previous 
+E-mails are to the 34xx public TRM rev ZJ, downloadable from the TI web 
+site, should also apply to OMAP3730, maybe with some padconf differences)
+
+> > Just out of curiosity, which kernel are you using?
+> 
+>   It's the Arago (we need the low power management stuff),
+
+Am not familiar with the Arago kernel at all, but full chip retention-idle 
+-- which appears to be what you're trying to use -- should work on 
+mainline Linux 2.6.36.  I wouldn't try .37-rc yet, there seems to be 
+something wrong with power management and the serial driver in those, at 
+least on my BeagleBoard.
+
+If you need to use the Arago kernel, you'll probably need to contact TI 
+for support.  Might be worth suggesting to them that they patch the 
+top-level Makefile to add an EXTRAVERSION of -arago1 or something like 
+that, since this uname:
+
+> Linux omap 2.6.32 #32 Fri Dec 3 10:49:55 PST 2010 armv7l GNU/Linux
+
+... makes it look like it's just stock 2.6.32, when 'git diff 
+v2.6.32..arago-omap3/master | diffstat' returns:
+
+ 7380 files changed, 762778 insertions(+), 406769 deletions(-)
+
+>   I'm still not getting an interrupt but I decided to shift my focus
+> and I found that this change
+> 
+> http://www.efn.org/~rick/pub/serial.patch
+> 
+>   seems to really improve the variablity in serial timeout when it's
+> taken low.  
+
+If SCR_REG.RX_CTS_WU_EN is not set, then that would indeed prevent the 
+UART from waking up.  Hmm, wonder if we've got that same problem in 
+mainline...
+
+>   Thanks again for the help.
+
+You're welcome.  Good luck,
+
+
+- Paul
