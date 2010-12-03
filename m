@@ -1,104 +1,49 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH RESEND] ARM: io: fix namespace conflicts
-Date: Fri,  3 Dec 2010 12:04:49 +0530
-Message-ID: <1291358089-10490-1-git-send-email-sourav.poddar@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48264 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752717Ab0LCGfG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Dec 2010 01:35:06 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: <samu.p.onkalo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] i2c-omap: Set latency requirements only once for
+	several messages
+Date: Fri, 3 Dec 2010 06:43:37 +0000
+Message-ID: <90C2C3D80A94B8448891D39FF568E87605D718DD@008-AM1MPN1-012.mgdnok.nokia.com>
+References: <1290074660-2640-1-git-send-email-samu.p.onkalo@nokia.com>
+ <20101203023751.GF20097@trinity.fluff.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20101203023751.GF20097-SMNkleLxa3Z6Wcw2j4pizdi2O/JbrIOy@public.gmane.org>
+Content-Language: en-US
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sourav Poddar <sourav.poddar@ti.com>, Charulatha V <charu@ti.com>
 
-Having __v as the variable name for the definition of different macros leads
-to the namespace pollution. For example,
-readl(p)
-unrolls to:
-({ u32 __v = ({ u32 __v = (( __u32)(__le32)(( __le32) ((void)0,
-*(volatile unsigned int *)((p))))); __v; }); __asm__ __volatile__ ("mcr
-p15,
-, %0, c7, c10, 5" : : "r" (0) : "memory"); __v; });
 
-({ u32 __v = ({ u32 __v
-causes sparse warning: "warning: symbol '__v' shadows an earlier one"
+>-----Original Message-----
+>From: ext Ben Dooks [mailto:ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org]
+>Sent: 03 December, 2010 04:38
+>To: Onkalo Samu.P (Nokia-MS/Tampere)
+>Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org; linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+>khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org; paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Subject: Re: [PATCH] i2c-omap: Set latency requirements only once for
+>several messages
+>
+>On Thu, Nov 18, 2010 at 12:04:20PM +0200, Samu Onkalo wrote:
+>> Ordinary I2C read consist of two messages. First a write operation
+>> to tell register address and then read operation to get data.
+>> CPU wake up latency is set and removed twice in read case.
+>> Set latency requirement before the message processing loop
+>> and remove the requirement after the loop to remove latency
+>> adjustment operations between the messages.
+>>
+>> Signed-off-by: Samu Onkalo <samu.p.onkalo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+>> Acked-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+>> Acked-by: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+>
+>I'll queue this for -rc unless it is going in via the omap list
+>or it should wait for merge window?
+>
+Hi Ben,
 
-Using variable names which use the function name prefix across the
-various macros avoids the namespace pollution.
+I first sent this to omap-list and I got instructions to send this to you.
+So I assume that you should queue this. Kevin, Paul, is -rc ok for you?
 
-With this change, ~200 sparse warnings in omap2plus_defconfig build are
-fixed.
-
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-Signed-off-by: Charulatha V <charu@ti.com>
-Reviewed by: Nishanth Menon <nm@ti.com>
----
-Links related to previous discussions are as follows:
-https://patchwork.kernel.org/patch/250171/
-http://www.spinics.net/lists/linux-omap/msg38569.html
-http://marc.info/?t=128506336700011&r=1&w=2
-
-arch/arm/include/asm/io.h |   32 +++++++++++++++++++++-----------
- 1 files changed, 21 insertions(+), 11 deletions(-)
-
-diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
-index 1261b1f..01e4a7b 100644
---- a/arch/arm/include/asm/io.h
-+++ b/arch/arm/include/asm/io.h
-@@ -131,11 +131,11 @@ static inline void __iomem *__typesafe_io(unsigned long addr)
- #define outl(v,p)		__raw_writel((__force __u32) \
- 					cpu_to_le32(v),__io(p))
- 
--#define inb(p)	({ __u8 __v = __raw_readb(__io(p)); __v; })
--#define inw(p)	({ __u16 __v = le16_to_cpu((__force __le16) \
--			__raw_readw(__io(p))); __v; })
--#define inl(p)	({ __u32 __v = le32_to_cpu((__force __le32) \
--			__raw_readl(__io(p))); __v; })
-+#define inb(p)	({ __u8 __inbv = __raw_readb(__io(p)); __inbv; })
-+#define inw(p)	({ __u16 __inwv = le16_to_cpu((__force __le16) \
-+			__raw_readw(__io(p))); __inwv; })
-+#define inl(p)	({ __u32 __inlv = le32_to_cpu((__force __le32) \
-+			__raw_readl(__io(p))); __inlv; })
- 
- #define outsb(p,d,l)		__raw_writesb(__io(p),d,l)
- #define outsw(p,d,l)		__raw_writesw(__io(p),d,l)
-@@ -200,9 +200,12 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
- #define __iowmb()		do { } while (0)
- #endif
- 
--#define readb(c)		({ u8  __v = readb_relaxed(c); __iormb(); __v; })
--#define readw(c)		({ u16 __v = readw_relaxed(c); __iormb(); __v; })
--#define readl(c)		({ u32 __v = readl_relaxed(c); __iormb(); __v; })
-+#define readb(c)		({ u8  __readbv = readb_relaxed(c); \
-+					 __iormb(); __readbv; })
-+#define readw(c)		({ u16 __readwv = readw_relaxed(c); \
-+					 __iormb(); __readwv; })
-+#define readl(c)		({ u32 __readlv = readl_relaxed(c);\
-+					 __iormb(); __readlv; })
- 
- #define writeb(v,c)		({ __iowmb(); writeb_relaxed(v,c); })
- #define writew(v,c)		({ __iowmb(); writew_relaxed(v,c); })
-@@ -258,9 +261,16 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
-  * io{read,write}{8,16,32} macros
-  */
- #ifndef ioread8
--#define ioread8(p)	({ unsigned int __v = __raw_readb(p); __iormb(); __v; })
--#define ioread16(p)	({ unsigned int __v = le16_to_cpu((__force __le16)__raw_readw(p)); __iormb(); __v; })
--#define ioread32(p)	({ unsigned int __v = le32_to_cpu((__force __le32)__raw_readl(p)); __iormb(); __v; })
-+#define ioread8(p)	({ unsigned int __ioread8v = __raw_readb(p); \
-+					 __iormb(); __ioread8v; })
-+#define ioread16(p)	({ unsigned int __ioread16v = \
-+					 le16_to_cpu((__force __le16) \
-+					__raw_readw(p)); __iormb(); \
-+					 __ioread16v; })
-+#define ioread32(p)	({ unsigned int __ioread32v = \
-+					 le32_to_cpu((__force __le32) \
-+					__raw_readl(p)); __iormb(); \
-+					 __ioread32v; })
- 
- #define iowrite8(v,p)	({ __iowmb(); (void)__raw_writeb(v, p); })
- #define iowrite16(v,p)	({ __iowmb(); (void)__raw_writew((__force __u16)cpu_to_le16(v), p); })
--- 
-1.7.0.4
-
+-Samu
