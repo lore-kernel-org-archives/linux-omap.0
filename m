@@ -1,66 +1,151 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 6/6] OMAP4: powerdomain: Add pwrdm_clear_all_prev_pwrst
-Date: Fri,  3 Dec 2010 17:08:53 +0530
-Message-ID: <1291376333-13603-7-git-send-email-rnayak@ti.com>
+Subject: [PATCH v3 2/6] OMAP: powerdomain: Infrastructure to put arch specific code
+Date: Fri,  3 Dec 2010 17:08:49 +0530
+Message-ID: <1291376333-13603-3-git-send-email-rnayak@ti.com>
 References: <1291376333-13603-1-git-send-email-rnayak@ti.com>
  <1291376333-13603-2-git-send-email-rnayak@ti.com>
- <1291376333-13603-3-git-send-email-rnayak@ti.com>
- <1291376333-13603-4-git-send-email-rnayak@ti.com>
- <1291376333-13603-5-git-send-email-rnayak@ti.com>
- <1291376333-13603-6-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51056 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758477Ab0LCLjG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Dec 2010 06:39:06 -0500
-In-Reply-To: <1291376333-13603-6-git-send-email-rnayak@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34808 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758489Ab0LCLjG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 06:39:06 -0500
+In-Reply-To: <1291376333-13603-2-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, b-cousson@ti.com, khilman@deeprootsystems.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: paul@pwsan.com, b-cousson@ti.com, khilman@deeprootsystems.com, Rajendra Nayak <rnayak@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Put infrastructure in place, so arch specific func pointers
+can be hooked up to the platform-independent part of the
+framework.
+This is in preparation of splitting the powerdomain framework into
+platform-independent part (for all omaps) and platform-specific
+parts.
 
-OMAP4430 ES2 has additional bitfields in PWRSTST register which help
-identify the previous power state entered by the powerdomain.
-Add pwrdm_clear_all_prev_pwrst api to support this.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/powerdomain44xx.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c             |   11 +++++-
+ arch/arm/mach-omap2/powerdomains_data.c       |    2 +-
+ arch/arm/plat-omap/include/plat/powerdomain.h |   43 ++++++++++++++++++++++++-
+ 3 files changed, 52 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
-index 4c828b9..33d1b69 100644
---- a/arch/arm/mach-omap2/powerdomain44xx.c
-+++ b/arch/arm/mach-omap2/powerdomain44xx.c
-@@ -55,6 +55,14 @@ static int omap4_pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 6527ec3..3aa3eb3 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -80,6 +80,8 @@ static u16 pwrstst_reg_offs;
+ /* pwrdm_list contains all registered struct powerdomains */
+ static LIST_HEAD(pwrdm_list);
+ 
++static struct pwrdm_ops *arch_pwrdm;
++
+ /* Private functions */
+ 
+ static struct powerdomain *_pwrdm_lookup(const char *name)
+@@ -211,6 +213,7 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+ /**
+  * pwrdm_init - set up the powerdomain layer
+  * @pwrdm_list: array of struct powerdomain pointers to register
++ * @custom_funcs: func pointers for arch specfic implementations
+  *
+  * Loop through the array of powerdomains @pwrdm_list, registering all
+  * that are available on the current CPU. If pwrdm_list is supplied
+@@ -218,7 +221,7 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+  * registered.  No return value.  XXX pwrdm_list is not really a
+  * "list"; it is an array.  Rename appropriately.
+  */
+-void pwrdm_init(struct powerdomain **pwrdm_list)
++void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_ops *custom_funcs)
+ {
+ 	struct powerdomain **p = NULL;
+ 
+@@ -234,6 +237,11 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+ 		return;
+ 	}
+ 
++	if (!custom_funcs)
++		WARN(1, "powerdomain: No custom pwrdm functions registered\n");
++	else
++		arch_pwrdm = custom_funcs;
++
+ 	if (pwrdm_list) {
+ 		for (p = pwrdm_list; *p; p++)
+ 			_pwrdm_register(*p);
+@@ -1074,4 +1082,3 @@ int pwrdm_post_transition(void)
+ 	pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
  	return 0;
  }
+-
+diff --git a/arch/arm/mach-omap2/powerdomains_data.c b/arch/arm/mach-omap2/powerdomains_data.c
+index 475763e..bf5b39b 100644
+--- a/arch/arm/mach-omap2/powerdomains_data.c
++++ b/arch/arm/mach-omap2/powerdomains_data.c
+@@ -149,5 +149,5 @@ static struct powerdomain *powerdomains_omap[] __initdata = {
  
-+static int omap4_pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
-+{
-+	prm_rmw_mod_reg_bits(OMAP4430_LASTPOWERSTATEENTERED_MASK,
-+				OMAP4430_LASTPOWERSTATEENTERED_MASK,
-+				pwrdm->prcm_offs, OMAP4_PM_PWSTST);
-+	return 0;
-+}
-+
- static int omap4_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+ void pwrdm_fw_init(void)
  {
- 	u32 v;
-@@ -155,6 +163,7 @@ struct pwrdm_ops omap4_pwrdm_operations = {
- 	.pwrdm_read_pwrst	= omap4_pwrdm_read_pwrst,
- 	.pwrdm_read_prev_pwrst	= omap4_pwrdm_read_prev_pwrst,
- 	.pwrdm_set_lowpwrstchange	= omap4_pwrdm_set_lowpwrstchange,
-+	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
- 	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
- 	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
- 	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
+-	pwrdm_init(powerdomains_omap);
++	pwrdm_init(powerdomains_omap, NULL);
+ }
+diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+index e322b39..583758c 100644
+--- a/arch/arm/plat-omap/include/plat/powerdomain.h
++++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+@@ -117,9 +117,50 @@ struct powerdomain {
+ #endif
+ };
+ 
++/**
++ * struct pwrdm_ops - Arch specfic function implementations
++ * @pwrdm_set_next_pwrst: Set the target power state for a pd
++ * @pwrdm_read_next_pwrst: Read the target power state set for a pd
++ * @pwrdm_read_pwrst: Read the current power state of a pd
++ * @pwrdm_read_prev_pwrst: Read the prev power state entered by the pd
++ * @pwrdm_set_logic_retst: Set the logic state in RET for a pd
++ * @pwrdm_set_mem_onst: Set the Memory state in ON for a pd
++ * @pwrdm_set_mem_retst: Set the Memory state in RET for a pd
++ * @pwrdm_read_logic_pwrst: Read the current logic state of a pd
++ * @pwrdm_read_prev_logic_pwrst: Read the previous logic state entered by a pd
++ * @pwrdm_read_logic_retst: Read the logic state in RET for a pd
++ * @pwrdm_read_mem_pwrst: Read the current memory state of a pd
++ * @pwrdm_read_prev_mem_pwrst: Read the previous memory state entered by a pd
++ * @pwrdm_read_mem_retst: Read the memory state in RET for a pd
++ * @pwrdm_clear_all_prev_pwrst: Clear all previous power states logged for a pd
++ * @pwrdm_enable_hdwr_sar: Enable Hardware Save-Restore feature for the pd
++ * @pwrdm_disable_hdwr_sar: Disable Hardware Save-Restore feature for a pd
++ * @pwrdm_set_lowpwrstchange: Enable pd transitions from a shallow to deep sleep
++ * @pwrdm_wait_transition: Wait for a pd state transition to complete
++ */
++struct pwrdm_ops {
++	int	(*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8 pwrst);
++	int	(*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_prev_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_set_logic_retst)(struct powerdomain *pwrdm, u8 pwrst);
++	int	(*pwrdm_set_mem_onst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
++	int	(*pwrdm_set_mem_retst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
++	int	(*pwrdm_read_logic_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_prev_logic_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_logic_retst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
++	int	(*pwrdm_read_prev_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
++	int	(*pwrdm_read_mem_retst)(struct powerdomain *pwrdm, u8 bank);
++	int	(*pwrdm_clear_all_prev_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_enable_hdwr_sar)(struct powerdomain *pwrdm);
++	int	(*pwrdm_disable_hdwr_sar)(struct powerdomain *pwrdm);
++	int	(*pwrdm_set_lowpwrstchange)(struct powerdomain *pwrdm);
++	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
++};
+ 
+ void pwrdm_fw_init(void);
+-void pwrdm_init(struct powerdomain **pwrdm_list);
++void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_ops *custom_funcs);
+ 
+ struct powerdomain *pwrdm_lookup(const char *name);
+ 
 -- 
 1.7.0.4
 
