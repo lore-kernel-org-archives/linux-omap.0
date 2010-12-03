@@ -1,55 +1,47 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: Mainline OMAP3 breakage (and other OMAP?)
-Date: Fri, 3 Dec 2010 14:10:23 +0200
-Message-ID: <AANLkTim3573_MUZNpo2+tKa=ZJgQf26x5of_ZkMM6BR8@mail.gmail.com>
-References: <20101202211421.GG10461@n2100.arm.linux.org.uk>
-	<20101202215837.GW17222@atomide.com>
-	<20101202221612.GJ10461@n2100.arm.linux.org.uk>
-	<20101202223208.GA17222@atomide.com>
-	<20101203030954.GD3367@linux-sh.org>
-	<20101203084102.GA30957@n2100.arm.linux.org.uk>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v7] OMAP2+: PM: omap device: API's for handling mstandby
+ mode
+Date: Fri, 3 Dec 2010 13:19:06 +0100
+Message-ID: <4CF8E03A.4010000@ti.com>
+References: <1291298392-28729-1-git-send-email-manjugk@ti.com> <4CF8AC8B.9040800@ti.com> <20101203092514.GA10048@GLPP-machine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:32841 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932355Ab0LCMK1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 07:10:27 -0500
-In-Reply-To: <20101203084102.GA30957@n2100.arm.linux.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35485 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758379Ab0LCMTM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Dec 2010 07:19:12 -0500
+In-Reply-To: <20101203092514.GA10048@GLPP-machine>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Paul Mundt <lethal@linux-sh.org>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Dec 3, 2010 at 10:41 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Fri, Dec 03, 2010 at 12:09:55PM +0900, Paul Mundt wrote:
->> This has been fixed since -rc2.
->
-> So it is. =C2=A0However, the ioremap fix is wrong.
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0paddr =3D memb=
-lock_alloc(size, PAGE_SIZE);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0memblock_free(paddr, size);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0memblock_remove(paddr, size);
->
-> Didn't I say that such blocks were supposed to be aligned to a 2MB
-> boundary - and the size also so aligned?
+On 12/3/2010 10:47 AM, G, Manjunath Kondaiah wrote:
+> * Cousson, Benoit<b-cousson@ti.com>  [2010-12-03 09:38:35 +0100]:
 
-I asked you if there was something special and I didn't receive any res=
-ponse:
-http://article.gmane.org/gmane.linux.kernel/1048434
+[...]
 
-So, why SZ_2M?
+>>> v7: replaced mutex lock with spin lock. Added use count for controlling
+>>> access to sysconfig registers in case if overlapping request/release API's
+>>> are used.
+>>
+>> I'm not sure it should be done here. I'd rather keep that code in
+>> the DMA, since this is the only user of that feature.
+>
+> Are you referring to spin lock or usage count?
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The spinlock is needed, I was referring to the usage count.
+
+That being said, the API proposed by Paul (request/release
+) sound like a get/put, so maybe he had that kind of usage in mind.
+
+I'm still not convince it should be done at hwmod API level.
+
+
+Paul,
+Any thoughts on that?
+
+Regards,
+Benoit
