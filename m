@@ -1,98 +1,38 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v7] OMAP2+: PM: omap device: API's for handling mstandby
- mode
-Date: Fri, 3 Dec 2010 09:38:35 +0100
-Message-ID: <4CF8AC8B.9040800@ti.com>
-References: <1291298392-28729-1-git-send-email-manjugk@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH v2 0/5] Split powerdomain framework into plat
+ specific/independent
+Date: Fri, 3 Dec 2010 01:40:49 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012030139020.17078@utopia.booyaka.com>
+References: <1291131848-31640-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1012011254460.2515@utopia.booyaka.com> <699e6818fd0b2162302926a3c724749f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50636 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751800Ab0LCIin (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Dec 2010 03:38:43 -0500
-In-Reply-To: <1291298392-28729-1-git-send-email-manjugk@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:36081 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751802Ab0LCIku (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 03:40:50 -0500
+In-Reply-To: <699e6818fd0b2162302926a3c724749f@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, Benoit Cousson <b-cousson@ti.com>
 
-On 12/2/2010 2:59 PM, G, Manjunath Kondaiah wrote:
-> Certain errata in OMAP2+ processors will require forcing
-> master standby to "no standby" mode before completing on going
-> operation. Without this, the results will be unpredictable.
->
-> Since current implementation of PM run time framework does not support
-> changing sysconfig settings during middle of the on going operation,
-> these API's will support the same. One API will force the device's
-> sysconfig mstandby mode settings to "no standby" and other API will
-> release "no standby" mode and sets it to "smart standby" or "no
-> standby? depending on HWMOD_SWSUP_MSTANDBY value.
->
-> The hwmod API "omap_hwmod_set_master_standbymode" will use
-> no_stdby_cnt(introduced in omap_hwmod structure) for controlling
-> access to sysconfig register settings in case of overlapping
-> request/release API's are called. It also disables interrupts during
-> syconfig register access.
->
-> These API's should be used by device drivers only incase of
-> erratum applicable to their modules if there is no other methods
-> to resolve.
->
-> These API's are required for multiple DMA errata which require
-> putting DMA controller in no mstandby mode before stopping dma.
->
-> The applicable errata:
-> 1. Erratum ID: i557(Applicable for omap36xx all ES versions)
-> The channel hangs when the Pause bit (DMA4_CDPi [7] ) is cleared
-> through config port while in Standby.
->
-> 2. Erratum ID: i541
-> sDMA FIFO draining does not finish. Applicable to all omap2+ except
-> omap4.
->
-> 3. Erratum ID:i88
-> The sDMA to be put in no mstandby mode before disabling the channel
-> after completing the data transfer operation.
-> Applicable only for OMAP3430 ES1.0
->
-> Also fixes typo HWMOD_SWSUP_MSTDBY to HWMOD_SWSUP_MSTANDBY in
-> omap_hwmod.h
->
-> Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
-> Cc: Kevin Hilman<khilman@deeprootsystems.com>
-> Cc: Paul Walmsley<paul@pwsan.com>
-> Cc: linux-arm-kernel@lists.infradead.org
+Hi Rajendra,
 
-You have to CC lakml during send-email, but it should not be in the 
-changelog.
+On Thu, 2 Dec 2010, Rajendra Nayak wrote:
 
-On the other hand, it is a good practice to add all the authors of the 
-file you change in CC.
+> This seems to be popping up with powerdomains.h file (which now
+> has func declarations) being included in multiple source files. It earlier
+> had only static structs and was included in one source file.
+> 
+> I thought the right way to fix this was to probably move the static
+> structs from the header into a source file.
+> See if the below patch makes sense. Also attached as I don't trust
+> my mailer.
 
-> ---
-> v3: Review comments incorporated for:
-> https://patchwork.kernel.org/patch/282212/
->
-> v4: added mutex changes
-> https://patchwork.kernel.org/patch/338611/
->
-> v5: typo fixes for errata and erratum
-> https://patchwork.kernel.org/patch/352481/
->
-> v6: fixed oh increment bug and also mutex(missing in v5)
-> https://patchwork.kernel.org/patch/372231/
->
-> v7: replaced mutex lock with spin lock. Added use count for controlling
-> access to sysconfig registers in case if overlapping request/release API's
-> are used.
+Yes, that general approach looks fine to me.  I've got some patches here 
+that will be posted once this powerdomain series is done to convert all 
+the remaining static allocations in .h files into .c files.
 
-I'm not sure it should be done here. I'd rather keep that code in the 
-DMA, since this is the only user of that feature.
-These hwmod APIs are rather low level and should never be used except 
-for workaround. So I'd prefer keeping this API simple and not sexy at 
-all in order to prevent people to abuse it.
 
-Regards,
-Benoit
+- Paul
