@@ -1,379 +1,221 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] musb: am35x: fix compile error due to control apis
-Date: Fri,  3 Dec 2010 23:42:45 +0530
-Message-ID: <1291399965-19623-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH RFC -next] omap: fix omap2plus_defconfig build
+Date: Sat,  4 Dec 2010 00:01:34 +0530
+Message-ID: <1291401094-31052-1-git-send-email-gadiyar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33127 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753342Ab0LCSbp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 13:31:45 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-next@vger.kernel.org
+Cc: Anand Gadiyar <gadiyar@ti.com>
 
-As the control.h have been moved to new location and it's
-uses are not allowed to drivers directly so moving the phy
-control, interrupt clear and reset functionality to board
-files.
+Having CONFIG_SWP_EMULATE causes the build of omap2plus_defconfig
+to fail as below:
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+  CC      arch/arm/kernel/swp_emulate.o
+/tmp/ccCx8SX8.s: Assembler messages:
+/tmp/ccCx8SX8.s:339: Error: selected processor does not support ARM mode `ldrexb r7,[r6]'
+/tmp/ccCx8SX8.s:340: Error: selected processor does not support ARM mode `strexb r3,r2,[r6]'
+make[1]: *** [arch/arm/kernel/swp_emulate.o] Error 1
+make: *** [arch/arm/kernel] Error 2
+
+While a proper fix is being found, work around it by turning off
+the config option in the defconfig.
+
+While at it, make savedefconfig trimmed a few lines.
+
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 ---
-Patch created against today's linus tree.
+1. The issue has been discussed here:
+http://marc.info/?t=128748412500003&r=1&w=2
 
- arch/arm/mach-omap2/board-am3517evm.c |   13 +++-
- arch/arm/mach-omap2/usb-musb.c        |   79 ++++++++++++++++++++
- arch/arm/plat-omap/include/plat/usb.h |    3 +
- drivers/usb/musb/am35x.c              |  127 ++++++++++-----------------------
- 4 files changed, 133 insertions(+), 89 deletions(-)
+It's been around for a couple of months now.
+The last status was that maybe the toolchain should be fixed.
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 0739950..da9a70a 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -403,7 +403,18 @@ static struct omap_musb_board_data musb_board_data = {
- 
- static __init void am3517_evm_musb_init(void)
- {
--	u32 devconf2;
-+	u32 devconf2, regval;
-+
-+	/* Reset the musb interface */
-+	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
-+
-+	regval |= AM35XX_USBOTGSS_SW_RST;
-+	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
-+
-+	regval &= ~AM35XX_USBOTGSS_SW_RST;
-+	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
-+
-+	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
- 
- 	/*
- 	 * Set up USB clock/mode in the DEVCONF2 register.
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 7260558..1f32fdb 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -33,6 +33,82 @@
- 
- #ifdef CONFIG_USB_MUSB_SOC
- 
-+static void am35x_musb_phy_power(u8 on)
-+{
-+	unsigned long timeout = jiffies + msecs_to_jiffies(100);
-+	u32 devconf2;
-+
-+	if (on) {
-+		/*
-+		 * Start the on-chip PHY and its PLL.
-+		 */
-+		devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-+
-+		devconf2 &= ~(CONF2_RESET | CONF2_PHYPWRDN | CONF2_OTGPWRDN);
-+		devconf2 |= CONF2_PHY_PLLON;
-+
-+		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-+
-+		printk(KERN_INFO "Waiting for PHY clock good...\n");
-+		while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
-+				& CONF2_PHYCLKGD)) {
-+			cpu_relax();
-+
-+			if (time_after(jiffies, timeout)) {
-+				printk(KERN_ERR "musb PHY clock good timed out\n");
-+				break;
-+			}
-+		}
-+	} else {
-+		/*
-+		 * Power down the on-chip PHY.
-+		 */
-+		devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-+
-+		devconf2 &= ~CONF2_PHY_PLLON;
-+		devconf2 |=  CONF2_PHYPWRDN | CONF2_OTGPWRDN;
-+		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-+	}
-+}
-+
-+static void am35x_musb_clear_irq(void)
-+{
-+	u32 regval;
-+
-+	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-+	regval |= AM35XX_USBOTGSS_INT_CLR;
-+	omap_ctrl_writel(regval, AM35XX_CONTROL_LVL_INTR_CLEAR);
-+	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-+}
-+
-+static void am35x_musb_set_mode(u8 musb_mode)
-+{
-+	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-+
-+	devconf2 &= ~CONF2_OTGMODE;
-+	switch (musb_mode) {
-+#ifdef	CONFIG_USB_MUSB_HDRC_HCD
-+	case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
-+		devconf2 |= CONF2_FORCE_HOST;
-+		break;
-+#endif
-+#ifdef	CONFIG_USB_GADGET_MUSB_HDRC
-+	case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
-+		devconf2 |= CONF2_FORCE_DEVICE;
-+		break;
-+#endif
-+#ifdef	CONFIG_USB_MUSB_OTG
-+	case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
-+		devconf2 |= CONF2_NO_OVERRIDE;
-+		break;
-+#endif
-+	default:
-+		printk(KERN_INFO "Unsupported mode %u\n", musb_mode);
-+	}
-+
-+	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-+}
-+
- static struct resource musb_resources[] = {
- 	[0] = { /* start and end set dynamically */
- 		.flags	= IORESOURCE_MEM,
-@@ -93,6 +169,9 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
- 	} else if (cpu_is_omap3517() || cpu_is_omap3505()) {
- 		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
- 		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
-+		board_data->set_phy_power = am35x_musb_phy_power,
-+		board_data->clear_irq = am35x_musb_clear_irq,
-+		board_data->set_mode = am35x_musb_set_mode,
- 	} else if (cpu_is_omap34xx()) {
- 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
- 	} else if (cpu_is_omap44xx()) {
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index 59c7fe7..4299097 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -69,6 +69,9 @@ struct omap_musb_board_data {
- 	u8	mode;
- 	u16	power;
- 	unsigned extvbus:1;
-+	void	(*set_phy_power) (u8 on);
-+	void	(*clear_irq) (void);
-+	void	(*set_mode) (u8 mode);
- };
- 
- enum musb_interface    {MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
-diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
-index b0aabf3..66fc08a 100644
---- a/drivers/usb/musb/am35x.c
-+++ b/drivers/usb/musb/am35x.c
-@@ -30,7 +30,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/control.h>
- #include <plat/usb.h>
- 
- #include "musb_core.h"
-@@ -80,47 +79,6 @@
- 
- #define USB_MENTOR_CORE_OFFSET	0x400
- 
--static inline void phy_on(void)
--{
--	unsigned long timeout = jiffies + msecs_to_jiffies(100);
--	u32 devconf2;
--
--	/*
--	 * Start the on-chip PHY and its PLL.
--	 */
--	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
--
--	devconf2 &= ~(CONF2_RESET | CONF2_PHYPWRDN | CONF2_OTGPWRDN);
--	devconf2 |= CONF2_PHY_PLLON;
--
--	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
--
--	DBG(1, "Waiting for PHY clock good...\n");
--	while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
--			& CONF2_PHYCLKGD)) {
--		cpu_relax();
--
--		if (time_after(jiffies, timeout)) {
--			DBG(1, "musb PHY clock good timed out\n");
--			break;
--		}
--	}
--}
--
--static inline void phy_off(void)
--{
--	u32 devconf2;
--
--	/*
--	 * Power down the on-chip PHY.
--	 */
--	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
--
--	devconf2 &= ~CONF2_PHY_PLLON;
--	devconf2 |=  CONF2_PHYPWRDN | CONF2_OTGPWRDN;
--	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
--}
--
- /*
-  * musb_platform_enable - enable interrupts
-  */
-@@ -255,9 +213,12 @@ static irqreturn_t am35x_interrupt(int irq, void *hci)
- {
- 	struct musb  *musb = hci;
- 	void __iomem *reg_base = musb->ctrl_base;
-+	struct device *dev = musb->controller;
-+	struct musb_hdrc_platform_data *plat = dev->platform_data;
-+	struct omap_musb_board_data *data = plat->board_data;
- 	unsigned long flags;
- 	irqreturn_t ret = IRQ_NONE;
--	u32 epintr, usbintr, lvl_intr;
-+	u32 epintr, usbintr;
- 
- 	spin_lock_irqsave(&musb->lock, flags);
- 
-@@ -346,9 +307,8 @@ eoi:
- 	/* EOI needs to be written for the IRQ to be re-asserted. */
- 	if (ret == IRQ_HANDLED || epintr || usbintr) {
- 		/* clear level interrupt */
--		lvl_intr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
--		lvl_intr |= AM35XX_USBOTGSS_INT_CLR;
--		omap_ctrl_writel(lvl_intr, AM35XX_CONTROL_LVL_INTR_CLEAR);
-+		if (data->clear_irq)
-+			data->clear_irq();
- 		/* write EOI */
- 		musb_writel(reg_base, USB_END_OF_INTR_REG, 0);
- 	}
-@@ -364,37 +324,21 @@ eoi:
- 
- int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
- {
--	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-+	struct device *dev = musb->controller;
-+	struct musb_hdrc_platform_data *plat = dev->platform_data;
-+	struct omap_musb_board_data *data = plat->board_data;
- 
--	devconf2 &= ~CONF2_OTGMODE;
--	switch (musb_mode) {
--#ifdef	CONFIG_USB_MUSB_HDRC_HCD
--	case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
--		devconf2 |= CONF2_FORCE_HOST;
--		break;
--#endif
--#ifdef	CONFIG_USB_GADGET_MUSB_HDRC
--	case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
--		devconf2 |= CONF2_FORCE_DEVICE;
--		break;
--#endif
--#ifdef	CONFIG_USB_MUSB_OTG
--	case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
--		devconf2 |= CONF2_NO_OVERRIDE;
--		break;
--#endif
--	default:
--		DBG(2, "Trying to set unsupported mode %u\n", musb_mode);
--	}
-+	if (data->set_mode)
-+		data->set_mode(musb_mode);
- 
--	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
- 	return 0;
- }
- 
- int __init musb_platform_init(struct musb *musb, void *board_data)
- {
-+	struct omap_musb_board_data *data = board_data;
- 	void __iomem *reg_base = musb->ctrl_base;
--	u32 rev, lvl_intr, sw_reset;
-+	u32 rev;
- 	int status;
- 
- 	musb->mregs += USB_MENTOR_CORE_OFFSET;
-@@ -429,29 +373,18 @@ int __init musb_platform_init(struct musb *musb, void *board_data)
- 
- 	musb->board_set_vbus = am35x_set_vbus;
- 
--	/* Global reset */
--	sw_reset = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
--
--	sw_reset |= AM35XX_USBOTGSS_SW_RST;
--	omap_ctrl_writel(sw_reset, AM35XX_CONTROL_IP_SW_RESET);
--
--	sw_reset &= ~AM35XX_USBOTGSS_SW_RST;
--	omap_ctrl_writel(sw_reset, AM35XX_CONTROL_IP_SW_RESET);
--
--	/* Reset the controller */
--	musb_writel(reg_base, USB_CTRL_REG, AM35X_SOFT_RESET_MASK);
--
- 	/* Start the on-chip PHY and its PLL. */
--	phy_on();
-+	if (data->set_phy_power)
-+		data->set_phy_power(1);
- 
- 	msleep(5);
- 
- 	musb->isr = am35x_interrupt;
- 
- 	/* clear level interrupt */
--	lvl_intr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
--	lvl_intr |= AM35XX_USBOTGSS_INT_CLR;
--	omap_ctrl_writel(lvl_intr, AM35XX_CONTROL_LVL_INTR_CLEAR);
-+	if (data->clear_irq)
-+		data->clear_irq();
-+
- 	return 0;
- exit1:
- 	clk_disable(musb->phy_clock);
-@@ -463,10 +396,16 @@ exit0:
- 
- int musb_platform_exit(struct musb *musb)
- {
-+	struct device *dev = musb->controller;
-+	struct musb_hdrc_platform_data *plat = dev->platform_data;
-+	struct omap_musb_board_data *data = plat->board_data;
-+
- 	if (is_host_enabled(musb))
- 		del_timer_sync(&otg_workaround);
- 
--	phy_off();
-+	/* Shutdown the on-chip PHY and its PLL. */
-+	if (data->set_phy_power)
-+		data->set_phy_power(0);
- 
- 	otg_put_transceiver(musb->xceiv);
- 	usb_nop_xceiv_unregister();
-@@ -483,13 +422,25 @@ int musb_platform_exit(struct musb *musb)
- void musb_platform_save_context(struct musb *musb,
- 	struct musb_context_registers *musb_context)
- {
--	phy_off();
-+	struct device *dev = musb->controller;
-+	struct musb_hdrc_platform_data *plat = dev->platform_data;
-+	struct omap_musb_board_data *data = plat->board_data;
-+
-+	/* Shutdown the on-chip PHY and its PLL. */
-+	if (data->set_phy_power)
-+		data->set_phy_power(0);
- }
- 
- void musb_platform_restore_context(struct musb *musb,
- 	struct musb_context_registers *musb_context)
- {
--	phy_on();
-+	struct device *dev = musb->controller;
-+	struct musb_hdrc_platform_data *plat = dev->platform_data;
-+	struct omap_musb_board_data *data = plat->board_data;
-+
-+	/* Start the on-chip PHY and its PLL. */
-+	if (data->set_phy_power)
-+		data->set_phy_power(1);
- }
- #endif
- 
--- 
-1.6.2.4
+I'm afraid I don't know how to fix this properly, so I'm
+hoping we can live with a workaround like this...
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2. An alternative patch is this one:
+http://marc.info/?l=linux-arm-kernel&m=128748874510144&w=2
+
+3. Not sure if this should have been combined with the other noise
+from make savedefconfig - maybe I should have hand-edited the
+old defconfig to add one line.
+
+ arch/arm/configs/omap2plus_defconfig |   68 ++++-------------------------------
+ 1 file changed, 8 insertions(+), 60 deletions(-)
+
+Index: mainline/arch/arm/configs/omap2plus_defconfig
+===================================================================
+--- mainline.orig/arch/arm/configs/omap2plus_defconfig
++++ mainline/arch/arm/configs/omap2plus_defconfig
+@@ -21,57 +21,23 @@ CONFIG_MODVERSIONS=y
+ CONFIG_MODULE_SRCVERSION_ALL=y
+ # CONFIG_BLK_DEV_BSG is not set
+ CONFIG_ARCH_OMAP=y
+-CONFIG_ARCH_OMAP2=y
+-CONFIG_ARCH_OMAP3=y
+-CONFIG_ARCH_OMAP4=y
+ CONFIG_OMAP_RESET_CLOCKS=y
+ CONFIG_OMAP_MUX_DEBUG=y
+-CONFIG_OMAP_32K_TIMER=y
+-CONFIG_MACH_OMAP_GENERIC=y
+-CONFIG_ARCH_OMAP2420=y
+-CONFIG_ARCH_OMAP2430=y
+-CONFIG_ARCH_OMAP3430=y
+-CONFIG_MACH_OMAP_H4=y
+-CONFIG_MACH_OMAP_APOLLON=y
+-CONFIG_MACH_OMAP_2430SDP=y
+-CONFIG_MACH_OMAP3_BEAGLE=y
+-CONFIG_MACH_DEVKIT8000=y
+-CONFIG_MACH_OMAP_LDP=y
+-CONFIG_MACH_OVERO=y
+-CONFIG_MACH_OMAP3EVM=y
+-CONFIG_MACH_OMAP3517EVM=y
+-CONFIG_MACH_OMAP3_PANDORA=y
+-CONFIG_MACH_OMAP3_TOUCHBOOK=y
+-CONFIG_MACH_OMAP_3430SDP=y
+-CONFIG_MACH_NOKIA_N8X0=y
+-CONFIG_MACH_NOKIA_RX51=y
+-CONFIG_MACH_OMAP_ZOOM2=y
+-CONFIG_MACH_OMAP_ZOOM3=y
+-CONFIG_MACH_CM_T35=y
+-CONFIG_MACH_IGEP0020=y
+-CONFIG_MACH_SBC3530=y
+-CONFIG_MACH_OMAP_3630SDP=y
+-CONFIG_MACH_OMAP_4430SDP=y
+ CONFIG_ARM_THUMBEE=y
+-CONFIG_ARM_L1_CACHE_SHIFT=5
++# CONFIG_SWP_EMULATE is not set
+ CONFIG_ARM_ERRATA_411920=y
+ CONFIG_NO_HZ=y
+ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_SMP=y
+ # CONFIG_LOCAL_TIMERS is not set
+-CONFIG_AEABI=y
+ CONFIG_LEDS=y
+ CONFIG_ZBOOT_ROM_TEXT=0x0
+ CONFIG_ZBOOT_ROM_BSS=0x0
+ CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200"
+ CONFIG_KEXEC=y
+ CONFIG_FPE_NWFPE=y
+-CONFIG_VFP=y
+-CONFIG_NEON=y
+ CONFIG_BINFMT_MISC=y
+-CONFIG_PM=y
+ CONFIG_PM_DEBUG=y
+-CONFIG_PM_RUNTIME=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+@@ -90,7 +56,7 @@ CONFIG_NETFILTER=y
+ CONFIG_BT=m
+ CONFIG_BT_L2CAP=m
+ CONFIG_BT_SCO=m
+-CONFIG_BT_RFCOMM=y
++CONFIG_BT_RFCOMM=m
+ CONFIG_BT_RFCOMM_TTY=y
+ CONFIG_BT_BNEP=m
+ CONFIG_BT_BNEP_MC_FILTER=y
+@@ -126,7 +92,6 @@ CONFIG_MTD_UBI=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_BLK_DEV_RAM_SIZE=16384
+-CONFIG_EEPROM_LEGACY=y
+ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
+ CONFIG_SCSI_MULTI_LUN=y
+@@ -157,8 +122,6 @@ CONFIG_TOUCHSCREEN_ADS7846=y
+ CONFIG_INPUT_MISC=y
+ CONFIG_INPUT_TWL4030_PWRBUTTON=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+-CONFIG_SERIAL_8250=y
+-CONFIG_SERIAL_8250_CONSOLE=y
+ CONFIG_SERIAL_8250_NR_UARTS=32
+ CONFIG_SERIAL_8250_EXTENDED=y
+ CONFIG_SERIAL_8250_MANY_PORTS=y
+@@ -167,9 +130,7 @@ CONFIG_SERIAL_8250_DETECT_IRQ=y
+ CONFIG_SERIAL_8250_RSA=y
+ # CONFIG_LEGACY_PTYS is not set
+ CONFIG_HW_RANDOM=y
+-CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=y
+-CONFIG_I2C_OMAP=y
+ CONFIG_SPI=y
+ CONFIG_SPI_OMAP24XX=y
+ CONFIG_DEBUG_GPIO=y
+@@ -180,10 +141,6 @@ CONFIG_POWER_SUPPLY=y
+ CONFIG_WATCHDOG=y
+ CONFIG_OMAP_WATCHDOG=y
+ CONFIG_TWL4030_WATCHDOG=y
+-CONFIG_MENELAUS=y
+-CONFIG_TWL4030_CORE=y
+-CONFIG_TWL4030_POWER=y
+-CONFIG_REGULATOR=y
+ CONFIG_REGULATOR_TWL4030=y
+ CONFIG_REGULATOR_TPS65023=y
+ CONFIG_REGULATOR_TPS6507X=y
+@@ -196,7 +153,6 @@ CONFIG_BACKLIGHT_LCD_SUPPORT=y
+ CONFIG_LCD_CLASS_DEVICE=y
+ CONFIG_LCD_PLATFORM=y
+ CONFIG_DISPLAY_SUPPORT=y
+-# CONFIG_VGA_CONSOLE is not set
+ CONFIG_FRAMEBUFFER_CONSOLE=y
+ CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
+ CONFIG_FONTS=y
+@@ -205,25 +161,20 @@ CONFIG_FONT_8x16=y
+ CONFIG_LOGO=y
+ CONFIG_SOUND=m
+ CONFIG_SND=m
+-CONFIG_SND_MIXER_OSS=y
+-CONFIG_SND_PCM_OSS=y
++CONFIG_SND_MIXER_OSS=m
++CONFIG_SND_PCM_OSS=m
+ CONFIG_SND_VERBOSE_PRINTK=y
+ CONFIG_SND_DEBUG=y
+-CONFIG_SND_USB_AUDIO=y
+-CONFIG_SND_SOC=y
+-CONFIG_SND_OMAP_SOC=y
+-CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=y
++CONFIG_SND_USB_AUDIO=m
++CONFIG_SND_SOC=m
++CONFIG_SND_OMAP_SOC=m
++CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
+ CONFIG_USB=y
+ CONFIG_USB_DEBUG=y
+ CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+ CONFIG_USB_DEVICEFS=y
+ CONFIG_USB_SUSPEND=y
+-# CONFIG_USB_OTG_WHITELIST is not set
+ CONFIG_USB_MON=y
+-# CONFIG_USB_MUSB_HDRC is not set
+-# CONFIG_USB_MUSB_OTG is not set
+-# CONFIG_USB_GADGET_MUSB_HDRC is not set
+-CONFIG_USB_MUSB_DEBUG=y
+ CONFIG_USB_WDM=y
+ CONFIG_USB_STORAGE=y
+ CONFIG_USB_LIBUSUAL=y
+@@ -249,7 +200,6 @@ CONFIG_RTC_DRV_TWL4030=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
+-CONFIG_INOTIFY=y
+ CONFIG_QUOTA=y
+ CONFIG_QFMT_V2=y
+ CONFIG_MSDOS_FS=y
+@@ -273,12 +223,10 @@ CONFIG_NLS_CODEPAGE_437=y
+ CONFIG_NLS_ISO8859_1=y
+ CONFIG_PRINTK_TIME=y
+ CONFIG_MAGIC_SYSRQ=y
+-CONFIG_DEBUG_FS=y
+ CONFIG_DEBUG_KERNEL=y
+ CONFIG_SCHEDSTATS=y
+ CONFIG_TIMER_STATS=y
+ CONFIG_PROVE_LOCKING=y
+-# CONFIG_LOCK_STAT is not set
+ CONFIG_DEBUG_SPINLOCK_SLEEP=y
+ # CONFIG_DEBUG_BUGVERBOSE is not set
+ CONFIG_DEBUG_INFO=y
