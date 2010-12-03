@@ -1,145 +1,90 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 2/5 v2] OMAP3: PM: Erratum i581 support: dll kick strategy
-Date: Fri,  3 Dec 2010 11:03:35 -0600
-Message-ID: <1291395818-8639-3-git-send-email-nm@ti.com>
-References: <1291395818-8639-1-git-send-email-nm@ti.com>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH] omap: remove dead wdt code in plat-omap/devices.c
+Date: Fri,  3 Dec 2010 22:56:56 +0530
+Message-ID: <1291397216-24301-1-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52944 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55014 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751872Ab0LCREH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Dec 2010 12:04:07 -0500
-In-Reply-To: <1291395818-8639-1-git-send-email-nm@ti.com>
+	id S1751588Ab0LCR1O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Dec 2010 12:27:14 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Anand Gadiyar <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>
 
-From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Commit f2ce62312650 (OMAP: WDT: Split OMAP1 and OMAP2PLUS device
+registration) removed omap_init_wdt and related structures from
+plat-omap/devices.c. However a subsequent commit or merge
+seems to have reintroduced these by accident. The caller of
+omap_init_wdt was also removed by that commit, and this did
+not get restored. So we have the following build warning now:
 
-Erratum i581 impacts OMAP3 platforms.
-PRCM DPLL control FSM removes SDRC_IDLEREQ before DPLL3 locks causing
-the DPLL not to be locked at times.
+  CC      arch/arm/plat-omap/devices.o
+arch/arm/plat-omap/devices.c:252: warning: 'omap_init_wdt' defined but not used
 
-IMPORTANT:
-*) This is not a complete workaround implementation as recommended
-by the silicon erratum. this is a support logic for detecting lockups and
-attempting to recover where possible and is known to provide stability
-in multiple platforms.
-*) This code is mostly important for inactive and retention. The ROM code
-waits for the maximum dll lock time when resuming from off mode. So for
-off mode this code isn't really needed.
+Fix this by removing this dead code.
 
-This should eventually get refactored as part of cleanups to sleep34xx.S
-
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
-
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 ---
-(no change done, posting for completeness of the series)
-v2: https://patchwork.kernel.org/patch/365252/
-	typo correction- erratum, support, added comment from Peter from the
-	thread to commit message
-v1: http://marc.info/?l=linux-omap&m=129013172525234&w=2
- arch/arm/mach-omap2/sleep34xx.S |   52 +++++++++++++++++++++++++++++++++++---
- 1 files changed, 47 insertions(+), 5 deletions(-)
+Couldn't figure out which commit reintroduced this code - git blame
+only points to the original commits that added the code years ago.
 
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 2c20fcf..3fbd1e5 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -42,6 +42,7 @@
- 				OMAP3430_PM_PREPWSTST)
- #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + OMAP2_PM_PWSTCTRL
- #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
-+#define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
- #define SRAM_BASE_P		0x40200000
- #define CONTROL_STAT		0x480022F0
- #define SCRATCHPAD_MEM_OFFS	0x310 /* Move this as correct place is
-@@ -554,31 +555,67 @@ skip_l2_inval:
- 
- /* Make sure SDRC accesses are ok */
- wait_sdrc_ok:
-+
-+/* DPLL3 must be locked before accessing the SDRC. Maybe the HW ensures this. */
-+	ldr	r4, cm_idlest_ckgen
-+wait_dpll3_lock:
-+	ldr	r5, [r4]
-+	tst	r5, #1
-+	beq	wait_dpll3_lock
-+
-         ldr     r4, cm_idlest1_core
-+wait_sdrc_ready:
-         ldr     r5, [r4]
--        and     r5, r5, #0x2
--        cmp     r5, #0
--        bne     wait_sdrc_ok
-+        tst     r5, #0x2
-+        bne     wait_sdrc_ready
-+	/* allow DLL powerdown upon hw idle req */
-         ldr     r4, sdrc_power
-         ldr     r5, [r4]
-         bic     r5, r5, #0x40
-         str     r5, [r4]
--wait_dll_lock:
-+is_dll_in_lock_mode:
-+
-         /* Is dll in lock mode? */
-         ldr     r4, sdrc_dlla_ctrl
-         ldr     r5, [r4]
-         tst     r5, #0x4
-         bxne    lr
-         /* wait till dll locks */
--        ldr     r4, sdrc_dlla_status
-+wait_dll_lock_timed:
-+	ldr	r4, wait_dll_lock_counter
-+	add	r4, r4, #1
-+	str	r4, wait_dll_lock_counter
-+	ldr	r4, sdrc_dlla_status
-+        mov	r6, #8		/* Wait 20uS for lock */
-+wait_dll_lock:
-+	subs	r6, r6, #0x1
-+	beq	kick_dll
-         ldr     r5, [r4]
-         and     r5, r5, #0x4
-         cmp     r5, #0x4
-         bne     wait_dll_lock
-         bx      lr
- 
-+	/* disable/reenable DLL if not locked */
-+kick_dll:
-+	ldr	r4, sdrc_dlla_ctrl
-+	ldr	r5, [r4]
-+	mov	r6, r5
-+	bic	r6, #(1<<3)	/* disable dll */
-+	str	r6, [r4]
-+	dsb
-+	orr	r6, r6, #(1<<3)	/* enable dll */
-+	str	r6, [r4]
-+	dsb
-+	ldr	r4, kick_counter
-+	add	r4, r4, #1
-+	str	r4, kick_counter
-+	b	wait_dll_lock_timed
-+
- cm_idlest1_core:
- 	.word	CM_IDLEST1_CORE_V
-+cm_idlest_ckgen:
-+	.word	CM_IDLEST_CKGEN_V
- sdrc_dlla_status:
- 	.word	SDRC_DLLA_STATUS_V
- sdrc_dlla_ctrl:
-@@ -615,5 +652,10 @@ control_stat:
- 	.word	CONTROL_STAT
- kernel_flush:
- 	.word v7_flush_dcache_all
-+	/* these 2 words need to be at the end !!! */
-+kick_counter:
-+	.word	0
-+wait_dll_lock_counter:
-+	.word	0
- ENTRY(omap34xx_cpu_suspend_sz)
- 	.word	. - omap34xx_cpu_suspend
--- 
-1.6.3.3
+I suspect it's the DSP bridge commits that got merged via staging.
 
+If someone can debug this mystery for me, that'd be nice.
+
+ arch/arm/plat-omap/devices.c |   40 ----------------------------------------
+ 1 file changed, 40 deletions(-)
+
+Index: mainline/arch/arm/plat-omap/devices.c
+===================================================================
+--- mainline.orig/arch/arm/plat-omap/devices.c
++++ mainline/arch/arm/plat-omap/devices.c
+@@ -232,46 +232,6 @@ static void omap_init_uwire(void)
+ static inline void omap_init_uwire(void) {}
+ #endif
+ 
+-/*-------------------------------------------------------------------------*/
+-
+-#if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
+-
+-static struct resource wdt_resources[] = {
+-	{
+-		.flags		= IORESOURCE_MEM,
+-	},
+-};
+-
+-static struct platform_device omap_wdt_device = {
+-	.name	   = "omap_wdt",
+-	.id	     = -1,
+-	.num_resources	= ARRAY_SIZE(wdt_resources),
+-	.resource	= wdt_resources,
+-};
+-
+-static void omap_init_wdt(void)
+-{
+-	if (cpu_is_omap16xx())
+-		wdt_resources[0].start = 0xfffeb000;
+-	else if (cpu_is_omap2420())
+-		wdt_resources[0].start = 0x48022000; /* WDT2 */
+-	else if (cpu_is_omap2430())
+-		wdt_resources[0].start = 0x49016000; /* WDT2 */
+-	else if (cpu_is_omap343x())
+-		wdt_resources[0].start = 0x48314000; /* WDT2 */
+-	else if (cpu_is_omap44xx())
+-		wdt_resources[0].start = 0x4a314000;
+-	else
+-		return;
+-
+-	wdt_resources[0].end = wdt_resources[0].start + 0x4f;
+-
+-	(void) platform_device_register(&omap_wdt_device);
+-}
+-#else
+-static inline void omap_init_wdt(void) {}
+-#endif
+-
+ #if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODULE)
+ 
+ static phys_addr_t omap_dsp_phys_mempool_base;
