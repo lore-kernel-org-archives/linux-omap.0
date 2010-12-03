@@ -1,68 +1,104 @@
-From: Paul Mundt <lethal@linux-sh.org>
-Subject: Re: Mainline OMAP3 breakage (and other OMAP?)
-Date: Fri, 3 Dec 2010 12:09:55 +0900
-Message-ID: <20101203030954.GD3367@linux-sh.org>
-References: <20101202211421.GG10461@n2100.arm.linux.org.uk> <20101202215837.GW17222@atomide.com> <20101202221612.GJ10461@n2100.arm.linux.org.uk> <20101202223208.GA17222@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCH RESEND] ARM: io: fix namespace conflicts
+Date: Fri,  3 Dec 2010 12:04:49 +0530
+Message-ID: <1291358089-10490-1-git-send-email-sourav.poddar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:54959 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932263Ab0LCDK5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 22:10:57 -0500
-Content-Disposition: inline
-In-Reply-To: <20101202223208.GA17222@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48264 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752717Ab0LCGfG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Dec 2010 01:35:06 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sourav Poddar <sourav.poddar@ti.com>, Charulatha V <charu@ti.com>
 
-On Thu, Dec 02, 2010 at 02:32:08PM -0800, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [101202 14:06]:
-> > On Thu, Dec 02, 2010 at 01:58:38PM -0800, Tony Lindgren wrote:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [101202 13:04]:
-> > > > This has been around since October:
-> > > > 
-> > > > drivers/video/omap2/vram.c: In function ???omap_vram_reserve_sdram_memblock???:
-> > > > drivers/video/omap2/vram.c:573: error: ???MEMBLOCK_REAL_LIMIT??? undeclared (first use in this function)
-> > > > drivers/video/omap2/vram.c:573: error: (Each undeclared identifier is reported only once
-> > > > drivers/video/omap2/vram.c:573: error: for each function it appears in.)
-> > > > 
-> > > > This requires a trivial one-liner compile fix:
-> > > > 
-> > > > diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
-> > > > index fed2a72..a8973f0 100644
-> > > > --- a/drivers/video/omap2/vram.c
-> > > > +++ b/drivers/video/omap2/vram.c
-> > > > @@ -570,7 +570,7 @@ void __init omap_vram_reserve_sdram_memblock(void)
-> > > >  			return;
-> > > >  		}
-> > > >  	} else {
-> > > > -		paddr = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_REAL_LIMIT);
-> > > > +		paddr = memblock_alloc(size, PAGE_SIZE);
-> > > >  	}
-> > > >  
-> > > >  	omap_vram_add_region(paddr, size);
-> > > > 
-> > > > which restores the old behaviour before the X86 memblock changes went
-> > > > in.  Yes, there may be other changes due to the ioremap stuff, but
-> > > > that's really no excuse for not fixing the compile error itself.
-> > > 
-> > > Great. Adding fbdev and Tomi to Cc.
-> > > 
-> > > Acked-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > http://marc.info/?l=linux-omap&w=2&r=1&s=MEMBLOCK_REAL_LIMIT%20vram&q=b
-> > 
-> > There have been patches posted throughout November to fix this, but
-> > the problem is they're not making it to mainline.  It needs chasing
-> > until someone does the right thing and sends one variant of the above
-> > patch, rather than just leaving it until the ioremap fixes hit
-> > mainline during the next merge window.
-> 
-> Yes this should go in during the -rc for sure.
-> 
-> I suggest you merge this but let's wait a bit and check if Tomi
-> already has a similar fix queued for the -rc series.
-> 
-This has been fixed since -rc2.
+Having __v as the variable name for the definition of different macros leads
+to the namespace pollution. For example,
+readl(p)
+unrolls to:
+({ u32 __v = ({ u32 __v = (( __u32)(__le32)(( __le32) ((void)0,
+*(volatile unsigned int *)((p))))); __v; }); __asm__ __volatile__ ("mcr
+p15,
+, %0, c7, c10, 5" : : "r" (0) : "memory"); __v; });
+
+({ u32 __v = ({ u32 __v
+causes sparse warning: "warning: symbol '__v' shadows an earlier one"
+
+Using variable names which use the function name prefix across the
+various macros avoids the namespace pollution.
+
+With this change, ~200 sparse warnings in omap2plus_defconfig build are
+fixed.
+
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Signed-off-by: Charulatha V <charu@ti.com>
+Reviewed by: Nishanth Menon <nm@ti.com>
+---
+Links related to previous discussions are as follows:
+https://patchwork.kernel.org/patch/250171/
+http://www.spinics.net/lists/linux-omap/msg38569.html
+http://marc.info/?t=128506336700011&r=1&w=2
+
+arch/arm/include/asm/io.h |   32 +++++++++++++++++++++-----------
+ 1 files changed, 21 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
+index 1261b1f..01e4a7b 100644
+--- a/arch/arm/include/asm/io.h
++++ b/arch/arm/include/asm/io.h
+@@ -131,11 +131,11 @@ static inline void __iomem *__typesafe_io(unsigned long addr)
+ #define outl(v,p)		__raw_writel((__force __u32) \
+ 					cpu_to_le32(v),__io(p))
+ 
+-#define inb(p)	({ __u8 __v = __raw_readb(__io(p)); __v; })
+-#define inw(p)	({ __u16 __v = le16_to_cpu((__force __le16) \
+-			__raw_readw(__io(p))); __v; })
+-#define inl(p)	({ __u32 __v = le32_to_cpu((__force __le32) \
+-			__raw_readl(__io(p))); __v; })
++#define inb(p)	({ __u8 __inbv = __raw_readb(__io(p)); __inbv; })
++#define inw(p)	({ __u16 __inwv = le16_to_cpu((__force __le16) \
++			__raw_readw(__io(p))); __inwv; })
++#define inl(p)	({ __u32 __inlv = le32_to_cpu((__force __le32) \
++			__raw_readl(__io(p))); __inlv; })
+ 
+ #define outsb(p,d,l)		__raw_writesb(__io(p),d,l)
+ #define outsw(p,d,l)		__raw_writesw(__io(p),d,l)
+@@ -200,9 +200,12 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
+ #define __iowmb()		do { } while (0)
+ #endif
+ 
+-#define readb(c)		({ u8  __v = readb_relaxed(c); __iormb(); __v; })
+-#define readw(c)		({ u16 __v = readw_relaxed(c); __iormb(); __v; })
+-#define readl(c)		({ u32 __v = readl_relaxed(c); __iormb(); __v; })
++#define readb(c)		({ u8  __readbv = readb_relaxed(c); \
++					 __iormb(); __readbv; })
++#define readw(c)		({ u16 __readwv = readw_relaxed(c); \
++					 __iormb(); __readwv; })
++#define readl(c)		({ u32 __readlv = readl_relaxed(c);\
++					 __iormb(); __readlv; })
+ 
+ #define writeb(v,c)		({ __iowmb(); writeb_relaxed(v,c); })
+ #define writew(v,c)		({ __iowmb(); writew_relaxed(v,c); })
+@@ -258,9 +261,16 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
+  * io{read,write}{8,16,32} macros
+  */
+ #ifndef ioread8
+-#define ioread8(p)	({ unsigned int __v = __raw_readb(p); __iormb(); __v; })
+-#define ioread16(p)	({ unsigned int __v = le16_to_cpu((__force __le16)__raw_readw(p)); __iormb(); __v; })
+-#define ioread32(p)	({ unsigned int __v = le32_to_cpu((__force __le32)__raw_readl(p)); __iormb(); __v; })
++#define ioread8(p)	({ unsigned int __ioread8v = __raw_readb(p); \
++					 __iormb(); __ioread8v; })
++#define ioread16(p)	({ unsigned int __ioread16v = \
++					 le16_to_cpu((__force __le16) \
++					__raw_readw(p)); __iormb(); \
++					 __ioread16v; })
++#define ioread32(p)	({ unsigned int __ioread32v = \
++					 le32_to_cpu((__force __le32) \
++					__raw_readl(p)); __iormb(); \
++					 __ioread32v; })
+ 
+ #define iowrite8(v,p)	({ __iowmb(); (void)__raw_writeb(v, p); })
+ #define iowrite16(v,p)	({ __iowmb(); (void)__raw_writew((__force __u16)cpu_to_le16(v), p); })
+-- 
+1.7.0.4
+
