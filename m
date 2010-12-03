@@ -1,74 +1,37 @@
-From: "Jeff Graham" <Jeff.Graham@brukeroptics.com>
-Subject: comm with FTDI usb chip from davinci dm3730 with linux and Arm
-Date: Fri, 3 Dec 2010 14:46:21 -0500
-Message-ID: <F752F64AD8BC1D42B49B877FEE3CD3490118207B@USTED.BOPTUS.OPTIK.LAN>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 09/14] OMAP: DMA: Convert DMA library into platform
+ driver
+Date: Fri, 3 Dec 2010 15:24:22 -0800
+Message-ID: <20101203232421.GG17222@atomide.com>
+References: <1290603110-14119-1-git-send-email-manjugk@ti.com>
+ <1290603110-14119-10-git-send-email-manjugk@ti.com>
+ <20101202184419.GR17222@atomide.com>
+ <20101202184617.GS17222@atomide.com>
+ <20101202184925.GT17222@atomide.com>
+ <20101202200454.GA27696@manju-desktop>
+ <20101202205219.GV17222@atomide.com>
+ <20101203164317.GB10048@GLPP-machine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.bruker.com ([173.13.75.234]:18395 "EHLO mx1.bruker.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753000Ab0LCUBF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 15:01:05 -0500
-Content-class: urn:content-classes:message
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:10794 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754094Ab0LCXY2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 18:24:28 -0500
+Content-Disposition: inline
+In-Reply-To: <20101203164317.GB10048@GLPP-machine>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-Hello List,
+* G, Manjunath Kondaiah <manjugk@ti.com> [101203 08:32]:
+> 
+> I have done required changes to patch series and tested the same on
+> omap2+ boards. Can you pls test OSK5912 board boot from the below
+> git repo? If OSK5912 boots up(with LCD), I will post the 1st series to
+> LO ML.
 
-I am working with my Texas Instruments DM3730 EVM board running its def=
-ault Linux kernel 2.6.32 and default Linux distro Arago 2010.05. The cp=
-u info is:
+Yeah seems to boot OK now with tux showing up too.
 
-Processor       : ARMv7 Processor rev 2 (v7l)
-BogoMIPS        : 998.84
-=46eatures        : swp half thumb fastmult vfp edsp neon vfpv3=20
-CPU implementer : 0x41
-CPU architecture: 7
-CPU variant     : 0x3
-CPU part        : 0xc08
-CPU revision    : 2
-
-Hardware        : OMAP3 EVM
-Revision        : 0020
-Serial          : 0000000000000000
-
-
-I need to communicate via USB master to an FTDI Ft245R device that can =
-be found here:
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 http://www.ftdichip.com/Products/ICs/=
-=46T245R.htm
-
-=46or cross-compiling I have the free CodeSourcery G++ Lite 2009q1-203 =
-version 4.3.3.
-
-
-The TI EVM kit has libusb-0.1 already installed. What I *think* I need =
-is to just build the package called libftdi that can be found here:
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 http://www.intra2net.com/en/developer=
-/libftdi/index.php
-
-
-So my questions are:
-
-1) Has the already-installed libusb-0.1 been tested or used by anyone s=
-uccessfully?
-
-2) Has anyone tried anything similar to what I need, most likely using =
-some other FTDI chip or with libftdi ?
-
-3) Do you know if the default EVM kernel (2.6.32) and Linux will even c=
-ompile libftdi or if it works?
-
-4) I know how to build kernels, so if someone could point me to some ke=
-rnel source or patches then I could configure a working kernel.
-
-
-Thanks!
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
