@@ -1,87 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Mainline OMAP3 breakage (and other OMAP?)
-Date: Thu, 2 Dec 2010 14:32:08 -0800
-Message-ID: <20101202223208.GA17222@atomide.com>
-References: <20101202211421.GG10461@n2100.arm.linux.org.uk>
- <20101202215837.GW17222@atomide.com>
- <20101202221612.GJ10461@n2100.arm.linux.org.uk>
+Subject: [PATCH 0/6] omap: Board specific muxing using hwmod
+Date: Thu, 02 Dec 2010 16:45:14 -0800
+Message-ID: <20101203004040.31687.9476.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:16466 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:19725 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757274Ab0LBWc0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 17:32:26 -0500
-Content-Disposition: inline
-In-Reply-To: <20101202221612.GJ10461@n2100.arm.linux.org.uk>
+	with ESMTP id S1753857Ab0LCApX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2010 19:45:23 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [101202 14:06]:
-> On Thu, Dec 02, 2010 at 01:58:38PM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [101202 13:04]:
-> > > This has been around since October:
-> > >=20
-> > > drivers/video/omap2/vram.c: In function =E2=96=A0omap_vram_reserv=
-e_sdram_memblock=E2=96=A0:
-> > > drivers/video/omap2/vram.c:573: error: =E2=96=A0MEMBLOCK_REAL_LIM=
-IT=E2=96=A0 undeclared (first use in this function)
-> > > drivers/video/omap2/vram.c:573: error: (Each undeclared identifie=
-r is reported only once
-> > > drivers/video/omap2/vram.c:573: error: for each function it appea=
-rs in.)
-> > >=20
-> > > This requires a trivial one-liner compile fix:
-> > >=20
-> > > diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vra=
-m.c
-> > > index fed2a72..a8973f0 100644
-> > > --- a/drivers/video/omap2/vram.c
-> > > +++ b/drivers/video/omap2/vram.c
-> > > @@ -570,7 +570,7 @@ void __init omap_vram_reserve_sdram_memblock(=
-void)
-> > >  			return;
-> > >  		}
-> > >  	} else {
-> > > -		paddr =3D memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_REAL_L=
-IMIT);
-> > > +		paddr =3D memblock_alloc(size, PAGE_SIZE);
-> > >  	}
-> > > =20
-> > >  	omap_vram_add_region(paddr, size);
-> > >=20
-> > > which restores the old behaviour before the X86 memblock changes =
-went
-> > > in.  Yes, there may be other changes due to the ioremap stuff, bu=
-t
-> > > that's really no excuse for not fixing the compile error itself.
-> >=20
-> > Great. Adding fbdev and Tomi to Cc.
-> >=20
-> > Acked-by: Tony Lindgren <tony@atomide.com>
->=20
-> http://marc.info/?l=3Dlinux-omap&w=3D2&r=3D1&s=3DMEMBLOCK_REAL_LIMIT%=
-20vram&q=3Db
->=20
-> There have been patches posted throughout November to fix this, but
-> the problem is they're not making it to mainline.  It needs chasing
-> until someone does the right thing and sends one variant of the above
-> patch, rather than just leaving it until the ioremap fixes hit
-> mainline during the next merge window.
+Hi all,
 
-Yes this should go in during the -rc for sure.
+Here are some patches to allow us to pass the board specific mux data
+to the platform level device init code, and then allow hwmod state
+changes to do the pin muxing.
 
-I suggest you merge this but let's wait a bit and check if Tomi
-already has a similar fix queued for the -rc series.
+Dynamic remuxing is also supported as needed, the last patch in this
+series sets up the board-*.c data for n8x0 to do uart3 rx pin remuxing
+for the idle modes.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+---
+
+Tony Lindgren (6):
+      omap2+: Add omap_mux_get_by_name
+      omap2+: Add support for hwmod specific muxing of devices
+      omap2+: Allow hwmod state changes to mux pads based on the state changes
+      omap2+: Add struct omap_device_board_data and allow omap_device_build initialize pads to mux
+      omap2+: Use omap_device_board_data for platform level serial init
+      omap2+: Initialize serial ports for wake-up events for n8x0
+
+
+ arch/arm/mach-omap2/board-n8x0.c              |   66 ++++++++-
+ arch/arm/mach-omap2/devices.c                 |    2 
+ arch/arm/mach-omap2/gpio.c                    |    2 
+ arch/arm/mach-omap2/mux.c                     |  188 ++++++++++++++++++++++---
+ arch/arm/mach-omap2/mux.h                     |   39 +++++
+ arch/arm/mach-omap2/omap_hwmod.c              |   14 +-
+ arch/arm/mach-omap2/pm.c                      |    3 
+ arch/arm/mach-omap2/serial.c                  |   29 +++-
+ arch/arm/plat-omap/i2c.c                      |    4 -
+ arch/arm/plat-omap/include/plat/omap_device.h |   19 ++-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |   32 ++++
+ arch/arm/plat-omap/include/plat/serial.h      |    5 +
+ arch/arm/plat-omap/omap_device.c              |   14 ++
+ 13 files changed, 366 insertions(+), 51 deletions(-)
+
+-- 
+Signature
