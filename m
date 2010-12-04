@@ -1,80 +1,146 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/8] ARM: SCU: Add common routines for secondary CPU
-	bootup
-Date: Sat, 4 Dec 2010 08:48:15 +0000
-Message-ID: <20101204084815.GA20969__1247.36250513724$1291452562$gmane$org@n2100.arm.linux.org.uk>
-References: <20101130171626.GA6165@oksana.dev.rtsoft.ru> <20101130171658.GA24034@oksana.dev.rtsoft.ru> <20101130233204.GB14383@n2100.arm.linux.org.uk> <20101201002527.GC14383@n2100.arm.linux.org.uk> <AANLkTikpjq-8BVanF5W76j0ZdDBur8DyHWSH8GGgJBQs@mail.gmail.com> <20101202152428.GD10461@n2100.arm.linux.org.uk> <1291307320.11271.51.camel@e102109-lin.cambridge.arm.com> <20101202173824.GE10461@n2100.arm.linux.org.uk> <20101202180150.GF10461@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Marc Zyngier <maz@misterjones.org>
+Subject: [REPOST][PATCH] Fix IGEPv2 second MMC channel power supply
+Date: Sat,  4 Dec 2010 12:40:38 +0000
+Message-ID: <1291466438-12827-1-git-send-email-maz@misterjones.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60092 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751372Ab0LDItF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 03:49:05 -0500
-Content-Disposition: inline
-In-Reply-To: <20101202180150.GF10461@n2100.arm.linux.org.uk>
+Received: from inca-roads.misterjones.org ([213.251.177.50]:48887 "EHLO
+	inca-roads.misterjones.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751134Ab0LDMkm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 07:40:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Kukjin Kim <kgene.kim@samsung.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Jamie Iles <jamie.iles@picochip.com>, Anton Vorontsov <avoro>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Enric Balletbo i Serra <eballetbo@gmail.com>, Tony Lindgren <tony@atomide.com>
 
-On Thu, Dec 02, 2010 at 06:01:50PM +0000, Russell King - ARM Linux wrote:
-> On Thu, Dec 02, 2010 at 05:38:24PM +0000, Russell King - ARM Linux wrote:
-> > What if a platform, for what ever reason, wants to have 3 CPUs,
-> > numbered 0, 2, 3 ?  That's the reason why the code which sets the
-> > possible and present maps isn't in the ARM core code - Eg, we don't
-> > know if a platform wants to keep CPU 1 in AMP mode to run some
-> > special software on it.
-> > 
-> > I don't think it's worth it because I think trying to considate this
-> > is going to cripple the code structure in the future.
-> 
-> I don't think this is particularly worth it either:
+Commit 72f381ba056 (omap3: Remove VMMC2 regulator on IGEP v2)
+removed an unused regulator entry, but left the second MMC channel
+(used by the Libertas WLAN module) without link to power regulator.
+This causes the SDIO module to fail being detected.
 
-As Catalin has pointed out:
+This patch adds the two regulators that actually feed the WLAN module
+(1v8 from the TWL4030 VIO LDO, and a fixed 3v3). With that patch, the
+second channel is properly detected. Details of the power supply
+implementation were kindly provided by Enric Balletbo i Serra.
 
-http://lists.arm.linux.org.uk/lurker/message/20101202.162840.5465758c.en.html
+Also change vmmc1 to use symbolic names instead of direct device
+reference.
 
-The SCU is part of the core, and if you consult the TRMs for the MPCore
-devices, it is actually different in ARM11 MPCore vs Cortex-A9 MPCore.
-Cortex-A15 doesn't have a MMIO addressable SCU at all.
+Tested on an IGEPv2 Rev-B.
 
-So, this is about as far as I want to go with stripping out the common
-code from the various platforms (this includes my previous SMP series):
+Signed-off-by: Marc Zyngier <maz@misterjones.org>
+Acked-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/board-igep0020.c |   61 ++++++++++++++++++++++++++++-----
+ 1 files changed, 51 insertions(+), 10 deletions(-)
 
-http://lists.arm.linux.org.uk/lurker/message/20101203.200746.31424430.en.html
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 5e035a5..9a85e60 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -19,6 +19,7 @@
+ #include <linux/interrupt.h>
+ 
+ #include <linux/regulator/machine.h>
++#include <linux/regulator/fixed.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/mmc/host.h>
+ 
+@@ -257,9 +258,8 @@ static inline void __init igep2_init_smsc911x(void) { }
+ static struct omap_board_config_kernel igep2_config[] __initdata = {
+ };
+ 
+-static struct regulator_consumer_supply igep2_vmmc1_supply = {
+-	.supply		= "vmmc",
+-};
++static struct regulator_consumer_supply igep2_vmmc1_supply =
++	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.0");
+ 
+ /* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
+ static struct regulator_init_data igep2_vmmc1 = {
+@@ -276,6 +276,52 @@ static struct regulator_init_data igep2_vmmc1 = {
+ 	.consumer_supplies      = &igep2_vmmc1_supply,
+ };
+ 
++static struct regulator_consumer_supply igep2_vio_supply =
++	REGULATOR_SUPPLY("vmmc_aux", "mmci-omap-hs.1");
++
++static struct regulator_init_data igep2_vio = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= 1,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = 1,
++	.consumer_supplies      = &igep2_vio_supply,
++};
++
++static struct regulator_consumer_supply igep2_vmmc2_supply =
++	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1");
++
++static struct regulator_init_data igep2_vmmc2 = {
++	.constraints		= {
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
++		.always_on		= 1,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &igep2_vmmc2_supply,
++};
++
++static struct fixed_voltage_config igep2_vwlan = {
++	.supply_name		= "vwlan",
++	.microvolts		= 3300000,
++	.gpio			= -EINVAL,
++	.enabled_at_boot	= 1,
++	.init_data		= &igep2_vmmc2,
++};
++
++static struct platform_device igep2_vwlan_device = {
++	.name		= "reg-fixed-voltage",
++	.id		= 0,
++	.dev = {
++		.platform_data	= &igep2_vwlan,
++	},
++};
++
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+@@ -373,12 +419,6 @@ static int igep2_twl_gpio_setup(struct device *dev,
+ 	omap2_hsmmc_init(mmc);
+ 
+ 	/*
+-	 * link regulators to MMC adapters ... we "know" the
+-	 * regulators will be set up only *after* we return.
+-	 */
+-	igep2_vmmc1_supply.dev = mmc[0].dev;
+-
+-	/*
+ 	 * REVISIT: need ehci-omap hooks for external VBUS
+ 	 * power switch and overcurrent detect
+ 	 */
+@@ -489,6 +529,7 @@ static void __init igep2_display_init(void)
+ 
+ static struct platform_device *igep2_devices[] __initdata = {
+ 	&igep2_dss_device,
++	&igep2_vwlan_device,
+ };
+ 
+ static void __init igep2_init_irq(void)
+@@ -519,7 +560,7 @@ static struct twl4030_platform_data igep2_twldata = {
+ 	.gpio		= &igep2_twl4030_gpio_pdata,
+ 	.vmmc1          = &igep2_vmmc1,
+ 	.vpll2		= &igep2_vpll2,
+-
++	.vio		= &igep2_vio,
+ };
+ 
+ static struct i2c_board_info __initdata igep2_i2c1_boardinfo[] = {
+-- 
+1.7.3.2
 
-This results in a net reduction of 242 LOC, as shown in the following
-diffstat:
-
- arch/arm/include/asm/hardirq.h            |   18 ++
- arch/arm/include/asm/mach/irq.h           |    2 +-
- arch/arm/include/asm/smp.h                |   17 +-
- arch/arm/include/asm/smp_mpidr.h          |   17 --
- arch/arm/kernel/entry-armv.S              |    2 +-
- arch/arm/kernel/fiq.c                     |    5 +-
- arch/arm/kernel/head.S                    |   39 +++--
- arch/arm/kernel/irq.c                     |   23 ++-
- arch/arm/kernel/smp.c                     |  243 ++++++++++++++++-------------
- arch/arm/mach-msm/include/mach/smp.h      |    4 +-
- arch/arm/mach-omap2/omap-hotplug.c        |   14 +--
- arch/arm/mach-omap2/omap-smp.c            |   66 ++------
- arch/arm/mach-realview/hotplug.c          |   18 +--
- arch/arm/mach-realview/include/mach/smp.h |    5 +-
- arch/arm/mach-realview/platsmp.c          |   95 +++---------
- arch/arm/mach-s5pv310/hotplug.c           |   18 +--
- arch/arm/mach-s5pv310/include/mach/smp.h  |    5 +-
- arch/arm/mach-s5pv310/platsmp.c           |   46 +-----
- arch/arm/mach-tegra/hotplug.c             |   18 +--
- arch/arm/mach-tegra/include/mach/smp.h    |   12 +--
- arch/arm/mach-tegra/platsmp.c             |   33 +---
- arch/arm/mach-ux500/hotplug.c             |   18 +--
- arch/arm/mach-ux500/include/mach/smp.h    |    5 +-
- arch/arm/mach-ux500/platsmp.c             |   57 ++-----
- arch/arm/mach-vexpress/include/mach/smp.h |    5 +-
- arch/arm/mach-vexpress/platsmp.c          |   54 ++-----
- arch/arm/plat-omap/include/plat/smp.h     |    5 +-
- 27 files changed, 301 insertions(+), 543 deletions(-)
-
-Can someone also explain why OMAP uses different file naming from everyone
-else?  It's annoying as (eg) arch/arm/*/platsmp.c for editing the platform
-SMP support files gets everyone except OMAP.
