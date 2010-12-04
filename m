@@ -1,120 +1,64 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH] musb: am35x: fix compile error due to control apis
-Date: Sat, 4 Dec 2010 19:27:21 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404BCE39F00@dbde02.ent.ti.com>
-References: <1291399965-19623-1-git-send-email-ajay.gupta@ti.com>
- <4CF943B5.2000303@ru.mvista.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/4] Patches to make multi-soc handling in entry-armv.S
+ easier
+Date: Sat, 4 Dec 2010 10:05:41 -0800
+Message-ID: <20101204180541.GH17222@atomide.com>
+References: <20101204001435.28853.29616.stgit@baageli.muru.com>
+ <alpine.LFD.2.00.1012040040590.10437@xanadu.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48572 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755008Ab0LDN5b convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 08:57:31 -0500
-In-Reply-To: <4CF943B5.2000303@ru.mvista.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30016 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755155Ab0LDSFr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 13:05:47 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1012040040590.10437@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-> > diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-
-> musb.c
-> > index 7260558..1f32fdb 100644
-> > --- a/arch/arm/mach-omap2/usb-musb.c
-> > +++ b/arch/arm/mach-omap2/usb-musb.c
-> > @@ -33,6 +33,82 @@
-> >
-> >  #ifdef CONFIG_USB_MUSB_SOC
-> >
-> > +static void am35x_musb_phy_power(u8 on)
-> > +{
-> > +	unsigned long timeout = jiffies + msecs_to_jiffies(100);
-> > +	u32 devconf2;
-> > +
-> > +	if (on) {
-> > +		/*
-> > +		 * Start the on-chip PHY and its PLL.
-> > +		 */
-> > +		devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-> > +
-> > +		devconf2 &= ~(CONF2_RESET | CONF2_PHYPWRDN | CONF2_OTGPWRDN);
-> > +		devconf2 |= CONF2_PHY_PLLON;
-> > +
-> > +		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-> > +
-> > +		printk(KERN_INFO "Waiting for PHY clock good...\n");
+* Nicolas Pitre <nico@fluxnic.net> [101203 21:39]:
+> On Fri, 3 Dec 2010, Tony Lindgren wrote:
 > 
->     pr_info().
+> > Hi all,
+> > 
+> > I've got some patches almost ready to go to merge the omap1
+> > configs into a single omap1_defconfig. While working on getting
+> > that done, I had to come up with a better solution for entry-armv.S
+> > macros to detect the soc we're running on.
+> > 
+> > I suggest we add asm_irq_base and asm_irq_flags as in the first
+> > patch in this series does. This way we can do the soc based detection
+> > in init_irq or similar place. This might help also the multi-arm
+> > work too.
+> 
+> Did you see Eric Miao's patch series that introduces runtime IRQ demux 
+> handler support?
+> 
+> http://www.spinics.net/linux/lists/arm-kernel/msg92836.html
+> 
+> That is likely to be a better solution.
 
-This file already uses printk() so used it for uniformity.
-> 
-> > +		while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
-> > +				& CONF2_PHYCLKGD)) {
-> > +			cpu_relax();
-> > +
-> > +			if (time_after(jiffies, timeout)) {
-> > +				printk(KERN_ERR "musb PHY clock good timed
-> out\n");
-> 
->     pr_err().
-> 
-> > diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-
-> omap/include/plat/usb.h
-> > index 59c7fe7..4299097 100644
-> > --- a/arch/arm/plat-omap/include/plat/usb.h
-> > +++ b/arch/arm/plat-omap/include/plat/usb.h
-> > @@ -69,6 +69,9 @@ struct omap_musb_board_data {
-> >  	u8	mode;
-> >  	u16	power;
-> >  	unsigned extvbus:1;
-> > +	void	(*set_phy_power) (u8 on);
-> > +	void	(*clear_irq) (void);
-> > +	void	(*set_mode) (u8 mode);
-> 
->     Should be no spaces between ) and (. scripts/checkpatch.pl used to
-> complain
-> about such things, now it's silent though...
-Yes, I tried with ./scripts/checkpatch and didn't get any error/warning.
+Yeah that works too, although is a bit heavier for simple cases.
 
-> 
-> > @@ -364,37 +324,21 @@ eoi:
-> >
-> >  int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
-> >  {
-> > -	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-> > +	struct device *dev = musb->controller;
-> > +	struct musb_hdrc_platform_data *plat = dev->platform_data;
-> > +	struct omap_musb_board_data *data = plat->board_data;
-> >
-> > -	devconf2 &= ~CONF2_OTGMODE;
-> > -	switch (musb_mode) {
-> > -#ifdef	CONFIG_USB_MUSB_HDRC_HCD
-> > -	case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
-> > -		devconf2 |= CONF2_FORCE_HOST;
-> > -		break;
-> > -#endif
-> > -#ifdef	CONFIG_USB_GADGET_MUSB_HDRC
-> > -	case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
-> > -		devconf2 |= CONF2_FORCE_DEVICE;
-> > -		break;
-> > -#endif
-> > -#ifdef	CONFIG_USB_MUSB_OTG
-> > -	case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
-> > -		devconf2 |= CONF2_NO_OVERRIDE;
-> > -		break;
-> > -#endif
-> > -	default:
-> > -		DBG(2, "Trying to set unsupported mode %u\n", musb_mode);
-> > -	}
-> > +	if (data->set_mode)
-> > +		data->set_mode(musb_mode);
-> 
->     You should return -EIO if data->set_mode is NULL.
-Ok fine...
+In the omap case just the irq base is different between omap2 vs omap3.
+And only level2 interrupt bit is different omap7xx vs omap16xx.
 
-Ajay
-> 
-> WBR, Sergei
+Handling the difference between omap2/3 and omap4 would be the use
+case for handle_arch_irq. Currently that too can be handled
+without handle_arch_irq, but from multi-arm point of view
+handle_arch_irq is needed in the long run.
 
+I can do things either way quite easily for sure. But my preference
+would be to have both options available. This is because asm_irq_base
+and asm_irq_flags can be used to reduce 15 omap1 defconfigs into one
+defconfig with quite minimal changes. And for omap2+, these patches
+allow getting rid of the SoC detection code in entry-macro.S. Also,
+after these patches, moving to use handle_arch_irq can be done a bit
+easier later on.
+
+Regards,
+
+Tony
