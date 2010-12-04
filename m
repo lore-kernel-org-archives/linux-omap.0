@@ -1,132 +1,124 @@
-From: David Daney <ddaney@caviumnetworks.com>
-Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
-Date: Fri, 03 Dec 2010 16:29:35 -0800
-Message-ID: <4CF98B6F.5050308@caviumnetworks.com>
-References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP2+: PM/serial: hold console semaphore while OMAP UARTs are
+ disabled
+Date: Fri, 3 Dec 2010 18:10:49 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012031807440.17078@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1011241646310.20215@utopia.booyaka.com> <AANLkTina+O1GgMgS0qDKix=d4HOtT1fFrCotTuCCxACv@mail.gmail.com> <alpine.DEB.2.00.1011251017390.20215@utopia.booyaka.com> <AANLkTik5cRQPodAYtacTD5EdQYnDbvGgOoNfNfHuW+fq@mail.gmail.com>
+ <alpine.DEB.2.00.1012020022390.2515@utopia.booyaka.com> <AANLkTi=hiwspQ4hM0Ok+MHjn5iHme4XRTKZPGa0Z2=Xy@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1291420247-18171-1-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-921073587-1291425049=:17078"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:43941 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753323Ab0LDBKw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 20:10:52 -0500
+In-Reply-To: <AANLkTi=hiwspQ4hM0Ok+MHjn5iHme4XRTKZPGa0Z2=Xy@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, tom.leiming@gmail.com, pramod.gurav@ti.com, thomas.petazzoni@free-electrons.com, govindraj.raja@ti.com
 
-On 12/03/2010 03:50 PM, Ohad Ben-Cohen wrote:
-> OMAP4 introduces a Hardware Spinlock device, which provides hardware
-> assistance for synchronization and mutual exclusion between heterogeneous
-> processors and those not operating under a single, shared operating system
-> (e.g. OMAP4 has dual Cortex-A9, dual Cortex-M3 and a C64x+ DSP).
->
-> The intention of this hardware device is to allow remote processors,
-> that have no alternative mechanism to accomplish synchronization and mutual
-> exclusion operations, to share resources (such as memory and/or any other
-> hardware resource).
->
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Does anything other than OMAP4 have one of these things?  And are there 
-any devices that are commonly encountered across more than one platform 
-that might have these hardware spinlocks, thus making it advantageous to 
-have a common framework?
+--155748971-921073587-1291425049=:17078
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-If not why a general purpose framework for a very chip specific feature?
+Salut Jean
 
-There are chips with hardware atomic memory, but the only time it makes 
-sense to use it is in conjunction with specialize on-chip devices.  So 
-the implementation details are kept in the drivers rather than creating 
-a general purpose hwatomic (with its hwatomic_add() et al.) type.
+On Thu, 2 Dec 2010, Jean Pihet wrote:
 
-David Daney
+> On Thu, Dec 2, 2010 at 8:23 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Thu, 25 Nov 2010, Jean Pihet wrote:
+> >> On Thu, Nov 25, 2010 at 6:35 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> >> > On Thu, 25 Nov 2010, Jean Pihet wrote:
+> >> >> On Thu, Nov 25, 2010 at 12:49 AM, Paul Walmsley <paul@pwsan.com> wr=
+ote:
+> >> >> >
+> >> >> > The console semaphore must be held while the OMAP UART devices ar=
+e
+> >> >> > disabled, lest a console write cause an ARM abort (and a kernel c=
+rash)
+> >> >> > when the underlying console device is inaccessible. =A0These cras=
+hes
+> >> >> > only occur when the console is on one of the OMAP internal serial
+> >> >> > ports.
+> >> >> This does not fix the issue for me on Beagle (console on ttyO2).
+> >> >>
+> >> >> Doing:
+> >> >> =A0 / # echo 5 > /sys/devices/platform/omap/omap-hsuart.0/sleep_tim=
+eout
+> >> >> =A0 / # echo 5 > /sys/devices/platform/omap/omap-hsuart.1/sleep_tim=
+eout
+> >> >> =A0 / # echo 5 > /sys/devices/platform/omap/omap-hsuart.2/sleep_tim=
+eout
+> >> >> and waiting 5 seconds hangs the console.
+> >> >
+> >> > By the way, you write that the above situation "hangs the console." =
+=A0Is it
+> >> > just the case that the console dies and the rest of the system is st=
+ill
+> >> > alive, or does the whole system crash?
+> >> The console hangs, the rest of the system still runs.
+> >
+> > Just out of curiosity, if you send a few breaks to the OMAP over serial=
+,
+> > does that cause the console to pay attention again? =A0CTRL-A F in mini=
+com.
+> Yes it helps. In most cases sending 2-3 breaks resumes the UART console.
 
-> This patchset adds hwspinlock framework that makes it possible
-> for drivers to use those hwspinlock devices and stay platform-independent.
->
-> Currently there are two users for this hwspinlock interface:
->
-> 1. Inter-processor communications: on OMAP4, cpu-intensive multimedia
-> tasks are offloaded by the host to the remote M3 and/or C64x+ slave
-> processors.
->
-> To achieve fast message-based communications, a minimal kernel support
-> is needed to deliver messages arriving from a remote processor to the
-> appropriate user process.
->
-> This communication is based on a simple data structure that is shared between
-> the remote processors, and access to it is synchronized using the hwspinlock
-> module (remote processor directly places new messages in this shared data
-> structure).
->
-> 2. On some OMAP4 boards, the I2C bus is shared between the A9 and the M3,
-> and the hwspinlock is used to synchronize access to it.
->
-> While (2) can get away with an omap-specific hwspinlock implementation,
-> (1) is by no means omap-specific, and a common hwspinlock interface is
-> needed to keep it generic, in hopes that it will be useful for other
-> platforms as well.
->
-> Changes v2->v3:
-> - Remove the timeout-less _lock API variant (Tony)
-> - s/state->io_base/io_base/ (Ionut)
-> - Remove the "generic" wording (David)
-> - s/hwspinlock_/hwspin_lock_/ (Mugdha)
-> - Use MAX_SCHEDULE_TIMEOUT to indicate no timeout (Mugdha)
-> - Be more verbose on egregious API misuse (Olof)
-> - locking API misuse is BUG_ON material (Russell)
->
->    Note: Russell also suggested compiling out NULL checks on ARM.
->    I've posted an initial proposal for this (see
->    https://lkml.org/lkml/2010/11/29/96), which I'm going to resubmit
->    separately. If accepted, I'll adopt hwspinlocks to use it.
->
-> Patches are tested against linux-omap-2.6 master, which is 2.6.37-rc4 plus
-> omap material. All, but the third (the hwmod omap patch), apply on top of
-> mainline 2.6.37-rc4 as well
->
-> Changes v1->v2:
-> - Convert to a generic interface (Tony)
-> - API should silently succeed if framework isn't built (Greg)
-> - Don't use ERR_PTR pattern (Grant)
-> - Use tristate, fix and extend commentary (Kevin)
-> - Provide API flexibility regarding irq handling (Arnd, Grant)
->
->    Note: after reviewing OMAP's L4 access times, and comparing them with
->    external memory latencies, I can say that there is no notable difference.
->    Because of that, we can safely treat the hwspinlock like we do
->    with regular spinlocks: preemption should be disabled, but whether
->    to disable interrupts or not is up to the caller.
->
->    So despite the TRM's recommendation to always disable local interrupts
->    when taking an OMAP Hardware Spinlock, I have decided to allow callers
->    not to do that (by providing the full extent of hwspin_lock(),
->    hwspin_lock_irq() and hwspin_lock_irqsave() API).
->
->    Just like regular spinlocks, it's up to the callers to decide whether
->    interrupts should be disabled or not.
->
->    Sleeping, btw, is still prohibited of course.
->
-> Contributions:
->
-> Previous versions of an omap-specific hwspinlock driver circulated in
-> linux-omap several times, and received substantial attention and contribution
-> from many developers (see [1][2][3][4][5][6]):
->
-> Simon Que did the initial implementation and pushed several iterations
-> Benoit Cousson provided extensive review, help, improvements and hwmod support
-> Hari Kanigeri helped out when Simon was away
-> Sanjeev Premi, Santosh Shilimkar and Nishanth Menon did lots of review
->
-> I'd like to thank Benoit Cousson, Steve Krueger, Hari Kanigeri,
-> Nourredine Hamoudi and Richard Woodruff for useful discussions about
-> the OMAP Spinlock requirements and use-cases.
->
-> Relevant linux-omap threads:
->
-> [1] http://thread.gmane.org/gmane.linux.ports.arm.omap/38755
-> [2] http://thread.gmane.org/gmane.linux.ports.arm.omap/38917
-> [3] http://thread.gmane.org/gmane.linux.ports.arm.omap/39187
-> [4] http://thread.gmane.org/gmane.linux.ports.arm.omap/39365
-> [5] http://thread.gmane.org/gmane.linux.ports.arm.omap/39815
-> [6] http://thread.gmane.org/gmane.linux.ports.arm.omap/40901
->
+Could you try enabling DSS in your .config?  I applied the following to my=
+=20
+omap2plus_defconfig after make oldnoconfig, and the console is now working=
+=20
+again for me.
+
+Hopefully adding DSS hwmod stuff will fix this...
+
+
+- Paul
+
+--- .config=092010-12-03 18:05:31.661889255 -0700
++++ .config.sleep.working=092010-12-03 18:03:57.733918058 -0700
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+ # Linux/arm 2.6.37-rc4 Kernel Configuration
+-# Fri Dec  3 18:05:31 2010
++# Fri Dec  3 18:00:21 2010
+ #
+ CONFIG_ARM=3Dy
+ CONFIG_SYS_SUPPORTS_APM_EMULATION=3Dy
+@@ -1465,9 +1465,28 @@
+ # CONFIG_FB_METRONOME is not set
+ # CONFIG_FB_MB862XX is not set
+ # CONFIG_FB_BROADSHEET is not set
+-# CONFIG_FB_OMAP is not set
+ CONFIG_FB_OMAP_LCD_VGA=3Dy
+-# CONFIG_OMAP2_DSS is not set
++CONFIG_OMAP2_DSS=3Dy
++CONFIG_OMAP2_VRAM_SIZE=3D0
++CONFIG_OMAP2_DSS_DEBUG_SUPPORT=3Dy
++# CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS is not set
++CONFIG_OMAP2_DSS_DPI=3Dy
++# CONFIG_OMAP2_DSS_RFBI is not set
++CONFIG_OMAP2_DSS_VENC=3Dy
++# CONFIG_OMAP2_DSS_SDI is not set
++# CONFIG_OMAP2_DSS_DSI is not set
++# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
++CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=3D0
++# CONFIG_FB_OMAP2 is not set
++
++#
++# OMAP2/3 Display Device Drivers
++#
++# CONFIG_PANEL_GENERIC is not set
++# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
++# CONFIG_PANEL_SHARP_LQ043T1DG01 is not set
++# CONFIG_PANEL_TOPPOLY_TDO35S is not set
++# CONFIG_PANEL_TPO_TD043MTEA1 is not set
+ CONFIG_BACKLIGHT_LCD_SUPPORT=3Dy
+ CONFIG_LCD_CLASS_DEVICE=3Dy
+ # CONFIG_LCD_L4F00242T03 is not set
+--155748971-921073587-1291425049=:17078--
