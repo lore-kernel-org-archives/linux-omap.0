@@ -1,84 +1,110 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
-Date: Sat, 4 Dec 2010 03:28:49 +0200
-Message-ID: <AANLkTinw5KDThsSw+2PJMdrPBq1=rMJNVYgF4z5mEJTM@mail.gmail.com>
-References: <1291420247-18171-1-git-send-email-ohad@wizery.com> <4CF98B6F.5050308@caviumnetworks.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [PATCH v1 0/9] OMAP: DMA: hwmod and DMA as platform device
+Date: Sat,  4 Dec 2010 09:13:57 +0530
+Message-ID: <1291434246-30716-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f194.google.com ([209.85.214.194]:61695 "EHLO
-	mail-iw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753448Ab0LDB3L convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Dec 2010 20:29:11 -0500
-In-Reply-To: <4CF98B6F.5050308@caviumnetworks.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:59628 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753896Ab0LDDnn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Dec 2010 22:43:43 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Daney <ddaney@caviumnetworks.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
+To: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, "G, Manjunath Kondaiah" <manjugk@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Sat, Dec 4, 2010 at 2:29 AM, David Daney <ddaney@caviumnetworks.com>=
- wrote:
-> Does anything other than OMAP4 have one of these things?
+Patch series to convert DMA library into platform driver using platform
+device model and adapting hwmod for omap2+.
 
-I'm not aware of any, but David Brownell had some ideas about it in
-our previous v2 discussion (see
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39413.html).
+The original patch series :
+http://comments.gmane.org/gmane.linux.ports.arm.omap/46953
+has been split into two patch series based on suggestion from Tony.
+(https://patchwork.kernel.org/patch/375831/)
 
-Btw, you might want to read throughout that entire discussion with
-David, since it was touching the same questions you raise here.
+The first series will prepare existing DMA library for DMA hwmod and 
+converting the same into platform driver.
 
-> And are there any
-> devices that are commonly encountered across more than one platform t=
-hat
-> might have these hardware spinlocks, thus making it advantageous to h=
-ave a
-> common framework?
+The second series will have:
+arch/arm/mach-omap1/dma.c       omap1 specific platform init
+arch/arm/mach-omap2/dma.c       omap2+ specific platform init
+drivers/dma/omap-dma.c          driver using dmaengine.c
 
-Such devices are just multiple processors that have no alternative
-mechanism to accomplish synchronization.
+Patch series1 Design:
+1. The low level read/write macros are converted into static inline functions
+so that, these functions can be moved to respective mach-omap driver
+files later.
+(Thanks to Tony and Kevin for their suggestions on handling all omap register
+offset without adding extra enums)
+2. Implements generic errata handling for all OMAP DMA errata.
+3. DMA hwmod data is updated for respective hwmod db files.
+4. The DMA library is split into two layers.
+   a. The generic code is retained in plat-omap/dma.c
+   b. The machine specific init code is moved to
+      respective mach-omap dma files.
 
-OMAP4 has a few non-coherent heterogeneous processors that do not
-support fancy synchronization primitives, so it needs this hwspinlock
-peripheral.
+Minimal machine specific code is moved to respective mach-omap dma files with 
+this series. Rest of code movement and API cleanup's are handled in second
+series.
 
-Otherwise, I don't know how common that is (/might become), and I'd
-hate speculating, but I suspect that OMAP is not going to be the only
-platform with multiple coprocessors, that have no other means of
-achieving synchronization, and with which inter-processor
-communications is desired.
+Patch series applies on top of latest linux omap master branch:
+*************************************************************************
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+Branch: master
+commit a04fd22204b13ce34a3f8a8157f83c44d64f8da9
+Merge: e941bb0 afd2d11
+Author: Tony Lindgren <tony@atomide.com>
 
->
-> If not why a general purpose framework for a very chip specific featu=
-re?
+    Linux-omap rebuilt: Merged in usb patches for testing
+*************************************************************************
 
-We started out with an omap-specific driver (see first iteration at
-http://lwn.net/Articles/410375/), but were asked to make it a
-platform-agnostic framework, in order to keep the IPC drivers that
-will use it generic (and assuming that more users will show up for
-such framework).
+Test Report:
+************
+Build:
+omap2plus_defconfig    : Success
+omap_osk_5912_defconfig: Success
 
-To me it sounds reasonable, but again, I prefer not to speculate how
-many users will show up for this, if any.
+Boot:
+OMAP3530Beagle         : Success
+OMAP4430Blaze(ES2.1)   : Success
+OMAP1(OSK5912)         : Success
 
-Both ways (framework / omap-specific driver) will work for us just fine=
-=2E
+Test cases executed:
+1. All applicable TI DMA tests which are located at:
+git://dev.omapzoom.org/pub/scm/richo/device_driver_test.git
+Branch: master
 
->
-> There are chips with hardware atomic memory, but the only time it mak=
-es
-> sense to use it is in conjunction with specialize on-chip devices. =A0=
-So the
-> implementation details are kept in the drivers rather than creating a
-> general purpose hwatomic (with its hwatomic_add() et al.) type.
+Report can be accessed at: 
+Beagle board: http://pastebin.com/sDUChNLr
 
-This case is a bit different IMHO: some of the potential users of
-hwspinlocks are just generic IPC drivers that are by no means
-platform-specific. It's not a special on-chip device: it's just one
-processor, trying to achieve mutual exclusion with another processor,
-before manipulating some shared data structure.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The original patch series and change history can be found at:
+http://permalink.gmane.org/gmane.linux.ports.arm.omap/46953#
+
+Benoit Cousson (1):
+  OMAP4: hwmod data: add system DMA
+
+G, Manjunath Kondaiah (8):
+  OMAP: DMA: Replace read/write macros with functions
+  OMAP: DMA: Introduce errata handling feature
+  OMAP2420: hwmod data: add system DMA
+  OMAP2430: hwmod data: add system DMA
+  OMAP3: hwmod data: add system DMA
+  OMAP1: DMA: Implement in platform device model
+  OMAP2+: DMA: hwmod: Device registration
+  OMAP: DMA: Convert DMA library into platform driver
+
+ arch/arm/mach-omap1/Makefile               |    2 +-
+ arch/arm/mach-omap1/dma.c                  |  390 ++++++++++++++++
+ arch/arm/mach-omap2/Makefile               |    2 +-
+ arch/arm/mach-omap2/dma.c                  |  297 ++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   87 ++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   87 ++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   97 ++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  101 ++++
+ arch/arm/plat-omap/dma.c                   |  697 ++++++++++++----------------
+ arch/arm/plat-omap/include/plat/dma.h      |  232 ++++------
+ 10 files changed, 1452 insertions(+), 540 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/dma.c
+ create mode 100644 arch/arm/mach-omap2/dma.c
+
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
