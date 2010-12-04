@@ -1,170 +1,171 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/4] omap: Disable omap_read/write functions for omap2+
-Date: Sat, 04 Dec 2010 13:36:51 -0800
-Message-ID: <20101204213651.32208.8915.stgit@baageli.muru.com>
+Subject: [PATCH 2/4] omap1: Add initcall checks for omap1 and booted board
+Date: Sat, 04 Dec 2010 13:36:55 -0800
+Message-ID: <20101204213655.32208.23030.stgit@baageli.muru.com>
 References: <20101204213358.32208.4195.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:38885 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755811Ab0LDVgz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 16:36:55 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32243 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755811Ab0LDVg6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 16:36:58 -0500
 In-Reply-To: <20101204213358.32208.4195.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-These should be now long gone and break multi-omap support for omap1
-as the cpu_class_is_omap1() won't work until the SOC is detected.
-
-So just disable and warn for omap2+ in case somebody still attampts
-to use these.
+Otherwise multi-omap1 configurations will fail.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/include/plat/io.h |   45 ++++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/io.c              |   36 ++++++++-------------------
- 2 files changed, 56 insertions(+), 25 deletions(-)
+ arch/arm/mach-omap1/board-ams-delta.c |    3 +++
+ arch/arm/mach-omap1/board-voiceblue.c |    6 ++++++
+ arch/arm/mach-omap1/devices.c         |    3 +++
+ arch/arm/mach-omap1/lcd_dma.c         |    3 +++
+ arch/arm/mach-omap1/leds.c            |    3 +++
+ arch/arm/mach-omap1/mcbsp.c           |    3 +++
+ arch/arm/mach-omap1/pm.c              |    3 +++
+ arch/arm/mach-omap1/pm_bus.c          |    3 +++
+ arch/arm/mach-omap1/serial.c          |    3 +++
+ 9 files changed, 30 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
-index 128b549..af20a9e 100644
---- a/arch/arm/plat-omap/include/plat/io.h
-+++ b/arch/arm/plat-omap/include/plat/io.h
-@@ -247,6 +247,8 @@
-  * NOTE: Please use ioremap + __raw_read/write where possible instead of these
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index ce4d69c..e143950 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -338,6 +338,9 @@ static int __init ams_delta_modem_init(void)
+ {
+ 	int err;
+ 
++	if (!machine_is_ams_delta())
++		return -ENODEV;
++
+ 	omap_cfg_reg(M14_1510_GPIO2);
+ 	ams_delta_modem_ports[0].irq =
+ 			gpio_to_irq(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
+diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
+index 789f5ba..815a69c 100644
+--- a/arch/arm/mach-omap1/board-voiceblue.c
++++ b/arch/arm/mach-omap1/board-voiceblue.c
+@@ -83,6 +83,9 @@ static struct platform_device serial_device = {
+ 
+ static int __init ext_uart_init(void)
+ {
++	if (!machine_is_voiceblue())
++		return -ENODEV;
++
+ 	return platform_device_register(&serial_device);
+ }
+ arch_initcall(ext_uart_init);
+@@ -235,6 +238,9 @@ static struct notifier_block panic_block = {
+ 
+ static int __init voiceblue_setup(void)
+ {
++	if (!machine_is_voiceblue())
++		return -ENODEV;
++
+ 	/* Setup panic notifier */
+ 	atomic_notifier_chain_register(&panic_notifier_list, &panic_block);
+ 
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index 86ad38a..b0f4c23 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -288,6 +288,9 @@ static inline void omap_init_audio(void) {}
   */
- 
-+#ifdef CONFIG_ARCH_OMAP1
-+
- extern u8 omap_readb(u32 pa);
- extern u16 omap_readw(u32 pa);
- extern u32 omap_readl(u32 pa);
-@@ -254,6 +256,49 @@ extern void omap_writeb(u8 v, u32 pa);
- extern void omap_writew(u16 v, u32 pa);
- extern void omap_writel(u32 v, u32 pa);
- 
-+#else
-+
-+static inline void _bad_access(u32 pa)
-+{
-+	pr_err("Bad register access at pa 0x%08x\n", pa);
-+	WARN_ON(1);
-+}
-+
-+static inline u8 omap_readb(u32 pa)
-+{
-+	_bad_access(pa);
-+	return 0;
-+}
-+
-+static inline u16 omap_readw(u32 pa)
-+{
-+	_bad_access(pa);
-+	return 0;
-+}
-+
-+static inline u16 omap_readl(u32 pa)
-+{
-+	_bad_access(pa);
-+	return 0;
-+}
-+
-+static inline void omap_writeb(u8 v, u32 pa)
-+{
-+	_bad_access(pa);
-+}
-+
-+static inline void omap_writew(u8 v, u32 pa)
-+{
-+	_bad_access(pa);
-+}
-+
-+static inline void omap_writel(u8 v, u32 pa)
-+{
-+	_bad_access(pa);
-+}
-+
-+#endif
-+
- struct omap_sdrc_params;
- 
- extern void omap1_map_common_io(void);
-diff --git a/arch/arm/plat-omap/io.c b/arch/arm/plat-omap/io.c
-index b0078cf..b89182b 100644
---- a/arch/arm/plat-omap/io.c
-+++ b/arch/arm/plat-omap/io.c
-@@ -138,59 +138,45 @@ void omap_iounmap(volatile void __iomem *addr)
- EXPORT_SYMBOL(omap_iounmap);
- 
- /*
-- * NOTE: Please use ioremap + __raw_read/write where possible instead of these
-+ * NOTE: Please use ioremap + __raw_read/write where possible instead of these.
-+ * These are only working for omap1 and will disappear eventually.
-  */
-+#ifdef CONFIG_ARCH_OMAP1
- 
- u8 omap_readb(u32 pa)
+ static int __init omap1_init_devices(void)
  {
--	if (cpu_class_is_omap1())
--		return __raw_readb(OMAP1_IO_ADDRESS(pa));
--	else
--		return __raw_readb(OMAP2_L4_IO_ADDRESS(pa));
-+	return __raw_readb(OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_readb);
- 
- u16 omap_readw(u32 pa)
- {
--	if (cpu_class_is_omap1())
--		return __raw_readw(OMAP1_IO_ADDRESS(pa));
--	else
--		return __raw_readw(OMAP2_L4_IO_ADDRESS(pa));
-+	return __raw_readw(OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_readw);
- 
- u32 omap_readl(u32 pa)
- {
--	if (cpu_class_is_omap1())
--		return __raw_readl(OMAP1_IO_ADDRESS(pa));
--	else
--		return __raw_readl(OMAP2_L4_IO_ADDRESS(pa));
-+	return __raw_readl(OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_readl);
- 
- void omap_writeb(u8 v, u32 pa)
- {
--	if (cpu_class_is_omap1())
--		__raw_writeb(v, OMAP1_IO_ADDRESS(pa));
--	else
--		__raw_writeb(v, OMAP2_L4_IO_ADDRESS(pa));
-+	__raw_writeb(v, OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_writeb);
- 
- void omap_writew(u16 v, u32 pa)
- {
--	if (cpu_class_is_omap1())
--		__raw_writew(v, OMAP1_IO_ADDRESS(pa));
--	else
--		__raw_writew(v, OMAP2_L4_IO_ADDRESS(pa));
-+	__raw_writew(v, OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_writew);
- 
- void omap_writel(u32 v, u32 pa)
- {
--	if (cpu_class_is_omap1())
--		__raw_writel(v, OMAP1_IO_ADDRESS(pa));
--	else
--		__raw_writel(v, OMAP2_L4_IO_ADDRESS(pa));
-+	__raw_writel(v, OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_writel);
++	if (!cpu_class_is_omap1())
++		return -ENODEV;
 +
-+#endif
+ 	/* please keep these calls, and their implementations above,
+ 	 * in alphabetical order so they're easier to sort through.
+ 	 */
+diff --git a/arch/arm/mach-omap1/lcd_dma.c b/arch/arm/mach-omap1/lcd_dma.c
+index 3be11af..c9088d8 100644
+--- a/arch/arm/mach-omap1/lcd_dma.c
++++ b/arch/arm/mach-omap1/lcd_dma.c
+@@ -424,6 +424,9 @@ static int __init omap_init_lcd_dma(void)
+ {
+ 	int r;
+ 
++	if (!cpu_class_is_omap1())
++		return -ENODEV;
++
+ 	if (cpu_is_omap16xx()) {
+ 		u16 w;
+ 
+diff --git a/arch/arm/mach-omap1/leds.c b/arch/arm/mach-omap1/leds.c
+index 277f356..22eb11d 100644
+--- a/arch/arm/mach-omap1/leds.c
++++ b/arch/arm/mach-omap1/leds.c
+@@ -17,6 +17,9 @@
+ static int __init
+ omap_leds_init(void)
+ {
++	if (!cpu_class_is_omap1())
++		return -ENODEV;
++
+ 	if (machine_is_omap_innovator())
+ 		leds_event = innovator_leds_event;
+ 
+diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
+index 372ea71..8209736 100644
+--- a/arch/arm/mach-omap1/mcbsp.c
++++ b/arch/arm/mach-omap1/mcbsp.c
+@@ -176,6 +176,9 @@ static struct omap_mcbsp_platform_data omap16xx_mcbsp_pdata[] = {
+ 
+ static int __init omap1_mcbsp_init(void)
+ {
++	if (!cpu_class_is_omap1())
++		return -ENODEV;
++
+ 	if (cpu_is_omap7xx()) {
+ 		omap_mcbsp_count = OMAP7XX_MCBSP_PDATA_SZ;
+ 		omap_mcbsp_cache_size = OMAP7XX_MCBSP_REG_NUM * sizeof(u16);
+diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
+index b1d3f9f..0cca23a 100644
+--- a/arch/arm/mach-omap1/pm.c
++++ b/arch/arm/mach-omap1/pm.c
+@@ -661,6 +661,9 @@ static int __init omap_pm_init(void)
+ 	int error;
+ #endif
+ 
++	if (!cpu_class_is_omap1())
++		return -ENODEV;
++
+ 	printk("Power Management for TI OMAP.\n");
+ 
+ 	/*
+diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
+index 8b66392..3266447 100644
+--- a/arch/arm/mach-omap1/pm_bus.c
++++ b/arch/arm/mach-omap1/pm_bus.c
+@@ -73,6 +73,9 @@ static int __init omap1_pm_runtime_init(void)
+ 	const struct dev_pm_ops *pm;
+ 	struct dev_pm_ops *omap_pm;
+ 
++	if (!cpu_class_is_omap1())
++		return -ENODEV;
++
+ 	pm = platform_bus_get_pm_ops();
+ 	if (!pm) {
+ 		pr_err("%s: unable to get dev_pm_ops from platform_bus\n",
+diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
+index 9e1c4d4..550ca9d 100644
+--- a/arch/arm/mach-omap1/serial.c
++++ b/arch/arm/mach-omap1/serial.c
+@@ -258,6 +258,9 @@ late_initcall(omap_serial_wakeup_init);
+ 
+ static int __init omap_init(void)
+ {
++	if (!cpu_class_is_omap1())
++		return -ENODEV;
++
+ 	return platform_device_register(&serial_device);
+ }
+ arch_initcall(omap_init);
 
