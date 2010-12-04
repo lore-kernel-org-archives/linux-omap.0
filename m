@@ -1,55 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/5] Fix undefined reference to omap2_i2c_mux_pins
-Date: Sat, 04 Dec 2010 13:29:44 -0800
-Message-ID: <20101204212944.25978.26642.stgit@baageli.muru.com>
+Subject: [PATCH 2/5] omap: Ptr "isr_reg" tracked as NULL was dereferenced
+Date: Sat, 04 Dec 2010 13:29:47 -0800
+Message-ID: <20101204212947.25978.52302.stgit@baageli.muru.com>
 References: <20101204212904.25978.22090.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:40685 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755811Ab0LDV3s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 16:29:48 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28857 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755811Ab0LDV3v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 16:29:51 -0500
 In-Reply-To: <20101204212904.25978.22090.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>, linux-omap@vger.kernel.org
 
-In some cases we can get error function `omap2_i2c_add_bus':
-arch/arm/plat-omap/i2c.c:136: undefined reference to `omap2_i2c_mux_pins'
-arch/arm/plat-omap/i2c.c:141: undefined reference to `omap_hwmod_lookup'
-arch/arm/plat-omap/i2c.c:157: undefined reference to `omap_device_build'
+From: Evgeny Kuznetsov <ext-eugeny.kuznetsov@nokia.com>
 
+Value of "isr_reg" pointer is depend on configuration and GPIO method.
+Potentially it may have NULL value and it is dereferenced later
+in code. Warning and exit from function are added in this case.
+
+Signed-off-by: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/i2c.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/gpio.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index a5bff9c..21fc937 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -125,6 +125,7 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
- 	},
- };
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 28d28e4..28106b4 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -1171,6 +1171,10 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	if (bank->method == METHOD_GPIO_44XX)
+ 		isr_reg = bank->base + OMAP4_GPIO_IRQSTATUS0;
+ #endif
++
++	if (WARN_ON(!isr_reg))
++		goto exit;
++
+ 	while(1) {
+ 		u32 isr_saved, level_mask = 0;
+ 		u32 enabled;
+@@ -1230,6 +1234,7 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	configured, we must unmask the bank interrupt only after
+ 	handler(s) are executed in order to avoid spurious bank
+ 	interrupt */
++exit:
+ 	if (!unmasked)
+ 		desc->chip->unmask(irq);
  
-+#ifdef CONFIG_ARCH_OMAP2PLUS
- static inline int omap2_i2c_add_bus(int bus_id)
- {
- 	int l;
-@@ -161,6 +162,12 @@ static inline int omap2_i2c_add_bus(int bus_id)
- 
- 	return PTR_ERR(od);
- }
-+#else
-+static inline int omap2_i2c_add_bus(int bus_id)
-+{
-+	return 0;
-+}
-+#endif
- 
- static int __init omap_i2c_add_bus(int bus_id)
- {
 
