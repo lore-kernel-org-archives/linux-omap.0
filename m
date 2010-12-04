@@ -1,47 +1,80 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH 0/4] Patches to make multi-soc handling in entry-armv.S
- easier
-Date: Sat, 04 Dec 2010 00:49:43 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1012040040590.10437@xanadu.home>
-References: <20101204001435.28853.29616.stgit@baageli.muru.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/8] ARM: SCU: Add common routines for secondary CPU
+	bootup
+Date: Sat, 4 Dec 2010 08:48:15 +0000
+Message-ID: <20101204084815.GA20969__1247.36250513724$1291452562$gmane$org@n2100.arm.linux.org.uk>
+References: <20101130171626.GA6165@oksana.dev.rtsoft.ru> <20101130171658.GA24034@oksana.dev.rtsoft.ru> <20101130233204.GB14383@n2100.arm.linux.org.uk> <20101201002527.GC14383@n2100.arm.linux.org.uk> <AANLkTikpjq-8BVanF5W76j0ZdDBur8DyHWSH8GGgJBQs@mail.gmail.com> <20101202152428.GD10461@n2100.arm.linux.org.uk> <1291307320.11271.51.camel@e102109-lin.cambridge.arm.com> <20101202173824.GE10461@n2100.arm.linux.org.uk> <20101202180150.GF10461@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:40253 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752017Ab0LDFto (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 00:49:44 -0500
-Received: from xanadu.home ([66.130.28.92]) by vl-mo-mrz24.ip.videotron.ca
- (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
- with ESMTP id <0LCW00KRY2UIA3B0@vl-mo-mrz24.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Sat, 04 Dec 2010 00:49:30 -0500 (EST)
-In-reply-to: <20101204001435.28853.29616.stgit@baageli.muru.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60092 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751372Ab0LDItF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 03:49:05 -0500
+Content-Disposition: inline
+In-Reply-To: <20101202180150.GF10461@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Kukjin Kim <kgene.kim@samsung.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Jamie Iles <jamie.iles@picochip.com>, Anton Vorontsov <avoro>
 
-On Fri, 3 Dec 2010, Tony Lindgren wrote:
-
-> Hi all,
+On Thu, Dec 02, 2010 at 06:01:50PM +0000, Russell King - ARM Linux wrote:
+> On Thu, Dec 02, 2010 at 05:38:24PM +0000, Russell King - ARM Linux wrote:
+> > What if a platform, for what ever reason, wants to have 3 CPUs,
+> > numbered 0, 2, 3 ?  That's the reason why the code which sets the
+> > possible and present maps isn't in the ARM core code - Eg, we don't
+> > know if a platform wants to keep CPU 1 in AMP mode to run some
+> > special software on it.
+> > 
+> > I don't think it's worth it because I think trying to considate this
+> > is going to cripple the code structure in the future.
 > 
-> I've got some patches almost ready to go to merge the omap1
-> configs into a single omap1_defconfig. While working on getting
-> that done, I had to come up with a better solution for entry-armv.S
-> macros to detect the soc we're running on.
-> 
-> I suggest we add asm_irq_base and asm_irq_flags as in the first
-> patch in this series does. This way we can do the soc based detection
-> in init_irq or similar place. This might help also the multi-arm
-> work too.
+> I don't think this is particularly worth it either:
 
-Did you see Eric Miao's patch series that introduces runtime IRQ demux 
-handler support?
+As Catalin has pointed out:
 
-http://www.spinics.net/linux/lists/arm-kernel/msg92836.html
+http://lists.arm.linux.org.uk/lurker/message/20101202.162840.5465758c.en.html
 
-That is likely to be a better solution.
+The SCU is part of the core, and if you consult the TRMs for the MPCore
+devices, it is actually different in ARM11 MPCore vs Cortex-A9 MPCore.
+Cortex-A15 doesn't have a MMIO addressable SCU at all.
 
+So, this is about as far as I want to go with stripping out the common
+code from the various platforms (this includes my previous SMP series):
 
-Nicolas
+http://lists.arm.linux.org.uk/lurker/message/20101203.200746.31424430.en.html
+
+This results in a net reduction of 242 LOC, as shown in the following
+diffstat:
+
+ arch/arm/include/asm/hardirq.h            |   18 ++
+ arch/arm/include/asm/mach/irq.h           |    2 +-
+ arch/arm/include/asm/smp.h                |   17 +-
+ arch/arm/include/asm/smp_mpidr.h          |   17 --
+ arch/arm/kernel/entry-armv.S              |    2 +-
+ arch/arm/kernel/fiq.c                     |    5 +-
+ arch/arm/kernel/head.S                    |   39 +++--
+ arch/arm/kernel/irq.c                     |   23 ++-
+ arch/arm/kernel/smp.c                     |  243 ++++++++++++++++-------------
+ arch/arm/mach-msm/include/mach/smp.h      |    4 +-
+ arch/arm/mach-omap2/omap-hotplug.c        |   14 +--
+ arch/arm/mach-omap2/omap-smp.c            |   66 ++------
+ arch/arm/mach-realview/hotplug.c          |   18 +--
+ arch/arm/mach-realview/include/mach/smp.h |    5 +-
+ arch/arm/mach-realview/platsmp.c          |   95 +++---------
+ arch/arm/mach-s5pv310/hotplug.c           |   18 +--
+ arch/arm/mach-s5pv310/include/mach/smp.h  |    5 +-
+ arch/arm/mach-s5pv310/platsmp.c           |   46 +-----
+ arch/arm/mach-tegra/hotplug.c             |   18 +--
+ arch/arm/mach-tegra/include/mach/smp.h    |   12 +--
+ arch/arm/mach-tegra/platsmp.c             |   33 +---
+ arch/arm/mach-ux500/hotplug.c             |   18 +--
+ arch/arm/mach-ux500/include/mach/smp.h    |    5 +-
+ arch/arm/mach-ux500/platsmp.c             |   57 ++-----
+ arch/arm/mach-vexpress/include/mach/smp.h |    5 +-
+ arch/arm/mach-vexpress/platsmp.c          |   54 ++-----
+ arch/arm/plat-omap/include/plat/smp.h     |    5 +-
+ 27 files changed, 301 insertions(+), 543 deletions(-)
+
+Can someone also explain why OMAP uses different file naming from everyone
+else?  It's annoying as (eg) arch/arm/*/platsmp.c for editing the platform
+SMP support files gets everyone except OMAP.
