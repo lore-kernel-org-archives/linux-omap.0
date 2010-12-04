@@ -1,171 +1,339 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/4] omap1: Add initcall checks for omap1 and booted board
-Date: Sat, 04 Dec 2010 13:36:55 -0800
-Message-ID: <20101204213655.32208.23030.stgit@baageli.muru.com>
+Subject: [PATCH 3/4] omap1: Add omap1_defconfig
+Date: Sat, 04 Dec 2010 13:36:57 -0800
+Message-ID: <20101204213657.32208.50997.stgit@baageli.muru.com>
 References: <20101204213358.32208.4195.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32243 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755811Ab0LDVg6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 16:36:58 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:38899 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755811Ab0LDVhA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Dec 2010 16:37:00 -0500
 In-Reply-To: <20101204213358.32208.4195.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-Otherwise multi-omap1 configurations will fail.
+The omap1_defconfig this should be eventually usable for booting
+all omap1 machines. Generated based on:
+
+$ grep ARCH_OMAP1=3Dy arch/arm/configs/* | cut -d: -f1 | xargs cat | \
+     sort | uniq >> arch/arm/configs/omap1_defconfig
+
+Then change few things manually, like use Nokia 770 CONFIG_CMDLINE
+as it does not allow setting it in the bootloader.
+
+After make oldconfig, ran reduce_defconfig python script on it
+as posted by Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>:
+
+http://lkml.org/lkml/2010/7/13/134
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-ams-delta.c |    3 +++
- arch/arm/mach-omap1/board-voiceblue.c |    6 ++++++
- arch/arm/mach-omap1/devices.c         |    3 +++
- arch/arm/mach-omap1/lcd_dma.c         |    3 +++
- arch/arm/mach-omap1/leds.c            |    3 +++
- arch/arm/mach-omap1/mcbsp.c           |    3 +++
- arch/arm/mach-omap1/pm.c              |    3 +++
- arch/arm/mach-omap1/pm_bus.c          |    3 +++
- arch/arm/mach-omap1/serial.c          |    3 +++
- 9 files changed, 30 insertions(+), 0 deletions(-)
+ arch/arm/configs/omap1_defconfig |  286 ++++++++++++++++++++++++++++++=
+++++++++
+ 1 files changed, 286 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/configs/omap1_defconfig
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index ce4d69c..e143950 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -338,6 +338,9 @@ static int __init ams_delta_modem_init(void)
- {
- 	int err;
- 
-+	if (!machine_is_ams_delta())
-+		return -ENODEV;
-+
- 	omap_cfg_reg(M14_1510_GPIO2);
- 	ams_delta_modem_ports[0].irq =
- 			gpio_to_irq(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
-diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index 789f5ba..815a69c 100644
---- a/arch/arm/mach-omap1/board-voiceblue.c
-+++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -83,6 +83,9 @@ static struct platform_device serial_device = {
- 
- static int __init ext_uart_init(void)
- {
-+	if (!machine_is_voiceblue())
-+		return -ENODEV;
-+
- 	return platform_device_register(&serial_device);
- }
- arch_initcall(ext_uart_init);
-@@ -235,6 +238,9 @@ static struct notifier_block panic_block = {
- 
- static int __init voiceblue_setup(void)
- {
-+	if (!machine_is_voiceblue())
-+		return -ENODEV;
-+
- 	/* Setup panic notifier */
- 	atomic_notifier_chain_register(&panic_notifier_list, &panic_block);
- 
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index 86ad38a..b0f4c23 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -288,6 +288,9 @@ static inline void omap_init_audio(void) {}
-  */
- static int __init omap1_init_devices(void)
- {
-+	if (!cpu_class_is_omap1())
-+		return -ENODEV;
-+
- 	/* please keep these calls, and their implementations above,
- 	 * in alphabetical order so they're easier to sort through.
- 	 */
-diff --git a/arch/arm/mach-omap1/lcd_dma.c b/arch/arm/mach-omap1/lcd_dma.c
-index 3be11af..c9088d8 100644
---- a/arch/arm/mach-omap1/lcd_dma.c
-+++ b/arch/arm/mach-omap1/lcd_dma.c
-@@ -424,6 +424,9 @@ static int __init omap_init_lcd_dma(void)
- {
- 	int r;
- 
-+	if (!cpu_class_is_omap1())
-+		return -ENODEV;
-+
- 	if (cpu_is_omap16xx()) {
- 		u16 w;
- 
-diff --git a/arch/arm/mach-omap1/leds.c b/arch/arm/mach-omap1/leds.c
-index 277f356..22eb11d 100644
---- a/arch/arm/mach-omap1/leds.c
-+++ b/arch/arm/mach-omap1/leds.c
-@@ -17,6 +17,9 @@
- static int __init
- omap_leds_init(void)
- {
-+	if (!cpu_class_is_omap1())
-+		return -ENODEV;
-+
- 	if (machine_is_omap_innovator())
- 		leds_event = innovator_leds_event;
- 
-diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
-index 372ea71..8209736 100644
---- a/arch/arm/mach-omap1/mcbsp.c
-+++ b/arch/arm/mach-omap1/mcbsp.c
-@@ -176,6 +176,9 @@ static struct omap_mcbsp_platform_data omap16xx_mcbsp_pdata[] = {
- 
- static int __init omap1_mcbsp_init(void)
- {
-+	if (!cpu_class_is_omap1())
-+		return -ENODEV;
-+
- 	if (cpu_is_omap7xx()) {
- 		omap_mcbsp_count = OMAP7XX_MCBSP_PDATA_SZ;
- 		omap_mcbsp_cache_size = OMAP7XX_MCBSP_REG_NUM * sizeof(u16);
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index b1d3f9f..0cca23a 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -661,6 +661,9 @@ static int __init omap_pm_init(void)
- 	int error;
- #endif
- 
-+	if (!cpu_class_is_omap1())
-+		return -ENODEV;
-+
- 	printk("Power Management for TI OMAP.\n");
- 
- 	/*
-diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
-index 8b66392..3266447 100644
---- a/arch/arm/mach-omap1/pm_bus.c
-+++ b/arch/arm/mach-omap1/pm_bus.c
-@@ -73,6 +73,9 @@ static int __init omap1_pm_runtime_init(void)
- 	const struct dev_pm_ops *pm;
- 	struct dev_pm_ops *omap_pm;
- 
-+	if (!cpu_class_is_omap1())
-+		return -ENODEV;
-+
- 	pm = platform_bus_get_pm_ops();
- 	if (!pm) {
- 		pr_err("%s: unable to get dev_pm_ops from platform_bus\n",
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index 9e1c4d4..550ca9d 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -258,6 +258,9 @@ late_initcall(omap_serial_wakeup_init);
- 
- static int __init omap_init(void)
- {
-+	if (!cpu_class_is_omap1())
-+		return -ENODEV;
-+
- 	return platform_device_register(&serial_device);
- }
- arch_initcall(omap_init);
+diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_=
+defconfig
+new file mode 100644
+index 0000000..217d7dd
+--- /dev/null
++++ b/arch/arm/configs/omap1_defconfig
+@@ -0,0 +1,286 @@
++CONFIG_EXPERIMENTAL=3Dy
++# CONFIG_SWAP is not set
++CONFIG_SYSVIPC=3Dy
++CONFIG_POSIX_MQUEUE=3Dy
++CONFIG_BSD_PROCESS_ACCT=3Dy
++CONFIG_IKCONFIG=3Dy
++CONFIG_LOG_BUF_SHIFT=3D14
++CONFIG_BLK_DEV_INITRD=3Dy
++CONFIG_EMBEDDED=3Dy
++# CONFIG_KALLSYMS is not set
++# CONFIG_ELF_CORE is not set
++# CONFIG_BASE_FULL is not set
++# CONFIG_SHMEM is not set
++# CONFIG_VM_EVENT_COUNTERS is not set
++CONFIG_SLOB=3Dy
++CONFIG_PROFILING=3Dy
++CONFIG_OPROFILE=3Dy
++CONFIG_MODULES=3Dy
++CONFIG_MODULE_UNLOAD=3Dy
++CONFIG_MODULE_FORCE_UNLOAD=3Dy
++# CONFIG_LBDAF is not set
++# CONFIG_BLK_DEV_BSG is not set
++# CONFIG_IOSCHED_DEADLINE is not set
++# CONFIG_IOSCHED_CFQ is not set
++CONFIG_ARCH_OMAP=3Dy
++CONFIG_ARCH_OMAP1=3Dy
++CONFIG_OMAP_RESET_CLOCKS=3Dy
++# CONFIG_OMAP_MUX is not set
++CONFIG_OMAP_MBOX_FWK=3Dy
++CONFIG_OMAP_32K_TIMER=3Dy
++CONFIG_OMAP_DM_TIMER=3Dy
++CONFIG_ARCH_OMAP730=3Dy
++CONFIG_ARCH_OMAP850=3Dy
++CONFIG_ARCH_OMAP16XX=3Dy
++CONFIG_MACH_OMAP_INNOVATOR=3Dy
++CONFIG_MACH_OMAP_H2=3Dy
++CONFIG_MACH_OMAP_H3=3Dy
++CONFIG_MACH_OMAP_HTCWIZARD=3Dy
++CONFIG_MACH_HERALD=3Dy
++CONFIG_MACH_OMAP_OSK=3Dy
++CONFIG_MACH_OMAP_PERSEUS2=3Dy
++CONFIG_MACH_OMAP_FSAMPLE=3Dy
++CONFIG_MACH_VOICEBLUE=3Dy
++CONFIG_MACH_OMAP_PALMTE=3Dy
++CONFIG_MACH_OMAP_PALMZ71=3Dy
++CONFIG_MACH_OMAP_PALMTT=3Dy
++CONFIG_MACH_SX1=3Dy
++CONFIG_MACH_NOKIA770=3Dy
++CONFIG_MACH_AMS_DELTA=3Dy
++CONFIG_MACH_OMAP_GENERIC=3Dy
++CONFIG_OMAP_CLOCKS_SET_BY_BOOTLOADER=3Dy
++CONFIG_OMAP_ARM_216MHZ=3Dy
++CONFIG_OMAP_ARM_195MHZ=3Dy
++CONFIG_OMAP_ARM_192MHZ=3Dy
++CONFIG_OMAP_ARM_182MHZ=3Dy
++CONFIG_OMAP_ARM_168MHZ=3Dy
++# CONFIG_OMAP_ARM_60MHZ is not set
++# CONFIG_ARM_THUMB is not set
++CONFIG_PCCARD=3Dy
++CONFIG_OMAP_CF=3Dy
++CONFIG_NO_HZ=3Dy
++CONFIG_HIGH_RES_TIMERS=3Dy
++CONFIG_PREEMPT=3Dy
++CONFIG_AEABI=3Dy
++CONFIG_LEDS=3Dy
++CONFIG_LEDS_CPU=3Dy
++CONFIG_ZBOOT_ROM_TEXT=3D0x0
++CONFIG_ZBOOT_ROM_BSS=3D0x0
++CONFIG_CMDLINE=3D"root=3D1f03 rootfstype=3Djffs2"
++CONFIG_FPE_NWFPE=3Dy
++CONFIG_BINFMT_MISC=3Dy
++CONFIG_PM=3Dy
++# CONFIG_SUSPEND is not set
++CONFIG_PM_RUNTIME=3Dy
++CONFIG_NET=3Dy
++CONFIG_PACKET=3Dy
++CONFIG_UNIX=3Dy
++CONFIG_NET_KEY=3Dy
++CONFIG_INET=3Dy
++CONFIG_IP_MULTICAST=3Dy
++CONFIG_IP_PNP=3Dy
++CONFIG_IP_PNP_DHCP=3Dy
++CONFIG_IP_PNP_BOOTP=3Dy
++# CONFIG_INET_XFRM_MODE_TRANSPORT is not set
++# CONFIG_INET_XFRM_MODE_TUNNEL is not set
++# CONFIG_INET_XFRM_MODE_BEET is not set
++# CONFIG_INET_LRO is not set
++# CONFIG_INET_DIAG is not set
++CONFIG_IPV6=3Dy
++CONFIG_NETFILTER=3Dy
++CONFIG_BT=3Dy
++CONFIG_BT_L2CAP=3Dy
++CONFIG_BT_SCO=3Dy
++CONFIG_BT_RFCOMM=3Dy
++CONFIG_BT_RFCOMM_TTY=3Dy
++CONFIG_BT_BNEP=3Dy
++CONFIG_BT_HIDP=3Dy
++CONFIG_UEVENT_HELPER_PATH=3D"/sbin/hotplug"
++# CONFIG_STANDALONE is not set
++# CONFIG_PREVENT_FIRMWARE_BUILD is not set
++CONFIG_DEBUG_DRIVER=3Dy
++CONFIG_CONNECTOR=3Dy
++# CONFIG_PROC_EVENTS is not set
++CONFIG_MTD=3Dy
++CONFIG_MTD_DEBUG=3Dy
++CONFIG_MTD_DEBUG_VERBOSE=3D3
++CONFIG_MTD_PARTITIONS=3Dy
++CONFIG_MTD_CMDLINE_PARTS=3Dy
++CONFIG_MTD_CHAR=3Dy
++CONFIG_MTD_BLOCK=3Dy
++CONFIG_MTD_CFI=3Dy
++CONFIG_MTD_CFI_INTELEXT=3Dy
++CONFIG_MTD_NAND=3Dy
++CONFIG_BLK_DEV_LOOP=3Dy
++CONFIG_BLK_DEV_RAM=3Dy
++CONFIG_BLK_DEV_RAM_COUNT=3D2
++CONFIG_BLK_DEV_RAM_SIZE=3D8192
++CONFIG_IDE=3Dm
++CONFIG_BLK_DEV_IDECS=3Dm
++CONFIG_SCSI=3Dy
++# CONFIG_SCSI_PROC_FS is not set
++CONFIG_BLK_DEV_SD=3Dy
++CONFIG_CHR_DEV_ST=3Dy
++CONFIG_BLK_DEV_SR=3Dy
++CONFIG_CHR_DEV_SG=3Dy
++CONFIG_SCSI_MULTI_LUN=3Dy
++CONFIG_NETDEVICES=3Dy
++CONFIG_TUN=3Dy
++CONFIG_PHYLIB=3Dy
++CONFIG_NET_ETHERNET=3Dy
++CONFIG_SMC91X=3Dy
++CONFIG_USB_CATC=3Dy
++CONFIG_USB_KAWETH=3Dy
++CONFIG_USB_PEGASUS=3Dy
++CONFIG_USB_RTL8150=3Dy
++CONFIG_USB_USBNET=3Dy
++# CONFIG_USB_NET_AX8817X is not set
++# CONFIG_USB_NET_CDC_SUBSET is not set
++CONFIG_PPP=3Dy
++CONFIG_PPP_MULTILINK=3Dy
++CONFIG_PPP_FILTER=3Dy
++CONFIG_PPP_ASYNC=3Dy
++CONFIG_PPP_DEFLATE=3Dy
++CONFIG_PPP_BSDCOMP=3Dy
++CONFIG_SLIP=3Dy
++CONFIG_SLIP_COMPRESSED=3Dy
++# CONFIG_INPUT_MOUSEDEV is not set
++CONFIG_INPUT_EVDEV=3Dy
++CONFIG_INPUT_EVBUG=3Dy
++# CONFIG_INPUT_KEYBOARD is not set
++# CONFIG_INPUT_MOUSE is not set
++CONFIG_INPUT_TOUCHSCREEN=3Dy
++CONFIG_TOUCHSCREEN_ADS7846=3Dy
++CONFIG_INPUT_MISC=3Dy
++CONFIG_INPUT_UINPUT=3Dy
++# CONFIG_SERIO is not set
++CONFIG_SERIAL_8250=3Dy
++CONFIG_SERIAL_8250_CONSOLE=3Dy
++CONFIG_SERIAL_8250_NR_UARTS=3D3
++# CONFIG_LEGACY_PTYS is not set
++CONFIG_HW_RANDOM=3Dy
++CONFIG_I2C=3Dy
++CONFIG_I2C_CHARDEV=3Dy
++CONFIG_SPI=3Dy
++CONFIG_SPI_OMAP_UWIRE=3Dy
++# CONFIG_HWMON is not set
++CONFIG_WATCHDOG=3Dy
++CONFIG_WATCHDOG_NOWAYOUT=3Dy
++CONFIG_OMAP_WATCHDOG=3Dy
++CONFIG_VIDEO_OUTPUT_CONTROL=3Dy
++CONFIG_FB=3Dy
++CONFIG_FIRMWARE_EDID=3Dy
++CONFIG_FB_MODE_HELPERS=3Dy
++CONFIG_FB_VIRTUAL=3Dy
++CONFIG_FB_OMAP=3Dy
++CONFIG_FB_OMAP_LCDC_EXTERNAL=3Dy
++CONFIG_FB_OMAP_LCDC_HWA742=3Dy
++CONFIG_FB_OMAP_MANUAL_UPDATE=3Dy
++CONFIG_FB_OMAP_LCD_MIPID=3Dy
++CONFIG_FB_OMAP_BOOTLOADER_INIT=3Dy
++CONFIG_BACKLIGHT_LCD_SUPPORT=3Dy
++CONFIG_LCD_CLASS_DEVICE=3Dy
++CONFIG_FRAMEBUFFER_CONSOLE=3Dy
++CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=3Dy
++CONFIG_FONTS=3Dy
++CONFIG_FONT_8x8=3Dy
++CONFIG_FONT_8x16=3Dy
++CONFIG_FONT_6x11=3Dy
++CONFIG_FONT_MINI_4x6=3Dy
++CONFIG_LOGO=3Dy
++# CONFIG_LOGO_LINUX_MONO is not set
++# CONFIG_LOGO_LINUX_VGA16 is not set
++CONFIG_SOUND=3Dy
++CONFIG_SND=3Dy
++CONFIG_SND_MIXER_OSS=3Dy
++CONFIG_SND_PCM_OSS=3Dy
++# CONFIG_SND_SUPPORT_OLD_API is not set
++# CONFIG_SND_VERBOSE_PROCFS is not set
++CONFIG_SND_DUMMY=3Dy
++CONFIG_SND_USB_AUDIO=3Dy
++CONFIG_SND_SOC=3Dy
++CONFIG_SND_OMAP_SOC=3Dy
++# CONFIG_USB_HID is not set
++CONFIG_USB=3Dy
++CONFIG_USB_DEBUG=3Dy
++CONFIG_USB_DEVICEFS=3Dy
++# CONFIG_USB_DEVICE_CLASS is not set
++CONFIG_USB_SUSPEND=3Dy
++CONFIG_USB_MON=3Dy
++CONFIG_USB_OHCI_HCD=3Dy
++CONFIG_USB_STORAGE=3Dy
++CONFIG_USB_STORAGE_DATAFAB=3Dy
++CONFIG_USB_STORAGE_FREECOM=3Dy
++CONFIG_USB_STORAGE_SDDR09=3Dy
++CONFIG_USB_STORAGE_SDDR55=3Dy
++CONFIG_USB_STORAGE_JUMPSHOT=3Dy
++CONFIG_USB_SERIAL=3Dy
++CONFIG_USB_SERIAL_CONSOLE=3Dy
++CONFIG_USB_SERIAL_PL2303=3Dy
++CONFIG_USB_TEST=3Dy
++CONFIG_USB_GADGET=3Dy
++CONFIG_USB_ETH=3Dm
++# CONFIG_USB_ETH_RNDIS is not set
++CONFIG_USB_FILE_STORAGE=3Dm
++CONFIG_USB_FILE_STORAGE_TEST=3Dy
++CONFIG_MMC=3Dy
++CONFIG_MMC_SDHCI=3Dy
++CONFIG_MMC_SDHCI_PLTFM=3Dy
++CONFIG_MMC_OMAP=3Dy
++CONFIG_NEW_LEDS=3Dy
++CONFIG_LEDS_CLASS=3Dy
++CONFIG_LEDS_TRIGGERS=3Dy
++CONFIG_LEDS_TRIGGER_TIMER=3Dy
++CONFIG_LEDS_TRIGGER_HEARTBEAT=3Dy
++CONFIG_LEDS_TRIGGER_DEFAULT_ON=3Dy
++CONFIG_RTC_CLASS=3Dy
++CONFIG_RTC_DRV_OMAP=3Dy
++CONFIG_EXT2_FS=3Dy
++CONFIG_EXT3_FS=3Dy
++# CONFIG_DNOTIFY is not set
++CONFIG_AUTOFS4_FS=3Dy
++CONFIG_ISO9660_FS=3Dy
++CONFIG_JOLIET=3Dy
++CONFIG_MSDOS_FS=3Dy
++CONFIG_VFAT_FS=3Dy
++CONFIG_FAT_DEFAULT_CODEPAGE=3D866
++CONFIG_FAT_DEFAULT_IOCHARSET=3D"koi8-r"
++CONFIG_JFFS2_FS=3Dy
++CONFIG_JFFS2_SUMMARY=3Dy
++CONFIG_JFFS2_COMPRESSION_OPTIONS=3Dy
++CONFIG_CRAMFS=3Dy
++CONFIG_ROMFS_FS=3Dy
++CONFIG_NFS_FS=3Dy
++CONFIG_NFS_V3=3Dy
++CONFIG_NFS_V4=3Dy
++CONFIG_ROOT_NFS=3Dy
++CONFIG_PARTITION_ADVANCED=3Dy
++CONFIG_NLS_CODEPAGE_437=3Dy
++CONFIG_NLS_CODEPAGE_850=3Dy
++CONFIG_NLS_CODEPAGE_852=3Dy
++CONFIG_NLS_CODEPAGE_866=3Dy
++CONFIG_NLS_CODEPAGE_1251=3Dy
++CONFIG_NLS_ISO8859_1=3Dy
++CONFIG_NLS_ISO8859_2=3Dy
++CONFIG_NLS_ISO8859_5=3Dy
++CONFIG_NLS_ISO8859_15=3Dy
++CONFIG_NLS_KOI8_R=3Dy
++CONFIG_NLS_UTF8=3Dy
++# CONFIG_ENABLE_MUST_CHECK is not set
++CONFIG_MAGIC_SYSRQ=3Dy
++CONFIG_DEBUG_KERNEL=3Dy
++CONFIG_DEBUG_SPINLOCK=3Dy
++CONFIG_DEBUG_MUTEXES=3Dy
++# CONFIG_DEBUG_BUGVERBOSE is not set
++CONFIG_DEBUG_INFO=3Dy
++# CONFIG_RCU_CPU_STALL_DETECTOR is not set
++CONFIG_DEBUG_USER=3Dy
++CONFIG_DEBUG_ERRORS=3Dy
++CONFIG_SECURITY=3Dy
++CONFIG_CRYPTO_ECB=3Dy
++CONFIG_CRYPTO_PCBC=3Dy
++CONFIG_CRYPTO_DEFLATE=3Dy
++CONFIG_CRYPTO_ZLIB=3Dy
++CONFIG_CRYPTO_LZO=3Dy
++# CONFIG_CRYPTO_ANSI_CPRNG is not set
++CONFIG_LIBCRC32C=3Dy
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
