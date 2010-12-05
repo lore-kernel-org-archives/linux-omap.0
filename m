@@ -1,120 +1,77 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [RFC] add BUG_ON_MAPPABLE_NULL macro
-Date: Sun,  5 Dec 2010 12:06:03 +0200
-Message-ID: <1291543563-5655-1-git-send-email-ohad@wizery.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH 0/5] ARM: GIC: cleanup
+Date: Sun, 5 Dec 2010 11:33:11 +0000
+Message-ID: <20101205113311.GC9138__7590.40280613608$1291548879$gmane$org@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:52465 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753882Ab0LEKDm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Dec 2010 05:03:42 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47142 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754498Ab0LELeZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Dec 2010 06:34:25 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Russell King <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Anton Vorontsov <avorontsov@mvista.com>, Bryan Huntsman <bryanh@codeaurora.org>, Colin Cross <ccross@android.com>, Daniel Walker <dwalker@codeaurora.org>, David Brown <davidb@codeaur>
 
-Introduce BUG_ON_MAPPABLE_NULL in order to eliminate redundant BUG_ON
-code, checking for NULL addresses, on architectures where the zero
-address can never be mapped.
+This patch series cleans up the GIC code, consolidating some of the
+per-platform practices into the common GIC code.
 
-Originally proposed by Russell King <linux@arm.linux.org.uk>
+One notable change is to the initialization methods - we used to
+require platforms to pass in the address of the per-CPU interfaces
+despite them always being identical between all cores.  This was
+nonsense, as even in the extremely unlikely event that they were
+different, we aren't storing them in a per-CPU manner.
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
-Compile tested on ARM and x86-64.
+The GIC initialization methods are now simpler: one call to gic_init()
+from the boot CPU, and a call to gic_secondary_init() as each
+secondary CPU starts - and no need for platforms to keep track of
+the address anymore.
 
-Relevant threads:
-1. Original proposal by Russell - http://lkml.org/lkml/2010/1/21/238
-2. Recent discussion - https://lkml.org/lkml/2010/11/26/78
+One question remains on this: on platforms where there are more than
+one GIC, do these have separate CPU interfaces as well?
 
-Notes:
-* Implementation still feels hacky, especially since we don't care about the len param of arch_mmap_check.
-* Just like BUG_ON, this new macro is compiled out on !CONFIG_BUG. We might want to add a CONFIG_BUG commentary, so users will at least be aware of the security implications of compiling this out.
-* To get an (extremely!) rough upper bound of the profit of this macro, I did:
+We also consolidate gic_cpu_base_addr to save platforms using that -
+but only for the first GIC, and therefore we can have a common
+get_irqnr_preamble assembler macro for platforms which make use of
+this.
 
-1. find . -name '*.[ch]' | xargs sed -i 's/BUG_ON(!/BUG_ON_MAPPABLE_NULL(!/'
-2. removed some obviously bogus sed hits
+Lastly, we move the GIC data to __read_mostly - and when we have
+support for this feature, we benefit from avoiding potential cache
+line ping-pongs between cores for data so marked.
 
-With omap2plus_defconfig, uImage shrank by ~4Kb (obviously this doesn't include the potential gain in modules)
-
- arch/arm/include/asm/mman.h |    2 +
- include/asm-generic/bug.h   |   46 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 48 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/include/asm/mman.h b/arch/arm/include/asm/mman.h
-index 41f99c5..f0c5d58 100644
---- a/arch/arm/include/asm/mman.h
-+++ b/arch/arm/include/asm/mman.h
-@@ -1,4 +1,6 @@
- #include <asm-generic/mman.h>
-+#include <asm/pgtable.h>
-+#include <asm/errno.h>
- 
- #define arch_mmap_check(addr, len, flags) \
- 	(((flags) & MAP_FIXED && (addr) < FIRST_USER_ADDRESS) ? -EINVAL : 0)
-diff --git a/include/asm-generic/bug.h b/include/asm-generic/bug.h
-index c2c9ba0..0171a30 100644
---- a/include/asm-generic/bug.h
-+++ b/include/asm-generic/bug.h
-@@ -2,6 +2,11 @@
- #define _ASM_GENERIC_BUG_H
- 
- #include <linux/compiler.h>
-+#include <asm/mman.h>
-+
-+#ifndef arch_mmap_check
-+#define arch_mmap_check(addr, len, flags)	(0)
-+#endif
- 
- #ifdef CONFIG_BUG
- 
-@@ -53,6 +58,47 @@ struct bug_entry {
- #define BUG_ON(condition) do { if (unlikely(condition)) BUG(); } while(0)
- #endif
- 
-+/**
-+ * BUG_ON_MAPPABLE_NULL() - BUG_ON(condition) only if address 0 is mappable
-+ * @condition:	condition to check, should contain a NULL check
-+ *
-+ * In general, NULL dereference Oopses are not desirable, since they take down
-+ * the system with them and make the user extremely unhappy. So as a general
-+ * rule drivers should avoid dereferencing NULL pointers by doing a simple
-+ * check (when appropriate), and just return an error rather than crash.
-+ * This way the system, despite having reduced functionality, will just keep
-+ * running rather than immediately reboot.
-+ *
-+ * _Critical_ kernel code, OTOH, that should not (/cannot) keep running when
-+ * given an unexpected NULL pointer, should just crash. On some architectures,
-+ * a NULL dereference will always reliably produce an Oops. On others, where
-+ * the zero address can be mmapped, an Oops is not guaranteed. Relying on
-+ * NULL dereference Oopses to happen on these architectures might lead to
-+ * data corruptions (system will keep running despite a critical bug and
-+ * the results will be horribly undefined). In addition, these situations
-+ * can also have security implications - we have seen several privilege
-+ * escalation exploits with which an attacker gained full control over the
-+ * system due to NULL dereference bugs.
-+ *
-+ * This macro will BUG_ON if @condition is true on architectures where the zero
-+ * address can be mapped. On other architectures, where the zero address
-+ * can never be mapped, this macro is compiled out. It only makes sense to
-+ * use this macro if @condition contains a NULL check, in order to optimize that
-+ * check out on architectures where the zero address can never be mapped.
-+ * On such architectures, those checks are not necessary, since the code
-+ * itself will reliably reproduce an Oops as soon as the NULL address will
-+ * be dereferenced.
-+ *
-+ * As with BUG_ON, use this macro only if @condition cannot be tolerated.
-+ * If proceeding with degraded functionality is an option, it's much
-+ * better to just simply check for @condition and return some error code rather
-+ * than crash the system.
-+ */
-+#define BUG_ON_MAPPABLE_NULL(cond) do { \
-+	if (arch_mmap_check(0, 1, MAP_FIXED) == 0) \
-+		BUG_ON(cond); \
-+} while (0)
-+
- /*
-  * WARN(), WARN_ON(), WARN_ON_ONCE, and so on can be used to report
-  * significant issues that need prompt attention if they should ever
--- 
-1.7.0.4
+ arch/arm/common/gic.c                             |   59 +++++++++++++-------
+ arch/arm/include/asm/hardware/entry-macro-gic.S   |    7 +++
+ arch/arm/include/asm/hardware/gic.h               |    6 ++-
+ arch/arm/mach-cns3xxx/core.c                      |    7 +--
+ arch/arm/mach-cns3xxx/core.h                      |    1 -
+ arch/arm/mach-cns3xxx/include/mach/entry-macro.S  |    5 --
+ arch/arm/mach-msm/board-msm8x60.c                 |    7 +--
+ arch/arm/mach-omap2/include/mach/entry-macro.S    |    1 +
+ arch/arm/mach-omap2/include/mach/omap4-common.h   |    1 -
+ arch/arm/mach-omap2/omap-smp.c                    |    2 +-
+ arch/arm/mach-omap2/omap4-common.c                |   11 ++--
+ arch/arm/mach-realview/core.c                     |    3 -
+ arch/arm/mach-realview/core.h                     |    1 -
+ arch/arm/mach-realview/include/mach/entry-macro.S |    5 --
+ arch/arm/mach-realview/platsmp.c                  |    2 +-
+ arch/arm/mach-realview/realview_eb.c              |   14 ++---
+ arch/arm/mach-realview/realview_pb1176.c          |   11 ++--
+ arch/arm/mach-realview/realview_pb11mp.c          |   10 ++--
+ arch/arm/mach-realview/realview_pba8.c            |    6 +-
+ arch/arm/mach-realview/realview_pbx.c             |   13 ++---
+ arch/arm/mach-s5pv310/cpu.c                       |    6 +--
+ arch/arm/mach-s5pv310/include/mach/smp.h          |    2 -
+ arch/arm/mach-s5pv310/platsmp.c                   |    2 +-
+ arch/arm/mach-tegra/include/mach/entry-macro.S    |    2 +-
+ arch/arm/mach-tegra/irq.c                         |    4 +-
+ arch/arm/mach-tegra/platsmp.c                     |    2 +-
+ arch/arm/mach-ux500/cpu.c                         |    4 +-
+ arch/arm/mach-ux500/include/mach/entry-macro.S    |    1 +
+ arch/arm/mach-ux500/platsmp.c                     |    2 +-
+ arch/arm/mach-vexpress/core.h                     |    2 -
+ arch/arm/mach-vexpress/ct-ca9x4.c                 |    7 +--
+ arch/arm/mach-vexpress/include/mach/entry-macro.S |    5 --
+ arch/arm/mach-vexpress/platsmp.c                  |    2 +-
+ 33 files changed, 100 insertions(+), 113 deletions(-)
 
