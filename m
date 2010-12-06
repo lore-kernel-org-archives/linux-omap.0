@@ -1,67 +1,58 @@
-From: "Luca Ceresoli" <luca@lucaceresoli.net>
-Subject: Re: UbiFS + HWECC(?) + BeagleBoard = fail
-Date: Mon,  6 Dec 2010 18:51:33 +0100
-Message-ID: <LD0PLX$838F65AFC2A2E66E0112F637AD4376B8@aruba.it>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: State of LDP3430 platform
+Date: Mon, 6 Dec 2010 10:02:52 -0800
+Message-ID: <20101206180252.GG8345@atomide.com>
+References: <20101206125526.GC31777@n2100.arm.linux.org.uk>
+ <20101206155959.GA8345@atomide.com>
+ <20101206172248.GA1000@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpa1.aruba.it ([62.149.128.210]:36686 "HELO smtpw2.aruba.it"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752806Ab0LFR6R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 12:58:17 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:44896 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753941Ab0LFSDD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 13:03:03 -0500
+Content-Disposition: inline
+In-Reply-To: <20101206172248.GA1000@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Grazvydas Ignotas <notasas@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
 
-On Mon, 8 Nov 2010 13:08:44 +0200, Grazvydas Ignotas wrote:
->On Sun, Nov 7, 2010 at 9:40 AM, [AvataR] <public.avatar@xxxxxxxxx> wrote:
->> Hi. After moving to upstream 2.6.3{5,6,7} kernels, i forced to use jffs2
->> instead of ubifs, because of lot CRC errors. If i use prefetch/dma, i
->> can attach to ubi, make volume, write data, reboot - and got lots of CRC
->> errors. Without prefetch i just couldn't do anything to ubi.
->>
->> Looks like hw/sw bug in ubi
->
->Looks like Sukumar's recent changes broke subpage reads that are
->needed for UBI to operate. You can try commenting out #define
->CONFIG_MTD_NAND_OMAP_HWECC in drivers/mtd/nand/omap2.c and disabling
->MTD_NAND_OMAP_PREFETCH, with that it mostly works for me but sometimes
->spits out ECC error or two.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [101206 09:12]:
+> On Mon, Dec 06, 2010 at 07:59:59AM -0800, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [101206 04:45]:
+> > >
+> > > ------------[ cut here ]------------
+> > > WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1185 _omap_hwmod_enable+0x34/0x114()
+> > > omap_hwmod: wd_timer2: enabled state can only be entered from initialized, idle, or disabled state
+> > > Modules linked in:
+> > > ---[ end trace 1b75b31a2719ed1c ]---
+> > > wd_timer2: Could not enable clocks for omap2_disable_wdt
+> > 
+> > It seems like there's a problem handling a watchdog that's enabled
+> > in the bootloader.. But that's not the only problem, looks like I'm
+> > getting this on overo:
+> > 
+> > omap_device: omap_wdt.-1: new worst case activate latency 0: 122070
+> > OMAP Watchdog Timer Rev 0x31: initial timeout 60 sec
+> > omap_device: omap_wdt.-1: new worst case deactivate latency 0: 30517
+> > twl4030_wdt twl4030_wdt: Failed to register misc device
+> > twl4030_wdt: probe of twl4030_wdt failed with error -16
+> 
+> -16 = -EBUSY, which is probably because you have two watchdogs.  The
+> watchdog subsystem has one minor device number, so you can only have
+> one watchdog registered.
 
-I think this is the same bug reported back in august in
-http://www.spinics.net/lists/linux-omap/msg34452.html, right?
+Yeah that's it. Looks like omap2plus_defconfig has:
 
-I've been hit by this as well, and it seems to be still there, at least in
+CONFIG_WATCHDOG=y
+CONFIG_OMAP_WATCHDOG=y
+CONFIG_TWL4030_WATCHDOG=y
 
-commit afd2d11e00520b7440003987be2ee4aab7c32901
-Merge: 7fd1cff 734b4c7
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Wed Dec 1 13:56:37 2010 -0800
+Any external watchdog(s) should be set up to be secondary watchdogs
+kicked by the omap watchdog as discussed earlier.
 
-    Merge branch 'devel-gpio'
+Regards,
 
-While I thank you for you proposed solution, I see it does not work here.
-In fact I commented the #define CONFIG_MTD_NAND_OMAP_HWECC and left
-MTD_NAND_OMAP_PREFETCH disabled as it previously was, and got compilation
-errors:
-
-drivers/mtd/nand/omap2.c:1: warning: data definition has no type or storage class
-drivers/mtd/nand/omap2.c:1: warning: type defaults to 'int' in declaration of 'B1'
-drivers/mtd/nand/omap2.c:1: error: expected identifier or '(' before numeric constant
-drivers/mtd/nand/omap2.c:1:9: error: invalid suffix "c" on integer constant
-drivers/mtd/nand/omap2.c:1: error: expected identifier or '(' before numeric constant
-
-As it looks to me like a very serious and very ancient bug, I wonder if I
-missed something.
-
-Or is any patch around to fix this?
-
-Any pointer would be greatly appreciated.
-
-Thanks,
-Luca Ceresoli
-
-
-
+Tony
