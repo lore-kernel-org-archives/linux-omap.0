@@ -1,73 +1,49 @@
-From: Ionut Nicu <ionut.nicu@mindbit.ro>
-Subject: Re: [PATCH v3 00/12] staging: tidspbridge: various cleanups
-Date: Tue, 07 Dec 2010 00:18:47 +0200
-Message-ID: <1291673927.9508.13.camel@atlantis.mindbit.ro>
-References: <1290336390-2581-1-git-send-email-ionut.nicu@mindbit.ro>
-	 <AANLkTi=86Xum25jOhfW_2R-WH8Z57i5taJtteXvu89XM@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 7/9] TILER-DMM: Main TILER driver implementation
+Date: Mon, 6 Dec 2010 15:21:59 -0800
+Message-ID: <20101206232159.GS8345@atomide.com>
+References: <1291674446-10766-1-git-send-email-davidsin@ti.com>
+ <1291674446-10766-8-git-send-email-davidsin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.mindbit.ro ([80.86.127.26]:38757 "EHLO ns.mindbit.ro"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752658Ab0LFWTE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Dec 2010 17:19:04 -0500
-In-Reply-To: <AANLkTi=86Xum25jOhfW_2R-WH8Z57i5taJtteXvu89XM@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1291674446-10766-8-git-send-email-davidsin@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Sin <davidsin@ti.com>
+Cc: Greg KH <greg@kroah.com>, Russell King <rmk@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lajos Molnar <molnar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Omar,
+Hi,
 
-On Mon, 2010-12-06 at 02:59 -0600, Ramirez Luna, Omar wrote:
-> Hi Ionut,
+* David Sin <davidsin@ti.com> [101206 14:09]:
+> From: Lajos Molnar <molnar@ti.com>
 > 
-> On Sun, Nov 21, 2010 at 4:46 AM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
-> > This set of patches replaces some of the redundant components of
-> > the tidspbridge driver, such as:
-> >
-> > * wrapper functions for kmalloc/kfree
-> > * custom bitmap implementation
-> > * custom linked list implementation (list_head wrapper)
-> >
-> > with the standard linux kernel interfaces.
-> >
-> > The patches also do some code reorganization for increasing readability.
-> > Most of the changes reduce the code indentation level and simplify the code.
-> > No functional changes were done.
-> >
-> > There are many places in this driver that need this kind of cleanup, but
-> > these patches only fix the functions that were touched while converting
-> > the code to use linux bitmap and list_head.
+> This patch contains the TILER driver and implementation of the TILER
+> block manipulation and mapping functions.
 > 
-> Thanks for your patches, I just fixed the style of some multiline
-> comments before pushing, since these are very minor fixes I avoided
-> the noise of resending the patches.
-> 
-> Please remember to follow the Coding Style for multi line comments
-> whenever you insert back those lines (even if the code was that way).
-> 
+> It also contains the makefile and config file for the TILER driver.
 
-Thanks for your review. It's strange scripts/checkpatch.pl didn't
-complain, so that's why I must have missed them.
+...
+> +config TILER_GRANULARITY
+> +        int "Allocation granularity"
+> +        range 1 4096
+> +        default 128
+...
+> +config TILER_ALIGNMENT
+> +        int "Allocation alignment"
+> +        range 1 4096
+> +        default 4096
+...
+> +config TILER_CACHE_LIMIT
+> +        int "Memory limit to cache free pages in MBytes"
+> +        range 0 128
+> +        default 40
+...
 
-> >  staging: tidspbridge: rmgr/node.c code cleanup
-> 
-> Changes requested
-> 
+Do you really need these Kconfig options? To me it seems you
+should pass these in platform_data.
 
-I'll take care of the changes you requested in the other email and
-resubmit it.
+Regards,
 
-> >  staging: tidspbridge: rmgr code cleanup
-> 
-> Doesn't apply because of patch "staging: tidspbridge: rmgr/node.c code
-> cleanup" was not pushed.
-> 
-
-I'll make a 2-patch series containing this one and the one above.
-
-Thanks,
-Ionut.
-
+Tony
