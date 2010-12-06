@@ -1,42 +1,44 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: State of LDP3430 platform
-Date: Mon, 6 Dec 2010 17:22:48 +0000
-Message-ID: <20101206172248.GA1000@n2100.arm.linux.org.uk>
-References: <20101206125526.GC31777@n2100.arm.linux.org.uk> <20101206155959.GA8345@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Dave Martin <dave.martin@linaro.org>
+Subject: [PATCH v2 0/3] ARM: omap: Thumb-2 kernel compatibility fixes
+Date: Mon,  6 Dec 2010 17:35:34 +0000
+Message-ID: <1291656937-24992-1-git-send-email-dave.martin@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49955 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751272Ab0LFRW6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 12:22:58 -0500
-Content-Disposition: inline
-In-Reply-To: <20101206155959.GA8345@atomide.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:44264 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753242Ab0LFRgK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 12:36:10 -0500
+Received: by wyb28 with SMTP id 28so12260626wyb.19
+        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 09:36:08 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, Tony Lindgren <tony@atomide.com>
 
-On Mon, Dec 06, 2010 at 07:59:59AM -0800, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [101206 04:45]:
-> >
-> > ------------[ cut here ]------------
-> > WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1185 _omap_hwmod_enable+0x34/0x114()
-> > omap_hwmod: wd_timer2: enabled state can only be entered from initialized, idle, or disabled state
-> > Modules linked in:
-> > ---[ end trace 1b75b31a2719ed1c ]---
-> > wd_timer2: Could not enable clocks for omap2_disable_wdt
-> 
-> It seems like there's a problem handling a watchdog that's enabled
-> in the bootloader.. But that's not the only problem, looks like I'm
-> getting this on overo:
-> 
-> omap_device: omap_wdt.-1: new worst case activate latency 0: 122070
-> OMAP Watchdog Timer Rev 0x31: initial timeout 60 sec
-> omap_device: omap_wdt.-1: new worst case deactivate latency 0: 30517
-> twl4030_wdt twl4030_wdt: Failed to register misc device
-> twl4030_wdt: probe of twl4030_wdt failed with error -16
+These patches enable the omap kernel to build and work in
+Thumb-2 (CONFIG_THUMB2_KERNEL).
 
--16 = -EBUSY, which is probably because you have two watchdogs.  The
-watchdog subsystem has one minor device number, so you can only have
-one watchdog registered.
+They may make useful reading for all low-level BSP maintainers,
+since in general similar issues tend to crop up whenever migrating
+code to support Thumb-2.
+
+Tested on: omap3 (Beagle xM A2)
+Not tested on any other platforms yet.
+
+Dave Martin (3):
+  ARM: omap: Enable low-level omap3 PM code to work with
+    CONFIG_THUMB2_KERNEL
+  ARM: omap4: Correct definition of do_wfi() for CONFIG_THUMB2_KERNEL
+  ARM: omap4: Convert END() to ENDPROC() for correct linkage with
+    CONFIG_THUMB2_KERNEL
+
+ arch/arm/mach-omap2/include/mach/omap4-common.h |    5 +++
+ arch/arm/mach-omap2/omap-headsmp.S              |    2 +-
+ arch/arm/mach-omap2/omap44xx-smc.S              |    8 ++--
+ arch/arm/mach-omap2/pm.h                        |    2 +
+ arch/arm/mach-omap2/pm34xx.c                    |   13 ++++++--
+ arch/arm/mach-omap2/sleep34xx.S                 |   37 +++++++++++++++++++++--
+ arch/arm/mach-omap2/sram34xx.S                  |   34 +++++++++++++++-----
+ arch/arm/plat-omap/include/plat/sram.h          |    1 +
+ arch/arm/plat-omap/sram.c                       |   10 +++++-
+ 9 files changed, 90 insertions(+), 22 deletions(-)
+
