@@ -1,42 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: State of LDP3430 platform
-Date: Mon, 6 Dec 2010 07:59:59 -0800
-Message-ID: <20101206155959.GA8345@atomide.com>
-References: <20101206125526.GC31777@n2100.arm.linux.org.uk>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCH v5 0/12] dmtimer adaptation to platform_driver
+Date: Mon, 6 Dec 2010 21:58:52 +0530
+Message-ID: <20101206162852.GA4924@manju-desktop>
+References: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13752 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750837Ab0LFQAK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 11:00:10 -0500
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:57945 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752050Ab0LFQ3L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 11:29:11 -0500
+Received: by mail-gx0-f180.google.com with SMTP id 19so8093025gxk.25
+        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 08:29:10 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20101206125526.GC31777@n2100.arm.linux.org.uk>
+In-Reply-To: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [101206 04:45]:
->
-> ------------[ cut here ]------------
-> WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1185 _omap_hwmod_enable+0x34/0x114()
-> omap_hwmod: wd_timer2: enabled state can only be entered from initialized, idle, or disabled state
-> Modules linked in:
-> ---[ end trace 1b75b31a2719ed1c ]---
-> wd_timer2: Could not enable clocks for omap2_disable_wdt
+On Tue, Dec 07, 2010 at 05:14:07AM +0530, Tarun Kanti DebBarma wrote:
+> dmtimer adaptation to platform_driver.
+> 
+> This patch series is adaptation of dmtimer code to platform driver
+> using omap_device and omap_hwmod abstraction.
+> 
+> Tested on following platforms:
+> OMAP4430, OMAP3430, OMAP3630, OMAP2430
+> OMAP2420 -- Image with omap2plus_defconfig in too large to download on N800.
 
-It seems like there's a problem handling a watchdog that's enabled
-in the bootloader.. But that's not the only problem, looks like I'm
-getting this on overo:
+How about omap1? The mainline code happily compiles and boots on osk5912
+but this series is going to break omap1 build.
 
-omap_device: omap_wdt.-1: new worst case activate latency 0: 122070
-OMAP Watchdog Timer Rev 0x31: initial timeout 60 sec
-omap_device: omap_wdt.-1: new worst case deactivate latency 0: 30517
-twl4030_wdt twl4030_wdt: Failed to register misc device
-twl4030_wdt: probe of twl4030_wdt failed with error -16
+As per Tony's comments for GPIO and DMA hwmod, the changes should build and
+boot for omap1 also.
 
-Regards,
+-Manjunath
 
-Tony
- 
+[...]
