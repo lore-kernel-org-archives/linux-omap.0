@@ -1,65 +1,54 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] musb: am35x: fix compile error due to control apis
-Date: Mon, 06 Dec 2010 13:37:37 +0300
-Message-ID: <4CFCBCF1.9010902@ru.mvista.com>
-References: <1291623211-959-1-git-send-email-ajay.gupta@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 0/3] OMAP: I2C and UART device name cleanup
+Date: Mon, 6 Dec 2010 11:41:30 +0100
+Message-ID: <1291632093-18799-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1291623211-959-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33425 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750732Ab0LFKln (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Dec 2010 05:41:43 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com, khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-Hello.
+Hi All,
 
-On 06-12-2010 11:13, Ajay Kumar Gupta wrote:
+In order to enforce a little bit of consistency in the omap devices name,
+the convention for omap devices name will be now omap_XXX. All the drivers
+adapted to hwmod will be named like that during the on-going adaptations.
 
-> As the control.h have been moved to new location and it's
-> uses are not allowed to drivers directly so moving the phy
-> control, interrupt clear and reset functionality to board
-> files.
+The I2C and UART drivers are already adapted to hwmod but with
+the original names.
 
-    I'm not fond of the whole approach. I'm not sure why accesses to the 
-control registers are such a no-no, taking into account that one needs to 
-access such regisyter to clear the interrupt...
+Rename i2c and uart using this convention:
+i2c_omap -> omap_i2c
+omap-hsuart -> omap_uart
 
-> Signed-off-by: Ajay Kumar Gupta<ajay.gupta-l0cyMroinI0@public.gmane.org>
-[...]
+Tested on OMAP4 ES2 on Panda / sdp4430. Some more validation will be needed on OMAP2 & 3.
 
-> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-> index 7260558..8c1d121 100644
-> --- a/arch/arm/mach-omap2/usb-musb.c
-> +++ b/arch/arm/mach-omap2/usb-musb.c
-> @@ -30,9 +30,102 @@
->   #include<mach/irqs.h>
->   #include<mach/am35xx.h>
->   #include<plat/usb.h>
-> +#include "control.h"
->
->   #ifdef CONFIG_USB_MUSB_SOC
->
-> +static void am35x_musb_reset(void)
-> +{
-> +	u32	regval;
-> +
-> +	/* Reset the musb interface */
-> +	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
-> +
-> +	regval |= AM35XX_USBOTGSS_SW_RST;
-> +	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
-> +
-> +	regval&= ~AM35XX_USBOTGSS_SW_RST;
-> +	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
-> +
-> +	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
+This series is based on Kevin's pm-hwmod-i2c branch and is available here:
+git://gitorious.org/omap-pm/linux.git for_2.6.38/device_name
 
-    Why read it and ignore the result?
 
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Benoit
+
+
+Benoit Cousson (3):
+  OMAP: clock: Change device name in clock nodes: i2c_omap -> omap_i2c
+  OMAP: i2c: Change device name: i2c_omap -> omap_i2c
+  OMAP: serial: Change device name: omap-hsuart -> omap_uart
+
+ arch/arm/mach-omap1/clock_data.c              |    6 +++---
+ arch/arm/mach-omap2/clock2420_data.c          |    8 ++++----
+ arch/arm/mach-omap2/clock2430_data.c          |    8 ++++----
+ arch/arm/mach-omap2/clock3xxx_data.c          |   12 ++++++------
+ arch/arm/mach-omap2/clock44xx_data.c          |   16 ++++++++--------
+ arch/arm/plat-omap/i2c.c                      |    2 +-
+ arch/arm/plat-omap/include/plat/omap-serial.h |    2 +-
+ drivers/i2c/busses/i2c-omap.c                 |    4 ++--
+ 8 files changed, 29 insertions(+), 29 deletions(-)
+
