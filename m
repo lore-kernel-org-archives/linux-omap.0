@@ -1,56 +1,51 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH 1/2] ARM: implement support for read-mostly sections
-Date: Mon, 6 Dec 2010 17:51:39 +0000
-Message-ID: <AANLkTincr7dbFuXmAFo2S-mGe6FoR0V4cFp+6XVSmF3J@mail.gmail.com>
-References: <20101205114257.GD9138@n2100.arm.linux.org.uk>
-	<E1PPCzx-0004yo-MJ@rmk-PC.arm.linux.org.uk>
-	<AANLkTin5HiPRd=SF_kdvEnZjV7C3J+6MXKQL02zKKtp=@mail.gmail.com>
-	<20101205230434.GI9138@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] musb: am35x: fix compile error due to control apis
+Date: Mon, 6 Dec 2010 09:54:45 -0800
+Message-ID: <20101206175445.GF8345@atomide.com>
+References: <1291623211-959-1-git-send-email-ajay.gupta@ti.com>
+ <4CFCBCF1.9010902@ru.mvista.com>
+ <19F8576C6E063C45BE387C64729E739404BCE3A1EC@dbde02.ent.ti.com>
+ <4CFD19A7.5020902@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:32982 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695Ab0LFRvk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 12:51:40 -0500
-Received: by iwn9 with SMTP id 9so474875iwn.19
-        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 09:51:40 -0800 (PST)
-In-Reply-To: <20101205230434.GI9138@n2100.arm.linux.org.uk>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32641 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753235Ab0LFRyw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 12:54:52 -0500
+Content-Disposition: inline
+In-Reply-To: <4CFD19A7.5020902@ru.mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>
 
-On 5 December 2010 23:04, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Sun, Dec 05, 2010 at 10:18:27PM +0000, Catalin Marinas wrote:
->> On 5 December 2010 11:43, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->> > diff --git a/arch/arm/kernel/vmlinux.lds.S b/arch/arm/kernel/vmlin=
-ux.lds.S
->> > index cead889..1581f6d 100644
->> > --- a/arch/arm/kernel/vmlinux.lds.S
->> > +++ b/arch/arm/kernel/vmlinux.lds.S
->> > @@ -167,6 +167,7 @@ SECTIONS
->> >
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0NOSAVE_DATA
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0CACHELINE_A=
-LIGNED_DATA(32)
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 READ_MOSTLY_DAT=
-A(32)
->>
->> Should we change the alignments to 64?
->
-> When we have some way to tell vmlinux.lds.S what the cache line size =
-is.
+* Sergei Shtylyov <sshtylyov@mvista.com> [101206 09:04]:
+> Hello.
+> 
+> Gupta, Ajay Kumar wrote:
+> 
+> >>>As the control.h have been moved to new location and it's
+> >>>uses are not allowed to drivers directly so moving the phy
+> >>>control, interrupt clear and reset functionality to board
+> >>>files.
+> 
+> >>    I'm not fond of the whole approach. I'm not sure why accesses to the
+> >>control registers are such a no-no, taking into account that one needs to
+> >>access such regisyter to clear the interrupt...
 
-I haven't tried but can we not use CONFIG_ARM_L1_CACHE_SHIFT?
+Because drivers should arch independent and any tinkering of the
+platform level registers will lead into pains later on that
+I end up having to deal with.
 
---=20
-Catalin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To me it seem you just init to separate out the transceiver,
+right?
+ 
+> >I think Tony is the right person to answer this :)
+> 
+>    Yeah, I thought he must be reading linux-omap...
+
+I do yeah.. Might take a while to respond sometimes though :)
+
+Tony
+ 
