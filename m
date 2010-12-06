@@ -1,38 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Trouble getting Logic OMAp35x modules to boot
-Date: Mon, 6 Dec 2010 11:22:17 -0800
-Message-ID: <20101206192217.GL8345@atomide.com>
-References: <4CEB2502.9000300@logicpd.com>
- <AANLkTi=vF-b+T59wOmg+aUARvC5wkq8ZCfYJ0LNhZJx7@mail.gmail.com>
- <4CEB5CA2.40004@logicpd.com>
+Subject: Re: [RFC/PATCH v3 5/7] ARM: OMAP3: Update Camera ISP definitions
+ for OMAP3630
+Date: Mon, 6 Dec 2010 11:30:51 -0800
+Message-ID: <20101206193051.GM8345@atomide.com>
+References: <1290653678-15556-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1290653678-15556-6-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53410 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10278 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753105Ab0LFTWX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 14:22:23 -0500
+	with ESMTP id S1753073Ab0LFTa5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 14:30:57 -0500
 Content-Disposition: inline
-In-Reply-To: <4CEB5CA2.40004@logicpd.com>
+In-Reply-To: <1290653678-15556-6-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peterb@logicpd.com>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, Peter Barada <peter.barada@logicpd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
 
-Hi,
-
-* Peter Barada <peterb@logicpd.com> [101122 22:09]:
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [101124 18:45]:
+> From: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 > 
-> Also, where in the kernel is the mux setup for the UARTs done?  I'd
-> like to use UART2 and am not sure how to wire it into the
-> kernel(i.e. setup the mux for it as those pins are in mode 7) and
-> want to follow the same style as that for UART1/3..
+> Add new/changed base address definitions and resources for
+> OMAP3630 ISP.
+> 
+> The OMAP3430 CSI2PHY block is same as the OMAP3630 CSIPHY2
+> block. But the later name is chosen as it gives more symmetry
+> to the names.
+> 
+> Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+> Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
 
-I posted some patches to pass the board specific pins to serial.c
-few days ago, can you please give that series a try?
+This looks safe to queue along with the other camera patches
+when they're ready:
 
-The series subject is "omap: Board specific muxing using hwmod".
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
