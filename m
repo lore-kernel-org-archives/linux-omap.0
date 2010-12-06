@@ -1,40 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH v3 6/7] omap3: Export omap3isp platform device
- structure
-Date: Mon, 6 Dec 2010 11:32:13 -0800
-Message-ID: <20101206193213.GN8345@atomide.com>
-References: <1290653678-15556-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1290653678-15556-7-git-send-email-laurent.pinchart@ideasonboard.com>
- <20101125070241.GX2468@legolas.emea.dhcp.ti.com>
- <201011251218.00331.laurent.pinchart@ideasonboard.com>
- <20101125112311.GV2468@legolas.emea.dhcp.ti.com>
+Subject: Re: [PATCH 1/3] tsc2005 driver support on rx51
+Date: Mon, 6 Dec 2010 11:35:35 -0800
+Message-ID: <20101206193535.GO8345@atomide.com>
+References: <1290700177-26602-1-git-send-email-ext-srikar.1.bhavanarayana@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17928 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753671Ab0LFTft (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 14:35:49 -0500
 Content-Disposition: inline
-In-Reply-To: <20101125112311.GV2468@legolas.emea.dhcp.ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, linux-media@vger.kernel.org
+In-Reply-To: <1290700177-26602-1-git-send-email-ext-srikar.1.bhavanarayana@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Srikar <ext-srikar.1.bhavanarayana@nokia.com>
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [101125 03:13]:
-> Hi,
-> 
-> On Thu, Nov 25, 2010 at 12:17:59PM +0100, Laurent Pinchart wrote:
-> >>pass platform_data as an argument to this call ? Then remove the static
-> >>inline and export this one ?
-> >
-> >Yes indeed, why ? :-)
-> >
-> >I guess things like that are difficult to spot when you've had your nose on
-> >the code for too long. Thanks for the review, I'll fix this.
-> 
-> no problem :-)
+* Srikar <ext-srikar.1.bhavanarayana@nokia.com> [101125 07:40]:
+> To support  tsc2005 driver on rx51,added tsc2005
+> intialization data ,functions to enable/disable
+> tsc2005 and loading driver on rx51.
 
-Can you please also grep to make sure there are no other EXPORT_SYMBOL
-being added to arch/arm/*omap*/ code in these patches?
+>  #include <linux/input/matrix_keypad.h>
+>  #include <linux/spi/spi.h>
+>  #include <linux/wl12xx.h>
+> +#include <linux/spi/tsc2005.h>
+>  #include <linux/i2c.h>
+>  #include <linux/i2c/twl.h>
+>  #include <linux/clk.h>
 
-Thanks,
+This does not exist in mainline yet, please send this patch
+along with the tsc2005 driver via the input list. For this one:
 
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
