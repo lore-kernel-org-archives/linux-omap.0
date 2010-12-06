@@ -1,49 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V4 2/2] omap4: platform changes for CMA3000
-Date: Mon, 6 Dec 2010 11:39:13 -0800
-Message-ID: <20101206193913.GP8345@atomide.com>
-References: <37166.10.24.255.17.1291028266.squirrel@dbdmail.itg.ti.com>
+Subject: Re: [GIT PULL] FOR TESTING ONLY
+Date: Mon, 6 Dec 2010 11:49:18 -0800
+Message-ID: <20101206194917.GQ8345@atomide.com>
+References: <20101202114805.GT5429@legolas.emea.dhcp.ti.com>
+ <20101202222736.GZ17222@atomide.com>
+ <20101203124453.GC2633@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36836 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752057Ab0LFTtW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 14:49:22 -0500
 Content-Disposition: inline
-In-Reply-To: <37166.10.24.255.17.1291028266.squirrel@dbdmail.itg.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20101203124453.GC2633@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Hemanth V <hemanthv@ti.com> [101129 02:48]:
-> From 8082870cc704d901d98cf0d6af90e45860927ceb Mon Sep 17 00:00:00 2001
-> From: Hemanth V <hemanthv@ti.com>
-> Date: Thu, 26 Aug 2010 17:49:12 +0530
-> Subject: [PATCH] Platform changes for CMA3000 Accelerometer driver
+* Felipe Balbi <balbi@ti.com> [101203 04:35]:
+> On Thu, Dec 02, 2010 at 02:27:36PM -0800, Tony Lindgren wrote:
+> >
+> >Great, yeah I'll merge them into linux-omap master branch for testing
+> >probably later on today.
 > 
-> Update 4430 SDP board file with platform data for accelerometer driver
-> and select the driver in kconfig
-> 
-> Signed-off-by: Hemanth V <hemanthv@ti.com>
-> ---
->  arch/arm/mach-omap2/Kconfig         |    2 ++
->  arch/arm/mach-omap2/board-4430sdp.c |   30 ++++++++++++++++++++++++++++++
->  2 files changed, 32 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index a928fd6..e87c049 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -255,6 +255,8 @@ config MACH_OMAP_4430SDP
->  	depends on ARCH_OMAP4
->  	select INPUT_TOUCHSCREEN
->  	select TOUCHSCREEN_SYNTM12XX
-> +	select INPUT_MISC
-> + 	select INPUT_CMA3000
-> + 	select INPUT_CMA3000_I2C
-> 
+> Cool, I just made the updates Mike asked and it's now all good again
+> :-p
 
-The better way is to patch omap2plus_defconfig so these get added
-as modules.
+It will get repulled the next time I rebuild l-o master branch.
+ 
+> I'm hoping Greg will still accept these patches on monday for merge
+> window, cross your fingers :-p
+> 
+> for 2.6.39 I'll get them all to build together. Not quite there yet.
+> TUSB6010 messed up the whole code with ifdefs, I need to check how to do
+> that one properly.
 
-Regards,
+It seems the right long term solution is to get drivers/dma dmaengine
+to work for us for both system DMA and CPPI DMA. Well there are probably
+other problems you're dealing with too..
 
 Tony
