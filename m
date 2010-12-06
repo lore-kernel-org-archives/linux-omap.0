@@ -1,42 +1,37 @@
 From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v4 1/3] staging: tidspbridge: fix mgr_enum_node_info
-Date: Mon, 6 Dec 2010 02:56:02 -0600
-Message-ID: <AANLkTimTr6srsmuanwL6L68vo-UzGoos=CS-x_AMAnpq@mail.gmail.com>
-References: <1288976510-25470-1-git-send-email-ionut.nicu@mindbit.ro>
-	<1288976510-25470-2-git-send-email-ionut.nicu@mindbit.ro>
+Subject: Re: [PATCH v3 0/3] staging: tidspbridge: bugfixes
+Date: Mon, 6 Dec 2010 02:56:56 -0600
+Message-ID: <AANLkTikLnW-WJYe0UimmAMPbrOUB+k+wdxrdo8+vcch_@mail.gmail.com>
+References: <1288974674-24330-1-git-send-email-ionut.nicu@mindbit.ro>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:52791 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751643Ab0LFI4F convert rfc822-to-8bit
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:59911 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751666Ab0LFI45 convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Dec 2010 03:56:05 -0500
-Received: by mail-iw0-f178.google.com with SMTP id 1so17016208iwn.37
-        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 00:56:02 -0800 (PST)
-In-Reply-To: <1288976510-25470-2-git-send-email-ionut.nicu@mindbit.ro>
+	Mon, 6 Dec 2010 03:56:57 -0500
+Received: by mail-iw0-f176.google.com with SMTP id 36so1121243iwn.21
+        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 00:56:56 -0800 (PST)
+In-Reply-To: <1288974674-24330-1-git-send-email-ionut.nicu@mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Ionut Nicu <ionut.nicu@gmail.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: Greg Kroah-Hartman <greg@kroah.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-On Fri, Nov 5, 2010 at 12:01 PM, Ionut Nicu <ionut.nicu@gmail.com> wrot=
+On Fri, Nov 5, 2010 at 11:31 AM, Ionut Nicu <ionut.nicu@gmail.com> wrot=
 e:
-> From: Felipe Contreras <felipe.contreras@gmail.com>
+> Changes since v1:
 >
-> The current code was always returning a non-zero status value
-> to userspace applications when this ioctl was called.
+> * Split the mgr_enum_node_info patch into two patches:
+> one that fixes the issue and one that reorganizes the
+> code.
 >
-> The error code was ENODATA, which isn't actually an error,
-> it's always returned by dcd_enumerate_object() when it hits the
-> end of list.
->
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> ---
-> =A0drivers/staging/tidspbridge/rmgr/mgr.c | =A0 =A05 +++++
-> =A01 files changed, 5 insertions(+), 0 deletions(-)
-
+> Ionut Nicu (3):
+> =A0staging: tidspbridge: fix mgr_enum_node_info
+> =A0staging: tidspbridge: mgr_enum_node_info cleanup
+> =A0staging: tidspbridge: fix kernel oops in bridge_io_get_proc_load
 
 Pushed to dspbridge.
 
