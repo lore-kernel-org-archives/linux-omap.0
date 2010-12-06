@@ -1,188 +1,126 @@
 From: David Sin <davidsin@ti.com>
-Subject: [PATCH 0/9] TI DMM-TILER driver
-Date: Mon,  6 Dec 2010 16:27:17 -0600
-Message-ID: <1291674446-10766-1-git-send-email-davidsin@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>, Russell King <rmk@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@li
-Cc: David Sin <davidsin@ti.com>
+Subject: [PATCH 9/9] TILER-DMM: Device support for OMAP
+Date: Mon,  6 Dec 2010 16:27:26 -0600
+Message-ID: <1291674446-10766-10-git-send-email-davidsin@ti.com>
+References: <1291674446-10766-1-git-send-email-davidsin@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52725 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753796Ab0LFWQS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Dec 2010 17:16:18 -0500
+In-Reply-To: <1291674446-10766-1-git-send-email-davidsin@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>, Russell King <rmk@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@li
+Cc: David Sin <davidsin@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-Tiling and Isometric Lightweight Engine for Rotation (TILER) driver
-=====
+Add DMM device support for OMAP utilizing the
+OMAP HWMOD framework.
 
-Dynamic Memory Manager (DMM) is a hardware block made by Texas Instruments.
-Within the DMM exists at least one TILER hardware component.  Its purpose is to
-organize video/image memory in a 2-dimensional fashion to limit memory
-bandwidth and facilitate 0 effort rotation and mirroring.  The TILER driver
-facilitates allocating, freeing, as well as mapping 2D blocks (areas) in the
-TILER container(s).  It also facilitates rotating and mirroring the allocated
-blocks or its rectangular subsections.
-
-TERMINOLOGY
-
-"slot"
-
-The basic TILER driver operates on blocks of slots.  A slot is the granularity
-of the TILER hardware device.  For all current uses it is 4K, but could also be
-16 or 64K.  The DMM-TILER TRM refers to this as "page" but we want to separate
-this concept from the MMU pages.
-
-"page"
-
-The granularity of the MMU, used by the kernel.  This is 4K.
-
-"block"
-
-The TILER hardware component supports 1D and 2D blocks.  A 2D block is a
-rectangular arrangement of slots with arbitrary width and height in a 2D
-container.  A 1D block is a linear arrangement of slots with arbitrary length
- in a 1D container.  This TILER driver only supports 2D blocks.
-
-"container"
-
-The TILER driver supports an arbitrary TILER container size.  However, for
-all current implementations it is 256 by 128 slots.  The container currently can
-only be used as a 2D container.
-
-"reserved area"
-
-Each block resides within a reserved area in the container.  This area may
-be larger than the actual set of slots that a block occupies.  The reason for
-this is to protect access from one block into another.  Since TILER container is
-mmap-ped into user space as individual pages, all slots that are spanned by
-that page become visible to the user.  The tiler driver allows restricting the
-granularity of the reserved area (default alignment) as well as the mapped
-area (granularity).
-
-Technical Reference Manual
-=====
-http://focus.ti.com/pdfs/wtbu/OMAP4430_ES2.x_PUBLIC_TRM_vN.zip
-
-Changes since RFC v2: https://lkml.org/lkml/2010/11/30/352
-=====
-Randy Dunlap:
-1) Clarify the meaning of 2^n when referring to TILER alignment and 
-allocation granularity
-
-Greg KH:
-1) Move tiler.h to include/linux since it's not arch specific
-2) Rename _tiler.h to tiler-geom.h (ick)
-3) Use WARN_ON instead of BUG_ON
-4) Export symbols as 'EXPORT_SYMBOL_GPL'
-5) Remove comment from Kconfig file
-
-Santosh Shilimkar:
-1) Create separate DMM OMAP device file patch (#9)
-
-Changes since RFC v1: http://www.spinics.net/lists/linux-omap/msg33867.html
-=====
-Santosh Shilimkar:
-1) Correct documentation location
-2) Remove ioremap of RAM
-3) Implement probe function and hwmod
-4) Correct commenting style
-5) Reduce use of barrier instances
-
-Linus Walleij:
-1) Define TCM acryonym
-
-Russell King:
-1) Implement probe function
-2) Fix spelling mistake
-3) Remove GFP_ATOMIC flag when calling dma_alloc_coherent for PAT array mem
-4) Replace alloc_page and flush range calls with dma_alloc_coherent
-
-Nishanth Menon:
-1) Address infinite while loop when reading dmm register
-
-Benoit Cousson:
-1) Fix source file headers
-2) Correct logical errors in device file
-
-Kevin Hilman:
-1) Move DMM/TILER source code into driver/misc/tiler until a recommendation
-is made as to where it should go
-
-List of pending items in proposed order:
-
-* Determine driver source code location
- (Currently, resides in drivers/misc/tiler)
-* Add area packing support (multiple blocks can reside in the same band/area)
- to optimize area use
-* Add group-ID support (to specify which blocks can reside together in the
- same area)
-* Add multiple search directions to TCM-SiTA
-* Add 1D block support (including adding 1D search algo to TCM-SiTA)
-* Optimize mutex handling (don.t hold mutex during memory
- allocation/mapping/cache flushing)
-* Add block reference counting, support for sharing blocks
-* Move all kernel-API-s to tiler-iface.c
-* Support orphaned block support (in preparation for process cleanup support)
-* Change block identification from physical address to key-ID pair
- (in preparation for user space support, and process security)
-* Add support for process security (blocks from separate processes never
- reside in the same band)
-* Support file interface (ioctl and mmap)
-* Support for buffers (ordered list of blocks that are mapped to userspace
- together, such as YUV420sp)
-* Support 1D user buffer mapping into TILER container
-* Support for block pre-reservation (to further optimize area use)
-
-David Sin (2):
-  TILER-DMM: DMM-PAT driver for TI TILER
-  TILER-DMM: Device support for OMAP
-
-Lajos Molnar (6):
-  TILER-DMM: Container manager interface and utility definitons
-  TILER-DMM: TILER Memory Manager interface and implementation
-  TILER-DMM: TILER interface file and documentation
-  TILER-DMM: Geometry and view manipulation functions
-  TILER-DMM: Main TILER driver implementation
-  TILER-DMM: Linking TILER driver into the Linux kernel build
-
-Ravi Ramachandra (1):
-  TILER-DMM: Sample TCM implementation: Simple TILER Allocator (SiTA)
-
- Documentation/arm/OMAP/TILER           |  126 ++++++++++
- arch/arm/mach-omap2/Makefile           |    2 +
- arch/arm/mach-omap2/dmm-omap44xx.c     |   80 ++++++
- arch/arm/mach-omap2/include/mach/dmm.h |   92 +++++++
- drivers/misc/Kconfig                   |    1 +
- drivers/misc/Makefile                  |    1 +
- drivers/misc/tiler/Kconfig             |   72 ++++++
- drivers/misc/tiler/Makefile            |    7 +
- drivers/misc/tiler/dmm-main.c          |  187 ++++++++++++++
- drivers/misc/tiler/tcm.h               |  171 +++++++++++++
- drivers/misc/tiler/tcm/Makefile        |    1 +
- drivers/misc/tiler/tcm/_tcm-sita.h     |   61 +++++
- drivers/misc/tiler/tcm/tcm-sita.c      |  422 ++++++++++++++++++++++++++++++++
- drivers/misc/tiler/tcm/tcm-sita.h      |   28 ++
- drivers/misc/tiler/tcm/tcm-utils.h     |   51 ++++
- drivers/misc/tiler/tiler-geom.c        |  362 +++++++++++++++++++++++++++
- drivers/misc/tiler/tiler-geom.h        |   48 ++++
- drivers/misc/tiler/tiler-iface.c       |   66 +++++
- drivers/misc/tiler/tiler-main.c        |  405 ++++++++++++++++++++++++++++++
- drivers/misc/tiler/tmm-pat.c           |  266 ++++++++++++++++++++
- drivers/misc/tiler/tmm.h               |  103 ++++++++
- include/linux/tiler.h                  |  173 +++++++++++++
- 22 files changed, 2725 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/arm/OMAP/TILER
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+Signed-off-by: David Sin <davidsin@ti.com>
+---
+ arch/arm/mach-omap2/Makefile       |    2 +
+ arch/arm/mach-omap2/dmm-omap44xx.c |   80 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 82 insertions(+), 0 deletions(-)
  create mode 100644 arch/arm/mach-omap2/dmm-omap44xx.c
- create mode 100644 arch/arm/mach-omap2/include/mach/dmm.h
- create mode 100644 drivers/misc/tiler/Kconfig
- create mode 100644 drivers/misc/tiler/Makefile
- create mode 100644 drivers/misc/tiler/dmm-main.c
- create mode 100644 drivers/misc/tiler/tcm.h
- create mode 100644 drivers/misc/tiler/tcm/Makefile
- create mode 100644 drivers/misc/tiler/tcm/_tcm-sita.h
- create mode 100644 drivers/misc/tiler/tcm/tcm-sita.c
- create mode 100644 drivers/misc/tiler/tcm/tcm-sita.h
- create mode 100644 drivers/misc/tiler/tcm/tcm-utils.h
- create mode 100644 drivers/misc/tiler/tiler-geom.c
- create mode 100644 drivers/misc/tiler/tiler-geom.h
- create mode 100644 drivers/misc/tiler/tiler-iface.c
- create mode 100644 drivers/misc/tiler/tiler-main.c
- create mode 100644 drivers/misc/tiler/tmm-pat.c
- create mode 100644 drivers/misc/tiler/tmm.h
- create mode 100644 include/linux/tiler.h
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 60e51bc..fc682ea 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -194,3 +194,5 @@ obj-y					+= $(smc91x-m) $(smc91x-y)
+ 
+ smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
+ obj-y					+= $(smsc911x-m) $(smsc911x-y)
++
++obj-$(CONFIG_ARCH_OMAP4)		+= dmm-omap44xx.o
+diff --git a/arch/arm/mach-omap2/dmm-omap44xx.c b/arch/arm/mach-omap2/dmm-omap44xx.c
+new file mode 100644
+index 0000000..a84490c
+--- /dev/null
++++ b/arch/arm/mach-omap2/dmm-omap44xx.c
+@@ -0,0 +1,80 @@
++/*
++ * DMM driver support functions for TI OMAP processors.
++ *
++ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <mach/dmm.h>
++#include <plat/omap_device.h>
++#include <plat/omap_hwmod.h>
++#include <linux/errno.h>
++#include <linux/err.h>
++
++static struct dmm *plat_data;
++static int pdata;
++
++#ifdef CONFIG_ARCH_OMAP4
++static struct dmm omap4_plat_data[] = {
++	{
++		.oh_name = "dmm",
++	},
++};
++#define NUM_PDATA ARRAY_SIZE(omap4_plat_data)
++#else
++#define omap4_plat_data NULL
++#define NUM_PDATA 0
++#endif
++
++static struct omap_device_pm_latency omap_dmm_latency[] = {
++	[0] = {
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	},
++};
++
++static s32 __init dmm_omap_init(void)
++{
++	struct omap_hwmod *oh = NULL;
++	struct omap_device *od = NULL;
++	struct omap_device_pm_latency *ohl = NULL;
++	int ohlc = 0, i = 0;
++
++	plat_data = omap4_plat_data;
++	pdata = NUM_PDATA;
++
++	for (i = 0; i < pdata; i++) {
++		struct dmm *data = &plat_data[i];
++
++		oh = omap_hwmod_lookup(data->oh_name);
++		if (!oh)
++			goto error;
++
++		data->base = oh->_mpu_rt_va;
++		ohl = omap_dmm_latency;
++		ohlc = ARRAY_SIZE(omap_dmm_latency);
++
++		od = omap_device_build(data->oh_name, i, oh, data,
++					 sizeof(*data), ohl, ohlc, false);
++		if (IS_ERR(od))
++			goto error;
++	}
++	return 0;
++error:
++	return -ENODEV;
++}
++
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("David Sin <davidsin@ti.com>");
++device_initcall(dmm_omap_init);
+-- 
+1.7.0.4
+
