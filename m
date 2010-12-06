@@ -1,109 +1,232 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v5 12/12] OMAP: dmtimer: add timeout to low-level routines
-Date: Tue,  7 Dec 2010 05:14:19 +0530
-Message-ID: <1291679059-13419-13-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v5 8/12] OMAP2+: dmtimer: convert to platform devices
+Date: Tue,  7 Dec 2010 05:14:15 +0530
+Message-ID: <1291679059-13419-9-git-send-email-tarun.kanti@ti.com>
 References: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38876 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38872 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752043Ab0LFMkp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Dec 2010 07:40:45 -0500
+	id S1752050Ab0LFMko (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Dec 2010 07:40:44 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id oB6CefJH002484
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id oB6Ceep1002479
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 6 Dec 2010 06:40:44 -0600
+	for <linux-omap@vger.kernel.org>; Mon, 6 Dec 2010 06:40:43 -0600
 In-Reply-To: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Thara Gopinath <thara@ti.com>
 
-The low-level read and write access routines wait on
-write-pending register in posted mode to make sure that
-previous write is complete on respective registers.
-This waiting is done in an infinite while loop. Now it
-is being modified to use timeout instead.
+Add routines to converts dmtimers to platform devices. The device data
+is obtained from hwmod database of respective platform and is registered
+to device model after successful binding to driver. It also provides
+provision to access timers during early boot when pm_runtime framework
+is not completely up and running.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Acked-by: Cousson, Benoit <b-cousson@ti.com>
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Reviewed-by: Cousson, Benoit <b-cousson@ti.com>
 Reviewed-by: Varadarajan, Charulatha <charu@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c |   33 +++++++++++++++++++++++++--------
- 1 files changed, 25 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/Makefile  |    2 +-
+ arch/arm/mach-omap2/dmtimer.c |  174 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 175 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/dmtimer.c
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index d51a459..26e5af1 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -47,6 +47,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/err.h>
- #include <mach/hardware.h>
-+#include <plat/common.h>
- #include <plat/dmtimer.h>
- #include <mach/irqs.h>
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 60e51bc..7700ccd 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -4,7 +4,7 @@
  
-@@ -159,6 +160,8 @@
- #define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
- 		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
+ # Common support
+ obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o pm.o \
+-	 common.o
++	 common.o dmtimer.o
  
-+#define MAX_WRITE_PEND_WAIT		10000 /* 10ms timeout delay */
+ omap-2-3-common				= irq.o sdrc.o prm2xxx_3xxx.o
+ hwmod-common				= omap_hwmod.o \
+diff --git a/arch/arm/mach-omap2/dmtimer.c b/arch/arm/mach-omap2/dmtimer.c
+new file mode 100644
+index 0000000..b639082
+--- /dev/null
++++ b/arch/arm/mach-omap2/dmtimer.c
+@@ -0,0 +1,174 @@
++/**
++ * OMAP2PLUS Dual-Mode Timers - platform device registration
++ *
++ * Contains first level initialization routines which extracts timers
++ * information from hwmod database and registers with linux device model.
++ * It also has low level function to change the timer input clock source.
++ *
++ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
++ * Tarun Kanti DebBarma <tarun.kanti@ti.com>
++ * Thara Gopinath <thara@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
 +
- struct omap_dm_timer {
- 	int irq;
- 	struct clk *fclk;
-@@ -185,14 +188,21 @@ static DEFINE_SPINLOCK(dm_timer_lock);
- static inline u32 omap_dm_timer_read_reg(struct omap_dm_timer *timer, u32 reg)
- {
- 	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-+	int i = 0;
++#include <linux/clk.h>
++#include <linux/io.h>
++#include <linux/err.h>
++#include <linux/slab.h>
 +
- 	if (reg >= OMAP_TIMER_WAKEUP_EN_REG)
- 		reg += pdata->func_offset;
- 	else if (reg >= OMAP_TIMER_STAT_REG)
- 		reg += pdata->intr_offset;
--	if (timer->posted)
--		while (readl(timer->io_base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
--				& (reg >> WPSHIFT))
--			cpu_relax();
++#include <plat/dmtimer.h>
++#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
 +
-+	if (timer->posted) {
-+		omap_test_timeout(!(readl(timer->io_base +
-+			((OMAP_TIMER_WRITE_PEND_REG +
-+			pdata->func_offset) & 0xff)) & (reg >> WPSHIFT)),
-+			MAX_WRITE_PEND_WAIT, i);
-+		WARN_ON(i == MAX_WRITE_PEND_WAIT);
++static int early_timer_count __initdata = 1;
++
++/**
++ * omap2_dm_timer_set_src - change the timer input clock source
++ * @pdev:	timer platform device pointer
++ * @timer_clk:	current clock source
++ * @source:	array index of parent clock source
++ */
++static int omap2_dm_timer_set_src(struct platform_device *pdev, int source)
++{
++	int ret;
++	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
++	struct clk *fclk = clk_get(&pdev->dev, "fck");
++	struct clk *new_fclk;
++	char *fclk_name = "32k_ck"; /* default name */
++
++	switch (source) {
++	case OMAP_TIMER_SRC_SYS_CLK:
++		fclk_name = "sys_ck";
++		break;
++
++	case OMAP_TIMER_SRC_32_KHZ:
++		fclk_name = "32k_ck";
++		break;
++
++	case OMAP_TIMER_SRC_EXT_CLK:
++		if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_1) {
++			fclk_name = "alt_ck";
++			break;
++		}
++		dev_dbg(&pdev->dev, "%s: %d: invalid clk src.\n",
++			__func__, __LINE__);
++		return -EINVAL;
 +	}
 +
- 	return readl(timer->io_base + (reg & 0xff));
- }
- 
-@@ -210,14 +220,21 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
- 						u32 value)
- {
- 	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-+	int i = 0;
-+
- 	if (reg >= OMAP_TIMER_WAKEUP_EN_REG)
- 		reg += pdata->func_offset;
- 	else if (reg >= OMAP_TIMER_STAT_REG)
- 		reg += pdata->intr_offset;
--	if (timer->posted)
--		while (readl(timer->io_base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
--				& (reg >> WPSHIFT))
--			cpu_relax();
-+
-+	if (timer->posted) {
-+		omap_test_timeout(!(readl(timer->io_base +
-+			((OMAP_TIMER_WRITE_PEND_REG +
-+			pdata->func_offset) & 0xff)) & (reg >> WPSHIFT)),
-+			MAX_WRITE_PEND_WAIT, i);
-+		WARN_ON(i == MAX_WRITE_PEND_WAIT);
++	if (IS_ERR_OR_NULL(fclk)) {
++		dev_dbg(&pdev->dev, "%s: %d: clk_get() FAILED\n",
++			__func__, __LINE__);
++		return -EINVAL;
 +	}
 +
- 	writel(value, timer->io_base + (reg & 0xff));
- }
- 
++	new_fclk = clk_get(&pdev->dev, fclk_name);
++	if (IS_ERR_OR_NULL(new_fclk)) {
++		dev_dbg(&pdev->dev, "%s: %d: clk_get() %s FAILED\n",
++			__func__, __LINE__, fclk_name);
++		clk_put(fclk);
++		return -EINVAL;
++	}
++
++	ret = clk_set_parent(fclk, new_fclk);
++	if (IS_ERR_VALUE(ret)) {
++		dev_dbg(&pdev->dev, "%s: clk_set_parent() to %s FAILED\n",
++			__func__, fclk_name);
++		ret = -EINVAL;
++	}
++
++	clk_put(new_fclk);
++	clk_put(fclk);
++
++	return ret;
++}
++
++struct omap_device_pm_latency omap2_dmtimer_latency[] = {
++	{
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func   = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	},
++};
++
++/**
++ * omap_timer_init - build and register timer device with an
++ * associated timer hwmod
++ * @oh:	timer hwmod pointer to be used to build timer device
++ * @user:	parameter that can be passed from calling hwmod API
++ *
++ * Called by omap_hwmod_for_each_by_class to register each of the timer
++ * devices present in the system. The number of timer devices is known
++ * by parsing through the hwmod database for a given class name. At the
++ * end of function call memory is allocated for timer device and it is
++ * registered to the framework ready to be proved by the driver.
++ */
++static int __init omap_timer_init(struct omap_hwmod *oh, void *user)
++{
++	int id;
++	int ret = 0;
++	char *name = "omap_timer";
++	struct dmtimer_platform_data *pdata;
++	struct omap_device *od;
++
++	pr_debug("%s: %s\n", __func__, oh->name);
++
++	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++	if (!pdata) {
++		pr_err("%s: No memory for [%s]\n", __func__, oh->name);
++		return -ENOMEM;
++	}
++
++	if (user)
++		pdata->is_early_init = 1;
++	else
++		pdata->is_early_init = 0;
++
++	/* hook clock set/get functions */
++	pdata->set_timer_src = omap2_dm_timer_set_src;
++
++	/* read timer ip version */
++	pdata->timer_ip_type = oh->class->rev;
++	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
++		pdata->func_offset = VERSION2_TIMER_WAKEUP_EN_REG_OFFSET;
++		pdata->intr_offset = VERSION2_TIMER_STAT_REG_OFFSET;
++	} else {
++		pdata->func_offset = 0;
++		pdata->intr_offset = 0;
++	}
++
++	/*
++	 * Extract the id from name field in hwmod database
++	 * and use the same for constructing ids' for the
++	 * timer devices. In a way, we are avoiding usage of
++	 * static variable witin the function to do the same.
++	 * CAUTION: We have to be careful and make sure the
++	 * name in hwmod database does not change in which case
++	 * we might either make corresponding change here or
++	 * switch back static variable mechanism.
++	 */
++	sscanf(oh->name, "timer%2d", &id);
++
++	od = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
++			omap2_dmtimer_latency,
++			ARRAY_SIZE(omap2_dmtimer_latency),
++			pdata->is_early_init);
++
++	if (IS_ERR(od)) {
++		pr_err("%s: Can't build omap_device for %s: %s.\n",
++			__func__, name, oh->name);
++		ret = -EINVAL;
++	} else if (pdata->is_early_init)
++		early_timer_count++;
++
++	kfree(pdata);
++
++	return ret;
++}
 -- 
 1.6.0.4
 
