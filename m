@@ -1,47 +1,43 @@
-From: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] ARM: omap: Enable low-level omap3 PM code to work
-	with CONFIG_THUMB2_KERNEL
-Date: Mon, 6 Dec 2010 18:17:05 +0000
-Message-ID: <AANLkTi=OhchW6rqMmTP5dpUF7aKwy9iArETaHdwi5cjN@mail.gmail.com>
-References: <1291656937-24992-1-git-send-email-dave.martin@linaro.org>
-	<1291656937-24992-2-git-send-email-dave.martin@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: State of LDP3430 platform
+Date: Mon, 6 Dec 2010 10:19:13 -0800
+Message-ID: <20101206181913.GH8345@atomide.com>
+References: <20101206125526.GC31777@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1291656937-24992-2-git-send-email-dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Dave Martin <dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:12054 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754286Ab0LFSTZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 13:19:25 -0500
+Content-Disposition: inline
+In-Reply-To: <20101206125526.GC31777@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
 
-T24gNiBEZWNlbWJlciAyMDEwIDE3OjM1LCBEYXZlIE1hcnRpbiA8ZGF2ZS5tYXJ0aW5AbGluYXJv
-Lm9yZz4gd3JvdGU6Cj4gwqAqIEV4cGxpY2l0bHkgYnVpbGQgYSBmZXcgcGFydHMgb2Ygc2xlZXAz
-NHh4LlMgYXMgQVJNLgo+Cj4gwqAgwqAgwqAqIGxvY2tfc2NyYXRjaHBhZF9zZW0gaXMga2VwdCBh
-cyBBUk0gYmVjYXVzZSBvZiB0aGUgbmVlZCB0bwo+IMKgIMKgIMKgIMKgc3luY2hyb25pc2Ugd2l0
-aCBoYXJkd2FyZSAoPykgdXNpbmcgdGhlIFNXUCBpbnN0cnVjdGlvbi4KPgo+IMKgIMKgIMKgKiBz
-YXZlX3NlY3VyZV9yYW1fY29udGV4dCBhbmQgb21hcDM0eHhfY3B1X3N1c3BlbmQgYXJlIGJ1aWx0
-Cj4gwqAgwqAgwqAgwqBhcyBBUk0gaW4gY2FzZSB0aGUgU2VjdXJlIFdvcmxkIGZpcm13YXJlIGV4
-cGVjdHMgdG8gZGVjb2RlCj4gwqAgwqAgwqAgwqB0aGUgY29tbWVudCBmaWVsZCBmcm9tIHRoZSBT
-TUMgKGFrYSBzbWkpIGluc3RydWN0aW9ucy4KPgo+IMKgIMKgIMKgIMKgVGhpcyBjYW4gYmUgdW5k
-b25lIGxhdGVyIGlmIHRoZSBmaXJtd2FyZSBpcyBjb25maXJtZWQgYXMKPiDCoCDCoCDCoCDCoGFi
-bGUgdG8gZGVjb2RlIHRoZSBUaHVtYiBTTUMgZW5jb2RpbmcgKG9yIGlnbm9yZXMgdGhlCj4gwqAg
-wqAgwqAgwqBjb21tZW50IGZpZWxkKS4KPgo+IMKgIMKgIMKgKiBlczNfc2RyY19maXggc2hvdWxk
-IHByZXN1bWFibHkgb25seSBiZSBjYWxsZWQgZnJvbSB0aGUKPiDCoCDCoCDCoCDCoGxvdy1sZXZl
-bCB3YWtldXAgY29kZS4gwqBUbyBtaW5pbWlzZSB0aGUgZGlmZiwgc3dpdGNoZWQgdGhpcwo+IMKg
-IMKgIMKgIMKgdG8gQVJNIGFuZCBkZW1vdGVkIGl0IHRvIGJlIGEgbG9jYWwgc3ltYm9sLCBzaW5j
-ZSBJIGJlbGlldmUKPiDCoCDCoCDCoCDCoGl0IHNob3VsZG4ndCBiZSBjYWxsZWQgZnJvbSBvdXRz
-aWRlIGFueXdheS4KCkkgaGF2ZW4ndCBjaGVja2VkIHRoZSBjb2RlIGJ1dCBkb2VzIHRoaXMgYWx3
-YXlzIHdvcms/IFRoZSBrZXJuZWwgaXNuJ3QKYnVpbHQgd2l0aCBpbnRlcndvcmtpbmcgZW5hYmxl
-ZCwgc28gaXQncyBlaXRoZXIgQVJNIG9yIFRodW1iLTIuCgotLSAKQ2F0YWxpbgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGluYXJvLWRldiBtYWlsaW5n
-IGxpc3QKbGluYXJvLWRldkBsaXN0cy5saW5hcm8ub3JnCmh0dHA6Ly9saXN0cy5saW5hcm8ub3Jn
-L21haWxtYW4vbGlzdGluZm8vbGluYXJvLWRldgo=
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [101206 04:45]:
+>
+> NET: Registered protocol family 16
+> ------------[ cut here ]------------
+> WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1185 _omap_hwmod_enable+0x34/0x114()
+> omap_hwmod: wd_timer2: enabled state can only be entered from initialized, idle, or disabled state
+> Modules linked in:
+> ---[ end trace 1b75b31a2719ed1c ]---
+> wd_timer2: Could not enable clocks for omap2_disable_wdt
+
+Can you check if these patches posted by Paul earlier help?
+
+OMAP: wd_timer: update integration code to use new hwmod change
+https://patchwork.kernel.org/patch/327472/
+
+OMAP2+: wd_timer: disable on boot via hwmod postsetup mechanism
+https://patchwork.kernel.org/patch/327492/
+
+OMAP: wd_timer: remove old, dead probing code
+https://patchwork.kernel.org/patch/327482/
+
+Regards,
+
+Tony
