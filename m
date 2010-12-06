@@ -1,60 +1,42 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH v2] musb: am35x: fix compile error due to control apis
-Date: Mon, 06 Dec 2010 20:13:11 +0300
-Message-ID: <4CFD19A7.5020902@ru.mvista.com>
-References: <1291623211-959-1-git-send-email-ajay.gupta@ti.com> <4CFCBCF1.9010902@ru.mvista.com> <19F8576C6E063C45BE387C64729E739404BCE3A1EC@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: State of LDP3430 platform
+Date: Mon, 6 Dec 2010 17:22:48 +0000
+Message-ID: <20101206172248.GA1000@n2100.arm.linux.org.uk>
+References: <20101206125526.GC31777@n2100.arm.linux.org.uk> <20101206155959.GA8345@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:34887 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967Ab0LFROf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 12:14:35 -0500
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404BCE3A1EC@dbde02.ent.ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49955 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751272Ab0LFRW6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 12:22:58 -0500
+Content-Disposition: inline
+In-Reply-To: <20101206155959.GA8345@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
 
-Hello.
+On Mon, Dec 06, 2010 at 07:59:59AM -0800, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [101206 04:45]:
+> >
+> > ------------[ cut here ]------------
+> > WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1185 _omap_hwmod_enable+0x34/0x114()
+> > omap_hwmod: wd_timer2: enabled state can only be entered from initialized, idle, or disabled state
+> > Modules linked in:
+> > ---[ end trace 1b75b31a2719ed1c ]---
+> > wd_timer2: Could not enable clocks for omap2_disable_wdt
+> 
+> It seems like there's a problem handling a watchdog that's enabled
+> in the bootloader.. But that's not the only problem, looks like I'm
+> getting this on overo:
+> 
+> omap_device: omap_wdt.-1: new worst case activate latency 0: 122070
+> OMAP Watchdog Timer Rev 0x31: initial timeout 60 sec
+> omap_device: omap_wdt.-1: new worst case deactivate latency 0: 30517
+> twl4030_wdt twl4030_wdt: Failed to register misc device
+> twl4030_wdt: probe of twl4030_wdt failed with error -16
 
-Gupta, Ajay Kumar wrote:
-
->>> As the control.h have been moved to new location and it's
->>> uses are not allowed to drivers directly so moving the phy
->>> control, interrupt clear and reset functionality to board
->>> files.
-
->>     I'm not fond of the whole approach. I'm not sure why accesses to the
->> control registers are such a no-no, taking into account that one needs to
->> access such regisyter to clear the interrupt...
-
-> I think Tony is the right person to answer this :)
-
-    Yeah, I thought he must be reading linux-omap...
-
->>> Signed-off-by: Ajay Kumar Gupta<ajay.gupta@ti.com>
->> [...]
-
->>> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-
-> [...]
-
->>> +	regval&= ~AM35XX_USBOTGSS_SW_RST;
->>> +	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
->>> +
->>> +	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
->>     Why read it and ignore the result?
-
-> This is due to recommendation for OMAPs as discussed at below
-> Link,
-> http://markmail.org/message/s3lp7xlyq7zxnjtc#query:+page:1+mid:kfia4ld4xgzek6kq+state:results
-
-    There is recommendation to read back the interrupt status register, which 
-this register isn't. Anyway, a comment wouldn't hurt...
-
-> Thanks,
-> Ajay
-
-WBR, Sergei
+-16 = -EBUSY, which is probably because you have two watchdogs.  The
+watchdog subsystem has one minor device number, so you can only have
+one watchdog registered.
