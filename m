@@ -1,29 +1,32 @@
-From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Subject: Re: [PATCHv2 0/6] omap-aes off mode and error handling fixes
-Date: Tue, 07 Dec 2010 11:42:24 +0200
-Message-ID: <4CFE0180.3030308@nokia.com>
-References: <cover.1291104329.git.dmitry.kasatkin@nokia.com> <20101202083753.GA23658@gondor.apana.org.au>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: beagleboard-xm network with mainline?
+Date: Tue, 7 Dec 2010 10:42:45 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1012071042220.10621@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <20101202083753.GA23658@gondor.apana.org.au>
-Sender: linux-crypto-owner@vger.kernel.org
-To: ext Herbert Xu <herbert@gondor.hengli.com.au>
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.171]:56989 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753730Ab0LGJmr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 04:42:47 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id B5D45189AE2
+	for <linux-omap@vger.kernel.org>; Tue,  7 Dec 2010 10:42:45 +0100 (CET)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-thanks
+Hi
 
-On 02/12/10 10:37, ext Herbert Xu wrote:
-> On Tue, Nov 30, 2010 at 10:13:26AM +0200, Dmitry Kasatkin wrote:
->   
->> Changes to v1:
->> - omap type specific handling removed
->> - fixed backlog handling bug in "redundunt locking is removed"
->> - aes module initialized once per request instead of dma transaction
->>   more efficient and right way to do it
->> - checkpatch fixes in separate patch
->>     
-> All applied.  Thanks Dmitry!
->   
+I managed to bring a mainline 2.6.36 kinda kernel to run on my bbxm, 
+Debian rootfs in mmcblk0p2, but I'm getting no connection - neither over 
+the SMSC chip, nor over usb-device in gadget mode, nor can I power on the 
+on-board hub to plug in a usb-to-eth dongle. What's the catch? How do I 
+configure the kernel to get any of those to work?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
