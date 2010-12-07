@@ -1,45 +1,49 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: plat-omap: counter_32k: Fix build error due to
- IS_ERR
-Date: Tue, 7 Dec 2010 14:13:09 +0200
-Message-ID: <20101207121309.GF2576@legolas.emea.dhcp.ti.com>
-References: <1291723777-27316-1-git-send-email-sourav.poddar@ti.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+From: Raghuveer Murthy <raghuveer.murthy@ti.com>
+Subject: [PATCH] OMAP4: Pandaboard: Fixing MMC card detect gpio line
+Date: Tue,  7 Dec 2010 17:43:06 +0530
+Message-ID: <1291723986-24658-1-git-send-email-raghuveer.murthy@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:36786 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752566Ab0LGMNN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 07:13:13 -0500
-Received: by mail-ew0-f52.google.com with SMTP id 23so7251834ewy.39
-        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 04:13:12 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1291723777-27316-1-git-send-email-sourav.poddar@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:59427 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752566Ab0LGMOG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Dec 2010 07:14:06 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id oB7CE2MS027730
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 7 Dec 2010 06:14:04 -0600
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id oB7CE1Cg021230
+	for <linux-omap@vger.kernel.org>; Tue, 7 Dec 2010 17:44:01 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-On Tue, Dec 07, 2010 at 05:39:37PM +0530, Sourav Poddar wrote:
->Fix the following build error by including linux/err.h
->arch/arm/plat-omap/counter_32k.c: In function 'omap_init_clocksource_32k':
->arch/arm/plat-omap/counter_32k.c:167: error: implicit declaration of
->                                      function 'IS_ERR'
->
->The above error is due to the following commit:
->subject: arm: plat-omap: counter_32k: use IS_ERR() instead of NULL check
->commit: 235fbace0334c846c21e902f330020122fc85955
->
->Created on linux-omap-2.6 branch: omap-fixes
->
->Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
->Reviewed-by: Charulatha V <charu@ti.com>
->Acked-by: Felipe Balbi <balbi@ti.com>
+The .gpio_cd member of omap2_hsmmc_info is not initialized. This
+will default to zero. On Pandaboard this interferes with gpio line
+assigned for powering TFP410 DVI chip.
 
-BTW, since this isn't in mainline yet, Tony you might want to fold into
-the orignal patch and just a note that Sourav has updated the commit to
-fix a compile error together with SOB ??
+This fix was missed out in the previous commit bf56f0a6668cd, from
+Nishanth Menon
 
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Signed-off-by: Raghuveer Murthy <raghuveer.murthy@ti.com>
+Acked-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/board-omap4panda.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index ad6b5cc..0ccc24f 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -142,6 +142,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		.mmc		= 1,
+ 		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_wp	= -EINVAL,
++		.gpio_cd	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+ };
 -- 
-balbi
+1.7.0.4
+
