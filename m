@@ -1,59 +1,49 @@
-From: MING ZHOU <a17711@motorola.com>
-Subject: [PATCH] Correct definition of register of OMAP4_RM_RSTST and OMAP4_RM_RSTTIME
-Date: Tue, 7 Dec 2010 15:34:17 +0800
-Message-ID: <AANLkTi=OdG2j2o+uZ+L_EpGKPTE8=fRBN8U60sJkqAhK@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: State of LDP3430 platform
+Date: Tue, 7 Dec 2010 08:37:20 +0000
+Message-ID: <20101207083720.GB18336@n2100.arm.linux.org.uk>
+References: <20101206125526.GC31777@n2100.arm.linux.org.uk> <20101206181913.GH8345@atomide.com> <alpine.DEB.2.00.1012061125400.13430@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exprod5og106.obsmtp.com ([64.18.0.182]:37308 "EHLO
-	exprod5og106.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754204Ab0LGI1B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 03:27:01 -0500
-Received: from il27vts03 (il27vts03.cig.mot.com [10.17.196.87])
-	by mdgate2.corp.mot.com (8.14.3/8.14.3) with SMTP id oB77WrM3010523
-	for <linux-omap@vger.kernel.org>; Tue, 7 Dec 2010 00:32:53 -0700 (MST)
-Received: from mail-ew0-f53.google.com (mail-ew0-f53.google.com [209.85.215.53])
-	by mdgate2.corp.mot.com (8.14.3/8.14.3) with ESMTP id oB77Wqvd010510
-	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=OK)
-	for <linux-omap@vger.kernel.org>; Tue, 7 Dec 2010 00:32:53 -0700 (MST)
-Received: by ewy6 with SMTP id 6so8428125ewy.12
-        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 23:34:18 -0800 (PST)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54211 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754673Ab0LGIhd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 03:37:33 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1012061125400.13430@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
 
-Since we need to reconfigure Reset time for OMAP4, we found the OMAP4
-register definition for reset time is wrong according to spec of
-OMAP4. And we verified this by reading default value of register. We
-found the offset definition of Reset time and Reset Test register
-should be switched. After correcting this bug, we verified by changing
-the value of reset time register, the pulse generated for reset is
-also changed as expected on scope.
+On Mon, Dec 06, 2010 at 11:27:45AM -0700, Paul Walmsley wrote:
+> On Mon, 6 Dec 2010, Tony Lindgren wrote:
+> 
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [101206 04:45]:
+> > >
+> > > NET: Registered protocol family 16
+> > > ------------[ cut here ]------------
+> > > WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1185 _omap_hwmod_enable+0x34/0x114()
+> > > omap_hwmod: wd_timer2: enabled state can only be entered from initialized, idle, or disabled state
+> > > Modules linked in:
+> > > ---[ end trace 1b75b31a2719ed1c ]---
+> > > wd_timer2: Could not enable clocks for omap2_disable_wdt
+> > 
+> > Can you check if these patches posted by Paul earlier help?
+> > 
+> > OMAP: wd_timer: update integration code to use new hwmod change
+> > https://patchwork.kernel.org/patch/327472/
+> > 
+> > OMAP2+: wd_timer: disable on boot via hwmod postsetup mechanism
+> > https://patchwork.kernel.org/patch/327492/
+> > 
+> > OMAP: wd_timer: remove old, dead probing code
+> > https://patchwork.kernel.org/patch/327482/
+> 
+> Just FYI, those will need this series ("OMAP2+: hwmod core upgrades 
+> for 2.6.38: first set") applied first:
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38632.html
 
->From 9a9c98c2f4008e5d8f2f5da1101e3bfe222a48ed Mon Sep 17 00:00:00 2001
-From: Zhou Ming <a17711@motorola.com>
-Date: Tue, 7 Dec 2010 10:00:59 -0500
-Subject: [PATCH] Correct definition of register of OMAP4_RM_RSTST and
-OMAP4_RM_RSTTIME
-
-According to test result, we found the offset definition of OMAP4_RM_RSTST
-and OMAP4_RM_RSTIME should be switched.
----
- arch/arm/mach-omap2/prm.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index 7be040b..23b4be2 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -222,8 +222,8 @@
-
- /* Omap4 specific registers */
- #define OMAP4_RM_RSTCTRL                               0x0000
--#define OMAP4_RM_RSTTIME                               0x0004
--#define OMAP4_RM_RSTST                                 0x0008
-+#define OMAP4_RM_RSTTIME                               0x0008
-+#define OMAP4_RM_RSTST                                 0x0004
- #define OMAP4_PM_PWSTCTRL                              0x0000
- #define OMAP4_PM_PWSTST                                        0x0004
+So LDP will remain unusable until after the 2.6.38 merge window?
