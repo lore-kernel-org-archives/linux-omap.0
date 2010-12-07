@@ -1,54 +1,43 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: OMAP2+: PM/serial: hold console semaphore while OMAP UARTs are disabled
-Date: Tue, 07 Dec 2010 12:59:51 -0800
-Message-ID: <87sjy9l2ns.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.1011241646310.20215@utopia.booyaka.com>
-	<87oc9e5j4c.fsf@deeprootsystems.com>
-	<20101125005923.GE31536@atomide.com>
+Subject: Re: [PATCH] arm: plat-omap: counter_32k: Fix build error due to IS_ERR
+Date: Tue, 07 Dec 2010 13:04:56 -0800
+Message-ID: <87fwu9l2fb.fsf@deeprootsystems.com>
+References: <1291723777-27316-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:33821 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753849Ab0LGU75 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 15:59:57 -0500
-Received: by qwa26 with SMTP id 26so351951qwa.19
-        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 12:59:56 -0800 (PST)
-In-Reply-To: <20101125005923.GE31536@atomide.com> (Tony Lindgren's message of
-	"Wed, 24 Nov 2010 16:59:23 -0800")
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:38917 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754963Ab0LGVVp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 16:21:45 -0500
+Received: by yxt3 with SMTP id 3so269581yxt.19
+        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 13:21:44 -0800 (PST)
+In-Reply-To: <1291723777-27316-1-git-send-email-sourav.poddar@ti.com> (Sourav
+	Poddar's message of "Tue, 7 Dec 2010 17:39:37 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tom.leiming@gmail.com, pramod.gurav@ti.com, thomas.petazzoni@free-electrons.com, jean.pihet@newoldbits.com, govindraj.raja@ti.com
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Sourav Poddar <sourav.poddar@ti.com> writes:
 
-> * Kevin Hilman <khilman@deeprootsystems.com> [101124 16:32]:
->> Paul Walmsley <paul@pwsan.com> writes:
+> Fix the following build error by including linux/err.h
+> arch/arm/plat-omap/counter_32k.c: In function 'omap_init_clocksource_32k':
+> arch/arm/plat-omap/counter_32k.c:167: error: implicit declaration of
+>                                       function 'IS_ERR'
 >
-> <snip>
+> The above error is due to the following commit:
+> subject: arm: plat-omap: counter_32k: use IS_ERR() instead of NULL check
+> commit: 235fbace0334c846c21e902f330020122fc85955
 >
->> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
->> 
->> Very nice.  I've been exploring various solutions to this problem as
->> well, but this one is much cleaner.  Also, I hadn't discovered the 'try'
->> version of the console semaphore, so was running into recursive locking.
->> 
->> Anyways, tested on omap35xx: omap3evm (uart1/core console) and beagle
->> (uart3/per console) and omap34xx/n900 (uart3/per console) using both
->> retention-idle and off-idle.
+> Created on linux-omap-2.6 branch: omap-fixes
 >
-> Thanks, queuing this as fix for the -rc cycle.
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> Reviewed-by: Charulatha V <charu@ti.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
 
-FYI.. just found a regression caused by this patch.  It prevented
-suspend from ever happening since the console semaphore is already held
-during suspend.
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-Just posted a fix for this:
-
-Date: Tue, 7 Dec 2010 12:24:13 -0800
-Subject: [PATCH] OMAP2+: PM/serial: fix console semaphore acquire during suspend
-
+Just noticed this one too.
 
 Kevin
-
