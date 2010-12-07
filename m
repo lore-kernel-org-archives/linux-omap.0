@@ -1,58 +1,34 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: beagleboard-xm network with mainline?
-Date: Tue, 7 Dec 2010 11:17:18 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.1012071113320.10621@axis700.grange>
-References: <Pine.LNX.4.64.1012071042220.10621@axis700.grange>
- <20101207094924.GP2576@legolas.emea.dhcp.ti.com> <Pine.LNX.4.64.1012071054430.10621@axis700.grange>
- <20101207101223.GS2576@legolas.emea.dhcp.ti.com>
+From: "Luca Ceresoli" <luca@lucaceresoli.net>
+Subject: Re: UbiFS + HWECC(?) + BeagleBoard = fail
+Date: Tue,  7 Dec 2010 11:29:59 +0100
+Message-ID: <LD1ZTZ$A8E18B744A1EDB29645809E1CAA11B96@aruba.it>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:57255 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754211Ab0LGKRU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 05:17:20 -0500
-In-Reply-To: <20101207101223.GS2576@legolas.emea.dhcp.ti.com>
+Received: from smtpa1.aruba.it ([62.149.128.210]:49836 "HELO smtpw1.aruba.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754655Ab0LGKaE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 05:30:04 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: notasas@gmail.com
 
-On Tue, 7 Dec 2010, Felipe Balbi wrote:
+Luca Ceresoli wrote:
+> While I thank you for you proposed solution, I see it does not work here.
+> In fact I commented the #define CONFIG_MTD_NAND_OMAP_HWECC and left
+> MTD_NAND_OMAP_PREFETCH disabled as it previously was, and got compilation
+> errors:
 
-> Hi,
-> 
-> On Tue, Dec 07, 2010 at 10:56:45AM +0100, Guennadi Liakhovetski wrote:
-> > > On Tue, Dec 07, 2010 at 10:42:45AM +0100, Guennadi Liakhovetski wrote:
-> > > > I managed to bring a mainline 2.6.36 kinda kernel to run on my bbxm,
-> > > > Debian rootfs in mmcblk0p2, but I'm getting no connection - neither over
-> > > > the SMSC chip, nor over usb-device in gadget mode, nor can I power on
-> > > the
-> > > > on-board hub to plug in a usb-to-eth dongle. What's the catch? How do I
-> > > > configure the kernel to get any of those to work?
-> > > 
-> > > how about you try with current linux-omap HEAD ? Or linux-mainline HEAD ?
-> > 
-> > Sure, can try, but do you have a specific change in mind or is it just a
-> > general suggestion? Which interface should work then?
-> 
-> Just a general suggestion. Compile with omap2plus_defconfig. Should boot
-> fine AFAIK.
+Wrong, sorry. Your solution compiles and works. I had another change in that
+file that broke compilation.
 
-That's the one I used, right.
+Nevertheless, it's not clear to me whether the long-term direction is to
+switch to HWECC, and if it is expected to work in current builds, or if
+SWECC in here to stay.
 
-> Also, do you have the driver for the external hub + ethernet enabled ? I
-> think it's called sms9x or something similar.
+Thanks,
+Luca
 
-Yes for
 
-CONFIG_USB_NET_SMSC95XX=y
-
-but I don't see any config option for the hub?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
