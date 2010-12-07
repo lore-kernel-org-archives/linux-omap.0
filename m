@@ -1,53 +1,58 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [PATCH v2 1/3] ARM: omap: Enable low-level omap3 PM code to work withCONFIG_THUMB2_KERNEL
-Date: Tue, 7 Dec 2010 10:16:31 +0000
-Message-ID: <AANLkTikOSb5-wBSy_ZANVsHga7XmWPrwP=0Xs0eGOxb5@mail.gmail.com>
-References: <1291656937-24992-1-git-send-email-dave.martin@linaro.org>
-	<1291656937-24992-2-git-send-email-dave.martin@linaro.org>
-	<8ff74b57e40b64459978eefba8f4c9ca@mail.gmail.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: beagleboard-xm network with mainline?
+Date: Tue, 7 Dec 2010 11:17:18 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1012071113320.10621@axis700.grange>
+References: <Pine.LNX.4.64.1012071042220.10621@axis700.grange>
+ <20101207094924.GP2576@legolas.emea.dhcp.ti.com> <Pine.LNX.4.64.1012071054430.10621@axis700.grange>
+ <20101207101223.GS2576@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:49429 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754211Ab0LGKQc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 05:16:32 -0500
-Received: by iwn9 with SMTP id 9so1386239iwn.19
-        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 02:16:31 -0800 (PST)
-In-Reply-To: <8ff74b57e40b64459978eefba8f4c9ca@mail.gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:57255 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754211Ab0LGKRU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 05:17:20 -0500
+In-Reply-To: <20101207101223.GS2576@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Dec 7, 2010 at 6:31 AM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
-> Dave,
->> -----Original Message-----
->> From: linaro-dev-bounces@lists.linaro.org [mailto:linaro-dev-
->> bounces@lists.linaro.org] On Behalf Of Dave Martin
->> Sent: Monday, December 06, 2010 11:06 PM
->> To: linux-arm-kernel@lists.infradead.org
->> Cc: Tony Lindgren; Dave Martin; linux-omap@vger.kernel.org; linaro-
->> dev@lists.linaro.org
->> Subject: [PATCH v2 1/3] ARM: omap: Enable low-level omap3 PM code to
-> work
->> withCONFIG_THUMB2_KERNEL
->>
+On Tue, 7 Dec 2010, Felipe Balbi wrote:
 
-[...]
+> Hi,
+> 
+> On Tue, Dec 07, 2010 at 10:56:45AM +0100, Guennadi Liakhovetski wrote:
+> > > On Tue, Dec 07, 2010 at 10:42:45AM +0100, Guennadi Liakhovetski wrote:
+> > > > I managed to bring a mainline 2.6.36 kinda kernel to run on my bbxm,
+> > > > Debian rootfs in mmcblk0p2, but I'm getting no connection - neither over
+> > > > the SMSC chip, nor over usb-device in gadget mode, nor can I power on
+> > > the
+> > > > on-board hub to plug in a usb-to-eth dongle. What's the catch? How do I
+> > > > configure the kernel to get any of those to work?
+> > > 
+> > > how about you try with current linux-omap HEAD ? Or linux-mainline HEAD ?
+> > 
+> > Sure, can try, but do you have a specific change in mind or is it just a
+> > general suggestion? Which interface should work then?
+> 
+> Just a general suggestion. Compile with omap2plus_defconfig. Should boot
+> fine AFAIK.
 
->
-> No need to mention but this patch changes lot of things around
-> power management code. You said " Tested on: omap3 (Beagle xM A2)"
->
-> What did you test ? Is it just boot test ? For sure just boot
-> test is not enough for this patch and needs to test the PM.
+That's the one I used, right.
 
-That's a fair point--- yes, I've only tested boot / reboot / shutdown so far.
+> Also, do you have the driver for the external hub + ethernet enabled ? I
+> think it's called sms9x or something similar.
 
-If you have any thoughts about how to excercise the power management
-functionality more completely, I'd be happy to have a go...
+Yes for
 
-Cheers
----Dave
+CONFIG_USB_NET_SMSC95XX=y
+
+but I don't see any config option for the hub?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
