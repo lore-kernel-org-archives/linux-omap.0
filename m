@@ -1,70 +1,65 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] MFD: TWL/TPS: fix twl_probe section mismatch warning in
- mfd/twl-core.c
-Date: Mon, 6 Dec 2010 18:40:38 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012061839170.13430@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1012061734590.13430@utopia.booyaka.com> <AANLkTimXPFROMQ_fF4Od-jw3aDY0WZQgc=x14=VcFM3d@mail.gmail.com>
+Subject: [PATCH 06/14] OMAP4: powerdomain: Add pwrdm_clear_all_prev_pwrst
+Date: Mon, 06 Dec 2010 18:25:09 -0700
+Message-ID: <20101207012508.3708.67922.stgit@twilight.localdomain>
+References: <20101207012242.3708.45451.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1320055421-1291686038=:13430"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimXPFROMQ_fF4Od-jw3aDY0WZQgc=x14=VcFM3d@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bryan Wu <bryan.wu@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:41221 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753617Ab0LGBnq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 20:43:46 -0500
+In-Reply-To: <20101207012242.3708.45451.stgit@twilight.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
---155748971-1320055421-1291686038=:13430
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Like OMAP3, OMAP4430 ES2 has additional bitfields in PWRSTST register
+which help identify the previous power state entered by the
+powerdomain.  Add pwrdm_clear_all_prev_pwrst to the OMAP4 powerdomains
+implementation to support this.
 
-On Tue, 7 Dec 2010, Bryan Wu wrote:
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+[paul@pwsan.com: clarified commit message]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/powerdomain44xx.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-> On Tue, Dec 7, 2010 at 8:35 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> >
-> > Fix the following section mismatch warning when building omap2plus_defc=
-onfig:
-> >
-> > WARNING: vmlinux.o(.data+0x47d7c): Section mismatch in reference from t=
-he variable twl_driver to the function .init.text:twl_probe()
-> >
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> > Cc: Samuel Ortiz <sameo@linux.intel.com>
-> > ---
-> > =A0drivers/mfd/twl-core.c | =A0 =A02 +-
-> > =A01 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> > index 35275ba..615cf38 100644
-> > --- a/drivers/mfd/twl-core.c
-> > +++ b/drivers/mfd/twl-core.c
-> > @@ -969,7 +969,7 @@ static int twl_remove(struct i2c_client *client)
-> > =A0}
-> >
-> > =A0/* NOTE: =A0this driver only handles a single twl4030/tps659x0 chip =
-*/
-> > -static int __init
-> > +static int
->=20
-> I think we might change __init to __devinit.
->=20
-> > =A0twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
-> > =A0{
-> > =A0 =A0 =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 status;
-> > --
-
-That's fine with me.  Samuel et al, Bryan's already done a patch=20
-for this stuff:
-
-https://patchwork.kernel.org/patch/367011/
-
-so we should use that instead, if you're happy with it.  Samuel, maybe we=
-=20
-could get an ack from you on it?
+diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
+index 123a25f..2903c7c 100644
+--- a/arch/arm/mach-omap2/powerdomain44xx.c
++++ b/arch/arm/mach-omap2/powerdomain44xx.c
+@@ -55,6 +55,14 @@ static int omap4_pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
+ 	return 0;
+ }
+ 
++static int omap4_pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
++{
++	prm_rmw_mod_reg_bits(OMAP4430_LASTPOWERSTATEENTERED_MASK,
++				OMAP4430_LASTPOWERSTATEENTERED_MASK,
++				pwrdm->prcm_offs, OMAP4_PM_PWSTST);
++	return 0;
++}
++
+ static int omap4_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+ {
+ 	u32 v;
+@@ -155,6 +163,7 @@ struct pwrdm_ops omap4_pwrdm_operations = {
+ 	.pwrdm_read_pwrst	= omap4_pwrdm_read_pwrst,
+ 	.pwrdm_read_prev_pwrst	= omap4_pwrdm_read_prev_pwrst,
+ 	.pwrdm_set_lowpwrstchange	= omap4_pwrdm_set_lowpwrstchange,
++	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
+ 	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
+ 	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
+ 	.pwrdm_read_logic_retst	= omap4_pwrdm_read_logic_retst,
 
 
-- Paul
---155748971-1320055421-1291686038=:13430--
