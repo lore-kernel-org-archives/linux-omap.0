@@ -1,102 +1,96 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH v5 8/12] OMAP2+: dmtimer: convert to platform devices
-Date: Tue, 7 Dec 2010 11:16:19 +0530
-Message-ID: <AANLkTim4Kq2xA-RZ21HuX0Du2umzyJuGs4=mCufEuNc6@mail.gmail.com>
-References: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com> <1291679059-13419-9-git-send-email-tarun.kanti@ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCH v5 9/12] OMAP: dmtimer: platform driver
+Date: Tue, 7 Dec 2010 11:17:42 +0530
+Message-ID: <20101207054742.GA29773@GLPP-machine>
+References: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com>
+ <1291679059-13419-10-git-send-email-tarun.kanti@ti.com>
+ <20101206191018.GF4924@manju-desktop>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03736F506A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:59508 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751138Ab0LGFrA convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Dec 2010 00:47:00 -0500
-Received: by mail-iw0-f170.google.com with SMTP id 2so771154iwn.15
-        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 21:46:59 -0800 (PST)
-In-Reply-To: <1291679059-13419-9-git-send-email-tarun.kanti@ti.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:42242 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752598Ab0LGFrN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 00:47:13 -0500
+Received: by mail-gx0-f176.google.com with SMTP id 4so8308728gxk.7
+        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 21:47:13 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03736F506A@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
-Tarun,
+* DebBarma, Tarun Kanti <tarun.kanti@ti.com> [2010-12-07 11:02:26 +0530]:
 
-On Tue, Dec 7, 2010 at 05:14, Tarun Kanti DebBarma <tarun.kanti@ti.com>=
- wrote:
-> Add routines to converts dmtimers to platform devices. The device dat=
-a
-> is obtained from hwmod database of respective platform and is registe=
-red
-> to device model after successful binding to driver. It also provides
-> provision to access timers during early boot when pm_runtime framewor=
-k
-> is not completely up and running.
->
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> Reviewed-by: Cousson, Benoit <b-cousson@ti.com>
-> Reviewed-by: Varadarajan, Charulatha <charu@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/Makefile =A0| =A0 =A02 +-
-> =A0arch/arm/mach-omap2/dmtimer.c | =A0174 +++++++++++++++++++++++++++=
-++++++++++++++
-> =A02 files changed, 175 insertions(+), 1 deletions(-)
-> =A0create mode 100644 arch/arm/mach-omap2/dmtimer.c
->
+> > -----Original Message-----
+> > From: G, Manjunath Kondaiah
+> > Sent: Tuesday, December 07, 2010 12:40 AM
+> > To: DebBarma, Tarun Kanti
+> > Cc: linux-omap@vger.kernel.org; Gopinath, Thara
+> > Subject: Re: [PATCH v5 9/12] OMAP: dmtimer: platform driver
+> > 
+> > On Tue, Dec 07, 2010 at 05:14:16AM +0530, Tarun Kanti DebBarma wrote:
+> > > From: Thara Gopinath <thara@ti.com>
+> > >
+> > > Add dmtimer platform driver functions which include:
+> > > (1) platform driver initialization
+> > > (2) driver probe function
+> > > (3) driver remove function
+> > >
+> > > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > > Signed-off-by: Thara Gopinath <thara@ti.com>
+> > > Reviewed-by: Cousson, Benoit <b-cousson@ti.com>
 
-<<snip>>
+[...]
 
-> +/**
-> + * omap_timer_init - build and register timer device with an
-> + * associated timer hwmod
-> + * @oh: =A0 =A0 =A0 =A0timer hwmod pointer to be used to build timer=
- device
-> + * @user: =A0 =A0 =A0parameter that can be passed from calling hwmod=
- API
-> + *
-> + * Called by omap_hwmod_for_each_by_class to register each of the ti=
-mer
-> + * devices present in the system. The number of timer devices is kno=
-wn
-> + * by parsing through the hwmod database for a given class name. At =
-the
-> + * end of function call memory is allocated for timer device and it =
-is
-> + * registered to the framework ready to be proved by the driver.
-> + */
-> +static int __init omap_timer_init(struct omap_hwmod *oh, void *user)
-> +{
-> + =A0 =A0 =A0 int id;
-> + =A0 =A0 =A0 int ret =3D 0;
-> + =A0 =A0 =A0 char *name =3D "omap_timer";
-> + =A0 =A0 =A0 struct dmtimer_platform_data *pdata;
-> + =A0 =A0 =A0 struct omap_device *od;
-> +
-> + =A0 =A0 =A0 pr_debug("%s: %s\n", __func__, oh->name);
-> +
-> + =A0 =A0 =A0 pdata =3D kzalloc(sizeof(*pdata), GFP_KERNEL);
-> + =A0 =A0 =A0 if (!pdata) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: No memory for [%s]\n", __fu=
-nc__, oh->name);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 if (user)
+> > > +
+> > > +err_free_mem:
+> > > +	kfree(timer);
+> > > +
+> > > +err_release_ioregion:
+> > > +	release_mem_region(mem->start, resource_size(mem));
+> > > +
+> > > +err_free_pdev:
+> > You can also free pdata?
+> This pdata points to data within pdev created by omap_device_build.
+> But the pdata which was allocated locally is already freed
+> After omap_device_build() in omap_timer_init() in mach-omap.
 
-Check for the value of "user".
+You should also free memory allocated for pdata during omap_device_build
+since you no longer require pdata due to probe fail.
 
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->is_early_init =3D 1;
-> + =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->is_early_init =3D 0;
-> +
-> + =A0 =A0 =A0 /* hook clock set/get functions */
-> + =A0 =A0 =A0 pdata->set_timer_src =3D omap2_dm_timer_set_src;
-> +
+> 
+> > > +	platform_device_del(pdev);
+> > > +
+> > > +	return ret;
+> > > +}
+> > > +
+> > > +/**
+> > > + * omap_dm_timer_remove - cleanup a registered timer device
+> > > + * @pdev:	pointer to current timer platform device
+> > > + *
+> > > + * Called by driver framework whenever a timer device is unregistered.
+> > > + * In addition to freeing platform resources it also deletes the timer
+> > > + * entry from the local list.
+> > > + */
+> > > +static int __devexit omap_dm_timer_remove(struct platform_device *pdev)
+> > > +{
+> > > +	struct omap_dm_timer *timer, *tmp;
+> > > +	unsigned long flags;
+> > > +	int ret = -EINVAL;
+> > > +
+> > > +	spin_lock_irqsave(&dm_timer_lock, flags);
+> > > +	list_for_each_entry_safe(timer, tmp, &omap_timer_list, node) {
+> > > +		if (timer->pdev->id == pdev->id) {
+> > > +			platform_device_del(timer->pdev);
+> > > +			list_del(&timer->node);
+> > > +			kfree(timer);
+> > kfree(pdev->dev.platform_data);
+> Ok, this is supposed to be done as part of platform_device_del above.
 
-<<snip>>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No. platform_device_del will not free platform_data. You have use kfree for
+freeing pdata or platform_data.
+
+-Manjunath
