@@ -1,89 +1,59 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH v8 10/11] OMAP: GPIO: Implement GPIO as a platform device
-Date: Tue, 7 Dec 2010 12:38:08 +0530
-Message-ID: <AANLkTikPey17e6wTHJ2zq8N=r_pNKXV4YjVbTK5e+tYt@mail.gmail.com>
-References: <1290689318-10191-1-git-send-email-charu@ti.com>
- <1290689318-10191-11-git-send-email-charu@ti.com> <AANLkTin1rehDSfvEvjZJB8VZP8RrXsVKA8wH-WEODLTN@mail.gmail.com>
- <AANLkTinBAJmtn7=Nm75kEWrUxBOKFSi4Mf08mqn0W9X8@mail.gmail.com>
+From: MING ZHOU <a17711@motorola.com>
+Subject: [PATCH] Correct definition of register of OMAP4_RM_RSTST and OMAP4_RM_RSTTIME
+Date: Tue, 7 Dec 2010 15:34:17 +0800
+Message-ID: <AANLkTi=OdG2j2o+uZ+L_EpGKPTE8=fRBN8U60sJkqAhK@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:54695 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752687Ab0LGHIt convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Dec 2010 02:08:49 -0500
-Received: by mail-iw0-f171.google.com with SMTP id 35so634881iwn.2
-        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 23:08:48 -0800 (PST)
-In-Reply-To: <AANLkTinBAJmtn7=Nm75kEWrUxBOKFSi4Mf08mqn0W9X8@mail.gmail.com>
+Received: from exprod5og106.obsmtp.com ([64.18.0.182]:37308 "EHLO
+	exprod5og106.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754204Ab0LGI1B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 03:27:01 -0500
+Received: from il27vts03 (il27vts03.cig.mot.com [10.17.196.87])
+	by mdgate2.corp.mot.com (8.14.3/8.14.3) with SMTP id oB77WrM3010523
+	for <linux-omap@vger.kernel.org>; Tue, 7 Dec 2010 00:32:53 -0700 (MST)
+Received: from mail-ew0-f53.google.com (mail-ew0-f53.google.com [209.85.215.53])
+	by mdgate2.corp.mot.com (8.14.3/8.14.3) with ESMTP id oB77Wqvd010510
+	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=OK)
+	for <linux-omap@vger.kernel.org>; Tue, 7 Dec 2010 00:32:53 -0700 (MST)
+Received: by ewy6 with SMTP id 6so8428125ewy.12
+        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 23:34:18 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, p-basak2@ti.com, Rajendra Nayak <rnayak@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-On Tue, Dec 7, 2010 at 11:05, Varadarajan, Charulatha <charu@ti.com> wr=
-ote:
-> Cory,
->
-> On Tue, Dec 7, 2010 at 10:49, Cory Maccarrone <darkstar6262@gmail.com=
-> wrote:
->> On Thu, Nov 25, 2010 at 4:48 AM, Varadarajan, Charulatha <charu@ti.c=
-om> wrote:
->
-> <<snip>>
->
->>> @@ -1642,6 +1502,13 @@ static int gpio_debounce(struct gpio_chip *c=
-hip, unsigned offset,
->>> =A0 =A0 =A0 =A0unsigned long flags;
->>>
->>> =A0 =A0 =A0 =A0bank =3D container_of(chip, struct gpio_bank, chip);
->>> +
->>> + =A0 =A0 =A0 if (!bank->dbck) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->dbck =3D clk_get(bank->dev, "db=
-clk");
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(bank->dbck))
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(bank->dev, "C=
-ould not get gpio dbck\n");
->>> + =A0 =A0 =A0 }
->>> +
->>
->> I'm testing this on omap7xx, which doesn't have a dbclk. =A0Even wit=
-h
->> dbck_flag set to false, this code still runs, causing these messages
->> to show up:
->
-> Thanks for testing this series on OMAP7xx.
->
->>
->> =A0 =A0omap_gpio omap_gpio.5: Could not get gpio dbck
->> =A0 =A0omap_gpio omap_gpio.6: Could not get gpio dbck
->>
->> I think that 'if' should be:
->>
->> =A0 =A0if (bank->dbck_flag && !bank->dbck) {
->
-> You are right. Will send a patch now.
->
->>
->> Also, see my comments in patch 4 - OMAP7xx: GPIO: Introduce support
->> for GPIO init, as there's dbck_flag entries there that are needed fo=
-r
->> omap7xx. =A0Otherwise, seems to work well.
+Since we need to reconfigure Reset time for OMAP4, we found the OMAP4
+register definition for reset time is wrong according to spec of
+OMAP4. And we verified this by reading default value of register. We
+found the offset definition of Reset time and Reset Test register
+should be switched. After correcting this bug, we verified by changing
+the value of reset time register, the pulse generated for reset is
+also changed as expected on scope.
 
-I noticed that gpio_debounce() calls _set_gpio_debounce() which is
-handling only OMAP2+.
-Hence I guess this should not be called for OMAP7xx at all. Now sure
-how it was working earlier.
+>From 9a9c98c2f4008e5d8f2f5da1101e3bfe222a48ed Mon Sep 17 00:00:00 2001
+From: Zhou Ming <a17711@motorola.com>
+Date: Tue, 7 Dec 2010 10:00:59 -0500
+Subject: [PATCH] Correct definition of register of OMAP4_RM_RSTST and
+OMAP4_RM_RSTTIME
 
-Anyways I can send the patch to fix the above mentioned warning.
-Handling debounce feature
-for OMAP1 needs to be fixed. I do not have a OMAP1 board here to fix
-and verify the same.
+According to test result, we found the offset definition of OMAP4_RM_RSTST
+and OMAP4_RM_RSTIME should be switched.
+---
+ arch/arm/mach-omap2/prm.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 7be040b..23b4be2 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -222,8 +222,8 @@
+
+ /* Omap4 specific registers */
+ #define OMAP4_RM_RSTCTRL                               0x0000
+-#define OMAP4_RM_RSTTIME                               0x0004
+-#define OMAP4_RM_RSTST                                 0x0008
++#define OMAP4_RM_RSTTIME                               0x0008
++#define OMAP4_RM_RSTST                                 0x0004
+ #define OMAP4_PM_PWSTCTRL                              0x0000
+ #define OMAP4_PM_PWSTST                                        0x0004
