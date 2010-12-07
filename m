@@ -1,178 +1,358 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 00/14] OMAP: PRCM/powerdomain/clockdomain patches for 2.6.38,
-	part one
-Date: Mon, 06 Dec 2010 18:24:58 -0700
-Message-ID: <20101207012242.3708.45451.stgit@twilight.localdomain>
+Subject: [PATCH 08/14] OMAP2+: clockdomains: move clockdomain static data to
+	.c files
+Date: Mon, 06 Dec 2010 18:25:11 -0700
+Message-ID: <20101207012510.3708.52087.stgit@twilight.localdomain>
+References: <20101207012242.3708.45451.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41194 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:41228 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754225Ab0LGBn4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 20:43:56 -0500
+	with ESMTP id S1754395Ab0LGBoF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 20:44:05 -0500
+In-Reply-To: <20101207012242.3708.45451.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch series, intended for 2.6.38:
+Static data should be declared in .c files, not .h files.  It should be
+possible to #include .h files at any point without creating multiple
+copies of the same data.
 
-- includes Rajendra's powerdomain changes to add OMAP4 support;
+We converted the clock data to .c files some time ago.  This patch does
+the same for the clockdomain data.
 
-- allocates static powerdomain and clockdomain data in C files
-  rather than header files (long overdue);
-
-- begins the process of cleaning up mach-omap2/prcm.c;
-
-- splits the OMAP4 PRCM header files into per-hwmod or per-PRCM partition
-  files;
-
-- renames the OMAP4 PRCM *_MOD macros to *_INST so the names actually have
-  some meaning in regards to the hardware;
-
-- moves the OMAP2/3-specific PRCM functions into OMAP2/3-specific files, in
-  preparation for creating OMAP4-specific versions;
-
-- moves the CM context save/restore file to CM-specific code, and
-  removes the PRM context save/restore code - which should save a few
-  microseconds in the off-mode save/restore path.
-
-The series applies on top of v2.6.37-rc4.  It is available via git from
-git://git.pwsan.com/linux-2.6 in the branch 'pwrdm_prcm_a_2.6.38'.
-
-Kevin, I'd appreciate review and acks, if appropriate, on the patches
-that touch code that you maintain.  Rajendra, Santosh, I've made some
-minor changes to your patches; if you have the chance you might want
-to take a look and comment if necessary.
-
-Boot-tested on N800, OMAP35xx Beagle, and OMAP4430ES2 Panda.
-
-A followup series that builds on this one will be sent tomorrow.
-
-
-- Paul
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/Makefile                     |   10 +++-
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   58 +++-----------=
+--------
+ arch/arm/mach-omap2/clockdomains44xx_data.c      |   42 ++++++++++++++=
+--
+ arch/arm/mach-omap2/io.c                         |   10 ++--
+ arch/arm/plat-omap/include/plat/clockdomain.h    |   11 +++-
+ 5 files changed, 66 insertions(+), 65 deletions(-)
+ rename arch/arm/mach-omap2/{clockdomains.h =3D> clockdomains2xxx_3xxx_=
+data.c} (95%)
+ rename arch/arm/mach-omap2/{clockdomains44xx.h =3D> clockdomains44xx_d=
+ata.c} (90%)
 
-pwrdm_prcm_a_2.6.38
-   text	   data	    bss	    dec	    hex	filename
-5707592	 473984	5608864	11790440	 b3e868	vmlinux.orig
-5709988	 473952	5608800	11792740	 b3f164	vmlinux.patched
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefil=
+e
+index 609fa78..78a2a5d 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -10,8 +10,7 @@ omap-2-3-common				=3D irq.o sdrc.o prm2xxx_3xxx.o
+ hwmod-common				=3D omap_hwmod.o \
+ 					  omap_hwmod_common_data.o
+ clock-common				=3D clock.o clock_common_data.o \
+-					  clockdomain.o clkt_dpll.o \
+-					  clkt_clksel.o
++					  clkt_dpll.o clkt_clksel.o
+=20
+ obj-$(CONFIG_ARCH_OMAP2) +=3D $(omap-2-3-common) $(hwmod-common)
+ obj-$(CONFIG_ARCH_OMAP3) +=3D $(omap-2-3-common) $(hwmod-common)
+@@ -82,6 +81,13 @@ obj-$(CONFIG_ARCH_OMAP4)		+=3D $(powerdomain-common)=
+ \
+ 					   powerdomain44xx.o \
+ 					   powerdomains44xx_data.o
+=20
++# PRCM clockdomain control
++obj-$(CONFIG_ARCH_OMAP2)		+=3D clockdomain.o \
++					   clockdomains2xxx_3xxx_data.o
++obj-$(CONFIG_ARCH_OMAP3)		+=3D clockdomain.o \
++					   clockdomains2xxx_3xxx_data.o
++obj-$(CONFIG_ARCH_OMAP4)		+=3D clockdomain.o \
++					   clockdomains44xx_data.o
+ # Clock framework
+ obj-$(CONFIG_ARCH_OMAP2)		+=3D $(clock-common) clock2xxx.o \
+ 					   clkt2xxx_sys.o \
+diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/c=
+lockdomains2xxx_3xxx_data.c
+similarity index 95%
+rename from arch/arm/mach-omap2/clockdomains.h
+rename to arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+index 2a3b10a..8dadf75 100644
+--- a/arch/arm/mach-omap2/clockdomains.h
++++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+@@ -4,7 +4,7 @@
+  * Copyright (C) 2008-2009 Texas Instruments, Inc.
+  * Copyright (C) 2008-2010 Nokia Corporation
+  *
+- * Written by Paul Walmsley and Jouni H=C3=B6gander
++ * Paul Walmsley, Jouni H=C3=B6gander
+  *
+  * This file contains clockdomains and clockdomain wakeup/sleep
+  * dependencies for the OMAP2/3 chips.  Some notes:
+@@ -32,8 +32,8 @@
+  *    from the Power domain framework
+  */
+=20
+-#ifndef __ARCH_ARM_MACH_OMAP2_CLOCKDOMAINS_H
+-#define __ARCH_ARM_MACH_OMAP2_CLOCKDOMAINS_H
++#include <linux/kernel.h>
++#include <linux/io.h>
+=20
+ #include <plat/clockdomain.h>
+ #include "cm.h"
+@@ -89,8 +89,6 @@ static struct clkdm_dep gfx_sgx_wkdeps[] =3D {
+=20
+ /* 24XX-specific possible dependencies */
+=20
+-#ifdef CONFIG_ARCH_OMAP2
+-
+ /* Wakeup dependency source arrays */
+=20
+ /* 2420/2430 PM_WKDEP_DSP: CORE, MPU, WKUP */
+@@ -170,8 +168,6 @@ static struct clkdm_dep core_24xx_wkdeps[] =3D {
+ 	{ NULL },
+ };
+=20
+-#endif
+-
+=20
+ /* 2430-specific possible wakeup dependencies */
+=20
+@@ -430,8 +426,6 @@ static struct clkdm_dep gfx_sgx_sleepdeps[] =3D {
+  * sys_clkout/sys_clkout2.
+  */
+=20
+-#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+-
+ /* This is an implicit clockdomain - it is never defined as such in TR=
+M */
+ static struct clockdomain wkup_clkdm =3D {
+ 	.name		=3D "wkup_clkdm",
+@@ -452,8 +446,6 @@ static struct clockdomain cm_clkdm =3D {
+ 	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
+ };
+=20
+-#endif
+-
+ /*
+  * 2420-only clockdomains
+  */
+@@ -836,8 +828,6 @@ static struct clockdomain dpll5_clkdm =3D {
+=20
+ #endif   /* CONFIG_ARCH_OMAP3 */
+=20
+-#include "clockdomains44xx.h"
+-
+ /*
+  * Clockdomain hwsup dependencies (OMAP3 only)
+  */
+@@ -856,17 +846,10 @@ static struct clkdm_autodep clkdm_autodeps[] =3D =
+{
+ 	}
+ };
+=20
+-/*
+- * List of clockdomain pointers per platform
+- */
+-
+-static struct clockdomain *clockdomains_omap[] =3D {
+-
+-#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
++static struct clockdomain *clockdomains_omap2[] __initdata =3D {
+ 	&wkup_clkdm,
+ 	&cm_clkdm,
+ 	&prm_clkdm,
+-#endif
+=20
+ #ifdef CONFIG_ARCH_OMAP2420
+ 	&mpu_2420_clkdm,
+@@ -908,35 +891,10 @@ static struct clockdomain *clockdomains_omap[] =3D=
+ {
+ 	&dpll4_clkdm,
+ 	&dpll5_clkdm,
+ #endif
+-
+-#ifdef CONFIG_ARCH_OMAP4
+-	&l4_cefuse_44xx_clkdm,
+-	&l4_cfg_44xx_clkdm,
+-	&tesla_44xx_clkdm,
+-	&l3_gfx_44xx_clkdm,
+-	&ivahd_44xx_clkdm,
+-	&l4_secure_44xx_clkdm,
+-	&l4_per_44xx_clkdm,
+-	&abe_44xx_clkdm,
+-	&l3_instr_44xx_clkdm,
+-	&l3_init_44xx_clkdm,
+-	&mpuss_44xx_clkdm,
+-	&mpu0_44xx_clkdm,
+-	&mpu1_44xx_clkdm,
+-	&l3_emif_44xx_clkdm,
+-	&l4_ao_44xx_clkdm,
+-	&ducati_44xx_clkdm,
+-	&l3_2_44xx_clkdm,
+-	&l3_1_44xx_clkdm,
+-	&l3_d2d_44xx_clkdm,
+-	&iss_44xx_clkdm,
+-	&l3_dss_44xx_clkdm,
+-	&l4_wkup_44xx_clkdm,
+-	&emu_sys_44xx_clkdm,
+-	&l3_dma_44xx_clkdm,
+-#endif
+-
+ 	NULL,
+ };
+=20
+-#endif
++void __init omap2_clockdomains_init(void)
++{
++	clkdm_init(clockdomains_omap2, clkdm_autodeps);
++}
+diff --git a/arch/arm/mach-omap2/clockdomains44xx.h b/arch/arm/mach-oma=
+p2/clockdomains44xx_data.c
+similarity index 90%
+rename from arch/arm/mach-omap2/clockdomains44xx.h
+rename to arch/arm/mach-omap2/clockdomains44xx_data.c
+index 7e5ba0f..c847a8b 100644
+--- a/arch/arm/mach-omap2/clockdomains44xx.h
++++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+@@ -23,12 +23,15 @@
+  * -> Populate the Sleep/Wakeup dependencies for the domains
+  */
+=20
+-#ifndef __ARCH_ARM_MACH_OMAP2_CLOCKDOMAINS44XX_H
+-#define __ARCH_ARM_MACH_OMAP2_CLOCKDOMAINS44XX_H
++#include <linux/kernel.h>
++#include <linux/io.h>
+=20
+ #include <plat/clockdomain.h>
+=20
+-#if defined(CONFIG_ARCH_OMAP4)
++#include "cm44xx.h"
++#include "prm44xx.h"
++#include "cm-regbits-44xx.h"
++#include "prm-regbits-44xx.h"
+=20
+ static struct clockdomain l4_cefuse_44xx_clkdm =3D {
+ 	.name		  =3D "l4_cefuse_clkdm",
+@@ -245,6 +248,35 @@ static struct clockdomain l3_dma_44xx_clkdm =3D {
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+=20
+-#endif
++static struct clockdomain *clockdomains_omap44xx[] __initdata =3D {
++	&l4_cefuse_44xx_clkdm,
++	&l4_cfg_44xx_clkdm,
++	&tesla_44xx_clkdm,
++	&l3_gfx_44xx_clkdm,
++	&ivahd_44xx_clkdm,
++	&l4_secure_44xx_clkdm,
++	&l4_per_44xx_clkdm,
++	&abe_44xx_clkdm,
++	&l3_instr_44xx_clkdm,
++	&l3_init_44xx_clkdm,
++	&mpuss_44xx_clkdm,
++	&mpu0_44xx_clkdm,
++	&mpu1_44xx_clkdm,
++	&l3_emif_44xx_clkdm,
++	&l4_ao_44xx_clkdm,
++	&ducati_44xx_clkdm,
++	&l3_2_44xx_clkdm,
++	&l3_1_44xx_clkdm,
++	&l3_d2d_44xx_clkdm,
++	&iss_44xx_clkdm,
++	&l3_dss_44xx_clkdm,
++	&l4_wkup_44xx_clkdm,
++	&emu_sys_44xx_clkdm,
++	&l3_dma_44xx_clkdm,
++	NULL,
++};
+=20
+-#endif
++void __init omap44xx_clockdomains_init(void)
++{
++	clkdm_init(clockdomains_omap44xx, NULL);
++}
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 6336044..d05638ac 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -42,8 +42,6 @@
+ #include <plat/powerdomain.h>
+=20
+ #include <plat/clockdomain.h>
+-#include "clockdomains.h"
+-
+ #include <plat/omap_hwmod.h>
+=20
+ /*
+@@ -317,19 +315,19 @@ void __init omap2_init_common_hw(struct omap_sdrc=
+_params *sdrc_cs0,
+=20
+ 	if (cpu_is_omap242x()) {
+ 		omap2xxx_powerdomains_init();
+-		clkdm_init(clockdomains_omap, clkdm_autodeps);
++		omap2_clockdomains_init();
+ 		omap2420_hwmod_init();
+ 	} else if (cpu_is_omap243x()) {
+ 		omap2xxx_powerdomains_init();
+-		clkdm_init(clockdomains_omap, clkdm_autodeps);
++		omap2_clockdomains_init();
+ 		omap2430_hwmod_init();
+ 	} else if (cpu_is_omap34xx()) {
+ 		omap3xxx_powerdomains_init();
+-		clkdm_init(clockdomains_omap, clkdm_autodeps);
++		omap2_clockdomains_init();
+ 		omap3xxx_hwmod_init();
+ 	} else if (cpu_is_omap44xx()) {
+ 		omap44xx_powerdomains_init();
+-		clkdm_init(clockdomains_omap, clkdm_autodeps);
++		omap44xx_clockdomains_init();
+ 		omap44xx_hwmod_init();
+ 	}
+=20
+diff --git a/arch/arm/plat-omap/include/plat/clockdomain.h b/arch/arm/p=
+lat-omap/include/plat/clockdomain.h
+index ba0a6c0..a5f8579 100644
+--- a/arch/arm/plat-omap/include/plat/clockdomain.h
++++ b/arch/arm/plat-omap/include/plat/clockdomain.h
+@@ -4,18 +4,22 @@
+  * OMAP2/3 clockdomain framework functions
+  *
+  * Copyright (C) 2008 Texas Instruments, Inc.
+- * Copyright (C) 2008-2009 Nokia Corporation
++ * Copyright (C) 2008-2010 Nokia Corporation
+  *
+- * Written by Paul Walmsley
++ * Paul Walmsley
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
++ *
++ * XXX This should be moved to mach-omap2/ at the earliest opportunity=
+=2E
+  */
+=20
+ #ifndef __ASM_ARM_ARCH_OMAP_CLOCKDOMAIN_H
+ #define __ASM_ARM_ARCH_OMAP_CLOCKDOMAIN_H
+=20
++#include <linux/init.h>
++
+ #include <plat/powerdomain.h>
+ #include <plat/clock.h>
+ #include <plat/cpu.h>
+@@ -138,4 +142,7 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm);
+ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)=
+;
+ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk=
+);
+=20
++extern void __init omap2_clockdomains_init(void);
++extern void __init omap44xx_clockdomains_init(void);
++
+ #endif
 
-Paul Walmsley (8):
-      OMAP2+: powerdomains: move powerdomain static data to .c files
-      OMAP2+: clockdomains: move clockdomain static data to .c files
-      OMAP3: control/PRCM: add omap3_ctrl_write_boot_mode()
-      OMAP3: control/PRCM: move CONTROL_PADCONF_SYS_NIRQ save/restore to SCM code
-      OMAP4: PRCM: reorganize existing OMAP4 PRCM header files
-      OMAP4: PRCM: rename _MOD macros to _INST
-      OMAP2/3: PRCM: split OMAP2/3-specific PRCM code into OMAP2/3-specific files
-      OMAP3: PRM/CM: separate CM context save/restore; remove PRM context save/restore
 
-Rajendra Nayak (5):
-      OMAP: powerdomain: Move static allocations from powerdomains.h to a .c file
-      OMAP: powerdomain: Infrastructure to put arch specific code
-      OMAP: powerdomain: Arch specific funcs for state control
-      OMAP: powerdomain: Arch specific funcs for logic control
-      OMAP: powerdomain: Arch specific funcs for mem control
-
-Santosh Shilimkar (1):
-      OMAP4: powerdomain: Add pwrdm_clear_all_prev_pwrst
-
-
- arch/arm/mach-omap2/Makefile                     |   44 +
- arch/arm/mach-omap2/clkt2xxx_apll.c              |    2 
- arch/arm/mach-omap2/clkt2xxx_dpllcore.c          |    2 
- arch/arm/mach-omap2/clkt2xxx_osc.c               |    2 
- arch/arm/mach-omap2/clkt2xxx_sys.c               |    2 
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c     |    2 
- arch/arm/mach-omap2/clkt_dpll.c                  |    1 
- arch/arm/mach-omap2/clock.c                      |    4 
- arch/arm/mach-omap2/clock2420_data.c             |    4 
- arch/arm/mach-omap2/clock2430.c                  |    2 
- arch/arm/mach-omap2/clock2430_data.c             |    4 
- arch/arm/mach-omap2/clock34xx.c                  |    2 
- arch/arm/mach-omap2/clock3517.c                  |    2 
- arch/arm/mach-omap2/clock3xxx.c                  |    4 
- arch/arm/mach-omap2/clock3xxx_data.c             |    4 
- arch/arm/mach-omap2/clock44xx_data.c             |   10 
- arch/arm/mach-omap2/clockdomain.c                |    5 
- arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |   67 --
- arch/arm/mach-omap2/clockdomains44xx_data.c      |   46 +
- arch/arm/mach-omap2/cm-regbits-24xx.h            |    2 
- arch/arm/mach-omap2/cm-regbits-34xx.h            |    2 
- arch/arm/mach-omap2/cm-regbits-44xx.h            |    3 
- arch/arm/mach-omap2/cm.c                         |   68 --
- arch/arm/mach-omap2/cm.h                         |  137 ----
- arch/arm/mach-omap2/cm1_44xx.h                   |  251 +++++++
- arch/arm/mach-omap2/cm2_44xx.h                   |  648 +++++++------------
- arch/arm/mach-omap2/cm2xxx_3xxx.c                |  393 ++++++++++++
- arch/arm/mach-omap2/cm2xxx_3xxx.h                |   70 +-
- arch/arm/mach-omap2/cm44xx.h                     |  668 --------------------
- arch/arm/mach-omap2/cm4xxx.c                     |    2 
- arch/arm/mach-omap2/control.c                    |   40 +
- arch/arm/mach-omap2/control.h                    |    1 
- arch/arm/mach-omap2/dpll3xxx.c                   |    4 
- arch/arm/mach-omap2/dsp.c                        |    9 
- arch/arm/mach-omap2/io.c                         |   22 -
- arch/arm/mach-omap2/omap_hwmod.c                 |    6 
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c       |    4 
- arch/arm/mach-omap2/pm-debug.c                   |    4 
- arch/arm/mach-omap2/pm24xx.c                     |    4 
- arch/arm/mach-omap2/pm34xx.c                     |    8 
- arch/arm/mach-omap2/powerdomain-common.c         |  111 +++
- arch/arm/mach-omap2/powerdomain.c                |  400 +++---------
- arch/arm/mach-omap2/powerdomain2xxx_3xxx.c       |  232 +++++++
- arch/arm/mach-omap2/powerdomain44xx.c            |  177 +++++
- arch/arm/mach-omap2/powerdomains.h               |  151 ----
- arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c |   81 ++
- arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h |   22 +
- arch/arm/mach-omap2/powerdomains2xxx_data.c      |   47 +
- arch/arm/mach-omap2/powerdomains3xxx_data.c      |   47 +
- arch/arm/mach-omap2/powerdomains44xx_data.c      |   70 +-
- arch/arm/mach-omap2/prcm-common.h                |   85 ---
- arch/arm/mach-omap2/prcm.c                       |  481 --------------
- arch/arm/mach-omap2/prcm_mpu44xx.h               |   91 +++
- arch/arm/mach-omap2/prm-regbits-24xx.h           |    2 
- arch/arm/mach-omap2/prm-regbits-34xx.h           |    8 
- arch/arm/mach-omap2/prm-regbits-44xx.h           |    2 
- arch/arm/mach-omap2/prm.h                        |  369 -----------
- arch/arm/mach-omap2/prm2xxx_3xxx.c               |   52 +-
- arch/arm/mach-omap2/prm2xxx_3xxx.h               |  116 +--
- arch/arm/mach-omap2/prm44xx.c                    |    2 
- arch/arm/mach-omap2/prm44xx.h                    |  743 +++++++++++-----------
- arch/arm/mach-omap2/scrm44xx.h                   |   32 +
- arch/arm/mach-omap2/sdrc.c                       |    2 
- arch/arm/mach-omap2/sdrc2xxx.c                   |    2 
- arch/arm/mach-omap2/serial.c                     |    4 
- arch/arm/mach-omap2/sleep34xx.S                  |    4 
- arch/arm/mach-omap2/sram242x.S                   |    4 
- arch/arm/mach-omap2/sram243x.S                   |    4 
- arch/arm/mach-omap2/sram34xx.S                   |    2 
- arch/arm/plat-omap/include/plat/clockdomain.h    |   11 
- arch/arm/plat-omap/include/plat/common.h         |    2 
- arch/arm/plat-omap/include/plat/powerdomain.h    |   57 ++
- arch/arm/plat-omap/include/plat/prcm.h           |   10 
- arch/arm/plat-omap/mcbsp.c                       |    2 
- arch/arm/plat-omap/sram.c                        |    5 
- 75 files changed, 2663 insertions(+), 3322 deletions(-)
- rename arch/arm/mach-omap2/{clockdomains.h => clockdomains2xxx_3xxx_data.c} (95%)
- rename arch/arm/mach-omap2/{clockdomains44xx.h => clockdomains44xx_data.c} (90%)
- delete mode 100644 arch/arm/mach-omap2/cm.c
- create mode 100644 arch/arm/mach-omap2/cm1_44xx.h
- copy arch/arm/mach-omap2/{cm44xx.h => cm2_44xx.h} (53%)
- create mode 100644 arch/arm/mach-omap2/cm2xxx_3xxx.c
- copy arch/arm/mach-omap2/{cm.h => cm2xxx_3xxx.h} (68%)
- create mode 100644 arch/arm/mach-omap2/powerdomain-common.c
- create mode 100644 arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
- create mode 100644 arch/arm/mach-omap2/powerdomain44xx.c
- create mode 100644 arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
- create mode 100644 arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h
- rename arch/arm/mach-omap2/{powerdomains24xx.h => powerdomains2xxx_data.c} (76%)
- rename arch/arm/mach-omap2/{powerdomains34xx.h => powerdomains3xxx_data.c} (89%)
- rename arch/arm/mach-omap2/{powerdomains44xx.h => powerdomains44xx_data.c} (85%)
- create mode 100644 arch/arm/mach-omap2/prcm_mpu44xx.h
- copy arch/arm/mach-omap2/{prm.h => prm2xxx_3xxx.h} (82%)
- create mode 100644 arch/arm/mach-omap2/scrm44xx.h
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
