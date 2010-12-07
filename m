@@ -1,254 +1,165 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/2] AM35x: musb: fix compilation error
-Date: Tue, 7 Dec 2010 19:25:12 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404BCF8771E@dbde02.ent.ti.com>
-References: <20101201084100.GC2796@legolas.emea.dhcp.ti.com>
- <19F8576C6E063C45BE387C64729E739404BCE39717@dbde02.ent.ti.com>
- <1291231942.15533.32.camel@eowin>
- <19F8576C6E063C45BE387C64729E739404BCE398D7@dbde02.ent.ti.com>
- <20101202082904.GH5429@legolas.emea.dhcp.ti.com>
- <19F8576C6E063C45BE387C64729E739404BCE39A7E@dbde02.ent.ti.com>
- <20101203124317.GB2633@legolas.emea.dhcp.ti.com>
- <19F8576C6E063C45BE387C64729E739404BCE39E0D@dbde02.ent.ti.com>
- <20101206112003.GA17432@legolas.emea.dhcp.ti.com>
- <19F8576C6E063C45BE387C64729E739404BCE3A1B4@dbde02.ent.ti.com>
- <20101206121812.GC3693@legolas.emea.dhcp.ti.com>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH v2 1/3] ARM: omap: Enable low-level omap3 PM code to work withCONFIG_THUMB2_KERNEL
+Date: Tue, 7 Dec 2010 14:53:56 +0000
+Message-ID: <AANLkTi=7MXKUwjyPgDBO9XV-CZw7RNOmWKj0JP_kB9aC@mail.gmail.com>
+References: <1291656937-24992-1-git-send-email-dave.martin@linaro.org>
+	<1291656937-24992-2-git-send-email-dave.martin@linaro.org>
+	<8ff74b57e40b64459978eefba8f4c9ca@mail.gmail.com>
+	<AANLkTikOSb5-wBSy_ZANVsHga7XmWPrwP=0Xs0eGOxb5@mail.gmail.com>
+	<AANLkTimPiySTjzTw6owG8GWPv2OwoNQ=wyV4kdvP9EZu@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_19F8576C6E063C45BE387C64729E739404BCF8771Edbde02enttico_"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101206121812.GC3693-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:43770 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753032Ab0LGOx5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 09:53:57 -0500
+Received: by iwn9 with SMTP id 9so1646861iwn.19
+        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 06:53:57 -0800 (PST)
+In-Reply-To: <AANLkTimPiySTjzTw6owG8GWPv2OwoNQ=wyV4kdvP9EZu@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
---_002_19F8576C6E063C45BE387C64729E739404BCF8771Edbde02enttico_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org
 
 Hi,
-> >> Is AM35x that different ? Can't you just write to MUSB_INTRRX
-> >> MUSB_INTRTX and MUSB_INTRUSB ??
-> >Writing to MUSB_INTRRX/TX/USB wouldn't help. We have to clear interrupt
-> >Bit in control register INTR_LVL_CLR.
->=20
-> I see, thanks for the info :-)
 
-Felipe,
+On Tue, Dec 7, 2010 at 11:59 AM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
+> Hi Dave,
+>
+> On Tue, Dec 7, 2010 at 11:16 AM, Dave Martin <dave.martin@linaro.org> wrote:
+>> On Tue, Dec 7, 2010 at 6:31 AM, Santosh Shilimkar
+>> <santosh.shilimkar@ti.com> wrote:
+>>> Dave,
+>>>> -----Original Message-----
+>>>> From: linaro-dev-bounces@lists.linaro.org [mailto:linaro-dev-
+>>>> bounces@lists.linaro.org] On Behalf Of Dave Martin
+>>>> Sent: Monday, December 06, 2010 11:06 PM
+>>>> To: linux-arm-kernel@lists.infradead.org
+>>>> Cc: Tony Lindgren; Dave Martin; linux-omap@vger.kernel.org; linaro-
+>>>> dev@lists.linaro.org
+>>>> Subject: [PATCH v2 1/3] ARM: omap: Enable low-level omap3 PM code to
+>>> work
+>>>> withCONFIG_THUMB2_KERNEL
+>>>>
+>>
+>> [...]
+>>
+>>>
+>>> No need to mention but this patch changes lot of things around
+>>> power management code. You said " Tested on: omap3 (Beagle xM A2)"
+>>>
+>>> What did you test ? Is it just boot test ? For sure just boot
+>>> test is not enough for this patch and needs to test the PM.
+>>
+>> That's a fair point--- yes, I've only tested boot / reboot / shutdown so far.
+>>
+> The ASM idle code is being reworked right now, which means the T2
+> support will need to be reworked on top of the patches. Cf. [1] and
+> [2].
+[...]
+On Tue, Dec 7, 2010 at 12:59 PM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
+[...]
+> For your information, the on-going changes are:
+> - run (most of the) code from the DDR instead of the internal SRAM.
+> - convert the ASM idle code to C-code,
+>
+> I am working on getting those changes submitted, it should be done this week.
+>
+> Unfortunately those changes have implications on your changes for T2.
+> As far as I understood converting the code to C-code should solve the
+> T2 problem as well. What do you think?
+>
+> In any case I will let you know. Could you test the changes when they
+> are available?
+[...]
 
-I have recreated this patch (attached) on top of your patch
-set and AM35x is working.
+In general, converting the code to C will solve a lot of potential
+problems.  If you don't copy the code, that also simplifies matters.
 
-Thanks,
-Ajay
->=20
-> --
-> balbi
+Note that converting to C doesn't mean that code which attempts to
+copy function bodies will work: you still need to handle the fact that
+if f() is a C function symbol, then the value of the symbol f is
+actually the function's base address + 1.  See my changes in sram.c,
+pm34xx.c etc.
 
---_002_19F8576C6E063C45BE387C64729E739404BCF8771Edbde02enttico_
-Content-Type: application/octet-stream;
-	name="0001-musb-am35x-fix-compile-error-due-to-control-apis.patch"
-Content-Description: 0001-musb-am35x-fix-compile-error-due-to-control-apis.patch
-Content-Disposition: attachment;
-	filename="0001-musb-am35x-fix-compile-error-due-to-control-apis.patch";
-	size=10742; creation-date="Tue, 07 Dec 2010 19:23:37 GMT";
-	modification-date="Tue, 07 Dec 2010 19:23:37 GMT"
-Content-Transfer-Encoding: base64
+If there are still bits of ARM code (such as the resume re-entry
+point?) some care will still be needed there.
 
-RnJvbSA5MjA3MjM4NGUyNTUyMjk4NjQ2NDYwOGNiZDgwYzRiYzZkNWZiN2Q2IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBamF5IEt1bWFyIEd1cHRhIDxhamF5Lmd1cHRhQHRpLmNvbT4K
-RGF0ZTogVHVlLCA3IERlYyAyMDEwIDE4OjU3OjQ1ICswNTMwClN1YmplY3Q6IFtQQVRDSF0gbXVz
-YjogYW0zNXg6IGZpeCBjb21waWxlIGVycm9yIGR1ZSB0byBjb250cm9sIGFwaXMKCkFzIHRoZSBj
-b250cm9sLmggaGF2ZSBiZWVuIG1vdmVkIHRvIG5ldyBsb2NhdGlvbiBhbmQgaXQncwp1c2VzIGFy
-ZSBub3QgYWxsb3dlZCB0byBkcml2ZXJzIGRpcmVjdGx5IHNvIG1vdmluZyB0aGUgcGh5CmNvbnRy
-b2wsIGludGVycnVwdCBjbGVhciBhbmQgcmVzZXQgZnVuY3Rpb25hbGl0eSB0byBib2FyZApmaWxl
-cy4KClNpZ25lZC1vZmYtYnk6IEFqYXkgS3VtYXIgR3VwdGEgPGFqYXkuZ3VwdGFAdGkuY29tPgot
-LS0KIGFyY2gvYXJtL21hY2gtb21hcDIvdXNiLW11c2IuYyAgICAgICAgfCAgIDk3ICsrKysrKysr
-KysrKysrKysrKysrKysrKwogYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC91c2IuaCB8
-ICAgIDQgKwogZHJpdmVycy91c2IvbXVzYi9hbTM1eC5jICAgICAgICAgICAgICB8ICAxMzAgKysr
-KysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tLS0KIDMgZmlsZXMgY2hhbmdlZCwgMTQ2IGluc2Vy
-dGlvbnMoKyksIDg1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21h
-cDIvdXNiLW11c2IuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvdXNiLW11c2IuYwppbmRleCA5MTA3
-ODgzLi41Mjk4OTQ5IDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3VzYi1tdXNiLmMK
-KysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi91c2ItbXVzYi5jCkBAIC0zMCw5ICszMCwxMDIgQEAK
-ICNpbmNsdWRlIDxtYWNoL2lycXMuaD4KICNpbmNsdWRlIDxtYWNoL2FtMzV4eC5oPgogI2luY2x1
-ZGUgPHBsYXQvdXNiLmg+CisjaW5jbHVkZSAiY29udHJvbC5oIgogCiAjaWYgZGVmaW5lZChDT05G
-SUdfVVNCX01VU0JfT01BUDJQTFVTKSB8fCBkZWZpbmVkIChDT05GSUdfVVNCX01VU0JfQU0zNVgp
-CiAKK3N0YXRpYyB2b2lkIGFtMzV4X211c2JfcmVzZXQodm9pZCkKK3sKKwl1MzIJcmVndmFsOwor
-CisJLyogUmVzZXQgdGhlIG11c2IgaW50ZXJmYWNlICovCisJcmVndmFsID0gb21hcF9jdHJsX3Jl
-YWRsKEFNMzVYWF9DT05UUk9MX0lQX1NXX1JFU0VUKTsKKworCXJlZ3ZhbCB8PSBBTTM1WFhfVVNC
-T1RHU1NfU1dfUlNUOworCW9tYXBfY3RybF93cml0ZWwocmVndmFsLCBBTTM1WFhfQ09OVFJPTF9J
-UF9TV19SRVNFVCk7CisKKwlyZWd2YWwgJj0gfkFNMzVYWF9VU0JPVEdTU19TV19SU1Q7CisJb21h
-cF9jdHJsX3dyaXRlbChyZWd2YWwsIEFNMzVYWF9DT05UUk9MX0lQX1NXX1JFU0VUKTsKKworCXJl
-Z3ZhbCA9IG9tYXBfY3RybF9yZWFkbChBTTM1WFhfQ09OVFJPTF9JUF9TV19SRVNFVCk7Cit9CisK
-K3N0YXRpYyB2b2lkIGFtMzV4X211c2JfcGh5X3Bvd2VyKHU4IG9uKQoreworCXVuc2lnbmVkIGxv
-bmcgdGltZW91dCA9IGppZmZpZXMgKyBtc2Vjc190b19qaWZmaWVzKDEwMCk7CisJdTMyIGRldmNv
-bmYyOworCisJaWYgKG9uKSB7CisJCS8qCisJCSAqIFN0YXJ0IHRoZSBvbi1jaGlwIFBIWSBhbmQg
-aXRzIFBMTC4KKwkJICovCisJCWRldmNvbmYyID0gb21hcF9jdHJsX3JlYWRsKEFNMzVYWF9DT05U
-Uk9MX0RFVkNPTkYyKTsKKworCQlkZXZjb25mMiAmPSB+KENPTkYyX1JFU0VUIHwgQ09ORjJfUEhZ
-UFdSRE4gfCBDT05GMl9PVEdQV1JETik7CisJCWRldmNvbmYyIHw9IENPTkYyX1BIWV9QTExPTjsK
-KworCQlvbWFwX2N0cmxfd3JpdGVsKGRldmNvbmYyLCBBTTM1WFhfQ09OVFJPTF9ERVZDT05GMik7
-CisKKwkJcHJfaW5mbyhLRVJOX0lORk8gIldhaXRpbmcgZm9yIFBIWSBjbG9jayBnb29kLi4uXG4i
-KTsKKwkJd2hpbGUgKCEob21hcF9jdHJsX3JlYWRsKEFNMzVYWF9DT05UUk9MX0RFVkNPTkYyKQor
-CQkJCSYgQ09ORjJfUEhZQ0xLR0QpKSB7CisJCQljcHVfcmVsYXgoKTsKKworCQkJaWYgKHRpbWVf
-YWZ0ZXIoamlmZmllcywgdGltZW91dCkpIHsKKwkJCQlwcl9lcnIoS0VSTl9FUlIgIm11c2IgUEhZ
-IGNsb2NrIGdvb2QgdGltZWQgb3V0XG4iKTsKKwkJCQlicmVhazsKKwkJCX0KKwkJfQorCX0gZWxz
-ZSB7CisJCS8qCisJCSAqIFBvd2VyIGRvd24gdGhlIG9uLWNoaXAgUEhZLgorCQkgKi8KKwkJZGV2
-Y29uZjIgPSBvbWFwX2N0cmxfcmVhZGwoQU0zNVhYX0NPTlRST0xfREVWQ09ORjIpOworCisJCWRl
-dmNvbmYyICY9IH5DT05GMl9QSFlfUExMT047CisJCWRldmNvbmYyIHw9ICBDT05GMl9QSFlQV1JE
-TiB8IENPTkYyX09UR1BXUkROOworCQlvbWFwX2N0cmxfd3JpdGVsKGRldmNvbmYyLCBBTTM1WFhf
-Q09OVFJPTF9ERVZDT05GMik7CisJfQorfQorCitzdGF0aWMgdm9pZCBhbTM1eF9tdXNiX2NsZWFy
-X2lycSh2b2lkKQoreworCXUzMiByZWd2YWw7CisKKwlyZWd2YWwgPSBvbWFwX2N0cmxfcmVhZGwo
-QU0zNVhYX0NPTlRST0xfTFZMX0lOVFJfQ0xFQVIpOworCXJlZ3ZhbCB8PSBBTTM1WFhfVVNCT1RH
-U1NfSU5UX0NMUjsKKwlvbWFwX2N0cmxfd3JpdGVsKHJlZ3ZhbCwgQU0zNVhYX0NPTlRST0xfTFZM
-X0lOVFJfQ0xFQVIpOworCXJlZ3ZhbCA9IG9tYXBfY3RybF9yZWFkbChBTTM1WFhfQ09OVFJPTF9M
-VkxfSU5UUl9DTEVBUik7Cit9CisKK3N0YXRpYyB2b2lkIGFtMzV4X211c2Jfc2V0X21vZGUodTgg
-bXVzYl9tb2RlKQoreworCXUzMiBkZXZjb25mMiA9IG9tYXBfY3RybF9yZWFkbChBTTM1WFhfQ09O
-VFJPTF9ERVZDT05GMik7CisKKwlkZXZjb25mMiAmPSB+Q09ORjJfT1RHTU9ERTsKKwlzd2l0Y2gg
-KG11c2JfbW9kZSkgeworI2lmZGVmCUNPTkZJR19VU0JfTVVTQl9IRFJDX0hDRAorCWNhc2UgTVVT
-Ql9IT1NUOgkJLyogRm9yY2UgVkJVUyB2YWxpZCwgSUQgPSAwICovCisJCWRldmNvbmYyIHw9IENP
-TkYyX0ZPUkNFX0hPU1Q7CisJCWJyZWFrOworI2VuZGlmCisjaWZkZWYJQ09ORklHX1VTQl9HQURH
-RVRfTVVTQl9IRFJDCisJY2FzZSBNVVNCX1BFUklQSEVSQUw6CS8qIEZvcmNlIFZCVVMgdmFsaWQs
-IElEID0gMSAqLworCQlkZXZjb25mMiB8PSBDT05GMl9GT1JDRV9ERVZJQ0U7CisJCWJyZWFrOwor
-I2VuZGlmCisjaWZkZWYJQ09ORklHX1VTQl9NVVNCX09URworCWNhc2UgTVVTQl9PVEc6CQkvKiBE
-b24ndCBvdmVycmlkZSB0aGUgVkJVUy9JRCBjb21wYXJhdG9ycyAqLworCQlkZXZjb25mMiB8PSBD
-T05GMl9OT19PVkVSUklERTsKKwkJYnJlYWs7CisjZW5kaWYKKwlkZWZhdWx0OgorCQlwcl9pbmZv
-KEtFUk5fSU5GTyAiVW5zdXBwb3J0ZWQgbW9kZSAldVxuIiwgbXVzYl9tb2RlKTsKKwl9CisKKwlv
-bWFwX2N0cmxfd3JpdGVsKGRldmNvbmYyLCBBTTM1WFhfQ09OVFJPTF9ERVZDT05GMik7Cit9CisK
-IHN0YXRpYyBzdHJ1Y3QgcmVzb3VyY2UgbXVzYl9yZXNvdXJjZXNbXSA9IHsKIAlbMF0gPSB7IC8q
-IHN0YXJ0IGFuZCBlbmQgc2V0IGR5bmFtaWNhbGx5ICovCiAJCS5mbGFncwk9IElPUkVTT1VSQ0Vf
-TUVNLApAQCAtOTYsNiArMTg5LDEwIEBAIHZvaWQgX19pbml0IHVzYl9tdXNiX2luaXQoc3RydWN0
-IG9tYXBfbXVzYl9ib2FyZF9kYXRhICpib2FyZF9kYXRhKQogCQltdXNiX2RldmljZS5uYW1lID0g
-Im11c2ItYW0zNXgiOwogCQltdXNiX3Jlc291cmNlc1swXS5zdGFydCA9IEFNMzVYWF9JUFNTX1VT
-Qk9UR1NTX0JBU0U7CiAJCW11c2JfcmVzb3VyY2VzWzFdLnN0YXJ0ID0gSU5UXzM1WFhfVVNCT1RH
-X0lSUTsKKwkJYm9hcmRfZGF0YS0+c2V0X3BoeV9wb3dlciA9IGFtMzV4X211c2JfcGh5X3Bvd2Vy
-OworCQlib2FyZF9kYXRhLT5jbGVhcl9pcnEgPSBhbTM1eF9tdXNiX2NsZWFyX2lycTsKKwkJYm9h
-cmRfZGF0YS0+c2V0X21vZGUgPSBhbTM1eF9tdXNiX3NldF9tb2RlOworCQlib2FyZF9kYXRhLT5y
-ZXNldCA9IGFtMzV4X211c2JfcmVzZXQ7CiAJfSBlbHNlIGlmIChjcHVfaXNfb21hcDM0eHgoKSkg
-ewogCQltdXNiX3Jlc291cmNlc1swXS5zdGFydCA9IE9NQVAzNFhYX0hTVVNCX09UR19CQVNFOwog
-CX0gZWxzZSBpZiAoY3B1X2lzX29tYXA0NHh4KCkpIHsKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3Bs
-YXQtb21hcC9pbmNsdWRlL3BsYXQvdXNiLmggYi9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9w
-bGF0L3VzYi5oCmluZGV4IDliMTg5M2YuLjVjMDI0MTYgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL3Bs
-YXQtb21hcC9pbmNsdWRlL3BsYXQvdXNiLmgKKysrIGIvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1
-ZGUvcGxhdC91c2IuaApAQCAtNzAsNiArNzAsMTAgQEAgc3RydWN0IG9tYXBfbXVzYl9ib2FyZF9k
-YXRhIHsKIAl1OAltb2RlOwogCXUxNglwb3dlcjsKIAl1bnNpZ25lZCBleHR2YnVzOjE7CisJdm9p
-ZAkoKnNldF9waHlfcG93ZXIpKHU4IG9uKTsKKwl2b2lkCSgqY2xlYXJfaXJxKSh2b2lkKTsKKwl2
-b2lkCSgqc2V0X21vZGUpKHU4IG1vZGUpOworCXZvaWQJKCpyZXNldCkodm9pZCk7CiB9OwogCiBl
-bnVtIG11c2JfaW50ZXJmYWNlICAgIHtNVVNCX0lOVEVSRkFDRV9VTFBJLCBNVVNCX0lOVEVSRkFD
-RV9VVE1JfTsKZGlmZiAtLWdpdCBhL2RyaXZlcnMvdXNiL211c2IvYW0zNXguYyBiL2RyaXZlcnMv
-dXNiL211c2IvYW0zNXguYwppbmRleCAzZjU2ZTdlLi43NmM4ZDQ4IDEwMDY0NAotLS0gYS9kcml2
-ZXJzL3VzYi9tdXNiL2FtMzV4LmMKKysrIGIvZHJpdmVycy91c2IvbXVzYi9hbTM1eC5jCkBAIC0z
-Miw3ICszMiw2IEBACiAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+CiAjaW5jbHVk
-ZSA8bGludXgvZG1hLW1hcHBpbmcuaD4KIAotI2luY2x1ZGUgPHBsYXQvY29udHJvbC5oPgogI2lu
-Y2x1ZGUgPHBsYXQvdXNiLmg+CiAKICNpbmNsdWRlICJtdXNiX2NvcmUuaCIKQEAgLTkwLDQ3ICs4
-OSw2IEBAIHN0cnVjdCBhbTM1eF9nbHVlIHsKIH07CiAjZGVmaW5lIGdsdWVfdG9fbXVzYihnKQkJ
-cGxhdGZvcm1fZ2V0X2RydmRhdGEoZy0+bXVzYikKIAotc3RhdGljIGlubGluZSB2b2lkIHBoeV9v
-bih2b2lkKQotewotCXVuc2lnbmVkIGxvbmcgdGltZW91dCA9IGppZmZpZXMgKyBtc2Vjc190b19q
-aWZmaWVzKDEwMCk7Ci0JdTMyIGRldmNvbmYyOwotCi0JLyoKLQkgKiBTdGFydCB0aGUgb24tY2hp
-cCBQSFkgYW5kIGl0cyBQTEwuCi0JICovCi0JZGV2Y29uZjIgPSBvbWFwX2N0cmxfcmVhZGwoQU0z
-NVhYX0NPTlRST0xfREVWQ09ORjIpOwotCi0JZGV2Y29uZjIgJj0gfihDT05GMl9SRVNFVCB8IENP
-TkYyX1BIWVBXUkROIHwgQ09ORjJfT1RHUFdSRE4pOwotCWRldmNvbmYyIHw9IENPTkYyX1BIWV9Q
-TExPTjsKLQotCW9tYXBfY3RybF93cml0ZWwoZGV2Y29uZjIsIEFNMzVYWF9DT05UUk9MX0RFVkNP
-TkYyKTsKLQotCURCRygxLCAiV2FpdGluZyBmb3IgUEhZIGNsb2NrIGdvb2QuLi5cbiIpOwotCXdo
-aWxlICghKG9tYXBfY3RybF9yZWFkbChBTTM1WFhfQ09OVFJPTF9ERVZDT05GMikKLQkJCSYgQ09O
-RjJfUEhZQ0xLR0QpKSB7Ci0JCWNwdV9yZWxheCgpOwotCi0JCWlmICh0aW1lX2FmdGVyKGppZmZp
-ZXMsIHRpbWVvdXQpKSB7Ci0JCQlEQkcoMSwgIm11c2IgUEhZIGNsb2NrIGdvb2QgdGltZWQgb3V0
-XG4iKTsKLQkJCWJyZWFrOwotCQl9Ci0JfQotfQotCi1zdGF0aWMgaW5saW5lIHZvaWQgcGh5X29m
-Zih2b2lkKQotewotCXUzMiBkZXZjb25mMjsKLQotCS8qCi0JICogUG93ZXIgZG93biB0aGUgb24t
-Y2hpcCBQSFkuCi0JICovCi0JZGV2Y29uZjIgPSBvbWFwX2N0cmxfcmVhZGwoQU0zNVhYX0NPTlRS
-T0xfREVWQ09ORjIpOwotCi0JZGV2Y29uZjIgJj0gfkNPTkYyX1BIWV9QTExPTjsKLQlkZXZjb25m
-MiB8PSAgQ09ORjJfUEhZUFdSRE4gfCBDT05GMl9PVEdQV1JETjsKLQlvbWFwX2N0cmxfd3JpdGVs
-KGRldmNvbmYyLCBBTTM1WFhfQ09OVFJPTF9ERVZDT05GMik7Ci19Ci0KIC8qCiAgKiBhbTM1eF9t
-dXNiX2VuYWJsZSAtIGVuYWJsZSBpbnRlcnJ1cHRzCiAgKi8KQEAgLTI2NSw5ICsyMjMsMTIgQEAg
-c3RhdGljIGlycXJldHVybl90IGFtMzV4X211c2JfaW50ZXJydXB0KGludCBpcnEsIHZvaWQgKmhj
-aSkKIHsKIAlzdHJ1Y3QgbXVzYiAgKm11c2IgPSBoY2k7CiAJdm9pZCBfX2lvbWVtICpyZWdfYmFz
-ZSA9IG11c2ItPmN0cmxfYmFzZTsKKwlzdHJ1Y3QgZGV2aWNlICpkZXYgPSBtdXNiLT5jb250cm9s
-bGVyOworCXN0cnVjdCBtdXNiX2hkcmNfcGxhdGZvcm1fZGF0YSAqcGxhdCA9IGRldi0+cGxhdGZv
-cm1fZGF0YTsKKwlzdHJ1Y3Qgb21hcF9tdXNiX2JvYXJkX2RhdGEgKmRhdGEgPSBwbGF0LT5ib2Fy
-ZF9kYXRhOwogCXVuc2lnbmVkIGxvbmcgZmxhZ3M7CiAJaXJxcmV0dXJuX3QgcmV0ID0gSVJRX05P
-TkU7Ci0JdTMyIGVwaW50ciwgdXNiaW50ciwgbHZsX2ludHI7CisJdTMyIGVwaW50ciwgdXNiaW50
-cjsKIAogCXNwaW5fbG9ja19pcnFzYXZlKCZtdXNiLT5sb2NrLCBmbGFncyk7CiAKQEAgLTM1Niw5
-ICszMTcsOCBAQCBlb2k6CiAJLyogRU9JIG5lZWRzIHRvIGJlIHdyaXR0ZW4gZm9yIHRoZSBJUlEg
-dG8gYmUgcmUtYXNzZXJ0ZWQuICovCiAJaWYgKHJldCA9PSBJUlFfSEFORExFRCB8fCBlcGludHIg
-fHwgdXNiaW50cikgewogCQkvKiBjbGVhciBsZXZlbCBpbnRlcnJ1cHQgKi8KLQkJbHZsX2ludHIg
-PSBvbWFwX2N0cmxfcmVhZGwoQU0zNVhYX0NPTlRST0xfTFZMX0lOVFJfQ0xFQVIpOwotCQlsdmxf
-aW50ciB8PSBBTTM1WFhfVVNCT1RHU1NfSU5UX0NMUjsKLQkJb21hcF9jdHJsX3dyaXRlbChsdmxf
-aW50ciwgQU0zNVhYX0NPTlRST0xfTFZMX0lOVFJfQ0xFQVIpOworCQlpZiAoZGF0YS0+Y2xlYXJf
-aXJxKQorCQkJZGF0YS0+Y2xlYXJfaXJxKCk7CiAJCS8qIHdyaXRlIEVPSSAqLwogCQltdXNiX3dy
-aXRlbChyZWdfYmFzZSwgVVNCX0VORF9PRl9JTlRSX1JFRywgMCk7CiAJfQpAQCAtMzc0LDM3ICsz
-MzQsMjYgQEAgZW9pOgogCiBzdGF0aWMgaW50IGFtMzV4X211c2Jfc2V0X21vZGUoc3RydWN0IG11
-c2IgKm11c2IsIHU4IG11c2JfbW9kZSkKIHsKLQl1MzIgZGV2Y29uZjIgPSBvbWFwX2N0cmxfcmVh
-ZGwoQU0zNVhYX0NPTlRST0xfREVWQ09ORjIpOworCXN0cnVjdCBkZXZpY2UgKmRldiA9IG11c2It
-PmNvbnRyb2xsZXI7CisJc3RydWN0IG11c2JfaGRyY19wbGF0Zm9ybV9kYXRhICpwbGF0ID0gZGV2
-LT5wbGF0Zm9ybV9kYXRhOworCXN0cnVjdCBvbWFwX211c2JfYm9hcmRfZGF0YSAqZGF0YSA9IHBs
-YXQtPmJvYXJkX2RhdGE7CisJaW50ICAgICByZXR2YWwgPSAwOwogCi0JZGV2Y29uZjIgJj0gfkNP
-TkYyX09UR01PREU7Ci0Jc3dpdGNoIChtdXNiX21vZGUpIHsKLSNpZmRlZglDT05GSUdfVVNCX01V
-U0JfSERSQ19IQ0QKLQljYXNlIE1VU0JfSE9TVDoJCS8qIEZvcmNlIFZCVVMgdmFsaWQsIElEID0g
-MCAqLwotCQlkZXZjb25mMiB8PSBDT05GMl9GT1JDRV9IT1NUOwotCQlicmVhazsKLSNlbmRpZgot
-I2lmZGVmCUNPTkZJR19VU0JfR0FER0VUX01VU0JfSERSQwotCWNhc2UgTVVTQl9QRVJJUEhFUkFM
-OgkvKiBGb3JjZSBWQlVTIHZhbGlkLCBJRCA9IDEgKi8KLQkJZGV2Y29uZjIgfD0gQ09ORjJfRk9S
-Q0VfREVWSUNFOwotCQlicmVhazsKLSNlbmRpZgotI2lmZGVmCUNPTkZJR19VU0JfTVVTQl9PVEcK
-LQljYXNlIE1VU0JfT1RHOgkJLyogRG9uJ3Qgb3ZlcnJpZGUgdGhlIFZCVVMvSUQgY29tcGFyYXRv
-cnMgKi8KLQkJZGV2Y29uZjIgfD0gQ09ORjJfTk9fT1ZFUlJJREU7Ci0JCWJyZWFrOwotI2VuZGlm
-Ci0JZGVmYXVsdDoKLQkJREJHKDIsICJUcnlpbmcgdG8gc2V0IHVuc3VwcG9ydGVkIG1vZGUgJXVc
-biIsIG11c2JfbW9kZSk7Ci0JfQorCWlmIChkYXRhLT5zZXRfbW9kZSkKKwkJZGF0YS0+c2V0X21v
-ZGUobXVzYl9tb2RlKTsKKwllbHNlCisJCXJldHZhbCA9IC1FSU87CiAKLQlvbWFwX2N0cmxfd3Jp
-dGVsKGRldmNvbmYyLCBBTTM1WFhfQ09OVFJPTF9ERVZDT05GMik7Ci0JcmV0dXJuIDA7CisJcmV0
-dXJuIHJldHZhbDsKIH0KIAogc3RhdGljIGludCBhbTM1eF9tdXNiX2luaXQoc3RydWN0IG11c2Ig
-Km11c2IpCiB7CisJc3RydWN0IGRldmljZSAqZGV2ID0gbXVzYi0+Y29udHJvbGxlcjsKKwlzdHJ1
-Y3QgbXVzYl9oZHJjX3BsYXRmb3JtX2RhdGEgKnBsYXQgPSBkZXYtPnBsYXRmb3JtX2RhdGE7CisJ
-c3RydWN0IG9tYXBfbXVzYl9ib2FyZF9kYXRhICpkYXRhID0gcGxhdC0+Ym9hcmRfZGF0YTsKIAl2
-b2lkIF9faW9tZW0gKnJlZ19iYXNlID0gbXVzYi0+Y3RybF9iYXNlOwotCXUzMiByZXYsIGx2bF9p
-bnRyLCBzd19yZXNldDsKKwl1MzIgcmV2OwogCiAJbXVzYi0+bXJlZ3MgKz0gVVNCX01FTlRPUl9D
-T1JFX09GRlNFVDsKIApAQCAtNDIxLDM5ICszNzAsNDAgQEAgc3RhdGljIGludCBhbTM1eF9tdXNi
-X2luaXQoc3RydWN0IG11c2IgKm11c2IpCiAJaWYgKGlzX2hvc3RfZW5hYmxlZChtdXNiKSkKIAkJ
-c2V0dXBfdGltZXIoJm90Z193b3JrYXJvdW5kLCBvdGdfdGltZXIsICh1bnNpZ25lZCBsb25nKSBt
-dXNiKTsKIAotCS8qIEdsb2JhbCByZXNldCAqLwotCXN3X3Jlc2V0ID0gb21hcF9jdHJsX3JlYWRs
-KEFNMzVYWF9DT05UUk9MX0lQX1NXX1JFU0VUKTsKLQotCXN3X3Jlc2V0IHw9IEFNMzVYWF9VU0JP
-VEdTU19TV19SU1Q7Ci0Jb21hcF9jdHJsX3dyaXRlbChzd19yZXNldCwgQU0zNVhYX0NPTlRST0xf
-SVBfU1dfUkVTRVQpOwotCi0Jc3dfcmVzZXQgJj0gfkFNMzVYWF9VU0JPVEdTU19TV19SU1Q7Ci0J
-b21hcF9jdHJsX3dyaXRlbChzd19yZXNldCwgQU0zNVhYX0NPTlRST0xfSVBfU1dfUkVTRVQpOwor
-CS8qIFJlc2V0IHRoZSBtdXNiICovCisJaWYgKGRhdGEtPnJlc2V0KQorCQlkYXRhLT5yZXNldCgp
-OwogCiAJLyogUmVzZXQgdGhlIGNvbnRyb2xsZXIgKi8KIAltdXNiX3dyaXRlbChyZWdfYmFzZSwg
-VVNCX0NUUkxfUkVHLCBBTTM1WF9TT0ZUX1JFU0VUX01BU0spOwogCiAJLyogU3RhcnQgdGhlIG9u
-LWNoaXAgUEhZIGFuZCBpdHMgUExMLiAqLwotCXBoeV9vbigpOworCWlmIChkYXRhLT5zZXRfcGh5
-X3Bvd2VyKQorCQlkYXRhLT5zZXRfcGh5X3Bvd2VyKDEpOwogCiAJbXNsZWVwKDUpOwogCiAJbXVz
-Yi0+aXNyID0gYW0zNXhfbXVzYl9pbnRlcnJ1cHQ7CiAKIAkvKiBjbGVhciBsZXZlbCBpbnRlcnJ1
-cHQgKi8KLQlsdmxfaW50ciA9IG9tYXBfY3RybF9yZWFkbChBTTM1WFhfQ09OVFJPTF9MVkxfSU5U
-Ul9DTEVBUik7Ci0JbHZsX2ludHIgfD0gQU0zNVhYX1VTQk9UR1NTX0lOVF9DTFI7Ci0Jb21hcF9j
-dHJsX3dyaXRlbChsdmxfaW50ciwgQU0zNVhYX0NPTlRST0xfTFZMX0lOVFJfQ0xFQVIpOworCWlm
-IChkYXRhLT5jbGVhcl9pcnEpCisJCWRhdGEtPmNsZWFyX2lycSgpOwogCiAJcmV0dXJuIDA7CiB9
-CiAKIHN0YXRpYyBpbnQgYW0zNXhfbXVzYl9leGl0KHN0cnVjdCBtdXNiICptdXNiKQogeworCXN0
-cnVjdCBkZXZpY2UgKmRldiA9IG11c2ItPmNvbnRyb2xsZXI7CisJc3RydWN0IG11c2JfaGRyY19w
-bGF0Zm9ybV9kYXRhICpwbGF0ID0gZGV2LT5wbGF0Zm9ybV9kYXRhOworCXN0cnVjdCBvbWFwX211
-c2JfYm9hcmRfZGF0YSAqZGF0YSA9IHBsYXQtPmJvYXJkX2RhdGE7CisKIAlpZiAoaXNfaG9zdF9l
-bmFibGVkKG11c2IpKQogCQlkZWxfdGltZXJfc3luYygmb3RnX3dvcmthcm91bmQpOwogCi0JcGh5
-X29mZigpOworCS8qIFNodXRkb3duIHRoZSBvbi1jaGlwIFBIWSBhbmQgaXRzIFBMTC4gKi8KKwlp
-ZiAoZGF0YS0+c2V0X3BoeV9wb3dlcikKKwkJZGF0YS0+c2V0X3BoeV9wb3dlcigwKTsKIAogCW90
-Z19wdXRfdHJhbnNjZWl2ZXIobXVzYi0+eGNlaXYpOwogCXVzYl9ub3BfeGNlaXZfdW5yZWdpc3Rl
-cigpOwpAQCAtNjMwLDggKzU4MCwxMyBAQCBzdGF0aWMgaW50IF9fZXhpdCBhbTM1eF9yZW1vdmUo
-c3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIHN0YXRpYyBpbnQgYW0zNXhfc3VzcGVuZChz
-dHJ1Y3QgZGV2aWNlICpkZXYpCiB7CiAJc3RydWN0IGFtMzV4X2dsdWUJKmdsdWUgPSBkZXZfZ2V0
-X2RydmRhdGEoZGV2KTsKKwlzdHJ1Y3QgbXVzYl9oZHJjX3BsYXRmb3JtX2RhdGEgKnBsYXQgPSBk
-ZXYtPnBsYXRmb3JtX2RhdGE7CisJc3RydWN0IG9tYXBfbXVzYl9ib2FyZF9kYXRhICpkYXRhID0g
-cGxhdC0+Ym9hcmRfZGF0YTsKKworCS8qIFNodXRkb3duIHRoZSBvbi1jaGlwIFBIWSBhbmQgaXRz
-IFBMTC4gKi8KKwlpZiAoZGF0YS0+c2V0X3BoeV9wb3dlcikKKwkJZGF0YS0+c2V0X3BoeV9wb3dl
-cigwKTsKIAotCXBoeV9vZmYoKTsKIAljbGtfZGlzYWJsZShnbHVlLT5waHlfY2xrKTsKIAljbGtf
-ZGlzYWJsZShnbHVlLT5jbGspOwogCkBAIC02NDEsOSArNTk2LDE0IEBAIHN0YXRpYyBpbnQgYW0z
-NXhfc3VzcGVuZChzdHJ1Y3QgZGV2aWNlICpkZXYpCiBzdGF0aWMgaW50IGFtMzV4X3Jlc3VtZShz
-dHJ1Y3QgZGV2aWNlICpkZXYpCiB7CiAJc3RydWN0IGFtMzV4X2dsdWUJKmdsdWUgPSBkZXZfZ2V0
-X2RydmRhdGEoZGV2KTsKKwlzdHJ1Y3QgbXVzYl9oZHJjX3BsYXRmb3JtX2RhdGEgKnBsYXQgPSBk
-ZXYtPnBsYXRmb3JtX2RhdGE7CisJc3RydWN0IG9tYXBfbXVzYl9ib2FyZF9kYXRhICpkYXRhID0g
-cGxhdC0+Ym9hcmRfZGF0YTsKIAlpbnQJCQlyZXQ7CiAKLQlwaHlfb24oKTsKKwkvKiBTdGFydCB0
-aGUgb24tY2hpcCBQSFkgYW5kIGl0cyBQTEwuICovCisJaWYgKGRhdGEtPnNldF9waHlfcG93ZXIp
-CisJCWRhdGEtPnNldF9waHlfcG93ZXIoMSk7CisKIAlyZXQgPSBjbGtfZW5hYmxlKGdsdWUtPnBo
-eV9jbGspOwogCWlmIChyZXQpIHsKIAkJZGV2X2VycihkZXYsICJmYWlsZWQgdG8gZW5hYmxlIFBI
-WSBjbG9ja1xuIik7Ci0tIAoxLjYuMi40Cgo=
+Anyone maintaining low-level and assembler code may find the following
+useful: https://wiki.ubuntu.com/ARM/Thumb2PortingHowto
 
---_002_19F8576C6E063C45BE387C64729E739404BCF8771Edbde02enttico_--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> If you have any thoughts about how to exercise the power management
+>> functionality more completely, I'd be happy to have a go...
+> Cf. [3] for more details on how to exercise the PM on the target. This
+> wiki page is slightly outdated but the idea is still the same. Note
+> that only cpuidle is currently supported correctly on l-o master.
+>
+> [1] http://marc.info/?l=linux-omap&m=129139584919242&w=2
+> [2] http://marc.info/?l=linux-omap&m=129172034809447&w=2
+> [3] http://elinux.org/OMAP_Power_Management
+
+Thanks for this info
+
+Humm, which reference tree should I be using?  I'm not convinced it
+works properly/usefully in the linaro trees ... only OMAP_PM_NOOP is
+provided, and when I echo mem >/sys/power/state, the platform does not
+crash (at least, it doesn't lock up) but doesn't appear to suspend
+properly either.  Also, I'm not seeing your debugs contents.
+
+
+On a separate topic, I have some firmware questions you might be able to answer:
+  * Does the secure firmware attempt to read the comment field from
+SMC instructions?  And if so, does it assume the SMC is in ARM code?
+  * Is the secure firmware able to cope with a Thumb resume re-entry point?
+
+Currently, I've taken the conservative approach and assume that the
+answer to both of these questions is "no".  But this means that a few
+bits of code need to be built as ARM which could otherwise be Thumb.
+It would be cleaner to get the amount of ARM code down to an absolute
+minimum when building a Thumb kernel.
+
+
+
+Some specific comments on your patches:
+
+After the label "finished:" in sleep34xx.S
++	ldr r1, kernel_flush
++	mov lr, pc
++	bx  r1
+
+If the code might be built as Thumb-2, this won't work correctly,
+because the Thumb bit (bit 0) will not get set properly in lr.
+Instead:
+
++	ldr r1, kernel_flush
++	blx r1
+
+Even if you think this code isn't going to be built for Thumb-2, it's
+specific to v7+ platforms, so I recommend you use the above change
+anyway: it's more compact and will help avoid maintenance problems
+further down the line...
+
+
++	str	r4, wait_dll_lock_counter
+[...]
++	str	r4, kick_counter
+
+PC-relative stores are illegal in Thumb-2.  Worse, current binutils
+will assemble invalid code if you do this in the source and build for
+Thumb-2.  For details and my fix, search for "PC-relative stores" on
+http://lists.arm.linux.org.uk/lurker/message/20101130.133117.a98bf92f.en.html
+
+
+
++ENTRY(get_omap3630_restore_pointer)
++        stmfd   sp!, {lr}     @ save registers on stack
++	adr	r0, restore_3630
+
+If restore_3630 is a Thumb symbol, this will go wrong, because the
+"Thumb bit" won't get set in the address.  Instead, you would need to
+use "adr r0, BSYM(restore_3630)", but only if restore_3630 is built as
+Thumb-2 when the kernel is built with CONFIG_THUMB2_KERNEL.
+
+Cheers
+---Dave
