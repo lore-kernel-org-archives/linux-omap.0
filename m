@@ -1,85 +1,47 @@
-From: "Basak, Partha" <p-basak2@ti.com>
-Subject: RE: [PATCH 6/7] [RFC] OMAP: hwmod: SYSCONFIG register modification
- for MCBSP
-Date: Tue, 7 Dec 2010 18:45:49 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930247C46D6F@dbde02.ent.ti.com>
-References: <1286296662-7639-1-git-send-email-kishon@ti.com>
-	<1286296662-7639-6-git-send-email-kishon@ti.com>	<4CAECB70.4030705@ti.com>
- <4CB2AC44.6000804@ti.com>
-	<AANLkTi=a80MLvj5YuC==evfGqY6xUToHcBU3TyWEBHAo@mail.gmail.com>
-	<AANLkTimExJBgLTfO2Q7zgohHquShvm9kP64=DLjQv21u@mail.gmail.com>
-	<4CF52044.6040904@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB5930247AFD66A@dbde02.ent.ti.com>
-	<4CF62E5A.2080004@ti.com> <87mxoo4f8g.fsf@deeprootsystems.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2] musb: am35x: fix compile error due to control apis
+Date: Tue, 07 Dec 2010 16:20:21 +0300
+Message-ID: <4CFE3495.5090204@ru.mvista.com>
+References: <1291623211-959-1-git-send-email-ajay.gupta@ti.com> <4CFCBCF1.9010902@ru.mvista.com> <19F8576C6E063C45BE387C64729E739404BCE3A1EC@dbde02.ent.ti.com> <4CFD19A7.5020902@ru.mvista.com> <20101206175445.GF8345@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55328 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752041Ab0LGNQF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 08:16:05 -0500
-In-Reply-To: <87mxoo4f8g.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20101206175445.GF8345-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "ext-eero.nurkkala@nokia.com" <ext-eero.nurkkala@nokia.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
 
+Hello.
 
+On 06-12-2010 20:54, Tony Lindgren wrote:
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Thursday, December 02, 2010 4:24 PM
-> To: Cousson, Benoit
-> Cc: Basak, Partha; ABRAHAM, KISHON VIJAY; Paul Walmsley; linux-
-> omap@vger.kernel.org; Kamat, Nishant; Varadarajan, Charulatha; Datta,
-> Shubhrajyoti; ext-eero.nurkkala@nokia.com; eduardo.valentin@nokia.com;
-> Raja, Govindraj
-> Subject: Re: [PATCH 6/7] [RFC] OMAP: hwmod: SYSCONFIG register
-> modification for MCBSP
-> 
-> "Cousson, Benoit" <b-cousson@ti.com> writes:
-> 
-> [...]
-> 
-> >
-> > The issue is not really for the mcbsp but for the serial that need to
-> > handle the 3 different states.
-> >
-> > 	if (enable) {
-> > 		/**
-> > 		 * Errata 2.15: [UART]:Cannot Acknowledge Idle Requests
-> > 		 * in Smartidle Mode When Configured for DMA Operations.
-> > 		 */
-> > 		if (uart->dma_enabled)
-> > 			idlemode = HWMOD_IDLEMODE_FORCE;
-> > 		else
-> > 			idlemode = HWMOD_IDLEMODE_SMART;
-> > 	} else {
-> > 		idlemode = HWMOD_IDLEMODE_NO;
-> > 	}
-> >
-> > You do need to explicitly set the 3 modes, hence the following 3
-> APIs:
-> > omap_device_force_idle
-> > omap_device_no_idle
-> > omap_device_smart_idle
+>>>>> As the control.h have been moved to new location and it's
+>>>>> uses are not allowed to drivers directly so moving the phy
+>>>>> control, interrupt clear and reset functionality to board
+>>>>> files.
 
-I am OK with Benoit's 3 + 1 API approach, 3 individual set functions and
-one common function to restore back to the value as dictated by the flag.
-What do you say guys?
-> >
-> > You can potentially add another API to restore the default idle mode:
-> >
-> > omap_device_default_idle
-> >
-> > That seems much simpler than 3 pairs of APIs.
-> 
-> My $0.02... based on the fact that we already have some IPs needing to
-> conrol all 3 modes, I think having the 3 functions above is better than
-> having 3 pairs of request/release functions.
-> 
-> Kevin
-> 
+>>>>     I'm not fond of the whole approach. I'm not sure why accesses to the
+>>>> control registers are such a no-no, taking into account that one needs to
+>>>> access such regisyter to clear the interrupt...
 
+> Because drivers should arch independent and any tinkering of the
+> platform level registers will lead into pains later on that
+> I end up having to deal with.
+
+> To me it seem you just init to separate out the transceiver,
+> right?
+
+    We also have to install a hook to clear the MUSB level interrupt via the 
+control register -- that's a thing that makes me dubious about not allowing 
+drivers to access the control registers.
+
+> Tony
+
+WBR, Sergei
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
