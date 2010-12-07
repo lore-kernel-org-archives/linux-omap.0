@@ -1,79 +1,47 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH v2 1/3] ARM: omap: Enable low-level omap3 PM code to work withCONFIG_THUMB2_KERNEL
-Date: Tue, 7 Dec 2010 12:59:32 +0100
-Message-ID: <AANLkTimPiySTjzTw6owG8GWPv2OwoNQ=wyV4kdvP9EZu@mail.gmail.com>
-References: <1291656937-24992-1-git-send-email-dave.martin@linaro.org>
-	<1291656937-24992-2-git-send-email-dave.martin@linaro.org>
-	<8ff74b57e40b64459978eefba8f4c9ca@mail.gmail.com>
-	<AANLkTikOSb5-wBSy_ZANVsHga7XmWPrwP=0Xs0eGOxb5@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCH] arm: plat-omap: counter_32k: Fix build error due to IS_ERR
+Date: Tue,  7 Dec 2010 17:39:37 +0530
+Message-ID: <1291723777-27316-1-git-send-email-sourav.poddar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:56393 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751630Ab0LGL7d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 06:59:33 -0500
-Received: by qyk12 with SMTP id 12so15748706qyk.19
-        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 03:59:33 -0800 (PST)
-In-Reply-To: <AANLkTikOSb5-wBSy_ZANVsHga7XmWPrwP=0Xs0eGOxb5@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43232 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752098Ab0LGMJt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Dec 2010 07:09:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linux-arm-kernel@lists.infradead.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sourav Poddar <sourav.poddar@ti.com>
 
-Hi Dave,
+Fix the following build error by including linux/err.h
+arch/arm/plat-omap/counter_32k.c: In function 'omap_init_clocksource_32k':
+arch/arm/plat-omap/counter_32k.c:167: error: implicit declaration of
+                                      function 'IS_ERR'
 
-On Tue, Dec 7, 2010 at 11:16 AM, Dave Martin <dave.martin@linaro.org> wrote:
-> On Tue, Dec 7, 2010 at 6:31 AM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com> wrote:
->> Dave,
->>> -----Original Message-----
->>> From: linaro-dev-bounces@lists.linaro.org [mailto:linaro-dev-
->>> bounces@lists.linaro.org] On Behalf Of Dave Martin
->>> Sent: Monday, December 06, 2010 11:06 PM
->>> To: linux-arm-kernel@lists.infradead.org
->>> Cc: Tony Lindgren; Dave Martin; linux-omap@vger.kernel.org; linaro-
->>> dev@lists.linaro.org
->>> Subject: [PATCH v2 1/3] ARM: omap: Enable low-level omap3 PM code to
->> work
->>> withCONFIG_THUMB2_KERNEL
->>>
->
-> [...]
->
->>
->> No need to mention but this patch changes lot of things around
->> power management code. You said " Tested on: omap3 (Beagle xM A2)"
->>
->> What did you test ? Is it just boot test ? For sure just boot
->> test is not enough for this patch and needs to test the PM.
->
-> That's a fair point--- yes, I've only tested boot / reboot / shutdown so far.
->
-The ASM idle code is being reworked right now, which means the T2
-support will need to be reworked on top of the patches. Cf. [1] and
-[2].
+The above error is due to the following commit:
+subject: arm: plat-omap: counter_32k: use IS_ERR() instead of NULL check
+commit: 235fbace0334c846c21e902f330020122fc85955
 
-> If you have any thoughts about how to exercise the power management
-> functionality more completely, I'd be happy to have a go...
-Cf. [3] for more details on how to exercise the PM on the target. This
-wiki page is slightly outdated but the idea is still the same. Note
-that only cpuidle is currently supported correctly on l-o master.
+Created on linux-omap-2.6 branch: omap-fixes
 
-[1] http://marc.info/?l=linux-omap&m=129139584919242&w=2
-[2] http://marc.info/?l=linux-omap&m=129172034809447&w=2
-[3] http://elinux.org/OMAP_Power_Management
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Reviewed-by: Charulatha V <charu@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/plat-omap/counter_32k.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
->
-> Cheers
-> ---Dave
+diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+index c1e0d00..8722a13 100644
+--- a/arch/arm/plat-omap/counter_32k.c
++++ b/arch/arm/plat-omap/counter_32k.c
+@@ -16,6 +16,7 @@
+ #include <linux/init.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/err.h>
+ 
+ #include <plat/common.h>
+ #include <plat/board.h>
+-- 
+1.7.0.4
 
-Thanks,
-Jean
-
->
-> _______________________________________________
-> linaro-dev mailing list
-> linaro-dev@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-dev
->
