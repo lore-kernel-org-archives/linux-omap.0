@@ -1,57 +1,35 @@
 From: Bryan Wu <bryan.wu@canonical.com>
-Subject: Re: [PATCH] MFD: TWL/TPS: fix twl_probe section mismatch warning in mfd/twl-core.c
-Date: Tue, 7 Dec 2010 09:36:09 +0800
-Message-ID: <AANLkTimXPFROMQ_fF4Od-jw3aDY0WZQgc=x14=VcFM3d@mail.gmail.com>
-References: <alpine.DEB.2.00.1012061734590.13430@utopia.booyaka.com>
+Subject: Re: [PATCH] OMAP2+: resolve section mismatch warnings in OMAP core code
+Date: Tue, 7 Dec 2010 09:49:38 +0800
+Message-ID: <AANLkTimK1Rt1SF0pJjfuCKvO0rd229-+JcSvE3uF91D1@mail.gmail.com>
+References: <alpine.DEB.2.00.1012061731500.13430@utopia.booyaka.com>
+ <AANLkTi=ip3BJEToZ+vttJa2oJEm7iY8ohU3Cn=DF+77g@mail.gmail.com> <alpine.DEB.2.00.1012061837410.13430@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1012061734590.13430@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qw0-f43.google.com ([209.85.216.43]:34615 "EHLO
+	mail-qw0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753605Ab0LGBuA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 20:50:00 -0500
+Received: by qwk3 with SMTP id 3so8069742qwk.2
+        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 17:49:59 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1012061837410.13430@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Dec 7, 2010 at 8:35 AM, Paul Walmsley <paul@pwsan.com> wrote:
+On Tue, Dec 7, 2010 at 9:38 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Tue, 7 Dec 2010, Bryan Wu wrote:
 >
-> Fix the following section mismatch warning when building omap2plus_de=
-fconfig:
+>> Paul,
+>>
+>> I did the similar patch several days ago.
+>> https://patchwork.kernel.org/patch/367011/
 >
-> WARNING: vmlinux.o(.data+0x47d7c): Section mismatch in reference from=
- the variable twl_driver to the function .init.text:twl_probe()
+> Great, thanks Bryan, in that case yours should be used instead.
 >
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> ---
-> =A0drivers/mfd/twl-core.c | =A0 =A02 +-
-> =A01 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index 35275ba..615cf38 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -969,7 +969,7 @@ static int twl_remove(struct i2c_client *client)
-> =A0}
->
-> =A0/* NOTE: =A0this driver only handles a single twl4030/tps659x0 chi=
-p */
-> -static int __init
-> +static int
 
-I think we might change __init to __devinit.
+Thanks, Paul. I guess you work very late today, -:D
 
-> =A0twl_probe(struct i2c_client *client, const struct i2c_device_id *i=
-d)
-> =A0{
-> =A0 =A0 =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 status;
-> --
-
-Thanks,
---=20
-Bryan Wu <bryan.wu@canonical.com>
-Kernel Developer =A0 =A0+86.138-1617-6545 Mobile
-Ubuntu Kernel Team
-Canonical Ltd. =A0 =A0 =A0www.canonical.com
-Ubuntu - Linux for human beings | www.ubuntu.com
+-Bryan
