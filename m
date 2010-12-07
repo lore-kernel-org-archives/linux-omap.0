@@ -1,34 +1,37 @@
-From: "Luca Ceresoli" <luca@lucaceresoli.net>
-Subject: Re: UbiFS + HWECC(?) + BeagleBoard = fail
-Date: Tue,  7 Dec 2010 11:29:59 +0100
-Message-ID: <LD1ZTZ$A8E18B744A1EDB29645809E1CAA11B96@aruba.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: beagleboard-xm network with mainline?
+Date: Tue, 7 Dec 2010 11:35:43 +0100
+Message-ID: <F7140194-3689-4011-A495-27480DAC0618@dominion.thruhere.net>
+References: <Pine.LNX.4.64.1012071042220.10621@axis700.grange>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpa1.aruba.it ([62.149.128.210]:49836 "HELO smtpw1.aruba.it"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754655Ab0LGKaE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 05:30:04 -0500
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:59903 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754413Ab0LGKft convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 05:35:49 -0500
+Received: by wyb28 with SMTP id 28so13072593wyb.19
+        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 02:35:45 -0800 (PST)
+In-Reply-To: <Pine.LNX.4.64.1012071042220.10621@axis700.grange>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: notasas@gmail.com
-
-Luca Ceresoli wrote:
-> While I thank you for you proposed solution, I see it does not work here.
-> In fact I commented the #define CONFIG_MTD_NAND_OMAP_HWECC and left
-> MTD_NAND_OMAP_PREFETCH disabled as it previously was, and got compilation
-> errors:
-
-Wrong, sorry. Your solution compiles and works. I had another change in that
-file that broke compilation.
-
-Nevertheless, it's not clear to me whether the long-term direction is to
-switch to HWECC, and if it is expected to work in current builds, or if
-SWECC in here to stay.
-
-Thanks,
-Luca
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-omap@vger.kernel.org
 
 
+Op 7 dec 2010, om 10:42 heeft Guennadi Liakhovetski het volgende geschreven:
+
+> Hi
+> 
+> I managed to bring a mainline 2.6.36 kinda kernel to run on my bbxm, 
+> Debian rootfs in mmcblk0p2, but I'm getting no connection - neither over 
+> the SMSC chip, nor over usb-device in gadget mode, nor can I power on the 
+> on-board hub to plug in a usb-to-eth dongle. What's the catch? How do I 
+> configure the kernel to get any of those to work?
+
+Give http://gitorious.org/angstrom/angstrom-linux/commit/c908140c053071789dfa72f34bee76223ba9bdb7 a try. The branch at http://gitorious.org/angstrom/angstrom-linux/commits/koen/beagle-next has a dozen or so patches to get all beagleboards working with 2.6.37rcX from Tony.
+
+regards,
+
+Koen
