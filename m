@@ -1,88 +1,77 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP2+: PM/serial: fix console semaphore acquire during suspend
-Date: Tue,  7 Dec 2010 12:50:56 -0800
-Message-ID: <1291755056-23860-1-git-send-email-khilman@deeprootsystems.com>
+From: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+Subject: Re: OMAP HSMMC problems with off-mode
+Date: Tue, 7 Dec 2010 14:58:28 -0600
+Message-ID: <AANLkTimKCBm0+NTgJWvyivBqv0DoQhwMbsU2uxruoDot@mail.gmail.com>
+References: <alpine.DEB.2.00.1012071101590.13430@utopia.booyaka.com>
+	<4CFE9059.1080202@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:48301 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754843Ab0LGUvA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 15:51:00 -0500
-Received: by ywl5 with SMTP id 5so258542ywl.19
-        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 12:51:00 -0800 (PST)
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:42006 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754643Ab0LGU6e convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Dec 2010 15:58:34 -0500
+Received: by mail-gx0-f181.google.com with SMTP id 10so362215gxk.26
+        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 12:58:29 -0800 (PST)
+In-Reply-To: <4CFE9059.1080202@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Paul Walmsley <paul@pwsan.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sawant@ti.com" <sawant@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>
 
-commit 0d8e2d0dad98a693bad88aea6876ac8b94ad95c6 (OMAP2+: PM/serial:
-hold console semaphore while OMAP UARTs are disabled) added use of the
-console semaphore to protect UARTs from being accessed after disabled
-during idle, but this causes problems in suspend.
+On Tue, Dec 7, 2010 at 1:51 PM, Adrian Hunter <adrian.hunter@nokia.com>=
+ wrote:
+> On 07/12/10 20:21, ext Paul Walmsley wrote:
+>>
+>> Madhusudhan,
+>>
+>> On my OMAP35xx BeagleBoard here, HSMMC is non-functional after retur=
+ning
+>> from dynamic off-mode. =A0The MMC LED turns on and stays on, and the=
+ process
+>> hangs, although the rest of the system still seems to run. =A0Looks =
+like
+>> you're listed as the maintainer for this code. =A0Do you know why th=
+is is,
+>> and what can be done to fix it?
+>
+> It is at least because omap_pm_get_dev_context_loss_count() is not
+> implemented. =A0Tero Kristo was looking at that recently.
+>
 
-During suspend, the console semaphore is already held by the time we reach
-the OMAP suspend path, so the try_acquire_console_sem() will always fail and
-suspend will be aborted.
+Yes. I agree that is the problem. In the .32 kernel I had hooked it to
+"get_last_off_on_transaction_id" which helped.
+But that functionality does not exist anymore. So something equivalent
+to tell the driver when the OFF was hit will make it work.
 
-To fix, introduce a check so the console semaphore is only attempted
-during idle, and not during suspend.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Applies to Tony's omap-fixes branch.
-
- arch/arm/mach-omap2/pm34xx.c |   24 ++++++++++++++++++------
- 1 files changed, 18 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 0ec8a04..122ef3c 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -50,6 +50,19 @@
- #include "sdrc.h"
- #include "control.h"
- 
-+#ifdef CONFIG_SUSPEND
-+static suspend_state_t suspend_state = PM_SUSPEND_ON;
-+static inline bool is_suspending(void)
-+{
-+	return (suspend_state != PM_SUSPEND_ON);
-+}
-+#else
-+static inline bool is_suspending(void)
-+{
-+	return false;
-+}
-+#endif
-+
- /* Scratchpad offsets */
- #define OMAP343X_TABLE_ADDRESS_OFFSET	   0xc4
- #define OMAP343X_TABLE_VALUE_OFFSET	   0xc0
-@@ -387,10 +400,11 @@ void omap_sram_idle(void)
- 	}
- 
- 	/* Block console output in case it is on one of the OMAP UARTs */
--	if (per_next_state < PWRDM_POWER_ON ||
--	    core_next_state < PWRDM_POWER_ON)
--		if (try_acquire_console_sem())
--			goto console_still_active;
-+	if (!is_suspending())
-+		if (per_next_state < PWRDM_POWER_ON ||
-+		    core_next_state < PWRDM_POWER_ON)
-+			if (try_acquire_console_sem())
-+				goto console_still_active;
- 
- 	/* PER */
- 	if (per_next_state < PWRDM_POWER_ON) {
-@@ -514,8 +528,6 @@ out:
- }
- 
- #ifdef CONFIG_SUSPEND
--static suspend_state_t suspend_state;
--
- static int omap3_pm_prepare(void)
- {
- 	disable_hlt();
--- 
-1.7.2.1
-
+Regards,
+Madhu
+>>
+>> This is using linux-omap master at commit
+>> a04fd22204b13ce34a3f8a8157f83c44d64f8da9, using omap2plus_defconfig =
+with
+>> DSS configured in. =A0My boot and root partitions are on MMC. =A0Fol=
+lowing are
+>> the commands I used to reproduce this problem.
+>>
+>>
+>> regards
+>>
+>> - Paul
+>>
+>> echo 1> =A0/debug/pm_debug/sleep_while_idle
+>> echo 1> =A0/debug/pm_debug/enable_off_mode
+>> echo 5> =A0/sys/devices/platform/omap/omap-hsuart.0/sleep_timeout
+>> echo 5> =A0/sys/devices/platform/omap/omap-hsuart.1/sleep_timeout
+>> echo 5> =A0/sys/devices/platform/omap/omap-hsuart.2/sleep_timeout
+>>
+>>
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
