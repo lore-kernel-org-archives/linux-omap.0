@@ -1,46 +1,37 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v6 03/12] media: Entities, pads and links
-Date: Tue, 7 Dec 2010 19:11:39 +0100
-Message-ID: <201012071911.39270.hverkuil@xs4all.nl>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <201012071813.35501.hverkuil@xs4all.nl> <20101207175505.GI9689@rakim.wolfsonmicro.main>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP HSMMC problems with off-mode
+Date: Tue, 7 Dec 2010 11:21:29 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012071101590.13430@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101207175505.GI9689@rakim.wolfsonmicro.main>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, lennart@poettering.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, sawant@ti.com, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday, December 07, 2010 18:55:05 Mark Brown wrote:
-> On Tue, Dec 07, 2010 at 06:13:35PM +0100, Hans Verkuil wrote:
-> 
-> > Personally I think this is perfectly clear. The original confusion came from
-> > the word 'active', which I understand means 'streaming' in alsa. By adding
-> > a 'streaming' flag in addition to the active flag I think it will be clear
-> > that 'active' and 'streaming' are two different things.
-> 
-> It's not that, it's the fact that active sounds to me like the link
-> ought to be powered up which isn't the case - it's too verby.  Like I
-> say, I think I'd prefer a more passive name like "connected".
 
-Ah, now I understand what you mean. Would 'activated' be better than 'active'?
+Madhusudhan,
 
-Or perhaps just say: the link 'is on' or the link 'is switched on'?
+On my OMAP35xx BeagleBoard here, HSMMC is non-functional after returning 
+from dynamic off-mode.  The MMC LED turns on and stays on, and the process 
+hangs, although the rest of the system still seems to run.  Looks like 
+you're listed as the maintainer for this code.  Do you know why this is, 
+and what can be done to fix it?
 
-So: ...LINK_SWITCHED_ON (sorry, forgot what the prefix is).
+This is using linux-omap master at commit 
+a04fd22204b13ce34a3f8a8157f83c44d64f8da9, using omap2plus_defconfig with 
+DSS configured in.  My boot and root partitions are on MMC.  Following are 
+the commands I used to reproduce this problem.
 
-Actually, I think 'switched on' is a pretty good description of what is going on
-in the hardware.
 
-Regards,
+regards
 
-	Hans
- 
-> I guess if nobody else finds it confusing I can live with it.
-> 
+- Paul
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+echo 1 > /debug/pm_debug/sleep_while_idle
+echo 1 > /debug/pm_debug/enable_off_mode
+echo 5 > /sys/devices/platform/omap/omap-hsuart.0/sleep_timeout
+echo 5 > /sys/devices/platform/omap/omap-hsuart.1/sleep_timeout
+echo 5 > /sys/devices/platform/omap/omap-hsuart.2/sleep_timeout
+
