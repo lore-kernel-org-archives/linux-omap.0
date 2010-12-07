@@ -1,64 +1,81 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: beagleboard-xm network with mainline?
-Date: Tue, 7 Dec 2010 12:38:41 +0200
-Message-ID: <20101207103841.GW2576@legolas.emea.dhcp.ti.com>
-References: <Pine.LNX.4.64.1012071042220.10621@axis700.grange>
- <20101207094924.GP2576@legolas.emea.dhcp.ti.com>
- <Pine.LNX.4.64.1012071054430.10621@axis700.grange>
- <20101207101223.GS2576@legolas.emea.dhcp.ti.com>
- <Pine.LNX.4.64.1012071113320.10621@axis700.grange>
-Reply-To: balbi@ti.com
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH v3 0/3] V4L/DVB: OMAP_VOUT: Allow omap_vout to build
+ without VRFB
+Date: Tue, 7 Dec 2010 16:31:02 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404BCE3A55C@dbde02.ent.ti.com>
+References: <1288857386-15431-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:47766 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754469Ab0LGKip (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 05:38:45 -0500
-Received: by eyd10 with SMTP id 10so6842839eyd.3
-        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 02:38:43 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1012071113320.10621@axis700.grange>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1288857386-15431-1-git-send-email-archit@ti.com>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 
-On Tue, Dec 07, 2010 at 11:17:18AM +0100, Guennadi Liakhovetski wrote:
->On Tue, 7 Dec 2010, Felipe Balbi wrote:
->
->> Hi,
->>
->> On Tue, Dec 07, 2010 at 10:56:45AM +0100, Guennadi Liakhovetski wrote:
->> > > On Tue, Dec 07, 2010 at 10:42:45AM +0100, Guennadi Liakhovetski wrote:
->> > > > I managed to bring a mainline 2.6.36 kinda kernel to run on my bbxm,
->> > > > Debian rootfs in mmcblk0p2, but I'm getting no connection - neither over
->> > > > the SMSC chip, nor over usb-device in gadget mode, nor can I power on
->> > > the
->> > > > on-board hub to plug in a usb-to-eth dongle. What's the catch? How do I
->> > > > configure the kernel to get any of those to work?
->> > >
->> > > how about you try with current linux-omap HEAD ? Or linux-mainline HEAD ?
->> >
->> > Sure, can try, but do you have a specific change in mind or is it just a
->> > general suggestion? Which interface should work then?
->>
->> Just a general suggestion. Compile with omap2plus_defconfig. Should boot
->> fine AFAIK.
->
->That's the one I used, right.
->
->> Also, do you have the driver for the external hub + ethernet enabled ? I
->> think it's called sms9x or something similar.
->
->Yes for
->
->CONFIG_USB_NET_SMSC95XX=y
->
->but I don't see any config option for the hub?
+> -----Original Message-----
+> From: Taneja, Archit
+> Sent: Thursday, November 04, 2010 1:26 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Taneja,
+> Archit
+> Subject: [PATCH v3 0/3] V4L/DVB: OMAP_VOUT: Allow omap_vout to build
+> without VRFB
+> 
+[Hiremath, Vaibhav] Sorry for delayed response, today I managed to review this patch series and I have few comments (following this post).
 
-just load that driver :-) should be fine, then you need to enable ehci
-under Device Drivers -> USB
 
--- 
-balbi
+Thanks,
+Vaibhav
+
+> This lets omap_vout driver build and run without VRFB. It works along the
+> lines of the following patch series:
+> 
+> OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
+> https://patchwork.kernel.org/patch/105371/
+> 
+> Since VRFB is tightly coupled with the omap_vout driver, a handful of vrfb
+> specific functions have been defined and placed in omap_vout_vrfb.c
+> 
+> A new enum called vout_rotation_type is introduced to differentiate
+> between no
+> rotation and vrfb rotation. A member rotation_type is introduced in
+> omapvideo_info,
+> this allows to call vrfb specific functions only if the rotation type is
+> VOUT_ROT_VRFB
+> When the rotation_type is set to VOUT_ROT_NONE, the S_CTRL ioctl prevents
+> the user setting
+> a non zero rotation or non zero mirror value.
+> 
+> Archit Taneja (3):
+>   V4L/DVB: OMAP_VOUT: Move some functions and preprocessor defines from
+>     omap_vout
+>   V4L/DVB: OMAP_VOUT: Create a seperate vrfb functions library
+>   V4L/DVB: OMAP_VOUT: Use rotation_type to choose between vrfb rotation
+>     and no rotation
+> 
+>  drivers/media/video/omap/Kconfig          |    2 +-
+>  drivers/media/video/omap/Makefile         |    1 +
+>  drivers/media/video/omap/omap_vout.c      |  560 +++++-------------------
+> -----
+>  drivers/media/video/omap/omap_vout_vrfb.c |  411 +++++++++++++++++++++
+>  drivers/media/video/omap/omap_vout_vrfb.h |   42 +++
+>  drivers/media/video/omap/omap_voutdef.h   |   77 ++++
+>  drivers/media/video/omap/omap_voutlib.c   |   44 +++
+>  drivers/media/video/omap/omap_voutlib.h   |    2 +
+>  8 files changed, 659 insertions(+), 480 deletions(-)
+>  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
+>  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
+> --
+> Version 3:
+>  - Introduce a new enum at V4L2 driver level which cleanly differentiates
+>    between vrfb rotation and no rotation, incorporate comments given for
+> v2
+> Version 2:
+>  - Don't try to enable SDRAM rotation , return an error if non zero
+> rotation
+>    is attempted when rotation_type is set to SDMA rotation.
+> Version 1:
+>    http://www.mail-archive.com/linux-media@vger.kernel.org/msg21937.html
