@@ -1,77 +1,54 @@
-From: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
-Subject: Re: OMAP HSMMC problems with off-mode
-Date: Tue, 7 Dec 2010 14:58:28 -0600
-Message-ID: <AANLkTimKCBm0+NTgJWvyivBqv0DoQhwMbsU2uxruoDot@mail.gmail.com>
-References: <alpine.DEB.2.00.1012071101590.13430@utopia.booyaka.com>
-	<4CFE9059.1080202@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: OMAP2+: PM/serial: hold console semaphore while OMAP UARTs are disabled
+Date: Tue, 07 Dec 2010 12:59:51 -0800
+Message-ID: <87sjy9l2ns.fsf@deeprootsystems.com>
+References: <alpine.DEB.2.00.1011241646310.20215@utopia.booyaka.com>
+	<87oc9e5j4c.fsf@deeprootsystems.com>
+	<20101125005923.GE31536@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:42006 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754643Ab0LGU6e convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Dec 2010 15:58:34 -0500
-Received: by mail-gx0-f181.google.com with SMTP id 10so362215gxk.26
-        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 12:58:29 -0800 (PST)
-In-Reply-To: <4CFE9059.1080202@nokia.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:33821 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753849Ab0LGU75 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 15:59:57 -0500
+Received: by qwa26 with SMTP id 26so351951qwa.19
+        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 12:59:56 -0800 (PST)
+In-Reply-To: <20101125005923.GE31536@atomide.com> (Tony Lindgren's message of
+	"Wed, 24 Nov 2010 16:59:23 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Paul Walmsley <paul@pwsan.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sawant@ti.com" <sawant@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tom.leiming@gmail.com, pramod.gurav@ti.com, thomas.petazzoni@free-electrons.com, jean.pihet@newoldbits.com, govindraj.raja@ti.com
 
-On Tue, Dec 7, 2010 at 1:51 PM, Adrian Hunter <adrian.hunter@nokia.com>=
- wrote:
-> On 07/12/10 20:21, ext Paul Walmsley wrote:
->>
->> Madhusudhan,
->>
->> On my OMAP35xx BeagleBoard here, HSMMC is non-functional after retur=
-ning
->> from dynamic off-mode. =A0The MMC LED turns on and stays on, and the=
- process
->> hangs, although the rest of the system still seems to run. =A0Looks =
-like
->> you're listed as the maintainer for this code. =A0Do you know why th=
-is is,
->> and what can be done to fix it?
->
-> It is at least because omap_pm_get_dev_context_loss_count() is not
-> implemented. =A0Tero Kristo was looking at that recently.
->
+Tony Lindgren <tony@atomide.com> writes:
 
-Yes. I agree that is the problem. In the .32 kernel I had hooked it to
-"get_last_off_on_transaction_id" which helped.
-But that functionality does not exist anymore. So something equivalent
-to tell the driver when the OFF was hit will make it work.
+> * Kevin Hilman <khilman@deeprootsystems.com> [101124 16:32]:
+>> Paul Walmsley <paul@pwsan.com> writes:
+>
+> <snip>
+>
+>> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+>> 
+>> Very nice.  I've been exploring various solutions to this problem as
+>> well, but this one is much cleaner.  Also, I hadn't discovered the 'try'
+>> version of the console semaphore, so was running into recursive locking.
+>> 
+>> Anyways, tested on omap35xx: omap3evm (uart1/core console) and beagle
+>> (uart3/per console) and omap34xx/n900 (uart3/per console) using both
+>> retention-idle and off-idle.
+>
+> Thanks, queuing this as fix for the -rc cycle.
 
-Regards,
-Madhu
->>
->> This is using linux-omap master at commit
->> a04fd22204b13ce34a3f8a8157f83c44d64f8da9, using omap2plus_defconfig =
-with
->> DSS configured in. =A0My boot and root partitions are on MMC. =A0Fol=
-lowing are
->> the commands I used to reproduce this problem.
->>
->>
->> regards
->>
->> - Paul
->>
->> echo 1> =A0/debug/pm_debug/sleep_while_idle
->> echo 1> =A0/debug/pm_debug/enable_off_mode
->> echo 5> =A0/sys/devices/platform/omap/omap-hsuart.0/sleep_timeout
->> echo 5> =A0/sys/devices/platform/omap/omap-hsuart.1/sleep_timeout
->> echo 5> =A0/sys/devices/platform/omap/omap-hsuart.2/sleep_timeout
->>
->>
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+FYI.. just found a regression caused by this patch.  It prevented
+suspend from ever happening since the console semaphore is already held
+during suspend.
+
+Just posted a fix for this:
+
+Date: Tue, 7 Dec 2010 12:24:13 -0800
+Subject: [PATCH] OMAP2+: PM/serial: fix console semaphore acquire during suspend
+
+
+Kevin
+
