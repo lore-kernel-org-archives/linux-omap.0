@@ -1,47 +1,29 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] musb: am35x: fix compile error due to control apis
-Date: Tue, 07 Dec 2010 16:20:21 +0300
-Message-ID: <4CFE3495.5090204@ru.mvista.com>
-References: <1291623211-959-1-git-send-email-ajay.gupta@ti.com> <4CFCBCF1.9010902@ru.mvista.com> <19F8576C6E063C45BE387C64729E739404BCE3A1EC@dbde02.ent.ti.com> <4CFD19A7.5020902@ru.mvista.com> <20101206175445.GF8345@atomide.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 13/14] OMAP2/3: PRCM: split OMAP2/3-specific PRCM code
+ into OMAP2/3-specific files
+Date: Tue, 7 Dec 2010 13:37:11 +0000
+Message-ID: <20101207133710.GW4698@rakim.wolfsonmicro.main>
+References: <20101207012242.3708.45451.stgit@twilight.localdomain>
+ <20101207012516.3708.87606.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101206175445.GF8345-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40422 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754056Ab0LGNhN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 08:37:13 -0500
+Content-Disposition: inline
+In-Reply-To: <20101207012516.3708.87606.stgit@twilight.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-Hello.
+On Mon, Dec 06, 2010 at 06:25:17PM -0700, Paul Walmsley wrote:
+> In preparation for adding OMAP4-specific PRCM accessor/mutator
+> functions, split the existing OMAP2/3 PRCM code into OMAP2/3-specific
+> files.  Most of what was in mach-omap2/{cm,prm}.{c,h} has now been
+> moved into mach-omap2/{cm,prm}2xxx_3xxx.{c,h}, since it was
+> OMAP2xxx/3xxx-specific.
 
-On 06-12-2010 20:54, Tony Lindgren wrote:
-
->>>>> As the control.h have been moved to new location and it's
->>>>> uses are not allowed to drivers directly so moving the phy
->>>>> control, interrupt clear and reset functionality to board
->>>>> files.
-
->>>>     I'm not fond of the whole approach. I'm not sure why accesses to the
->>>> control registers are such a no-no, taking into account that one needs to
->>>> access such regisyter to clear the interrupt...
-
-> Because drivers should arch independent and any tinkering of the
-> platform level registers will lead into pains later on that
-> I end up having to deal with.
-
-> To me it seem you just init to separate out the transceiver,
-> right?
-
-    We also have to install a hook to clear the MUSB level interrupt via the 
-control register -- that's a thing that makes me dubious about not allowing 
-drivers to access the control registers.
-
-> Tony
-
-WBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
