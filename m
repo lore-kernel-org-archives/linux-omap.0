@@ -1,41 +1,88 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 11/14] OMAP4: PRCM: reorganize existing OMAP4 PRCM header
- files
-Date: Tue, 7 Dec 2010 21:43:40 +0100
-Message-ID: <4CFE9C7C.6060101@ti.com>
-References: <20101207012242.3708.45451.stgit@twilight.localdomain> <20101207012514.3708.87532.stgit@twilight.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] OMAP2+: PM/serial: fix console semaphore acquire during suspend
+Date: Tue,  7 Dec 2010 12:50:56 -0800
+Message-ID: <1291755056-23860-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44644 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755054Ab0LGUn4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 15:43:56 -0500
-In-Reply-To: <20101207012514.3708.87532.stgit@twilight.localdomain>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:48301 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754843Ab0LGUvA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 15:51:00 -0500
+Received: by ywl5 with SMTP id 5so258542ywl.19
+        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 12:51:00 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 
-On 12/7/2010 2:25 AM, Paul Walmsley wrote:
+commit 0d8e2d0dad98a693bad88aea6876ac8b94ad95c6 (OMAP2+: PM/serial:
+hold console semaphore while OMAP UARTs are disabled) added use of the
+console semaphore to protect UARTs from being accessed after disabled
+during idle, but this causes problems in suspend.
 
-[...]
+During suspend, the console semaphore is already held by the time we reach
+the OMAP suspend path, so the try_acquire_console_sem() will always fail and
+suspend will be aborted.
 
-> + *
-> + * XXX This file needs to be updated to align on one of "OMAP4", "OMAP44XX",
-> + *     or "OMAP4430".
+To fix, introduce a check so the console semaphore is only attempted
+during idle, and not during suspend.
 
-Yep, I was thinking to change that as well. My first thought was OMAP4 
-to get a shorter name, but when we will introduce OMAP4440, we might 
-have some new entries, that will looks ugly close to OMAP4.
-So at the end I will prefer OMAP44XX for the moment and we might renamed 
-to OMAP4430 or OMAP4440 for the entries that will diverge.
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+Applies to Tony's omap-fixes branch.
 
-Do you want to change that for 2.6.38?
-It will require some sync with the various users of these defines, but 
-that should be doable.
+ arch/arm/mach-omap2/pm34xx.c |   24 ++++++++++++++++++------
+ 1 files changed, 18 insertions(+), 6 deletions(-)
 
-Regards,
-Benoit
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 0ec8a04..122ef3c 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -50,6 +50,19 @@
+ #include "sdrc.h"
+ #include "control.h"
+ 
++#ifdef CONFIG_SUSPEND
++static suspend_state_t suspend_state = PM_SUSPEND_ON;
++static inline bool is_suspending(void)
++{
++	return (suspend_state != PM_SUSPEND_ON);
++}
++#else
++static inline bool is_suspending(void)
++{
++	return false;
++}
++#endif
++
+ /* Scratchpad offsets */
+ #define OMAP343X_TABLE_ADDRESS_OFFSET	   0xc4
+ #define OMAP343X_TABLE_VALUE_OFFSET	   0xc0
+@@ -387,10 +400,11 @@ void omap_sram_idle(void)
+ 	}
+ 
+ 	/* Block console output in case it is on one of the OMAP UARTs */
+-	if (per_next_state < PWRDM_POWER_ON ||
+-	    core_next_state < PWRDM_POWER_ON)
+-		if (try_acquire_console_sem())
+-			goto console_still_active;
++	if (!is_suspending())
++		if (per_next_state < PWRDM_POWER_ON ||
++		    core_next_state < PWRDM_POWER_ON)
++			if (try_acquire_console_sem())
++				goto console_still_active;
+ 
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+@@ -514,8 +528,6 @@ out:
+ }
+ 
+ #ifdef CONFIG_SUSPEND
+-static suspend_state_t suspend_state;
+-
+ static int omap3_pm_prepare(void)
+ {
+ 	disable_hlt();
+-- 
+1.7.2.1
 
