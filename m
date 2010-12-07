@@ -1,15 +1,15 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v3 1/3] V4L/DVB: OMAP_VOUT: Move some functions and
- preprocessor defines from omap_vout
-Date: Tue, 7 Dec 2010 16:31:16 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404BCE3A55D@dbde02.ent.ti.com>
+Subject: RE: [PATCH v3 2/3] V4L/DVB: OMAP_VOUT: Create a seperate vrfb
+ functions library
+Date: Tue, 7 Dec 2010 16:32:23 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404BCE3A560@dbde02.ent.ti.com>
 References: <1288857386-15431-1-git-send-email-archit@ti.com>
- <1288857386-15431-2-git-send-email-archit@ti.com>
+ <1288857386-15431-3-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1288857386-15431-2-git-send-email-archit@ti.com>
+In-Reply-To: <1288857386-15431-3-git-send-email-archit@ti.com>
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 To: "Taneja, Archit" <archit@ti.com>
@@ -23,352 +23,515 @@ List-Id: linux-omap@vger.kernel.org
 > To: Hiremath, Vaibhav
 > Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Taneja,
 > Archit
-> Subject: [PATCH v3 1/3] V4L/DVB: OMAP_VOUT: Move some functions and
-> preprocessor defines from omap_vout
-> 
-> Move some functions from omap_vout.c to omap_voutlib.c and defines to
-> omap_voutdef.h
-> These will be required vrfb specific functions.
-> 
-[Hiremath, Vaibhav] Suggest you to reword the description and subject to something like,
+> Subject: [PATCH v3 2/3] V4L/DVB: OMAP_VOUT: Create a seperate vrfb
+[Hiremath, Vaibhav] Spelling mistake "separate". I would recommend to run spell-check before sending patches.
+
+> functions library
+>
+> Create omap_vout_vrfb.c and omap_vout_vrfb.h, these contain functions
+> which
+> omap_vout will call if the rotation type is set to VRFB rotation. It is
+> essentialy the code in omap_vout which is used for vrfb specific tasks.
+>
+[Hiremath, Vaibhav] Suggest you to reword the description and subject line to something,
 
 
-OMAP_VOUT:CLEANUP: Move some functions and macros from omap_vout
+OMAP_VOUT: Create separate file for VRFB related API's
 
-Move some inline functions from omap_vout.c to omap_voutdef.h and independent functions like omap_vout_alloc_buffer/omap_vout_free_buffer to omap_voutlib.c.
+Introduce omap_vout_vrfb.c and omap_vout_vrfb.h, for all VRFB related API's, making OMAP_VOUT driver independent from VRFB. This is required for OMAP4 DSS, since OMAP4 doesn't have VRFB block.
 
 
 > Signed-off-by: Archit Taneja <archit@ti.com>
 > ---
->  drivers/media/video/omap/omap_vout.c    |  111 +-------------------------
-> -----
->  drivers/media/video/omap/omap_voutdef.h |   64 ++++++++++++++++++
->  drivers/media/video/omap/omap_voutlib.c |   44 ++++++++++++
->  drivers/media/video/omap/omap_voutlib.h |    2 +
->  4 files changed, 111 insertions(+), 110 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index 15f8793..7f9e937 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -35,17 +35,14 @@
->  #include <linux/sched.h>
->  #include <linux/types.h>
->  #include <linux/platform_device.h>
-> -#include <linux/dma-mapping.h>
->  #include <linux/irq.h>
->  #include <linux/videodev2.h>
-> -#include <linux/slab.h>
-> 
->  #include <media/videobuf-dma-contig.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ioctl.h>
-> 
->  #include <plat/dma.h>
-> -#include <plat/vram.h>
->  #include <plat/vrfb.h>
->  #include <plat/display.h>
-> 
-> @@ -56,7 +53,6 @@ MODULE_AUTHOR("Texas Instruments");
->  MODULE_DESCRIPTION("OMAP Video for Linux Video out driver");
->  MODULE_LICENSE("GPL");
-> 
-> -
->  /* Driver Configuration macros */
->  #define VOUT_NAME		"omap_vout"
-> 
-> @@ -65,31 +61,6 @@ enum omap_vout_channels {
->  	OMAP_VIDEO2,
->  };
-> 
-> -enum dma_channel_state {
-> -	DMA_CHAN_NOT_ALLOTED,
-> -	DMA_CHAN_ALLOTED,
-> -};
-> -
-> -#define QQVGA_WIDTH		160
-> -#define QQVGA_HEIGHT		120
-> -
-> -/* Max Resolution supported by the driver */
-> -#define VID_MAX_WIDTH		1280	/* Largest width */
-> -#define VID_MAX_HEIGHT		720	/* Largest height */
-> -
-> -/* Mimimum requirement is 2x2 for DSS */
-> -#define VID_MIN_WIDTH		2
-> -#define VID_MIN_HEIGHT		2
-> -
-> -/* 2048 x 2048 is max res supported by OMAP display controller */
-> -#define MAX_PIXELS_PER_LINE     2048
-> -
-> -#define VRFB_TX_TIMEOUT         1000
-> -#define VRFB_NUM_BUFS		4
-> -
-> -/* Max buffer size tobe allocated during init */
-> -#define OMAP_VOUT_MAX_BUF_SIZE (VID_MAX_WIDTH*VID_MAX_HEIGHT*4)
-> -
->  static struct videobuf_queue_ops video_vbq_ops;
->  /* Variables configurable through module params*/
->  static u32 video1_numbuffers = 3;
-> @@ -172,49 +143,6 @@ const static struct v4l2_fmtdesc omap_formats[] = {
->  #define NUM_OUTPUT_FORMATS (ARRAY_SIZE(omap_formats))
-> 
->  /*
-> - * Allocate buffers
-> - */
-> -static unsigned long omap_vout_alloc_buffer(u32 buf_size, u32 *phys_addr)
-> -{
-> -	u32 order, size;
-> -	unsigned long virt_addr, addr;
-> -
-> -	size = PAGE_ALIGN(buf_size);
-> -	order = get_order(size);
-> -	virt_addr = __get_free_pages(GFP_KERNEL | GFP_DMA, order);
-> -	addr = virt_addr;
-> -
-> -	if (virt_addr) {
-> -		while (size > 0) {
-> -			SetPageReserved(virt_to_page(addr));
-> -			addr += PAGE_SIZE;
-> -			size -= PAGE_SIZE;
-> -		}
-> -	}
-> -	*phys_addr = (u32) virt_to_phys((void *) virt_addr);
-> -	return virt_addr;
-> -}
-> -
-> -/*
-> - * Free buffers
-> - */
-> -static void omap_vout_free_buffer(unsigned long virtaddr, u32 buf_size)
-> -{
-> -	u32 order, size;
-> -	unsigned long addr = virtaddr;
-> -
-> -	size = PAGE_ALIGN(buf_size);
-> -	order = get_order(size);
-> -
-> -	while (size > 0) {
-> -		ClearPageReserved(virt_to_page(addr));
-> -		addr += PAGE_SIZE;
-> -		size -= PAGE_SIZE;
-> -	}
-> -	free_pages((unsigned long) virtaddr, order);
-> -}
-> -
-> -/*
->   * Function for allocating video buffers
->   */
->  static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
-> @@ -369,46 +297,9 @@ static void omap_vout_release_vrfb(struct
-> omap_vout_device *vout)
->  }
-> 
->  /*
-> - * Return true if rotation is 90 or 270
-> - */
-> -static inline int rotate_90_or_270(const struct omap_vout_device *vout)
-> -{
-> -	return (vout->rotation == dss_rotation_90_degree ||
-> -			vout->rotation == dss_rotation_270_degree);
-> -}
-> -
-> -/*
-> - * Return true if rotation is enabled
-> - */
-> -static inline int rotation_enabled(const struct omap_vout_device *vout)
-> -{
-> -	return vout->rotation || vout->mirror;
-> -}
-> -
-> -/*
-> - * Reverse the rotation degree if mirroring is enabled
-> - */
-> -static inline int calc_rotation(const struct omap_vout_device *vout)
-> -{
-> -	if (!vout->mirror)
-> -		return vout->rotation;
-> -
-> -	switch (vout->rotation) {
-> -	case dss_rotation_90_degree:
-> -		return dss_rotation_270_degree;
-> -	case dss_rotation_270_degree:
-> -		return dss_rotation_90_degree;
-> -	case dss_rotation_180_degree:
-> -		return dss_rotation_0_degree;
-> -	default:
-> -		return dss_rotation_180_degree;
-> -	}
-> -}
-> -
-> -/*
->   * Free the V4L2 buffers
->   */
-> -static void omap_vout_free_buffers(struct omap_vout_device *vout)
-> +void omap_vout_free_buffers(struct omap_vout_device *vout)
-[Hiremath, Vaibhav] Why do you need to do this here? This should be part of your 2/3 patch.
+>  drivers/media/video/omap/omap_vout_vrfb.c |  411
+> +++++++++++++++++++++++++++++
+>  drivers/media/video/omap/omap_vout_vrfb.h |   42 +++
+>  2 files changed, 453 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
+>  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
+>
+[Hiremath, Vaibhav] Why Kconfig & Makefile entry is in 3/3? It should be part of this patch.
 
-Rest everything looks on to me in this patch.
+> diff --git a/drivers/media/video/omap/omap_vout_vrfb.c
+> b/drivers/media/video/omap/omap_vout_vrfb.c
+> new file mode 100644
+> index 0000000..ae7c72a
+> --- /dev/null
+> +++ b/drivers/media/video/omap/omap_vout_vrfb.c
+> @@ -0,0 +1,411 @@
+> +/*
+> + * omap_vout_vrfb.c
+> + *
+> + * Copyright (C) 2010 Texas Instruments.
+> + *
+> + * This file is licensed under the terms of the GNU General Public
+> License
+> + * version 2. This program is licensed "as is" without any warranty of
+> any
+> + * kind, whether express or implied.
+> + *
+> + */
+> +
+> +#include <linux/sched.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/videodev2.h>
+> +
+> +#include <media/videobuf-dma-contig.h>
+> +#include <media/v4l2-device.h>
+> +
+> +#include <plat/dma.h>
+> +#include <plat/vrfb.h>
+> +
+> +#include "omap_voutdef.h"
+> +#include "omap_voutlib.h"
+> +
+> +/*
+> + * Function for allocating video buffers
+> + */
+> +static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
+> +             unsigned int *count, int startindex)
+> +{
+> +     int i, j;
+> +
+> +     for (i = 0; i < *count; i++) {
+> +             if (!vout->smsshado_virt_addr[i]) {
+> +                     vout->smsshado_virt_addr[i] =
+> +                             omap_vout_alloc_buffer(vout->smsshado_size,
+> +                                             &vout->smsshado_phy_addr[i]);
+> +             }
+> +             if (!vout->smsshado_virt_addr[i] && startindex != -1) {
+> +                     if (V4L2_MEMORY_MMAP == vout->memory && i >= startindex)
+> +                             break;
+> +             }
+> +             if (!vout->smsshado_virt_addr[i]) {
+> +                     for (j = 0; j < i; j++) {
+> +                             omap_vout_free_buffer(
+> +                                             vout->smsshado_virt_addr[j],
+> +                                             vout->smsshado_size);
+> +                             vout->smsshado_virt_addr[j] = 0;
+> +                             vout->smsshado_phy_addr[j] = 0;
+> +                     }
+> +                     *count = 0;
+> +                     return -ENOMEM;
+> +             }
+> +             memset((void *) vout->smsshado_virt_addr[i], 0,
+> +                             vout->smsshado_size);
+> +     }
+> +     return 0;
+> +}
+> +
+> +/*
+> + * Wakes up the application once the DMA transfer to VRFB space is
+> completed.
+> + */
+> +static void omap_vout_vrfb_dma_tx_callback(int lch, u16 ch_status, void
+> *data)
+> +{
+> +     struct vid_vrfb_dma *t = (struct vid_vrfb_dma *) data;
+> +
+> +     t->tx_status = 1;
+> +     wake_up_interruptible(&t->wait);
+> +}
+> +
+> +/*
+> + * Free VRFB buffers
+> + */
+> +void omap_vout_free_vrfb_buffers(struct omap_vout_device *vout)
+> +{
+> +     int j;
+> +
+> +     for (j = 0; j < VRFB_NUM_BUFS; j++) {
+> +             omap_vout_free_buffer(vout->smsshado_virt_addr[j],
+> +                             vout->smsshado_size);
+> +             vout->smsshado_virt_addr[j] = 0;
+> +             vout->smsshado_phy_addr[j] = 0;
+> +     }
+> +}
+> +
+> +/* Free the VRFB buffers only if they are allocated
+> + * during reqbufs.  Don't free if init time allocated
+> + */
+> +void omap_vout_free_extra_vrfb_buffers(struct omap_vout_device *vout)
+> +{
+[Hiremath, Vaibhav] Why "extra" here? Function only makes sure that it won't free boot time allocated VRFB buffers.
 
 Thanks,
 Vaibhav
->  {
->  	int i, numbuffers;
-> 
-> diff --git a/drivers/media/video/omap/omap_voutdef.h
-> b/drivers/media/video/omap/omap_voutdef.h
-> index ea3a047..a71f16e 100644
-> --- a/drivers/media/video/omap/omap_voutdef.h
-> +++ b/drivers/media/video/omap/omap_voutdef.h
-> @@ -27,6 +27,31 @@
->  #define MAX_DISPLAYS	3
->  #define MAX_MANAGERS	3
-> 
-> +#define QQVGA_WIDTH		160
-> +#define QQVGA_HEIGHT		120
+
 > +
-> +/* Max Resolution supported by the driver */
-> +#define VID_MAX_WIDTH		1280	/* Largest width */
-> +#define VID_MAX_HEIGHT		720	/* Largest height */
+> +     int i = 0;
 > +
-> +/* Mimimum requirement is 2x2 for DSS */
-> +#define VID_MIN_WIDTH		2
-> +#define VID_MIN_HEIGHT		2
+> +     if (!vout->vrfb_static_allocation) {
+> +             for (i = 0; i < VRFB_NUM_BUFS; i++) {
+> +                     if (vout->smsshado_virt_addr[i]) {
+> +                             omap_vout_free_buffer(
+> +                                             vout->smsshado_virt_addr[i],
+> +                                             vout->smsshado_size);
+> +                             vout->smsshado_virt_addr[i] = 0;
+> +                             vout->smsshado_phy_addr[i] = 0;
+> +                     }
+> +             }
+> +     }
+> +}
 > +
-> +/* 2048 x 2048 is max res supported by OMAP display controller */
-> +#define MAX_PIXELS_PER_LINE     2048
-> +
-> +#define VRFB_TX_TIMEOUT         1000
-> +#define VRFB_NUM_BUFS		4
-> +
-> +/* Max buffer size tobe allocated during init */
-> +#define OMAP_VOUT_MAX_BUF_SIZE (VID_MAX_WIDTH*VID_MAX_HEIGHT*4)
-> +
-> +enum dma_channel_state {
-> +	DMA_CHAN_NOT_ALLOTED,
-> +	DMA_CHAN_ALLOTED,
-> +};
-> +
->  /* Enum for Rotation
->   * DSS understands rotation in 0, 1, 2, 3 context
->   * while V4L2 driver understands it as 0, 90, 180, 270
-> @@ -144,4 +169,43 @@ struct omap_vout_device {
->  	int io_allowed;
-> 
->  };
-> +
-> +/*
-> + * Return true if rotation is 90 or 270
-> + */
-> +static inline int rotate_90_or_270(const struct omap_vout_device *vout)
+> +int omap_vout_setup_vrfb_bufs(struct platform_device *pdev, int vid_num,
+> +                     u32 static_vrfb_allocation)
 > +{
-> +	return (vout->rotation == dss_rotation_90_degree ||
-> +			vout->rotation == dss_rotation_270_degree);
+> +     int ret = 0, i, j;
+> +     struct omap_vout_device *vout;
+> +     struct video_device *vfd;
+> +     int image_width, image_height;
+> +     int vrfb_num_bufs = VRFB_NUM_BUFS;
+> +     struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+> +     struct omap2video_device *vid_dev =
+> +             container_of(v4l2_dev, struct omap2video_device, v4l2_dev);
+> +
+> +     vout = vid_dev->vouts[vid_num];
+> +     vfd = vout->vfd;
+> +
+> +     for (i = 0; i < VRFB_NUM_BUFS; i++) {
+> +             if (omap_vrfb_request_ctx(&vout->vrfb_context[i])) {
+> +                     dev_info(&pdev->dev, ": VRFB allocation failed\n");
+> +                     for (j = 0; j < i; j++)
+> +                             omap_vrfb_release_ctx(&vout->vrfb_context[j]);
+> +                     ret = -ENOMEM;
+> +                     goto free_buffers;
+> +             }
+> +     }
+> +
+> +     /* Calculate VRFB memory size */
+> +     /* allocate for worst case size */
+> +     image_width = VID_MAX_WIDTH / TILE_SIZE;
+> +     if (VID_MAX_WIDTH % TILE_SIZE)
+> +             image_width++;
+> +
+> +     image_width = image_width * TILE_SIZE;
+> +     image_height = VID_MAX_HEIGHT / TILE_SIZE;
+> +
+> +     if (VID_MAX_HEIGHT % TILE_SIZE)
+> +             image_height++;
+> +
+> +     image_height = image_height * TILE_SIZE;
+> +     vout->smsshado_size = PAGE_ALIGN(image_width * image_height * 2 *
+> 2);
+> +
+> +     /*
+> +      * Request and Initialize DMA, for DMA based VRFB transfer
+> +      */
+> +     vout->vrfb_dma_tx.dev_id = OMAP_DMA_NO_DEVICE;
+> +     vout->vrfb_dma_tx.dma_ch = -1;
+> +     vout->vrfb_dma_tx.req_status = DMA_CHAN_ALLOTED;
+> +     ret = omap_request_dma(vout->vrfb_dma_tx.dev_id, "VRFB DMA TX",
+> +                     omap_vout_vrfb_dma_tx_callback,
+> +                     (void *) &vout->vrfb_dma_tx, &vout->vrfb_dma_tx.dma_ch);
+> +     if (ret < 0) {
+> +             vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
+> +             dev_info(&pdev->dev, ": failed to allocate DMA Channel for"
+> +                             " video%d\n", vfd->minor);
+> +     }
+> +     init_waitqueue_head(&vout->vrfb_dma_tx.wait);
+> +
+> +     /* statically allocated the VRFB buffer is done through
+> +        commands line aruments */
+> +     if (static_vrfb_allocation) {
+> +             if (omap_vout_allocate_vrfb_buffers(vout, &vrfb_num_bufs, -1))
+> {
+> +                     ret =  -ENOMEM;
+> +                     goto release_vrfb_ctx;
+> +             }
+> +             vout->vrfb_static_allocation = 1;
+> +     }
+> +     return 0;
+> +
+> +release_vrfb_ctx:
+> +     for (j = 0; j < VRFB_NUM_BUFS; j++)
+> +             omap_vrfb_release_ctx(&vout->vrfb_context[j]);
+> +free_buffers:
+> +     omap_vout_free_buffers(vout);
+> +
+> +     return ret;
 > +}
 > +
 > +/*
-> + * Return true if rotation is enabled
+> + * Release the VRFB context once the module exits
 > + */
-> +static inline int rotation_enabled(const struct omap_vout_device *vout)
+> +void omap_vout_release_vrfb(struct omap_vout_device *vout)
 > +{
-> +	return vout->rotation || vout->mirror;
+> +     int i;
+> +
+> +     for (i = 0; i < VRFB_NUM_BUFS; i++)
+> +             omap_vrfb_release_ctx(&vout->vrfb_context[i]);
+> +
+> +     if (vout->vrfb_dma_tx.req_status == DMA_CHAN_ALLOTED) {
+> +             vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
+> +             omap_free_dma(vout->vrfb_dma_tx.dma_ch);
+> +     }
 > +}
 > +
 > +/*
-> + * Reverse the rotation degree if mirroring is enabled
+> + * Allocate the buffers for the VRFB space.  Data is copied from V4L2
+> + * buffers to the VRFB buffers using the DMA engine.
 > + */
-> +static inline int calc_rotation(const struct omap_vout_device *vout)
+> +int omap_vout_vrfb_buffer_setup(struct omap_vout_device *vout,
+> +                       unsigned int *count, unsigned int startindex)
 > +{
-> +	if (!vout->mirror)
-> +		return vout->rotation;
+> +     int i;
+> +     bool yuv_mode;
 > +
-> +	switch (vout->rotation) {
-> +	case dss_rotation_90_degree:
-> +		return dss_rotation_270_degree;
-> +	case dss_rotation_270_degree:
-> +		return dss_rotation_90_degree;
-> +	case dss_rotation_180_degree:
-> +		return dss_rotation_0_degree;
-> +	default:
-> +		return dss_rotation_180_degree;
-> +	}
+> +     if (!rotation_enabled(vout))
+> +             return 0;
+> +
+> +     /* If rotation is enabled, allocate memory for VRFB space also */
+> +     *count = *count > VRFB_NUM_BUFS ? VRFB_NUM_BUFS : *count;
+> +
+> +     /* Allocate the VRFB buffers only if the buffers are not
+> +      * allocated during init time.
+> +      */
+> +     if (!vout->vrfb_static_allocation)
+> +             if (omap_vout_allocate_vrfb_buffers(vout, count, startindex))
+> +                     return -ENOMEM;
+> +
+> +     if (vout->dss_mode == OMAP_DSS_COLOR_YUV2 ||
+> +                     vout->dss_mode == OMAP_DSS_COLOR_UYVY)
+> +             yuv_mode = true;
+> +     else
+> +             yuv_mode = false;
+> +
+> +     for (i = 0; i < *count; i++)
+> +             omap_vrfb_setup(&vout->vrfb_context[i],
+> +                             vout->smsshado_phy_addr[i], vout->pix.width,
+> +                             vout->pix.height, vout->bpp, yuv_mode);
+> +
+> +     return 0;
 > +}
 > +
-> +void omap_vout_free_buffers(struct omap_vout_device *vout);
->  #endif	/* ifndef OMAP_VOUTDEF_H */
-> diff --git a/drivers/media/video/omap/omap_voutlib.c
-> b/drivers/media/video/omap/omap_voutlib.c
-> index b941c76..c27b737 100644
-> --- a/drivers/media/video/omap/omap_voutlib.c
-> +++ b/drivers/media/video/omap/omap_voutlib.c
-> @@ -24,6 +24,8 @@
->  #include <linux/types.h>
->  #include <linux/videodev2.h>
-> 
-> +#include <linux/dma-mapping.h>
+> +int omap_vout_prepare_vrfb(struct omap_vout_device *vout,
+> +                             struct videobuf_buffer *vb)
+> +{
+> +     dma_addr_t dmabuf;
+> +     struct vid_vrfb_dma *tx;
+> +     enum dss_rotation rotation;
+> +     u32 dest_frame_index = 0, src_element_index = 0;
+> +     u32 dest_element_index = 0, src_frame_index = 0;
+> +     u32 elem_count = 0, frame_count = 0, pixsize = 2;
 > +
->  #include <plat/cpu.h>
-> 
->  MODULE_AUTHOR("Texas Instruments");
-> @@ -291,3 +293,45 @@ void omap_vout_new_format(struct v4l2_pix_format *pix,
->  }
->  EXPORT_SYMBOL_GPL(omap_vout_new_format);
-> 
+> +     if (!rotation_enabled(vout))
+> +             return 0;
+> +
+> +     dmabuf = vout->buf_phy_addr[vb->i];
+> +     /* If rotation is enabled, copy input buffer into VRFB
+> +      * memory space using DMA. We are copying input buffer
+> +      * into VRFB memory space of desired angle and DSS will
+> +      * read image VRFB memory for 0 degree angle
+> +      */
+> +     pixsize = vout->bpp * vout->vrfb_bpp;
+> +     /*
+> +      * DMA transfer in double index mode
+> +      */
+> +
+> +     /* Frame index */
+> +     dest_frame_index = ((MAX_PIXELS_PER_LINE * pixsize) -
+> +                     (vout->pix.width * vout->bpp)) + 1;
+> +
+> +     /* Source and destination parameters */
+> +     src_element_index = 0;
+> +     src_frame_index = 0;
+> +     dest_element_index = 1;
+> +     /* Number of elements per frame */
+> +     elem_count = vout->pix.width * vout->bpp;
+> +     frame_count = vout->pix.height;
+> +     tx = &vout->vrfb_dma_tx;
+> +     tx->tx_status = 0;
+> +     omap_set_dma_transfer_params(tx->dma_ch, OMAP_DMA_DATA_TYPE_S32,
+> +                     (elem_count / 4), frame_count, OMAP_DMA_SYNC_ELEMENT,
+> +                     tx->dev_id, 0x0);
+> +     /* src_port required only for OMAP1 */
+> +     omap_set_dma_src_params(tx->dma_ch, 0, OMAP_DMA_AMODE_POST_INC,
+> +                     dmabuf, src_element_index, src_frame_index);
+> +     /*set dma source burst mode for VRFB */
+> +     omap_set_dma_src_burst_mode(tx->dma_ch, OMAP_DMA_DATA_BURST_16);
+> +     rotation = calc_rotation(vout);
+> +
+> +     /* dest_port required only for OMAP1 */
+> +     omap_set_dma_dest_params(tx->dma_ch, 0, OMAP_DMA_AMODE_DOUBLE_IDX,
+> +                     vout->vrfb_context[vb->i].paddr[0], dest_element_index,
+> +                     dest_frame_index);
+> +     /*set dma dest burst mode for VRFB */
+> +     omap_set_dma_dest_burst_mode(tx->dma_ch, OMAP_DMA_DATA_BURST_16);
+> +     omap_dma_set_global_params(DMA_DEFAULT_ARB_RATE, 0x20, 0);
+> +
+> +     omap_start_dma(tx->dma_ch);
+> +     interruptible_sleep_on_timeout(&tx->wait, VRFB_TX_TIMEOUT);
+> +
+> +     if (tx->tx_status == 0) {
+> +             omap_stop_dma(tx->dma_ch);
+> +             return -EINVAL;
+> +     }
+> +     /* Store buffers physical address into an array. Addresses
+> +      * from this array will be used to configure DSS */
+> +     vout->queued_buf_addr[vb->i] = (u8 *)
+> +             vout->vrfb_context[vb->i].paddr[rotation];
+> +     return 0;
+> +}
+> +
 > +/*
-> + * Allocate buffers
+> + * Calculate the buffer offsets from which the streaming should
+> + * start. This offset calculation is mainly required because of
+> + * the VRFB 32 pixels alignment with rotation.
 > + */
-> +unsigned long omap_vout_alloc_buffer(u32 buf_size, u32 *phys_addr)
+> +void omap_vout_calculate_vrfb_offset(struct omap_vout_device *vout)
 > +{
-> +	u32 order, size;
-> +	unsigned long virt_addr, addr;
+> +     enum dss_rotation rotation;
+> +     bool mirroring = vout->mirror;
+> +     struct v4l2_rect *crop = &vout->crop;
+> +     struct v4l2_pix_format *pix = &vout->pix;
+> +     int *cropped_offset = &vout->cropped_offset;
+> +     int vr_ps = 1, ps = 2, temp_ps = 2;
+> +     int offset = 0, ctop = 0, cleft = 0, line_length = 0;
 > +
-> +	size = PAGE_ALIGN(buf_size);
-> +	order = get_order(size);
-> +	virt_addr = __get_free_pages(GFP_KERNEL | GFP_DMA, order);
-> +	addr = virt_addr;
+> +     rotation = calc_rotation(vout);
 > +
-> +	if (virt_addr) {
-> +		while (size > 0) {
-> +			SetPageReserved(virt_to_page(addr));
-> +			addr += PAGE_SIZE;
-> +			size -= PAGE_SIZE;
-> +		}
-> +	}
-> +	*phys_addr = (u32) virt_to_phys((void *) virt_addr);
-> +	return virt_addr;
+> +     if (V4L2_PIX_FMT_YUYV == pix->pixelformat ||
+> +                     V4L2_PIX_FMT_UYVY == pix->pixelformat) {
+> +             if (rotation_enabled(vout)) {
+> +                     /*
+> +                      * ps    - Actual pixel size for YUYV/UYVY for
+> +                      *         VRFB/Mirroring is 4 bytes
+> +                      * vr_ps - Virtually pixel size for YUYV/UYVY is
+> +                      *         2 bytes
+> +                      */
+> +                     ps = 4;
+> +                     vr_ps = 2;
+> +             } else {
+> +                     ps = 2; /* otherwise the pixel size is 2 byte */
+> +             }
+> +     } else if (V4L2_PIX_FMT_RGB32 == pix->pixelformat) {
+> +             ps = 4;
+> +     } else if (V4L2_PIX_FMT_RGB24 == pix->pixelformat) {
+> +             ps = 3;
+> +     }
+> +     vout->ps = ps;
+> +     vout->vr_ps = vr_ps;
+> +
+> +     if (rotation_enabled(vout)) {
+> +             line_length = MAX_PIXELS_PER_LINE;
+> +             ctop = (pix->height - crop->height) - crop->top;
+> +             cleft = (pix->width - crop->width) - crop->left;
+> +     } else {
+> +             line_length = pix->width;
+> +     }
+> +     vout->line_length = line_length;
+> +     switch (rotation) {
+> +     case dss_rotation_90_degree:
+> +             offset = vout->vrfb_context[0].yoffset *
+> +                     vout->vrfb_context[0].bytespp;
+> +             temp_ps = ps / vr_ps;
+> +             if (mirroring == 0) {
+> +                     *cropped_offset = offset + line_length *
+> +                             temp_ps * cleft + crop->top * temp_ps;
+> +             } else {
+> +                     *cropped_offset = offset + line_length * temp_ps *
+> +                             cleft + crop->top * temp_ps + (line_length *
+> +                             ((crop->width / (vr_ps)) - 1) * ps);
+> +             }
+> +             break;
+> +     case dss_rotation_180_degree:
+> +             offset = ((MAX_PIXELS_PER_LINE * vout->vrfb_context[0].yoffset
+> *
+> +                     vout->vrfb_context[0].bytespp) +
+> +                     (vout->vrfb_context[0].xoffset *
+> +                     vout->vrfb_context[0].bytespp));
+> +             if (mirroring == 0) {
+> +                     *cropped_offset = offset + (line_length * ps * ctop) +
+> +                             (cleft / vr_ps) * ps;
+> +
+> +             } else {
+> +                     *cropped_offset = offset + (line_length * ps * ctop) +
+> +                             (cleft / vr_ps) * ps + (line_length *
+> +                             (crop->height - 1) * ps);
+> +             }
+> +             break;
+> +     case dss_rotation_270_degree:
+> +             offset = MAX_PIXELS_PER_LINE * vout->vrfb_context[0].xoffset *
+> +                     vout->vrfb_context[0].bytespp;
+> +             temp_ps = ps / vr_ps;
+> +             if (mirroring == 0) {
+> +                     *cropped_offset = offset + line_length *
+> +                         temp_ps * crop->left + ctop * ps;
+> +             } else {
+> +                     *cropped_offset = offset + line_length *
+> +                             temp_ps * crop->left + ctop * ps +
+> +                             (line_length * ((crop->width / vr_ps) - 1) *
+> +                              ps);
+> +             }
+> +             break;
+> +     case dss_rotation_0_degree:
+> +             if (mirroring == 0) {
+> +                     *cropped_offset = (line_length * ps) *
+> +                             crop->top + (crop->left / vr_ps) * ps;
+> +             } else {
+> +                     *cropped_offset = (line_length * ps) *
+> +                             crop->top + (crop->left / vr_ps) * ps +
+> +                             (line_length * (crop->height - 1) * ps);
+> +             }
+> +             break;
+> +     default:
+> +             *cropped_offset = (line_length * ps * crop->top) /
+> +                     vr_ps + (crop->left * ps) / vr_ps +
+> +                     ((crop->width / vr_ps) - 1) * ps;
+> +             break;
+> +     }
 > +}
-> +
+> diff --git a/drivers/media/video/omap/omap_vout_vrfb.h
+> b/drivers/media/video/omap/omap_vout_vrfb.h
+> new file mode 100644
+> index 0000000..ec6a784
+> --- /dev/null
+> +++ b/drivers/media/video/omap/omap_vout_vrfb.h
+> @@ -0,0 +1,42 @@
 > +/*
-> + * Free buffers
+> + * omap_vout_vrfb.h
+> + *
+> + * Copyright (C) 2010 Texas Instruments.
+> + *
+> + * This file is licensed under the terms of the GNU General Public
+> License
+> + * version 2. This program is licensed "as is" without any warranty of
+> any
+> + * kind, whether express or implied.
+> + *
 > + */
-> +void omap_vout_free_buffer(unsigned long virtaddr, u32 buf_size)
-> +{
-> +	u32 order, size;
-> +	unsigned long addr = virtaddr;
 > +
-> +	size = PAGE_ALIGN(buf_size);
-> +	order = get_order(size);
+> +#ifndef OMAP_VOUT_VRFB_H
+> +#define OMAP_VOUT_VRFB_H
 > +
-> +	while (size > 0) {
-> +		ClearPageReserved(virt_to_page(addr));
-> +		addr += PAGE_SIZE;
-> +		size -= PAGE_SIZE;
-> +	}
-> +	free_pages((unsigned long) virtaddr, order);
-> +}
-> diff --git a/drivers/media/video/omap/omap_voutlib.h
-> b/drivers/media/video/omap/omap_voutlib.h
-> index a60b16e..1d722be 100644
-> --- a/drivers/media/video/omap/omap_voutlib.h
-> +++ b/drivers/media/video/omap/omap_voutlib.h
-> @@ -30,5 +30,7 @@ extern int omap_vout_new_window(struct v4l2_rect *crop,
->  extern void omap_vout_new_format(struct v4l2_pix_format *pix,
->  		struct v4l2_framebuffer *fbuf, struct v4l2_rect *crop,
->  		struct v4l2_window *win);
-> +extern unsigned long omap_vout_alloc_buffer(u32 buf_size, u32
-> *phys_addr);
-> +extern void omap_vout_free_buffer(unsigned long virtaddr, u32 buf_size);
->  #endif	/* #ifndef OMAP_VOUTLIB_H */
-> 
+> +#ifdef CONFIG_OMAP2_VRFB
+> +void omap_vout_free_vrfb_buffers(struct omap_vout_device *vout);
+> +void omap_vout_free_extra_vrfb_buffers(struct omap_vout_device *vout);
+> +int omap_vout_setup_vrfb_bufs(struct platform_device *pdev, int vid_num,
+> +                     u32 static_vrfb_allocation);
+> +void omap_vout_release_vrfb(struct omap_vout_device *vout);
+> +int omap_vout_vrfb_buffer_setup(struct omap_vout_device *vout,
+> +                     unsigned int *count, unsigned int startindex);
+> +int omap_vout_prepare_vrfb(struct omap_vout_device *vout,
+> +                     struct videobuf_buffer *vb);
+> +void omap_vout_calculate_vrfb_offset(struct omap_vout_device *vout);
+> +#else
+> +void omap_vout_free_vrfb_buffers(struct omap_vout_device *vout) { }
+> +void omap_vout_free_extra_vrfb_buffers(struct omap_vout_device *vout) { }
+> +int omap_vout_setup_vrfb_bufs(struct platform_device *pdev, int vid_num,
+> +                     u32 static_vrfb_allocation)
+> +             { return 0; }
+> +void omap_vout_release_vrfb(struct omap_vout_device *vout) { }
+> +int omap_vout_vrfb_buffer_setup(struct omap_vout_device *vout,
+> +                     unsigned int *count, unsigned int startindex)
+> +             { return 0; }
+> +int omap_vout_prepare_vrfb(struct omap_vout_device *vout,
+> +                     struct videobuf_buffer *vb)
+> +             { return 0; }
+> +void omap_vout_calculate_vrfb_offset(struct omap_vout_device *vout) { }
+> +#endif
+> +
+> +#endif
 > --
 > 1.7.0.4
