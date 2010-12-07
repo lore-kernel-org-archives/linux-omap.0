@@ -1,50 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v8 10/11] OMAP: GPIO: Implement GPIO as a platform
- device
-Date: Tue, 7 Dec 2010 14:07:25 -0800
-Message-ID: <20101207220725.GB17435@atomide.com>
-References: <1290689318-10191-1-git-send-email-charu@ti.com>
- <1290689318-10191-11-git-send-email-charu@ti.com>
- <AANLkTin1rehDSfvEvjZJB8VZP8RrXsVKA8wH-WEODLTN@mail.gmail.com>
- <AANLkTinBAJmtn7=Nm75kEWrUxBOKFSi4Mf08mqn0W9X8@mail.gmail.com>
- <AANLkTikPey17e6wTHJ2zq8N=r_pNKXV4YjVbTK5e+tYt@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/3] OMAP: I2C and UART device name cleanup
+Date: Tue, 07 Dec 2010 14:20:57 -0800
+Message-ID: <87pqtdjkc6.fsf@deeprootsystems.com>
+References: <1291632093-18799-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:44790 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753919Ab0LGWHc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 17:07:32 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTikPey17e6wTHJ2zq8N=r_pNKXV4YjVbTK5e+tYt@mail.gmail.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:56112 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754013Ab0LGWVC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 17:21:02 -0500
+Received: by qwa26 with SMTP id 26so433591qwa.19
+        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 14:21:01 -0800 (PST)
+In-Reply-To: <1291632093-18799-1-git-send-email-b-cousson@ti.com> (Benoit
+	Cousson's message of "Mon, 6 Dec 2010 11:41:30 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: Cory Maccarrone <darkstar6262@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, p-basak2@ti.com, Rajendra Nayak <rnayak@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org
 
-* Varadarajan, Charulatha <charu@ti.com> [101206 22:58]:
-> On Tue, Dec 7, 2010 at 11:05, Varadarajan, Charulatha <charu@ti.com> =
-wrote:
-> >
-> > On Tue, Dec 7, 2010 at 10:49, Cory Maccarrone <darkstar6262@gmail.c=
-om> wrote:
-> >>
-> >> =C2=A0 =C2=A0omap_gpio omap_gpio.5: Could not get gpio dbck
-> >> =C2=A0 =C2=A0omap_gpio omap_gpio.6: Could not get gpio dbck
-> >>
-> >> I think that 'if' should be:
-> >>
-> >> =C2=A0 =C2=A0if (bank->dbck_flag && !bank->dbck) {
-> >
-> > You are right. Will send a patch now.
+Benoit Cousson <b-cousson@ti.com> writes:
 
-Looks like if that's a warning no need to merge it into the
-earlier patches.
+> Hi All,
+>
+> In order to enforce a little bit of consistency in the omap devices name,
+> the convention for omap devices name will be now omap_XXX. All the drivers
+> adapted to hwmod will be named like that during the on-going adaptations.
+>
+> The I2C and UART drivers are already adapted to hwmod but with
+> the original names.
+>
+> Rename i2c and uart using this convention:
+> i2c_omap -> omap_i2c
+> omap-hsuart -> omap_uart
+>
+> Tested on OMAP4 ES2 on Panda / sdp4430. Some more validation will be needed on OMAP2 & 3.
+>
+> This series is based on Kevin's pm-hwmod-i2c branch and is available here:
+> git://gitorious.org/omap-pm/linux.git for_2.6.38/device_name
+>
+>
+> Regards,
+> Benoit
+>
+>
+> Benoit Cousson (3):
+>   OMAP: clock: Change device name in clock nodes: i2c_omap -> omap_i2c
+>   OMAP: i2c: Change device name: i2c_omap -> omap_i2c
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+These two should probably be combined, as they cannot work
+separately.
+
+>   OMAP: serial: Change device name: omap-hsuart -> omap_uart
+>
+
+Also, can you Cc linux-arm-kernel when you post updated version? 
+
+Thanks,
+
+Kevin
