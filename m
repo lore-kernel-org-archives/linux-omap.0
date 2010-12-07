@@ -1,44 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] MFD: TWL/TPS: fix twl_probe section mismatch warning in
- mfd/twl-core.c
-Date: Tue, 7 Dec 2010 09:12:45 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012070911380.13430@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1012061734590.13430@utopia.booyaka.com> <AANLkTimXPFROMQ_fF4Od-jw3aDY0WZQgc=x14=VcFM3d@mail.gmail.com> <alpine.DEB.2.00.1012061839170.13430@utopia.booyaka.com> <20101207094841.GA4772@sortiz-mobl>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] Correct definition of register of OMAP4_RM_RSTST and
+ OMAP4_RM_RSTTIME
+Date: Tue, 7 Dec 2010 17:16:15 +0100
+Message-ID: <4CFE5DCF.1090903@ti.com>
+References: <AANLkTi=OdG2j2o+uZ+L_EpGKPTE8=fRBN8U60sJkqAhK@mail.gmail.com> <alpine.DEB.2.00.1012070902540.13430@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54256 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754564Ab0LGQMq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 11:12:46 -0500
-In-Reply-To: <20101207094841.GA4772@sortiz-mobl>
+Received: from comal.ext.ti.com ([198.47.26.152]:59076 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753982Ab0LGQQU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Dec 2010 11:16:20 -0500
+In-Reply-To: <alpine.DEB.2.00.1012070902540.13430@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Bryan Wu <bryan.wu@canonical.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: MING ZHOU <a17711@motorola.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hello Samuel,
+Hi Paul,
 
-On Tue, 7 Dec 2010, Samuel Ortiz wrote:
+On 12/7/2010 5:04 PM, Paul Walmsley wrote:
+> Hello,
+>
+> On Tue, 7 Dec 2010, MING ZHOU wrote:
+>
+>> Since we need to reconfigure Reset time for OMAP4, we found the OMAP4
+>> register definition for reset time is wrong according to spec of
+>> OMAP4. And we verified this by reading default value of register. We
+>> found the offset definition of Reset time and Reset Test register
+>> should be switched. After correcting this bug, we verified by changing
+>> the value of reset time register, the pulse generated for reset is
+>> also changed as expected on scope.
+>
+> Thanks, will queue this for 2.6.38 since it looks like there are no
+> in-tree users in 2.6.37.
 
-> On Mon, Dec 06, 2010 at 06:40:38PM -0700, Paul Walmsley wrote:
-> > 
-> > That's fine with me.  Samuel et al, Bryan's already done a patch 
-> > for this stuff:
-> > 
-> > https://patchwork.kernel.org/patch/367011/
-> > 
-> > so we should use that instead, if you're happy with it.  Samuel, maybe we 
-> > could get an ack from you on it?
-> The twl driver is not OMAP specific, so this should be a separate patch thatI
-> will merge to my mfd tree.
-> If you really insist in pushing this through Tony's tree, then please add my
-> Acked-by for the mfd part.
+These defines are not needed anymore, it is legacy stuff done before we 
+generated the whole prm44xx.h.
 
-I don't insist at all :-)
+Here are the entries in the prm44xx.h, line 574.
 
-Bryan, maybe split your patch into a mach-omap2 patch and a TWL 
-driver-specific patch, and send the latter for Samuel?
+/* PRM.DEVICE_PRM register offsets */
+#define OMAP4_PRM_RSTCTRL_OFFSET			0x0000
+#define OMAP4_PRM_RSTST_OFFSET				0x0004
+#define OMAP4_PRM_RSTTIME_OFFSET			0x0008
 
 
-- Paul
+We'd better get rid of these old entries in prm.h
+
+Regards,
+Benoit
