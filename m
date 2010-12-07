@@ -1,51 +1,68 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: OMAP HSMMC problems with off-mode
-Date: Tue, 07 Dec 2010 21:51:53 +0200
-Message-ID: <4CFE9059.1080202@nokia.com>
-References: <alpine.DEB.2.00.1012071101590.13430@utopia.booyaka.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH v5 0/3] OMAP2/3: DMA: FIFO drain errata fixes
+Date: Tue, 7 Dec 2010 11:45:19 -0800
+Message-ID: <20101207194519.GN13189@kroah.com>
+References: <1286261141-1039-1-git-send-email-peter.ujfalusi@nokia.com>
+ <20101005181525.GL3117@atomide.com>
+ <20101008221746.GS7558@atomide.com>
+ <201010211305.17559.peter.ujfalusi@nokia.com>
+ <20101105212902.GU9264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:37645 "EHLO mgw-da01.nokia.com"
+Received: from kroah.org ([198.145.64.141]:38270 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752518Ab0LGTwK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Dec 2010 14:52:10 -0500
-In-Reply-To: <alpine.DEB.2.00.1012071101590.13430@utopia.booyaka.com>
+	id S1754553Ab0LGUJW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Dec 2010 15:09:22 -0500
+Content-Disposition: inline
+In-Reply-To: <20101105212902.GU9264@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>, =?ISO-8859-1?Q?Beno=EEt_C?= =?ISO-8859-1?Q?ousson?= <b-cousson@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sawant@ti.com" <sawant@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Greg KH <gregkh@suse.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-On 07/12/10 20:21, ext Paul Walmsley wrote:
->
-> Madhusudhan,
->
-> On my OMAP35xx BeagleBoard here, HSMMC is non-functional after returning
-> from dynamic off-mode.  The MMC LED turns on and stays on, and the process
-> hangs, although the rest of the system still seems to run.  Looks like
-> you're listed as the maintainer for this code.  Do you know why this is,
-> and what can be done to fix it?
+On Fri, Nov 05, 2010 at 02:29:02PM -0700, Tony Lindgren wrote:
+> Hi Greg,
+> 
+> Considering below..
+> 
+> * Peter Ujfalusi <peter.ujfalusi@nokia.com> [101021 02:56]:
+> > Sorry, I did missed this mail...
+> > 
+> > On Saturday 09 October 2010 01:17:46 ext Tony Lindgren wrote:
+> > 
+> > > Guys, as we're so late into getting 2.6.36 tagged, I'm thinking about just
+> > > queueing these for 2.6.37 for the following reasons:
+> > > 
+> > > - The 24xx patch is a fix for commit c12abc0 that's was merged over a
+> > >   year ago. We've lived with it for over a year now. What difference does
+> > >   extra few more months make if we have it in 2.6.37 instead of 2.6.36?
+> > > 
+> > > - The second 34xx fix seems to happen only when disabling DMA on the fly.
+> > >   Again, we've had support for 34xx in the mainline kernel for a few
+> > >   years, and we're not seeing unrecoverable issues with MMC or USB or
+> > >   any other code calling omap_dma_stop().
+> > > 
+> > > Sure these fix major issues with the DMA, but are these really critical
+> > > for 2.6.36?
+> > > 
+> > > So if you really want me to argue for merging these into 2.6.36, please let
+> > > me know some oops causing cases or data corruption that happens without
+> > > these patches.
+> > 
+> > Well 2.6.36 is released.
+> > I still would like to see this to be part of the 2.6.36.1 release. We can 
+> > reproduce the DMA error in 2.6.36 with audio.
+> > 
+> > Tony: can you make sure it is going to part of 2.6.36.1?
+> 
+> ..are you interested in these two patches for stable kernels?
+> 
+> The two patches in question are the following mainline commits:
+> 
+> 3e57f1626b5febe5cc99aa6870377deef3ae03cc
+> 0e4905c0199d683497833be60a428c784d7575b8
 
-It is at least because omap_pm_get_dev_context_loss_count() is not
-implemented.  Tero Kristo was looking at that recently.
+Now queued up, thanks.
 
->
-> This is using linux-omap master at commit
-> a04fd22204b13ce34a3f8a8157f83c44d64f8da9, using omap2plus_defconfig with
-> DSS configured in.  My boot and root partitions are on MMC.  Following are
-> the commands I used to reproduce this problem.
->
->
-> regards
->
-> - Paul
->
-> echo 1>  /debug/pm_debug/sleep_while_idle
-> echo 1>  /debug/pm_debug/enable_off_mode
-> echo 5>  /sys/devices/platform/omap/omap-hsuart.0/sleep_timeout
-> echo 5>  /sys/devices/platform/omap/omap-hsuart.1/sleep_timeout
-> echo 5>  /sys/devices/platform/omap/omap-hsuart.2/sleep_timeout
->
->
-
+greg k-h
