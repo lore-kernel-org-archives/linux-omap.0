@@ -1,122 +1,239 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: Re: [PATCH v8 04/11] OMAP7xx: GPIO: Introduce support for GPIO init
-Date: Mon, 6 Dec 2010 21:20:24 -0800
-Message-ID: <AANLkTi=jjqj8Gv5tWqfMnndM037U-Qidtp=ju3VmhQyF@mail.gmail.com>
-References: <1290689318-10191-1-git-send-email-charu@ti.com> <1290689318-10191-5-git-send-email-charu@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v5 8/12] OMAP2+: dmtimer: convert to platform devices
+Date: Tue, 7 Dec 2010 10:51:23 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03736F5047@dbde02.ent.ti.com>
+References: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com>
+ <1291679059-13419-9-git-send-email-tarun.kanti@ti.com>
+ <20101206182633.GE4924@manju-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:55648 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137Ab0LGFUq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 00:20:46 -0500
-Received: by wwa36 with SMTP id 36so13718732wwa.1
-        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 21:20:45 -0800 (PST)
-In-Reply-To: <1290689318-10191-5-git-send-email-charu@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:53555 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751137Ab0LGFVc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 00:21:32 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id oB75LTuh011859
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 6 Dec 2010 23:21:31 -0600
+In-Reply-To: <20101206182633.GE4924@manju-desktop>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, p-basak2@ti.com
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
-On Thu, Nov 25, 2010 at 4:48 AM, Varadarajan, Charulatha <charu@ti.com>=
- wrote:
-> Add support for handling OMAP7xx specific gpio_init by
-> providing platform device data and doing device registration.
->
-> Signed-off-by: Charulatha V <charu@ti.com>
-> ---
-> =C2=A0arch/arm/mach-omap1/gpio7xx.c | =C2=A0261 +++++++++++++++++++++=
-++++++++++++++++++++
-> =C2=A01 files changed, 261 insertions(+), 0 deletions(-)
-> =C2=A0create mode 100644 arch/arm/mach-omap1/gpio7xx.c
->
-> diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio=
-7xx.c
-> new file mode 100644
-> index 0000000..94bccd4
-> --- /dev/null
-> +++ b/arch/arm/mach-omap1/gpio7xx.c
-> @@ -0,0 +1,261 @@
-> +/*
-> + * OMAP7xx specific gpio init
-> + *
-> + * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti=
-=2Ecom/
-> + *
-> + * Author:
-> + * =C2=A0 =C2=A0 Charulatha V <charu@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warran=
-ty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =C2=A0See=
- the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/gpio.h>
-> +
-> +#define OMAP7XX_GPIO1_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- 0xfffbc000
-> +#define OMAP7XX_GPIO2_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- 0xfffbc800
-> +#define OMAP7XX_GPIO3_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- 0xfffbd000
-> +#define OMAP7XX_GPIO4_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- 0xfffbd800
-> +#define OMAP7XX_GPIO5_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- 0xfffbe000
-> +#define OMAP7XX_GPIO6_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- 0xfffbe800
-> +#define OMAP1_MPUIO_VBASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0OMAP1_MPUIO_BASE
-> +
-> +/* mpu gpio */
-> +static struct __initdata resource omap7xx_mpu_gpio_resources[] =3D {
-> + =C2=A0 =C2=A0 =C2=A0 {
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0=3D O=
-MAP1_MPUIO_VBASE,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .end =C2=A0 =C2=A0=
-=3D OMAP1_MPUIO_VBASE + SZ_2K - 1,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0=3D I=
-ORESOURCE_MEM,
-> + =C2=A0 =C2=A0 =C2=A0 },
-> + =C2=A0 =C2=A0 =C2=A0 {
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0=3D I=
-NT_7XX_MPUIO,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0=3D I=
-ORESOURCE_IRQ,
-> + =C2=A0 =C2=A0 =C2=A0 },
-> +};
-> +
-> +static struct __initdata omap_gpio_platform_data omap7xx_mpu_gpio_co=
-nfig =3D {
-> + =C2=A0 =C2=A0 =C2=A0 .virtual_irq_start =C2=A0 =C2=A0 =C2=A0=3D IH_=
-MPUIO_BASE,
-> + =C2=A0 =C2=A0 =C2=A0 .bank_type =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0=3D METHOD_MPUIO,
-> + =C2=A0 =C2=A0 =C2=A0 .bank_width =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =3D 32,
+> -----Original Message-----
+> From: G, Manjunath Kondaiah
+> Sent: Monday, December 06, 2010 11:57 PM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org; Gopinath, Thara
+> Subject: Re: [PATCH v5 8/12] OMAP2+: dmtimer: convert to platform devices
+> 
+> On Tue, Dec 07, 2010 at 05:14:15AM +0530, Tarun Kanti DebBarma wrote:
+> > Add routines to converts dmtimers to platform devices. The device data
+> s/converts/convert
+> > is obtained from hwmod database of respective platform and is registered
+> > to device model after successful binding to driver. It also provides
+> > provision to access timers during early boot when pm_runtime framework
+> > is not completely up and running.
+> >
+> > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > Signed-off-by: Thara Gopinath <thara@ti.com>
+> > Reviewed-by: Cousson, Benoit <b-cousson@ti.com>
+> > Reviewed-by: Varadarajan, Charulatha <charu@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/Makefile  |    2 +-
+> >  arch/arm/mach-omap2/dmtimer.c |  174
+> +++++++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 175 insertions(+), 1 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/dmtimer.c
+> >
+> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> > index 60e51bc..7700ccd 100644
+> > --- a/arch/arm/mach-omap2/Makefile
+> > +++ b/arch/arm/mach-omap2/Makefile
+> > @@ -4,7 +4,7 @@
+> >
+> >  # Common support
+> >  obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o
+> pm.o \
+> > -	 common.o
+> > +	 common.o dmtimer.o
+> >
+> >  omap-2-3-common				= irq.o sdrc.o prm2xxx_3xxx.o
+> >  hwmod-common				= omap_hwmod.o \
+> > diff --git a/arch/arm/mach-omap2/dmtimer.c b/arch/arm/mach-
+> omap2/dmtimer.c
+> > new file mode 100644
+> > index 0000000..b639082
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/dmtimer.c
+> > @@ -0,0 +1,174 @@
+> > +/**
+> > + * OMAP2PLUS Dual-Mode Timers - platform device registration
+> > + *
+> > + * Contains first level initialization routines which extracts timers
+> > + * information from hwmod database and registers with linux device
+> model.
+> > + * It also has low level function to change the timer input clock
+> source.
+> > + *
+> > + * Copyright (C) 2010 Texas Instruments Incorporated -
+> http://www.ti.com/
+> > + * Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > + * Thara Gopinath <thara@ti.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+> > + * kind, whether express or implied; without even the implied warranty
+> > + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > + * GNU General Public License for more details.
+> > + */
+> > +
+> > +#include <linux/clk.h>
+> > +#include <linux/io.h>
+> not required
+Ok.
 
-I think we need
-
-    .dbck_flag =3D false,
-
-here -- we don't have a dbclk on omap7xx.  Without this, we get:
-
-    omap_gpio omap_gpio.5: Could not get gpio dbck
-    omap_gpio omap_gpio.6: Could not get gpio dbck
-
-This needs to be added to the other 5 GPIO blocks in this file as well.
-
-- Cory
+> > +#include <linux/err.h>
+> > +#include <linux/slab.h>
+> > +
+> > +#include <plat/dmtimer.h>
+> > +#include <plat/omap_hwmod.h>
+> not required
+Ok.
+> > +#include <plat/omap_device.h>
+> > +
+> > +static int early_timer_count __initdata = 1;
+> > +
+> > +/**
+> > + * omap2_dm_timer_set_src - change the timer input clock source
+> > + * @pdev:	timer platform device pointer
+> > + * @timer_clk:	current clock source
+> > + * @source:	array index of parent clock source
+> > + */
+> > +static int omap2_dm_timer_set_src(struct platform_device *pdev, int
+> source)
+> > +{
+> > +	int ret;
+> > +	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
+> > +	struct clk *fclk = clk_get(&pdev->dev, "fck");
+> > +	struct clk *new_fclk;
+> > +	char *fclk_name = "32k_ck"; /* default name */
+> > +
+> > +	switch (source) {
+> > +	case OMAP_TIMER_SRC_SYS_CLK:
+> > +		fclk_name = "sys_ck";
+> > +		break;
+> > +
+> > +	case OMAP_TIMER_SRC_32_KHZ:
+> > +		fclk_name = "32k_ck";
+> > +		break;
+> > +
+> > +	case OMAP_TIMER_SRC_EXT_CLK:
+> > +		if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_1) {
+> > +			fclk_name = "alt_ck";
+> > +			break;
+> > +		}
+> > +		dev_dbg(&pdev->dev, "%s: %d: invalid clk src.\n",
+> > +			__func__, __LINE__);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	if (IS_ERR_OR_NULL(fclk)) {
+> > +		dev_dbg(&pdev->dev, "%s: %d: clk_get() FAILED\n",
+> > +			__func__, __LINE__);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	new_fclk = clk_get(&pdev->dev, fclk_name);
+> > +	if (IS_ERR_OR_NULL(new_fclk)) {
+> > +		dev_dbg(&pdev->dev, "%s: %d: clk_get() %s FAILED\n",
+> > +			__func__, __LINE__, fclk_name);
+> > +		clk_put(fclk);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	ret = clk_set_parent(fclk, new_fclk);
+> > +	if (IS_ERR_VALUE(ret)) {
+> > +		dev_dbg(&pdev->dev, "%s: clk_set_parent() to %s FAILED\n",
+> > +			__func__, fclk_name);
+> > +		ret = -EINVAL;
+> > +	}
+> > +
+> > +	clk_put(new_fclk);
+> > +	clk_put(fclk);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +struct omap_device_pm_latency omap2_dmtimer_latency[] = {
+> > +	{
+> > +		.deactivate_func = omap_device_idle_hwmods,
+> > +		.activate_func   = omap_device_enable_hwmods,
+> > +		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> > +	},
+> > +};
+> > +
+> > +/**
+> > + * omap_timer_init - build and register timer device with an
+> > + * associated timer hwmod
+> > + * @oh:	timer hwmod pointer to be used to build timer device
+> > + * @user:	parameter that can be passed from calling hwmod API
+> > + *
+> > + * Called by omap_hwmod_for_each_by_class to register each of the timer
+> > + * devices present in the system. The number of timer devices is known
+> > + * by parsing through the hwmod database for a given class name. At the
+> > + * end of function call memory is allocated for timer device and it is
+> > + * registered to the framework ready to be proved by the driver.
+> > + */
+> > +static int __init omap_timer_init(struct omap_hwmod *oh, void *user)
+> > +{
+> > +	int id;
+> > +	int ret = 0;
+> > +	char *name = "omap_timer";
+> > +	struct dmtimer_platform_data *pdata;
+> > +	struct omap_device *od;
+> > +
+> > +	pr_debug("%s: %s\n", __func__, oh->name);
+> > +
+> > +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+> > +	if (!pdata) {
+> > +		pr_err("%s: No memory for [%s]\n", __func__, oh->name);
+> > +		return -ENOMEM;
+> > +	}
+> > +
+> > +	if (user)
+> > +		pdata->is_early_init = 1;
+> > +	else
+> > +		pdata->is_early_init = 0;
+> > +
+> > +	/* hook clock set/get functions */
+> > +	pdata->set_timer_src = omap2_dm_timer_set_src;
+> > +
+> > +	/* read timer ip version */
+> 
+> redundant. mentioning VERSION2 is omap4 will be helpful.
+BTW, the revision can version1/2. so, if this is confusing, I can remove.
+> 
+> > +	pdata->timer_ip_type = oh->class->rev;
+> > +	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
+> > +		pdata->func_offset = VERSION2_TIMER_WAKEUP_EN_REG_OFFSET;
+> > +		pdata->intr_offset = VERSION2_TIMER_STAT_REG_OFFSET;
+> > +	} else {
+> > +		pdata->func_offset = 0;
+> > +		pdata->intr_offset = 0;
+> > +	}
+> > +
+> > +	/*
+> > +	 * Extract the id from name field in hwmod database
+> > +	 * and use the same for constructing ids' for the
+> id's
+Ok.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tarun
