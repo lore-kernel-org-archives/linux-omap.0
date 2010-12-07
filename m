@@ -1,61 +1,59 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Unbalanced IRQ wake disable during resume from static suspend
-Date: Tue, 07 Dec 2010 13:32:02 -0800
-Message-ID: <87bp4xl165.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.1012020057550.2515@utopia.booyaka.com>
-	<alpine.DEB.2.00.1012020112540.2515@utopia.booyaka.com>
-	<1c6ea016b8c01ee8b470e95fdcae4ee0@mail.gmail.com>
-	<AANLkTikqvVK2BWpiik5SVWPRzC6NMKs=Udvrtru5BfR-@mail.gmail.com>
-	<09fd160109a43efec9a472055d541c9e@mail.gmail.com>
-	<87y6882rc9.fsf@deeprootsystems.com>
-	<alpine.DEB.2.00.1012030251230.17078@utopia.booyaka.com>
+Subject: Re: [PATCH 0/8] OMAP2+: hwmod core upgrades for 2.6.38: first set
+Date: Tue, 07 Dec 2010 13:41:53 -0800
+Message-ID: <8739q9l0pq.fsf@deeprootsystems.com>
+References: <20101116101615.22777.49212.stgit@twilight.localdomain>
+	<alpine.DEB.2.00.1011160945100.32653@utopia.booyaka.com>
+	<87y68lnhsp.fsf@deeprootsystems.com>
+	<alpine.DEB.2.00.1011221715000.20215@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:48682 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189Ab0LGVcH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 16:32:07 -0500
-Received: by vws16 with SMTP id 16so356966vws.19
-        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 13:32:06 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1012030251230.17078@utopia.booyaka.com> (Paul
-	Walmsley's message of "Fri, 3 Dec 2010 03:00:28 -0700 (MST)")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:60960 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752489Ab0LGVl6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 16:41:58 -0500
+Received: by pva4 with SMTP id 4so105423pva.19
+        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 13:41:58 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1011221715000.20215@utopia.booyaka.com> (Paul
+	Walmsley's message of "Mon, 22 Nov 2010 17:15:39 -0700 (MST)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj <govindraj.ti@gmail.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 Paul Walmsley <paul@pwsan.com> writes:
 
-> Hi Kevin
+> On Mon, 22 Nov 2010, Kevin Hilman wrote:
 >
-> On Thu, 2 Dec 2010, Kevin Hilman wrote:
+>> Paul Walmsley <paul@pwsan.com> writes:
+>> 
+>> > On Tue, 16 Nov 2010, Paul Walmsley wrote:
+>> >
+>> >> This patch series contains upgrades for the OMAP2+ hwmod core
+>> >> code, intended for 2.6.38.  Most of these patches were developed
+>> >> in response to use-cases discovered while converting device
+>> >> drivers to use the hwmod code.
+>> >> 
+>> >> Tested on an OMAP34xx BeagleBoard with omap2plus_defconfig.
+>> >
+>> > Just FYI, this branch 'hwmod_a_2.6.38' is available at 
+>> > git://git.pwsan.com/linux-2.6
+>> >
+>> > Warning: it's based on Tony's tree, not the mainline, due to the recent 
+>> > board file changes.
+>> 
+>> Looks like Tony has collected the board file changes into his
+>> devel-board branch.  Can this rebased there?
+>> 
+>> That way, I can included it as part of the PM branch testing without
+>> having to pull in master.
 >
->> I guess this hasn't been seen before since we haven't tested the sysfs
->> wakeup interface for the omap-serial driver.  For on-chip OMAP UARTs,
->> using the sysfs interface isn't needed as the serial core is already
->> doing device_init_wakeup(dev, true);
->
-> Is this the code you're referring to, in serial_core.c?
->
-> 	tty_dev = tty_register_device(drv->tty_driver, uport->line, uport->dev);
-> 	if (likely(!IS_ERR(tty_dev))) {
-> 		device_init_wakeup(tty_dev, 1);
-> 		device_set_wakeup_enable(tty_dev, 0);
-> 	} else
->
-> I may be misreading it, but it appears that the code leaves wakeups 
-> disabled for the serial port, by default.
+> hwmod_a_2.6.38 is now based on devel-board and wdt_2.6.38 is now rebased 
+> on the updated hwmod_a_2.6.38.
 
-No, I was referring to the code in mach-omap2/serial.c, in omap_serial_init_port():
+Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-	if ((cpu_is_omap34xx() && uart->padconf) ||
-	    (uart->wk_en && uart->wk_mask)) {
-		device_init_wakeup(&od->pdev.dev, true);
-		DEV_CREATE_FILE(&od->pdev.dev, &dev_attr_sleep_timeout);
-	}
+Tested on 35xx/omap3evm, 34xx/n900 and 35xx/beagle.
 
 Kevin
-
-> As an aside, this code is somewhat perplexing: it doesn't seem accurate to 
-> assume that every serial device really is capable of waking up the system.
