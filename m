@@ -1,53 +1,47 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] Correct definition of register of OMAP4_RM_RSTST and
- OMAP4_RM_RSTTIME
-Date: Tue, 7 Dec 2010 17:16:15 +0100
-Message-ID: <4CFE5DCF.1090903@ti.com>
-References: <AANLkTi=OdG2j2o+uZ+L_EpGKPTE8=fRBN8U60sJkqAhK@mail.gmail.com> <alpine.DEB.2.00.1012070902540.13430@utopia.booyaka.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] AM35x: musb: fix compilation error
+Date: Tue, 7 Dec 2010 18:26:48 +0200
+Message-ID: <20101207162645.GE2665@legolas.emea.dhcp.ti.com>
+References: <1291231942.15533.32.camel@eowin>
+ <19F8576C6E063C45BE387C64729E739404BCE398D7@dbde02.ent.ti.com>
+ <20101202082904.GH5429@legolas.emea.dhcp.ti.com>
+ <19F8576C6E063C45BE387C64729E739404BCE39A7E@dbde02.ent.ti.com>
+ <20101203124317.GB2633@legolas.emea.dhcp.ti.com>
+ <19F8576C6E063C45BE387C64729E739404BCE39E0D@dbde02.ent.ti.com>
+ <20101206112003.GA17432@legolas.emea.dhcp.ti.com>
+ <19F8576C6E063C45BE387C64729E739404BCE3A1B4@dbde02.ent.ti.com>
+ <20101206121812.GC3693@legolas.emea.dhcp.ti.com>
+ <19F8576C6E063C45BE387C64729E739404BCF8771E@dbde02.ent.ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59076 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753982Ab0LGQQU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Dec 2010 11:16:20 -0500
-In-Reply-To: <alpine.DEB.2.00.1012070902540.13430@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404BCF8771E-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: MING ZHOU <a17711@motorola.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi Paul,
-
-On 12/7/2010 5:04 PM, Paul Walmsley wrote:
-> Hello,
+On Tue, Dec 07, 2010 at 07:25:12PM +0530, Gupta, Ajay Kumar wrote:
+>Hi,
+>> >> Is AM35x that different ? Can't you just write to MUSB_INTRRX
+>> >> MUSB_INTRTX and MUSB_INTRUSB ??
+>> >Writing to MUSB_INTRRX/TX/USB wouldn't help. We have to clear interrupt
+>> >Bit in control register INTR_LVL_CLR.
+>>
+>> I see, thanks for the info :-)
 >
-> On Tue, 7 Dec 2010, MING ZHOU wrote:
+>Felipe,
 >
->> Since we need to reconfigure Reset time for OMAP4, we found the OMAP4
->> register definition for reset time is wrong according to spec of
->> OMAP4. And we verified this by reading default value of register. We
->> found the offset definition of Reset time and Reset Test register
->> should be switched. After correcting this bug, we verified by changing
->> the value of reset time register, the pulse generated for reset is
->> also changed as expected on scope.
->
-> Thanks, will queue this for 2.6.38 since it looks like there are no
-> in-tree users in 2.6.37.
+>I have recreated this patch (attached) on top of your patch
+>set and AM35x is working.
 
-These defines are not needed anymore, it is legacy stuff done before we 
-generated the whole prm44xx.h.
+applied it. Thanks
 
-Here are the entries in the prm44xx.h, line 574.
-
-/* PRM.DEVICE_PRM register offsets */
-#define OMAP4_PRM_RSTCTRL_OFFSET			0x0000
-#define OMAP4_PRM_RSTST_OFFSET				0x0004
-#define OMAP4_PRM_RSTTIME_OFFSET			0x0008
-
-
-We'd better get rid of these old entries in prm.h
-
-Regards,
-Benoit
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
