@@ -1,120 +1,100 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH v8 04/11] OMAP7xx: GPIO: Introduce support for GPIO init
-Date: Tue, 7 Dec 2010 11:13:13 +0530
-Message-ID: <AANLkTimO0TCctsLDhCkKZbDHay5JgEDjTvn4XMp=Gb+x@mail.gmail.com>
-References: <1290689318-10191-1-git-send-email-charu@ti.com>
- <1290689318-10191-5-git-send-email-charu@ti.com> <AANLkTi=jjqj8Gv5tWqfMnndM037U-Qidtp=ju3VmhQyF@mail.gmail.com>
+Subject: Re: [PATCH v5 8/12] OMAP2+: dmtimer: convert to platform devices
+Date: Tue, 7 Dec 2010 11:16:19 +0530
+Message-ID: <AANLkTim4Kq2xA-RZ21HuX0Du2umzyJuGs4=mCufEuNc6@mail.gmail.com>
+References: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com> <1291679059-13419-9-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:48885 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751911Ab0LGFnz convert rfc822-to-8bit
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:59508 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751138Ab0LGFrA convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Dec 2010 00:43:55 -0500
-Received: by mail-iw0-f181.google.com with SMTP id 3so19323324iwn.40
-        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 21:43:54 -0800 (PST)
-In-Reply-To: <AANLkTi=jjqj8Gv5tWqfMnndM037U-Qidtp=ju3VmhQyF@mail.gmail.com>
+	Tue, 7 Dec 2010 00:47:00 -0500
+Received: by mail-iw0-f170.google.com with SMTP id 2so771154iwn.15
+        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 21:46:59 -0800 (PST)
+In-Reply-To: <1291679059-13419-9-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, p-basak2@ti.com
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>
 
-On Tue, Dec 7, 2010 at 10:50, Cory Maccarrone <darkstar6262@gmail.com> =
-wrote:
-> On Thu, Nov 25, 2010 at 4:48 AM, Varadarajan, Charulatha <charu@ti.co=
-m> wrote:
->> Add support for handling OMAP7xx specific gpio_init by
->> providing platform device data and doing device registration.
->>
->> Signed-off-by: Charulatha V <charu@ti.com>
->> ---
->> =A0arch/arm/mach-omap1/gpio7xx.c | =A0261 ++++++++++++++++++++++++++=
-+++++++++++++++
->> =A01 files changed, 261 insertions(+), 0 deletions(-)
->> =A0create mode 100644 arch/arm/mach-omap1/gpio7xx.c
->>
->> diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpi=
-o7xx.c
->> new file mode 100644
->> index 0000000..94bccd4
->> --- /dev/null
->> +++ b/arch/arm/mach-omap1/gpio7xx.c
->> @@ -0,0 +1,261 @@
->> +/*
->> + * OMAP7xx specific gpio init
->> + *
->> + * Copyright (C) 2010 Texas Instruments Incorporated - http://www.t=
-i.com/
->> + *
->> + * Author:
->> + * =A0 =A0 Charulatha V <charu@ti.com>
->> + *
->> + * This program is free software; you can redistribute it and/or
->> + * modify it under the terms of the GNU General Public License as
->> + * published by the Free Software Foundation version 2.
->> + *
->> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
->> + * kind, whether express or implied; without even the implied warra=
-nty
->> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See t=
-he
->> + * GNU General Public License for more details.
->> + */
->> +
->> +#include <linux/gpio.h>
->> +
->> +#define OMAP7XX_GPIO1_BASE =A0 =A0 =A0 =A0 =A0 =A0 0xfffbc000
->> +#define OMAP7XX_GPIO2_BASE =A0 =A0 =A0 =A0 =A0 =A0 0xfffbc800
->> +#define OMAP7XX_GPIO3_BASE =A0 =A0 =A0 =A0 =A0 =A0 0xfffbd000
->> +#define OMAP7XX_GPIO4_BASE =A0 =A0 =A0 =A0 =A0 =A0 0xfffbd800
->> +#define OMAP7XX_GPIO5_BASE =A0 =A0 =A0 =A0 =A0 =A0 0xfffbe000
->> +#define OMAP7XX_GPIO6_BASE =A0 =A0 =A0 =A0 =A0 =A0 0xfffbe800
->> +#define OMAP1_MPUIO_VBASE =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP1_MPUIO_BA=
-SE
->> +
->> +/* mpu gpio */
->> +static struct __initdata resource omap7xx_mpu_gpio_resources[] =3D =
-{
->> + =A0 =A0 =A0 {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .start =A0=3D OMAP1_MPUIO_VBASE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .end =A0 =A0=3D OMAP1_MPUIO_VBASE + SZ=
-_2K - 1,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0=3D IORESOURCE_MEM,
->> + =A0 =A0 =A0 },
->> + =A0 =A0 =A0 {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .start =A0=3D INT_7XX_MPUIO,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0=3D IORESOURCE_IRQ,
->> + =A0 =A0 =A0 },
->> +};
->> +
->> +static struct __initdata omap_gpio_platform_data omap7xx_mpu_gpio_c=
-onfig =3D {
->> + =A0 =A0 =A0 .virtual_irq_start =A0 =A0 =A0=3D IH_MPUIO_BASE,
->> + =A0 =A0 =A0 .bank_type =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D METHOD_MPUIO=
-,
->> + =A0 =A0 =A0 .bank_width =A0 =A0 =A0 =A0 =A0 =A0 =3D 32,
->
-> I think we need
->
-> =A0 =A0.dbck_flag =3D false,
+Tarun,
 
-I think it's not required since it is a static data. Modifying the
-"if" condition
-in gpio_debounce as per your suggestion will resolve this issue.
+On Tue, Dec 7, 2010 at 05:14, Tarun Kanti DebBarma <tarun.kanti@ti.com>=
+ wrote:
+> Add routines to converts dmtimers to platform devices. The device dat=
+a
+> is obtained from hwmod database of respective platform and is registe=
+red
+> to device model after successful binding to driver. It also provides
+> provision to access timers during early boot when pm_runtime framewor=
+k
+> is not completely up and running.
+>
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> Reviewed-by: Cousson, Benoit <b-cousson@ti.com>
+> Reviewed-by: Varadarajan, Charulatha <charu@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/Makefile =A0| =A0 =A02 +-
+> =A0arch/arm/mach-omap2/dmtimer.c | =A0174 +++++++++++++++++++++++++++=
+++++++++++++++
+> =A02 files changed, 175 insertions(+), 1 deletions(-)
+> =A0create mode 100644 arch/arm/mach-omap2/dmtimer.c
+>
 
->
-> here -- we don't have a dbclk on omap7xx. =A0Without this, we get:
->
-> =A0 =A0omap_gpio omap_gpio.5: Could not get gpio dbck
-> =A0 =A0omap_gpio omap_gpio.6: Could not get gpio dbck
->
-> This needs to be added to the other 5 GPIO blocks in this file as wel=
-l.
->
-> - Cory
->
+<<snip>>
+
+> +/**
+> + * omap_timer_init - build and register timer device with an
+> + * associated timer hwmod
+> + * @oh: =A0 =A0 =A0 =A0timer hwmod pointer to be used to build timer=
+ device
+> + * @user: =A0 =A0 =A0parameter that can be passed from calling hwmod=
+ API
+> + *
+> + * Called by omap_hwmod_for_each_by_class to register each of the ti=
+mer
+> + * devices present in the system. The number of timer devices is kno=
+wn
+> + * by parsing through the hwmod database for a given class name. At =
+the
+> + * end of function call memory is allocated for timer device and it =
+is
+> + * registered to the framework ready to be proved by the driver.
+> + */
+> +static int __init omap_timer_init(struct omap_hwmod *oh, void *user)
+> +{
+> + =A0 =A0 =A0 int id;
+> + =A0 =A0 =A0 int ret =3D 0;
+> + =A0 =A0 =A0 char *name =3D "omap_timer";
+> + =A0 =A0 =A0 struct dmtimer_platform_data *pdata;
+> + =A0 =A0 =A0 struct omap_device *od;
+> +
+> + =A0 =A0 =A0 pr_debug("%s: %s\n", __func__, oh->name);
+> +
+> + =A0 =A0 =A0 pdata =3D kzalloc(sizeof(*pdata), GFP_KERNEL);
+> + =A0 =A0 =A0 if (!pdata) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: No memory for [%s]\n", __fu=
+nc__, oh->name);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 if (user)
+
+Check for the value of "user".
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->is_early_init =3D 1;
+> + =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->is_early_init =3D 0;
+> +
+> + =A0 =A0 =A0 /* hook clock set/get functions */
+> + =A0 =A0 =A0 pdata->set_timer_src =3D omap2_dm_timer_set_src;
+> +
+
+<<snip>>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
