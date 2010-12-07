@@ -1,35 +1,66 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: Re: [PATCH] OMAP2+: resolve section mismatch warnings in OMAP core code
-Date: Tue, 7 Dec 2010 09:49:38 +0800
-Message-ID: <AANLkTimK1Rt1SF0pJjfuCKvO0rd229-+JcSvE3uF91D1@mail.gmail.com>
-References: <alpine.DEB.2.00.1012061731500.13430@utopia.booyaka.com>
- <AANLkTi=ip3BJEToZ+vttJa2oJEm7iY8ohU3Cn=DF+77g@mail.gmail.com> <alpine.DEB.2.00.1012061837410.13430@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] MAINTAINERS: OMAP: hwmod: update hwmod code, data
+ maintainership
+Date: Mon, 6 Dec 2010 19:06:08 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012061905060.13430@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-328520525-1291687568=:13430"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f43.google.com ([209.85.216.43]:34615 "EHLO
-	mail-qw0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753605Ab0LGBuA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 20:50:00 -0500
-Received: by qwk3 with SMTP id 3so8069742qwk.2
-        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2010 17:49:59 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1012061837410.13430@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:42936 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754545Ab0LGCGJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2010 21:06:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org
+Cc: tony@atomide.com
 
-On Tue, Dec 7, 2010 at 9:38 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Tue, 7 Dec 2010, Bryan Wu wrote:
->
->> Paul,
->>
->> I did the similar patch several days ago.
->> https://patchwork.kernel.org/patch/367011/
->
-> Great, thanks Bryan, in that case yours should be used instead.
->
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Thanks, Paul. I guess you work very late today, -:D
+--155748971-328520525-1291687568=:13430
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
--Bryan
+
+Add myself and Beno=EEt as co-maintainers of the OMAP hwmod core code.
+(The OMAP hwmod code manages the integration of IP blocks on the OMAP SoC
+family.)
+
+Add Beno=EEt as the maintainer of OMAP4-based SoC hwmod mode.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Beno=EEt Cousson <b-cousson@ti.com>
+---
+ MAINTAINERS |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b3be8b3..b10a91c 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4329,6 +4329,20 @@ M:=09Deepak Saxena <dsaxena@plexity.net>
+ S:=09Maintained
+ F:=09drivers/char/hw_random/omap-rng.c
+=20
++OMAP HWMOD SUPPORT
++M:=09Beno=EEt Cousson <b-cousson@ti.com>
++M:=09Paul Walmsley <paul@pwsan.com>
++L:=09linux-omap@vger.kernel.org
++S:=09Maintained
++F:=09arch/arm/mach-omap2/omap_hwmod.c
++F:=09arch/arm/plat-omap/include/plat/omap_hwmod.h
++
++OMAP HWMOD DATA FOR OMAP4-BASED DEVICES
++M:=09Beno=EEt Cousson <b-cousson@ti.com>
++L:=09linux-omap@vger.kernel.org
++S:=09Maintained
++F:=09arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++
+ OMAP USB SUPPORT
+ M:=09Felipe Balbi <balbi@ti.com>
+ M:=09David Brownell <dbrownell@users.sourceforge.net>
+--=20
+1.7.2.3
+
+--155748971-328520525-1291687568=:13430--
