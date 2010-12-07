@@ -1,151 +1,287 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP HSMMC problems with off-mode
-Date: Tue, 7 Dec 2010 15:56:37 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012071548490.13430@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1012071101590.13430@utopia.booyaka.com> <4CFE9059.1080202@nokia.com> <AANLkTimKCBm0+NTgJWvyivBqv0DoQhwMbsU2uxruoDot@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 12/11] omap1: Fix gpio mpuio bank to work for multi-omap
+ for 7xx/15xx/16xx
+Date: Tue, 7 Dec 2010 15:23:16 -0800
+Message-ID: <20101207232315.GE17435@atomide.com>
+References: <1290689318-10191-1-git-send-email-charu@ti.com>
+ <20101201183357.GI17222@atomide.com>
+ <87zkso4hu3.fsf@deeprootsystems.com>
+ <AANLkTinY8FKbVvXD29KpgGnsnKwQziXws+zKLZWn69Hj@mail.gmail.com>
+ <20101204212554.GM17222@atomide.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-129514236-1291762597=:13430"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58155 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751085Ab0LGW4i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 17:56:38 -0500
-In-Reply-To: <AANLkTimKCBm0+NTgJWvyivBqv0DoQhwMbsU2uxruoDot@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:28418 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753341Ab0LGXX1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 18:23:27 -0500
+Content-Disposition: inline
+In-Reply-To: <20101204212554.GM17222@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sawant@ti.com" <sawant@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, p-basak2@ti.com, Cory Maccarrone <darkstar6262@gmail.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+* Tony Lindgren <tony@atomide.com> [101204 13:16]:
+> * Varadarajan, Charulatha <charu@ti.com> [101202 06:08]:
+> > On Thu, Dec 2, 2010 at 15:28, Kevin Hilman <khilman@deeprootsystems.com> wrote:
+> > 
+> > >
+> > > Tony, you can also add
+> > >
+> > > Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> 
+> OK, updated. Also made one more GPIO patch to allow us to deal
+> with the 7xx vs 15xx/16xx MPUIO registers.
 
---155748971-129514236-1291762597=:13430
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Turns out that broke drivers/mtd/nand/ams-delta.c as it directly uses
+multiple lines in parallel. So let's use 15xx/16xx offsets instead
+and divide them by two.
 
-Hi,
+Regards,
 
-On Tue, 7 Dec 2010, Chikkature Rajashekar, Madhusudhan wrote:
-
-> On Tue, Dec 7, 2010 at 1:51 PM, Adrian Hunter <adrian.hunter@nokia.com> w=
-rote:
-> >
-> > It is at least because omap_pm_get_dev_context_loss_count() is not
-> > implemented. =A0Tero Kristo was looking at that recently.
-> >
->=20
-> Yes. I agree that is the problem. In the .32 kernel I had hooked it to
-> "get_last_off_on_transaction_id" which helped.
-> But that functionality does not exist anymore. So something equivalent
-> to tell the driver when the OFF was hit will make it work.
-
-OK, let's see if we can get that fixed in at least some trivial=20
-way for 2.6.38.  While working on this, I applied this trivial patch:
-
-diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm=
--noop.c
-index e129ce8..781aa5f 100644
---- a/arch/arm/plat-omap/omap-pm-noop.c
-+++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -30,6 +30,8 @@ struct omap_opp *dsp_opps;
- struct omap_opp *mpu_opps;
- struct omap_opp *l3_opps;
-=20
-+static int dummy_context_loss_counter;
-+
- /*
-  * Device-driver-originated constraints (via board-*.c files)
-  */
-@@ -303,7 +305,7 @@ int omap_pm_get_dev_context_loss_count(struct device *d=
-ev)
- =09 * off counter.
- =09 */
-=20
--=09return 0;
-+=09return dummy_context_loss_counter++;
- }
-=20
-=20
-
-=2E.. which causes drivers to believe that device context has been lost=20
-after each call to omap_pm_get_dev_context_loss_count().  Brutal, but=20
-effective for chasing out context save/restore bugs.  This patch causes an=
-=20
-abort in the MMC driver with the current linux-omap master:
-
-[    1.960693] Unhandled fault: external abort on non-linefetch (0x1028) at=
- 0xfa09c014
-[    1.968872] Internal error: : 1028 [#1] SMP
-[    1.973266] last sysfs file:=20
-[    1.976379] Modules linked in:
-[    1.979583] CPU: 0    Not tainted  (2.6.37-rc4-09012-gfea0fb8 #65)
-[    1.986083] PC is at omap_hsmmc_context_restore+0x58/0x2ec
-[    1.991851] LR is at omap_hsmmc_context_restore+0x4c/0x2ec
-[    1.997619] pc : [<c0345590>]    lr : [<c0345584>]    psr: 20000013
-[    1.997619] sp : cf82deb0  ip : cf82c000  fp : cf890408
-[    2.009643] r10: cf826160  r9 : 00000053  r8 : 00000001
-[    2.015136] r7 : cfad2000  r6 : cfad23c0  r5 : 00000000  r4 : ffff6b1f
-[    2.021972] r3 : 0000000e  r2 : fa09c000  r1 : fa09c014  r0 : ffff6b22
-[    2.028808] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment=
- kernel
-[    2.036499] Control: 10c5387d  Table: 80004019  DAC: 00000017
-[    2.042510] Process swapper (pid: 1, stack limit =3D 0xcf82c2f8)
-[    2.048645] Stack: (0xcf82deb0 to 0xcf82e000)
-[    2.053192] dea0:                                     cfad23c0 00000000 =
-cfad2000 cfad23c0
-[    2.061798] dec0: 00000000 c0345844 cfad2000 00000000 cfad2000 c0338040 =
-00000000 00000001
-[    2.070373] dee0: cfad2000 c002c728 00000000 00000003 cf886c08 cfad0a60 =
-c05fdbc0 cf890408
-[    2.078948] df00: cf890408 c05fdbc0 cfaef1a0 c05f06b8 00000000 00000000 =
-00000000 c02a0368
-[    2.087524] df20: cf890408 c029f388 cf890408 cf89043c c05fdbc0 c029f4b0 =
-00000000 c029f448
-[    2.096130] df40: c05fdbc0 c029eb3c cf826eb8 cf8b5890 cf8001e0 00000080 =
-c05fdbc0 c029e468
-[    2.104705] df60: c04f3804 00000468 00000000 c05fdbac c061bd54 c05fdbc0 =
-c061bd4c c002c400
-[    2.113281] df80: 00000000 c029f7a8 c05fdbac c061bd54 c05aa190 c061bd4c =
-c002c400 c02a0770
-[    2.121856] dfa0: c00335dc c061bd54 c05aa190 c0050574 00000000 00000000 =
-c0503d6c 00000192
-[    2.130462] dfc0: c061bd54 c00335dc c061bd54 c05aa190 c061bd4c 00000000 =
-00000000 c00084ec
-[    2.139038] dfe0: 00000000 c00083a0 c005bcf0 00000013 00000000 c005bcf0 =
-1177ed0a 0073ef00
-[    2.147644] [<c0345590>] (omap_hsmmc_context_restore+0x58/0x2ec) from [<=
-c0345844>] (omap_hsmmc_enable_fclk+0x20/0x28)
-[    2.158782] [<c0345844>] (omap_hsmmc_enable_fclk+0x20/0x28) from [<c0338=
-040>] (mmc_host_enable+0x6c/0x90)
-[    2.168823] [<c0338040>] (mmc_host_enable+0x6c/0x90) from [<c002c728>] (=
-omap_hsmmc_probe+0x314/0x96c)
-[    2.178497] [<c002c728>] (omap_hsmmc_probe+0x314/0x96c) from [<c02a0368>=
-] (platform_drv_probe+0x18/0x1c)
-[    2.188476] [<c02a0368>] (platform_drv_probe+0x18/0x1c) from [<c029f388>=
-] (driver_probe_device+0xc8/0x188)
-[    2.198608] [<c029f388>] (driver_probe_device+0xc8/0x188) from [<c029f4b=
-0>] (__driver_attach+0x68/0x8c)
-[    2.208465] [<c029f4b0>] (__driver_attach+0x68/0x8c) from [<c029eb3c>] (=
-bus_for_each_dev+0x44/0x74)
-[    2.217956] [<c029eb3c>] (bus_for_each_dev+0x44/0x74) from [<c029e468>] =
-(bus_add_driver+0x104/0x294)
-[    2.227569] [<c029e468>] (bus_add_driver+0x104/0x294) from [<c029f7a8>] =
-(driver_register+0xa8/0x130)
-[    2.237152] [<c029f7a8>] (driver_register+0xa8/0x130) from [<c02a0770>] =
-(platform_driver_probe+0x18/0x8c)
-[    2.247192] [<c02a0770>] (platform_driver_probe+0x18/0x8c) from [<c00505=
-74>] (do_one_initcall+0xc8/0x1a0)
-[    2.257263] [<c0050574>] (do_one_initcall+0xc8/0x1a0) from [<c00084ec>] =
-(kernel_init+0x14c/0x214)
-[    2.266571] [<c00084ec>] (kernel_init+0x14c/0x214) from [<c005bcf0>] (ke=
-rnel_thread_exit+0x0/0x8)
-[    2.275878] Code: ebf53fa3 e5962048 e2821014 e0800004 (e5913000)=20
-[    2.282409] ---[ end trace a0fb0e5d1754cad1 ]---
-[    2.287353] Kernel panic - not syncing: Attempted to kill init!
-
-Looks like 0xfa09c014 is the MMC SYSSTATUS register... maybe there's=20
-something wrong with the clock control.
+Tony
 
 
-- Paul
---155748971-129514236-1291762597=:13430--
+From: Tony Lindgren <tony@atomide.com>
+Date: Sat, 4 Dec 2010 12:39:43 -0800
+Subject: [PATCH] omap1: Fix gpio mpuio bank to work for multi-omap for 7xx/15xx/16xx
+
+We need to divide the 15xx/16xx offset by 2 for 7xx. Use bank->stride
+for that. This allows us to get rid of the duplicate defines for the
+MPUIO registers.
+
+Note that this will cause omap-keypad.c driver to not work on 7xx.
+However, the right fix there is to move over to gpio-keys instead as
+suggested by Cory Maccarrone <darkstar6262@gmail.com> and
+Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>.
+
+Cc: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
+index dbd8168..04c4b04 100644
+--- a/arch/arm/mach-omap1/gpio15xx.c
++++ b/arch/arm/mach-omap1/gpio15xx.c
+@@ -38,6 +38,7 @@ static struct __initdata omap_gpio_platform_data omap15xx_mpu_gpio_config = {
+ 	.virtual_irq_start	= IH_MPUIO_BASE,
+ 	.bank_type		= METHOD_MPUIO,
+ 	.bank_width		= 16,
++	.bank_stride		= 1,
+ };
+ 
+ static struct __initdata platform_device omap15xx_mpu_gpio = {
+diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
+index 8d4d0a0..5dd0d4c 100644
+--- a/arch/arm/mach-omap1/gpio16xx.c
++++ b/arch/arm/mach-omap1/gpio16xx.c
+@@ -41,6 +41,7 @@ static struct __initdata omap_gpio_platform_data omap16xx_mpu_gpio_config = {
+ 	.virtual_irq_start	= IH_MPUIO_BASE,
+ 	.bank_type		= METHOD_MPUIO,
+ 	.bank_width		= 16,
++	.bank_stride		= 1,
+ };
+ 
+ static struct __initdata platform_device omap16xx_mpu_gpio = {
+diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio7xx.c
+index 94bccd4..1204c8b 100644
+--- a/arch/arm/mach-omap1/gpio7xx.c
++++ b/arch/arm/mach-omap1/gpio7xx.c
+@@ -43,6 +43,7 @@ static struct __initdata omap_gpio_platform_data omap7xx_mpu_gpio_config = {
+ 	.virtual_irq_start	= IH_MPUIO_BASE,
+ 	.bank_type		= METHOD_MPUIO,
+ 	.bank_width		= 32,
++	.bank_stride		= 2,
+ };
+ 
+ static struct __initdata platform_device omap7xx_mpu_gpio = {
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 59afe77..de93251 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -159,6 +159,7 @@ struct gpio_bank {
+ 	u32 dbck_enable_mask;
+ 	struct device *dev;
+ 	bool dbck_flag;
++	int stride;
+ };
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+@@ -267,7 +268,7 @@ static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
+ 	switch (bank->method) {
+ #ifdef CONFIG_ARCH_OMAP1
+ 	case METHOD_MPUIO:
+-		reg += OMAP_MPUIO_IO_CNTL;
++		reg += OMAP_MPUIO_IO_CNTL / bank->stride;
+ 		break;
+ #endif
+ #ifdef CONFIG_ARCH_OMAP15XX
+@@ -315,7 +316,7 @@ static void _set_gpio_dataout(struct gpio_bank *bank, int gpio, int enable)
+ 	switch (bank->method) {
+ #ifdef CONFIG_ARCH_OMAP1
+ 	case METHOD_MPUIO:
+-		reg += OMAP_MPUIO_OUTPUT;
++		reg += OMAP_MPUIO_OUTPUT / bank->stride;
+ 		l = __raw_readl(reg);
+ 		if (enable)
+ 			l |= 1 << gpio;
+@@ -387,7 +388,7 @@ static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
+ 	switch (bank->method) {
+ #ifdef CONFIG_ARCH_OMAP1
+ 	case METHOD_MPUIO:
+-		reg += OMAP_MPUIO_INPUT_LATCH;
++		reg += OMAP_MPUIO_INPUT_LATCH / bank->stride;
+ 		break;
+ #endif
+ #ifdef CONFIG_ARCH_OMAP15XX
+@@ -433,7 +434,7 @@ static int _get_gpio_dataout(struct gpio_bank *bank, int gpio)
+ 	switch (bank->method) {
+ #ifdef CONFIG_ARCH_OMAP1
+ 	case METHOD_MPUIO:
+-		reg += OMAP_MPUIO_OUTPUT;
++		reg += OMAP_MPUIO_OUTPUT / bank->stride;
+ 		break;
+ #endif
+ #ifdef CONFIG_ARCH_OMAP15XX
+@@ -620,7 +621,7 @@ static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
+ 
+ 	switch (bank->method) {
+ 	case METHOD_MPUIO:
+-		reg += OMAP_MPUIO_GPIO_INT_EDGE;
++		reg += OMAP_MPUIO_GPIO_INT_EDGE / bank->stride;
+ 		break;
+ #ifdef CONFIG_ARCH_OMAP15XX
+ 	case METHOD_GPIO_1510:
+@@ -654,7 +655,7 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+ 	switch (bank->method) {
+ #ifdef CONFIG_ARCH_OMAP1
+ 	case METHOD_MPUIO:
+-		reg += OMAP_MPUIO_GPIO_INT_EDGE;
++		reg += OMAP_MPUIO_GPIO_INT_EDGE / bank->stride;
+ 		l = __raw_readl(reg);
+ 		if ((trigger & IRQ_TYPE_SENSE_MASK) == IRQ_TYPE_EDGE_BOTH)
+ 			bank->toggle_mask |= 1 << gpio;
+@@ -840,7 +841,7 @@ static u32 _get_gpio_irqbank_mask(struct gpio_bank *bank)
+ 	switch (bank->method) {
+ #ifdef CONFIG_ARCH_OMAP1
+ 	case METHOD_MPUIO:
+-		reg += OMAP_MPUIO_GPIO_MASKIT;
++		reg += OMAP_MPUIO_GPIO_MASKIT / bank->stride;
+ 		mask = 0xffff;
+ 		inv = 1;
+ 		break;
+@@ -897,7 +898,7 @@ static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask, int enab
+ 	switch (bank->method) {
+ #ifdef CONFIG_ARCH_OMAP1
+ 	case METHOD_MPUIO:
+-		reg += OMAP_MPUIO_GPIO_MASKIT;
++		reg += OMAP_MPUIO_GPIO_MASKIT / bank->stride;
+ 		l = __raw_readl(reg);
+ 		if (enable)
+ 			l &= ~(gpio_mask);
+@@ -1147,7 +1148,8 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	bank = get_irq_data(irq);
+ #ifdef CONFIG_ARCH_OMAP1
+ 	if (bank->method == METHOD_MPUIO)
+-		isr_reg = bank->base + OMAP_MPUIO_GPIO_INT;
++		isr_reg = bank->base +
++				OMAP_MPUIO_GPIO_INT / bank->stride;
+ #endif
+ #ifdef CONFIG_ARCH_OMAP15XX
+ 	if (bank->method == METHOD_GPIO_1510)
+@@ -1340,7 +1342,8 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct gpio_bank	*bank = platform_get_drvdata(pdev);
+-	void __iomem		*mask_reg = bank->base + OMAP_MPUIO_GPIO_MASKIT;
++	void __iomem		*mask_reg = bank->base +
++					OMAP_MPUIO_GPIO_MASKIT / bank->stride;
+ 	unsigned long		flags;
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+@@ -1355,7 +1358,8 @@ static int omap_mpuio_resume_noirq(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct gpio_bank	*bank = platform_get_drvdata(pdev);
+-	void __iomem		*mask_reg = bank->base + OMAP_MPUIO_GPIO_MASKIT;
++	void __iomem		*mask_reg = bank->base +
++					OMAP_MPUIO_GPIO_MASKIT / bank->stride;
+ 	unsigned long		flags;
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+@@ -1435,7 +1439,7 @@ static int gpio_is_input(struct gpio_bank *bank, int mask)
+ 
+ 	switch (bank->method) {
+ 	case METHOD_MPUIO:
+-		reg += OMAP_MPUIO_IO_CNTL;
++		reg += OMAP_MPUIO_IO_CNTL / bank->stride;
+ 		break;
+ 	case METHOD_GPIO_1510:
+ 		reg += OMAP1510_GPIO_DIR_CONTROL;
+@@ -1596,8 +1600,8 @@ static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
+ 		}
+ 	} else if (cpu_class_is_omap1()) {
+ 		if (bank_is_mpuio(bank))
+-			__raw_writew(0xffff, bank->base
+-						+ OMAP_MPUIO_GPIO_MASKIT);
++			__raw_writew(0xffff, bank->base +
++				OMAP_MPUIO_GPIO_MASKIT / bank->stride);
+ 		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
+ 			__raw_writew(0xffff, bank->base
+ 						+ OMAP1510_GPIO_INT_MASK);
+@@ -1711,6 +1715,7 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	bank->method = pdata->bank_type;
+ 	bank->dev = &pdev->dev;
+ 	bank->dbck_flag = pdata->dbck_flag;
++	bank->stride = pdata->bank_stride;
+ 	bank_width = pdata->bank_width;
+ 
+ 	spin_lock_init(&bank->lock);
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index 5f118ff..41ff2f8 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -32,22 +32,10 @@
+ 
+ #define OMAP1_MPUIO_BASE			0xfffb5000
+ 
+-#if (defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850))
+-
+-#define OMAP_MPUIO_INPUT_LATCH		0x00
+-#define OMAP_MPUIO_OUTPUT		0x02
+-#define OMAP_MPUIO_IO_CNTL		0x04
+-#define OMAP_MPUIO_KBR_LATCH		0x08
+-#define OMAP_MPUIO_KBC			0x0a
+-#define OMAP_MPUIO_GPIO_EVENT_MODE	0x0c
+-#define OMAP_MPUIO_GPIO_INT_EDGE	0x0e
+-#define OMAP_MPUIO_KBD_INT		0x10
+-#define OMAP_MPUIO_GPIO_INT		0x12
+-#define OMAP_MPUIO_KBD_MASKIT		0x14
+-#define OMAP_MPUIO_GPIO_MASKIT		0x16
+-#define OMAP_MPUIO_GPIO_DEBOUNCING	0x18
+-#define OMAP_MPUIO_LATCH		0x1a
+-#else
++/*
++ * These are the omap15xx/16xx offsets. The omap7xx offset are
++ * OMAP_MPUIO_ / 2 offsets below.
++ */
+ #define OMAP_MPUIO_INPUT_LATCH		0x00
+ #define OMAP_MPUIO_OUTPUT		0x04
+ #define OMAP_MPUIO_IO_CNTL		0x08
+@@ -61,7 +49,6 @@
+ #define OMAP_MPUIO_GPIO_MASKIT		0x2c
+ #define OMAP_MPUIO_GPIO_DEBOUNCING	0x30
+ #define OMAP_MPUIO_LATCH		0x34
+-#endif
+ 
+ #define OMAP34XX_NR_GPIOS		6
+ 
+@@ -88,6 +75,7 @@ struct omap_gpio_platform_data {
+ 	u16 virtual_irq_start;
+ 	int bank_type;
+ 	int bank_width;		/* GPIO bank width */
++	int bank_stride;	/* Only needed for omap1 MPUIO */
+ 	bool dbck_flag;		/* dbck required or not - True for OMAP3&4 */
+ };
+ 
