@@ -1,41 +1,92 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] omap1: pm_bus: Fix compilation warning.
-Date: Tue, 07 Dec 2010 14:23:02 -0800
-Message-ID: <87lj41jk8p.fsf@deeprootsystems.com>
-References: <1291641828-19909-1-git-send-email-marek.belisko@open-nandra.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP2+: PM/serial: fix console semaphore acquire during
+ suspend
+Date: Tue, 7 Dec 2010 15:46:40 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012071544210.13430@utopia.booyaka.com>
+References: <1291755056-23860-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1291641828-19909-1-git-send-email-marek.belisko@open-nandra.com>
-	(Marek Belisko's message of "Mon, 6 Dec 2010 14:23:48 +0100")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marek Belisko <marek.belisko@open-nandra.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:32938 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754335Ab0LGWql (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 17:46:41 -0500
+In-Reply-To: <1291755056-23860-1-git-send-email-khilman@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Marek Belisko <marek.belisko@open-nandra.com> writes:
+Hi,
 
-> Fix following compilation warning:
-> arch/arm/mach-omap1/pm_bus.c: In function 'omap1_pm_runtime_resume':
-> arch/arm/mach-omap1/pm_bus.c:51: warning: unused variable 'ret'
->
-> Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
+Two comments:
 
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+On Tue, 7 Dec 2010, Kevin Hilman wrote:
 
+> commit 0d8e2d0dad98a693bad88aea6876ac8b94ad95c6 (OMAP2+: PM/serial:
+> hold console semaphore while OMAP UARTs are disabled) added use of the
+> console semaphore to protect UARTs from being accessed after disabled
+> during idle, but this causes problems in suspend.
+> 
+> During suspend, the console semaphore is already held by the time we reach
+> the OMAP suspend path, so the try_acquire_console_sem() will always fail and
+> suspend will be aborted.
+> 
+> To fix, introduce a check so the console semaphore is only attempted
+> during idle, and not during suspend.
+> 
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 > ---
->  arch/arm/mach-omap1/pm_bus.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
-> index 8b66392..f97c6e9 100644
-> --- a/arch/arm/mach-omap1/pm_bus.c
-> +++ b/arch/arm/mach-omap1/pm_bus.c
-> @@ -48,7 +48,6 @@ static int omap1_pm_runtime_suspend(struct device *dev)
+> Applies to Tony's omap-fixes branch.
+> 
+>  arch/arm/mach-omap2/pm34xx.c |   24 ++++++++++++++++++------
+>  1 files changed, 18 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 0ec8a04..122ef3c 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -50,6 +50,19 @@
+>  #include "sdrc.h"
+>  #include "control.h"
 >  
->  static int omap1_pm_runtime_resume(struct device *dev)
->  {
-> -	int ret = 0;
->  	struct clk *iclk, *fclk;
+> +#ifdef CONFIG_SUSPEND
+> +static suspend_state_t suspend_state = PM_SUSPEND_ON;
+> +static inline bool is_suspending(void)
+> +{
+> +	return (suspend_state != PM_SUSPEND_ON);
+> +}
+> +#else
+> +static inline bool is_suspending(void)
+> +{
+> +	return false;
+> +}
+> +#endif
+> +
+>  /* Scratchpad offsets */
+>  #define OMAP343X_TABLE_ADDRESS_OFFSET	   0xc4
+>  #define OMAP343X_TABLE_VALUE_OFFSET	   0xc0
+> @@ -387,10 +400,11 @@ void omap_sram_idle(void)
+>  	}
 >  
->  	dev_dbg(dev, "%s\n", __func__);
+>  	/* Block console output in case it is on one of the OMAP UARTs */
+> -	if (per_next_state < PWRDM_POWER_ON ||
+> -	    core_next_state < PWRDM_POWER_ON)
+> -		if (try_acquire_console_sem())
+> -			goto console_still_active;
+> +	if (!is_suspending())
+> +		if (per_next_state < PWRDM_POWER_ON ||
+> +		    core_next_state < PWRDM_POWER_ON)
+> +			if (try_acquire_console_sem())
+> +				goto console_still_active;
+
+This same is_suspending() test needs to be applied to the 
+release_console_sem() later in the pm34xx.c, otherwise the console 
+semaphore will be released before the Linux suspend code expects it to be.
+
+Also, I'd assume that a similar patch to the above needs to be applied to 
+pm24xx.c.
+
+
+- Paul
