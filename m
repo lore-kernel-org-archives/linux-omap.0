@@ -1,47 +1,63 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] AM35x: musb: fix compilation error
-Date: Tue, 7 Dec 2010 18:26:48 +0200
-Message-ID: <20101207162645.GE2665@legolas.emea.dhcp.ti.com>
-References: <1291231942.15533.32.camel@eowin>
- <19F8576C6E063C45BE387C64729E739404BCE398D7@dbde02.ent.ti.com>
- <20101202082904.GH5429@legolas.emea.dhcp.ti.com>
- <19F8576C6E063C45BE387C64729E739404BCE39A7E@dbde02.ent.ti.com>
- <20101203124317.GB2633@legolas.emea.dhcp.ti.com>
- <19F8576C6E063C45BE387C64729E739404BCE39E0D@dbde02.ent.ti.com>
- <20101206112003.GA17432@legolas.emea.dhcp.ti.com>
- <19F8576C6E063C45BE387C64729E739404BCE3A1B4@dbde02.ent.ti.com>
- <20101206121812.GC3693@legolas.emea.dhcp.ti.com>
- <19F8576C6E063C45BE387C64729E739404BCF8771E@dbde02.ent.ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH v2 2/3] ARM: omap4: Correct definition of do_wfi() forCONFIG_THUMB2_KERNEL
+Date: Tue, 7 Dec 2010 16:50:50 +0000
+Message-ID: <AANLkTinPifchS23j5EdrhMBNNdtEfF_KmX=AE9tUiiL=@mail.gmail.com>
+References: <1291656937-24992-1-git-send-email-dave.martin@linaro.org>
+	<1291656937-24992-3-git-send-email-dave.martin@linaro.org>
+	<a86d8e4b47fad17e71d0202f3c469868@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404BCF8771E-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:49352 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751438Ab0LGQuv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 11:50:51 -0500
+Received: by iwn9 with SMTP id 9so92984iwn.19
+        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 08:50:50 -0800 (PST)
+In-Reply-To: <a86d8e4b47fad17e71d0202f3c469868@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org
 
-On Tue, Dec 07, 2010 at 07:25:12PM +0530, Gupta, Ajay Kumar wrote:
->Hi,
->> >> Is AM35x that different ? Can't you just write to MUSB_INTRRX
->> >> MUSB_INTRTX and MUSB_INTRUSB ??
->> >Writing to MUSB_INTRRX/TX/USB wouldn't help. We have to clear interrupt
->> >Bit in control register INTR_LVL_CLR.
+Hi,
+
+On Tue, Dec 7, 2010 at 6:28 AM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+> Dave,
+>> -----Original Message-----
+>> From: linaro-dev-bounces@lists.linaro.org [mailto:linaro-dev-
+>> bounces@lists.linaro.org] On Behalf Of Dave Martin
+>> Sent: Monday, December 06, 2010 11:06 PM
+>> To: linux-arm-kernel@lists.infradead.org
+>> Cc: Tony Lindgren; Dave Martin; linux-omap@vger.kernel.org; linaro-
+>> dev@lists.linaro.org
+>> Subject: [PATCH v2 2/3] ARM: omap4: Correct definition of do_wfi()
+>> forCONFIG_THUMB2_KERNEL
 >>
->> I see, thanks for the info :-)
+>> For the Thumb-2 case, the "wfi" mnemonic is used, since in this
+>> case the tools will necessarily be new enough to support it.
+>>
+>> Signed-off-by: Dave Martin <dave.martin@linaro.org>
+>> ---
+>> KernelVersion: 2.6.37-rc4
 >
->Felipe,
+> The choice of opcode instead of instruction here was not because
+> of toolchain. The problem was it breaks multi-omap build where
+> ARMv6 and ARMv7 are build together.
 >
->I have recreated this patch (attached) on top of your patch
->set and AM35x is working.
+> For this reason I NAK this patch.
 
-applied it. Thanks
+You can't built a kernel for pre-v7 platforms with
+CONFIG_THUMB2_KERNEL: the code can't run on those platforms because
+they don't support Thumb-2.
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So anything inside #ifdef CONFIG_THUMB2_KERNEL can assume v7/Thumb-2
+capable (and hence reasonably new) tools.
+
+I'll follow up shortly with a patch to the generic ARM Kconfig to make
+this explicit, so that ARCH_OMAP2 and THUMB2_KERNEL can't accidentally
+be configured together.
+
+Cheers
+---Dave
