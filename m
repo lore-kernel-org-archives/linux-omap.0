@@ -1,810 +1,820 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v3 3/3] V4L/DVB: OMAP_VOUT: Use rotation_type to choose
- between vrfb rotation and no rotation
-Date: Tue, 7 Dec 2010 16:32:49 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404BCE3A563@dbde02.ent.ti.com>
-References: <1288857386-15431-1-git-send-email-archit@ti.com>
- <1288857386-15431-4-git-send-email-archit@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1288857386-15431-4-git-send-email-archit@ti.com>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: jean.pihet@newoldbits.com
+Subject: [PATCH] OMAP3: clean up ASM idle code
+Date: Tue,  7 Dec 2010 12:11:59 +0100
+Message-ID: <1291720319-30868-1-git-send-email-jean.pihet@newoldbits.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:41080 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753232Ab0LGLM0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 06:12:26 -0500
+Received: by wwa36 with SMTP id 36so14000461wwa.1
+        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 03:12:24 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Jean Pihet <j-pihet@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
+From: Jean Pihet <j-pihet@ti.com>
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Thursday, November 04, 2010 1:26 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Taneja,
-> Archit
-> Subject: [PATCH v3 3/3] V4L/DVB: OMAP_VOUT: Use rotation_type to choose
-> between vrfb rotation and no rotation
->
-[Hiremath, Vaibhav] I think this patch should get merged with 2/3. Some minor comments below -
+Clean up of the ASM code:
+- reorganized the code in logical sections: defines, API
+   functions, internal functions and variables,
+- reworked and simplified the execution paths, for better
+   readability and to avoid duplication of code,
+- added comments on the entry and exit points,
+- reworked the existing comments for better readability,
+- reworked the code formating, alignment and white spaces,
+- added comments for the i443 erratum workarounds,
+- changed the hardcoded values in favor of existing macros
+   from include files,
+- clean up of non used symbols.
 
+Tested on OMAP3EVM and Beagleboard with full RET and OFF modes.
 
-> Add new enum vout_rotation_type and "rotation_type" member to
-> omapvideo_info,
-> this is initialized based on the arch type in omap_vout_probe. The
-> rotation_type
-> var is now used to choose between vrfb and non-vrfb calls.
->
-> vrfb specific code in omap_vout has been removed and is present in
-> omap_vout_vrfb.c
->
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/video/omap/Kconfig        |    2 +-
->  drivers/media/video/omap/Makefile       |    1 +
->  drivers/media/video/omap/omap_vout.c    |  449 ++++++--------------------
-> -----
->  drivers/media/video/omap/omap_voutdef.h |   13 +
->  4 files changed, 95 insertions(+), 370 deletions(-)
->
-> diff --git a/drivers/media/video/omap/Kconfig
-> b/drivers/media/video/omap/Kconfig
-> index e63233f..5f8abea 100644
-> --- a/drivers/media/video/omap/Kconfig
-> +++ b/drivers/media/video/omap/Kconfig
-> @@ -5,7 +5,7 @@ config VIDEO_OMAP2_VOUT
->       select VIDEOBUF_DMA_CONTIG
->       select OMAP2_DSS
->       select OMAP2_VRAM
-> -     select OMAP2_VRFB
-> +     select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
->       default n
->       ---help---
->         V4L2 Display driver support for OMAP2/3 based boards.
-> diff --git a/drivers/media/video/omap/Makefile
-> b/drivers/media/video/omap/Makefile
-> index b287880..bc47569 100644
-> --- a/drivers/media/video/omap/Makefile
-> +++ b/drivers/media/video/omap/Makefile
-> @@ -5,3 +5,4 @@
->  # OMAP2/3 Display driver
->  omap-vout-y := omap_vout.o omap_voutlib.o
->  obj-$(CONFIG_VIDEO_OMAP2_VOUT) += omap-vout.o
-> +obj-$(CONFIG_OMAP2_VRFB) += omap_vout_vrfb.o
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index 7f9e937..92c8f88 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -42,12 +42,12 @@
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ioctl.h>
->
-> -#include <plat/dma.h>
->  #include <plat/vrfb.h>
-[Hiremath, Vaibhav] Why do you need vrfb.h file here in this file after creating separate file for VRFB API?
+Heavily reworked from Vishwa's original patch.
 
->  #include <plat/display.h>
->
->  #include "omap_voutlib.h"
->  #include "omap_voutdef.h"
-> +#include "omap_vout_vrfb.h"
->
->  MODULE_AUTHOR("Texas Instruments");
->  MODULE_DESCRIPTION("OMAP Video for Linux Video out driver");
-> @@ -143,41 +143,6 @@ const static struct v4l2_fmtdesc omap_formats[] = {
->  #define NUM_OUTPUT_FORMATS (ARRAY_SIZE(omap_formats))
->
->  /*
-> - * Function for allocating video buffers
-> - */
-> -static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
-> -             unsigned int *count, int startindex)
-> -{
-> -     int i, j;
-> -
-> -     for (i = 0; i < *count; i++) {
-> -             if (!vout->smsshado_virt_addr[i]) {
-> -                     vout->smsshado_virt_addr[i] =
-> -                             omap_vout_alloc_buffer(vout->smsshado_size,
-> -                                             &vout->smsshado_phy_addr[i]);
-> -             }
-> -             if (!vout->smsshado_virt_addr[i] && startindex != -1) {
-> -                     if (V4L2_MEMORY_MMAP == vout->memory && i >= startindex)
-> -                             break;
-> -             }
-> -             if (!vout->smsshado_virt_addr[i]) {
-> -                     for (j = 0; j < i; j++) {
-> -                             omap_vout_free_buffer(
-> -                                             vout->smsshado_virt_addr[j],
-> -                                             vout->smsshado_size);
-> -                             vout->smsshado_virt_addr[j] = 0;
-> -                             vout->smsshado_phy_addr[j] = 0;
-> -                     }
-> -                     *count = 0;
-> -                     return -ENOMEM;
-> -             }
-> -             memset((void *) vout->smsshado_virt_addr[i], 0,
-> -                             vout->smsshado_size);
-> -     }
-> -     return 0;
-> -}
-> -
-> -/*
->   * Try format
->   */
->  static int omap_vout_try_format(struct v4l2_pix_format *pix)
-> @@ -270,33 +235,6 @@ static u32 omap_vout_uservirt_to_phys(u32 virtp)
->  }
->
->  /*
-> - * Wakes up the application once the DMA transfer to VRFB space is
-> completed.
-> - */
-> -static void omap_vout_vrfb_dma_tx_callback(int lch, u16 ch_status, void
-> *data)
-> -{
-> -     struct vid_vrfb_dma *t = (struct vid_vrfb_dma *) data;
-> -
-> -     t->tx_status = 1;
-> -     wake_up_interruptible(&t->wait);
-> -}
-> -
-> -/*
-> - * Release the VRFB context once the module exits
-> - */
-> -static void omap_vout_release_vrfb(struct omap_vout_device *vout)
-> -{
-> -     int i;
-> -
-> -     for (i = 0; i < VRFB_NUM_BUFS; i++)
-> -             omap_vrfb_release_ctx(&vout->vrfb_context[i]);
-> -
-> -     if (vout->vrfb_dma_tx.req_status == DMA_CHAN_ALLOTED) {
-> -             vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
-> -             omap_free_dma(vout->vrfb_dma_tx.dma_ch);
-> -     }
-> -}
-> -
-> -/*
->   * Free the V4L2 buffers
->   */
->  void omap_vout_free_buffers(struct omap_vout_device *vout)
-> @@ -316,52 +254,6 @@ void omap_vout_free_buffers(struct omap_vout_device
-> *vout)
->  }
->
->  /*
-> - * Free VRFB buffers
-> - */
-> -static void omap_vout_free_vrfb_buffers(struct omap_vout_device *vout)
-> -{
-> -     int j;
-> -
-> -     for (j = 0; j < VRFB_NUM_BUFS; j++) {
-> -             omap_vout_free_buffer(vout->smsshado_virt_addr[j],
-> -                             vout->smsshado_size);
-> -             vout->smsshado_virt_addr[j] = 0;
-> -             vout->smsshado_phy_addr[j] = 0;
-> -     }
-> -}
-> -
-> -/*
-> - * Allocate the buffers for the VRFB space.  Data is copied from V4L2
-> - * buffers to the VRFB buffers using the DMA engine.
-> - */
-> -static int omap_vout_vrfb_buffer_setup(struct omap_vout_device *vout,
-> -                       unsigned int *count, unsigned int startindex)
-> -{
-> -     int i;
-> -     bool yuv_mode;
-> -
-> -     /* Allocate the VRFB buffers only if the buffers are not
-> -      * allocated during init time.
-> -      */
-> -     if ((rotation_enabled(vout)) && !vout->vrfb_static_allocation)
-> -             if (omap_vout_allocate_vrfb_buffers(vout, count, startindex))
-> -                     return -ENOMEM;
-> -
-> -     if (vout->dss_mode == OMAP_DSS_COLOR_YUV2 ||
-> -                     vout->dss_mode == OMAP_DSS_COLOR_UYVY)
-> -             yuv_mode = true;
-> -     else
-> -             yuv_mode = false;
-> -
-> -     for (i = 0; i < *count; i++)
-> -             omap_vrfb_setup(&vout->vrfb_context[i],
-> -                             vout->smsshado_phy_addr[i], vout->pix.width,
-> -                             vout->pix.height, vout->bpp, yuv_mode);
-> -
-> -     return 0;
-> -}
-> -
-> -/*
->   * Convert V4L2 rotation to DSS rotation
->   *   V4L2 understand 0, 90, 180, 270.
->   *   Convert to 0, 1, 2 and 3 repsectively for DSS
-> @@ -390,124 +282,38 @@ static int v4l2_rot_to_dss_rot(int v4l2_rotation,
->       return ret;
->  }
->
-> -/*
-> - * Calculate the buffer offsets from which the streaming should
-> - * start. This offset calculation is mainly required because of
-> - * the VRFB 32 pixels alignment with rotation.
-> - */
->  static int omap_vout_calculate_offset(struct omap_vout_device *vout)
->  {
-> -     struct omap_overlay *ovl;
-> -     enum dss_rotation rotation;
->       struct omapvideo_info *ovid;
-> -     bool mirroring = vout->mirror;
-> -     struct omap_dss_device *cur_display;
->       struct v4l2_rect *crop = &vout->crop;
->       struct v4l2_pix_format *pix = &vout->pix;
->       int *cropped_offset = &vout->cropped_offset;
-> -     int vr_ps = 1, ps = 2, temp_ps = 2;
-> -     int offset = 0, ctop = 0, cleft = 0, line_length = 0;
-> +     int ps = 2, line_length = 0;
->
->       ovid = &vout->vid_info;
-> -     ovl = ovid->overlays[0];
-> -     /* get the display device attached to the overlay */
-> -     if (!ovl->manager || !ovl->manager->device)
-> -             return -1;
->
-> -     cur_display = ovl->manager->device;
-> -     rotation = calc_rotation(vout);
-> +     if (ovid->rotation_type == VOUT_ROT_VRFB) {
-> +             omap_vout_calculate_vrfb_offset(vout);
-> +     } else {
-> +             vout->line_length = line_length = pix->width;
->
-> -     if (V4L2_PIX_FMT_YUYV == pix->pixelformat ||
-> -                     V4L2_PIX_FMT_UYVY == pix->pixelformat) {
-> -             if (rotation_enabled(vout)) {
-> -                     /*
-> -                      * ps    - Actual pixel size for YUYV/UYVY for
-> -                      *         VRFB/Mirroring is 4 bytes
-> -                      * vr_ps - Virtually pixel size for YUYV/UYVY is
-> -                      *         2 bytes
-> -                      */
-> +             if (V4L2_PIX_FMT_YUYV == pix->pixelformat ||
-> +                     V4L2_PIX_FMT_UYVY == pix->pixelformat)
-> +                     ps = 2;
-> +             else if (V4L2_PIX_FMT_RGB32 == pix->pixelformat)
->                       ps = 4;
-> -                     vr_ps = 2;
-> -             } else {
-> -                     ps = 2; /* otherwise the pixel size is 2 byte */
-> -             }
-> -     } else if (V4L2_PIX_FMT_RGB32 == pix->pixelformat) {
-> -             ps = 4;
-> -     } else if (V4L2_PIX_FMT_RGB24 == pix->pixelformat) {
-> -             ps = 3;
-> -     }
-> -     vout->ps = ps;
-> -     vout->vr_ps = vr_ps;
-> -
-> -     if (rotation_enabled(vout)) {
-> -             line_length = MAX_PIXELS_PER_LINE;
-> -             ctop = (pix->height - crop->height) - crop->top;
-> -             cleft = (pix->width - crop->width) - crop->left;
-> -     } else {
-> -             line_length = pix->width;
-> -     }
-> -     vout->line_length = line_length;
-> -     switch (rotation) {
-> -     case dss_rotation_90_degree:
-> -             offset = vout->vrfb_context[0].yoffset *
-> -                     vout->vrfb_context[0].bytespp;
-> -             temp_ps = ps / vr_ps;
-> -             if (mirroring == 0) {
-> -                     *cropped_offset = offset + line_length *
-> -                             temp_ps * cleft + crop->top * temp_ps;
-> -             } else {
-> -                     *cropped_offset = offset + line_length * temp_ps *
-> -                             cleft + crop->top * temp_ps + (line_length *
-> -                             ((crop->width / (vr_ps)) - 1) * ps);
-> -             }
-> -             break;
-> -     case dss_rotation_180_degree:
-> -             offset = ((MAX_PIXELS_PER_LINE * vout->vrfb_context[0].yoffset
-> *
-> -                     vout->vrfb_context[0].bytespp) +
-> -                     (vout->vrfb_context[0].xoffset *
-> -                     vout->vrfb_context[0].bytespp));
-> -             if (mirroring == 0) {
-> -                     *cropped_offset = offset + (line_length * ps * ctop) +
-> -                             (cleft / vr_ps) * ps;
-> +             else if (V4L2_PIX_FMT_RGB24 == pix->pixelformat)
-> +                     ps = 3;
->
-> -             } else {
-> -                     *cropped_offset = offset + (line_length * ps * ctop) +
-> -                             (cleft / vr_ps) * ps + (line_length *
-> -                             (crop->height - 1) * ps);
-> -             }
-> -             break;
-> -     case dss_rotation_270_degree:
-> -             offset = MAX_PIXELS_PER_LINE * vout->vrfb_context[0].xoffset *
-> -                     vout->vrfb_context[0].bytespp;
-> -             temp_ps = ps / vr_ps;
-> -             if (mirroring == 0) {
-> -                     *cropped_offset = offset + line_length *
-> -                         temp_ps * crop->left + ctop * ps;
-> -             } else {
-> -                     *cropped_offset = offset + line_length *
-> -                             temp_ps * crop->left + ctop * ps +
-> -                             (line_length * ((crop->width / vr_ps) - 1) *
-> -                              ps);
-> -             }
-> -             break;
-> -     case dss_rotation_0_degree:
-> -             if (mirroring == 0) {
-> -                     *cropped_offset = (line_length * ps) *
-> -                             crop->top + (crop->left / vr_ps) * ps;
-> -             } else {
-> -                     *cropped_offset = (line_length * ps) *
-> -                             crop->top + (crop->left / vr_ps) * ps +
-> -                             (line_length * (crop->height - 1) * ps);
-> -             }
-> -             break;
-> -     default:
-> -             *cropped_offset = (line_length * ps * crop->top) /
-> -                     vr_ps + (crop->left * ps) / vr_ps +
-> -                     ((crop->width / vr_ps) - 1) * ps;
-> -             break;
-> +             vout->ps = ps;
-> +
-> +             *cropped_offset = (line_length * ps) *
-> +                     crop->top + crop->left * ps;
->       }
-> +
->       v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev, "%s Offset:%x\n",
-> -                     __func__, *cropped_offset);
-> +                     __func__, vout->cropped_offset);
-> +
->       return 0;
->  }
->
-> @@ -561,8 +367,11 @@ int omapvid_setup_overlay(struct omap_vout_device
-> *vout,
->  {
->       int ret = 0;
->       struct omap_overlay_info info;
-> +     struct omapvideo_info *ovid;
->       int cropheight, cropwidth, pixheight, pixwidth;
->
-> +     ovid = &vout->vid_info;
-> +
-[Hiremath, Vaibhav] Why do you need this?
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Cc: Vishwanath BS <vishwanath.bs@ti.com>
+---
+Applies on top of Nishant's latest idle path errata fixes step 2,
+cf. http://marc.info/?l=linux-omap&m=129139584919242&w=2
 
-Thanks,
-Vaibhav
+ arch/arm/mach-omap2/control.h   |    2 +
+ arch/arm/mach-omap2/pm.h        |    1 -
+ arch/arm/mach-omap2/pm34xx.c    |    4 +-
+ arch/arm/mach-omap2/sleep34xx.S |  522 +++++++++++++++++++++------------------
+ 4 files changed, 288 insertions(+), 241 deletions(-)
 
->       if ((ovl->caps & OMAP_DSS_OVL_CAP_SCALE) == 0 &&
->                       (outw != vout->pix.width || outh != vout->pix.height)) {
->               ret = -EINVAL;
-> @@ -845,6 +654,7 @@ static int omap_vout_buffer_setup(struct
-> videobuf_queue *q, unsigned int *count,
->       int startindex = 0, i, j;
->       u32 phy_addr = 0, virt_addr = 0;
->       struct omap_vout_device *vout = q->priv_data;
-> +     struct omapvideo_info *ovid = &vout->vid_info;
->
->       if (!vout)
->               return -EINVAL;
-> @@ -857,13 +667,10 @@ static int omap_vout_buffer_setup(struct
-> videobuf_queue *q, unsigned int *count,
->       if (V4L2_MEMORY_MMAP == vout->memory && *count < startindex)
->               *count = startindex;
->
-> -     if ((rotation_enabled(vout)) && *count > VRFB_NUM_BUFS)
-> -             *count = VRFB_NUM_BUFS;
-> -
-> -     /* If rotation is enabled, allocate memory for VRFB space also */
-> -     if (rotation_enabled(vout))
-> +     if (ovid->rotation_type == VOUT_ROT_VRFB) {
->               if (omap_vout_vrfb_buffer_setup(vout, count, startindex))
->                       return -ENOMEM;
-> +     }
->
->       if (V4L2_MEMORY_MMAP != vout->memory)
->               return 0;
-> @@ -879,8 +686,11 @@ static int omap_vout_buffer_setup(struct
-> videobuf_queue *q, unsigned int *count,
->               virt_addr = omap_vout_alloc_buffer(vout->buffer_size,
->                               &phy_addr);
->               if (!virt_addr) {
-> -                     if (!rotation_enabled(vout))
-> +                     if (ovid->rotation_type == VOUT_ROT_NONE) {
->                               break;
-> +                     } else {
-> +                             if (!rotation_enabled(vout))
-> +                                     break;
->                       /* Free the VRFB buffers if no space for V4L2 buffers */
->                       for (j = i; j < *count; j++) {
->                               omap_vout_free_buffer(
-> @@ -888,6 +698,7 @@ static int omap_vout_buffer_setup(struct
-> videobuf_queue *q, unsigned int *count,
->                                               vout->smsshado_size);
->                               vout->smsshado_virt_addr[j] = 0;
->                               vout->smsshado_phy_addr[j] = 0;
-> +                             }
->                       }
->               }
->               vout->buf_virt_addr[i] = virt_addr;
-> @@ -900,9 +711,9 @@ static int omap_vout_buffer_setup(struct
-> videobuf_queue *q, unsigned int *count,
->
->  /*
->   * Free the V4L2 buffers additionally allocated than default
-> - * number of buffers and free all the VRFB buffers
-> + * number of buffers
->   */
-> -static void omap_vout_free_allbuffers(struct omap_vout_device *vout)
-> +static void omap_vout_free_extra_buffers(struct omap_vout_device *vout)
->  {
->       int num_buffers = 0, i;
->
-> @@ -917,20 +728,6 @@ static void omap_vout_free_allbuffers(struct
-> omap_vout_device *vout)
->               vout->buf_virt_addr[i] = 0;
->               vout->buf_phy_addr[i] = 0;
->       }
-> -     /* Free the VRFB buffers only if they are allocated
-> -      * during reqbufs.  Don't free if init time allocated
-> -      */
-> -     if (!vout->vrfb_static_allocation) {
-> -             for (i = 0; i < VRFB_NUM_BUFS; i++) {
-> -                     if (vout->smsshado_virt_addr[i]) {
-> -                             omap_vout_free_buffer(
-> -                                             vout->smsshado_virt_addr[i],
-> -                                             vout->smsshado_size);
-> -                             vout->smsshado_virt_addr[i] = 0;
-> -                             vout->smsshado_phy_addr[i] = 0;
-> -                     }
-> -             }
-> -     }
->       vout->buffer_allocated = num_buffers;
->  }
->
-> @@ -942,16 +739,11 @@ static void omap_vout_free_allbuffers(struct
-> omap_vout_device *vout)
->   * buffer into VRFB memory space before giving it to the DSS.
->   */
->  static int omap_vout_buffer_prepare(struct videobuf_queue *q,
-> -                         struct videobuf_buffer *vb,
-> -                         enum v4l2_field field)
-> +                     struct videobuf_buffer *vb,
-> +                     enum v4l2_field field)
->  {
-> -     dma_addr_t dmabuf;
-> -     struct vid_vrfb_dma *tx;
-> -     enum dss_rotation rotation;
->       struct omap_vout_device *vout = q->priv_data;
-> -     u32 dest_frame_index = 0, src_element_index = 0;
-> -     u32 dest_element_index = 0, src_frame_index = 0;
-> -     u32 elem_count = 0, frame_count = 0, pixsize = 2;
-> +     struct omapvideo_info *ovid = &vout->vid_info;
->
->       if (VIDEOBUF_NEEDS_INIT == vb->state) {
->               vb->width = vout->pix.width;
-> @@ -973,63 +765,10 @@ static int omap_vout_buffer_prepare(struct
-> videobuf_queue *q,
->               vout->queued_buf_addr[vb->i] = (u8 *)vout->buf_phy_addr[vb-
-> >i];
->       }
->
-> -     if (!rotation_enabled(vout))
-> +     if (ovid->rotation_type == VOUT_ROT_VRFB)
-> +             return omap_vout_prepare_vrfb(vout, vb);
-> +     else
->               return 0;
-> -
-> -     dmabuf = vout->buf_phy_addr[vb->i];
-> -     /* If rotation is enabled, copy input buffer into VRFB
-> -      * memory space using DMA. We are copying input buffer
-> -      * into VRFB memory space of desired angle and DSS will
-> -      * read image VRFB memory for 0 degree angle
-> -      */
-> -     pixsize = vout->bpp * vout->vrfb_bpp;
-> -     /*
-> -      * DMA transfer in double index mode
-> -      */
-> -
-> -     /* Frame index */
-> -     dest_frame_index = ((MAX_PIXELS_PER_LINE * pixsize) -
-> -                     (vout->pix.width * vout->bpp)) + 1;
-> -
-> -     /* Source and destination parameters */
-> -     src_element_index = 0;
-> -     src_frame_index = 0;
-> -     dest_element_index = 1;
-> -     /* Number of elements per frame */
-> -     elem_count = vout->pix.width * vout->bpp;
-> -     frame_count = vout->pix.height;
-> -     tx = &vout->vrfb_dma_tx;
-> -     tx->tx_status = 0;
-> -     omap_set_dma_transfer_params(tx->dma_ch, OMAP_DMA_DATA_TYPE_S32,
-> -                     (elem_count / 4), frame_count, OMAP_DMA_SYNC_ELEMENT,
-> -                     tx->dev_id, 0x0);
-> -     /* src_port required only for OMAP1 */
-> -     omap_set_dma_src_params(tx->dma_ch, 0, OMAP_DMA_AMODE_POST_INC,
-> -                     dmabuf, src_element_index, src_frame_index);
-> -     /*set dma source burst mode for VRFB */
-> -     omap_set_dma_src_burst_mode(tx->dma_ch, OMAP_DMA_DATA_BURST_16);
-> -     rotation = calc_rotation(vout);
-> -
-> -     /* dest_port required only for OMAP1 */
-> -     omap_set_dma_dest_params(tx->dma_ch, 0, OMAP_DMA_AMODE_DOUBLE_IDX,
-> -                     vout->vrfb_context[vb->i].paddr[0], dest_element_index,
-> -                     dest_frame_index);
-> -     /*set dma dest burst mode for VRFB */
-> -     omap_set_dma_dest_burst_mode(tx->dma_ch, OMAP_DMA_DATA_BURST_16);
-> -     omap_dma_set_global_params(DMA_DEFAULT_ARB_RATE, 0x20, 0);
-> -
-> -     omap_start_dma(tx->dma_ch);
-> -     interruptible_sleep_on_timeout(&tx->wait, VRFB_TX_TIMEOUT);
-> -
-> -     if (tx->tx_status == 0) {
-> -             omap_stop_dma(tx->dma_ch);
-> -             return -EINVAL;
-> -     }
-> -     /* Store buffers physical address into an array. Addresses
-> -      * from this array will be used to configure DSS */
-> -     vout->queued_buf_addr[vb->i] = (u8 *)
-> -             vout->vrfb_context[vb->i].paddr[rotation];
-> -     return 0;
->  }
->
->  /*
-> @@ -1173,7 +912,9 @@ static int omap_vout_release(struct file *file)
->                               "Unable to apply changes\n");
->
->       /* Free all buffers */
-> -     omap_vout_free_allbuffers(vout);
-> +     omap_vout_free_extra_buffers(vout);
-> +     if (ovid->rotation_type == VOUT_ROT_VRFB)
-> +             omap_vout_free_extra_vrfb_buffers(vout);
->       videobuf_mmap_free(q);
->
->       /* Even if apply changes fails we should continue
-> @@ -1600,9 +1341,17 @@ static int vidioc_s_ctrl(struct file *file, void
-> *fh, struct v4l2_control *a)
->       switch (a->id) {
->       case V4L2_CID_ROTATE:
->       {
-> +             struct omapvideo_info *ovid;
->               int rotation = a->value;
->
-> +             ovid = &vout->vid_info;
-> +
->               mutex_lock(&vout->lock);
-> +             if (rotation && ovid->rotation_type == VOUT_ROT_NONE) {
-> +                     mutex_unlock(&vout->lock);
-> +                     ret = -ERANGE;
-> +                     break;
-> +             }
->
->               if (rotation && vout->pix.pixelformat == V4L2_PIX_FMT_RGB24) {
->                       mutex_unlock(&vout->lock);
-> @@ -1658,6 +1407,11 @@ static int vidioc_s_ctrl(struct file *file, void
-> *fh, struct v4l2_control *a)
->               ovl = ovid->overlays[0];
->
->               mutex_lock(&vout->lock);
-> +             if (mirror && ovid->rotation_type == VOUT_ROT_NONE) {
-> +                     mutex_unlock(&vout->lock);
-> +                     ret = -ERANGE;
-> +                     break;
-> +             }
->
->               if (mirror  && vout->pix.pixelformat == V4L2_PIX_FMT_RGB24) {
->                       mutex_unlock(&vout->lock);
-> @@ -2103,7 +1857,8 @@ static int __init omap_vout_setup_video_data(struct
-> omap_vout_device *vout)
->       vout->mirror = 0;
->       vout->control[2].id = V4L2_CID_HFLIP;
->       vout->control[2].value = 0;
-> -     vout->vrfb_bpp = 2;
-> +     if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
-> +             vout->vrfb_bpp = 2;
->
->       control[1].id = V4L2_CID_BG_COLOR;
->       control[1].value = 0;
-> @@ -2136,17 +1891,15 @@ static int __init
-> omap_vout_setup_video_bufs(struct platform_device *pdev,
->               int vid_num)
->  {
->       u32 numbuffers;
-> -     int ret = 0, i, j;
-> -     int image_width, image_height;
-> -     struct video_device *vfd;
-> +     int ret = 0, i;
-> +     struct omapvideo_info *ovid;
->       struct omap_vout_device *vout;
-> -     int static_vrfb_allocation = 0, vrfb_num_bufs = VRFB_NUM_BUFS;
->       struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
->       struct omap2video_device *vid_dev =
->               container_of(v4l2_dev, struct omap2video_device, v4l2_dev);
->
->       vout = vid_dev->vouts[vid_num];
-> -     vfd = vout->vfd;
-> +     ovid = &vout->vid_info;
->
->       numbuffers = (vid_num == 0) ? video1_numbuffers : video2_numbuffers;
->       vout->buffer_size = (vid_num == 0) ? video1_bufsize :
-> video2_bufsize;
-> @@ -2163,66 +1916,16 @@ static int __init
-> omap_vout_setup_video_bufs(struct platform_device *pdev,
->               }
->       }
->
-> -     for (i = 0; i < VRFB_NUM_BUFS; i++) {
-> -             if (omap_vrfb_request_ctx(&vout->vrfb_context[i])) {
-> -                     dev_info(&pdev->dev, ": VRFB allocation failed\n");
-> -                     for (j = 0; j < i; j++)
-> -                             omap_vrfb_release_ctx(&vout->vrfb_context[j]);
-> -                     ret = -ENOMEM;
-> -                     goto free_buffers;
-> -             }
-> -     }
->       vout->cropped_offset = 0;
->
-> -     /* Calculate VRFB memory size */
-> -     /* allocate for worst case size */
-> -     image_width = VID_MAX_WIDTH / TILE_SIZE;
-> -     if (VID_MAX_WIDTH % TILE_SIZE)
-> -             image_width++;
-> -
-> -     image_width = image_width * TILE_SIZE;
-> -     image_height = VID_MAX_HEIGHT / TILE_SIZE;
-> -
-> -     if (VID_MAX_HEIGHT % TILE_SIZE)
-> -             image_height++;
-> -
-> -     image_height = image_height * TILE_SIZE;
-> -     vout->smsshado_size = PAGE_ALIGN(image_width * image_height * 2 *
-> 2);
-> -
-> -     /*
-> -      * Request and Initialize DMA, for DMA based VRFB transfer
-> -      */
-> -     vout->vrfb_dma_tx.dev_id = OMAP_DMA_NO_DEVICE;
-> -     vout->vrfb_dma_tx.dma_ch = -1;
-> -     vout->vrfb_dma_tx.req_status = DMA_CHAN_ALLOTED;
-> -     ret = omap_request_dma(vout->vrfb_dma_tx.dev_id, "VRFB DMA TX",
-> -                     omap_vout_vrfb_dma_tx_callback,
-> -                     (void *) &vout->vrfb_dma_tx, &vout->vrfb_dma_tx.dma_ch);
-> -     if (ret < 0) {
-> -             vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
-> -             dev_info(&pdev->dev, ": failed to allocate DMA Channel for"
-> -                             " video%d\n", vfd->minor);
-> -     }
-> -     init_waitqueue_head(&vout->vrfb_dma_tx.wait);
-> -
-> -     /* Allocate VRFB buffers if selected through bootargs */
-> -     static_vrfb_allocation = (vid_num == 0) ?
-> -             vid1_static_vrfb_alloc : vid2_static_vrfb_alloc;
-> -
-> -     /* statically allocated the VRFB buffer is done through
-> -        commands line aruments */
-> -     if (static_vrfb_allocation) {
-> -             if (omap_vout_allocate_vrfb_buffers(vout, &vrfb_num_bufs, -1))
-> {
-> -                     ret =  -ENOMEM;
-> -                     goto release_vrfb_ctx;
-> -             }
-> -             vout->vrfb_static_allocation = 1;
-> +     if (ovid->rotation_type == VOUT_ROT_VRFB) {
-> +             int static_vrfb_allocation = (vid_num == 0) ?
-> +                     vid1_static_vrfb_alloc : vid2_static_vrfb_alloc;
-> +             ret = omap_vout_setup_vrfb_bufs(pdev, vid_num,
-> +                             static_vrfb_allocation);
->       }
-> -     return 0;
->
-> -release_vrfb_ctx:
-> -     for (j = 0; j < VRFB_NUM_BUFS; j++)
-> -             omap_vrfb_release_ctx(&vout->vrfb_context[j]);
-> +     return ret;
->
->  free_buffers:
->       for (i = 0; i < numbuffers; i++) {
-> @@ -2265,6 +1968,10 @@ static int __init
-> omap_vout_create_video_devices(struct platform_device *pdev)
->               vout->vid_info.num_overlays = 1;
->               vout->vid_info.id = k + 1;
->
-> +             /* Set VRFB as rotation_type for omap2 and omap3 */
-> +             if (cpu_is_omap24xx() || cpu_is_omap34xx())
-> +                     vout->vid_info.rotation_type = VOUT_ROT_VRFB;
-> +
->               /* Setup the default configuration for the video devices
->                */
->               if (omap_vout_setup_video_data(vout) != 0) {
-> @@ -2298,7 +2005,8 @@ static int __init
-> omap_vout_create_video_devices(struct platform_device *pdev)
->                       goto success;
->
->  error2:
-> -             omap_vout_release_vrfb(vout);
-> +             if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
-> +                     omap_vout_release_vrfb(vout);
->               omap_vout_free_buffers(vout);
->  error1:
->               video_device_release(vfd);
-> @@ -2319,11 +2027,13 @@ success:
->  static void omap_vout_cleanup_device(struct omap_vout_device *vout)
->  {
->       struct video_device *vfd;
-> +     struct omapvideo_info *ovid;
->
->       if (!vout)
->               return;
->
->       vfd = vout->vfd;
-> +     ovid = &vout->vid_info;
->       if (vfd) {
->               if (!video_is_registered(vfd)) {
->                       /*
-> @@ -2339,14 +2049,15 @@ static void omap_vout_cleanup_device(struct
-> omap_vout_device *vout)
->                       video_unregister_device(vfd);
->               }
->       }
-> -
-> -     omap_vout_release_vrfb(vout);
-> +     if (ovid->rotation_type == VOUT_ROT_VRFB) {
-> +             omap_vout_release_vrfb(vout);
-> +             /* Free the VRFB buffer if allocated
-> +              * init time
-> +              */
-> +             if (vout->vrfb_static_allocation)
-> +                     omap_vout_free_vrfb_buffers(vout);
-> +     }
->       omap_vout_free_buffers(vout);
-> -     /* Free the VRFB buffer if allocated
-> -      * init time
-> -      */
-> -     if (vout->vrfb_static_allocation)
-> -             omap_vout_free_vrfb_buffers(vout);
->
->       kfree(vout);
->  }
-> diff --git a/drivers/media/video/omap/omap_voutdef.h
-> b/drivers/media/video/omap/omap_voutdef.h
-> index a71f16e..7b1b2b1 100644
-> --- a/drivers/media/video/omap/omap_voutdef.h
-> +++ b/drivers/media/video/omap/omap_voutdef.h
-> @@ -62,6 +62,18 @@ enum dss_rotation {
->       dss_rotation_180_degree = 2,
->       dss_rotation_270_degree = 3,
->  };
-> +
-> +/* Enum for choosing rotation type for vout
-> + * DSS2 doesn't understand no rotation as an
-> + * option while V4L2 driver doesn't support
-> + * rotation in the case where VRFB is not built in
-> + * the kernel
-> + */
-> +enum vout_rotaion_type {
-> +     VOUT_ROT_NONE   = 0,
-> +     VOUT_ROT_VRFB   = 1,
-> +};
-> +
->  /*
->   * This structure is used to store the DMA transfer parameters
->   * for VRFB hidden buffer
-> @@ -78,6 +90,7 @@ struct omapvideo_info {
->       int id;
->       int num_overlays;
->       struct omap_overlay *overlays[MAX_OVLS];
-> +     enum vout_rotaion_type rotation_type;
->  };
->
->  struct omap2video_device {
-> --
-> 1.7.0.4
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index d7911c5..72efefb 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -274,6 +274,8 @@
+ #define OMAP343X_SCRATCHPAD_ROM		(OMAP343X_CTRL_BASE + 0x860)
+ #define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
+ #define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
++#define OMAP343X_SCRATCHPAD_REGADDR(reg)	OMAP2_L4_IO_ADDRESS(\
++						OMAP343X_SCRATCHPAD + reg)
+ 
+ /* AM35XX_CONTROL_IPSS_CLK_CTRL bits */
+ #define AM35XX_USBOTG_VBUSP_CLK_SHIFT   0
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index aff39d0..e458b2a 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -80,7 +80,6 @@ extern void save_secure_ram_context(u32 *addr);
+ extern void omap3_save_scratchpad_contents(void);
+ 
+ extern unsigned int omap24xx_idle_loop_suspend_sz;
+-extern unsigned int omap34xx_suspend_sz;
+ extern unsigned int save_secure_ram_context_sz;
+ extern unsigned int omap24xx_cpu_suspend_sz;
+ extern unsigned int omap34xx_cpu_suspend_sz;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index a37d53d..c93b872 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -135,7 +135,7 @@ static void omap3_core_save_context(void)
+ 
+ 	/*
+ 	 * Force write last pad into memory, as this can fail in some
+-	 * cases according to erratas 1.157, 1.185
++	 * cases according to errata 1.157 & 1.185
+ 	 */
+ 	omap_ctrl_writel(omap_ctrl_readl(OMAP343X_PADCONF_ETK_D14),
+ 		OMAP343X_CONTROL_MEM_WKUP + 0x2a0);
+@@ -432,7 +432,7 @@ void omap_sram_idle(void)
+ 	/*
+ 	* On EMU/HS devices ROM code restores a SRDC value
+ 	* from scratchpad which has automatic self refresh on timeout
+-	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
++	* of AUTO_CNT = 1 enabled. This takes care of erratum ID i443.
+ 	* Hence store/restore the SDRC_POWER register here.
+ 	*/
+ 	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index d2eda01..96a4864 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -33,24 +33,27 @@
+ #include "sdrc.h"
+ #include "control.h"
+ 
+-#define SDRC_SCRATCHPAD_SEM_V	0xfa00291c
+-
+-#define PM_PREPWSTST_CORE_V	OMAP34XX_PRM_REGADDR(CORE_MOD, \
+-				OMAP3430_PM_PREPWSTST)
+-#define PM_PREPWSTST_CORE_P	0x48306AE8
+-#define PM_PREPWSTST_MPU_V	OMAP34XX_PRM_REGADDR(MPU_MOD, \
+-				OMAP3430_PM_PREPWSTST)
++/*
++ * Registers access definitions
++ */
++#define SDRC_SCRATCHPAD_SEM_OFFS	0xc
++#define SDRC_SCRATCHPAD_SEM_V	OMAP343X_SCRATCHPAD_REGADDR\
++					(SDRC_SCRATCHPAD_SEM_OFFS)
++#define PM_PREPWSTST_CORE_P	OMAP3430_PRM_BASE + CORE_MOD +\
++					OMAP3430_PM_PREPWSTST
+ #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + OMAP2_PM_PWSTCTRL
+ #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
+ #define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
+ #define SRAM_BASE_P		0x40200000
+-#define CONTROL_STAT		0x480022F0
+-#define CONTROL_MEM_RTA_CTRL	(OMAP343X_CTRL_BASE\
+-					+ OMAP36XX_CONTROL_MEM_RTA_CTRL)
+-#define SCRATCHPAD_MEM_OFFS	0x310 /* Move this as correct place is
+-				       * available */
+-#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE + OMAP343X_CONTROL_MEM_WKUP\
+-						+ SCRATCHPAD_MEM_OFFS)
++#define CONTROL_STAT		OMAP343X_CTRL_BASE + OMAP343X_CONTROL_STATUS
++#define CONTROL_MEM_RTA_CTRL	(OMAP343X_CTRL_BASE +\
++					OMAP36XX_CONTROL_MEM_RTA_CTRL)
++
++/* Move this as correct place is available */
++#define SCRATCHPAD_MEM_OFFS	0x310
++#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE +\
++					OMAP343X_CONTROL_MEM_WKUP +\
++					SCRATCHPAD_MEM_OFFS)
+ #define SDRC_POWER_V		OMAP34XX_SDRC_REGADDR(SDRC_POWER)
+ #define SDRC_SYSCONFIG_P	(OMAP343X_SDRC_BASE + SDRC_SYSCONFIG)
+ #define SDRC_MR_0_P		(OMAP343X_SDRC_BASE + SDRC_MR_0)
+@@ -62,6 +65,10 @@
+ #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+ #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
+ 
++
++/*
++ * API functions
++ */
+         .text
+ /* Function to acquire the semaphore in scratchpad */
+ ENTRY(lock_scratchpad_sem)
+@@ -113,7 +120,7 @@ ENTRY(get_omap3630_restore_pointer_sz)
+ 	.text
+ /*
+  * L2 cache needs to be toggled for stable OFF mode functionality on 3630.
+- * This function sets up a fflag that will allow for this toggling to take
++ * This function sets up a flag that will allow for this toggling to take
+  * place on 3630. Hopefully some version in the future maynot need this
+  */
+ ENTRY(enable_omap3630_toggle_l2_on_restore)
+@@ -132,49 +139,6 @@ ENTRY(get_es3_restore_pointer)
+ ENTRY(get_es3_restore_pointer_sz)
+ 	.word	. - get_es3_restore_pointer
+ 
+-ENTRY(es3_sdrc_fix)
+-	ldr	r4, sdrc_syscfg		@ get config addr
+-	ldr	r5, [r4]		@ get value
+-	tst	r5, #0x100		@ is part access blocked
+-	it	eq
+-	biceq	r5, r5, #0x100		@ clear bit if set
+-	str	r5, [r4]		@ write back change
+-	ldr	r4, sdrc_mr_0		@ get config addr
+-	ldr	r5, [r4]		@ get value
+-	str	r5, [r4]		@ write back change
+-	ldr	r4, sdrc_emr2_0		@ get config addr
+-	ldr	r5, [r4]		@ get value
+-	str	r5, [r4]		@ write back change
+-	ldr	r4, sdrc_manual_0	@ get config addr
+-	mov	r5, #0x2		@ autorefresh command
+-	str	r5, [r4]		@ kick off refreshes
+-	ldr	r4, sdrc_mr_1		@ get config addr
+-	ldr	r5, [r4]		@ get value
+-	str	r5, [r4]		@ write back change
+-	ldr	r4, sdrc_emr2_1		@ get config addr
+-	ldr	r5, [r4]		@ get value
+-	str	r5, [r4]		@ write back change
+-	ldr	r4, sdrc_manual_1	@ get config addr
+-	mov	r5, #0x2		@ autorefresh command
+-	str	r5, [r4]		@ kick off refreshes
+-	bx	lr
+-sdrc_syscfg:
+-	.word	SDRC_SYSCONFIG_P
+-sdrc_mr_0:
+-	.word	SDRC_MR_0_P
+-sdrc_emr2_0:
+-	.word	SDRC_EMR2_0_P
+-sdrc_manual_0:
+-	.word	SDRC_MANUAL_0_P
+-sdrc_mr_1:
+-	.word	SDRC_MR_1_P
+-sdrc_emr2_1:
+-	.word	SDRC_EMR2_1_P
+-sdrc_manual_1:
+-	.word	SDRC_MANUAL_1_P
+-ENTRY(es3_sdrc_fix_sz)
+-	.word	. - es3_sdrc_fix
+-
+ /* Function to call rom code to save secure ram context */
+ ENTRY(save_secure_ram_context)
+ 	stmfd	sp!, {r1-r12, lr}	@ save registers on stack
+@@ -208,36 +172,153 @@ api_params:
+ ENTRY(save_secure_ram_context_sz)
+ 	.word	. - save_secure_ram_context
+ 
++
++/* ======================
++ * == Idle entry point ==
++ * ======================
++ */
++
+ /*
+  * Forces OMAP into idle state
+  *
+- * omap34xx_suspend() - This bit of code just executes the WFI
+- * for normal idles.
++ * omap34xx_suspend() - This bit of code saves the CPU context if needed
++ * and executes the WFI instruction
++ *
++ * Note: This code get's copied to internal SRAM at boot.
+  *
+- * Note: This code get's copied to internal SRAM at boot. When the OMAP
+- *	 wakes up it continues execution at the point it went to sleep.
++ * Note: When the OMAP wakes up it continues at different execution points,
++ *  depending on the low power mode (non-OFF vs OFF modes),
++ *  cf. 'Resume path for xxx mode' comments.
+  */
+ ENTRY(omap34xx_cpu_suspend)
+ 	stmfd	sp!, {r0-r12, lr}		@ save registers on stack
+ loop:
+ 	/*b	loop*/	@Enable to debug by stepping through code
++
+ 	/* r0 contains restore pointer in sdram */
+-	/* r1 contains information about saving context */
+-	ldr     r4, sdrc_power          @ read the SDRC_POWER register
+-	ldr     r5, [r4]                @ read the contents of SDRC_POWER
+-	orr     r5, r5, #0x40           @ enable self refresh on idle req
+-	str     r5, [r4]                @ write back to SDRC_POWER register
++	/* r1 contains information about saving context: */
++	/*   1 - Only L1 and logic lost */
++	/*   2 - Only L2 lost */
++	/*   3 - Both L1 and L2 lost */
+ 
++	/* Save context only if required */
+ 	cmp	r1, #0x0
+-	/* If context save is required, do that and execute wfi */
+-	bne	save_context_wfi
++	beq	omap3_do_wfi
++
++save_context_wfi:
++	/*b	save_context_wfi*/	@ enable to debug save code
++
++	mov	r8, r0			@ Store SDRAM address in r8
++	mrc	p15, 0, r5, c1, c0, 1	@ Read Auxiliary Control Register
++	mov	r4, #0x1		@ Number of parameters for restore call
++	stmia	r8!, {r4-r5}		@ Push parameters for restore call
++	mrc	p15, 1, r5, c9, c0, 2	@ Read L2 AUX ctrl register
++	stmia	r8!, {r4-r5}		@ Push parameters for restore call
++
++        /* Check what that target sleep state is:stored in r1*/
++        /* 1 - Only L1 and logic lost */
++        /* 2 - Only L2 lost */
++        /* 3 - Both L1 and L2 lost */
++	cmp	r1, #0x2		@ Only L2 lost, no need to save context
++	beq	clean_caches
++
++l1_logic_lost:
++	/* Store sp and spsr to SDRAM */
++	mov	r4, sp
++	mrs	r5, spsr
++	mov	r6, lr
++	stmia	r8!, {r4-r6}
++	/* Save all ARM registers */
++	/* Coprocessor access control register */
++	mrc	p15, 0, r6, c1, c0, 2
++	stmia	r8!, {r6}
++	/* TTBR0, TTBR1 and Translation table base control */
++	mrc	p15, 0, r4, c2, c0, 0
++	mrc	p15, 0, r5, c2, c0, 1
++	mrc	p15, 0, r6, c2, c0, 2
++	stmia	r8!, {r4-r6}
++	/* Domain access control register, data fault status register,
++	and instruction fault status register */
++	mrc	p15, 0, r4, c3, c0, 0
++	mrc	p15, 0, r5, c5, c0, 0
++	mrc	p15, 0, r6, c5, c0, 1
++	stmia	r8!, {r4-r6}
++	/* Data aux fault status register, instruction aux fault status,
++	datat fault address register and instruction fault address register*/
++	mrc	p15, 0, r4, c5, c1, 0
++	mrc	p15, 0, r5, c5, c1, 1
++	mrc	p15, 0, r6, c6, c0, 0
++	mrc	p15, 0, r7, c6, c0, 2
++	stmia	r8!, {r4-r7}
++	/* user r/w thread and process ID, user r/o thread and process ID,
++	priv only thread and process ID, cache size selection */
++	mrc	p15, 0, r4, c13, c0, 2
++	mrc	p15, 0, r5, c13, c0, 3
++	mrc	p15, 0, r6, c13, c0, 4
++	mrc	p15, 2, r7, c0, c0, 0
++	stmia	r8!, {r4-r7}
++	/* Data TLB lockdown, instruction TLB lockdown registers */
++	mrc	p15, 0, r5, c10, c0, 0
++	mrc	p15, 0, r6, c10, c0, 1
++	stmia	r8!, {r5-r6}
++	/* Secure or non secure vector base address, FCSE PID, Context PID*/
++	mrc	p15, 0, r4, c12, c0, 0
++	mrc	p15, 0, r5, c13, c0, 0
++	mrc	p15, 0, r6, c13, c0, 1
++	stmia	r8!, {r4-r6}
++	/* Primary remap, normal remap registers */
++	mrc	p15, 0, r4, c10, c2, 0
++	mrc	p15, 0, r5, c10, c2, 1
++	stmia	r8!,{r4-r5}
++
++	/* Store current cpsr*/
++	mrs	r2, cpsr
++	stmia	r8!, {r2}
++
++	mrc	p15, 0, r4, c1, c0, 0
++	/* save control register */
++	stmia	r8!, {r4}
++
++clean_caches:
++	/* Clean Data or unified cache to POU*/
++	/* How to invalidate only L1 cache???? - #FIX_ME# */
++	/* mcr	p15, 0, r11, c7, c11, 1 */
++	cmp	r1, #0x1 		@ Check whether L2 inval is required
++	beq	omap3_do_wfi
++
++clean_l2:
++	/*
++	 * jump out to kernel flush routine
++	 *  - reuse that code is better
++	 *  - it executes in a cached space so is faster than refetch per-block
++	 *  - should be faster and will change with kernel
++	 *  - 'might' have to copy address, load and jump to it
++	 */
++	ldr r1, kernel_flush
++	mov lr, pc
++	bx  r1
++
++omap3_do_wfi:
++	ldr	r4, sdrc_power		@ read the SDRC_POWER register
++	ldr	r5, [r4]		@ read the contents of SDRC_POWER
++	orr	r5, r5, #0x40		@ enable self refresh on idle req
++	str	r5, [r4]		@ write back to SDRC_POWER register
++
+ 	/* Data memory barrier and Data sync barrier */
+ 	mov	r1, #0
+ 	mcr	p15, 0, r1, c7, c10, 4
+ 	mcr	p15, 0, r1, c7, c10, 5
+ 
++/* ===================================
++ * == WFI instruction => Enter idle ==
++ * ===================================
++ */
+ 	wfi				@ wait for interrupt
+ 
++/* ===================================
++ * == Resume path for non-OFF modes ==
++ * ===================================
++ */
+ 	nop
+ 	nop
+ 	nop
+@@ -250,9 +331,28 @@ loop:
+ 	nop
+ 	bl wait_sdrc_ok
+ 
+-	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
++/* ===================================
++ * == Exit point from non-OFF modes ==
++ * ===================================
++ */
++	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
++
++
++/* ==============================
++ * == Resume path for OFF mode ==
++ * ==============================
++ */
++
++/*
++ * The restore_* functions are executed when back from WFI in OFF mode
++ *
++ *  restore_es3: applies to 34xx >= ES3.0
++ *  restore_3630: applies to 36xx
++ *  restore: common code for 3xxx
++ */
+ restore_es3:
+ 	/*b restore_es3*/		@ Enable to debug restore code
++
+ 	ldr	r5, pm_prepwstst_core_p
+ 	ldr	r4, [r5]
+ 	and	r4, r4, #0x3
+@@ -282,18 +382,20 @@ restore_3630:
+ 	ldr	r1, control_mem_rta
+ 	mov	r2, #OMAP36XX_RTA_DISABLE
+ 	str	r2, [r1]
+-	/* Fall thru for the remaining logic */
++
++	/* Fall thru to common code for the remaining logic */
++
+ restore:
+ 	/* b restore*/  @ Enable to debug restore code
+-        /* Check what was the reason for mpu reset and store the reason in r9*/
+-        /* 1 - Only L1 and logic lost */
+-        /* 2 - Only L2 lost - In this case, we wont be here */
+-        /* 3 - Both L1 and L2 lost */
++	/* Check what was the reason for mpu reset and store the reason in r9*/
++	/* 1 - Only L1 and logic lost */
++	/* 2 - Only L2 lost - In this case, we wont be here */
++	/* 3 - Both L1 and L2 lost */
+ 	ldr     r1, pm_pwstctrl_mpu
+ 	ldr	r2, [r1]
+ 	and     r2, r2, #0x3
+ 	cmp     r2, #0x0	@ Check if target power state was OFF or RET
+-        moveq   r9, #0x3        @ MPU OFF => L1 and L2 lost
++	moveq   r9, #0x3        @ MPU OFF => L1 and L2 lost
+ 	movne	r9, #0x1	@ Only L1 and L2 lost => avoid L2 invalidation
+ 	bne	logic_l1_restore
+ 
+@@ -309,23 +411,23 @@ skipl2dis:
+ 	and	r1, #0x700
+ 	cmp	r1, #0x300
+ 	beq	l2_inv_gp
+-	mov	r0, #40		@ set service ID for PPA
+-	mov	r12, r0		@ copy secure Service ID in r12
+-	mov	r1, #0		@ set task id for ROM code in r1
+-	mov	r2, #4		@ set some flags in r2, r6
++	mov	r0, #40			@ set service ID for PPA
++	mov	r12, r0			@ copy secure Service ID in r12
++	mov	r1, #0			@ set task id for ROM code in r1
++	mov	r2, #4			@ set some flags in r2, r6
+ 	mov	r6, #0xff
+ 	adr	r3, l2_inv_api_params	@ r3 points to dummy parameters
+ 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
+ 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
+ 	.word	0xE1600071		@ call SMI monitor (smi #1)
+ 	/* Write to Aux control register to set some bits */
+-	mov	r0, #42		@ set service ID for PPA
+-	mov	r12, r0		@ copy secure Service ID in r12
+-	mov	r1, #0		@ set task id for ROM code in r1
+-	mov	r2, #4		@ set some flags in r2, r6
++	mov	r0, #42			@ set service ID for PPA
++	mov	r12, r0			@ copy secure Service ID in r12
++	mov	r1, #0			@ set task id for ROM code in r1
++	mov	r2, #4			@ set some flags in r2, r6
+ 	mov	r6, #0xff
+ 	ldr	r4, scratchpad_base
+-	ldr	r3, [r4, #0xBC]	@ r3 points to parameters
++	ldr	r3, [r4, #0xBC]		@ r3 points to parameters
+ 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
+ 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
+ 	.word	0xE1600071		@ call SMI monitor (smi #1)
+@@ -334,41 +436,42 @@ skipl2dis:
+ 	/* Restore L2 aux control register */
+ 	@ set service ID for PPA
+ 	mov	r0, #CONFIG_OMAP3_L2_AUX_SECURE_SERVICE_SET_ID
+-	mov	r12, r0		@ copy service ID in r12
+-	mov	r1, #0		@ set task ID for ROM code in r1
+-	mov	r2, #4		@ set some flags in r2, r6
++	mov	r12, r0			@ copy service ID in r12
++	mov	r1, #0			@ set task ID for ROM code in r1
++	mov	r2, #4			@ set some flags in r2, r6
+ 	mov	r6, #0xff
+ 	ldr	r4, scratchpad_base
+ 	ldr	r3, [r4, #0xBC]
+-	adds	r3, r3, #8	@ r3 points to parameters
++	adds	r3, r3, #8		@ r3 points to parameters
+ 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
+ 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
+ 	.word	0xE1600071		@ call SMI monitor (smi #1)
+ #endif
+ 	b	logic_l1_restore
++
+ l2_inv_api_params:
+ 	.word   0x1, 0x00
+ l2_inv_gp:
+ 	/* Execute smi to invalidate L2 cache */
+-	mov r12, #0x1                         @ set up to invalide L2
++	mov r12, #0x1			@ set up to invalide L2
+ smi:    .word 0xE1600070		@ Call SMI monitor (smieq)
+ 	/* Write to Aux control register to set some bits */
+ 	ldr	r4, scratchpad_base
+ 	ldr	r3, [r4,#0xBC]
+ 	ldr	r0, [r3,#4]
+ 	mov	r12, #0x3
+-	.word 0xE1600070	@ Call SMI monitor (smieq)
++	.word 0xE1600070		@ Call SMI monitor (smieq)
+ 	ldr	r4, scratchpad_base
+ 	ldr	r3, [r4,#0xBC]
+ 	ldr	r0, [r3,#12]
+ 	mov	r12, #0x2
+-	.word 0xE1600070	@ Call SMI monitor (smieq)
++	.word 0xE1600070		@ Call SMI monitor (smieq)
+ logic_l1_restore:
+ 	ldr	r1, l2dis_3630
+-	cmp	r1, #0x1	@ Do we need to re-enable L2 on 3630?
++	cmp	r1, #0x1		@ Do we need to re-enable L2 on 3630?
+ 	bne	skipl2reen
+ 	mrc	p15, 0, r1, c1, c0, 1
+-	orr	r1, r1, #2	@ re-enable L2 cache
++	orr	r1, r1, #2		@ re-enable L2 cache
+ 	mcr	p15, 0, r1, c1, c0, 1
+ skipl2reen:
+ 	mov	r1, #0
+@@ -439,11 +542,11 @@ skipl2reen:
+ 	MCR p15, 0, r5, c10, c2, 1
+ 
+ 	/* Restore cpsr */
+-	ldmia	r3!,{r4}	/*load CPSR from SDRAM*/
+-	msr	cpsr, r4	/*store cpsr */
++	ldmia	r3!,{r4}		@ load CPSR from SDRAM
++	msr	cpsr, r4		@ store cpsr
+ 
+ 	/* Enabling MMU here */
+-	mrc	p15, 0, r7, c2, c0, 2 /* Read TTBRControl */
++	mrc	p15, 0, r7, c2, c0, 2 	@ Read TTBRControl
+ 	/* Extract N (0:2) bits and decide whether to use TTBR0 or TTBR1*/
+ 	and	r7, #0x7
+ 	cmp	r7, #0x0
+@@ -491,119 +594,69 @@ usettbr0:
+ 	and	r4, r2
+ 	mcr	p15, 0, r4, c1, c0, 0
+ 
++/* ==============================
++ * == Exit point from OFF mode ==
++ * ==============================
++ */
+ 	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
+-save_context_wfi:
+-	/*b	save_context_wfi*/	@ enable to debug save code
+-	mov	r8, r0 /* Store SDRAM address in r8 */
+-	mrc	p15, 0, r5, c1, c0, 1	@ Read Auxiliary Control Register
+-	mov	r4, #0x1		@ Number of parameters for restore call
+-	stmia	r8!, {r4-r5}		@ Push parameters for restore call
+-	mrc	p15, 1, r5, c9, c0, 2	@ Read L2 AUX ctrl register
+-	stmia	r8!, {r4-r5}		@ Push parameters for restore call
+-        /* Check what that target sleep state is:stored in r1*/
+-        /* 1 - Only L1 and logic lost */
+-        /* 2 - Only L2 lost */
+-        /* 3 - Both L1 and L2 lost */
+-	cmp	r1, #0x2 /* Only L2 lost */
+-	beq	clean_l2
+-	cmp	r1, #0x1 /* L2 retained */
+-	/* r9 stores whether to clean L2 or not*/
+-	moveq	r9, #0x0 /* Dont Clean L2 */
+-	movne	r9, #0x1 /* Clean L2 */
+-l1_logic_lost:
+-	/* Store sp and spsr to SDRAM */
+-	mov	r4, sp
+-	mrs	r5, spsr
+-	mov	r6, lr
+-	stmia	r8!, {r4-r6}
+-	/* Save all ARM registers */
+-	/* Coprocessor access control register */
+-	mrc	p15, 0, r6, c1, c0, 2
+-	stmia	r8!, {r6}
+-	/* TTBR0, TTBR1 and Translation table base control */
+-	mrc	p15, 0, r4, c2, c0, 0
+-	mrc	p15, 0, r5, c2, c0, 1
+-	mrc	p15, 0, r6, c2, c0, 2
+-	stmia	r8!, {r4-r6}
+-	/* Domain access control register, data fault status register,
+-	and instruction fault status register */
+-	mrc	p15, 0, r4, c3, c0, 0
+-	mrc	p15, 0, r5, c5, c0, 0
+-	mrc	p15, 0, r6, c5, c0, 1
+-	stmia	r8!, {r4-r6}
+-	/* Data aux fault status register, instruction aux fault status,
+-	datat fault address register and instruction fault address register*/
+-	mrc	p15, 0, r4, c5, c1, 0
+-	mrc	p15, 0, r5, c5, c1, 1
+-	mrc	p15, 0, r6, c6, c0, 0
+-	mrc	p15, 0, r7, c6, c0, 2
+-	stmia	r8!, {r4-r7}
+-	/* user r/w thread and process ID, user r/o thread and process ID,
+-	priv only thread and process ID, cache size selection */
+-	mrc	p15, 0, r4, c13, c0, 2
+-	mrc	p15, 0, r5, c13, c0, 3
+-	mrc	p15, 0, r6, c13, c0, 4
+-	mrc	p15, 2, r7, c0, c0, 0
+-	stmia	r8!, {r4-r7}
+-	/* Data TLB lockdown, instruction TLB lockdown registers */
+-	mrc	p15, 0, r5, c10, c0, 0
+-	mrc	p15, 0, r6, c10, c0, 1
+-	stmia	r8!, {r5-r6}
+-	/* Secure or non secure vector base address, FCSE PID, Context PID*/
+-	mrc	p15, 0, r4, c12, c0, 0
+-	mrc	p15, 0, r5, c13, c0, 0
+-	mrc	p15, 0, r6, c13, c0, 1
+-	stmia	r8!, {r4-r6}
+-	/* Primary remap, normal remap registers */
+-	mrc	p15, 0, r4, c10, c2, 0
+-	mrc	p15, 0, r5, c10, c2, 1
+-	stmia	r8!,{r4-r5}
+ 
+-	/* Store current cpsr*/
+-	mrs	r2, cpsr
+-	stmia	r8!, {r2}
+-
+-	mrc	p15, 0, r4, c1, c0, 0
+-	/* save control register */
+-	stmia	r8!, {r4}
+-clean_caches:
+-	/* Clean Data or unified cache to POU*/
+-	/* How to invalidate only L1 cache???? - #FIX_ME# */
+-	/* mcr	p15, 0, r11, c7, c11, 1 */
+-	cmp	r9, #1 /* Check whether L2 inval is required or not*/
+-	bne	skip_l2_inval
+-clean_l2:
+-	/*
+-	 * Jump out to kernel flush routine
+-	 *  - reuse that code is better
+-	 *  - it executes in a cached space so is faster than refetch per-block
+-	 *  - should be faster and will change with kernel
+-	 *  - 'might' have to copy address, load and jump to it
+-	 */
+-	ldr r1, kernel_flush
+-	mov lr, pc
+-	bx  r1
++/*
++ * Internal functions, for erratum i443 WA
++ */
+ 
+-skip_l2_inval:
+-	/* Data memory barrier and Data sync barrier */
+-	mov     r1, #0
+-	mcr     p15, 0, r1, c7, c10, 4
+-	mcr     p15, 0, r1, c7, c10, 5
++/* This function implements the Erratum ID i443 WA, applies to 34xx >= ES3.0 */
++ENTRY(es3_sdrc_fix)
++	ldr	r4, sdrc_syscfg		@ get config addr
++	ldr	r5, [r4]		@ get value
++	tst	r5, #0x100		@ is part access blocked
++	it	eq
++	biceq	r5, r5, #0x100		@ clear bit if set
++	str	r5, [r4]		@ write back change
++	ldr	r4, sdrc_mr_0		@ get config addr
++	ldr	r5, [r4]		@ get value
++	str	r5, [r4]		@ write back change
++	ldr	r4, sdrc_emr2_0		@ get config addr
++	ldr	r5, [r4]		@ get value
++	str	r5, [r4]		@ write back change
++	ldr	r4, sdrc_manual_0	@ get config addr
++	mov	r5, #0x2		@ autorefresh command
++	str	r5, [r4]		@ kick off refreshes
++	ldr	r4, sdrc_mr_1		@ get config addr
++	ldr	r5, [r4]		@ get value
++	str	r5, [r4]		@ write back change
++	ldr	r4, sdrc_emr2_1		@ get config addr
++	ldr	r5, [r4]		@ get value
++	str	r5, [r4]		@ write back change
++	ldr	r4, sdrc_manual_1	@ get config addr
++	mov	r5, #0x2		@ autorefresh command
++	str	r5, [r4]		@ kick off refreshes
++	bx	lr
++sdrc_syscfg:
++	.word	SDRC_SYSCONFIG_P
++sdrc_mr_0:
++	.word	SDRC_MR_0_P
++sdrc_emr2_0:
++	.word	SDRC_EMR2_0_P
++sdrc_manual_0:
++	.word	SDRC_MANUAL_0_P
++sdrc_mr_1:
++	.word	SDRC_MR_1_P
++sdrc_emr2_1:
++	.word	SDRC_EMR2_1_P
++sdrc_manual_1:
++	.word	SDRC_MANUAL_1_P
++ENTRY(es3_sdrc_fix_sz)
++	.word	. - es3_sdrc_fix
+ 
+-	wfi                             @ wait for interrupt
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	bl wait_sdrc_ok
+-	/* restore regs and return */
+-	ldmfd   sp!, {r0-r12, pc}
++/*
++ * Internal function, for SDRC state restore
++ * before accessing the SDRAM.
++ *
++ * Only used at return from non-OFF mode. For OFF
++ * mode the ROM code configures the SDRC and
++ * the DPLL before calling the restore code directly
++ * from DDR.
++ */
+ 
+ /* Make sure SDRC accesses are ok */
+ wait_sdrc_ok:
+@@ -615,48 +668,50 @@ wait_dpll3_lock:
+ 	tst	r5, #1
+ 	beq	wait_dpll3_lock
+ 
+-        ldr     r4, cm_idlest1_core
++	ldr	r4, cm_idlest1_core
+ wait_sdrc_ready:
+-        ldr     r5, [r4]
+-        tst     r5, #0x2
+-        bne     wait_sdrc_ready
++	ldr	r5, [r4]
++	tst	r5, #0x2
++	bne	wait_sdrc_ready
+ 	/* allow DLL powerdown upon hw idle req */
+-        ldr     r4, sdrc_power
+-        ldr     r5, [r4]
+-        bic     r5, r5, #0x40
+-        str     r5, [r4]
++	ldr	r4, sdrc_power
++	ldr	r5, [r4]
++	bic	r5, r5, #0x40
++	str	r5, [r4]
++
+ is_dll_in_lock_mode:
++	/* Is dll in lock mode? */
++	ldr	r4, sdrc_dlla_ctrl
++	ldr	r5, [r4]
++	tst	r5, #0x4
++	bxne	lr		@ Return if locked
+ 
+-        /* Is dll in lock mode? */
+-        ldr     r4, sdrc_dlla_ctrl
+-        ldr     r5, [r4]
+-        tst     r5, #0x4
+-        bxne    lr
+-        /* wait till dll locks */
++	/* wait till dll locks */
+ wait_dll_lock_timed:
+ 	ldr	r4, wait_dll_lock_counter
+ 	add	r4, r4, #1
+ 	str	r4, wait_dll_lock_counter
+ 	ldr	r4, sdrc_dlla_status
+-        mov	r6, #8		/* Wait 20uS for lock */
++	mov	r6, #8		@ Wait 20uS for lock
++
+ wait_dll_lock:
+ 	subs	r6, r6, #0x1
+ 	beq	kick_dll
+-        ldr     r5, [r4]
+-        and     r5, r5, #0x4
+-        cmp     r5, #0x4
+-        bne     wait_dll_lock
+-        bx      lr
++	ldr	r5, [r4]
++	and	r5, r5, #0x4
++	cmp	r5, #0x4
++	bne	wait_dll_lock
++	bx	lr		@ Return when locked
+ 
+ 	/* disable/reenable DLL if not locked */
+ kick_dll:
+ 	ldr	r4, sdrc_dlla_ctrl
+ 	ldr	r5, [r4]
+ 	mov	r6, r5
+-	bic	r6, #(1<<3)	/* disable dll */
++	bic	r6, #(1<<3)	@ disable dll
+ 	str	r6, [r4]
+ 	dsb
+-	orr	r6, r6, #(1<<3)	/* enable dll */
++	orr	r6, r6, #(1<<3)	@ enable dll
+ 	str	r6, [r4]
+ 	dsb
+ 	ldr	r4, kick_counter
+@@ -672,12 +727,8 @@ sdrc_dlla_status:
+ 	.word	SDRC_DLLA_STATUS_V
+ sdrc_dlla_ctrl:
+ 	.word	SDRC_DLLA_CTRL_V
+-pm_prepwstst_core:
+-	.word	PM_PREPWSTST_CORE_V
+ pm_prepwstst_core_p:
+ 	.word	PM_PREPWSTST_CORE_P
+-pm_prepwstst_mpu:
+-	.word	PM_PREPWSTST_MPU_V
+ pm_pwstctrl_mpu:
+ 	.word	PM_PWSTCTRL_MPU_P
+ scratchpad_base:
+@@ -686,12 +737,6 @@ sram_base:
+ 	.word	SRAM_BASE_P + 0x8000
+ sdrc_power:
+ 	.word SDRC_POWER_V
+-clk_stabilize_delay:
+-	.word 0x000001FF
+-assoc_mask:
+-	.word	0x3ff
+-numset_mask:
+-	.word	0x7fff
+ ttbrbit_mask:
+ 	.word	0xFFFFC000
+ table_index_mask:
+@@ -713,5 +758,6 @@ kick_counter:
+ 	.word	0
+ wait_dll_lock_counter:
+ 	.word	0
++
+ ENTRY(omap34xx_cpu_suspend_sz)
+ 	.word	. - omap34xx_cpu_suspend
+-- 
+1.7.1
+
