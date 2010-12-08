@@ -1,169 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] omap: Disable omap_read/write functions for omap2+
-Date: Tue, 7 Dec 2010 17:29:34 -0800
-Message-ID: <20101208012933.GI17435@atomide.com>
-References: <20101204213358.32208.4195.stgit@baageli.muru.com>
- <20101204213651.32208.8915.stgit@baageli.muru.com>
+Subject: Re: [PATCH 0/4] Patches to make multi-soc handling in entry-armv.S
+ easier
+Date: Tue, 7 Dec 2010 17:45:48 -0800
+Message-ID: <20101208014548.GJ17435@atomide.com>
+References: <20101204001435.28853.29616.stgit@baageli.muru.com>
+ <alpine.LFD.2.00.1012040040590.10437@xanadu.home>
+ <20101204180541.GH17222@atomide.com>
+ <alpine.LFD.2.00.1012042126350.10437@xanadu.home>
+ <20101205031002.GP17222@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:23127 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756628Ab0LHB3k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 20:29:40 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52672 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932164Ab0LHBpy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 20:45:54 -0500
 Content-Disposition: inline
-In-Reply-To: <20101204213651.32208.8915.stgit@baageli.muru.com>
+In-Reply-To: <20101205031002.GP17222@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [101204 13:27]:
-> These should be now long gone and break multi-omap support for omap1
-> as the cpu_class_is_omap1() won't work until the SOC is detected.
+* Tony Lindgren <tony@atomide.com> [101204 19:00]:
+> * Nicolas Pitre <nico@fluxnic.net> [101204 18:26]:
+> > On Sat, 4 Dec 2010, Tony Lindgren wrote:
+> > 
+> > My only problem with your approach is the global addition of 
+> > asm_irq_base and asm_irq_flags in generic code which might not be useful 
+> > and/or appropriate for all targets.  If you were confining them to some 
+> > OMAP specific file then I wouldn't mind as much.  Looking at the patch I 
+> > see that you had omap_irq_base before.  Why wasn't that sufficient?  
+> > Only omap_irq_flags would be missing.
 > 
-> So just disable and warn for omap2+ in case somebody still attampts
-> to use these.
+> I guess I was thinking this is something that might help others
+> to build more machines into one defconfig. If that's not the case,
+> sure these can be kept omap specific.
+> 
+> After a quick browsing of the entry-macro.S files, looks like
+> there's some similar ifdeffery for get_irqnr_* macros that just might
+> be possible to clear out with asm_irq_base and asm_irq_flags:
+> 
+> arch/arm/mach-davinci/include/mach/entry-macro.S
+> arch/arm/mach-s5p64x0/include/mach/entry-macro.S
+> arch/arm/mach-ixp4xx/include/mach/entry-macro.S
+> arch/arm/mach-h720x/include/mach/entry-macro.S
+> arch/arm/plat-mxc/include/mach/entry-macro.S
+> 
+> Maybe let's wait a while to see if there are other use cases,
+> if not, I'll make them omap specific.
 
-Heh this was totally not working and had several copy paste bugs..
-Instead of including more files, let's just make them dummy inline
-functions.
+OK, no other people interested, will post the omap specific
+versions as a reply to this message.
+
+Regards,
 
 Tony
-
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 7 Dec 2010 16:57:01 -0800
-Subject: [PATCH] omap: Disable omap_read/write functions for omap2+
-
-These should be now long gone and break multi-omap support for omap1
-as the cpu_class_is_omap1() won't work until the SOC is detected.
-So just disable them for omap2+.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
-index 128b549..0e3b907 100644
---- a/arch/arm/plat-omap/include/plat/io.h
-+++ b/arch/arm/plat-omap/include/plat/io.h
-@@ -247,6 +247,8 @@
-  * NOTE: Please use ioremap + __raw_read/write where possible instead of these
-  */
- 
-+#ifdef CONFIG_ARCH_OMAP1
-+
- extern u8 omap_readb(u32 pa);
- extern u16 omap_readw(u32 pa);
- extern u32 omap_readl(u32 pa);
-@@ -254,6 +256,36 @@ extern void omap_writeb(u8 v, u32 pa);
- extern void omap_writew(u16 v, u32 pa);
- extern void omap_writel(u32 v, u32 pa);
- 
-+#else
-+
-+static inline u8 omap_readb(u32 pa)
-+{
-+	return 0;
-+}
-+
-+static inline u16 omap_readw(u32 pa)
-+{
-+	return 0;
-+}
-+
-+static inline u32 omap_readl(u32 pa)
-+{
-+	return 0;
-+}
-+
-+static inline void omap_writeb(u8 v, u32 pa)
-+{
-+}
-+
-+static inline void omap_writew(u16 v, u32 pa)
-+{
-+}
-+
-+static inline void omap_writel(u32 v, u32 pa)
-+{
-+}
-+#endif
-+
- struct omap_sdrc_params;
- 
- extern void omap1_map_common_io(void);
-diff --git a/arch/arm/plat-omap/io.c b/arch/arm/plat-omap/io.c
-index b0078cf..b89182b 100644
---- a/arch/arm/plat-omap/io.c
-+++ b/arch/arm/plat-omap/io.c
-@@ -138,59 +138,45 @@ void omap_iounmap(volatile void __iomem *addr)
- EXPORT_SYMBOL(omap_iounmap);
- 
- /*
-- * NOTE: Please use ioremap + __raw_read/write where possible instead of these
-+ * NOTE: Please use ioremap + __raw_read/write where possible instead of these.
-+ * These are only working for omap1 and will disappear eventually.
-  */
-+#ifdef CONFIG_ARCH_OMAP1
- 
- u8 omap_readb(u32 pa)
- {
--	if (cpu_class_is_omap1())
--		return __raw_readb(OMAP1_IO_ADDRESS(pa));
--	else
--		return __raw_readb(OMAP2_L4_IO_ADDRESS(pa));
-+	return __raw_readb(OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_readb);
- 
- u16 omap_readw(u32 pa)
- {
--	if (cpu_class_is_omap1())
--		return __raw_readw(OMAP1_IO_ADDRESS(pa));
--	else
--		return __raw_readw(OMAP2_L4_IO_ADDRESS(pa));
-+	return __raw_readw(OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_readw);
- 
- u32 omap_readl(u32 pa)
- {
--	if (cpu_class_is_omap1())
--		return __raw_readl(OMAP1_IO_ADDRESS(pa));
--	else
--		return __raw_readl(OMAP2_L4_IO_ADDRESS(pa));
-+	return __raw_readl(OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_readl);
- 
- void omap_writeb(u8 v, u32 pa)
- {
--	if (cpu_class_is_omap1())
--		__raw_writeb(v, OMAP1_IO_ADDRESS(pa));
--	else
--		__raw_writeb(v, OMAP2_L4_IO_ADDRESS(pa));
-+	__raw_writeb(v, OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_writeb);
- 
- void omap_writew(u16 v, u32 pa)
- {
--	if (cpu_class_is_omap1())
--		__raw_writew(v, OMAP1_IO_ADDRESS(pa));
--	else
--		__raw_writew(v, OMAP2_L4_IO_ADDRESS(pa));
-+	__raw_writew(v, OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_writew);
- 
- void omap_writel(u32 v, u32 pa)
- {
--	if (cpu_class_is_omap1())
--		__raw_writel(v, OMAP1_IO_ADDRESS(pa));
--	else
--		__raw_writel(v, OMAP2_L4_IO_ADDRESS(pa));
-+	__raw_writel(v, OMAP1_IO_ADDRESS(pa));
- }
- EXPORT_SYMBOL(omap_writel);
-+
-+#endif
