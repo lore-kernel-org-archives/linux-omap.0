@@ -1,41 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 12/11] omap1: Fix gpio mpuio bank to work for
-	multi-omap for 7xx/15xx/16xx
-Date: Tue, 7 Dec 2010 17:04:35 -0800
-Message-ID: <20101208010434.GH17435@atomide.com>
-References: <1290689318-10191-1-git-send-email-charu@ti.com>
-	<20101201183357.GI17222@atomide.com>
-	<87zkso4hu3.fsf@deeprootsystems.com>
-	<AANLkTinY8FKbVvXD29KpgGnsnKwQziXws+zKLZWn69Hj@mail.gmail.com>
-	<20101204212554.GM17222@atomide.com>
-	<20101207232315.GE17435@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: disable idle early in the suspend sequence
+Date: Tue, 07 Dec 2010 17:11:51 -0800
+Message-ID: <87ipz5hxuw.fsf@deeprootsystems.com>
+References: <1290422697-2300-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20101207232315.GE17435@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: paul@pwsan.com, b-cousson@ti.com, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Kevin Hilman <khilman@deeprootsystems.com>, p-basak2@ti.com, linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:51371 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755595Ab0LHBL5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 20:11:57 -0500
+Received: by pwj3 with SMTP id 3so159139pwj.19
+        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 17:11:57 -0800 (PST)
+In-Reply-To: <1290422697-2300-1-git-send-email-j-pihet@ti.com> (Jean Pihet's
+	message of "Mon, 22 Nov 2010 11:44:57 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [101207 15:13]:
-> 
-> Note that this will cause omap-keypad.c driver to not work on 7xx.
-> However, the right fix there is to move over to gpio-keys instead as
-> suggested by Cory Maccarrone <darkstar6262@gmail.com> and
-> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>.
+Hi Jean,
 
-Updated that to say matrix-keypad instead of gpio-keys as pointed
-out by Janusz.
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-Tony 
+> Some bad interaction between the idle and the suspend paths has been
+> noticed: the idle code is called during the suspend enter and exit
+> sequences. This could cause corruption or lock-up of resources.
+>
+> The solution is to move the call to disable_hlt at the very beginning
+> of the suspend sequence (in omap3_pm_begin instead of omap3_pm_prepare),
+> and the call to enable_hlt at the very end of the suspend sequence
+> (in omap3_pm_end instead of omap3_pm_finish).
+>
+> Tested with RET and OFF on Beagle and OMAP3EVM.
+>
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+
+Can you update this to do similar for OMAP2 and OMAP4?
+
+Thanks,
+
+Kevin
