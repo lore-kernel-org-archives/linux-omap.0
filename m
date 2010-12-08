@@ -1,16 +1,16 @@
 From: Raghuveer Murthy <raghuveer.murthy@ti.com>
-Subject: [PATCH v2] OMAP4: Pandaboard: Add omap_reserve functionality
-Date: Wed,  8 Dec 2010 12:40:47 +0530
-Message-ID: <1291792247-26634-1-git-send-email-raghuveer.murthy@ti.com>
+Subject: [PATCH v2 resend] OMAP4: Pandaboard: Add omap_reserve functionality
+Date: Wed,  8 Dec 2010 13:09:24 +0530
+Message-ID: <1291793964-26769-1-git-send-email-raghuveer.murthy@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38672 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753468Ab0LHHMG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Dec 2010 02:12:06 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:47353 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753550Ab0LHHkb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 02:40:31 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: rmk+kernel@arm.linux.org.uk, linux-arm@lists.arm.linux.org.uk
+Cc: rmk+kernel@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
 
 This patch adds omap_reserve functionality to board-omap4panda.c.
 Helps in the reserving boot time memory in SDRAM, used here for
@@ -20,7 +20,7 @@ This patch is in similar lines to commit id 71ee7dad9b6991, from
 Russell king
 
 Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: linux-arm@lists.arm.linux.org.uk
+Cc: linux-arm-kernel@lists.infradead.org
 Signed-off-by: Raghuveer Murthy <raghuveer.murthy@ti.com>
 ---
  arch/arm/mach-omap2/board-omap4panda.c |    1 +
