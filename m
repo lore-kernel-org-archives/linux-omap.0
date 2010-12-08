@@ -1,92 +1,88 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH v5 0/3] OMAP: Add opp data
-Date: Wed, 8 Dec 2010 17:05:49 -0600
-Message-ID: <AANLkTikAJWABv5hbr1wUipg_Dpe+uqkXNbeoTvhN7sG7@mail.gmail.com>
-References: <1290617647-3604-1-git-send-email-nm@ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH] staging: tidspbridge: remove file handling functions
+ for loader
+Date: Wed, 8 Dec 2010 15:08:02 -0800
+Message-ID: <20101208230802.GA8176@kroah.com>
+References: <1291702146-17866-1-git-send-email-omar.ramirez@ti.com>
+ <20101208222642.GA31802@kroah.com>
+ <AANLkTikcuqWbV1xGhirL65YKRjVW=2JcdYw272a0AJSN@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:39403 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756661Ab0LHXGO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 18:06:14 -0500
-Received: by mail-wy0-f178.google.com with SMTP id 42so1683971wyb.23
-        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 15:06:09 -0800 (PST)
-In-Reply-To: <1290617647-3604-1-git-send-email-nm@ti.com>
+Received: from kroah.org ([198.145.64.141]:47244 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932107Ab0LHXIy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Dec 2010 18:08:54 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTikcuqWbV1xGhirL65YKRjVW=2JcdYw272a0AJSN@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Benoit <b-cousson@ti.com>, Tony <tony@atomide.com>, Kevin <khilman@deeprootsystems.com>, Thomas <thomas.petazzoni@free-electrons.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, Nishanth Menon <nm@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Armando Uribe De Leon <x0095078@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Ernesto Ramos Falcon <ernesto@ti.com>, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, Rene Sapiens <rene.sapiens@ti.com>
 
-SGksCk9uIFdlZCwgTm92IDI0LCAyMDEwIGF0IDEwOjU0LCBOaXNoYW50aCBNZW5vbiA8bm1AdGku
-Y29tPiB3cm90ZToKPiBNYWpvciBjaGFuZ2VzIGluIFY1Ogo+IKAgoCCgIKByZWJhc2VkIHRvIGsu
-b3JnIDIuNi4zNy1yYzMKPiCgIKAgoCCgaW50cm9kdWNlZCBvbWFwX29wcF9kYXRhLmgKPiCgIKAg
-oCCgY291cGxlIG9mIHdoaXRlc3BhY2UgYW5kIG9mZmxpbmUgbGljZW5zZSBzdWdnZXN0aW9uIGNs
-ZWFudXBzCj4KPiBWNDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJm09MTI4OTkzMzY3
-MTEyNjM3Jnc9Mgo+IFYzOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LW9tYXAmbT0xMjg5ODQ5
-MjY4MTI4MDAmdz0yCj4gVjI6IGh0dHA6Ly9tYXJjLmluZm8vP3Q9MTI4NzUzNjY1MzAwMDAzJnI9
-MSZ3PTIKPgo+IEtldmluIEhpbG1hbiAoMSk6Cj4goE9NQVAzOiByZW1vdmUgT1BQIGludGVyZmFj
-ZXMgZnJvbSBPTUFQIFBNIGxheWVyCj4KPiBOaXNoYW50aCBNZW5vbiAoMik6Cj4goG9tYXA6IG9w
-cDogYWRkIE9NQVAzIE9QUCB0YWJsZSBkYXRhIGFuZCBjb21tb24gaW5pdAo+IKBvbWFwNDogb3Bw
-OiBhZGQgT1BQIHRhYmxlIGRhdGEKPgo+IKBEb2N1bWVudGF0aW9uL2FybS9PTUFQL29tYXBfcG0g
-oCCgIKAgoCCgIKB8IKAgMjUgKysrKysrKwo+IKBhcmNoL2FybS9tYWNoLW9tYXAyL0tjb25maWcg
-oCCgIKAgoCCgIKAgoCB8IKAgoDQgKwo+IKBhcmNoL2FybS9tYWNoLW9tYXAyL01ha2VmaWxlIKAg
-oCCgIKAgoCCgIKB8IKAgoDYgKysKPiCgYXJjaC9hcm0vbWFjaC1vbWFwMi9pby5jIKAgoCCgIKAg
-oCCgIKAgoCCgfCCgIKAzICstCj4goGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9vcHBfZGF0YS5o
-IKAgoCCgIHwgoCA3MiArKysrKysrKysrKysrKysrKysrCj4goGFyY2gvYXJtL21hY2gtb21hcDIv
-b3BwLmMgoCCgIKAgoCCgIKAgoCCgIHwgoCA5MyArKysrKysrKysrKysrKysrKysrKysrKysrCj4g
-oGFyY2gvYXJtL21hY2gtb21hcDIvb3BwM3h4eF9kYXRhLmMgoCCgIKAgoHwgoDEwNyArKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKwo+IKBhcmNoL2FybS9tYWNoLW9tYXAyL29wcDR4eHhfZGF0
-YS5jIKAgoCCgIKB8IKAgNTcgKysrKysrKysrKysrKysrCj4goGFyY2gvYXJtL21hY2gtb21hcDIv
-cG0uaCCgIKAgoCCgIKAgoCCgIKAgoHwgoCAxNCArKysrCj4goGFyY2gvYXJtL3BsYXQtb21hcC9p
-bmNsdWRlL3BsYXQvb21hcC1wbS5oIHwgoCAzMSArKystLS0tLS0KPiCgYXJjaC9hcm0vcGxhdC1v
-bWFwL29tYXAtcG0tbm9vcC5jIKAgoCCgIKAgfCCgIDExICstLS0KPiCgMTEgZmlsZXMgY2hhbmdl
-ZCwgMzkwIGluc2VydGlvbnMoKyksIDMzIGRlbGV0aW9ucygtKQo+IKBjcmVhdGUgbW9kZSAxMDA2
-NDQgYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX29wcF9kYXRhLmgKPiCgY3JlYXRlIG1vZGUgMTAw
-NjQ0IGFyY2gvYXJtL21hY2gtb21hcDIvb3BwLmMKPiCgY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gv
-YXJtL21hY2gtb21hcDIvb3BwM3h4eF9kYXRhLmMKPiCgY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gv
-YXJtL21hY2gtb21hcDIvb3BwNHh4eF9kYXRhLmMKPgo+IEJsb2F0LW8tbWV0ZXIgcmVwb3J0IGZv
-ciBvbWFwMnBsdXNfZGVmY29uZmlnIFZzIDIuNi4zNy1yYzM6Cj4gYWRkL3JlbW92ZTogMjIvMyBn
-cm93L3NocmluazogNC8zIHVwL2Rvd246IDMxNDkvLTY0ICgzMDg1KQo+IGZ1bmN0aW9uIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIG9sZCCgIKAgbmV3IKAgZGVsdGEKPiBvcHBf
-YWRkIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoC0goCCgIDU2OCCgIKAr
-NTY4Cj4gb3BwX3NldF9hdmFpbGFiaWxpdHkgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAtIKAg
-oCA1MjAgoCCgKzUyMAo+IG9tYXBfaW5pdF9vcHBfdGFibGUgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgLSCgIKAgMzI4IKAgoCszMjgKPiBvbWFwMzR4eF9vcHBfZGVmX2xpc3QgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoC0goCCgIDIwOCCgIKArMjA4Cj4gc3RhdGljLl9fZnVuY19fIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoDEzNzgzIKAgMTM5NTQgoCCgKzE3MQo+IG9wcF9maW5kX2Zy
-ZXFfZmxvb3IgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgLSCgIKAgMTY0IKAgoCsxNjQKPiBv
-bWFwMzZ4eF9vcHBfZGVmX2xpc3QgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoC0goCCgIDE2MCCg
-IKArMTYwCj4gb3BwX2ZpbmRfZnJlcV9jZWlsIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAt
-IKAgoCAxNDQgoCCgKzE0NAo+IG9wcF9maW5kX2ZyZXFfZXhhY3QgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgLSCgIKAgMTI4IKAgoCsxMjgKPiBmaW5kX2RldmljZV9vcHAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoC0goCCgIDEyNCCgIKArMTI0Cj4gb3BwX2dldF9vcHBfY291bnQg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAtIKAgoCAxMjAgoCCgKzEyMAo+IG9tYXA0NHh4
-X29wcF9kZWZfbGlzdCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgLSCgIKAgoDk2IKAgoCArOTYK
-PiBvcHBfZ2V0X3ZvbHRhZ2UgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoC0goCCgIKA3
-NiCgIKAgKzc2Cj4gb3BwX2dldF9mcmVxIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCAtIKAgoCCgNzYgoCCgICs3Ngo+IG9tYXAzX29wcF9pbml0IKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgLSCgIKAgoDc2IKAgoCArNzYKPiBkZXZfb3BwX2xpc3RfbG9jayCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoC0goCCgIKA3MiCgIKAgKzcyCj4gb21hcDRfb3BwX2luaXQg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAtIKAgoCCgNDggoCCgICs0OAo+IHZlcm1h
-Z2ljIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKA0NSCgIKAgoDYwIKAgoCAr
-MTUKPiBsaW51eF9iYW5uZXIgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAxMzMgoCCg
-IDE0OCCgIKAgKzE1Cj4gb3BwX2VuYWJsZSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCAtIKAgoCCgIDggoCCgIKArOAo+IG9wcF9kaXNhYmxlIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgLSCgIKAgoCA4IKAgoCCgKzgKPiBkZXZfb3BwX2xpc3QgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIC0goCCgIKAgOCCgIKAgoCs4Cj4ga2VybmVsX2NvbmZp
-Z19kYXRhIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDEzODk5IKAgMTM5MDYgoCCgIKArNwo+IF9f
-aW5pdGNhbGxfb21hcDRfb3BwX2luaXQ2IKAgoCCgIKAgoCCgIKAgoCCgIKAgLSCgIKAgoCA0IKAg
-oCCgKzQKPiBfX2luaXRjYWxsX29tYXAzX29wcF9pbml0NiCgIKAgoCCgIKAgoCCgIKAgoCCgIC0g
-oCCgIKAgNCCgIKAgoCs0Cj4gb21hcF90YWJsZV9pbml0IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAtIKAgoCCgIDEgoCCgIKArMQo+IG9tYXBfcG1fY3B1X3NldF9mcmVxIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAyOCCgIKAgoDI0IKAgoCCgLTQKPiBtcHVfb3BwcyCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDQgoCCgIKAgLSCgIKAgoC00Cj4gbDNfb3BwcyCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKA0IKAgoCCgIC0goCCgIKAtNAo+
-IGRzcF9vcHBzIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgNCCgIKAgoCAt
-IKAgoCCgLTQKPiBvbWFwX3BtX2lmX2Vhcmx5X2luaXQgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-MjAgoCCgIKAgOCCgIKAgLTEyCj4gb21hcDJfaW5pdF9jb21tb25faHcgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgNDY0IKAgoCA0MjggoCCgIC0zNgo+Cj4goFJlZ2FyZHMsCj4goE5pc2hhbnRoIE1l
-bm9uCkdlbnRsZSBwaW5nIG9uIHRoaXMgc2VyaWVzLi4KClJlZ2FyZHMsCk5pc2hhbnRoIE1lbm9u
-Cg==
+On Wed, Dec 08, 2010 at 05:02:20PM -0600, Ramirez Luna, Omar wrote:
+> Hi,
+>=20
+> On Wed, Dec 8, 2010 at 4:26 PM, Greg KH <greg@kroah.com> wrote:
+> > On Tue, Dec 07, 2010 at 12:09:06AM -0600, Omar Ramirez Luna wrote:
+> >> Instead use request_firmware and friends to get a valid firmware
+> >> image.
+> >>
+> >> Right now the image is supplied dynamically through udev and the
+> >> following rule:
+> >>
+> >> KERNEL=3D=3D"omap-dsp", SUBSYSTEM=3D=3D"firmware", ACTION=3D=3D"ad=
+d", =A0 =A0 \
+> >> =A0 =A0 =A0 RUN+=3D"/bin/sh -c 'echo 1 > /sys/$DEVPATH/loading; =A0=
+ =A0 =A0 \
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 cat $FIRMWARE > /sys/$DEVPATH/data; =A0=
+ =A0 =A0 =A0 =A0 =A0 \
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 echo 0 > /sys/$DEVPATH/loading'"
+> >
+> > Why do you need a custom firmware rule?
+>=20
+> It was meant as an example, when I compiled my minimal file system it
+> didn't supply the firmware.sh script nor created /lib/firmware... I
+> thought that not everybody would have the firmware.sh, so I just
+> provided a sample rule.
+
+So, can I remove this from the changelog comment, as it's not really
+needed at all?
+
+> > =A0Why doesn't the default  firmware loading rule that comes with u=
+dev work properly for you?
+> > What are you needing different here that works properly for all oth=
+er drivers?
+>=20
+> firmware.sh under /lib/udev/ and dsp binaries installed under
+> /lib/firmware/, my rule is the brute version of firmware.sh so nothin=
+g
+> different in the script.
+>=20
+> Probably the only change would be to supply the firmware name only, a=
+s
+> of now the insmod parameter requires the entire path, e.g.:
+>=20
+> insmod bridgedriver.ko base_img=3D/lib/dsp/baseimage.dof
+>=20
+> if using firmware.sh and placing firmware files under /lib/firmware/,=
+ then
+>=20
+> insmod bridgedriver.ko base_img=3Dbaseimage.dof
+
+Ick, why use a module parameter name at all?  Why is this "special" and
+different from all other firmware users?  They don't have to manually
+specify a file name, the driver does that.
+
+Please fix up the patch to not require a module parameter, distros hate
+them, and users hate them even more.
+
+thanks,
+
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
