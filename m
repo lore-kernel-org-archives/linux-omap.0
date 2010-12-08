@@ -1,81 +1,92 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 0/5 v3] OMAP: idle path errata fixes
-Date: Wed, 08 Dec 2010 17:03:58 -0600
-Message-ID: <4D000EDE.2030706@ti.com>
-References: <1291395818-8639-1-git-send-email-nm@ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH v5 0/3] OMAP: Add opp data
+Date: Wed, 8 Dec 2010 17:05:49 -0600
+Message-ID: <AANLkTikAJWABv5hbr1wUipg_Dpe+uqkXNbeoTvhN7sG7@mail.gmail.com>
+References: <1290617647-3604-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:54070 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756369Ab0LHXEF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 18:04:05 -0500
-Received: by mail-vw0-f42.google.com with SMTP id 11so1418093vws.29
-        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 15:04:03 -0800 (PST)
-In-Reply-To: <1291395818-8639-1-git-send-email-nm@ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:39403 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756661Ab0LHXGO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 18:06:14 -0500
+Received: by mail-wy0-f178.google.com with SMTP id 42so1683971wyb.23
+        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 15:06:09 -0800 (PST)
+In-Reply-To: <1290617647-3604-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Charulatha Varadarajan <charu@ti.com>, Jean Pihet <jean.pihet@newoldbits.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tao Hu <tghk48@motorola.com>, Tony Lindgren <tony@atomide.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Benoit <b-cousson@ti.com>, Tony <tony@atomide.com>, Kevin <khilman@deeprootsystems.com>, Thomas <thomas.petazzoni@free-electrons.com>
 
-Nishanth Menon had written, on 12/03/2010 11:03 AM, the following:
-> Hi,
-> as discussed in [1], here is step 2 - idle path errata fixes.
-> this is the next rev incorporating comments from V2 post
-> of this series.
-> 
-> V2: http://marc.info/?l=linux-omap&m=129106200408109&w=2
-> 
-> Major change in V3:
-> 	Erratas are now handled per silicon - it is much cleaner :)
-> 	no more redundant cpu_is_omap34xx check anymore
-> 	errata configure is __init as it should be
-> 
-> Eduardo Valentin (1):
->   OMAP3630: PM: Erratum i583: disable coreoff if < ES1.2
-> 
-> Nishanth Menon (1):
->   OMAP3630: PM: Erratum i608: disable RTA
-> 
-> Peter 'p2' De Schrijver (2):
->   OMAP3: PM: Erratum i581 support: dll kick strategy
->   OMAP3630: PM: Disable L2 cache while invalidating L2 cache
-> 
-> Richard Woodruff (1):
->   OMAP3: PM: Update clean_l2 to use v7_flush_dcache_all
-> 
->  arch/arm/mach-omap2/control.c   |    5 +-
->  arch/arm/mach-omap2/control.h   |    5 +
->  arch/arm/mach-omap2/pm.h        |    6 ++
->  arch/arm/mach-omap2/pm34xx.c    |   38 ++++++++
->  arch/arm/mach-omap2/sleep34xx.S |  187 ++++++++++++++++++++++++---------------
->  5 files changed, 169 insertions(+), 72 deletions(-)
-> 
-> bloat-o-meter report Vs 2.6.37-rc4
-> add/remove: 1/0 grow/shrink: 6/2 up/down: 220/-12 (208)
-> function                                     old     new   delta
-> omap3_pm_init                               1776    1868     +92
-> omap_sram_idle                              1040    1104     +64
-> omap3_save_scratchpad_contents               732     760     +28
-> vermagic                                      45      60     +15
-> linux_banner                                 131     146     +15
-> omap2_init_mmc                              1032    1036      +4
-> pm34xx_errata                                  -       2      +2
-> omap_serial_init_port                       1120    1116      -4
-> prcm_interrupt_handler                       276     268      -8
-> 
-> [1] http://marc.info/?l=linux-omap&m=129045338806957&w=2
-> 
-> Cc: Charulatha Varadarajan <charu@ti.com>
-> Cc: Jean Pihet <jean.pihet@newoldbits.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Tao Hu <tghk48@motorola.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
-
-Gentle ping on this series..
-
-Regards,
-Nishanth Menon
+SGksCk9uIFdlZCwgTm92IDI0LCAyMDEwIGF0IDEwOjU0LCBOaXNoYW50aCBNZW5vbiA8bm1AdGku
+Y29tPiB3cm90ZToKPiBNYWpvciBjaGFuZ2VzIGluIFY1Ogo+IKAgoCCgIKByZWJhc2VkIHRvIGsu
+b3JnIDIuNi4zNy1yYzMKPiCgIKAgoCCgaW50cm9kdWNlZCBvbWFwX29wcF9kYXRhLmgKPiCgIKAg
+oCCgY291cGxlIG9mIHdoaXRlc3BhY2UgYW5kIG9mZmxpbmUgbGljZW5zZSBzdWdnZXN0aW9uIGNs
+ZWFudXBzCj4KPiBWNDogaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJm09MTI4OTkzMzY3
+MTEyNjM3Jnc9Mgo+IFYzOiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LW9tYXAmbT0xMjg5ODQ5
+MjY4MTI4MDAmdz0yCj4gVjI6IGh0dHA6Ly9tYXJjLmluZm8vP3Q9MTI4NzUzNjY1MzAwMDAzJnI9
+MSZ3PTIKPgo+IEtldmluIEhpbG1hbiAoMSk6Cj4goE9NQVAzOiByZW1vdmUgT1BQIGludGVyZmFj
+ZXMgZnJvbSBPTUFQIFBNIGxheWVyCj4KPiBOaXNoYW50aCBNZW5vbiAoMik6Cj4goG9tYXA6IG9w
+cDogYWRkIE9NQVAzIE9QUCB0YWJsZSBkYXRhIGFuZCBjb21tb24gaW5pdAo+IKBvbWFwNDogb3Bw
+OiBhZGQgT1BQIHRhYmxlIGRhdGEKPgo+IKBEb2N1bWVudGF0aW9uL2FybS9PTUFQL29tYXBfcG0g
+oCCgIKAgoCCgIKB8IKAgMjUgKysrKysrKwo+IKBhcmNoL2FybS9tYWNoLW9tYXAyL0tjb25maWcg
+oCCgIKAgoCCgIKAgoCB8IKAgoDQgKwo+IKBhcmNoL2FybS9tYWNoLW9tYXAyL01ha2VmaWxlIKAg
+oCCgIKAgoCCgIKB8IKAgoDYgKysKPiCgYXJjaC9hcm0vbWFjaC1vbWFwMi9pby5jIKAgoCCgIKAg
+oCCgIKAgoCCgfCCgIKAzICstCj4goGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9vcHBfZGF0YS5o
+IKAgoCCgIHwgoCA3MiArKysrKysrKysrKysrKysrKysrCj4goGFyY2gvYXJtL21hY2gtb21hcDIv
+b3BwLmMgoCCgIKAgoCCgIKAgoCCgIHwgoCA5MyArKysrKysrKysrKysrKysrKysrKysrKysrCj4g
+oGFyY2gvYXJtL21hY2gtb21hcDIvb3BwM3h4eF9kYXRhLmMgoCCgIKAgoHwgoDEwNyArKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKwo+IKBhcmNoL2FybS9tYWNoLW9tYXAyL29wcDR4eHhfZGF0
+YS5jIKAgoCCgIKB8IKAgNTcgKysrKysrKysrKysrKysrCj4goGFyY2gvYXJtL21hY2gtb21hcDIv
+cG0uaCCgIKAgoCCgIKAgoCCgIKAgoHwgoCAxNCArKysrCj4goGFyY2gvYXJtL3BsYXQtb21hcC9p
+bmNsdWRlL3BsYXQvb21hcC1wbS5oIHwgoCAzMSArKystLS0tLS0KPiCgYXJjaC9hcm0vcGxhdC1v
+bWFwL29tYXAtcG0tbm9vcC5jIKAgoCCgIKAgfCCgIDExICstLS0KPiCgMTEgZmlsZXMgY2hhbmdl
+ZCwgMzkwIGluc2VydGlvbnMoKyksIDMzIGRlbGV0aW9ucygtKQo+IKBjcmVhdGUgbW9kZSAxMDA2
+NDQgYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX29wcF9kYXRhLmgKPiCgY3JlYXRlIG1vZGUgMTAw
+NjQ0IGFyY2gvYXJtL21hY2gtb21hcDIvb3BwLmMKPiCgY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gv
+YXJtL21hY2gtb21hcDIvb3BwM3h4eF9kYXRhLmMKPiCgY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gv
+YXJtL21hY2gtb21hcDIvb3BwNHh4eF9kYXRhLmMKPgo+IEJsb2F0LW8tbWV0ZXIgcmVwb3J0IGZv
+ciBvbWFwMnBsdXNfZGVmY29uZmlnIFZzIDIuNi4zNy1yYzM6Cj4gYWRkL3JlbW92ZTogMjIvMyBn
+cm93L3NocmluazogNC8zIHVwL2Rvd246IDMxNDkvLTY0ICgzMDg1KQo+IGZ1bmN0aW9uIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIG9sZCCgIKAgbmV3IKAgZGVsdGEKPiBvcHBf
+YWRkIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoC0goCCgIDU2OCCgIKAr
+NTY4Cj4gb3BwX3NldF9hdmFpbGFiaWxpdHkgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAtIKAg
+oCA1MjAgoCCgKzUyMAo+IG9tYXBfaW5pdF9vcHBfdGFibGUgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgLSCgIKAgMzI4IKAgoCszMjgKPiBvbWFwMzR4eF9vcHBfZGVmX2xpc3QgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoC0goCCgIDIwOCCgIKArMjA4Cj4gc3RhdGljLl9fZnVuY19fIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoDEzNzgzIKAgMTM5NTQgoCCgKzE3MQo+IG9wcF9maW5kX2Zy
+ZXFfZmxvb3IgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgLSCgIKAgMTY0IKAgoCsxNjQKPiBv
+bWFwMzZ4eF9vcHBfZGVmX2xpc3QgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoC0goCCgIDE2MCCg
+IKArMTYwCj4gb3BwX2ZpbmRfZnJlcV9jZWlsIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAt
+IKAgoCAxNDQgoCCgKzE0NAo+IG9wcF9maW5kX2ZyZXFfZXhhY3QgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgLSCgIKAgMTI4IKAgoCsxMjgKPiBmaW5kX2RldmljZV9vcHAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoC0goCCgIDEyNCCgIKArMTI0Cj4gb3BwX2dldF9vcHBfY291bnQg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAtIKAgoCAxMjAgoCCgKzEyMAo+IG9tYXA0NHh4
+X29wcF9kZWZfbGlzdCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgLSCgIKAgoDk2IKAgoCArOTYK
+PiBvcHBfZ2V0X3ZvbHRhZ2UgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoC0goCCgIKA3
+NiCgIKAgKzc2Cj4gb3BwX2dldF9mcmVxIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCAtIKAgoCCgNzYgoCCgICs3Ngo+IG9tYXAzX29wcF9pbml0IKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgLSCgIKAgoDc2IKAgoCArNzYKPiBkZXZfb3BwX2xpc3RfbG9jayCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoC0goCCgIKA3MiCgIKAgKzcyCj4gb21hcDRfb3BwX2luaXQg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAtIKAgoCCgNDggoCCgICs0OAo+IHZlcm1h
+Z2ljIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKA0NSCgIKAgoDYwIKAgoCAr
+MTUKPiBsaW51eF9iYW5uZXIgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAxMzMgoCCg
+IDE0OCCgIKAgKzE1Cj4gb3BwX2VuYWJsZSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCAtIKAgoCCgIDggoCCgIKArOAo+IG9wcF9kaXNhYmxlIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgLSCgIKAgoCA4IKAgoCCgKzgKPiBkZXZfb3BwX2xpc3QgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIC0goCCgIKAgOCCgIKAgoCs4Cj4ga2VybmVsX2NvbmZp
+Z19kYXRhIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDEzODk5IKAgMTM5MDYgoCCgIKArNwo+IF9f
+aW5pdGNhbGxfb21hcDRfb3BwX2luaXQ2IKAgoCCgIKAgoCCgIKAgoCCgIKAgLSCgIKAgoCA0IKAg
+oCCgKzQKPiBfX2luaXRjYWxsX29tYXAzX29wcF9pbml0NiCgIKAgoCCgIKAgoCCgIKAgoCCgIC0g
+oCCgIKAgNCCgIKAgoCs0Cj4gb21hcF90YWJsZV9pbml0IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAtIKAgoCCgIDEgoCCgIKArMQo+IG9tYXBfcG1fY3B1X3NldF9mcmVxIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAyOCCgIKAgoDI0IKAgoCCgLTQKPiBtcHVfb3BwcyCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDQgoCCgIKAgLSCgIKAgoC00Cj4gbDNfb3BwcyCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKA0IKAgoCCgIC0goCCgIKAtNAo+
+IGRzcF9vcHBzIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgNCCgIKAgoCAt
+IKAgoCCgLTQKPiBvbWFwX3BtX2lmX2Vhcmx5X2luaXQgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+MjAgoCCgIKAgOCCgIKAgLTEyCj4gb21hcDJfaW5pdF9jb21tb25faHcgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgNDY0IKAgoCA0MjggoCCgIC0zNgo+Cj4goFJlZ2FyZHMsCj4goE5pc2hhbnRoIE1l
+bm9uCkdlbnRsZSBwaW5nIG9uIHRoaXMgc2VyaWVzLi4KClJlZ2FyZHMsCk5pc2hhbnRoIE1lbm9u
+Cg==
