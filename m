@@ -1,44 +1,36 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH] staging: tidspbridge: use the right type for list_is_last
-Date: Wed,  8 Dec 2010 16:20:23 -0600
-Message-ID: <1291846823-31513-1-git-send-email-omar.ramirez@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35176 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752042Ab0LHWbR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 17:31:17 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH] staging: tidspbridge: remove file handling functions
+ for loader
+Date: Wed, 8 Dec 2010 14:26:42 -0800
+Message-ID: <20101208222642.GA31802@kroah.com>
+References: <1291702146-17866-1-git-send-email-omar.ramirez@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1291702146-17866-1-git-send-email-omar.ramirez@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, Nishanth Menon <nm@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Armando Uribe De Leon <x0095078@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Ernesto Ramos Falcon <ernesto@ti.com>, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, Rene Sapiens <rene.sapiens@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Rene Sapiens <rene.sapiens@ti.com>, Ernesto Ramos <ernesto@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ionut Nicu <ionut.nicu@gmail.com>
 
-Removes the following warning:
+On Tue, Dec 07, 2010 at 12:09:06AM -0600, Omar Ramirez Luna wrote:
+> Instead use request_firmware and friends to get a valid firmware
+> image.
+> 
+> Right now the image is supplied dynamically through udev and the
+> following rule:
+> 
+> KERNEL=="omap-dsp", SUBSYSTEM=="firmware", ACTION=="add",	\
+> 	RUN+="/bin/sh -c 'echo 1 > /sys/$DEVPATH/loading;	\
+> 		cat $FIRMWARE > /sys/$DEVPATH/data;		\
+> 		echo 0 > /sys/$DEVPATH/loading'"
 
-  CC [M]  drivers/staging/tidspbridge/rmgr/rmm.o
-drivers/staging/tidspbridge/rmgr/rmm.c: In function 'rmm_alloc':
-drivers/staging/tidspbridge/rmgr/rmm.c:147: warning: passing
-	argument 1 of 'list_is_last' from incompatible pointer type
-include/linux/list.h:170: note: expected 'const struct list_head *'
-	but argument is of type 'struct rmm_ovly_sect *'
+Why do you need a custom firmware rule?  Why doesn't the default
+firmware loading rule that comes with udev work properly for you?  What
+are you needing different here that works properly for all other
+drivers?
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- drivers/staging/tidspbridge/rmgr/rmm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+confused,
 
-diff --git a/drivers/staging/tidspbridge/rmgr/rmm.c b/drivers/staging/tidspbridge/rmgr/rmm.c
-index aae8657..5a3f09c 100644
---- a/drivers/staging/tidspbridge/rmgr/rmm.c
-+++ b/drivers/staging/tidspbridge/rmgr/rmm.c
-@@ -144,7 +144,7 @@ int rmm_alloc(struct rmm_target_obj *target, u32 segid, u32 size,
- 			new_sect->addr = addr;
- 			new_sect->size = size;
- 			new_sect->page = segid;
--			if (list_is_last(sect, &target->ovly_list))
-+			if (list_is_last(&sect->list_elem, &target->ovly_list))
- 				/* Put new section at the end of the list */
- 				list_add_tail(&new_sect->list_elem,
- 						&target->ovly_list);
--- 
-1.7.1
-
+greg k-h
