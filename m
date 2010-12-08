@@ -1,62 +1,151 @@
-From: Hema HK <hemahk@ti.com>
-Subject: [PATCH 7/7] arm: OMAP4430: musb: Enable musb device initialization for OMAP4430
-Date: Wed,  8 Dec 2010 14:01:03 +0530
-Message-ID: <1291797063-23754-1-git-send-email-hemahk@ti.com>
+From: jean.pihet@newoldbits.com
+Subject: [PATCH v2] OMAP2+: disable idle early in the suspend sequence
+Date: Wed,  8 Dec 2010 10:09:24 +0100
+Message-ID: <1291799364-23154-1-git-send-email-jean.pihet@newoldbits.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49542 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754377Ab0LHIbJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 03:31:09 -0500
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:63870 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752639Ab0LHJJq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 04:09:46 -0500
+Received: by wwa36 with SMTP id 36so925115wwa.1
+        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 01:09:44 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Hema HK <hemahk@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-musb device registration during board initialization of OMAP4430SDP
-and OMAP4430 PANDA.Enable the musb OTG mode.
+From: Jean Pihet <j-pihet@ti.com>
 
-Signed-off-by: Hema HK <hemahk@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Some bad interaction between the idle and the suspend paths has been
+noticed: the idle code is called during the suspend enter and exit
+sequences. This could cause corruption or lock-up of resources.
+
+The solution is to move the calls to disable_hlt at the very beginning
+of the suspend sequence (ex. in omap3_pm_begin instead of
+omap3_pm_prepare), and the call to enable_hlt at the very end of
+the suspend sequence (ex. in omap3_pm_end instead of omap3_pm_finish).
+
+Tested with RET and OFF on Beagle and OMAP3EVM.
+
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c    |    6 ++----
- arch/arm/mach-omap2/board-omap4panda.c |    2 +-
- 2 files changed, 3 insertions(+), 5 deletions(-)
+v1: support for OMAP3 only.
+ Tested on board.
 
-Index: linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/board-4430sdp.c
-+++ linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
-@@ -227,7 +227,7 @@ static void __init omap_4430sdp_init_irq
+v2: Added support for OMAP2 and OMAP4.
+ Compile tested only for OMAP2 and OMAP4.
+ Tested on board for OMAP3.
+
+ arch/arm/mach-omap2/pm24xx.c |   16 ++++++++++++++--
+ arch/arm/mach-omap2/pm34xx.c |    4 ++--
+ arch/arm/mach-omap2/pm44xx.c |    4 ++--
+ 3 files changed, 18 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index c85923e..3820179 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -286,8 +286,6 @@ out:
  
- static struct omap_musb_board_data musb_board_data = {
- 	.interface_type		= MUSB_INTERFACE_UTMI,
--	.mode			= MUSB_PERIPHERAL,
-+	.mode			= MUSB_OTG,
- 	.power			= 100,
- };
+ static int omap2_pm_prepare(void)
+ {
+-	/* We cannot sleep in idle until we have resumed */
+-	disable_hlt();
+ 	return 0;
+ }
  
-@@ -522,9 +522,7 @@ static void __init omap_4430sdp_init(voi
- 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
- 	omap_serial_init();
- 	omap4_twl6030_hsmmc_init(mmc);
--	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
--	if (!cpu_is_omap44xx())
--		usb_musb_init(&musb_board_data);
-+	usb_musb_init(&musb_board_data);
+@@ -330,10 +328,24 @@ static int omap2_pm_enter(suspend_state_t state)
  
- 	status = omap_ethernet_init();
- 	if (status) {
-Index: linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/board-omap4panda.c
-+++ linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-@@ -133,7 +133,7 @@ error1:
+ static void omap2_pm_finish(void)
+ {
++}
++
++static int omap2_pm_begin(suspend_state_t state)
++{
++	/* We cannot sleep in idle until we have resumed */
++	disable_hlt();
++	return 0;
++}
++
++static void omap2_pm_end(void)
++{
+ 	enable_hlt();
++	return;
+ }
  
- static struct omap_musb_board_data musb_board_data = {
- 	.interface_type		= MUSB_INTERFACE_UTMI,
--	.mode			= MUSB_PERIPHERAL,
-+	.mode			= MUSB_OTG,
- 	.power			= 100,
- };
+ static struct platform_suspend_ops omap_pm_ops = {
++	.begin		= omap2_pm_begin,
++	.end		= omap2_pm_end,
+ 	.prepare	= omap2_pm_prepare,
+ 	.enter		= omap2_pm_enter,
+ 	.finish		= omap2_pm_finish,
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 0ec8a04..ec80d38 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -518,7 +518,6 @@ static suspend_state_t suspend_state;
  
+ static int omap3_pm_prepare(void)
+ {
+-	disable_hlt();
+ 	return 0;
+ }
+ 
+@@ -586,12 +585,12 @@ static int omap3_pm_enter(suspend_state_t unused)
+ 
+ static void omap3_pm_finish(void)
+ {
+-	enable_hlt();
+ }
+ 
+ /* Hooks to enable / disable UART interrupts during suspend */
+ static int omap3_pm_begin(suspend_state_t state)
+ {
++	disable_hlt();
+ 	suspend_state = state;
+ 	omap_uart_enable_irqs(0);
+ 	return 0;
+@@ -601,6 +600,7 @@ static void omap3_pm_end(void)
+ {
+ 	suspend_state = PM_SUSPEND_ON;
+ 	omap_uart_enable_irqs(1);
++	enable_hlt();
+ 	return;
+ }
+ 
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 54544b4..f4c4fab 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -33,7 +33,6 @@ static LIST_HEAD(pwrst_list);
+ #ifdef CONFIG_SUSPEND
+ static int omap4_pm_prepare(void)
+ {
+-	disable_hlt();
+ 	return 0;
+ }
+ 
+@@ -61,17 +60,18 @@ static int omap4_pm_enter(suspend_state_t suspend_state)
+ 
+ static void omap4_pm_finish(void)
+ {
+-	enable_hlt();
+ 	return;
+ }
+ 
+ static int omap4_pm_begin(suspend_state_t state)
+ {
++	disable_hlt();
+ 	return 0;
+ }
+ 
+ static void omap4_pm_end(void)
+ {
++	enable_hlt();
+ 	return;
+ }
+ 
+-- 
+1.7.1
+
