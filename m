@@ -1,35 +1,29 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 01/11] OMAP4: PRCM: add OMAP4-specific
- accessor/mutatorfunctions
-Date: Wed, 8 Dec 2010 12:46:31 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012081243270.13430@utopia.booyaka.com>
-References: <20101208061657.30541.79824.stgit@twilight.localdomain> <20101208061829.30541.99531.stgit@twilight.localdomain> <3407936b2b482d0f7f6b5bb273455377@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: Which git repo for AM35x-OMAP35x-PSP-SDK-03.00.01.06
+Date: Wed, 8 Dec 2010 21:07:29 +0100
+Message-ID: <094BDEF0-D836-4006-9F78-9731DB0504AD@dominion.thruhere.net>
+References: <D2E5B6E9-C05E-47BC-A851-358D3C7DF39A@mac.com>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57460 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932077Ab0LHTqc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 14:46:32 -0500
-In-Reply-To: <3407936b2b482d0f7f6b5bb273455377@mail.gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:57225 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753012Ab0LHUHf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 15:07:35 -0500
+Received: by wwa36 with SMTP id 36so1575580wwa.1
+        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 12:07:34 -0800 (PST)
+In-Reply-To: <D2E5B6E9-C05E-47BC-A851-358D3C7DF39A@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Wed, 8 Dec 2010, Rajendra Nayak wrote:
 
-> > +#include "cminst44xx.h"
+Op 8 dec 2010, om 15:05 heeft Elvis Dowson het volgende geschreven:
+
+> Hi,
+>        Would someone happen to know which git repo was used to create the AM35x-OMAP35x-PSP-SDK-03.00.01.06.tgz download package?
 > 
-> This header seems to be missed in the series.
+> I want to create an OpenEmbedded recipe for this package, and work with it using OE.
 
-Oops, sorry about that.  Fixed in the git branch on git.pwsan.com.
-
-Attached below is the final mach-omap2/cminst44xx.h file.  It's created by 
-the first patch in this series ("OMAP4: PRCM: add OMAP4-specific 
-accessor/mutator functions") and modified by the seventh patch in the 
-series ("OMAP4: clockdomains: add OMAP4 PRCM data and OMAP4 support")
-I will repost those.
-
-
-- Paul
+The existing recipe for that isn't good enough?
