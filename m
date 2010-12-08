@@ -1,75 +1,76 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH 12/11] omap1: Fix gpio mpuio bank to work for multi-omap
- for 7xx/15xx/16xx
-Date: Wed, 8 Dec 2010 09:52:39 +0530
-Message-ID: <AANLkTi=9yHGJf6s0O+ZjYDrrQ6rKqzJJdSvRZ=-911J9@mail.gmail.com>
-References: <1290689318-10191-1-git-send-email-charu@ti.com>
- <20101201183357.GI17222@atomide.com> <87zkso4hu3.fsf@deeprootsystems.com>
- <AANLkTinY8FKbVvXD29KpgGnsnKwQziXws+zKLZWn69Hj@mail.gmail.com>
- <20101204212554.GM17222@atomide.com> <20101207232315.GE17435@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:34367 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750732Ab0LHEXU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 23:23:20 -0500
-Received: by mail-iw0-f174.google.com with SMTP id 9so973278iwn.19
-        for <linux-omap@vger.kernel.org>; Tue, 07 Dec 2010 20:23:19 -0800 (PST)
-In-Reply-To: <20101207232315.GE17435@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/7] usb: otg: TWL6030: OMAP4430: musb & transceiver driver support for OMAP4
+Date: Wed,  8 Dec 2010 21:30:37 +0530
+Message-ID: <1291824037-6972-1-git-send-email-hemahk@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, p-basak2@ti.com, Cory Maccarrone <darkstar6262@gmail.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-Tony,
+This patch series has the support for TWL6030-usb
+transceiver driver and changes in the musb driver to make it functional
+with OMAP4430.
 
-On Wed, Dec 8, 2010 at 04:53, Tony Lindgren <tony@atomide.com> wrote:
-> * Tony Lindgren <tony@atomide.com> [101204 13:16]:
->> * Varadarajan, Charulatha <charu@ti.com> [101202 06:08]:
->> > On Thu, Dec 2, 2010 at 15:28, Kevin Hilman <khilman@deeprootsystems.com> wrote:
->> >
->> > >
->> > > Tony, you can also add
->> > >
->> > > Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
->>
->> OK, updated. Also made one more GPIO patch to allow us to deal
->> with the 7xx vs 15xx/16xx MPUIO registers.
+OMAP4 musb support UTMI and ULPI transceiver interfaces.
 
+In UTMI mode, the transceiver functionality is split between
+the TWL6030 PMIC chip and OMAP4 embedded PHY.
+The TWL6030 transceiver driver code is under otg folder and
+internal UTMI PHY specific code changes are defined under
+mach-omap2 directory and functions are passed through platform_data
+structure.
 
-Thanks for this patch which uses bank stride for OMAP1 MPUIO GPIO.
-This would be very helpful while doing GPIO driver cleanup.
+This patch series is based on V2.6.37-rc4 + [1]+[2]+[3]+[4]. 
 
-Thanks,
-V Charulatha
+[1] http://www.listware.net/201011/linux-usb/
+65625-patch-resend-v3-usb-musb-do-not-use-dma-for-control-transfers.html
 
->
-> Turns out that broke drivers/mtd/nand/ams-delta.c as it directly uses
-> multiple lines in parallel. So let's use 15xx/16xx offsets instead
-> and divide them by two.
->
-> Regards,
->
-> Tony
->
->
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Sat, 4 Dec 2010 12:39:43 -0800
-> Subject: [PATCH] omap1: Fix gpio mpuio bank to work for multi-omap for 7xx/15xx/16xx
->
-> We need to divide the 15xx/16xx offset by 2 for 7xx. Use bank->stride
-> for that. This allows us to get rid of the duplicate defines for the
-> MPUIO registers.
->
-> Note that this will cause omap-keypad.c driver to not work on 7xx.
-> However, the right fix there is to move over to gpio-keys instead as
-> suggested by Cory Maccarrone <darkstar6262@gmail.com> and
-> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>.
->
-> Cc: Cory Maccarrone <darkstar6262@gmail.com>
-> Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
+[2] http://www.spinics.net/lists/linux-usb/msg37105.html
 
-<<snip>>
+[3] http://permalink.gmane.org/gmane.linux.usb.general/37123
+
+[4] Felipe's musb-reorg patch series.
+	http://gitorious.org/usb/usb/commits/musb-hw
+
+Tested musb device and host mode functionality with OMAP4430SDP
+and OMAP3630 ZOOM3.
+
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+
+Hema HK (7):
+  mfd: TWL6030: USBOTG VBUS event generation on charger VBUS events.
+  usb: otg: Adding twl6030-usb transceiver driver for OMAP4430 musb
+  usb: otg: Kconfig: Add Kconfig option for TWL6030 transceiver.
+  mfd: TWL6030: OMAP4: Registering the TWL6030-usb device
+  usb: musb: TWL6030: Selecting TWL6030_USB transceiver for OMAP4
+  usb: musb: Adding musb support for OMAP4430
+  arm: OMAP4430: musb: Enable musb device initialization for OMAP4430
+
+ arch/arm/mach-omap2/Makefile            |    1 +
+ arch/arm/mach-omap2/board-4430sdp.c     |   15 +-
+ arch/arm/mach-omap2/board-omap4panda.c  |    9 +-
+ arch/arm/mach-omap2/omap_phy_internal.c |  123 +++++++
+ arch/arm/plat-omap/include/plat/usb.h   |    4 +
+ drivers/mfd/twl-core.c                  |   44 +++-
+ drivers/mfd/twl6030-irq.c               |    9 +-
+ drivers/usb/musb/Kconfig                |    1 +
+ drivers/usb/musb/musb_core.c            |    5 +
+ drivers/usb/musb/musb_core.h            |    1 +
+ drivers/usb/musb/musb_gadget.c          |    1 +
+ drivers/usb/musb/omap2430.c             |   85 +++++-
+ drivers/usb/otg/Kconfig                 |   11 +
+ drivers/usb/otg/Makefile                |    1 +
+ drivers/usb/otg/twl6030-usb.c           |  527 +++++++++++++++++++++++++++++++
+ include/linux/i2c/twl.h                 |    6 +
+ 16 files changed, 824 insertions(+), 19 deletions(-)
+ 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
