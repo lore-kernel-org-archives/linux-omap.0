@@ -1,44 +1,46 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/14] OMAP: PRCM/powerdomain/clockdomain patches for
- 2.6.38, part one
-Date: Tue, 7 Dec 2010 23:20:20 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012072320030.13430@utopia.booyaka.com>
-References: <20101207012242.3708.45451.stgit@twilight.localdomain> <87wrnli0ep.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 11/14] OMAP4: PRCM: reorganize existing OMAP4 PRCM header
+ files
+Date: Tue, 7 Dec 2010 23:40:03 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012072338130.13430@utopia.booyaka.com>
+References: <20101207012242.3708.45451.stgit@twilight.localdomain> <20101207012514.3708.87532.stgit@twilight.localdomain> <4CFE9C7C.6060101@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37221 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:52317 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753243Ab0LHGUX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 01:20:23 -0500
-In-Reply-To: <87wrnli0ep.fsf@deeprootsystems.com>
+	with ESMTP id S1752482Ab0LHGkF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 01:40:05 -0500
+In-Reply-To: <4CFE9C7C.6060101@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, tony@atomide.com, khilman@deeprootsystems.com, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Tue, 7 Dec 2010, Kevin Hilman wrote:
+On Tue, 7 Dec 2010, Cousson, Benoit wrote:
 
-> Paul Walmsley <paul@pwsan.com> writes:
-> 
-> > This patch series, intended for 2.6.38:
+> On 12/7/2010 2:25 AM, Paul Walmsley wrote:
 > 
 > [...]
 > 
-> > Kevin, I'd appreciate review and acks, if appropriate, on the patches
-> > that touch code that you maintain.  
+> > + *
+> > + * XXX This file needs to be updated to align on one of "OMAP4",
+> > "OMAP44XX",
+> > + *     or "OMAP4430".
 > 
-> Reviewed-by: Kevin Hilman <khilman@deeprootsystems.com>
-> Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Yep, I was thinking to change that as well. My first thought was OMAP4 to get
+> a shorter name, but when we will introduce OMAP4440, we might have some new
+> entries, that will looks ugly close to OMAP4.
+> So at the end I will prefer OMAP44XX for the moment and we might renamed to
+> OMAP4430 or OMAP4440 for the entries that will diverge.
 > 
-> I did some PM testing of this series on 34xx/n900 and 35xx/beagle using
-> retention idle & sususpend and off-idle and suspend.
-> 
-> For testing with other PM features that are targetted for 2.6.38, I've
-> included it as part of my pm-core branch (which also includes your
-> previous hwmod series and the watchdog series, among other things.)
+> Do you want to change that for 2.6.38?
+> It will require some sync with the various users of these defines, but that
+> should be doable.
 
-Thanks for testing, Kevin, I'll update the patches accordingly.
+I don't mind waiting until after 2.6.38, I think we'll have a pretty huge 
+pile of patches on our hands to merge already for .38... maybe Tony or 
+Kevin have some opinions though.
 
 
 - Paul
