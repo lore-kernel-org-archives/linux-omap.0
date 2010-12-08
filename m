@@ -1,58 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] Patches to make multi-soc handling in entry-armv.S
- easier
-Date: Tue, 7 Dec 2010 17:45:48 -0800
-Message-ID: <20101208014548.GJ17435@atomide.com>
-References: <20101204001435.28853.29616.stgit@baageli.muru.com>
- <alpine.LFD.2.00.1012040040590.10437@xanadu.home>
- <20101204180541.GH17222@atomide.com>
- <alpine.LFD.2.00.1012042126350.10437@xanadu.home>
- <20101205031002.GP17222@atomide.com>
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: Re: [PATCH] MFD: TWL/TPS: fix twl_probe section mismatch warning in mfd/twl-core.c
+Date: Wed, 8 Dec 2010 09:45:11 +0800
+Message-ID: <AANLkTim03xqbrkhyN1oR+ksoEuC-utD58h_5A3psRiUX@mail.gmail.com>
+References: <alpine.DEB.2.00.1012061734590.13430@utopia.booyaka.com>
+ <AANLkTimXPFROMQ_fF4Od-jw3aDY0WZQgc=x14=VcFM3d@mail.gmail.com>
+ <alpine.DEB.2.00.1012061839170.13430@utopia.booyaka.com> <20101207094841.GA4772@sortiz-mobl>
+ <alpine.DEB.2.00.1012070911380.13430@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52672 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932164Ab0LHBpy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 20:45:54 -0500
-Content-Disposition: inline
-In-Reply-To: <20101205031002.GP17222@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1012070911380.13430@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [101204 19:00]:
-> * Nicolas Pitre <nico@fluxnic.net> [101204 18:26]:
-> > On Sat, 4 Dec 2010, Tony Lindgren wrote:
-> > 
-> > My only problem with your approach is the global addition of 
-> > asm_irq_base and asm_irq_flags in generic code which might not be useful 
-> > and/or appropriate for all targets.  If you were confining them to some 
-> > OMAP specific file then I wouldn't mind as much.  Looking at the patch I 
-> > see that you had omap_irq_base before.  Why wasn't that sufficient?  
-> > Only omap_irq_flags would be missing.
-> 
-> I guess I was thinking this is something that might help others
-> to build more machines into one defconfig. If that's not the case,
-> sure these can be kept omap specific.
-> 
-> After a quick browsing of the entry-macro.S files, looks like
-> there's some similar ifdeffery for get_irqnr_* macros that just might
-> be possible to clear out with asm_irq_base and asm_irq_flags:
-> 
-> arch/arm/mach-davinci/include/mach/entry-macro.S
-> arch/arm/mach-s5p64x0/include/mach/entry-macro.S
-> arch/arm/mach-ixp4xx/include/mach/entry-macro.S
-> arch/arm/mach-h720x/include/mach/entry-macro.S
-> arch/arm/plat-mxc/include/mach/entry-macro.S
-> 
-> Maybe let's wait a while to see if there are other use cases,
-> if not, I'll make them omap specific.
+On Wed, Dec 8, 2010 at 12:12 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hello Samuel,
+>
+> On Tue, 7 Dec 2010, Samuel Ortiz wrote:
+>
+>> On Mon, Dec 06, 2010 at 06:40:38PM -0700, Paul Walmsley wrote:
+>> >
+>> > That's fine with me. =A0Samuel et al, Bryan's already done a patch
+>> > for this stuff:
+>> >
+>> > https://patchwork.kernel.org/patch/367011/
+>> >
+>> > so we should use that instead, if you're happy with it. =A0Samuel,=
+ maybe we
+>> > could get an ack from you on it?
+>> The twl driver is not OMAP specific, so this should be a separate pa=
+tch thatI
+>> will merge to my mfd tree.
+>> If you really insist in pushing this through Tony's tree, then pleas=
+e add my
+>> Acked-by for the mfd part.
+>
+> I don't insist at all :-)
+>
+> Bryan, maybe split your patch into a mach-omap2 patch and a TWL
+> driver-specific patch, and send the latter for Samuel?
+>
+>
 
-OK, no other people interested, will post the omap specific
-versions as a reply to this message.
+No problem. I'll do soon.
 
-Regards,
-
-Tony
+Thanks,
+--=20
+Bryan Wu <bryan.wu@canonical.com>
+Kernel Developer =A0 =A0+86.138-1617-6545 Mobile
+Ubuntu Kernel Team
+Canonical Ltd. =A0 =A0 =A0www.canonical.com
+Ubuntu - Linux for human beings | www.ubuntu.com
