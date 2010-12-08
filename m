@@ -1,56 +1,128 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: Re: [PATCH] MFD: TWL/TPS: fix twl_probe section mismatch warning in mfd/twl-core.c
-Date: Wed, 8 Dec 2010 09:45:11 +0800
-Message-ID: <AANLkTim03xqbrkhyN1oR+ksoEuC-utD58h_5A3psRiUX@mail.gmail.com>
-References: <alpine.DEB.2.00.1012061734590.13430@utopia.booyaka.com>
- <AANLkTimXPFROMQ_fF4Od-jw3aDY0WZQgc=x14=VcFM3d@mail.gmail.com>
- <alpine.DEB.2.00.1012061839170.13430@utopia.booyaka.com> <20101207094841.GA4772@sortiz-mobl>
- <alpine.DEB.2.00.1012070911380.13430@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 1/3] omap1: Use asm_irq_flags for entry-macro.S
+Date: Tue, 7 Dec 2010 17:47:28 -0800
+Message-ID: <20101208014728.GK17435@atomide.com>
+References: <20101204001435.28853.29616.stgit@baageli.muru.com>
+ <alpine.LFD.2.00.1012040040590.10437@xanadu.home>
+ <20101204180541.GH17222@atomide.com>
+ <alpine.LFD.2.00.1012042126350.10437@xanadu.home>
+ <20101205031002.GP17222@atomide.com>
+ <20101208014548.GJ17435@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1012070911380.13430@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:21544 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932434Ab0LHBrg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 20:47:36 -0500
+Content-Disposition: inline
+In-Reply-To: <20101208014548.GJ17435@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, Dec 8, 2010 at 12:12 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hello Samuel,
->
-> On Tue, 7 Dec 2010, Samuel Ortiz wrote:
->
->> On Mon, Dec 06, 2010 at 06:40:38PM -0700, Paul Walmsley wrote:
->> >
->> > That's fine with me. =A0Samuel et al, Bryan's already done a patch
->> > for this stuff:
->> >
->> > https://patchwork.kernel.org/patch/367011/
->> >
->> > so we should use that instead, if you're happy with it. =A0Samuel,=
- maybe we
->> > could get an ack from you on it?
->> The twl driver is not OMAP specific, so this should be a separate pa=
-tch thatI
->> will merge to my mfd tree.
->> If you really insist in pushing this through Tony's tree, then pleas=
-e add my
->> Acked-by for the mfd part.
->
-> I don't insist at all :-)
->
-> Bryan, maybe split your patch into a mach-omap2 patch and a TWL
-> driver-specific patch, and send the latter for Samuel?
->
->
+Initialize asm_irq_flags in omap_init_irq and use it in
+get_irqnr_and_base to detect between omap7xx and omap15xx/16xx.
 
-No problem. I'll do soon.
+Note that both INT_1510_IH2_IRQ and INT_1510_IH2_IRQ are defined
+as 0, so use INT_1510_IH2_IRQ for both of them.
 
-Thanks,
---=20
-Bryan Wu <bryan.wu@canonical.com>
-Kernel Developer =A0 =A0+86.138-1617-6545 Mobile
-Ubuntu Kernel Team
-Canonical Ltd. =A0 =A0 =A0www.canonical.com
-Ubuntu - Linux for human beings | www.ubuntu.com
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap1/include/mach/entry-macro.S b/arch/arm/mach-omap1/include/mach/entry-macro.S
+index df9060e..c9be6d4 100644
+--- a/arch/arm/mach-omap1/include/mach/entry-macro.S
++++ b/arch/arm/mach-omap1/include/mach/entry-macro.S
+@@ -14,18 +14,17 @@
+ #include <mach/irqs.h>
+ #include <asm/hardware/gic.h>
+ 
+-#if (defined(CONFIG_ARCH_OMAP730)||defined(CONFIG_ARCH_OMAP850)) && \
+-	(defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX))
+-#error "FIXME: OMAP7XX doesn't support multiple-OMAP"
+-#elif defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+-#define INT_IH2_IRQ		INT_7XX_IH2_IRQ
+-#elif defined(CONFIG_ARCH_OMAP15XX)
+-#define INT_IH2_IRQ		INT_1510_IH2_IRQ
+-#elif defined(CONFIG_ARCH_OMAP16XX)
+-#define INT_IH2_IRQ		INT_1610_IH2_IRQ
+-#else
+-#warning "IH2 IRQ defaulted"
+-#define INT_IH2_IRQ		INT_1510_IH2_IRQ
++/*
++ * We use __glue to avoid errors with multiple definitions of
++ * .globl omap_irq_flags as it's included from entry-armv.S but not
++ * from entry-common.S.
++ */
++#ifdef __glue
++		.pushsection .data
++		.globl	omap_irq_flags
++omap_irq_flags:
++		.word	0
++		.popsection
+ #endif
+ 
+  		.macro	disable_fiq
+@@ -47,9 +46,11 @@
+ 		beq	1510f
+ 
+ 		ldr	\irqnr, [\base, #IRQ_SIR_FIQ_REG_OFFSET]
++		ldr	\tmp, =omap_irq_flags	@ irq flags address
++		ldr	\tmp, [\tmp, #0]	@ irq flags value
+ 		cmp	\irqnr, #0
+ 		ldreq	\irqnr, [\base, #IRQ_SIR_IRQ_REG_OFFSET]
+-		cmpeq	\irqnr, #INT_IH2_IRQ
++		cmpeq	\irqnr, \tmp
+ 		ldreq	\base, =OMAP1_IO_ADDRESS(OMAP_IH2_BASE)
+ 		ldreq	\irqnr, [\base, #IRQ_SIR_IRQ_REG_OFFSET]
+ 		addeqs	\irqnr, \irqnr, #32
+diff --git a/arch/arm/mach-omap1/irq.c b/arch/arm/mach-omap1/irq.c
+index db913c3..6bddbc8 100644
+--- a/arch/arm/mach-omap1/irq.c
++++ b/arch/arm/mach-omap1/irq.c
+@@ -176,26 +176,31 @@ static struct irq_chip omap_irq_chip = {
+ 
+ void __init omap_init_irq(void)
+ {
++	extern unsigned int omap_irq_flags;
+ 	int i, j;
+ 
+ #if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+ 	if (cpu_is_omap7xx()) {
++		omap_irq_flags = INT_7XX_IH2_IRQ;
+ 		irq_banks = omap7xx_irq_banks;
+ 		irq_bank_count = ARRAY_SIZE(omap7xx_irq_banks);
+ 	}
+ #endif
+ #ifdef CONFIG_ARCH_OMAP15XX
+ 	if (cpu_is_omap1510()) {
++		omap_irq_flags = INT_1510_IH2_IRQ;
+ 		irq_banks = omap1510_irq_banks;
+ 		irq_bank_count = ARRAY_SIZE(omap1510_irq_banks);
+ 	}
+ 	if (cpu_is_omap310()) {
++		omap_irq_flags = INT_1510_IH2_IRQ;
+ 		irq_banks = omap310_irq_banks;
+ 		irq_bank_count = ARRAY_SIZE(omap310_irq_banks);
+ 	}
+ #endif
+ #if defined(CONFIG_ARCH_OMAP16XX)
+ 	if (cpu_is_omap16xx()) {
++		omap_irq_flags = INT_1510_IH2_IRQ;
+ 		irq_banks = omap1610_irq_banks;
+ 		irq_bank_count = ARRAY_SIZE(omap1610_irq_banks);
+ 	}
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+index 65e20a6..2910de9 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -77,7 +77,7 @@
+ /*
+  * OMAP-1610 specific IRQ numbers for interrupt handler 1
+  */
+-#define INT_1610_IH2_IRQ	0
++#define INT_1610_IH2_IRQ	INT_1510_IH2_IRQ
+ #define INT_1610_IH2_FIQ	2
+ #define INT_1610_McBSP2_TX	4
+ #define INT_1610_McBSP2_RX	5
