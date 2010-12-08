@@ -1,103 +1,59 @@
-From: Nicolas Pitre <nicolas.pitre-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] ARM: omap: Enable low-level omap3 PM code to work
-	withCONFIG_THUMB2_KERNEL
-Date: Wed, 8 Dec 2010 11:56:59 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1012081154310.10437@xanadu.home>
-References: <1291656937-24992-1-git-send-email-dave.martin@linaro.org>
-	<1291656937-24992-2-git-send-email-dave.martin@linaro.org>
-	<8ff74b57e40b64459978eefba8f4c9ca@mail.gmail.com>
-	<AANLkTikOSb5-wBSy_ZANVsHga7XmWPrwP=0Xs0eGOxb5@mail.gmail.com>
-	<AANLkTimPiySTjzTw6owG8GWPv2OwoNQ=wyV4kdvP9EZu@mail.gmail.com>
-	<AANLkTi=7MXKUwjyPgDBO9XV-CZw7RNOmWKj0JP_kB9aC@mail.gmail.com>
-	<AANLkTin4oiDGqMJqjYO+5pCM4MffiGiTEKW5WxXx9gfg@mail.gmail.com>
-	<alpine.LFD.2.00.1012071412260.10437@xanadu.home>
-	<AANLkTikVHOgujYh+28TFJDQbHx=AXT_5354bTy9+FLVR@mail.gmail.com>
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Subject: Re: [PATCH] ARM: Thumb-2: Make CONFIG_THUMB2_KERNEL depend on !CPU_V6
+Date: Wed, 08 Dec 2010 17:50:04 +0000
+Message-ID: <yw1xipz4xigj.fsf@unicorn.mansr.com>
+References: <AANLkTin8r4-ooAUsf-T5SnM_QDHdY_c3XfRL4o=nZkHC@mail.gmail.com> <603978.51278.qm@web180303.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1494612790-1291827422=:10437"
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <AANLkTikVHOgujYh+28TFJDQbHx=AXT_5354bTy9+FLVR-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Dave Martin <dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from lo.gmane.org ([80.91.229.12]:35727 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755257Ab0LHRuW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Dec 2010 12:50:22 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1PQO9l-0005zc-GO
+	for linux-omap@vger.kernel.org; Wed, 08 Dec 2010 18:50:21 +0100
+Received: from unicorn.mansr.com ([78.86.181.103])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 18:50:21 +0100
+Received: from mans by unicorn.mansr.com with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 18:50:21 +0100
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+David Brownell <david-b@pacbell.net> writes:
 
---8323328-1494612790-1291827422=:10437
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+> So to recapitulate ... you're agreeing with me on my key point --
+> that ARM1156, a V6T2 core with Thumb2 support (used in fact to
+> introduce Thumb2), should work for some in-kernel Thumb2 usage,
+> degree TBD, but obviously the v7 cores are more capable (with SIMD
+> support in T2, etc).
 
-On Wed, 8 Dec 2010, Dave Martin wrote:
+The ARM1156 implements the full Thumb2 instruction set, exactly the
+same as in v7 except for ThumbEE and features new to v7 in general.
 
-> Hi,
-> 
-> On Tue, Dec 7, 2010 at 7:15 PM, Nicolas Pitre <nicolas.pitre-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
-> > On Tue, 7 Dec 2010, Dave Martin wrote:
-> >
-> >> On Tue, Dec 7, 2010 at 2:53 PM, Dave Martin <dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
-> >> [...]
-> >> > Note that converting to C doesn't mean that code which attempts to
-> >> > copy function bodies will work: you still need to handle the fact that
-> >> > if f() is a C function symbol, then the value of the symbol f is
-> >> > actually the function's base address + 1.  See my changes in sram.c,
-> >>
-> >> To clarify, this applies *if* f is a Thumb symbol.
-> >
-> > To make it generic, a new macro could be used:
-> >
-> > #define SYM_ADDR(x) ((void *)((long)(x) & ~1L))
-> 
-> Could do ... I wasn't sure if it was useful for just this one case,
-> but I guess we may encounter others.  And it would make the code a lot
-> less messy...
+> But the updated reason you gave for not allowing V6T2 is that it's
+> an uncommon architecture (one core, not widely manufactured today)
+> ... not impossibility.
 
-That also makes the code self documenting.
+The architecture being uncommon is not in my opinion cause to make
+life harder than necessary for whomever might some day want to add
+support for it.
 
-> if so, a macro for exracting just the Thumb bit, and a macro for
-> rebasing a symbol while preserving the Thumb bit could also be useful.
-> 
-> #define SYM_STATE(x) ((long)(x) & 1)
-> #define SYM_REBASE(new_addr, sym) ((void *)((long)SYM_ADDR(new_addr) |
-> SYM_STATE(sym)))
-> 
-> The relationship could be a bit clearer if we use the name SYM_BASE
-> instead of SYM_ADDR.
-> 
-> With these, the affected code becomes something like:
-> 
-> memcpy(buffer, SYM_BASE(f), size_of_f);
-> new_f = SYM_REBASE(f, buffer);
-> 
-> What do you think?
+Does the patch solve any real problem today?
 
-Looks fine to me.
+--=20
+M=E5ns Rullg=E5rd
+mans@mansr.com
 
-> Is there a recommended type for a pointer-sized integer?  I notice
-> linux/types.h defines uintptr_t (as unsigned long).
-
-If uintptr_t is already defined then it is probably a good idea to just 
-use it.
-
-
-Nicolas
---8323328-1494612790-1291827422=:10437
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linaro-dev mailing list
-linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-http://lists.linaro.org/mailman/listinfo/linaro-dev
-
---8323328-1494612790-1291827422=:10437--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
