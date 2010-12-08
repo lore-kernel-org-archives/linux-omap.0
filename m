@@ -1,52 +1,42 @@
-From: Charles Manning <manningc2@actrix.gen.nz>
-Subject: Re: UbiFS + HWECC(?) + BeagleBoard = fail
-Date: Wed, 8 Dec 2010 13:19:24 +1300
-Message-ID: <201012081319.24319.manningc2@actrix.gen.nz>
-References: <LD1ZTZ$A8E18B744A1EDB29645809E1CAA11B96@aruba.it>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: State of LDP3430 platform
+Date: Tue, 7 Dec 2010 17:50:00 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012071745120.13430@utopia.booyaka.com>
+References: <20101206125526.GC31777@n2100.arm.linux.org.uk> <20101206181913.GH8345@atomide.com> <alpine.DEB.2.00.1012061125400.13430@utopia.booyaka.com> <20101207083720.GB18336@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.scorch.co.nz ([27.110.127.199]:43575 "HELO scorch.co.nz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754378Ab0LHAT2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Dec 2010 19:19:28 -0500
-In-Reply-To: <LD1ZTZ$A8E18B744A1EDB29645809E1CAA11B96@aruba.it>
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:48506 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756525Ab0LHAuB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Dec 2010 19:50:01 -0500
+In-Reply-To: <20101207083720.GB18336@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Luca Ceresoli <luca@lucaceresoli.net>
-Cc: linux-omap@vger.kernel.org, notasas@gmail.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
 
-On Tuesday 07 December 2010 23:29:59 Luca Ceresoli wrote:
-> Luca Ceresoli wrote:
-> > While I thank you for you proposed solution, I see it does not work here.
-> > In fact I commented the #define CONFIG_MTD_NAND_OMAP_HWECC and left
-> > MTD_NAND_OMAP_PREFETCH disabled as it previously was, and got compilation
-> > errors:
->
-> Wrong, sorry. Your solution compiles and works. I had another change in
-> that file that broke compilation.
+On Tue, 7 Dec 2010, Russell King - ARM Linux wrote:
 
-Luca, I have been having similar problems on a hacked Overo kernel.
+> So LDP will remain unusable until after the 2.6.38 merge window?
 
-I have no problems with 2.6.35.
+I don't think that Tony or I realized that LDP3430 was broken until your 
+E-mail.  Usually I use a BeagleBoard 35xx for OMAP3430 testing, and I 
+think Tony uses an Overo.  The BeagleBoard boots cleanly with v2.6.37-rc5.
 
-I tried just commenting out the define and disabling PREFETCH and did not get 
-a good boot due to ubi not finding the volume info.
+I do have a LDP3430 here though.  It doesn't boot past:
 
-Are you loading up a UBI image with uboot?
+[    0.000000] Linux version 2.6.37-rc5 (paul@twilight) (gcc version 4.3.2 (Sourcery G++ Lite 2008q3-72) ) #68 SMP Tue Dec 7 17:42:20
+[    0.000000] CPU: ARMv7 Processor [411fc083] revision 3 (ARMv7), cr=10c53c7f
+[    0.000000] CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+[    0.000000] Machine: OMAP Zoom2 board
+[    0.000000] debug: ignoring loglevel setting.
+[    0.000000] bootconsole [earlycon0] enabled
+[    0.000000] Memory policy: ECC disabled, Data cache writeback
+[    0.000000] OMAP3430/3530 ES3.1 (l2cache iva sgx neon isp )
+[    0.000000] SRAM: Mapped pa 0x40200000 to va 0xfe400000 size: 0x10000
 
-Are you using the ubi volume as rootfs?
+Looking into it now.
 
->
-> Nevertheless, it's not clear to me whether the long-term direction is to
-> switch to HWECC, and if it is expected to work in current builds, or if
-> SWECC in here to stay.
->
 
-Clearly HWECC has some advantages, but UBI and HWECC need some effort to get 
-working together.
-
--- Charles
+- Paul
