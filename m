@@ -1,833 +1,510 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 01/11] OMAP4: PRCM: add OMAP4-specific accessor/mutator
-	functions
-Date: Tue, 07 Dec 2010 23:18:35 -0700
-Message-ID: <20101208061829.30541.99531.stgit@twilight.localdomain>
+Subject: [PATCH 04/11] OMAP4: powerdomains: add PRCM partition data;
+	use OMAP4 PRM functions
+Date: Tue, 07 Dec 2010 23:18:38 -0700
+Message-ID: <20101208061837.30541.43725.stgit@twilight.localdomain>
 References: <20101208061657.30541.79824.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37169 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:37184 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753140Ab0LHGTx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 01:19:53 -0500
+	with ESMTP id S1753138Ab0LHGTz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 01:19:55 -0500
 In-Reply-To: <20101208061657.30541.79824.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-In some ways, the OMAP4 PRCM register layout is quite different than
-the OMAP2/3 PRCM register layout.  For example, on OMAP2/3, from a
-register layout point of view, all CM instances were located in the CM
-subsystem, and all PRM instances were located in the PRM subsystem.
-OMAP4 changes this.  Now, for example, some CM instances, such as
-WKUP_CM and EMU_CM, are located in the system PRM subsystem.  And a
-"local PRCM" exists for the MPU - this PRCM combines registers that
-would normally appear in both CM and PRM instances, but uses its own
-register layout which matches neither the OMAP2/3 PRCM layout nor the
-OMAP4 PRCM layout.
+OMAP4 powerdomain control registers are split between the PRM hardware
+module and the PRCM_MPU local PRCM.  Add this PRCM partition
+information to each OMAP4 powerdomain record, and convert the OMAP4
+powerdomain function implementations to use the OMAP4 PRM instance
+functions.
 
-To try to deal with this, introduce some new functions, omap4_cminst*
-and omap4_prminst*.  The former is to be used when writing to a CM
-instance register (no matter what subsystem or hardware module it
-exists in), and the latter, similarly, with PRM instance registers.
-To determine which "PRCM partition" to write to, the functions take a
-PRCM instance ID argument.  Subsequent patches add these partition IDs
-to the OMAP4 powerdomain and clockdomain definitions.
+Also fixes a potential null pointer dereference of pwrdm->name.
 
-As far as I can see, there's really no good way to handle these types
-of register access inconsistencies.  This patch seemed like the least
-bad approach.
-
-Moving forward, the long-term goal is to remove all direct PRCM
-register access from the PM code.  PRCM register access should go
-through layers such as the powerdomain and clockdomain code that can
-hide the details of how to interact with the specific hardware
-variant.
-
-While here, rename cm4xxx.c to cm44xx.c to match the naming convention
-of the other OMAP4 PRCM files.
+The autogeneration scripts have been updated.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/Makefile           |    4 +
- arch/arm/mach-omap2/cm1_44xx.h         |    5 +
- arch/arm/mach-omap2/cm2_44xx.h         |    6 ++
- arch/arm/mach-omap2/cm44xx.c           |   52 ++++++++++++++
- arch/arm/mach-omap2/cm4xxx.c           |   62 -----------------
- arch/arm/mach-omap2/cminst44xx.c       |  118 ++++++++++++++++++++++++=
-++++++++
- arch/arm/mach-omap2/prcm.c             |   26 -------
- arch/arm/mach-omap2/prcm44xx.h         |   42 +++++++++++
- arch/arm/mach-omap2/prcm_mpu44xx.c     |   45 ++++++++++++
- arch/arm/mach-omap2/prcm_mpu44xx.h     |    8 ++
- arch/arm/mach-omap2/prm44xx.c          |   65 ++++++++++++++++++
- arch/arm/mach-omap2/prm44xx.h          |    6 ++
- arch/arm/mach-omap2/prminst44xx.c      |   74 ++++++++++++++++++++
- arch/arm/mach-omap2/prminst44xx.h      |   25 +++++++
- arch/arm/plat-omap/include/plat/prcm.h |    7 +-
- 15 files changed, 454 insertions(+), 91 deletions(-)
- create mode 100644 arch/arm/mach-omap2/cm44xx.c
- delete mode 100644 arch/arm/mach-omap2/cm4xxx.c
- create mode 100644 arch/arm/mach-omap2/cminst44xx.c
- create mode 100644 arch/arm/mach-omap2/prcm44xx.h
- create mode 100644 arch/arm/mach-omap2/prcm_mpu44xx.c
- create mode 100644 arch/arm/mach-omap2/prminst44xx.c
- create mode 100644 arch/arm/mach-omap2/prminst44xx.h
+ arch/arm/mach-omap2/powerdomain.c             |   10 ++
+ arch/arm/mach-omap2/powerdomain44xx.c         |  122 +++++++++++++++++=
+--------
+ arch/arm/mach-omap2/powerdomains44xx_data.c   |   17 +++
+ arch/arm/plat-omap/include/plat/powerdomain.h |    7 +
+ 4 files changed, 115 insertions(+), 41 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefil=
-e
-index 7f3302f..0fa48a882 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -68,7 +68,9 @@ obj-$(CONFIG_ARCH_OMAP3)		+=3D prcm.o cm2xxx_3xxx.o p=
-rm2xxx_3xxx.o
- # XXX The presence of cm2xxx_3xxx.o on the line below is temporary and
- # will be removed once the OMAP4 part of the codebase is converted to
- # use OMAP4-specific PRCM functions.
--obj-$(CONFIG_ARCH_OMAP4)		+=3D prcm.o cm2xxx_3xxx.o cm4xxx.o
-+obj-$(CONFIG_ARCH_OMAP4)		+=3D prcm.o cm2xxx_3xxx.o cminst44xx.o \
-+					   cm44xx.o prcm_mpu44xx.o \
-+					   prminst44xx.o
-=20
- # OMAP powerdomain framework
- powerdomain-common			+=3D powerdomain.o powerdomain-common.o
-diff --git a/arch/arm/mach-omap2/cm1_44xx.h b/arch/arm/mach-omap2/cm1_4=
-4xx.h
-index aa2ee78..63ef9e3 100644
---- a/arch/arm/mach-omap2/cm1_44xx.h
-+++ b/arch/arm/mach-omap2/cm1_44xx.h
-@@ -248,4 +248,9 @@
- #define OMAP4_CM_DYN_DEP_PRESCAL_RESTORE_OFFSET		0x0040
- #define OMAP4430_CM_DYN_DEP_PRESCAL_RESTORE		OMAP44XX_CM1_REGADDR(OMAP=
-4430_CM1_RESTORE_INST, 0x0040)
-=20
-+/* Function prototypes */
-+extern u32 omap4_cm1_read_inst_reg(s16 inst, u16 idx);
-+extern void omap4_cm1_write_inst_reg(u32 val, s16 inst, u16 idx);
-+extern u32 omap4_cm1_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s=
-16 idx);
-+
- #endif
-diff --git a/arch/arm/mach-omap2/cm2_44xx.h b/arch/arm/mach-omap2/cm2_4=
-4xx.h
-index 89c9522..0fd0210 100644
---- a/arch/arm/mach-omap2/cm2_44xx.h
-+++ b/arch/arm/mach-omap2/cm2_44xx.h
-@@ -480,4 +480,10 @@
- #define OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL_RESTORE	OMAP44XX_CM2_REGADD=
-R(OMAP4430_CM2_RESTORE_INST, 0x0058)
- #define OMAP4_CM_SDMA_STATICDEP_RESTORE_OFFSET		0x005c
- #define OMAP4430_CM_SDMA_STATICDEP_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4=
-430_CM2_RESTORE_INST, 0x005c)
-+
-+/* Function prototypes */
-+extern u32 omap4_cm2_read_inst_reg(s16 inst, u16 idx);
-+extern void omap4_cm2_write_inst_reg(u32 val, s16 inst, u16 idx);
-+extern u32 omap4_cm2_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s=
-16 idx);
-+
- #endif
-diff --git a/arch/arm/mach-omap2/cm44xx.c b/arch/arm/mach-omap2/cm44xx.=
-c
-new file mode 100644
-index 0000000..e96f53e
---- /dev/null
-+++ b/arch/arm/mach-omap2/cm44xx.c
-@@ -0,0 +1,52 @@
-+/*
-+ * OMAP4 CM1, CM2 module low-level functions
-+ *
-+ * Copyright (C) 2010 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * These functions are intended to be used only by the cminst44xx.c fi=
-le.
-+ * XXX Perhaps we should just move them there and make them static.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <linux/errno.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+
-+#include <plat/common.h>
-+
-+#include "cm.h"
-+#include "cm1_44xx.h"
-+#include "cm2_44xx.h"
-+#include "cm-regbits-44xx.h"
-+
-+/* CM1 hardware module low-level functions */
-+
-+/* Read a register in CM1 */
-+u32 omap4_cm1_read_inst_reg(s16 inst, u16 reg)
-+{
-+	return __raw_readl(OMAP44XX_CM1_REGADDR(inst, reg));
-+}
-+
-+/* Write into a register in CM1 */
-+void omap4_cm1_write_inst_reg(u32 val, s16 inst, u16 reg)
-+{
-+	__raw_writel(val, OMAP44XX_CM1_REGADDR(inst, reg));
-+}
-+
-+/* Read a register in CM2 */
-+u32 omap4_cm2_read_inst_reg(s16 inst, u16 reg)
-+{
-+	return __raw_readl(OMAP44XX_CM2_REGADDR(inst, reg));
-+}
-+
-+/* Write into a register in CM2 */
-+void omap4_cm2_write_inst_reg(u32 val, s16 inst, u16 reg)
-+{
-+	__raw_writel(val, OMAP44XX_CM2_REGADDR(inst, reg));
-+}
-diff --git a/arch/arm/mach-omap2/cm4xxx.c b/arch/arm/mach-omap2/cm4xxx.=
-c
-deleted file mode 100644
-index 25d2b3e..0000000
---- a/arch/arm/mach-omap2/cm4xxx.c
-+++ /dev/null
-@@ -1,62 +0,0 @@
--/*
-- * OMAP4 CM module functions
-- *
-- * Copyright (C) 2009 Nokia Corporation
-- * Paul Walmsley
-- *
-- * This program is free software; you can redistribute it and/or modif=
-y
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/types.h>
--#include <linux/delay.h>
--#include <linux/spinlock.h>
--#include <linux/list.h>
--#include <linux/errno.h>
--#include <linux/err.h>
--#include <linux/io.h>
--
--#include <asm/atomic.h>
--
--#include <plat/common.h>
--
--#include "cm44xx.h"
--#include "cm-regbits-44xx.h"
--
--/**
-- * omap4_cm_wait_module_ready - wait for a module to be in 'func' stat=
-e
-- * @clkctrl_reg: CLKCTRL module address
-- *
-- * Wait for the module IDLEST to be functional. If the idle state is i=
-n any
-- * the non functional state (trans, idle or disabled), module and thus=
- the
-- * sysconfig cannot be accessed and will probably lead to an "imprecis=
-e
-- * external abort"
-- *
-- * Module idle state:
-- *   0x0 func:     Module is fully functional, including OCP
-- *   0x1 trans:    Module is performing transition: wakeup, or sleep, =
-or sleep
-- *                 abortion
-- *   0x2 idle:     Module is in Idle mode (only OCP part). It is funct=
-ional if
-- *                 using separate functional clock
-- *   0x3 disabled: Module is disabled and cannot be accessed
-- *
-- */
--int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
--{
--	int i =3D 0;
--
--	if (!clkctrl_reg)
--		return 0;
--
--	omap_test_timeout((
--		((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) =3D=3D 0) ||
--		 (((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) >>
--		  OMAP4430_IDLEST_SHIFT) =3D=3D 0x2)),
--		MAX_MODULE_READY_TIME, i);
--
--	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
--}
--
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cmi=
-nst44xx.c
-new file mode 100644
-index 0000000..2c0cad3
---- /dev/null
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -0,0 +1,118 @@
-+/*
-+ * OMAP4 CM instance functions
-+ *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This is needed since CM instances can be in the PRM, PRCM_MPU, CM1,
-+ * or CM2 hardware modules.  For example, the EMU_CM CM instance is in
-+ * the PRM hardware module.  What a mess...
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <linux/errno.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+
-+#include <plat/common.h>
-+
-+#include "cm.h"
-+#include "cm1_44xx.h"
-+#include "cm2_44xx.h"
-+#include "cm44xx.h"
-+#include "cminst44xx.h"
-+#include "cm-regbits-44xx.h"
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/po=
+werdomain.c
+index 8a0dcd0..a76ad3f 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -20,6 +20,7 @@
+ #include <linux/errno.h>
+ #include <linux/string.h>
+ #include "cm2xxx_3xxx.h"
 +#include "prcm44xx.h"
-+#include "prm44xx.h"
-+#include "prcm_mpu44xx.h"
-+
-+static u32 (*_cm_read_fns[OMAP4_MAX_PRCM_PARTITIONS])(s16, u16)  =3D {
-+	[OMAP4430_INVALID_PRCM_PARTITION]	=3D NULL,
-+	[OMAP4430_PRM_PARTITION]		=3D &omap4_prm_read_inst_reg,
-+	[OMAP4430_CM1_PARTITION]		=3D &omap4_cm1_read_inst_reg,
-+	[OMAP4430_CM2_PARTITION]		=3D &omap4_cm2_read_inst_reg,
-+	[OMAP4430_SCRM_PARTITION]		=3D NULL,
-+	[OMAP4430_PRCM_MPU_PARTITION]		=3D &omap4_prcm_mpu_read_inst_reg
-+};
-+
-+static void (*_cm_write_fns[OMAP4_MAX_PRCM_PARTITIONS])(u32, s16, u16)=
-  =3D {
-+	[OMAP4430_INVALID_PRCM_PARTITION]	=3D NULL,
-+	[OMAP4430_PRM_PARTITION]		=3D &omap4_prm_write_inst_reg,
-+	[OMAP4430_CM1_PARTITION]		=3D &omap4_cm1_write_inst_reg,
-+	[OMAP4430_CM2_PARTITION]		=3D &omap4_cm2_write_inst_reg,
-+	[OMAP4430_SCRM_PARTITION]		=3D NULL,
-+	[OMAP4430_PRCM_MPU_PARTITION]		=3D &omap4_prcm_mpu_write_inst_reg
-+};
-+
-+/* Read a register in a CM instance */
-+u32 omap4_cminst_read_inst_reg(u8 part, s16 module, u16 idx)
-+{
-+	BUG_ON(part >=3D OMAP4_MAX_PRCM_PARTITIONS ||
-+	       part =3D=3D OMAP4430_INVALID_PRCM_PARTITION ||
-+	       !_cm_read_fns[part]);
-+	return _cm_read_fns[part](module, idx);
-+}
-+
-+/* Write into a register in a CM instance */
-+void omap4_cminst_write_inst_reg(u32 val, u8 part, s16 module, u16 idx=
-)
-+{
-+	BUG_ON(part >=3D OMAP4_MAX_PRCM_PARTITIONS ||
-+	       part =3D=3D OMAP4430_INVALID_PRCM_PARTITION ||
-+	       !_cm_write_fns[part]);
-+	_cm_write_fns[part](val, module, idx);
-+}
-+
-+/* Read-modify-write a register in CM1. Caller must lock */
-+u32 omap4_cminst_rmw_inst_reg_bits(u32 mask, u32 bits, u8 part,
-+				  s16 module, s16 idx)
-+{
-+	u32 v;
-+
-+	v =3D omap4_cminst_read_inst_reg(part, module, idx);
-+	v &=3D ~mask;
-+	v |=3D bits;
-+	omap4_cminst_write_inst_reg(v, part, module, idx);
-+
-+	return v;
-+}
-+
-+
-+/**
-+ * omap4_cm_wait_module_ready - wait for a module to be in 'func' stat=
-e
-+ * @clkctrl_reg: CLKCTRL module address
-+ *
-+ * Wait for the module IDLEST to be functional. If the idle state is i=
-n any
-+ * the non functional state (trans, idle or disabled), module and thus=
- the
-+ * sysconfig cannot be accessed and will probably lead to an "imprecis=
-e
-+ * external abort"
-+ *
-+ * Module idle state:
-+ *   0x0 func:     Module is fully functional, including OCP
-+ *   0x1 trans:    Module is performing transition: wakeup, or sleep, =
-or sleep
-+ *                 abortion
-+ *   0x2 idle:     Module is in Idle mode (only OCP part). It is funct=
-ional if
-+ *                 using separate functional clock
-+ *   0x3 disabled: Module is disabled and cannot be accessed
-+ *
-+ */
-+int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
-+{
-+	int i =3D 0;
-+
-+	if (!clkctrl_reg)
-+		return 0;
-+
-+	omap_test_timeout((
-+		((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) =3D=3D 0) ||
-+		 (((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) >>
-+		  OMAP4430_IDLEST_SHIFT) =3D=3D 0x2)),
-+		MAX_MODULE_READY_TIME, i);
-+
-+	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
-+}
-+
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index dd95cbb..fe0865b 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -33,6 +33,7 @@
  #include "cm44xx.h"
  #include "prm2xxx_3xxx.h"
  #include "prm44xx.h"
-+#include "prcm44xx.h"
- #include "prm-regbits-24xx.h"
+@@ -72,12 +73,19 @@ static int _pwrdm_register(struct powerdomain *pwrd=
+m)
+ {
+ 	int i;
+=20
+-	if (!pwrdm)
++	if (!pwrdm || !pwrdm->name)
+ 		return -EINVAL;
+=20
+ 	if (!omap_chip_is(pwrdm->omap_chip))
+ 		return -EINVAL;
+=20
++	if (cpu_is_omap44xx() &&
++	    pwrdm->prcm_partition =3D=3D OMAP4430_INVALID_PRCM_PARTITION) {
++		pr_err("powerdomain: %s: missing OMAP4 PRCM partition ID\n",
++		       pwrdm->name);
++		return -EINVAL;
++	}
++
+ 	if (_pwrdm_lookup(pwrdm->name))
+ 		return -EEXIST;
+=20
+diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap=
+2/powerdomain44xx.c
+index 4c5ab1a..28bf5e3 100644
+--- a/arch/arm/mach-omap2/powerdomain44xx.c
++++ b/arch/arm/mach-omap2/powerdomain44xx.c
+@@ -20,48 +20,70 @@
+ #include <plat/prcm.h>
+ #include "prm2xxx_3xxx.h"
+ #include "prm44xx.h"
++#include "prminst44xx.h"
  #include "prm-regbits-44xx.h"
- #include "control.h"
-@@ -80,31 +81,6 @@ void omap_prcm_arch_reset(char mode, const char *cmd=
-)
- 				     prcm_offs, OMAP4_RM_RSTCTRL);
+ #include "powerdomains.h"
+=20
+ static int omap4_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pw=
+rst)
+ {
+-	omap2_prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
+-				(pwrst << OMAP_POWERSTATE_SHIFT),
+-				pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
++	omap4_prminst_rmw_inst_reg_bits(OMAP_POWERSTATE_MASK,
++					(pwrst << OMAP_POWERSTATE_SHIFT),
++					pwrdm->prcm_partition,
++					pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
+ 	return 0;
  }
 =20
--/* Read a PRM register, AND it, and shift the result down to bit 0 */
--u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask)
--{
--	u32 v;
--
--	v =3D __raw_readl(reg);
--	v &=3D mask;
--	v >>=3D __ffs(mask);
--
--	return v;
--}
--
--/* Read-modify-write a register in a PRM module. Caller must lock */
--u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg)
--{
--	u32 v;
--
--	v =3D __raw_readl(reg);
--	v &=3D ~mask;
--	v |=3D bits;
--	__raw_writel(v, reg);
--
--	return v;
--}
--
- /**
-  * omap2_cm_wait_idlest - wait for IDLEST bit to indicate module readi=
-ness
-  * @reg: physical address of module IDLEST register
-diff --git a/arch/arm/mach-omap2/prcm44xx.h b/arch/arm/mach-omap2/prcm4=
-4xx.h
-new file mode 100644
-index 0000000..7334ffb
---- /dev/null
-+++ b/arch/arm/mach-omap2/prcm44xx.h
-@@ -0,0 +1,42 @@
-+/*
-+ * OMAP4 PRCM definitions
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Copyright (C) 2010 Nokia Corporation
-+ *
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This file contains macros and functions that are common to all of
-+ * the PRM/CM/PRCM blocks on the OMAP4 devices: PRM, CM1, CM2,
-+ * PRCM_MPU, SCRM
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP2_PRCM44XX_H
-+#define __ARCH_ARM_MACH_OMAP2_PRCM44XX_H
-+
-+/*
-+ * OMAP4 PRCM partition IDs
-+ *
-+ * The numbers and order are arbitrary, but 0 is reserved for the
-+ * 'invalid' partition in case someone forgets to add a
-+ * .prcm_partition field.
-+ */
-+#define OMAP4430_INVALID_PRCM_PARTITION		0
-+#define OMAP4430_PRM_PARTITION			1
-+#define OMAP4430_CM1_PARTITION			2
-+#define OMAP4430_CM2_PARTITION			3
-+#define OMAP4430_SCRM_PARTITION			4
-+#define OMAP4430_PRCM_MPU_PARTITION		5
-+
-+/*
-+ * OMAP4_MAX_PRCM_PARTITIONS: set to the highest value of the PRCM par=
-tition
-+ * IDs, plus one
-+ */
-+#define OMAP4_MAX_PRCM_PARTITIONS		6
-+
-+
-+#endif
-diff --git a/arch/arm/mach-omap2/prcm_mpu44xx.c b/arch/arm/mach-omap2/p=
-rcm_mpu44xx.c
-new file mode 100644
-index 0000000..171fe17
---- /dev/null
-+++ b/arch/arm/mach-omap2/prcm_mpu44xx.c
-@@ -0,0 +1,45 @@
-+/*
-+ * OMAP4 PRCM_MPU module functions
-+ *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <linux/errno.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+
-+#include <plat/common.h>
-+
-+#include "prcm_mpu44xx.h"
-+#include "cm-regbits-44xx.h"
-+
-+/* PRCM_MPU low-level functions */
-+
-+u32 omap4_prcm_mpu_read_inst_reg(s16 inst, u16 reg)
-+{
-+	return __raw_readl(OMAP44XX_PRCM_MPU_REGADDR(inst, reg));
-+}
-+
-+void omap4_prcm_mpu_write_inst_reg(u32 val, s16 inst, u16 reg)
-+{
-+	__raw_writel(val, OMAP44XX_PRCM_MPU_REGADDR(inst, reg));
-+}
-+
-+u32 omap4_prcm_mpu_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16=
- reg)
-+{
+ static int omap4_pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
+ {
+-	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
+-				OMAP4_PM_PWSTCTRL, OMAP_POWERSTATE_MASK);
 +	u32 v;
 +
-+	v =3D omap4_prcm_mpu_read_inst_reg(inst, reg);
-+	v &=3D ~mask;
-+	v |=3D bits;
-+	omap4_prcm_mpu_write_inst_reg(v, inst, reg);
++	v =3D omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_=
+offs,
++					OMAP4_PM_PWSTCTRL);
++	v &=3D OMAP_POWERSTATE_MASK;
++	v >>=3D OMAP_POWERSTATE_SHIFT;
 +
 +	return v;
-+}
-diff --git a/arch/arm/mach-omap2/prcm_mpu44xx.h b/arch/arm/mach-omap2/p=
-rcm_mpu44xx.h
-index 80e00c1..e5190e9 100644
---- a/arch/arm/mach-omap2/prcm_mpu44xx.h
-+++ b/arch/arm/mach-omap2/prcm_mpu44xx.h
-@@ -88,4 +88,12 @@
- #define OMAP4_CM_CPU1_CLKSTCTRL_OFFSET			0x0018
- #define OMAP4430_CM_CPU1_CLKSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP443=
-0_PRCM_MPU_CPU1_INST, 0x0018)
+ }
 =20
-+/* Function prototypes */
-+# ifndef __ASSEMBLER__
-+extern u32 omap4_prcm_mpu_read_inst_reg(s16 inst, u16 idx);
-+extern void omap4_prcm_mpu_write_inst_reg(u32 val, s16 inst, u16 idx);
-+extern u32 omap4_prcm_mpu_rmw_inst_reg_bits(u32 mask, u32 bits, s16 in=
-st,
-+					    s16 idx);
-+# endif
-+
- #endif
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44x=
-x.c
-index 697b58f..c016ae4 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -15,6 +15,7 @@
- #include <linux/delay.h>
- #include <linux/errno.h>
- #include <linux/err.h>
-+#include <linux/io.h>
-=20
- #include <plat/common.h>
- #include <plat/cpu.h>
-@@ -29,6 +30,70 @@
-  */
- #define OMAP4_RST_CTRL_ST_OFFSET		4
-=20
-+/* PRM low-level functions */
-+
-+/* Read a register in a CM/PRM instance in the PRM module */
-+u32 omap4_prm_read_inst_reg(s16 inst, u16 reg)
-+{
-+	return __raw_readl(OMAP44XX_PRM_REGADDR(inst, reg));
-+}
-+
-+/* Write into a register in a CM/PRM instance in the PRM module */
-+void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 reg)
-+{
-+	__raw_writel(val, OMAP44XX_PRM_REGADDR(inst, reg));
-+}
-+
-+/* Read-modify-write a register in a PRM module. Caller must lock */
-+u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 reg)
-+{
+ static int omap4_pwrdm_read_pwrst(struct powerdomain *pwrdm)
+ {
+-	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
+-				OMAP4_PM_PWSTST, OMAP_POWERSTATEST_MASK);
 +	u32 v;
 +
-+	v =3D omap4_prm_read_inst_reg(inst, reg);
-+	v &=3D ~mask;
-+	v |=3D bits;
-+	omap4_prm_write_inst_reg(v, inst, reg);
++	v =3D omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_=
+offs,
++					OMAP4_PM_PWSTST);
++	v &=3D OMAP_POWERSTATEST_MASK;
++	v >>=3D OMAP_POWERSTATEST_SHIFT;
 +
 +	return v;
-+}
-+
-+/* Read a PRM register, AND it, and shift the result down to bit 0 */
-+/* XXX deprecated */
-+u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask)
-+{
-+	u32 v;
-+
-+	v =3D __raw_readl(reg);
-+	v &=3D mask;
-+	v >>=3D __ffs(mask);
-+
-+	return v;
-+}
-+
-+/* Read-modify-write a register in a PRM module. Caller must lock */
-+/* XXX deprecated */
-+u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg)
-+{
-+	u32 v;
-+
-+	v =3D __raw_readl(reg);
-+	v &=3D ~mask;
-+	v |=3D bits;
-+	__raw_writel(v, reg);
-+
-+	return v;
-+}
-+
-+u32 omap4_prm_set_inst_reg_bits(u32 bits, s16 inst, s16 reg)
-+{
-+	return omap4_prm_rmw_inst_reg_bits(bits, bits, inst, reg);
-+}
-+
-+u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 reg)
-+{
-+	return omap4_prm_rmw_inst_reg_bits(bits, 0x0, inst, reg);
-+}
-+
- /**
-  * omap4_prm_is_hardreset_asserted - read the HW reset line state of
-  * submodules contained in the hwmod module
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44x=
-x.h
-index 3d36149..3588653 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -744,6 +744,12 @@
- /* Function prototypes */
- # ifndef __ASSEMBLER__
+ }
 =20
-+extern u32 omap4_prm_read_inst_reg(s16 inst, u16 idx);
-+extern void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 idx);
-+extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s=
-16 idx);
-+extern u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *re=
-g);
-+extern u32 omap4_prm_set_inst_reg_bits(u32 bits, s16 inst, s16 idx);
-+extern u32 omap4_prm_clear_inst_reg_bits(u32 bits, s16 inst, s16 idx);
- extern u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask);
-=20
- extern int omap4_prm_is_hardreset_asserted(void __iomem *rstctrl_reg, =
-u8 shift);
-diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/pr=
-minst44xx.c
-new file mode 100644
-index 0000000..01c57b6
---- /dev/null
-+++ b/arch/arm/mach-omap2/prminst44xx.c
-@@ -0,0 +1,74 @@
-+/*
-+ * OMAP4 PRM instance functions
-+ *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <linux/errno.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+
-+#include <plat/common.h>
-+
-+#include "prm44xx.h"
-+#include "prminst44xx.h"
-+#include "prm-regbits-44xx.h"
-+#include "prcm44xx.h"
-+#include "prcm_mpu44xx.h"
-+
-+static u32 (*_prm_read_fns[OMAP4_MAX_PRCM_PARTITIONS])(s16, u16)  =3D =
-{
-+	[OMAP4430_INVALID_PRCM_PARTITION]	=3D NULL,
-+	[OMAP4430_PRM_PARTITION]		=3D &omap4_prm_read_inst_reg,
-+	[OMAP4430_CM1_PARTITION]		=3D NULL,
-+	[OMAP4430_CM2_PARTITION]		=3D NULL,
-+	[OMAP4430_SCRM_PARTITION]		=3D NULL,
-+	[OMAP4430_PRCM_MPU_PARTITION]		=3D &omap4_prcm_mpu_read_inst_reg
-+};
-+
-+static void (*_prm_write_fns[OMAP4_MAX_PRCM_PARTITIONS])(u32, s16, u16=
-)  =3D {
-+	[OMAP4430_INVALID_PRCM_PARTITION]	=3D NULL,
-+	[OMAP4430_PRM_PARTITION]		=3D &omap4_prm_write_inst_reg,
-+	[OMAP4430_CM1_PARTITION]		=3D NULL,
-+	[OMAP4430_CM2_PARTITION]		=3D NULL,
-+	[OMAP4430_SCRM_PARTITION]		=3D NULL,
-+	[OMAP4430_PRCM_MPU_PARTITION]		=3D &omap4_prcm_mpu_write_inst_reg
-+};
-+
-+/* Read a register in a PRM instance */
-+u32 omap4_prminst_read_inst_reg(u8 part, s16 inst, u16 idx)
-+{
-+	BUG_ON(part >=3D OMAP4_MAX_PRCM_PARTITIONS ||
-+	       part =3D=3D OMAP4430_INVALID_PRCM_PARTITION ||
-+	       !_prm_read_fns[part]);
-+	return _prm_read_fns[part](inst, idx);
-+}
-+
-+/* Write into a register in a PRM instance */
-+void omap4_prminst_write_inst_reg(u32 val, u8 part, s16 inst, u16 idx)
-+{
-+	BUG_ON(part >=3D OMAP4_MAX_PRCM_PARTITIONS ||
-+	       part =3D=3D OMAP4430_INVALID_PRCM_PARTITION ||
-+	       !_prm_write_fns[part]);
-+	_prm_write_fns[part](val, inst, idx);
-+}
-+
-+/* Read-modify-write a register in PRM. Caller must lock */
-+u32 omap4_prminst_rmw_inst_reg_bits(u32 mask, u32 bits, u8 part, s16 i=
-nst,
-+				   s16 idx)
-+{
+ static int omap4_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
+ {
+-	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP4_PM_PWSTS=
+T,
+-				OMAP4430_LASTPOWERSTATEENTERED_MASK);
 +	u32 v;
 +
-+	v =3D omap4_prminst_read_inst_reg(part, inst, idx);
-+	v &=3D ~mask;
-+	v |=3D bits;
-+	omap4_prminst_write_inst_reg(v, part, inst, idx);
++	v =3D omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_=
+offs,
++					OMAP4_PM_PWSTST);
++	v &=3D OMAP4430_LASTPOWERSTATEENTERED_MASK;
++	v >>=3D OMAP4430_LASTPOWERSTATEENTERED_SHIFT;
 +
 +	return v;
-+}
-diff --git a/arch/arm/mach-omap2/prminst44xx.h b/arch/arm/mach-omap2/pr=
-minst44xx.h
-new file mode 100644
-index 0000000..02dd66d
---- /dev/null
-+++ b/arch/arm/mach-omap2/prminst44xx.h
-@@ -0,0 +1,25 @@
-+/*
-+ * OMAP4 Power/Reset Management (PRM) function prototypes
-+ *
-+ * Copyright (C) 2010 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef __ARCH_ASM_MACH_OMAP2_PRMINST44XX_H
-+#define __ARCH_ASM_MACH_OMAP2_PRMINST44XX_H
-+
-+/*
-+ * In an ideal world, we would not export these low-level functions,
-+ * but this will probably take some time to fix properly
-+ */
-+extern u32 omap4_prminst_read_inst_reg(u8 part, s16 inst, u16 idx);
-+extern void omap4_prminst_write_inst_reg(u32 val, u8 part, s16 inst, u=
-16 idx);
-+extern u32 omap4_prminst_rmw_inst_reg_bits(u32 mask, u32 bits, u8 part=
+ }
+=20
+ static int omap4_pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
+ {
+-	omap2_prm_rmw_mod_reg_bits(OMAP4430_LOWPOWERSTATECHANGE_MASK,
+-				(1 << OMAP4430_LOWPOWERSTATECHANGE_SHIFT),
+-				pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
++	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LOWPOWERSTATECHANGE_MASK,
++					(1 << OMAP4430_LOWPOWERSTATECHANGE_SHIFT),
++					pwrdm->prcm_partition,
++					pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
+ 	return 0;
+ }
+=20
+ static int omap4_pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
+ {
+-	omap2_prm_rmw_mod_reg_bits(OMAP4430_LASTPOWERSTATEENTERED_MASK,
+-				OMAP4430_LASTPOWERSTATEENTERED_MASK,
+-				pwrdm->prcm_offs, OMAP4_PM_PWSTST);
++	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LASTPOWERSTATEENTERED_MASK,
++					OMAP4430_LASTPOWERSTATEENTERED_MASK,
++					pwrdm->prcm_partition,
++					pwrdm->prcm_offs, OMAP4_PM_PWSTST);
+ 	return 0;
+ }
+=20
+@@ -70,69 +92,91 @@ static int omap4_pwrdm_set_logic_retst(struct power=
+domain *pwrdm, u8 pwrst)
+ 	u32 v;
+=20
+ 	v =3D pwrst << __ffs(OMAP4430_LOGICRETSTATE_MASK);
+-	omap2_prm_rmw_mod_reg_bits(OMAP4430_LOGICRETSTATE_MASK, v,
+-				pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
++	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LOGICRETSTATE_MASK, v,
++					pwrdm->prcm_partition, pwrdm->prcm_offs,
++					OMAP4_PM_PWSTCTRL);
+=20
+ 	return 0;
+ }
+=20
+ static int omap4_pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank=
 ,
-+					   s16 inst, s16 idx);
-+
-+extern void omap4_prm_global_warm_sw_reset(void);
-+
-+#endif
-diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-oma=
-p/include/plat/prcm.h
-index d059a05..078906d 100644
---- a/arch/arm/plat-omap/include/plat/prcm.h
-+++ b/arch/arm/plat-omap/include/plat/prcm.h
-@@ -18,6 +18,10 @@
-  * You should have received a copy of the GNU General Public License
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307=
- USA
-+ *
-+ * XXX This file is deprecated.  The PRCM is an OMAP2+-only subsystem,
-+ * so this file doesn't belong in plat-omap/include/plat.  Please
-+ * do not add anything new to this file.
-  */
+-								u8 pwrst)
++				    u8 pwrst)
+ {
+ 	u32 m;
 =20
- #ifndef __ASM_ARM_ARCH_OMAP_PRCM_H
-@@ -31,9 +35,6 @@ int omap2_cm_wait_idlest(void __iomem *reg, u32 mask,=
- u8 idlest,
- #define START_PADCONF_SAVE 0x2
- #define PADCONF_SAVE_DONE  0x1
+ 	m =3D omap2_pwrdm_get_mem_bank_onstate_mask(bank);
 =20
--u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask);
--u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg);
+-	omap2_prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)), pwrdm->prcm_offs,
+-				OMAP4_PM_PWSTCTRL);
++	omap4_prminst_rmw_inst_reg_bits(m, (pwrst << __ffs(m)),
++					pwrdm->prcm_partition, pwrdm->prcm_offs,
++					OMAP4_PM_PWSTCTRL);
+=20
+ 	return 0;
+ }
+=20
+ static int omap4_pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 ban=
+k,
+-								u8 pwrst)
++				     u8 pwrst)
+ {
+ 	u32 m;
+=20
+ 	m =3D omap2_pwrdm_get_mem_bank_retst_mask(bank);
+=20
+-	omap2_prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)), pwrdm->prcm_offs,
+-				OMAP4_PM_PWSTCTRL);
++	omap4_prminst_rmw_inst_reg_bits(m, (pwrst << __ffs(m)),
++					pwrdm->prcm_partition, pwrdm->prcm_offs,
++					OMAP4_PM_PWSTCTRL);
+=20
+ 	return 0;
+ }
+=20
+ static int omap4_pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
+ {
+-	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP4_PM_PWSTS=
+T,
+-				OMAP4430_LOGICSTATEST_MASK);
++	u32 v;
++
++	v =3D omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_=
+offs,
++					OMAP4_PM_PWSTST);
++	v &=3D OMAP4430_LOGICSTATEST_MASK;
++	v >>=3D OMAP4430_LOGICSTATEST_SHIFT;
++
++	return v;
+ }
+=20
+ static int omap4_pwrdm_read_logic_retst(struct powerdomain *pwrdm)
+ {
+-	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
+-					     OMAP4_PM_PWSTCTRL,
+-					     OMAP4430_LOGICRETSTATE_MASK);
++	u32 v;
++
++	v =3D omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_=
+offs,
++					OMAP4_PM_PWSTCTRL);
++	v &=3D OMAP4430_LOGICRETSTATE_MASK;
++	v >>=3D OMAP4430_LOGICRETSTATE_SHIFT;
++
++	return v;
+ }
+=20
+ static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 ba=
+nk)
+ {
+-	u32 m;
++	u32 m, v;
+=20
+ 	m =3D omap2_pwrdm_get_mem_bank_stst_mask(bank);
+=20
+-	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP4_PM_PWSTS=
+T,
+-					     m);
++	v =3D omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_=
+offs,
++					OMAP4_PM_PWSTST);
++	v &=3D m;
++	v >>=3D __ffs(m);
++
++	return v;
+ }
+=20
+ static int omap4_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 ba=
+nk)
+ {
+-	u32 m;
++	u32 m, v;
+=20
+ 	m =3D omap2_pwrdm_get_mem_bank_retst_mask(bank);
+=20
+-	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
+-					     OMAP4_PM_PWSTCTRL, m);
++	v =3D omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_=
+offs,
++					OMAP4_PM_PWSTCTRL);
++	v &=3D m;
++	v >>=3D __ffs(m);
++
++	return v;
+ }
+=20
+ static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
+@@ -146,14 +190,16 @@ static int omap4_pwrdm_wait_transition(struct pow=
+erdomain *pwrdm)
+ 	 */
+=20
+ 	/* XXX Is this udelay() value meaningful? */
+-	while ((omap2_prm_read_mod_reg(pwrdm->prcm_offs, OMAP4_PM_PWSTST) &
++	while ((omap4_prminst_read_inst_reg(pwrdm->prcm_partition,
++					    pwrdm->prcm_offs,
++					    OMAP4_PM_PWSTST) &
+ 		OMAP_INTRANSITION_MASK) &&
+-		(c++ < PWRDM_TRANSITION_BAILOUT))
+-			udelay(1);
++	       (c++ < PWRDM_TRANSITION_BAILOUT))
++		udelay(1);
+=20
+ 	if (c > PWRDM_TRANSITION_BAILOUT) {
+ 		printk(KERN_ERR "powerdomain: waited too long for "
+-			"powerdomain %s to complete transition\n", pwrdm->name);
++		       "powerdomain %s to complete transition\n", pwrdm->name);
+ 		return -EAGAIN;
+ 	}
+=20
+diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mac=
+h-omap2/powerdomains44xx_data.c
+index 069a21d..823f477 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+@@ -26,6 +26,7 @@
+ #include "powerdomains.h"
+=20
+ #include "prcm-common.h"
++#include "prcm44xx.h"
+ #include "prm-regbits-44xx.h"
+ #include "prm44xx.h"
+ #include "prcm_mpu44xx.h"
+@@ -34,6 +35,7 @@
+ static struct powerdomain core_44xx_pwrdm =3D {
+ 	.name		  =3D "core_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_CORE_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_RET_ON,
+ 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
+@@ -59,6 +61,7 @@ static struct powerdomain core_44xx_pwrdm =3D {
+ static struct powerdomain gfx_44xx_pwrdm =3D {
+ 	.name		  =3D "gfx_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_GFX_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_ON,
+ 	.banks		  =3D 1,
+@@ -75,6 +78,7 @@ static struct powerdomain gfx_44xx_pwrdm =3D {
+ static struct powerdomain abe_44xx_pwrdm =3D {
+ 	.name		  =3D "abe_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_ABE_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret =3D PWRDM_POWER_OFF,
+@@ -94,6 +98,7 @@ static struct powerdomain abe_44xx_pwrdm =3D {
+ static struct powerdomain dss_44xx_pwrdm =3D {
+ 	.name		  =3D "dss_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_DSS_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret =3D PWRSTS_OFF,
+@@ -111,6 +116,7 @@ static struct powerdomain dss_44xx_pwrdm =3D {
+ static struct powerdomain tesla_44xx_pwrdm =3D {
+ 	.name		  =3D "tesla_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_TESLA_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
+@@ -132,6 +138,7 @@ static struct powerdomain tesla_44xx_pwrdm =3D {
+ static struct powerdomain wkup_44xx_pwrdm =3D {
+ 	.name		  =3D "wkup_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_WKUP_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_ON,
+ 	.banks		  =3D 1,
+@@ -147,6 +154,7 @@ static struct powerdomain wkup_44xx_pwrdm =3D {
+ static struct powerdomain cpu0_44xx_pwrdm =3D {
+ 	.name		  =3D "cpu0_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRCM_MPU_CPU0_INST,
++	.prcm_partition	  =3D OMAP4430_PRCM_MPU_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
+@@ -163,6 +171,7 @@ static struct powerdomain cpu0_44xx_pwrdm =3D {
+ static struct powerdomain cpu1_44xx_pwrdm =3D {
+ 	.name		  =3D "cpu1_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRCM_MPU_CPU1_INST,
++	.prcm_partition	  =3D OMAP4430_PRCM_MPU_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
+@@ -179,6 +188,7 @@ static struct powerdomain cpu1_44xx_pwrdm =3D {
+ static struct powerdomain emu_44xx_pwrdm =3D {
+ 	.name		  =3D "emu_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_EMU_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_ON,
+ 	.banks		  =3D 1,
+@@ -194,6 +204,7 @@ static struct powerdomain emu_44xx_pwrdm =3D {
+ static struct powerdomain mpu_44xx_pwrdm =3D {
+ 	.name		  =3D "mpu_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_MPU_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
+@@ -214,6 +225,7 @@ static struct powerdomain mpu_44xx_pwrdm =3D {
+ static struct powerdomain ivahd_44xx_pwrdm =3D {
+ 	.name		  =3D "ivahd_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_IVAHD_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret =3D PWRDM_POWER_OFF,
+@@ -237,6 +249,7 @@ static struct powerdomain ivahd_44xx_pwrdm =3D {
+ static struct powerdomain cam_44xx_pwrdm =3D {
+ 	.name		  =3D "cam_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_CAM_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_ON,
+ 	.banks		  =3D 1,
+@@ -253,6 +266,7 @@ static struct powerdomain cam_44xx_pwrdm =3D {
+ static struct powerdomain l3init_44xx_pwrdm =3D {
+ 	.name		  =3D "l3init_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_L3INIT_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
+@@ -270,6 +284,7 @@ static struct powerdomain l3init_44xx_pwrdm =3D {
+ static struct powerdomain l4per_44xx_pwrdm =3D {
+ 	.name		  =3D "l4per_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_L4PER_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
+@@ -292,6 +307,7 @@ static struct powerdomain l4per_44xx_pwrdm =3D {
+ static struct powerdomain always_on_core_44xx_pwrdm =3D {
+ 	.name		  =3D "always_on_core_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_ALWAYS_ON_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_ON,
+ };
+@@ -300,6 +316,7 @@ static struct powerdomain always_on_core_44xx_pwrdm=
+ =3D {
+ static struct powerdomain cefuse_44xx_pwrdm =3D {
+ 	.name		  =3D "cefuse_pwrdm",
+ 	.prcm_offs	  =3D OMAP4430_PRM_CEFUSE_INST,
++	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_ON,
+ };
+diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/p=
+lat-omap/include/plat/powerdomain.h
+index b79eebb..a0d3a30 100644
+--- a/arch/arm/plat-omap/include/plat/powerdomain.h
++++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+@@ -1,5 +1,5 @@
+ /*
+- * OMAP2/3 powerdomain control
++ * OMAP2/3/4 powerdomain control
+  *
+  * Copyright (C) 2007-2008 Texas Instruments, Inc.
+  * Copyright (C) 2007-2010 Nokia Corporation
+@@ -24,7 +24,6 @@
+=20
+ #include <plat/cpu.h>
+=20
 -
- #endif
-=20
-=20
+ /* Powerdomain basic power states */
+ #define PWRDM_POWER_OFF		0x0
+ #define PWRDM_POWER_RET		0x1
+@@ -84,6 +83,7 @@ struct powerdomain;
+  * @name: Powerdomain name
+  * @omap_chip: represents the OMAP chip types containing this pwrdm
+  * @prcm_offs: the address offset from CM_BASE/PRM_BASE
++ * @prcm_partition: (OMAP4 only) the PRCM partition ID containing @prc=
+m_offs
+  * @pwrsts: Possible powerdomain power states
+  * @pwrsts_logic_ret: Possible logic power states when pwrdm in RETENT=
+ION
+  * @flags: Powerdomain flags
+@@ -96,6 +96,8 @@ struct powerdomain;
+  * @state_counter:
+  * @timer:
+  * @state_timer:
++ *
++ * @prcm_partition possible values are defined in mach-omap2/prcm44xx.=
+h.
+  */
+ struct powerdomain {
+ 	const char *name;
+@@ -107,6 +109,7 @@ struct powerdomain {
+ 	const u8 banks;
+ 	const u8 pwrsts_mem_ret[PWRDM_MAX_MEM_BANKS];
+ 	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
++	const u8 prcm_partition;
+ 	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
+ 	struct list_head node;
+ 	int state;
 
 
 --
