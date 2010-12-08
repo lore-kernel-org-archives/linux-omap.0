@@ -1,151 +1,65 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH v2] OMAP2+: disable idle early in the suspend sequence
-Date: Wed,  8 Dec 2010 10:09:24 +0100
-Message-ID: <1291799364-23154-1-git-send-email-jean.pihet@newoldbits.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] OMAP3: disable idle early in the suspend sequence
+Date: Wed, 8 Dec 2010 10:11:48 +0100
+Message-ID: <AANLkTinbrg0q5bGfpWrTuc5YNMvM=DgXx2eqYrfKhQJr@mail.gmail.com>
+References: <1290422697-2300-1-git-send-email-j-pihet@ti.com>
+	<87ipz5hxuw.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:63870 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639Ab0LHJJq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 04:09:46 -0500
-Received: by wwa36 with SMTP id 36so925115wwa.1
-        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 01:09:44 -0800 (PST)
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:46965 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753683Ab0LHJLt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 04:11:49 -0500
+Received: by vws16 with SMTP id 16so746717vws.19
+        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 01:11:48 -0800 (PST)
+In-Reply-To: <87ipz5hxuw.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>
 
-From: Jean Pihet <j-pihet@ti.com>
+On Wed, Dec 8, 2010 at 2:11 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Hi Jean,
+>
+> Jean Pihet <jean.pihet@newoldbits.com> writes:
+>
+>> Some bad interaction between the idle and the suspend paths has been
+>> noticed: the idle code is called during the suspend enter and exit
+>> sequences. This could cause corruption or lock-up of resources.
+>>
+>> The solution is to move the call to disable_hlt at the very beginnin=
+g
+>> of the suspend sequence (in omap3_pm_begin instead of omap3_pm_prepa=
+re),
+>> and the call to enable_hlt at the very end of the suspend sequence
+>> (in omap3_pm_end instead of omap3_pm_finish).
+>>
+>> Tested with RET and OFF on Beagle and OMAP3EVM.
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>> ---
+>> =A0arch/arm/mach-omap2/pm34xx.c | =A0 =A04 ++--
+>> =A01 files changed, 2 insertions(+), 2 deletions(-)
+>
+> Can you update this to do similar for OMAP2 and OMAP4?
+Done!
+It needs some testing on OMAP2 and OMAP4 boards since it has been
+compile tested only.
 
-Some bad interaction between the idle and the suspend paths has been
-noticed: the idle code is called during the suspend enter and exit
-sequences. This could cause corruption or lock-up of resources.
+>
+> Thanks,
+>
+> Kevin
+>
 
-The solution is to move the calls to disable_hlt at the very beginning
-of the suspend sequence (ex. in omap3_pm_begin instead of
-omap3_pm_prepare), and the call to enable_hlt at the very end of
-the suspend sequence (ex. in omap3_pm_end instead of omap3_pm_finish).
-
-Tested with RET and OFF on Beagle and OMAP3EVM.
-
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
-v1: support for OMAP3 only.
- Tested on board.
-
-v2: Added support for OMAP2 and OMAP4.
- Compile tested only for OMAP2 and OMAP4.
- Tested on board for OMAP3.
-
- arch/arm/mach-omap2/pm24xx.c |   16 ++++++++++++++--
- arch/arm/mach-omap2/pm34xx.c |    4 ++--
- arch/arm/mach-omap2/pm44xx.c |    4 ++--
- 3 files changed, 18 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index c85923e..3820179 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -286,8 +286,6 @@ out:
- 
- static int omap2_pm_prepare(void)
- {
--	/* We cannot sleep in idle until we have resumed */
--	disable_hlt();
- 	return 0;
- }
- 
-@@ -330,10 +328,24 @@ static int omap2_pm_enter(suspend_state_t state)
- 
- static void omap2_pm_finish(void)
- {
-+}
-+
-+static int omap2_pm_begin(suspend_state_t state)
-+{
-+	/* We cannot sleep in idle until we have resumed */
-+	disable_hlt();
-+	return 0;
-+}
-+
-+static void omap2_pm_end(void)
-+{
- 	enable_hlt();
-+	return;
- }
- 
- static struct platform_suspend_ops omap_pm_ops = {
-+	.begin		= omap2_pm_begin,
-+	.end		= omap2_pm_end,
- 	.prepare	= omap2_pm_prepare,
- 	.enter		= omap2_pm_enter,
- 	.finish		= omap2_pm_finish,
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 0ec8a04..ec80d38 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -518,7 +518,6 @@ static suspend_state_t suspend_state;
- 
- static int omap3_pm_prepare(void)
- {
--	disable_hlt();
- 	return 0;
- }
- 
-@@ -586,12 +585,12 @@ static int omap3_pm_enter(suspend_state_t unused)
- 
- static void omap3_pm_finish(void)
- {
--	enable_hlt();
- }
- 
- /* Hooks to enable / disable UART interrupts during suspend */
- static int omap3_pm_begin(suspend_state_t state)
- {
-+	disable_hlt();
- 	suspend_state = state;
- 	omap_uart_enable_irqs(0);
- 	return 0;
-@@ -601,6 +600,7 @@ static void omap3_pm_end(void)
- {
- 	suspend_state = PM_SUSPEND_ON;
- 	omap_uart_enable_irqs(1);
-+	enable_hlt();
- 	return;
- }
- 
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 54544b4..f4c4fab 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -33,7 +33,6 @@ static LIST_HEAD(pwrst_list);
- #ifdef CONFIG_SUSPEND
- static int omap4_pm_prepare(void)
- {
--	disable_hlt();
- 	return 0;
- }
- 
-@@ -61,17 +60,18 @@ static int omap4_pm_enter(suspend_state_t suspend_state)
- 
- static void omap4_pm_finish(void)
- {
--	enable_hlt();
- 	return;
- }
- 
- static int omap4_pm_begin(suspend_state_t state)
- {
-+	disable_hlt();
- 	return 0;
- }
- 
- static void omap4_pm_end(void)
- {
-+	enable_hlt();
- 	return;
- }
- 
--- 
-1.7.1
-
+Thanks,
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
