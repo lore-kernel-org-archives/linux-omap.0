@@ -1,225 +1,170 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 09/11] OMAP2+: clockdomain: move header file from plat-omap to
-	mach-omap2
-Date: Tue, 07 Dec 2010 23:18:43 -0700
-Message-ID: <20101208061842.30541.15900.stgit@twilight.localdomain>
+Subject: [PATCH 05/11] OMAP2+: clockdomains: split the clkdm hwsup
+	enable/disable function
+Date: Tue, 07 Dec 2010 23:18:39 -0700
+Message-ID: <20101208061838.30541.36426.stgit@twilight.localdomain>
 References: <20101208061657.30541.79824.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37201 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:37189 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753236Ab0LHGT4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 01:19:56 -0500
+	with ESMTP id S1753217Ab0LHGTz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 01:19:55 -0500
 In-Reply-To: <20101208061657.30541.79824.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-The OMAP clockdomain code and data is all OMAP2+-specific.  This seems
-unlikely to change any time soon.  Move plat-omap/include/plat/clockdomain.h
-to mach-omap2/clockdomain.h.  The primary point of doing this is to remove
-the temptation for unrelated upper-layer code to access clockdomain code
-and data directly.
+Split _omap2_clkdm_set_hwsup() into _disable_hwsup() and _enable_hwsup().
+
+While here, also document that the autodeps are deprecated and that they
+should be removed at the earliest opportunity.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/clock.c                      |    2 +-
- arch/arm/mach-omap2/clockdomain.c                |    2 +-
- arch/arm/mach-omap2/clockdomain.h                |    6 ++----
- arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    2 +-
- arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 +-
- arch/arm/mach-omap2/cpuidle34xx.c                |    2 +-
- arch/arm/mach-omap2/io.c                         |    2 +-
- arch/arm/mach-omap2/omap_hwmod.c                 |    2 +-
- arch/arm/mach-omap2/pm-debug.c                   |    2 +-
- arch/arm/mach-omap2/pm.c                         |    2 +-
- arch/arm/mach-omap2/pm24xx.c                     |    2 +-
- arch/arm/mach-omap2/pm34xx.c                     |    2 +-
- arch/arm/mach-omap2/powerdomain.c                |    2 +-
- 13 files changed, 14 insertions(+), 16 deletions(-)
- rename arch/arm/{plat-omap/include/plat/clockdomain.h => mach-omap2/clockdomain.h} (97%)
+ arch/arm/mach-omap2/clockdomain.c |   67 +++++++++++++++++++++++++++----------
+ 1 files changed, 49 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index cda2f1d..2a2f152 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -24,7 +24,7 @@
- #include <linux/bitops.h>
- 
- #include <plat/clock.h>
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- #include <plat/cpu.h>
- #include <plat/prcm.h>
- 
 diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 84cdd1d..dadfb3f 100644
+index da74f71..b1a6908 100644
 --- a/arch/arm/mach-omap2/clockdomain.c
 +++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -35,7 +35,7 @@
- 
- #include <plat/clock.h>
- #include <plat/powerdomain.h>
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- #include <plat/prcm.h>
- 
- /* clkdm_list contains all registered struct clockdomains */
-diff --git a/arch/arm/plat-omap/include/plat/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-similarity index 97%
-rename from arch/arm/plat-omap/include/plat/clockdomain.h
-rename to arch/arm/mach-omap2/clockdomain.h
-index e91ae92..372c646 100644
---- a/arch/arm/plat-omap/include/plat/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -11,12 +11,10 @@
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-- *
-- * XXX This should be moved to mach-omap2/ at the earliest opportunity.
+@@ -140,6 +140,9 @@ static struct clkdm_dep *_clkdm_deps_lookup(struct clockdomain *clkdm,
+  * clockdomain is in hardware-supervised mode.	Meant to be called
+  * once at clockdomain layer initialization, since these should remain
+  * fixed for a particular architecture.  No return value.
++ *
++ * XXX autodeps are deprecated and should be removed at the earliest
++ * opportunity
   */
+ static void _autodep_lookup(struct clkdm_autodep *autodep)
+ {
+@@ -167,6 +170,9 @@ static void _autodep_lookup(struct clkdm_autodep *autodep)
+  * Add the "autodep" sleep & wakeup dependencies to clockdomain 'clkdm'
+  * in hardware-supervised mode.  Meant to be called from clock framework
+  * when a clock inside clockdomain 'clkdm' is enabled.	No return value.
++ *
++ * XXX autodeps are deprecated and should be removed at the earliest
++ * opportunity
+  */
+ static void _clkdm_add_autodeps(struct clockdomain *clkdm)
+ {
+@@ -198,6 +204,9 @@ static void _clkdm_add_autodeps(struct clockdomain *clkdm)
+  * Remove the "autodep" sleep & wakeup dependencies from clockdomain 'clkdm'
+  * in hardware-supervised mode.  Meant to be called from clock framework
+  * when a clock inside clockdomain 'clkdm' is disabled.  No return value.
++ *
++ * XXX autodeps are deprecated and should be removed at the earliest
++ * opportunity
+  */
+ static void _clkdm_del_autodeps(struct clockdomain *clkdm)
+ {
+@@ -222,28 +231,50 @@ static void _clkdm_del_autodeps(struct clockdomain *clkdm)
+ 	}
+ }
  
--#ifndef __ASM_ARM_ARCH_OMAP_CLOCKDOMAIN_H
--#define __ASM_ARM_ARCH_OMAP_CLOCKDOMAIN_H
-+#ifndef __ARCH_ARM_MACH_OMAP2_CLOCKDOMAIN_H
-+#define __ARCH_ARM_MACH_OMAP2_CLOCKDOMAIN_H
+-/*
+- * _omap2_clkdm_set_hwsup - set the hwsup idle transition bit
++/**
++ * _enable_hwsup - set the hwsup idle transition bit
++ * @clkdm: struct clockdomain *
++ *
++ * XXX fix doco
++ * Internal helper for actually switching the bit that controls hwsup
++ * idle transitions for clkdm.
++ */
++static void _enable_hwsup(struct clockdomain *clkdm)
++{
++	u32 bits, v;
++
++	if (cpu_is_omap24xx())
++		bits = OMAP24XX_CLKSTCTRL_ENABLE_AUTO;
++	else if (cpu_is_omap34xx() || cpu_is_omap44xx())
++		bits = OMAP34XX_CLKSTCTRL_ENABLE_AUTO;
++	else
++		BUG();
++
++	bits = bits << __ffs(clkdm->clktrctrl_mask);
++
++	v = __raw_readl(clkdm->clkstctrl_reg);
++	v &= ~(clkdm->clktrctrl_mask);
++	v |= bits;
++	__raw_writel(v, clkdm->clkstctrl_reg);
++
++}
++
++/**
++ * _disable_hwsup - set the hwsup idle transition bit
+  * @clkdm: struct clockdomain *
+- * @enable: int 0 to disable, 1 to enable
+  *
++ * XXX fix doco
+  * Internal helper for actually switching the bit that controls hwsup
+  * idle transitions for clkdm.
+  */
+-static void _omap2_clkdm_set_hwsup(struct clockdomain *clkdm, int enable)
++static void _disable_hwsup(struct clockdomain *clkdm)
+ {
+ 	u32 bits, v;
  
- #include <linux/init.h>
+ 	if (cpu_is_omap24xx()) {
+-		if (enable)
+-			bits = OMAP24XX_CLKSTCTRL_ENABLE_AUTO;
+-		else
+-			bits = OMAP24XX_CLKSTCTRL_DISABLE_AUTO;
++		bits = OMAP24XX_CLKSTCTRL_DISABLE_AUTO;
+ 	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+-		if (enable)
+-			bits = OMAP34XX_CLKSTCTRL_ENABLE_AUTO;
+-		else
+-			bits = OMAP34XX_CLKSTCTRL_DISABLE_AUTO;
++		bits = OMAP34XX_CLKSTCTRL_DISABLE_AUTO;
+ 	} else {
+ 		BUG();
+ 	}
+@@ -828,7 +859,7 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
+ 			_clkdm_add_autodeps(clkdm);
+ 	}
  
-diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
-index 6e9ec49..e4a7133 100644
---- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
-@@ -35,7 +35,7 @@
- #include <linux/kernel.h>
- #include <linux/io.h>
+-	_omap2_clkdm_set_hwsup(clkdm, 1);
++	_enable_hwsup(clkdm);
  
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- #include "prm2xxx_3xxx.h"
- #include "cm2xxx_3xxx.h"
- #include "cm-regbits-24xx.h"
-diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-omap2/clockdomains44xx_data.c
-index 2d3d1ef..51920fc 100644
---- a/arch/arm/mach-omap2/clockdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
-@@ -26,7 +26,7 @@
- #include <linux/kernel.h>
- #include <linux/io.h>
+ 	pwrdm_clkdm_state_switch(clkdm);
+ }
+@@ -856,7 +887,7 @@ void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
+ 	pr_debug("clockdomain: disabling automatic idle transitions for %s\n",
+ 		 clkdm->name);
  
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- #include "cm1_44xx.h"
- #include "cm2_44xx.h"
+-	_omap2_clkdm_set_hwsup(clkdm, 0);
++	_disable_hwsup(clkdm);
  
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 0d50b45..568dff7 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -28,7 +28,7 @@
- #include <plat/prcm.h>
- #include <plat/irqs.h>
- #include <plat/powerdomain.h>
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- #include <plat/serial.h>
- 
- #include "pm.h"
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index d05638ac..1151f4a 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -41,7 +41,7 @@
- #include <plat/omap-pm.h>
- #include <plat/powerdomain.h>
- 
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- #include <plat/omap_hwmod.h>
- 
- /*
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 63d3f4d..10bd001 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -138,7 +138,7 @@
- 
- #include <plat/common.h>
- #include <plat/cpu.h>
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- #include <plat/powerdomain.h>
- #include <plat/clock.h>
- #include <plat/omap_hwmod.h>
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 73f8ec0..3fc7707 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -30,7 +30,7 @@
- #include <plat/clock.h>
- #include <plat/board.h>
- #include <plat/powerdomain.h>
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- #include <plat/dmtimer.h>
- 
- #include "cm2xxx_3xxx.h"
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 59ca03b..60cfe67 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -19,7 +19,7 @@
- #include <plat/common.h>
- 
- #include <plat/powerdomain.h>
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- 
- static struct omap_device_pm_latency *pm_lats;
- 
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index f13e2ca..7d4933b 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -51,7 +51,7 @@
- #include "control.h"
- 
- #include <plat/powerdomain.h>
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- 
- static void (*omap2_sram_idle)(void);
- static void (*omap2_sram_suspend)(u32 dllctrl, void __iomem *sdrc_dlla_ctrl,
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 8ea8051..43c1a43 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -31,7 +31,7 @@
- #include <linux/console.h>
- 
- #include <plat/sram.h>
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- #include <plat/powerdomain.h>
- #include <plat/serial.h>
- #include <plat/sdrc.h>
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index a76ad3f..7eb7ba4 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -27,7 +27,7 @@
- 
- #include <plat/cpu.h>
- #include <plat/powerdomain.h>
--#include <plat/clockdomain.h>
-+#include "clockdomain.h"
- #include <plat/prcm.h>
- 
- #include "pm.h"
+ 	/*
+ 	 * XXX This should be removed once TI adds wakeup/sleep
+@@ -916,9 +947,9 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	if ((cpu_is_omap34xx() && v == OMAP34XX_CLKSTCTRL_ENABLE_AUTO) ||
+ 	    (cpu_is_omap24xx() && v == OMAP24XX_CLKSTCTRL_ENABLE_AUTO)) {
+ 		/* Disable HW transitions when we are changing deps */
+-		_omap2_clkdm_set_hwsup(clkdm, 0);
++		_disable_hwsup(clkdm);
+ 		_clkdm_add_autodeps(clkdm);
+-		_omap2_clkdm_set_hwsup(clkdm, 1);
++		_enable_hwsup(clkdm);
+ 	} else {
+ 		omap2_clkdm_wakeup(clkdm);
+ 	}
+@@ -978,9 +1009,9 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	if ((cpu_is_omap34xx() && v == OMAP34XX_CLKSTCTRL_ENABLE_AUTO) ||
+ 	    (cpu_is_omap24xx() && v == OMAP24XX_CLKSTCTRL_ENABLE_AUTO)) {
+ 		/* Disable HW transitions when we are changing deps */
+-		_omap2_clkdm_set_hwsup(clkdm, 0);
++		_disable_hwsup(clkdm);
+ 		_clkdm_del_autodeps(clkdm);
+-		_omap2_clkdm_set_hwsup(clkdm, 1);
++		_enable_hwsup(clkdm);
+ 	} else {
+ 		omap2_clkdm_sleep(clkdm);
+ 	}
 
 
