@@ -1,88 +1,79 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] staging: tidspbridge: remove file handling functions
- for loader
-Date: Wed, 8 Dec 2010 15:08:02 -0800
-Message-ID: <20101208230802.GA8176@kroah.com>
-References: <1291702146-17866-1-git-send-email-omar.ramirez@ti.com>
- <20101208222642.GA31802@kroah.com>
- <AANLkTikcuqWbV1xGhirL65YKRjVW=2JcdYw272a0AJSN@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 05/11] OMAP2+: clockdomains: split the clkdm hwsup enable/disable function
+Date: Wed, 08 Dec 2010 15:12:26 -0800
+Message-ID: <871v5rg8px.fsf@deeprootsystems.com>
+References: <20101208061657.30541.79824.stgit@twilight.localdomain>
+	<20101208061838.30541.36426.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:47244 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932107Ab0LHXIy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Dec 2010 18:08:54 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTikcuqWbV1xGhirL65YKRjVW=2JcdYw272a0AJSN@mail.gmail.com>
+Received: from mail-px0-f179.google.com ([209.85.212.179]:51886 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755007Ab0LHXMa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 18:12:30 -0500
+Received: by pxi20 with SMTP id 20so526545pxi.10
+        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 15:12:29 -0800 (PST)
+In-Reply-To: <20101208061838.30541.36426.stgit@twilight.localdomain> (Paul
+	Walmsley's message of "Tue, 07 Dec 2010 23:18:39 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, Nishanth Menon <nm@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Armando Uribe De Leon <x0095078@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Ernesto Ramos Falcon <ernesto@ti.com>, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, Rene Sapiens <rene.sapiens@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Dec 08, 2010 at 05:02:20PM -0600, Ramirez Luna, Omar wrote:
-> Hi,
->=20
-> On Wed, Dec 8, 2010 at 4:26 PM, Greg KH <greg@kroah.com> wrote:
-> > On Tue, Dec 07, 2010 at 12:09:06AM -0600, Omar Ramirez Luna wrote:
-> >> Instead use request_firmware and friends to get a valid firmware
-> >> image.
-> >>
-> >> Right now the image is supplied dynamically through udev and the
-> >> following rule:
-> >>
-> >> KERNEL=3D=3D"omap-dsp", SUBSYSTEM=3D=3D"firmware", ACTION=3D=3D"ad=
-d", =A0 =A0 \
-> >> =A0 =A0 =A0 RUN+=3D"/bin/sh -c 'echo 1 > /sys/$DEVPATH/loading; =A0=
- =A0 =A0 \
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 cat $FIRMWARE > /sys/$DEVPATH/data; =A0=
- =A0 =A0 =A0 =A0 =A0 \
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 echo 0 > /sys/$DEVPATH/loading'"
-> >
-> > Why do you need a custom firmware rule?
->=20
-> It was meant as an example, when I compiled my minimal file system it
-> didn't supply the firmware.sh script nor created /lib/firmware... I
-> thought that not everybody would have the firmware.sh, so I just
-> provided a sample rule.
+Paul Walmsley <paul@pwsan.com> writes:
 
-So, can I remove this from the changelog comment, as it's not really
-needed at all?
+> Split _omap2_clkdm_set_hwsup() into _disable_hwsup() and _enable_hwsup().
+>
+> While here, also document that the autodeps are deprecated and that they
+> should be removed at the earliest opportunity.
+>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+[...]
 
-> > =A0Why doesn't the default  firmware loading rule that comes with u=
-dev work properly for you?
-> > What are you needing different here that works properly for all oth=
-er drivers?
->=20
-> firmware.sh under /lib/udev/ and dsp binaries installed under
-> /lib/firmware/, my rule is the brute version of firmware.sh so nothin=
-g
-> different in the script.
->=20
-> Probably the only change would be to supply the firmware name only, a=
-s
-> of now the insmod parameter requires the entire path, e.g.:
->=20
-> insmod bridgedriver.ko base_img=3D/lib/dsp/baseimage.dof
->=20
-> if using firmware.sh and placing firmware files under /lib/firmware/,=
- then
->=20
-> insmod bridgedriver.ko base_img=3Dbaseimage.dof
+> @@ -222,28 +231,50 @@ static void _clkdm_del_autodeps(struct clockdomain *clkdm)
+>  	}
+>  }
+>  
+> -/*
+> - * _omap2_clkdm_set_hwsup - set the hwsup idle transition bit
+> +/**
+> + * _enable_hwsup - set the hwsup idle transition bit
+> + * @clkdm: struct clockdomain *
+> + *
+> + * XXX fix doco
 
-Ick, why use a module parameter name at all?  Why is this "special" and
-different from all other firmware users?  They don't have to manually
-specify a file name, the driver does that.
+hmm, 'doco' must be a new lingo I haven't learned yet.
 
-Please fix up the patch to not require a module parameter, distros hate
-them, and users hate them even more.
+> + * Internal helper for actually switching the bit that controls hwsup
+> + * idle transitions for clkdm.
+> + */
+> +static void _enable_hwsup(struct clockdomain *clkdm)
+> +{
+> +	u32 bits, v;
+> +
+> +	if (cpu_is_omap24xx())
+> +		bits = OMAP24XX_CLKSTCTRL_ENABLE_AUTO;
+> +	else if (cpu_is_omap34xx() || cpu_is_omap44xx())
+> +		bits = OMAP34XX_CLKSTCTRL_ENABLE_AUTO;
+> +	else
+> +		BUG();
+> +
+> +	bits = bits << __ffs(clkdm->clktrctrl_mask);
+> +
+> +	v = __raw_readl(clkdm->clkstctrl_reg);
+> +	v &= ~(clkdm->clktrctrl_mask);
+> +	v |= bits;
+> +	__raw_writel(v, clkdm->clkstctrl_reg);
+> +
+> +}
+> +
+> +/**
+> + * _disable_hwsup - set the hwsup idle transition bit
+>   * @clkdm: struct clockdomain *
+> - * @enable: int 0 to disable, 1 to enable
+>   *
+> + * XXX fix doco
 
-thanks,
+here too
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
