@@ -1,17 +1,17 @@
 From: Rajendra Nayak <rnayak@ti.com>
 Subject: RE: [PATCH 01/11] OMAP4: PRCM: add OMAP4-specific accessor/mutatorfunctions
-Date: Wed, 8 Dec 2010 18:03:53 +0530
-Message-ID: <25f8b00ceea2d6945cf74024299e81a8@mail.gmail.com>
+Date: Wed, 8 Dec 2010 19:20:05 +0530
+Message-ID: <3407936b2b482d0f7f6b5bb273455377@mail.gmail.com>
 References: <20101208061657.30541.79824.stgit@twilight.localdomain> <20101208061829.30541.99531.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:51167 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754472Ab0LHMd4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 07:33:56 -0500
-Received: by mail-gy0-f177.google.com with SMTP id 4so641729gyg.36
-        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 04:33:56 -0800 (PST)
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:53482 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754243Ab0LHNuI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2010 08:50:08 -0500
+Received: by mail-vw0-f47.google.com with SMTP id 6so981665vws.6
+        for <linux-omap@vger.kernel.org>; Wed, 08 Dec 2010 05:50:08 -0800 (PST)
 In-Reply-To: <20101208061829.30541.99531.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,11 +20,6 @@ Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.c
 
 <snip>...
 
-> diff --git a/arch/arm/mach-omap2/cminst44xx.c
-b/arch/arm/mach-omap2/cminst44xx.c
-> new file mode 100644
-> index 0000000..2c0cad3
-> --- /dev/null
 > +++ b/arch/arm/mach-omap2/cminst44xx.c
 > @@ -0,0 +1,118 @@
 > +/*
@@ -55,6 +50,9 @@ b/arch/arm/mach-omap2/cminst44xx.c
 > +#include "cm2_44xx.h"
 > +#include "cm44xx.h"
 > +#include "cminst44xx.h"
+
+This header seems to be missed in the series.
+
 > +#include "cm-regbits-44xx.h"
 > +#include "prcm44xx.h"
 > +#include "prm44xx.h"
@@ -94,25 +92,6 @@ b/arch/arm/mach-omap2/cminst44xx.c
 > +	       part == OMAP4430_INVALID_PRCM_PARTITION ||
 > +	       !_cm_read_fns[part]);
 > +	return _cm_read_fns[part](module, idx);
-
-Hi Paul,
-
-Would it help if we can avoid one more level of function
-indirection (given that these are low level apis) and store
-the Partition offsets in the tables above (instead of func
-pointers) and do some thing like this.
-	
-	return __raw_readl(OMAP2_L4_IO_ADDRESS(cm_read_offset[part],
-module, idx));
-
-with the table entries of cm_read_offset looking something like
-> +	[OMAP4430_PRM_PARTITION]		= OMAP4430_PRM_BASE,
-> +	[OMAP4430_CM1_PARTITION]		= OMAP4430_CM1_BASE,
-> +	[OMAP4430_CM2_PARTITION]		= OMAP4430_CM2_BASE,
-
-regards,
-Rajendra
-
 > +}
 > +
 > +/* Write into a register in a CM instance */
