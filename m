@@ -1,96 +1,46 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH 7/8] arm: omap: sdram-nokia: add 97.6/195.2 MHz timing data
-Date: Thu,  9 Dec 2010 18:39:23 +0200
-Message-ID: <1291912764-12823-8-git-send-email-aaro.koskinen@nokia.com>
-References: <1291912764-12823-1-git-send-email-aaro.koskinen@nokia.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/8] arm: omap: add sdram-nokia.h
+Date: Thu, 09 Dec 2010 10:45:27 -0600
+Message-ID: <4D0107A7.80900@ti.com>
+References: <1291912764-12823-1-git-send-email-aaro.koskinen@nokia.com> <1291912764-12823-3-git-send-email-aaro.koskinen@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:32485 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753844Ab0LIQiq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Dec 2010 11:38:46 -0500
-In-Reply-To: <1291912764-12823-1-git-send-email-aaro.koskinen@nokia.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:42261 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753902Ab0LIQpc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 11:45:32 -0500
+Received: by mail-vw0-f52.google.com with SMTP id 13so1767412vws.25
+        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 08:45:31 -0800 (PST)
+In-Reply-To: <1291912764-12823-3-git-send-email-aaro.koskinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Introduce 97.6/195.2 MHz memory timing data. Based on patches by Eduardo
-Valentin, Igor Dmitriev and Juha Keski-Saari.
+Aaro Koskinen had written, on 12/09/2010 10:39 AM, the following:
+[...]
+> diff --git a/arch/arm/mach-omap2/sdram-nokia.h b/arch/arm/mach-omap2/sdram-nokia.h
+> new file mode 100644
+> index 0000000..ee63da5
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/sdram-nokia.h
+> @@ -0,0 +1,12 @@
+> +/*
+> + * SDRC register values for Nokia boards
+> + *
+> + * Copyright (C) 2010 Nokia
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +struct omap_sdrc_params *nokia_get_sdram_timings(void);
+> +
+Minor comment: Header guard missing. maybe nice to add #ifndef, #def, 
+#endif.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: Igor Dmitriev <ext-dmitriev.igor@nokia.com>
----
- arch/arm/mach-omap2/sdram-nokia.c |   44 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 44 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/sdram-nokia.c b/arch/arm/mach-omap2/sdram-nokia.c
-index baf83ec..14caa22 100644
---- a/arch/arm/mach-omap2/sdram-nokia.c
-+++ b/arch/arm/mach-omap2/sdram-nokia.c
-@@ -44,6 +44,27 @@ struct sdram_timings {
- 	u32 tWTR;
- };
- 
-+static const struct sdram_timings nokia_97dot6mhz_timings[] = {
-+	{
-+		.casl = 3,
-+		.tDAL = 30725,
-+		.tDPL = 15362,
-+		.tRRD = 10241,
-+		.tRCD = 20483,
-+		.tRP = 15362,
-+		.tRAS = 40967,
-+		.tRC = 56330,
-+		.tRFC = 138266,
-+		.tXSR = 204839,
-+
-+		.tREF = 7798,
-+
-+		.tXP = 2,
-+		.tCKE = 4,
-+		.tWTR = 2,
-+	},
-+};
-+
- static const struct sdram_timings nokia_166mhz_timings[] = {
- 	{
- 		.casl = 3,
-@@ -65,12 +86,35 @@ static const struct sdram_timings nokia_166mhz_timings[] = {
- 	},
- };
- 
-+static const struct sdram_timings nokia_195dot2mhz_timings[] = {
-+	{
-+		.casl = 3,
-+		.tDAL = 30725,
-+		.tDPL = 15362,
-+		.tRRD = 10241,
-+		.tRCD = 20483,
-+		.tRP = 15362,
-+		.tRAS = 40967,
-+		.tRC = 56330,
-+		.tRFC = 138266,
-+		.tXSR = 204839,
-+
-+		.tREF = 7752,
-+
-+		.tXP = 2,
-+		.tCKE = 4,
-+		.tWTR = 2,
-+	},
-+};
-+
- static const struct {
- 	long rate;
- 	struct sdram_timings const *data;
- } nokia_timings[] = {
- 	{ 83000000, nokia_166mhz_timings },
-+	{ 97600000, nokia_97dot6mhz_timings },
- 	{ 166000000, nokia_166mhz_timings },
-+	{ 195200000, nokia_195dot2mhz_timings },
- };
- static struct omap_sdrc_params nokia_sdrc_params[ARRAY_SIZE(nokia_timings) + 1];
- 
--- 
-1.5.6.5
-
+Regards,
+Nishanth Menon
