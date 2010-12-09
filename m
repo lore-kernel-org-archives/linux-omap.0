@@ -1,98 +1,209 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: OMAP HSMMC problems with off-mode
-Date: Thu, 09 Dec 2010 09:50:23 -0800
-Message-ID: <87zkseal9c.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.1012071101590.13430@utopia.booyaka.com>
-	<4CFE9059.1080202@nokia.com>
-	<AANLkTimKCBm0+NTgJWvyivBqv0DoQhwMbsU2uxruoDot@mail.gmail.com>
-	<alpine.DEB.2.00.1012071548490.13430@utopia.booyaka.com>
+Subject: Re: [PATCH v3] OMAP2+: disable idle early in the suspend sequence
+Date: Thu, 09 Dec 2010 10:00:44 -0800
+Message-ID: <87r5dqaks3.fsf@deeprootsystems.com>
+References: <1291916398-18117-1-git-send-email-jean.pihet@newoldbits.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:62850 "EHLO
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:56489 "EHLO
 	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753944Ab0LIRu1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 12:50:27 -0500
-Received: by pwj3 with SMTP id 3so586803pwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 09:50:27 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1012071548490.13430@utopia.booyaka.com> (Paul
-	Walmsley's message of "Tue, 7 Dec 2010 15:56:37 -0700 (MST)")
+	with ESMTP id S1755018Ab0LISAt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 13:00:49 -0500
+Received: by pwj3 with SMTP id 3so589390pwj.19
+        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 10:00:49 -0800 (PST)
+In-Reply-To: <1291916398-18117-1-git-send-email-jean.pihet@newoldbits.com>
+	(jean pihet's message of "Thu, 9 Dec 2010 18:39:58 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sawant@ti.com" <sawant@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>
+To: jean.pihet@newoldbits.com
+Cc: linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-Paul Walmsley <paul@pwsan.com> writes:
+jean.pihet@newoldbits.com writes:
 
-> Hi,
+> From: Jean Pihet <j-pihet@ti.com>
 >
-> On Tue, 7 Dec 2010, Chikkature Rajashekar, Madhusudhan wrote:
+> Some bad interaction between the idle and the suspend paths has been
+> identified: the idle code is called during the suspend enter and exit
+> sequences. This could cause corruption or lock-up of resources.
 >
->> On Tue, Dec 7, 2010 at 1:51 PM, Adrian Hunter <adrian.hunter@nokia.c=
-om> wrote:
->> >
->> > It is at least because omap_pm_get_dev_context_loss_count() is not
->> > implemented. =C2=A0Tero Kristo was looking at that recently.
->> >
->>=20
->> Yes. I agree that is the problem. In the .32 kernel I had hooked it =
-to
->> "get_last_off_on_transaction_id" which helped.
->> But that functionality does not exist anymore. So something equivale=
-nt
->> to tell the driver when the OFF was hit will make it work.
+> The solution is to move the calls to disable_hlt at the very beginning
+> of the suspend sequence (ex. in omap3_pm_begin instead of
+> omap3_pm_prepare), and the call to enable_hlt at the very end of
+> the suspend sequence (ex. in omap3_pm_end instead of omap3_pm_finish).
 >
-> OK, let's see if we can get that fixed in at least some trivial=20
-> way for 2.6.38.  While working on this, I applied this trivial patch:
+> Tested with RET and OFF on Beagle and OMAP3EVM.
 >
-> diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/o=
-map-pm-noop.c
-> index e129ce8..781aa5f 100644
-> --- a/arch/arm/plat-omap/omap-pm-noop.c
-> +++ b/arch/arm/plat-omap/omap-pm-noop.c
-> @@ -30,6 +30,8 @@ struct omap_opp *dsp_opps;
->  struct omap_opp *mpu_opps;
->  struct omap_opp *l3_opps;
-> =20
-> +static int dummy_context_loss_counter;
-> +
->  /*
->   * Device-driver-originated constraints (via board-*.c files)
->   */
-> @@ -303,7 +305,7 @@ int omap_pm_get_dev_context_loss_count(struct dev=
-ice *dev)
->  	 * off counter.
->  	 */
-> =20
-> -	return 0;
-> +	return dummy_context_loss_counter++;
->  }
-> =20
-> =20
->
-> ... which causes drivers to believe that device context has been lost=
-=20
-> after each call to omap_pm_get_dev_context_loss_count().  Brutal, but=
-=20
-> effective for chasing out context save/restore bugs. =20
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
+OK, one more time... can you Cc linux-arm-kernel as well.
 
-I verified that this, in combination with your other patch[1] results i=
-n
-working off-suspend with MMC on 34xx/n900, 35xx/beagle and 36xx/zoom3.
+This avoids having to repost to linux-arm-kernel before final merge.
+After that, will queue in pm-next for 2.6.38.
 
-Paul, do you want to submit a formal patch for this for 2.6.38? if not,
-I can add a changelog and queue this with other PM core changes for 2.6=
-=2E38.
+Thanks,
 
 Kevin
 
-[1] MMC: omap_hsmmc: enable interface clock before calling mmc_host_ena=
-ble()
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+> v1:
+>  Support for OMAP3 only.
+>  Tested on board.
+>
+> v2:
+>  Added support for OMAP2 and OMAP4.
+>  Compile tested only for OMAP2 and OMAP4.
+>  Tested on board for OMAP3.
+>
+> v3: 
+>  Rebased on Kevin's latest 'OMAP2+: PM/serial: fix console semaphore acquire during suspend', cf. http://marc.info/?l=linux-omap&m=129184804805075&w=2
+>  Removed the empty _pm_prepare and _pm_finish functions.
+>
+>  arch/arm/mach-omap2/pm24xx.c |   16 ++--------------
+>  arch/arm/mach-omap2/pm34xx.c |   15 ++-------------
+>  arch/arm/mach-omap2/pm44xx.c |   16 ++--------------
+>  3 files changed, 6 insertions(+), 41 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+> index 1e031d0..6cde8ed 100644
+> --- a/arch/arm/mach-omap2/pm24xx.c
+> +++ b/arch/arm/mach-omap2/pm24xx.c
+> @@ -301,14 +301,8 @@ out:
+>  
+>  static int omap2_pm_begin(suspend_state_t state)
+>  {
+> -	suspend_state = state;
+> -	return 0;
+> -}
+> -
+> -static int omap2_pm_prepare(void)
+> -{
+> -	/* We cannot sleep in idle until we have resumed */
+>  	disable_hlt();
+> +	suspend_state = state;
+>  	return 0;
+>  }
+>  
+> @@ -349,22 +343,16 @@ static int omap2_pm_enter(suspend_state_t state)
+>  	return ret;
+>  }
+>  
+> -static void omap2_pm_finish(void)
+> -{
+> -	enable_hlt();
+> -}
+> -
+>  static void omap2_pm_end(void)
+>  {
+>  	suspend_state = PM_SUSPEND_ON;
+> +	enable_hlt();
+>  	return;
+>  }
+>  
+>  static struct platform_suspend_ops omap_pm_ops = {
+>  	.begin		= omap2_pm_begin,
+> -	.prepare	= omap2_pm_prepare,
+>  	.enter		= omap2_pm_enter,
+> -	.finish		= omap2_pm_finish,
+>  	.end		= omap2_pm_end,
+>  	.valid		= suspend_valid_only_mem,
+>  };
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 648b8c5..5bf344a 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -529,12 +529,6 @@ out:
+>  }
+>  
+>  #ifdef CONFIG_SUSPEND
+> -static int omap3_pm_prepare(void)
+> -{
+> -	disable_hlt();
+> -	return 0;
+> -}
+> -
+>  static int omap3_pm_suspend(void)
+>  {
+>  	struct power_state *pwrst;
+> @@ -597,14 +591,10 @@ static int omap3_pm_enter(suspend_state_t unused)
+>  	return ret;
+>  }
+>  
+> -static void omap3_pm_finish(void)
+> -{
+> -	enable_hlt();
+> -}
+> -
+>  /* Hooks to enable / disable UART interrupts during suspend */
+>  static int omap3_pm_begin(suspend_state_t state)
+>  {
+> +	disable_hlt();
+>  	suspend_state = state;
+>  	omap_uart_enable_irqs(0);
+>  	return 0;
+> @@ -614,15 +604,14 @@ static void omap3_pm_end(void)
+>  {
+>  	suspend_state = PM_SUSPEND_ON;
+>  	omap_uart_enable_irqs(1);
+> +	enable_hlt();
+>  	return;
+>  }
+>  
+>  static struct platform_suspend_ops omap_pm_ops = {
+>  	.begin		= omap3_pm_begin,
+>  	.end		= omap3_pm_end,
+> -	.prepare	= omap3_pm_prepare,
+>  	.enter		= omap3_pm_enter,
+> -	.finish		= omap3_pm_finish,
+>  	.valid		= suspend_valid_only_mem,
+>  };
+>  #endif /* CONFIG_SUSPEND */
+> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+> index 54544b4..6aff996 100644
+> --- a/arch/arm/mach-omap2/pm44xx.c
+> +++ b/arch/arm/mach-omap2/pm44xx.c
+> @@ -31,12 +31,6 @@ struct power_state {
+>  static LIST_HEAD(pwrst_list);
+>  
+>  #ifdef CONFIG_SUSPEND
+> -static int omap4_pm_prepare(void)
+> -{
+> -	disable_hlt();
+> -	return 0;
+> -}
+> -
+>  static int omap4_pm_suspend(void)
+>  {
+>  	do_wfi();
+> @@ -59,28 +53,22 @@ static int omap4_pm_enter(suspend_state_t suspend_state)
+>  	return ret;
+>  }
+>  
+> -static void omap4_pm_finish(void)
+> -{
+> -	enable_hlt();
+> -	return;
+> -}
+> -
+>  static int omap4_pm_begin(suspend_state_t state)
+>  {
+> +	disable_hlt();
+>  	return 0;
+>  }
+>  
+>  static void omap4_pm_end(void)
+>  {
+> +	enable_hlt();
+>  	return;
+>  }
+>  
+>  static struct platform_suspend_ops omap_pm_ops = {
+>  	.begin		= omap4_pm_begin,
+>  	.end		= omap4_pm_end,
+> -	.prepare	= omap4_pm_prepare,
+>  	.enter		= omap4_pm_enter,
+> -	.finish		= omap4_pm_finish,
+>  	.valid		= suspend_valid_only_mem,
+>  };
+>  #endif /* CONFIG_SUSPEND */
