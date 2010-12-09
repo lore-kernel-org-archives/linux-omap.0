@@ -1,76 +1,33 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 11/14] OMAP4: PRCM: reorganize existing OMAP4 PRCM header
- files
-Date: Thu, 9 Dec 2010 23:31:57 +0100
-Message-ID: <4D0158DD.30200@ti.com>
-References: <20101207012242.3708.45451.stgit@twilight.localdomain> <20101207012514.3708.87532.stgit@twilight.localdomain> <4CFDEBB7.8040309@ti.com> <alpine.DEB.2.00.1012072340250.13430@utopia.booyaka.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 1/2] staging: tidspbridge: rmgr/node.c code cleanup
+Date: Fri, 10 Dec 2010 01:02:18 +0200
+Message-ID: <AANLkTikDMWe-m1oGazrCwAXzLP9emogPLfQ8QuznCDtr@mail.gmail.com>
+References: <1291931258-30744-1-git-send-email-ionut.nicu@mindbit.ro>
+	<1291931258-30744-2-git-send-email-ionut.nicu@mindbit.ro>
+	<1291933352.23672.52.camel@atlantis.mindbit.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49515 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754856Ab0LIWcH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 17:32:07 -0500
-In-Reply-To: <alpine.DEB.2.00.1012072340250.13430@utopia.booyaka.com>
+Received: from mail-bw0-f45.google.com ([209.85.214.45]:41431 "EHLO
+	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752665Ab0LIXCT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 18:02:19 -0500
+Received: by bwz16 with SMTP id 16so3322813bwz.4
+        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 15:02:18 -0800 (PST)
+In-Reply-To: <1291933352.23672.52.camel@atlantis.mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Ionut Nicu <ionut.nicu@mindbit.ro>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Salut Paul,
+On Fri, Dec 10, 2010 at 12:22 AM, Ionut Nicu <ionut.nicu@mindbit.ro> wrote:
+> I tried removing the first check and tested with the
+> userspace-dspbridge strmcopy application, but I noticed the DSP hangs if
+> I try to use it with anything else than the copy mode.
+>
+> Are the other modes (rdma, zerocopy) not supported at all?
 
-On 12/8/2010 7:47 AM, Paul Walmsley wrote:
-> Salut Beno=EEt,
->
-> On Tue, 7 Dec 2010, Cousson, Benoit wrote:
->
->> Salut Paul,
->>
->> On 12/7/2010 2:25 AM, Paul Walmsley wrote:
->>> Split the existing cm44xx.h file into cm1_44xx.h and cm2_44xx.h fil=
-es
->>> so they match their underlying OMAP hardware modules.  Add clockdom=
-ain
->>> offset information.
->>>
->>> Add header files for the MPU local PRCM, prcm_mpu44xx.h, and for th=
-e
->>> SCRM, scrm44xx.h.  SCRM register offsets still need to be added; TI
->>> should do this.
->>
->> And we did it :-)
->
-> Even better :-)
->
->> I sent it last week along with clock data series:
->> https://patchwork.kernel.org/patch/373751/
->>
->> OK, I've just realized that it was a little bit hidden in the clock =
-data
->> patch, and maybe we should have been sent two patches.
->> Sorry for that. Do you want to take it in that series, or should I r=
-e-sent the
->> clock data one?
->
-> I guess it's better done in the clock series; that should avoid a bra=
-nch
-> dependency between the PRCM patchsets and the clock patch sets.
->
-> One thing that would be nice on the scrm44xx.h file is to keep the _O=
-=46FSET
-> macros.  It would be nice in the long run to get rid of the absolute
-> addressing macros in case someone decides to shuffle around the IP bl=
-ock
-> addresses again... can you update your clock series with that change?
+AFAIK that's the case.
 
-OK, this is done. I've just posted it.
-
-Regards,
-Benoit
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Felipe Contreras
