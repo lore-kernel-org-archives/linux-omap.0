@@ -1,233 +1,95 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH v3] OMAP2+: disable idle early in the suspend sequence
-Date: Thu, 9 Dec 2010 21:05:19 +0100
-Message-ID: <AANLkTimNUjyzWP7inadpQA60tn3yp-x3bANYC8=6UPPR@mail.gmail.com>
-References: <1291916398-18117-1-git-send-email-jean.pihet@newoldbits.com>
-	<87r5dqaks3.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2 1/2] I2C: i2c-omap: Change device name: i2c_omap -> omap_i2c
+Date: Thu, 09 Dec 2010 12:46:35 -0800
+Message-ID: <87wrni7jys.fsf@deeprootsystems.com>
+References: <1291904657-32729-1-git-send-email-b-cousson@ti.com>
+	<1291904657-32729-2-git-send-email-b-cousson@ti.com>
+	<878vzydgxr.fsf@deeprootsystems.com>
+	<20101209190110.GR20097@trinity.fluff.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:55979 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757124Ab0LIUFU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 15:05:20 -0500
-Received: by vws16 with SMTP id 16so1912849vws.19
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 12:05:19 -0800 (PST)
-In-Reply-To: <87r5dqaks3.fsf@deeprootsystems.com>
+Received: from mail-gx0-f180.google.com ([209.85.161.180]:42517 "EHLO
+	mail-gx0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756655Ab0LIUql (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 15:46:41 -0500
+Received: by gxk19 with SMTP id 19so1752542gxk.11
+        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 12:46:40 -0800 (PST)
+In-Reply-To: <20101209190110.GR20097@trinity.fluff.org> (Ben Dooks's message
+	of "Thu, 9 Dec 2010 19:01:10 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Ben Dooks <ben-i2c@fluff.org>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Thu, Dec 9, 2010 at 7:00 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> jean.pihet@newoldbits.com writes:
->
->> From: Jean Pihet <j-pihet@ti.com>
->>
->> Some bad interaction between the idle and the suspend paths has been
->> identified: the idle code is called during the suspend enter and exi=
-t
->> sequences. This could cause corruption or lock-up of resources.
->>
->> The solution is to move the calls to disable_hlt at the very beginni=
-ng
->> of the suspend sequence (ex. in omap3_pm_begin instead of
->> omap3_pm_prepare), and the call to enable_hlt at the very end of
->> the suspend sequence (ex. in omap3_pm_end instead of omap3_pm_finish=
-).
->>
->> Tested with RET and OFF on Beagle and OMAP3EVM.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->
-> OK, one more time... can you Cc linux-arm-kernel as well.
-Done!
+Ben Dooks <ben-i2c@fluff.org> writes:
 
-> This avoids having to repost to linux-arm-kernel before final merge.
-> After that, will queue in pm-next for 2.6.38.
+> On Thu, Dec 09, 2010 at 08:55:28AM -0800, Kevin Hilman wrote:
+>> Ben,
+>> 
+>> > The convention for omap device naming is omap_XXX.
+>> >
+>> > Rename the device and driver name in order to stick
+>> > to this naming convention.
 >
-> Thanks,
+> Renaming stuff like this is going to have an impact on the userspace
+> as anyone looking through /sys's driver heirarchy is going to miss the
+> old name... 
 >
-> Kevin
+> It all depends if you really want to go ahead with this...
+>
 
-Jean
+Yes, we are aware of the userspace impact, but this name change makes
+all devices on OMAP have consistent names and actually improves the
+ability to have userspace tools have consistent naming as well.
 
+Kevin
+
+>> > Change device name in clock nodes as well.
+>> >
+>> > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+>> > c: Paul Walmsley <paul@pwsan.com>
+>> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>> > Cc: Rajendra Nayak <rnayak@ti.com>
+>> > Cc: Ben Dooks <ben-i2c@fluff.org>
+>> > ---
+>> >  arch/arm/mach-omap1/clock_data.c     |    6 +++---
+>> >  arch/arm/mach-omap2/clock2420_data.c |    8 ++++----
+>> >  arch/arm/mach-omap2/clock2430_data.c |    8 ++++----
+>> >  arch/arm/mach-omap2/clock3xxx_data.c |   12 ++++++------
+>> >  arch/arm/mach-omap2/clock44xx_data.c |   16 ++++++++--------
+>> >  arch/arm/plat-omap/i2c.c             |    2 +-
+>> >  drivers/i2c/busses/i2c-omap.c        |    4 ++--
+>> >  7 files changed, 28 insertions(+), 28 deletions(-)
+>> 
+>> [...]
+>> 
+>> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>> > index 760b8be..9d09083 100644
+>> > --- a/drivers/i2c/busses/i2c-omap.c
+>> > +++ b/drivers/i2c/busses/i2c-omap.c
+>> > @@ -1139,7 +1139,7 @@ static struct platform_driver omap_i2c_driver = {
+>> >  	.probe		= omap_i2c_probe,
+>> >  	.remove		= omap_i2c_remove,
+>> >  	.driver		= {
+>> > -		.name	= "i2c_omap",
+>> > +		.name	= "omap_i2c",
+>> >  		.owner	= THIS_MODULE,
+>> >  	},
+>> >  };
+>> > @@ -1161,4 +1161,4 @@ module_exit(omap_i2c_exit_driver);
+>> >  MODULE_AUTHOR("MontaVista Software, Inc. (and others)");
+>> >  MODULE_DESCRIPTION("TI OMAP I2C bus adapter");
+>> >  MODULE_LICENSE("GPL");
+>> > -MODULE_ALIAS("platform:i2c_omap");
+>> > +MODULE_ALIAS("platform:omap_i2c");
+>> 
+>> With your ack for the name change in the driver, we can merge this
+>> through the OMAP tree with the other core changes.
+>> 
+>> Thanks,
+>> 
+>> Kevin
+>> 
 >
->> ---
->> v1:
->> =A0Support for OMAP3 only.
->> =A0Tested on board.
->>
->> v2:
->> =A0Added support for OMAP2 and OMAP4.
->> =A0Compile tested only for OMAP2 and OMAP4.
->> =A0Tested on board for OMAP3.
->>
->> v3:
->> =A0Rebased on Kevin's latest 'OMAP2+: PM/serial: fix console semapho=
-re acquire during suspend', cf. http://marc.info/?l=3Dlinux-omap&m=3D12=
-9184804805075&w=3D2
->> =A0Removed the empty _pm_prepare and _pm_finish functions.
->>
->> =A0arch/arm/mach-omap2/pm24xx.c | =A0 16 ++--------------
->> =A0arch/arm/mach-omap2/pm34xx.c | =A0 15 ++-------------
->> =A0arch/arm/mach-omap2/pm44xx.c | =A0 16 ++--------------
->> =A03 files changed, 6 insertions(+), 41 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24=
-xx.c
->> index 1e031d0..6cde8ed 100644
->> --- a/arch/arm/mach-omap2/pm24xx.c
->> +++ b/arch/arm/mach-omap2/pm24xx.c
->> @@ -301,14 +301,8 @@ out:
->>
->> =A0static int omap2_pm_begin(suspend_state_t state)
->> =A0{
->> - =A0 =A0 suspend_state =3D state;
->> - =A0 =A0 return 0;
->> -}
->> -
->> -static int omap2_pm_prepare(void)
->> -{
->> - =A0 =A0 /* We cannot sleep in idle until we have resumed */
->> =A0 =A0 =A0 disable_hlt();
->> + =A0 =A0 suspend_state =3D state;
->> =A0 =A0 =A0 return 0;
->> =A0}
->>
->> @@ -349,22 +343,16 @@ static int omap2_pm_enter(suspend_state_t stat=
-e)
->> =A0 =A0 =A0 return ret;
->> =A0}
->>
->> -static void omap2_pm_finish(void)
->> -{
->> - =A0 =A0 enable_hlt();
->> -}
->> -
->> =A0static void omap2_pm_end(void)
->> =A0{
->> =A0 =A0 =A0 suspend_state =3D PM_SUSPEND_ON;
->> + =A0 =A0 enable_hlt();
->> =A0 =A0 =A0 return;
->> =A0}
->>
->> =A0static struct platform_suspend_ops omap_pm_ops =3D {
->> =A0 =A0 =A0 .begin =A0 =A0 =A0 =A0 =A0=3D omap2_pm_begin,
->> - =A0 =A0 .prepare =A0 =A0 =A0 =A0=3D omap2_pm_prepare,
->> =A0 =A0 =A0 .enter =A0 =A0 =A0 =A0 =A0=3D omap2_pm_enter,
->> - =A0 =A0 .finish =A0 =A0 =A0 =A0 =3D omap2_pm_finish,
->> =A0 =A0 =A0 .end =A0 =A0 =A0 =A0 =A0 =A0=3D omap2_pm_end,
->> =A0 =A0 =A0 .valid =A0 =A0 =A0 =A0 =A0=3D suspend_valid_only_mem,
->> =A0};
->> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34=
-xx.c
->> index 648b8c5..5bf344a 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -529,12 +529,6 @@ out:
->> =A0}
->>
->> =A0#ifdef CONFIG_SUSPEND
->> -static int omap3_pm_prepare(void)
->> -{
->> - =A0 =A0 disable_hlt();
->> - =A0 =A0 return 0;
->> -}
->> -
->> =A0static int omap3_pm_suspend(void)
->> =A0{
->> =A0 =A0 =A0 struct power_state *pwrst;
->> @@ -597,14 +591,10 @@ static int omap3_pm_enter(suspend_state_t unus=
-ed)
->> =A0 =A0 =A0 return ret;
->> =A0}
->>
->> -static void omap3_pm_finish(void)
->> -{
->> - =A0 =A0 enable_hlt();
->> -}
->> -
->> =A0/* Hooks to enable / disable UART interrupts during suspend */
->> =A0static int omap3_pm_begin(suspend_state_t state)
->> =A0{
->> + =A0 =A0 disable_hlt();
->> =A0 =A0 =A0 suspend_state =3D state;
->> =A0 =A0 =A0 omap_uart_enable_irqs(0);
->> =A0 =A0 =A0 return 0;
->> @@ -614,15 +604,14 @@ static void omap3_pm_end(void)
->> =A0{
->> =A0 =A0 =A0 suspend_state =3D PM_SUSPEND_ON;
->> =A0 =A0 =A0 omap_uart_enable_irqs(1);
->> + =A0 =A0 enable_hlt();
->> =A0 =A0 =A0 return;
->> =A0}
->>
->> =A0static struct platform_suspend_ops omap_pm_ops =3D {
->> =A0 =A0 =A0 .begin =A0 =A0 =A0 =A0 =A0=3D omap3_pm_begin,
->> =A0 =A0 =A0 .end =A0 =A0 =A0 =A0 =A0 =A0=3D omap3_pm_end,
->> - =A0 =A0 .prepare =A0 =A0 =A0 =A0=3D omap3_pm_prepare,
->> =A0 =A0 =A0 .enter =A0 =A0 =A0 =A0 =A0=3D omap3_pm_enter,
->> - =A0 =A0 .finish =A0 =A0 =A0 =A0 =3D omap3_pm_finish,
->> =A0 =A0 =A0 .valid =A0 =A0 =A0 =A0 =A0=3D suspend_valid_only_mem,
->> =A0};
->> =A0#endif /* CONFIG_SUSPEND */
->> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44=
-xx.c
->> index 54544b4..6aff996 100644
->> --- a/arch/arm/mach-omap2/pm44xx.c
->> +++ b/arch/arm/mach-omap2/pm44xx.c
->> @@ -31,12 +31,6 @@ struct power_state {
->> =A0static LIST_HEAD(pwrst_list);
->>
->> =A0#ifdef CONFIG_SUSPEND
->> -static int omap4_pm_prepare(void)
->> -{
->> - =A0 =A0 disable_hlt();
->> - =A0 =A0 return 0;
->> -}
->> -
->> =A0static int omap4_pm_suspend(void)
->> =A0{
->> =A0 =A0 =A0 do_wfi();
->> @@ -59,28 +53,22 @@ static int omap4_pm_enter(suspend_state_t suspen=
-d_state)
->> =A0 =A0 =A0 return ret;
->> =A0}
->>
->> -static void omap4_pm_finish(void)
->> -{
->> - =A0 =A0 enable_hlt();
->> - =A0 =A0 return;
->> -}
->> -
->> =A0static int omap4_pm_begin(suspend_state_t state)
->> =A0{
->> + =A0 =A0 disable_hlt();
->> =A0 =A0 =A0 return 0;
->> =A0}
->>
->> =A0static void omap4_pm_end(void)
->> =A0{
->> + =A0 =A0 enable_hlt();
->> =A0 =A0 =A0 return;
->> =A0}
->>
->> =A0static struct platform_suspend_ops omap_pm_ops =3D {
->> =A0 =A0 =A0 .begin =A0 =A0 =A0 =A0 =A0=3D omap4_pm_begin,
->> =A0 =A0 =A0 .end =A0 =A0 =A0 =A0 =A0 =A0=3D omap4_pm_end,
->> - =A0 =A0 .prepare =A0 =A0 =A0 =A0=3D omap4_pm_prepare,
->> =A0 =A0 =A0 .enter =A0 =A0 =A0 =A0 =A0=3D omap4_pm_enter,
->> - =A0 =A0 .finish =A0 =A0 =A0 =A0 =3D omap4_pm_finish,
->> =A0 =A0 =A0 .valid =A0 =A0 =A0 =A0 =A0=3D suspend_valid_only_mem,
->> =A0};
->> =A0#endif /* CONFIG_SUSPEND */
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -- 
