@@ -1,60 +1,45 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 4/7] mfd: TWL6030: OMAP4: Registering the TWL6030-usb
- device
-Date: Thu, 09 Dec 2010 15:46:44 +0300
-Message-ID: <4D00CFB4.60901@ru.mvista.com>
-References: <1291824116-7143-1-git-send-email-hemahk@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v6 03/12] media: Entities, pads and links
+Date: Thu, 9 Dec 2010 13:53:21 +0100
+Message-ID: <201012091353.22971.laurent.pinchart@ideasonboard.com>
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <201012071911.39270.hverkuil@xs4all.nl> <20101207190328.GA789@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f171.google.com ([209.85.215.171]:48583 "EHLO
-	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755305Ab0LIMrp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 07:47:45 -0500
-In-Reply-To: <1291824116-7143-1-git-send-email-hemahk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101207190328.GA789@rakim.wolfsonmicro.main>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, lennart@poettering.net
 List-Id: linux-omap@vger.kernel.org
-To: Hema HK <hemahk@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hello.
+Hi,
 
-On 08-12-2010 19:01, Hema HK wrote:
+On Tuesday 07 December 2010 20:03:28 Mark Brown wrote:
+> On Tue, Dec 07, 2010 at 07:11:39PM +0100, Hans Verkuil wrote:
+> > Ah, now I understand what you mean. Would 'activated' be better than
+> > 'active'?
+> 
+> Better, yes, though it still sounds a bit like something should be
+> actively (IYSWIM) happening.   In the absence of better ideas I could go
+> with this.
+> 
+> > Or perhaps just say: the link 'is on' or the link 'is switched on'?
+> > 
+> > So: ...LINK_SWITCHED_ON (sorry, forgot what the prefix is).
+> > 
+> > Actually, I think 'switched on' is a pretty good description of what is
+> > going on in the hardware.
+> 
+> I prefer activated, this makes me think of power.  Bear in mind that for
+> most audio the power is a big portion of the control - either the audio
+> is analogue or it looks like it.
 
-> Registering the twl6030-usb transceiver device as a child to twl6030 core.
-> Removed the NOP transceiver init call from board file.
+Do I understand it correctly that the outcome of this discussion is that I 
+just need to rename active to activated when talking about links ?
 
-> Populated twl4030_usb_data platform data structure with the function
-> pointers for OMAP4430 internal PHY operation to be used twl630-usb driver.
-                                                          ^ by?
+-- 
+Regards,
 
-
-> Signed-off-by: Hema HK<hemahk@ti.com>
-> Cc: Samuel Ortiz<sameo@linux.intel.com>
-> Cc: Felipe Balbi<balbi@ti.com>
-> Cc: Tony Lindgren<tony@atomide.com>
-[...]
-
-> Index: linux-2.6/drivers/mfd/twl-core.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/mfd/twl-core.c
-> +++ linux-2.6/drivers/mfd/twl-core.c
-[...]
-> @@ -682,6 +683,43 @@ add_children(struct twl4030_platform_dat
-[...]
-> +		child = add_child(0, "twl6030_usb",
-> +			pdata->usb, sizeof(*pdata->usb),
-> +			true,
-> +			/* irq1 = VBUS_PRES, irq0 = USB ID*/
-
-    You forgot space before */.
-
-> Index: linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-> ===================================================================
-> --- linux-2.6.orig/arch/arm/mach-omap2/board-omap4panda.c
-> +++ linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-
-    Your patch is not sorted.
-
-WBR, Sergei
+Laurent Pinchart
