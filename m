@@ -1,49 +1,75 @@
 From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH 0/8] arm: omap: add support for RM-680
-Date: Thu,  9 Dec 2010 18:39:16 +0200
-Message-ID: <1291912764-12823-1-git-send-email-aaro.koskinen@nokia.com>
+Subject: [PATCH 2/8] arm: omap: add sdram-nokia.h
+Date: Thu,  9 Dec 2010 18:39:18 +0200
+Message-ID: <1291912764-12823-3-git-send-email-aaro.koskinen@nokia.com>
+References: <1291912764-12823-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:45526 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:45549 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751420Ab0LIQie (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Dec 2010 11:38:34 -0500
+	id S1751420Ab0LIQif (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Dec 2010 11:38:35 -0500
+In-Reply-To: <1291912764-12823-1-git-send-email-aaro.koskinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-These patches add initial support for Nokia RM-680 board.
+Add a header file for Nokia SDRAM functions. Based on patches by Juha
+Keski-Saari.
 
-Patches 1-7 are just preparation and make board-rx51-sdram.c reusable
-by renaming it to sdram-nokia.c etc.
-
-Patch 8 adds a new board and requires updated mach-types from
-http://www.arm.linux.org.uk/developer/machines/download.php in order
-to compile.
-
-These are based on top of linux-omap/master
-(92f446c47b18827e61483787668b0bb5f7a033b6).
-
-...
-
-Aaro Koskinen (8):
-  arm: omap: rename board-rx51-sdram.c to sdram-nokia.c
-  arm: omap: add sdram-nokia.h
-  arm: omap: sdram-nokia: prepare for new memory timings
-  arm: omap: sdram-nokia: use array to list timings
-  arm: omap: sdram-nokia: improve error handling
-  arm: omap: sdram-nokia: delete redundant timing data
-  arm: omap: sdram-nokia: add 97.6/195.2 MHz timing data
-  arm: omap: add minimal support for RM-680
-
- arch/arm/mach-omap2/Kconfig                        |    6 +
- arch/arm/mach-omap2/Makefile                       |    5 +-
- arch/arm/mach-omap2/board-rm680.c                  |  187 ++++++++++++++++++++
- arch/arm/mach-omap2/board-rx51.c                   |    4 +-
- .../{board-rx51-sdram.c => sdram-nokia.c}          |  102 +++++++++---
- arch/arm/mach-omap2/sdram-nokia.h                  |   12 ++
- arch/arm/plat-omap/include/plat/uncompress.h       |    1 +
- 7 files changed, 292 insertions(+), 25 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-rm680.c
- rename arch/arm/mach-omap2/{board-rx51-sdram.c => sdram-nokia.c} (66%)
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ arch/arm/mach-omap2/board-rx51.c  |    2 +-
+ arch/arm/mach-omap2/sdram-nokia.c |    1 +
+ arch/arm/mach-omap2/sdram-nokia.h |   12 ++++++++++++
+ 3 files changed, 14 insertions(+), 1 deletions(-)
  create mode 100644 arch/arm/mach-omap2/sdram-nokia.h
+
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index b7df8e3..7362c91 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -32,10 +32,10 @@
+ 
+ #include "mux.h"
+ #include "pm.h"
++#include "sdram-nokia.h"
+ 
+ #define RX51_GPIO_SLEEP_IND 162
+ 
+-struct omap_sdrc_params *nokia_get_sdram_timings(void);
+ extern void rx51_video_mem_init(void);
+ 
+ static struct gpio_led gpio_leds[] = {
+diff --git a/arch/arm/mach-omap2/sdram-nokia.c b/arch/arm/mach-omap2/sdram-nokia.c
+index 690202b..261efc8 100644
+--- a/arch/arm/mach-omap2/sdram-nokia.c
++++ b/arch/arm/mach-omap2/sdram-nokia.c
+@@ -22,6 +22,7 @@
+ #include <plat/clock.h>
+ #include <plat/sdrc.h>
+ 
++#include "sdram-nokia.h"
+ 
+ /* In picoseconds, except for tREF (ns), tXP, tCKE, tWTR (clks) */
+ struct sdram_timings {
+diff --git a/arch/arm/mach-omap2/sdram-nokia.h b/arch/arm/mach-omap2/sdram-nokia.h
+new file mode 100644
+index 0000000..ee63da5
+--- /dev/null
++++ b/arch/arm/mach-omap2/sdram-nokia.h
+@@ -0,0 +1,12 @@
++/*
++ * SDRC register values for Nokia boards
++ *
++ * Copyright (C) 2010 Nokia
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++struct omap_sdrc_params *nokia_get_sdram_timings(void);
++
+-- 
+1.5.6.5
 
