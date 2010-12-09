@@ -1,58 +1,58 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v8 01/11] OMAP: GPIO: prepare for platform driver
-Date: Thu, 09 Dec 2010 15:19:04 -0800
-Message-ID: <87aake5yc7.fsf@deeprootsystems.com>
-References: <1290689318-10191-1-git-send-email-charu@ti.com>
-	<1290689318-10191-2-git-send-email-charu@ti.com>
-	<8762v292ld.fsf@deeprootsystems.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 0/5] OMAP4: hwmod data fixes and update
+Date: Fri, 10 Dec 2010 00:33:30 +0100
+Message-ID: <1291937615-18571-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:47405 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754288Ab0LIXTI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 18:19:08 -0500
-Received: by pva4 with SMTP id 4so624919pva.19
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 15:19:07 -0800 (PST)
-In-Reply-To: <8762v292ld.fsf@deeprootsystems.com> (Kevin Hilman's message of
-	"Thu, 09 Dec 2010 11:18:54 -0800")
+Received: from devils.ext.ti.com ([198.47.26.153]:52333 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754881Ab0LIXeW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 18:34:22 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, p-basak2@ti.com
+To: paul@pwsan.com, khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Hi Charu,
+Hi Paul,
 
-I owe you an apology.
+Here is a small set of OMAP4 hwmod data updates.
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Re-order properly the data that were a little bit shuffled during
+the previous merge window.
+Add the new reset flags introduced in 2.6.37 and that were not
+used in the hwmod data. The OMAP2 and OMAP3 fixes should come soon.
+Fix some missing field in the GPIO OMAP4 hwmod data that I missed
+during the review.
+IVA and DSP are added just to allow the processors device creation
+at boot time and avoid the warnings.
 
-[...]
+Thanks to Charu for testing the GPIO / WD_TIMER changes.
+Thanks to Govindraj for testing the UART changes. 
 
-> I just noticed while testing on 36xx/Zoom3 that GPIO wakeups are no
-> longer working after this series.
->
-> The problem seems to be that for OMAP2+, this series removed manual
-> SYSCONFIG register setting in favor of using omap_hwmod (which is good),
-> however some of the SYSCONFIG values, specifically, in the current code,
-> the ENAWAKEUP bit was set in each bank, but this is no longer the
-> default with omap_hwmod.
+The series is based on lo/for-next (v2.6.37-rc5-66-ga2814df) and is
+available here:
+git://gitorious.org/omap-pm/linux.git for_2.6.38/hwmod_data
 
-I was wrong here.  The enable wakeup mode was supposed to be enabled by
-default in the hwmod, but due to a bug[1], it was not.  This problem was
-not directly related to your series.
+Please note that there is a slight dependency with the following patch
+due to the name change of the iva fclk:
+OMAP4: clock data: Add missing DPLL x2 clock node
+https://patchwork.kernel.org/patch/396612/
 
-[...]
+Tested on sdp4430 + ES2.0/ES2.1.
 
-> ... but it shows that GPIO wakeups were not fully
-> tested with this series.  In the future, along with reporting what
-> platforms it was testing on, it would be very helpful to include a
-> summary of how the series was tested.
+Regards,
+Benoit
 
-I apologize for accusing you of not testing GPIO wakeups.  I now know
-that this functionality was broken by patches independent of your
-series, so I deeply regret the accusation.
 
-Kevin
+Benoit Cousson (5):
+  OMAP4: hwmod data: Fix hwmod entries order
+  OMAP4: hwmod data: Add SYSS_HAS_RESET_STATUS flag
+  OMAP4: hwmod data: Fix missing address in DMM and EMIF_FW
+  OMAP4: hwmod data: Add IVA and DSP
+  OMAP4: hwmod & clock data: Fix GPIO opt_clks and ocp_if iclk
 
-[1] http://marc.info/?l=linux-omap&m=129193625420446&w=2
+ arch/arm/mach-omap2/clock44xx_data.c       |   12 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 1256 ++++++++++++++++++----------
+ 2 files changed, 822 insertions(+), 446 deletions(-)
+
