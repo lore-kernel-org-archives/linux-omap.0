@@ -1,52 +1,60 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: [PATCH 2/2] ARM: Make CONFIG_FPE_NWFPE depend on !CONFIG_THUMB2_KERNEL
-Date: Thu,  9 Dec 2010 11:59:42 +0000
-Message-ID: <1291895982-4775-3-git-send-email-dave.martin@linaro.org>
-References: <1291895982-4775-1-git-send-email-dave.martin@linaro.org>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 4/7] mfd: TWL6030: OMAP4: Registering the TWL6030-usb
+ device
+Date: Thu, 09 Dec 2010 15:46:44 +0300
+Message-ID: <4D00CFB4.60901@ru.mvista.com>
+References: <1291824116-7143-1-git-send-email-hemahk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:34140 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754530Ab0LIMAS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 07:00:18 -0500
-Received: by wyb28 with SMTP id 28so2190121wyb.19
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 04:00:17 -0800 (PST)
-In-Reply-To: <1291895982-4775-1-git-send-email-dave.martin@linaro.org>
+Received: from mail-ey0-f171.google.com ([209.85.215.171]:48583 "EHLO
+	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755305Ab0LIMrp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 07:47:45 -0500
+In-Reply-To: <1291824116-7143-1-git-send-email-hemahk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Dave Martin <dave.martin@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
+To: Hema HK <hemahk@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Because the nwfpe support is unlikely to be used on new platforms
-and requires CONFIG_OABI_COMPAT, which is not generally used with
-ARMv7+, we shouldn't expect to build nwfpe support into a Thumb-2
-kernel.
+Hello.
 
-At present, nwfpe contains assembly code which isn't Thumb-2
-compatible, and for now it doesn't appear useful to port this
-code.
+On 08-12-2010 19:01, Hema HK wrote:
 
-All ARMv7-A/R platforms necessarily have VFPv3 hardware floating-
-point natively, making emulation unnecessary.
+> Registering the twl6030-usb transceiver device as a child to twl6030 core.
+> Removed the NOP transceiver init call from board file.
 
-Signed-off-by: Dave Martin <dave.martin@linaro.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
----
- arch/arm/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> Populated twl4030_usb_data platform data structure with the function
+> pointers for OMAP4430 internal PHY operation to be used twl630-usb driver.
+                                                          ^ by?
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index f9ca7f3..7e825c3 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1759,7 +1759,7 @@ comment "At least one emulation must be selected"
- 
- config FPE_NWFPE
- 	bool "NWFPE math emulation"
--	depends on !AEABI || OABI_COMPAT
-+	depends on (!AEABI || OABI_COMPAT) && !THUMB2_KERNEL
- 	---help---
- 	  Say Y to include the NWFPE floating point emulator in the kernel.
- 	  This is necessary to run most binaries. Linux does not currently
--- 
-1.7.1
 
+> Signed-off-by: Hema HK<hemahk@ti.com>
+> Cc: Samuel Ortiz<sameo@linux.intel.com>
+> Cc: Felipe Balbi<balbi@ti.com>
+> Cc: Tony Lindgren<tony@atomide.com>
+[...]
+
+> Index: linux-2.6/drivers/mfd/twl-core.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/mfd/twl-core.c
+> +++ linux-2.6/drivers/mfd/twl-core.c
+[...]
+> @@ -682,6 +683,43 @@ add_children(struct twl4030_platform_dat
+[...]
+> +		child = add_child(0, "twl6030_usb",
+> +			pdata->usb, sizeof(*pdata->usb),
+> +			true,
+> +			/* irq1 = VBUS_PRES, irq0 = USB ID*/
+
+    You forgot space before */.
+
+> Index: linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
+> ===================================================================
+> --- linux-2.6.orig/arch/arm/mach-omap2/board-omap4panda.c
+> +++ linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
+
+    Your patch is not sorted.
+
+WBR, Sergei
