@@ -1,35 +1,154 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] MFD: TWL/TPS: fix twl_probe section mismatch warning
- in mfd/twl-core.c
-Date: Thu, 9 Dec 2010 15:59:59 +0100
-Message-ID: <20101209145958.GN8884@sortiz-mobl>
-References: <1291776124-9570-1-git-send-email-bryan.wu@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH v5 2/3] omap4: opp: add OPP table data
+Date: Thu,  9 Dec 2010 09:13:47 -0600
+Message-ID: <1291907628-29199-3-git-send-email-nm@ti.com>
+References: <1291907628-29199-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:65298 "EHLO mga01.intel.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47469 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753911Ab0LIPAD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Dec 2010 10:00:03 -0500
-Content-Disposition: inline
-In-Reply-To: <1291776124-9570-1-git-send-email-bryan.wu@canonical.com>
+	id S1751631Ab0LIPN5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Dec 2010 10:13:57 -0500
+In-Reply-To: <1291907628-29199-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan Wu <bryan.wu@canonical.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org
+To: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
+Cc: Kevin <khilman@deeprootsystems.com>, Tony <tony@atomide.com>
 
-Hi Bryan,
+This patch adds OPP tables for OMAP4. New file has been added to keep
+the OMAP4 opp tables and the registration of these tables with the
+generic opp framework by OMAP SoC OPP interface.
 
-On Wed, Dec 08, 2010 at 10:42:04AM +0800, Bryan Wu wrote:
-> Fix the following section mismatch warning when building omap2plus_defconfig:
-> 
-> WARNING: vmlinux.o(.data+0x47d7c): Section mismatch in reference from the variable twl_driver to the function .init.text:twl_probe()
-> 
-Patch applied, thanks.
+Based on:
+http://dev.omapzoom.org/?p=santosh/kernel-omap4-base.git;a=blob;f=arch/arm/mach-omap2/opp44xx_data.c;h=252e3d0cb6050a64f390b9311c1c4977d74f762a;hb=refs/heads/omap4_next
 
-Cheers,
-Samuel.
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+v5:
+	added ARCH_HAS_OPP after rebase to rc3
+V4: http://marc.info/?t=128993379200006&r=1&w=2
+	switched data to .c file
+v3: http://marc.info/?l=linux-omap&m=128984926712794&w=2
+	* switched to using device_initcall to autoinitialize the
+	  opp tables
+v2: https://patchwork.kernel.org/patch/266921/
 
+ arch/arm/mach-omap2/Kconfig        |    2 +
+ arch/arm/mach-omap2/Makefile       |    1 +
+ arch/arm/mach-omap2/opp4xxx_data.c |   57 ++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h           |    5 +++
+ 4 files changed, 65 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/opp4xxx_data.c
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 102a7df..f85188d 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -46,6 +46,8 @@ config ARCH_OMAP4
+ 	select ARM_GIC
+ 	select PL310_ERRATA_588369
+ 	select ARM_ERRATA_720789
++	select ARCH_HAS_OPP
++	select PM_OPP if PM
+ 
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index fbbb6b3..ea217f5 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -51,6 +51,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sdrc2xxx.o
+ ifeq ($(CONFIG_PM_OPP),y)
+ obj-y					+= opp.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= opp3xxx_data.o
++obj-$(CONFIG_ARCH_OMAP4)		+= opp4xxx_data.o
+ endif
+ 
+ # Power Management
+diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
+new file mode 100644
+index 0000000..a11fa56
+--- /dev/null
++++ b/arch/arm/mach-omap2/opp4xxx_data.c
+@@ -0,0 +1,57 @@
++/*
++ * OMAP4 OPP table definitions.
++ *
++ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
++ *	Nishanth Menon
++ *	Kevin Hilman
++ *	Thara Gopinath
++ * Copyright (C) 2010 Nokia Corporation.
++ *      Eduardo Valentin
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#include <linux/module.h>
++
++#include <plat/cpu.h>
++
++#include "omap_opp_data.h"
++
++static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
++	/* MPU OPP1 - OPP50 */
++	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
++	/* MPU OPP2 - OPP100 */
++	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
++	/* MPU OPP3 - OPP-Turbo */
++	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
++	/* MPU OPP4 - OPP-SB */
++	OPP_INITIALIZER("mpu", false, 1008000000, 1350000),
++	/* L3 OPP1 - OPP50 */
++	OPP_INITIALIZER("l3_main_1", true, 100000000, 930000),
++	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
++	OPP_INITIALIZER("l3_main_1", true, 200000000, 1100000),
++	/* TODO: add IVA, DSP, aess, fdif, gpu */
++};
++
++/**
++ * omap4_opp_init() - initialize omap4 opp table
++ */
++static int __init omap4_opp_init(void)
++{
++	int r = -ENODEV;
++
++	if (!cpu_is_omap44xx())
++		return r;
++
++	r = omap_init_opp_table(omap44xx_opp_def_list,
++			ARRAY_SIZE(omap44xx_opp_def_list));
++
++	return r;
++}
++device_initcall(omap4_opp_init);
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 2031f15..a43e069 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -22,11 +22,16 @@ extern int omap3_idle_init(void);
+ 
+ #if defined(CONFIG_PM_OPP)
+ extern int omap3_opp_init(void);
++extern int omap4_opp_init(void);
+ #else
+ static inline int omap3_opp_init(void)
+ {
+ 	return -EINVAL;
+ }
++static inline int omap4_opp_init(void)
++{
++	return -EINVAL;
++}
+ #endif
+ 
+ struct cpuidle_params {
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+1.6.3.3
+
