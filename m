@@ -1,60 +1,42 @@
-From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 5/7] usb: musb: TWL6030: Selecting TWL6030_USB transceiver
-Date: Thu, 9 Dec 2010 10:42:43 +0530
-Message-ID: <AANLkTin9yXiaRbeBfX27PaYQS7NE+0wS9FUdJyyKjBmb@mail.gmail.com>
-References: <1291824130-7181-1-git-send-email-hemahk@ti.com>
-	<4CFFAC6F.9000808@ru.mvista.com>
+From: "Luca Ceresoli" <luca@lucaceresoli.net>
+Subject: Re: UbiFS + HWECC(?) + BeagleBoard = fail
+Date: Thu,  9 Dec 2010 09:30:48 +0100
+Message-ID: <LD5JNC$C40D8861A973796B25CD03BFFD0B4CA1@aruba.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CFFAC6F.9000808-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtpa1.aruba.it ([62.149.128.210]:46170 "HELO smtpw2.aruba.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751546Ab0LIIax convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 03:30:53 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: manningc2@actrix.gen.nz
+Cc: linux-omap@vger.kernel.org, notasas@gmail.com
 
-On Wed, Dec 8, 2010 at 9:33 PM, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org> =
-wrote:
-> Hello.
->
-> Hema HK wrote:
->
->> Selecting the twl6030-usb for OMAP4430SDP and OMAP4 PANDA board and
->> adding OMAP4 internal phy code for compilation
->
->> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
->> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->
-> [...]
->
->> Index: linux-2.6/drivers/usb/musb/Kconfig
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> --- linux-2.6.orig/drivers/usb/musb/Kconfig
->> +++ linux-2.6/drivers/usb/musb/Kconfig
->> @@ -12,6 +12,7 @@ config USB_MUSB_HDRC
->> =A0 =A0 =A0 =A0depends on (ARM || (BF54x && !BF544) || (BF52x && !BF=
-522 &&
->> !BF523))
->> =A0 =A0 =A0 =A0select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EV=
-M || BLACKFIN)
->> =A0 =A0 =A0 =A0select TWL4030_USB if MACH_OMAP_3430SDP
->> + =A0 =A0 =A0 select TWL6030_USB if (MACH_OMAP_3430SDP || MACH_OMAP4=
-_PANDA)
->
-> =A0 Parens are not necessary. Though the previous code uses them...
->
-OK.
+Charles Manning wrote:
+> Luca, I have been having similar problems on a hacked Overo kernel.
+> 
+> I have no problems with 2.6.35.
+> 
+> I tried just commenting out the define and disabling PREFETCH and did not get 
+> a good boot due to ubi not finding the volume info.
+> 
+> Are you loading up a UBI image with uboot?
+> 
+> Are you using the ubi volume as rootfs?
 
-Regards,
-Hema
-> WBR, Sergei
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To make it work again, I did from u-boot:
+- nand scrub (*completely* wipe the NAND)
+- ubi part nand0,3 (recreate partitions)
+- ubi create rootfs 400000
+- ...create other partitions...
+- ubi write ... (to rewrite rootfs)
+- finally, boot with the kernel having the define commented and PREFETCH off.
+
+Not all of these may be needed, but this way I got the board up and running again.
+
+Luca
+
+
