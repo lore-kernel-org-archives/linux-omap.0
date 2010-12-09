@@ -1,72 +1,87 @@
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: Re: [PATCH 1/2] ARM: Thumb-2: Make CONFIG_THUMB2_KERNEL depend on
- !CPU_V6
-Date: Thu, 9 Dec 2010 13:34:31 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1012091333460.10437@xanadu.home>
-References: <1291895982-4775-1-git-send-email-dave.martin@linaro.org> <1291895982-4775-2-git-send-email-dave.martin@linaro.org>
+From: Ben Dooks <ben-i2c@fluff.org>
+Subject: Re: [PATCH v2 1/2] I2C: i2c-omap: Change device name: i2c_omap ->
+	omap_i2c
+Date: Thu, 9 Dec 2010 19:01:10 +0000
+Message-ID: <20101209190110.GR20097@trinity.fluff.org>
+References: <1291904657-32729-1-git-send-email-b-cousson@ti.com> <1291904657-32729-2-git-send-email-b-cousson@ti.com> <878vzydgxr.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:51936 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756554Ab0LISee (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 13:34:34 -0500
-Received: by qwa26 with SMTP id 26so2916676qwa.19
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 10:34:33 -0800 (PST)
-In-Reply-To: <1291895982-4775-2-git-send-email-dave.martin@linaro.org>
+Received: from trinity.fluff.org ([89.16.178.74]:45061 "EHLO trinity.fluff.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755972Ab0LITBM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Dec 2010 14:01:12 -0500
+Content-Disposition: inline
+In-Reply-To: <878vzydgxr.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Ben Dooks <ben-i2c@fluff.org>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Thu, 9 Dec 2010, Dave Martin wrote:
+On Thu, Dec 09, 2010 at 08:55:28AM -0800, Kevin Hilman wrote:
+> Ben,
+> 
+> > The convention for omap device naming is omap_XXX.
+> >
+> > Rename the device and driver name in order to stick
+> > to this naming convention.
 
-> This makes sense, because Thumb-2 code can't execute on plain
-> ARMv6 processors.
-> 
-> This will avoid accidentally configuring a broken kernel where the
-> config otherwise would allow multiple architecture versions to
-> coexist in the same kernel.
-> 
-> Not adding !CPU_V5 etc., because the chance of anyone trying to
-> put v5 and v7 in the same kernel is low, and I'm not aware of
-> any mach which can do this.  These could be added later if it
-> matters.
-> 
-> Note that the rules may need to be refined if support for the
-> ARM1156J(F)-S processor is later added to the kernel, since this
-> processor supports the rare ARMv6T2 extensions, which add support
-> for Thumb-2 and a few other ARMv7 features.
-> 
-> Signed-off-by: Dave Martin <dave.martin@linaro.org>
-> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Renaming stuff like this is going to have an impact on the userspace
+as anyone looking through /sys's driver heirarchy is going to miss the
+old name... 
 
-Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
+It all depends if you really want to go ahead with this...
 
+> > Change device name in clock nodes as well.
+> >
+> > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> > c: Paul Walmsley <paul@pwsan.com>
+> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > Cc: Rajendra Nayak <rnayak@ti.com>
+> > Cc: Ben Dooks <ben-i2c@fluff.org>
+> > ---
+> >  arch/arm/mach-omap1/clock_data.c     |    6 +++---
+> >  arch/arm/mach-omap2/clock2420_data.c |    8 ++++----
+> >  arch/arm/mach-omap2/clock2430_data.c |    8 ++++----
+> >  arch/arm/mach-omap2/clock3xxx_data.c |   12 ++++++------
+> >  arch/arm/mach-omap2/clock44xx_data.c |   16 ++++++++--------
+> >  arch/arm/plat-omap/i2c.c             |    2 +-
+> >  drivers/i2c/busses/i2c-omap.c        |    4 ++--
+> >  7 files changed, 28 insertions(+), 28 deletions(-)
+> 
+> [...]
+> 
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> > index 760b8be..9d09083 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -1139,7 +1139,7 @@ static struct platform_driver omap_i2c_driver = {
+> >  	.probe		= omap_i2c_probe,
+> >  	.remove		= omap_i2c_remove,
+> >  	.driver		= {
+> > -		.name	= "i2c_omap",
+> > +		.name	= "omap_i2c",
+> >  		.owner	= THIS_MODULE,
+> >  	},
+> >  };
+> > @@ -1161,4 +1161,4 @@ module_exit(omap_i2c_exit_driver);
+> >  MODULE_AUTHOR("MontaVista Software, Inc. (and others)");
+> >  MODULE_DESCRIPTION("TI OMAP I2C bus adapter");
+> >  MODULE_LICENSE("GPL");
+> > -MODULE_ALIAS("platform:i2c_omap");
+> > +MODULE_ALIAS("platform:omap_i2c");
+> 
+> With your ack for the name change in the driver, we can merge this
+> through the OMAP tree with the other core changes.
+> 
+> Thanks,
+> 
+> Kevin
+> 
 
-> ---
->  arch/arm/Kconfig |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index db524e7..f9ca7f3 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -1311,7 +1311,7 @@ config HZ
->  
->  config THUMB2_KERNEL
->  	bool "Compile the kernel in Thumb-2 mode"
-> -	depends on CPU_V7 && EXPERIMENTAL
-> +	depends on CPU_V7 && !CPU_V6 && EXPERIMENTAL
->  	select AEABI
->  	select ARM_ASM_UNIFIED
->  	help
-> -- 
-> 1.7.1
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+-- 
+-- 
+Ben Dooks, ben@fluff.org, http://www.fluff.org/ben/
+
+Large Hadron Colada: A large Pina Colada that makes the universe disappear.
+
