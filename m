@@ -1,49 +1,73 @@
-From: Ben Dooks <ben-i2c@fluff.org>
-Subject: Re: [PATCH v2 1/2] I2C: i2c-omap: Change device name: i2c_omap ->
-	omap_i2c
-Date: Thu, 9 Dec 2010 22:21:40 +0000
-Message-ID: <20101209222140.GU20097@trinity.fluff.org>
-References: <1291904657-32729-1-git-send-email-b-cousson@ti.com> <1291904657-32729-2-git-send-email-b-cousson@ti.com> <878vzydgxr.fsf@deeprootsystems.com> <87wrni7jys.fsf@deeprootsystems.com> <BC214410FD04D84F9079A6242365970707D4FA@008-AM1MPN1-001.mgdnok.nokia.com>
+From: Ionut Nicu <ionut.nicu@mindbit.ro>
+Subject: Re: [PATCH 1/2] staging: tidspbridge: rmgr/node.c code cleanup
+Date: Fri, 10 Dec 2010 00:22:32 +0200
+Message-ID: <1291933352.23672.52.camel@atlantis.mindbit.ro>
+References: <1291931258-30744-1-git-send-email-ionut.nicu@mindbit.ro>
+	 <1291931258-30744-2-git-send-email-ionut.nicu@mindbit.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from trinity.fluff.org ([89.16.178.74]:58383 "EHLO trinity.fluff.org"
+Received: from ns.mindbit.ro ([80.86.127.26]:42347 "EHLO ns.mindbit.ro"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757484Ab0LIWVo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Dec 2010 17:21:44 -0500
-Content-Disposition: inline
-In-Reply-To: <BC214410FD04D84F9079A6242365970707D4FA@008-AM1MPN1-001.mgdnok.nokia.com>
+	id S1757360Ab0LIWWo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Dec 2010 17:22:44 -0500
+In-Reply-To: <1291931258-30744-2-git-send-email-ionut.nicu@mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: aaro.koskinen@nokia.com
-Cc: khilman@deeprootsystems.com, ben-i2c@fluff.org, paul@pwsan.com, linux-omap@vger.kernel.org, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Thu, Dec 09, 2010 at 10:18:48PM +0000, aaro.koskinen@nokia.com wrote:
-> Hi,
-> 
-> Kevin Hilman [khilman@deeprootsystems.com]:
-> > Ben Dooks <ben-i2c@fluff.org> writes:
-> > > Renaming stuff like this is going to have an impact on the userspace
-> > > as anyone looking through /sys's driver heirarchy is going to miss the
-> > > old name...
-> > >
-> > > It all depends if you really want to go ahead with this...
-> >
-> > Yes, we are aware of the userspace impact, but this name change makes
-> > all devices on OMAP have consistent names and actually improves the
-> > ability to have userspace tools have consistent naming as well.
-> 
-> So there are no imporant users, or if there is, they are prepared for this change?
-> 
-> >> >  drivers/i2c/busses/i2c-omap.c        |    4 ++--
-> 
-> What about the .c / .ko file name?
+Hi Omar,
 
-Pretty much everyone is in the form of i2c-xxx.c, so I would prefer it
-to stay that way.
+On Thu, 2010-12-09 at 23:47 +0200, Ionut Nicu wrote:
+> Reorganized some code in rmgr/node.c to increase its
+> readability. Most of the changes reduce the code
+> indentation level and simplifiy the code. No functional
+> changes were done.
 
--- 
-Ben Dooks, ben@fluff.org, http://www.fluff.org/ben/
+<snip>
 
-Large Hadron Colada: A large Pina Colada that makes the universe disappear.
+>  	/*
+>  	 * Check stream mode. Default is STRMMODE_PROCCOPY.
+>  	 */
+> -	if (!status && pattrs) {
+> -		if (pattrs->strm_mode != STRMMODE_PROCCOPY)
+> -			status = -EPERM;	/* illegal stream mode */
+> -
+> -	}
+> -	if (status)
+> -		goto func_end;
+> +	if (pattrs && pattrs->strm_mode != STRMMODE_PROCCOPY)
+> +		return -EPERM;	/* illegal stream mode */
+>  
+
+While cleaning up and reviewing the code I saw this check,  which unless
+it's intentional I think it looks like a bug. See comment below.
+
+<snip>
+> +		strm_mode = pattrs ? pattrs->strm_mode : STRMMODE_PROCCOPY;
+> +		switch (strm_mode) {
+> +		case STRMMODE_RDMA:
+
+...
+
+> +				
+> +		case STRMMODE_ZEROCOPY:
+
+...
+
+> +		case STRMMODE_PROCCOPY:
+
+It looks like all modes are handled here although the only one that
+could escape the validation from above is STRMMODE_PROCCOPY.
+
+I tried removing the first check and tested with the
+userspace-dspbridge strmcopy application, but I noticed the DSP hangs if
+I try to use it with anything else than the copy mode.
+
+Are the other modes (rdma, zerocopy) not supported at all?
+
+Thanks,
+Ionut.
 
