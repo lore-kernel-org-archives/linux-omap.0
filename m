@@ -1,189 +1,58 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP2+: omap_hwmod: fix wakeup enable/disable for consistency
-Date: Thu,  9 Dec 2010 15:10:47 -0800
-Message-ID: <1291936247-17955-1-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH v8 01/11] OMAP: GPIO: prepare for platform driver
+Date: Thu, 09 Dec 2010 15:19:04 -0800
+Message-ID: <87aake5yc7.fsf@deeprootsystems.com>
+References: <1290689318-10191-1-git-send-email-charu@ti.com>
+	<1290689318-10191-2-git-send-email-charu@ti.com>
+	<8762v292ld.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f180.google.com ([209.85.161.180]:45083 "EHLO
-	mail-gx0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752264Ab0LIXKw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 18:10:52 -0500
-Received: by gxk19 with SMTP id 19so1841793gxk.11
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 15:10:51 -0800 (PST)
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:47405 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754288Ab0LIXTI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 18:19:08 -0500
+Received: by pva4 with SMTP id 4so624919pva.19
+        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 15:19:07 -0800 (PST)
+In-Reply-To: <8762v292ld.fsf@deeprootsystems.com> (Kevin Hilman's message of
+	"Thu, 09 Dec 2010 11:18:54 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, p-basak2@ti.com
 
-In the omap_hwmod core, most of the SYSCONFIG register helper
-functions do not directly write the register, but instead just modify
-a value passed in.
+Hi Charu,
 
-This patch converts the _enable_wakeup() and _disable_wakeup() helper
-functions to take a value argument and only modify it instead of
-actually writing the register.  This makes the wakeup helpers
-consistent with the other helper functions and avoids unintentional
-problems like the following.
+I owe you an apology.
 
-This problem was found after discovering that GPIO wakeups were no
-longer functional.  The root cause was that the ENAWAKEUP bit of the
-SYSCONFIG register was being unintentionaly overwritten, leaving
-wakeups disabled after the following two commits were combined:
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-commit: 9980ce53c97392a3dbdc9d1ac3e455d79b4167ed
-        OMAP: hwmod: Enable module wakeup if in smartidle
+[...]
 
-commit: 78f26e872f77b6312273216de1a8f836c6f2e143
-        OMAP: hwmod: Set autoidle after smartidle during _sysc_enable
+> I just noticed while testing on 36xx/Zoom3 that GPIO wakeups are no
+> longer working after this series.
+>
+> The problem seems to be that for OMAP2+, this series removed manual
+> SYSCONFIG register setting in favor of using omap_hwmod (which is good),
+> however some of the SYSCONFIG values, specifically, in the current code,
+> the ENAWAKEUP bit was set in each bank, but this is no longer the
+> default with omap_hwmod.
 
-There resulting in code in _enable_sysc() was this:
+I was wrong here.  The enable wakeup mode was supposed to be enabled by
+default in the hwmod, but due to a bug[1], it was not.  This problem was
+not directly related to your series.
 
-	/*
-	 * XXX The clock framework should handle this, by
-	 * calling into this code.  But this must wait until the
-	 * clock structures are tagged with omap_hwmod entries
-	 */
-	if ((oh->flags & HWMOD_SET_DEFAULT_CLOCKACT) &&
-	    (sf & SYSC_HAS_CLOCKACTIVITY))
-		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
+[...]
 
-	_write_sysconfig(v, oh);
+> ... but it shows that GPIO wakeups were not fully
+> tested with this series.  In the future, along with reporting what
+> platforms it was testing on, it would be very helpful to include a
+> summary of how the series was tested.
 
-so here, 'v' has wakeups disabled.
+I apologize for accusing you of not testing GPIO wakeups.  I now know
+that this functionality was broken by patches independent of your
+series, so I deeply regret the accusation.
 
-	/* If slave is in SMARTIDLE, also enable wakeup */
-	if ((sf & SYSC_HAS_SIDLEMODE) && !(oh->flags & HWMOD_SWSUP_SIDLE))
-		_enable_wakeup(oh);
+Kevin
 
-Here wakeup is enabled in the SYSCONFIG register (but 'v' is not updated)
-
-	/*
-	 * Set the autoidle bit only after setting the smartidle bit
-	 * Setting this will not have any impact on the other modules.
-	 */
-	if (sf & SYSC_HAS_AUTOIDLE) {
-		idlemode = (oh->flags & HWMOD_NO_OCP_AUTOIDLE) ?
-			0 : 1;
-		_set_module_autoidle(oh, idlemode, &v);
-		_write_sysconfig(v, oh);
-	}
-
-And here, SYSCONFIG is updated again using 'v', which does not have
-wakeups enabled, resulting in ENAWAKEUP being cleared.
-
-Special thanks to Benoit Cousson for pointing out that wakeups were
-supposed to be automatically enabled when a hwmod is enabled, and thus
-helping target the root cause of this problem.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Applies on top of Paul's hwmod_a_2.6.38 branch.
-
- arch/arm/mach-omap2/omap_hwmod.c |   32 +++++++++++++++++---------------
- 1 files changed, 17 insertions(+), 15 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index a039b37..84a03eb 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -388,9 +388,9 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
-  * Allow the hardware module @oh to send wakeups.  Returns -EINVAL
-  * upon error or 0 upon success.
-  */
--static int _enable_wakeup(struct omap_hwmod *oh)
-+static int _enable_wakeup(struct omap_hwmod *oh, u32 *v)
- {
--	u32 v, wakeup_mask;
-+	u32 wakeup_mask;
- 
- 	if (!oh->class->sysc ||
- 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
-@@ -403,9 +403,7 @@ static int _enable_wakeup(struct omap_hwmod *oh)
- 
- 	wakeup_mask = (0x1 << oh->class->sysc->sysc_fields->enwkup_shift);
- 
--	v = oh->_sysc_cache;
--	v |= wakeup_mask;
--	_write_sysconfig(v, oh);
-+	*v |= wakeup_mask;
- 
- 	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
- 
-@@ -421,9 +419,9 @@ static int _enable_wakeup(struct omap_hwmod *oh)
-  * Prevent the hardware module @oh to send wakeups.  Returns -EINVAL
-  * upon error or 0 upon success.
-  */
--static int _disable_wakeup(struct omap_hwmod *oh)
-+static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
- {
--	u32 v, wakeup_mask;
-+	u32 wakeup_mask;
- 
- 	if (!oh->class->sysc ||
- 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
-@@ -436,9 +434,7 @@ static int _disable_wakeup(struct omap_hwmod *oh)
- 
- 	wakeup_mask = (0x1 << oh->class->sysc->sysc_fields->enwkup_shift);
- 
--	v = oh->_sysc_cache;
--	v &= ~wakeup_mask;
--	_write_sysconfig(v, oh);
-+	*v &= ~wakeup_mask;
- 
- 	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
- 
-@@ -786,11 +782,11 @@ static void _enable_sysc(struct omap_hwmod *oh)
- 	    (sf & SYSC_HAS_CLOCKACTIVITY))
- 		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
- 
--	_write_sysconfig(v, oh);
--
- 	/* If slave is in SMARTIDLE, also enable wakeup */
- 	if ((sf & SYSC_HAS_SIDLEMODE) && !(oh->flags & HWMOD_SWSUP_SIDLE))
--		_enable_wakeup(oh);
-+		_enable_wakeup(oh, &v);
-+
-+	_write_sysconfig(v, oh);
- 
- 	/*
- 	 * Set the autoidle bit only after setting the smartidle bit
-@@ -2009,13 +2005,16 @@ int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
- int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
- {
- 	unsigned long flags;
-+	u32 v;
- 
- 	if (!oh->class->sysc ||
- 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
- 		return -EINVAL;
- 
- 	spin_lock_irqsave(&oh->_lock, flags);
--	_enable_wakeup(oh);
-+	v = oh->_sysc_cache;
-+	_enable_wakeup(oh, &v);
-+	_write_sysconfig(v, oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
- 
- 	return 0;
-@@ -2036,13 +2035,16 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
- int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
- {
- 	unsigned long flags;
-+	u32 v;
- 
- 	if (!oh->class->sysc ||
- 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
- 		return -EINVAL;
- 
- 	spin_lock_irqsave(&oh->_lock, flags);
--	_disable_wakeup(oh);
-+	v = oh->_sysc_cache;
-+	_disable_wakeup(oh, &v);
-+	_write_sysconfig(v, oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
- 
- 	return 0;
--- 
-1.7.2.1
-
+[1] http://marc.info/?l=linux-omap&m=129193625420446&w=2
