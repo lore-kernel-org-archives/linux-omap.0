@@ -1,768 +1,790 @@
 From: Ionut Nicu <ionut.nicu@gmail.com>
-Subject: [PATCH 2/2] staging: tidspbridge: rmgr code cleanup
-Date: Thu,  9 Dec 2010 23:47:38 +0200
-Message-ID: <1291931258-30744-3-git-send-email-ionut.nicu@mindbit.ro>
+Subject: [PATCH 1/2] staging: tidspbridge: rmgr/node.c code cleanup
+Date: Thu,  9 Dec 2010 23:47:37 +0200
+Message-ID: <1291931258-30744-2-git-send-email-ionut.nicu@mindbit.ro>
 References: <1291931258-30744-1-git-send-email-ionut.nicu@mindbit.ro>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f171.google.com ([209.85.215.171]:49719 "EHLO
-	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757430Ab0LIVr5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 16:47:57 -0500
-Received: by eyg5 with SMTP id 5so2308397eyg.2
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 13:47:56 -0800 (PST)
+Received: from mail-ew0-f45.google.com ([209.85.215.45]:49863 "EHLO
+	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757427Ab0LIVry (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 16:47:54 -0500
+Received: by mail-ew0-f45.google.com with SMTP id 10so2162167ewy.4
+        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 13:47:53 -0800 (PST)
 In-Reply-To: <1291931258-30744-1-git-send-email-ionut.nicu@mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Omar Ramirez Luna <omar.ramirez@ti.com>
 Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-Reorganized some code in the rmgr module to increase
-its readability. No functional changes were done.
+Reorganized some code in rmgr/node.c to increase its
+readability. Most of the changes reduce the code
+indentation level and simplifiy the code. No functional
+changes were done.
 
 Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
 ---
- drivers/staging/tidspbridge/rmgr/drv.c  |  171 +++++++++-----------
- drivers/staging/tidspbridge/rmgr/node.c |   81 +++++-----
- drivers/staging/tidspbridge/rmgr/rmm.c  |  266 +++++++++++++-----------------
- 3 files changed, 229 insertions(+), 289 deletions(-)
+ drivers/staging/tidspbridge/rmgr/node.c |  607 ++++++++++++++----------------
+ 1 files changed, 283 insertions(+), 324 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
-index e0fc895..71a9489 100644
---- a/drivers/staging/tidspbridge/rmgr/drv.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv.c
-@@ -304,40 +304,28 @@ int drv_proc_update_strm_res(u32 num_bufs, void *strm_resources)
-  */
- int drv_create(struct drv_object **drv_obj)
- {
--	int status = 0;
- 	struct drv_object *pdrv_object = NULL;
- 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 
- 	DBC_REQUIRE(drv_obj != NULL);
- 	DBC_REQUIRE(refs > 0);
- 
-+	if (!drv_datap)
-+		return -EFAULT;
-+
- 	pdrv_object = kzalloc(sizeof(struct drv_object), GFP_KERNEL);
--	if (pdrv_object) {
--		/* Create and Initialize List of device objects */
--		INIT_LIST_HEAD(&pdrv_object->dev_list);
--		INIT_LIST_HEAD(&pdrv_object->dev_node_string);
--	} else {
--		status = -ENOMEM;
--	}
--	/* Store the DRV Object in the driver data */
--	if (!status) {
--		if (drv_datap) {
--			drv_datap->drv_object = (void *)pdrv_object;
--		} else {
--			status = -EPERM;
--			pr_err("%s: Failed to store DRV object\n", __func__);
--		}
--	}
-+	if (!pdrv_object)
-+		return -ENOMEM;
- 
--	if (!status) {
--		*drv_obj = pdrv_object;
--	} else {
--		/* Free the DRV Object */
--		kfree(pdrv_object);
--	}
-+	/* Create and Initialize List of device objects */
-+	INIT_LIST_HEAD(&pdrv_object->dev_list);
-+	INIT_LIST_HEAD(&pdrv_object->dev_node_string);
- 
--	DBC_ENSURE(status || pdrv_object);
--	return status;
-+	/* Store the DRV Object in the driver data */
-+	drv_datap->drv_object = (void *)pdrv_object;
-+	*drv_obj = pdrv_object;
-+
-+	return 0;
- }
- 
- /*
-@@ -424,19 +412,19 @@ int drv_get_dev_object(u32 index, struct drv_object *hdrv_obj,
-  */
- u32 drv_get_first_dev_object(void)
- {
--	u32 dw_dev_object = 0;
- 	struct drv_object *pdrv_obj;
- 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 
--	if (drv_datap && drv_datap->drv_object) {
--		pdrv_obj = drv_datap->drv_object;
--		if (!list_empty(&pdrv_obj->dev_list))
--			dw_dev_object = (u32) pdrv_obj->dev_list.next;
--	} else {
-+	if (!drv_datap || !drv_datap->drv_object) {
- 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
-+		return 0;
- 	}
- 
--	return dw_dev_object;
-+	pdrv_obj = drv_datap->drv_object;
-+	if (list_empty(&pdrv_obj->dev_list))
-+		return 0;
-+
-+	return (u32) pdrv_obj->dev_list.next;
- }
- 
- /*
-@@ -447,21 +435,19 @@ u32 drv_get_first_dev_object(void)
-  */
- u32 drv_get_first_dev_extension(void)
- {
--	u32 dw_dev_extension = 0;
- 	struct drv_object *pdrv_obj;
- 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 
--	if (drv_datap && drv_datap->drv_object) {
--		pdrv_obj = drv_datap->drv_object;
--		if (!list_empty(&pdrv_obj->dev_node_string)) {
--			dw_dev_extension =
--			    (u32) pdrv_obj->dev_node_string.next;
--		}
--	} else {
-+	if (!drv_datap || !drv_datap->drv_object) {
- 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
-+		return 0;
- 	}
- 
--	return dw_dev_extension;
-+	pdrv_obj = drv_datap->drv_object;
-+	if (list_empty(&pdrv_obj->dev_node_string))
-+		return 0;
-+
-+	return (u32) pdrv_obj->dev_node_string.next;
- }
- 
- /*
-@@ -473,24 +459,25 @@ u32 drv_get_first_dev_extension(void)
-  */
- u32 drv_get_next_dev_object(u32 hdev_obj)
- {
--	u32 dw_next_dev_object = 0;
- 	struct drv_object *pdrv_obj;
- 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 	struct list_head *curr;
- 
--	if (drv_datap && drv_datap->drv_object) {
--		pdrv_obj = drv_datap->drv_object;
--		if (!list_empty(&pdrv_obj->dev_list)) {
--			curr = (struct list_head *)hdev_obj;
--			if (list_is_last(curr, &pdrv_obj->dev_list))
--				return 0;
--			dw_next_dev_object = (u32) curr->next;
--		}
--	} else {
-+	if (!drv_datap || !drv_datap->drv_object) {
- 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
-+		return 0;
- 	}
- 
--	return dw_next_dev_object;
-+	pdrv_obj = drv_datap->drv_object;
-+	if (list_empty(&pdrv_obj->dev_list))
-+		return 0;
-+
-+	curr = (struct list_head *)hdev_obj;
-+
-+	if (list_is_last(curr, &pdrv_obj->dev_list))
-+		return 0;
-+
-+	return (u32)curr->next;
- }
- 
- /*
-@@ -503,24 +490,25 @@ u32 drv_get_next_dev_object(u32 hdev_obj)
-  */
- u32 drv_get_next_dev_extension(u32 dev_extension)
- {
--	u32 dw_dev_extension = 0;
- 	struct drv_object *pdrv_obj;
- 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 	struct list_head *curr;
- 
--	if (drv_datap && drv_datap->drv_object) {
--		pdrv_obj = drv_datap->drv_object;
--		if (!list_empty(&pdrv_obj->dev_node_string)) {
--			curr = (struct list_head *)dev_extension;
--			if (list_is_last(curr, &pdrv_obj->dev_node_string))
--				return 0;
--			dw_dev_extension = (u32) curr->next;
--		}
--	} else {
-+	if (!drv_datap || !drv_datap->drv_object) {
- 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
-+		return 0;
- 	}
- 
--	return dw_dev_extension;
-+	pdrv_obj = drv_datap->drv_object;
-+	if (list_empty(&pdrv_obj->dev_node_string))
-+		return 0;
-+
-+	curr = (struct list_head *)dev_extension;
-+
-+	if (list_is_last(curr, &pdrv_obj->dev_node_string))
-+		return 0;
-+
-+	return (u32) curr->next;
- }
- 
- /*
-@@ -608,40 +596,28 @@ int drv_request_resources(u32 dw_context, u32 *dev_node_strg)
- 	DBC_REQUIRE(dw_context != 0);
- 	DBC_REQUIRE(dev_node_strg != NULL);
- 
--	/*
--	 *  Allocate memory to hold the string. This will live untill
--	 *  it is freed in the Release resources. Update the driver object
--	 *  list.
--	 */
--
- 	if (!drv_datap || !drv_datap->drv_object)
--		status = -ENODATA;
--	else
--		pdrv_object = drv_datap->drv_object;
--
--	if (!status) {
--		pszdev_node = kzalloc(sizeof(struct drv_ext), GFP_KERNEL);
--		if (pszdev_node) {
--			strncpy(pszdev_node->sz_string,
--				(char *)dw_context, MAXREGPATHLENGTH - 1);
--			pszdev_node->sz_string[MAXREGPATHLENGTH - 1] = '\0';
--			/* Update the Driver Object List */
--			*dev_node_strg = (u32) pszdev_node->sz_string;
--			list_add_tail(&pszdev_node->link,
--					&pdrv_object->dev_node_string);
--		} else {
--			status = -ENOMEM;
--			*dev_node_strg = 0;
--		}
--	} else {
--		dev_dbg(bridge, "%s: Failed to get Driver Object from Registry",
--			__func__);
--		*dev_node_strg = 0;
--	}
-+		return -ENODATA;
-+
-+	pdrv_object = drv_datap->drv_object;
-+	*dev_node_strg = 0;
-+
-+	pszdev_node = kzalloc(sizeof(struct drv_ext), GFP_KERNEL);
-+	if (!pszdev_node)
-+		return -ENOMEM;
-+
-+	strncpy(pszdev_node->sz_string, (char *)dw_context,
-+			MAXREGPATHLENGTH - 1);
-+	pszdev_node->sz_string[MAXREGPATHLENGTH - 1] = '\0';
-+	*dev_node_strg = (u32) pszdev_node->sz_string;
-+
-+	/* Update the Driver Object List */
-+	list_add_tail((struct list_head *)pszdev_node,
-+			&pdrv_object->dev_node_string);
- 
- 	DBC_ENSURE((!status && dev_node_strg != NULL &&
--		    !list_empty(&pdrv_object->dev_node_string)) ||
--		   (status && *dev_node_strg == 0));
-+				!list_empty(&pdrv_object->dev_node_string)) ||
-+			(status && *dev_node_strg == 0));
- 
- 	return status;
- }
-@@ -653,7 +629,6 @@ int drv_request_resources(u32 dw_context, u32 *dev_node_strg)
-  */
- int drv_release_resources(u32 dw_context, struct drv_object *hdrv_obj)
- {
--	int status = 0;
- 	struct drv_ext *pszdev_node;
- 
- 	/*
-@@ -666,12 +641,12 @@ int drv_release_resources(u32 dw_context, struct drv_object *hdrv_obj)
- 		if ((u32) pszdev_node == dw_context) {
- 			/* Found it */
- 			/* Delete from the Driver object list */
--			list_del(&pszdev_node->link);
--			kfree(pszdev_node);
-+			list_del((struct list_head *)pszdev_node);
-+			kfree((void *)pszdev_node);
- 			break;
- 		}
- 	}
--	return status;
-+	return 0;
- }
- 
- /*
 diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
-index b196a7a..679f087 100644
+index 62d5c31..b196a7a 100644
 --- a/drivers/staging/tidspbridge/rmgr/node.c
 +++ b/drivers/staging/tidspbridge/rmgr/node.c
-@@ -1582,26 +1582,26 @@ int node_enum_nodes(struct node_mgr *hnode_mgr, void **node_tab,
- 	DBC_REQUIRE(pu_num_nodes != NULL);
- 	DBC_REQUIRE(pu_allocated != NULL);
+@@ -236,9 +236,9 @@ struct node_object {
  
--	if (!hnode_mgr) {
--		status = -EFAULT;
--		goto func_end;
--	}
--	/* Enter critical section */
-+	if (!hnode_mgr)
-+		return -EFAULT;
-+
- 	mutex_lock(&hnode_mgr->node_mgr_lock);
+ /* Default buffer attributes */
+ static struct dsp_bufferattr node_dfltbufattrs = {
+-	0,			/* cb_struct */
+-	1,			/* segment_id */
+-	0,			/* buf_alignment */
++	.cb_struct = 0,
++	.segment_id = 1,
++	.buf_alignment = 0,
+ };
  
- 	if (hnode_mgr->num_nodes > node_tab_size) {
- 		*pu_allocated = hnode_mgr->num_nodes;
- 		*pu_num_nodes = 0;
- 		status = -EINVAL;
--	} else {
--		list_for_each_entry(hnode, &hnode_mgr->node_list, list_elem)
--			node_tab[i++] = hnode;
--		*pu_allocated = *pu_num_nodes = hnode_mgr->num_nodes;
-+		goto out_unlock;
- 	}
--	/* end of sync_enter_cs */
--	/* Exit critical section */
-+
-+	list_for_each_entry(hnode, &hnode_mgr->node_list, list_elem) {
-+		DBC_ASSERT(hnode);
-+		node_tab[i++] = hnode;
-+	}
-+	*pu_allocated = *pu_num_nodes = hnode_mgr->num_nodes;
-+
-+out_unlock:
- 	mutex_unlock(&hnode_mgr->node_mgr_lock);
--func_end:
- 	return status;
- }
- 
-@@ -1684,8 +1684,7 @@ int node_get_attr(struct node_object *hnode,
- 	mutex_lock(&hnode_mgr->node_mgr_lock);
- 	pattr->cb_struct = sizeof(struct dsp_nodeattr);
- 	/* dsp_nodeattrin */
--	pattr->in_node_attr_in.cb_struct =
--		sizeof(struct dsp_nodeattrin);
-+	pattr->in_node_attr_in.cb_struct = sizeof(struct dsp_nodeattrin);
- 	pattr->in_node_attr_in.prio = hnode->prio;
- 	pattr->in_node_attr_in.utimeout = hnode->utimeout;
- 	pattr->in_node_attr_in.heap_size =
-@@ -2584,38 +2583,40 @@ static void delete_node_mgr(struct node_mgr *hnode_mgr)
- {
- 	struct node_object *hnode, *tmp;
- 
--	if (hnode_mgr) {
--		/* Free resources */
--		if (hnode_mgr->hdcd_mgr)
--			dcd_destroy_manager(hnode_mgr->hdcd_mgr);
-+	if (!hnode_mgr)
-+		return;
- 
--		/* Remove any elements remaining in lists */
--		list_for_each_entry_safe(hnode, tmp, &hnode_mgr->node_list,
--				list_elem) {
--			list_del(&hnode->list_elem);
--			delete_node(hnode, NULL);
--		}
--		mutex_destroy(&hnode_mgr->node_mgr_lock);
--		if (hnode_mgr->ntfy_obj) {
--			ntfy_delete(hnode_mgr->ntfy_obj);
--			kfree(hnode_mgr->ntfy_obj);
--		}
-+	/* Free resources */
-+	if (hnode_mgr->hdcd_mgr)
-+		dcd_destroy_manager(hnode_mgr->hdcd_mgr);
- 
--		if (hnode_mgr->disp_obj)
--			disp_delete(hnode_mgr->disp_obj);
-+	/* Remove any elements remaining in lists */
-+	list_for_each_entry_safe(hnode, tmp, &hnode_mgr->node_list, list_elem) {
-+		list_del(&hnode->list_elem);
-+		delete_node(hnode, NULL);
-+	}
- 
--		if (hnode_mgr->strm_mgr_obj)
--			strm_delete(hnode_mgr->strm_mgr_obj);
-+	mutex_destroy(&hnode_mgr->node_mgr_lock);
- 
--		/* Delete the loader */
--		if (hnode_mgr->nldr_obj)
--			hnode_mgr->nldr_fxns.pfn_delete(hnode_mgr->nldr_obj);
-+	if (hnode_mgr->ntfy_obj) {
-+		ntfy_delete(hnode_mgr->ntfy_obj);
-+		kfree(hnode_mgr->ntfy_obj);
-+	}
- 
--		if (hnode_mgr->loader_init)
--			hnode_mgr->nldr_fxns.pfn_exit();
-+	if (hnode_mgr->disp_obj)
-+		disp_delete(hnode_mgr->disp_obj);
- 
--		kfree(hnode_mgr);
--	}
-+	if (hnode_mgr->strm_mgr_obj)
-+		strm_delete(hnode_mgr->strm_mgr_obj);
-+
-+	/* Delete the loader */
-+	if (hnode_mgr->nldr_obj)
-+		hnode_mgr->nldr_fxns.pfn_delete(hnode_mgr->nldr_obj);
-+
-+	if (hnode_mgr->loader_init)
-+		hnode_mgr->nldr_fxns.pfn_exit();
-+
-+	kfree(hnode_mgr);
+ static void delete_node(struct node_object *hnode,
+@@ -284,8 +284,7 @@ enum node_state node_get_state(void *hnode)
+ 	struct node_object *pnode = (struct node_object *)hnode;
+ 	if (!pnode)
+ 		return -1;
+-	else
+-		return pnode->node_state;
++	return pnode->node_state;
  }
  
  /*
-diff --git a/drivers/staging/tidspbridge/rmgr/rmm.c b/drivers/staging/tidspbridge/rmgr/rmm.c
-index aae8657..ca8b69b 100644
---- a/drivers/staging/tidspbridge/rmgr/rmm.c
-+++ b/drivers/staging/tidspbridge/rmgr/rmm.c
-@@ -96,10 +96,9 @@ static bool free_block(struct rmm_target_obj *target, u32 segid, u32 addr,
- int rmm_alloc(struct rmm_target_obj *target, u32 segid, u32 size,
- 		     u32 align, u32 *dsp_address, bool reserve)
- {
--	struct rmm_ovly_sect *sect, *prev_sect = NULL;
-+	struct rmm_ovly_sect *sect, *prev = NULL;
- 	struct rmm_ovly_sect *new_sect;
- 	u32 addr;
--	int status = 0;
- 
- 	DBC_REQUIRE(target);
- 	DBC_REQUIRE(dsp_address != NULL);
-@@ -108,54 +107,38 @@ int rmm_alloc(struct rmm_target_obj *target, u32 segid, u32 size,
+@@ -844,6 +843,7 @@ int node_connect(struct node_object *node1, u32 stream1,
+ 	char *pstr_dev_name = NULL;
+ 	enum node_type node1_type = NODE_TASK;
+ 	enum node_type node2_type = NODE_TASK;
++	enum dsp_strmmode strm_mode;
+ 	struct node_strmdef *pstrm_def;
+ 	struct node_strmdef *input = NULL;
+ 	struct node_strmdef *output = NULL;
+@@ -857,60 +857,49 @@ int node_connect(struct node_object *node1, u32 stream1,
+ 	int status = 0;
  	DBC_REQUIRE(refs > 0);
  
- 	if (!reserve) {
--		if (!alloc_block(target, segid, size, align, dsp_address)) {
--			status = -ENOMEM;
--		} else {
--			/* Increment the number of allocated blocks in this
--			 * segment */
--			target->seg_tab[segid].number++;
--		}
--		goto func_end;
-+		if (!alloc_block(target, segid, size, align, dsp_address))
-+			return -ENOMEM;
-+		/* Increment the number of allocated blocks in this segment */
-+		target->seg_tab[segid].number++;
-+		return 0;
- 	}
-+
-+	new_sect = kzalloc(sizeof(struct rmm_ovly_sect), GFP_KERNEL);
-+	if (!new_sect)
-+		return -ENOMEM;
-+
-+	addr = *dsp_address;
-+	new_sect->addr = addr;
-+	new_sect->size = size;
-+	new_sect->page = segid;
-+
- 	/* An overlay section - See if block is already in use. If not,
- 	 * insert into the list in ascending address size. */
--	addr = *dsp_address;
--	/*  Find place to insert new list element. List is sorted from
--	 *  smallest to largest address. */
- 	list_for_each_entry(sect, &target->ovly_list, list_elem) {
- 		if (addr <= sect->addr) {
--			/* Check for overlap with sect */
--			if ((addr + size > sect->addr) || (prev_sect &&
--							   (prev_sect->addr +
--							    prev_sect->size >
--							    addr))) {
--				status = -ENXIO;
-+			if (prev && (prev->addr + prev->size >  addr)) {
-+				kfree(new_sect);
-+				return -ENXIO;
- 			}
--			break;
--		}
--		prev_sect = sect;
+-	if ((node1 != (struct node_object *)DSP_HGPPNODE && !node1) ||
+-	    (node2 != (struct node_object *)DSP_HGPPNODE && !node2))
+-		status = -EFAULT;
++	if (!node1 || !node2)
++		return -EFAULT;
+ 
+-	if (!status) {
+-		/* The two nodes must be on the same processor */
+-		if (node1 != (struct node_object *)DSP_HGPPNODE &&
+-		    node2 != (struct node_object *)DSP_HGPPNODE &&
+-		    node1->hnode_mgr != node2->hnode_mgr)
+-			status = -EPERM;
+-		/* Cannot connect a node to itself */
+-		if (node1 == node2)
+-			status = -EPERM;
++	/* The two nodes must be on the same processor */
++	if (node1 != (struct node_object *)DSP_HGPPNODE &&
++			node2 != (struct node_object *)DSP_HGPPNODE &&
++			node1->hnode_mgr != node2->hnode_mgr)
++		return -EPERM;
+ 
 -	}
 -	if (!status) {
--		/* No overlap - allocate list element for new section. */
--		new_sect = kzalloc(sizeof(struct rmm_ovly_sect), GFP_KERNEL);
--		if (new_sect == NULL) {
--			status = -ENOMEM;
--		} else {
--			new_sect->addr = addr;
--			new_sect->size = size;
--			new_sect->page = segid;
--			if (list_is_last(sect, &target->ovly_list))
--				/* Put new section at the end of the list */
--				list_add_tail(&new_sect->list_elem,
--						&target->ovly_list);
--			else
--				/* Put new section just before sect */
--				list_add_tail(&new_sect->list_elem,
--						&sect->list_elem);
-+			list_add_tail(&new_sect->list_elem, &sect->list_elem);
-+			return 0;
- 		}
-+		prev = sect;
+-		/* node_get_type() will return NODE_GPP if hnode =
+-		 * DSP_HGPPNODE. */
+-		node1_type = node_get_type(node1);
+-		node2_type = node_get_type(node2);
+-		/* Check stream indices ranges */
+-		if ((node1_type != NODE_GPP && node1_type != NODE_DEVICE &&
+-		     stream1 >= MAX_OUTPUTS(node1)) || (node2_type != NODE_GPP
+-							  && node2_type !=
+-							  NODE_DEVICE
+-							  && stream2 >=
+-							  MAX_INPUTS(node2)))
+-			status = -EINVAL;
+-	}
+-	if (!status) {
+-		/*
+-		 *  Only the following types of connections are allowed:
+-		 *      task/dais socket < == > task/dais socket
+-		 *      task/dais socket < == > device
+-		 *      task/dais socket < == > GPP
+-		 *
+-		 *  ie, no message nodes, and at least one task or dais
+-		 *  socket node.
+-		 */
+-		if (node1_type == NODE_MESSAGE || node2_type == NODE_MESSAGE ||
+-		    (node1_type != NODE_TASK && node1_type != NODE_DAISSOCKET &&
+-		     node2_type != NODE_TASK && node2_type != NODE_DAISSOCKET))
+-			status = -EPERM;
+-	}
++	/* Cannot connect a node to itself */
++	if (node1 == node2)
++		return -EPERM;
++
++	/* node_get_type() will return NODE_GPP if hnode =  DSP_HGPPNODE. */
++	node1_type = node_get_type(node1);
++	node2_type = node_get_type(node2);
++	/* Check stream indices ranges */
++	if ((node1_type != NODE_GPP && node1_type != NODE_DEVICE &&
++				stream1 >= MAX_OUTPUTS(node1)) ||
++			(node2_type != NODE_GPP && node2_type != NODE_DEVICE &&
++			 stream2 >= MAX_INPUTS(node2)))
++		return -EINVAL;
++
++	/*
++	 *  Only the following types of connections are allowed:
++	 *      task/dais socket < == > task/dais socket
++	 *      task/dais socket < == > device
++	 *      task/dais socket < == > GPP
++	 *
++	 *  ie, no message nodes, and at least one task or dais
++	 *  socket node.
++	 */
++	if (node1_type == NODE_MESSAGE || node2_type == NODE_MESSAGE ||
++			(node1_type != NODE_TASK &&
++			 node1_type != NODE_DAISSOCKET &&
++			 node2_type != NODE_TASK &&
++			 node2_type != NODE_DAISSOCKET))
++		return -EPERM;
+ 	/*
+ 	 * Check stream mode. Default is STRMMODE_PROCCOPY.
+ 	 */
+-	if (!status && pattrs) {
+-		if (pattrs->strm_mode != STRMMODE_PROCCOPY)
+-			status = -EPERM;	/* illegal stream mode */
+-
+-	}
+-	if (status)
+-		goto func_end;
++	if (pattrs && pattrs->strm_mode != STRMMODE_PROCCOPY)
++		return -EPERM;	/* illegal stream mode */
+ 
+ 	if (node1_type != NODE_GPP) {
+ 		hnode_mgr = node1->hnode_mgr;
+@@ -918,170 +907,145 @@ int node_connect(struct node_object *node1, u32 stream1,
+ 		DBC_ASSERT(node2 != (struct node_object *)DSP_HGPPNODE);
+ 		hnode_mgr = node2->hnode_mgr;
  	}
++
+ 	/* Enter critical section */
+ 	mutex_lock(&hnode_mgr->node_mgr_lock);
+ 
+ 	/* Nodes must be in the allocated state */
+-	if (node1_type != NODE_GPP && node_get_state(node1) != NODE_ALLOCATED)
++	if (node1_type != NODE_GPP &&
++			node_get_state(node1) != NODE_ALLOCATED) {
+ 		status = -EBADR;
++		goto out_unlock;
++	}
+ 
+-	if (node2_type != NODE_GPP && node_get_state(node2) != NODE_ALLOCATED)
++	if (node2_type != NODE_GPP &&
++			node_get_state(node2) != NODE_ALLOCATED) {
+ 		status = -EBADR;
++		goto out_unlock;
++	}
+ 
+-	if (!status) {
+-		/*  Check that stream indices for task and dais socket nodes
+-		 *  are not already be used. (Device nodes checked later) */
+-		if (node1_type == NODE_TASK || node1_type == NODE_DAISSOCKET) {
+-			output =
+-			    &(node1->create_args.asa.
+-			      task_arg_obj.strm_out_def[stream1]);
+-			if (output->sz_device != NULL)
+-				status = -EISCONN;
+-
++	/*
++	 *  Check that stream indices for task and dais socket nodes
++	 *  are not already be used. (Device nodes checked later)
++	 */
++	if (node1_type == NODE_TASK || node1_type == NODE_DAISSOCKET) {
++		output = &(node1->create_args.asa.
++				task_arg_obj.strm_out_def[stream1]);
++		if (output->sz_device) {
++			status = -EISCONN;
++			goto out_unlock;
+ 		}
+-		if (node2_type == NODE_TASK || node2_type == NODE_DAISSOCKET) {
+-			input =
+-			    &(node2->create_args.asa.
+-			      task_arg_obj.strm_in_def[stream2]);
+-			if (input->sz_device != NULL)
+-				status = -EISCONN;
+ 
++	}
++	if (node2_type == NODE_TASK || node2_type == NODE_DAISSOCKET) {
++		input = &(node2->create_args.asa.
++				task_arg_obj.strm_in_def[stream2]);
++		if (input->sz_device) {
++			status = -EISCONN;
++			goto out_unlock;
+ 		}
++
+ 	}
+ 	/* Connecting two task nodes? */
+-	if (!status && ((node1_type == NODE_TASK ||
+-				       node1_type == NODE_DAISSOCKET)
+-				      && (node2_type == NODE_TASK
+-					  || node2_type == NODE_DAISSOCKET))) {
++	if ((node1_type == NODE_TASK || node1_type == NODE_DAISSOCKET) &&
++				(node2_type == NODE_TASK ||
++				 node2_type == NODE_DAISSOCKET)) {
+ 		/* Find available pipe */
+ 		pipe_id = find_first_zero_bit(hnode_mgr->pipe_map, MAXPIPES);
+ 		if (pipe_id == MAXPIPES) {
+ 			status = -ECONNREFUSED;
+-		} else {
+-			set_bit(pipe_id, hnode_mgr->pipe_map);
+-			node1->outputs[stream1].type = NODECONNECT;
+-			node2->inputs[stream2].type = NODECONNECT;
+-			node1->outputs[stream1].dev_id = pipe_id;
+-			node2->inputs[stream2].dev_id = pipe_id;
+-			output->sz_device = kzalloc(PIPENAMELEN + 1,
+-							GFP_KERNEL);
+-			input->sz_device = kzalloc(PIPENAMELEN + 1, GFP_KERNEL);
+-			if (output->sz_device == NULL ||
+-			    input->sz_device == NULL) {
+-				/* Undo the connection */
+-				kfree(output->sz_device);
+-
+-				kfree(input->sz_device);
+-
+-				output->sz_device = NULL;
+-				input->sz_device = NULL;
+-				clear_bit(pipe_id, hnode_mgr->pipe_map);
+-				status = -ENOMEM;
+-			} else {
+-				/* Copy "/dbpipe<pipId>" name to device names */
+-				sprintf(output->sz_device, "%s%d",
+-					PIPEPREFIX, pipe_id);
+-				strcpy(input->sz_device, output->sz_device);
+-			}
++			goto out_unlock;
+ 		}
++		set_bit(pipe_id, hnode_mgr->pipe_map);
++		node1->outputs[stream1].type = NODECONNECT;
++		node2->inputs[stream2].type = NODECONNECT;
++		node1->outputs[stream1].dev_id = pipe_id;
++		node2->inputs[stream2].dev_id = pipe_id;
++		output->sz_device = kzalloc(PIPENAMELEN + 1, GFP_KERNEL);
++		input->sz_device = kzalloc(PIPENAMELEN + 1, GFP_KERNEL);
++		if (!output->sz_device || !input->sz_device) {
++			/* Undo the connection */
++			kfree(output->sz_device);
++			kfree(input->sz_device);
++			clear_bit(pipe_id, hnode_mgr->pipe_map);
++			status = -ENOMEM;
++			goto out_unlock;
++		}
++		/* Copy "/dbpipe<pipId>" name to device names */
++		sprintf(output->sz_device, "%s%d", PIPEPREFIX, pipe_id);
++		strcpy(input->sz_device, output->sz_device);
+ 	}
+ 	/* Connecting task node to host? */
+-	if (!status && (node1_type == NODE_GPP ||
+-				      node2_type == NODE_GPP)) {
+-		if (node1_type == NODE_GPP) {
+-			chnl_mode = CHNL_MODETODSP;
+-		} else {
+-			DBC_ASSERT(node2_type == NODE_GPP);
+-			chnl_mode = CHNL_MODEFROMDSP;
++	if (node1_type == NODE_GPP || node2_type == NODE_GPP) {
++		pstr_dev_name = kzalloc(HOSTNAMELEN + 1, GFP_KERNEL);
++		if (!pstr_dev_name) {
++			status = -ENOMEM;
++			goto out_unlock;
+ 		}
+-		/*  Reserve a channel id. We need to put the name "/host<id>"
++
++		DBC_ASSERT((node1_type == NODE_GPP) ||
++				(node2_type == NODE_GPP));
++
++		chnl_mode = (node1_type == NODE_GPP) ?
++			CHNL_MODETODSP : CHNL_MODEFROMDSP;
++
++		/*
++		 *  Reserve a channel id. We need to put the name "/host<id>"
+ 		 *  in the node's create_args, but the host
+ 		 *  side channel will not be opened until DSPStream_Open is
+-		 *  called for this node. */
+-		if (pattrs) {
+-			if (pattrs->strm_mode == STRMMODE_RDMA) {
+-				chnl_id = find_first_zero_bit(
+-						hnode_mgr->dma_chnl_map,
+-						CHNL_MAXCHANNELS);
++		 *  called for this node.
++		 */
++		strm_mode = pattrs ? pattrs->strm_mode : STRMMODE_PROCCOPY;
++		switch (strm_mode) {
++		case STRMMODE_RDMA:
++			chnl_id = find_first_zero_bit(hnode_mgr->dma_chnl_map,
++					CHNL_MAXCHANNELS);
++			if (chnl_id < CHNL_MAXCHANNELS) {
++				set_bit(chnl_id, hnode_mgr->dma_chnl_map);
+ 				/* dma chans are 2nd transport chnl set
+ 				 * ids(e.g. 16-31) */
+-				if (chnl_id != CHNL_MAXCHANNELS) {
+-					set_bit(chnl_id,
+-						hnode_mgr->dma_chnl_map);
+-					chnl_id = chnl_id +
+-						hnode_mgr->ul_num_chnls;
+-				}
+-			} else if (pattrs->strm_mode == STRMMODE_ZEROCOPY) {
+-				chnl_id = find_first_zero_bit(
+-						hnode_mgr->zc_chnl_map,
+-						CHNL_MAXCHANNELS);
++				chnl_id = chnl_id + hnode_mgr->ul_num_chnls;
++			}
++			break;
++		case STRMMODE_ZEROCOPY:
++			chnl_id = find_first_zero_bit(hnode_mgr->zc_chnl_map,
++					CHNL_MAXCHANNELS);
++			if (chnl_id < CHNL_MAXCHANNELS) {
++				set_bit(chnl_id, hnode_mgr->zc_chnl_map);
+ 				/* zero-copy chans are 3nd transport set
+ 				 * (e.g. 32-47) */
+-				if (chnl_id != CHNL_MAXCHANNELS) {
+-					set_bit(chnl_id,
+-						hnode_mgr->zc_chnl_map);
+-					chnl_id = chnl_id +
+-						(2 * hnode_mgr->ul_num_chnls);
+-				}
+-			} else {	/* must be PROCCOPY */
+-				DBC_ASSERT(pattrs->strm_mode ==
+-					   STRMMODE_PROCCOPY);
+-				chnl_id = find_first_zero_bit(
+-						hnode_mgr->chnl_map,
+-						CHNL_MAXCHANNELS);
+-				/* e.g. 0-15 */
+-				if (chnl_id != CHNL_MAXCHANNELS)
+-					set_bit(chnl_id, hnode_mgr->chnl_map);
++				chnl_id = chnl_id +
++					(2 * hnode_mgr->ul_num_chnls);
+ 			}
+-		} else {
+-			/* default to PROCCOPY */
++			break;
++		case STRMMODE_PROCCOPY:
+ 			chnl_id = find_first_zero_bit(hnode_mgr->chnl_map,
+ 					CHNL_MAXCHANNELS);
+-			if (chnl_id != CHNL_MAXCHANNELS)
++			if (chnl_id < CHNL_MAXCHANNELS)
+ 				set_bit(chnl_id, hnode_mgr->chnl_map);
++			break;
++		default:
++			status = -EINVAL;
++			goto out_unlock;
+ 		}
+ 		if (chnl_id == CHNL_MAXCHANNELS) {
+ 			status = -ECONNREFUSED;
+-			goto func_cont2;
++			goto out_unlock;
+ 		}
+-		pstr_dev_name = kzalloc(HOSTNAMELEN + 1, GFP_KERNEL);
+-		if (pstr_dev_name != NULL)
+-			goto func_cont2;
+-
+-		if (pattrs) {
+-			if (pattrs->strm_mode == STRMMODE_RDMA) {
+-				clear_bit(chnl_id - hnode_mgr->ul_num_chnls,
+-						hnode_mgr->dma_chnl_map);
+-			} else if (pattrs->strm_mode == STRMMODE_ZEROCOPY) {
+-				clear_bit(chnl_id -
+-						(2 * hnode_mgr->ul_num_chnls),
+-						hnode_mgr->zc_chnl_map);
+-			} else {
+-				DBC_ASSERT(pattrs->strm_mode ==
+-					   STRMMODE_PROCCOPY);
+-				clear_bit(chnl_id, hnode_mgr->chnl_map);
+-			}
++
++		if (node1 == (struct node_object *)DSP_HGPPNODE) {
++			node2->inputs[stream2].type = HOSTCONNECT;
++			node2->inputs[stream2].dev_id = chnl_id;
++			input->sz_device = pstr_dev_name;
+ 		} else {
+-			clear_bit(chnl_id, hnode_mgr->chnl_map);
+-		}
+-		status = -ENOMEM;
+-func_cont2:
+-		if (!status) {
+-			if (node1 == (struct node_object *)DSP_HGPPNODE) {
+-				node2->inputs[stream2].type = HOSTCONNECT;
+-				node2->inputs[stream2].dev_id = chnl_id;
+-				input->sz_device = pstr_dev_name;
+-			} else {
+-				node1->outputs[stream1].type = HOSTCONNECT;
+-				node1->outputs[stream1].dev_id = chnl_id;
+-				output->sz_device = pstr_dev_name;
+-			}
+-			sprintf(pstr_dev_name, "%s%d", HOSTPREFIX, chnl_id);
++			node1->outputs[stream1].type = HOSTCONNECT;
++			node1->outputs[stream1].dev_id = chnl_id;
++			output->sz_device = pstr_dev_name;
+ 		}
++		sprintf(pstr_dev_name, "%s%d", HOSTPREFIX, chnl_id);
+ 	}
+ 	/* Connecting task node to device node? */
+-	if (!status && ((node1_type == NODE_DEVICE) ||
+-				      (node2_type == NODE_DEVICE))) {
++	if ((node1_type == NODE_DEVICE) || (node2_type == NODE_DEVICE)) {
+ 		if (node2_type == NODE_DEVICE) {
+ 			/* node1 == > device */
+ 			dev_node_obj = node2;
+@@ -1098,60 +1062,58 @@ func_cont2:
+ 		/* Set up create args */
+ 		pstream->type = DEVICECONNECT;
+ 		dw_length = strlen(dev_node_obj->pstr_dev_name);
+-		if (conn_param != NULL) {
++		if (conn_param)
+ 			pstrm_def->sz_device = kzalloc(dw_length + 1 +
+-							conn_param->cb_data,
+-							GFP_KERNEL);
+-		} else {
++					conn_param->cb_data,
++					GFP_KERNEL);
++		else
+ 			pstrm_def->sz_device = kzalloc(dw_length + 1,
+-							GFP_KERNEL);
+-		}
+-		if (pstrm_def->sz_device == NULL) {
++					GFP_KERNEL);
++		if (!pstrm_def->sz_device) {
+ 			status = -ENOMEM;
+-		} else {
+-			/* Copy device name */
+-			strncpy(pstrm_def->sz_device,
++			goto out_unlock;
++		}
++		/* Copy device name */
++		strncpy(pstrm_def->sz_device,
+ 				dev_node_obj->pstr_dev_name, dw_length);
+-			if (conn_param != NULL) {
+-				strncat(pstrm_def->sz_device,
++		if (conn_param)
++			strncat(pstrm_def->sz_device,
+ 					(char *)conn_param->node_data,
+ 					(u32) conn_param->cb_data);
+-			}
+-			dev_node_obj->device_owner = hnode;
+-		}
++		dev_node_obj->device_owner = hnode;
+ 	}
+-	if (!status) {
+-		/* Fill in create args */
+-		if (node1_type == NODE_TASK || node1_type == NODE_DAISSOCKET) {
+-			node1->create_args.asa.task_arg_obj.num_outputs++;
+-			fill_stream_def(node1, output, pattrs);
+-		}
+-		if (node2_type == NODE_TASK || node2_type == NODE_DAISSOCKET) {
+-			node2->create_args.asa.task_arg_obj.num_inputs++;
+-			fill_stream_def(node2, input, pattrs);
+-		}
+-		/* Update node1 and node2 stream_connect */
+-		if (node1_type != NODE_GPP && node1_type != NODE_DEVICE) {
+-			node1->num_outputs++;
+-			if (stream1 > node1->max_output_index)
+-				node1->max_output_index = stream1;
++	/* Fill in create args */
++	if (node1_type == NODE_TASK || node1_type == NODE_DAISSOCKET) {
++		node1->create_args.asa.task_arg_obj.num_outputs++;
++		fill_stream_def(node1, output, pattrs);
++	}
++	if (node2_type == NODE_TASK || node2_type == NODE_DAISSOCKET) {
++		node2->create_args.asa.task_arg_obj.num_inputs++;
++		fill_stream_def(node2, input, pattrs);
++	}
++	/* Update node1 and node2 stream_connect */
++	if (node1_type != NODE_GPP && node1_type != NODE_DEVICE) {
++		node1->num_outputs++;
++		if (stream1 > node1->max_output_index)
++			node1->max_output_index = stream1;
+ 
+-		}
+-		if (node2_type != NODE_GPP && node2_type != NODE_DEVICE) {
+-			node2->num_inputs++;
+-			if (stream2 > node2->max_input_index)
+-				node2->max_input_index = stream2;
++	}
++	if (node2_type != NODE_GPP && node2_type != NODE_DEVICE) {
++		node2->num_inputs++;
++		if (stream2 > node2->max_input_index)
++			node2->max_input_index = stream2;
+ 
+-		}
+-		fill_stream_connect(node1, node2, stream1, stream2);
+ 	}
++	fill_stream_connect(node1, node2, stream1, stream2);
+ 	/* end of sync_enter_cs */
+ 	/* Exit critical section */
++out_unlock:
++	if (status && pstr_dev_name)
++		kfree(pstr_dev_name);
+ 	mutex_unlock(&hnode_mgr->node_mgr_lock);
 -func_end:
+ 	dev_dbg(bridge, "%s: node1: %p stream1: %d node2: %p stream2: %d"
+-		"pattrs: %p status: 0x%x\n", __func__, node1,
+-		stream1, node2, stream2, pattrs, status);
++			"pattrs: %p status: 0x%x\n", __func__, node1,
++			stream1, node2, stream2, pattrs, status);
+ 	return status;
+ }
+ 
+@@ -1329,6 +1291,7 @@ int node_create_mgr(struct node_mgr **node_man,
+ 	struct nldr_attrs nldr_attrs_obj;
+ 	int status = 0;
+ 	u8 dev_type;
++
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(node_man != NULL);
+ 	DBC_REQUIRE(hdev_obj != NULL);
+@@ -1336,90 +1299,89 @@ int node_create_mgr(struct node_mgr **node_man,
+ 	*node_man = NULL;
+ 	/* Allocate Node manager object */
+ 	node_mgr_obj = kzalloc(sizeof(struct node_mgr), GFP_KERNEL);
+-	if (node_mgr_obj) {
+-		node_mgr_obj->hdev_obj = hdev_obj;
+-		INIT_LIST_HEAD(&node_mgr_obj->node_list);
+-		node_mgr_obj->ntfy_obj = kmalloc(
+-				sizeof(struct ntfy_object), GFP_KERNEL);
+-		if (node_mgr_obj->ntfy_obj)
+-			ntfy_init(node_mgr_obj->ntfy_obj);
+-		else
+-			status = -ENOMEM;
+-		node_mgr_obj->num_created = 0;
+-	} else {
++	if (!node_mgr_obj)
++		return -ENOMEM;
++
++	node_mgr_obj->hdev_obj = hdev_obj;
++
++	node_mgr_obj->ntfy_obj = kmalloc(sizeof(struct ntfy_object),
++			GFP_KERNEL);
++	if (!node_mgr_obj->ntfy_obj) {
+ 		status = -ENOMEM;
++		goto out_err;
+ 	}
+-	/* get devNodeType */
+-	if (!status)
+-		status = dev_get_dev_type(hdev_obj, &dev_type);
++	ntfy_init(node_mgr_obj->ntfy_obj);
+ 
+-	/* Create the DCD Manager */
+-	if (!status) {
+-		status =
+-		    dcd_create_manager(sz_zl_file, &node_mgr_obj->hdcd_mgr);
+-		if (!status)
+-			status = get_proc_props(node_mgr_obj, hdev_obj);
++	INIT_LIST_HEAD(&node_mgr_obj->node_list);
++
++	dev_get_dev_type(hdev_obj, &dev_type);
++
++	status = dcd_create_manager(sz_zl_file, &node_mgr_obj->hdcd_mgr);
++	if (status)
++		goto out_err;
++
++	status = get_proc_props(node_mgr_obj, hdev_obj);
++	if (status)
++		goto out_err;
+ 
+-	}
+ 	/* Create NODE Dispatcher */
+-	if (!status) {
+-		disp_attr_obj.ul_chnl_offset = node_mgr_obj->ul_chnl_offset;
+-		disp_attr_obj.ul_chnl_buf_size = node_mgr_obj->ul_chnl_buf_size;
+-		disp_attr_obj.proc_family = node_mgr_obj->proc_family;
+-		disp_attr_obj.proc_type = node_mgr_obj->proc_type;
+-		status =
+-		    disp_create(&node_mgr_obj->disp_obj, hdev_obj,
+-				&disp_attr_obj);
+-	}
++	disp_attr_obj.ul_chnl_offset = node_mgr_obj->ul_chnl_offset;
++	disp_attr_obj.ul_chnl_buf_size = node_mgr_obj->ul_chnl_buf_size;
++	disp_attr_obj.proc_family = node_mgr_obj->proc_family;
++	disp_attr_obj.proc_type = node_mgr_obj->proc_type;
++
++	status = disp_create(&node_mgr_obj->disp_obj, hdev_obj, &disp_attr_obj);
++	if (status)
++		goto out_err;
++
+ 	/* Create a STRM Manager */
+-	if (!status)
+-		status = strm_create(&node_mgr_obj->strm_mgr_obj, hdev_obj);
++	status = strm_create(&node_mgr_obj->strm_mgr_obj, hdev_obj);
++	if (status)
++		goto out_err;
+ 
+-	if (!status) {
+-		dev_get_intf_fxns(hdev_obj, &node_mgr_obj->intf_fxns);
+-		/* Get msg_ctrl queue manager */
+-		dev_get_msg_mgr(hdev_obj, &node_mgr_obj->msg_mgr_obj);
+-		mutex_init(&node_mgr_obj->node_mgr_lock);
+-		/* Block out reserved channels */
+-		for (i = 0; i < node_mgr_obj->ul_chnl_offset; i++)
+-			set_bit(i, node_mgr_obj->chnl_map);
+-
+-		/* Block out channels reserved for RMS */
+-		set_bit(node_mgr_obj->ul_chnl_offset, node_mgr_obj->chnl_map);
+-		set_bit(node_mgr_obj->ul_chnl_offset + 1,
+-				node_mgr_obj->chnl_map);
+-	}
+-	if (!status) {
+-		/* NO RM Server on the IVA */
+-		if (dev_type != IVA_UNIT) {
+-			/* Get addresses of any RMS functions loaded */
+-			status = get_rms_fxns(node_mgr_obj);
+-		}
++	dev_get_intf_fxns(hdev_obj, &node_mgr_obj->intf_fxns);
++	/* Get msg_ctrl queue manager */
++	dev_get_msg_mgr(hdev_obj, &node_mgr_obj->msg_mgr_obj);
++	mutex_init(&node_mgr_obj->node_mgr_lock);
++
++	/* Block out reserved channels */
++	for (i = 0; i < node_mgr_obj->ul_chnl_offset; i++)
++		set_bit(i, node_mgr_obj->chnl_map);
++
++	/* Block out channels reserved for RMS */
++	set_bit(node_mgr_obj->ul_chnl_offset, node_mgr_obj->chnl_map);
++	set_bit(node_mgr_obj->ul_chnl_offset + 1, node_mgr_obj->chnl_map);
++
++	/* NO RM Server on the IVA */
++	if (dev_type != IVA_UNIT) {
++		/* Get addresses of any RMS functions loaded */
++		status = get_rms_fxns(node_mgr_obj);
++		if (status)
++			goto out_err;
+ 	}
+ 
+ 	/* Get loader functions and create loader */
+-	if (!status)
+-		node_mgr_obj->nldr_fxns = nldr_fxns;	/* Dyn loader funcs */
++	node_mgr_obj->nldr_fxns = nldr_fxns;	/* Dyn loader funcs */
++
++	nldr_attrs_obj.pfn_ovly = ovly;
++	nldr_attrs_obj.pfn_write = mem_write;
++	nldr_attrs_obj.us_dsp_word_size = node_mgr_obj->udsp_word_size;
++	nldr_attrs_obj.us_dsp_mau_size = node_mgr_obj->udsp_mau_size;
++	node_mgr_obj->loader_init = node_mgr_obj->nldr_fxns.pfn_init();
++	status = node_mgr_obj->nldr_fxns.pfn_create(&node_mgr_obj->nldr_obj,
++			hdev_obj,
++			&nldr_attrs_obj);
++	if (status)
++		goto out_err;
+ 
+-	if (!status) {
+-		nldr_attrs_obj.pfn_ovly = ovly;
+-		nldr_attrs_obj.pfn_write = mem_write;
+-		nldr_attrs_obj.us_dsp_word_size = node_mgr_obj->udsp_word_size;
+-		nldr_attrs_obj.us_dsp_mau_size = node_mgr_obj->udsp_mau_size;
+-		node_mgr_obj->loader_init = node_mgr_obj->nldr_fxns.pfn_init();
+-		status =
+-		    node_mgr_obj->nldr_fxns.pfn_create(&node_mgr_obj->nldr_obj,
+-						       hdev_obj,
+-						       &nldr_attrs_obj);
+-	}
+-	if (!status)
+-		*node_man = node_mgr_obj;
+-	else
+-		delete_node_mgr(node_mgr_obj);
++	*node_man = node_mgr_obj;
+ 
+ 	DBC_ENSURE((status && *node_man == NULL) || (!status && *node_man));
+ 
+ 	return status;
++out_err:
++	delete_node_mgr(node_mgr_obj);
++	return status;
+ }
+ 
+ /*
+@@ -1593,16 +1555,14 @@ func_end:
+  */
+ int node_delete_mgr(struct node_mgr *hnode_mgr)
+ {
+-	int status = 0;
+-
+ 	DBC_REQUIRE(refs > 0);
+ 
+-	if (hnode_mgr)
+-		delete_node_mgr(hnode_mgr);
+-	else
+-		status = -EFAULT;
++	if (!hnode_mgr)
++		return -EFAULT;
+ 
 -	return status;
-+	list_add_tail(&new_sect->list_elem, &target->ovly_list);
++	delete_node_mgr(hnode_mgr);
 +
 +	return 0;
  }
  
  /*
-@@ -173,71 +156,57 @@ int rmm_create(struct rmm_target_obj **target_obj,
- 	DBC_REQUIRE(target_obj != NULL);
- 	DBC_REQUIRE(num_segs == 0 || seg_tab != NULL);
+@@ -1710,38 +1670,37 @@ int node_get_attr(struct node_object *hnode,
+ 			 struct dsp_nodeattr *pattr, u32 attr_size)
+ {
+ 	struct node_mgr *hnode_mgr;
+-	int status = 0;
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(pattr != NULL);
+ 	DBC_REQUIRE(attr_size >= sizeof(struct dsp_nodeattr));
  
-+	if (num_segs <= 0)
-+		return -EINVAL;
+-	if (!hnode) {
+-		status = -EFAULT;
+-	} else {
+-		hnode_mgr = hnode->hnode_mgr;
+-		/* Enter hnode_mgr critical section (since we're accessing
+-		 * data that could be changed by node_change_priority() and
+-		 * node_connect(). */
+-		mutex_lock(&hnode_mgr->node_mgr_lock);
+-		pattr->cb_struct = sizeof(struct dsp_nodeattr);
+-		/* dsp_nodeattrin */
+-		pattr->in_node_attr_in.cb_struct =
+-				 sizeof(struct dsp_nodeattrin);
+-		pattr->in_node_attr_in.prio = hnode->prio;
+-		pattr->in_node_attr_in.utimeout = hnode->utimeout;
+-		pattr->in_node_attr_in.heap_size =
+-			hnode->create_args.asa.task_arg_obj.heap_size;
+-		pattr->in_node_attr_in.pgpp_virt_addr = (void *)
+-			hnode->create_args.asa.task_arg_obj.ugpp_heap_addr;
+-		pattr->node_attr_inputs = hnode->num_gpp_inputs;
+-		pattr->node_attr_outputs = hnode->num_gpp_outputs;
+-		/* dsp_nodeinfo */
+-		get_node_info(hnode, &(pattr->node_info));
+-		/* end of sync_enter_cs */
+-		/* Exit critical section */
+-		mutex_unlock(&hnode_mgr->node_mgr_lock);
+-	}
+-	return status;
++	if (!hnode)
++		return -EFAULT;
 +
- 	/* Allocate DBL target object */
- 	target = kzalloc(sizeof(struct rmm_target_obj), GFP_KERNEL);
--
--	if (target == NULL)
--		status = -ENOMEM;
--
--	if (status)
--		goto func_cont;
-+	if (!target)
-+		return -ENOMEM;
- 
- 	target->num_segs = num_segs;
--	if (!(num_segs > 0))
--		goto func_cont;
--
-+	INIT_LIST_HEAD(&target->ovly_list);
- 	/* Allocate the memory for freelist from host's memory */
--	target->free_list = kzalloc(num_segs * sizeof(struct rmm_header *),
--							GFP_KERNEL);
--	if (target->free_list == NULL) {
-+	target->free_list = kzalloc(num_segs *
-+			sizeof(struct rmm_header *), GFP_KERNEL);
-+	if (!target->free_list) {
- 		status = -ENOMEM;
--	} else {
--		/* Allocate headers for each element on the free list */
--		for (i = 0; i < (s32) num_segs; i++) {
--			target->free_list[i] =
--				kzalloc(sizeof(struct rmm_header), GFP_KERNEL);
--			if (target->free_list[i] == NULL) {
--				status = -ENOMEM;
--				break;
--			}
--		}
--		/* Allocate memory for initial segment table */
--		target->seg_tab = kzalloc(num_segs * sizeof(struct rmm_segment),
--								GFP_KERNEL);
--		if (target->seg_tab == NULL) {
-+		goto out_err;
-+	}
-+	/* Allocate headers for each element on the free list */
-+	for (i = 0; i < num_segs; i++) {
-+		target->free_list[i] =
-+			kzalloc(sizeof(struct rmm_header), GFP_KERNEL);
-+		if (!target->free_list[i]) {
- 			status = -ENOMEM;
--		} else {
--			/* Initialize segment table and free list */
--			sptr = target->seg_tab;
--			for (i = 0, tmp = seg_tab; num_segs > 0;
--			     num_segs--, i++) {
--				*sptr = *tmp;
--				hptr = target->free_list[i];
--				hptr->addr = tmp->base;
--				hptr->size = tmp->length;
--				hptr->next = NULL;
--				tmp++;
--				sptr++;
--			}
-+			goto out_err;
- 		}
- 	}
--func_cont:
--	/* Initialize overlay memory list */
--	if (!status)
--		INIT_LIST_HEAD(&target->ovly_list);
--
--	if (!status) {
--		*target_obj = target;
--	} else {
--		*target_obj = NULL;
--		if (target)
--			rmm_delete(target);
--
-+	/* Allocate memory for initial segment table */
-+	target->seg_tab = kzalloc(num_segs * sizeof(struct rmm_segment),
-+			GFP_KERNEL);
-+	if (!target->seg_tab) {
-+		status = -ENOMEM;
-+		goto out_err;
-+	}
-+	/* Initialize segment table and free list */
-+	sptr = target->seg_tab;
-+	for (i = 0, tmp = seg_tab; num_segs > 0; num_segs--, i++) {
-+		*sptr = *tmp;
-+		hptr = target->free_list[i];
-+		hptr->addr = tmp->base;
-+		hptr->size = tmp->length;
-+		hptr->next = NULL;
-+		tmp++;
-+		sptr++;
- 	}
- 
--	DBC_ENSURE((!status && *target_obj)
--		   || (status && *target_obj == NULL));
-+	*target_obj = target;
- 
++	hnode_mgr = hnode->hnode_mgr;
++	/* Enter hnode_mgr critical section (since we're accessing
++	 * data that could be changed by node_change_priority() and
++	 * node_connect(). */
++	mutex_lock(&hnode_mgr->node_mgr_lock);
++	pattr->cb_struct = sizeof(struct dsp_nodeattr);
++	/* dsp_nodeattrin */
++	pattr->in_node_attr_in.cb_struct =
++		sizeof(struct dsp_nodeattrin);
++	pattr->in_node_attr_in.prio = hnode->prio;
++	pattr->in_node_attr_in.utimeout = hnode->utimeout;
++	pattr->in_node_attr_in.heap_size =
++		hnode->create_args.asa.task_arg_obj.heap_size;
++	pattr->in_node_attr_in.pgpp_virt_addr = (void *)
++		hnode->create_args.asa.task_arg_obj.ugpp_heap_addr;
++	pattr->node_attr_inputs = hnode->num_gpp_inputs;
++	pattr->node_attr_outputs = hnode->num_gpp_outputs;
++	/* dsp_nodeinfo */
++	get_node_info(hnode, &(pattr->node_info));
++	/* end of sync_enter_cs */
++	/* Exit critical section */
++	mutex_unlock(&hnode_mgr->node_mgr_lock);
++
 +	return 0;
-+out_err:
-+	*target_obj = NULL;
-+	rmm_delete(target);
- 	return status;
  }
  
-@@ -298,14 +267,12 @@ bool rmm_free(struct rmm_target_obj *target, u32 segid, u32 dsp_addr, u32 size,
- 	bool ret = false;
- 
- 	DBC_REQUIRE(target);
--
- 	DBC_REQUIRE(reserved || segid < target->num_segs);
- 	DBC_REQUIRE(reserved || (dsp_addr >= target->seg_tab[segid].base &&
--				 (dsp_addr + size) <= (target->seg_tab[segid].
--						   base +
--						   target->seg_tab[segid].
--						   length)));
--
-+				(dsp_addr + size) <= (target->seg_tab[segid].
-+					base +
-+					target->seg_tab[segid].
-+					length)));
- 	/*
- 	 *  Free or unreserve memory.
- 	 */
-@@ -313,20 +280,20 @@ bool rmm_free(struct rmm_target_obj *target, u32 segid, u32 dsp_addr, u32 size,
- 		ret = free_block(target, segid, dsp_addr, size);
- 		if (ret)
- 			target->seg_tab[segid].number--;
-+		return ret;
-+	}
- 
--	} else {
--		/* Unreserve memory */
--		list_for_each_entry_safe(sect, tmp, &target->ovly_list,
--				list_elem) {
--			if (dsp_addr == sect->addr) {
--				DBC_ASSERT(size == sect->size);
--				/* Remove from list */
--				list_del(&sect->list_elem);
--				kfree(sect);
--				return true;
--			}
-+	/* Unreserve memory */
-+	list_for_each_entry_safe(sect, tmp, &target->ovly_list, list_elem) {
-+		if (sect->addr == dsp_addr) {
-+			DBC_ASSERT(size == sect->size);
-+			/* Remove from list */
-+			list_del(&sect->list_elem);
-+			kfree(sect);
-+			return true;
- 		}
- 	}
-+
- 	return ret;
- }
- 
-@@ -462,51 +429,48 @@ static bool free_block(struct rmm_target_obj *target, u32 segid, u32 addr,
- 	struct rmm_header *head;
- 	struct rmm_header *thead;
- 	struct rmm_header *rhead;
--	bool ret = true;
- 
- 	/* Create a memory header to hold the newly free'd block. */
- 	rhead = kzalloc(sizeof(struct rmm_header), GFP_KERNEL);
--	if (rhead == NULL) {
--		ret = false;
--	} else {
--		/* search down the free list to find the right place for addr */
--		head = target->free_list[segid];
-+	if (!rhead)
-+		return false;
- 
--		if (addr >= head->addr) {
--			while (head->next != NULL && addr > head->next->addr)
--				head = head->next;
--
--			thead = head->next;
--
--			head->next = rhead;
--			rhead->next = thead;
--			rhead->addr = addr;
--			rhead->size = size;
--		} else {
--			*rhead = *head;
--			head->next = rhead;
--			head->addr = addr;
--			head->size = size;
--			thead = rhead->next;
--		}
-+	/* search down the free list to find the right place for addr */
-+	head = target->free_list[segid];
- 
--		/* join with upper block, if possible */
--		if (thead != NULL && (rhead->addr + rhead->size) ==
--		    thead->addr) {
--			head->next = rhead->next;
--			thead->size = size + thead->size;
--			thead->addr = addr;
--			kfree(rhead);
--			rhead = thead;
--		}
-+	if (addr >= head->addr) {
-+		while (head->next != NULL && addr > head->next->addr)
-+			head = head->next;
- 
--		/* join with the lower block, if possible */
--		if ((head->addr + head->size) == rhead->addr) {
--			head->next = rhead->next;
--			head->size = head->size + rhead->size;
--			kfree(rhead);
--		}
-+		thead = head->next;
-+		head->next = rhead;
-+		rhead->next = thead;
-+		rhead->addr = addr;
-+		rhead->size = size;
-+	} else {
-+		*rhead = *head;
-+		head->next = rhead;
-+		head->addr = addr;
-+		head->size = size;
-+		thead = rhead->next;
- 	}
- 
--	return ret;
-+	/* join with upper block, if possible */
-+	if (thead != NULL && (rhead->addr + rhead->size) ==
-+			thead->addr) {
-+		head->next = rhead->next;
-+		thead->size = size + thead->size;
-+		thead->addr = addr;
-+		kfree(rhead);
-+		rhead = thead;
-+	}
-+
-+	/* join with the lower block, if possible */
-+	if ((head->addr + head->size) == rhead->addr) {
-+		head->next = rhead->next;
-+		head->size = head->size + rhead->size;
-+		kfree(rhead);
-+	}
-+
-+	return true;
- }
+ /*
 -- 
 1.7.3.2
 
