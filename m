@@ -1,36 +1,54 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v4 7/9] OMAP3: PM: Adding debug support to Voltage and
- Smartreflex drivers
-Date: Thu, 09 Dec 2010 11:22:15 -0600
-Message-ID: <4D011047.8000608@ti.com>
-References: <1288195856-11011-1-git-send-email-thara@ti.com>	<1288195856-11011-8-git-send-email-thara@ti.com>	<87wrol56x9.fsf@deeprootsystems.com>	<5A47E75E594F054BAF48C5E4FC4B92AB035EFF4E67@dbde02.ent.ti.com>	<878w0ume1m.fsf@deeprootsystems.com>	<5A47E75E594F054BAF48C5E4FC4B92AB0373831615@dbde02.ent.ti.com>	<4CFFB397.60203@ti.com>	<5A47E75E594F054BAF48C5E4FC4B92AB03738318AA@dbde02.ent.ti.com> <87fwu6c19k.fsf@deeprootsystems.com>
+From: Jamie Iles <jamie@jamieiles.com>
+Subject: Re: [PATCH 8/8] arm: omap: add minimal support for RM-680
+Date: Thu, 9 Dec 2010 17:29:18 +0000
+Message-ID: <20101209172918.GE2763@pulham.picochip.com>
+References: <1291912764-12823-1-git-send-email-aaro.koskinen@nokia.com>
+ <1291912764-12823-9-git-send-email-aaro.koskinen@nokia.com>
+ <20101209170310.GC2763@pulham.picochip.com>
+ <alpine.DEB.1.10.1012091905210.22143@esdhcp041196.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:43246 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752969Ab0LIRWT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 12:22:19 -0500
-Received: by mail-vw0-f43.google.com with SMTP id 17so1766201vws.16
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 09:22:18 -0800 (PST)
-In-Reply-To: <87fwu6c19k.fsf@deeprootsystems.com>
+Received: from mail-ey0-f171.google.com ([209.85.215.171]:47456 "EHLO
+	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755634Ab0LIR3V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 12:29:21 -0500
+Received: by eyg5 with SMTP id 5so2048460eyg.2
+        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 09:29:20 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.1.10.1012091905210.22143@esdhcp041196.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: ext Jamie Iles <jamie@jamieiles.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Kevin Hilman had written, on 12/09/2010 11:19 AM, the following:
-> "Gopinath, Thara" <thara@ti.com> writes:
+On Thu, Dec 09, 2010 at 07:11:28PM +0200, Aaro Koskinen wrote:
+> Hi,
 > 
+> On Thu, 9 Dec 2010, Jamie Iles wrote:
+> >>+static void __init rm680_peripherals_init(void)
+> >>+{
+> >>+	platform_add_devices(rm680_peripherals_devices,
+> >>+				ARRAY_SIZE(rm680_peripherals_devices));
+> >>+	rm680_i2c_init();
+> >>+	gpmc_onenand_init(board_onenand_data);
+> >What happens if CONFIG_MTD_ONENAND_OMAP2=n and
+> >CONFIG_MTD_ONENAND_OMAP2_MODULE=n? Do you need to define board_onenand_data to
+> >NULL if these aren't enabled?
 > [...]
+> >>+static void __init rm680_init(void)
+> >>+{
+> >>+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+> >The same here as with the onenand data.
 > 
->> So for this first version that we plan to push to kernel.org, I plan
->> to expose out these parameters to user space but not allow a write
->> access to them. The write access part can be added later whenever
->> required.
+> Check the following commits in linux-omap tree:
 > 
-> OK with me.
-+1
-Regards,
-Nishanth Menon
+> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=5403187f83c12c6f4c03547e0cc05bac0310be7b
+> 
+> and
+> 
+> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=7203f8a48bb63015ebe58a6f2a38aec1cb208b9d
+Thanks for the pointer! It looks a bit confusing to my eyes but I guess it's 
+better than lots of ifdeffery.
+
+Jamie
