@@ -1,59 +1,67 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/11] OMAP: PRCM/powerdomain/clockdomain patches for
- 2.6.38, part two
-Date: Thu, 9 Dec 2010 10:41:01 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012091038420.13430@utopia.booyaka.com>
-References: <20101208061657.30541.79824.stgit@twilight.localdomain> <20101209161932.4f4aae76.jhnikula@gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH v2] OMAP2+: disable idle early in the suspend sequence
+Date: Thu, 9 Dec 2010 18:41:50 +0100
+Message-ID: <AANLkTi=U5H6OO+mLHkCev+0F7aFiTGCvRn3bHh34yB=R@mail.gmail.com>
+References: <1291799364-23154-1-git-send-email-jean.pihet@newoldbits.com>
+	<87ei9rg98d.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-73605639-1291916461=:13430"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33583 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755564Ab0LIRlE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 12:41:04 -0500
-In-Reply-To: <20101209161932.4f4aae76.jhnikula@gmail.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:44424 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754509Ab0LIRlw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 12:41:52 -0500
+Received: by vws16 with SMTP id 16so1782002vws.19
+        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 09:41:51 -0800 (PST)
+In-Reply-To: <87ei9rg98d.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Kevin,
 
---155748971-73605639-1291916461=:13430
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On Thu, Dec 9, 2010 at 12:01 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> jean.pihet@newoldbits.com writes:
+>
+>> From: Jean Pihet <j-pihet@ti.com>
+>>
+>> Some bad interaction between the idle and the suspend paths has been
+>> noticed: the idle code is called during the suspend enter and exit
+>> sequences. This could cause corruption or lock-up of resources.
+>>
+>> The solution is to move the calls to disable_hlt at the very beginni=
+ng
+>> of the suspend sequence (ex. in omap3_pm_begin instead of
+>> omap3_pm_prepare), and the call to enable_hlt at the very end of
+>> the suspend sequence (ex. in omap3_pm_end instead of omap3_pm_finish=
+).
+>
+> In an earlier version, I thought we agreed to just remove the empty
+> prepare/finish calls. =A0Can you do that?
+>
+> Also, can you base this on top of my recently posted patch:
+>
+> [PATCH v3] OMAP2+: PM/serial: fix console semaphore acquire during su=
+spend
+>
+> since it touches some of the same code for pm24xx.c
 
-Hello Jarkko
+Ok sent as '[PATCH v3] OMAP2+: disable idle early in the suspend sequen=
+ce'
 
-On Thu, 9 Dec 2010, Jarkko Nikula wrote:
+Thanks,
+Jean
 
-> On Tue, 07 Dec 2010 23:18:28 -0700
-> Paul Walmsley <paul@pwsan.com> wrote:
->=20
-> > This series is available via git from git://git.pwsan.com/linux-2.6 in
-> > the branch 'pwrdm_prcm_b_2.6.38'.  It applies on top of the "OMAP:
-> > PRCM/powerdomain/clockdomain patches for 2.6.38, part one" series,
-> > sent earlier.
-> >=20
-> > Kevin and OMAP ASoC-hackers, I'd appreciate review and acks, if
-> > appropriate, on the patches that touch code that you maintain.  TI
-> > OMAP4 PM people, I would appreciate any testing assistance that you
-> > may be able to provide.  Beno=EEt, I've tried to keep the kernel data
-> > files and the output of the scripts relatively similar, but we might
-> > need to do some tweaking of the scripts or data files to align them
-> > in the way that makes the most sense.
-> >=20
-> Is there some patch missing? Part one compiles but this set does not.
-
-Yes, mach-omap2/cminst44xx.h is missing from the posted series.  It's been=
-=20
-added to the branch on the git server and posted here:
-
-http://www.spinics.net/lists/arm-kernel/msg106850.html
-
-Will repost the updated series after handling some of the other comments.
-
-
-- Paul
---155748971-73605639-1291916461=:13430--
+>
+> Thanks,
+>
+> Kevin
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
