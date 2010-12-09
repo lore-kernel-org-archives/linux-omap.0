@@ -1,63 +1,58 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 1/8] OMAP4: clock data: Add control for pad_clks_ck and slimbus_clk
-Date: Thu, 9 Dec 2010 23:13:33 +0100
-Message-ID: <1291932820-11163-2-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 2/8] OMAP3: clock data: Add "wkup_clkdm" in sr1_fck and sr2_fck
+Date: Thu, 9 Dec 2010 23:13:34 +0100
+Message-ID: <1291932820-11163-3-git-send-email-b-cousson@ti.com>
 References: <1291932820-11163-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43951 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59869 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757196Ab0LIWN4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Dec 2010 17:13:56 -0500
+	id S1755758Ab0LIWOE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Dec 2010 17:14:04 -0500
 In-Reply-To: <1291932820-11163-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Sebastien Guiriec <s-guiriec@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-The gating of pad_clks and slimbus_ck is controlled by the PRCM, but
-since the clock source is external, this is the SW responsability
-to gate / un-gate it when the mcpdm or slimbus module need to be used.
-There is no autogating possible with such external clock.
+The smartreflex modules belong to an ALWON_FCLK clock domain that
+does not have any SW control. The gating of that interface clock
+is triggered by a transition of the WKUP clock domain to idle.
 
-Add SW control to enable / disable this SW gating in the pad_clks_ck
-and slimbus_clk clock node.
+Attach both smartreflex instances on OMAP3 to the WKUP clock domain.
+
+The missing clock domain field in srX_fck clock nodes was reported by
+Kevin during the discussion about smartreflex on OMAP3:
+https://patchwork.kernel.org/patch/199342/
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/clock44xx_data.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 1599836..4395e2e 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -47,7 +47,9 @@ static struct clk extalt_clkin_ck = {
- static struct clk pad_clks_ck = {
- 	.name		= "pad_clks_ck",
- 	.rate		= 12000000,
--	.ops		= &clkops_null,
-+	.ops            = &clkops_omap2_dflt,
-+	.enable_reg     = OMAP4430_CM_CLKSEL_ABE,
-+	.enable_bit     = OMAP4430_PAD_CLKS_GATE_SHIFT,
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index d85ecd5..741f6a0 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3044,6 +3044,7 @@ static struct clk sr1_fck = {
+ 	.parent		= &sys_ck,
+ 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_SR1_SHIFT,
++	.clkdm_name	= "wkup_clkdm",
+ 	.recalc		= &followparent_recalc,
  };
  
- static struct clk pad_slimbus_core_clks_ck = {
-@@ -65,7 +67,9 @@ static struct clk secure_32k_clk_src_ck = {
- static struct clk slimbus_clk = {
- 	.name		= "slimbus_clk",
- 	.rate		= 12000000,
--	.ops		= &clkops_null,
-+	.ops            = &clkops_omap2_dflt,
-+	.enable_reg     = OMAP4430_CM_CLKSEL_ABE,
-+	.enable_bit     = OMAP4430_SLIMBUS_CLK_GATE_SHIFT,
+@@ -3054,6 +3055,7 @@ static struct clk sr2_fck = {
+ 	.parent		= &sys_ck,
+ 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_SR2_SHIFT,
++	.clkdm_name	= "wkup_clkdm",
+ 	.recalc		= &followparent_recalc,
  };
  
- static struct clk sys_32k_ck = {
 -- 
 1.7.0.4
 
