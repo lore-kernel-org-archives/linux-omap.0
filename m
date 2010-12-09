@@ -1,166 +1,49 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3] OMAP2+: PM/serial: fix console semaphore acquire during suspend
-Date: Thu, 09 Dec 2010 07:56:40 -0800
-Message-ID: <87zksfc53b.fsf@deeprootsystems.com>
-References: <1291848040-23394-1-git-send-email-khilman@deeprootsystems.com>
-	<AANLkTi=9TBbuwr4uiQb6f_f=cLxK2NvWJDJYXwr2tTxu@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH 0/8] arm: omap: add support for RM-680
+Date: Thu,  9 Dec 2010 18:39:16 +0200
+Message-ID: <1291912764-12823-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:64983 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960Ab0LIP4p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 10:56:45 -0500
-Received: by pva4 with SMTP id 4so540831pva.19
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 07:56:45 -0800 (PST)
-In-Reply-To: <AANLkTi=9TBbuwr4uiQb6f_f=cLxK2NvWJDJYXwr2tTxu@mail.gmail.com>
-	(Vitaly Wool's message of "Thu, 9 Dec 2010 00:51:29 +0100")
+Received: from smtp.nokia.com ([147.243.128.26]:45526 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751420Ab0LIQie (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Dec 2010 11:38:34 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vitaly Wool <vitalywool@gmail.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Vitaly Wool <vitalywool@gmail.com> writes:
+These patches add initial support for Nokia RM-680 board.
 
-> On Wed, Dec 8, 2010 at 11:40 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> @@ -120,8 +133,9 @@ static void omap2_enter_full_retention(void)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0goto no_sleep=
-;
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Block console output in case it is on =
-one of the OMAP UARTs */
->> - =C2=A0 =C2=A0 =C2=A0 if (try_acquire_console_sem())
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto no_sleep;
->> + =C2=A0 =C2=A0 =C2=A0 if (!is_suspending())
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (try_acquire_c=
-onsole_sem())
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 goto no_sleep;
->
-> Combine into one if?
+Patches 1-7 are just preparation and make board-rx51-sdram.c reusable
+by renaming it to sdram-nokia.c etc.
 
-personal preference I guess.  I prefer it nested.
+Patch 8 adds a new board and requires updated mach-types from
+http://www.arm.linux.org.uk/developer/machines/download.php in order
+to compile.
 
->
-> <snip>
->
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0omap_uart_prepare_idle(0);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0omap_uart_prepare_idle(1);
->> @@ -136,7 +150,8 @@ static void omap2_enter_full_retention(void)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0omap_uart_resume_idle(1);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0omap_uart_resume_idle(0);
->>
->> - =C2=A0 =C2=A0 =C2=A0 release_console_sem();
->> + =C2=A0 =C2=A0 =C2=A0 if (!is_suspending())
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 release_console_s=
-em();
->>
->> =C2=A0no_sleep:
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (omap2_pm_debug) {
->> @@ -284,6 +299,12 @@ out:
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0local_irq_enable();
->> =C2=A0}
->>
->> +static int omap2_pm_begin(suspend_state_t state)
->> +{
->> + =C2=A0 =C2=A0 =C2=A0 suspend_state =3D state;
->> + =C2=A0 =C2=A0 =C2=A0 return 0;
->> +}
->
-> Do you really need a return code here?
+These are based on top of linux-omap/master
+(92f446c47b18827e61483787668b0bb5f7a033b6).
 
-yes, this function prototype is defined by the driver model, not by me.
+...
 
->> =C2=A0static int omap2_pm_prepare(void)
->> =C2=A0{
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* We cannot sleep in idle until we have =
-resumed */
->> @@ -333,10 +354,18 @@ static void omap2_pm_finish(void)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0enable_hlt();
->> =C2=A0}
->>
->> +static void omap2_pm_end(void)
->> +{
->> + =C2=A0 =C2=A0 =C2=A0 suspend_state =3D PM_SUSPEND_ON;
->> + =C2=A0 =C2=A0 =C2=A0 return;
->> +}
->
-> Redundant return.
+Aaro Koskinen (8):
+  arm: omap: rename board-rx51-sdram.c to sdram-nokia.c
+  arm: omap: add sdram-nokia.h
+  arm: omap: sdram-nokia: prepare for new memory timings
+  arm: omap: sdram-nokia: use array to list timings
+  arm: omap: sdram-nokia: improve error handling
+  arm: omap: sdram-nokia: delete redundant timing data
+  arm: omap: sdram-nokia: add 97.6/195.2 MHz timing data
+  arm: omap: add minimal support for RM-680
 
-but harmless
+ arch/arm/mach-omap2/Kconfig                        |    6 +
+ arch/arm/mach-omap2/Makefile                       |    5 +-
+ arch/arm/mach-omap2/board-rm680.c                  |  187 ++++++++++++++++++++
+ arch/arm/mach-omap2/board-rx51.c                   |    4 +-
+ .../{board-rx51-sdram.c => sdram-nokia.c}          |  102 +++++++++---
+ arch/arm/mach-omap2/sdram-nokia.h                  |   12 ++
+ arch/arm/plat-omap/include/plat/uncompress.h       |    1 +
+ 7 files changed, 292 insertions(+), 25 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-rm680.c
+ rename arch/arm/mach-omap2/{board-rx51-sdram.c => sdram-nokia.c} (66%)
+ create mode 100644 arch/arm/mach-omap2/sdram-nokia.h
 
->> +
->> =C2=A0static struct platform_suspend_ops omap_pm_ops =3D {
->> + =C2=A0 =C2=A0 =C2=A0 .begin =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D =
-omap2_pm_begin,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0.prepare =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D o=
-map2_pm_prepare,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0.enter =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
-=3D omap2_pm_enter,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0.finish =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D o=
-map2_pm_finish,
->> + =C2=A0 =C2=A0 =C2=A0 .end =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
-=3D omap2_pm_end,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0.valid =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
-=3D suspend_valid_only_mem,
->> =C2=A0};
->>
->> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34=
-xx.c
->> index 0ec8a04..648b8c5 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -50,6 +50,19 @@
->> =C2=A0#include "sdrc.h"
->> =C2=A0#include "control.h"
->>
->> +#ifdef CONFIG_SUSPEND
->> +static suspend_state_t suspend_state =3D PM_SUSPEND_ON;
->> +static inline bool is_suspending(void)
->> +{
->> + =C2=A0 =C2=A0 =C2=A0 return (suspend_state !=3D PM_SUSPEND_ON);
->> +}
->> +#else
->> +static inline bool is_suspending(void)
->> +{
->> + =C2=A0 =C2=A0 =C2=A0 return false;
->> +}
->> +#endif
->> +
->> =C2=A0/* Scratchpad offsets */
->> =C2=A0#define OMAP343X_TABLE_ADDRESS_OFFSET =C2=A0 =C2=A0 0xc4
->> =C2=A0#define OMAP343X_TABLE_VALUE_OFFSET =C2=A0 =C2=A0 =C2=A0 0xc0
->> @@ -387,10 +400,11 @@ void omap_sram_idle(void)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Block console output in case it is on =
-one of the OMAP UARTs */
->> - =C2=A0 =C2=A0 =C2=A0 if (per_next_state < PWRDM_POWER_ON ||
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 core_next_state < PWRDM_POWER_O=
-N)
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (try_acquire_c=
-onsole_sem())
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 goto console_still_active;
->> + =C2=A0 =C2=A0 =C2=A0 if (!is_suspending())
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (per_next_stat=
-e < PWRDM_POWER_ON ||
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cor=
-e_next_state < PWRDM_POWER_ON)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 if (try_acquire_console_sem())
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto console_still_active;
->
-> Oh well, 3 nested ifs...
-
-again, personal preference.
-
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
