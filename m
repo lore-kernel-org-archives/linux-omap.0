@@ -1,46 +1,77 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/8] arm: omap: add sdram-nokia.h
-Date: Thu, 09 Dec 2010 10:45:27 -0600
-Message-ID: <4D0107A7.80900@ti.com>
-References: <1291912764-12823-1-git-send-email-aaro.koskinen@nokia.com> <1291912764-12823-3-git-send-email-aaro.koskinen@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2 1/2] I2C: i2c-omap: Change device name: i2c_omap -> omap_i2c
+Date: Thu, 09 Dec 2010 08:55:28 -0800
+Message-ID: <878vzydgxr.fsf@deeprootsystems.com>
+References: <1291904657-32729-1-git-send-email-b-cousson@ti.com>
+	<1291904657-32729-2-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:42261 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753902Ab0LIQpc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 11:45:32 -0500
-Received: by mail-vw0-f52.google.com with SMTP id 13so1767412vws.25
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 08:45:31 -0800 (PST)
-In-Reply-To: <1291912764-12823-3-git-send-email-aaro.koskinen@nokia.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:50599 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753902Ab0LIQzc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 11:55:32 -0500
+Received: by pwj3 with SMTP id 3so573104pwj.19
+        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 08:55:32 -0800 (PST)
+In-Reply-To: <1291904657-32729-2-git-send-email-b-cousson@ti.com> (Benoit
+	Cousson's message of "Thu, 9 Dec 2010 15:24:16 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ben Dooks <ben-i2c@fluff.org>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-Aaro Koskinen had written, on 12/09/2010 10:39 AM, the following:
+Ben,
+
+Benoit Cousson <b-cousson@ti.com> writes:
+
+> The convention for omap device naming is omap_XXX.
+>
+> Rename the device and driver name in order to stick
+> to this naming convention.
+>
+> Change device name in clock nodes as well.
+>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> c: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Cc: Ben Dooks <ben-i2c@fluff.org>
+> ---
+>  arch/arm/mach-omap1/clock_data.c     |    6 +++---
+>  arch/arm/mach-omap2/clock2420_data.c |    8 ++++----
+>  arch/arm/mach-omap2/clock2430_data.c |    8 ++++----
+>  arch/arm/mach-omap2/clock3xxx_data.c |   12 ++++++------
+>  arch/arm/mach-omap2/clock44xx_data.c |   16 ++++++++--------
+>  arch/arm/plat-omap/i2c.c             |    2 +-
+>  drivers/i2c/busses/i2c-omap.c        |    4 ++--
+>  7 files changed, 28 insertions(+), 28 deletions(-)
+
 [...]
-> diff --git a/arch/arm/mach-omap2/sdram-nokia.h b/arch/arm/mach-omap2/sdram-nokia.h
-> new file mode 100644
-> index 0000000..ee63da5
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/sdram-nokia.h
-> @@ -0,0 +1,12 @@
-> +/*
-> + * SDRC register values for Nokia boards
-> + *
-> + * Copyright (C) 2010 Nokia
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +struct omap_sdrc_params *nokia_get_sdram_timings(void);
-> +
-Minor comment: Header guard missing. maybe nice to add #ifndef, #def, 
-#endif.
 
-Regards,
-Nishanth Menon
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 760b8be..9d09083 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1139,7 +1139,7 @@ static struct platform_driver omap_i2c_driver = {
+>  	.probe		= omap_i2c_probe,
+>  	.remove		= omap_i2c_remove,
+>  	.driver		= {
+> -		.name	= "i2c_omap",
+> +		.name	= "omap_i2c",
+>  		.owner	= THIS_MODULE,
+>  	},
+>  };
+> @@ -1161,4 +1161,4 @@ module_exit(omap_i2c_exit_driver);
+>  MODULE_AUTHOR("MontaVista Software, Inc. (and others)");
+>  MODULE_DESCRIPTION("TI OMAP I2C bus adapter");
+>  MODULE_LICENSE("GPL");
+> -MODULE_ALIAS("platform:i2c_omap");
+> +MODULE_ALIAS("platform:omap_i2c");
+
+With your ack for the name change in the driver, we can merge this
+through the OMAP tree with the other core changes.
+
+Thanks,
+
+Kevin
+
