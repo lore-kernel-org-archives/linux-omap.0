@@ -1,60 +1,36 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] arm: omap4: panda: fix initialize musb
-Date: Thu, 09 Dec 2010 11:21:44 -0600
-Message-ID: <4D011028.6020505@ti.com>
-References: <1291914170-25415-1-git-send-email-tom.leiming@gmail.com>
+Subject: Re: [PATCH v4 7/9] OMAP3: PM: Adding debug support to Voltage and
+ Smartreflex drivers
+Date: Thu, 09 Dec 2010 11:22:15 -0600
+Message-ID: <4D011047.8000608@ti.com>
+References: <1288195856-11011-1-git-send-email-thara@ti.com>	<1288195856-11011-8-git-send-email-thara@ti.com>	<87wrol56x9.fsf@deeprootsystems.com>	<5A47E75E594F054BAF48C5E4FC4B92AB035EFF4E67@dbde02.ent.ti.com>	<878w0ume1m.fsf@deeprootsystems.com>	<5A47E75E594F054BAF48C5E4FC4B92AB0373831615@dbde02.ent.ti.com>	<4CFFB397.60203@ti.com>	<5A47E75E594F054BAF48C5E4FC4B92AB03738318AA@dbde02.ent.ti.com> <87fwu6c19k.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:41406 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751631Ab0LIRVs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 12:21:48 -0500
-Received: by mail-vw0-f46.google.com with SMTP id 16so1759559vws.19
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 09:21:47 -0800 (PST)
-In-Reply-To: <1291914170-25415-1-git-send-email-tom.leiming@gmail.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:43246 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752969Ab0LIRWT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 12:22:19 -0500
+Received: by mail-vw0-f43.google.com with SMTP id 17so1766201vws.16
+        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 09:22:18 -0800 (PST)
+In-Reply-To: <87fwu6c19k.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tom.leiming@gmail.com
-Cc: tony@atomide.com, balbi@ti.com, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-tom.leiming@gmail.com had written, on 12/09/2010 11:02 AM, the following:
-> From: Ming Lei <tom.leiming@gmail.com>
+Kevin Hilman had written, on 12/09/2010 11:19 AM, the following:
+> "Gopinath, Thara" <thara@ti.com> writes:
 > 
-> Obviously we should only initialize musb once.
+> [...]
 > 
-> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-> ---
->  arch/arm/mach-omap2/board-omap4panda.c |    3 ---
->  1 files changed, 0 insertions(+), 3 deletions(-)
+>> So for this first version that we plan to push to kernel.org, I plan
+>> to expose out these parameters to user space but not allow a write
+>> access to them. The write access part can be added later whenever
+>> required.
 > 
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index 22599fc..85371be 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -393,9 +393,6 @@ static void __init omap4_panda_init(void)
->  	usb_nop_xceiv_register();
->  	omap4_ehci_init();
->  	usb_musb_init(&musb_board_data);
-> -	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
-> -	if (!cpu_is_omap44xx())
-> -		usb_musb_init(&musb_board_data);
->  }
->  
->  static void __init omap4_panda_map_io(void)
-Looks good to me. since this is for l-o master branch, I think this 
-should probably be squashed to:
-
-commit ec787afd05aad0cdb0b0d2948b356569805e5b30
-Author: Felipe Balbi <balbi@ti.com>
-Date:   Wed Dec 1 13:48:54 2010 +0200
-
-     arm: omap4: panda: initialize musb
-
-     initialize the musb port on pandaboard.
-
-     Signed-off-by: Felipe Balbi <balbi@ti.com>
-
+> OK with me.
++1
 Regards,
 Nishanth Menon
