@@ -1,56 +1,35 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/9 v3] usb: musb: Remove board_data parameter from musb_platform_init()
-Date: Fri, 10 Dec 2010 22:30:50 +0300
-Message-ID: <4D027FEA.9050206@ru.mvista.com>
-References: <1285201660-26309-1-git-send-email-hemahk@ti.com> <871v8c629u.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <871v8c629u.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+From: jean.pihet@newoldbits.com
+Subject: [PATCH 0/3] perf, tools: new power trace API
+Date: Fri, 10 Dec 2010 20:51:58 +0100
+Message-ID: <1292010721-17426-1-git-send-email-j-pihet@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Renninger <trenn@suse.de>, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+From: Jean Pihet <j-pihet@ti.com>
 
-Kevin Hilman wrote:
+Provides:
+. calls to machine_suspend trace point,
+. OMAP support,
+. API Documentation
 
->> Removed the board_data parameter being passed to musb_platform_init function
->> as board data can be extracted from device structure which is already member of
->> musb structure.
+Applies on top of Thomas's 8 latest power trace API patches, cf.
+http://marc.info/?l=linux-kernel&m=129130827309354&w=2
 
->> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
->> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
->> Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
->> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Jean Pihet (3):
+  perf: add calls to suspend trace point
+  perf: add OMAP support for the new power events
+  tools, perf: Documentation for the power events API
 
-> For the davinci changes:
+ Documentation/trace/events-power.txt |   90 ++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm34xx.c         |    7 +++
+ arch/arm/mach-omap2/powerdomain.c    |    3 +
+ arch/arm/plat-omap/clock.c           |   13 ++++-
+ kernel/power/suspend.c               |    3 +
+ 5 files changed, 113 insertions(+), 3 deletions(-)
+ create mode 100644 Documentation/trace/events-power.txt
 
-> Acked-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-
-> Kevin
-
->> ---
->>  drivers/usb/musb/blackfin.c  |    2 +-
->>  drivers/usb/musb/davinci.c   |    2 +-
->>  drivers/usb/musb/musb_core.c |    2 +-
->>  drivers/usb/musb/musb_core.h |    2 +-
->>  drivers/usb/musb/omap2430.c  |    6 ++++--
->>  drivers/usb/musb/tusb6010.c  |    2 +-
->>  6 files changed, 9 insertions(+), 7 deletions(-)
-
-    Grr. This misses changes to da8xx.c and am35x.c -- which breaks the 
-compilation for them!
-    Greg, could you drop it from your usb-next branch? Or should we send a patch 
-adding these glue layers?
-
-WBR. Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.7.2.3
