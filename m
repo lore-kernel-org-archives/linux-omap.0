@@ -1,84 +1,60 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4] usb: musb: Adding names for IRQs in resource structure
-Date: Fri, 10 Dec 2010 15:56:27 +0300
-Message-ID: <4D02237B.2070708@mvista.com>
-References: <1285777599-24245-1-git-send-email-hemahk@ti.com>	<8762xo62b5.fsf@deeprootsystems.com>	<4D012F2C.9060303@ru.mvista.com> <AANLkTimF3Eotqa+jZvzCJStguGrDEeS9V-XUGOTa9qBt@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 7/8 V2] usb: musb: Adding musb support for OMAP4430
+Date: Fri, 10 Dec 2010 14:57:28 +0200
+Message-ID: <20101210125728.GJ6027@legolas.emea.dhcp.ti.com>
+References: <1291984851-26040-1-git-send-email-hemahk@ti.com>
+ <20101210125134.GI6027@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTimF3Eotqa+jZvzCJStguGrDEeS9V-XUGOTa9qBt-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:58573 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755892Ab0LJM5f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Dec 2010 07:57:35 -0500
+Content-Disposition: inline
+In-Reply-To: <20101210125134.GI6027@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Hema HK <hemahk@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hello.
+On Fri, Dec 10, 2010 at 02:51:34PM +0200, Felipe Balbi wrote:
+>On Fri, Dec 10, 2010 at 06:10:51PM +0530, Hema HK wrote:
+>>@@ -214,9 +235,62 @@ static inline void omap2430_low_level_in
+>>	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
+>>}
+>>
+>>+/* blocking notifier support */
+>>+static int musb_otg_notifications(struct notifier_block *nb,
+>>+		unsigned long event, void *unused)
+>>+{
+>>+	struct musb	*musb = container_of(nb, struct musb, nb);
+>>+	struct device *dev = musb->controller;
+>>+	struct musb_hdrc_platform_data *pdata = dev->platform_data;
+>>+	struct omap_musb_board_data *data = pdata->board_data;
+>>+
+>>+	switch (event) {
+>>+	case USB_EVENT_ID:
+>>+		DBG(4, "ID GND\n");
+>>+
+>>+		if (is_otg_enabled(musb)) {
+>>+			if (musb->gadget_driver) {
+>
+>This breaks compilation:
+>
+>drivers/usb/musb/omap2430.c: In function 'musb_otg_notifications':
+>drivers/usb/musb/omap2430.c:252: error: 'struct musb' has no member
+>named 'gadget_driver'
+>make[2]: *** [drivers/usb/musb/omap2430.o] Error 1
+>make[2]: *** Waiting for unfinished jobs....
+>make[1]: *** [drivers/usb/musb] Error 2
+>make: *** [drivers] Error 2
+>
+>you need to ifdef that.
 
-On 10-12-2010 7:46, Kalliguddi, Hema wrote:
+fixed it already. Pushed to musb-hw branch.
 
->>>> The resource data is getting automatically populated from a set of data
->>>> generated from TI's hardware database for the OMAP platform, While we
->>>> could hack in some exceptions to that tool to generate resources
->>>> in a specific order, it seems less fragile to use the resource name
->>>> instead.That way, no matter what order the resources are generated, the
->>>> driver still work.
-
->>>> Modified the OMAP,Blackfin and Davinci architecture files to add the name
->>>> of the IRQs
->>>> in the resource structures and musb driver to use the get_irq_byname()
->>>> api to
->>>> get the device and dma irq numbers instead of using the index.
-
->>>> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
->>>> Cc: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
->>>> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->>>> Cc: Kevin Hilman<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
->>>> Cc: Cousson, Benoit<b-cousson-l0cyMroinI0@public.gmane.org>
->>>> Cc: Paul Walmsley<paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
->>>> Cc: Mike Frysinger<vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
->>>> ---
-
->>> For the davinci changes:
-
->>> Acked-by: Kevin Hilman<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-
->>> Kevin
-
->> [...]
-
->>>> Index: linux-omap-pm/arch/arm/mach-davinci/usb.c
->>>> ===================================================================
->>>> --- linux-omap-pm.orig/arch/arm/mach-davinci/usb.c
->>>> +++ linux-omap-pm/arch/arm/mach-davinci/usb.c
->>>> @@ -64,10 +64,12 @@ static struct resource usb_resources[] =
->>>>         {
->>>>                 .start          = IRQ_USBINT,
->>>>                 .flags          = IORESOURCE_IRQ,
->>>> +               .name           = "mc"
->>>>         },
->>>>         {
->>>>                 /* placeholder for the dedicated CPPI IRQ */
->>>>                 .flags          = IORESOURCE_IRQ,
->>>> +               .name           = "dma"
->>>>         },
->>>>   };
-
->>    Argh! This failed to also modify da8xx_usb20_resources[]... :-(
-
-> I think when I posted these patch, da8xx support was not there in mainline.
-
-    No, it was added long ago, before the glue layer itself.
-
-> I will send patch to add this.
-
-    I will care about this myself now.
-
-> Regards,
-> Hema
-
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
