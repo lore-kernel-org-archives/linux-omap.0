@@ -1,65 +1,38 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/7 V2] usb: otg: Adding twl6030-usb transceiver driver
- for
-Date: Fri, 10 Dec 2010 12:33:44 +0200
-Message-ID: <20101210103344.GE6027@legolas.emea.dhcp.ti.com>
-References: <1291964658-7076-1-git-send-email-hemahk@ti.com>
- <20101210102803.GB6027@legolas.emea.dhcp.ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 0/2] OMAP1: amsdelta: reserve memory for videobuf_contig
+Date: Fri, 10 Dec 2010 11:47:03 +0100
+Message-ID: <201012101147.04868.jkrzyszt@tis.icnet.pl>
+References: <201012051929.07220.jkrzyszt@tis.icnet.pl> <20101210012908.GQ3054@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20101210012908.GQ3054@atomide.com>
 Content-Disposition: inline
-In-Reply-To: <20101210102803.GB6027-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-media-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 10, 2010 at 12:28:03PM +0200, Felipe Balbi wrote:
->On Fri, Dec 10, 2010 at 12:34:18PM +0530, Hema HK wrote:
->>Adding the twl6030-usb transceiver support for OMAP4 musb driver.
->>
->>OMAP4 supports 2 types of transceiver interface.
->>
->>1. UTMI: The PHY is embedded within OMAP4. The transceiver functionality
->>is split between the twl6030 PMIC chip and OMAP4430. The VBUS, ID pin
->>sensing and OTG SRP generation part is integrated in TWL6030 and UTMI PHY
->>functionality is embedded within the OMAP4430.
->>
->>There is no direct interactions between the MUSB controller and TWL6030
->>chip to communicate the session-valid, session-end and ID-GND events.
->>It has to be done through a software by setting/resetting bits in
->>one of the control module register of OMAP4430 which in turn toggles
->>the appropriate signals to MUSB controller.
->>
->>The internal transceiver has functional clocks and
->>powerdown bits to powerdown the PHY for power saving.
->>
->>Since there is no option available for having 2 transceiver drivers
->>for one USB controller, internal PHY specific APIs are passed through
->>plaform_data function pointers to use in the twl6030-usb transceiver
->>driver.
->>
->>2. ULPI interface is provided for off-chip transceivers.
->>
->>Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
->>Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->>Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->>Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
->>---
->>arch/arm/mach-omap2/omap_phy_internal.c |  149 +++++++++
+Friday 10 December 2010 02:29:09 Tony Lindgren wrote:
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [101205 10:19]:
+> > Latest developements seem to allow for reserving a block of memory on
+> > boot to be used as a device dedicated dma coherent memory. This may be
+> > required for videobuf_config based video drivers avoid problems with
+> > allocating dma coherent memory after system memory gets fragmented.
+> >
+> > This set extends the OMAP1 camera resource initialization code with a
+> > function that can be used for reserving a block of memory early, then
+> > declared as the camera device dedicated dma coherent memory.
+> >
+> > An example use case is provided for Amstrad Delta camera.
 >
->this file will never be compiled.
+> These look good to me, however, can you please also Cc linux-arm-kernel
+> list as otherwise I will need to repost these before merging.
 
-another comment:
+Sure. Perhaps that first submission should rather go as an RFC, now that there 
+are no requests for changes, I'll repost with Cc linux-arm-kernel.
 
-$SUBJECT looks incomplete "Adding twl6030-usb transceiver driver for",
-makes me wonder "for what ?!?"
-
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Janusz
