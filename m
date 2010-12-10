@@ -1,68 +1,61 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
-Date: Fri, 10 Dec 2010 22:03:52 +0100
-Message-ID: <201012102203.54413.jkrzyszt@tis.icnet.pl>
-References: <201012051929.07220.jkrzyszt@tis.icnet.pl> <201012101203.09441.jkrzyszt@tis.icnet.pl> <20101210170356.GA28472@n2100.arm.linux.org.uk>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 2/9 v3] usb: musb: Remove board_data parameter from musb_platform_init()
+Date: Sat, 11 Dec 2010 00:07:19 +0300
+Message-ID: <4D029687.7010008@ru.mvista.com>
+References: <1285201660-26309-1-git-send-email-hemahk@ti.com> <871v8c629u.fsf@deeprootsystems.com> <4D027FEA.9050206@ru.mvista.com> <20101210202906.GB23759@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20101210170356.GA28472@n2100.arm.linux.org.uk>
-Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-arm-kernel@lists.infradead.org, Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20101210202906.GB23759-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-=46riday 10 December 2010 18:03:56 Russell King - ARM Linux napisa=C5=82=
-(a):
-> On Fri, Dec 10, 2010 at 12:03:07PM +0100, Janusz Krzysztofik wrote:
-> >  void __init omap1_camera_init(void *info)
-> >  {
-> >  	struct platform_device *dev =3D &omap1_camera_device;
-> > +	dma_addr_t paddr =3D omap1_camera_phys_mempool_base;
-> > +	dma_addr_t size =3D omap1_camera_phys_mempool_size;
-> >  	int ret;
-> >
-> >  	dev->dev.platform_data =3D info;
-> >
-> > +	if (paddr) {
-> > +		if (dma_declare_coherent_memory(&dev->dev, paddr, paddr, size,
-> > +				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE))
->
-> Although this works, you're ending up with SDRAM being mapped via
-> ioremap, which uses MT_DEVICE - so what is SDRAM ends up being
-> mapped as if it were a device.
->
-> For OMAP1, which is ARMv5 or lower, device memory becomes 'uncacheabl=
-e,
-> unbufferable' which is luckily what is used for the DMA coherent
-> memory on those platforms - so no technical problem here.
->
-> However, on ARMv6 and later, ioremapped memory is device memory, whic=
-h
-> has different ordering wrt normal memory mappings, and may appear on
-> different busses on the CPU's interface.  So, this is something I don=
-'t
-> encourage as it's unclear that the hardware will work.
->
-> Essentially, dma_declare_coherent_memory() on ARM with main SDRAM sho=
-uld
-> be viewed as a 'it might work, it might not, and it might stop workin=
-g
-> in the future' kind of interface.  In other words, there is no guaran=
-tee
-> that this kind of thing will be supported in the future.
+Hello.
 
-I was affraid of an unswer of this kind. I'm not capable of comming out=
- with=20
-any better, alternative solutions. Any hints other than giving up with =
-that=20
-old videobuf-contig, coherent memory based interface? Or can we agree o=
-n=20
-that 'luckily uncacheable, unbufferable, SDRAM based DMA coherent memor=
-y'=20
-solution for now?
+Greg KH wrote:
 
-Thanks,
-Janusz
+>>>> Removed the board_data parameter being passed to musb_platform_init function
+>>>> as board data can be extracted from device structure which is already member of
+>>>> musb structure.
+
+>>>> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+>>>> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+>>>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>>>> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+>>>> Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
+>>>> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+
+>>> For the davinci changes:
+
+>>> Acked-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+
+>>> Kevin
+>>>> ---
+>>>> drivers/usb/musb/blackfin.c  |    2 +-
+>>>> drivers/usb/musb/davinci.c   |    2 +-
+>>>> drivers/usb/musb/musb_core.c |    2 +-
+>>>> drivers/usb/musb/musb_core.h |    2 +-
+>>>> drivers/usb/musb/omap2430.c  |    6 ++++--
+>>>> drivers/usb/musb/tusb6010.c  |    2 +-
+>>>> 6 files changed, 9 insertions(+), 7 deletions(-)
+
+>>    Grr. This misses changes to da8xx.c and am35x.c -- which breaks
+>> the compilation for them!
+>>    Greg, could you drop it from your usb-next branch? Or should we
+>> send a patch adding these glue layers?
+
+> I can't drop patches from a git branch, sorry, it doesn't work that way
+> anymore.
+
+    That's why I really prefer quilt to git. :-)
+
+> greg k-h
+
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
