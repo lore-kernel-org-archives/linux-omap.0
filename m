@@ -1,62 +1,59 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 2/9 v3] usb: musb: Remove board_data parameter from
- musb_platform_init()
-Date: Fri, 10 Dec 2010 12:29:06 -0800
-Message-ID: <20101210202906.GB23759@kroah.com>
-References: <1285201660-26309-1-git-send-email-hemahk@ti.com>
- <871v8c629u.fsf@deeprootsystems.com>
- <4D027FEA.9050206@ru.mvista.com>
+From: argon design <argondsgn@gmail.com>
+Subject: Corrupted LCML messages using DSP Bridge on Gumstix
+Date: Fri, 10 Dec 2010 20:34:39 +0000
+Message-ID: <AANLkTi=myvoTSqKZCOn4f-qbp9zgWuE7=pAdhkDy13Ce@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:40714 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757120Ab0LJUab (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Dec 2010 15:30:31 -0500
-Content-Disposition: inline
-In-Reply-To: <4D027FEA.9050206@ru.mvista.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:58280 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756848Ab0LJUel (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 15:34:41 -0500
+Received: by wwa36 with SMTP id 36so4152345wwa.1
+        for <linux-omap@vger.kernel.org>; Fri, 10 Dec 2010 12:34:40 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Hema HK <hemahk@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org
 
-On Fri, Dec 10, 2010 at 10:30:50PM +0300, Sergei Shtylyov wrote:
-> Hello.
-> 
-> Kevin Hilman wrote:
-> 
-> >>Removed the board_data parameter being passed to musb_platform_init function
-> >>as board data can be extracted from device structure which is already member of
-> >>musb structure.
-> 
-> >>Signed-off-by: Hema HK <hemahk@ti.com>
-> >>Cc: Felipe Balbi <balbi@ti.com>
-> >>Cc: Tony Lindgren <tony@atomide.com>
-> >>Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> >>Cc: Cousson, Benoit <b-cousson@ti.com>
-> >>Cc: Paul Walmsley <paul@pwsan.com>
-> 
-> >For the davinci changes:
-> 
-> >Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> 
-> >Kevin
-> 
-> >>---
-> >> drivers/usb/musb/blackfin.c  |    2 +-
-> >> drivers/usb/musb/davinci.c   |    2 +-
-> >> drivers/usb/musb/musb_core.c |    2 +-
-> >> drivers/usb/musb/musb_core.h |    2 +-
-> >> drivers/usb/musb/omap2430.c  |    6 ++++--
-> >> drivers/usb/musb/tusb6010.c  |    2 +-
-> >> 6 files changed, 9 insertions(+), 7 deletions(-)
-> 
->    Grr. This misses changes to da8xx.c and am35x.c -- which breaks
-> the compilation for them!
->    Greg, could you drop it from your usb-next branch? Or should we
-> send a patch adding these glue layers?
+BACKGROUND
+I am running the RLS25.INC2.6 Zoom release configured for board_overo
+on a Overo Water Gumstix module (contains a 3530 chip).
 
-I can't drop patches from a git branch, sorry, it doesn't work that way
-anymore.
+I have got the RLS25.12 binaries from TI's website
+(https://gforge.ti.com/gf/project/openmax/frs/) and these work fine
+for decoding video (via pvplayer_engine_test).
 
-greg k-h
+Now I am trying to use some third party video codecs (from Ittiam) but
+some of the messages sent over DSP bridge seem to get corrupted.
+
+The library uses the LCML (I believe this stands for Linux Common
+Multimedia layer?) QueueBuffer function to pass an output buffer.
+On the ARM side (inside the dsp/bridge kernel driver) I can see non
+zero values being passed in for the address and length of the buffer,
+but on the DSP side the error messages suggest that the received
+values are 0.
+This happens for the first output buffer.
+Later messages do seem to get passed correctly so it feels as if it is
+basically working but there is some oddness in the message passing
+code.
+
+I get the same results if I use the baseimage.dof and usn.dll64P from
+the RLS25.14M3 TI binaries.
+
+QUESTIONS
+1) Is it valid to try to use DSP Bridge from RLS25.INC2.6 for the 3530
+chip?  (I understand that the INC2 releases are meant for the 3630 but
+I don't know of any reason why they wouldn't also work for 3530)
+2) Which version of the TI binaries go with RLS25.INC2.6?
+3) Has anyone any idea why the output buffer messages are getting corrupted?
+
+I'm not really looking for debugging help (unless someone knows a
+really revealing experiment that only involves code change on the ARM
+side) but I am just hoping that someone may have seen a similar
+problem before.
+I'm new to the whole DSP bridge area so I am sure I have just made a
+really stupid mistake somewhere but I can't think where,
+
+Thanks (and many apologies if I haven't picked the right mailing list!),
+
+Peter
