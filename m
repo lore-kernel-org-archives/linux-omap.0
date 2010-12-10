@@ -1,147 +1,243 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCHv5 00/10] OMAP: Adding Smartreflex and Voltage driver support
-Date: Fri, 10 Dec 2010 23:32:51 +0530
-Message-ID: <1292004181-4804-1-git-send-email-thara@ti.com>
+Subject: [PATCHv5 05/10] OMAP3: PM: Adding smartreflex hwmod data
+Date: Fri, 10 Dec 2010 23:32:56 +0530
+Message-ID: <1292004181-4804-6-git-send-email-thara@ti.com>
+References: <1292004181-4804-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48003 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:48009 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754368Ab0LJSDO (ORCPT
+	with ESMTP id S1756684Ab0LJSDO (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 13:03:14 -0500
+In-Reply-To: <1292004181-4804-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, nm@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch series introduces smartreflex and voltage driver support
-for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
-control for real-time voltage adjustments.
+This patch adds the smartreflex hwmod data for OMAP3430
+and OMAP3630.
 
-Originally all the functionalities introduced in this patch
-were present in arch/arm/mach-omap2/smartreflex.c file in Kevin's
-pm tree. This patch series does a major rewrite of this file
-and introduces a separate voltage driver. Major contributors
-to the original driver are
+Signed-off-by: Thara Gopinath <thara@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  174 ++++++++++++++++++++++++++++
+ 1 files changed, 174 insertions(+), 0 deletions(-)
 
-Eduardo Valentin (1):
-      OMAP3: PM: SmartReflex: Fix scheduled while atomic problem
-
-Kalle Jokiniemi (1):
-      OMAP3: PM: SmartReflex driver integration
-
-Kevin Hilman (2):
-      temp: SR: IO_ADDRESS conversion
-      OMAP: SR: OPP interfaces removed from OMAP PM layer
-
-Nishanth Menon (1):
-      omap3: pm: sr: replace get_opp with freq_to_opp
-
-Paul Walmsley (2):
-      OMAP SR: use opp_find_opp_by_opp_id()
-      OMAP SR: use OPP API for OPP ID, remove direct access
-
-Phil Carmody (2):
-      OMAP3: PM: Don't do unnecessary searches in omap_sr_vdd*_autocomp_store
-      OMAP3: PM: Early exit on invalid parameters
-
-Rajendra Nayak (9):
-      OMAP3: SR: Fix init voltage on OPP change
-      OMAP3: SR: Update VDD1/2 voltages at boot
-      OMAP3: SR: Use sysclk for SR CLKLENGTH calc
-      OMAP3: SR: Reset voltage level on SR disable
-      OMAP3: SR: Replace printk's with pr_* calls
-      OMAP3: SR: Remove redundant defines
-      OMAP3: SR: Fix SR driver to check for omap-pm return values
-      OMAP3: PM: Put optimal SMPS stabilization delay
-      OMAP3: SR: Wait for VP idle before a VP disable
-
-Roger Quadros (4):
-      OMAP3: PM: Fix Smartreflex when used with PM_NOOP layer
-      OMAP3: PM: Make Smartreflex driver independent of SRF
-      OMAP3: PM: Do not Enable SmartReflex if OPP tables not defined
-      OMAP3: PM: Smartreflex: Fix VDD2 OPP determining logic
-
-Romit Dasgupta (1):
-      omap: pm: SR: use enum for OPP types
-
-Teerth Reddy (1):
-      OMAP3: SR: Replace SR_PASS/FAIL,SR_TRUE/FALSE
-
-Tero Kristo (1):
-      Smartreflex: Avoid unnecessary spam
-
-This patch series is against kernel.org 2.6.37-rc3  with the following
-additional patches applied in the below mentioned order.
-	https://patchwork.kernel.org/patch/394802/
-	https://patchwork.kernel.org/patch/394792/
-	https://patchwork.kernel.org/patch/394782/
-	https://patchwork.kernel.org/patch/396612/
-	https://patchwork.kernel.org/patch/370931/
-
-The entire series with the dependencies are available at
-        http://dev.omapzoom.org/?p=thara/omap-dvfs.git;a=summary
-        head: pm-sr
-
-This patch series has been tested on OMAP3430 SDP with omap2plus_defconfig
-with the following menuconfig options enabled.
-System type -> TI OMAP Implementations -> Smartreflex Support
-System type -> TI OMAP Implementations ->
-                Class 3 mode of Smartreflex Implementation
-
-Major Changes in v5
-
-	- Rebased to k.org 2.6.37-rc3
-	- Rebased to Nishant Menon's latest opp patches
-	- Voltage pmic info structure extended to include a
-		vast set of PMIC dependent parameters.
-	- Smartreflex software n-target values support
-		removed from the kernel. Instead n-target
-		values are exposed as debugfs entries which can
-		be written into by the user if needed.
-	- Introduced a new file arch/arm/mach-omap2/omap_twl.c
-		for specifying OMAP and TWL related info for
-		the voltage layer.
-	- Remove default enabling of smartreflex autocompensation
-		during boot on OMAP3430 ES3.1 chips. Instead
-		an API is provided that can be called from
-		board files in case autocompensation needs
-		to be enabled during boot up itself.
-	- Other review comments on v4
-	
-
-Thara Gopinath (10):
-  OMAP3: PM: Adding voltage driver support for OMAP3
-  OMAP: Introduce voltage domain information in the hwmod structures
-  OMAP3: PM: Adding smartreflex driver support.
-  OMAP3: PM: Adding smartreflex device file.
-  OMAP3: PM: Adding smartreflex hwmod data
-  OMAP3: PM: Adding smartreflex class3 driver
-  OMAP3: PM: Adding T2 enabling of smartreflex support
-  OMAP3: PM: Register TWL4030 pmic info with the voltage driver.
-  OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
-  OMAP3: PM: Program correct init voltages for VDD1 and VDD2
-
- arch/arm/mach-omap2/Makefile                  |    7 +-
- arch/arm/mach-omap2/control.h                 |   17 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  174 ++++
- arch/arm/mach-omap2/omap_twl.c                |  111 +++
- arch/arm/mach-omap2/pm.c                      |   91 ++
- arch/arm/mach-omap2/pm.h                      |   22 +
- arch/arm/mach-omap2/smartreflex-class3.c      |   59 ++
- arch/arm/mach-omap2/smartreflex.c             | 1025 ++++++++++++++++++++
- arch/arm/mach-omap2/sr_device.c               |  131 +++
- arch/arm/mach-omap2/voltage.c                 | 1242 +++++++++++++++++++++++++
- arch/arm/plat-omap/Kconfig                    |   31 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    5 +
- arch/arm/plat-omap/include/plat/smartreflex.h |  245 +++++
- arch/arm/plat-omap/include/plat/voltage.h     |  134 +++
- drivers/mfd/twl-core.c                        |   13 +
- include/linux/i2c/twl.h                       |   11 +
- 16 files changed, 3317 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_twl.c
- create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
- create mode 100644 arch/arm/mach-omap2/smartreflex.c
- create mode 100644 arch/arm/mach-omap2/sr_device.c
- create mode 100644 arch/arm/mach-omap2/voltage.c
- create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
- create mode 100644 arch/arm/plat-omap/include/plat/voltage.h
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index cb97ecf..4ff9244 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -18,6 +18,7 @@
+ #include <plat/cpu.h>
+ #include <plat/dma.h>
+ #include <plat/serial.h>
++#include <plat/smartreflex.h>
+ 
+ #include "omap_hwmod_common_data.h"
+ 
+@@ -39,6 +40,8 @@ static struct omap_hwmod omap3xxx_l3_main_hwmod;
+ static struct omap_hwmod omap3xxx_l4_core_hwmod;
+ static struct omap_hwmod omap3xxx_l4_per_hwmod;
+ static struct omap_hwmod omap3xxx_wd_timer2_hwmod;
++static struct omap_hwmod omap34xx_sr1_hwmod;
++static struct omap_hwmod omap34xx_sr2_hwmod;
+ 
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
+@@ -169,9 +172,47 @@ static struct omap_hwmod_ocp_if omap3_l4_per__uart4 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* L4 CORE -> SR1 interface */
++static struct omap_hwmod_addr_space omap3_sr1_addr_space[] = {
++	{
++		.pa_start	= OMAP34XX_SR1_BASE,
++		.pa_end		= OMAP34XX_SR1_BASE + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3_l4_core__sr1 = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_sr1_hwmod,
++	.clk		= "sr_l4_ick",
++	.addr		= omap3_sr1_addr_space,
++	.addr_cnt	= ARRAY_SIZE(omap3_sr1_addr_space),
++	.user		= OCP_USER_MPU,
++};
++
++/* L4 CORE -> SR1 interface */
++static struct omap_hwmod_addr_space omap3_sr2_addr_space[] = {
++	{
++		.pa_start	= OMAP34XX_SR2_BASE,
++		.pa_end		= OMAP34XX_SR2_BASE + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3_l4_core__sr2 = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_sr2_hwmod,
++	.clk		= "sr_l4_ick",
++	.addr		= omap3_sr2_addr_space,
++	.addr_cnt	= ARRAY_SIZE(omap3_sr2_addr_space),
++	.user		= OCP_USER_MPU,
++};
++
+ /* Slave interfaces on the L4_CORE interconnect */
+ static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
+ 	&omap3xxx_l3_main__l4_core,
++	&omap3_l4_core__sr1,
++	&omap3_l4_core__sr2,
+ };
+ 
+ /* Master interfaces on the L4_CORE interconnect */
+@@ -509,6 +550,135 @@ static struct omap_hwmod omap3xxx_uart4_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
+ };
+ 
++/* SR common */
++static struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields = {
++	.clkact_shift	= 20,
++};
++
++static struct omap_hwmod_class_sysconfig omap34xx_sr_sysc = {
++	.sysc_offs	= 0x24,
++	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_NO_CACHE),
++	.clockact	= CLOCKACT_TEST_ICLK,
++	.sysc_fields	= &omap34xx_sr_sysc_fields,
++};
++
++static struct omap_hwmod_class omap34xx_smartreflex_hwmod_class = {
++	.name = "smartreflex",
++	.sysc = &omap34xx_sr_sysc,
++	.rev  = 1,
++};
++
++static struct omap_hwmod_sysc_fields omap36xx_sr_sysc_fields = {
++	.sidle_shift	= 24,
++	.enwkup_shift	= 26
++};
++
++static struct omap_hwmod_class_sysconfig omap36xx_sr_sysc = {
++	.sysc_offs	= 0x38,
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_ENAWAKEUP |
++			SYSC_NO_CACHE),
++	.sysc_fields	= &omap36xx_sr_sysc_fields,
++};
++
++static struct omap_hwmod_class omap36xx_smartreflex_hwmod_class = {
++	.name = "smartreflex",
++	.sysc = &omap36xx_sr_sysc,
++	.rev  = 2,
++};
++
++/* SR1 */
++static struct omap_hwmod_ocp_if *omap3_sr1_slaves[] = {
++	&omap3_l4_core__sr1,
++};
++
++static struct omap_hwmod omap34xx_sr1_hwmod = {
++	.name		= "sr1_hwmod",
++	.class		= &omap34xx_smartreflex_hwmod_class,
++	.main_clk	= "sr1_fck",
++	.vdd_name	= "mpu",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_SR1_SHIFT,
++			.module_offs = WKUP_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_EN_SR1_SHIFT,
++		},
++	},
++	.slaves		= omap3_sr1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
++					CHIP_IS_OMAP3430ES3_0 |
++					CHIP_IS_OMAP3430ES3_1),
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
++};
++
++static struct omap_hwmod omap36xx_sr1_hwmod = {
++	.name		= "sr1_hwmod",
++	.class		= &omap36xx_smartreflex_hwmod_class,
++	.main_clk	= "sr1_fck",
++	.vdd_name	= "mpu",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_SR1_SHIFT,
++			.module_offs = WKUP_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_EN_SR1_SHIFT,
++		},
++	},
++	.slaves		= omap3_sr1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
++};
++
++/* SR2 */
++static struct omap_hwmod_ocp_if *omap3_sr2_slaves[] = {
++	&omap3_l4_core__sr2,
++};
++
++static struct omap_hwmod omap34xx_sr2_hwmod = {
++	.name		= "sr2_hwmod",
++	.class		= &omap34xx_smartreflex_hwmod_class,
++	.main_clk	= "sr2_fck",
++	.vdd_name	= "core",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_SR2_SHIFT,
++			.module_offs = WKUP_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_EN_SR2_SHIFT,
++		},
++	},
++	.slaves		= omap3_sr2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
++					CHIP_IS_OMAP3430ES3_0 |
++					CHIP_IS_OMAP3430ES3_1),
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
++};
++
++static struct omap_hwmod omap36xx_sr2_hwmod = {
++	.name		= "sr2_hwmod",
++	.class		= &omap36xx_smartreflex_hwmod_class,
++	.main_clk	= "sr2_fck",
++	.vdd_name	= "core",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_SR2_SHIFT,
++			.module_offs = WKUP_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_EN_SR2_SHIFT,
++		},
++	},
++	.slaves		= omap3_sr2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_main_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+@@ -521,6 +691,10 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_uart2_hwmod,
+ 	&omap3xxx_uart3_hwmod,
+ 	&omap3xxx_uart4_hwmod,
++	&omap34xx_sr1_hwmod,
++	&omap34xx_sr2_hwmod,
++	&omap36xx_sr1_hwmod,
++	&omap36xx_sr2_hwmod,
+ 	NULL,
+ };
+ 
+-- 
+1.7.0.4
 
