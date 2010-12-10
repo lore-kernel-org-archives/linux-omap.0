@@ -1,99 +1,60 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: RFC: hwmod, iclks, auto-idle and autodeps
-Date: Fri, 10 Dec 2010 00:45:23 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012100011250.13430@utopia.booyaka.com>
-References: <87ipzv38o2.fsf@deeprootsystems.com> <alpine.DEB.2.00.1011221948220.20215@utopia.booyaka.com> <B85A65D85D7EB246BE421B3FB0FBB59302477EB871@dbde02.ent.ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 0/5] OMAP4: hwmod data fixes and update
+Date: Fri, 10 Dec 2010 08:51:50 +0100
+Message-ID: <4D01DC16.5010109@ti.com>
+References: <1291937615-18571-1-git-send-email-b-cousson@ti.com> <87hbem4g76.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41865 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752338Ab0LJHpY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 02:45:24 -0500
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59302477EB871@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:45039 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751136Ab0LJHvy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 02:51:54 -0500
+In-Reply-To: <87hbem4g76.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Basak, Partha" <p-basak2@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hello Partha
+On 12/10/2010 1:36 AM, Kevin Hilman wrote:
+> Benoit Cousson<b-cousson@ti.com>  writes:
+>
+>> Hi Paul,
+>>
+>> Here is a small set of OMAP4 hwmod data updates.
+>>
+>> Re-order properly the data that were a little bit shuffled during
+>> the previous merge window.
+>> Add the new reset flags introduced in 2.6.37 and that were not
+>> used in the hwmod data. The OMAP2 and OMAP3 fixes should come soon.
+>> Fix some missing field in the GPIO OMAP4 hwmod data that I missed
+>> during the review.
+>> IVA and DSP are added just to allow the processors device creation
+>> at boot time and avoid the warnings.
+>>
+>> Thanks to Charu for testing the GPIO / WD_TIMER changes.
+>> Thanks to Govindraj for testing the UART changes.
+>>
+>> The series is based on lo/for-next (v2.6.37-rc5-66-ga2814df) and is
+>> available here:
+>> git://gitorious.org/omap-pm/linux.git for_2.6.38/hwmod_data
+>>
+>> Please note that there is a slight dependency with the following patch
+>> due to the name change of the iva fclk:
+>> OMAP4: clock data: Add missing DPLL x2 clock node
+>> https://patchwork.kernel.org/patch/396612/
+>>
+>> Tested on sdp4430 + ES2.0/ES2.1.
+>
+> As with the other series, I tried to pull this into my pm-core for
+> testing with all the other PM stuff we have baking for 2.6.38.
+>
+> Unfortunately, this series has conflicts with Paul's
+> pwrdm_prcm_[ab]_2.6.38 branches.
+> Could you rebase this on Paul's pwrdm_prcm_b_2.6.38 branch?
 
-On Tue, 23 Nov 2010, Basak, Partha wrote:
+OK, I will rebase all my series on top of that one.
 
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Tuesday, November 23, 2010 9:31 AM
-> > 
-> > The rest of the time, if the GPIO driver wants to use idle-mode 
-> > wakeups (presumably higher wakeup latency, but lower power 
-> > consumption), it should just clk_disable() its clocks, but not call 
-> > pm_runtime_put*().  After
-> 
-> This would require that clk_disable() be called directly by the driver
-> outside of pm_runtime_putsync(). 
-
-Yes.
-
-> Isn't this not in line with runtime PM paradigm?
-
-Not really sure what you mean.  If you're asking whether I'd prefer to 
-have this hidden behind some other API, the answer is probably yes.  In 
-the medium- to long-term, I do think we should try to figure out a 
-coherent way to handle this case without calling 
-clk_enable()/clk_disable() directly from the driver.  Maybe by adding some 
-omap_device API calls to allow the driver to tell the 
-omap_device/omap_hwmod code what level of 'idle' to enter.
-
-But to get there, we have to understand the problem first that we're 
-trying to solve.  I'm not sure we (at least I) fully understand that now.  
-To the extent our current device drivers rely on asynchronous wakeup or 
-autonomous operation, those parts of the drivers are definitely not 
-documented.  GPIO seems to tacitly rely on it.  Maybe UART.  (Essentially 
-any device that has special hacks in the pm34xx.c idle loop for 
-enabling/disabling it.)  And McBSP also has some tricky twists here.  I 
-suspect that there are lots of hidden dependencies, like assuming 
-interface clock autoidle, or certain powerdomain sleep dependencies, etc.
-
-> > If idle-mode wakeup is used, then the PRCM ISR code that notes the 
-> > GPIO wakeup event either needs to enable the GPIO main clock before 
-> > calling its ISR, or the GPIO ISR needs to enable its main clock first 
-> > thing.  If active-mode interrupts are used, then the GPIO ISR doesn't 
-> > need to enable its main clock since it is already running at that 
-> > point.
-> 
-> Enabling main clock via pm_runtime_getsync() in interrupt context will 
-> be a problem.  Can we use pm_runtime_get() instead? This will lead to
-> some delay in the interrupts getting processed.
-
-If the GPIO interface/functional clock is off, and the GPIO debounce clock
-is off, then according to the TRM, the GPIO block will never assert an 
-interrupt, so we don't need to worry about the ISR in that case.  This 
-state is entered after the last pm_runtime_put_sync() on the GPIO block.
-
-If however, the GPIO driver wants to support idle-mode wakeups, then the 
-GPIO debounce clock needs to be running.  pm_runtime_put_sync() cannot 
-currently be called in this situation - instead, the driver has to call 
-clk_disable() on its ifclk -- or rely on interface clock autoidle -- if it 
-wants the GPIO IP block to be able to wake the system from idle mode.  In 
-this case, the GPIO ISR _can_ successfully call clk_enable() on the GPIO 
-IFCLK, and then clk_disable() once it is done accessing the GPIO block 
-registers.  The GPIO ISR should not use pm_runtime_get*() right now, if 
-for no other reason than because the driver did not previously call 
-pm_runtime_put*().
-
-...
-
-So for the time being, I'd suggest calling clk_enable() on the GPIO ifclk 
-as the first thing in the GPIO ISR, and ensuring that clk_disable() is 
-called on the ifclk before exiting the ISR.  That should be safe for both 
-the idle-mode wakeup and active-mode interrupt GPIO use cases, and should 
-be safe for both interface clock auto-idle and interface clock manual 
-idle.  And since the last pm_runtime_put*() on the device will prevent the 
-GPIO from sending any kind of wakeup or interrupt (since all GPIO clocks 
-will be off), pm_runtime_put*() should only be called when the GPIO block 
-is not in use and not expected to generate wakeups nor interrupts.
-
-Does this sound reasonable?
-
-
-- Paul
+Regards,
+Benoit
