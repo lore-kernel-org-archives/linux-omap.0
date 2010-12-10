@@ -1,113 +1,116 @@
-From: "Kalliguddi, Hema" <hemahk@ti.com>
-Subject: Re: [PATCH 4/7 V2] mfd: TWL6030: OMAP4: Registering the TWL6030-usb device
-Date: Fri, 10 Dec 2010 17:06:45 +0530
-Message-ID: <AANLkTik7cJSDJULHu2=NjhhLS_Q9rW=n6mvLwRhF_caS@mail.gmail.com>
-References: <1291964690-7152-1-git-send-email-hemahk@ti.com>
-	<20101210103059.GC6027@legolas.emea.dhcp.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 3/7 V2] usb: otg: Kconfig: Add Kconfig option for
+ TWL6030 transceiver.
+Date: Fri, 10 Dec 2010 13:43:32 +0200
+Message-ID: <20101210114332.GG6027@legolas.emea.dhcp.ti.com>
+References: <1291964675-7114-1-git-send-email-hemahk@ti.com>
+ <20101210084126.GE2576@legolas.emea.dhcp.ti.com>
+ <AANLkTik+_yK5oPUG5uJZpm2gfdtPUgSRUtr6frJ6To31@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:40550 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755211Ab0LJLgq convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Dec 2010 06:36:46 -0500
-In-Reply-To: <20101210103059.GC6027@legolas.emea.dhcp.ti.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58450 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755076Ab0LJLnh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Dec 2010 06:43:37 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTik+_yK5oPUG5uJZpm2gfdtPUgSRUtr6frJ6To31@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>
+To: "Kalliguddi, Hema" <hemahk@ti.com>
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>
 
-On Fri, Dec 10, 2010 at 4:00 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Fri, Dec 10, 2010 at 12:34:50PM +0530, Hema HK wrote:
->>
->> Registering the twl6030-usb transceiver device as a child to twl6030=
- core.
->> Removed the NOP transceiver init call from board file.
->>
->> Populated twl4030_usb_data platform data structure with the function
->> pointers for OMAP4430 internal PHY operation to be used by twl630-us=
-b
->> driver.
->>
->>
->
-> one blank line only.
-OK. I will fix it
->
->> Index: usb/include/linux/i2c/twl.h
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+On Fri, Dec 10, 2010 at 04:56:40PM +0530, Kalliguddi, Hema wrote:
+>On Fri, Dec 10, 2010 at 2:11 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> On Fri, Dec 10, 2010 at 12:34:35PM +0530, Hema HK wrote:
+>>>
+>>> Added the TWL6030-usb transceiver option in the Kconfig
+>>>
+>>> Signed-off-by: Hema HK <hemahk@ti.com>
+>>> Cc: Felipe Balbi <balbi@ti.com>
+>>> Cc: David Brownell <dbrownell@users.sourceforge.net>
+>>> ---
+>>> drivers/usb/otg/Kconfig | =A0 12 ++++++++++++
+>>> 1 file changed, 12 insertions(+)
+>>>
+>>> Index: usb/drivers/usb/otg/Kconfig
+>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> --- usb.orig/include/linux/i2c/twl.h
->> +++ usb/include/linux/i2c/twl.h
->> @@ -593,6 +593,13 @@ enum twl4030_usb_mode {
+>>> --- usb.orig/drivers/usb/otg/Kconfig
+>>> +++ usb/drivers/usb/otg/Kconfig
+>>> @@ -59,6 +59,18 @@ config TWL4030_USB
+>>> =A0 =A0 =A0 =A0 =A0This transceiver supports high and full speed de=
+vices plus,
+>>> =A0 =A0 =A0 =A0 =A0in host mode, low speed.
+>>>
+>>> +config TWL6030_USB
+>>> + =A0 =A0 =A0 tristate "TWL6030 USB Transceiver Driver"
+>>> + =A0 =A0 =A0 depends on TWL4030_CORE
+>>> + =A0 =A0 =A0 select USB_OTG_UTILS
+>>> + =A0 =A0 =A0 help
+>>> + =A0 =A0 =A0 =A0 Enable this to support the USB OTG transceiver on=
+ TWL6030
+>>> + =A0 =A0 =A0 =A0 family chips. This TWL6030 transceiver has the VB=
+US and ID GND
+>>> + =A0 =A0 =A0 =A0 and OTG SRP events capabilities. For all other tr=
+ansceiver
+>>> functionality
+>>> + =A0 =A0 =A0 =A0 UTMI PHY is embedded in OMAP4430. The internal PH=
+Y
+>>> configurations APIs
+>>> + =A0 =A0 =A0 =A0 are hooked to this driver through platform_data s=
+tructure.
+>>> + =A0 =A0 =A0 =A0 The definition of internal PHY APIs are in the ma=
+ch-omap2 layer.
+>>> +
 >>
->> struct twl4030_usb_data {
->> =A0 =A0 =A0 =A0enum twl4030_usb_mode =A0 usb_mode;
->> +
->> + =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 (*phy_init)(struct device =
-*dev);
->> + =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 (*phy_exit)(struct device =
-*dev);
->> + =A0 =A0 =A0 /* Power on/off the PHY */
->> + =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 (*phy_power)(struct device=
- *dev, int iD, int on);
->> + =A0 =A0 =A0 /* enable/disable =A0phy clocks */
->> + =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 (*phy_set_clock)(struct de=
-vice *dev, int on);
->> };
+>> When compiling with this patch:
+>>
+>> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_set_phy_clk':
+>> drivers/usb/otg/twl6030-usb.c:145: error: 'struct twl4030_usb_data' =
+has
+>> no member named 'phy_set_clock'
+>> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_phy_init':
+>> drivers/usb/otg/twl6030-usb.c:166: error: 'struct twl4030_usb_data' =
+has
+>> no member named 'phy_power'
+>> drivers/usb/otg/twl6030-usb.c:168: error: 'struct twl4030_usb_data' =
+has
+>> no member named 'phy_power'
+>> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_phy_shutdown':
+>> drivers/usb/otg/twl6030-usb.c:182: error: 'struct twl4030_usb_data' =
+has
+>> no member named 'phy_power'
+>> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_usb_probe':
+>> drivers/usb/otg/twl6030-usb.c:440: error: 'struct twl4030_usb_data' =
+has
+>> no member named 'phy_init'
+>> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_usb_remove':
+>> drivers/usb/otg/twl6030-usb.c:462: error: 'struct twl4030_usb_data' =
+has
+>> no member named 'phy_exit'
+>> make[2]: *** [drivers/usb/otg/twl6030-usb.o] Error 1
+>> make[1]: *** [drivers/usb/otg] Error 2
+>> make[1]: *** Waiting for unfinished jobs....
+>> make: *** [drivers] Error 2
+>> make: *** Waiting for unfinished jobs....
+>>
+>> please fix ASAP or we will loose the merge window.
 >
-> This hunk should come either before or together with patch:
->
-Agree this patch should be before 4th patch.
+>With this patch twl6030_usb file still not added for build, I am
+>wondering how are
+>you getting How are you getting build error?
 
-> usb: otg: Adding twl6030-usb transceiver driver for
->
->> struct twl4030_ins {
->> Index: usb/arch/arm/mach-omap2/board-omap4panda.c
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> --- usb.orig/arch/arm/mach-omap2/board-omap4panda.c
->> +++ usb/arch/arm/mach-omap2/board-omap4panda.c
->> @@ -137,6 +137,13 @@ static struct omap_musb_board_data musb_
->> =A0 =A0 =A0 =A0.power =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D 100,
->> };
->>
->> +static struct twl4030_usb_data omap4_usbphy_data =3D {
->> + =A0 =A0 =A0 .phy_init =A0 =A0 =A0 =3D omap4430_phy_init,
->> + =A0 =A0 =A0 .phy_exit =A0 =A0 =A0 =3D omap4430_phy_exit,
->> + =A0 =A0 =A0 .phy_power =A0 =A0 =A0=3D omap4430_phy_power,
->> + =A0 =A0 =A0 .phy_set_clock =A0=3D omap4430_phy_set_clk,
->> +};
->> +
->> static struct omap2_hsmmc_info mmc[] =3D {
->> =A0 =A0 =A0 =A0{
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.mmc =A0 =A0 =A0 =A0 =A0 =A0=3D 1,
->> @@ -345,6 +352,7 @@ static struct twl4030_platform_data omap
->> =A0 =A0 =A0 =A0.vaux1 =A0 =A0 =A0 =A0 =A0=3D &omap4_panda_vaux1,
->> =A0 =A0 =A0 =A0.vaux2 =A0 =A0 =A0 =A0 =A0=3D &omap4_panda_vaux2,
->> =A0 =A0 =A0 =A0.vaux3 =A0 =A0 =A0 =A0 =A0=3D &omap4_panda_vaux3,
->> + =A0 =A0 =A0 .usb =A0 =A0 =A0 =A0 =A0 =A0=3D &omap4_usbphy_data,
->> };
->>
->> static struct i2c_board_info __initdata omap4_panda_i2c_boardinfo[] =
-=3D {
->
-> This hunk should come before adding the Kconfig entries for twl6030-u=
-sb.
-Agree. I will correct it submit in sometime.
+This is *the* patch that adds it to Kbuild :-) the previous patch
+already added Makefile change.
 
-Regards,
-Hema
->
-> --
-> balbi
->
+--=20
+balbi
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
