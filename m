@@ -1,65 +1,86 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 2/2] ARM: Make CONFIG_FPE_NWFPE depend on !CONFIG_THUMB2_KERNEL
-Date: Fri, 10 Dec 2010 11:18:00 +0530
-Message-ID: <07daf23764a279fb2f61f1666d1de74a@mail.gmail.com>
-References: <1291895982-4775-1-git-send-email-dave.martin@linaro.org> <1291895982-4775-3-git-send-email-dave.martin@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Hema HK <hemahk@ti.com>
+Subject: [PATCH 0/7 V2] usb: otg: TWL6030: OMAP4430: musb & transceiver driver support for OMAP4
+Date: Fri, 10 Dec 2010 12:32:15 +0530
+Message-ID: <1291964535-6964-1-git-send-email-hemahk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:40055 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751143Ab0LJFsC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Dec 2010 00:48:02 -0500
-Received: by pxi20 with SMTP id 20so955867pxi.10
-        for <linux-omap@vger.kernel.org>; Thu, 09 Dec 2010 21:48:01 -0800 (PST)
-In-Reply-To: <1291895982-4775-3-git-send-email-dave.martin@linaro.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48493 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751742Ab0LJHDJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Dec 2010 02:03:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Hema HK <hemahk@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforge.net>, Samuel Ortiz <sameo@linux.intel.com>
 
-> -----Original Message-----
-> From: Dave Martin [mailto:dave.martin@linaro.org]
-> Sent: Thursday, December 09, 2010 5:30 PM
-> To: linux-arm-kernel@lists.infradead.org
-> Cc: Dave Martin; Santosh Shilimkar; linux-omap@vger.kernel.org
-> Subject: [PATCH 2/2] ARM: Make CONFIG_FPE_NWFPE depend
-> on !CONFIG_THUMB2_KERNEL
->
-> Because the nwfpe support is unlikely to be used on new platforms
-> and requires CONFIG_OABI_COMPAT, which is not generally used with
-> ARMv7+, we shouldn't expect to build nwfpe support into a Thumb-2
-> kernel.
->
-> At present, nwfpe contains assembly code which isn't Thumb-2
-> compatible, and for now it doesn't appear useful to port this
-> code.
->
-> All ARMv7-A/R platforms necessarily have VFPv3 hardware floating-
-> point natively, making emulation unnecessary.
->
-> Signed-off-by: Dave Martin <dave.martin@linaro.org>
-> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-If you like.
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/Kconfig |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index f9ca7f3..7e825c3 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -1759,7 +1759,7 @@ comment "At least one emulation must be selected"
->
->  config FPE_NWFPE
->  	bool "NWFPE math emulation"
-> -	depends on !AEABI || OABI_COMPAT
-> +	depends on (!AEABI || OABI_COMPAT) && !THUMB2_KERNEL
->  	---help---
->  	  Say Y to include the NWFPE floating point emulator in the
-kernel.
->  	  This is necessary to run most binaries. Linux does not currently
-> --
-> 1.7.1
+This patch series has the support for TWL6030-usb
+transceiver driver and changes in the musb driver to make it functional
+with OMAP4430.
+
+OMAP4 musb support UTMI and ULPI transceiver interfaces.
+
+In UTMI mode, the transceiver functionality is split between
+the TWL6030 PMIC chip and OMAP4 embedded PHY.
+The TWL6030 transceiver driver code is under otg folder and
+internal UTMI PHY specific code changes are defined under
+mach-omap2 directory and functions are passed through platform_data
+structure.
+
+This patch series is based on V2.6.37-rc4 + [1]+[2] 
+
+[1] http://www.listware.net/201011/linux-usb/
+65625-patch-resend-v3-usb-musb-do-not-use-dma-for-control-transfers.html
+
+[2] Felipe's musb-reorg patch series.
+	http://gitorious.org/usb/usb/commits/musb-hw
+
+Tested musb device and host mode functionality with OMAP4430SDP
+and OMAP3630 ZOOM3.
+
+Limitation: In OTG and Host only mode, when the device is connected
+during boot will not be detected.
+Need connect the device only after the boot. Or disconnect and connect
+it back if it connected during boot.
+Fix for this will be submitted later.
+
+Version 2 changes:
+
+-Removed the dependency on the atomic notifier patches from Arnaud.
+-Fixed review comments from Felipe and Sergei.
+-Modified the vbus_set function to set timeout when musb is not configured
+as A device.
+
+
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+---
+
+Hema HK (7):
+  mfd: TWL6030: USBOTG VBUS event generation on charger VBUS events.
+  usb: otg: Adding twl6030-usb transceiver driver for OMAP4430 musb
+  usb: otg: Kconfig: Add Kconfig option for TWL6030 transceiver.
+  mfd: TWL6030: OMAP4: Registering the TWL6030-usb device
+  usb: musb: TWL6030: Selecting TWL6030_USB transceiver for OMAP4
+  usb: musb: Adding musb support for OMAP4430
+  arm: OMAP4430: musb: Enable musb device initialization for OMAP4430
+
+  arch/arm/mach-omap2/Makefile            |    6 +-
+  arch/arm/mach-omap2/board-4430sdp.c     |   13 +-
+  arch/arm/mach-omap2/board-omap4panda.c  |   10 +-
+  arch/arm/mach-omap2/omap_phy_internal.c |  149 ++++++++++
+  arch/arm/plat-omap/include/plat/usb.h   |    5 +
+  drivers/mfd/twl-core.c                  |   44 +++-
+  drivers/mfd/twl6030-irq.c               |    9 +-
+  drivers/usb/musb/Kconfig                |    1 +
+  drivers/usb/musb/musb_core.h            |    1 +
+  drivers/usb/musb/omap2430.c             |  107 ++++++-
+  drivers/usb/otg/Kconfig                 |   12 +
+  drivers/usb/otg/Makefile                |    1 +
+  drivers/usb/otg/twl6030-usb.c           |  493 +++++++++++++++++++++++++++++++
+  include/linux/i2c/twl.h                 |    7 +
+  14 files changed, 834 insertions(+), 24 deletions(-)
+  create mode 100644 arch/arm/mach-omap2/omap_phy_internal.c
+  create mode 100644 drivers/usb/otg/twl6030-usb.c
+ 
+
