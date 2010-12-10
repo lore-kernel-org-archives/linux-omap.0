@@ -1,50 +1,43 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
-Date: Fri, 10 Dec 2010 17:03:56 +0000
-Message-ID: <20101210170356.GA28472@n2100.arm.linux.org.uk>
-References: <201012051929.07220.jkrzyszt@tis.icnet.pl> <201012101159.21845.jkrzyszt@tis.icnet.pl> <201012101203.09441.jkrzyszt@tis.icnet.pl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 12/11] omap1: Fix gpio mpuio bank to work for
+ multi-omap for 7xx/15xx/16xx
+Date: Fri, 10 Dec 2010 09:41:53 -0800
+Message-ID: <20101210174153.GU3054@atomide.com>
+References: <1290689318-10191-1-git-send-email-charu@ti.com>
+ <20101204212554.GM17222@atomide.com>
+ <20101207232315.GE17435@atomide.com>
+ <201012101704.37054.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36044 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752499Ab0LJREh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 12:04:37 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36056 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751197Ab0LJRmF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 12:42:05 -0500
 Content-Disposition: inline
-In-Reply-To: <201012101203.09441.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <201012101704.37054.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-arm-kernel@lists.infradead.org, Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, p-basak2@ti.com, Cory Maccarrone <darkstar6262@gmail.com>
 
-On Fri, Dec 10, 2010 at 12:03:07PM +0100, Janusz Krzysztofik wrote:
->  void __init omap1_camera_init(void *info)
->  {
->  	struct platform_device *dev = &omap1_camera_device;
-> +	dma_addr_t paddr = omap1_camera_phys_mempool_base;
-> +	dma_addr_t size = omap1_camera_phys_mempool_size;
->  	int ret;
->  
->  	dev->dev.platform_data = info;
->  
-> +	if (paddr) {
-> +		if (dma_declare_coherent_memory(&dev->dev, paddr, paddr, size,
-> +				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE))
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [101210 08:05]:
+> > We need to divide the 15xx/16xx offset by 2 for 7xx. Use bank->stride
+> > for that. This allows us to get rid of the duplicate defines for the
+> > MPUIO registers.
+> >
+> > Note that this will cause omap-keypad.c driver to not work on 7xx.
+> > However, the right fix there is to move over to gpio-keys instead as
+> > suggested by Cory Maccarrone <darkstar6262@gmail.com> and
+> > Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>.
+> >
+> > Cc: Cory Maccarrone <darkstar6262@gmail.com>
+> > Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> Acked-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-Although this works, you're ending up with SDRAM being mapped via
-ioremap, which uses MT_DEVICE - so what is SDRAM ends up being
-mapped as if it were a device.
+Thanks, will now merge the gpio into omap-for-linus for the next
+merge window.
 
-For OMAP1, which is ARMv5 or lower, device memory becomes 'uncacheable,
-unbufferable' which is luckily what is used for the DMA coherent
-memory on those platforms - so no technical problem here.
-
-However, on ARMv6 and later, ioremapped memory is device memory, which
-has different ordering wrt normal memory mappings, and may appear on
-different busses on the CPU's interface.  So, this is something I don't
-encourage as it's unclear that the hardware will work.
-
-Essentially, dma_declare_coherent_memory() on ARM with main SDRAM should
-be viewed as a 'it might work, it might not, and it might stop working
-in the future' kind of interface.  In other words, there is no guarantee
-that this kind of thing will be supported in the future.
+Tony
