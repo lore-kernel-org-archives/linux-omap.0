@@ -1,67 +1,41 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap4: panda: fix initialize musb
-Date: Fri, 10 Dec 2010 10:21:23 +0200
-Message-ID: <20101210082123.GC2576@legolas.emea.dhcp.ti.com>
-References: <1291914170-25415-1-git-send-email-tom.leiming@gmail.com>
- <4D011028.6020505@ti.com>
-Reply-To: balbi@ti.com
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 1/2] I2C: i2c-omap: Change device name: i2c_omap ->
+ omap_i2c
+Date: Fri, 10 Dec 2010 09:28:37 +0100
+Message-ID: <4D01E4B5.1010703@ti.com>
+References: <1291904657-32729-1-git-send-email-b-cousson@ti.com>	<1291904657-32729-2-git-send-email-b-cousson@ti.com>	<878vzydgxr.fsf@deeprootsystems.com>	<20101209190110.GR20097@trinity.fluff.org>,<87wrni7jys.fsf@deeprootsystems.com> <BC214410FD04D84F9079A6242365970707D4FA@008-AM1MPN1-001.mgdnok.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:52760 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752521Ab0LJIV2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Dec 2010 03:21:28 -0500
-Received: by ewy5 with SMTP id 5so2398056ewy.33
-        for <linux-omap@vger.kernel.org>; Fri, 10 Dec 2010 00:21:26 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4D011028.6020505@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46502 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753151Ab0LJI26 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 03:28:58 -0500
+In-Reply-To: <BC214410FD04D84F9079A6242365970707D4FA@008-AM1MPN1-001.mgdnok.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: tom.leiming@gmail.com, tony@atomide.com, balbi@ti.com, linux-omap@vger.kernel.org
+To: "aaro.koskinen@nokia.com" <aaro.koskinen@nokia.com>
+Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "ben-i2c@fluff.org" <ben-i2c@fluff.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Thu, Dec 09, 2010 at 11:21:44AM -0600, Nishanth Menon wrote:
->tom.leiming@gmail.com had written, on 12/09/2010 11:02 AM, the following:
->>From: Ming Lei <tom.leiming@gmail.com>
+On 12/9/2010 11:18 PM, aaro.koskinen@nokia.com wrote:
+> Hi,
+>
+> Kevin Hilman [khilman@deeprootsystems.com]:
+>> Ben Dooks<ben-i2c@fluff.org>  writes:
+>>> Renaming stuff like this is going to have an impact on the userspace
+>>> as anyone looking through /sys's driver heirarchy is going to miss the
+>>> old name...
+>>>
+>>> It all depends if you really want to go ahead with this...
 >>
->>Obviously we should only initialize musb once.
->>
->>Signed-off-by: Ming Lei <tom.leiming@gmail.com>
->>---
->> arch/arm/mach-omap2/board-omap4panda.c |    3 ---
->> 1 files changed, 0 insertions(+), 3 deletions(-)
->>
->>diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
->>index 22599fc..85371be 100644
->>--- a/arch/arm/mach-omap2/board-omap4panda.c
->>+++ b/arch/arm/mach-omap2/board-omap4panda.c
->>@@ -393,9 +393,6 @@ static void __init omap4_panda_init(void)
->> 	usb_nop_xceiv_register();
->> 	omap4_ehci_init();
->> 	usb_musb_init(&musb_board_data);
->>-	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
->>-	if (!cpu_is_omap44xx())
->>-		usb_musb_init(&musb_board_data);
->> }
->> static void __init omap4_panda_map_io(void)
->Looks good to me. since this is for l-o master branch, I think this 
->should probably be squashed to:
+>> Yes, we are aware of the userspace impact, but this name change makes
+>> all devices on OMAP have consistent names and actually improves the
+>> ability to have userspace tools have consistent naming as well.
 >
->commit ec787afd05aad0cdb0b0d2948b356569805e5b30
->Author: Felipe Balbi <balbi@ti.com>
->Date:   Wed Dec 1 13:48:54 2010 +0200
->
->    arm: omap4: panda: initialize musb
->
->    initialize the musb port on pandaboard.
->
->    Signed-off-by: Felipe Balbi <balbi@ti.com>
+> So there are no imporant users, or if there is, they are prepared for this change?
 
-that was probably a merge conflict auto-resolution mess:
+Well, I do not know any user of that today. Do you have some in mind?
 
-Fixed now. Thanks. I added you SOB Ming.
+Benoit
 
--- 
-balbi
