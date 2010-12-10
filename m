@@ -1,60 +1,67 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 0/5] OMAP4: hwmod data fixes and update
-Date: Fri, 10 Dec 2010 08:51:50 +0100
-Message-ID: <4D01DC16.5010109@ti.com>
-References: <1291937615-18571-1-git-send-email-b-cousson@ti.com> <87hbem4g76.fsf@deeprootsystems.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] arm: omap4: panda: fix initialize musb
+Date: Fri, 10 Dec 2010 10:21:23 +0200
+Message-ID: <20101210082123.GC2576@legolas.emea.dhcp.ti.com>
+References: <1291914170-25415-1-git-send-email-tom.leiming@gmail.com>
+ <4D011028.6020505@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45039 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751136Ab0LJHvy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 02:51:54 -0500
-In-Reply-To: <87hbem4g76.fsf@deeprootsystems.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:52760 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752521Ab0LJIV2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Dec 2010 03:21:28 -0500
+Received: by ewy5 with SMTP id 5so2398056ewy.33
+        for <linux-omap@vger.kernel.org>; Fri, 10 Dec 2010 00:21:26 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <4D011028.6020505@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: tom.leiming@gmail.com, tony@atomide.com, balbi@ti.com, linux-omap@vger.kernel.org
 
-On 12/10/2010 1:36 AM, Kevin Hilman wrote:
-> Benoit Cousson<b-cousson@ti.com>  writes:
+On Thu, Dec 09, 2010 at 11:21:44AM -0600, Nishanth Menon wrote:
+>tom.leiming@gmail.com had written, on 12/09/2010 11:02 AM, the following:
+>>From: Ming Lei <tom.leiming@gmail.com>
+>>
+>>Obviously we should only initialize musb once.
+>>
+>>Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+>>---
+>> arch/arm/mach-omap2/board-omap4panda.c |    3 ---
+>> 1 files changed, 0 insertions(+), 3 deletions(-)
+>>
+>>diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+>>index 22599fc..85371be 100644
+>>--- a/arch/arm/mach-omap2/board-omap4panda.c
+>>+++ b/arch/arm/mach-omap2/board-omap4panda.c
+>>@@ -393,9 +393,6 @@ static void __init omap4_panda_init(void)
+>> 	usb_nop_xceiv_register();
+>> 	omap4_ehci_init();
+>> 	usb_musb_init(&musb_board_data);
+>>-	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
+>>-	if (!cpu_is_omap44xx())
+>>-		usb_musb_init(&musb_board_data);
+>> }
+>> static void __init omap4_panda_map_io(void)
+>Looks good to me. since this is for l-o master branch, I think this 
+>should probably be squashed to:
 >
->> Hi Paul,
->>
->> Here is a small set of OMAP4 hwmod data updates.
->>
->> Re-order properly the data that were a little bit shuffled during
->> the previous merge window.
->> Add the new reset flags introduced in 2.6.37 and that were not
->> used in the hwmod data. The OMAP2 and OMAP3 fixes should come soon.
->> Fix some missing field in the GPIO OMAP4 hwmod data that I missed
->> during the review.
->> IVA and DSP are added just to allow the processors device creation
->> at boot time and avoid the warnings.
->>
->> Thanks to Charu for testing the GPIO / WD_TIMER changes.
->> Thanks to Govindraj for testing the UART changes.
->>
->> The series is based on lo/for-next (v2.6.37-rc5-66-ga2814df) and is
->> available here:
->> git://gitorious.org/omap-pm/linux.git for_2.6.38/hwmod_data
->>
->> Please note that there is a slight dependency with the following patch
->> due to the name change of the iva fclk:
->> OMAP4: clock data: Add missing DPLL x2 clock node
->> https://patchwork.kernel.org/patch/396612/
->>
->> Tested on sdp4430 + ES2.0/ES2.1.
+>commit ec787afd05aad0cdb0b0d2948b356569805e5b30
+>Author: Felipe Balbi <balbi@ti.com>
+>Date:   Wed Dec 1 13:48:54 2010 +0200
 >
-> As with the other series, I tried to pull this into my pm-core for
-> testing with all the other PM stuff we have baking for 2.6.38.
+>    arm: omap4: panda: initialize musb
 >
-> Unfortunately, this series has conflicts with Paul's
-> pwrdm_prcm_[ab]_2.6.38 branches.
-> Could you rebase this on Paul's pwrdm_prcm_b_2.6.38 branch?
+>    initialize the musb port on pandaboard.
+>
+>    Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-OK, I will rebase all my series on top of that one.
+that was probably a merge conflict auto-resolution mess:
 
-Regards,
-Benoit
+Fixed now. Thanks. I added you SOB Ming.
+
+-- 
+balbi
