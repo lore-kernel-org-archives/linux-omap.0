@@ -1,42 +1,33 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH v3 6/7] omap3: Export omap3isp platform device structure
-Date: Fri, 10 Dec 2010 02:12:00 +0100
-Message-ID: <201012100212.00503.laurent.pinchart@ideasonboard.com>
-References: <1290653678-15556-1-git-send-email-laurent.pinchart@ideasonboard.com> <20101125112311.GV2468@legolas.emea.dhcp.ti.com> <20101206193213.GN8345@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] OMAP1: amsdelta: reserve memory for videobuf_contig
+Date: Thu, 9 Dec 2010 17:29:09 -0800
+Message-ID: <20101210012908.GQ3054@atomide.com>
+References: <201012051929.07220.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20101206193213.GN8345@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <201012051929.07220.jkrzyszt@tis.icnet.pl>
 Sender: linux-media-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, linux-media@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On Monday 06 December 2010 20:32:13 Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [101125 03:13]:
-> > Hi,
-> > 
-> > On Thu, Nov 25, 2010 at 12:17:59PM +0100, Laurent Pinchart wrote:
-> > >>pass platform_data as an argument to this call ? Then remove the static
-> > >>inline and export this one ?
-> > >
-> > >Yes indeed, why ? :-)
-> > >
-> > >I guess things like that are difficult to spot when you've had your nose
-> > >on the code for too long. Thanks for the review, I'll fix this.
-> > 
-> > no problem :-)
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [101205 10:19]:
+> Latest developements seem to allow for reserving a block of memory on boot to 
+> be used as a device dedicated dma coherent memory. This may be required for 
+> videobuf_config based video drivers avoid problems with allocating dma 
+> coherent memory after system memory gets fragmented.
 > 
-> Can you please also grep to make sure there are no other EXPORT_SYMBOL
-> being added to arch/arm/*omap*/ code in these patches?
+> This set extends the OMAP1 camera resource initialization code with a function 
+> that can be used for reserving a block of memory early, then declared as the 
+> camera device dedicated dma coherent memory.
+> 
+> An example use case is provided for Amstrad Delta camera.
 
-That's the only one.
+These look good to me, however, can you please also Cc linux-arm-kernel
+list as otherwise I will need to repost these before merging.
 
--- 
-Regards,
+Thanks,
 
-Laurent Pinchart
+Tony
