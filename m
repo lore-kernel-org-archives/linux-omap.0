@@ -1,124 +1,91 @@
-From: "Kalliguddi, Hema" <hemahk@ti.com>
-Subject: Re: [PATCH 3/7 V2] usb: otg: Kconfig: Add Kconfig option for TWL6030 transceiver.
-Date: Fri, 10 Dec 2010 17:14:42 +0530
-Message-ID: <AANLkTikA6i2HytjzUJaei1_cCAnfbnSRv4BdcoGkjypt@mail.gmail.com>
-References: <1291964675-7114-1-git-send-email-hemahk@ti.com>
-	<20101210084126.GE2576@legolas.emea.dhcp.ti.com>
-	<AANLkTik+_yK5oPUG5uJZpm2gfdtPUgSRUtr6frJ6To31@mail.gmail.com>
-	<20101210114332.GG6027@legolas.emea.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:41611 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755076Ab0LJLon convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Dec 2010 06:44:43 -0500
-In-Reply-To: <20101210114332.GG6027@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/8 V3] usb: otg: TWL6030: OMAP4430: musb & transceiver driver support for OMAP4
+Date: Fri, 10 Dec 2010 17:54:34 +0530
+Message-ID: <1291983874-13903-1-git-send-email-hemahk@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>
 
-On Fri, Dec 10, 2010 at 5:13 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Fri, Dec 10, 2010 at 04:56:40PM +0530, Kalliguddi, Hema wrote:
->>
->> On Fri, Dec 10, 2010 at 2:11 PM, Felipe Balbi <balbi@ti.com> wrote:
->>>
->>> On Fri, Dec 10, 2010 at 12:34:35PM +0530, Hema HK wrote:
->>>>
->>>> Added the TWL6030-usb transceiver option in the Kconfig
->>>>
->>>> Signed-off-by: Hema HK <hemahk@ti.com>
->>>> Cc: Felipe Balbi <balbi@ti.com>
->>>> Cc: David Brownell <dbrownell@users.sourceforge.net>
->>>> ---
->>>> drivers/usb/otg/Kconfig | =A0 12 ++++++++++++
->>>> 1 file changed, 12 insertions(+)
->>>>
->>>> Index: usb/drivers/usb/otg/Kconfig
->>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->>>> --- usb.orig/drivers/usb/otg/Kconfig
->>>> +++ usb/drivers/usb/otg/Kconfig
->>>> @@ -59,6 +59,18 @@ config TWL4030_USB
->>>> =A0 =A0 =A0 =A0 =A0This transceiver supports high and full speed d=
-evices plus,
->>>> =A0 =A0 =A0 =A0 =A0in host mode, low speed.
->>>>
->>>> +config TWL6030_USB
->>>> + =A0 =A0 =A0 tristate "TWL6030 USB Transceiver Driver"
->>>> + =A0 =A0 =A0 depends on TWL4030_CORE
->>>> + =A0 =A0 =A0 select USB_OTG_UTILS
->>>> + =A0 =A0 =A0 help
->>>> + =A0 =A0 =A0 =A0 Enable this to support the USB OTG transceiver o=
-n TWL6030
->>>> + =A0 =A0 =A0 =A0 family chips. This TWL6030 transceiver has the V=
-BUS and ID GND
->>>> + =A0 =A0 =A0 =A0 and OTG SRP events capabilities. For all other t=
-ransceiver
->>>> functionality
->>>> + =A0 =A0 =A0 =A0 UTMI PHY is embedded in OMAP4430. The internal P=
-HY
->>>> configurations APIs
->>>> + =A0 =A0 =A0 =A0 are hooked to this driver through platform_data =
+This patch series has the support for TWL6030-usb
+transceiver driver and changes in the musb driver to make it functional
+with OMAP4430.
+
+OMAP4 musb support UTMI and ULPI transceiver interfaces.
+
+In UTMI mode, the transceiver functionality is split between
+the TWL6030 PMIC chip and OMAP4 embedded PHY.
+The TWL6030 transceiver driver code is under otg folder and
+internal UTMI PHY specific code changes are defined under
+mach-omap2 directory and functions are passed through platform_data
 structure.
->>>> + =A0 =A0 =A0 =A0 The definition of internal PHY APIs are in the m=
-ach-omap2
->>>> layer.
->>>> +
->>>
->>> When compiling with this patch:
->>>
->>> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_set_phy_clk':
->>> drivers/usb/otg/twl6030-usb.c:145: error: 'struct twl4030_usb_data'=
- has
->>> no member named 'phy_set_clock'
->>> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_phy_init':
->>> drivers/usb/otg/twl6030-usb.c:166: error: 'struct twl4030_usb_data'=
- has
->>> no member named 'phy_power'
->>> drivers/usb/otg/twl6030-usb.c:168: error: 'struct twl4030_usb_data'=
- has
->>> no member named 'phy_power'
->>> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_phy_shutdown':
->>> drivers/usb/otg/twl6030-usb.c:182: error: 'struct twl4030_usb_data'=
- has
->>> no member named 'phy_power'
->>> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_usb_probe':
->>> drivers/usb/otg/twl6030-usb.c:440: error: 'struct twl4030_usb_data'=
- has
->>> no member named 'phy_init'
->>> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_usb_remove':
->>> drivers/usb/otg/twl6030-usb.c:462: error: 'struct twl4030_usb_data'=
- has
->>> no member named 'phy_exit'
->>> make[2]: *** [drivers/usb/otg/twl6030-usb.o] Error 1
->>> make[1]: *** [drivers/usb/otg] Error 2
->>> make[1]: *** Waiting for unfinished jobs....
->>> make: *** [drivers] Error 2
->>> make: *** Waiting for unfinished jobs....
->>>
->>> please fix ASAP or we will loose the merge window.
->>
->> With this patch twl6030_usb file still not added for build, I am
->> wondering how are
->> you getting How are you getting build error?
->
-> This is *the* patch that adds it to Kbuild :-) the previous patch
-> already added Makefile change.
->
-Agree. Got confused with omap_phy_internal.c file.
-I am fixing it. I will send you the patches.
-Regards,
-Hema
-> --
-> balbi
->
+
+This patch series is based on V2.6.37-rc4 + [1]+[2] 
+
+[1] http://www.listware.net/201011/linux-usb/
+65625-patch-resend-v3-usb-musb-do-not-use-dma-for-control-transfers.html
+
+[2] Felipe's musb-reorg patch series.
+	http://gitorious.org/usb/usb/commits/musb-hw
+
+Tested musb device and host mode functionality with OMAP4430SDP
+and OMAP3630 ZOOM3.
+
+Limitation: In OTG and Host only mode, when the device is connected
+during boot will not be detected.
+Need connect the device only after the boot. Or disconnect and connect
+it back if it connected during boot.
+Fix for this will be submitted later.
+
+Version History:
+-------------------
+Version3 changes:
+- Rearranged the patches to avoid the git bisect failure.
+
+Version 2 changes:
+- Removed the dependency on the atomic notifier patches from Arnaud.
+- Fixed review comments from Felipe and Sergei.
+- Modified the vbus_set function to set timeout when musb is not configured
+as A device.
+
+
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+
+Hema HK (8):
+  mfd: TWL6030: USBOTG VBUS event generation on charger VBUS events.
+  usb: otg: Adding twl6030-usb transceiver driver for OMAP4430.
+  usb: otg: Kconfig: Add Kconfig option for TWL6030 transceiver.
+  usb: musb: TWL6030: Selecting TWL6030_USB transceiver for OMAP4
+  mfd: TWL6030: OMAP4: Registering the TWL6030-usb device
+  usb: otg: TWL6030: Add twl6030_usb file for compilation
+  usb: musb: Adding musb support for OMAP4430
+  arm: OMAP4430: musb: Enable musb device initialization for OMAP4430
+
+  arch/arm/mach-omap2/Makefile            |    6 +-
+  arch/arm/mach-omap2/board-4430sdp.c     |   13 +-
+  arch/arm/mach-omap2/board-omap4panda.c  |   10 +-
+  arch/arm/mach-omap2/omap_phy_internal.c |  149 ++++++++++
+  arch/arm/plat-omap/include/plat/usb.h   |    5 +
+  drivers/mfd/twl-core.c                  |   44 +++-
+  drivers/mfd/twl6030-irq.c               |    9 +-
+  drivers/usb/musb/Kconfig                |    1 +
+  drivers/usb/musb/musb_core.h            |    1 +
+  drivers/usb/musb/omap2430.c             |  107 ++++++-
+  drivers/usb/otg/Kconfig                 |   12 +
+  drivers/usb/otg/Makefile                |    1 +
+  drivers/usb/otg/twl6030-usb.c           |  493 +++++++++++++++++++++++++++++++
+  include/linux/i2c/twl.h                 |    7 +
+  14 files changed, 834 insertions(+), 24 deletions(-)
+  create mode 100644 arch/arm/mach-omap2/omap_phy_internal.c
+  create mode 100644 drivers/usb/otg/twl6030-usb.c
+ 
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
