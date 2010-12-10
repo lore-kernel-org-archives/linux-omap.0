@@ -1,305 +1,136 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH 12/11] omap1: Fix gpio mpuio bank to work for multi-omap for 7xx/15xx/16xx
-Date: Fri, 10 Dec 2010 17:04:33 +0100
-Message-ID: <201012101704.37054.jkrzyszt@tis.icnet.pl>
-References: <1290689318-10191-1-git-send-email-charu@ti.com> <20101204212554.GM17222@atomide.com> <20101207232315.GE17435@atomide.com>
+Subject: Re: [PATCH 1/3] omap1: Use asm_irq_flags for entry-macro.S
+Date: Fri, 10 Dec 2010 17:06:22 +0100
+Message-ID: <201012101706.24089.jkrzyszt@tis.icnet.pl>
+References: <20101204001435.28853.29616.stgit@baageli.muru.com> <20101208014548.GJ17435@atomide.com> <20101208014728.GK17435@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:57406 "EHLO d1.icnet.pl"
+Received: from d1.icnet.pl ([212.160.220.21]:57593 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755259Ab0LJQFf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 11:05:35 -0500
-In-Reply-To: <20101207232315.GE17435@atomide.com>
+	id S1756170Ab0LJQGw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 11:06:52 -0500
+In-Reply-To: <20101208014728.GK17435@atomide.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, p-basak2@ti.com, Cory Maccarrone <darkstar6262@gmail.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Wednesday 08 December 2010 00:23:16 Tony Lindgren napisa=C5=82(a):
-> * Tony Lindgren <tony@atomide.com> [101204 13:16]:
-> > * Varadarajan, Charulatha <charu@ti.com> [101202 06:08]:
-> > > On Thu, Dec 2, 2010 at 15:28, Kevin Hilman <khilman@deeprootsyste=
-ms.com>=20
-wrote:
-> > > > Tony, you can also add
-> > > >
-> > > > Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> >
-> > OK, updated. Also made one more GPIO patch to allow us to deal
-> > with the 7xx vs 15xx/16xx MPUIO registers.
+Wednesday 08 December 2010 02:47:28 Tony Lindgren napisa=C5=82(a):
+> Initialize asm_irq_flags in omap_init_irq and use it in
+> get_irqnr_and_base to detect between omap7xx and omap15xx/16xx.
 >
-> Turns out that broke drivers/mtd/nand/ams-delta.c as it directly uses
-> multiple lines in parallel. So let's use 15xx/16xx offsets instead
-> and divide them by two.
->
-> Regards,
->
-> Tony
->
->
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Sat, 4 Dec 2010 12:39:43 -0800
-> Subject: [PATCH] omap1: Fix gpio mpuio bank to work for multi-omap fo=
-r
-> 7xx/15xx/16xx
->
-> We need to divide the 15xx/16xx offset by 2 for 7xx. Use bank->stride
-> for that. This allows us to get rid of the duplicate defines for the
-> MPUIO registers.
->
-> Note that this will cause omap-keypad.c driver to not work on 7xx.
-> However, the right fix there is to move over to gpio-keys instead as
-> suggested by Cory Maccarrone <darkstar6262@gmail.com> and
-> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>.
->
-> Cc: Cory Maccarrone <darkstar6262@gmail.com>
-> Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> Note that both INT_1510_IH2_IRQ and INT_1510_IH2_IRQ are defined
+> as 0, so use INT_1510_IH2_IRQ for both of them.
+
+Tested on Amstrad Delta.
+
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Acked-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-> diff --git a/arch/arm/mach-omap1/gpio15xx.c
-> b/arch/arm/mach-omap1/gpio15xx.c index dbd8168..04c4b04 100644
-> --- a/arch/arm/mach-omap1/gpio15xx.c
-> +++ b/arch/arm/mach-omap1/gpio15xx.c
-> @@ -38,6 +38,7 @@ static struct __initdata omap_gpio_platform_data
-> omap15xx_mpu_gpio_config =3D { .virtual_irq_start	=3D IH_MPUIO_BASE,
->  	.bank_type		=3D METHOD_MPUIO,
->  	.bank_width		=3D 16,
-> +	.bank_stride		=3D 1,
->  };
+> diff --git a/arch/arm/mach-omap1/include/mach/entry-macro.S
+> b/arch/arm/mach-omap1/include/mach/entry-macro.S index df9060e..c9be6=
+d4
+> 100644
+> --- a/arch/arm/mach-omap1/include/mach/entry-macro.S
+> +++ b/arch/arm/mach-omap1/include/mach/entry-macro.S
+> @@ -14,18 +14,17 @@
+>  #include <mach/irqs.h>
+>  #include <asm/hardware/gic.h>
 >
->  static struct __initdata platform_device omap15xx_mpu_gpio =3D {
-> diff --git a/arch/arm/mach-omap1/gpio16xx.c
-> b/arch/arm/mach-omap1/gpio16xx.c index 8d4d0a0..5dd0d4c 100644
-> --- a/arch/arm/mach-omap1/gpio16xx.c
-> +++ b/arch/arm/mach-omap1/gpio16xx.c
-> @@ -41,6 +41,7 @@ static struct __initdata omap_gpio_platform_data
-> omap16xx_mpu_gpio_config =3D { .virtual_irq_start	=3D IH_MPUIO_BASE,
->  	.bank_type		=3D METHOD_MPUIO,
->  	.bank_width		=3D 16,
-> +	.bank_stride		=3D 1,
->  };
->
->  static struct __initdata platform_device omap16xx_mpu_gpio =3D {
-> diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio=
-7xx.c
-> index 94bccd4..1204c8b 100644
-> --- a/arch/arm/mach-omap1/gpio7xx.c
-> +++ b/arch/arm/mach-omap1/gpio7xx.c
-> @@ -43,6 +43,7 @@ static struct __initdata omap_gpio_platform_data
-> omap7xx_mpu_gpio_config =3D { .virtual_irq_start	=3D IH_MPUIO_BASE,
->  	.bank_type		=3D METHOD_MPUIO,
->  	.bank_width		=3D 32,
-> +	.bank_stride		=3D 2,
->  };
->
->  static struct __initdata platform_device omap7xx_mpu_gpio =3D {
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 59afe77..de93251 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -159,6 +159,7 @@ struct gpio_bank {
->  	u32 dbck_enable_mask;
->  	struct device *dev;
->  	bool dbck_flag;
-> +	int stride;
->  };
->
->  #ifdef CONFIG_ARCH_OMAP3
-> @@ -267,7 +268,7 @@ static void _set_gpio_direction(struct gpio_bank =
-*bank,
-> int gpio, int is_input) switch (bank->method) {
->  #ifdef CONFIG_ARCH_OMAP1
->  	case METHOD_MPUIO:
-> -		reg +=3D OMAP_MPUIO_IO_CNTL;
-> +		reg +=3D OMAP_MPUIO_IO_CNTL / bank->stride;
->  		break;
->  #endif
->  #ifdef CONFIG_ARCH_OMAP15XX
-> @@ -315,7 +316,7 @@ static void _set_gpio_dataout(struct gpio_bank *b=
-ank,
-> int gpio, int enable) switch (bank->method) {
->  #ifdef CONFIG_ARCH_OMAP1
->  	case METHOD_MPUIO:
-> -		reg +=3D OMAP_MPUIO_OUTPUT;
-> +		reg +=3D OMAP_MPUIO_OUTPUT / bank->stride;
->  		l =3D __raw_readl(reg);
->  		if (enable)
->  			l |=3D 1 << gpio;
-> @@ -387,7 +388,7 @@ static int _get_gpio_datain(struct gpio_bank *ban=
-k, int
-> gpio) switch (bank->method) {
->  #ifdef CONFIG_ARCH_OMAP1
->  	case METHOD_MPUIO:
-> -		reg +=3D OMAP_MPUIO_INPUT_LATCH;
-> +		reg +=3D OMAP_MPUIO_INPUT_LATCH / bank->stride;
->  		break;
->  #endif
->  #ifdef CONFIG_ARCH_OMAP15XX
-> @@ -433,7 +434,7 @@ static int _get_gpio_dataout(struct gpio_bank *ba=
-nk,
-> int gpio) switch (bank->method) {
->  #ifdef CONFIG_ARCH_OMAP1
->  	case METHOD_MPUIO:
-> -		reg +=3D OMAP_MPUIO_OUTPUT;
-> +		reg +=3D OMAP_MPUIO_OUTPUT / bank->stride;
->  		break;
->  #endif
->  #ifdef CONFIG_ARCH_OMAP15XX
-> @@ -620,7 +621,7 @@ static void _toggle_gpio_edge_triggering(struct
-> gpio_bank *bank, int gpio)
->
->  	switch (bank->method) {
->  	case METHOD_MPUIO:
-> -		reg +=3D OMAP_MPUIO_GPIO_INT_EDGE;
-> +		reg +=3D OMAP_MPUIO_GPIO_INT_EDGE / bank->stride;
->  		break;
->  #ifdef CONFIG_ARCH_OMAP15XX
->  	case METHOD_GPIO_1510:
-> @@ -654,7 +655,7 @@ static int _set_gpio_triggering(struct gpio_bank =
-*bank,
-> int gpio, int trigger) switch (bank->method) {
->  #ifdef CONFIG_ARCH_OMAP1
->  	case METHOD_MPUIO:
-> -		reg +=3D OMAP_MPUIO_GPIO_INT_EDGE;
-> +		reg +=3D OMAP_MPUIO_GPIO_INT_EDGE / bank->stride;
->  		l =3D __raw_readl(reg);
->  		if ((trigger & IRQ_TYPE_SENSE_MASK) =3D=3D IRQ_TYPE_EDGE_BOTH)
->  			bank->toggle_mask |=3D 1 << gpio;
-> @@ -840,7 +841,7 @@ static u32 _get_gpio_irqbank_mask(struct gpio_ban=
-k
-> *bank) switch (bank->method) {
->  #ifdef CONFIG_ARCH_OMAP1
->  	case METHOD_MPUIO:
-> -		reg +=3D OMAP_MPUIO_GPIO_MASKIT;
-> +		reg +=3D OMAP_MPUIO_GPIO_MASKIT / bank->stride;
->  		mask =3D 0xffff;
->  		inv =3D 1;
->  		break;
-> @@ -897,7 +898,7 @@ static void _enable_gpio_irqbank(struct gpio_bank
-> *bank, int gpio_mask, int enab switch (bank->method) {
->  #ifdef CONFIG_ARCH_OMAP1
->  	case METHOD_MPUIO:
-> -		reg +=3D OMAP_MPUIO_GPIO_MASKIT;
-> +		reg +=3D OMAP_MPUIO_GPIO_MASKIT / bank->stride;
->  		l =3D __raw_readl(reg);
->  		if (enable)
->  			l &=3D ~(gpio_mask);
-> @@ -1147,7 +1148,8 @@ static void gpio_irq_handler(unsigned int irq, =
-struct
-> irq_desc *desc) bank =3D get_irq_data(irq);
->  #ifdef CONFIG_ARCH_OMAP1
->  	if (bank->method =3D=3D METHOD_MPUIO)
-> -		isr_reg =3D bank->base + OMAP_MPUIO_GPIO_INT;
-> +		isr_reg =3D bank->base +
-> +				OMAP_MPUIO_GPIO_INT / bank->stride;
->  #endif
->  #ifdef CONFIG_ARCH_OMAP15XX
->  	if (bank->method =3D=3D METHOD_GPIO_1510)
-> @@ -1340,7 +1342,8 @@ static int omap_mpuio_suspend_noirq(struct devi=
-ce
-> *dev) {
->  	struct platform_device *pdev =3D to_platform_device(dev);
->  	struct gpio_bank	*bank =3D platform_get_drvdata(pdev);
-> -	void __iomem		*mask_reg =3D bank->base + OMAP_MPUIO_GPIO_MASKIT;
-> +	void __iomem		*mask_reg =3D bank->base +
-> +					OMAP_MPUIO_GPIO_MASKIT / bank->stride;
->  	unsigned long		flags;
->
->  	spin_lock_irqsave(&bank->lock, flags);
-> @@ -1355,7 +1358,8 @@ static int omap_mpuio_resume_noirq(struct devic=
-e
-> *dev) {
->  	struct platform_device *pdev =3D to_platform_device(dev);
->  	struct gpio_bank	*bank =3D platform_get_drvdata(pdev);
-> -	void __iomem		*mask_reg =3D bank->base + OMAP_MPUIO_GPIO_MASKIT;
-> +	void __iomem		*mask_reg =3D bank->base +
-> +					OMAP_MPUIO_GPIO_MASKIT / bank->stride;
->  	unsigned long		flags;
->
->  	spin_lock_irqsave(&bank->lock, flags);
-> @@ -1435,7 +1439,7 @@ static int gpio_is_input(struct gpio_bank *bank=
-, int
-> mask)
->
->  	switch (bank->method) {
->  	case METHOD_MPUIO:
-> -		reg +=3D OMAP_MPUIO_IO_CNTL;
-> +		reg +=3D OMAP_MPUIO_IO_CNTL / bank->stride;
->  		break;
->  	case METHOD_GPIO_1510:
->  		reg +=3D OMAP1510_GPIO_DIR_CONTROL;
-> @@ -1596,8 +1600,8 @@ static void omap_gpio_mod_init(struct gpio_bank
-> *bank, int id) }
->  	} else if (cpu_class_is_omap1()) {
->  		if (bank_is_mpuio(bank))
-> -			__raw_writew(0xffff, bank->base
-> -						+ OMAP_MPUIO_GPIO_MASKIT);
-> +			__raw_writew(0xffff, bank->base +
-> +				OMAP_MPUIO_GPIO_MASKIT / bank->stride);
->  		if (cpu_is_omap15xx() && bank->method =3D=3D METHOD_GPIO_1510) {
->  			__raw_writew(0xffff, bank->base
->  						+ OMAP1510_GPIO_INT_MASK);
-> @@ -1711,6 +1715,7 @@ static int __devinit omap_gpio_probe(struct
-> platform_device *pdev) bank->method =3D pdata->bank_type;
->  	bank->dev =3D &pdev->dev;
->  	bank->dbck_flag =3D pdata->dbck_flag;
-> +	bank->stride =3D pdata->bank_stride;
->  	bank_width =3D pdata->bank_width;
->
->  	spin_lock_init(&bank->lock);
-> diff --git a/arch/arm/plat-omap/include/plat/gpio.h
-> b/arch/arm/plat-omap/include/plat/gpio.h index 5f118ff..41ff2f8 10064=
-4
-> --- a/arch/arm/plat-omap/include/plat/gpio.h
-> +++ b/arch/arm/plat-omap/include/plat/gpio.h
-> @@ -32,22 +32,10 @@
->
->  #define OMAP1_MPUIO_BASE			0xfffb5000
->
-> -#if (defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850))
-> -
-> -#define OMAP_MPUIO_INPUT_LATCH		0x00
-> -#define OMAP_MPUIO_OUTPUT		0x02
-> -#define OMAP_MPUIO_IO_CNTL		0x04
-> -#define OMAP_MPUIO_KBR_LATCH		0x08
-> -#define OMAP_MPUIO_KBC			0x0a
-> -#define OMAP_MPUIO_GPIO_EVENT_MODE	0x0c
-> -#define OMAP_MPUIO_GPIO_INT_EDGE	0x0e
-> -#define OMAP_MPUIO_KBD_INT		0x10
-> -#define OMAP_MPUIO_GPIO_INT		0x12
-> -#define OMAP_MPUIO_KBD_MASKIT		0x14
-> -#define OMAP_MPUIO_GPIO_MASKIT		0x16
-> -#define OMAP_MPUIO_GPIO_DEBOUNCING	0x18
-> -#define OMAP_MPUIO_LATCH		0x1a
+> -#if (defined(CONFIG_ARCH_OMAP730)||defined(CONFIG_ARCH_OMAP850)) && =
+\
+> -	(defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX))
+> -#error "FIXME: OMAP7XX doesn't support multiple-OMAP"
+> -#elif defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+> -#define INT_IH2_IRQ		INT_7XX_IH2_IRQ
+> -#elif defined(CONFIG_ARCH_OMAP15XX)
+> -#define INT_IH2_IRQ		INT_1510_IH2_IRQ
+> -#elif defined(CONFIG_ARCH_OMAP16XX)
+> -#define INT_IH2_IRQ		INT_1610_IH2_IRQ
 > -#else
+> -#warning "IH2 IRQ defaulted"
+> -#define INT_IH2_IRQ		INT_1510_IH2_IRQ
 > +/*
-> + * These are the omap15xx/16xx offsets. The omap7xx offset are
-> + * OMAP_MPUIO_ / 2 offsets below.
+> + * We use __glue to avoid errors with multiple definitions of
+> + * .globl omap_irq_flags as it's included from entry-armv.S but not
+> + * from entry-common.S.
 > + */
->  #define OMAP_MPUIO_INPUT_LATCH		0x00
->  #define OMAP_MPUIO_OUTPUT		0x04
->  #define OMAP_MPUIO_IO_CNTL		0x08
-> @@ -61,7 +49,6 @@
->  #define OMAP_MPUIO_GPIO_MASKIT		0x2c
->  #define OMAP_MPUIO_GPIO_DEBOUNCING	0x30
->  #define OMAP_MPUIO_LATCH		0x34
-> -#endif
+> +#ifdef __glue
+> +		.pushsection .data
+> +		.globl	omap_irq_flags
+> +omap_irq_flags:
+> +		.word	0
+> +		.popsection
+>  #endif
 >
->  #define OMAP34XX_NR_GPIOS		6
+>   		.macro	disable_fiq
+> @@ -47,9 +46,11 @@
+>  		beq	1510f
 >
-> @@ -88,6 +75,7 @@ struct omap_gpio_platform_data {
->  	u16 virtual_irq_start;
->  	int bank_type;
->  	int bank_width;		/* GPIO bank width */
-> +	int bank_stride;	/* Only needed for omap1 MPUIO */
->  	bool dbck_flag;		/* dbck required or not - True for OMAP3&4 */
->  };
+>  		ldr	\irqnr, [\base, #IRQ_SIR_FIQ_REG_OFFSET]
+> +		ldr	\tmp, =3Domap_irq_flags	@ irq flags address
+> +		ldr	\tmp, [\tmp, #0]	@ irq flags value
+>  		cmp	\irqnr, #0
+>  		ldreq	\irqnr, [\base, #IRQ_SIR_IRQ_REG_OFFSET]
+> -		cmpeq	\irqnr, #INT_IH2_IRQ
+> +		cmpeq	\irqnr, \tmp
+>  		ldreq	\base, =3DOMAP1_IO_ADDRESS(OMAP_IH2_BASE)
+>  		ldreq	\irqnr, [\base, #IRQ_SIR_IRQ_REG_OFFSET]
+>  		addeqs	\irqnr, \irqnr, #32
+> diff --git a/arch/arm/mach-omap1/irq.c b/arch/arm/mach-omap1/irq.c
+> index db913c3..6bddbc8 100644
+> --- a/arch/arm/mach-omap1/irq.c
+> +++ b/arch/arm/mach-omap1/irq.c
+> @@ -176,26 +176,31 @@ static struct irq_chip omap_irq_chip =3D {
 >
+>  void __init omap_init_irq(void)
+>  {
+> +	extern unsigned int omap_irq_flags;
+>  	int i, j;
+>
+>  #if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+>  	if (cpu_is_omap7xx()) {
+> +		omap_irq_flags =3D INT_7XX_IH2_IRQ;
+>  		irq_banks =3D omap7xx_irq_banks;
+>  		irq_bank_count =3D ARRAY_SIZE(omap7xx_irq_banks);
+>  	}
+>  #endif
+>  #ifdef CONFIG_ARCH_OMAP15XX
+>  	if (cpu_is_omap1510()) {
+> +		omap_irq_flags =3D INT_1510_IH2_IRQ;
+>  		irq_banks =3D omap1510_irq_banks;
+>  		irq_bank_count =3D ARRAY_SIZE(omap1510_irq_banks);
+>  	}
+>  	if (cpu_is_omap310()) {
+> +		omap_irq_flags =3D INT_1510_IH2_IRQ;
+>  		irq_banks =3D omap310_irq_banks;
+>  		irq_bank_count =3D ARRAY_SIZE(omap310_irq_banks);
+>  	}
+>  #endif
+>  #if defined(CONFIG_ARCH_OMAP16XX)
+>  	if (cpu_is_omap16xx()) {
+> +		omap_irq_flags =3D INT_1510_IH2_IRQ;
+>  		irq_banks =3D omap1610_irq_banks;
+>  		irq_bank_count =3D ARRAY_SIZE(omap1610_irq_banks);
+>  	}
+> diff --git a/arch/arm/plat-omap/include/plat/irqs.h
+> b/arch/arm/plat-omap/include/plat/irqs.h index 65e20a6..2910de9 10064=
+4
+> --- a/arch/arm/plat-omap/include/plat/irqs.h
+> +++ b/arch/arm/plat-omap/include/plat/irqs.h
+> @@ -77,7 +77,7 @@
+>  /*
+>   * OMAP-1610 specific IRQ numbers for interrupt handler 1
+>   */
+> -#define INT_1610_IH2_IRQ	0
+> +#define INT_1610_IH2_IRQ	INT_1510_IH2_IRQ
+>  #define INT_1610_IH2_FIQ	2
+>  #define INT_1610_McBSP2_TX	4
+>  #define INT_1610_McBSP2_RX	5
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap"=
  in
