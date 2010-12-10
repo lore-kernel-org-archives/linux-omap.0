@@ -1,84 +1,136 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCHv5 07/10] OMAP3: PM: Adding T2 enabling of smartreflex support
-Date: Fri, 10 Dec 2010 23:32:58 +0530
-Message-ID: <1292004181-4804-8-git-send-email-thara@ti.com>
+Subject: [PATCHv5 06/10] OMAP3: PM: Adding smartreflex class3 driver
+Date: Fri, 10 Dec 2010 23:32:57 +0530
+Message-ID: <1292004181-4804-7-git-send-email-thara@ti.com>
 References: <1292004181-4804-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48014 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:48011 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756621Ab0LJSDQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 13:03:16 -0500
+	with ESMTP id S1754368Ab0LJSDP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 13:03:15 -0500
 In-Reply-To: <1292004181-4804-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, nm@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch adds support in the twl4030 driver to enable smartreflex.
-The smartreflex bit on twl4030 needs to be enabled by default irrespective
-of whether smartreflex module is enabled on the OMAP side or not.
-This is because without this bit enabled the voltage scaling through
-vp forceupdate does not function properly.
+Smartreflex Class3 implementation continuously monitors
+silicon performance  and instructs the Voltage Processors
+to increase or decrease the voltage.
+This patch adds smartreflex class 3 driver. This driver hooks
+up with the generic smartreflex driver smartreflex.c to abstract
+out class specific implementations out of the generic driver.
+
+Class3 driver is chosen as the default class driver for smartreflex.
+If any other class driver needs to be implemented, the init of that
+driver should be called from the board file. That way the new class driver
+will over-ride the Class3 driver.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- drivers/mfd/twl-core.c  |   13 +++++++++++++
- include/linux/i2c/twl.h |   11 +++++++++++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Makefile             |    1 +
+ arch/arm/mach-omap2/smartreflex-class3.c |   59 ++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/Kconfig               |    9 +++++
+ 3 files changed, 69 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 35275ba..b895ceb 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -1046,6 +1046,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	/* Disable TWL4030/TWL5030 I2C Pull-up on I2C1 and I2C4(SR) interface.
- 	 * Program I2C_SCL_CTRL_PU(bit 0)=0, I2C_SDA_CTRL_PU (bit 2)=0,
- 	 * SR_I2C_SCL_CTRL_PU(bit 4)=0 and SR_I2C_SDA_CTRL_PU(bit 6)=0.
-+	 * Also enable the smartreflex I2S bit.
- 	 */
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 07205db..ee53602 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -63,6 +63,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
+ obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
++obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
  
- 	if (twl_class_is_4030()) {
-@@ -1053,6 +1054,18 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		temp &= ~(SR_I2C_SDA_CTRL_PU | SR_I2C_SCL_CTRL_PU | \
- 		I2C_SDA_CTRL_PU | I2C_SCL_CTRL_PU);
- 		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
-+
-+		/* The smartreflex bit on twl4030 needs to be enabled by
-+		 * default irrespective of whether smartreflex module is
-+		 * enabled on the OMAP side or not. This is because without
-+		 * this bit enabled the voltage scaling through
-+		 * vp forceupdate does not function properly.
-+		 */
-+		twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
-+			TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG);
-+		temp |= SMARTREFLEX_ENABLE;
-+		twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
-+			TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG);
- 	}
- 
- 	status = add_children(pdata, id->driver_data);
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index c760991..d392f06 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -434,6 +434,17 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
- 
- /*----------------------------------------------------------------------*/
- 
+ AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+ AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+new file mode 100644
+index 0000000..60e7055
+--- /dev/null
++++ b/arch/arm/mach-omap2/smartreflex-class3.c
+@@ -0,0 +1,59 @@
 +/*
-+ * PM Receiver module register offsets (use TWL4030_MODULE_PM_RECEIVER)
++ * Smart reflex Class 3 specific implementations
++ *
++ * Author: Thara Gopinath       <thara@ti.com>
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Thara Gopinath <thara@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
-+#define TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG	0x06
++#include <plat/smartreflex.h>
 +
-+/* Smartreflex I2S bus enable/ vmode enable bit */
-+#define SMARTREFLEX_ENABLE			BIT(3)
++static int sr_class3_enable(struct voltagedomain *voltdm)
++{
++	unsigned long volt = omap_voltage_get_nom_volt(voltdm);
 +
-+/*----------------------------------------------------------------------*/
++	if (!volt) {
++		pr_warning("%s: Curr voltage unknown. Cannot enable sr_%s\n",
++				__func__, voltdm->name);
++		return -ENODATA;
++	}
 +
- /* Power bus message definitions */
++	omap_vp_enable(voltdm);
++	return sr_enable(voltdm, volt);
++}
++
++static int sr_class3_disable(struct voltagedomain *voltdm, int is_volt_reset)
++{
++	omap_vp_disable(voltdm);
++	sr_disable(voltdm);
++	if (is_volt_reset)
++		omap_voltage_reset(voltdm);
++
++	return 0;
++}
++
++static int sr_class3_configure(struct voltagedomain *voltdm)
++{
++	return sr_configure_errgen(voltdm);
++}
++
++/* SR class3 structure */
++static struct omap_sr_class_data class3_data = {
++	.enable = sr_class3_enable,
++	.disable = sr_class3_disable,
++	.configure = sr_class3_configure,
++	.class_type = SR_CLASS3,
++};
++
++/* Smartreflex Class3 init API to be called from board file */
++static int __init sr_class3_init(void)
++{
++	pr_info("SmartReflex Class3 initialized\n");
++	return sr_register_class(&class3_data);
++}
++late_initcall(sr_class3_init);
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 95ceca0..4029e6a 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -57,6 +57,15 @@ config OMAP_SMARTREFLEX
+ 	  by default during system init via the enable_on_init flag
+ 	  which an be passed as platform data to the smartreflex driver.
  
- /* The TWL4030/5030 splits its power-management resources (the various
++config OMAP_SMARTREFLEX_CLASS3
++	bool "Class 3 mode of Smartreflex Implementation"
++	depends on OMAP_SMARTREFLEX && TWL4030_CORE
++	help
++	  Say Y to enable Class 3 implementation of Smartreflex
++
++	  Class 3 implementation of Smartreflex employs continuous hardware
++	  voltage calibration.
++
+ config OMAP_RESET_CLOCKS
+ 	bool "Reset unused clocks during boot"
+ 	depends on ARCH_OMAP
 -- 
 1.7.0.4
 
