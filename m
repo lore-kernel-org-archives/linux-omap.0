@@ -1,43 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 12/11] omap1: Fix gpio mpuio bank to work for
- multi-omap for 7xx/15xx/16xx
-Date: Fri, 10 Dec 2010 09:41:53 -0800
-Message-ID: <20101210174153.GU3054@atomide.com>
-References: <1290689318-10191-1-git-send-email-charu@ti.com>
- <20101204212554.GM17222@atomide.com>
- <20101207232315.GE17435@atomide.com>
- <201012101704.37054.jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 1/3] omap1: Use asm_irq_flags for entry-macro.S
+Date: Fri, 10 Dec 2010 09:44:08 -0800
+Message-ID: <20101210174407.GV3054@atomide.com>
+References: <20101204001435.28853.29616.stgit@baageli.muru.com>
+ <20101208014548.GJ17435@atomide.com>
+ <20101208014728.GK17435@atomide.com>
+ <201012101706.24089.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36056 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38900 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197Ab0LJRmF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 12:42:05 -0500
+	with ESMTP id S1753129Ab0LJRoU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 12:44:20 -0500
 Content-Disposition: inline
-In-Reply-To: <201012101704.37054.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <201012101706.24089.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, p-basak2@ti.com, Cory Maccarrone <darkstar6262@gmail.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [101210 08:05]:
-> > We need to divide the 15xx/16xx offset by 2 for 7xx. Use bank->stride
-> > for that. This allows us to get rid of the duplicate defines for the
-> > MPUIO registers.
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [101210 08:06]:
+> Wednesday 08 December 2010 02:47:28 Tony Lindgren napisa=C5=82(a):
+> > Initialize asm_irq_flags in omap_init_irq and use it in
+> > get_irqnr_and_base to detect between omap7xx and omap15xx/16xx.
 > >
-> > Note that this will cause omap-keypad.c driver to not work on 7xx.
-> > However, the right fix there is to move over to gpio-keys instead as
-> > suggested by Cory Maccarrone <darkstar6262@gmail.com> and
-> > Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>.
-> >
-> > Cc: Cory Maccarrone <darkstar6262@gmail.com>
-> > Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > Note that both INT_1510_IH2_IRQ and INT_1510_IH2_IRQ are defined
+> > as 0, so use INT_1510_IH2_IRQ for both of them.
+>=20
+> Tested on Amstrad Delta.
+>=20
 > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> Acked-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>=20
+> Tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-Thanks, will now merge the gpio into omap-for-linus for the next
-merge window.
+Thanks, merging these into omap-for-linus.
+
+Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
