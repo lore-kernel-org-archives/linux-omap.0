@@ -1,208 +1,106 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH/RFC 2/2] OMAP: PM: implement context loss count APIs
-Date: Fri, 10 Dec 2010 16:58:50 +0530
-Message-ID: <44f6fc2f0c975af7273975385567acd2@mail.gmail.com>
-References: <1291939712-25487-1-git-send-email-khilman@deeprootsystems.com> <1291939712-25487-2-git-send-email-khilman@deeprootsystems.com>
+From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 3/7 V2] usb: otg: Kconfig: Add Kconfig option for TWL6030 transceiver.
+Date: Fri, 10 Dec 2010 16:56:40 +0530
+Message-ID: <AANLkTik+_yK5oPUG5uJZpm2gfdtPUgSRUtr6frJ6To31@mail.gmail.com>
+References: <1291964675-7114-1-git-send-email-hemahk@ti.com>
+	<20101210084126.GE2576@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:34485 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753335Ab0LJL27 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Dec 2010 06:28:59 -0500
-Received: by mail-fx0-f48.google.com with SMTP id 2so3616120fxm.21
-        for <linux-omap@vger.kernel.org>; Fri, 10 Dec 2010 03:28:52 -0800 (PST)
-In-Reply-To: <1291939712-25487-2-git-send-email-khilman@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20101210084126.GE2576-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
-Cc: Paul Walmsely <paul@pwsan.com>
 
-Kevin,
+On Fri, Dec 10, 2010 at 2:11 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> On Fri, Dec 10, 2010 at 12:34:35PM +0530, Hema HK wrote:
+>>
+>> Added the TWL6030-usb transceiver option in the Kconfig
+>>
+>> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+>> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+>> Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+>> ---
+>> drivers/usb/otg/Kconfig | =A0 12 ++++++++++++
+>> 1 file changed, 12 insertions(+)
+>>
+>> Index: usb/drivers/usb/otg/Kconfig
+>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>> --- usb.orig/drivers/usb/otg/Kconfig
+>> +++ usb/drivers/usb/otg/Kconfig
+>> @@ -59,6 +59,18 @@ config TWL4030_USB
+>> =A0 =A0 =A0 =A0 =A0This transceiver supports high and full speed dev=
+ices plus,
+>> =A0 =A0 =A0 =A0 =A0in host mode, low speed.
+>>
+>> +config TWL6030_USB
+>> + =A0 =A0 =A0 tristate "TWL6030 USB Transceiver Driver"
+>> + =A0 =A0 =A0 depends on TWL4030_CORE
+>> + =A0 =A0 =A0 select USB_OTG_UTILS
+>> + =A0 =A0 =A0 help
+>> + =A0 =A0 =A0 =A0 Enable this to support the USB OTG transceiver on =
+TWL6030
+>> + =A0 =A0 =A0 =A0 family chips. This TWL6030 transceiver has the VBU=
+S and ID GND
+>> + =A0 =A0 =A0 =A0 and OTG SRP events capabilities. For all other tra=
+nsceiver
+>> functionality
+>> + =A0 =A0 =A0 =A0 UTMI PHY is embedded in OMAP4430. The internal PHY
+>> configurations APIs
+>> + =A0 =A0 =A0 =A0 are hooked to this driver through platform_data st=
+ructure.
+>> + =A0 =A0 =A0 =A0 The definition of internal PHY APIs are in the mac=
+h-omap2 layer.
+>> +
+>
+> When compiling with this patch:
+>
+> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_set_phy_clk':
+> drivers/usb/otg/twl6030-usb.c:145: error: 'struct twl4030_usb_data' h=
+as
+> no member named 'phy_set_clock'
+> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_phy_init':
+> drivers/usb/otg/twl6030-usb.c:166: error: 'struct twl4030_usb_data' h=
+as
+> no member named 'phy_power'
+> drivers/usb/otg/twl6030-usb.c:168: error: 'struct twl4030_usb_data' h=
+as
+> no member named 'phy_power'
+> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_phy_shutdown':
+> drivers/usb/otg/twl6030-usb.c:182: error: 'struct twl4030_usb_data' h=
+as
+> no member named 'phy_power'
+> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_usb_probe':
+> drivers/usb/otg/twl6030-usb.c:440: error: 'struct twl4030_usb_data' h=
+as
+> no member named 'phy_init'
+> drivers/usb/otg/twl6030-usb.c: In function 'twl6030_usb_remove':
+> drivers/usb/otg/twl6030-usb.c:462: error: 'struct twl4030_usb_data' h=
+as
+> no member named 'phy_exit'
+> make[2]: *** [drivers/usb/otg/twl6030-usb.o] Error 1
+> make[1]: *** [drivers/usb/otg] Error 2
+> make[1]: *** Waiting for unfinished jobs....
+> make: *** [drivers] Error 2
+> make: *** Waiting for unfinished jobs....
+>
+> please fix ASAP or we will loose the merge window.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Friday, December 10, 2010 5:39 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Paul Walmsely
-> Subject: [PATCH/RFC 2/2] OMAP: PM: implement context loss count APIs
->
-> Implement OMAP PM layer omap_pm_get_dev_context_loss_count() API
-> by
-> creating similar APIs at the omap_device and omap_hwmod levels.  The
-> omap_hwmod level call is the layer with access to the powerdomain
-> core, so it is the place where the powerdomain is queried to get the
-> context loss count.
->
-> NOTE: only works for devices which have been converted to use
->       omap_device/omap_hwmod.
->
-> Longer term, we could possibly remove this API from the OMAP PM layer,
-> and instead directly use the omap_device level API.
->
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c              |   18
-> ++++++++++++++++++
->  arch/arm/plat-omap/include/plat/omap_device.h |    1 +
->  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
->  arch/arm/plat-omap/omap-pm-noop.c             |   17 +++++++++-----
-> ---
->  arch/arm/plat-omap/omap_device.c              |   20
-> ++++++++++++++++++++
->  5 files changed, 49 insertions(+), 8 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-
-> omap2/omap_hwmod.c
-> index 81c1097..0ec9c70 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -2220,3 +2220,21 @@ ohsps_unlock:
->
->  	return ret;
->  }
-> +
-> +/**
-> + * omap_hwmod_get_context_loss_count - get lost context count
-> + * @oh: struct omap_hwmod *
-> + *
-> + * Query the powerdomain of of @oh to get the context loss
-> + * count for this device.
-> + */
-> +int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
-> +{
-> +	struct powerdomain *pwrdm;
-> +
-> +	pwrdm = omap_hwmod_get_pwrdm(oh);
-> +	if (!pwrdm)
-> +		return -ENODEV;
-> +
-> +	return pwrdm_get_context_loss_count(pwrdm);
-> +}
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h
-> b/arch/arm/plat-omap/include/plat/omap_device.h
-> index 28e2d1a..70d31d0 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -107,6 +107,7 @@ void __iomem *omap_device_get_rt_va(struct
-> omap_device *od);
->  int omap_device_align_pm_lat(struct platform_device *pdev,
->  			     u32 new_wakeup_lat_limit);
->  struct powerdomain *omap_device_get_pwrdm(struct omap_device
-> *od);
-> +int omap_device_get_context_loss_count(struct platform_device
-> *pdev);
->
->  /* Other */
->
-> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> index 62bdb23..5a96ac5 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> @@ -568,6 +568,7 @@ int omap_hwmod_for_each_by_class(const char
-> *classname,
->  				 void *user);
->
->  int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8
-> state);
-> +int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
->
->  /*
->   * Chip variant-specific hwmod init routines - XXX should be converted
-> diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-
-> omap/omap-pm-noop.c
-> index 7578366..5a58f97 100644
-> --- a/arch/arm/plat-omap/omap-pm-noop.c
-> +++ b/arch/arm/plat-omap/omap-pm-noop.c
-> @@ -20,9 +20,11 @@
->  #include <linux/init.h>
->  #include <linux/cpufreq.h>
->  #include <linux/device.h>
-> +#include <linux/platform_device.h>
->
->  /* Interface documentation is in mach/omap-pm.h */
->  #include <plat/omap-pm.h>
-> +#include <plat/omap_device.h>
->
->  struct omap_opp *dsp_opps;
->  struct omap_opp *mpu_opps;
-> @@ -288,20 +290,19 @@ unsigned long omap_pm_cpu_get_freq(void)
->
->  int omap_pm_get_dev_context_loss_count(struct device *dev)
->  {
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	int count;
-> +
->  	if (!dev) {
->  		WARN_ON(1);
->  		return -EINVAL;
->  	};
->
-> -	pr_debug("OMAP PM: returning context loss count for dev %s\n",
-> -		 dev_name(dev));
-> +	count = omap_device_get_context_loss_count(pdev);
-> +	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
-> +		 dev_name(dev), count);
-Shouldn't this implementation be part of omap-pm.c where all the OMAP PM
-functions are to be implemented? I thought omap-pm-noop.c should have
-dummy implementation.
+With this patch twl6030_usb file still not added for build, I am
+wondering how are
+you getting How are you getting build error?
 
-Vishwa
-
->
-> -	/*
-> -	 * Map the device to the powerdomain.  Return the powerdomain
-> -	 * off counter.
-> -	 */
-> -
-> -	return 0;
-> +	return count;
->  }
->
->
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-
-> omap/omap_device.c
-> index abe933c..e29c2d6 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -280,6 +280,26 @@ static void _add_optional_clock_alias(struct
-> omap_device *od,
->  /* Public functions for use by core code */
->
->  /**
-> + * omap_device_get_context_loss_count - get lost context count
-> + * @od: struct omap_device *
-> + *
-> + * Using the primary hwmod for this device, query the context loss
-> + * count for this device.
-> + */
-> +int omap_device_get_context_loss_count(struct platform_device
-> *pdev)
-> +{
-> +	struct omap_device *od;
-> +	int ret = -ENODEV;
-> +
-> +	od = _find_by_pdev(pdev);
-> +
-> +	if (od->hwmods_cnt)
-> +		omap_hwmod_get_context_loss_count(od->hwmods[0]);
-> +
-> +	return ret;
-> +}
-> +
-> +/**
->   * omap_device_count_resources - count number of struct resource
-> entries needed
->   * @od: struct omap_device *
->   *
-> --
-> 1.7.2.1
+Regards,
+Hema
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> balbi
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
