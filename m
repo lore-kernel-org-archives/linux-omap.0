@@ -1,46 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] OMAP2+: PM/serial: fix console semaphore acquire
- during suspend
-Date: Thu, 9 Dec 2010 16:57:17 -0800
-Message-ID: <20101210005717.GP3054@atomide.com>
-References: <1291848040-23394-1-git-send-email-khilman@deeprootsystems.com>
- <AANLkTi=9TBbuwr4uiQb6f_f=cLxK2NvWJDJYXwr2tTxu@mail.gmail.com>
- <87zksfc53b.fsf@deeprootsystems.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v3 6/7] omap3: Export omap3isp platform device structure
+Date: Fri, 10 Dec 2010 02:12:00 +0100
+Message-ID: <201012100212.00503.laurent.pinchart@ideasonboard.com>
+References: <1290653678-15556-1-git-send-email-laurent.pinchart@ideasonboard.com> <20101125112311.GV2468@legolas.emea.dhcp.ti.com> <20101206193213.GN8345@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:26525 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756590Ab0LJA5Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Dec 2010 19:57:24 -0500
-Content-Disposition: inline
-In-Reply-To: <87zksfc53b.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20101206193213.GN8345@atomide.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Vitaly Wool <vitalywool@gmail.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [101209 07:40]:
-> Vitaly Wool <vitalywool@gmail.com> writes:
-> >>
-> >> +static void omap2_pm_end(void)
-> >> +{
-> >> + =C2=A0 =C2=A0 =C2=A0 suspend_state =3D PM_SUSPEND_ON;
-> >> + =C2=A0 =C2=A0 =C2=A0 return;
-> >> +}
-> >
-> > Redundant return.
->=20
-> but harmless
+Hi Tony,
 
-I'll queue this fix, will leave out the harmless return.
+On Monday 06 December 2010 20:32:13 Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [101125 03:13]:
+> > Hi,
+> > 
+> > On Thu, Nov 25, 2010 at 12:17:59PM +0100, Laurent Pinchart wrote:
+> > >>pass platform_data as an argument to this call ? Then remove the static
+> > >>inline and export this one ?
+> > >
+> > >Yes indeed, why ? :-)
+> > >
+> > >I guess things like that are difficult to spot when you've had your nose
+> > >on the code for too long. Thanks for the review, I'll fix this.
+> > 
+> > no problem :-)
+> 
+> Can you please also grep to make sure there are no other EXPORT_SYMBOL
+> being added to arch/arm/*omap*/ code in these patches?
 
+That's the only one.
+
+-- 
 Regards,
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Laurent Pinchart
