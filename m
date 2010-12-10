@@ -1,43 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] omap1: Add initcall checks for omap1 and booted
- board
-Date: Fri, 10 Dec 2010 11:26:05 -0800
-Message-ID: <20101210192605.GX3054@atomide.com>
-References: <20101204213358.32208.4195.stgit@baageli.muru.com>
- <20101204213655.32208.23030.stgit@baageli.muru.com>
- <201012101702.34825.jkrzyszt@tis.icnet.pl>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 2/9 v3] usb: musb: Remove board_data parameter from musb_platform_init()
+Date: Fri, 10 Dec 2010 22:30:50 +0300
+Message-ID: <4D027FEA.9050206@ru.mvista.com>
+References: <1285201660-26309-1-git-send-email-hemahk@ti.com> <871v8c629u.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59661 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752114Ab0LJT0V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 14:26:21 -0500
-Content-Disposition: inline
-In-Reply-To: <201012101702.34825.jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <871v8c629u.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [101210 08:03]:
-> Saturday 04 December 2010 22:36:55 Tony Lindgren napisa=C5=82(a):
-> > Otherwise multi-omap1 configurations will fail.
->=20
-> Tested on Amstrad Delta with omap1_defconfig.
->=20
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
->=20
-> Tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Hello.
 
-Thanks, will merge these too.
+Kevin Hilman wrote:
 
-Regards,
+>> Removed the board_data parameter being passed to musb_platform_init function
+>> as board data can be extracted from device structure which is already member of
+>> musb structure.
 
-Tony
+>> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+>> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+>> Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
+>> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+
+> For the davinci changes:
+
+> Acked-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+
+> Kevin
+
+>> ---
+>>  drivers/usb/musb/blackfin.c  |    2 +-
+>>  drivers/usb/musb/davinci.c   |    2 +-
+>>  drivers/usb/musb/musb_core.c |    2 +-
+>>  drivers/usb/musb/musb_core.h |    2 +-
+>>  drivers/usb/musb/omap2430.c  |    6 ++++--
+>>  drivers/usb/musb/tusb6010.c  |    2 +-
+>>  6 files changed, 9 insertions(+), 7 deletions(-)
+
+    Grr. This misses changes to da8xx.c and am35x.c -- which breaks the 
+compilation for them!
+    Greg, could you drop it from your usb-next branch? Or should we send a patch 
+adding these glue layers?
+
+WBR. Sergei
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
