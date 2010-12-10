@@ -1,67 +1,106 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/8 V3] usb: otg: TWL6030: OMAP4430: musb & transceiver
- driver support for OMAP4
-Date: Fri, 10 Dec 2010 15:11:20 +0200
-Message-ID: <20101210131120.GM6027@legolas.emea.dhcp.ti.com>
-References: <1291983874-13903-1-git-send-email-hemahk@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4] usb: musb: Adding names for IRQs in resource structure
+Date: Fri, 10 Dec 2010 18:50:48 +0530
+Message-ID: <AANLkTiks0pX2nB6aea46QkPS-7eZt_9YVtqgaqAa6r+Q@mail.gmail.com>
+References: <1285777599-24245-1-git-send-email-hemahk@ti.com>
+	<8762xo62b5.fsf@deeprootsystems.com>
+	<4D012F2C.9060303@ru.mvista.com>
+	<AANLkTimF3Eotqa+jZvzCJStguGrDEeS9V-XUGOTa9qBt@mail.gmail.com>
+	<4D02237B.2070708@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1291983874-13903-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <4D02237B.2070708-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 10, 2010 at 05:54:34PM +0530, Hema HK wrote:
->This patch series has the support for TWL6030-usb
->transceiver driver and changes in the musb driver to make it functional
->with OMAP4430.
+On Fri, Dec 10, 2010 at 6:26 PM, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>=
+ wrote:
+> Hello.
 >
->OMAP4 musb support UTMI and ULPI transceiver interfaces.
+> On 10-12-2010 7:46, Kalliguddi, Hema wrote:
 >
->In UTMI mode, the transceiver functionality is split between
->the TWL6030 PMIC chip and OMAP4 embedded PHY.
->The TWL6030 transceiver driver code is under otg folder and
->internal UTMI PHY specific code changes are defined under
->mach-omap2 directory and functions are passed through platform_data
->structure.
+>>>>> The resource data is getting automatically populated from a set o=
+f data
+>>>>> generated from TI's hardware database for the OMAP platform, Whil=
+e we
+>>>>> could hack in some exceptions to that tool to generate resources
+>>>>> in a specific order, it seems less fragile to use the resource na=
+me
+>>>>> instead.That way, no matter what order the resources are generate=
+d, the
+>>>>> driver still work.
 >
->This patch series is based on V2.6.37-rc4 + [1]+[2]
+>>>>> Modified the OMAP,Blackfin and Davinci architecture files to add =
+the
+>>>>> name
+>>>>> of the IRQs
+>>>>> in the resource structures and musb driver to use the get_irq_byn=
+ame()
+>>>>> api to
+>>>>> get the device and dma irq numbers instead of using the index.
 >
->[1] http://www.listware.net/201011/linux-usb/
->65625-patch-resend-v3-usb-musb-do-not-use-dma-for-control-transfers.html
+>>>>> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
+>>>>> Cc: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
+>>>>> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>>>>> Cc: Kevin Hilman<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+>>>>> Cc: Cousson, Benoit<b-cousson-l0cyMroinI0@public.gmane.org>
+>>>>> Cc: Paul Walmsley<paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+>>>>> Cc: Mike Frysinger<vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+>>>>> ---
 >
->[2] Felipe's musb-reorg patch series.
->	http://gitorious.org/usb/usb/commits/musb-hw
+>>>> For the davinci changes:
 >
->Tested musb device and host mode functionality with OMAP4430SDP
->and OMAP3630 ZOOM3.
+>>>> Acked-by: Kevin Hilman<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 >
->Limitation: In OTG and Host only mode, when the device is connected
->during boot will not be detected.
->Need connect the device only after the boot. Or disconnect and connect
->it back if it connected during boot.
->Fix for this will be submitted later.
+>>>> Kevin
 >
->Version History:
->-------------------
->Version3 changes:
->- Rearranged the patches to avoid the git bisect failure.
+>>> [...]
 >
->Version 2 changes:
->- Removed the dependency on the atomic notifier patches from Arnaud.
->- Fixed review comments from Felipe and Sergei.
->- Modified the vbus_set function to set timeout when musb is not configured
->as A device.
-
-This series is applied but I still have to test, so I could still drop
-heh.
-
--- 
-balbi
+>>>>> Index: linux-omap-pm/arch/arm/mach-davinci/usb.c
+>>>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>>>> --- linux-omap-pm.orig/arch/arm/mach-davinci/usb.c
+>>>>> +++ linux-omap-pm/arch/arm/mach-davinci/usb.c
+>>>>> @@ -64,10 +64,12 @@ static struct resource usb_resources[] =3D
+>>>>> =A0 =A0 =A0 =A0{
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.start =A0 =A0 =A0 =A0 =A0=3D IRQ_=
+USBINT,
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0 =A0 =A0 =A0 =A0=3D IORE=
+SOURCE_IRQ,
+>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "mc"
+>>>>> =A0 =A0 =A0 =A0},
+>>>>> =A0 =A0 =A0 =A0{
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* placeholder for the dedicated C=
+PPI IRQ */
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0 =A0 =A0 =A0 =A0=3D IORE=
+SOURCE_IRQ,
+>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "dma"
+>>>>> =A0 =A0 =A0 =A0},
+>>>>> =A0};
+>
+>>> =A0 Argh! This failed to also modify da8xx_usb20_resources[]... :-(
+>
+>> I think when I posted these patch, da8xx support was not there in
+>> mainline.
+>
+> =A0 No, it was added long ago, before the glue layer itself.
+>
+>> I will send patch to add this.
+>
+> =A0 I will care about this myself now.
+Thanks.
+Hema
+>
+>> Regards,
+>> Hema
+>
+> WBR, Sergei
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
