@@ -1,49 +1,37 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 5/5 v5] usb: musb: Using runtime pm APIs for musb.
-Date: Fri, 10 Dec 2010 16:38:11 +0200
-Message-ID: <20101210143811.GS6027@legolas.emea.dhcp.ti.com>
-References: <1291991739-21705-1-git-send-email-hemahk@ti.com>
- <1291991739-21705-6-git-send-email-hemahk@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 0/5] OMAP4: hwmod data fixes and update
+Date: Fri, 10 Dec 2010 16:54:04 +0100
+Message-ID: <4D024D1C.2020703@ti.com>
+References: <1291937615-18571-1-git-send-email-b-cousson@ti.com> <87hbem4g76.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1291991739-21705-6-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51040 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756061Ab0LJPyN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Dec 2010 10:54:13 -0500
+In-Reply-To: <87hbem4g76.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-hi,
+On 12/10/2010 1:36 AM, Kevin Hilman wrote:
+> Benoit Cousson<b-cousson@ti.com>  writes:
 
-On Fri, Dec 10, 2010 at 08:05:39PM +0530, Hema HK wrote:
->Calling runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync()
->for enabling/disabling the clocks, sysconfig settings.
+[...]
+
+> As with the other series, I tried to pull this into my pm-core for
+> testing with all the other PM stuff we have baking for 2.6.38.
 >
->enable clock, configure no-idle/standby when active and configure force idle/standby
->and disable clock when idled. This is taken care by the runtime framework when
->driver calls the pm_runtime_get_sync and pm_runtime_put_sync APIs.
->Need to configure MUSB into force standby and force idle mode when usb not used
+> Unfortunately, this series has conflicts with Paul's
+> pwrdm_prcm_[ab]_2.6.38 branches.
 >
->Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
->Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
->Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
->Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
->---
->
-> drivers/usb/musb/musb_core.h |    2 -
-> drivers/usb/musb/omap2430.c  |   80 +++++++++++--------------------------------
-> 2 files changed, 23 insertions(+), 59 deletions(-)
+> Could you rebase this on Paul's pwrdm_prcm_b_2.6.38 branch?
 
-Now I see you removed the runtime_resume and runtime_suspend calls from
-musb_core. Won't we loose context in that case ?
+- for_2.6.38/clock is now rebased on top of pwrdm_prcm_b_2.6.38
+- for_2.6.38/hwmod_data is rebased on top of for_2.6.38/clock
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Benoit
