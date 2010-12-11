@@ -1,147 +1,39 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v3 4/5] OMAP: mailbox: build device using omap_device/omap_hwmod
-Date: Fri, 10 Dec 2010 19:51:05 -0600
-Message-ID: <1292032266-29460-5-git-send-email-omar.ramirez@ti.com>
-References: <1292032266-29460-1-git-send-email-omar.ramirez@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 8/8] arm: omap: add minimal support for RM-680
+Date: Fri, 10 Dec 2010 18:07:55 -0800
+Message-ID: <20101211020755.GD3054@atomide.com>
+References: <1291912764-12823-1-git-send-email-aaro.koskinen@nokia.com>
+ <1291912764-12823-9-git-send-email-aaro.koskinen@nokia.com>
+ <20101209170310.GC2763@pulham.picochip.com>
+ <alpine.DEB.1.10.1012091905210.22143@esdhcp041196.research.nokia.com>
+ <20101209172918.GE2763@pulham.picochip.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43523 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753657Ab0LKCCa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 21:02:30 -0500
-In-Reply-To: <1292032266-29460-1-git-send-email-omar.ramirez@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36627 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752482Ab0LKCIA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 21:08:00 -0500
+Content-Disposition: inline
+In-Reply-To: <20101209172918.GE2763@pulham.picochip.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Omar Ramirez Luna <omar.ramirez@ti.com>, Charulatha V <charu@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jamie Iles <jamie@jamieiles.com>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Felipe Contreras <felipe.contreras@gmail.com>
+* Jamie Iles <jamie@jamieiles.com> [101209 09:29]:
+> On Thu, Dec 09, 2010 at 07:11:28PM +0200, Aaro Koskinen wrote:
+> > 
+> > Check the following commits in linux-omap tree:
+> > 
+> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=5403187f83c12c6f4c03547e0cc05bac0310be7b
+> > 
+> > and
+> > 
+> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=7203f8a48bb63015ebe58a6f2a38aec1cb208b9d
+> Thanks for the pointer! It looks a bit confusing to my eyes but I guess it's 
+> better than lots of ifdeffery.
 
-Remove static platform_device and resource data within
-omap mailbox driver; use the one defined in the hwmod
-database along with omap_device framework for device
-build and registration.
+Queuing these for the next merge window.
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- arch/arm/mach-omap2/devices.c |  100 ++++++----------------------------------
- 1 files changed, 15 insertions(+), 85 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index b5cafd3..3bb7724 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -142,95 +142,25 @@ static inline void omap_init_camera(void)
- #endif
- 
- #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
--
--#define MBOX_REG_SIZE   0x120
--
--#ifdef CONFIG_ARCH_OMAP2
--static struct resource omap2_mbox_resources[] = {
--	{
--		.start		= OMAP24XX_MAILBOX_BASE,
--		.end		= OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= INT_24XX_MAIL_U0_MPU,
--		.flags		= IORESOURCE_IRQ,
--		.name		= "dsp",
--	},
--	{
--		.start		= INT_24XX_MAIL_U3_MPU,
--		.flags		= IORESOURCE_IRQ,
--		.name		= "iva",
--	},
--};
--static int omap2_mbox_resources_sz = ARRAY_SIZE(omap2_mbox_resources);
--#else
--#define omap2_mbox_resources		NULL
--#define omap2_mbox_resources_sz		0
--#endif
--
--#ifdef CONFIG_ARCH_OMAP3
--static struct resource omap3_mbox_resources[] = {
--	{
--		.start		= OMAP34XX_MAILBOX_BASE,
--		.end		= OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= INT_24XX_MAIL_U0_MPU,
--		.flags		= IORESOURCE_IRQ,
--		.name		= "dsp",
--	},
--};
--static int omap3_mbox_resources_sz = ARRAY_SIZE(omap3_mbox_resources);
--#else
--#define omap3_mbox_resources		NULL
--#define omap3_mbox_resources_sz		0
--#endif
--
--#ifdef CONFIG_ARCH_OMAP4
--
--#define OMAP4_MBOX_REG_SIZE	0x130
--static struct resource omap4_mbox_resources[] = {
--	{
--		.start          = OMAP44XX_MAILBOX_BASE,
--		.end            = OMAP44XX_MAILBOX_BASE +
--					OMAP4_MBOX_REG_SIZE - 1,
--		.flags          = IORESOURCE_MEM,
--	},
--	{
--		.start          = OMAP44XX_IRQ_MAIL_U0,
--		.flags          = IORESOURCE_IRQ,
--		.name		= "mbox",
--	},
--};
--static int omap4_mbox_resources_sz = ARRAY_SIZE(omap4_mbox_resources);
--#else
--#define omap4_mbox_resources		NULL
--#define omap4_mbox_resources_sz		0
--#endif
--
--static struct platform_device mbox_device = {
--	.name		= "omap-mailbox",
--	.id		= -1,
--};
--
- static inline void omap_init_mbox(void)
- {
--	if (cpu_is_omap24xx()) {
--		mbox_device.resource = omap2_mbox_resources;
--		mbox_device.num_resources = omap2_mbox_resources_sz;
--	} else if (cpu_is_omap34xx()) {
--		mbox_device.resource = omap3_mbox_resources;
--		mbox_device.num_resources = omap3_mbox_resources_sz;
--	} else if (cpu_is_omap44xx()) {
--		mbox_device.resource = omap4_mbox_resources;
--		mbox_device.num_resources = omap4_mbox_resources_sz;
--	} else {
--		pr_err("%s: platform not supported\n", __func__);
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
-+
-+	oh = omap_hwmod_lookup("mailbox");
-+	if (!oh) {
-+		pr_err("%s: unable to find hwmod\n", __func__);
-+		return;
-+	}
-+
-+	od = omap_device_build("omap-mailbox", -1, oh,
-+			NULL, 0,
-+			NULL, 0,
-+			0);
-+	if (!od) {
-+		pr_err("%s: could not build device\n", __func__);
- 		return;
- 	}
--	platform_device_register(&mbox_device);
- }
- #else
- static inline void omap_init_mbox(void) { }
--- 
-1.7.1
-
+Tony
