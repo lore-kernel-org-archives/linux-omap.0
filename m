@@ -1,51 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 4/8] OMAP4: clock data: Add missing fields in
- iva_hsd_byp_clk_mux_ck
-Date: Fri, 10 Dec 2010 17:34:15 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012101732320.13430@utopia.booyaka.com>
-References: <1291932820-11163-1-git-send-email-b-cousson@ti.com> <1291932820-11163-5-git-send-email-b-cousson@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH/RFC 2/2] OMAP: PM: implement context loss count APIs
+Date: Fri, 10 Dec 2010 16:43:32 -0800
+Message-ID: <87zksd5ebv.fsf@deeprootsystems.com>
+References: <1291939712-25487-1-git-send-email-khilman@deeprootsystems.com>
+	<1291939712-25487-2-git-send-email-khilman@deeprootsystems.com>
+	<44f6fc2f0c975af7273975385567acd2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40841 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575Ab0LKAeQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 19:34:16 -0500
-In-Reply-To: <1291932820-11163-5-git-send-email-b-cousson@ti.com>
+Received: from mail-gw0-f42.google.com ([74.125.83.42]:45700 "EHLO
+	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757321Ab0LKAnh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Dec 2010 19:43:37 -0500
+Received: by gwb20 with SMTP id 20so3582436gwb.1
+        for <linux-omap@vger.kernel.org>; Fri, 10 Dec 2010 16:43:36 -0800 (PST)
+In-Reply-To: <44f6fc2f0c975af7273975385567acd2@mail.gmail.com> (Vishwanath
+	Sripathy's message of "Fri, 10 Dec 2010 16:58:50 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, Jonathan Bergsagel <jbergsagel@ti.com>
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsely <paul@pwsan.com>
 
-On Thu, 9 Dec 2010, Benoit Cousson wrote:
+Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
 
-> From: Jonathan Bergsagel <jbergsagel@ti.com>
-> 
-> Add register address, mask and link to the clksel structure that
-> were missing in the IVA DPLL mux clock node.
-> 
-> Signed-off-by: Jonathan Bergsagel <jbergsagel@ti.com>
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Kevin,
+[...]
 
-This patch results in a checkpatch warning:
+>> @@ -288,20 +290,19 @@ unsigned long omap_pm_cpu_get_freq(void)
+>>
+>>  int omap_pm_get_dev_context_loss_count(struct device *dev)
+>>  {
+>> +	struct platform_device *pdev = to_platform_device(dev);
+>> +	int count;
+>> +
+>>  	if (!dev) {
+>>  		WARN_ON(1);
+>>  		return -EINVAL;
+>>  	};
+>>
+>> -	pr_debug("OMAP PM: returning context loss count for dev %s\n",
+>> -		 dev_name(dev));
+>> +	count = omap_device_get_context_loss_count(pdev);
+>> +	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
+>> +		 dev_name(dev), count);
+>
+> Shouldn't this implementation be part of omap-pm.c where all the OMAP PM
+> functions are to be implemented? 
 
----
+Where is omap-pm.c?
 
-WARNING: please, no space before tabs
-#23: FILE: arch/arm/mach-omap2/clock44xx_data.c:639:
-+^I.clksel ^I= iva_hsd_byp_clk_mux_sel,$
+Kevin
 
-total: 0 errors, 1 warnings, 0 checks, 13 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
----
-
-I've fixed it in the copy in my local branch, but next time, please run 
-checkpatch.pl and fix any problems before submitting.
-
-regards,
-
-- Paul
