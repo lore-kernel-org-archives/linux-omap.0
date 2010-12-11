@@ -1,12 +1,12 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v3 2/5] OMAP3: hwmod data: add mailbox data
-Date: Fri, 10 Dec 2010 19:51:03 -0600
-Message-ID: <1292032266-29460-3-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v3 1/5] OMAP2: hwmod data: add mailbox data
+Date: Fri, 10 Dec 2010 19:51:02 -0600
+Message-ID: <1292032266-29460-2-git-send-email-omar.ramirez@ti.com>
 References: <1292032266-29460-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38646 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44309 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752118Ab0LKCCS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1750753Ab0LKCCS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 10 Dec 2010 21:02:18 -0500
 In-Reply-To: <1292032266-29460-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,25 +14,23 @@ List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Omar Ramirez Luna <omar.ramirez@ti.com>, Charulatha V <charu@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Felipe Contreras <felipe.contreras@gmail.com>
+Mailbox hwmod data for omap2430 and 2420.
 
-Mailbox hwmod data for omap3.
-
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   71 ++++++++++++++++++++++++++++
- 1 files changed, 71 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   73 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   72 +++++++++++++++++++++++++++
+ 2 files changed, 145 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 8eb81b4..9ce347e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1089,6 +1089,74 @@ static struct omap_hwmod omap3xxx_gpio6_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio6_slaves),
- 	.class		= &omap3xxx_gpio_hwmod_class,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index ce5d890..64f8f8b 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -778,6 +778,76 @@ static struct omap_hwmod omap2420_gpio4_hwmod = {
+ 	.slaves_cnt	= ARRAY_SIZE(omap2420_gpio4_slaves),
+ 	.class		= &omap242x_gpio_hwmod_class,
  	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
 +/*
@@ -41,7 +39,7 @@ index 8eb81b4..9ce347e 100644
 + * using a queued mailbox-interrupt mechanism.
 + */
 +
-+static struct omap_hwmod_class_sysconfig omap3xxx_mailbox_sysc = {
++static struct omap_hwmod_class_sysconfig omap2420_mailbox_sysc = {
 +	.rev_offs	= 0x000,
 +	.sysc_offs	= 0x010,
 +	.syss_offs	= 0x014,
@@ -51,17 +49,19 @@ index 8eb81b4..9ce347e 100644
 +	.sysc_fields	= &omap_hwmod_sysc_type1,
 +};
 +
-+static struct omap_hwmod_class omap3xxx_mailbox_hwmod_class = {
++static struct omap_hwmod_class omap2420_mailbox_hwmod_class = {
 +	.name = "mailbox",
-+	.sysc = &omap3xxx_mailbox_sysc,
++	.sysc = &omap2420_mailbox_sysc,
 +};
 +
-+static struct omap_hwmod omap3xxx_mailbox_hwmod;
-+static struct omap_hwmod_irq_info omap3xxx_mailbox_irqs[] = {
++/* mailbox */
++static struct omap_hwmod omap2420_mailbox_hwmod;
++static struct omap_hwmod_irq_info omap2420_mailbox_irqs[] = {
 +	{ .name = "dsp", .irq = 26, },
++	{ .name = "iva", .irq = 34, },
 +};
 +
-+static struct omap_hwmod_addr_space omap3xxx_mailbox_addrs[] = {
++static struct omap_hwmod_addr_space omap2420_mailbox_addrs[] = {
 +	{
 +		.pa_start	= 0x48094000,
 +		.pa_end		= 0x480941ff,
@@ -70,46 +70,136 @@ index 8eb81b4..9ce347e 100644
 +};
 +
 +/* l4_core -> mailbox */
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__mailbox = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_mailbox_hwmod,
++static struct omap_hwmod_ocp_if omap2420_l4_core__mailbox = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_mailbox_hwmod,
 +	.clk		= "mailboxes_ick",
-+	.addr		= omap3xxx_mailbox_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_mailbox_addrs),
++	.addr		= omap2420_mailbox_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_mailbox_addrs),
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
 +/* mailbox slave ports */
-+static struct omap_hwmod_ocp_if *omap3xxx_mailbox_slaves[] = {
-+	&omap3xxx_l4_core__mailbox,
++static struct omap_hwmod_ocp_if *omap2420_mailbox_slaves[] = {
++	&omap2420_l4_core__mailbox,
 +};
 +
-+static struct omap_hwmod omap3xxx_mailbox_hwmod = {
++static struct omap_hwmod omap2420_mailbox_hwmod = {
 +	.name		= "mailbox",
-+	.class		= &omap3xxx_mailbox_hwmod_class,
-+	.mpu_irqs	= omap3xxx_mailbox_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_mailbox_irqs),
++	.class		= &omap2420_mailbox_hwmod_class,
++	.mpu_irqs	= omap2420_mailbox_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_mailbox_irqs),
 +	.prcm		= {
 +		.omap2 = {
 +			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_MAILBOXES_SHIFT,
++			.module_bit = OMAP24XX_EN_MAILBOXES_SHIFT,
 +			.module_offs = CORE_MOD,
 +			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430_ST_MAILBOXES_SHIFT,
++			.idlest_idle_bit = OMAP24XX_ST_MAILBOXES_SHIFT,
 +		},
 +	},
-+	.slaves		= omap3xxx_mailbox_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mailbox_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.slaves		= omap2420_mailbox_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_mailbox_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
  };
  
-@@ -1115,6 +1183,9 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_gpio4_hwmod,
- 	&omap3xxx_gpio5_hwmod,
- 	&omap3xxx_gpio6_hwmod,
+@@ -799,6 +869,9 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
+ 	&omap2420_gpio2_hwmod,
+ 	&omap2420_gpio3_hwmod,
+ 	&omap2420_gpio4_hwmod,
 +
 +	/* mailbox class */
-+	&omap3xxx_mailbox_hwmod,
++	&omap2420_mailbox_hwmod,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 0f87736..939af19 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -839,6 +839,75 @@ static struct omap_hwmod omap2430_gpio5_hwmod = {
+ 	.slaves_cnt	= ARRAY_SIZE(omap2430_gpio5_slaves),
+ 	.class		= &omap243x_gpio_hwmod_class,
+ 	.dev_attr	= &gpio_dev_attr,
++	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++};
++
++/*
++ * 'mailbox' class
++ * mailbox module allowing communication between the on-chip processors
++ * using a queued mailbox-interrupt mechanism.
++ */
++
++static struct omap_hwmod_class_sysconfig omap2430_mailbox_sysc = {
++	.rev_offs	= 0x000,
++	.sysc_offs	= 0x010,
++	.syss_offs	= 0x014,
++	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
++				SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap2430_mailbox_hwmod_class = {
++	.name = "mailbox",
++	.sysc = &omap2430_mailbox_sysc,
++};
++
++/* mailbox */
++static struct omap_hwmod omap2430_mailbox_hwmod;
++static struct omap_hwmod_irq_info omap2430_mailbox_irqs[] = {
++	{ .name = "dsp", .irq = 26, },
++};
++
++static struct omap_hwmod_addr_space omap2430_mailbox_addrs[] = {
++	{
++		.pa_start	= 0x48094000,
++		.pa_end		= 0x480941ff,
++		.flags		= ADDR_TYPE_RT,
++	},
++};
++
++/* l4_core -> mailbox */
++static struct omap_hwmod_ocp_if omap2430_l4_core__mailbox = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_mailbox_hwmod,
++	.clk		= "mailboxes_ick",
++	.addr		= omap2430_mailbox_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2430_mailbox_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mailbox slave ports */
++static struct omap_hwmod_ocp_if *omap2430_mailbox_slaves[] = {
++	&omap2430_l4_core__mailbox,
++};
++
++static struct omap_hwmod omap2430_mailbox_hwmod = {
++	.name		= "mailbox",
++	.class		= &omap2430_mailbox_hwmod_class,
++	.mpu_irqs	= omap2430_mailbox_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_mailbox_irqs),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_MAILBOXES_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_ST_MAILBOXES_SHIFT,
++		},
++	},
++	.slaves		= omap2430_mailbox_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_mailbox_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ };
+ 
+@@ -861,6 +930,9 @@ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
+ 	&omap2430_gpio3_hwmod,
+ 	&omap2430_gpio4_hwmod,
+ 	&omap2430_gpio5_hwmod,
++
++	/* mailbox class */
++	&omap2430_mailbox_hwmod,
  	NULL,
  };
  
