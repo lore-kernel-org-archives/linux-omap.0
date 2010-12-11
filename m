@@ -1,67 +1,68 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH/RFC 2/2] OMAP: PM: implement context loss count APIs
-Date: Sat, 11 Dec 2010 12:43:24 +0530
-Message-ID: <04a0c6e8413f897941850edcb93a176d@mail.gmail.com>
-References: <1291939712-25487-1-git-send-email-khilman@deeprootsystems.com><1291939712-25487-2-git-send-email-khilman@deeprootsystems.com><44f6fc2f0c975af7273975385567acd2@mail.gmail.com>
- <87zksd5ebv.fsf@deeprootsystems.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 01/11] OMAP4: PRCM: add OMAP4-specific accessor/mutatorfunctions
+Date: Sat, 11 Dec 2010 13:02:08 +0530
+Message-ID: <a7496daab729031fd82a064513659761@mail.gmail.com>
+References: <20101208061657.30541.79824.stgit@twilight.localdomain>
+ <20101208061829.30541.99531.stgit@twilight.localdomain> <0adb8bf19a1586d582ac168dcbfc4f5e@mail.gmail.com>
+ <alpine.DEB.2.00.1012101839460.13430@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:57366 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750787Ab0LKHN0 (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:34272 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751914Ab0LKHcJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 11 Dec 2010 02:13:26 -0500
-Received: by mail-fx0-f50.google.com with SMTP id 14so4191633fxm.23
-        for <linux-omap@vger.kernel.org>; Fri, 10 Dec 2010 23:13:24 -0800 (PST)
-In-Reply-To: <87zksd5ebv.fsf@deeprootsystems.com>
+	Sat, 11 Dec 2010 02:32:09 -0500
+Received: by pwj6 with SMTP id 6so1420443pwj.40
+        for <linux-omap@vger.kernel.org>; Fri, 10 Dec 2010 23:32:09 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1012101839460.13430@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsely <paul@pwsan.com>
-
-Kevin,
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Saturday, December 11, 2010 6:14 AM
-> To: Vishwanath Sripathy
-> Cc: linux-omap@vger.kernel.org; Paul Walmsely
-> Subject: Re: [PATCH/RFC 2/2] OMAP: PM: implement context loss count
-> APIs
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Saturday, December 11, 2010 7:26 AM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> Rajendra Nayak; Benoit Cousson
+> Subject: RE: [PATCH 01/11] OMAP4: PRCM: add OMAP4-specific
+> accessor/mutatorfunctions
 >
-> Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
+> On Wed, 8 Dec 2010, Santosh Shilimkar wrote:
 >
-> > Kevin,
-> [...]
+> > One more possible road block of removing the direct register access
+> > from PM code is DEVICE PRM module. Even with this clean-up for DEVCIE
+> > PRM related registers. I guess we still need to use the lowest level
+> > APIs.
 >
-> >> @@ -288,20 +290,19 @@ unsigned long
-> omap_pm_cpu_get_freq(void)
-> >>
-> >>  int omap_pm_get_dev_context_loss_count(struct device *dev)
-> >>  {
-> >> +	struct platform_device *pdev = to_platform_device(dev);
-> >> +	int count;
-> >> +
-> >>  	if (!dev) {
-> >>  		WARN_ON(1);
-> >>  		return -EINVAL;
-> >>  	};
-> >>
-> >> -	pr_debug("OMAP PM: returning context loss count for dev %s\n",
-> >> -		 dev_name(dev));
-> >> +	count = omap_device_get_context_loss_count(pdev);
-> >> +	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
-> >> +		 dev_name(dev), count);
-> >
-> > Shouldn't this implementation be part of omap-pm.c where all the
-> OMAP PM
-> > functions are to be implemented?
+> To clarify my comments, I'm not talking about replacing omap4_prm_*()
+with
+> omap4_prminst_*() for the device PRM cases.  I agree that is not
+> desirable.  What I'd like to see is for the middle-level PM code, such
+as
+> pm*.c, to call functions that describe what they are actually trying to
+do
+> at a higher level, rather than writing to registers directly.
 >
-> Where is omap-pm.c?
-It's not present and needs to be added. This file is anyway required for
-adding device latency constraints as well.
+> I'll take the PRM_VOLTSETUP* registers as a rough example.  This may be
+a
+> bad example since we probably don't write to this directly from pm*.c
+any
+> more, but the basic idea is, rather than writing some mystery value to a
+> register from the pm*.c code, we should write something like:
+>
+> int omap4_prm_regulator_set_ramp_up_duration(u32 ns, u8 starting_pwrst);
+>
+> which would then take care of computing the prescaler and count values
+> appropriately given the current sys_clk and writing them to the register
+> or returning an error if something is wrong.
+>
+> The long-term goal is to be able to reuse as much PM code as possible
+> between all of the different OMAP2+ platforms.
+>
+Thanks for clarification. We are fully aligned here.
 
-Vishwa
->
-> Kevin
+Regards,
+Santosh
