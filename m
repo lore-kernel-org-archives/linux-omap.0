@@ -1,208 +1,66 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v3 1/5] OMAP2: hwmod data: add mailbox data
-Date: Fri, 10 Dec 2010 19:51:02 -0600
-Message-ID: <1292032266-29460-2-git-send-email-omar.ramirez@ti.com>
-References: <1292032266-29460-1-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v3 0/5] omap: mailbox: hwmod support
+Date: Fri, 10 Dec 2010 19:51:01 -0600
+Message-ID: <1292032266-29460-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44309 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44311 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750753Ab0LKCCS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Dec 2010 21:02:18 -0500
-In-Reply-To: <1292032266-29460-1-git-send-email-omar.ramirez@ti.com>
+	id S1752118Ab0LKCCT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Dec 2010 21:02:19 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Omar Ramirez Luna <omar.ramirez@ti.com>, Charulatha V <charu@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Mailbox hwmod data for omap2430 and 2420.
+Tested on 3430, based of pm-core branch. It may require rebase once
+the mailbox git pull is made.
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |   73 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   72 +++++++++++++++++++++++++++
- 2 files changed, 145 insertions(+), 0 deletions(-)
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39719.html
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index ce5d890..64f8f8b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -778,6 +778,76 @@ static struct omap_hwmod omap2420_gpio4_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap2420_gpio4_slaves),
- 	.class		= &omap242x_gpio_hwmod_class,
- 	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+/*
-+ * 'mailbox' class
-+ * mailbox module allowing communication between the on-chip processors
-+ * using a queued mailbox-interrupt mechanism.
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap2420_mailbox_sysc = {
-+	.rev_offs	= 0x000,
-+	.sysc_offs	= 0x010,
-+	.syss_offs	= 0x014,
-+	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
-+				SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap2420_mailbox_hwmod_class = {
-+	.name = "mailbox",
-+	.sysc = &omap2420_mailbox_sysc,
-+};
-+
-+/* mailbox */
-+static struct omap_hwmod omap2420_mailbox_hwmod;
-+static struct omap_hwmod_irq_info omap2420_mailbox_irqs[] = {
-+	{ .name = "dsp", .irq = 26, },
-+	{ .name = "iva", .irq = 34, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_mailbox_addrs[] = {
-+	{
-+		.pa_start	= 0x48094000,
-+		.pa_end		= 0x480941ff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+/* l4_core -> mailbox */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__mailbox = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_mailbox_hwmod,
-+	.clk		= "mailboxes_ick",
-+	.addr		= omap2420_mailbox_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_mailbox_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mailbox slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_mailbox_slaves[] = {
-+	&omap2420_l4_core__mailbox,
-+};
-+
-+static struct omap_hwmod omap2420_mailbox_hwmod = {
-+	.name		= "mailbox",
-+	.class		= &omap2420_mailbox_hwmod_class,
-+	.mpu_irqs	= omap2420_mailbox_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_mailbox_irqs),
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_MAILBOXES_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_MAILBOXES_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_mailbox_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_mailbox_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
- };
- 
-@@ -799,6 +869,9 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	&omap2420_gpio2_hwmod,
- 	&omap2420_gpio3_hwmod,
- 	&omap2420_gpio4_hwmod,
-+
-+	/* mailbox class */
-+	&omap2420_mailbox_hwmod,
- 	NULL,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 0f87736..939af19 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -839,6 +839,75 @@ static struct omap_hwmod omap2430_gpio5_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap2430_gpio5_slaves),
- 	.class		= &omap243x_gpio_hwmod_class,
- 	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+/*
-+ * 'mailbox' class
-+ * mailbox module allowing communication between the on-chip processors
-+ * using a queued mailbox-interrupt mechanism.
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap2430_mailbox_sysc = {
-+	.rev_offs	= 0x000,
-+	.sysc_offs	= 0x010,
-+	.syss_offs	= 0x014,
-+	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
-+				SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap2430_mailbox_hwmod_class = {
-+	.name = "mailbox",
-+	.sysc = &omap2430_mailbox_sysc,
-+};
-+
-+/* mailbox */
-+static struct omap_hwmod omap2430_mailbox_hwmod;
-+static struct omap_hwmod_irq_info omap2430_mailbox_irqs[] = {
-+	{ .name = "dsp", .irq = 26, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2430_mailbox_addrs[] = {
-+	{
-+		.pa_start	= 0x48094000,
-+		.pa_end		= 0x480941ff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+/* l4_core -> mailbox */
-+static struct omap_hwmod_ocp_if omap2430_l4_core__mailbox = {
-+	.master		= &omap2430_l4_core_hwmod,
-+	.slave		= &omap2430_mailbox_hwmod,
-+	.clk		= "mailboxes_ick",
-+	.addr		= omap2430_mailbox_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_mailbox_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mailbox slave ports */
-+static struct omap_hwmod_ocp_if *omap2430_mailbox_slaves[] = {
-+	&omap2430_l4_core__mailbox,
-+};
-+
-+static struct omap_hwmod omap2430_mailbox_hwmod = {
-+	.name		= "mailbox",
-+	.class		= &omap2430_mailbox_hwmod_class,
-+	.mpu_irqs	= omap2430_mailbox_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_mailbox_irqs),
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_MAILBOXES_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_MAILBOXES_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_mailbox_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_mailbox_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- };
- 
-@@ -861,6 +930,9 @@ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
- 	&omap2430_gpio3_hwmod,
- 	&omap2430_gpio4_hwmod,
- 	&omap2430_gpio5_hwmod,
-+
-+	/* mailbox class */
-+	&omap2430_mailbox_hwmod,
- 	NULL,
- };
- 
--- 
-1.7.1
+** v3 **
+- Taken mailbox hwmod as is from Benoit original branch.
+- Put back numbers for irq, addresses instead of considering them
+  as magic numbers.
+- Follow the declaration layout for omap4 hwmods.
+- Using pm_runtime to enable the clocks.
+
+TBD: Cleanup, once omap_device_get_rt_va can be called by drivers
+using pdev and the proper omap_device_reset API is submitted.
+
+** v2 **
+- Added omap4 hwmod support.
+- Moved "mailbox_ick" from hwmod to hwmod_if (omap 2/3)
+- Declared sysc classes for omap 2/3
+
+** v1 **
+1. omap: mailbox: initial hwmod support for omap3
+Changes were made to:
+- Rebase to latest code.
+- Detect the hwmod by filling prcm union for omap2, without
+  this it was unable to build the hwmod at runtime.
+- Replace magic number for defines.
+- Use ioremap again instead of relying on the one made by hwmod,
+  as noted in http://patchwork.kernel.org/patch/101661/
+
+2. omap: mailbox: initial hwmod support for omap2
+Was only compiled tested!! Unfortunately I don't have the HW for it.
+
+Benoit Cousson (1):
+  OMAP4: hwmod data: add mailbox data
+
+Felipe Contreras (3):
+  OMAP3: hwmod data: add mailbox data
+  OMAP: mailbox: build device using omap_device/omap_hwmod
+  OMAP: mailbox: add omap_device latency information
+
+omar ramirez (1):
+  OMAP2: hwmod data: add mailbox data
+
+ arch/arm/mach-omap2/devices.c              |  102 ++++++----------------------
+ arch/arm/mach-omap2/mailbox.c              |   18 ++---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   73 ++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   72 +++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   71 +++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   68 ++++++++++++++++++
+ 6 files changed, 310 insertions(+), 94 deletions(-)
 
