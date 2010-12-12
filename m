@@ -1,107 +1,42 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [GIT PULL] OMAP: mailbox and iommu changes: for-next for
-	v2.6.38
-Date: Sun, 12 Dec 2010 11:20:50 +0000
-Message-ID: <20101212112050.GA8777@n2100.arm.linux.org.uk>
-References: <AANLkTind+DH5emar2L9EiV-pqpCvQHQGnFevh9Bncrpz@mail.gmail.com> <20101202123304.GB10461@n2100.arm.linux.org.uk> <AANLkTi=iRUD3_dcY47tebHGbxxAOcY61_2MtSVfO8zQB@mail.gmail.com> <20101202152053.GC10461@n2100.arm.linux.org.uk> <AANLkTi=01qGO6pX15n_w-W4RaaXsK3u697UQ9pD_DuvW@mail.gmail.com> <AANLkTim641hqqyCczMPN_rDvVH_dqV0voQLFhQsrQLY3@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] staging: tidspbridge: use the right type for list_is_last
+Date: Sun, 12 Dec 2010 13:02:07 +0100
+Message-ID: <201012121302.07970.laurent.pinchart@ideasonboard.com>
+References: <1291846823-31513-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60090 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970Ab0LLLVK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 12 Dec 2010 06:21:10 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTim641hqqyCczMPN_rDvVH_dqV0voQLFhQsrQLY3@mail.gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45195 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752687Ab0LLMBT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 12 Dec 2010 07:01:19 -0500
+In-Reply-To: <1291846823-31513-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>, linux omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: linux-omap@vger.kernel.org, Rene Sapiens <rene.sapiens@ti.com>, Ernesto Ramos <ernesto@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ionut Nicu <ionut.nicu@gmail.com>
 
-On Mon, Dec 06, 2010 at 09:16:23AM -0600, Kanigeri, Hari wrote:
-> Ruseell,
->=20
-> On Thu, Dec 2, 2010 at 9:43 AM, Guzman Lugo, Fernando
-> <fernando.lugo@ti.com> wrote:
-> > On Thu, Dec 2, 2010 at 9:20 AM, Russell King - ARM Linux
-> > <linux@arm.linux.org.uk> wrote:
-> >> On Thu, Dec 02, 2010 at 08:50:07AM -0600, Guzman Lugo, Fernando wr=
-ote:
-> >>> On Thu, Dec 2, 2010 at 6:33 AM, Russell King - ARM Linux
-> >>> <linux@arm.linux.org.uk> wrote:
-> >>> > On Thu, Dec 02, 2010 at 06:07:23AM -0600, Kanigeri, Hari wrote:
-> >>> >> Hi Tony,
-> >>> >>
-> >>> >> The following changes since commit e8a7e48bb248a1196484d3f8afa=
-53bded2b24e71:
-> >>> >> =A0 Linus Torvalds (1):
-> >>> >> =A0 =A0 =A0 =A0 Linux 2.6.37-rc4
-> >>> >>
-> >>> >> are available in the git repository at:
-> >>> >>
-> >>> >> =A0 git://gitorious.org/iommu_mailbox/iommu_mailbox.git for_2.=
-6.38
-> >>> >>
-> >>> >> Fernando Guzman Lugo (5):
-> >>> >> =A0 =A0 =A0 OMAP: mailbox: change full flag per mailbox queue =
-instead of global
-> >>> >> =A0 =A0 =A0 omap: iovmm - no gap checking for fixed address
-> >>> >> =A0 =A0 =A0 omap: iovmm - add superpages support to fixed da a=
-ddress
-> >>> >> =A0 =A0 =A0 omap: iovmm - replace __iounmap with omap_iounmap
-> >>> >
-> >>> > This change is wrong. =A0Nothing should be directly referencing=
- omap_iounmap
-> >>> > nor for that matter omap_ioremap. =A0Both are implementation de=
-tails of the
-> >>> > standard ioremap/iounmap APIs.
-> >>> >
-> >>> > Use the official APIs rather than the implementation details be=
-hind them.
-> >>>
-> >>> if you see where the function is used, you will see that it is no=
-t
-> >>> calling the function, it is use as a parameter in unmap_vm_area()=
-, if
-> >>> I used iounmap which is a macro there I will get a compilation er=
-ror.
-> >>
-> >> Hmm, yes, because iounmap() is defined as a macro rather than ioun=
-map.
-> >>
-> >> The solution to this is to fix iounmap and __arch_iounmap macros s=
-o
-> >> they aren't macros which take arguments. =A0That will then allow t=
-hem
-> >> to be used in the way you desire.
-> >
-> > yes, that way it can be used in the function parameter. what is the
-> > right thing to do?
-> > 1) You send your patch and then I send the new version of the patch=
-es.
-> > 2) I make a new series of the patches with the change to iounmap an=
-d I
-> > include your patch in the series.
-> >
->=20
-> Can you please suggest the approach we take here ? So, either you sen=
-d
-> your suggested change as a patch and Fernando's patch will be based o=
-n
-> it, or he can take a TODO action item to patch again if you plan to
-> send this change later.
+Hi Omar,
 
-Right, the patches are in my git tree, under the 'io' branch:
+On Wednesday 08 December 2010 23:20:23 Omar Ramirez Luna wrote:
+> Removes the following warning:
+> 
+>   CC [M]  drivers/staging/tidspbridge/rmgr/rmm.o
+> drivers/staging/tidspbridge/rmgr/rmm.c: In function 'rmm_alloc':
+> drivers/staging/tidspbridge/rmgr/rmm.c:147: warning: passing
+> 	argument 1 of 'list_is_last' from incompatible pointer type
+> include/linux/list.h:170: note: expected 'const struct list_head *'
+> 	but argument is of type 'struct rmm_ovly_sect *'
 
- http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm=
-=2Egit io
+I was about to send the same patch.
 
-which you can use to base stuff off of.  Make sure your tree has commit=
-s
-up to 2.6.37-rc5 before pulling to avoid grabbing MB's of pack files.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+-- 
+Regards,
+
+Laurent Pinchart
