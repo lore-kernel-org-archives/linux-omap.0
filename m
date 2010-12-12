@@ -1,88 +1,34 @@
-From: Ionut Nicu <ionut.nicu@mindbit.ro>
-Subject: Re: [PATCH 1/2] staging: tidspbridge: rmgr/node.c code cleanup
-Date: Sun, 12 Dec 2010 16:20:29 +0200
-Message-ID: <1292163629.2375.5.camel@atlantis.mindbit.ro>
-References: <1291931258-30744-1-git-send-email-ionut.nicu@mindbit.ro>
-	 <1291931258-30744-2-git-send-email-ionut.nicu@mindbit.ro>
-	 <1291933352.23672.52.camel@atlantis.mindbit.ro>
-	 <AANLkTikLoNf-NDb6kCQnVHB95zrTKi2f9CU6m_u0A+KB@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: Inconsistent lock state caused by omap_mbox_msg_send() called
+ from tidspbridge
+Date: Sun, 12 Dec 2010 16:22:38 +0200
+Message-ID: <AANLkTimKQmrk+zw_kO2pjYY_6Oz3DW8EQQhfUCYRkpNa@mail.gmail.com>
+References: <201012121344.51245.laurent.pinchart@ideasonboard.com> <1292163339.2375.2.camel@atlantis.mindbit.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.mindbit.ro ([80.86.127.26]:53436 "EHLO ns.mindbit.ro"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753150Ab0LLOUj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 12 Dec 2010 09:20:39 -0500
-In-Reply-To: <AANLkTikLoNf-NDb6kCQnVHB95zrTKi2f9CU6m_u0A+KB@mail.gmail.com>
+Received: from mail-iw0-f170.google.com ([209.85.214.170]:40352 "EHLO
+	mail-iw0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751322Ab0LLOW7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 12 Dec 2010 09:22:59 -0500
+Received: by iwn6 with SMTP id 6so7838045iwn.1
+        for <linux-omap@vger.kernel.org>; Sun, 12 Dec 2010 06:22:59 -0800 (PST)
+In-Reply-To: <1292163339.2375.2.camel@atlantis.mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Ionut Nicu <ionut.nicu@mindbit.ro>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 
-Hi,
+On Sun, Dec 12, 2010 at 4:15 PM, Ionut Nicu <ionut.nicu@mindbit.ro> wrote:
+> I noticed this too, but this patch should fix it:
+>
+> https://patchwork.kernel.org/patch/365292/
 
-On Thu, 2010-12-09 at 17:03 -0600, Ramirez Luna, Omar wrote:
-> Hi Ionut,
-> 
-> On Thu, Dec 9, 2010 at 4:22 PM, Ionut Nicu <ionut.nicu@mindbit.ro> wrote:
-> > Hi Omar,
-> >
-> > On Thu, 2010-12-09 at 23:47 +0200, Ionut Nicu wrote:
-> >> Reorganized some code in rmgr/node.c to increase its
-> >> readability. Most of the changes reduce the code
-> >> indentation level and simplifiy the code. No functional
-> >> changes were done.
-> >
-> > <snip>
-> >
-> >>       /*
-> >>        * Check stream mode. Default is STRMMODE_PROCCOPY.
-> >>        */
-> >> -     if (!status && pattrs) {
-> >> -             if (pattrs->strm_mode != STRMMODE_PROCCOPY)
-> >> -                     status = -EPERM;        /* illegal stream mode */
-> >> -
-> >> -     }
-> >> -     if (status)
-> >> -             goto func_end;
-> >> +     if (pattrs && pattrs->strm_mode != STRMMODE_PROCCOPY)
-> >> +             return -EPERM;  /* illegal stream mode */
-> >>
-> >
-> > While cleaning up and reviewing the code I saw this check,  which unless
-> > it's intentional I think it looks like a bug. See comment below.
-> >
-> > <snip>
-> >> +             strm_mode = pattrs ? pattrs->strm_mode : STRMMODE_PROCCOPY;
-> >> +             switch (strm_mode) {
-> >> +             case STRMMODE_RDMA:
-> >
-> > ...
-> >
-> >> +
-> >> +             case STRMMODE_ZEROCOPY:
-> >
-> > ...
-> >
-> >> +             case STRMMODE_PROCCOPY:
-> >
-> > It looks like all modes are handled here although the only one that
-> > could escape the validation from above is STRMMODE_PROCCOPY.
-> >
-> > I tried removing the first check and tested with the
-> > userspace-dspbridge strmcopy application, but I noticed the DSP hangs if
-> > I try to use it with anything else than the copy mode.
-> >
-> > Are the other modes (rdma, zerocopy) not supported at all?
-> 
-> No, those modes are not supported... the only one working for dsp
-> streams is proc-copy.
-> 
+True. And in this patch the move to spin_lock_bh() is justifiable,
+too, since it adds a sending path which is parallel to the mailbox
+tasklet.
 
-Is there any plan to make them work? If not, maybe the code that handles
-them should be removed...
-
-Thanks,
-Ionut.
-
+>
+> Ionut.
+>
+>
