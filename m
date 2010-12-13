@@ -1,60 +1,132 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 4/8] OMAP4: clock data: Add missing fields in iva_hsd_byp_clk_mux_ck
-Date: Mon, 13 Dec 2010 14:14:10 +0100
-Message-ID: <4D061C22.9020405@ti.com>
-References: <1291932820-11163-1-git-send-email-b-cousson@ti.com> <1291932820-11163-5-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1012101732320.13430@utopia.booyaka.com>
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [PATCH 5/5 v3] OMAP3630: PM: Erratum i583: disable coreoff if < ES1.2
+Date: Mon, 13 Dec 2010 19:05:51 +0530
+Message-ID: <2cdf7d3d033ee2c88b6f2d4cfa37d9db@mail.gmail.com>
+References: <1291395818-8639-1-git-send-email-nm@ti.com> <1291395818-8639-6-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59285 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757588Ab0LMNOT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Dec 2010 08:14:19 -0500
-In-Reply-To: <alpine.DEB.2.00.1012101732320.13430@utopia.booyaka.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:52168 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751913Ab0LMNfy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Dec 2010 08:35:54 -0500
+Received: by mail-iw0-f180.google.com with SMTP id 37so9182958iwn.25
+        for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 05:35:50 -0800 (PST)
+In-Reply-To: <1291395818-8639-6-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Bergsagel, Jonathan" <jbergsagel@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Paul,
+Nishant,
 
-On 12/11/2010 1:34 AM, Paul Walmsley wrote:
-> On Thu, 9 Dec 2010, Benoit Cousson wrote:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Nishanth Menon
+> Sent: Friday, December 03, 2010 10:34 PM
+> To: linux-omap
+> Cc: Eduardo Valentin; Kevin Hilman; Tony Lindgren; Nishanth Menon
+> Subject: [PATCH 5/5 v3] OMAP3630: PM: Erratum i583: disable coreoff if
+> < ES1.2
 >
->> From: Jonathan Bergsagel<jbergsagel@ti.com>
->>
->> Add register address, mask and link to the clksel structure that
->> were missing in the IVA DPLL mux clock node.
->>
->> Signed-off-by: Jonathan Bergsagel<jbergsagel@ti.com>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+> From: Eduardo Valentin <eduardo.valentin@nokia.com>
 >
-> This patch results in a checkpatch warning:
+> Limitation i583: Self_Refresh Exit issue after OFF mode
 >
+> Issue:
+> When device is waking up from OFF mode, then SDRC state machine
+> sends
+> inappropriate sequence violating JEDEC standards.
+>
+> Impact:
+> OMAP3630 < ES1.2 is impacted as follows depending on the platform:
+> CS0: for 38.4MHz as internal sysclk, DDR content seen to be stable,
+> while
+> 	for all other sysclk frequencies, varied levels of instability
+> 	seen based on varied parameters.
+> CS1: impacted
+>
+> This patch takes option #3 as recommended by the Silicon erratum:
+> Avoid core power domain transitioning to OFF mode. Power consumption
+> impact is expected in this case.
+> To do this, we route OFF requests to RET request on the impacted
+> revisions
+> of silicon.
+>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+>
+> [nm@ti.com: rebased the code to 2.6.37-rc2- short circuit code changed
+> a bit]
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 > ---
+> v3: no functional change in erratum wa implementation, just registration
+> of
+>  	erratum is collated to a single cpu detection and version check
+> v2: https://patchwork.kernel.org/patch/365262/
+>     rebased to this patch series instead of depending on hs changes
+>     fix typo for macro definition
+> v1: http://marc.info/?l=linux-omap&m=129013173425266&w=2
+>  arch/arm/mach-omap2/pm34xx.c |   14 ++++++++++++++
+>  1 files changed, 14 insertions(+), 0 deletions(-)
 >
-> WARNING: please, no space before tabs
-> #23: FILE: arch/arm/mach-omap2/clock44xx_data.c:639:
-> +^I.clksel ^I= iva_hsd_byp_clk_mux_sel,$
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
+> omap2/pm34xx.c
+> index b49e02b..ba3c0d6 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -56,6 +56,7 @@
+>  #define OMAP343X_CONTROL_REG_VALUE_OFFSET  0xc8
 >
-> total: 0 errors, 1 warnings, 0 checks, 13 lines checked
+>  #define RTA_ERRATUM_i608		(1 << 0)
+> +#define SDRC_WAKEUP_ERRATUM_i583	(1 << 1)
+>  static u16 pm34xx_errata;
+>  #define IS_PM34XX_ERRATUM(id)		(pm34xx_errata & (id))
 >
-> Your patch has style problems, please review.  If any of these errors
-> are false positives report them to the maintainer, see
-> CHECKPATCH in MAINTAINERS.
+> @@ -406,6 +407,17 @@ void omap_sram_idle(void)
+>  	}
 >
-> ---
->
-> I've fixed it in the copy in my local branch, but next time, please run
-> checkpatch.pl and fix any problems before submitting.
+>  	/* CORE */
+> +	/*
+> +	 * Erratum i583: implementation for ES rev < Es1.2 on 3630
+> +	 * We cannot enable OFF mode in a stable form for previous
+> +	 * revisions, transition instead to RET
+> +	 */
+> +	if (IS_PM34XX_ERRATUM(SDRC_WAKEUP_ERRATUM_i583) &&
+> +			(core_next_state == PWRDM_POWER_OFF)) {
+> +		pwrdm_set_next_pwrst(core_pwrdm,
+> PWRDM_POWER_RET);
+> +		core_next_state = PWRDM_POWER_RET;
+> +	}
 
-Oops, that's my mistake. the original patch was good, and I messed it up 
-during the merge conflict resolution.
-And then on top of that I completely missed this warning due to the 
-important number of "line over 80 characters" warnings in this series.
-I have now a "filter for dummies" to remove that and avoid missing real 
-warnings in the future.
+Since next_state in pwrst_list (for core) is not updated, this is throwing
+up an error "Powerdomain (core_pwrdm) didn't enter target state 0" when
+you off mode is enabled for ES1.1 or lesser (in suspend path). It's not
+really true that Core has not entered target state. It has entered
+Retention state which is the actual target state set in omap_sram_idle.
+However it did not enter the state that was passed by omap3_pm_suspend. Is
+this expected behavior?
 
-Thanks,
-Benoit
+Vishwa
+> +
+>  	if (core_next_state < PWRDM_POWER_ON) {
+>  		omap_uart_prepare_idle(0);
+>  		omap_uart_prepare_idle(1);
+> @@ -999,6 +1011,8 @@ static void __init pm_errata_configure(void)
+>  		pm34xx_errata |= RTA_ERRATUM_i608;
+>  		/* Enable the l2 cache toggling in sleep logic */
+>  		enable_omap3630_toggle_l2_on_restore();
+> +		if (omap_rev() < OMAP3630_REV_ES1_2)
+> +			pm34xx_errata |= SDRC_WAKEUP_ERRATUM_i583;
+>  	}
+>  }
+>
+> --
+> 1.6.3.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
