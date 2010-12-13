@@ -1,68 +1,53 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: How to change freq of mmc2_clk to 48Mhz for OMAP35xx
-Date: Mon, 13 Dec 2010 03:27:48 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012130319170.15971@utopia.booyaka.com>
-References: <68E48EB0-25B0-4D1B-B7C3-587A521F309F@mac.com> <alpine.DEB.2.00.1012081330470.13430@utopia.booyaka.com> <AANLkTimjJaU4nqM-4svHb4BMJrVf99aBdoU-aofVhcOp@mail.gmail.com> <863B27CB-58A2-4CFD-B5E9-92510C34B8DA@mac.com>
+Subject: RE: [PATCH/RFC 2/2] OMAP: PM: implement context loss count APIs
+Date: Mon, 13 Dec 2010 03:43:22 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012130331570.15971@utopia.booyaka.com>
+References: <1291939712-25487-1-git-send-email-khilman@deeprootsystems.com> <1291939712-25487-2-git-send-email-khilman@deeprootsystems.com> <44f6fc2f0c975af7273975385567acd2@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58913 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:35732 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756915Ab0LMK1t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 05:27:49 -0500
-In-Reply-To: <863B27CB-58A2-4CFD-B5E9-92510C34B8DA@mac.com>
+	with ESMTP id S1757002Ab0LMKnX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 05:43:23 -0500
+In-Reply-To: <44f6fc2f0c975af7273975385567acd2@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-Hello Elvis
+Hello Vishwa,
 
-On Fri, 10 Dec 2010, Elvis Dowson wrote:
+On Fri, 10 Dec 2010, Vishwanath Sripathy wrote:
 
-> On Dec 9, 2010, at 12:43 AM, Andy Shevchenko wrote:
-> 
-> > On Wed, Dec 8, 2010 at 10:36 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> >> Anyway, if you want to try changing it from the kernel side, you'll need
-> >> code like this in the MMC driver or OMAP integration code (off the top of
-> >> my head, untested):
-> > 
-> >> Please let me know if this doesn't work.
+> > +	count = omap_device_get_context_loss_count(pdev);
+> > +	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
+> > +		 dev_name(dev), count);
+> Shouldn't this implementation be part of omap-pm.c where all the OMAP PM
+> functions are to be implemented? I thought omap-pm-noop.c should have
+> dummy implementation.
 
-First let me say, my earlier code that I sent you is not going to work.  
-This is because hsmmc2_fclk is not directly rate-controllable.  So using 
-the kernel clock framework to tweak that won't work.
+In general, yes.  But we also want the code in omap-pm-noop.c not to cause 
+additional breakage.  Unlike most of the other functions in this file, if 
+the context loss count function doesn't do something minimally useful, then
+the system is going to break badly.  You've probably seen this thread:
 
-However...
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg40079.html
 
-> In my u-boot-2010.03 board file (or with u-boot-2009.11 patched to incorporate the mmc_set_dev() method)
-> 
-> I added the following lines of code.
-> 
-> - mmc_set_dev(2) select the MMC2 controller.
-> 
-> - mmc_clock_config attempts to use a clock divider value of 2, and this method implements the logic 
-> outlined in Section 22.5.2.7.2 of the OMAP35x TRM Rev D 
+(By the way, the reason why I think we shouldn't use the approach 
+described in 
 
-...
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg40101.html
 
-> This is having no effect, and the output clock from the bootloader stage is still at 96MHz. 
-> 
-> How can I change the MMC CLK output to 48MHz using either the boot loader or the kernel?
+is because I suspect it is going to seriously damage retention idle 
+performance.  For example, the HSMMC driver resets its entire IP block in 
+its context restore function...)
 
-Let's focus on the kernel.  What kernel are you running?  If you're not 
-running a mainline kernel, I probably can't help you.  For example, if 
-you're using a TI kernel or Google kernel, you should talk to/E-mail them 
-for support, unless someone else on this list happens to be able to help 
-you.  Also, please tell us which board are you using.
-
-For the moment I will assume you are using a recent mainline kernel. 
-drivers/mmc/host/omap_hsmmc.c is the applicable driver file.  Please take 
-a look at omap_hsmmc_set_ios() and omap_hsmmc_context_restore() in that 
-file.  There is some code there that attempts to program the internal MMC 
-divisor appropriately.  If you add some debugging printk()s in there, you 
-might get some insight into what it's writing to that register.  Could you 
-do this and tell us what the code is writing to the SYSCTL register?
+But to confirm your general point, yes, in general, further functional
+development of the OMAP PM code should take place outside the no-op file.
+Hopefully, at some point, we'll be able to drop the no-op file.  Once 
+there is a useful replacement, we should be able to switch to it as a 
+default.
 
 
 - Paul
