@@ -1,84 +1,148 @@
 From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH/RFC 2/2] OMAP: PM: implement context loss count APIs
-Date: Mon, 13 Dec 2010 19:18:35 +0530
-Message-ID: <940a49d978e2d610b2349f42d56614cc@mail.gmail.com>
-References: <1291939712-25487-1-git-send-email-khilman@deeprootsystems.com>
- <1291939712-25487-2-git-send-email-khilman@deeprootsystems.com>
- <44f6fc2f0c975af7273975385567acd2@mail.gmail.com> <alpine.DEB.2.00.1012130331570.15971@utopia.booyaka.com>
+Subject: RE: [PATCH 5/5 v3] OMAP3630: PM: Erratum i583: disable coreoff if < ES1.2
+Date: Mon, 13 Dec 2010 19:24:11 +0530
+Message-ID: <d5e397dafb68b41ec5d7af591a18b044@mail.gmail.com>
+References: <1291395818-8639-1-git-send-email-nm@ti.com> <1291395818-8639-6-git-send-email-nm@ti.com>
+ <2cdf7d3d033ee2c88b6f2d4cfa37d9db@mail.gmail.com> <4D0622FE.2070801@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:41745 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757857Ab0LMNsg (ORCPT
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:52032 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757642Ab0LMNyL (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Dec 2010 08:48:36 -0500
-Received: by mail-iy0-f172.google.com with SMTP id 42so834410iyi.3
-        for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 05:48:35 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1012130331570.15971@utopia.booyaka.com>
+	Mon, 13 Dec 2010 08:54:11 -0500
+Received: by iyj17 with SMTP id 17so888975iyj.0
+        for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 05:54:10 -0800 (PST)
+In-Reply-To: <4D0622FE.2070801@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-Paul,
+Nishant,
 
 > -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Monday, December 13, 2010 4:13 PM
+> From: Nishanth Menon [mailto:nm@ti.com]
+> Sent: Monday, December 13, 2010 7:13 PM
 > To: Vishwanath Sripathy
-> Cc: Kevin Hilman; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH/RFC 2/2] OMAP: PM: implement context loss count
-> APIs
+> Cc: linux-omap; Eduardo Valentin; Kevin Hilman; Tony Lindgren
+> Subject: Re: [PATCH 5/5 v3] OMAP3630: PM: Erratum i583: disable
+> coreoff if < ES1.2
 >
-> Hello Vishwa,
+> Vishwanath Sripathy had written, on 12/13/2010 07:35 AM, the
+> following:
+> > Nishant,
+> >
+> >> -----Original Message-----
+> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> >> owner@vger.kernel.org] On Behalf Of Nishanth Menon
+> >> Sent: Friday, December 03, 2010 10:34 PM
+> >> To: linux-omap
+> >> Cc: Eduardo Valentin; Kevin Hilman; Tony Lindgren; Nishanth Menon
+> >> Subject: [PATCH 5/5 v3] OMAP3630: PM: Erratum i583: disable
+> coreoff if
+> >> < ES1.2
+> >>
+> >> From: Eduardo Valentin <eduardo.valentin@nokia.com>
+> >>
+> >> Limitation i583: Self_Refresh Exit issue after OFF mode
+> >>
+> >> Issue:
+> >> When device is waking up from OFF mode, then SDRC state machine
+> >> sends
+> >> inappropriate sequence violating JEDEC standards.
+> >>
+> >> Impact:
+> >> OMAP3630 < ES1.2 is impacted as follows depending on the
+> platform:
+> >> CS0: for 38.4MHz as internal sysclk, DDR content seen to be stable,
+> >> while
+> >> 	for all other sysclk frequencies, varied levels of instability
+> >> 	seen based on varied parameters.
+> >> CS1: impacted
+> >>
+> >> This patch takes option #3 as recommended by the Silicon erratum:
+> >> Avoid core power domain transitioning to OFF mode. Power
+> consumption
+> >> impact is expected in this case.
+> >> To do this, we route OFF requests to RET request on the impacted
+> >> revisions
+> >> of silicon.
+> >>
+> >> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> >> Cc: Tony Lindgren <tony@atomide.com>
+> >>
+> >> [nm@ti.com: rebased the code to 2.6.37-rc2- short circuit code
+> changed
+> >> a bit]
+> >> Signed-off-by: Nishanth Menon <nm@ti.com>
+> >> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> >> ---
+> >> v3: no functional change in erratum wa implementation, just
+> registration
+> >> of
+> >>  	erratum is collated to a single cpu detection and version check
+> >> v2: https://patchwork.kernel.org/patch/365262/
+> >>     rebased to this patch series instead of depending on hs changes
+> >>     fix typo for macro definition
+> >> v1: http://marc.info/?l=linux-omap&m=129013173425266&w=2
+> >>  arch/arm/mach-omap2/pm34xx.c |   14 ++++++++++++++
+> >>  1 files changed, 14 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
+> >> omap2/pm34xx.c
+> >> index b49e02b..ba3c0d6 100644
+> >> --- a/arch/arm/mach-omap2/pm34xx.c
+> >> +++ b/arch/arm/mach-omap2/pm34xx.c
+> >> @@ -56,6 +56,7 @@
+> >>  #define OMAP343X_CONTROL_REG_VALUE_OFFSET  0xc8
+> >>
+> >>  #define RTA_ERRATUM_i608		(1 << 0)
+> >> +#define SDRC_WAKEUP_ERRATUM_i583	(1 << 1)
+> >>  static u16 pm34xx_errata;
+> >>  #define IS_PM34XX_ERRATUM(id)		(pm34xx_errata & (id))
+> >>
+> >> @@ -406,6 +407,17 @@ void omap_sram_idle(void)
+> >>  	}
+> >>
+> >>  	/* CORE */
+> >> +	/*
+> >> +	 * Erratum i583: implementation for ES rev < Es1.2 on 3630
+> >> +	 * We cannot enable OFF mode in a stable form for previous
+> >> +	 * revisions, transition instead to RET
+> >> +	 */
+> >> +	if (IS_PM34XX_ERRATUM(SDRC_WAKEUP_ERRATUM_i583) &&
+> >> +			(core_next_state == PWRDM_POWER_OFF)) {
+> >> +		pwrdm_set_next_pwrst(core_pwrdm,
+> >> PWRDM_POWER_RET);
+> >> +		core_next_state = PWRDM_POWER_RET;
+> >> +	}
+> >
+> > Since next_state in pwrst_list (for core) is not updated, this is
+throwing
+> > up an error "Powerdomain (core_pwrdm) didn't enter target state 0"
+> when
+> > you off mode is enabled for ES1.1 or lesser (in suspend path). It's
+not
+> > really true that Core has not entered target state. It has entered
+> > Retention state which is the actual target state set in
+omap_sram_idle.
+> > However it did not enter the state that was passed by
+> omap3_pm_suspend. Is
+> > this expected behavior?
 >
-> On Fri, 10 Dec 2010, Vishwanath Sripathy wrote:
->
-> > > +	count = omap_device_get_context_loss_count(pdev);
-> > > +	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
-> > > +		 dev_name(dev), count);
-> > Shouldn't this implementation be part of omap-pm.c where all the
-> OMAP PM
-> > functions are to be implemented? I thought omap-pm-noop.c should
-> have
-> > dummy implementation.
->
-> In general, yes.  But we also want the code in omap-pm-noop.c not to
-> cause
-> additional breakage.  Unlike most of the other functions in this file,
-if
-> the context loss count function doesn't do something minimally useful,
-> then
-> the system is going to break badly.  You've probably seen this thread:
->
-> http://www.mail-archive.com/linux-
-> omap@vger.kernel.org/msg40079.html
->
-> (By the way, the reason why I think we shouldn't use the approach
-> described in
->
-> http://www.mail-archive.com/linux-
-> omap@vger.kernel.org/msg40101.html
->
-> is because I suspect it is going to seriously damage retention idle
-> performance.  For example, the HSMMC driver resets its entire IP block
-in
-> its context restore function...)
->
-> But to confirm your general point, yes, in general, further functional
-> development of the OMAP PM code should take place outside the no-op
-> file.
-> Hopefully, at some point, we'll be able to drop the no-op file.  Once
-> there is a useful replacement, we should be able to switch to it as a
-> default.
-I have no issues with the implementation and I agree. All I am saying is
-that why can't this implementation be added in omap-pm.c and compile this
-file instead of omap-pm-noop.c when OMAP_PM is enabled. I believe this
-function is useful when off mode is enabled which means OMAP_PM is
-enabled.
+> we could go both ways on this - this patch will(as you noticed) indicate
+> that the transition failed on <ES1.2, or we could make it entirely
+> transparent(by modifying the the pwrst_list - claim we achieved off,
+> while not really hitting off - I personally dont think that is correct.
+The point I am making is that you cannot distinguish between genuine off
+/retention failure since this message is thrown for both pass and fail.
+May be an additional trace message indicating that system entered
+retention instead of off (for ES<1.2) will be useful.
 
 Vishwa
 >
->
-> - Paul
+> --
+> Regards,
+> Nishanth Menon
