@@ -1,74 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v2.6.37-rc5
-Date: Mon, 13 Dec 2010 11:32:05 -0800
-Message-ID: <20101213193204.GY3054@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH/RFC 2/2] OMAP: PM: implement context loss count APIs
+Date: Mon, 13 Dec 2010 12:39:27 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012131224330.15971@utopia.booyaka.com>
+References: <1291939712-25487-1-git-send-email-khilman@deeprootsystems.com> <1291939712-25487-2-git-send-email-khilman@deeprootsystems.com> <44f6fc2f0c975af7273975385567acd2@mail.gmail.com> <alpine.DEB.2.00.1012130331570.15971@utopia.booyaka.com>
+ <940a49d978e2d610b2349f42d56614cc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:56973 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754207Ab0LMTj2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 14:39:28 -0500
+In-Reply-To: <940a49d978e2d610b2349f42d56614cc@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-Hi Linus,
+Vishwa
 
-Please pull what should be the last set of omap specific fixes
-for this -rc cycle:
+On Mon, 13 Dec 2010, Vishwanath Sripathy wrote:
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+> I have no issues with the implementation and I agree. All I am saying is 
+> that why can't this implementation be added in omap-pm.c and compile 
+> this file instead of omap-pm-noop.c
 
-The main fixes are to make PM code to compile without CONFIG_DEBUG_FS,
-and a fix for the console for suspend.
+1. because omap-pm-noop.c needs to not actively break anything when it is 
+   used, and this function, unlike most of the other functions in 
+   omap-pm-noop.c, has no valid 'no-op' failure mode; and
 
-The first patch just moves some code around. The second patch adds
-checks for suspend to the recent fix 0d8e2d0dad98a693bad88aea6876ac8b94ad95c6
-(OMAP2+: PM/serial: hold console semaphore while OMAP UARTs are disabled).
-Again, this will eventually be handled by runtime PM but that's not
-suitable for the -rc series.
+2. because no one has yet posted a complete, clean, working, 
+   SRF-free OMAP PM layer to the lists.  It was the hope several years ago
+   when this interface was created that someone else would be capable of 
+   doing this.
 
-The rest are trivial fixes for for some board specific issues, and
-to handle clk_get values with IS_ERR.
+> when OMAP_PM is enabled.
 
-Regards,
+What is this OMAP_PM that you are referring to?
 
-Tony
+> I believe this function is useful when off mode is enabled which means 
+> OMAP_PM is enabled.
+
+Huh?  Mainline Linux on OMAP can enter off-mode with omap2plus_defconfig 
+right now via a runtime debugfs setting.  There is no KConfig setting to 
+enable.
 
 
-The following changes since commit cf7d7e5a1980d1116ee152d25dac382b112b9c17:
-
-  Linux 2.6.37-rc5 (2010-12-06 20:09:04 -0800)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Aaro Koskinen (1):
-      arm: omap2: io: fix clk_get() error check
-
-Kevin Hilman (3):
-      omap: PM debug: fix wake-on-timer debugfs dependency
-      OMAP1: SRAM: fix size for OMAP1611 SoCs
-      OMAP2+: PM/serial: fix console semaphore acquire during suspend
-
-Ohad Ben-Cohen (1):
-      omap: zoom: wl1271 slot is MMC_CAP_POWER_OFF_CARD
-
-Paul Walmsley (1):
-      OMAP2: PRCM: fix some SHIFT macros that were actually bitmasks
-
-Sukumar Ghorai (1):
-      omap: nand: remove hardware ECC as default
-
-Vasiliy Kulikov (1):
-      arm: plat-omap: counter_32k: use IS_ERR() instead of NULL check
-
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
- arch/arm/mach-omap2/io.c                     |    2 +-
- arch/arm/mach-omap2/pm-debug.c               |   34 +++++++++++++-------------
- arch/arm/mach-omap2/pm24xx.c                 |   34 +++++++++++++++++++++++--
- arch/arm/mach-omap2/pm34xx.c                 |   27 +++++++++++++++-----
- arch/arm/mach-omap2/prcm-common.h            |   11 ++++----
- arch/arm/plat-omap/counter_32k.c             |    3 +-
- arch/arm/plat-omap/sram.c                    |    2 +-
- drivers/mtd/nand/omap2.c                     |    1 -
- 9 files changed, 79 insertions(+), 37 deletions(-)
+- Paul
