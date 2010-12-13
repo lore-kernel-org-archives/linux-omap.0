@@ -1,109 +1,74 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 11/24] ARM: omap: update clock source registration
-Date: Mon, 13 Dec 2010 19:18:43 +0000
-Message-ID: <E1PSDv1-0008D0-AK@rmk-PC.arm.linux.org.uk>
-References: <20101213191437.GN8665@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v2.6.37-rc5
+Date: Mon, 13 Dec 2010 11:32:05 -0800
+Message-ID: <20101213193204.GY3054@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41217 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753346Ab0LMTS4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 14:18:56 -0500
-In-Reply-To: <20101213191437.GN8665@n2100.arm.linux.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-In d7e81c2 (clocksource: Add clocksource_register_hz/khz interface) new
-interfaces were added which simplify (and optimize) the selection of the
-divisor shift/mult constants.  Switch over to using this new interface.
+Hi Linus,
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/mach-omap1/time.c       |    6 +-----
- arch/arm/mach-omap2/timer-gp.c   |    5 +----
- arch/arm/plat-omap/counter_32k.c |    6 +-----
- 3 files changed, 3 insertions(+), 14 deletions(-)
+Please pull what should be the last set of omap specific fixes
+for this -rc cycle:
 
-diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
-index 1be6a21..abb34ff 100644
---- a/arch/arm/mach-omap1/time.c
-+++ b/arch/arm/mach-omap1/time.c
-@@ -208,7 +208,6 @@ static struct clocksource clocksource_mpu = {
- 	.rating		= 300,
- 	.read		= mpu_read,
- 	.mask		= CLOCKSOURCE_MASK(32),
--	.shift		= 24,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
- 
-@@ -217,13 +216,10 @@ static void __init omap_init_clocksource(unsigned long rate)
- 	static char err[] __initdata = KERN_ERR
- 			"%s: can't register clocksource!\n";
- 
--	clocksource_mpu.mult
--		= clocksource_khz2mult(rate/1000, clocksource_mpu.shift);
--
- 	setup_irq(INT_TIMER2, &omap_mpu_timer2_irq);
- 	omap_mpu_timer_start(1, ~0, 1);
- 
--	if (clocksource_register(&clocksource_mpu))
-+	if (clocksource_register_hz(&clocksource_mpu, rate))
- 		printk(err, clocksource_mpu.name);
- }
- 
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index e13c29e..a7816db 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -195,7 +195,6 @@ static struct clocksource clocksource_gpt = {
- 	.rating		= 300,
- 	.read		= clocksource_read_cycles,
- 	.mask		= CLOCKSOURCE_MASK(32),
--	.shift		= 24,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
- 
-@@ -220,9 +219,7 @@ static void __init omap2_gp_clocksource_init(void)
- 
- 	omap_dm_timer_set_load_start(gpt, 1, 0);
- 
--	clocksource_gpt.mult =
--		clocksource_khz2mult(tick_rate/1000, clocksource_gpt.shift);
--	if (clocksource_register(&clocksource_gpt))
-+	if (clocksource_register_hz(&clocksource_gpt, tick_rate))
- 		printk(err2, clocksource_gpt.name);
- }
- #endif
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-index 155fe43..8f149f5 100644
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -102,7 +102,6 @@ static struct clocksource clocksource_32k = {
- 	.rating		= 250,
- 	.read		= omap_32k_read_dummy,
- 	.mask		= CLOCKSOURCE_MASK(32),
--	.shift		= 10,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
- 
-@@ -167,12 +166,9 @@ static int __init omap_init_clocksource_32k(void)
- 		if (sync_32k_ick)
- 			clk_enable(sync_32k_ick);
- 
--		clocksource_32k.mult = clocksource_hz2mult(32768,
--					    clocksource_32k.shift);
--
- 		offset_32k = clocksource_32k.read(&clocksource_32k);
- 
--		if (clocksource_register(&clocksource_32k))
-+		if (clocksource_register_hz(&clocksource_32k, 32768))
- 			printk(err, clocksource_32k.name);
- 	}
- 	return 0;
--- 
-1.6.2.5
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
 
+The main fixes are to make PM code to compile without CONFIG_DEBUG_FS,
+and a fix for the console for suspend.
+
+The first patch just moves some code around. The second patch adds
+checks for suspend to the recent fix 0d8e2d0dad98a693bad88aea6876ac8b94ad95c6
+(OMAP2+: PM/serial: hold console semaphore while OMAP UARTs are disabled).
+Again, this will eventually be handled by runtime PM but that's not
+suitable for the -rc series.
+
+The rest are trivial fixes for for some board specific issues, and
+to handle clk_get values with IS_ERR.
+
+Regards,
+
+Tony
+
+
+The following changes since commit cf7d7e5a1980d1116ee152d25dac382b112b9c17:
+
+  Linux 2.6.37-rc5 (2010-12-06 20:09:04 -0800)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Aaro Koskinen (1):
+      arm: omap2: io: fix clk_get() error check
+
+Kevin Hilman (3):
+      omap: PM debug: fix wake-on-timer debugfs dependency
+      OMAP1: SRAM: fix size for OMAP1611 SoCs
+      OMAP2+: PM/serial: fix console semaphore acquire during suspend
+
+Ohad Ben-Cohen (1):
+      omap: zoom: wl1271 slot is MMC_CAP_POWER_OFF_CARD
+
+Paul Walmsley (1):
+      OMAP2: PRCM: fix some SHIFT macros that were actually bitmasks
+
+Sukumar Ghorai (1):
+      omap: nand: remove hardware ECC as default
+
+Vasiliy Kulikov (1):
+      arm: plat-omap: counter_32k: use IS_ERR() instead of NULL check
+
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
+ arch/arm/mach-omap2/io.c                     |    2 +-
+ arch/arm/mach-omap2/pm-debug.c               |   34 +++++++++++++-------------
+ arch/arm/mach-omap2/pm24xx.c                 |   34 +++++++++++++++++++++++--
+ arch/arm/mach-omap2/pm34xx.c                 |   27 +++++++++++++++-----
+ arch/arm/mach-omap2/prcm-common.h            |   11 ++++----
+ arch/arm/plat-omap/counter_32k.c             |    3 +-
+ arch/arm/plat-omap/sram.c                    |    2 +-
+ drivers/mtd/nand/omap2.c                     |    1 -
+ 9 files changed, 79 insertions(+), 37 deletions(-)
