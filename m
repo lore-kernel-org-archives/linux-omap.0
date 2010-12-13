@@ -1,165 +1,60 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: RE: [PATCH 3/3] omap2+: Initialize omap_irq_base for
- entry-macro.Sfrom platform code
-Date: Mon, 13 Dec 2010 17:27:08 +0530
-Message-ID: <774b6f8f3fa4cae7210bfdb317c68e12@mail.gmail.com>
-References: <20101204001435.28853.29616.stgit@baageli.muru.com><alpine.LFD.2.00.1012040040590.10437@xanadu.home><20101204180541.GH17222@atomide.com><alpine.LFD.2.00.1012042126350.10437@xanadu.home><20101205031002.GP17222@atomide.com><20101208014548.GJ17435@atomide.com>
- <20101208014921.GM17435@atomide.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 4/8] OMAP4: clock data: Add missing fields in iva_hsd_byp_clk_mux_ck
+Date: Mon, 13 Dec 2010 14:14:10 +0100
+Message-ID: <4D061C22.9020405@ti.com>
+References: <1291932820-11163-1-git-send-email-b-cousson@ti.com> <1291932820-11163-5-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1012101732320.13430@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:59286 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757285Ab0LML5N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Dec 2010 06:57:13 -0500
-Received: by mail-qw0-f46.google.com with SMTP id 26so6201968qwa.33
-        for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 03:57:09 -0800 (PST)
-In-Reply-To: <20101208014921.GM17435@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:59285 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757588Ab0LMNOT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Dec 2010 08:14:19 -0500
+In-Reply-To: <alpine.DEB.2.00.1012101732320.13430@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Bergsagel, Jonathan" <jbergsagel@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-Hi Tony,
+Hi Paul,
 
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org
-[mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf
-> Of Tony Lindgren
-> Sent: Wednesday, December 08, 2010 7:19 AM
-> To: Nicolas Pitre
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: [PATCH 3/3] omap2+: Initialize omap_irq_base for
-entry-macro.Sfrom platform code
+On 12/11/2010 1:34 AM, Paul Walmsley wrote:
+> On Thu, 9 Dec 2010, Benoit Cousson wrote:
 >
-> This way we can use the generic omap SoC detection code instead.
+>> From: Jonathan Bergsagel<jbergsagel@ti.com>
+>>
+>> Add register address, mask and link to the clksel structure that
+>> were missing in the IVA DPLL mux clock node.
+>>
+>> Signed-off-by: Jonathan Bergsagel<jbergsagel@ti.com>
+>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
 >
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> This patch results in a checkpatch warning:
 >
-> diff --git a/arch/arm/mach-omap2/include/mach/entry-macro.S
-b/arch/arm/mach-omap2/include/mach/entry-macro.S
-> index 06e64e1..6032941 100644
-> --- a/arch/arm/mach-omap2/include/mach/entry-macro.S
-> +++ b/arch/arm/mach-omap2/include/mach/entry-macro.S
-> @@ -38,41 +38,27 @@
->   */
+> ---
 >
->  #ifdef MULTI_OMAP2
-> +
-> +/*
-> + * We use __glue to avoid errors with multiple definitions of
-> + * .globl omap_irq_base as it's included from entry-armv.S but not
-> + * from entry-common.S.
-> + */
-> +#ifdef __glue
->  		.pushsection .data
-> -omap_irq_base:	.word	0
-> +		.globl	omap_irq_base
-> +omap_irq_base:
-> +		.word	0
->  		.popsection
-> +#endif
+> WARNING: please, no space before tabs
+> #23: FILE: arch/arm/mach-omap2/clock44xx_data.c:639:
+> +^I.clksel ^I= iva_hsd_byp_clk_mux_sel,$
 >
-> -		/* Configure the interrupt base on the first interrupt */
-> +		/*
-> +		 * Configure the interrupt base on the first interrupt.
-> +		 * See also omap_irq_base_init for setting omap_irq_base.
-> +		 */
->  		.macro  get_irqnr_preamble, base, tmp
-> -9:
->  		ldr	\base, =omap_irq_base	@ irq base address
->  		ldr	\base, [\base, #0]	@ irq base value
-> -		cmp	\base, #0		@ already configured?
-> -		bne	9997f			@ nothing to do
-> -
-> -		mrc	p15, 0, \tmp, c0, c0, 0	@ get processor revision
-> -		and	\tmp, \tmp, #0x000f0000	@ only check architecture
-> -		cmp	\tmp, #0x00070000	@ is v6?
-> -		beq	2400f			@ found v6 so it's
-omap24xx
-> -		mrc	p15, 0, \tmp, c0, c0, 0	@ get processor revision
-> -		and	\tmp, \tmp, #0x000000f0	@ check cortex 8 or 9
-> -		cmp	\tmp, #0x00000080	@ cortex A-8?
-> -		beq	3400f			@ found A-8 so it's
-omap34xx
-> -		cmp	\tmp, #0x00000090	@ cortex A-9?
-> -		beq	4400f			@ found A-9 so it's
-omap44xx
-> -2400:		ldr	\base, =OMAP2_IRQ_BASE
-> -		ldr	\tmp, =omap_irq_base
-> -		str	\base, [\tmp, #0]
-> -		b	9b
-> -3400:		ldr	\base, =OMAP3_IRQ_BASE
-> -		ldr	\tmp, =omap_irq_base
-> -		str	\base, [\tmp, #0]
-> -		b	9b
-> -4400:		ldr	\base, =OMAP4_IRQ_BASE
-> -		ldr	\tmp, =omap_irq_base
-> -		str	\base, [\tmp, #0]
-> -		b	9b
-> -9997:
->  		.endm
+> total: 0 errors, 1 warnings, 0 checks, 13 lines checked
 >
->  		/* Check the pending interrupts. Note that base already
-set */
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 40562dd..3d18349 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -46,6 +46,7 @@
->  #include "clockdomains.h"
+> Your patch has style problems, please review.  If any of these errors
+> are false positives report them to the maintainer, see
+> CHECKPATCH in MAINTAINERS.
 >
->  #include <plat/omap_hwmod.h>
-> +#include <plat/multi.h>
+> ---
 >
->  /*
->   * The machine specific code may provide the extra mapping besides the
-> @@ -311,6 +312,25 @@ static int __init _omap2_init_reprogram_sdrc(void)
->  	return v;
->  }
->
-> +/*
-> + * Initialize asm_irq_base for entry-macro.S
-> + */
-> +static inline void omap_irq_base_init(void)
-> +{
-> +	extern void __iomem *omap_irq_base;
-> +
-> +#ifdef MULTI_OMAP2
-> +	if (cpu_is_omap242x())
+> I've fixed it in the copy in my local branch, but next time, please run
+> checkpatch.pl and fix any problems before submitting.
 
-Looks like this should be a cpu_is_omap24xx(). The
-current master is broken on a 2430sdp and a git-bisect
-pointed me to this patch.
+Oops, that's my mistake. the original patch was good, and I messed it up 
+during the merge conflict resolution.
+And then on top of that I completely missed this warning due to the 
+important number of "line over 80 characters" warnings in this series.
+I have now a "filter for dummies" to remove that and avoid missing real 
+warnings in the future.
 
-Regards,
-Rajendra
-
-> +		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP24XX_IC_BASE);
-> +	else if (cpu_is_omap34xx())
-> +		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP34XX_IC_BASE);
-> +	else if (cpu_is_omap44xx())
-> +		omap_irq_base =
-OMAP2_L4_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE);
-> +	else
-> +		pr_err("Could not initialize omap_irq_base\n");
-> +#endif
-> +}
-> +
->  void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->  				 struct omap_sdrc_params *sdrc_cs1)
->  {
-> @@ -352,4 +372,6 @@ void __init omap2_init_common_hw(struct
-omap_sdrc_params *sdrc_cs0,
->  		_omap2_init_reprogram_sdrc();
->  	}
->  	gpmc_init();
-> +
-> +	omap_irq_base_init();
->  }
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Thanks,
+Benoit
