@@ -1,53 +1,40 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH/RFC 2/2] OMAP: PM: implement context loss count APIs
-Date: Mon, 13 Dec 2010 03:43:22 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012130331570.15971@utopia.booyaka.com>
-References: <1291939712-25487-1-git-send-email-khilman@deeprootsystems.com> <1291939712-25487-2-git-send-email-khilman@deeprootsystems.com> <44f6fc2f0c975af7273975385567acd2@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH] arm: omap: update mach-types for rm680
+Date: Mon, 13 Dec 2010 16:16:35 +0530
+Message-ID: <1292237195-5695-1-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35732 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757002Ab0LMKnX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 05:43:23 -0500
-In-Reply-To: <44f6fc2f0c975af7273975385567acd2@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57632 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757064Ab0LMKqn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 05:46:43 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>
 
-Hello Vishwa,
+Temporary hack to update mach-types for rm680; without
+this the master branch of linux-omap will be broken for
+omap2plus_defconfig builds.
 
-On Fri, 10 Dec 2010, Vishwanath Sripathy wrote:
+Nyet-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+Tony,
 
-> > +	count = omap_device_get_context_loss_count(pdev);
-> > +	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
-> > +		 dev_name(dev), count);
-> Shouldn't this implementation be part of omap-pm.c where all the OMAP PM
-> functions are to be implemented? I thought omap-pm-noop.c should have
-> dummy implementation.
+Not sure how this is handled normally. Do you sync up
+mach-types with Russell's tree, or locally apply a patch
+like the one below?
 
-In general, yes.  But we also want the code in omap-pm-noop.c not to cause 
-additional breakage.  Unlike most of the other functions in this file, if 
-the context loss count function doesn't do something minimally useful, then
-the system is going to break badly.  You've probably seen this thread:
+- Anand
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg40079.html
+ arch/arm/tools/mach-types |    1 +
+ 1 file changed, 1 insertion(+)
 
-(By the way, the reason why I think we shouldn't use the approach 
-described in 
-
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg40101.html
-
-is because I suspect it is going to seriously damage retention idle 
-performance.  For example, the HSMMC driver resets its entire IP block in 
-its context restore function...)
-
-But to confirm your general point, yes, in general, further functional
-development of the OMAP PM code should take place outside the no-op file.
-Hopefully, at some point, we'll be able to drop the no-op file.  Once 
-there is a useful replacement, we should be able to switch to it as a 
-default.
-
-
-- Paul
+Index: ehci/arch/arm/tools/mach-types
+===================================================================
+--- ehci.orig/arch/arm/tools/mach-types
++++ ehci/arch/arm/tools/mach-types
+@@ -3044,3 +3044,4 @@ harvest_desoto		MACH_HARVEST_DESOTO	HARV
+ msm8x60_qrdc		MACH_MSM8X60_QRDC	MSM8X60_QRDC		3060
+ spear900		MACH_SPEAR900		SPEAR900		3061
+ pcontrol_g20		MACH_PCONTROL_G20	PCONTROL_G20		3062
++nokia_rm680		MACH_NOKIA_RM680	NOKIA_RM680		3220
