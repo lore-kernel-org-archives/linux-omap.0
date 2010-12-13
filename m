@@ -1,43 +1,109 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 0/24] Update clocksource registration
-Date: Mon, 13 Dec 2010 19:14:37 +0000
-Message-ID: <20101213191437.GN8665@n2100.arm.linux.org.uk>
+Subject: [PATCH 11/24] ARM: omap: update clock source registration
+Date: Mon, 13 Dec 2010 19:18:43 +0000
+Message-ID: <E1PSDv1-0008D0-AK@rmk-PC.arm.linux.org.uk>
+References: <20101213191437.GN8665@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41178 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41217 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752991Ab0LMTPe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 14:15:34 -0500
+	with ESMTP id S1753346Ab0LMTS4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 14:18:56 -0500
+In-Reply-To: <20101213191437.GN8665@n2100.arm.linux.org.uk>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: Alessandro Rubini <rubini@unipv.it>, Bryan Huntsman <bryanh@codeaurora.org>, Daniel Walker <dwalker@codeaurora.org>, David Brown <davidb@codeaurora.org>, Eric Miao <eric.y.miao@gmail.com>, "Hans J. Koch" <hjk@linutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Kevin Hilman <khilman@deeprootsystems.com>, Krzysztof Halasa <khc@pm.waw.pl>, Kukjin Kim <kgene.kim@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Leo Chen <leochen@broadcom.com>, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Sascha Hauer <kernel@pengutronix.de>, Scott Branden <sbranden@broadcom.com>, STEricsson <STEricsson_nomadik_linux@list.st.com>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@st.com>, Wan ZongShun <mcuo>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-John Stultz notes in his commit:
+In d7e81c2 (clocksource: Add clocksource_register_hz/khz interface) new
+interfaces were added which simplify (and optimize) the selection of the
+divisor shift/mult constants.  Switch over to using this new interface.
 
-    clocksource: Add clocksource_register_hz/khz interface
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/mach-omap1/time.c       |    6 +-----
+ arch/arm/mach-omap2/timer-gp.c   |    5 +----
+ arch/arm/plat-omap/counter_32k.c |    6 +-----
+ 3 files changed, 3 insertions(+), 14 deletions(-)
 
-    How to pick good mult/shift pairs has always been difficult to
-    describe to folks writing clocksource drivers, since it requires
-    careful tradeoffs in adjustment accuracy vs overflow limits.
+diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
+index 1be6a21..abb34ff 100644
+--- a/arch/arm/mach-omap1/time.c
++++ b/arch/arm/mach-omap1/time.c
+@@ -208,7 +208,6 @@ static struct clocksource clocksource_mpu = {
+ 	.rating		= 300,
+ 	.read		= mpu_read,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+-	.shift		= 24,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -217,13 +216,10 @@ static void __init omap_init_clocksource(unsigned long rate)
+ 	static char err[] __initdata = KERN_ERR
+ 			"%s: can't register clocksource!\n";
+ 
+-	clocksource_mpu.mult
+-		= clocksource_khz2mult(rate/1000, clocksource_mpu.shift);
+-
+ 	setup_irq(INT_TIMER2, &omap_mpu_timer2_irq);
+ 	omap_mpu_timer_start(1, ~0, 1);
+ 
+-	if (clocksource_register(&clocksource_mpu))
++	if (clocksource_register_hz(&clocksource_mpu, rate))
+ 		printk(err, clocksource_mpu.name);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index e13c29e..a7816db 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -195,7 +195,6 @@ static struct clocksource clocksource_gpt = {
+ 	.rating		= 300,
+ 	.read		= clocksource_read_cycles,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+-	.shift		= 24,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -220,9 +219,7 @@ static void __init omap2_gp_clocksource_init(void)
+ 
+ 	omap_dm_timer_set_load_start(gpt, 1, 0);
+ 
+-	clocksource_gpt.mult =
+-		clocksource_khz2mult(tick_rate/1000, clocksource_gpt.shift);
+-	if (clocksource_register(&clocksource_gpt))
++	if (clocksource_register_hz(&clocksource_gpt, tick_rate))
+ 		printk(err2, clocksource_gpt.name);
+ }
+ #endif
+diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+index 155fe43..8f149f5 100644
+--- a/arch/arm/plat-omap/counter_32k.c
++++ b/arch/arm/plat-omap/counter_32k.c
+@@ -102,7 +102,6 @@ static struct clocksource clocksource_32k = {
+ 	.rating		= 250,
+ 	.read		= omap_32k_read_dummy,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+-	.shift		= 10,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -167,12 +166,9 @@ static int __init omap_init_clocksource_32k(void)
+ 		if (sync_32k_ick)
+ 			clk_enable(sync_32k_ick);
+ 
+-		clocksource_32k.mult = clocksource_hz2mult(32768,
+-					    clocksource_32k.shift);
+-
+ 		offset_32k = clocksource_32k.read(&clocksource_32k);
+ 
+-		if (clocksource_register(&clocksource_32k))
++		if (clocksource_register_hz(&clocksource_32k, 32768))
+ 			printk(err, clocksource_32k.name);
+ 	}
+ 	return 0;
+-- 
+1.6.2.5
 
-    Now, with the clocks_calc_mult_shift function, its much
-    easier. However, not many clocksources have converted to using that
-    function, and there is still the issue of the max interval length
-    assumption being made by each clocksource driver independently.
-
-    So this patch simplifies the registration process by having
-    clocksources be registered with a hz/khz value and the registration
-    function taking care of setting mult/shift.
-
-    This should take most of the confusion out of writing a clocksource
-    driver.
-
-    Additionally it also keeps the shift size tradeoff (more accuracy vs
-    longer possible nohz times) centralized so the timekeeping core can
-    keep track of the assumptions being made.
-
-This patch series updates all ARM platforms clocksource registration
-to use the new clocksource_register_hz()/clocksource_register_khz()
-functions, simplifying the selection of the multiply/shift constants.
