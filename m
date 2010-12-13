@@ -1,40 +1,60 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH] arm: omap: update mach-types for rm680
-Date: Mon, 13 Dec 2010 16:16:35 +0530
-Message-ID: <1292237195-5695-1-git-send-email-gadiyar@ti.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: manual merge of the trivial tree with the omap tree
+Date: Mon, 13 Dec 2010 22:23:07 +1100
+Message-ID: <20101213222307.64c6510e.sfr@canb.auug.org.au>
+References: <20101213134457.d0fb1e13.sfr@canb.auug.org.au>
+	<alpine.LNX.2.00.1012131101140.15140@pobox.suse.cz>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Mon__13_Dec_2010_22_23_07_+1100_WfoWLg.U3=zvMk6e"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57632 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757064Ab0LMKqn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 05:46:43 -0500
+Received: from chilli.pcug.org.au ([203.10.76.44]:50249 "EHLO smtps.tip.net.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753823Ab0LMLXT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Dec 2010 06:23:19 -0500
+In-Reply-To: <alpine.LNX.2.00.1012131101140.15140@pobox.suse.cz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Lionel Debroux <lionel_debroux@yahoo.fr>
 
-Temporary hack to update mach-types for rm680; without
-this the master branch of linux-omap will be broken for
-omap2plus_defconfig builds.
+--Signature=_Mon__13_Dec_2010_22_23_07_+1100_WfoWLg.U3=zvMk6e
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Nyet-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
----
-Tony,
+Hi Jiri,
 
-Not sure how this is handled normally. Do you sync up
-mach-types with Russell's tree, or locally apply a patch
-like the one below?
+On Mon, 13 Dec 2010 11:01:59 +0100 (CET) Jiri Kosina <jkosina@suse.cz> wrot=
+e:
+>
+> Thank you Stephen. If you could carry this fixup patch, then it seems bes=
+t=20
+> option for me. This conflict is trivial enough to be resolved later durin=
+g=20
+> merge.
 
-- Anand
+Yep, no worries.
 
- arch/arm/tools/mach-types |    1 +
- 1 file changed, 1 insertion(+)
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-Index: ehci/arch/arm/tools/mach-types
-===================================================================
---- ehci.orig/arch/arm/tools/mach-types
-+++ ehci/arch/arm/tools/mach-types
-@@ -3044,3 +3044,4 @@ harvest_desoto		MACH_HARVEST_DESOTO	HARV
- msm8x60_qrdc		MACH_MSM8X60_QRDC	MSM8X60_QRDC		3060
- spear900		MACH_SPEAR900		SPEAR900		3061
- pcontrol_g20		MACH_PCONTROL_G20	PCONTROL_G20		3062
-+nokia_rm680		MACH_NOKIA_RM680	NOKIA_RM680		3220
+--Signature=_Mon__13_Dec_2010_22_23_07_+1100_WfoWLg.U3=zvMk6e
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBAgAGBQJNBgIbAAoJEDMEi1NhKgbs7l8H/2SHBQMdqPH0LcuQffoIUB88
+ss7TY4VkBFXyM9TFw83sCWIEVzFR73krag6JmyNZC2j4iYkYvNE3EgNBMpKo8B7U
+fHGB3LpcWYNuK8FOY90hhLfgBMsWqAEsJGGH09+vieyC4hFAmCl1sdOZ4C0IMzqc
+uBUcb8W/reV+tpHUkHccZeNlu5MK/936k5Zzx2Thnb8ZoElqTMAbMPRQmfh48KRd
+ZG6Mh5VgdBxuizFUtjIzYws7vQtBKa+4ZwGEfE2RtppwC6+n6u7sdZDHZXM0UBl3
+OP9LABD78d7vh/90U25xWlUYP7qfeLESi+yD7kwRsTQdSvFRqhOSA1MVeqJBPoQ=
+=pyYc
+-----END PGP SIGNATURE-----
+
+--Signature=_Mon__13_Dec_2010_22_23_07_+1100_WfoWLg.U3=zvMk6e--
