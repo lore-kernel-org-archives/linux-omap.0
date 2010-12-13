@@ -1,46 +1,82 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the trivial tree with the omap tree
-Date: Mon, 13 Dec 2010 13:44:57 +1100
-Message-ID: <20101213134457.d0fb1e13.sfr@canb.auug.org.au>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [PATCH 1/3] omap4: Add platform changes for Ambient Light sensor
+Date: Mon, 13 Dec 2010 11:38:26 +0530
+Message-ID: <3DF2192837DC438680A0D92C4C5C8A19@wipblrx0099946>
+References: <54105.10.24.255.17.1291274954.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Lionel Debroux <lionel_debroux@yahoo.fr>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45895 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751078Ab0LMGIc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 01:08:32 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id oBD68Sbd029140
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 00:08:31 -0600
+Received: from wipblrx0099946 (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with SMTP id oBD68Rru012713
+	for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 11:38:28 +0530 (IST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Jiri,
+----- Original Message ----- 
+From: "Hemanth V" <hemanthv@ti.com>
+To: <linux-omap@vger.kernel.org>
+Sent: Thursday, December 02, 2010 12:59 PM
+Subject: [PATCH 1/3] omap4: Add platform changes for Ambient Light sensor
 
-Today's linux-next merge of the trivial tree got a conflict in
-arch/arm/mach-omap2/pm24xx.c between commit
-e83df17f178360a8e7874441bca04a710c869e42 ("OMAP2+: PM/serial: fix console
-semaphore acquire during suspend") from the omap tree and commit
-2f55ac072f5344519348c0c94b3d2f4cca46847b ("suspend: constify
-platform_suspend_ops") from the trivial tree.
 
-I fixed it up (see below) and can carry the fix as necessary.
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+> From 10f5f9f918e197f4052ac66b4e4cfb4b72646878 Mon Sep 17 00:00:00 2001
+> From: Hemanth V <hemanthv@ti.com>
+> Date: Wed, 1 Dec 2010 16:28:51 +0530
+> Subject: [PATCH] omap4: Add platform changes for Ambient Light sensor
+>
+> Register BH1780GLI Ambient light sensor, which is an I2C device
+> for 4430SDP board.
 
-diff --cc arch/arm/mach-omap2/pm24xx.c
-index aaeea49,aa9764e..0000000
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@@ -354,13 -326,7 +354,13 @@@ static void omap2_pm_finish(void
-  	enable_hlt();
-  }
-  
- +static void omap2_pm_end(void)
- +{
- +	suspend_state = PM_SUSPEND_ON;
- +}
- +
-- static struct platform_suspend_ops omap_pm_ops = {
-+ static const struct platform_suspend_ops omap_pm_ops = {
- +	.begin		= omap2_pm_begin,
-  	.prepare	= omap2_pm_prepare,
-  	.enter		= omap2_pm_enter,
-  	.finish		= omap2_pm_finish,
+Tony, would you be pulling these patches for the next merge window.
+
+Thanks
+Hemanth
+
+>
+> Signed-off-by: Hemanth V <hemanthv@ti.com>
+> ---
+> BH1780GLI Driver is part of mainline kernel
+>
+> arch/arm/mach-omap2/board-4430sdp.c |    3 +++
+> 1 files changed, 3 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c 
+> b/arch/arm/mach-omap2/board-4430sdp.c
+> index 49b5a7b..d8ef903 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -465,6 +465,9 @@ static struct i2c_board_info __initdata 
+> sdp4430_i2c_3_boardinfo[] = {
+>  {
+>  I2C_BOARD_INFO("tmp105", 0x48),
+>  },
+> + {
+> + I2C_BOARD_INFO("bh1780", 0x29),
+> + },
+> };
+> static struct i2c_board_info __initdata sdp4430_i2c_4_boardinfo[] = {
+>  {
+> -- 
+> 1.5.4.3
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
