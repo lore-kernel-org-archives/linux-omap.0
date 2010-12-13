@@ -1,98 +1,143 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] OMAP: omap_device: use pdev as parameter to get rt_va
-Date: Mon, 13 Dec 2010 09:12:54 +0100
-Message-ID: <4D05D586.6090408@ti.com>
-References: <1292024742-27319-1-git-send-email-omar.ramirez@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: Problem trying to measure OMAP35x core temperature
+Date: Mon, 13 Dec 2010 09:41:41 +0100
+Message-ID: <AANLkTim21V+iE_D8HJs1+eRgZmL4a4FoeuBu=-31kLf0@mail.gmail.com>
+References: <4D03E9CE.1090708@logicpd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46947 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753227Ab0LMINK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Dec 2010 03:13:10 -0500
-In-Reply-To: <1292024742-27319-1-git-send-email-omar.ramirez@ti.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:46441 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751793Ab0LMIlm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 03:41:42 -0500
+Received: by qyk12 with SMTP id 12so5671789qyk.19
+        for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 00:41:41 -0800 (PST)
+In-Reply-To: <4D03E9CE.1090708@logicpd.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Peter Barada <peterb@logicpd.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Omar,
+On Sat, Dec 11, 2010 at 10:14 PM, Peter Barada <peterb@logicpd.com> wro=
+te:
+> I'm trying to add code to a 2.6.32 kernel to extract the OMAP core
+> temperature for thermal testing, and section 7.4.6 of the OMAP3 TRM
+> (spug98g.pdf) explains the CONTROL_TEMP_SENSOR register.
 
-On 12/11/2010 12:45 AM, Ramirez Luna, Omar wrote:
-> Make the parameter received by omap_device_get_mpu_rt_va
-> consistent with the functions meant to be called by drivers.
->
-> Also move its header declaration to appear in the set of
-> functions to be used by drivers, as per the comment there.
+I have not look at it further but there is some code at
+http://thread.gmane.org/gmane.linux.ports.arm.omap/8424/focus=3D8514.
 
-Please note that even if Paul submitted this API upon request from 
-Santosh, we do not want driver to us it most of the time.
+Hope this helps!
 
-All drivers should us the generic Linux way to get physical mem resource 
-and then ioremap it.
-
-I assume that if you want to update this API, you are probably already 
-using it.
-Why cannot you use the generic way?
-
-Regards,
-Benoit
+Jean
 
 >
-> Signed-off-by: Omar Ramirez Luna<omar.ramirez@ti.com>
-> Acked-by: Kevin Hilman<khilman@deeprootsystems.com>
-> ---
->   arch/arm/plat-omap/include/plat/omap_device.h |    3 +--
->   arch/arm/plat-omap/omap_device.c              |    8 ++++++--
->   2 files changed, 7 insertions(+), 4 deletions(-)
+> I've added the following code:
 >
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-> index 28e2d1a..1877c1a 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -80,6 +80,7 @@ struct omap_device {
->   int omap_device_enable(struct platform_device *pdev);
->   int omap_device_idle(struct platform_device *pdev);
->   int omap_device_shutdown(struct platform_device *pdev);
-> +void __iomem *omap_device_get_rt_va(struct platform_device *pdev);
+> static void omap3logic_fetch_temp(char *temp_buf)
+> {
+> =A0 =A0int temp_val;
+> =A0 =A0unsigned int temp;
+> =A0 =A0static short temp_table[] =3D {
+> =A0 =A0 =A0 =A0-400, -400, -400, -400, =A0 =A0-400,
+> =A0 =A0 =A0 =A0-400, -389, -375, -361, -333, /* 0-9 */
+> =A0 =A0 =A0 =A0-318, -304, -290, -275, -261,
+> =A0 =A0 =A0 =A0-247, -233, -219, -205, -191, /* 10-19 */
+> =A0 =A0 =A0 =A0-177, -163, -149, -134, -120,
+> =A0 =A0 =A0 =A0-106, =A0-92, =A0-78, =A0-64, =A0-50, /* 20-29 */
+> =A0 =A0 =A0 =A0-35, =A0 -21, =A0 -7, =A0 +8, =A0+23,
+> =A0 =A0 =A0 =A0+37, =A0 +51, =A0+66, =A0+80, =A0+94, /* 30-39 */
+> =A0 =A0 =A0 =A0+108, +123, +137, +151, +165,
+> =A0 =A0 =A0 =A0+179, +194, +208, +222, +236, /* 40-49 */
+> =A0 =A0 =A0 =A0+251, +265, +279, +293, +307,
+> =A0 =A0 =A0 =A0+321, +335, +349, +364, +378, /* 50-59 */
+> =A0 =A0 =A0 =A0+392, +406, +420, +424, +449,
+> =A0 =A0 =A0 =A0+463, +447, +491, +505, +519, /* 60-69 */
+> =A0 =A0 =A0 =A0+533, +546, +560, +574, +588,
+> =A0 =A0 =A0 =A0+602, +616, +630, +644, +657, /* 70-79 */
+> =A0 =A0 =A0 =A0+671, +685, +699, +713, +727,
+> =A0 =A0 =A0 =A0+741, +755, +769, +783, +797, /* 80-89 */
+> =A0 =A0 =A0 =A0+811, +823, +838, +852, +865,
+> =A0 =A0 =A0 =A0+879, +893, +906, +920, +934, /* 90-99 */
+> =A0 =A0 =A0 =A0+947, +961, +975, +989, +1002,
+> =A0 =A0 =A0 =A0+1016, +1030, +1043, +1057, +1071, /* 100-109 */
+> =A0 =A0 =A0 =A0+1085, +1098, +1112, +1126, +1140,
+> =A0 =A0 =A0 =A0+1153, +1167, +1181, +1194, +1208, /* 110-119 */
+> =A0 =A0 =A0 =A0+1222, +1235, +1249, +1250, +1250,
+> =A0 =A0 =A0 =A0+1250, +1250, +1250, +1250, /* 120-128 */
+> =A0 =A0};
 >
->   /* Core code interface */
+> =A0 =A0temp =3D omap_ctrl_readl(OMAP343X_CONTROL_TEMP_SENSOR);
 >
-> @@ -101,8 +102,6 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->   int omap_device_register(struct omap_device *od);
->   int omap_early_device_register(struct omap_device *od);
+> =A0 =A0temp_val =3D (temp_table[temp&0x7f] + temp_table[(temp&0x7f)+1=
+]) / 2;
+> =A0 =A0sprintf(temp_buf, "%d.%1d (%02x)", temp_val/10, ((unsigned
+> int)temp_val)%10, temp);
+> }
 >
-> -void __iomem *omap_device_get_rt_va(struct omap_device *od);
-> -
->   /* OMAP PM interface */
->   int omap_device_align_pm_lat(struct platform_device *pdev,
->   			     u32 new_wakeup_lat_limit);
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index abe933c..9d11195 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -681,7 +681,7 @@ struct powerdomain *omap_device_get_pwrdm(struct omap_device *od)
+> static ssize_t
+> omap3logic_show_temp(struct class *class, char *buf)
+> {
+> =A0 =A0ssize_t retval;
+> =A0 =A0char temp[128];
 >
->   /**
->    * omap_device_get_mpu_rt_va - return the MPU's virtual addr for the hwmod base
-> - * @od: struct omap_device *
-> + * @pdev: struct platform_device *
->    *
->    * Return the MPU's virtual address for the base of the hwmod, from
->    * the ioremap() that the hwmod code does.  Only valid if there is one
-> @@ -690,8 +690,12 @@ struct powerdomain *omap_device_get_pwrdm(struct omap_device *od)
->    * otherwise, passes along the return value from
->    * omap_hwmod_get_mpu_rt_va().
->    */
-> -void __iomem *omap_device_get_rt_va(struct omap_device *od)
-> +void __iomem *omap_device_get_rt_va(struct platform_device *pdev)
->   {
-> +	struct omap_device *od;
-> +
-> +	od = _find_by_pdev(pdev);
-> +
->   	if (od->hwmods_cnt != 1)
->   		return NULL;
+> =A0 =A0omap3logic_fetch_temp(temp);
+> =A0 =A0retval =3D sprintf(buf, "%s\n", temp);
+> =A0 =A0return retval;
+> }
 >
-
+> static struct class_attribute temp_attr =3D
+> =A0 =A0__ATTR(temp, S_IRUGO, omap3logic_show_temp, NULL);
+>
+> static struct class *omap3logic_temp_class;
+>
+> void omap3logic_temp_init(void)
+> {
+> =A0 =A0int rc;
+>
+> =A0 =A0omap3logic_temp_class =3D class_create(THIS_MODULE, "temp");
+> =A0 =A0if (IS_ERR(omap3logic_temp_class)) {
+> =A0 =A0 =A0 =A0printk(KERN_ERR "%s: couldn't create temp class\n", __=
+=46UNCTION__);
+> =A0 =A0 =A0 =A0return;
+> =A0 =A0}
+> =A0 =A0rc =3D class_create_file(omap3logic_temp_class, &temp_attr);
+> =A0 =A0if (unlikely(rc)) {
+> =A0 =A0 =A0 =A0printk(KERN_ERR "%s: couldn't create temp class file\n=
+",
+> __FUNCTION__);
+> =A0 =A0 =A0 =A0return;
+> =A0 =A0}
+>
+> =A0 =A0/* Set CONTCONV and SOC to start continuous temperature measur=
+ements */
+> =A0 =A0omap_ctrl_writel(0x300, OMAP343X_CONTROL_TEMP_SENSOR);
+> }
+>
+> But when I read the register back, I see only a fixed temperature val=
+ue,
+> even if I fire up some video demos to crank up the load. =A0If I rebo=
+ot I'll
+> see the temperature jump up, but then it stays constant whether I
+> increase/decrease the CPU load.
+>
+> Any ideas why this isn't working?
+>
+> Thanks in advance!
+>
+> --
+> Peter Barada
+> peterb@logicpd.com
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
