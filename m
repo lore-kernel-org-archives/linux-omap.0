@@ -1,60 +1,68 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: linux-next: manual merge of the trivial tree with the omap
- tree
-Date: Mon, 13 Dec 2010 11:01:59 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1012131101140.15140@pobox.suse.cz>
-References: <20101213134457.d0fb1e13.sfr@canb.auug.org.au>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: How to change freq of mmc2_clk to 48Mhz for OMAP35xx
+Date: Mon, 13 Dec 2010 03:27:48 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012130319170.15971@utopia.booyaka.com>
+References: <68E48EB0-25B0-4D1B-B7C3-587A521F309F@mac.com> <alpine.DEB.2.00.1012081330470.13430@utopia.booyaka.com> <AANLkTimjJaU4nqM-4svHb4BMJrVf99aBdoU-aofVhcOp@mail.gmail.com> <863B27CB-58A2-4CFD-B5E9-92510C34B8DA@mac.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20101213134457.d0fb1e13.sfr@canb.auug.org.au>
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Lionel Debroux <lionel_debroux@yahoo.fr>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:58913 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756915Ab0LMK1t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 05:27:49 -0500
+In-Reply-To: <863B27CB-58A2-4CFD-B5E9-92510C34B8DA@mac.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Mon, 13 Dec 2010, Stephen Rothwell wrote:
+Hello Elvis
 
-> Hi Jiri,
+On Fri, 10 Dec 2010, Elvis Dowson wrote:
+
+> On Dec 9, 2010, at 12:43 AM, Andy Shevchenko wrote:
 > 
-> Today's linux-next merge of the trivial tree got a conflict in
-> arch/arm/mach-omap2/pm24xx.c between commit
-> e83df17f178360a8e7874441bca04a710c869e42 ("OMAP2+: PM/serial: fix console
-> semaphore acquire during suspend") from the omap tree and commit
-> 2f55ac072f5344519348c0c94b3d2f4cca46847b ("suspend: constify
-> platform_suspend_ops") from the trivial tree.
-> 
-> I fixed it up (see below) and can carry the fix as necessary.
+> > On Wed, Dec 8, 2010 at 10:36 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> >> Anyway, if you want to try changing it from the kernel side, you'll need
+> >> code like this in the MMC driver or OMAP integration code (off the top of
+> >> my head, untested):
+> > 
+> >> Please let me know if this doesn't work.
 
-Thank you Stephen. If you could carry this fixup patch, then it seems best 
-option for me. This conflict is trivial enough to be resolved later during 
-merge.
+First let me say, my earlier code that I sent you is not going to work.  
+This is because hsmmc2_fclk is not directly rate-controllable.  So using 
+the kernel clock framework to tweak that won't work.
 
-> -- 
-> Cheers,
-> Stephen Rothwell                    sfr@canb.auug.org.au
-> 
-> diff --cc arch/arm/mach-omap2/pm24xx.c
-> index aaeea49,aa9764e..0000000
-> --- a/arch/arm/mach-omap2/pm24xx.c
-> +++ b/arch/arm/mach-omap2/pm24xx.c
-> @@@ -354,13 -326,7 +354,13 @@@ static void omap2_pm_finish(void
->   	enable_hlt();
->   }
->   
->  +static void omap2_pm_end(void)
->  +{
->  +	suspend_state = PM_SUSPEND_ON;
->  +}
->  +
-> - static struct platform_suspend_ops omap_pm_ops = {
-> + static const struct platform_suspend_ops omap_pm_ops = {
->  +	.begin		= omap2_pm_begin,
->   	.prepare	= omap2_pm_prepare,
->   	.enter		= omap2_pm_enter,
->   	.finish		= omap2_pm_finish,
-> 
+However...
 
--- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+> In my u-boot-2010.03 board file (or with u-boot-2009.11 patched to incorporate the mmc_set_dev() method)
+> 
+> I added the following lines of code.
+> 
+> - mmc_set_dev(2) select the MMC2 controller.
+> 
+> - mmc_clock_config attempts to use a clock divider value of 2, and this method implements the logic 
+> outlined in Section 22.5.2.7.2 of the OMAP35x TRM Rev D 
+
+...
+
+> This is having no effect, and the output clock from the bootloader stage is still at 96MHz. 
+> 
+> How can I change the MMC CLK output to 48MHz using either the boot loader or the kernel?
+
+Let's focus on the kernel.  What kernel are you running?  If you're not 
+running a mainline kernel, I probably can't help you.  For example, if 
+you're using a TI kernel or Google kernel, you should talk to/E-mail them 
+for support, unless someone else on this list happens to be able to help 
+you.  Also, please tell us which board are you using.
+
+For the moment I will assume you are using a recent mainline kernel. 
+drivers/mmc/host/omap_hsmmc.c is the applicable driver file.  Please take 
+a look at omap_hsmmc_set_ios() and omap_hsmmc_context_restore() in that 
+file.  There is some code there that attempts to program the internal MMC 
+divisor appropriately.  If you add some debugging printk()s in there, you 
+might get some insight into what it's writing to that register.  Could you 
+do this and tell us what the code is writing to the SYSCTL register?
+
+
+- Paul
