@@ -1,38 +1,63 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 05/12] OMAP4: PRCM: Add SCRM header file
-Date: Tue, 14 Dec 2010 11:13:22 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012141105570.15971@utopia.booyaka.com>
-References: <20101214063308.21555.76050.stgit@twilight.localdomain> <20101214063447.21555.64470.stgit@twilight.localdomain> <4D07782E.5050000@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
+Date: Tue, 14 Dec 2010 20:40:28 +0200
+Message-ID: <AANLkTi=q=QMQ_Abxb8eUWT_qGG8K=pc892ZB-mqgt_mh@mail.gmail.com>
+References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
+ <AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com> <20101214170656.GA3832@kroah.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40859 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755608Ab0LNSNX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 13:13:23 -0500
-In-Reply-To: <4D07782E.5050000@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101214170656.GA3832@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Tue, 14 Dec 2010, Cousson, Benoit wrote:
+On Tue, Dec 14, 2010 at 7:06 PM, Greg KH <greg@kroah.com> wrote:
+>> Can you please have a look and say if this looks OK ?
+>
+> Look at what, I don't see a patch here.
 
-> This patch will conflict with your power prcm series, because you are creating
-> an empty scrm44xx.h in it.
-> 
-> So I did rebased this series on top on your prcm to fix that.
-> 
-> Don't you want to use the already rebased version instead?
+Here's the complete patchset:
 
-I would rather have patches and branches based on mainline commits where 
-possible.  If a series has some explicit dependency on a non-mainline 
-patch or branch then I'd like to know about it in the messages if 
-possible.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39833.html
 
-As far as the empty scrm44xx.h goes, I will probably go back and rebuild 
-that branch with your patch that creates SCRM from my patch set inserted 
-earlier, so I can drop the part of my patch that creates the empty file.
+If you prefer, I can resubmit.
 
+>
+> I've seen a lot of discussion about this, are all of the review comme=
+nts
+> now addressed?
 
-- Paul
+Yes, all comments were addressed in this v3 iteration, and this thread
+has been idle for about 10 days.
+
+> =A0Like the most important one, why is this generic code if
+>  it's only for one specific platform?
+
+We started out with an omap-specific driver, but Tony preferred that we
+make this a platform-agnostic framework, in order to keep the IPC drive=
+rs that
+will use it generic, and assuming that more users will show up for
+such framework.
+
+To me it sounds reasonable, but both ways (framework / omap-specific
+driver) will work for us just fine, and I can switch back to a misc
+driver if this is preferred.
+
+The complete discussion of v1 is at:
+http://comments.gmane.org/gmane.linux.kernel/1049802
+
+We also discussed this at v2 of the patches with David, see the
+complete discussion at:
+http://comments.gmane.org/gmane.linux.kernel/1067016
+
+Thanks,
+Ohad.
+
+>
+> thanks,
+>
+> greg k-h
+>
