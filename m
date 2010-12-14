@@ -1,50 +1,110 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH] OMAP3: PM: Fix CLK_SRC mask for IVA2 and MPU
-Date: Tue, 14 Dec 2010 19:01:39 +0530
-Message-ID: <1292333499-11352-1-git-send-email-rnayak@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48210 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755305Ab0LNNbs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 08:31:48 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Clemens Ladisch <clemens@ladisch.de>
+Subject: Re: [RFC/PATCH v6 03/12] media: Entities,
+	pads and links
+Date: Tue, 14 Dec 2010 14:31:55 +0100
+Message-ID: <4D0771CB.3020809@ladisch.de>
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<4CEF799E.7060508@ladisch.de> <4D06458B.6080808@ladisch.de>
+	<201012141300.57118.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <201012141300.57118.laurent.pinchart@ideasonboard.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: alsa-devel@alsa-project.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, lennart@poettering.net, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-The IVA2_CLK_SRC and MPU_CLK_SRC for OMAP3
-are 3 bit fields and hence the mask should
-be defined as (0x7 << n).
+Laurent Pinchart wrote:
+> On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
+>> TYPE_EXT describes entities that represent some interface to the
+>> external world, TYPE_INT those that are internal to the entire device.
+>> (I'm not sure if that distinction is very useful, but TYPE_SUBDEV seems
+>> to be an even more meaningless name.)
+> 
+> SUBDEV comes from the V4L2 world, and I agree that it might not be a very good 
+> name.
+> 
+> I'm not sure I would split entities in internal/external categories. I would
+> create a category for connectors though.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/cm-regbits-34xx.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+I'm not disagreeing, but what is actually the distinction between types
+and subtypes?  ;-)
 
-diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index 4f959a7..d5c8fb6 100644
---- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -81,7 +81,7 @@
- 
- /* CM_CLKSEL1_PLL_IVA2 */
- #define OMAP3430_IVA2_CLK_SRC_SHIFT			19
--#define OMAP3430_IVA2_CLK_SRC_MASK			(0x3 << 19)
-+#define OMAP3430_IVA2_CLK_SRC_MASK			(0x7 << 19)
- #define OMAP3430_IVA2_DPLL_MULT_SHIFT			8
- #define OMAP3430_IVA2_DPLL_MULT_MASK			(0x7ff << 8)
- #define OMAP3430_IVA2_DPLL_DIV_SHIFT			0
-@@ -126,7 +126,7 @@
- 
- /* CM_CLKSEL1_PLL_MPU */
- #define OMAP3430_MPU_CLK_SRC_SHIFT			19
--#define OMAP3430_MPU_CLK_SRC_MASK			(0x3 << 19)
-+#define OMAP3430_MPU_CLK_SRC_MASK			(0x7 << 19)
- #define OMAP3430_MPU_DPLL_MULT_SHIFT			8
- #define OMAP3430_MPU_DPLL_MULT_MASK			(0x7ff << 8)
- #define OMAP3430_MPU_DPLL_DIV_SHIFT			0
--- 
-1.7.0.4
+>> * Entity properties
+>> 
+>> There needs to be a mechanism to associate meta-information (properties)
+>> with entities.  This information should be optional and extensible, but,
+>> when being handled inside the kernel, doesn't need to be more than
+>> a read-only blob.  I think that something like ALSA's TLV format (used
+>> for mixer controls) can be used here.  (I'm not mentioning the X-word
+>> here, except to note that the "M" stands for "markup".)
+> 
+> I've been thinking of adding a new ioctl for that. It's something we need to
+> draft. The UVC driver will need it, and I'm pretty sure other V4L2 drivers
+> would find it useful as well.
 
+I'm imagining a "read-the-properties" ioctl that just returns the
+entity's blob.
+
+>> EXT_SPEAKER also includes headphones; there might be made a case for
+>> having those as a separate subtype.
+> 
+> Shouldn't headphones be represented by an EXT_JACK_ANALOG ?
+
+Headphone jacks are jacks; there are also USB headphones.
+
+>> EXT_BROADCAST represents devices like TV tuners, satellite receivers,
+>> cable tuners, or radios.
+> 
+> There's clearly an overlap with V4L here.
+
+These come from the USB audio spec.  Video devices are indeed likely to
+be more detailed than just a single audio source. :)
+
+>> INT_CONTROLS may have multiple independent controls (this is USB's
+>> Feature Unit); INT_EFFECT may have multiple controls that affect one
+>> single algorithm.
+> 
+> I'd describe this as a feature unit/processing unit then.
+
+I was aiming for more descriptive names, but I agree that the original
+names might be more useful.
+
+> Should we have an AUDIO category ?
+
+Probably not, because there are combined audio/video jacks, any maybe
+other entities.
+
+>> * Entity specifications
+>> 
+>> While TYPE_DEVICE entities can be identified by their device node, other
+>> entities typcially have just a numeric ID.
+> 
+> In V4L2 sub-devices have (or rather will have once the media controller
+> patches will be integrated) device nodes as well, so exposing that information
+> is required.
+
+USB and HDA entities already have numeric IDs.
+
+>> For that, it would be useful to make do without separate identification and
+>> let the driver choose the entity ID.
+> 
+> How would drivers do that ? What if you have two instances of the same chip
+> (a video sensor, audio mixer, ...) on the same board ?
+
+Then those would get different IDs; USB descriptors always describe the
+entire device.
+
+
+Regards,
+Clemens
