@@ -1,36 +1,100 @@
 From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: [RFC PATCHv4 7/7] HSI: hsi_char: Update ioctl-number.txt
-Date: Tue, 14 Dec 2010 12:09:43 +0200
-Message-ID: <1292321383-30200-8-git-send-email-carlos.chinea@nokia.com>
+Subject: [RFC PATCHv4 3/7] HSI: omap_ssi: Add OMAP SSI to the kernel configuration
+Date: Tue, 14 Dec 2010 12:09:39 +0200
+Message-ID: <1292321383-30200-4-git-send-email-carlos.chinea@nokia.com>
 References: <1292321383-30200-1-git-send-email-carlos.chinea@nokia.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1292321383-30200-1-git-send-email-carlos.chinea@nokia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Andras Domokos <andras.domokos@nokia.com>
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Andras Domokos <andras.domokos@nokia.com>
+Add OMAP SSI device and driver to the kernel configuration
 
-Added ioctl range for HSI char devices to the documentation
-
-Signed-off-by: Andras Domokos <andras.domokos@nokia.com>
 Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
 ---
- Documentation/ioctl/ioctl-number.txt |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Makefile     |    2 ++
+ drivers/hsi/Kconfig              |    2 ++
+ drivers/hsi/Makefile             |    1 +
+ drivers/hsi/controllers/Kconfig  |   23 +++++++++++++++++++++++
+ drivers/hsi/controllers/Makefile |    5 +++++
+ 5 files changed, 33 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/hsi/controllers/Kconfig
+ create mode 100644 drivers/hsi/controllers/Makefile
 
-diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
-index 63ffd78..955bf5e 100644
---- a/Documentation/ioctl/ioctl-number.txt
-+++ b/Documentation/ioctl/ioctl-number.txt
-@@ -225,6 +225,7 @@ Code  Seq#(hex)	Include File		Comments
- 'j'	00-3F	linux/joystick.h
- 'k'	00-0F	linux/spi/spidev.h	conflict!
- 'k'	00-05	video/kyro.h		conflict!
-+'k'	10-17	linux/hsi/hsi_char.h	HSI character device
- 'l'	00-3F	linux/tcfs_fs.h		transparent cryptographic file system
- 					<http://web.archive.org/web/*/http://mikonos.dia.unisa.it/tcfs>
- 'l'	40-7F	linux/udf_fs_i.h	in development:
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index b0810b9..1a1c0d9 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -111,6 +111,8 @@ obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
+ ifneq ($(CONFIG_TIDSPBRIDGE),)
+ obj-y					+= dsp.o
+ endif
++omap-ssi-$(CONFIG_OMAP_SSI)		:= ssi.o
++obj-y					+= $(omap-ssi-m) $(omap-ssi-y)
+ 
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+diff --git a/drivers/hsi/Kconfig b/drivers/hsi/Kconfig
+index 937062e..bba73ea 100644
+--- a/drivers/hsi/Kconfig
++++ b/drivers/hsi/Kconfig
+@@ -14,4 +14,6 @@ config HSI_BOARDINFO
+ 	bool
+ 	default y
+ 
++source "drivers/hsi/controllers/Kconfig"
++
+ endif # HSI
+diff --git a/drivers/hsi/Makefile b/drivers/hsi/Makefile
+index ed94a3a..0de87bd 100644
+--- a/drivers/hsi/Makefile
++++ b/drivers/hsi/Makefile
+@@ -3,3 +3,4 @@
+ #
+ obj-$(CONFIG_HSI_BOARDINFO)	+= hsi_boardinfo.o
+ obj-$(CONFIG_HSI)		+= hsi.o
++obj-y				+= controllers/
+diff --git a/drivers/hsi/controllers/Kconfig b/drivers/hsi/controllers/Kconfig
+new file mode 100644
+index 0000000..3efe0f0
+--- /dev/null
++++ b/drivers/hsi/controllers/Kconfig
+@@ -0,0 +1,23 @@
++#
++# HSI controllers configuration
++#
++comment "HSI controllers"
++
++config OMAP_SSI
++	tristate "OMAP SSI hardware driver"
++	depends on ARCH_OMAP && HSI
++	default n
++	---help---
++	  SSI is a legacy version of HSI. It is usually used to connect
++	  an application engine with a cellular modem.
++	  If you say Y here, you will enable the OMAP SSI hardware driver.
++
++	  If unsure, say N.
++
++if OMAP_SSI
++
++config OMAP_SSI_CONFIG
++	boolean
++	default y
++
++endif # OMAP_SSI
+diff --git a/drivers/hsi/controllers/Makefile b/drivers/hsi/controllers/Makefile
+new file mode 100644
+index 0000000..c4ba2c2
+--- /dev/null
++++ b/drivers/hsi/controllers/Makefile
+@@ -0,0 +1,5 @@
++#
++# Makefile for HSI controllers drivers
++#
++
++obj-$(CONFIG_OMAP_SSI)		+= omap_ssi.o
 -- 
 1.7.1
