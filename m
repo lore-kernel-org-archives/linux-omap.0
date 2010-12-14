@@ -1,80 +1,33 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH] ARM: OMAP: Power on EHCI, serial, camera and DVI on beagleboard-xM
-Date: Tue, 14 Dec 2010 15:11:08 +0100
-Message-ID: <E4A07EF4-1694-4B22-8015-0710B6BE7A2E@dominion.thruhere.net>
-References: <1291725639-86397-1-git-send-email-koen@beagleboard.org>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH v2 01/17] OMAP2420: hwmod data: add DSS DISPC RFBI VENC
+Date: Tue, 14 Dec 2010 16:20:55 +0200
+Message-ID: <1292336455.6893.133.camel@tubuntu>
+References: <1291031503-21036-1-git-send-email-svadivu@ti.com>
+	 <1291031503-21036-2-git-send-email-svadivu@ti.com>
+	 <FCCFB4CDC6E5564B9182F639FC356087035F28E41F@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:47776 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014Ab0LNOLN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 09:11:13 -0500
-Received: by wyb28 with SMTP id 28so505348wyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 14 Dec 2010 06:11:12 -0800 (PST)
-In-Reply-To: <1291725639-86397-1-git-send-email-koen@beagleboard.org>
+Received: from smtp.nokia.com ([147.243.1.48]:24306 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751504Ab0LNOVD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Dec 2010 09:21:03 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087035F28E41F@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: "ext Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Any comments on this?
+Hi,
 
-Op 7 dec 2010, om 13:40 heeft Koen Kooi het volgende geschreven:
+On Tue, 2010-12-14 at 11:37 +0530, ext Guruswamy, Senthilvadivu wrote:
+> Tomi,
 
-> From: Koen Kooi <koen@dominion.thruhere.net>
-> 
-> Signed-off-by: Koen Kooi <koen@beagleboard.org>
-> ---
-> arch/arm/mach-omap2/board-omap3beagle.c |   27 +++++++++++++++++++++++----
-> 1 files changed, 23 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index f1a8ede..9c9bd96 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -297,12 +297,31 @@ static int beagle_twl_gpio_setup(struct device *dev,
-> 	gpio_request(gpio + 1, "EHCI_nOC");
-> 	gpio_direction_input(gpio + 1);
-> 
-> -	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
-> +	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
-> +	 * high / others active low) */
-> 	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
-> -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
-> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
-> +	else
-> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
-> +
-> +	/* DVI reset GPIO is different between revisions */
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
-> +		beagle_dvi_device.reset_gpio = 129;
-> +	else
-> +		beagle_dvi_device.reset_gpio = 170;
-> +
-> +	 /* Power on DVI, Serial and PWR led */
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-> +		gpio_request(gpio + 1, "nDVI_PWR_EN");
-> +		gpio_direction_output(gpio + 1, 0);
-> +	}
-> 
-> -	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
-> -	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
-> +	/* Power on camera interface on P7/P8 or DVI on A2 and beyond */
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-> +		gpio_request(gpio + 2, "CAM_EN");
-> +		gpio_direction_output(gpio + 2, 1);
-> +	}
-> 
-> 	return 0;
-> }
-> -- 
-> 1.6.6.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> [Senthil] I see in patch work that the whole of this series is delegated to you.  Could you please act on this and let me know if there is anything pending from my side ?
+
+I'll try to find time to look through the patch set this week.
+
+ Tomi
+
 
