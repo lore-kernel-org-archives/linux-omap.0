@@ -1,13 +1,15 @@
 From: Rene Sapiens <rene.sapiens@ti.com>
-Subject: [PATCH 01/12] staging:tidspbridge - set1 remove hungarian from structs
-Date: Tue, 14 Dec 2010 14:33:07 -0600
-Message-ID: <1292358798-25875-2-git-send-email-rene.sapiens@ti.com>
+Subject: [PATCH 03/12] staging:tidspbridge - set3 remove hungarian from structs
+Date: Tue, 14 Dec 2010 14:33:09 -0600
+Message-ID: <1292358798-25875-4-git-send-email-rene.sapiens@ti.com>
 References: <1292358798-25875-1-git-send-email-rene.sapiens@ti.com>
+	<1292358798-25875-2-git-send-email-rene.sapiens@ti.com>
+	<1292358798-25875-3-git-send-email-rene.sapiens@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1292358798-25875-1-git-send-email-rene.sapiens@ti.com>
+In-Reply-To: <1292358798-25875-3-git-send-email-rene.sapiens@ti.com>
 List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
 	<mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
 List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel>
@@ -25,1015 +27,735 @@ hungarian notation will be removed from the elements inside
 structures, the next variables will be renamed:
 
 Original:               Replacement:
-dw_api_reg_base         api_reg_base
-dw_brd_state            brd_state
-dw_chnl_buf_size        chnl_buf_size
-dw_chnl_offset          chnl_offset
-dw_cmd                  cmd
-dw_core_pm_base         core_pm_base
-dw_dsp_base             dsp_base
-dw_dsp_base_va          dsp_base_va
-dw_dsp_bufs             dsp_bufs
-dw_dsp_buf_size         dsp_buf_size
-dw_dsp_clk_m2_base      dsp_clk_m2_base
-dw_dsp_ext_base_addr    dsp_ext_base_addr
-dw_dsp_phys_addr_offset dsp_phys_addr_offset
-dw_dsp_start_add        dsp_start_add
-dw_err_mask             err_mask
-dw_gpp_base_pa          gpp_base_pa
-dw_api_clk_base         api_clk_base
-dw_api_reg_base         api_reg_base
-dw_arg                  arg
-dw_arg1                 arg1
-dw_arg2                 arg2
-dw_chnl_buf_size        chnl_buf_size
+dw_seg_base_va          seg_base_va
+dw_self_loop            self_loop
+dw_state                state
+dw_tc_endianism         tc_endianism
+dw_test_base            test_base
+dw_type                 type
+dw_val1                 val1
+dw_val2                 val2
+dw_val3                 val3
+dw_va                   va
+dw_virt_base            virt_base
+dw_vm_base              vm_base
+dw_vm_size              vm_size
+pfn_allocate            allocate
+pfn_brd_mem_copy        brd_mem_copy
+pfn_brd_mem_map         brd_mem_map
+pfn_brd_mem_un_map      brd_mem_un_map
+pfn_brd_mem_write       brd_mem_write
+pfn_brd_monitor         brd_monitor
+pfn_brd_read            brd_read
 
 Signed-off-by: Rene Sapiens <rene.sapiens@ti.com>
 ---
- drivers/staging/tidspbridge/core/_tiomap.h         |   10 ++--
- drivers/staging/tidspbridge/core/chnl_sm.c         |    6 +-
- drivers/staging/tidspbridge/core/io_sm.c           |   38 +++++++-------
- drivers/staging/tidspbridge/core/tiomap3430.c      |   50 ++++++++++----------
- drivers/staging/tidspbridge/core/tiomap3430_pwr.c  |   38 +++++++-------
- drivers/staging/tidspbridge/core/tiomap_io.c       |   38 +++++++-------
- drivers/staging/tidspbridge/core/ue_deh.c          |    4 +-
- .../tidspbridge/include/dspbridge/_chnl_sm.h       |    2 +-
- .../tidspbridge/include/dspbridge/cfgdefs.h        |   10 ++--
- .../tidspbridge/include/dspbridge/chnldefs.h       |    2 +-
- .../tidspbridge/include/dspbridge/cmmdefs.h        |    8 ++--
- .../staging/tidspbridge/include/dspbridge/dbdefs.h |    8 ++--
- .../tidspbridge/include/dspbridge/dspapi-ioctl.h   |    4 +-
- drivers/staging/tidspbridge/pmgr/cmm.c             |   22 ++++----
- drivers/staging/tidspbridge/pmgr/dspapi.c          |    4 +-
- drivers/staging/tidspbridge/rmgr/drv.c             |   10 ++--
- drivers/staging/tidspbridge/rmgr/node.c            |   28 ++++++------
+ drivers/staging/tidspbridge/core/_tiomap.h         |    6 +-
+ drivers/staging/tidspbridge/core/chnl_sm.c         |   22 +++++-----
+ drivers/staging/tidspbridge/core/io_sm.c           |   34 ++++++++--------
+ drivers/staging/tidspbridge/core/tiomap3430.c      |    2 +-
+ .../tidspbridge/include/dspbridge/_chnl_sm.h       |    4 +-
+ .../tidspbridge/include/dspbridge/chnlpriv.h       |    4 +-
+ .../tidspbridge/include/dspbridge/cmmdefs.h        |    6 +-
+ .../staging/tidspbridge/include/dspbridge/dbdefs.h |    6 +-
+ .../tidspbridge/include/dspbridge/dspdefs.h        |   12 +++---
+ .../tidspbridge/include/dspbridge/nldrdefs.h       |    2 +-
+ drivers/staging/tidspbridge/pmgr/cmm.c             |   44 ++++++++++----------
+ drivers/staging/tidspbridge/pmgr/dev.c             |   16 ++++----
+ drivers/staging/tidspbridge/rmgr/node.c            |    6 +-
+ drivers/staging/tidspbridge/rmgr/proc.c            |    6 +-
  drivers/staging/tidspbridge/rmgr/strm.c            |    2 +-
- 18 files changed, 142 insertions(+), 142 deletions(-)
+ 15 files changed, 86 insertions(+), 86 deletions(-)
 
 diff --git a/drivers/staging/tidspbridge/core/_tiomap.h b/drivers/staging/tidspbridge/core/_tiomap.h
-index 1c1f157..59dbec4 100644
+index 919e22c..1cd3282 100644
 --- a/drivers/staging/tidspbridge/core/_tiomap.h
 +++ b/drivers/staging/tidspbridge/core/_tiomap.h
-@@ -309,22 +309,22 @@ static const struct bpwr_clk_t bpwr_clks[] = {
- /* This Bridge driver's device context: */
- struct bridge_dev_context {
- 	struct dev_object *hdev_obj;	/* Handle to Bridge device object. */
--	u32 dw_dsp_base_addr;	/* Arm's API to DSP virt base addr */
-+	u32 dsp_base_addr;	/* Arm's API to DSP virt base addr */
- 	/*
- 	 * DSP External memory prog address as seen virtually by the OS on
- 	 * the host side.
- 	 */
--	u32 dw_dsp_ext_base_addr;	/* See the comment above */
-+	u32 dsp_ext_base_addr;	/* See the comment above */
- 	u32 dw_api_reg_base;	/* API mem map'd registers */
- 	void __iomem *dw_dsp_mmu_base;	/* DSP MMU Mapped registers */
- 	u32 dw_api_clk_base;	/* CLK Registers */
--	u32 dw_dsp_clk_m2_base;	/* DSP Clock Module m2 */
-+	u32 dsp_clk_m2_base;	/* DSP Clock Module m2 */
- 	u32 dw_public_rhea;	/* Pub Rhea */
- 	u32 dw_int_addr;	/* MB INTR reg */
- 	u32 dw_tc_endianism;	/* TC Endianism register */
- 	u32 dw_test_base;	/* DSP MMU Mapped registers */
- 	u32 dw_self_loop;	/* Pointer to the selfloop */
--	u32 dw_dsp_start_add;	/* API Boot vector */
-+	u32 dsp_start_add;	/* API Boot vector */
- 	u32 dw_internal_size;	/* Internal memory size */
+@@ -321,9 +321,9 @@ struct bridge_dev_context {
+ 	u32 dsp_clk_m2_base;	/* DSP Clock Module m2 */
+ 	u32 public_rhea;	/* Pub Rhea */
+ 	u32 int_addr;		/* MB INTR reg */
+-	u32 dw_tc_endianism;	/* TC Endianism register */
+-	u32 dw_test_base;	/* DSP MMU Mapped registers */
+-	u32 dw_self_loop;	/* Pointer to the selfloop */
++	u32 tc_endianism;	/* TC Endianism register */
++	u32 test_base;		/* DSP MMU Mapped registers */
++	u32 self_loop;		/* Pointer to the selfloop */
+ 	u32 dsp_start_add;	/* API Boot vector */
+ 	u32 internal_size;	/* Internal memory size */
  
- 	struct omap_mbox *mbox;		/* Mail box handle */
-@@ -337,7 +337,7 @@ struct bridge_dev_context {
- 	 */
- 	/* DMMU TLB entries */
- 	struct bridge_ioctl_extproc atlb_entry[BRDIOCTL_NUMOFMMUTLB];
--	u32 dw_brd_state;       /* Last known board state. */
-+	u32 brd_state;       /* Last known board state. */
- 
- 	/* TC Settings */
- 	bool tc_word_swap_on;	/* Traffic Controller Word Swap */
 diff --git a/drivers/staging/tidspbridge/core/chnl_sm.c b/drivers/staging/tidspbridge/core/chnl_sm.c
-index 2d06bb0..a522627 100644
+index 59b8d55..c204315 100644
 --- a/drivers/staging/tidspbridge/core/chnl_sm.c
 +++ b/drivers/staging/tidspbridge/core/chnl_sm.c
-@@ -196,7 +196,7 @@ func_cont:
- 	chnl_packet_obj->byte_size = byte_size;
- 	chnl_packet_obj->buf_size = buf_size;
- 	/* Only valid for output channel */
--	chnl_packet_obj->dw_arg = dw_arg;
-+	chnl_packet_obj->arg = dw_arg;
- 	chnl_packet_obj->status = (is_eos ? CHNL_IOCSTATEOS :
- 			CHNL_IOCSTATCOMPLETE);
- 	list_add_tail(&chnl_packet_obj->link, &pchnl->pio_requests);
-@@ -607,7 +607,7 @@ int bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 timeout,
- 		ioc.pbuf = chnl_packet_obj->host_user_buf;
- 		ioc.byte_size = chnl_packet_obj->byte_size;
- 		ioc.buf_size = chnl_packet_obj->buf_size;
--		ioc.dw_arg = chnl_packet_obj->dw_arg;
-+		ioc.arg = chnl_packet_obj->arg;
- 		ioc.status |= chnl_packet_obj->status;
- 		/* Place the used chirp on the free list: */
- 		list_add_tail(&chnl_packet_obj->link,
-@@ -615,7 +615,7 @@ int bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 timeout,
- 	} else {
- 		ioc.pbuf = NULL;
- 		ioc.byte_size = 0;
--		ioc.dw_arg = 0;
-+		ioc.arg = 0;
- 		ioc.buf_size = 0;
+@@ -115,7 +115,7 @@ int bridge_chnl_add_io_req(struct chnl_object *chnl_obj, void *host_buf,
+ 	 * Check the channel state: only queue chirp if channel state
+ 	 * allows it.
+ 	 */
+-	dw_state = pchnl->dw_state;
++	dw_state = pchnl->state;
+ 	if (dw_state != CHNL_STATEREADY) {
+ 		if (dw_state & CHNL_STATECANCEL)
+ 			return -ECANCELED;
+@@ -207,7 +207,7 @@ func_cont:
+ 	 * more IOR's.
+ 	 */
+ 	if (is_eos)
+-		pchnl->dw_state |= CHNL_STATEEOS;
++		pchnl->state |= CHNL_STATEEOS;
+ 
+ 	/* Legacy DSM Processor-Copy */
+ 	DBC_ASSERT(pchnl->chnl_type == CHNL_PCPY);
+@@ -258,7 +258,7 @@ int bridge_chnl_cancel_io(struct chnl_object *chnl_obj)
+ 	 *  IORequests or dispatching. */
+ 	spin_lock_bh(&chnl_mgr_obj->chnl_mgr_lock);
+ 
+-	pchnl->dw_state |= CHNL_STATECANCEL;
++	pchnl->state |= CHNL_STATECANCEL;
+ 
+ 	if (list_empty(&pchnl->pio_requests)) {
+ 		spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
+@@ -312,7 +312,7 @@ int bridge_chnl_close(struct chnl_object *chnl_obj)
+ 	if (status)
+ 		return status;
+ 	/* Assert I/O on this channel is now cancelled: Protects from io_dpc */
+-	DBC_ASSERT((pchnl->dw_state & CHNL_STATECANCEL));
++	DBC_ASSERT((pchnl->state & CHNL_STATECANCEL));
+ 	/* Invalidate channel object: Protects from CHNL_GetIOCompletion() */
+ 	/* Free the slot in the channel manager: */
+ 	pchnl->chnl_mgr_obj->ap_channel[pchnl->chnl_id] = NULL;
+@@ -381,7 +381,7 @@ int bridge_chnl_create(struct chnl_mgr **channel_mgr,
+ 						* max_channels, GFP_KERNEL);
+ 		if (chnl_mgr_obj->ap_channel) {
+ 			/* Initialize chnl_mgr object */
+-			chnl_mgr_obj->dw_type = CHNL_TYPESM;
++			chnl_mgr_obj->type = CHNL_TYPESM;
+ 			chnl_mgr_obj->word_size = mgr_attrts->word_size;
+ 			/* Total # chnls supported */
+ 			chnl_mgr_obj->max_channels = max_channels;
+@@ -488,7 +488,7 @@ int bridge_chnl_flush_io(struct chnl_object *chnl_obj, u32 timeout)
+ 		} else {
+ 			status = bridge_chnl_cancel_io(chnl_obj);
+ 			/* Now, leave the channel in the ready state: */
+-			pchnl->dw_state &= ~CHNL_STATECANCEL;
++			pchnl->state &= ~CHNL_STATECANCEL;
+ 		}
  	}
- 	/* Ensure invariant: If any IOC's are queued for this channel... */
+ 	DBC_ENSURE(status || list_empty(&pchnl->pio_requests));
+@@ -517,7 +517,7 @@ int bridge_chnl_get_info(struct chnl_object *chnl_obj,
+ 			channel_info->sync_event = pchnl->sync_event;
+ 			channel_info->cio_cs = pchnl->cio_cs;
+ 			channel_info->cio_reqs = pchnl->cio_reqs;
+-			channel_info->dw_state = pchnl->dw_state;
++			channel_info->state = pchnl->state;
+ 		} else {
+ 			status = -EFAULT;
+ 		}
+@@ -687,7 +687,7 @@ int bridge_chnl_get_mgr_info(struct chnl_mgr *hchnl_mgr, u32 ch_id,
+ 	/* Return the requested information: */
+ 	mgr_info->chnl_obj = chnl_mgr_obj->ap_channel[ch_id];
+ 	mgr_info->open_channels = chnl_mgr_obj->open_channels;
+-	mgr_info->dw_type = chnl_mgr_obj->dw_type;
++	mgr_info->type = chnl_mgr_obj->type;
+ 	/* total # of chnls */
+ 	mgr_info->max_channels = chnl_mgr_obj->max_channels;
+ 
+@@ -718,7 +718,7 @@ int bridge_chnl_idle(struct chnl_object *chnl_obj, u32 timeout,
+ 
+ 		/* Reset the byte count and put channel back in ready state. */
+ 		chnl_obj->bytes_moved = 0;
+-		chnl_obj->dw_state &= ~CHNL_STATECANCEL;
++		chnl_obj->state &= ~CHNL_STATECANCEL;
+ 	}
+ 
+ 	return status;
+@@ -769,7 +769,7 @@ int bridge_chnl_open(struct chnl_object **chnl,
+ 		return -ENOMEM;
+ 
+ 	/* Protect queues from io_dpc: */
+-	pchnl->dw_state = CHNL_STATECANCEL;
++	pchnl->state = CHNL_STATECANCEL;
+ 
+ 	/* Allocate initial IOR and IOC queues: */
+ 	status = create_chirp_list(&pchnl->free_packets_list,
+@@ -817,7 +817,7 @@ int bridge_chnl_open(struct chnl_object **chnl,
+ 	chnl_mgr_obj->open_channels++;
+ 	spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
+ 	/* Return result... */
+-	pchnl->dw_state = CHNL_STATEREADY;
++	pchnl->state = CHNL_STATEREADY;
+ 	*chnl = pchnl;
+ 
+ 	return status;
 diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/staging/tidspbridge/core/io_sm.c
-index 9289522..3e3e184 100644
+index a607328..b734c42 100644
 --- a/drivers/staging/tidspbridge/core/io_sm.c
 +++ b/drivers/staging/tidspbridge/core/io_sm.c
-@@ -1113,7 +1113,7 @@ static void input_chnl(struct io_mgr *pio_mgr, struct chnl_object *pchnl,
- 						pio_mgr->input, bytes);
- 				pchnl->bytes_moved += bytes;
- 				chnl_packet_obj->byte_size = bytes;
--				chnl_packet_obj->dw_arg = dw_arg;
-+				chnl_packet_obj->arg = dw_arg;
- 				chnl_packet_obj->status = CHNL_IOCSTATCOMPLETE;
- 
- 				if (bytes == 0) {
-@@ -1200,14 +1200,14 @@ static void input_msg(struct io_mgr *pio_mgr, struct msg_mgr *hmsg_mgr)
- 	msg_input = pio_mgr->msg_input;
- 	for (i = 0; i < num_msgs; i++) {
- 		/* Read the next message */
--		addr = (u32) &(((struct msg_dspmsg *)msg_input)->msg.dw_cmd);
--		msg.msg.dw_cmd =
-+		addr = (u32) &(((struct msg_dspmsg *)msg_input)->msg.cmd);
-+		msg.msg.cmd =
- 			read_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr);
--		addr = (u32) &(((struct msg_dspmsg *)msg_input)->msg.dw_arg1);
--		msg.msg.dw_arg1 =
-+		addr = (u32) &(((struct msg_dspmsg *)msg_input)->msg.arg1);
-+		msg.msg.arg1 =
- 			read_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr);
--		addr = (u32) &(((struct msg_dspmsg *)msg_input)->msg.dw_arg2);
--		msg.msg.dw_arg2 =
-+		addr = (u32) &(((struct msg_dspmsg *)msg_input)->msg.arg2);
-+		msg.msg.arg2 =
- 			read_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr);
- 		addr = (u32) &(((struct msg_dspmsg *)msg_input)->msgq_id);
- 		msg.msgq_id =
-@@ -1215,9 +1215,9 @@ static void input_msg(struct io_mgr *pio_mgr, struct msg_mgr *hmsg_mgr)
- 		msg_input += sizeof(struct msg_dspmsg);
- 
- 		/* Determine which queue to put the message in */
--		dev_dbg(bridge,	"input msg: dw_cmd=0x%x dw_arg1=0x%x "
--				"dw_arg2=0x%x msgq_id=0x%x\n", msg.msg.dw_cmd,
--				msg.msg.dw_arg1, msg.msg.dw_arg2, msg.msgq_id);
-+		dev_dbg(bridge,	"input msg: cmd=0x%x dw_arg1=0x%x "
-+				"dw_arg2=0x%x msgq_id=0x%x\n", msg.msg.cmd,
-+				msg.msg.arg1, msg.msg.arg2, msg.msgq_id);
+@@ -483,7 +483,7 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 							      1)) == 0)) {
+ 				status =
+ 				    hio_mgr->intf_fxns->
+-				    pfn_brd_mem_map(hio_mgr->hbridge_context,
++				    brd_mem_map(hio_mgr->hbridge_context,
+ 						    pa_curr, va_curr,
+ 						    page_size[i], map_attrs,
+ 						    NULL);
+@@ -549,7 +549,7 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 			} else {
+ 				status =
+ 				    hio_mgr->intf_fxns->
+-				    pfn_brd_mem_map(hio_mgr->hbridge_context,
++				    brd_mem_map(hio_mgr->hbridge_context,
+ 						    pa_curr, va_curr,
+ 						    page_size[i], map_attrs,
+ 						    NULL);
+@@ -615,7 +615,7 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 					ae_proc[ndx].ul_dsp_va);
+ 				ndx++;
+ 			} else {
+-				status = hio_mgr->intf_fxns->pfn_brd_mem_map
++				status = hio_mgr->intf_fxns->brd_mem_map
+ 				    (hio_mgr->hbridge_context,
+ 				     hio_mgr->ext_proc_info.ty_tlb[i].
+ 				     ul_gpp_phys,
+@@ -637,7 +637,7 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 	/* Map the L4 peripherals */
+ 	i = 0;
+ 	while (l4_peripheral_table[i].phys_addr) {
+-		status = hio_mgr->intf_fxns->pfn_brd_mem_map
++		status = hio_mgr->intf_fxns->brd_mem_map
+ 		    (hio_mgr->hbridge_context, l4_peripheral_table[i].phys_addr,
+ 		     l4_peripheral_table[i].dsp_virt_addr, HW_PAGE_SIZE4KB,
+ 		     map_attrs, NULL);
+@@ -977,8 +977,8 @@ void io_request_chnl(struct io_mgr *io_manager, struct chnl_object *pchnl,
+ 		 * Assertion fires if CHNL_AddIOReq() called on a stream
+ 		 * which was cancelled, or attached to a dead board.
+ 		 */
+-		DBC_ASSERT((pchnl->dw_state == CHNL_STATEREADY) ||
+-			   (pchnl->dw_state == CHNL_STATEEOS));
++		DBC_ASSERT((pchnl->state == CHNL_STATEREADY) ||
++			   (pchnl->state == CHNL_STATEEOS));
+ 		/* Indicate to the DSP we have a buffer available for input */
+ 		set_chnl_busy(sm, pchnl->chnl_id);
+ 		*mbx_val = MBX_PCPY_CLASS;
+@@ -987,7 +987,7 @@ void io_request_chnl(struct io_mgr *io_manager, struct chnl_object *pchnl,
+ 		 * This assertion fails if CHNL_AddIOReq() was called on a
+ 		 * stream which was cancelled, or attached to a dead board.
+ 		 */
+-		DBC_ASSERT((pchnl->dw_state & ~CHNL_STATEEOS) ==
++		DBC_ASSERT((pchnl->state & ~CHNL_STATEEOS) ==
+ 			   CHNL_STATEREADY);
  		/*
- 		 * Interrupt may occur before shared memory and message
- 		 * input locations have been set up. If all nodes were
-@@ -1228,14 +1228,14 @@ static void input_msg(struct io_mgr *pio_mgr, struct msg_mgr *hmsg_mgr)
- 			if (msg.msgq_id != msg_queue_obj->msgq_id)
- 				continue;
- 			/* Found it */
--			if (msg.msg.dw_cmd == RMS_EXITACK) {
-+			if (msg.msg.cmd == RMS_EXITACK) {
- 				/*
- 				 * Call the node exit notification.
- 				 * The exit message does not get
- 				 * queued.
- 				 */
- 				(*hmsg_mgr->on_exit)(msg_queue_obj->arg,
--						msg.msg.dw_arg1);
-+						msg.msg.arg1);
- 				break;
- 			}
- 			/*
-@@ -1367,7 +1367,7 @@ static void output_chnl(struct io_mgr *pio_mgr, struct chnl_object *pchnl,
- 					chnl_packet_obj->byte_size);
- 	pchnl->bytes_moved += chnl_packet_obj->byte_size;
- 	/* Write all 32 bits of arg */
--	sm->arg = chnl_packet_obj->dw_arg;
-+	sm->arg = chnl_packet_obj->arg;
- #if _CHNL_WORDSIZE == 2
- 	/* Access can be different SM access word size (e.g. 16/32 bit words) */
- 	sm->output_id = (u16) chnl_id;
-@@ -1430,16 +1430,16 @@ static void output_msg(struct io_mgr *pio_mgr, struct msg_mgr *hmsg_mgr)
- 		addr = (u32) &msg_output->msgq_id;
- 		write_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr, val);
+ 		 * Record the fact that we have a buffer available for
+@@ -1092,7 +1092,7 @@ static void input_chnl(struct io_mgr *pio_mgr, struct chnl_object *pchnl,
+ 	}
+ 	pchnl = chnl_mgr_obj->ap_channel[chnl_id];
+ 	if ((pchnl != NULL) && CHNL_IS_INPUT(pchnl->chnl_mode)) {
+-		if ((pchnl->dw_state & ~CHNL_STATEEOS) == CHNL_STATEREADY) {
++		if ((pchnl->state & ~CHNL_STATEEOS) == CHNL_STATEREADY) {
+ 			/* Get the I/O request, and attempt a transfer */
+ 			if (!list_empty(&pchnl->pio_requests)) {
+ 				if (!pchnl->cio_reqs)
+@@ -1122,7 +1122,7 @@ static void input_chnl(struct io_mgr *pio_mgr, struct chnl_object *pchnl,
+ 					 * sends EOS more than once on this
+ 					 * channel.
+ 					 */
+-					if (pchnl->dw_state & CHNL_STATEEOS)
++					if (pchnl->state & CHNL_STATEEOS)
+ 						goto func_end;
+ 					/*
+ 					 * Zero bytes indicates EOS. Update
+@@ -1131,7 +1131,7 @@ static void input_chnl(struct io_mgr *pio_mgr, struct chnl_object *pchnl,
+ 					 */
+ 					chnl_packet_obj->status |=
+ 						CHNL_IOCSTATEOS;
+-					pchnl->dw_state |= CHNL_STATEEOS;
++					pchnl->state |= CHNL_STATEEOS;
+ 					/*
+ 					 * Notify that end of stream has
+ 					 * occurred.
+@@ -1329,7 +1329,7 @@ static void output_chnl(struct io_mgr *pio_mgr, struct chnl_object *pchnl,
+ 	if (sm->output_full)
+ 		goto func_end;
  
--		val = (pmsg->msg_data).msg.dw_cmd;
--		addr = (u32) &msg_output->msg.dw_cmd;
-+		val = (pmsg->msg_data).msg.cmd;
-+		addr = (u32) &msg_output->msg.cmd;
- 		write_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr, val);
+-	if (pchnl && !((pchnl->dw_state & ~CHNL_STATEEOS) == CHNL_STATEREADY))
++	if (pchnl && !((pchnl->state & ~CHNL_STATEEOS) == CHNL_STATEREADY))
+ 		goto func_end;
  
--		val = (pmsg->msg_data).msg.dw_arg1;
--		addr = (u32) &msg_output->msg.dw_arg1;
-+		val = (pmsg->msg_data).msg.arg1;
-+		addr = (u32) &msg_output->msg.arg1;
- 		write_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr, val);
+ 	/* Look to see if both a PC and DSP output channel are ready */
+@@ -1814,7 +1814,7 @@ int print_dsp_trace_buffer(struct bridge_dev_context *hbridge_context)
+ 	psz_buf = kzalloc(ul_num_bytes + 2, GFP_ATOMIC);
+ 	if (psz_buf != NULL) {
+ 		/* Read trace buffer data */
+-		status = (*intf_fxns->pfn_brd_read)(pbridge_context,
++		status = (*intf_fxns->brd_read)(pbridge_context,
+ 			(u8 *)psz_buf, (u32)ul_trace_begin,
+ 			ul_num_bytes, 0);
  
--		val = (pmsg->msg_data).msg.dw_arg2;
--		addr = (u32) &msg_output->msg.dw_arg2;
-+		val = (pmsg->msg_data).msg.arg2;
-+		addr = (u32) &msg_output->msg.arg2;
- 		write_ext32_bit_dsp_data(pio_mgr->hbridge_context, addr, val);
+@@ -1829,7 +1829,7 @@ int print_dsp_trace_buffer(struct bridge_dev_context *hbridge_context)
+ 			__func__, psz_buf);
  
- 		msg_output++;
+ 		/* Read the value at the DSP address in trace_cur_pos. */
+-		status = (*intf_fxns->pfn_brd_read)(pbridge_context,
++		status = (*intf_fxns->brd_read)(pbridge_context,
+ 				(u8 *)&trace_cur_pos, (u32)trace_cur_pos,
+ 				4, 0);
+ 		if (status)
+@@ -1996,7 +1996,7 @@ int dump_dsp_stack(struct bridge_dev_context *bridge_context)
+ 			poll_cnt < POLL_MAX) {
+ 
+ 			/* Read DSP dump size from the DSP trace buffer... */
+-			status = (*intf_fxns->pfn_brd_read)(bridge_context,
++			status = (*intf_fxns->brd_read)(bridge_context,
+ 				(u8 *)&mmu_fault_dbg_info, (u32)trace_begin,
+ 				sizeof(mmu_fault_dbg_info), 0);
+ 
+@@ -2032,7 +2032,7 @@ int dump_dsp_stack(struct bridge_dev_context *bridge_context)
+ 		buffer_end =  buffer + total_size / 4;
+ 
+ 		/* Read bytes from the DSP trace buffer... */
+-		status = (*intf_fxns->pfn_brd_read)(bridge_context,
++		status = (*intf_fxns->brd_read)(bridge_context,
+ 				(u8 *)buffer, (u32)trace_begin,
+ 				total_size, 0);
+ 		if (status) {
+@@ -2193,7 +2193,7 @@ void dump_dl_modules(struct bridge_dev_context *bridge_context)
+ 	pr_debug("%s: _DLModules at 0x%x\n", __func__, module_dsp_addr);
+ 
+ 	/* Copy the modules_header structure from DSP memory. */
+-	status = (*intf_fxns->pfn_brd_read)(bridge_context, (u8 *) &modules_hdr,
++	status = (*intf_fxns->brd_read)(bridge_context, (u8 *) &modules_hdr,
+ 				(u32) module_dsp_addr, sizeof(modules_hdr), 0);
+ 
+ 	if (status) {
+@@ -2228,7 +2228,7 @@ void dump_dl_modules(struct bridge_dev_context *bridge_context)
+ 				goto func_end;
+ 		}
+ 		/* Copy the dll_module structure from DSP memory */
+-		status = (*intf_fxns->pfn_brd_read)(bridge_context,
++		status = (*intf_fxns->brd_read)(bridge_context,
+ 			(u8 *)module_struct, module_dsp_addr, module_size, 0);
+ 
+ 		if (status) {
 diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index cb45e93..6335974 100644
+index 436e6b2..d1b9c5c 100644
 --- a/drivers/staging/tidspbridge/core/tiomap3430.c
 +++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -225,8 +225,8 @@ static struct bridge_drv_interface drv_interface_fxns = {
- 
- static inline void flush_all(struct bridge_dev_context *dev_context)
- {
--	if (dev_context->dw_brd_state == BRD_DSP_HIBERNATION ||
--	    dev_context->dw_brd_state == BRD_HIBERNATION)
-+	if (dev_context->brd_state == BRD_DSP_HIBERNATION ||
-+	    dev_context->brd_state == BRD_HIBERNATION)
- 		wake_dsp(dev_context, NULL);
- 
- 	hw_mmu_tlb_flush_all(dev_context->dw_dsp_mmu_base);
-@@ -304,7 +304,7 @@ static int bridge_brd_monitor(struct bridge_dev_context *dev_ctxt)
- 	dsp_clk_enable(DSP_CLK_IVA2);
- 
- 	/* set the device state to IDLE */
--	dev_context->dw_brd_state = BRD_IDLE;
-+	dev_context->brd_state = BRD_IDLE;
- 
- 	return 0;
- }
-@@ -321,16 +321,16 @@ static int bridge_brd_read(struct bridge_dev_context *dev_ctxt,
- 	int status = 0;
- 	struct bridge_dev_context *dev_context = dev_ctxt;
- 	u32 offset;
--	u32 dsp_base_addr = dev_ctxt->dw_dsp_base_addr;
-+	u32 dsp_base_addr = dev_ctxt->dsp_base_addr;
- 
--	if (dsp_addr < dev_context->dw_dsp_start_add) {
-+	if (dsp_addr < dev_context->dsp_start_add) {
- 		status = -EPERM;
- 		return status;
- 	}
- 	/* change here to account for the 3 bands of the DSP internal memory */
--	if ((dsp_addr - dev_context->dw_dsp_start_add) <
-+	if ((dsp_addr - dev_context->dsp_start_add) <
- 	    dev_context->dw_internal_size) {
--		offset = dsp_addr - dev_context->dw_dsp_start_add;
-+		offset = dsp_addr - dev_context->dsp_start_add;
- 	} else {
- 		status = read_ext_dsp_data(dev_context, host_buff, dsp_addr,
- 					   ul_num_bytes, mem_type);
-@@ -352,7 +352,7 @@ static int bridge_brd_set_state(struct bridge_dev_context *dev_ctxt,
- 	int status = 0;
- 	struct bridge_dev_context *dev_context = dev_ctxt;
- 
--	dev_context->dw_brd_state = brd_state;
-+	dev_context->brd_state = brd_state;
- 	return status;
- }
- 
-@@ -616,10 +616,10 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 			__raw_writel(0XCAFECAFE, dw_sync_addr);
- 
- 			/* update board state */
--			dev_context->dw_brd_state = BRD_RUNNING;
-+			dev_context->brd_state = BRD_RUNNING;
- 			/* (void)chnlsm_enable_interrupt(dev_context); */
- 		} else {
--			dev_context->dw_brd_state = BRD_UNKNOWN;
-+			dev_context->brd_state = BRD_UNKNOWN;
- 		}
- 	}
- 	return status;
-@@ -642,7 +642,7 @@ static int bridge_brd_stop(struct bridge_dev_context *dev_ctxt)
- 	struct omap_dsp_platform_data *pdata =
- 		omap_dspbridge_dev->dev.platform_data;
- 
--	if (dev_context->dw_brd_state == BRD_STOPPED)
-+	if (dev_context->brd_state == BRD_STOPPED)
- 		return status;
- 
- 	/* as per TRM, it is advised to first drive the IVA2 to 'Standby' mode,
-@@ -667,10 +667,10 @@ static int bridge_brd_stop(struct bridge_dev_context *dev_ctxt)
- 	udelay(10);
- 	/* Release the Ext Base virtual Address as the next DSP Program
- 	 * may have a different load address */
--	if (dev_context->dw_dsp_ext_base_addr)
--		dev_context->dw_dsp_ext_base_addr = 0;
-+	if (dev_context->dsp_ext_base_addr)
-+		dev_context->dsp_ext_base_addr = 0;
- 
--	dev_context->dw_brd_state = BRD_STOPPED;	/* update board state */
-+	dev_context->brd_state = BRD_STOPPED;	/* update board state */
- 
- 	dsp_wdt_enable(false);
- 
-@@ -706,7 +706,7 @@ static int bridge_brd_status(struct bridge_dev_context *dev_ctxt,
- 				    int *board_state)
- {
- 	struct bridge_dev_context *dev_context = dev_ctxt;
--	*board_state = dev_context->dw_brd_state;
-+	*board_state = dev_context->brd_state;
- 	return 0;
- }
- 
-@@ -721,11 +721,11 @@ static int bridge_brd_write(struct bridge_dev_context *dev_ctxt,
- 	int status = 0;
- 	struct bridge_dev_context *dev_context = dev_ctxt;
- 
--	if (dsp_addr < dev_context->dw_dsp_start_add) {
-+	if (dsp_addr < dev_context->dsp_start_add) {
- 		status = -EPERM;
- 		return status;
- 	}
--	if ((dsp_addr - dev_context->dw_dsp_start_add) <
-+	if ((dsp_addr - dev_context->dsp_start_add) <
- 	    dev_context->dw_internal_size) {
- 		status = write_dsp_data(dev_ctxt, host_buff, dsp_addr,
- 					ul_num_bytes, mem_type);
-@@ -764,7 +764,7 @@ static int bridge_dev_create(struct bridge_dev_context
- 		goto func_end;
+@@ -765,7 +765,7 @@ static int bridge_dev_create(struct bridge_dev_context
  	}
  
--	dev_context->dw_dsp_start_add = (u32) OMAP_GEM_BASE;
-+	dev_context->dsp_start_add = (u32) OMAP_GEM_BASE;
- 	dev_context->dw_self_loop = (u32) NULL;
+ 	dev_context->dsp_start_add = (u32) OMAP_GEM_BASE;
+-	dev_context->dw_self_loop = (u32) NULL;
++	dev_context->self_loop = (u32) NULL;
  	dev_context->dsp_per_clks = 0;
- 	dev_context->dw_internal_size = OMAP_DSP_SIZE;
-@@ -774,14 +774,14 @@ static int bridge_dev_create(struct bridge_dev_context
- 		dev_context->atlb_entry[entry_ndx].ul_gpp_pa =
- 		    dev_context->atlb_entry[entry_ndx].ul_dsp_va = 0;
- 	}
--	dev_context->dw_dsp_base_addr = (u32) MEM_LINEAR_ADDRESS((void *)
-+	dev_context->dsp_base_addr = (u32) MEM_LINEAR_ADDRESS((void *)
- 								 (config_param->
- 								  dw_mem_base
- 								  [3]),
- 								 config_param->
- 								 dw_mem_length
- 								 [3]);
--	if (!dev_context->dw_dsp_base_addr)
-+	if (!dev_context->dsp_base_addr)
- 		status = -EPERM;
- 
- 	pt_attrs = kzalloc(sizeof(struct pg_table_attrs), GFP_KERNEL);
-@@ -877,7 +877,7 @@ static int bridge_dev_create(struct bridge_dev_context
- 	if (!status) {
- 		dev_context->hdev_obj = hdev_obj;
- 		/* Store current board state. */
--		dev_context->dw_brd_state = BRD_UNKNOWN;
-+		dev_context->brd_state = BRD_UNKNOWN;
- 		dev_context->resources = resources;
- 		dsp_clk_enable(DSP_CLK_IVA2);
- 		bridge_brd_stop(dev_context);
-@@ -1035,8 +1035,8 @@ static int bridge_dev_destroy(struct bridge_dev_context *dev_ctxt)
- 			iounmap(host_res->dw_per_base);
- 		if (host_res->dw_per_pm_base)
- 			iounmap((void *)host_res->dw_per_pm_base);
--		if (host_res->dw_core_pm_base)
--			iounmap((void *)host_res->dw_core_pm_base);
-+		if (host_res->core_pm_base)
-+			iounmap((void *)host_res->core_pm_base);
- 
- 		host_res->dw_mem_base[0] = (u32) NULL;
- 		host_res->dw_mem_base[2] = (u32) NULL;
-@@ -1073,7 +1073,7 @@ static int bridge_brd_mem_copy(struct bridge_dev_context *dev_ctxt,
- 		status = read_ext_dsp_data(dev_ctxt, host_buf, src_addr,
- 					   copy_bytes, mem_type);
- 		if (!status) {
--			if (dest_addr < (dev_context->dw_dsp_start_add +
-+			if (dest_addr < (dev_context->dsp_start_add +
- 					 dev_context->dw_internal_size)) {
- 				/* Write to Internal memory */
- 				status = write_dsp_data(dev_ctxt, host_buf,
-@@ -1107,7 +1107,7 @@ static int bridge_brd_mem_write(struct bridge_dev_context *dev_ctxt,
- 	while (ul_remain_bytes > 0 && !status) {
- 		ul_bytes =
- 		    ul_remain_bytes > BUFFERSIZE ? BUFFERSIZE : ul_remain_bytes;
--		if (dsp_addr < (dev_context->dw_dsp_start_add +
-+		if (dsp_addr < (dev_context->dsp_start_add +
- 				 dev_context->dw_internal_size)) {
- 			status =
- 			    write_dsp_data(dev_ctxt, host_buff, dsp_addr,
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
-index fb9026e..b0641f2 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
-@@ -118,7 +118,7 @@ int handle_hibernation_from_dsp(struct bridge_dev_context *dev_context)
- 
- 		if (!status) {
- 			/* Update the Bridger Driver state */
--			dev_context->dw_brd_state = BRD_DSP_HIBERNATION;
-+			dev_context->brd_state = BRD_DSP_HIBERNATION;
- #ifdef CONFIG_TIDSPBRIDGE_DVFS
- 			status =
- 			    dev_get_io_mgr(dev_context->hdev_obj, &hio_mgr);
-@@ -163,7 +163,7 @@ int sleep_dsp(struct bridge_dev_context *dev_context, u32 dw_cmd,
- 	if ((dw_cmd != PWR_DEEPSLEEP) && (dw_cmd != PWR_EMERGENCYDEEPSLEEP))
- 		return -EINVAL;
- 
--	switch (dev_context->dw_brd_state) {
-+	switch (dev_context->brd_state) {
- 	case BRD_RUNNING:
- 		omap_mbox_save_ctx(dev_context->mbox);
- 		if (dsp_test_sleepstate == PWRDM_POWER_OFF) {
-@@ -223,9 +223,9 @@ int sleep_dsp(struct bridge_dev_context *dev_context, u32 dw_cmd,
- 	} else {
- 		/* Update the Bridger Driver state */
- 		if (dsp_test_sleepstate == PWRDM_POWER_OFF)
--			dev_context->dw_brd_state = BRD_HIBERNATION;
-+			dev_context->brd_state = BRD_HIBERNATION;
- 		else
--			dev_context->dw_brd_state = BRD_RETENTION;
-+			dev_context->brd_state = BRD_RETENTION;
- 
- 		/* Disable wdt on hibernation. */
- 		dsp_wdt_enable(false);
-@@ -258,8 +258,8 @@ int wake_dsp(struct bridge_dev_context *dev_context, void *pargs)
- #ifdef CONFIG_PM
- 
- 	/* Check the board state, if it is not 'SLEEP' then return */
--	if (dev_context->dw_brd_state == BRD_RUNNING ||
--	    dev_context->dw_brd_state == BRD_STOPPED) {
-+	if (dev_context->brd_state == BRD_RUNNING ||
-+	    dev_context->brd_state == BRD_STOPPED) {
- 		/* The Device is in 'RET' or 'OFF' state and Bridge state is not
- 		 * 'SLEEP', this means state inconsistency, so return */
- 		return 0;
-@@ -269,7 +269,7 @@ int wake_dsp(struct bridge_dev_context *dev_context, void *pargs)
- 	sm_interrupt_dsp(dev_context, MBX_PM_DSPWAKEUP);
- 
- 	/* Set the device state to RUNNIG */
--	dev_context->dw_brd_state = BRD_RUNNING;
-+	dev_context->brd_state = BRD_RUNNING;
- #endif /* CONFIG_PM */
- 	return status;
- }
-@@ -351,12 +351,12 @@ int pre_scale_dsp(struct bridge_dev_context *dev_context, void *pargs)
- 
- 	dev_dbg(bridge, "OPP: %s voltage_domain = %x, level = 0x%x\n",
- 		__func__, voltage_domain, level);
--	if ((dev_context->dw_brd_state == BRD_HIBERNATION) ||
--	    (dev_context->dw_brd_state == BRD_RETENTION) ||
--	    (dev_context->dw_brd_state == BRD_DSP_HIBERNATION)) {
-+	if ((dev_context->brd_state == BRD_HIBERNATION) ||
-+	    (dev_context->brd_state == BRD_RETENTION) ||
-+	    (dev_context->brd_state == BRD_DSP_HIBERNATION)) {
- 		dev_dbg(bridge, "OPP: %s IVA in sleep. No message to DSP\n");
- 		return 0;
--	} else if ((dev_context->dw_brd_state == BRD_RUNNING)) {
-+	} else if ((dev_context->brd_state == BRD_RUNNING)) {
- 		/* Send a prenotificatio to DSP */
- 		dev_dbg(bridge, "OPP: %s sent notification to DSP\n", __func__);
- 		sm_interrupt_dsp(dev_context, MBX_PM_SETPOINT_PRENOTIFY);
-@@ -390,14 +390,14 @@ int post_scale_dsp(struct bridge_dev_context *dev_context,
- 	level = *((u32 *) pargs + 1);
- 	dev_dbg(bridge, "OPP: %s voltage_domain = %x, level = 0x%x\n",
- 		__func__, voltage_domain, level);
--	if ((dev_context->dw_brd_state == BRD_HIBERNATION) ||
--	    (dev_context->dw_brd_state == BRD_RETENTION) ||
--	    (dev_context->dw_brd_state == BRD_DSP_HIBERNATION)) {
-+	if ((dev_context->brd_state == BRD_HIBERNATION) ||
-+	    (dev_context->brd_state == BRD_RETENTION) ||
-+	    (dev_context->brd_state == BRD_DSP_HIBERNATION)) {
- 		/* Update the OPP value in shared memory */
- 		io_sh_msetting(hio_mgr, SHM_CURROPP, &level);
- 		dev_dbg(bridge, "OPP: %s IVA in sleep. Wrote to shm\n",
- 			__func__);
--	} else if ((dev_context->dw_brd_state == BRD_RUNNING)) {
-+	} else if ((dev_context->brd_state == BRD_RUNNING)) {
- 		/* Update the OPP value in shared memory */
- 		io_sh_msetting(hio_mgr, SHM_CURROPP, &level);
- 		/* Send a post notification to DSP */
-@@ -486,8 +486,8 @@ void dsp_clk_wakeup_event_ctrl(u32 clock_id, bool enable)
- 		writel(mpu_grpsel, resources->dw_per_pm_base + 0xA4);
- 		break;
- 	case BPWR_MCBSP1:
--		iva2_grpsel = readl(resources->dw_core_pm_base + 0xA8);
--		mpu_grpsel = readl(resources->dw_core_pm_base + 0xA4);
-+		iva2_grpsel = readl(resources->core_pm_base + 0xA8);
-+		mpu_grpsel = readl(resources->core_pm_base + 0xA4);
- 		if (enable) {
- 			iva2_grpsel |= OMAP3430_GRPSEL_MCBSP1_MASK;
- 			mpu_grpsel &= ~OMAP3430_GRPSEL_MCBSP1_MASK;
-@@ -495,8 +495,8 @@ void dsp_clk_wakeup_event_ctrl(u32 clock_id, bool enable)
- 			mpu_grpsel |= OMAP3430_GRPSEL_MCBSP1_MASK;
- 			iva2_grpsel &= ~OMAP3430_GRPSEL_MCBSP1_MASK;
- 		}
--		writel(iva2_grpsel, resources->dw_core_pm_base + 0xA8);
--		writel(mpu_grpsel, resources->dw_core_pm_base + 0xA4);
-+		writel(iva2_grpsel, resources->core_pm_base + 0xA8);
-+		writel(mpu_grpsel, resources->core_pm_base + 0xA4);
- 		break;
- 	case BPWR_MCBSP2:
- 		iva2_grpsel = readl(resources->dw_per_pm_base + 0xA8);
-diff --git a/drivers/staging/tidspbridge/core/tiomap_io.c b/drivers/staging/tidspbridge/core/tiomap_io.c
-index ba29610..c6f5b01 100644
---- a/drivers/staging/tidspbridge/core/tiomap_io.c
-+++ b/drivers/staging/tidspbridge/core/tiomap_io.c
-@@ -61,7 +61,7 @@ int read_ext_dsp_data(struct bridge_dev_context *dev_ctxt,
- 	u32 ul_tlb_base_virt = 0;
- 	u32 ul_shm_offset_virt = 0;
- 	u32 dw_ext_prog_virt_mem;
--	u32 dw_base_addr = dev_context->dw_dsp_ext_base_addr;
-+	u32 dw_base_addr = dev_context->dsp_ext_base_addr;
- 	bool trace_read = false;
- 
- 	if (!ul_shm_base_virt) {
-@@ -92,7 +92,7 @@ int read_ext_dsp_data(struct bridge_dev_context *dev_ctxt,
- 	/* If reading from TRACE, force remap/unmap */
- 	if (trace_read && dw_base_addr) {
- 		dw_base_addr = 0;
--		dev_context->dw_dsp_ext_base_addr = 0;
-+		dev_context->dsp_ext_base_addr = 0;
- 	}
- 
- 	if (!dw_base_addr) {
-@@ -148,14 +148,14 @@ int read_ext_dsp_data(struct bridge_dev_context *dev_ctxt,
- 				dw_ext_prog_virt_mem -= ul_shm_offset_virt;
- 				dw_ext_prog_virt_mem +=
- 				    (ul_ext_base - ul_dyn_ext_base);
--				dev_context->dw_dsp_ext_base_addr =
-+				dev_context->dsp_ext_base_addr =
- 				    dw_ext_prog_virt_mem;
- 
- 				/*
- 				 * This dw_dsp_ext_base_addr will get cleared
- 				 * only when the board is stopped.
- 				*/
--				if (!dev_context->dw_dsp_ext_base_addr)
-+				if (!dev_context->dsp_ext_base_addr)
- 					status = -EPERM;
- 			}
- 
-@@ -184,7 +184,7 @@ int write_dsp_data(struct bridge_dev_context *dev_context,
- 			  u32 mem_type)
- {
- 	u32 offset;
--	u32 dw_base_addr = dev_context->dw_dsp_base_addr;
-+	u32 dw_base_addr = dev_context->dsp_base_addr;
- 	struct cfg_hostres *resources = dev_context->resources;
- 	int status = 0;
- 	u32 base1, base2, base3;
-@@ -195,7 +195,7 @@ int write_dsp_data(struct bridge_dev_context *dev_context,
- 	if (!resources)
- 		return -EPERM;
- 
--	offset = dsp_addr - dev_context->dw_dsp_start_add;
-+	offset = dsp_addr - dev_context->dsp_start_add;
- 	if (offset < base1) {
- 		dw_base_addr = MEM_LINEAR_ADDRESS(resources->dw_mem_base[2],
- 						  resources->dw_mem_length[2]);
-@@ -230,7 +230,7 @@ int write_ext_dsp_data(struct bridge_dev_context *dev_context,
- 			      u32 ul_num_bytes, u32 mem_type,
- 			      bool dynamic_load)
- {
--	u32 dw_base_addr = dev_context->dw_dsp_ext_base_addr;
-+	u32 dw_base_addr = dev_context->dsp_ext_base_addr;
- 	u32 dw_offset = 0;
- 	u8 temp_byte1, temp_byte2;
- 	u8 remain_byte[4];
-@@ -263,8 +263,8 @@ int write_ext_dsp_data(struct bridge_dev_context *dev_context,
- 	if ((dynamic_load || trace_load) && dw_base_addr) {
- 		dw_base_addr = 0;
- 		MEM_UNMAP_LINEAR_ADDRESS((void *)
--					 dev_context->dw_dsp_ext_base_addr);
--		dev_context->dw_dsp_ext_base_addr = 0x0;
-+					 dev_context->dsp_ext_base_addr);
-+		dev_context->dsp_ext_base_addr = 0x0;
- 	}
- 	if (!dw_base_addr) {
- 		if (symbols_reloaded)
-@@ -344,14 +344,14 @@ int write_ext_dsp_data(struct bridge_dev_context *dev_context,
- 				    (ul_ext_base - ul_dyn_ext_base);
- 			}
- 
--			dev_context->dw_dsp_ext_base_addr =
-+			dev_context->dsp_ext_base_addr =
- 			    (u32) MEM_LINEAR_ADDRESS((void *)
- 						     dw_ext_prog_virt_mem,
- 						     ul_ext_end - ul_ext_base);
--			dw_base_addr += dev_context->dw_dsp_ext_base_addr;
-+			dw_base_addr += dev_context->dsp_ext_base_addr;
- 			/* This dw_dsp_ext_base_addr will get cleared only when
- 			 * the board is stopped. */
--			if (!dev_context->dw_dsp_ext_base_addr)
-+			if (!dev_context->dsp_ext_base_addr)
- 				ret = -EPERM;
- 		}
- 	}
-@@ -375,10 +375,10 @@ int write_ext_dsp_data(struct bridge_dev_context *dev_context,
- 			*((u32 *) host_buff) = dw_base_addr + dw_offset;
- 	}
- 	/* Unmap here to force remap for other Ext loads */
--	if ((dynamic_load || trace_load) && dev_context->dw_dsp_ext_base_addr) {
-+	if ((dynamic_load || trace_load) && dev_context->dsp_ext_base_addr) {
- 		MEM_UNMAP_LINEAR_ADDRESS((void *)
--					 dev_context->dw_dsp_ext_base_addr);
--		dev_context->dw_dsp_ext_base_addr = 0x0;
-+					 dev_context->dsp_ext_base_addr);
-+		dev_context->dsp_ext_base_addr = 0x0;
- 	}
- 	symbols_reloaded = false;
- 	return ret;
-@@ -401,8 +401,8 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
- 	if (!resources)
- 		return -EPERM;
- 
--	if (dev_context->dw_brd_state == BRD_DSP_HIBERNATION ||
--	    dev_context->dw_brd_state == BRD_HIBERNATION) {
-+	if (dev_context->brd_state == BRD_DSP_HIBERNATION ||
-+	    dev_context->brd_state == BRD_HIBERNATION) {
- #ifdef CONFIG_TIDSPBRIDGE_DVFS
- 		if (pdata->dsp_get_opp)
- 			opplevel = (*pdata->dsp_get_opp) ();
-@@ -439,8 +439,8 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
- 		/* Access MMU SYS CONFIG register to generate a short wakeup */
- 		temp = readl(resources->dw_dmmu_base + 0x10);
- 
--		dev_context->dw_brd_state = BRD_RUNNING;
--	} else if (dev_context->dw_brd_state == BRD_RETENTION) {
-+		dev_context->brd_state = BRD_RUNNING;
-+	} else if (dev_context->brd_state == BRD_RETENTION) {
- 		/* Restart the peripheral clocks */
- 		dsp_clock_enable_all(dev_context->dsp_per_clks);
- 	}
-diff --git a/drivers/staging/tidspbridge/core/ue_deh.c b/drivers/staging/tidspbridge/core/ue_deh.c
-index 3430418..875a65c 100644
---- a/drivers/staging/tidspbridge/core/ue_deh.c
-+++ b/drivers/staging/tidspbridge/core/ue_deh.c
-@@ -254,7 +254,7 @@ void bridge_deh_notify(struct deh_mgr *deh, int event, int info)
- 	}
- 
- 	/* Filter subsequent notifications when an error occurs */
--	if (dev_context->dw_brd_state != BRD_ERROR) {
-+	if (dev_context->brd_state != BRD_ERROR) {
- 		ntfy_notify(deh->ntfy_obj, event);
- #ifdef CONFIG_TIDSPBRIDGE_RECOVERY
- 		bridge_recover_schedule();
-@@ -262,7 +262,7 @@ void bridge_deh_notify(struct deh_mgr *deh, int event, int info)
- 	}
- 
- 	/* Set the Board state as ERROR */
--	dev_context->dw_brd_state = BRD_ERROR;
-+	dev_context->brd_state = BRD_ERROR;
- 	/* Disable all the clocks that were enabled by DSP */
- 	dsp_clock_disable_all(dev_context->dsp_per_clks);
- 	/*
+ 	dev_context->internal_size = OMAP_DSP_SIZE;
+ 	/*  Clear dev context MMU table entries.
 diff --git a/drivers/staging/tidspbridge/include/dspbridge/_chnl_sm.h b/drivers/staging/tidspbridge/include/dspbridge/_chnl_sm.h
-index 8a22317..14b0567 100644
+index ea54738..318f6b0 100644
 --- a/drivers/staging/tidspbridge/include/dspbridge/_chnl_sm.h
 +++ b/drivers/staging/tidspbridge/include/dspbridge/_chnl_sm.h
-@@ -171,7 +171,7 @@ struct chnl_irp {
- 	u8 *host_user_buf;
- 	/* Buffer to be filled/emptied. (System) */
- 	u8 *host_sys_buf;
--	u32 dw_arg;		/* Issue/Reclaim argument. */
-+	u32 arg;		/* Issue/Reclaim argument. */
- 	u32 dsp_tx_addr;	/* Transfer address on DSP side. */
- 	u32 byte_size;		/* Bytes transferred. */
- 	u32 buf_size;		/* Actual buffer size when allocated. */
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h b/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
-index f403c01..48eb6e6 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
-@@ -56,18 +56,18 @@ struct cfg_hostres {
- 					 * dw_mem_base + this offset */
- 	/*
- 	 *  Info needed by NODE for allocating channels to communicate with RMS:
--	 *      dw_chnl_offset:       Offset of RMS channels. Lower channels are
-+	 *      chnl_offset:       Offset of RMS channels. Lower channels are
- 	 *                          reserved.
--	 *      dw_chnl_buf_size:      Size of channel buffer to send to RMS
-+	 *      chnl_buf_size:      Size of channel buffer to send to RMS
- 	 *      dw_num_chnls:		Total number of channels
- 	 *      			(including reserved).
- 	 */
--	u32 dw_chnl_offset;
--	u32 dw_chnl_buf_size;
-+	u32 chnl_offset;
-+	u32 chnl_buf_size;
- 	u32 dw_num_chnls;
- 	void __iomem *dw_per_base;
- 	u32 dw_per_pm_base;
--	u32 dw_core_pm_base;
-+	u32 core_pm_base;
- 	void __iomem *dw_dmmu_base;
+@@ -127,7 +127,7 @@ struct chnl_mgr {
+ 	u8 max_channels;	/* Total number of channels */
+ 	u8 open_channels;	/* Total number of open channels */
+ 	struct chnl_object **ap_channel;	/* Array of channels */
+-	u8 dw_type;		/* Type of channel class library */
++	u8 type;		/* Type of channel class library */
+ 	/* If no shm syms, return for CHNL_Open */
+ 	int chnl_open_status;
  };
+@@ -140,7 +140,7 @@ struct chnl_object {
+ 	/* Pointer back to channel manager */
+ 	struct chnl_mgr *chnl_mgr_obj;
+ 	u32 chnl_id;		/* Channel id */
+-	u8 dw_state;		/* Current channel state */
++	u8 state;		/* Current channel state */
+ 	s8 chnl_mode;		/* Chnl mode and attributes */
+ 	/* Chnl I/O completion event (user mode) */
+ 	void *user_event;
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/chnlpriv.h b/drivers/staging/tidspbridge/include/dspbridge/chnlpriv.h
+index 6961572..7a625b5 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/chnlpriv.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/chnlpriv.h
+@@ -72,7 +72,7 @@ struct chnl_info {
+ 	/*Abstraction of I/O completion event. */
+ 	struct sync_object *sync_event;
+ 	s8 mode;		/* Channel mode. */
+-	u8 dw_state;		/* Current channel state. */
++	u8 state;		/* Current channel state. */
+ 	u32 bytes_tx;		/* Total bytes transferred. */
+ 	u32 cio_cs;		/* Number of IOCs in queue. */
+ 	u32 cio_reqs;		/* Number of IO Requests in queue. */
+@@ -81,7 +81,7 @@ struct chnl_info {
  
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/chnldefs.h b/drivers/staging/tidspbridge/include/dspbridge/chnldefs.h
-index 5bf5f6b..78a3f0c 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/chnldefs.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/chnldefs.h
-@@ -60,7 +60,7 @@ struct chnl_ioc {
- 	u32 byte_size;		/* Bytes transferred. */
- 	u32 buf_size;		/* Actual buffer size in bytes */
- 	u32 status;		/* Status of IO completion. */
--	u32 dw_arg;		/* User argument associated with pbuf. */
-+	u32 arg;		/* User argument associated with pbuf. */
- };
- 
- #endif /* CHNLDEFS_ */
+ /* Channel manager info: */
+ struct chnl_mgrinfo {
+-	u8 dw_type;		/* Type of channel class library. */
++	u8 type;		/* Type of channel class library. */
+ 	/* Channel handle, given the channel id. */
+ 	struct chnl_object *chnl_obj;
+ 	u8 open_channels;	/* Number of open channels. */
 diff --git a/drivers/staging/tidspbridge/include/dspbridge/cmmdefs.h b/drivers/staging/tidspbridge/include/dspbridge/cmmdefs.h
-index e748ba8..943d91f 100644
+index 8cd1494..719628e 100644
 --- a/drivers/staging/tidspbridge/include/dspbridge/cmmdefs.h
 +++ b/drivers/staging/tidspbridge/include/dspbridge/cmmdefs.h
-@@ -54,9 +54,9 @@ struct cmm_seginfo {
- 	u32 dw_seg_base_pa;	/* Start Phys address of SM segment */
- 	/* Total size in bytes of segment: DSP+GPP */
- 	u32 ul_total_seg_size;
--	u32 dw_gpp_base_pa;	/* Start Phys addr of Gpp SM seg */
-+	u32 gpp_base_pa;	/* Start Phys addr of Gpp SM seg */
- 	u32 ul_gpp_size;	/* Size of Gpp SM seg in bytes */
--	u32 dw_dsp_base_va;	/* DSP virt base byte address */
-+	u32 dsp_base_va;	/* DSP virt base byte address */
+@@ -60,7 +60,7 @@ struct cmm_seginfo {
  	u32 ul_dsp_size;	/* DSP seg size in bytes */
  	/* # of current GPP allocations from this segment */
  	u32 ul_in_use_cnt;
-@@ -79,8 +79,8 @@ struct cmm_info {
- /* XlatorCreate attributes */
- struct cmm_xlatorattrs {
- 	u32 ul_seg_id;		/* segment Id used for SM allocations */
--	u32 dw_dsp_bufs;	/* # of DSP-side bufs */
--	u32 dw_dsp_buf_size;	/* size of DSP-side bufs in GPP bytes */
-+	u32 dsp_bufs;		/* # of DSP-side bufs */
-+	u32 dsp_buf_size;	/* size of DSP-side bufs in GPP bytes */
+-	u32 dw_seg_base_va;	/* Start Virt address of SM seg */
++	u32 seg_base_va;	/* Start Virt address of SM seg */
+ 
+ };
+ 
+@@ -83,8 +83,8 @@ struct cmm_xlatorattrs {
+ 	u32 dsp_buf_size;	/* size of DSP-side bufs in GPP bytes */
  	/* Vm base address alloc'd in client process context */
  	void *vm_base;
- 	/* dw_vm_size must be >= (dwMaxNumBufs * dwMaxSize) */
+-	/* dw_vm_size must be >= (dwMaxNumBufs * dwMaxSize) */
+-	u32 dw_vm_size;
++	/* vm_size must be >= (dwMaxNumBufs * dwMaxSize) */
++	u32 vm_size;
+ };
+ 
+ /*
 diff --git a/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h b/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
-index 5af075d..1b12475 100644
+index 1b12475..6582054 100644
 --- a/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
 +++ b/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
-@@ -263,9 +263,9 @@ struct dsp_cbdata {
- 
- /* The dsp_msg structure */
- struct dsp_msg {
--	u32 dw_cmd;
--	u32 dw_arg1;
--	u32 dw_arg2;
-+	u32 cmd;
-+	u32 arg1;
-+	u32 arg2;
- };
- 
- /* The dsp_resourcereqmts structure for node's resource requirements */
-@@ -387,7 +387,7 @@ struct dsp_processorinfo {
- 
+@@ -388,9 +388,9 @@ struct dsp_processorinfo {
  /* Error information of last DSP exception signalled to the GPP */
  struct dsp_errorinfo {
--	u32 dw_err_mask;
-+	u32 err_mask;
- 	u32 dw_val1;
- 	u32 dw_val2;
- 	u32 dw_val3;
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h b/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h
-index 8da5bd8..93e918e 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h
-@@ -68,7 +68,7 @@ union trapped_args {
+ 	u32 err_mask;
+-	u32 dw_val1;
+-	u32 dw_val2;
+-	u32 dw_val3;
++	u32 val1;
++	u32 val2;
++	u32 val3;
+ };
  
- 	struct {
- 		void *hprocessor;
--		u32 dw_cmd;
-+		u32 cmd;
- 		struct dsp_cbdata __user *pargs;
- 	} args_proc_ctrl;
- 
-@@ -301,7 +301,7 @@ union trapped_args {
- 		u8 *pbuffer;
- 		u32 dw_bytes;
- 		u32 dw_buf_size;
--		u32 dw_arg;
-+		u32 arg;
- 	} args_strm_issue;
- 
- 	struct {
+ /* The dsp_processorstate structure describes the state of a DSP processor */
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h b/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
+index 0ae7d16..8432cf9 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
+@@ -984,17 +984,17 @@ struct bridge_drv_interface {
+ 	fxn_dev_create pfn_dev_create;	/* Create device context */
+ 	fxn_dev_destroy pfn_dev_destroy;	/* Destroy device context */
+ 	fxn_dev_ctrl pfn_dev_cntrl;	/* Optional vendor interface */
+-	fxn_brd_monitor pfn_brd_monitor;	/* Load and/or start monitor */
++	fxn_brd_monitor brd_monitor;	/* Load and/or start monitor */
+ 	fxn_brd_start pfn_brd_start;	/* Start DSP program. */
+ 	fxn_brd_stop pfn_brd_stop;	/* Stop/reset board. */
+ 	fxn_brd_status pfn_brd_status;	/* Get current board status. */
+-	fxn_brd_read pfn_brd_read;	/* Read board memory */
++	fxn_brd_read brd_read;	/* Read board memory */
+ 	fxn_brd_write pfn_brd_write;	/* Write board memory. */
+ 	fxn_brd_setstate pfn_brd_set_state;	/* Sets the Board State */
+-	fxn_brd_memcopy pfn_brd_mem_copy;	/* Copies DSP Memory */
+-	fxn_brd_memwrite pfn_brd_mem_write;	/* Write DSP Memory w/o halt */
+-	fxn_brd_memmap pfn_brd_mem_map;	/* Maps MPU mem to DSP mem */
+-	fxn_brd_memunmap pfn_brd_mem_un_map;	/* Unmaps MPU mem to DSP mem */
++	fxn_brd_memcopy brd_mem_copy;	/* Copies DSP Memory */
++	fxn_brd_memwrite brd_mem_write;	/* Write DSP Memory w/o halt */
++	fxn_brd_memmap brd_mem_map;	/* Maps MPU mem to DSP mem */
++	fxn_brd_memunmap brd_mem_un_map;	/* Unmaps MPU mem to DSP mem */
+ 	fxn_chnl_create pfn_chnl_create;	/* Create channel manager. */
+ 	fxn_chnl_destroy pfn_chnl_destroy;	/* Destroy channel manager. */
+ 	fxn_chnl_open pfn_chnl_open;	/* Create a new channel. */
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h b/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h
+index c85d3da..b1a9072 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h
+@@ -280,7 +280,7 @@ typedef int(*nldr_unloadfxn) (struct nldr_nodeobject *nldr_node_obj,
+  *  ======== node_ldr_fxns ========
+  */
+ struct node_ldr_fxns {
+-	nldr_allocatefxn pfn_allocate;
++	nldr_allocatefxn allocate;
+ 	nldr_createfxn pfn_create;
+ 	nldr_deletefxn pfn_delete;
+ 	nldr_exitfxn pfn_exit;
 diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c b/drivers/staging/tidspbridge/pmgr/cmm.c
-index babe66f..f7542a5 100644
+index d2fb6a4..bc8571b 100644
 --- a/drivers/staging/tidspbridge/pmgr/cmm.c
 +++ b/drivers/staging/tidspbridge/pmgr/cmm.c
-@@ -66,10 +66,10 @@ struct cmm_allocator {		/* sma */
+@@ -64,7 +64,7 @@
+ struct cmm_allocator {		/* sma */
+ 	unsigned int shm_base;	/* Start of physical SM block */
  	u32 ul_sm_size;		/* Size of SM block in bytes */
- 	unsigned int dw_vm_base;	/* Start of VM block. (Dev driver
+-	unsigned int dw_vm_base;	/* Start of VM block. (Dev driver
++	unsigned int vm_base;	/* Start of VM block. (Dev driver
  					 * context for 'sma') */
--	u32 dw_dsp_phys_addr_offset;	/* DSP PA to GPP PA offset for this
-+	u32 dsp_phys_addr_offset;	/* DSP PA to GPP PA offset for this
+ 	u32 dsp_phys_addr_offset;	/* DSP PA to GPP PA offset for this
  					 * SM space */
- 	s8 c_factor;		/* DSPPa to GPPPa Conversion Factor */
--	unsigned int dw_dsp_base;	/* DSP virt base byte address */
-+	unsigned int dsp_base;	/* DSP virt base byte address */
- 	u32 ul_dsp_size;	/* DSP seg size in bytes */
- 	struct cmm_object *hcmm_mgr;	/* back ref to parent mgr */
- 	/* node list of available memory */
-@@ -119,8 +119,8 @@ static struct cmm_attrs cmm_dfltalctattrs = {
- static struct cmm_xlatorattrs cmm_dfltxlatorattrs = {
- 	/* ul_seg_id, does not have to match cmm_dfltalctattrs ul_seg_id */
- 	1,
--	0,			/* dw_dsp_bufs */
--	0,			/* dw_dsp_buf_size */
-+	0,			/* dsp_bufs */
-+	0,			/* dsp_buf_size */
- 	NULL,			/* vm_base */
- 	0,			/* dw_vm_size */
+@@ -86,7 +86,7 @@ struct cmm_xlator {		/* Pa<->Va translator object */
+ 	 *  base address for translator's ul_seg_id.
+ 	 *  Only 1 segment ID currently supported.
+ 	 */
+-	unsigned int dw_virt_base;	/* virtual base address */
++	unsigned int virt_base;	/* virtual base address */
+ 	u32 ul_virt_size;	/* size of virt space in bytes */
+ 	u32 ul_seg_id;		/* Segment Id */
  };
-@@ -442,12 +442,12 @@ int cmm_get_info(struct cmm_object *hcmm_mgr,
- 			altr->shm_base - altr->ul_dsp_size;
- 		cmm_info_obj->seg_info[ul_seg - 1].ul_total_seg_size =
- 			altr->ul_dsp_size + altr->ul_sm_size;
--		cmm_info_obj->seg_info[ul_seg - 1].dw_gpp_base_pa =
-+		cmm_info_obj->seg_info[ul_seg - 1].gpp_base_pa =
- 			altr->shm_base;
- 		cmm_info_obj->seg_info[ul_seg - 1].ul_gpp_size =
- 			altr->ul_sm_size;
--		cmm_info_obj->seg_info[ul_seg - 1].dw_dsp_base_va =
--			altr->dw_dsp_base;
-+		cmm_info_obj->seg_info[ul_seg - 1].dsp_base_va =
-+			altr->dsp_base;
+@@ -122,14 +122,14 @@ static struct cmm_xlatorattrs cmm_dfltxlatorattrs = {
+ 	0,			/* dsp_bufs */
+ 	0,			/* dsp_buf_size */
+ 	NULL,			/* vm_base */
+-	0,			/* dw_vm_size */
++	0,			/* vm_size */
+ };
+ 
+ /* SM node representing a block of memory. */
+ struct cmm_mnode {
+ 	struct list_head link;	/* must be 1st element */
+ 	u32 pa;		/* Phys addr */
+-	u32 dw_va;		/* Virtual address in device process context */
++	u32 va;			/* Virtual address in device process context */
+ 	u32 ul_size;		/* SM block size in bytes */
+ 	u32 client_proc;	/* Process that allocated this mem block */
+ };
+@@ -200,7 +200,7 @@ void *cmm_calloc_buf(struct cmm_object *hcmm_mgr, u32 usize,
+ 				 * add to freelist */
+ 				new_node =
+ 				    get_node(cmm_mgr_obj, pnode->pa + usize,
+-					     pnode->dw_va + usize,
++					     pnode->va + usize,
+ 					     (u32) delta_size);
+ 				/* leftovers go free */
+ 				add_to_free_list(allocator, new_node);
+@@ -218,13 +218,13 @@ void *cmm_calloc_buf(struct cmm_object *hcmm_mgr, u32 usize,
+ 			list_add_tail(&pnode->link, &allocator->in_use_list);
+ 			buf_pa = (void *)pnode->pa;	/* physical address */
+ 			/* clear mem */
+-			pbyte = (u8 *) pnode->dw_va;
++			pbyte = (u8 *) pnode->va;
+ 			for (cnt = 0; cnt < (s32) usize; cnt++, pbyte++)
+ 				*pbyte = 0;
+ 
+ 			if (pp_buf_va != NULL) {
+ 				/* Virtual address */
+-				*pp_buf_va = (void *)pnode->dw_va;
++				*pp_buf_va = (void *)pnode->va;
+ 			}
+ 		}
+ 		mutex_unlock(&cmm_mgr_obj->cmm_lock);
+@@ -450,8 +450,8 @@ int cmm_get_info(struct cmm_object *hcmm_mgr,
+ 			altr->dsp_base;
  		cmm_info_obj->seg_info[ul_seg - 1].ul_dsp_size =
  			altr->ul_dsp_size;
- 		cmm_info_obj->seg_info[ul_seg - 1].dw_seg_base_va =
-@@ -540,9 +540,9 @@ int cmm_register_gppsm_seg(struct cmm_object *hcmm_mgr,
+-		cmm_info_obj->seg_info[ul_seg - 1].dw_seg_base_va =
+-			altr->dw_vm_base - altr->ul_dsp_size;
++		cmm_info_obj->seg_info[ul_seg - 1].seg_base_va =
++			altr->vm_base - altr->ul_dsp_size;
+ 		cmm_info_obj->seg_info[ul_seg - 1].ul_in_use_cnt = 0;
+ 
+ 		list_for_each_entry(curr, &altr->in_use_list, link) {
+@@ -539,12 +539,12 @@ int cmm_register_gppsm_seg(struct cmm_object *hcmm_mgr,
+ 	psma->hcmm_mgr = hcmm_mgr;	/* ref to parent */
  	psma->shm_base = dw_gpp_base_pa;	/* SM Base phys */
  	psma->ul_sm_size = ul_size;	/* SM segment size in bytes */
- 	psma->dw_vm_base = gpp_base_va;
--	psma->dw_dsp_phys_addr_offset = dsp_addr_offset;
-+	psma->dsp_phys_addr_offset = dsp_addr_offset;
+-	psma->dw_vm_base = gpp_base_va;
++	psma->vm_base = gpp_base_va;
+ 	psma->dsp_phys_addr_offset = dsp_addr_offset;
  	psma->c_factor = c_factor;
--	psma->dw_dsp_base = dw_dsp_base;
-+	psma->dsp_base = dw_dsp_base;
+ 	psma->dsp_base = dw_dsp_base;
  	psma->ul_dsp_size = ul_dsp_size;
- 	if (psma->dw_vm_base == 0) {
+-	if (psma->dw_vm_base == 0) {
++	if (psma->vm_base == 0) {
  		status = -EPERM;
-@@ -994,14 +994,14 @@ void *cmm_xlator_translate(struct cmm_xlatorobject *xlator, void *paddr,
- 		dw_addr_xlate =
- 		    GPPPA2DSPPA((allocator->shm_base - allocator->ul_dsp_size),
- 				dw_addr_xlate,
--				allocator->dw_dsp_phys_addr_offset *
-+				allocator->dsp_phys_addr_offset *
- 				allocator->c_factor);
- 	} else if (xtype == CMM_DSPPA2PA) {
- 		/* Got DSP Pa, convert to GPP Pa */
- 		dw_addr_xlate =
- 		    DSPPA2GPPPA(allocator->shm_base - allocator->ul_dsp_size,
- 				dw_addr_xlate,
--				allocator->dw_dsp_phys_addr_offset *
-+				allocator->dsp_phys_addr_offset *
- 				allocator->c_factor);
+ 		goto func_end;
  	}
- loop_cont:
-diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/staging/tidspbridge/pmgr/dspapi.c
-index 86ca785..3efe1d5 100644
---- a/drivers/staging/tidspbridge/pmgr/dspapi.c
-+++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
-@@ -639,7 +639,7 @@ u32 procwrap_ctrl(union trapped_args *args, void *pr_ctxt)
- 	}
- 	if (!status) {
- 		status = proc_ctrl(hprocessor,
--				   args->args_proc_ctrl.dw_cmd,
-+				   args->args_proc_ctrl.cmd,
- 				   (struct dsp_cbdata *)pargs);
+@@ -556,7 +556,7 @@ int cmm_register_gppsm_seg(struct cmm_object *hcmm_mgr,
+ 
+ 	/* Get a mem node for this hunk-o-memory */
+ 	new_node = get_node(cmm_mgr_obj, dw_gpp_base_pa,
+-			psma->dw_vm_base, ul_size);
++			psma->vm_base, ul_size);
+ 	/* Place node on the SM allocator's free list */
+ 	if (new_node) {
+ 		list_add_tail(&new_node->link, &psma->free_list);
+@@ -649,8 +649,8 @@ static void un_register_gppsm_seg(struct cmm_allocator *psma)
+ 		kfree(curr);
  	}
  
-@@ -1717,7 +1717,7 @@ u32 strmwrap_issue(union trapped_args *args, void *pr_ctxt)
- 			    args->args_strm_issue.pbuffer,
- 			    args->args_strm_issue.dw_bytes,
- 			    args->args_strm_issue.dw_buf_size,
--			    args->args_strm_issue.dw_arg);
-+			    args->args_strm_issue.arg);
+-	if ((void *)psma->dw_vm_base != NULL)
+-		MEM_UNMAP_LINEAR_ADDRESS((void *)psma->dw_vm_base);
++	if ((void *)psma->vm_base != NULL)
++		MEM_UNMAP_LINEAR_ADDRESS((void *)psma->vm_base);
  
- 	return status;
- }
-diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
-index e0fc895..2e73302 100644
---- a/drivers/staging/tidspbridge/rmgr/drv.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv.c
-@@ -699,10 +699,10 @@ static int request_bridge_resources(struct cfg_hostres *res)
- 	host_res->birq_registers = 0;
- 	host_res->birq_attrib = 0;
- 	host_res->dw_offset_for_monitor = 0;
--	host_res->dw_chnl_offset = 0;
-+	host_res->chnl_offset = 0;
- 	/* CHNL_MAXCHANNELS */
- 	host_res->dw_num_chnls = CHNL_MAXCHANNELS;
--	host_res->dw_chnl_buf_size = 0x400;
-+	host_res->chnl_buf_size = 0x400;
+ 	/* Free allocator itself */
+ 	kfree(psma);
+@@ -705,7 +705,7 @@ static struct cmm_mnode *get_node(struct cmm_object *cmm_mgr_obj, u32 dw_pa,
+ 	}
  
- 	return 0;
- }
-@@ -741,7 +741,7 @@ int drv_request_bridge_res_dsp(void **phost_resources)
- 						OMAP_PER_CM_SIZE);
- 		host_res->dw_per_pm_base = (u32) ioremap(OMAP_PER_PRM_BASE,
- 							 OMAP_PER_PRM_SIZE);
--		host_res->dw_core_pm_base = (u32) ioremap(OMAP_CORE_PRM_BASE,
-+		host_res->core_pm_base = (u32) ioremap(OMAP_CORE_PRM_BASE,
- 							  OMAP_CORE_PRM_SIZE);
- 		host_res->dw_dmmu_base = ioremap(OMAP_DMMU_BASE,
- 						 OMAP_DMMU_SIZE);
-@@ -783,10 +783,10 @@ int drv_request_bridge_res_dsp(void **phost_resources)
- 			host_res->birq_registers = 0;
- 			host_res->birq_attrib = 0;
- 			host_res->dw_offset_for_monitor = 0;
--			host_res->dw_chnl_offset = 0;
-+			host_res->chnl_offset = 0;
- 			/* CHNL_MAXCHANNELS */
- 			host_res->dw_num_chnls = CHNL_MAXCHANNELS;
--			host_res->dw_chnl_buf_size = 0x400;
-+			host_res->chnl_buf_size = 0x400;
- 			dw_buff_size = sizeof(struct cfg_hostres);
+ 	pnode->pa = dw_pa;
+-	pnode->dw_va = dw_va;
++	pnode->va = dw_va;
+ 	pnode->ul_size = ul_size;
+ 
+ 	return pnode;
+@@ -770,7 +770,7 @@ static void add_to_free_list(struct cmm_allocator *allocator,
  		}
- 		*phost_resources = host_res;
+ 		if (curr->pa == NEXT_PA(node)) {
+ 			curr->pa = node->pa;
+-			curr->dw_va = node->dw_va;
++			curr->va = node->va;
+ 			curr->ul_size += node->ul_size;
+ 			delete_node(allocator->hcmm_mgr, node);
+ 			return;
+@@ -925,10 +925,10 @@ int cmm_xlator_info(struct cmm_xlatorobject *xlator, u8 ** paddr,
+ 	if (xlator_obj) {
+ 		if (set_info) {
+ 			/* set translators virtual address range */
+-			xlator_obj->dw_virt_base = (u32) *paddr;
++			xlator_obj->virt_base = (u32) *paddr;
+ 			xlator_obj->ul_virt_size = ul_size;
+ 		} else {	/* return virt base address */
+-			*paddr = (u8 *) xlator_obj->dw_virt_base;
++			*paddr = (u8 *) xlator_obj->virt_base;
+ 		}
+ 	} else {
+ 		status = -EFAULT;
+@@ -969,18 +969,18 @@ void *cmm_xlator_translate(struct cmm_xlatorobject *xlator, void *paddr,
+ 			dw_offset = (u8 *) paddr - (u8 *) (allocator->shm_base -
+ 							   allocator->
+ 							   ul_dsp_size);
+-			dw_addr_xlate = xlator_obj->dw_virt_base + dw_offset;
++			dw_addr_xlate = xlator_obj->virt_base + dw_offset;
+ 			/* Check if translated Va base is in range */
+-			if ((dw_addr_xlate < xlator_obj->dw_virt_base) ||
++			if ((dw_addr_xlate < xlator_obj->virt_base) ||
+ 			    (dw_addr_xlate >=
+-			     (xlator_obj->dw_virt_base +
++			     (xlator_obj->virt_base +
+ 			      xlator_obj->ul_virt_size))) {
+ 				dw_addr_xlate = 0;	/* bad address */
+ 			}
+ 		} else {
+ 			/* Gpp PA =  Gpp Base + offset */
+ 			dw_offset =
+-			    (u8 *) paddr - (u8 *) xlator_obj->dw_virt_base;
++			    (u8 *) paddr - (u8 *) xlator_obj->virt_base;
+ 			dw_addr_xlate =
+ 			    allocator->shm_base - allocator->ul_dsp_size +
+ 			    dw_offset;
+diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/tidspbridge/pmgr/dev.c
+index 673ede0..45da16b 100644
+--- a/drivers/staging/tidspbridge/pmgr/dev.c
++++ b/drivers/staging/tidspbridge/pmgr/dev.c
+@@ -1088,17 +1088,17 @@ static void store_interface_fxns(struct bridge_drv_interface *drv_fxns,
+ 		STORE_FXN(fxn_dev_create, pfn_dev_create);
+ 		STORE_FXN(fxn_dev_destroy, pfn_dev_destroy);
+ 		STORE_FXN(fxn_dev_ctrl, pfn_dev_cntrl);
+-		STORE_FXN(fxn_brd_monitor, pfn_brd_monitor);
++		STORE_FXN(fxn_brd_monitor, brd_monitor);
+ 		STORE_FXN(fxn_brd_start, pfn_brd_start);
+ 		STORE_FXN(fxn_brd_stop, pfn_brd_stop);
+ 		STORE_FXN(fxn_brd_status, pfn_brd_status);
+-		STORE_FXN(fxn_brd_read, pfn_brd_read);
++		STORE_FXN(fxn_brd_read, brd_read);
+ 		STORE_FXN(fxn_brd_write, pfn_brd_write);
+ 		STORE_FXN(fxn_brd_setstate, pfn_brd_set_state);
+-		STORE_FXN(fxn_brd_memcopy, pfn_brd_mem_copy);
+-		STORE_FXN(fxn_brd_memwrite, pfn_brd_mem_write);
+-		STORE_FXN(fxn_brd_memmap, pfn_brd_mem_map);
+-		STORE_FXN(fxn_brd_memunmap, pfn_brd_mem_un_map);
++		STORE_FXN(fxn_brd_memcopy, brd_mem_copy);
++		STORE_FXN(fxn_brd_memwrite, brd_mem_write);
++		STORE_FXN(fxn_brd_memmap, brd_mem_map);
++		STORE_FXN(fxn_brd_memunmap, brd_mem_un_map);
+ 		STORE_FXN(fxn_chnl_create, pfn_chnl_create);
+ 		STORE_FXN(fxn_chnl_destroy, pfn_chnl_destroy);
+ 		STORE_FXN(fxn_chnl_open, pfn_chnl_open);
+@@ -1129,11 +1129,11 @@ static void store_interface_fxns(struct bridge_drv_interface *drv_fxns,
+ 	DBC_ENSURE(intf_fxns->pfn_dev_create != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_dev_destroy != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_dev_cntrl != NULL);
+-	DBC_ENSURE(intf_fxns->pfn_brd_monitor != NULL);
++	DBC_ENSURE(intf_fxns->brd_monitor != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_brd_start != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_brd_stop != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_brd_status != NULL);
+-	DBC_ENSURE(intf_fxns->pfn_brd_read != NULL);
++	DBC_ENSURE(intf_fxns->brd_read != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_brd_write != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_chnl_create != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_chnl_destroy != NULL);
 diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
-index 62d5c31..a5342c6 100644
+index 82dade3..ffa3778 100644
 --- a/drivers/staging/tidspbridge/rmgr/node.c
 +++ b/drivers/staging/tidspbridge/rmgr/node.c
-@@ -1837,12 +1837,12 @@ int node_get_message(struct node_object *hnode,
- 	status =
- 	    (*intf_fxns->pfn_msg_get) (hnode->msg_queue_obj, message, utimeout);
- 	/* Check if message contains SM descriptor */
--	if (status || !(message->dw_cmd & DSP_RMSBUFDESC))
-+	if (status || !(message->cmd & DSP_RMSBUFDESC))
- 		goto func_end;
+@@ -577,7 +577,7 @@ func_cont:
+ 	if (!status) {
+ 		/* Create object for dynamic loading */
  
- 	/* Translate DSP byte addr to GPP Va. */
- 	tmp_buf = cmm_xlator_translate(hnode->xlator,
--				       (void *)(message->dw_arg1 *
-+				       (void *)(message->arg1 *
- 						hnode->hnode_mgr->
- 						udsp_word_size), CMM_DSPPA2PA);
- 	if (tmp_buf != NULL) {
-@@ -1851,8 +1851,8 @@ int node_get_message(struct node_object *hnode,
- 					       CMM_PA2VA);
- 		if (tmp_buf != NULL) {
- 			/* Adjust SM size in msg */
--			message->dw_arg1 = (u32) tmp_buf;
--			message->dw_arg2 *= hnode->hnode_mgr->udsp_word_size;
-+			message->arg1 = (u32) tmp_buf;
-+			message->arg2 *= hnode->hnode_mgr->udsp_word_size;
- 		} else {
- 			status = -ESRCH;
+-		status = hnode_mgr->nldr_fxns.pfn_allocate(hnode_mgr->nldr_obj,
++		status = hnode_mgr->nldr_fxns.allocate(hnode_mgr->nldr_obj,
+ 							   (void *)pnode,
+ 							   &pnode->dcd_props.
+ 							   obj_data.node_obj,
+@@ -3117,7 +3117,7 @@ static u32 ovly(void *priv_ref, u32 dsp_run_addr, u32 dsp_load_addr,
+ 	status = dev_get_bridge_context(hnode_mgr->hdev_obj, &hbridge_context);
+ 	if (!status) {
+ 		status =
+-		    (*intf_fxns->pfn_brd_mem_copy) (hbridge_context,
++		    (*intf_fxns->brd_mem_copy) (hbridge_context,
+ 						dsp_run_addr, dsp_load_addr,
+ 						ul_num_bytes, (u32) mem_space);
+ 		if (!status)
+@@ -3159,7 +3159,7 @@ static u32 mem_write(void *priv_ref, u32 dsp_add, void *pbuf,
+ 	/* Call new MemWrite function */
+ 	intf_fxns = hnode_mgr->intf_fxns;
+ 	status = dev_get_bridge_context(hnode_mgr->hdev_obj, &hbridge_context);
+-	status = (*intf_fxns->pfn_brd_mem_write) (hbridge_context, pbuf,
++	status = (*intf_fxns->brd_mem_write) (hbridge_context, pbuf,
+ 					dsp_add, ul_num_bytes, mem_sect_type);
+ 
+ 	return ul_num_bytes;
+diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
+index d5f6719..03bc214 100644
+--- a/drivers/staging/tidspbridge/rmgr/proc.c
++++ b/drivers/staging/tidspbridge/rmgr/proc.c
+@@ -1397,7 +1397,7 @@ int proc_map(void *hprocessor, void *pmpu_addr, u32 ul_size,
+ 		if (!map_obj)
+ 			status = -ENOMEM;
+ 		else
+-			status = (*p_proc_object->intf_fxns->pfn_brd_mem_map)
++			status = (*p_proc_object->intf_fxns->brd_mem_map)
+ 			    (p_proc_object->hbridge_context, pa_align, va_align,
+ 			     size_align, ul_map_attr, map_obj->pages);
+ 	}
+@@ -1720,7 +1720,7 @@ int proc_un_map(void *hprocessor, void *map_addr,
+ 	status = dmm_un_map_memory(dmm_mgr, (u32) va_align, &size_align);
+ 	/* Remove mapping from the page tables. */
+ 	if (!status) {
+-		status = (*p_proc_object->intf_fxns->pfn_brd_mem_un_map)
++		status = (*p_proc_object->intf_fxns->brd_mem_un_map)
+ 		    (p_proc_object->hbridge_context, va_align, size_align);
+ 	}
+ 
+@@ -1828,7 +1828,7 @@ static int proc_monitor(struct proc_object *proc_obj)
  		}
-@@ -2142,19 +2142,19 @@ int node_put_message(struct node_object *hnode,
- 	/* assign pmsg values to new msg */
- 	new_msg = *pmsg;
- 	/* Now, check if message contains a SM buffer descriptor */
--	if (pmsg->dw_cmd & DSP_RMSBUFDESC) {
-+	if (pmsg->cmd & DSP_RMSBUFDESC) {
- 		/* Translate GPP Va to DSP physical buf Ptr. */
- 		tmp_buf = cmm_xlator_translate(hnode->xlator,
--					       (void *)new_msg.dw_arg1,
-+					       (void *)new_msg.arg1,
- 					       CMM_VA2DSPPA);
- 		if (tmp_buf != NULL) {
- 			/* got translation, convert to MAUs in msg */
- 			if (hnode->hnode_mgr->udsp_word_size != 0) {
--				new_msg.dw_arg1 =
-+				new_msg.arg1 =
- 				    (u32) tmp_buf /
- 				    hnode->hnode_mgr->udsp_word_size;
- 				/* MAUs */
--				new_msg.dw_arg2 /= hnode->hnode_mgr->
-+				new_msg.arg2 /= hnode->hnode_mgr->
- 				    udsp_word_size;
- 			} else {
- 				pr_err("%s: udsp_word_size is zero!\n",
-@@ -2420,10 +2420,10 @@ int node_terminate(struct node_object *hnode, int *pstatus)
- 			goto func_cont;
- 		}
- 
--		msg.dw_cmd = RMS_EXIT;
--		msg.dw_arg1 = hnode->node_env;
--		killmsg.dw_cmd = RMS_KILLTASK;
--		killmsg.dw_arg1 = hnode->node_env;
-+		msg.cmd = RMS_EXIT;
-+		msg.arg1 = hnode->node_env;
-+		killmsg.cmd = RMS_KILLTASK;
-+		killmsg.arg1 = hnode->node_env;
- 		intf_fxns = hnode_mgr->intf_fxns;
- 
- 		if (hnode->utimeout > MAXTIMEOUT)
-@@ -2944,8 +2944,8 @@ static int get_proc_props(struct node_mgr *hnode_mgr,
- 		host_res = pbridge_context->resources;
- 		if (!host_res)
- 			return -EPERM;
--		hnode_mgr->ul_chnl_offset = host_res->dw_chnl_offset;
--		hnode_mgr->ul_chnl_buf_size = host_res->dw_chnl_buf_size;
-+		hnode_mgr->ul_chnl_offset = host_res->chnl_offset;
-+		hnode_mgr->ul_chnl_buf_size = host_res->chnl_buf_size;
- 		hnode_mgr->ul_num_chnls = host_res->dw_num_chnls;
- 
- 		/*
+ 	}
+ 	/* Place the Board in the Monitor State */
+-	if (!((*proc_obj->intf_fxns->pfn_brd_monitor)
++	if (!((*proc_obj->intf_fxns->brd_monitor)
+ 			  (proc_obj->hbridge_context))) {
+ 		status = 0;
+ 		if (!((*proc_obj->intf_fxns->pfn_brd_status)
 diff --git a/drivers/staging/tidspbridge/rmgr/strm.c b/drivers/staging/tidspbridge/rmgr/strm.c
-index 2e42714..d36b316 100644
+index d36b316..4adb7a0 100644
 --- a/drivers/staging/tidspbridge/rmgr/strm.c
 +++ b/drivers/staging/tidspbridge/rmgr/strm.c
-@@ -639,7 +639,7 @@ int strm_reclaim(struct strm_object *stream_obj, u8 ** buf_ptr,
- 		if (buff_size)
- 			*buff_size = chnl_ioc_obj.buf_size;
- 
--		*pdw_arg = chnl_ioc_obj.dw_arg;
-+		*pdw_arg = chnl_ioc_obj.arg;
- 		if (!CHNL_IS_IO_COMPLETE(chnl_ioc_obj)) {
- 			if (CHNL_IS_TIMED_OUT(chnl_ioc_obj)) {
- 				status = -ETIME;
+@@ -344,7 +344,7 @@ int strm_get_info(struct strm_object *stream_obj,
+ 	stream_info->user_strm->ul_number_bytes = chnl_info_obj.bytes_tx;
+ 	stream_info->user_strm->sync_object_handle = chnl_info_obj.event_obj;
+ 	/* Determine stream state based on channel state and info */
+-	if (chnl_info_obj.dw_state & CHNL_STATEEOS) {
++	if (chnl_info_obj.state & CHNL_STATEEOS) {
+ 		stream_info->user_strm->ss_stream_state = STREAM_DONE;
+ 	} else {
+ 		if (chnl_info_obj.cio_cs > 0)
 -- 
 1.6.3.3
