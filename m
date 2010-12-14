@@ -1,33 +1,80 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/4] omap: iovmm - fixes for iovmm module
-Date: Tue, 14 Dec 2010 17:10:54 +0200
-Message-ID: <AANLkTim3i+nAV+isLy+rVZ9gtkeW408G_6BhJAbLJZTL@mail.gmail.com>
-References: <1292332047-8206-1-git-send-email-fernando.lugo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1292332047-8206-1-git-send-email-fernando.lugo@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Fernando Guzman Lugo <fernando.lugo@ti.com>
-Cc: Hiroshi.DOYU@nokia.com, linux@arm.linux.org.uk, h-kanigeri2@ti.com, felipe.contreras@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+From: shubhrajyoti@ti.com
+Subject: [PATCH v7] Enable Runtime PM functionality in OMAP4 driver based on the following assumptions:
+Date: Tue, 14 Dec 2010 21:00:19 +0530
+Message-ID: <1292340619-14504-1-git-send-email-a0393217@india.ti.com>
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-input@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 14, 2010 at 3:07 PM, Fernando Guzman Lugo
-<fernando.lugo@ti.com> wrote:
+From: Abraham Arce <x0066660@ti.com>
 
-You are missing a description here.
+- Runtime PM selected by ARCH_OMAP2PLUS_TYPICAL && ARCH_OMAP2PLUS,
+  which is the default OMAP2+ defconfig including OMAP4
+- Runtime PM APIs handles Clock Framework APIs
+- Do not do the keypadconfig if the irq request fails
 
-> Version 6:
-> * Rebase on Russell King branch.
-> =C2=A0- for details see:
-> =C2=A0http://marc.info/?l=3Dlinux-omap&m=3D129228495723001&w=3D2
+A minimal pm runtime get/put approach is implemented in probe/remove calls
+respectively based on:
 
-Even if these patches are applied, iommu would still not be usable
-form tidspbridge, you need at least this patch:
-http://article.gmane.org/gmane.linux.ports.arm.omap/44753
+- Keyboard controller in wakeup domain so it is always on and
+  power impact may be minimal
+- Cutting of clocks will prevent interrupts
 
-Cheers.
 
---=20
-=46elipe Contreras
+Signed-off-by: Abraham Arce <x0066660@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+Updating the changelogs as per Kevin's suggestion
+
+ drivers/input/keyboard/omap4-keypad.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
+index 45bd097..36239e2 100644
+--- a/drivers/input/keyboard/omap4-keypad.c
++++ b/drivers/input/keyboard/omap4-keypad.c
+@@ -29,6 +29,7 @@
+ #include <linux/io.h>
+ #include <linux/input.h>
+ #include <linux/slab.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <plat/omap4-keypad.h>
+ 
+@@ -239,7 +240,8 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+ 	matrix_keypad_build_keymap(pdata->keymap_data, row_shift,
+ 			input_dev->keycode, input_dev->keybit);
+ 
+-	omap4_keypad_config(keypad_data);
++	pm_runtime_enable(&pdev->dev);
++	pm_runtime_get_sync(&pdev->dev);
+ 
+ 	error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
+ 			     IRQF_TRIGGER_RISING,
+@@ -255,8 +257,9 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+ 		goto err_free_irq;
+ 	}
+ 
+-
++	omap4_keypad_config(keypad_data);
+ 	platform_set_drvdata(pdev, keypad_data);
++
+ 	return 0;
+ 
+ err_free_irq:
+@@ -278,6 +281,10 @@ static int __devexit omap4_keypad_remove(struct platform_device *pdev)
+ 	struct resource *res;
+ 
+ 	free_irq(keypad_data->irq, keypad_data);
++
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
++
+ 	input_unregister_device(keypad_data->input);
+ 
+ 	iounmap(keypad_data->base);
+-- 
+1.7.0.4
+
