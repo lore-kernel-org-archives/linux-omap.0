@@ -1,82 +1,137 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
-Date: Tue, 14 Dec 2010 09:06:56 -0800
-Message-ID: <20101214170656.GA3832@kroah.com>
-References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
- <AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: Re: [RFC PATCHv4 4/7] HSI: hsi_char: Add HSI char device driver
+Date: Tue, 14 Dec 2010 19:24:28 +0200
+Message-ID: <1292347468.2529.220.camel@groo>
+References: <1292321383-30200-1-git-send-email-carlos.chinea@nokia.com>
+	 <1292321383-30200-5-git-send-email-carlos.chinea@nokia.com>
+	 <20101214115600.62388d5d@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com>
+In-Reply-To: <20101214115600.62388d5d@lxorguk.ukuu.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
+To: ext Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Andras Domokos <andras.domokos@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 14, 2010 at 04:31:36PM +0200, Ohad Ben-Cohen wrote:
-> Hi Greg, Tony,
->=20
-> On Sat, Dec 4, 2010 at 1:50 AM, Ohad Ben-Cohen <ohad@wizery.com> wrot=
-e:
-> > OMAP4 introduces a Hardware Spinlock device, which provides hardwar=
-e
-> > assistance for synchronization and mutual exclusion between heterog=
-eneous
-> > processors and those not operating under a single, shared operating=
- system
-> > (e.g. OMAP4 has dual Cortex-A9, dual Cortex-M3 and a C64x+ DSP).
-> >
-> > The intention of this hardware device is to allow remote processors=
-,
-> > that have no alternative mechanism to accomplish synchronization an=
-d mutual
-> > exclusion operations, to share resources (such as memory and/or any=
- other
-> > hardware resource).
-> >
-> > This patchset adds hwspinlock framework that makes it possible
-> > for drivers to use those hwspinlock devices and stay platform-indep=
-endent.
->=20
-> ...
->=20
-> > =A0Documentation/hwspinlock.txt =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A029=
-9 +++++++++++++++
-> > =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A0=
-1 +
-> > =A0arch/arm/mach-omap2/hwspinlock.c =A0 =A0 =A0 =A0 =A0 | =A0 63 ++=
-++
-> > =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0 64 ++++
-> > =A0drivers/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0| =A0 =A02 +
-> > =A0drivers/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | =A0 =A01 +
-> > =A0drivers/hwspinlock/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- 22 ++
-> > =A0drivers/hwspinlock/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- =A06 +
-> > =A0drivers/hwspinlock/hwspinlock.h =A0 =A0 =A0 =A0 =A0 =A0| =A0 61 =
-+++
-> > =A0drivers/hwspinlock/hwspinlock_core.c =A0 =A0 =A0 | =A0557 ++++++=
-++++++++++++++++++++++
-> > =A0drivers/hwspinlock/omap_hwspinlock.c =A0 =A0 =A0 | =A0231 ++++++=
-++++++
-> > =A0include/linux/hwspinlock.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
-298 +++++++++++++++
-> > =A012 files changed, 1605 insertions(+), 0 deletions(-)
->=20
-> Can you please have a look and say if this looks OK ?
+On Tue, 2010-12-14 at 11:56 +0000, ext Alan Cox wrote:
+> > +#define HSI_CHST_RD(c)		((c)->state & HSI_CHST_RD_MASK)
+> > +#define HSI_CHST_WR(c)		((c)->state & HSI_CHST_WR_MASK)
+> > +
+> > +#define HSI_CHST_OC_SET(c, v) \
+> > +	do { \
+> > +		(c)->state &= ~HSI_CHST_OC_MASK; \
+> > +		(c)->state |= v; \
+> > +	} while (0);
+> > +
+> > +#define HSI_CHST_RD_SET(c, v) \
+> > +	do { \
+> > +		(c)->state &= ~HSI_CHST_RD_MASK; \
+> > +		(c)->state |= v; \
+> > +	} while (0);
+> > +
+> > +#define HSI_CHST_WR_SET(c, v) \
+> > +	do { \
+> > +		(c)->state &= ~HSI_CHST_WR_MASK; \
+> > +		(c)->state |= v; \
+> > +	} while (0);
+> 
+> 
+> These sort of macros just hide detail - eg the lack of internal locking,
+> which can lead to problems later, plus they reference their arguments
+> multiple times so may have weird side effects.
+> 
+> They should probably be inline functions so they at least type check and
+> behave sanely, and their locking rules defintiely need documenting
 
-Look at what, I don't see a patch here.
+Agree. We would change that.
 
-I've seen a lot of discussion about this, are all of the review comment=
-s
-now addressed?  Like the most important one, why is this generic code i=
-f
-it's only for one specific platform?
+> 
+> 
+> 
+> > +static long hsi_char_ioctl(struct file *file, unsigned int cmd,
+> > +							unsigned long arg)
+> > +{
+> > +	struct hsi_char_channel *channel = file->private_data;
+> > +	unsigned int state;
+> > +	struct hsi_config cfg;
+> > +	struct hsc_rx_config rx_cfg;
+> > +	struct hsc_tx_config tx_cfg;
+> > +	long ret = 0;
+> > +
+> > +	if (HSI_CHST_OC(channel) != HSI_CHST_OPENED)
+> > +		return -ENODEV;
+> 
+> -EIO is the traditional response in this case if the channel has been
+> closed by the other end - ENODEV indicates there is no physical device
+> present - not sure which is right here from the code.
+> 
 
-thanks,
+The initial idea of this code was to guard against underneath removal of
+the device. That was the reason for the -ENODEV.
 
-greg k-h
+Now after, rechecking the code I think that we need also to lock the
+device to avoid that the removal happening in the middle of the
+function.
+
+> 
+> > +		} else if ((state == HSC_PM_ENABLE)
+> > +				&& (channel->wlrefcnt > 0)) {
+> > +			ret = hsi_stop_tx(channel->cl);
+> > +			if (!ret)
+> > +				channel->wlrefcnt--;
+> 
+> What locks this lot against races (ditto some of the other ioctl code)
+
+Right. We will fix this also.
+
+> 
+> > +	refcnt = atomic_inc_return(&cl_data->refcnt);
+> > +	if (refcnt == 1) {
+> 
+> You seem to construct a lot of clever stuff using atomic_inc_return and
+> friends where it looks like test_and_set_bit - or even a mutex over
+> open/close would be far easier to understand ?
+
+Yep a mutex will be a better option here. It would also take care of the
+next comment.
+
+> 
+> > +	ret = hsi_char_msgs_alloc(channel);
+> > +
+> > +	if (ret < 0) {
+> > +		refcnt = atomic_dec_return(&cl_data->refcnt);
+> > +		if (!refcnt)
+> > +			hsi_release_port(channel->cl);
+> > +		spin_lock_bh(&channel->lock);
+> > +		HSI_CHST_OC_SET(channel, HSI_CHST_CLOSED);
+> > +		goto out;
+> > +	}
+> > +	if (refcnt == 1)
+> > +		cl_data->attached = 1;
+> 
+> What happens here if a second open passes the first, the attached will
+> stay zero and other stuff will be in strange states but the open flag
+> will be set ?
+> 
+> 
+> > +	for (i = 0; i < HSI_CHAR_DEVS && channels_map[i] >= 0; i++) {
+> > +		if (channels_map[i] >= HSI_CHAR_DEVS) {
+> > +			pr_err("Invalid HSI/SSI channel specified");
+> > +			return -EINVAL;
+> > +		}
+> > +		set_bit(channels_map[i], &ch_mask);
+> 
+> How will this integrate with hot discovery of SSI supporting devices ?
+> 
+
+For every SSI port there is an HSI char client device, which is the
+device received through probe. The driver will export for every HSI char
+client device, HSI_CHAR_DEVS char devices, one char device per channel.
+
+The intention of this piece of code is to allow the user to configure
+which channels the user wants to be available to userspace.
+
+Thanks for the comments,
+Carlos
