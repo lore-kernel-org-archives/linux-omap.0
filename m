@@ -1,90 +1,232 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 00/12] OMAP: clock/SRAM: patches for 2.6.38, part one
-Date: Mon, 13 Dec 2010 23:34:43 -0700
-Message-ID: <20101214063308.21555.76050.stgit@twilight.localdomain>
+Subject: [PATCH 06/12] OMAP4: clock data: Add SCRM auxiliary clock nodes
+Date: Mon, 13 Dec 2010 23:34:49 -0700
+Message-ID: <20101214063448.21555.41295.stgit@twilight.localdomain>
+References: <20101214063308.21555.76050.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50253 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:50279 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416Ab0LNGfZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 01:35:25 -0500
+	with ESMTP id S1753512Ab0LNGf1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 01:35:27 -0500
+In-Reply-To: <20101214063308.21555.76050.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-This clock/SRAM patch series, based on v2.6.37-rc5:
+From: Rajendra Nayak <rnayak@ti.com>
 
-- fixes some problems and missing data with OMAP4 clocks,
+Add support for auxiliary clocks nodes which are part of SCRM.
 
-- adds SCRM IP block data (part of the OMAP4 PRCM collection of modules),
-
-- cleans up the way that OMAP3 clock data CK_* and RATE_IN_* flags are
-  used,
-
-- adds some comments to the SRAM code,
-
-- prepares part of the OMAP1 clock code for a combined OMAP1 defconfig
-  (although more work is left to be done before a combined OMAP1
-   defconfig is safe, from a clock framework perspective),
-
-- and fixes a few minor bugs in the OMAP2/3 clock code.
-
-
-Boot-tested on OSK 5912, N800, OMAP35xx Beagle, and OMAP37xx Beagle-XM.
-
-This series is also available from git://git.pwsan.com/linux-2.6
-branch 'clk_a_2.6.38'.
-
-
-- Paul
-
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/clock44xx_data.c |  175 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 175 insertions(+), 0 deletions(-)
 
-clk_a_2.6.38
-   text	   data	    bss	    dec	    hex	filename
-5733349	 471616	5608768	11813733	 b44365	vmlinux.orig
-5734273	 473728	5608768	11816769	 b44f41	vmlinux.patched
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 421103c..80a1898 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -35,6 +35,7 @@
+ #include "prm.h"
+ #include "prm-regbits-44xx.h"
+ #include "control.h"
++#include "scrm44xx.h"
+ 
+ /* Root clocks */
+ 
+@@ -2822,6 +2823,168 @@ static struct clk trace_clk_div_ck = {
+ 	.set_rate	= &omap2_clksel_set_rate,
+ };
+ 
++/* SCRM aux clk nodes */
++
++static const struct clksel auxclk_sel[] = {
++	{ .parent = &sys_clkin_ck, .rates = div_1_0_rates },
++	{ .parent = &dpll_core_m3x2_ck, .rates = div_1_1_rates },
++	{ .parent = &dpll_per_m3x2_ck, .rates = div_1_2_rates },
++	{ .parent = NULL },
++};
++
++static struct clk auxclk0_ck = {
++	.name		= "auxclk0_ck",
++	.parent		= &sys_clkin_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.clksel		= auxclk_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK0,
++	.clksel_mask	= OMAP4_SRCSELECT_MASK,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4_SCRM_AUXCLK0,
++	.enable_bit	= OMAP4_ENABLE_SHIFT,
++};
++
++static struct clk auxclk1_ck = {
++	.name		= "auxclk1_ck",
++	.parent		= &sys_clkin_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.clksel		= auxclk_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK1,
++	.clksel_mask	= OMAP4_SRCSELECT_MASK,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4_SCRM_AUXCLK1,
++	.enable_bit	= OMAP4_ENABLE_SHIFT,
++};
++
++static struct clk auxclk2_ck = {
++	.name		= "auxclk2_ck",
++	.parent		= &sys_clkin_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.clksel		= auxclk_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK2,
++	.clksel_mask	= OMAP4_SRCSELECT_MASK,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4_SCRM_AUXCLK2,
++	.enable_bit	= OMAP4_ENABLE_SHIFT,
++};
++static struct clk auxclk3_ck = {
++	.name		= "auxclk3_ck",
++	.parent		= &sys_clkin_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.clksel		= auxclk_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK3,
++	.clksel_mask	= OMAP4_SRCSELECT_MASK,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4_SCRM_AUXCLK3,
++	.enable_bit	= OMAP4_ENABLE_SHIFT,
++};
++
++static struct clk auxclk4_ck = {
++	.name		= "auxclk4_ck",
++	.parent		= &sys_clkin_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.clksel		= auxclk_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK4,
++	.clksel_mask	= OMAP4_SRCSELECT_MASK,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4_SCRM_AUXCLK4,
++	.enable_bit	= OMAP4_ENABLE_SHIFT,
++};
++
++static struct clk auxclk5_ck = {
++	.name		= "auxclk5_ck",
++	.parent		= &sys_clkin_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.clksel		= auxclk_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLK5,
++	.clksel_mask	= OMAP4_SRCSELECT_MASK,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4_SCRM_AUXCLK5,
++	.enable_bit	= OMAP4_ENABLE_SHIFT,
++};
++
++static const struct clksel auxclkreq_sel[] = {
++	{ .parent = &auxclk0_ck, .rates = div_1_0_rates },
++	{ .parent = &auxclk1_ck, .rates = div_1_1_rates },
++	{ .parent = &auxclk2_ck, .rates = div_1_2_rates },
++	{ .parent = &auxclk3_ck, .rates = div_1_3_rates },
++	{ .parent = &auxclk4_ck, .rates = div_1_4_rates },
++	{ .parent = &auxclk5_ck, .rates = div_1_5_rates },
++	{ .parent = NULL },
++};
++
++static struct clk auxclkreq0_ck = {
++	.name		= "auxclkreq0_ck",
++	.parent		= &auxclk0_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel         = auxclkreq_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLKREQ0,
++	.clksel_mask	= OMAP4_MAPPING_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk auxclkreq1_ck = {
++	.name		= "auxclkreq1_ck",
++	.parent		= &auxclk1_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel         = auxclkreq_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLKREQ1,
++	.clksel_mask	= OMAP4_MAPPING_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk auxclkreq2_ck = {
++	.name		= "auxclkreq2_ck",
++	.parent		= &auxclk2_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel         = auxclkreq_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLKREQ2,
++	.clksel_mask	= OMAP4_MAPPING_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk auxclkreq3_ck = {
++	.name		= "auxclkreq3_ck",
++	.parent		= &auxclk3_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel         = auxclkreq_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLKREQ3,
++	.clksel_mask	= OMAP4_MAPPING_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk auxclkreq4_ck = {
++	.name		= "auxclkreq4_ck",
++	.parent		= &auxclk4_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel         = auxclkreq_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLKREQ4,
++	.clksel_mask	= OMAP4_MAPPING_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk auxclkreq5_ck = {
++	.name		= "auxclkreq5_ck",
++	.parent		= &auxclk5_ck,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel         = auxclkreq_sel,
++	.clksel_reg	= OMAP4_SCRM_AUXCLKREQ5,
++	.clksel_mask	= OMAP4_MAPPING_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
+ /*
+  * clkdev
+  */
+@@ -3083,6 +3246,18 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"uart3_ick",			&dummy_ck,	CK_443X),
+ 	CLK(NULL,	"uart4_ick",			&dummy_ck,	CK_443X),
+ 	CLK("omap_wdt",	"ick",				&dummy_ck,	CK_443X),
++	CLK(NULL,	"auxclk0_ck",			&auxclk0_ck,	CK_443X),
++	CLK(NULL,	"auxclk1_ck",			&auxclk1_ck,	CK_443X),
++	CLK(NULL,	"auxclk2_ck",			&auxclk2_ck,	CK_443X),
++	CLK(NULL,	"auxclk3_ck",			&auxclk3_ck,	CK_443X),
++	CLK(NULL,	"auxclk4_ck",			&auxclk4_ck,	CK_443X),
++	CLK(NULL,	"auxclk5_ck",			&auxclk5_ck,	CK_443X),
++	CLK(NULL,	"auxclkreq0_ck",		&auxclkreq0_ck,	CK_443X),
++	CLK(NULL,	"auxclkreq1_ck",		&auxclkreq1_ck,	CK_443X),
++	CLK(NULL,	"auxclkreq2_ck",		&auxclkreq2_ck,	CK_443X),
++	CLK(NULL,	"auxclkreq3_ck",		&auxclkreq3_ck,	CK_443X),
++	CLK(NULL,	"auxclkreq4_ck",		&auxclkreq4_ck,	CK_443X),
++	CLK(NULL,	"auxclkreq5_ck",		&auxclkreq5_ck,	CK_443X),
+ };
+ 
+ int __init omap4xxx_clk_init(void)
 
-
-Benoit Cousson (3):
-      OMAP4: clock data: Add control for pad_clks_ck and slimbus_clk
-      OMAP3: clock data: Add "wkup_clkdm" in sr1_fck and sr2_fck
-      OMAP4: PRCM: Add SCRM header file
-
-Janusz Krzysztofik (1):
-      OMAP1: clock_data: use runtime cpu / machine checks
-
-Jonathan Bergsagel (1):
-      OMAP4: clock data: Add missing fields in iva_hsd_byp_clk_mux_ck
-
-Paul Walmsley (4):
-      OMAP2xxx clock: fix dss2_fck recalc to use clksel
-      OMAP3: clock: clarify usage of struct clksel_rate.flags and struct omap_clk.cpu
-      OMAP3: clock: fix incorrect rate display when switching MPU rate at boot
-      OMAP2/3: SRAM: add comment about crashes during a TLB miss
-
-Rajendra Nayak (2):
-      OMAP4: clock data: Add SCRM auxiliary clock nodes
-      OMAP4: clock data: Export control to enable/disable CORE/PER M3 clocks
-
-Thara Gopinath (1):
-      OMAP4: clock data: Add missing DPLL x2 clock nodes
-
-
- arch/arm/mach-omap1/clock_data.c              |   17 -
- arch/arm/mach-omap2/clock2420_data.c          |    2 
- arch/arm/mach-omap2/clock2430_data.c          |    2 
- arch/arm/mach-omap2/clock3xxx.c               |    2 
- arch/arm/mach-omap2/clock3xxx_data.c          |  218 ++++-----
- arch/arm/mach-omap2/clock44xx_data.c          |  620 ++++++++++++++++++-------
- arch/arm/mach-omap2/scrm44xx.h                |  176 +++++++
- arch/arm/mach-omap2/sram242x.S                |    6 
- arch/arm/mach-omap2/sram243x.S                |    6 
- arch/arm/mach-omap2/sram34xx.S                |    6 
- arch/arm/plat-omap/include/plat/clkdev_omap.h |   20 -
- arch/arm/plat-omap/include/plat/clock.h       |   11 
- 12 files changed, 772 insertions(+), 314 deletions(-)
- create mode 100644 arch/arm/mach-omap2/scrm44xx.h
 
