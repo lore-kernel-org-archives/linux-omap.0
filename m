@@ -1,91 +1,68 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: Power on EHCI, serial, camera and DVI on beagleboard-xM
-Date: Tue, 14 Dec 2010 19:54:37 +0530
-Message-ID: <4D077E25.5070609@ti.com>
-References: <1291725639-86397-1-git-send-email-koen@beagleboard.org> <E4A07EF4-1694-4B22-8015-0710B6BE7A2E@dominion.thruhere.net>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
+Date: Tue, 14 Dec 2010 16:31:36 +0200
+Message-ID: <AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com>
+References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:35108 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754695Ab0LNOYn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Dec 2010 09:24:43 -0500
-Received: by mail-gy0-f172.google.com with SMTP id 12so356720gyd.3
-        for <linux-omap@vger.kernel.org>; Tue, 14 Dec 2010 06:24:42 -0800 (PST)
-In-Reply-To: <E4A07EF4-1694-4B22-8015-0710B6BE7A2E@dominion.thruhere.net>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1291420247-18171-1-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On 12/14/2010 7:41 PM, Koen Kooi wrote:
-> Any comments on this?
-> 
-> Op 7 dec 2010, om 13:40 heeft Koen Kooi het volgende geschreven:
-> 
->> From: Koen Kooi <koen@dominion.thruhere.net>
->>
+Hi Greg, Tony,
 
+On Sat, Dec 4, 2010 at 1:50 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> OMAP4 introduces a Hardware Spinlock device, which provides hardware
+> assistance for synchronization and mutual exclusion between heterogen=
+eous
+> processors and those not operating under a single, shared operating s=
+ystem
+> (e.g. OMAP4 has dual Cortex-A9, dual Cortex-M3 and a C64x+ DSP).
+>
+> The intention of this hardware device is to allow remote processors,
+> that have no alternative mechanism to accomplish synchronization and =
+mutual
+> exclusion operations, to share resources (such as memory and/or any o=
+ther
+> hardware resource).
+>
+> This patchset adds hwspinlock framework that makes it possible
+> for drivers to use those hwspinlock devices and stay platform-indepen=
+dent.
 
-You may want to add a description here. For instance you're
-making the PMU STAT led disappear - and I'm not sure it's
-deliberate.
+=2E..
 
->> Signed-off-by: Koen Kooi <koen@beagleboard.org>
->> ---
->> arch/arm/mach-omap2/board-omap3beagle.c |   27 +++++++++++++++++++++++----
->> 1 files changed, 23 insertions(+), 4 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
->> index f1a8ede..9c9bd96 100644
->> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->> @@ -297,12 +297,31 @@ static int beagle_twl_gpio_setup(struct device *dev,
->> 	gpio_request(gpio + 1, "EHCI_nOC");
->> 	gpio_direction_input(gpio + 1);
->>
->> -	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
->> +	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
->> +	 * high / others active low) */
+> =A0Documentation/hwspinlock.txt =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0299 =
++++++++++++++++
+> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A0=
+1 +
+> =A0arch/arm/mach-omap2/hwspinlock.c =A0 =A0 =A0 =A0 =A0 | =A0 63 ++++
+> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0 64 ++++
+> =A0drivers/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0| =A0 =A02 +
+> =A0drivers/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ | =A0 =A01 +
+> =A0drivers/hwspinlock/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 2=
+2 ++
+> =A0drivers/hwspinlock/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
+6 +
+> =A0drivers/hwspinlock/hwspinlock.h =A0 =A0 =A0 =A0 =A0 =A0| =A0 61 ++=
++
+> =A0drivers/hwspinlock/hwspinlock_core.c =A0 =A0 =A0 | =A0557 ++++++++=
+++++++++++++++++++++
+> =A0drivers/hwspinlock/omap_hwspinlock.c =A0 =A0 =A0 | =A0231 ++++++++=
+++++
+> =A0include/linux/hwspinlock.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A029=
+8 +++++++++++++++
+> =A012 files changed, 1605 insertions(+), 0 deletions(-)
 
+Can you please have a look and say if this looks OK ?
 
-Just nitpicking. The multi-line comments are not as per
-Documentation/CodingStyle.
+If it does, where would you prefer this to go through ?
 
-
-
-
->> 	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
->> -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
->> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
->> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
->> +	else
->> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
->> +
->> +	/* DVI reset GPIO is different between revisions */
->> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
->> +		beagle_dvi_device.reset_gpio = 129;
->> +	else
->> +		beagle_dvi_device.reset_gpio = 170;
->> +
->> +	 /* Power on DVI, Serial and PWR led */
->> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
->> +		gpio_request(gpio + 1, "nDVI_PWR_EN");
->> +		gpio_direction_output(gpio + 1, 0);
->> +	}
->>
->> -	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
->> -	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
-
-This disappeared. So no more PMU STAT led?
-
->> +	/* Power on camera interface on P7/P8 or DVI on A2 and beyond */
->> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
->> +		gpio_request(gpio + 2, "CAM_EN");
->> +		gpio_direction_output(gpio + 2, 1);
->> +	}
->>
->> 	return 0;
->> }
+Thanks,
+Ohad.
