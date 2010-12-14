@@ -1,58 +1,50 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH v7] OMAP2+: PM: omap device: API's for handling
- mstandby mode
-Date: Tue, 14 Dec 2010 07:18:22 +0530
-Message-ID: <20101214014822.GA3858@manju-desktop>
-References: <1291298392-28729-1-git-send-email-manjugk@ti.com>
- <4CF8AC8B.9040800@ti.com>
- <20101203092514.GA10048@GLPP-machine>
- <4CF8E03A.4010000@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v5 0/12] dmtimer adaptation to platform_driver
+Date: Mon, 13 Dec 2010 18:09:39 -0800
+Message-ID: <87k4jd2jh8.fsf@deeprootsystems.com>
+References: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com>
+	<20101206162852.GA4924@manju-desktop>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03736F5022@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:40678 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758932Ab0LNBsj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Dec 2010 20:48:39 -0500
-Received: by mail-yx0-f176.google.com with SMTP id 8so65478yxm.21
-        for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 17:48:38 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4CF8E03A.4010000@ti.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:59019 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758988Ab0LNCJo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 21:09:44 -0500
+Received: by iwn9 with SMTP id 9so165451iwn.19
+        for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 18:09:43 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03736F5022@dbde02.ent.ti.com>
+	(Tarun Kanti DebBarma's message of "Tue, 7 Dec 2010 10:29:19 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Paul/Benoit,
+"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 
-On Fri, Dec 03, 2010 at 01:19:06PM +0100, Cousson, Benoit wrote:
-> On 12/3/2010 10:47 AM, G, Manjunath Kondaiah wrote:
-> >* Cousson, Benoit<b-cousson@ti.com>  [2010-12-03 09:38:35 +0100]:
-> 
-> [...]
-> 
-> >>>v7: replaced mutex lock with spin lock. Added use count for controlling
-> >>>access to sysconfig registers in case if overlapping request/release API's
-> >>>are used.
-> >>
-> >>I'm not sure it should be done here. I'd rather keep that code in
-> >>the DMA, since this is the only user of that feature.
-> >
-> >Are you referring to spin lock or usage count?
-> 
-> The spinlock is needed, I was referring to the usage count.
-> 
-> That being said, the API proposed by Paul (request/release
-> ) sound like a get/put, so maybe he had that kind of usage in mind.
-> 
-> I'm still not convince it should be done at hwmod API level.
-> 
-> 
-> Paul,
-> Any thoughts on that?
+>> On Tue, Dec 07, 2010 at 05:14:07AM +0530, Tarun Kanti DebBarma wrote:
+>> > dmtimer adaptation to platform_driver.
+>> >
+>> > This patch series is adaptation of dmtimer code to platform driver
+>> > using omap_device and omap_hwmod abstraction.
+>> >
+>> > Tested on following platforms:
+>> > OMAP4430, OMAP3430, OMAP3630, OMAP2430
+>> > OMAP2420 -- Image with omap2plus_defconfig in too large to download on
+>> N800.
+>> 
+>> How about omap1? The mainline code happily compiles and boots on osk5912
+>> but this series is going to break omap1 build.
+>
+> I have built and booted on OMAP1 during v3. This time I could not because
+> My OMAP1710 has gone bad. I am looking for one to test.
+> That's precisely the reason I have not mentioned OMAP1. 
 
-How do we proceed further?
+Rather than not mentioning OMAP1, you should state whether (or not) it
+was tested on OMAP1.   As build/boot testing on OMAP1 is a requirement
+for merge, this information is crucial.
 
--Manjunath
+Kevin
+
 
