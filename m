@@ -1,64 +1,81 @@
-From: Clemens Ladisch <clemens@ladisch.de>
-Subject: Re: [RFC/PATCH v6 03/12] media: Entities,
-	pads and links
-Date: Tue, 14 Dec 2010 16:30:39 +0100
-Message-ID: <4D078D9F.1060700@ladisch.de>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>	<201012141300.57118.laurent.pinchart@ideasonboard.com>	<4D0771CB.3020809@ladisch.de>
-	<201012141525.02463.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <201012141525.02463.laurent.pinchart@ideasonboard.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: alsa-devel@alsa-project.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, lennart@poettering.net, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+From: Shubhrajyoti D <a0393217@india.ti.com>
+Subject: [PATCH v7] OMAP4:keypad: PM runtime
+Date: Tue, 14 Dec 2010 21:08:57 +0530
+Message-ID: <1292341137-14783-1-git-send-email-a0393217@india.ti.com>
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-input@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
 
-Laurent Pinchart wrote:
-> On Tuesday 14 December 2010 14:31:55 Clemens Ladisch wrote:
-> > Laurent Pinchart wrote:
-> > > On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
-> > >> EXT_SPEAKER also includes headphones; there might be made a case for
-> > >> having those as a separate subtype.
-> > > 
-> > > Shouldn't headphones be represented by an EXT_JACK_ANALOG ?
-> > 
-> > Headphone jacks are jacks; there are also USB headphones.
-> 
-> So EXT_SPEAKER are speakers not connected through a jack (USB, internal
-> analog, ...) ?
+From: Abraham Arce <x0066660@ti.com>
 
-Yes.
+Enable Runtime PM functionality in OMAP4 driver based on the following assumptions
+- Runtime PM selected by ARCH_OMAP2PLUS_TYPICAL && ARCH_OMAP2PLUS,
+  which is the default OMAP2+ defconfig including OMAP4
+- Runtime PM APIs handles Clock Framework APIs
+- Do not do the keypadconfig if the irq request fails
 
-When there is jack, the driver often does not know what is connected.
+A minimal pm runtime get/put approach is implemented in probe/remove calls
+respectively based on:
 
-> > >> EXT_BROADCAST represents devices like TV tuners, satellite receivers,
-> > >> cable tuners, or radios.
-> > > 
-> > > There's clearly an overlap with V4L here.
-> > 
-> > These come from the USB audio spec.  Video devices are indeed likely to
-> > be more detailed than just a single audio source. :)
-> 
-> Does EXT_BROADCAST represent the TV tuner (or satellite receiver, cable tuner,
-> radio tuner, ...) itself, or the connection between the tuner and the rest of
-> the device ? Most TV tuner are currently handled by V4L2 and would thus turn
-> up as V4L2 subdevs (I'm not sure if that's what we want in the long term, but
-> it's at least the current situation).
-
->From the point of view of an audio device, this would be just some audio
-source, much like a connector.  We don't need this if there is some
-better V4L entitity that the USB audio entity can be mapped to.
+- Keyboard controller in wakeup domain so it is always on and
+  power impact may be minimal
+- Cutting of clocks will prevent interrupts
 
 
-Regards,
-Clemens
+Signed-off-by: Abraham Arce <x0066660@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+Updating the changelogs as per Kevin's suggestion
+
+ drivers/input/keyboard/omap4-keypad.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
+index 45bd097..36239e2 100644
+--- a/drivers/input/keyboard/omap4-keypad.c
++++ b/drivers/input/keyboard/omap4-keypad.c
+@@ -29,6 +29,7 @@
+ #include <linux/io.h>
+ #include <linux/input.h>
+ #include <linux/slab.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <plat/omap4-keypad.h>
+ 
+@@ -239,7 +240,8 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+ 	matrix_keypad_build_keymap(pdata->keymap_data, row_shift,
+ 			input_dev->keycode, input_dev->keybit);
+ 
+-	omap4_keypad_config(keypad_data);
++	pm_runtime_enable(&pdev->dev);
++	pm_runtime_get_sync(&pdev->dev);
+ 
+ 	error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
+ 			     IRQF_TRIGGER_RISING,
+@@ -255,8 +257,9 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+ 		goto err_free_irq;
+ 	}
+ 
+-
++	omap4_keypad_config(keypad_data);
+ 	platform_set_drvdata(pdev, keypad_data);
++
+ 	return 0;
+ 
+ err_free_irq:
+@@ -278,6 +281,10 @@ static int __devexit omap4_keypad_remove(struct platform_device *pdev)
+ 	struct resource *res;
+ 
+ 	free_irq(keypad_data->irq, keypad_data);
++
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
++
+ 	input_unregister_device(keypad_data->input);
+ 
+ 	iounmap(keypad_data->base);
+-- 
+1.7.0.4
+
