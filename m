@@ -1,38 +1,50 @@
-From: Fernando Guzman Lugo <fernando.lugo@ti.com>
-Subject: [PATCHv6 3/4] omap: iovmm - replace __iounmap with iounmap
-Date: Tue, 14 Dec 2010 07:07:26 -0600
-Message-ID: <1292332047-8206-4-git-send-email-fernando.lugo@ti.com>
-References: <1292332047-8206-1-git-send-email-fernando.lugo@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1292332047-8206-1-git-send-email-fernando.lugo@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hiroshi.DOYU@nokia.com, linux@arm.linux.org.uk, h-kanigeri2@ti.com
-Cc: felipe.contreras@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, "Guzman Lugo, Fernando" <x0095840@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH] OMAP3: PM: Fix CLK_SRC mask for IVA2 and MPU
+Date: Tue, 14 Dec 2010 19:01:39 +0530
+Message-ID: <1292333499-11352-1-git-send-email-rnayak@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48210 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755305Ab0LNNbs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 08:31:48 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-From: Guzman Lugo, Fernando <x0095840@ti.com>
+The IVA2_CLK_SRC and MPU_CLK_SRC for OMAP3
+are 3 bit fields and hence the mask should
+be defined as (0x7 << n).
 
-__iounmap function is wrong for OMAP architecture,
-instead use iounmap which will call to the correct function.
-
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/plat-omap/iovmm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 93a34d9..fa6e643 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -821,7 +821,7 @@ void iommu_kunmap(struct iommu *obj, u32 da)
- 	struct sg_table *sgt;
- 	typedef void (*func_t)(const void *);
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index 4f959a7..d5c8fb6 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -81,7 +81,7 @@
  
--	sgt = unmap_vm_area(obj, da, (func_t)__iounmap,
-+	sgt = unmap_vm_area(obj, da, (func_t)iounmap,
- 			    IOVMF_LINEAR | IOVMF_MMIO);
- 	if (!sgt)
- 		dev_dbg(obj->dev, "%s: No sgt\n", __func__);
+ /* CM_CLKSEL1_PLL_IVA2 */
+ #define OMAP3430_IVA2_CLK_SRC_SHIFT			19
+-#define OMAP3430_IVA2_CLK_SRC_MASK			(0x3 << 19)
++#define OMAP3430_IVA2_CLK_SRC_MASK			(0x7 << 19)
+ #define OMAP3430_IVA2_DPLL_MULT_SHIFT			8
+ #define OMAP3430_IVA2_DPLL_MULT_MASK			(0x7ff << 8)
+ #define OMAP3430_IVA2_DPLL_DIV_SHIFT			0
+@@ -126,7 +126,7 @@
+ 
+ /* CM_CLKSEL1_PLL_MPU */
+ #define OMAP3430_MPU_CLK_SRC_SHIFT			19
+-#define OMAP3430_MPU_CLK_SRC_MASK			(0x3 << 19)
++#define OMAP3430_MPU_CLK_SRC_MASK			(0x7 << 19)
+ #define OMAP3430_MPU_DPLL_MULT_SHIFT			8
+ #define OMAP3430_MPU_DPLL_MULT_MASK			(0x7ff << 8)
+ #define OMAP3430_MPU_DPLL_DIV_SHIFT			0
 -- 
-1.7.3.2
+1.7.0.4
+
