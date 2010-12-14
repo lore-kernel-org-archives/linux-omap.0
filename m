@@ -1,16 +1,17 @@
 From: Clemens Ladisch <clemens@ladisch.de>
 Subject: Re: [RFC/PATCH v6 03/12] media: Entities,
 	pads and links
-Date: Tue, 14 Dec 2010 14:31:55 +0100
-Message-ID: <4D0771CB.3020809@ladisch.de>
+Date: Tue, 14 Dec 2010 14:49:15 +0100
+Message-ID: <4D0775DB.2020902@ladisch.de>
 References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<4CEF799E.7060508@ladisch.de> <4D06458B.6080808@ladisch.de>
 	<201012141300.57118.laurent.pinchart@ideasonboard.com>
+	<e629c78fffa0f709d743473f10334fd7.squirrel@webmail.xs4all.nl>
+	<201012141353.15749.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <201012141300.57118.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201012141353.15749.laurent.pinchart@ideasonboard.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -21,89 +22,53 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: alsa-devel@alsa-project.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, lennart@poettering.net, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Cc: alsa-devel@alsa-project.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>, lennart@poettering.net, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 Laurent Pinchart wrote:
-> On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
->> TYPE_EXT describes entities that represent some interface to the
->> external world, TYPE_INT those that are internal to the entire device.
->> (I'm not sure if that distinction is very useful, but TYPE_SUBDEV seems
->> to be an even more meaningless name.)
-> 
-> SUBDEV comes from the V4L2 world, and I agree that it might not be a very good 
-> name.
-> 
-> I'm not sure I would split entities in internal/external categories. I would
-> create a category for connectors though.
-
-I'm not disagreeing, but what is actually the distinction between types
-and subtypes?  ;-)
-
->> * Entity properties
+> On Tuesday 14 December 2010 13:40:21 Hans Verkuil wrote:
+>> > On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
+>> >> * Entity types
+>> >> 
+>> >> TYPE_NODE was renamed to TYPE_DEVICE because "node" sounds like a node
+>> >> in a graph, which does not distinguish it from other entity types
+>> >> because all entities are part of the topology graph.  I chose "device"
+>> >> as this type describes entities that are visible as some device node to
+>> >> other software.
+>> > 
+>> > What this type describes is a device node. Both NODE and DEVICE can be
+>> > confusing in my opinion, but DEVICE_NODE is a bit long.
 >> 
->> There needs to be a mechanism to associate meta-information (properties)
->> with entities.  This information should be optional and extensible, but,
->> when being handled inside the kernel, doesn't need to be more than
->> a read-only blob.  I think that something like ALSA's TLV format (used
->> for mixer controls) can be used here.  (I'm not mentioning the X-word
->> here, except to note that the "M" stands for "markup".)
+>> What about DEVNODE? I think that would be a good alternative.
 > 
-> I've been thinking of adding a new ioctl for that. It's something we need to
-> draft. The UVC driver will need it, and I'm pretty sure other V4L2 drivers
-> would find it useful as well.
+> Fine with me. Clemens, any opinion on that ?
 
-I'm imagining a "read-the-properties" ioctl that just returns the
-entity's blob.
+Fine with me too.
 
->> EXT_SPEAKER also includes headphones; there might be made a case for
->> having those as a separate subtype.
+> > >> TYPE_EXT describes entities that represent some interface to the
+> > >> external world, TYPE_INT those that are internal to the entire device.
+> > >> (I'm not sure if that distinction is very useful, but TYPE_SUBDEV seems
+> > >> to be an even more meaningless name.)
+> > > 
+> > > SUBDEV comes from the V4L2 world, and I agree that it might not be a very
+> > > good name.
+> > 
+> > SUBDEV refers to a specific type of driver. Within the v4l world it is
+> > well defined. So I prefer to keep this. Perhaps some additional comments
+> > or documentation can be added to clarify this.
 > 
-> Shouldn't headphones be represented by an EXT_JACK_ANALOG ?
+> Should this be clarified by using V4L2_SUBDEV instead then ?
 
-Headphone jacks are jacks; there are also USB headphones.
+If the "SUBDEV" concept doesn't exist outside V4L, that would indeed be
+better.
 
->> EXT_BROADCAST represents devices like TV tuners, satellite receivers,
->> cable tuners, or radios.
-> 
-> There's clearly an overlap with V4L here.
+I don't want to rename things that come out of existing frameworks; this
+naming discussion makes sense only for those entity (sub)types that can
+be shared between them.  Are there any, besides jacks?
 
-These come from the USB audio spec.  Video devices are indeed likely to
-be more detailed than just a single audio source. :)
+> What about ALSA entities, should they use MEDIA_ENTITY_TYPE_ALSA_* ?
 
->> INT_CONTROLS may have multiple independent controls (this is USB's
->> Feature Unit); INT_EFFECT may have multiple controls that affect one
->> single algorithm.
-> 
-> I'd describe this as a feature unit/processing unit then.
-
-I was aiming for more descriptive names, but I agree that the original
-names might be more useful.
-
-> Should we have an AUDIO category ?
-
-Probably not, because there are combined audio/video jacks, any maybe
-other entities.
-
->> * Entity specifications
->> 
->> While TYPE_DEVICE entities can be identified by their device node, other
->> entities typcially have just a numeric ID.
-> 
-> In V4L2 sub-devices have (or rather will have once the media controller
-> patches will be integrated) device nodes as well, so exposing that information
-> is required.
-
-USB and HDA entities already have numeric IDs.
-
->> For that, it would be useful to make do without separate identification and
->> let the driver choose the entity ID.
-> 
-> How would drivers do that ? What if you have two instances of the same chip
-> (a video sensor, audio mixer, ...) on the same board ?
-
-Then those would get different IDs; USB descriptors always describe the
-entire device.
+The entity types representing ALSA devices are already named "ALSA".
 
 
 Regards,
