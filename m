@@ -1,46 +1,29 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/5] OMAP3&4: Fixes in setup/suspend/powerdomain
-Date: Mon, 13 Dec 2010 23:43:56 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012132342030.15971@utopia.booyaka.com>
-References: <1292276969-29733-1-git-send-email-b-cousson@ti.com>
+Subject: Re: [PATCH v5 0/12] dmtimer adaptation to platform_driver
+Date: Mon, 13 Dec 2010 23:45:55 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012132344350.15971@utopia.booyaka.com>
+References: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-2123025582-1292309036=:15971"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42562 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:38276 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753597Ab0LNGn6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 01:43:58 -0500
-In-Reply-To: <1292276969-29733-1-git-send-email-b-cousson@ti.com>
+	with ESMTP id S1751416Ab0LNGp4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 01:45:56 -0500
+In-Reply-To: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Tue, 7 Dec 2010, Tarun Kanti DebBarma wrote:
 
---155748971-2123025582-1292309036=:15971
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+> Tested on following platforms:
+> OMAP4430, OMAP3430, OMAP3630, OMAP2430
+> OMAP2420 -- Image with omap2plus_defconfig in too large to download on N800.
 
-Hi Beno=EEt, Kevin,
-
-On Mon, 13 Dec 2010, Benoit Cousson wrote:
-
-> This is a series of fixes on OMAP3/4 in setup apis,
-> in the suspend framework and in powerdomain modelling
-> for OMAP4.
-
-=2E..
-
-> Rajendra Nayak (3):
->   OMAP4: PM: Use the lowpwrstatechange feature on OMAP4
->   OMAP4: PM: Do not assume clkdm supports hw transitions
-
-The above two patches should be run by Kevin for his ack (cc'ed on this=20
-message).  Kevin, care to ack these?
-
+Just build a minimal N800 config for testing.  It's really quite easy.  
+Use 'make menuconfig' and then you can remove lots of unnecessary stuff.
 
 
 - Paul
---155748971-2123025582-1292309036=:15971--
