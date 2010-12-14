@@ -1,53 +1,56 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 04/12] OMAP4: clock data: Add missing fields in
-	iva_hsd_byp_clk_mux_ck
-Date: Mon, 13 Dec 2010 23:34:47 -0700
-Message-ID: <20101214063446.21555.74809.stgit@twilight.localdomain>
+Subject: [PATCH 10/12] OMAP3: clock: fix incorrect rate display when switching
+	MPU rate at boot
+Date: Mon, 13 Dec 2010 23:34:53 -0700
+Message-ID: <20101214063452.21555.26259.stgit@twilight.localdomain>
 References: <20101214063308.21555.76050.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50270 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:50291 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753047Ab0LNGf0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 01:35:26 -0500
+	with ESMTP id S1753859Ab0LNGf1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 01:35:27 -0500
 In-Reply-To: <20101214063308.21555.76050.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Jonathan Bergsagel <jbergsagel@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>, Bruno Guerin <br.guerin@free.fr>
 
-From: Jonathan Bergsagel <jbergsagel@ti.com>
+The OMAP3 clock code contains some legacy code to allow the MPU rate
+to be specified as a kernel command line parameter.  If the 'mpurate'
+parameter is specified, the kernel will attempt to switch the MPU rate
+to this rate during boot.  As part of this process, a short message
+"Switched to new clocking rate" is generated -- and in this message,
+the "Core" clock rate and "MPU" clock rate are transposed.
 
-Add register address, mask and link to the clksel structure that
-were missing in the IVA DPLL mux clock node.
+This patch ensures that the clock rates are displayed in the correct
+order.
 
-Signed-off-by: Jonathan Bergsagel <jbergsagel@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Thanks to Bruno Guerin <br_guerin@free.fr> for reporting this bug and
+proposing a fix.  Thanks to Richard Woodruff <r-woodruff2@ti.com> for
+reviewing the problem and passing the report on.
+
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Bruno Guerin <br.guerin@free.fr>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
 ---
- arch/arm/mach-omap2/clock44xx_data.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/clock3xxx.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index aa503cb..421103c 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -636,8 +636,12 @@ static const struct clksel iva_hsd_byp_clk_mux_sel[] = {
- static struct clk iva_hsd_byp_clk_mux_ck = {
- 	.name		= "iva_hsd_byp_clk_mux_ck",
- 	.parent		= &sys_clkin_ck,
-+	.clksel		= iva_hsd_byp_clk_mux_sel,
-+	.init		= &omap2_init_clksel_parent,
-+	.clksel_reg	= OMAP4430_CM_CLKSEL_DPLL_IVA,
-+	.clksel_mask	= OMAP4430_DPLL_BYP_CLKSEL_MASK,
- 	.ops		= &clkops_null,
--	.recalc		= &followparent_recalc,
-+	.recalc		= &omap2_clksel_recalc,
- };
+diff --git a/arch/arm/mach-omap2/clock3xxx.c b/arch/arm/mach-omap2/clock3xxx.c
+index a447c4d..90b9477 100644
+--- a/arch/arm/mach-omap2/clock3xxx.c
++++ b/arch/arm/mach-omap2/clock3xxx.c
+@@ -94,7 +94,7 @@ static int __init omap3xxx_clk_arch_init(void)
  
- /* DPLL_IVA */
+ 	ret = omap2_clk_switch_mpurate_at_boot("dpll1_ck");
+ 	if (!ret)
+-		omap2_clk_print_new_rates("osc_sys_ck", "arm_fck", "core_ck");
++		omap2_clk_print_new_rates("osc_sys_ck", "core_ck", "arm_fck");
+ 
+ 	return ret;
+ }
 
 
