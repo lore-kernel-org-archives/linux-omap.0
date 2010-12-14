@@ -1,63 +1,39 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
-Date: Tue, 14 Dec 2010 20:40:28 +0200
-Message-ID: <AANLkTi=q=QMQ_Abxb8eUWT_qGG8K=pc892ZB-mqgt_mh@mail.gmail.com>
-References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
- <AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com> <20101214170656.GA3832@kroah.com>
+From: Peter Barada <peter.barada@gmail.com>
+Subject: Thermal issues with OMAP35x on Logic Torpedo module
+Date: Tue, 14 Dec 2010 13:54:35 -0500
+Message-ID: <4D07BD6B.6030203@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101214170656.GA3832@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:50345 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751364Ab0LNSyS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 13:54:18 -0500
+Received: by qwa26 with SMTP id 26so1082747qwa.19
+        for <linux-omap@vger.kernel.org>; Tue, 14 Dec 2010 10:54:17 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Dec 14, 2010 at 7:06 PM, Greg KH <greg@kroah.com> wrote:
->> Can you please have a look and say if this looks OK ?
->
-> Look at what, I don't see a patch here.
+The OMAP3530 I-temp can run the core at up to 90 degrees C, but we have 
+concerns in using the part in industrial environments (where process 
+loading is unpredictable) that the temp may rise past that point.  I 
+understand external heat sinks can be used to help mitigate the problem 
+but not all applications can use such.
 
-Here's the complete patchset:
+What I'd like to do is to use the core CONTROL_TEMP_SENSOR to monitor 
+core temperature and if it rises too high, throttle the OPP point to 
+slow it down enough to keep it cool - and restore the OPP point if it 
+cools down enough, using hysteresis to prevent oscillation of the OPP 
+point while operating near the extremes.
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39833.html
+Does anyone have suggestions on how I can best implement such in the 
+latest kernel?
 
-If you prefer, I can resubmit.
+Thanks in advance!
 
->
-> I've seen a lot of discussion about this, are all of the review comme=
-nts
-> now addressed?
+--
+Peter Barada
+peter.barada@logicpd.com
 
-Yes, all comments were addressed in this v3 iteration, and this thread
-has been idle for about 10 days.
-
-> =A0Like the most important one, why is this generic code if
->  it's only for one specific platform?
-
-We started out with an omap-specific driver, but Tony preferred that we
-make this a platform-agnostic framework, in order to keep the IPC drive=
-rs that
-will use it generic, and assuming that more users will show up for
-such framework.
-
-To me it sounds reasonable, but both ways (framework / omap-specific
-driver) will work for us just fine, and I can switch back to a misc
-driver if this is preferred.
-
-The complete discussion of v1 is at:
-http://comments.gmane.org/gmane.linux.kernel/1049802
-
-We also discussed this at v2 of the patches with David, see the
-complete discussion at:
-http://comments.gmane.org/gmane.linux.kernel/1067016
-
-Thanks,
-Ohad.
-
->
-> thanks,
->
-> greg k-h
->
