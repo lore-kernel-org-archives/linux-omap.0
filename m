@@ -1,81 +1,55 @@
-From: Shubhrajyoti D <a0393217@india.ti.com>
-Subject: [PATCH v7] OMAP4:keypad: PM runtime
-Date: Tue, 14 Dec 2010 21:08:57 +0530
-Message-ID: <1292341137-14783-1-git-send-email-a0393217@india.ti.com>
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: linux-input@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH] MTD: NAND: ams-delta: convert to platform driver
+Date: Tue, 14 Dec 2010 19:00:23 +0200
+Message-ID: <1292346023.2538.103.camel@localhost>
+References: <201012111840.05270.jkrzyszt@tis.icnet.pl>
+Reply-To: dedekind1@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f45.google.com ([209.85.215.45]:58725 "EHLO
+	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759214Ab0LNRAy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 12:00:54 -0500
+Received: by ewy10 with SMTP id 10so523949ewy.4
+        for <linux-omap@vger.kernel.org>; Tue, 14 Dec 2010 09:00:53 -0800 (PST)
+In-Reply-To: <201012111840.05270.jkrzyszt@tis.icnet.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-mtd@lists.infradead.org, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 
-From: Abraham Arce <x0066660@ti.com>
+On Sat, 2010-12-11 at 18:40 +0100, Janusz Krzysztofik wrote:
+> In its current form, the driver may break unrelated machines if built=
+ into the=20
+> kernel, hence is not suitable for inclusion into a kernel built for m=
+ultiple=20
+> OMAP1 machines. Convert it to a platform driver, that should be free =
+from that=20
+> issue.
+>=20
+> While being at it, get rid of depreciated omap_read/write(), use iore=
+map()=20
+> instead.
+>=20
+> Created and tested against linux-2.6.37-rc5 on Amstrad Delta.
+>=20
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-Enable Runtime PM functionality in OMAP4 driver based on the following assumptions
-- Runtime PM selected by ARCH_OMAP2PLUS_TYPICAL && ARCH_OMAP2PLUS,
-  which is the default OMAP2+ defconfig including OMAP4
-- Runtime PM APIs handles Clock Framework APIs
-- Do not do the keypadconfig if the irq request fails
-
-A minimal pm runtime get/put approach is implemented in probe/remove calls
-respectively based on:
-
-- Keyboard controller in wakeup domain so it is always on and
-  power impact may be minimal
-- Cutting of clocks will prevent interrupts
-
-
-Signed-off-by: Abraham Arce <x0066660@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
-Updating the changelogs as per Kevin's suggestion
-
- drivers/input/keyboard/omap4-keypad.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-index 45bd097..36239e2 100644
---- a/drivers/input/keyboard/omap4-keypad.c
-+++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -29,6 +29,7 @@
- #include <linux/io.h>
- #include <linux/input.h>
- #include <linux/slab.h>
-+#include <linux/pm_runtime.h>
- 
- #include <plat/omap4-keypad.h>
- 
-@@ -239,7 +240,8 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 	matrix_keypad_build_keymap(pdata->keymap_data, row_shift,
- 			input_dev->keycode, input_dev->keybit);
- 
--	omap4_keypad_config(keypad_data);
-+	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_get_sync(&pdev->dev);
- 
- 	error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
- 			     IRQF_TRIGGER_RISING,
-@@ -255,8 +257,9 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 		goto err_free_irq;
- 	}
- 
+Sorry, but would it please be possible to split this few small patches =
 -
-+	omap4_keypad_config(keypad_data);
- 	platform_set_drvdata(pdev, keypad_data);
-+
- 	return 0;
- 
- err_free_irq:
-@@ -278,6 +281,10 @@ static int __devexit omap4_keypad_remove(struct platform_device *pdev)
- 	struct resource *res;
- 
- 	free_irq(keypad_data->irq, keypad_data);
-+
-+	pm_runtime_put_sync(&pdev->dev);
-+	pm_runtime_disable(&pdev->dev);
-+
- 	input_unregister_device(keypad_data->input);
- 
- 	iounmap(keypad_data->base);
--- 
-1.7.0.4
+this one is too difficult to review, at least for me.
 
+Thanks!
+
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
