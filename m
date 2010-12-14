@@ -1,51 +1,69 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/5] OMAP3&4: Fixes in setup/suspend/powerdomain
-Date: Tue, 14 Dec 2010 11:53:15 -0800
-Message-ID: <87lj3srv10.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 2/5] OMAP4: PM: Do not assume clkdm supports hw transitions
+Date: Tue, 14 Dec 2010 11:52:50 -0800
+Message-ID: <87r5dkrv1p.fsf@deeprootsystems.com>
 References: <1292276969-29733-1-git-send-email-b-cousson@ti.com>
-	<alpine.DEB.2.00.1012132342030.15971@utopia.booyaka.com>
+	<1292276969-29733-3-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f42.google.com ([74.125.83.42]:40290 "EHLO
-	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759840Ab0LNTxT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 14:53:19 -0500
-Received: by gwb20 with SMTP id 20so841494gwb.1
-        for <linux-omap@vger.kernel.org>; Tue, 14 Dec 2010 11:53:19 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1012132342030.15971@utopia.booyaka.com> (Paul
-	Walmsley's message of "Mon, 13 Dec 2010 23:43:56 -0700 (MST)")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1292276969-29733-3-git-send-email-b-cousson@ti.com> (Benoit
+	Cousson's message of "Mon, 13 Dec 2010 22:49:26 +0100")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Paul Walmsley <paul@pwsan.com> writes:
+Benoit Cousson <b-cousson@ti.com> writes:
 
-> Hi Beno=C3=AEt, Kevin,
+> From: Rajendra Nayak <rnayak@ti.com>
 >
-> On Mon, 13 Dec 2010, Benoit Cousson wrote:
+> omap_set_pwrdm_state today assumes a clkdm supports hw_auto
+> transitions and hence leaves some which do not support this
+> in sw wkup state preventing low power transitions.
 >
->> This is a series of fixes on OMAP3/4 in setup apis,
->> in the suspend framework and in powerdomain modelling
->> for OMAP4.
->
-> ...
->
->> Rajendra Nayak (3):
->>   OMAP4: PM: Use the lowpwrstatechange feature on OMAP4
->>   OMAP4: PM: Do not assume clkdm supports hw transitions
->
-> The above two patches should be run by Kevin for his ack (cc'ed on th=
-is=20
-> message).  Kevin, care to ack these?
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Benoit Cousson <b-cousson@ti.com>
 
-I had some comments on the first, and ack'd the second.
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  arch/arm/mach-omap2/pm.c |    8 +++++---
+>  1 files changed, 5 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index dc68044..a2a70e1 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -91,8 +91,7 @@ static void omap2_init_processor_devices(void)
+>  
+>  /*
+>   * This sets pwrdm state (other than mpu & core. Currently only ON &
+> - * RET are supported. Function is assuming that clkdm doesn't have
+> - * hw_sup mode enabled.
+> + * RET are supported.
+>   */
+>  int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+>  {
+> @@ -135,7 +134,10 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+>  	}
+>  
+>  	if (sleep_switch) {
+> -		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+> +		if (pwrdm->pwrdm_clkdms[0]->flags & CLKDM_CAN_ENABLE_AUTO)
+> +			omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+> +		else
+> +			omap2_clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
+>  		pwrdm_wait_transition(pwrdm);
+>  		pwrdm_state_switch(pwrdm);
+>  	}
