@@ -1,73 +1,49 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 5/5 v3] OMAP3630: PM: Erratum i583: disable coreoff if < ES1.2
-Date: Mon, 13 Dec 2010 19:42:11 -0800
-Message-ID: <87ei9l10mk.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 0/5 v3] OMAP: idle path errata fixes
+Date: Mon, 13 Dec 2010 19:49:31 -0800
+Message-ID: <87k4jdypx0.fsf@deeprootsystems.com>
 References: <1291395818-8639-1-git-send-email-nm@ti.com>
-	<1291395818-8639-6-git-send-email-nm@ti.com>
-	<2cdf7d3d033ee2c88b6f2d4cfa37d9db@mail.gmail.com>
-	<4D0622FE.2070801@ti.com>
-	<d5e397dafb68b41ec5d7af591a18b044@mail.gmail.com>
-	<4D062806.6090201@ti.com>
-	<b7c3a82268b65ae1d9d09f377d9039f1@mail.gmail.com>
-	<4D062F81.407@ti.com>
-	<96505dfaee73d6785e153ccf5c2856d3@mail.gmail.com>
-	<6f507e24d6ae188e265913e85e815f82@mail.gmail.com>
-	<4D063344.2010001@ti.com>
-	<37de3932d97af8e1882a08dd37242a17@mail.gmail.com>
-	<4D063599.9080905@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:45479 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752607Ab0LNDmR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 22:42:17 -0500
-Received: by yxt3 with SMTP id 3so100880yxt.19
-        for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 19:42:16 -0800 (PST)
-In-Reply-To: <4D063599.9080905@ti.com> (Nishanth Menon's message of "Mon, 13
-	Dec 2010 09:02:49 -0600")
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:38640 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757839Ab0LNDth (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 22:49:37 -0500
+Received: by gyb11 with SMTP id 11so98462gyb.19
+        for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 19:49:36 -0800 (PST)
+In-Reply-To: <1291395818-8639-1-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Fri, 3 Dec 2010 11:03:33 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
-Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Charulatha Varadarajan <charu@ti.com>, Jean Pihet <jean.pihet@newoldbits.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tao Hu <tghk48@motorola.com>, Tony Lindgren <tony@atomide.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
+
+Hi Nishanth,
 
 Nishanth Menon <nm@ti.com> writes:
 
-> Vishwanath Sripathy had written, on 12/13/2010 08:58 AM, the following:
-> [...]
->>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
->>> omap2/pm34xx.c
->>> index ba3c0d6..da12a56 100644
->>> --- a/arch/arm/mach-omap2/pm34xx.c
->>> +++ b/arch/arm/mach-omap2/pm34xx.c
->>> @@ -932,8 +932,15 @@ void omap3_pm_off_mode_enable(int enable)
->>>   #endif
->>>
->>>          list_for_each_entry(pwrst, &pwrst_list, node) {
->>> -               pwrst->next_state = state;
->>> -               omap_set_pwrdm_state(pwrst->pwrdm, state);
->>> +               if (IS_PM34XX_ERRATUM(SDRC_WAKEUP_ERRATUM_i583)
->>> &&
->>> +                               pwrst->pwrdm == core_pwrdm) {
->>> +                       pwrst->next_state = PWRDM_POWER_RET;
->>> +                       pr_err("%s: cannot enable Core OFF due to
->> i583\n",
->>> +                               __func__);
->> 		You probably need to throw up this warning only if state
->> == PWRDM_POWER_OFF. Otherwise this code looks fine to me.
->
-> Thanks for the review. added it. will post a v4 later today if no one
-> cribs with this approach. I will retain the logic in sram_idle as well
-> as a backup measure.
+> as discussed in [1], here is step 2 - idle path errata fixes.
+> this is the next rev incorporating comments from V2 post
+> of this series.
 
-This logic doesn't belong in SRAM idle.  To handle the idle case, you
-should also disable the 'valid' bit for any C-state that has CORE off (I
-think there's only one.)
+I had a couple small comments on individual patches.
+
+In addition, in the next series, can you report the platforms it was
+tested on, and how it was tested (retention idle/suspend, off
+idle/suspend, CPUidle enabled?, etc.)
+
+I tested this series (and Jean's cleanup patch) on 34xx/n900 with
+retention idle & suspend and off idle & suspend with and without CPUidle
+enabled.)
+
+Also, when posting an updated series, can you update the version of all
+patches in the series, even if they are unchanged?  This makes more
+more explicit versioning, keeps things clearer in patchwork and avoids
+problems with dumb mailers who thread by subject only.
+
+Also, please Cc linux-arm-kernel when posting the next version. 
+
+Thanks,
 
 Kevin
-
-
-
-
-
-
