@@ -1,59 +1,35 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCHv6 4/4] omap: iommu - create new api to set valid da range
-Date: Tue, 14 Dec 2010 23:11:33 +0200
-Message-ID: <AANLkTin6CBc3gBCHbD8XdQ7E3mQdEkO+rn6Y=u-tv2m0@mail.gmail.com>
-References: <1292332047-8206-1-git-send-email-fernando.lugo@ti.com>
-	<1292332047-8206-5-git-send-email-fernando.lugo@ti.com>
-	<AANLkTin0eBk1tMDUJQQ6KuM6eOu1gu+JmwY-Nz0V+jw8@mail.gmail.com>
-	<AANLkTimNeDCH4jvP1QM785oNdua+GzwmtUA+OKzmO5aX@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] MTD: NAND: ams-delta: convert to platform driver
+Date: Tue, 14 Dec 2010 14:28:21 -0800
+Message-ID: <20101214222821.GA14990@atomide.com>
+References: <201012111840.05270.jkrzyszt@tis.icnet.pl>
+ <1292346023.2538.103.camel@localhost>
+ <201012142109.42784.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimNeDCH4jvP1QM785oNdua+GzwmtUA+OKzmO5aX@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: Hiroshi.DOYU@nokia.com, linux@arm.linux.org.uk, h-kanigeri2@ti.com, felipe.contreras@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, "Guzman Lugo, Fernando" <x0095840@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:36612 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758636Ab0LNW2h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 17:28:37 -0500
+Content-Disposition: inline
+In-Reply-To: <201012142109.42784.jkrzyszt@tis.icnet.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 
-On Tue, Dec 14, 2010 at 8:59 PM, Guzman Lugo, Fernando
-<fernando.lugo@ti.com> wrote:
-> On Tue, Dec 14, 2010 at 9:08 AM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> On Tue, Dec 14, 2010 at 3:07 PM, Fernando Guzman Lugo
->> <fernando.lugo@ti.com> wrote:
->>> From: Guzman Lugo, Fernando <x0095840@ti.com>
->>>
->>> Some IOMMUs cannot use the whole 0x0 - 0xFFFFFFFF rage.
->>> With this new API the valid range can be set.
->>>
->>> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
->>> Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
->>
->> I still don't see where this API is being used.
->
-> you can find it here:
->
-> http://marc.info/?l=linux-kernel&m=128805403014740&w=2
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [101214 12:31]:
+> In its current form, the driver may interfere with different hardware on 
+> different boards if built into the kernel, hence is not suitable for 
+> inclusion into a defconfig, inteded to be usable with multiple OMAP1 cpu and 
+> machine types.
+> 
+> Convert it to a platform driver, that should be free from this issue.
+> 
+> Created and tested against linux-2.6.37-rc5 on Amstrad Delta.
 
-Oh, ok, thanks. somehow I missed it.
+Good to see this happen, I assume this is for MTD. If not and you
+want me to merge it instead, let me know.
 
->> Also, the point of using platform data was to add it to omap3_devices
->> in omap-iommu.c, see[1]. I thought the platform data start/end would
->> move to struct iommu, and iommu_set_da_range would change the
->> start/end on struct iommu, but that would only be necessary if the
->> platform data doesn't match that.
->
-> it is not clear for me. do you mean having default start/end in
-> platform data then when iommu_get is call pass them to start/end in
-> struct iommu and the new api change start/end in struct iommu?
->
-> Please let me know if that is correct.
-
-Yeah, if you are not going to add it in the platform data
-(mach-omap2/omap-iommu.c), then it doesn't make sense to use platform
-data for that.
-
-Cheers.
-
--- 
-Felipe Contreras
+Acked-by: Tony Lindgren <tony@atomide.com>
