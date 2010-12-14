@@ -1,67 +1,73 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 3/5 v3] OMAP3630: PM: Erratum i608: disable RTA
-Date: Mon, 13 Dec 2010 19:28:23 -0800
-Message-ID: <87r5dl119k.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 5/5 v3] OMAP3630: PM: Erratum i583: disable coreoff if < ES1.2
+Date: Mon, 13 Dec 2010 19:42:11 -0800
+Message-ID: <87ei9l10mk.fsf@deeprootsystems.com>
 References: <1291395818-8639-1-git-send-email-nm@ti.com>
-	<1291395818-8639-4-git-send-email-nm@ti.com>
+	<1291395818-8639-6-git-send-email-nm@ti.com>
+	<2cdf7d3d033ee2c88b6f2d4cfa37d9db@mail.gmail.com>
+	<4D0622FE.2070801@ti.com>
+	<d5e397dafb68b41ec5d7af591a18b044@mail.gmail.com>
+	<4D062806.6090201@ti.com>
+	<b7c3a82268b65ae1d9d09f377d9039f1@mail.gmail.com>
+	<4D062F81.407@ti.com>
+	<96505dfaee73d6785e153ccf5c2856d3@mail.gmail.com>
+	<6f507e24d6ae188e265913e85e815f82@mail.gmail.com>
+	<4D063344.2010001@ti.com>
+	<37de3932d97af8e1882a08dd37242a17@mail.gmail.com>
+	<4D063599.9080905@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:51339 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753483Ab0LND22 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 22:28:28 -0500
-Received: by pva4 with SMTP id 4so27468pva.19
-        for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 19:28:27 -0800 (PST)
-In-Reply-To: <1291395818-8639-4-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Fri, 3 Dec 2010 11:03:36 -0600")
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:45479 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752607Ab0LNDmR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Dec 2010 22:42:17 -0500
+Received: by yxt3 with SMTP id 3so100880yxt.19
+        for <linux-omap@vger.kernel.org>; Mon, 13 Dec 2010 19:42:16 -0800 (PST)
+In-Reply-To: <4D063599.9080905@ti.com> (Nishanth Menon's message of "Mon, 13
+	Dec 2010 09:02:49 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Ambresh K <ambresh@ti.com>
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, Tony Lindgren <tony@atomide.com>
 
 Nishanth Menon <nm@ti.com> writes:
 
-> Erratum id: i608
-> RTA (Retention Till Access) feature is not supported and leads to device
-> stability issues when enabled. This impacts modules with embedded memories
-> on OMAP3630
+> Vishwanath Sripathy had written, on 12/13/2010 08:58 AM, the following:
+> [...]
+>>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
+>>> omap2/pm34xx.c
+>>> index ba3c0d6..da12a56 100644
+>>> --- a/arch/arm/mach-omap2/pm34xx.c
+>>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>>> @@ -932,8 +932,15 @@ void omap3_pm_off_mode_enable(int enable)
+>>>   #endif
+>>>
+>>>          list_for_each_entry(pwrst, &pwrst_list, node) {
+>>> -               pwrst->next_state = state;
+>>> -               omap_set_pwrdm_state(pwrst->pwrdm, state);
+>>> +               if (IS_PM34XX_ERRATUM(SDRC_WAKEUP_ERRATUM_i583)
+>>> &&
+>>> +                               pwrst->pwrdm == core_pwrdm) {
+>>> +                       pwrst->next_state = PWRDM_POWER_RET;
+>>> +                       pr_err("%s: cannot enable Core OFF due to
+>> i583\n",
+>>> +                               __func__);
+>> 		You probably need to throw up this warning only if state
+>> == PWRDM_POWER_OFF. Otherwise this code looks fine to me.
 >
-> Workaround is to disable RTA on boot and coming out of core off.
-> For disabling rta coming out of off mode, we do this by overriding the
-> restore pointer for 3630 to allow us restore handler as the first point of
-> entry before caches are touched and is common for GP and HS devices.
-> to disable earlier than this could be possible by modifying the ppa for HS
-> devices, but not for GP devices.
->
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Tony Lindgren <tony@atomide.com>
->
-> [ambresh@ti.com: co-developer]
-> Signed-off-by: Ambresh K <ambresh@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Thanks for the review. added it. will post a v4 later today if no one
+> cribs with this approach. I will retain the logic in sram_idle as well
+> as a backup measure.
 
-[...]
-
-> @@ -1045,6 +1057,15 @@ static int __init omap3_pm_init(void)
->  	pm_idle = omap3_pm_idle;
->  	omap3_idle_init();
->  
-> +	/*
-> +	 * RTA is disabled during initialization as per erratum i608
-> +	 * it is safer to disable rta by the bootloader, but we would like
-> +	 * to be doubly sure here and prevent any mishaps.
-> +	 */
-> +	if (IS_PM34XX_ERRATUM(RTA_ERRATUM_i608))
-> +		omap_ctrl_writel(OMAP36XX_RTA_DISABLE,
-> +			OMAP36XX_CONTROL_MEM_RTA_CTRL);
-> +
-
-Minor nit: we've been trying to clean up control module access.  So,
-rather than directly writing control module registers, could you create
-an API for this like was done for omap3_ctrl_write_boot_mode().
-
-Thanks,
+This logic doesn't belong in SRAM idle.  To handle the idle case, you
+should also disable the 'valid' bit for any C-state that has CORE off (I
+think there's only one.)
 
 Kevin
+
+
+
+
+
 
