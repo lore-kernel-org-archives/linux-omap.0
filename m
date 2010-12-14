@@ -1,43 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v1 0/9] OMAP: DMA: hwmod and DMA as platform device
-Date: Tue, 14 Dec 2010 15:19:23 -0800
-Message-ID: <20101214231922.GC14990@atomide.com>
-References: <1291434246-30716-1-git-send-email-manjugk@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v6 03/12] media: Entities,
+	pads and links
+Date: Wed, 15 Dec 2010 00:50:44 +0100
+Message-ID: <201012150050.44885.laurent.pinchart@ideasonboard.com>
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<201012141353.15749.laurent.pinchart@ideasonboard.com>
+	<4D0775DB.2020902@ladisch.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54596 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751375Ab0LNXTa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 18:19:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1291434246-30716-1-git-send-email-manjugk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <4D0775DB.2020902@ladisch.de>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Clemens Ladisch <clemens@ladisch.de>
+Cc: alsa-devel@alsa-project.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>, lennart@poettering.net, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* G, Manjunath Kondaiah <manjugk@ti.com> [101203 19:33]:
-> *************************************************************************
+Hi Clemens,
+
+On Tuesday 14 December 2010 14:49:15 Clemens Ladisch wrote:
+> Laurent Pinchart wrote:
+> > On Tuesday 14 December 2010 13:40:21 Hans Verkuil wrote:
+> >> > On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
+> >> >> * Entity types
+> >> >> 
+> >> >> TYPE_NODE was renamed to TYPE_DEVICE because "node" sounds like a
+> >> >> node in a graph, which does not distinguish it from other entity
+> >> >> types because all entities are part of the topology graph.  I chose
+> >> >> "device" as this type describes entities that are visible as some
+> >> >> device node to other software.
+> >> > 
+> >> > What this type describes is a device node. Both NODE and DEVICE can be
+> >> > confusing in my opinion, but DEVICE_NODE is a bit long.
+> >> 
+> >> What about DEVNODE? I think that would be a good alternative.
+> > 
+> > Fine with me. Clemens, any opinion on that ?
 > 
-> Test Report:
-> ************
-> Build:
-> omap2plus_defconfig    : Success
-> omap_osk_5912_defconfig: Success
+> Fine with me too.
+
+OK I'll use that name.
+
+> > > >> TYPE_EXT describes entities that represent some interface to the
+> > > >> external world, TYPE_INT those that are internal to the entire
+> > > >> device. (I'm not sure if that distinction is very useful, but
+> > > >> TYPE_SUBDEV seems to be an even more meaningless name.)
+> > > > 
+> > > > SUBDEV comes from the V4L2 world, and I agree that it might not be a
+> > > > very good name.
+> > > 
+> > > SUBDEV refers to a specific type of driver. Within the v4l world it is
+> > > well defined. So I prefer to keep this. Perhaps some additional
+> > > comments or documentation can be added to clarify this.
+> > 
+> > Should this be clarified by using V4L2_SUBDEV instead then ?
 > 
-> Boot:
-> OMAP3530Beagle         : Success
-> OMAP4430Blaze(ES2.1)   : Success
+> If the "SUBDEV" concept doesn't exist outside V4L, that would indeed be
+> better.
+> 
+> I don't want to rename things that come out of existing frameworks; this
+> naming discussion makes sense only for those entity (sub)types that can
+> be shared between them.  Are there any, besides jacks?
 
-Can you please make sure that memory to memory DMA test
-runs OK on OSK5912?x
+Some entities like TV tuners play a dual audio/video role. I'm not sure how to 
+handle them, I lack experience in that field.
 
-AFAIK, Kevin tried it a few days ago and it hung.
+> > What about ALSA entities, should they use MEDIA_ENTITY_TYPE_ALSA_* ?
+> 
+> The entity types representing ALSA devices are already named "ALSA".
 
-To me that sounds like the only remaining issue merging these
-in for testing.
+I was talking about the INT_* types. They're ALSA-specific, but have no ALSA 
+in the type name.
 
+-- 
 Regards,
 
-Tony
+Laurent Pinchart
