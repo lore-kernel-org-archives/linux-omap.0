@@ -1,58 +1,69 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH v1 3/9] OMAP2420: hwmod data: add system DMA]
-Date: Wed, 15 Dec 2010 17:45:58 +0530
-Message-ID: <20101215121558.GE11931@GLPP-machine>
-References: <1291434246-30716-1-git-send-email-manjugk@ti.com>
- <1291434246-30716-4-git-send-email-manjugk@ti.com>
- <alpine.DEB.2.00.1012141922550.15971@utopia.booyaka.com>
- <20101215110917.GD11931@GLPP-machine>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 13/14] OMAP2/3: PRCM: split OMAP2/3-specific PRCM code
+ into OMAP2/3-specific files
+Date: Wed, 15 Dec 2010 14:23:33 +0200
+Message-ID: <AANLkTimTtdMeaz=k6H=GQMNTGciJ5uc+GGUnC1RdR_f2@mail.gmail.com>
+References: <20101207012242.3708.45451.stgit@twilight.localdomain>
+	<20101207012516.3708.87606.stgit@twilight.localdomain>
+	<alpine.DEB.2.00.1012142147040.15971@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:58332 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753152Ab0LOMO4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Dec 2010 07:14:56 -0500
-Received: by mail-yw0-f48.google.com with SMTP id 7so1246072ywo.7
-        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 04:14:55 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20101215110917.GD11931@GLPP-machine>
+Received: from mail-bw0-f45.google.com ([209.85.214.45]:58346 "EHLO
+	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752656Ab0LOMXf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2010 07:23:35 -0500
+Received: by bwz16 with SMTP id 16so2185688bwz.4
+        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 04:23:34 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1012142147040.15971@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>, Jarkko Nikula <jhnikula@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-On Wed, Dec 15, 2010 at 04:39:17PM +0530, G, Manjunath Kondaiah wrote:
-> On Tue, Dec 14, 2010 at 07:25:23PM -0700, Paul Walmsley wrote:
-> > Manju
-> > 
-> > On Sat, 4 Dec 2010, G, Manjunath Kondaiah wrote:
-> > 
-> > > Add OMAP2420 DMA hwmod data and also add required
-> > > DMA device attributes.
-> > > 
-> > > Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> > > Cc: Benoit Cousson <b-cousson@ti.com>
-> > > Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> > > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > >
-> > > +/* dma_system -> L3 */
-> > > +static struct omap_hwmod_ocp_if omap2420_dma_system__l3 = {
-> > > +	.master		= &omap2420_dma_system_hwmod,
-> > > +	.slave		= &omap2420_l3_main_hwmod,
-> > > +	.clk		= "l3_div_ck",
-> > 
-> > This clock does not exist on OMAP2420.  Did you test this patch on 2420?
-> 
-> ok. will be replaced with "sdma_ick". I don't have 2420 for testing. I
-> tested it on 2430. My understanding is that, DMA clock interface is same
-> for 2420 and 2430. Correct me if am wrong.
+Hi,
 
-Looking into omap3/omap4 structures, this entry takes core l3 clock.
+On Wed, Dec 15, 2010 at 6:50 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Mon, 6 Dec 2010, Paul Walmsley wrote:
+>
+>> In preparation for adding OMAP4-specific PRCM accessor/mutator
+>> functions, split the existing OMAP2/3 PRCM code into OMAP2/3-specifi=
+c
+>> files. =C2=A0Most of what was in mach-omap2/{cm,prm}.{c,h} has now b=
+een
+>> moved into mach-omap2/{cm,prm}2xxx_3xxx.{c,h}, since it was
+>> OMAP2xxx/3xxx-specific.
+>>
+>> This process also requires the #includes in each of these files to b=
+e
+>> changed to reference the new file name. =C2=A0As part of doing so, a=
+dd some
+>> comments into plat-omap/sram.c and plat-omap/mcbsp.c, which use
+>> "sideways includes", to indicate that these users of the PRM/CM incl=
+udes
+>> should not be doing so.
+>
+> This patch has been updated to also take care of getting DSPBridge to
+> build again. =C2=A0Omar, Felipe, could you please take a look at the
+> mach-omap2/dsp.c and _tiomap.h changes and ack them?
 
-This should be "sdma_fck" since it's parent is core_l3_ck.
+I would prefer the XX comments in a separate chunk:
 
-Pls confirm.
+/*
+ * license notice
+ */
 
--Manjunath
+/*
+ * XXX
+ */
+
+But otherwise it's ok.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
