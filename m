@@ -1,68 +1,68 @@
-From: Shubhrajyoti D <a0393217@india.ti.com>
-Subject: [PATCH v7] OMAP4:keypad: PM runtime
-Date: Wed, 15 Dec 2010 09:39:58 +0530
-Message-ID: <1292386198-3587-1-git-send-email-a0393217@india.ti.com>
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: linux-input@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+From: Charles Manning <manningc2@actrix.gen.nz>
+Subject: Re: UbiFS + HWECC(?) + BeagleBoard = fail
+Date: Wed, 15 Dec 2010 17:13:42 +1300
+Message-ID: <201012151713.43028.manningc2@actrix.gen.nz>
+References: <LD5JNC$C40D8861A973796B25CD03BFFD0B4CA1@aruba.it>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.scorch.co.nz ([27.110.127.199]:40258 "HELO scorch.co.nz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1756078Ab0LOENr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Dec 2010 23:13:47 -0500
+In-Reply-To: <LD5JNC$C40D8861A973796B25CD03BFFD0B4CA1@aruba.it>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Luca Ceresoli <luca@lucaceresoli.net>
+Cc: linux-omap@vger.kernel.org, notasas@gmail.com
 
-From: Abraham Arce <x0066660@ti.com>
+On Thursday 09 December 2010 21:30:48 Luca Ceresoli wrote:
+> Charles Manning wrote:
+> > Luca, I have been having similar problems on a hacked Overo kernel.
+> >
+> > I have no problems with 2.6.35.
+> >
+> > I tried just commenting out the define and disabling PREFETCH and did not
+> > get a good boot due to ubi not finding the volume info.
+> >
+> > Are you loading up a UBI image with uboot?
+> >
+> > Are you using the ubi volume as rootfs?
+>
+> To make it work again, I did from u-boot:
+> - nand scrub (*completely* wipe the NAND)
+> - ubi part nand0,3 (recreate partitions)
+> - ubi create rootfs 400000
+> - ...create other partitions...
+> - ubi write ... (to rewrite rootfs)
+> - finally, boot with the kernel having the define commented and PREFETCH
+> off.
+>
+> Not all of these may be needed, but this way I got the board up and running
+> again.
+>
+> Luca
 
-Enable Runtime PM functionality in OMAP4 driver based on the following assumptions
+What branch are you working from?
 
-A minimal pm runtime get/put approach is implemented in probe/remove calls
-respectively.
+I tried working from a reasonably recent master on 
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
 
-- Keyboard controller in wakeup domain so it is always on and
-  power impact may be minimal
-- In OMAP4 the device control is at module/device level and ick/fclk level control is
-  difficult so cutting of clocks will prevent interrupts.
+I found that reads via the  prefetch eengine work, but reads via 
+        ioread16_rep(nand->IO_ADDR_R, buf, len / 2)
+do not.
 
-Signed-off-by: Abraham Arce <x0066660@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
-Updating the changelogs as per Kevin's suggestion
- drivers/input/keyboard/omap4-keypad.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+Perhaps this is due to the address not being set up properly. Any clues?
 
-diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-index 45bd097..3d35774 100644
---- a/drivers/input/keyboard/omap4-keypad.c
-+++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -29,6 +29,7 @@
- #include <linux/io.h>
- #include <linux/input.h>
- #include <linux/slab.h>
-+#include <linux/pm_runtime.h>
- 
- #include <plat/omap4-keypad.h>
- 
-@@ -239,8 +240,11 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 	matrix_keypad_build_keymap(pdata->keymap_data, row_shift,
- 			input_dev->keycode, input_dev->keybit);
- 
--	omap4_keypad_config(keypad_data);
-+	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_get_sync(&pdev->dev);
- 
-+	omap4_keypad_config(keypad_data);
-+	
- 	error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
- 			     IRQF_TRIGGER_RISING,
- 			     "omap4-keypad", keypad_data);
-@@ -278,6 +282,10 @@ static int __devexit omap4_keypad_remove(struct platform_device *pdev)
- 	struct resource *res;
- 
- 	free_irq(keypad_data->irq, keypad_data);
-+
-+	pm_runtime_put_sync(&pdev->dev);
-+	pm_runtime_disable(&pdev->dev);
-+
- 	input_unregister_device(keypad_data->input);
- 
- 	iounmap(keypad_data->base);
--- 
-1.7.0.4
+I found that I can make everything work by realigning all accesses in 
+nand_base.c to be 4-byte aligned.
+
+
+-- Charles
+
+
+
 
