@@ -1,66 +1,63 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 10/11] OMAP2+: powerdomain: move header file from plat-omap
- to mach-omap2
-Date: Tue, 14 Dec 2010 22:51:12 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012142248130.15971@utopia.booyaka.com>
-References: <20101208061657.30541.79824.stgit@twilight.localdomain> <20101208061843.30541.23685.stgit@twilight.localdomain> <alpine.DEB.2.00.1012142234340.15971@utopia.booyaka.com>
+Subject: Re: [PATCH 0/5] omap: dsp: fixes for 2.6.37-rc1
+Date: Tue, 14 Dec 2010 23:00:01 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012142253320.15971@utopia.booyaka.com>
+References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com> <1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55141 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60844 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752061Ab0LOFvT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2010 00:51:19 -0500
-In-Reply-To: <alpine.DEB.2.00.1012142234340.15971@utopia.booyaka.com>
+	with ESMTP id S1751256Ab0LOGAC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2010 01:00:02 -0500
+In-Reply-To: <1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@ti.com>, linux-arm-kernel@lists.infradead.org, Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Greg Kroah-Hartman <greg@kroah.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
 
-On Tue, 14 Dec 2010, Paul Walmsley wrote:
+Hello Felipe
 
-> On Tue, 7 Dec 2010, Paul Walmsley wrote:
+I am reviewing these patches for merging, and would appreciate your help.
+
+On Sun, 7 Nov 2010, Felipe Contreras wrote:
+
+> Paul already sent these, but I did some minor modifications, mostly to minimize
+> the amount of changes.
 > 
-> > The OMAP powerdomain code and data is all OMAP2+-specific.  This seems
-> > unlikely to change any time soon.  Move plat-omap/include/plat/powerdomain.h
-> > to mach-omap2/powerdomain.h.  The primary point of doing this is to remove
-> > the temptation for unrelated upper-layer code to access powerdomain code
-> > and data directly.
-> > 
-> > As part of this process, remove the references to powerdomain data from
-> > the GPIO "driver" and the OMAP PM no-op layer, both in plat-omap.
-> > 
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Also, I'm re-sending my memblock patch so that the driver can actually be
+> compiled.
+
+It looks like the memblock change has been applied already.
+
+> With these, and reverting the iommu patches[1], the driver should be working. I
+> don't see a more straight-forward way to achieve that.
 > 
-> This patch has been updated to get DSPBridge building again.  The 
-> DSPBridge should not be touching the powerdomain headers;  this is
-> just a temporary workaround until the DSPBridge people fix the code.
+> Paul Walmsley (4):
+>   omap: control: add functions for DSP boot
+>   omap: pm: use control functions in DSP reset code
+>   omap: dsp: add boot control functions
+>   staging: tidspbridge: use boot control functions
 
-An old version of this patch was inadvertently sent.  The crucial diff
-(for review purposes anyway) from the previous patch is below.
-Nothing earthshattering.
+It seems that we still need to apply these.  Could you please rebase these 
+against the 'integration-2.6.38-20101214-013' tag available from 
+git://git.pwsan.com/linux-integration?
 
-The updated integration tag that contains all of these updated changes is
-'integration-2.6.38-20101214-013' available from 
-git://git.pwsan.com/linux-integration
+Also, a few changes are needed in the patches themselves.  Here are two 
+that I noticed:
 
+First, please add my Signed-off-by: on the first 
+patch, "omap: control: add functions for DSP boot", as discussed 
+previously.
+
+Second, I notice that you wiped out almost my entire original commit 
+message from "omap: dsp: add boot control functions", and did not add a 
+note in brackets explaining what you did or why.  I strongly object to 
+this.  The commit message is as much a part of that patch as the code is 
+and I would appreciate it if you would either add it back in, or add a 
+bracketed note next to your Signed-off-by: explaining why the commit 
+message needed to be removed.
+
+regards
 
 - Paul
-
-diff --git a/drivers/staging/tidspbridge/core/_tiomap.h b/drivers/staging/tidspbridge/core/_tiomap.h
-index a3190e7..1159a50 100644
---- a/drivers/staging/tidspbridge/core/_tiomap.h
-+++ b/drivers/staging/tidspbridge/core/_tiomap.h
-@@ -24,7 +24,7 @@
-  * be removed.  No driver should call pwrdm_* or clkdm_* functions
-  * directly; they should rely on OMAP core code to do this.
-  */
--#include <plat/powerdomain.h>
-+#include <mach-omap2/powerdomain.h>
- #include <mach-omap2/clockdomain.h>
- /*
-  * XXX These mach-omap2/ includes are wrong and should be removed.  No
-
-
-
