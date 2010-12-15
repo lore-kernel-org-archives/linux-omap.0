@@ -1,114 +1,106 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH 13/14] OMAP2/3: PRCM: split OMAP2/3-specific PRCM code
- into OMAP2/3-specific files
-Date: Wed, 15 Dec 2010 10:39:19 -0600
-Message-ID: <AANLkTikhp8157yegSb1G3gXAxF_SLo0Q1OEgsf2Bt0Cm@mail.gmail.com>
-References: <20101207012242.3708.45451.stgit@twilight.localdomain>
-	<20101207012516.3708.87606.stgit@twilight.localdomain>
-	<alpine.DEB.2.00.1012142147040.15971@utopia.booyaka.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
+Date: Wed, 15 Dec 2010 17:01:42 +0000
+Message-ID: <20101215170142.GA10883@n2100.arm.linux.org.uk>
+References: <201012051929.07220.jkrzyszt@tis.icnet.pl> <201012101159.21845.jkrzyszt@tis.icnet.pl> <201012101203.09441.jkrzyszt@tis.icnet.pl> <20101210170356.GA28472@n2100.arm.linux.org.uk> <AANLkTimTVWVmVfppAWSosidqLmo6c+8rPhLg=oJAVoYH@mail.gmail.com> <20101213162947.GA11730@n2100.arm.linux.org.uk> <AANLkTi=ZYi=12k2vZMGp9AWNX8zofp6C-FnMu2egQOA1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:60651 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753507Ab0LOQjV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Dec 2010 11:39:21 -0500
-Received: by mail-gw0-f46.google.com with SMTP id 20so1346924gwj.33
-        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 08:39:20 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1012142147040.15971@utopia.booyaka.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57608 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752461Ab0LORCg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2010 12:02:36 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTi=ZYi=12k2vZMGp9AWNX8zofp6C-FnMu2egQOA1@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Contreras <felipe.contreras@gmail.com>, Jarkko Nikula <jhnikula@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-arm-kernel@lists.infradead.org, Linux Media Mailing List <linux-media@vger.kernel.org>
 
-On Tue, Dec 14, 2010 at 10:50 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi,
->
-> On Mon, 6 Dec 2010, Paul Walmsley wrote:
->
->> In preparation for adding OMAP4-specific PRCM accessor/mutator
->> functions, split the existing OMAP2/3 PRCM code into OMAP2/3-specifi=
-c
->> files. =A0Most of what was in mach-omap2/{cm,prm}.{c,h} has now been
->> moved into mach-omap2/{cm,prm}2xxx_3xxx.{c,h}, since it was
->> OMAP2xxx/3xxx-specific.
->>
->> This process also requires the #includes in each of these files to b=
+On Wed, Dec 15, 2010 at 12:39:20PM +0000, Catalin Marinas wrote:
+> On 13 December 2010 16:29, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Mon, Dec 13, 2010 at 03:52:20PM +0000, Catalin Marinas wrote:
+> >> On 10 December 2010 17:03, Russell King - ARM Linux
+> >> <linux@arm.linux.org.uk> wrote:
+> >> > On Fri, Dec 10, 2010 at 12:03:07PM +0100, Janusz Krzysztofik wro=
+te:
+> >> >> =A0void __init omap1_camera_init(void *info)
+> >> >> =A0{
+> >> >> =A0 =A0 =A0 struct platform_device *dev =3D &omap1_camera_devic=
+e;
+> >> >> + =A0 =A0 dma_addr_t paddr =3D omap1_camera_phys_mempool_base;
+> >> >> + =A0 =A0 dma_addr_t size =3D omap1_camera_phys_mempool_size;
+> >> >> =A0 =A0 =A0 int ret;
+> >> >>
+> >> >> =A0 =A0 =A0 dev->dev.platform_data =3D info;
+> >> >>
+> >> >> + =A0 =A0 if (paddr) {
+> >> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (dma_declare_coherent_memory(&dev-=
+>dev, paddr, paddr, size,
+> >> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 DMA_M=
+EMORY_MAP | DMA_MEMORY_EXCLUSIVE))
+> >> >
+> >> > Although this works, you're ending up with SDRAM being mapped vi=
+a
+> >> > ioremap, which uses MT_DEVICE - so what is SDRAM ends up being
+> >> > mapped as if it were a device.
+> >>
+> >> BTW, does the generic dma_declare_coherent_memory() does the corre=
+ct
+> >> thing in using ioremap()?
+> >
+> > I argue it doesn't, as I said above. =A0It means we map SDRAM as de=
+vice
+> > memory, and as I understand the way interconnects work, it's entire=
+ly
+> > possible that this may not result in the SDRAM being accessible.
+> [...]
+> > So, not only does this fail the kernel's own rules, but as we alrea=
+dy know,
+> > it fails the architecture's restrictions with multiple mappings of =
+memory
+> > when used with SDRAM, and it also maps main memory as a device. =A0=
+I wonder
+> > how many more things this broken API needs to do wrong before it's =
+current
+> > implementation is consigned to the circular filing cabinet.
+>=20
+> Should we not try to fix the generic code and still allow platforms t=
+o
+> use dma_declare_coherent_memory() in a safer way? I guess it may need
+> some arguing/explanation on linux-arch.
+
+I think so - one of the issues with dma_declare_coherent_memory() is th=
+at
+it's original intention (as I understand it) was to allow drivers to us=
 e
->> changed to reference the new file name. =A0As part of doing so, add =
-some
->> comments into plat-omap/sram.c and plat-omap/mcbsp.c, which use
->> "sideways includes", to indicate that these users of the PRM/CM incl=
-udes
->> should not be doing so.
->
-> This patch has been updated to also take care of getting DSPBridge to
-> build again. =A0Omar, Felipe, could you please take a look at the
-> mach-omap2/dsp.c and _tiomap.h changes and ack them?
-=2E..
-> diff --git a/arch/arm/mach-omap2/dsp.c b/arch/arm/mach-omap2/dsp.c
-> index 6feeeae..a8b62d7 100644
-> --- a/arch/arm/mach-omap2/dsp.c
-> +++ b/arch/arm/mach-omap2/dsp.c
-> @@ -9,11 +9,16 @@
-> =A0* This program is free software; you can redistribute it and/or mo=
-dify
-> =A0* it under the terms of the GNU General Public License version 2 a=
-s
-> =A0* published by the Free Software Foundation.
-> + *
-> + * XXX The function pointers to the PRM/CM functions are incorrect a=
-nd
-> + * should be removed. =A0No device driver should be changing PRM/CM =
-bits
-> + * directly; that's a layering violation -- those bits are the respo=
-nsibility
-> + * of the OMAP PM core code.
-> =A0*/
->
-> =A0#include <linux/platform_device.h>
-> -#include "prm.h"
-> -#include "cm.h"
-> +#include "cm2xxx_3xxx.h"
-> +#include "prm2xxx_3xxx.h"
-> =A0#ifdef CONFIG_BRIDGE_DVFS
-> =A0#include <plat/omap-pm.h>
-> =A0#endif
+on-device dma coherent memory.
 
-I don't have a preference, I guess part of the license header makes
-them even more noticeable.
+Eg, a network controller with its own local SRAM which it can fetch DMA
+descriptors from, which tells it where in the bus address space to fetc=
+h
+packets from.  This SRAM is not part of the hosts memory, but is on the
+peripheral's bus, and so ioremap() (or maybe ioremap_wc()) would be
+appropriate for it.
 
-> diff --git a/drivers/staging/tidspbridge/core/_tiomap.h b/drivers/sta=
-ging/tidspbridge/core/_tiomap.h
-> index 1c1f157..7fac488 100644
-> --- a/drivers/staging/tidspbridge/core/_tiomap.h
-> +++ b/drivers/staging/tidspbridge/core/_tiomap.h
-> @@ -21,6 +21,12 @@
->
-> =A0#include <plat/powerdomain.h>
-> =A0#include <plat/clockdomain.h>
-> +/*
-> + * XXX These mach-omap2/ includes are wrong and should be removed. =A0=
-No
-> + * driver should read or write to PRM/CM registers directly; they
-> + * should rely on OMAP core code to do this.
-> + */
-> +#include <mach-omap2/cm2xxx_3xxx.h>
-> =A0#include <mach-omap2/prm-regbits-34xx.h>
-> =A0#include <mach-omap2/cm-regbits-34xx.h>
-> =A0#include <dspbridge/devdefs.h>
+However, ioremap() on system RAM (even that which has been taken out on
+the memory map) may be problematical.
 
-Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+I think the correct solution would be to revise the interface so it tak=
+es
+a void * pointer, which can be handed out by dma_alloc_coherent() direc=
+tly
+without the API having to worry about how to map the memory.  IOW, push
+the mapping of that memory up a level to the caller of
+dma_declare_coherent_memory().
 
-Just in case someone is wondering, there is a plan to use hwmod and
-move start/stop/monitor functions to dsp.c code, so, the driver can
-call them through pdata.
-
-Regards,
-
-Omar
+We can then sanely do preallocations via dma_coherent_alloc() and cachi=
+ng
+them back into dma_declare_coherent_memory() without creating additiona=
+l
+mappings which cause architectural violations.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
