@@ -1,35 +1,144 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 05/12] OMAP4: PRCM: Add SCRM header file
-Date: Tue, 14 Dec 2010 18:17:32 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012141816380.15971@utopia.booyaka.com>
-References: <20101214063308.21555.76050.stgit@twilight.localdomain> <20101214063447.21555.64470.stgit@twilight.localdomain>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v1 0/9] OMAP: DMA: hwmod and DMA as platform device
+Date: Tue, 14 Dec 2010 17:37:14 -0800
+Message-ID: <87tyifn7ed.fsf@deeprootsystems.com>
+References: <1291434246-30716-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53516 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932153Ab0LOBRd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 20:17:33 -0500
-In-Reply-To: <20101214063447.21555.64470.stgit@twilight.localdomain>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:55737 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751284Ab0LOBhT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 20:37:19 -0500
+Received: by ywl5 with SMTP id 5so762016ywl.19
+        for <linux-omap@vger.kernel.org>; Tue, 14 Dec 2010 17:37:18 -0800 (PST)
+In-Reply-To: <1291434246-30716-1-git-send-email-manjugk@ti.com> (Manjunath
+	Kondaiah G.'s message of "Sat, 4 Dec 2010 09:13:57 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Mon, 13 Dec 2010, Paul Walmsley wrote:
+"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
 
-> From: Benoit Cousson <b-cousson@ti.com>
-> 
-> Add the header file with scrm registers absolute address, offset
-> and bitfields.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Patch series to convert DMA library into platform driver using platform
+> device model and adapting hwmod for omap2+.
 
-This patch has been moved to the earlier 'pwrdm_prcm_a_2.6.38' series.  
-Also the base address macro name has been changed from OMAP4_SCRM to 
-OMAP4_SCRM_BASE.
+After the OMAP1 fixup for PATCH 7/9,
 
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-- Paul
+and
+
+Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+on omap1611/OSK, omap3430/n900 and omap4430/panda
+
+Tested using a memory-to-memory DMA test which tests all available
+channels, and tests linking all the channels together.
+
+I resurected an older DMA test that I wrote sometime around 2004, and
+lost somehow (thankfully, Tony still had a copy.)  I've updated it
+slightly and created a git repo for it now that it is known working on
+OMAP1, 2, 3 and 4.
+
+       git://gitorious.org/omap-test/dmatest.git
+
+It's a bit hacky as you have to manually edit the Makefile to build an
+out of tree module, but it does work.
+
+Kevin
+
+> The original patch series :
+> http://comments.gmane.org/gmane.linux.ports.arm.omap/46953
+> has been split into two patch series based on suggestion from Tony.
+> (https://patchwork.kernel.org/patch/375831/)
+>
+> The first series will prepare existing DMA library for DMA hwmod and 
+> converting the same into platform driver.
+>
+> The second series will have:
+> arch/arm/mach-omap1/dma.c       omap1 specific platform init
+> arch/arm/mach-omap2/dma.c       omap2+ specific platform init
+> drivers/dma/omap-dma.c          driver using dmaengine.c
+>
+> Patch series1 Design:
+> 1. The low level read/write macros are converted into static inline functions
+> so that, these functions can be moved to respective mach-omap driver
+> files later.
+> (Thanks to Tony and Kevin for their suggestions on handling all omap register
+> offset without adding extra enums)
+> 2. Implements generic errata handling for all OMAP DMA errata.
+> 3. DMA hwmod data is updated for respective hwmod db files.
+> 4. The DMA library is split into two layers.
+>    a. The generic code is retained in plat-omap/dma.c
+>    b. The machine specific init code is moved to
+>       respective mach-omap dma files.
+>
+> Minimal machine specific code is moved to respective mach-omap dma files with 
+> this series. Rest of code movement and API cleanup's are handled in second
+> series.
+>
+> Patch series applies on top of latest linux omap master branch:
+> *************************************************************************
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+> Branch: master
+> commit a04fd22204b13ce34a3f8a8157f83c44d64f8da9
+> Merge: e941bb0 afd2d11
+> Author: Tony Lindgren <tony@atomide.com>
+>
+>     Linux-omap rebuilt: Merged in usb patches for testing
+> *************************************************************************
+>
+> Test Report:
+> ************
+> Build:
+> omap2plus_defconfig    : Success
+> omap_osk_5912_defconfig: Success
+>
+> Boot:
+> OMAP3530Beagle         : Success
+> OMAP4430Blaze(ES2.1)   : Success
+> OMAP1(OSK5912)         : Success
+>
+> Test cases executed:
+> 1. All applicable TI DMA tests which are located at:
+> git://dev.omapzoom.org/pub/scm/richo/device_driver_test.git
+> Branch: master
+>
+> Report can be accessed at: 
+> Beagle board: http://pastebin.com/sDUChNLr
+>
+> The original patch series and change history can be found at:
+> http://permalink.gmane.org/gmane.linux.ports.arm.omap/46953#
+>
+> Benoit Cousson (1):
+>   OMAP4: hwmod data: add system DMA
+>
+> G, Manjunath Kondaiah (8):
+>   OMAP: DMA: Replace read/write macros with functions
+>   OMAP: DMA: Introduce errata handling feature
+>   OMAP2420: hwmod data: add system DMA
+>   OMAP2430: hwmod data: add system DMA
+>   OMAP3: hwmod data: add system DMA
+>   OMAP1: DMA: Implement in platform device model
+>   OMAP2+: DMA: hwmod: Device registration
+>   OMAP: DMA: Convert DMA library into platform driver
+>
+>  arch/arm/mach-omap1/Makefile               |    2 +-
+>  arch/arm/mach-omap1/dma.c                  |  390 ++++++++++++++++
+>  arch/arm/mach-omap2/Makefile               |    2 +-
+>  arch/arm/mach-omap2/dma.c                  |  297 ++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |   87 ++++
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |   87 ++++
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   97 ++++
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  101 ++++
+>  arch/arm/plat-omap/dma.c                   |  697 ++++++++++++----------------
+>  arch/arm/plat-omap/include/plat/dma.h      |  232 ++++------
+>  10 files changed, 1452 insertions(+), 540 deletions(-)
+>  create mode 100644 arch/arm/mach-omap1/dma.c
+>  create mode 100644 arch/arm/mach-omap2/dma.c
+>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
