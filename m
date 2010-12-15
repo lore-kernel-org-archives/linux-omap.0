@@ -1,70 +1,65 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: twl4030_usb porting advice
-Date: Wed, 15 Dec 2010 14:39:12 +0200
-Message-ID: <20101215123912.GC6734@legolas.emea.dhcp.ti.com>
-References: <4D08ACAC.8070900@xlogic.pl>
- <20101215121023.GN2997@legolas.emea.dhcp.ti.com>
- <4D08B41E.7090400@xlogic.pl>
-Reply-To: balbi@ti.com
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
+Date: Wed, 15 Dec 2010 12:39:20 +0000
+Message-ID: <AANLkTi=ZYi=12k2vZMGp9AWNX8zofp6C-FnMu2egQOA1@mail.gmail.com>
+References: <201012051929.07220.jkrzyszt@tis.icnet.pl>
+	<201012101159.21845.jkrzyszt@tis.icnet.pl>
+	<201012101203.09441.jkrzyszt@tis.icnet.pl>
+	<20101210170356.GA28472@n2100.arm.linux.org.uk>
+	<AANLkTimTVWVmVfppAWSosidqLmo6c+8rPhLg=oJAVoYH@mail.gmail.com>
+	<20101213162947.GA11730@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:37929 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753272Ab0LOMjY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Dec 2010 07:39:24 -0500
-Received: by mail-gy0-f174.google.com with SMTP id 11so1135260gyb.5
-        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 04:39:23 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4D08B41E.7090400@xlogic.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20101213162947.GA11730@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-arm-kernel@lists.infradead.org, Linux Media Mailing List <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomasz Mloduchowski <tomasz.mloduchowski@xlogic.pl>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org
 
-On Wed, Dec 15, 2010 at 12:27:10PM +0000, Tomasz Mloduchowski wrote:
->>>I would gladly welcome any pointers that could help me solve this issue.
->>
->>you're connecting a FS/LS device to EHCI port, that doesn't work. OMAP
->>can't handle port handoff to companion OHCI controller, then it fails
->>not being able to enumerate the device. Try remuxing your port to OHCI
->>controller and disabling EHCI from Kconfig.
->
->It actually is a HS device (it's a 4-port hub) - when booting the 
->vendor supplied kernel (based off 2.6.32, i.e. pre -IR redesign), the 
->device identifies as follows:
->
->Bus 001 Device 002: ID 05e3:0608 Genesys Logic, Inc. USB-2.0 4-Port HUB
->
->with the following boot messages:
->
->usb 1-2: new high speed USB device using ehci-omap and address 2
->usb 1-2: New USB device found, idVendor=05e3, idProduct=0608
->usb 1-2: New USB device strings: Mfr=0, Product=1, SerialNumber=0
->usb 1-2: Product: USB2.0 Hub
->hub 1-2:1.0: USB hub found
->hub 1-2:1.0: 4 ports detected
->
->
->I've pasted the boot log for my kernel:
->http://pastie.org/1379102
->
->And the boot log for the original kernel:
->http://pastie.org/1379100
-
-It could be a bug on the reset sequence on ehci-omap.c, do you have
-anything connected to any of the hub ports ?
-
-Please enable CONFIG_USB_DEBUG on your kernel config and grab a bit more
-information.
-
-Also, boot the machine without the device attached and after booting
-run:
-
-# dmesg -c
-
-then attach the device, then grab the output of dmesg.
-
--- 
-balbi
+T24gMTMgRGVjZW1iZXIgMjAxMCAxNjoyOSwgUnVzc2VsbCBLaW5nIC0gQVJNIExpbnV4CjxsaW51
+eEBhcm0ubGludXgub3JnLnVrPiB3cm90ZToKPiBPbiBNb24sIERlYyAxMywgMjAxMCBhdCAwMzo1
+MjoyMFBNICswMDAwLCBDYXRhbGluIE1hcmluYXMgd3JvdGU6Cj4+IE9uIDEwIERlY2VtYmVyIDIw
+MTAgMTc6MDMsIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eAo+PiA8bGludXhAYXJtLmxpbnV4Lm9y
+Zy51az4gd3JvdGU6Cj4+ID4gT24gRnJpLCBEZWMgMTAsIDIwMTAgYXQgMTI6MDM6MDdQTSArMDEw
+MCwgSmFudXN6IEtyenlzenRvZmlrIHdyb3RlOgo+PiA+PiDCoHZvaWQgX19pbml0IG9tYXAxX2Nh
+bWVyYV9pbml0KHZvaWQgKmluZm8pCj4+ID4+IMKgewo+PiA+PiDCoCDCoCDCoCBzdHJ1Y3QgcGxh
+dGZvcm1fZGV2aWNlICpkZXYgPSAmb21hcDFfY2FtZXJhX2RldmljZTsKPj4gPj4gKyDCoCDCoCBk
+bWFfYWRkcl90IHBhZGRyID0gb21hcDFfY2FtZXJhX3BoeXNfbWVtcG9vbF9iYXNlOwo+PiA+PiAr
+IMKgIMKgIGRtYV9hZGRyX3Qgc2l6ZSA9IG9tYXAxX2NhbWVyYV9waHlzX21lbXBvb2xfc2l6ZTsK
+Pj4gPj4gwqAgwqAgwqAgaW50IHJldDsKPj4gPj4KPj4gPj4gwqAgwqAgwqAgZGV2LT5kZXYucGxh
+dGZvcm1fZGF0YSA9IGluZm87Cj4+ID4+Cj4+ID4+ICsgwqAgwqAgaWYgKHBhZGRyKSB7Cj4+ID4+
+ICsgwqAgwqAgwqAgwqAgwqAgwqAgaWYgKGRtYV9kZWNsYXJlX2NvaGVyZW50X21lbW9yeSgmZGV2
+LT5kZXYsIHBhZGRyLCBwYWRkciwgc2l6ZSwKPj4gPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCBETUFfTUVNT1JZX01BUCB8IERNQV9NRU1PUllfRVhDTFVTSVZF
+KSkKPj4gPgo+PiA+IEFsdGhvdWdoIHRoaXMgd29ya3MsIHlvdSdyZSBlbmRpbmcgdXAgd2l0aCBT
+RFJBTSBiZWluZyBtYXBwZWQgdmlhCj4+ID4gaW9yZW1hcCwgd2hpY2ggdXNlcyBNVF9ERVZJQ0Ug
+LSBzbyB3aGF0IGlzIFNEUkFNIGVuZHMgdXAgYmVpbmcKPj4gPiBtYXBwZWQgYXMgaWYgaXQgd2Vy
+ZSBhIGRldmljZS4KPj4KPj4gQlRXLCBkb2VzIHRoZSBnZW5lcmljIGRtYV9kZWNsYXJlX2NvaGVy
+ZW50X21lbW9yeSgpIGRvZXMgdGhlIGNvcnJlY3QKPj4gdGhpbmcgaW4gdXNpbmcgaW9yZW1hcCgp
+Pwo+Cj4gSSBhcmd1ZSBpdCBkb2Vzbid0LCBhcyBJIHNhaWQgYWJvdmUuIMKgSXQgbWVhbnMgd2Ug
+bWFwIFNEUkFNIGFzIGRldmljZQo+IG1lbW9yeSwgYW5kIGFzIEkgdW5kZXJzdGFuZCB0aGUgd2F5
+IGludGVyY29ubmVjdHMgd29yaywgaXQncyBlbnRpcmVseQo+IHBvc3NpYmxlIHRoYXQgdGhpcyBt
+YXkgbm90IHJlc3VsdCBpbiB0aGUgU0RSQU0gYmVpbmcgYWNjZXNzaWJsZS4KWy4uLl0KPiBTbywg
+bm90IG9ubHkgZG9lcyB0aGlzIGZhaWwgdGhlIGtlcm5lbCdzIG93biBydWxlcywgYnV0IGFzIHdl
+IGFscmVhZHkga25vdywKPiBpdCBmYWlscyB0aGUgYXJjaGl0ZWN0dXJlJ3MgcmVzdHJpY3Rpb25z
+IHdpdGggbXVsdGlwbGUgbWFwcGluZ3Mgb2YgbWVtb3J5Cj4gd2hlbiB1c2VkIHdpdGggU0RSQU0s
+IGFuZCBpdCBhbHNvIG1hcHMgbWFpbiBtZW1vcnkgYXMgYSBkZXZpY2UuIMKgSSB3b25kZXIKPiBo
+b3cgbWFueSBtb3JlIHRoaW5ncyB0aGlzIGJyb2tlbiBBUEkgbmVlZHMgdG8gZG8gd3JvbmcgYmVm
+b3JlIGl0J3MgY3VycmVudAo+IGltcGxlbWVudGF0aW9uIGlzIGNvbnNpZ25lZCB0byB0aGUgY2ly
+Y3VsYXIgZmlsaW5nIGNhYmluZXQuCgpTaG91bGQgd2Ugbm90IHRyeSB0byBmaXggdGhlIGdlbmVy
+aWMgY29kZSBhbmQgc3RpbGwgYWxsb3cgcGxhdGZvcm1zIHRvCnVzZSBkbWFfZGVjbGFyZV9jb2hl
+cmVudF9tZW1vcnkoKSBpbiBhIHNhZmVyIHdheT8gSSBndWVzcyBpdCBtYXkgbmVlZApzb21lIGFy
+Z3VpbmcvZXhwbGFuYXRpb24gb24gbGludXgtYXJjaC4KCi0tIApDYXRhbGluCgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1h
+aWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xp
+c3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
