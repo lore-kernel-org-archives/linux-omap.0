@@ -1,50 +1,73 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH v2] MTD: NAND: ams-delta: convert to platform driver
-Date: Wed, 15 Dec 2010 11:37:45 +0200
-Message-ID: <1292405865.2512.28.camel@localhost>
-References: <201012111840.05270.jkrzyszt@tis.icnet.pl>
-	 <1292346023.2538.103.camel@localhost>
-	 <201012142109.42784.jkrzyszt@tis.icnet.pl>
-Reply-To: dedekind1@gmail.com
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCH v1 4/9] OMAP2430: hwmod data: add system DMA
+Date: Wed, 15 Dec 2010 16:29:53 +0530
+Message-ID: <20101215105953.GC11931@GLPP-machine>
+References: <1291434246-30716-1-git-send-email-manjugk@ti.com>
+ <1291434246-30716-5-git-send-email-manjugk@ti.com>
+ <alpine.DEB.2.00.1012141925300.15971@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:52900 "EHLO
-	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752136Ab0LOJiQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2010 04:38:16 -0500
-Received: by bwz16 with SMTP id 16so1999248bwz.4
-        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 01:38:15 -0800 (PST)
-In-Reply-To: <201012142109.42784.jkrzyszt@tis.icnet.pl>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:49010 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753132Ab0LOK6w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Dec 2010 05:58:52 -0500
+Received: by mail-yx0-f181.google.com with SMTP id 39so1398097yxd.40
+        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 02:58:52 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1012141925300.15971@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-mtd@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Tue, 2010-12-14 at 21:09 +0100, Janusz Krzysztofik wrote:
-> In its current form, the driver may interfere with different hardware=
- on=20
-> different boards if built into the kernel, hence is not suitable for=20
-> inclusion into a defconfig, inteded to be usable with multiple OMAP1 =
-cpu and=20
-> machine types.
->=20
-> Convert it to a platform driver, that should be free from this issue.
->=20
-> Created and tested against linux-2.6.37-rc5 on Amstrad Delta.
->=20
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+On Tue, Dec 14, 2010 at 07:27:33PM -0700, Paul Walmsley wrote:
+> On Sat, 4 Dec 2010, G, Manjunath Kondaiah wrote:
+> 
+> > Add OMAP2430 DMA hwmod data and also add required
+> > DMA device attributes.
+> 
+> ...
+> 
+> > +/* dma_system -> L3 */
+> > +static struct omap_hwmod_ocp_if omap2430_dma_system__l3 = {
+> > +	.master		= &omap2430_dma_system_hwmod,
+> > +	.slave		= &omap2430_l3_main_hwmod,
+> > +	.clk		= "l3_div_ck",
+> 
+> This clock does not exist on OMAP2430.  Did you test this on OMAP2430?
 
-Pushed to l2-mtd-2.6.git, thanks!
+Yes. I have tested this on SDP2430. For confirmation, I tested again now.
+It boots up without any issues and all DMA test cases are passing.
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+> 
+> > +/* l4_cfg -> dma_system */
+> > +static struct omap_hwmod_ocp_if omap2430_l4_core__dma_system = {
+> > +	.master		= &omap2430_l4_core_hwmod,
+> > +	.slave		= &omap2430_dma_system_hwmod,
+> > +	.clk		= "l4_div_ck",
+> 
+> This clock also does not exist on OMAP2430.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ok. I will replace with "sdma_ick" here.
+
+> 
+> > +static struct omap_hwmod omap2430_dma_system_hwmod = {
+> > +	.name		= "dma",
+> > +	.class		= &omap2430_dma_hwmod_class,
+> > +	.mpu_irqs	= omap2430_dma_system_irqs,
+> > +	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_dma_system_irqs),
+> > +	.main_clk	= "l3_div_ck",
+> 
+> Nor does this one.
+
+ok. will be replaced with "sdma_fck"
+
+> 
+> Please fix these and test on OMAP2430 before resending.
+
+Thanks. I will test again with above changes on SDP2430.
+
+-Manjunath
+
