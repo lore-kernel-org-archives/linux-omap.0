@@ -1,35 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v1 7/9] OMAP1: DMA: Implement in platform device model
-Date: Tue, 14 Dec 2010 18:44:34 -0800
-Message-ID: <20101215024434.GH3190@atomide.com>
-References: <1291434246-30716-1-git-send-email-manjugk@ti.com>
- <1291434246-30716-8-git-send-email-manjugk@ti.com>
- <87d3p3q35h.fsf@deeprootsystems.com>
- <87aak7onvu.fsf@deeprootsystems.com>
- <20101215010400.GC3190@atomide.com>
- <20101215020123.GB6725@manju-desktop>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2] musb: am35x: fix compile error due to control apis
+Date: Tue, 14 Dec 2010 20:01:37 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012141932040.15971@utopia.booyaka.com>
+References: <1291623211-959-1-git-send-email-ajay.gupta@ti.com> <4CFCBCF1.9010902@ru.mvista.com> <19F8576C6E063C45BE387C64729E739404BCE3A1EC@dbde02.ent.ti.com> <4CFD19A7.5020902@ru.mvista.com> <20101206175445.GF8345@atomide.com>
+ <4CFE3495.5090204@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56879 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753717Ab0LOCoh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 21:44:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20101215020123.GB6725@manju-desktop>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4CFE3495.5090204-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* G, Manjunath Kondaiah <manjugk@ti.com> [101214 18:01]:
-> On Tue, Dec 14, 2010 at 05:04:00PM -0800, Tony Lindgren wrote:
-> > 
-> > OK thanks, will fold it in and let's merge them into linux-omap
-> > master branch for few days for testing. Then if everything looks
-> > good, I'll queue these for the 2.6.38 next merge window.
+Hello Sergei
 
-Oops, not quite ready yet, see the mail from Paul. Waiting for
-those fixes.
+On Tue, 7 Dec 2010, Sergei Shtylyov wrote:
 
-Tony
+> On 06-12-2010 20:54, Tony Lindgren wrote:
+> > > > > > As the control.h have been moved to new location and it's
+> > > > > > uses are not allowed to drivers directly so moving the phy
+> > > > > > control, interrupt clear and reset functionality to board
+> > > > > > files.
+> 
+> > > > >     I'm not fond of the whole approach. I'm not sure why accesses to
+> > > > > the
+> > > > > control registers are such a no-no, taking into account that one needs
+> > > > > to
+> > > > > access such regisyter to clear the interrupt...
+> 
+> > Because drivers should arch independent and any tinkering of the
+> > platform level registers will lead into pains later on that
+> > I end up having to deal with.
+> 
+> > To me it seem you just init to separate out the transceiver,
+> > right?
+> 
+>    We also have to install a hook to clear the MUSB level interrupt via the
+> control register -- that's a thing that makes me dubious about not allowing
+> drivers to access the control registers.
+
+That's only true for the AM35xx "IP subsystem" devices.  It's not true for 
+any other device on that chip.  It is just due to the fact that the AM35xx 
+hardware designers chose not to follow the standard OMAP3430 hardware 
+design practice.  (Actually this standard practice goes back even further, 
+at least to the OMAP2420 days.)  The OMAP2430/34xx/36xx adaptation layer 
+for musb doesn't have to do these nasty SCM accesses.
+
+As far as I know, every other device on the AM35xx outside the "IP 
+subsystem" places its interrupt status registers in the same IP subsystem 
+as the device that raises the interrupt.
+
+
+- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
