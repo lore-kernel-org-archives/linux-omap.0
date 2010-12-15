@@ -1,50 +1,104 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 01/11] OMAP4: PRCM: add OMAP4-specific accessor/mutatorfunctions
-Date: Wed, 15 Dec 2010 13:43:03 +0100
-Message-ID: <4D08B7D7.3090204@ti.com>
-References: <20101208061657.30541.79824.stgit@twilight.localdomain> <20101208061829.30541.99531.stgit@twilight.localdomain> <25f8b00ceea2d6945cf74024299e81a8@mail.gmail.com> <alpine.DEB.2.00.1012142345050.15971@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH] arm: mach-omap2: hsmmc_reset: fix clk_get() error handling
+Date: Wed, 15 Dec 2010 14:45:33 +0200
+Message-ID: <1292417133-18025-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58340 "EHLO arroyo.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.128.26]:50202 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752722Ab0LOMnM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Dec 2010 07:43:12 -0500
-In-Reply-To: <alpine.DEB.2.00.1012142345050.15971@utopia.booyaka.com>
+	id S1752722Ab0LOMo6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Dec 2010 07:44:58 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 
-On 12/15/2010 7:48 AM, Paul Walmsley wrote:
-> Hi Rajendra
->
-> On Wed, 8 Dec 2010, Rajendra Nayak wrote:
->
->> Would it help if we can avoid one more level of function
->> indirection (given that these are low level apis) and store
->> the Partition offsets in the tables above (instead of func
->> pointers) and do some thing like this.
->>
->>        return __raw_readl(OMAP2_L4_IO_ADDRESS(cm_read_offset[part],
->> module, idx));
->>
->> with the table entries of cm_read_offset looking something like
->>> +   [OMAP4430_PRM_PARTITION]                = OMAP4430_PRM_BASE,
->>> +   [OMAP4430_CM1_PARTITION]                = OMAP4430_CM1_BASE,
->>> +   [OMAP4430_CM2_PARTITION]                = OMAP4430_CM2_BASE,
->
-> I did a version of this patch without the extra level of indirection.
-> I'm not sure if it's better or worse.  The original seems conceptually
-> cleaner to me, but this revised version is probably slightly more
-> efficient.  Do you (or anyone else) have a strong preference?
+clk_get() return value should be checked with IS_ERR(). Furthermore,
+clocks should be put and disabled properly.
 
-I do not have a strong but a slight preference for that. It is a little 
-bit more readable that function pointers for my point of view.
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ arch/arm/mach-omap2/devices.c |   44 ++++++++++++++++++++++------------------
+ 1 files changed, 24 insertions(+), 20 deletions(-)
 
-On the other hand, the function pointers might allow to handle tricky 
-differences that this solution will not.
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 5a0c148..1bca147 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -638,6 +638,7 @@ static struct platform_device dummy_pdev = {
+ static void __init omap_hsmmc_reset(void)
+ {
+ 	u32 i, nr_controllers;
++	struct clk *iclk, *fclk;
+ 
+ 	if (cpu_is_omap242x())
+ 		return;
+@@ -647,7 +648,6 @@ static void __init omap_hsmmc_reset(void)
+ 
+ 	for (i = 0; i < nr_controllers; i++) {
+ 		u32 v, base = 0;
+-		struct clk *iclk, *fclk;
+ 		struct device *dev = &dummy_pdev.dev;
+ 
+ 		switch (i) {
+@@ -678,19 +678,16 @@ static void __init omap_hsmmc_reset(void)
+ 		dummy_pdev.id = i;
+ 		dev_set_name(&dummy_pdev.dev, "mmci-omap-hs.%d", i);
+ 		iclk = clk_get(dev, "ick");
+-		if (iclk && clk_enable(iclk))
+-			iclk = NULL;
++		if (IS_ERR(iclk))
++			goto err1;
++		if (clk_enable(iclk))
++			goto err2;
+ 
+ 		fclk = clk_get(dev, "fck");
+-		if (fclk && clk_enable(fclk))
+-			fclk = NULL;
+-
+-		if (!iclk || !fclk) {
+-			printk(KERN_WARNING
+-			       "%s: Unable to enable clocks for MMC%d, "
+-			       "cannot reset.\n",  __func__, i);
+-			break;
+-		}
++		if (IS_ERR(fclk))
++			goto err3;
++		if (clk_enable(fclk))
++			goto err4;
+ 
+ 		omap_writel(MMCHS_SYSCONFIG_SWRESET, base + MMCHS_SYSCONFIG);
+ 		v = omap_readl(base + MMCHS_SYSSTATUS);
+@@ -698,15 +695,22 @@ static void __init omap_hsmmc_reset(void)
+ 			 MMCHS_SYSSTATUS_RESETDONE))
+ 			cpu_relax();
+ 
+-		if (fclk) {
+-			clk_disable(fclk);
+-			clk_put(fclk);
+-		}
+-		if (iclk) {
+-			clk_disable(iclk);
+-			clk_put(iclk);
+-		}
++		clk_disable(fclk);
++		clk_put(fclk);
++		clk_disable(iclk);
++		clk_put(iclk);
+ 	}
++	return;
++
++err4:
++	clk_put(fclk);
++err3:
++	clk_disable(iclk);
++err2:
++	clk_put(iclk);
++err1:
++	printk(KERN_WARNING "%s: Unable to enable clocks for MMC%d, "
++			    "cannot reset.\n",  __func__, i);
+ }
+ #else
+ static inline void omap_hsmmc_reset(void) {}
+-- 
+1.5.6.5
 
-Regards,
-Benoit
