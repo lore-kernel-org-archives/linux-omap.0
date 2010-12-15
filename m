@@ -1,189 +1,64 @@
 From: Fernando Guzman Lugo <fernando.lugo@ti.com>
-Subject: [PATCHv7 4/4] omap: iommu - create new api to set valid da range
-Date: Tue, 14 Dec 2010 18:54:03 -0600
-Message-ID: <1292374443-4055-5-git-send-email-fernando.lugo@ti.com>
+Subject: [PATCHv7 1/4] omap: iovmm - no gap checking for fixed address
+Date: Tue, 14 Dec 2010 18:54:00 -0600
+Message-ID: <1292374443-4055-2-git-send-email-fernando.lugo@ti.com>
 References: <1292374443-4055-1-git-send-email-fernando.lugo@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:51420 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756453Ab0LOAyX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Dec 2010 19:54:23 -0500
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1292374443-4055-1-git-send-email-fernando.lugo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Hiroshi.DOYU@nokia.com, linux@arm.linux.org.uk, h-kanigeri2@ti.com
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, "Guzman Lugo, Fernando" <x0095840@ti.com>
+Cc: tony@atomide.com, "Guzman Lugo, Fernando" <x0095840@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
 From: Guzman Lugo, Fernando <x0095840@ti.com>
 
-Some IOMMUs cannot use the whole 0x0 - 0xFFFFFFFF range.
-With this new API the valid range can be set.
+If some fixed da address is wanted to be mapped and the page
+is freed but it is used as gap, the mapping will fail.
+This patch is fixing that and olny keeps the gap for
+not fixed address.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- arch/arm/mach-omap2/omap-iommu.c        |    8 ++++++++
- arch/arm/plat-omap/include/plat/iommu.h |    5 +++++
- arch/arm/plat-omap/iommu.c              |   24 ++++++++++++++++++++++++
- arch/arm/plat-omap/iovmm.c              |   15 ++++++++-------
- 4 files changed, 45 insertions(+), 7 deletions(-)
+ arch/arm/plat-omap/iovmm.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-index f5a1aad..6be548c 100644
---- a/arch/arm/mach-omap2/omap-iommu.c
-+++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -33,6 +33,8 @@ static struct iommu_device omap3_devices[] = {
- 			.name = "isp",
- 			.nr_tlb_entries = 8,
- 			.clk_name = "cam_ick",
-+			.da_start = 0x0,
-+			.da_end = 0xFFFFF000,
- 		},
- 	},
- #if defined(CONFIG_MPU_BRIDGE_IOMMU)
-@@ -43,6 +45,8 @@ static struct iommu_device omap3_devices[] = {
- 			.name = "iva2",
- 			.nr_tlb_entries = 32,
- 			.clk_name = "iva2_ck",
-+			.da_start = 0x11000000,
-+			.da_end = 0xFFFFF000,
- 		},
- 	},
- #endif
-@@ -64,6 +68,8 @@ static struct iommu_device omap4_devices[] = {
- 			.name = "ducati",
- 			.nr_tlb_entries = 32,
- 			.clk_name = "ducati_ick",
-+			.da_start = 0x0,
-+			.da_end = 0xFFFFF000,
- 		},
- 	},
- #if defined(CONFIG_MPU_TESLA_IOMMU)
-@@ -74,6 +80,8 @@ static struct iommu_device omap4_devices[] = {
- 			.name = "tesla",
- 			.nr_tlb_entries = 32,
- 			.clk_name = "tesla_ick",
-+			.da_start = 0x0,
-+			.da_end = 0xFFFFF000,
- 		},
- 	},
- #endif
-diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
-index 33c7d41..69230d6 100644
---- a/arch/arm/plat-omap/include/plat/iommu.h
-+++ b/arch/arm/plat-omap/include/plat/iommu.h
-@@ -50,6 +50,8 @@ struct iommu {
- 	int (*isr)(struct iommu *obj);
- 
- 	void *ctx; /* iommu context: registres saved area */
-+	u32 da_start;
-+	u32 da_end;
- };
- 
- struct cr_regs {
-@@ -103,6 +105,8 @@ struct iommu_platform_data {
- 	const char *name;
- 	const char *clk_name;
- 	const int nr_tlb_entries;
-+	u32 da_start;
-+	u32 da_end;
- };
- 
- #if defined(CONFIG_ARCH_OMAP1)
-@@ -152,6 +156,7 @@ extern void flush_iotlb_all(struct iommu *obj);
- extern int iopgtable_store_entry(struct iommu *obj, struct iotlb_entry *e);
- extern size_t iopgtable_clear_entry(struct iommu *obj, u32 iova);
- 
-+extern int iommu_set_da_range(struct iommu *obj, u32 start, u32 end);
- extern struct iommu *iommu_get(const char *name);
- extern void iommu_put(struct iommu *obj);
- 
-diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-index 6cd151b..b1107c0 100644
---- a/arch/arm/plat-omap/iommu.c
-+++ b/arch/arm/plat-omap/iommu.c
-@@ -830,6 +830,28 @@ static int device_match_by_alias(struct device *dev, void *data)
- }
- 
- /**
-+ * iommu_set_da_range - Set a valid device address range
-+ * @obj:		target iommu
-+ * @start		Start of valid range
-+ * @end			End of valid range
-+ **/
-+int iommu_set_da_range(struct iommu *obj, u32 start, u32 end)
-+{
-+
-+	if (!obj)
-+		return -EFAULT;
-+
-+	if (end < start || !PAGE_ALIGN(start | end))
-+		return -EINVAL;
-+
-+	obj->da_start = start;
-+	obj->da_end = end;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(iommu_set_da_range);
-+
-+/**
-  * iommu_get - Get iommu handler
-  * @name:	target iommu name
-  **/
-@@ -922,6 +944,8 @@ static int __devinit omap_iommu_probe(struct platform_device *pdev)
- 	obj->name = pdata->name;
- 	obj->dev = &pdev->dev;
- 	obj->ctx = (void *)obj + sizeof(*obj);
-+	obj->da_start = pdata->da_start;
-+	obj->da_end = pdata->da_end;
- 
- 	mutex_init(&obj->iommu_lock);
- 	mutex_init(&obj->mmap_lock);
 diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index fa6e643..6dc1296 100644
+index 8ce0de2..34f0012 100644
 --- a/arch/arm/plat-omap/iovmm.c
 +++ b/arch/arm/plat-omap/iovmm.c
-@@ -280,13 +280,14 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 	alignement = PAGE_SIZE;
+@@ -289,10 +289,10 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+ 	prev_end = 0;
+ 	list_for_each_entry(tmp, &obj->mmap, list) {
  
- 	if (flags & IOVMF_DA_ANON) {
--		/*
--		 * Reserve the first page for NULL
--		 */
--		start = PAGE_SIZE;
-+		start = obj->da_start;
-+
- 		if (flags & IOVMF_LINEAR)
- 			alignement = iopgsz_max(bytes);
- 		start = roundup(start, alignement);
-+	} else if (start < obj->da_start || start > obj->da_end ||
-+					obj->da_end - start < bytes) {
-+		return ERR_PTR(-EINVAL);
- 	}
- 
- 	tmp = NULL;
-@@ -299,16 +300,16 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 		if (prev_end > start)
+-		if (prev_end >= start)
++		if (prev_end > start)
  			break;
  
--		if (start + bytes <= tmp->da_start)
-+		if (tmp->da_start > start && (tmp->da_start - start) >= bytes)
+-		if (start + bytes < tmp->da_start)
++		if (start + bytes <= tmp->da_start)
  			goto found;
  
--		if (flags & IOVMF_DA_ANON)
-+		if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
- 			start = roundup(tmp->da_end + 1, alignement);
- 
+ 		if (flags & IOVMF_DA_ANON)
+@@ -301,7 +301,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
  		prev_end = tmp->da_end;
  	}
  
--	if ((start >= prev_end) && (ULONG_MAX - start + 1 >= bytes))
-+	if ((start >= prev_end) && (obj->da_end - start >= bytes))
+-	if ((start > prev_end) && (ULONG_MAX - start >= bytes))
++	if ((start >= prev_end) && (ULONG_MAX - start + 1 >= bytes))
  		goto found;
  
  	dev_dbg(obj->dev, "%s: no space to fit %08x(%x) flags: %08x\n",
 -- 
 1.7.0.4
-
