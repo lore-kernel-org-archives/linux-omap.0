@@ -1,63 +1,49 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/5] omap: dsp: fixes for 2.6.37-rc1
-Date: Tue, 14 Dec 2010 23:00:01 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012142253320.15971@utopia.booyaka.com>
-References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com> <1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 00/11] OMAP: PRCM/powerdomain/clockdomain patches for
+ 2.6.38,part two
+Date: Wed, 15 Dec 2010 11:45:57 +0530
+Message-ID: <35c1d64ec596eedba20c8c4ad7f4adc7@mail.gmail.com>
+References: <20101208061657.30541.79824.stgit@twilight.localdomain>
+ <ad6f65002e3b16aef9d71f5b419bc970@mail.gmail.com> <alpine.DEB.2.00.1012142126560.15971@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60844 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256Ab0LOGAC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2010 01:00:02 -0500
-In-Reply-To: <1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:51630 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750995Ab0LOGP7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Dec 2010 01:15:59 -0500
+Received: by pwj6 with SMTP id 6so223238pwj.4
+        for <linux-omap@vger.kernel.org>; Tue, 14 Dec 2010 22:15:58 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1012142126560.15971@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-Hello Felipe
-
-I am reviewing these patches for merging, and would appreciate your help.
-
-On Sun, 7 Nov 2010, Felipe Contreras wrote:
-
-> Paul already sent these, but I did some minor modifications, mostly to minimize
-> the amount of changes.
-> 
-> Also, I'm re-sending my memblock patch so that the driver can actually be
-> compiled.
-
-It looks like the memblock change has been applied already.
-
-> With these, and reverting the iommu patches[1], the driver should be working. I
-> don't see a more straight-forward way to achieve that.
-> 
-> Paul Walmsley (4):
->   omap: control: add functions for DSP boot
->   omap: pm: use control functions in DSP reset code
->   omap: dsp: add boot control functions
->   staging: tidspbridge: use boot control functions
-
-It seems that we still need to apply these.  Could you please rebase these 
-against the 'integration-2.6.38-20101214-013' tag available from 
-git://git.pwsan.com/linux-integration?
-
-Also, a few changes are needed in the patches themselves.  Here are two 
-that I noticed:
-
-First, please add my Signed-off-by: on the first 
-patch, "omap: control: add functions for DSP boot", as discussed 
-previously.
-
-Second, I notice that you wiped out almost my entire original commit 
-message from "omap: dsp: add boot control functions", and did not add a 
-note in brackets explaining what you did or why.  I strongly object to 
-this.  The commit message is as much a part of that patch as the code is 
-and I would appreciate it if you would either add it back in, or add a 
-bracketed note next to your Signed-off-by: explaining why the commit 
-message needed to be removed.
-
-regards
-
-- Paul
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Wednesday, December 15, 2010 9:57 AM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+Mark
+> Brown; Benoit Cousson; Kevin Hilman; Rajendra Nayak; Peter Ujfalusi;
+> Jarkko Nikula; Liam Girdwood
+> Subject: RE: [PATCH 00/11] OMAP: PRCM/powerdomain/clockdomain patches
+for
+> 2.6.38,part two
+>
+> Hi Santosh
+>
+> On Wed, 15 Dec 2010, Santosh Shilimkar wrote:
+>
+> > Have tested both part1 and part2 of your series on OMAP4 and OMAP3
+SDPs.
+> > OFF mode works on OMAP3 SPD with this series.
+> > Was planning to do some more testing with some porting of OMAP4 PM
+> > but it's taking bit more time.
+>
+> thanks for the testing, would you like me to add Tested-by:'s ?
+>
+Sure.
+Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
