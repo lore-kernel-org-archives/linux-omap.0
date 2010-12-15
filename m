@@ -1,44 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v1 7/9] OMAP1: DMA: Implement in platform device model
-Date: Tue, 14 Dec 2010 17:04:00 -0800
-Message-ID: <20101215010400.GC3190@atomide.com>
-References: <1291434246-30716-1-git-send-email-manjugk@ti.com>
- <1291434246-30716-8-git-send-email-manjugk@ti.com>
- <87d3p3q35h.fsf@deeprootsystems.com>
- <87aak7onvu.fsf@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/5] OMAP4: hwmod data fixes and update
+Date: Tue, 14 Dec 2010 18:07:30 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012141804450.15971@utopia.booyaka.com>
+References: <1291937615-18571-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43734 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757570Ab0LOBEG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 20:04:06 -0500
-Content-Disposition: inline
-In-Reply-To: <87aak7onvu.fsf@deeprootsystems.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:48820 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756298Ab0LOBHb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 20:07:31 -0500
+In-Reply-To: <1291937615-18571-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [101214 16:55]:
-> Kevin Hilman <khilman@deeprootsystems.com> writes:
-> 
-> [...]
-> 
-> >
-> > Using the patch below which fixes up the interrupt numbers to match the
-> > original code, the memory-to-memory test is now working on OSK.
-> 
-> Tony, if you prefer just to fold this into the original, feel free to
-> add
-> 
-> [khilman@deeprootsystems.com]: fixed IRQ numbers to match original code
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+On Fri, 10 Dec 2010, Benoit Cousson wrote:
 
-OK thanks, will fold it in and let's merge them into linux-omap
-master branch for few days for testing. Then if everything looks
-good, I'll queue these for the 2.6.38 next merge window.
+> Here is a small set of OMAP4 hwmod data updates.
+> 
+> Re-order properly the data that were a little bit shuffled during
+> the previous merge window.
+> Add the new reset flags introduced in 2.6.37 and that were not
+> used in the hwmod data. The OMAP2 and OMAP3 fixes should come soon.
+> Fix some missing field in the GPIO OMAP4 hwmod data that I missed
+> during the review.
+> IVA and DSP are added just to allow the processors device creation
+> at boot time and avoid the warnings.
+> 
+> Thanks to Charu for testing the GPIO / WD_TIMER changes.
+> Thanks to Govindraj for testing the UART changes. 
+> 
+> The series is based on lo/for-next (v2.6.37-rc5-66-ga2814df) and is
+> available here:
+> git://gitorious.org/omap-pm/linux.git for_2.6.38/hwmod_data
+> 
+> Please note that there is a slight dependency with the following patch
+> due to the name change of the iva fclk:
+> OMAP4: clock data: Add missing DPLL x2 clock node
+> https://patchwork.kernel.org/patch/396612/
+> 
+> Tested on sdp4430 + ES2.0/ES2.1.
+> 
+> Regards,
+> Benoit
+>
+> 
+> Benoit Cousson (5):
+>   OMAP4: hwmod data: Fix hwmod entries order
+>   OMAP4: hwmod data: Add SYSS_HAS_RESET_STATUS flag
+>   OMAP4: hwmod data: Fix missing address in DMM and EMIF_FW
+>   OMAP4: hwmod data: Add IVA and DSP
+>   OMAP4: hwmod & clock data: Fix GPIO opt_clks and ocp_if iclk
 
-Regards,
+Thanks, queued for 2.6.38 with some tweaks.  I've replied to the original 
+patches with the details.
 
-Tony
+The current integration tag that contains these patches is 
+'integration-2.6.38-20101214-010' available from 
+git://git.pwsan.com/linux-integration
+
+
+- Paul
