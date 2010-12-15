@@ -1,162 +1,77 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/5] omap: dsp: fixes for 2.6.37-rc1
-Date: Wed, 15 Dec 2010 15:04:58 +0200
-Message-ID: <AANLkTimRepQwUW5R_GXN6Y0ot850iHM-cONwQ=ErwNLQ@mail.gmail.com>
-References: <AANLkTinZF-47WQyF5k1Nv64NjfMNSQ-+oE0eGycR24NM@mail.gmail.com>
-	<1289166209-32251-1-git-send-email-felipe.contreras@gmail.com>
-	<alpine.DEB.2.00.1012142253320.15971@utopia.booyaka.com>
+From: Tomasz Mloduchowski <tomasz.mloduchowski@xlogic.pl>
+Subject: Re: twl4030_usb porting advice
+Date: Wed, 15 Dec 2010 13:09:42 +0000
+Message-ID: <4D08BE16.4020704@xlogic.pl>
+References: <4D08ACAC.8070900@xlogic.pl> <20101215121023.GN2997@legolas.emea.dhcp.ti.com> <4D08B41E.7090400@xlogic.pl> <20101215123912.GC6734@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:38129 "EHLO
-	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752Ab0LONFA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2010 08:05:00 -0500
-Received: by bwz16 with SMTP id 16so2235612bwz.4
-        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 05:04:59 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1012142253320.15971@utopia.booyaka.com>
+Received: from xen-13-178-63-247-83.statnet.pl ([178.63.247.83]:60809 "EHLO
+	xlogic.pl" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1750858Ab0LONKU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Dec 2010 08:10:20 -0500
+In-Reply-To: <20101215123912.GC6734@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org
 
-Hi,
-
-On Wed, Dec 15, 2010 at 8:00 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> I am reviewing these patches for merging, and would appreciate your h=
-elp.
->
-> On Sun, 7 Nov 2010, Felipe Contreras wrote:
->
->> Paul already sent these, but I did some minor modifications, mostly =
-to minimize
->> the amount of changes.
+On 12/15/10 12:39, Felipe Balbi wrote:
+> On Wed, Dec 15, 2010 at 12:27:10PM +0000, Tomasz Mloduchowski wrote:
+>>>> I would gladly welcome any pointers that could help me solve this
+>>>> issue.
+>>>
+>>> you're connecting a FS/LS device to EHCI port, that doesn't work. OMAP
+>>> can't handle port handoff to companion OHCI controller, then it fails
+>>> not being able to enumerate the device. Try remuxing your port to OHCI
+>>> controller and disabling EHCI from Kconfig.
 >>
->> Also, I'm re-sending my memblock patch so that the driver can actual=
-ly be
->> compiled.
->
-> It looks like the memblock change has been applied already.
->
->> With these, and reverting the iommu patches[1], the driver should be=
- working. I
->> don't see a more straight-forward way to achieve that.
+>> It actually is a HS device (it's a 4-port hub) - when booting the
+>> vendor supplied kernel (based off 2.6.32, i.e. pre -IR redesign), the
+>> device identifies as follows:
 >>
->> Paul Walmsley (4):
->> =C2=A0 omap: control: add functions for DSP boot
->> =C2=A0 omap: pm: use control functions in DSP reset code
->> =C2=A0 omap: dsp: add boot control functions
->> =C2=A0 staging: tidspbridge: use boot control functions
+>> Bus 001 Device 002: ID 05e3:0608 Genesys Logic, Inc. USB-2.0 4-Port HUB
+>>
+>> with the following boot messages:
+>>
+>> usb 1-2: new high speed USB device using ehci-omap and address 2
+>> usb 1-2: New USB device found, idVendor=05e3, idProduct=0608
+>> usb 1-2: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+>> usb 1-2: Product: USB2.0 Hub
+>> hub 1-2:1.0: USB hub found
+>> hub 1-2:1.0: 4 ports detected
+>>
+>>
+>> I've pasted the boot log for my kernel:
+>> http://pastie.org/1379102
+>>
+>> And the boot log for the original kernel:
+>> http://pastie.org/1379100
 >
-> It seems that we still need to apply these. =C2=A0Could you please re=
-base these
-> against the 'integration-2.6.38-20101214-013' tag available from
-> git://git.pwsan.com/linux-integration?
-
-Ok, will do.
-
-> Also, a few changes are needed in the patches themselves. =C2=A0Here =
-are two
-> that I noticed:
+> It could be a bug on the reset sequence on ehci-omap.c, do you have
+> anything connected to any of the hub ports ?
 >
-> First, please add my Signed-off-by: on the first
-> patch, "omap: control: add functions for DSP boot", as discussed
-> previously.
+> Please enable CONFIG_USB_DEBUG on your kernel config and grab a bit more
+> information.
+>
+> Also, boot the machine without the device attached and after booting
+> run:
+>
+> # dmesg -c
+>
+> then attach the device, then grab the output of dmesg.
+>
 
-Yes, I haven't got around to do so. I thought I still had time before
-=2E38 merge window.
+I don't have the ability to disconnect the hub - it's integrated on the 
+board :(
 
-> Second, I notice that you wiped out almost my entire original commit
-> message from "omap: dsp: add boot control functions", and did not add=
- a
-> note in brackets explaining what you did or why. =C2=A0I strongly obj=
-ect to
-> this. =C2=A0The commit message is as much a part of that patch as the=
- code is
-> and I would appreciate it if you would either add it back in, or add =
-a
-> bracketed note next to your Signed-off-by: explaining why the commit
-> message needed to be removed.
+I've also made a mistake describing the pastebins - the working, PSP 
+kernel boot log is here:
+http://pastie.org/1379102
 
-Huh?
+while the non-working git kernel messages are here (with CONFIG_USB_DEBUG):
+http://pastie.org/1379100
 
-Before:
-mach-omap2/control:
----
-Add two functions for OMAP2430/OMAP3 IVA2 DSP boot control.  These
-registers wound up in the System Control Module.  Other kernel code
-that wishes to control the DSP's boot process should now use these
-functions to do so; subsequent patches implement this in the two
-in-tree users of these functions.
-
-This patch is functionally untested; that is for the DSP/Bridge
-programmers to do.
----
-
-tidspbridge/core/tiomap3430.c:
-tidspbridge/include/dspbridge/host_os.h:
----
-DSPBridge currently tries to __raw_writel() to the System Control
-Module to control the DSP boot process.  This is a layering violation;
-this is SoC-specific code, and belongs in a file in
-arch/arm/mach-omap2/*.  None of those CM and PRM register accesses
-through struct platform_data belong under drivers/.  (Nor would they
-belong in DSP platform init code in arch/arm/mach-omap2/* - such code
-must use the clock, clockdomain, powerdomain, omap_device, and
-omap_hwmod layers that are provided for this purpose.)
-
-The immediate problem, however, is that after commit
-346a5c890a55495c718394b74214be1de9303cf6, this code can no longer compi=
-le.
-So to fix this immediate problem, convert the DSP boot control code to
-use platform_data function pointers.
-
-The DSPBridge-on-OMAP3 people also need to implement a file in
-arch/arm/mach-omap2/ to populate the platform_data function pointers.
-Such a file does not yet exist in the mainline tree, so it's unlikely
-that DSPBridge is usable in the mainline until this is done.
----
-
-After:
-
-mach-omap2/control:
----
-Add two functions for OMAP2430/OMAP3 IVA2 DSP boot control.  These
-registers wound up in the System Control Module.  Other kernel code tha=
-t
-wishes to control the DSP's boot process should now use these functions
-to do so; subsequent patches implement this in the two in-tree users of
-these functions.
----
-
-mach-omap2/dsp:
----
-Would be needed to avoid using SCM directly.
----
-
-tidspbridge/core/tiomap3430.c:
----
-Use the new functions from SCM layer instead of handling registers
-directly with __raw_writel, as explained in:
-
-http://marc.info/?l=3Dlinux-omap&m=3D128779652429922&w=3D2
-
-This fixes the build on 2.6.37 since control.h is not available for
-drivers any more.
----
-
-I thought it was evident that patch 1 adds some functions, and says
-those functions should be used to modify SCM registers, patch 2 adds
-callbacks to them, and patch 3 uses those callbacks instead of
-directly modifying the registers. I could add "Such access is a layer
-violation; it should be handled by the platform control
-(arch/arm/mach-omap2/control.c)".
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers,
+Tomasz
