@@ -1,84 +1,561 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH v7] OMAP4:keypad: PM runtime
-Date: Wed, 15 Dec 2010 11:01:46 +0530
-Message-ID: <20101215053146.GA1822@charu-comp>
-References: <1292386198-3587-1-git-send-email-a0393217@india.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 10/11] OMAP2+: powerdomain: move header file from plat-omap
+ to mach-omap2
+Date: Tue, 14 Dec 2010 22:37:20 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012142234340.15971@utopia.booyaka.com>
+References: <20101208061657.30541.79824.stgit@twilight.localdomain> <20101208061843.30541.23685.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1292386198-3587-1-git-send-email-a0393217@india.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Shubhrajyoti D <a0393217@india.ti.com>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:43403 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752061Ab0LOFhW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2010 00:37:22 -0500
+In-Reply-To: <20101208061843.30541.23685.stgit@twilight.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@ti.com>, linux-arm-kernel@lists.infradead.org, Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Greg Kroah-Hartman <greg@kroah.com>
 
-* Shubhrajyoti D <a0393217@india.ti.com> [2010-12-15 09:39:58 +0530]:
+On Tue, 7 Dec 2010, Paul Walmsley wrote:
 
-> From: Abraham Arce <x0066660@ti.com>
+> The OMAP powerdomain code and data is all OMAP2+-specific.  This seems
+> unlikely to change any time soon.  Move plat-omap/include/plat/powerdomain.h
+> to mach-omap2/powerdomain.h.  The primary point of doing this is to remove
+> the temptation for unrelated upper-layer code to access powerdomain code
+> and data directly.
 > 
-> Enable Runtime PM functionality in OMAP4 driver based on the following assumptions
+> As part of this process, remove the references to powerdomain data from
+> the GPIO "driver" and the OMAP PM no-op layer, both in plat-omap.
 > 
-> A minimal pm runtime get/put approach is implemented in probe/remove calls
-> respectively.
-> 
-> - Keyboard controller in wakeup domain so it is always on and
->   power impact may be minimal
-> - In OMAP4 the device control is at module/device level and ick/fclk level control is
->   difficult so cutting of clocks will prevent interrupts.
-> 
-> Signed-off-by: Abraham Arce <x0066660@ti.com>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
 > Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-This patch is sent thrice (once with a different subject) but the
-version numbers are the same. It is not clear what is the intention of this
-patch without hwmod database update. Am I missing any more patch here?
+This patch has been updated to get DSPBridge building again.  The 
+DSPBridge should not be touching the powerdomain headers;  this is
+just a temporary workaround until the DSPBridge people fix the code.
 
-> ---
-> Updating the changelogs as per Kevin's suggestion
->  drivers/input/keyboard/omap4-keypad.c |   10 +++++++++-
->  1 files changed, 9 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-> index 45bd097..3d35774 100644
-> --- a/drivers/input/keyboard/omap4-keypad.c
-> +++ b/drivers/input/keyboard/omap4-keypad.c
-> @@ -29,6 +29,7 @@
->  #include <linux/io.h>
->  #include <linux/input.h>
->  #include <linux/slab.h>
-> +#include <linux/pm_runtime.h>
->  
->  #include <plat/omap4-keypad.h>
->  
-> @@ -239,8 +240,11 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
->  	matrix_keypad_build_keymap(pdata->keymap_data, row_shift,
->  			input_dev->keycode, input_dev->keybit);
->  
-> -	omap4_keypad_config(keypad_data);
-> +	pm_runtime_enable(&pdev->dev);
-> +	pm_runtime_get_sync(&pdev->dev);
->  
-> +	omap4_keypad_config(keypad_data);
-> +	
->  	error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
->  			     IRQF_TRIGGER_RISING,
->  			     "omap4-keypad", keypad_data);
-> @@ -278,6 +282,10 @@ static int __devexit omap4_keypad_remove(struct platform_device *pdev)
->  	struct resource *res;
->  
->  	free_irq(keypad_data->irq, keypad_data);
-> +
-> +	pm_runtime_put_sync(&pdev->dev);
-> +	pm_runtime_disable(&pdev->dev);
-> +
->  	input_unregister_device(keypad_data->input);
->  
->  	iounmap(keypad_data->base);
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+- Paul
+
+From: Paul Walmsley <paul@pwsan.com>
+Date: Tue, 14 Dec 2010 13:03:49 -0700
+Subject: [PATCH] OMAP2+: powerdomain: move header file from plat-omap to mach-omap2
+
+The OMAP powerdomain code and data is all OMAP2+-specific.  This seems
+unlikely to change any time soon.  Move plat-omap/include/plat/powerdomain.h
+to mach-omap2/powerdomain.h.  The primary point of doing this is to remove
+the temptation for unrelated upper-layer code to access powerdomain code
+and data directly.
+
+As part of this process, remove the references to powerdomain data
+from the GPIO "driver" and the OMAP PM no-op layer, both in plat-omap.
+Change the DSPBridge code to point to the new location for the
+powerdomain headers.  The DSPBridge code should not be including the
+powerdomain headers; these should be removed.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>
+---
+ arch/arm/mach-omap2/clockdomain.c                  |    2 +-
+ arch/arm/mach-omap2/clockdomain.h                  |    2 +-
+ arch/arm/mach-omap2/cpuidle34xx.c                  |    2 +-
+ arch/arm/mach-omap2/io.c                           |    2 +-
+ arch/arm/mach-omap2/omap_hwmod.c                   |    2 +-
+ arch/arm/mach-omap2/pm-debug.c                     |    2 +-
+ arch/arm/mach-omap2/pm.c                           |    2 +-
+ arch/arm/mach-omap2/pm.h                           |    2 +-
+ arch/arm/mach-omap2/pm24xx.c                       |    4 +-
+ arch/arm/mach-omap2/pm34xx.c                       |    6 ++-
+ arch/arm/mach-omap2/pm44xx.c                       |    2 +-
+ arch/arm/mach-omap2/powerdomain-common.c           |    1 -
+ arch/arm/mach-omap2/powerdomain.c                  |    2 +-
+ .../include/plat => mach-omap2}/powerdomain.h      |   23 ++++++++++++---
+ arch/arm/mach-omap2/powerdomain2xxx_3xxx.c         |    2 +-
+ arch/arm/mach-omap2/powerdomain44xx.c              |    3 +-
+ arch/arm/mach-omap2/powerdomains.h                 |   30 --------------------
+ arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c   |    4 +--
+ arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h   |    2 +-
+ arch/arm/mach-omap2/powerdomains2xxx_data.c        |    3 +-
+ arch/arm/mach-omap2/powerdomains3xxx_data.c        |    3 +-
+ arch/arm/mach-omap2/powerdomains44xx_data.c        |    3 +-
+ arch/arm/plat-omap/gpio.c                          |    5 +--
+ arch/arm/plat-omap/include/plat/gpio.h             |    2 +-
+ arch/arm/plat-omap/include/plat/omap-pm.h          |    2 -
+ arch/arm/plat-omap/omap-pm-noop.c                  |    2 -
+ 26 files changed, 44 insertions(+), 71 deletions(-)
+ rename arch/arm/{plat-omap/include/plat => mach-omap2}/powerdomain.h (92%)
+ delete mode 100644 arch/arm/mach-omap2/powerdomains.h
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 650bf68..e20b986 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -34,7 +34,7 @@
+ #include "prcm44xx.h"
+ 
+ #include <plat/clock.h>
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include "clockdomain.h"
+ #include <plat/prcm.h>
+ 
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 372c646..de3faa2 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -18,7 +18,7 @@
+ 
+ #include <linux/init.h>
+ 
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include <plat/clock.h>
+ #include <plat/cpu.h>
+ 
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 568dff7..81b0a90 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -27,7 +27,7 @@
+ 
+ #include <plat/prcm.h>
+ #include <plat/irqs.h>
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include "clockdomain.h"
+ #include <plat/serial.h>
+ 
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index ab2d1ed..9ccb239 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -39,7 +39,7 @@
+ #include "io.h"
+ 
+ #include <plat/omap-pm.h>
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ 
+ #include "clockdomain.h"
+ #include <plat/omap_hwmod.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index e1358ba..12856eb 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -140,7 +140,7 @@
+ #include <plat/common.h>
+ #include <plat/cpu.h>
+ #include "clockdomain.h"
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include <plat/clock.h>
+ #include <plat/omap_hwmod.h>
+ #include <plat/prcm.h>
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 3fc7707..ed892ae 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -29,7 +29,7 @@
+ 
+ #include <plat/clock.h>
+ #include <plat/board.h>
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include "clockdomain.h"
+ #include <plat/dmtimer.h>
+ 
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 60cfe67..cf1c4c9 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -18,7 +18,7 @@
+ #include <plat/omap_device.h>
+ #include <plat/common.h>
+ 
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include "clockdomain.h"
+ 
+ static struct omap_device_pm_latency *pm_lats;
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 0d75bfd..642e519 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -11,7 +11,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_PM_H
+ #define __ARCH_ARM_MACH_OMAP2_PM_H
+ 
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ 
+ extern void *omap3_secure_ram_storage;
+ extern void omap3_pm_off_mode_enable(int);
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 7d4933b..0413314 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -50,7 +50,7 @@
+ #include "pm.h"
+ #include "control.h"
+ 
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include "clockdomain.h"
+ 
+ static void (*omap2_sram_idle)(void);
+@@ -107,7 +107,7 @@ static void omap2_enter_full_retention(void)
+ 	l = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0) | OMAP24XX_USBSTANDBYCTRL;
+ 	omap_ctrl_writel(l, OMAP2_CONTROL_DEVCONF0);
+ 
+-	omap2_gpio_prepare_for_idle(PWRDM_POWER_RET);
++	omap2_gpio_prepare_for_idle(0);
+ 
+ 	if (omap2_pm_debug) {
+ 		omap2_pm_dump(0, 0, 0);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 43c1a43..e804a9f 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -32,7 +32,7 @@
+ 
+ #include <plat/sram.h>
+ #include "clockdomain.h"
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include <plat/serial.h>
+ #include <plat/sdrc.h>
+ #include <plat/prcm.h>
+@@ -344,6 +344,7 @@ void omap_sram_idle(void)
+ 	int mpu_next_state = PWRDM_POWER_ON;
+ 	int per_next_state = PWRDM_POWER_ON;
+ 	int core_next_state = PWRDM_POWER_ON;
++	int per_going_off;
+ 	int core_prev_state, per_prev_state;
+ 	u32 sdrc_pwr = 0;
+ 
+@@ -394,9 +395,10 @@ void omap_sram_idle(void)
+ 
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
++		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
+ 		omap_uart_prepare_idle(2);
+ 		omap_uart_prepare_idle(3);
+-		omap2_gpio_prepare_for_idle(per_next_state);
++		omap2_gpio_prepare_for_idle(per_going_off);
+ 		if (per_next_state == PWRDM_POWER_OFF)
+ 				omap3_per_save_context();
+ 	}
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 54544b4..32d02cb 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -16,7 +16,7 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ 
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include <mach/omap4-common.h>
+ 
+ struct power_state {
+diff --git a/arch/arm/mach-omap2/powerdomain-common.c b/arch/arm/mach-omap2/powerdomain-common.c
+index cb01c7a..171fccd 100644
+--- a/arch/arm/mach-omap2/powerdomain-common.c
++++ b/arch/arm/mach-omap2/powerdomain-common.c
+@@ -20,7 +20,6 @@
+ #include "cm-regbits-44xx.h"
+ #include "prm-regbits-34xx.h"
+ #include "prm-regbits-44xx.h"
+-#include "powerdomains.h"
+ 
+ /*
+  * OMAP3 and OMAP4 specific register bit initialisations
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 7eb7ba4..06ef60ee 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -26,7 +26,7 @@
+ #include "prm44xx.h"
+ 
+ #include <plat/cpu.h>
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include "clockdomain.h"
+ #include <plat/prcm.h>
+ 
+diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+similarity index 92%
+rename from arch/arm/plat-omap/include/plat/powerdomain.h
+rename to arch/arm/mach-omap2/powerdomain.h
+index a0d3a30..35b5b48 100644
+--- a/arch/arm/plat-omap/include/plat/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -1,10 +1,10 @@
+ /*
+  * OMAP2/3/4 powerdomain control
+  *
+- * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008, 2010 Texas Instruments, Inc.
+  * Copyright (C) 2007-2010 Nokia Corporation
+  *
+- * Written by Paul Walmsley
++ * Paul Walmsley
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -14,13 +14,13 @@
+  * opportunity.
+  */
+ 
+-#ifndef ASM_ARM_PLAT_OMAP_INCLUDE_PLAT_POWERDOMAIN
+-#define ASM_ARM_PLAT_OMAP_INCLUDE_PLAT_POWERDOMAIN
++#ifndef __ARCH_ARM_MACH_OMAP2_POWERDOMAIN_H
++#define __ARCH_ARM_MACH_OMAP2_POWERDOMAIN_H
+ 
+ #include <linux/types.h>
+ #include <linux/list.h>
+ 
+-#include <asm/atomic.h>
++#include <linux/atomic.h>
+ 
+ #include <plat/cpu.h>
+ 
+@@ -216,4 +216,17 @@ extern void omap2xxx_powerdomains_init(void);
+ extern void omap3xxx_powerdomains_init(void);
+ extern void omap44xx_powerdomains_init(void);
+ 
++extern struct pwrdm_ops omap2_pwrdm_operations;
++extern struct pwrdm_ops omap3_pwrdm_operations;
++extern struct pwrdm_ops omap4_pwrdm_operations;
++
++/* Common Internal functions used across OMAP rev's */
++extern u32 omap2_pwrdm_get_mem_bank_onstate_mask(u8 bank);
++extern u32 omap2_pwrdm_get_mem_bank_retst_mask(u8 bank);
++extern u32 omap2_pwrdm_get_mem_bank_stst_mask(u8 bank);
++
++extern struct powerdomain wkup_omap2_pwrdm;
++extern struct powerdomain gfx_omap2_pwrdm;
++
++
+ #endif
+diff --git a/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c b/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
+index b5e9e4d..d523389 100644
+--- a/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
+@@ -18,8 +18,8 @@
+ 
+ #include <plat/prcm.h>
+ 
++#include "powerdomain.h"
+ #include "prm-regbits-34xx.h"
+-#include "powerdomains.h"
+ #include "prm.h"
+ #include "prm-regbits-24xx.h"
+ #include "prm-regbits-34xx.h"
+diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
+index 28bf5e3..a7880af 100644
+--- a/arch/arm/mach-omap2/powerdomain44xx.c
++++ b/arch/arm/mach-omap2/powerdomain44xx.c
+@@ -16,13 +16,12 @@
+ #include <linux/errno.h>
+ #include <linux/delay.h>
+ 
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include <plat/prcm.h>
+ #include "prm2xxx_3xxx.h"
+ #include "prm44xx.h"
+ #include "prminst44xx.h"
+ #include "prm-regbits-44xx.h"
+-#include "powerdomains.h"
+ 
+ static int omap4_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ {
+diff --git a/arch/arm/mach-omap2/powerdomains.h b/arch/arm/mach-omap2/powerdomains.h
+deleted file mode 100644
+index f83adaf..0000000
+--- a/arch/arm/mach-omap2/powerdomains.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/*
+- * OMAP2+ powerdomain prototypes
+- *
+- * Copyright (C) 2010 Texas Instruments, Inc.
+- *
+- * Rajendra Nayak <rnayak@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef ARCH_ARM_MACH_OMAP2_POWERDOMAINS_H
+-#define ARCH_ARM_MACH_OMAP2_POWERDOMAINS_H
+-
+-#include <plat/powerdomain.h>
+-
+-extern struct pwrdm_ops omap2_pwrdm_operations;
+-extern struct pwrdm_ops omap3_pwrdm_operations;
+-extern struct pwrdm_ops omap4_pwrdm_operations;
+-
+-/* Common Internal functions used across OMAP rev's */
+-extern u32 omap2_pwrdm_get_mem_bank_onstate_mask(u8 bank);
+-extern u32 omap2_pwrdm_get_mem_bank_retst_mask(u8 bank);
+-extern u32 omap2_pwrdm_get_mem_bank_stst_mask(u8 bank);
+-
+-extern struct powerdomain wkup_omap2_pwrdm;
+-extern struct powerdomain gfx_omap2_pwrdm;
+-
+-#endif
+diff --git a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
+index 14c6ef7..5b4dd97 100644
+--- a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
+@@ -45,13 +45,11 @@
+  * address offset is different between the C55 and C64 DSPs.
+  */
+ 
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ 
+ #include "prcm-common.h"
+ #include "prm.h"
+ 
+-#include "powerdomains.h"
+-
+ /* OMAP2/3-common powerdomains */
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h
+index 45d684a..fa31166 100644
+--- a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h
++++ b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h
+@@ -14,7 +14,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_POWERDOMAINS2XXX_3XXX_DATA_H
+ #define __ARCH_ARM_MACH_OMAP2_POWERDOMAINS2XXX_3XXX_DATA_H
+ 
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ 
+ extern struct powerdomain gfx_omap2_pwrdm;
+ extern struct powerdomain wkup_omap2_pwrdm;
+diff --git a/arch/arm/mach-omap2/powerdomains2xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_data.c
+index e136895..9b1a335 100644
+--- a/arch/arm/mach-omap2/powerdomains2xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains2xxx_data.c
+@@ -14,9 +14,8 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ 
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include "powerdomains2xxx_3xxx_data.h"
+-#include "powerdomains.h"
+ 
+ #include "prcm-common.h"
+ #include "prm2xxx_3xxx.h"
+diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+index f383784..7e712b0 100644
+--- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+@@ -14,9 +14,8 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ 
+-#include <plat/powerdomain.h>
++#include "powerdomain.h"
+ #include "powerdomains2xxx_3xxx_data.h"
+-#include "powerdomains.h"
+ 
+ #include "prcm-common.h"
+ #include "prm2xxx_3xxx.h"
+diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
+index 823f477..5fdf485 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+@@ -22,8 +22,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ 
+-#include <plat/powerdomain.h>
+-#include "powerdomains.h"
++#include "powerdomain.h"
+ 
+ #include "prcm-common.h"
+ #include "prcm44xx.h"
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 8d493b9..1f98e0b 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -29,7 +29,6 @@
+ #include <mach/irqs.h>
+ #include <mach/gpio.h>
+ #include <asm/mach/irq.h>
+-#include <plat/powerdomain.h>
+ 
+ /*
+  * OMAP1510 GPIO registers
+@@ -1864,7 +1863,7 @@ static struct sys_device omap_gpio_device = {
+ 
+ static int workaround_enabled;
+ 
+-void omap2_gpio_prepare_for_idle(int power_state)
++void omap2_gpio_prepare_for_idle(int off_mode)
+ {
+ 	int i, c = 0;
+ 	int min = 0;
+@@ -1880,7 +1879,7 @@ void omap2_gpio_prepare_for_idle(int power_state)
+ 		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
+ 			clk_disable(bank->dbck);
+ 
+-		if (power_state > PWRDM_POWER_OFF)
++		if (!off_mode)
+ 			continue;
+ 
+ 		/* If going to OFF, remove triggering for all
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index 41ff2f8..d6f9fa0 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -82,7 +82,7 @@ struct omap_gpio_platform_data {
+ /* TODO: Analyze removing gpio_bank_count usage from driver code */
+ extern int gpio_bank_count;
+ 
+-extern void omap2_gpio_prepare_for_idle(int power_state);
++extern void omap2_gpio_prepare_for_idle(int off_mode);
+ extern void omap2_gpio_resume_after_idle(void);
+ extern void omap_set_gpio_debounce(int gpio, int enable);
+ extern void omap_set_gpio_debounce_time(int gpio, int enable);
+diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
+index 728fbb9..639bf91 100644
+--- a/arch/arm/plat-omap/include/plat/omap-pm.h
++++ b/arch/arm/plat-omap/include/plat/omap-pm.h
+@@ -18,8 +18,6 @@
+ #include <linux/cpufreq.h>
+ #include <linux/clk.h>
+ 
+-#include "powerdomain.h"
+-
+ /**
+  * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
+  * @rate: target clock rate
+diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+index e129ce8..81b4ac1 100644
+--- a/arch/arm/plat-omap/omap-pm-noop.c
++++ b/arch/arm/plat-omap/omap-pm-noop.c
+@@ -24,8 +24,6 @@
+ /* Interface documentation is in mach/omap-pm.h */
+ #include <plat/omap-pm.h>
+ 
+-#include <plat/powerdomain.h>
+-
+ struct omap_opp *dsp_opps;
+ struct omap_opp *mpu_opps;
+ struct omap_opp *l3_opps;
+-- 
+1.7.2.3
+
