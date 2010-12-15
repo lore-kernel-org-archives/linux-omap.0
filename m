@@ -1,68 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] arm: mach-omap2: Kconfig: devkit8000 should select
- needed options
-Date: Wed, 15 Dec 2010 09:37:12 -0800
-Message-ID: <20101215173709.GB8406@atomide.com>
-References: <1292417352-18082-1-git-send-email-aaro.koskinen@nokia.com>
- <1292417352-18082-2-git-send-email-aaro.koskinen@nokia.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 5/5 v3] OMAP3630: PM: Erratum i583: disable coreoff if
+ < ES1.2
+Date: Wed, 15 Dec 2010 15:31:50 -0600
+Message-ID: <4D0933C6.1060404@ti.com>
+References: <1291395818-8639-1-git-send-email-nm@ti.com>	<1291395818-8639-6-git-send-email-nm@ti.com>	<2cdf7d3d033ee2c88b6f2d4cfa37d9db@mail.gmail.com>	<4D0622FE.2070801@ti.com>	<d5e397dafb68b41ec5d7af591a18b044@mail.gmail.com>	<4D062806.6090201@ti.com>	<b7c3a82268b65ae1d9d09f377d9039f1@mail.gmail.com>	<4D062F81.407@ti.com>	<96505dfaee73d6785e153ccf5c2856d3@mail.gmail.com>	<6f507e24d6ae188e265913e85e815f82@mail.gmail.com>	<4D063344.2010001@ti.com>	<37de3932d97af8e1882a08dd37242a17@mail.gmail.com>	<4D063599.9080905@ti.com> <87ei9l10mk.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49568 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751012Ab0LORhI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2010 12:37:08 -0500
-Content-Disposition: inline
-In-Reply-To: <1292417352-18082-2-git-send-email-aaro.koskinen@nokia.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:34080 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751819Ab0LOVb5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Dec 2010 16:31:57 -0500
+Received: by mail-vw0-f44.google.com with SMTP id 7so1053715vws.17
+        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 13:31:57 -0800 (PST)
+In-Reply-To: <87ei9l10mk.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Aaro,
+Kevin Hilman had written, on 12/13/2010 09:42 PM, the following:
+> Nishanth Menon <nm@ti.com> writes:
+> 
+>> Vishwanath Sripathy had written, on 12/13/2010 08:58 AM, the following:
+>> [...]
+>>>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
+>>>> omap2/pm34xx.c
+>>>> index ba3c0d6..da12a56 100644
+>>>> --- a/arch/arm/mach-omap2/pm34xx.c
+>>>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>>>> @@ -932,8 +932,15 @@ void omap3_pm_off_mode_enable(int enable)
+>>>>   #endif
+>>>>
+>>>>          list_for_each_entry(pwrst, &pwrst_list, node) {
+>>>> -               pwrst->next_state = state;
+>>>> -               omap_set_pwrdm_state(pwrst->pwrdm, state);
+>>>> +               if (IS_PM34XX_ERRATUM(SDRC_WAKEUP_ERRATUM_i583)
+>>>> &&
+>>>> +                               pwrst->pwrdm == core_pwrdm) {
+>>>> +                       pwrst->next_state = PWRDM_POWER_RET;
+>>>> +                       pr_err("%s: cannot enable Core OFF due to
+>>> i583\n",
+>>>> +                               __func__);
+>>> 		You probably need to throw up this warning only if state
+>>> == PWRDM_POWER_OFF. Otherwise this code looks fine to me.
+>> Thanks for the review. added it. will post a v4 later today if no one
+>> cribs with this approach. I will retain the logic in sram_idle as well
+>> as a backup measure.
+> 
+> This logic doesn't belong in SRAM idle.  To handle the idle case, you
+> should also disable the 'valid' bit for any C-state that has CORE off (I
+> think there's only one.)
+Apologies, but I dont think I get your point. Do you intend to state 
+that we dynamically add the C7 state in cpuidle34xx.c if this condition 
+is met?
+I agree that this additional check in sram_idle should be removed, but 
+as long as I handle it in omap3_pm_off_mode_enable where the next states 
+are configured, is'nt that enough or am I missing something?
 
-* Aaro Koskinen <aaro.koskinen@nokia.com> [101215 04:48]:
-> It's not possible to compile a kernel for this board without I2C,
-> MFD_SUPPORT and TWL4030_CORE, so those should be selected. This will
-> prevent build errors when trying out different configurations.
-
-This one I'm not so convinced about. We should be able to compile
-support for each board and enable and disable these kind of options
-just fine if CONFIG_ARCH_OMAP2PLUS_TYPICAL is disabled.
-
-In the long run we really want to have just a minimal kernel
-and have everything else as modules for the default configs
-and boot using initramfs.
-
-Probably the best way to deal with issues like this is to
-have omap generic platform init code for the common devices
-that gets built if those options are selected. Otherwise
-we'll end up with ifdefs all over the board-*.c files.
-
+-- 
 Regards,
-
-Tony
- 
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-> ---
->  arch/arm/mach-omap2/Kconfig |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index db20351..bb32f35 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -129,6 +129,10 @@ config MACH_DEVKIT8000
->  	default y
->  	select OMAP_PACKAGE_CUS
->  	select OMAP_MUX
-> +	select I2C
-> +	select I2C_OMAP
-> +	select MFD_SUPPORT
-> +	select TWL4030_CORE
->  
->  config MACH_OMAP_LDP
->  	bool "OMAP3 LDP board"
-> -- 
-> 1.5.6.5
-> 
+Nishanth Menon
