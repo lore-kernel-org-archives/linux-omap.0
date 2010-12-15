@@ -1,152 +1,91 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/5] OMAP4: PM: Use the lowpwrstatechange feature on OMAP4
-Date: Wed, 15 Dec 2010 15:40:31 -0800
-Message-ID: <874oaek3kg.fsf@deeprootsystems.com>
-References: <1292276969-29733-1-git-send-email-b-cousson@ti.com>
-	<1292276969-29733-2-git-send-email-b-cousson@ti.com>
-	<87zks8rv3b.fsf@deeprootsystems.com>
-	<c454400af490d75c274f19a5d0a5a655@mail.gmail.com>
+Subject: Re: [PATCH 5/5 v3] OMAP3630: PM: Erratum i583: disable coreoff if < ES1.2
+Date: Wed, 15 Dec 2010 15:47:51 -0800
+Message-ID: <87wrnaions.fsf@deeprootsystems.com>
+References: <1291395818-8639-1-git-send-email-nm@ti.com>
+	<1291395818-8639-6-git-send-email-nm@ti.com>
+	<2cdf7d3d033ee2c88b6f2d4cfa37d9db@mail.gmail.com>
+	<4D0622FE.2070801@ti.com>
+	<d5e397dafb68b41ec5d7af591a18b044@mail.gmail.com>
+	<4D062806.6090201@ti.com>
+	<b7c3a82268b65ae1d9d09f377d9039f1@mail.gmail.com>
+	<4D062F81.407@ti.com>
+	<96505dfaee73d6785e153ccf5c2856d3@mail.gmail.com>
+	<6f507e24d6ae188e265913e85e815f82@mail.gmail.com>
+	<4D063344.2010001@ti.com>
+	<37de3932d97af8e1882a08dd37242a17@mail.gmail.com>
+	<4D063599.9080905@ti.com> <87ei9l10mk.fsf@deeprootsystems.com>
+	<4D0933C6.1060404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <c454400af490d75c274f19a5d0a5a655@mail.gmail.com> (Rajendra
-	Nayak's message of "Wed, 15 Dec 2010 20:47:52 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:49200 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755781Ab0LOXrz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2010 18:47:55 -0500
+Received: by gyb11 with SMTP id 11so1378456gyb.19
+        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 15:47:55 -0800 (PST)
+In-Reply-To: <4D0933C6.1060404@ti.com> (Nishanth Menon's message of "Wed, 15
+	Dec 2010 15:31:50 -0600")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-Rajendra Nayak <rnayak@ti.com> writes:
+Nishanth Menon <nm@ti.com> writes:
 
-> Hi Kevin,
->
-> <snip>..
->
->> >  	if (pwrdm_read_pwrst(pwrdm) < PWRDM_POWER_ON) {
->> > +		if ((pwrdm_read_pwrst(pwrdm) > state) &&
->> > +			(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE)) {
->> > +				ret = pwrdm_set_next_pwrst(pwrdm, state);
->> > +				pwrdm_set_lowpwrstchange(pwrdm);
->> > +				pwrdm_wait_transition(pwrdm);
->> > +				pwrdm_state_switch(pwrdm);
->> > +				return ret;
+> Kevin Hilman had written, on 12/13/2010 09:42 PM, the following:
+>> Nishanth Menon <nm@ti.com> writes:
 >>
->> Personally, I'd prefer if this function flowed through better instead of
->> the early return in order to emphasize the common code.
+>>> Vishwanath Sripathy had written, on 12/13/2010 08:58 AM, the following:
+>>> [...]
+>>>>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
+>>>>> omap2/pm34xx.c
+>>>>> index ba3c0d6..da12a56 100644
+>>>>> --- a/arch/arm/mach-omap2/pm34xx.c
+>>>>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>>>>> @@ -932,8 +932,15 @@ void omap3_pm_off_mode_enable(int enable)
+>>>>>   #endif
+>>>>>
+>>>>>          list_for_each_entry(pwrst, &pwrst_list, node) {
+>>>>> -               pwrst->next_state = state;
+>>>>> -               omap_set_pwrdm_state(pwrst->pwrdm, state);
+>>>>> +               if (IS_PM34XX_ERRATUM(SDRC_WAKEUP_ERRATUM_i583)
+>>>>> &&
+>>>>> +                               pwrst->pwrdm == core_pwrdm) {
+>>>>> +                       pwrst->next_state = PWRDM_POWER_RET;
+>>>>> +                       pr_err("%s: cannot enable Core OFF due to
+>>>> i583\n",
+>>>>> +                               __func__);
+>>>> 		You probably need to throw up this warning only if state
+>>>> == PWRDM_POWER_OFF. Otherwise this code looks fine to me.
+>>> Thanks for the review. added it. will post a v4 later today if no one
+>>> cribs with this approach. I will retain the logic in sram_idle as well
+>>> as a backup measure.
 >>
->> Rather than the return here, can you just set the low-power state change
->> bit here (and put the clkdm_wakeup + sleep_switch = 1 into the else
->> clause?
->>
->> Or, does the next state have to be set before the low-power state change
->> bit?
->
-> Yes, that sequencing is needed.
->
->>
->> Basically, what I'm getting at is this should be a single function with
->> common flow.  The conditional code based on low-power state change
->> should be isolated instead of having a special path.
->
-> I get your point. See if the below approach looks better.
-> If it looks fine, I'll do some more testing (currently only tested
-> on OMAP4430sdp) and repost the 2 patches.
+>> This logic doesn't belong in SRAM idle.  To handle the idle case, you
+>> should also disable the 'valid' bit for any C-state that has CORE off (I
+>> think there's only one.)
+> Apologies, but I dont think I get your point. Do you intend to state
+> that we dynamically add the C7 state in cpuidle34xx.c if this
+> condition is met?
 
-Yes, this approach leads to better readability IMO.
+Yes.  More precisely, dynamically set the 'valid' bit of C7 based on
+this condition.
 
-Thanks,
+> I agree that this additional check in sram_idle should be removed, but
+> as long as I handle it in omap3_pm_off_mode_enable where the next
+> states are configured, is'nt that enough or am I missing something?
+
+Setting the next states only sets the default states, but CPUidle
+changes them.
+
+Looking closer at omap3_pm_off_mode_enable() though, it already calls
+into CPUidle and disables the valid bit for any states that have
+*either* MPU or core off.    You'll probably just need to extend this
+approach to disable only CORE off state(s).
 
 Kevin
 
-> From 5d206ba908071edafae6c044bd3ef6ad8a9c32e7 Mon Sep 17 00:00:00 2001
-> From: Rajendra Nayak <rnayak@ti.com>
-> Date: Thu, 25 Nov 2010 14:26:51 +0530
-> Subject: [PATCH 1/5] OMAP4: PM: Use the low-power state change feature on
-> OMAP4
->
-> For pwrdm's which support LOWPOWERSTATECHANGE, do not try waking
-> up the domain to put it back to deeper sleep state.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Benoit Cousson <b-cousson@ti.com>
-> ---
->  arch/arm/mach-omap2/pm.c |   28 ++++++++++++++++++++++------
->  1 file changed, 22 insertions(+), 6 deletions(-)
->
-> Index: linux/arch/arm/mach-omap2/pm.c
-> ===================================================================
-> --- linux.orig/arch/arm/mach-omap2/pm.c	2010-12-15 17:29:42.361228780
-> +0530
-> +++ linux/arch/arm/mach-omap2/pm.c	2010-12-15 20:19:48.321228780
-> +0530
-> @@ -89,6 +89,10 @@
->  	}
->  }
->
-> +/* Types of sleep_switch used in omap_set_pwrdm_state */
-> +#define FORCEWAKEUP_SWITCH	0
-> +#define LOWPOWERSTATE_SWITCH	1
-> +
->  /*
->   * This sets pwrdm state (other than mpu & core. Currently only ON &
->   * RET are supported. Function is assuming that clkdm doesn't have
-> @@ -114,9 +118,14 @@
->  		return ret;
->
->  	if (pwrdm_read_pwrst(pwrdm) < PWRDM_POWER_ON) {
-> -		omap2_clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
-> -		sleep_switch = 1;
-> -		pwrdm_wait_transition(pwrdm);
-> +		if ((pwrdm_read_pwrst(pwrdm) > state) &&
-> +			(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE)) {
-> +			sleep_switch = LOWPOWERSTATE_SWITCH;
-> +		} else {
-> +			omap2_clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
-> +			pwrdm_wait_transition(pwrdm);
-> +			sleep_switch = FORCEWAKEUP_SWITCH;
-> +		}
->  	}
->
->  	ret = pwrdm_set_next_pwrst(pwrdm, state);
-> @@ -126,12 +135,19 @@
->  		goto err;
->  	}
->
-> -	if (sleep_switch) {
-> +	switch (sleep_switch) {
-> +	case FORCEWAKEUP_SWITCH:
->  		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
-> -		pwrdm_wait_transition(pwrdm);
-> -		pwrdm_state_switch(pwrdm);
-> +		break;
-> +	case LOWPOWERSTATE_SWITCH:
-> +		pwrdm_set_lowpwrstchange(pwrdm);
-> +		break;
-> +	default:
-> +		return ret;
->  	}
->
-> +	pwrdm_wait_transition(pwrdm);
-> +	pwrdm_state_switch(pwrdm);
->  err:
->  	return ret;
->  }
->
->
->>
->> Kevin
->>
->> > +		}
->> >  		omap2_clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
->> >  		sleep_switch = 1;
->> >  		pwrdm_wait_transition(pwrdm);
+
+
