@@ -1,56 +1,34 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 5/5] OMAP4: hwmod & clock data: Fix GPIO opt_clks and
- ocp_if iclk
-Date: Tue, 14 Dec 2010 18:10:35 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012141810030.15971@utopia.booyaka.com>
-References: <1291937615-18571-1-git-send-email-b-cousson@ti.com> <1291937615-18571-6-git-send-email-b-cousson@ti.com>
+Subject: Re: [PATCH] OMAP: omap_device: use pdev as parameter to get rt_va
+Date: Tue, 14 Dec 2010 18:12:26 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012141811380.15971@utopia.booyaka.com>
+References: <1292024742-27319-1-git-send-email-omar.ramirez@ti.com> <4D05D586.6090408@ti.com> <AANLkTik667cW19eCVNNLf3_dc9efFYms0H2z-fGU24Ob@mail.gmail.com> <alpine.DEB.2.00.1012141710260.15971@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43922 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:43940 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760433Ab0LOBKg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 20:10:36 -0500
-In-Reply-To: <1291937615-18571-6-git-send-email-b-cousson@ti.com>
+	with ESMTP id S1755822Ab0LOBM1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 20:12:27 -0500
+In-Reply-To: <alpine.DEB.2.00.1012141710260.15971@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, 10 Dec 2010, Benoit Cousson wrote:
+Hello Omar
 
-> Fix opt clocks name in clock framework and hwmod.
-> 
-> Add the missing iclk in the ocp_if structure.
-> 
-> Add the HWMOD_CONTROL_OPT_CLKS_IN_RESET flag to ensure
-> the the GPIO optional clock is enable during reset.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Tested-by: Charulatha V <charu@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
+On Tue, 14 Dec 2010, Paul Walmsley wrote:
 
-This one I just tweaked the commit message slightly on.  Revised message 
-is below.
+> - In your driver-to-core-OMAP integration code in arch/arm/*omap*, call 
+> omap_hwmod_get_mpu_rt_va(), and pass that to the driver via an entry in 
+> the struct platform_data.
+
+One brief note here - this should have been more clear:
+
+- In your driver-to-core-OMAP integration code in arch/arm/*omap*, call 
+  omap_hwmod_get_mpu_rt_va(), and pass the virtual address that it returns 
+  to the driver via an entry in the struct platform_data.
 
 
 - Paul
-
-
-    OMAP4: hwmod & clock data: Fix GPIO opt_clks and ocp_if iclk
-    
-    Fix opt clocks name in clock framework and hwmod.
-    
-    Add the missing iclk in the ocp_if structure.
-    
-    Add the HWMOD_CONTROL_OPT_CLKS_IN_RESET flag to ensure
-    that the GPIO optional clock is enabled during reset, since
-    it must be enabled for the IP block to reset successfully.
-    
-    Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-    Tested-by: Charulatha V <charu@ti.com>
-    [paul@pwsan.com: fix the commit message]
-    Signed-off-by: Paul Walmsley <paul@pwsan.com>
-    Cc: Rajendra Nayak <rnayak@ti.com>
-
