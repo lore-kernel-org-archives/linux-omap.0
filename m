@@ -1,86 +1,73 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH v6 03/12] media: Entities,
-	pads and links
-Date: Wed, 15 Dec 2010 00:50:44 +0100
-Message-ID: <201012150050.44885.laurent.pinchart@ideasonboard.com>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<201012141353.15749.laurent.pinchart@ideasonboard.com>
-	<4D0775DB.2020902@ladisch.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP: omap_device: use pdev as parameter to get rt_va
+Date: Tue, 14 Dec 2010 17:17:28 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012141710260.15971@utopia.booyaka.com>
+References: <1292024742-27319-1-git-send-email-omar.ramirez@ti.com> <4D05D586.6090408@ti.com> <AANLkTik667cW19eCVNNLf3_dc9efFYms0H2z-fGU24Ob@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <4D0775DB.2020902@ladisch.de>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Clemens Ladisch <clemens@ladisch.de>
-Cc: alsa-devel@alsa-project.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>, lennart@poettering.net, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:52256 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642Ab0LOAR3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 19:17:29 -0500
+In-Reply-To: <AANLkTik667cW19eCVNNLf3_dc9efFYms0H2z-fGU24Ob@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Clemens,
+Hello Omar
 
-On Tuesday 14 December 2010 14:49:15 Clemens Ladisch wrote:
-> Laurent Pinchart wrote:
-> > On Tuesday 14 December 2010 13:40:21 Hans Verkuil wrote:
-> >> > On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
-> >> >> * Entity types
-> >> >> 
-> >> >> TYPE_NODE was renamed to TYPE_DEVICE because "node" sounds like a
-> >> >> node in a graph, which does not distinguish it from other entity
-> >> >> types because all entities are part of the topology graph.  I chose
-> >> >> "device" as this type describes entities that are visible as some
-> >> >> device node to other software.
-> >> > 
-> >> > What this type describes is a device node. Both NODE and DEVICE can be
-> >> > confusing in my opinion, but DEVICE_NODE is a bit long.
-> >> 
-> >> What about DEVNODE? I think that would be a good alternative.
-> > 
-> > Fine with me. Clemens, any opinion on that ?
+On Mon, 13 Dec 2010, Ramirez Luna, Omar wrote:
+
+> On Mon, Dec 13, 2010 at 2:12 AM, Cousson, Benoit <b-cousson@ti.com> wrote:
+> > On 12/11/2010 12:45 AM, Ramirez Luna, Omar wrote:
+> >>
+> >> Make the parameter received by omap_device_get_mpu_rt_va
+> >> consistent with the functions meant to be called by drivers.
+> >>
+> >> Also move its header declaration to appear in the set of
+> >> functions to be used by drivers, as per the comment there.
+> >
+> > Please note that even if Paul submitted this API upon request from Santosh,
+> > we do not want driver to us it most of the time.
 > 
-> Fine with me too.
-
-OK I'll use that name.
-
-> > > >> TYPE_EXT describes entities that represent some interface to the
-> > > >> external world, TYPE_INT those that are internal to the entire
-> > > >> device. (I'm not sure if that distinction is very useful, but
-> > > >> TYPE_SUBDEV seems to be an even more meaningless name.)
-> > > > 
-> > > > SUBDEV comes from the V4L2 world, and I agree that it might not be a
-> > > > very good name.
-> > > 
-> > > SUBDEV refers to a specific type of driver. Within the v4l world it is
-> > > well defined. So I prefer to keep this. Perhaps some additional
-> > > comments or documentation can be added to clarify this.
-> > 
-> > Should this be clarified by using V4L2_SUBDEV instead then ?
+> Oh, ok. Yes, I was under the impression that this ioremap was internal
+> to hwmod, and drivers should do their own one but then I noticed that
+> API and since it was under the "public functions through struct
+> platform data", I thought it was easier to pass pdev than od.
 > 
-> If the "SUBDEV" concept doesn't exist outside V4L, that would indeed be
-> better.
+> > All drivers should us the generic Linux way to get physical mem resource and
+> > then ioremap it.
 > 
-> I don't want to rename things that come out of existing frameworks; this
-> naming discussion makes sense only for those entity (sub)types that can
-> be shared between them.  Are there any, besides jacks?
-
-Some entities like TV tuners play a dual audio/video role. I'm not sure how to 
-handle them, I lack experience in that field.
-
-> > What about ALSA entities, should they use MEDIA_ENTITY_TYPE_ALSA_* ?
+> Then I guess this function belongs to the "public for core code" and
+> not for drivers along with the omap_device_get_pwrdm.
 > 
-> The entity types representing ALSA devices are already named "ALSA".
+> > I assume that if you want to update this API, you are probably already using
+> > it.
+> > Why cannot you use the generic way?
+> 
+> I can leave the generic way along with ioremap, the purpose was to use
+> omap_device APIs as much as possible.
 
-I was talking about the INT_* types. They're ALSA-specific, but have no ALSA 
-in the type name.
+The above isn't quite it.  What I'd suggest you do in your code is this:
 
--- 
-Regards,
+- In your driver-to-core-OMAP integration code in arch/arm/*omap*, call 
+omap_hwmod_get_mpu_rt_va(), and pass that to the driver via an entry in 
+the struct platform_data.
 
-Laurent Pinchart
+- In your driver code in drivers/*, test to see if that struct 
+platform_data entry is NULL.  If it is, only then should your driver 
+ioremap().  Otherwise, it should use the address from the struct 
+platform_data.
+
+This is because it's not guaranteed that ioremap() on OMAP will continue 
+to reuse the current static mapping in the future.  We've heard from some 
+mobile OS vendors that they are under significant address space 
+constraints, so on those distributions it might make sense to only map 
+devices that are actually in use, and take the additional TLB entry cost.
+
+Does this make sense?
+
+
+- Paul
