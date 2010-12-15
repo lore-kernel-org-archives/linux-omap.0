@@ -1,76 +1,48 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH v7] OMAP4:keypad: PM runtime
-Date: Wed, 15 Dec 2010 14:28:20 +0530
-Message-ID: <AANLkTinEoHySMos6X2PPAJLJJqRAGTo_dkwizRyJm-cA@mail.gmail.com>
-References: <1292386198-3587-1-git-send-email-a0393217@india.ti.com>
- <20101215053146.GA1822@charu-comp> <AANLkTimaLQYGp4pasuuvj8Z7pKYHQ+L_VCJmeXu+EACQ@mail.gmail.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH v2] MTD: NAND: ams-delta: convert to platform driver
+Date: Wed, 15 Dec 2010 11:37:45 +0200
+Message-ID: <1292405865.2512.28.camel@localhost>
+References: <201012111840.05270.jkrzyszt@tis.icnet.pl>
+	 <1292346023.2538.103.camel@localhost>
+	 <201012142109.42784.jkrzyszt@tis.icnet.pl>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:44125 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750871Ab0LOI7B convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Dec 2010 03:59:01 -0500
-In-Reply-To: <AANLkTimaLQYGp4pasuuvj8Z7pKYHQ+L_VCJmeXu+EACQ@mail.gmail.com>
+Received: from mail-bw0-f45.google.com ([209.85.214.45]:52900 "EHLO
+	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752136Ab0LOJiQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2010 04:38:16 -0500
+Received: by bwz16 with SMTP id 16so1999248bwz.4
+        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 01:38:15 -0800 (PST)
+In-Reply-To: <201012142109.42784.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Cc: Shubhrajyoti D <a0393217@india.ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-mtd@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 
-Shubhro,
+On Tue, 2010-12-14 at 21:09 +0100, Janusz Krzysztofik wrote:
+> In its current form, the driver may interfere with different hardware=
+ on=20
+> different boards if built into the kernel, hence is not suitable for=20
+> inclusion into a defconfig, inteded to be usable with multiple OMAP1 =
+cpu and=20
+> machine types.
+>=20
+> Convert it to a platform driver, that should be free from this issue.
+>=20
+> Created and tested against linux-2.6.37-rc5 on Amstrad Delta.
+>=20
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-On Wed, Dec 15, 2010 at 13:24, Datta, Shubhrajyoti <shubhrajyoti@ti.com=
-> wrote:
-> On Wed, Dec 15, 2010 at 11:01 AM, Varadarajan, Charulatha <charu@ti.c=
-om> wrote:
->> * Shubhrajyoti D <a0393217@india.ti.com> [2010-12-15 09:39:58 +0530]=
-:
->>
->>> From: Abraham Arce <x0066660@ti.com>
->>>
->>> Enable Runtime PM functionality in OMAP4 driver based on the follow=
-ing assumptions
->>>
->>> A minimal pm runtime get/put approach is implemented in probe/remov=
-e calls
->>> respectively.
->>>
->>> - Keyboard controller in wakeup domain so it is always on and
->>> =A0 power impact may be minimal
->>> - In OMAP4 the device control is at module/device level and ick/fcl=
-k level control is
->>> =A0 difficult so cutting of clocks will prevent interrupts.
->>>
->>> Signed-off-by: Abraham Arce <x0066660@ti.com>
->>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>
->> This patch is sent thrice (once with a different subject) but the
->> version numbers are the same. It is not clear what is the intention =
-of this
->> patch without hwmod database update. Am I missing any more patch her=
-e?
-> Yes missed the version.
-> =A0I have updated the change logs to be more descriptive and the subj=
-ect line.
->
->
-> Regarding the hwmod database update. That I deffered for reasons
-> - The clock changes need to be there as the update would mean reset o=
-f clocks.
-> - Thought of completing the drivers/input before the hwmod database
-> and the board changes.
-> - Also currently the driver relies on the uboot settings for clock
-> this might remove that dependency.
+Pushed to l2-mtd-2.6.git, thanks!
 
-I wish to differ here. This patch would not fix the above issues becaus=
-e
-pm runtime APIs (for OMAP) purely rely on omap_device and the keypad
-driver is not yet hwmod adapted. Atleast put a dependency on any
-hwmod series if you had sent them before.
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 
--V Charulatha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
