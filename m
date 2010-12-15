@@ -1,53 +1,84 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v5 0/12] dmtimer adaptation to platform_driver
-Date: Wed, 15 Dec 2010 10:29:32 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037395BFDB@dbde02.ent.ti.com>
-References: <1291679059-13419-1-git-send-email-tarun.kanti@ti.com>
- <874oafn61h.fsf@deeprootsystems.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH v7] OMAP4:keypad: PM runtime
+Date: Wed, 15 Dec 2010 11:01:46 +0530
+Message-ID: <20101215053146.GA1822@charu-comp>
+References: <1292386198-3587-1-git-send-email-a0393217@india.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43515 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754954Ab0LOE7l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2010 23:59:41 -0500
-In-Reply-To: <874oafn61h.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1292386198-3587-1-git-send-email-a0393217@india.ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Shubhrajyoti D <a0393217@india.ti.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin,
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Wednesday, December 15, 2010 7:37 AM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v5 0/12] dmtimer adaptation to platform_driver
-> 
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
-> 
-> > dmtimer adaptation to platform_driver.
-> >
-> > This patch series is adaptation of dmtimer code to platform driver
-> > using omap_device and omap_hwmod abstraction.
-> >
-> > Tested on following platforms:
-> > OMAP4430, OMAP3430, OMAP3630, OMAP2430
-> > OMAP2420 -- Image with omap2plus_defconfig in too large to download on
-> N800.
-> 
-> And OMAP1?
-BTW, I have posted v6 yesterday and in that for testing on N800
-I have removed OMAP3 and OMAP4 options and I was able to download.
+* Shubhrajyoti D <a0393217@india.ti.com> [2010-12-15 09:39:58 +0530]:
 
-Coming to OMAP1, I am getting "Bad Magic Number" while download.
-Looks like there is problem in selecting the right platform info.
-I am trying to resolve this and test.
---
-Tarun
-
+> From: Abraham Arce <x0066660@ti.com>
 > 
-> Kevin
+> Enable Runtime PM functionality in OMAP4 driver based on the following assumptions
+> 
+> A minimal pm runtime get/put approach is implemented in probe/remove calls
+> respectively.
+> 
+> - Keyboard controller in wakeup domain so it is always on and
+>   power impact may be minimal
+> - In OMAP4 the device control is at module/device level and ick/fclk level control is
+>   difficult so cutting of clocks will prevent interrupts.
+> 
+> Signed-off-by: Abraham Arce <x0066660@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+
+This patch is sent thrice (once with a different subject) but the
+version numbers are the same. It is not clear what is the intention of this
+patch without hwmod database update. Am I missing any more patch here?
+
+> ---
+> Updating the changelogs as per Kevin's suggestion
+>  drivers/input/keyboard/omap4-keypad.c |   10 +++++++++-
+>  1 files changed, 9 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
+> index 45bd097..3d35774 100644
+> --- a/drivers/input/keyboard/omap4-keypad.c
+> +++ b/drivers/input/keyboard/omap4-keypad.c
+> @@ -29,6 +29,7 @@
+>  #include <linux/io.h>
+>  #include <linux/input.h>
+>  #include <linux/slab.h>
+> +#include <linux/pm_runtime.h>
+>  
+>  #include <plat/omap4-keypad.h>
+>  
+> @@ -239,8 +240,11 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+>  	matrix_keypad_build_keymap(pdata->keymap_data, row_shift,
+>  			input_dev->keycode, input_dev->keybit);
+>  
+> -	omap4_keypad_config(keypad_data);
+> +	pm_runtime_enable(&pdev->dev);
+> +	pm_runtime_get_sync(&pdev->dev);
+>  
+> +	omap4_keypad_config(keypad_data);
+> +	
+>  	error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
+>  			     IRQF_TRIGGER_RISING,
+>  			     "omap4-keypad", keypad_data);
+> @@ -278,6 +282,10 @@ static int __devexit omap4_keypad_remove(struct platform_device *pdev)
+>  	struct resource *res;
+>  
+>  	free_irq(keypad_data->irq, keypad_data);
+> +
+> +	pm_runtime_put_sync(&pdev->dev);
+> +	pm_runtime_disable(&pdev->dev);
+> +
+>  	input_unregister_device(keypad_data->input);
+>  
+>  	iounmap(keypad_data->base);
+> -- 
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
