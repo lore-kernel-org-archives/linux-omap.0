@@ -1,65 +1,50 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
-Date: Wed, 15 Dec 2010 12:39:20 +0000
-Message-ID: <AANLkTi=ZYi=12k2vZMGp9AWNX8zofp6C-FnMu2egQOA1@mail.gmail.com>
-References: <201012051929.07220.jkrzyszt@tis.icnet.pl>
-	<201012101159.21845.jkrzyszt@tis.icnet.pl>
-	<201012101203.09441.jkrzyszt@tis.icnet.pl>
-	<20101210170356.GA28472@n2100.arm.linux.org.uk>
-	<AANLkTimTVWVmVfppAWSosidqLmo6c+8rPhLg=oJAVoYH@mail.gmail.com>
-	<20101213162947.GA11730@n2100.arm.linux.org.uk>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 01/11] OMAP4: PRCM: add OMAP4-specific accessor/mutatorfunctions
+Date: Wed, 15 Dec 2010 13:43:03 +0100
+Message-ID: <4D08B7D7.3090204@ti.com>
+References: <20101208061657.30541.79824.stgit@twilight.localdomain> <20101208061829.30541.99531.stgit@twilight.localdomain> <25f8b00ceea2d6945cf74024299e81a8@mail.gmail.com> <alpine.DEB.2.00.1012142345050.15971@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20101213162947.GA11730@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-arm-kernel@lists.infradead.org, Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58340 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752722Ab0LOMnM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Dec 2010 07:43:12 -0500
+In-Reply-To: <alpine.DEB.2.00.1012142345050.15971@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-T24gMTMgRGVjZW1iZXIgMjAxMCAxNjoyOSwgUnVzc2VsbCBLaW5nIC0gQVJNIExpbnV4CjxsaW51
-eEBhcm0ubGludXgub3JnLnVrPiB3cm90ZToKPiBPbiBNb24sIERlYyAxMywgMjAxMCBhdCAwMzo1
-MjoyMFBNICswMDAwLCBDYXRhbGluIE1hcmluYXMgd3JvdGU6Cj4+IE9uIDEwIERlY2VtYmVyIDIw
-MTAgMTc6MDMsIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eAo+PiA8bGludXhAYXJtLmxpbnV4Lm9y
-Zy51az4gd3JvdGU6Cj4+ID4gT24gRnJpLCBEZWMgMTAsIDIwMTAgYXQgMTI6MDM6MDdQTSArMDEw
-MCwgSmFudXN6IEtyenlzenRvZmlrIHdyb3RlOgo+PiA+PiDCoHZvaWQgX19pbml0IG9tYXAxX2Nh
-bWVyYV9pbml0KHZvaWQgKmluZm8pCj4+ID4+IMKgewo+PiA+PiDCoCDCoCDCoCBzdHJ1Y3QgcGxh
-dGZvcm1fZGV2aWNlICpkZXYgPSAmb21hcDFfY2FtZXJhX2RldmljZTsKPj4gPj4gKyDCoCDCoCBk
-bWFfYWRkcl90IHBhZGRyID0gb21hcDFfY2FtZXJhX3BoeXNfbWVtcG9vbF9iYXNlOwo+PiA+PiAr
-IMKgIMKgIGRtYV9hZGRyX3Qgc2l6ZSA9IG9tYXAxX2NhbWVyYV9waHlzX21lbXBvb2xfc2l6ZTsK
-Pj4gPj4gwqAgwqAgwqAgaW50IHJldDsKPj4gPj4KPj4gPj4gwqAgwqAgwqAgZGV2LT5kZXYucGxh
-dGZvcm1fZGF0YSA9IGluZm87Cj4+ID4+Cj4+ID4+ICsgwqAgwqAgaWYgKHBhZGRyKSB7Cj4+ID4+
-ICsgwqAgwqAgwqAgwqAgwqAgwqAgaWYgKGRtYV9kZWNsYXJlX2NvaGVyZW50X21lbW9yeSgmZGV2
-LT5kZXYsIHBhZGRyLCBwYWRkciwgc2l6ZSwKPj4gPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCBETUFfTUVNT1JZX01BUCB8IERNQV9NRU1PUllfRVhDTFVTSVZF
-KSkKPj4gPgo+PiA+IEFsdGhvdWdoIHRoaXMgd29ya3MsIHlvdSdyZSBlbmRpbmcgdXAgd2l0aCBT
-RFJBTSBiZWluZyBtYXBwZWQgdmlhCj4+ID4gaW9yZW1hcCwgd2hpY2ggdXNlcyBNVF9ERVZJQ0Ug
-LSBzbyB3aGF0IGlzIFNEUkFNIGVuZHMgdXAgYmVpbmcKPj4gPiBtYXBwZWQgYXMgaWYgaXQgd2Vy
-ZSBhIGRldmljZS4KPj4KPj4gQlRXLCBkb2VzIHRoZSBnZW5lcmljIGRtYV9kZWNsYXJlX2NvaGVy
-ZW50X21lbW9yeSgpIGRvZXMgdGhlIGNvcnJlY3QKPj4gdGhpbmcgaW4gdXNpbmcgaW9yZW1hcCgp
-Pwo+Cj4gSSBhcmd1ZSBpdCBkb2Vzbid0LCBhcyBJIHNhaWQgYWJvdmUuIMKgSXQgbWVhbnMgd2Ug
-bWFwIFNEUkFNIGFzIGRldmljZQo+IG1lbW9yeSwgYW5kIGFzIEkgdW5kZXJzdGFuZCB0aGUgd2F5
-IGludGVyY29ubmVjdHMgd29yaywgaXQncyBlbnRpcmVseQo+IHBvc3NpYmxlIHRoYXQgdGhpcyBt
-YXkgbm90IHJlc3VsdCBpbiB0aGUgU0RSQU0gYmVpbmcgYWNjZXNzaWJsZS4KWy4uLl0KPiBTbywg
-bm90IG9ubHkgZG9lcyB0aGlzIGZhaWwgdGhlIGtlcm5lbCdzIG93biBydWxlcywgYnV0IGFzIHdl
-IGFscmVhZHkga25vdywKPiBpdCBmYWlscyB0aGUgYXJjaGl0ZWN0dXJlJ3MgcmVzdHJpY3Rpb25z
-IHdpdGggbXVsdGlwbGUgbWFwcGluZ3Mgb2YgbWVtb3J5Cj4gd2hlbiB1c2VkIHdpdGggU0RSQU0s
-IGFuZCBpdCBhbHNvIG1hcHMgbWFpbiBtZW1vcnkgYXMgYSBkZXZpY2UuIMKgSSB3b25kZXIKPiBo
-b3cgbWFueSBtb3JlIHRoaW5ncyB0aGlzIGJyb2tlbiBBUEkgbmVlZHMgdG8gZG8gd3JvbmcgYmVm
-b3JlIGl0J3MgY3VycmVudAo+IGltcGxlbWVudGF0aW9uIGlzIGNvbnNpZ25lZCB0byB0aGUgY2ly
-Y3VsYXIgZmlsaW5nIGNhYmluZXQuCgpTaG91bGQgd2Ugbm90IHRyeSB0byBmaXggdGhlIGdlbmVy
-aWMgY29kZSBhbmQgc3RpbGwgYWxsb3cgcGxhdGZvcm1zIHRvCnVzZSBkbWFfZGVjbGFyZV9jb2hl
-cmVudF9tZW1vcnkoKSBpbiBhIHNhZmVyIHdheT8gSSBndWVzcyBpdCBtYXkgbmVlZApzb21lIGFy
-Z3VpbmcvZXhwbGFuYXRpb24gb24gbGludXgtYXJjaC4KCi0tIApDYXRhbGluCgpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1h
-aWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xp
-c3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+On 12/15/2010 7:48 AM, Paul Walmsley wrote:
+> Hi Rajendra
+>
+> On Wed, 8 Dec 2010, Rajendra Nayak wrote:
+>
+>> Would it help if we can avoid one more level of function
+>> indirection (given that these are low level apis) and store
+>> the Partition offsets in the tables above (instead of func
+>> pointers) and do some thing like this.
+>>
+>>        return __raw_readl(OMAP2_L4_IO_ADDRESS(cm_read_offset[part],
+>> module, idx));
+>>
+>> with the table entries of cm_read_offset looking something like
+>>> +   [OMAP4430_PRM_PARTITION]                = OMAP4430_PRM_BASE,
+>>> +   [OMAP4430_CM1_PARTITION]                = OMAP4430_CM1_BASE,
+>>> +   [OMAP4430_CM2_PARTITION]                = OMAP4430_CM2_BASE,
+>
+> I did a version of this patch without the extra level of indirection.
+> I'm not sure if it's better or worse.  The original seems conceptually
+> cleaner to me, but this revised version is probably slightly more
+> efficient.  Do you (or anyone else) have a strong preference?
+
+I do not have a strong but a slight preference for that. It is a little 
+bit more readable that function pointers for my point of view.
+
+On the other hand, the function pointers might allow to handle tricky 
+differences that this solution will not.
+
+Regards,
+Benoit
