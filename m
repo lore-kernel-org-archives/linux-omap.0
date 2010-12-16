@@ -1,55 +1,87 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: pm-core broken
-Date: Thu, 16 Dec 2010 14:40:56 -0600
-Message-ID: <4D0A7958.3080408@ti.com>
-References: <4D09719E.7080700@ti.com> <4D0978F3.3090704@ti.com>	<87wrn9hdxy.fsf@deeprootsystems.com> <4D0A52F0.8060603@ti.com> <87fwtxef3r.fsf@deeprootsystems.com> <4D0A735C.80906@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
+Date: Thu, 16 Dec 2010 22:42:37 +0200
+Message-ID: <AANLkTi=JUxc+eOTAkFFjEXoqQEaXgyT7n6qtxW-7MzRv@mail.gmail.com>
+References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
+ <AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com>
+ <20101214170656.GA3832@kroah.com> <AANLkTi=q=QMQ_Abxb8eUWT_qGG8K=pc892ZB-mqgt_mh@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:44433 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752620Ab0LPUk7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Dec 2010 15:40:59 -0500
-Received: by mail-vw0-f43.google.com with SMTP id 17so1555507vws.16
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 12:40:59 -0800 (PST)
-In-Reply-To: <4D0A735C.80906@ti.com>
+Received: from mail-iw0-f194.google.com ([209.85.214.194]:41906 "EHLO
+	mail-iw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756259Ab0LPUm6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 15:42:58 -0500
+In-Reply-To: <AANLkTi=q=QMQ_Abxb8eUWT_qGG8K=pc892ZB-mqgt_mh@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Greg KH <greg@kroah.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
 
-Nishanth Menon had written, on 12/16/2010 02:15 PM, the following:
-> Kevin Hilman had written, on 12/16/2010 12:40 PM, the following:
-> [...]
->> Your Beagle u-boot must be leaving something else on besides OTG.  I'm
->> using a relatively recent u-boot
->>     U-Boot 2010.12-rc1 (Nov 16 2010 - 
->> 08:31:35)                                    
->> that I built from source for my Beagle C3 (ES3.0), and suspend/idle test
->> works for me:
+On Tue, Dec 14, 2010 at 8:40 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
+:
+> On Tue, Dec 14, 2010 at 7:06 PM, Greg KH <greg@kroah.com> wrote:
+>> =A0Like the most important one, why is this generic code if
+>> =A0it's only for one specific platform?
+>
+> We started out with an omap-specific driver, but Tony preferred that =
+we
+> make this a platform-agnostic framework, in order to keep the IPC dri=
+vers that
+> will use it generic, and assuming that more users will show up for
+> such framework.
+
+I was just told about additional users for this (thanks Mugdha):
+
+1) There are several platforms (such as omap3530 and omapl1xx) that
+have no such hardware support, but would still need to use the same
+IPC drivers (to communicate with their DSP).
+
+The only way to achieve mutual exclusion on those platforms is by
+using a shared-memory synchronization algorithm called Peterson's
+Algorithm [1]. We would still need the same hwspinlock framework for
+that - the busy looping, the timeout, the various locking schemes, the
+resource allocation - are all still valid. The only difference is the
+actual lock implementation.
+
+2) The C6474, which is a multi-core DSP device [2], have Linux running
+on one of its cores, and would be using the same IPC drivers, too.
+C6474 has hardware support for synchronization, which would also
+benefit from such hwspinlock module (btw the C6474 has a richer
+hardware module that would need more than the hwspinlock framework
+offer today - it also supports queuing, owner semantics and interrupt
+notification to let a processor know when it acquires a lock, so it
+wouldn't have to spin..)
+
+Thanks,
+Ohad.
+
+[1] http://en.wikipedia.org/wiki/Peterson's_algorithm
+[2] http://focus.ti.com/docs/prod/folders/print/tms320c6474.html
+
+> To me it sounds reasonable, but both ways (framework / omap-specific
+> driver) will work for us just fine, and I can switch back to a misc
+> driver if this is preferred.
+>
+> The complete discussion of v1 is at:
+> http://comments.gmane.org/gmane.linux.kernel/1049802
+>
+> We also discussed this at v2 of the patches with David, see the
+> complete discussion at:
+> http://comments.gmane.org/gmane.linux.kernel/1067016
+>
+> Thanks,
+> Ohad.
+>
 >>
->> SUSPEND:OFF test | PASS | OFF: 0->1| RET:0 ->0 (6 
->> sec)                          SUSPEND:RET test | PASS | OFF: 1->1| 
->> RET:0 ->1 (6 sec)                          IDLE:OFF test | PASS | OFF: 
->> 1->4| RET:1 ->4 (21 sec)                            IDLE:RET test | 
->> PASS | OFF: 4->4| RET:4 ->11 (21 sec)                          
->> Is it still CORE that's not hitting RET for you?
-> 
-> yeah, I just think I am darned blind! DSS power domain did not reach 
-> state on Beagle and am guessing that could be due to the evil bootloader 
-> I was using - anyways, hoping once Senthils' hwmod patches make in, it 
-> should be fixed as well.. unless someone has a reset of DSS clock patch 
-> or something.. similar to OTG. arrgh.. as far as I am concerned, problem 
-> known at least! for some reason, latest 201012-rc1|2|master etc 
-> u-boot.bin is goofing up on me.. will look at that later on if no one 
-> beats me to it.
-just to close the loop -> enabling CONFIG_OMAP2_DSS in my .config 
-(thanks Kevin for the offline suggestion), at least suspend works for 
-OFF and RET states. Idle path some how hangs up - for the moment, I 
-guess I will leave it alone unless someone else would like to dig further..
-
--- 
-Regards,
-Nishanth Menon
+>> thanks,
+>>
+>> greg k-h
+>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
