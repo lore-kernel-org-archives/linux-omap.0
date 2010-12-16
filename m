@@ -1,141 +1,63 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: twl4030_usb porting advice
-Date: Thu, 16 Dec 2010 11:09:56 +0200
-Message-ID: <20101216090956.GG2601@legolas.emea.dhcp.ti.com>
-References: <4D08ACAC.8070900@xlogic.pl>
- <20101215121023.GN2997@legolas.emea.dhcp.ti.com>
- <4D08B41E.7090400@xlogic.pl>
- <20101215123912.GC6734@legolas.emea.dhcp.ti.com>
- <4D08BE16.4020704@xlogic.pl>
-Reply-To: balbi@ti.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH 0/13] 64-bit sched_clock
+Date: Thu, 16 Dec 2010 09:25:27 +0000
+Message-ID: <20101216092527.GL9937@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:51095 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752136Ab0LPJKC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Dec 2010 04:10:02 -0500
-Received: by eyh5 with SMTP id 5so1591665eyh.9
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 01:10:00 -0800 (PST)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <4D08BE16.4020704@xlogic.pl>
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: STEricsson <STEricsson_nomadik_linux@list.st.com>, linux-omap@vger.kernel.org, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, john stultz <johnstul@us.ibm.com>, Krzysztof Halasa <khc@pm.waw.pl>, Olof Johansson <olof@lixom.net>, Colin Cross <ccross@android.com>, linux-tegra@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Lennert Buytenhek <kernel@wantstofly.org>, Alessandro Rubini <rubini@unipv.it>
 List-Id: linux-omap@vger.kernel.org
-To: Tomasz Mloduchowski <tomasz.mloduchowski@xlogic.pl>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org
 
-On Wed, Dec 15, 2010 at 01:09:42PM +0000, Tomasz Mloduchowski wrote:
->On 12/15/10 12:39, Felipe Balbi wrote:
->>On Wed, Dec 15, 2010 at 12:27:10PM +0000, Tomasz Mloduchowski wrote:
->>>>>I would gladly welcome any pointers that could help me solve this
->>>>>issue.
->>>>
->>>>you're connecting a FS/LS device to EHCI port, that doesn't work. OMAP
->>>>can't handle port handoff to companion OHCI controller, then it fails
->>>>not being able to enumerate the device. Try remuxing your port to OHCI
->>>>controller and disabling EHCI from Kconfig.
->>>
->>>It actually is a HS device (it's a 4-port hub) - when booting the
->>>vendor supplied kernel (based off 2.6.32, i.e. pre -IR redesign), the
->>>device identifies as follows:
->>>
->>>Bus 001 Device 002: ID 05e3:0608 Genesys Logic, Inc. USB-2.0 4-Port HUB
->>>
->>>with the following boot messages:
->>>
->>>usb 1-2: new high speed USB device using ehci-omap and address 2
->>>usb 1-2: New USB device found, idVendor=05e3, idProduct=0608
->>>usb 1-2: New USB device strings: Mfr=0, Product=1, SerialNumber=0
->>>usb 1-2: Product: USB2.0 Hub
->>>hub 1-2:1.0: USB hub found
->>>hub 1-2:1.0: 4 ports detected
->>>
->>>
->>>I've pasted the boot log for my kernel:
->>>http://pastie.org/1379102
->>>
->>>And the boot log for the original kernel:
->>>http://pastie.org/1379100
->>
->>It could be a bug on the reset sequence on ehci-omap.c, do you have
->>anything connected to any of the hub ports ?
->>
->>Please enable CONFIG_USB_DEBUG on your kernel config and grab a bit more
->>information.
->>
->>Also, boot the machine without the device attached and after booting
->>run:
->>
->># dmesg -c
->>
->>then attach the device, then grab the output of dmesg.
->>
->
->I don't have the ability to disconnect the hub - it's integrated on 
->the board :(
+This patch series replaces existing sched_clock() implementations
+with a version which gives a full 64-bit nanosecond time from counters
+with less than 33 bits.
 
-I see.
+This series depends on the prevously posted clocksource patch series,
+and the notrace sched_clock patch, and the ftrace tree previously
+merged into my devel-stable branch.  It also depends on a fix to
+the clocksource code to achieve the accuracy quoted below - though
+it'll build and work without.
 
->I've also made a mistake describing the pastebins - the working, PSP 
->kernel boot log is here:
->http://pastie.org/1379102
->
->while the non-working git kernel messages are here (with CONFIG_USB_DEBUG):
->http://pastie.org/1379100
+We achieve the 64-bit nanosecond time by maintaining a pair of
+epochs - one for the counter and a corresponding one for the ns value.
+This allows us to calculate how many counter ticks have happened since
+the ns epoch was last updated, and therefore how much time has passed.
 
-I'm quoting a snippet below for commenting.
+We use a lockless method to read and update the epoch values,
+eliminating any locking overhead.  The epoch update happens at about
+90% of the wrap period, resulting in less maintainence overhead.
 
-> [    1.639892] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
-> [    1.646759] ehci_hcd: block sizes: qh 60 qtd 96 itd 160 sitd 96
-> [    1.646881] ehci-omap ehci-omap.0: failed to get ehci port1 regulator
+Lastly, we allow platforms to provide constants for the counter->ns
+conversion.
 
-This is alarming. Please add this patch to get the error code:
+The PXA sched_clock implementation using cnt32_to_63() builds to 72
+bytes of code and 12 bytes of data, and provides 54 bits of
+nanoseconds, with an error of 0.00008%.
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 116ae28..5da3fa3 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -682,7 +682,8 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
-                 if (IS_ERR(omap->regulator[i])) {
-                         omap->regulator[i] = NULL;
-                         dev_dbg(&pdev->dev,
--                       "failed to get ehci port%d regulator\n", i);
-+                       "failed to get ehci port%d regulator --> %d\n", i,
-+                       PTR_ERR(omap->regulator[i]));
-                 } else {
-                         regulator_enable(omap->regulator[i]);
-                 }
+The PXA sched_clock implementation using this infrastructure builds
+to 84 bytes of code and 8 bytes of data, and provides 64 bits of
+nanoseconds, with an error of 0.00000002%.
 
-> [    1.646911] ehci-omap ehci-omap.0: starting TI EHCI USB Controller
-> [    1.647064] ehci-omap ehci-omap.0: OMAP UHH_REVISION 0x10
-> [    1.647094] ehci-omap ehci-omap.0: TLL RESET DONE
-> [    1.647094] ehci-omap ehci-omap.0: OMAP3 ES version > ES2.1
-> [    1.647125] ehci-omap ehci-omap.0: UHH setup done, uhh_hostconfig=21c
-> [    2.649841] ehci-omap ehci-omap.0: phy reset operation timed out
+The epoch updates in action on Versatile Express (24MHz 32-bit counter):
 
-This is also alarming... Let's increase the timeout just for a debugging
-purpose:
-
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 116ae28..fa8bff0 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -239,7 +239,7 @@ static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask)
-  
-  static void omap_ehci_soft_phy_reset(struct ehci_hcd_omap *omap, u8 port)
-  {
--       unsigned long timeout = jiffies + msecs_to_jiffies(1000);
-+       unsigned long timeout = jiffies + msecs_to_jiffies(10000);
-         unsigned reg = 0;
-  
-         reg = ULPI_FUNC_CTRL_RESET
-
-beware, this might slow your boot time quite a lot :-p
-
-The rest is just continuing the enumeration and there's not much
-interesting there besides the "unable to enumerate" message, which could
-be caused by the two problems above.
-
--- 
-balbi
+sched_clock: update 68391420 -> 50e0a246 0ns -> 162637292211ns
+sched_clock: update 50e0a246 -> 372c24b7 162637292211ns -> 323625136880ns
+sched_clock: update 372c24b7 -> 1d35c46a 323625136880ns -> 484433069633ns
+sched_clock: update 1d35c46a -> 0367a736 484433069633ns -> 645350944761ns
+...
+sched_clock: update f6f7fd55 -> dd2d882e 32669955162290ns -> 32830883021959ns
+sched_clock: update dd2d882e -> c36312cd 32830883021959ns -> 32991810879212ns
+sched_clock: update c36312cd -> a9989d41 32991810879212ns -> 33152738734673ns
+sched_clock: update a9989d41 -> 8fce2781 33152738734673ns -> 33313666587967ns
