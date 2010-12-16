@@ -1,43 +1,33 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
-Date: Thu, 16 Dec 2010 23:34:40 +0200
-Message-ID: <AANLkTi=s_Urcin4SAp1mXrKmoyzR2=6YuS3aU+OYYgqK@mail.gmail.com>
-References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
- <AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com>
- <20101214170656.GA3832@kroah.com> <AANLkTi=q=QMQ_Abxb8eUWT_qGG8K=pc892ZB-mqgt_mh@mail.gmail.com>
- <20101216210837.GA22895@kroah.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: What is the purpose of the different linux omap branches?
+Date: Thu, 16 Dec 2010 14:01:22 -0800
+Message-ID: <87pqt1bcnh.fsf@deeprootsystems.com>
+References: <201012171021.25540.manningc2@actrix.gen.nz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101216210837.GA22895@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, akpm@linux-foundation.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gw0-f42.google.com ([74.125.83.42]:51141 "EHLO
+	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754664Ab0LPWB0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 17:01:26 -0500
+Received: by gwb20 with SMTP id 20so17682gwb.1
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 14:01:26 -0800 (PST)
+In-Reply-To: <201012171021.25540.manningc2@actrix.gen.nz> (Charles Manning's
+	message of "Fri, 17 Dec 2010 10:21:25 +1300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Charles Manning <manningc2@actrix.gen.nz>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Dec 16, 2010 at 11:08 PM, Greg KH <greg@kroah.com> wrote:
->> > I've seen a lot of discussion about this, are all of the review comments
->> > now addressed?
->>
->> Yes, all comments were addressed in this v3 iteration, and this thread
->> has been idle for about 10 days.
->
-> That's because we are all busy with other things :(
+Charles Manning <manningc2@actrix.gen.nz> writes:
 
-Oh sure, my intention was only positive (to demonstrate that there are
-no outstanding comments), sorry if it sounded differently than
-intended.
+> I see there is a master and a pm branch. What's the difference? Why would I 
+> use each of these?
 
-> Sorry, I really don't have the time at the moment to review this code,
-> nor does it seem to affect areas that I maintain, so I don't understand
-> what you are looking for from me.
+Please use only the master branch.
 
-Sorry for the noise - I contacted you because you maintain the driver
-core, in the hope you could suggest where this can go through.
+The pm branch (which I maintain) is an unstable branch only used for
+ongoing development of power management features which are under heavy
+development and rapid change.
 
-Tony, Andrew, can you please have a look ?
-
-Any comment or suggestion is appreciated.
-
-Thanks,
-Ohad.
+Kevin
