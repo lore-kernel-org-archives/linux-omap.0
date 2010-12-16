@@ -1,72 +1,93 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH v3] OMAP3: clean up ASM idle code
-Date: Thu, 16 Dec 2010 19:17:04 +0100
-Message-ID: <AANLkTina03chWbrBUAQXxb03s_h-JCbJA-Hz+sdv2wzD@mail.gmail.com>
-References: <1292347603-17703-1-git-send-email-j-pihet@ti.com>
-	<20101214224214.GB14990@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/7 v2] OMAP: McSPI: Hwmod adaptation + runtime conversion
+Date: Thu, 16 Dec 2010 10:17:18 -0800
+Message-ID: <874oadfuq9.fsf@deeprootsystems.com>
+References: <33183.10.24.255.18.1291212072.squirrel@dbdmail.itg.ti.com>
+	<87d3p3kobt.fsf@deeprootsystems.com>
+	<AANLkTikgzMjU9wfzzMjEXzFCUvRz6hKtv=N8dKXf10YM@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:52108 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757228Ab0LPSRF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 13:17:05 -0500
-Received: by vws16 with SMTP id 16so1511235vws.19
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 10:17:04 -0800 (PST)
-In-Reply-To: <20101214224214.GB14990@atomide.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:45276 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757262Ab0LPSRW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 13:17:22 -0500
+Received: by pva4 with SMTP id 4so540973pva.19
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 10:17:22 -0800 (PST)
+In-Reply-To: <AANLkTikgzMjU9wfzzMjEXzFCUvRz6hKtv=N8dKXf10YM@mail.gmail.com>
+	(Govindraj Raja's message of "Thu, 16 Dec 2010 14:57:46 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, Jean Pihet <j-pihet@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
+To: "Raja, Govindraj" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>, Benoit Cousson <b-cousson@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, Partha Basak <p-basak2@ti.com>
 
-Tony,
+Hi Govindraj,
 
-On Tue, Dec 14, 2010 at 11:42 PM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> Hi Jean,
->
-> * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [101214 09:28=
-]:
->> From: Jean Pihet <j-pihet@ti.com>
->>
->> This patch only contains clean-ups and cosmetic changes,
->> no functional change.
->>
->> Clean up of the ASM code:
->> - reorganized the code in logical sections: defines, API
->> =A0 =A0functions, internal functions and variables,
->> - reworked and simplified the execution paths, for better
->> =A0 =A0readability and to avoid duplication of code,
->> - added comments on the entry and exit points and the interaction
->> =A0 =A0with the ROM code for OFF mode restore,
->> - reworked the existing comments for better readability,
->> - reworked the code formating, alignment and white spaces,
->> - added comments for the i443 erratum workarounds,
->> - changed the hardcoded values in favor of existing macros
->> =A0 =A0from include files,
->> - clean up of non used symbols.
->
-> Can you please split it further, it's not obvious from reading it
-> that it does not change anything.
-That makes sense indeed.
+"Raja, Govindraj" <govindraj.raja@ti.com> writes:
 
-> How about first do one or more patches to move the code around.
-> Then rework the comments and formatting.
-I just re-sent the changes as a series '[PATCH 0/7 v4] OMAP3: clean up
-ASM sleep code'.
-The patches are now much more readable and it also allowed me to solve
-issues in a more generic way, cf. for example '[PATCH 2/7] OMAP2+: use
-global values for the SRAM PA addresses'.
+> On Wed, Dec 15, 2010 at 9:42 PM, Kevin Hilman <khilman@deeprootsystem=
+s.com>
+> wrote:
+>
+>     "Govindraj.R" <govindraj.raja@ti.com> writes:
+>
+>     > Changes invloves:
+>     > ----------------
+>     > 1) Addition of hwmod data for omap2/3/4.
+>     > 1) McSPI driver hwmod adaptation with cleanup of base address
+>     > =C2=A0 =C2=A0macros and using omap-device API's.
+>     > 2) Runtime Conversion of McSPI driver
+>     >
+>     > Changes from v1:
+>     > ---------------
+>     > 1) Fixing patch 5/5 comments for hwmod+runtime
+>     > =C2=A0 =C2=A0Split the patch 5/5 to hwmod adaptation
+>     > =C2=A0 =C2=A0and then runtime conversion
+>     > =C2=A0 =C2=A0http://www.mail-archive.com/linux-omap@vger.kernel=
+=2Eorg/msg33387.html
+>     >
+>     > Testing Updates:
+>     > ----------------
+>     > Was tested using data transfer test module available at:
+>     > http://dev.omapzoom.org/?p=3Dricho/device_driver_test.git;a=3Db=
+lob;f=3Dmcspi/
+>     test_code/
+>     > utils/mcspi_modules/omap_mcspi_datatest.c;
+>     > h=3De42ec10c5c844abdde6a7175a268b379fbbdb655;
+>     > hb=3D5d9a755d50e58de861c5e8991f2f607bc49b5dc3
+>
+>     Can you summarize what this test does?
+>
+>     On what platforms was this tested?
+>
+>     How was it tested for OMAP1 and OMAP2?
+>
+>
+>
+> Using the above mentioned test module we had done some
+> data transfer tests.
+> Platforms used used where :
+> 1) OMAP2430 SDP.
+> 2) OMAP3 (ZOOM boards zoom2/3).
+> 3) OMAP4430 SDP [ Here even basic=C2=A0Ethernet=C2=A0functionality=C2=
+=A0was checked which is
+> over SPI interface]
 
->
-> Thanks,
->
-> Tony
->
+Can you describe a little more about the testing please?  What exactly
+does the data transfer test do?  Is it a loopback test?  Does it use
+on-board SPI peripherals?  If so, which ones, etc.
 
-Thanks,
-Jean
+> We boot tested on 2420/n800.
+>
+> Coming to omap1,
+>
+> This driver[omap2_mcspi.c] is applicable only from omap2_plus
+> for omap1=C2=A0omap_uwire.c is the spi driver file.
+
+OK, thanks for clarification.
+
+Kevin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
