@@ -1,39 +1,73 @@
-From: David Sin <davidsin@ti.com>
-Subject: Re: [PATCH 0/9] TI DMM-TILER driver
-Date: Thu, 16 Dec 2010 13:02:08 -0600
-Message-ID: <20101216190207.GC6767@lba0869738>
-References: <1291674446-10766-1-git-send-email-davidsin@ti.com>
- <20101216172531.GG29435@lba0869738>
- <20101216173737.GA6767@lba0869738>
- <201012161843.48262.arnd@arndb.de>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: [ANNOUNCE] Public x-loader git tree
+Date: Fri, 17 Dec 2010 00:26:25 +0530
+Message-ID: <AANLkTik-KToxzbAcL_9izi=66Tfwg7E09arHLe2tRbvY@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201012161843.48262.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, Greg KH <greg@kroah.com>, Russell King <rmk@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:51687 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757293Ab0LPS4r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Dec 2010 13:56:47 -0500
+Received: by mail-gy0-f178.google.com with SMTP id 4so1931770gyh.23
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 10:56:46 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: x-loader@googlegroups.com, "Rangasamy, Devaraj" <dev@ti.com>
 
-On Thu, Dec 16, 2010 at 06:43:48PM +0100, Arnd Bergmann wrote:
-> As far as I can tell, both DMM and GEM at a high level manage objects
-> in video memory. The IOMMU that you have on the Omap hardware seems
-> to resemble the GART that sits between PC-style video cards and main
-> memory.
-> 
-> I don't know any details, but google quickly finds
-> http://lwn.net/Articles/283798/ with a description of the
-> initial GEM design. My main thought when looking over the
-> DMM code was that this should not be tied too closely to a
-> specific hardware, and GEM seems to be an existing abstraction
-> that may fit what you need.
-> 
-> 	Arnd
-Thanks for the pointer, Arnd.  I also found a nice readme file in 
-the gpu/drm directory, which points to a wiki and source code.  
-I'll read into this and get back to you.
+Hi all,
 
-BR,
--- 
-David Sin
+As all OMAP folks know, x-loader is a first-stage bootloader for
+OMAPs, derived from the u-boot base code. There have been several
+forks of the x-loader code within and outside of TI. X-loader has no
+upstream path as it is currently used only for TI-products.
+
+To avoid duplication of efforts, it's high time the code from these
+different trees was consolidated. Several contributors to x-loader
+have expressed a desire to have the code developed collaboratively in
+public.
+
+To this end, we have set up an x-loader git tree on gitorious, and
+seeded it with Steve Sakoman's x-loader tree [1] as of 15 December
+2010. (Thanks Steve for unifying so much of the forked code, and
+getting rid of the dependency on u-boot, and more!).
+
+The tree is available at:
+http://gitorious.org/x-loader/x-loader
+
+And a wiki page at:
+http://gitorious.org/x-loader/pages/Home
+
+In addition, a mailing list has been set up at:
+http://groups.google.com/group/x-loader
+
+(Thanks Nishanth Menon for setting these up).
+
+Deva and I have volunteered to maintain the x-loader code - everyone
+is welcome to contribute and help make it better.
+(This is our first attempt at maintaining a software project - so any
+help is appreciated).
+
+Currently, thanks mainly to Steve's efforts, the tree builds for and
+works on the following platforms: the OMAP3 EVM, the Overo and Beagle
+(both 35xx and 37xx), and the Pandaboard.
+
+There are also configs for the 1710 h3, 2420 h4, 2430 SDP, 3430 SDP
+and 3430 Labrador boards - however these don't currently compile. They
+will be removed soon unless someone steps in to help bring them into
+shape and maintain them. (We can discuss this on the x-loader mailing
+list above ;) ).
+
+Patches are welcome for any new platforms that would like to be
+supported in this repository. If there are forked versions out there,
+let us know and we'll try and integrate them here.
+
+Feel free to use this tree, test it, report issues, and help keep the
+code in shape.
+
+- Anand and Deva
+
+[1] Steve Sakoman's x-loader tree:
+http://www.sakoman.com/cgi-bin/gitweb.cgi?p=x-loader.git;a=summary
