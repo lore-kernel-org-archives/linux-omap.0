@@ -1,260 +1,328 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 5/5 v3] OMAP3630: PM: Erratum i583: disable coreoff if
- < ES1.2
-Date: Wed, 15 Dec 2010 19:30:44 -0600
-Message-ID: <4D096BC4.4040009@ti.com>
-References: <1291395818-8639-1-git-send-email-nm@ti.com>	<1291395818-8639-6-git-send-email-nm@ti.com>	<2cdf7d3d033ee2c88b6f2d4cfa37d9db@mail.gmail.com>	<4D0622FE.2070801@ti.com>	<d5e397dafb68b41ec5d7af591a18b044@mail.gmail.com>	<4D062806.6090201@ti.com>	<b7c3a82268b65ae1d9d09f377d9039f1@mail.gmail.com>	<4D062F81.407@ti.com>	<96505dfaee73d6785e153ccf5c2856d3@mail.gmail.com>	<6f507e24d6ae188e265913e85e815f82@mail.gmail.com>	<4D063344.2010001@ti.com>	<37de3932d97af8e1882a08dd37242a17@mail.gmail.com>	<4D063599.9080905@ti.com> <87ei9l10mk.fsf@deeprootsystems.com>	<4D0933C6.1060404@ti.com> <87wrnaions.fsf@deeprootsystems.com> <4D0957C7.4010907@ti.com>
+Subject: pm-core broken
+Date: Wed, 15 Dec 2010 20:26:59 -0600
+Message-ID: <4D0978F3.3090704@ti.com>
+References: <4D09719E.7080700@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010001040702050305040305"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:52357 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751608Ab0LPBat (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Dec 2010 20:30:49 -0500
-Received: by mail-yw0-f48.google.com with SMTP id 7so1601472ywo.35
-        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 17:30:48 -0800 (PST)
-In-Reply-To: <4D0957C7.4010907@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, Tony Lindgren <tony@atomide.com>
-
-This is a multi-part message in MIME format.
---------------010001040702050305040305
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:60414 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754712Ab0LPC1D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Dec 2010 21:27:03 -0500
+Received: by yxm8 with SMTP id 8so1623106yxm.35
+        for <linux-omap@vger.kernel.org>; Wed, 15 Dec 2010 18:27:02 -0800 (PST)
+In-Reply-To: <4D09719E.7080700@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Kevin H <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Nishanth Menon had written, on 12/15/2010 06:05 PM, the following:
-> Kevin Hilman had written, on 12/15/2010 05:47 PM, the following:
-> 
->>> I agree that this additional check in sram_idle should be removed, but
->>> as long as I handle it in omap3_pm_off_mode_enable where the next
->>> states are configured, is'nt that enough or am I missing something?
->>
->> Setting the next states only sets the default states, but CPUidle
->> changes them.
->>
->> Looking closer at omap3_pm_off_mode_enable() though, it already calls
->> into CPUidle and disables the valid bit for any states that have
->> *either* MPU or core off.    You'll probably just need to extend this
->> approach to disable only CORE off state(s).
-> Thx. it is clear now. let me see how to clean this up.
-k. Does the attached look any better now :)? I have removed the check 
-logic from sram_idle path instead made omap3_cpuidle_update_states 
-little more generic, updated validity of C state based on errata. This 
-now disables just those C states with core OFF on 3630 <ES1.2
+Hi Kevin,
 
-in a map, this will now look as follows:
---------+-------+-------+-------+-------+--------+
-         | MPU   | Core  | OFF   | OFF Enable-36xx|
-         | Dom   | Dom   |       +-------+--------+
-C state | State | State | Dis   | ES1.1 | ES 1.2 |
---------+-------+-------+-------+-------+--------+
-1       | ON    | ON    | YES   | YES   | YES    |
-2       | ON    | ON    | YES   | YES   | YES    |
-3       | RET   | ON    | YES   | YES   | YES    |
-4       | OFF   | ON    | NO    | YES   | YES    |
-5       | RET   | RET   | YES   | YES   | YES    |
-6       | OFF   | RET   | NO    | YES   | YES    |
-7       | OFF   | OFF   | NO    | NO    | YES    |
---------+-------+-------+-------+-------+--------+
+Just fyi, I tested pm-core(no patches of mine) against SDP3430(ES3.1) 
+and Beagle Rev C1(ES3.0) (that is the only board I could dig up): both 
+fail - I think basically <3630 is broken atm!.
+
+Beagleboard:
+with omap2plus_defconfig + MLO, u-boot.bin from
+http://www.angstrom-distribution.org/demo/beagleboard/
+filesystem is a minimal busybox that I had built and init=/bin/sh to 
+prevent any other apps running in the background - I use the same on 
+SDP3630 and 3430 platforms.
+
+branch: pm-core (from your tree).
+defconfig: omap2plus_defconfig - no changes other than disable RM680 
+board - currently causes a build failure.
+
+test script - same one I had send to ML earlier today
+replica here: http://pastebin.mozilla.org/889933
+
+log:
+# ./suspend-idle.sh 
+
+mount: no /proc/mounts 
+
+[   12.493682] PM: Syncing filesystems ... done. 
+
+[   12.749114] Freezing user space processes ... (elapsed 0.01 seconds) 
+done.
+[   12.774780] Freezing remaining freezable tasks ... (elapsed 0.02 
+seconds) don
+e. 
+
+[   12.807891] Suspending console(s) (use no_console_suspend to debug) 
+
+[   12.930480] PM: suspend of devices complete after 111.450 msecs 
+
+[   12.933990] omap_device: i2c_omap.1: new worst case deactivate 
+latency 0: 152
+587 
+
+[   12.934234] PM: late suspend of devices complete after 3.692 msecs 
+
+[   12.934295] Disabling non-boot CPUs ... 
+
+[   12.934906] PM: Resume timer in 5.000 secs (163840 ticks at 32768 
+ticks/sec.)
+[   12.935119] omap_device: omap-hsuart.1: new worst case deactivate 
+latency 0:
+30517 
+
+[   17.848388] omap_device: omap-hsuart.0: new worst case activate 
+latency 0: 91
+552 
+
+[   17.848541] Powerdomain (core_pwrdm) didn't enter target state 0 
+
+[   17.848571] Powerdomain (dss_pwrdm) didn't enter target state 0 
+
+[   17.848602] Could not enter target state in pm_suspend 
+
+[   17.850952] PM: early resume of devices complete after 1.983 msecs 
+
+[   18.238128] PM: resume of devices complete after 386.688 msecs 
+
+[   18.321746] Restarting tasks ... done. 
+
+SUSPEND:OFF test | FAIL | OFF: 0->0| RET:0 ->0 (6 sec) 
+
+[   19.755401] PM: Syncing filesystems ... done. 
+
+[   19.801116] Freezing user space processes ... (elapsed 0.02 seconds) 
+done.
+[   19.829406] Freezing remaining freezable tasks ... (elapsed 0.02 
+seconds) don
+e. 
+
+[   19.861419] Suspending console(s) (use no_console_suspend to debug) 
+
+[   19.984863] PM: suspend of devices complete after 112.487 msecs 
+
+[   19.988281] PM: late suspend of devices complete after 3.387 msecs 
+
+[   19.988311] Disabling non-boot CPUs ... 
+
+[   19.988616] PM: Resume timer in 5.000 secs (163840 ticks at 32768 
+ticks/sec.)
+[   24.853942] Powerdomain (core_pwrdm) didn't enter target state 1 
+
+[   24.853942] Powerdomain (dss_pwrdm) didn't enter target state 1 
+
+[   24.853973] Could not enter target state in pm_suspend 
+
+[   24.855926] PM: early resume of devices complete after 1.739 msecs 
+
+[   25.243804] PM: resume of devices complete after 387.634 msecs 
+
+[   25.303649] Restarting tasks ... done. 
+
+SUSPEND:RET test | FAIL | OFF: 0->0| RET:0 ->0 (7 sec) 
+
+IDLE:OFF test | FAIL | OFF: 0->0| RET:0 ->0 (21 sec) 
+
+IDLE:RET test | FAIL | OFF: 0->0| RET:0 ->0 (21 sec) 
+
+usbhost_pwrdm 
+(RET),OFF:2,RET:3,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+sgx_pwrdm 
+(OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+per_pwrdm 
+(ON),OFF:15,RET:22,INA:0,ON:38,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+dss_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0 
+
+cam_pwrdm 
+(RET),OFF:2,RET:3,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+core_pwrdm 
+(ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-ME
+MBANK2-OFF:0 
+
+neon_pwrdm (ON),OFF:15,RET:30,INA:0,ON:46,RET-LOGIC-OFF:0 
+
+mpu_pwrdm 
+(ON),OFF:15,RET:30,INA:0,ON:46,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+iva2_pwrdm 
+(RET),OFF:2,RET:3,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-M
+EMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0 
+
+per_clkdm->per_pwrdm (9) 
+
+usbhost_clkdm->usbhost_pwrdm (0) 
+
+cam_clkdm->cam_pwrdm (0) 
+
+dss_clkdm->dss_pwrdm (0) 
+
+core_l4_clkdm->core_pwrdm (11) 
+
+core_l3_clkdm->core_pwrdm (4) 
+
+d2d_clkdm->core_pwrdm (0) 
+
+sgx_clkdm->sgx_pwrdm (0) 
+
+iva2_clkdm->iva2_pwrdm (0) 
+
+neon_clkdm->neon_pwrdm (0) 
+
+mpu_clkdm->mpu_pwrdm (0) 
+
+prm_clkdm->wkup_pwrdm (0) 
+
+cm_clkdm->core_pwrdm (0) 
+
+ 
+
+SUSPEND:OFF test | FAIL | OFF: 0->0| RET:0 ->0 (6 sec) 
+
+SUSPEND:RET test | FAIL | OFF: 0->0| RET:0 ->0 (7 sec) 
+
+IDLE:OFF test | FAIL | OFF: 0->0| RET:0 ->0 (21 sec) 
+
+IDLE:RET test | FAIL | OFF: 0->0| RET:0 ->0 (21 sec) 
+
+# cat /sys/kernel/debug/pm_debug/registers/current 
+
+MOD: CM_IVA2 (48014000) 
+
+   04 => 00000037  20 => 00000001  34 => 00000001  40 => 0009680c 
+
+   44 => 00000001  48 => 00000003 
+
+MOD: CM_OCP (48004800) 
+
+   00 => 00000010  10 => 00000001 
+
+MOD: CM_MPU (48004900) 
+
+   04 => 00000037  24 => 00000001  34 => 00000001  40 => 0011f40c 
+
+   44 => 00000001  48 => 00000003  4c => 00000001 
+
+MOD: CM_CORE (48004a00) 
+
+   00 => 00006000  10 => 0103e042  20 => ffff9fbd  24 => 0000001f 
+
+   28 => 0000000d  30 => fffffed9  34 => 0000001f  38 => 0000000c 
+
+   40 => 0000030a  48 => 0000003f  4c => 00000003 
+
+MOD: CM_SGX (48004b00) 
+
+   20 => 00000001  40 => 00000002  48 => 00000003 
+
+MOD: CM_WKUP (48004c00) 
+
+   10 => 0000002e  20 => 000002f1  30 => 0000003f  40 => 00000015 
+
+MOD: CM_CCR (48004d00) 
+
+   00 => f0371037  04 => 00000031  20 => 00000a0b  30 => 00000009 
+
+   34 => 00000001  40 => 094c0c00  44 => 0001b00c  48 => 00000009 
+
+   4c => 0000780c  50 => 00000001  70 => 00000003 
+
+MOD: CM_DSS (48004e00) 
+
+   20 => 00000002  30 => 00000001  40 => 00001002  48 => 00000003 
+
+   4c => 00000001 
+
+MOD: CM_CAM (48004f00) 
+
+   20 => 00000001  30 => 00000001  40 => 00000004  48 => 00000003 
+
+MOD: CM_PER (48005000) 
+
+   00 => 00000800  10 => 0003e800  20 => 000017ff  30 => 0003ffff 
+
+   40 => 000000ff  44 => 00000006  48 => 00000003  4c => 00000001 
+
+MOD: CM_EMU (48005100) 
+
+   40 => 03020a50  48 => 00000002  4c => 00000001 
+
+MOD: CM_NEON (48005300) 
+
+   48 => 00000003 
+
+MOD: CM_USB (48005400) 
+
+   20 => 00000003  30 => 00000001  48 => 00000003 
+
+MOD: PRM_IVA2 (48316000) 
+
+   50 => 00000007  e0 => 00ff0f05  e4 => 00000555  e8 => 00000555 
+
+   f8 => 00000002 
+
+MOD: PRM_OCP (48306800) 
+
+   04 => 00000010  14 => 00000001  18 => 00000050  1c => 00000201 
+
+MOD: PRM_MPU (48306900) 
+
+   58 => 00000004  d4 => 00000012  e0 => 00030105  e4 => 000000c7 
+
+   e8 => 00000045 
+
+MOD: PRM_CORE (48306a00) 
+
+   58 => 00000300  a0 => c33ffe18  a4 => c33ffe18  e0 => 000f0305 
+
+   e4 => 000000f7  e8 => 000000f7  f0 => 00000004  f8 => 00000004 
+
+MOD: PRM_SGX (48306b00) 
+
+   e0 => 00030104 
+
+MOD: PRM_WKUP (48306c00) 
+
+   a0 => 0000000b  a4 => 0000010b 
+
+MOD: PRM_CCR (48306d00) 
+
+   40 => 00000003 
+
+MOD: PRM_DSS (48306e00) 
+
+   a0 => 00000001  e0 => 00030105  e4 => 00000003  e8 => 00000003 
+
+MOD: PRM_CAM (48306f00) 
+
+   58 => 00000001  e0 => 00030105  e4 => 00000001  e8 => 00000001 
+
+MOD: PRM_PER (48307000) 
+
+   58 => 00000004  a0 => 0003e807  a4 => 0003e807  c8 => 00000006 
+
+   e0 => 00030105  e4 => 00000007  e8 => 00000005 
+
+MOD: PRM_EMU (48307100) 
+
+   58 => 00000004  e4 => 00000103 
+
+MOD: PRM_GLBL (48307200) 
+
+   38 => 00000018  54 => 00001006  58 => 00000001  64 => 00000050 
+
+   70 => 00000088  9c => 0000000a  c4 => 00000001  e4 => 00000001 
+
+MOD: PRM_NEON (48307300) 
+
+   58 => 00000004  c8 => 00000002  e0 => 00000005  e4 => 00000003 
+
+   e8 => 00000001 
+
+MOD: PRM_USB (48307400) 
+
+   58 => 00000004  a0 => 00000001  a4 => 00000001  a8 => 00000001 
+
+   e0 => 00030105  e4 => 00000001  e8 => 00000001
+
 
 -- 
 Regards,
 Nishanth Menon
-
---------------010001040702050305040305
-Content-Type: text/x-patch;
- name="0001-OMAP3-PM-make-omap3_cpuidle_update_states-independen.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="0001-OMAP3-PM-make-omap3_cpuidle_update_states-independen.pa";
- filename*1="tch"
-
->From bd3d8decf922d7425b9bc9025c7709a9414ad380 Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Wed, 15 Dec 2010 18:40:29 -0600
-Subject: [PATCH 1/2] OMAP3: PM: make omap3_cpuidle_update_states independent of enable_off_mode
-
-Currently omap3_cpuidle_update_states makes whole sale decision
-on which C states to update based on enable_off_mode variable
-Instead, achieve the same functionality by independently providing
-mpu and core deepest states the system is allowed to achieve and
-update the idle states accordingly.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |   19 ++++++++++---------
- arch/arm/mach-omap2/pm.h          |    3 ++-
- arch/arm/mach-omap2/pm34xx.c      |    2 +-
- 3 files changed, 13 insertions(+), 11 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 0d50b45..f80d3f6 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -293,25 +293,26 @@ select_state:
- DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
- 
- /**
-- * omap3_cpuidle_update_states - Update the cpuidle states.
-+ * omap3_cpuidle_update_states() - Update the cpuidle states
-+ * @mpu_deepest_state:	Enable states upto and including this for mpu domain
-+ * @core_deepest_state:	Enable states upto and including this for core domain
-  *
-- * Currently, this function toggles the validity of idle states based upon
-- * the flag 'enable_off_mode'. When the flag is set all states are valid.
-- * Else, states leading to OFF state set to be invalid.
-+ * This goes through the list of states available and enables and disables the
-+ * validity of C states based on deepest state that can be achieved for the
-+ * variable domain
-  */
--void omap3_cpuidle_update_states(void)
-+void omap3_cpuidle_update_states(u32 mpu_deepest_state, u32 core_deepest_state)
- {
- 	int i;
- 
- 	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
- 		struct omap3_processor_cx *cx = &omap3_power_states[i];
- 
--		if (enable_off_mode) {
-+		if ((cx->mpu_state >= mpu_deepest_state) &&
-+		    (cx->core_state >= core_deepest_state)) {
- 			cx->valid = 1;
- 		} else {
--			if ((cx->mpu_state == PWRDM_POWER_OFF) ||
--				(cx->core_state	== PWRDM_POWER_OFF))
--				cx->valid = 0;
-+			cx->valid = 0;
- 		}
- 	}
- }
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index aff39d0..3597591 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -58,7 +58,8 @@ extern u32 sleep_while_idle;
- #endif
- 
- #if defined(CONFIG_CPU_IDLE)
--extern void omap3_cpuidle_update_states(void);
-+extern void omap3_cpuidle_update_states(u32 core_deepest_state,
-+		u32 core_deepest_state);
- #endif
- 
- #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 21707c9..84ef71b 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -916,7 +916,7 @@ void omap3_pm_off_mode_enable(int enable)
- 		state = PWRDM_POWER_RET;
- 
- #ifdef CONFIG_CPU_IDLE
--	omap3_cpuidle_update_states();
-+	omap3_cpuidle_update_states(state, state);
- #endif
- 
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
--- 
-1.6.3.3
-
-
---------------010001040702050305040305
-Content-Type: text/x-patch;
- name="0002-OMAP3630-PM-Erratum-i583-disable-coreoff-if-ES1.2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="0002-OMAP3630-PM-Erratum-i583-disable-coreoff-if-ES1.2.patch"
-
->From e085afb8523ca52e52b7a631c2b63e2bd6d91661 Mon Sep 17 00:00:00 2001
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Date: Wed, 17 Nov 2010 21:46:01 -0600
-Subject: [PATCH 2/2] OMAP3630: PM: Erratum i583: disable coreoff if < ES1.2
-
-Limitation i583: Self_Refresh Exit issue after OFF mode
-
-Issue:
-When device is waking up from OFF mode, then SDRC state machine sends
-inappropriate sequence violating JEDEC standards.
-
-Impact:
-OMAP3630 < ES1.2 is impacted as follows depending on the platform:
-CS0: for 38.4MHz as internal sysclk, DDR content seen to be stable, while
-	for all other sysclk frequencies, varied levels of instability
-	seen based on varied parameters.
-CS1: impacted
-
-This patch takes option #3 as recommended by the Silicon erratum:
-Avoid core power domain transitioning to OFF mode. Power consumption
-impact is expected in this case.
-To do this, we route core OFF requests to RET request on the impacted
-revisions of silicon.
-
-[nm@ti.com: rebased the code to 2.6.37-rc2- short circuit code changed a bit]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c |   25 ++++++++++++++++++++++---
- 1 files changed, 22 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 84ef71b..ad60105 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -56,6 +56,7 @@
- #define OMAP343X_CONTROL_REG_VALUE_OFFSET  0xc8
- 
- #define RTA_ERRATUM_i608		(1 << 0)
-+#define SDRC_WAKEUP_ERRATUM_i583	(1 << 1)
- static u16 pm34xx_errata;
- #define IS_PM34XX_ERRATUM(id)		(pm34xx_errata & (id))
- 
-@@ -916,12 +917,28 @@ void omap3_pm_off_mode_enable(int enable)
- 		state = PWRDM_POWER_RET;
- 
- #ifdef CONFIG_CPU_IDLE
--	omap3_cpuidle_update_states(state, state);
-+	/*
-+	 * Erratum i583: implementation for ES rev < Es1.2 on 3630. We cannot
-+	 * enable OFF mode in a stable form for previous revisions, restrict
-+	 * instead to RET
-+	 */
-+	if (IS_PM34XX_ERRATUM(SDRC_WAKEUP_ERRATUM_i583))
-+		omap3_cpuidle_update_states(state, PWRDM_POWER_RET);
-+	else
-+		omap3_cpuidle_update_states(state, state);
- #endif
- 
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
--		pwrst->next_state = state;
--		omap_set_pwrdm_state(pwrst->pwrdm, state);
-+		if (IS_PM34XX_ERRATUM(SDRC_WAKEUP_ERRATUM_i583) &&
-+				pwrst->pwrdm == core_pwrdm &&
-+				state == PWRDM_POWER_OFF) {
-+			pwrst->next_state = PWRDM_POWER_RET;
-+			pr_err("%s: Core OFF disabled due to errata i583\n",
-+				__func__);
-+		} else {
-+			pwrst->next_state = state;
-+		}
-+		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
- 	}
- }
- 
-@@ -999,6 +1016,8 @@ static void __init pm_errata_configure(void)
- 		pm34xx_errata |= RTA_ERRATUM_i608;
- 		/* Enable the l2 cache toggling in sleep logic */
- 		enable_omap3630_toggle_l2_on_restore();
-+		if (omap_rev() < OMAP3630_REV_ES1_2)
-+			pm34xx_errata |= SDRC_WAKEUP_ERRATUM_i583;
- 	}
- }
- 
--- 
-1.6.3.3
-
-
---------------010001040702050305040305--
