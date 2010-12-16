@@ -1,105 +1,78 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v4 5/5] OMAP: mailbox: use runtime pm for clk and sysc handling
-Date: Thu, 16 Dec 2010 00:47:59 -0600
-Message-ID: <1292482079-2226-6-git-send-email-omar.ramirez@ti.com>
-References: <1292482079-2226-1-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v4 0/5] omap: mailbox: hwmod support
+Date: Thu, 16 Dec 2010 00:47:54 -0600
+Message-ID: <1292482079-2226-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37459 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753200Ab0LPG7P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Dec 2010 01:59:15 -0500
-In-Reply-To: <1292482079-2226-1-git-send-email-omar.ramirez@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:42394 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753233Ab0LPG7R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 01:59:17 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: Russell King <linux@arm.linux.org.uk>, Omar Ramirez Luna <omar.ramirez@ti.com>, Charulatha V <charu@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Use runtime pm APIs to enable/disable mailbox clocks and
-to configure SYSC register.
+Tested on 3430, based of pm-core branch. Patches affecting mailbox code
+may require rebase once the mailbox git pull is made.
 
-Based on the patch sent by Felipe Contreras:
-https://patchwork.kernel.org/patch/101662/
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39719.html
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- arch/arm/mach-omap2/mailbox.c |   27 +++++----------------------
- 1 files changed, 5 insertions(+), 22 deletions(-)
+** v4 **
+- Merged device latency info with previous patch in series.
+- Removed usage of omap_device_enable_clocks and replaced for
+  omap_device_[enable|disable]_hwmods to handle sysc setup and
+  clocks.
+- Fixed pm_runtime usage by adding its enable/disable functions,
+  and now handling sysc register with it, because of changes in
+  device latency functions.
+- For pm_runtime, instead of adding a global variable to make use
+  of pdev->dev, use 'parent' inside of 'dev' returned by device_create
+  and which is stored inside omap_mbox struct, in future cleanup consider
+  cleaning omap_mbox struct. 
 
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 40ddeca..f5f72ba 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -14,6 +14,7 @@
- #include <linux/err.h>
- #include <linux/platform_device.h>
- #include <linux/io.h>
-+#include <linux/pm_runtime.h>
- #include <plat/mailbox.h>
- #include <mach/irqs.h>
- 
-@@ -34,12 +35,8 @@
- #define MAILBOX_IRQ_NOTFULL(m)		(1 << (2 * (m) + 1))
- 
- /* SYSCONFIG: register bit definition */
--#define AUTOIDLE	(1 << 0)
- #define SOFTRESET	(1 << 1)
--#define SMARTIDLE	(2 << 3)
- #define OMAP4_SOFTRESET	(1 << 0)
--#define OMAP4_NOIDLE	(1 << 2)
--#define OMAP4_SMARTIDLE	(2 << 2)
- 
- /* SYSSTATUS: register bit definition */
- #define RESETDONE	(1 << 0)
-@@ -70,8 +67,6 @@ struct omap_mbox2_priv {
- 	unsigned long irqdisable;
- };
- 
--static struct clk *mbox_ick_handle;
--
- static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
- 				  omap_mbox_type_t irq);
- 
-@@ -91,13 +86,8 @@ static int omap2_mbox_startup(struct omap_mbox *mbox)
- 	u32 l;
- 	unsigned long timeout;
- 
--	mbox_ick_handle = clk_get(NULL, "mailboxes_ick");
--	if (IS_ERR(mbox_ick_handle)) {
--		printk(KERN_ERR "Could not get mailboxes_ick: %ld\n",
--			PTR_ERR(mbox_ick_handle));
--		return PTR_ERR(mbox_ick_handle);
--	}
--	clk_enable(mbox_ick_handle);
-+	pm_runtime_enable(mbox->dev->parent);
-+	pm_runtime_get_sync(mbox->dev->parent);
- 
- 	if (cpu_is_omap44xx()) {
- 		mbox_write_reg(OMAP4_SOFTRESET, MAILBOX_SYSCONFIG);
-@@ -130,12 +120,6 @@ static int omap2_mbox_startup(struct omap_mbox *mbox)
- 	l = mbox_read_reg(MAILBOX_REVISION);
- 	pr_debug("omap mailbox rev %d.%d\n", (l & 0xf0) >> 4, (l & 0x0f));
- 
--	if (cpu_is_omap44xx())
--		l = OMAP4_SMARTIDLE;
--	else
--		l = SMARTIDLE | AUTOIDLE;
--	mbox_write_reg(l, MAILBOX_SYSCONFIG);
--
- 	omap2_mbox_enable_irq(mbox, IRQ_RX);
- 
- 	return 0;
-@@ -143,9 +127,8 @@ static int omap2_mbox_startup(struct omap_mbox *mbox)
- 
- static void omap2_mbox_shutdown(struct omap_mbox *mbox)
- {
--	clk_disable(mbox_ick_handle);
--	clk_put(mbox_ick_handle);
--	mbox_ick_handle = NULL;
-+	pm_runtime_put_sync(mbox->dev->parent);
-+	pm_runtime_disable(mbox->dev->parent);
- }
- 
- /* Mailbox FIFO handle functions */
--- 
-1.7.1
+** v3 **
+- Taken mailbox hwmod as is from Benoit original branch.
+- Put back numbers for irq, addresses instead of considering them
+ as magic numbers.
+- Follow the declaration layout for omap4 hwmods.
+- Using pm_runtime to enable the clocks.
+
+** v2 **
+- Added omap4 hwmod support.
+- Moved "mailbox_ick" from hwmod to hwmod_if (omap 2/3)
+- Declared sysc classes for omap 2/3
+
+** v1 **
+1. omap: mailbox: initial hwmod support for omap3
+Changes were made to:
+- Rebase to latest code.
+- Detect the hwmod by filling prcm union for omap2, without
+ this it was unable to build the hwmod at runtime.
+- Replace magic number for defines.
+- Use ioremap again instead of relying on the one made by hwmod,
+ as noted in http://patchwork.kernel.org/patch/101661/
+
+2. omap: mailbox: initial hwmod support for omap2
+Was only compiled tested!! Unfortunately I don't have the HW for it.
+
+Benoit Cousson (1):
+  OMAP4: hwmod data: add mailbox data
+
+Felipe Contreras (2):
+  OMAP3: hwmod data: add mailbox data
+  OMAP: mailbox: build device using omap_device/omap_hwmod
+
+Omar Ramirez Luna (1):
+  OMAP: mailbox: use runtime pm for clk and sysc handling
+
+omar ramirez (1):
+  OMAP2: hwmod data: add mailbox data
+
+ arch/arm/mach-omap2/devices.c              |  102 ++++++----------------------
+ arch/arm/mach-omap2/mailbox.c              |   27 ++------
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   73 ++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   72 +++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   71 +++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   67 ++++++++++++++++++
+ 6 files changed, 308 insertions(+), 104 deletions(-)
 
