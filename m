@@ -1,50 +1,65 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
-Date: Thu, 16 Dec 2010 13:08:37 -0800
-Message-ID: <20101216210837.GA22895@kroah.com>
-References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
- <AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com>
- <20101214170656.GA3832@kroah.com>
- <AANLkTi=q=QMQ_Abxb8eUWT_qGG8K=pc892ZB-mqgt_mh@mail.gmail.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: Re: [PATCH v4 5/5] OMAP: mailbox: use runtime pm for clk and sysc handling
+Date: Thu, 16 Dec 2010 15:16:30 -0600
+Message-ID: <AANLkTikfwZoeKAqwRfL+bAS-sv0aAUESC5a8U+PSpnsz@mail.gmail.com>
+References: <1292482079-2226-1-git-send-email-omar.ramirez@ti.com>
+	<1292482079-2226-6-git-send-email-omar.ramirez@ti.com>
+	<AANLkTinJOFMF=eC2MQB92e2XUsyyjNRRz7Bm_cyXEmp6@mail.gmail.com>
+	<AANLkTik6GLJkhyg0t77wQrfA6p-SmWXLFfGci0uskJ43@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:60076 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751793Ab0LPVIr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Dec 2010 16:08:47 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=q=QMQ_Abxb8eUWT_qGG8K=pc892ZB-mqgt_mh@mail.gmail.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:56388 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756319Ab0LPVQa convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Dec 2010 16:16:30 -0500
+Received: by pzk27 with SMTP id 27so717130pzk.14
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 13:16:30 -0800 (PST)
+In-Reply-To: <AANLkTik6GLJkhyg0t77wQrfA6p-SmWXLFfGci0uskJ43@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Charulatha V <charu@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Dec 14, 2010 at 08:40:28PM +0200, Ohad Ben-Cohen wrote:
-> On Tue, Dec 14, 2010 at 7:06 PM, Greg KH <greg@kroah.com> wrote:
-> >> Can you please have a look and say if this looks OK ?
-> >
-> > Look at what, I don't see a patch here.
-> 
-> Here's the complete patchset:
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39833.html
-> 
-> If you prefer, I can resubmit.
-> 
-> >
-> > I've seen a lot of discussion about this, are all of the review comments
-> > now addressed?
-> 
-> Yes, all comments were addressed in this v3 iteration, and this thread
-> has been idle for about 10 days.
+On Thu, Dec 16, 2010 at 11:01 AM, Ramirez Luna, Omar
+<omar.ramirez@ti.com> wrote:
+> Hi,
+>
+> On Thu, Dec 16, 2010 at 10:32 AM, Kanigeri, Hari <h-kanigeri2@ti.com>=
+ wrote:
+>>> @@ -130,12 +120,6 @@ static int omap2_mbox_startup(struct omap_mbox=
+ *mbox)
+>>> =A0 =A0 =A0 =A0l =3D mbox_read_reg(MAILBOX_REVISION);
+>>> =A0 =A0 =A0 =A0pr_debug("omap mailbox rev %d.%d\n", (l & 0xf0) >> 4=
+, (l & 0x0f));
+>>>
+>>> - =A0 =A0 =A0 if (cpu_is_omap44xx())
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 l =3D OMAP4_SMARTIDLE;
+>>> - =A0 =A0 =A0 else
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 l =3D SMARTIDLE | AUTOIDLE;
+>>> - =A0 =A0 =A0 mbox_write_reg(l, MAILBOX_SYSCONFIG);
+>>> -
+>>
+>> The OMAP4 mailbox sysconfig register bits are laid out differently
+>> from previous OMAP mailbox's. Example is smart idle bit location is
+>> different from previous OMAPs. Can I know as how are you handling th=
+is
+>> aspect in hwmod code ?
+>
+> hwmod framework provides definition for both IP models
+> (omap_hwmod_sysc_type1for omap2/3 or omap_hwmod_sysc_type2 for omap4)=
+,
+> these are located at arch/arm/mach-omap2/omap_hwmod_common_data.c
+>
 
-That's because we are all busy with other things :(
+Thanks, Omar.
 
-Sorry, I really don't have the time at the moment to review this code,
-nor does it seem to affect areas that I maintain, so I don't understand
-what you are looking for from me.
-
-confused,
-
-greg k-h
+Best regards,
+Hari Kanigeri
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
