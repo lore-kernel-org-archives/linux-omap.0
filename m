@@ -1,46 +1,89 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH v1] OMAP: GPIO: Correct IP version message during boot
-Date: Thu, 16 Dec 2010 19:39:46 +0530
-Message-ID: <1292508586-21651-1-git-send-email-charu@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v4 5/5] OMAP: mailbox: use runtime pm for clk and sysc handling
+Date: Thu, 16 Dec 2010 08:11:51 -0600
+Message-ID: <AANLkTinPpj5Po4yPjc8hG1Kjs2wM3b62-hRGMY+U_UjN@mail.gmail.com>
+References: <1292482079-2226-1-git-send-email-omar.ramirez@ti.com>
+	<1292482079-2226-6-git-send-email-omar.ramirez@ti.com>
+	<AANLkTi=RE3ZEuoe=jMRLiFZ7iVgvuXMrgqfXMAYa92=z@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35953 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755523Ab0LPOKi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 09:10:38 -0500
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:34048 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753670Ab0LPOLw convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Dec 2010 09:11:52 -0500
+Received: by mail-gx0-f179.google.com with SMTP id 21so2205046gxk.38
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 06:11:52 -0800 (PST)
+In-Reply-To: <AANLkTi=RE3ZEuoe=jMRLiFZ7iVgvuXMrgqfXMAYa92=z@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, balbi@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-With the commit 9a748053f5f58a77cd71864f1d7b804175b0e47d whose subject is
-"OMAP: GPIO: Make omap_gpio_show_rev bank specific" (see [1]),
-the IP version information for all the banks are shown during bootup,
-but it does not show the bank number.
+Hi,
 
-Use dev_info instead of printk in omap_gpio_show_rev() so that the
-bank id is displayed along with the IP version
+On Thu, Dec 16, 2010 at 2:28 AM, Varadarajan, Charulatha <charu@ti.com>=
+ wrote:
+> On Thu, Dec 16, 2010 at 12:17, Omar Ramirez Luna <omar.ramirez@ti.com=
+> wrote:
+>> Use runtime pm APIs to enable/disable mailbox clocks and
+>> to configure SYSC register.
+>>
+>> Based on the patch sent by Felipe Contreras:
+>> https://patchwork.kernel.org/patch/101662/
+>>
+>> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/mailbox.c | =A0 27 +++++---------------------=
+-
+>> =A01 files changed, 5 insertions(+), 22 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mai=
+lbox.c
+>> index 40ddeca..f5f72ba 100644
+>> --- a/arch/arm/mach-omap2/mailbox.c
+>> +++ b/arch/arm/mach-omap2/mailbox.c
+>> @@ -14,6 +14,7 @@
+>> =A0#include <linux/err.h>
+>> =A0#include <linux/platform_device.h>
+>> =A0#include <linux/io.h>
+>> +#include <linux/pm_runtime.h>
+>> =A0#include <plat/mailbox.h>
+>> =A0#include <mach/irqs.h>
+>>
+>> @@ -34,12 +35,8 @@
+>> =A0#define MAILBOX_IRQ_NOTFULL(m) =A0 =A0 =A0 =A0 (1 << (2 * (m) + 1=
+))
+>>
+>> =A0/* SYSCONFIG: register bit definition */
+>> -#define AUTOIDLE =A0 =A0 =A0 (1 << 0)
+>> =A0#define SOFTRESET =A0 =A0 =A0(1 << 1)
+>> -#define SMARTIDLE =A0 =A0 =A0(2 << 3)
+>> =A0#define OMAP4_SOFTRESET =A0 =A0 =A0 =A0(1 << 0)
+>> -#define OMAP4_NOIDLE =A0 (1 << 2)
+>> -#define OMAP4_SMARTIDLE =A0 =A0 =A0 =A0(2 << 2)
+>>
+>> =A0/* SYSSTATUS: register bit definition */
+>> =A0#define RESETDONE =A0 =A0 =A0(1 << 0)
+>
+> Is this still required?
 
-[1] http://www.spinics.net/lists/arm-kernel/msg105872.html
+Yes, mailbox uses the softreset every time it is requested (and that
+it has no current users at the time), it does it before configuring
+sysc, as opossed to what this patch does (where clk is enabled, sysc
+configured, and then softreset), but no harm was seen with this
+sequence.
 
-Signed-off-by: Varadarajan, Charulatha <charu@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/plat-omap/gpio.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+AFAIK, enabling/disabling hwmod handles prm reset but not softreset
+bit, that's why I left it there.
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 8d493b9..47aeaeb 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -1554,7 +1554,7 @@ static void __init omap_gpio_show_rev(struct gpio_bank *bank)
- 	else
- 		return;
- 
--	printk(KERN_INFO "OMAP GPIO hardware version %d.%d\n",
-+	dev_info(bank->dev, "hardware version %d.%d\n",
- 		(rev >> 4) & 0x0f, rev & 0x0f);
- }
- 
--- 
-1.7.1
+Regards,
 
+Omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
