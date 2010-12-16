@@ -1,51 +1,61 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: pm-core broken
-Date: Thu, 16 Dec 2010 14:15:24 -0600
-Message-ID: <4D0A735C.80906@ti.com>
-References: <4D09719E.7080700@ti.com> <4D0978F3.3090704@ti.com>	<87wrn9hdxy.fsf@deeprootsystems.com> <4D0A52F0.8060603@ti.com> <87fwtxef3r.fsf@deeprootsystems.com>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: BeagleBoard stops at booting kernel with 2.6.37-rc5
+Date: Thu, 16 Dec 2010 14:25:38 -0600
+Message-ID: <AANLkTim1vzFpdOjBNDXT2cofUAS4=_G7+QtTKZdw0xDv@mail.gmail.com>
+References: <D76728EE-7818-4236-83E9-B32045714912@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:48181 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753103Ab0LPUPi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Dec 2010 15:15:38 -0500
-Received: by mail-vw0-f42.google.com with SMTP id 11so1552317vws.1
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 12:15:37 -0800 (PST)
-In-Reply-To: <87fwtxef3r.fsf@deeprootsystems.com>
+Received: from mail-ey0-f171.google.com ([209.85.215.171]:39128 "EHLO
+	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755218Ab0LPUZj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 15:25:39 -0500
+Received: by eyg5 with SMTP id 5so2280227eyg.2
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 12:25:38 -0800 (PST)
+In-Reply-To: <D76728EE-7818-4236-83E9-B32045714912@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Kevin Hilman had written, on 12/16/2010 12:40 PM, the following:
-[...]
-> Your Beagle u-boot must be leaving something else on besides OTG.  I'm
-> using a relatively recent u-boot 
-> 
->     U-Boot 2010.12-rc1 (Nov 16 2010 - 08:31:35)                                     
-> 
-> that I built from source for my Beagle C3 (ES3.0), and suspend/idle test
-> works for me:
-> 
-> SUSPEND:OFF test | PASS | OFF: 0->1| RET:0 ->0 (6 sec)                          
-> SUSPEND:RET test | PASS | OFF: 1->1| RET:0 ->1 (6 sec)                          
-> IDLE:OFF test | PASS | OFF: 1->4| RET:1 ->4 (21 sec)                            
-> IDLE:RET test | PASS | OFF: 4->4| RET:4 ->11 (21 sec)                           
-> 
-> Is it still CORE that's not hitting RET for you?
+On Thu, Dec 16, 2010 at 2:19 PM, Elvis Dowson <elvis.dowson@mac.com> wr=
+ote:
+> Hi,
+> =A0 =A0 =A0 =A0I'm working with linux mainline 2.6.37-rc5 and my cust=
+om beagleboard based platform stops at booting the kernel. Is there a f=
+ix for this?
+>
+> reading uImage
+>
+> 2432692 bytes read
+> Booting from mmc ...
+> ## Booting kernel from Legacy Image at 82000000 ...
+> =A0 Image Name: =A0 Linux-2.6.37-rc5
+> =A0 Image Type: =A0 ARM Linux Kernel Image (uncompressed)
+> =A0 Data Size: =A0 =A02432628 Bytes =3D =A02.3 MB
+> =A0 Load Address: 80008000
+> =A0 Entry Point: =A080008000
+> =A0 Verifying Checksum ... OK
+> =A0 Loading Kernel Image ... OK
+> OK
+>
+> Starting kernel ...
+>
+> Uncompressing Linux... done, booting the kernel.
+>
 
-yeah, I just think I am darned blind! DSS power domain did not reach 
-state on Beagle and am guessing that could be due to the evil bootloader 
-I was using - anyways, hoping once Senthils' hwmod patches make in, it 
-should be fixed as well.. unless someone has a reset of DSS clock patch 
-or something.. similar to OTG. arrgh.. as far as I am concerned, problem 
-known at least! for some reason, latest 201012-rc1|2|master etc 
-u-boot.bin is goofing up on me.. will look at that later on if no one 
-beats me to it.
+If it stops there, double check your bootarg's as with 2.6.37+ you
+might be using the omap-serial vs the old generic serial driver...
+"ttyO2" (O in Omap) vs "ttyS2"..
 
--- 
 Regards,
-Nishanth Menon
+
+--=20
+Robert Nelson
+http://www.rcn-ee.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
