@@ -1,57 +1,59 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v1] OMAP: GPIO: Correct IP version message during boot
-Date: Thu, 16 Dec 2010 08:49:32 -0800
-Message-ID: <8739pxhdcz.fsf@deeprootsystems.com>
-References: <1292508586-21651-1-git-send-email-charu@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v4 5/5] OMAP: mailbox: use runtime pm for clk and sysc handling
+Date: Thu, 16 Dec 2010 11:01:53 -0600
+Message-ID: <AANLkTik6GLJkhyg0t77wQrfA6p-SmWXLFfGci0uskJ43@mail.gmail.com>
+References: <1292482079-2226-1-git-send-email-omar.ramirez@ti.com>
+	<1292482079-2226-6-git-send-email-omar.ramirez@ti.com>
+	<AANLkTinJOFMF=eC2MQB92e2XUsyyjNRRz7Bm_cyXEmp6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f52.google.com ([209.85.210.52]:35121 "EHLO
-	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753697Ab0LPQtg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 11:49:36 -0500
-Received: by pzk36 with SMTP id 36so663197pzk.11
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 08:49:35 -0800 (PST)
-In-Reply-To: <1292508586-21651-1-git-send-email-charu@ti.com> (Charulatha
-	Varadarajan's message of "Thu, 16 Dec 2010 19:39:46 +0530")
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:57530 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754825Ab0LPRB5 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Dec 2010 12:01:57 -0500
+Received: by mail-yx0-f182.google.com with SMTP id 35so1905284yxh.27
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 09:01:53 -0800 (PST)
+In-Reply-To: <AANLkTinJOFMF=eC2MQB92e2XUsyyjNRRz7Bm_cyXEmp6@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, balbi@ti.com
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Charulatha V <charu@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+Hi,
 
-> With the commit 9a748053f5f58a77cd71864f1d7b804175b0e47d whose subject is
-> "OMAP: GPIO: Make omap_gpio_show_rev bank specific" (see [1]),
-> the IP version information for all the banks are shown during bootup,
-> but it does not show the bank number.
+On Thu, Dec 16, 2010 at 10:32 AM, Kanigeri, Hari <h-kanigeri2@ti.com> w=
+rote:
+>> @@ -130,12 +120,6 @@ static int omap2_mbox_startup(struct omap_mbox =
+*mbox)
+>> =A0 =A0 =A0 =A0l =3D mbox_read_reg(MAILBOX_REVISION);
+>> =A0 =A0 =A0 =A0pr_debug("omap mailbox rev %d.%d\n", (l & 0xf0) >> 4,=
+ (l & 0x0f));
+>>
+>> - =A0 =A0 =A0 if (cpu_is_omap44xx())
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 l =3D OMAP4_SMARTIDLE;
+>> - =A0 =A0 =A0 else
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 l =3D SMARTIDLE | AUTOIDLE;
+>> - =A0 =A0 =A0 mbox_write_reg(l, MAILBOX_SYSCONFIG);
+>> -
 >
-> Use dev_info instead of printk in omap_gpio_show_rev() so that the
-> bank id is displayed along with the IP version
->
-> [1] http://www.spinics.net/lists/arm-kernel/msg105872.html
+> The OMAP4 mailbox sysconfig register bits are laid out differently
+> from previous OMAP mailbox's. Example is smart idle bit location is
+> different from previous OMAPs. Can I know as how are you handling thi=
+s
+> aspect in hwmod code ?
 
-A related question, the commit above also changed the GPIO revision
-display from one-time to once per bank.  Do we need to know the GPIO HW
-revision for each bank, or can we assume it's the same for all banks?
+hwmod framework provides definition for both IP models
+(omap_hwmod_sysc_type1for omap2/3 or omap_hwmod_sysc_type2 for omap4),
+these are located at arch/arm/mach-omap2/omap_hwmod_common_data.c
 
-Kevin
+Regards,
 
-> Signed-off-by: Varadarajan, Charulatha <charu@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> ---
->  arch/arm/plat-omap/gpio.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 8d493b9..47aeaeb 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -1554,7 +1554,7 @@ static void __init omap_gpio_show_rev(struct gpio_bank *bank)
->  	else
->  		return;
->  
-> -	printk(KERN_INFO "OMAP GPIO hardware version %d.%d\n",
-> +	dev_info(bank->dev, "hardware version %d.%d\n",
->  		(rev >> 4) & 0x0f, rev & 0x0f);
->  }
+Omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
