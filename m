@@ -1,74 +1,52 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] dspbridge: Fix atoi to support hexadecimal numbers correctly
-Date: Fri, 17 Dec 2010 00:10:32 +0100
-Message-ID: <201012170010.33236.laurent.pinchart@ideasonboard.com>
-References: <1292161177-5266-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Dave Airlie <airlied@gmail.com>
+Subject: Re: [PATCH 0/9] TI DMM-TILER driver
+Date: Fri, 17 Dec 2010 09:28:07 +1000
+Message-ID: <AANLkTikZwm45Mkj_A=zzULeGBuYpLyP9N1bSJSFWegWV@mail.gmail.com>
+References: <1291674446-10766-1-git-send-email-davidsin@ti.com>
+	<20101216172531.GG29435@lba0869738>
+	<20101216173737.GA6767@lba0869738>
+	<201012161843.48262.arnd@arndb.de>
+	<20101216190207.GC6767@lba0869738>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42771 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751379Ab0LPXKf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 18:10:35 -0500
-In-Reply-To: <1292161177-5266-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101216190207.GC6767@lba0869738>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Sin <davidsin@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, Greg KH <greg@kroah.com>, Russell King <rmk@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: omar.ramirez@ti.com, rene.sapiens@ti.com, ernesto@ti.com, felipe.contreras@gmail.com, ionut.nicu@gmail.com
 
-Hi everybody,
+On Fri, Dec 17, 2010 at 5:02 AM, David Sin <davidsin@ti.com> wrote:
+> On Thu, Dec 16, 2010 at 06:43:48PM +0100, Arnd Bergmann wrote:
+>> As far as I can tell, both DMM and GEM at a high level manage object=
+s
+>> in video memory. The IOMMU that you have on the Omap hardware seems
+>> to resemble the GART that sits between PC-style video cards and main
+>> memory.
+>>
+>> I don't know any details, but google quickly finds
+>> http://lwn.net/Articles/283798/ with a description of the
+>> initial GEM design. My main thought when looking over the
+>> DMM code was that this should not be tied too closely to a
+>> specific hardware, and GEM seems to be an existing abstraction
+>> that may fit what you need.
+>>
+>> =A0 =A0 =A0 Arnd
+> Thanks for the pointer, Arnd. =A0I also found a nice readme file in
+> the gpu/drm directory, which points to a wiki and source code.
+> I'll read into this and get back to you.
 
-Ping ?
+I get the impression with the ARM graphics, that you just have a lot
+of separate drivers for separate IP blocks all providing some misc
+random interfaces to userspace where some binary driver binds all the
+functionality together into a useful whole, which seems like a really
+bad design.
 
-On Sunday 12 December 2010 14:39:37 Laurent Pinchart wrote:
-> For some strange reason, the DSP base image node/object properties
-> description string stores hexadecimal numbers with a 'h' or 'H' suffix
-> instead of a '0x' prefix. This causes parsing issue because the
-> dspbridge atoi() implementation relies on strict_strtoul(), which will
-> return an error because of the trailing 'h' character.
-> 
-> As the atoi() return value is never checked for an error anyway, replace
-> strict_strtoul() with simple_strtoul() to ignore the suffix.
-> 
-> This fix gets rid of the following assertion failed messages that were
-> printed when running the dsp-dummy test application.
-> 
-> drivers/staging/tidspbridge/rmgr/nldr.c, line 1691:
-> Assertion (segid == MEMINTERNALID || segid == MEMEXTERNALID) failed.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/staging/tidspbridge/rmgr/dbdcd.c |    6 +-----
->  1 files changed, 1 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/staging/tidspbridge/rmgr/dbdcd.c
-> b/drivers/staging/tidspbridge/rmgr/dbdcd.c index 3581a55..b76f26c 100644
-> --- a/drivers/staging/tidspbridge/rmgr/dbdcd.c
-> +++ b/drivers/staging/tidspbridge/rmgr/dbdcd.c
-> @@ -1020,8 +1020,6 @@ static s32 atoi(char *psz_buf)
->  {
->  	char *pch = psz_buf;
->  	s32 base = 0;
-> -	unsigned long res;
-> -	int ret_val;
-> 
->  	while (isspace(*pch))
->  		pch++;
-> @@ -1033,9 +1031,7 @@ static s32 atoi(char *psz_buf)
->  		base = 16;
->  	}
-> 
-> -	ret_val = strict_strtoul(pch, base, &res);
-> -
-> -	return ret_val ? : res;
-> +	return simple_strtoul(pch, NULL, base);
->  }
-> 
->  /*
+Generally on x86, the tiling hw is part of the GPU and is exposed as
+part of a coherent GPU driver.
 
--- 
-Regards,
+I'm just wonder what the use-cases for this tiler are and what open
+apps can use it for?
 
-Laurent Pinchart
+Dave.
