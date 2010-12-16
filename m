@@ -1,41 +1,43 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: BeagleBoard hangs at Bluetooth subsystem startup with 2.6.37-rc6
- mainline
-Date: Thu, 16 Dec 2010 15:23:20 -0600
-Message-ID: <4D0A8348.1020800@ti.com>
-References: <BB0B74AC-F93E-4C02-A720-E74213EAE9BC@mac.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
+Date: Thu, 16 Dec 2010 23:34:40 +0200
+Message-ID: <AANLkTi=s_Urcin4SAp1mXrKmoyzR2=6YuS3aU+OYYgqK@mail.gmail.com>
+References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
+ <AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com>
+ <20101214170656.GA3832@kroah.com> <AANLkTi=q=QMQ_Abxb8eUWT_qGG8K=pc892ZB-mqgt_mh@mail.gmail.com>
+ <20101216210837.GA22895@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:50221 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753305Ab0LPVXZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Dec 2010 16:23:25 -0500
-Received: by mail-yw0-f48.google.com with SMTP id 7so2151884ywo.35
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 13:23:25 -0800 (PST)
-In-Reply-To: <BB0B74AC-F93E-4C02-A720-E74213EAE9BC@mac.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101216210837.GA22895@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, akpm@linux-foundation.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Elvis Dowson had written, on 12/16/2010 03:13 PM, the following:
-> Hi,
->        I just updated to mainline linux kernel 2.6.37-rc6, and built a new omap3-console-image recipe based rootfs using OE.
-> 
-> I get the following error with Bluetooth. I've disabled bluetooth in the kernel and do not have a bluetooth device connected to the custom beagleboard platform. With earlier rootfs builds it used to progress beyond this stage, even though bluetooth wasn't detect.
-> 
-> Now it hangs at this point:
-> 
-> Starting syslogd/klogd: done
->  * Starting Avahi mDNS/DNS-SD Daemon: avahi-daemon                       [ ok ]
-> Starting Bluetooth subsystem:
-> Can't get port settings: Input/output error
-> Can't initialize device: Input/output error
-This belongs to OE ML - http://wiki.openembedded.net/index.php/Mailing_lists
+On Thu, Dec 16, 2010 at 11:08 PM, Greg KH <greg@kroah.com> wrote:
+>> > I've seen a lot of discussion about this, are all of the review comments
+>> > now addressed?
+>>
+>> Yes, all comments were addressed in this v3 iteration, and this thread
+>> has been idle for about 10 days.
+>
+> That's because we are all busy with other things :(
 
--- 
-Regards,
-Nishanth Menon
+Oh sure, my intention was only positive (to demonstrate that there are
+no outstanding comments), sorry if it sounded differently than
+intended.
+
+> Sorry, I really don't have the time at the moment to review this code,
+> nor does it seem to affect areas that I maintain, so I don't understand
+> what you are looking for from me.
+
+Sorry for the noise - I contacted you because you maintain the driver
+core, in the hope you could suggest where this can go through.
+
+Tony, Andrew, can you please have a look ?
+
+Any comment or suggestion is appreciated.
+
+Thanks,
+Ohad.
