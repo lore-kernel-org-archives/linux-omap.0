@@ -1,35 +1,74 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] OMAP: RM-680: fix omap2_init_common_hw compile break
-Date: Thu, 16 Dec 2010 18:05:14 +0000
-Message-ID: <20101216180514.GA31322@n2100.arm.linux.org.uk>
-References: <1292520438-29122-1-git-send-email-omar.ramirez@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH v3] OMAP3: clean up ASM idle code
+Date: Thu, 16 Dec 2010 19:17:04 +0100
+Message-ID: <AANLkTina03chWbrBUAQXxb03s_h-JCbJA-Hz+sdv2wzD@mail.gmail.com>
+References: <1292347603-17703-1-git-send-email-j-pihet@ti.com>
+	<20101214224214.GB14990@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53891 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932093Ab0LPSF0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 13:05:26 -0500
-Content-Disposition: inline
-In-Reply-To: <1292520438-29122-1-git-send-email-omar.ramirez@ti.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:52108 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757228Ab0LPSRF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 13:17:05 -0500
+Received: by vws16 with SMTP id 16so1511235vws.19
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 10:17:04 -0800 (PST)
+In-Reply-To: <20101214224214.GB14990@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, Jean Pihet <j-pihet@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
-On Thu, Dec 16, 2010 at 11:27:18AM -0600, Omar Ramirez Luna wrote:
-> diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-> index 8ba4047..781ed25 100644
-> --- a/arch/arm/mach-omap2/board-am3517crane.c
-> +++ b/arch/arm/mach-omap2/board-am3517crane.c
-> @@ -47,7 +47,8 @@ static void __init am3517_crane_init_irq(void)
->  	omap_board_config = am3517_crane_config;
->  	omap_board_config_size = ARRAY_SIZE(am3517_crane_config);
->  
-> -	omap2_init_common_hw(NULL, NULL);
-> +	omap2_init_common_infrastructure();
-> +	omap2_init_common_devices(NULL, NULL);
->  	omap_init_irq();
+Tony,
 
-Once I have the init_early() sorted, hopefully most of the abuse in
-these callbacks can be moved into the init_early() callback.
+On Tue, Dec 14, 2010 at 11:42 PM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> Hi Jean,
+>
+> * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [101214 09:28=
+]:
+>> From: Jean Pihet <j-pihet@ti.com>
+>>
+>> This patch only contains clean-ups and cosmetic changes,
+>> no functional change.
+>>
+>> Clean up of the ASM code:
+>> - reorganized the code in logical sections: defines, API
+>> =A0 =A0functions, internal functions and variables,
+>> - reworked and simplified the execution paths, for better
+>> =A0 =A0readability and to avoid duplication of code,
+>> - added comments on the entry and exit points and the interaction
+>> =A0 =A0with the ROM code for OFF mode restore,
+>> - reworked the existing comments for better readability,
+>> - reworked the code formating, alignment and white spaces,
+>> - added comments for the i443 erratum workarounds,
+>> - changed the hardcoded values in favor of existing macros
+>> =A0 =A0from include files,
+>> - clean up of non used symbols.
+>
+> Can you please split it further, it's not obvious from reading it
+> that it does not change anything.
+That makes sense indeed.
+
+> How about first do one or more patches to move the code around.
+> Then rework the comments and formatting.
+I just re-sent the changes as a series '[PATCH 0/7 v4] OMAP3: clean up
+ASM sleep code'.
+The patches are now much more readable and it also allowed me to solve
+issues in a more generic way, cf. for example '[PATCH 2/7] OMAP2+: use
+global values for the SRAM PA addresses'.
+
+>
+> Thanks,
+>
+> Tony
+>
+
+Thanks,
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
