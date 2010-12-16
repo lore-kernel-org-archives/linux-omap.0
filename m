@@ -1,85 +1,61 @@
 From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v4 5/5] OMAP: mailbox: use runtime pm for clk and sysc handling
-Date: Thu, 16 Dec 2010 08:11:51 -0600
-Message-ID: <AANLkTinPpj5Po4yPjc8hG1Kjs2wM3b62-hRGMY+U_UjN@mail.gmail.com>
+Subject: Re: [PATCH v4 4/5] OMAP: mailbox: build device using omap_device/omap_hwmod
+Date: Thu, 16 Dec 2010 08:21:54 -0600
+Message-ID: <AANLkTi=VyX4M6j7Zd-ZJq+djs8AoJ_dMaWmPVX2eiFoD@mail.gmail.com>
 References: <1292482079-2226-1-git-send-email-omar.ramirez@ti.com>
-	<1292482079-2226-6-git-send-email-omar.ramirez@ti.com>
-	<AANLkTi=RE3ZEuoe=jMRLiFZ7iVgvuXMrgqfXMAYa92=z@mail.gmail.com>
+	<1292482079-2226-5-git-send-email-omar.ramirez@ti.com>
+	<AANLkTik4K3LEovr-wJiv_PG+ivHNj8hxPT7QPua-ytVf@mail.gmail.com>
+	<20101216084446.GB10883@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:34048 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753670Ab0LPOLw convert rfc822-to-8bit
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:33643 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753670Ab0LPOVy convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Dec 2010 09:11:52 -0500
-Received: by mail-gx0-f179.google.com with SMTP id 21so2205046gxk.38
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 06:11:52 -0800 (PST)
-In-Reply-To: <AANLkTi=RE3ZEuoe=jMRLiFZ7iVgvuXMrgqfXMAYa92=z@mail.gmail.com>
+	Thu, 16 Dec 2010 09:21:54 -0500
+Received: by mail-gw0-f54.google.com with SMTP id 21so2206384gwj.27
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 06:21:54 -0800 (PST)
+In-Reply-To: <20101216084446.GB10883@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
-
-On Thu, Dec 16, 2010 at 2:28 AM, Varadarajan, Charulatha <charu@ti.com>=
- wrote:
-> On Thu, Dec 16, 2010 at 12:17, Omar Ramirez Luna <omar.ramirez@ti.com=
-> wrote:
->> Use runtime pm APIs to enable/disable mailbox clocks and
->> to configure SYSC register.
+On Thu, Dec 16, 2010 at 2:44 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Thu, Dec 16, 2010 at 02:08:11PM +0530, Varadarajan, Charulatha wro=
+te:
+>> > + =A0 =A0 =A0 oh =3D omap_hwmod_lookup("mailbox");
+>> > + =A0 =A0 =A0 if (!oh) {
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: unable to find hwmod\n",=
+ __func__);
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> > + =A0 =A0 =A0 }
+>> > +
+>> > + =A0 =A0 =A0 od =3D omap_device_build("omap-mailbox", -1, oh,
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 NULL, 0,
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mbox_latencies, ARRA=
+Y_SIZE(mbox_latencies),
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0);
+>> > + =A0 =A0 =A0 if (!od) {
 >>
->> Based on the patch sent by Felipe Contreras:
->> https://patchwork.kernel.org/patch/101662/
+>> Check for IS_ERR(od).
 >>
->> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/mailbox.c | =A0 27 +++++---------------------=
--
->> =A01 files changed, 5 insertions(+), 22 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mai=
-lbox.c
->> index 40ddeca..f5f72ba 100644
->> --- a/arch/arm/mach-omap2/mailbox.c
->> +++ b/arch/arm/mach-omap2/mailbox.c
->> @@ -14,6 +14,7 @@
->> =A0#include <linux/err.h>
->> =A0#include <linux/platform_device.h>
->> =A0#include <linux/io.h>
->> +#include <linux/pm_runtime.h>
->> =A0#include <plat/mailbox.h>
->> =A0#include <mach/irqs.h>
->>
->> @@ -34,12 +35,8 @@
->> =A0#define MAILBOX_IRQ_NOTFULL(m) =A0 =A0 =A0 =A0 (1 << (2 * (m) + 1=
-))
->>
->> =A0/* SYSCONFIG: register bit definition */
->> -#define AUTOIDLE =A0 =A0 =A0 (1 << 0)
->> =A0#define SOFTRESET =A0 =A0 =A0(1 << 1)
->> -#define SMARTIDLE =A0 =A0 =A0(2 << 3)
->> =A0#define OMAP4_SOFTRESET =A0 =A0 =A0 =A0(1 << 0)
->> -#define OMAP4_NOIDLE =A0 (1 << 2)
->> -#define OMAP4_SMARTIDLE =A0 =A0 =A0 =A0(2 << 2)
->>
->> =A0/* SYSSTATUS: register bit definition */
->> =A0#define RESETDONE =A0 =A0 =A0(1 << 0)
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: could not build device\n=
+", __func__);
 >
-> Is this still required?
+> If you have an API which returns errors, and you're bothering to prin=
+t
+> something when an error occurs, it's often useful to print the return=
+ed
+> error code, so that people can find out _why_ the error occurred.
+>
 
-Yes, mailbox uses the softreset every time it is requested (and that
-it has no current users at the time), it does it before configuring
-sysc, as opossed to what this patch does (where clk is enabled, sysc
-configured, and then softreset), but no harm was seen with this
-sequence.
+Agree.
 
-AFAIK, enabling/disabling hwmod handles prm reset but not softreset
-bit, that's why I left it there.
-
-Regards,
+Thanks,
 
 Omar
 --
