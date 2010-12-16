@@ -1,54 +1,72 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: pm-core broken
-Date: Thu, 16 Dec 2010 10:08:57 -0600
-Message-ID: <4D0A3999.4080705@ti.com>
-References: <4D09719E.7080700@ti.com> <4D0978F3.3090704@ti.com> <19F8576C6E063C45BE387C64729E739404BD0DB58F@dbde02.ent.ti.com>
+From: Rabin Vincent <rabin@rab.in>
+Subject: Re: [PATCH] ARM: ensure all sched_clock() implementations are notrace marked
+Date: Thu, 16 Dec 2010 21:52:56 +0530
+Message-ID: <AANLkTikLoU-L4YF_FtG4Q8Qh+66zToun5p2LhgYyiyrv@mail.gmail.com>
+References: <E1PT92Y-0004Ba-64@rmk-PC.arm.linux.org.uk>
+	<AANLkTimGHSqO=QwESp98UBK28yawdiq+kURU=nwau27G@mail.gmail.com>
+	<20101216155750.GA28126@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:46489 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756560Ab0LPQJD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Dec 2010 11:09:03 -0500
-Received: by mail-vw0-f48.google.com with SMTP id 18so1360837vws.21
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 08:09:02 -0800 (PST)
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404BD0DB58F@dbde02.ent.ti.com>
+Received: from mail-ey0-f171.google.com ([209.85.215.171]:47239 "EHLO
+	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751031Ab0LPQW5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 11:22:57 -0500
+In-Reply-To: <20101216155750.GA28126@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Kevin H <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Eric Miao <eric.y.miao@gmail.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, linux-tegra@vger.kernel.org, Colin Cross <ccross@android.com>, Olof Johansson <olof@lixom.net>, Imre Kaloz <kaloz@openwrt.org>, Lennert Buytenhek <kernel@wantstofly.org>, Krzysztof Halasa <khc@pm.waw.pl>
 
-Hiremath, Vaibhav had written, on 12/15/2010 09:00 PM, the following:
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Nishanth Menon
->> Sent: Thursday, December 16, 2010 7:57 AM
->> To: Kevin H; linux-omap@vger.kernel.org
->> Subject: pm-core broken
+On Thu, Dec 16, 2010 at 9:27 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Thu, Dec 16, 2010 at 08:42:23PM +0530, Rabin Vincent wrote:
+>> On Thu, Dec 16, 2010 at 1:48 PM, Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> wrote:
+>> > ftrace requires sched_clock() to be notrace. =A0Ensure that all
+>> > implementations are so marked.
+>> >
+>> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 >>
->> Hi Kevin,
->>
->> Just fyi, I tested pm-core(no patches of mine) against SDP3430(ES3.1)
->> and Beagle Rev C1(ES3.0) (that is the only board I could dig up): both
->> fail - I think basically <3630 is broken atm!.
->>
-> [Hiremath, Vaibhav] Nishant,
-> 
-> I am also seeing similar behavior on OMAP3EVM (AM/DM3730), where it does fail with message "Powerdomain (core_pwrdm) didn't enter target state 0". But somehow I am not seeing issues with DSS power domain, not sure what could be happening.
+>> It does seem better to have all of them explicity annotated anyway, =
+even
+>> if it not required in most of the cases because they include
+>> <linux/sched.h> and the annotation in the declaration takes effect.
+>
+> Firstly, we shouldn't be relying upon that, and secondly, everywhere =
+which
+> defines sched_clock() should already be including linux/sched.h to av=
+oid
+> the sparse error. =A0It sounds like there's also an exercise to make =
+sure
+> that is the case.
 
-Really curious now. my results with SDP3630:
+Yes.  I believe I identified all the ones which weren't including the
+header in the last notrace series I sent out (versatile, plat-iop, omap=
+,
+and u300 IIRC), but there's been some changes in various platforms'
+sched_clocks() and of course new platforms since then.
 
-http://pastebin.mozilla.org/890302
+>
+>> Note that in order for this to be fully effective, all functions cal=
+led
+>> from sched_clock() need to be notrace too. =A0OMAP and u300 miss thi=
+s.
+>
+> Yes, OMAP still suffers from this.
+>
+> However, I assume you haven't looked at the u300 sched_clock conversi=
+on
+> patch which is part of a follow-on series on lakml? =A0It sorts u300 =
+out
+> in that regard.
 
-SUSPEND:OFF test | PASS | OFF: 0->1| RET:0 ->0 (7 sec)
-SUSPEND:RET test | PASS | OFF: 1->1| RET:0 ->1 (6 sec)
-IDLE:OFF test | PASS | OFF: 1->23| RET:1 ->1 (21 sec)
-IDLE:RET test | PASS | OFF: 23->23| RET:1 ->23 (21 sec)
-
-are you on k.org? can you run my script 
-http://pastebin.mozilla.org/889933 and provide the results for EVM?
--- 
-Regards,
-Nishanth Menon
+Yes, I now see U300 no longer needs the notrace addition.  It still
+could do with the #include <linux/sched.h> addition though, which was
+also being done as part of that patch.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
