@@ -1,193 +1,217 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: [PATCH v2] OMAP3: PM: PRCM interrupt: Fix warning "MPU wakeup
- but no wakeup sources"
-Date: Thu, 16 Dec 2010 11:17:03 +0100
-Message-ID: <20101216111703.7df0498c@surf>
-References: <1290175355-32444-1-git-send-email-ext-madhusudhan.1.gowda@nokia.com>
-	<8739qxe0dz.fsf@deeprootsystems.com>
-	<090FE800A758CA439B2752C082AC3DEF0666E2AB0C@NOK-EUMSG-06.mgdnok.nokia.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v6 0/12] dmtimer adaptation to platform_driver
+Date: Thu, 16 Dec 2010 16:56:11 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037395C60A@dbde02.ent.ti.com>
+References: <1292385910-5234-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:39122 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753964Ab0LPKRN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 05:17:13 -0500
-In-Reply-To: <090FE800A758CA439B2752C082AC3DEF0666E2AB0C@NOK-EUMSG-06.mgdnok.nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51089 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753812Ab0LPL0Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 06:26:16 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id oBGBQDYt019214
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 05:26:15 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id oBGBQCTq002353
+	for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 16:56:13 +0530 (IST)
+In-Reply-To: <1292385910-5234-1-git-send-email-tarun.kanti@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext-madhusudhan.1.gowda@nokia.com
-Cc: khilman@deeprootsystems.com, t-petazzoni@ti.com, linux-omap@vger.kernel.org, paul@pwsan.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Gowda, Hello Kevin,
-
-On Mon, 22 Nov 2010 11:26:25 +0100
-<ext-madhusudhan.1.gowda@nokia.com> wrote:
-
-> I did verify Thomas Petazzoni's patch -   [PATCH] omap: prcm: switch
-> to a chained IRQ handler mechanism, and I have below questions or
-> comments.
+> -----Original Message-----
+> From: DebBarma, Tarun Kanti
+> Sent: Wednesday, December 15, 2010 9:35 AM
+> To: linux-omap@vger.kernel.org
+> Cc: DebBarma, Tarun Kanti
+> Subject: [PATCH v6 0/12] dmtimer adaptation to platform_driver
 > 
-> 1. I see for each WKUP_ST or IO_ST interrupt the
-> _prcm_int_handle_wakeup handler is getting called 2 times which
-> impacts on performance. printk("irq:%d,%d\n",irq,c); just before
-> returning from the handler shows. [  221.966308] irq wkst:377,2
-> [  221.968597] irq wkst:377,0
+> dmtimer adaptation to platform_driver.
 > 
-> I see, the code checking the below warning  is removed, won't it be
-> good to retain this check ? WARN(c == 0, "prcm: WARNING: PRCM
-> indicated " "MPU wakeup but no wakeup sources "
->                "are marked\n");
+> This patch series is adaptation of dmtimer code to platform driver
+> using omap_device and omap_hwmod abstraction.
 > 
-> Also need to address the corner case issue,  for which I submitted
-> the patch fix. [  222.002563] irq wkst:368,3 
-> [  222.004913] irq iost:377,0 
+> Tested on following platforms:
+> OMAP4430, OMAP3430, OMAP3630, OMAP2430
+> OMAP2420, OMAP1710(in-progress)
 
-I am not sure to fully understand what's going on with thse WKUP_ST and
-IO_ST interrupts. Here is what I see :
+While validating on OMAP1710 I discovered that probe() is not triggered.
+I will fix this problem in the next series.
 
- * When going to retention (i.e after echo 0
-   > /debug/pm_debug/enable_off_mode), what happens is
+--
+Tarun
 
-    - PRCM main interrupt handler is called, it sees pending events at
-      0x201 (which means WKUP_ST and IO_ST)
-
-    - it calls the interrupt handler for WKUP_ST, which happens to be
-      _prcm_int_handle_wakeup, which says that "c" is 2.
-
-    - it acks the WKUP_ST interrupt by clearing the bit in the PRCM
-      status register
-
-    - it calls the interrupt handler for IO_ST, which happens to also
-      be _prcm_int_handle_wakeup, which says that "c" is 0
-
-    - it acks the IO_ST interrupt by clearing the corresponding bit in
-      the PRCM status register
-
-    - the PRCM main interrupt handler checks again the PRCM status
-      register, and sees pending events to be 0x1 (which means WKUP_ST)
-
-    - it calls again the WKUP_ST interrupt handler, which is
-      _prcm_int_handle_wakeup, which says that "c" is 0
-
-    - it acks the WKUP_ST interrupt by clearing the bit in the PRCM
-      status register
-
-    - the PRCM main interrupt handler checks again the PRCM status
-      register, and sees pending events to be 0x0, and returns.
-
- * When going to off (i.e after echo 1
-   > /debug/pm_debug/enable_off_mode), what happens is :
-
-    - PRCM main interrupt handler is called, it sees pending events at
-      0x200 (which means IO_ST)
-
-    - it calls the interrupt handler for IO_ST, which happens to also
-      be _prcm_int_handle_wakeup, which says that "c" is 1
-
-    - it acks the IO_ST interrupt by clearing the corresponding bit in
-      the PRCM status register
-
-    - the PRCM main interrupt handler checks again the PRCM status
-      register, and sees pending events to be 0x200 (which means
-      IO_ST)
-
-    - it calls the interrupt handler for IO_ST, which happens to also
-      be _prcm_int_handle_wakeup, which says that "c" is 0
-
-    - it acks the IO_ST interrupt by clearing the corresponding bit in
-      the PRCM status register
-
-    - the PRCM main interrupt handler checks again the PRCM status
-      register, and sees pending events to be 0x0, and returns.
-
-See the end of my e-mail for a trace.
-
-This raises a few questions :
-
- * Why is the set of PRCM events different in the OFF and the retention
-   case ?
-
- * Why do we need to ack the WKUP_ST event (in the first case) and the
-   IO_ST event (in the second case) twice ?
-
- * The _prcm_int_handle_wakeup() was written to be called *once* for a
-   given PRCM interrupt with IO_WT or WKUP_ST enabled. Now, it gets
-   called twice since they are separate interrupt handlers for those
-   two events. Is this a problem ? Should we rewrite
-   _prcm_int_handle_wakeup() in two separate functions, one taking into
-   account the IO_ST event and the other one taking into account the
-   WKUP_ST event ?
-
-Thanks for your input,
-
-Thomas
-
-/ # echo 0 > /debug/pm_debug/enable_off_mode 
-/ # echo mem > /sys/power/state 
-[  507.936614] PM: Syncing filesystems ... done.
-[  507.951629] Freezing user space processes ... (elapsed 0.01 seconds) done.
-[  507.976470] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
-[  508.009368] Suspending console(s) (use no_console_suspend to debug)
-[  508.140106] PM: suspend of devices complete after 119.263 msecs
-[  508.143951] omap_device: omap_i2c.1: new worst case deactivate latency 0: 183105
-[  508.144195] PM: late suspend of devices complete after 4.089 msecs
-[  508.144287] Disabling non-boot CPUs ...
-[  508.144927] omap_device: omap_uart.2: new worst case deactivate latency 0: 30517
-[  508.508300] omap_device: omap_uart.0: new worst case activate latency 0: 61035
-[  508.508453] Successfully put all powerdomains to target state
-[  508.508636] prcm_irq_handler pending=0x201
-[  508.508666] calling irq 368
-[  508.508666] prcm_irq_mask 368
-[  508.508697] prcm_irq_ack 368
-[  508.508728] _prcm_int_handle_wakeup 368 : 2
-[  508.508728] prcm_irq_unmask 368
-[  508.508758] calling irq 377
-[  508.508758] prcm_irq_mask 377
-[  508.508789] prcm_irq_ack 377
-[  508.508819] _prcm_int_handle_wakeup 377 : 0
-[  508.508819] prcm_irq_unmask 377
-[  508.508850] prcm_irq_handler pending=0x1
-[  508.508850] calling irq 368
-[  508.508880] prcm_irq_mask 368
-[  508.508880] prcm_irq_ack 368
-[  508.508911] _prcm_int_handle_wakeup 368 : 0
-[  508.508911] prcm_irq_unmask 368
-[  508.508941] prcm_irq_handler pending=0x0
-[  508.510955] PM: early resume of devices complete after 1.953 msecs
-[  508.804077] PM: resume of devices complete after 292.754 msecs
-[  508.930664] Restarting tasks ... done.
-/ # echo 1 > /debug/pm_debug/enable_off_mode 
-/ # echo mem > /sys/power/state 
-[  515.526428] PM: Syncing filesystems ... done.
-[  515.531677] Freezing user space processes ... (elapsed 0.02 seconds) done.
-[  515.559417] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
-[  515.591400] Suspending console(s) (use no_console_suspend to debug)
-[  515.714813] PM: suspend of devices complete after 112.121 msecs
-[  515.718627] PM: late suspend of devices complete after 3.753 msecs
-[  515.718658] Disabling non-boot CPUs ...
-[  516.187805] Successfully put all powerdomains to target state
-[  516.187988] prcm_irq_handler pending=0x200
-[  516.188018] calling irq 377
-[  516.188018] prcm_irq_mask 377
-[  516.188049] prcm_irq_ack 377
-[  516.188079] _prcm_int_handle_wakeup 377 : 1
-[  516.188079] prcm_irq_unmask 377
-[  516.188110] prcm_irq_handler pending=0x200
-[  516.188110] calling irq 377
-[  516.188140] prcm_irq_mask 377
-[  516.188140] prcm_irq_ack 377
-[  516.188171] _prcm_int_handle_wakeup 377 : 0
-[  516.188201] prcm_irq_unmask 377
-[  516.188201] prcm_irq_handler pending=0x0
-[  516.190338] PM: early resume of devices complete after 2.075 msecs
-[  516.483612] PM: resume of devices complete after 292.999 msecs
-[  516.570281] Restarting tasks ... done.
-
-
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+> 
+> Baseline:
+> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+> 
+> v6:
+> (1) Removed reset functions to mach-omap1/dmtimer.c.
+> Access to reset function from plat-omap/dmtimer.c is provided by means
+> of function pointer.
+> 
+> (2) Remove multiple calls to omap_device_build() for registering timer
+> devices
+> during early and regular initialization. Regular device registration is
+> now done
+> by reading data from temporary list. This list is populated during early
+> init
+> where timer data is read from hwmod database and corresponding memory
+> allocated.
+> 
+> (3) kfree(pdata) under error condition since platform_device_unregister
+> does
+> not free its pdata.
+> 
+> (4) Removed extra header inclusion in mach-omap2 and plat-omap
+> 
+> NOTE: omap_dm_timer.<id> field could not be removed because during regular
+> boot
+> there is no mechanism to match the current pdev with corresponding entry
+> in the
+> timer list which was partially initialized during early boot.
+> 
+> 
+> TODO:
+> (1) OFF Mode support
+> 
+> (2) Upgrade timeout implementation in low-level read/write access to
+> return
+> error condition to EXPORT APIs. This is re-frained in the present
+> implementation
+> because that would involve change to EXPORTED APIs. Besides, there is no
+> clear
+> design as yet which is agreed upon by the community.
+> 
+> 
+> v4:
+> (1) clock aliases are renamed as "32k_ck", "sys_ck" and "alt_ck"
+> (2) incorporate missing clk_put() for corresponding clk_get()
+> (3) modified clk_get()/clk_put() to be called once once in platform
+> driver.
+> (4) consistent header for new files
+> (5) check return value of omap_hwmod_for_each_by_class() in device init
+> routines.
+> (6) remove is_abe_timer field in dmtimer_platform_data structure. this is
+> no longer needed with new input clock source aliasing.
+> (7) proper splitting of patch series
+> (8) remove register map from hwmod database.
+> (9) remove clock source strings array from hwmod database and associated
+> structure declaration from plat/dmtimer.h. this is no longer needed.
+> (10) remove dev_attr from hwmod database. this is no longer needed.
+> (11) use register offsets to identify OMAP 4 registers instead of register
+> map.
+> (12) remove clock source name strings from hwmod database.
+> (13) introduce new mechanism for getting struct clk associated with clock
+> source
+> names. this is achieved by adding clock alisases for all supported clock
+> sources.
+> (14) remove clock setup functions in mach-omap2 for populating struct clk
+> associated with all input clock sources because this is no longer needed
+> with
+> above implementation.
+> (15) device names changed from dmtimer to omap-timer
+> (16) device index starts from 1 instead of 0
+> (17) remove .init_name from hwmod database. this is not needed.
+> (18) introduce separate functions for reading/writing interrupt registers
+> instead of
+> doing all operations within a single function.
+> 
+> v3:
+> (1) multi-line comment error correction
+> (2) provision to allow any of the available dmtimers as early timers
+> instead of restricting them to millisecond timers only.
+> (3) in 'struct omap_dmtimer{}' is_initialized flag is redundant and
+> so must be removed. if the element is found in the list it is already
+> initialized.
+> (4) remove 'found' flag in omap_dm_timer_request() and
+> omap_dm_timer_request_specific() functions.
+> this is not needed with alternate implementation.
+> (5) use .init_name to initialize device names so that it can be identified
+> during early boot as well. This is to avoid duplicate functions for clock
+> manipulations during early boot and later.
+> (6) remove redundant functions from mach-omap2 which are created just to
+> call pm functions like: pm_runtime_get_sync(),pm_runtime_put_sync(),..
+> and instead call them directly from plat-omap function api's.
+> (7) timer clock source names made part of hwmod database. source_clock[]
+> of type 'struct clk' is made part of platform data.
+> (8) clockactivity field initialized in hwmod database to preserve fclk
+> during idle. code which manipulate OCP config removed since they are
+> already taken care by hwmod framework.
+> (9) omap2_dm_timer_set_src() is optimized. Clock enable/disbale routines
+> moved to plat-omap layer and simplfied to the level so as not to sacrifice
+> intended functionality.
+> NOTE: During early boot clock management was requested to be placed upon
+> client drivers responsibility. this has not been done keeping in mind
+> that it would entail (i) multiple modifications of client drivers (ii) it
+> would violate the purpose of having a framework (open to debate).
+> (10) dmtimer register maps moved to hwmod database
+> 
+> v2:
+> (1) removed dedicated functions for early timer clock access.
+> instead, now we have common functions for early and normal timers.
+> (2) removed usage of clock source strings for reading corresponding
+> struct clks. this is now achieved through clock aliases introduced
+> for each input clock sources.
+> (3) IP revision to distinguish new IP standard and the rest and then
+> initialize dmtimer interrupt and functional offsets.
+> (4) provision to initialize all dmtimers as early timers.
+> (5) remove dm_timer_setup() function because this is no longer needed.
+> (6) modify the device index to start from 1 instead of 0.
+> (7) device name changed from dmtimer to omap-timer
+> (8) extract device ids' from hwmod name and same used for device build.
+> (9) additional resource allocation checks and free
+> (10) early timer variable initialization
+> (11) initialize timer_ip_type and register offsets in platform data
+> structure.
+> (12) some more comments/logs
+> 
+> 
+> Cousson, Benoit (1):
+>   OMAP4: hwmod data: add dmtimer
+> 
+> Tarun Kanti DebBarma (4):
+>   OMAP2+: dmtimer: convert to platform devices
+>   OMAP: dmtimer: switch-over to platform device driver
+>   OMAP: dmtimer: pm_runtime support
+>   OMAP: dmtimer: add timeout to low-level routines
+> 
+> Thara Gopinath (6):
+>   OMAP2+: dmtimer: add device names to flck nodes
+>   OMAP2420: hwmod data: add dmtimer
+>   OMAP2430: hwmod data: add dmtimer
+>   OMAP3: hwmod data: add dmtimer
+>   OMAP1: dmtimer: conversion to platform devices
+>   OMAP: dmtimer: platform driver
+> 
+>  arch/arm/mach-omap1/Makefile               |    2 +-
+>  arch/arm/mach-omap1/dmtimer.c              |  209 +++++++++
+>  arch/arm/mach-omap2/Makefile               |    2 +-
+>  arch/arm/mach-omap2/clock2420_data.c       |   60 ++-
+>  arch/arm/mach-omap2/clock2430_data.c       |   60 ++-
+>  arch/arm/mach-omap2/clock3xxx_data.c       |   48 ++-
+>  arch/arm/mach-omap2/clock44xx_data.c       |   44 ++-
+>  arch/arm/mach-omap2/dmtimer.c              |  240 ++++++++++
+>  arch/arm/mach-omap2/dmtimer.h              |   30 ++
+>  arch/arm/mach-omap2/io.c                   |    2 +
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |  634
+> ++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |  633
+> ++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  675
+> ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  623
+> +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/timer-gp.c             |    1 -
+>  arch/arm/plat-omap/dmtimer.c               |  577 ++++++++++++-----------
+> -
+>  arch/arm/plat-omap/include/plat/dmtimer.h  |   40 ++-
+>  17 files changed, 3544 insertions(+), 336 deletions(-)
+>  create mode 100644 arch/arm/mach-omap1/dmtimer.c
+>  create mode 100644 arch/arm/mach-omap2/dmtimer.c
+>  create mode 100644 arch/arm/mach-omap2/dmtimer.h
