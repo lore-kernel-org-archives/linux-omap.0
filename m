@@ -1,102 +1,47 @@
-From: Charles Manning <manningc2@actrix.gen.nz>
-Subject: OMAP NAND redux
-Date: Fri, 17 Dec 2010 11:01:09 +1300
-Message-ID: <201012171101.09244.manningc2@actrix.gen.nz>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: [PATCH] OMAP1: clock_data: use runtime cpu / machine checks
+Date: Thu, 16 Dec 2010 14:16:28 -0800
+Message-ID: <AANLkTik88QZoNeCKZwUYDjq6oEiiyZE+_fmo+YoE+f85@mail.gmail.com>
+References: <201012112150.33831.jkrzyszt@tis.icnet.pl> <alpine.DEB.2.00.1012130220430.15971@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.scorch.co.nz ([27.110.127.199]:46433 "HELO scorch.co.nz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1756104Ab0LPWBL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Dec 2010 17:01:11 -0500
-Content-Disposition: inline
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:50399 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752078Ab0LPWQu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 17:16:50 -0500
+Received: by wwa36 with SMTP id 36so44746wwa.1
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 14:16:48 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1012130220430.15971@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Ghorai, Sukumar" <s-ghorai@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-Hello All
+On Mon, Dec 13, 2010 at 1:24 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>
+> Hello Janusz, Cory,
+>
+> On Sat, 11 Dec 2010, Janusz Krzysztofik wrote:
+>
+> > Otherwise multi-omap1 configurations may set wrong clock speed.
+> >
+> > Created and tested against l-o master on Amstrad Delta.
+> >
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>
+> Thanks, this is a significant step forward in building a good
+> omap1_defconfig. =C2=A0Cory, do you mind testing this out? =C2=A0If i=
+t works for you
+> also, let's plan to take this for 2.6.38.
+>
 
-Over the last while I have been working on getting ubifs working on omap3530 
-using 16-bit NAND with the latest 2.6.37 prefetch code. This is basically a 
-tweaked Overo kernel.
+Sure, no problem, I'll add it to my testing queue.
 
- Here is what I found:
-
-After initial exploration I found that there were three problem:
-
-* ECC bytes not being read correctly during sub-page reads.
-* Disabling prefetch meant that the flash was not being read at all. 
-* NAND access seems to have slowed down significantly.
-
-Both these boiled down to one root cause. After the prefetch changes, 
-nand->IO_ADDR_R is set to an address that only works within the context of 
-the prefetch code. It no longer works if prefetch is disabled. Execution of:
- static void omap_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
-{
- 	struct nand_chip *nand = mtd->priv;
-
-        ioread16_rep(nand->IO_ADDR_R, buf, len / 2);
-} 
-
-
-Even if prefetch is enabled, subpage reads that are not 32-bit aligned call 
-the above function which means the ECC does not read correctly - resulting in 
-ECC errors. 
-
-I managed to work around this by applying the following patch to force all 
-buffer reads to u32 alignment:
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -245,6 +245,18 @@ static void omap_read_buf_pref(struct mtd_info *mtd, 
-u_char *buf, int len)
-        int ret = 0;
-        u32 *p = (u32 *)buf;
- 
-+       /* u32 align the buffer and read */
-+       /* NB: This assumes the buf ptr can be aligned *down* which is a 
-valid.
-+        * Assumption when dealing with ecc buffers etc.
-+        */
-+       u32 addr = (u32)p;
-+
-+       int diff = addr & 3;
-+       addr -= diff;
-+       len += diff;
-+       len = (len + 3) & ~3;
-+       p = (u32 *)addr;
-+
-        /* take care of subpage reads */
-        if (len % 4) {
-                if (info->nand.options & NAND_BUSWIDTH_16)
-
-Yeah I know that is ugly, but it works!
-
-Prefetch is enabled, dma is disabled. ECC is done in software.
-
-OK, that gives me a working UBIFS, but I found something else...
-
-NAND access has got way, way slower since 2.6.34.
-
-I created a 2MB file foo then do the following:
-
-sync; date; cp foo bar; sync; date
-
-In 2.6.34 the time between the two dates was 3 seconds.
-In 2.6.37 this now takes 14 seconds!
-
-
-Now question time:
-
-1) How well has the prefetch code been tested?
-2) Does it work with prefetch disabled?
-3) Has it been performance tested?
-4) What should the value in nand->IO_ADDR_R be?
-
-
-Thanks
-
-Charles
-
+- Cory
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
