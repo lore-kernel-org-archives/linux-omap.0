@@ -1,47 +1,74 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: Re: [PATCH] OMAP1: clock_data: use runtime cpu / machine checks
-Date: Thu, 16 Dec 2010 14:16:28 -0800
-Message-ID: <AANLkTik88QZoNeCKZwUYDjq6oEiiyZE+_fmo+YoE+f85@mail.gmail.com>
-References: <201012112150.33831.jkrzyszt@tis.icnet.pl> <alpine.DEB.2.00.1012130220430.15971@utopia.booyaka.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] dspbridge: Fix atoi to support hexadecimal numbers correctly
+Date: Fri, 17 Dec 2010 00:10:32 +0100
+Message-ID: <201012170010.33236.laurent.pinchart@ideasonboard.com>
+References: <1292161177-5266-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:50399 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078Ab0LPWQu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 17:16:50 -0500
-Received: by wwa36 with SMTP id 36so44746wwa.1
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 14:16:48 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1012130220430.15971@utopia.booyaka.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42771 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751379Ab0LPXKf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 18:10:35 -0500
+In-Reply-To: <1292161177-5266-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: omar.ramirez@ti.com, rene.sapiens@ti.com, ernesto@ti.com, felipe.contreras@gmail.com, ionut.nicu@gmail.com
 
-On Mon, Dec 13, 2010 at 1:24 AM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> Hello Janusz, Cory,
->
-> On Sat, 11 Dec 2010, Janusz Krzysztofik wrote:
->
-> > Otherwise multi-omap1 configurations may set wrong clock speed.
-> >
-> > Created and tested against l-o master on Amstrad Delta.
-> >
-> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
->
-> Thanks, this is a significant step forward in building a good
-> omap1_defconfig. =C2=A0Cory, do you mind testing this out? =C2=A0If i=
-t works for you
-> also, let's plan to take this for 2.6.38.
->
+Hi everybody,
 
-Sure, no problem, I'll add it to my testing queue.
+Ping ?
 
-- Cory
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Sunday 12 December 2010 14:39:37 Laurent Pinchart wrote:
+> For some strange reason, the DSP base image node/object properties
+> description string stores hexadecimal numbers with a 'h' or 'H' suffix
+> instead of a '0x' prefix. This causes parsing issue because the
+> dspbridge atoi() implementation relies on strict_strtoul(), which will
+> return an error because of the trailing 'h' character.
+> 
+> As the atoi() return value is never checked for an error anyway, replace
+> strict_strtoul() with simple_strtoul() to ignore the suffix.
+> 
+> This fix gets rid of the following assertion failed messages that were
+> printed when running the dsp-dummy test application.
+> 
+> drivers/staging/tidspbridge/rmgr/nldr.c, line 1691:
+> Assertion (segid == MEMINTERNALID || segid == MEMEXTERNALID) failed.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/staging/tidspbridge/rmgr/dbdcd.c |    6 +-----
+>  1 files changed, 1 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/staging/tidspbridge/rmgr/dbdcd.c
+> b/drivers/staging/tidspbridge/rmgr/dbdcd.c index 3581a55..b76f26c 100644
+> --- a/drivers/staging/tidspbridge/rmgr/dbdcd.c
+> +++ b/drivers/staging/tidspbridge/rmgr/dbdcd.c
+> @@ -1020,8 +1020,6 @@ static s32 atoi(char *psz_buf)
+>  {
+>  	char *pch = psz_buf;
+>  	s32 base = 0;
+> -	unsigned long res;
+> -	int ret_val;
+> 
+>  	while (isspace(*pch))
+>  		pch++;
+> @@ -1033,9 +1031,7 @@ static s32 atoi(char *psz_buf)
+>  		base = 16;
+>  	}
+> 
+> -	ret_val = strict_strtoul(pch, base, &res);
+> -
+> -	return ret_val ? : res;
+> +	return simple_strtoul(pch, NULL, base);
+>  }
+> 
+>  /*
+
+-- 
+Regards,
+
+Laurent Pinchart
