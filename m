@@ -1,65 +1,28 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: Re: [PATCH v4 5/5] OMAP: mailbox: use runtime pm for clk and sysc handling
-Date: Thu, 16 Dec 2010 15:16:30 -0600
-Message-ID: <AANLkTikfwZoeKAqwRfL+bAS-sv0aAUESC5a8U+PSpnsz@mail.gmail.com>
-References: <1292482079-2226-1-git-send-email-omar.ramirez@ti.com>
-	<1292482079-2226-6-git-send-email-omar.ramirez@ti.com>
-	<AANLkTinJOFMF=eC2MQB92e2XUsyyjNRRz7Bm_cyXEmp6@mail.gmail.com>
-	<AANLkTik6GLJkhyg0t77wQrfA6p-SmWXLFfGci0uskJ43@mail.gmail.com>
+From: Charles Manning <manningc2@actrix.gen.nz>
+Subject: What is the purpose of the different linux omap branches?
+Date: Fri, 17 Dec 2010 10:21:25 +1300
+Message-ID: <201012171021.25540.manningc2@actrix.gen.nz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:56388 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756319Ab0LPVQa convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Dec 2010 16:16:30 -0500
-Received: by pzk27 with SMTP id 27so717130pzk.14
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 13:16:30 -0800 (PST)
-In-Reply-To: <AANLkTik6GLJkhyg0t77wQrfA6p-SmWXLFfGci0uskJ43@mail.gmail.com>
+Received: from smtp.scorch.co.nz ([27.110.127.199]:46202 "HELO scorch.co.nz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1756923Ab0LPVV2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Dec 2010 16:21:28 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Charulatha V <charu@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Dec 16, 2010 at 11:01 AM, Ramirez Luna, Omar
-<omar.ramirez@ti.com> wrote:
-> Hi,
->
-> On Thu, Dec 16, 2010 at 10:32 AM, Kanigeri, Hari <h-kanigeri2@ti.com>=
- wrote:
->>> @@ -130,12 +120,6 @@ static int omap2_mbox_startup(struct omap_mbox=
- *mbox)
->>> =A0 =A0 =A0 =A0l =3D mbox_read_reg(MAILBOX_REVISION);
->>> =A0 =A0 =A0 =A0pr_debug("omap mailbox rev %d.%d\n", (l & 0xf0) >> 4=
-, (l & 0x0f));
->>>
->>> - =A0 =A0 =A0 if (cpu_is_omap44xx())
->>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 l =3D OMAP4_SMARTIDLE;
->>> - =A0 =A0 =A0 else
->>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 l =3D SMARTIDLE | AUTOIDLE;
->>> - =A0 =A0 =A0 mbox_write_reg(l, MAILBOX_SYSCONFIG);
->>> -
->>
->> The OMAP4 mailbox sysconfig register bits are laid out differently
->> from previous OMAP mailbox's. Example is smart idle bit location is
->> different from previous OMAPs. Can I know as how are you handling th=
-is
->> aspect in hwmod code ?
->
-> hwmod framework provides definition for both IP models
-> (omap_hwmod_sysc_type1for omap2/3 or omap_hwmod_sysc_type2 for omap4)=
-,
-> these are located at arch/arm/mach-omap2/omap_hwmod_common_data.c
->
+Hello All
 
-Thanks, Omar.
+I see there is a master and a pm branch. What's the difference? Why would I 
+use each of these?
 
-Best regards,
-Hari Kanigeri
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also, when is 32.6.37 expected to be done?
+
+Thanks
+
+Charles
