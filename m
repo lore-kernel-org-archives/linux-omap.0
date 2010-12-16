@@ -1,499 +1,89 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 7/7] OMAP3: ASM sleep code format rework
-Date: Thu, 16 Dec 2010 18:50:58 +0100
-Message-ID: <1292521858-3810-8-git-send-email-j-pihet@ti.com>
-References: <1292521858-3810-1-git-send-email-j-pihet@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: pm-core broken
+Date: Thu, 16 Dec 2010 11:57:04 -0600
+Message-ID: <4D0A52F0.8060603@ti.com>
+References: <4D09719E.7080700@ti.com> <4D0978F3.3090704@ti.com> <87wrn9hdxy.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:44299 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757057Ab0LPRvn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 12:51:43 -0500
-Received: by mail-ww0-f44.google.com with SMTP id 36so2698359wwa.1
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 09:51:42 -0800 (PST)
-In-Reply-To: <1292521858-3810-1-git-send-email-j-pihet@ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:59031 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752284Ab0LPR5I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Dec 2010 12:57:08 -0500
+Received: by mail-vw0-f51.google.com with SMTP id 20so1451536vws.38
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 09:57:07 -0800 (PST)
+In-Reply-To: <87wrn9hdxy.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Jean Pihet <j-pihet@ti.com>
+Kevin Hilman had written, on 12/16/2010 10:36 AM, the following:
+> Nishanth Menon <nm@ti.com> writes:
+> 
+>> Hi Kevin,
+>>
+>> Just fyi, I tested pm-core(no patches of mine) against SDP3430(ES3.1)
+>> and Beagle Rev C1(ES3.0) (that is the only board I could dig up): both
+>> fail - I think basically <3630 is broken atm!.
+>>
+>> Beagleboard:
+>> with omap2plus_defconfig + MLO, u-boot.bin from
+>> http://www.angstrom-distribution.org/demo/beagleboard/
+>> filesystem is a minimal busybox that I had built and init=/bin/sh to
+>> prevent any other apps running in the background - I use the same on
+>> SDP3630 and 3430 platforms.
+>>
+>> branch: pm-core (from your tree).
+>> defconfig: omap2plus_defconfig - no changes other than disable RM680
+>> board - currently causes a build failure.
+> 
+> At least for Beagle (and I assume it's same for SDP, but don't have one
+> to test with) the problem is that u-boot leaves the USB OTG block in a
+> state that does not idle, and thus prevents CORE from hitting RET.
+> 
+> The solution: ensure the USB OTG block is reset.
+> 
+> Also in my tree, threre is an usb-otg-reset branch which you can merge
+> with pm-core to test if this helps.
+> 
+> Until we have the USB OTG hwmod conversion merged, this temporary hack
+> is needed.  After conversion to hwmod, all hwmod will be reset during
+> boot so we are not affected by bootloader (mis)behavior.
 
-Cosmetic fixes to the code:
-- white spaces and tabs,
-- alignement,
-- comments rephrase and typos,
-- multi-line comments
+Arrgh.. we have some sort of regression for .37 formal release (off will 
+probably broken as a result without these patches no for mainline 
+bootloaders/custom bootloaders that dont understand the dependency 
+clearly?).
 
-Tested on N900 and Beagleboard with full RET and OFF modes,
-using cpuidle and suspend.
+Anyways, with the 5 patches in usb-otg-reset - test results:
+SDP3630 (ES1.0):
+SUSPEND:OFF test | PASS | OFF: 0->1| RET:0 ->0 (8 sec)
+SUSPEND:RET test | PASS | OFF: 1->1| RET:0 ->1 (6 sec)
+IDLE:OFF test | PASS | OFF: 1->22| RET:1 ->1 (21 sec)
+IDLE:RET test | PASS | OFF: 22->22| RET:1 ->24 (21 sec)
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/sleep34xx.S |  221 +++++++++++++++++++++------------------
- 1 files changed, 118 insertions(+), 103 deletions(-)
+SDP3430 (ES3.1):
+SUSPEND:OFF test | PASS | OFF: 0->1| RET:0 ->0 (7 sec) 
 
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 207f6e9..9c1c57e 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -1,6 +1,10 @@
- /*
-  * linux/arch/arm/mach-omap2/sleep.S
-  *
-+ * (C) Copyright 2010
-+ * Texas Instruments
-+ * Jean Pihet <j-pihet@ti.com>
-+ *
-  * (C) Copyright 2007
-  * Texas Instruments
-  * Karthik Dasu <karthik-dp@ti.com>
-@@ -78,20 +82,20 @@
- 	.text
- /* Function call to get the restore pointer for resume from OFF */
- ENTRY(get_restore_pointer)
--        stmfd   sp!, {lr}     @ save registers on stack
-+	stmfd	sp!, {lr}	@ save registers on stack
- 	adr	r0, restore
--        ldmfd   sp!, {pc}     @ restore regs and return
-+	ldmfd	sp!, {pc}	@ restore regs and return
- ENTRY(get_restore_pointer_sz)
--        .word   . - get_restore_pointer
-+	.word	. - get_restore_pointer
- 
- 	.text
- /* Function call to get the restore pointer for 3630 resume from OFF */
- ENTRY(get_omap3630_restore_pointer)
--        stmfd   sp!, {lr}     @ save registers on stack
-+	stmfd	sp!, {lr}	@ save registers on stack
- 	adr	r0, restore_3630
--        ldmfd   sp!, {pc}     @ restore regs and return
-+	ldmfd	sp!, {pc}	@ restore regs and return
- ENTRY(get_omap3630_restore_pointer_sz)
--        .word   . - get_omap3630_restore_pointer
-+	.word	. - get_omap3630_restore_pointer
- 
- 	.text
- /* Function call to get the restore pointer for ES3 to resume from OFF */
-@@ -109,16 +113,16 @@ ENTRY(get_es3_restore_pointer_sz)
-  * place on 3630. Hopefully some version in the future maynot need this.
-  */
- ENTRY(enable_omap3630_toggle_l2_on_restore)
--        stmfd   sp!, {lr}     @ save registers on stack
-+	stmfd	sp!, {lr}	@ save registers on stack
- 	/* Setup so that we will disable and enable l2 */
- 	mov	r1, #0x1
- 	str	r1, l2dis_3630
--        ldmfd   sp!, {pc}     @ restore regs and return
-+	ldmfd	sp!, {pc}	@ restore regs and return
- 
-+	.text
- /* Function to call rom code to save secure ram context */
- ENTRY(save_secure_ram_context)
- 	stmfd	sp!, {r1-r12, lr}	@ save registers on stack
--
- 	adr	r3, api_params		@ r3 points to parameters
- 	str	r0, [r3,#0x4]		@ r0 has sdram address
- 	ldr	r12, high_mask
-@@ -147,6 +151,7 @@ api_params:
- ENTRY(save_secure_ram_context_sz)
- 	.word	. - save_secure_ram_context
- 
-+
- /*
-  * ======================
-  * == Idle entry point ==
-@@ -160,13 +165,14 @@ ENTRY(save_secure_ram_context_sz)
-  * and executes the WFI instruction
-  *
-  * Notes:
-- * - this code gets copied to internal SRAM at boot.
-+ * - this code gets copied to internal SRAM at boot and after wake-up
-+ *   from OFF mode
-  * - when the OMAP wakes up it continues at different execution points
-  *   depending on the low power mode (non-OFF vs OFF modes),
-  *   cf. 'Resume path for xxx mode' comments.
-  */
- ENTRY(omap34xx_cpu_suspend)
--	stmfd	sp!, {r0-r12, lr}		@ save registers on stack
-+	stmfd	sp!, {r0-r12, lr}	@ save registers on stack
- 
- 	/*
- 	 * r0 contains restore pointer in sdram
-@@ -271,9 +277,9 @@ clean_l2:
- 	 *  - should be faster and will change with kernel
- 	 *  - 'might' have to copy address, load and jump to it
- 	 */
--	ldr r1, kernel_flush
--	mov lr, pc
--	bx  r1
-+	ldr	r1, kernel_flush
-+	mov	lr, pc
-+	bx	r1
- 
- omap3_do_wfi:
- 	ldr	r4, sdrc_power		@ read the SDRC_POWER register
-@@ -366,18 +372,18 @@ restore_3630:
- 	/* Fall thru to common code for the remaining logic */
- 
- restore:
--        /*
-+	/*
- 	 * Check what was the reason for mpu reset and store the reason in r9:
- 	 *  0 - No context lost
--         *  1 - Only L1 and logic lost
--         *  2 - Only L2 lost - In this case, we wont be here
--         *  3 - Both L1 and L2 lost
-+	 *  1 - Only L1 and logic lost
-+	 *  2 - Only L2 lost - In this case, we wont be here
-+	 *  3 - Both L1 and L2 lost
- 	 */
--	ldr     r1, pm_pwstctrl_mpu
-+	ldr	r1, pm_pwstctrl_mpu
- 	ldr	r2, [r1]
--	and     r2, r2, #0x3
--	cmp     r2, #0x0	@ Check if target power state was OFF or RET
--        moveq   r9, #0x3        @ MPU OFF => L1 and L2 lost
-+	and	r2, r2, #0x3
-+	cmp	r2, #0x0	@ Check if target power state was OFF or RET
-+	moveq	r9, #0x3	@ MPU OFF => L1 and L2 lost
- 	movne	r9, #0x1	@ Only L1 and L2 lost => avoid L2 invalidation
- 	bne	logic_l1_restore
- 
-@@ -393,71 +399,74 @@ skipl2dis:
- 	and	r1, #0x700
- 	cmp	r1, #0x300
- 	beq	l2_inv_gp
--	mov	r0, #40		@ set service ID for PPA
--	mov	r12, r0		@ copy secure Service ID in r12
--	mov	r1, #0		@ set task id for ROM code in r1
--	mov	r2, #4		@ set some flags in r2, r6
-+	mov	r0, #40			@ set service ID for PPA
-+	mov	r12, r0			@ copy secure Service ID in r12
-+	mov	r1, #0			@ set task id for ROM code in r1
-+	mov	r2, #4			@ set some flags in r2, r6
- 	mov	r6, #0xff
- 	adr	r3, l2_inv_api_params	@ r3 points to dummy parameters
- 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
- 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
- 	.word	0xE1600071		@ call SMI monitor (smi #1)
- 	/* Write to Aux control register to set some bits */
--	mov	r0, #42		@ set service ID for PPA
--	mov	r12, r0		@ copy secure Service ID in r12
--	mov	r1, #0		@ set task id for ROM code in r1
--	mov	r2, #4		@ set some flags in r2, r6
-+	mov	r0, #42			@ set service ID for PPA
-+	mov	r12, r0			@ copy secure Service ID in r12
-+	mov	r1, #0			@ set task id for ROM code in r1
-+	mov	r2, #4			@ set some flags in r2, r6
- 	mov	r6, #0xff
- 	ldr	r4, scratchpad_base
--	ldr	r3, [r4, #0xBC]	@ r3 points to parameters
-+	ldr	r3, [r4, #0xBC]		@ r3 points to parameters
- 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
- 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
- 	.word	0xE1600071		@ call SMI monitor (smi #1)
- 
- #ifdef CONFIG_OMAP3_L2_AUX_SECURE_SAVE_RESTORE
- 	/* Restore L2 aux control register */
--	@ set service ID for PPA
-+					@ set service ID for PPA
- 	mov	r0, #CONFIG_OMAP3_L2_AUX_SECURE_SERVICE_SET_ID
--	mov	r12, r0		@ copy service ID in r12
--	mov	r1, #0		@ set task ID for ROM code in r1
--	mov	r2, #4		@ set some flags in r2, r6
-+	mov	r12, r0			@ copy service ID in r12
-+	mov	r1, #0			@ set task ID for ROM code in r1
-+	mov	r2, #4			@ set some flags in r2, r6
- 	mov	r6, #0xff
- 	ldr	r4, scratchpad_base
- 	ldr	r3, [r4, #0xBC]
--	adds	r3, r3, #8	@ r3 points to parameters
-+	adds	r3, r3, #8		@ r3 points to parameters
- 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
- 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
- 	.word	0xE1600071		@ call SMI monitor (smi #1)
- #endif
- 	b	logic_l1_restore
-+
- l2_inv_api_params:
--	.word   0x1, 0x00
-+	.word	0x1, 0x00
- l2_inv_gp:
- 	/* Execute smi to invalidate L2 cache */
--	mov r12, #0x1                         @ set up to invalide L2
--smi:    .word 0xE1600070		@ Call SMI monitor (smieq)
-+	mov r12, #0x1			@ set up to invalidate L2
-+	.word 0xE1600070		@ Call SMI monitor (smieq)
- 	/* Write to Aux control register to set some bits */
- 	ldr	r4, scratchpad_base
- 	ldr	r3, [r4,#0xBC]
- 	ldr	r0, [r3,#4]
- 	mov	r12, #0x3
--	.word 0xE1600070	@ Call SMI monitor (smieq)
-+	.word	0xE1600070		@ Call SMI monitor (smieq)
- 	ldr	r4, scratchpad_base
- 	ldr	r3, [r4,#0xBC]
- 	ldr	r0, [r3,#12]
- 	mov	r12, #0x2
--	.word 0xE1600070	@ Call SMI monitor (smieq)
-+	.word	0xE1600070		@ Call SMI monitor (smieq)
- logic_l1_restore:
- 	ldr	r1, l2dis_3630
--	cmp	r1, #0x1	@ Do we need to re-enable L2 on 3630?
-+	cmp	r1, #0x1		@ Test if L2 re-enable needed on 3630
- 	bne	skipl2reen
- 	mrc	p15, 0, r1, c1, c0, 1
--	orr	r1, r1, #2	@ re-enable L2 cache
-+	orr	r1, r1, #2		@ re-enable L2 cache
- 	mcr	p15, 0, r1, c1, c0, 1
- skipl2reen:
- 	mov	r1, #0
--	/* Invalidate all instruction caches to PoU
--	 * and flush branch target cache */
-+	/*
-+	 * Invalidate all instruction caches to PoU
-+	 * and flush branch target cache
-+	 */
- 	mcr	p15, 0, r1, c7, c5, 0
- 
- 	ldr	r4, scratchpad_base
-@@ -478,33 +487,33 @@ skipl2reen:
- 	MCR p15, 0, r6, c2, c0, 1
- 	/* Translation table base control register */
- 	MCR p15, 0, r7, c2, c0, 2
--	/*domain access Control Register */
-+	/* Domain access Control Register */
- 	MCR p15, 0, r8, c3, c0, 0
--	/* data fault status Register */
-+	/* Data fault status Register */
- 	MCR p15, 0, r9, c5, c0, 0
- 
--	ldmia  r3!,{r4-r8}
--	/* instruction fault status Register */
-+	ldmia	r3!,{r4-r8}
-+	/* Instruction fault status Register */
- 	MCR p15, 0, r4, c5, c0, 1
--	/*Data Auxiliary Fault Status Register */
-+	/* Data Auxiliary Fault Status Register */
- 	MCR p15, 0, r5, c5, c1, 0
--	/*Instruction Auxiliary Fault Status Register*/
-+	/* Instruction Auxiliary Fault Status Register*/
- 	MCR p15, 0, r6, c5, c1, 1
--	/*Data Fault Address Register */
-+	/* Data Fault Address Register */
- 	MCR p15, 0, r7, c6, c0, 0
--	/*Instruction Fault Address Register*/
-+	/* Instruction Fault Address Register*/
- 	MCR p15, 0, r8, c6, c0, 2
--	ldmia  r3!,{r4-r7}
-+	ldmia	r3!,{r4-r7}
- 
--	/* user r/w thread and process ID */
-+	/* User r/w thread and process ID */
- 	MCR p15, 0, r4, c13, c0, 2
--	/* user ro thread and process ID */
-+	/* User ro thread and process ID */
- 	MCR p15, 0, r5, c13, c0, 3
--	/*Privileged only thread and process ID */
-+	/* Privileged only thread and process ID */
- 	MCR p15, 0, r6, c13, c0, 4
--	/* cache size selection */
-+	/* Cache size selection */
- 	MCR p15, 2, r7, c0, c0, 0
--	ldmia  r3!,{r4-r8}
-+	ldmia	r3!,{r4-r8}
- 	/* Data TLB lockdown registers */
- 	MCR p15, 0, r4, c10, c0, 0
- 	/* Instruction TLB lockdown registers */
-@@ -516,26 +525,27 @@ skipl2reen:
- 	/* Context PID */
- 	MCR p15, 0, r8, c13, c0, 1
- 
--	ldmia  r3!,{r4-r5}
--	/* primary memory remap register */
-+	ldmia	r3!,{r4-r5}
-+	/* Primary memory remap register */
- 	MCR p15, 0, r4, c10, c2, 0
--	/*normal memory remap register */
-+	/* Normal memory remap register */
- 	MCR p15, 0, r5, c10, c2, 1
- 
- 	/* Restore cpsr */
--	ldmia	r3!,{r4}	/*load CPSR from SDRAM*/
--	msr	cpsr, r4	/*store cpsr */
-+	ldmia	r3!,{r4}		@ load CPSR from SDRAM
-+	msr	cpsr, r4		@ store cpsr
- 
- 	/* Enabling MMU here */
--	mrc	p15, 0, r7, c2, c0, 2 /* Read TTBRControl */
--	/* Extract N (0:2) bits and decide whether to use TTBR0 or TTBR1*/
-+	mrc	p15, 0, r7, c2, c0, 2 	@ Read TTBRControl
-+	/* Extract N (0:2) bits and decide whether to use TTBR0 or TTBR1 */
- 	and	r7, #0x7
- 	cmp	r7, #0x0
- 	beq	usettbr0
- ttbr_error:
--	/* More work needs to be done to support N[0:2] value other than 0
--	* So looping here so that the error can be detected
--	*/
-+	/*
-+	 * More work needs to be done to support N[0:2] value other than 0
-+	 * So looping here so that the error can be detected
-+	 */
- 	b	ttbr_error
- usettbr0:
- 	mrc	p15, 0, r2, c2, c0, 0
-@@ -543,21 +553,25 @@ usettbr0:
- 	and	r2, r5
- 	mov	r4, pc
- 	ldr	r5, table_index_mask
--	and	r4, r5 /* r4 = 31 to 20 bits of pc */
-+	and	r4, r5			@ r4 = 31 to 20 bits of pc
- 	/* Extract the value to be written to table entry */
- 	ldr	r1, table_entry
--	add	r1, r1, r4 /* r1 has value to be written to table entry*/
-+	/* r1 has the value to be written to table entry*/
-+	add	r1, r1, r4
- 	/* Getting the address of table entry to modify */
- 	lsr	r4, #18
--	add	r2, r4 /* r2 has the location which needs to be modified */
-+	/* r2 has the location which needs to be modified */
-+	add	r2, r4
- 	/* Storing previous entry of location being modified */
- 	ldr	r5, scratchpad_base
- 	ldr	r4, [r2]
- 	str	r4, [r5, #0xC0]
- 	/* Modify the table entry */
- 	str	r1, [r2]
--	/* Storing address of entry being modified
--	 * - will be restored after enabling MMU */
-+	/*
-+	 * Storing address of entry being modified
-+	 * - will be restored after enabling MMU
-+	 */
- 	ldr	r5, scratchpad_base
- 	str	r2, [r5, #0xC4]
- 
-@@ -566,7 +580,7 @@ usettbr0:
- 	mcr	p15, 0, r0, c7, c5, 6	@ Invalidate branch predictor array
- 	mcr	p15, 0, r0, c8, c5, 0	@ Invalidate instruction TLB
- 	mcr	p15, 0, r0, c8, c6, 0	@ Invalidate data TLB
--	/* Restore control register  but dont enable caches here*/
-+	/* Restore control register  but dont enable caches here */
- 	/* Caches will be enabled after restoring MMU table entry */
- 	ldmia	r3!, {r4}
- 	/* Store previous value of control register in scratchpad */
-@@ -580,7 +594,7 @@ usettbr0:
-  * == Exit point from OFF mode ==
-  * ==============================
-  */
--	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
-+	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
- 
- 
- /*
-@@ -646,55 +660,56 @@ ENTRY(es3_sdrc_fix_sz)
- /* Make sure SDRC accesses are ok */
- wait_sdrc_ok:
- 
--/* DPLL3 must be locked before accessing the SDRC. Maybe the HW ensures this. */
-+/* DPLL3 must be locked before accessing the SDRC. Maybe the HW ensures this */
- 	ldr	r4, cm_idlest_ckgen
- wait_dpll3_lock:
- 	ldr	r5, [r4]
- 	tst	r5, #1
- 	beq	wait_dpll3_lock
- 
--        ldr     r4, cm_idlest1_core
-+	ldr	r4, cm_idlest1_core
- wait_sdrc_ready:
--        ldr     r5, [r4]
--        tst     r5, #0x2
--        bne     wait_sdrc_ready
-+	ldr	r5, [r4]
-+	tst	r5, #0x2
-+	bne	wait_sdrc_ready
- 	/* allow DLL powerdown upon hw idle req */
--        ldr     r4, sdrc_power
--        ldr     r5, [r4]
--        bic     r5, r5, #0x40
--        str     r5, [r4]
--is_dll_in_lock_mode:
-+	ldr	r4, sdrc_power
-+	ldr	r5, [r4]
-+	bic	r5, r5, #0x40
-+	str	r5, [r4]
- 
--        /* Is dll in lock mode? */
--        ldr     r4, sdrc_dlla_ctrl
--        ldr     r5, [r4]
--        tst     r5, #0x4
--        bxne    lr
--        /* wait till dll locks */
-+is_dll_in_lock_mode:
-+	/* Is dll in lock mode? */
-+	ldr	r4, sdrc_dlla_ctrl
-+	ldr	r5, [r4]
-+	tst	r5, #0x4
-+	bxne	lr			@ Return if locked
-+	/* wait till dll locks */
- wait_dll_lock_timed:
- 	ldr	r4, wait_dll_lock_counter
- 	add	r4, r4, #1
- 	str	r4, wait_dll_lock_counter
- 	ldr	r4, sdrc_dlla_status
--        mov	r6, #8		/* Wait 20uS for lock */
-+	/* Wait 20uS for lock */
-+	mov	r6, #8
- wait_dll_lock:
- 	subs	r6, r6, #0x1
- 	beq	kick_dll
--        ldr     r5, [r4]
--        and     r5, r5, #0x4
--        cmp     r5, #0x4
--        bne     wait_dll_lock
--        bx      lr
-+	ldr	r5, [r4]
-+	and	r5, r5, #0x4
-+	cmp	r5, #0x4
-+	bne	wait_dll_lock
-+	bx	lr			@ Return when locked
- 
- 	/* disable/reenable DLL if not locked */
- kick_dll:
- 	ldr	r4, sdrc_dlla_ctrl
- 	ldr	r5, [r4]
- 	mov	r6, r5
--	bic	r6, #(1<<3)	/* disable dll */
-+	bic	r6, #(1<<3)		@ disable dll
- 	str	r6, [r4]
- 	dsb
--	orr	r6, r6, #(1<<3)	/* enable dll */
-+	orr	r6, r6, #(1<<3)		@ enable dll
- 	str	r6, [r4]
- 	dsb
- 	ldr	r4, kick_counter
-@@ -719,7 +734,7 @@ scratchpad_base:
- sram_base:
- 	.word	SRAM_BASE_P + 0x8000
- sdrc_power:
--	.word SDRC_POWER_V
-+	.word	SDRC_POWER_V
- ttbrbit_mask:
- 	.word	0xFFFFC000
- table_index_mask:
-@@ -733,9 +748,9 @@ control_stat:
- control_mem_rta:
- 	.word	CONTROL_MEM_RTA_CTRL
- kernel_flush:
--	.word v7_flush_dcache_all
-+	.word	v7_flush_dcache_all
- l2dis_3630:
--	.word 0
-+	.word	0
- 	/* these 2 words need to be at the end !!! */
- kick_counter:
- 	.word	0
+SUSPEND:RET test | PASS | OFF: 1->1| RET:0 ->1 (6 sec) 
+
+IDLE:OFF test | PASS | OFF: 1->21| RET:1 ->1 (22 sec) 
+
+IDLE:RET test | PASS | OFF: 21->21| RET:1 ->23 (21 sec)
+
+Beagle C1 (ES3.0):
+SUSPEND:OFF test | FAIL | OFF: 0->0| RET:0 ->0 (6 sec) 
+
+SUSPEND:RET test | FAIL | OFF: 0->0| RET:0 ->0 (6 sec) 
+
+IDLE:OFF test | FAIL | OFF: 0->0| RET:0 ->0 (21 sec) 
+
+IDLE:RET test | FAIL | OFF: 0->0| RET:0 ->0 (21 sec)
+
+
 -- 
-1.7.1
-
+Regards,
+Nishanth Menon
