@@ -1,76 +1,93 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 2/7] OMAP2+: use global values for the SRAM PA addresses
-Date: Thu, 16 Dec 2010 18:50:53 +0100
-Message-ID: <1292521858-3810-3-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 3/7] OMAP3: remove hardcoded values from the ASM sleep code
+Date: Thu, 16 Dec 2010 18:50:54 +0100
+Message-ID: <1292521858-3810-4-git-send-email-j-pihet@ti.com>
 References: <1292521858-3810-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:60085 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756939Ab0LPRvY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 12:51:24 -0500
-Received: by wwi17 with SMTP id 17so579083wwi.1
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 09:51:23 -0800 (PST)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:44299 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757031Ab0LPRv3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 12:51:29 -0500
+Received: by mail-ww0-f44.google.com with SMTP id 36so2698359wwa.1
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 09:51:28 -0800 (PST)
 In-Reply-To: <1292521858-3810-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
+Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-The SRAM PA addresses are locally defined and used in both the
-SRAM management code and the idle sleep code.
-A global macro defines the values at a centralized place, for
-easier maintenance.
+Using macros from existing include files for registers addresses.
 
 Tested on N900 and Beagleboard with full RET and OFF modes,
 using cpuidle and suspend.
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/sdrc.h |    7 +++++++
- arch/arm/plat-omap/sram.c  |    7 ++-----
- 2 files changed, 9 insertions(+), 5 deletions(-)
+Based on original patch from Vishwa.
 
-diff --git a/arch/arm/mach-omap2/sdrc.h b/arch/arm/mach-omap2/sdrc.h
-index 68f57bb..ada596b 100644
---- a/arch/arm/mach-omap2/sdrc.h
-+++ b/arch/arm/mach-omap2/sdrc.h
-@@ -74,5 +74,12 @@ static inline u32 sms_read_reg(u16 reg)
-  */
- #define SDRC_MPURATE_LOOPS		96
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Cc: Vishwanath BS <vishwanath.bs@ti.com>
+---
+ arch/arm/mach-omap2/control.h   |    2 ++
+ arch/arm/mach-omap2/sleep34xx.S |   29 ++++++++++++++++++-----------
+ 2 files changed, 20 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index d7911c5..72efefb 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -274,6 +274,8 @@
+ #define OMAP343X_SCRATCHPAD_ROM		(OMAP343X_CTRL_BASE + 0x860)
+ #define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
+ #define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
++#define OMAP343X_SCRATCHPAD_REGADDR(reg)	OMAP2_L4_IO_ADDRESS(\
++						OMAP343X_SCRATCHPAD + reg)
  
+ /* AM35XX_CONTROL_IPSS_CLK_CTRL bits */
+ #define AM35XX_USBOTG_VBUSP_CLK_SHIFT   0
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index 2191576..20dc0f4 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -33,20 +33,27 @@
+ #include "sdrc.h"
+ #include "control.h"
+ 
+-#define SDRC_SCRATCHPAD_SEM_V	0xfa00291c
+-
+-#define PM_PREPWSTST_CORE_P	0x48306AE8
 +/*
-+ * OMAP2+: define the SRAM PA addresses.
-+ * Used by the SRAM management code and the idle sleep code.
++ * Registers access definitions
 + */
-+#define OMAP2_SRAM_PA		0x40200000
-+#define OMAP3_SRAM_PA           0x40200000
-+#define OMAP4_SRAM_PA		0x40300000
- 
- #endif
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 819ea0c..1a686c8 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -41,15 +41,12 @@
- 
- #define OMAP1_SRAM_PA		0x20000000
- #define OMAP1_SRAM_VA		VMALLOC_END
--#define OMAP2_SRAM_PA		0x40200000
--#define OMAP2_SRAM_PUB_PA	0x4020f800
-+#define OMAP2_SRAM_PUB_PA	(OMAP2_SRAM_PA + 0xf800)
- #define OMAP2_SRAM_VA		0xfe400000
- #define OMAP2_SRAM_PUB_VA	(OMAP2_SRAM_VA + 0x800)
--#define OMAP3_SRAM_PA           0x40200000
- #define OMAP3_SRAM_VA           0xfe400000
--#define OMAP3_SRAM_PUB_PA       0x40208000
-+#define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0x8000)
- #define OMAP3_SRAM_PUB_VA       (OMAP3_SRAM_VA + 0x8000)
--#define OMAP4_SRAM_PA		0x40300000
- #define OMAP4_SRAM_VA		0xfe400000
- #define OMAP4_SRAM_PUB_PA	(OMAP4_SRAM_PA + 0x4000)
- #define OMAP4_SRAM_PUB_VA	(OMAP4_SRAM_VA + 0x4000)
++#define SDRC_SCRATCHPAD_SEM_OFFS	0xc
++#define SDRC_SCRATCHPAD_SEM_V	OMAP343X_SCRATCHPAD_REGADDR\
++					(SDRC_SCRATCHPAD_SEM_OFFS)
++#define PM_PREPWSTST_CORE_P	OMAP3430_PRM_BASE + CORE_MOD +\
++					OMAP3430_PM_PREPWSTST
+ #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + OMAP2_PM_PWSTCTRL
+ #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
+ #define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
+-#define SRAM_BASE_P		0x40200000
+-#define CONTROL_STAT		0x480022F0
+-#define CONTROL_MEM_RTA_CTRL	(OMAP343X_CTRL_BASE\
+-					+ OMAP36XX_CONTROL_MEM_RTA_CTRL)
+-#define SCRATCHPAD_MEM_OFFS	0x310 /* Move this as correct place is
+-				       * available */
+-#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE + OMAP343X_CONTROL_MEM_WKUP\
+-						+ SCRATCHPAD_MEM_OFFS)
++#define SRAM_BASE_P		OMAP3_SRAM_PA
++#define CONTROL_STAT		OMAP343X_CTRL_BASE + OMAP343X_CONTROL_STATUS
++#define CONTROL_MEM_RTA_CTRL	(OMAP343X_CTRL_BASE +\
++					OMAP36XX_CONTROL_MEM_RTA_CTRL)
++
++/* Move this as correct place is available */
++#define SCRATCHPAD_MEM_OFFS	0x310
++#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE +\
++					OMAP343X_CONTROL_MEM_WKUP +\
++					SCRATCHPAD_MEM_OFFS)
+ #define SDRC_POWER_V		OMAP34XX_SDRC_REGADDR(SDRC_POWER)
+ #define SDRC_SYSCONFIG_P	(OMAP343X_SDRC_BASE + SDRC_SYSCONFIG)
+ #define SDRC_MR_0_P		(OMAP343X_SDRC_BASE + SDRC_MR_0)
 -- 
 1.7.1
 
