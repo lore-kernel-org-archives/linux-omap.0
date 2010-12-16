@@ -1,93 +1,113 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: Re: [OMAP 1710] Mainline Broken
-Date: Thu, 16 Dec 2010 16:35:22 +0100
-Message-ID: <AANLkTi=Shtqm36=_zSa37Fgan9NJYX3oKvoZzN35mi98@mail.gmail.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB037395C74E@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:57919 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752591Ab0LPPfX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 10:35:23 -0500
-Received: by qwa26 with SMTP id 26so3344824qwa.19
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 07:35:22 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037395C74E@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: srinath@mistralsolutions.com
+Subject: [Patch v4] AM35xx: Craneboard: Add USB EHCI support
+Date: Thu, 16 Dec 2010 20:55:12 +0530
+Message-ID: <1292513112-12471-1-git-send-email-srinath@mistralsolutions.com>
+References: <[PATCH] AM35xx-Craneboard-Add-USB-EHCI-support>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <[PATCH] AM35xx-Craneboard-Add-USB-EHCI-support>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, sshtylyov@mvista.com, manjugk@ti.com, Srinath <srinath@mistralsolutions.com>
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+From: Srinath <srinath@mistralsolutions.com>
 
-On Thu, Dec 16, 2010 at 4:30 PM, DebBarma, Tarun Kanti
-<tarun.kanti@ti.com> wrote:
-> Did anyone observe this? I am using omap_generic_1710_defconfig
->
-> [...]
-> input: omap-keypad as /devices/platform/omap-keypad/input/input0
-> TCP cubic registered
-> NET: Registered protocol family 17
-> Registering the dns_resolver key type
-> eth0: link up
-> IP-Config: Complete:
-> =C2=A0 =C2=A0 device=3Deth0, addr=3D172.24.191.106, mask=3D255.255.25=
-2.0, gw=3D172.24.188.1,
-> =C2=A0 =C2=A0 host=3Dmyomap, domain=3D, nis-domain=3D(none),
-> =C2=A0 =C2=A0 bootserver=3D172.24.191.66, rootserver=3D172.24.191.66,=
- rootpath=3D
-> VFS: Mounted root (nfs filesystem) on device 0:10.
-> Freeing init memory: 128K
-> Kernel panic - not syncing: Attempted to kill init!
-Seems your userspace is broken. Try add user_debug=3D31 to command line
-to see what
-exactly happens.
-> Backtrace:
-> [<c0032104>] (dump_backtrace+0x0/0x114) from [<c027ecd4>] (dump_stack=
-+0x18/0x1c)
-> =C2=A0r7:c0826000 r6:c0826000 r5:c0304ce8 r4:c0320254
-> [<c027ecbc>] (dump_stack+0x0/0x1c) from [<c027ed38>] (panic+0x60/0x18=
-8)
-> [<c027ecd8>] (panic+0x0/0x188) from [<c0047414>] (do_exit+0x74/0x600)
-> =C2=A0r3:60000013 r2:c0826000 r1:c08260f8 r0:c02d6cff
-> [<c00473a0>] (do_exit+0x0/0x600) from [<c0047a38>] (do_group_exit+0x9=
-8/0xcc)
-> [<c00479a0>] (do_group_exit+0x0/0xcc) from [<c00535e4>] (get_signal_t=
-o_deliver+0x304/0x33c)
-> =C2=A0r7:c08ba484 r6:c0828000 r5:c0829ee4 r4:00000004
-> [<c00532e0>] (get_signal_to_deliver+0x0/0x33c) from [<c0030fb8>] (do_=
-notify_resume+0x7c/0x638)
-> [<c0030f3c>] (do_notify_resume+0x0/0x638) from [<c002eb14>] (work_pen=
-ding+0x24/0x28)
->
-> --
-> Tarun
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+AM3517/05 Craneboard has one EHCI interface on board using port1.
 
-thanks,
+GPIO35 is used as power enable.
+GPIO38 is used as port1 PHY reset.
 
-marek
+History:
+http://marc.info/?l=linux-omap&w=2&r=1&s=Craneboard%3A+Add+USB+EHCI+support&q=t
 
---=20
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-=46reelance Developer
+Signed-off-by: Srinath <srinath@mistralsolutions.com>
+---
+ arch/arm/mach-omap2/board-am3517crane.c |   53 +++++++++++++++++++++++++++++++
+ 1 files changed, 53 insertions(+), 0 deletions(-)
 
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-icq: 290551086
-web: http://open-nandra.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
+index 8ba4047..1a80175 100644
+--- a/arch/arm/mach-omap2/board-am3517crane.c
++++ b/arch/arm/mach-omap2/board-am3517crane.c
+@@ -19,6 +19,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/gpio.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -27,8 +28,14 @@
+ 
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/usb.h>
+ 
+ #include "mux.h"
++#include "control.h"
++
++#define GPIO_USB_POWER		35
++#define GPIO_USB_NRESET		38
++
+ 
+ /* Board initialization */
+ static struct omap_board_config_kernel am3517_crane_config[] __initdata = {
+@@ -51,10 +58,56 @@ static void __init am3517_crane_init_irq(void)
+ 	omap_init_irq();
+ }
+ 
++static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
++	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
++	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++
++	.phy_reset  = true,
++	.reset_gpio_port[0]  = GPIO_USB_NRESET,
++	.reset_gpio_port[1]  = -EINVAL,
++	.reset_gpio_port[2]  = -EINVAL
++};
++
+ static void __init am3517_crane_init(void)
+ {
++	int ret;
++
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap_serial_init();
++
++	/* Configure GPIO for EHCI port */
++	if (omap_mux_init_gpio(GPIO_USB_NRESET, OMAP_PIN_OUTPUT)) {
++		pr_err("Can not cofigure mux for GPIO_USB_NRESET %d\n",
++			GPIO_USB_NRESET);
++		return;
++	}
++
++	if (omap_mux_init_gpio(GPIO_USB_POWER, OMAP_PIN_OUTPUT)) {
++		pr_err("Can not cofigure mux for GPIO_USB_POWER %d\n",
++
++			GPIO_USB_POWER);
++		return;
++	}
++
++	ret = gpio_request(GPIO_USB_POWER, "usb_ehci_enable");
++	if (ret < 0) {
++		pr_err("Cannot request GPIO %d\n", GPIO_USB_POWER);
++		return;
++	}
++
++	ret = gpio_direction_output(GPIO_USB_POWER, 1);
++	if (ret < 0)
++		goto err;
++
++
++	usb_ehci_init(&ehci_pdata);
++	return;
++
++err:
++	gpio_free(GPIO_USB_POWER);
++	pr_err("Unable to initialize EHCI power\n");
++	return;
+ }
+ 
+ MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
+-- 
+1.7.1.226.g770c5
