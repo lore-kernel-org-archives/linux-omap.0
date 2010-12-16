@@ -1,43 +1,46 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 0/9] TI DMM-TILER driver
-Date: Thu, 16 Dec 2010 14:34:05 +0100
-Message-ID: <201012161434.05768.arnd@arndb.de>
-References: <1291674446-10766-1-git-send-email-davidsin@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <1291674446-10766-1-git-send-email-davidsin@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org
-Cc: David Sin <davidsin@ti.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: [PATCH v1] OMAP: GPIO: Correct IP version message during boot
+Date: Thu, 16 Dec 2010 19:39:46 +0530
+Message-ID: <1292508586-21651-1-git-send-email-charu@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35953 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755523Ab0LPOKi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Dec 2010 09:10:38 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, balbi@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
 
-On Monday 06 December 2010, David Sin wrote:
-> Tiling and Isometric Lightweight Engine for Rotation (TILER) driver
-> =====
-> 
-> Dynamic Memory Manager (DMM) is a hardware block made by Texas Instruments.
-> Within the DMM exists at least one TILER hardware component.  Its purpose is to
-> organize video/image memory in a 2-dimensional fashion to limit memory
-> bandwidth and facilitate 0 effort rotation and mirroring.  The TILER driver
-> facilitates allocating, freeing, as well as mapping 2D blocks (areas) in the
-> TILER container(s).  It also facilitates rotating and mirroring the allocated
-> blocks or its rectangular subsections.
+With the commit 9a748053f5f58a77cd71864f1d7b804175b0e47d whose subject is
+"OMAP: GPIO: Make omap_gpio_show_rev bank specific" (see [1]),
+the IP version information for all the banks are shown during bootup,
+but it does not show the bank number.
 
-How does this relate to DRM/GEM? I don't understand too much about graphics
-drivers, but it does sound like there is some overlap in functionality.
+Use dev_info instead of printk in omap_gpio_show_rev() so that the
+bank id is displayed along with the IP version
 
-I guess at the very least the DMM should live in drivers/gpu/ instead of
-drivers/misc, but perhaps it could be integrated more closely with the
-existing code there.
+[1] http://www.spinics.net/lists/arm-kernel/msg105872.html
 
-	Arnd
+Signed-off-by: Varadarajan, Charulatha <charu@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/plat-omap/gpio.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 8d493b9..47aeaeb 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -1554,7 +1554,7 @@ static void __init omap_gpio_show_rev(struct gpio_bank *bank)
+ 	else
+ 		return;
+ 
+-	printk(KERN_INFO "OMAP GPIO hardware version %d.%d\n",
++	dev_info(bank->dev, "hardware version %d.%d\n",
+ 		(rev >> 4) & 0x0f, rev & 0x0f);
+ }
+ 
+-- 
+1.7.1
+
