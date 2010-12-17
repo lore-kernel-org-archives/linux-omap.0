@@ -1,90 +1,132 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [OMAP 1710] Mainline Broken
-Date: Fri, 17 Dec 2010 06:52:31 -0600
-Message-ID: <4D0B5D0F.9030403@ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB037395C74E@dbde02.ent.ti.com>	<AANLkTi=Shtqm36=_zSa37Fgan9NJYX3oKvoZzN35mi98@mail.gmail.com> <87r5dhfxwh.fsf@deeprootsystems.com> <5A47E75E594F054BAF48C5E4FC4B92AB0373A9363D@dbde02.ent.ti.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH 0/7 v2] OMAP: McSPI: Hwmod adaptation + runtime conversion
+Date: Fri, 17 Dec 2010 18:22:47 +0530
+Message-ID: <AANLkTinBafsUsNuxc25sTEBPX=fD-=StRHF8-jL+mqCc@mail.gmail.com>
+References: <33183.10.24.255.18.1291212072.squirrel@dbdmail.itg.ti.com>
+ <87d3p3kobt.fsf@deeprootsystems.com> <AANLkTikgzMjU9wfzzMjEXzFCUvRz6hKtv=N8dKXf10YM@mail.gmail.com>
+ <874oadfuq9.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:53212 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753933Ab0LQMwl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Dec 2010 07:52:41 -0500
-Received: by ywi6 with SMTP id 6so296862ywi.20
-        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 04:52:38 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0373A9363D@dbde02.ent.ti.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:64063 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754042Ab0LQMxI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 07:53:08 -0500
+Received: by qyj19 with SMTP id 19so1573059qyj.19
+        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 04:53:08 -0800 (PST)
+In-Reply-To: <874oadfuq9.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Belisko Marek <marek.belisko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>, Benoit Cousson <b-cousson@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, Partha Basak <p-basak2@ti.com>
 
-DebBarma, Tarun Kanti had written, on 12/17/2010 02:22 AM, the following:
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> Sent: Thursday, December 16, 2010 10:39 PM
->> To: Belisko Marek
->> Cc: DebBarma, Tarun Kanti; linux-omap@vger.kernel.org
->> Subject: Re: [OMAP 1710] Mainline Broken
+On Thu, Dec 16, 2010 at 11:47 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Hi Govindraj,
+>
+> "Raja, Govindraj" <govindraj.raja@ti.com> writes:
+>
+>> On Wed, Dec 15, 2010 at 9:42 PM, Kevin Hilman <khilman@deeprootsyste=
+ms.com>
+>> wrote:
 >>
->> Belisko Marek <marek.belisko@gmail.com> writes:
+>> =A0 =A0 "Govindraj.R" <govindraj.raja@ti.com> writes:
 >>
->>> Hi,
->>>
->>> On Thu, Dec 16, 2010 at 4:30 PM, DebBarma, Tarun Kanti
->>> <tarun.kanti@ti.com> wrote:
->>>> Did anyone observe this? I am using omap_generic_1710_defconfig
->>>>
->>>> [...]
->>>> input: omap-keypad as /devices/platform/omap-keypad/input/input0
->>>> TCP cubic registered
->>>> NET: Registered protocol family 17
->>>> Registering the dns_resolver key type
->>>> eth0: link up
->>>> IP-Config: Complete:
->>>>     device=eth0, addr=172.24.191.106, mask=255.255.252.0,
->> gw=172.24.188.1,
->>>>     host=myomap, domain=, nis-domain=(none),
->>>>     bootserver=172.24.191.66, rootserver=172.24.191.66, rootpath=
->>>> VFS: Mounted root (nfs filesystem) on device 0:10.
->>>> Freeing init memory: 128K
->>>> Kernel panic - not syncing: Attempted to kill init!
->>> Seems your userspace is broken. Try add user_debug=31 to command line
->>> to see what exactly happens.
->> Looks like you're mounting an NFS rootfs.  Was it compiled for armv5?
->> My hunch would be you're trying to run an armv6/armv7 userspace on the
->> 1710 which is armv5.
+>> =A0 =A0 > Changes invloves:
+>> =A0 =A0 > ----------------
+>> =A0 =A0 > 1) Addition of hwmod data for omap2/3/4.
+>> =A0 =A0 > 1) McSPI driver hwmod adaptation with cleanup of base addr=
+ess
+>> =A0 =A0 > =A0 =A0macros and using omap-device API's.
+>> =A0 =A0 > 2) Runtime Conversion of McSPI driver
+>> =A0 =A0 >
+>> =A0 =A0 > Changes from v1:
+>> =A0 =A0 > ---------------
+>> =A0 =A0 > 1) Fixing patch 5/5 comments for hwmod+runtime
+>> =A0 =A0 > =A0 =A0Split the patch 5/5 to hwmod adaptation
+>> =A0 =A0 > =A0 =A0and then runtime conversion
+>> =A0 =A0 > =A0 =A0http://www.mail-archive.com/linux-omap@vger.kernel.=
+org/msg33387.html
+>> =A0 =A0 >
+>> =A0 =A0 > Testing Updates:
+>> =A0 =A0 > ----------------
+>> =A0 =A0 > Was tested using data transfer test module available at:
+>> =A0 =A0 > http://dev.omapzoom.org/?p=3Dricho/device_driver_test.git;=
+a=3Dblob;f=3Dmcspi/
+>> =A0 =A0 test_code/
+>> =A0 =A0 > utils/mcspi_modules/omap_mcspi_datatest.c;
+>> =A0 =A0 > h=3De42ec10c5c844abdde6a7175a268b379fbbdb655;
+>> =A0 =A0 > hb=3D5d9a755d50e58de861c5e8991f2f607bc49b5dc3
 >>
->> To get more debugging, ensure these are enabled in your defconfig:
+>> =A0 =A0 Can you summarize what this test does?
 >>
->> CONFIG_DEBUG_BUGVERBOSE=y
->> CONFIG_DEBUG_USER=y
->> CONFIG_DEBUG_ERRORS=y
+>> =A0 =A0 On what platforms was this tested?
 >>
->> and in addition to cmdline suggested by Marek, add user_debug=0xf
+>> =A0 =A0 How was it tested for OMAP1 and OMAP2?
 >>
->> This will give verbose output for userspace exceptions as well and
->> possibly confirm my hunch.
 >>
->> Kevin
-> 
-> I checked .config and it shows: CONFIG_CPU_32v5=y
-> 
-> With regard to additional log here they are!!
-> 
-> [...]
-> [1] init: obsolete system call 00000000.
-> Code: e08f1001 e1a0c000 e3a0702d ef000000 (e3700a01)
-> Kernel panic - not syncing: Attempted to kill init!
-> Backtrace:
-> [...]
-I wonder if the age old
-http://linux.omap.com/pub/documentation/Howto_build_Linux_on_H3.pdf
-and
-http://linux.omap.com/pub/filesystem/ might help?
+>>
+>> Using the above mentioned test module we had done some
+>> data transfer tests.
+>> Platforms used used where :
+>> 1) OMAP2430 SDP.
+>> 2) OMAP3 (ZOOM boards zoom2/3).
+>> 3) OMAP4430 SDP [ Here even basic=A0Ethernet=A0functionality=A0was c=
+hecked which is
+>> over SPI interface]
+>
+> Can you describe a little more about the testing please? =A0What exac=
+tly
+> does the data transfer test do? =A0Is it a loopback test? =A0Does it =
+use
+> on-board SPI peripherals? =A0If so, which ones, etc.
+>
+
+Yes its an loopback test based on SPI interface available from
+development board expansion connector.
+
+MISO <---> MOSI [Loopback test]
+
+So basically looking into the Board schematics we decide
+which SPI interface is available on the board expansion connector
+and use SPI interface available.
+
+On zoom boards SPI3 was available on expansion connector
+and same was used. On 4430SDP SPI2 interface was used.
+On 2430SDP SPI2.
+
+Also for testing, spi_board_info was populated in board file
+and spi_register_board_info was done, here bus info was populated
+based on spi bus available on the board. In spi_board_info structure
+we initialize spi_bus and name as spitst and speed and chip-select
+later once test module is loaded word-length, speed etc is modified
+from proc interface available from the test module and data test
+is done.
+
+--
+Thanks,
+Govindraj.R
 
 
--- 
-Regards,
-Nishanth Menon
+>> We boot tested on 2420/n800.
+>>
+>> Coming to omap1,
+>>
+>> This driver[omap2_mcspi.c] is applicable only from omap2_plus
+>> for omap1=A0omap_uwire.c is the spi driver file.
+>
+> OK, thanks for clarification.
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
