@@ -1,101 +1,46 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCHv5 00/10] OMAP: Adding Smartreflex and Voltage driver support
-Date: Fri, 17 Dec 2010 12:13:03 +0530
-Message-ID: <9ff73171b066b99cc1ed88fded3e581b@mail.gmail.com>
-References: <1292004181-4804-1-git-send-email-thara@ti.com> <8739px9oe8.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:33481 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752478Ab0LQGnG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Dec 2010 01:43:06 -0500
-Received: by mail-fx0-f54.google.com with SMTP id 16so313514fxm.41
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 22:43:05 -0800 (PST)
-In-Reply-To: <8739px9oe8.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 0/2] OMAP_VOUT: Allow omap_vout to build without VRFB
+Date: Fri, 17 Dec 2010 12:13:26 +0530
+Message-ID: <1292568208-16049-1-git-send-email-archit@ti.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>, Anand Sawant <sawant@ti.com>, Nishanth Menon <nm@ti.com>
 
-Kevin,
+Introduce omap_vout_vrfb.c and omap_vout_vrfb.h, for all VRFB related API's,
+making OMAP_VOUT driver independent from VRFB. This is required for OMAP4 DSS,
+since OMAP4 doesn't have VRFB block.
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Friday, December 17, 2010 7:01 AM
-> To: Thara Gopinath
-> Cc: linux-omap@vger.kernel.org; paul@pwsan.com; b-cousson@ti.com;
-> vishwanath.bs@ti.com; sawant@ti.com; nm@ti.com
-> Subject: Re: [PATCHv5 00/10] OMAP: Adding Smartreflex and Voltage
-> driver support
->
-> Hi Thara,
->
-> Thara Gopinath <thara@ti.com> writes:
->
-> > This patch series introduces smartreflex and voltage driver support
-> > for OMAP3430 and OMAP3630. SmartReflex modules do adaptive
-> voltage
-> > control for real-time voltage adjustments.
->
->
-> [...]
->
-> > This patch series has been tested on OMAP3430 SDP with
-> omap2plus_defconfig
-> > with the following menuconfig options enabled.
->
-> Any testing on 3630?
-I tested this on ZOOM3 and it works fine.
+A new enum called vout_rotation_type is introduced to differentiate between no
+rotation and vrfb rotation. A member rotation_type is introduced in omapvideo_info,
+this allows to call vrfb specific functions only if the rotation type is VOUT_ROT_VRFB
+When the rotation_type is set to VOUT_ROT_NONE, the S_CTRL ioctl prevents the user setting
+a non zero rotation or non zero mirror value.
 
-Vishwa
->
-> > System type -> TI OMAP Implementations -> Smartreflex Support
-> > System type -> TI OMAP Implementations ->
-> >                 Class 3 mode of Smartreflex Implementation
-> >
-> > Major Changes in v5
-> >
-> > 	- Rebased to k.org 2.6.37-rc3
-> > 	- Rebased to Nishant Menon's latest opp patches
-> > 	- Voltage pmic info structure extended to include a
-> > 		vast set of PMIC dependent parameters.
-> > 	- Smartreflex software n-target values support
-> > 		removed from the kernel. Instead n-target
-> > 		values are exposed as debugfs entries which can
-> > 		be written into by the user if needed.
-> > 	- Introduced a new file arch/arm/mach-omap2/omap_twl.c
-> > 		for specifying OMAP and TWL related info for
-> > 		the voltage layer.
-> > 	- Remove default enabling of smartreflex autocompensation
-> > 		during boot on OMAP3430 ES3.1 chips. Instead
-> > 		an API is provided that can be called from
-> > 		board files in case autocompensation needs
-> > 		to be enabled during boot up itself.
-> > 	- Other review comments on v4
-> >
-> >
->
-> This series is looking good.  I have a couple minor comments on specific
-> patches.
->
-> Also, it needs (hopefully only) one more rebase/repost.
->
-> First, a few things have changed at the PRCM API level that need to be
-> updated.  I have a untested patch (below) that should fix this for you,
-> that you'll need to split and apply to the OMAP3 and OMAP4 voltage
-> driver patches.
->
-> To test with those changes, you can rebase onto my pm-core branch,
-> which
-> contains not only the PRCM API changes, but also Nishanth's latest OPP
-> branch, and several other clock, hwmod, PM core changes queued for
-> 2.6.38
->
-> Second, please also Cc the linux-arm-kernel mailing list, so if/when we
-> merge this into linux-omap, it doesn't need a last minute repost.
->
-> Thanks,
->
-> Kevin
+Archit Taneja (2):
+  OMAP_VOUT: CLEANUP: Move some functions and macros from omap_vout
+  OMAP_VOUT: Create separate file for VRFB related API's
+
+ drivers/media/video/omap/Kconfig          |    2 +-
+ drivers/media/video/omap/Makefile         |    1 +
+ drivers/media/video/omap/omap_vout.c      |  566 +++++------------------------
+ drivers/media/video/omap/omap_vout_vrfb.c |  390 ++++++++++++++++++++
+ drivers/media/video/omap/omap_vout_vrfb.h |   40 ++
+ drivers/media/video/omap/omap_voutdef.h   |   78 ++++
+ drivers/media/video/omap/omap_voutlib.c   |   44 +++
+ drivers/media/video/omap/omap_voutlib.h   |    2 +
+ 8 files changed, 640 insertions(+), 483 deletions(-)
+ create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
+ create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
+--
+Version 4:
+ - Some minor fixes, renaming of git commits, patches 2 and 3 merged into 1.
+Version 3:
+ - Introduce a new enum at V4L2 driver level which cleanly differentiates
+   between vrfb rotation and no rotation, incorporate comments given for v2
+Version 2:
+ - Don't try to enable SDRAM rotation , return an error if non zero rotation
+   is attempted when rotation_type is set to SDMA rotation.
+Version 1:
+   http://www.mail-archive.com/linux-media@vger.kernel.org/msg21937.html
