@@ -1,400 +1,225 @@
 From: Armando Uribe <x0095078@ti.com>
-Subject: [PATCH 5/5] staging:tidspbridge -  Remove trivial header files
-Date: Thu, 16 Dec 2010 19:18:33 -0600
-Message-ID: <1292548713-27061-6-git-send-email-x0095078@ti.com>
+Subject: [PATCH 3/5] staging:tidspbridge - Remove unused structs
+Date: Thu, 16 Dec 2010 19:18:31 -0600
+Message-ID: <1292548713-27061-4-git-send-email-x0095078@ti.com>
 References: <1292548713-27061-1-git-send-email-x0095078@ti.com>
  <1292548713-27061-2-git-send-email-x0095078@ti.com>
  <1292548713-27061-3-git-send-email-x0095078@ti.com>
- <1292548713-27061-4-git-send-email-x0095078@ti.com>
- <1292548713-27061-5-git-send-email-x0095078@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:56648 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755594Ab0LQBEs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Dec 2010 20:04:48 -0500
-In-Reply-To: <1292548713-27061-5-git-send-email-x0095078@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1292548713-27061-3-git-send-email-x0095078@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: omar.ramirez@ti.com
 Cc: x0095078@ti.com, ohad@wizery.com, felipe.contreras@gmail.com, rene.sapiens@ti.com, nm@ti.com, ernesto@ti.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Remove the header files that contains few declarations
-and can be merged onto more generic headers.
+Remove unused structs and its dependencies, like references
+in other structs or as arguments of certain functions.
 
 Signed-off-by: Armando Uribe <x0095078@ti.com>
 ---
- drivers/staging/tidspbridge/core/tiomap3430_pwr.c  |    4 +-
- .../tidspbridge/include/dspbridge/dehdefs.h        |   31 -----------------
- .../staging/tidspbridge/include/dspbridge/dev.h    |    4 +-
- .../staging/tidspbridge/include/dspbridge/disp.h   |   15 ++++++++-
- .../tidspbridge/include/dspbridge/dispdefs.h       |   35 --------------------
- .../staging/tidspbridge/include/dspbridge/drv.h    |    4 ++-
- .../tidspbridge/include/dspbridge/drvdefs.h        |   25 --------------
- .../tidspbridge/include/dspbridge/dspdefs.h        |    4 +-
- .../staging/tidspbridge/include/dspbridge/dspio.h  |    3 +-
- drivers/staging/tidspbridge/include/dspbridge/io.h |   13 +++++++-
- .../staging/tidspbridge/include/dspbridge/io_sm.h  |    7 +++-
- .../staging/tidspbridge/include/dspbridge/iodefs.h |   34 -------------------
- .../staging/tidspbridge/include/dspbridge/node.h   |    2 +-
- .../staging/tidspbridge/include/dspbridge/pwr.h    |    8 ++++-
- .../staging/tidspbridge/include/dspbridge/pwr_sh.h |   29 ----------------
- drivers/staging/tidspbridge/pmgr/io.c              |    1 -
- drivers/staging/tidspbridge/rmgr/drv_interface.c   |    1 -
- drivers/staging/tidspbridge/rmgr/node.c            |    1 -
- 18 files changed, 51 insertions(+), 170 deletions(-)
- delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/dehdefs.h
- delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/dispdefs.h
- delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/drvdefs.h
- delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/iodefs.h
- delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/pwr_sh.h
+ .../tidspbridge/include/dspbridge/cfgdefs.h        |    6 --
+ .../staging/tidspbridge/include/dspbridge/cod.h    |   10 +----
+ .../tidspbridge/include/dspbridge/dbldefs.h        |   49 --------------------
+ .../staging/tidspbridge/include/dspbridge/drv.h    |   14 ------
+ .../tidspbridge/include/dspbridge/dspapi-ioctl.h   |    8 ---
+ .../staging/tidspbridge/include/dspbridge/ldr.h    |   29 ------------
+ drivers/staging/tidspbridge/pmgr/cod.c             |   11 +----
+ drivers/staging/tidspbridge/pmgr/dev.c             |    8 +---
+ drivers/staging/tidspbridge/rmgr/dbdcd.c           |    2 +-
+ 9 files changed, 4 insertions(+), 133 deletions(-)
+ delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/ldr.h
 
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
-index fb9026e..8e2b50f 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
-@@ -29,13 +29,13 @@
- /*  ----------------------------------- Platform Manager */
- #include <dspbridge/brddefs.h>
- #include <dspbridge/dev.h>
--#include <dspbridge/iodefs.h>
-+#include <dspbridge/io.h>
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h b/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
+index c3f04f8..0589a0a 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
+@@ -58,10 +58,4 @@ struct cfg_hostres {
+ 	void __iomem *dw_dmmu_base;
+ };
  
- /* ------------------------------------ Hardware Abstraction Layer */
- #include <hw_defs.h>
- #include <hw_mmu.h>
- 
--#include <dspbridge/pwr_sh.h>
-+#include <dspbridge/pwr.h>
- 
- /*  ----------------------------------- Bridge Driver */
- #include <dspbridge/dspdeh.h>
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dehdefs.h b/drivers/staging/tidspbridge/include/dspbridge/dehdefs.h
-deleted file mode 100644
-index 5341471..0000000
---- a/drivers/staging/tidspbridge/include/dspbridge/dehdefs.h
-+++ /dev/null
-@@ -1,31 +0,0 @@
--/*
-- * dehdefs.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Definition for Bridge driver module DEH.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#ifndef DEHDEFS_
--#define DEHDEFS_
--
--#include <dspbridge/mbx_sh.h>	/* shared mailbox codes */
--
--/* DEH object manager */
--struct deh_mgr;
--
--/* Magic code used to determine if DSP signaled exception. */
--#define DEH_BASE        MBX_DEH_BASE
--#define DEH_LIMIT       MBX_DEH_LIMIT
--
--#endif /* _DEHDEFS_H */
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dev.h b/drivers/staging/tidspbridge/include/dspbridge/dev.h
-index 4d4196b..37d1fff 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/dev.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dev.h
-@@ -23,9 +23,9 @@
- #include <dspbridge/chnldefs.h>
- #include <dspbridge/cmm.h>
- #include <dspbridge/cod.h>
--#include <dspbridge/dehdefs.h>
-+#include <dspbridge/dspdeh.h>
- #include <dspbridge/nodedefs.h>
--#include <dspbridge/dispdefs.h>
-+#include <dspbridge/disp.h>
- #include <dspbridge/dspdefs.h>
- #include <dspbridge/dmm.h>
- #include <dspbridge/host_os.h>
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/disp.h b/drivers/staging/tidspbridge/include/dspbridge/disp.h
-index 82bf721..41738c5 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/disp.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/disp.h
-@@ -22,7 +22,20 @@
- #include <dspbridge/dbdefs.h>
- #include <dspbridge/nodedefs.h>
- #include <dspbridge/nodepriv.h>
--#include <dspbridge/dispdefs.h>
-+
-+struct disp_object;
-+
-+/* Node Dispatcher attributes */
-+struct disp_attr {
-+	u32 ul_chnl_offset;	/* Offset of channel ids reserved for RMS */
-+	/* Size of buffer for sending data to RMS */
-+	u32 ul_chnl_buf_size;
-+	int proc_family;	/* eg, 5000 */
-+	int proc_type;		/* eg, 5510 */
-+	void *reserved1;	/* Reserved for future use. */
-+	u32 reserved2;		/* Reserved for future use. */
-+};
-+
- 
- /*
-  *  ======== disp_create ========
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dispdefs.h b/drivers/staging/tidspbridge/include/dspbridge/dispdefs.h
-deleted file mode 100644
-index 946551a..0000000
---- a/drivers/staging/tidspbridge/include/dspbridge/dispdefs.h
-+++ /dev/null
-@@ -1,35 +0,0 @@
--/*
-- * dispdefs.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Global DISP constants and types, shared by PROCESSOR, NODE, and DISP.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#ifndef DISPDEFS_
--#define DISPDEFS_
--
--struct disp_object;
--
--/* Node Dispatcher attributes */
--struct disp_attr {
--	u32 ul_chnl_offset;	/* Offset of channel ids reserved for RMS */
--	/* Size of buffer for sending data to RMS */
--	u32 ul_chnl_buf_size;
--	int proc_family;	/* eg, 5000 */
--	int proc_type;		/* eg, 5510 */
--	void *reserved1;	/* Reserved for future use. */
--	u32 reserved2;		/* Reserved for future use. */
+-struct cfg_dspmemdesc {
+-	u32 mem_type;		/* Type of memory. */
+-	u32 ul_min;		/* Minimum amount of memory of this type. */
+-	u32 ul_max;		/* Maximum amount of memory of this type. */
 -};
 -
--#endif /* DISPDEFS_ */
+ #endif /* CFGDEFS_ */
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/cod.h b/drivers/staging/tidspbridge/include/dspbridge/cod.h
+index 5efea91..53bd4bb 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/cod.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/cod.h
+@@ -37,11 +37,6 @@ struct cod_manager;
+ /* COD library handle */
+ struct cod_libraryobj;
+ 
+-/* COD attributes */
+-struct cod_attrs {
+-	u32 ul_reserved;
+-};
+-
+ /*
+  *  Function prototypes for writing memory to a DSP system, allocating
+  *  and freeing DSP memory.
+@@ -76,8 +71,6 @@ extern void cod_close(struct cod_libraryobj *lib);
+  *  Parameters:
+  *      manager:        created manager object
+  *      str_zl_file:    ZL DLL filename, of length < COD_MAXPATHLENGTH.
+- *      attrs:          attributes to be used by this object. A NULL value
+- *                      will cause default attrs to be used.
+  *  Returns:
+  *      0:                Success.
+  *      -ESPIPE:   ZL_Create failed.
+@@ -89,8 +82,7 @@ extern void cod_close(struct cod_libraryobj *lib);
+  *  Ensures:
+  */
+ extern int cod_create(struct cod_manager **mgr,
+-			     char *str_zl_file,
+-			     const struct cod_attrs *attrs);
++			     char *str_zl_file);
+ 
+ /*
+  *  ======== cod_delete ========
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dbldefs.h b/drivers/staging/tidspbridge/include/dspbridge/dbldefs.h
+index 9973098..5cf9dad 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dbldefs.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dbldefs.h
+@@ -25,26 +25,6 @@
+ typedef s32 dbl_flags;
+ 
+ /*
+- *  ======== dbl_sect_info ========
+- *  For collecting info on overlay sections
+- */
+-struct dbl_sect_info {
+-	const char *name;	/* name of section */
+-	u32 sect_run_addr;	/* run address of section */
+-	u32 sect_load_addr;	/* load address of section */
+-	u32 size;		/* size of section (target MAUs) */
+-	dbl_flags type;		/* Code, data, or BSS */
+-};
+-
+-/*
+- *  ======== dbl_symbol ========
+- *  (Needed for dynamic load library)
+- */
+-struct dbl_symbol {
+-	u32 value;
+-};
+-
+-/*
+  *  ======== dbl_alloc_fxn ========
+  *  Allocate memory function.  Allocate or reserve (if reserved == TRUE)
+  *  "size" bytes of memory from segment "space" and return the address in
+@@ -98,33 +78,4 @@ typedef bool(*dbl_sym_lookup) (void *handle, void *parg, void *rmm_handle,
+ typedef s32(*dbl_write_fxn) (void *hdl, u32 dsp_address, void *buf,
+ 			     u32 n, s32 mtype);
+ 
+-/*
+- *  ======== dbl_attrs ========
+- */
+-struct dbl_attrs {
+-	dbl_alloc_fxn alloc;
+-	dbl_free_fxn free;
+-	void *rmm_handle;	/* Handle to pass to alloc, free functions */
+-	dbl_write_fxn write;
+-	void *input_params;	/* Handle to pass to write, cinit function */
+-
+-	dbl_log_write_fxn log_write;
+-	void *log_write_handle;
+-
+-	/* Symbol matching function and handle to pass to it */
+-	dbl_sym_lookup sym_lookup;
+-	void *sym_handle;
+-	void *sym_arg;
+-
+-	/*
+-	 *  These file manipulation functions should be compatible with the
+-	 *  "C" run time library functions of the same name.
+-	 */
+-	 s32(*fread) (void *, size_t, size_t, void *);
+-	 s32(*fseek) (void *, long, int);
+-	 s32(*ftell) (void *);
+-	 s32(*fclose) (void *);
+-	void *(*fopen) (const char *, const char *);
+-};
+-
+ #endif /* DBLDEFS_ */
 diff --git a/drivers/staging/tidspbridge/include/dspbridge/drv.h b/drivers/staging/tidspbridge/include/dspbridge/drv.h
-index 26972ad..bcb2817 100644
+index adb28ec..26972ad 100644
 --- a/drivers/staging/tidspbridge/include/dspbridge/drv.h
 +++ b/drivers/staging/tidspbridge/include/dspbridge/drv.h
-@@ -23,9 +23,11 @@
+@@ -96,17 +96,6 @@ struct dmm_rsv_object {
+ 	u32 dsp_reserved_addr;
+ };
  
- #include <dspbridge/devdefs.h>
- 
--#include <dspbridge/drvdefs.h>
- #include <linux/idr.h>
- 
-+/* Bridge Driver Object */
-+struct drv_object;
-+
- /* Provide the DSP Internal memory windows that can be accessed from L3 address
-  * space */
- 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/drvdefs.h b/drivers/staging/tidspbridge/include/dspbridge/drvdefs.h
-deleted file mode 100644
-index 2920917..0000000
---- a/drivers/staging/tidspbridge/include/dspbridge/drvdefs.h
-+++ /dev/null
-@@ -1,25 +0,0 @@
--/*
-- * drvdefs.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Definition of common struct between dspdefs.h and drv.h.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#ifndef DRVDEFS_
--#define DRVDEFS_
--
--/* Bridge Driver Object */
--struct drv_object;
--
--#endif /* DRVDEFS_ */
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h b/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
-index 2acbbb3..4eaeb21 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
-@@ -32,9 +32,9 @@
- #include <dspbridge/brddefs.h>
- #include <dspbridge/cfgdefs.h>
- #include <dspbridge/chnlpriv.h>
--#include <dspbridge/dehdefs.h>
-+#include <dspbridge/dspdeh.h>
- #include <dspbridge/devdefs.h>
--#include <dspbridge/iodefs.h>
-+#include <dspbridge/io.h>
- #include <dspbridge/msgdefs.h>
- 
- /* Handle to Bridge driver's private device context. */
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspio.h b/drivers/staging/tidspbridge/include/dspbridge/dspio.h
-index 5c666b8..66b64fa 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/dspio.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dspio.h
-@@ -24,7 +24,8 @@
- #define DSPIO_
- 
- #include <dspbridge/devdefs.h>
--#include <dspbridge/iodefs.h>
-+#include <dspbridge/io.h>
-+
- 
- extern int bridge_io_create(struct io_mgr **io_man,
- 				   struct dev_object *hdev_obj,
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/io.h b/drivers/staging/tidspbridge/include/dspbridge/io.h
-index da4683c..9615980 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/io.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/io.h
-@@ -22,7 +22,18 @@
- #include <dspbridge/cfgdefs.h>
- #include <dspbridge/devdefs.h>
- 
--#include <dspbridge/iodefs.h>
-+/* IO Objects: */
-+struct io_mgr;
-+
-+/* IO manager attributes: */
-+struct io_attrs {
-+	u8 birq;		/* Channel's I/O IRQ number. */
-+	bool irq_shared;	/* TRUE if the IRQ is shareable. */
-+	u32 word_size;		/* DSP Word size. */
-+	u32 shm_base;		/* Physical base address of shared memory. */
-+	u32 usm_length;		/* Size (in bytes) of shared memory. */
-+};
-+
- 
- /*
-  *  ======== io_create ========
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/io_sm.h b/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
-index 8778ab4..6d26472 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
-@@ -23,7 +23,12 @@
- #include <dspbridge/_chnl_sm.h>
- #include <dspbridge/host_os.h>
- 
--#include <dspbridge/iodefs.h>
-+#include <dspbridge/io.h>
-+#include <dspbridge/mbx_sh.h>	/* shared mailbox codes */
-+
-+/* Magic code used to determine if DSP signaled exception. */
-+#define DEH_BASE        MBX_DEH_BASE
-+#define DEH_LIMIT       MBX_DEH_LIMIT
- 
- #define IO_INPUT            0
- #define IO_OUTPUT           1
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/iodefs.h b/drivers/staging/tidspbridge/include/dspbridge/iodefs.h
-deleted file mode 100644
-index 31cbc9a..0000000
---- a/drivers/staging/tidspbridge/include/dspbridge/iodefs.h
-+++ /dev/null
-@@ -1,34 +0,0 @@
--/*
-- * iodefs.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * System-wide channel objects and constants.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#ifndef IODEFS_
--#define IODEFS_
--
--/* IO Objects: */
--struct io_mgr;
--
--/* IO manager attributes: */
--struct io_attrs {
--	u8 birq;		/* Channel's I/O IRQ number. */
--	bool irq_shared;	/* TRUE if the IRQ is shareable. */
--	u32 word_size;		/* DSP Word size. */
--	u32 shm_base;		/* Physical base address of shared memory. */
--	u32 usm_length;		/* Size (in bytes) of shared memory. */
+-/* New structure (member of process context) abstracts DMM resource info */
+-struct dspheap_res_object {
+-	s32 heap_allocated;	/* DMM status */
+-	u32 ul_mpu_addr;
+-	u32 ul_dsp_addr;
+-	u32 ul_dsp_res_addr;
+-	u32 heap_size;
+-	void *hprocessor;
+-	struct dspheap_res_object *next;
 -};
 -
--#endif /* IODEFS_ */
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/node.h b/drivers/staging/tidspbridge/include/dspbridge/node.h
-index 4c5558c..63739c8 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/node.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/node.h
-@@ -22,7 +22,7 @@
- #include <dspbridge/procpriv.h>
+ /* New structure (member of process context) abstracts stream resource info */
+ struct strm_res_object {
+ 	s32 stream_allocated;	/* Stream status */
+@@ -151,9 +140,6 @@ struct process_context {
+ 	struct list_head dmm_rsv_list;
+ 	spinlock_t dmm_rsv_lock;
  
- #include <dspbridge/nodedefs.h>
--#include <dspbridge/dispdefs.h>
-+#include <dspbridge/disp.h>
- #include <dspbridge/nldrdefs.h>
- #include <dspbridge/drv.h>
+-	/* DSP Heap resources */
+-	struct dspheap_res_object *pdspheap_list;
+-
+ 	/* Stream resources */
+ 	struct idr *stream_id;
+ };
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h b/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h
+index 8da5bd8..8ad9ace 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h
+@@ -120,10 +120,6 @@ union trapped_args {
  
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/pwr.h b/drivers/staging/tidspbridge/include/dspbridge/pwr.h
-index a6dc783..5e3ab21 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/pwr.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/pwr.h
-@@ -18,7 +18,13 @@
- #define PWR_
+ 	struct {
+ 		void *hprocessor;
+-	} args_proc_start;
+-
+-	struct {
+-		void *hprocessor;
+ 		u32 ul_size;
+ 		void *__user *pp_rsv_addr;
+ 	} args_proc_rsvmem;
+@@ -165,10 +161,6 @@ union trapped_args {
  
- #include <dspbridge/dbdefs.h>
--#include <dspbridge/pwr_sh.h>
-+#include <dspbridge/mbx_sh.h>
-+
-+/* valid sleep command codes that can be sent by GPP via mailbox: */
-+#define PWR_DEEPSLEEP           MBX_PM_DSPIDLE
-+#define PWR_EMERGENCYDEEPSLEEP  MBX_PM_EMERGENCYSLEEP
-+#define PWR_WAKEUP              MBX_PM_DSPWAKEUP
-+
- 
- /*
-  *  ======== pwr_sleep_dsp ========
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/pwr_sh.h b/drivers/staging/tidspbridge/include/dspbridge/pwr_sh.h
+ 	struct {
+ 		void *hprocessor;
+-	} args_proc_stop;
+-
+-	struct {
+-		void *hprocessor;
+ 		void *pmpu_addr;
+ 		u32 ul_size;
+ 	} args_proc_invalidatememory;
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/ldr.h b/drivers/staging/tidspbridge/include/dspbridge/ldr.h
 deleted file mode 100644
-index c78a1b1..0000000
---- a/drivers/staging/tidspbridge/include/dspbridge/pwr_sh.h
+index 6a0269c..0000000
+--- a/drivers/staging/tidspbridge/include/dspbridge/ldr.h
 +++ /dev/null
 @@ -1,29 +0,0 @@
 -/*
-- * pwr_sh.h
+- * ldr.h
 - *
 - * DSP-BIOS Bridge driver support functions for TI OMAP processors.
 - *
-- * Power Manager shared definitions (used on both GPP and DSP sides).
+- * Provide module loading services and symbol export services.
 - *
-- * Copyright (C) 2008 Texas Instruments, Inc.
+- * Notes:
+- *   This service is meant to be used by modules of the DSP/BIOS Bridge
+- *   driver.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
 - *
 - * This package is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
@@ -405,53 +230,115 @@ index c78a1b1..0000000
 - * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 - */
 -
--#ifndef PWR_SH_
--#define PWR_SH_
+-#ifndef LDR_
+-#define LDR_
 -
--#include <dspbridge/mbx_sh.h>
+-/* Loader objects: */
+-struct ldr_module;
 -
--/* valid sleep command codes that can be sent by GPP via mailbox: */
--#define PWR_DEEPSLEEP           MBX_PM_DSPIDLE
--#define PWR_EMERGENCYDEEPSLEEP  MBX_PM_EMERGENCYSLEEP
--#define PWR_WAKEUP              MBX_PM_DSPWAKEUP
--
--#endif /* PWR_SH_ */
-diff --git a/drivers/staging/tidspbridge/pmgr/io.c b/drivers/staging/tidspbridge/pmgr/io.c
-index 20cbb9f..0e8843f 100644
---- a/drivers/staging/tidspbridge/pmgr/io.c
-+++ b/drivers/staging/tidspbridge/pmgr/io.c
-@@ -31,7 +31,6 @@
+-#endif /* LDR_ */
+diff --git a/drivers/staging/tidspbridge/pmgr/cod.c b/drivers/staging/tidspbridge/pmgr/cod.c
+index db29a19..17ea57d 100644
+--- a/drivers/staging/tidspbridge/pmgr/cod.c
++++ b/drivers/staging/tidspbridge/pmgr/cod.c
+@@ -33,9 +33,6 @@
+ /*  ----------------------------------- Trace & Debug */
+ #include <dspbridge/dbc.h>
  
- /*  ----------------------------------- This */
- #include <ioobj.h>
--#include <dspbridge/iodefs.h>
- #include <dspbridge/io.h>
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/ldr.h>
+-
+ /*  ----------------------------------- Platform Manager */
+ /* Include appropriate loader header file */
+ #include <dspbridge/dbll.h>
+@@ -51,7 +48,6 @@ struct cod_manager {
+ 	struct dbll_library_obj *base_lib;
+ 	bool loaded;		/* Base library loaded? */
+ 	u32 ul_entry;
+-	struct ldr_module *dll_obj;
+ 	struct dbll_fxns fxns;
+ 	struct dbll_attrs attrs;
+ 	char sz_zl_file[COD_MAXPATHLENGTH];
+@@ -206,8 +202,7 @@ void cod_close(struct cod_libraryobj *lib)
+  *      dynamically loaded object files.
+  *
+  */
+-int cod_create(struct cod_manager **mgr, char *str_zl_file,
+-		      const struct cod_attrs *attrs)
++int cod_create(struct cod_manager **mgr, char *str_zl_file)
+ {
+ 	struct cod_manager *mgr_new;
+ 	struct dbll_attrs zl_attrs;
+@@ -219,10 +214,6 @@ int cod_create(struct cod_manager **mgr, char *str_zl_file,
+ 	/* assume failure */
+ 	*mgr = NULL;
  
- /*  ----------------------------------- Globals */
-diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-index 324fcdf..c43c7e3 100644
---- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-@@ -59,7 +59,6 @@
- #include <dspbridge/chnl.h>
- #include <dspbridge/proc.h>
- #include <dspbridge/dev.h>
--#include <dspbridge/drvdefs.h>
+-	/* we don't support non-default attrs yet */
+-	if (attrs != NULL)
+-		return -ENOSYS;
+-
+ 	mgr_new = kzalloc(sizeof(struct cod_manager), GFP_KERNEL);
+ 	if (mgr_new == NULL)
+ 		return -ENOMEM;
+diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/tidspbridge/pmgr/dev.c
+index b95cd20..0f10a50 100644
+--- a/drivers/staging/tidspbridge/pmgr/dev.c
++++ b/drivers/staging/tidspbridge/pmgr/dev.c
+@@ -27,9 +27,6 @@
+ /*  ----------------------------------- Trace & Debug */
+ #include <dspbridge/dbc.h>
+ 
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/ldr.h>
+-
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/cod.h>
  #include <dspbridge/drv.h>
+@@ -75,7 +72,6 @@ struct dev_object {
+ 	struct io_mgr *hio_mgr;	/* IO manager (CHNL, msg_ctrl) */
+ 	struct cmm_object *hcmm_mgr;	/* SM memory manager. */
+ 	struct dmm_object *dmm_mgr;	/* Dynamic memory manager. */
+-	struct ldr_module *module_obj;	/* Bridge Module handle. */
+ 	u32 word_size;		/* DSP word size: quick access. */
+ 	struct drv_object *hdrv_obj;	/* Driver Object */
+ 	/* List of Processors attached to this device */
+@@ -139,7 +135,6 @@ int dev_create_device(struct dev_object **device_obj,
+ 			     struct cfg_devnode *dev_node_obj)
+ {
+ 	struct cfg_hostres *host_res;
+-	struct ldr_module *module_obj = NULL;
+ 	struct bridge_drv_interface *drv_fxns = NULL;
+ 	struct dev_object *dev_obj = NULL;
+ 	struct chnl_mgrattrs mgr_attrs;
+@@ -179,7 +174,6 @@ int dev_create_device(struct dev_object **device_obj,
+ 		if (dev_obj) {
+ 			/* Fill out the rest of the Dev Object structure: */
+ 			dev_obj->dev_node_obj = dev_node_obj;
+-			dev_obj->module_obj = module_obj;
+ 			dev_obj->cod_mgr = NULL;
+ 			dev_obj->hchnl_mgr = NULL;
+ 			dev_obj->hdeh_mgr = NULL;
+@@ -953,7 +947,7 @@ static int init_cod_mgr(struct dev_object *dev_obj)
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(!dev_obj || (dev_obj->cod_mgr == NULL));
  
- #ifdef CONFIG_TIDSPBRIDGE_DVFS
-diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
-index 62d5c31..9472729 100644
---- a/drivers/staging/tidspbridge/rmgr/node.c
-+++ b/drivers/staging/tidspbridge/rmgr/node.c
-@@ -64,7 +64,6 @@
- #include <dspbridge/nldr.h>
+-	status = cod_create(&dev_obj->cod_mgr, sz_dummy_file, NULL);
++	status = cod_create(&dev_obj->cod_mgr, sz_dummy_file);
  
- #include <dspbridge/drv.h>
--#include <dspbridge/drvdefs.h>
- #include <dspbridge/resourcecleanup.h>
- #include <_tiomap.h>
+ 	return status;
+ }
+diff --git a/drivers/staging/tidspbridge/rmgr/dbdcd.c b/drivers/staging/tidspbridge/rmgr/dbdcd.c
+index 3581a55..f01cf07 100644
+--- a/drivers/staging/tidspbridge/rmgr/dbdcd.c
++++ b/drivers/staging/tidspbridge/rmgr/dbdcd.c
+@@ -134,7 +134,7 @@ int dcd_create_manager(char *sz_zl_dll_name,
+ 	DBC_REQUIRE(refs >= 0);
+ 	DBC_REQUIRE(dcd_mgr);
+ 
+-	status = cod_create(&cod_mgr, sz_zl_dll_name, NULL);
++	status = cod_create(&cod_mgr, sz_zl_dll_name);
+ 	if (status)
+ 		goto func_end;
  
 -- 
 1.6.3.3
-
