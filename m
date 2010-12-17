@@ -1,124 +1,204 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/7] OMAP3: remove hardcoded values from the ASM sleep
- code
-Date: Fri, 17 Dec 2010 07:51:48 -0600
-Message-ID: <4D0B6AF4.1050600@ti.com>
-References: <1292580506-4421-1-git-send-email-j-pihet@ti.com> <1292580506-4421-4-git-send-email-j-pihet@ti.com>
+Subject: Re: [PATCH 4/7] OMAP3: re-organize the ASM sleep code
+Date: Fri, 17 Dec 2010 08:05:22 -0600
+Message-ID: <4D0B6E22.7000902@ti.com>
+References: <1292580506-4421-1-git-send-email-j-pihet@ti.com> <1292580506-4421-5-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:60265 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754272Ab0LQNvx (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:39894 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754731Ab0LQOF1 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Dec 2010 08:51:53 -0500
-Received: by yxt33 with SMTP id 33so326196yxt.17
-        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 05:51:52 -0800 (PST)
-In-Reply-To: <1292580506-4421-4-git-send-email-j-pihet@ti.com>
+	Fri, 17 Dec 2010 09:05:27 -0500
+Received: by mail-gw0-f41.google.com with SMTP id 22so389486gwj.14
+        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 06:05:26 -0800 (PST)
+In-Reply-To: <1292580506-4421-5-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: jean.pihet@newoldbits.com
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
 jean.pihet@newoldbits.com had written, on 12/17/2010 04:08 AM, the 
 following:
 > From: Jean Pihet <j-pihet@ti.com>
 > 
-> Using macros from existing include files for registers addresses.
+> Organize the code in the following sections:
+> - register access macros,
+> - API functions,
+> - internal functions.
 > 
 > Tested on N900 and Beagleboard with full RET and OFF modes,
 > using cpuidle and suspend.
 > 
-> Based on original patch from Vishwa.
-> 
 > Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> Cc: Vishwanath BS <vishwanath.bs@ti.com>
 > ---
->  arch/arm/mach-omap2/control.h   |    2 ++
->  arch/arm/mach-omap2/sleep34xx.S |   29 ++++++++++++++++++-----------
->  2 files changed, 20 insertions(+), 11 deletions(-)
+>  arch/arm/mach-omap2/sleep34xx.S |  114 +++++++++++++++++++++------------------
+>  1 files changed, 61 insertions(+), 53 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-> index d7911c5..72efefb 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -274,6 +274,8 @@
->  #define OMAP343X_SCRATCHPAD_ROM		(OMAP343X_CTRL_BASE + 0x860)
->  #define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
->  #define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
-> +#define OMAP343X_SCRATCHPAD_REGADDR(reg)	OMAP2_L4_IO_ADDRESS(\
-> +						OMAP343X_SCRATCHPAD + reg)
-+ (reg)) please. I am not convinced that we should call this REGADDR 
-though scratchpad region in DDR is still DDR, not a register.
-
->  
->  /* AM35XX_CONTROL_IPSS_CLK_CTRL bits */
->  #define AM35XX_USBOTG_VBUSP_CLK_SHIFT   0
 > diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-> index 406cd2a..8e9f38f 100644
+> index 8e9f38f..beeb682 100644
 > --- a/arch/arm/mach-omap2/sleep34xx.S
 > +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -34,20 +34,27 @@
->  #include "sdrc.h"
->  #include "control.h"
->  
-> -#define SDRC_SCRATCHPAD_SEM_V	0xfa00291c
-> -
-> -#define PM_PREPWSTST_CORE_P	0x48306AE8
-> +/*
-> + * Registers access definitions
-> + */
-err.. technically sdrc scratchpad is not really a register ;) nor is 
-sram_base ;)
-> +#define SDRC_SCRATCHPAD_SEM_OFFS	0xc
-> +#define SDRC_SCRATCHPAD_SEM_V	OMAP343X_SCRATCHPAD_REGADDR\
-> +					(SDRC_SCRATCHPAD_SEM_OFFS)
-> +#define PM_PREPWSTST_CORE_P	OMAP3430_PRM_BASE + CORE_MOD +\
-> +					OMAP3430_PM_PREPWSTST
-please use () for wrapping up a macro with multiple defines.
-
->  #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + OMAP2_PM_PWSTCTRL
->  #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
->  #define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
-> -#define SRAM_BASE_P		0x40200000
-> -#define CONTROL_STAT		0x480022F0
-> -#define CONTROL_MEM_RTA_CTRL	(OMAP343X_CTRL_BASE\
-> -					+ OMAP36XX_CONTROL_MEM_RTA_CTRL)
-not sure what changed here.
-> -#define SCRATCHPAD_MEM_OFFS	0x310 /* Move this as correct place is
-> -				       * available */
-this change I am guessing is a clean up of /* */ comment - might help if 
-you could do formatting changes in a single patch - easier to check if 
-there are functionality issues during reviews in the current patch that 
-way. my suggestion will be to do the functional changes first followed 
-by a formatting cleanup patch at the very end..
-
-> -#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE + OMAP343X_CONTROL_MEM_WKUP\
-> -						+ SCRATCHPAD_MEM_OFFS)
-again, not sure what changed here.
-> +#define SRAM_BASE_P		OMAP3_SRAM_PA
-Why not just replace the usage of SRAM_BASE_P with OMAP3_SRAM_PA?
-
-> +#define CONTROL_STAT		OMAP343X_CTRL_BASE + OMAP343X_CONTROL_STATUS
-> +#define CONTROL_MEM_RTA_CTRL	(OMAP343X_CTRL_BASE +\
-> +					OMAP36XX_CONTROL_MEM_RTA_CTRL)
+> @@ -79,6 +79,7 @@ ENTRY(get_restore_pointer)
+>          ldmfd   sp!, {pc}     @ restore regs and return
+>  ENTRY(get_restore_pointer_sz)
+>          .word   . - get_restore_pointer
 > +
-> +/* Move this as correct place is available */
-> +#define SCRATCHPAD_MEM_OFFS	0x310
-> +#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE +\
-> +					OMAP343X_CONTROL_MEM_WKUP +\
-> +					SCRATCHPAD_MEM_OFFS)
->  #define SDRC_POWER_V		OMAP34XX_SDRC_REGADDR(SDRC_POWER)
->  #define SDRC_SYSCONFIG_P	(OMAP343X_SDRC_BASE + SDRC_SYSCONFIG)
->  #define SDRC_MR_0_P		(OMAP343X_SDRC_BASE + SDRC_MR_0)
+formatting change - recommend a separate patch collating other 
+formatting changes from other patches as well.
+
+>  	.text
+>  /* Function call to get the restore pointer for 3630 resume from OFF */
+>  ENTRY(get_omap3630_restore_pointer)
+> @@ -89,9 +90,18 @@ ENTRY(get_omap3630_restore_pointer_sz)
+>          .word   . - get_omap3630_restore_pointer
+>  
+>  	.text
+> +/* Function call to get the restore pointer for ES3 to resume from OFF */
+> +ENTRY(get_es3_restore_pointer)
+> +	stmfd	sp!, {lr}	@ save registers on stack
+> +	adr	r0, restore_es3
+> +	ldmfd	sp!, {pc}	@ restore regs and return
+> +ENTRY(get_es3_restore_pointer_sz)
+> +	.word	. - get_es3_restore_pointer
+> +
+> +	.text
+btw, if you prefer me to introduce the enable_omap3630_l2_on_restore 
+toggle after get_es3_restore_pointer, I can do that.
+>  /*
+>   * L2 cache needs to be toggled for stable OFF mode functionality on 3630.
+> - * This function sets up a fflag that will allow for this toggling to take
+> + * This function sets up a flag that will allow for this toggling to take
+Thanks on the fflag/flag :) - but this probably belongs to my patch ;) 
+could you comment on my latest rev, I will fix it there.
+
+>   * place on 3630. Hopefully some version in the future maynot need this
+>   */
+>  ENTRY(enable_omap3630_toggle_l2_on_restore)
+> @@ -101,58 +111,6 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
+>  	str	r1, l2dis_3630
+>          ldmfd   sp!, {pc}     @ restore regs and return
+>  
+> -	.text
+> -/* Function call to get the restore pointer for for ES3 to resume from OFF */
+> -ENTRY(get_es3_restore_pointer)
+> -	stmfd	sp!, {lr}	@ save registers on stack
+> -	adr	r0, restore_es3
+> -	ldmfd	sp!, {pc}	@ restore regs and return
+> -ENTRY(get_es3_restore_pointer_sz)
+> -	.word	. - get_es3_restore_pointer
+> -
+> -ENTRY(es3_sdrc_fix)
+> -	ldr	r4, sdrc_syscfg		@ get config addr
+> -	ldr	r5, [r4]		@ get value
+> -	tst	r5, #0x100		@ is part access blocked
+> -	it	eq
+> -	biceq	r5, r5, #0x100		@ clear bit if set
+> -	str	r5, [r4]		@ write back change
+> -	ldr	r4, sdrc_mr_0		@ get config addr
+> -	ldr	r5, [r4]		@ get value
+> -	str	r5, [r4]		@ write back change
+> -	ldr	r4, sdrc_emr2_0		@ get config addr
+> -	ldr	r5, [r4]		@ get value
+> -	str	r5, [r4]		@ write back change
+> -	ldr	r4, sdrc_manual_0	@ get config addr
+> -	mov	r5, #0x2		@ autorefresh command
+> -	str	r5, [r4]		@ kick off refreshes
+> -	ldr	r4, sdrc_mr_1		@ get config addr
+> -	ldr	r5, [r4]		@ get value
+> -	str	r5, [r4]		@ write back change
+> -	ldr	r4, sdrc_emr2_1		@ get config addr
+> -	ldr	r5, [r4]		@ get value
+> -	str	r5, [r4]		@ write back change
+> -	ldr	r4, sdrc_manual_1	@ get config addr
+> -	mov	r5, #0x2		@ autorefresh command
+> -	str	r5, [r4]		@ kick off refreshes
+> -	bx	lr
+> -sdrc_syscfg:
+> -	.word	SDRC_SYSCONFIG_P
+> -sdrc_mr_0:
+> -	.word	SDRC_MR_0_P
+> -sdrc_emr2_0:
+> -	.word	SDRC_EMR2_0_P
+> -sdrc_manual_0:
+> -	.word	SDRC_MANUAL_0_P
+> -sdrc_mr_1:
+> -	.word	SDRC_MR_1_P
+> -sdrc_emr2_1:
+> -	.word	SDRC_EMR2_1_P
+> -sdrc_manual_1:
+> -	.word	SDRC_MANUAL_1_P
+> -ENTRY(es3_sdrc_fix_sz)
+> -	.word	. - es3_sdrc_fix
+> -
+>  /* Function to call rom code to save secure ram context */
+>  ENTRY(save_secure_ram_context)
+>  	stmfd	sp!, {r1-r12, lr}	@ save registers on stack
+> @@ -577,6 +535,56 @@ skip_l2_inval:
+>  	/* restore regs and return */
+>  	ldmfd   sp!, {r0-r12, pc}
+>  
+> +
+> +/*
+> + * Internal functions
+> + */
+> +
+> +	.text
+> +ENTRY(es3_sdrc_fix)
+> +	ldr	r4, sdrc_syscfg		@ get config addr
+> +	ldr	r5, [r4]		@ get value
+> +	tst	r5, #0x100		@ is part access blocked
+> +	it	eq
+> +	biceq	r5, r5, #0x100		@ clear bit if set
+> +	str	r5, [r4]		@ write back change
+> +	ldr	r4, sdrc_mr_0		@ get config addr
+> +	ldr	r5, [r4]		@ get value
+> +	str	r5, [r4]		@ write back change
+> +	ldr	r4, sdrc_emr2_0		@ get config addr
+> +	ldr	r5, [r4]		@ get value
+> +	str	r5, [r4]		@ write back change
+> +	ldr	r4, sdrc_manual_0	@ get config addr
+> +	mov	r5, #0x2		@ autorefresh command
+> +	str	r5, [r4]		@ kick off refreshes
+> +	ldr	r4, sdrc_mr_1		@ get config addr
+> +	ldr	r5, [r4]		@ get value
+> +	str	r5, [r4]		@ write back change
+> +	ldr	r4, sdrc_emr2_1		@ get config addr
+> +	ldr	r5, [r4]		@ get value
+> +	str	r5, [r4]		@ write back change
+> +	ldr	r4, sdrc_manual_1	@ get config addr
+> +	mov	r5, #0x2		@ autorefresh command
+> +	str	r5, [r4]		@ kick off refreshes
+> +	bx	lr
+> +
+> +sdrc_syscfg:
+> +	.word	SDRC_SYSCONFIG_P
+> +sdrc_mr_0:
+> +	.word	SDRC_MR_0_P
+> +sdrc_emr2_0:
+> +	.word	SDRC_EMR2_0_P
+> +sdrc_manual_0:
+> +	.word	SDRC_MANUAL_0_P
+> +sdrc_mr_1:
+> +	.word	SDRC_MR_1_P
+> +sdrc_emr2_1:
+> +	.word	SDRC_EMR2_1_P
+> +sdrc_manual_1:
+> +	.word	SDRC_MANUAL_1_P
+> +ENTRY(es3_sdrc_fix_sz)
+> +	.word	. - es3_sdrc_fix
+> +
+>  /* Make sure SDRC accesses are ok */
+>  wait_sdrc_ok:
+>  
 Tested-by: Nishanth Menon <nm@ti.com>
 Tested on:
 SDP3630
 SDP3430
 Test script:
 http://pastebin.mozilla.org/889933
-
 
 -- 
 Regards,
