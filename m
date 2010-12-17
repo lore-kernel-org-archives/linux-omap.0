@@ -1,105 +1,1243 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [OMAP 1710] Mainline Broken
-Date: Fri, 17 Dec 2010 13:50:26 -0800
-Message-ID: <877hf883x9.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB037395C74E@dbde02.ent.ti.com>
-	<AANLkTi=Shtqm36=_zSa37Fgan9NJYX3oKvoZzN35mi98@mail.gmail.com>
-	<87r5dhfxwh.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0373A9363D@dbde02.ent.ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH] Keyboard: omap-keypad: use matrix_keypad.h
+Date: Fri, 17 Dec 2010 23:32:04 +0100
+Message-ID: <201012172332.06480.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:57550 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754817Ab0LQVub convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 16:50:31 -0500
-Received: by yxt3 with SMTP id 3so540264yxt.19
-        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 13:50:30 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0373A9363D@dbde02.ent.ti.com>
-	(Tarun Kanti DebBarma's message of "Fri, 17 Dec 2010 13:52:47 +0530")
+Received: from d1.icnet.pl ([212.160.220.21]:36887 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756015Ab0LQWdo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Dec 2010 17:33:44 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: Belisko Marek <marek.belisko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-arm-kernel@lists.infradead.org
 
-"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+Most keypad drivers make use of the <linux/input/matrix_keypad.h> 
+defined macros, structures and inline functions.
 
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> Sent: Thursday, December 16, 2010 10:39 PM
->> To: Belisko Marek
->> Cc: DebBarma, Tarun Kanti; linux-omap@vger.kernel.org
->> Subject: Re: [OMAP 1710] Mainline Broken
->>=20
->> Belisko Marek <marek.belisko@gmail.com> writes:
->>=20
->> > Hi,
->> >
->> > On Thu, Dec 16, 2010 at 4:30 PM, DebBarma, Tarun Kanti
->> > <tarun.kanti@ti.com> wrote:
->> >> Did anyone observe this? I am using omap_generic_1710_defconfig
->> >>
->> >> [...]
->> >> input: omap-keypad as /devices/platform/omap-keypad/input/input0
->> >> TCP cubic registered
->> >> NET: Registered protocol family 17
->> >> Registering the dns_resolver key type
->> >> eth0: link up
->> >> IP-Config: Complete:
->> >> =C2=A0 =C2=A0 device=3Deth0, addr=3D172.24.191.106, mask=3D255.25=
-5.252.0,
->> gw=3D172.24.188.1,
->> >> =C2=A0 =C2=A0 host=3Dmyomap, domain=3D, nis-domain=3D(none),
->> >> =C2=A0 =C2=A0 bootserver=3D172.24.191.66, rootserver=3D172.24.191=
-=2E66, rootpath=3D
->> >> VFS: Mounted root (nfs filesystem) on device 0:10.
->> >> Freeing init memory: 128K
->> >> Kernel panic - not syncing: Attempted to kill init!
->> >
->> > Seems your userspace is broken. Try add user_debug=3D31 to command=
- line
->> > to see what exactly happens.
->>=20
->> Looks like you're mounting an NFS rootfs.  Was it compiled for armv5=
-?
->> My hunch would be you're trying to run an armv6/armv7 userspace on t=
-he
->> 1710 which is armv5.
->>=20
->> To get more debugging, ensure these are enabled in your defconfig:
->>=20
->> CONFIG_DEBUG_BUGVERBOSE=3Dy
->> CONFIG_DEBUG_USER=3Dy
->> CONFIG_DEBUG_ERRORS=3Dy
->>=20
->> and in addition to cmdline suggested by Marek, add user_debug=3D0xf
->>=20
->> This will give verbose output for userspace exceptions as well and
->> possibly confirm my hunch.
->>=20
->> Kevin
->
-> I checked .config and it shows: CONFIG_CPU_32v5=3Dy
+Convert omap-keypad driver to use those as well, as suggested by a 
+compile time warning, hardcoded into the OMAP <palt/keypad.h>.
 
-This is a kernel config option.  I was asking about your userspace.
-Your kernel is obviously booting fine, but it crashes as soon as
-userspace starts.
+Created against linux-2.6.37-rc5.
+Tested on Amstrad Delta.
+Compile tested with omap1_defconfig and omap2plus_defconfig shrinked to 
+board-h4.
 
-Is your *userspace* compiled for armv5?  I'm guessing not.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
 
-Kevin
+ arch/arm/mach-omap1/board-ams-delta.c    |  128 +++++++++++++++----------------
+ arch/arm/mach-omap1/board-fsample.c      |   65 ++++++++-------
+ arch/arm/mach-omap1/board-h2.c           |   69 ++++++++--------
+ arch/arm/mach-omap1/board-h3.c           |   69 ++++++++--------
+ arch/arm/mach-omap1/board-htcherald.c    |   90 +++++++++++----------
+ arch/arm/mach-omap1/board-innovator.c    |   19 ++--
+ arch/arm/mach-omap1/board-nokia770.c     |   27 +++---
+ arch/arm/mach-omap1/board-osk.c          |   19 ++--
+ arch/arm/mach-omap1/board-palmte.c       |   24 +++--
+ arch/arm/mach-omap1/board-palmtt.c       |   26 +++---
+ arch/arm/mach-omap1/board-palmz71.c      |   26 +++---
+ arch/arm/mach-omap1/board-perseus2.c     |   65 ++++++++-------
+ arch/arm/mach-omap1/board-sx1.c          |   55 +++++++------
+ arch/arm/mach-omap2/board-h4.c           |   59 +++++++-------
+ arch/arm/plat-omap/include/plat/keypad.h |   31 ++++---
+ drivers/input/keyboard/omap-keypad.c     |   36 ++++----
+ include/linux/input/matrix_keypad.h      |    2
+ 17 files changed, 429 insertions(+), 381 deletions(-)
 
-> With regard to additional log here they are!!
->
-> [...]
-> [1] init: obsolete system call 00000000.
-> Code: e08f1001 e1a0c000 e3a0702d ef000000 (e3700a01)
-> Kernel panic - not syncing: Attempted to kill init!
-> Backtrace:
-> [...]
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- linux-2.6.37-rc5/arch/arm/plat-omap/include/plat/keypad.h.orig	2010-12-09 23:07:38.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/plat-omap/include/plat/keypad.h	2010-12-16 21:11:46.000000000 +0100
+@@ -10,13 +10,15 @@
+ #ifndef ASMARM_ARCH_KEYPAD_H
+ #define ASMARM_ARCH_KEYPAD_H
+ 
+-#warning: Please update the board to use matrix_keypad.h instead
++#ifndef CONFIG_ARCH_OMAP1
++#warning Please update the board to use matrix-keypad driver
++#endif
++#include <linux/input/matrix_keypad.h>
+ 
+ struct omap_kp_platform_data {
+ 	int rows;
+ 	int cols;
+-	int *keymap;
+-	unsigned int keymapsize;
++	const struct matrix_keymap_data *keymap_data;
+ 	unsigned int rep:1;
+ 	unsigned long delay;
+ 	unsigned int dbounce:1;
+@@ -28,18 +30,21 @@ struct omap_kp_platform_data {
+ /* Group (0..3) -- when multiple keys are pressed, only the
+  * keys pressed in the same group are considered as pressed. This is
+  * in order to workaround certain crappy HW designs that produce ghost
+- * keypresses. */
+-#define GROUP_0		(0 << 16)
+-#define GROUP_1		(1 << 16)
+-#define GROUP_2		(2 << 16)
+-#define GROUP_3		(3 << 16)
++ * keypresses. Two free bits, not used by neither row/col nor keynum,
++ * must be available for use as group bits. The below GROUP_SHIFT
++ * macro definition is based on some prior knowledge of the
++ * matrix_keypad defined KEY() macro internals.
++ */
++#define GROUP_SHIFT	14
++#define GROUP_0		(0 << GROUP_SHIFT)
++#define GROUP_1		(1 << GROUP_SHIFT)
++#define GROUP_2		(2 << GROUP_SHIFT)
++#define GROUP_3		(3 << GROUP_SHIFT)
+ #define GROUP_MASK	GROUP_3
++#if KEY_MAX & GROUP_MASK
++#error Group bits in conflict with keynum bits
++#endif
+ 
+-#define KEY_PERSISTENT		0x00800000
+-#define KEYNUM_MASK		0x00EFFFFF
+-#define KEY(col, row, val) (((col) << 28) | ((row) << 24) | (val))
+-#define PERSISTENT_KEY(col, row) (((col) << 28) | ((row) << 24) | \
+-						KEY_PERSISTENT)
+ 
+ #endif
+ 
+--- linux-2.6.37-rc5/include/linux/input/matrix_keypad.h.orig	2010-12-09 23:09:05.000000000 +0100
++++ linux-2.6.37-rc5/include/linux/input/matrix_keypad.h	2010-12-17 03:13:28.000000000 +0100
+@@ -9,7 +9,7 @@
+ 
+ #define KEY(row, col, val)	((((row) & (MATRIX_MAX_ROWS - 1)) << 24) |\
+ 				 (((col) & (MATRIX_MAX_COLS - 1)) << 16) |\
+-				 (val & 0xffff))
++				 ((val) & 0xffff))
+ 
+ #define KEY_ROW(k)		(((k) >> 24) & 0xff)
+ #define KEY_COL(k)		(((k) >> 16) & 0xff)
+--- linux-2.6.37-rc5/drivers/input/keyboard/omap-keypad.c.orig	2010-12-09 23:08:09.000000000 +0100
++++ linux-2.6.37-rc5/drivers/input/keyboard/omap-keypad.c	2010-12-16 21:04:07.000000000 +0100
+@@ -65,7 +65,6 @@ struct omap_kp {
+ 
+ static DECLARE_TASKLET_DISABLED(kp_tasklet, omap_kp_tasklet, 0);
+ 
+-static int *keymap;
+ static unsigned int *row_gpios;
+ static unsigned int *col_gpios;
+ 
+@@ -162,20 +161,11 @@ static void omap_kp_scan_keypad(struct o
+ 	}
+ }
+ 
+-static inline int omap_kp_find_key(int col, int row)
+-{
+-	int i, key;
+-
+-	key = KEY(col, row, 0);
+-	for (i = 0; keymap[i] != 0; i++)
+-		if ((keymap[i] & 0xff000000) == key)
+-			return keymap[i] & 0x00ffffff;
+-	return -1;
+-}
+-
+ static void omap_kp_tasklet(unsigned long data)
+ {
+ 	struct omap_kp *omap_kp_data = (struct omap_kp *) data;
++	unsigned short *keycodes = omap_kp_data->input->keycode;
++	unsigned int row_shift = get_count_order(omap_kp_data->cols);
+ 	unsigned char new_state[8], changed, key_down = 0;
+ 	int col, row;
+ 	int spurious = 0;
+@@ -199,7 +189,7 @@ static void omap_kp_tasklet(unsigned lon
+ 			       row, (new_state[col] & (1 << row)) ?
+ 			       "pressed" : "released");
+ #else
+-			key = omap_kp_find_key(col, row);
++			key = keycodes[MATRIX_SCAN_CODE(row, col, row_shift)];
+ 			if (key < 0) {
+ 				printk(KERN_WARNING
+ 				      "omap-keypad: Spurious key event %d-%d\n",
+@@ -298,16 +288,22 @@ static int __devinit omap_kp_probe(struc
+ 	struct input_dev *input_dev;
+ 	struct omap_kp_platform_data *pdata =  pdev->dev.platform_data;
+ 	int i, col_idx, row_idx, irq_idx, ret;
++	unsigned short *keycodes;
++	unsigned int row_shift;
+ 
+-	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
+-		printk(KERN_ERR "No rows, cols or keymap from pdata\n");
++	if (!pdata->rows || !pdata->cols || !pdata->keymap_data) {
++		printk(KERN_ERR "No rows, cols or keymap_data from pdata\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	omap_kp = kzalloc(sizeof(struct omap_kp), GFP_KERNEL);
++	row_shift = get_count_order(pdata->cols);
++	keycodes = kzalloc((pdata->rows << row_shift) * sizeof(*keycodes),
++			GFP_KERNEL);
+ 	input_dev = input_allocate_device();
+-	if (!omap_kp || !input_dev) {
++	if (!omap_kp || !keycodes || !input_dev) {
+ 		kfree(omap_kp);
++		kfree(keycodes);
+ 		input_free_device(input_dev);
+ 		return -ENOMEM;
+ 	}
+@@ -320,7 +316,9 @@ static int __devinit omap_kp_probe(struc
+ 	if (!cpu_is_omap24xx())
+ 		omap_writew(1, OMAP1_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
+ 
+-	keymap = pdata->keymap;
++	input_dev->keycode      = keycodes;
++	input_dev->keycodesize  = sizeof(*keycodes);
++	input_dev->keycodemax   = pdata->rows << row_shift;
+ 
+ 	if (pdata->rep)
+ 		__set_bit(EV_REP, input_dev->evbit);
+@@ -374,8 +372,8 @@ static int __devinit omap_kp_probe(struc
+ 
+ 	/* setup input device */
+ 	__set_bit(EV_KEY, input_dev->evbit);
+-	for (i = 0; keymap[i] != 0; i++)
+-		__set_bit(keymap[i] & KEY_MAX, input_dev->keybit);
++	matrix_keypad_build_keymap(pdata->keymap_data, row_shift,
++			input_dev->keycode, input_dev->keybit);
+ 	input_dev->name = "omap-keypad";
+ 	input_dev->phys = "omap-keypad/input0";
+ 	input_dev->dev.parent = &pdev->dev;
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-ams-delta.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-ams-delta.c	2010-12-16 23:06:41.000000000 +0100
+@@ -46,81 +46,79 @@ static u16 ams_delta_latch2_reg;
+ static int ams_delta_keymap[] = {
+ 	KEY(0, 0, KEY_F1),		/* Advert    */
+ 
+-	KEY(3, 0, KEY_COFFEE),		/* Games     */
+-	KEY(2, 0, KEY_QUESTION),	/* Directory */
+-	KEY(3, 2, KEY_CONNECT),		/* Internet  */
+-	KEY(2, 1, KEY_SHOP),		/* Services  */
++	KEY(0, 3, KEY_COFFEE),		/* Games     */
++	KEY(0, 2, KEY_QUESTION),	/* Directory */
++	KEY(2, 3, KEY_CONNECT),		/* Internet  */
++	KEY(1, 2, KEY_SHOP),		/* Services  */
+ 	KEY(1, 1, KEY_PHONE),		/* VoiceMail */
+ 
+-	KEY(1, 0, KEY_DELETE),		/* Delete    */
++	KEY(0, 1, KEY_DELETE),		/* Delete    */
+ 	KEY(2, 2, KEY_PLAY),		/* Play      */
+-	KEY(0, 1, KEY_PAGEUP),		/* Up        */
+-	KEY(3, 1, KEY_PAGEDOWN),	/* Down      */
+-	KEY(0, 2, KEY_EMAIL),		/* ReadEmail */
+-	KEY(1, 2, KEY_STOP),		/* Stop      */
++	KEY(1, 0, KEY_PAGEUP),		/* Up        */
++	KEY(1, 3, KEY_PAGEDOWN),	/* Down      */
++	KEY(2, 0, KEY_EMAIL),		/* ReadEmail */
++	KEY(2, 1, KEY_STOP),		/* Stop      */
+ 
+ 	/* Numeric keypad portion */
+-	KEY(7, 0, KEY_KP1),
+-	KEY(6, 0, KEY_KP2),
+-	KEY(5, 0, KEY_KP3),
+-	KEY(7, 1, KEY_KP4),
+-	KEY(6, 1, KEY_KP5),
+-	KEY(5, 1, KEY_KP6),
+-	KEY(7, 2, KEY_KP7),
+-	KEY(6, 2, KEY_KP8),
+-	KEY(5, 2, KEY_KP9),
+-	KEY(6, 3, KEY_KP0),
+-	KEY(7, 3, KEY_KPASTERISK),
+-	KEY(5, 3, KEY_KPDOT),		/* # key     */
+-	KEY(2, 7, KEY_NUMLOCK),		/* Mute      */
+-	KEY(1, 7, KEY_KPMINUS),		/* Recall    */
+-	KEY(1, 6, KEY_KPPLUS),		/* Redial    */
+-	KEY(6, 7, KEY_KPSLASH),		/* Handsfree */
+-	KEY(0, 6, KEY_ENTER),		/* Video     */
+-
+-	KEY(4, 7, KEY_CAMERA),		/* Photo     */
+-
+-	KEY(4, 0, KEY_F2),		/* Home      */
+-	KEY(4, 1, KEY_F3),		/* Office    */
+-	KEY(4, 2, KEY_F4),		/* Mobile    */
++	KEY(0, 7, KEY_KP1),
++	KEY(0, 6, KEY_KP2),
++	KEY(0, 5, KEY_KP3),
++	KEY(1, 7, KEY_KP4),
++	KEY(1, 6, KEY_KP5),
++	KEY(1, 5, KEY_KP6),
++	KEY(2, 7, KEY_KP7),
++	KEY(2, 6, KEY_KP8),
++	KEY(2, 5, KEY_KP9),
++	KEY(3, 6, KEY_KP0),
++	KEY(3, 7, KEY_KPASTERISK),
++	KEY(3, 5, KEY_KPDOT),		/* # key     */
++	KEY(7, 2, KEY_NUMLOCK),		/* Mute      */
++	KEY(7, 1, KEY_KPMINUS),		/* Recall    */
++	KEY(6, 1, KEY_KPPLUS),		/* Redial    */
++	KEY(7, 6, KEY_KPSLASH),		/* Handsfree */
++	KEY(6, 0, KEY_ENTER),		/* Video     */
++
++	KEY(7, 4, KEY_CAMERA),		/* Photo     */
++
++	KEY(0, 4, KEY_F2),		/* Home      */
++	KEY(1, 4, KEY_F3),		/* Office    */
++	KEY(2, 4, KEY_F4),		/* Mobile    */
+ 	KEY(7, 7, KEY_F5),		/* SMS       */
+-	KEY(5, 7, KEY_F6),		/* Email     */
++	KEY(7, 5, KEY_F6),		/* Email     */
+ 
+ 	/* QWERTY portion of keypad */
+-	KEY(4, 3, KEY_Q),
++	KEY(3, 4, KEY_Q),
+ 	KEY(3, 3, KEY_W),
+-	KEY(2, 3, KEY_E),
+-	KEY(1, 3, KEY_R),
+-	KEY(0, 3, KEY_T),
+-	KEY(7, 4, KEY_Y),
+-	KEY(6, 4, KEY_U),
+-	KEY(5, 4, KEY_I),
++	KEY(3, 2, KEY_E),
++	KEY(3, 1, KEY_R),
++	KEY(3, 0, KEY_T),
++	KEY(4, 7, KEY_Y),
++	KEY(4, 6, KEY_U),
++	KEY(4, 5, KEY_I),
+ 	KEY(4, 4, KEY_O),
+-	KEY(3, 4, KEY_P),
++	KEY(4, 3, KEY_P),
+ 
+-	KEY(2, 4, KEY_A),
+-	KEY(1, 4, KEY_S),
+-	KEY(0, 4, KEY_D),
+-	KEY(7, 5, KEY_F),
+-	KEY(6, 5, KEY_G),
++	KEY(4, 2, KEY_A),
++	KEY(4, 1, KEY_S),
++	KEY(4, 0, KEY_D),
++	KEY(5, 7, KEY_F),
++	KEY(5, 6, KEY_G),
+ 	KEY(5, 5, KEY_H),
+-	KEY(4, 5, KEY_J),
+-	KEY(3, 5, KEY_K),
+-	KEY(2, 5, KEY_L),
+-
+-	KEY(1, 5, KEY_Z),
+-	KEY(0, 5, KEY_X),
+-	KEY(7, 6, KEY_C),
++	KEY(5, 4, KEY_J),
++	KEY(5, 3, KEY_K),
++	KEY(5, 2, KEY_L),
++
++	KEY(5, 1, KEY_Z),
++	KEY(5, 0, KEY_X),
++	KEY(6, 7, KEY_C),
+ 	KEY(6, 6, KEY_V),
+-	KEY(5, 6, KEY_B),
+-	KEY(4, 6, KEY_N),
+-	KEY(3, 6, KEY_M),
+-	KEY(2, 6, KEY_SPACE),
++	KEY(6, 5, KEY_B),
++	KEY(6, 4, KEY_N),
++	KEY(6, 3, KEY_M),
++	KEY(6, 2, KEY_SPACE),
+ 
+-	KEY(0, 7, KEY_LEFTSHIFT),	/* Vol up    */
+-	KEY(3, 7, KEY_LEFTCTRL),	/* Vol down  */
+-
+-	0
++	KEY(7, 0, KEY_LEFTSHIFT),	/* Vol up    */
++	KEY(7, 3, KEY_LEFTCTRL),	/* Vol down  */
+ };
+ 
+ void ams_delta_latch1_write(u8 mask, u8 value)
+@@ -189,11 +187,15 @@ static struct resource ams_delta_kp_reso
+ 	},
+ };
+ 
++static const struct matrix_keymap_data ams_delta_keymap_data = {
++	.keymap		= ams_delta_keymap,
++	.keymap_size	= ARRAY_SIZE(ams_delta_keymap),
++};
++
+ static struct omap_kp_platform_data ams_delta_kp_data = {
+ 	.rows		= 8,
+ 	.cols		= 8,
+-	.keymap 	= ams_delta_keymap,
+-	.keymapsize	= ARRAY_SIZE(ams_delta_keymap),
++	.keymap_data	= &ams_delta_keymap_data,
+ 	.delay		= 9,
+ };
+ 
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-fsample.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-fsample.c	2010-12-16 22:58:59.000000000 +0100
+@@ -70,35 +70,34 @@
+     fsample_cpld_write(0xf0 | ((bit) & 15), FSAMPLE_CPLD_SET_CLR)
+ 
+ static int fsample_keymap[] = {
+-	KEY(0,0,KEY_UP),
+-	KEY(0,1,KEY_RIGHT),
+-	KEY(0,2,KEY_LEFT),
+-	KEY(0,3,KEY_DOWN),
+-	KEY(0,4,KEY_ENTER),
+-	KEY(1,0,KEY_F10),
+-	KEY(1,1,KEY_SEND),
+-	KEY(1,2,KEY_END),
+-	KEY(1,3,KEY_VOLUMEDOWN),
+-	KEY(1,4,KEY_VOLUMEUP),
+-	KEY(1,5,KEY_RECORD),
+-	KEY(2,0,KEY_F9),
+-	KEY(2,1,KEY_3),
+-	KEY(2,2,KEY_6),
+-	KEY(2,3,KEY_9),
+-	KEY(2,4,KEY_KPDOT),
+-	KEY(3,0,KEY_BACK),
+-	KEY(3,1,KEY_2),
+-	KEY(3,2,KEY_5),
+-	KEY(3,3,KEY_8),
+-	KEY(3,4,KEY_0),
+-	KEY(3,5,KEY_KPSLASH),
+-	KEY(4,0,KEY_HOME),
+-	KEY(4,1,KEY_1),
+-	KEY(4,2,KEY_4),
+-	KEY(4,3,KEY_7),
+-	KEY(4,4,KEY_KPASTERISK),
+-	KEY(4,5,KEY_POWER),
+-	0
++	KEY(0, 0, KEY_UP),
++	KEY(1, 0, KEY_RIGHT),
++	KEY(2, 0, KEY_LEFT),
++	KEY(3, 0, KEY_DOWN),
++	KEY(4, 0, KEY_ENTER),
++	KEY(0, 1, KEY_F10),
++	KEY(1, 1, KEY_SEND),
++	KEY(2, 1, KEY_END),
++	KEY(3, 1, KEY_VOLUMEDOWN),
++	KEY(4, 1, KEY_VOLUMEUP),
++	KEY(5, 1, KEY_RECORD),
++	KEY(0, 2, KEY_F9),
++	KEY(1, 2, KEY_3),
++	KEY(2, 2, KEY_6),
++	KEY(3, 2, KEY_9),
++	KEY(4, 2, KEY_KPDOT),
++	KEY(0, 3, KEY_BACK),
++	KEY(1, 3, KEY_2),
++	KEY(2, 3, KEY_5),
++	KEY(3, 3, KEY_8),
++	KEY(4, 3, KEY_0),
++	KEY(5, 3, KEY_KPSLASH),
++	KEY(0, 4, KEY_HOME),
++	KEY(1, 4, KEY_1),
++	KEY(2, 4, KEY_4),
++	KEY(3, 4, KEY_7),
++	KEY(4, 4, KEY_KPASTERISK),
++	KEY(5, 4, KEY_POWER),
+ };
+ 
+ static struct smc91x_platdata smc91x_info = {
+@@ -253,11 +252,15 @@ static struct resource kp_resources[] = 
+ 	},
+ };
+ 
++static const struct matrix_keymap_data fsample_keymap_data = {
++	.keymap		= fsample_keymap,
++	.keymap_size	= ARRAY_SIZE(fsample_keymap),
++};
++
+ static struct omap_kp_platform_data kp_data = {
+ 	.rows		= 8,
+ 	.cols		= 8,
+-	.keymap		= fsample_keymap,
+-	.keymapsize	= ARRAY_SIZE(fsample_keymap),
++	.keymap_data	= &fsample_keymap_data,
+ 	.delay		= 4,
+ };
+ 
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-h2.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-h2.c	2010-12-16 22:55:41.000000000 +0100
+@@ -54,41 +54,40 @@
+ 
+ static int h2_keymap[] = {
+ 	KEY(0, 0, KEY_LEFT),
+-	KEY(0, 1, KEY_RIGHT),
+-	KEY(0, 2, KEY_3),
+-	KEY(0, 3, KEY_F10),
+-	KEY(0, 4, KEY_F5),
+-	KEY(0, 5, KEY_9),
+-	KEY(1, 0, KEY_DOWN),
++	KEY(1, 0, KEY_RIGHT),
++	KEY(2, 0, KEY_3),
++	KEY(3, 0, KEY_F10),
++	KEY(4, 0, KEY_F5),
++	KEY(5, 0, KEY_9),
++	KEY(0, 1, KEY_DOWN),
+ 	KEY(1, 1, KEY_UP),
+-	KEY(1, 2, KEY_2),
+-	KEY(1, 3, KEY_F9),
+-	KEY(1, 4, KEY_F7),
+-	KEY(1, 5, KEY_0),
+-	KEY(2, 0, KEY_ENTER),
+-	KEY(2, 1, KEY_6),
++	KEY(2, 1, KEY_2),
++	KEY(3, 1, KEY_F9),
++	KEY(4, 1, KEY_F7),
++	KEY(5, 1, KEY_0),
++	KEY(0, 2, KEY_ENTER),
++	KEY(1, 2, KEY_6),
+ 	KEY(2, 2, KEY_1),
+-	KEY(2, 3, KEY_F2),
+-	KEY(2, 4, KEY_F6),
+-	KEY(2, 5, KEY_HOME),
+-	KEY(3, 0, KEY_8),
+-	KEY(3, 1, KEY_5),
+-	KEY(3, 2, KEY_F12),
++	KEY(3, 2, KEY_F2),
++	KEY(4, 2, KEY_F6),
++	KEY(5, 2, KEY_HOME),
++	KEY(0, 3, KEY_8),
++	KEY(1, 3, KEY_5),
++	KEY(2, 3, KEY_F12),
+ 	KEY(3, 3, KEY_F3),
+-	KEY(3, 4, KEY_F8),
+-	KEY(3, 5, KEY_END),
+-	KEY(4, 0, KEY_7),
+-	KEY(4, 1, KEY_4),
+-	KEY(4, 2, KEY_F11),
+-	KEY(4, 3, KEY_F1),
++	KEY(4, 3, KEY_F8),
++	KEY(5, 3, KEY_END),
++	KEY(0, 4, KEY_7),
++	KEY(1, 4, KEY_4),
++	KEY(2, 4, KEY_F11),
++	KEY(3, 4, KEY_F1),
+ 	KEY(4, 4, KEY_F4),
+-	KEY(4, 5, KEY_ESC),
+-	KEY(5, 0, KEY_F13),
+-	KEY(5, 1, KEY_F14),
+-	KEY(5, 2, KEY_F15),
+-	KEY(5, 3, KEY_F16),
+-	KEY(5, 4, KEY_SLEEP),
+-	0
++	KEY(5, 4, KEY_ESC),
++	KEY(0, 5, KEY_F13),
++	KEY(1, 5, KEY_F14),
++	KEY(2, 5, KEY_F15),
++	KEY(3, 5, KEY_F16),
++	KEY(4, 5, KEY_SLEEP),
+ };
+ 
+ static struct mtd_partition h2_nor_partitions[] = {
+@@ -270,11 +269,15 @@ static struct resource h2_kp_resources[]
+ 	},
+ };
+ 
++static const struct matrix_keymap_data h2_keymap_data = {
++	.keymap		= h2_keymap,
++	.keymap_size	= ARRAY_SIZE(h2_keymap),
++};
++
+ static struct omap_kp_platform_data h2_kp_data = {
+ 	.rows		= 8,
+ 	.cols		= 8,
+-	.keymap		= h2_keymap,
+-	.keymapsize	= ARRAY_SIZE(h2_keymap),
++	.keymap_data	= &h2_keymap_data,
+ 	.rep		= 1,
+ 	.delay		= 9,
+ 	.dbounce	= 1,
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-h3.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-h3.c	2010-12-16 22:55:50.000000000 +0100
+@@ -58,41 +58,40 @@
+ 
+ static int h3_keymap[] = {
+ 	KEY(0, 0, KEY_LEFT),
+-	KEY(0, 1, KEY_RIGHT),
+-	KEY(0, 2, KEY_3),
+-	KEY(0, 3, KEY_F10),
+-	KEY(0, 4, KEY_F5),
+-	KEY(0, 5, KEY_9),
+-	KEY(1, 0, KEY_DOWN),
++	KEY(1, 0, KEY_RIGHT),
++	KEY(2, 0, KEY_3),
++	KEY(3, 0, KEY_F10),
++	KEY(4, 0, KEY_F5),
++	KEY(5, 0, KEY_9),
++	KEY(0, 1, KEY_DOWN),
+ 	KEY(1, 1, KEY_UP),
+-	KEY(1, 2, KEY_2),
+-	KEY(1, 3, KEY_F9),
+-	KEY(1, 4, KEY_F7),
+-	KEY(1, 5, KEY_0),
+-	KEY(2, 0, KEY_ENTER),
+-	KEY(2, 1, KEY_6),
++	KEY(2, 1, KEY_2),
++	KEY(3, 1, KEY_F9),
++	KEY(4, 1, KEY_F7),
++	KEY(5, 1, KEY_0),
++	KEY(0, 2, KEY_ENTER),
++	KEY(1, 2, KEY_6),
+ 	KEY(2, 2, KEY_1),
+-	KEY(2, 3, KEY_F2),
+-	KEY(2, 4, KEY_F6),
+-	KEY(2, 5, KEY_HOME),
+-	KEY(3, 0, KEY_8),
+-	KEY(3, 1, KEY_5),
+-	KEY(3, 2, KEY_F12),
++	KEY(3, 2, KEY_F2),
++	KEY(4, 2, KEY_F6),
++	KEY(5, 2, KEY_HOME),
++	KEY(0, 3, KEY_8),
++	KEY(1, 3, KEY_5),
++	KEY(2, 3, KEY_F12),
+ 	KEY(3, 3, KEY_F3),
+-	KEY(3, 4, KEY_F8),
+-	KEY(3, 5, KEY_END),
+-	KEY(4, 0, KEY_7),
+-	KEY(4, 1, KEY_4),
+-	KEY(4, 2, KEY_F11),
+-	KEY(4, 3, KEY_F1),
++	KEY(4, 3, KEY_F8),
++	KEY(5, 3, KEY_END),
++	KEY(0, 4, KEY_7),
++	KEY(1, 4, KEY_4),
++	KEY(2, 4, KEY_F11),
++	KEY(3, 4, KEY_F1),
+ 	KEY(4, 4, KEY_F4),
+-	KEY(4, 5, KEY_ESC),
+-	KEY(5, 0, KEY_F13),
+-	KEY(5, 1, KEY_F14),
+-	KEY(5, 2, KEY_F15),
+-	KEY(5, 3, KEY_F16),
+-	KEY(5, 4, KEY_SLEEP),
+-	0
++	KEY(5, 4, KEY_ESC),
++	KEY(0, 5, KEY_F13),
++	KEY(1, 5, KEY_F14),
++	KEY(2, 5, KEY_F15),
++	KEY(3, 5, KEY_F16),
++	KEY(4, 5, KEY_SLEEP),
+ };
+ 
+ 
+@@ -305,11 +304,15 @@ static struct resource h3_kp_resources[]
+ 	},
+ };
+ 
++static const struct matrix_keymap_data h3_keymap_data = {
++	.keymap		= h3_keymap,
++	.keymap_size	= ARRAY_SIZE(h3_keymap),
++};
++
+ static struct omap_kp_platform_data h3_kp_data = {
+ 	.rows		= 8,
+ 	.cols		= 8,
+-	.keymap		= h3_keymap,
+-	.keymapsize	= ARRAY_SIZE(h3_keymap),
++	.keymap_data	= &h3_keymap_data,
+ 	.rep		= 1,
+ 	.delay		= 9,
+ 	.dbounce	= 1,
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-htcherald.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-htcherald.c	2010-12-16 22:55:55.000000000 +0100
+@@ -182,54 +182,58 @@
+ 
+ static int htc_herald_keymap[] = {
+ 	KEY(0, 0, KEY_RECORD), /* Mail button */
+-	KEY(0, 1, KEY_CAMERA), /* Camera */
+-	KEY(0, 2, KEY_PHONE), /* Send key */
+-	KEY(0, 3, KEY_VOLUMEUP), /* Volume up */
+-	KEY(0, 4, KEY_F2),  /* Right bar (landscape) */
+-	KEY(0, 5, KEY_MAIL), /* Win key (portrait) */
+-	KEY(0, 6, KEY_DIRECTORY), /* Right bar (protrait) */
+-	KEY(1, 0, KEY_LEFTCTRL), /* Windows key */
++	KEY(1, 0, KEY_CAMERA), /* Camera */
++	KEY(2, 0, KEY_PHONE), /* Send key */
++	KEY(3, 0, KEY_VOLUMEUP), /* Volume up */
++	KEY(4, 0, KEY_F2),  /* Right bar (landscape) */
++	KEY(5, 0, KEY_MAIL), /* Win key (portrait) */
++	KEY(6, 0, KEY_DIRECTORY), /* Right bar (protrait) */
++	KEY(0, 1, KEY_LEFTCTRL), /* Windows key */
+ 	KEY(1, 1, KEY_COMMA),
+-	KEY(1, 2, KEY_M),
+-	KEY(1, 3, KEY_K),
+-	KEY(1, 4, KEY_SLASH), /* OK key */
+-	KEY(1, 5, KEY_I),
+-	KEY(1, 6, KEY_U),
+-	KEY(2, 0, KEY_LEFTALT),
+-	KEY(2, 1, KEY_TAB),
++	KEY(2, 1, KEY_M),
++	KEY(3, 1, KEY_K),
++	KEY(4, 1, KEY_SLASH), /* OK key */
++	KEY(5, 1, KEY_I),
++	KEY(6, 1, KEY_U),
++	KEY(0, 2, KEY_LEFTALT),
++	KEY(1, 2, KEY_TAB),
+ 	KEY(2, 2, KEY_N),
+-	KEY(2, 3, KEY_J),
+-	KEY(2, 4, KEY_ENTER),
+-	KEY(2, 5, KEY_H),
+-	KEY(2, 6, KEY_Y),
+-	KEY(3, 0, KEY_SPACE),
+-	KEY(3, 1, KEY_L),
+-	KEY(3, 2, KEY_B),
++	KEY(3, 2, KEY_J),
++	KEY(4, 2, KEY_ENTER),
++	KEY(5, 2, KEY_H),
++	KEY(6, 2, KEY_Y),
++	KEY(0, 3, KEY_SPACE),
++	KEY(1, 3, KEY_L),
++	KEY(2, 3, KEY_B),
+ 	KEY(3, 3, KEY_V),
+-	KEY(3, 4, KEY_BACKSPACE),
+-	KEY(3, 5, KEY_G),
+-	KEY(3, 6, KEY_T),
+-	KEY(4, 0, KEY_CAPSLOCK), /* Shift */
+-	KEY(4, 1, KEY_C),
+-	KEY(4, 2, KEY_F),
+-	KEY(4, 3, KEY_R),
++	KEY(4, 3, KEY_BACKSPACE),
++	KEY(5, 3, KEY_G),
++	KEY(6, 3, KEY_T),
++	KEY(0, 4, KEY_CAPSLOCK), /* Shift */
++	KEY(1, 4, KEY_C),
++	KEY(2, 4, KEY_F),
++	KEY(3, 4, KEY_R),
+ 	KEY(4, 4, KEY_O),
+-	KEY(4, 5, KEY_E),
+-	KEY(4, 6, KEY_D),
+-	KEY(5, 0, KEY_X),
+-	KEY(5, 1, KEY_Z),
+-	KEY(5, 2, KEY_S),
+-	KEY(5, 3, KEY_W),
+-	KEY(5, 4, KEY_P),
++	KEY(5, 4, KEY_E),
++	KEY(6, 4, KEY_D),
++	KEY(0, 5, KEY_X),
++	KEY(1, 5, KEY_Z),
++	KEY(2, 5, KEY_S),
++	KEY(3, 5, KEY_W),
++	KEY(4, 5, KEY_P),
+ 	KEY(5, 5, KEY_Q),
+-	KEY(5, 6, KEY_A),
+-	KEY(6, 0, KEY_CONNECT), /* Voice button */
+-	KEY(6, 2, KEY_CANCEL), /* End key */
+-	KEY(6, 3, KEY_VOLUMEDOWN), /* Volume down */
+-	KEY(6, 4, KEY_F1), /* Left bar (landscape) */
+-	KEY(6, 5, KEY_WWW), /* OK button (portrait) */
++	KEY(6, 5, KEY_A),
++	KEY(0, 6, KEY_CONNECT), /* Voice button */
++	KEY(2, 6, KEY_CANCEL), /* End key */
++	KEY(3, 6, KEY_VOLUMEDOWN), /* Volume down */
++	KEY(4, 6, KEY_F1), /* Left bar (landscape) */
++	KEY(5, 6, KEY_WWW), /* OK button (portrait) */
+ 	KEY(6, 6, KEY_CALENDAR), /* Left bar (portrait) */
+-	0
++};
++
++static const struct matrix_keymap_data htc_herald_keymap_data = {
++	.keymap		= htc_herald_keymap,
++	.keymap_size	= ARRAY_SIZE(htc_herald_keymap),
+ };
+ 
+ struct omap_kp_platform_data htcherald_kp_data = {
+@@ -237,7 +241,7 @@ struct omap_kp_platform_data htcherald_k
+ 	.cols	= 7,
+ 	.delay = 20,
+ 	.rep = 1,
+-	.keymap = htc_herald_keymap,
++	.keymap_data = &htc_herald_keymap_data,
+ };
+ 
+ static struct resource kp_resources[] = {
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-innovator.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-innovator.c	2010-12-16 23:03:03.000000000 +0100
+@@ -46,15 +46,14 @@
+ 
+ static int innovator_keymap[] = {
+ 	KEY(0, 0, KEY_F1),
+-	KEY(0, 3, KEY_DOWN),
++	KEY(3, 0, KEY_DOWN),
+ 	KEY(1, 1, KEY_F2),
+-	KEY(1, 2, KEY_RIGHT),
+-	KEY(2, 0, KEY_F3),
+-	KEY(2, 1, KEY_F4),
++	KEY(2, 1, KEY_RIGHT),
++	KEY(0, 2, KEY_F3),
++	KEY(1, 2, KEY_F4),
+ 	KEY(2, 2, KEY_UP),
+-	KEY(3, 2, KEY_ENTER),
++	KEY(2, 3, KEY_ENTER),
+ 	KEY(3, 3, KEY_LEFT),
+-	0
+ };
+ 
+ static struct mtd_partition innovator_partitions[] = {
+@@ -126,11 +125,15 @@ static struct resource innovator_kp_reso
+ 	},
+ };
+ 
++static const struct matrix_keymap_data innovator_keymap_data = {
++	.keymap		= innovator_keymap,
++	.keymap_size	= ARRAY_SIZE(innovator_keymap),
++};
++
+ static struct omap_kp_platform_data innovator_kp_data = {
+ 	.rows		= 8,
+ 	.cols		= 8,
+-	.keymap		= innovator_keymap,
+-	.keymapsize	= ARRAY_SIZE(innovator_keymap),
++	.keymap_data	= &innovator_keymap_data,
+ 	.delay		= 4,
+ };
+ 
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-nokia770.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-nokia770.c	2010-12-16 22:56:06.000000000 +0100
+@@ -57,18 +57,17 @@ static void __init omap_nokia770_init_ir
+ }
+ 
+ static int nokia770_keymap[] = {
+-	KEY(0, 1, GROUP_0 | KEY_UP),
+-	KEY(0, 2, GROUP_1 | KEY_F5),
+-	KEY(1, 0, GROUP_0 | KEY_LEFT),
++	KEY(1, 0, GROUP_0 | KEY_UP),
++	KEY(2, 0, GROUP_1 | KEY_F5),
++	KEY(0, 1, GROUP_0 | KEY_LEFT),
+ 	KEY(1, 1, GROUP_0 | KEY_ENTER),
+-	KEY(1, 2, GROUP_0 | KEY_RIGHT),
+-	KEY(2, 0, GROUP_1 | KEY_ESC),
+-	KEY(2, 1, GROUP_0 | KEY_DOWN),
++	KEY(2, 1, GROUP_0 | KEY_RIGHT),
++	KEY(0, 2, GROUP_1 | KEY_ESC),
++	KEY(1, 2, GROUP_0 | KEY_DOWN),
+ 	KEY(2, 2, GROUP_1 | KEY_F4),
+-	KEY(3, 0, GROUP_2 | KEY_F7),
+-	KEY(3, 1, GROUP_2 | KEY_F8),
+-	KEY(3, 2, GROUP_2 | KEY_F6),
+-	0
++	KEY(0, 3, GROUP_2 | KEY_F7),
++	KEY(1, 3, GROUP_2 | KEY_F8),
++	KEY(2, 3, GROUP_2 | KEY_F6),
+ };
+ 
+ static struct resource nokia770_kp_resources[] = {
+@@ -79,11 +78,15 @@ static struct resource nokia770_kp_resou
+ 	},
+ };
+ 
++static const struct matrix_keymap_data nokia770_keymap_data = {
++	.keymap		= nokia770_keymap,
++	.keymap_size	= ARRAY_SIZE(nokia770_keymap),
++};
++
+ static struct omap_kp_platform_data nokia770_kp_data = {
+ 	.rows		= 8,
+ 	.cols		= 8,
+-	.keymap		= nokia770_keymap,
+-	.keymapsize	= ARRAY_SIZE(nokia770_keymap),
++	.keymap_data	= &nokia770_keymap_data,
+ 	.delay		= 4,
+ };
+ 
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-osk.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-osk.c	2010-12-16 22:56:11.000000000 +0100
+@@ -341,22 +341,25 @@ static struct i2c_board_info __initdata 
+ static const int osk_keymap[] = {
+ 	/* KEY(col, row, code) */
+ 	KEY(0, 0, KEY_F1),		/* SW4 */
+-	KEY(0, 3, KEY_UP),		/* (sw2/up) */
++	KEY(3, 0, KEY_UP),		/* (sw2/up) */
+ 	KEY(1, 1, KEY_LEFTCTRL),	/* SW5 */
+-	KEY(1, 2, KEY_LEFT),		/* (sw2/left) */
+-	KEY(2, 0, KEY_SPACE),		/* SW3 */
+-	KEY(2, 1, KEY_ESC),		/* SW6 */
++	KEY(2, 1, KEY_LEFT),		/* (sw2/left) */
++	KEY(0, 2, KEY_SPACE),		/* SW3 */
++	KEY(1, 2, KEY_ESC),		/* SW6 */
+ 	KEY(2, 2, KEY_DOWN),		/* (sw2/down) */
+-	KEY(3, 2, KEY_ENTER),		/* (sw2/select) */
++	KEY(2, 3, KEY_ENTER),		/* (sw2/select) */
+ 	KEY(3, 3, KEY_RIGHT),		/* (sw2/right) */
+-	0
++};
++
++static const struct matrix_keymap_data osk_keymap_data = {
++	.keymap		= osk_keymap,
++	.keymap_size	= ARRAY_SIZE(osk_keymap),
+ };
+ 
+ static struct omap_kp_platform_data osk_kp_data = {
+ 	.rows		= 8,
+ 	.cols		= 8,
+-	.keymap		= (int *) osk_keymap,
+-	.keymapsize	= ARRAY_SIZE(osk_keymap),
++	.keymap_data	= &osk_keymap_data,
+ 	.delay		= 9,
+ };
+ 
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-palmte.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-palmte.c	2010-12-16 22:56:18.000000000 +0100
+@@ -67,22 +67,26 @@ static void __init omap_palmte_init_irq(
+ 
+ static const int palmte_keymap[] = {
+ 	KEY(0, 0, KEY_F1),		/* Calendar */
+-	KEY(0, 1, KEY_F2),		/* Contacts */
+-	KEY(0, 2, KEY_F3),		/* Tasks List */
+-	KEY(0, 3, KEY_F4),		/* Note Pad */
+-	KEY(0, 4, KEY_POWER),
+-	KEY(1, 0, KEY_LEFT),
++	KEY(1, 0, KEY_F2),		/* Contacts */
++	KEY(2, 0, KEY_F3),		/* Tasks List */
++	KEY(3, 0, KEY_F4),		/* Note Pad */
++	KEY(4, 0, KEY_POWER),
++	KEY(0, 1, KEY_LEFT),
+ 	KEY(1, 1, KEY_DOWN),
+-	KEY(1, 2, KEY_UP),
+-	KEY(1, 3, KEY_RIGHT),
+-	KEY(1, 4, KEY_ENTER),
+-	0,
++	KEY(2, 1, KEY_UP),
++	KEY(3, 1, KEY_RIGHT),
++	KEY(4, 1, KEY_ENTER),
++};
++
++static const struct matrix_keymap_data palmte_keymap_data = {
++	.keymap		= palmte_keymap,
++	.keymap_size	= ARRAY_SIZE(palmte_keymap),
+ };
+ 
+ static struct omap_kp_platform_data palmte_kp_data = {
+ 	.rows	= 8,
+ 	.cols	= 8,
+-	.keymap = (int *) palmte_keymap,
++	.keymap_data = &palmte_keymap_data,
+ 	.rep	= 1,
+ 	.delay	= 12,
+ };
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-palmtt.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-palmtt.c	2010-12-16 22:56:23.000000000 +0100
+@@ -53,17 +53,16 @@
+ 
+ static int palmtt_keymap[] = {
+ 	KEY(0, 0, KEY_ESC),
+-	KEY(0, 1, KEY_SPACE),
+-	KEY(0, 2, KEY_LEFTCTRL),
+-	KEY(0, 3, KEY_TAB),
+-	KEY(0, 4, KEY_ENTER),
+-	KEY(1, 0, KEY_LEFT),
++	KEY(1, 0, KEY_SPACE),
++	KEY(2, 0, KEY_LEFTCTRL),
++	KEY(3, 0, KEY_TAB),
++	KEY(4, 0, KEY_ENTER),
++	KEY(0, 1, KEY_LEFT),
+ 	KEY(1, 1, KEY_DOWN),
+-	KEY(1, 2, KEY_UP),
+-	KEY(1, 3, KEY_RIGHT),
+-	KEY(2, 0, KEY_SLEEP),
+-	KEY(2, 4, KEY_Y),
+-	0
++	KEY(2, 1, KEY_UP),
++	KEY(3, 1, KEY_RIGHT),
++	KEY(0, 2, KEY_SLEEP),
++	KEY(4, 2, KEY_Y),
+ };
+ 
+ static struct mtd_partition palmtt_partitions[] = {
+@@ -136,10 +135,15 @@ static struct resource palmtt_kp_resourc
+ 	},
+ };
+ 
++static const struct matrix_keymap_data palmtt_keymap_data = {
++	.keymap		= palmtt_keymap,
++	.keymap_size	= ARRAY_SIZE(palmtt_keymap),
++};
++
+ static struct omap_kp_platform_data palmtt_kp_data = {
+ 	.rows	= 6,
+ 	.cols	= 3,
+-	.keymap = palmtt_keymap,
++	.keymap_data = &palmtt_keymap_data,
+ };
+ 
+ static struct platform_device palmtt_kp_device = {
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-palmz71.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-palmz71.c	2010-12-16 22:56:28.000000000 +0100
+@@ -66,23 +66,27 @@ omap_palmz71_init_irq(void)
+ 
+ static int palmz71_keymap[] = {
+ 	KEY(0, 0, KEY_F1),
+-	KEY(0, 1, KEY_F2),
+-	KEY(0, 2, KEY_F3),
+-	KEY(0, 3, KEY_F4),
+-	KEY(0, 4, KEY_POWER),
+-	KEY(1, 0, KEY_LEFT),
++	KEY(1, 0, KEY_F2),
++	KEY(2, 0, KEY_F3),
++	KEY(3, 0, KEY_F4),
++	KEY(4, 0, KEY_POWER),
++	KEY(0, 1, KEY_LEFT),
+ 	KEY(1, 1, KEY_DOWN),
+-	KEY(1, 2, KEY_UP),
+-	KEY(1, 3, KEY_RIGHT),
+-	KEY(1, 4, KEY_ENTER),
+-	KEY(2, 0, KEY_CAMERA),
+-	0,
++	KEY(2, 1, KEY_UP),
++	KEY(3, 1, KEY_RIGHT),
++	KEY(4, 1, KEY_ENTER),
++	KEY(0, 2, KEY_CAMERA),
++};
++
++static const struct matrix_keymap_data palmz71_keymap_data = {
++	.keymap		= palmz71_keymap,
++	.keymap_size	= ARRAY_SIZE(palmz71_keymap),
+ };
+ 
+ static struct omap_kp_platform_data palmz71_kp_data = {
+ 	.rows	= 8,
+ 	.cols	= 8,
+-	.keymap	= palmz71_keymap,
++	.keymap_data	= &palmz71_keymap_data,
+ 	.rep	= 1,
+ 	.delay	= 80,
+ };
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-perseus2.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-perseus2.c	2010-12-16 22:59:39.000000000 +0100
+@@ -37,35 +37,34 @@
+ #include <plat/board.h>
+ 
+ static int p2_keymap[] = {
+-	KEY(0,0,KEY_UP),
+-	KEY(0,1,KEY_RIGHT),
+-	KEY(0,2,KEY_LEFT),
+-	KEY(0,3,KEY_DOWN),
+-	KEY(0,4,KEY_ENTER),
+-	KEY(1,0,KEY_F10),
+-	KEY(1,1,KEY_SEND),
+-	KEY(1,2,KEY_END),
+-	KEY(1,3,KEY_VOLUMEDOWN),
+-	KEY(1,4,KEY_VOLUMEUP),
+-	KEY(1,5,KEY_RECORD),
+-	KEY(2,0,KEY_F9),
+-	KEY(2,1,KEY_3),
+-	KEY(2,2,KEY_6),
+-	KEY(2,3,KEY_9),
+-	KEY(2,4,KEY_KPDOT),
+-	KEY(3,0,KEY_BACK),
+-	KEY(3,1,KEY_2),
+-	KEY(3,2,KEY_5),
+-	KEY(3,3,KEY_8),
+-	KEY(3,4,KEY_0),
+-	KEY(3,5,KEY_KPSLASH),
+-	KEY(4,0,KEY_HOME),
+-	KEY(4,1,KEY_1),
+-	KEY(4,2,KEY_4),
+-	KEY(4,3,KEY_7),
+-	KEY(4,4,KEY_KPASTERISK),
+-	KEY(4,5,KEY_POWER),
+-	0
++	KEY(0, 0, KEY_UP),
++	KEY(1, 0, KEY_RIGHT),
++	KEY(2, 0, KEY_LEFT),
++	KEY(3, 0, KEY_DOWN),
++	KEY(4, 0, KEY_ENTER),
++	KEY(0, 1, KEY_F10),
++	KEY(1, 1, KEY_SEND),
++	KEY(2, 1, KEY_END),
++	KEY(3, 1, KEY_VOLUMEDOWN),
++	KEY(4, 1, KEY_VOLUMEUP),
++	KEY(5, 1, KEY_RECORD),
++	KEY(0, 2, KEY_F9),
++	KEY(1, 2, KEY_3),
++	KEY(2, 2, KEY_6),
++	KEY(3, 2, KEY_9),
++	KEY(4, 2, KEY_KPDOT),
++	KEY(0, 3, KEY_BACK),
++	KEY(1, 3, KEY_2),
++	KEY(2, 3, KEY_5),
++	KEY(3, 3, KEY_8),
++	KEY(4, 3, KEY_0),
++	KEY(5, 3, KEY_KPSLASH),
++	KEY(0, 4, KEY_HOME),
++	KEY(1, 4, KEY_1),
++	KEY(2, 4, KEY_4),
++	KEY(3, 4, KEY_7),
++	KEY(4, 4, KEY_KPASTERISK),
++	KEY(5, 4, KEY_POWER),
+ };
+ 
+ static struct smc91x_platdata smc91x_info = {
+@@ -211,11 +210,15 @@ static struct resource kp_resources[] = 
+ 	},
+ };
+ 
++static const struct matrix_keymap_data p2_keymap_data = {
++	.keymap		= p2_keymap,
++	.keymap_size	= ARRAY_SIZE(p2_keymap),
++};
++
+ static struct omap_kp_platform_data kp_data = {
+ 	.rows		= 8,
+ 	.cols		= 8,
+-	.keymap		= p2_keymap,
+-	.keymapsize	= ARRAY_SIZE(p2_keymap),
++	.keymap_data	= &p2_keymap_data,
+ 	.delay		= 4,
+ 	.dbounce	= 1,
+ };
+--- linux-2.6.37-rc5/arch/arm/mach-omap1/board-sx1.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-sx1.c	2010-12-16 23:04:25.000000000 +0100
+@@ -165,35 +165,34 @@ EXPORT_SYMBOL(sx1_setusbpower);
+ /*----------- Keypad -------------------------*/
+ 
+ static int sx1_keymap[] = {
+-	KEY(5, 3, GROUP_0 | 117), /* camera Qt::Key_F17 */
+-	KEY(0, 4, GROUP_0 | 114), /* voice memo Qt::Key_F14 */
+-	KEY(1, 4, GROUP_2 | 114), /* voice memo */
+-	KEY(2, 4, GROUP_3 | 114), /* voice memo */
++	KEY(3, 5, GROUP_0 | 117), /* camera Qt::Key_F17 */
++	KEY(4, 0, GROUP_0 | 114), /* voice memo Qt::Key_F14 */
++	KEY(4, 1, GROUP_2 | 114), /* voice memo */
++	KEY(4, 2, GROUP_3 | 114), /* voice memo */
+ 	KEY(0, 0, GROUP_1 | KEY_F12),	/* red button Qt::Key_Hangup */
+-	KEY(4, 3, GROUP_1 | KEY_LEFT),
+-	KEY(2, 3, GROUP_1 | KEY_DOWN),
+-	KEY(1, 3, GROUP_1 | KEY_RIGHT),
+-	KEY(0, 3, GROUP_1 | KEY_UP),
++	KEY(3, 4, GROUP_1 | KEY_LEFT),
++	KEY(3, 2, GROUP_1 | KEY_DOWN),
++	KEY(3, 1, GROUP_1 | KEY_RIGHT),
++	KEY(3, 0, GROUP_1 | KEY_UP),
+ 	KEY(3, 3, GROUP_1 | KEY_POWER), /* joystick press or Qt::Key_Select */
+-	KEY(5, 0, GROUP_1 | KEY_1),
+-	KEY(4, 0, GROUP_1 | KEY_2),
+-	KEY(3, 0, GROUP_1 | KEY_3),
+-	KEY(3, 4, GROUP_1 | KEY_4),
++	KEY(0, 5, GROUP_1 | KEY_1),
++	KEY(0, 4, GROUP_1 | KEY_2),
++	KEY(0, 3, GROUP_1 | KEY_3),
++	KEY(4, 3, GROUP_1 | KEY_4),
+ 	KEY(4, 4, GROUP_1 | KEY_5),
+-	KEY(5, 4, GROUP_1 | KEY_KPASTERISK),/* "*" */
+-	KEY(4, 1, GROUP_1 | KEY_6),
+-	KEY(5, 1, GROUP_1 | KEY_7),
+-	KEY(3, 1, GROUP_1 | KEY_8),
+-	KEY(3, 2, GROUP_1 | KEY_9),
+-	KEY(5, 2, GROUP_1 | KEY_0),
+-	KEY(4, 2, GROUP_1 | 113),	/* # F13 Toggle input method Qt::Key_F13 */
+-	KEY(0, 1, GROUP_1 | KEY_F11),	/* green button Qt::Key_Call */
+-	KEY(1, 2, GROUP_1 | KEY_YEN),	/* left soft Qt::Key_Context1 */
++	KEY(4, 5, GROUP_1 | KEY_KPASTERISK),/* "*" */
++	KEY(1, 4, GROUP_1 | KEY_6),
++	KEY(1, 5, GROUP_1 | KEY_7),
++	KEY(1, 3, GROUP_1 | KEY_8),
++	KEY(2, 3, GROUP_1 | KEY_9),
++	KEY(2, 5, GROUP_1 | KEY_0),
++	KEY(2, 4, GROUP_1 | 113), /* # F13 Toggle input method Qt::Key_F13 */
++	KEY(1, 0, GROUP_1 | KEY_F11),	/* green button Qt::Key_Call */
++	KEY(2, 1, GROUP_1 | KEY_YEN),	/* left soft Qt::Key_Context1 */
+ 	KEY(2, 2, GROUP_1 | KEY_F8),	/* right soft Qt::Key_Back */
+-	KEY(2, 1, GROUP_1 | KEY_LEFTSHIFT), /* shift */
++	KEY(1, 2, GROUP_1 | KEY_LEFTSHIFT), /* shift */
+ 	KEY(1, 1, GROUP_1 | KEY_BACKSPACE), /* C (clear) */
+-	KEY(0, 2, GROUP_1 | KEY_F7),	/* menu Qt::Key_Menu */
+-	0
++	KEY(2, 0, GROUP_1 | KEY_F7),	/* menu Qt::Key_Menu */
+ };
+ 
+ static struct resource sx1_kp_resources[] = {
+@@ -204,11 +203,15 @@ static struct resource sx1_kp_resources[
+ 	},
+ };
+ 
++static const struct matrix_keymap_data sx1_keymap_data = {
++	.keymap		= sx1_keymap,
++	.keymap_size	= ARRAY_SIZE(sx1_keymap),
++};
++
+ static struct omap_kp_platform_data sx1_kp_data = {
+ 	.rows		= 6,
+ 	.cols		= 6,
+-	.keymap	= sx1_keymap,
+-	.keymapsize = ARRAY_SIZE(sx1_keymap),
++	.keymap_data	= &sx1_keymap_data,
+ 	.delay	= 80,
+ };
+ 
+--- linux-2.6.37-rc5/arch/arm/mach-omap2/board-h4.c.orig	2010-12-09 23:07:35.000000000 +0100
++++ linux-2.6.37-rc5/arch/arm/mach-omap2/board-h4.c	2010-12-17 03:49:04.000000000 +0100
+@@ -53,36 +53,35 @@ static unsigned int col_gpios[7] = { 90,
+ 
+ static int h4_keymap[] = {
+ 	KEY(0, 0, KEY_LEFT),
+-	KEY(0, 1, KEY_RIGHT),
+-	KEY(0, 2, KEY_A),
+-	KEY(0, 3, KEY_B),
+-	KEY(0, 4, KEY_C),
+-	KEY(1, 0, KEY_DOWN),
++	KEY(1, 0, KEY_RIGHT),
++	KEY(2, 0, KEY_A),
++	KEY(3, 0, KEY_B),
++	KEY(4, 0, KEY_C),
++	KEY(0, 1, KEY_DOWN),
+ 	KEY(1, 1, KEY_UP),
+-	KEY(1, 2, KEY_E),
+-	KEY(1, 3, KEY_F),
+-	KEY(1, 4, KEY_G),
+-	KEY(2, 0, KEY_ENTER),
+-	KEY(2, 1, KEY_I),
++	KEY(2, 1, KEY_E),
++	KEY(3, 1, KEY_F),
++	KEY(4, 1, KEY_G),
++	KEY(0, 2, KEY_ENTER),
++	KEY(1, 2, KEY_I),
+ 	KEY(2, 2, KEY_J),
+-	KEY(2, 3, KEY_K),
+-	KEY(2, 4, KEY_3),
+-	KEY(3, 0, KEY_M),
+-	KEY(3, 1, KEY_N),
+-	KEY(3, 2, KEY_O),
++	KEY(3, 2, KEY_K),
++	KEY(4, 2, KEY_3),
++	KEY(0, 3, KEY_M),
++	KEY(1, 3, KEY_N),
++	KEY(2, 3, KEY_O),
+ 	KEY(3, 3, KEY_P),
+-	KEY(3, 4, KEY_Q),
+-	KEY(4, 0, KEY_R),
+-	KEY(4, 1, KEY_4),
+-	KEY(4, 2, KEY_T),
+-	KEY(4, 3, KEY_U),
++	KEY(4, 3, KEY_Q),
++	KEY(0, 4, KEY_R),
++	KEY(1, 4, KEY_4),
++	KEY(2, 4, KEY_T),
++	KEY(3, 4, KEY_U),
+ 	KEY(4, 4, KEY_ENTER),
+-	KEY(5, 0, KEY_V),
+-	KEY(5, 1, KEY_W),
+-	KEY(5, 2, KEY_L),
+-	KEY(5, 3, KEY_S),
+-	KEY(5, 4, KEY_ENTER),
+-	0
++	KEY(0, 5, KEY_V),
++	KEY(1, 5, KEY_W),
++	KEY(2, 5, KEY_L),
++	KEY(3, 5, KEY_S),
++	KEY(4, 5, KEY_ENTER),
+ };
+ 
+ static struct mtd_partition h4_partitions[] = {
+@@ -136,11 +135,15 @@ static struct platform_device h4_flash_d
+ 	.resource	= &h4_flash_resource,
+ };
+ 
++static const struct matrix_keymap_data h4_keymap_data = {
++	.keymap		= h4_keymap,
++	.keymap_size	= ARRAY_SIZE(h4_keymap),
++};
++
+ static struct omap_kp_platform_data h4_kp_data = {
+ 	.rows		= 6,
+ 	.cols		= 7,
+-	.keymap 	= h4_keymap,
+-	.keymapsize 	= ARRAY_SIZE(h4_keymap),
++	.keymap_data	= &h4_keymap_data,
+ 	.rep		= 1,
+ 	.row_gpios 	= row_gpios,
+ 	.col_gpios 	= col_gpios,
