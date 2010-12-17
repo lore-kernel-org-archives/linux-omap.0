@@ -1,532 +1,177 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 7/7] OMAP3: ASM sleep code format rework
-Date: Fri, 17 Dec 2010 10:39:40 +0530
-Message-ID: <6300c4109ddb89205374f8034dee55fd@mail.gmail.com>
-References: <1292521858-3810-1-git-send-email-j-pihet@ti.com> <1292521858-3810-8-git-send-email-j-pihet@ti.com>
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: Re: Section mismatch warnings 2.6.37-rc6
+Date: Fri, 17 Dec 2010 13:20:40 +0800
+Message-ID: <AANLkTikx94XBJsE=kGSiEHgCeoBPkeJrpLo77Zi8R5e=@mail.gmail.com>
+References: <8BA6F139-2FD7-478B-A586-36934CACE9EA@mac.com> <AANLkTimfe6MT7vyJ183cUzX_pt-2NTF+Lqde+EBSjy3_@mail.gmail.com>
+ <7143300C-9442-4BD6-B2CE-ACFF3A8B8117@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/mixed; boundary=0016363b8c50ff4ec20497945519
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:58883 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750707Ab0LQFJm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Dec 2010 00:09:42 -0500
-Received: by mail-gw0-f45.google.com with SMTP id 23so173302gwj.32
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 21:09:42 -0800 (PST)
-In-Reply-To: <1292521858-3810-8-git-send-email-j-pihet@ti.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:51920 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750720Ab0LQFVB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 00:21:01 -0500
+Received: by qyk12 with SMTP id 12so367958qyk.19
+        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 21:21:00 -0800 (PST)
+In-Reply-To: <7143300C-9442-4BD6-B2CE-ACFF3A8B8117@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com, linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet-XID <j-pihet@ti.com>
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of jean.pihet@newoldbits.com
-> Sent: Thursday, December 16, 2010 11:21 PM
-> To: linux-omap@vger.kernel.org
-> Cc: khilman@deeprootsystems.com; linux-arm-kernel@lists.infradead.org;
-> Jean Pihet
-> Subject: [PATCH 7/7] OMAP3: ASM sleep code format rework
+--0016363b8c50ff4ec20497945519
+Content-Type: text/plain; charset=ISO-8859-1
+
+On Fri, Dec 17, 2010 at 10:17 AM, Elvis Dowson <elvis.dowson@mac.com> wrote:
 >
-> From: Jean Pihet <j-pihet@ti.com>
+> On Dec 17, 2010, at 5:39 AM, Bryan Wu wrote:
+>>
+>> That tells us these 3 functions need to check for the right usage of
+>> '__init'. And which defconfig are you using?
 >
-> Cosmetic fixes to the code:
-> - white spaces and tabs,
-> - alignement,
-> - comments rephrase and typos,
-> - multi-line comments
+> I configured a custom beagleboard platform with the omap2plus_defconfig.
 >
-> Tested on N900 and Beagleboard with full RET and OFF modes,
-> using cpuidle and suspend.
+> Would it be possible for you send me a link to the patch, so that I can apply it to my local repo?
 >
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> ---
->  arch/arm/mach-omap2/sleep34xx.S |  221
-+++++++++++++++++++++-------------
-> -----
->  1 files changed, 118 insertions(+), 103 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-
-> omap2/sleep34xx.S
-> index 207f6e9..9c1c57e 100644
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -1,6 +1,10 @@
->  /*
->   * linux/arch/arm/mach-omap2/sleep.S
->   *
-> + * (C) Copyright 2010
-> + * Texas Instruments
-> + * Jean Pihet <j-pihet@ti.com>
-> + *
->   * (C) Copyright 2007
->   * Texas Instruments
->   * Karthik Dasu <karthik-dp@ti.com>
-> @@ -78,20 +82,20 @@
->  	.text
->  /* Function call to get the restore pointer for resume from OFF */
->  ENTRY(get_restore_pointer)
-> -        stmfd   sp!, {lr}     @ save registers on stack
-> +	stmfd	sp!, {lr}	@ save registers on stack
->  	adr	r0, restore
-> -        ldmfd   sp!, {pc}     @ restore regs and return
-> +	ldmfd	sp!, {pc}	@ restore regs and return
->  ENTRY(get_restore_pointer_sz)
-> -        .word   . - get_restore_pointer
-> +	.word	. - get_restore_pointer
->
->  	.text
->  /* Function call to get the restore pointer for 3630 resume from OFF */
->  ENTRY(get_omap3630_restore_pointer)
-> -        stmfd   sp!, {lr}     @ save registers on stack
-> +	stmfd	sp!, {lr}	@ save registers on stack
->  	adr	r0, restore_3630
-> -        ldmfd   sp!, {pc}     @ restore regs and return
-> +	ldmfd	sp!, {pc}	@ restore regs and return
->  ENTRY(get_omap3630_restore_pointer_sz)
-> -        .word   . - get_omap3630_restore_pointer
-> +	.word	. - get_omap3630_restore_pointer
->
->  	.text
->  /* Function call to get the restore pointer for ES3 to resume from OFF
-*/
-> @@ -109,16 +113,16 @@ ENTRY(get_es3_restore_pointer_sz)
->   * place on 3630. Hopefully some version in the future maynot need
-this.
->   */
->  ENTRY(enable_omap3630_toggle_l2_on_restore)
-> -        stmfd   sp!, {lr}     @ save registers on stack
-> +	stmfd	sp!, {lr}	@ save registers on stack
->  	/* Setup so that we will disable and enable l2 */
->  	mov	r1, #0x1
->  	str	r1, l2dis_3630
-> -        ldmfd   sp!, {pc}     @ restore regs and return
-> +	ldmfd	sp!, {pc}	@ restore regs and return
->
-> +	.text
->  /* Function to call rom code to save secure ram context */
->  ENTRY(save_secure_ram_context)
->  	stmfd	sp!, {r1-r12, lr}	@ save registers on stack
-> -
->  	adr	r3, api_params		@ r3 points to parameters
->  	str	r0, [r3,#0x4]		@ r0 has sdram address
->  	ldr	r12, high_mask
-> @@ -147,6 +151,7 @@ api_params:
->  ENTRY(save_secure_ram_context_sz)
->  	.word	. - save_secure_ram_context
->
-> +
->  /*
->   * ======================
->   * == Idle entry point ==
-> @@ -160,13 +165,14 @@ ENTRY(save_secure_ram_context_sz)
->   * and executes the WFI instruction
->   *
->   * Notes:
-> - * - this code gets copied to internal SRAM at boot.
-> + * - this code gets copied to internal SRAM at boot and after wake-up
-> + *   from OFF mode
->   * - when the OMAP wakes up it continues at different execution points
->   *   depending on the low power mode (non-OFF vs OFF modes),
->   *   cf. 'Resume path for xxx mode' comments.
->   */
->  ENTRY(omap34xx_cpu_suspend)
-> -	stmfd	sp!, {r0-r12, lr}		@ save registers on stack
-> +	stmfd	sp!, {r0-r12, lr}	@ save registers on stack
->
->  	/*
->  	 * r0 contains restore pointer in sdram
-> @@ -271,9 +277,9 @@ clean_l2:
->  	 *  - should be faster and will change with kernel
->  	 *  - 'might' have to copy address, load and jump to it
->  	 */
-> -	ldr r1, kernel_flush
-> -	mov lr, pc
-> -	bx  r1
-> +	ldr	r1, kernel_flush
-> +	mov	lr, pc
-> +	bx	r1
->
->  omap3_do_wfi:
->  	ldr	r4, sdrc_power		@ read the SDRC_POWER register
-> @@ -366,18 +372,18 @@ restore_3630:
->  	/* Fall thru to common code for the remaining logic */
->
->  restore:
-> -        /*
-> +	/*
->  	 * Check what was the reason for mpu reset and store the reason in
-> r9:
->  	 *  0 - No context lost
-> -         *  1 - Only L1 and logic lost
-> -         *  2 - Only L2 lost - In this case, we wont be here
-> -         *  3 - Both L1 and L2 lost
-> +	 *  1 - Only L1 and logic lost
-> +	 *  2 - Only L2 lost - In this case, we wont be here
-> +	 *  3 - Both L1 and L2 lost
->  	 */
-> -	ldr     r1, pm_pwstctrl_mpu
-> +	ldr	r1, pm_pwstctrl_mpu
->  	ldr	r2, [r1]
-> -	and     r2, r2, #0x3
-> -	cmp     r2, #0x0	@ Check if target power state was OFF or
-RET
-> -        moveq   r9, #0x3        @ MPU OFF => L1 and L2 lost
-> +	and	r2, r2, #0x3
-> +	cmp	r2, #0x0	@ Check if target power state was OFF or
-RET
-> +	moveq	r9, #0x3	@ MPU OFF => L1 and L2 lost
->  	movne	r9, #0x1	@ Only L1 and L2 lost => avoid L2
-invalidation
->  	bne	logic_l1_restore
->
-> @@ -393,71 +399,74 @@ skipl2dis:
->  	and	r1, #0x700
->  	cmp	r1, #0x300
->  	beq	l2_inv_gp
-> -	mov	r0, #40		@ set service ID for PPA
-> -	mov	r12, r0		@ copy secure Service ID in r12
-> -	mov	r1, #0		@ set task id for ROM code in r1
-> -	mov	r2, #4		@ set some flags in r2, r6
-> +	mov	r0, #40			@ set service ID for PPA
-> +	mov	r12, r0			@ copy secure Service ID in r12
-> +	mov	r1, #0			@ set task id for ROM code in r1
-> +	mov	r2, #4			@ set some flags in r2, r6
->  	mov	r6, #0xff
->  	adr	r3, l2_inv_api_params	@ r3 points to dummy parameters
->  	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
->  	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
->  	.word	0xE1600071		@ call SMI monitor (smi #1)
->  	/* Write to Aux control register to set some bits */
-> -	mov	r0, #42		@ set service ID for PPA
-> -	mov	r12, r0		@ copy secure Service ID in r12
-> -	mov	r1, #0		@ set task id for ROM code in r1
-> -	mov	r2, #4		@ set some flags in r2, r6
-> +	mov	r0, #42			@ set service ID for PPA
-> +	mov	r12, r0			@ copy secure Service ID in r12
-> +	mov	r1, #0			@ set task id for ROM code in r1
-> +	mov	r2, #4			@ set some flags in r2, r6
->  	mov	r6, #0xff
->  	ldr	r4, scratchpad_base
-> -	ldr	r3, [r4, #0xBC]	@ r3 points to parameters
-> +	ldr	r3, [r4, #0xBC]		@ r3 points to parameters
->  	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
->  	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
->  	.word	0xE1600071		@ call SMI monitor (smi #1)
->
->  #ifdef CONFIG_OMAP3_L2_AUX_SECURE_SAVE_RESTORE
->  	/* Restore L2 aux control register */
-> -	@ set service ID for PPA
-> +					@ set service ID for PPA
->  	mov	r0, #CONFIG_OMAP3_L2_AUX_SECURE_SERVICE_SET_ID
-> -	mov	r12, r0		@ copy service ID in r12
-> -	mov	r1, #0		@ set task ID for ROM code in r1
-> -	mov	r2, #4		@ set some flags in r2, r6
-> +	mov	r12, r0			@ copy service ID in r12
-> +	mov	r1, #0			@ set task ID for ROM code in r1
-> +	mov	r2, #4			@ set some flags in r2, r6
->  	mov	r6, #0xff
->  	ldr	r4, scratchpad_base
->  	ldr	r3, [r4, #0xBC]
-> -	adds	r3, r3, #8	@ r3 points to parameters
-> +	adds	r3, r3, #8		@ r3 points to parameters
->  	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
->  	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
->  	.word	0xE1600071		@ call SMI monitor (smi #1)
->  #endif
->  	b	logic_l1_restore
-> +
->  l2_inv_api_params:
-> -	.word   0x1, 0x00
-> +	.word	0x1, 0x00
->  l2_inv_gp:
->  	/* Execute smi to invalidate L2 cache */
-> -	mov r12, #0x1                         @ set up to invalide L2
-> -smi:    .word 0xE1600070		@ Call SMI monitor (smieq)
-> +	mov r12, #0x1			@ set up to invalidate L2
-> +	.word 0xE1600070		@ Call SMI monitor (smieq)
->  	/* Write to Aux control register to set some bits */
->  	ldr	r4, scratchpad_base
->  	ldr	r3, [r4,#0xBC]
->  	ldr	r0, [r3,#4]
->  	mov	r12, #0x3
-> -	.word 0xE1600070	@ Call SMI monitor (smieq)
-> +	.word	0xE1600070		@ Call SMI monitor (smieq)
->  	ldr	r4, scratchpad_base
->  	ldr	r3, [r4,#0xBC]
->  	ldr	r0, [r3,#12]
->  	mov	r12, #0x2
-> -	.word 0xE1600070	@ Call SMI monitor (smieq)
-> +	.word	0xE1600070		@ Call SMI monitor (smieq)
->  logic_l1_restore:
->  	ldr	r1, l2dis_3630
-> -	cmp	r1, #0x1	@ Do we need to re-enable L2 on 3630?
-> +	cmp	r1, #0x1		@ Test if L2 re-enable needed on
-3630
->  	bne	skipl2reen
->  	mrc	p15, 0, r1, c1, c0, 1
-> -	orr	r1, r1, #2	@ re-enable L2 cache
-> +	orr	r1, r1, #2		@ re-enable L2 cache
->  	mcr	p15, 0, r1, c1, c0, 1
->  skipl2reen:
->  	mov	r1, #0
-> -	/* Invalidate all instruction caches to PoU
-> -	 * and flush branch target cache */
-> +	/*
-> +	 * Invalidate all instruction caches to PoU
-> +	 * and flush branch target cache
-> +	 */
->  	mcr	p15, 0, r1, c7, c5, 0
->
->  	ldr	r4, scratchpad_base
-> @@ -478,33 +487,33 @@ skipl2reen:
->  	MCR p15, 0, r6, c2, c0, 1
->  	/* Translation table base control register */
->  	MCR p15, 0, r7, c2, c0, 2
-> -	/*domain access Control Register */
-> +	/* Domain access Control Register */
->  	MCR p15, 0, r8, c3, c0, 0
-> -	/* data fault status Register */
-> +	/* Data fault status Register */
->  	MCR p15, 0, r9, c5, c0, 0
->
-> -	ldmia  r3!,{r4-r8}
-> -	/* instruction fault status Register */
-> +	ldmia	r3!,{r4-r8}
-> +	/* Instruction fault status Register */
->  	MCR p15, 0, r4, c5, c0, 1
-> -	/*Data Auxiliary Fault Status Register */
-> +	/* Data Auxiliary Fault Status Register */
->  	MCR p15, 0, r5, c5, c1, 0
-> -	/*Instruction Auxiliary Fault Status Register*/
-> +	/* Instruction Auxiliary Fault Status Register*/
->  	MCR p15, 0, r6, c5, c1, 1
-> -	/*Data Fault Address Register */
-> +	/* Data Fault Address Register */
->  	MCR p15, 0, r7, c6, c0, 0
-> -	/*Instruction Fault Address Register*/
-> +	/* Instruction Fault Address Register*/
->  	MCR p15, 0, r8, c6, c0, 2
-> -	ldmia  r3!,{r4-r7}
-> +	ldmia	r3!,{r4-r7}
->
-> -	/* user r/w thread and process ID */
-> +	/* User r/w thread and process ID */
->  	MCR p15, 0, r4, c13, c0, 2
-> -	/* user ro thread and process ID */
-> +	/* User ro thread and process ID */
->  	MCR p15, 0, r5, c13, c0, 3
-> -	/*Privileged only thread and process ID */
-> +	/* Privileged only thread and process ID */
->  	MCR p15, 0, r6, c13, c0, 4
-> -	/* cache size selection */
-> +	/* Cache size selection */
->  	MCR p15, 2, r7, c0, c0, 0
-> -	ldmia  r3!,{r4-r8}
-> +	ldmia	r3!,{r4-r8}
->  	/* Data TLB lockdown registers */
->  	MCR p15, 0, r4, c10, c0, 0
->  	/* Instruction TLB lockdown registers */
-> @@ -516,26 +525,27 @@ skipl2reen:
->  	/* Context PID */
->  	MCR p15, 0, r8, c13, c0, 1
->
-> -	ldmia  r3!,{r4-r5}
-> -	/* primary memory remap register */
-> +	ldmia	r3!,{r4-r5}
-> +	/* Primary memory remap register */
->  	MCR p15, 0, r4, c10, c2, 0
-> -	/*normal memory remap register */
-> +	/* Normal memory remap register */
->  	MCR p15, 0, r5, c10, c2, 1
->
->  	/* Restore cpsr */
-> -	ldmia	r3!,{r4}	/*load CPSR from SDRAM*/
-> -	msr	cpsr, r4	/*store cpsr */
-> +	ldmia	r3!,{r4}		@ load CPSR from SDRAM
-> +	msr	cpsr, r4		@ store cpsr
->
->  	/* Enabling MMU here */
-> -	mrc	p15, 0, r7, c2, c0, 2 /* Read TTBRControl */
-> -	/* Extract N (0:2) bits and decide whether to use TTBR0 or TTBR1*/
-> +	mrc	p15, 0, r7, c2, c0, 2 	@ Read TTBRControl
-> +	/* Extract N (0:2) bits and decide whether to use TTBR0 or TTBR1
-*/
->  	and	r7, #0x7
->  	cmp	r7, #0x0
->  	beq	usettbr0
->  ttbr_error:
-> -	/* More work needs to be done to support N[0:2] value other than 0
-> -	* So looping here so that the error can be detected
-> -	*/
-> +	/*
-> +	 * More work needs to be done to support N[0:2] value other than 0
-> +	 * So looping here so that the error can be detected
-> +	 */
->  	b	ttbr_error
->  usettbr0:
->  	mrc	p15, 0, r2, c2, c0, 0
-> @@ -543,21 +553,25 @@ usettbr0:
->  	and	r2, r5
->  	mov	r4, pc
->  	ldr	r5, table_index_mask
-> -	and	r4, r5 /* r4 = 31 to 20 bits of pc */
-> +	and	r4, r5			@ r4 = 31 to 20 bits of pc
->  	/* Extract the value to be written to table entry */
->  	ldr	r1, table_entry
-> -	add	r1, r1, r4 /* r1 has value to be written to table entry*/
-> +	/* r1 has the value to be written to table entry*/
-> +	add	r1, r1, r4
->  	/* Getting the address of table entry to modify */
->  	lsr	r4, #18
-> -	add	r2, r4 /* r2 has the location which needs to be modified
-*/
-> +	/* r2 has the location which needs to be modified */
-> +	add	r2, r4
->  	/* Storing previous entry of location being modified */
->  	ldr	r5, scratchpad_base
->  	ldr	r4, [r2]
->  	str	r4, [r5, #0xC0]
->  	/* Modify the table entry */
->  	str	r1, [r2]
-> -	/* Storing address of entry being modified
-> -	 * - will be restored after enabling MMU */
-> +	/*
-> +	 * Storing address of entry being modified
-> +	 * - will be restored after enabling MMU
-> +	 */
->  	ldr	r5, scratchpad_base
->  	str	r2, [r5, #0xC4]
->
-> @@ -566,7 +580,7 @@ usettbr0:
->  	mcr	p15, 0, r0, c7, c5, 6	@ Invalidate branch predictor
-array
->  	mcr	p15, 0, r0, c8, c5, 0	@ Invalidate instruction TLB
->  	mcr	p15, 0, r0, c8, c6, 0	@ Invalidate data TLB
-> -	/* Restore control register  but dont enable caches here*/
-> +	/* Restore control register  but dont enable caches here */
-don't.....don't
->  	/* Caches will be enabled after restoring MMU table entry */
-Here too you can fix the commenting style
->  	ldmia	r3!, {r4}
->  	/* Store previous value of control register in scratchpad */
-> @@ -580,7 +594,7 @@ usettbr0:
->   * == Exit point from OFF mode ==
->   * ==============================
->   */
-> -	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
-> +	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
->
->
->  /*
-> @@ -646,55 +660,56 @@ ENTRY(es3_sdrc_fix_sz)
->  /* Make sure SDRC accesses are ok */
->  wait_sdrc_ok:
->
-> -/* DPLL3 must be locked before accessing the SDRC. Maybe the HW ensures
-> this. */
-> +/* DPLL3 must be locked before accessing the SDRC. Maybe the HW ensures
-> this */
->  	ldr	r4, cm_idlest_ckgen
->  wait_dpll3_lock:
->  	ldr	r5, [r4]
->  	tst	r5, #1
->  	beq	wait_dpll3_lock
->
-> -        ldr     r4, cm_idlest1_core
-> +	ldr	r4, cm_idlest1_core
->  wait_sdrc_ready:
-> -        ldr     r5, [r4]
-> -        tst     r5, #0x2
-> -        bne     wait_sdrc_ready
-> +	ldr	r5, [r4]
-> +	tst	r5, #0x2
-> +	bne	wait_sdrc_ready
->  	/* allow DLL powerdown upon hw idle req */
-> -        ldr     r4, sdrc_power
-> -        ldr     r5, [r4]
-> -        bic     r5, r5, #0x40
-> -        str     r5, [r4]
-> -is_dll_in_lock_mode:
-> +	ldr	r4, sdrc_power
-> +	ldr	r5, [r4]
-> +	bic	r5, r5, #0x40
-> +	str	r5, [r4]
->
-> -        /* Is dll in lock mode? */
-> -        ldr     r4, sdrc_dlla_ctrl
-> -        ldr     r5, [r4]
-> -        tst     r5, #0x4
-> -        bxne    lr
-> -        /* wait till dll locks */
-> +is_dll_in_lock_mode:
-> +	/* Is dll in lock mode? */
-> +	ldr	r4, sdrc_dlla_ctrl
-> +	ldr	r5, [r4]
-> +	tst	r5, #0x4
-> +	bxne	lr			@ Return if locked
-> +	/* wait till dll locks */
->  wait_dll_lock_timed:
->  	ldr	r4, wait_dll_lock_counter
->  	add	r4, r4, #1
->  	str	r4, wait_dll_lock_counter
->  	ldr	r4, sdrc_dlla_status
-> -        mov	r6, #8		/* Wait 20uS for lock */
-> +	/* Wait 20uS for lock */
-> +	mov	r6, #8
->  wait_dll_lock:
->  	subs	r6, r6, #0x1
->  	beq	kick_dll
-> -        ldr     r5, [r4]
-> -        and     r5, r5, #0x4
-> -        cmp     r5, #0x4
-> -        bne     wait_dll_lock
-> -        bx      lr
-> +	ldr	r5, [r4]
-> +	and	r5, r5, #0x4
-> +	cmp	r5, #0x4
-> +	bne	wait_dll_lock
-> +	bx	lr			@ Return when locked
->
->  	/* disable/reenable DLL if not locked */
->  kick_dll:
->  	ldr	r4, sdrc_dlla_ctrl
->  	ldr	r5, [r4]
->  	mov	r6, r5
-> -	bic	r6, #(1<<3)	/* disable dll */
-> +	bic	r6, #(1<<3)		@ disable dll
->  	str	r6, [r4]
->  	dsb
-> -	orr	r6, r6, #(1<<3)	/* enable dll */
-> +	orr	r6, r6, #(1<<3)		@ enable dll
->  	str	r6, [r4]
->  	dsb
->  	ldr	r4, kick_counter
-> @@ -719,7 +734,7 @@ scratchpad_base:
->  sram_base:
->  	.word	SRAM_BASE_P + 0x8000
->  sdrc_power:
-> -	.word SDRC_POWER_V
-> +	.word	SDRC_POWER_V
->  ttbrbit_mask:
->  	.word	0xFFFFC000
->  table_index_mask:
-> @@ -733,9 +748,9 @@ control_stat:
->  control_mem_rta:
->  	.word	CONTROL_MEM_RTA_CTRL
->  kernel_flush:
-> -	.word v7_flush_dcache_all
-> +	.word	v7_flush_dcache_all
->  l2dis_3630:
-> -	.word 0
-> +	.word	0
->  	/* these 2 words need to be at the end !!! */
->  kick_counter:
->  	.word	0
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Sure, please find them attached.
+
+-Bryan
+
+--0016363b8c50ff4ec20497945519
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-OMAP-kill-all-section-mismatch-warning-for-omap2plus.patch"
+Content-Disposition: attachment;
+	filename="0001-OMAP-kill-all-section-mismatch-warning-for-omap2plus.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ghsms1em0
+
+RnJvbSA4ZGU1YTk0ZmY0MWIwZjQzYzM1NjgwNGNhZmI1MTEyZjc0MWI3NTlkIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBCcnlhbiBXdSA8YnJ5YW4ud3VAY2Fub25pY2FsLmNvbT4KRGF0
+ZTogVHVlLCAzMCBOb3YgMjAxMCAyMjozNDoyOCArMDgwMApTdWJqZWN0OiBbUEFUQ0ggMS8yXSBP
+TUFQOiBraWxsIGFsbCBzZWN0aW9uIG1pc21hdGNoIHdhcm5pbmcgZm9yIG9tYXAycGx1c19kZWZj
+b25maWcKClRoaXMgcGF0Y2ggd2lsbCBraWxsIGZvbGxvd2luZyBzZWN0aW9uIG1pc21hdGNoIHdh
+cm5pbmdzOgoKV0FSTklORzogdm1saW51eC5vKC50ZXh0KzB4MjRhMDApOiBTZWN0aW9uIG1pc21h
+dGNoIGluIHJlZmVyZW5jZSBmcm9tIHRoZSBmdW5jdGlvbiB6b29tX3R3bF9ncGlvX3NldHVwKCkg
+dG8gdGhlICh1bmtub3duIHJlZmVyZW5jZSkgLmluaXQuZGF0YToodW5rbm93bikKVGhlIGZ1bmN0
+aW9uIHpvb21fdHdsX2dwaW9fc2V0dXAoKSByZWZlcmVuY2VzCnRoZSAodW5rbm93biByZWZlcmVu
+Y2UpIF9faW5pdGRhdGEgKHVua25vd24pLgpUaGlzIGlzIG9mdGVuIGJlY2F1c2Ugem9vbV90d2xf
+Z3Bpb19zZXR1cCBsYWNrcyBhIF9faW5pdGRhdGEKYW5ub3RhdGlvbiBvciB0aGUgYW5ub3RhdGlv
+biBvZiAodW5rbm93bikgaXMgd3JvbmcuCgpXQVJOSU5HOiB2bWxpbnV4Lm8oLnRleHQrMHgyNGJm
+Yyk6IFNlY3Rpb24gbWlzbWF0Y2ggaW4gcmVmZXJlbmNlIGZyb20gdGhlIGZ1bmN0aW9uIGNtX3Qz
+NV90d2xfZ3Bpb19zZXR1cCgpIHRvIHRoZSAodW5rbm93biByZWZlcmVuY2UpIC5pbml0LmRhdGE6
+KHVua25vd24pClRoZSBmdW5jdGlvbiBjbV90MzVfdHdsX2dwaW9fc2V0dXAoKSByZWZlcmVuY2Vz
+CnRoZSAodW5rbm93biByZWZlcmVuY2UpIF9faW5pdGRhdGEgKHVua25vd24pLgpUaGlzIGlzIG9m
+dGVuIGJlY2F1c2UgY21fdDM1X3R3bF9ncGlvX3NldHVwIGxhY2tzIGEgX19pbml0ZGF0YQphbm5v
+dGF0aW9uIG9yIHRoZSBhbm5vdGF0aW9uIG9mICh1bmtub3duKSBpcyB3cm9uZy4KCldBUk5JTkc6
+IHZtbGludXgubyguZGF0YSsweDFkM2UwKTogU2VjdGlvbiBtaXNtYXRjaCBpbiByZWZlcmVuY2Ug
+ZnJvbSB0aGUgdmFyaWFibGUgaDRfY29uZmlnIHRvIHRoZSAodW5rbm93biByZWZlcmVuY2UpIC5p
+bml0LmRhdGE6KHVua25vd24pClRoZSB2YXJpYWJsZSBoNF9jb25maWcgcmVmZXJlbmNlcwp0aGUg
+KHVua25vd24gcmVmZXJlbmNlKSBfX2luaXRkYXRhICh1bmtub3duKQpJZiB0aGUgcmVmZXJlbmNl
+IGlzIHZhbGlkIHRoZW4gYW5ub3RhdGUgdGhlCnZhcmlhYmxlIHdpdGggX19pbml0KiBvciBfX3Jl
+ZmRhdGEgKHNlZSBsaW51eC9pbml0LmgpIG9yIG5hbWUgdGhlIHZhcmlhYmxlOgoqX3RlbXBsYXRl
+LCAqX3RpbWVyLCAqX3NodCwgKl9vcHMsICpfcHJvYmUsICpfcHJvYmVfb25lLCAqX2NvbnNvbGUs
+CgpXQVJOSU5HOiB2bWxpbnV4Lm8oLmRhdGErMHgxZGMwOCk6IFNlY3Rpb24gbWlzbWF0Y2ggaW4g
+cmVmZXJlbmNlIGZyb20gdGhlIHZhcmlhYmxlIHNkcDI0MzBfY29uZmlnIHRvIHRoZSAodW5rbm93
+biByZWZlcmVuY2UpIC5pbml0LmRhdGE6KHVua25vd24pClRoZSB2YXJpYWJsZSBzZHAyNDMwX2Nv
+bmZpZyByZWZlcmVuY2VzCnRoZSAodW5rbm93biByZWZlcmVuY2UpIF9faW5pdGRhdGEgKHVua25v
+d24pCklmIHRoZSByZWZlcmVuY2UgaXMgdmFsaWQgdGhlbiBhbm5vdGF0ZSB0aGUKdmFyaWFibGUg
+d2l0aCBfX2luaXQqIG9yIF9fcmVmZGF0YSAoc2VlIGxpbnV4L2luaXQuaCkgb3IgbmFtZSB0aGUg
+dmFyaWFibGU6CipfdGVtcGxhdGUsICpfdGltZXIsICpfc2h0LCAqX29wcywgKl9wcm9iZSwgKl9w
+cm9iZV9vbmUsICpfY29uc29sZSwKCldBUk5JTkc6IHZtbGludXgubyguZGF0YSsweDFlMWQ4KTog
+U2VjdGlvbiBtaXNtYXRjaCBpbiByZWZlcmVuY2UgZnJvbSB0aGUgdmFyaWFibGUgYXBvbGxvbl9j
+b25maWcgdG8gdGhlICh1bmtub3duIHJlZmVyZW5jZSkgLmluaXQuZGF0YToodW5rbm93bikKVGhl
+IHZhcmlhYmxlIGFwb2xsb25fY29uZmlnIHJlZmVyZW5jZXMKdGhlICh1bmtub3duIHJlZmVyZW5j
+ZSkgX19pbml0ZGF0YSAodW5rbm93bikKSWYgdGhlIHJlZmVyZW5jZSBpcyB2YWxpZCB0aGVuIGFu
+bm90YXRlIHRoZQp2YXJpYWJsZSB3aXRoIF9faW5pdCogb3IgX19yZWZkYXRhIChzZWUgbGludXgv
+aW5pdC5oKSBvciBuYW1lIHRoZSB2YXJpYWJsZToKKl90ZW1wbGF0ZSwgKl90aW1lciwgKl9zaHQs
+ICpfb3BzLCAqX3Byb2JlLCAqX3Byb2JlX29uZSwgKl9jb25zb2xlLAoKU2lnbmVkLW9mZi1ieTog
+QnJ5YW4gV3UgPGJyeWFuLnd1QGNhbm9uaWNhbC5jb20+CkNjOiBQYXVsIFdhbG1zbGV5IDxwYXVs
+QHB3c2FuLmNvbT4KLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTI0MzBzZHAuYyAgICAg
+ICAgICB8ICAgIDIgKy0KIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtYXBvbGxvbi5jICAgICAg
+ICAgIHwgICAgMiArLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1jbS10MzUuYyAgICAgICAg
+ICAgfCAgIDExICsrKy0tLS0tLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWg0LmMgICAg
+ICAgICAgICAgICB8ICAgIDIgKy0KIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtem9vbS1wZXJp
+cGhlcmFscy5jIHwgICAgMiArLQogNSBmaWxlcyBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKyksIDEy
+IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQz
+MHNkcC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMwc2RwLmMKaW5kZXggYjUyN2Y4
+ZC4uOWFiOGJiMSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMwc2Rw
+LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMwc2RwLmMKQEAgLTEzNSw3ICsx
+MzUsNyBAQCBzdGF0aWMgaW5saW5lIHZvaWQgYm9hcmRfc21jOTF4X2luaXQodm9pZCkKIAogI2Vu
+ZGlmCiAKLXN0YXRpYyBzdHJ1Y3Qgb21hcF9ib2FyZF9jb25maWdfa2VybmVsIHNkcDI0MzBfY29u
+ZmlnW10gPSB7CitzdGF0aWMgc3RydWN0IG9tYXBfYm9hcmRfY29uZmlnX2tlcm5lbCBzZHAyNDMw
+X2NvbmZpZ1tdIF9faW5pdGRhdGEgPSB7CiAJe09NQVBfVEFHX0xDRCwgJnNkcDI0MzBfbGNkX2Nv
+bmZpZ30sCiB9OwogCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWFwb2xs
+b24uYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtYXBvbGxvbi5jCmluZGV4IDJjNmRiMWEu
+LjVjNDMyZDggMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtYXBvbGxvbi5j
+CisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtYXBvbGxvbi5jCkBAIC0yNzAsNyArMjcw
+LDcgQEAgc3RhdGljIHN0cnVjdCBvbWFwX2xjZF9jb25maWcgYXBvbGxvbl9sY2RfY29uZmlnIF9f
+aW5pdGRhdGEgPSB7CiAJLmN0cmxfbmFtZQk9ICJpbnRlcm5hbCIsCiB9OwogCi1zdGF0aWMgc3Ry
+dWN0IG9tYXBfYm9hcmRfY29uZmlnX2tlcm5lbCBhcG9sbG9uX2NvbmZpZ1tdID0geworc3RhdGlj
+IHN0cnVjdCBvbWFwX2JvYXJkX2NvbmZpZ19rZXJuZWwgYXBvbGxvbl9jb25maWdbXSBfX2luaXRk
+YXRhID0gewogCXsgT01BUF9UQUdfTENELAkJJmFwb2xsb25fbGNkX2NvbmZpZyB9LAogfTsKIApk
+aWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1jbS10MzUuYyBiL2FyY2gvYXJt
+L21hY2gtb21hcDIvYm9hcmQtY20tdDM1LmMKaW5kZXggNjNmNzY0ZS4uY2Q5NzE1OSAxMDA2NDQK
+LS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1jbS10MzUuYworKysgYi9hcmNoL2FybS9t
+YWNoLW9tYXAyL2JvYXJkLWNtLXQzNS5jCkBAIC02MDAsOCArNjAwLDggQEAgc3RhdGljIHN0cnVj
+dCBlaGNpX2hjZF9vbWFwX3BsYXRmb3JtX2RhdGEgZWhjaV9wZGF0YSBfX2luaXRkYXRhID0gewog
+CS5wb3J0X21vZGVbMl0gPSBFSENJX0hDRF9PTUFQX01PREVfVU5LTk9XTiwKIAogCS5waHlfcmVz
+ZXQgID0gdHJ1ZSwKLQkucmVzZXRfZ3Bpb19wb3J0WzBdICA9IC1FSU5WQUwsCi0JLnJlc2V0X2dw
+aW9fcG9ydFsxXSAgPSAtRUlOVkFMLAorCS5yZXNldF9ncGlvX3BvcnRbMF0gID0gT01BUF9NQVhf
+R1BJT19MSU5FUyArIDYsCisJLnJlc2V0X2dwaW9fcG9ydFsxXSAgPSBPTUFQX01BWF9HUElPX0xJ
+TkVTICsgNywKIAkucmVzZXRfZ3Bpb19wb3J0WzJdICA9IC1FSU5WQUwKIH07CiAKQEAgLTYzMCwx
+MiArNjMwLDYgQEAgc3RhdGljIGludCBjbV90MzVfdHdsX2dwaW9fc2V0dXAoc3RydWN0IGRldmlj
+ZSAqZGV2LCB1bnNpZ25lZCBncGlvLAogCWNtX3QzNV92bW1jMV9zdXBwbHkuZGV2ID0gbW1jWzBd
+LmRldjsKIAljbV90MzVfdnNpbV9zdXBwbHkuZGV2ID0gbW1jWzBdLmRldjsKIAotCS8qIHNldHVw
+IFVTQiB3aXRoIHByb3BlciBQSFkgcmVzZXQgR1BJT3MgKi8KLQllaGNpX3BkYXRhLnJlc2V0X2dw
+aW9fcG9ydFswXSA9IGdwaW8gKyA2OwotCWVoY2lfcGRhdGEucmVzZXRfZ3Bpb19wb3J0WzFdID0g
+Z3BpbyArIDc7Ci0KLQl1c2JfZWhjaV9pbml0KCZlaGNpX3BkYXRhKTsKLQogCXJldHVybiAwOwog
+fQogCkBAIC04MDUsNiArNzk5LDcgQEAgc3RhdGljIHZvaWQgX19pbml0IGNtX3QzNV9pbml0KHZv
+aWQpCiAJY21fdDM1X2luaXRfZGlzcGxheSgpOwogCiAJdXNiX211c2JfaW5pdCgmbXVzYl9ib2Fy
+ZF9kYXRhKTsKKwl1c2JfZWhjaV9pbml0KCZlaGNpX3BkYXRhKTsKIH0KIAogTUFDSElORV9TVEFS
+VChDTV9UMzUsICJDb21wdWxhYiBDTS1UMzUiKQpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1v
+bWFwMi9ib2FyZC1oNC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1oNC5jCmluZGV4IDky
+OTk5M2IuLjU1NDlmMmMgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtaDQu
+YworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWg0LmMKQEAgLTI4Myw3ICsyODMsNyBA
+QCBzdGF0aWMgc3RydWN0IG9tYXBfdXNiX2NvbmZpZyBoNF91c2JfY29uZmlnIF9faW5pdGRhdGEg
+PSB7CiAJLmhtY19tb2RlCT0gMHgwMCwJCS8qIDA6ZGV2fG90ZyAxOmRpc2FibGUgMjpkaXNhYmxl
+ICovCiB9OwogCi1zdGF0aWMgc3RydWN0IG9tYXBfYm9hcmRfY29uZmlnX2tlcm5lbCBoNF9jb25m
+aWdbXSA9IHsKK3N0YXRpYyBzdHJ1Y3Qgb21hcF9ib2FyZF9jb25maWdfa2VybmVsIGg0X2NvbmZp
+Z1tdIF9faW5pdGRhdGEgPSB7CiAJeyBPTUFQX1RBR19MQ0QsCQkmaDRfbGNkX2NvbmZpZyB9LAog
+fTsKIApkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC16b29tLXBlcmlwaGVy
+YWxzLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLXpvb20tcGVyaXBoZXJhbHMuYwppbmRl
+eCA5ZGI5MjAzLi4zZmJkMGVkIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJk
+LXpvb20tcGVyaXBoZXJhbHMuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLXpvb20t
+cGVyaXBoZXJhbHMuYwpAQCAtMTk2LDcgKzE5Niw3IEBAIHN0cnVjdCB3bDEyeHhfcGxhdGZvcm1f
+ZGF0YSBvbWFwX3pvb21fd2xhbl9kYXRhIF9faW5pdGRhdGEgPSB7CiAJLmJvYXJkX3JlZl9jbG9j
+ayA9IDEsCiB9OwogCi1zdGF0aWMgc3RydWN0IG9tYXAyX2hzbW1jX2luZm8gbW1jW10gX19pbml0
+ZGF0YSA9IHsKK3N0YXRpYyBzdHJ1Y3Qgb21hcDJfaHNtbWNfaW5mbyBtbWNbXSA9IHsKIAl7CiAJ
+CS5uYW1lCQk9ICJleHRlcm5hbCIsCiAJCS5tbWMJCT0gMSwKLS0gCjEuNy4xCgo=
+--0016363b8c50ff4ec20497945519
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0002-MFD-TWL-TPS-fix-twl_probe-section-mismatch-warning-i.patch"
+Content-Disposition: attachment;
+	filename="0002-MFD-TWL-TPS-fix-twl_probe-section-mismatch-warning-i.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ghsmsb9r1
+
+RnJvbSBjYWEwNzI0MDBjZjhmNTc3NDAxNmExMjI3NjE0NTAxYjY4MjJlY2I5IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBCcnlhbiBXdSA8YnJ5YW4ud3VAY2Fub25pY2FsLmNvbT4KRGF0
+ZTogV2VkLCA4IERlYyAyMDEwIDEwOjI5OjI2ICswODAwClN1YmplY3Q6IFtQQVRDSCAyLzJdIE1G
+RDogVFdML1RQUzogZml4IHR3bF9wcm9iZSBzZWN0aW9uIG1pc21hdGNoIHdhcm5pbmcgaW4gbWZk
+L3R3bC1jb3JlLmMKCkZpeCB0aGUgZm9sbG93aW5nIHNlY3Rpb24gbWlzbWF0Y2ggd2FybmluZyB3
+aGVuIGJ1aWxkaW5nIG9tYXAycGx1c19kZWZjb25maWc6CgpXQVJOSU5HOiB2bWxpbnV4Lm8oLmRh
+dGErMHg0N2Q3Yyk6IFNlY3Rpb24gbWlzbWF0Y2ggaW4gcmVmZXJlbmNlIGZyb20gdGhlIHZhcmlh
+YmxlIHR3bF9kcml2ZXIgdG8gdGhlIGZ1bmN0aW9uIC5pbml0LnRleHQ6dHdsX3Byb2JlKCkKClNp
+Z25lZC1vZmYtYnk6IEJyeWFuIFd1IDxicnlhbi53dUBjYW5vbmljYWwuY29tPgpTaWduZWQtb2Zm
+LWJ5OiBQYXVsIFdhbG1zbGV5IDxwYXVsQHB3c2FuLmNvbT4KLS0tCiBkcml2ZXJzL21mZC90d2wt
+Y29yZS5jIHwgICAgMiArLQogMSBmaWxlcyBjaGFuZ2VkLCAxIGluc2VydGlvbnMoKyksIDEgZGVs
+ZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZmQvdHdsLWNvcmUuYyBiL2RyaXZlcnMv
+bWZkL3R3bC1jb3JlLmMKaW5kZXggMzUyNzViYS4uM2FhNDZmZiAxMDA2NDQKLS0tIGEvZHJpdmVy
+cy9tZmQvdHdsLWNvcmUuYworKysgYi9kcml2ZXJzL21mZC90d2wtY29yZS5jCkBAIC05NjksNyAr
+OTY5LDcgQEAgc3RhdGljIGludCB0d2xfcmVtb3ZlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQp
+CiB9CiAKIC8qIE5PVEU6ICB0aGlzIGRyaXZlciBvbmx5IGhhbmRsZXMgYSBzaW5nbGUgdHdsNDAz
+MC90cHM2NTl4MCBjaGlwICovCi1zdGF0aWMgaW50IF9faW5pdAorc3RhdGljIGludCBfX2Rldmlu
+aXQKIHR3bF9wcm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCBjb25zdCBzdHJ1Y3QgaTJj
+X2RldmljZV9pZCAqaWQpCiB7CiAJaW50CQkJCXN0YXR1czsKLS0gCjEuNy4xCgo=
+--0016363b8c50ff4ec20497945519--
