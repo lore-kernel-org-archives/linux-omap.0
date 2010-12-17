@@ -1,177 +1,72 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: Re: Section mismatch warnings 2.6.37-rc6
-Date: Fri, 17 Dec 2010 13:20:40 +0800
-Message-ID: <AANLkTikx94XBJsE=kGSiEHgCeoBPkeJrpLo77Zi8R5e=@mail.gmail.com>
-References: <8BA6F139-2FD7-478B-A586-36934CACE9EA@mac.com> <AANLkTimfe6MT7vyJ183cUzX_pt-2NTF+Lqde+EBSjy3_@mail.gmail.com>
- <7143300C-9442-4BD6-B2CE-ACFF3A8B8117@mac.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [Patch v4] AM35xx: Craneboard: Add USB EHCI support
+Date: Fri, 17 Dec 2010 08:22:05 +0200
+Message-ID: <20101217062205.GD2759@legolas.emea.dhcp.ti.com>
+References: <[PATCH]AM35xx-Craneboard-Add-USB-EHCI-support>
+ <1292513112-12471-1-git-send-email-srinath@mistralsolutions.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0016363b8c50ff4ec20497945519
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:51920 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720Ab0LQFVB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 00:21:01 -0500
-Received: by qyk12 with SMTP id 12so367958qyk.19
-        for <linux-omap@vger.kernel.org>; Thu, 16 Dec 2010 21:21:00 -0800 (PST)
-In-Reply-To: <7143300C-9442-4BD6-B2CE-ACFF3A8B8117@mac.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1292513112-12471-1-git-send-email-srinath@mistralsolutions.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: srinath@mistralsolutions.com
+Cc: linux-omap@vger.kernel.org, jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, sshtylyov@mvista.com, manjugk@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
---0016363b8c50ff4ec20497945519
-Content-Type: text/plain; charset=ISO-8859-1
+Hi,
 
-On Fri, Dec 17, 2010 at 10:17 AM, Elvis Dowson <elvis.dowson@mac.com> wrote:
->
-> On Dec 17, 2010, at 5:39 AM, Bryan Wu wrote:
->>
->> That tells us these 3 functions need to check for the right usage of
->> '__init'. And which defconfig are you using?
->
-> I configured a custom beagleboard platform with the omap2plus_defconfig.
->
-> Would it be possible for you send me a link to the patch, so that I can apply it to my local repo?
->
+On Thu, Dec 16, 2010 at 08:55:12PM +0530, srinath@mistralsolutions.com wrote:
+> static void __init am3517_crane_init(void)
+> {
+>+	int ret;
+>+
+> 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+> 	omap_serial_init();
+>+
+>+	/* Configure GPIO for EHCI port */
+>+	if (omap_mux_init_gpio(GPIO_USB_NRESET, OMAP_PIN_OUTPUT)) {
+>+		pr_err("Can not cofigure mux for GPIO_USB_NRESET %d\n",
 
-Sure, please find them attached.
+typo: configure
 
--Bryan
+>+			GPIO_USB_NRESET);
+>+		return;
+>+	}
+>+
+>+	if (omap_mux_init_gpio(GPIO_USB_POWER, OMAP_PIN_OUTPUT)) {
+>+		pr_err("Can not cofigure mux for GPIO_USB_POWER %d\n",
 
---0016363b8c50ff4ec20497945519
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-OMAP-kill-all-section-mismatch-warning-for-omap2plus.patch"
-Content-Disposition: attachment;
-	filename="0001-OMAP-kill-all-section-mismatch-warning-for-omap2plus.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ghsms1em0
+typo: configure
 
-RnJvbSA4ZGU1YTk0ZmY0MWIwZjQzYzM1NjgwNGNhZmI1MTEyZjc0MWI3NTlkIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBCcnlhbiBXdSA8YnJ5YW4ud3VAY2Fub25pY2FsLmNvbT4KRGF0
-ZTogVHVlLCAzMCBOb3YgMjAxMCAyMjozNDoyOCArMDgwMApTdWJqZWN0OiBbUEFUQ0ggMS8yXSBP
-TUFQOiBraWxsIGFsbCBzZWN0aW9uIG1pc21hdGNoIHdhcm5pbmcgZm9yIG9tYXAycGx1c19kZWZj
-b25maWcKClRoaXMgcGF0Y2ggd2lsbCBraWxsIGZvbGxvd2luZyBzZWN0aW9uIG1pc21hdGNoIHdh
-cm5pbmdzOgoKV0FSTklORzogdm1saW51eC5vKC50ZXh0KzB4MjRhMDApOiBTZWN0aW9uIG1pc21h
-dGNoIGluIHJlZmVyZW5jZSBmcm9tIHRoZSBmdW5jdGlvbiB6b29tX3R3bF9ncGlvX3NldHVwKCkg
-dG8gdGhlICh1bmtub3duIHJlZmVyZW5jZSkgLmluaXQuZGF0YToodW5rbm93bikKVGhlIGZ1bmN0
-aW9uIHpvb21fdHdsX2dwaW9fc2V0dXAoKSByZWZlcmVuY2VzCnRoZSAodW5rbm93biByZWZlcmVu
-Y2UpIF9faW5pdGRhdGEgKHVua25vd24pLgpUaGlzIGlzIG9mdGVuIGJlY2F1c2Ugem9vbV90d2xf
-Z3Bpb19zZXR1cCBsYWNrcyBhIF9faW5pdGRhdGEKYW5ub3RhdGlvbiBvciB0aGUgYW5ub3RhdGlv
-biBvZiAodW5rbm93bikgaXMgd3JvbmcuCgpXQVJOSU5HOiB2bWxpbnV4Lm8oLnRleHQrMHgyNGJm
-Yyk6IFNlY3Rpb24gbWlzbWF0Y2ggaW4gcmVmZXJlbmNlIGZyb20gdGhlIGZ1bmN0aW9uIGNtX3Qz
-NV90d2xfZ3Bpb19zZXR1cCgpIHRvIHRoZSAodW5rbm93biByZWZlcmVuY2UpIC5pbml0LmRhdGE6
-KHVua25vd24pClRoZSBmdW5jdGlvbiBjbV90MzVfdHdsX2dwaW9fc2V0dXAoKSByZWZlcmVuY2Vz
-CnRoZSAodW5rbm93biByZWZlcmVuY2UpIF9faW5pdGRhdGEgKHVua25vd24pLgpUaGlzIGlzIG9m
-dGVuIGJlY2F1c2UgY21fdDM1X3R3bF9ncGlvX3NldHVwIGxhY2tzIGEgX19pbml0ZGF0YQphbm5v
-dGF0aW9uIG9yIHRoZSBhbm5vdGF0aW9uIG9mICh1bmtub3duKSBpcyB3cm9uZy4KCldBUk5JTkc6
-IHZtbGludXgubyguZGF0YSsweDFkM2UwKTogU2VjdGlvbiBtaXNtYXRjaCBpbiByZWZlcmVuY2Ug
-ZnJvbSB0aGUgdmFyaWFibGUgaDRfY29uZmlnIHRvIHRoZSAodW5rbm93biByZWZlcmVuY2UpIC5p
-bml0LmRhdGE6KHVua25vd24pClRoZSB2YXJpYWJsZSBoNF9jb25maWcgcmVmZXJlbmNlcwp0aGUg
-KHVua25vd24gcmVmZXJlbmNlKSBfX2luaXRkYXRhICh1bmtub3duKQpJZiB0aGUgcmVmZXJlbmNl
-IGlzIHZhbGlkIHRoZW4gYW5ub3RhdGUgdGhlCnZhcmlhYmxlIHdpdGggX19pbml0KiBvciBfX3Jl
-ZmRhdGEgKHNlZSBsaW51eC9pbml0LmgpIG9yIG5hbWUgdGhlIHZhcmlhYmxlOgoqX3RlbXBsYXRl
-LCAqX3RpbWVyLCAqX3NodCwgKl9vcHMsICpfcHJvYmUsICpfcHJvYmVfb25lLCAqX2NvbnNvbGUs
-CgpXQVJOSU5HOiB2bWxpbnV4Lm8oLmRhdGErMHgxZGMwOCk6IFNlY3Rpb24gbWlzbWF0Y2ggaW4g
-cmVmZXJlbmNlIGZyb20gdGhlIHZhcmlhYmxlIHNkcDI0MzBfY29uZmlnIHRvIHRoZSAodW5rbm93
-biByZWZlcmVuY2UpIC5pbml0LmRhdGE6KHVua25vd24pClRoZSB2YXJpYWJsZSBzZHAyNDMwX2Nv
-bmZpZyByZWZlcmVuY2VzCnRoZSAodW5rbm93biByZWZlcmVuY2UpIF9faW5pdGRhdGEgKHVua25v
-d24pCklmIHRoZSByZWZlcmVuY2UgaXMgdmFsaWQgdGhlbiBhbm5vdGF0ZSB0aGUKdmFyaWFibGUg
-d2l0aCBfX2luaXQqIG9yIF9fcmVmZGF0YSAoc2VlIGxpbnV4L2luaXQuaCkgb3IgbmFtZSB0aGUg
-dmFyaWFibGU6CipfdGVtcGxhdGUsICpfdGltZXIsICpfc2h0LCAqX29wcywgKl9wcm9iZSwgKl9w
-cm9iZV9vbmUsICpfY29uc29sZSwKCldBUk5JTkc6IHZtbGludXgubyguZGF0YSsweDFlMWQ4KTog
-U2VjdGlvbiBtaXNtYXRjaCBpbiByZWZlcmVuY2UgZnJvbSB0aGUgdmFyaWFibGUgYXBvbGxvbl9j
-b25maWcgdG8gdGhlICh1bmtub3duIHJlZmVyZW5jZSkgLmluaXQuZGF0YToodW5rbm93bikKVGhl
-IHZhcmlhYmxlIGFwb2xsb25fY29uZmlnIHJlZmVyZW5jZXMKdGhlICh1bmtub3duIHJlZmVyZW5j
-ZSkgX19pbml0ZGF0YSAodW5rbm93bikKSWYgdGhlIHJlZmVyZW5jZSBpcyB2YWxpZCB0aGVuIGFu
-bm90YXRlIHRoZQp2YXJpYWJsZSB3aXRoIF9faW5pdCogb3IgX19yZWZkYXRhIChzZWUgbGludXgv
-aW5pdC5oKSBvciBuYW1lIHRoZSB2YXJpYWJsZToKKl90ZW1wbGF0ZSwgKl90aW1lciwgKl9zaHQs
-ICpfb3BzLCAqX3Byb2JlLCAqX3Byb2JlX29uZSwgKl9jb25zb2xlLAoKU2lnbmVkLW9mZi1ieTog
-QnJ5YW4gV3UgPGJyeWFuLnd1QGNhbm9uaWNhbC5jb20+CkNjOiBQYXVsIFdhbG1zbGV5IDxwYXVs
-QHB3c2FuLmNvbT4KLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTI0MzBzZHAuYyAgICAg
-ICAgICB8ICAgIDIgKy0KIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtYXBvbGxvbi5jICAgICAg
-ICAgIHwgICAgMiArLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1jbS10MzUuYyAgICAgICAg
-ICAgfCAgIDExICsrKy0tLS0tLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWg0LmMgICAg
-ICAgICAgICAgICB8ICAgIDIgKy0KIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtem9vbS1wZXJp
-cGhlcmFscy5jIHwgICAgMiArLQogNSBmaWxlcyBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKyksIDEy
-IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQz
-MHNkcC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMwc2RwLmMKaW5kZXggYjUyN2Y4
-ZC4uOWFiOGJiMSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMwc2Rw
-LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMwc2RwLmMKQEAgLTEzNSw3ICsx
-MzUsNyBAQCBzdGF0aWMgaW5saW5lIHZvaWQgYm9hcmRfc21jOTF4X2luaXQodm9pZCkKIAogI2Vu
-ZGlmCiAKLXN0YXRpYyBzdHJ1Y3Qgb21hcF9ib2FyZF9jb25maWdfa2VybmVsIHNkcDI0MzBfY29u
-ZmlnW10gPSB7CitzdGF0aWMgc3RydWN0IG9tYXBfYm9hcmRfY29uZmlnX2tlcm5lbCBzZHAyNDMw
-X2NvbmZpZ1tdIF9faW5pdGRhdGEgPSB7CiAJe09NQVBfVEFHX0xDRCwgJnNkcDI0MzBfbGNkX2Nv
-bmZpZ30sCiB9OwogCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWFwb2xs
-b24uYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtYXBvbGxvbi5jCmluZGV4IDJjNmRiMWEu
-LjVjNDMyZDggMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtYXBvbGxvbi5j
-CisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtYXBvbGxvbi5jCkBAIC0yNzAsNyArMjcw
-LDcgQEAgc3RhdGljIHN0cnVjdCBvbWFwX2xjZF9jb25maWcgYXBvbGxvbl9sY2RfY29uZmlnIF9f
-aW5pdGRhdGEgPSB7CiAJLmN0cmxfbmFtZQk9ICJpbnRlcm5hbCIsCiB9OwogCi1zdGF0aWMgc3Ry
-dWN0IG9tYXBfYm9hcmRfY29uZmlnX2tlcm5lbCBhcG9sbG9uX2NvbmZpZ1tdID0geworc3RhdGlj
-IHN0cnVjdCBvbWFwX2JvYXJkX2NvbmZpZ19rZXJuZWwgYXBvbGxvbl9jb25maWdbXSBfX2luaXRk
-YXRhID0gewogCXsgT01BUF9UQUdfTENELAkJJmFwb2xsb25fbGNkX2NvbmZpZyB9LAogfTsKIApk
-aWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1jbS10MzUuYyBiL2FyY2gvYXJt
-L21hY2gtb21hcDIvYm9hcmQtY20tdDM1LmMKaW5kZXggNjNmNzY0ZS4uY2Q5NzE1OSAxMDA2NDQK
-LS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1jbS10MzUuYworKysgYi9hcmNoL2FybS9t
-YWNoLW9tYXAyL2JvYXJkLWNtLXQzNS5jCkBAIC02MDAsOCArNjAwLDggQEAgc3RhdGljIHN0cnVj
-dCBlaGNpX2hjZF9vbWFwX3BsYXRmb3JtX2RhdGEgZWhjaV9wZGF0YSBfX2luaXRkYXRhID0gewog
-CS5wb3J0X21vZGVbMl0gPSBFSENJX0hDRF9PTUFQX01PREVfVU5LTk9XTiwKIAogCS5waHlfcmVz
-ZXQgID0gdHJ1ZSwKLQkucmVzZXRfZ3Bpb19wb3J0WzBdICA9IC1FSU5WQUwsCi0JLnJlc2V0X2dw
-aW9fcG9ydFsxXSAgPSAtRUlOVkFMLAorCS5yZXNldF9ncGlvX3BvcnRbMF0gID0gT01BUF9NQVhf
-R1BJT19MSU5FUyArIDYsCisJLnJlc2V0X2dwaW9fcG9ydFsxXSAgPSBPTUFQX01BWF9HUElPX0xJ
-TkVTICsgNywKIAkucmVzZXRfZ3Bpb19wb3J0WzJdICA9IC1FSU5WQUwKIH07CiAKQEAgLTYzMCwx
-MiArNjMwLDYgQEAgc3RhdGljIGludCBjbV90MzVfdHdsX2dwaW9fc2V0dXAoc3RydWN0IGRldmlj
-ZSAqZGV2LCB1bnNpZ25lZCBncGlvLAogCWNtX3QzNV92bW1jMV9zdXBwbHkuZGV2ID0gbW1jWzBd
-LmRldjsKIAljbV90MzVfdnNpbV9zdXBwbHkuZGV2ID0gbW1jWzBdLmRldjsKIAotCS8qIHNldHVw
-IFVTQiB3aXRoIHByb3BlciBQSFkgcmVzZXQgR1BJT3MgKi8KLQllaGNpX3BkYXRhLnJlc2V0X2dw
-aW9fcG9ydFswXSA9IGdwaW8gKyA2OwotCWVoY2lfcGRhdGEucmVzZXRfZ3Bpb19wb3J0WzFdID0g
-Z3BpbyArIDc7Ci0KLQl1c2JfZWhjaV9pbml0KCZlaGNpX3BkYXRhKTsKLQogCXJldHVybiAwOwog
-fQogCkBAIC04MDUsNiArNzk5LDcgQEAgc3RhdGljIHZvaWQgX19pbml0IGNtX3QzNV9pbml0KHZv
-aWQpCiAJY21fdDM1X2luaXRfZGlzcGxheSgpOwogCiAJdXNiX211c2JfaW5pdCgmbXVzYl9ib2Fy
-ZF9kYXRhKTsKKwl1c2JfZWhjaV9pbml0KCZlaGNpX3BkYXRhKTsKIH0KIAogTUFDSElORV9TVEFS
-VChDTV9UMzUsICJDb21wdWxhYiBDTS1UMzUiKQpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1v
-bWFwMi9ib2FyZC1oNC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1oNC5jCmluZGV4IDky
-OTk5M2IuLjU1NDlmMmMgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtaDQu
-YworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWg0LmMKQEAgLTI4Myw3ICsyODMsNyBA
-QCBzdGF0aWMgc3RydWN0IG9tYXBfdXNiX2NvbmZpZyBoNF91c2JfY29uZmlnIF9faW5pdGRhdGEg
-PSB7CiAJLmhtY19tb2RlCT0gMHgwMCwJCS8qIDA6ZGV2fG90ZyAxOmRpc2FibGUgMjpkaXNhYmxl
-ICovCiB9OwogCi1zdGF0aWMgc3RydWN0IG9tYXBfYm9hcmRfY29uZmlnX2tlcm5lbCBoNF9jb25m
-aWdbXSA9IHsKK3N0YXRpYyBzdHJ1Y3Qgb21hcF9ib2FyZF9jb25maWdfa2VybmVsIGg0X2NvbmZp
-Z1tdIF9faW5pdGRhdGEgPSB7CiAJeyBPTUFQX1RBR19MQ0QsCQkmaDRfbGNkX2NvbmZpZyB9LAog
-fTsKIApkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC16b29tLXBlcmlwaGVy
-YWxzLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLXpvb20tcGVyaXBoZXJhbHMuYwppbmRl
-eCA5ZGI5MjAzLi4zZmJkMGVkIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJk
-LXpvb20tcGVyaXBoZXJhbHMuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLXpvb20t
-cGVyaXBoZXJhbHMuYwpAQCAtMTk2LDcgKzE5Niw3IEBAIHN0cnVjdCB3bDEyeHhfcGxhdGZvcm1f
-ZGF0YSBvbWFwX3pvb21fd2xhbl9kYXRhIF9faW5pdGRhdGEgPSB7CiAJLmJvYXJkX3JlZl9jbG9j
-ayA9IDEsCiB9OwogCi1zdGF0aWMgc3RydWN0IG9tYXAyX2hzbW1jX2luZm8gbW1jW10gX19pbml0
-ZGF0YSA9IHsKK3N0YXRpYyBzdHJ1Y3Qgb21hcDJfaHNtbWNfaW5mbyBtbWNbXSA9IHsKIAl7CiAJ
-CS5uYW1lCQk9ICJleHRlcm5hbCIsCiAJCS5tbWMJCT0gMSwKLS0gCjEuNy4xCgo=
---0016363b8c50ff4ec20497945519
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0002-MFD-TWL-TPS-fix-twl_probe-section-mismatch-warning-i.patch"
-Content-Disposition: attachment;
-	filename="0002-MFD-TWL-TPS-fix-twl_probe-section-mismatch-warning-i.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ghsmsb9r1
+>+			GPIO_USB_POWER);
+>+		return;
+>+	}
+>+
+>+	ret = gpio_request(GPIO_USB_POWER, "usb_ehci_enable");
+>+	if (ret < 0) {
+>+		pr_err("Cannot request GPIO %d\n", GPIO_USB_POWER);
 
-RnJvbSBjYWEwNzI0MDBjZjhmNTc3NDAxNmExMjI3NjE0NTAxYjY4MjJlY2I5IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBCcnlhbiBXdSA8YnJ5YW4ud3VAY2Fub25pY2FsLmNvbT4KRGF0
-ZTogV2VkLCA4IERlYyAyMDEwIDEwOjI5OjI2ICswODAwClN1YmplY3Q6IFtQQVRDSCAyLzJdIE1G
-RDogVFdML1RQUzogZml4IHR3bF9wcm9iZSBzZWN0aW9uIG1pc21hdGNoIHdhcm5pbmcgaW4gbWZk
-L3R3bC1jb3JlLmMKCkZpeCB0aGUgZm9sbG93aW5nIHNlY3Rpb24gbWlzbWF0Y2ggd2FybmluZyB3
-aGVuIGJ1aWxkaW5nIG9tYXAycGx1c19kZWZjb25maWc6CgpXQVJOSU5HOiB2bWxpbnV4Lm8oLmRh
-dGErMHg0N2Q3Yyk6IFNlY3Rpb24gbWlzbWF0Y2ggaW4gcmVmZXJlbmNlIGZyb20gdGhlIHZhcmlh
-YmxlIHR3bF9kcml2ZXIgdG8gdGhlIGZ1bmN0aW9uIC5pbml0LnRleHQ6dHdsX3Byb2JlKCkKClNp
-Z25lZC1vZmYtYnk6IEJyeWFuIFd1IDxicnlhbi53dUBjYW5vbmljYWwuY29tPgpTaWduZWQtb2Zm
-LWJ5OiBQYXVsIFdhbG1zbGV5IDxwYXVsQHB3c2FuLmNvbT4KLS0tCiBkcml2ZXJzL21mZC90d2wt
-Y29yZS5jIHwgICAgMiArLQogMSBmaWxlcyBjaGFuZ2VkLCAxIGluc2VydGlvbnMoKyksIDEgZGVs
-ZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZmQvdHdsLWNvcmUuYyBiL2RyaXZlcnMv
-bWZkL3R3bC1jb3JlLmMKaW5kZXggMzUyNzViYS4uM2FhNDZmZiAxMDA2NDQKLS0tIGEvZHJpdmVy
-cy9tZmQvdHdsLWNvcmUuYworKysgYi9kcml2ZXJzL21mZC90d2wtY29yZS5jCkBAIC05NjksNyAr
-OTY5LDcgQEAgc3RhdGljIGludCB0d2xfcmVtb3ZlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQp
-CiB9CiAKIC8qIE5PVEU6ICB0aGlzIGRyaXZlciBvbmx5IGhhbmRsZXMgYSBzaW5nbGUgdHdsNDAz
-MC90cHM2NTl4MCBjaGlwICovCi1zdGF0aWMgaW50IF9faW5pdAorc3RhdGljIGludCBfX2Rldmlu
-aXQKIHR3bF9wcm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCBjb25zdCBzdHJ1Y3QgaTJj
-X2RldmljZV9pZCAqaWQpCiB7CiAJaW50CQkJCXN0YXR1czsKLS0gCjEuNy4xCgo=
---0016363b8c50ff4ec20497945519--
+Keep consistency, either use Can not or Cannot.
+
+>+		return;
+>+	}
+>+
+>+	ret = gpio_direction_output(GPIO_USB_POWER, 1);
+>+	if (ret < 0)
+>+		goto err;
+>+
+>+
+>+	usb_ehci_init(&ehci_pdata);
+>+	return;
+>+
+>+err:
+>+	gpio_free(GPIO_USB_POWER);
+>+	pr_err("Unable to initialize EHCI power\n");
+>+	return;
+
+this return is unnecessary
+
+-- 
+balbi
