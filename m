@@ -1,128 +1,186 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
-Date: Fri, 17 Dec 2010 14:29:54 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404BD0DBA3B@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E739404BC762E9A@dbde02.ent.ti.com>
-	 <1290589057.13243.22.camel@tubuntu>
-	 <19F8576C6E063C45BE387C64729E739404BCCA3A55@dbde02.ent.ti.com>
-	 <20101124163100.GB5681@nokia.com>
-	 <19F8576C6E063C45BE387C64729E739404BCCA3CAE@dbde02.ent.ti.com>
-	 <yw1xeia81nts.fsf@unicorn.mansr.com>
-	 <19F8576C6E063C45BE387C64729E739404BCCA401F@dbde02.ent.ti.com>
-	 <20101126125539.GG8094@nokia.com> <20101130063440.GF17114@linux-sh.org>
-	 <20101130063934.GG17114@linux-sh.org>
-	 <19F8576C6E063C45BE387C64729E739404BCCA455A@dbde02.ent.ti.com>
- <1291123945.24627.223.camel@tubuntu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: jean.pihet@newoldbits.com
+Subject: [PATCH 1/7] OMAP3: remove unused code from the ASM sleep code
+Date: Fri, 17 Dec 2010 11:08:20 +0100
+Message-ID: <1292580506-4421-2-git-send-email-j-pihet@ti.com>
+References: <1292580506-4421-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33970 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752708Ab0LQJAN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 04:00:13 -0500
-In-Reply-To: <1291123945.24627.223.camel@tubuntu>
-Content-Language: en-US
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:58496 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752903Ab0LQKIn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 05:08:43 -0500
+Received: by wyb28 with SMTP id 28so447858wyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 02:08:41 -0800 (PST)
+In-Reply-To: <1292580506-4421-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Paul Mundt <lethal@linux-sh.org>, Ville Syrj?l? <ville.syrjala@nokia.com>, M?ns Rullg?rd <mans@mansr.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
+From: Jean Pihet <j-pihet@ti.com>
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Tuesday, November 30, 2010 7:02 PM
-> To: Hiremath, Vaibhav
-> Cc: Paul Mundt; Ville Syrj?l?; M?ns Rullg?rd; linux-omap@vger.kernel.org;
-> linux-fbdev@vger.kernel.org
-> Subject: RE: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
-> 
-> On Tue, 2010-11-30 at 12:29 +0530, ext Hiremath, Vaibhav wrote:
-> > > -----Original Message-----
-> > > From: Paul Mundt [mailto:lethal@linux-sh.org]
-> > > Sent: Tuesday, November 30, 2010 12:10 PM
-> > > To: Ville Syrj?l?
-> > > Cc: Hiremath, Vaibhav; M?ns Rullg?rd; linux-omap@vger.kernel.org;
-> linux-
-> > > fbdev@vger.kernel.org
-> > > Subject: Re: OMAP:DSS: possible bug in WAITFOR_VSYNC ioctl
-> > >
-> > > On Tue, Nov 30, 2010 at 03:34:40PM +0900, Paul Mundt wrote:
-> > > > On Fri, Nov 26, 2010 at 02:55:39PM +0200, Ville Syrj?l? wrote:
-> > > > > On Fri, Nov 26, 2010 at 05:38:11PM +0530, ext Hiremath, Vaibhav
-> wrote:
+Remove unused code:
+- macros,
+- variables,
+- unused semaphore locking API. This API shall be added back
+  when needed,
+- infinite loops for debug.
 
-<snip>
+Tested on N900 and Beagleboard with full RET and OFF modes,
+using cpuidle and suspend.
 
-> > > a WAITFORHWSYNC or something similar.
-> > [Hiremath, Vaibhav] Yes exactly, this name fits to the use-case and
-> sounds ok to me.
-> >
-> > Tomi,
-> > Any comments?
-> 
-> Ah, I seem to have been dropped out from this mail thread...
-> 
-> Yes, WAITFORHWSYNC sounds much better.
-> 
-> But there seems to be some misunderstanding of what this is about.
-> Deferred IO or manual update displays are not directly related to this.
-> This is about configuration registers, ie. address, size, etc. of the
-> framebuffer, not about the contents of the framebuffer.
-> 
-> The reason why WAITFORGO was implemented is:
-> 
-> OMAP has user writeable shadow registers and hidden real registers for
-> display controller. The shadow registers are latched to real registers
-> on VFP, but only if GO bit has been set. The GO bit is cleared by the HW
-> when latching has been done.
-> 
-> If the GO bit is set, we cannot touch the shadow registers because we
-> don't know when the VFP  will happen. That's why there's additionally a
-> SW cache for the config, so that we don't need to block when the GO bit
-> is up and the user wants to change the config. The driver "flushes" the
-> SW config to real registers in VSYNC interrupt handler.
-> 
-> This is why the user may need to wait multiple vsyncs until the config
-> has really been written to the real HW registers, and WAITFORGO waits
-> for this. But if there has not been any config changes, WAITFORGO
-> doesn't wait at all.
-> 
-> So WAITFORVSYNC and WAITFORGO do quite a different thing on OMAP. It is
-> true what Hiremath says, WAITFORVSYNC is difficult (impossible?) to use
-> properly on OMAP as if the config write happens between VFP and VSYNC,
-> the config is not actually yet in the real registers.
-> 
-> But I'm still not comfortable with just moving WAITFORGO over
-> WAITFORVSYNC. At least we should then change WAITFORGO to always wait at
-> least for the next vsync, so that it wouldn't return immediately when
-> there are no pending changes. This would make WAITFORGO act like
-> WAITFORVSYNC in many cases, but not always.
-> 
-> And to add to the confusion, there are multiple overlays on OMAP. They
-> may be currently shared by multiple users (for example omapfb and v4l2).
-> If the user uses WAITFORVSYNC, the call will return for every vsync, as
-> expected. If he uses WAITFORGO, the call will return in random number of
-> vsyncs from the user's point of view, because the other user may be
-> competing from the same resource.
-> 
-> One could still argue that always using WAITFORGO is better, as there's
-> the problem with WAITFORVSYNC that Hiremath described. But then again,
-> WAITFORGO acts differently than what (I think) WAITFORVSYNC should do.
-> 
-> So summa summarum, I didn't know how to solve this perfectly earlier,
-> and thus I implemented WAITFORGO, and I still don't know what would be
-> the perfect solution.
-> 
-[Hiremath, Vaibhav] We did not had a closure on this topic, so summarizing our discussion here,
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/pm.h        |    1 -
+ arch/arm/mach-omap2/sleep34xx.S |   58 ++++-----------------------------------
+ 2 files changed, 6 insertions(+), 53 deletions(-)
 
-Let's keep FBIO_WAITFORVSYNC (or OMAPFB_WAITFORVSYNC) ioctl as is, since as of now the way we understand this ioctl is, it should barely wait for next vsync. 
-
-Change the OMAPFB_WAITFORGO to (standard) FBIO_WAITFORHWSYNC, currently this will be used in OMAP2/3 Fb-display driver.
-
-Thanks,
-Vaibhav
-
->  Tomi
-> 
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index aff39d0..e458b2a 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -80,7 +80,6 @@ extern void save_secure_ram_context(u32 *addr);
+ extern void omap3_save_scratchpad_contents(void);
+ 
+ extern unsigned int omap24xx_idle_loop_suspend_sz;
+-extern unsigned int omap34xx_suspend_sz;
+ extern unsigned int save_secure_ram_context_sz;
+ extern unsigned int omap24xx_cpu_suspend_sz;
+ extern unsigned int omap34xx_cpu_suspend_sz;
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index d2eda01..2191576 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -35,11 +35,7 @@
+ 
+ #define SDRC_SCRATCHPAD_SEM_V	0xfa00291c
+ 
+-#define PM_PREPWSTST_CORE_V	OMAP34XX_PRM_REGADDR(CORE_MOD, \
+-				OMAP3430_PM_PREPWSTST)
+ #define PM_PREPWSTST_CORE_P	0x48306AE8
+-#define PM_PREPWSTST_MPU_V	OMAP34XX_PRM_REGADDR(MPU_MOD, \
+-				OMAP3430_PM_PREPWSTST)
+ #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + OMAP2_PM_PWSTCTRL
+ #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
+ #define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
+@@ -62,36 +58,10 @@
+ #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+ #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
+ 
+-        .text
+-/* Function to acquire the semaphore in scratchpad */
+-ENTRY(lock_scratchpad_sem)
+-	stmfd	sp!, {lr}	@ save registers on stack
+-wait_sem:
+-	mov	r0,#1
+-	ldr	r1, sdrc_scratchpad_sem
+-wait_loop:
+-	ldr	r2, [r1]	@ load the lock value
+-	cmp	r2, r0		@ is the lock free ?
+-	beq	wait_loop	@ not free...
+-	swp	r2, r0, [r1]	@ semaphore free so lock it and proceed
+-	cmp	r2, r0		@ did we succeed ?
+-	beq	wait_sem	@ no - try again
+-	ldmfd	sp!, {pc}	@ restore regs and return
+-sdrc_scratchpad_sem:
+-        .word SDRC_SCRATCHPAD_SEM_V
+-ENTRY(lock_scratchpad_sem_sz)
+-        .word   . - lock_scratchpad_sem
+-
+-        .text
+-/* Function to release the scratchpad semaphore */
+-ENTRY(unlock_scratchpad_sem)
+-	stmfd	sp!, {lr}	@ save registers on stack
+-	ldr	r3, sdrc_scratchpad_sem
+-	mov	r2,#0
+-	str	r2,[r3]
+-	ldmfd	sp!, {pc}	@ restore regs and return
+-ENTRY(unlock_scratchpad_sem_sz)
+-        .word   . - unlock_scratchpad_sem
++
++/*
++ * API functions
++ */
+ 
+ 	.text
+ /* Function call to get the restore pointer for resume from OFF */
+@@ -178,8 +148,7 @@ ENTRY(es3_sdrc_fix_sz)
+ /* Function to call rom code to save secure ram context */
+ ENTRY(save_secure_ram_context)
+ 	stmfd	sp!, {r1-r12, lr}	@ save registers on stack
+-save_secure_ram_debug:
+-	/* b save_secure_ram_debug */	@ enable to debug save code
++
+ 	adr	r3, api_params		@ r3 points to parameters
+ 	str	r0, [r3,#0x4]		@ r0 has sdram address
+ 	ldr	r12, high_mask
+@@ -219,8 +188,7 @@ ENTRY(save_secure_ram_context_sz)
+  */
+ ENTRY(omap34xx_cpu_suspend)
+ 	stmfd	sp!, {r0-r12, lr}		@ save registers on stack
+-loop:
+-	/*b	loop*/	@Enable to debug by stepping through code
++
+ 	/* r0 contains restore pointer in sdram */
+ 	/* r1 contains information about saving context */
+ 	ldr     r4, sdrc_power          @ read the SDRC_POWER register
+@@ -252,7 +220,6 @@ loop:
+ 
+ 	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
+ restore_es3:
+-	/*b restore_es3*/		@ Enable to debug restore code
+ 	ldr	r5, pm_prepwstst_core_p
+ 	ldr	r4, [r5]
+ 	and	r4, r4, #0x3
+@@ -272,7 +239,6 @@ copy_to_sram:
+ 	b	restore
+ 
+ restore_3630:
+-	/*b restore_es3630*/		@ Enable to debug restore code
+ 	ldr	r1, pm_prepwstst_core_p
+ 	ldr	r2, [r1]
+ 	and	r2, r2, #0x3
+@@ -284,7 +250,6 @@ restore_3630:
+ 	str	r2, [r1]
+ 	/* Fall thru for the remaining logic */
+ restore:
+-	/* b restore*/  @ Enable to debug restore code
+         /* Check what was the reason for mpu reset and store the reason in r9*/
+         /* 1 - Only L1 and logic lost */
+         /* 2 - Only L2 lost - In this case, we wont be here */
+@@ -493,7 +458,6 @@ usettbr0:
+ 
+ 	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
+ save_context_wfi:
+-	/*b	save_context_wfi*/	@ enable to debug save code
+ 	mov	r8, r0 /* Store SDRAM address in r8 */
+ 	mrc	p15, 0, r5, c1, c0, 1	@ Read Auxiliary Control Register
+ 	mov	r4, #0x1		@ Number of parameters for restore call
+@@ -672,12 +636,8 @@ sdrc_dlla_status:
+ 	.word	SDRC_DLLA_STATUS_V
+ sdrc_dlla_ctrl:
+ 	.word	SDRC_DLLA_CTRL_V
+-pm_prepwstst_core:
+-	.word	PM_PREPWSTST_CORE_V
+ pm_prepwstst_core_p:
+ 	.word	PM_PREPWSTST_CORE_P
+-pm_prepwstst_mpu:
+-	.word	PM_PREPWSTST_MPU_V
+ pm_pwstctrl_mpu:
+ 	.word	PM_PWSTCTRL_MPU_P
+ scratchpad_base:
+@@ -686,12 +646,6 @@ sram_base:
+ 	.word	SRAM_BASE_P + 0x8000
+ sdrc_power:
+ 	.word SDRC_POWER_V
+-clk_stabilize_delay:
+-	.word 0x000001FF
+-assoc_mask:
+-	.word	0x3ff
+-numset_mask:
+-	.word	0x7fff
+ ttbrbit_mask:
+ 	.word	0xFFFFC000
+ table_index_mask:
+-- 
+1.7.1
 
