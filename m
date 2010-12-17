@@ -1,46 +1,331 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 0/2] OMAP_VOUT: Allow omap_vout to build without VRFB
-Date: Fri, 17 Dec 2010 12:13:26 +0530
-Message-ID: <1292568208-16049-1-git-send-email-archit@ti.com>
+Subject: [PATCH v4 1/2] OMAP_VOUT: CLEANUP: Move some functions and macros from omap_vout
+Date: Fri, 17 Dec 2010 12:13:27 +0530
+Message-ID: <1292568208-16049-2-git-send-email-archit@ti.com>
+References: <1292568208-16049-1-git-send-email-archit@ti.com>
 Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1292568208-16049-1-git-send-email-archit@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Introduce omap_vout_vrfb.c and omap_vout_vrfb.h, for all VRFB related API's,
-making OMAP_VOUT driver independent from VRFB. This is required for OMAP4 DSS,
-since OMAP4 doesn't have VRFB block.
+Move some inline functions from omap_vout.c to omap_voutdef.h and independent
+functions like omap_vout_alloc_buffer/omap_vout_free_buffer to omap_voutlib.c.
 
-A new enum called vout_rotation_type is introduced to differentiate between no
-rotation and vrfb rotation. A member rotation_type is introduced in omapvideo_info,
-this allows to call vrfb specific functions only if the rotation type is VOUT_ROT_VRFB
-When the rotation_type is set to VOUT_ROT_NONE, the S_CTRL ioctl prevents the user setting
-a non zero rotation or non zero mirror value.
+Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c    |  109 -------------------------------
+ drivers/media/video/omap/omap_voutdef.h |   62 +++++++++++++++++
+ drivers/media/video/omap/omap_voutlib.c |   44 ++++++++++++
+ drivers/media/video/omap/omap_voutlib.h |    2 +
+ 4 files changed, 108 insertions(+), 109 deletions(-)
 
-Archit Taneja (2):
-  OMAP_VOUT: CLEANUP: Move some functions and macros from omap_vout
-  OMAP_VOUT: Create separate file for VRFB related API's
-
- drivers/media/video/omap/Kconfig          |    2 +-
- drivers/media/video/omap/Makefile         |    1 +
- drivers/media/video/omap/omap_vout.c      |  566 +++++------------------------
- drivers/media/video/omap/omap_vout_vrfb.c |  390 ++++++++++++++++++++
- drivers/media/video/omap/omap_vout_vrfb.h |   40 ++
- drivers/media/video/omap/omap_voutdef.h   |   78 ++++
- drivers/media/video/omap/omap_voutlib.c   |   44 +++
- drivers/media/video/omap/omap_voutlib.h   |    2 +
- 8 files changed, 640 insertions(+), 483 deletions(-)
- create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
- create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
---
-Version 4:
- - Some minor fixes, renaming of git commits, patches 2 and 3 merged into 1.
-Version 3:
- - Introduce a new enum at V4L2 driver level which cleanly differentiates
-   between vrfb rotation and no rotation, incorporate comments given for v2
-Version 2:
- - Don't try to enable SDRAM rotation , return an error if non zero rotation
-   is attempted when rotation_type is set to SDMA rotation.
-Version 1:
-   http://www.mail-archive.com/linux-media@vger.kernel.org/msg21937.html
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 15f8793..e1df01c 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -35,17 +35,14 @@
+ #include <linux/sched.h>
+ #include <linux/types.h>
+ #include <linux/platform_device.h>
+-#include <linux/dma-mapping.h>
+ #include <linux/irq.h>
+ #include <linux/videodev2.h>
+-#include <linux/slab.h>
+ 
+ #include <media/videobuf-dma-contig.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ 
+ #include <plat/dma.h>
+-#include <plat/vram.h>
+ #include <plat/vrfb.h>
+ #include <plat/display.h>
+ 
+@@ -56,7 +53,6 @@ MODULE_AUTHOR("Texas Instruments");
+ MODULE_DESCRIPTION("OMAP Video for Linux Video out driver");
+ MODULE_LICENSE("GPL");
+ 
+-
+ /* Driver Configuration macros */
+ #define VOUT_NAME		"omap_vout"
+ 
+@@ -65,31 +61,6 @@ enum omap_vout_channels {
+ 	OMAP_VIDEO2,
+ };
+ 
+-enum dma_channel_state {
+-	DMA_CHAN_NOT_ALLOTED,
+-	DMA_CHAN_ALLOTED,
+-};
+-
+-#define QQVGA_WIDTH		160
+-#define QQVGA_HEIGHT		120
+-
+-/* Max Resolution supported by the driver */
+-#define VID_MAX_WIDTH		1280	/* Largest width */
+-#define VID_MAX_HEIGHT		720	/* Largest height */
+-
+-/* Mimimum requirement is 2x2 for DSS */
+-#define VID_MIN_WIDTH		2
+-#define VID_MIN_HEIGHT		2
+-
+-/* 2048 x 2048 is max res supported by OMAP display controller */
+-#define MAX_PIXELS_PER_LINE     2048
+-
+-#define VRFB_TX_TIMEOUT         1000
+-#define VRFB_NUM_BUFS		4
+-
+-/* Max buffer size tobe allocated during init */
+-#define OMAP_VOUT_MAX_BUF_SIZE (VID_MAX_WIDTH*VID_MAX_HEIGHT*4)
+-
+ static struct videobuf_queue_ops video_vbq_ops;
+ /* Variables configurable through module params*/
+ static u32 video1_numbuffers = 3;
+@@ -172,49 +143,6 @@ const static struct v4l2_fmtdesc omap_formats[] = {
+ #define NUM_OUTPUT_FORMATS (ARRAY_SIZE(omap_formats))
+ 
+ /*
+- * Allocate buffers
+- */
+-static unsigned long omap_vout_alloc_buffer(u32 buf_size, u32 *phys_addr)
+-{
+-	u32 order, size;
+-	unsigned long virt_addr, addr;
+-
+-	size = PAGE_ALIGN(buf_size);
+-	order = get_order(size);
+-	virt_addr = __get_free_pages(GFP_KERNEL | GFP_DMA, order);
+-	addr = virt_addr;
+-
+-	if (virt_addr) {
+-		while (size > 0) {
+-			SetPageReserved(virt_to_page(addr));
+-			addr += PAGE_SIZE;
+-			size -= PAGE_SIZE;
+-		}
+-	}
+-	*phys_addr = (u32) virt_to_phys((void *) virt_addr);
+-	return virt_addr;
+-}
+-
+-/*
+- * Free buffers
+- */
+-static void omap_vout_free_buffer(unsigned long virtaddr, u32 buf_size)
+-{
+-	u32 order, size;
+-	unsigned long addr = virtaddr;
+-
+-	size = PAGE_ALIGN(buf_size);
+-	order = get_order(size);
+-
+-	while (size > 0) {
+-		ClearPageReserved(virt_to_page(addr));
+-		addr += PAGE_SIZE;
+-		size -= PAGE_SIZE;
+-	}
+-	free_pages((unsigned long) virtaddr, order);
+-}
+-
+-/*
+  * Function for allocating video buffers
+  */
+ static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
+@@ -369,43 +297,6 @@ static void omap_vout_release_vrfb(struct omap_vout_device *vout)
+ }
+ 
+ /*
+- * Return true if rotation is 90 or 270
+- */
+-static inline int rotate_90_or_270(const struct omap_vout_device *vout)
+-{
+-	return (vout->rotation == dss_rotation_90_degree ||
+-			vout->rotation == dss_rotation_270_degree);
+-}
+-
+-/*
+- * Return true if rotation is enabled
+- */
+-static inline int rotation_enabled(const struct omap_vout_device *vout)
+-{
+-	return vout->rotation || vout->mirror;
+-}
+-
+-/*
+- * Reverse the rotation degree if mirroring is enabled
+- */
+-static inline int calc_rotation(const struct omap_vout_device *vout)
+-{
+-	if (!vout->mirror)
+-		return vout->rotation;
+-
+-	switch (vout->rotation) {
+-	case dss_rotation_90_degree:
+-		return dss_rotation_270_degree;
+-	case dss_rotation_270_degree:
+-		return dss_rotation_90_degree;
+-	case dss_rotation_180_degree:
+-		return dss_rotation_0_degree;
+-	default:
+-		return dss_rotation_180_degree;
+-	}
+-}
+-
+-/*
+  * Free the V4L2 buffers
+  */
+ static void omap_vout_free_buffers(struct omap_vout_device *vout)
+diff --git a/drivers/media/video/omap/omap_voutdef.h b/drivers/media/video/omap/omap_voutdef.h
+index ea3a047..8609500 100644
+--- a/drivers/media/video/omap/omap_voutdef.h
++++ b/drivers/media/video/omap/omap_voutdef.h
+@@ -27,6 +27,31 @@
+ #define MAX_DISPLAYS	3
+ #define MAX_MANAGERS	3
+ 
++#define QQVGA_WIDTH		160
++#define QQVGA_HEIGHT		120
++
++/* Max Resolution supported by the driver */
++#define VID_MAX_WIDTH		1280	/* Largest width */
++#define VID_MAX_HEIGHT		720	/* Largest height */
++
++/* Mimimum requirement is 2x2 for DSS */
++#define VID_MIN_WIDTH		2
++#define VID_MIN_HEIGHT		2
++
++/* 2048 x 2048 is max res supported by OMAP display controller */
++#define MAX_PIXELS_PER_LINE     2048
++
++#define VRFB_TX_TIMEOUT         1000
++#define VRFB_NUM_BUFS		4
++
++/* Max buffer size tobe allocated during init */
++#define OMAP_VOUT_MAX_BUF_SIZE (VID_MAX_WIDTH*VID_MAX_HEIGHT*4)
++
++enum dma_channel_state {
++	DMA_CHAN_NOT_ALLOTED,
++	DMA_CHAN_ALLOTED,
++};
++
+ /* Enum for Rotation
+  * DSS understands rotation in 0, 1, 2, 3 context
+  * while V4L2 driver understands it as 0, 90, 180, 270
+@@ -144,4 +169,41 @@ struct omap_vout_device {
+ 	int io_allowed;
+ 
+ };
++
++/*
++ * Return true if rotation is 90 or 270
++ */
++static inline int rotate_90_or_270(const struct omap_vout_device *vout)
++{
++	return (vout->rotation == dss_rotation_90_degree ||
++			vout->rotation == dss_rotation_270_degree);
++}
++
++/*
++ * Return true if rotation is enabled
++ */
++static inline int rotation_enabled(const struct omap_vout_device *vout)
++{
++	return vout->rotation || vout->mirror;
++}
++
++/*
++ * Reverse the rotation degree if mirroring is enabled
++ */
++static inline int calc_rotation(const struct omap_vout_device *vout)
++{
++	if (!vout->mirror)
++		return vout->rotation;
++
++	switch (vout->rotation) {
++	case dss_rotation_90_degree:
++		return dss_rotation_270_degree;
++	case dss_rotation_270_degree:
++		return dss_rotation_90_degree;
++	case dss_rotation_180_degree:
++		return dss_rotation_0_degree;
++	default:
++		return dss_rotation_180_degree;
++	}
++}
+ #endif	/* ifndef OMAP_VOUTDEF_H */
+diff --git a/drivers/media/video/omap/omap_voutlib.c b/drivers/media/video/omap/omap_voutlib.c
+index b941c76..c27b737 100644
+--- a/drivers/media/video/omap/omap_voutlib.c
++++ b/drivers/media/video/omap/omap_voutlib.c
+@@ -24,6 +24,8 @@
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
++#include <linux/dma-mapping.h>
++
+ #include <plat/cpu.h>
+ 
+ MODULE_AUTHOR("Texas Instruments");
+@@ -291,3 +293,45 @@ void omap_vout_new_format(struct v4l2_pix_format *pix,
+ }
+ EXPORT_SYMBOL_GPL(omap_vout_new_format);
+ 
++/*
++ * Allocate buffers
++ */
++unsigned long omap_vout_alloc_buffer(u32 buf_size, u32 *phys_addr)
++{
++	u32 order, size;
++	unsigned long virt_addr, addr;
++
++	size = PAGE_ALIGN(buf_size);
++	order = get_order(size);
++	virt_addr = __get_free_pages(GFP_KERNEL | GFP_DMA, order);
++	addr = virt_addr;
++
++	if (virt_addr) {
++		while (size > 0) {
++			SetPageReserved(virt_to_page(addr));
++			addr += PAGE_SIZE;
++			size -= PAGE_SIZE;
++		}
++	}
++	*phys_addr = (u32) virt_to_phys((void *) virt_addr);
++	return virt_addr;
++}
++
++/*
++ * Free buffers
++ */
++void omap_vout_free_buffer(unsigned long virtaddr, u32 buf_size)
++{
++	u32 order, size;
++	unsigned long addr = virtaddr;
++
++	size = PAGE_ALIGN(buf_size);
++	order = get_order(size);
++
++	while (size > 0) {
++		ClearPageReserved(virt_to_page(addr));
++		addr += PAGE_SIZE;
++		size -= PAGE_SIZE;
++	}
++	free_pages((unsigned long) virtaddr, order);
++}
+diff --git a/drivers/media/video/omap/omap_voutlib.h b/drivers/media/video/omap/omap_voutlib.h
+index a60b16e..1d722be 100644
+--- a/drivers/media/video/omap/omap_voutlib.h
++++ b/drivers/media/video/omap/omap_voutlib.h
+@@ -30,5 +30,7 @@ extern int omap_vout_new_window(struct v4l2_rect *crop,
+ extern void omap_vout_new_format(struct v4l2_pix_format *pix,
+ 		struct v4l2_framebuffer *fbuf, struct v4l2_rect *crop,
+ 		struct v4l2_window *win);
++extern unsigned long omap_vout_alloc_buffer(u32 buf_size, u32 *phys_addr);
++extern void omap_vout_free_buffer(unsigned long virtaddr, u32 buf_size);
+ #endif	/* #ifndef OMAP_VOUTLIB_H */
+ 
+-- 
+1.7.0.4
