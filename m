@@ -1,96 +1,90 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [Patch v4] AM35xx: Craneboard: Add USB EHCI support
-Date: Fri, 17 Dec 2010 15:45:28 +0300
-Message-ID: <4D0B5B68.5040706@ru.mvista.com>
-References: <[PATCH] AM35xx-Craneboard-Add-USB-EHCI-support> <1292513112-12471-1-git-send-email-srinath@mistralsolutions.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [OMAP 1710] Mainline Broken
+Date: Fri, 17 Dec 2010 06:52:31 -0600
+Message-ID: <4D0B5D0F.9030403@ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB037395C74E@dbde02.ent.ti.com>	<AANLkTi=Shtqm36=_zSa37Fgan9NJYX3oKvoZzN35mi98@mail.gmail.com> <87r5dhfxwh.fsf@deeprootsystems.com> <5A47E75E594F054BAF48C5E4FC4B92AB0373A9363D@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f45.google.com ([209.85.215.45]:40368 "EHLO
-	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343Ab0LQMqd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 07:46:33 -0500
-In-Reply-To: <1292513112-12471-1-git-send-email-srinath@mistralsolutions.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:53212 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753933Ab0LQMwl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Dec 2010 07:52:41 -0500
+Received: by ywi6 with SMTP id 6so296862ywi.20
+        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 04:52:38 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0373A9363D@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: srinath@mistralsolutions.com
-Cc: linux-omap@vger.kernel.org, jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, sshtylyov@mvista.com, manjugk@ti.com
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Belisko Marek <marek.belisko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello.
+DebBarma, Tarun Kanti had written, on 12/17/2010 02:22 AM, the following:
+>> -----Original Message-----
+>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>> Sent: Thursday, December 16, 2010 10:39 PM
+>> To: Belisko Marek
+>> Cc: DebBarma, Tarun Kanti; linux-omap@vger.kernel.org
+>> Subject: Re: [OMAP 1710] Mainline Broken
+>>
+>> Belisko Marek <marek.belisko@gmail.com> writes:
+>>
+>>> Hi,
+>>>
+>>> On Thu, Dec 16, 2010 at 4:30 PM, DebBarma, Tarun Kanti
+>>> <tarun.kanti@ti.com> wrote:
+>>>> Did anyone observe this? I am using omap_generic_1710_defconfig
+>>>>
+>>>> [...]
+>>>> input: omap-keypad as /devices/platform/omap-keypad/input/input0
+>>>> TCP cubic registered
+>>>> NET: Registered protocol family 17
+>>>> Registering the dns_resolver key type
+>>>> eth0: link up
+>>>> IP-Config: Complete:
+>>>>     device=eth0, addr=172.24.191.106, mask=255.255.252.0,
+>> gw=172.24.188.1,
+>>>>     host=myomap, domain=, nis-domain=(none),
+>>>>     bootserver=172.24.191.66, rootserver=172.24.191.66, rootpath=
+>>>> VFS: Mounted root (nfs filesystem) on device 0:10.
+>>>> Freeing init memory: 128K
+>>>> Kernel panic - not syncing: Attempted to kill init!
+>>> Seems your userspace is broken. Try add user_debug=31 to command line
+>>> to see what exactly happens.
+>> Looks like you're mounting an NFS rootfs.  Was it compiled for armv5?
+>> My hunch would be you're trying to run an armv6/armv7 userspace on the
+>> 1710 which is armv5.
+>>
+>> To get more debugging, ensure these are enabled in your defconfig:
+>>
+>> CONFIG_DEBUG_BUGVERBOSE=y
+>> CONFIG_DEBUG_USER=y
+>> CONFIG_DEBUG_ERRORS=y
+>>
+>> and in addition to cmdline suggested by Marek, add user_debug=0xf
+>>
+>> This will give verbose output for userspace exceptions as well and
+>> possibly confirm my hunch.
+>>
+>> Kevin
+> 
+> I checked .config and it shows: CONFIG_CPU_32v5=y
+> 
+> With regard to additional log here they are!!
+> 
+> [...]
+> [1] init: obsolete system call 00000000.
+> Code: e08f1001 e1a0c000 e3a0702d ef000000 (e3700a01)
+> Kernel panic - not syncing: Attempted to kill init!
+> Backtrace:
+> [...]
+I wonder if the age old
+http://linux.omap.com/pub/documentation/Howto_build_Linux_on_H3.pdf
+and
+http://linux.omap.com/pub/filesystem/ might help?
 
-On 16-12-2010 18:25, srinath@mistralsolutions.com wrote:
 
-> From: Srinath <srinath@mistralsolutions.com>
-
-> AM3517/05 Craneboard has one EHCI interface on board using port1.
-
-> GPIO35 is used as power enable.
-> GPIO38 is used as port1 PHY reset.
-
-> History:
-> http://marc.info/?l=linux-omap&w=2&r=1&s=Craneboard%3A+Add+USB+EHCI+support&q=t
-
-> Signed-off-by: Srinath <srinath@mistralsolutions.com>
-> ---
->   arch/arm/mach-omap2/board-am3517crane.c |   53 +++++++++++++++++++++++++++++++
->   1 files changed, 53 insertions(+), 0 deletions(-)
-
-> diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-> index 8ba4047..1a80175 100644
-> --- a/arch/arm/mach-omap2/board-am3517crane.c
-> +++ b/arch/arm/mach-omap2/board-am3517crane.c
-[...]
-> @@ -51,10 +58,56 @@ static void __init am3517_crane_init_irq(void)
-[...]
->   static void __init am3517_crane_init(void)
->   {
-> +	int ret;
-> +
->   	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->   	omap_serial_init();
-> +
-> +	/* Configure GPIO for EHCI port */
-> +	if (omap_mux_init_gpio(GPIO_USB_NRESET, OMAP_PIN_OUTPUT)) {
-> +		pr_err("Can not cofigure mux for GPIO_USB_NRESET %d\n",
-> +			GPIO_USB_NRESET);
-> +		return;
-> +	}
-> +
-> +	if (omap_mux_init_gpio(GPIO_USB_POWER, OMAP_PIN_OUTPUT)) {
-> +		pr_err("Can not cofigure mux for GPIO_USB_POWER %d\n",
-> +
-
-    Empty line not needed here...
-
-> +			GPIO_USB_POWER);
-> +		return;
-> +	}
-> +
-> +	ret = gpio_request(GPIO_USB_POWER, "usb_ehci_enable");
-> +	if (ret < 0) {
-> +		pr_err("Cannot request GPIO %d\n", GPIO_USB_POWER);
-> +		return;
-> +	}
-> +
-> +	ret = gpio_direction_output(GPIO_USB_POWER, 1);
-> +	if (ret < 0)
-> +		goto err;
-> +
-> +
-
-    Too  many empty lines here...
-
-> +	usb_ehci_init(&ehci_pdata);
-> +	return;
-> +
-> +err:
-
-    There's no need for *goto* and label.
-
-> +	gpio_free(GPIO_USB_POWER);
-> +	pr_err("Unable to initialize EHCI power\n");
-> +	return;
->   }
-
-WBR, Sergei
+-- 
+Regards,
+Nishanth Menon
