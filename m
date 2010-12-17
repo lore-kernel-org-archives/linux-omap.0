@@ -1,19 +1,19 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 1/7] OMAP3: remove unused code from the ASM sleep code
-Date: Fri, 17 Dec 2010 16:06:18 +0530
-Message-ID: <b2ac8ad467272d73b6884d42d4c7db1b@mail.gmail.com>
-References: <1292580506-4421-1-git-send-email-j-pihet@ti.com> <1292580506-4421-2-git-send-email-j-pihet@ti.com>
+Subject: RE: [PATCH 2/7] OMAP2+: use global values for the SRAM PA addresses
+Date: Fri, 17 Dec 2010 16:06:33 +0530
+Message-ID: <c088f96a59d7745a4341f142ffb64d62@mail.gmail.com>
+References: <1292580506-4421-1-git-send-email-j-pihet@ti.com> <1292580506-4421-3-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:56109 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753410Ab0LQKgU (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:46302 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753606Ab0LQKgf (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Dec 2010 05:36:20 -0500
-Received: by ywf9 with SMTP id 9so225989ywf.39
-        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 02:36:19 -0800 (PST)
-In-Reply-To: <1292580506-4421-2-git-send-email-j-pihet@ti.com>
+	Fri, 17 Dec 2010 05:36:35 -0500
+Received: by mail-gx0-f170.google.com with SMTP id 20so422161gxk.29
+        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 02:36:34 -0800 (PST)
+In-Reply-To: <1292580506-4421-3-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: jean.pihet@newoldbits.com, linux-omap@vger.kernel.org
@@ -26,16 +26,15 @@ Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihe
 > To: linux-omap@vger.kernel.org
 > Cc: khilman@deeprootsystems.com; linux-arm-kernel@lists.infradead.org;
 > Jean Pihet
-> Subject: [PATCH 1/7] OMAP3: remove unused code from the ASM sleep code
+> Subject: [PATCH 2/7] OMAP2+: use global values for the SRAM PA addresses
 >
 > From: Jean Pihet <j-pihet@ti.com>
 >
-> Remove unused code:
-> - macros,
-> - variables,
-> - unused semaphore locking API. This API shall be added back
->   when needed,
-> - infinite loops for debug.
+> The SRAM PA addresses are locally defined and used at
+> different places, i.e. SRAM management code and idle sleep code.
+>
+> The macros are now defined at a centralized place, for
+> easier maintenance.
 >
 > Tested on N900 and Beagleboard with full RET and OFF modes,
 > using cpuidle and suspend.
@@ -45,163 +44,85 @@ Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihe
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
 > ---
->  arch/arm/mach-omap2/pm.h        |    1 -
->  arch/arm/mach-omap2/sleep34xx.S |   58
-++++------------------------------
-> -----
->  2 files changed, 6 insertions(+), 53 deletions(-)
+>  arch/arm/mach-omap2/sdrc.h             |    1 -
+>  arch/arm/mach-omap2/sleep34xx.S        |    1 +
+>  arch/arm/plat-omap/include/plat/sram.h |   11 +++++++++++
+>  arch/arm/plat-omap/sram.c              |    7 ++-----
+>  4 files changed, 14 insertions(+), 6 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index aff39d0..e458b2a 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -80,7 +80,6 @@ extern void save_secure_ram_context(u32 *addr);
->  extern void omap3_save_scratchpad_contents(void);
+> diff --git a/arch/arm/mach-omap2/sdrc.h b/arch/arm/mach-omap2/sdrc.h
+> index 68f57bb..b3f8379 100644
+> --- a/arch/arm/mach-omap2/sdrc.h
+> +++ b/arch/arm/mach-omap2/sdrc.h
+> @@ -74,5 +74,4 @@ static inline u32 sms_read_reg(u16 reg)
+>   */
+>  #define SDRC_MPURATE_LOOPS		96
 >
->  extern unsigned int omap24xx_idle_loop_suspend_sz;
-> -extern unsigned int omap34xx_suspend_sz;
->  extern unsigned int save_secure_ram_context_sz;
->  extern unsigned int omap24xx_cpu_suspend_sz;
->  extern unsigned int omap34xx_cpu_suspend_sz;
+> -
+>  #endif
 > diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-
 > omap2/sleep34xx.S
-> index d2eda01..2191576 100644
+> index 2191576..406cd2a 100644
 > --- a/arch/arm/mach-omap2/sleep34xx.S
 > +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -35,11 +35,7 @@
+> @@ -26,6 +26,7 @@
+>   */
+>  #include <linux/linkage.h>
+>  #include <asm/assembler.h>
+> +#include <plat/sram.h>
+>  #include <mach/io.h>
 >
->  #define SDRC_SCRATCHPAD_SEM_V	0xfa00291c
+>  #include "cm.h"
+> diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-
+> omap/include/plat/sram.h
+> index 5905100..9967d5e 100644
+> --- a/arch/arm/plat-omap/include/plat/sram.h
+> +++ b/arch/arm/plat-omap/include/plat/sram.h
+> @@ -11,6 +11,7 @@
+>  #ifndef __ARCH_ARM_OMAP_SRAM_H
+>  #define __ARCH_ARM_OMAP_SRAM_H
 >
-> -#define PM_PREPWSTST_CORE_V	OMAP34XX_PRM_REGADDR(CORE_MOD, \
-> -				OMAP3430_PM_PREPWSTST)
->  #define PM_PREPWSTST_CORE_P	0x48306AE8
-> -#define PM_PREPWSTST_MPU_V	OMAP34XX_PRM_REGADDR(MPU_MOD, \
-> -				OMAP3430_PM_PREPWSTST)
->  #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD +
-> OMAP2_PM_PWSTCTRL
->  #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
->  #define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
-> @@ -62,36 +58,10 @@
->  #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
->  #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
+> +#ifndef __ASSEMBLY__
+>  extern void * omap_sram_push(void * start, unsigned long size);
+>  extern void omap_sram_reprogram_clock(u32 dpllctl, u32 ckctl);
 >
-> -        .text
-> -/* Function to acquire the semaphore in scratchpad */
-> -ENTRY(lock_scratchpad_sem)
-> -	stmfd	sp!, {lr}	@ save registers on stack
-> -wait_sem:
-> -	mov	r0,#1
-> -	ldr	r1, sdrc_scratchpad_sem
-> -wait_loop:
-> -	ldr	r2, [r1]	@ load the lock value
-> -	cmp	r2, r0		@ is the lock free ?
-> -	beq	wait_loop	@ not free...
-> -	swp	r2, r0, [r1]	@ semaphore free so lock it and proceed
-> -	cmp	r2, r0		@ did we succeed ?
-> -	beq	wait_sem	@ no - try again
-> -	ldmfd	sp!, {pc}	@ restore regs and return
-> -sdrc_scratchpad_sem:
-> -        .word SDRC_SCRATCHPAD_SEM_V
-> -ENTRY(lock_scratchpad_sem_sz)
-> -        .word   . - lock_scratchpad_sem
-> -
-> -        .text
-> -/* Function to release the scratchpad semaphore */
-> -ENTRY(unlock_scratchpad_sem)
-> -	stmfd	sp!, {lr}	@ save registers on stack
-> -	ldr	r3, sdrc_scratchpad_sem
-> -	mov	r2,#0
-> -	str	r2,[r3]
-> -	ldmfd	sp!, {pc}	@ restore regs and return
-> -ENTRY(unlock_scratchpad_sem_sz)
-> -        .word   . - unlock_scratchpad_sem
+> @@ -74,4 +75,14 @@ extern void omap_push_sram_idle(void);
+>  static inline void omap_push_sram_idle(void) {}
+>  #endif /* CONFIG_PM */
+>
+> +#endif /* __ASSEMBLY__ */
 > +
 > +/*
-> + * API functions
+> + * OMAP2+: define the SRAM PA addresses.
+> + * Used by the SRAM management code and the idle sleep code.
 > + */
->
->  	.text
->  /* Function call to get the restore pointer for resume from OFF */
-> @@ -178,8 +148,7 @@ ENTRY(es3_sdrc_fix_sz)
->  /* Function to call rom code to save secure ram context */
->  ENTRY(save_secure_ram_context)
->  	stmfd	sp!, {r1-r12, lr}	@ save registers on stack
-> -save_secure_ram_debug:
-> -	/* b save_secure_ram_debug */	@ enable to debug save code
+> +#define OMAP2_SRAM_PA		0x40200000
+> +#define OMAP3_SRAM_PA           0x40200000
+> +#define OMAP4_SRAM_PA		0x40300000
 > +
->  	adr	r3, api_params		@ r3 points to parameters
->  	str	r0, [r3,#0x4]		@ r0 has sdram address
->  	ldr	r12, high_mask
-> @@ -219,8 +188,7 @@ ENTRY(save_secure_ram_context_sz)
->   */
->  ENTRY(omap34xx_cpu_suspend)
->  	stmfd	sp!, {r0-r12, lr}		@ save registers on stack
-> -loop:
-> -	/*b	loop*/	@Enable to debug by stepping through code
-> +
->  	/* r0 contains restore pointer in sdram */
->  	/* r1 contains information about saving context */
->  	ldr     r4, sdrc_power          @ read the SDRC_POWER register
-> @@ -252,7 +220,6 @@ loop:
+>  #endif
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index 819ea0c..1a686c8 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -41,15 +41,12 @@
 >
->  	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
->  restore_es3:
-> -	/*b restore_es3*/		@ Enable to debug restore code
->  	ldr	r5, pm_prepwstst_core_p
->  	ldr	r4, [r5]
->  	and	r4, r4, #0x3
-> @@ -272,7 +239,6 @@ copy_to_sram:
->  	b	restore
->
->  restore_3630:
-> -	/*b restore_es3630*/		@ Enable to debug restore code
->  	ldr	r1, pm_prepwstst_core_p
->  	ldr	r2, [r1]
->  	and	r2, r2, #0x3
-> @@ -284,7 +250,6 @@ restore_3630:
->  	str	r2, [r1]
->  	/* Fall thru for the remaining logic */
->  restore:
-> -	/* b restore*/  @ Enable to debug restore code
->          /* Check what was the reason for mpu reset and store the reason
-> in r9*/
->          /* 1 - Only L1 and logic lost */
->          /* 2 - Only L2 lost - In this case, we wont be here */
-> @@ -493,7 +458,6 @@ usettbr0:
->
->  	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
->  save_context_wfi:
-> -	/*b	save_context_wfi*/	@ enable to debug save code
->  	mov	r8, r0 /* Store SDRAM address in r8 */
->  	mrc	p15, 0, r5, c1, c0, 1	@ Read Auxiliary Control Register
->  	mov	r4, #0x1		@ Number of parameters for restore
-call
-> @@ -672,12 +636,8 @@ sdrc_dlla_status:
->  	.word	SDRC_DLLA_STATUS_V
->  sdrc_dlla_ctrl:
->  	.word	SDRC_DLLA_CTRL_V
-> -pm_prepwstst_core:
-> -	.word	PM_PREPWSTST_CORE_V
->  pm_prepwstst_core_p:
->  	.word	PM_PREPWSTST_CORE_P
-> -pm_prepwstst_mpu:
-> -	.word	PM_PREPWSTST_MPU_V
->  pm_pwstctrl_mpu:
->  	.word	PM_PWSTCTRL_MPU_P
->  scratchpad_base:
-> @@ -686,12 +646,6 @@ sram_base:
->  	.word	SRAM_BASE_P + 0x8000
->  sdrc_power:
->  	.word SDRC_POWER_V
-> -clk_stabilize_delay:
-> -	.word 0x000001FF
-> -assoc_mask:
-> -	.word	0x3ff
-> -numset_mask:
-> -	.word	0x7fff
->  ttbrbit_mask:
->  	.word	0xFFFFC000
->  table_index_mask:
+>  #define OMAP1_SRAM_PA		0x20000000
+>  #define OMAP1_SRAM_VA		VMALLOC_END
+> -#define OMAP2_SRAM_PA		0x40200000
+> -#define OMAP2_SRAM_PUB_PA	0x4020f800
+> +#define OMAP2_SRAM_PUB_PA	(OMAP2_SRAM_PA + 0xf800)
+>  #define OMAP2_SRAM_VA		0xfe400000
+>  #define OMAP2_SRAM_PUB_VA	(OMAP2_SRAM_VA + 0x800)
+> -#define OMAP3_SRAM_PA           0x40200000
+>  #define OMAP3_SRAM_VA           0xfe400000
+> -#define OMAP3_SRAM_PUB_PA       0x40208000
+> +#define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0x8000)
+>  #define OMAP3_SRAM_PUB_VA       (OMAP3_SRAM_VA + 0x8000)
+> -#define OMAP4_SRAM_PA		0x40300000
+>  #define OMAP4_SRAM_VA		0xfe400000
+>  #define OMAP4_SRAM_PUB_PA	(OMAP4_SRAM_PA + 0x4000)
+>  #define OMAP4_SRAM_PUB_VA	(OMAP4_SRAM_VA + 0x4000)
 > --
 > 1.7.1
 >
