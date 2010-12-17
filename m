@@ -1,93 +1,124 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/7] OMAP2+: use global values for the SRAM PA addresses
-Date: Fri, 17 Dec 2010 07:34:37 -0600
-Message-ID: <4D0B66ED.8030302@ti.com>
-References: <1292580506-4421-1-git-send-email-j-pihet@ti.com> <1292580506-4421-3-git-send-email-j-pihet@ti.com>
+Subject: Re: [PATCH 3/7] OMAP3: remove hardcoded values from the ASM sleep
+ code
+Date: Fri, 17 Dec 2010 07:51:48 -0600
+Message-ID: <4D0B6AF4.1050600@ti.com>
+References: <1292580506-4421-1-git-send-email-j-pihet@ti.com> <1292580506-4421-4-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:47980 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754425Ab0LQNem (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:60265 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754272Ab0LQNvx (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Dec 2010 08:34:42 -0500
-Received: by mail-yw0-f50.google.com with SMTP id 7so350645ywo.37
-        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 05:34:41 -0800 (PST)
-In-Reply-To: <1292580506-4421-3-git-send-email-j-pihet@ti.com>
+	Fri, 17 Dec 2010 08:51:53 -0500
+Received: by yxt33 with SMTP id 33so326196yxt.17
+        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 05:51:52 -0800 (PST)
+In-Reply-To: <1292580506-4421-4-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: jean.pihet@newoldbits.com
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
 jean.pihet@newoldbits.com had written, on 12/17/2010 04:08 AM, the 
 following:
 > From: Jean Pihet <j-pihet@ti.com>
 > 
-> The SRAM PA addresses are locally defined and used at
-> different places, i.e. SRAM management code and idle sleep code.
-> 
-> The macros are now defined at a centralized place, for
-> easier maintenance.
+> Using macros from existing include files for registers addresses.
 > 
 > Tested on N900 and Beagleboard with full RET and OFF modes,
 > using cpuidle and suspend.
 > 
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> ---
->  arch/arm/mach-omap2/sdrc.h             |    1 -
->  arch/arm/mach-omap2/sleep34xx.S        |    1 +
->  arch/arm/plat-omap/include/plat/sram.h |   11 +++++++++++
->  arch/arm/plat-omap/sram.c              |    7 ++-----
->  4 files changed, 14 insertions(+), 6 deletions(-)
+> Based on original patch from Vishwa.
 > 
-> diff --git a/arch/arm/mach-omap2/sdrc.h b/arch/arm/mach-omap2/sdrc.h
-> index 68f57bb..b3f8379 100644
-> --- a/arch/arm/mach-omap2/sdrc.h
-> +++ b/arch/arm/mach-omap2/sdrc.h
-> @@ -74,5 +74,4 @@ static inline u32 sms_read_reg(u16 reg)
->   */
->  #define SDRC_MPURATE_LOOPS		96
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> Cc: Vishwanath BS <vishwanath.bs@ti.com>
+> ---
+>  arch/arm/mach-omap2/control.h   |    2 ++
+>  arch/arm/mach-omap2/sleep34xx.S |   29 ++++++++++++++++++-----------
+>  2 files changed, 20 insertions(+), 11 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+> index d7911c5..72efefb 100644
+> --- a/arch/arm/mach-omap2/control.h
+> +++ b/arch/arm/mach-omap2/control.h
+> @@ -274,6 +274,8 @@
+>  #define OMAP343X_SCRATCHPAD_ROM		(OMAP343X_CTRL_BASE + 0x860)
+>  #define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
+>  #define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
+> +#define OMAP343X_SCRATCHPAD_REGADDR(reg)	OMAP2_L4_IO_ADDRESS(\
+> +						OMAP343X_SCRATCHPAD + reg)
++ (reg)) please. I am not convinced that we should call this REGADDR 
+though scratchpad region in DDR is still DDR, not a register.
+
 >  
+>  /* AM35XX_CONTROL_IPSS_CLK_CTRL bits */
+>  #define AM35XX_USBOTG_VBUSP_CLK_SHIFT   0
+> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> index 406cd2a..8e9f38f 100644
+> --- a/arch/arm/mach-omap2/sleep34xx.S
+> +++ b/arch/arm/mach-omap2/sleep34xx.S
+> @@ -34,20 +34,27 @@
+>  #include "sdrc.h"
+>  #include "control.h"
+>  
+> -#define SDRC_SCRATCHPAD_SEM_V	0xfa00291c
 > -
-spurious change.
+> -#define PM_PREPWSTST_CORE_P	0x48306AE8
+> +/*
+> + * Registers access definitions
+> + */
+err.. technically sdrc scratchpad is not really a register ;) nor is 
+sram_base ;)
+> +#define SDRC_SCRATCHPAD_SEM_OFFS	0xc
+> +#define SDRC_SCRATCHPAD_SEM_V	OMAP343X_SCRATCHPAD_REGADDR\
+> +					(SDRC_SCRATCHPAD_SEM_OFFS)
+> +#define PM_PREPWSTST_CORE_P	OMAP3430_PRM_BASE + CORE_MOD +\
+> +					OMAP3430_PM_PREPWSTST
+please use () for wrapping up a macro with multiple defines.
 
-[...]
+>  #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + OMAP2_PM_PWSTCTRL
+>  #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
+>  #define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
+> -#define SRAM_BASE_P		0x40200000
+> -#define CONTROL_STAT		0x480022F0
+> -#define CONTROL_MEM_RTA_CTRL	(OMAP343X_CTRL_BASE\
+> -					+ OMAP36XX_CONTROL_MEM_RTA_CTRL)
+not sure what changed here.
+> -#define SCRATCHPAD_MEM_OFFS	0x310 /* Move this as correct place is
+> -				       * available */
+this change I am guessing is a clean up of /* */ comment - might help if 
+you could do formatting changes in a single patch - easier to check if 
+there are functionality issues during reviews in the current patch that 
+way. my suggestion will be to do the functional changes first followed 
+by a formatting cleanup patch at the very end..
 
-> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-> index 819ea0c..1a686c8 100644
-> --- a/arch/arm/plat-omap/sram.c
-> +++ b/arch/arm/plat-omap/sram.c
-> @@ -41,15 +41,12 @@
->  
->  #define OMAP1_SRAM_PA		0x20000000
->  #define OMAP1_SRAM_VA		VMALLOC_END
-> -#define OMAP2_SRAM_PA		0x40200000
-> -#define OMAP2_SRAM_PUB_PA	0x4020f800
-> +#define OMAP2_SRAM_PUB_PA	(OMAP2_SRAM_PA + 0xf800)
->  #define OMAP2_SRAM_VA		0xfe400000
->  #define OMAP2_SRAM_PUB_VA	(OMAP2_SRAM_VA + 0x800)
-> -#define OMAP3_SRAM_PA           0x40200000
->  #define OMAP3_SRAM_VA           0xfe400000
-> -#define OMAP3_SRAM_PUB_PA       0x40208000
-> +#define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0x8000)
-Though not directly related to the patch, information sake: the PUB 
-physical address on a GP device != public SRAM address on a HS/EMU 
-device - in theory PPA can reconfigure how much is available for a 
-HS/EMU device here.
+> -#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE + OMAP343X_CONTROL_MEM_WKUP\
+> -						+ SCRATCHPAD_MEM_OFFS)
+again, not sure what changed here.
+> +#define SRAM_BASE_P		OMAP3_SRAM_PA
+Why not just replace the usage of SRAM_BASE_P with OMAP3_SRAM_PA?
 
->  #define OMAP3_SRAM_PUB_VA       (OMAP3_SRAM_VA + 0x8000)
-> -#define OMAP4_SRAM_PA		0x40300000
->  #define OMAP4_SRAM_VA		0xfe400000
->  #define OMAP4_SRAM_PUB_PA	(OMAP4_SRAM_PA + 0x4000)
->  #define OMAP4_SRAM_PUB_VA	(OMAP4_SRAM_VA + 0x4000)
-
-Tested-by: Nishanth Menon<nm@ti.com>
+> +#define CONTROL_STAT		OMAP343X_CTRL_BASE + OMAP343X_CONTROL_STATUS
+> +#define CONTROL_MEM_RTA_CTRL	(OMAP343X_CTRL_BASE +\
+> +					OMAP36XX_CONTROL_MEM_RTA_CTRL)
+> +
+> +/* Move this as correct place is available */
+> +#define SCRATCHPAD_MEM_OFFS	0x310
+> +#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE +\
+> +					OMAP343X_CONTROL_MEM_WKUP +\
+> +					SCRATCHPAD_MEM_OFFS)
+>  #define SDRC_POWER_V		OMAP34XX_SDRC_REGADDR(SDRC_POWER)
+>  #define SDRC_SYSCONFIG_P	(OMAP343X_SDRC_BASE + SDRC_SYSCONFIG)
+>  #define SDRC_MR_0_P		(OMAP343X_SDRC_BASE + SDRC_MR_0)
+Tested-by: Nishanth Menon <nm@ti.com>
 Tested on:
 SDP3630
 SDP3430
 Test script:
 http://pastebin.mozilla.org/889933
+
 
 -- 
 Regards,
