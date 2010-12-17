@@ -1,93 +1,441 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 3/7] OMAP3: remove hardcoded values from the ASM sleep code
-Date: Fri, 17 Dec 2010 11:08:22 +0100
-Message-ID: <1292580506-4421-4-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 5/7] OMAP3: rework of the ASM sleep code execution paths
+Date: Fri, 17 Dec 2010 11:08:24 +0100
+Message-ID: <1292580506-4421-6-git-send-email-j-pihet@ti.com>
 References: <1292580506-4421-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-wy0-f174.google.com ([74.125.82.174]:58496 "EHLO
 	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752903Ab0LQKIo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 05:08:44 -0500
+	with ESMTP id S1752903Ab0LQKIs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 05:08:48 -0500
 Received: by mail-wy0-f174.google.com with SMTP id 28so447858wyb.19
-        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 02:08:44 -0800 (PST)
+        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 02:08:47 -0800 (PST)
 In-Reply-To: <1292580506-4421-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
+Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Using macros from existing include files for registers addresses.
+- Reworked and simplified the execution paths for better
+  readability and to avoid duplication of code,
+- Added comments on the entry and exit points and the interaction
+  with the ROM code for OFF mode restore,
+- Reworked the existing comments for better readability.
 
 Tested on N900 and Beagleboard with full RET and OFF modes,
 using cpuidle and suspend.
 
-Based on original patch from Vishwa.
-
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
-Cc: Vishwanath BS <vishwanath.bs@ti.com>
 ---
- arch/arm/mach-omap2/control.h   |    2 ++
- arch/arm/mach-omap2/sleep34xx.S |   29 ++++++++++++++++++-----------
- 2 files changed, 20 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/control.c   |    9 +-
+ arch/arm/mach-omap2/sleep34xx.S |  313 +++++++++++++++++++++++----------------
+ 2 files changed, 191 insertions(+), 131 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index d7911c5..72efefb 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -274,6 +274,8 @@
- #define OMAP343X_SCRATCHPAD_ROM		(OMAP343X_CTRL_BASE + 0x860)
- #define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
- #define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
-+#define OMAP343X_SCRATCHPAD_REGADDR(reg)	OMAP2_L4_IO_ADDRESS(\
-+						OMAP343X_SCRATCHPAD + reg)
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 728f268..f4b19ed 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -239,7 +239,14 @@ void omap3_save_scratchpad_contents(void)
+ 	struct omap3_scratchpad_prcm_block prcm_block_contents;
+ 	struct omap3_scratchpad_sdrc_block sdrc_block_contents;
  
- /* AM35XX_CONTROL_IPSS_CLK_CTRL bits */
- #define AM35XX_USBOTG_VBUSP_CLK_SHIFT   0
+-	/* Populate the Scratchpad contents */
++	/*
++	 * Populate the Scratchpad contents
++	 *
++	 * The "get_*restore_pointer" functions are used to provide a
++	 * physical restore address where the ROM code jumps while waking
++	 * up from MPU OFF/OSWR state.
++	 * The restore pointer is stored into the scratchpad.
++	 */
+ 	scratchpad_contents.boot_config_ptr = 0x0;
+ 	if (cpu_is_omap3630())
+ 		scratchpad_contents.public_restore_ptr =
 diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 406cd2a..8e9f38f 100644
+index beeb682..12061fd 100644
 --- a/arch/arm/mach-omap2/sleep34xx.S
 +++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -34,20 +34,27 @@
- #include "sdrc.h"
- #include "control.h"
+@@ -71,6 +71,13 @@
+  * API functions
+  */
  
--#define SDRC_SCRATCHPAD_SEM_V	0xfa00291c
--
--#define PM_PREPWSTST_CORE_P	0x48306AE8
 +/*
-+ * Registers access definitions
++ * The "get_*restore_pointer" functions are used to provide a
++ * physical restore address where the ROM code jumps while waking
++ * up from MPU OFF/OSWR state.
++ * The restore pointer is stored into the scratchpad.
 + */
-+#define SDRC_SCRATCHPAD_SEM_OFFS	0xc
-+#define SDRC_SCRATCHPAD_SEM_V	OMAP343X_SCRATCHPAD_REGADDR\
-+					(SDRC_SCRATCHPAD_SEM_OFFS)
-+#define PM_PREPWSTST_CORE_P	OMAP3430_PRM_BASE + CORE_MOD +\
-+					OMAP3430_PM_PREPWSTST
- #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + OMAP2_PM_PWSTCTRL
- #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
- #define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
--#define SRAM_BASE_P		0x40200000
--#define CONTROL_STAT		0x480022F0
--#define CONTROL_MEM_RTA_CTRL	(OMAP343X_CTRL_BASE\
--					+ OMAP36XX_CONTROL_MEM_RTA_CTRL)
--#define SCRATCHPAD_MEM_OFFS	0x310 /* Move this as correct place is
--				       * available */
--#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE + OMAP343X_CONTROL_MEM_WKUP\
--						+ SCRATCHPAD_MEM_OFFS)
-+#define SRAM_BASE_P		OMAP3_SRAM_PA
-+#define CONTROL_STAT		OMAP343X_CTRL_BASE + OMAP343X_CONTROL_STATUS
-+#define CONTROL_MEM_RTA_CTRL	(OMAP343X_CTRL_BASE +\
-+					OMAP36XX_CONTROL_MEM_RTA_CTRL)
 +
-+/* Move this as correct place is available */
-+#define SCRATCHPAD_MEM_OFFS	0x310
-+#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE +\
-+					OMAP343X_CONTROL_MEM_WKUP +\
-+					SCRATCHPAD_MEM_OFFS)
- #define SDRC_POWER_V		OMAP34XX_SDRC_REGADDR(SDRC_POWER)
- #define SDRC_SYSCONFIG_P	(OMAP343X_SDRC_BASE + SDRC_SYSCONFIG)
- #define SDRC_MR_0_P		(OMAP343X_SDRC_BASE + SDRC_MR_0)
+ 	.text
+ /* Function call to get the restore pointer for resume from OFF */
+ ENTRY(get_restore_pointer)
+@@ -102,7 +109,7 @@ ENTRY(get_es3_restore_pointer_sz)
+ /*
+  * L2 cache needs to be toggled for stable OFF mode functionality on 3630.
+  * This function sets up a flag that will allow for this toggling to take
+- * place on 3630. Hopefully some version in the future maynot need this
++ * place on 3630. Hopefully some version in the future may not need this.
+  */
+ ENTRY(enable_omap3630_toggle_l2_on_restore)
+         stmfd   sp!, {lr}     @ save registers on stack
+@@ -144,34 +151,158 @@ ENTRY(save_secure_ram_context_sz)
+ 	.word	. - save_secure_ram_context
+ 
+ /*
++ * ======================
++ * == Idle entry point ==
++ * ======================
++ */
++
++/*
+  * Forces OMAP into idle state
+  *
+- * omap34xx_suspend() - This bit of code just executes the WFI
+- * for normal idles.
++ * omap34xx_suspend() - This bit of code saves the CPU context if needed
++ * and executes the WFI instruction
+  *
+- * Note: This code get's copied to internal SRAM at boot. When the OMAP
+- *	 wakes up it continues execution at the point it went to sleep.
++ * Notes:
++ * - this code gets copied to internal SRAM at boot.
++ * - when the OMAP wakes up it continues at different execution points
++ *   depending on the low power mode (non-OFF vs OFF modes),
++ *   cf. 'Resume path for xxx mode' comments.
+  */
+ ENTRY(omap34xx_cpu_suspend)
+ 	stmfd	sp!, {r0-r12, lr}		@ save registers on stack
+ 
+-	/* r0 contains restore pointer in sdram */
+-	/* r1 contains information about saving context */
+-	ldr     r4, sdrc_power          @ read the SDRC_POWER register
+-	ldr     r5, [r4]                @ read the contents of SDRC_POWER
+-	orr     r5, r5, #0x40           @ enable self refresh on idle req
+-	str     r5, [r4]                @ write back to SDRC_POWER register
++	/*
++	 * r0 contains restore pointer in sdram
++	 * r1 contains information about saving context:
++	 *   0 - No context lost
++	 *   1 - Only L1 and logic lost
++	 *   2 - Only L2 lost
++	 *   3 - Both L1 and L2 lost
++	 */
+ 
++	/* Save context only if required */
+ 	cmp	r1, #0x0
+-	/* If context save is required, do that and execute wfi */
+-	bne	save_context_wfi
++	beq	omap3_do_wfi
++
++save_context_wfi:
++	mov	r8, r0			@ Store SDRAM address in r8
++	mrc	p15, 0, r5, c1, c0, 1	@ Read Auxiliary Control Register
++	mov	r4, #0x1		@ Number of parameters for restore call
++	stmia	r8!, {r4-r5}		@ Push parameters for restore call
++	mrc	p15, 1, r5, c9, c0, 2	@ Read L2 AUX ctrl register
++	stmia	r8!, {r4-r5}		@ Push parameters for restore call
++
++        /* Check what that target sleep state is from r1 */
++	cmp	r1, #0x2		@ Only L2 lost, no need to save context
++	beq	clean_caches
++
++l1_logic_lost:
++	/* Store sp and spsr to SDRAM */
++	mov	r4, sp
++	mrs	r5, spsr
++	mov	r6, lr
++	stmia	r8!, {r4-r6}
++	/* Save all ARM registers */
++	/* Coprocessor access control register */
++	mrc	p15, 0, r6, c1, c0, 2
++	stmia	r8!, {r6}
++	/* TTBR0, TTBR1 and Translation table base control */
++	mrc	p15, 0, r4, c2, c0, 0
++	mrc	p15, 0, r5, c2, c0, 1
++	mrc	p15, 0, r6, c2, c0, 2
++	stmia	r8!, {r4-r6}
++	/*
++	 * Domain access control register, data fault status register,
++	 * and instruction fault status register
++	 */
++	mrc	p15, 0, r4, c3, c0, 0
++	mrc	p15, 0, r5, c5, c0, 0
++	mrc	p15, 0, r6, c5, c0, 1
++	stmia	r8!, {r4-r6}
++	/*
++	 * Data aux fault status register, instruction aux fault status,
++	 * data fault address register and instruction fault address register
++	 */
++	mrc	p15, 0, r4, c5, c1, 0
++	mrc	p15, 0, r5, c5, c1, 1
++	mrc	p15, 0, r6, c6, c0, 0
++	mrc	p15, 0, r7, c6, c0, 2
++	stmia	r8!, {r4-r7}
++	/*
++	 * user r/w thread and process ID, user r/o thread and process ID,
++	 * priv only thread and process ID, cache size selection
++	 */
++	mrc	p15, 0, r4, c13, c0, 2
++	mrc	p15, 0, r5, c13, c0, 3
++	mrc	p15, 0, r6, c13, c0, 4
++	mrc	p15, 2, r7, c0, c0, 0
++	stmia	r8!, {r4-r7}
++	/* Data TLB lockdown, instruction TLB lockdown registers */
++	mrc	p15, 0, r5, c10, c0, 0
++	mrc	p15, 0, r6, c10, c0, 1
++	stmia	r8!, {r5-r6}
++	/* Secure or non secure vector base address, FCSE PID, Context PID*/
++	mrc	p15, 0, r4, c12, c0, 0
++	mrc	p15, 0, r5, c13, c0, 0
++	mrc	p15, 0, r6, c13, c0, 1
++	stmia	r8!, {r4-r6}
++	/* Primary remap, normal remap registers */
++	mrc	p15, 0, r4, c10, c2, 0
++	mrc	p15, 0, r5, c10, c2, 1
++	stmia	r8!,{r4-r5}
++
++	/* Store current cpsr*/
++	mrs	r2, cpsr
++	stmia	r8!, {r2}
++
++	mrc	p15, 0, r4, c1, c0, 0
++	/* save control register */
++	stmia	r8!, {r4}
++
++clean_caches:
++	/*
++	 * Clean Data or unified cache to POU
++	 * How to invalidate only L1 cache???? - #FIX_ME#
++	 * mcr	p15, 0, r11, c7, c11, 1
++	 */
++	cmp	r1, #0x1 		@ Check whether L2 inval is required
++	beq	omap3_do_wfi
++
++clean_l2:
++	/*
++	 * jump out to kernel flush routine
++	 *  - reuse that code is better
++	 *  - it executes in a cached space so is faster than refetch per-block
++	 *  - should be faster and will change with kernel
++	 *  - 'might' have to copy address, load and jump to it
++	 */
++	ldr r1, kernel_flush
++	mov lr, pc
++	bx  r1
++
++omap3_do_wfi:
++	ldr	r4, sdrc_power		@ read the SDRC_POWER register
++	ldr	r5, [r4]		@ read the contents of SDRC_POWER
++	orr	r5, r5, #0x40		@ enable self refresh on idle req
++	str	r5, [r4]		@ write back to SDRC_POWER register
++
+ 	/* Data memory barrier and Data sync barrier */
+ 	mov	r1, #0
+ 	mcr	p15, 0, r1, c7, c10, 4
+ 	mcr	p15, 0, r1, c7, c10, 5
+ 
++/*
++ * ===================================
++ * == WFI instruction => Enter idle ==
++ * ===================================
++ */
+ 	wfi				@ wait for interrupt
+ 
++/*
++ * ===================================
++ * == Resume path for non-OFF modes ==
++ * ===================================
++ */
+ 	nop
+ 	nop
+ 	nop
+@@ -184,7 +315,29 @@ ENTRY(omap34xx_cpu_suspend)
+ 	nop
+ 	bl wait_sdrc_ok
+ 
+-	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
++/*
++ * ===================================
++ * == Exit point from non-OFF modes ==
++ * ===================================
++ */
++	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
++
++
++/*
++ * ==============================
++ * == Resume path for OFF mode ==
++ * ==============================
++ */
++
++/*
++ * The restore_* functions are called by the ROM code
++ *  when back from WFI in OFF mode.
++ * Cf. the get_*restore_pointer functions.
++ *
++ *  restore_es3: applies to 34xx >= ES3.0
++ *  restore_3630: applies to 36xx
++ *  restore: common code for 3xxx
++ */
+ restore_es3:
+ 	ldr	r5, pm_prepwstst_core_p
+ 	ldr	r4, [r5]
+@@ -214,12 +367,17 @@ restore_3630:
+ 	ldr	r1, control_mem_rta
+ 	mov	r2, #OMAP36XX_RTA_DISABLE
+ 	str	r2, [r1]
+-	/* Fall thru for the remaining logic */
++
++	/* Fall thru to common code for the remaining logic */
++
+ restore:
+-        /* Check what was the reason for mpu reset and store the reason in r9*/
+-        /* 1 - Only L1 and logic lost */
+-        /* 2 - Only L2 lost - In this case, we wont be here */
+-        /* 3 - Both L1 and L2 lost */
++        /*
++	 * Check what was the reason for mpu reset and store the reason in r9:
++	 *  0 - No context lost
++         *  1 - Only L1 and logic lost
++         *  2 - Only L2 lost - In this case, we wont be here
++         *  3 - Both L1 and L2 lost
++	 */
+ 	ldr     r1, pm_pwstctrl_mpu
+ 	ldr	r2, [r1]
+ 	and     r2, r2, #0x3
+@@ -422,118 +580,12 @@ usettbr0:
+ 	and	r4, r2
+ 	mcr	p15, 0, r4, c1, c0, 0
+ 
++/*
++ * ==============================
++ * == Exit point from OFF mode ==
++ * ==============================
++ */
+ 	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
+-save_context_wfi:
+-	mov	r8, r0 /* Store SDRAM address in r8 */
+-	mrc	p15, 0, r5, c1, c0, 1	@ Read Auxiliary Control Register
+-	mov	r4, #0x1		@ Number of parameters for restore call
+-	stmia	r8!, {r4-r5}		@ Push parameters for restore call
+-	mrc	p15, 1, r5, c9, c0, 2	@ Read L2 AUX ctrl register
+-	stmia	r8!, {r4-r5}		@ Push parameters for restore call
+-        /* Check what that target sleep state is:stored in r1*/
+-        /* 1 - Only L1 and logic lost */
+-        /* 2 - Only L2 lost */
+-        /* 3 - Both L1 and L2 lost */
+-	cmp	r1, #0x2 /* Only L2 lost */
+-	beq	clean_l2
+-	cmp	r1, #0x1 /* L2 retained */
+-	/* r9 stores whether to clean L2 or not*/
+-	moveq	r9, #0x0 /* Dont Clean L2 */
+-	movne	r9, #0x1 /* Clean L2 */
+-l1_logic_lost:
+-	/* Store sp and spsr to SDRAM */
+-	mov	r4, sp
+-	mrs	r5, spsr
+-	mov	r6, lr
+-	stmia	r8!, {r4-r6}
+-	/* Save all ARM registers */
+-	/* Coprocessor access control register */
+-	mrc	p15, 0, r6, c1, c0, 2
+-	stmia	r8!, {r6}
+-	/* TTBR0, TTBR1 and Translation table base control */
+-	mrc	p15, 0, r4, c2, c0, 0
+-	mrc	p15, 0, r5, c2, c0, 1
+-	mrc	p15, 0, r6, c2, c0, 2
+-	stmia	r8!, {r4-r6}
+-	/* Domain access control register, data fault status register,
+-	and instruction fault status register */
+-	mrc	p15, 0, r4, c3, c0, 0
+-	mrc	p15, 0, r5, c5, c0, 0
+-	mrc	p15, 0, r6, c5, c0, 1
+-	stmia	r8!, {r4-r6}
+-	/* Data aux fault status register, instruction aux fault status,
+-	datat fault address register and instruction fault address register*/
+-	mrc	p15, 0, r4, c5, c1, 0
+-	mrc	p15, 0, r5, c5, c1, 1
+-	mrc	p15, 0, r6, c6, c0, 0
+-	mrc	p15, 0, r7, c6, c0, 2
+-	stmia	r8!, {r4-r7}
+-	/* user r/w thread and process ID, user r/o thread and process ID,
+-	priv only thread and process ID, cache size selection */
+-	mrc	p15, 0, r4, c13, c0, 2
+-	mrc	p15, 0, r5, c13, c0, 3
+-	mrc	p15, 0, r6, c13, c0, 4
+-	mrc	p15, 2, r7, c0, c0, 0
+-	stmia	r8!, {r4-r7}
+-	/* Data TLB lockdown, instruction TLB lockdown registers */
+-	mrc	p15, 0, r5, c10, c0, 0
+-	mrc	p15, 0, r6, c10, c0, 1
+-	stmia	r8!, {r5-r6}
+-	/* Secure or non secure vector base address, FCSE PID, Context PID*/
+-	mrc	p15, 0, r4, c12, c0, 0
+-	mrc	p15, 0, r5, c13, c0, 0
+-	mrc	p15, 0, r6, c13, c0, 1
+-	stmia	r8!, {r4-r6}
+-	/* Primary remap, normal remap registers */
+-	mrc	p15, 0, r4, c10, c2, 0
+-	mrc	p15, 0, r5, c10, c2, 1
+-	stmia	r8!,{r4-r5}
+-
+-	/* Store current cpsr*/
+-	mrs	r2, cpsr
+-	stmia	r8!, {r2}
+-
+-	mrc	p15, 0, r4, c1, c0, 0
+-	/* save control register */
+-	stmia	r8!, {r4}
+-clean_caches:
+-	/* Clean Data or unified cache to POU*/
+-	/* How to invalidate only L1 cache???? - #FIX_ME# */
+-	/* mcr	p15, 0, r11, c7, c11, 1 */
+-	cmp	r9, #1 /* Check whether L2 inval is required or not*/
+-	bne	skip_l2_inval
+-clean_l2:
+-	/*
+-	 * Jump out to kernel flush routine
+-	 *  - reuse that code is better
+-	 *  - it executes in a cached space so is faster than refetch per-block
+-	 *  - should be faster and will change with kernel
+-	 *  - 'might' have to copy address, load and jump to it
+-	 */
+-	ldr r1, kernel_flush
+-	mov lr, pc
+-	bx  r1
+-
+-skip_l2_inval:
+-	/* Data memory barrier and Data sync barrier */
+-	mov     r1, #0
+-	mcr     p15, 0, r1, c7, c10, 4
+-	mcr     p15, 0, r1, c7, c10, 5
+-
+-	wfi                             @ wait for interrupt
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	bl wait_sdrc_ok
+-	/* restore regs and return */
+-	ldmfd   sp!, {r0-r12, pc}
+ 
+ 
+ /*
+@@ -683,5 +735,6 @@ kick_counter:
+ 	.word	0
+ wait_dll_lock_counter:
+ 	.word	0
++
+ ENTRY(omap34xx_cpu_suspend_sz)
+ 	.word	. - omap34xx_cpu_suspend
 -- 
 1.7.1
 
