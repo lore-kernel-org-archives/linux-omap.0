@@ -1,217 +1,105 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH] OMAP: Fix configuration of J-Type DPLLs to work for OMAP3 and OMAP4
-Date: Fri, 17 Dec 2010 14:31:15 -0600
-Message-ID: <1292617875-15662-1-git-send-email-jon-hunter@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [OMAP 1710] Mainline Broken
+Date: Fri, 17 Dec 2010 13:50:26 -0800
+Message-ID: <877hf883x9.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB037395C74E@dbde02.ent.ti.com>
+	<AANLkTi=Shtqm36=_zSa37Fgan9NJYX3oKvoZzN35mi98@mail.gmail.com>
+	<87r5dhfxwh.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0373A9363D@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38558 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756049Ab0LQUbU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 15:31:20 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id oBHKVJgn002391
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 14:31:20 -0600
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:57550 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754817Ab0LQVub convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 16:50:31 -0500
+Received: by yxt3 with SMTP id 3so540264yxt.19
+        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 13:50:30 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0373A9363D@dbde02.ent.ti.com>
+	(Tarun Kanti DebBarma's message of "Fri, 17 Dec 2010 13:52:47 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Jon Hunter <jon-hunter@ti.com>, Benoit Cousson q <b-cousson@ti.com>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: Belisko Marek <marek.belisko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Jon Hunter <jon-hunter@ti.com>
+"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 
-J-Type DPLLs have additional configuration parameters that need to
-be programmed when setting the multipler and divider for the DPLL.
-These parameters being the sigma delta divider (SD_DIV) for the DPLL
-and the digital controlled oscillator (DCO) to be used by the DPLL.
+>> -----Original Message-----
+>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>> Sent: Thursday, December 16, 2010 10:39 PM
+>> To: Belisko Marek
+>> Cc: DebBarma, Tarun Kanti; linux-omap@vger.kernel.org
+>> Subject: Re: [OMAP 1710] Mainline Broken
+>>=20
+>> Belisko Marek <marek.belisko@gmail.com> writes:
+>>=20
+>> > Hi,
+>> >
+>> > On Thu, Dec 16, 2010 at 4:30 PM, DebBarma, Tarun Kanti
+>> > <tarun.kanti@ti.com> wrote:
+>> >> Did anyone observe this? I am using omap_generic_1710_defconfig
+>> >>
+>> >> [...]
+>> >> input: omap-keypad as /devices/platform/omap-keypad/input/input0
+>> >> TCP cubic registered
+>> >> NET: Registered protocol family 17
+>> >> Registering the dns_resolver key type
+>> >> eth0: link up
+>> >> IP-Config: Complete:
+>> >> =C2=A0 =C2=A0 device=3Deth0, addr=3D172.24.191.106, mask=3D255.25=
+5.252.0,
+>> gw=3D172.24.188.1,
+>> >> =C2=A0 =C2=A0 host=3Dmyomap, domain=3D, nis-domain=3D(none),
+>> >> =C2=A0 =C2=A0 bootserver=3D172.24.191.66, rootserver=3D172.24.191=
+=2E66, rootpath=3D
+>> >> VFS: Mounted root (nfs filesystem) on device 0:10.
+>> >> Freeing init memory: 128K
+>> >> Kernel panic - not syncing: Attempted to kill init!
+>> >
+>> > Seems your userspace is broken. Try add user_debug=3D31 to command=
+ line
+>> > to see what exactly happens.
+>>=20
+>> Looks like you're mounting an NFS rootfs.  Was it compiled for armv5=
+?
+>> My hunch would be you're trying to run an armv6/armv7 userspace on t=
+he
+>> 1710 which is armv5.
+>>=20
+>> To get more debugging, ensure these are enabled in your defconfig:
+>>=20
+>> CONFIG_DEBUG_BUGVERBOSE=3Dy
+>> CONFIG_DEBUG_USER=3Dy
+>> CONFIG_DEBUG_ERRORS=3Dy
+>>=20
+>> and in addition to cmdline suggested by Marek, add user_debug=3D0xf
+>>=20
+>> This will give verbose output for userspace exceptions as well and
+>> possibly confirm my hunch.
+>>=20
+>> Kevin
+>
+> I checked .config and it shows: CONFIG_CPU_32v5=3Dy
 
-The current code is implemented specifically to configure the
-OMAP3630 PER J-Type DPLL. The OMAP4430 USB DPLL is also a J-Type DPLL
-and so this code needs to be updated to work for both OMAP3 and OMAP4
-devices and any other future devices that have J-TYPE DPLLs.
+This is a kernel config option.  I was asking about your userspace.
+Your kernel is obviously booting fine, but it crashes as soon as
+userspace starts.
 
-For the OMAP3630 PER DPLL both the SD_DIV and DCO paramenters are
-used but for the OMAP4430 USB DPLL only the SD_DIV field is used.
-The current implementation will only program the SD_DIV and DCO
-fields if the DPLL has both and hence this does not work for
-OMAP4430.
+Is your *userspace* compiled for armv5?  I'm guessing not.
 
-In order to make the code more generic add two new fields to the
-dpll_data structure for the SD_DIV field and DCO field bit-masks
-and only program these fields if the masks are defined for a specific
-DPLL. This simplifies the code and allows us to remove the flag
-DPLL_NO_DCO_SEL.
+Kevin
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/clock.h             |    1 -
- arch/arm/mach-omap2/clock3xxx_data.c    |    2 +
- arch/arm/mach-omap2/clock44xx_data.c    |    3 +-
- arch/arm/mach-omap2/dpll3xxx.c          |   53 +++++++++++++++++++-----------
- arch/arm/plat-omap/include/plat/clock.h |    5 ++-
- 5 files changed, 40 insertions(+), 24 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index a535c7a..896584e 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -49,7 +49,6 @@
- 
- /* DPLL Type and DCO Selection Flags */
- #define DPLL_J_TYPE		0x1
--#define DPLL_NO_DCO_SEL		0x2
- 
- int omap2_clk_enable(struct clk *clk);
- void omap2_clk_disable(struct clk *clk);
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 0579604..461b1ca 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -602,6 +602,8 @@ static struct dpll_data dpll4_dd_3630 __initdata = {
- 	.autoidle_mask	= OMAP3430_AUTO_PERIPH_DPLL_MASK,
- 	.idlest_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
- 	.idlest_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
-+	.dco_mask	= OMAP3630_PERIPH_DPLL_DCO_SEL_MASK,
-+	.sddiv_mask	= OMAP3630_PERIPH_DPLL_SD_DIV_MASK,
- 	.max_multiplier = OMAP3630_MAX_JTYPE_DPLL_MULT,
- 	.min_divider	= 1,
- 	.max_divider	= OMAP3_MAX_DPLL_DIV,
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index bfcd19f..cef179e 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -913,7 +913,7 @@ static struct clk usb_hs_clk_div_ck = {
- static struct dpll_data dpll_usb_dd = {
- 	.mult_div1_reg	= OMAP4430_CM_CLKSEL_DPLL_USB,
- 	.clk_bypass	= &usb_hs_clk_div_ck,
--	.flags		= DPLL_J_TYPE | DPLL_NO_DCO_SEL,
-+	.flags		= DPLL_J_TYPE,
- 	.clk_ref	= &sys_clkin_ck,
- 	.control_reg	= OMAP4430_CM_CLKMODE_DPLL_USB,
- 	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
-@@ -924,6 +924,7 @@ static struct dpll_data dpll_usb_dd = {
- 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
- 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
- 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
-+	.sddiv_mask	= OMAP4430_DPLL_SD_DIV_MASK,
- 	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
- 	.max_divider	= OMAP4430_MAX_DPLL_DIV,
- 	.min_divider	= 1,
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index ed8d330..48df8e4 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -225,23 +225,18 @@ static int _omap3_noncore_dpll_stop(struct clk *clk)
- }
- 
- /**
-- * lookup_dco_sddiv -  Set j-type DPLL4 compensation variables
-+ * lookup_dco - Lookup DCO used by j-type DPLL
-  * @clk: pointer to a DPLL struct clk
-  * @dco: digital control oscillator selector
-- * @sd_div: target sigma-delta divider
-  * @m: DPLL multiplier to set
-  * @n: DPLL divider to set
-  *
-  * See 36xx TRM section 3.5.3.3.3.2 "Type B DPLL (Low-Jitter)"
-  *
-- * XXX This code is not needed for 3430/AM35xx; can it be optimized
-- * out in non-multi-OMAP builds for those chips?
-  */
--static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
--			     u8 n)
-+static inline void lookup_dco(struct clk *clk, u8 *dco, u16 m, u8 n)
- {
--	unsigned long fint, clkinp, sd; /* watch out for overflow */
--	int mod1, mod2;
-+	unsigned long fint, clkinp; /* watch out for overflow */
- 
- 	clkinp = clk->parent->rate;
- 	fint = (clkinp / n) * m;
-@@ -250,6 +245,25 @@ static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
- 		*dco = 2;
- 	else
- 		*dco = 4;
-+}
-+
-+/**
-+ * lookup_sddiv - Calculate sigma delta divider for j-type DPLL
-+ * @clk: pointer to a DPLL struct clk
-+ * @sd_div: target sigma-delta divider
-+ * @m: DPLL multiplier to set
-+ * @n: DPLL divider to set
-+ *
-+ * See 36xx TRM section 3.5.3.3.3.2 "Type B DPLL (Low-Jitter)"
-+ *
-+ */
-+static inline void lookup_sddiv(struct clk *clk, u8 *sd_div, u16 m, u8 n)
-+{
-+	unsigned long clkinp, sd; /* watch out for overflow */
-+	int mod1, mod2;
-+
-+	clkinp = clk->parent->rate;
-+
- 	/*
- 	 * target sigma-delta to near 250MHz
- 	 * sd = ceil[(m/(n+1)) * (clkinp_MHz / 250)]
-@@ -278,6 +292,7 @@ static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
- static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
- {
- 	struct dpll_data *dd = clk->dpll_data;
-+	u8 dco, sd_div;
- 	u32 v;
- 
- 	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
-@@ -300,18 +315,16 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
- 	v |= m << __ffs(dd->mult_mask);
- 	v |= (n - 1) << __ffs(dd->div1_mask);
- 
--	/*
--	 * XXX This code is not needed for 3430/AM35XX; can it be optimized
--	 * out in non-multi-OMAP builds for those chips?
--	 */
--	if ((dd->flags & DPLL_J_TYPE) && !(dd->flags & DPLL_NO_DCO_SEL)) {
--		u8 dco, sd_div;
--		lookup_dco_sddiv(clk, &dco, &sd_div, m, n);
--		/* XXX This probably will need revision for OMAP4 */
--		v &= ~(OMAP3630_PERIPH_DPLL_DCO_SEL_MASK
--			| OMAP3630_PERIPH_DPLL_SD_DIV_MASK);
--		v |= dco << __ffs(OMAP3630_PERIPH_DPLL_DCO_SEL_MASK);
--		v |= sd_div << __ffs(OMAP3630_PERIPH_DPLL_SD_DIV_MASK);
-+	/* Configure dco and sd_div for dplls that have these fields */
-+	if (dd->dco_mask) {
-+		lookup_dco(clk, &dco, m, n);
-+		v &= ~(dd->dco_mask);
-+		v |= dco << __ffs(dd->dco_mask);
-+	}
-+	if (dd->sddiv_mask) {
-+		lookup_sddiv(clk, &sd_div, m, n);
-+		v &= ~(dd->sddiv_mask);
-+		v |= sd_div << __ffs(dd->sddiv_mask);
- 	}
- 
- 	__raw_writel(v, dd->mult_div1_reg);
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index fef4696..51badf9 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -119,8 +119,7 @@ struct clksel {
-  *
-  * Possible values for @flags:
-  * DPLL_J_TYPE: "J-type DPLL" (only some 36xx, 4xxx DPLLs)
-- * NO_DCO_SEL: don't program DCO (only for some J-type DPLLs)
--
-+ *
-  * @freqsel_mask is only used on the OMAP34xx family and AM35xx.
-  *
-  * XXX Some DPLLs have multiple bypass inputs, so it's not technically
-@@ -156,6 +155,8 @@ struct dpll_data {
- 	u32			autoidle_mask;
- 	u32			freqsel_mask;
- 	u32			idlest_mask;
-+	u32			dco_mask;
-+	u32			sddiv_mask;
- 	u8			auto_recal_bit;
- 	u8			recal_en_bit;
- 	u8			recal_st_bit;
--- 
-1.7.1
-
+> With regard to additional log here they are!!
+>
+> [...]
+> [1] init: obsolete system call 00000000.
+> Code: e08f1001 e1a0c000 e3a0702d ef000000 (e3700a01)
+> Kernel panic - not syncing: Attempted to kill init!
+> Backtrace:
+> [...]
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
