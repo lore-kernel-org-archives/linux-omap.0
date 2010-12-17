@@ -1,57 +1,32 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 0/7 v5] OMAP3: clean up ASM sleep code
-Date: Fri, 17 Dec 2010 17:22:03 -0600
-Message-ID: <4D0BF09B.5050709@ti.com>
-References: <1292580506-4421-1-git-send-email-j-pihet@ti.com>	<87bp4k6m1d.fsf@deeprootsystems.com> <AANLkTi=4XhE+fYDa9BYqk+1yb08Kiu3ppYNqEfW2w5Hf@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] MTD: NAND: ams-delta: drop omap_read/write, use ioremap
+Date: Fri, 17 Dec 2010 15:52:19 -0800
+Message-ID: <20101217235218.GU5941@atomide.com>
+References: <201012151543.46341.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:54898 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754208Ab0LQXWH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Dec 2010 18:22:07 -0500
-Received: by gwj21 with SMTP id 21so839714gwj.13
-        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 15:22:05 -0800 (PST)
-In-Reply-To: <AANLkTi=4XhE+fYDa9BYqk+1yb08Kiu3ppYNqEfW2w5Hf@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:37728 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751979Ab0LQXw7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 18:52:59 -0500
+Content-Disposition: inline
+In-Reply-To: <201012151543.46341.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-mtd@lists.infradead.org, Artem Bityutskiy <dedekind1@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-omap@vger.kernel.org
 
-Jean Pihet had written, on 12/17/2010 05:07 PM, the following:
-> Hi Kevin,
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [101215 06:44]:
+> There is a common requirement for not using OMAP specific omap_readw() / 
+> omap_writew() function calls in drivers/, but replace them with 
+> readw() / writew() on ioremap()ped addresses passed from arch/ instead.
 > 
-> On Sat, Dec 18, 2010 at 12:02 AM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> Hi Jean,
->>
->> jean.pihet@newoldbits.com writes:
->>
->>> From: Jean Pihet <j-pihet@ti.com>
->>>
->>> This patch only contains clean-ups and cosmetic changes,
->>> no functional change.
->>>
->>> Clean-up of the ASM sleep code, for better readability and
->>> easier maintenance.
->>>
->>> Applies on top of Nishant's latest idle path errata fixes step 2,
->>> cf. http://marc.info/?l=linux-omap&m=129139584919242&w=2
->> Can you do one more spin of this series in order to collect the
->> reviewed-by/tested-by tags posted, and address some of Nishanth's
->> comments.  Since we are reaching a merge window deadline, I'll leave it
->> to your discretion to decide which of Nishanth's suggestions to address
->> now and which to address later.
-> Sure I will post a new version tomorrow.
-> This will include some fixes after Nishant's comments. The rest can be
-> done later after we agree on the future changes.
-Sounds good to me as well.. the minor cleanups should be easy to do..
-will help with testing tomorrow on the new series if there are any 
-functional changes. I will post out my revamped series as well 2morrow.
+> The patch implements this idea for the Amstrad Delta NAND driver. To be 
+> able to use the modified driver, the board file is updated with the 
+> platform device I/O resource declaration, which is passed from there.
+> 
+> Created and tested against linux-2.6.37-rc5, on top of recent patch 
+> 'MTD: NAND: ams-delta: convert to platform driver'.
 
-
--- 
-Regards,
-Nishanth Menon
+Acked-by: Tony Lindgren <tony@atomide.com>
