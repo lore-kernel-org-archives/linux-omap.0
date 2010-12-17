@@ -1,105 +1,108 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCHv5 00/10] OMAP: Adding Smartreflex and Voltage driver
- support
-Date: Fri, 17 Dec 2010 17:06:38 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0373A9376A@dbde02.ent.ti.com>
-References: <1292004181-4804-1-git-send-email-thara@ti.com>
- <8739px9oe8.fsf@deeprootsystems.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH 11/40] ARM: omap: update clock source registration
+Date: Fri, 17 Dec 2010 11:39:03 +0000
+Message-ID: <E1PTYeN-0006iM-HY@rmk-PC.arm.linux.org.uk>
+References: <20101217113223.GC9937@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34292 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751501Ab0LQLgt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 06:36:49 -0500
-In-Reply-To: <8739px9oe8.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35723 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153Ab0LQLj0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 06:39:26 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Menon, Nishanth" <nm@ti.com>
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
+In d7e81c2 (clocksource: Add clocksource_register_hz/khz interface) new
+interfaces were added which simplify (and optimize) the selection of the
+divisor shift/mult constants.  Switch over to using this new interface.
 
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/mach-omap1/time.c       |    6 +-----
+ arch/arm/mach-omap2/timer-gp.c   |    5 +----
+ arch/arm/plat-omap/counter_32k.c |    6 +-----
+ 3 files changed, 3 insertions(+), 14 deletions(-)
 
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Friday, December 17, 2010 7:01 AM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
->>Vishwanath; Sawant, Anand; Menon, Nishanth
->>Subject: Re: [PATCHv5 00/10] OMAP: Adding Smartreflex and Voltage driver
->>support
->>
->>Hi Thara,
->>
->>Thara Gopinath <thara@ti.com> writes:
->>
->>> This patch series introduces smartreflex and voltage driver support
->>> for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
->>> control for real-time voltage adjustments.
->>
->>
->>[...]
->>
->>> This patch series has been tested on OMAP3430 SDP with
->>omap2plus_defconfig
->>> with the following menuconfig options enabled.
->>
->>Any testing on 3630?
->>
->>> System type -> TI OMAP Implementations -> Smartreflex Support
->>> System type -> TI OMAP Implementations ->
->>>                 Class 3 mode of Smartreflex Implementation
->>>
->>> Major Changes in v5
->>>
->>> 	- Rebased to k.org 2.6.37-rc3
->>> 	- Rebased to Nishant Menon's latest opp patches
->>> 	- Voltage pmic info structure extended to include a
->>> 		vast set of PMIC dependent parameters.
->>> 	- Smartreflex software n-target values support
->>> 		removed from the kernel. Instead n-target
->>> 		values are exposed as debugfs entries which can
->>> 		be written into by the user if needed.
->>> 	- Introduced a new file arch/arm/mach-omap2/omap_twl.c
->>> 		for specifying OMAP and TWL related info for
->>> 		the voltage layer.
->>> 	- Remove default enabling of smartreflex autocompensation
->>> 		during boot on OMAP3430 ES3.1 chips. Instead
->>> 		an API is provided that can be called from
->>> 		board files in case autocompensation needs
->>> 		to be enabled during boot up itself.
->>> 	- Other review comments on v4
->>>
->>>
->>
->>This series is looking good.  I have a couple minor comments on specific
->>patches.
-Hello Kevin,
+diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
+index 1be6a21..abb34ff 100644
+--- a/arch/arm/mach-omap1/time.c
++++ b/arch/arm/mach-omap1/time.c
+@@ -208,7 +208,6 @@ static struct clocksource clocksource_mpu = {
+ 	.rating		= 300,
+ 	.read		= mpu_read,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+-	.shift		= 24,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -217,13 +216,10 @@ static void __init omap_init_clocksource(unsigned long rate)
+ 	static char err[] __initdata = KERN_ERR
+ 			"%s: can't register clocksource!\n";
+ 
+-	clocksource_mpu.mult
+-		= clocksource_khz2mult(rate/1000, clocksource_mpu.shift);
+-
+ 	setup_irq(INT_TIMER2, &omap_mpu_timer2_irq);
+ 	omap_mpu_timer_start(1, ~0, 1);
+ 
+-	if (clocksource_register(&clocksource_mpu))
++	if (clocksource_register_hz(&clocksource_mpu, rate))
+ 		printk(err, clocksource_mpu.name);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index e13c29e..a7816db 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -195,7 +195,6 @@ static struct clocksource clocksource_gpt = {
+ 	.rating		= 300,
+ 	.read		= clocksource_read_cycles,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+-	.shift		= 24,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -220,9 +219,7 @@ static void __init omap2_gp_clocksource_init(void)
+ 
+ 	omap_dm_timer_set_load_start(gpt, 1, 0);
+ 
+-	clocksource_gpt.mult =
+-		clocksource_khz2mult(tick_rate/1000, clocksource_gpt.shift);
+-	if (clocksource_register(&clocksource_gpt))
++	if (clocksource_register_hz(&clocksource_gpt, tick_rate))
+ 		printk(err2, clocksource_gpt.name);
+ }
+ #endif
+diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+index 155fe43..8f149f5 100644
+--- a/arch/arm/plat-omap/counter_32k.c
++++ b/arch/arm/plat-omap/counter_32k.c
+@@ -102,7 +102,6 @@ static struct clocksource clocksource_32k = {
+ 	.rating		= 250,
+ 	.read		= omap_32k_read_dummy,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+-	.shift		= 10,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+@@ -167,12 +166,9 @@ static int __init omap_init_clocksource_32k(void)
+ 		if (sync_32k_ick)
+ 			clk_enable(sync_32k_ick);
+ 
+-		clocksource_32k.mult = clocksource_hz2mult(32768,
+-					    clocksource_32k.shift);
+-
+ 		offset_32k = clocksource_32k.read(&clocksource_32k);
+ 
+-		if (clocksource_register(&clocksource_32k))
++		if (clocksource_register_hz(&clocksource_32k, 32768))
+ 			printk(err, clocksource_32k.name);
+ 	}
+ 	return 0;
+-- 
+1.6.2.5
 
-Thanks for the review!
-
->>
->>Also, it needs (hopefully only) one more rebase/repost.
->>
->>First, a few things have changed at the PRCM API level that need to be
->>updated.  I have a untested patch (below) that should fix this for you,
->>that you'll need to split and apply to the OMAP3 and OMAP4 voltage
->>driver patches.
-
-You have forgotten to attach the patch! Can you please share it.
-
->>
->>To test with those changes, you can rebase onto my pm-core branch, which
->>contains not only the PRCM API changes, but also Nishanth's latest OPP
->>branch, and several other clock, hwmod, PM core changes queued for
->>2.6.38
->>
->>Second, please also Cc the linux-arm-kernel mailing list, so if/when we
->>merge this into linux-omap, it doesn't need a last minute repost.
-
-I will CC linux-arm when I am posting the next version
-
-Regards
-Thaa
