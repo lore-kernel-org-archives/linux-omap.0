@@ -1,46 +1,86 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [PATCH v2 4/9] OMAP2430: hwmod data: add system DMA
-Date: Fri, 17 Dec 2010 21:09:43 +0530
-Message-ID: <1292600388-13094-5-git-send-email-manjugk@ti.com>
+Subject: [PATCH v2 6/9] OMAP4: hwmod data: add system DMA
+Date: Fri, 17 Dec 2010 21:09:45 +0530
+Message-ID: <1292600388-13094-7-git-send-email-manjugk@ti.com>
 References: <1292600388-13094-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51125 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754076Ab0LQPiw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 10:38:52 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:53030 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754076Ab0LQPiy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Dec 2010 10:38:54 -0500
 In-Reply-To: <1292600388-13094-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: tony@atomide.com, khilman@deeprootsystems.com, santosh.shilimkar@ti.com, b-cousson@ti.com, paul@pwsan.com
 
-Add OMAP2430 DMA hwmod data and also add required
-DMA device attributes.
+From: Benoit Cousson <b-cousson@ti.com>
 
+Add OMAP4 DMA hwmod data
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   87 ++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/dma.h      |    1 +
- 2 files changed, 88 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  101 ++++++++++++++++++++++++++++
+ 1 files changed, 101 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index f68409e..b52ba66 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -43,6 +43,7 @@ static struct omap_hwmod omap2430_gpio2_hwmod;
- static struct omap_hwmod omap2430_gpio3_hwmod;
- static struct omap_hwmod omap2430_gpio4_hwmod;
- static struct omap_hwmod omap2430_gpio5_hwmod;
-+static struct omap_hwmod omap2430_dma_system_hwmod;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index d258936..50c00d6 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -23,6 +23,7 @@
+ #include <plat/omap_hwmod.h>
+ #include <plat/cpu.h>
+ #include <plat/gpio.h>
++#include <plat/dma.h>
  
- /* L3 -> L4_CORE interface */
- static struct omap_hwmod_ocp_if omap2430_l3_main__l4_core = {
-@@ -840,6 +841,89 @@ static struct omap_hwmod omap2430_gpio5_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ #include "omap_hwmod_common_data.h"
+ 
+@@ -36,6 +37,7 @@
+ #define OMAP44XX_DMA_REQ_START  1
+ 
+ /* Backward references (IPs with Bus Master capability) */
++static struct omap_hwmod omap44xx_dma_system_hwmod;
+ static struct omap_hwmod omap44xx_dmm_hwmod;
+ static struct omap_hwmod omap44xx_emif_fw_hwmod;
+ static struct omap_hwmod omap44xx_l3_instr_hwmod;
+@@ -216,6 +218,14 @@ static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l3_main_2 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
-+/* dma_system */
-+static struct omap_hwmod_class_sysconfig omap2430_dma_sysc = {
++/* dma_system -> l3_main_2 */
++static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 = {
++	.master		= &omap44xx_dma_system_hwmod,
++	.slave		= &omap44xx_l3_main_2_hwmod,
++	.clk		= "l3_div_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* l4_cfg -> l3_main_2 */
+ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_2 = {
+ 	.master		= &omap44xx_l4_cfg_hwmod,
+@@ -227,6 +237,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_2 = {
+ /* l3_main_2 slave ports */
+ static struct omap_hwmod_ocp_if *omap44xx_l3_main_2_slaves[] = {
+ 	&omap44xx_l3_main_1__l3_main_2,
++	&omap44xx_dma_system__l3_main_2,
+ 	&omap44xx_l4_cfg__l3_main_2,
+ };
+ 
+@@ -1376,6 +1387,93 @@ static struct omap_hwmod omap44xx_gpio6_hwmod = {
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio6_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
++
++/*
++ * 'dma' class
++ * dma controller for data exchange between memory to memory (i.e. internal or
++ * external memory) and gp peripherals to memory or memory to gp peripherals
++ */
++
++static struct omap_hwmod_class_sysconfig omap44xx_dma_sysc = {
 +	.rev_offs	= 0x0000,
 +	.sysc_offs	= 0x002c,
 +	.syss_offs	= 0x0028,
@@ -52,9 +92,9 @@ index f68409e..b52ba66 100644
 +	.sysc_fields	= &omap_hwmod_sysc_type1,
 +};
 +
-+static struct omap_hwmod_class omap2430_dma_hwmod_class = {
++static struct omap_hwmod_class omap44xx_dma_hwmod_class = {
 +	.name = "dma",
-+	.sysc = &omap2430_dma_sysc,
++	.sysc = &omap44xx_dma_sysc,
 +};
 +
 +/* dma attributes */
@@ -64,88 +104,74 @@ index f68409e..b52ba66 100644
 +	.lch_count = 32,
 +};
 +
-+static struct omap_hwmod_irq_info omap2430_dma_system_irqs[] = {
-+	{ .name = "0", .irq = 12 }, /* INT_24XX_SDMA_IRQ0 */
-+	{ .name = "1", .irq = 13 }, /* INT_24XX_SDMA_IRQ1 */
-+	{ .name = "2", .irq = 14 }, /* INT_24XX_SDMA_IRQ2 */
-+	{ .name = "3", .irq = 15 }, /* INT_24XX_SDMA_IRQ3 */
++/* dma_system */
++static struct omap_hwmod_irq_info omap44xx_dma_system_irqs[] = {
++	{ .name = "0", .irq = 12 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "1", .irq = 13 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "2", .irq = 14 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "3", .irq = 15 + OMAP44XX_IRQ_GIC_START },
 +};
 +
-+static struct omap_hwmod_addr_space omap2430_dma_system_addrs[] = {
++static struct omap_hwmod_addr_space omap44xx_dma_system_addrs[] = {
 +	{
-+		.pa_start	= 0x48056000,
++		.pa_start	= 0x4a056000,
 +		.pa_end		= 0x4a0560ff,
 +		.flags		= ADDR_TYPE_RT
 +	},
 +};
 +
-+/* dma_system -> L3 */
-+static struct omap_hwmod_ocp_if omap2430_dma_system__l3 = {
-+	.master		= &omap2430_dma_system_hwmod,
-+	.slave		= &omap2430_l3_main_hwmod,
-+	.clk		= "core_l3_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
 +/* dma_system master ports */
-+static struct omap_hwmod_ocp_if *omap2430_dma_system_masters[] = {
-+	&omap2430_dma_system__l3,
++static struct omap_hwmod_ocp_if *omap44xx_dma_system_masters[] = {
++	&omap44xx_dma_system__l3_main_2,
 +};
 +
 +/* l4_cfg -> dma_system */
-+static struct omap_hwmod_ocp_if omap2430_l4_core__dma_system = {
-+	.master		= &omap2430_l4_core_hwmod,
-+	.slave		= &omap2430_dma_system_hwmod,
-+	.clk		= "sdma_ick",
-+	.addr		= omap2430_dma_system_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_dma_system_addrs),
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__dma_system = {
++	.master		= &omap44xx_l4_cfg_hwmod,
++	.slave		= &omap44xx_dma_system_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_dma_system_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_dma_system_addrs),
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
 +/* dma_system slave ports */
-+static struct omap_hwmod_ocp_if *omap2430_dma_system_slaves[] = {
-+	&omap2430_l4_core__dma_system,
++static struct omap_hwmod_ocp_if *omap44xx_dma_system_slaves[] = {
++	&omap44xx_l4_cfg__dma_system,
 +};
 +
-+static struct omap_hwmod omap2430_dma_system_hwmod = {
-+	.name		= "dma",
-+	.class		= &omap2430_dma_hwmod_class,
-+	.mpu_irqs	= omap2430_dma_system_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_dma_system_irqs),
-+	.main_clk	= "core_l3_ck",
-+	.slaves		= omap2430_dma_system_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_dma_system_slaves),
-+	.masters	= omap2430_dma_system_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap2430_dma_system_masters),
++static struct omap_hwmod omap44xx_dma_system_hwmod = {
++	.name		= "dma_system",
++	.class		= &omap44xx_dma_hwmod_class,
++	.mpu_irqs	= omap44xx_dma_system_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dma_system_irqs),
++	.main_clk	= "l3_div_ck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_SDMA_SDMA_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_dma_system_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_dma_system_slaves),
++	.masters	= omap44xx_dma_system_masters,
++	.masters_cnt	= ARRAY_SIZE(omap44xx_dma_system_masters),
 +	.dev_attr	= &dma_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
 +	.flags		= HWMOD_NO_IDLEST,
 +};
 +
- static __initdata struct omap_hwmod *omap2430_hwmods[] = {
- 	&omap2430_l3_main_hwmod,
- 	&omap2430_l4_core_hwmod,
-@@ -859,6 +943,9 @@ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
- 	&omap2430_gpio3_hwmod,
- 	&omap2430_gpio4_hwmod,
- 	&omap2430_gpio5_hwmod,
+ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	/* dmm class */
+ 	&omap44xx_dmm_hwmod,
+@@ -1418,6 +1516,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_uart2_hwmod,
+ 	&omap44xx_uart3_hwmod,
+ 	&omap44xx_uart4_hwmod,
 +
-+	/* dma_system class*/
-+	&omap2430_dma_system_hwmod,
++	/* dma class */
++	&omap44xx_dma_system_hwmod,
  	NULL,
  };
- 
-diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
-index c466566..4b51d2b 100644
---- a/arch/arm/plat-omap/include/plat/dma.h
-+++ b/arch/arm/plat-omap/include/plat/dma.h
-@@ -301,6 +301,7 @@
- #define RESERVE_CHANNEL			BIT(0x2)
- #define IS_CSSA_32			BIT(0x3)
- #define IS_CDSA_32			BIT(0x4)
-+#define IS_RW_PRIORITY			BIT(0x5)
- 
- enum omap_reg_offsets {
  
 -- 
 1.7.1
