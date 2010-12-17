@@ -1,72 +1,217 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH 3/3] omap: rx51: Add supplies and data for codec b part of TLV320AIC34
-Date: Fri, 17 Dec 2010 21:18:25 +0200
-Message-ID: <1292613505-10113-3-git-send-email-jhnikula@gmail.com>
-References: <1292613505-10113-1-git-send-email-jhnikula@gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] OMAP: Fix configuration of J-Type DPLLs to work for OMAP3 and OMAP4
+Date: Fri, 17 Dec 2010 14:31:15 -0600
+Message-ID: <1292617875-15662-1-git-send-email-jon-hunter@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f45.google.com ([209.85.215.45]:53601 "EHLO
-	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753720Ab0LQTQ5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 14:16:57 -0500
-Received: by mail-ew0-f45.google.com with SMTP id 10so521061ewy.4
-        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 11:16:56 -0800 (PST)
-In-Reply-To: <1292613505-10113-1-git-send-email-jhnikula@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38558 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756049Ab0LQUbU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 15:31:20 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id oBHKVJgn002391
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 14:31:20 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Jon Hunter <jon-hunter@ti.com>, Benoit Cousson q <b-cousson@ti.com>
 
-Upcoming ASoC core and tlv320aic3x changes makes possible to take b part of
-TLV320AIC34 into use on RX51/N900. Prepare to this by adding virtual supplies
-and platform data for b part of the codec.
+From: Jon Hunter <jon-hunter@ti.com>
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+J-Type DPLLs have additional configuration parameters that need to
+be programmed when setting the multipler and divider for the DPLL.
+These parameters being the sigma delta divider (SD_DIV) for the DPLL
+and the digital controlled oscillator (DCO) to be used by the DPLL.
+
+The current code is implemented specifically to configure the
+OMAP3630 PER J-Type DPLL. The OMAP4430 USB DPLL is also a J-Type DPLL
+and so this code needs to be updated to work for both OMAP3 and OMAP4
+devices and any other future devices that have J-TYPE DPLLs.
+
+For the OMAP3630 PER DPLL both the SD_DIV and DCO paramenters are
+used but for the OMAP4430 USB DPLL only the SD_DIV field is used.
+The current implementation will only program the SD_DIV and DCO
+fields if the DPLL has both and hence this does not work for
+OMAP4430.
+
+In order to make the code more generic add two new fields to the
+dpll_data structure for the SD_DIV field and DCO field bit-masks
+and only program these fields if the masks are defined for a specific
+DPLL. This simplifies the code and allows us to remove the flag
+DPLL_NO_DCO_SEL.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock.h             |    1 -
+ arch/arm/mach-omap2/clock3xxx_data.c    |    2 +
+ arch/arm/mach-omap2/clock44xx_data.c    |    3 +-
+ arch/arm/mach-omap2/dpll3xxx.c          |   53 +++++++++++++++++++-----------
+ arch/arm/plat-omap/include/plat/clock.h |    5 ++-
+ 5 files changed, 40 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 6114e47..ca8cecd 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -343,6 +343,8 @@ static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
- 	/* tlv320aic3x analog supplies */
- 	REGULATOR_SUPPLY("AVDD", "2-0018"),
- 	REGULATOR_SUPPLY("DRVDD", "2-0018"),
-+	REGULATOR_SUPPLY("AVDD", "2-0019"),
-+	REGULATOR_SUPPLY("DRVDD", "2-0019"),
- 	/* tpa6130a2 */
- 	REGULATOR_SUPPLY("Vdd", "2-0060"),
- 	/* Keep vmmc as last item. It is not iterated for newer boards */
-@@ -353,6 +355,8 @@ static struct regulator_consumer_supply rx51_vio_supplies[] = {
- 	/* tlv320aic3x digital supplies */
- 	REGULATOR_SUPPLY("IOVDD", "2-0018"),
- 	REGULATOR_SUPPLY("DVDD", "2-0018"),
-+	REGULATOR_SUPPLY("IOVDD", "2-0019"),
-+	REGULATOR_SUPPLY("DVDD", "2-0019"),
- };
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index a535c7a..896584e 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -49,7 +49,6 @@
  
- #if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-@@ -743,11 +747,19 @@ static struct aic3x_pdata rx51_aic3x_data = {
- 	.gpio_reset = 60,
- };
+ /* DPLL Type and DCO Selection Flags */
+ #define DPLL_J_TYPE		0x1
+-#define DPLL_NO_DCO_SEL		0x2
  
-+static struct aic3x_pdata rx51_aic3x_data2 = {
-+	.gpio_reset = 60,
-+};
+ int omap2_clk_enable(struct clk *clk);
+ void omap2_clk_disable(struct clk *clk);
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 0579604..461b1ca 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -602,6 +602,8 @@ static struct dpll_data dpll4_dd_3630 __initdata = {
+ 	.autoidle_mask	= OMAP3430_AUTO_PERIPH_DPLL_MASK,
+ 	.idlest_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
+ 	.idlest_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
++	.dco_mask	= OMAP3630_PERIPH_DPLL_DCO_SEL_MASK,
++	.sddiv_mask	= OMAP3630_PERIPH_DPLL_SD_DIV_MASK,
+ 	.max_multiplier = OMAP3630_MAX_JTYPE_DPLL_MULT,
+ 	.min_divider	= 1,
+ 	.max_divider	= OMAP3_MAX_DPLL_DIV,
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index bfcd19f..cef179e 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -913,7 +913,7 @@ static struct clk usb_hs_clk_div_ck = {
+ static struct dpll_data dpll_usb_dd = {
+ 	.mult_div1_reg	= OMAP4430_CM_CLKSEL_DPLL_USB,
+ 	.clk_bypass	= &usb_hs_clk_div_ck,
+-	.flags		= DPLL_J_TYPE | DPLL_NO_DCO_SEL,
++	.flags		= DPLL_J_TYPE,
+ 	.clk_ref	= &sys_clkin_ck,
+ 	.control_reg	= OMAP4430_CM_CLKMODE_DPLL_USB,
+ 	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+@@ -924,6 +924,7 @@ static struct dpll_data dpll_usb_dd = {
+ 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
+ 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
+ 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
++	.sddiv_mask	= OMAP4430_DPLL_SD_DIV_MASK,
+ 	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+ 	.max_divider	= OMAP4430_MAX_DPLL_DIV,
+ 	.min_divider	= 1,
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index ed8d330..48df8e4 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -225,23 +225,18 @@ static int _omap3_noncore_dpll_stop(struct clk *clk)
+ }
+ 
+ /**
+- * lookup_dco_sddiv -  Set j-type DPLL4 compensation variables
++ * lookup_dco - Lookup DCO used by j-type DPLL
+  * @clk: pointer to a DPLL struct clk
+  * @dco: digital control oscillator selector
+- * @sd_div: target sigma-delta divider
+  * @m: DPLL multiplier to set
+  * @n: DPLL divider to set
+  *
+  * See 36xx TRM section 3.5.3.3.3.2 "Type B DPLL (Low-Jitter)"
+  *
+- * XXX This code is not needed for 3430/AM35xx; can it be optimized
+- * out in non-multi-OMAP builds for those chips?
+  */
+-static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
+-			     u8 n)
++static inline void lookup_dco(struct clk *clk, u8 *dco, u16 m, u8 n)
+ {
+-	unsigned long fint, clkinp, sd; /* watch out for overflow */
+-	int mod1, mod2;
++	unsigned long fint, clkinp; /* watch out for overflow */
+ 
+ 	clkinp = clk->parent->rate;
+ 	fint = (clkinp / n) * m;
+@@ -250,6 +245,25 @@ static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
+ 		*dco = 2;
+ 	else
+ 		*dco = 4;
++}
 +
- static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
- 	{
- 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
- 		.platform_data = &rx51_aic3x_data,
- 	},
-+	{
-+		I2C_BOARD_INFO("tlv320aic3x", 0x19),
-+		.platform_data = &rx51_aic3x_data2,
-+	},
- #if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
- 	{
- 		I2C_BOARD_INFO("tsl2563", 0x29),
++/**
++ * lookup_sddiv - Calculate sigma delta divider for j-type DPLL
++ * @clk: pointer to a DPLL struct clk
++ * @sd_div: target sigma-delta divider
++ * @m: DPLL multiplier to set
++ * @n: DPLL divider to set
++ *
++ * See 36xx TRM section 3.5.3.3.3.2 "Type B DPLL (Low-Jitter)"
++ *
++ */
++static inline void lookup_sddiv(struct clk *clk, u8 *sd_div, u16 m, u8 n)
++{
++	unsigned long clkinp, sd; /* watch out for overflow */
++	int mod1, mod2;
++
++	clkinp = clk->parent->rate;
++
+ 	/*
+ 	 * target sigma-delta to near 250MHz
+ 	 * sd = ceil[(m/(n+1)) * (clkinp_MHz / 250)]
+@@ -278,6 +292,7 @@ static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
+ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+ {
+ 	struct dpll_data *dd = clk->dpll_data;
++	u8 dco, sd_div;
+ 	u32 v;
+ 
+ 	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
+@@ -300,18 +315,16 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+ 	v |= m << __ffs(dd->mult_mask);
+ 	v |= (n - 1) << __ffs(dd->div1_mask);
+ 
+-	/*
+-	 * XXX This code is not needed for 3430/AM35XX; can it be optimized
+-	 * out in non-multi-OMAP builds for those chips?
+-	 */
+-	if ((dd->flags & DPLL_J_TYPE) && !(dd->flags & DPLL_NO_DCO_SEL)) {
+-		u8 dco, sd_div;
+-		lookup_dco_sddiv(clk, &dco, &sd_div, m, n);
+-		/* XXX This probably will need revision for OMAP4 */
+-		v &= ~(OMAP3630_PERIPH_DPLL_DCO_SEL_MASK
+-			| OMAP3630_PERIPH_DPLL_SD_DIV_MASK);
+-		v |= dco << __ffs(OMAP3630_PERIPH_DPLL_DCO_SEL_MASK);
+-		v |= sd_div << __ffs(OMAP3630_PERIPH_DPLL_SD_DIV_MASK);
++	/* Configure dco and sd_div for dplls that have these fields */
++	if (dd->dco_mask) {
++		lookup_dco(clk, &dco, m, n);
++		v &= ~(dd->dco_mask);
++		v |= dco << __ffs(dd->dco_mask);
++	}
++	if (dd->sddiv_mask) {
++		lookup_sddiv(clk, &sd_div, m, n);
++		v &= ~(dd->sddiv_mask);
++		v |= sd_div << __ffs(dd->sddiv_mask);
+ 	}
+ 
+ 	__raw_writel(v, dd->mult_div1_reg);
+diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+index fef4696..51badf9 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -119,8 +119,7 @@ struct clksel {
+  *
+  * Possible values for @flags:
+  * DPLL_J_TYPE: "J-type DPLL" (only some 36xx, 4xxx DPLLs)
+- * NO_DCO_SEL: don't program DCO (only for some J-type DPLLs)
+-
++ *
+  * @freqsel_mask is only used on the OMAP34xx family and AM35xx.
+  *
+  * XXX Some DPLLs have multiple bypass inputs, so it's not technically
+@@ -156,6 +155,8 @@ struct dpll_data {
+ 	u32			autoidle_mask;
+ 	u32			freqsel_mask;
+ 	u32			idlest_mask;
++	u32			dco_mask;
++	u32			sddiv_mask;
+ 	u8			auto_recal_bit;
+ 	u8			recal_en_bit;
+ 	u8			recal_st_bit;
 -- 
-1.7.2.3
+1.7.1
 
