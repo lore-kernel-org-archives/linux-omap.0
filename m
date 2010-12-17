@@ -1,72 +1,96 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: twl4030_usb porting advice
-Date: Fri, 17 Dec 2010 14:43:53 +0200
-Message-ID: <20101217124353.GE2653@legolas.emea.dhcp.ti.com>
-References: <4D08ACAC.8070900@xlogic.pl>
- <20101215121023.GN2997@legolas.emea.dhcp.ti.com>
- <4D08B41E.7090400@xlogic.pl>
- <20101215123912.GC6734@legolas.emea.dhcp.ti.com>
- <4D08BE16.4020704@xlogic.pl>
- <20101216090956.GG2601@legolas.emea.dhcp.ti.com>
- <4D0B0FFF.6020409@xlogic.pl>
- <20101217101156.GC2653@legolas.emea.dhcp.ti.com>
- <4D0B462A.9070208@xlogic.pl>
-Reply-To: balbi@ti.com
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [Patch v4] AM35xx: Craneboard: Add USB EHCI support
+Date: Fri, 17 Dec 2010 15:45:28 +0300
+Message-ID: <4D0B5B68.5040706@ru.mvista.com>
+References: <[PATCH] AM35xx-Craneboard-Add-USB-EHCI-support> <1292513112-12471-1-git-send-email-srinath@mistralsolutions.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:48063 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751359Ab0LQMn7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Dec 2010 07:43:59 -0500
-Received: by mail-ew0-f49.google.com with SMTP id 20so249287ewy.36
-        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 04:43:56 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4D0B462A.9070208@xlogic.pl>
+Received: from mail-ew0-f45.google.com ([209.85.215.45]:40368 "EHLO
+	mail-ew0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754343Ab0LQMqd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 07:46:33 -0500
+In-Reply-To: <1292513112-12471-1-git-send-email-srinath@mistralsolutions.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomasz Mloduchowski <tomasz.mloduchowski@xlogic.pl>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org
+To: srinath@mistralsolutions.com
+Cc: linux-omap@vger.kernel.org, jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, sshtylyov@mvista.com, manjugk@ti.com
 
-On Fri, Dec 17, 2010 at 11:14:50AM +0000, Tomasz Mloduchowski wrote:
->I really appreciate your help, this sort of a bug that really stunned me.
->
->I've noticed that the variable storing the error code is set to NULL 
->right before printing it out :(, so I corrected this mistake.
->
->[    2.065216] ehci-omap ehci-omap.0: failed to get ehci port1 
->regulator --> -19
+Hello.
 
-Thanks for that :-)
+On 16-12-2010 18:25, srinath@mistralsolutions.com wrote:
 
-Error -19 is -ENODEV, so it means there really isn't a regulator.
+> From: Srinath <srinath@mistralsolutions.com>
 
-Maybe you can more debug to ehci_reset() function ?!?
+> AM3517/05 Craneboard has one EHCI interface on board using port1.
 
->I also switched to pastebin, with the new, more meaningful dmesg:
->http://pastebin.com/86kfLT2G
+> GPIO35 is used as power enable.
+> GPIO38 is used as port1 PHY reset.
 
-I'll look at it and get back to you. But try to figure out exactly where
-ehci decides to bounce the port to companion ohci and start adding
-printks or dev_info to that. A good start is ehci_reset(), something
-like below might help:
+> History:
+> http://marc.info/?l=linux-omap&w=2&r=1&s=Craneboard%3A+Add+USB+EHCI+support&q=t
 
-diff --git a/drivers/usb/host/ehci-dbg.c b/drivers/usb/host/ehci-dbg.c
-index 6e25996..7fdaecf 100644
---- a/drivers/usb/host/ehci-dbg.c
-+++ b/drivers/usb/host/ehci-dbg.c
-@@ -330,7 +330,7 @@ dbg_port_buf (char *buf, unsigned len, const char *label, int port, u32 status)
-  #define dbg_cmd(ehci, label, command) { \
-         char _buf [80]; \
-         dbg_command_buf (_buf, sizeof _buf, label, command); \
--       ehci_dbg (ehci, "%s\n", _buf); \
-+       ehci_info (ehci, "%s\n", _buf); \
-  }
-  
-  #define dbg_port(ehci, label, port, status) { \
+> Signed-off-by: Srinath <srinath@mistralsolutions.com>
+> ---
+>   arch/arm/mach-omap2/board-am3517crane.c |   53 +++++++++++++++++++++++++++++++
+>   1 files changed, 53 insertions(+), 0 deletions(-)
 
-a lot already.
+> diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
+> index 8ba4047..1a80175 100644
+> --- a/arch/arm/mach-omap2/board-am3517crane.c
+> +++ b/arch/arm/mach-omap2/board-am3517crane.c
+[...]
+> @@ -51,10 +58,56 @@ static void __init am3517_crane_init_irq(void)
+[...]
+>   static void __init am3517_crane_init(void)
+>   {
+> +	int ret;
+> +
+>   	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+>   	omap_serial_init();
+> +
+> +	/* Configure GPIO for EHCI port */
+> +	if (omap_mux_init_gpio(GPIO_USB_NRESET, OMAP_PIN_OUTPUT)) {
+> +		pr_err("Can not cofigure mux for GPIO_USB_NRESET %d\n",
+> +			GPIO_USB_NRESET);
+> +		return;
+> +	}
+> +
+> +	if (omap_mux_init_gpio(GPIO_USB_POWER, OMAP_PIN_OUTPUT)) {
+> +		pr_err("Can not cofigure mux for GPIO_USB_POWER %d\n",
+> +
 
--- 
-balbi
+    Empty line not needed here...
+
+> +			GPIO_USB_POWER);
+> +		return;
+> +	}
+> +
+> +	ret = gpio_request(GPIO_USB_POWER, "usb_ehci_enable");
+> +	if (ret < 0) {
+> +		pr_err("Cannot request GPIO %d\n", GPIO_USB_POWER);
+> +		return;
+> +	}
+> +
+> +	ret = gpio_direction_output(GPIO_USB_POWER, 1);
+> +	if (ret < 0)
+> +		goto err;
+> +
+> +
+
+    Too  many empty lines here...
+
+> +	usb_ehci_init(&ehci_pdata);
+> +	return;
+> +
+> +err:
+
+    There's no need for *goto* and label.
+
+> +	gpio_free(GPIO_USB_POWER);
+> +	pr_err("Unable to initialize EHCI power\n");
+> +	return;
+>   }
+
+WBR, Sergei
