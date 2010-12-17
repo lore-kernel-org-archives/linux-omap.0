@@ -1,77 +1,49 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH v2] OMAP4: Pandaboard: Add omap_reserve functionality
-Date: Fri, 17 Dec 2010 11:52:06 -0600
-Message-ID: <AANLkTinp4AuxsoUxkbW4A3LhSH7ScuNmgCVOvdkEo0MB@mail.gmail.com>
-References: <1291792247-26634-1-git-send-email-raghuveer.murthy@ti.com> <201012081207.14044.marek.vasut@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP4: Pandaboard: Fixing MMC card detect gpio line
+Date: Fri, 17 Dec 2010 10:02:52 -0800
+Message-ID: <20101217180251.GQ5941@atomide.com>
+References: <1291723986-24658-1-git-send-email-raghuveer.murthy@ti.com>
+ <4CFFB704.3030905@ti.com>
+ <AANLkTim_vp6VsdZtN+3ehWuDyw2TE4+x_+f0KZ3Mn6EB@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:48893 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755237Ab0LQRw1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Dec 2010 12:52:27 -0500
-Received: by mail-wy0-f180.google.com with SMTP id 28so892899wyb.25
-        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 09:52:26 -0800 (PST)
-In-Reply-To: <201012081207.14044.marek.vasut@gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57615 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755683Ab0LQSC6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 13:02:58 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTim_vp6VsdZtN+3ehWuDyw2TE4+x_+f0KZ3Mn6EB@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony L <tony@atomide.com>
-Cc: Raghuveer Murthy <raghuveer.murthy@ti.com>, linux-omap@vger.kernel.org, rmk+kernel@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, Marek Vasut <marek.vasut@gmail.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: David Anders <x0132446@ti.com>, "Murthy, Raghuveer" <raghuveer.murthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony,
+* Menon, Nishanth <nm@ti.com> [101217 09:50]:
+> On Wed, Dec 8, 2010 at 10:49, David Anders <x0132446@ti.com> wrote:
+> > On 12/07/2010 06:13 AM, Murthy, Raghuveer wrote:
+> >>
+> >> The .gpio_cd member of omap2_hsmmc_info is not initialized. This
+> >> will default to zero. On Pandaboard this interferes with gpio line
+> >> assigned for powering TFP410 DVI chip.
+> >>
+> >> This fix was missed out in the previous commit bf56f0a6668cd, from
+> >> Nishanth Menon
+> >>
+> >> Signed-off-by: Kishore Kadiyala<kishore.kadiyala@ti.com>
+> >> Signed-off-by: Raghuveer Murthy<raghuveer.murthy@ti.com>
+> >> Acked-by: Nishanth Menon<nm@ti.com>
+> >>
+> >
+> > Tested-by: David Anders <x0132446@ti.com>
+> Tony,
+> this is a regression introduced in my commit for .37-rc1. any chance
+> of this making to one of 37 rc cycles? I can re-post this patch
+> including l-a if that is the path you'd like.
 
-2010/12/8 Marek Vasut <marek.vasut@gmail.com>:
-> On Wednesday 08 December 2010 08:10:47 Raghuveer Murthy wrote:
->> This patch adds omap_reserve functionality to board-omap4panda.c.
->> Helps in the reserving boot time memory in SDRAM, used here for
->> framebuffer allocation.
->>
->> This patch is in similar lines to commit id 71ee7dad9b6991, from
->> Russell king
->
-> Russell King ... it's a surname, not a title :-D
->
-> btw. CCing linux-arm-kernel, as that's a proper mailing list.
+Yes please, and also explain what exactly this breaks.
 
-Gentle ping on this patch - should this be reposted for the -next
-cycle inclusion?
+If it just breaks MMC card detect with some DVI chip driver that's
+not merged yet, then this would be in the "it never worked before".
 
-Regards,
-Nishanth Menon
-
->
-> Cheers
->>
->> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
->> Cc: linux-arm@lists.arm.linux.org.uk
->> Signed-off-by: Raghuveer Murthy <raghuveer.murthy@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/board-omap4panda.c | =A0 =A01 +
->> =A01 files changed, 1 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-omap4panda.c
->> b/arch/arm/mach-omap2/board-omap4panda.c index da24745..0ccc24f 1006=
-44
->> --- a/arch/arm/mach-omap2/board-omap4panda.c
->> +++ b/arch/arm/mach-omap2/board-omap4panda.c
->> @@ -393,6 +393,7 @@ MACHINE_START(OMAP4_PANDA, "OMAP4 Panda board")
->> =A0 =A0 =A0 /* Maintainer: David Anders - Texas Instruments Inc */
->> =A0 =A0 =A0 .boot_params =A0 =A0=3D 0x80000100,
->> =A0 =A0 =A0 .map_io =A0 =A0 =A0 =A0 =3D omap4_panda_map_io,
->> + =A0 =A0 .reserve =A0 =A0 =A0 =A0=3D omap_reserve,
->> =A0 =A0 =A0 .init_irq =A0 =A0 =A0 =3D omap4_panda_init_irq,
->> =A0 =A0 =A0 .init_machine =A0 =3D omap4_panda_init,
->> =A0 =A0 =A0 .timer =A0 =A0 =A0 =A0 =A0=3D &omap_timer,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
