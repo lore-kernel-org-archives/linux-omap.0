@@ -1,13 +1,13 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v4 2/7] OMAP3: PM: Erratum i581 support: dll kick strategy
-Date: Sat, 18 Dec 2010 16:53:32 -0600
-Message-ID: <1292712817-24999-3-git-send-email-nm@ti.com>
+Subject: [PATCH v4 5/7] OMAP3630: PM: Disable L2 cache while invalidating L2 cache
+Date: Sat, 18 Dec 2010 16:53:35 -0600
+Message-ID: <1292712817-24999-6-git-send-email-nm@ti.com>
 References: <1292712817-24999-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58824 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58825 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753184Ab0LRWxr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 18 Dec 2010 17:53:47 -0500
+	id S1753294Ab0LRWxs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 18 Dec 2010 17:53:48 -0500
 In-Reply-To: <1292712817-24999-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,130 +16,126 @@ Cc: Jean Pihet <jean.pihet@newoldbits.com>, Kevin <khilman@deeprootsystems.com>,
 
 From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-Erratum i581 impacts OMAP3 platforms.
-PRCM DPLL control FSM removes SDRC_IDLEREQ before DPLL3 locks causing
-the DPLL not to be locked at times.
-
-IMPORTANT:
-*) This is not a complete workaround implementation as recommended
-by the silicon erratum. this is a support logic for detecting lockups and
-attempting to recover where possible and is known to provide stability
-in multiple platforms.
-*) This code is mostly important for inactive and retention. The ROM code
-waits for the maximum dll lock time when resuming from off mode. So for
-off mode this code isn't really needed.
-
-This should eventually get refactored as part of cleanups to sleep34xx.S
+This disables L2 cache before invalidating it and reenables it afterwards.
+This is be done according to ARM documentation. Currently this is identified
+as being needed on OMAP3630 as the disable/enable is done from "public side"
+while, on OMAP3430, this is done in the "secure side".
 
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Tony Lindgren <tony@atomide.com>
 
+[nm@ti.com: ported to 2.6.37-rc2, added hooks to enable the logic only on 3630]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 ---
-(no change done, posting for completeness of the series)
-v2: https://patchwork.kernel.org/patch/365252/
-	typo correction- erratum, support, added comment from Peter from the
-	thread to commit message
-v1: http://marc.info/?l=linux-omap&m=129013172525234&w=2
- arch/arm/mach-omap2/sleep34xx.S |   52 +++++++++++++++++++++++++++++++++++---
- 1 files changed, 47 insertions(+), 5 deletions(-)
+v4: rebased only. no functional change
+v3: http://marc.info/?l=linux-omap&m=129139583519221&w=2
+collate all silicon specific errata under a single cpu detection code
+	making it elegant and more maintainable.
+v2: https://patchwork.kernel.org/patch/365232/
+	rebased out to this series independent of HS bugfixes
+v1: http://marc.info/?l=linux-omap&m=129013171125204&w=2
 
+ arch/arm/mach-omap2/pm.h        |    2 ++
+ arch/arm/mach-omap2/pm34xx.c    |    5 ++++-
+ arch/arm/mach-omap2/sleep34xx.S |   30 ++++++++++++++++++++++++++++++
+ 3 files changed, 36 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 8d9aa3e..5e0bee9 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -90,8 +90,10 @@ extern unsigned int omap34xx_cpu_suspend_sz;
+ #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
+ extern u16 pm34xx_errata;
+ #define IS_PM34XX_ERRATUM(id)		(pm34xx_errata & (id))
++extern void enable_omap3630_toggle_l2_on_restore(void);
+ #else
+ #define IS_PM34XX_ERRATUM(id)		0
++static inline void enable_omap3630_toggle_l2_on_restore(void) { }
+ #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index b32a2ed..4ba7a06 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -1007,8 +1007,11 @@ void omap_push_sram_idle(void)
+ 
+ static void __init pm_errata_configure(void)
+ {
+-	if (cpu_is_omap3630())
++	if (cpu_is_omap3630()) {
+ 		pm34xx_errata |= PM_RTA_ERRATUM_i608;
++		/* Enable the l2 cache toggling in sleep logic */
++		enable_omap3630_toggle_l2_on_restore();
++	}
+ }
+ 
+ static int __init omap3_pm_init(void)
 diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 2c20fcf..3fbd1e5 100644
+index cc3507b..d2eda01 100644
 --- a/arch/arm/mach-omap2/sleep34xx.S
 +++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -42,6 +42,7 @@
- 				OMAP3430_PM_PREPWSTST)
- #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + OMAP2_PM_PWSTCTRL
- #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
-+#define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
- #define SRAM_BASE_P		0x40200000
- #define CONTROL_STAT		0x480022F0
- #define SCRATCHPAD_MEM_OFFS	0x310 /* Move this as correct place is
-@@ -554,31 +555,67 @@ skip_l2_inval:
+@@ -111,6 +111,19 @@ ENTRY(get_omap3630_restore_pointer_sz)
+         .word   . - get_omap3630_restore_pointer
  
- /* Make sure SDRC accesses are ok */
- wait_sdrc_ok:
+ 	.text
++/*
++ * L2 cache needs to be toggled for stable OFF mode functionality on 3630.
++ * This function sets up a fflag that will allow for this toggling to take
++ * place on 3630. Hopefully some version in the future maynot need this
++ */
++ENTRY(enable_omap3630_toggle_l2_on_restore)
++        stmfd   sp!, {lr}     @ save registers on stack
++	/* Setup so that we will disable and enable l2 */
++	mov	r1, #0x1
++	str	r1, l2dis_3630
++        ldmfd   sp!, {pc}     @ restore regs and return
 +
-+/* DPLL3 must be locked before accessing the SDRC. Maybe the HW ensures this. */
-+	ldr	r4, cm_idlest_ckgen
-+wait_dpll3_lock:
-+	ldr	r5, [r4]
-+	tst	r5, #1
-+	beq	wait_dpll3_lock
++	.text
+ /* Function call to get the restore pointer for for ES3 to resume from OFF */
+ ENTRY(get_es3_restore_pointer)
+ 	stmfd	sp!, {lr}	@ save registers on stack
+@@ -283,6 +296,14 @@ restore:
+         moveq   r9, #0x3        @ MPU OFF => L1 and L2 lost
+ 	movne	r9, #0x1	@ Only L1 and L2 lost => avoid L2 invalidation
+ 	bne	logic_l1_restore
 +
-         ldr     r4, cm_idlest1_core
-+wait_sdrc_ready:
-         ldr     r5, [r4]
--        and     r5, r5, #0x2
--        cmp     r5, #0
--        bne     wait_sdrc_ok
-+        tst     r5, #0x2
-+        bne     wait_sdrc_ready
-+	/* allow DLL powerdown upon hw idle req */
-         ldr     r4, sdrc_power
-         ldr     r5, [r4]
-         bic     r5, r5, #0x40
-         str     r5, [r4]
--wait_dll_lock:
-+is_dll_in_lock_mode:
-+
-         /* Is dll in lock mode? */
-         ldr     r4, sdrc_dlla_ctrl
-         ldr     r5, [r4]
-         tst     r5, #0x4
-         bxne    lr
-         /* wait till dll locks */
--        ldr     r4, sdrc_dlla_status
-+wait_dll_lock_timed:
-+	ldr	r4, wait_dll_lock_counter
-+	add	r4, r4, #1
-+	str	r4, wait_dll_lock_counter
-+	ldr	r4, sdrc_dlla_status
-+        mov	r6, #8		/* Wait 20uS for lock */
-+wait_dll_lock:
-+	subs	r6, r6, #0x1
-+	beq	kick_dll
-         ldr     r5, [r4]
-         and     r5, r5, #0x4
-         cmp     r5, #0x4
-         bne     wait_dll_lock
-         bx      lr
- 
-+	/* disable/reenable DLL if not locked */
-+kick_dll:
-+	ldr	r4, sdrc_dlla_ctrl
-+	ldr	r5, [r4]
-+	mov	r6, r5
-+	bic	r6, #(1<<3)	/* disable dll */
-+	str	r6, [r4]
-+	dsb
-+	orr	r6, r6, #(1<<3)	/* enable dll */
-+	str	r6, [r4]
-+	dsb
-+	ldr	r4, kick_counter
-+	add	r4, r4, #1
-+	str	r4, kick_counter
-+	b	wait_dll_lock_timed
-+
- cm_idlest1_core:
- 	.word	CM_IDLEST1_CORE_V
-+cm_idlest_ckgen:
-+	.word	CM_IDLEST_CKGEN_V
- sdrc_dlla_status:
- 	.word	SDRC_DLLA_STATUS_V
- sdrc_dlla_ctrl:
-@@ -615,5 +652,10 @@ control_stat:
- 	.word	CONTROL_STAT
++	ldr	r0, l2dis_3630
++	cmp	r0, #0x1	@ should we disable L2 on 3630?
++	bne	skipl2dis
++	mrc	p15, 0, r0, c1, c0, 1
++	bic	r0, r0, #2	@ disable L2 cache
++	mcr	p15, 0, r0, c1, c0, 1
++skipl2dis:
+ 	ldr	r0, control_stat
+ 	ldr	r1, [r0]
+ 	and	r1, #0x700
+@@ -343,6 +364,13 @@ smi:    .word 0xE1600070		@ Call SMI monitor (smieq)
+ 	mov	r12, #0x2
+ 	.word 0xE1600070	@ Call SMI monitor (smieq)
+ logic_l1_restore:
++	ldr	r1, l2dis_3630
++	cmp	r1, #0x1	@ Do we need to re-enable L2 on 3630?
++	bne	skipl2reen
++	mrc	p15, 0, r1, c1, c0, 1
++	orr	r1, r1, #2	@ re-enable L2 cache
++	mcr	p15, 0, r1, c1, c0, 1
++skipl2reen:
+ 	mov	r1, #0
+ 	/* Invalidate all instruction caches to PoU
+ 	 * and flush branch target cache */
+@@ -678,6 +706,8 @@ control_mem_rta:
+ 	.word	CONTROL_MEM_RTA_CTRL
  kernel_flush:
  	.word v7_flush_dcache_all
-+	/* these 2 words need to be at the end !!! */
-+kick_counter:
-+	.word	0
-+wait_dll_lock_counter:
-+	.word	0
- ENTRY(omap34xx_cpu_suspend_sz)
- 	.word	. - omap34xx_cpu_suspend
++l2dis_3630:
++	.word 0
+ 	/* these 2 words need to be at the end !!! */
+ kick_counter:
+ 	.word	0
 -- 
 1.6.3.3
 
