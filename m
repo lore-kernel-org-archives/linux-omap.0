@@ -1,89 +1,143 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v4 0/7] OMAP: idle path errata fixes
-Date: Sat, 18 Dec 2010 16:53:30 -0600
-Message-ID: <1292712817-24999-1-git-send-email-nm@ti.com>
+Subject: [PATCH v4 1/7] OMAP3: PM: Update clean_l2 to use v7_flush_dcache_all
+Date: Sat, 18 Dec 2010 16:53:31 -0600
+Message-ID: <1292712817-24999-2-git-send-email-nm@ti.com>
+References: <1292712817-24999-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60847 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60849 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753184Ab0LRWxu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 18 Dec 2010 17:53:50 -0500
+	id S1757173Ab0LRWxv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 18 Dec 2010 17:53:51 -0500
+In-Reply-To: <1292712817-24999-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 Cc: Jean Pihet <jean.pihet@newoldbits.com>, Kevin <khilman@deeprootsystems.com>, Tony <tony@atomide.com>
 
-Hi,
-as discussed in [1], here is step 2 - idle path errata fixes.
-this is the next rev incorporating comments from V2 post
-of this series.
+From: Richard Woodruff <r-woodruff2@ti.com>
 
-Tested:
-this series:
-	SDP3430
-	SDP3630
-this series + ASM cleanup series[2]
-	SDP3430
-	SDP3630
-Test Script:
-http://elinux.org/OMAP_Power_Management#Quick_verification_of_suspend-idle_functionality
+Analysis in TI kernel with ETM showed that using cache mapped flush
+in kernel instead of SO mapped flush cost drops by 65% (3.39mS down
+to 1.17mS) for clean_l2 which is used during sleep sequences.
+Overall:
+	- speed up
+	- unfortunately there isn't a good alternative flush method today
+	- code reduction and less maintenance and potential bug in
+	  unmaintained code
 
-V3: http://marc.info/?t=129140247800030&r=1&w=2
+This also fixes the bug with the clean_l2 function usage.
 
-V2: http://marc.info/?l=linux-omap&m=129106200408109&w=2
+Reported-by: Tony Lindgren <tony@atomide.com>
 
-Major change in V3:
-	Erratas are now handled per silicon - it is much cleaner :)
-	no more redundant cpu_is_omap34xx check anymore
-	errata configure is __init as it should be
-
-Eduardo Valentin (1):
-  OMAP3630: PM: Erratum i583: disable coreoff if < ES1.2
-
-Nishanth Menon (3):
-  omap3: pm: introduce errata handling
-  OMAP3630: PM: Erratum i608: disable RTA
-  OMAP3: PM: make omap3_cpuidle_update_states independent of
-    enable_off_mode
-
-Peter 'p2' De Schrijver (2):
-  OMAP3: PM: Erratum i581 support: dll kick strategy
-  OMAP3630: PM: Disable L2 cache while invalidating L2 cache
-
-Richard Woodruff (1):
-  OMAP3: PM: Update clean_l2 to use v7_flush_dcache_all
-
- arch/arm/mach-omap2/control.c     |   13 +++-
- arch/arm/mach-omap2/control.h     |    7 +-
- arch/arm/mach-omap2/cpuidle34xx.c |   29 ++++--
- arch/arm/mach-omap2/pm.h          |   15 +++-
- arch/arm/mach-omap2/pm34xx.c      |   46 +++++++++-
- arch/arm/mach-omap2/sleep34xx.S   |  187 +++++++++++++++++++++++--------------
- 6 files changed, 211 insertions(+), 86 deletions(-)
-
-bloat-o-meter report Vs 2.6.37-rc6
-add/remove: 2/0 grow/shrink: 7/0 up/down: 297/0 (297)
-function                                     old     new   delta
-omap3_pm_off_mode_enable                      80     160     +80
-omap3_pm_init                               1792    1872     +80
-omap3630_ctrl_disable_rta                      -      44     +44
-omap3_save_scratchpad_contents               732     760     +28
-static.__func__                            13783   13808     +25
-vermagic                                      45      60     +15
-linux_banner                                 132     147     +15
-prcm_interrupt_handler                       268     276      +8
-pm34xx_errata                                  -       2      +2
-
-[1] http://marc.info/?l=linux-omap&m=129045338806957&w=2
-[2] http://marc.info/?l=linux-omap&m=129268746417556&w=2
-
-Cc: Charulatha Varadarajan <charu@ti.com>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Tao Hu <tghk48@motorola.com>
 Cc: Tony Lindgren <tony@atomide.com>
-Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
 
+[nm@ti.com: ported rkw's proposal to 2.6.37-rc2]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
 ---
-Regards,
-Nishanth Menon
+(no change in this series, posted for completeness)
+v2: https://patchwork.kernel.org/patch/365222/
+v1: http://marc.info/?l=linux-omap&m=129013171325210&w=2
+ arch/arm/mach-omap2/sleep34xx.S |   79 ++++++--------------------------------
+ 1 files changed, 13 insertions(+), 66 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index 2fb205a..2c20fcf 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -520,72 +520,17 @@ clean_caches:
+ 	cmp	r9, #1 /* Check whether L2 inval is required or not*/
+ 	bne	skip_l2_inval
+ clean_l2:
+-	/* read clidr */
+-	mrc     p15, 1, r0, c0, c0, 1
+-	/* extract loc from clidr */
+-	ands    r3, r0, #0x7000000
+-	/* left align loc bit field */
+-	mov     r3, r3, lsr #23
+-	/* if loc is 0, then no need to clean */
+-	beq     finished
+-	/* start clean at cache level 0 */
+-	mov     r10, #0
+-loop1:
+-	/* work out 3x current cache level */
+-	add     r2, r10, r10, lsr #1
+-	/* extract cache type bits from clidr*/
+-	mov     r1, r0, lsr r2
+-	/* mask of the bits for current cache only */
+-	and     r1, r1, #7
+-	/* see what cache we have at this level */
+-	cmp     r1, #2
+-	/* skip if no cache, or just i-cache */
+-	blt     skip
+-	/* select current cache level in cssr */
+-	mcr     p15, 2, r10, c0, c0, 0
+-	/* isb to sych the new cssr&csidr */
+-	isb
+-	/* read the new csidr */
+-	mrc     p15, 1, r1, c0, c0, 0
+-	/* extract the length of the cache lines */
+-	and     r2, r1, #7
+-	/* add 4 (line length offset) */
+-	add     r2, r2, #4
+-	ldr     r4, assoc_mask
+-	/* find maximum number on the way size */
+-	ands    r4, r4, r1, lsr #3
+-	/* find bit position of way size increment */
+-	clz     r5, r4
+-	ldr     r7, numset_mask
+-	/* extract max number of the index size*/
+-	ands    r7, r7, r1, lsr #13
+-loop2:
+-	mov     r9, r4
+-	/* create working copy of max way size*/
+-loop3:
+-	/* factor way and cache number into r11 */
+-	orr     r11, r10, r9, lsl r5
+-	/* factor index number into r11 */
+-	orr     r11, r11, r7, lsl r2
+-	/*clean & invalidate by set/way */
+-	mcr     p15, 0, r11, c7, c10, 2
+-	/* decrement the way*/
+-	subs    r9, r9, #1
+-	bge     loop3
+-	/*decrement the index */
+-	subs    r7, r7, #1
+-	bge     loop2
+-skip:
+-	add     r10, r10, #2
+-	/* increment cache number */
+-	cmp     r3, r10
+-	bgt     loop1
+-finished:
+-	/*swith back to cache level 0 */
+-	mov     r10, #0
+-	/* select current cache level in cssr */
+-	mcr     p15, 2, r10, c0, c0, 0
+-	isb
++	/*
++	 * Jump out to kernel flush routine
++	 *  - reuse that code is better
++	 *  - it executes in a cached space so is faster than refetch per-block
++	 *  - should be faster and will change with kernel
++	 *  - 'might' have to copy address, load and jump to it
++	 */
++	ldr r1, kernel_flush
++	mov lr, pc
++	bx  r1
++
+ skip_l2_inval:
+ 	/* Data memory barrier and Data sync barrier */
+ 	mov     r1, #0
+@@ -668,5 +613,7 @@ cache_pred_disable_mask:
+ 	.word	0xFFFFE7FB
+ control_stat:
+ 	.word	CONTROL_STAT
++kernel_flush:
++	.word v7_flush_dcache_all
+ ENTRY(omap34xx_cpu_suspend_sz)
+ 	.word	. - omap34xx_cpu_suspend
+-- 
+1.6.3.3
+
