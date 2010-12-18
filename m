@@ -1,32 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP4: enable smc instruction in new assembler versions
-Date: Fri, 17 Dec 2010 17:29:01 -0800
-Message-ID: <20101218012901.GG5941@atomide.com>
-References: <1291183071-21603-1-git-send-email-john.rigby@linaro.org>
+Subject: Re: [PATCH 1/3] omap4: Add platform changes for Ambient Light
+ sensor
+Date: Fri, 17 Dec 2010 17:31:55 -0800
+Message-ID: <20101218013154.GH5941@atomide.com>
+References: <54105.10.24.255.17.1291274954.squirrel@dbdmail.itg.ti.com>
+ <3DF2192837DC438680A0D92C4C5C8A19@wipblrx0099946>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:24770 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756487Ab0LRB3E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 20:29:04 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43003 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756677Ab0LRBcA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 20:32:00 -0500
 Content-Disposition: inline
-In-Reply-To: <1291183071-21603-1-git-send-email-john.rigby@linaro.org>
+In-Reply-To: <3DF2192837DC438680A0D92C4C5C8A19@wipblrx0099946>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: John Rigby <john.rigby@linaro.org>
-Cc: linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
+To: Hemanth V <hemanthv@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* John Rigby <john.rigby@linaro.org> [101130 21:49]:
-> New assemblers need -march=armv7-a+sec on command line or
-> .arch_extension sec inline to enable use of the smc instruction.
+* Hemanth V <hemanthv@ti.com> [101212 22:08]:
+> ----- Original Message ----- From: "Hemanth V" <hemanthv@ti.com>
+> To: <linux-omap@vger.kernel.org>
+> Sent: Thursday, December 02, 2010 12:59 PM
+> Subject: [PATCH 1/3] omap4: Add platform changes for Ambient Light sensor
 > 
-> This patch uses as-instr to check the latter to conditionally
-> enable the former in AFLAGS for files that use smc.
 > 
-> Checked on both old and new binutils to verify that it does
-> not break old versions.
+> >From 10f5f9f918e197f4052ac66b4e4cfb4b72646878 Mon Sep 17 00:00:00 2001
+> >From: Hemanth V <hemanthv@ti.com>
+> >Date: Wed, 1 Dec 2010 16:28:51 +0530
+> >Subject: [PATCH] omap4: Add platform changes for Ambient Light sensor
+> >
+> >Register BH1780GLI Ambient light sensor, which is an I2C device
+> >for 4430SDP board.
+> 
+> Tony, would you be pulling these patches for the next merge window.
 
-Thanks applying.
+Yes taking the first two, will ack the third as the header is not
+in the mainline kernel.
+
+Regards,
 
 Tony
