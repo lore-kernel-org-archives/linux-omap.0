@@ -1,43 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] OMAP: mailbox and iommu changes: for-next for
- v2.6.38
-Date: Fri, 17 Dec 2010 19:30:02 -0800
-Message-ID: <20101218033002.GQ5941@atomide.com>
-References: <AANLkTi=d58bT9TdrGQWwayt7G-h2nEtCv=M18zV48AK6@mail.gmail.com>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: [PATCH] Keyboard: omap-keypad: use matrix_keypad.h
+Date: Fri, 17 Dec 2010 20:29:30 -0800
+Message-ID: <AANLkTim3nFfo4PGf+krOJCsacxDuGyavvt4Pev3MWPj3@mail.gmail.com>
+References: <201012172332.06480.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46614 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755597Ab0LRDaL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 22:30:11 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=d58bT9TdrGQWwayt7G-h2nEtCv=M18zV48AK6@mail.gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:40442 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753561Ab0LRE3w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 23:29:52 -0500
+In-Reply-To: <201012172332.06480.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-arm-kernel@lists.infradead.org
 
-* Kanigeri, Hari <h-kanigeri2@ti.com> [101215 14:48]:
-> Hi Tony,
-> 
-> The following changes since commit e8a7e48bb248a1196484d3f8afa53bded2b24e71:
->  Linus Torvalds (1):
->        Linux 2.6.37-rc4
-> 
-> are available in the git repository at:
-> 
->  git://gitorious.org/iommu_mailbox/iommu_mailbox.git for_2.6.38
-...
- 
-> The above patch set is dependent on the following 2 Russell's patches.
-> 
-> ARM: io: make iounmap() a simple macro
-> ARM: io: simplify ioremap* and iounmap definitions
-> Ref: http://www.spinics.net/lists/linux-omap/msg42023.html
+On Fri, Dec 17, 2010 at 2:32 PM, Janusz Krzysztofik
+<jkrzyszt@tis.icnet.pl> wrote:
+> Most keypad drivers make use of the <linux/input/matrix_keypad.h>
+> defined macros, structures and inline functions.
+>
+> Convert omap-keypad driver to use those as well, as suggested by a
+> compile time warning, hardcoded into the OMAP <palt/keypad.h>.
+>
+> Created against linux-2.6.37-rc5.
+> Tested on Amstrad Delta.
+> Compile tested with omap1_defconfig and omap2plus_defconfig shrinked to
+> board-h4.
+>
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
 
-Thanks pulling these in using Russell's io branch as the base.
+Works perfectly on the herald, and no more warning message.  Good work!
 
-Regards,
+Tested-by: Cory Maccarrone <darkstar6262@gmail.com>
 
-Tony
+- Cory
