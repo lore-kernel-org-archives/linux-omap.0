@@ -1,186 +1,82 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 4/7] OMAP3: re-organize the ASM sleep code
-Date: Sat, 18 Dec 2010 16:44:44 +0100
-Message-ID: <1292687087-22983-5-git-send-email-j-pihet@ti.com>
-References: <1292687087-22983-1-git-send-email-j-pihet@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 0/7 v5] OMAP3: clean up ASM sleep code
+Date: Sat, 18 Dec 2010 16:51:18 +0100
+Message-ID: <AANLkTincitcFQ2fGerSk-p4GmoodG4L4Lz1Cr1vuPYye@mail.gmail.com>
+References: <1292580506-4421-1-git-send-email-j-pihet@ti.com>
+	<87bp4k6m1d.fsf@deeprootsystems.com>
+	<AANLkTi=4XhE+fYDa9BYqk+1yb08Kiu3ppYNqEfW2w5Hf@mail.gmail.com>
+	<4D0BF09B.5050709@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:46369 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756711Ab0LRPvV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Dec 2010 10:51:21 -0500
-Received: by mail-ww0-f44.google.com with SMTP id 36so1636752wwa.1
-        for <linux-omap@vger.kernel.org>; Sat, 18 Dec 2010 07:51:20 -0800 (PST)
-In-Reply-To: <1292687087-22983-1-git-send-email-j-pihet@ti.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:41827 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756211Ab0LRPvU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Dec 2010 10:51:20 -0500
+Received: by qwa26 with SMTP id 26so1604614qwa.19
+        for <linux-omap@vger.kernel.org>; Sat, 18 Dec 2010 07:51:19 -0800 (PST)
+In-Reply-To: <4D0BF09B.5050709@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-From: Jean Pihet <j-pihet@ti.com>
+On Sat, Dec 18, 2010 at 12:22 AM, Nishanth Menon <nm@ti.com> wrote:
+> Jean Pihet had written, on 12/17/2010 05:07 PM, the following:
+>>
+>> Hi Kevin,
+>>
+>> On Sat, Dec 18, 2010 at 12:02 AM, Kevin Hilman
+>> <khilman@deeprootsystems.com> wrote:
+>>>
+>>> Hi Jean,
+>>>
+>>> jean.pihet@newoldbits.com writes:
+>>>
+>>>> From: Jean Pihet <j-pihet@ti.com>
+>>>>
+>>>> This patch only contains clean-ups and cosmetic changes,
+>>>> no functional change.
+>>>>
+>>>> Clean-up of the ASM sleep code, for better readability and
+>>>> easier maintenance.
+>>>>
+>>>> Applies on top of Nishant's latest idle path errata fixes step 2,
+>>>> cf. http://marc.info/?l=3Dlinux-omap&m=3D129139584919242&w=3D2
+>>>
+>>> Can you do one more spin of this series in order to collect the
+>>> reviewed-by/tested-by tags posted, and address some of Nishanth's
+>>> comments. =A0Since we are reaching a merge window deadline, I'll le=
+ave it
+>>> to your discretion to decide which of Nishanth's suggestions to add=
+ress
+>>> now and which to address later.
+>>
+>> Sure I will post a new version tomorrow.
+>> This will include some fixes after Nishant's comments. The rest can =
+be
+>> done later after we agree on the future changes.
+>
+> Sounds good to me as well.. the minor cleanups should be easy to do..
+> will help with testing tomorrow on the new series if there are any
+> functional changes. I will post out my revamped series as well 2morro=
+w.
 
-Organize the code in the following sections:
-- register access macros,
-- API functions,
-- internal functions.
+Ok I just re-sent the series as '[PATCH 0/7 v6] OMAP3: clean up ASM sle=
+ep code'.
 
-Tested on N900 and Beagleboard with full RET and OFF modes,
-using cpuidle and suspend.
+Thanks!
+Jean
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Tested-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/sleep34xx.S |  114 +++++++++++++++++++++------------------
- 1 files changed, 61 insertions(+), 53 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 8e9f38f..beeb682 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -79,6 +79,7 @@ ENTRY(get_restore_pointer)
-         ldmfd   sp!, {pc}     @ restore regs and return
- ENTRY(get_restore_pointer_sz)
-         .word   . - get_restore_pointer
-+
- 	.text
- /* Function call to get the restore pointer for 3630 resume from OFF */
- ENTRY(get_omap3630_restore_pointer)
-@@ -89,9 +90,18 @@ ENTRY(get_omap3630_restore_pointer_sz)
-         .word   . - get_omap3630_restore_pointer
- 
- 	.text
-+/* Function call to get the restore pointer for ES3 to resume from OFF */
-+ENTRY(get_es3_restore_pointer)
-+	stmfd	sp!, {lr}	@ save registers on stack
-+	adr	r0, restore_es3
-+	ldmfd	sp!, {pc}	@ restore regs and return
-+ENTRY(get_es3_restore_pointer_sz)
-+	.word	. - get_es3_restore_pointer
-+
-+	.text
- /*
-  * L2 cache needs to be toggled for stable OFF mode functionality on 3630.
-- * This function sets up a fflag that will allow for this toggling to take
-+ * This function sets up a flag that will allow for this toggling to take
-  * place on 3630. Hopefully some version in the future maynot need this
-  */
- ENTRY(enable_omap3630_toggle_l2_on_restore)
-@@ -101,58 +111,6 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
- 	str	r1, l2dis_3630
-         ldmfd   sp!, {pc}     @ restore regs and return
- 
--	.text
--/* Function call to get the restore pointer for for ES3 to resume from OFF */
--ENTRY(get_es3_restore_pointer)
--	stmfd	sp!, {lr}	@ save registers on stack
--	adr	r0, restore_es3
--	ldmfd	sp!, {pc}	@ restore regs and return
--ENTRY(get_es3_restore_pointer_sz)
--	.word	. - get_es3_restore_pointer
--
--ENTRY(es3_sdrc_fix)
--	ldr	r4, sdrc_syscfg		@ get config addr
--	ldr	r5, [r4]		@ get value
--	tst	r5, #0x100		@ is part access blocked
--	it	eq
--	biceq	r5, r5, #0x100		@ clear bit if set
--	str	r5, [r4]		@ write back change
--	ldr	r4, sdrc_mr_0		@ get config addr
--	ldr	r5, [r4]		@ get value
--	str	r5, [r4]		@ write back change
--	ldr	r4, sdrc_emr2_0		@ get config addr
--	ldr	r5, [r4]		@ get value
--	str	r5, [r4]		@ write back change
--	ldr	r4, sdrc_manual_0	@ get config addr
--	mov	r5, #0x2		@ autorefresh command
--	str	r5, [r4]		@ kick off refreshes
--	ldr	r4, sdrc_mr_1		@ get config addr
--	ldr	r5, [r4]		@ get value
--	str	r5, [r4]		@ write back change
--	ldr	r4, sdrc_emr2_1		@ get config addr
--	ldr	r5, [r4]		@ get value
--	str	r5, [r4]		@ write back change
--	ldr	r4, sdrc_manual_1	@ get config addr
--	mov	r5, #0x2		@ autorefresh command
--	str	r5, [r4]		@ kick off refreshes
--	bx	lr
--sdrc_syscfg:
--	.word	SDRC_SYSCONFIG_P
--sdrc_mr_0:
--	.word	SDRC_MR_0_P
--sdrc_emr2_0:
--	.word	SDRC_EMR2_0_P
--sdrc_manual_0:
--	.word	SDRC_MANUAL_0_P
--sdrc_mr_1:
--	.word	SDRC_MR_1_P
--sdrc_emr2_1:
--	.word	SDRC_EMR2_1_P
--sdrc_manual_1:
--	.word	SDRC_MANUAL_1_P
--ENTRY(es3_sdrc_fix_sz)
--	.word	. - es3_sdrc_fix
--
- /* Function to call rom code to save secure ram context */
- ENTRY(save_secure_ram_context)
- 	stmfd	sp!, {r1-r12, lr}	@ save registers on stack
-@@ -577,6 +535,56 @@ skip_l2_inval:
- 	/* restore regs and return */
- 	ldmfd   sp!, {r0-r12, pc}
- 
-+
-+/*
-+ * Internal functions
-+ */
-+
-+	.text
-+ENTRY(es3_sdrc_fix)
-+	ldr	r4, sdrc_syscfg		@ get config addr
-+	ldr	r5, [r4]		@ get value
-+	tst	r5, #0x100		@ is part access blocked
-+	it	eq
-+	biceq	r5, r5, #0x100		@ clear bit if set
-+	str	r5, [r4]		@ write back change
-+	ldr	r4, sdrc_mr_0		@ get config addr
-+	ldr	r5, [r4]		@ get value
-+	str	r5, [r4]		@ write back change
-+	ldr	r4, sdrc_emr2_0		@ get config addr
-+	ldr	r5, [r4]		@ get value
-+	str	r5, [r4]		@ write back change
-+	ldr	r4, sdrc_manual_0	@ get config addr
-+	mov	r5, #0x2		@ autorefresh command
-+	str	r5, [r4]		@ kick off refreshes
-+	ldr	r4, sdrc_mr_1		@ get config addr
-+	ldr	r5, [r4]		@ get value
-+	str	r5, [r4]		@ write back change
-+	ldr	r4, sdrc_emr2_1		@ get config addr
-+	ldr	r5, [r4]		@ get value
-+	str	r5, [r4]		@ write back change
-+	ldr	r4, sdrc_manual_1	@ get config addr
-+	mov	r5, #0x2		@ autorefresh command
-+	str	r5, [r4]		@ kick off refreshes
-+	bx	lr
-+
-+sdrc_syscfg:
-+	.word	SDRC_SYSCONFIG_P
-+sdrc_mr_0:
-+	.word	SDRC_MR_0_P
-+sdrc_emr2_0:
-+	.word	SDRC_EMR2_0_P
-+sdrc_manual_0:
-+	.word	SDRC_MANUAL_0_P
-+sdrc_mr_1:
-+	.word	SDRC_MR_1_P
-+sdrc_emr2_1:
-+	.word	SDRC_EMR2_1_P
-+sdrc_manual_1:
-+	.word	SDRC_MANUAL_1_P
-+ENTRY(es3_sdrc_fix_sz)
-+	.word	. - es3_sdrc_fix
-+
- /* Make sure SDRC accesses are ok */
- wait_sdrc_ok:
- 
--- 
-1.7.2.3
-
+>
+>
+> --
+> Regards,
+> Nishanth Menon
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
