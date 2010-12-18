@@ -1,39 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 0/12] dmtimer adaptation to platform_driver
-Date: Fri, 17 Dec 2010 16:15:38 -0800
-Message-ID: <20101218001538.GY5941@atomide.com>
-References: <1292385910-5234-1-git-send-email-tarun.kanti@ti.com>
+Subject: Re: [PATCH 2/2] arm: mach-omap2: Kconfig: devkit8000 should select
+ needed options
+Date: Fri, 17 Dec 2010 16:21:31 -0800
+Message-ID: <20101218002131.GZ5941@atomide.com>
+References: <1292417352-18082-1-git-send-email-aaro.koskinen@nokia.com>
+ <1292417352-18082-2-git-send-email-aaro.koskinen@nokia.com>
+ <20101215173709.GB8406@atomide.com>
+ <alpine.DEB.1.10.1012171424030.13087@esdhcp041196.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:20194 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756105Ab0LRAPm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 19:15:42 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17988 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752948Ab0LRAVg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 19:21:36 -0500
 Content-Disposition: inline
-In-Reply-To: <1292385910-5234-1-git-send-email-tarun.kanti@ti.com>
+In-Reply-To: <alpine.DEB.1.10.1012171424030.13087@esdhcp041196.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tarun Kanti DebBarma <tarun.kanti@ti.com> [101214 09:03]:
-> dmtimer adaptation to platform_driver.
+* Aaro Koskinen <aaro.koskinen@nokia.com> [101217 04:41]:
+> Hi,
 > 
-> This patch series is adaptation of dmtimer code to platform driver
-> using omap_device and omap_hwmod abstraction.
+> On Wed, 15 Dec 2010, Tony Lindgren wrote:
+> >* Aaro Koskinen <aaro.koskinen@nokia.com> [101215 04:48]:
+> >>It's not possible to compile a kernel for this board without I2C,
+> >>MFD_SUPPORT and TWL4030_CORE, so those should be selected. This will
+> >>prevent build errors when trying out different configurations.
+> >
+> >This one I'm not so convinced about. We should be able to compile
+> >support for each board and enable and disable these kind of options
+> >just fine if CONFIG_ARCH_OMAP2PLUS_TYPICAL is disabled.
 > 
-> Tested on following platforms:
-> OMAP4430, OMAP3430, OMAP3630, OMAP2430
-> OMAP2420, OMAP1710(in-progress)
+> So in this case we should move the stuff with special dependencies from
+> the board file into e.g. board-devkit8000-peripherals, which would be
+> a kernel module?
 
-Looks like this we need to wait on for 2.6.39 merge window to
-get all the needed testing done.
-
-With the pending GPIO and DMA changes we are already struggling
-to have them tested properly and I'm not planning on merging any more
-intrusive code for this merge window after the we get the DMA
-changes in hopefully today.
+Or how about just have them in ifdef CONFIG_I2C_OMAP and TWL4030_CORE
+in the board-devkit8000.c file?
 
 Regards,
 
