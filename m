@@ -1,57 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
-Date: Fri, 17 Dec 2010 16:53:11 -0800
-Message-ID: <20101218005311.GE5941@atomide.com>
-References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
- <AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com>
- <20101214170656.GA3832@kroah.com>
- <AANLkTi=q=QMQ_Abxb8eUWT_qGG8K=pc892ZB-mqgt_mh@mail.gmail.com>
- <20101216210837.GA22895@kroah.com>
- <AANLkTi=s_Urcin4SAp1mXrKmoyzR2=6YuS3aU+OYYgqK@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 1/3] OMAP2+: powerdomain: add API to get context loss count
+Date: Fri, 17 Dec 2010 17:14:13 -0800
+Message-ID: <1292634855-14728-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:27344 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756221Ab0LRAxU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 19:53:20 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=s_Urcin4SAp1mXrKmoyzR2=6YuS3aU+OYYgqK@mail.gmail.com>
+Received: from mail-pz0-f52.google.com ([209.85.210.52]:39953 "EHLO
+	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756381Ab0LRBOS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 20:14:18 -0500
+Received: by pzk36 with SMTP id 36so267782pzk.11
+        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 17:14:18 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Greg KH <greg@kroah.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 
-* Ohad Ben-Cohen <ohad@wizery.com> [101216 13:34]:
-> On Thu, Dec 16, 2010 at 11:08 PM, Greg KH <greg@kroah.com> wrote:
-> >> > I've seen a lot of discussion about this, are all of the review comments
-> >> > now addressed?
-> >>
-> >> Yes, all comments were addressed in this v3 iteration, and this thread
-> >> has been idle for about 10 days.
-> >
-> > That's because we are all busy with other things :(
-> 
-> Oh sure, my intention was only positive (to demonstrate that there are
-> no outstanding comments), sorry if it sounded differently than
-> intended.
-> 
-> > Sorry, I really don't have the time at the moment to review this code,
-> > nor does it seem to affect areas that I maintain, so I don't understand
-> > what you are looking for from me.
-> 
-> Sorry for the noise - I contacted you because you maintain the driver
-> core, in the hope you could suggest where this can go through.
-> 
-> Tony, Andrew, can you please have a look ?
-> 
-> Any comment or suggestion is appreciated.
+Add new powerdomain API
 
-Looks sane to me from omap point of view and it seems the locks
-are now all timeout based:
+    u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+for checking how many times the powerdomain has lost context.  The
+loss count is the sum sum of the powerdomain off-mode counter, the
+logic off counter and the per-bank memory off counter.
 
-Regards,
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/powerdomain.c |   26 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h |    1 +
+ 2 files changed, 27 insertions(+), 0 deletions(-)
 
-Tony
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 06ef60e..b147a82 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -909,3 +909,29 @@ int pwrdm_post_transition(void)
+ 	pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
+ 	return 0;
+ }
++
++/**
++ * pwrdm_get_context_loss_count - get powerdomain's context loss count
++ * @pwrdm: struct powerdomain * to wait for
++ *
++ * Context loss count is a sum of powerdomain off-mode counter,
++ * the logic off counter and the per-bank memory off counter.
++ */
++u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
++{
++	int i, count;
++
++	if (!pwrdm)
++		return -EINVAL;
++
++	count = pwrdm->state_counter[PWRDM_POWER_OFF];
++	count += pwrdm->ret_logic_off_counter;
++
++	for (i = 0; i < pwrdm->banks; i++)
++		count += pwrdm->ret_mem_off_counter[i];
++
++	pr_debug("powerdomain: %s: context loss count = %u\n",
++		 pwrdm->name, count);
++
++	return count;
++}
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 35b5b48..c66431e 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -211,6 +211,7 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
+ int pwrdm_pre_transition(void);
+ int pwrdm_post_transition(void);
+ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
++u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+ 
+ extern void omap2xxx_powerdomains_init(void);
+ extern void omap3xxx_powerdomains_init(void);
+-- 
+1.7.2.1
+
