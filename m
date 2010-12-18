@@ -1,47 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: remove dead wdt code in plat-omap/devices.c
-Date: Fri, 17 Dec 2010 17:47:04 -0800
-Message-ID: <20101218014703.GK5941@atomide.com>
-References: <1291397216-24301-1-git-send-email-gadiyar@ti.com>
+Subject: Re: [PATCH v2 1/2] I2C: i2c-omap: Change device name: i2c_omap ->
+ omap_i2c
+Date: Fri, 17 Dec 2010 17:55:07 -0800
+Message-ID: <20101218015507.GL5941@atomide.com>
+References: <1291904657-32729-1-git-send-email-b-cousson@ti.com>
+ <1291904657-32729-2-git-send-email-b-cousson@ti.com>
+ <878vzydgxr.fsf@deeprootsystems.com>
+ <20101209190110.GR20097@trinity.fluff.org>
+ <87wrni7jys.fsf@deeprootsystems.com>
+ <BC214410FD04D84F9079A6242365970707D4FA@008-AM1MPN1-001.mgdnok.nokia.com>
+ <4D01E4B5.1010703@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50153 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756779Ab0LRBrI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 20:47:08 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:24934 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756890Ab0LRBzQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 20:55:16 -0500
 Content-Disposition: inline
-In-Reply-To: <1291397216-24301-1-git-send-email-gadiyar@ti.com>
+In-Reply-To: <4D01E4B5.1010703@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "aaro.koskinen@nokia.com" <aaro.koskinen@nokia.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "ben-i2c@fluff.org" <ben-i2c@fluff.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-* Anand Gadiyar <gadiyar@ti.com> [101203 09:17]:
-> Commit f2ce62312650 (OMAP: WDT: Split OMAP1 and OMAP2PLUS device
-> registration) removed omap_init_wdt and related structures from
-> plat-omap/devices.c. However a subsequent commit or merge
-> seems to have reintroduced these by accident. The caller of
-> omap_init_wdt was also removed by that commit, and this did
-> not get restored. So we have the following build warning now:
+* Cousson, Benoit <b-cousson@ti.com> [101210 00:29]:
+> On 12/9/2010 11:18 PM, aaro.koskinen@nokia.com wrote:
+> >Hi,
+> >
+> >Kevin Hilman [khilman@deeprootsystems.com]:
+> >>Ben Dooks<ben-i2c@fluff.org>  writes:
+> >>>Renaming stuff like this is going to have an impact on the userspace
+> >>>as anyone looking through /sys's driver heirarchy is going to miss the
+> >>>old name...
+> >>>
+> >>>It all depends if you really want to go ahead with this...
+> >>
+> >>Yes, we are aware of the userspace impact, but this name change makes
+> >>all devices on OMAP have consistent names and actually improves the
+> >>ability to have userspace tools have consistent naming as well.
+> >
+> >So there are no imporant users, or if there is, they are prepared for this change?
 > 
->   CC      arch/arm/plat-omap/devices.o
-> arch/arm/plat-omap/devices.c:252: warning: 'omap_init_wdt' defined but not used
-> 
-> Fix this by removing this dead code.
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> ---
-> Couldn't figure out which commit reintroduced this code - git blame
-> only points to the original commits that added the code years ago.
-> 
-> I suspect it's the DSP bridge commits that got merged via staging.
-> 
-> If someone can debug this mystery for me, that'd be nice.
+> Well, I do not know any user of that today. Do you have some in mind?
 
-Thanks applying. Looks like it was added back by mismerge in
-e4c5bf8e3dca827a1b3a6fac494eae8c74b7e1e7 (Merge 'staging-next'
-into Linus's tree).
+Sounds like it's safe for me to take these two.
 
 Tony
