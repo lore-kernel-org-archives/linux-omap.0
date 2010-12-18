@@ -1,211 +1,146 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 2/3] OMAP: PM: implement context loss count APIs
-Date: Fri, 17 Dec 2010 17:14:14 -0800
-Message-ID: <1292634855-14728-2-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 3/3] OMAP: PM noop: implement context loss count for non-omap_devices
+Date: Fri, 17 Dec 2010 17:14:15 -0800
+Message-ID: <1292634855-14728-3-git-send-email-khilman@deeprootsystems.com>
 References: <1292634855-14728-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-pv0-f174.google.com ([74.125.83.174]:62654 "EHLO
 	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756381Ab0LRBOW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 20:14:22 -0500
-Received: by pva4 with SMTP id 4so204020pva.19
-        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 17:14:21 -0800 (PST)
+	with ESMTP id S1756381Ab0LRBOY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 20:14:24 -0500
+Received: by mail-pv0-f174.google.com with SMTP id 4so204020pva.19
+        for <linux-omap@vger.kernel.org>; Fri, 17 Dec 2010 17:14:24 -0800 (PST)
 In-Reply-To: <1292634855-14728-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 
-Implement OMAP PM layer omap_pm_get_dev_context_loss_count() API by
-creating similar APIs at the omap_device and omap_hwmod levels.  The
-omap_hwmod level call is the layer with access to the powerdomain
-core, so it is the place where the powerdomain is queried to get the
-context loss count.
+For devices which have not (yet) been converted to use omap_device,
+implement the context loss counter using the "brutal method" as
+originally proposed by Paul Walmsley[1].
 
-The new APIs return an unsigned value that can wrap as the
-context-loss count grows.  However, the wrapping is not important as
-the role of this function is to determine context loss by checking for
-any difference in subsequent calls to this function.
+The dummy context loss counter is incremented every time it is
+checked, but only when off-mode is enabled.  When off-mode is
+disabled, the dummy counter stops incrementing.
 
-Note that these APIs at each level can return zero when no context
-loss is detected, or on errors.  This is to avoid returning error
-codes which could potentially be mistaken for large context loss
-counters.
+Tested on 36xx/Zoom3 using MMC driver, which is currently the
+only in-tree user of this API.
 
-NOTE: only works for devices which have been converted to use
-      omap_device/omap_hwmod.
+This patch should be reverted after all devices are converted to using
+omap_device.
 
-Longer term, we could possibly remove this API from the OMAP PM layer,
-and instead directly use the omap_device level API.
+[1] http://marc.info/?l=linux-omap&m=129176260000626&w=2
 
 Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c              |   22 +++++++++++++++++++
- arch/arm/plat-omap/include/plat/omap-pm.h     |    4 +-
- arch/arm/plat-omap/include/plat/omap_device.h |    1 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
- arch/arm/plat-omap/omap-pm-noop.c             |   23 +++++++++----------
- arch/arm/plat-omap/omap_device.c              |   28 +++++++++++++++++++++++++
- 6 files changed, 65 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c            |    5 ++++
+ arch/arm/plat-omap/include/plat/omap-pm.h |    2 +
+ arch/arm/plat-omap/omap-pm-noop.c         |   38 +++++++++++++++++++++++++++-
+ 3 files changed, 43 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 81c1097..08da0f3 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2220,3 +2220,25 @@ ohsps_unlock:
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index e535082..125f565 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -32,6 +32,7 @@
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+ #include <plat/dmtimer.h>
++#include <plat/omap-pm.h>
  
- 	return ret;
- }
-+
-+/**
-+ * omap_hwmod_get_context_loss_count - get lost context count
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Query the powerdomain of of @oh to get the context loss
-+ * count for this device.
-+ *
-+ * Returns the context loss count of the powerdomain assocated with @oh
-+ * upon success, or zero if no powerdomain exists for @oh.
-+ */
-+u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
-+{
-+	struct powerdomain *pwrdm;
-+	int ret = 0;
-+
-+	pwrdm = omap_hwmod_get_pwrdm(oh);
-+	if (pwrdm)
-+		ret = pwrdm_get_context_loss_count(pwrdm);
-+
-+	return ret;
-+}
+ #include "cm2xxx_3xxx.h"
+ #include "prm2xxx_3xxx.h"
+@@ -581,6 +582,10 @@ static int option_set(void *data, u64 val)
+ 	*option = val;
+ 
+ 	if (option == &enable_off_mode) {
++		if (val)
++			omap_pm_enable_off_mode();
++		else
++			omap_pm_disable_off_mode();
+ 		if (cpu_is_omap34xx())
+ 			omap3_pm_off_mode_enable(val);
+ 	}
 diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
-index 9870b4f..2f0bee8 100644
+index 2f0bee8..6242b25 100644
 --- a/arch/arm/plat-omap/include/plat/omap-pm.h
 +++ b/arch/arm/plat-omap/include/plat/omap-pm.h
-@@ -368,9 +368,9 @@ unsigned long omap_pm_cpu_get_freq(void);
-  * driver must restore device context.   If the number of context losses
-  * exceeds the maximum positive integer, the function will wrap to 0 and
-  * continue counting.  Returns the number of context losses for this device,
-- * or -EINVAL upon error.
-+ * or zero upon error.
+@@ -372,5 +372,7 @@ unsigned long omap_pm_cpu_get_freq(void);
   */
--int omap_pm_get_dev_context_loss_count(struct device *dev);
-+u32 omap_pm_get_dev_context_loss_count(struct device *dev);
+ u32 omap_pm_get_dev_context_loss_count(struct device *dev);
  
++void omap_pm_enable_off_mode(void);
++void omap_pm_disable_off_mode(void);
  
  #endif
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index 28e2d1a..e4c349f 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -107,6 +107,7 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od);
- int omap_device_align_pm_lat(struct platform_device *pdev,
- 			     u32 new_wakeup_lat_limit);
- struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
-+u32 omap_device_get_context_loss_count(struct platform_device *pdev);
- 
- /* Other */
- 
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 62bdb23..3fdb574 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -568,6 +568,7 @@ int omap_hwmod_for_each_by_class(const char *classname,
- 				 void *user);
- 
- int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
-+u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
- 
- /*
-  * Chip variant-specific hwmod init routines - XXX should be converted
 diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-index 7578366..f7d1307 100644
+index f7d1307..12b2bfe 100644
 --- a/arch/arm/plat-omap/omap-pm-noop.c
 +++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -20,9 +20,11 @@
- #include <linux/init.h>
- #include <linux/cpufreq.h>
- #include <linux/device.h>
-+#include <linux/platform_device.h>
- 
- /* Interface documentation is in mach/omap-pm.h */
- #include <plat/omap-pm.h>
-+#include <plat/omap_device.h>
- 
- struct omap_opp *dsp_opps;
+@@ -30,6 +30,9 @@ struct omap_opp *dsp_opps;
  struct omap_opp *mpu_opps;
-@@ -286,22 +288,19 @@ unsigned long omap_pm_cpu_get_freq(void)
-  * Device context loss tracking
+ struct omap_opp *l3_opps;
+ 
++static bool off_mode_enabled;
++static u32 dummy_context_loss_counter;
++
+ /*
+  * Device-driver-originated constraints (via board-*.c files)
   */
- 
--int omap_pm_get_dev_context_loss_count(struct device *dev)
-+u32 omap_pm_get_dev_context_loss_count(struct device *dev)
- {
--	if (!dev) {
--		WARN_ON(1);
--		return -EINVAL;
--	};
-+	struct platform_device *pdev = to_platform_device(dev);
-+	u32 count;
- 
--	pr_debug("OMAP PM: returning context loss count for dev %s\n",
--		 dev_name(dev));
-+	if (WARN_ON(!dev))
-+		return 0;
- 
--	/*
--	 * Map the device to the powerdomain.  Return the powerdomain
--	 * off counter.
--	 */
-+	count = omap_device_get_context_loss_count(pdev);
-+	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
-+		 dev_name(dev), count);
- 
--	return 0;
-+	return count;
+@@ -284,10 +287,31 @@ unsigned long omap_pm_cpu_get_freq(void)
+ 	return 0;
  }
  
- 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index abe933c..57adb27 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -280,6 +280,34 @@ static void _add_optional_clock_alias(struct omap_device *od,
- /* Public functions for use by core code */
- 
- /**
-+ * omap_device_get_context_loss_count - get lost context count
-+ * @od: struct omap_device *
++/**
++ * omap_pm_enable_off_mode - notify OMAP PM that off-mode is enabled
 + *
-+ * Using the primary hwmod, query the context loss count for this
-+ * device.
-+ *
-+ * Callers should consider context for this device lost any time this
-+ * function returns a value different than the value the caller got
-+ * the last time it called this function.
-+ *
-+ * If any hwmods exist for the omap_device assoiated with @pdev,
-+ * return the context loss counter for that hwmod, otherwise return
-+ * zero.
++ * Intended for use only by OMAP PM core code to notify this layer
++ * that off mode has been enabled.
 + */
-+u32 omap_device_get_context_loss_count(struct platform_device *pdev)
++void omap_pm_enable_off_mode(void)
 +{
-+	struct omap_device *od;
-+	u32 ret = 0;
-+
-+	od = _find_by_pdev(pdev);
-+
-+	if (od->hwmods_cnt)
-+		ret = omap_hwmod_get_context_loss_count(od->hwmods[0]);
-+
-+	return ret;
++	off_mode_enabled = true;
 +}
 +
 +/**
-  * omap_device_count_resources - count number of struct resource entries needed
-  * @od: struct omap_device *
-  *
++ * omap_pm_disable_off_mode - notify OMAP PM that off-mode is disabled
++ *
++ * Intended for use only by OMAP PM core code to notify this layer
++ * that off mode has been disabled.
++ */
++void omap_pm_disable_off_mode(void)
++{
++	off_mode_enabled = false;
++}
++
+ /*
+  * Device context loss tracking
+  */
+-
+ u32 omap_pm_get_dev_context_loss_count(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+@@ -296,7 +320,17 @@ u32 omap_pm_get_dev_context_loss_count(struct device *dev)
+ 	if (WARN_ON(!dev))
+ 		return 0;
+ 
+-	count = omap_device_get_context_loss_count(pdev);
++	if (dev->parent == &omap_device_parent) {
++		count = omap_device_get_context_loss_count(pdev);
++	} else {
++		WARN_ONCE(off_mode_enabled, "using dummy context loss counter, "
++			  "device %s should be converted to omap_device.",
++			  __func__, dev_name(dev));
++		if (off_mode_enabled)
++			dummy_context_loss_counter++;
++		count = dummy_context_loss_counter;
++	}
++
+ 	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
+ 		 dev_name(dev), count);
+ 
 -- 
 1.7.2.1
 
