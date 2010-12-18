@@ -1,40 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Keyboard: omap-keypad: use matrix_keypad.h
-Date: Fri, 17 Dec 2010 19:10:04 -0800
-Message-ID: <20101218031003.GP5941@atomide.com>
-References: <201012172332.06480.jkrzyszt@tis.icnet.pl>
+Subject: Re: [GIT PULL] OMAP: mailbox and iommu changes: for-next for
+ v2.6.38
+Date: Fri, 17 Dec 2010 19:30:02 -0800
+Message-ID: <20101218033002.GQ5941@atomide.com>
+References: <AANLkTi=d58bT9TdrGQWwayt7G-h2nEtCv=M18zV48AK6@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63672 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754431Ab0LRDKH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 22:10:07 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46614 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755597Ab0LRDaL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Dec 2010 22:30:11 -0500
 Content-Disposition: inline
-In-Reply-To: <201012172332.06480.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <AANLkTi=d58bT9TdrGQWwayt7G-h2nEtCv=M18zV48AK6@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-arm-kernel@lists.infradead.org
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [101217 14:33]:
-> Most keypad drivers make use of the <linux/input/matrix_keypad.h> 
-> defined macros, structures and inline functions.
+* Kanigeri, Hari <h-kanigeri2@ti.com> [101215 14:48]:
+> Hi Tony,
 > 
-> Convert omap-keypad driver to use those as well, as suggested by a 
-> compile time warning, hardcoded into the OMAP <palt/keypad.h>.
+> The following changes since commit e8a7e48bb248a1196484d3f8afa53bded2b24e71:
+>  Linus Torvalds (1):
+>        Linux 2.6.37-rc4
 > 
-> Created against linux-2.6.37-rc5.
-> Tested on Amstrad Delta.
-> Compile tested with omap1_defconfig and omap2plus_defconfig shrinked to 
-> board-h4.
+> are available in the git repository at:
+> 
+>  git://gitorious.org/iommu_mailbox/iommu_mailbox.git for_2.6.38
+...
+ 
+> The above patch set is dependent on the following 2 Russell's patches.
+> 
+> ARM: io: make iounmap() a simple macro
+> ARM: io: simplify ioremap* and iounmap definitions
+> Ref: http://www.spinics.net/lists/linux-omap/msg42023.html
 
-Great, good to get rid of those annoying warnings!
-
->  drivers/input/keyboard/omap-keypad.c     |   36 ++++----
->  include/linux/input/matrix_keypad.h      |    2
-
-We also need Dmitry's ack for these changes.
+Thanks pulling these in using Russell's io branch as the base.
 
 Regards,
 
