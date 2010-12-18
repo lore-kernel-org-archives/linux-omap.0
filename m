@@ -1,42 +1,47 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH] ARM: OMAP: Power on EHCI, serial, camera and DVI on beagleboard-xM
-Date: Sat, 18 Dec 2010 09:22:44 +0100
-Message-ID: <B37963A7-0B47-4532-85DD-DA6769DE6A51@dominion.thruhere.net>
-References: <1291725639-86397-1-git-send-email-koen@beagleboard.org> <E4A07EF4-1694-4B22-8015-0710B6BE7A2E@dominion.thruhere.net> <4D077E25.5070609@ti.com> <20101218020744.GN5941@atomide.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v2 resend] OMAP4: Pandaboard: Add omap_reserve
+	functionality
+Date: Sat, 18 Dec 2010 08:26:40 +0000
+Message-ID: <20101218082640.GA3047@n2100.arm.linux.org.uk>
+References: <1291793964-26769-1-git-send-email-raghuveer.murthy@ti.com> <20101218020952.GO5941@atomide.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:58258 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753464Ab0LRIWs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Dec 2010 03:22:48 -0500
-Received: by wwa36 with SMTP id 36so1415098wwa.1
-        for <linux-omap@vger.kernel.org>; Sat, 18 Dec 2010 00:22:46 -0800 (PST)
-In-Reply-To: <20101218020744.GN5941@atomide.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47777 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753148Ab0LRI0x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Dec 2010 03:26:53 -0500
+Content-Disposition: inline
+In-Reply-To: <20101218020952.GO5941@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: Raghuveer Murthy <raghuveer.murthy@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On Fri, Dec 17, 2010 at 06:09:53PM -0800, Tony Lindgren wrote:
+> * Raghuveer Murthy <raghuveer.murthy@ti.com> [101207 23:31]:
+> > This patch adds omap_reserve functionality to board-omap4panda.c.
+> > Helps in the reserving boot time memory in SDRAM, used here for
+> > framebuffer allocation.
+> > 
+> > This patch is in similar lines to commit id 71ee7dad9b6991, from
+> > Russell king
+> > 
+> > Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+> > Cc: linux-arm-kernel@lists.infradead.org
+> > Signed-off-by: Raghuveer Murthy <raghuveer.murthy@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/board-omap4panda.c |    1 +
+> >  1 files changed, 1 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+> > index da24745..0ccc24f 100644
+> > --- a/arch/arm/mach-omap2/board-omap4panda.c
+> > +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> > @@ -393,6 +393,7 @@ MACHINE_START(OMAP4_PANDA, "OMAP4 Panda board")
+> >  	/* Maintainer: David Anders - Texas Instruments Inc */
+> >  	.boot_params	= 0x80000100,
+> >  	.map_io		= omap4_panda_map_io,
+> > +	.reserve	= omap_reserve,
 
-Op 18 dec 2010, om 03:07 heeft Tony Lindgren het volgende geschreven:
-
-> * Anand Gadiyar <gadiyar@ti.com> [101214 06:25]:
->> On 12/14/2010 7:41 PM, Koen Kooi wrote:
->>> Any comments on this?
-> ...
-> 
->>>> 
->>>> -	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
->>>> -	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
->> 
->> This disappeared. So no more PMU STAT led?
-> 
-> Koen, any update on this?
-
-I'll send and updated patch after the weekend.
-
-regards,
-
-Koen
+Please put .reserve before .map_io.
