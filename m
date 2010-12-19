@@ -1,95 +1,46 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH v2] ARM: OMAP: Power on EHCI, serial, camera and DVI on beagleboard-xM
-Date: Sun, 19 Dec 2010 15:56:04 +0100
-Message-ID: <24FA44A2-FF60-4DA5-B672-66F501E297F6@dominion.thruhere.net>
-References: <1291725639-86397-1-git-send-email-koen@beagleboard.org> <1292769735-54159-1-git-send-email-koen@dominion.thruhere.net> <4D0E1B07.2000703@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2] ARM: OMAP: Power on EHCI, serial, camera and DVI on
+ beagleboard-xM
+Date: Sun, 19 Dec 2010 09:22:33 -0600
+Message-ID: <4D0E2339.40401@ti.com>
+References: <1291725639-86397-1-git-send-email-koen@beagleboard.org> <1292769735-54159-1-git-send-email-koen@dominion.thruhere.net> <4D0E1B07.2000703@ti.com> <24FA44A2-FF60-4DA5-B672-66F501E297F6@dominion.thruhere.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:36739 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932127Ab0LSO4H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Dec 2010 09:56:07 -0500
-Received: by wyb28 with SMTP id 28so2121887wyb.19
-        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 06:56:05 -0800 (PST)
-In-Reply-To: <4D0E1B07.2000703@ti.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:39006 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932256Ab0LSPW4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 19 Dec 2010 10:22:56 -0500
+Received: by yxe42 with SMTP id 42so1023433yxe.9
+        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 07:22:55 -0800 (PST)
+In-Reply-To: <24FA44A2-FF60-4DA5-B672-66F501E297F6@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
+To: Koen Kooi <koen@dominion.thruhere.net>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
+Koen Kooi wrote, on 12/19/2010 08:56 AM:
+>
+> Op 19 dec 2010, om 15:47 heeft Nishanth Menon het volgende geschreven:
+>
+>> Koen Kooi wrote, on 12/19/2010 08:42 AM:
+>> $subject - should'nt you be doing this in separate patches? easier to track with git bisect at a later date than a whole sale change?
+>
+> Is that really needed?
+it is usually recommended to keep each separate functionality 
+introduced/fixed independent of the other.
 
-Op 19 dec 2010, om 15:47 heeft Nishanth Menon het volgende geschreven:
+>
+>> btw, why are we enabling camera here? should'nt that be done in camera's probe function? no?
+>
+> On P7/P8 it's the camera, but on A2 and above it's the LDO that powers the TFP410, so if you want to have output on DVI you need to turn it on.
+ >I'm not sure if it should be part of the DVI init since it has 
+different functions on different board revisions.
+P7/P8 were not production Beagles if my memory serves me right.. DVI 
+init makes more sense to me.
 
-> Koen Kooi wrote, on 12/19/2010 08:42 AM:
-> $subject - should'nt you be doing this in separate patches? easier to track with git bisect at a later date than a whole sale change?
-
-Is that really needed?
-
-> btw, why are we enabling camera here? should'nt that be done in camera's probe function? no?
-
-On P7/P8 it's the camera, but on A2 and above it's the LDO that powers the TFP410, so if you want to have output on DVI you need to turn it on. I'm not sure if it should be part of the DVI init since it has different functions on different board revisions.
-
-regards,
-
-Koen 
-
->> Signed-off-by: Koen Kooi<koen@beagleboard.org>
->> 
->> ---
->> 
->> Changes since v1:
->> 	* Reenable the PMU stat LED
->> 
->>  arch/arm/mach-omap2/board-omap3beagle.c |   26 ++++++++++++++++++++++++--
->>  1 files changed, 24 insertions(+), 2 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
->> index f1a8ede..4756ac7 100644
->> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->> @@ -297,13 +297,35 @@ static int beagle_twl_gpio_setup(struct device *dev,
->>  	gpio_request(gpio + 1, "EHCI_nOC");
->>  	gpio_direction_input(gpio + 1);
->> 
->> -	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
->> +	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
->> +	 * high / others active low) */
->>  	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
->> -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
->> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
->> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
->> +	else
->> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
->> +
->> +	/* DVI reset GPIO is different between revisions */
->> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
->> +		beagle_dvi_device.reset_gpio = 129;
->> +	else
->> +		beagle_dvi_device.reset_gpio = 170;
->> +
->> +	 /* Power on DVI, Serial and PWR led */
->> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
->> +		gpio_request(gpio + 1, "nDVI_PWR_EN");
->> +		gpio_direction_output(gpio + 1, 0);
->> +	}
->> 
->>  	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
->>  	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
->> 
->> +	/* Power on camera interface on P7/P8 or DVI on A2 and beyond */
->> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
->> +		gpio_request(gpio + 2, "CAM_EN");
->> +		gpio_direction_output(gpio + 2, 1);
->> +	}
->> +
->>  	return 0;
->>  }
->> 
-> 
-> 
-> -- 
-> Regards,
-> Nishanth Menon
-
+-- 
+Regards,
+Nishanth Menon
