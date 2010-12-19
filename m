@@ -1,40 +1,43 @@
 From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH] MTD: NAND: ams-delta: select for built-in by default
-Date: Sun, 19 Dec 2010 19:00:53 +0200
-Message-ID: <1292778053.13362.7.camel@koala>
-References: <201012151258.16764.jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH] MTD: NAND: ams-delta: drop omap_read/write, use ioremap
+Date: Sun, 19 Dec 2010 19:03:33 +0200
+Message-ID: <1292778213.13362.9.camel@koala>
+References: <201012151543.46341.jkrzyszt@tis.icnet.pl>
 Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:64331 "EHLO
-	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752818Ab0LSRBE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Dec 2010 12:01:04 -0500
-Received: by bwz16 with SMTP id 16so2602757bwz.4
-        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 09:01:02 -0800 (PST)
-In-Reply-To: <201012151258.16764.jkrzyszt@tis.icnet.pl>
+Received: from mail-fx0-f43.google.com ([209.85.161.43]:59539 "EHLO
+	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752715Ab0LSRDl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Dec 2010 12:03:41 -0500
+Received: by fxm18 with SMTP id 18so2294928fxm.2
+        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 09:03:40 -0800 (PST)
+In-Reply-To: <201012151543.46341.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Cc: linux-mtd@lists.infradead.org, David Woodhouse <dwmw2@infradead.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Wed, 2010-12-15 at 12:58 +0100, Janusz Krzysztofik wrote:
-> Now that the Amstrad Delta NAND driver is converted to a platform dri=
-ver,=20
-> which prevents it from interfering with other unrelated hardware in m=
-ultiple=20
-> OMAP1 cpu and machine configurations, it can be automatically configu=
-red for=20
-> being built into the kernel if the Amstrad Delta board is also select=
-ed.
+On Wed, 2010-12-15 at 15:43 +0100, Janusz Krzysztofik wrote:
+> There is a common requirement for not using OMAP specific omap_readw(=
+) /=20
+> omap_writew() function calls in drivers/, but replace them with=20
+> readw() / writew() on ioremap()ped addresses passed from arch/ instea=
+d.
 >=20
-> Created against linux-2.6.37-rc5.
+> The patch implements this idea for the Amstrad Delta NAND driver. To =
+be=20
+> able to use the modified driver, the board file is updated with the=20
+> platform device I/O resource declaration, which is passed from there.
+>=20
+> Created and tested against linux-2.6.37-rc5, on top of recent patch=20
+> 'MTD: NAND: ams-delta: convert to platform driver'.
 >=20
 > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-Pushed to l2-mtd-2.6.git, thanks.
+Pushed to l2-mtd-2.6.git, thanks!
 
 --=20
 Best Regards,
