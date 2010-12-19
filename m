@@ -1,46 +1,59 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2] ARM: OMAP: Power on EHCI, serial, camera and DVI on
- beagleboard-xM
-Date: Sun, 19 Dec 2010 09:22:33 -0600
-Message-ID: <4D0E2339.40401@ti.com>
-References: <1291725639-86397-1-git-send-email-koen@beagleboard.org> <1292769735-54159-1-git-send-email-koen@dominion.thruhere.net> <4D0E1B07.2000703@ti.com> <24FA44A2-FF60-4DA5-B672-66F501E297F6@dominion.thruhere.net>
+From: WEBMAIL SUPPORT <info@upgrade.org>
+Subject: Attn:  Account owner
+Date: Sun, 19 Dec 2010 20:21:50 +0330
+Message-ID: <20101219202150.73alxm9tmqskww8w@mail.basu.ac.ir>
+Reply-To: web_userprofile1@mail2webmaster.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII;
+	DelSp=Yes	format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:39006 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932256Ab0LSPW4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 19 Dec 2010 10:22:56 -0500
-Received: by yxe42 with SMTP id 42so1023433yxe.9
-        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 07:22:55 -0800 (PST)
-In-Reply-To: <24FA44A2-FF60-4DA5-B672-66F501E297F6@dominion.thruhere.net>
+Received: from [78.39.205.38] ([78.39.205.38]:62492 "HELO sadaf.basu.ac.ir"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with SMTP
+	id S1752287Ab0LSQMb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Dec 2010 11:12:31 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-
-Koen Kooi wrote, on 12/19/2010 08:56 AM:
->
-> Op 19 dec 2010, om 15:47 heeft Nishanth Menon het volgende geschreven:
->
->> Koen Kooi wrote, on 12/19/2010 08:42 AM:
->> $subject - should'nt you be doing this in separate patches? easier to track with git bisect at a later date than a whole sale change?
->
-> Is that really needed?
-it is usually recommended to keep each separate functionality 
-introduced/fixed independent of the other.
-
->
->> btw, why are we enabling camera here? should'nt that be done in camera's probe function? no?
->
-> On P7/P8 it's the camera, but on A2 and above it's the LDO that powers the TFP410, so if you want to have output on DVI you need to turn it on.
- >I'm not sure if it should be part of the DVI init since it has 
-different functions on different board revisions.
-P7/P8 were not production Beagles if my memory serves me right.. DVI 
-init makes more sense to me.
 
 -- 
+Attn:  Account owner
+This message is from web mail admin messaging center to all web mail account
+  owners. We are currently upgrading our data base and e-mail account center.
+We are canceling unused web mail email account to create more space for new
+accounts.
+To prevent your account from closing you will have to update
+it below to know it's status as a currently used account.
+
+CONFIRM YOUR EMAIL IDENTITY BELOW  Account Details
+
+
+***********************************************
+Email User-name :........ .....
+EMAIL Password :...............
+Date of Birth :...............
+Country or Territory :........
+************************************************
+Warning!!! Any account owner that refuses to update his/her
+
+account within Three days of this update notification will loose  
+his/her account
+permanently.
+You have limited time to supply the above details for effective services
+by
+replying to this email and any delay or incorrect username or password,
+may
+cause our server to automatically log you out from our system.
+Thank you.
 Regards,
-Nishanth Menon
+
+Web Support Team.
+
+Thank you for usage
+
+
+
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
+
