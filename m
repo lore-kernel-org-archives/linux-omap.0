@@ -1,47 +1,95 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 0/40] Complete set of clocksource/sched_clock patches
-Date: Sun, 19 Dec 2010 14:49:50 +0000
-Message-ID: <20101219144950.GH3047@n2100.arm.linux.org.uk>
-References: <20101217113223.GC9937@n2100.arm.linux.org.uk>
-	<19725.57447.256528.883703@pilspetsen.it.uu.se>
-	<20101219105209.GN9937@n2100.arm.linux.org.uk>
-	<19725.64412.395353.947407@pilspetsen.it.uu.se>
-	<20101219125508.GG3047@n2100.arm.linux.org.uk>
-	<19726.4420.289089.490319@pilspetsen.it.uu.se>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <19726.4420.289089.490319@pilspetsen.it.uu.se>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mikael Pettersson <mikpe@it.uu.se>
-Cc: Viresh Kumar <viresh.kumar@st.com>, Kevin Hilman <khilman@deeprootsystems.com>, Lennert Buytenhek <kernel@wantstofly.org>, linux-samsung-soc@vger.kernel.org, "Hans J. Koch" <hjk@linutronix.de>, Scott Branden <sbranden@broadcom.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Jiandong Zheng <jdzheng@broadcom.com>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>, Kukjin Kim <kgene.kim@samsung.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Daniel Walker <dwalker@codeaurora.org>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Bryan Huntsman <bryanh@codeaurora.org>Sascha Hauer <kernel@>
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH v2] ARM: OMAP: Power on EHCI, serial, camera and DVI on beagleboard-xM
+Date: Sun, 19 Dec 2010 15:56:04 +0100
+Message-ID: <24FA44A2-FF60-4DA5-B672-66F501E297F6@dominion.thruhere.net>
+References: <1291725639-86397-1-git-send-email-koen@beagleboard.org> <1292769735-54159-1-git-send-email-koen@dominion.thruhere.net> <4D0E1B07.2000703@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:36739 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932127Ab0LSO4H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Dec 2010 09:56:07 -0500
+Received: by wyb28 with SMTP id 28so2121887wyb.19
+        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 06:56:05 -0800 (PST)
+In-Reply-To: <4D0E1B07.2000703@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Sun, Dec 19, 2010 at 03:05:56PM +0100, Mikael Pettersson wrote:
-> tmr = timer mode register
-> tcr = timer counter register
-> trr = timer reload register
+
+Op 19 dec 2010, om 15:47 heeft Nishanth Menon het volgende geschreven:
+
+> Koen Kooi wrote, on 12/19/2010 08:42 AM:
+> $subject - should'nt you be doing this in separate patches? easier to track with git bisect at a later date than a whole sale change?
+
+Is that really needed?
+
+> btw, why are we enabling camera here? should'nt that be done in camera's probe function? no?
+
+On P7/P8 it's the camera, but on A2 and above it's the LDO that powers the TFP410, so if you want to have output on DVI you need to turn it on. I'm not sure if it should be part of the DVI init since it has different functions on different board revisions.
+
+regards,
+
+Koen 
+
+>> Signed-off-by: Koen Kooi<koen@beagleboard.org>
+>> 
+>> ---
+>> 
+>> Changes since v1:
+>> 	* Reenable the PMU stat LED
+>> 
+>>  arch/arm/mach-omap2/board-omap3beagle.c |   26 ++++++++++++++++++++++++--
+>>  1 files changed, 24 insertions(+), 2 deletions(-)
+>> 
+>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+>> index f1a8ede..4756ac7 100644
+>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>> @@ -297,13 +297,35 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>>  	gpio_request(gpio + 1, "EHCI_nOC");
+>>  	gpio_direction_input(gpio + 1);
+>> 
+>> -	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
+>> +	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
+>> +	 * high / others active low) */
+>>  	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
+>> -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+>> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
+>> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
+>> +	else
+>> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+>> +
+>> +	/* DVI reset GPIO is different between revisions */
+>> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
+>> +		beagle_dvi_device.reset_gpio = 129;
+>> +	else
+>> +		beagle_dvi_device.reset_gpio = 170;
+>> +
+>> +	 /* Power on DVI, Serial and PWR led */
+>> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+>> +		gpio_request(gpio + 1, "nDVI_PWR_EN");
+>> +		gpio_direction_output(gpio + 1, 0);
+>> +	}
+>> 
+>>  	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+>>  	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+>> 
+>> +	/* Power on camera interface on P7/P8 or DVI on A2 and beyond */
+>> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+>> +		gpio_request(gpio + 2, "CAM_EN");
+>> +		gpio_direction_output(gpio + 2, 1);
+>> +	}
+>> +
+>>  	return 0;
+>>  }
+>> 
 > 
-> When a timer is in periodic mode it reloads itself from its reload
-> register when the counter register decrements to zero.
-
-Ok.
-
->  >  Does trr need to be written in
->  > ->set_mode (if so that's another bug in this code)?
 > 
-> trr{0,1} need not and should not be changed after iop_time_init().
+> -- 
+> Regards,
+> Nishanth Menon
 
-It sounds like trr0 needs to be written in ->set_mode's
-CLOCK_EVT_MODE_PERIODIC path then, because with my patch, we never set
-this register.  Or will trr0 be updated when we write tcr0 ?
