@@ -1,59 +1,51 @@
-From: WEBMAIL SUPPORT <info@upgrade.org>
-Subject: Attn:  Account owner
-Date: Sun, 19 Dec 2010 20:21:50 +0330
-Message-ID: <20101219202150.73alxm9tmqskww8w@mail.basu.ac.ir>
-Reply-To: web_userprofile1@mail2webmaster.com
+From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: Re: [PATCH 0/40] Complete set of clocksource/sched_clock patches
+Date: Sun, 19 Dec 2010 17:15:09 +0100
+Message-ID: <19726.12173.600912.202134@pilspetsen.it.uu.se>
+References: <20101217113223.GC9937@n2100.arm.linux.org.uk>
+	<19725.57447.256528.883703@pilspetsen.it.uu.se>
+	<20101219105209.GN9937@n2100.arm.linux.org.uk>
+	<19725.64412.395353.947407@pilspetsen.it.uu.se>
+	<20101219125508.GG3047@n2100.arm.linux.org.uk>
+	<19726.4420.289089.490319@pilspetsen.it.uu.se>
+	<20101219144950.GH3047@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [78.39.205.38] ([78.39.205.38]:62492 "HELO sadaf.basu.ac.ir"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with SMTP
-	id S1752287Ab0LSQMb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Dec 2010 11:12:31 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20101219144950.GH3047@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Viresh Kumar <viresh.kumar@st.com>, Mikael Pettersson <mikpe@it.uu.se>, Kevin Hilman <khilman@deeprootsystems.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, "Hans J. Koch" <hjk@linutronix.de>, Scott Branden <sbranden@broadcom.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Sascha Hauer <kernel@pengutronix.de>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Daniel Walker <dwalker@codeaurora.org>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Bryan Huntsman <bryanh@code>
 List-Id: linux-omap@vger.kernel.org
 
--- 
-Attn:  Account owner
-This message is from web mail admin messaging center to all web mail account
-  owners. We are currently upgrading our data base and e-mail account center.
-We are canceling unused web mail email account to create more space for new
-accounts.
-To prevent your account from closing you will have to update
-it below to know it's status as a currently used account.
+Russell King - ARM Linux writes:
+ > >  >  Does trr need to be written in
+ > >  > ->set_mode (if so that's another bug in this code)?
+ > > 
+ > > trr{0,1} need not and should not be changed after iop_time_init().
+ > 
+ > It sounds like trr0 needs to be written in ->set_mode's
+ > CLOCK_EVT_MODE_PERIODIC path then, because with my patch, we never set
+ > this register.
 
-CONFIRM YOUR EMAIL IDENTITY BELOW  Account Details
+Hmm, yes, your patch does cause that. I think it's better to keep the
+write_trr0() in iop_init_time(), but move it ahead of the
+clockevents_register_device() call; this avoids a needless reinitialization
+of trr0 in ->set_mode's CLOCK_EVT_MODE_PERIODIC case. Writing to trr0 is safe,
+it's only the early write to tmr0 that's dangerous.
 
+My kernel survived that bug because I have CONFIG_NO_HZ=y so the clockevents
+timer is always(?) reprogrammed into oneshot-mode, which doesn't use trr0.
 
-***********************************************
-Email User-name :........ .....
-EMAIL Password :...............
-Date of Birth :...............
-Country or Territory :........
-************************************************
-Warning!!! Any account owner that refuses to update his/her
-
-account within Three days of this update notification will loose  
-his/her account
-permanently.
-You have limited time to supply the above details for effective services
-by
-replying to this email and any delay or incorrect username or password,
-may
-cause our server to automatically log you out from our system.
-Thank you.
-Regards,
-
-Web Support Team.
-
-Thank you for usage
-
-
-
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
-
+ >  Or will trr0 be updated when we write tcr0 ?
+ 
+No, only explicit write_trr0() calls can update trr0.
