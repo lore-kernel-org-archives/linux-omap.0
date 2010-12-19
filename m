@@ -1,127 +1,54 @@
-From: Charles Manning <manningc2@actrix.gen.nz>
-Subject: UBIFS not mounting on linux-omap 2.6.36
-Date: Mon, 20 Dec 2010 11:18:01 +1300
-Message-ID: <201012201118.01766.manningc2@actrix.gen.nz>
+From: Linus Walleij <linus.ml.walleij@gmail.com>
+Subject: Re: [PATCH 0/13] 64-bit sched_clock
+Date: Sun, 19 Dec 2010 23:23:02 +0100
+Message-ID: <AANLkTik0zkpUUvrv8YmxGd_=vMaKR42KbJnd4BqHqias@mail.gmail.com>
+References: <20101216092527.GL9937@n2100.arm.linux.org.uk>
+	<20101216130411.GR9937@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.scorch.co.nz ([27.110.127.199]:53112 "HELO scorch.co.nz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1757238Ab0LSWSF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 19 Dec 2010 17:18:05 -0500
-Content-Disposition: inline
+Received: from mail-px0-f179.google.com ([209.85.212.179]:59953 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757231Ab0LSWXE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Dec 2010 17:23:04 -0500
+In-Reply-To: <20101216130411.GR9937@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, Alessandro Rubini <rubini@unipv.it>, Imre Kaloz <kaloz@openwrt.org>, Eric Miao <eric.y.miao@gmail.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, john stultz <johnstul@us.ibm.com>, linux-tegra@vger.kernel.org, Olof Johansson <olof@lixom.net>, Colin Cross <ccross@android.com>, STEricsson <STEricsson_nomadik_linux@list.st.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Lennert Buytenhek <kernel@wantstofly.org>, Krzysztof Halasa <khc@pm.waw.pl>
 
-Hi All
+2010/12/16 Russell King - ARM Linux <linux@arm.linux.org.uk>:
 
-I am trying to nail down an omap3 ubifs  performance regression, but cannot 
-get Steve Sakoman's 2.6.35 or 2.6.36 kernels
-http://www.sakoman.com/cgi-bin/gitweb.cgi?p=linux-omap-2.6.git
- to mount ubifs although the same procedure works with older kernels and works 
-with the linux-omap 2.6.37 master.
+> I can provide an init_early() method in the machine description which
+> setup_arch() can call as the last thing it does - this will happen
+> after the ->reserve and ->map_io callbacks, but before interrupts and
+> timers have been setup. =A0This is the ideal time to setup the
+> sched_clock(). =A0However, that means digging through lots of arch co=
+de
+> to sort out what can be moved where, and that's going to be inherentl=
+y
+> unreliable.
+>
+> I think init_early() has merit in other ways - it'll allow us to remo=
+ve
+> crap from the ->map_io callbacks which is doing stuff like registerin=
+g
+> clk structures and so forth.
 
-Any hints?
+I agree. I was contemplating a clock_init() or similar a way back
+for setting up clock trees early. We would have to move clock tree
+registration in front of the init_sched_clock() call in the init_early(=
+)
+handler in many cases since the rate often comes from the clock
+framework, but this is indeed where it belongs.
 
-Thanks
+So a clear ACK for this approach.
 
-Charles
-
-
-The NAND had been initilised with:
-
-ubiformat /dev/mtd4 -s 512
-
-ubimkvol /dev/ubi0 -m -N foo
-
-Herewith log
-
-root@omap3-multi:~# ubiattach /dev/ubi_ctrl -m4 -d4
-UBI: attaching mtd4 to ubi4
-UBI: physical eraseblock size:   131072 bytes (128 KiB)
-UBI: logical eraseblock size:    129024 bytes
-UBI: smallest flash I/O unit:    2048
-UBI: sub-page size:              512
-UBI: VID header offset:          512 (aligned 512)
-UBI: data offset:                2048
-UBI: max. sequence number:       2
-UBI: attached mtd4 to ubi4
-UBI: MTD device name:            "rootfs"
-UBI: MTD device size:            249 MiB
-UBI: number of good PEBs:        1996
-UBI: number of bad PEBs:         0
-UBI: max. allowed volumes:       128
-UBI: wear-leveling threshold:    4096
-UBI: number of internal volumes: 1
-UBI: number of user volumes:     1
-UBI: available PEBs:             0
-UBI: total number of reserved PEBs: 1996
-UBI: number of PEBs reserved for bad PEB handling: 19
-UBI: max/mean erase counter: 8195/11
-UBI: image sequence number:  1842873171
-UBI: background thread "ubi_bgt4d" started, PID 407
-UBI device number 4, total 1996 LEBs (257531904 bytes, 245.6 MiB), available 0 
-LEBs (0 bytes), LEB size 129024 bytes (126.0 KiB)
-root@omap3-multi:~# dmesg
-...
-UBI: attaching mtd4 to ubi4
-UBI: physical eraseblock size:   131072 bytes (128 KiB)
-UBI: logical eraseblock size:    129024 bytes
-UBI: smallest flash I/O unit:    2048
-UBI: sub-page size:              512
-UBI: VID header offset:          512 (aligned 512)
-UBI: data offset:                2048
-UBI: max. sequence number:       2
-UBI: attached mtd4 to ubi4
-UBI: MTD device name:            "rootfs"
-UBI: MTD device size:            249 MiB
-UBI: number of good PEBs:        1996
-UBI: number of bad PEBs:         0
-UBI: max. allowed volumes:       128
-UBI: wear-leveling threshold:    4096
-UBI: number of internal volumes: 1
-UBI: number of user volumes:     1
-UBI: available PEBs:             0
-UBI: total number of reserved PEBs: 1996
-UBI: number of PEBs reserved for bad PEB handling: 19
-UBI: max/mean erase counter: 8195/11
-UBI: image sequence number:  1842873171
-UBI: background thread "ubi_bgt4d" started, PID 407
-
-root@omap3-multi:~# ubinfo -a              
-UBI version:                    1
-Count of UBI devices:           1
-UBI control device major/minor: 10:62
-Present UBI devices:            ubi4
-
-ubi4
-Volumes count:                           1
-Logical eraseblock size:                 129024 bytes, 126.0 KiB
-Total amount of logical eraseblocks:     1996 (257531904 bytes, 245.6 MiB)
-Amount of available logical eraseblocks: 0 (0 bytes)
-Maximum count of volumes                 128
-Count of bad physical eraseblocks:       0
-Count of reserved physical eraseblocks:  19
-Current maximum erase counter value:     8195
-Minimum input/output unit size:          2048 bytes
-Character device major/minor:            250:0
-Present volumes:                         0
-
-Volume ID:   0 (on ubi4)
-Type:        dynamic
-Alignment:   1
-Size:        1973 LEBs (254564352 bytes, 242.8 MiB)
-State:       OK
-Name:        foo
-Character device major/minor: 250:1
-root@omap3-multi:~# mount -t ubifs ubi4:foo ss/
-mount: ubi4:foo already mounted or ss/ busy
-root@omap3-multi:~# dmesg
-...
-UBIFS DBG (pid 429): ubifs_get_sb: name ubi4:foo, flags 0x0
-UBIFS DBG (pid 429): ubifs_get_sb: opened ubi4_0
-...
-
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
