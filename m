@@ -1,76 +1,46 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [GIT] pull request: DMA hwmod changes
-Date: Sun, 19 Dec 2010 09:29:48 +0530
-Message-ID: <20101219035948.GC15568@GLPP-machine>
+From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: Re: [PATCH 0/40] Complete set of clocksource/sched_clock patches
+Date: Sun, 19 Dec 2010 11:37:27 +0100
+Message-ID: <19725.57447.256528.883703@pilspetsen.it.uu.se>
+References: <20101217113223.GC9937@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:45748 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754973Ab0LSD6W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 18 Dec 2010 22:58:22 -0500
-Received: by yxt33 with SMTP id 33so892793yxt.3
-        for <linux-omap@vger.kernel.org>; Sat, 18 Dec 2010 19:58:21 -0800 (PST)
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20101217113223.GC9937@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Viresh Kumar <viresh.kumar@st.com>, Kevin Hilman <khilman@deeprootsystems.com>, Lennert Buytenhek <kernel@wantstofly.org>, linux-samsung-soc@vger.kernel.org, "Hans J. Koch" <hjk@linutronix.de>, Scott Branden <sbranden@broadcom.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Jiandong Zheng <jdzheng@broadcom.com>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>, Kukjin Kim <kgene.kim@samsung.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Daniel Walker <dwalker@codeaurora.org>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Bryan Huntsman <bryanh@codeaurora.org>Sascha Hauer <kernel@>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, santosh.shilimkar@ti.com, b-cousson@ti.com, paul@pwsan.com, sawant@ti.com
 
-Hi Tony,
-Please pull the following dma hwmod changes into linux omap master
-branch.
+Russell King - ARM Linux writes:
+ > Here is the entire set of clocksource and sched_clock patches which
+ > have been previously posted.  There's a couple of small tweaks in a
+ > few of the patches (such as adding notrace to OMAP clocksource read
+ > functions), and this also shows the proper ordering of these patches.
+ > 
+ > Still looking for acks or tested-by's for these patches.
 
-This pull request includes
-v2[http://thread.gmane.org/gmane.linux.ports.arm.omap/48695]
-+ 
-paul's sidle mode comments incorporated 
-+ 
-acks for patch 3 and 4.
+Which tree is this based on? Is this scheduled for 2.6.37 or .38?
 
-The final series is boot tested on:
-OMAP3530(Beagle)
-N800
-SDP2430
-OMAP4430SDP(ES2.1)
+Since the problem affects 2.6.37-rc I tried it on top of 2.6.37-rc6.
 
-Full testing is done once again for SDP2430 and logs can be accessed at:
-http://pastebin.com/aJZGjdar
+First there were patch rejects in two sub-archs, but they were easily
+fixed.
 
-The following changes since commit
-205e4d6e8d892176d791b77a974efe7f561ca4c3:
+On n2100 (plat-iop) a missing #include <asm/sched_clock.h> in
+plat-iop/time.c caused a compile error. With that added the kernel
+built w/o warnings but hung immediately after being decompressed.
 
-  Merge branch 'for-next' (2010-12-17 19:32:47 -0800)
+On mach-ixp4xx the kernel built and booted fine, and the interactivity
+problems were gone.
 
-are available in the git repository at:
-
-  git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git dma_hwmod
-
-Benoit Cousson (1):
-      OMAP4: hwmod data: add system DMA
-
-G, Manjunath Kondaiah (8):
-      OMAP: DMA: Replace read/write macros with functions
-      OMAP: DMA: Introduce errata handling feature
-      OMAP2420: hwmod data: add system DMA
-      OMAP2430: hwmod data: add system DMA
-      OMAP3: hwmod data: add system DMA
-      OMAP1: DMA: Implement in platform device model
-      OMAP2+: DMA: hwmod: Device registration
-      OMAP: DMA: Convert DMA library into platform driver
-
- arch/arm/mach-omap1/Makefile               |    2 +-
- arch/arm/mach-omap1/dma.c                  |  390 ++++++++++++++++
- arch/arm/mach-omap2/Makefile               |    2 +-
- arch/arm/mach-omap2/dma.c                  |  297 ++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |   86 ++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   86 ++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   97 ++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  101 ++++
- arch/arm/plat-omap/dma.c                   |  697
-++++++++++++----------------
- arch/arm/plat-omap/include/plat/dma.h      |  232 ++++------
- 10 files changed, 1450 insertions(+), 540 deletions(-)
- create mode 100644 arch/arm/mach-omap1/dma.c
- create mode 100644 arch/arm/mach-omap2/dma.c
+Tested-by: Mikael Pettersson <mikpe@it.uu.se> (IXP4xx only)
