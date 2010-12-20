@@ -1,42 +1,103 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v4 2/7] OMAP3: PM: Erratum i581 support: dll kick strategy
-Date: Mon, 20 Dec 2010 08:21:19 -0600
-Message-ID: <4D0F665F.8050804@ti.com>
-References: <1292712817-24999-1-git-send-email-nm@ti.com> <1292712817-24999-3-git-send-email-nm@ti.com> <AANLkTi=4DJAnXcTZ37rcmr9Kz2CmXx6uhPqNThnoR2gu@mail.gmail.com> <20101220113322.GS31404@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:53877 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753843Ab0LTOVW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 09:21:22 -0500
-Received: by mail-gy0-f174.google.com with SMTP id 11so1206500gyb.19
-        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 06:21:22 -0800 (PST)
-In-Reply-To: <20101220113322.GS31404@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Contreras <felipe.contreras@nokia.com>
+Subject: [PATCH 1/2] staging: tidspbridge: convert dmm_map_lock to sema
+Date: Mon, 20 Dec 2010 16:25:33 +0200
+Message-ID: <1292855134-14374-2-git-send-email-felipe.contreras@nokia.com>
+References: <1292855134-14374-1-git-send-email-felipe.contreras@nokia.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1292855134-14374-1-git-send-email-felipe.contreras@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: ext Jean Pihet <jean.pihet@newoldbits.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@deeprootsystems.com>, Tony <tony@atomide.com>
 
-Peter 'p2' De Schrijver had written, on 12/20/2010 05:33 AM, the following:
-[..]
->>> +       /* these 2 words need to be at the end !!! */
->>> +kick_counter:
->>> +       .word   0
->>> +wait_dll_lock_counter:
->>> +       .word   0
->> Why do they need to be at the end? Also, at the end of what do they need to be?
->>
-> 
-> At the end of omap34xx_cpu_suspend. As we don't know where in SRAM the
-> counters will be, the code accessing those counters addresses them
-> relative from (_omap_sram_idle + omap34xx_cpu_suspend_sz). Not sure if
-> this part of the code made it to linux-omap though.
-I have not posted the change needed to expose these counters to 
-userspace waiting for the churn in sleep34xx.S to settle down.
+This is needed because the lock needs to be extended to protect the
+mapping info access, which is used to construct a scatter-gather list,
+and in the process, we might sleep.
 
+Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+---
+ .../staging/tidspbridge/include/dspbridge/drv.h    |    2 +-
+ drivers/staging/tidspbridge/rmgr/drv_interface.c   |    2 +-
+ drivers/staging/tidspbridge/rmgr/proc.c            |   12 ++++++------
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/drv.h b/drivers/staging/tidspbridge/include/dspbridge/drv.h
+index c1f363e..217c918 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/drv.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/drv.h
+@@ -163,7 +163,7 @@ struct process_context {
+ 
+ 	/* DMM mapped memory resources */
+ 	struct list_head dmm_map_list;
+-	spinlock_t dmm_map_lock;
++	struct semaphore dmm_map_sema;
+ 
+ 	/* DMM reserved memory resources */
+ 	struct list_head dmm_rsv_list;
+diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers/staging/tidspbridge/rmgr/drv_interface.c
+index 324fcdf..82c25c6 100644
+--- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
++++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
+@@ -507,7 +507,7 @@ static int bridge_open(struct inode *ip, struct file *filp)
+ 	pr_ctxt = kzalloc(sizeof(struct process_context), GFP_KERNEL);
+ 	if (pr_ctxt) {
+ 		pr_ctxt->res_state = PROC_RES_ALLOCATED;
+-		spin_lock_init(&pr_ctxt->dmm_map_lock);
++		sema_init(&pr_ctxt->dmm_map_sema, 1);
+ 		INIT_LIST_HEAD(&pr_ctxt->dmm_map_list);
+ 		spin_lock_init(&pr_ctxt->dmm_rsv_lock);
+ 		INIT_LIST_HEAD(&pr_ctxt->dmm_rsv_list);
+diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
+index b47d7aa..77ab5f5 100644
+--- a/drivers/staging/tidspbridge/rmgr/proc.c
++++ b/drivers/staging/tidspbridge/rmgr/proc.c
+@@ -144,9 +144,9 @@ static struct dmm_map_object *add_mapping_info(struct process_context *pr_ctxt,
+ 	map_obj->size = size;
+ 	map_obj->num_usr_pgs = num_usr_pgs;
+ 
+-	spin_lock(&pr_ctxt->dmm_map_lock);
++	down(&pr_ctxt->dmm_map_sema);
+ 	list_add(&map_obj->link, &pr_ctxt->dmm_map_list);
+-	spin_unlock(&pr_ctxt->dmm_map_lock);
++	up(&pr_ctxt->dmm_map_sema);
+ 
+ 	return map_obj;
+ }
+@@ -170,7 +170,7 @@ static void remove_mapping_information(struct process_context *pr_ctxt,
+ 	pr_debug("%s: looking for virt 0x%x size 0x%x\n", __func__,
+ 							dsp_addr, size);
+ 
+-	spin_lock(&pr_ctxt->dmm_map_lock);
++	down(&pr_ctxt->dmm_map_sema);
+ 	list_for_each_entry(map_obj, &pr_ctxt->dmm_map_list, link) {
+ 		pr_debug("%s: candidate: mpu_addr 0x%x virt 0x%x size 0x%x\n",
+ 							__func__,
+@@ -191,7 +191,7 @@ static void remove_mapping_information(struct process_context *pr_ctxt,
+ 
+ 	pr_err("%s: failed to find given map info\n", __func__);
+ out:
+-	spin_unlock(&pr_ctxt->dmm_map_lock);
++	up(&pr_ctxt->dmm_map_sema);
+ }
+ 
+ static int match_containing_map_obj(struct dmm_map_object *map_obj,
+@@ -211,7 +211,7 @@ static struct dmm_map_object *find_containing_mapping(
+ 	pr_debug("%s: looking for mpu_addr 0x%x size 0x%x\n", __func__,
+ 						mpu_addr, size);
+ 
+-	spin_lock(&pr_ctxt->dmm_map_lock);
++	down(&pr_ctxt->dmm_map_sema);
+ 	list_for_each_entry(map_obj, &pr_ctxt->dmm_map_list, link) {
+ 		pr_debug("%s: candidate: mpu_addr 0x%x virt 0x%x size 0x%x\n",
+ 						__func__,
+@@ -228,7 +228,7 @@ static struct dmm_map_object *find_containing_mapping(
+ 
+ 	map_obj = NULL;
+ out:
+-	spin_unlock(&pr_ctxt->dmm_map_lock);
++	up(&pr_ctxt->dmm_map_sema);
+ 	return map_obj;
+ }
+ 
 -- 
-Regards,
-Nishanth Menon
+1.7.3.3
