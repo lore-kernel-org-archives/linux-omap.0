@@ -1,19 +1,46 @@
-From: "Capt. Martin Long" <mary.paulus@sbcglobal.net>
-Subject: Urgent!!!
-Date: Mon, 20 Dec 2010 13:39:27 -0800 (PST)
-Message-ID: <193841.75902.qm__10008.0192824409$1292881185$gmane$org@web180110.mail.gq1.yahoo.com>
-Reply-To: capt.mlong1@live.co.uk
+From: Charles Manning <manningc2@actrix.gen.nz>
+Subject: Huge ubi or ubifs sync slowdown since 2.6.32
+Date: Tue, 21 Dec 2010 11:36:22 +1300
+Message-ID: <201012211136.22254.manningc2@actrix.gen.nz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm11.bullet.mail.ne1.yahoo.com ([98.138.90.74]:48349 "HELO
-	nm11.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757765Ab0LTVj2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 16:39:28 -0500
+Received: from smtp.scorch.co.nz ([27.110.127.199]:60960 "HELO scorch.co.nz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754457Ab0LTWg0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 17:36:26 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 
-I am Capt. Martin Long of the US Marine in Ba'qubah,Iraq. I got  $15,500,000.00 from Crude Oil deal, that i want you to help me to receive. Contact if interested for more details.
 
-Capt. Martin Long
+Hi All
+
+I've been looking into a ubifs performance regression on linux-omap 2.6.37.
+
+My test is pretty simple, copy a 2Mbyte file and sync.
+
+# sync; date; cp 2Mbyte-file foo; sync; date
+
+On 2.6.32 and earler, the time between the two dates was around 3 seconds.
+On linux-omap master it is around 14 seconds. Ouch!
+
+At first I thought the problem was due to changes in the OMAP nand drivers, 
+but raw randwrite speed is actually a bit faster. This suggest the finger 
+should be pointed at ubi or ubifs.
+
+I then thought that perhaps the layout of my ubinized image might be a 
+contributing factor so I erased the partition, ubiformatted and ubimkvoled. 
+The problem persisted,
+
+Any suggestions as to what might be broken or how to debug this deeper?
+
+Thanks
+
+Charles
+
+
+
