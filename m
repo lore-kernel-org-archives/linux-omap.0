@@ -1,50 +1,73 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v4 5/7] OMAP3630: PM: Disable L2 cache while invalidating
- L2 cache
-Date: Mon, 20 Dec 2010 19:07:46 +0530
-Message-ID: <e6cc70b2642b16d1a0f981cacadef7c2@mail.gmail.com>
-References: <1292712817-24999-1-git-send-email-nm@ti.com> <1292712817-24999-6-git-send-email-nm@ti.com>
- <9b48aafcc94e9b69236ed4d934ebd91e@mail.gmail.com> <4D0F41BB.2070606@ti.com>
- <eb91f91221d31f1c74366590a4fb0900@mail.gmail.com> <4D0F553E.1060301@ti.com>
- <e6ba48e58d90204a23a5e948700a5166@mail.gmail.com> <4D0F5B15.1020309@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v3 3/7] DSPBRIDGE: do not call follow_page
+Date: Mon, 20 Dec 2010 16:10:41 +0200
+Message-ID: <AANLkTinPpiOjbRjcqqyYxkqbMABd_+4iadd+Vodm+4pH@mail.gmail.com>
+References: <1274976134-22769-1-git-send-email-ohad@wizery.com>
+	<1274976134-22769-4-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:34279 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757548Ab0LTNhs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 08:37:48 -0500
-Received: by mail-qy0-f174.google.com with SMTP id 19so4004557qyj.19
-        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 05:37:47 -0800 (PST)
-In-Reply-To: <4D0F5B15.1020309@ti.com>
+Received: from mail-bw0-f45.google.com ([209.85.214.45]:53220 "EHLO
+	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757021Ab0LTOKo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Dec 2010 09:10:44 -0500
+Received: by bwz16 with SMTP id 16so3311907bwz.4
+        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 06:10:42 -0800 (PST)
+In-Reply-To: <1274976134-22769-4-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <jean.pihet@newoldbits.com>, Kevin <khilman@deeprootsystems.com>, Tony <tony@atomide.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-> -----Original Message-----
-> From: Nishanth Menon [mailto:nm@ti.com]
-> Sent: Monday, December 20, 2010 7:03 PM
-> To: Santosh Shilimkar
-> Cc: linux-omap; linux-arm; Jean Pihet; Kevin; Tony
-> Subject: Re: [PATCH v4 5/7] OMAP3630: PM: Disable L2 cache while
-> invalidating L2 cache
+On Thu, May 27, 2010 at 7:02 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
+:
+> Eliminate the call to follow_page. Instead, use the page
+> information that was kept during the proc_map call.
+> This also has the advantage that users can now only
+> specify memory areas that were previously mapped.
 >
-> Santosh Shilimkar had written, on 12/20/2010 07:29 AM, the following:
-> [..]
-> > So may be you could update the change log something like below.
-> >
-> > While coming out of MPU OSWR/OFF states, L2 controller is reseted.
-> > The reset behavior is implementation specific as per ARMv7 TRM and
-> > hence $L2 needs to be invalidated before it's use. Since the
-> > AUXCTRL register is also reconfigured, disable L2 cache before
-> > invalidating it and re-enables it afterwards. This is as per
-> > Cortex-A8 ARM documentation.
-> > Currently this is identified as being needed on OMAP3630 as the
-> > disable/enable is done from "public side" while, on OMAP3430, this
-> > is done in the "secure side".
-> Thanks, will update the rev5 patch with this commit log.
->
-Sure. With that change you could add,
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+
+I found another issue with this patch:
+
+> - =C2=A0 =C2=A0 =C2=A0 if (memory_sync_vma((u32) pmpu_addr, ul_size, =
+=46lushMemType)) {
+> + =C2=A0 =C2=A0 =C2=A0 /* find requested memory are in cached mapping=
+ information */
+> + =C2=A0 =C2=A0 =C2=A0 map_obj =3D find_containing_mapping(pr_ctxt, (=
+u32) pmpu_addr, ul_size);
+> + =C2=A0 =C2=A0 =C2=A0 if (!map_obj) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pr_err("%s: find_c=
+ontaining_mapping failed\n", __func__);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 status =3D -EFAULT=
+;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto err_out;
+> + =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 if (memory_sync_page(map_obj, (u32) pmpu_addr,=
+ ul_size, ul_flags)) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0pr_err("%s: In=
+Valid address parameters %p %x\n",
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0__func__, pmpu_addr, ul_size);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0__func__, pmpu_addr, ul_size);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0status =3D -EF=
+AULT;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+
+find_containing_mapping() is taking the lock for dmm_map_list,
+however, nothing prevents the map_obj to be destroyed after that,
+specially if kcalloc sleeps, and then an unmap happens. While doing
+some stress testing I found there's a race condition that makes
+exactly that happen.
+
+I'm sending some patches to fix that.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
