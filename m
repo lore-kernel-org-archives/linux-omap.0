@@ -1,101 +1,83 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: [PATCH v2] staging: tidspbridge: protect dmm_map properly
-Date: Mon, 20 Dec 2010 20:43:44 +0200
-Message-ID: <1292870624-25450-1-git-send-email-felipe.contreras@nokia.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2] ARM: OMAP: Power on EHCI, serial, camera and DVI on beagleboard-xM
+Date: Mon, 20 Dec 2010 10:48:52 -0800
+Message-ID: <87d3ow5lgr.fsf@deeprootsystems.com>
+References: <1291725639-86397-1-git-send-email-koen@beagleboard.org>
+	<1292769735-54159-1-git-send-email-koen@dominion.thruhere.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gx0-f180.google.com ([209.85.161.180]:35161 "EHLO
+	mail-gx0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933044Ab0LTSs5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Dec 2010 13:48:57 -0500
+Received: by gxk19 with SMTP id 19so1799742gxk.11
+        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 10:48:57 -0800 (PST)
+In-Reply-To: <1292769735-54159-1-git-send-email-koen@dominion.thruhere.net>
+	(Koen Kooi's message of "Sun, 19 Dec 2010 15:42:15 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Koen Kooi <koen.kooi@gmail.com>
+Cc: linux-omap@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Koen Kooi <koen@beagleboard.org>
 
-We need to protect not only the dmm_map list, but the individual
-map_obj's, otherwise, we might be building the scatter-gather list with
-garbage. So, use the existing proc_lock for that.
+Koen Kooi <koen.kooi@gmail.com> writes:
 
-I observed race conditions which caused kernel panics while running
-stress tests. This patch fixes those.
+> Signed-off-by: Koen Kooi <koen@beagleboard.org>
 
-Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
----
- drivers/staging/tidspbridge/rmgr/proc.c |   19 ++++++++++++++-----
- 1 files changed, 14 insertions(+), 5 deletions(-)
+-ENO_DESCRIPTIVE_CHANGELOG
 
-diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
-index b47d7aa..e2fe165 100644
---- a/drivers/staging/tidspbridge/rmgr/proc.c
-+++ b/drivers/staging/tidspbridge/rmgr/proc.c
-@@ -781,12 +781,14 @@ int proc_begin_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
- 							(u32)pmpu_addr,
- 							ul_size, dir);
- 
-+	mutex_lock(&proc_lock);
-+
- 	/* find requested memory are in cached mapping information */
- 	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
- 	if (!map_obj) {
- 		pr_err("%s: find_containing_mapping failed\n", __func__);
- 		status = -EFAULT;
--		goto err_out;
-+		goto no_map;
- 	}
- 
- 	if (memory_give_ownership(map_obj, (u32) pmpu_addr, ul_size, dir)) {
-@@ -795,6 +797,8 @@ int proc_begin_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
- 		status = -EFAULT;
- 	}
- 
-+no_map:
-+	mutex_unlock(&proc_lock);
- err_out:
- 
- 	return status;
-@@ -819,21 +823,24 @@ int proc_end_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
- 							(u32)pmpu_addr,
- 							ul_size, dir);
- 
-+	mutex_lock(&proc_lock);
-+
- 	/* find requested memory are in cached mapping information */
- 	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
- 	if (!map_obj) {
- 		pr_err("%s: find_containing_mapping failed\n", __func__);
- 		status = -EFAULT;
--		goto err_out;
-+		goto no_map;
- 	}
- 
- 	if (memory_regain_ownership(map_obj, (u32) pmpu_addr, ul_size, dir)) {
- 		pr_err("%s: InValid address parameters %p %x\n",
- 		       __func__, pmpu_addr, ul_size);
- 		status = -EFAULT;
--		goto err_out;
- 	}
- 
-+no_map:
-+	mutex_unlock(&proc_lock);
- err_out:
- 	return status;
- }
-@@ -1726,9 +1733,8 @@ int proc_un_map(void *hprocessor, void *map_addr,
- 		    (p_proc_object->hbridge_context, va_align, size_align);
- 	}
- 
--	mutex_unlock(&proc_lock);
- 	if (status)
--		goto func_end;
-+		goto unmap_failed;
- 
- 	/*
- 	 * A successful unmap should be followed by removal of map_obj
-@@ -1737,6 +1743,9 @@ int proc_un_map(void *hprocessor, void *map_addr,
- 	 */
- 	remove_mapping_information(pr_ctxt, (u32) map_addr, size_align);
- 
-+unmap_failed:
-+	mutex_unlock(&proc_lock);
-+
- func_end:
- 	dev_dbg(bridge, "%s: hprocessor: 0x%p map_addr: 0x%p status: 0x%x\n",
- 		__func__, hprocessor, map_addr, status);
--- 
-1.7.3.3
+Also, please Cc linux-arm-kernel for patches intended for upstream.
+
+Thanks,
+
+Kevin
+
+> ---
+>
+> Changes since v1:
+> 	* Reenable the PMU stat LED
+>
+>  arch/arm/mach-omap2/board-omap3beagle.c |   26 ++++++++++++++++++++++++--
+>  1 files changed, 24 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index f1a8ede..4756ac7 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -297,13 +297,35 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>  	gpio_request(gpio + 1, "EHCI_nOC");
+>  	gpio_direction_input(gpio + 1);
+>  
+> -	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
+> +	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
+> +	 * high / others active low) */
+>  	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
+> -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
+> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
+> +	else
+> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+> +
+> +	/* DVI reset GPIO is different between revisions */
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
+> +		beagle_dvi_device.reset_gpio = 129;
+> +	else
+> +		beagle_dvi_device.reset_gpio = 170;
+> +
+> +	 /* Power on DVI, Serial and PWR led */
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> +		gpio_request(gpio + 1, "nDVI_PWR_EN");
+> +		gpio_direction_output(gpio + 1, 0);
+> +	}
+>  
+>  	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+>  	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+>  
+> +	/* Power on camera interface on P7/P8 or DVI on A2 and beyond */
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> +		gpio_request(gpio + 2, "CAM_EN");
+> +		gpio_direction_output(gpio + 2, 1);
+> +	}
+> +
+>  	return 0;
+>  }
