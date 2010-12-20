@@ -1,167 +1,112 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v7 10/12] OMAP: dmtimer: pm_runtime support
-Date: Tue, 21 Dec 2010 03:35:17 +0530
-Message-ID: <1292882719-30255-11-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v7 11/12] OMAP: dmtimer: add timeout to low-level routines
+Date: Tue, 21 Dec 2010 03:35:18 +0530
+Message-ID: <1292882719-30255-12-git-send-email-tarun.kanti@ti.com>
 References: <1292882719-30255-1-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57845 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57847 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755421Ab0LTLB7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 06:01:59 -0500
+	id S1755443Ab0LTLCA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 06:02:00 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id oBKB1u3f009976
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id oBKB1vuf009978
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
 	for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 05:01:59 -0600
 In-Reply-To: <1292882719-30255-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Partha Basak <p-basak2@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-Add pm_runtime support to dmtimer. Since dmtimer is used during
-early boot before pm_runtime is initialized completely there are
-provisions to enable/disable clocks directly in the code during
-early boot.
+The low-level read and write access routines wait on
+write-pending register in posted mode to make sure that
+previous write is complete on respective registers.
+This waiting is done in an infinite while loop. Now it
+is being modified to use timeout instead.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-[p-basak2@ti.com: added pm_runtime logic in probe()]
-Signed-off-by: Partha Basak <p-basak2@ti.com>
 Reviewed-by: Varadarajan, Charulatha <charu@ti.com>
 Acked-by: Cousson, Benoit <b-cousson@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c |   60 +++++++++++++++++++++++++++++++++++------
- 1 files changed, 51 insertions(+), 9 deletions(-)
+ arch/arm/plat-omap/dmtimer.c |   32 ++++++++++++++++++++++++--------
+ 1 files changed, 24 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index b66f122..0fcc242 100644
+index 8b1a5a4..ecaee41 100644
 --- a/arch/arm/plat-omap/dmtimer.c
 +++ b/arch/arm/plat-omap/dmtimer.c
-@@ -39,6 +39,7 @@
- #include <linux/delay.h>
- #include <linux/io.h>
+@@ -41,6 +41,7 @@
  #include <linux/slab.h>
-+#include <linux/pm_runtime.h>
+ #include <linux/pm_runtime.h>
  #include <linux/err.h>
++#include <plat/common.h>
  #include <plat/dmtimer.h>
  
-@@ -212,13 +213,16 @@ static void omap_dm_timer_prepare(struct omap_dm_timer *timer)
+ /* register offsets */
+@@ -152,6 +153,7 @@
+ #define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
+ 		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
+ 
++#define MAX_WRITE_PEND_WAIT		10000 /* 10ms timeout delay */
+ 
+ static LIST_HEAD(omap_timer_list);
+ static DEFINE_SPINLOCK(dm_timer_lock);
+@@ -168,16 +170,23 @@ static DEFINE_SPINLOCK(dm_timer_lock);
+ static inline u32 omap_dm_timer_read_reg(struct omap_dm_timer *timer, u32 reg)
  {
  	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
++	int i = 0;
  
--	timer->fclk = clk_get(&timer->pdev->dev, "fck");
--	if (WARN_ON_ONCE(IS_ERR_OR_NULL(timer->fclk))) {
--		dev_err(&timer->pdev->dev, ": No fclk handle.\n");
--		return;
-+	if (!pdata->is_omap16xx) {
-+		timer->fclk = clk_get(&timer->pdev->dev, "fck");
-+		if (WARN_ON_ONCE(IS_ERR_OR_NULL(timer->fclk))) {
-+			dev_err(&timer->pdev->dev, ": No fclk handle.\n");
-+			return;
-+		}
- 	}
+ 	if (reg >= OMAP_TIMER_WAKEUP_EN_REG)
+ 		reg += pdata->func_offset;
+ 	else if (reg >= OMAP_TIMER_STAT_REG)
+ 		reg += pdata->intr_offset;
  
--	omap_dm_timer_enable(timer);
-+	if (!pdata->is_omap16xx)
-+		omap_dm_timer_enable(timer);
- 
- 	if (pdata->dm_timer_reset)
- 		pdata->dm_timer_reset(timer);
-@@ -293,10 +297,22 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_free);
- 
- void omap_dm_timer_enable(struct omap_dm_timer *timer)
- {
-+	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
+-	if (timer->posted)
+-		while (readl(timer->io_base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
+-				& (reg >> WPSHIFT))
+-			cpu_relax();
++	if (timer->posted) {
++		omap_test_timeout(!(readl(timer->io_base +
++			((OMAP_TIMER_WRITE_PEND_REG +
++			pdata->func_offset) & 0xff)) & (reg >> WPSHIFT)),
++			MAX_WRITE_PEND_WAIT, i);
 +
- 	if (timer->enabled)
- 		return;
- 
--	clk_enable(timer->fclk);
-+	if (unlikely(pdata->is_early_init)) {
-+		clk_enable(timer->fclk);
-+		timer->enabled = 1;
-+		return;
++		if (WARN_ON_ONCE(i == MAX_WRITE_PEND_WAIT))
++			pr_err(": read timeout\n");
 +	}
 +
-+	if (pm_runtime_get_sync(&timer->pdev->dev) < 0) {
-+		dev_err(&timer->pdev->dev, "%s: pm_runtime_get_sync() FAILED\n",
-+			__func__);
-+		return;
-+	}
- 
- 	timer->enabled = 1;
+ 	return readl(timer->io_base + (reg & 0xff));
  }
-@@ -304,10 +320,22 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_enable);
  
- void omap_dm_timer_disable(struct omap_dm_timer *timer)
+@@ -195,16 +204,23 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
+ 						u32 value)
  {
-+	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-+
- 	if (!timer->enabled)
- 		return;
+ 	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
++	int i = 0;
  
--	clk_disable(timer->fclk);
-+	if (unlikely(pdata->is_early_init)) {
-+		clk_disable(timer->fclk);
-+		timer->enabled = 0;
-+		return;
+ 	if (reg >= OMAP_TIMER_WAKEUP_EN_REG)
+ 		reg += pdata->func_offset;
+ 	else if (reg >= OMAP_TIMER_STAT_REG)
+ 		reg += pdata->intr_offset;
+ 
+-	if (timer->posted)
+-		while (readl(timer->io_base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
+-				& (reg >> WPSHIFT))
+-			cpu_relax();
++	if (timer->posted) {
++		omap_test_timeout(!(readl(timer->io_base +
++			((OMAP_TIMER_WRITE_PEND_REG +
++			pdata->func_offset) & 0xff)) & (reg >> WPSHIFT)),
++			MAX_WRITE_PEND_WAIT, i);
++
++		if (WARN_ON(i == MAX_WRITE_PEND_WAIT))
++			pr_err(": write timeout\n");
 +	}
 +
-+	if (pm_runtime_put_sync(&timer->pdev->dev) < 0) {
-+		dev_err(&timer->pdev->dev, "%s: pm_runtime_put_sync() FAILED\n",
-+			__func__);
-+		return;
-+	}
- 
- 	timer->enabled = 0;
+ 	writel(value, timer->io_base + (reg & 0xff));
  }
-@@ -425,12 +453,14 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
- 	if (source < 0 || source >= 3)
- 		return -EINVAL;
  
--	omap_dm_timer_disable(timer);
-+	if (!pdata->is_omap16xx)
-+		omap_dm_timer_disable(timer);
- 
- 	/* change the timer clock source */
- 	ret = pdata->set_timer_src(timer->pdev, source);
- 
--	omap_dm_timer_enable(timer);
-+	if (!pdata->is_omap16xx)
-+		omap_dm_timer_enable(timer);
- 
- 	/*
- 	 * When the functional clock disappears, too quick writes seem
-@@ -604,11 +634,21 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
-+	/* OMAP2+
-+	 * Early timers are already registered and in list.
-+	 * What we need to do during second phase of probe
-+	 * is to assign the newly allocated/configured pdev
-+	 * to timer->pdev. We also call pm_runtime_enable()
-+	 * for each device because it could not be called
-+	 * during early boot because pm_runtime framework
-+	 * was not yet up and running.
-+	 */
- 	spin_lock_irqsave(&dm_timer_lock, flags);
- 	list_for_each_entry(timer, &omap_timer_list, node)
- 		if (!pdata->is_early_init && timer->id == pdev->id) {
- 			timer->pdev = pdev;
- 			spin_unlock_irqrestore(&dm_timer_lock, flags);
-+			pm_runtime_enable(&pdev->dev);
- 			dev_dbg(&pdev->dev, "Regular Probed\n");
- 			return 0;
- 		}
-@@ -659,6 +699,8 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
- 		pdata->dm_timer_read_reg = omap_dm_timer_read_reg;
- 		pdata->dm_timer_write_reg = omap_dm_timer_write_reg;
- 		pdata->is_early_init = 0;
-+		pm_runtime_enable(&pdev->dev);
-+		dev_dbg(&pdev->dev, " pm_runtime enabled\n");
- 	}
- 
- 	timer->id = pdev->id;
 -- 
 1.6.0.4
 
