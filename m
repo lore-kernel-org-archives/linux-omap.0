@@ -1,47 +1,66 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v7 12/12] OMAP2: dmtimer: set wakeup enable explicitly in plat
-Date: Mon, 20 Dec 2010 15:46:23 -0800
-Message-ID: <877hf43t4g.fsf@deeprootsystems.com>
-References: <1292882719-30255-1-git-send-email-tarun.kanti@ti.com>
-	<1292882719-30255-13-git-send-email-tarun.kanti@ti.com>
-	<4D0FE2A7.2000506@ti.com>
+Subject: Re: [PATCH v1] OMAP: GPIO: Correct IP version message during boot
+Date: Mon, 20 Dec 2010 15:49:05 -0800
+Message-ID: <87zks02efi.fsf@deeprootsystems.com>
+References: <1292508586-21651-1-git-send-email-charu@ti.com>
+	<8739pxhdcz.fsf@deeprootsystems.com>
+	<AANLkTimUrDAR1Wc4oJf74iYKhpxHKkGKLQOEuSNpcBXo@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:57697 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933365Ab0LTXq2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Dec 2010 18:46:28 -0500
-Received: by ywl5 with SMTP id 5so1542194ywl.19
-        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 15:46:28 -0800 (PST)
-In-Reply-To: <4D0FE2A7.2000506@ti.com> (Benoit Cousson's message of "Tue, 21
-	Dec 2010 00:11:35 +0100")
+Received: from mail-gw0-f42.google.com ([74.125.83.42]:37506 "EHLO
+	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933313Ab0LTXtL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Dec 2010 18:49:11 -0500
+Received: by gwb20 with SMTP id 20so2418613gwb.1
+        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 15:49:10 -0800 (PST)
+In-Reply-To: <AANLkTimUrDAR1Wc4oJf74iYKhpxHKkGKLQOEuSNpcBXo@mail.gmail.com>
+	(Charulatha Varadarajan's message of "Fri, 17 Dec 2010 09:15:03
+	-0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, balbi@ti.com
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+"Varadarajan, Charulatha" <charu@ti.com> writes:
 
-> Hi Tarun,
+> Kevin,
 >
-> On 12/20/2010 11:05 PM, DebBarma, Tarun Kanti wrote:
->> For some reason the wakeup enable bit is not getting set on OMAP2430,
->> OMAP2420. This is inspite of the fact that SYSC_HAS_ENAWAKEUP flag is
->> present in the hwmod database.
+> On Thu, Dec 16, 2010 at 11:49, Kevin Hilman <khilman@deeprootsystems.=
+com> wrote:
+>> "Varadarajan, Charulatha" <charu@ti.com> writes:
+>>
+>>> With the commit 9a748053f5f58a77cd71864f1d7b804175b0e47d whose subj=
+ect is
+>>> "OMAP: GPIO: Make omap_gpio_show_rev bank specific" (see [1]),
+>>> the IP version information for all the banks are shown during bootu=
+p,
+>>> but it does not show the bank number.
+>>>
+>>> Use dev_info instead of printk in omap_gpio_show_rev() so that the
+>>> bank id is displayed along with the IP version
+>>>
+>>> [1] http://www.spinics.net/lists/arm-kernel/msg105872.html
+>>
+>> A related question, the commit above also changed the GPIO revision
+>> display from one-time to once per bank. =C2=A0Do we need to know the=
+ GPIO HW
+>> revision for each bank, or can we assume it's the same for all banks=
+?
 >
-> This is indeed strange. Did you observe that on OMAP3 & 4?
-> Did you use the patch that Kevin did recently to fix an issue with the
-> ENAWAKEUP bit?
-> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=d15ae13fc7428a95b02c1935ebf92324fcb80a5f
+> The IP version is the same for all the gpio banks in all OMAP2+ CPUs.
+> But I am not sure about OMAP16xx.
 >
-> The point is that this fix is not really acceptable for my point of view:-(
->
-> You really have to check what is going on in the hwmod _enable_wakeup
-> function.
 
-I completely agree with Benoit.
-
-We cannot merge a fix like this without understanding the root cause.
+OK, then I suggest we switch this back to just printing the GPIO
+revision once.   Maybe after all banks are found, just print the
+revision for bank 1.
 
 Kevin
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
