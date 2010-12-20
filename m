@@ -1,1501 +1,1346 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH v6 01/10] OMAP3: PM: Adding voltage driver support.
-Date: Mon, 20 Dec 2010 22:29:08 +0530
-Message-ID: <1292864357-13939-2-git-send-email-thara@ti.com>
+Subject: [PATCH v6 03/10] OMAP3: PM: Adding smartreflex driver support.
+Date: Mon, 20 Dec 2010 22:29:10 +0530
+Message-ID: <1292864357-13939-4-git-send-email-thara@ti.com>
 References: <1292864357-13939-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57803 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57798 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932891Ab0LTQ7r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 11:59:47 -0500
+	id S932891Ab0LTQ7p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 11:59:45 -0500
 In-Reply-To: <1292864357-13939-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, nm@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch adds voltage driver support for OMAP3. The driver
-allows  configuring the voltage controller and voltage
-processors during init and exports APIs to enable/disable
-voltage processors, scale voltage and reset voltage.
-The driver maintains the global voltage table on a per
-VDD basis which contains the various voltages supported by the
-VDD along with per voltage dependent data like smartreflex
-efuse offset, errminlimit and voltage processor errorgain.
-The driver also allows the voltage parameters dependent on the
-PMIC to be passed from the PMIC file through an API.
-The driver allows scaling of VDD voltages either through
-"vc bypass method" or through "vp forceupdate method" the
-choice being configurable through the board file.
+SmartReflex modules do adaptive voltage control for real-time
+voltage adjustments. With Smartreflex the power supply voltage
+can be adapted to the silicon performance(manufacturing process,
+temperature induced performance, age induced performance etc).
 
-This patch contains code originally in linux omap pm branch
-smartreflex driver.  Major contributors to this driver are
+There are differnet classes of smartreflex implementation.
+	Class-0: Manufacturing Test Calibration
+	Class-1: Boot-Time Software Calibration
+	Class-2: Continuous Software Calibration
+	Class-3: Continuous Hardware Calibration
+	Class-4: Fully Integrated Power Management
+
+OMAP3 has two smartreflex modules one associated with VDD MPU and the
+other associated with VDD CORE.
+This patch adds support for  smartreflex driver. The driver is designed
+for Class-1 , Class-2 and Class-3 support and is  a platform driver.
+Smartreflex driver can be enabled through a Kconfig option
+"SmartReflex support" under "System type"->"TI OMAP implementations" menu.
+
+Smartreflex autocompensation feature can be enabled runtime through
+a debug fs option.
+To enable smartreflex autocompensation feature
+	echo 1 > /debug/voltage/vdd_<X>/smartreflex/autocomp
+To disable smartreflex autocompensation feature
+	echo 0 > /debug/voltage/vdd_<X>/smartreflex/autocomp
+
+where X can be mpu, core , iva etc.
+
+This patch contains code originally in linux omap pm branch.
+Major contributors to this driver are
 Lesly A M, Rajendra Nayak, Kalle Jokiniemi, Paul Walmsley,
-Nishant Menon, Kevin Hilman. The separation of PMIC parameters
-into a separate structure which can be populated from
-the PMIC file is based on the work of Lun Chang from Motorola
-in an internal tree.
+Nishant Menon, Kevin Hilman.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
-This patch has 14 checkpatch.pl above 80-chars warnings for
-the definitions of omap34xx_vddmpu_volt_data, omap36xx_vddmpu_volt_data,
-omap34xx_vddcore_volt_data and omap36xx_vddcore_volt_data structures.
-IMHO splitting of the entries in these structures affects
-readability and looks very ugly. Hence they are left as is.
-
- arch/arm/mach-omap2/Makefile              |    3 +-
- arch/arm/mach-omap2/control.h             |   17 +
- arch/arm/mach-omap2/pm.c                  |    8 +
- arch/arm/mach-omap2/voltage.c             | 1226 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/voltage.h |  134 ++++
- 5 files changed, 1387 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/voltage.c
- create mode 100644 arch/arm/plat-omap/include/plat/voltage.h
+ arch/arm/mach-omap2/Makefile                  |    1 +
+ arch/arm/mach-omap2/smartreflex.c             |  983 +++++++++++++++++++++++++
+ arch/arm/plat-omap/Kconfig                    |   22 +
+ arch/arm/plat-omap/include/plat/smartreflex.h |  245 ++++++
+ 4 files changed, 1251 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/smartreflex.c
+ create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 7c79683..5034797 100644
+index 5034797..b1bead0 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -57,7 +57,8 @@ endif
- ifeq ($(CONFIG_PM),y)
- obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
- obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o
--obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o pm_bus.o
-+obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
-+					   cpuidle34xx.o pm_bus.o
+@@ -61,6 +61,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
+ 					   cpuidle34xx.o pm_bus.o
  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
++obj-$(CONFIG_OMAP_SMARTREFLEX)          += smartreflex.o
  
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index 5289461..9fe32dc 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -148,6 +148,15 @@
- #define OMAP343X_CONTROL_TEST_KEY_11	(OMAP2_CONTROL_GENERAL + 0x00f4)
- #define OMAP343X_CONTROL_TEST_KEY_12	(OMAP2_CONTROL_GENERAL + 0x00f8)
- #define OMAP343X_CONTROL_TEST_KEY_13	(OMAP2_CONTROL_GENERAL + 0x00fc)
-+#define OMAP343X_CONTROL_FUSE_OPP1_VDD1 (OMAP2_CONTROL_GENERAL + 0x0110)
-+#define OMAP343X_CONTROL_FUSE_OPP2_VDD1 (OMAP2_CONTROL_GENERAL + 0x0114)
-+#define OMAP343X_CONTROL_FUSE_OPP3_VDD1 (OMAP2_CONTROL_GENERAL + 0x0118)
-+#define OMAP343X_CONTROL_FUSE_OPP4_VDD1 (OMAP2_CONTROL_GENERAL + 0x011c)
-+#define OMAP343X_CONTROL_FUSE_OPP5_VDD1 (OMAP2_CONTROL_GENERAL + 0x0120)
-+#define OMAP343X_CONTROL_FUSE_OPP1_VDD2 (OMAP2_CONTROL_GENERAL + 0x0124)
-+#define OMAP343X_CONTROL_FUSE_OPP2_VDD2 (OMAP2_CONTROL_GENERAL + 0x0128)
-+#define OMAP343X_CONTROL_FUSE_OPP3_VDD2 (OMAP2_CONTROL_GENERAL + 0x012c)
-+#define OMAP343X_CONTROL_FUSE_SR        (OMAP2_CONTROL_GENERAL + 0x0130)
- #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
- #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
- #define OMAP343X_CONTROL_DEBOBS(i)	(OMAP2_CONTROL_GENERAL + 0x01B0 \
-@@ -164,6 +173,14 @@
- #define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
- #define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02C4)
- 
-+/* OMAP3630 only CONTROL_GENERAL register offsets */
-+#define OMAP3630_CONTROL_FUSE_OPP1G_VDD1        (OMAP2_CONTROL_GENERAL + 0x0110)
-+#define OMAP3630_CONTROL_FUSE_OPP50_VDD1        (OMAP2_CONTROL_GENERAL + 0x0114)
-+#define OMAP3630_CONTROL_FUSE_OPP100_VDD1       (OMAP2_CONTROL_GENERAL + 0x0118)
-+#define OMAP3630_CONTROL_FUSE_OPP120_VDD1       (OMAP2_CONTROL_GENERAL + 0x0120)
-+#define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
-+#define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
-+
- /* AM35XX only CONTROL_GENERAL register offsets */
- #define AM35XX_CONTROL_MSUSPENDMUX_6    (OMAP2_CONTROL_GENERAL + 0x0038)
- #define AM35XX_CONTROL_DEVCONF2         (OMAP2_CONTROL_GENERAL + 0x0310)
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 227a211..22adfb2 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -17,6 +17,7 @@
- #include <plat/omap-pm.h>
- #include <plat/omap_device.h>
- #include <plat/common.h>
-+#include <plat/voltage.h>
- 
- #include "powerdomain.h"
- #include "clockdomain.h"
-@@ -145,3 +146,10 @@ static int __init omap2_common_pm_init(void)
- }
- postcore_initcall(omap2_common_pm_init);
- 
-+static int __init omap2_common_pm_late_init(void)
-+{
-+	omap_voltage_late_init();
-+
-+	return 0;
-+}
-+late_initcall(omap2_common_pm_late_init);
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+ AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+ AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
 new file mode 100644
-index 0000000..875667f
+index 0000000..eee23d0
 --- /dev/null
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -0,0 +1,1226 @@
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -0,0 +1,983 @@
 +/*
-+ * OMAP3/OMAP4 Voltage Management Routines
++ * OMAP SmartReflex Voltage Control
 + *
 + * Author: Thara Gopinath	<thara@ti.com>
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ * Rajendra Nayak <rnayak@ti.com>
-+ * Lesly A M <x0080970@ti.com>
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Kalle Jokiniemi
 + *
 + * Copyright (C) 2010 Texas Instruments, Inc.
 + * Thara Gopinath <thara@ti.com>
 + *
++ * Copyright (C) 2008 Nokia Corporation
++ * Kalle Jokiniemi
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Lesly A M <x0080970@ti.com>
++ *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#include <linux/delay.h>
-+#include <linux/io.h>
++#include <linux/interrupt.h>
 +#include <linux/clk.h>
-+#include <linux/err.h>
++#include <linux/io.h>
 +#include <linux/debugfs.h>
++#include <linux/delay.h>
 +#include <linux/slab.h>
++#include <linux/pm_runtime.h>
 +
 +#include <plat/common.h>
-+#include <plat/voltage.h>
++#include <plat/smartreflex.h>
 +
-+#include "prm-regbits-34xx.h"
-+#include "control.h"
++#include "pm.h"
 +
-+#define VP_IDLE_TIMEOUT		200
-+#define VP_TRANXDONE_TIMEOUT	300
-+#define VOLTAGE_DIR_SIZE	16
++#define SMARTREFLEX_NAME_LEN	16
++#define SR_DISABLE_TIMEOUT	200
 +
-+/* Voltage processor register offsets */
-+struct vp_reg_offs {
-+	u8 vpconfig;
-+	u8 vstepmin;
-+	u8 vstepmax;
-+	u8 vlimitto;
-+	u8 vstatus;
-+	u8 voltage;
++struct omap_sr {
++	int				srid;
++	int				ip_type;
++	int				nvalue_count;
++	bool				autocomp_active;
++	u32				clk_length;
++	u32				err_weight;
++	u32				err_minlimit;
++	u32				err_maxlimit;
++	u32				accum_data;
++	u32				senn_avgweight;
++	u32				senp_avgweight;
++	u32				senp_mod;
++	u32				senn_mod;
++	unsigned int			irq;
++	void __iomem			*base;
++	struct platform_device		*pdev;
++	struct list_head		node;
++	struct omap_sr_nvalue_table	*nvalue_table;
++	struct voltagedomain		*voltdm;
 +};
 +
-+/* Voltage Processor bit field values, shifts and masks */
-+struct vp_reg_val {
-+	/* PRM module */
-+	u16 prm_mod;
-+	/* VPx_VPCONFIG */
-+	u32 vpconfig_erroroffset;
-+	u16 vpconfig_errorgain;
-+	u32 vpconfig_errorgain_mask;
-+	u8 vpconfig_errorgain_shift;
-+	u32 vpconfig_initvoltage_mask;
-+	u8 vpconfig_initvoltage_shift;
-+	u32 vpconfig_timeouten;
-+	u32 vpconfig_initvdd;
-+	u32 vpconfig_forceupdate;
-+	u32 vpconfig_vpenable;
-+	/* VPx_VSTEPMIN */
-+	u8 vstepmin_stepmin;
-+	u16 vstepmin_smpswaittimemin;
-+	u8 vstepmin_stepmin_shift;
-+	u8 vstepmin_smpswaittimemin_shift;
-+	/* VPx_VSTEPMAX */
-+	u8 vstepmax_stepmax;
-+	u16 vstepmax_smpswaittimemax;
-+	u8 vstepmax_stepmax_shift;
-+	u8 vstepmax_smpswaittimemax_shift;
-+	/* VPx_VLIMITTO */
-+	u8 vlimitto_vddmin;
-+	u8 vlimitto_vddmax;
-+	u16 vlimitto_timeout;
-+	u8 vlimitto_vddmin_shift;
-+	u8 vlimitto_vddmax_shift;
-+	u8 vlimitto_timeout_shift;
-+	/* PRM_IRQSTATUS*/
-+	u32 tranxdone_status;
-+};
++/* sr_list contains all the instances of smartreflex module */
++static LIST_HEAD(sr_list);
 +
-+/* Voltage controller registers and offsets */
-+struct vc_reg_info {
-+	/* PRM module */
-+	u16 prm_mod;
-+	/* VC register offsets */
-+	u8 smps_sa_reg;
-+	u8 smps_volra_reg;
-+	u8 bypass_val_reg;
-+	u8 cmdval_reg;
-+	u8 voltsetup_reg;
-+	/*VC_SMPS_SA*/
-+	u8 smps_sa_shift;
-+	u32 smps_sa_mask;
-+	/* VC_SMPS_VOL_RA */
-+	u8 smps_volra_shift;
-+	u32 smps_volra_mask;
-+	/* VC_BYPASS_VAL */
-+	u8 data_shift;
-+	u8 slaveaddr_shift;
-+	u8 regaddr_shift;
-+	u32 valid;
-+	/* VC_CMD_VAL */
-+	u8 cmd_on_shift;
-+	u8 cmd_onlp_shift;
-+	u8 cmd_ret_shift;
-+	u8 cmd_off_shift;
-+	u32 cmd_on_mask;
-+	/* PRM_VOLTSETUP */
-+	u8 voltsetup_shift;
-+	u32 voltsetup_mask;
-+};
++static struct omap_sr_class_data *sr_class;
++static struct omap_sr_pmic_data *sr_pmic_data;
 +
-+/**
-+ * omap_vdd_info - Per Voltage Domain info
-+ *
-+ * @volt_data		: voltage table having the distinct voltages supported
-+ *			  by the domain and other associated per voltage data.
-+ * @pmic_info		: pmic specific parameters which should be populted by
-+ *			  the pmic drivers.
-+ * @vp_offs		: structure containing the offsets for various
-+ *			  vp registers
-+ * @vp_reg		: the register values, shifts, masks for various
-+ *			  vp registers
-+ * @vc_reg		: structure containing various various vc registers,
-+ *			  shifts, masks etc.
-+ * @voltdm		: pointer to the voltage domain structure
-+ * @debug_dir		: debug directory for this voltage domain.
-+ * @curr_volt		: current voltage for this vdd.
-+ * @ocp_mod		: The prm module for accessing the prm irqstatus reg.
-+ * @prm_irqst_reg	: prm irqstatus register.
-+ * @vp_enabled		: flag to keep track of whether vp is enabled or not
-+ * @volt_scale		: API to scale the voltage of the vdd.
-+ */
-+struct omap_vdd_info {
-+	struct omap_volt_data *volt_data;
-+	struct omap_volt_pmic_info *pmic_info;
-+	struct vp_reg_offs vp_offs;
-+	struct vp_reg_val vp_reg;
-+	struct vc_reg_info vc_reg;
-+	struct voltagedomain voltdm;
-+	struct dentry *debug_dir;
-+	u32 curr_volt;
-+	u16 ocp_mod;
-+	u8 prm_irqst_reg;
-+	bool vp_enabled;
-+	u32 (*read_reg) (u16 mod, u8 offset);
-+	void (*write_reg) (u32 val, u16 mod, u8 offset);
-+	int (*volt_scale) (struct omap_vdd_info *vdd,
-+		unsigned long target_volt);
-+};
-+
-+static struct omap_vdd_info *vdd_info;
-+/*
-+ * Number of scalable voltage domains.
-+ */
-+static int nr_scalable_vdd;
-+
-+/* OMAP3 VDD sturctures */
-+static struct omap_vdd_info omap3_vdd_info[] = {
-+	{
-+		.vp_offs = {
-+			.vpconfig = OMAP3_PRM_VP1_CONFIG_OFFSET,
-+			.vstepmin = OMAP3_PRM_VP1_VSTEPMIN_OFFSET,
-+			.vstepmax = OMAP3_PRM_VP1_VSTEPMAX_OFFSET,
-+			.vlimitto = OMAP3_PRM_VP1_VLIMITTO_OFFSET,
-+			.vstatus = OMAP3_PRM_VP1_STATUS_OFFSET,
-+			.voltage = OMAP3_PRM_VP1_VOLTAGE_OFFSET,
-+		},
-+		.voltdm = {
-+			.name = "mpu",
-+		},
-+	},
-+	{
-+		.vp_offs = {
-+			.vpconfig = OMAP3_PRM_VP2_CONFIG_OFFSET,
-+			.vstepmin = OMAP3_PRM_VP2_VSTEPMIN_OFFSET,
-+			.vstepmax = OMAP3_PRM_VP2_VSTEPMAX_OFFSET,
-+			.vlimitto = OMAP3_PRM_VP2_VLIMITTO_OFFSET,
-+			.vstatus = OMAP3_PRM_VP2_STATUS_OFFSET,
-+			.voltage = OMAP3_PRM_VP2_VOLTAGE_OFFSET,
-+		},
-+		.voltdm = {
-+			.name = "core",
-+		},
-+	},
-+};
-+
-+#define OMAP3_NR_SCALABLE_VDD ARRAY_SIZE(omap3_vdd_info)
-+
-+/*
-+ * Structures containing OMAP3430/OMAP3630 voltage supported and various
-+ * voltage dependent data for each VDD.
-+ */
-+#define VOLT_DATA_DEFINE(_v_nom, _efuse_offs, _errminlimit, _errgain)	\
-+{									\
-+	.volt_nominal	= _v_nom,					\
-+	.sr_efuse_offs	= _efuse_offs,					\
-+	.sr_errminlimit	= _errminlimit,					\
-+	.vp_errgain	= _errgain					\
++static inline void sr_write_reg(struct omap_sr *sr, unsigned offset, u32 value)
++{
++	__raw_writel(value, (sr->base + offset));
 +}
 +
-+/* VDD1 */
-+static struct omap_volt_data omap34xx_vddmpu_volt_data[] = {
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP1_UV, OMAP343X_CONTROL_FUSE_OPP1_VDD1, 0xf4, 0x0c),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP2_UV, OMAP343X_CONTROL_FUSE_OPP2_VDD1, 0xf4, 0x0c),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, OMAP343X_CONTROL_FUSE_OPP3_VDD1, 0xf9, 0x18),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP4_UV, OMAP343X_CONTROL_FUSE_OPP4_VDD1, 0xf9, 0x18),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP5_UV, OMAP343X_CONTROL_FUSE_OPP5_VDD1, 0xf9, 0x18),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+};
-+
-+static struct omap_volt_data omap36xx_vddmpu_volt_data[] = {
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP50_UV, OMAP3630_CONTROL_FUSE_OPP50_VDD1, 0xf4, 0x0c),
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP100_UV, OMAP3630_CONTROL_FUSE_OPP100_VDD1, 0xf9, 0x16),
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP120_UV, OMAP3630_CONTROL_FUSE_OPP120_VDD1, 0xfa, 0x23),
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP1G_UV, OMAP3630_CONTROL_FUSE_OPP1G_VDD1, 0xfa, 0x27),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+};
-+
-+/* VDD2 */
-+static struct omap_volt_data omap34xx_vddcore_volt_data[] = {
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP1_UV, OMAP343X_CONTROL_FUSE_OPP1_VDD2, 0xf4, 0x0c),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP2_UV, OMAP343X_CONTROL_FUSE_OPP2_VDD2, 0xf4, 0x0c),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP3_UV, OMAP343X_CONTROL_FUSE_OPP3_VDD2, 0xf9, 0x18),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+};
-+
-+static struct omap_volt_data omap36xx_vddcore_volt_data[] = {
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP50_UV, OMAP3630_CONTROL_FUSE_OPP50_VDD2, 0xf4, 0x0c),
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP100_UV, OMAP3630_CONTROL_FUSE_OPP100_VDD2, 0xf9, 0x16),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+};
-+
-+static struct dentry *voltage_dir;
-+
-+/* Init function pointers */
-+static void (*vc_init) (struct omap_vdd_info *vdd);
-+static int (*vdd_data_configure) (struct omap_vdd_info *vdd);
-+
-+static u32 omap3_voltage_read_reg(u16 mod, u8 offset)
++static inline void sr_modify_reg(struct omap_sr *sr, unsigned offset, u32 mask,
++					u32 value)
 +{
-+	return omap2_prm_read_mod_reg(mod, offset);
-+}
++	u32 reg_val;
++	u32 errconfig_offs = 0, errconfig_mask = 0;
 +
-+static void omap3_voltage_write_reg(u32 val, u16 mod, u8 offset)
-+{
-+	omap2_prm_write_mod_reg(val, mod, offset);
-+}
-+
-+static void vp_latch_vsel(struct omap_vdd_info *vdd)
-+{
-+	u32 vpconfig;
-+	u16 mod;
-+	unsigned long uvdc;
-+	char vsel;
-+
-+	uvdc = omap_voltage_get_nom_volt(&vdd->voltdm);
-+	if (!uvdc) {
-+		pr_warning("%s: unable to find current voltage for vdd_%s\n",
-+			__func__, vdd->voltdm.name);
-+		return;
-+	}
-+
-+	if (!vdd->pmic_info || !vdd->pmic_info->uv_to_vsel) {
-+		pr_warning("%s: PMIC function to convert voltage in uV to"
-+			" vsel not registered\n", __func__);
-+		return;
-+	}
-+
-+	mod = vdd->vp_reg.prm_mod;
-+
-+	vsel = vdd->pmic_info->uv_to_vsel(uvdc);
-+
-+	vpconfig = vdd->read_reg(mod, vdd->vp_offs.vpconfig);
-+	vpconfig &= ~(vdd->vp_reg.vpconfig_initvoltage_mask |
-+			vdd->vp_reg.vpconfig_initvdd);
-+	vpconfig |= vsel << vdd->vp_reg.vpconfig_initvoltage_shift;
-+
-+	vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
-+
-+	/* Trigger initVDD value copy to voltage processor */
-+	vdd->write_reg((vpconfig | vdd->vp_reg.vpconfig_initvdd), mod,
-+			vdd->vp_offs.vpconfig);
-+
-+	/* Clear initVDD copy trigger bit */
-+	vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
-+}
-+
-+/* Generic voltage init functions */
-+static void __init vp_init(struct omap_vdd_info *vdd)
-+{
-+	u32 vp_val;
-+	u16 mod;
-+
-+	if (!vdd->read_reg || !vdd->write_reg) {
-+		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
-+			__func__, vdd->voltdm.name);
-+		return;
-+	}
-+
-+	mod = vdd->vp_reg.prm_mod;
-+
-+	vp_val = vdd->vp_reg.vpconfig_erroroffset |
-+		(vdd->vp_reg.vpconfig_errorgain <<
-+		vdd->vp_reg.vpconfig_errorgain_shift) |
-+		vdd->vp_reg.vpconfig_timeouten;
-+	vdd->write_reg(vp_val, mod, vdd->vp_offs.vpconfig);
-+
-+	vp_val = ((vdd->vp_reg.vstepmin_smpswaittimemin <<
-+		vdd->vp_reg.vstepmin_smpswaittimemin_shift) |
-+		(vdd->vp_reg.vstepmin_stepmin <<
-+		vdd->vp_reg.vstepmin_stepmin_shift));
-+	vdd->write_reg(vp_val, mod, vdd->vp_offs.vstepmin);
-+
-+	vp_val = ((vdd->vp_reg.vstepmax_smpswaittimemax <<
-+		vdd->vp_reg.vstepmax_smpswaittimemax_shift) |
-+		(vdd->vp_reg.vstepmax_stepmax <<
-+		vdd->vp_reg.vstepmax_stepmax_shift));
-+	vdd->write_reg(vp_val, mod, vdd->vp_offs.vstepmax);
-+
-+	vp_val = ((vdd->vp_reg.vlimitto_vddmax <<
-+		vdd->vp_reg.vlimitto_vddmax_shift) |
-+		(vdd->vp_reg.vlimitto_vddmin <<
-+		vdd->vp_reg.vlimitto_vddmin_shift) |
-+		(vdd->vp_reg.vlimitto_timeout <<
-+		vdd->vp_reg.vlimitto_timeout_shift));
-+	vdd->write_reg(vp_val, mod, vdd->vp_offs.vlimitto);
-+}
-+
-+static void __init vdd_debugfs_init(struct omap_vdd_info *vdd)
-+{
-+	char *name;
-+
-+	name = kzalloc(VOLTAGE_DIR_SIZE, GFP_KERNEL);
-+	if (!name) {
-+		pr_warning("%s: Unable to allocate memory for debugfs"
-+			" directory name for vdd_%s",
-+			__func__, vdd->voltdm.name);
-+		return;
-+	}
-+	strcpy(name, "vdd_");
-+	strcat(name, vdd->voltdm.name);
-+
-+	vdd->debug_dir = debugfs_create_dir(name, voltage_dir);
-+	if (IS_ERR(vdd->debug_dir)) {
-+		pr_warning("%s: Unable to create debugfs directory for"
-+			" vdd_%s\n", __func__, vdd->voltdm.name);
-+		vdd->debug_dir = NULL;
-+	}
-+}
-+
-+/* Voltage scale and accessory APIs */
-+static int _pre_volt_scale(struct omap_vdd_info *vdd,
-+		unsigned long target_volt, u8 *target_vsel, u8 *current_vsel)
-+{
-+	struct omap_volt_data *volt_data;
-+	u32 vc_cmdval, vp_errgain_val;
-+	u16 vp_mod, vc_mod;
-+
-+	/* Check if suffiecient pmic info is available for this vdd */
-+	if (!vdd->pmic_info) {
-+		pr_err("%s: Insufficient pmic info to scale the vdd_%s\n",
-+			__func__, vdd->voltdm.name);
-+		return -EINVAL;
-+	}
-+
-+	if (!vdd->pmic_info->uv_to_vsel) {
-+		pr_err("%s: PMIC function to convert voltage in uV to"
-+			"vsel not registered. Hence unable to scale voltage"
-+			"for vdd_%s\n", __func__, vdd->voltdm.name);
-+		return -ENODATA;
-+	}
-+
-+	if (!vdd->read_reg || !vdd->write_reg) {
-+		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
-+			__func__, vdd->voltdm.name);
-+		return -EINVAL;
-+	}
-+
-+	vp_mod = vdd->vp_reg.prm_mod;
-+	vc_mod = vdd->vc_reg.prm_mod;
-+
-+	/* Get volt_data corresponding to target_volt */
-+	volt_data = omap_voltage_get_voltdata(&vdd->voltdm, target_volt);
-+	if (IS_ERR(volt_data))
-+		volt_data = NULL;
-+
-+	*target_vsel = vdd->pmic_info->uv_to_vsel(target_volt);
-+	*current_vsel = vdd->read_reg(vp_mod, vdd->vp_offs.voltage);
-+
-+	/* Setting the ON voltage to the new target voltage */
-+	vc_cmdval = vdd->read_reg(vc_mod, vdd->vc_reg.cmdval_reg);
-+	vc_cmdval &= ~vdd->vc_reg.cmd_on_mask;
-+	vc_cmdval |= (*target_vsel << vdd->vc_reg.cmd_on_shift);
-+	vdd->write_reg(vc_cmdval, vc_mod, vdd->vc_reg.cmdval_reg);
-+
-+	/* Setting vp errorgain based on the voltage */
-+	if (volt_data) {
-+		vp_errgain_val = vdd->read_reg(vp_mod,
-+				vdd->vp_offs.vpconfig);
-+		vdd->vp_reg.vpconfig_errorgain = volt_data->vp_errgain;
-+		vp_errgain_val &= ~vdd->vp_reg.vpconfig_errorgain_mask;
-+		vp_errgain_val |= vdd->vp_reg.vpconfig_errorgain <<
-+				vdd->vp_reg.vpconfig_errorgain_shift;
-+		vdd->write_reg(vp_errgain_val, vp_mod,
-+				vdd->vp_offs.vpconfig);
-+	}
-+
-+	return 0;
-+}
-+
-+static void _post_volt_scale(struct omap_vdd_info *vdd,
-+		unsigned long target_volt, u8 target_vsel, u8 current_vsel)
-+{
-+	u32 smps_steps = 0, smps_delay = 0;
-+
-+	smps_steps = abs(target_vsel - current_vsel);
-+	/* SMPS slew rate / step size. 2us added as buffer. */
-+	smps_delay = ((smps_steps * vdd->pmic_info->step_size) /
-+			vdd->pmic_info->slew_rate) + 2;
-+	udelay(smps_delay);
-+
-+	vdd->curr_volt = target_volt;
-+}
-+
-+/* vc_bypass_scale_voltage - VC bypass method of voltage scaling */
-+static int vc_bypass_scale_voltage(struct omap_vdd_info *vdd,
-+		unsigned long target_volt)
-+{
-+	u32 loop_cnt = 0, retries_cnt = 0;
-+	u32 vc_valid, vc_bypass_val_reg, vc_bypass_value;
-+	u16 mod;
-+	u8 target_vsel, current_vsel;
-+	int ret;
-+
-+	ret = _pre_volt_scale(vdd, target_volt, &target_vsel, &current_vsel);
-+	if (ret)
-+		return ret;
-+
-+	mod = vdd->vc_reg.prm_mod;
-+
-+	vc_valid = vdd->vc_reg.valid;
-+	vc_bypass_val_reg = vdd->vc_reg.bypass_val_reg;
-+	vc_bypass_value = (target_vsel << vdd->vc_reg.data_shift) |
-+			(vdd->pmic_info->pmic_reg <<
-+			vdd->vc_reg.regaddr_shift) |
-+			(vdd->pmic_info->i2c_slave_addr <<
-+			vdd->vc_reg.slaveaddr_shift);
-+
-+	vdd->write_reg(vc_bypass_value, mod, vc_bypass_val_reg);
-+	vdd->write_reg(vc_bypass_value | vc_valid, mod, vc_bypass_val_reg);
-+
-+	vc_bypass_value = vdd->read_reg(mod, vc_bypass_val_reg);
-+	/*
-+	 * Loop till the bypass command is acknowledged from the SMPS.
-+	 * NOTE: This is legacy code. The loop count and retry count needs
-+	 * to be revisited.
-+	 */
-+	while (!(vc_bypass_value & vc_valid)) {
-+		loop_cnt++;
-+
-+		if (retries_cnt > 10) {
-+			pr_warning("%s: Retry count exceeded\n", __func__);
-+			return -ETIMEDOUT;
-+		}
-+
-+		if (loop_cnt > 50) {
-+			retries_cnt++;
-+			loop_cnt = 0;
-+			udelay(10);
-+		}
-+		vc_bypass_value = vdd->read_reg(mod, vc_bypass_val_reg);
-+	}
-+
-+	_post_volt_scale(vdd, target_volt, target_vsel, current_vsel);
-+	return 0;
-+}
-+
-+/* VP force update method of voltage scaling */
-+static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
-+		unsigned long target_volt)
-+{
-+	u32 vpconfig;
-+	u16 mod, ocp_mod;
-+	u8 target_vsel, current_vsel, prm_irqst_reg;
-+	int ret, timeout = 0;
-+
-+	ret = _pre_volt_scale(vdd, target_volt, &target_vsel, &current_vsel);
-+	if (ret)
-+		return ret;
-+
-+	mod = vdd->vp_reg.prm_mod;
-+	ocp_mod = vdd->ocp_mod;
-+	prm_irqst_reg = vdd->prm_irqst_reg;
++	reg_val = __raw_readl(sr->base + offset);
++	reg_val &= ~mask;
 +
 +	/*
-+	 * Clear all pending TransactionDone interrupt/status. Typical latency
-+	 * is <3us
++	 * Smartreflex error config register is special as it contains
++	 * certain status bits which if written a 1 into means a clear
++	 * of those bits. So in order to make sure no accidental write of
++	 * 1 happens to those status bits, do a clear of them in the read
++	 * value. This mean this API doesn't rewrite values in these bits
++	 * if they are currently set, but does allow the caller to write
++	 * those bits.
 +	 */
-+	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
-+		vdd->write_reg(vdd->vp_reg.tranxdone_status,
-+				ocp_mod, prm_irqst_reg);
-+		if (!(vdd->read_reg(ocp_mod, prm_irqst_reg) &
-+				vdd->vp_reg.tranxdone_status))
-+				break;
-+		udelay(1);
-+	}
-+	if (timeout >= VP_TRANXDONE_TIMEOUT) {
-+		pr_warning("%s: vdd_%s TRANXDONE timeout exceeded."
-+			"Voltage change aborted", __func__, vdd->voltdm.name);
-+		return -ETIMEDOUT;
++	if (sr->ip_type == SR_TYPE_V1) {
++		errconfig_offs = ERRCONFIG_V1;
++		errconfig_mask = ERRCONFIG_STATUS_V1_MASK;
++	} else if (sr->ip_type == SR_TYPE_V2) {
++		errconfig_offs = ERRCONFIG_V2;
++		errconfig_mask = ERRCONFIG_VPBOUNDINTST_V2;
 +	}
 +
-+	/* Configure for VP-Force Update */
-+	vpconfig = vdd->read_reg(mod, vdd->vp_offs.vpconfig);
-+	vpconfig &= ~(vdd->vp_reg.vpconfig_initvdd |
-+			vdd->vp_reg.vpconfig_forceupdate |
-+			vdd->vp_reg.vpconfig_initvoltage_mask);
-+	vpconfig |= ((target_vsel <<
-+			vdd->vp_reg.vpconfig_initvoltage_shift));
-+	vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
++	if (offset == errconfig_offs)
++		reg_val &= ~errconfig_mask;
 +
-+	/* Trigger initVDD value copy to voltage processor */
-+	vpconfig |= vdd->vp_reg.vpconfig_initvdd;
-+	vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
++	reg_val |= value;
 +
-+	/* Force update of voltage */
-+	vpconfig |= vdd->vp_reg.vpconfig_forceupdate;
-+	vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
-+
-+	/*
-+	 * Wait for TransactionDone. Typical latency is <200us.
-+	 * Depends on SMPSWAITTIMEMIN/MAX and voltage change
-+	 */
-+	timeout = 0;
-+	omap_test_timeout((vdd->read_reg(ocp_mod, prm_irqst_reg) &
-+			vdd->vp_reg.tranxdone_status),
-+			VP_TRANXDONE_TIMEOUT, timeout);
-+	if (timeout >= VP_TRANXDONE_TIMEOUT)
-+		pr_err("%s: vdd_%s TRANXDONE timeout exceeded."
-+			"TRANXDONE never got set after the voltage update\n",
-+			__func__, vdd->voltdm.name);
-+
-+	_post_volt_scale(vdd, target_volt, target_vsel, current_vsel);
-+
-+	/*
-+	 * Disable TransactionDone interrupt , clear all status, clear
-+	 * control registers
-+	 */
-+	timeout = 0;
-+	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
-+		vdd->write_reg(vdd->vp_reg.tranxdone_status,
-+				ocp_mod, prm_irqst_reg);
-+		if (!(vdd->read_reg(ocp_mod, prm_irqst_reg) &
-+				vdd->vp_reg.tranxdone_status))
-+				break;
-+		udelay(1);
-+	}
-+
-+	if (timeout >= VP_TRANXDONE_TIMEOUT)
-+		pr_warning("%s: vdd_%s TRANXDONE timeout exceeded while trying"
-+			"to clear the TRANXDONE status\n",
-+			__func__, vdd->voltdm.name);
-+
-+	vpconfig = vdd->read_reg(mod, vdd->vp_offs.vpconfig);
-+	/* Clear initVDD copy trigger bit */
-+	vpconfig &= ~vdd->vp_reg.vpconfig_initvdd;;
-+	vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
-+	/* Clear force bit */
-+	vpconfig &= ~vdd->vp_reg.vpconfig_forceupdate;
-+	vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
-+
-+	return 0;
++	__raw_writel(reg_val, (sr->base + offset));
 +}
 +
-+/* OMAP3 specific voltage init functions */
-+
-+/*
-+ * Intializes the voltage controller registers with the PMIC and board
-+ * specific parameters and voltage setup times for OMAP3.
-+ */
-+static void __init omap3_vc_init(struct omap_vdd_info *vdd)
++static inline u32 sr_read_reg(struct omap_sr *sr, unsigned offset)
 +{
-+	u32 vc_val;
-+	u16 mod;
-+	u8 on_vsel, onlp_vsel, ret_vsel, off_vsel;
-+	static bool is_initialized;
-+
-+	if (!vdd->pmic_info || !vdd->pmic_info->uv_to_vsel) {
-+		pr_err("%s: PMIC info requried to configure vc for"
-+			"vdd_%s not populated.Hence cannot initialize vc\n",
-+			__func__, vdd->voltdm.name);
-+		return;
-+	}
-+
-+	if (!vdd->read_reg || !vdd->write_reg) {
-+		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
-+			__func__, vdd->voltdm.name);
-+		return;
-+	}
-+
-+	mod = vdd->vc_reg.prm_mod;
-+
-+	/* Set up the SMPS_SA(i2c slave address in VC */
-+	vc_val = vdd->read_reg(mod, vdd->vc_reg.smps_sa_reg);
-+	vc_val &= ~vdd->vc_reg.smps_sa_mask;
-+	vc_val |= vdd->pmic_info->i2c_slave_addr << vdd->vc_reg.smps_sa_shift;
-+	vdd->write_reg(vc_val, mod, vdd->vc_reg.smps_sa_reg);
-+
-+	/* Setup the VOLRA(pmic reg addr) in VC */
-+	vc_val = vdd->read_reg(mod, vdd->vc_reg.smps_volra_reg);
-+	vc_val &= ~vdd->vc_reg.smps_volra_mask;
-+	vc_val |= vdd->pmic_info->pmic_reg << vdd->vc_reg.smps_volra_shift;
-+	vdd->write_reg(vc_val, mod, vdd->vc_reg.smps_volra_reg);
-+
-+	/*Configure the setup times */
-+	vc_val = vdd->read_reg(mod, vdd->vc_reg.voltsetup_reg);
-+	vc_val &= ~vdd->vc_reg.voltsetup_mask;
-+	vc_val |= vdd->pmic_info->volt_setup_time <<
-+			vdd->vc_reg.voltsetup_shift;
-+	vdd->write_reg(vc_val, mod, vdd->vc_reg.voltsetup_reg);
-+
-+	/* Set up the on, inactive, retention and off voltage */
-+	on_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->on_volt);
-+	onlp_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->onlp_volt);
-+	ret_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->ret_volt);
-+	off_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->off_volt);
-+	vc_val	= ((on_vsel << vdd->vc_reg.cmd_on_shift) |
-+		(onlp_vsel << vdd->vc_reg.cmd_onlp_shift) |
-+		(ret_vsel << vdd->vc_reg.cmd_ret_shift) |
-+		(off_vsel << vdd->vc_reg.cmd_off_shift));
-+	vdd->write_reg(vc_val, mod, vdd->vc_reg.cmdval_reg);
-+
-+	if (is_initialized)
-+		return;
-+
-+	/* Generic VC parameters init */
-+	vdd->write_reg(OMAP3430_CMD1_MASK | OMAP3430_RAV1_MASK, mod,
-+			OMAP3_PRM_VC_CH_CONF_OFFSET);
-+	vdd->write_reg(OMAP3430_MCODE_SHIFT | OMAP3430_HSEN_MASK, mod,
-+			OMAP3_PRM_VC_I2C_CFG_OFFSET);
-+	vdd->write_reg(OMAP3_CLKSETUP, mod, OMAP3_PRM_CLKSETUP_OFFSET);
-+	vdd->write_reg(OMAP3_VOLTOFFSET, mod, OMAP3_PRM_VOLTOFFSET_OFFSET);
-+	vdd->write_reg(OMAP3_VOLTSETUP2, mod, OMAP3_PRM_VOLTSETUP2_OFFSET);
-+	is_initialized = true;
++	return __raw_readl(sr->base + offset);
 +}
 +
-+/* Sets up all the VDD related info for OMAP3 */
-+static int __init omap3_vdd_data_configure(struct omap_vdd_info *vdd)
++static struct omap_sr *_sr_lookup(struct voltagedomain *voltdm)
 +{
-+	struct clk *sys_ck;
-+	u32 sys_clk_speed, timeout_val, waittime;
++	struct omap_sr *sr_info;
 +
-+	if (!vdd->pmic_info) {
-+		pr_err("%s: PMIC info requried to configure vdd_%s not"
-+			"populated.Hence cannot initialize vdd_%s\n",
-+			__func__, vdd->voltdm.name, vdd->voltdm.name);
-+		return -EINVAL;
-+	}
-+
-+	if (!strcmp(vdd->voltdm.name, "mpu")) {
-+		if (cpu_is_omap3630())
-+			vdd->volt_data = omap36xx_vddmpu_volt_data;
-+		else
-+			vdd->volt_data = omap34xx_vddmpu_volt_data;
-+
-+		vdd->vp_reg.tranxdone_status = OMAP3430_VP1_TRANXDONE_ST_MASK;
-+		vdd->vc_reg.cmdval_reg = OMAP3_PRM_VC_CMD_VAL_0_OFFSET;
-+		vdd->vc_reg.smps_sa_shift = OMAP3430_PRM_VC_SMPS_SA_SA0_SHIFT;
-+		vdd->vc_reg.smps_sa_mask = OMAP3430_PRM_VC_SMPS_SA_SA0_MASK;
-+		vdd->vc_reg.smps_volra_shift = OMAP3430_VOLRA0_SHIFT;
-+		vdd->vc_reg.smps_volra_mask = OMAP3430_VOLRA0_MASK;
-+		vdd->vc_reg.voltsetup_shift = OMAP3430_SETUP_TIME1_SHIFT;
-+		vdd->vc_reg.voltsetup_mask = OMAP3430_SETUP_TIME1_MASK;
-+	} else if (!strcmp(vdd->voltdm.name, "core")) {
-+		if (cpu_is_omap3630())
-+			vdd->volt_data = omap36xx_vddcore_volt_data;
-+		else
-+			vdd->volt_data = omap34xx_vddcore_volt_data;
-+
-+		vdd->vp_reg.tranxdone_status = OMAP3430_VP2_TRANXDONE_ST_MASK;
-+		vdd->vc_reg.cmdval_reg = OMAP3_PRM_VC_CMD_VAL_1_OFFSET;
-+		vdd->vc_reg.smps_sa_shift = OMAP3430_PRM_VC_SMPS_SA_SA1_SHIFT;
-+		vdd->vc_reg.smps_sa_mask = OMAP3430_PRM_VC_SMPS_SA_SA1_MASK;
-+		vdd->vc_reg.smps_volra_shift = OMAP3430_VOLRA1_SHIFT;
-+		vdd->vc_reg.smps_volra_mask = OMAP3430_VOLRA1_MASK;
-+		vdd->vc_reg.voltsetup_shift = OMAP3430_SETUP_TIME2_SHIFT;
-+		vdd->vc_reg.voltsetup_mask = OMAP3430_SETUP_TIME2_MASK;
-+	} else {
-+		pr_warning("%s: vdd_%s does not exisit in OMAP3\n",
-+			__func__, vdd->voltdm.name);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Sys clk rate is require to calculate vp timeout value and
-+	 * smpswaittimemin and smpswaittimemax.
-+	 */
-+	sys_ck = clk_get(NULL, "sys_ck");
-+	if (IS_ERR(sys_ck)) {
-+		pr_warning("%s: Could not get the sys clk to calculate"
-+			"various vdd_%s params\n", __func__, vdd->voltdm.name);
-+		return -EINVAL;
-+	}
-+	sys_clk_speed = clk_get_rate(sys_ck);
-+	clk_put(sys_ck);
-+	/* Divide to avoid overflow */
-+	sys_clk_speed /= 1000;
-+
-+	/* Generic voltage parameters */
-+	vdd->curr_volt = 1200000;
-+	vdd->ocp_mod = OCP_MOD;
-+	vdd->prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET;
-+	vdd->read_reg = omap3_voltage_read_reg;
-+	vdd->write_reg = omap3_voltage_write_reg;
-+	vdd->volt_scale = vp_forceupdate_scale_voltage;
-+	vdd->vp_enabled = false;
-+
-+	/* VC parameters */
-+	vdd->vc_reg.prm_mod = OMAP3430_GR_MOD;
-+	vdd->vc_reg.smps_sa_reg = OMAP3_PRM_VC_SMPS_SA_OFFSET;
-+	vdd->vc_reg.smps_volra_reg = OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET;
-+	vdd->vc_reg.bypass_val_reg = OMAP3_PRM_VC_BYPASS_VAL_OFFSET;
-+	vdd->vc_reg.voltsetup_reg = OMAP3_PRM_VOLTSETUP1_OFFSET;
-+	vdd->vc_reg.data_shift = OMAP3430_DATA_SHIFT;
-+	vdd->vc_reg.slaveaddr_shift = OMAP3430_SLAVEADDR_SHIFT;
-+	vdd->vc_reg.regaddr_shift = OMAP3430_REGADDR_SHIFT;
-+	vdd->vc_reg.valid = OMAP3430_VALID_MASK;
-+	vdd->vc_reg.cmd_on_shift = OMAP3430_VC_CMD_ON_SHIFT;
-+	vdd->vc_reg.cmd_on_mask = OMAP3430_VC_CMD_ON_MASK;
-+	vdd->vc_reg.cmd_onlp_shift = OMAP3430_VC_CMD_ONLP_SHIFT;
-+	vdd->vc_reg.cmd_ret_shift = OMAP3430_VC_CMD_RET_SHIFT;
-+	vdd->vc_reg.cmd_off_shift = OMAP3430_VC_CMD_OFF_SHIFT;
-+
-+	vdd->vp_reg.prm_mod = OMAP3430_GR_MOD;
-+
-+	/* VPCONFIG bit fields */
-+	vdd->vp_reg.vpconfig_erroroffset = (vdd->pmic_info->vp_erroroffset <<
-+				 OMAP3430_ERROROFFSET_SHIFT);
-+	vdd->vp_reg.vpconfig_errorgain_mask = OMAP3430_ERRORGAIN_MASK;
-+	vdd->vp_reg.vpconfig_errorgain_shift = OMAP3430_ERRORGAIN_SHIFT;
-+	vdd->vp_reg.vpconfig_initvoltage_shift = OMAP3430_INITVOLTAGE_SHIFT;
-+	vdd->vp_reg.vpconfig_initvoltage_mask = OMAP3430_INITVOLTAGE_MASK;
-+	vdd->vp_reg.vpconfig_timeouten = OMAP3430_TIMEOUTEN_MASK;
-+	vdd->vp_reg.vpconfig_initvdd = OMAP3430_INITVDD_MASK;
-+	vdd->vp_reg.vpconfig_forceupdate = OMAP3430_FORCEUPDATE_MASK;
-+	vdd->vp_reg.vpconfig_vpenable = OMAP3430_VPENABLE_MASK;
-+
-+	/* VSTEPMIN VSTEPMAX bit fields */
-+	waittime = ((vdd->pmic_info->step_size / vdd->pmic_info->slew_rate) *
-+				sys_clk_speed) / 1000;
-+	vdd->vp_reg.vstepmin_smpswaittimemin = waittime;
-+	vdd->vp_reg.vstepmax_smpswaittimemax = waittime;
-+	vdd->vp_reg.vstepmin_stepmin = vdd->pmic_info->vp_vstepmin;
-+	vdd->vp_reg.vstepmax_stepmax = vdd->pmic_info->vp_vstepmax;
-+	vdd->vp_reg.vstepmin_smpswaittimemin_shift =
-+				OMAP3430_SMPSWAITTIMEMIN_SHIFT;
-+	vdd->vp_reg.vstepmax_smpswaittimemax_shift =
-+				OMAP3430_SMPSWAITTIMEMAX_SHIFT;
-+	vdd->vp_reg.vstepmin_stepmin_shift = OMAP3430_VSTEPMIN_SHIFT;
-+	vdd->vp_reg.vstepmax_stepmax_shift = OMAP3430_VSTEPMAX_SHIFT;
-+
-+	/* VLIMITTO bit fields */
-+	timeout_val = (sys_clk_speed * vdd->pmic_info->vp_timeout_us) / 1000;
-+	vdd->vp_reg.vlimitto_timeout = timeout_val;
-+	vdd->vp_reg.vlimitto_vddmin = vdd->pmic_info->vp_vddmin;
-+	vdd->vp_reg.vlimitto_vddmax = vdd->pmic_info->vp_vddmax;
-+	vdd->vp_reg.vlimitto_vddmin_shift = OMAP3430_VDDMIN_SHIFT;
-+	vdd->vp_reg.vlimitto_vddmax_shift = OMAP3430_VDDMAX_SHIFT;
-+	vdd->vp_reg.vlimitto_timeout_shift = OMAP3430_TIMEOUT_SHIFT;
-+
-+	return 0;
-+}
-+
-+/* Public functions */
-+/**
-+ * omap_voltage_get_nom_volt() - Gets the current non-auto-compensated voltage
-+ * @voltdm:	pointer to the VDD for which current voltage info is needed
-+ *
-+ * API to get the current non-auto-compensated voltage for a VDD.
-+ * Returns 0 in case of error else returns the current voltage for the VDD.
-+ */
-+unsigned long omap_voltage_get_nom_volt(struct voltagedomain *voltdm)
-+{
-+	struct omap_vdd_info *vdd;
-+
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return 0;
-+	}
-+
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
-+
-+	return vdd->curr_volt;
-+}
-+
-+/**
-+ * omap_vp_get_curr_volt() - API to get the current vp voltage.
-+ * @voltdm:	pointer to the VDD.
-+ *
-+ * This API returns the current voltage for the specified voltage processor
-+ */
-+unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm)
-+{
-+	struct omap_vdd_info *vdd;
-+	u8 curr_vsel;
-+
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return 0;
-+	}
-+
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
-+	if (!vdd->read_reg) {
-+		pr_err("%s: No read API for reading vdd_%s regs\n",
-+			__func__, voltdm->name);
-+		return 0;
-+	}
-+
-+	curr_vsel = vdd->read_reg(vdd->vp_reg.prm_mod,
-+			vdd->vp_offs.voltage);
-+
-+	if (!vdd->pmic_info || !vdd->pmic_info->vsel_to_uv) {
-+		pr_warning("%s: PMIC function to convert vsel to voltage"
-+			"in uV not registerd\n", __func__);
-+		return 0;
-+	}
-+
-+	return vdd->pmic_info->vsel_to_uv(curr_vsel);
-+}
-+
-+/**
-+ * omap_vp_enable() - API to enable a particular VP
-+ * @voltdm:	pointer to the VDD whose VP is to be enabled.
-+ *
-+ * This API enables a particular voltage processor. Needed by the smartreflex
-+ * class drivers.
-+ */
-+void omap_vp_enable(struct voltagedomain *voltdm)
-+{
-+	struct omap_vdd_info *vdd;
-+	u32 vpconfig;
-+	u16 mod;
-+
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return;
-+	}
-+
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
-+	if (!vdd->read_reg || !vdd->write_reg) {
-+		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
-+			__func__, voltdm->name);
-+		return;
-+	}
-+
-+	mod = vdd->vp_reg.prm_mod;
-+
-+	/* If VP is already enabled, do nothing. Return */
-+	if (vdd->vp_enabled)
-+		return;
-+
-+	vp_latch_vsel(vdd);
-+
-+	/* Enable VP */
-+	vpconfig = vdd->read_reg(mod, vdd->vp_offs.vpconfig);
-+	vpconfig |= vdd->vp_reg.vpconfig_vpenable;
-+	vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
-+	vdd->vp_enabled = true;
-+}
-+
-+/**
-+ * omap_vp_disable() - API to disable a particular VP
-+ * @voltdm:	pointer to the VDD whose VP is to be disabled.
-+ *
-+ * This API disables a particular voltage processor. Needed by the smartreflex
-+ * class drivers.
-+ */
-+void omap_vp_disable(struct voltagedomain *voltdm)
-+{
-+	struct omap_vdd_info *vdd;
-+	u32 vpconfig;
-+	u16 mod;
-+	int timeout;
-+
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return;
-+	}
-+
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
-+	if (!vdd->read_reg || !vdd->write_reg) {
-+		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
-+			__func__, voltdm->name);
-+		return;
-+	}
-+
-+	mod = vdd->vp_reg.prm_mod;
-+
-+	/* If VP is already disabled, do nothing. Return */
-+	if (!vdd->vp_enabled) {
-+		pr_warning("%s: Trying to disable VP for vdd_%s when"
-+			"it is already disabled\n", __func__, voltdm->name);
-+		return;
-+	}
-+
-+	/* Disable VP */
-+	vpconfig = vdd->read_reg(mod, vdd->vp_offs.vpconfig);
-+	vpconfig &= ~vdd->vp_reg.vpconfig_vpenable;
-+	vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
-+
-+	/*
-+	 * Wait for VP idle Typical latency is <2us. Maximum latency is ~100us
-+	 */
-+	omap_test_timeout((vdd->read_reg(mod, vdd->vp_offs.vstatus)),
-+				VP_IDLE_TIMEOUT, timeout);
-+
-+	if (timeout >= VP_IDLE_TIMEOUT)
-+		pr_warning("%s: vdd_%s idle timedout\n",
-+			__func__, voltdm->name);
-+
-+	vdd->vp_enabled = false;
-+
-+	return;
-+}
-+
-+/**
-+ * omap_voltage_scale_vdd() - API to scale voltage of a particular
-+ *				voltage domain.
-+ * @voltdm:	pointer to the VDD which is to be scaled.
-+ * @target_volt:	The target voltage of the voltage domain
-+ *
-+ * This API should be called by the kernel to do the voltage scaling
-+ * for a particular voltage domain during dvfs or any other situation.
-+ */
-+int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
-+		unsigned long target_volt)
-+{
-+	struct omap_vdd_info *vdd;
-+
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
-+
-+	if (!vdd->volt_scale) {
-+		pr_err("%s: No voltage scale API registered for vdd_%s\n",
-+			__func__, voltdm->name);
-+		return -ENODATA;
-+	}
-+
-+	return vdd->volt_scale(vdd, target_volt);
-+}
-+
-+/**
-+ * omap_voltage_reset() - Resets the voltage of a particular voltage domain
-+ *			to that of the current OPP.
-+ * @voltdm:	pointer to the VDD whose voltage is to be reset.
-+ *
-+ * This API finds out the correct voltage the voltage domain is supposed
-+ * to be at and resets the voltage to that level. Should be used expecially
-+ * while disabling any voltage compensation modules.
-+ */
-+void omap_voltage_reset(struct voltagedomain *voltdm)
-+{
-+	unsigned long target_uvdc;
-+
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return;
-+	}
-+
-+	target_uvdc = omap_voltage_get_nom_volt(voltdm);
-+	if (!target_uvdc) {
-+		pr_err("%s: unable to find current voltage for vdd_%s\n",
-+			__func__, voltdm->name);
-+		return;
-+	}
-+
-+	omap_voltage_scale_vdd(voltdm, target_uvdc);
-+}
-+
-+/**
-+ * omap_voltage_get_volttable() - API to get the voltage table associated with a
-+ *				particular voltage domain.
-+ * @voltdm:	pointer to the VDD for which the voltage table is required
-+ * @volt_data:	the voltage table for the particular vdd which is to be
-+ *		populated by this API
-+ *
-+ * This API populates the voltage table associated with a VDD into the
-+ * passed parameter pointer. Returns the count of distinct voltages
-+ * supported by this vdd.
-+ *
-+ */
-+void omap_voltage_get_volttable(struct voltagedomain *voltdm,
-+		struct omap_volt_data **volt_data)
-+{
-+	struct omap_vdd_info *vdd;
-+
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return;
-+	}
-+
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
-+
-+	*volt_data = vdd->volt_data;
-+}
-+
-+/**
-+ * omap_voltage_get_voltdata() - API to get the voltage table entry for a
-+ *				particular voltage
-+ * @voltdm:	pointer to the VDD whose voltage table has to be searched
-+ * @volt:	the voltage to be searched in the voltage table
-+ *
-+ * This API searches through the voltage table for the required voltage
-+ * domain and tries to find a matching entry for the passed voltage volt.
-+ * If a matching entry is found volt_data is populated with that entry.
-+ * This API searches only through the non-compensated voltages int the
-+ * voltage table.
-+ * Returns pointer to the voltage table entry corresponding to volt on
-+ * sucess. Returns -ENODATA if no voltage table exisits for the passed voltage
-+ * domain or if there is no matching entry.
-+ */
-+struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
-+		unsigned long volt)
-+{
-+	struct omap_vdd_info *vdd;
-+	int i;
-+
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
++	if (!voltdm) {
++		pr_err("%s: Null voltage domain passed!\n", __func__);
 +		return ERR_PTR(-EINVAL);
 +	}
 +
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
-+
-+	if (!vdd->volt_data) {
-+		pr_warning("%s: voltage table does not exist for vdd_%s\n",
-+			__func__, voltdm->name);
-+		return ERR_PTR(-ENODATA);
++	list_for_each_entry(sr_info, &sr_list, node) {
++		if (voltdm == sr_info->voltdm)
++			return sr_info;
 +	}
-+
-+	for (i = 0; vdd->volt_data[i].volt_nominal != 0; i++) {
-+		if (vdd->volt_data[i].volt_nominal == volt)
-+			return &vdd->volt_data[i];
-+	}
-+
-+	pr_notice("%s: Unable to match the current voltage with the voltage"
-+		"table for vdd_%s\n", __func__, voltdm->name);
 +
 +	return ERR_PTR(-ENODATA);
 +}
 +
-+/**
-+ * omap_voltage_register_pmic() - API to register PMIC specific data
-+ * @voltdm:	pointer to the VDD for which the PMIC specific data is
-+ *		to be registered
-+ * @pmic_info:	the structure containing pmic info
-+ *
-+ * This API is to be called by the SOC/PMIC file to specify the
-+ * pmic specific info as present in omap_volt_pmic_info structure.
-+ */
-+int omap_voltage_register_pmic(struct voltagedomain *voltdm,
-+		struct omap_volt_pmic_info *pmic_info)
++static irqreturn_t sr_interrupt(int irq, void *data)
 +{
-+	struct omap_vdd_info *vdd;
++	struct omap_sr *sr_info = (struct omap_sr *)data;
++	u32 status = 0;
 +
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return -EINVAL;
++	if (sr_info->ip_type == SR_TYPE_V1) {
++		/* Read the status bits */
++		status = sr_read_reg(sr_info, ERRCONFIG_V1);
++
++		/* Clear them by writing back */
++		sr_write_reg(sr_info, ERRCONFIG_V1, status);
++	} else if (sr_info->ip_type == SR_TYPE_V2) {
++		/* Read the status bits */
++		sr_read_reg(sr_info, IRQSTATUS);
++
++		/* Clear them by writing back */
++		sr_write_reg(sr_info, IRQSTATUS, status);
 +	}
 +
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
++	if (sr_class->class_type == SR_CLASS2 && sr_class->notify)
++		sr_class->notify(sr_info->voltdm, status);
 +
-+	vdd->pmic_info = pmic_info;
-+
-+	return 0;
++	return IRQ_HANDLED;
 +}
 +
-+/**
-+ * omap_voltage_get_dbgdir() - API to get pointer to the debugfs directory
-+ *				corresponding to a voltage domain.
-+ *
-+ * @voltdm:	pointer to the VDD whose debug directory is required.
-+ *
-+ * This API returns pointer to the debugfs directory corresponding
-+ * to the voltage domain. Should be used by drivers requiring to
-+ * add any debug entry for a particular voltage domain. Returns NULL
-+ * in case of error.
-+ */
-+struct dentry *omap_voltage_get_dbgdir(struct voltagedomain *voltdm)
++static void sr_set_clk_length(struct omap_sr *sr)
 +{
-+	struct omap_vdd_info *vdd;
++	struct clk *sys_ck;
++	u32 sys_clk_speed;
 +
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return NULL;
-+	}
-+
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
-+
-+	return vdd->debug_dir;
-+}
-+
-+/**
-+ * omap_change_voltscale_method() - API to change the voltage scaling method.
-+ * @voltdm:	pointer to the VDD whose voltage scaling method
-+ *		has to be changed.
-+ * @voltscale_method:	the method to be used for voltage scaling.
-+ *
-+ * This API can be used by the board files to change the method of voltage
-+ * scaling between vpforceupdate and vcbypass. The parameter values are
-+ * defined in voltage.h
-+ */
-+void omap_change_voltscale_method(struct voltagedomain *voltdm,
-+		int voltscale_method)
-+{
-+	struct omap_vdd_info *vdd;
-+
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
++	sys_ck = clk_get(NULL, "sys_ck");
++	if (IS_ERR(sys_ck)) {
++		dev_err(&sr->pdev->dev, "%s: unable to get sys clk\n",
++			__func__);
 +		return;
 +	}
++	sys_clk_speed = clk_get_rate(sys_ck);
++	clk_put(sys_ck);
 +
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
-+
-+	switch (voltscale_method) {
-+	case VOLTSCALE_VPFORCEUPDATE:
-+		vdd->volt_scale = vp_forceupdate_scale_voltage;
-+		return;
-+	case VOLTSCALE_VCBYPASS:
-+		vdd->volt_scale = vc_bypass_scale_voltage;
-+		return;
++	switch (sys_clk_speed) {
++	case 12000000:
++		sr->clk_length = SRCLKLENGTH_12MHZ_SYSCLK;
++		break;
++	case 13000000:
++		sr->clk_length = SRCLKLENGTH_13MHZ_SYSCLK;
++		break;
++	case 19200000:
++		sr->clk_length = SRCLKLENGTH_19MHZ_SYSCLK;
++		break;
++	case 26000000:
++		sr->clk_length = SRCLKLENGTH_26MHZ_SYSCLK;
++		break;
++	case 38400000:
++		sr->clk_length = SRCLKLENGTH_38MHZ_SYSCLK;
++		break;
 +	default:
-+		pr_warning("%s: Trying to change the method of voltage scaling"
-+			"to an unsupported one!\n", __func__);
++		dev_err(&sr->pdev->dev, "%s: Invalid sysclk value: %d\n",
++			__func__, sys_clk_speed);
++		break;
 +	}
 +}
 +
-+/**
-+ * omap_voltage_domain_lookup() - API to get the voltage domain pointer
-+ * @name:	Name of the voltage domain
-+ *
-+ * This API looks up in the global vdd_info struct for the
-+ * existence of voltage domain <name>. If it exists, the API returns
-+ * a pointer to the voltage domain structure corresponding to the
-+ * VDD<name>. Else retuns error pointer.
-+ */
-+struct voltagedomain *omap_voltage_domain_lookup(char *name)
++static void sr_set_regfields(struct omap_sr *sr)
 +{
-+	int i;
++	/*
++	 * For time being these values are defined in smartreflex.h
++	 * and populated during init. May be they can be moved to board
++	 * file or pmic specific data structure. In that case these structure
++	 * fields will have to be populated using the pdata or pmic structure.
++	 */
++	if (cpu_is_omap34xx()) {
++		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
++		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
++		sr->accum_data = OMAP3430_SR_ACCUMDATA;
++		if (!(strcmp(sr->voltdm->name, "mpu"))) {
++			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
++			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
++		} else {
++			sr->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
++			sr->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
++		}
++	}
++}
 +
-+	if (!vdd_info) {
-+		pr_err("%s: Voltage driver init not yet happened.Faulting!\n",
++static void sr_start_vddautocomp(struct omap_sr *sr)
++{
++	if (!sr_class || !(sr_class->enable) || !(sr_class->configure)) {
++		dev_warn(&sr->pdev->dev,
++			"%s: smartreflex class driver not registered\n",
 +			__func__);
-+		return ERR_PTR(-EINVAL);
++		return;
 +	}
 +
-+	if (!name) {
-+		pr_err("%s: No name to get the votage domain!\n", __func__);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	for (i = 0; i < nr_scalable_vdd; i++) {
-+		if (!(strcmp(name, vdd_info[i].voltdm.name)))
-+			return &vdd_info[i].voltdm;
-+	}
-+
-+	return ERR_PTR(-EINVAL);
++	if (!sr_class->enable(sr->voltdm))
++		sr->autocomp_active = true;
 +}
 +
-+/**
-+ * omap_voltage_late_init() - Init the various voltage parameters
++static void sr_stop_vddautocomp(struct omap_sr *sr)
++{
++	if (!sr_class || !(sr_class->disable)) {
++		dev_warn(&sr->pdev->dev,
++			"%s: smartreflex class driver not registered\n",
++			__func__);
++		return;
++	}
++
++	if (sr->autocomp_active) {
++		sr_class->disable(sr->voltdm, 1);
++		sr->autocomp_active = false;
++	}
++}
++
++/*
++ * This function handles the intializations which have to be done
++ * only when both sr device and class driver regiter has
++ * completed. This will be attempted to be called from both sr class
++ * driver register and sr device intializtion API's. Only one call
++ * will ultimately succeed.
 + *
-+ * This API is to be called in the later stages of the
-+ * system boot to init the voltage controller and
-+ * voltage processors.
++ * Currenly this function registers interrrupt handler for a particular SR
++ * if smartreflex class driver is already registered and has
++ * requested for interrupts and the SR interrupt line in present.
 + */
-+int __init omap_voltage_late_init(void)
++static int sr_late_init(struct omap_sr *sr_info)
++{
++	char *name;
++	struct omap_sr_data *pdata = sr_info->pdev->dev.platform_data;
++	struct resource *mem;
++	int ret = 0;
++
++	if (sr_class->class_type == SR_CLASS2 &&
++		sr_class->notify_flags && sr_info->irq) {
++
++		name = kzalloc(SMARTREFLEX_NAME_LEN + 1, GFP_KERNEL);
++		strcpy(name, "sr_");
++		strcat(name, sr_info->voltdm->name);
++		ret = request_irq(sr_info->irq, sr_interrupt,
++				0, name, (void *)sr_info);
++		if (ret)
++			goto error;
++	}
++
++	if (pdata && pdata->enable_on_init)
++		sr_start_vddautocomp(sr_info);
++
++	return ret;
++
++error:
++		iounmap(sr_info->base);
++		mem = platform_get_resource(sr_info->pdev, IORESOURCE_MEM, 0);
++		release_mem_region(mem->start, resource_size(mem));
++		list_del(&sr_info->node);
++		dev_err(&sr_info->pdev->dev, "%s: ERROR in registering"
++			"interrupt handler. Smartreflex will"
++			"not function as desired\n", __func__);
++		kfree(sr_info);
++		return ret;
++}
++
++static void sr_v1_disable(struct omap_sr *sr)
++{
++	int timeout = 0;
++
++	/* Enable MCUDisableAcknowledge interrupt */
++	sr_modify_reg(sr, ERRCONFIG_V1,
++			ERRCONFIG_MCUDISACKINTEN, ERRCONFIG_MCUDISACKINTEN);
++
++	/* SRCONFIG - disable SR */
++	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, 0x0);
++
++	/* Disable all other SR interrupts and clear the status */
++	sr_modify_reg(sr, ERRCONFIG_V1,
++			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
++			ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_VPBOUNDINTEN_V1),
++			(ERRCONFIG_MCUACCUMINTST | ERRCONFIG_MCUVALIDINTST |
++			ERRCONFIG_MCUBOUNDINTST |
++			ERRCONFIG_VPBOUNDINTST_V1));
++
++	/*
++	 * Wait for SR to be disabled.
++	 * wait until ERRCONFIG.MCUDISACKINTST = 1. Typical latency is 1us.
++	 */
++	omap_test_timeout((sr_read_reg(sr, ERRCONFIG_V1) &
++			ERRCONFIG_MCUDISACKINTST), SR_DISABLE_TIMEOUT,
++			timeout);
++
++	if (timeout >= SR_DISABLE_TIMEOUT)
++		dev_warn(&sr->pdev->dev, "%s: Smartreflex disable timedout\n",
++			__func__);
++
++	/* Disable MCUDisableAcknowledge interrupt & clear pending interrupt */
++	sr_modify_reg(sr, ERRCONFIG_V1, ERRCONFIG_MCUDISACKINTEN,
++			ERRCONFIG_MCUDISACKINTST);
++}
++
++static void sr_v2_disable(struct omap_sr *sr)
++{
++	int timeout = 0;
++
++	/* Enable MCUDisableAcknowledge interrupt */
++	sr_write_reg(sr, IRQENABLE_SET, IRQENABLE_MCUDISABLEACKINT);
++
++	/* SRCONFIG - disable SR */
++	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, 0x0);
++
++	/* Disable all other SR interrupts and clear the status */
++	sr_modify_reg(sr, ERRCONFIG_V2, ERRCONFIG_VPBOUNDINTEN_V2,
++			ERRCONFIG_VPBOUNDINTST_V2);
++	sr_write_reg(sr, IRQENABLE_CLR, (IRQENABLE_MCUACCUMINT |
++			IRQENABLE_MCUVALIDINT |
++			IRQENABLE_MCUBOUNDSINT));
++	sr_write_reg(sr, IRQSTATUS, (IRQSTATUS_MCUACCUMINT |
++			IRQSTATUS_MCVALIDINT |
++			IRQSTATUS_MCBOUNDSINT));
++
++	/*
++	 * Wait for SR to be disabled.
++	 * wait until IRQSTATUS.MCUDISACKINTST = 1. Typical latency is 1us.
++	 */
++	omap_test_timeout((sr_read_reg(sr, IRQSTATUS) &
++			IRQSTATUS_MCUDISABLEACKINT), SR_DISABLE_TIMEOUT,
++			timeout);
++
++	if (timeout >= SR_DISABLE_TIMEOUT)
++		dev_warn(&sr->pdev->dev, "%s: Smartreflex disable timedout\n",
++			__func__);
++
++	/* Disable MCUDisableAcknowledge interrupt & clear pending interrupt */
++	sr_write_reg(sr, IRQENABLE_CLR, IRQENABLE_MCUDISABLEACKINT);
++	sr_write_reg(sr, IRQSTATUS, IRQSTATUS_MCUDISABLEACKINT);
++}
++
++static u32 sr_retrieve_nvalue(struct omap_sr *sr, u32 efuse_offs)
 +{
 +	int i;
 +
-+	if (!vdd_info) {
-+		pr_err("%s: Voltage driver support not added\n",
++	if (!sr->nvalue_table) {
++		dev_warn(&sr->pdev->dev, "%s: Missing ntarget value table\n",
++			__func__);
++		return 0;
++	}
++
++	for (i = 0; i < sr->nvalue_count; i++) {
++		if (sr->nvalue_table[i].efuse_offs == efuse_offs)
++			return sr->nvalue_table[i].nvalue;
++	}
++
++	return 0;
++}
++
++/* Public Functions */
++
++/**
++ * sr_configure_errgen() - Configures the smrtreflex to perform AVS using the
++ *			 error generator module.
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the smartreflex class driver to
++ * configure the error generator module inside the smartreflex module.
++ * SR settings if using the ERROR module inside Smartreflex.
++ * SR CLASS 3 by default uses only the ERROR module where as
++ * SR CLASS 2 can choose between ERROR module and MINMAXAVG
++ * module. Returns 0 on success and error value in case of failure.
++ */
++int sr_configure_errgen(struct voltagedomain *voltdm)
++{
++	u32 sr_config, sr_errconfig, errconfig_offs, vpboundint_en;
++	u32 vpboundint_st, senp_en = 0, senn_en = 0;
++	u8 senp_shift, senn_shift;
++	struct omap_sr *sr = _sr_lookup(voltdm);
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return -EINVAL;
++	}
++
++	if (!sr->clk_length)
++		sr_set_clk_length(sr);
++
++	senp_en = sr->senp_mod;
++	senn_en = sr->senn_mod;
++
++	sr_config = (sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
++		SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN;
++
++	if (sr->ip_type == SR_TYPE_V1) {
++		sr_config |= SRCONFIG_DELAYCTRL;
++		senn_shift = SRCONFIG_SENNENABLE_V1_SHIFT;
++		senp_shift = SRCONFIG_SENPENABLE_V1_SHIFT;
++		errconfig_offs = ERRCONFIG_V1;
++		vpboundint_en = ERRCONFIG_VPBOUNDINTEN_V1;
++		vpboundint_st = ERRCONFIG_VPBOUNDINTST_V1;
++	} else if (sr->ip_type == SR_TYPE_V2) {
++		senn_shift = SRCONFIG_SENNENABLE_V2_SHIFT;
++		senp_shift = SRCONFIG_SENPENABLE_V2_SHIFT;
++		errconfig_offs = ERRCONFIG_V2;
++		vpboundint_en = ERRCONFIG_VPBOUNDINTEN_V2;
++		vpboundint_st = ERRCONFIG_VPBOUNDINTST_V2;
++	} else {
++		dev_err(&sr->pdev->dev, "%s: Trying to Configure smartreflex"
++			"module without specifying the ip\n", __func__);
++		return -EINVAL;
++	}
++
++	sr_config |= ((senn_en << senn_shift) | (senp_en << senp_shift));
++	sr_write_reg(sr, SRCONFIG, sr_config);
++	sr_errconfig = (sr->err_weight << ERRCONFIG_ERRWEIGHT_SHIFT) |
++		(sr->err_maxlimit << ERRCONFIG_ERRMAXLIMIT_SHIFT) |
++		(sr->err_minlimit <<  ERRCONFIG_ERRMINLIMIT_SHIFT);
++	sr_modify_reg(sr, errconfig_offs, (SR_ERRWEIGHT_MASK |
++		SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
++		sr_errconfig);
++
++	/* Enabling the interrupts if the ERROR module is used */
++	sr_modify_reg(sr, errconfig_offs,
++		vpboundint_en, (vpboundint_en | vpboundint_st));
++
++	return 0;
++}
++
++/**
++ * sr_configure_minmax() - Configures the smrtreflex to perform AVS using the
++ *			 minmaxavg module.
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the smartreflex class driver to
++ * configure the minmaxavg module inside the smartreflex module.
++ * SR settings if using the ERROR module inside Smartreflex.
++ * SR CLASS 3 by default uses only the ERROR module where as
++ * SR CLASS 2 can choose between ERROR module and MINMAXAVG
++ * module. Returns 0 on success and error value in case of failure.
++ */
++int sr_configure_minmax(struct voltagedomain *voltdm)
++{
++	u32 sr_config, sr_avgwt;
++	u32 senp_en = 0, senn_en = 0;
++	u8 senp_shift, senn_shift;
++	struct omap_sr *sr = _sr_lookup(voltdm);
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return -EINVAL;
++	}
++
++	if (!sr->clk_length)
++		sr_set_clk_length(sr);
++
++	senp_en = sr->senp_mod;
++	senn_en = sr->senn_mod;
++
++	sr_config = (sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
++		SRCONFIG_SENENABLE |
++		(sr->accum_data << SRCONFIG_ACCUMDATA_SHIFT);
++
++	if (sr->ip_type == SR_TYPE_V1) {
++		sr_config |= SRCONFIG_DELAYCTRL;
++		senn_shift = SRCONFIG_SENNENABLE_V1_SHIFT;
++		senp_shift = SRCONFIG_SENPENABLE_V1_SHIFT;
++	} else if (sr->ip_type == SR_TYPE_V2) {
++		senn_shift = SRCONFIG_SENNENABLE_V2_SHIFT;
++		senp_shift = SRCONFIG_SENPENABLE_V2_SHIFT;
++	} else {
++		dev_err(&sr->pdev->dev, "%s: Trying to Configure smartreflex"
++			"module without specifying the ip\n", __func__);
++		return -EINVAL;
++	}
++
++	sr_config |= ((senn_en << senn_shift) | (senp_en << senp_shift));
++	sr_write_reg(sr, SRCONFIG, sr_config);
++	sr_avgwt = (sr->senp_avgweight << AVGWEIGHT_SENPAVGWEIGHT_SHIFT) |
++		(sr->senn_avgweight << AVGWEIGHT_SENNAVGWEIGHT_SHIFT);
++	sr_write_reg(sr, AVGWEIGHT, sr_avgwt);
++
++	/*
++	 * Enabling the interrupts if MINMAXAVG module is used.
++	 * TODO: check if all the interrupts are mandatory
++	 */
++	if (sr->ip_type == SR_TYPE_V1) {
++		sr_modify_reg(sr, ERRCONFIG_V1,
++			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
++			ERRCONFIG_MCUBOUNDINTEN),
++			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUACCUMINTST |
++			 ERRCONFIG_MCUVALIDINTEN | ERRCONFIG_MCUVALIDINTST |
++			 ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_MCUBOUNDINTST));
++	} else if (sr->ip_type == SR_TYPE_V2) {
++		sr_write_reg(sr, IRQSTATUS,
++			IRQSTATUS_MCUACCUMINT | IRQSTATUS_MCVALIDINT |
++			IRQSTATUS_MCBOUNDSINT | IRQSTATUS_MCUDISABLEACKINT);
++		sr_write_reg(sr, IRQENABLE_SET,
++			IRQENABLE_MCUACCUMINT | IRQENABLE_MCUVALIDINT |
++			IRQENABLE_MCUBOUNDSINT | IRQENABLE_MCUDISABLEACKINT);
++	}
++
++	return 0;
++}
++
++/**
++ * sr_enable() - Enables the smartreflex module.
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ * @volt:	The voltage at which the Voltage domain associated with
++ *		the smartreflex module is operating at.
++ *		This is required only to program the correct Ntarget value.
++ *
++ * This API is to be called from the smartreflex class driver to
++ * enable a smartreflex module. Returns 0 on success. Returns error
++ * value if the voltage passed is wrong or if ntarget value is wrong.
++ */
++int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
++{
++	u32 nvalue_reciprocal;
++	struct omap_volt_data *volt_data;
++	struct omap_sr *sr = _sr_lookup(voltdm);
++	int ret;
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return -EINVAL;
++	}
++
++	volt_data = omap_voltage_get_voltdata(sr->voltdm, volt);
++
++	if (IS_ERR(volt_data)) {
++		dev_warn(&sr->pdev->dev, "%s: Unable to get voltage table"
++			"for nominal voltage %ld\n", __func__, volt);
++		return -ENODATA;
++	}
++
++	nvalue_reciprocal = sr_retrieve_nvalue(sr, volt_data->sr_efuse_offs);
++
++	if (!nvalue_reciprocal) {
++		dev_warn(&sr->pdev->dev, "%s: NVALUE = 0 at voltage %ld\n",
++			__func__, volt);
++		return -ENODATA;
++	}
++
++	/* errminlimit is opp dependent and hence linked to voltage */
++	sr->err_minlimit = volt_data->sr_errminlimit;
++
++	pm_runtime_get_sync(&sr->pdev->dev);
++
++	/* Check if SR is already enabled. If yes do nothing */
++	if (sr_read_reg(sr, SRCONFIG) & SRCONFIG_SRENABLE)
++		return 0;
++
++	/* Configure SR */
++	ret = sr_class->configure(voltdm);
++	if (ret)
++		return ret;
++
++	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
++
++	/* SRCONFIG - enable SR */
++	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
++	return 0;
++}
++
++/**
++ * sr_disable() - Disables the smartreflex module.
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the smartreflex class driver to
++ * disable a smartreflex module.
++ */
++void sr_disable(struct voltagedomain *voltdm)
++{
++	struct omap_sr *sr = _sr_lookup(voltdm);
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return;
++	}
++
++	/* Check if SR clocks are already disabled. If yes do nothing */
++	if (pm_runtime_suspended(&sr->pdev->dev))
++		return;
++
++	/*
++	 * Disable SR if only it is indeed enabled. Else just
++	 * disable the clocks.
++	 */
++	if (sr_read_reg(sr, SRCONFIG) & SRCONFIG_SRENABLE) {
++		if (sr->ip_type == SR_TYPE_V1)
++			sr_v1_disable(sr);
++		else if (sr->ip_type == SR_TYPE_V2)
++			sr_v2_disable(sr);
++	}
++
++	pm_runtime_put_sync(&sr->pdev->dev);
++}
++
++/**
++ * sr_register_class() - API to register a smartreflex class parameters.
++ * @class_data:	The structure containing various sr class specific data.
++ *
++ * This API is to be called by the smartreflex class driver to register itself
++ * with the smartreflex driver during init. Returns 0 on success else the
++ * error value.
++ */
++int sr_register_class(struct omap_sr_class_data *class_data)
++{
++	struct omap_sr *sr_info;
++
++	if (!class_data) {
++		pr_warning("%s:, Smartreflex class data passed is NULL\n",
 +			__func__);
 +		return -EINVAL;
 +	}
 +
-+	voltage_dir = debugfs_create_dir("voltage", NULL);
-+	if (IS_ERR(voltage_dir))
-+		pr_err("%s: Unable to create voltage debugfs main dir\n",
++	if (sr_class) {
++		pr_warning("%s: Smartreflex class driver already registered\n",
 +			__func__);
-+	for (i = 0; i < nr_scalable_vdd; i++) {
-+		if (vdd_data_configure(&vdd_info[i]))
-+			continue;
-+		vc_init(&vdd_info[i]);
-+		vp_init(&vdd_info[i]);
-+		vdd_debugfs_init(&vdd_info[i]);
++		return -EBUSY;
 +	}
++
++	sr_class = class_data;
++
++	/*
++	 * Call into late init to do intializations that require
++	 * both sr driver and sr class driver to be initiallized.
++	 */
++	list_for_each_entry(sr_info, &sr_list, node)
++		sr_late_init(sr_info);
 +
 +	return 0;
 +}
 +
 +/**
-+ * omap_voltage_early_init()- Volatage driver early init
++ * omap_sr_enable() -  API to enable SR clocks and to call into the
++ *			registered smartreflex class enable API.
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the kernel in order to enable
++ * a particular smartreflex module. This API will do the initial
++ * configurations to turn on the smartreflex module and in turn call
++ * into the registered smartreflex class enable API.
 + */
-+static int __init omap_voltage_early_init(void)
++void omap_sr_enable(struct voltagedomain *voltdm)
 +{
-+	if (cpu_is_omap34xx()) {
-+		vdd_info = omap3_vdd_info;
-+		nr_scalable_vdd = OMAP3_NR_SCALABLE_VDD;
-+		vc_init = omap3_vc_init;
-+		vdd_data_configure = omap3_vdd_data_configure;
-+	} else {
-+		pr_warning("%s: voltage driver support not added\n", __func__);
++	struct omap_sr *sr = _sr_lookup(voltdm);
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return;
++	}
++
++	if (!sr->autocomp_active)
++		return;
++
++	if (!sr_class || !(sr_class->enable) || !(sr_class->configure)) {
++		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
++			"registered\n", __func__);
++		return;
++	}
++
++	sr_class->enable(voltdm);
++}
++
++/**
++ * omap_sr_disable() - API to disable SR without resetting the voltage
++ *			processor voltage
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the kernel in order to disable
++ * a particular smartreflex module. This API will in turn call
++ * into the registered smartreflex class disable API. This API will tell
++ * the smartreflex class disable not to reset the VP voltage after
++ * disabling smartreflex.
++ */
++void omap_sr_disable(struct voltagedomain *voltdm)
++{
++	struct omap_sr *sr = _sr_lookup(voltdm);
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return;
++	}
++
++	if (!sr->autocomp_active)
++		return;
++
++	if (!sr_class || !(sr_class->disable)) {
++		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
++			"registered\n", __func__);
++		return;
++	}
++
++	sr_class->disable(voltdm, 0);
++}
++
++/**
++ * omap_sr_disable_reset_volt() - API to disable SR and reset the
++ *				voltage processor voltage
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the kernel in order to disable
++ * a particular smartreflex module. This API will in turn call
++ * into the registered smartreflex class disable API. This API will tell
++ * the smartreflex class disable to reset the VP voltage after
++ * disabling smartreflex.
++ */
++void omap_sr_disable_reset_volt(struct voltagedomain *voltdm)
++{
++	struct omap_sr *sr = _sr_lookup(voltdm);
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return;
++	}
++
++	if (!sr->autocomp_active)
++		return;
++
++	if (!sr_class || !(sr_class->disable)) {
++		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
++			"registered\n", __func__);
++		return;
++	}
++
++	sr_class->disable(voltdm, 1);
++}
++
++/**
++ * omap_sr_register_pmic() - API to register pmic specific info.
++ * @pmic_data:	The structure containing pmic specific data.
++ *
++ * This API is to be called from the PMIC specific code to register with
++ * smartreflex driver pmic specific info. Currently the only info required
++ * is the smartreflex init on the PMIC side.
++ */
++void omap_sr_register_pmic(struct omap_sr_pmic_data *pmic_data)
++{
++	if (!pmic_data) {
++		pr_warning("%s: Trying to register NULL PMIC data structure"
++			"with smartreflex\n", __func__);
++		return;
++	}
++
++	sr_pmic_data = pmic_data;
++}
++
++/* PM Debug Fs enteries to enable disable smartreflex. */
++static int omap_sr_autocomp_show(void *data, u64 *val)
++{
++	struct omap_sr *sr_info = (struct omap_sr *) data;
++
++	if (!sr_info) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, sr_info->voltdm->name);
++		return -EINVAL;
++	}
++
++	*val = sr_info->autocomp_active;
++
++	return 0;
++}
++
++static int omap_sr_autocomp_store(void *data, u64 val)
++{
++	struct omap_sr *sr_info = (struct omap_sr *) data;
++
++	if (!sr_info) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, sr_info->voltdm->name);
++		return -EINVAL;
++	}
++
++	/* Sanity check */
++	if (val && (val != 1)) {
++		pr_warning("%s: Invalid argument %lld\n", __func__, val);
++		return -EINVAL;
++	}
++
++	if (!val)
++		sr_stop_vddautocomp(sr_info);
++	else
++		sr_start_vddautocomp(sr_info);
++
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(pm_sr_fops, omap_sr_autocomp_show,
++		omap_sr_autocomp_store, "%llu\n");
++
++static int __init omap_sr_probe(struct platform_device *pdev)
++{
++	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
++	struct omap_sr_data *pdata = pdev->dev.platform_data;
++	struct resource *mem, *irq;
++	struct dentry *vdd_dbg_dir, *dbg_dir;
++	int ret = 0;
++
++	if (!sr_info) {
++		dev_err(&pdev->dev, "%s: unable to allocate sr_info\n",
++			__func__);
++		return -ENOMEM;
++	}
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "%s: platform data missing\n", __func__);
++		return -EINVAL;
++	}
++
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!mem) {
++		dev_err(&pdev->dev, "%s: no mem resource\n", __func__);
++		ret = -ENODEV;
++		goto err_free_devinfo;
++	}
++
++	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++
++	pm_runtime_enable(&pdev->dev);
++
++	sr_info->pdev = pdev;
++	sr_info->srid = pdev->id;
++	sr_info->voltdm = pdata->voltdm;
++	sr_info->nvalue_table = pdata->nvalue_table;
++	sr_info->nvalue_count = pdata->nvalue_count;
++	sr_info->senn_mod = pdata->senn_mod;
++	sr_info->senp_mod = pdata->senp_mod;
++	sr_info->autocomp_active = false;
++	sr_info->ip_type = pdata->ip_type;
++	sr_info->base = ioremap(mem->start, resource_size(mem));
++	if (!sr_info->base) {
++		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
++		ret = -ENOMEM;
++		goto err_release_region;
++	}
++
++	if (irq)
++		sr_info->irq = irq->start;
++
++	sr_set_clk_length(sr_info);
++	sr_set_regfields(sr_info);
++
++	list_add(&sr_info->node, &sr_list);
++
++	/*
++	 * Call into late init to do intializations that require
++	 * both sr driver and sr class driver to be initiallized.
++	 */
++	if (sr_class) {
++		ret = sr_late_init(sr_info);
++		if (ret) {
++			pr_warning("%s: Error in SR late init\n", __func__);
++			return ret;
++		}
++	}
++
++	dev_info(&pdev->dev, "%s: SmartReflex driver initialized\n", __func__);
++
++	/*
++	 * If the voltage domain debugfs directory is not created, do
++	 * not try to create rest of the debugfs entries.
++	 */
++	vdd_dbg_dir = omap_voltage_get_dbgdir(sr_info->voltdm);
++	if (!vdd_dbg_dir)
++		return -EINVAL;
++
++	dbg_dir = debugfs_create_dir("smartreflex", vdd_dbg_dir);
++	if (IS_ERR(dbg_dir)) {
++		dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
++			__func__);
++		return PTR_ERR(dbg_dir);
++	}
++
++	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
++				(void *)sr_info, &pm_sr_fops);
++
++	return ret;
++
++err_release_region:
++	release_mem_region(mem->start, resource_size(mem));
++err_free_devinfo:
++	kfree(sr_info);
++
++	return ret;
++}
++
++static int __devexit omap_sr_remove(struct platform_device *pdev)
++{
++	struct omap_sr_data *pdata = pdev->dev.platform_data;
++	struct omap_sr *sr_info;
++	struct resource *mem;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "%s: platform data missing\n", __func__);
++		return -EINVAL;
++	}
++
++	sr_info = _sr_lookup(pdata->voltdm);
++	if (!sr_info) {
++		dev_warn(&pdev->dev, "%s: omap_sr struct not found\n",
++			__func__);
++		return -EINVAL;
++	}
++
++	if (sr_info->autocomp_active)
++		sr_stop_vddautocomp(sr_info);
++
++	list_del(&sr_info->node);
++	iounmap(sr_info->base);
++	kfree(sr_info);
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	release_mem_region(mem->start, resource_size(mem));
++
++	return 0;
++}
++
++static struct platform_driver smartreflex_driver = {
++	.remove         = omap_sr_remove,
++	.driver		= {
++		.name	= "smartreflex",
++	},
++};
++
++static int __init sr_init(void)
++{
++	int ret = 0;
++
++	/*
++	 * sr_init is a late init. If by then a pmic specific API is not
++	 * registered either there is no need for anything to be done on
++	 * the PMIC side or somebody has forgotten to register a PMIC
++	 * handler. Warn for the second condition.
++	 */
++	if (sr_pmic_data && sr_pmic_data->sr_pmic_init)
++		sr_pmic_data->sr_pmic_init();
++	else
++		pr_warning("%s: No PMIC hook to init smartreflex\n", __func__);
++
++	ret = platform_driver_probe(&smartreflex_driver, omap_sr_probe);
++	if (ret) {
++		pr_err("%s: platform driver register failed for SR\n",
++			__func__);
++		return ret;
 +	}
 +
 +	return 0;
 +}
-+core_initcall(omap_voltage_early_init);
-diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
++
++static void __exit sr_exit(void)
++{
++	platform_driver_unregister(&smartreflex_driver);
++}
++late_initcall(sr_init);
++module_exit(sr_exit);
++
++MODULE_DESCRIPTION("OMAP Smartreflex Driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRIVER_NAME);
++MODULE_AUTHOR("Texas Instruments Inc");
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 92c5bb7..95ceca0 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -35,6 +35,28 @@ config OMAP_DEBUG_LEDS
+ 	depends on OMAP_DEBUG_DEVICES
+ 	default y if LEDS_CLASS
+ 
++config OMAP_SMARTREFLEX
++	bool "SmartReflex support"
++	depends on ARCH_OMAP3 && PM
++	help
++	  Say Y if you want to enable SmartReflex.
++
++	  SmartReflex can perform continuous dynamic voltage
++	  scaling around the nominal operating point voltage
++	  according to silicon characteristics and operating
++	  conditions. Enabling SmartReflex reduces power
++	  consumption.
++
++	  Please note, that by default SmartReflex is only
++	  initialized. To enable the automatic voltage
++	  compensation for vdd mpu  and vdd core from user space,
++	  user must write 1 to
++		/debug/voltage/vdd_<X>/smartreflex/autocomp,
++	  where X is mpu or core for OMAP3.
++	  Optionallly autocompensation can be enabled in the kernel
++	  by default during system init via the enable_on_init flag
++	  which an be passed as platform data to the smartreflex driver.
++
+ config OMAP_RESET_CLOCKS
+ 	bool "Reset unused clocks during boot"
+ 	depends on ARCH_OMAP
+diff --git a/arch/arm/plat-omap/include/plat/smartreflex.h b/arch/arm/plat-omap/include/plat/smartreflex.h
 new file mode 100644
-index 0000000..2f4f59a
+index 0000000..6568c88
 --- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/voltage.h
-@@ -0,0 +1,134 @@
++++ b/arch/arm/plat-omap/include/plat/smartreflex.h
+@@ -0,0 +1,245 @@
 +/*
-+ * OMAP Voltage Management Routines
++ * OMAP Smartreflex Defines and Routines
 + *
 + * Author: Thara Gopinath	<thara@ti.com>
 + *
-+ * Copyright (C) 2009 Texas Instruments, Inc.
++ * Copyright (C) 2010 Texas Instruments, Inc.
 + * Thara Gopinath <thara@ti.com>
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ * Kalle Jokiniemi
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Lesly A M <x0080970@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
-+#define __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
++#ifndef __ASM_ARM_OMAP_SMARTREFLEX_H
++#define __ASM_ARM_OMAP_SMARTREFLEX_H
 +
-+#define VOLTSCALE_VPFORCEUPDATE		1
-+#define VOLTSCALE_VCBYPASS		2
++#include <linux/platform_device.h>
++#include <plat/voltage.h>
 +
 +/*
-+ * OMAP3 GENERIC setup times. Revisit to see if these needs to be
-+ * passed from board or PMIC file
++ * Different Smartreflex IPs version. The v1 is the 65nm version used in
++ * OMAP3430. The v2 is the update for the 45nm version of the IP
++ * used in OMAP3630 and OMAP4430
 + */
-+#define OMAP3_CLKSETUP		0xff
-+#define OMAP3_VOLTOFFSET	0xff
-+#define OMAP3_VOLTSETUP2	0xff
++#define SR_TYPE_V1	1
++#define SR_TYPE_V2	2
 +
-+/* Voltage value defines */
-+#define OMAP3430_VDD_MPU_OPP1_UV		975000
-+#define OMAP3430_VDD_MPU_OPP2_UV		1075000
-+#define OMAP3430_VDD_MPU_OPP3_UV		1200000
-+#define OMAP3430_VDD_MPU_OPP4_UV		1270000
-+#define OMAP3430_VDD_MPU_OPP5_UV		1350000
++/* SMART REFLEX REG ADDRESS OFFSET */
++#define SRCONFIG		0x00
++#define SRSTATUS		0x04
++#define SENVAL			0x08
++#define SENMIN			0x0C
++#define SENMAX			0x10
++#define SENAVG			0x14
++#define AVGWEIGHT		0x18
++#define NVALUERECIPROCAL	0x1c
++#define SENERROR_V1		0x20
++#define ERRCONFIG_V1		0x24
++#define IRQ_EOI			0x20
++#define IRQSTATUS_RAW		0x24
++#define IRQSTATUS		0x28
++#define IRQENABLE_SET		0x2C
++#define IRQENABLE_CLR		0x30
++#define SENERROR_V2		0x34
++#define ERRCONFIG_V2		0x38
 +
-+#define OMAP3430_VDD_CORE_OPP1_UV		975000
-+#define OMAP3430_VDD_CORE_OPP2_UV		1050000
-+#define OMAP3430_VDD_CORE_OPP3_UV		1150000
++/* Bit/Shift Positions */
 +
-+#define OMAP3630_VDD_MPU_OPP50_UV		1012500
-+#define OMAP3630_VDD_MPU_OPP100_UV		1200000
-+#define OMAP3630_VDD_MPU_OPP120_UV		1325000
-+#define OMAP3630_VDD_MPU_OPP1G_UV		1375000
++/* SRCONFIG */
++#define SRCONFIG_ACCUMDATA_SHIFT	22
++#define SRCONFIG_SRCLKLENGTH_SHIFT	12
++#define SRCONFIG_SENNENABLE_V1_SHIFT	5
++#define SRCONFIG_SENPENABLE_V1_SHIFT	3
++#define SRCONFIG_SENNENABLE_V2_SHIFT	1
++#define SRCONFIG_SENPENABLE_V2_SHIFT	0
++#define SRCONFIG_CLKCTRL_SHIFT		0
 +
-+#define OMAP3630_VDD_CORE_OPP50_UV		1000000
-+#define OMAP3630_VDD_CORE_OPP100_UV		1200000
++#define SRCONFIG_ACCUMDATA_MASK		(0x3ff << 22)
++
++#define SRCONFIG_SRENABLE		BIT(11)
++#define SRCONFIG_SENENABLE		BIT(10)
++#define SRCONFIG_ERRGEN_EN		BIT(9)
++#define SRCONFIG_MINMAXAVG_EN		BIT(8)
++#define SRCONFIG_DELAYCTRL		BIT(2)
++
++/* AVGWEIGHT */
++#define AVGWEIGHT_SENPAVGWEIGHT_SHIFT	2
++#define AVGWEIGHT_SENNAVGWEIGHT_SHIFT	0
++
++/* NVALUERECIPROCAL */
++#define NVALUERECIPROCAL_SENPGAIN_SHIFT	20
++#define NVALUERECIPROCAL_SENNGAIN_SHIFT	16
++#define NVALUERECIPROCAL_RNSENP_SHIFT	8
++#define NVALUERECIPROCAL_RNSENN_SHIFT	0
++
++/* ERRCONFIG */
++#define ERRCONFIG_ERRWEIGHT_SHIFT	16
++#define ERRCONFIG_ERRMAXLIMIT_SHIFT	8
++#define ERRCONFIG_ERRMINLIMIT_SHIFT	0
++
++#define SR_ERRWEIGHT_MASK		(0x07 << 16)
++#define SR_ERRMAXLIMIT_MASK		(0xff << 8)
++#define SR_ERRMINLIMIT_MASK		(0xff << 0)
++
++#define ERRCONFIG_VPBOUNDINTEN_V1	BIT(31)
++#define ERRCONFIG_VPBOUNDINTST_V1	BIT(30)
++#define	ERRCONFIG_MCUACCUMINTEN		BIT(29)
++#define ERRCONFIG_MCUACCUMINTST		BIT(28)
++#define	ERRCONFIG_MCUVALIDINTEN		BIT(27)
++#define ERRCONFIG_MCUVALIDINTST		BIT(26)
++#define ERRCONFIG_MCUBOUNDINTEN		BIT(25)
++#define	ERRCONFIG_MCUBOUNDINTST		BIT(24)
++#define	ERRCONFIG_MCUDISACKINTEN	BIT(23)
++#define ERRCONFIG_VPBOUNDINTST_V2	BIT(23)
++#define ERRCONFIG_MCUDISACKINTST	BIT(22)
++#define ERRCONFIG_VPBOUNDINTEN_V2	BIT(22)
++
++#define ERRCONFIG_STATUS_V1_MASK	(ERRCONFIG_VPBOUNDINTST_V1 | \
++					ERRCONFIG_MCUACCUMINTST | \
++					ERRCONFIG_MCUVALIDINTST | \
++					ERRCONFIG_MCUBOUNDINTST | \
++					ERRCONFIG_MCUDISACKINTST)
++/* IRQSTATUS */
++#define IRQSTATUS_MCUACCUMINT		BIT(3)
++#define IRQSTATUS_MCVALIDINT		BIT(2)
++#define IRQSTATUS_MCBOUNDSINT		BIT(1)
++#define IRQSTATUS_MCUDISABLEACKINT	BIT(0)
++
++/* IRQENABLE_SET and IRQENABLE_CLEAR */
++#define IRQENABLE_MCUACCUMINT		BIT(3)
++#define IRQENABLE_MCUVALIDINT		BIT(2)
++#define IRQENABLE_MCUBOUNDSINT		BIT(1)
++#define IRQENABLE_MCUDISABLEACKINT	BIT(0)
++
++/* Common Bit values */
++
++#define SRCLKLENGTH_12MHZ_SYSCLK	0x3c
++#define SRCLKLENGTH_13MHZ_SYSCLK	0x41
++#define SRCLKLENGTH_19MHZ_SYSCLK	0x60
++#define SRCLKLENGTH_26MHZ_SYSCLK	0x82
++#define SRCLKLENGTH_38MHZ_SYSCLK	0xC0
++
++/*
++ * 3430 specific values. Maybe these should be passed from board file or
++ * pmic structures.
++ */
++#define OMAP3430_SR_ACCUMDATA		0x1f4
++
++#define OMAP3430_SR1_SENPAVGWEIGHT	0x03
++#define OMAP3430_SR1_SENNAVGWEIGHT	0x03
++
++#define OMAP3430_SR2_SENPAVGWEIGHT	0x01
++#define OMAP3430_SR2_SENNAVGWEIGHT	0x01
++
++#define OMAP3430_SR_ERRWEIGHT		0x04
++#define OMAP3430_SR_ERRMAXLIMIT		0x02
 +
 +/**
-+ * struct voltagedomain - omap voltage domain global structure.
-+ * @name:	Name of the voltage domain which can be used as a unique
-+ *		identifier.
++ * struct omap_sr_pmic_data - Strucutre to be populated by pmic code to pass
++ *				pmic specific info to smartreflex driver
++ *
++ * @sr_pmic_init:	API to initialize smartreflex on the PMIC side.
 + */
-+struct voltagedomain {
-+	char *name;
++struct omap_sr_pmic_data {
++	void (*sr_pmic_init) (void);
 +};
 +
-+/* API to get the voltagedomain pointer */
-+struct voltagedomain *omap_voltage_domain_lookup(char *name);
++#ifdef CONFIG_OMAP_SMARTREFLEX
++/*
++ * The smart reflex driver supports CLASS1 CLASS2 and CLASS3 SR.
++ * The smartreflex class driver should pass the class type.
++ * Should be used to populate the class_type field of the
++ * omap_smartreflex_class_data structure.
++ */
++#define SR_CLASS1	0x1
++#define SR_CLASS2	0x2
++#define SR_CLASS3	0x3
 +
 +/**
-+ * struct omap_volt_data - Omap voltage specific data.
-+ * @voltage_nominal:	The possible voltage value in uV
-+ * @sr_efuse_offs:	The offset of the efuse register(from system
-+ *			control module base address) from where to read
-+ *			the n-target value for the smartreflex module.
-+ * @sr_errminlimit:	Error min limit value for smartreflex. This value
-+ *			differs at differnet opp and thus is linked
-+ *			with voltage.
-+ * @vp_errorgain:	Error gain value for the voltage processor. This
-+ *			field also differs according to the voltage/opp.
++ * struct omap_sr_class_data - Smartreflex class driver info
++ *
++ * @enable:		API to enable a particular class smaartreflex.
++ * @disable:		API to disable a particular class smartreflex.
++ * @configure:		API to configure a particular class smartreflex.
++ * @notify:		API to notify the class driver about an event in SR.
++ *			Not needed for class3.
++ * @notify_flags:	specify the events to be notified to the class driver
++ * @class_type:		specify which smartreflex class.
++ *			Can be used by the SR driver to take any class
++ *			based decisions.
 + */
-+struct omap_volt_data {
-+	u32	volt_nominal;
-+	u32	sr_efuse_offs;
-+	u8	sr_errminlimit;
-+	u8	vp_errgain;
++struct omap_sr_class_data {
++	int (*enable)(struct voltagedomain *voltdm);
++	int (*disable)(struct voltagedomain *voltdm, int is_volt_reset);
++	int (*configure)(struct voltagedomain *voltdm);
++	int (*notify)(struct voltagedomain *voltdm, u32 status);
++	u8 notify_flags;
++	u8 class_type;
 +};
 +
 +/**
-+ * struct omap_volt_pmic_info - PMIC specific data required by voltage driver.
-+ * @slew_rate:	PMIC slew rate (in uv/us)
-+ * @step_size:	PMIC voltage step size (in uv)
-+ * @vsel_to_uv:	PMIC API to convert vsel value to actual voltage in uV.
-+ * @uv_to_vsel:	PMIC API to convert voltage in uV to vsel value.
++ * struct omap_sr_nvalue_table	- Smartreflex n-target value info
++ *
++ * @efuse_offs:	The offset of the efuse where n-target values are stored.
++ * @nvalue:	The n-target value.
 + */
-+struct omap_volt_pmic_info {
-+	int slew_rate;
-+	int step_size;
-+	u32 on_volt;
-+	u32 onlp_volt;
-+	u32 ret_volt;
-+	u32 off_volt;
-+	u16 volt_setup_time;
-+	u8 vp_erroroffset;
-+	u8 vp_vstepmin;
-+	u8 vp_vstepmax;
-+	u8 vp_vddmin;
-+	u8 vp_vddmax;
-+	u8 vp_timeout_us;
-+	u8 i2c_slave_addr;
-+	u8 pmic_reg;
-+	unsigned long (*vsel_to_uv) (const u8 vsel);
-+	u8 (*uv_to_vsel) (unsigned long uV);
++struct omap_sr_nvalue_table {
++	u32 efuse_offs;
++	u32 nvalue;
 +};
 +
-+unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm);
-+void omap_vp_enable(struct voltagedomain *voltdm);
-+void omap_vp_disable(struct voltagedomain *voltdm);
-+int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
-+		unsigned long target_volt);
-+void omap_voltage_reset(struct voltagedomain *voltdm);
-+void omap_voltage_get_volttable(struct voltagedomain *voltdm,
-+		struct omap_volt_data **volt_data);
-+struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
-+		unsigned long volt);
-+unsigned long omap_voltage_get_nom_volt(struct voltagedomain *voltdm);
-+struct dentry *omap_voltage_get_dbgdir(struct voltagedomain *voltdm);
-+#ifdef CONFIG_PM
-+int omap_voltage_register_pmic(struct voltagedomain *voltdm,
-+		struct omap_volt_pmic_info *pmic_info);
-+void omap_change_voltscale_method(struct voltagedomain *voltdm,
-+		int voltscale_method);
-+int omap_voltage_late_init(void);
++/**
++ * struct omap_sr_data - Smartreflex platform data.
++ *
++ * @ip_type:		Smartreflex IP type.
++ * @senp_mod:		SENPENABLE value for the sr
++ * @senn_mod:		SENNENABLE value for sr
++ * @nvalue_count:	Number of distinct nvalues in the nvalue table
++ * @enable_on_init:	whether this sr module needs to enabled at
++ *			boot up or not.
++ * @nvalue_table:	table containing the  efuse offsets and nvalues
++ *			corresponding to them.
++ * @voltdm:		Pointer to the voltage domain associated with the SR
++ */
++struct omap_sr_data {
++	int				ip_type;
++	u32				senp_mod;
++	u32				senn_mod;
++	int				nvalue_count;
++	bool				enable_on_init;
++	struct omap_sr_nvalue_table	*nvalue_table;
++	struct voltagedomain		*voltdm;
++};
++
++/* Smartreflex module enable/disable interface */
++void omap_sr_enable(struct voltagedomain *voltdm);
++void omap_sr_disable(struct voltagedomain *voltdm);
++void omap_sr_disable_reset_volt(struct voltagedomain *voltdm);
++
++/* API to register the pmic specific data with the smartreflex driver. */
++void omap_sr_register_pmic(struct omap_sr_pmic_data *pmic_data);
++
++/* Smartreflex driver hooks to be called from Smartreflex class driver */
++int sr_enable(struct voltagedomain *voltdm, unsigned long volt);
++void sr_disable(struct voltagedomain *voltdm);
++int sr_configure_errgen(struct voltagedomain *voltdm);
++int sr_configure_minmax(struct voltagedomain *voltdm);
++
++/* API to register the smartreflex class driver with the smartreflex driver */
++int sr_register_class(struct omap_sr_class_data *class_data);
 +#else
-+static inline int omap_voltage_register_pmic(struct voltagedomain *voltdm,
-+		struct omap_volt_pmic_info *pmic_info) {}
-+static inline  void omap_change_voltscale_method(struct voltagedomain *voltdm,
-+		int voltscale_method) {}
-+static inline int omap_voltage_late_init(void)
-+{
-+	return -EINVAL;
-+}
++static inline void omap_sr_enable(struct voltagedomain *voltdm) {}
++static inline void omap_sr_disable(struct voltagedomain *voltdm) {}
++static inline void omap_sr_disable_reset_volt(
++		struct voltagedomain *voltdm) {}
++static inline void omap_sr_register_pmic(
++		struct omap_sr_pmic_data *pmic_data) {}
 +#endif
-+
 +#endif
 -- 
 1.7.0.4
