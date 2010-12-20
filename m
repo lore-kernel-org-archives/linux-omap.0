@@ -1,73 +1,44 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v3 3/7] DSPBRIDGE: do not call follow_page
-Date: Mon, 20 Dec 2010 16:10:41 +0200
-Message-ID: <AANLkTinPpiOjbRjcqqyYxkqbMABd_+4iadd+Vodm+4pH@mail.gmail.com>
-References: <1274976134-22769-1-git-send-email-ohad@wizery.com>
-	<1274976134-22769-4-git-send-email-ohad@wizery.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v4 2/7] OMAP3: PM: Erratum i581 support: dll kick strategy
+Date: Mon, 20 Dec 2010 08:16:55 -0600
+Message-ID: <4D0F6557.2090101@ti.com>
+References: <1292712817-24999-1-git-send-email-nm@ti.com> <1292712817-24999-3-git-send-email-nm@ti.com> <ff992259ca9324925ce680a11cae0245@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:53220 "EHLO
-	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757021Ab0LTOKo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Dec 2010 09:10:44 -0500
-Received: by bwz16 with SMTP id 16so3311907bwz.4
-        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 06:10:42 -0800 (PST)
-In-Reply-To: <1274976134-22769-4-git-send-email-ohad@wizery.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:59124 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757445Ab0LTOQ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 09:16:59 -0500
+Received: by yxs7 with SMTP id 7so1667194yxs.24
+        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 06:16:58 -0800 (PST)
+In-Reply-To: <ff992259ca9324925ce680a11cae0245@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <jean.pihet@newoldbits.com>, Kevin <khilman@deeprootsystems.com>, Tony <tony@atomide.com>
 
-On Thu, May 27, 2010 at 7:02 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> Eliminate the call to follow_page. Instead, use the page
-> information that was kept during the proc_map call.
-> This also has the advantage that users can now only
-> specify memory areas that were previously mapped.
->
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+Santosh Shilimkar had written, on 12/20/2010 12:47 AM, the following:
+[..]
+>> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-
+>> omap2/sleep34xx.S
+>> index 2c20fcf..3fbd1e5 100644
+>> --- a/arch/arm/mach-omap2/sleep34xx.S
+>> +++ b/arch/arm/mach-omap2/sleep34xx.S
+>> @@ -42,6 +42,7 @@
+>>  				OMAP3430_PM_PREPWSTST)
+>>  #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD +
+>> OMAP2_PM_PWSTCTRL
+>>  #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
+>> +#define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
+> We need to avoid these macro's calculating VA directly. But I guess
+> it needs to be done more than just this line and hence can be done
+> in a separate patch.
+yes - with the cleanups planned for this file, we could probably add it 
+to that set I guess.
 
-I found another issue with this patch:
-
-> - =C2=A0 =C2=A0 =C2=A0 if (memory_sync_vma((u32) pmpu_addr, ul_size, =
-=46lushMemType)) {
-> + =C2=A0 =C2=A0 =C2=A0 /* find requested memory are in cached mapping=
- information */
-> + =C2=A0 =C2=A0 =C2=A0 map_obj =3D find_containing_mapping(pr_ctxt, (=
-u32) pmpu_addr, ul_size);
-> + =C2=A0 =C2=A0 =C2=A0 if (!map_obj) {
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pr_err("%s: find_c=
-ontaining_mapping failed\n", __func__);
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 status =3D -EFAULT=
-;
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto err_out;
-> + =C2=A0 =C2=A0 =C2=A0 }
-> + =C2=A0 =C2=A0 =C2=A0 if (memory_sync_page(map_obj, (u32) pmpu_addr,=
- ul_size, ul_flags)) {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0pr_err("%s: In=
-Valid address parameters %p %x\n",
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0__func__, pmpu_addr, ul_size);
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0__func__, pmpu_addr, ul_size);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0status =3D -EF=
-AULT;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
-
-find_containing_mapping() is taking the lock for dmm_map_list,
-however, nothing prevents the map_obj to be destroyed after that,
-specially if kcalloc sleeps, and then an unmap happens. While doing
-some stress testing I found there's a race condition that makes
-exactly that happen.
-
-I'm sending some patches to fix that.
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Nishanth Menon
