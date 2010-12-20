@@ -1,237 +1,84 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH v6 04/10] OMAP3: PM: Adding smartreflex device file.
-Date: Mon, 20 Dec 2010 22:29:11 +0530
-Message-ID: <1292864357-13939-5-git-send-email-thara@ti.com>
+Subject: [PATCH v6 07/10] OMAP3: PM: Adding T2 enabling of smartreflex support
+Date: Mon, 20 Dec 2010 22:29:14 +0530
+Message-ID: <1292864357-13939-8-git-send-email-thara@ti.com>
 References: <1292864357-13939-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52035 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52041 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932870Ab0LTQ7d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 11:59:33 -0500
+	id S932876Ab0LTQ7h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 11:59:37 -0500
 In-Reply-To: <1292864357-13939-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, nm@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch adds support for device registration of various
-smartreflex module present in the system. This patch introduces
-the platform data for smartreflex devices which include
-the efused n-target vaules, a parameter to indicate
-whether smartreflex autocompensation needs to be
-enabled on init or not. An API
-omap_enable_smartreflex_on_init is provided for the
-board files to enable smartreflex autocompensation during
-system boot up.
+This patch adds support in the twl4030 driver to enable smartreflex.
+The smartreflex bit on twl4030 needs to be enabled by default irrespective
+of whether smartreflex module is enabled on the OMAP side or not.
+This is because without this bit enabled the voltage scaling through
+vp forceupdate does not function properly.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/Makefile    |    2 +-
- arch/arm/mach-omap2/pm.c        |    2 +
- arch/arm/mach-omap2/pm.h        |   13 ++++
- arch/arm/mach-omap2/sr_device.c |  131 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 147 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/sr_device.c
+ drivers/mfd/twl-core.c  |   13 +++++++++++++
+ include/linux/i2c/twl.h |   11 +++++++++++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index b1bead0..4e6adbd 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -61,7 +61,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
- 					   cpuidle34xx.o pm_bus.o
- obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
- obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
--obj-$(CONFIG_OMAP_SMARTREFLEX)          += smartreflex.o
-+obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 35275ba..b895ceb 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -1046,6 +1046,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	/* Disable TWL4030/TWL5030 I2C Pull-up on I2C1 and I2C4(SR) interface.
+ 	 * Program I2C_SCL_CTRL_PU(bit 0)=0, I2C_SDA_CTRL_PU (bit 2)=0,
+ 	 * SR_I2C_SCL_CTRL_PU(bit 4)=0 and SR_I2C_SDA_CTRL_PU(bit 6)=0.
++	 * Also enable the smartreflex I2S bit.
+ 	 */
  
- AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
- AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 22adfb2..a05f590 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -21,6 +21,7 @@
- 
- #include "powerdomain.h"
- #include "clockdomain.h"
-+#include "pm.h"
- 
- static struct omap_device_pm_latency *pm_lats;
- 
-@@ -149,6 +150,7 @@ postcore_initcall(omap2_common_pm_init);
- static int __init omap2_common_pm_late_init(void)
- {
- 	omap_voltage_late_init();
-+	omap_devinit_smartreflex();
- 
- 	return 0;
- }
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 419c9d4..77d3ec2 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -11,6 +11,8 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_PM_H
- #define __ARCH_ARM_MACH_OMAP2_PM_H
- 
-+#include <linux/err.h>
+ 	if (twl_class_is_4030()) {
+@@ -1053,6 +1054,18 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		temp &= ~(SR_I2C_SDA_CTRL_PU | SR_I2C_SCL_CTRL_PU | \
+ 		I2C_SDA_CTRL_PU | I2C_SCL_CTRL_PU);
+ 		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
 +
- #include "powerdomain.h"
++		/* The smartreflex bit on twl4030 needs to be enabled by
++		 * default irrespective of whether smartreflex module is
++		 * enabled on the OMAP side or not. This is because without
++		 * this bit enabled the voltage scaling through
++		 * vp forceupdate does not function properly.
++		 */
++		twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
++			TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG);
++		temp |= SMARTREFLEX_ENABLE;
++		twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
++			TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG);
+ 	}
  
- extern void *omap3_secure_ram_storage;
-@@ -99,4 +101,15 @@ extern unsigned int save_secure_ram_context_sz;
- extern unsigned int omap24xx_cpu_suspend_sz;
- extern unsigned int omap34xx_cpu_suspend_sz;
+ 	status = add_children(pdata, id->driver_data);
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index c760991..d392f06 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -434,6 +434,17 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
  
-+#ifdef CONFIG_OMAP_SMARTREFLEX
-+extern int omap_devinit_smartreflex(void);
-+extern void omap_enable_smartreflex_on_init(void);
-+#else
-+static inline int omap_devinit_smartreflex(void)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline void omap_enable_smartreflex_on_init(void) {}
-+#endif
- #endif
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-new file mode 100644
-index 0000000..9a3538f
---- /dev/null
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -0,0 +1,131 @@
+ /*----------------------------------------------------------------------*/
+ 
 +/*
-+ * OMAP3/OMAP4 smartreflex device file
-+ *
-+ * Author: Thara Gopinath	<thara@ti.com>
-+ *
-+ * Based originally on code from smartreflex.c
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Thara Gopinath <thara@ti.com>
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Kalle Jokiniemi
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ * Lesly A M <x0080970@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * PM Receiver module register offsets (use TWL4030_MODULE_PM_RECEIVER)
 + */
 +
-+#include <linux/err.h>
-+#include <linux/slab.h>
++#define TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG	0x06
 +
-+#include <plat/omap_device.h>
-+#include <plat/smartreflex.h>
-+#include <plat/voltage.h>
++/* Smartreflex I2S bus enable/ vmode enable bit */
++#define SMARTREFLEX_ENABLE			BIT(3)
 +
-+#include "control.h"
++/*----------------------------------------------------------------------*/
 +
-+static bool sr_enable_on_init;
-+
-+static struct omap_device_pm_latency omap_sr_latency[] = {
-+	{
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func	 = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST
-+	},
-+};
-+
-+/* Read EFUSE values from control registers for OMAP3430 */
-+static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
-+				struct omap_sr_data *sr_data)
-+{
-+	struct omap_sr_nvalue_table *nvalue_table;
-+	int i, count = 0;
-+
-+	while (volt_data[count].volt_nominal)
-+		count++;
-+
-+	nvalue_table = kzalloc(sizeof(struct omap_sr_nvalue_table)*count,
-+			GFP_KERNEL);
-+
-+	for (i = 0; i < count; i++) {
-+		u32 v = omap_ctrl_readl(volt_data[i].sr_efuse_offs);
-+
-+		nvalue_table[i].efuse_offs = volt_data[i].sr_efuse_offs;
-+		nvalue_table[i].nvalue = v;
-+	}
-+
-+	sr_data->nvalue_table = nvalue_table;
-+	sr_data->nvalue_count = count;
-+}
-+
-+static int sr_dev_init(struct omap_hwmod *oh, void *user)
-+{
-+	struct omap_sr_data *sr_data;
-+	struct omap_device *od;
-+	struct omap_volt_data *volt_data;
-+	char *name = "smartreflex";
-+	static int i;
-+
-+	sr_data = kzalloc(sizeof(struct omap_sr_data), GFP_KERNEL);
-+	if (!sr_data) {
-+		pr_err("%s: Unable to allocate memory for %s sr_data.Error!\n",
-+			__func__, oh->name);
-+		return -ENOMEM;
-+	}
-+
-+	if (!oh->vdd_name) {
-+		pr_err("%s: No voltage domain specified for %s."
-+			"Cannot initialize\n", __func__, oh->name);
-+		goto exit;
-+	}
-+
-+	sr_data->ip_type = oh->class->rev;
-+	sr_data->senn_mod = 0x1;
-+	sr_data->senp_mod = 0x1;
-+
-+	sr_data->voltdm = omap_voltage_domain_lookup(oh->vdd_name);
-+	if (IS_ERR(sr_data->voltdm)) {
-+		pr_err("%s: Unable to get voltage domain pointer for VDD %s\n",
-+			__func__, oh->vdd_name);
-+		goto exit;
-+	}
-+
-+	omap_voltage_get_volttable(sr_data->voltdm, &volt_data);
-+	if (!volt_data) {
-+		pr_warning("%s: No Voltage table registerd fo VDD%d."
-+			"Something really wrong\n\n", __func__, i + 1);
-+		goto exit;
-+	}
-+
-+	sr_set_nvalues(volt_data, sr_data);
-+
-+	sr_data->enable_on_init = sr_enable_on_init;
-+
-+	od = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
-+			       omap_sr_latency,
-+			       ARRAY_SIZE(omap_sr_latency), 0);
-+	if (IS_ERR(od))
-+		pr_warning("%s: Could not build omap_device for %s: %s.\n\n",
-+			__func__, name, oh->name);
-+exit:
-+	i++;
-+	kfree(sr_data);
-+	return 0;
-+}
-+
-+/*
-+ * API to be called from board files to enable smartreflex
-+ * autocompensation at init.
-+ */
-+void __init omap_enable_smartreflex_on_init(void)
-+{
-+	sr_enable_on_init = true;
-+}
-+
-+int __init omap_devinit_smartreflex(void)
-+{
-+	return omap_hwmod_for_each_by_class("smartreflex", sr_dev_init, NULL);
-+}
+ /* Power bus message definitions */
+ 
+ /* The TWL4030/5030 splits its power-management resources (the various
 -- 
 1.7.0.4
 
