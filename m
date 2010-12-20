@@ -1,33 +1,55 @@
-From: Eric Miao <eric.y.miao@gmail.com>
-Subject: Re: [PATCH 0/40] Complete set of clocksource/sched_clock patches
-Date: Mon, 20 Dec 2010 11:32:21 +0800
-Message-ID: <AANLkTimarRAf-_ykQNLgzXd3TtUHhSw+gZ6cZ5pW=Y-9@mail.gmail.com>
-References: <20101217113223.GC9937@n2100.arm.linux.org.uk>
+From: Abraham Arce <abraham.arce.moreno@gmail.com>
+Subject: Re: Is changing serial from /dev/ttySx to /dev/ttyOx a good idea?
+Date: Sun, 19 Dec 2010 22:28:48 -0600
+Message-ID: <AANLkTimcAs0X6B9j9DpbAg1K7aAT7JAyXoOyRZYCeNHG@mail.gmail.com>
+References: <201012201546.12319.manningc2@actrix.gen.nz>
+	<AANLkTi=P58XerK8jdyvfT9JS6tU3U11tYP=KH4_B-cn=@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20101217113223.GC9937@n2100.arm.linux.org.uk>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Alessandro Rubini <rubini@unipv.it>, Bryan Huntsman <bryanh@codeaurora.org>, Colin Cross <ccross@android.com>, Daniel Walker <dwalker@codeaurora.org>, David Brown <davidb@codeaurora.org>, Erik Gilling <konkers@android.com>, "Hans J. Koch" <hjk@linutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Kevin Hilman <khilman@deeprootsystems.com>, Krzysztof Halasa <khc@pm.waw.pl>, Kukjin Kim <kgene.kim@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Jiandong Zheng <jdzheng@broadcom.com>, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Olof Johansson <olof@lixom.net>, Sascha Hauer <kernel@pengutronix.de>, Scott Branden <sbranden@broadcom.com>, STEricsson <STEricsson_nomadik_linux@list.st.com>, Tony Lindgren <tony@atom>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f43.google.com ([209.85.161.43]:56431 "EHLO
+	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751281Ab0LTE2u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Dec 2010 23:28:50 -0500
+Received: by fxm18 with SMTP id 18so2607416fxm.2
+        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 20:28:49 -0800 (PST)
+In-Reply-To: <AANLkTi=P58XerK8jdyvfT9JS6tU3U11tYP=KH4_B-cn=@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Charles Manning <manningc2@actrix.gen.nz>, linux-omap@vger.kernel.org
 
-On Fri, Dec 17, 2010 at 7:32 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> Here is the entire set of clocksource and sched_clock patches which
-> have been previously posted. =C2=A0There's a couple of small tweaks i=
-n a
-> few of the patches (such as adding notrace to OMAP clocksource read
-> functions), and this also shows the proper ordering of these patches.
+Hi,
+
+On Sun, Dec 19, 2010 at 9:04 PM, Ming Lei <tom.leiming@gmail.com> wrote:
+> Hi,
 >
-> Still looking for acks or tested-by's for these patches.
+> 2010/12/20 Charles Manning <manningc2@actrix.gen.nz>:
+>> Hi All
+>>
+>> With the change to the new omap-serial stuff, the device names have changed
+>> from /dev/ttySn to /dev/ttyOn.
+>>
+>> Using the "fit/form/function" argument, this would seem to be a bad idea.
+>>
+>> The kernel does not exist in a vacuum. It is surrounded by u-boot scripts,
+>> command line options, init scripts etc etc. Flipping back and forth between
+>> 2.6.36 and 2.6.37 kernels for testing purposes needs these to be changed.
+>> Annoying and anti-productive.
+>>
+>> Isn't it just better to just replace the ttyOn name with ttyS. That would make
+>> a far smoother transition.
+>>
+>> Thoughts?
+>
+> In fact, the transition is not friendly indeed for a user. I don't know why
+> the transition is introduced, for what purpose? Who can give a explanation?
 >
 
-Hi Russell,
+Patch itself has one explanation, kernel commit is
+b612633b5928077441b979471869753bfa93d41a
 
-Sorry for late feedback. Tested the branch 'clksrc' on Littleton/PXA3xx=
-,
-seems to be good.
+http://www.spinics.net/lists/linux-serial/msg02788.html
 
-Tested-by: Eric Miao <eric.y.miao@gmail.com>
+Best Regards
+Abraham
