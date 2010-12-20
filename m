@@ -1,20 +1,20 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v4 5/7] OMAP3630: PM: Disable L2 cache while invalidating
- L2 cache
-Date: Mon, 20 Dec 2010 12:43:51 +0530
-Message-ID: <9b48aafcc94e9b69236ed4d934ebd91e@mail.gmail.com>
-References: <1292712817-24999-1-git-send-email-nm@ti.com> <1292712817-24999-6-git-send-email-nm@ti.com>
+Subject: RE: [PATCH v4 6/7] OMAP3: PM: make omap3_cpuidle_update_states
+ independent of enable_off_mode
+Date: Mon, 20 Dec 2010 12:46:22 +0530
+Message-ID: <21f9d2f64e7fbcdb4134e04393d42e40@mail.gmail.com>
+References: <1292712817-24999-1-git-send-email-nm@ti.com> <1292712817-24999-7-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:44260 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753646Ab0LTHNy (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:37298 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753641Ab0LTHQX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 02:13:54 -0500
-Received: by gwaa18 with SMTP id a18so1417439gwa.38
-        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 23:13:53 -0800 (PST)
-In-Reply-To: <1292712817-24999-6-git-send-email-nm@ti.com>
+	Mon, 20 Dec 2010 02:16:23 -0500
+Received: by mail-gx0-f170.google.com with SMTP id 20so1524036gxk.1
+        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 23:16:23 -0800 (PST)
+In-Reply-To: <1292712817-24999-7-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
@@ -26,158 +26,104 @@ Cc: Jean Pihet <jean.pihet@newoldbits.com>, Kevin <khilman@deeprootsystems.com>,
 > Sent: Sunday, December 19, 2010 4:24 AM
 > To: linux-omap; linux-arm
 > Cc: Jean Pihet; Kevin; Tony
-> Subject: [PATCH v4 5/7] OMAP3630: PM: Disable L2 cache while
-invalidating
-> L2 cache
+> Subject: [PATCH v4 6/7] OMAP3: PM: make omap3_cpuidle_update_states
+> independent of enable_off_mode
 >
-> From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+> Currently omap3_cpuidle_update_states makes whole sale decision
+> on which C states to update based on enable_off_mode variable
+> Instead, achieve the same functionality by independently providing
+> mpu and core deepest states the system is allowed to achieve and
+> update the idle states accordingly.
 >
-> This disables L2 cache before invalidating it and reenables it
-afterwards.
-> This is be done according to ARM documentation. Currently this is
-> identified
-> as being needed on OMAP3630 as the disable/enable is done from "public
-> side"
-> while, on OMAP3430, this is done in the "secure side".
-Can you point me to ARM doc which says " for L2 invalidation, the
-controller
-needs to be disabled" ?
-L2 invalidation can be done with L2 enabled or disabled. Infact if I look
-at
-below code, effective $L2 will get enabled only when 'C' bit is enabled
-it shouldn't matter really.
+Thanks Nishant for this change. Indeed it's better than using the debug
+related flag.
 
-After looking further I guess it might be needed because L2AUXCTRL
-Configuration is getting changed. In that case for sure the sequence
-used here is right.
-
->
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Tony Lindgren <tony@atomide.com>
->
-> [nm@ti.com: ported to 2.6.37-rc2, added hooks to enable the logic only
-on
-> 3630]
 > Signed-off-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-> ---
-As such patch is fine with me.
 
-> v4: rebased only. no functional change
-> v3: http://marc.info/?l=linux-omap&m=129139583519221&w=2
-> collate all silicon specific errata under a single cpu detection code
-> 	making it elegant and more maintainable.
-> v2: https://patchwork.kernel.org/patch/365232/
-> 	rebased out to this series independent of HS bugfixes
-> v1: http://marc.info/?l=linux-omap&m=129013171125204&w=2
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+
+> ---
+>  arch/arm/mach-omap2/cpuidle34xx.c |   19 ++++++++++---------
+>  arch/arm/mach-omap2/pm.h          |    3 ++-
+>  arch/arm/mach-omap2/pm34xx.c      |    2 +-
+>  3 files changed, 13 insertions(+), 11 deletions(-)
 >
->  arch/arm/mach-omap2/pm.h        |    2 ++
->  arch/arm/mach-omap2/pm34xx.c    |    5 ++++-
->  arch/arm/mach-omap2/sleep34xx.S |   30 ++++++++++++++++++++++++++++++
->  3 files changed, 36 insertions(+), 1 deletions(-)
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-
+> omap2/cpuidle34xx.c
+> index 0d50b45..f80d3f6 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -293,25 +293,26 @@ select_state:
+>  DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
 >
+>  /**
+> - * omap3_cpuidle_update_states - Update the cpuidle states.
+> + * omap3_cpuidle_update_states() - Update the cpuidle states
+> + * @mpu_deepest_state:	Enable states upto and including this for
+mpu
+> domain
+> + * @core_deepest_state:	Enable states upto and including this for
+> core domain
+>   *
+> - * Currently, this function toggles the validity of idle states based
+> upon
+> - * the flag 'enable_off_mode'. When the flag is set all states are
+valid.
+> - * Else, states leading to OFF state set to be invalid.
+> + * This goes through the list of states available and enables and
+> disables the
+> + * validity of C states based on deepest state that can be achieved for
+> the
+> + * variable domain
+>   */
+> -void omap3_cpuidle_update_states(void)
+> +void omap3_cpuidle_update_states(u32 mpu_deepest_state, u32
+> core_deepest_state)
+>  {
+>  	int i;
+>
+>  	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
+>  		struct omap3_processor_cx *cx = &omap3_power_states[i];
+>
+> -		if (enable_off_mode) {
+> +		if ((cx->mpu_state >= mpu_deepest_state) &&
+> +		    (cx->core_state >= core_deepest_state)) {
+>  			cx->valid = 1;
+>  		} else {
+> -			if ((cx->mpu_state == PWRDM_POWER_OFF) ||
+> -				(cx->core_state	== PWRDM_POWER_OFF))
+> -				cx->valid = 0;
+> +			cx->valid = 0;
+>  		}
+>  	}
+>  }
 > diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 8d9aa3e..5e0bee9 100644
+> index 5e0bee9..92ef400 100644
 > --- a/arch/arm/mach-omap2/pm.h
 > +++ b/arch/arm/mach-omap2/pm.h
-> @@ -90,8 +90,10 @@ extern unsigned int omap34xx_cpu_suspend_sz;
->  #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
->  extern u16 pm34xx_errata;
->  #define IS_PM34XX_ERRATUM(id)		(pm34xx_errata & (id))
-> +extern void enable_omap3630_toggle_l2_on_restore(void);
->  #else
->  #define IS_PM34XX_ERRATUM(id)		0
-> +static inline void enable_omap3630_toggle_l2_on_restore(void) { }
->  #endif		/* defined(CONFIG_PM) &&
-defined(CONFIG_ARCH_OMAP3) */
->
+> @@ -58,7 +58,8 @@ extern u32 sleep_while_idle;
 >  #endif
+>
+>  #if defined(CONFIG_CPU_IDLE)
+> -extern void omap3_cpuidle_update_states(void);
+> +extern void omap3_cpuidle_update_states(u32 core_deepest_state,
+> +		u32 core_deepest_state);
+>  #endif
+>
+>  #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
 > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index b32a2ed..4ba7a06 100644
+> index 4ba7a06..21cd36e 100644
 > --- a/arch/arm/mach-omap2/pm34xx.c
 > +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -1007,8 +1007,11 @@ void omap_push_sram_idle(void)
+> @@ -928,7 +928,7 @@ void omap3_pm_off_mode_enable(int enable)
+>  		state = PWRDM_POWER_RET;
 >
->  static void __init pm_errata_configure(void)
->  {
-> -	if (cpu_is_omap3630())
-> +	if (cpu_is_omap3630()) {
->  		pm34xx_errata |= PM_RTA_ERRATUM_i608;
-> +		/* Enable the l2 cache toggling in sleep logic */
-> +		enable_omap3630_toggle_l2_on_restore();
-> +	}
->  }
+>  #ifdef CONFIG_CPU_IDLE
+> -	omap3_cpuidle_update_states();
+> +	omap3_cpuidle_update_states(state, state);
+>  #endif
 >
->  static int __init omap3_pm_init(void)
-> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-
-> omap2/sleep34xx.S
-> index cc3507b..d2eda01 100644
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -111,6 +111,19 @@ ENTRY(get_omap3630_restore_pointer_sz)
->          .word   . - get_omap3630_restore_pointer
->
->  	.text
-> +/*
-> + * L2 cache needs to be toggled for stable OFF mode functionality on
-3630.
-> + * This function sets up a fflag that will allow for this toggling to
-> take
-> + * place on 3630. Hopefully some version in the future maynot need this
-> + */
-> +ENTRY(enable_omap3630_toggle_l2_on_restore)
-> +        stmfd   sp!, {lr}     @ save registers on stack
-> +	/* Setup so that we will disable and enable l2 */
-> +	mov	r1, #0x1
-> +	str	r1, l2dis_3630
-> +        ldmfd   sp!, {pc}     @ restore regs and return
-> +
-> +	.text
->  /* Function call to get the restore pointer for for ES3 to resume from
-> OFF */
->  ENTRY(get_es3_restore_pointer)
->  	stmfd	sp!, {lr}	@ save registers on stack
-> @@ -283,6 +296,14 @@ restore:
->          moveq   r9, #0x3        @ MPU OFF => L1 and L2 lost
->  	movne	r9, #0x1	@ Only L1 and L2 lost => avoid L2
-invalidation
->  	bne	logic_l1_restore
-> +
-> +	ldr	r0, l2dis_3630
-> +	cmp	r0, #0x1	@ should we disable L2 on 3630?
-> +	bne	skipl2dis
-> +	mrc	p15, 0, r0, c1, c0, 1
-> +	bic	r0, r0, #2	@ disable L2 cache
-> +	mcr	p15, 0, r0, c1, c0, 1
-> +skipl2dis:
->  	ldr	r0, control_stat
->  	ldr	r1, [r0]
->  	and	r1, #0x700
-> @@ -343,6 +364,13 @@ smi:    .word 0xE1600070		@ Call SMI monitor
-> (smieq)
->  	mov	r12, #0x2
->  	.word 0xE1600070	@ Call SMI monitor (smieq)
->  logic_l1_restore:
-> +	ldr	r1, l2dis_3630
-> +	cmp	r1, #0x1	@ Do we need to re-enable L2 on 3630?
-> +	bne	skipl2reen
-> +	mrc	p15, 0, r1, c1, c0, 1
-> +	orr	r1, r1, #2	@ re-enable L2 cache
-> +	mcr	p15, 0, r1, c1, c0, 1
-> +skipl2reen:
->  	mov	r1, #0
->  	/* Invalidate all instruction caches to PoU
->  	 * and flush branch target cache */
-> @@ -678,6 +706,8 @@ control_mem_rta:
->  	.word	CONTROL_MEM_RTA_CTRL
->  kernel_flush:
->  	.word v7_flush_dcache_all
-> +l2dis_3630:
-> +	.word 0
->  	/* these 2 words need to be at the end !!! */
->  kick_counter:
->  	.word	0
+>  	list_for_each_entry(pwrst, &pwrst_list, node) {
 > --
 > 1.6.3.3
 >
