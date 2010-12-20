@@ -1,82 +1,150 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v5 3/7] OMAP3: pm: introduce errata handling
-Date: Mon, 20 Dec 2010 14:05:05 -0600
-Message-ID: <1292875509-9896-4-git-send-email-nm@ti.com>
+Subject: [PATCH v5 5/7] OMAP3630: PM: Disable L2 cache while invalidating L2 cache
+Date: Mon, 20 Dec 2010 14:05:07 -0600
+Message-ID: <1292875509-9896-6-git-send-email-nm@ti.com>
 References: <1292875509-9896-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49961 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49957 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933119Ab0LTUFa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 15:05:30 -0500
+	id S933142Ab0LTUF2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 15:05:28 -0500
 In-Reply-To: <1292875509-9896-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 Cc: Jean Pihet <jean.pihet@newoldbits.com>, Kevin <khilman@deeprootsystems.com>, Tony <tony@atomide.com>, Santosh <santosh.shilimkar@ti.com>
 
-Introduce errata handling for OMAP3. This patch introduces
-errata variable and stub for initialization which will be
-filled up by follow-on patches.
+From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
+While coming out of MPU OSWR/OFF states, L2 controller is reseted.
+The reset behavior is implementation specific as per ARMv7 TRM and
+hence $L2 needs to be invalidated before it's use. Since the
+AUXCTRL register is also reconfigured, disable L2 cache before
+invalidating it and re-enables it afterwards. This is as per
+Cortex-A8 ARM documentation.
+Currently this is identified as being needed on OMAP3630 as the
+disable/enable is done from "public side" while, on OMAP3430, this
+is done in the "secure side".
+
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>
+
+Acked-by: Jean Pihet <j-pihet@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+
+[nm@ti.com: ported to 2.6.37-rc2, added hooks to enable the logic only on 3630]
 Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 ---
-v2: Minor commit message typo corrections
-v1: Splitting the errata introduction out into it's own separate patch
+v5: Change in commit message - Thanks to Santosh on the same
+v4: rebased only. no functional change
+v3: http://marc.info/?l=linux-omap&m=129139583519221&w=2
+collate all silicon specific errata under a single cpu detection code
+	making it elegant and more maintainable.
+v2: https://patchwork.kernel.org/patch/365232/
+	rebased out to this series independent of HS bugfixes
+v1: http://marc.info/?l=linux-omap&m=129013171125204&w=2
 
- arch/arm/mach-omap2/pm.h     |    7 +++++++
- arch/arm/mach-omap2/pm34xx.c |    9 +++++++++
- 2 files changed, 16 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm.h        |    2 ++
+ arch/arm/mach-omap2/pm34xx.c    |    5 ++++-
+ arch/arm/mach-omap2/sleep34xx.S |   30 ++++++++++++++++++++++++++++++
+ 3 files changed, 36 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 0d75bfd..0348fd7 100644
+index 8d9aa3e..5e0bee9 100644
 --- a/arch/arm/mach-omap2/pm.h
 +++ b/arch/arm/mach-omap2/pm.h
-@@ -85,4 +85,11 @@ extern unsigned int save_secure_ram_context_sz;
- extern unsigned int omap24xx_cpu_suspend_sz;
- extern unsigned int omap34xx_cpu_suspend_sz;
+@@ -90,8 +90,10 @@ extern unsigned int omap34xx_cpu_suspend_sz;
+ #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
+ extern u16 pm34xx_errata;
+ #define IS_PM34XX_ERRATUM(id)		(pm34xx_errata & (id))
++extern void enable_omap3630_toggle_l2_on_restore(void);
+ #else
+ #define IS_PM34XX_ERRATUM(id)		0
++static inline void enable_omap3630_toggle_l2_on_restore(void) { }
+ #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
  
-+#if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
-+extern u16 pm34xx_errata;
-+#define IS_PM34XX_ERRATUM(id)		(pm34xx_errata & (id))
-+#else
-+#define IS_PM34XX_ERRATUM(id)		0
-+#endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
-+
  #endif
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 648b8c5..5702f41 100644
+index a404387..feb1bd9 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -68,6 +68,9 @@ static inline bool is_suspending(void)
- #define OMAP343X_TABLE_VALUE_OFFSET	   0xc0
- #define OMAP343X_CONTROL_REG_VALUE_OFFSET  0xc8
+@@ -1007,8 +1007,11 @@ void omap_push_sram_idle(void)
  
-+/* pm34xx errata defined in pm.h */
-+u16 pm34xx_errata;
-+
- struct power_state {
- 	struct powerdomain *pwrdm;
- 	u32 next_state;
-@@ -1002,6 +1005,10 @@ void omap_push_sram_idle(void)
- 				save_secure_ram_context_sz);
+ static void __init pm_errata_configure(void)
+ {
+-	if (cpu_is_omap3630())
++	if (cpu_is_omap3630()) {
+ 		pm34xx_errata |= PM_RTA_ERRATUM_i608;
++		/* Enable the l2 cache toggling in sleep logic */
++		enable_omap3630_toggle_l2_on_restore();
++	}
  }
  
-+static void __init pm_errata_configure(void)
-+{
-+}
-+
  static int __init omap3_pm_init(void)
- {
- 	struct power_state *pwrst, *tmp;
-@@ -1011,6 +1018,8 @@ static int __init omap3_pm_init(void)
- 	if (!cpu_is_omap34xx())
- 		return -ENODEV;
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index 4abf447..50887c7 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -111,6 +111,19 @@ ENTRY(get_omap3630_restore_pointer_sz)
+         .word   . - get_omap3630_restore_pointer
  
-+	pm_errata_configure();
+ 	.text
++/*
++ * L2 cache needs to be toggled for stable OFF mode functionality on 3630.
++ * This function sets up a fflag that will allow for this toggling to take
++ * place on 3630. Hopefully some version in the future maynot need this
++ */
++ENTRY(enable_omap3630_toggle_l2_on_restore)
++        stmfd   sp!, {lr}     @ save registers on stack
++	/* Setup so that we will disable and enable l2 */
++	mov	r1, #0x1
++	str	r1, l2dis_3630
++        ldmfd   sp!, {pc}     @ restore regs and return
 +
- 	printk(KERN_ERR "Power Management for TI OMAP3.\n");
- 
- 	/* XXX prcm_setup_regs needs to be before enabling hw
++	.text
+ /* Function call to get the restore pointer for for ES3 to resume from OFF */
+ ENTRY(get_es3_restore_pointer)
+ 	stmfd	sp!, {lr}	@ save registers on stack
+@@ -283,6 +296,14 @@ restore:
+         moveq   r9, #0x3        @ MPU OFF => L1 and L2 lost
+ 	movne	r9, #0x1	@ Only L1 and L2 lost => avoid L2 invalidation
+ 	bne	logic_l1_restore
++
++	ldr	r0, l2dis_3630
++	cmp	r0, #0x1	@ should we disable L2 on 3630?
++	bne	skipl2dis
++	mrc	p15, 0, r0, c1, c0, 1
++	bic	r0, r0, #2	@ disable L2 cache
++	mcr	p15, 0, r0, c1, c0, 1
++skipl2dis:
+ 	ldr	r0, control_stat
+ 	ldr	r1, [r0]
+ 	and	r1, #0x700
+@@ -343,6 +364,13 @@ smi:    .word 0xE1600070		@ Call SMI monitor (smieq)
+ 	mov	r12, #0x2
+ 	.word 0xE1600070	@ Call SMI monitor (smieq)
+ logic_l1_restore:
++	ldr	r1, l2dis_3630
++	cmp	r1, #0x1	@ Do we need to re-enable L2 on 3630?
++	bne	skipl2reen
++	mrc	p15, 0, r1, c1, c0, 1
++	orr	r1, r1, #2	@ re-enable L2 cache
++	mcr	p15, 0, r1, c1, c0, 1
++skipl2reen:
+ 	mov	r1, #0
+ 	/* Invalidate all instruction caches to PoU
+ 	 * and flush branch target cache */
+@@ -679,6 +707,8 @@ control_mem_rta:
+ 	.word	CONTROL_MEM_RTA_CTRL
+ kernel_flush:
+ 	.word v7_flush_dcache_all
++l2dis_3630:
++	.word 0
+ 	/*
+ 	 * When exporting to userspace while the counters are in SRAM,
+ 	 * these 2 words need to be at the end to facilitate retrival!
 -- 
 1.6.3.3
 
