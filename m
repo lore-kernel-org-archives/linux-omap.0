@@ -1,46 +1,38 @@
-From: Charles Manning <manningc2@actrix.gen.nz>
-Subject: Huge ubi or ubifs sync slowdown since 2.6.32
-Date: Tue, 21 Dec 2010 11:36:22 +1300
-Message-ID: <201012211136.22254.manningc2@actrix.gen.nz>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 0/40] Complete set of clocksource/sched_clock patches
+Date: Mon, 20 Dec 2010 22:48:14 +0000
+Message-ID: <20101220224814.GJ28157@n2100.arm.linux.org.uk>
+References: <20101217113223.GC9937@n2100.arm.linux.org.uk> <AANLkTimarRAf-_ykQNLgzXd3TtUHhSw+gZ6cZ5pW=Y-9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.scorch.co.nz ([27.110.127.199]:60960 "HELO scorch.co.nz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754457Ab0LTWg0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 17:36:26 -0500
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <AANLkTimarRAf-_ykQNLgzXd3TtUHhSw+gZ6cZ5pW=Y-9@mail.gmail.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Eric Miao <eric.y.miao@gmail.com>
+Cc: Alessandro Rubini <rubini@unipv.it>, Bryan Huntsman <bryanh@codeaurora.org>, Colin Cross <ccross@android.com>, Daniel Walker <dwalker@codeaurora.org>, David Brown <davidb@codeaurora.org>, Erik Gilling <konkers@android.com>, "Hans J. Koch" <hjk@linutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Kevin Hilman <khilman@deeprootsystems.com>, Krzysztof Halasa <khc@pm.waw.pl>, Kukjin Kim <kgene.kim@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Jiandong Zheng <jdzheng@broadcom.com>, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Olof Johansson <olof@lixom.net>, Sascha Hauer <kernel@pengutronix.de>, Scott Branden <sbranden@broadcom.com>, STEricsson <STEricsson_nomadik_linux@list.st.com>, Tony Lindgren <tony@atom>
 List-Id: linux-omap@vger.kernel.org
-To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 
+On Mon, Dec 20, 2010 at 11:32:21AM +0800, Eric Miao wrote:
+> On Fri, Dec 17, 2010 at 7:32 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > Here is the entire set of clocksource and sched_clock patches which
+> > have been previously posted. =A0There's a couple of small tweaks in=
+ a
+> > few of the patches (such as adding notrace to OMAP clocksource read
+> > functions), and this also shows the proper ordering of these patche=
+s.
+> >
+> > Still looking for acks or tested-by's for these patches.
+> >
+>=20
+> Hi Russell,
+>=20
+> Sorry for late feedback. Tested the branch 'clksrc' on Littleton/PXA3=
+xx,
+> seems to be good.
+>=20
+> Tested-by: Eric Miao <eric.y.miao@gmail.com>
 
-Hi All
-
-I've been looking into a ubifs performance regression on linux-omap 2.6.37.
-
-My test is pretty simple, copy a 2Mbyte file and sync.
-
-# sync; date; cp 2Mbyte-file foo; sync; date
-
-On 2.6.32 and earler, the time between the two dates was around 3 seconds.
-On linux-omap master it is around 14 seconds. Ouch!
-
-At first I thought the problem was due to changes in the OMAP nand drivers, 
-but raw randwrite speed is actually a bit faster. This suggest the finger 
-should be pointed at ubi or ubifs.
-
-I then thought that perhaps the layout of my ubinized image might be a 
-contributing factor so I erased the partition, ubiformatted and ubimkvoled. 
-The problem persisted,
-
-Any suggestions as to what might be broken or how to debug this deeper?
-
-Thanks
-
-Charles
-
-
-
+Ok, I'll add that to the PXA and generic patches, thanks.
