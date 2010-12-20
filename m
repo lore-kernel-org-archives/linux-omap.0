@@ -1,80 +1,92 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v4 7/7] OMAP3630: PM: Erratum i583: disable coreoff if
- < ES1.2
-Date: Mon, 20 Dec 2010 13:07:18 -0600
-Message-ID: <4D0FA966.5040100@ti.com>
-References: <1292712817-24999-1-git-send-email-nm@ti.com>	<1292712817-24999-8-git-send-email-nm@ti.com> <8739ps5kpv.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v5 0/7] OMAP: idle path errata fixes
+Date: Mon, 20 Dec 2010 14:05:02 -0600
+Message-ID: <1292875509-9896-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:35789 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757419Ab0LTTHW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 14:07:22 -0500
-Received: by mail-yw0-f42.google.com with SMTP id 5so1502455yws.29
-        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 11:07:21 -0800 (PST)
-In-Reply-To: <8739ps5kpv.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38105 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933130Ab0LTUFX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Dec 2010 15:05:23 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <jean.pihet@newoldbits.com>, Tony <tony@atomide.com>
+To: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, Kevin <khilman@deeprootsystems.com>, Tony <tony@atomide.com>, Santosh <santosh.shilimkar@ti.com>
 
-Kevin Hilman had written, on 12/20/2010 01:05 PM, the following:
-[..]
->>  struct cpuidle_driver omap3_idle_driver = {
->> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
->> index 92ef400..9032d09 100644
->> --- a/arch/arm/mach-omap2/pm.h
->> +++ b/arch/arm/mach-omap2/pm.h
->> @@ -87,6 +87,7 @@ extern unsigned int omap24xx_cpu_suspend_sz;
->>  extern unsigned int omap34xx_cpu_suspend_sz;
->>  
->>  #define PM_RTA_ERRATUM_i608		(1 << 0)
->> +#define PM_SDRC_WAKEUP_ERRATUM_i583	(1 << 1)
->>  
->>  #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
->>  extern u16 pm34xx_errata;
->> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
->> index 21cd36e..7faea55 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -928,12 +928,28 @@ void omap3_pm_off_mode_enable(int enable)
->>  		state = PWRDM_POWER_RET;
->>  
->>  #ifdef CONFIG_CPU_IDLE
->> -	omap3_cpuidle_update_states(state, state);
->> +	/*
->> +	 * Erratum i583: implementation for ES rev < Es1.2 on 3630. We cannot
->> +	 * enable OFF mode in a stable form for previous revisions, restrict
->> +	 * instead to RET
->> +	 */
->> +	if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583))
->> +		omap3_cpuidle_update_states(state, PWRDM_POWER_RET);
->> +	else
->> +		omap3_cpuidle_update_states(state, state);
->>  #endif
->>  
->>  	list_for_each_entry(pwrst, &pwrst_list, node) {
->> -		pwrst->next_state = state;
->> -		omap_set_pwrdm_state(pwrst->pwrdm, state);
->> +		if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583) &&
->> +				pwrst->pwrdm == core_pwrdm &&
->> +				state == PWRDM_POWER_OFF) {
->> +			pwrst->next_state = PWRDM_POWER_RET;
->> +			pr_err("%s: Core OFF disabled due to errata i583\n",
->> +				__func__);
-> 
-> This is a warning, not an error condition, so should probably be
-> pr_warning().
-> 
-> That being said, this could be noisy if enable_off_mode is being toggled
-> repeatedly, so using WARN_ONCE() might be more appropriate as suggested
-> by others.
+Hi,
+as discussed in [1], here is step 2 - idle path errata fixes.
+this is the next rev incorporating comments from V4 of this series.
 
-ok WARN_ONCE it is then.. :) next rev coming right up in a few more mins..
+Rebased to: 2.6.37-rc6 (k.org vanilla)
 
--- 
+Tested:
+this series:
+	SDP3430
+	SDP3630
+this series + ASM cleanup series[2]
+	SDP3430
+	SDP3630
+Test Script:
+http://elinux.org/OMAP_Power_Management#Quick_verification_of_suspend-idle_functionality
+
+v4: http://marc.info/?l=linux-omap&m=129271283307741&w=2
+V3: http://marc.info/?t=129140247800030&r=1&w=2
+V2: http://marc.info/?l=linux-omap&m=129106200408109&w=2
+
+Major change in V5:
+	comment updates, minor typo cleanups
+	collated acks
+
+Eduardo Valentin (1):
+  OMAP3630: PM: Erratum i583: disable coreoff if < ES1.2
+
+Nishanth Menon(3):
+  OMAP3: pm: introduce errata handling
+  OMAP3630: PM: Erratum i608: disable RTA
+  OMAP3: PM: make omap3_cpuidle_update_states independent of
+    enable_off_mode
+
+Peter 'p2' De Schrijver (2):
+  OMAP3: PM: Erratum i581 support: dll kick strategy
+  OMAP3630: PM: Disable L2 cache while invalidating L2 cache
+
+Richard Woodruff (1):
+  OMAP3: PM: Update clean_l2 to use v7_flush_dcache_all
+
+ arch/arm/mach-omap2/control.c     |   13 +++-
+ arch/arm/mach-omap2/control.h     |    7 +-
+ arch/arm/mach-omap2/cpuidle34xx.c |   31 ++++--
+ arch/arm/mach-omap2/pm.h          |   15 +++-
+ arch/arm/mach-omap2/pm34xx.c      |   47 +++++++++-
+ arch/arm/mach-omap2/sleep34xx.S   |  191 +++++++++++++++++++++++--------------
+ 6 files changed, 218 insertions(+), 86 deletions(-)
+
+bloat-o-meter report Vs 2.6.37-rc6
+add/remove: 2/0 grow/shrink: 8/1 up/down: 330/-1 (329)
+function                                     old     new   delta
+omap3_pm_off_mode_enable                      80     192    +112
+omap3_pm_init                               1792    1872     +80
+omap3630_ctrl_disable_rta                      -      44     +44
+omap3_save_scratchpad_contents               732     760     +28
+static.__func__                            13783   13808     +25
+vermagic                                      45      60     +15
+linux_banner                                 132     147     +15
+prcm_interrupt_handler                       268     276      +8
+pm34xx_errata                                  -       2      +2
+static.__warned                              238     239      +1
+kernel_config_data                         13718   13717      -1
+
+
+[1] http://marc.info/?l=linux-omap&m=129045338806957&w=2
+[2] http://marc.info/?l=linux-omap&m=129268746417556&w=2
+
+Cc: Charulatha Varadarajan <charu@ti.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tao Hu <tghk48@motorola.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+
+---
 Regards,
 Nishanth Menon
