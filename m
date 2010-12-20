@@ -1,152 +1,103 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v5 2/7] OMAP3: PM: Erratum i581 support: dll kick strategy
-Date: Mon, 20 Dec 2010 14:05:04 -0600
-Message-ID: <1292875509-9896-3-git-send-email-nm@ti.com>
+Subject: [PATCH v5 6/7] OMAP3: PM: make omap3_cpuidle_update_states independent of enable_off_mode
+Date: Mon, 20 Dec 2010 14:05:08 -0600
+Message-ID: <1292875509-9896-7-git-send-email-nm@ti.com>
 References: <1292875509-9896-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40843 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40839 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933135Ab0LTUF2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 15:05:28 -0500
+	id S933135Ab0LTUF0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 15:05:26 -0500
 In-Reply-To: <1292875509-9896-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 Cc: Jean Pihet <jean.pihet@newoldbits.com>, Kevin <khilman@deeprootsystems.com>, Tony <tony@atomide.com>, Santosh <santosh.shilimkar@ti.com>
 
-From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Currently omap3_cpuidle_update_states makes whole sale decision
+on which C states to update based on enable_off_mode variable
+Instead, achieve the same functionality by independently providing
+mpu and core deepest states the system is allowed to achieve and
+update the idle states accordingly.
 
-Erratum i581 impacts OMAP3 platforms.
-PRCM DPLL control FSM removes SDRC_IDLEREQ before DPLL3 locks causing
-the DPLL not to be locked at times.
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Jean Pihet <j-pihet@ti.com>
 
-IMPORTANT:
-*) This is not a complete workaround implementation as recommended
-by the silicon erratum. This is a support logic for detecting lockups and
-attempting to recover where possible and is known to provide stability
-in multiple platforms.
-*) This code is mostly important for inactive and retention. The ROM code
-waits for the maximum DLL lock time when resuming from off mode. So for
-off mode this code isn't really needed.
-*) counters are introduced here for eventual export to userspace once the
-cleanups are completed.
-
-This should eventually get refactored as part of cleanups to sleep34xx.S
-
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>
-
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
-v3: additional comment on the TODO of exposing the counters eventually
-    after the sram34xx.S cleanups are completed.
-v2: https://patchwork.kernel.org/patch/365252/
-	typo correction- erratum, support, added comment from Peter from the
-	thread to commit message
-v1: http://marc.info/?l=linux-omap&m=129013172525234&w=2
+v2: proto is used as (u32, u32) + added the acks collected
+v1: original version
+ arch/arm/mach-omap2/cpuidle34xx.c |   19 ++++++++++---------
+ arch/arm/mach-omap2/pm.h          |    2 +-
+ arch/arm/mach-omap2/pm34xx.c      |    2 +-
+ 3 files changed, 12 insertions(+), 11 deletions(-)
 
- arch/arm/mach-omap2/sleep34xx.S |   55 +++++++++++++++++++++++++++++++++++---
- 1 files changed, 50 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index aa43da5..24ecb0a 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -42,6 +42,7 @@
- 				OMAP3430_PM_PREPWSTST)
- #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + OMAP2_PM_PWSTCTRL
- #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
-+#define CM_IDLEST_CKGEN_V	OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST)
- #define SRAM_BASE_P		0x40200000
- #define CONTROL_STAT		0x480022F0
- #define SCRATCHPAD_MEM_OFFS	0x310 /* Move this as correct place is
-@@ -555,31 +556,67 @@ skip_l2_inval:
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 0d50b45..f80d3f6 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -293,25 +293,26 @@ select_state:
+ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
  
- /* Make sure SDRC accesses are ok */
- wait_sdrc_ok:
-+
-+/* DPLL3 must be locked before accessing the SDRC. Maybe the HW ensures this. */
-+	ldr	r4, cm_idlest_ckgen
-+wait_dpll3_lock:
-+	ldr	r5, [r4]
-+	tst	r5, #1
-+	beq	wait_dpll3_lock
-+
-         ldr     r4, cm_idlest1_core
-+wait_sdrc_ready:
-         ldr     r5, [r4]
--        and     r5, r5, #0x2
--        cmp     r5, #0
--        bne     wait_sdrc_ok
-+        tst     r5, #0x2
-+        bne     wait_sdrc_ready
-+	/* allow DLL powerdown upon hw idle req */
-         ldr     r4, sdrc_power
-         ldr     r5, [r4]
-         bic     r5, r5, #0x40
-         str     r5, [r4]
--wait_dll_lock:
-+is_dll_in_lock_mode:
-+
-         /* Is dll in lock mode? */
-         ldr     r4, sdrc_dlla_ctrl
-         ldr     r5, [r4]
-         tst     r5, #0x4
-         bxne    lr
-         /* wait till dll locks */
--        ldr     r4, sdrc_dlla_status
-+wait_dll_lock_timed:
-+	ldr	r4, wait_dll_lock_counter
-+	add	r4, r4, #1
-+	str	r4, wait_dll_lock_counter
-+	ldr	r4, sdrc_dlla_status
-+        mov	r6, #8		/* Wait 20uS for lock */
-+wait_dll_lock:
-+	subs	r6, r6, #0x1
-+	beq	kick_dll
-         ldr     r5, [r4]
-         and     r5, r5, #0x4
-         cmp     r5, #0x4
-         bne     wait_dll_lock
-         bx      lr
+ /**
+- * omap3_cpuidle_update_states - Update the cpuidle states.
++ * omap3_cpuidle_update_states() - Update the cpuidle states
++ * @mpu_deepest_state:	Enable states upto and including this for mpu domain
++ * @core_deepest_state:	Enable states upto and including this for core domain
+  *
+- * Currently, this function toggles the validity of idle states based upon
+- * the flag 'enable_off_mode'. When the flag is set all states are valid.
+- * Else, states leading to OFF state set to be invalid.
++ * This goes through the list of states available and enables and disables the
++ * validity of C states based on deepest state that can be achieved for the
++ * variable domain
+  */
+-void omap3_cpuidle_update_states(void)
++void omap3_cpuidle_update_states(u32 mpu_deepest_state, u32 core_deepest_state)
+ {
+ 	int i;
  
-+	/* disable/reenable DLL if not locked */
-+kick_dll:
-+	ldr	r4, sdrc_dlla_ctrl
-+	ldr	r5, [r4]
-+	mov	r6, r5
-+	bic	r6, #(1<<3)	/* disable dll */
-+	str	r6, [r4]
-+	dsb
-+	orr	r6, r6, #(1<<3)	/* enable dll */
-+	str	r6, [r4]
-+	dsb
-+	ldr	r4, kick_counter
-+	add	r4, r4, #1
-+	str	r4, kick_counter
-+	b	wait_dll_lock_timed
-+
- cm_idlest1_core:
- 	.word	CM_IDLEST1_CORE_V
-+cm_idlest_ckgen:
-+	.word	CM_IDLEST_CKGEN_V
- sdrc_dlla_status:
- 	.word	SDRC_DLLA_STATUS_V
- sdrc_dlla_ctrl:
-@@ -616,5 +653,13 @@ control_stat:
- 	.word	CONTROL_STAT
- kernel_flush:
- 	.word v7_flush_dcache_all
-+	/*
-+	 * When exporting to userspace while the counters are in SRAM,
-+	 * these 2 words need to be at the end to facilitate retrival!
-+	 */
-+kick_counter:
-+	.word	0
-+wait_dll_lock_counter:
-+	.word	0
- ENTRY(omap34xx_cpu_suspend_sz)
- 	.word	. - omap34xx_cpu_suspend
+ 	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
+ 		struct omap3_processor_cx *cx = &omap3_power_states[i];
+ 
+-		if (enable_off_mode) {
++		if ((cx->mpu_state >= mpu_deepest_state) &&
++		    (cx->core_state >= core_deepest_state)) {
+ 			cx->valid = 1;
+ 		} else {
+-			if ((cx->mpu_state == PWRDM_POWER_OFF) ||
+-				(cx->core_state	== PWRDM_POWER_OFF))
+-				cx->valid = 0;
++			cx->valid = 0;
+ 		}
+ 	}
+ }
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 5e0bee9..29663cc 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -58,7 +58,7 @@ extern u32 sleep_while_idle;
+ #endif
+ 
+ #if defined(CONFIG_CPU_IDLE)
+-extern void omap3_cpuidle_update_states(void);
++extern void omap3_cpuidle_update_states(u32, u32);
+ #endif
+ 
+ #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index feb1bd9..ca3b134 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -928,7 +928,7 @@ void omap3_pm_off_mode_enable(int enable)
+ 		state = PWRDM_POWER_RET;
+ 
+ #ifdef CONFIG_CPU_IDLE
+-	omap3_cpuidle_update_states();
++	omap3_cpuidle_update_states(state, state);
+ #endif
+ 
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
 -- 
 1.6.3.3
 
