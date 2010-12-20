@@ -1,55 +1,172 @@
-From: Abraham Arce <abraham.arce.moreno@gmail.com>
-Subject: Re: Is changing serial from /dev/ttySx to /dev/ttyOx a good idea?
-Date: Sun, 19 Dec 2010 22:28:48 -0600
-Message-ID: <AANLkTimcAs0X6B9j9DpbAg1K7aAT7JAyXoOyRZYCeNHG@mail.gmail.com>
-References: <201012201546.12319.manningc2@actrix.gen.nz>
-	<AANLkTi=P58XerK8jdyvfT9JS6tU3U11tYP=KH4_B-cn=@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v4 1/7] OMAP3: PM: Update clean_l2 to use v7_flush_dcache_all
+Date: Mon, 20 Dec 2010 12:13:01 +0530
+Message-ID: <9ad7cd880801fcc6f63435ec2c8dcd3d@mail.gmail.com>
+References: <1292712817-24999-1-git-send-email-nm@ti.com> <1292712817-24999-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f43.google.com ([209.85.161.43]:56431 "EHLO
-	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751281Ab0LTE2u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Dec 2010 23:28:50 -0500
-Received: by fxm18 with SMTP id 18so2607416fxm.2
-        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 20:28:49 -0800 (PST)
-In-Reply-To: <AANLkTi=P58XerK8jdyvfT9JS6tU3U11tYP=KH4_B-cn=@mail.gmail.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:34869 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753363Ab0LTGnD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 01:43:03 -0500
+Received: by mail-gy0-f171.google.com with SMTP id 13so1495015gyg.2
+        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 22:43:02 -0800 (PST)
+In-Reply-To: <1292712817-24999-2-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Charles Manning <manningc2@actrix.gen.nz>, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, Kevin <khilman@deeprootsystems.com>, Tony <tony@atomide.com>
 
-Hi,
-
-On Sun, Dec 19, 2010 at 9:04 PM, Ming Lei <tom.leiming@gmail.com> wrote:
-> Hi,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Nishanth Menon
+> Sent: Sunday, December 19, 2010 4:24 AM
+> To: linux-omap; linux-arm
+> Cc: Jean Pihet; Kevin; Tony
+> Subject: [PATCH v4 1/7] OMAP3: PM: Update clean_l2 to use
+> v7_flush_dcache_all
 >
-> 2010/12/20 Charles Manning <manningc2@actrix.gen.nz>:
->> Hi All
->>
->> With the change to the new omap-serial stuff, the device names have changed
->> from /dev/ttySn to /dev/ttyOn.
->>
->> Using the "fit/form/function" argument, this would seem to be a bad idea.
->>
->> The kernel does not exist in a vacuum. It is surrounded by u-boot scripts,
->> command line options, init scripts etc etc. Flipping back and forth between
->> 2.6.36 and 2.6.37 kernels for testing purposes needs these to be changed.
->> Annoying and anti-productive.
->>
->> Isn't it just better to just replace the ttyOn name with ttyS. That would make
->> a far smoother transition.
->>
->> Thoughts?
+> From: Richard Woodruff <r-woodruff2@ti.com>
 >
-> In fact, the transition is not friendly indeed for a user. I don't know why
-> the transition is introduced, for what purpose? Who can give a explanation?
+> Analysis in TI kernel with ETM showed that using cache mapped flush
+> in kernel instead of SO mapped flush cost drops by 65% (3.39mS down
+> to 1.17mS) for clean_l2 which is used during sleep sequences.
+> Overall:
+> 	- speed up
+> 	- unfortunately there isn't a good alternative flush method today
+> 	- code reduction and less maintenance and potential bug in
+> 	  unmaintained code
 >
+> This also fixes the bug with the clean_l2 function usage.
+>
+> Reported-by: Tony Lindgren <tony@atomide.com>
+>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+>
+> [nm@ti.com: ported rkw's proposal to 2.6.37-rc2]
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
+> ---
+> (no change in this series, posted for completeness)
+> v2: https://patchwork.kernel.org/patch/365222/
+> v1: http://marc.info/?l=linux-omap&m=129013171325210&w=2
+>  arch/arm/mach-omap2/sleep34xx.S |   79
+++++++----------------------------
+> ----
+>  1 files changed, 13 insertions(+), 66 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-
+> omap2/sleep34xx.S
+> index 2fb205a..2c20fcf 100644
+> --- a/arch/arm/mach-omap2/sleep34xx.S
+> +++ b/arch/arm/mach-omap2/sleep34xx.S
+> @@ -520,72 +520,17 @@ clean_caches:
+>  	cmp	r9, #1 /* Check whether L2 inval is required or not*/
+>  	bne	skip_l2_inval
+>  clean_l2:
+> -	/* read clidr */
+> -	mrc     p15, 1, r0, c0, c0, 1
+> -	/* extract loc from clidr */
+> -	ands    r3, r0, #0x7000000
+> -	/* left align loc bit field */
+> -	mov     r3, r3, lsr #23
+> -	/* if loc is 0, then no need to clean */
+> -	beq     finished
+> -	/* start clean at cache level 0 */
+> -	mov     r10, #0
+> -loop1:
+> -	/* work out 3x current cache level */
+> -	add     r2, r10, r10, lsr #1
+> -	/* extract cache type bits from clidr*/
+> -	mov     r1, r0, lsr r2
+> -	/* mask of the bits for current cache only */
+> -	and     r1, r1, #7
+> -	/* see what cache we have at this level */
+> -	cmp     r1, #2
+> -	/* skip if no cache, or just i-cache */
+> -	blt     skip
+> -	/* select current cache level in cssr */
+> -	mcr     p15, 2, r10, c0, c0, 0
+> -	/* isb to sych the new cssr&csidr */
+> -	isb
+> -	/* read the new csidr */
+> -	mrc     p15, 1, r1, c0, c0, 0
+> -	/* extract the length of the cache lines */
+> -	and     r2, r1, #7
+> -	/* add 4 (line length offset) */
+> -	add     r2, r2, #4
+> -	ldr     r4, assoc_mask
+> -	/* find maximum number on the way size */
+> -	ands    r4, r4, r1, lsr #3
+> -	/* find bit position of way size increment */
+> -	clz     r5, r4
+> -	ldr     r7, numset_mask
+> -	/* extract max number of the index size*/
+> -	ands    r7, r7, r1, lsr #13
+> -loop2:
+> -	mov     r9, r4
+> -	/* create working copy of max way size*/
+> -loop3:
+> -	/* factor way and cache number into r11 */
+> -	orr     r11, r10, r9, lsl r5
+> -	/* factor index number into r11 */
+> -	orr     r11, r11, r7, lsl r2
+> -	/*clean & invalidate by set/way */
+> -	mcr     p15, 0, r11, c7, c10, 2
+> -	/* decrement the way*/
+> -	subs    r9, r9, #1
+> -	bge     loop3
+> -	/*decrement the index */
+> -	subs    r7, r7, #1
+> -	bge     loop2
+> -skip:
+> -	add     r10, r10, #2
+> -	/* increment cache number */
+> -	cmp     r3, r10
+> -	bgt     loop1
+> -finished:
+> -	/*swith back to cache level 0 */
+> -	mov     r10, #0
+> -	/* select current cache level in cssr */
+> -	mcr     p15, 2, r10, c0, c0, 0
+> -	isb
+> +	/*
+> +	 * Jump out to kernel flush routine
+> +	 *  - reuse that code is better
+> +	 *  - it executes in a cached space so is faster than refetch per-
+> block
+> +	 *  - should be faster and will change with kernel
+> +	 *  - 'might' have to copy address, load and jump to it
+Would be good to clarify that this is needed to maintain the 'lr'
+when code is executed from SRAM
 
-Patch itself has one explanation, kernel commit is
-b612633b5928077441b979471869753bfa93d41a
+> +	 */
+> +	ldr r1, kernel_flush
+> +	mov lr, pc
+> +	bx  r1
+> +
+>  skip_l2_inval:
+>  	/* Data memory barrier and Data sync barrier */
+>  	mov     r1, #0
+> @@ -668,5 +613,7 @@ cache_pred_disable_mask:
+>  	.word	0xFFFFE7FB
+>  control_stat:
+>  	.word	CONTROL_STAT
+> +kernel_flush:
+> +	.word v7_flush_dcache_all
+>  ENTRY(omap34xx_cpu_suspend_sz)
+>  	.word	. - omap34xx_cpu_suspend
 
-http://www.spinics.net/lists/linux-serial/msg02788.html
+O.w
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Best Regards
-Abraham
+> --
+> 1.6.3.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
