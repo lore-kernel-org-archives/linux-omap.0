@@ -1,245 +1,196 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH v6 05/10] OMAP3: PM: Adding smartreflex hwmod data
-Date: Mon, 20 Dec 2010 22:29:12 +0530
-Message-ID: <1292864357-13939-6-git-send-email-thara@ti.com>
+Subject: [PATCH v6 09/10] OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
+Date: Mon, 20 Dec 2010 22:29:16 +0530
+Message-ID: <1292864357-13939-10-git-send-email-thara@ti.com>
 References: <1292864357-13939-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57788 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37656 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932870Ab0LTQ7g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 11:59:36 -0500
+	id S932870Ab0LTQ7l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 11:59:41 -0500
 In-Reply-To: <1292864357-13939-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, nm@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch adds the smartreflex hwmod data for OMAP3430
-and OMAP3630.
+This patch adds debug support to the voltage and smartreflex drivers.
+This means a whole bunch of voltage processor and smartreflex
+parameters are now visible through the pm debugfs.
+The voltage parameters can be viewed at
+        /debug/voltage/vdd_<x>/<parameter>
+and the smartreflex parameters can be viewed at
+        /debug/voltage/vdd_<x>/smartreflex/<parameter>
+
+Also smartreflex n-target values are now exposed out at
+	/debug/voltage/vdd_<x>/smartreflex/nvalue/<voltage>
+
+The interface to access smartreflex n-target values is a
+read-write interface which means user has the flexibility
+to change the n-target values for any opp.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  176 ++++++++++++++++++++++++++++
- 1 files changed, 176 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   46 ++++++++++++++++++++++++-
+ arch/arm/mach-omap2/voltage.c     |   66 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 110 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 8eb81b4..c98cfc0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -21,6 +21,8 @@
- #include <plat/l4_3xxx.h>
- #include <plat/i2c.h>
- #include <plat/gpio.h>
-+#include <plat/smartreflex.h>
-+#include <plat/smartreflex.h>
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index eee23d0..52a05b3 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -31,6 +31,7 @@
+ #include "pm.h"
  
- #include "omap_hwmod_common_data.h"
+ #define SMARTREFLEX_NAME_LEN	16
++#define NVALUE_NAME_LEN		40
+ #define SR_DISABLE_TIMEOUT	200
  
-@@ -52,6 +54,8 @@ static struct omap_hwmod omap3xxx_gpio3_hwmod;
- static struct omap_hwmod omap3xxx_gpio4_hwmod;
- static struct omap_hwmod omap3xxx_gpio5_hwmod;
- static struct omap_hwmod omap3xxx_gpio6_hwmod;
-+static struct omap_hwmod omap34xx_sr1_hwmod;
-+static struct omap_hwmod omap34xx_sr2_hwmod;
+ struct omap_sr {
+@@ -817,8 +818,9 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
+ 	struct omap_sr_data *pdata = pdev->dev.platform_data;
+ 	struct resource *mem, *irq;
+-	struct dentry *vdd_dbg_dir, *dbg_dir;
+-	int ret = 0;
++	struct dentry *vdd_dbg_dir, *dbg_dir, *nvalue_dir;
++	struct omap_volt_data *volt_data;
++	int i, ret = 0;
  
- /* L3 -> L4_CORE interface */
- static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
-@@ -260,9 +264,47 @@ static struct omap_hwmod_ocp_if omap3_l4_core__i2c3 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+ 	if (!sr_info) {
+ 		dev_err(&pdev->dev, "%s: unable to allocate sr_info\n",
+@@ -897,6 +899,46 @@ static int __init omap_sr_probe(struct platform_device *pdev)
  
-+/* L4 CORE -> SR1 interface */
-+static struct omap_hwmod_addr_space omap3_sr1_addr_space[] = {
-+	{
-+		.pa_start	= OMAP34XX_SR1_BASE,
-+		.pa_end		= OMAP34XX_SR1_BASE + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
+ 	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
+ 				(void *)sr_info, &pm_sr_fops);
++	(void) debugfs_create_x32("errweight", S_IRUGO, dbg_dir,
++			&sr_info->err_weight);
++	(void) debugfs_create_x32("errmaxlimit", S_IRUGO, dbg_dir,
++			&sr_info->err_maxlimit);
++	(void) debugfs_create_x32("errminlimit", S_IRUGO, dbg_dir,
++			&sr_info->err_minlimit);
 +
-+static struct omap_hwmod_ocp_if omap3_l4_core__sr1 = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap34xx_sr1_hwmod,
-+	.clk		= "sr_l4_ick",
-+	.addr		= omap3_sr1_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap3_sr1_addr_space),
-+	.user		= OCP_USER_MPU,
-+};
++	nvalue_dir = debugfs_create_dir("nvalue", dbg_dir);
++	if (IS_ERR(nvalue_dir)) {
++		dev_err(&pdev->dev, "%s: Unable to create debugfs directory"
++			"for n-values\n", __func__);
++		return PTR_ERR(nvalue_dir);
++	}
 +
-+/* L4 CORE -> SR1 interface */
-+static struct omap_hwmod_addr_space omap3_sr2_addr_space[] = {
-+	{
-+		.pa_start	= OMAP34XX_SR2_BASE,
-+		.pa_end		= OMAP34XX_SR2_BASE + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
++	omap_voltage_get_volttable(sr_info->voltdm, &volt_data);
++	if (!volt_data) {
++		dev_warn(&pdev->dev, "%s: No Voltage table for the"
++			" corresponding vdd vdd_%s. Cannot create debugfs"
++			"entries for n-values\n",
++			__func__, sr_info->voltdm->name);
++		return -ENODATA;
++	}
 +
-+static struct omap_hwmod_ocp_if omap3_l4_core__sr2 = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap34xx_sr2_hwmod,
-+	.clk		= "sr_l4_ick",
-+	.addr		= omap3_sr2_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap3_sr2_addr_space),
-+	.user		= OCP_USER_MPU,
-+};
++	for (i = 0; i < sr_info->nvalue_count; i++) {
++		char *name;
++		char volt_name[32];
 +
- /* Slave interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
- 	&omap3xxx_l3_main__l4_core,
-+	&omap3_l4_core__sr1,
-+	&omap3_l4_core__sr2,
- };
++		name = kzalloc(NVALUE_NAME_LEN + 1, GFP_KERNEL);
++		if (!name) {
++			dev_err(&pdev->dev, "%s: Unable to allocate memory"
++				" for n-value directory name\n",  __func__);
++			return -ENOMEM;
++		}
++
++		strcpy(name, "volt_");
++		sprintf(volt_name, "%d", volt_data[i].volt_nominal);
++		strcat(name, volt_name);
++		(void) debugfs_create_x32(name, S_IRUGO | S_IWUGO, nvalue_dir,
++				&(sr_info->nvalue_table[i].nvalue));
++	}
  
- /* Master interfaces on the L4_CORE interconnect */
-@@ -1092,6 +1134,135 @@ static struct omap_hwmod omap3xxx_gpio6_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
+ 	return ret;
  
-+/* SR common */
-+static struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields = {
-+	.clkact_shift	= 20,
-+};
-+
-+static struct omap_hwmod_class_sysconfig omap34xx_sr_sysc = {
-+	.sysc_offs	= 0x24,
-+	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_NO_CACHE),
-+	.clockact	= CLOCKACT_TEST_ICLK,
-+	.sysc_fields	= &omap34xx_sr_sysc_fields,
-+};
-+
-+static struct omap_hwmod_class omap34xx_smartreflex_hwmod_class = {
-+	.name = "smartreflex",
-+	.sysc = &omap34xx_sr_sysc,
-+	.rev  = 1,
-+};
-+
-+static struct omap_hwmod_sysc_fields omap36xx_sr_sysc_fields = {
-+	.sidle_shift	= 24,
-+	.enwkup_shift	= 26
-+};
-+
-+static struct omap_hwmod_class_sysconfig omap36xx_sr_sysc = {
-+	.sysc_offs	= 0x38,
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_ENAWAKEUP |
-+			SYSC_NO_CACHE),
-+	.sysc_fields	= &omap36xx_sr_sysc_fields,
-+};
-+
-+static struct omap_hwmod_class omap36xx_smartreflex_hwmod_class = {
-+	.name = "smartreflex",
-+	.sysc = &omap36xx_sr_sysc,
-+	.rev  = 2,
-+};
-+
-+/* SR1 */
-+static struct omap_hwmod_ocp_if *omap3_sr1_slaves[] = {
-+	&omap3_l4_core__sr1,
-+};
-+
-+static struct omap_hwmod omap34xx_sr1_hwmod = {
-+	.name		= "sr1_hwmod",
-+	.class		= &omap34xx_smartreflex_hwmod_class,
-+	.main_clk	= "sr1_fck",
-+	.vdd_name	= "mpu",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_SR1_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430_EN_SR1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3_sr1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
-+					CHIP_IS_OMAP3430ES3_0 |
-+					CHIP_IS_OMAP3430ES3_1),
-+	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
-+};
-+
-+static struct omap_hwmod omap36xx_sr1_hwmod = {
-+	.name		= "sr1_hwmod",
-+	.class		= &omap36xx_smartreflex_hwmod_class,
-+	.main_clk	= "sr1_fck",
-+	.vdd_name	= "mpu",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_SR1_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430_EN_SR1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3_sr1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
-+};
-+
-+/* SR2 */
-+static struct omap_hwmod_ocp_if *omap3_sr2_slaves[] = {
-+	&omap3_l4_core__sr2,
-+};
-+
-+static struct omap_hwmod omap34xx_sr2_hwmod = {
-+	.name		= "sr2_hwmod",
-+	.class		= &omap34xx_smartreflex_hwmod_class,
-+	.main_clk	= "sr2_fck",
-+	.vdd_name	= "core",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_SR2_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430_EN_SR2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3_sr2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
-+					CHIP_IS_OMAP3430ES3_0 |
-+					CHIP_IS_OMAP3430ES3_1),
-+	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
-+};
-+
-+static struct omap_hwmod omap36xx_sr2_hwmod = {
-+	.name		= "sr2_hwmod",
-+	.class		= &omap36xx_smartreflex_hwmod_class,
-+	.main_clk	= "sr2_fck",
-+	.vdd_name	= "core",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_SR2_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430_EN_SR2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3_sr2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
-+};
-+
- static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l3_main_hwmod,
- 	&omap3xxx_l4_core_hwmod,
-@@ -1107,6 +1278,11 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_i2c1_hwmod,
- 	&omap3xxx_i2c2_hwmod,
- 	&omap3xxx_i2c3_hwmod,
-+	&omap34xx_sr1_hwmod,
-+	&omap34xx_sr2_hwmod,
-+	&omap36xx_sr1_hwmod,
-+	&omap36xx_sr2_hwmod,
-+
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 875667f..b27fa4f 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -250,6 +250,47 @@ static void omap3_voltage_write_reg(u32 val, u16 mod, u8 offset)
+ 	omap2_prm_write_mod_reg(val, mod, offset);
+ }
  
- 	/* gpio class */
- 	&omap3xxx_gpio1_hwmod,
++/* Voltage debugfs support */
++static int vp_volt_debug_get(void *data, u64 *val)
++{
++	struct omap_vdd_info *vdd = (struct omap_vdd_info *) data;
++	u8 vsel;
++
++	if (!vdd) {
++		pr_warning("Wrong paramater passed\n");
++		return -EINVAL;
++	}
++
++	vsel = vdd->read_reg(vdd->vp_reg.prm_mod, vdd->vp_offs.voltage);
++	pr_notice("curr_vsel = %x\n", vsel);
++
++	if (!vdd->pmic_info->vsel_to_uv) {
++		pr_warning("PMIC function to convert vsel to voltage"
++			"in uV not registerd\n");
++		return -EINVAL;
++	}
++
++	*val = vdd->pmic_info->vsel_to_uv(vsel);
++	return 0;
++}
++
++static int nom_volt_debug_get(void *data, u64 *val)
++{
++	struct omap_vdd_info *vdd = (struct omap_vdd_info *) data;
++
++	if (!vdd) {
++		pr_warning("Wrong paramater passed\n");
++		return -EINVAL;
++	}
++
++	*val = omap_voltage_get_nom_volt(&vdd->voltdm);
++
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(vp_volt_debug_fops, vp_volt_debug_get, NULL, "%llu\n");
++DEFINE_SIMPLE_ATTRIBUTE(nom_volt_debug_fops, nom_volt_debug_get, NULL,
++								"%llu\n");
+ static void vp_latch_vsel(struct omap_vdd_info *vdd)
+ {
+ 	u32 vpconfig;
+@@ -349,7 +390,32 @@ static void __init vdd_debugfs_init(struct omap_vdd_info *vdd)
+ 		pr_warning("%s: Unable to create debugfs directory for"
+ 			" vdd_%s\n", __func__, vdd->voltdm.name);
+ 		vdd->debug_dir = NULL;
++		return;
+ 	}
++
++	(void) debugfs_create_x16("vp_errorgain", S_IRUGO, vdd->debug_dir,
++				&(vdd->vp_reg.vpconfig_errorgain));
++	(void) debugfs_create_x16("vp_smpswaittimemin", S_IRUGO,
++				vdd->debug_dir,
++				&(vdd->vp_reg.vstepmin_smpswaittimemin));
++	(void) debugfs_create_x8("vp_stepmin", S_IRUGO, vdd->debug_dir,
++				&(vdd->vp_reg.vstepmin_stepmin));
++	(void) debugfs_create_x16("vp_smpswaittimemax", S_IRUGO,
++				vdd->debug_dir,
++				&(vdd->vp_reg.vstepmax_smpswaittimemax));
++	(void) debugfs_create_x8("vp_stepmax", S_IRUGO, vdd->debug_dir,
++				&(vdd->vp_reg.vstepmax_stepmax));
++	(void) debugfs_create_x8("vp_vddmax", S_IRUGO, vdd->debug_dir,
++				&(vdd->vp_reg.vlimitto_vddmax));
++	(void) debugfs_create_x8("vp_vddmin", S_IRUGO, vdd->debug_dir,
++				&(vdd->vp_reg.vlimitto_vddmin));
++	(void) debugfs_create_x16("vp_timeout", S_IRUGO, vdd->debug_dir,
++				&(vdd->vp_reg.vlimitto_timeout));
++	(void) debugfs_create_file("curr_vp_volt", S_IRUGO, vdd->debug_dir,
++				(void *) vdd, &vp_volt_debug_fops);
++	(void) debugfs_create_file("curr_nominal_volt", S_IRUGO,
++				vdd->debug_dir, (void *) vdd,
++				&nom_volt_debug_fops);
+ }
+ 
+ /* Voltage scale and accessory APIs */
 -- 
 1.7.0.4
 
