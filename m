@@ -1,106 +1,19 @@
-From: Ernesto Ramos <ernesto@ti.com>
-Subject: [PATCH] staging: tidspbridge: remove code referred by OPT_ZERO_COPY_LOADER
-Date: Mon, 20 Dec 2010 15:23:08 -0600
-Message-ID: <1292880188-5860-1-git-send-email-ernesto@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: omar.ramirez@ti.com, ohad@wizery.com, felipe.contreras@gmail.com, Ernesto Ramos <ernesto@ti.com>
+From: "Capt. Martin Long" <mary.paulus@sbcglobal.net>
+Subject: Urgent!!!
+Date: Mon, 20 Dec 2010 13:39:27 -0800 (PST)
+Message-ID: <193841.75902.qm__10008.0192824409$1292881185$gmane$org@web180110.mail.gq1.yahoo.com>
+Reply-To: capt.mlong1@live.co.uk
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nm11.bullet.mail.ne1.yahoo.com ([98.138.90.74]:48349 "HELO
+	nm11.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1757765Ab0LTVj2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 16:39:28 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Remove code referred by OPT_ZERO_COPY_LOADER since it is
-not used.
+I am Capt. Martin Long of the US Marine in Ba'qubah,Iraq. I got  $15,500,000.00 from Crude Oil deal, that i want you to help me to receive. Contact if interested for more details.
 
-Signed-off-by: Ernesto Ramos <ernesto@ti.com>
----
- drivers/staging/tidspbridge/dynload/cload.c |   60 +++++++++------------------
- 1 files changed, 20 insertions(+), 40 deletions(-)
-
-diff --git a/drivers/staging/tidspbridge/dynload/cload.c b/drivers/staging/tidspbridge/dynload/cload.c
-index a5cdfa1..7713e76 100644
---- a/drivers/staging/tidspbridge/dynload/cload.c
-+++ b/drivers/staging/tidspbridge/dynload/cload.c
-@@ -1133,9 +1133,6 @@ static void dload_data(struct dload_state *dlthis)
- 	u16 curr_sect;
- 	struct doff_scnhdr_t *sptr = dlthis->sect_hdrs;
- 	struct ldr_section_info *lptr = dlthis->ldr_sections;
--#ifdef OPT_ZERO_COPY_LOADER
--	bool zero_copy = false;
--#endif
- 	u8 *dest;
- 
- 	struct {
-@@ -1194,17 +1191,6 @@ static void dload_data(struct dload_state *dlthis)
- 					return;
- 				}
- 				dest = ibuf.bufr;
--#ifdef OPT_ZERO_COPY_LOADER
--				zero_copy = false;
--				if (!dload_check_type(sptr, DLOAD_CINIT) {
--					dlthis->myio->writemem(dlthis->myio,
--							       &dest,
--							       lptr->load_addr +
--							       image_offset,
--							       lptr, 0);
--					zero_copy = (dest != ibuf.bufr);
--				}
--#endif
- 				/* End of determination */
- 
- 				if (dlthis->strm->read_buffer(dlthis->strm,
-@@ -1268,33 +1254,27 @@ static void dload_data(struct dload_state *dlthis)
- 							    &ibuf.ipacket);
- 						cinit_processed = true;
- 					} else {
--#ifdef OPT_ZERO_COPY_LOADER
--						if (!zero_copy) {
--#endif
--							/* FIXME */
--							if (!dlthis->myio->
--							    writemem(dlthis->
--								myio,
--								ibuf.bufr,
--								lptr->
--								load_addr +
--								image_offset,
--								lptr,
--								BYTE_TO_HOST
--								(ibuf.
--								ipacket.
--								packet_size))) {
--								DL_ERROR
--								  ("Write to "
--								  FMT_UI32
--								  " failed",
--								  lptr->
--								  load_addr +
--								  image_offset);
--							}
--#ifdef OPT_ZERO_COPY_LOADER
-+						/* FIXME */
-+						if (!dlthis->myio->
-+						    writemem(dlthis->
-+							myio,
-+							ibuf.bufr,
-+							lptr->
-+							load_addr +
-+							image_offset,
-+							lptr,
-+							BYTE_TO_HOST
-+							(ibuf.
-+							ipacket.
-+							packet_size))) {
-+							DL_ERROR
-+							  ("Write to "
-+							  FMT_UI32
-+							  " failed",
-+							  lptr->
-+							  load_addr +
-+							  image_offset);
- 						}
--#endif
- 					}
- 				}
- 				image_offset +=
--- 
-1.7.0.4
+Capt. Martin Long
