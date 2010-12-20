@@ -1,199 +1,195 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 6/9] OMAP4: hwmod data: add system DMA
-Date: Mon, 20 Dec 2010 12:30:11 +0100
-Message-ID: <4D0F3E43.6090207@ti.com>
-References: <1292600388-13094-1-git-send-email-manjugk@ti.com> <1292600388-13094-7-git-send-email-manjugk@ti.com>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: Re: [PATCH v4 2/7] OMAP3: PM: Erratum i581 support: dll kick
+	strategy
+Date: Mon, 20 Dec 2010 13:33:22 +0200
+Message-ID: <20101220113322.GS31404@nokia.com>
+References: <1292712817-24999-1-git-send-email-nm@ti.com> <1292712817-24999-3-git-send-email-nm@ti.com> <AANLkTi=4DJAnXcTZ37rcmr9Kz2CmXx6uhPqNThnoR2gu@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38349 "EHLO arroyo.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.47]:46563 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754789Ab0LTLaZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Dec 2010 06:30:25 -0500
-In-Reply-To: <1292600388-13094-7-git-send-email-manjugk@ti.com>
+	id S1757360Ab0LTLgr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 06:36:47 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTi=4DJAnXcTZ37rcmr9Kz2CmXx6uhPqNThnoR2gu@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "paul@pwsan.com" <paul@pwsan.com>
+To: ext Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@deeprootsystems.com>, Tony <tony@atomide.com>
 
-On 12/17/2010 4:39 PM, G, Manjunath Kondaiah wrote:
-> From: Benoit Cousson<b-cousson@ti.com>
->
-> Add OMAP4 DMA hwmod data
->
-> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
-> Signed-off-by: G, Manjunath Kondaiah<manjugk@ti.com>
+On Mon, Dec 20, 2010 at 11:23:27AM +0100, ext Jean Pihet wrote:
+> On Sat, Dec 18, 2010 at 11:53 PM, Nishanth Menon <nm@ti.com> wrote:
+> > From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+> >
+> > Erratum i581 impacts OMAP3 platforms.
+> > PRCM DPLL control FSM removes SDRC_IDLEREQ before DPLL3 locks causi=
+ng
+> > the DPLL not to be locked at times.
+> >
+> > IMPORTANT:
+> > *) This is not a complete workaround implementation as recommended
+> > by the silicon erratum. this is a support logic for detecting locku=
+ps and
+> > attempting to recover where possible and is known to provide stabil=
+ity
+> > in multiple platforms.
+> > *) This code is mostly important for inactive and retention. The RO=
+M code
+> > waits for the maximum dll lock time when resuming from off mode. So=
+ for
+> > off mode this code isn't really needed.
+> >
+> > This should eventually get refactored as part of cleanups to sleep3=
+4xx.S
+> >
+> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> >
+> > Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.co=
+m>
+> > ---
+> > (no change done, posting for completeness of the series)
+> > v2: https://patchwork.kernel.org/patch/365252/
+> > =A0 =A0 =A0 =A0typo correction- erratum, support, added comment fro=
+m Peter from the
+> > =A0 =A0 =A0 =A0thread to commit message
+> > v1: http://marc.info/?l=3Dlinux-omap&m=3D129013172525234&w=3D2
+> > =A0arch/arm/mach-omap2/sleep34xx.S | =A0 52 +++++++++++++++++++++++=
+++++++++++++---
+> > =A01 files changed, 47 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/=
+sleep34xx.S
+> > index 2c20fcf..3fbd1e5 100644
+> > --- a/arch/arm/mach-omap2/sleep34xx.S
+> > +++ b/arch/arm/mach-omap2/sleep34xx.S
+> > @@ -42,6 +42,7 @@
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP=
+3430_PM_PREPWSTST)
+> > =A0#define PM_PWSTCTRL_MPU_P =A0 =A0 =A0OMAP3430_PRM_BASE + MPU_MOD=
+ + OMAP2_PM_PWSTCTRL
+> > =A0#define CM_IDLEST1_CORE_V =A0 =A0 =A0OMAP34XX_CM_REGADDR(CORE_MO=
+D, CM_IDLEST1)
+> > +#define CM_IDLEST_CKGEN_V =A0 =A0 =A0OMAP34XX_CM_REGADDR(PLL_MOD, =
+CM_IDLEST)
+> > =A0#define SRAM_BASE_P =A0 =A0 =A0 =A0 =A0 =A00x40200000
+> > =A0#define CONTROL_STAT =A0 =A0 =A0 =A0 =A0 0x480022F0
+> > =A0#define SCRATCHPAD_MEM_OFFS =A0 =A00x310 /* Move this as correct=
+ place is
+> > @@ -554,31 +555,67 @@ skip_l2_inval:
+> >
+> > =A0/* Make sure SDRC accesses are ok */
+> > =A0wait_sdrc_ok:
+> > +
+> > +/* DPLL3 must be locked before accessing the SDRC. Maybe the HW en=
+sures this. */
+> > + =A0 =A0 =A0 ldr =A0 =A0 r4, cm_idlest_ckgen
+> > +wait_dpll3_lock:
+> > + =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
+> > + =A0 =A0 =A0 tst =A0 =A0 r5, #1
+> > + =A0 =A0 =A0 beq =A0 =A0 wait_dpll3_lock
+> > +
+> > =A0 =A0 =A0 =A0 ldr =A0 =A0 r4, cm_idlest1_core
+> > +wait_sdrc_ready:
+> > =A0 =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
+> > - =A0 =A0 =A0 =A0and =A0 =A0 r5, r5, #0x2
+> > - =A0 =A0 =A0 =A0cmp =A0 =A0 r5, #0
+> > - =A0 =A0 =A0 =A0bne =A0 =A0 wait_sdrc_ok
+> > + =A0 =A0 =A0 =A0tst =A0 =A0 r5, #0x2
+> > + =A0 =A0 =A0 =A0bne =A0 =A0 wait_sdrc_ready
+> > + =A0 =A0 =A0 /* allow DLL powerdown upon hw idle req */
+> > =A0 =A0 =A0 =A0 ldr =A0 =A0 r4, sdrc_power
+> > =A0 =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
+> > =A0 =A0 =A0 =A0 bic =A0 =A0 r5, r5, #0x40
+> > =A0 =A0 =A0 =A0 str =A0 =A0 r5, [r4]
+> > -wait_dll_lock:
+> > +is_dll_in_lock_mode:
+> > +
+> > =A0 =A0 =A0 =A0 /* Is dll in lock mode? */
+> > =A0 =A0 =A0 =A0 ldr =A0 =A0 r4, sdrc_dlla_ctrl
+> > =A0 =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
+> > =A0 =A0 =A0 =A0 tst =A0 =A0 r5, #0x4
+> > =A0 =A0 =A0 =A0 bxne =A0 =A0lr
+> > =A0 =A0 =A0 =A0 /* wait till dll locks */
+> > - =A0 =A0 =A0 =A0ldr =A0 =A0 r4, sdrc_dlla_status
+> > +wait_dll_lock_timed:
+> > + =A0 =A0 =A0 ldr =A0 =A0 r4, wait_dll_lock_counter
+> > + =A0 =A0 =A0 add =A0 =A0 r4, r4, #1
+> > + =A0 =A0 =A0 str =A0 =A0 r4, wait_dll_lock_counter
+> > + =A0 =A0 =A0 ldr =A0 =A0 r4, sdrc_dlla_status
+> > + =A0 =A0 =A0 =A0mov =A0 =A0r6, #8 =A0 =A0 =A0 =A0 =A0/* Wait 20uS =
+for lock */
+> > +wait_dll_lock:
+> > + =A0 =A0 =A0 subs =A0 =A0r6, r6, #0x1
+> > + =A0 =A0 =A0 beq =A0 =A0 kick_dll
+>=20
+> It would be good to have more comments on the code flow here:
+> - what are wait_dll_lock_counter and kick_counter used for?
 
-It will be good to explicitly list the changes you did compared to the 
-original generated version. Even if these are some minor changes.
-I thought it was the original patch and it appears it is not the case :-(
+=46or debugging and statistics. So you can find out how many times a
+'kick' was needed.
 
-The general minor commestic comment is you should try to keep the 
-original order of the structures. That does not changes anything, but 
-that will keep the file in sync with the generated one.
+> - what is the timing based on? Why 20uS for the wait time?
 
-> Tested-by: Kevin Hilman<khilman@deeprootsystems.com>
-> Acked-by: Kevin Hilman<khilman@deeprootsystems.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  101 ++++++++++++++++++++++++++++
->   1 files changed, 101 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index d258936..50c00d6 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -23,6 +23,7 @@
->   #include<plat/omap_hwmod.h>
->   #include<plat/cpu.h>
->   #include<plat/gpio.h>
-> +#include<plat/dma.h>
->
->   #include "omap_hwmod_common_data.h"
->
-> @@ -36,6 +37,7 @@
->   #define OMAP44XX_DMA_REQ_START  1
->
->   /* Backward references (IPs with Bus Master capability) */
-> +static struct omap_hwmod omap44xx_dma_system_hwmod;
->   static struct omap_hwmod omap44xx_dmm_hwmod;
->   static struct omap_hwmod omap44xx_emif_fw_hwmod;
->   static struct omap_hwmod omap44xx_l3_instr_hwmod;
-> @@ -216,6 +218,14 @@ static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l3_main_2 = {
->   	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->   };
->
-> +/* dma_system ->  l3_main_2 */
-> +static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 = {
-> +	.master		=&omap44xx_dma_system_hwmod,
-> +	.slave		=&omap44xx_l3_main_2_hwmod,
-> +	.clk		= "l3_div_ck",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->   /* l4_cfg ->  l3_main_2 */
->   static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_2 = {
->   	.master		=&omap44xx_l4_cfg_hwmod,
-> @@ -227,6 +237,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_2 = {
->   /* l3_main_2 slave ports */
->   static struct omap_hwmod_ocp_if *omap44xx_l3_main_2_slaves[] = {
->   	&omap44xx_l3_main_1__l3_main_2,
-> +	&omap44xx_dma_system__l3_main_2,
->   	&omap44xx_l4_cfg__l3_main_2,
->   };
->
-> @@ -1376,6 +1387,93 @@ static struct omap_hwmod omap44xx_gpio6_hwmod = {
->   	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio6_slaves),
->   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
->   };
-> +
-> +/*
-> + * 'dma' class
-> + * dma controller for data exchange between memory to memory (i.e. internal or
-> + * external memory) and gp peripherals to memory or memory to gp peripherals
-> + */
-> +
-> +static struct omap_hwmod_class_sysconfig omap44xx_dma_sysc = {
-> +	.rev_offs	= 0x0000,
-> +	.sysc_offs	= 0x002c,
-> +	.syss_offs	= 0x0028,
-> +	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-> +			   SYSC_HAS_MIDLEMODE | SYSC_HAS_CLOCKACTIVITY |
-> +			   SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE),
+This is the maximum lock time of the dll according to TI for OMAP3430.
 
-A new flag was introduce in 2.6.37 to handle properly the softreset 
-(SYSS_HAS_RESET_STATUS). You should use it otherwise the reset might not 
-work properly. The generated hwmod data was updated accordingly at that 
-time (git://gitorious.org/omap-pm/linux.git hwmods-omap4-full)
+> - jumping back and forth to kick_dll and wait_dll_lock_timed is confu=
+sing.
+>=20
+> > =A0 =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
+> > =A0 =A0 =A0 =A0 and =A0 =A0 r5, r5, #0x4
+> > =A0 =A0 =A0 =A0 cmp =A0 =A0 r5, #0x4
+> > =A0 =A0 =A0 =A0 bne =A0 =A0 wait_dll_lock
+> > =A0 =A0 =A0 =A0 bx =A0 =A0 =A0lr
+> >
+> > + =A0 =A0 =A0 /* disable/reenable DLL if not locked */
+> > +kick_dll:
+> > + =A0 =A0 =A0 ldr =A0 =A0 r4, sdrc_dlla_ctrl
+> > + =A0 =A0 =A0 ldr =A0 =A0 r5, [r4]
+> > + =A0 =A0 =A0 mov =A0 =A0 r6, r5
+> > + =A0 =A0 =A0 bic =A0 =A0 r6, #(1<<3) =A0 =A0 /* disable dll */
+> > + =A0 =A0 =A0 str =A0 =A0 r6, [r4]
+> > + =A0 =A0 =A0 dsb
+> > + =A0 =A0 =A0 orr =A0 =A0 r6, r6, #(1<<3) /* enable dll */
+> > + =A0 =A0 =A0 str =A0 =A0 r6, [r4]
+> > + =A0 =A0 =A0 dsb
+> > + =A0 =A0 =A0 ldr =A0 =A0 r4, kick_counter
+> > + =A0 =A0 =A0 add =A0 =A0 r4, r4, #1
+> > + =A0 =A0 =A0 str =A0 =A0 r4, kick_counter
+> > + =A0 =A0 =A0 b =A0 =A0 =A0 wait_dll_lock_timed
+> > +
+> > =A0cm_idlest1_core:
+> > =A0 =A0 =A0 =A0.word =A0 CM_IDLEST1_CORE_V
+> > +cm_idlest_ckgen:
+> > + =A0 =A0 =A0 .word =A0 CM_IDLEST_CKGEN_V
+> > =A0sdrc_dlla_status:
+> > =A0 =A0 =A0 =A0.word =A0 SDRC_DLLA_STATUS_V
+> > =A0sdrc_dlla_ctrl:
+> > @@ -615,5 +652,10 @@ control_stat:
+> > =A0 =A0 =A0 =A0.word =A0 CONTROL_STAT
+> > =A0kernel_flush:
+> > =A0 =A0 =A0 =A0.word v7_flush_dcache_all
+> > + =A0 =A0 =A0 /* these 2 words need to be at the end !!! */
+> > +kick_counter:
+> > + =A0 =A0 =A0 .word =A0 0
+> > +wait_dll_lock_counter:
+> > + =A0 =A0 =A0 .word =A0 0
+> Why do they need to be at the end? Also, at the end of what do they n=
+eed to be?
+>=20
 
-Here are the proper data:
+At the end of omap34xx_cpu_suspend. As we don't know where in SRAM the
+counters will be, the code accessing those counters addresses them
+relative from (_omap_sram_idle + omap34xx_cpu_suspend_sz). Not sure if
+this part of the code made it to linux-omap though.
 
-+static struct omap_hwmod_class_sysconfig omap44xx_dma_sysc = {
-+       .rev_offs       = 0x0000,
-+       .sysc_offs      = 0x002c,
-+       .syss_offs      = 0x0028,
-+       .sysc_flags     = (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
-+                          SYSC_HAS_EMUFREE | SYSC_HAS_MIDLEMODE |
-+                          SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-+                          SYSS_HAS_RESET_STATUS),
+Cheers,
 
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-> +	.sysc_fields	=&omap_hwmod_sysc_type1,
-> +};
-> +
-> +static struct omap_hwmod_class omap44xx_dma_hwmod_class = {
-> +	.name = "dma",
-> +	.sysc =&omap44xx_dma_sysc,
-> +};
-> +
-> +/* dma attributes */
-> +static struct omap_dma_dev_attr dma_dev_attr = {
-> +	.dev_caps  = RESERVE_CHANNEL | DMA_LINKED_LCH | GLOBAL_PRIORITY |
-> +				IS_CSSA_32 | IS_CDSA_32 | IS_RW_PRIORITY,
-> +	.lch_count = 32,
-> +};
-> +
-> +/* dma_system */
-> +static struct omap_hwmod_irq_info omap44xx_dma_system_irqs[] = {
-> +	{ .name = "0", .irq = 12 + OMAP44XX_IRQ_GIC_START },
-> +	{ .name = "1", .irq = 13 + OMAP44XX_IRQ_GIC_START },
-> +	{ .name = "2", .irq = 14 + OMAP44XX_IRQ_GIC_START },
-> +	{ .name = "3", .irq = 15 + OMAP44XX_IRQ_GIC_START },
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap44xx_dma_system_addrs[] = {
-> +	{
-> +		.pa_start	= 0x4a056000,
-> +		.pa_end		= 0x4a0560ff,
-> +		.flags		= ADDR_TYPE_RT
-> +	},
-> +};
-> +
-> +/* dma_system master ports */
-> +static struct omap_hwmod_ocp_if *omap44xx_dma_system_masters[] = {
-> +	&omap44xx_dma_system__l3_main_2,
-> +};
-> +
-> +/* l4_cfg ->  dma_system */
-> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__dma_system = {
-> +	.master		=&omap44xx_l4_cfg_hwmod,
-> +	.slave		=&omap44xx_dma_system_hwmod,
-> +	.clk		= "l4_div_ck",
-> +	.addr		= omap44xx_dma_system_addrs,
-> +	.addr_cnt	= ARRAY_SIZE(omap44xx_dma_system_addrs),
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* dma_system slave ports */
-> +static struct omap_hwmod_ocp_if *omap44xx_dma_system_slaves[] = {
-> +	&omap44xx_l4_cfg__dma_system,
-> +};
-> +
-> +static struct omap_hwmod omap44xx_dma_system_hwmod = {
-> +	.name		= "dma_system",
-> +	.class		=&omap44xx_dma_hwmod_class,
-> +	.mpu_irqs	= omap44xx_dma_system_irqs,
-> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dma_system_irqs),
-> +	.main_clk	= "l3_div_ck",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_reg = OMAP4430_CM_SDMA_SDMA_CLKCTRL,
-> +		},
-> +	},
-> +	.slaves		= omap44xx_dma_system_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_dma_system_slaves),
-> +	.masters	= omap44xx_dma_system_masters,
-> +	.masters_cnt	= ARRAY_SIZE(omap44xx_dma_system_masters),
-> +	.dev_attr	=&dma_dev_attr,
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-> +	.flags		= HWMOD_NO_IDLEST,
-
-That one is wrong! It was the case on OMAP 2& 3, but we do have an 
-IDLEST on OMAP4.
-TRM vM page 958: Table 3-1210. CM_SDMA_SDMA_CLKCTRL.IDLEST
-
-It might not work, but that's another story. Why did you add that?
-
-Regards,
-Benoit
+Peter.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
