@@ -1,99 +1,70 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: [PATCH] staging: tidspbridge: protect dmm_map properly
-Date: Mon, 20 Dec 2010 19:12:00 +0200
-Message-ID: <1292865120-24020-1-git-send-email-felipe.contreras@nokia.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v2] Keyboard: omap-keypad: use matrix_keypad.h
+Date: Mon, 20 Dec 2010 18:32:22 +0100
+Message-ID: <201012201832.24243.jkrzyszt@tis.icnet.pl>
+References: <201012172332.06480.jkrzyszt@tis.icnet.pl> <201012181639.29820.jkrzyszt@tis.icnet.pl> <alpine.DEB.1.10.1012201720470.13087@esdhcp041196.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:58592 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752491Ab0LTRfC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 12:35:02 -0500
+In-Reply-To: <alpine.DEB.1.10.1012201720470.13087@esdhcp041196.research.nokia.com>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org, linux-input@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
 
-We need to protect not only the dmm_map list, but the individual
-map_obj's, otherwise, we might be building the scatter-gather list with
-garbage. So, use the existing proc_lock for that.
+Monday 20 December 2010 16:29:32 Aaro Koskinen wrote:
+> Hello,
+>
+> On Sat, 18 Dec 2010, Janusz Krzysztofik wrote:
+> > Most keypad drivers make use of the <linux/input/matrix_keypad.h>
+> > defined macros, structures and inline functions.
+> >
+> > Convert omap-keypad driver to use those as well, as suggested by a
+> > compile time warning, hardcoded into the OMAP <palt/keypad.h>.
+> >
+> > Created against linux-2.6.37-rc5.
+> > Tested on Amstrad Delta.
+> > Compile tested with omap1_defconfig and omap2plus_defconfig
+> > shrinked to board-h4.
+> >
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>
+> [...]
+>
+> > --- linux-2.6.37-rc5/arch/arm/mach-omap1/board-ams-delta.c.orig
+> > 2010-12-09 23:07:35.000000000 +0100 +++
+> > linux-2.6.37-rc5/arch/arm/mach-omap1/board-ams-delta.c     
+> > 2010-12-18 16:23:29.000000000 +0100 @@ -46,81 +46,79 @@ static u16
+> > ams_delta_latch2_reg;
+> > static int ams_delta_keymap[] = {
+>
+> [...]
+>
+> > +static const struct matrix_keymap_data ams_delta_keymap_data = {
+> > +       .keymap         = ams_delta_keymap,
+> > +       .keymap_size    = ARRAY_SIZE(ams_delta_keymap),
+> > +};
+>
+> You should update the ams_delta_keymap type as well, otherwise this
+> patch will introduce the following sparse warning:
+>
+>    CHECK   arch/arm/mach-omap1/board-ams-delta.c
+> arch/arm/mach-omap1/board-ams-delta.c:191:27: warning: incorrect type in initializer (different signedness)
+> arch/arm/mach-omap1/board-ams-delta.c:191:27:    expected unsigned int const [usertype] *keymap
+> arch/arm/mach-omap1/board-ams-delta.c:191:27:    got int static [toplevel] *<noident>
 
-I observed race conditions which caused kernel panics while running
-stress tests. This patch fixes those.
+Hi Aaro,
+How did you get this output? I'm using OpenEmbedded as my development 
+environment. Running make with "C=1" (EXTRA_OEMAKE=" C=1 ") displays a 
+lot but the above. Running sparse by hand breaks with "unable to 
+open 'linux/init.h'". Any advice?
 
-Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
----
- drivers/staging/tidspbridge/rmgr/proc.c |   18 ++++++++++++++----
- 1 files changed, 14 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
-index b47d7aa..21052e3 100644
---- a/drivers/staging/tidspbridge/rmgr/proc.c
-+++ b/drivers/staging/tidspbridge/rmgr/proc.c
-@@ -781,12 +781,14 @@ int proc_begin_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
- 							(u32)pmpu_addr,
- 							ul_size, dir);
- 
-+	mutex_lock(&proc_lock);
-+
- 	/* find requested memory are in cached mapping information */
- 	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
- 	if (!map_obj) {
- 		pr_err("%s: find_containing_mapping failed\n", __func__);
- 		status = -EFAULT;
--		goto err_out;
-+		goto no_map;
- 	}
- 
- 	if (memory_give_ownership(map_obj, (u32) pmpu_addr, ul_size, dir)) {
-@@ -795,6 +797,8 @@ int proc_begin_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
- 		status = -EFAULT;
- 	}
- 
-+no_map:
-+	mutex_unlock(&proc_lock);
- err_out:
- 
- 	return status;
-@@ -819,12 +823,14 @@ int proc_end_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
- 							(u32)pmpu_addr,
- 							ul_size, dir);
- 
-+	mutex_lock(&proc_lock);
-+
- 	/* find requested memory are in cached mapping information */
- 	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
- 	if (!map_obj) {
- 		pr_err("%s: find_containing_mapping failed\n", __func__);
- 		status = -EFAULT;
--		goto err_out;
-+		goto no_map;
- 	}
- 
- 	if (memory_regain_ownership(map_obj, (u32) pmpu_addr, ul_size, dir)) {
-@@ -834,6 +840,8 @@ int proc_end_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
- 		goto err_out;
- 	}
- 
-+no_map:
-+	mutex_unlock(&proc_lock);
- err_out:
- 	return status;
- }
-@@ -1726,9 +1734,8 @@ int proc_un_map(void *hprocessor, void *map_addr,
- 		    (p_proc_object->hbridge_context, va_align, size_align);
- 	}
- 
--	mutex_unlock(&proc_lock);
- 	if (status)
--		goto func_end;
-+		goto unmap_failed;
- 
- 	/*
- 	 * A successful unmap should be followed by removal of map_obj
-@@ -1737,6 +1744,9 @@ int proc_un_map(void *hprocessor, void *map_addr,
- 	 */
- 	remove_mapping_information(pr_ctxt, (u32) map_addr, size_align);
- 
-+unmap_failed:
-+	mutex_unlock(&proc_lock);
-+
- func_end:
- 	dev_dbg(bridge, "%s: hprocessor: 0x%p map_addr: 0x%p status: 0x%x\n",
- 		__func__, hprocessor, map_addr, status);
--- 
-1.7.3.3
+Thanks,
+Janusz
