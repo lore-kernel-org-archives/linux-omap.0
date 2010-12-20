@@ -1,83 +1,37 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2] ARM: OMAP: Power on EHCI, serial, camera and DVI on beagleboard-xM
-Date: Mon, 20 Dec 2010 10:48:52 -0800
-Message-ID: <87d3ow5lgr.fsf@deeprootsystems.com>
-References: <1291725639-86397-1-git-send-email-koen@beagleboard.org>
-	<1292769735-54159-1-git-send-email-koen@dominion.thruhere.net>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v2] Keyboard: omap-keypad: use matrix_keypad.h
+Date: Mon, 20 Dec 2010 19:49:26 +0100
+Message-ID: <201012201949.28639.jkrzyszt@tis.icnet.pl>
+References: <201012172332.06480.jkrzyszt@tis.icnet.pl> <201012201832.24243.jkrzyszt@tis.icnet.pl> <20101220180207.GD9353@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f180.google.com ([209.85.161.180]:35161 "EHLO
-	mail-gx0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933044Ab0LTSs5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Dec 2010 13:48:57 -0500
-Received: by gxk19 with SMTP id 19so1799742gxk.11
-        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 10:48:57 -0800 (PST)
-In-Reply-To: <1292769735-54159-1-git-send-email-koen@dominion.thruhere.net>
-	(Koen Kooi's message of "Sun, 19 Dec 2010 15:42:15 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20101220180207.GD9353@core.coreip.homeip.net>
+Content-Disposition: inline
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org, linux-input@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen.kooi@gmail.com>
-Cc: linux-omap@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Koen Kooi <koen@beagleboard.org>
 
-Koen Kooi <koen.kooi@gmail.com> writes:
-
-> Signed-off-by: Koen Kooi <koen@beagleboard.org>
-
--ENO_DESCRIPTIVE_CHANGELOG
-
-Also, please Cc linux-arm-kernel for patches intended for upstream.
-
-Thanks,
-
-Kevin
-
-> ---
+Monday 20 December 2010 19:02:08 Dmitry Torokhov wrote:
 >
-> Changes since v1:
-> 	* Reenable the PMU stat LED
+> Not sure why exactly your sparse does not pick it up (too old maybe?)
+> but the following:
 >
->  arch/arm/mach-omap2/board-omap3beagle.c |   26 ++++++++++++++++++++++++--
->  1 files changed, 24 insertions(+), 2 deletions(-)
+> --- linux-2.6.37-rc5/arch/arm/mach-omap1/board-ams-delta.c.orig 2010-12-09 23:07:35.000000000 +0100
+> +++ linux-2.6.37-rc5/arch/arm/mach-omap1/board-ams-delta.c 2010-12-18
+> 16:23:29.000000000 +0100
+> @@ -46,81 +46,79 @@ static u16 ams_delta_latch2_reg;
+>  static int ams_delta_keymap[] = {
+>         KEY(0, 0, KEY_F1),              /* Advert    */
 >
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index f1a8ede..4756ac7 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -297,13 +297,35 @@ static int beagle_twl_gpio_setup(struct device *dev,
->  	gpio_request(gpio + 1, "EHCI_nOC");
->  	gpio_direction_input(gpio + 1);
->  
-> -	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
-> +	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
-> +	 * high / others active low) */
->  	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
-> -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
-> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
-> +	else
-> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
-> +
-> +	/* DVI reset GPIO is different between revisions */
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
-> +		beagle_dvi_device.reset_gpio = 129;
-> +	else
-> +		beagle_dvi_device.reset_gpio = 170;
-> +
-> +	 /* Power on DVI, Serial and PWR led */
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-> +		gpio_request(gpio + 1, "nDVI_PWR_EN");
-> +		gpio_direction_output(gpio + 1, 0);
-> +	}
->  
->  	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
->  	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
->  
-> +	/* Power on camera interface on P7/P8 or DVI on A2 and beyond */
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-> +		gpio_request(gpio + 2, "CAM_EN");
-> +		gpio_direction_output(gpio + 2, 1);
-> +	}
-> +
->  	return 0;
->  }
+> should be
+>
+>  static const unisgned int ams_delta_keymap[] = {
+>
+> Same goes for the rest of keymaps.
+
+Sure, thanks.
+Janusz
