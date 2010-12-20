@@ -1,42 +1,67 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: Is changing serial from /dev/ttySx to /dev/ttyOx a good idea?
-Date: Mon, 20 Dec 2010 15:34:16 +0800
-Message-ID: <AANLkTikwRS7CmooumKk7t8p53f3H2xQcHh-sZ=VuXft+@mail.gmail.com>
-References: <201012201546.12319.manningc2@actrix.gen.nz>
-	<AANLkTi=P58XerK8jdyvfT9JS6tU3U11tYP=KH4_B-cn=@mail.gmail.com>
-	<AANLkTimcAs0X6B9j9DpbAg1K7aAT7JAyXoOyRZYCeNHG@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 0/7 v6] OMAP3: clean up ASM sleep code
+Date: Mon, 20 Dec 2010 09:29:05 +0100
+Message-ID: <AANLkTikX9qY0OUfS6w9UvELCGLM4F1oUVLKYwGq7fZgm@mail.gmail.com>
+References: <1292687087-22983-1-git-send-email-j-pihet@ti.com>
+	<4D0D3C24.4020503@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:56161 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753363Ab0LTHeU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Dec 2010 02:34:20 -0500
-Received: by wwa36 with SMTP id 36so2654766wwa.1
-        for <linux-omap@vger.kernel.org>; Sun, 19 Dec 2010 23:34:18 -0800 (PST)
-In-Reply-To: <AANLkTimcAs0X6B9j9DpbAg1K7aAT7JAyXoOyRZYCeNHG@mail.gmail.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:43560 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754102Ab0LTI3H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Dec 2010 03:29:07 -0500
+Received: by qwa26 with SMTP id 26so2531421qwa.19
+        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 00:29:06 -0800 (PST)
+In-Reply-To: <4D0D3C24.4020503@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Abraham Arce <abraham.arce.moreno@gmail.com>
-Cc: Charles Manning <manningc2@actrix.gen.nz>, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-Hi,
+Hi Nishant,
 
-2010/12/20 Abraham Arce <abraham.arce.moreno@gmail.com>:
-> Hi,
->
-> On Sun, Dec 19, 2010 at 9:04 PM, Ming Lei <tom.leiming@gmail.com> wrote:
->> In fact, the transition is not friendly indeed for a user. I don't know why
->> the transition is introduced, for what purpose? Who can give a explanation?
+On Sat, Dec 18, 2010 at 11:56 PM, Nishanth Menon <nm@ti.com> wrote:
+> jean.pihet@newoldbits.com had written, on 12/18/2010 09:44 AM, the
+> following:
+>>
+>> Applies on top of Nishant's latest idle path errata fixes step 2,
+>> cf. http://marc.info/?l=3Dlinux-omap&m=3D129139584919242&w=3D2
+>>
+>> Jean Pihet (7):
+>> =A0OMAP3: remove unused code from the ASM sleep code
+>> =A0OMAP2+: use global values for the SRAM PA addresses
+>> =A0OMAP3: remove hardcoded values from the ASM sleep code
+>> =A0OMAP3: re-organize the ASM sleep code
+>> =A0OMAP3: rework of the ASM sleep code execution paths
+>> =A0OMAP3: add comments for low power code errata
+>> =A0OMAP3: ASM sleep code format rework
 >>
 >
-> Patch itself has one explanation, kernel commit is
-> b612633b5928077441b979471869753bfa93d41a
+> just FYI - tested the series v6 as well with:
+> SDP3430 and SDP3630 with script:
+> http://elinux.org/OMAP_Power_Management#Quick_verification_of_suspend=
+-idle_functionality
 >
-> http://www.spinics.net/lists/linux-serial/msg02788.html
+> Tested against v4 of my series. I have ensured that your series still
+> applies cleanly on top of my new series.
 
-The commit does not explain the cause of renaming ttyS to ttyO, does it?
+Thanks for that!
 
-thanks,
--- 
-Lei Ming
+Let me check and ack your latest v4 patches.
+
+>
+> --
+> Regards,
+> Nishanth Menon
+>
+>
+
+Regards,
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
