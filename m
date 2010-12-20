@@ -1,38 +1,90 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 0/40] Complete set of clocksource/sched_clock patches
-Date: Mon, 20 Dec 2010 22:48:14 +0000
-Message-ID: <20101220224814.GJ28157@n2100.arm.linux.org.uk>
-References: <20101217113223.GC9937@n2100.arm.linux.org.uk> <AANLkTimarRAf-_ykQNLgzXd3TtUHhSw+gZ6cZ5pW=Y-9@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v7 12/12] OMAP2: dmtimer: set wakeup enable explicitly
+ in plat
+Date: Tue, 21 Dec 2010 00:11:35 +0100
+Message-ID: <4D0FE2A7.2000506@ti.com>
+References: <1292882719-30255-1-git-send-email-tarun.kanti@ti.com> <1292882719-30255-13-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTimarRAf-_ykQNLgzXd3TtUHhSw+gZ6cZ5pW=Y-9@mail.gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Eric Miao <eric.y.miao@gmail.com>
-Cc: Alessandro Rubini <rubini@unipv.it>, Bryan Huntsman <bryanh@codeaurora.org>, Colin Cross <ccross@android.com>, Daniel Walker <dwalker@codeaurora.org>, David Brown <davidb@codeaurora.org>, Erik Gilling <konkers@android.com>, "Hans J. Koch" <hjk@linutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Kevin Hilman <khilman@deeprootsystems.com>, Krzysztof Halasa <khc@pm.waw.pl>, Kukjin Kim <kgene.kim@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Jiandong Zheng <jdzheng@broadcom.com>, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Olof Johansson <olof@lixom.net>, Sascha Hauer <kernel@pengutronix.de>, Scott Branden <sbranden@broadcom.com>, STEricsson <STEricsson_nomadik_linux@list.st.com>, Tony Lindgren <tony@atom>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47037 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755555Ab0LTXLh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 18:11:37 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id oBKNBbMh007600
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 17:11:37 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id oBKNBbUi012642
+	for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 17:11:37 -0600 (CST)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id oBKNBbik009133
+	for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 17:11:37 -0600 (CST)
+In-Reply-To: <1292882719-30255-13-git-send-email-tarun.kanti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Dec 20, 2010 at 11:32:21AM +0800, Eric Miao wrote:
-> On Fri, Dec 17, 2010 at 7:32 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > Here is the entire set of clocksource and sched_clock patches which
-> > have been previously posted. =A0There's a couple of small tweaks in=
- a
-> > few of the patches (such as adding notrace to OMAP clocksource read
-> > functions), and this also shows the proper ordering of these patche=
-s.
-> >
-> > Still looking for acks or tested-by's for these patches.
-> >
->=20
-> Hi Russell,
->=20
-> Sorry for late feedback. Tested the branch 'clksrc' on Littleton/PXA3=
-xx,
-> seems to be good.
->=20
-> Tested-by: Eric Miao <eric.y.miao@gmail.com>
+Hi Tarun,
 
-Ok, I'll add that to the PXA and generic patches, thanks.
+On 12/20/2010 11:05 PM, DebBarma, Tarun Kanti wrote:
+> For some reason the wakeup enable bit is not getting set on OMAP2430,
+> OMAP2420. This is inspite of the fact that SYSC_HAS_ENAWAKEUP flag is
+> present in the hwmod database.
+
+This is indeed strange. Did you observe that on OMAP3 & 4?
+Did you use the patch that Kevin did recently to fix an issue with the 
+ENAWAKEUP bit?
+http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=d15ae13fc7428a95b02c1935ebf92324fcb80a5f
+
+The point is that this fix is not really acceptable for my point of view:-(
+You really have to check what is going on in the hwmod _enable_wakeup 
+function.
+
+Regards,
+Benoit
+
+>
+> I am not sure if there is already a patch to fix this problem. Until the
+> reason is found we need this patch to boot on the above platforms.
+>
+> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> ---
+>   arch/arm/plat-omap/dmtimer.c |   13 +++++++++++++
+>   1 files changed, 13 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> index f4aa4a1..007b754 100644
+> --- a/arch/arm/plat-omap/dmtimer.c
+> +++ b/arch/arm/plat-omap/dmtimer.c
+> @@ -227,6 +227,7 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
+>
+>   static void omap_dm_timer_prepare(struct omap_dm_timer *timer)
+>   {
+> +	u32 l;
+>   	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
+>
+>   	if (!pdata->is_omap16xx) {
+> @@ -243,6 +244,18 @@ static void omap_dm_timer_prepare(struct omap_dm_timer *timer)
+>   	if (pdata->dm_timer_reset)
+>   		pdata->dm_timer_reset(timer);
+>
+> +	/*
+> +	 * Enable wake-up on OMAP2420, OMAP2430 CPUs.
+> +	 * FIXME: SYSC_HAS_ENAWAKEUP flag is already set in hwmod database.
+> +	 * But the setting does not seem to work. Need to investigate why
+> +	 * this is happening.
+> +	 */
+> +	if (cpu_is_omap2430() || cpu_is_omap2420()) {
+> +		l = omap_dm_timer_read_reg(timer, OMAP_TIMER_OCP_CFG_REG);
+> +		l |= 1<<  2;
+> +		omap_dm_timer_write_reg(timer, OMAP_TIMER_OCP_CFG_REG, l);
+> +	}
+> +
+>   	omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
+>
+>   	/* Match hardware reset default of posted mode */
+
