@@ -1,57 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 00/10] OMAP: Adding Smartreflex and Voltage driver
- support
-Date: Tue, 21 Dec 2010 10:55:14 -0800
-Message-ID: <20101221185514.GF5829@atomide.com>
-References: <1292864357-13939-1-git-send-email-thara@ti.com>
- <877hf45414.fsf@deeprootsystems.com>
- <20101221022329.GC5829@atomide.com>
- <87lj3jyua2.fsf@deeprootsystems.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH 6/6] omap3: beagle: get rid of unused omap2/omap4 specific code/data
+Date: Tue, 21 Dec 2010 13:15:23 -0600
+Message-ID: <AANLkTim34_B_S--yYrdy+WOFH6_PL=t8P5xixwp36cwx@mail.gmail.com>
+References: <1292955604-8809-1-git-send-email-thomas.petazzoni@free-electrons.com>
+ <1292955604-8809-7-git-send-email-thomas.petazzoni@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51265 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482Ab0LUSzZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 13:55:25 -0500
-Content-Disposition: inline
-In-Reply-To: <87lj3jyua2.fsf@deeprootsystems.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:36593 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751677Ab0LUTQi convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Dec 2010 14:16:38 -0500
+Received: by mail-wy0-f176.google.com with SMTP id 20so4867281wye.7
+        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 11:16:35 -0800 (PST)
+In-Reply-To: <1292955604-8809-7-git-send-email-thomas.petazzoni@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Thara Gopinath <thara@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, nm@ti.com
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <tpetazzoni@ti.com>, Thomas Petazzoni <t-petazzoni@ti.com>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [101221 08:17]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > * Kevin Hilman <khilman@deeprootsystems.com> [101220 17:05]:
-> >> Thara Gopinath <thara@ti.com> writes:
-> >> 
-> >> > This patch series introduces smartreflex and voltage driver support
-> >> > for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
-> >> > control for real-time voltage adjustments.
-> >> 
-> >> Thanks Thara, these are looking good for 2.6.38.
-> >> 
-> >> Tony, unless there are major objections, I'll be queuing these two SR
-> >> series for 2.6.38.  They have dependencies on Paul's integration branch
-> >
-> > Well looking at patch 3/6 I think it should live under drivers somewhere
-> > and mostly be compiled as a module. Probably the only change needed
-> > for that is to not call cpu_is_omapxxxx but instead use some flags
-> > passed in the platform_data. Otherwise the whole series looks OK to me.
-> 
-> Moving this to be a regulator driver is part of the medium-term plan,
-> and is already under development.  For this phase, we just split up the
-> current driver into device and driver code and left under mach-omap2.
-> We are investigating (and making) changes to the regulator core so that
-> SmartReflex can be converted into a real regulator driver, but that is
-> still under development.
-> 
-> So, in the mean time, I'd like to merge this version so that other
-> development that depends on this (the regulator work mentioned above,
-> the DVFS work, etc.) can have a stable starting point.
+On Tue, Dec 21, 2010 at 12:20, Thomas Petazzoni
+<thomas.petazzoni@free-electrons.com> wrote:
+>
+> From: Thomas Petazzoni <tpetazzoni@ti.com>
+>
+> Using the new condsections infrastructure, get rid of the unused
+> code/data for OMAP2 and OMAP4 when booting on BeagleBoard OMAP3.
+>
+> Signed-off-by: Thomas Petazzoni <t-petazzoni@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/board-omap3beagle.c | =A0 =A04 ++++
+> =A01 files changed, 4 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-=
+omap2/board-omap3beagle.c
+> index 14f4224..900964a 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -23,6 +23,7 @@
+> =A0#include <linux/gpio.h>
+> =A0#include <linux/input.h>
+> =A0#include <linux/gpio_keys.h>
+> +#include <linux/condsections.h>
+>
+> =A0#include <linux/mtd/mtd.h>
+> =A0#include <linux/mtd/partitions.h>
+> @@ -581,6 +582,9 @@ static void __init omap3_beagle_init(void)
+> =A0 =A0 =A0 =A0omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+>
+> =A0 =A0 =A0 =A0beagle_display_init();
+> +
+> + =A0 =A0 =A0 free_unused_cond_section("omap2");
+> + =A0 =A0 =A0 free_unused_cond_section("omap4");
 
-OK up to you.
+Potentially a dumb idea: given that silicon wont change after boot,
+cant we make it independent of the board file - I mean some common
+file with cpu_is check and free of conditional sections accordingly?
 
-Tony
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
