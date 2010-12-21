@@ -1,89 +1,94 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH] omap: rx51: Remove tvout code that plays with gpio 40
-Date: Tue, 21 Dec 2010 19:46:01 +0200
-Message-ID: <1292953561-22979-1-git-send-email-jhnikula@gmail.com>
+From: Ben Gamari <bgamari.foss@gmail.com>
+Subject: [PATCH] mcspi: Add support for GPIO chip select lines
+Date: Tue, 21 Dec 2010 12:56:35 -0500
+Message-ID: <1292954195-20204-2-git-send-email-bgamari.foss@gmail.com>
+References: <1b68c6791001272033q60dd31dbif4de285cd9bac83d@mail.gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:35477 "EHLO
-	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240Ab0LURqW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 12:46:22 -0500
-Received: by bwz16 with SMTP id 16so4845789bwz.4
-        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 09:46:20 -0800 (PST)
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:48541 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751736Ab0LUR4p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 12:56:45 -0500
+Received: by vws16 with SMTP id 16so1814897vws.19
+        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 09:56:45 -0800 (PST)
+In-Reply-To: <1b68c6791001272033q60dd31dbif4de285cd9bac83d@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, Srikar <ext-srikar.1.bhavanarayana@nokia.com>
+To: beagleboard <beagleboard@googlegroups.com>, linux-omap <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Eric Miao <eric.miao@marvell.com>, Michael
+Cc: Ben Gamari <bgamari.foss@gmail.com>
 
-Commit 60d24ee "Added video data to support tvout on rx51" added code that
-tries to assign gpio 40 as OMAP DSS reset_gpio for tvout. This is wrong
-since this gpio has nothing to do with OMAP DSS but it is used to control
-one switch that selects is the audio jack connected to tvout or audio
-circuitry.
+This mechanism is in large part stolen from the s3c64xx-spi module. To
+use this functionality, one simply must define a set_level function to
+set the CS state and a omap2_mcspi_csinfo struct for each chip select in
+the board file.
 
-This switch is already supported by the RX51 ASoC driver so there is no need
-to control it elsewhere. Switch is contolled with ALSA control
-'Jack Function' and tvout can be selected with following example:
+Each spi_board_info.controller_data should then be set
+to point to the appropriate csinfo struct. This will cause the driver to
+call the csinfo->set_level function instead of toggling the McSPI chip
+select lines.
 
-	amixer -D hw:0 set 'Jack Function' 'TV-OUT'
-
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Srikar <ext-srikar.1.bhavanarayana@nokia.com>
+Signed-off-by: Ben Gamari <bgamari.foss@gmail.com>
 ---
- arch/arm/mach-omap2/board-rx51-video.c |   20 --------------------
- 1 files changed, 0 insertions(+), 20 deletions(-)
+ arch/arm/plat-omap/include/plat/mcspi.h |   14 ++++++++++++++
+ drivers/spi/omap2_mcspi.c               |   14 +++++++++-----
+ 2 files changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
-index 9919581..acd6700 100644
---- a/arch/arm/mach-omap2/board-rx51-video.c
-+++ b/arch/arm/mach-omap2/board-rx51-video.c
-@@ -24,9 +24,6 @@
- #include "mux.h"
+diff --git a/arch/arm/plat-omap/include/plat/mcspi.h b/arch/arm/plat-omap/include/plat/mcspi.h
+index 1254e49..ab84b8d 100644
+--- a/arch/arm/plat-omap/include/plat/mcspi.h
++++ b/arch/arm/plat-omap/include/plat/mcspi.h
+@@ -1,6 +1,20 @@
+ #ifndef _OMAP2_MCSPI_H
+ #define _OMAP2_MCSPI_H
  
- #define RX51_LCD_RESET_GPIO	90
--/* REVISIT  to verify with rx51.c at sound/soc/omap */
--#define RX51_TVOUT_SEL_GPIO	40
++/**
++ * struct omap2_mcspi_csinfo - Chip Select description
++ * @line: Custom 'identity' of the CS line
++ * @set_level: Function to set the state of a given CS line
++ *
++ * This is to allow use of GPIO lines as CS lines. Allocate and initialize one
++ * in the machine init code and make spi_board_info.controller_data point to
++ * it.
++ */
++struct omap2_mcspi_csinfo {
++        unsigned line;
++        void (*set_level)(unsigned line_id, int lvl);
++};
++
+ struct omap2_mcspi_platform_config {
+ 	unsigned short	num_cs;
+ };
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index 2a651e6..92ccbd6 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -35,6 +35,7 @@
+ #include <linux/slab.h>
+ 
+ #include <linux/spi/spi.h>
++#include <linux/gpio.h>
+ 
+ #include <plat/dma.h>
+ #include <plat/clock.h>
+@@ -235,11 +236,14 @@ static void omap2_mcspi_set_enable(const struct spi_device *spi, int enable)
+ 
+ static void omap2_mcspi_force_cs(struct spi_device *spi, int cs_active)
+ {
+-	u32 l;
 -
- 
- #if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
- 
-@@ -41,17 +38,6 @@ static void rx51_lcd_disable(struct omap_dss_device *dssdev)
- 	gpio_set_value(dssdev->reset_gpio, 0);
+-	l = mcspi_cached_chconf0(spi);
+-	MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
+-	mcspi_write_chconf0(spi, l);
++	if (spi->controller_data) {
++		struct omap2_mcspi_csinfo *csinfo = spi->controller_data;
++		(*csinfo->set_level)(csinfo->line, cs_active);
++	} else {
++		u32 l = mcspi_cached_chconf0(spi);
++		MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
++		mcspi_write_chconf0(spi, l);
++	}
  }
  
--static int rx51_tvout_enable(struct omap_dss_device *dssdev)
--{
--	gpio_set_value(dssdev->reset_gpio, 1);
--	return 0;
--}
--
--static void rx51_tvout_disable(struct omap_dss_device *dssdev)
--{
--	gpio_set_value(dssdev->reset_gpio, 0);
--}
--
- static struct omap_dss_device rx51_lcd_device = {
- 	.name			= "lcd",
- 	.driver_name		= "panel-acx565akm",
-@@ -67,9 +53,6 @@ static struct omap_dss_device  rx51_tv_device = {
- 	.type			= OMAP_DISPLAY_TYPE_VENC,
- 	.driver_name		= "venc",
- 	.phy.venc.type	        = OMAP_DSS_VENC_TYPE_COMPOSITE,
--	.reset_gpio	        = RX51_TVOUT_SEL_GPIO,
--	.platform_enable        = rx51_tvout_enable,
--	.platform_disable       = rx51_tvout_disable,
- };
- 
- static struct omap_dss_device *rx51_dss_devices[] = {
-@@ -112,9 +95,6 @@ static int __init rx51_video_init(void)
- 
- 	gpio_direction_output(RX51_LCD_RESET_GPIO, 1);
- 
--	/* REVISIT  to verify with rx51.c at sound/soc/omap */
--	gpio_direction_output(RX51_TVOUT_SEL_GPIO, 1);
--
- 	platform_add_devices(rx51_video_devices,
- 				ARRAY_SIZE(rx51_video_devices));
- 	return 0;
+ static void omap2_mcspi_set_master_mode(struct spi_master *master)
 -- 
-1.7.2.3
+1.7.1
 
