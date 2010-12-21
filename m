@@ -1,73 +1,46 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH 2/2] omap: rx51: Add vdda_dac supply for tvout
-Date: Tue, 21 Dec 2010 19:25:35 +0200
-Message-ID: <1292952335-21314-3-git-send-email-jhnikula@gmail.com>
-References: <1292952335-21314-1-git-send-email-jhnikula@gmail.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: UBIFS not mounting on linux-omap 2.6.36
+Date: Tue, 21 Dec 2010 19:36:22 +0200
+Message-ID: <1292952982.13362.21.camel@koala>
+References: <201012201118.01766.manningc2@actrix.gen.nz>
+Reply-To: dedekind1@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:51969 "EHLO
-	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076Ab0LUR0H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 12:26:07 -0500
-Received: by mail-bw0-f45.google.com with SMTP id 16so4816310bwz.4
-        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 09:26:06 -0800 (PST)
-In-Reply-To: <1292952335-21314-1-git-send-email-jhnikula@gmail.com>
+Received: from mail-fx0-f43.google.com ([209.85.161.43]:39560 "EHLO
+	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751736Ab0LURg0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 12:36:26 -0500
+Received: by fxm18 with SMTP id 18so4587589fxm.2
+        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 09:36:25 -0800 (PST)
+In-Reply-To: <201012201118.01766.manningc2@actrix.gen.nz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, Srikar <ext-srikar.1.bhavanarayana@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Charles Manning <manningc2@actrix.gen.nz>
+Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 
-Commmit 60d24ee "Added video data to support tvout on rx51" broke the DSS
-on RX51/N900 since it added DSS VENC support but a patch adding needed
-supply is missing from tree and no framebuffers are initialized.
+On Mon, 2010-12-20 at 11:18 +1300, Charles Manning wrote:
+> Hi All
+>=20
+> I am trying to nail down an omap3 ubifs  performance regression, but =
+cannot=20
+> get Steve Sakoman's 2.6.35 or 2.6.36 kernels
+> http://www.sakoman.com/cgi-bin/gitweb.cgi?p=3Dlinux-omap-2.6.git
+>  to mount ubifs although the same procedure works with older kernels =
+and works=20
+> with the linux-omap 2.6.37 master.
 
-This patch is basically cleaned up version of original one:
-http://marc.info/?l=linux-omap&m=129070041402418&w=2
+Well, the only hint I can give is some kind of bisecting, but probably
+you do not need such hint :-)
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Srikar <ext-srikar.1.bhavanarayana@nokia.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
----
-Mark cc'edd since he had comments to the original patch what this patch is
-trying to address.
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=91=D0=B8=D1=82=D1=8E=D1=86=D0=BA=D0=B8=D0=B9 =D0=90=
+=D1=80=D1=82=D1=91=D0=BC)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 768f0dc..e75e240 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -363,6 +363,10 @@ static struct regulator_consumer_supply rx51_vaux1_consumers[] = {
- 	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
- };
- 
-+static struct regulator_consumer_supply rx51_vdac_supply[] = {
-+	REGULATOR_SUPPLY("vdda_dac", "omapdss"),
-+};
-+
- static struct regulator_init_data rx51_vaux1 = {
- 	.constraints = {
- 		.name			= "V28",
-@@ -480,14 +484,17 @@ static struct regulator_init_data rx51_vsim = {
- 
- static struct regulator_init_data rx51_vdac = {
- 	.constraints = {
-+		.name			= "VDAC",
- 		.min_uV			= 1800000,
- 		.max_uV			= 1800000,
-+		.apply_uV		= true,
- 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
- 					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
- 					| REGULATOR_CHANGE_STATUS,
- 	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= rx51_vdac_supply,
- };
- 
- static struct regulator_init_data rx51_vio = {
--- 
-1.7.2.3
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
