@@ -1,47 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] adding gpmc configuration functions, west bridge
- related
-Date: Tue, 21 Dec 2010 12:46:51 -0800
-Message-ID: <20101221204651.GM5829@atomide.com>
-References: <AANLkTi==X9maghSd3YwG6g3cQek3gV9-3Fx8W+n_zLmp@mail.gmail.com>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: [PATCH 6/6] omap3: beagle: get rid of unused omap2/omap4
+ specific code/data
+Date: Tue, 21 Dec 2010 22:57:43 +0100
+Message-ID: <20101221225743.0953365a@surf>
+References: <1292955604-8809-1-git-send-email-thomas.petazzoni@free-electrons.com>
+	<1292955604-8809-7-git-send-email-thomas.petazzoni@free-electrons.com>
+	<AANLkTim34_B_S--yYrdy+WOFH6_PL=t8P5xixwp36cwx@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTi==X9maghSd3YwG6g3cQek3gV9-3Fx8W+n_zLmp@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sutharsan R <sutharsan.ram@gmail.com>
-Cc: greg@kroah.com, linux-arm@vger.kernel.org, srmt@cypress.com, david.cross@cypress.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.free-electrons.com ([88.190.12.23]:34392 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751076Ab0LUV5v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 16:57:51 -0500
+In-Reply-To: <AANLkTim34_B_S--yYrdy+WOFH6_PL=t8P5xixwp36cwx@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <t-petazzoni@ti.com>
 
-* Sutharsan R <sutharsan.ram@gmail.com> [101220 18:41]:
-> This patch adds and exports gpmc configuration functions.
-> 'gpmc' configuration functions will be used by
-> westbridge device controller driver in staging tree.
-> This patch is part of the work to get westbridge device controller driver
-> out of staging tree.
+On Tue, 21 Dec 2010 13:15:23 -0600
+"Menon, Nishanth" <nm@ti.com> wrote:
 
-Looks good in general..
+> Potentially a dumb idea: given that silicon wont change after boot,
+> cant we make it independent of the board file - I mean some common
+> file with cpu_is check and free of conditional sections accordingly?
 
-> +EXPORT_SYMBOL(cywb_pnand_platform_retime);
+Yes, definitely. The current location in the BeagleBoard board code was
+just to make a quick test. It belongs somewhere in the CPU detection
+code.
 
-But this you should not need. I know tusb6010 is
-still doing that, but you can pass it in the platform_data
-and then there's no need to export it.
-
-Then in your driver you can do:
-
-if (xxxxx->retime)
-	xxxxx->retime(123);
-
-That way the driver will stay generic. The set_power
-functions are doing that in drivers/usb/musb if you
-need examples.
-
-Also, this will need a slight update based on Adrian Hunter's
-patch "OMAP2/3: GPMC: put sync_clk value in picoseconds
-instead of nanosecond" that I'll be queuing.
+Thanks for your feedback!
 
 Regards,
 
-Tony
+Thomas
+-- 
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
