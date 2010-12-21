@@ -1,49 +1,32 @@
-From: Daniel Morsing <daniel.morsing@gmail.com>
-Subject: Re: [PATCH] OMAP2: Devkit8000: Use _cansleep GPIO functions for
- display reset lines
-Date: Tue, 21 Dec 2010 11:33:36 +0100
-Message-ID: <1292927616.9611.15.camel@morsing>
-References: <AANLkTi=XEvW3iYLdaR_w+Mi_+Rpan+6QDC2qq8DnG_WH@mail.gmail.com>
-	 <4D10705D.1060904@corscience.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f43.google.com ([209.85.161.43]:50527 "EHLO
-	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933711Ab0LUKd3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 05:33:29 -0500
-In-Reply-To: <4D10705D.1060904@corscience.de>
-Sender: linux-omap-owner@vger.kernel.org
+From: Thomas Weber <weber@corscience.de>
+Subject: [PATCH] OMAP3: Devkit8000: Add DEBUG_LL support
+Date: Tue, 21 Dec 2010 12:07:09 +0100
+Message-ID: <1292929629-3396-1-git-send-email-weber@corscience.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Thomas Weber <weber@corscience.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Weber <weber@corscience.de>
-Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Tue, 2010-12-21 at 10:16 +0100, Thomas Weber wrote:
-> Am 21.12.2010 08:47, schrieb Daniel Morsing:
-> Hello Daniel,
-> 
-> Your patch is destroyed by gmail.
-> Please read Documentation/email-clients.txt
-> 
-> I have the same patch on my list.
-> 
-> So you can add an
-> 
-> Acked-by: Thomas Weber <weber@corscience.de>
-> 
-> 
-> Regards,
-> Thomas
-> 
+Add support for DEBUG_LL for Devkit8000.
+Devkit8000 uses uart 3 for debug output.
 
-Hi Thomas
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+ arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Thank you for the help. I've resent the patch with a sane mail client
-and your Acked-by line
-
-Regards,
-Daniel
-
-
-
+diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+index 7bbc074..ad98b85 100644
+--- a/arch/arm/plat-omap/include/plat/uncompress.h
++++ b/arch/arm/plat-omap/include/plat/uncompress.h
+@@ -146,6 +146,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
+ 		DEBUG_LL_OMAP3(3, cm_t35);
+ 		DEBUG_LL_OMAP3(3, cm_t3517);
+ 		DEBUG_LL_OMAP3(3, craneboard);
++		DEBUG_LL_OMAP3(3, devkit8000);
+ 		DEBUG_LL_OMAP3(3, igep0020);
+ 		DEBUG_LL_OMAP3(3, igep0030);
+ 		DEBUG_LL_OMAP3(3, nokia_rm680);
+-- 
+1.7.3.4
