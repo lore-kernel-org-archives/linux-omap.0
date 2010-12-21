@@ -1,66 +1,67 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v1] OMAP: GPIO: Correct IP version message during boot
-Date: Mon, 20 Dec 2010 15:49:05 -0800
-Message-ID: <87zks02efi.fsf@deeprootsystems.com>
-References: <1292508586-21651-1-git-send-email-charu@ti.com>
-	<8739pxhdcz.fsf@deeprootsystems.com>
-	<AANLkTimUrDAR1Wc4oJf74iYKhpxHKkGKLQOEuSNpcBXo@mail.gmail.com>
+Subject: Re: [PATCH v5 6/7] OMAP3: PM: make omap3_cpuidle_update_states independent of enable_off_mode
+Date: Mon, 20 Dec 2010 16:44:26 -0800
+Message-ID: <87mxo02bv9.fsf@deeprootsystems.com>
+References: <1292875509-9896-1-git-send-email-nm@ti.com>
+	<1292875509-9896-7-git-send-email-nm@ti.com>
+	<87hbe83tcy.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f42.google.com ([74.125.83.42]:37506 "EHLO
-	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933313Ab0LTXtL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Dec 2010 18:49:11 -0500
-Received: by gwb20 with SMTP id 20so2418613gwb.1
-        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 15:49:10 -0800 (PST)
-In-Reply-To: <AANLkTimUrDAR1Wc4oJf74iYKhpxHKkGKLQOEuSNpcBXo@mail.gmail.com>
-	(Charulatha Varadarajan's message of "Fri, 17 Dec 2010 09:15:03
-	-0500")
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55828 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932628Ab0LUAoc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Dec 2010 19:44:32 -0500
+Received: by iyi12 with SMTP id 12so2689423iyi.19
+        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 16:44:31 -0800 (PST)
+In-Reply-To: <87hbe83tcy.fsf@deeprootsystems.com> (Kevin Hilman's message of
+	"Mon, 20 Dec 2010 15:41:17 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, balbi@ti.com
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <jean.pihet@newoldbits.com>, Tony <tony@atomide.com>, Santosh <santosh.shilimkar@ti.com>
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-> Kevin,
+> Nishanth Menon <nm@ti.com> writes:
 >
-> On Thu, Dec 16, 2010 at 11:49, Kevin Hilman <khilman@deeprootsystems.=
-com> wrote:
->> "Varadarajan, Charulatha" <charu@ti.com> writes:
+>> Currently omap3_cpuidle_update_states makes whole sale decision
+>> on which C states to update based on enable_off_mode variable
+>> Instead, achieve the same functionality by independently providing
+>> mpu and core deepest states the system is allowed to achieve and
+>> update the idle states accordingly.
 >>
->>> With the commit 9a748053f5f58a77cd71864f1d7b804175b0e47d whose subj=
-ect is
->>> "OMAP: GPIO: Make omap_gpio_show_rev bank specific" (see [1]),
->>> the IP version information for all the banks are shown during bootu=
-p,
->>> but it does not show the bank number.
->>>
->>> Use dev_info instead of printk in omap_gpio_show_rev() so that the
->>> bank id is displayed along with the IP version
->>>
->>> [1] http://www.spinics.net/lists/arm-kernel/msg105872.html
+>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Acked-by: Jean Pihet <j-pihet@ti.com>
 >>
->> A related question, the commit above also changed the GPIO revision
->> display from one-time to once per bank. =C2=A0Do we need to know the=
- GPIO HW
->> revision for each bank, or can we assume it's the same for all banks=
-?
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
 >
-> The IP version is the same for all the gpio banks in all OMAP2+ CPUs.
-> But I am not sure about OMAP16xx.
+> This patch doesnt' compile with CPUidle enabled.
+>
+> You missed one other caller of the update_states function inside
+> cpuidle34xx.c which is only there when CONFIG_CPU_IDLE=y
 >
 
-OK, then I suggest we switch this back to just printing the GPIO
-revision once.   Maybe after all banks are found, just print the
-revision for bank 1.
+Something like the following folded into this patch makes it compile and
+work as before.
+
+If this looks OK to you, I'll fold it in.
 
 Kevin
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx
+index ab4c862..0fb619c 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -517,7 +517,10 @@ int __init omap3_idle_init(void)
+                return -EINVAL;
+        dev->state_count = count;
+ 
+-       omap3_cpuidle_update_states();
++       if (enable_off_mode)
++               omap3_cpuidle_update_states(PWRDM_POWER_OFF, PWRDM_POWER_OFF);
++       else
++               omap3_cpuidle_update_states(PWRDM_POWER_RET, PWRDM_POWER_RET);
+ 
+        if (cpuidle_register_device(dev)) {
+                printk(KERN_ERR "%s: CPUidle register device failed\n",
