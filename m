@@ -1,252 +1,59 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] adding gpmc configuration functions, west bridge
- related
-Date: Mon, 20 Dec 2010 20:11:58 -0800
-Message-ID: <20101221041158.GA30120@kroah.com>
-References: <AANLkTi==X9maghSd3YwG6g3cQek3gV9-3Fx8W+n_zLmp@mail.gmail.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [GIT] pull request: DMA hwmod changes
+Date: Tue, 21 Dec 2010 10:19:38 +0530
+Message-ID: <20101221044938.GA21531@manju-desktop>
+References: <20101219035948.GC15568@GLPP-machine>
+ <4D0F33C9.40402@ti.com>
+ <20101221021152.GA18883@manju-desktop>
+ <20101221034836.GE5829@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:53017 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933574Ab0LUEtv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Dec 2010 23:49:51 -0500
+Received: by yxm34 with SMTP id 34so1601489yxm.8
+        for <linux-omap@vger.kernel.org>; Mon, 20 Dec 2010 20:49:50 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <AANLkTi==X9maghSd3YwG6g3cQek3gV9-3Fx8W+n_zLmp@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sutharsan R <sutharsan.ram@gmail.com>
-Cc: linux-arm@vger.kernel.org, srmt@cypress.com, david.cross@cypress.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20101221034836.GE5829@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Sawant, Anand" <sawant@ti.com>
 
-On Mon, Dec 20, 2010 at 06:42:06PM -0800, Sutharsan R wrote:
-> This patch adds and exports gpmc configuration functions.
-> 'gpmc' configuration functions will be used by
-> westbridge device controller driver in staging tree.
-> This patch is part of the work to get westbridge device controller driver
-> out of staging tree.
+On Mon, Dec 20, 2010 at 07:48:36PM -0800, Tony Lindgren wrote:
+> Hi,
 > 
-> Signed-off-by: Sutharsan Ramamoorthy <srmt@cypress.com>
+> * G, Manjunath Kondaiah <manjugk@ti.com> [101220 18:11]:
+> > Hi Tony,
+> > Benoit comments are taken care and new pull request is generated as
+> > below. The omap4 hwmod database for dma is rearranged as per Benoit's
+> > convention + no idlest flag entry is removed + sysc_flags are barrowed
+> > from latest omap4 hwmod data base.
 > 
-> ---
+> OK great, I've applied them now.
+
+Thanks.
+
+>  
+> > The following changes since commit 205e4d6e8d892176d791b77a974efe7f561ca4c3:
+> > 
+> >   Merge branch 'for-next' (2010-12-17 19:32:47 -0800)
 > 
-> diff -uprN -X linux-2.6.37_vanilla/Documentation/dontdiff
-> linux-2.6.37_vanilla/arch/arm/mach-omap2/Makefile
-> linux-2.6.37-cywb/arch/arm/mach-omap2/Makefile
-> --- linux-2.6.37_vanilla/arch/arm/mach-omap2/Makefile	2010-11-29
-> 20:42:04.000000000 -0800
-> +++ linux-2.6.37-cywb/arch/arm/mach-omap2/Makefile	2010-12-13
-> 16:04:08.378446603 -0800
+> I ended up cherry picking them. For next time, note that you should not
+> do any git branches to pull against anything but mainline tags. Otherwise
+> tons of non-mainline history would get merged..
 
-Your patch is linewrapped :(
+ok. Since you mentioned in one of previous mail that, you will be
+merging these changes to l-o master for testing hence I generated pull
+request against l-o master.
 
-> @@ -182,6 +182,7 @@ obj-y					+= $(usbfs-m) $(usbfs-y)
->  obj-y					+= usb-musb.o
->  obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
->  obj-y					+= usb-ehci.o
-> +obj-$(CONFIG_WESTBRIDGE_ASTORIA)        += usb-cywb-pnand.o
 > 
->  onenand-$(CONFIG_MTD_ONENAND_OMAP2)	:= gpmc-onenand.o
->  obj-y					+= $(onenand-m) $(onenand-y)
-> diff -uprN -X linux-2.6.37_vanilla/Documentation/dontdiff
-> linux-2.6.37_vanilla/arch/arm/mach-omap2/usb-cywb-pnand.c
-> linux-2.6.37-cywb/arch/arm/mach-omap2/usb-cywb-pnand.c
-> --- linux-2.6.37_vanilla/arch/arm/mach-omap2/usb-cywb-pnand.c	1969-12-31
-> 16:00:00.000000000 -0800
-> +++ linux-2.6.37-cywb/arch/arm/mach-omap2/usb-cywb-pnand.c	2010-12-20
-> 17:33:23.822251855 -0800
-> @@ -0,0 +1,170 @@
-> +/*
-> + * linux /arch/arm/mach-omap2/usb-cywb-pnand.c
-> + *
-> + * Copyright (C) 2010  Cypress Semiconductor
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation; either version 2
-> + * of the License.
+> If you cannot base your branch on some recent mainline tag because of
+> conflicts, then you should use some branch that will stay around,
+> like what we have queued into omap-for-linus.
+ok. Will do this in future.
 
-Either, or what?
-
-> + */
-> +
-> +#include <linux/module.h>
-> +
-> +#include <plat/gpmc.h>
-
-Why the extra lines inbetween the #includes?
-
-> +
-> +/*
-> + * chip select number on GPMC ( 0..7 )
-> + */
-> +#define AST_GPMC_CS 4
-> +
-> +/*
-> + * for use by gpmc_set_timings api, measured in ns, not clocks
-> + */
-> +#define WB_GPMC_BUSCYC_t    (7 * 6)
-
-What's with the lowercase values in #defines?
-
-> +#define WB_GPMC_CS_t_o_n    (0)
-> +#define WB_GPMC_ADV_t_o_n   (0)
-> +#define WB_GPMC_OE_t_o_n    (0)
-> +#define WB_GPMC_OE_t_o_f_f  (5 * 6)
-> +#define WB_GPMC_WE_t_o_n    (1 * 6)
-> +#define WB_GPMC_WE_t_o_f_f  (5 * 6)
-> +#define WB_GPMC_RDS_ADJ     (2 * 6)
-> +#define WB_GPMC_RD_t_a_c_c  (WB_GPMC_OE_t_o_f_f + WB_GPMC_RDS_ADJ)
-> +#define WB_GPMC_WR_t_a_c_c  (WB_GPMC_BUSCYC_t)
-> +
-> +#define GPMC_16BIT_MODE 0
-> +#define GPMC_RETIME     1
-> +
-> +/*
-> + * GPMC_CONFIG7[cs] register bit fields
-> + * AS_CS_MASK - 3 bit mask for  A26,A25,A24,
-> + * AS_CS_BADDR - 6 BIT VALUE  A29 ...A24
-> + * CSVALID_B - CSVALID bit on GPMC_CONFIG7[cs] register
-> + */
-> +#define AS_CS_MASK	(0X7 << 8)
-> +#define AS_CS_BADDR	 0x02
-> +#define CSVALID_B (1 << 6)
-> +
-> +#define BLKSZ_4K 0x1000
-> +
-> +/*
-> + * switch GPMC DATA bus mode
-> + */
-> +void cywb_gpmc_enable_16bit_bus(bool dbus16_enabled)
-> +{
-> +	u32 tmp32;
-> +
-> +	/*
-> +	 * disable gpmc CS4 operation 1st
-> +	 */
-> +	tmp32 = gpmc_cs_read_reg(AST_GPMC_CS,
-> +				GPMC_CS_CONFIG7) & ~GPMC_CONFIG7_CSVALID;
-> +	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7, tmp32);
-> +
-> +	/*
-> +	 * GPMC NAND data bus can be 8 or 16 bit wide
-> +	 */
-> +	if (dbus16_enabled) {
-> +		dev_dbg(KERN_INFO "gpmc: enabling 16 bit bus\n");
-> +		gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
-> +				(GPMC_CONFIG1_DEVICETYPE(2) |
-> +				GPMC_CONFIG1_WAIT_PIN_SEL(2) |
-> +				GPMC_CONFIG1_DEVICESIZE_16));
-> +	} else {
-> +		dev_dbg(KERN_INFO "gpmc: enabling 8 bit bus\n");
-> +		gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
-> +				(GPMC_CONFIG1_DEVICETYPE(2) |
-> +				GPMC_CONFIG1_WAIT_PIN_SEL(2)));
-> +	}
-> +
-> +	/*
-> +	 * re-enable astoria CS operation on GPMC
-> +	 */
-> +	 gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7,
-> +			(tmp32 | GPMC_CONFIG7_CSVALID));
-> +}
-> +
-> +int cywb_pnand_platform_retime(int action, bool dbus16_enabled)
-> +{
-> +	u32 tmp32;
-> +	struct gpmc_timings timings;
-> +	int retval;
-
-Set retval to 0 first, then you don't have to set it for when things go
-right, only when things go wrong.
-
-> +
-> +	switch (action) {
-> +
-> +	case GPMC_16BIT_MODE:
-> +		cywb_gpmc_enable_16bit_bus(dbus16_enabled);
-> +		retval = 0;
-> +		break;
-> +	case GPMC_RETIME:
-> +		gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
-> +						(GPMC_CONFIG1_DEVICETYPE(2) |
-> +						GPMC_CONFIG1_WAIT_PIN_SEL(2)));
-> +
-> +		memset(&timings, 0, sizeof(timings));
-> +
-> +		/* cs timing */
-> +		timings.cs_on = WB_GPMC_CS_t_o_n;
-> +		timings.cs_wr_off = WB_GPMC_BUSCYC_t;
-> +		timings.cs_rd_off = WB_GPMC_BUSCYC_t;
-> +
-> +		/* adv timing */
-> +		timings.adv_on = WB_GPMC_ADV_t_o_n;
-> +		timings.adv_rd_off = WB_GPMC_BUSCYC_t;
-> +		timings.adv_wr_off = WB_GPMC_BUSCYC_t;
-> +
-> +		/* oe timing */
-> +		timings.oe_on = WB_GPMC_OE_t_o_n;
-> +		timings.oe_off = WB_GPMC_OE_t_o_f_f;
-> +		timings.access = WB_GPMC_RD_t_a_c_c;
-> +		timings.rd_cycle = WB_GPMC_BUSCYC_t;
-> +
-> +		/* we timing */
-> +		timings.we_on = WB_GPMC_WE_t_o_n;
-> +		timings.we_off = WB_GPMC_WE_t_o_f_f;
-> +		timings.wr_access = WB_GPMC_WR_t_a_c_c;
-> +		timings.wr_cycle = WB_GPMC_BUSCYC_t;
-> +
-> +		timings.page_burst_access = WB_GPMC_BUSCYC_t;
-> +		timings.wr_data_mux_bus = WB_GPMC_BUSCYC_t;
-> +		gpmc_cs_set_timings(AST_GPMC_CS, &timings);
-> +
-> +		/*
-> +		 * DISABLE cs4, NOTE GPMC REG7 is already configured
-> +		 * at this point by gpmc_cs_request
-> +		 */
-> +		tmp32 = gpmc_cs_read_reg(AST_GPMC_CS, GPMC_CS_CONFIG7) &
-> +						~GPMC_CONFIG7_CSVALID;
-> +		gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7, tmp32);
-> +
-> +		/*
-> +		 * PROGRAM chip select Region, (see OMAP3430 TRM PAGE 1088)
-> +		 */
-> +		gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7,
-> +					(AS_CS_MASK | AS_CS_BADDR));
-> +
-> +		/*
-> +		 * by default configure GPMC into 8 bit mode
-> +		 * (to match astoria default mode)
-> +		 */
-> +		gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
-> +					(GPMC_CONFIG1_DEVICETYPE(2) |
-> +					GPMC_CONFIG1_WAIT_PIN_SEL(2)));
-> +
-> +		/*
-> +		 * ENABLE astoria cs operation on GPMC
-> +		 */
-> +		gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7,
-> +						(tmp32 | GPMC_CONFIG7_CSVALID));
-> +		retval = 0;
-> +		break;
-> +	default:
-> +		retval = -EINVAL;
-
-No error message?  How could this ever happen?
-
-> +		break;
-> +	}
-> +
-> +	return retval;
-> +
-> +}
-> +EXPORT_SYMBOL(cywb_pnand_platform_retime);
-
-Again, are you sure about this export?
-
-What code uses this?  If it is the staging driver, is this code now
-duplicated there?  If so, why not remove it in the same patch, that
-would make more sense.
-
-Also, the code above will break the build, you obviously never even
-tested it out.  Why would you send us something and expect us to apply
-it, when you did not do the most simplest of tests yourself?
-
-{sigh}
-
-greg k-h
+-Manjunath
