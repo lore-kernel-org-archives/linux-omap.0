@@ -1,46 +1,89 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: UBIFS not mounting on linux-omap 2.6.36
-Date: Tue, 21 Dec 2010 19:36:22 +0200
-Message-ID: <1292952982.13362.21.camel@koala>
-References: <201012201118.01766.manningc2@actrix.gen.nz>
-Reply-To: dedekind1@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH] omap: rx51: Remove tvout code that plays with gpio 40
+Date: Tue, 21 Dec 2010 19:46:01 +0200
+Message-ID: <1292953561-22979-1-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f43.google.com ([209.85.161.43]:39560 "EHLO
-	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751736Ab0LURg0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 12:36:26 -0500
-Received: by fxm18 with SMTP id 18so4587589fxm.2
-        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 09:36:25 -0800 (PST)
-In-Reply-To: <201012201118.01766.manningc2@actrix.gen.nz>
+Received: from mail-bw0-f45.google.com ([209.85.214.45]:35477 "EHLO
+	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751240Ab0LURqW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 12:46:22 -0500
+Received: by bwz16 with SMTP id 16so4845789bwz.4
+        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 09:46:20 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charles Manning <manningc2@actrix.gen.nz>
-Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, Srikar <ext-srikar.1.bhavanarayana@nokia.com>
 
-On Mon, 2010-12-20 at 11:18 +1300, Charles Manning wrote:
-> Hi All
->=20
-> I am trying to nail down an omap3 ubifs  performance regression, but =
-cannot=20
-> get Steve Sakoman's 2.6.35 or 2.6.36 kernels
-> http://www.sakoman.com/cgi-bin/gitweb.cgi?p=3Dlinux-omap-2.6.git
->  to mount ubifs although the same procedure works with older kernels =
-and works=20
-> with the linux-omap 2.6.37 master.
+Commit 60d24ee "Added video data to support tvout on rx51" added code that
+tries to assign gpio 40 as OMAP DSS reset_gpio for tvout. This is wrong
+since this gpio has nothing to do with OMAP DSS but it is used to control
+one switch that selects is the audio jack connected to tvout or audio
+circuitry.
 
-Well, the only hint I can give is some kind of bisecting, but probably
-you do not need such hint :-)
+This switch is already supported by the RX51 ASoC driver so there is no need
+to control it elsewhere. Switch is contolled with ALSA control
+'Jack Function' and tvout can be selected with following example:
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=91=D0=B8=D1=82=D1=8E=D1=86=D0=BA=D0=B8=D0=B9 =D0=90=
-=D1=80=D1=82=D1=91=D0=BC)
+	amixer -D hw:0 set 'Jack Function' 'TV-OUT'
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Srikar <ext-srikar.1.bhavanarayana@nokia.com>
+---
+ arch/arm/mach-omap2/board-rx51-video.c |   20 --------------------
+ 1 files changed, 0 insertions(+), 20 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
+index 9919581..acd6700 100644
+--- a/arch/arm/mach-omap2/board-rx51-video.c
++++ b/arch/arm/mach-omap2/board-rx51-video.c
+@@ -24,9 +24,6 @@
+ #include "mux.h"
+ 
+ #define RX51_LCD_RESET_GPIO	90
+-/* REVISIT  to verify with rx51.c at sound/soc/omap */
+-#define RX51_TVOUT_SEL_GPIO	40
+-
+ 
+ #if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
+ 
+@@ -41,17 +38,6 @@ static void rx51_lcd_disable(struct omap_dss_device *dssdev)
+ 	gpio_set_value(dssdev->reset_gpio, 0);
+ }
+ 
+-static int rx51_tvout_enable(struct omap_dss_device *dssdev)
+-{
+-	gpio_set_value(dssdev->reset_gpio, 1);
+-	return 0;
+-}
+-
+-static void rx51_tvout_disable(struct omap_dss_device *dssdev)
+-{
+-	gpio_set_value(dssdev->reset_gpio, 0);
+-}
+-
+ static struct omap_dss_device rx51_lcd_device = {
+ 	.name			= "lcd",
+ 	.driver_name		= "panel-acx565akm",
+@@ -67,9 +53,6 @@ static struct omap_dss_device  rx51_tv_device = {
+ 	.type			= OMAP_DISPLAY_TYPE_VENC,
+ 	.driver_name		= "venc",
+ 	.phy.venc.type	        = OMAP_DSS_VENC_TYPE_COMPOSITE,
+-	.reset_gpio	        = RX51_TVOUT_SEL_GPIO,
+-	.platform_enable        = rx51_tvout_enable,
+-	.platform_disable       = rx51_tvout_disable,
+ };
+ 
+ static struct omap_dss_device *rx51_dss_devices[] = {
+@@ -112,9 +95,6 @@ static int __init rx51_video_init(void)
+ 
+ 	gpio_direction_output(RX51_LCD_RESET_GPIO, 1);
+ 
+-	/* REVISIT  to verify with rx51.c at sound/soc/omap */
+-	gpio_direction_output(RX51_TVOUT_SEL_GPIO, 1);
+-
+ 	platform_add_devices(rx51_video_devices,
+ 				ARRAY_SIZE(rx51_video_devices));
+ 	return 0;
+-- 
+1.7.2.3
+
