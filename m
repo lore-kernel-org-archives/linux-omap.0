@@ -1,51 +1,54 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: OMAP3 ISP suspend/resume question
-Date: Tue, 21 Dec 2010 15:52:28 +0100
-Message-ID: <201012211552.28545.laurent.pinchart@ideasonboard.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v6 00/10] OMAP: Adding Smartreflex and Voltage driver support
+Date: Tue, 21 Dec 2010 08:17:57 -0800
+Message-ID: <87lj3jyua2.fsf@deeprootsystems.com>
+References: <1292864357-13939-1-git-send-email-thara@ti.com>
+	<877hf45414.fsf@deeprootsystems.com>
+	<20101221022329.GC5829@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55205 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751876Ab0LUOwW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 09:52:22 -0500
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:42393 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751013Ab0LUQSD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 11:18:03 -0500
+Received: by pzk9 with SMTP id 9so1439429pzk.1
+        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 08:18:02 -0800 (PST)
+In-Reply-To: <20101221022329.GC5829@atomide.com> (Tony Lindgren's message of
+	"Mon, 20 Dec 2010 18:23:30 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Thara Gopinath <thara@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, nm@ti.com
 
-Hi everybody,
+Tony Lindgren <tony@atomide.com> writes:
 
-I'm trying to implement proper suspend/resume in the OMAP3 ISP driver and ran 
-into an issue that I'd like to discuss here.
+> * Kevin Hilman <khilman@deeprootsystems.com> [101220 17:05]:
+>> Thara Gopinath <thara@ti.com> writes:
+>> 
+>> > This patch series introduces smartreflex and voltage driver support
+>> > for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
+>> > control for real-time voltage adjustments.
+>> 
+>> Thanks Thara, these are looking good for 2.6.38.
+>> 
+>> Tony, unless there are major objections, I'll be queuing these two SR
+>> series for 2.6.38.  They have dependencies on Paul's integration branch
+>
+> Well looking at patch 3/6 I think it should live under drivers somewhere
+> and mostly be compiled as a module. Probably the only change needed
+> for that is to not call cpu_is_omapxxxx but instead use some flags
+> passed in the platform_data. Otherwise the whole series looks OK to me.
 
-The OMAP3 ISP has a bad tendency to crash when the input video stream is 
-stopped asynchronously to the ISP. For that reason the ISP must be suspended 
-before the connected video sensors. As they sensors and ISP are connected to 
-different busses (I2C and platform), the suspend/resume order is not 
-guaranteed. My first issue is to model that dependency and instruct the kernel 
-to suspend the sensors and ISP in the right order.
+Moving this to be a regulator driver is part of the medium-term plan,
+and is already under development.  For this phase, we just split up the
+current driver into device and driver code and left under mach-omap2.
+We are investigating (and making) changes to the regulator core so that
+SmartReflex can be converted into a real regulator driver, but that is
+still under development.
 
-The second issue comes from the fact that the sensor clock is (or least can 
-be) supplied by the ISP. In order to suspend the sensor properly the clock 
-needs to be present, and the ISP can't thus be fully suspended, which 
-conflicts with the first requirement.
+So, in the mean time, I'd like to merge this version so that other
+development that depends on this (the regulator work mentioned above,
+the DVFS work, etc.) can have a stable starting point.
 
-I've thought about splitting the ISP suspend operation in prepare() and 
-suspend(). prepare() would stop the video stream in the ISP, and suspend() 
-would really suspend the ISP, disabling the clocks. The dev_pm_ops 
-documentation states that prepare() must not touch the hardware state, so 
-that's probably not a very good solution. I could split it using 
-suspend()/suspend_noirq(), but it might be an abuse of suspend_noirq(). The 
-same problem occurs during resume as well, as the ISP clock must be restarted 
-before resuming the sensor, which in turn should be resumed before the ISP 
-video stream is restarted.
-
-Thoughts and advices would be appreciated on both issues.
-
--- 
-Regards,
-
-Laurent Pinchart
+Kevin
