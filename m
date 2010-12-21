@@ -1,55 +1,207 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v2] OMAP4: Pandaboard: Fix MMC card detect gpio line
-Date: Tue, 21 Dec 2010 08:14:34 -0600
-Message-ID: <1292940874-21419-1-git-send-email-nm@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32892 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751167Ab0LUOOs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 09:14:48 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v2] staging: tidspbridge: protect dmm_map properly
+Date: Tue, 21 Dec 2010 16:06:48 +0200
+Message-ID: <AANLkTikisHaAMZphRJVYdcokVbaZXVF9COrwkdGTDg__@mail.gmail.com>
+References: <1292870624-25450-1-git-send-email-felipe.contreras@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1292870624-25450-1-git-send-email-felipe.contreras@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@nokia.com>
+Cc: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
-Cc: Tony <tony@atomide.com>, Raghuveer Murthy <raghuveer.murthy@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>
 
-From: Raghuveer Murthy <raghuveer.murthy@ti.com>
+Hi Felipe,
 
-commit bf56f0a6668cd (2.6.37-rc1), from Nishanth Menon attempted
-to fix card detection for PandaBoard, unfortunately, the fix missed
-to initialize .gpio_cd member of omap2_hsmmc_info. This results
-in a default value of '0', which is a valid GPIO line.
-On PandaBoard, the side effect of this is that GPIO line 0 controls
-the powering TFP410 DVI chip, and without the fix DVI chip is
-inadvertently powered.
+On Mon, Dec 20, 2010 at 8:43 PM, Felipe Contreras
+<felipe.contreras@nokia.com> wrote:
+> We need to protect not only the dmm_map list, but the individual
+> map_obj's, otherwise, we might be building the scatter-gather list with
+> garbage.
 
-Tested-by: David Anders <x0132446@ti.com>
+Thanks for reporting this !
 
-Acked-by: Nishanth Menon <nm@ti.com>
+> So, use the existing proc_lock for that.
 
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Signed-off-by: Raghuveer Murthy <raghuveer.murthy@ti.com>
+I don't like this.
+
+You are taking this lock over the entire proc_begin_dma() and
+proc_end_dma() functions, and by that artificially imposing sequential
+behavior of their execution (system-wide).
+
+I strongly prefer protecting the dmm map object itself, and not the
+code that uses it, in order to avoid redundant bottlenecks.
+
+Something like the patch below should fix the panics without globally
+locking the dma functions (UNTESTED! I still want to have a gst-dsp
+setup like yours so I can reproduce the issues you see. If needed,
+I'll get to it).
+
+Please note: the code below assumes that applications calls
+proc_end_dma() for every proc_begin_dma().  This is anyway mandatory,
+because otherwise we are risking data corruptions, but we know older
+applications (e.g. probably TI samples) don't do that (since the
+dspbridge's DMA API is relatively new). If we want/need to support
+those older applications with this patch, it's a 2-liner change.
+
+But there is another issue. I'm not quite sure how gst-dsp is using
+the bridge DMA API, but those panics may suggest that there are
+additional races here: if the application unmaps a memory region,
+before the DMA operation completes (i.e. proc_end_dma() completed
+execution), the application will face:
+
+1. errors: when proc_end_dma() does get invoked, the map_obj will
+already be destroyed, and find_containing_mapping() will simply fail
+
+2. data corruptions: as a result of (1), dma_unmap_sg() will not be
+called, and that may result in data corruptions and generally is very
+bad
+
+We can treat this as an application error, but we don't have to, and
+it will actually be very clean if we won't.
+
+Given the below patch, it should be quite easy to solve those
+additional races too, e.g., by adding a boolean 'dying' flag to each
+map_obj, which would (on un_map) mark an object as not available for a
+new DMA operation (proc_start_dma), but it'd still wait until all of
+its referenced are removed (proc_end_dma), and only then it will be
+finally removed from the list.
+
+Such a change will only work with applications that calls
+proc_end_dma() for each proc_start_dma(). How is gst-dsp in that
+respect ? do we want to keep supporting older applications which don't
+do that ? if we want, we can still support both old and new API with
+some ioctl games (introduce new ioctl commands which will work the new
+way, and keep the old ones around, maybe only mark them as
+deprecated).
+
+Thanks,
+Ohad.
+
 ---
-v2: updated comment description to point out the potential regression.
-   it might be nice to have this in .37 rc cycle as the change was
-   introduced in .37-rc1, however, the DVI functionality(which is impacted
-   as a side effect) is not enabled in .37 rc.
+ .../staging/tidspbridge/include/dspbridge/drv.h    |    2 +
+ drivers/staging/tidspbridge/rmgr/proc.c            |   39 ++++++++++++++++++--
+ 2 files changed, 38 insertions(+), 3 deletions(-)
 
-v1: http://marc.info/?t=129172419600002&r=1&w=2
- arch/arm/mach-omap2/board-omap4panda.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/drv.h
+b/drivers/staging/tidspbridge/include/dspbridge/drv.h
+index c1f363e..cad0626 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/drv.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/drv.h
+@@ -25,6 +25,7 @@
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 1ecd0a6..da24745 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -142,6 +142,7 @@ static struct omap2_hsmmc_info mmc[] = {
- 		.mmc		= 1,
- 		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
- 		.gpio_wp	= -EINVAL,
-+		.gpio_cd	= -EINVAL,
- 	},
- 	{}	/* Terminator */
+ #include <dspbridge/drvdefs.h>
+ #include <linux/idr.h>
++#include <linux/atomic.h>
+
+ #define DRV_ASSIGN     1
+ #define DRV_RELEASE    0
+@@ -106,6 +107,7 @@ struct dmm_map_object {
+ 	u32 num_usr_pgs;
+ 	struct page **pages;
+ 	struct bridge_dma_map_info dma_info;
++	atomic_t refcnt;
  };
--- 
-1.6.3.3
 
+ /* Used for DMM reserved memory accounting */
+diff --git a/drivers/staging/tidspbridge/rmgr/proc.c
+b/drivers/staging/tidspbridge/rmgr/proc.c
+index b47d7aa..4aabfcc 100644
+--- a/drivers/staging/tidspbridge/rmgr/proc.c
++++ b/drivers/staging/tidspbridge/rmgr/proc.c
+@@ -112,6 +112,26 @@ static s32 get_envp_count(char **envp);
+ static char **prepend_envp(char **new_envp, char **envp, s32 envp_elems,
+ 			   s32 cnew_envp, char *sz_var);
+
++/*
++ * Grab the dmm_map_object's reference count. This operation is valid only
++ * when map_obj is ALREADY grabbed, e.g., it is still in the dmm_map list
++ * and list's lock is taken
++ */
++static inline void map_obj_get(struct dmm_map_object *map_obj)
++{
++	atomic_inc(&map_obj->refcnt);
++}
++
++/* Ungrab map_obj and destroy it, if it was the last reference */
++static inline void map_obj_put(struct dmm_map_object *map_obj)
++{
++	if (atomic_dec_and_test(&map_obj->refcnt)) {
++		kfree(map_obj->dma_info.sg);
++		kfree(map_obj->pages);
++		kfree(map_obj);
++	}
++}
++
+ /* remember mapping information */
+ static struct dmm_map_object *add_mapping_info(struct process_context *pr_ctxt,
+ 				u32 mpu_addr, u32 dsp_addr, u32 size)
+@@ -143,6 +163,8 @@ static struct dmm_map_object
+*add_mapping_info(struct process_context *pr_ctxt,
+ 	map_obj->dsp_addr = dsp_addr;
+ 	map_obj->size = size;
+ 	map_obj->num_usr_pgs = num_usr_pgs;
++	/* dmm map objects are initially grabbed */
++	atomic_set(&map_obj->refcnt, 1);
+
+ 	spin_lock(&pr_ctxt->dmm_map_lock);
+ 	list_add(&map_obj->link, &pr_ctxt->dmm_map_list);
+@@ -181,9 +203,7 @@ static void remove_mapping_information(struct
+process_context *pr_ctxt,
+ 		if (match_exact_map_obj(map_obj, dsp_addr, size)) {
+ 			pr_debug("%s: match, deleting map info\n", __func__);
+ 			list_del(&map_obj->link);
+-			kfree(map_obj->dma_info.sg);
+-			kfree(map_obj->pages);
+-			kfree(map_obj);
++			map_obj_put(map_obj);
+ 			goto out;
+ 		}
+ 		pr_debug("%s: candidate didn't match\n", __func__);
+@@ -203,6 +223,11 @@ static int match_containing_map_obj(struct
+dmm_map_object *map_obj,
+ 		mpu_addr + size <= map_obj_end;
+ }
+
++/*
++ * Find a dmm map object that contains the given memory block,
++ * and increase its reference count to prevent its destruction
++ * until released
++ */
+ static struct dmm_map_object *find_containing_mapping(
+ 				struct process_context *pr_ctxt,
+ 				u32 mpu_addr, u32 size)
+@@ -220,6 +245,7 @@ static struct dmm_map_object *find_containing_mapping(
+ 						map_obj->size);
+ 		if (match_containing_map_obj(map_obj, mpu_addr, size)) {
+ 			pr_debug("%s: match!\n", __func__);
++			map_obj_get(map_obj);
+ 			goto out;
+ 		}
+
+@@ -793,6 +819,8 @@ int proc_begin_dma(void *hprocessor, void
+*pmpu_addr, u32 ul_size,
+ 		pr_err("%s: InValid address parameters %p %x\n",
+ 			       __func__, pmpu_addr, ul_size);
+ 		status = -EFAULT;
++		/* release the reference count we took in the find above */
++		map_obj_put(map_obj);
+ 	}
+
+ err_out:
+@@ -834,6 +862,11 @@ int proc_end_dma(void *hprocessor, void
+*pmpu_addr, u32 ul_size,
+ 		goto err_out;
+ 	}
+
++	/* release first the reference count we took in the find above */
++	map_obj_put(map_obj);
++	/* now release the reference count that was taken in proc_begin_dma */
++	map_obj_put(map_obj);
++
+ err_out:
+ 	return status;
+ }
+-- 
+1.7.1
