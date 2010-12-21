@@ -1,68 +1,29 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 6/6] omap3: beagle: get rid of unused omap2/omap4 specific code/data
-Date: Tue, 21 Dec 2010 13:15:23 -0600
-Message-ID: <AANLkTim34_B_S--yYrdy+WOFH6_PL=t8P5xixwp36cwx@mail.gmail.com>
-References: <1292955604-8809-1-git-send-email-thomas.petazzoni@free-electrons.com>
- <1292955604-8809-7-git-send-email-thomas.petazzoni@free-electrons.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/40] Complete set of clocksource/sched_clock patches
+Date: Tue, 21 Dec 2010 11:24:30 -0800
+Message-ID: <87pqsvx72p.fsf@deeprootsystems.com>
+References: <20101217113223.GC9937@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:36593 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751677Ab0LUTQi convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Dec 2010 14:16:38 -0500
-Received: by mail-wy0-f176.google.com with SMTP id 20so4867281wye.7
-        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 11:16:35 -0800 (PST)
-In-Reply-To: <1292955604-8809-7-git-send-email-thomas.petazzoni@free-electrons.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20101217113223.GC9937@n2100.arm.linux.org.uk> (Russell King's
+	message of "Fri, 17 Dec 2010 11:32:23 +0000")
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Alessandro Rubini <rubini@unipv.it>, Bryan Huntsman <bryanh@codeaurora.org>, Colin Cross <ccross@android.com>, Daniel Walker <dwalker@codeaurora.org>, David Brown <davidb@codeaurora.org>, Eric Miao <eric.y.miao@gmail.com>, Erik Gilling <konkers@android.com>, "Hans J. Koch" <hjk@linutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Krzysztof Halasa <khc@pm.waw.pl>, Kukjin Kim <kgene.kim@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Jiandong Zheng <jdzheng@broadcom.com>, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Olof Johansson <olof@lixom.net>, Sascha Hauer <kernel@pengutronix.de>, Scott Branden <sbranden@broadcom.com>, STEricsson <STEricsson_nomadik_linux@list.st.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <tpetazzoni@ti.com>, Thomas Petazzoni <t-petazzoni@ti.com>
 
-On Tue, Dec 21, 2010 at 12:20, Thomas Petazzoni
-<thomas.petazzoni@free-electrons.com> wrote:
->
-> From: Thomas Petazzoni <tpetazzoni@ti.com>
->
-> Using the new condsections infrastructure, get rid of the unused
-> code/data for OMAP2 and OMAP4 when booting on BeagleBoard OMAP3.
->
-> Signed-off-by: Thomas Petazzoni <t-petazzoni@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/board-omap3beagle.c | =A0 =A04 ++++
-> =A01 files changed, 4 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-=
-omap2/board-omap3beagle.c
-> index 14f4224..900964a 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -23,6 +23,7 @@
-> =A0#include <linux/gpio.h>
-> =A0#include <linux/input.h>
-> =A0#include <linux/gpio_keys.h>
-> +#include <linux/condsections.h>
->
-> =A0#include <linux/mtd/mtd.h>
-> =A0#include <linux/mtd/partitions.h>
-> @@ -581,6 +582,9 @@ static void __init omap3_beagle_init(void)
-> =A0 =A0 =A0 =A0omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
->
-> =A0 =A0 =A0 =A0beagle_display_init();
-> +
-> + =A0 =A0 =A0 free_unused_cond_section("omap2");
-> + =A0 =A0 =A0 free_unused_cond_section("omap4");
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-Potentially a dumb idea: given that silicon wont change after boot,
-cant we make it independent of the board file - I mean some common
-file with cpu_is check and free of conditional sections accordingly?
+> Here is the entire set of clocksource and sched_clock patches which
+> have been previously posted.  There's a couple of small tweaks in a
+> few of the patches (such as adding notrace to OMAP clocksource read
+> functions), and this also shows the proper ordering of these patches.
+>
+> Still looking for acks or tested-by's for these patches.
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+on a few davinci platforms.
+
+Kevin
