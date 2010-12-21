@@ -1,112 +1,197 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [alsa-devel] [RFC/PATCH v6 03/12] media: Entities, pads and links
-Date: Tue, 21 Dec 2010 17:49:22 +0100
-Message-ID: <201012211749.22393.hverkuil@xs4all.nl>
-References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <4D0775DB.2020902@ladisch.de> <201012150050.44885.laurent.pinchart@ideasonboard.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/6] omap: Board specific muxing using hwmod
+Date: Tue, 21 Dec 2010 10:04:08 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012210739570.1446@utopia.booyaka.com>
+References: <20101203004040.31687.9476.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <201012150050.44885.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Clemens Ladisch <clemens@ladisch.de>, alsa-devel@alsa-project.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, lennart@poettering.net, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:41714 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751240Ab0LUREJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 12:04:09 -0500
+In-Reply-To: <20101203004040.31687.9476.stgit@baageli.muru.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wednesday, December 15, 2010 00:50:44 Laurent Pinchart wrote:
-> Hi Clemens,
+Hi,
+
+On Thu, 2 Dec 2010, Tony Lindgren wrote:
+
+> Here are some patches to allow us to pass the board specific mux data
+> to the platform level device init code, and then allow hwmod state
+> changes to do the pin muxing.
 > 
-> On Tuesday 14 December 2010 14:49:15 Clemens Ladisch wrote:
-> > Laurent Pinchart wrote:
-> > > On Tuesday 14 December 2010 13:40:21 Hans Verkuil wrote:
-> > >> > On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
-> > >> >> * Entity types
-> > >> >> 
-> > >> >> TYPE_NODE was renamed to TYPE_DEVICE because "node" sounds like a
-> > >> >> node in a graph, which does not distinguish it from other entity
-> > >> >> types because all entities are part of the topology graph.  I chose
-> > >> >> "device" as this type describes entities that are visible as some
-> > >> >> device node to other software.
-> > >> > 
-> > >> > What this type describes is a device node. Both NODE and DEVICE can be
-> > >> > confusing in my opinion, but DEVICE_NODE is a bit long.
-> > >> 
-> > >> What about DEVNODE? I think that would be a good alternative.
-> > > 
-> > > Fine with me. Clemens, any opinion on that ?
-> > 
-> > Fine with me too.
-> 
-> OK I'll use that name.
-> 
-> > > > >> TYPE_EXT describes entities that represent some interface to the
-> > > > >> external world, TYPE_INT those that are internal to the entire
-> > > > >> device. (I'm not sure if that distinction is very useful, but
-> > > > >> TYPE_SUBDEV seems to be an even more meaningless name.)
-> > > > > 
-> > > > > SUBDEV comes from the V4L2 world, and I agree that it might not be a
-> > > > > very good name.
-> > > > 
-> > > > SUBDEV refers to a specific type of driver. Within the v4l world it is
-> > > > well defined. So I prefer to keep this. Perhaps some additional
-> > > > comments or documentation can be added to clarify this.
-> > > 
-> > > Should this be clarified by using V4L2_SUBDEV instead then ?
-> > 
-> > If the "SUBDEV" concept doesn't exist outside V4L, that would indeed be
-> > better.
-> > 
-> > I don't want to rename things that come out of existing frameworks; this
-> > naming discussion makes sense only for those entity (sub)types that can
-> > be shared between them.  Are there any, besides jacks?
-> 
-> Some entities like TV tuners play a dual audio/video role. I'm not sure how to 
-> handle them, I lack experience in that field.
+> Dynamic remuxing is also supported as needed, the last patch in this
+> series sets up the board-*.c data for n8x0 to do uart3 rx pin remuxing
+> for the idle modes.
 
-It is very important to distinguish between the actual tuner device and the
-physical connector. ALSA doesn't program a tuner device, that's the domain
-of V4L and DVB. ALSA just sees an input pin.
+Tony and I have been discussing these patches recently.  Here are some of 
+the topics from that conversation, to share with the lists.  Tony, I hope 
+I've summarized our discussions accurately; please correct anything you 
+feel I've misstated below.  For those new to OMAP mux/padconf discussions, 
+there is a short glossary at the bottom of this message that might be 
+useful.
 
-Regarding tuners there are roughly two types of hardware: one where the audio
-goes to an output jack (and the user has to use a loopback cable to hook it up
-to an audio input), or it goes to memory using DMA and an ALSA driver.
+- Tony mentioned that the patch set had several purposes.  One purpose is 
+to provide a mechanism for dynamic padconf reprogramming based on the 
+state of a hwmod, such as in patch 6.  But another important purpose is to 
+try to figure out a way to move common padconf programming out of the 
+board files wherever it's possible and into the subarch-to-driver 
+integration code in arch/arm/*omap*.
 
-In the first scenario the MC would model a TV_ANTENNA connector and an AUDIO_OUT
-connector. The TV_ANTENNA connector would typically link to a V4L2_SUBDEV_TUNER,
-which would link to a V4L2_SUBDEV_AUDIO_DEMOD (in turn linked to the AUDIO_OUT
-connector). The tuner would also link to a V4L2_SUBDEV_VIDEO_DIGITIZER (in turn
-linked to a DEVNODE_V4L).
+- In the past, I had suggested that the hwmod data should contain a list 
+of signals for each hwmod.  (For example, uart2_hwmod would have 
+"uart2_tx", "uart2_rts", "uart2_cts", and "uart2_rx" associated with it in 
+the hwmod data.)  The hwmod code would indicate to the mux code when the 
+signals associated with a hwmod became "enabled," "idle," or "shutdown," 
+as the hwmod's state changed.  But looking at the code, and trying a 
+sample implementation of this, I suspect this approach, while conceptually 
+clean, may be too heavyweight for dynamic padconf reprogramming between 
+the enable and idle states, as in patch 6.  In that patch, there's only 
+one pad that needs to be reprogrammed when the hwmod goes idle, or is 
+re-enabled.  No current need to iterate over all of the hwmod's signals.  
+So, for the current use-case, we agreed that enable/idle dynamic padconf 
+reprogramming could be done only for the specific pads that needed to 
+change; and could be triggered by the hwmod's state, rather than the state 
+of the hwmod's individual signals.  If at some point in the future it 
+makes sense to add the signals to the hwmod data, we can always do it 
+then.
 
-In the second scenario there is no AUDIO_OUT connector, instead there is a
-DEVNODE_ALSA.
+- We also discussed where to store the dynamically-created padconf 
+reprogramming data.  We agreed that we should probably defer storing the 
+data in the omap_device layer.  The struct omap_device_board_data and 
+struct omap_device_pad don't have any pointers or other references to or 
+from struct omap_device.  We discussed that it might make more sense to 
+store that data in the mux layer or in the hwmod data.  For the current 
+scope of these patches, we agreed that it probably makes sense to 
+associate that dynamically-created data to the struct hwmod.
 
-It can get more complex: in the case of MPEG encoders the audio from the tuner
-goes to an audio demod, the video goes to a digitizer, and the output of those
-subdevs both go into the same MPEG encoder subdev.
+- We also discussed that it might make sense to defer adding a bdata the 
+omap_device_build() interface for this merge window, until we had a better 
+sense of the use cases and how the board data relates to the 
+platform_data.  We agreed that, in general, we should try to move as much 
+of the common padconf details as possible out of the individual board 
+files.
 
-When modeling hardware like audio or video devices it is important to remember
-to separate I/O pins from actually physical connectors. E.g. an audio device may
-have many possible input pins, but how they are hooked up to which physical
-connectors is something that is board specific and not part of the audio driver
-itself.
+...
 
-Anyway, what we need is a 'connector' entity. And just like the other entities,
-connectors can have multiple input pads so I don't see any problems in modeling
-antenna connectors.
+Based on the discussion and review, I had a few specific comments on the 
+patches:
 
-Regards,
+- It looks like patch 6 can use static mux directives for all but one of 
+its dynamic padconf reprogramming entries (uart3_rx_irrx).  In terms of 
+enable/idle padconf reprogramming, it might be worth trying to minimize 
+the number of these, since many IP blocks can switch frequently between 
+idled and enabled states.
 
-	Hans
+- It seems like it might be problematic to program CONTROL_PADCONF 
+registers based on the enabled/idled/shutdown state of a single hwmod.  
+This is because the CONTROL_PADCONF settings affect multiple hwmods.  For 
+example, the correct setting of ETK_D1 pad on OMAP3 can depend on the 
+state of several different hwmods: ETK, McSPI3, HSUSB, GPIO1.  If dynamic 
+padconf reprogramming directives for the same pad(s) (e.g., ETK_D1) are 
+associated with more than one of these hwmods, then the final padconf 
+setting could be unpredictable: basically, the last hwmod to change state 
+will be the one that determines the setting of the padconf register.  
+Ultimately, it may be necessary to make dynamic padconf reprogramming 
+directives conditional on the states of all of the hwmods that are 
+associated with a pad.  For example, something like this:
 
-> > > What about ALSA entities, should they use MEDIA_ENTITY_TYPE_ALSA_* ?
-> > 
-> > The entity types representing ALSA devices are already named "ALSA".
-> 
-> I was talking about the INT_* types. They're ALSA-specific, but have no ALSA 
-> in the type name.
-> 
-> 
+omap_mux_add_dynamic_remux(etk_hwmod,    HWMOD_STATE_NOT_ENABLED,
+	                   mcspi3_hwmod, HWMOD_STATE_ENABLED,
+                           hsusb1_hwmod, HWMOD_STATE_NOT_ENABLED,
+                           gpio1_hwmod,  HWMOD_STATE_DONT_CARE,
+                           "etk_d1", OMAP_MUX_MODE1)
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+meaning that pad "etk_d1" would only be programmed to mode 1 (mcspi3_somi)
+when:
+
+(etk_hwmod_state != HWMOD_STATE_ENABLED) &&
+(mcspi3_hwmod_state == HWMOD_STATE_ENABLED) &&
+(hsusb1_hwmod == HWMOD_STATE_NOT_ENABLED)
+
+This may not be necessary to implement right away, since the use cases are 
+not clear; and code to implement this will need some careful engineering 
+to keep it from becoming too heavyweight.  If it does become necessary, it 
+seems that this type of data would then be best stored in some higher 
+layer than the struct hwmod.
+
+...
+
+We also discussed one other general comment about the mux layer - not 
+related to these patches.  Since some signals can appear on multiple pads, 
+at some point in the future, maybe in the future it might be useful to 
+allow board files to specify their pad configurations in terms of (package 
+ID, ball ID) -> (signal ID) -- so, for example, (CUS, AC11) -> (gpio_81).  
+The idea being that the board designer, using a PCB design tool, might 
+someday be able to export a list of padconf settings out of their EDA 
+tools that we could use in the board files.  Looking at the OMAP3530 IBIS 
+model at 
+
+   http://focus.ti.com/lit/mo/symlink/omap3530-25_cus__ibis_model.ibs
+
+it includes both the ball ID (which it calls the "pin") and the pad/mode 0 
+name (which it calls the "signal name").
+
+It still makes sense to me for padconf constraints associated with 
+subarch-to-driver integration code -- such as usb-musb.c or usb-ehci.c - 
+to refer to signals (since that's what is meaningful for those IP blocks) 
+and let the mux code figure out what pads those signals appear on for that 
+board's configuration.  That way, that code can stay board 
+file-independent...
+
+
+Just some thoughts, more comments welcome.
+
+
+- Paul
+
+
+An informal glossary for the usage of padconf-related terms in this 
+E-mail:
+
+
+signal: an on-chip input or output signal, exported by an on-chip IP block 
+        such as UART2 or I2C1.  These signals can be routed to the
+        OMAP IO multiplexing device controlled by the CONTROL_PADCONF
+        registers.  Some examples of signals: "uart3_rx_irrx", "cam_d6".
+        Some signals can appear on multiple pads, e.g., on 
+        OMAP3, "uart1_rx" be muxed to the dss_data7 pad or the uart1_rx 
+        pad.
+
+pad: the area on the OMAP silicon die that may be connected to a ball or a 
+     pin on the exterior OMAP package.  Each pad is controlled by a
+     16-bit wide CONTROL_PADCONF register.  These 16-bit registers can be 
+     named by their "mode 0 name", which is unique for a silicon
+     design.
+
+ball: an electrical connection point on the plastic OMAP package, 
+      connecting to the printed circuit board or to a POPped chip, on 
+      OMAPs in ball-grid array (BGA) packages.  Balls are identified
+      with codes such as "AC23" or "Y22", documented in the chip data 
+      manual.  Also called "pin"
+
+mode 0 name: used in the context of pads and CONTROL_PADCONF registers, 
+             the mode 0 name is the name of the signal that is connected 
+             to that pad when the CONTROL_PADCONF register associated with 
+             that pad is set to mux mode 0.
+
+package: an enclosure for OMAP silicon, that contains small wires that 
+         connect pads on the silicon to balls or other connection points
+         on the exterior of the package.  One type of OMAP, e.g. 
+         OMAP3430 ES3.1, might be available in several different packages 
+         with different ball spacing, POP vs. non-POP, etc.  TI identifies 
+         their OMAP packages with three letter codes, e.g., "CBC", "CUS", 
+         "ZAC".
+
+driver code: code in drivers/*
+
+subarch-to-driver code: code in arch/arm/*omap* that creates an 
+                        omap_device
+
+padconf: pad configuration details that are programmed into the 
+         CONTROL_PADCONF registers - these details include
+         the mux mode, pull settings, off-mode pad configuration, etc.
