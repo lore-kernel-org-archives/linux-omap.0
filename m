@@ -1,81 +1,120 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v1 00/10] OMAP: McBSP: hwmod adaptation and runtime conversion
-Date: Tue, 21 Dec 2010 13:10:31 +0530
-Message-ID: <1292917231-13800-11-git-send-email-kishon@ti.com>
+Subject: [PATCH v1 07/10] OMAP3: hwmod: add dev_attr for McBSP sidetone
+Date: Tue, 21 Dec 2010 13:10:27 +0530
+Message-ID: <1292917231-13800-7-git-send-email-kishon@ti.com>
 References: <1292917231-13800-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43231 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43660 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757933Ab0LUHmE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Dec 2010 02:42:04 -0500
+	id S1757422Ab0LUHmC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Dec 2010 02:42:02 -0500
 In-Reply-To: <1292917231-13800-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, khilman@deeprootsystems.com, p-basak2@ti.com, b-cousson@ti.com, kishon@ti.com
 
-Modify OMAP McBSP driver to use omap hwmod framework and pm runtime APIs.
+Add device attribute for OMAP3 McBSP sidetone hwmod data
 
-Created on top of linux OMAP master (linux-omap-2.6 :master)
-Tested on OMAP4430 and OMAP3430 SDP boards. Verified that this patch
-series does not break the OMAP1 build.
+Discussions related to this change can be found in the following url:
+https://patchwork.kernel.org/patch/233221/
 
-Highlights
+Also add a revision member inorder to facilitate the driver to
+differentiate between different cpu's.
 
-* McBSP is designed to use multiple hwmods for a single device when the McBSP
-  device has sidetone feature.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   12 ++++++++++++
+ arch/arm/plat-omap/include/plat/mcbsp.h    |   11 +++++++++++
+ 2 files changed, 23 insertions(+), 0 deletions(-)
 
-* To avoid funcionality break of OMAP1 McBSP in between the series
-  and to keep the patches readable, implementation was done in two steps:
-   - First modify mcbsp driver to use platform_get* APIs 
-   - then convert it to use hwmod framework for OMAP2+.
-
-* API's like omap_device_noidle() and omap_device_default_idle() is used to
-  change the SYCONFIG register bits. This change is done to align with the
-  discussion on [2]
-
-* Use '.rev' of omap_hwmod class to identify OMAP3 specific settings
-
-* Use *ST_* macros for idlest_idle bit
-
-* Incorporate other general review comments provided for hwmod adpatation
-of other OMAP driver's (eg., do pdata free after a omap_device_build())
-
-* Retain fclk even after pm_runtime adaptation to facilitate switching of
-  functional clock from one source to another
-
-Discussions related to the first RFC patch can be found at [1]
-
-[1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36743.html
-[2]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39615.html
-
-Charulatha V (3)
-  OMAP2420: hwmod data: Add McBSP
-  OMAP2430: hwmod data: Add McBSP
-  OMAP3: hwmod data: Add McBSP
-
-Benoit Cousson (1)
-  OMAP4: hwmod data: Add McBSP
-
-Kishon Vijay Abraham I (6):
-  OMAP: hwmod: Add member 'name' to omap_hwmod_addr_space struct
-  OMAP: McBSP: Convert McBSP to platform device model
-  OMAP3: hwmod: add dev_attr for McBSP sidetone
-  OMAP2+: McBSP: hwmod adaptation for McBSP
-  OMAP: McBSP: use omap_device APIs to modify SYSCONFIG
-  OMAP: McBSP: Add pm runtime support
-
- arch/arm/mach-omap1/mcbsp.c                  |  383 +++++++++++++++----
- arch/arm/mach-omap2/mcbsp.c                  |  246 ++++---------
- arch/arm/mach-omap2/omap_hwmod.c             |    1 +
- arch/arm/mach-omap2/omap_hwmod_2420_data.c   |  167 ++++++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c   |  415 ++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |  535 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |  320 +++++++++++++++
- arch/arm/mach-omap2/prcm-common.h            |    4 +
- arch/arm/plat-omap/devices.c                 |   10 +-
- arch/arm/plat-omap/include/plat/mcbsp.h      |   26 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    4 +-
- arch/arm/plat-omap/mcbsp.c                   |  143 +++++---
- 12 files changed, 1942 insertions(+), 312 deletions(-)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index c9aa2c7..fed722f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -20,6 +20,7 @@
+ #include <plat/serial.h>
+ #include <plat/l4_3xxx.h>
+ #include <plat/i2c.h>
++#include <plat/mcbsp.h>
+ #include <plat/omap34xx.h>
+ 
+ #include "omap_hwmod_common_data.h"
+@@ -763,6 +764,7 @@ static struct omap_hwmod_class_sysconfig omap3xxx_mcbsp_sysc = {
+ static struct omap_hwmod_class omap3xxx_mcbsp_hwmod_class = {
+ 	.name = "mcbsp",
+ 	.sysc = &omap3xxx_mcbsp_sysc,
++	.rev  = OMAP_MCBSP_CPU_3,
+ };
+ 
+ /* mcbsp1 */
+@@ -897,6 +899,10 @@ static struct omap_hwmod_ocp_if *omap3xxx_mcbsp2_slaves[] = {
+ 	&omap3xxx_l4_per__mcbsp2_dma,
+ };
+ 
++static struct omap_mcbsp_dev_attr omap34xx_mcbsp2_dev_attr = {
++	.sidetone	= "mcbsp2_sidetone",
++};
++
+ static struct omap_hwmod omap3xxx_mcbsp2_hwmod = {
+ 	.name		= "mcbsp2",
+ 	.class		= &omap3xxx_mcbsp_hwmod_class,
+@@ -916,6 +922,7 @@ static struct omap_hwmod omap3xxx_mcbsp2_hwmod = {
+ 	},
+ 	.slaves		= omap3xxx_mcbsp2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mcbsp2_slaves),
++	.dev_attr	= &omap34xx_mcbsp2_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+ 
+@@ -974,6 +981,10 @@ static struct omap_hwmod_ocp_if *omap3xxx_mcbsp3_slaves[] = {
+ 	&omap3xxx_l4_per__mcbsp3_dma,
+ };
+ 
++static struct omap_mcbsp_dev_attr omap34xx_mcbsp3_dev_attr = {
++	.sidetone       = "mcbsp3_sidetone",
++};
++
+ static struct omap_hwmod omap3xxx_mcbsp3_hwmod = {
+ 	.name		= "mcbsp3",
+ 	.class		= &omap3xxx_mcbsp_hwmod_class,
+@@ -993,6 +1004,7 @@ static struct omap_hwmod omap3xxx_mcbsp3_hwmod = {
+ 	},
+ 	.slaves		= omap3xxx_mcbsp3_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mcbsp3_slaves),
++	.dev_attr	= &omap34xx_mcbsp3_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+ 
+diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
+index e9bde6e..d8275f7 100644
+--- a/arch/arm/plat-omap/include/plat/mcbsp.h
++++ b/arch/arm/plat-omap/include/plat/mcbsp.h
+@@ -37,6 +37,8 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ 	.id	= OMAP_MCBSP##port_nr,			\
+ }
+ 
++#define OMAP_MCBSP_CPU_3	0x3
++
+ #define OMAP7XX_MCBSP1_BASE	0xfffb1000
+ #define OMAP7XX_MCBSP2_BASE	0xfffb1800
+ 
+@@ -485,6 +487,15 @@ struct omap_mcbsp {
+ #endif
+ 	void *reg_cache;
+ };
++
++/**
++ * omap_mcbsp_dev_attr - OMAP MCBSP device attributes for omap_hwmod
++ * @sidetone: name of the sidetone device
++ */
++struct omap_mcbsp_dev_attr {
++	const char *sidetone;
++};
++
+ extern struct omap_mcbsp **mcbsp_ptr;
+ extern int omap_mcbsp_count, omap_mcbsp_cache_size;
+ 
+-- 
+1.7.0.4
 
