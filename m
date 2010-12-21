@@ -1,39 +1,62 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [Patch v5] AM35xx: Craneboard: Add USB EHCI support
-Date: Tue, 21 Dec 2010 08:58:09 +0200
-Message-ID: <20101221065809.GB2921@legolas.emea.dhcp.ti.com>
-References: <[PATCH]AM35xx-Craneboard-Add-USB-EHCI-support>
- <1292850523-14583-1-git-send-email-srinath@mistralsolutions.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1292850523-14583-1-git-send-email-srinath@mistralsolutions.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: srinath@mistralsolutions.com
-Cc: linux-omap@vger.kernel.org, jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, sshtylyov@mvista.com, manjugk@ti.com, babli@ti.com
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v1 0/2] OMAP: omap_device: API to modify SYSCONFIG register
+Date: Tue, 21 Dec 2010 12:42:38 +0530
+Message-ID: <1292915560-13601-1-git-send-email-kishon@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56256 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752481Ab0LUHOJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Dec 2010 02:14:09 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@deeprootsystems.com, p-basak2@ti.com, b-cousson@ti.com, kishon@ti.com
 
-On Mon, Dec 20, 2010 at 06:38:43PM +0530, srinath@mistralsolutions.com wrote:
->From: Srinath <srinath@mistralsolutions.com>
->
->AM3517/05 Craneboard has one EHCI interface on board using port1.
->
->GPIO35 is used as power enable.
->GPIO38 is used as port1 PHY reset.
->
->History:
->http://marc.info/?l=linux-omap&w=2&r=1&s=Craneboard%253A%2BAdd%2BUSB%2BEHCI%2Bsupport&q=b
->
->Signed-off-by: Srinath <srinath@mistralsolutions.com>
+Certain peripherals require autoidle bits to be disabled before performing
+some operations. This patch series provides APIs in omap_device layer to
+modify the SYSCONFIG register.
 
-Tony, do you want to make a pull request for you ? I guess this would
-only go on next merge window.
+Since current implementation of PM run time framework does not support
+changing sysconfig settings during middle of the on going operation,
+these APIs will support the same.
 
-If you want to take yourself, here's my acked-by:
+For e.g McBSP 2 and 3 in OMAP3 has sidetone feature which requires
+autoidle to be disabled before starting the sidetone.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+McBSP also requires the SYSCONFIG to be in NOIDLE when ELEMENTSYNCH
+mode is selected for DMA operation.
 
--- 
-balbi
+Created on top of linux OMAP master (linux-omap-2.6 :master)
+Tested on OMAP4430 and OMAP3430 SDP boards. Verified that this patch
+series does not break the OMAP1 build.
+
+Highlihgts:
+* Creates 3 separate API's to change the idle mode to NOIDLE, SMARTIDLE
+  and FORCEIDLE and one more API to change the idlemode to default value
+  based on the hwmod flag. This change is done to align with the discussion
+  on [3]
+
+* Added hwmod mutex in omap hwmod APIs that modifies SYSCONFIG register.
+
+* omap_hwmod_set_slave_idlemode() is not modified to take true/false kind-of
+argument since 3 states are associated with SIDLE bits (force, no and smart).
+
+These changes were made to align with Benoit's and Paul's comments for a
+similar patch written by Manjunath [1] for changing MSTANDBY bits.
+
+The discussions that happened for the RFC patch can be found at [2]
+
+[1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39647.html
+[2]: https://patchwork.kernel.org/patch/134371/
+[3]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39615.html
+
+Kishon Vijay Abraham I (2):
+  OMAP: hwmod: API to handle autoidle mode
+  OMAP: omap_device: API to modify AUTOIDLE and SMARTIDLE bits
+
+ arch/arm/mach-omap2/omap_hwmod.c              |   35 +++++++
+ arch/arm/plat-omap/include/plat/omap_device.h |    4 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
+ arch/arm/plat-omap/omap_device.c              |  118 +++++++++++++++++++++++++
+ 4 files changed, 158 insertions(+), 0 deletions(-)
+
