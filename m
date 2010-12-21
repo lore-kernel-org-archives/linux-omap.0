@@ -1,235 +1,65 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v1 2/2] OMAP: omap_device: API to modify AUTOIDLE and SMARTIDLE bits
-Date: Tue, 21 Dec 2010 12:42:40 +0530
-Message-ID: <1292915560-13601-3-git-send-email-kishon@ti.com>
-References: <1292915560-13601-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v1 01/10] OMAP: hwmod: Add member 'name' to omap_hwmod_addr_space struct
+Date: Tue, 21 Dec 2010 13:10:21 +0530
+Message-ID: <1292917231-13800-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42640 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:57427 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752481Ab0LUHOS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Dec 2010 02:14:18 -0500
-In-Reply-To: <1292915560-13601-1-git-send-email-kishon@ti.com>
+	id S1753155Ab0LUHl6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Dec 2010 02:41:58 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, khilman@deeprootsystems.com, p-basak2@ti.com, b-cousson@ti.com, kishon@ti.com
 
-Provide APIs to be used by the driver in order to modify AUTOIDLE
-and SIDLE bits. These APIs in turn call hwmod APIs to modify the
-SYSCONFIG register.
+Adds a structure member 'name' to 'omap_hwmod_addr_space' structure
+so that drivers can use platform_get_resource_byname() to get resource of
+type 'IORESOURCE_MEM' by name.
+
+Discussions related to this change can be found in the following url:
+https://patchwork.kernel.org/patch/233211/
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/plat-omap/include/plat/omap_device.h |    6 +
- arch/arm/plat-omap/omap_device.c              |  176 +++++++++++++++++++++++++
- 2 files changed, 182 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c             |    1 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    4 +++-
+ 2 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index 28e2d1a..3895ab4 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -109,6 +109,12 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
- struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index e016cd9..d8caa86 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1865,6 +1865,7 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
+ 		os = oh->slaves[i];
  
- /* Other */
-+int omap_device_noidle(struct omap_device *od);
-+int omap_device_smartidle(struct omap_device *od);
-+int omap_device_forceidle(struct omap_device *od);
-+int omap_device_default_idle(struct omap_device *od);
-+int omap_device_enable_autoidle(struct omap_device *od);
-+int omap_device_disable_autoidle(struct omap_device *od);
+ 		for (j = 0; j < os->addr_cnt; j++) {
++			(res + r)->name = (os->addr + j)->name;
+ 			(res + r)->start = (os->addr + j)->pa_start;
+ 			(res + r)->end = (os->addr + j)->pa_end;
+ 			(res + r)->flags = IORESOURCE_MEM;
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 1871b5a..0b8a854 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -163,7 +163,8 @@ struct omap_hwmod_omap2_firewall {
+ #define ADDR_TYPE_RT		(1 << 1)
  
- int omap_device_idle_hwmods(struct omap_device *od);
- int omap_device_enable_hwmods(struct omap_device *od);
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index abe933c..f2c6b3d 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -698,6 +698,182 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od)
- 	return omap_hwmod_get_mpu_rt_va(od->hwmods[0]);
- }
- 
-+/**
-+ * omap_device_noidle - set the device's slave idlemode to no idle
-+ * @od: struct omap_device *
-+ *
-+ * Sets the IP block's OCP slave idlemode in hardware to no idle.
-+ * Intended to be used by drivers that have some erratum that requires direct
-+ * manipulation of the SIDLEMODE bits.  Returns -EINVAL if @od is in invalid
-+ * state, or passes along the return value from
-+ * omap_hwmod_set_slave_idlemode().
-+ */
-+int omap_device_noidle(struct omap_device *od)
-+{
-+	int retval = 0, i;
-+
-+	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
-+		WARN(1, "omap_device: %s.%d: %s() called from invalid state "
-+			"%d\n", od->pdev.name, od->pdev.id, __func__,
-+			od->_state);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		retval |= omap_hwmod_set_slave_idlemode(od->hwmods[i],
-+					HWMOD_IDLEMODE_NO);
-+
-+	return retval;
-+}
-+
-+
-+/**
-+ * omap_device_smartidle - set the device's slave idlemode to smart idle
-+ * @od: struct omap_device *
-+ *
-+ * Sets the IP block's OCP slave idlemode in hardware to smart idle.
-+ * Intended to be used by drivers that have some erratum that requires direct
-+ * manipulation of the SIDLEMODE bits.  Returns -EINVAL if @od is in invalid
-+ * state, or passes along the return value from
-+ * omap_hwmod_set_slave_idlemode().
-+ */
-+int omap_device_smartidle(struct omap_device *od)
-+{
-+	int retval = 0, i;
-+
-+	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
-+		WARN(1, "omap_device: %s.%d: %s() called from invalid state "
-+			"%d\n", od->pdev.name, od->pdev.id, __func__,
-+			od->_state);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		retval |= omap_hwmod_set_slave_idlemode(od->hwmods[i],
-+					HWMOD_IDLEMODE_SMART);
-+
-+	return retval;
-+}
-+
-+
-+/**
-+ * omap_device_forceidle - set the device's slave idlemode to force idle
-+ * @od: struct omap_device *
-+ *
-+ * Sets the IP block's OCP slave idlemode in hardware to force idle.
-+ * Intended to be used by drivers that have some erratum that requires direct
-+ * manipulation of the SIDLEMODE bits.  Returns -EINVAL if @od is in invalid
-+ * state, or passes along the return value from
-+ * omap_hwmod_set_slave_idlemode().
-+ */
-+int omap_device_forceidle(struct omap_device *od)
-+{
-+	int retval = 0, i;
-+
-+	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
-+		WARN(1, "omap_device: %s.%d: %s() called from invalid state "
-+			"%d\n", od->pdev.name, od->pdev.id, __func__,
-+			od->_state);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		retval |= omap_hwmod_set_slave_idlemode(od->hwmods[i],
-+					HWMOD_IDLEMODE_FORCE);
-+
-+	return retval;
-+}
-+
-+/**
-+ * omap_device_default_idle - set the device's slave idlemode to no idle or
-+ * smart idle based on the hwmod flag
-+ * @od: struct omap_device *
-+ *
-+ * Sets the IP block's OCP slave idlemode in hardware to no idle or smart idle
-+ * depending on status of the flag HWMOD_SWSUP_SIDLE.
-+ * Intended to be used by drivers that have some erratum that requires direct
-+ * manipulation of the SIDLEMODE bits.  Returns -EINVAL if @od is in invalid
-+ * state, or passes along the return value from
-+ * omap_hwmod_set_slave_idlemode().
-+ */
-+int omap_device_default_idle(struct omap_device *od)
-+{
-+	int retval = 0, i;
-+	u8 idlemode;
-+
-+	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
-+		WARN(1, "omap_device: %s.%d: %s() called from invalid state "
-+			"%d\n", od->pdev.name, od->pdev.id, __func__,
-+		od->_state);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < od->hwmods_cnt; i++) {
-+		idlemode = (od->hwmods[i]->flags & HWMOD_SWSUP_SIDLE) ?
-+				HWMOD_IDLEMODE_NO : HWMOD_IDLEMODE_SMART;
-+		retval |= omap_hwmod_set_slave_idlemode(od->hwmods[i],
-+				idlemode);
-+	}
-+
-+	return retval;
-+}
-+
-+/*
-+ * omap_device_enable_autoidle - enable the device's OCP slave autoidle
-+ * @od: struct omap_device *
-+ *
-+ * Sets the IP block's OCP slave autoidle in hardware.
-+ * Intended to be used by drivers that have some erratum that requires direct
-+ * manipulation of the AUTOIDLE bits.  Returns -EINVAL if @od is in invalid
-+ * state, or passes along the return value from
-+ * omap_hwmod_set_slave_autoidle().
-+ */
-+int omap_device_enable_autoidle(struct omap_device *od)
-+{
-+	int retval = 0, i;
-+
-+	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
-+		WARN(1, "omap_device: %s.%d: %s() called from invalid state "
-+			"%d\n", od->pdev.name, od->pdev.id, __func__,
-+			od->_state);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		retval |= omap_hwmod_set_slave_autoidle(od->hwmods[i],
-+					true);
-+
-+	return retval;
-+}
-+
-+/*
-+ * omap_device_disable_autoidle - disable the device's OCP slave autoidle
-+ * @od: struct omap_device *
-+ *
-+ * Disables the IP block's OCP slave autoidle in hardware.
-+ * Intended to be used by drivers that have some erratum that requires direct
-+ * manipulation of the AUTOIDLE bits.  Returns -EINVAL if @od is in invalid
-+ * state, or passes along the return value from
-+ * omap_hwmod_set_slave_autoidle().
-+ */
-+int omap_device_disable_autoidle(struct omap_device *od)
-+{
-+	int retval = 0, i;
-+
-+	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
-+		WARN(1, "omap_device: %s.%d: %s() called from invalid state "
-+			"%d\n", od->pdev.name, od->pdev.id, __func__,
-+			od->_state);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		retval |= omap_hwmod_set_slave_autoidle(od->hwmods[i],
-+					false);
-+
-+	return retval;
-+}
-+
- /*
-  * Public functions intended for use in omap_device_pm_latency
-  * .activate_func and .deactivate_func function pointers
+ /**
+- * struct omap_hwmod_addr_space - MPU address space handled by the hwmod
++ * struct omap_hwmod_addr_space - address space handled by the hwmod
++ * @name: name of the address space
+  * @pa_start: starting physical address
+  * @pa_end: ending physical address
+  * @flags: (see omap_hwmod_addr_space.flags macros above)
+@@ -172,6 +173,7 @@ struct omap_hwmod_omap2_firewall {
+  * structure.  GPMC is one example.
+  */
+ struct omap_hwmod_addr_space {
++	const char *name;
+ 	u32 pa_start;
+ 	u32 pa_end;
+ 	u8 flags;
 -- 
 1.7.0.4
 
