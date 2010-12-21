@@ -1,140 +1,112 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2] staging: tidspbridge: protect dmm_map properly
-Date: Tue, 21 Dec 2010 18:44:10 +0200
-Message-ID: <AANLkTi=9AL3aWUsMeih+Gb-sMov=MgBZ1eTp8wb=q1hZ@mail.gmail.com>
-References: <1292870624-25450-1-git-send-email-felipe.contreras@nokia.com>
-	<AANLkTikisHaAMZphRJVYdcokVbaZXVF9COrwkdGTDg__@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [alsa-devel] [RFC/PATCH v6 03/12] media: Entities, pads and links
+Date: Tue, 21 Dec 2010 17:49:22 +0100
+Message-ID: <201012211749.22393.hverkuil@xs4all.nl>
+References: <1290652099-15102-1-git-send-email-laurent.pinchart@ideasonboard.com> <4D0775DB.2020902@ladisch.de> <201012150050.44885.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikisHaAMZphRJVYdcokVbaZXVF9COrwkdGTDg__@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <201012150050.44885.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Clemens Ladisch <clemens@ladisch.de>, alsa-devel@alsa-project.org, sakari.ailus@maxwell.research.nokia.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, lennart@poettering.net, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ohad,
+On Wednesday, December 15, 2010 00:50:44 Laurent Pinchart wrote:
+> Hi Clemens,
+> 
+> On Tuesday 14 December 2010 14:49:15 Clemens Ladisch wrote:
+> > Laurent Pinchart wrote:
+> > > On Tuesday 14 December 2010 13:40:21 Hans Verkuil wrote:
+> > >> > On Monday 13 December 2010 17:10:51 Clemens Ladisch wrote:
+> > >> >> * Entity types
+> > >> >> 
+> > >> >> TYPE_NODE was renamed to TYPE_DEVICE because "node" sounds like a
+> > >> >> node in a graph, which does not distinguish it from other entity
+> > >> >> types because all entities are part of the topology graph.  I chose
+> > >> >> "device" as this type describes entities that are visible as some
+> > >> >> device node to other software.
+> > >> > 
+> > >> > What this type describes is a device node. Both NODE and DEVICE can be
+> > >> > confusing in my opinion, but DEVICE_NODE is a bit long.
+> > >> 
+> > >> What about DEVNODE? I think that would be a good alternative.
+> > > 
+> > > Fine with me. Clemens, any opinion on that ?
+> > 
+> > Fine with me too.
+> 
+> OK I'll use that name.
+> 
+> > > > >> TYPE_EXT describes entities that represent some interface to the
+> > > > >> external world, TYPE_INT those that are internal to the entire
+> > > > >> device. (I'm not sure if that distinction is very useful, but
+> > > > >> TYPE_SUBDEV seems to be an even more meaningless name.)
+> > > > > 
+> > > > > SUBDEV comes from the V4L2 world, and I agree that it might not be a
+> > > > > very good name.
+> > > > 
+> > > > SUBDEV refers to a specific type of driver. Within the v4l world it is
+> > > > well defined. So I prefer to keep this. Perhaps some additional
+> > > > comments or documentation can be added to clarify this.
+> > > 
+> > > Should this be clarified by using V4L2_SUBDEV instead then ?
+> > 
+> > If the "SUBDEV" concept doesn't exist outside V4L, that would indeed be
+> > better.
+> > 
+> > I don't want to rename things that come out of existing frameworks; this
+> > naming discussion makes sense only for those entity (sub)types that can
+> > be shared between them.  Are there any, besides jacks?
+> 
+> Some entities like TV tuners play a dual audio/video role. I'm not sure how to 
+> handle them, I lack experience in that field.
 
-On Tue, Dec 21, 2010 at 4:06 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> On Mon, Dec 20, 2010 at 8:43 PM, Felipe Contreras
-> <felipe.contreras@nokia.com> wrote:
->> We need to protect not only the dmm_map list, but the individual
->> map_obj's, otherwise, we might be building the scatter-gather list w=
-ith
->> garbage.
->
-> Thanks for reporting this !
->
->> So, use the existing proc_lock for that.
->
-> I don't like this.
->
-> You are taking this lock over the entire proc_begin_dma() and
-> proc_end_dma() functions, and by that artificially imposing sequentia=
-l
-> behavior of their execution (system-wide).
+It is very important to distinguish between the actual tuner device and the
+physical connector. ALSA doesn't program a tuner device, that's the domain
+of V4L and DVB. ALSA just sees an input pin.
 
-Wouldn't you want the proc_*_dma() operations to finish before
-unmaping the pages? I think this sequence is not artificial; it's
-actually the desired behavior.
+Regarding tuners there are roughly two types of hardware: one where the audio
+goes to an output jack (and the user has to use a loopback cable to hook it up
+to an audio input), or it goes to memory using DMA and an ALSA driver.
 
-> I strongly prefer protecting the dmm map object itself, and not the
-> code that uses it, in order to avoid redundant bottlenecks.
->
-> Something like the patch below should fix the panics without globally
-> locking the dma functions (UNTESTED! I still want to have a gst-dsp
-> setup like yours so I can reproduce the issues you see. If needed,
-> I'll get to it).
+In the first scenario the MC would model a TV_ANTENNA connector and an AUDIO_OUT
+connector. The TV_ANTENNA connector would typically link to a V4L2_SUBDEV_TUNER,
+which would link to a V4L2_SUBDEV_AUDIO_DEMOD (in turn linked to the AUDIO_OUT
+connector). The tuner would also link to a V4L2_SUBDEV_VIDEO_DIGITIZER (in turn
+linked to a DEVNODE_V4L).
 
-I have actually documented how I create it:
-http://felipec.wordpress.com/2010/10/08/my-arm-development-notes/
+In the second scenario there is no AUDIO_OUT connector, instead there is a
+DEVNODE_ALSA.
 
-I even provided a tarball with all the GStreamer stuff you can extract
-to /opt/gst and use on any system (with a reasonable glibc):
-http://people.freedesktop.org/~felipec/arm-gst-dev.tar.gz
+It can get more complex: in the case of MPEG encoders the audio from the tuner
+goes to an audio demod, the video goes to a digitizer, and the output of those
+subdevs both go into the same MPEG encoder subdev.
 
-The actual test I'm using to trigger this issue is way more
-complicated, but I could try to simplify it.
+When modeling hardware like audio or video devices it is important to remember
+to separate I/O pins from actually physical connectors. E.g. an audio device may
+have many possible input pins, but how they are hooked up to which physical
+connectors is something that is board specific and not part of the audio driver
+itself.
 
-> Please note: the code below assumes that applications calls
-> proc_end_dma() for every proc_begin_dma(). =C2=A0This is anyway manda=
-tory,
-> because otherwise we are risking data corruptions, but we know older
-> applications (e.g. probably TI samples) don't do that (since the
-> dspbridge's DMA API is relatively new). If we want/need to support
-> those older applications with this patch, it's a 2-liner change.
+Anyway, what we need is a 'connector' entity. And just like the other entities,
+connectors can have multiple input pads so I don't see any problems in modeling
+antenna connectors.
 
-I analyzed this when you introduced the patches, and I found that at
-least the OpenMAX code at that time wasn't even doing any DMA
-operation; just mapping and unmapping. So it's not an issue for that.
+Regards,
 
-> But there is another issue. I'm not quite sure how gst-dsp is using
-> the bridge DMA API, but those panics may suggest that there are
-> additional races here: if the application unmaps a memory region,
-> before the DMA operation completes (i.e. proc_end_dma() completed
-> execution), the application will face:
+	Hans
 
-gst-dsp is so far using the old API.
+> > > What about ALSA entities, should they use MEDIA_ENTITY_TYPE_ALSA_* ?
+> > 
+> > The entity types representing ALSA devices are already named "ALSA".
+> 
+> I was talking about the INT_* types. They're ALSA-specific, but have no ALSA 
+> in the type name.
+> 
+> 
 
-> 1. errors: when proc_end_dma() does get invoked, the map_obj will
-> already be destroyed, and find_containing_mapping() will simply fail
-
-That's not a big issue; a mere warning (that wouldn't happen anyway
-because user-space either calls proc_end_dma(), or it doesn't).
-
-> 2. data corruptions: as a result of (1), dma_unmap_sg() will not be
-> called, and that may result in data corruptions and generally is very
-> bad
-
-That depends on particular systems. My understanding is that unless
-speculative pre-fetching is enabled, which TI suggests not to do on
-OMAP3430 and OMAP3630, there's actually no issue.
-
-Not to mention that gst-dsp is supposed to work on old kernels that
-don't even do the proper flushes on dma_unmap_sg() (pre .34 I think).
-
-> We can treat this as an application error, but we don't have to, and
-> it will actually be very clean if we won't.
->
-> Given the below patch, it should be quite easy to solve those
-> additional races too, e.g., by adding a boolean 'dying' flag to each
-> map_obj, which would (on un_map) mark an object as not available for =
-a
-> new DMA operation (proc_start_dma), but it'd still wait until all of
-> its referenced are removed (proc_end_dma), and only then it will be
-> finally removed from the list.
-
-That sounds very dangerous. So basically you would be allowing to do
-dma_unmap_sg() *after* the pages have been unmapped, and thus not
-pinned (put_page()); I don't think you are supposed to do that.
-Wouldn't it be possible that the pages get swapped out?
-
-> Such a change will only work with applications that calls
-> proc_end_dma() for each proc_start_dma(). How is gst-dsp in that
-> respect ? do we want to keep supporting older applications which don'=
-t
-> do that ? if we want, we can still support both old and new API with
-> some ioctl games (introduce new ioctl commands which will work the ne=
-w
-> way, and keep the old ones around, maybe only mark them as
-> deprecated).
-
-IMO, as long as the old API is there (and not even deprecated), the
-code should support that behavior. Once that API is removed, then we
-can think about stopping that support.
-
-I don't see what is the problem. Currently the bulk of DMA operations
-are done through mapping/unmapping and thus the proc_lock is used _all
-the time_ already (by both gst-dsp and TI OpenMAX). The problem is
-that gst-dsp uses the flush/invalidate API for a few small chunks of
-data (1 page), and this patch is just extending the lock for that.
-Even if somebody uses this API for big chunks of data, the performance
-can't be worst than the current mapping/unmapping of huge memory
-areas.
-
-Cheers.
-
---=20
-=46elipe Contreras
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
