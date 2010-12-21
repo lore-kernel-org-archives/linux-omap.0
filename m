@@ -1,29 +1,68 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/40] Complete set of clocksource/sched_clock patches
-Date: Tue, 21 Dec 2010 11:24:30 -0800
-Message-ID: <87pqsvx72p.fsf@deeprootsystems.com>
-References: <20101217113223.GC9937@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/6] Add infrastructure for conditional code and data
+ sections
+Date: Tue, 21 Dec 2010 11:27:35 -0800
+Message-ID: <20101221192735.GG5829@atomide.com>
+References: <1292955604-8809-1-git-send-email-thomas.petazzoni@free-electrons.com>
+ <1292955604-8809-2-git-send-email-thomas.petazzoni@free-electrons.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20101217113223.GC9937@n2100.arm.linux.org.uk> (Russell King's
-	message of "Fri, 17 Dec 2010 11:32:23 +0000")
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Alessandro Rubini <rubini@unipv.it>, Bryan Huntsman <bryanh@codeaurora.org>, Colin Cross <ccross@android.com>, Daniel Walker <dwalker@codeaurora.org>, David Brown <davidb@codeaurora.org>, Eric Miao <eric.y.miao@gmail.com>, Erik Gilling <konkers@android.com>, "Hans J. Koch" <hjk@linutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Krzysztof Halasa <khc@pm.waw.pl>, Kukjin Kim <kgene.kim@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Jiandong Zheng <jdzheng@broadcom.com>, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Olof Johansson <olof@lixom.net>, Sascha Hauer <kernel@pengutronix.de>, Scott Branden <sbranden@broadcom.com>, STEricsson <STEricsson_nomadik_linux@list.st.com>, Tony Lindgren <tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42870 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751223Ab0LUT1o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 14:27:44 -0500
+Content-Disposition: inline
+In-Reply-To: <1292955604-8809-2-git-send-email-thomas.petazzoni@free-electrons.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <tpetazzoni@ti.com>, Thomas Petazzoni <t-petazzoni@ti.com>
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+* Thomas Petazzoni <thomas.petazzoni@free-electrons.com> [101221 10:20]:
+> From: Thomas Petazzoni <tpetazzoni@ti.com>
+> 
+> WARNING: This is only a proof-of-concept, there are many known
+> issues. The sole purpose of this patch is to get some feedback on
+> whether the idea is useful or not, and whether it's worth cleaning up
+> the remaining issues.
+> 
+> A trend in the kernel support for SoC is to build a single kernel that
+> works accross a wide range of SoC inside a SoC family, or even in the
+> future SoC of different families.
+> 
+> While this is very interesting to reduce the number of kernel images
+> needed to support a large number of hardware platforms, it allows
+> means that the kernel image size is increasing. Portions of code and
+> data are specific to a given SoC (clock structures, hwmod structures
+> on OMAP, etc.) and only the portion relevant for the current SoC the
+> kernel is running on is actually useful. The rest of the code and data
+> remains in memory forever.
+> 
+> While __init and __initdata can solve some of those cases, it is not
+> necessarly easy to use, since the code/data that is actually useful
+> needs to be copied so that it is kept after the init memory cleanup.
+> 
+> Therefore, we introduce an infrastructure that allows to put code and
+> data into specific sections, called "conditional sections". All those
+> sections are compiled into the final kernel image, but at runtime, by
+> calling a function, we can get rid of the unused sections.
 
-> Here is the entire set of clocksource and sched_clock patches which
-> have been previously posted.  There's a couple of small tweaks in a
-> few of the patches (such as adding notrace to OMAP clocksource read
-> functions), and this also shows the proper ordering of these patches.
->
-> Still looking for acks or tested-by's for these patches.
+Great, something is certainly needed to free the unused memory.
+ 
+> For example, on OMAP, you can declare data as being omap2 specific
+> this way:
+> 
+>    static int __omap2_data foobar;
+> 
+> Then, in the board code of an OMAP3 or OMAP4 platform, you can call:
+> 
+>    free_unused_cond_section("omap2");
 
-Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
+Sounds like this could be done after the cpu detection automatically?
 
-on a few davinci platforms.
+I don't know what the section limitations are, but it would be nice
+to have a separate section for each machine.. Then we could just
+"free_unused_machines()" during the init.. :)
 
-Kevin
+Tony
