@@ -1,54 +1,140 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v6 00/10] OMAP: Adding Smartreflex and Voltage driver support
-Date: Tue, 21 Dec 2010 08:17:57 -0800
-Message-ID: <87lj3jyua2.fsf@deeprootsystems.com>
-References: <1292864357-13939-1-git-send-email-thara@ti.com>
-	<877hf45414.fsf@deeprootsystems.com>
-	<20101221022329.GC5829@atomide.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2] staging: tidspbridge: protect dmm_map properly
+Date: Tue, 21 Dec 2010 18:44:10 +0200
+Message-ID: <AANLkTi=9AL3aWUsMeih+Gb-sMov=MgBZ1eTp8wb=q1hZ@mail.gmail.com>
+References: <1292870624-25450-1-git-send-email-felipe.contreras@nokia.com>
+	<AANLkTikisHaAMZphRJVYdcokVbaZXVF9COrwkdGTDg__@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:42393 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751013Ab0LUQSD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 11:18:03 -0500
-Received: by pzk9 with SMTP id 9so1439429pzk.1
-        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 08:18:02 -0800 (PST)
-In-Reply-To: <20101221022329.GC5829@atomide.com> (Tony Lindgren's message of
-	"Mon, 20 Dec 2010 18:23:30 -0800")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikisHaAMZphRJVYdcokVbaZXVF9COrwkdGTDg__@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Thara Gopinath <thara@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, nm@ti.com
 
-Tony Lindgren <tony@atomide.com> writes:
+Hi Ohad,
 
-> * Kevin Hilman <khilman@deeprootsystems.com> [101220 17:05]:
->> Thara Gopinath <thara@ti.com> writes:
->> 
->> > This patch series introduces smartreflex and voltage driver support
->> > for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
->> > control for real-time voltage adjustments.
->> 
->> Thanks Thara, these are looking good for 2.6.38.
->> 
->> Tony, unless there are major objections, I'll be queuing these two SR
->> series for 2.6.38.  They have dependencies on Paul's integration branch
+On Tue, Dec 21, 2010 at 4:06 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
+:
+> On Mon, Dec 20, 2010 at 8:43 PM, Felipe Contreras
+> <felipe.contreras@nokia.com> wrote:
+>> We need to protect not only the dmm_map list, but the individual
+>> map_obj's, otherwise, we might be building the scatter-gather list w=
+ith
+>> garbage.
 >
-> Well looking at patch 3/6 I think it should live under drivers somewhere
-> and mostly be compiled as a module. Probably the only change needed
-> for that is to not call cpu_is_omapxxxx but instead use some flags
-> passed in the platform_data. Otherwise the whole series looks OK to me.
+> Thanks for reporting this !
+>
+>> So, use the existing proc_lock for that.
+>
+> I don't like this.
+>
+> You are taking this lock over the entire proc_begin_dma() and
+> proc_end_dma() functions, and by that artificially imposing sequentia=
+l
+> behavior of their execution (system-wide).
 
-Moving this to be a regulator driver is part of the medium-term plan,
-and is already under development.  For this phase, we just split up the
-current driver into device and driver code and left under mach-omap2.
-We are investigating (and making) changes to the regulator core so that
-SmartReflex can be converted into a real regulator driver, but that is
-still under development.
+Wouldn't you want the proc_*_dma() operations to finish before
+unmaping the pages? I think this sequence is not artificial; it's
+actually the desired behavior.
 
-So, in the mean time, I'd like to merge this version so that other
-development that depends on this (the regulator work mentioned above,
-the DVFS work, etc.) can have a stable starting point.
+> I strongly prefer protecting the dmm map object itself, and not the
+> code that uses it, in order to avoid redundant bottlenecks.
+>
+> Something like the patch below should fix the panics without globally
+> locking the dma functions (UNTESTED! I still want to have a gst-dsp
+> setup like yours so I can reproduce the issues you see. If needed,
+> I'll get to it).
 
-Kevin
+I have actually documented how I create it:
+http://felipec.wordpress.com/2010/10/08/my-arm-development-notes/
+
+I even provided a tarball with all the GStreamer stuff you can extract
+to /opt/gst and use on any system (with a reasonable glibc):
+http://people.freedesktop.org/~felipec/arm-gst-dev.tar.gz
+
+The actual test I'm using to trigger this issue is way more
+complicated, but I could try to simplify it.
+
+> Please note: the code below assumes that applications calls
+> proc_end_dma() for every proc_begin_dma(). =C2=A0This is anyway manda=
+tory,
+> because otherwise we are risking data corruptions, but we know older
+> applications (e.g. probably TI samples) don't do that (since the
+> dspbridge's DMA API is relatively new). If we want/need to support
+> those older applications with this patch, it's a 2-liner change.
+
+I analyzed this when you introduced the patches, and I found that at
+least the OpenMAX code at that time wasn't even doing any DMA
+operation; just mapping and unmapping. So it's not an issue for that.
+
+> But there is another issue. I'm not quite sure how gst-dsp is using
+> the bridge DMA API, but those panics may suggest that there are
+> additional races here: if the application unmaps a memory region,
+> before the DMA operation completes (i.e. proc_end_dma() completed
+> execution), the application will face:
+
+gst-dsp is so far using the old API.
+
+> 1. errors: when proc_end_dma() does get invoked, the map_obj will
+> already be destroyed, and find_containing_mapping() will simply fail
+
+That's not a big issue; a mere warning (that wouldn't happen anyway
+because user-space either calls proc_end_dma(), or it doesn't).
+
+> 2. data corruptions: as a result of (1), dma_unmap_sg() will not be
+> called, and that may result in data corruptions and generally is very
+> bad
+
+That depends on particular systems. My understanding is that unless
+speculative pre-fetching is enabled, which TI suggests not to do on
+OMAP3430 and OMAP3630, there's actually no issue.
+
+Not to mention that gst-dsp is supposed to work on old kernels that
+don't even do the proper flushes on dma_unmap_sg() (pre .34 I think).
+
+> We can treat this as an application error, but we don't have to, and
+> it will actually be very clean if we won't.
+>
+> Given the below patch, it should be quite easy to solve those
+> additional races too, e.g., by adding a boolean 'dying' flag to each
+> map_obj, which would (on un_map) mark an object as not available for =
+a
+> new DMA operation (proc_start_dma), but it'd still wait until all of
+> its referenced are removed (proc_end_dma), and only then it will be
+> finally removed from the list.
+
+That sounds very dangerous. So basically you would be allowing to do
+dma_unmap_sg() *after* the pages have been unmapped, and thus not
+pinned (put_page()); I don't think you are supposed to do that.
+Wouldn't it be possible that the pages get swapped out?
+
+> Such a change will only work with applications that calls
+> proc_end_dma() for each proc_start_dma(). How is gst-dsp in that
+> respect ? do we want to keep supporting older applications which don'=
+t
+> do that ? if we want, we can still support both old and new API with
+> some ioctl games (introduce new ioctl commands which will work the ne=
+w
+> way, and keep the old ones around, maybe only mark them as
+> deprecated).
+
+IMO, as long as the old API is there (and not even deprecated), the
+code should support that behavior. Once that API is removed, then we
+can think about stopping that support.
+
+I don't see what is the problem. Currently the bulk of DMA operations
+are done through mapping/unmapping and thus the proc_lock is used _all
+the time_ already (by both gst-dsp and TI OpenMAX). The problem is
+that gst-dsp uses the flush/invalidate API for a few small chunks of
+data (1 page), and this patch is just extending the lock for that.
+Even if somebody uses this API for big chunks of data, the performance
+can't be worst than the current mapping/unmapping of huge memory
+areas.
+
+Cheers.
+
+--=20
+=46elipe Contreras
