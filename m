@@ -1,42 +1,55 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH v2 06/17] OMAP2,3 board files DSS Driver register moved
- to devices.c
-Date: Tue, 21 Dec 2010 15:59:02 +0200
-Message-ID: <1292939942.22441.60.camel@tubuntu>
-References: <1291031503-21036-1-git-send-email-svadivu@ti.com>
-	 <1291031503-21036-7-git-send-email-svadivu@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH v2] OMAP4: Pandaboard: Fix MMC card detect gpio line
+Date: Tue, 21 Dec 2010 08:14:34 -0600
+Message-ID: <1292940874-21419-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:45744 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752063Ab0LUN7J (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Dec 2010 08:59:09 -0500
-In-Reply-To: <1291031503-21036-7-git-send-email-svadivu@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:32892 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751167Ab0LUOOs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 09:14:48 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Guruswamy Senthilvadivu <svadivu@ti.com>
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Cc: Tony <tony@atomide.com>, Raghuveer Murthy <raghuveer.murthy@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>
 
-Hi,
+From: Raghuveer Murthy <raghuveer.murthy@ti.com>
 
-On Mon, 2010-11-29 at 17:21 +0530, ext Guruswamy Senthilvadivu wrote:
-> From: Senthilvadivu Guruswamy <svadivu@ti.com>
-> 
-> Move DSS driver register from board file to devices.c
-> Regulator initialisation done with driver name instead
-> of device structure name.
-> Changed driver name from omapdss to omap_display as the
-> driver takes care of panel information.
-> Board files that have dss registeration are updated.
-> 3430sdp, am3517evm, cm-t35, devkit8000, igep0020,
-> omap3evm, omap3pandora, omap3stalker, rx-51
+commit bf56f0a6668cd (2.6.37-rc1), from Nishanth Menon attempted
+to fix card detection for PandaBoard, unfortunately, the fix missed
+to initialize .gpio_cd member of omap2_hsmmc_info. This results
+in a default value of '0', which is a valid GPIO line.
+On PandaBoard, the side effect of this is that GPIO line 0 controls
+the powering TFP410 DVI chip, and without the fix DVI chip is
+inadvertently powered.
 
-Here are also too many changes in one patch. Change the driver name
-first (could be done in the previous patches), then the regulator
-initialization, and then the omap_display_init() change.
+Tested-by: David Anders <x0132446@ti.com>
 
- Tomi
+Acked-by: Nishanth Menon <nm@ti.com>
 
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Signed-off-by: Raghuveer Murthy <raghuveer.murthy@ti.com>
+---
+v2: updated comment description to point out the potential regression.
+   it might be nice to have this in .37 rc cycle as the change was
+   introduced in .37-rc1, however, the DVI functionality(which is impacted
+   as a side effect) is not enabled in .37 rc.
+
+v1: http://marc.info/?t=129172419600002&r=1&w=2
+ arch/arm/mach-omap2/board-omap4panda.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 1ecd0a6..da24745 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -142,6 +142,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		.mmc		= 1,
+ 		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_wp	= -EINVAL,
++		.gpio_cd	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+ };
+-- 
+1.6.3.3
 
