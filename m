@@ -1,109 +1,109 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: musb (omap3) as host fails with reconnecting devices
-Date: Tue, 21 Dec 2010 14:05:55 +0200
-Message-ID: <20101221120555.GD2803@legolas.emea.dhcp.ti.com>
-References: <4D05EE33.3060503@ahsoftware.de>
-Reply-To: balbi@ti.com
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH v2 04/17] OMAP2420,OMAP2430,OMAP3xx: change dss driver
+ name in clock files
+Date: Tue, 21 Dec 2010 15:44:08 +0200
+Message-ID: <1292939048.22441.55.camel@tubuntu>
+References: <1291031503-21036-1-git-send-email-svadivu@ti.com>
+	 <1291031503-21036-5-git-send-email-svadivu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:44199 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750828Ab0LUMGD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Dec 2010 07:06:03 -0500
-Content-Disposition: inline
-In-Reply-To: <4D05EE33.3060503@ahsoftware.de>
+Received: from smtp.nokia.com ([147.243.1.48]:56720 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750828Ab0LUNoN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Dec 2010 08:44:13 -0500
+In-Reply-To: <1291031503-21036-5-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Holler <holler@ahsoftware.de>
-Cc: linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
+To: ext Guruswamy Senthilvadivu <svadivu@ti.com>
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
 
 Hi,
 
-On Mon, Dec 13, 2010 at 10:58:11AM +0100, Alexander Holler wrote:
->I've tried to use a BT-dongle attached via a Mini-A<->Std A cable to 
->the OTG-port of a BeagleBoard Rev C4 (OMAP3530).
->
->That devices needs a firmware and disconnects/reconnects with a new 
->pid after it has received the firmware (ath3k).
->
->I'm currently trying it with a kernel v2.6.37-rc5.
->
->Using the device on an ehci-port it looks like that (which is as it 
->should be):
->----------------------------
->Dec 11 09:16:04 beagle kernel: [  101.033325] usb 1-2.1: new full 
->speed USB device using ehci-omap and address 4
->Dec 11 09:16:04 beagle kernel: [  101.150970] usb 1-2.1: New USB 
->device found, idVendor=0cf3, idProduct=3000
->Dec 11 09:16:04 beagle kernel: [  101.151000] usb 1-2.1: New USB 
->device strings: Mfr=0, Product=0, SerialNumber=0
->Dec 11 09:16:04 beagle kernel: [  101.287048] Bluetooth: Atheros 
->AR30xx firmware driver ver 1.0
->Dec 11 09:16:04 beagle kernel: [  101.615844] usbcore: registered new 
->interface driver ath3k
->Dec 11 09:16:04 beagle kernel: [  101.814056] usb 1-2.1: USB 
->disconnect, address 4
->Dec 11 09:16:06 beagle kernel: [  103.080200] usb 1-2.1: new full 
->speed USB device using ehci-omap and address 5
->Dec 11 09:16:06 beagle kernel: [  103.198242] usb 1-2.1: New USB 
->device found, idVendor=0cf3, idProduct=3005
->Dec 11 09:16:06 beagle kernel: [  103.198242] usb 1-2.1: New USB 
->device strings: Mfr=0, Product=0, SerialNumber=0
->Dec 11 09:16:06 beagle kernel: [  103.324493] Bluetooth: Core ver 2.15
->----------------------------
->
->
->Because I haven't found another way to get musb_hdrc into host mode, 
->I'm doing the following:
->
->modprobe g_zero
->echo host > /sys/devices/platform/musb_hdrc/mode
->
->I've read somewhere thats because there is no id-change-irq available 
->on omap<4 but I still wonder why the mini-a-cable is not recognized as 
->such e.g. on startup (it was connected all the time).
+On Mon, 2010-11-29 at 17:21 +0530, ext Guruswamy Senthilvadivu wrote:
+> From: Senthilvadivu Guruswamy <svadivu@ti.com>
+> 
+> dss driver renamed to "omap_" is done to align all the omap device names
+> with the same convention.
 
-not so true. twl4030-usb has ID pin IRQ. Check what's the linkstatus
-value on that driver. Enabling debugging for it should be enough.
+Does the driver work if you change the driver name from the clock files,
+but not from the driver itself? Remember that things have to work after
+each patch.
 
->Now the following happens when the driver (ath3k) will upload the new 
->firmware to the device:
->
->----------------------------
->Dec 11 10:16:29 beagle kernel: [  147.498809] musb_giveback 325: 
->complete cd04d500 usb_api_blocking_completion+0x0/0x14 (0), dev2 
->ep2out, 4096/4096
->Dec 11 10:16:29 beagle kernel: [  147.498962] musb_schedule 1885: qh 
->cbcb6540 periodic slot 10
->Dec 11 10:16:29 beagle kernel: [  147.498992] musb_start_urb 252: qh 
->cbcb6540 urb cd04d500 dev2 ep2out-bulk, hw_ep 10, cbd55000/1024
->Dec 11 10:16:29 beagle kernel: [  147.498992] musb_ep_program 706: --> 
->hw10 urb cd04d500 spd2 dev2 ep2out h_addr00 h_port00 bytes 1024
->Dec 11 10:16:29 beagle kernel: [  147.499023] dma_channel_program 167: 
->ep10-Tx pkt_sz 64, dma_addr 0x8bd55000 length 1024, mode 1
->Dec 11 10:16:29 beagle kernel: [  147.499053] configure_channel 130: 
->ceb60e18, pkt_sz 64, addr 0x8bd55000, len 1024, mode 1
->Dec 11 10:16:29 beagle kernel: [  147.499053] musb_start_urb 290: 
->Start TX10 dma
->Dec 11 10:16:29 beagle kernel: [  147.500030] dma_controller_irq 316: 
->ch ceb60e18, 0x8bd55000 -> 0x8bd55400 (1024 / 1024) => complete
->
->
->Dec 11 10:16:29 beagle kernel: [  147.500030] musb_g_tx 476: <== 
->ep10in, txcsr b400
->
->This is wrong and should be musb_t_tx (I assume it got changed to 
+ Tomi
 
-did you mean musb_h_tx_start() ??
 
-If you could enable debugging on twl403-usb.c driver
-(drivers/usb/otg/twl4030-usb.c) and check what happens after you attach
-the device, I'd be glad.
+> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+> Acked-by: Benoit Cousson <b-cousson@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock2420_data.c |    8 ++++----
+>  arch/arm/mach-omap2/clock2430_data.c |    8 ++++----
+>  arch/arm/mach-omap2/clock3xxx_data.c |   14 +++++++-------
+>  3 files changed, 15 insertions(+), 15 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+> index 21f8562..316f6f6 100644
+> --- a/arch/arm/mach-omap2/clock2420_data.c
+> +++ b/arch/arm/mach-omap2/clock2420_data.c
+> @@ -1786,10 +1786,10 @@ static struct omap_clk omap2420_clks[] = {
+>  	CLK(NULL,	"gfx_2d_fck",	&gfx_2d_fck,	CK_242X),
+>  	CLK(NULL,	"gfx_ick",	&gfx_ick,	CK_242X),
+>  	/* DSS domain clocks */
+> -	CLK("omapdss",	"ick",		&dss_ick,	CK_242X),
+> -	CLK("omapdss",	"dss1_fck",	&dss1_fck,	CK_242X),
+> -	CLK("omapdss",	"dss2_fck",	&dss2_fck,	CK_242X),
+> -	CLK("omapdss",	"tv_fck",	&dss_54m_fck,	CK_242X),
+> +	CLK("omap_dss",	"ick",		&dss_ick,	CK_242X),
+> +	CLK("omap_dss",	"dss1_fck",	&dss1_fck,	CK_242X),
+> +	CLK("omap_dss",	"dss2_fck",	&dss2_fck,	CK_242X),
+> +	CLK("omap_dss",	"tv_fck",	&dss_54m_fck,	CK_242X),
+>  	/* L3 domain clocks */
+>  	CLK(NULL,	"core_l3_ck",	&core_l3_ck,	CK_242X),
+>  	CLK(NULL,	"ssi_fck",	&ssi_ssr_sst_fck, CK_242X),
+> diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+> index e32afcb..b7fc6c6 100644
+> --- a/arch/arm/mach-omap2/clock2430_data.c
+> +++ b/arch/arm/mach-omap2/clock2430_data.c
+> @@ -1890,10 +1890,10 @@ static struct omap_clk omap2430_clks[] = {
+>  	CLK(NULL,	"mdm_ick",	&mdm_ick,	CK_243X),
+>  	CLK(NULL,	"mdm_osc_ck",	&mdm_osc_ck,	CK_243X),
+>  	/* DSS domain clocks */
+> -	CLK("omapdss",	"ick",		&dss_ick,	CK_243X),
+> -	CLK("omapdss",	"dss1_fck",	&dss1_fck,	CK_243X),
+> -	CLK("omapdss",	"dss2_fck",	&dss2_fck,	CK_243X),
+> -	CLK("omapdss",	"tv_fck",	&dss_54m_fck,	CK_243X),
+> +	CLK("omap_dss",	"ick",		&dss_ick,	CK_243X),
+> +	CLK("omap_dss",	"dss1_fck",	&dss1_fck,	CK_243X),
+> +	CLK("omap_dss",	"dss2_fck",	&dss2_fck,	CK_243X),
+> +	CLK("omap_dss",	"tv_fck",	&dss_54m_fck,	CK_243X),
+>  	/* L3 domain clocks */
+>  	CLK(NULL,	"core_l3_ck",	&core_l3_ck,	CK_243X),
+>  	CLK(NULL,	"ssi_fck",	&ssi_ssr_sst_fck, CK_243X),
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> index d85ecd5..98dc66e 100644
+> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> @@ -3347,13 +3347,13 @@ static struct omap_clk omap3xxx_clks[] = {
+>  	CLK("omap_rng",	"ick",		&rng_ick,	CK_343X),
+>  	CLK(NULL,	"sha11_ick",	&sha11_ick,	CK_343X),
+>  	CLK(NULL,	"des1_ick",	&des1_ick,	CK_343X),
+> -	CLK("omapdss",	"dss1_fck",	&dss1_alwon_fck_3430es1, CK_3430ES1),
+> -	CLK("omapdss",	"dss1_fck",	&dss1_alwon_fck_3430es2, CK_3430ES2 | CK_AM35XX),
+> -	CLK("omapdss",	"tv_fck",	&dss_tv_fck,	CK_3XXX),
+> -	CLK("omapdss",	"video_fck",	&dss_96m_fck,	CK_3XXX),
+> -	CLK("omapdss",	"dss2_fck",	&dss2_alwon_fck, CK_3XXX),
+> -	CLK("omapdss",	"ick",		&dss_ick_3430es1,	CK_3430ES1),
+> -	CLK("omapdss",	"ick",		&dss_ick_3430es2,	CK_3430ES2 | CK_AM35XX),
+> +	CLK("omap_dss",	"dss1_fck",	&dss1_alwon_fck_3430es1, CK_3430ES1),
+> +	CLK("omap_dss",	"dss1_fck",	&dss1_alwon_fck_3430es2, CK_3430ES2 | CK_AM35XX),
+> +	CLK("omap_dss",	"tv_fck",	&dss_tv_fck,	CK_3XXX),
+> +	CLK("omap_dss",	"video_fck",	&dss_96m_fck,	CK_3XXX),
+> +	CLK("omap_dss",	"dss2_fck",	&dss2_alwon_fck, CK_3XXX),
+> +	CLK("omap_dss",	"ick",		&dss_ick_3430es1,	CK_3430ES1),
+> +	CLK("omap_dss",	"ick",		&dss_ick_3430es2,	CK_3430ES2 | CK_AM35XX),
+>  	CLK(NULL,	"cam_mclk",	&cam_mclk,	CK_343X),
+>  	CLK(NULL,	"cam_ick",	&cam_ick,	CK_343X),
+>  	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck,	CK_343X),
 
-I was wondering if it was a VBUS error, but it doesn't seem like that as
-DevCtl shows VBUS above VBUS Valid. So, for now, no clue.
 
--- 
-balbi
