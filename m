@@ -1,46 +1,36 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 0/6] OMAP: hwmod core fix and cleanup for 2.6.38
-Date: Tue, 21 Dec 2010 16:17:53 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012211615130.1446@utopia.booyaka.com>
-References: <1292424567-25794-1-git-send-email-b-cousson@ti.com>
+Subject: Re: [PATCH] OMAP3: clocks: Update clock domain name for mcspi fck
+Date: Tue, 21 Dec 2010 16:51:28 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012211648500.1446@utopia.booyaka.com>
+References: <51292.10.24.255.18.1292591498.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55935 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:37795 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752740Ab0LUXRy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 18:17:54 -0500
-In-Reply-To: <1292424567-25794-1-git-send-email-b-cousson@ti.com>
+	with ESMTP id S1753307Ab0LUXva (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 18:51:30 -0500
+In-Reply-To: <51292.10.24.255.18.1292591498.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, 15 Dec 2010, Benoit Cousson wrote:
+On Fri, 17 Dec 2010, Govindraj.R wrote:
 
-> Here is a small series that just remove the omap_hwmod_mutex
-> and move functions not needed at runtime to the __init section.
+> From: Charulatha V <charu@ti.com>
 > 
-> It fix as well a bug discovered during the on-going hwmod migration
-> of device that does have a functional clock external (mcpdm).
+> Update clock3xxx_data for mcspi1-4 with appropriate clock domain name.
 > 
-> It extends as well the fix Kevin did for wakeup for OMAP4 IP with
-> smart idle with wakeup support. 
-> 
-> The series is based on my for_2.6.38/hwmod_data branch and is available 
-> here: git://gitorious.org/omap-pm/linux.git for_2.6.38/hwmod
-> 
-> Tested on sdp4430 ES2.0 with omap2plus_defconfig.
-> It still requires some test on OMAP3 and OMAP2.
-> 
-> Thanks to Seb Guiriec for testing the SIDLE_SMART_WKUP fix.
+> Signed-off-by: Charulatha V <charu@ti.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
 
-Thanks, this series has been created as the 'hwmod_c_2.6.38' branch on 
-git://git.pwsan.com/linux-2.6.
+Thanks, queued for 2.6.38 in the 'clk_b_2.6.38' branch on 
+git://git.pwsan.com/linux-2.6
 
-It's been added to the integration tree as tag 
-'integration-2.6.38-20101221-003' at 
-git://git.pwsan.com/linux-integration.
+It has also been added to the integration tree as part of tag 
+'integration-2.6.38-20101221-004' on git://git.pwsan.com/linux-integration
 
 
 - Paul
