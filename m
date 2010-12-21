@@ -1,58 +1,89 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [GIT PULL] OMAP OPP support for 2.6.38
-Date: Tue, 21 Dec 2010 14:58:35 -0800
-Message-ID: <87zkryvilg.fsf@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 0/7] OMAP4: hwmod data fixes and update
+Date: Tue, 21 Dec 2010 16:03:16 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012211556480.1446@utopia.booyaka.com>
+References: <1292421103-19282-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1400292154-1292972596=:1446"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:36085 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753307Ab0LUW6j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 17:58:39 -0500
-Received: by gyb11 with SMTP id 11so1869164gyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 14:58:38 -0800 (PST)
+Received: from utopia.booyaka.com ([72.9.107.138]:41819 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752191Ab0LUXDR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 18:03:17 -0500
+In-Reply-To: <1292421103-19282-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
 
-Tony,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-The main OPP driver is already in manline, here is the OMAP-specific
-implementation of OPPs.   Targeted for 2.6.38 and based on your
-omap-for-linus branch due to dependencies.
+--155748971-1400292154-1292972596=:1446
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Kevin
+Hi Beno=EEt
+
+On Wed, 15 Dec 2010, Benoit Cousson wrote:
+
+> Here is a small set of OMAP4 hwmod data updates.
+>=20
+> Re-order properly the data that were a little bit shuffled during
+> the previous merge window.
+> Add the new reset flags introduced in 2.6.37 and that were not
+> used in the hwmod data. The OMAP2 and OMAP3 fixes should come soon...
+> ...maybe not that soon :-)
+> Fix some missing field in the GPIO OMAP4 hwmod data that I missed
+> during the review.
+> IVA and DSP are added just to allow the processors device creation
+> at boot time and avoid the warnings.
+>=20
+> Thanks to Charu for testing the GPIO / WD_TIMER changes.
+> Thanks to Govindraj for testing the UART changes.=20
+>=20
+> The series is based on your clk_a_2.6.38 branch from your integration tre=
+e
+> (git://git.pwsan.com/linux-integration) and is available here:
+> git://gitorious.org/omap-pm/linux.git for_2.6.38/hwmod_data
+>=20
+> Please note that there is a slight dependency with the following patch
+> due to the name change of the iva fclk:
+> OMAP4: clock data: Add missing DPLL x2 clock node
+> https://patchwork.kernel.org/patch/396612/
+>=20
+> Tested on sdp4430 + ES2.0/ES2.1.
+>=20
+> Regards,
+> Benoit
+>=20
+>=20
+> Changes since v1:
+>     http://www.spinics.net/lists/arm-kernel/msg107082.html:
+>     - Include the changelog fixes from Paul
+>     - Fix the order of the dsp hwmod data
+>     - Fix OMAP2430 i2c dev_attr warning (minor fix, but not tested)
+>     - Include Kevin's patch to fix wakeup in hwmod core
+>    =20
+>=20
+> Benoit Cousson (6):
+>   OMAP4: hwmod data: Fix hwmod entries order
+>   OMAP4: hwmod data: Add SYSS_HAS_RESET_STATUS flag
+>   OMAP4: hwmod data: Fix missing address in DMM and EMIF_FW
+>   OMAP4: hwmod data: Add IVA and DSP
+>   OMAP4: hwmod & clock data: Fix GPIO opt_clks and ocp_if iclk
+>   OMAP2430: hwmod data: Use common dev_attr for i2c1 and i2c2
+>=20
+> Kevin Hilman (1):
+>   OMAP2+: omap_hwmod: fix wakeup enable/disable for consistency
+
+Thanks, I've updated the hwmod_b_2.6.38 branch with these changes.
+
+The 'integration-2.6.38-20101221-002' tag on=20
+git://git.pwsan.com/linux-integration contains the updated patches, as=20
+well as previous dependencies, based on Tony's current omap-for-linus=20
+branch.
 
 
-The following changes since commit 4584acc3ee236424b5d0b52f143d980cae3c2be5:
-
-  Merge branches 'devel-iommu-mailbox' and 'devel-l2x0' into omap-for-linus (2010-12-20 19:13:40 -0800)
-
-are available in the git repository at:
-
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-opp
-
-Kevin Hilman (1):
-      OMAP3: remove OPP interfaces from OMAP PM layer
-
-Nishanth Menon (2):
-      omap: opp: add OMAP3 OPP table data and common init
-      omap4: opp: add OPP table data
-
- Documentation/arm/OMAP/omap_pm            |   25 +++++++
- arch/arm/mach-omap2/Kconfig               |    4 +
- arch/arm/mach-omap2/Makefile              |    7 ++
- arch/arm/mach-omap2/io.c                  |    3 +-
- arch/arm/mach-omap2/omap_opp_data.h       |   72 +++++++++++++++++++
- arch/arm/mach-omap2/opp.c                 |   93 +++++++++++++++++++++++++
- arch/arm/mach-omap2/opp3xxx_data.c        |  107 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/opp4xxx_data.c        |   57 +++++++++++++++
- arch/arm/mach-omap2/pm.h                  |   14 ++++
- arch/arm/plat-omap/include/plat/omap-pm.h |   31 +++------
- arch/arm/plat-omap/omap-pm-noop.c         |   11 +---
- 11 files changed, 391 insertions(+), 33 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_opp_data.h
- create mode 100644 arch/arm/mach-omap2/opp.c
- create mode 100644 arch/arm/mach-omap2/opp3xxx_data.c
- create mode 100644 arch/arm/mach-omap2/opp4xxx_data.c
+- Paul
+--155748971-1400292154-1292972596=:1446--
