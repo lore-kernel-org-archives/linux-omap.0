@@ -1,49 +1,50 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v3] Keyboard: omap-keypad: use matrix_keypad.h
-Date: Wed, 22 Dec 2010 02:16:57 -0800
-Message-ID: <20101222101657.GD22590@core.coreip.homeip.net>
-References: <201012172332.06480.jkrzyszt@tis.icnet.pl>
- <201012181639.29820.jkrzyszt@tis.icnet.pl>
- <alpine.DEB.1.10.1012201720470.13087@esdhcp041196.research.nokia.com>
- <201012202209.24068.jkrzyszt@tis.icnet.pl>
- <alpine.DEB.1.10.1012211150410.22164@esdhcp041196.research.nokia.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Subject: RE: [PATCH v2 04/17] OMAP2420,OMAP2430,OMAP3xx: change dss driver
+ name in clock files
+Date: Wed, 22 Dec 2010 15:59:36 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087035F28E447@dbde02.ent.ti.com>
+References: <1291031503-21036-1-git-send-email-svadivu@ti.com>
+	 <1291031503-21036-5-git-send-email-svadivu@ti.com>
+ <1292939048.22441.55.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:52869 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874Ab0LVKRE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 05:17:04 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.10.1012211150410.22164@esdhcp041196.research.nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:38488 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751689Ab0LVK36 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 05:29:58 -0500
+In-Reply-To: <1292939048.22441.55.camel@tubuntu>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-omap@vger.kernel.org, linux-input@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Dec 21, 2010 at 01:20:35PM +0200, Aaro Koskinen wrote:
+
+
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> Sent: Tuesday, December 21, 2010 7:14 PM
+> To: Guruswamy, Senthilvadivu
+> Cc: khilman@deeprootsystems.com; paul@pwsan.com; Hiremath, Vaibhav; linux-
+> omap@vger.kernel.org
+> Subject: Re: [PATCH v2 04/17] OMAP2420,OMAP2430,OMAP3xx: change dss driver
+> name in clock files
+> 
 > Hi,
 > 
-> On Mon, 20 Dec 2010, Janusz Krzysztofik wrote:
-> >Most keypad drivers make use of the <linux/input/matrix_keypad.h>
-> >defined macros, structures and inline functions.
+> On Mon, 2010-11-29 at 17:21 +0530, ext Guruswamy Senthilvadivu wrote:
+> > From: Senthilvadivu Guruswamy <svadivu@ti.com>
 > >
-> >Convert omap-keypad driver to use those as well, as suggested by a
-> >compile time warning, hardcoded into the OMAP <palt/keypad.h>.
-> >
-> >Created against linux-2.6.37-rc5.
-> >Tested on Amstrad Delta.
-> >Compile tested with omap1_defconfig and omap2plus_defconfig shrinked to
-> >board-h4.
-> >
-> >Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > dss driver renamed to "omap_" is done to align all the omap device names
+> > with the same convention.
 > 
-> Reviewed-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+> Does the driver work if you change the driver name from the clock files,
+> but not from the driver itself? Remember that things have to work after
+> each patch.
+[Senthil]  Yes, it was surprising for me to that it worked.  When I dig into the code, I found that it matches for dev->id and not dev->name.
+Yes, I have tested for bootup after each patch.  No crashes observed.  Errors like clk_get failed, can't get regulator would be given on some of the patches.
 > 
+>  Tomi
 
-Acked-by: Dmitry Torokhov <dtor@mail.ru>
-
-Thanks for making the changes.
-
--- 
-Dmitry
