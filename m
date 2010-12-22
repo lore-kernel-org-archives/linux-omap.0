@@ -1,92 +1,106 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [GIT PULL] OMAP SmartReflex/voltage core for 2.6.38
-Date: Wed, 22 Dec 2010 12:24:53 -0800
-Message-ID: <878vzhsgh6.fsf@deeprootsystems.com>
-References: <87fwtptyaf.fsf@deeprootsystems.com>
+Subject: Re: [PATCH v6 07/10] OMAP3: PM: Adding T2 enabling of smartreflex support
+Date: Wed, 22 Dec 2010 12:30:35 -0800
+Message-ID: <87mxnxr1n8.fsf@deeprootsystems.com>
+References: <1292864357-13939-1-git-send-email-thara@ti.com>
+	<1292864357-13939-8-git-send-email-thara@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:48282 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258Ab0LVUZC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 15:25:02 -0500
-Received: by gyb11 with SMTP id 11so2251537gyb.19
-        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 12:25:01 -0800 (PST)
-In-Reply-To: <87fwtptyaf.fsf@deeprootsystems.com> (Kevin Hilman's message of
-	"Wed, 22 Dec 2010 11:14:48 -0800")
+Received: from mail-gw0-f42.google.com ([74.125.83.42]:42635 "EHLO
+	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751880Ab0LVUam (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 15:30:42 -0500
+Received: by gwb20 with SMTP id 20so3734876gwb.1
+        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 12:30:41 -0800 (PST)
+In-Reply-To: <1292864357-13939-8-git-send-email-thara@ti.com> (Thara
+	Gopinath's message of "Mon, 20 Dec 2010 22:29:14 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, nm@ti.com
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Hi Thara,
 
-> Tony,
+Thara Gopinath <thara@ti.com> writes:
+
+> This patch adds support in the twl4030 driver to enable smartreflex.
+> The smartreflex bit on twl4030 needs to be enabled by default irrespective
+> of whether smartreflex module is enabled on the OMAP side or not.
+> This is because without this bit enabled the voltage scaling through
+> vp forceupdate does not function properly.
+
+Is this true for OMAP2 as well?  
+
+This patch actually hangs the boot on 2430SDP.  
+
+For now, I'll be dropping this patch from my pull request.  Also, this patch
+will also need an Ack from the MFD maintainers, or possibly even merge 
+through their tree.  Please also Cc the MFD list on the fix.
+
+While fixing this issue, another CodingStyle comment below...
+
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  drivers/mfd/twl-core.c  |   13 +++++++++++++
+>  include/linux/i2c/twl.h |   11 +++++++++++
+>  2 files changed, 24 insertions(+), 0 deletions(-)
 >
-> The following pull request is for the SmartReflex/voltage core for
-> 2.6.38.  
->
-> It is based on Paul's latest integration-2.6.38-for-tony branch, so
-> should be pulled only after pulling from Paul.
->
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index 35275ba..b895ceb 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -1046,6 +1046,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  	/* Disable TWL4030/TWL5030 I2C Pull-up on I2C1 and I2C4(SR) interface.
+>  	 * Program I2C_SCL_CTRL_PU(bit 0)=0, I2C_SDA_CTRL_PU (bit 2)=0,
+>  	 * SR_I2C_SCL_CTRL_PU(bit 4)=0 and SR_I2C_SDA_CTRL_PU(bit 6)=0.
+> +	 * Also enable the smartreflex I2S bit.
+>  	 */
+>  
+>  	if (twl_class_is_4030()) {
+> @@ -1053,6 +1054,18 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  		temp &= ~(SR_I2C_SDA_CTRL_PU | SR_I2C_SCL_CTRL_PU | \
+>  		I2C_SDA_CTRL_PU | I2C_SCL_CTRL_PU);
+>  		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
+> +
+> +		/* The smartreflex bit on twl4030 needs to be enabled by
+> +		 * default irrespective of whether smartreflex module is
+> +		 * enabled on the OMAP side or not. This is because without
+> +		 * this bit enabled the voltage scaling through
+> +		 * vp forceupdate does not function properly.
+> +		 */
 
-Retracting this pull request.  It actually breaks boot on 2430SDP.
-
-More details in replies to the last posting of this series.
+please update multi-line coding style.
 
 Kevin
 
-
->
->
-> The following changes since commit f17f9726c27c3921e00a5750e85070e6dd7e1ff7:
->
->   OMAP4: clock data: Add missing fixed divisors (2010-12-22 10:12:46 -0700)
->
-> are available in the git repository at:
->   ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-sr
->
-> Benoit Cousson (1):
->       OMAP4: hwmod: Add inital data for smartreflex modules.
->
-> Thara Gopinath (14):
->       OMAP3: PM: Adding voltage driver support.
->       OMAP: Introduce voltage domain information in the hwmod structures
->       OMAP3: PM: Adding smartreflex driver support.
->       OMAP3: PM: Adding smartreflex device file.
->       OMAP3: PM: Adding smartreflex hwmod data
->       OMAP3: PM: Adding smartreflex class3 driver
->       OMAP3: PM: Adding T2 enabling of smartreflex support
->       OMAP3: PM: Register TWL4030 pmic info with the voltage driver.
->       OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
->       OMAP3: PM: Program correct init voltages for VDD1 and VDD2
->       OMAP4: Register voltage PMIC parameters with the voltage layer
->       OMAP4: Adding voltage driver support
->       OMAP4: PM: Program correct init voltages for scalable VDDs
->       OMAP4: Smartreflex framework extensions
->
->  arch/arm/mach-omap2/Makefile                  |    9 +-
->  arch/arm/mach-omap2/control.h                 |   29 +
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  175 +++
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  168 +++
->  arch/arm/mach-omap2/omap_twl.c                |  277 +++++
->  arch/arm/mach-omap2/pm.c                      |  102 ++
->  arch/arm/mach-omap2/pm.h                      |   28 +
->  arch/arm/mach-omap2/smartreflex-class3.c      |   59 +
->  arch/arm/mach-omap2/smartreflex.c             | 1029 ++++++++++++++++
->  arch/arm/mach-omap2/sr_device.c               |  146 +++
->  arch/arm/mach-omap2/voltage.c                 | 1571 +++++++++++++++++++++++++
->  arch/arm/plat-omap/Kconfig                    |   31 +
->  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    5 +
->  arch/arm/plat-omap/include/plat/smartreflex.h |  245 ++++
->  arch/arm/plat-omap/include/plat/voltage.h     |  146 +++
->  drivers/mfd/twl-core.c                        |   13 +
->  include/linux/i2c/twl.h                       |   11 +
->  17 files changed, 4042 insertions(+), 2 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/omap_twl.c
->  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
->  create mode 100644 arch/arm/mach-omap2/smartreflex.c
->  create mode 100644 arch/arm/mach-omap2/sr_device.c
->  create mode 100644 arch/arm/mach-omap2/voltage.c
->  create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
->  create mode 100644 arch/arm/plat-omap/include/plat/voltage.h
+> +		twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
+> +			TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG);
+> +		temp |= SMARTREFLEX_ENABLE;
+> +		twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
+> +			TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG);
+>  	}
+>  
+>  	status = add_children(pdata, id->driver_data);
+> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+> index c760991..d392f06 100644
+> --- a/include/linux/i2c/twl.h
+> +++ b/include/linux/i2c/twl.h
+> @@ -434,6 +434,17 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
+>  
+>  /*----------------------------------------------------------------------*/
+>  
+> +/*
+> + * PM Receiver module register offsets (use TWL4030_MODULE_PM_RECEIVER)
+> + */
+> +
+> +#define TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG	0x06
+> +
+> +/* Smartreflex I2S bus enable/ vmode enable bit */
+> +#define SMARTREFLEX_ENABLE			BIT(3)
+> +
+> +/*----------------------------------------------------------------------*/
+> +
+>  /* Power bus message definitions */
+>  
+>  /* The TWL4030/5030 splits its power-management resources (the various
