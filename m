@@ -1,127 +1,66 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH 2/2] staging: tidspbridge: rmgr code cleanup
-Date: Wed, 22 Dec 2010 14:52:58 -0600
-Message-ID: <AANLkTikMD-pEQNNNKOx+1kZt=y896Ciz_kU60NsNzhGJ@mail.gmail.com>
-References: <1291931258-30744-1-git-send-email-ionut.nicu@mindbit.ro>
-	<1291931258-30744-3-git-send-email-ionut.nicu@mindbit.ro>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Fix pm24xx.c compilation  problem
+Date: Wed, 22 Dec 2010 14:22:42 -0800
+Message-ID: <87zkrxo3bh.fsf@deeprootsystems.com>
+References: <201012230919.26344.manningc2@actrix.gen.nz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:33347 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751886Ab0LVUw6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Dec 2010 15:52:58 -0500
-Received: by mail-gy0-f170.google.com with SMTP id 2so2089782gyf.1
-        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 12:52:58 -0800 (PST)
-In-Reply-To: <1291931258-30744-3-git-send-email-ionut.nicu@mindbit.ro>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:43544 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751394Ab0LVWWq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 17:22:46 -0500
+Received: by iwn9 with SMTP id 9so5650031iwn.19
+        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 14:22:46 -0800 (PST)
+In-Reply-To: <201012230919.26344.manningc2@actrix.gen.nz> (Charles Manning's
+	message of "Thu, 23 Dec 2010 09:19:26 +1300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ionut Nicu <ionut.nicu@gmail.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
+To: Charles Manning <manningc2@actrix.gen.nz>
+Cc: linux-omap@vger.kernel.org
 
-Hi Ionut,
+Charles Manning <manningc2@actrix.gen.nz> writes:
 
-On Thu, Dec 9, 2010 at 3:47 PM, Ionut Nicu <ionut.nicu@gmail.com> wrote=
-:
-> Reorganized some code in the rmgr module to increase
-> its readability. No functional changes were done.
+> arch/arm/mach-omap2/pm24xx.c doesn't compile without CONFIG_SUSPEND
 >
-> Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
-> ---
-> =A0drivers/staging/tidspbridge/rmgr/drv.c =A0| =A0171 +++++++++------=
------
-> =A0drivers/staging/tidspbridge/rmgr/node.c | =A0 81 +++++-----
-> =A0drivers/staging/tidspbridge/rmgr/rmm.c =A0| =A0266 +++++++++++++--=
----------------
-> =A03 files changed, 229 insertions(+), 289 deletions(-)
->
-> diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging=
-/tidspbridge/rmgr/drv.c
-> index e0fc895..71a9489 100644
-> --- a/drivers/staging/tidspbridge/rmgr/drv.c
-> +++ b/drivers/staging/tidspbridge/rmgr/drv.c
-> @@ -304,40 +304,28 @@ int drv_proc_update_strm_res(u32 num_bufs, void=
- *strm_resources)
-=2E..
-> @@ -608,40 +596,28 @@ int drv_request_resources(u32 dw_context, u32 *=
-dev_node_strg)
-> =A0 =A0 =A0 =A0DBC_REQUIRE(dw_context !=3D 0);
-> =A0 =A0 =A0 =A0DBC_REQUIRE(dev_node_strg !=3D NULL);
->
-> - =A0 =A0 =A0 /*
-> - =A0 =A0 =A0 =A0* =A0Allocate memory to hold the string. This will l=
-ive untill
-> - =A0 =A0 =A0 =A0* =A0it is freed in the Release resources. Update th=
-e driver object
-> - =A0 =A0 =A0 =A0* =A0list.
-> - =A0 =A0 =A0 =A0*/
+> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+> index aaeea49..ae6abda 100644
+> --- a/arch/arm/mach-omap2/pm24xx.c
+> +++ b/arch/arm/mach-omap2/pm24xx.c
+> @@ -53,8 +53,8 @@
+>  #include <plat/powerdomain.h>
+>  #include <plat/clockdomain.h>
+>  
+> -#ifdef CONFIG_SUSPEND
+>  static suspend_state_t suspend_state = PM_SUSPEND_ON;
+> +#ifdef CONFIG_SUSPEND
+>  static inline bool is_suspending(void)
+>  {
+>         return (suspend_state != PM_SUSPEND_ON);
+> @@ -314,6 +314,7 @@ static int omap2_pm_prepare(void)
+>  
+>  static int omap2_pm_suspend(void)
+>  {
+> +#ifdef CONFIG_SUSPEND
+>         u32 wken_wkup, mir1;
+>  
+>         wken_wkup = prm_read_mod_reg(WKUP_MOD, PM_WKEN);
+> @@ -329,7 +330,7 @@ static int omap2_pm_suspend(void)
+>  
+>         omap_writel(mir1, 0x480fe0a4);
+>         prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
 > -
-> =A0 =A0 =A0 =A0if (!drv_datap || !drv_datap->drv_object)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -ENODATA;
-> - =A0 =A0 =A0 else
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdrv_object =3D drv_datap->drv_object;
-> -
-> - =A0 =A0 =A0 if (!status) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pszdev_node =3D kzalloc(sizeof(struct d=
-rv_ext), GFP_KERNEL);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pszdev_node) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 strncpy(pszdev_node->sz=
-_string,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (char *=
-)dw_context, MAXREGPATHLENGTH - 1);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pszdev_node->sz_string[=
-MAXREGPATHLENGTH - 1] =3D '\0';
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Update the Driver Ob=
-ject List */
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *dev_node_strg =3D (u32=
-) pszdev_node->sz_string;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 list_add_tail(&pszdev_n=
-ode->link,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 &pdrv_object->dev_node_string);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -ENOMEM;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *dev_node_strg =3D 0;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> - =A0 =A0 =A0 } else {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(bridge, "%s: Failed to get Driv=
-er Object from Registry",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 *dev_node_strg =3D 0;
-> - =A0 =A0 =A0 }
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODATA;
-> +
-> + =A0 =A0 =A0 pdrv_object =3D drv_datap->drv_object;
-> + =A0 =A0 =A0 *dev_node_strg =3D 0;
-> +
-> + =A0 =A0 =A0 pszdev_node =3D kzalloc(sizeof(struct drv_ext), GFP_KER=
-NEL);
-> + =A0 =A0 =A0 if (!pszdev_node)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
-> +
-> + =A0 =A0 =A0 strncpy(pszdev_node->sz_string, (char *)dw_context,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 MAXREGPATHLENGTH - 1);
-> + =A0 =A0 =A0 pszdev_node->sz_string[MAXREGPATHLENGTH - 1] =3D '\0';
-> + =A0 =A0 =A0 *dev_node_strg =3D (u32) pszdev_node->sz_string;
-> +
-> + =A0 =A0 =A0 /* Update the Driver Object List */
-> + =A0 =A0 =A0 list_add_tail((struct list_head *)pszdev_node,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &pdrv_object->dev_node_=
-string);
+> +#endif
+>         return 0;
+>  }
 
-I'm not quite comfortable casting to list_head ptr, given that there
-is already a member of that type, if the struct type of pszdev_node is
-moved around and the first member changes, there should be issues.
+Indeed a bug, but not quite the right fix.
 
-Any reason to use them in this patch?
+Like we do on OMAP3, all of the _begin, _enter, _suspend, and _end
+fucntions can actually be left out when !CONFIG_SUSPEND.
 
-Regards,
+Will send patch shortly.
 
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for reporting this and proposing a fix.
+
+Kevin
