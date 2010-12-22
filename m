@@ -1,51 +1,48 @@
-From: Srikar <ext-srikar.1.bhavanarayana@nokia.com>
-Subject: Re: [PATCH] omap: rx51: Remove tvout code that plays with gpio 40
-Date: Wed, 22 Dec 2010 13:55:38 +0200
-Message-ID: <4D11E73A.8070009@nokia.com>
-References: <1292953561-22979-1-git-send-email-jhnikula@gmail.com> <1293012004.6829.2.camel@tubuntu>
+From: David Sin <davidsin@ti.com>
+Subject: Re: [PATCH 0/9] TI DMM-TILER driver
+Date: Wed, 22 Dec 2010 08:33:52 -0600
+Message-ID: <20101222143350.GA27503@lba0869738>
+References: <1291674446-10766-1-git-send-email-davidsin@ti.com>
+ <20101216172531.GG29435@lba0869738>
+ <20101216173737.GA6767@lba0869738>
+ <201012161843.48262.arnd@arndb.de>
+ <20101216190207.GC6767@lba0869738>
+ <AANLkTikZwm45Mkj_A=zzULeGBuYpLyP9N1bSJSFWegWV@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:42352 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752217Ab0LVLzp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Dec 2010 06:55:45 -0500
-In-Reply-To: <1293012004.6829.2.camel@tubuntu>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTikZwm45Mkj_A=zzULeGBuYpLyP9N1bSJSFWegWV@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Airlie <airlied@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, Greg KH <greg@kroah.com>, Russell King <rmk@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: ext Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-Good, Now GPIO40 now supports switch between Headset and TV Out.
-Now updated ASoc Driver is  already available in upstream kernel to
-support the switching between Headset and TvOut ...
-
-Srikar
+On Fri, Dec 17, 2010 at 09:28:07AM +1000, Dave Airlie wrote:
+> On Fri, Dec 17, 2010 at 5:02 AM, David Sin <davidsin@ti.com> wrote:
+> I get the impression with the ARM graphics, that you just have a lot
+> of separate drivers for separate IP blocks all providing some misc
+> random interfaces to userspace where some binary driver binds all the
+> functionality together into a useful whole, which seems like a really
+> bad design.
+> 
+> Generally on x86, the tiling hw is part of the GPU and is exposed as
+> part of a coherent GPU driver.
+> 
+> I'm just wonder what the use-cases for this tiler are and what open
+> apps can use it for?
+> 
+> Dave.
+Yes -- on the omap4 soc, the dmm-tiler hw block is separate from the 
+gpu.  I've had some, but not much, past discusions on hw designs 
+where graphics/video related ip blocks are part of the same core.  It's 
+a good point that you bring up and it certainly makes sense to me.  
+I will bring it up with some omap hw folks that I know, and see if 
+something that can be considered in future omap versions.
  
-On 12/22/2010 12:00 PM, Tomi Valkeinen wrote:
-> On Tue, 2010-12-21 at 19:46 +0200, ext Jarkko Nikula wrote:
->> Commit 60d24ee "Added video data to support tvout on rx51" added code that
->> tries to assign gpio 40 as OMAP DSS reset_gpio for tvout. This is wrong
->> since this gpio has nothing to do with OMAP DSS but it is used to control
->> one switch that selects is the audio jack connected to tvout or audio
->> circuitry.
->>
->> This switch is already supported by the RX51 ASoC driver so there is no need
->> to control it elsewhere. Switch is contolled with ALSA control
->> 'Jack Function' and tvout can be selected with following example:
->>
->> 	amixer -D hw:0 set 'Jack Function' 'TV-OUT'
-> Looks good. platform_enable/disable and reset_gpio fields should anyway
-> be removed from the omap_dss_device struct, so this goes into right
-> direction.
->
-> Tony, can you take this patch also, as (I guess) it depends on the
-> previous rx51 patches from Jarkko?
->
-> Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
->
->  Tomi
->
->
-
+Some of the use-cases are HD video decoding and encoding.  Also, 
+hi-res image capture -- I believe 12MP or greater.  OpenMax IL components 
+and other multimedia frameworks can allocate video memory 
+through a user space tiler library.  Thanks for your comments, Dave.  
+-- 
+David Sin
