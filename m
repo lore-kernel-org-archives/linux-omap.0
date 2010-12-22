@@ -1,46 +1,36 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 0/2] omap: rx51: Fix broken fb on RX51/N900
-Date: Wed, 22 Dec 2010 08:56:38 +0200
-Message-ID: <20101222085638.226a1269.jhnikula@gmail.com>
-References: <1292952335-21314-1-git-send-email-jhnikula@gmail.com>
-	<20101221202133.GJ5829@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH 0/40] Complete set of clocksource/sched_clock patches
+Date: Tue, 21 Dec 2010 23:24:29 -0800
+Message-ID: <AANLkTi=uspZY9ibQrJSti8UT1v5NHSHdzv+Y_Jsam9yu@mail.gmail.com>
+References: <20101217113223.GC9937@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:65427 "EHLO
-	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751221Ab0LVG4y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 01:56:54 -0500
-Received: by bwz16 with SMTP id 16so5423007bwz.4
-        for <linux-omap@vger.kernel.org>; Tue, 21 Dec 2010 22:56:53 -0800 (PST)
-In-Reply-To: <20101221202133.GJ5829@atomide.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:57716 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751868Ab0LVHYa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 02:24:30 -0500
+In-Reply-To: <20101217113223.GC9937@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Alessandro Rubini <rubini@unipv.it>, Bryan Huntsman <bryanh@codeaurora.org>, Colin Cross <ccross@android.com>, Daniel Walker <dwalker@codeaurora.org>, David Brown <davidb@codeaurora.org>, Eric Miao <eric.y.miao@gmail.com>, Erik Gilling <konkers@android.com>, "Hans J. Koch" <hjk@linutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Kevin Hilman <khilman@deeprootsystems.com>, Krzysztof Halasa <khc@pm.waw.pl>, Kukjin Kim <kgene.kim@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Jiandong Zheng <jdzheng@broadcom.com>, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Sascha Hauer <kernel@pengutronix.de>, Scott Branden <sbranden@broadcom.com>, STEricsson <STEricsson_nomadik_linux@list.st.com>, Tony Lindgren <tony@at>
 
-On Tue, 21 Dec 2010 12:21:33 -0800
-Tony Lindgren <tony@atomide.com> wrote:
+On Fri, Dec 17, 2010 at 3:32 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> Here is the entire set of clocksource and sched_clock patches which
+> have been previously posted. =A0There's a couple of small tweaks in a
+> few of the patches (such as adding notrace to OMAP clocksource read
+> functions), and this also shows the proper ordering of these patches.
+>
+> Still looking for acks or tested-by's for these patches.
 
-> * Jarkko Nikula <jhnikula@gmail.com> [101221 09:25]:
-> > Hi
-> > 
-> > Commit 60d24ee "Added video data to support tvout on rx51" broke the
-> > framebuffer on N900. Here are two patches where 1st one does a little cleanup
-> > to be sync with the 2nd fixing the issue. I've tested that both tvout and lcd
-> > are working.
-> 
-> Tomi, do you want to pick these three DSS/video related patches from Jarkko?
-> 
-> If so:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> else please ack and let me know if you want me to take them.
-> 
-I think these should go to linux-omap since the breakage is there and
-anyway touch only the rx51 board files.
+Tegra (see comment to that specific patch for a needed fixup):
 
--- 
-Jarkko
+Tested-by: Olof Johansson <olof@lixom.net>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
