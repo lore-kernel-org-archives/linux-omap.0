@@ -1,51 +1,41 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 0/2] omap: rx51: Fix broken fb on RX51/N900
-Date: Wed, 22 Dec 2010 11:45:18 +0200
-Message-ID: <1293011118.6829.0.camel@tubuntu>
-References: <1292952335-21314-1-git-send-email-jhnikula@gmail.com>
-	 <20101221202133.GJ5829@atomide.com>
-	 <20101222085638.226a1269.jhnikula@gmail.com>
+Subject: Re: [PATCH] omap: rx51: Remove tvout code that plays with gpio 40
+Date: Wed, 22 Dec 2010 12:00:04 +0200
+Message-ID: <1293012004.6829.2.camel@tubuntu>
+References: <1292953561-22979-1-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:33238 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:34415 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752171Ab0LVJp3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Dec 2010 04:45:29 -0500
-In-Reply-To: <20101222085638.226a1269.jhnikula@gmail.com>
+	id S1752214Ab0LVKAQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Dec 2010 05:00:16 -0500
+In-Reply-To: <1292953561-22979-1-git-send-email-jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext Jarkko Nikula <jhnikula@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Srikar <ext-srikar.1.bhavanarayana@nokia.com>
 
-On Wed, 2010-12-22 at 08:56 +0200, ext Jarkko Nikula wrote:
-> On Tue, 21 Dec 2010 12:21:33 -0800
-> Tony Lindgren <tony@atomide.com> wrote:
+On Tue, 2010-12-21 at 19:46 +0200, ext Jarkko Nikula wrote:
+> Commit 60d24ee "Added video data to support tvout on rx51" added code that
+> tries to assign gpio 40 as OMAP DSS reset_gpio for tvout. This is wrong
+> since this gpio has nothing to do with OMAP DSS but it is used to control
+> one switch that selects is the audio jack connected to tvout or audio
+> circuitry.
 > 
-> > * Jarkko Nikula <jhnikula@gmail.com> [101221 09:25]:
-> > > Hi
-> > > 
-> > > Commit 60d24ee "Added video data to support tvout on rx51" broke the
-> > > framebuffer on N900. Here are two patches where 1st one does a little cleanup
-> > > to be sync with the 2nd fixing the issue. I've tested that both tvout and lcd
-> > > are working.
-> > 
-> > Tomi, do you want to pick these three DSS/video related patches from Jarkko?
-> > 
-> > If so:
-> > 
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > else please ack and let me know if you want me to take them.
-> > 
-> I think these should go to linux-omap since the breakage is there and
-> anyway touch only the rx51 board files.
+> This switch is already supported by the RX51 ASoC driver so there is no need
+> to control it elsewhere. Switch is contolled with ALSA control
+> 'Jack Function' and tvout can be selected with following example:
+> 
+> 	amixer -D hw:0 set 'Jack Function' 'TV-OUT'
 
-I agree, I don't have that commit in my tree. So Tony, please take the
-patches.
+Looks good. platform_enable/disable and reset_gpio fields should anyway
+be removed from the omap_dss_device struct, so this goes into right
+direction.
 
-For both patches:
+Tony, can you take this patch also, as (I guess) it depends on the
+previous rx51 patches from Jarkko?
 
 Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
