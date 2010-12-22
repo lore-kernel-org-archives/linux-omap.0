@@ -1,26 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] OMAP2: Devkit8000: Use _cansleep GPIO functions for
- display reset lines
-Date: Tue, 21 Dec 2010 17:54:04 -0800
-Message-ID: <20101222015404.GO5829@atomide.com>
-References: <1292926993.9611.10.camel@morsing>
+Subject: Re: [PATCH] OMAP3: Devkit8000: Add DEBUG_LL support
+Date: Tue, 21 Dec 2010 17:55:34 -0800
+Message-ID: <20101222015534.GP5829@atomide.com>
+References: <1292929629-3396-1-git-send-email-weber@corscience.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1292926993.9611.10.camel@morsing>
+In-Reply-To: <1292929629-3396-1-git-send-email-weber@corscience.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Morsing <daniel.morsing@gmail.com>
-Cc: weber@corscience.de, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Thomas Weber <weber@corscience.de>
+Cc: linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Daniel Morsing <daniel.morsing@gmail.com> [101221 02:22]:
-> The display reset lines are connected to a TPS65930 which may sleep
-> when changing GPIO values. Use the appropriate function to silence
-> a nasty warning from gpiolib.
-> 
-> Signed-off-by: Daniel Morsing <daniel.morsing@gmail.com>
-> Acked-by: Thomas Weber <weber@corscience.de>
+* Thomas Weber <weber@corscience.de> [101221 03:08]:
+> Add support for DEBUG_LL for Devkit8000.
+> Devkit8000 uses uart 3 for debug output.
 
 Thanks applying.
 
