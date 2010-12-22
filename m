@@ -1,48 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] Keyboard: omap-keypad: use matrix_keypad.h
-Date: Wed, 22 Dec 2010 11:25:54 -0800
-Message-ID: <20101222192554.GE7771@atomide.com>
-References: <201012172332.06480.jkrzyszt@tis.icnet.pl>
- <201012181639.29820.jkrzyszt@tis.icnet.pl>
- <alpine.DEB.1.10.1012201720470.13087@esdhcp041196.research.nokia.com>
- <201012202209.24068.jkrzyszt@tis.icnet.pl>
- <alpine.DEB.1.10.1012211150410.22164@esdhcp041196.research.nokia.com>
- <20101222101657.GD22590@core.coreip.homeip.net>
+From: Charles Manning <manningc2@actrix.gen.nz>
+Subject: Fix pm24xx.c compilation  problem
+Date: Thu, 23 Dec 2010 09:19:26 +1300
+Message-ID: <201012230919.26344.manningc2@actrix.gen.nz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.scorch.co.nz ([27.110.127.199]:39430 "HELO scorch.co.nz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751193Ab0LVUTa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Dec 2010 15:19:30 -0500
 Content-Disposition: inline
-In-Reply-To: <20101222101657.GD22590@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-omap@vger.kernel.org, linux-input@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Dmitry Torokhov <dmitry.torokhov@gmail.com> [101222 02:16]:
-> On Tue, Dec 21, 2010 at 01:20:35PM +0200, Aaro Koskinen wrote:
-> > Hi,
-> > 
-> > On Mon, 20 Dec 2010, Janusz Krzysztofik wrote:
-> > >Most keypad drivers make use of the <linux/input/matrix_keypad.h>
-> > >defined macros, structures and inline functions.
-> > >
-> > >Convert omap-keypad driver to use those as well, as suggested by a
-> > >compile time warning, hardcoded into the OMAP <palt/keypad.h>.
-> > >
-> > >Created against linux-2.6.37-rc5.
-> > >Tested on Amstrad Delta.
-> > >Compile tested with omap1_defconfig and omap2plus_defconfig shrinked to
-> > >board-h4.
-> > >
-> > >Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> > 
-> > Reviewed-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-> > 
-> 
-> Acked-by: Dmitry Torokhov <dtor@mail.ru>
-> 
-> Thanks for making the changes.
+arch/arm/mach-omap2/pm24xx.c doesn't compile without CONFIG_SUSPEND
 
-Thanks everybody, applying.
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index aaeea49..ae6abda 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -53,8 +53,8 @@
+ #include <plat/powerdomain.h>
+ #include <plat/clockdomain.h>
+ 
+-#ifdef CONFIG_SUSPEND
+ static suspend_state_t suspend_state = PM_SUSPEND_ON;
++#ifdef CONFIG_SUSPEND
+ static inline bool is_suspending(void)
+ {
+        return (suspend_state != PM_SUSPEND_ON);
+@@ -314,6 +314,7 @@ static int omap2_pm_prepare(void)
+ 
+ static int omap2_pm_suspend(void)
+ {
++#ifdef CONFIG_SUSPEND
+        u32 wken_wkup, mir1;
+ 
+        wken_wkup = prm_read_mod_reg(WKUP_MOD, PM_WKEN);
+@@ -329,7 +330,7 @@ static int omap2_pm_suspend(void)
+ 
+        omap_writel(mir1, 0x480fe0a4);
+        prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
+-
++#endif
+        return 0;
+ }
 
-Tony
