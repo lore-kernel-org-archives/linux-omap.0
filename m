@@ -1,35 +1,36 @@
 From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: [PATCH] OMAP: Fix configuration of J-Type DPLLs to work for
  OMAP3 and OMAP4
-Date: Tue, 21 Dec 2010 17:09:06 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012211658270.1446@utopia.booyaka.com>
-References: <1292617875-15662-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1012180304080.16875@utopia.booyaka.com> <4D0F709C.3010904@ti.com>
+Date: Tue, 21 Dec 2010 17:22:27 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012211719210.1446@utopia.booyaka.com>
+References: <1292617875-15662-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1012180304080.16875@utopia.booyaka.com> <4D0F709C.3010904@ti.com> <alpine.DEB.2.00.1012211658270.1446@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43221 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:45206 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753291Ab0LVAJH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 19:09:07 -0500
-In-Reply-To: <4D0F709C.3010904@ti.com>
+	with ESMTP id S1752471Ab0LVAW2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 19:22:28 -0500
+In-Reply-To: <alpine.DEB.2.00.1012211658270.1446@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi Jon,
+On Tue, 21 Dec 2010, Paul Walmsley wrote:
 
-thanks for the extra info, the patch looks good to me (modulo the changes 
-mentioned) and looks safe for 2.6.38.  
+> The queued patch -- slightly modified -- is included below.
 
-The queued patch -- slightly modified -- is included below.  It has been 
-added to the 'clk_b_2.6.38' branch on git://git.pwsan.com/linux-2.6, and 
-has been added to the integration tree at tag 
-'integration-2.6.38-20101221-005' on git://git.pwsan.com/linux-integration
+Well, what got posted was a slightly older version.  Here's the correct 
+one.  The integration tag that includes this one is 
+'integration-2.6.38-20101221-006'
+
+I've also added linux-arm-kernel@vger.kernel.org to the Cc:.  You might 
+want to do that when posting future OMAP patches, that saves a little 
+extra work...
 
 
 - Paul
-
 
 From: Jon Hunter <jon-hunter@ti.com>
 Date: Fri, 17 Dec 2010 14:31:15 -0600
@@ -57,6 +58,8 @@ and only program these fields if the masks are defined for a specific
 DPLL. This simplifies the code and allows us to remove the flag
 DPLL_NO_DCO_SEL.
 
+Tested on OMAP36xx Zoom3 and OMAP4 Blaze.
+
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 [paul@pwsan.com: removed explicit inlining and added '_' prefix on lookup_*()
  functions; added testing info to commit message; added 35xx comments back in]
@@ -65,9 +68,9 @@ Signed-off-by: Paul Walmsley <paul@pwsan.com>
  arch/arm/mach-omap2/clock.h             |    1 -
  arch/arm/mach-omap2/clock3xxx_data.c    |    2 +
  arch/arm/mach-omap2/clock44xx_data.c    |    3 +-
- arch/arm/mach-omap2/dpll3xxx.c          |   53 +++++++++++++++++++-----------
+ arch/arm/mach-omap2/dpll3xxx.c          |   53 ++++++++++++++++++++----------
  arch/arm/plat-omap/include/plat/clock.h |    5 ++-
- 5 files changed, 40 insertions(+), 24 deletions(-)
+ 5 files changed, 42 insertions(+), 22 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
 index a535c7a..896584e 100644
@@ -116,10 +119,10 @@ index 39c0f24..dad0564 100644
  	.control_reg	= OMAP4430_CM_CLKMODE_DPLL_USB,
  	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
 diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index cb535ee..5e7892f 100644
+index cb535ee..5df9f53 100644
 --- a/arch/arm/mach-omap2/dpll3xxx.c
 +++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -223,23 +223,18 @@ static int _omap3_noncore_dpll_stop(struct clk *clk)
+@@ -223,10 +223,9 @@ static int _omap3_noncore_dpll_stop(struct clk *clk)
  }
  
  /**
@@ -131,10 +134,9 @@ index cb535ee..5e7892f 100644
   * @m: DPLL multiplier to set
   * @n: DPLL divider to set
   *
-  * See 36xx TRM section 3.5.3.3.3.2 "Type B DPLL (Low-Jitter)"
-  *
-- * XXX This code is not needed for 3430/AM35xx; can it be optimized
-- * out in non-multi-OMAP builds for those chips?
+@@ -235,11 +234,9 @@ static int _omap3_noncore_dpll_stop(struct clk *clk)
+  * XXX This code is not needed for 3430/AM35xx; can it be optimized
+  * out in non-multi-OMAP builds for those chips?
   */
 -static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
 -			     u8 n)
@@ -146,7 +148,7 @@ index cb535ee..5e7892f 100644
  
  	clkinp = clk->parent->rate;
  	fint = (clkinp / n) * m;
-@@ -248,6 +243,25 @@ static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
+@@ -248,6 +245,27 @@ static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
  		*dco = 2;
  	else
  		*dco = 4;
@@ -161,6 +163,8 @@ index cb535ee..5e7892f 100644
 + *
 + * See 36xx TRM section 3.5.3.3.3.2 "Type B DPLL (Low-Jitter)"
 + *
++ * XXX This code is not needed for 3430/AM35xx; can it be optimized
++ * out in non-multi-OMAP builds for those chips?
 + */
 +static void _lookup_sddiv(struct clk *clk, u8 *sd_div, u16 m, u8 n)
 +{
@@ -172,7 +176,7 @@ index cb535ee..5e7892f 100644
  	/*
  	 * target sigma-delta to near 250MHz
  	 * sd = ceil[(m/(n+1)) * (clkinp_MHz / 250)]
-@@ -276,6 +290,7 @@ static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
+@@ -276,6 +294,7 @@ static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
  static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
  {
  	struct dpll_data *dd = clk->dpll_data;
@@ -180,7 +184,7 @@ index cb535ee..5e7892f 100644
  	u32 v;
  
  	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
-@@ -298,18 +313,16 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+@@ -298,18 +317,16 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
  	v |= m << __ffs(dd->mult_mask);
  	v |= (n - 1) << __ffs(dd->div1_mask);
  
