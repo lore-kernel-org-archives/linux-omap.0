@@ -1,98 +1,79 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v6 01/10] OMAP3: PM: Adding voltage driver support.
-Date: Wed, 22 Dec 2010 14:29:35 -0800
-Message-ID: <87hbe5o300.fsf@deeprootsystems.com>
-References: <1292864357-13939-1-git-send-email-thara@ti.com>
-	<1292864357-13939-2-git-send-email-thara@ti.com>
+Subject: [GIT PULL v2] OMAP SmartReflex/voltage core for 2.6.38
+Date: Wed, 22 Dec 2010 14:51:38 -0800
+Message-ID: <87mxnxmnet.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.212.179]:57998 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751848Ab0LVW3k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 17:29:40 -0500
-Received: by pxi20 with SMTP id 20so1515334pxi.10
-        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 14:29:40 -0800 (PST)
-In-Reply-To: <1292864357-13939-2-git-send-email-thara@ti.com> (Thara
-	Gopinath's message of "Mon, 20 Dec 2010 22:29:08 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, nm@ti.com
 
-Thara Gopinath <thara@ti.com> writes:
+Tony,
 
-> This patch adds voltage driver support for OMAP3. The driver
-> allows  configuring the voltage controller and voltage
-> processors during init and exports APIs to enable/disable
-> voltage processors, scale voltage and reset voltage.
-> The driver maintains the global voltage table on a per
-> VDD basis which contains the various voltages supported by the
-> VDD along with per voltage dependent data like smartreflex
-> efuse offset, errminlimit and voltage processor errorgain.
-> The driver also allows the voltage parameters dependent on the
-> PMIC to be passed from the PMIC file through an API.
-> The driver allows scaling of VDD voltages either through
-> "vc bypass method" or through "vp forceupdate method" the
-> choice being configurable through the board file.
->
-> This patch contains code originally in linux omap pm branch
-> smartreflex driver.  Major contributors to this driver are
-> Lesly A M, Rajendra Nayak, Kalle Jokiniemi, Paul Walmsley,
-> Nishant Menon, Kevin Hilman. The separation of PMIC parameters
-> into a separate structure which can be populated from
-> the PMIC file is based on the work of Lun Chang from Motorola
-> in an internal tree.
->
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
-> This patch has 14 checkpatch.pl above 80-chars warnings for
-> the definitions of omap34xx_vddmpu_volt_data, omap36xx_vddmpu_volt_data,
-> omap34xx_vddcore_volt_data and omap36xx_vddcore_volt_data structures.
-> IMHO splitting of the entries in these structures affects
-> readability and looks very ugly. Hence they are left as is.
->
->  arch/arm/mach-omap2/Makefile              |    3 +-
->  arch/arm/mach-omap2/control.h             |   17 +
->  arch/arm/mach-omap2/pm.c                  |    8 +
->  arch/arm/mach-omap2/voltage.c             | 1226 +++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/voltage.h |  134 ++++
->  5 files changed, 1387 insertions(+), 1 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/voltage.c
->  create mode 100644 arch/arm/plat-omap/include/plat/voltage.h
->
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 7c79683..5034797 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -57,7 +57,8 @@ endif
->  ifeq ($(CONFIG_PM),y)
->  obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
->  obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o
-> -obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o pm_bus.o
-> +obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
-> +					   cpuidle34xx.o pm_bus.o
+The following pull request is for the SmartReflex/voltage core for
+2.6.38.  
 
-This will not link when building OMAP2 only (common for n8x0 testing due
-to kernel size limitation.)  In this config, voltage.o is not compiled,
-but its functions are still called from the common pm.c.
-
-Will fold the following diff into this patch.
+It is updated to include a build fix and exclude a boot breakage on
+OMAP2.
 
 Kevin
 
+The following changes since commit f17f9726c27c3921e00a5750e85070e6dd7e1ff7:
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 91c9b60..4ab82f6 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -59,7 +59,7 @@ endif
- # Power Management
- ifeq ($(CONFIG_PM),y)
- obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
--obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o
-+obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o voltage.o
- obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
- 					   cpuidle34xx.o pm_bus.o
- obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o voltage.o pm_bus.o
+  OMAP4: clock data: Add missing fixed divisors (2010-12-22 10:12:46 -0700)
 
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-sr
+
+Benoit Cousson (1):
+      OMAP4: hwmod: Add inital data for smartreflex modules.
+
+Thara Gopinath (13):
+      OMAP3: PM: Adding voltage driver support.
+      OMAP: Introduce voltage domain information in the hwmod structures
+      OMAP3: PM: Adding smartreflex driver support.
+      OMAP3: PM: Adding smartreflex device file.
+      OMAP3: PM: Adding smartreflex hwmod data
+      OMAP3: PM: Adding smartreflex class3 driver
+      OMAP3: PM: Register TWL4030 pmic info with the voltage driver.
+      OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
+      OMAP3: PM: Program correct init voltages for VDD1 and VDD2
+      OMAP4: Register voltage PMIC parameters with the voltage layer
+      OMAP4: Adding voltage driver support
+      OMAP4: PM: Program correct init voltages for scalable VDDs
+      OMAP4: Smartreflex framework extensions
+
+ arch/arm/mach-omap2/Makefile                  |   11 +-
+ arch/arm/mach-omap2/control.h                 |   29 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  175 +++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  168 +++
+ arch/arm/mach-omap2/omap_twl.c                |  277 +++++
+ arch/arm/mach-omap2/pm.c                      |  102 ++
+ arch/arm/mach-omap2/pm.h                      |   28 +
+ arch/arm/mach-omap2/smartreflex-class3.c      |   59 +
+ arch/arm/mach-omap2/smartreflex.c             | 1029 ++++++++++++++++
+ arch/arm/mach-omap2/sr_device.c               |  146 +++
+ arch/arm/mach-omap2/voltage.c                 | 1571 +++++++++++++++++++++++++
+ arch/arm/plat-omap/Kconfig                    |   31 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    5 +
+ arch/arm/plat-omap/include/plat/smartreflex.h |  245 ++++
+ arch/arm/plat-omap/include/plat/voltage.h     |  146 +++
+ 15 files changed, 4019 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_twl.c
+ create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
+ create mode 100644 arch/arm/mach-omap2/smartreflex.c
+ create mode 100644 arch/arm/mach-omap2/sr_device.c
+ create mode 100644 arch/arm/mach-omap2/voltage.c
+ create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
+ create mode 100644 arch/arm/plat-omap/include/plat/voltage.h
