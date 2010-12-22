@@ -1,49 +1,112 @@
-From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Subject: RE: [PATCH v2 05/17] OMAP2,3 DSS Driver register moved to mach_omap2
-Date: Wed, 22 Dec 2010 16:55:32 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087035F28E448@dbde02.ent.ti.com>
-References: <1291031503-21036-1-git-send-email-svadivu@ti.com>
-	 <1291031503-21036-6-git-send-email-svadivu@ti.com>
- <1292939360.22441.57.camel@tubuntu>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v7 12/12] OMAP2: dmtimer: set wakeup enable explicitly
+ in plat
+Date: Wed, 22 Dec 2010 17:01:56 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0373A94395@dbde02.ent.ti.com>
+References: <1292882719-30255-1-git-send-email-tarun.kanti@ti.com>
+ <1292882719-30255-13-git-send-email-tarun.kanti@ti.com>
+ <4D0FE2A7.2000506@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47789 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751335Ab0LVLZm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 06:25:42 -0500
-In-Reply-To: <1292939360.22441.57.camel@tubuntu>
+Received: from devils.ext.ti.com ([198.47.26.153]:54255 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143Ab0LVLcD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 06:32:03 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id oBMBVxA4029427
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 05:32:02 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id oBMBVwaJ013652
+	for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 17:01:59 +0530 (IST)
+In-Reply-To: <4D0FE2A7.2000506@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-
+Hello Benoit,
 > -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Tuesday, December 21, 2010 7:19 PM
-> To: Guruswamy, Senthilvadivu
-> Cc: khilman@deeprootsystems.com; paul@pwsan.com; Hiremath, Vaibhav; linux-
-> omap@vger.kernel.org
-> Subject: Re: [PATCH v2 05/17] OMAP2,3 DSS Driver register moved to
-> mach_omap2
+> From: Cousson, Benoit
+> Sent: Tuesday, December 21, 2010 4:42 AM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v7 12/12] OMAP2: dmtimer: set wakeup enable explicitly
+> in plat
 > 
-> On Mon, 2010-11-29 at 17:21 +0530, ext Guruswamy Senthilvadivu wrote:
-> > From: Senthilvadivu Guruswamy <svadivu@ti.com>
-> >
-> > Move DSS driver register from board file to devices.c
-> > Changed device name from omapdss to omap_display as the
-> > driver takes care of panel information.
+> Hi Tarun,
 > 
-> Here you do two separate things, adding the omap_display_init() and
-> changing the driver name. The latter should be in the previous patch, I
-> suppose.
-[Senthil]  Yes, I can change the driver name first and then omap_display_init() as 2 small patches.  When I do this I have to do similarly for board files too.  Then the board file related changes alone would be 3 separate patches - 1. driver name change, 2.  omap_display_init, 3.  Regulator initialization being done with driver name
+> On 12/20/2010 11:05 PM, DebBarma, Tarun Kanti wrote:
+> > For some reason the wakeup enable bit is not getting set on OMAP2430,
+> > OMAP2420. This is inspite of the fact that SYSC_HAS_ENAWAKEUP flag is
+> > present in the hwmod database.
+> 
+> This is indeed strange. Did you observe that on OMAP3 & 4?
+I am NOT seeing this on OMAP3 and OMAP4.
 
-If this is fine, then I can send v3 version of the patch set.
+> Did you use the patch that Kevin did recently to fix an issue with the
+> ENAWAKEUP bit?
+> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-
+> pm.git;a=commit;h=d15ae13fc7428a95b02c1935ebf92324fcb80a5f
 > 
->  Tomi
+No, I have tested on mainline. Right now I am testing on Kevin's
+PM branch and will see the result.
+
+> The point is that this fix is not really acceptable for my point of view:-
+> (
+> You really have to check what is going on in the hwmod _enable_wakeup
+> function.
+Yes, I understand.  Let's check if this problem goes away in Kevin's setup.
+--
+Tarun
+
 > 
+> Regards,
+> Benoit
+> 
+> >
+> > I am not sure if there is already a patch to fix this problem. Until the
+> > reason is found we need this patch to boot on the above platforms.
+> >
+> > Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> > ---
+> >   arch/arm/plat-omap/dmtimer.c |   13 +++++++++++++
+> >   1 files changed, 13 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> > index f4aa4a1..007b754 100644
+> > --- a/arch/arm/plat-omap/dmtimer.c
+> > +++ b/arch/arm/plat-omap/dmtimer.c
+> > @@ -227,6 +227,7 @@ static void omap_dm_timer_write_reg(struct
+> omap_dm_timer *timer, u32 reg,
+> >
+> >   static void omap_dm_timer_prepare(struct omap_dm_timer *timer)
+> >   {
+> > +	u32 l;
+> >   	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
+> >
+> >   	if (!pdata->is_omap16xx) {
+> > @@ -243,6 +244,18 @@ static void omap_dm_timer_prepare(struct
+> omap_dm_timer *timer)
+> >   	if (pdata->dm_timer_reset)
+> >   		pdata->dm_timer_reset(timer);
+> >
+> > +	/*
+> > +	 * Enable wake-up on OMAP2420, OMAP2430 CPUs.
+> > +	 * FIXME: SYSC_HAS_ENAWAKEUP flag is already set in hwmod database.
+> > +	 * But the setting does not seem to work. Need to investigate why
+> > +	 * this is happening.
+> > +	 */
+> > +	if (cpu_is_omap2430() || cpu_is_omap2420()) {
+> > +		l = omap_dm_timer_read_reg(timer, OMAP_TIMER_OCP_CFG_REG);
+> > +		l |= 1<<  2;
+> > +		omap_dm_timer_write_reg(timer, OMAP_TIMER_OCP_CFG_REG, l);
+> > +	}
+> > +
+> >   	omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
+> >
+> >   	/* Match hardware reset default of posted mode */
+
