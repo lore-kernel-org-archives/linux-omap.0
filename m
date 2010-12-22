@@ -1,69 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/6] Add infrastructure for conditional code and data
- sections
-Date: Wed, 22 Dec 2010 11:02:56 -0800
-Message-ID: <20101222190256.GD7771@atomide.com>
-References: <1292955604-8809-1-git-send-email-thomas.petazzoni@free-electrons.com>
- <1292955604-8809-2-git-send-email-thomas.petazzoni@free-electrons.com>
- <20101221192735.GG5829@atomide.com>
- <20101221230028.7d7d5e01@surf>
- <20101222182841.GS5829@atomide.com>
- <20101222194247.35b571fc@surf>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [GIT PULL] OMAP SmartReflex/voltage core for 2.6.38
+Date: Wed, 22 Dec 2010 11:14:48 -0800
+Message-ID: <87fwtptyaf.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:42670 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752116Ab0LVTDB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 14:03:01 -0500
-Content-Disposition: inline
-In-Reply-To: <20101222194247.35b571fc@surf>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:40254 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258Ab0LVTOx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 14:14:53 -0500
+Received: by pva4 with SMTP id 4so1063135pva.19
+        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 11:14:53 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <t-petazzoni@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Thomas Petazzoni <thomas.petazzoni@free-electrons.com> [101222 10:55]:
-> On Wed, 22 Dec 2010 10:28:41 -0800
-> Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > > Nice to see that the idea is welcome. Did you had a look at the
-> > > implementation in patch 1/6 ?
-> > 
-> > No not yet, will take a look after we're done with this upcoming
-> > merge window..
-> 
-> Great, thanks.
-> 
-> > Ideally the new sections would be arch/arm generic sections and not
-> > omap specific. I could see ARMv6 and ARMv7 sections being one way
-> > to group them, but that does not help to drop omap3 specific data
-> > on omap4.
-> 
-> The mechanism is architecture independent, not OMAP-specific or even
-> ARM-specific (the only architecture-dependent part is the modification
-> of the kernel linker script, but it's trivial to adapt to other arches).
-> You can put as many sections as you want, you just need to declare some
-> macros:
-> 
-> #define __something_data cond_data_section(something)
-> #define __something_text cond_text_section(something)
-> 
-> and then mark whatever you want with __something_data or
-> __something_text. It will then be part of separate sections, that are
-> page-aligned so that they can independently be freed.
+Tony,
 
-OK sounds like you've already made it generic :)
- 
-> For the moment, the API allows to tell which sections you want to
-> *free*, but I think I should turn it into an API that allows to tell
-> which sections you want to *keep*. This way, if you have sections for
-> 100 machines and you boot on a given machine, you only need to say "I'm
-> using this section". At the end of the kernel boot process, all
-> sections that have not been marked as useful would be removed.
+The following pull request is for the SmartReflex/voltage core for
+2.6.38.  
 
-Yeah keeping only the code for the current machine might be easier.
+It is based on Paul's latest integration-2.6.38-for-tony branch, so
+should be pulled only after pulling from Paul.
 
-Regards,
+Kevin
 
-Tony
+
+The following changes since commit f17f9726c27c3921e00a5750e85070e6dd7e1ff7:
+
+  OMAP4: clock data: Add missing fixed divisors (2010-12-22 10:12:46 -0700)
+
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-sr
+
+Benoit Cousson (1):
+      OMAP4: hwmod: Add inital data for smartreflex modules.
+
+Thara Gopinath (14):
+      OMAP3: PM: Adding voltage driver support.
+      OMAP: Introduce voltage domain information in the hwmod structures
+      OMAP3: PM: Adding smartreflex driver support.
+      OMAP3: PM: Adding smartreflex device file.
+      OMAP3: PM: Adding smartreflex hwmod data
+      OMAP3: PM: Adding smartreflex class3 driver
+      OMAP3: PM: Adding T2 enabling of smartreflex support
+      OMAP3: PM: Register TWL4030 pmic info with the voltage driver.
+      OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
+      OMAP3: PM: Program correct init voltages for VDD1 and VDD2
+      OMAP4: Register voltage PMIC parameters with the voltage layer
+      OMAP4: Adding voltage driver support
+      OMAP4: PM: Program correct init voltages for scalable VDDs
+      OMAP4: Smartreflex framework extensions
+
+ arch/arm/mach-omap2/Makefile                  |    9 +-
+ arch/arm/mach-omap2/control.h                 |   29 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  175 +++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  168 +++
+ arch/arm/mach-omap2/omap_twl.c                |  277 +++++
+ arch/arm/mach-omap2/pm.c                      |  102 ++
+ arch/arm/mach-omap2/pm.h                      |   28 +
+ arch/arm/mach-omap2/smartreflex-class3.c      |   59 +
+ arch/arm/mach-omap2/smartreflex.c             | 1029 ++++++++++++++++
+ arch/arm/mach-omap2/sr_device.c               |  146 +++
+ arch/arm/mach-omap2/voltage.c                 | 1571 +++++++++++++++++++++++++
+ arch/arm/plat-omap/Kconfig                    |   31 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    5 +
+ arch/arm/plat-omap/include/plat/smartreflex.h |  245 ++++
+ arch/arm/plat-omap/include/plat/voltage.h     |  146 +++
+ drivers/mfd/twl-core.c                        |   13 +
+ include/linux/i2c/twl.h                       |   11 +
+ 17 files changed, 4042 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_twl.c
+ create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
+ create mode 100644 arch/arm/mach-omap2/smartreflex.c
+ create mode 100644 arch/arm/mach-omap2/sr_device.c
+ create mode 100644 arch/arm/mach-omap2/voltage.c
+ create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
+ create mode 100644 arch/arm/plat-omap/include/plat/voltage.h
