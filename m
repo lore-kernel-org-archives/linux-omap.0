@@ -1,106 +1,127 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v6 07/10] OMAP3: PM: Adding T2 enabling of smartreflex support
-Date: Wed, 22 Dec 2010 12:30:35 -0800
-Message-ID: <87mxnxr1n8.fsf@deeprootsystems.com>
-References: <1292864357-13939-1-git-send-email-thara@ti.com>
-	<1292864357-13939-8-git-send-email-thara@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH 2/2] staging: tidspbridge: rmgr code cleanup
+Date: Wed, 22 Dec 2010 14:52:58 -0600
+Message-ID: <AANLkTikMD-pEQNNNKOx+1kZt=y896Ciz_kU60NsNzhGJ@mail.gmail.com>
+References: <1291931258-30744-1-git-send-email-ionut.nicu@mindbit.ro>
+	<1291931258-30744-3-git-send-email-ionut.nicu@mindbit.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f42.google.com ([74.125.83.42]:42635 "EHLO
-	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880Ab0LVUam (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 15:30:42 -0500
-Received: by gwb20 with SMTP id 20so3734876gwb.1
-        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 12:30:41 -0800 (PST)
-In-Reply-To: <1292864357-13939-8-git-send-email-thara@ti.com> (Thara
-	Gopinath's message of "Mon, 20 Dec 2010 22:29:14 +0530")
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:33347 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751886Ab0LVUw6 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Dec 2010 15:52:58 -0500
+Received: by mail-gy0-f170.google.com with SMTP id 2so2089782gyf.1
+        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 12:52:58 -0800 (PST)
+In-Reply-To: <1291931258-30744-3-git-send-email-ionut.nicu@mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, nm@ti.com
+To: Ionut Nicu <ionut.nicu@gmail.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-Hi Thara,
+Hi Ionut,
 
-Thara Gopinath <thara@ti.com> writes:
-
-> This patch adds support in the twl4030 driver to enable smartreflex.
-> The smartreflex bit on twl4030 needs to be enabled by default irrespective
-> of whether smartreflex module is enabled on the OMAP side or not.
-> This is because without this bit enabled the voltage scaling through
-> vp forceupdate does not function properly.
-
-Is this true for OMAP2 as well?  
-
-This patch actually hangs the boot on 2430SDP.  
-
-For now, I'll be dropping this patch from my pull request.  Also, this patch
-will also need an Ack from the MFD maintainers, or possibly even merge 
-through their tree.  Please also Cc the MFD list on the fix.
-
-While fixing this issue, another CodingStyle comment below...
-
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
->  drivers/mfd/twl-core.c  |   13 +++++++++++++
->  include/linux/i2c/twl.h |   11 +++++++++++
->  2 files changed, 24 insertions(+), 0 deletions(-)
+On Thu, Dec 9, 2010 at 3:47 PM, Ionut Nicu <ionut.nicu@gmail.com> wrote=
+:
+> Reorganized some code in the rmgr module to increase
+> its readability. No functional changes were done.
 >
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index 35275ba..b895ceb 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -1046,6 +1046,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  	/* Disable TWL4030/TWL5030 I2C Pull-up on I2C1 and I2C4(SR) interface.
->  	 * Program I2C_SCL_CTRL_PU(bit 0)=0, I2C_SDA_CTRL_PU (bit 2)=0,
->  	 * SR_I2C_SCL_CTRL_PU(bit 4)=0 and SR_I2C_SDA_CTRL_PU(bit 6)=0.
-> +	 * Also enable the smartreflex I2S bit.
->  	 */
->  
->  	if (twl_class_is_4030()) {
-> @@ -1053,6 +1054,18 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  		temp &= ~(SR_I2C_SDA_CTRL_PU | SR_I2C_SCL_CTRL_PU | \
->  		I2C_SDA_CTRL_PU | I2C_SCL_CTRL_PU);
->  		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
+> Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+> ---
+> =A0drivers/staging/tidspbridge/rmgr/drv.c =A0| =A0171 +++++++++------=
+-----
+> =A0drivers/staging/tidspbridge/rmgr/node.c | =A0 81 +++++-----
+> =A0drivers/staging/tidspbridge/rmgr/rmm.c =A0| =A0266 +++++++++++++--=
+---------------
+> =A03 files changed, 229 insertions(+), 289 deletions(-)
+>
+> diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging=
+/tidspbridge/rmgr/drv.c
+> index e0fc895..71a9489 100644
+> --- a/drivers/staging/tidspbridge/rmgr/drv.c
+> +++ b/drivers/staging/tidspbridge/rmgr/drv.c
+> @@ -304,40 +304,28 @@ int drv_proc_update_strm_res(u32 num_bufs, void=
+ *strm_resources)
+=2E..
+> @@ -608,40 +596,28 @@ int drv_request_resources(u32 dw_context, u32 *=
+dev_node_strg)
+> =A0 =A0 =A0 =A0DBC_REQUIRE(dw_context !=3D 0);
+> =A0 =A0 =A0 =A0DBC_REQUIRE(dev_node_strg !=3D NULL);
+>
+> - =A0 =A0 =A0 /*
+> - =A0 =A0 =A0 =A0* =A0Allocate memory to hold the string. This will l=
+ive untill
+> - =A0 =A0 =A0 =A0* =A0it is freed in the Release resources. Update th=
+e driver object
+> - =A0 =A0 =A0 =A0* =A0list.
+> - =A0 =A0 =A0 =A0*/
+> -
+> =A0 =A0 =A0 =A0if (!drv_datap || !drv_datap->drv_object)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -ENODATA;
+> - =A0 =A0 =A0 else
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdrv_object =3D drv_datap->drv_object;
+> -
+> - =A0 =A0 =A0 if (!status) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pszdev_node =3D kzalloc(sizeof(struct d=
+rv_ext), GFP_KERNEL);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pszdev_node) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 strncpy(pszdev_node->sz=
+_string,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (char *=
+)dw_context, MAXREGPATHLENGTH - 1);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pszdev_node->sz_string[=
+MAXREGPATHLENGTH - 1] =3D '\0';
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Update the Driver Ob=
+ject List */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *dev_node_strg =3D (u32=
+) pszdev_node->sz_string;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 list_add_tail(&pszdev_n=
+ode->link,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 &pdrv_object->dev_node_string);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -ENOMEM;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *dev_node_strg =3D 0;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> - =A0 =A0 =A0 } else {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(bridge, "%s: Failed to get Driv=
+er Object from Registry",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 *dev_node_strg =3D 0;
+> - =A0 =A0 =A0 }
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODATA;
 > +
-> +		/* The smartreflex bit on twl4030 needs to be enabled by
-> +		 * default irrespective of whether smartreflex module is
-> +		 * enabled on the OMAP side or not. This is because without
-> +		 * this bit enabled the voltage scaling through
-> +		 * vp forceupdate does not function properly.
-> +		 */
+> + =A0 =A0 =A0 pdrv_object =3D drv_datap->drv_object;
+> + =A0 =A0 =A0 *dev_node_strg =3D 0;
+> +
+> + =A0 =A0 =A0 pszdev_node =3D kzalloc(sizeof(struct drv_ext), GFP_KER=
+NEL);
+> + =A0 =A0 =A0 if (!pszdev_node)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
+> +
+> + =A0 =A0 =A0 strncpy(pszdev_node->sz_string, (char *)dw_context,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 MAXREGPATHLENGTH - 1);
+> + =A0 =A0 =A0 pszdev_node->sz_string[MAXREGPATHLENGTH - 1] =3D '\0';
+> + =A0 =A0 =A0 *dev_node_strg =3D (u32) pszdev_node->sz_string;
+> +
+> + =A0 =A0 =A0 /* Update the Driver Object List */
+> + =A0 =A0 =A0 list_add_tail((struct list_head *)pszdev_node,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &pdrv_object->dev_node_=
+string);
 
-please update multi-line coding style.
+I'm not quite comfortable casting to list_head ptr, given that there
+is already a member of that type, if the struct type of pszdev_node is
+moved around and the first member changes, there should be issues.
 
-Kevin
+Any reason to use them in this patch?
 
-> +		twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
-> +			TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG);
-> +		temp |= SMARTREFLEX_ENABLE;
-> +		twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
-> +			TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG);
->  	}
->  
->  	status = add_children(pdata, id->driver_data);
-> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-> index c760991..d392f06 100644
-> --- a/include/linux/i2c/twl.h
-> +++ b/include/linux/i2c/twl.h
-> @@ -434,6 +434,17 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
->  
->  /*----------------------------------------------------------------------*/
->  
-> +/*
-> + * PM Receiver module register offsets (use TWL4030_MODULE_PM_RECEIVER)
-> + */
-> +
-> +#define TWL4030_PM_RECEIVER_DCDC_GLOBAL_CFG	0x06
-> +
-> +/* Smartreflex I2S bus enable/ vmode enable bit */
-> +#define SMARTREFLEX_ENABLE			BIT(3)
-> +
-> +/*----------------------------------------------------------------------*/
-> +
->  /* Power bus message definitions */
->  
->  /* The TWL4030/5030 splits its power-management resources (the various
+Regards,
+
+Omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
