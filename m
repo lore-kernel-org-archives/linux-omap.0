@@ -1,50 +1,38 @@
-From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Subject: RE: [PATCH v2 04/17] OMAP2420,OMAP2430,OMAP3xx: change dss driver
- name in clock files
-Date: Wed, 22 Dec 2010 15:59:36 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087035F28E447@dbde02.ent.ti.com>
-References: <1291031503-21036-1-git-send-email-svadivu@ti.com>
-	 <1291031503-21036-5-git-send-email-svadivu@ti.com>
- <1292939048.22441.55.camel@tubuntu>
+From: Jamie Iles <jamie@jamieiles.com>
+Subject: Re: [PATCH 0/40] Complete set of clocksource/sched_clock patches
+Date: Wed, 22 Dec 2010 10:59:18 +0000
+Message-ID: <20101222105918.GA2838@pulham.picochip.com>
+References: <20101217113223.GC9937@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38488 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751689Ab0LVK36 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 05:29:58 -0500
-In-Reply-To: <1292939048.22441.55.camel@tubuntu>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20101217113223.GC9937@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Viresh Kumar <viresh.kumar@st.com>, Kevin Hilman <khilman@deeprootsystems.com>, Lennert Buytenhek <kernel@wantstofly.org>, linux-samsung-soc@vger.kernel.org, "Hans J. Koch" <hjk@linutronix.de>, Scott Branden <sbranden@broadcom.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Jiandong Zheng <jdzheng@broadcom.com>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>, Kukjin Kim <kgene.kim@samsung.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Daniel Walker <dwalker@codeaurora.org>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Bryan Huntsman <bryanh@codeaurora.org>Sascha Hauer <kernel@>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Fri, Dec 17, 2010 at 11:32:23AM +0000, Russell King - ARM Linux wrote:
+> Here is the entire set of clocksource and sched_clock patches which
+> have been previously posted.  There's a couple of small tweaks in a
+> few of the patches (such as adding notrace to OMAP clocksource read
+> functions), and this also shows the proper ordering of these patches.
+> 
+> Still looking for acks or tested-by's for these patches.
 
+Don't know if it helps, but I've tested the core patches on my picoxcell 
+series with the fixed versions and it works nicely.
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Tuesday, December 21, 2010 7:14 PM
-> To: Guruswamy, Senthilvadivu
-> Cc: khilman@deeprootsystems.com; paul@pwsan.com; Hiremath, Vaibhav; linux-
-> omap@vger.kernel.org
-> Subject: Re: [PATCH v2 04/17] OMAP2420,OMAP2430,OMAP3xx: change dss driver
-> name in clock files
-> 
-> Hi,
-> 
-> On Mon, 2010-11-29 at 17:21 +0530, ext Guruswamy Senthilvadivu wrote:
-> > From: Senthilvadivu Guruswamy <svadivu@ti.com>
-> >
-> > dss driver renamed to "omap_" is done to align all the omap device names
-> > with the same convention.
-> 
-> Does the driver work if you change the driver name from the clock files,
-> but not from the driver itself? Remember that things have to work after
-> each patch.
-[Senthil]  Yes, it was surprising for me to that it worked.  When I dig into the code, I found that it matches for dev->id and not dev->name.
-Yes, I have tested for bootup after each patch.  No crashes observed.  Errors like clk_get failed, can't get regulator would be given on some of the patches.
-> 
->  Tomi
+Tested-by: Jamie Iles <jamie@jamieiles.com>
 
+Jamie
