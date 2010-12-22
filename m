@@ -1,33 +1,34 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 13/14] OMAP2/3: PRCM: split OMAP2/3-specific PRCM code
- into OMAP2/3-specific files
-Date: Tue, 21 Dec 2010 21:10:16 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1012212109320.1446@utopia.booyaka.com>
-References: <20101207012242.3708.45451.stgit@twilight.localdomain> <20101207012516.3708.87606.stgit@twilight.localdomain> <alpine.DEB.2.00.1012142147040.15971@utopia.booyaka.com> <AANLkTikhp8157yegSb1G3gXAxF_SLo0Q1OEgsf2Bt0Cm@mail.gmail.com>
+Subject: Re: [PATCH] OMAP4: clocks: add dummy clock for mailbox
+Date: Tue, 21 Dec 2010 21:25:13 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1012212121380.1446@utopia.booyaka.com>
+References: <1290108000-16835-1-git-send-email-h-kanigeri2@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41148 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:52644 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751717Ab0LVEKR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 23:10:17 -0500
-In-Reply-To: <AANLkTikhp8157yegSb1G3gXAxF_SLo0Q1OEgsf2Bt0Cm@mail.gmail.com>
+	with ESMTP id S1751730Ab0LVEZT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Dec 2010 23:25:19 -0500
+In-Reply-To: <1290108000-16835-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Contreras <felipe.contreras@gmail.com>, Jarkko Nikula <jhnikula@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Hari Kanigeri <h-kanigeri2@ti.com>
+Cc: linux omap <linux-omap@vger.kernel.org>, b-cousson@ti.com, Tony Lindgren <tony@atomide.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-Hello Omar,
+On Thu, 18 Nov 2010, Hari Kanigeri wrote:
 
-On Wed, 15 Dec 2010, Ramirez Luna, Omar wrote:
+> In omap4, there is no explicit configuration register to enable mailbox clocks.
+> Defining dummy clock for mailbox clock module to keep the mailbox driver
+> backward compatible with previous omaps.
+> 
+> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 
-> I don't have a preference, I guess part of the license header makes
-> them even more noticeable.
+Thanks, queued for 2.6.38 as part of the "clk_b_2.6.38" branch on 
+git://git.pwsan.com/linux-2.6
 
-I wound up moving those comments below, per Felipe's comment.
+This patch appears in the integration tree as part of tag 
+'integration-2.6.38-20101221-011' at git://git.pwsan.com/linux-integration
 
-> Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-
-Thanks, ack added to the patch.
 
 - Paul
