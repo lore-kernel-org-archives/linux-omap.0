@@ -1,55 +1,47 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH v2 05/17] OMAP2,3 DSS Driver register moved to
- mach_omap2
-Date: Wed, 22 Dec 2010 13:36:00 +0200
-Message-ID: <1293017760.6829.11.camel@tubuntu>
-References: <1291031503-21036-1-git-send-email-svadivu@ti.com>
-	 <1291031503-21036-6-git-send-email-svadivu@ti.com>
-	 <1292939360.22441.57.camel@tubuntu>
-	 <FCCFB4CDC6E5564B9182F639FC356087035F28E448@dbde02.ent.ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 0/5] OMAP3&4: Fixes in setup/suspend/powerdomain
+Date: Wed, 22 Dec 2010 17:12:06 +0530
+Message-ID: <60c13a7f24404815ffec0d4a1415085c@mail.gmail.com>
+References: <1292276969-29733-1-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1012212043540.1446@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:50396 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751597Ab0LVLgH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Dec 2010 06:36:07 -0500
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087035F28E448@dbde02.ent.ti.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:53977 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751660Ab0LVLmI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Dec 2010 06:42:08 -0500
+Received: by gyg4 with SMTP id 4so2072583gyg.8
+        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 03:42:07 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1012212043540.1446@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
 
-On Wed, 2010-12-22 at 16:55 +0530, ext Guruswamy, Senthilvadivu wrote:
-> 
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Tuesday, December 21, 2010 7:19 PM
-> > To: Guruswamy, Senthilvadivu
-> > Cc: khilman@deeprootsystems.com; paul@pwsan.com; Hiremath, Vaibhav; linux-
-> > omap@vger.kernel.org
-> > Subject: Re: [PATCH v2 05/17] OMAP2,3 DSS Driver register moved to
-> > mach_omap2
-> > 
-> > On Mon, 2010-11-29 at 17:21 +0530, ext Guruswamy Senthilvadivu wrote:
-> > > From: Senthilvadivu Guruswamy <svadivu@ti.com>
-> > >
-> > > Move DSS driver register from board file to devices.c
-> > > Changed device name from omapdss to omap_display as the
-> > > driver takes care of panel information.
-> > 
-> > Here you do two separate things, adding the omap_display_init() and
-> > changing the driver name. The latter should be in the previous patch, I
-> > suppose.
-> [Senthil]  Yes, I can change the driver name first and then omap_display_init() as 2 small patches.  When I do this I have to do similarly for board files too.  Then the board file related changes alone would be 3 separate patches - 1. driver name change, 2.  omap_display_init, 3.  Regulator initialization being done with driver name
-> 
-> If this is fine, then I can send v3 version of the patch set.
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Wednesday, December 22, 2010 9:14 AM
+> To: santosh.shilimkar@ti.com
+> Cc: Benoit Cousson; rnayak@ti.com; linux-omap@vger.kernel.org;
+linux-arm-
+> kernel@lists.infradead.org; khilman@deeprootsystems.com
+> Subject: Re: [PATCH 0/5] OMAP3&4: Fixes in setup/suspend/powerdomain
+>
+> Hi Santosh,
+>
+> On Mon, 13 Dec 2010, Benoit Cousson wrote:
+>
+> > Santosh Shilimkar (2):
+> >   OMAP4: powerdomain: Remove L3INIT_PD OFF state
+> >   OMAP4: clock data: Keep L3INSTR clock domain modulemode under HW
+> control
+>
+> by the way, nice commit messages on these!
+>
+Thanks Paul!!
 
-Try to do one logical change in one patch, so for example when you
-change the driver name, change it in the clock files, board files and in
-the driver. That way the kernel stays whole after each patch.
+Kevin, Benoit and you are inspiration here.
 
- Tomi
-
-
+Regards,
+Santosh
