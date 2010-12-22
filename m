@@ -1,38 +1,49 @@
-From: Jamie Iles <jamie@jamieiles.com>
-Subject: Re: [PATCH 0/40] Complete set of clocksource/sched_clock patches
-Date: Wed, 22 Dec 2010 10:59:18 +0000
-Message-ID: <20101222105918.GA2838@pulham.picochip.com>
-References: <20101217113223.GC9937@n2100.arm.linux.org.uk>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Subject: RE: [PATCH v2 05/17] OMAP2,3 DSS Driver register moved to mach_omap2
+Date: Wed, 22 Dec 2010 16:55:32 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087035F28E448@dbde02.ent.ti.com>
+References: <1291031503-21036-1-git-send-email-svadivu@ti.com>
+	 <1291031503-21036-6-git-send-email-svadivu@ti.com>
+ <1292939360.22441.57.camel@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20101217113223.GC9937@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Viresh Kumar <viresh.kumar@st.com>, Kevin Hilman <khilman@deeprootsystems.com>, Lennert Buytenhek <kernel@wantstofly.org>, linux-samsung-soc@vger.kernel.org, "Hans J. Koch" <hjk@linutronix.de>, Scott Branden <sbranden@broadcom.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Jiandong Zheng <jdzheng@broadcom.com>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>, Kukjin Kim <kgene.kim@samsung.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Daniel Walker <dwalker@codeaurora.org>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Bryan Huntsman <bryanh@codeaurora.org>Sascha Hauer <kernel@>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47789 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751335Ab0LVLZm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 06:25:42 -0500
+In-Reply-To: <1292939360.22441.57.camel@tubuntu>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Dec 17, 2010 at 11:32:23AM +0000, Russell King - ARM Linux wrote:
-> Here is the entire set of clocksource and sched_clock patches which
-> have been previously posted.  There's a couple of small tweaks in a
-> few of the patches (such as adding notrace to OMAP clocksource read
-> functions), and this also shows the proper ordering of these patches.
+
+
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> Sent: Tuesday, December 21, 2010 7:19 PM
+> To: Guruswamy, Senthilvadivu
+> Cc: khilman@deeprootsystems.com; paul@pwsan.com; Hiremath, Vaibhav; linux-
+> omap@vger.kernel.org
+> Subject: Re: [PATCH v2 05/17] OMAP2,3 DSS Driver register moved to
+> mach_omap2
 > 
-> Still looking for acks or tested-by's for these patches.
+> On Mon, 2010-11-29 at 17:21 +0530, ext Guruswamy Senthilvadivu wrote:
+> > From: Senthilvadivu Guruswamy <svadivu@ti.com>
+> >
+> > Move DSS driver register from board file to devices.c
+> > Changed device name from omapdss to omap_display as the
+> > driver takes care of panel information.
+> 
+> Here you do two separate things, adding the omap_display_init() and
+> changing the driver name. The latter should be in the previous patch, I
+> suppose.
+[Senthil]  Yes, I can change the driver name first and then omap_display_init() as 2 small patches.  When I do this I have to do similarly for board files too.  Then the board file related changes alone would be 3 separate patches - 1. driver name change, 2.  omap_display_init, 3.  Regulator initialization being done with driver name
 
-Don't know if it helps, but I've tested the core patches on my picoxcell 
-series with the fixed versions and it works nicely.
-
-Tested-by: Jamie Iles <jamie@jamieiles.com>
-
-Jamie
+If this is fine, then I can send v3 version of the patch set.
+> 
+>  Tomi
+> 
