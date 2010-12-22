@@ -1,66 +1,45 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: Huge ubi or ubifs sync slowdown since 2.6.32
-Date: Wed, 22 Dec 2010 16:43:12 +0200
-Message-ID: <1293028992.12773.18.camel@localhost>
-References: <201012211136.22254.manningc2@actrix.gen.nz>
-Reply-To: dedekind1@gmail.com
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH v1 00/10] OMAP: McBSP: hwmod adaptation and runtime
+ conversion
+Date: Wed, 22 Dec 2010 17:42:57 +0200
+Message-ID: <20101222174257.06074d21.jhnikula@gmail.com>
+References: <1292917231-13800-1-git-send-email-kishon@ti.com>
+	<1292917231-13800-11-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f45.google.com ([209.85.214.45]:50082 "EHLO
+Received: from mail-bw0-f45.google.com ([209.85.214.45]:44675 "EHLO
 	mail-bw0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753110Ab0LVOo1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 09:44:27 -0500
-Received: by bwz16 with SMTP id 16so5785319bwz.4
-        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 06:43:56 -0800 (PST)
-In-Reply-To: <201012211136.22254.manningc2@actrix.gen.nz>
+	with ESMTP id S1752463Ab0LVPnM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 10:43:12 -0500
+Received: by bwz16 with SMTP id 16so5847790bwz.4
+        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 07:43:11 -0800 (PST)
+In-Reply-To: <1292917231-13800-11-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charles Manning <manningc2@actrix.gen.nz>
-Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@deeprootsystems.com, p-basak2@ti.com, b-cousson@ti.com
 
-On Tue, 2010-12-21 at 11:36 +1300, Charles Manning wrote:
-> Hi All
->=20
-> I've been looking into a ubifs performance regression on linux-omap 2=
-=2E6.37.
->=20
-> My test is pretty simple, copy a 2Mbyte file and sync.
->=20
-> # sync; date; cp 2Mbyte-file foo; sync; date
->=20
-> On 2.6.32 and earler, the time between the two dates was around 3 sec=
-onds.
-> On linux-omap master it is around 14 seconds. Ouch!
->=20
-> At first I thought the problem was due to changes in the OMAP nand dr=
-ivers,=20
-> but raw randwrite speed is actually a bit faster. This suggest the fi=
-nger=20
-> should be pointed at ubi or ubifs.
->=20
-> I then thought that perhaps the layout of my ubinized image might be =
-a=20
-> contributing factor so I erased the partition, ubiformatted and ubimk=
-voled.=20
-> The problem persisted,
->=20
-> Any suggestions as to what might be broken or how to debug this deepe=
-r?
+Hi
 
-Can you try this on nandsim and see if there are still differences? You
-can make nandsim slower by injecting an udelay somewhere. Try this on
-your x86 host - this way you'll narrow this down to an OMAP-specific or
-platform-independent problem.
+On Tue, 21 Dec 2010 13:10:31 +0530
+Kishon Vijay Abraham I <kishon@ti.com> wrote:
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+> Modify OMAP McBSP driver to use omap hwmod framework and pm runtime APIs.
+> 
+> Created on top of linux OMAP master (linux-omap-2.6 :master)
+> Tested on OMAP4430 and OMAP3430 SDP boards. Verified that this patch
+> series does not break the OMAP1 build.
+> 
+Is there some patches missing or conflict with head
+e8790546b376d9d77c541f8c17acb080e7342467 as the patch 02/10 doesn't
+apply?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applying: OMAP: McBSP: Convert McBSP to platform device model
+error: patch failed: arch/arm/mach-omap1/mcbsp.c:78
+error: arch/arm/mach-omap1/mcbsp.c: patch does not apply
+Patch failed at 0001 OMAP: McBSP: Convert McBSP to platform device model
+
+-- 
+Jarkko
