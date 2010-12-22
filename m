@@ -1,46 +1,48 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH 1/2] staging: tidspbridge: rmgr/node.c code cleanup
-Date: Wed, 22 Dec 2010 12:07:39 -0600
-Message-ID: <AANLkTim77Y6VZW7Dec2cWn3gGNwbSK0ufs2CH9SsSysM@mail.gmail.com>
-References: <1291931258-30744-1-git-send-email-ionut.nicu@mindbit.ro>
-	<1291931258-30744-2-git-send-email-ionut.nicu@mindbit.ro>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] OMAP3: fix typo in OMAP3_IVA_MASK
+Date: Wed, 22 Dec 2010 12:14:36 -0600
+Message-ID: <1293041676-1206-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:59521 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753315Ab0LVSHk convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Dec 2010 13:07:40 -0500
-Received: by mail-gx0-f170.google.com with SMTP id 20so3161519gxk.15
-        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 10:07:40 -0800 (PST)
-In-Reply-To: <1291931258-30744-2-git-send-email-ionut.nicu@mindbit.ro>
+Received: from comal.ext.ti.com ([198.47.26.152]:39282 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751928Ab0LVSOn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Dec 2010 13:14:43 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ionut Nicu <ionut.nicu@gmail.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
+To: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
+Cc: Tony <tony@atomide.com>, Arno Steffen <arno.steffen@googlemail.com>
 
-On Thu, Dec 9, 2010 at 3:47 PM, Ionut Nicu <ionut.nicu@gmail.com> wrote=
-:
-> Reorganized some code in rmgr/node.c to increase its
-> readability. Most of the changes reduce the code
-> indentation level and simplifiy the code. No functional
-> changes were done.
->
-> Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
-> ---
-> =A0drivers/staging/tidspbridge/rmgr/node.c | =A0607 ++++++++++++++---=
--------------
-> =A01 files changed, 283 insertions(+), 324 deletions(-)
+From: Arno Steffen <arno.steffen@googlemail.com>
 
-Pushed to dspbridge.
+OMAP3_IVA_MASK should use OMAP3_IVA_SHIFT instead of OMAP3_SGX_SHIFT
 
-Regards,
+Signed-off-by: Arno Steffen <arno.steffen@googlemail.com>
+---
+Tony,
+	looking at head:
+	http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/control.h/control.h;h=6e5f7e512ff7da063dbeb9448670f38cefd486e6;hb=HEAD
+	This is a missing fix we have'nt incorporated yet.
 
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+V2: posted to l-o and l-a and rebased to 2.6.37-rc7
+
+V1: http://marc.info/?t=129077184800003&r=1&w=2
+
+ arch/arm/mach-omap2/control.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index b6c6b7c..5325297 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -309,7 +309,7 @@
+ #define		FEAT_SGX_NONE		2
+ 
+ #define OMAP3_IVA_SHIFT			12
+-#define OMAP3_IVA_MASK			(1 << OMAP3_SGX_SHIFT)
++#define OMAP3_IVA_MASK			(1 << OMAP3_IVA_SHIFT)
+ #define		FEAT_IVA		0
+ #define		FEAT_IVA_NONE		1
+ 
+-- 
+1.6.3.3
+
