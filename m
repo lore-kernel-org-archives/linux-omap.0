@@ -1,47 +1,64 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 0/5] OMAP3&4: Fixes in setup/suspend/powerdomain
-Date: Wed, 22 Dec 2010 17:12:06 +0530
-Message-ID: <60c13a7f24404815ffec0d4a1415085c@mail.gmail.com>
-References: <1292276969-29733-1-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1012212043540.1446@utopia.booyaka.com>
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [PATCHv3] OMAP3: SDRC : Add comments on Errata i520 for Global SW reset
+Date: Wed, 22 Dec 2010 17:20:32 +0530
+Message-ID: <808cd11d80ad4ddf37509d4a8b21e9a1@mail.gmail.com>
+References: <AANLkTimJfH9zNmomurg1LSOsRKzRwJX4kaQRvpjJTdPt@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:53977 "EHLO
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:32790 "EHLO
 	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751660Ab0LVLmI (ORCPT
+	by vger.kernel.org with ESMTP id S1752117Ab0LVLud (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Dec 2010 06:42:08 -0500
-Received: by gyg4 with SMTP id 4so2072583gyg.8
-        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 03:42:07 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1012212043540.1446@utopia.booyaka.com>
+	Wed, 22 Dec 2010 06:50:33 -0500
+Received: by mail-fx0-f43.google.com with SMTP id 18so5479257fxm.30
+        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 03:50:33 -0800 (PST)
+In-Reply-To: <AANLkTimJfH9zNmomurg1LSOsRKzRwJX4kaQRvpjJTdPt@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>
+
+Paul,
+Pls ignore my other 2 emails. There were some issues in my mailbox.
+
+Vishwa
 
 > -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Wednesday, December 22, 2010 9:14 AM
-> To: santosh.shilimkar@ti.com
-> Cc: Benoit Cousson; rnayak@ti.com; linux-omap@vger.kernel.org;
-linux-arm-
-> kernel@lists.infradead.org; khilman@deeprootsystems.com
-> Subject: Re: [PATCH 0/5] OMAP3&4: Fixes in setup/suspend/powerdomain
+> From: Sripathy, Vishwanath [mailto:vishwanath.bs@ti.com]
+> Sent: Wednesday, December 22, 2010 1:58 PM
+> To: Paul Walmsley
+> Cc: linux-omap@vger.kernel.org; Premi, Sanjeev
+> Subject: RE: [PATCHv3] OMAP3: SDRC : Add comments on Errata i520
+> for Global SW reset
 >
-> Hi Santosh,
+> Paul,
 >
-> On Mon, 13 Dec 2010, Benoit Cousson wrote:
+> > -----Original Message-----
+> > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > Sent: Tuesday, October 05, 2010 8:48 PM
+> > To: Sripathy, Vishwanath
+> > Cc: linux-omap@vger.kernel.org; Premi, Sanjeev
+> > Subject: Re: [PATCHv3] OMAP3: SDRC : Add comments on Errata i520
+> > for Global SW reset
+> >
+> > On Tue, 5 Oct 2010, Vishwanath BS wrote:
+> >
+> > > This patch adds comments on precatution to be taken if Global
+> Warm
+> > reset is
+> > > used as the means to trigger sysem reset.
+> > >
+> > > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> > > Cc: Paul Walmsley <paul@pwsan.com>
+> >
+> > Thanks, queued for 2.6.38 with Sanjeev's spelling fix.
 >
-> > Santosh Shilimkar (2):
-> >   OMAP4: powerdomain: Remove L3INIT_PD OFF state
-> >   OMAP4: clock data: Keep L3INSTR clock domain modulemode under HW
-> control
+> Do you intend to merge this patch for 2.6.38? I did not see this in
+> your pull request.
 >
-> by the way, nice commit messages on these!
+> Vishwa
 >
-Thanks Paul!!
-
-Kevin, Benoit and you are inspiration here.
-
-Regards,
-Santosh
+> >
+> >
+> > - Paul
