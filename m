@@ -1,48 +1,66 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCHv3] OMAP3: SDRC : Add comments on Errata i520 for Global SW reset
-Date: Wed, 22 Dec 2010 13:58:19 +0530
-Message-ID: <AANLkTimJfH9zNmomurg1LSOsRKzRwJX4kaQRvpjJTdPt@mail.gmail.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH 1/7] omap3630: nand: fix device size to work in polled
+ mode
+Date: Wed, 22 Dec 2010 14:54:07 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036A3B0463@dbde02.ent.ti.com>
+References: <1290785677-16005-1-git-send-email-s-ghorai@ti.com>
+ <1290785677-16005-2-git-send-email-s-ghorai@ti.com>
+ <20101218000344.GV5941@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:41715 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752164Ab0LVI2U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Dec 2010 03:28:20 -0500
-Received: by mail-fx0-f46.google.com with SMTP id 20so4962156fxm.33
-        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 00:28:19 -0800 (PST)
+Received: from comal.ext.ti.com ([198.47.26.152]:35035 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751722Ab0LVJYQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 04:24:16 -0500
+In-Reply-To: <20101218000344.GV5941@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, "Premi, Sanjeev" <premi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Paul,
+
 
 > -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Tuesday, October 05, 2010 8:48 PM
-> To: Sripathy, Vishwanath
-> Cc: linux-omap@vger.kernel.org; Premi, Sanjeev
-> Subject: Re: [PATCHv3] OMAP3: SDRC : Add comments on Errata i520
-> for Global SW reset
->
-> On Tue, 5 Oct 2010, Vishwanath BS wrote:
->
-> > This patch adds comments on precatution to be taken if Global Warm
-> reset is
-> > used as the means to trigger sysem reset.
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Saturday, December 18, 2010 5:34 AM
+> To: Ghorai, Sukumar
+> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [PATCH 1/7] omap3630: nand: fix device size to work in polled
+> mode
+> 
+> * Sukumar Ghorai <s-ghorai@ti.com> [101126 07:25]:
+> > zoom3 and 3630-sdp having the x16 nand device.
+> > This patch configure gpmc as x16 and select the currect function in
+> driver
+> > for polled mode (without prefetch enable) transfer.
 > >
-> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
->
-> Thanks, queued for 2.6.38 with Sanjeev's spelling fix.
-
-Do you intend to merge this patch for 2.6.38? I did not see this in
-your pull request.
-
-Vishwa
-
->
->
-> - Paul
+> > Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/board-flash.c |    3 +++
+> >  1 files changed, 3 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-
+> omap2/board-flash.c
+> > index fd38c05..001c605 100644
+> > --- a/arch/arm/mach-omap2/board-flash.c
+> > +++ b/arch/arm/mach-omap2/board-flash.c
+> > @@ -145,6 +145,9 @@ __init board_nand_init(struct mtd_partition
+> *nand_parts, u8 nr_parts, u8 cs)
+> >  	board_nand_data.parts		= nand_parts;
+> >  	board_nand_data.nr_parts		= nr_parts;
+> >
+> > +	if (cpu_is_omap3630())
+> > +		board_nand_data.devsize = 1;
+> > +
+> >  	gpmc_nand_init(&board_nand_data);
+> >  }
+> >  #else
+> 
+> I guess this is board specific for the size, not omap specific?
+[Ghorai] Agree, the NAND type (i.e. x8 NAND or x16 NAND) is a board specific,
+So I will change the definition of board_nand_init() to pass the devsize form board file.
+And I will submit the patch-series again.
