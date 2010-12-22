@@ -1,64 +1,40 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCHv3] OMAP3: SDRC : Add comments on Errata i520 for Global SW reset
-Date: Wed, 22 Dec 2010 17:20:32 +0530
-Message-ID: <808cd11d80ad4ddf37509d4a8b21e9a1@mail.gmail.com>
-References: <AANLkTimJfH9zNmomurg1LSOsRKzRwJX4kaQRvpjJTdPt@mail.gmail.com>
+From: Srikar <ext-srikar.1.bhavanarayana@nokia.com>
+Subject: Re: [PATCH 2/2] enabled vdda_dac regulator support tvout on rx51
+Date: Wed, 22 Dec 2010 13:51:06 +0200
+Message-ID: <4D11E62A.4060701@nokia.com>
+References: <1290700343-26640-1-git-send-email-ext-srikar.1.bhavanarayana@nokia.com> <1290700343-26640-2-git-send-email-ext-srikar.1.bhavanarayana@nokia.com> <20101125161112.GB15099@sirena.org.uk> <4CEF8453.3070904@nokia.com> <20101126125949.GD30360@rakim.wolfsonmicro.main> <20101126174517.GE2990@atomide.com> <20101127101852.GA27579@opensource.wolfsonmicro.com> <20101129181830.GC17222@atomide.com> <20101129183703.GS30360@rakim.wolfsonmicro.main> <20101130173954.GO17222@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:32790 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752117Ab0LVLud (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Dec 2010 06:50:33 -0500
-Received: by mail-fx0-f43.google.com with SMTP id 18so5479257fxm.30
-        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 03:50:33 -0800 (PST)
-In-Reply-To: <AANLkTimJfH9zNmomurg1LSOsRKzRwJX4kaQRvpjJTdPt@mail.gmail.com>
+Received: from smtp.nokia.com ([147.243.128.26]:62306 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751826Ab0LVLv1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Dec 2010 06:51:27 -0500
+In-Reply-To: <20101130173954.GO17222@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, jhnikula@gmail.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Paul,
-Pls ignore my other 2 emails. There were some issues in my mailbox.
+Updated version of patch of this is available at
 
-Vishwa
+https://patchwork.kernel.org/patch/424731/
 
-> -----Original Message-----
-> From: Sripathy, Vishwanath [mailto:vishwanath.bs@ti.com]
-> Sent: Wednesday, December 22, 2010 1:58 PM
-> To: Paul Walmsley
-> Cc: linux-omap@vger.kernel.org; Premi, Sanjeev
-> Subject: RE: [PATCHv3] OMAP3: SDRC : Add comments on Errata i520
-> for Global SW reset
+
+
+On 11/30/2010 07:39 PM, ext Tony Lindgren wrote:
+> * Mark Brown <broonie@opensource.wolfsonmicro.com> [101129 10:27]:
+>> On Mon, Nov 29, 2010 at 10:18:31AM -0800, Tony Lindgren wrote:
+>>> * Mark Brown <broonie@opensource.wolfsonmicro.com> [101127 02:10]:
+>>>> Yeah.  Some of it will need to be __devinitdata for hotpluggable things
+>>>> but most of it should be __initdata.  I'll update the regulator API to
+>>>> copy the constraints before the next merge window.
+>>> OK sounds good to me.
+>> FWIW the patch is "regulator: Copy constraints from regulators when
+>> initialising them", posted for review today.
+> Great, once that merges we'll start checking what can be __init or
+> __init_or_module for the omap board-*.c files.
 >
-> Paul,
->
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Tuesday, October 05, 2010 8:48 PM
-> > To: Sripathy, Vishwanath
-> > Cc: linux-omap@vger.kernel.org; Premi, Sanjeev
-> > Subject: Re: [PATCHv3] OMAP3: SDRC : Add comments on Errata i520
-> > for Global SW reset
-> >
-> > On Tue, 5 Oct 2010, Vishwanath BS wrote:
-> >
-> > > This patch adds comments on precatution to be taken if Global
-> Warm
-> > reset is
-> > > used as the means to trigger sysem reset.
-> > >
-> > > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> > > Cc: Paul Walmsley <paul@pwsan.com>
-> >
-> > Thanks, queued for 2.6.38 with Sanjeev's spelling fix.
->
-> Do you intend to merge this patch for 2.6.38? I did not see this in
-> your pull request.
->
-> Vishwa
->
-> >
-> >
-> > - Paul
+> Tony
+
