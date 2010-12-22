@@ -1,68 +1,56 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: [PATCH 1/6] Add infrastructure for conditional code and data
- sections
-Date: Wed, 22 Dec 2010 19:42:47 +0100
-Message-ID: <20101222194247.35b571fc@surf>
-References: <1292955604-8809-1-git-send-email-thomas.petazzoni@free-electrons.com>
-	<1292955604-8809-2-git-send-email-thomas.petazzoni@free-electrons.com>
-	<20101221192735.GG5829@atomide.com>
-	<20101221230028.7d7d5e01@surf>
-	<20101222182841.GS5829@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] omap: rx51: Fix broken fb on RX51/N900
+Date: Wed, 22 Dec 2010 10:57:17 -0800
+Message-ID: <20101222185717.GA7771@atomide.com>
+References: <1292952335-21314-1-git-send-email-jhnikula@gmail.com>
+ <20101221202133.GJ5829@atomide.com>
+ <20101222085638.226a1269.jhnikula@gmail.com>
+ <1293011118.6829.0.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:54894 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753750Ab0LVSmy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 13:42:54 -0500
-In-Reply-To: <20101222182841.GS5829@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:38682 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489Ab0LVS5V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 13:57:21 -0500
+Content-Disposition: inline
+In-Reply-To: <1293011118.6829.0.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Thomas Petazzoni <t-petazzoni@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, 22 Dec 2010 10:28:41 -0800
-Tony Lindgren <tony@atomide.com> wrote:
-
-> > Nice to see that the idea is welcome. Did you had a look at the
-> > implementation in patch 1/6 ?
+* Tomi Valkeinen <tomi.valkeinen@nokia.com> [101222 01:45]:
+> On Wed, 2010-12-22 at 08:56 +0200, ext Jarkko Nikula wrote:
+> > On Tue, 21 Dec 2010 12:21:33 -0800
+> > Tony Lindgren <tony@atomide.com> wrote:
+> > 
+> > > * Jarkko Nikula <jhnikula@gmail.com> [101221 09:25]:
+> > > > Hi
+> > > > 
+> > > > Commit 60d24ee "Added video data to support tvout on rx51" broke the
+> > > > framebuffer on N900. Here are two patches where 1st one does a little cleanup
+> > > > to be sync with the 2nd fixing the issue. I've tested that both tvout and lcd
+> > > > are working.
+> > > 
+> > > Tomi, do you want to pick these three DSS/video related patches from Jarkko?
+> > > 
+> > > If so:
+> > > 
+> > > Acked-by: Tony Lindgren <tony@atomide.com>
+> > > 
+> > > else please ack and let me know if you want me to take them.
+> > > 
+> > I think these should go to linux-omap since the breakage is there and
+> > anyway touch only the rx51 board files.
 > 
-> No not yet, will take a look after we're done with this upcoming
-> merge window..
+> I agree, I don't have that commit in my tree. So Tony, please take the
+> patches.
+> 
+> For both patches:
+> 
+> Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Great, thanks.
+OK, thanks will queue.
 
-> Ideally the new sections would be arch/arm generic sections and not
-> omap specific. I could see ARMv6 and ARMv7 sections being one way
-> to group them, but that does not help to drop omap3 specific data
-> on omap4.
-
-The mechanism is architecture independent, not OMAP-specific or even
-ARM-specific (the only architecture-dependent part is the modification
-of the kernel linker script, but it's trivial to adapt to other arches).
-You can put as many sections as you want, you just need to declare some
-macros:
-
-#define __something_data cond_data_section(something)
-#define __something_text cond_text_section(something)
-
-and then mark whatever you want with __something_data or
-__something_text. It will then be part of separate sections, that are
-page-aligned so that they can independently be freed.
-
-For the moment, the API allows to tell which sections you want to
-*free*, but I think I should turn it into an API that allows to tell
-which sections you want to *keep*. This way, if you have sections for
-100 machines and you boot on a given machine, you only need to say "I'm
-using this section". At the end of the kernel boot process, all
-sections that have not been marked as useful would be removed.
-
-Regards,
-
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+Tony
