@@ -1,40 +1,51 @@
 From: Srikar <ext-srikar.1.bhavanarayana@nokia.com>
-Subject: Re: [PATCH 2/2] enabled vdda_dac regulator support tvout on rx51
-Date: Wed, 22 Dec 2010 13:51:06 +0200
-Message-ID: <4D11E62A.4060701@nokia.com>
-References: <1290700343-26640-1-git-send-email-ext-srikar.1.bhavanarayana@nokia.com> <1290700343-26640-2-git-send-email-ext-srikar.1.bhavanarayana@nokia.com> <20101125161112.GB15099@sirena.org.uk> <4CEF8453.3070904@nokia.com> <20101126125949.GD30360@rakim.wolfsonmicro.main> <20101126174517.GE2990@atomide.com> <20101127101852.GA27579@opensource.wolfsonmicro.com> <20101129181830.GC17222@atomide.com> <20101129183703.GS30360@rakim.wolfsonmicro.main> <20101130173954.GO17222@atomide.com>
+Subject: Re: [PATCH] omap: rx51: Remove tvout code that plays with gpio 40
+Date: Wed, 22 Dec 2010 13:55:38 +0200
+Message-ID: <4D11E73A.8070009@nokia.com>
+References: <1292953561-22979-1-git-send-email-jhnikula@gmail.com> <1293012004.6829.2.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:62306 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.1.47]:42352 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751826Ab0LVLv1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Dec 2010 06:51:27 -0500
-In-Reply-To: <20101130173954.GO17222@atomide.com>
+	id S1752217Ab0LVLzp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Dec 2010 06:55:45 -0500
+In-Reply-To: <1293012004.6829.2.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, jhnikula@gmail.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-Updated version of patch of this is available at
+Good, Now GPIO40 now supports switch between Headset and TV Out.
+Now updated ASoc Driver is  already available in upstream kernel to
+support the switching between Headset and TvOut ...
 
-https://patchwork.kernel.org/patch/424731/
-
-
-
-On 11/30/2010 07:39 PM, ext Tony Lindgren wrote:
-> * Mark Brown <broonie@opensource.wolfsonmicro.com> [101129 10:27]:
->> On Mon, Nov 29, 2010 at 10:18:31AM -0800, Tony Lindgren wrote:
->>> * Mark Brown <broonie@opensource.wolfsonmicro.com> [101127 02:10]:
->>>> Yeah.  Some of it will need to be __devinitdata for hotpluggable things
->>>> but most of it should be __initdata.  I'll update the regulator API to
->>>> copy the constraints before the next merge window.
->>> OK sounds good to me.
->> FWIW the patch is "regulator: Copy constraints from regulators when
->> initialising them", posted for review today.
-> Great, once that merges we'll start checking what can be __init or
-> __init_or_module for the omap board-*.c files.
+Srikar
+ 
+On 12/22/2010 12:00 PM, Tomi Valkeinen wrote:
+> On Tue, 2010-12-21 at 19:46 +0200, ext Jarkko Nikula wrote:
+>> Commit 60d24ee "Added video data to support tvout on rx51" added code that
+>> tries to assign gpio 40 as OMAP DSS reset_gpio for tvout. This is wrong
+>> since this gpio has nothing to do with OMAP DSS but it is used to control
+>> one switch that selects is the audio jack connected to tvout or audio
+>> circuitry.
+>>
+>> This switch is already supported by the RX51 ASoC driver so there is no need
+>> to control it elsewhere. Switch is contolled with ALSA control
+>> 'Jack Function' and tvout can be selected with following example:
+>>
+>> 	amixer -D hw:0 set 'Jack Function' 'TV-OUT'
+> Looks good. platform_enable/disable and reset_gpio fields should anyway
+> be removed from the omap_dss_device struct, so this goes into right
+> direction.
 >
-> Tony
+> Tony, can you take this patch also, as (I guess) it depends on the
+> previous rx51 patches from Jarkko?
+>
+> Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+>
+>  Tomi
+>
+>
 
