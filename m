@@ -1,47 +1,75 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] OMAP USB Changes for Merge Window
-Date: Thu, 23 Dec 2010 12:39:20 -0800
-Message-ID: <20101223203920.GQ7771@atomide.com>
-References: <20101223084734.GA3149@legolas.emea.dhcp.ti.com>
+Subject: Re: [PATCH] OMAP4: hwmod data: Fix SR flags, structures order and
+ field alignment
+Date: Thu, 23 Dec 2010 12:46:08 -0800
+Message-ID: <20101223204608.GR7771@atomide.com>
+References: <1293113700-24309-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56731 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64836 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751418Ab0LWUjZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 15:39:25 -0500
+	with ESMTP id S1752107Ab0LWUqM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 15:46:12 -0500
 Content-Disposition: inline
-In-Reply-To: <20101223084734.GA3149@legolas.emea.dhcp.ti.com>
+In-Reply-To: <1293113700-24309-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>
 
-* Felipe Balbi <balbi@ti.com> [101223 00:47]:
-> Hi Tony,
+* Benoit Cousson <b-cousson@ti.com> [101223 06:14]:
+> Smartreflex is missing the recently introduced SIDLE_SMART_WKUP
+> flag in idlemodes field.
+
+So this actually also changes something too?
+ 
+> The merge of the DMA and SR series on top of the already modified
+> omap_hwmod_data_44xx.c moved the dma_system structure at the wrong
+> position in the file. The same thing happened for the SR structure.
+> - Re-order the structures properly.
 > 
-> please queue the following two patches for Merge Window.
-> 
-> The following changes since commit b79540fcbbcf9b379c9197f63c5a883bbe3adfd4:
-> 
->    Linux-omap rebuilt: Merged branches from Paul and Kevin and mux changes (2010-12-22 19:13:33 -0800)
+> In order to be fully aligned with the Python generator output,
+> change a couple of fields.
+> - Add tab in class and dev_attr structures to align fields
+> - Add a comma at the end of the following line to simplify the
+>   code generation:
+>   ".pre_shutdown   = &omap2_wd_timer_disable,"
 
-This can't be pulled as it would pull in tons of non-mainline
-commits from the linux-omap master branch.
+To me it sounds like this should be at least two separate patches:
+One that adds the SIDLE_SMART_WKUP, then another patch that
+only does clean-up with no functional changes.
 
-Everybody, all the pullable branches must be based on something
-in the mainline kernel, like a recent -rc tag. If that won't work,
-then some commit needs to be agreed on separately that will go
-to mainline, like the omap-for-linus branch.
+Also this patch applied (contactenated multiple patches?) turns
+into a hard to read interleaved patch for some parts:
 
-Further, please wait few days before sending the pull request
-in case somebody wants to ack your patches. Sending a pull request
-with the patches to be reviewed is kind of pointless.. Sure in this
-case these are pretty trivial patches, but still.
+-static struct omap_hwmod_irq_info omap44xx_uart2_irqs[] = {
+-	{ .irq = 73 + OMAP44XX_IRQ_GIC_START },
+-};
+-
+-static struct omap_hwmod_dma_info omap44xx_uart2_sdma_reqs[] = {
+-	{ .name = "tx", .dma_req = 50 + OMAP44XX_DMA_REQ_START },
+-	{ .name = "rx", .dma_req = 51 + OMAP44XX_DMA_REQ_START },
++/* smartreflex_iva */
++static struct omap_hwmod omap44xx_smartreflex_iva_hwmod;
++static struct omap_hwmod_irq_info omap44xx_smartreflex_iva_irqs[] = {
++	{ .irq = 102 + OMAP44XX_IRQ_GIC_START },
+ };
+ 
+-static struct omap_hwmod_addr_space omap44xx_uart2_addrs[] = {
++static struct omap_hwmod_addr_space omap44xx_smartreflex_iva_addrs[] = {
+ 	{
+-		.pa_start	= 0x4806c000,
+-		.pa_end		= 0x4806c0ff,
++		.pa_start	= 0x4a0db000,
++		.pa_end		= 0x4a0db03f,
+ 		.flags		= ADDR_TYPE_RT
+ 	},
+ };
+...
 
-Anyways, I'll apply these into a temporary branch and will
-merge into omap-for-linus within next few days assuming no
-problems.
+So sounds like your original three patches would be the better
+way to go.
 
 Regards,
 
