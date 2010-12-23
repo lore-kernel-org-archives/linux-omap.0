@@ -1,86 +1,61 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: [PATCH 1/6] Add infrastructure for conditional code and data
- sections
-Date: Thu, 23 Dec 2010 13:44:21 +0100
-Message-ID: <20101223134421.6f33effd@surf>
-References: <1292955604-8809-1-git-send-email-thomas.petazzoni@free-electrons.com>
-	<1292955604-8809-2-git-send-email-thomas.petazzoni@free-electrons.com>
-	<20101221192735.GG5829@atomide.com>
-	<20101221230028.7d7d5e01@surf>
-	<20101222182841.GS5829@atomide.com>
-	<alpine.DEB.1.10.1012231406120.18898@esdhcp041196.research.nokia.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH v5 4/5] OMAP4: hwmod: Add inital data for smartreflex modules.
+Date: Thu, 23 Dec 2010 07:25:42 -0600
+Message-ID: <AANLkTi=P-3aQSk3Q2WyAAp-8WwwtxC_aOGLW+7WGd4mj@mail.gmail.com>
+References: <1292864437-15353-1-git-send-email-thara@ti.com>
+ <1292864437-15353-5-git-send-email-thara@ti.com> <4D133B78.5030807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:36218 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268Ab0LWMo1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 07:44:27 -0500
-In-Reply-To: <alpine.DEB.1.10.1012231406120.18898@esdhcp041196.research.nokia.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:37067 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751493Ab0LWN0E convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Dec 2010 08:26:04 -0500
+Received: by wyb28 with SMTP id 28so6021406wyb.39
+        for <linux-omap@vger.kernel.org>; Thu, 23 Dec 2010 05:26:02 -0800 (PST)
+In-Reply-To: <4D133B78.5030807@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Thomas Petazzoni <t-petazzoni@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-On Thu, 23 Dec 2010 14:31:46 +0200 (EET)
-Aaro Koskinen <aaro.koskinen@nokia.com> wrote:
+On Thu, Dec 23, 2010 at 06:07, Cousson, Benoit <b-cousson@ti.com> wrote=
+:
 
-> > No not yet, will take a look after we're done with this upcoming
-> > merge window..
-> 
-> I also think the idea is good, and this should be maybe posted to wider
-> audience than just linux-omap.
+>
+> Please note the following log when enabling SR in Class 3 on an OMAP4=
+430/sdp:
+>
+> [ =A0 =A02.362182] omap2_set_init_voltage: unable to find boot up OPP=
+ for vdd_mpu
+> [ =A0 =A02.369384] omap2_set_init_voltage: Unable to put vdd_mpu to i=
+ts init voltage
+> [ =A0 =A02.369384]
+> [ =A0 =A02.378875] omap2_set_init_voltage: unable to find boot up OPP=
+ for vdd_iva
+> [ =A0 =A02.386108] omap2_set_init_voltage: Unable to put vdd_iva to i=
+ts init voltage
+> [ =A0 =A02.386108]
+> [ =A0 =A02.396484] Power Management for TI OMAP4.
+> [ =A0 =A02.401031] sr_init: No PMIC hook to init smartreflex
+> [ =A0 =A02.406494] smartreflex smartreflex.0: omap_sr_probe: SmartRef=
+lex driver initialized
+> [ =A0 =A02.414825] smartreflex smartreflex.1: omap_sr_probe: SmartRef=
+lex driver initialized
+> [ =A0 =A02.423187] smartreflex smartreflex.2: omap_sr_probe: SmartRef=
+lex driver initialized
+> [ =A0 =A02.431732] SmartReflex Class3 initialized
+>
+Dumb question: how are you testing this? just boot log? or additional
+patch for DVFS?
 
-Yes, definitely. As the proof of concept implementation was
-demonstrating usage on OMAP, I wanted to have some early comments of
-a few kernel developers before going to a wider audience.
-
-> > Yeah I don't know how much non-init data we have for each board-*.c
-> > file. Maybe there is not much for each machine.
-> 
-> I took a quick look at omap2plus_defconfig kernel, and non-init text/data
-> for 29 boards takes 85K. If we would page align those memory consumption
-> would increase during init to 29*8=232K, but after other boards are
-> freed we would eventually save 85-8=77K.
-
-Thanks for those numbers. 77K is nice, but is not really a huge saving.
-
-> Under mach-omap2, another big consumer is clock data which takes also
-> around 80 K, while e.g. on 2420 only 14 K is needed.
-
-My patch 3/6 (which didn't make it to the list, since it was probably
-too large) already marked some OMAP2 clock data.
-
-Unfortunately, I haven't found a nice way of putting strings into a
-separate sections. For example:
-
-static struct foobar __omap2 foo = {
-	.name = "blabla",
-	.id   = 12,
-};
-
-The "struct foobar" goes into the OMAP2-specific section (8 bytes), but
-the "blabla" string (6 bytes) remains in the global .rodata section,
-without anyway from removing it. The only solution I see so far would
-be :
-
-static char __omap2 foo_name[] = "blabla";
-
-static struct foobar __omap2 foo = {
-	.name = foo_name,
-	.id = 12,
-};
-
-but it's really unpleasant.
-
-Other ideas ?
 
 Regards,
-
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
