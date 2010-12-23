@@ -1,122 +1,139 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/6] omap: Board specific muxing using hwmod
-Date: Wed, 22 Dec 2010 19:07:58 -0800
-Message-ID: <20101223030757.GL7771@atomide.com>
-References: <20101203004040.31687.9476.stgit@baageli.muru.com>
- <alpine.DEB.2.00.1012210739570.1446@utopia.booyaka.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the usb tree with the omap tree
+Date: Thu, 23 Dec 2010 17:18:59 +1100
+Message-ID: <20101223171859.f6842045.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:12864 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752220Ab0LWDID (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 22:08:03 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1012210739570.1446@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [101221 09:03]:
-> Hi,
-> 
-> On Thu, 2 Dec 2010, Tony Lindgren wrote:
-> 
-> > Here are some patches to allow us to pass the board specific mux data
-> > to the platform level device init code, and then allow hwmod state
-> > changes to do the pin muxing.
-> > 
-> > Dynamic remuxing is also supported as needed, the last patch in this
-> > series sets up the board-*.c data for n8x0 to do uart3 rx pin remuxing
-> > for the idle modes.
-> 
-> Tony and I have been discussing these patches recently.  Here are some of 
-> the topics from that conversation, to share with the lists.  Tony, I hope 
-> I've summarized our discussions accurately; please correct anything you 
-> feel I've misstated below.  For those new to OMAP mux/padconf discussions, 
-> there is a short glossary at the bottom of this message that might be 
-> useful.
+Hi Greg,
 
-Yeah, that's a good summary, adding few more comments below.
- 
-> - We also discussed that it might make sense to defer adding a bdata the 
-> omap_device_build() interface for this merge window, until we had a better 
-> sense of the use cases and how the board data relates to the 
-> platform_data.  We agreed that, in general, we should try to move as much 
-> of the common padconf details as possible out of the individual board 
-> files.
+Today's linux-next merge of the usb tree got a conflict in
+arch/arm/mach-omap2/clock3xxx_data.c and
+arch/arm/mach-omap2/clock44xx_data.c between various commits from the omap
+tree and various commits from the usb tree.
 
-I've now dropped the omap_device_build parts from the patches. For now,
-we can populate the hwmod mux data from each platform init function.
- 
-> Based on the discussion and review, I had a few specific comments on the 
-> patches:
-> 
-> - It looks like patch 6 can use static mux directives for all but one of 
-> its dynamic padconf reprogramming entries (uart3_rx_irrx).  In terms of 
-> enable/idle padconf reprogramming, it might be worth trying to minimize 
-> the number of these, since many IP blocks can switch frequently between 
-> idled and enabled states.
+I did a quick fix (which may be completely wrong - see below).
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-Good point, I've changed the n8x0 related patch to keep uart3 rx there
-for now. In the long run we probably want to have a separate list for
-dynamic pins. The other pins we should still enable during init and disable
-when the driver is removed. But that can be added later.
- 
-> - It seems like it might be problematic to program CONTROL_PADCONF 
-> registers based on the enabled/idled/shutdown state of a single hwmod.  
-> This is because the CONTROL_PADCONF settings affect multiple hwmods.  For 
-> example, the correct setting of ETK_D1 pad on OMAP3 can depend on the 
-> state of several different hwmods: ETK, McSPI3, HSUSB, GPIO1.  If dynamic 
-> padconf reprogramming directives for the same pad(s) (e.g., ETK_D1) are 
-> associated with more than one of these hwmods, then the final padconf 
-> setting could be unpredictable: basically, the last hwmod to change state 
-> will be the one that determines the setting of the padconf register.  
-> Ultimately, it may be necessary to make dynamic padconf reprogramming 
-> directives conditional on the states of all of the hwmods that are 
-> associated with a pad.  For example, something like this:
-> 
-> omap_mux_add_dynamic_remux(etk_hwmod,    HWMOD_STATE_NOT_ENABLED,
-> 	                   mcspi3_hwmod, HWMOD_STATE_ENABLED,
->                            hsusb1_hwmod, HWMOD_STATE_NOT_ENABLED,
->                            gpio1_hwmod,  HWMOD_STATE_DONT_CARE,
->                            "etk_d1", OMAP_MUX_MODE1)
-> 
-> meaning that pad "etk_d1" would only be programmed to mode 1 (mcspi3_somi)
-> when:
-> 
-> (etk_hwmod_state != HWMOD_STATE_ENABLED) &&
-> (mcspi3_hwmod_state == HWMOD_STATE_ENABLED) &&
-> (hsusb1_hwmod == HWMOD_STATE_NOT_ENABLED)
-> 
-> This may not be necessary to implement right away, since the use cases are 
-> not clear; and code to implement this will need some careful engineering 
-> to keep it from becoming too heavyweight.  If it does become necessary, it 
-> seems that this type of data would then be best stored in some higher 
-> layer than the struct hwmod.
-
-Yes these kind of issues need to be dealt separately. Probably the best
-place to deal with shared pins in each board-*.c file.
- 
-> We also discussed one other general comment about the mux layer - not 
-> related to these patches.  Since some signals can appear on multiple pads, 
-> at some point in the future, maybe in the future it might be useful to 
-> allow board files to specify their pad configurations in terms of (package 
-> ID, ball ID) -> (signal ID) -- so, for example, (CUS, AC11) -> (gpio_81).  
-> The idea being that the board designer, using a PCB design tool, might 
-> someday be able to export a list of padconf settings out of their EDA 
-> tools that we could use in the board files.  Looking at the OMAP3530 IBIS 
-> model at 
-> 
->    http://focus.ti.com/lit/mo/symlink/omap3530-25_cus__ibis_model.ibs
-> 
-> it includes both the ball ID (which it calls the "pin") and the pad/mode 0 
-> name (which it calls the "signal name").
-
-That can be added easily, but depends on CONFIG_DEBUG_FS for the ball IDs
-currently.
-
-Regards,
-
-Tony
+diff --cc arch/arm/mach-omap2/clock3xxx_data.c
+index 9ab817e,0579604..0000000
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@@ -3275,17 -3267,18 +3275,18 @@@ static struct omap_clk omap3xxx_clks[] 
+  	CLK(NULL,	"gfx_l3_ick",	&gfx_l3_ick,	CK_3430ES1),
+  	CLK(NULL,	"gfx_cg1_ck",	&gfx_cg1_ck,	CK_3430ES1),
+  	CLK(NULL,	"gfx_cg2_ck",	&gfx_cg2_ck,	CK_3430ES1),
+ -	CLK(NULL,	"sgx_fck",	&sgx_fck,	CK_3430ES2 | CK_3517),
+ -	CLK(NULL,	"sgx_ick",	&sgx_ick,	CK_3430ES2 | CK_3517),
+ +	CLK(NULL,	"sgx_fck",	&sgx_fck,	CK_3430ES2PLUS | CK_3517 | CK_36XX),
+ +	CLK(NULL,	"sgx_ick",	&sgx_ick,	CK_3430ES2PLUS | CK_3517 | CK_36XX),
+  	CLK(NULL,	"d2d_26m_fck",	&d2d_26m_fck,	CK_3430ES1),
+ -	CLK(NULL,	"modem_fck",	&modem_fck,	CK_343X),
+ -	CLK(NULL,	"sad2d_ick",	&sad2d_ick,	CK_343X),
+ -	CLK(NULL,	"mad2d_ick",	&mad2d_ick,	CK_343X),
+ +	CLK(NULL,	"modem_fck",	&modem_fck,	CK_34XX | CK_36XX),
+ +	CLK(NULL,	"sad2d_ick",	&sad2d_ick,	CK_34XX | CK_36XX),
+ +	CLK(NULL,	"mad2d_ick",	&mad2d_ick,	CK_34XX | CK_36XX),
+  	CLK(NULL,	"gpt10_fck",	&gpt10_fck,	CK_3XXX),
+  	CLK(NULL,	"gpt11_fck",	&gpt11_fck,	CK_3XXX),
+ -	CLK(NULL,	"cpefuse_fck",	&cpefuse_fck,	CK_3430ES2 | CK_AM35XX),
+ -	CLK(NULL,	"ts_fck",	&ts_fck,	CK_3430ES2 | CK_AM35XX),
+ -	CLK(NULL,	"usbtll_fck",	&usbtll_fck,	CK_3430ES2 | CK_AM35XX),
+ +	CLK(NULL,	"cpefuse_fck",	&cpefuse_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ +	CLK(NULL,	"ts_fck",	&ts_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ +	CLK(NULL,	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
++ 	CLK("ehci-omap.0",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2 | CK_AM35XX),
+  	CLK("omap-mcbsp.1",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
+  	CLK("omap-mcbsp.5",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
+  	CLK(NULL,	"core_96m_fck",	&core_96m_fck,	CK_3XXX),
+@@@ -3309,26 -3302,27 +3310,27 @@@
+  	CLK(NULL,	"core_12m_fck",	&core_12m_fck,	CK_3XXX),
+  	CLK("omap_hdq.0", "fck",	&hdq_fck,	CK_3XXX),
+  	CLK(NULL,	"ssi_ssr_fck",	&ssi_ssr_fck_3430es1,	CK_3430ES1),
+ -	CLK(NULL,	"ssi_ssr_fck",	&ssi_ssr_fck_3430es2,	CK_3430ES2),
+ +	CLK(NULL,	"ssi_ssr_fck",	&ssi_ssr_fck_3430es2,	CK_3430ES2PLUS | CK_36XX),
+  	CLK(NULL,	"ssi_sst_fck",	&ssi_sst_fck_3430es1,	CK_3430ES1),
+ -	CLK(NULL,	"ssi_sst_fck",	&ssi_sst_fck_3430es2,	CK_3430ES2),
+ +	CLK(NULL,	"ssi_sst_fck",	&ssi_sst_fck_3430es2,	CK_3430ES2PLUS | CK_36XX),
+  	CLK(NULL,	"core_l3_ick",	&core_l3_ick,	CK_3XXX),
+- 	CLK("musb_hdrc",	"ick",	&hsotgusb_ick_3430es1,	CK_3430ES1),
+- 	CLK("musb_hdrc",	"ick",	&hsotgusb_ick_3430es2,	CK_3430ES2PLUS | CK_36XX),
++ 	CLK("musb-omap2430",	"ick",	&hsotgusb_ick_3430es1,	CK_3430ES1),
+ -	CLK("musb-omap2430",	"ick",	&hsotgusb_ick_3430es2,	CK_3430ES2),
+++	CLK("musb-omap2430",	"ick",	&hsotgusb_ick_3430es2,	CK_3430ES2PLUS | CK_36XX),
+  	CLK(NULL,	"sdrc_ick",	&sdrc_ick,	CK_3XXX),
+  	CLK(NULL,	"gpmc_fck",	&gpmc_fck,	CK_3XXX),
+ -	CLK(NULL,	"security_l3_ick", &security_l3_ick, CK_343X),
+ -	CLK(NULL,	"pka_ick",	&pka_ick,	CK_343X),
+ +	CLK(NULL,	"security_l3_ick", &security_l3_ick, CK_34XX | CK_36XX),
+ +	CLK(NULL,	"pka_ick",	&pka_ick,	CK_34XX | CK_36XX),
+  	CLK(NULL,	"core_l4_ick",	&core_l4_ick,	CK_3XXX),
+ -	CLK(NULL,	"usbtll_ick",	&usbtll_ick,	CK_3430ES2 | CK_AM35XX),
+ +	CLK(NULL,	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
++ 	CLK("ehci-omap.0",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2 | CK_AM35XX),
+ -	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2 | CK_AM35XX),
+ -	CLK(NULL,	"icr_ick",	&icr_ick,	CK_343X),
+ -	CLK("omap-aes",	"ick",	&aes2_ick,	CK_343X),
+ -	CLK("omap-sham",	"ick",	&sha12_ick,	CK_343X),
+ -	CLK(NULL,	"des2_ick",	&des2_ick,	CK_343X),
+ +	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ +	CLK(NULL,	"icr_ick",	&icr_ick,	CK_34XX | CK_36XX),
+ +	CLK("omap-aes",	"ick",	&aes2_ick,	CK_34XX | CK_36XX),
+ +	CLK("omap-sham",	"ick",	&sha12_ick,	CK_34XX | CK_36XX),
+ +	CLK(NULL,	"des2_ick",	&des2_ick,	CK_34XX | CK_36XX),
+  	CLK("mmci-omap-hs.1",	"ick",	&mmchs2_ick,	CK_3XXX),
+  	CLK("mmci-omap-hs.0",	"ick",	&mmchs1_ick,	CK_3XXX),
+ -	CLK(NULL,	"mspro_ick",	&mspro_ick,	CK_343X),
+ +	CLK(NULL,	"mspro_ick",	&mspro_ick,	CK_34XX | CK_36XX),
+  	CLK("omap_hdq.0", "ick",	&hdq_ick,	CK_3XXX),
+  	CLK("omap2_mcspi.4", "ick",	&mcspi4_ick,	CK_3XXX),
+  	CLK("omap2_mcspi.3", "ick",	&mcspi3_ick,	CK_3XXX),
+@@@ -3361,14 -3355,17 +3363,17 @@@
+  	CLK("omapdss",	"video_fck",	&dss_96m_fck,	CK_3XXX),
+  	CLK("omapdss",	"dss2_fck",	&dss2_alwon_fck, CK_3XXX),
+  	CLK("omapdss",	"ick",		&dss_ick_3430es1,	CK_3430ES1),
+ -	CLK("omapdss",	"ick",		&dss_ick_3430es2,	CK_3430ES2 | CK_AM35XX),
+ -	CLK(NULL,	"cam_mclk",	&cam_mclk,	CK_343X),
+ -	CLK(NULL,	"cam_ick",	&cam_ick,	CK_343X),
+ -	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck,	CK_343X),
+ -	CLK(NULL,	"usbhost_120m_fck", &usbhost_120m_fck, CK_3430ES2 | CK_AM35XX),
+ +	CLK("omapdss",	"ick",		&dss_ick_3430es2,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ +	CLK(NULL,	"cam_mclk",	&cam_mclk,	CK_34XX | CK_36XX),
+ +	CLK(NULL,	"cam_ick",	&cam_ick,	CK_34XX | CK_36XX),
+ +	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck,	CK_34XX | CK_36XX),
+ +	CLK(NULL,	"usbhost_120m_fck", &usbhost_120m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
++ 	CLK("ehci-omap.0",	"hs_fck", &usbhost_120m_fck, CK_3430ES2 | CK_AM35XX),
+ -	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2 | CK_AM35XX),
+ +	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
++ 	CLK("ehci-omap.0",	"fs_fck", &usbhost_48m_fck, CK_3430ES2 | CK_AM35XX),
+ -	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2 | CK_AM35XX),
+ +	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
++ 	CLK("ehci-omap.0",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2 | CK_AM35XX),
+ -	CLK(NULL,	"usim_fck",	&usim_fck,	CK_3430ES2),
+ +	CLK(NULL,	"usim_fck",	&usim_fck,	CK_3430ES2PLUS | CK_36XX),
+  	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_3XXX),
+  	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_3XXX),
+  	CLK(NULL,	"gpio1_dbck",	&gpio1_dbck,	CK_3XXX),
+diff --cc arch/arm/mach-omap2/clock44xx_data.c
+index c426adc,bfcd19f..0000000
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@@ -3198,6 -2937,10 +3198,7 @@@ static struct omap_clk omap44xx_clks[] 
+  	CLK(NULL,	"uart3_fck",			&uart3_fck,	CK_443X),
+  	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_443X),
+  	CLK(NULL,	"usb_host_fs_fck",		&usb_host_fs_fck,	CK_443X),
++ 	CLK("ehci-omap.0",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
+ -	CLK(NULL,	"usb_host_hs_utmi_p3_clk",	&usb_host_hs_utmi_p3_clk,	CK_443X),
+ -	CLK(NULL,	"usb_host_hs_hsic60m_p1_clk",	&usb_host_hs_hsic60m_p1_clk,	CK_443X),
+ -	CLK(NULL,	"usb_host_hs_hsic60m_p2_clk",	&usb_host_hs_hsic60m_p2_clk,	CK_443X),
+  	CLK(NULL,	"utmi_p1_gfclk",		&utmi_p1_gfclk,	CK_443X),
+  	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&usb_host_hs_utmi_p1_clk,	CK_443X),
+  	CLK(NULL,	"utmi_p2_gfclk",		&utmi_p2_gfclk,	CK_443X),
