@@ -1,55 +1,65 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP2: PM: fix compile error when !CONFIG_SUSPEND
-Date: Wed, 22 Dec 2010 15:04:17 -0800
-Message-ID: <1293059057-16490-1-git-send-email-khilman@deeprootsystems.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH] dspbridge: Fix atoi to support hexadecimal numbers correctly
+Date: Wed, 22 Dec 2010 19:00:16 -0600
+Message-ID: <AANLkTikYnqjxpm85StwQq89b9=1_vQTt9DObeS5nwC_6@mail.gmail.com>
+References: <1292161177-5266-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:41234 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751394Ab0LVXEV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Dec 2010 18:04:21 -0500
-Received: by pzk9 with SMTP id 9so1840907pzk.1
-        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 15:04:20 -0800 (PST)
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:45599 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752350Ab0LWBAR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Dec 2010 20:00:17 -0500
+Received: by mail-yw0-f41.google.com with SMTP id 3so2826065ywj.0
+        for <linux-omap@vger.kernel.org>; Wed, 22 Dec 2010 17:00:16 -0800 (PST)
+In-Reply-To: <1292161177-5266-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Charles Manning <manningc2@actrix.gen.nz>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, rene.sapiens@ti.com, ernesto@ti.com, felipe.contreras@gmail.com, ionut.nicu@gmail.com
 
-When CONFIG_SUSPEND is not enabled, none of the system PM methods are
-used, so do not compile them in.
+On Sun, Dec 12, 2010 at 7:39 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> For some strange reason, the DSP base image node/object properties
+> description string stores hexadecimal numbers with a 'h' or 'H' suffi=
+x
+> instead of a '0x' prefix. This causes parsing issue because the
+> dspbridge atoi() implementation relies on strict_strtoul(), which wil=
+l
+> return an error because of the trailing 'h' character.
+>
+> As the atoi() return value is never checked for an error anyway, repl=
+ace
+> strict_strtoul() with simple_strtoul() to ignore the suffix.
+>
+> This fix gets rid of the following assertion failed messages that wer=
+e
+> printed when running the dsp-dummy test application.
+>
+> drivers/staging/tidspbridge/rmgr/nldr.c, line 1691:
+> Assertion (segid =3D=3D MEMINTERNALID || segid =3D=3D MEMEXTERNALID) =
+failed.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+> =A0drivers/staging/tidspbridge/rmgr/dbdcd.c | =A0 =A06 +-----
+> =A01 files changed, 1 insertions(+), 5 deletions(-)
 
-Thanks to Charles Manning for reporting the problem and proposing
-an initial patch.
+This patch raises a checkpatch warning:
+WARNING: consider using strict_strtoul in preference to simple_strtoul
 
-Reported-by: Charles Manning <manningc2@actrix.gen.nz>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Applies on Tony's omap-for-linus branch.
+However on this case, simple_strtoul is preferred as explained in the c=
+ommit.
 
- arch/arm/mach-omap2/pm24xx.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+Pushed to dspbridge.
 
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 2844b84..dac2d1d 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -299,6 +299,7 @@ out:
- 	local_irq_enable();
- }
- 
-+#ifdef CONFIG_SUSPEND
- static int omap2_pm_begin(suspend_state_t state)
- {
- 	disable_hlt();
-@@ -355,6 +356,9 @@ static struct platform_suspend_ops omap_pm_ops = {
- 	.end		= omap2_pm_end,
- 	.valid		= suspend_valid_only_mem,
- };
-+#else
-+static const struct platform_suspend_ops __initdata omap_pm_ops;
-+#endif /* CONFIG_SUSPEND */
- 
- /* XXX This function should be shareable between OMAP2xxx and OMAP3 */
- static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
--- 
-1.7.3.4
+Thanks,
 
+Omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
