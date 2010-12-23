@@ -1,160 +1,44 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v5 1/1] OMAP2: Spi: Force CS to be in inactive state
- after off-mode transition
-Date: Thu, 23 Dec 2010 16:08:28 -0700
-Message-ID: <20101223230828.GP20384@angua.secretlab.ca>
-References: <4CED8F6E.3000808@free-electrons.com>
- <87y68i447o.fsf@deeprootsystems.com>
+From: Ben Gamari <bgamari.foss@gmail.com>
+Subject: Re: [PATCH] mcspi: Add support for GPIO chip select lines
+Date: Thu, 23 Dec 2010 18:09:47 -0500
+Message-ID: <871v58xf0k.fsf@gmail.com>
+References: <1b68c6791001272033q60dd31dbif4de285cd9bac83d@mail.gmail.com> <1292954195-20204-2-git-send-email-bgamari.foss@gmail.com> <AANLkTi=L+ZfwVy+O=oAXx8EHGisCdW1Pg4U+dQa4ZzEN@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f194.google.com ([209.85.210.194]:44710 "EHLO
-	mail-iy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193Ab0LWXIc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 18:08:32 -0500
-Received: by iyf40 with SMTP id 40so2938529iyf.1
-        for <linux-omap@vger.kernel.org>; Thu, 23 Dec 2010 15:08:31 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <87y68i447o.fsf@deeprootsystems.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:56985 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193Ab0LWXJu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 18:09:50 -0500
+Received: by qyk12 with SMTP id 12so7354551qyk.19
+        for <linux-omap@vger.kernel.org>; Thu, 23 Dec 2010 15:09:50 -0800 (PST)
+In-Reply-To: <AANLkTi=L+ZfwVy+O=oAXx8EHGisCdW1Pg4U+dQa4ZzEN@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Gregory CLEMENT <gregory.clement@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>, spi-devel-general@lists.sourceforge.net, David Brownell <dbrownell@users.sourceforge.net>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: beagleboard <beagleboard@googlegroups.com>, linux-omap <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Eric Miao <eric.miao@marvell.com>, Michael Hennerich <michael.hennerich@analog.com>, spi-devel-general <spi-devel-general@lists.sourceforge.net>
 
-On Wed, Nov 24, 2010 at 04:49:47PM -0800, Kevin Hilman wrote:
-> Gregory CLEMENT <gregory.clement@free-electrons.com> writes:
+On Thu, 23 Dec 2010 14:38:57 -0700, Grant Likely <grant.likely@secretlab.ca> wrote:
+> On Tue, Dec 21, 2010 at 10:56 AM, Ben Gamari <bgamari.foss@gmail.com> wrote:
+> > This mechanism is in large part stolen from the s3c64xx-spi module. To
+> > use this functionality, one simply must define a set_level function to
+> > set the CS state and a omap2_mcspi_csinfo struct for each chip select in
+> > the board file.
+> >
+> > Each spi_board_info.controller_data should then be set
+> > to point to the appropriate csinfo struct. This will cause the driver to
+> > call the csinfo->set_level function instead of toggling the McSPI chip
+> > select lines.
+> >
+> > Signed-off-by: Ben Gamari <bgamari.foss@gmail.com>
 > 
-> > As request by Grant Likely, there is no more cover letter. Full changelog is following.
-> > I am still reluctant to add this changelog in the patch description, as it adds no value to
-> > the patch itself: when it was needed I try to updat comments or patch description.
+> I'd rather see the spi driver modified to use the gpio api directly.
+> The drivers are already tending in that direction and it doesn't
+> require machine specific set_level functions to be defined.
 > 
-> You're right, the changelog should not be in the patch description.
-> This bit of meta-description and changelog should go after the '---'
-> just after your signoff.  That way, git tools can still auto-apply the
-> email, and git ignores stuff after the '---' so it doesn't end up in the
-> git history.
+The reason I left this up to the board is it's easy to foresee cases
+where you want a non-trivial mapping between logical CS numbers and CS
+pin states. In my case, I using a 2-to-4 multiplexer as the source of
+chip select.
 
-Actually, I used to have the same opinion, but dwmw2 clued me in that
-it really is valuable and proper to have the revision history and
-changelog in the patch description.  When looking back at what
-actually got committed into Linus' tree, the changelog gives hints as
-to which exact version of the patch got committed (for instance, if a
-v6 got merged, but a v7 was also posted that didn't get merged.)
-
-BTW, this thread has some discussion about this patch not actually
-working correctly.  What is the state?  Should this version get
-merged, or do I need to wait for a v6?
-
-g.
-
-> 
-> > I understand that Grant Likely would need an ack from other user as this patch fix a corner case.
-> > Kevin Hilman made a few comments on this patch so he could add his "Ack by" or at least his "Review by".
-> 
-> I haven't actually tested it, only reviewed it, so you can add a
-> Reviewed by for me, but I'm not SPI-aware enough to ack this patch or
-> test it thoroughly.  Also,  I have some more comments below...
-> 
-> Also, in the last patch I suggested you do more of a save/restore of
-> this value instead of a restore to a hard-coded value.  IOW, save the
-> value in the suspend method, restore it in resume. I thought you had
-> agreed to that.  I'm not an SPI expert, so not sure if it makes sense,
-> but it seems more robust that way and more future proof.
-> 
-> >
-> > Changelog:
-> > * Change from v1 to v2:
-> > Rebase on linus/master (after 2.6.37-rc1)
-> > Do some clean-up and fix indentation on both patches
-> > Add more explanations for patch 2
-> >
-> > * Change from v2 to v3:
-> > Use directly resume function of spi_master instead of using function
-> > from spi_device as Grant Likely pointed it out.
-> > Force this transition explicitly for each CS used by a device.
-> >
-> > * Change from v3 to v4:
-> > Patch clean-up according to Kevin Hilman and checkpatch.
-> > Now force CS to be in inactive state only if it was inactive when it was
-> > suspended.
-> >
-> > * Change from v4 to v5:
-> > Rebase on linus/master (after 2.6.37-rc3)
-> > Collapse some lines as pointed by Grant Likely
-> > Fix a spelling
-> >
-> >
-> > == CUT HERE ==
-> > When SPI wake up from OFF mode, CS is in the wrong state: force it to the inactive state.
-> >
-> > During the system life, I monitored the CS behavior using a oscilloscope.
-> > I also activated debug in omap2_mcspi, so I saw when driver disable the clocks and restore context when device is not used.
-> > Each time the CS was in the correct state.
-> > It was only when system was put suspend to ram with off-mode activated that on resume the CS was in wrong state( ie activated).
-> >
-> > Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
-> > ---
-> 
-> This is where any changelog and extra info for reviewers should go.
-> 
-> >  drivers/spi/omap2_mcspi.c |   33 +++++++++++++++++++++++++++++++++
-> >  1 files changed, 33 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> > index 2a651e6..dcc024a 100644
-> > --- a/drivers/spi/omap2_mcspi.c
-> > +++ b/drivers/spi/omap2_mcspi.c
-> > @@ -1305,11 +1305,44 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
-> >  /* work with hotplug and coldplug */
-> >  MODULE_ALIAS("platform:omap2_mcspi");
-> >
-> > +#ifdef	CONFIG_PM
-> > +/* When SPI wake up from off-mode, CS is in activate state. If it was in
-> > + * unactive state when driver was suspend, then force it to unactive state at
-> > + * wake up.
-> > + */
-> 
-> please fix multi-line comment style.  Search for 'multi-line' in
-> CodingStyle.
-> 
-> > +static int omap2_mcspi_resume(struct platform_device *pdev)
-> > +{
-> > +	struct spi_master	*master = dev_get_drvdata(&pdev->dev);
-> > +	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
-> > +	struct omap2_mcspi_cs *cs;
-> > +
-> > +	omap2_mcspi_enable_clocks(mcspi);
-> > +	list_for_each_entry(cs, &omap2_mcspi_ctx[master->bus_num - 1].cs,
-> > +			    node) {
-> > +		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
-> > +
-> > +			/* We need to toggle CS state for OMAP take this
-> > +			 * change in account.
-> > +			 */
-> 
-> multi-line coding style
-> 
-> > +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 1);
-> > +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
-> > +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 0);
-> > +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
-> > +		}
-> > +	}
-> > +	omap2_mcspi_disable_clocks(mcspi);
-> > +	return 0;
-> > +}
-> > +#else
-> > +#define	omap2_mcspi_resume	NULL
-> > +#endif
-> > +
-> >  static struct platform_driver omap2_mcspi_driver = {
-> >  	.driver = {
-> >  		.name =		"omap2_mcspi",
-> >  		.owner =	THIS_MODULE,
-> >  	},
-> > +	.resume =	omap2_mcspi_resume,
-> >  	.remove =	__exit_p(omap2_mcspi_remove),
-> >  };
-> >  -- 1.7.0.4
-> 
-> Kevin
+- Ben
