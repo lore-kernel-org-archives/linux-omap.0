@@ -1,106 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mcspi: Add support for GPIO chip select lines
-Date: Thu, 23 Dec 2010 11:59:17 -0800
-Message-ID: <20101223195917.GO7771@atomide.com>
-References: <1b68c6791001272033q60dd31dbif4de285cd9bac83d@mail.gmail.com>
- <1292954195-20204-2-git-send-email-bgamari.foss@gmail.com>
+Subject: Re: [GIT PULL] OMAP USB Changes for Merge Window
+Date: Thu, 23 Dec 2010 12:39:20 -0800
+Message-ID: <20101223203920.GQ7771@atomide.com>
+References: <20101223084734.GA3149@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:40451 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738Ab0LWT7W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 14:59:22 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56731 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751418Ab0LWUjZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 15:39:25 -0500
 Content-Disposition: inline
-In-Reply-To: <1292954195-20204-2-git-send-email-bgamari.foss@gmail.com>
+In-Reply-To: <20101223084734.GA3149@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Gamari <bgamari.foss@gmail.com>
-Cc: beagleboard <beagleboard@googlegroups.com>, linux-omap <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Eric Miao <eric.miao@marvell.com>, Michael Hennerich <michael.hennerich@analog.com>, Grant Likely <grant.likely@secretlab.ca>, spi-devel-general <spi-devel-general@lists.sourceforge.net>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Ben Gamari <bgamari.foss@gmail.com> [101221 09:56]:
-> This mechanism is in large part stolen from the s3c64xx-spi module. To
-> use this functionality, one simply must define a set_level function to
-> set the CS state and a omap2_mcspi_csinfo struct for each chip select in
-> the board file.
+* Felipe Balbi <balbi@ti.com> [101223 00:47]:
+> Hi Tony,
 > 
-> Each spi_board_info.controller_data should then be set
-> to point to the appropriate csinfo struct. This will cause the driver to
-> call the csinfo->set_level function instead of toggling the McSPI chip
-> select lines.
+> please queue the following two patches for Merge Window.
 > 
-> Signed-off-by: Ben Gamari <bgamari.foss@gmail.com>
+> The following changes since commit b79540fcbbcf9b379c9197f63c5a883bbe3adfd4:
+> 
+>    Linux-omap rebuilt: Merged branches from Paul and Kevin and mux changes (2010-12-22 19:13:33 -0800)
 
-This one should go via the SPI list:
+This can't be pulled as it would pull in tons of non-mainline
+commits from the linux-omap master branch.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Everybody, all the pullable branches must be based on something
+in the mainline kernel, like a recent -rc tag. If that won't work,
+then some commit needs to be agreed on separately that will go
+to mainline, like the omap-for-linus branch.
 
-> ---
->  arch/arm/plat-omap/include/plat/mcspi.h |   14 ++++++++++++++
->  drivers/spi/omap2_mcspi.c               |   14 +++++++++-----
->  2 files changed, 23 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/mcspi.h b/arch/arm/plat-omap/include/plat/mcspi.h
-> index 1254e49..ab84b8d 100644
-> --- a/arch/arm/plat-omap/include/plat/mcspi.h
-> +++ b/arch/arm/plat-omap/include/plat/mcspi.h
-> @@ -1,6 +1,20 @@
->  #ifndef _OMAP2_MCSPI_H
->  #define _OMAP2_MCSPI_H
->  
-> +/**
-> + * struct omap2_mcspi_csinfo - Chip Select description
-> + * @line: Custom 'identity' of the CS line
-> + * @set_level: Function to set the state of a given CS line
-> + *
-> + * This is to allow use of GPIO lines as CS lines. Allocate and initialize one
-> + * in the machine init code and make spi_board_info.controller_data point to
-> + * it.
-> + */
-> +struct omap2_mcspi_csinfo {
-> +        unsigned line;
-> +        void (*set_level)(unsigned line_id, int lvl);
-> +};
-> +
->  struct omap2_mcspi_platform_config {
->  	unsigned short	num_cs;
->  };
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index 2a651e6..92ccbd6 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -35,6 +35,7 @@
->  #include <linux/slab.h>
->  
->  #include <linux/spi/spi.h>
-> +#include <linux/gpio.h>
->  
->  #include <plat/dma.h>
->  #include <plat/clock.h>
-> @@ -235,11 +236,14 @@ static void omap2_mcspi_set_enable(const struct spi_device *spi, int enable)
->  
->  static void omap2_mcspi_force_cs(struct spi_device *spi, int cs_active)
->  {
-> -	u32 l;
-> -
-> -	l = mcspi_cached_chconf0(spi);
-> -	MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
-> -	mcspi_write_chconf0(spi, l);
-> +	if (spi->controller_data) {
-> +		struct omap2_mcspi_csinfo *csinfo = spi->controller_data;
-> +		(*csinfo->set_level)(csinfo->line, cs_active);
-> +	} else {
-> +		u32 l = mcspi_cached_chconf0(spi);
-> +		MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
-> +		mcspi_write_chconf0(spi, l);
-> +	}
->  }
->  
->  static void omap2_mcspi_set_master_mode(struct spi_master *master)
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Further, please wait few days before sending the pull request
+in case somebody wants to ack your patches. Sending a pull request
+with the patches to be reviewed is kind of pointless.. Sure in this
+case these are pretty trivial patches, but still.
+
+Anyways, I'll apply these into a temporary branch and will
+merge into omap-for-linus within next few days assuming no
+problems.
+
+Regards,
+
+Tony
