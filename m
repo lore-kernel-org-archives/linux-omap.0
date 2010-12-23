@@ -1,132 +1,93 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] mcspi: Add support for GPIO chip select lines
-Date: Thu, 23 Dec 2010 14:38:57 -0700
-Message-ID: <AANLkTi=L+ZfwVy+O=oAXx8EHGisCdW1Pg4U+dQa4ZzEN@mail.gmail.com>
-References: <1b68c6791001272033q60dd31dbif4de285cd9bac83d@mail.gmail.com> <1292954195-20204-2-git-send-email-bgamari.foss@gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] OMAP4: hwmod data: Fix SR flags, structures order and
+ field alignment
+Date: Thu, 23 Dec 2010 23:24:33 +0100
+Message-ID: <4D13CC21.9010109@ti.com>
+References: <1293113700-24309-1-git-send-email-b-cousson@ti.com> <20101223204608.GR7771@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:34928 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751655Ab0LWVjS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 16:39:18 -0500
-Received: by iyi12 with SMTP id 12so5344298iyi.19
-        for <linux-omap@vger.kernel.org>; Thu, 23 Dec 2010 13:39:18 -0800 (PST)
-In-Reply-To: <1292954195-20204-2-git-send-email-bgamari.foss@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43370 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751468Ab0LWWYn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Dec 2010 17:24:43 -0500
+In-Reply-To: <20101223204608.GR7771@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Gamari <bgamari.foss@gmail.com>
-Cc: beagleboard <beagleboard@googlegroups.com>, linux-omap <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Eric Miao <eric.miao@marvell.com>, Michael Hennerich <michael.hennerich@analog.com>, spi-devel-general <spi-devel-general@lists.sourceforge.net>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Gopinath, Thara" <thara@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>
 
-On Tue, Dec 21, 2010 at 10:56 AM, Ben Gamari <bgamari.foss@gmail.com> w=
-rote:
-> This mechanism is in large part stolen from the s3c64xx-spi module. T=
-o
-> use this functionality, one simply must define a set_level function t=
-o
-> set the CS state and a omap2_mcspi_csinfo struct for each chip select=
- in
-> the board file.
+On 12/23/2010 9:46 PM, Tony Lindgren wrote:
+> * Benoit Cousson<b-cousson@ti.com>  [101223 06:14]:
+>> Smartreflex is missing the recently introduced SIDLE_SMART_WKUP
+>> flag in idlemodes field.
 >
-> Each spi_board_info.controller_data should then be set
-> to point to the appropriate csinfo struct. This will cause the driver=
- to
-> call the csinfo->set_level function instead of toggling the McSPI chi=
-p
-> select lines.
->
-> Signed-off-by: Ben Gamari <bgamari.foss@gmail.com>
+> So this actually also changes something too?
 
-I'd rather see the spi driver modified to use the gpio api directly.
-The drivers are already tending in that direction and it doesn't
-require machine specific set_level functions to be defined.
+Not yet, because we are not doing any clock domain transition to
+INACTIVE for the moment, so the wakeup is still not used.
 
-g.
+>> The merge of the DMA and SR series on top of the already modified
+>> omap_hwmod_data_44xx.c moved the dma_system structure at the wrong
+>> position in the file. The same thing happened for the SR structure.
+>> - Re-order the structures properly.
+>>
+>> In order to be fully aligned with the Python generator output,
+>> change a couple of fields.
+>> - Add tab in class and dev_attr structures to align fields
+>> - Add a comma at the end of the following line to simplify the
+>>    code generation:
+>>    ".pre_shutdown   =&omap2_wd_timer_disable,"
+>
+> To me it sounds like this should be at least two separate patches:
+> One that adds the SIDLE_SMART_WKUP, then another patch that
+> only does clean-up with no functional changes.
 
-> ---
-> =A0arch/arm/plat-omap/include/plat/mcspi.h | =A0 14 ++++++++++++++
-> =A0drivers/spi/omap2_mcspi.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 14 +++=
-++++++-----
-> =A02 files changed, 23 insertions(+), 5 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/plat/mcspi.h b/arch/arm/plat-=
-omap/include/plat/mcspi.h
-> index 1254e49..ab84b8d 100644
-> --- a/arch/arm/plat-omap/include/plat/mcspi.h
-> +++ b/arch/arm/plat-omap/include/plat/mcspi.h
-> @@ -1,6 +1,20 @@
-> =A0#ifndef _OMAP2_MCSPI_H
-> =A0#define _OMAP2_MCSPI_H
->
-> +/**
-> + * struct omap2_mcspi_csinfo - Chip Select description
-> + * @line: Custom 'identity' of the CS line
-> + * @set_level: Function to set the state of a given CS line
-> + *
-> + * This is to allow use of GPIO lines as CS lines. Allocate and init=
-ialize one
-> + * in the machine init code and make spi_board_info.controller_data =
-point to
-> + * it.
-> + */
-> +struct omap2_mcspi_csinfo {
-> + =A0 =A0 =A0 =A0unsigned line;
-> + =A0 =A0 =A0 =A0void (*set_level)(unsigned line_id, int lvl);
-> +};
-> +
-> =A0struct omap2_mcspi_platform_config {
-> =A0 =A0 =A0 =A0unsigned short =A0num_cs;
-> =A0};
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index 2a651e6..92ccbd6 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -35,6 +35,7 @@
-> =A0#include <linux/slab.h>
->
-> =A0#include <linux/spi/spi.h>
-> +#include <linux/gpio.h>
->
-> =A0#include <plat/dma.h>
-> =A0#include <plat/clock.h>
-> @@ -235,11 +236,14 @@ static void omap2_mcspi_set_enable(const struct=
- spi_device *spi, int enable)
->
-> =A0static void omap2_mcspi_force_cs(struct spi_device *spi, int cs_ac=
-tive)
-> =A0{
-> - =A0 =A0 =A0 u32 l;
+OK
+
+> Also this patch applied (contactenated multiple patches?) turns
+> into a hard to read interleaved patch for some parts:
+
+Mmm, I do not understand how did you get that diff? This is not
+like that in the patch I sent you?
+The patch should apply cleanely on top of your omap-for-linus
+branch.
+
+> -static struct omap_hwmod_irq_info omap44xx_uart2_irqs[] = {
+> -	{ .irq = 73 + OMAP44XX_IRQ_GIC_START },
+> -};
 > -
-> - =A0 =A0 =A0 l =3D mcspi_cached_chconf0(spi);
-> - =A0 =A0 =A0 MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
-> - =A0 =A0 =A0 mcspi_write_chconf0(spi, l);
-> + =A0 =A0 =A0 if (spi->controller_data) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct omap2_mcspi_csinfo *csinfo =3D s=
-pi->controller_data;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (*csinfo->set_level)(csinfo->line, cs_a=
-ctive);
-> + =A0 =A0 =A0 } else {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 l =3D mcspi_cached_chconf0(spi);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE=
-, cs_active);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 mcspi_write_chconf0(spi, l);
-> + =A0 =A0 =A0 }
-> =A0}
+> -static struct omap_hwmod_dma_info omap44xx_uart2_sdma_reqs[] = {
+> -	{ .name = "tx", .dma_req = 50 + OMAP44XX_DMA_REQ_START },
+> -	{ .name = "rx", .dma_req = 51 + OMAP44XX_DMA_REQ_START },
+> +/* smartreflex_iva */
+> +static struct omap_hwmod omap44xx_smartreflex_iva_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_smartreflex_iva_irqs[] = {
+> +	{ .irq = 102 + OMAP44XX_IRQ_GIC_START },
+>   };
 >
-> =A0static void omap2_mcspi_set_master_mode(struct spi_master *master)
-> --
-> 1.7.1
+> -static struct omap_hwmod_addr_space omap44xx_uart2_addrs[] = {
+> +static struct omap_hwmod_addr_space omap44xx_smartreflex_iva_addrs[] = {
+>   	{
+> -		.pa_start	= 0x4806c000,
+> -		.pa_end		= 0x4806c0ff,
+> +		.pa_start	= 0x4a0db000,
+> +		.pa_end		= 0x4a0db03f,
+>   		.flags		= ADDR_TYPE_RT
+>   	},
+>   };
+> ...
 >
->
+> So sounds like your original three patches would be the better
+> way to go.
+
+OK, as a special gift for you, you will have 4 patches :-)
+
+Same place:
+git://gitorious.org/omap-pm/linux.git for_2.6.38/hwmod_fixes
 
 
+Thanks,
+Benoit
 
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
