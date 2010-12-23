@@ -1,45 +1,70 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: Last OMAP4 hwmod data cleanup for 2.6.38
-Date: Thu, 23 Dec 2010 21:33:19 +0530
-Message-ID: <20101223160319.GB1863@GLPP-machine>
-References: <4D135677.1080200@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v5 4/5] OMAP4: hwmod: Add inital data for smartreflex modules.
+Date: Thu, 23 Dec 2010 09:15:10 -0800
+Message-ID: <87d3osl8bl.fsf@deeprootsystems.com>
+References: <1292864437-15353-1-git-send-email-thara@ti.com>
+	<1292864437-15353-5-git-send-email-thara@ti.com>
+	<4D133B78.5030807@ti.com>
+	<a58103fd01d89decba08fcdf282b7f70@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:50438 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752829Ab0LWQCU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Dec 2010 11:02:20 -0500
-Received: by mail-gw0-f49.google.com with SMTP id 20so3144621gwj.8
-        for <linux-omap@vger.kernel.org>; Thu, 23 Dec 2010 08:02:19 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4D135677.1080200@ti.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:63693 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141Ab0LWRPO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 12:15:14 -0500
+Received: by pxi15 with SMTP id 15so1219155pxi.19
+        for <linux-omap@vger.kernel.org>; Thu, 23 Dec 2010 09:15:14 -0800 (PST)
+In-Reply-To: <a58103fd01d89decba08fcdf282b7f70@mail.gmail.com> (Vishwanath
+	Sripathy's message of "Thu, 23 Dec 2010 20:58:26 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, kevin Hilman <khilman@deeprootsystems.com>
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Thara Gopinath <thara@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, Anand Sawant <sawant@ti.com>, Nishanth Menon <nm@ti.com>
 
-On Thu, Dec 23, 2010 at 03:02:31PM +0100, Cousson, Benoit wrote:
-> Hi Tony,
-> 
-> The merge of both SDMA series from Manju and SR series from Thara
-> changed the expected order of the hwmod data structures for OMAP4.
-> In order to have a clean base for 2.6.38, and to avoid starting
-> 2.6.39 with a cleanup patch again, I'd like to fix that right now.
-> Even if, I do agree, this is not a big deal.
-> 
-> I squeezed the 3 original small fixes I did (SDMA, SR and alignment)
-> into one to avoid overloading your mailbox 2 days before Xmas.
-> 
-> The patch will be available here, based on omap-for-linus.
-> git://gitorious.org/omap-pm/linux.git for_2.6.38/hwmod_fixes
-> 
-> It should not affect any functionality, and it is boot tested on
-> OMAP4430/sdp.
+Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
 
-Boot tested on SDP4430 and all DMA tests passes as expected.
+[...]
 
-Tested-by: G, Manjunath Kondaiah <manjugk@ti.com>
+>>
+>> Please note the following log when enabling SR in Class 3 on an
+>> OMAP4430/sdp:
+>>
+>> [    2.362182] omap2_set_init_voltage: unable to find boot up OPP for
+>> vdd_mpu
+>> [    2.369384] omap2_set_init_voltage: Unable to put vdd_mpu to its init
+>> voltage
+>> [    2.369384]
+>> [    2.378875] omap2_set_init_voltage: unable to find boot up OPP for
+>> vdd_iva
+>> [    2.386108] omap2_set_init_voltage: Unable to put vdd_iva to its init
+>> voltage
+>> [    2.386108]
+>> [    2.396484] Power Management for TI OMAP4.
+>> [    2.401031] sr_init: No PMIC hook to init smartreflex
+>> [    2.406494] smartreflex smartreflex.0: omap_sr_probe: SmartReflex
+>> driver initialized
+>> [    2.414825] smartreflex smartreflex.1: omap_sr_probe: SmartReflex
+>> driver initialized
+>> [    2.423187] smartreflex smartreflex.2: omap_sr_probe: SmartReflex
+>> driver initialized
+>> [    2.431732] SmartReflex Class3 initialized
+>>
+>> Is it expected?
+>> Why do we have that blank line in-between?
+>
+> I think turbo OPPs are disabled by default in OPP table where as uboot is
+> setting mpu and iva to turbo OPP. That's why you are getting this error.
 
--Manjunath
+That explains the MPU OPPs, but only raises more questions.  On what
+platforms was this tested?  with *and* without turbo OPPs enabled?  Does
+the voltage layer properly initialized if the boot up OPP is not found,
+and the initial voltage is not set?
+
+> You should not get this error if you enable turbo opps in opp table.
+
+You would still get missing boot up OPP for IVA, as there are currenly
+no OMAP4 OPPs for IVA.  Again, begging the question... how was this
+tested.
+
+Kevin
