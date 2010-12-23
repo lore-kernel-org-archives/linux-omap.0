@@ -1,413 +1,279 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 2/4] OMAP4: hwmod data: Move the smartreflex structures
-Date: Thu, 23 Dec 2010 23:30:30 +0100
-Message-ID: <1293143432-9891-2-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 3/4] OMAP4: hwmod data: Move the DMA structures
+Date: Thu, 23 Dec 2010 23:30:31 +0100
+Message-ID: <1293143432-9891-3-git-send-email-b-cousson@ti.com>
 References: <1293143432-9891-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55579 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751656Ab0LWWar (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 17:30:47 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:55121 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751608Ab0LWWaz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Dec 2010 17:30:55 -0500
 In-Reply-To: <1293143432-9891-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Thara Gopinath <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>
 
-The merge of the SR series on top of the already modified
-omap_hwmod_data_44xx.c moved the smartreflex structures at the wrong
-position in the file.
-- Re-order the structures properly.
+The merge of the DMA series on top of the already modified
+omap_hwmod_data_44xx.c put the dma_system structures at
+the wrong position in the file.
+Re-order it properly.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Thara Gopinath <thara@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: G, Manjunath Kondaiah <manjugk@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  341 ++++++++++++++--------------
- 1 files changed, 169 insertions(+), 172 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  196 ++++++++++++++--------------
+ 1 files changed, 97 insertions(+), 99 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 3e9015a..378d4a7 100644
+index 378d4a7..f35a99d 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -556,9 +556,6 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
-  *  sl2if
-  *  slimbus1
-  *  slimbus2
-- *  smartreflex_core
-- *  smartreflex_iva
-- *  smartreflex_mpu
-  *  spinlock
-  *  timer1
-  *  timer10
-@@ -1393,6 +1390,170 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
+@@ -254,6 +254,14 @@ static struct omap_hwmod omap44xx_l3_main_1_hwmod = {
  };
  
+ /* l3_main_2 interface data */
++/* dma_system -> l3_main_2 */
++static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 = {
++	.master		= &omap44xx_dma_system_hwmod,
++	.slave		= &omap44xx_l3_main_2_hwmod,
++	.clk		= "l3_div_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* iva -> l3_main_2 */
+ static struct omap_hwmod_ocp_if omap44xx_iva__l3_main_2 = {
+ 	.master		= &omap44xx_iva_hwmod,
+@@ -270,14 +278,6 @@ static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l3_main_2 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* dma_system -> l3_main_2 */
+-static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 = {
+-	.master		= &omap44xx_dma_system_hwmod,
+-	.slave		= &omap44xx_l3_main_2_hwmod,
+-	.clk		= "l3_div_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l4_cfg -> l3_main_2 */
+ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_2 = {
+ 	.master		= &omap44xx_l4_cfg_hwmod,
+@@ -506,7 +506,6 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
+  *  ctrl_module_pad_wkup
+  *  ctrl_module_wkup
+  *  debugss
+- *  dma_system
+  *  dmic
+  *  dss
+  *  dss_dispc
+@@ -577,6 +576,92 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
+  */
+ 
  /*
-+ * 'smartreflex' class
-+ * smartreflex module (monitor silicon performance and outputs a measure of
-+ * performance error)
++ * 'dma' class
++ * dma controller for data exchange between memory to memory (i.e. internal or
++ * external memory) and gp peripherals to memory or memory to gp peripherals
 + */
 +
-+/* The IP is not compliant to type1 / type2 scheme */
-+static struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_smartreflex = {
-+	.sidle_shift	= 24,
-+	.enwkup_shift	= 26,
-+};
-+
-+static struct omap_hwmod_class_sysconfig omap44xx_smartreflex_sysc = {
-+	.sysc_offs	= 0x0038,
-+	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE),
++static struct omap_hwmod_class_sysconfig omap44xx_dma_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x002c,
++	.syss_offs	= 0x0028,
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
++			   SYSC_HAS_EMUFREE | SYSC_HAS_MIDLEMODE |
++			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
++			   SYSS_HAS_RESET_STATUS),
 +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   SIDLE_SMART_WKUP),
-+	.sysc_fields	= &omap_hwmod_sysc_type_smartreflex,
++			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
 +};
 +
-+static struct omap_hwmod_class omap44xx_smartreflex_hwmod_class = {
-+	.name = "smartreflex",
-+	.sysc = &omap44xx_smartreflex_sysc,
-+	.rev  = 2,
++static struct omap_hwmod_class omap44xx_dma_hwmod_class = {
++	.name	= "dma",
++	.sysc	= &omap44xx_dma_sysc,
 +};
 +
-+/* smartreflex_core */
-+static struct omap_hwmod omap44xx_smartreflex_core_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_smartreflex_core_irqs[] = {
-+	{ .irq = 19 + OMAP44XX_IRQ_GIC_START },
++/* dma dev_attr */
++static struct omap_dma_dev_attr dma_dev_attr = {
++	.dev_caps	= RESERVE_CHANNEL | DMA_LINKED_LCH | GLOBAL_PRIORITY |
++			  IS_CSSA_32 | IS_CDSA_32 | IS_RW_PRIORITY,
++	.lch_count	= 32,
 +};
 +
-+static struct omap_hwmod_addr_space omap44xx_smartreflex_core_addrs[] = {
++/* dma_system */
++static struct omap_hwmod_irq_info omap44xx_dma_system_irqs[] = {
++	{ .name = "0", .irq = 12 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "1", .irq = 13 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "2", .irq = 14 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "3", .irq = 15 + OMAP44XX_IRQ_GIC_START },
++};
++
++/* dma_system master ports */
++static struct omap_hwmod_ocp_if *omap44xx_dma_system_masters[] = {
++	&omap44xx_dma_system__l3_main_2,
++};
++
++static struct omap_hwmod_addr_space omap44xx_dma_system_addrs[] = {
 +	{
-+		.pa_start	= 0x4a0dd000,
-+		.pa_end		= 0x4a0dd03f,
++		.pa_start	= 0x4a056000,
++		.pa_end		= 0x4a0560ff,
 +		.flags		= ADDR_TYPE_RT
 +	},
 +};
 +
-+/* l4_cfg -> smartreflex_core */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__smartreflex_core = {
++/* l4_cfg -> dma_system */
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__dma_system = {
 +	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_smartreflex_core_hwmod,
++	.slave		= &omap44xx_dma_system_hwmod,
 +	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_smartreflex_core_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_addrs),
++	.addr		= omap44xx_dma_system_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_dma_system_addrs),
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
-+/* smartreflex_core slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_smartreflex_core_slaves[] = {
-+	&omap44xx_l4_cfg__smartreflex_core,
++/* dma_system slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_dma_system_slaves[] = {
++	&omap44xx_l4_cfg__dma_system,
 +};
 +
-+static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
-+	.name		= "smartreflex_core",
-+	.class		= &omap44xx_smartreflex_hwmod_class,
-+	.mpu_irqs	= omap44xx_smartreflex_core_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_irqs),
-+	.main_clk	= "smartreflex_core_fck",
-+	.vdd_name	= "core",
++static struct omap_hwmod omap44xx_dma_system_hwmod = {
++	.name		= "dma_system",
++	.class		= &omap44xx_dma_hwmod_class,
++	.mpu_irqs	= omap44xx_dma_system_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dma_system_irqs),
++	.main_clk	= "l3_div_ck",
 +	.prcm = {
 +		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_ALWON_SR_CORE_CLKCTRL,
++			.clkctrl_reg = OMAP4430_CM_SDMA_SDMA_CLKCTRL,
 +		},
 +	},
-+	.slaves		= omap44xx_smartreflex_core_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* smartreflex_iva */
-+static struct omap_hwmod omap44xx_smartreflex_iva_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_smartreflex_iva_irqs[] = {
-+	{ .irq = 102 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_smartreflex_iva_addrs[] = {
-+	{
-+		.pa_start	= 0x4a0db000,
-+		.pa_end		= 0x4a0db03f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_cfg -> smartreflex_iva */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__smartreflex_iva = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_smartreflex_iva_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_smartreflex_iva_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* smartreflex_iva slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_smartreflex_iva_slaves[] = {
-+	&omap44xx_l4_cfg__smartreflex_iva,
-+};
-+
-+static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
-+	.name		= "smartreflex_iva",
-+	.class		= &omap44xx_smartreflex_hwmod_class,
-+	.mpu_irqs	= omap44xx_smartreflex_iva_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_irqs),
-+	.main_clk	= "smartreflex_iva_fck",
-+	.vdd_name	= "iva",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_ALWON_SR_IVA_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_smartreflex_iva_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* smartreflex_mpu */
-+static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_smartreflex_mpu_irqs[] = {
-+	{ .irq = 18 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_smartreflex_mpu_addrs[] = {
-+	{
-+		.pa_start	= 0x4a0d9000,
-+		.pa_end		= 0x4a0d903f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_cfg -> smartreflex_mpu */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__smartreflex_mpu = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_smartreflex_mpu_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_smartreflex_mpu_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* smartreflex_mpu slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_smartreflex_mpu_slaves[] = {
-+	&omap44xx_l4_cfg__smartreflex_mpu,
-+};
-+
-+static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
-+	.name		= "smartreflex_mpu",
-+	.class		= &omap44xx_smartreflex_hwmod_class,
-+	.mpu_irqs	= omap44xx_smartreflex_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_irqs),
-+	.main_clk	= "smartreflex_mpu_fck",
-+	.vdd_name	= "mpu",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_ALWON_SR_MPU_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_smartreflex_mpu_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_slaves),
++	.dev_attr	= &dma_dev_attr,
++	.slaves		= omap44xx_dma_system_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_dma_system_slaves),
++	.masters	= omap44xx_dma_system_masters,
++	.masters_cnt	= ARRAY_SIZE(omap44xx_dma_system_masters),
 +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
 +};
 +
 +/*
-  * 'uart' class
-  * universal asynchronous receiver/transmitter (uart)
+  * 'dsp' class
+  * dsp sub-system
   */
-@@ -1842,170 +2003,6 @@ static struct omap_hwmod omap44xx_dma_system_hwmod = {
+@@ -1916,93 +2001,6 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
  };
  
+-
 -/*
-- * 'smartreflex' class
-- * smartreflex module (monitor silicon performance and outputs a measure of
-- * performance error)
+- * 'dma' class
+- * dma controller for data exchange between memory to memory (i.e. internal or
+- * external memory) and gp peripherals to memory or memory to gp peripherals
 - */
 -
--/* The IP is not compliant to type1 / type2 scheme */
--static struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_smartreflex = {
--	.sidle_shift	= 24,
--	.enwkup_shift	= 26,
--};
--
--static struct omap_hwmod_class_sysconfig omap44xx_smartreflex_sysc = {
--	.sysc_offs	= 0x0038,
--	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE),
+-static struct omap_hwmod_class_sysconfig omap44xx_dma_sysc = {
+-	.rev_offs	= 0x0000,
+-	.sysc_offs	= 0x002c,
+-	.syss_offs	= 0x0028,
+-	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
+-			   SYSC_HAS_EMUFREE | SYSC_HAS_MIDLEMODE |
+-			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
+-			   SYSS_HAS_RESET_STATUS),
 -	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			   SIDLE_SMART_WKUP),
--	.sysc_fields	= &omap_hwmod_sysc_type_smartreflex,
+-			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
+-	.sysc_fields	= &omap_hwmod_sysc_type1,
 -};
 -
--static struct omap_hwmod_class omap44xx_smartreflex_hwmod_class = {
--	.name = "smartreflex",
--	.sysc = &omap44xx_smartreflex_sysc,
--	.rev  = 2,
+-/* dma attributes */
+-static struct omap_dma_dev_attr dma_dev_attr = {
+-	.dev_caps  = RESERVE_CHANNEL | DMA_LINKED_LCH | GLOBAL_PRIORITY |
+-				IS_CSSA_32 | IS_CDSA_32 | IS_RW_PRIORITY,
+-	.lch_count = 32,
 -};
 -
--/* smartreflex_core */
--static struct omap_hwmod omap44xx_smartreflex_core_hwmod;
--static struct omap_hwmod_irq_info omap44xx_smartreflex_core_irqs[] = {
--	{ .irq = 19 + OMAP44XX_IRQ_GIC_START },
+-static struct omap_hwmod_class omap44xx_dma_hwmod_class = {
+-	.name	= "dma",
+-	.sysc	= &omap44xx_dma_sysc,
 -};
 -
--static struct omap_hwmod_addr_space omap44xx_smartreflex_core_addrs[] = {
+-/* dma_system */
+-static struct omap_hwmod_irq_info omap44xx_dma_system_irqs[] = {
+-	{ .name = "0", .irq = 12 + OMAP44XX_IRQ_GIC_START },
+-	{ .name = "1", .irq = 13 + OMAP44XX_IRQ_GIC_START },
+-	{ .name = "2", .irq = 14 + OMAP44XX_IRQ_GIC_START },
+-	{ .name = "3", .irq = 15 + OMAP44XX_IRQ_GIC_START },
+-};
+-
+-/* dma_system master ports */
+-static struct omap_hwmod_ocp_if *omap44xx_dma_system_masters[] = {
+-	&omap44xx_dma_system__l3_main_2,
+-};
+-
+-static struct omap_hwmod_addr_space omap44xx_dma_system_addrs[] = {
 -	{
--		.pa_start	= 0x4a0dd000,
--		.pa_end		= 0x4a0dd03f,
+-		.pa_start	= 0x4a056000,
+-		.pa_end		= 0x4a0560ff,
 -		.flags		= ADDR_TYPE_RT
 -	},
 -};
 -
--/* l4_cfg -> smartreflex_core */
--static struct omap_hwmod_ocp_if omap44xx_l4_cfg__smartreflex_core = {
+-/* l4_cfg -> dma_system */
+-static struct omap_hwmod_ocp_if omap44xx_l4_cfg__dma_system = {
 -	.master		= &omap44xx_l4_cfg_hwmod,
--	.slave		= &omap44xx_smartreflex_core_hwmod,
+-	.slave		= &omap44xx_dma_system_hwmod,
 -	.clk		= "l4_div_ck",
--	.addr		= omap44xx_smartreflex_core_addrs,
--	.addr_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_addrs),
+-	.addr		= omap44xx_dma_system_addrs,
+-	.addr_cnt	= ARRAY_SIZE(omap44xx_dma_system_addrs),
 -	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 -};
 -
--/* smartreflex_core slave ports */
--static struct omap_hwmod_ocp_if *omap44xx_smartreflex_core_slaves[] = {
--	&omap44xx_l4_cfg__smartreflex_core,
+-/* dma_system slave ports */
+-static struct omap_hwmod_ocp_if *omap44xx_dma_system_slaves[] = {
+-	&omap44xx_l4_cfg__dma_system,
 -};
 -
--static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
--	.name		= "smartreflex_core",
--	.class		= &omap44xx_smartreflex_hwmod_class,
--	.mpu_irqs	= omap44xx_smartreflex_core_irqs,
--	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_irqs),
--	.main_clk	= "smartreflex_core_fck",
--	.vdd_name	= "core",
+-static struct omap_hwmod omap44xx_dma_system_hwmod = {
+-	.name		= "dma_system",
+-	.class		= &omap44xx_dma_hwmod_class,
+-	.mpu_irqs	= omap44xx_dma_system_irqs,
+-	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dma_system_irqs),
+-	.main_clk	= "l3_div_ck",
 -	.prcm = {
 -		.omap4 = {
--			.clkctrl_reg = OMAP4430_CM_ALWON_SR_CORE_CLKCTRL,
+-			.clkctrl_reg = OMAP4430_CM_SDMA_SDMA_CLKCTRL,
 -		},
 -	},
--	.slaves		= omap44xx_smartreflex_core_slaves,
--	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
--};
--
--/* smartreflex_iva */
--static struct omap_hwmod omap44xx_smartreflex_iva_hwmod;
--static struct omap_hwmod_irq_info omap44xx_smartreflex_iva_irqs[] = {
--	{ .irq = 102 + OMAP44XX_IRQ_GIC_START },
--};
--
--static struct omap_hwmod_addr_space omap44xx_smartreflex_iva_addrs[] = {
--	{
--		.pa_start	= 0x4a0db000,
--		.pa_end		= 0x4a0db03f,
--		.flags		= ADDR_TYPE_RT
--	},
--};
--
--/* l4_cfg -> smartreflex_iva */
--static struct omap_hwmod_ocp_if omap44xx_l4_cfg__smartreflex_iva = {
--	.master		= &omap44xx_l4_cfg_hwmod,
--	.slave		= &omap44xx_smartreflex_iva_hwmod,
--	.clk		= "l4_div_ck",
--	.addr		= omap44xx_smartreflex_iva_addrs,
--	.addr_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_addrs),
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--/* smartreflex_iva slave ports */
--static struct omap_hwmod_ocp_if *omap44xx_smartreflex_iva_slaves[] = {
--	&omap44xx_l4_cfg__smartreflex_iva,
--};
--
--static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
--	.name		= "smartreflex_iva",
--	.class		= &omap44xx_smartreflex_hwmod_class,
--	.mpu_irqs	= omap44xx_smartreflex_iva_irqs,
--	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_irqs),
--	.main_clk	= "smartreflex_iva_fck",
--	.vdd_name	= "iva",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_reg = OMAP4430_CM_ALWON_SR_IVA_CLKCTRL,
--		},
--	},
--	.slaves		= omap44xx_smartreflex_iva_slaves,
--	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
--};
--
--/* smartreflex_mpu */
--static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod;
--static struct omap_hwmod_irq_info omap44xx_smartreflex_mpu_irqs[] = {
--	{ .irq = 18 + OMAP44XX_IRQ_GIC_START },
--};
--
--static struct omap_hwmod_addr_space omap44xx_smartreflex_mpu_addrs[] = {
--	{
--		.pa_start	= 0x4a0d9000,
--		.pa_end		= 0x4a0d903f,
--		.flags		= ADDR_TYPE_RT
--	},
--};
--
--/* l4_cfg -> smartreflex_mpu */
--static struct omap_hwmod_ocp_if omap44xx_l4_cfg__smartreflex_mpu = {
--	.master		= &omap44xx_l4_cfg_hwmod,
--	.slave		= &omap44xx_smartreflex_mpu_hwmod,
--	.clk		= "l4_div_ck",
--	.addr		= omap44xx_smartreflex_mpu_addrs,
--	.addr_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_addrs),
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--/* smartreflex_mpu slave ports */
--static struct omap_hwmod_ocp_if *omap44xx_smartreflex_mpu_slaves[] = {
--	&omap44xx_l4_cfg__smartreflex_mpu,
--};
--
--static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
--	.name		= "smartreflex_mpu",
--	.class		= &omap44xx_smartreflex_hwmod_class,
--	.mpu_irqs	= omap44xx_smartreflex_mpu_irqs,
--	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_irqs),
--	.main_clk	= "smartreflex_mpu_fck",
--	.vdd_name	= "mpu",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_reg = OMAP4430_CM_ALWON_SR_MPU_CLKCTRL,
--		},
--	},
--	.slaves		= omap44xx_smartreflex_mpu_slaves,
--	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_slaves),
+-	.slaves		= omap44xx_dma_system_slaves,
+-	.slaves_cnt	= ARRAY_SIZE(omap44xx_dma_system_slaves),
+-	.masters	= omap44xx_dma_system_masters,
+-	.masters_cnt	= ARRAY_SIZE(omap44xx_dma_system_masters),
+-	.dev_attr	= &dma_dev_attr,
 -	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
 -};
 -
  static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
  	/* dmm class */
  	&omap44xx_dmm_hwmod,
-@@ -2057,6 +2054,11 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	/* mpu class */
- 	&omap44xx_mpu_hwmod,
+@@ -2022,12 +2020,12 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_l4_per_hwmod,
+ 	&omap44xx_l4_wkup_hwmod,
  
-+	/* smartreflex class */
-+	&omap44xx_smartreflex_core_hwmod,
-+	&omap44xx_smartreflex_iva_hwmod,
-+	&omap44xx_smartreflex_mpu_hwmod,
-+
- 	/* uart class */
- 	&omap44xx_uart1_hwmod,
- 	&omap44xx_uart2_hwmod,
-@@ -2067,11 +2069,6 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_wd_timer2_hwmod,
- 	&omap44xx_wd_timer3_hwmod,
- 
--	/* smartreflex class */
--	&omap44xx_smartreflex_core_hwmod,
--	&omap44xx_smartreflex_iva_hwmod,
--	&omap44xx_smartreflex_mpu_hwmod,
+-	/* dma class */
+-	&omap44xx_dma_system_hwmod,
 -
- 	NULL,
- };
+ 	/* mpu_bus class */
+ 	&omap44xx_mpu_private_hwmod,
  
++	/* dma class */
++	&omap44xx_dma_system_hwmod,
++
+ 	/* dsp class */
+ 	&omap44xx_dsp_hwmod,
+ 	&omap44xx_dsp_c0_hwmod,
 -- 
 1.7.0.4
 
