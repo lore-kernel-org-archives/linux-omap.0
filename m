@@ -1,57 +1,102 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] mcspi: Add support for GPIO chip select lines
-Date: Thu, 23 Dec 2010 17:37:12 -0700
-Message-ID: <AANLkTi=d_xkhksY=qzUOmjYYs8OkX13+8_4byZtnX9i5@mail.gmail.com>
-References: <1b68c6791001272033q60dd31dbif4de285cd9bac83d@mail.gmail.com>
- <1292954195-20204-2-git-send-email-bgamari.foss@gmail.com>
- <AANLkTi=L+ZfwVy+O=oAXx8EHGisCdW1Pg4U+dQa4ZzEN@mail.gmail.com> <871v58xf0k.fsf@gmail.com>
+From: Jason Wang <jason77.wang@gmail.com>
+Subject: Re: [PATCH] smsc911x: add disable and re-enable Rx int to de-assert
+ interrupt pin
+Date: Fri, 24 Dec 2010 10:18:00 +0800
+Message-ID: <4D1402D8.2040709@gmail.com>
+References: <1293100993-3956-1-git-send-email-jason77.wang@gmail.com> <20101223.095917.59696176.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f194.google.com ([209.85.210.194]:33005 "EHLO
-	mail-iy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752455Ab0LXAhd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 19:37:33 -0500
-Received: by iyf40 with SMTP id 40so2959455iyf.1
-        for <linux-omap@vger.kernel.org>; Thu, 23 Dec 2010 16:37:32 -0800 (PST)
-In-Reply-To: <871v58xf0k.fsf@gmail.com>
+Received: from mail.windriver.com ([147.11.1.11]:44290 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752538Ab0LXCNP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 21:13:15 -0500
+In-Reply-To: <20101223.095917.59696176.davem@davemloft.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Gamari <bgamari.foss@gmail.com>
-Cc: beagleboard <beagleboard@googlegroups.com>, linux-omap <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Michael Hennerich <michael.hennerich@analog.com>, spi-devel-general <spi-devel-general@lists.sourceforge.net>, Eric Miao <eric.miao@canonical.com>
+To: David Miller <davem@davemloft.net>
+Cc: jason77.wang@gmail.com, netdev@vger.kernel.org, steve.glendinning@smsc.com, linux-omap@vger.kernel.org
 
-On Thu, Dec 23, 2010 at 4:09 PM, Ben Gamari <bgamari.foss@gmail.com> wrote:
-> On Thu, 23 Dec 2010 14:38:57 -0700, Grant Likely <grant.likely@secretlab.ca> wrote:
->> On Tue, Dec 21, 2010 at 10:56 AM, Ben Gamari <bgamari.foss@gmail.com> wrote:
->> > This mechanism is in large part stolen from the s3c64xx-spi module. To
->> > use this functionality, one simply must define a set_level function to
->> > set the CS state and a omap2_mcspi_csinfo struct for each chip select in
->> > the board file.
->> >
->> > Each spi_board_info.controller_data should then be set
->> > to point to the appropriate csinfo struct. This will cause the driver to
->> > call the csinfo->set_level function instead of toggling the McSPI chip
->> > select lines.
->> >
->> > Signed-off-by: Ben Gamari <bgamari.foss@gmail.com>
+David Miller wrote:
+> From: Jason Wang <jason77.wang@gmail.com>
+> Date: Thu, 23 Dec 2010 18:43:13 +0800
+>
+>   
+>> When kernel enters irqhanlder, it will check the Rx interrupt status
+>> bit, if Rx status is set but can't call napi_schedule(), it will do
+>> nothing and directly return form irqhandler. This situation is prone
+>> to be produced when we repeatly call irqhandler through netpoll
+>> interface(i.e kgdboe connecting).
 >>
->> I'd rather see the spi driver modified to use the gpio api directly.
->> The drivers are already tending in that direction and it doesn't
->> require machine specific set_level functions to be defined.
+>> This is a potential risk for those level triggered platforms(i.e
+>> ti_omap3evm), because if we don't handle Rx int and just return from
+>> irqhandler, the irq pin will be keeping asserted, the level triggered
+>> platforms will have no chance to jump out from the Rx irq. The whole
+>> system will hung into the irq subsystem.
 >>
-> The reason I left this up to the board is it's easy to foresee cases
-> where you want a non-trivial mapping between logical CS numbers and CS
-> pin states. In my case, I using a 2-to-4 multiplexer as the source of
-> chip select.
+>> To solve it, we add a disable/re-enable Rx int operation for this
+>> situation, this operation can de-assert interrupt pin for this time
+>> and will leave the received data and status in the FIFO for later
+>> interrupts to handle.
+>>
+>> Signed-off-by: Jason Wang <jason77.wang@gmail.com>
+>>     
+>
+>   
+Hi David,
 
-Hi Ben,
+Thanks for your comments.
+> You absolutely cannot do this.
+>
+> You now can race with the NAPI completion code turning the RX
+> interrupts back on, and you'll leave the chip with RX interrupts
+> disabled.
+>   
+I think my modification almost have the same execution path as the 
+original design and don't produce the race condition with NAPI threads.
 
-I understand and appreciate the motivation.  However in practice, the
-gpio api is sufficient for pretty much any use case, even when the
-backing gpio controller driver ends up driving some oddball device
-with different constraints.  The big downside to using a callback is
-that it forces all users to do the extra work of implementing the
-callback.  With the gpio api, only the oddball cases have to do extra
-code (to adapt the custom device to the gpio api).
+The original design is:
+If (can call napi_schedule) {
+disable rx int;
+call napi_schedule()
+} else {
+keep rx int enabled;
+return;
+}
 
-g.
+my modification is:
+disable rx int;
+if (can call napi_schedule) {
+call napi_schedule();
+} else {
+re-enable rx int; // this will de-assert interrupt pin for this time
+return;
+}
+
+So my modification is: if we can call napi_schedule(), we will disable 
+the rx int until the NAPI thread re-enable it. if we can't call 
+napi_schedule(), the rx int will keep enabled. This logic is almost same 
+as the original design. I can't figure out why original design is safe 
+while my modification is risky.
+
+
+Add more info:
+
+the Freescale imx31pdk, imx51pdk and ti_omap3evm boards all use this 
+driver, before apply this modification, their kgdboe connecting is not 
+stable. After applied this patch, their nfs root is as good as before 
+and their kgdboe connecting is stable.
+
+Thanks,
+Jason.
+> You must solve your level triggered interrupt some other way, every
+> NAPI based device must manage the interrupt disabling carefully and
+> only when the napi POLL is successfully scheduled in order to avoid
+> races.
+>
+> And especially you must not make a crazy hack like this for obscure
+> things like kgdboe.
+>
+>   
+
