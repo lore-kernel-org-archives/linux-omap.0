@@ -1,55 +1,114 @@
-From: Ionut Nicu <ionut.nicu@mindbit.ro>
-Subject: Re: [PATCH 2/2] staging: tidspbridge: rmgr code cleanup
-Date: Fri, 24 Dec 2010 13:33:38 +0200
-Message-ID: <1293190418.9114.5.camel@atlantis.mindbit.ro>
-References: <1291931258-30744-1-git-send-email-ionut.nicu@mindbit.ro>
-	 <1291931258-30744-3-git-send-email-ionut.nicu@mindbit.ro>
-	 <AANLkTikMD-pEQNNNKOx+1kZt=y896Ciz_kU60NsNzhGJ@mail.gmail.com>
+From: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Subject: [PATCH v6 1/1] OMAP2: Spi: Force CS to be in inactive state after
+ off-mode transition
+Date: Fri, 24 Dec 2010 13:21:25 +0100
+Message-ID: <4D149045.8080801@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.mindbit.ro ([80.86.127.26]:41814 "EHLO ns.mindbit.ro"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751944Ab0LXLdz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Dec 2010 06:33:55 -0500
-In-Reply-To: <AANLkTikMD-pEQNNNKOx+1kZt=y896Ciz_kU60NsNzhGJ@mail.gmail.com>
+Received: from mail.free-electrons.com ([88.190.12.23]:41692 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752077Ab0LXMVf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Dec 2010 07:21:35 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>, Sapiens Rene <rene.sapiens@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>, spi-devel-general <spi-devel-general@lists.sourceforge.net>
+Cc: David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi Omar,
+When SPI wake up from OFF mode, CS is in the wrong state: force it to the inactive state.
 
-On Wed, 2010-12-22 at 14:52 -0600, Ramirez Luna, Omar wrote:
-> Hi Ionut,
-> 
-> On Thu, Dec 9, 2010 at 3:47 PM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
-> > Reorganized some code in the rmgr module to increase
-> > its readability. No functional changes were done.
-> >
-> > Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
-> > ---
-> >  drivers/staging/tidspbridge/rmgr/drv.c  |  171 +++++++++-----------
-> >  drivers/staging/tidspbridge/rmgr/node.c |   81 +++++-----
-> >  drivers/staging/tidspbridge/rmgr/rmm.c  |  266 +++++++++++++-----------------
-> >  3 files changed, 229 insertions(+), 289 deletions(-)
-> >
-> > +
-> > +       /* Update the Driver Object List */
-> > +       list_add_tail((struct list_head *)pszdev_node,
-> > +                       &pdrv_object->dev_node_string);
-> 
-> I'm not quite comfortable casting to list_head ptr, given that there
-> is already a member of that type, if the struct type of pszdev_node is
-> moved around and the first member changes, there should be issues.
-> 
-> Any reason to use them in this patch?
-> 
+During the system life, I monitored the CS behavior using a oscilloscope.
+I also activated debug in omap2_mcspi, so I saw when driver disable the clocks and restore context when device is not used.
+Each time the CS was in the correct state.
+It was only when system was put suspend to ram with off-mode activated that on resume the CS was in wrong state( ie activated).
 
-You are right, it's useless and error prone. I will fix this and the
-other occurrences.
+Changelog:
+* Change from v1 to v2:
+Rebase on linus/master (after 2.6.37-rc1)
+Do some clean-up and fix indentation on both patches
+Add more explanations for patch 2
 
-Regards,
-Ionut.
+* Change from v2 to v3:
+Use directly resume function of spi_master instead of using function
+from spi_device as Grant Likely pointed it out.
+Force this transition explicitly for each CS used by a device.
+
+* Change from v3 to v4:
+Patch clean-up according to Kevin Hilman and checkpatch.
+Now force CS to be in inactive state only if it was inactive when it was
+suspended.
+
+* Change from v4 to v5:
+Rebase on linus/master (after 2.6.37-rc3)
+Collapse some lines as pointed by Grant Likely
+Fix a spelling
+
+* Change from v5 to v6:
+Rebase on linus/master (after 2.6.37-rc7)
+Use CONFIG_SUSPEND instead of CONFIG_PM
+Didn't use legacy PM methods anymore. Instead, add a struct dev_pm_ops and add the resume method there.
+Fix multi-line comment style
+
+Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+---
+ drivers/spi/omap2_mcspi.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index 2a651e6..a17ea97 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -1305,10 +1305,50 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
+ /* work with hotplug and coldplug */
+ MODULE_ALIAS("platform:omap2_mcspi");
+ +#ifdef	CONFIG_SUSPEND
++/*
++ * When SPI wake up from off-mode, CS is in activate state. If it was in
++ * unactive state when driver was suspend, then force it to unactive state at
++ * wake up.
++ */
++static int omap2_mcspi_resume(struct device *dev)
++{
++	struct spi_master	*master = dev_get_drvdata(dev);
++	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
++	struct omap2_mcspi_cs *cs;
++
++	omap2_mcspi_enable_clocks(mcspi);
++	list_for_each_entry(cs, &omap2_mcspi_ctx[master->bus_num - 1].cs,
++			    node) {
++		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
++
++			/*
++			 * We need to toggle CS state for OMAP take this
++			 * change in account.
++			 */
++			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 1);
++			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
++			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 0);
++			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
++		}
++	}
++	omap2_mcspi_disable_clocks(mcspi);
++	return 0;
++}
++#else
++#define	omap2_mcspi_resume	NULL
++#endif
++
++static const struct dev_pm_ops omap2_mcspi_pm_ops = {
++	.resume = omap2_mcspi_resume,
++};
++
+ static struct platform_driver omap2_mcspi_driver = {
+ 	.driver = {
+ 		.name =		"omap2_mcspi",
+ 		.owner =	THIS_MODULE,
++		.pm =		&omap2_mcspi_pm_ops
++
+ 	},
+ 	.remove =	__exit_p(omap2_mcspi_remove),
+ };
+-- 
+1.7.0.4
 
