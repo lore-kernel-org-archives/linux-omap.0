@@ -1,33 +1,67 @@
-From: Ben Gamari <bgamari.foss@gmail.com>
-Subject: Re: [PATCH] omap2: Make OMAP2PLUS select OMAP_DM_TIMER
-Date: Thu, 23 Dec 2010 21:53:13 -0500
-Message-ID: <87pqsrx4o6.fsf@gmail.com>
-References: <1293127631-764-1-git-send-email-bgamari.foss@gmail.com> <1293127631-764-2-git-send-email-bgamari.foss@gmail.com> <20101223204904.GS7771@atomide.com>
+From: Charles Manning <manningc2@actrix.gen.nz>
+Subject: Re: Issue : jffs2 and ecc layout
+Date: Fri, 24 Dec 2010 16:02:36 +1300
+Message-ID: <201012241602.36582.manningc2@actrix.gen.nz>
+References: <ActfCy0cZc3bW9yIT5u5fx8oZO9GQw==> <2A3DCF3DA181AD40BDE86A3150B27B6B03560990E3@dbde02.ent.ti.com> <AANLkTimJFsjLT15FA+TqDKzjvPXgxUAvovWpWKP3NCK4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:55435 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752672Ab0LXCxR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 21:53:17 -0500
-Received: by qwa26 with SMTP id 26so6788525qwa.19
-        for <linux-omap@vger.kernel.org>; Thu, 23 Dec 2010 18:53:16 -0800 (PST)
-In-Reply-To: <20101223204904.GS7771@atomide.com>
+Received: from smtp.scorch.co.nz ([27.110.127.199]:45763 "HELO scorch.co.nz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752721Ab0LXDCl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 22:02:41 -0500
+In-Reply-To: <AANLkTimJFsjLT15FA+TqDKzjvPXgxUAvovWpWKP3NCK4@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, manjugk@ti.com, santosh.shilimkar@ti.com, khilman@deeprootsystems.com
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 23 Dec 2010 12:49:04 -0800, Tony Lindgren <tony@atomide.com> wrote:
-> * Ben Gamari <bgamari.foss@gmail.com> [101223 10:07]:
-> > It appears that arch/arm/mach-omap2/timer-gp.o is needed by OMAP2PLUS.
-> > Since timer-gp.o has direct dependencies on omap_dm_timer_*, it seems
-> > correct for the architecture to depend upon OMAP_DM_TIMER, otherwise
-> > unsuspecting integrators will be faced with a whole bunch of linker
-> > errors at the end of their kernel build:
-> 
-> Can you please repost this with linux-arm-kernel list also Cc'd?
-> 
-Done. Sorry for all of the list noise.
+On Thursday 23 December 2010 21:24:35 Ming Lei wrote:
+> Hi,
+>
+> 2010/9/28 Ghorai, Sukumar <s-ghorai@ti.com>:
+> > Hi,
+> > I was using the following ecc layout which is not working to mount =
+the
+> > jffs2 File-system. I was in 2.6.32 kernel and working; but same lay=
+out is
+> > not working with latest 2.6 kernel.
+> >
+> > Observation is that - no read request issued to the driver (say oma=
+p2.c).
+> >
+> > # mount -t jffs2 /dev/mtdblock4 /mnt/nand
+> > [=A0=A0 32.505218] cannot read OOB for EB at 00000000, requested 8 =
+bytes,
+> > read 0 bytes, error -22 mount: Mounting /dev/mtdblock4 on /mnt/nand
+> > failed: Input/output error
+>
+> I meet the issue too, kernel is  2.6.37-rc6-next-20101217+, and board=
+ is
+> beagle B5.
+>
+> Is there any way to fix or workaround the issue?
+>
+>
+> thanks,
 
-- Ben
+THis might be due to the way the omap2.c driver is now screwed up so th=
+at it=20
+does not read when not u32 aligned.
+
+Try this:
+http://www.spinics.net/linux/lists/linux-omap/msg42422.html
+
+Please report back if that fixes the problem for you.
+
+-- Charles
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
