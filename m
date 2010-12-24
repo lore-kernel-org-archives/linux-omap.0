@@ -1,67 +1,61 @@
-From: Charles Manning <manningc2@actrix.gen.nz>
-Subject: Re: Issue : jffs2 and ecc layout
-Date: Fri, 24 Dec 2010 16:02:36 +1300
-Message-ID: <201012241602.36582.manningc2@actrix.gen.nz>
-References: <ActfCy0cZc3bW9yIT5u5fx8oZO9GQw==> <2A3DCF3DA181AD40BDE86A3150B27B6B03560990E3@dbde02.ent.ti.com> <AANLkTimJFsjLT15FA+TqDKzjvPXgxUAvovWpWKP3NCK4@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH] mcspi: Add support for GPIO chip select lines
+Date: Thu, 23 Dec 2010 20:28:19 -0700
+Message-ID: <20101224032819.GC2491@angua.secretlab.ca>
+References: <1b68c6791001272033q60dd31dbif4de285cd9bac83d@mail.gmail.com>
+ <1292954195-20204-2-git-send-email-bgamari.foss@gmail.com>
+ <AANLkTi=L+ZfwVy+O=oAXx8EHGisCdW1Pg4U+dQa4ZzEN@mail.gmail.com>
+ <871v58xf0k.fsf@gmail.com>
+ <AANLkTi=d_xkhksY=qzUOmjYYs8OkX13+8_4byZtnX9i5@mail.gmail.com>
+ <87y67fx5vb.fsf@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.scorch.co.nz ([27.110.127.199]:45763 "HELO scorch.co.nz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752721Ab0LXDCl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 22:02:41 -0500
-In-Reply-To: <AANLkTimJFsjLT15FA+TqDKzjvPXgxUAvovWpWKP3NCK4@mail.gmail.com>
+Received: from mail-iw0-f194.google.com ([209.85.214.194]:47183 "EHLO
+	mail-iw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752601Ab0LXD2X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2010 22:28:23 -0500
+Received: by iwn42 with SMTP id 42so3667510iwn.1
+        for <linux-omap@vger.kernel.org>; Thu, 23 Dec 2010 19:28:22 -0800 (PST)
 Content-Disposition: inline
+In-Reply-To: <87y67fx5vb.fsf@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ben Gamari <bgamari.foss@gmail.com>
+Cc: beagleboard <beagleboard@googlegroups.com>, linux-omap <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Michael Hennerich <michael.hennerich@analog.com>, spi-devel-general <spi-devel-general@lists.sourceforge.net>, Eric Miao <eric.miao@canonical.com>
 
-On Thursday 23 December 2010 21:24:35 Ming Lei wrote:
-> Hi,
->
-> 2010/9/28 Ghorai, Sukumar <s-ghorai@ti.com>:
-> > Hi,
-> > I was using the following ecc layout which is not working to mount =
-the
-> > jffs2 File-system. I was in 2.6.32 kernel and working; but same lay=
-out is
-> > not working with latest 2.6 kernel.
-> >
-> > Observation is that - no read request issued to the driver (say oma=
-p2.c).
-> >
-> > # mount -t jffs2 /dev/mtdblock4 /mnt/nand
-> > [=A0=A0 32.505218] cannot read OOB for EB at 00000000, requested 8 =
-bytes,
-> > read 0 bytes, error -22 mount: Mounting /dev/mtdblock4 on /mnt/nand
-> > failed: Input/output error
->
-> I meet the issue too, kernel is  2.6.37-rc6-next-20101217+, and board=
- is
-> beagle B5.
->
-> Is there any way to fix or workaround the issue?
->
->
-> thanks,
+On Thu, Dec 23, 2010 at 09:27:20PM -0500, Ben Gamari wrote:
+> On Thu, 23 Dec 2010 17:37:12 -0700, Grant Likely <grant.likely@secretlab.ca> wrote:
+> > On Thu, Dec 23, 2010 at 4:09 PM, Ben Gamari <bgamari.foss@gmail.com> wrote:
+> > > The reason I left this up to the board is it's easy to foresee cases
+> > > where you want a non-trivial mapping between logical CS numbers and CS
+> > > pin states. In my case, I using a 2-to-4 multiplexer as the source of
+> > > chip select.
+> > 
+> > Hi Ben,
+> > 
+> > I understand and appreciate the motivation.  However in practice, the
+> > gpio api is sufficient for pretty much any use case, even when the
+> > backing gpio controller driver ends up driving some oddball device
+> > with different constraints.  The big downside to using a callback is
+> > that it forces all users to do the extra work of implementing the
+> > callback.  With the gpio api, only the oddball cases have to do extra
+> > code (to adapt the custom device to the gpio api).
+> 
+> I understand your concerns, but I'm not sure how to satisfy them without
+> crippling the design's ability to accomodate my use-case. I can't pass a
+> GPIO line per spi_board_info since in my case of a multiplexed CS
+> configuration a single pin's state does not uniquely determine the
+> desired CS. The only other option I can think of is that we somehow
+> provide a list of GPIOs for each bus and map the CS numbers to
+> permutations of GPIO states. Unfortunately, I don't know of any suitable
+> structure to put this GPIO list in. Perhaps I'm missing something obvious?
 
-THis might be due to the way the omap2.c driver is now screwed up so th=
-at it=20
-does not read when not u32 aligned.
+Close, but not quite.  Assign one gpio number to each cs state, and
+write a gpio controller driver that maps the linux-gpio number to the
+physical gpio state permutation.  The mapping from gpio# to ss# is
+1:1, but the driver behind the gpio# can do whatever you need it to
+do.
 
-Try this:
-http://www.spinics.net/linux/lists/linux-omap/msg42422.html
+g.
 
-Please report back if that fixes the problem for you.
-
--- Charles
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
