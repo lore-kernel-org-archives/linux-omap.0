@@ -1,54 +1,38 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: Issue : jffs2 and ecc layout
-Date: Fri, 24 Dec 2010 22:40:40 +0800
-Message-ID: <AANLkTiky0G_H9vGDRNj-y=JTcfCcvRgfXraa0SbAZM4t@mail.gmail.com>
-References: <2A3DCF3DA181AD40BDE86A3150B27B6B03560990E3@dbde02.ent.ti.com>
-	<AANLkTimJFsjLT15FA+TqDKzjvPXgxUAvovWpWKP3NCK4@mail.gmail.com>
-	<201012241602.36582.manningc2@actrix.gen.nz>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap2: Make OMAP2PLUS select OMAP_DM_TIMER
+Date: Fri, 24 Dec 2010 09:39:13 -0800
+Message-ID: <20101224173912.GV7771@atomide.com>
+References: <1293158889-9708-1-git-send-email-bgamari.foss@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:51405 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752001Ab0LXOkn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Dec 2010 09:40:43 -0500
-Received: by wwa36 with SMTP id 36so7425539wwa.1
-        for <linux-omap@vger.kernel.org>; Fri, 24 Dec 2010 06:40:42 -0800 (PST)
-In-Reply-To: <201012241602.36582.manningc2@actrix.gen.nz>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26796 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752476Ab0LXRjS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Dec 2010 12:39:18 -0500
+Content-Disposition: inline
+In-Reply-To: <1293158889-9708-1-git-send-email-bgamari.foss@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charles Manning <manningc2@actrix.gen.nz>
-Cc: "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ben Gamari <bgamari.foss@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+* Ben Gamari <bgamari.foss@gmail.com> [101223 18:48]:
+> It appears that arch/arm/mach-omap2/timer-gp.o is needed by OMAP2PLUS.
+> Since timer-gp.o has direct dependencies on omap_dm_timer_*, it seems
+> correct for the architecture to depend upon OMAP_DM_TIMER, otherwise
+> unsuspecting integrators will be faced with a whole bunch of linker
+> errors at the end of their kernel build:
+> 
+> arch/arm/mach-omap2/built-in.o: In function `omap2_gp_timer_set_mode':
+> /home/bgamari/trees/linux-2.6/arch/arm/mach-omap2/timer-gp.c:84: undefined reference to `omap_dm_timer_stop'
+> /home/bgamari/trees/linux-2.6/arch/arm/mach-omap2/timer-gp.c:88: undefined reference to `omap_dm_timer_get_fclk'
+> /home/bgamari/trees/linux-2.6/arch/arm/mach-omap2/timer-gp.c:90: undefined reference to `omap_dm_timer_set_load_start'
+> ...
 
-2010/12/24 Charles Manning <manningc2@actrix.gen.nz>:
+One more thing.. Can you please reply with your
+Signed-off-by: line so this can be applied?
 
-> THis might be due to the way the omap2.c driver is now screwed up so that it
-> does not read when not u32 aligned.
->
-> Try this:
-> http://www.spinics.net/linux/lists/linux-omap/msg42422.html
->
-> Please report back if that fixes the problem for you.
+Thanks
 
-The patch is still a good catch, with it, the following error
-message does disappear:
-
-[  299.433197] uncorrectable error :
-[  299.436737] uncorrectable error :
-[  299.440338] mtd->read(0x530 bytes from 0xf9202d0) returned ECC error
-[  299.447875] uncorrectable error :
-[  299.451263] uncorrectable error :
-[  299.454833] mtd->read(0x44 bytes from 0xf927efc) returned ECC error
-[  299.461822] uncorrectable error :
-[  299.465240] uncorrectable error :
-[  299.468780] uncorrectable error :
-[  299.472534] mtd->read(0x5a4 bytes from 0xf940d84) returned ECC error
-
-If not applying this patch, even Jason's patch is reverted, the error message
-above will be printed out very frequently during 'mount'.
-
-thanks,
--- 
-Lei Ming
+Tony
