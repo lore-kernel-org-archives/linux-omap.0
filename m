@@ -1,24 +1,42 @@
-From: news.irnl@live.com
-Subject: Info
-Date: Sun, 26 Dec 2010 05:33:33 -0800 (PST)
-Message-ID: <888627.76280.qm@web88106.mail.re2.yahoo.com>
-Reply-To: news.irnl@live.com
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the omap tree with the arm tree
+Date: Mon, 27 Dec 2010 09:41:56 +1100
+Message-ID: <20101227094156.5750aa6e.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm27-vm0.bullet.mail.ac4.yahoo.com ([98.139.52.244]:32377 "HELO
-	nm27-vm0.bullet.mail.ac4.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752008Ab0LZNdf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 26 Dec 2010 08:33:35 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Jean-Christop PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Russell King <rmk@arm.linux.org.uk>, Ben Gamari <bgamari.foss@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-You've earned =A3 750,000.Send:Name,Age,Country.
+Hi all,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Today's linux-next merge of the omap tree got a conflict in
+arch/arm/plat-omap/Kconfig between commit
+6d803ba736abb5e122dede70a4720e4843dd6df4 ("ARM: 6483/1: arm & sh:
+factorised duplicated clkdev.c") from the arm tree and commit
+dc69d1af9e8d9cbbabff88bb35a6782187a22229 ("omap2: Make OMAP2PLUS select
+OMAP_DM_TIMER") from the omap tree.
+
+Just context changes.  I fixed it up (see below) and can carry the fix as
+necessary.
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+diff --cc arch/arm/plat-omap/Kconfig
+index c940843,bc0c7aa..0000000
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@@ -17,7 -17,8 +17,8 @@@ config ARCH_OMAP
+  
+  config ARCH_OMAP2PLUS
+  	bool "TI OMAP2/3/4"
+ -	select COMMON_CLKDEV
+ +	select CLKDEV_LOOKUP
++ 	select OMAP_DM_TIMER
+  	help
+  	  "Systems based on OMAP2, OMAP3 or OMAP4"
+  
