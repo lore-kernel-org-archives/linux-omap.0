@@ -1,44 +1,42 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: omapfb: no driver for display error with linux-2.6.37-rc7
-Date: Mon, 27 Dec 2010 02:39:11 +0200
-Message-ID: <AANLkTik0e2CG4V09PkufJBx-To66UAhoN66wBQmCbUWO@mail.gmail.com>
-References: <6488240A-F0F8-469C-BCD3-B2B27AF51B6C@mac.com>
+From: "Mr Song Lile" <songlile222@aol.nl>
+Subject: Good Day
+Date: Sun, 26 Dec 2010 18:27:09 +0300
+Message-ID: <a9193dfd697044d7a98029cae06e77d5.squirrel__44130.1309424036$1293412496$gmane$org@mail.teletoria.ru>
+Reply-To: songlile222@aol.nl
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:62057 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752634Ab0L0AjN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Dec 2010 19:39:13 -0500
-Received: by bwz15 with SMTP id 15so9257392bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 26 Dec 2010 16:39:11 -0800 (PST)
-In-Reply-To: <6488240A-F0F8-469C-BCD3-B2B27AF51B6C@mac.com>
+Received: from mail.kolatelecom.ru ([94.100.192.6]:51021 "EHLO
+	mail.teletoria.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213Ab0L0BOe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Dec 2010 20:14:34 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Mon, Dec 27, 2010 at 12:10 AM, Elvis Dowson <elvis.dowson@mac.com> w=
-rote:
-> =C2=A0 =C2=A0 =C2=A0 I'm getting the following error with linux-2.6.3=
-7-rc7. Is there a .config setting that I'm missing?
->
-> [ =C2=A0 =C2=A02.175872] omapfb omapfb: no driver for display
-> [ =C2=A0 =C2=A02.180999] omapfb omapfb: failed to setup omapfb
->
-> My bootargs are as follows:
->
-> mmcargs=3Dsetenv bootargs console=3DttyO2,115200n8 vram=3D12M omapfb.=
-vram=3D0:2M omapfb.mode=3D480x272MR-16@60 root=3D/dev/mmcblk0p2 rw root=
-fstype=3Dext3 rootwait
+Dear Prospective Partner,
 
-Do you have a proper CONFIG_OMAP2_VRAM_SIZE in your config?
+Although you might be apprehensive about my email as we have not met
+before; I am writing to you on behalf of Mr. Chen Shui-bian. My name is
+Mr. Song Lile and I am a top management executive here at the Hang Seng
+Bank of Hong Kong. I have a business proposal for you.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Your role will be to:
+[1]. Act as the original beneficiary of the funds.
+[2]. Receive the funds into a business/private bank account.
+[3]. Invest/Manage the funds outside of Singapore/Hong Kong.
+[4]. Value of funds: $19.5 Million US Dollars.
+
+Mr. Chen Shui-bian's current profile visit this site:
+
+http://news.bbc.co.uk/2/hi/asia-pacific/8250099.stm
+http://news.bbc.co.uk/2/hi/asia-pacific/8233342.stm
+
+Please e-mail me on my private e-mail ( songlile222@aol.nl ) for further
+details, terms and agreement.
+
+Sincerely,
+Mr. Song Lile
+Private e-mail: songlile222@aol.nl
+
+
