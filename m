@@ -1,206 +1,117 @@
 From: shubhrajyoti@ti.com
-Subject: [PATCH v8 2/3] OMAP4: keypad: Add the board support.
-Date: Mon, 27 Dec 2010 11:21:45 +0530
-Message-ID: <1293429106-16543-3-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCH v8 1/3] OMAP4: hwmod data: Add keypad in the hwmod database
+Date: Mon, 27 Dec 2010 11:21:44 +0530
+Message-ID: <1293429106-16543-2-git-send-email-shubhrajyoti@ti.com>
 References: <1293429106-16543-1-git-send-email-shubhrajyoti@ti.com>
- <1293429106-16543-2-git-send-email-shubhrajyoti@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40049 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751259Ab0L0Fvy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Dec 2010 00:51:54 -0500
-In-Reply-To: <1293429106-16543-2-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1293429106-16543-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-input-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
-Cc: Syed Rafiuddin <rafiuddin.syed@ti.com>, Abraham Arce <x0066660@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Abraham Arce <x0066660@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-From: Syed Rafiuddin <rafiuddin.syed@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
 
--Add the platform changes for the keypad driver
--Register keyboard device with hwmod framework.
+Add hwmod data for OMAP4 keyboard controller
+taking Benoit's patch:
 
-Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+ OMAP4: hwmod: Add partial hwmod support for OMAP4430
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Abraham Arce <x0066660@ti.com>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   89 +++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/devices.c       |   41 ++++++++++++++++
- 2 files changed, 130 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   70 ++++++++++++++++++++++++++++
+ 1 files changed, 70 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 9525515..0bbceb3 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -35,6 +35,7 @@
- #include <plat/common.h>
- #include <plat/usb.h>
- #include <plat/mmc.h>
-+#include <plat/omap4-keypad.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index f9778fb..a0c6c39 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -657,6 +657,73 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
+ };
  
- #include "mux.h"
- #include "hsmmc.h"
-@@ -48,6 +49,90 @@
- #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
- #define OMAP4_SFH7741_ENABLE_GPIO		188
- 
-+static const int sdp4430_keymap[] = {
-+	KEY(0, 0, KEY_E),
-+	KEY(0, 1, KEY_R),
-+	KEY(0, 2, KEY_T),
-+	KEY(0, 3, KEY_HOME),
-+	KEY(0, 4, KEY_F5),
-+	KEY(0, 5, KEY_UNKNOWN),
-+	KEY(0, 6, KEY_I),
-+	KEY(0, 7, KEY_LEFTSHIFT),
+ /*
++ * 'kbd' class
++ * keyboard controller
++ */
 +
-+	KEY(1, 0, KEY_D),
-+	KEY(1, 1, KEY_F),
-+	KEY(1, 2, KEY_G),
-+	KEY(1, 3, KEY_SEND),
-+	KEY(1, 4, KEY_F6),
-+	KEY(1, 5, KEY_UNKNOWN),
-+	KEY(1, 6, KEY_K),
-+	KEY(1, 7, KEY_ENTER),
-+
-+	KEY(2, 0, KEY_X),
-+	KEY(2, 1, KEY_C),
-+	KEY(2, 2, KEY_V),
-+	KEY(2, 3, KEY_END),
-+	KEY(2, 4, KEY_F7),
-+	KEY(2, 5, KEY_UNKNOWN),
-+	KEY(2, 6, KEY_DOT),
-+	KEY(2, 7, KEY_CAPSLOCK),
-+
-+	KEY(3, 0, KEY_Z),
-+	KEY(3, 1, KEY_KPPLUS),
-+	KEY(3, 2, KEY_B),
-+	KEY(3, 3, KEY_F1),
-+	KEY(3, 4, KEY_F8),
-+	KEY(3, 5, KEY_UNKNOWN),
-+	KEY(3, 6, KEY_O),
-+	KEY(3, 7, KEY_SPACE),
-+
-+	KEY(4, 0, KEY_W),
-+	KEY(4, 1, KEY_Y),
-+	KEY(4, 2, KEY_U),
-+	KEY(4, 3, KEY_F2),
-+	KEY(4, 4, KEY_VOLUMEUP),
-+	KEY(4, 5, KEY_UNKNOWN),
-+	KEY(4, 6, KEY_L),
-+	KEY(4, 7, KEY_LEFT),
-+
-+	KEY(5, 0, KEY_S),
-+	KEY(5, 1, KEY_H),
-+	KEY(5, 2, KEY_J),
-+	KEY(5, 3, KEY_F3),
-+	KEY(5, 4, KEY_F9),
-+	KEY(5, 5, KEY_VOLUMEDOWN),
-+	KEY(5, 6, KEY_M),
-+	KEY(5, 7, KEY_RIGHT),
-+
-+	KEY(6, 0, KEY_Q),
-+	KEY(6, 1, KEY_A),
-+	KEY(6, 2, KEY_N),
-+	KEY(6, 3, KEY_BACK),
-+	KEY(6, 4, KEY_BACKSPACE),
-+	KEY(6, 5, KEY_UNKNOWN),
-+	KEY(6, 6, KEY_P),
-+	KEY(6, 7, KEY_UP),
-+
-+	KEY(7, 0, KEY_PROG1),
-+	KEY(7, 1, KEY_PROG2),
-+	KEY(7, 2, KEY_PROG3),
-+	KEY(7, 3, KEY_PROG4),
-+	KEY(7, 4, KEY_F4),
-+	KEY(7, 5, KEY_UNKNOWN),
-+	KEY(7, 6, KEY_OK),
-+	KEY(7, 7, KEY_DOWN),
++static struct omap_hwmod_class_sysconfig omap44xx_kbd_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_CLOCKACTIVITY |
++			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
++			   SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
 +};
 +
-+static struct matrix_keymap_data sdp4430_keymap_data = {
-+	.keymap			= sdp4430_keymap,
-+	.keymap_size		= ARRAY_SIZE(sdp4430_keymap),
++static struct omap_hwmod_class omap44xx_kbd_hwmod_class = {
++	.name = "kbd",
++	.sysc = &omap44xx_kbd_sysc,
 +};
 +
-+static struct omap4_keypad_platform_data sdp4430_keypad_data = {
-+	.keymap_data		= &sdp4430_keymap_data,
-+	.rows			= 8,
-+	.cols			= 8,
++/* kbd */
++static struct omap_hwmod omap44xx_kbd_hwmod;
++static struct omap_hwmod_irq_info omap44xx_kbd_irqs[] = {
++	{ .irq = 120 + OMAP44XX_IRQ_GIC_START },
 +};
- static struct gpio_led sdp4430_gpio_leds[] = {
- 	{
- 		.name	= "omap4:green:debug0",
-@@ -591,6 +676,10 @@ static void __init omap_4430sdp_init(void)
- 		spi_register_board_info(sdp4430_spi_board_info,
- 				ARRAY_SIZE(sdp4430_spi_board_info));
- 	}
 +
-+	status = omap4_keyboard_init(&sdp4430_keypad_data);
-+	if (status)
-+		pr_err("Keypad initialization failed: %d\n", status);
- }
- 
- static void __init omap_4430sdp_map_io(void)
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 1bca147..24831af 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -30,6 +30,7 @@
- #include <plat/dma.h>
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
-+#include <plat/omap4-keypad.h>
- 
- #include "mux.h"
- #include "control.h"
-@@ -141,6 +142,46 @@ static inline void omap_init_camera(void)
- }
- #endif
- 
-+struct omap_device_pm_latency omap_keyboard_latency[] = {
++static struct omap_hwmod_addr_space omap44xx_kbd_addrs[] = {
 +	{
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func   = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++		.pa_start	= 0x4a31c000,
++		.pa_end		= 0x4a31c07f,
++		.flags		= ADDR_TYPE_RT
 +	},
 +};
 +
-+int __init omap4_keyboard_init(struct omap4_keypad_platform_data
-+						*sdp4430_keypad_data)
-+{
-+	struct omap_device *od;
-+	struct omap_hwmod *oh;
-+	struct omap4_keypad_platform_data *keypad_data;
-+	unsigned int id = -1;
-+	char *oh_name = "kbd";
-+	char *name = "omap4-keypad";
++/* l4_wkup -> kbd */
++static struct omap_hwmod_ocp_if omap44xx_l4_wkup__kbd = {
++	.master		= &omap44xx_l4_wkup_hwmod,
++	.slave		= &omap44xx_kbd_hwmod,
++	.clk		= "l4_wkup_clk_mux_ck",
++	.addr		= omap44xx_kbd_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_kbd_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
 +
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (!oh) {
-+		pr_err("Could not look up %s\n", oh_name);
-+		return -ENODEV;
-+	}
++/* kbd slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_kbd_slaves[] = {
++	&omap44xx_l4_wkup__kbd,
++};
 +
-+	keypad_data = sdp4430_keypad_data;
++static struct omap_hwmod omap44xx_kbd_hwmod = {
++	.name		= "kbd",
++	.class		= &omap44xx_kbd_hwmod_class,
++	.mpu_irqs	= omap44xx_kbd_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_kbd_irqs),
++	.main_clk	= "kbd_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_WKUP_KEYBOARD_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_kbd_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_kbd_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
 +
-+	od = omap_device_build(name, id, oh, keypad_data,
-+			sizeof(struct omap4_keypad_platform_data),
-+			omap_keyboard_latency,
-+			ARRAY_SIZE(omap_keyboard_latency), 0);
 +
-+	if (IS_ERR(od)) {
-+		WARN(1, "Cant build omap_device for %s:%s.\n",
-+						name, oh->name);
-+		return PTR_ERR(od);
-+	}
-+
-+	return 0;
-+}
-+
- #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
++/*
+  * 'mpu' class
+  * mpu sub-system
+  */
+@@ -1509,6 +1576,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_gpio5_hwmod,
+ 	&omap44xx_gpio6_hwmod,
  
- #define MBOX_REG_SIZE   0x120
++	/* kbd class */
++	&omap44xx_kbd_hwmod,
++
+ 	/* mpu class */
+ 	&omap44xx_mpu_hwmod,
+ 	/* wd_timer class */
 -- 
 1.7.0.4
 
