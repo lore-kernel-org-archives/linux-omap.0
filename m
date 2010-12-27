@@ -1,73 +1,206 @@
 From: shubhrajyoti@ti.com
-Subject: [PATCH v8 3/3] OMAP4:keypad: PM runtime
-Date: Mon, 27 Dec 2010 11:21:46 +0530
-Message-ID: <1293429106-16543-4-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCH v8 2/3] OMAP4: keypad: Add the board support.
+Date: Mon, 27 Dec 2010 11:21:45 +0530
+Message-ID: <1293429106-16543-3-git-send-email-shubhrajyoti@ti.com>
 References: <1293429106-16543-1-git-send-email-shubhrajyoti@ti.com>
  <1293429106-16543-2-git-send-email-shubhrajyoti@ti.com>
- <1293429106-16543-3-git-send-email-shubhrajyoti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40051 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40049 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751543Ab0L0Fv4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Dec 2010 00:51:56 -0500
-In-Reply-To: <1293429106-16543-3-git-send-email-shubhrajyoti@ti.com>
+	id S1751259Ab0L0Fvy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Dec 2010 00:51:54 -0500
+In-Reply-To: <1293429106-16543-2-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
-Cc: Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: Syed Rafiuddin <rafiuddin.syed@ti.com>, Abraham Arce <x0066660@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Abraham Arce <x0066660@ti.com>
+From: Syed Rafiuddin <rafiuddin.syed@ti.com>
 
-Enable Runtime PM functionality in OMAP4 driver based on the following assumptions
+-Add the platform changes for the keypad driver
+-Register keyboard device with hwmod framework.
 
-A minimal pm runtime get/put approach is implemented in probe/remove calls
-respectively.
-
-- Keyboard controller in wakeup domain so it is always on and
-  power impact may be minimal
-- In OMAP4 the device control is at module/device level and ick/fclk level control is
-  difficult so cutting of clocks will prevent interrupts.
-
+Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
 Signed-off-by: Abraham Arce <x0066660@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/input/keyboard/omap4-keypad.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c |   89 +++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/devices.c       |   41 ++++++++++++++++
+ 2 files changed, 130 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-index 45bd097..fcfbb9b 100644
---- a/drivers/input/keyboard/omap4-keypad.c
-+++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -29,6 +29,7 @@
- #include <linux/io.h>
- #include <linux/input.h>
- #include <linux/slab.h>
-+#include <linux/pm_runtime.h>
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 9525515..0bbceb3 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -35,6 +35,7 @@
+ #include <plat/common.h>
+ #include <plat/usb.h>
+ #include <plat/mmc.h>
++#include <plat/omap4-keypad.h>
  
- #include <plat/omap4-keypad.h>
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -48,6 +49,90 @@
+ #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
+ #define OMAP4_SFH7741_ENABLE_GPIO		188
  
-@@ -239,6 +240,9 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 	matrix_keypad_build_keymap(pdata->keymap_data, row_shift,
- 			input_dev->keycode, input_dev->keybit);
- 
-+	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_get_sync(&pdev->dev);
++static const int sdp4430_keymap[] = {
++	KEY(0, 0, KEY_E),
++	KEY(0, 1, KEY_R),
++	KEY(0, 2, KEY_T),
++	KEY(0, 3, KEY_HOME),
++	KEY(0, 4, KEY_F5),
++	KEY(0, 5, KEY_UNKNOWN),
++	KEY(0, 6, KEY_I),
++	KEY(0, 7, KEY_LEFTSHIFT),
 +
- 	omap4_keypad_config(keypad_data);
- 
- 	error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
-@@ -278,6 +282,10 @@ static int __devexit omap4_keypad_remove(struct platform_device *pdev)
- 	struct resource *res;
- 
- 	free_irq(keypad_data->irq, keypad_data);
++	KEY(1, 0, KEY_D),
++	KEY(1, 1, KEY_F),
++	KEY(1, 2, KEY_G),
++	KEY(1, 3, KEY_SEND),
++	KEY(1, 4, KEY_F6),
++	KEY(1, 5, KEY_UNKNOWN),
++	KEY(1, 6, KEY_K),
++	KEY(1, 7, KEY_ENTER),
 +
-+	pm_runtime_put_sync(&pdev->dev);
-+	pm_runtime_disable(&pdev->dev);
++	KEY(2, 0, KEY_X),
++	KEY(2, 1, KEY_C),
++	KEY(2, 2, KEY_V),
++	KEY(2, 3, KEY_END),
++	KEY(2, 4, KEY_F7),
++	KEY(2, 5, KEY_UNKNOWN),
++	KEY(2, 6, KEY_DOT),
++	KEY(2, 7, KEY_CAPSLOCK),
 +
- 	input_unregister_device(keypad_data->input);
++	KEY(3, 0, KEY_Z),
++	KEY(3, 1, KEY_KPPLUS),
++	KEY(3, 2, KEY_B),
++	KEY(3, 3, KEY_F1),
++	KEY(3, 4, KEY_F8),
++	KEY(3, 5, KEY_UNKNOWN),
++	KEY(3, 6, KEY_O),
++	KEY(3, 7, KEY_SPACE),
++
++	KEY(4, 0, KEY_W),
++	KEY(4, 1, KEY_Y),
++	KEY(4, 2, KEY_U),
++	KEY(4, 3, KEY_F2),
++	KEY(4, 4, KEY_VOLUMEUP),
++	KEY(4, 5, KEY_UNKNOWN),
++	KEY(4, 6, KEY_L),
++	KEY(4, 7, KEY_LEFT),
++
++	KEY(5, 0, KEY_S),
++	KEY(5, 1, KEY_H),
++	KEY(5, 2, KEY_J),
++	KEY(5, 3, KEY_F3),
++	KEY(5, 4, KEY_F9),
++	KEY(5, 5, KEY_VOLUMEDOWN),
++	KEY(5, 6, KEY_M),
++	KEY(5, 7, KEY_RIGHT),
++
++	KEY(6, 0, KEY_Q),
++	KEY(6, 1, KEY_A),
++	KEY(6, 2, KEY_N),
++	KEY(6, 3, KEY_BACK),
++	KEY(6, 4, KEY_BACKSPACE),
++	KEY(6, 5, KEY_UNKNOWN),
++	KEY(6, 6, KEY_P),
++	KEY(6, 7, KEY_UP),
++
++	KEY(7, 0, KEY_PROG1),
++	KEY(7, 1, KEY_PROG2),
++	KEY(7, 2, KEY_PROG3),
++	KEY(7, 3, KEY_PROG4),
++	KEY(7, 4, KEY_F4),
++	KEY(7, 5, KEY_UNKNOWN),
++	KEY(7, 6, KEY_OK),
++	KEY(7, 7, KEY_DOWN),
++};
++
++static struct matrix_keymap_data sdp4430_keymap_data = {
++	.keymap			= sdp4430_keymap,
++	.keymap_size		= ARRAY_SIZE(sdp4430_keymap),
++};
++
++static struct omap4_keypad_platform_data sdp4430_keypad_data = {
++	.keymap_data		= &sdp4430_keymap_data,
++	.rows			= 8,
++	.cols			= 8,
++};
+ static struct gpio_led sdp4430_gpio_leds[] = {
+ 	{
+ 		.name	= "omap4:green:debug0",
+@@ -591,6 +676,10 @@ static void __init omap_4430sdp_init(void)
+ 		spi_register_board_info(sdp4430_spi_board_info,
+ 				ARRAY_SIZE(sdp4430_spi_board_info));
+ 	}
++
++	status = omap4_keyboard_init(&sdp4430_keypad_data);
++	if (status)
++		pr_err("Keypad initialization failed: %d\n", status);
+ }
  
- 	iounmap(keypad_data->base);
+ static void __init omap_4430sdp_map_io(void)
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 1bca147..24831af 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -30,6 +30,7 @@
+ #include <plat/dma.h>
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
++#include <plat/omap4-keypad.h>
+ 
+ #include "mux.h"
+ #include "control.h"
+@@ -141,6 +142,46 @@ static inline void omap_init_camera(void)
+ }
+ #endif
+ 
++struct omap_device_pm_latency omap_keyboard_latency[] = {
++	{
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func   = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	},
++};
++
++int __init omap4_keyboard_init(struct omap4_keypad_platform_data
++						*sdp4430_keypad_data)
++{
++	struct omap_device *od;
++	struct omap_hwmod *oh;
++	struct omap4_keypad_platform_data *keypad_data;
++	unsigned int id = -1;
++	char *oh_name = "kbd";
++	char *name = "omap4-keypad";
++
++	oh = omap_hwmod_lookup(oh_name);
++	if (!oh) {
++		pr_err("Could not look up %s\n", oh_name);
++		return -ENODEV;
++	}
++
++	keypad_data = sdp4430_keypad_data;
++
++	od = omap_device_build(name, id, oh, keypad_data,
++			sizeof(struct omap4_keypad_platform_data),
++			omap_keyboard_latency,
++			ARRAY_SIZE(omap_keyboard_latency), 0);
++
++	if (IS_ERR(od)) {
++		WARN(1, "Cant build omap_device for %s:%s.\n",
++						name, oh->name);
++		return PTR_ERR(od);
++	}
++
++	return 0;
++}
++
+ #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
+ 
+ #define MBOX_REG_SIZE   0x120
 -- 
 1.7.0.4
 
