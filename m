@@ -1,377 +1,186 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: Re: [PATCH v2] staging: tidspbridge: protect dmm_map properly
-Date: Mon, 27 Dec 2010 15:55:13 +0200
-Message-ID: <1293452486-notmuch-felipe.contreras@nokia.com>
-References: <1292870624-25450-1-git-send-email-felipe.contreras@nokia.com> <AANLkTikisHaAMZphRJVYdcokVbaZXVF9COrwkdGTDg__@mail.gmail.com> <AANLkTi=9AL3aWUsMeih+Gb-sMov=MgBZ1eTp8wb=q1hZ@mail.gmail.com> <AANLkTinX8t=3b48e2sxPU-V_G-nGm_1DyEg6B-CeqXDa@mail.gmail.com>
+From: "Janorkar, Mayuresh" <mayur@ti.com>
+Subject: RE: omapfb: no driver for display error with linux-2.6.37-rc7
+Date: Mon, 27 Dec 2010 19:48:35 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB03230E2184@dbde02.ent.ti.com>
+References: <6488240A-F0F8-469C-BCD3-B2B27AF51B6C@mac.com>
+ <AANLkTik0e2CG4V09PkufJBx-To66UAhoN66wBQmCbUWO@mail.gmail.com>
+ <4D33F07F-5093-45BE-A190-26554EE073FD@mac.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:54075 "EHLO mgw-da01.nokia.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58047 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753822Ab0L0Nza (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Dec 2010 08:55:30 -0500
-In-Reply-To: <AANLkTinX8t=3b48e2sxPU-V_G-nGm_1DyEg6B-CeqXDa@mail.gmail.com>
+	id S1753880Ab0L0OSn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Dec 2010 09:18:43 -0500
+In-Reply-To: <4D33F07F-5093-45BE-A190-26554EE073FD@mac.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ohad@wizery.com
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, greg@kroah.com, omar.ramirez@ti.com, fernando.lugo@ti.com, nm@ti.com, ameya.palande@nokia.com, h-kanigeri2@ti.com
+To: Elvis Dowson <elvis.dowson@mac.com>, Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-ohad@wizery.com wrote:
-> On Tue, Dec 21, 2010 at 6:44 PM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
-> > Wouldn't you want the proc_*_dma() operations to finish before
-> > unmaping the pages?
-> 
-> Yes, but that's not what your patch is doing exactly: it serializes
-> the execution of proc_begin_dma(), proc_end_dma(), proc_map() and
-> proc_un_map() using a single global mutex and by that prevents their
-> concurrent execution (system-wide).
-> 
-> I understand your intention: you don't want proc_un_map() to kick in
-> in the middle of a proc_*_dma() operation. That's fine, but the patch
-> has a side effect, which serializes the DMA operations themselves, and
-> prevents their concurrent execution (even if they are for separate
-> memory addresses, or invoked by different processes, etc...).
+Felipe, Elvis,
 
-Yeah, but as I said, the proc_map() and proc_un_map() operations are
-_already_ serialized, and those are the main operations used by both
-gst-dsp, and TI's openmax, which are the only known users of this
-driver.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Elvis Dowson
+> Sent: Monday, December 27, 2010 11:30 AM
+> To: Felipe Contreras
+> Cc: Linux OMAP Mailing List
+> Subject: Re: omapfb: no driver for display error with linux-2.6.37-rc7
+> 
+> 
+> On Dec 27, 2010, at 4:39 AM, Felipe Contreras wrote:
+> 
+> 
+> >> [    2.175872] omapfb omapfb: no driver for display
+[Mayuresh]: This clearly shows that there is something went wrong in registering displays. So OMAPFB has not found any registered displays.
 
-So, effectively, serializing the proc_begin_dma() and proc_end_dma()
-would not affect anyone negatively for the time being.
+Try passing omapdss.debug=1, omapfb.debug=1 in your bootargs and the log would be self explanatory.
 
-> Looking ahead, this DMM code is going to be extracted into an
-> independent module, where it will be shared between dspbridge and
-> syslink (the IPC framework for OMAP4 and forth): both projects use
-> this DMM concept, and it won't make sense for syslink to duplicate the
-> code. So even if today's dspbridge use cases doesn't have a lot of
-> concurrency, and performance is satisfying even in light of your
-> patch, we still want the code to be ready for more demanding use cases
-> (several remote processors, several multimedia processes running on
-> the host, several concurrent multimedia streams, etc...). If we use
-> coarse-grained locking now, it will just make it harder to remove it
-> later when scalability issues will show up (see the BKL removal
-> efforts...).
+> >> [    2.180999] omapfb omapfb: failed to setup omapfb
+> >>
+> >> My bootargs are as follows:
+> >>
+> >> mmcargs=setenv bootargs console=ttyO2,115200n8 vram=12M
+> omapfb.vram=0:2M omapfb.mode=480x272MR-16@60 root=/dev/mmcblk0p2 rw
+> rootfstype=ext3 rootwait
+> >
+> > Do you have a proper CONFIG_OMAP2_VRAM_SIZE in your config?
 > 
-> So I prefer we don't add any locking to the proc_*_dma() API at all.
-> Instead, let's just take a reference count every time a map_obj is
-> found (and therefore is about to be used), and release it after it is
-> used. And now, inside proc_un_map(), if we notice that our map_obj is
-> still being used, it means the application called us prematurely and
-> we can't proceed. Something like (revised the patch from my previous
-> email):
+> 
+> I've set the VRAM to 12, but the number of framebuffers to 1. Should it be
+> > 1 ?
+> 
+[Mayuresh]: No that should not matter. 12MB of vram for 1 FB is fine.
+And your bootargs state that you need 480*272*2 Bytes of memory. So 12 MB of total VRAM size is more than enough.
+But your bootargs state that you are providing only 2MB to FB0.
+Please try using omapfb.vram=0:5M.
+But if the problem is with the memory then OMAPFB would throw an error:
+Failed to allocate memory. (Yet your kernel execution has not reached there).
 
-For the long-term goal I agree with that approach, however, first, I
-think my patch should be applied, since it's fixing a problem using an
-already existing and actively excersised mechanism. In fact, I think
-this should be pushed to 2.6.37 as:
+> CONFIG_OMAP2_VRAM_SIZE=12
+> CONFIG_FB_OMAP2=y
+> CONFIG_FB_OMAP2_NUM_FBS=1
+> 
+> 
+> I've pasted a section of my .config file below. This is with
+> omap2plus_defconfig, for  a custom beagleboard.
+> 
+> 
+> #
+> # Graphics support
+> #
+> # CONFIG_DRM is not set
+> # CONFIG_VGASTATE is not set
+> # CONFIG_VIDEO_OUTPUT_CONTROL is not set
+> CONFIG_FB=y
+> CONFIG_FIRMWARE_EDID=y
+> # CONFIG_FB_DDC is not set
+> # CONFIG_FB_BOOT_VESA_SUPPORT is not set
+> CONFIG_FB_CFB_FILLRECT=y
+> CONFIG_FB_CFB_COPYAREA=y
+> CONFIG_FB_CFB_IMAGEBLIT=y
+> # CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
+> # CONFIG_FB_SYS_FILLRECT is not set
+> # CONFIG_FB_SYS_COPYAREA is not set
+> # CONFIG_FB_SYS_IMAGEBLIT is not set
+> # CONFIG_FB_FOREIGN_ENDIAN is not set
+> # CONFIG_FB_SYS_FOPS is not set
+> # CONFIG_FB_SVGALIB is not set
+> # CONFIG_FB_MACMODES is not set
+> # CONFIG_FB_BACKLIGHT is not set
+> CONFIG_FB_MODE_HELPERS=y
+> CONFIG_FB_TILEBLITTING=y
+> 
+> #
+> # Frame buffer hardware drivers
+> #
+> # CONFIG_FB_ARMCLCD is not set
+> # CONFIG_FB_UVESA is not set
+> # CONFIG_FB_S1D13XXX is not set
+> # CONFIG_FB_TMIO is not set
+> # CONFIG_FB_VIRTUAL is not set
+> # CONFIG_FB_METRONOME is not set
+> # CONFIG_FB_MB862XX is not set
+> # CONFIG_FB_BROADSHEET is not set
+> # CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
+> CONFIG_OMAP2_VRAM=y
+> CONFIG_OMAP2_VRFB=y
+> CONFIG_OMAP2_DSS=y
+> CONFIG_OMAP2_VRAM_SIZE=12
+> CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
+> # CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS is not set
+> CONFIG_OMAP2_DSS_DPI=y
+> # CONFIG_OMAP2_DSS_RFBI is not set
+> CONFIG_OMAP2_DSS_VENC=y
+> # CONFIG_OMAP2_DSS_SDI is not set
+> # CONFIG_OMAP2_DSS_DSI is not set
+> # CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
+> CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
+> CONFIG_FB_OMAP2=y
+> # CONFIG_FB_OMAP2_DEBUG_SUPPORT is not set
+> CONFIG_FB_OMAP2_NUM_FBS=1
+> 
+> #
+> # OMAP2/3 Display Device Drivers
+> #
+> # CONFIG_PANEL_GENERIC is not set
+> # CONFIG_PANEL_SHARP_LS037V7DW01 is not set
+> # CONFIG_PANEL_SHARP_LQ043T1DG01 is not set
+> # CONFIG_PANEL_TOPPOLY_TDO35S is not set
+> # CONFIG_PANEL_TPO_TD043MTEA1 is not set
 
- 1) prevents a kernel panic
- 2) the issue is reproducible and clearly identified
- 3) the patch is small and obvious
+[Mayuresh]: I guess, you need to enable atleast one panel driver over here.
+Try enabling PANEL_GENERIC or SHARP_LS037V7DW01.
 
-> diff --git a/drivers/staging/tidspbridge/include/dspbridge/drv.h
-> b/drivers/staging/tidspbridge/include/dspbridge/drv.h
-> index c1f363e..cad0626 100644
-> --- a/drivers/staging/tidspbridge/include/dspbridge/drv.h
-> +++ b/drivers/staging/tidspbridge/include/dspbridge/drv.h
-> @@ -25,6 +25,7 @@
+> CONFIG_BACKLIGHT_LCD_SUPPORT=y
+> CONFIG_LCD_CLASS_DEVICE=y
+> # CONFIG_LCD_L4F00242T03 is not set
+> # CONFIG_LCD_LMS283GF05 is not set
+> # CONFIG_LCD_LTV350QV is not set
+> # CONFIG_LCD_TDO24M is not set
+> # CONFIG_LCD_VGG2432A4 is not set
+> CONFIG_LCD_PLATFORM=y
+> # CONFIG_LCD_S6E63M0 is not set
+> CONFIG_BACKLIGHT_CLASS_DEVICE=y
+> CONFIG_BACKLIGHT_GENERIC=y
+> # CONFIG_BACKLIGHT_ADP8860 is not set
 > 
->  #include <dspbridge/drvdefs.h>
->  #include <linux/idr.h>
-> +#include <linux/atomic.h>
+> #
+> # Display device support
+> #
+> CONFIG_DISPLAY_SUPPORT=y
 > 
->  #define DRV_ASSIGN     1
->  #define DRV_RELEASE    0
-> @@ -106,6 +107,7 @@ struct dmm_map_object {
->         u32 num_usr_pgs;
->         struct page **pages;
->         struct bridge_dma_map_info dma_info;
-> +       atomic_t refcnt;
->  };
+> #
+> # Display hardware drivers
+> #
 > 
->  /* Used for DMM reserved memory accounting */
-> diff --git a/drivers/staging/tidspbridge/rmgr/proc.c
-> b/drivers/staging/tidspbridge/rmgr/proc.c
-> index b47d7aa..d060692 100644
-> --- a/drivers/staging/tidspbridge/rmgr/proc.c
-> +++ b/drivers/staging/tidspbridge/rmgr/proc.c
-> @@ -112,9 +112,37 @@ static s32 get_envp_count(char **envp);
->  static char **prepend_envp(char **new_envp, char **envp, s32 envp_elems,
->                            s32 cnew_envp, char *sz_var);
+> #
+> # Console display driver support
+> #
+> CONFIG_DUMMY_CONSOLE=y
+> CONFIG_FRAMEBUFFER_CONSOLE=y
+> # CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
+> CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
+> CONFIG_FONTS=y
+> CONFIG_FONT_8x8=y
+> CONFIG_FONT_8x16=y
+> # CONFIG_FONT_6x11 is not set
+> # CONFIG_FONT_7x14 is not set
+> # CONFIG_FONT_PEARL_8x8 is not set
+> # CONFIG_FONT_ACORN_8x8 is not set
+> # CONFIG_FONT_MINI_4x6 is not set
+> # CONFIG_FONT_SUN8x16 is not set
+> # CONFIG_FONT_SUN12x22 is not set
+> # CONFIG_FONT_10x18 is not set
+> # CONFIG_LOGO is not set
 > 
-> +/* Increase map_obj's reference count */
-> +static inline void map_obj_get(struct dmm_map_object *map_obj)
-> +{
-> +       atomic_inc(&map_obj->refcnt);
-> +}
-> +
-> +/* Decrease map_obj's reference count */
-> +static inline void map_obj_put(struct dmm_map_object *map_obj)
-> +{
-> +       atomic_dec(&map_obj->refcnt);
-> +}
-> +
-> +/**
-> + * is_map_obj_used() - check out whether a given map_obj is still being used
-> + * @map_obj:   a dmm map object
-> + *
-> + * Returns 'true' if a given map_obj is being used, or 'false' otherwise.
-> + *
-> + * This function must be used while the dmm map list spinlock is taken,
-> + * otherwise it is not safe to use its answer (if the list is not locked,
-> + * someone can find and start using a map_obj immediately after this functions
-> + * replys 'false'.
-> + */
-> +static inline bool is_map_obj_used(struct dmm_map_object *map_obj)
-> +{
-> +       return atomic_read(&map_obj->refcnt) ? true : false;
-> +}
-> +
->  /* remember mapping information */
-> -static struct dmm_map_object *add_mapping_info(struct process_context *pr_ctxt,
-> -                               u32 mpu_addr, u32 dsp_addr, u32 size)
-> +static struct dmm_map_object *create_mapping_info(u32 mpu_addr, u32 dsp_addr,
-> +                                                               u32 size)
->  {
->         struct dmm_map_object *map_obj;
 > 
-> @@ -144,11 +172,15 @@ static struct dmm_map_object
-> *add_mapping_info(struct process_context *pr_ctxt,
->         map_obj->size = size;
->         map_obj->num_usr_pgs = num_usr_pgs;
+> Elvis Dowson
 > 
-> +       return map_obj;
-> +}
-> +
-> +static void add_mapping_info(struct process_context *pr_ctxt,
-> +                                       struct dmm_map_object *map_obj)
-> +{
->         spin_lock(&pr_ctxt->dmm_map_lock);
->         list_add(&map_obj->link, &pr_ctxt->dmm_map_list);
->         spin_unlock(&pr_ctxt->dmm_map_lock);
-> -
-> -       return map_obj;
->  }
-> 
->  static int match_exact_map_obj(struct dmm_map_object *map_obj,
-> @@ -162,10 +194,18 @@ static int match_exact_map_obj(struct
-> dmm_map_object *map_obj,
->                 map_obj->size == size;
->  }
-> 
-> -static void remove_mapping_information(struct process_context *pr_ctxt,
-> +static void free_mapping_info(struct dmm_map_object *map_obj)
-> +{
-> +       kfree(map_obj->dma_info.sg);
-> +       kfree(map_obj->pages);
-> +       kfree(map_obj);
-> +}
-> +
-> +static int remove_mapping_information(struct process_context *pr_ctxt,
->                                                 u32 dsp_addr, u32 size)
->  {
->         struct dmm_map_object *map_obj;
-> +       int ret = 0;
-> 
->         pr_debug("%s: looking for virt 0x%x size 0x%x\n", __func__,
->                                                         dsp_addr, size);
-> @@ -180,10 +220,12 @@ static void remove_mapping_information(struct
-> process_context *pr_ctxt,
-> 
->                 if (match_exact_map_obj(map_obj, dsp_addr, size)) {
->                         pr_debug("%s: match, deleting map info\n", __func__);
-> +                       if (is_map_obj_used(map_obj)) {
-> +                               ret = -EBUSY;
-> +                               goto out;
-> +                       }
->                         list_del(&map_obj->link);
-> -                       kfree(map_obj->dma_info.sg);
-> -                       kfree(map_obj->pages);
-> -                       kfree(map_obj);
-> +                       free_mapping_info(map_obj);
->                         goto out;
->                 }
->                 pr_debug("%s: candidate didn't match\n", __func__);
-> @@ -192,6 +234,7 @@ static void remove_mapping_information(struct
-> process_context *pr_ctxt,
->         pr_err("%s: failed to find given map info\n", __func__);
->  out:
->         spin_unlock(&pr_ctxt->dmm_map_lock);
-> +       return ret;
->  }
-> 
->  static int match_containing_map_obj(struct dmm_map_object *map_obj,
-> @@ -203,6 +246,11 @@ static int match_containing_map_obj(struct
-> dmm_map_object *map_obj,
->                 mpu_addr + size <= map_obj_end;
->  }
-> 
-> +/*
-> + * Find a dmm map object that contains the given memory block,
-> + * and increase its reference count to prevent its destruction
-> + * until released
-> + */
->  static struct dmm_map_object *find_containing_mapping(
->                                 struct process_context *pr_ctxt,
->                                 u32 mpu_addr, u32 size)
-> @@ -220,6 +268,7 @@ static struct dmm_map_object *find_containing_mapping(
->                                                 map_obj->size);
->                 if (match_containing_map_obj(map_obj, mpu_addr, size)) {
->                         pr_debug("%s: match!\n", __func__);
-> +                       map_obj_get(map_obj);
->                         goto out;
->                 }
-> 
-> @@ -795,6 +844,9 @@ int proc_begin_dma(void *hprocessor, void
-> *pmpu_addr, u32 ul_size,
->                 status = -EFAULT;
->         }
-> 
-> +       /* release the reference count we took in the find above */
-> +       map_obj_put(map_obj);
-> +
->  err_out:
-> 
->         return status;
-> @@ -831,9 +883,11 @@ int proc_end_dma(void *hprocessor, void
-> *pmpu_addr, u32 ul_size,
->                 pr_err("%s: InValid address parameters %p %x\n",
->                        __func__, pmpu_addr, ul_size);
->                 status = -EFAULT;
-> -               goto err_out;
->         }
-> 
-> +       /* release the reference count we took in the find above */
-> +       map_obj_put(map_obj);
-> +
->  err_out:
->         return status;
->  }
-> @@ -1356,7 +1410,7 @@ int proc_map(void *hprocessor, void *pmpu_addr,
-> u32 ul_size,
->         u32 size_align;
->         int status = 0;
->         struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
-> -       struct dmm_map_object *map_obj;
-> +       struct dmm_map_object *map_obj = NULL;
->         u32 tmp_addr = 0;
-> 
->  #ifdef CONFIG_TIDSPBRIDGE_CACHE_LINE_CHECK
-> @@ -1394,8 +1448,7 @@ int proc_map(void *hprocessor, void *pmpu_addr,
-> u32 ul_size,
->                 /* Mapped address = MSB of VA | LSB of PA */
->                 tmp_addr = (va_align | ((u32) pmpu_addr & (PG_SIZE4K - 1)));
->                 /* mapped memory resource tracking */
-> -               map_obj = add_mapping_info(pr_ctxt, pa_align, tmp_addr,
-> -                                               size_align);
-> +               map_obj = create_mapping_info(pa_align, tmp_addr, size_align);
->                 if (!map_obj)
->                         status = -ENOMEM;
->                 else
-> @@ -1406,10 +1459,15 @@ int proc_map(void *hprocessor, void
-> *pmpu_addr, u32 ul_size,
->         if (!status) {
->                 /* Mapped address = MSB of VA | LSB of PA */
->                 *pp_map_addr = (void *) tmp_addr;
-> +               /* Actually add the new map_obj and make it usable */
-> +               add_mapping_info(pr_ctxt, map_obj);
->         } else {
-> -               remove_mapping_information(pr_ctxt, tmp_addr, size_align);
-> +               /* if a map_obj was created, let it go */
-> +               if (map_obj)
-> +                       free_mapping_info(map_obj);
->                 dmm_un_map_memory(dmm_mgr, va_align, &size_align);
->         }
-> +
->         mutex_unlock(&proc_lock);
-> 
->         if (status)
-> @@ -1715,6 +1773,24 @@ int proc_un_map(void *hprocessor, void *map_addr,
-> 
->         /* Critical section */
->         mutex_lock(&proc_lock);
-> +
-> +       /*
-> +        * Remove the map_obj first, so it won't be used after the region is
-> +        * unmapped.
-> +        *
-> +        * Note: if the map_obj is still in use, the application messed up and
-> +        * called proc_un_map() before its proc_*_dma() operations completed.
-> +        * In this case we just return and error and let the application
-> +        * deal with it (e.g. by calling us again).
-> +        */
-> +       status = remove_mapping_information(pr_ctxt, (u32) map_addr,
-> +                                                               size_align);
-> +       if (status == -EBUSY) {
-> +               dev_err(bridge, "%s: map_obj is still in use (addr: 0x%p)\n",
-> +                                                       __func__, map_addr);
-> +               goto unlock_proc;
-> +       }
-> +
->         /*
->          * Update DMM structures. Get the size to unmap.
->          * This function returns error if the VA is not mapped
-> @@ -1726,17 +1802,11 @@ int proc_un_map(void *hprocessor, void *map_addr,
->                     (p_proc_object->hbridge_context, va_align, size_align);
->         }
-> 
-> +unlock_proc:
->         mutex_unlock(&proc_lock);
->         if (status)
->                 goto func_end;
-> 
-> -       /*
-> -        * A successful unmap should be followed by removal of map_obj
-> -        * from dmm_map_list, so that mapped memory resource tracking
-> -        * remains uptodate
-> -        */
-> -       remove_mapping_information(pr_ctxt, (u32) map_addr, size_align);
-> -
->  func_end:
->         dev_dbg(bridge, "%s: hprocessor: 0x%p map_addr: 0x%p status: 0x%x\n",
->                 __func__, hprocessor, map_addr, status);
-
-This approach looks cleaner, however, we need a flag in
-remove_mapping_information() in order to force the removal, otherwise
-there will be memory leaks. Imagine a process crashes, and
-remove_mapping_information() returns -EBUSY.
-
-> Additionally, the patch has two other changes:
-> - proc_map: don't register a new map_obj to the dmm_map_list before
-> the mapping is successful. This prevents a similar race, where
-> proc_*_dma() can find a memory region before it is really mapped.
-> - proc_un_map: before unmapping a memory region, first remove it from
-> the dmm_map_list. The motivation is the same: we want to make sure the
-> map_obj can't be found by proc_*_dma() after we unmap its region.
-> 
-> Currently, in this patch, if proc_un_map() realizes the map_obj is
-> still in use, it just returns an error. IMHO this is the right thing
-> to do, because if it happened it is clear that the application is
-> misusing the bridge API, by calling proc_un_map() without waiting for
-> the DMA operation to complete.
-> 
-> This way applications will have to fix themselves, because otherwise
-> they face another race which isn't fixable by the kernel: if
-> proc_un_map() is fast enough, it can manage to actually unmap the
-> memory region before proc_begin_dma() manage to do any progress at
-> all, and in this case, proc_begin_dma()'s cache operation will not
-> take place at all and then the user's data will surely be corrupted.
-> Obviously, that can only be fixed in the application itself, so we
-> better catch those races and fix them in the application.
-> 
-> Having said that, it's still possible to preserve the current bridge
-> behavior, and instead of letting proc_un_map() return a failure when
-> the obj_map is still in use, we can make it sleep until the map_obj's
-> ref count is dropped to zero (using wait and complete).. Not sure we
-> want that, though... I prefer application to know if something as bad
-> as that has happened...
-
-Sure, but I see this as a broader effort to have finer locking, part of
-this should be to remove the already existing proc_lock. For now however
-I don't think it's feasible to get this into 2.6.37, while my patch
-should.
-
-Cheers.
-
--- 
-Felipe Contreras
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
