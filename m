@@ -1,42 +1,44 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the omap tree with the arm tree
-Date: Mon, 27 Dec 2010 09:41:56 +1100
-Message-ID: <20101227094156.5750aa6e.sfr@canb.auug.org.au>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: omapfb: no driver for display error with linux-2.6.37-rc7
+Date: Mon, 27 Dec 2010 02:39:11 +0200
+Message-ID: <AANLkTik0e2CG4V09PkufJBx-To66UAhoN66wBQmCbUWO@mail.gmail.com>
+References: <6488240A-F0F8-469C-BCD3-B2B27AF51B6C@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Jean-Christop PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Russell King <rmk@arm.linux.org.uk>, Ben Gamari <bgamari.foss@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:62057 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752634Ab0L0AjN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Dec 2010 19:39:13 -0500
+Received: by bwz15 with SMTP id 15so9257392bwz.19
+        for <linux-omap@vger.kernel.org>; Sun, 26 Dec 2010 16:39:11 -0800 (PST)
+In-Reply-To: <6488240A-F0F8-469C-BCD3-B2B27AF51B6C@mac.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hi all,
+On Mon, Dec 27, 2010 at 12:10 AM, Elvis Dowson <elvis.dowson@mac.com> w=
+rote:
+> =C2=A0 =C2=A0 =C2=A0 I'm getting the following error with linux-2.6.3=
+7-rc7. Is there a .config setting that I'm missing?
+>
+> [ =C2=A0 =C2=A02.175872] omapfb omapfb: no driver for display
+> [ =C2=A0 =C2=A02.180999] omapfb omapfb: failed to setup omapfb
+>
+> My bootargs are as follows:
+>
+> mmcargs=3Dsetenv bootargs console=3DttyO2,115200n8 vram=3D12M omapfb.=
+vram=3D0:2M omapfb.mode=3D480x272MR-16@60 root=3D/dev/mmcblk0p2 rw root=
+fstype=3Dext3 rootwait
 
-Today's linux-next merge of the omap tree got a conflict in
-arch/arm/plat-omap/Kconfig between commit
-6d803ba736abb5e122dede70a4720e4843dd6df4 ("ARM: 6483/1: arm & sh:
-factorised duplicated clkdev.c") from the arm tree and commit
-dc69d1af9e8d9cbbabff88bb35a6782187a22229 ("omap2: Make OMAP2PLUS select
-OMAP_DM_TIMER") from the omap tree.
+Do you have a proper CONFIG_OMAP2_VRAM_SIZE in your config?
 
-Just context changes.  I fixed it up (see below) and can carry the fix as
-necessary.
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-
-diff --cc arch/arm/plat-omap/Kconfig
-index c940843,bc0c7aa..0000000
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@@ -17,7 -17,8 +17,8 @@@ config ARCH_OMAP
-  
-  config ARCH_OMAP2PLUS
-  	bool "TI OMAP2/3/4"
- -	select COMMON_CLKDEV
- +	select CLKDEV_LOOKUP
-+ 	select OMAP_DM_TIMER
-  	help
-  	  "Systems based on OMAP2, OMAP3 or OMAP4"
-  
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
