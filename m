@@ -1,113 +1,93 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 3/5] ASoC: DMIC: Adding OMAP DMIC driver to build
-Date: Tue, 28 Dec 2010 11:40:00 +0000
-Message-ID: <20101228114000.GD31292@opensource.wolfsonmicro.com>
-References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
- <1293509826-23253-4-git-send-email-dlambert@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2] staging: tidspbridge: protect dmm_map properly
+Date: Tue, 28 Dec 2010 14:12:41 +0200
+Message-ID: <AANLkTiksjHKjKQ+mWE=Zf0+967_E46V3+RURcMC-s5cD@mail.gmail.com>
+References: <1292870624-25450-1-git-send-email-felipe.contreras@nokia.com>
+	<AANLkTikisHaAMZphRJVYdcokVbaZXVF9COrwkdGTDg__@mail.gmail.com>
+	<AANLkTi=9AL3aWUsMeih+Gb-sMov=MgBZ1eTp8wb=q1hZ@mail.gmail.com>
+	<AANLkTinX8t=3b48e2sxPU-V_G-nGm_1DyEg6B-CeqXDa@mail.gmail.com>
+	<1293452486-notmuch-felipe.contreras@nokia.com>
+	<AANLkTinz0HuhGB_WzTQbK8XkfkGALjtg928WdOUYsySf@mail.gmail.com>
+	<AANLkTimCB5g29gzWFzaFU1N8+doROTpWaXy18VU5AJyH@mail.gmail.com>
+	<AANLkTi=xmxkWnhuYcjtDNDHgep_2EztfGXDv+winW2Y5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:37761 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753128Ab0L1Ljt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Dec 2010 06:39:49 -0500
-Content-Disposition: inline
-In-Reply-To: <1293509826-23253-4-git-send-email-dlambert@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTi=xmxkWnhuYcjtDNDHgep_2EztfGXDv+winW2Y5@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, greg@kroah.com, omar.ramirez@ti.com, fernando.lugo@ti.com, nm@ti.com, ameya.palande@nokia.com, h-kanigeri2@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: David Lambert <dlambert@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-On Mon, Dec 27, 2010 at 10:17:04PM -0600, David Lambert wrote:
-> Adds the OMAP DMIC driver and codec to the build.
-> 
-> Signed-off-by: David Lambert <dlambert@ti.com>
-> ---
->  sound/soc/codecs/Kconfig  |    3 +++
->  sound/soc/codecs/Makefile |    2 ++
->  sound/soc/omap/Kconfig    |    5 +++++
->  sound/soc/omap/Makefile   |    2 ++
+On Tue, Dec 28, 2010 at 12:56 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> On Tue, Dec 28, 2010 at 12:36 PM, Felipe Contreras
+> <felipe.contreras@gmail.com> wrote:
+>>> You can never really tell who is using the kernel (or will be using
+>>> this kernel version), how and under which workload.
+>>
+>> No, but it's better to address real issues rather than hypothetical.
+>
+> Right. and both patches do that. one adds locks, and one doesn't.
+>
+>> However, as I sad, everybody is using proc_map() and proc_un_map()
+>> which take a lock, and there are no complaints.
+>
+> I didn't complain about that; I didn't like you adding locks to the DMA API.
+>
+>> Ok, can I get your Ack?
+>
+> Frankly, I don't like the locks you are adding. But as I said, I
+> wouldn't resist them as long as it's temporary.
+>
+>> Then why did you add that check for is_map_obj_used(), and then return
+>> -EBUSY? If that can happen, then it can happen when the application is
+>> crashing; user-space crashes while kernel-space is in the middle of a
+>> proc_*_dma() operation.
+>
+> I still don't know how exactly you triggered the bug: is gst-dsp
+> multithreaded ? and one of its threads invoked proc_un_map() while
+> another thread called proc_begin_dma() ?
 
-This should be one of the last patches in the series, but given the sort
-of drivers you're introducing I'd expect the drivers to just directly
-add the build system stuff in the patch.
+I haven't investigated why that happens, but kernel-space should not
+panic regardless of what user-space does.
 
->  4 files changed, 12 insertions(+), 0 deletions(-)
-> 
-> diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-> index 0f33db2..f6c6d31 100644
-> --- a/sound/soc/codecs/Kconfig
-> +++ b/sound/soc/codecs/Kconfig
-> @@ -166,6 +166,9 @@ config SND_SOC_L3
->  config SND_SOC_DA7210
->          tristate
->  
-> +config SND_SOC_DMIC
-> +	tristate
-> +
->  config SND_SOC_MAX98088
->         tristate
->  
-> diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
-> index 10e5e09..9139cf9 100644
-> --- a/sound/soc/codecs/Makefile
-> +++ b/sound/soc/codecs/Makefile
-> @@ -14,6 +14,7 @@ snd-soc-cs42l51-objs := cs42l51.o
->  snd-soc-cs4270-objs := cs4270.o
->  snd-soc-cx20442-objs := cx20442.o
->  snd-soc-da7210-objs := da7210.o
-> +snd-soc-dmic-objs := dmic.o
->  snd-soc-l3-objs := l3.o
->  snd-soc-max98088-objs := max98088.o
->  snd-soc-pcm3008-objs := pcm3008.o
-> @@ -91,6 +92,7 @@ obj-$(CONFIG_SND_SOC_CS42L51)	+= snd-soc-cs42l51.o
->  obj-$(CONFIG_SND_SOC_CS4270)	+= snd-soc-cs4270.o
->  obj-$(CONFIG_SND_SOC_CX20442)	+= snd-soc-cx20442.o
->  obj-$(CONFIG_SND_SOC_DA7210)	+= snd-soc-da7210.o
-> +obj-$(CONFIG_SND_SOC_DMIC)	+= snd-soc-dmic.o
->  obj-$(CONFIG_SND_SOC_L3)	+= snd-soc-l3.o
->  obj-$(CONFIG_SND_SOC_JZ4740_CODEC)	+= snd-soc-jz4740-codec.o
->  obj-$(CONFIG_SND_SOC_MAX98088)	+= snd-soc-max98088.o
-> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-> index a088db6..548b13c 100644
-> --- a/sound/soc/omap/Kconfig
-> +++ b/sound/soc/omap/Kconfig
-> @@ -9,6 +9,9 @@ config SND_OMAP_SOC_MCBSP
->  config SND_OMAP_SOC_MCPDM
->  	tristate
->  
-> +config SND_OMAP_SOC_DMIC
-> +	tristate
-> +
->  config SND_OMAP_SOC_N810
->  	tristate "SoC Audio support for Nokia N810"
->  	depends on SND_OMAP_SOC && MACH_NOKIA_N810 && I2C
-> @@ -103,6 +106,8 @@ config SND_OMAP_SOC_SDP4430
->  	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_4430SDP
->  	select SND_OMAP_SOC_MCPDM
->  	select SND_SOC_TWL6040
-> +	select SND_SOC_DMIC
-> +	select SND_OMAP_SOC_DMIC
->  	help
->  	  Say Y if you want to add support for SoC audio on Texas Instruments
->  	  SDP4430.
-> diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-> index ba9fc65..6ff27f5 100644
-> --- a/sound/soc/omap/Makefile
-> +++ b/sound/soc/omap/Makefile
-> @@ -1,9 +1,11 @@
->  # OMAP Platform Support
->  snd-soc-omap-objs := omap-pcm.o
-> +snd-soc-omap-dmic-objs := omap-dmic.o
->  snd-soc-omap-mcbsp-objs := omap-mcbsp.o
->  snd-soc-omap-mcpdm-objs := omap-mcpdm.o mcpdm.o
->  
->  obj-$(CONFIG_SND_OMAP_SOC) += snd-soc-omap.o
-> +obj-$(CONFIG_SND_OMAP_SOC_DMIC) += snd-soc-omap-dmic.o
->  obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
->  obj-$(CONFIG_SND_OMAP_SOC_MCPDM) += snd-soc-omap-mcpdm.o
->  
-> -- 
-> 1.7.0.4
-> 
+> Anyhow, a thread that is calling proc_*_dma() will both increase the
+> reference count and decrease it back before going back to user space.
+> Otherwise your patch would be problematic as well - who will unlock
+> the mutex you take in proc_*_dma() ?
+
+I'm saying that user-space might crash *before* proc_*_dma() finishes,
+before the reference count has been decreased.
+
+In my patch there would be no issue because proc_un_map() would wait
+until proc_*_dma() has released the lock.
+
+>>>> Sure, but I see this as a broader effort to have finer locking, part of
+>>>> this should be to remove the already existing proc_lock.
+>>>
+>>> Having bad locking is not an excuse for adding more.
+>>
+>> No, but not being a permanent solution is not an excuse for not fixing
+>> a kernel panic right away.
+>
+> Right. But we have a fix that doesn't add any additional locking... I
+> don't see why it can't be taken now, but as I said, I wouldn't resist
+> staging it for the next cycle.
+
+Because:
+ 1) Your patch changes 114 lines, mine 18
+ 2) It hasn't been reviewed, nor tested by other people
+ 3) At least I see a potential issue
+ 4) 2.6.37 is imminent
+
+IMO one patch has chances going into 2.6.37, the other one doesn't. I
+don't see the problem of pushing my patch to 2.6.37, and once your
+patch has been properly reviewed, and tested, put it for the 2.6.38
+merge window. Anyway, it's looking more and more that this patch would
+not be ack'ed in time, so I guess we would have to wait to see what
+other people (Omar?) say, which would probably be 2.6.38 timeline.
+
+Cheers.
+
+-- 
+Felipe Contreras
