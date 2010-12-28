@@ -1,212 +1,112 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 1/2] mfd: twl6030-irq: move to threaded_irq
-Date: Tue, 28 Dec 2010 15:59:49 +0200
-Message-ID: <1293544790-793-2-git-send-email-balbi@ti.com>
-References: <1293544790-793-1-git-send-email-balbi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1293544790-793-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <balbi@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/5] ASoC: DMIC: Adding the OMAP DMIC driver
+Date: Tue, 28 Dec 2010 14:18:00 +0000
+Message-ID: <20101228141759.GA31883@opensource.wolfsonmicro.com>
+References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
+ <1293509826-23253-2-git-send-email-dlambert@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:47554 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753123Ab0L1ORu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Dec 2010 09:17:50 -0500
+Content-Disposition: inline
+In-Reply-To: <1293509826-23253-2-git-send-email-dlambert@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Lambert <dlambert@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-... and while at that, also start using
-handle_nested_irq() as we should.
+On Mon, Dec 27, 2010 at 10:17:02PM -0600, David Lambert wrote:
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/mfd/twl6030-irq.c |  141 ++++++++++++++++-----------------------------
- 1 files changed, 49 insertions(+), 92 deletions(-)
+> +	case 19200000:
+> +		if (div == 5)
+> +			div_sel = 0x1;
+> +		else if (div == 8)
+> +			div_sel = 0x0;
+> +		break;
 
-diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
-index aaedb11..1530411 100644
---- a/drivers/mfd/twl6030-irq.c
-+++ b/drivers/mfd/twl6030-irq.c
-@@ -84,99 +84,64 @@ static int twl6030_interrupt_mapping[24] = {
- 
- static unsigned twl6030_irq_base;
- 
--static struct completion irq_event;
--
- /*
-  * This thread processes interrupts reported by the Primary Interrupt Handler.
-  */
--static int twl6030_irq_thread(void *data)
-+static irqreturn_t twl6030_irq_thread(int irq, void *unused)
- {
--	long irq = (long)data;
--	static unsigned i2c_errors;
--	static const unsigned max_i2c_errors = 100;
- 	int ret;
--
--	current->flags |= PF_NOFREEZE;
--
--	while (!kthread_should_stop()) {
--		int i;
--		union {
-+	int i;
-+	union {
- 		u8 bytes[4];
- 		u32 int_sts;
--		} sts;
--
--		/* Wait for IRQ, then read PIH irq status (also blocking) */
--		wait_for_completion_interruptible(&irq_event);
--
--		/* read INT_STS_A, B and C in one shot using a burst read */
--		ret = twl_i2c_read(TWL_MODULE_PIH, sts.bytes,
--				REG_INT_STS_A, 3);
--		if (ret) {
--			pr_warning("twl6030: I2C error %d reading PIH ISR\n",
--					ret);
--			if (++i2c_errors >= max_i2c_errors) {
--				printk(KERN_ERR "Maximum I2C error count"
--						" exceeded.  Terminating %s.\n",
--						__func__);
--				break;
--			}
--			complete(&irq_event);
--			continue;
--		}
--
-+	} sts;
- 
-+	disable_irq_nosync(irq);
- 
--		sts.bytes[3] = 0; /* Only 24 bits are valid*/
-+	/* read INT_STS_A, B and C in one shot using a burst read */
-+	ret = twl_i2c_read(TWL_MODULE_PIH, sts.bytes,
-+			REG_INT_STS_A, 3);
-+	if (ret) {
-+		pr_warning("twl6030: I2C error %d reading PIH ISR\n",
-+				ret);
-+		return IRQ_NONE;
-+	}
- 
--		for (i = 0; sts.int_sts; sts.int_sts >>= 1, i++) {
--			local_irq_disable();
--			if (sts.int_sts & 0x1) {
--				int module_irq = twl6030_irq_base +
--					twl6030_interrupt_mapping[i];
--				struct irq_desc *d = irq_to_desc(module_irq);
- 
--				if (!d) {
--					pr_err("twl6030: Invalid SIH IRQ: %d\n",
--					       module_irq);
--					return -EINVAL;
--				}
-+	sts.bytes[3] = 0; /* Only 24 bits are valid*/
- 
--				/* These can't be masked ... always warn
--				 * if we get any surprises.
--				 */
--				if (d->status & IRQ_DISABLED)
--					note_interrupt(module_irq, d,
--							IRQ_NONE);
--				else
--					d->handle_irq(module_irq, d);
-+	for (i = 0; sts.int_sts; sts.int_sts >>= 1, i++) {
-+		local_irq_disable();
-+		if (sts.int_sts & 0x1) {
-+			int module_irq = twl6030_irq_base +
-+				twl6030_interrupt_mapping[i];
-+			struct irq_desc *d = irq_to_desc(module_irq);
- 
-+			if (!d) {
-+				pr_err("twl6030: Invalid SIH IRQ: %d\n",
-+						module_irq);
-+				return IRQ_NONE;
- 			}
--		local_irq_enable();
--		}
--		ret = twl_i2c_write(TWL_MODULE_PIH, sts.bytes,
--				REG_INT_STS_A, 3); /* clear INT_STS_A */
--		if (ret)
--			pr_warning("twl6030: I2C error in clearing PIH ISR\n");
- 
--		enable_irq(irq);
-+			/* These can't be masked ... always warn
-+			 * if we get any surprises.
-+			 */
-+			if (d->status & IRQ_DISABLED)
-+				note_interrupt(module_irq, d,
-+						IRQ_NONE);
-+			else
-+				handle_nested_irq(module_irq);
-+
-+		}
-+		local_irq_enable();
- 	}
-+	ret = twl_i2c_write(TWL_MODULE_PIH, sts.bytes,
-+			REG_INT_STS_A, 3); /* clear INT_STS_A */
-+	if (ret)
-+		pr_warning("twl6030: I2C error in clearing PIH ISR\n");
- 
--	return 0;
--}
-+	enable_irq(irq);
- 
--/*
-- * handle_twl6030_int() is the desc->handle method for the twl6030 interrupt.
-- * This is a chained interrupt, so there is no desc->action method for it.
-- * Now we need to query the interrupt controller in the twl6030 to determine
-- * which module is generating the interrupt request.  However, we can't do i2c
-- * transactions in interrupt context, so we must defer that work to a kernel
-- * thread.  All we do here is acknowledge and mask the interrupt and wakeup
-- * the kernel thread.
-- */
--static irqreturn_t handle_twl6030_pih(int irq, void *devid)
--{
--	disable_irq_nosync(irq);
--	complete(devid);
- 	return IRQ_HANDLED;
- }
- 
-@@ -303,7 +268,6 @@ int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
- 
- 	int	status = 0;
- 	int	i;
--	struct task_struct	*task;
- 	int ret;
- 	u8 mask[4];
- 
-@@ -337,28 +301,21 @@ int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
- 	pr_info("twl6030: %s (irq %d) chaining IRQs %d..%d\n", "PIH",
- 			irq_num, irq_base, twl6030_irq_next - 1);
- 
--	/* install an irq handler to demultiplex the TWL6030 interrupt */
--	init_completion(&irq_event);
--	task = kthread_run(twl6030_irq_thread, (void *)irq_num, "twl6030-irq");
--	if (IS_ERR(task)) {
--		pr_err("twl6030: could not create irq %d thread!\n", irq_num);
--		status = PTR_ERR(task);
--		goto fail_kthread;
--	}
--
--	status = request_irq(irq_num, handle_twl6030_pih, IRQF_DISABLED,
--				"TWL6030-PIH", &irq_event);
-+	status = request_threaded_irq(irq_num, NULL, twl6030_irq_thread,
-+			IRQF_DISABLED, "TWL6030-PIH", NULL);
- 	if (status < 0) {
- 		pr_err("twl6030: could not claim irq%d: %d\n", irq_num, status);
--		goto fail_irq;
-+		goto fail;
- 	}
--	return status;
--fail_irq:
--	free_irq(irq_num, &irq_event);
- 
--fail_kthread:
-+	return 0;
-+
-+fail:
-+	free_irq(irq_num, NULL);
-+
- 	for (i = irq_base; i < irq_end; i++)
- 		set_irq_chip_and_handler(i, NULL, NULL);
-+
- 	return status;
- }
- 
--- 
-1.7.3.4.598.g85356
+A switch statement for the valid div values would feel more natural,
+together with a default case to report errors though that's handled
+below so could be skipped.
+
+> +	/* Acknowledge irq event */
+> +	omap_dmic_write(dmic, OMAP_DMIC_IRQSTATUS, irq_status);
+> +	if (irq_status & OMAP_DMIC_IRQ_FULL)
+
+Blank line between these two.
+
+> +		dev_dbg(dmic->dev, "DMIC FIFO error %x\n", irq_status);
+> +
+> +	if (irq_status & OMAP_DMIC_IRQ_EMPTY)
+> +		dev_dbg(dmic->dev, "DMIC FIFO error %x\n", irq_status);
+
+I'd expect these errors to be displayed by default.
+
+> +	if (irq_status & OMAP_DMIC_IRQ)
+> +		dev_dbg(dmic->dev, "DMIC write request\n");
+
+A comment explaining why we don't actually do anything with the request
+would be helpful.  Given that we're ignoring the event it'd seem better
+to just leave it masked and not take the interrupt in the first place.
+
+> +static int omap_dmic_dai_startup(struct snd_pcm_substream *substream,
+> +				  struct snd_soc_dai *dai)
+> +{
+> +	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
+> +
+> +	if (!dmic->active++)
+> +		pm_runtime_get_sync(dmic->dev);
+
+The pm_runtime API does refcounting for you so you should be able to
+just skip the active count check here, IIRC there's a pm_runtime API you
+could use to query if the DMIC is enabled so you could skip the local
+refcount entirely.
+
+> +static int omap_dmic_dai_hw_free(struct snd_pcm_substream *substream,
+> +				  struct snd_soc_dai *dai)
+> +{
+> +	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
+> +	struct omap_dmic_link *link = dmic->link;
+> +	int ret = 0;
+> +
+> +	if (dmic->active == 1) {
+> +		ret = omap_dmic_close(dmic);
+> +		link->channels = 0;
+> +	}
+
+I'd feel a bit more happy if this were done in the same place as the
+drop of the refcount though this should actually be OK I think.
+
+> +	switch (freq) {
+> +	case 19200000:
+> +	case 24000000:
+> +	case 24576000:
+> +	case 12000000:
+> +		dmic->clk_freq = freq;
+> +		break;
+> +	default:
+> +		dev_err(dai->dev, "clk freq not supported %d\n", freq);
+> +		ret = -EINVAL;
+> +		goto err_freq;
+> +	}
+
+Can't you ask the parent clock what rate it's set to?
+
+> +	ret = request_threaded_irq(dmic->irq, NULL, omap_dmic_irq_handler,
+> +				   IRQF_ONESHOT, "DMIC", (void *)dmic);
+> +	if (ret) {
+> +		dev_err(dmic->dev, "irq request failed\n");
+> +		goto err_irq;
+> +	}
+
+Does this really need to be a threaded IRQ - the IRQ was just reading
+from CPU registers as far as I remember?
+
+> +MODULE_AUTHOR("David Lambert <dlambert@ti.com>");
+> +MODULE_DESCRIPTION("OMAP DMIC SoC Interface");
+> +MODULE_LICENSE("GPL");
+
+Should have a MODULE_ALIAS too in case it gets built modular.
