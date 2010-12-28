@@ -1,574 +1,226 @@
-From: Anand Sawant <sawant@ti.com>
-Subject: RE: [PATCH v5 2/5] OMAP4: Adding voltage driver support
-Date: Tue, 28 Dec 2010 23:02:33 +0530
-Message-ID: <bd7dd944fd71f6fedc012bf6ccdc8dd8@mail.gmail.com>
-References: <1292864437-15353-1-git-send-email-thara@ti.com> <1292864437-15353-3-git-send-email-thara@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/PATCH 0/3] TWL4030 IRQ Changes
+Date: Tue, 28 Dec 2010 19:36:04 +0200
+Message-ID: <20101228173604.GH2239@legolas.emea.dhcp.ti.com>
+References: <20101228161657.GF2239@legolas.emea.dhcp.ti.com>
+ <1293556459-28613-1-git-send-email-balbi@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:53440 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754346Ab0L1Rcg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Dec 2010 12:32:36 -0500
-Received: by mail-gy0-f180.google.com with SMTP id 6so4230243gya.11
-        for <linux-omap@vger.kernel.org>; Tue, 28 Dec 2010 09:32:35 -0800 (PST)
-In-Reply-To: <1292864437-15353-3-git-send-email-thara@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1293556459-28613-1-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Thomas Gleixner <tglx@linutronix.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Nishanth Menon <nm@ti.com>
 
-Thara,
+Hi,
 
-> -----Original Message-----
-> From: Thara Gopinath [mailto:thara@ti.com]
-> Sent: Monday, December 20, 2010 10:31 PM
-> To: linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org
-> Cc: khilman@deeprootsystems.com; paul@pwsan.com; b-
-> cousson@ti.com; vishwanath.bs@ti.com; sawant@ti.com;
-> nm@ti.com; Thara Gopinath
-> Subject: [PATCH v5 2/5] OMAP4: Adding voltage driver support
+On Tue, Dec 28, 2010 at 07:14:16PM +0200, Felipe Balbi wrote:
+>I dropped the twl6030-irq.c changes because that
+>thing is a bit messy. I hope the original author
+>will feel inspired and fix that one up.
 >
-> OMAP4 has three scalable voltage domains vdd_mpu, vdd_iva
-> and vdd_core. This patch adds the voltage tables and other
-> configurable voltage processor and voltage controller
-> settings to control these three scalable domains in OMAP4.
+>Anyway, twl4030-irq.c seems to be going to the
+>right direction now. Thanks to Mark Brown for
+>pointing out the need to drop the locking and
+>implement bus_lock/bus_sync_unlock methods.
 >
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
-> This patch has 9 checkpatch.pl above 80-chars warnings for
-> the definitions of omap44xx_vdd_mpu_volt_data,
-> omap44xx_vdd_iva_volt_data
-> and omap44xx_vdd_core_volt_data.
-> IMHO splitting of the entries in these structures affects
-> readability and looks very ugly. Hence they are left as is.
+>Compile tested only with omap2plus_defconfig.
 >
->  arch/arm/mach-omap2/Makefile              |    2 +-
->  arch/arm/mach-omap2/control.h             |   12 ++
->  arch/arm/mach-omap2/voltage.c             |  279
-> +++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/voltage.h |   12 ++
->  4 files changed, 304 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-
-> omap2/Makefile
-> index ae29a00..9a73b82 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -61,7 +61,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+=
-> pm24xx.o
->  obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o
->  obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
-> voltage.o \
->  					   cpuidle34xx.o pm_bus.o
-> -obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
-> +obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o voltage.o
-> pm_bus.o
->  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
->  obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o
-> smartreflex.o
->  obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-
-> class3.o
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-
-> omap2/control.h
-> index 9fe32dc..81940ef 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -181,6 +181,18 @@
->  #define OMAP3630_CONTROL_FUSE_OPP50_VDD2
-> (OMAP2_CONTROL_GENERAL + 0x0128)
->  #define OMAP3630_CONTROL_FUSE_OPP100_VDD2
-> (OMAP2_CONTROL_GENERAL + 0x012C)
->
-> +/* OMAP44xx control efuse offsets */
-> +#define OMAP44XX_CONTROL_FUSE_IVA_OPP50		0x22C
-> +#define OMAP44XX_CONTROL_FUSE_IVA_OPP100	0x22F
-> +#define OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO	0x232
-> +#define OMAP44XX_CONTROL_FUSE_IVA_OPPNITRO	0x235
-> +#define OMAP44XX_CONTROL_FUSE_MPU_OPP50		0x240
-> +#define OMAP44XX_CONTROL_FUSE_MPU_OPP100	0x243
-> +#define OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO	0x246
-> +#define OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO	0x249
-> +#define OMAP44XX_CONTROL_FUSE_CORE_OPP50	0x254
-> +#define OMAP44XX_CONTROL_FUSE_CORE_OPP100	0x257
-> +
->  /* AM35XX only CONTROL_GENERAL register offsets */
->  #define AM35XX_CONTROL_MSUSPENDMUX_6
-> (OMAP2_CONTROL_GENERAL + 0x0038)
->  #define AM35XX_CONTROL_DEVCONF2
-> (OMAP2_CONTROL_GENERAL + 0x0310)
-> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-
-> omap2/voltage.c
-> index b27fa4f..ed6079c 100644
-> --- a/arch/arm/mach-omap2/voltage.c
-> +++ b/arch/arm/mach-omap2/voltage.c
-> @@ -29,6 +29,10 @@
->  #include <plat/voltage.h>
->
->  #include "prm-regbits-34xx.h"
-> +#include "prm-regbits-44xx.h"
-> +#include "prm44xx.h"
-> +#include "prcm44xx.h"
-> +#include "prminst44xx.h"
->  #include "control.h"
->
->  #define VP_IDLE_TIMEOUT		200
-> @@ -190,6 +194,51 @@ static struct omap_vdd_info
-> omap3_vdd_info[] = {
->
->  #define OMAP3_NR_SCALABLE_VDD ARRAY_SIZE(omap3_vdd_info)
->
+>I'll test after merge window to be sure I have
+>all the newest code.
 
-My comments on the patch
+when we finally move to struct irq_data, the below could
+be used. BTW, Thomas do you have any plans for exposing
+irq_data_to_desc() ?
 
-[PATCH v6 01/10] OMAP3: PM: Adding voltage driver support
+8<------------------------------ cut here --------------------------------------
 
-are applicable here. Please refer to
+ From 6069e3ddb34608fef0cb3dca3e544fca8deb3840 Mon Sep 17 00:00:00 2001
+From: Felipe Balbi <balbi@ti.com>
+Date: Tue, 28 Dec 2010 19:33:22 +0200
+Subject: [PATCH] mfd: twl4030-irq: switch to new methods
+Organization: Texas Instruments\n
 
-http://marc.info/?l=linux-omap&m=129355306112127&w=2
+Move everybody to struct irq_data-based
+methods.
 
-for more details.
+NYET-Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+  drivers/mfd/twl4030-irq.c |   86 ++++++++++++++++++++++++++++++++-------------
+  1 files changed, 61 insertions(+), 25 deletions(-)
 
-Best Regards,
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index ff7bb93..ad6197c 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -447,10 +447,14 @@ struct sih_agent {
+  
+  /*----------------------------------------------------------------------*/
+  
+-static void twl4030_sih_mask(unsigned irq)
++/* REVISIT define it here until IRQ Subsystem exports its implementation */
++#define irq_data_to_desc(data)	container_of(data, struct irq_desc, irq_data)
++
++static void twl4030_sih_mask(struct irq_data *data)
+  {
+-	struct sih_agent	*agent = get_irq_chip_data(irq);
+-	const struct sih	*sih = agent->sih;
++	struct irq_desc		*d = irq_data_to_desc(data);
++	struct sih_agent	*agent;
++	const struct sih	*sih;
+  
+  	union {
+  		u8	bytes[4];
+@@ -458,7 +462,13 @@ static void twl4030_sih_mask(unsigned irq)
+  	}			imr;
+  
+  	int			status;
++	int			irq = data->irq;
+  
++	if (!d)
++		return;
++
++	agent = d->chip_data;
++	sih = agent->sih;
+  	agent->imr |= BIT(irq - agent->irq_base);
+  
+  	/* byte[0] gets overwritten as we write ... */
+@@ -472,10 +482,11 @@ static void twl4030_sih_mask(unsigned irq)
+  				"write", status);
+  }
+  
+-static void twl4030_sih_unmask(unsigned irq)
++static void twl4030_sih_unmask(struct irq_data *data)
+  {
+-	struct sih_agent	*agent = get_irq_chip_data(irq);
+-	const struct sih	*sih = agent->sih;
++	struct irq_desc		*d = irq_data_to_desc(data);
++	struct sih_agent	*agent;
++	const struct sih	*sih;
+  
+  	union {
+  		u8	bytes[4];
+@@ -483,7 +494,13 @@ static void twl4030_sih_unmask(unsigned irq)
+  	}			imr;
+  
+  	int			status;
++	int			irq = data->irq;
++
++	if (!d)
++		return;
+  
++	agent = d->chip_data;
++	sih = agent->sih;
+  	agent->imr &= ~BIT(irq - agent->irq_base);
+  
+  	/* byte[0] gets overwritten as we write ... */
+@@ -497,14 +514,15 @@ static void twl4030_sih_unmask(unsigned irq)
+  				"write", status);
+  }
+  
+-static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
++static int twl4030_sih_set_type(struct irq_data *data, unsigned trigger)
+  {
+-	struct sih_agent	*agent = get_irq_chip_data(irq);
+-	const struct sih	*sih = agent->sih;
+-	struct irq_desc		*desc = irq_to_desc(irq);
++	struct irq_desc		*d = irq_data_to_desc(data);
++	struct sih_agent	*agent;
++	const struct sih	*sih;
+  	int			status = 0;
++	int			irq = data->irq;
+  
+-	if (!desc) {
++	if (!d) {
+  		pr_err("twl4030: Invalid IRQ: %d\n", irq);
+  		return -EINVAL;
+  	}
+@@ -512,12 +530,15 @@ static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
+  	if (trigger & ~(IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING))
+  		return -EINVAL;
+  
+-	if ((desc->status & IRQ_TYPE_SENSE_MASK) != trigger) {
++	agent = d->chip_data;
++	sih = agent->sih;
++
++	if ((d->status & IRQ_TYPE_SENSE_MASK) != trigger) {
+  		u8			bytes[6];
+  		u32			edge_change;
+  
+-		desc->status &= ~IRQ_TYPE_SENSE_MASK;
+-		desc->status |= trigger;
++		d->status &= ~IRQ_TYPE_SENSE_MASK;
++		d->status |= trigger;
+  		agent->edge_change |= BIT(irq - agent->irq_base);
+  		edge_change = agent->edge_change;
+  
+@@ -537,7 +558,6 @@ static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
+  		/* Modify only the bits we know must change */
+  		while (edge_change) {
+  			int		i = fls(edge_change) - 1;
+-			struct irq_desc	*d = irq_to_desc(i + agent->irq_base);
+  			int		byte = 1 + (i >> 2);
+  			int		off = (i & 0x3) * 2;
+  
+@@ -570,27 +590,43 @@ static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
+  	return status;
+  }
+  
+-static void twl4030_sih_bus_lock(unsigned int irq)
++static void twl4030_sih_bus_lock(struct irq_data *data)
+  {
+-	struct sih_agent	*agent = get_irq_chip_data(irq);
++	struct irq_desc		*d = irq_data_to_desc(data);
++	struct sih_agent	*agent;
++	int			irq = data->irq;
++
++	if (!d) {
++		pr_err("twl4030: Invalid IRQ: %d\n", irq);
++		return;
++	}
+  
++	agent = d->chip_data;
+  	mutex_lock(&agent->irq_lock);
+  }
+  
+-static void twl4030_sih_bus_sync_unlock(unsigned int irq)
++static void twl4030_sih_bus_sync_unlock(struct irq_data *data)
+  {
+-	struct sih_agent	*agent = get_irq_chip_data(irq);
++	struct irq_desc		*d = irq_data_to_desc(data);
++	struct sih_agent	*agent;
++	int			irq = data->irq;
++
++	if (!d) {
++		pr_err("twl4030: Invalid IRQ: %d\n", irq);
++		return;
++	}
+  
++	agent = d->chip_data;
+  	mutex_unlock(&agent->irq_lock);
+  }
+  
+  static struct irq_chip twl4030_sih_irq_chip = {
+-	.name		= "twl4030",
+-	.mask		= twl4030_sih_mask,
+-	.unmask		= twl4030_sih_unmask,
+-	.set_type	= twl4030_sih_set_type,
+-	.bus_lock	= twl4030_sih_bus_lock,
+-	.bus_sync_unlock = twl4030_sih_bus_sync_unlock,
++	.name			= "twl4030",
++	.irq_mask		= twl4030_sih_mask,
++	.irq_unmask		= twl4030_sih_unmask,
++	.irq_set_type		= twl4030_sih_set_type,
++	.irq_bus_lock		= twl4030_sih_bus_lock,
++	.irq_bus_sync_unlock	= twl4030_sih_bus_sync_unlock,
+  };
+  
+  /*----------------------------------------------------------------------*/
+-- 
+1.7.3.4.598.g85356
 
-Anand S Sawant
-
-> +/* OMAP4 VDD sturctures */
-> +static struct omap_vdd_info omap4_vdd_info[] = {
-> +	{
-> +		.vp_offs = {
-> +			.vpconfig =
-> OMAP4_PRM_VP_MPU_CONFIG_OFFSET,
-> +			.vstepmin =
-> OMAP4_PRM_VP_MPU_VSTEPMIN_OFFSET,
-> +			.vstepmax =
-> OMAP4_PRM_VP_MPU_VSTEPMAX_OFFSET,
-> +			.vlimitto =
-> OMAP4_PRM_VP_MPU_VLIMITTO_OFFSET,
-> +			.vstatus = OMAP4_PRM_VP_MPU_STATUS_OFFSET,
-> +			.voltage =
-> OMAP4_PRM_VP_MPU_VOLTAGE_OFFSET,
-> +		},
-> +		.voltdm = {
-> +			.name = "mpu",
-> +		},
-> +	},
-> +	{
-> +		.vp_offs = {
-> +			.vpconfig =
-> OMAP4_PRM_VP_IVA_CONFIG_OFFSET,
-> +			.vstepmin =
-> OMAP4_PRM_VP_IVA_VSTEPMIN_OFFSET,
-> +			.vstepmax =
-> OMAP4_PRM_VP_IVA_VSTEPMAX_OFFSET,
-> +			.vlimitto =
-> OMAP4_PRM_VP_IVA_VLIMITTO_OFFSET,
-> +			.vstatus = OMAP4_PRM_VP_IVA_STATUS_OFFSET,
-> +			.voltage =
-> OMAP4_PRM_VP_IVA_VOLTAGE_OFFSET,
-> +		},
-> +		.voltdm = {
-> +			.name = "iva",
-> +		},
-> +	},
-> +	{
-> +		.vp_offs = {
-> +			.vpconfig =
-> OMAP4_PRM_VP_CORE_CONFIG_OFFSET,
-> +			.vstepmin =
-> OMAP4_PRM_VP_CORE_VSTEPMIN_OFFSET,
-> +			.vstepmax =
-> OMAP4_PRM_VP_CORE_VSTEPMAX_OFFSET,
-> +			.vlimitto =
-> OMAP4_PRM_VP_CORE_VLIMITTO_OFFSET,
-> +			.vstatus =
-> OMAP4_PRM_VP_CORE_STATUS_OFFSET,
-> +			.voltage =
-> OMAP4_PRM_VP_CORE_VOLTAGE_OFFSET,
-> +		},
-> +		.voltdm = {
-> +			.name = "core",
-> +		},
-> +	},
-> +};
-> +
-> +#define OMAP4_NR_SCALABLE_VDD ARRAY_SIZE(omap4_vdd_info)
-> +
->  /*
->   * Structures containing OMAP3430/OMAP3630 voltage
-> supported and various
->   * voltage dependent data for each VDD.
-> @@ -234,6 +283,31 @@ static struct omap_volt_data
-> omap36xx_vddcore_volt_data[] = {
->  	VOLT_DATA_DEFINE(0, 0, 0, 0),
->  };
->
-> +/*
-> + * Structures containing OMAP4430 voltage supported and
-> various
-> + * voltage dependent data for each VDD.
-> + */
-> +static struct omap_volt_data omap44xx_vdd_mpu_volt_data[] =
-> {
-> +	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV,
-> OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c),
-> +	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP100_UV,
-> OMAP44XX_CONTROL_FUSE_MPU_OPP100, 0xf9, 0x16),
-> +	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPTURBO_UV,
-> OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO, 0xfa, 0x23),
-> +	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPNITRO_UV,
-> OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO, 0xfa, 0x27),
-> +	VOLT_DATA_DEFINE(0, 0, 0, 0),
-> +};
-> +
-> +static struct omap_volt_data omap44xx_vdd_iva_volt_data[] =
-> {
-> +	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV,
-> OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c),
-> +	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP100_UV,
-> OMAP44XX_CONTROL_FUSE_IVA_OPP100, 0xf9, 0x16),
-> +	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPPTURBO_UV,
-> OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO, 0xfa, 0x23),
-> +	VOLT_DATA_DEFINE(0, 0, 0, 0),
-> +};
-> +
-> +static struct omap_volt_data omap44xx_vdd_core_volt_data[]
-> = {
-> +	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV,
-> OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c),
-> +	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP100_UV,
-> OMAP44XX_CONTROL_FUSE_CORE_OPP100, 0xf9, 0x16),
-> +	VOLT_DATA_DEFINE(0, 0, 0, 0),
-> +};
-> +
->  static struct dentry *voltage_dir;
->
->  /* Init function pointers */
-> @@ -250,6 +324,17 @@ static void omap3_voltage_write_reg(u32
-> val, u16 mod, u8 offset)
->  	omap2_prm_write_mod_reg(val, mod, offset);
->  }
->
-> +static u32 omap4_voltage_read_reg(u16 mod, u8 offset)
-> +{
-> +	return
-> omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-> +					mod, offset);
-> +}
-> +
-> +static void omap4_voltage_write_reg(u32 val, u16 mod, u8
-> offset)
-> +{
-> +	omap4_prminst_write_inst_reg(val,
-> OMAP4430_PRM_PARTITION, mod, offset);
-> +}
-> +
->  /* Voltage debugfs support */
->  static int vp_volt_debug_get(void *data, u64 *val)
->  {
-> @@ -841,6 +926,195 @@ static int __init
-> omap3_vdd_data_configure(struct omap_vdd_info *vdd)
->  	return 0;
->  }
->
-> +/* OMAP4 specific voltage init functions */
-> +static void __init omap4_vc_init(struct omap_vdd_info *vdd)
-> +{
-> +	u32 vc_val;
-> +	u16 mod;
-> +	static bool is_initialized;
-> +
-> +	if (!vdd->pmic_info || !vdd->pmic_info->uv_to_vsel) {
-> +		pr_err("%s: PMIC info requried to configure vc
-> for"
-> +			"vdd_%s not populated.Hence cannot
-> initialize vc\n",
-> +			__func__, vdd->voltdm.name);
-> +		return;
-> +	}
-> +
-> +	if (!vdd->read_reg || !vdd->write_reg) {
-> +		pr_err("%s: No read/write API for accessing
-> vdd_%s regs\n",
-> +			__func__, vdd->voltdm.name);
-> +		return;
-> +	}
-> +
-> +	mod = vdd->vc_reg.prm_mod;
-> +
-> +	/* Set up the SMPS_SA(i2c slave address in VC */
-> +	vc_val = vdd->read_reg(mod, vdd->vc_reg.smps_sa_reg);
-> +	vc_val &= ~vdd->vc_reg.smps_sa_mask;
-> +	vc_val |= vdd->pmic_info->i2c_slave_addr << vdd-
-> >vc_reg.smps_sa_shift;
-> +	vdd->write_reg(vc_val, mod, vdd->vc_reg.smps_sa_reg);
-> +
-> +	/* Setup the VOLRA(pmic reg addr) in VC */
-> +	vc_val = vdd->read_reg(mod, vdd-
-> >vc_reg.smps_volra_reg);
-> +	vc_val &= ~vdd->vc_reg.smps_volra_mask;
-> +	vc_val |= vdd->pmic_info->pmic_reg << vdd-
-> >vc_reg.smps_volra_shift;
-> +	vdd->write_reg(vc_val, mod, vdd-
-> >vc_reg.smps_volra_reg);
-> +
-> +	/* TODO: Configure setup times and CMD_VAL values*/
-> +
-> +	if (is_initialized)
-> +		return;
-> +
-> +	/* Generic VC parameters init */
-> +	vc_val = (OMAP4430_RAV_VDD_MPU_L_MASK |
-> OMAP4430_CMD_VDD_MPU_L_MASK |
-> +		OMAP4430_RAV_VDD_IVA_L_MASK |
-> OMAP4430_CMD_VDD_IVA_L_MASK |
-> +		OMAP4430_RAV_VDD_CORE_L_MASK |
-> OMAP4430_CMD_VDD_CORE_L_MASK);
-> +	vdd->write_reg(vc_val, mod,
-> OMAP4_PRM_VC_CFG_CHANNEL_OFFSET);
-> +
-> +	vc_val = (0x60 << OMAP4430_SCLL_SHIFT | 0x26 <<
-> OMAP4430_SCLH_SHIFT);
-> +	vdd->write_reg(vc_val, mod,
-> OMAP4_PRM_VC_CFG_I2C_CLK_OFFSET);
-> +
-> +	is_initialized = true;
-> +}
-> +
-> +/* Sets up all the VDD related info for OMAP4 */
-> +static int __init omap4_vdd_data_configure(struct
-> omap_vdd_info *vdd)
-> +{
-> +	struct clk *sys_ck;
-> +	u32 sys_clk_speed, timeout_val, waittime;
-> +
-> +	if (!vdd->pmic_info) {
-> +		pr_err("%s: PMIC info requried to configure
-> vdd_%s not"
-> +			"populated.Hence cannot initialize
-> vdd_%s\n",
-> +			__func__, vdd->voltdm.name, vdd-
-> >voltdm.name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!strcmp(vdd->voltdm.name, "mpu")) {
-> +		vdd->volt_data = omap44xx_vdd_mpu_volt_data;
-> +		vdd->vp_reg.tranxdone_status =
-> +				OMAP4430_VP_MPU_TRANXDONE_ST_MASK;
-> +		vdd->vc_reg.cmdval_reg =
-> OMAP4_PRM_VC_VAL_CMD_VDD_MPU_L_OFFSET;
-> +		vdd->vc_reg.smps_sa_shift =
-> +
-> 	OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_SHIFT;
-> +		vdd->vc_reg.smps_sa_mask =
-> +
-> 	OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_MASK;
-> +		vdd->vc_reg.smps_volra_shift =
-> OMAP4430_VOLRA_VDD_MPU_L_SHIFT;
-> +		vdd->vc_reg.smps_volra_mask =
-> OMAP4430_VOLRA_VDD_MPU_L_MASK;
-> +		vdd->vc_reg.voltsetup_reg =
-> +
-> 	OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET;
-> +		vdd->prm_irqst_reg =
-> OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET;
-> +	} else if (!strcmp(vdd->voltdm.name, "core")) {
-> +		vdd->volt_data = omap44xx_vdd_core_volt_data;
-> +		vdd->vp_reg.tranxdone_status =
-> +				OMAP4430_VP_CORE_TRANXDONE_ST_MASK;
-> +		vdd->vc_reg.cmdval_reg =
-> +
-> 	OMAP4_PRM_VC_VAL_CMD_VDD_CORE_L_OFFSET;
-> +		vdd->vc_reg.smps_sa_shift =
-> OMAP4430_SA_VDD_CORE_L_0_6_SHIFT;
-> +		vdd->vc_reg.smps_sa_mask =
-> OMAP4430_SA_VDD_CORE_L_0_6_MASK;
-> +		vdd->vc_reg.smps_volra_shift =
-> OMAP4430_VOLRA_VDD_CORE_L_SHIFT;
-> +		vdd->vc_reg.smps_volra_mask =
-> OMAP4430_VOLRA_VDD_CORE_L_MASK;
-> +		vdd->vc_reg.voltsetup_reg =
-> +
-> 	OMAP4_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET;
-> +		vdd->prm_irqst_reg =
-> OMAP4_PRM_IRQSTATUS_MPU_OFFSET;
-> +	} else if (!strcmp(vdd->voltdm.name, "iva")) {
-> +		vdd->volt_data = omap44xx_vdd_iva_volt_data;
-> +		vdd->vp_reg.tranxdone_status =
-> +				OMAP4430_VP_IVA_TRANXDONE_ST_MASK;
-> +		vdd->vc_reg.cmdval_reg =
-> OMAP4_PRM_VC_VAL_CMD_VDD_IVA_L_OFFSET;
-> +		vdd->vc_reg.smps_sa_shift =
-> +
-> 	OMAP4430_SA_VDD_IVA_L_PRM_VC_SMPS_SA_SHIFT;
-> +		vdd->vc_reg.smps_sa_mask =
-> +
-> 	OMAP4430_SA_VDD_IVA_L_PRM_VC_SMPS_SA_MASK;
-> +		vdd->vc_reg.smps_volra_shift =
-> OMAP4430_VOLRA_VDD_IVA_L_SHIFT;
-> +		vdd->vc_reg.smps_volra_mask =
-> OMAP4430_VOLRA_VDD_IVA_L_MASK;
-> +		vdd->vc_reg.voltsetup_reg =
-> +
-> 	OMAP4_PRM_VOLTSETUP_IVA_RET_SLEEP_OFFSET;
-> +		vdd->prm_irqst_reg =
-> OMAP4_PRM_IRQSTATUS_MPU_OFFSET;
-> +	} else {
-> +		pr_warning("%s: vdd_%s does not exisit in
-> OMAP4\n",
-> +			__func__, vdd->voltdm.name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/*
-> +	 * Sys clk rate is require to calculate vp timeout
-> value and
-> +	 * smpswaittimemin and smpswaittimemax.
-> +	 */
-> +	sys_ck = clk_get(NULL, "sys_clkin_ck");
-> +	if (IS_ERR(sys_ck)) {
-> +		pr_warning("%s: Could not get the sys clk to
-> calculate"
-> +			"various vdd_%s params\n", __func__, vdd-
-> >voltdm.name);
-> +		return -EINVAL;
-> +	}
-> +	sys_clk_speed = clk_get_rate(sys_ck);
-> +	clk_put(sys_ck);
-> +	/* Divide to avoid overflow */
-> +	sys_clk_speed /= 1000;
-> +
-> +	/* Generic voltage parameters */
-> +	vdd->curr_volt = 1200000;
-> +	vdd->ocp_mod = OMAP4430_PRM_OCP_SOCKET_INST;
-> +	vdd->read_reg = omap4_voltage_read_reg;
-> +	vdd->write_reg = omap4_voltage_write_reg;
-> +	vdd->volt_scale = vp_forceupdate_scale_voltage;
-> +	vdd->vp_enabled = false;
-> +
-> +	/* VC parameters */
-> +	vdd->vc_reg.prm_mod = OMAP4430_PRM_DEVICE_INST;
-> +	vdd->vc_reg.smps_sa_reg = OMAP4_PRM_VC_SMPS_SA_OFFSET;
-> +	vdd->vc_reg.smps_volra_reg =
-> OMAP4_PRM_VC_VAL_SMPS_RA_VOL_OFFSET;
-> +	vdd->vc_reg.bypass_val_reg =
-> OMAP4_PRM_VC_VAL_BYPASS_OFFSET;
-> +	vdd->vc_reg.data_shift = OMAP4430_DATA_SHIFT;
-> +	vdd->vc_reg.slaveaddr_shift =
-> OMAP4430_SLAVEADDR_SHIFT;
-> +	vdd->vc_reg.regaddr_shift = OMAP4430_REGADDR_SHIFT;
-> +	vdd->vc_reg.valid = OMAP4430_VALID_MASK;
-> +	vdd->vc_reg.cmd_on_shift = OMAP4430_ON_SHIFT;
-> +	vdd->vc_reg.cmd_on_mask = OMAP4430_ON_MASK;
-> +	vdd->vc_reg.cmd_onlp_shift = OMAP4430_ONLP_SHIFT;
-> +	vdd->vc_reg.cmd_ret_shift = OMAP4430_RET_SHIFT;
-> +	vdd->vc_reg.cmd_off_shift = OMAP4430_OFF_SHIFT;
-> +
-> +	vdd->vp_reg.prm_mod = OMAP4430_PRM_DEVICE_INST;
-> +
-> +	/* VPCONFIG bit fields */
-> +	vdd->vp_reg.vpconfig_erroroffset = (vdd->pmic_info-
-> >vp_erroroffset <<
-> +				 OMAP4430_ERROROFFSET_SHIFT);
-> +	vdd->vp_reg.vpconfig_errorgain_mask =
-> OMAP4430_ERRORGAIN_MASK;
-> +	vdd->vp_reg.vpconfig_errorgain_shift =
-> OMAP4430_ERRORGAIN_SHIFT;
-> +	vdd->vp_reg.vpconfig_initvoltage_shift =
-> OMAP4430_INITVOLTAGE_SHIFT;
-> +	vdd->vp_reg.vpconfig_initvoltage_mask =
-> OMAP4430_INITVOLTAGE_MASK;
-> +	vdd->vp_reg.vpconfig_timeouten =
-> OMAP4430_TIMEOUTEN_MASK;
-> +	vdd->vp_reg.vpconfig_initvdd = OMAP4430_INITVDD_MASK;
-> +	vdd->vp_reg.vpconfig_forceupdate =
-> OMAP4430_FORCEUPDATE_MASK;
-> +	vdd->vp_reg.vpconfig_vpenable =
-> OMAP4430_VPENABLE_MASK;
-> +
-> +	/* VSTEPMIN VSTEPMAX bit fields */
-> +	waittime = ((vdd->pmic_info->step_size / vdd-
-> >pmic_info->slew_rate) *
-> +				sys_clk_speed) / 1000;
-> +	vdd->vp_reg.vstepmin_smpswaittimemin = waittime;
-> +	vdd->vp_reg.vstepmax_smpswaittimemax = waittime;
-> +	vdd->vp_reg.vstepmin_stepmin = vdd->pmic_info-
-> >vp_vstepmin;
-> +	vdd->vp_reg.vstepmax_stepmax = vdd->pmic_info-
-> >vp_vstepmax;
-> +	vdd->vp_reg.vstepmin_smpswaittimemin_shift =
-> +			OMAP4430_SMPSWAITTIMEMIN_SHIFT;
-> +	vdd->vp_reg.vstepmax_smpswaittimemax_shift =
-> +			OMAP4430_SMPSWAITTIMEMAX_SHIFT;
-> +	vdd->vp_reg.vstepmin_stepmin_shift =
-> OMAP4430_VSTEPMIN_SHIFT;
-> +	vdd->vp_reg.vstepmax_stepmax_shift =
-> OMAP4430_VSTEPMAX_SHIFT;
-> +
-> +	/* VLIMITTO bit fields */
-> +	timeout_val = (sys_clk_speed * vdd->pmic_info-
-> >vp_timeout_us) / 1000;
-> +	vdd->vp_reg.vlimitto_timeout = timeout_val;
-> +	vdd->vp_reg.vlimitto_vddmin = vdd->pmic_info-
-> >vp_vddmin;
-> +	vdd->vp_reg.vlimitto_vddmax = vdd->pmic_info-
-> >vp_vddmax;
-> +	vdd->vp_reg.vlimitto_vddmin_shift =
-> OMAP4430_VDDMIN_SHIFT;
-> +	vdd->vp_reg.vlimitto_vddmax_shift =
-> OMAP4430_VDDMAX_SHIFT;
-> +	vdd->vp_reg.vlimitto_timeout_shift =
-> OMAP4430_TIMEOUT_SHIFT;
-> +
-> +	return 0;
-> +}
-> +
->  /* Public functions */
->  /**
->   * omap_voltage_get_nom_volt() - Gets the current non-auto-
-> compensated voltage
-> @@ -1283,6 +1557,11 @@ static int __init
-> omap_voltage_early_init(void)
->  		nr_scalable_vdd = OMAP3_NR_SCALABLE_VDD;
->  		vc_init = omap3_vc_init;
->  		vdd_data_configure = omap3_vdd_data_configure;
-> +	} else if (cpu_is_omap44xx()) {
-> +		vdd_info = omap4_vdd_info;
-> +		nr_scalable_vdd = OMAP4_NR_SCALABLE_VDD;
-> +		vc_init = omap4_vc_init;
-> +		vdd_data_configure = omap4_vdd_data_configure;
->  	} else {
->  		pr_warning("%s: voltage driver support not
-> added\n", __func__);
->  	}
-> diff --git a/arch/arm/plat-omap/include/plat/voltage.h
-> b/arch/arm/plat-omap/include/plat/voltage.h
-> index 2f4f59a..0ff1233 100644
-> --- a/arch/arm/plat-omap/include/plat/voltage.h
-> +++ b/arch/arm/plat-omap/include/plat/voltage.h
-> @@ -44,6 +44,18 @@
->  #define OMAP3630_VDD_CORE_OPP50_UV		1000000
->  #define OMAP3630_VDD_CORE_OPP100_UV		1200000
->
-> +#define OMAP4430_VDD_MPU_OPP50_UV		930000
-> +#define OMAP4430_VDD_MPU_OPP100_UV		1100000
-> +#define OMAP4430_VDD_MPU_OPPTURBO_UV		1260000
-> +#define OMAP4430_VDD_MPU_OPPNITRO_UV		1350000
-> +
-> +#define OMAP4430_VDD_IVA_OPP50_UV		930000
-> +#define OMAP4430_VDD_IVA_OPP100_UV		1100000
-> +#define OMAP4430_VDD_IVA_OPPTURBO_UV		1260000
-> +
-> +#define OMAP4430_VDD_CORE_OPP50_UV		930000
-> +#define OMAP4430_VDD_CORE_OPP100_UV		1100000
-> +
->  /**
->   * struct voltagedomain - omap voltage domain global
-> structure.
->   * @name:	Name of the voltage domain which can be used as
-> a unique
-> --
-> 1.7.0.4
+-- 
+balbi
