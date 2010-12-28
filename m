@@ -1,271 +1,344 @@
-From: Anand Sawant <sawant@ti.com>
-Subject: RE: [PATCH v6 09/10] OMAP3: PM: Adding debug support to Voltage and
- Smartreflex drivers
-Date: Tue, 28 Dec 2010 22:37:49 +0530
-Message-ID: <1b7fd98d1f8cf358cdc712da05f30a34@mail.gmail.com>
-References: <1292864357-13939-1-git-send-email-thara@ti.com> <1292864357-13939-10-git-send-email-thara@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH 2/3] mfd: twl4030-irq: drop the workqueue hackery
+Date: Tue, 28 Dec 2010 19:14:18 +0200
+Message-ID: <1293556459-28613-3-git-send-email-balbi@ti.com>
+References: <20101228161657.GF2239@legolas.emea.dhcp.ti.com>
+ <1293556459-28613-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:60994 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753242Ab0L1RHv (ORCPT
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:47922 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754199Ab0L1RQ7 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Dec 2010 12:07:51 -0500
-Received: by gwj20 with SMTP id 20so4371054gwj.36
-        for <linux-omap@vger.kernel.org>; Tue, 28 Dec 2010 09:07:50 -0800 (PST)
-In-Reply-To: <1292864357-13939-10-git-send-email-thara@ti.com>
+	Tue, 28 Dec 2010 12:16:59 -0500
+In-Reply-To: <1293556459-28613-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Nishanth Menon <nm@ti.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Thomas Gleixner <tglx@linutronix.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Felipe Balbi <balbi@ti.com>
 
-Thara,
+Finally that workqueue isn't needed anymore.
+Drop that hackery and move the spinlock_t to
+a mutex so we can issue I2C operations with
+a lock held.
 
-Few comments on the changes in voltage layer ...
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/mfd/twl4030-irq.c |  226 +++++++++++++++++++--------------------------
+ 1 files changed, 96 insertions(+), 130 deletions(-)
 
-> -----Original Message-----
-> From: Thara Gopinath [mailto:thara@ti.com]
-> Sent: Monday, December 20, 2010 10:29 PM
-> To: linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org
-> Cc: khilman@deeprootsystems.com; paul@pwsan.com; b-
-> cousson@ti.com; vishwanath.bs@ti.com; sawant@ti.com;
-> nm@ti.com; Thara Gopinath
-> Subject: [PATCH v6 09/10] OMAP3: PM: Adding debug support to
-> Voltage and Smartreflex drivers
->
-> This patch adds debug support to the voltage and smartreflex
-> drivers.
-> This means a whole bunch of voltage processor and
-> smartreflex
-> parameters are now visible through the pm debugfs.
-> The voltage parameters can be viewed at
->         /debug/voltage/vdd_<x>/<parameter>
-> and the smartreflex parameters can be viewed at
->         /debug/voltage/vdd_<x>/smartreflex/<parameter>
->
-> Also smartreflex n-target values are now exposed out at
-> 	/debug/voltage/vdd_<x>/smartreflex/nvalue/<voltage>
->
-> The interface to access smartreflex n-target values is a
-> read-write interface which means user has the flexibility
-> to change the n-target values for any opp.
->
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
->  arch/arm/mach-omap2/smartreflex.c |   46
-> ++++++++++++++++++++++++-
->  arch/arm/mach-omap2/voltage.c     |   66
-> +++++++++++++++++++++++++++++++++++++
->  2 files changed, 110 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex.c
-> b/arch/arm/mach-omap2/smartreflex.c
-> index eee23d0..52a05b3 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -31,6 +31,7 @@
->  #include "pm.h"
->
->  #define SMARTREFLEX_NAME_LEN	16
-> +#define NVALUE_NAME_LEN		40
->  #define SR_DISABLE_TIMEOUT	200
->
->  struct omap_sr {
-> @@ -817,8 +818,9 @@ static int __init omap_sr_probe(struct
-> platform_device *pdev)
->  	struct omap_sr *sr_info = kzalloc(sizeof(struct
-> omap_sr), GFP_KERNEL);
->  	struct omap_sr_data *pdata = pdev->dev.platform_data;
->  	struct resource *mem, *irq;
-> -	struct dentry *vdd_dbg_dir, *dbg_dir;
-> -	int ret = 0;
-> +	struct dentry *vdd_dbg_dir, *dbg_dir, *nvalue_dir;
-> +	struct omap_volt_data *volt_data;
-> +	int i, ret = 0;
->
->  	if (!sr_info) {
->  		dev_err(&pdev->dev, "%s: unable to allocate
-> sr_info\n",
-> @@ -897,6 +899,46 @@ static int __init omap_sr_probe(struct
-> platform_device *pdev)
->
->  	(void) debugfs_create_file("autocomp", S_IRUGO |
-> S_IWUGO, dbg_dir,
->  				(void *)sr_info, &pm_sr_fops);
-> +	(void) debugfs_create_x32("errweight", S_IRUGO,
-> dbg_dir,
-> +			&sr_info->err_weight);
-> +	(void) debugfs_create_x32("errmaxlimit", S_IRUGO,
-> dbg_dir,
-> +			&sr_info->err_maxlimit);
-> +	(void) debugfs_create_x32("errminlimit", S_IRUGO,
-> dbg_dir,
-> +			&sr_info->err_minlimit);
-> +
-> +	nvalue_dir = debugfs_create_dir("nvalue", dbg_dir);
-> +	if (IS_ERR(nvalue_dir)) {
-> +		dev_err(&pdev->dev, "%s: Unable to create
-> debugfs directory"
-> +			"for n-values\n", __func__);
-> +		return PTR_ERR(nvalue_dir);
-> +	}
-> +
-> +	omap_voltage_get_volttable(sr_info->voltdm,
-> &volt_data);
-> +	if (!volt_data) {
-> +		dev_warn(&pdev->dev, "%s: No Voltage table for
-> the"
-> +			" corresponding vdd vdd_%s. Cannot create
-> debugfs"
-> +			"entries for n-values\n",
-> +			__func__, sr_info->voltdm->name);
-> +		return -ENODATA;
-> +	}
-> +
-> +	for (i = 0; i < sr_info->nvalue_count; i++) {
-> +		char *name;
-> +		char volt_name[32];
-> +
-> +		name = kzalloc(NVALUE_NAME_LEN + 1, GFP_KERNEL);
-> +		if (!name) {
-> +			dev_err(&pdev->dev, "%s: Unable to
-> allocate memory"
-> +				" for n-value directory name\n",
-> __func__);
-> +			return -ENOMEM;
-> +		}
-> +
-> +		strcpy(name, "volt_");
-> +		sprintf(volt_name, "%d",
-> volt_data[i].volt_nominal);
-> +		strcat(name, volt_name);
-> +		(void) debugfs_create_x32(name, S_IRUGO |
-> S_IWUGO, nvalue_dir,
-> +				&(sr_info->nvalue_table[i].nvalue));
-> +	}
->
->  	return ret;
->
-> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-
-> omap2/voltage.c
-> index 875667f..b27fa4f 100644
-> --- a/arch/arm/mach-omap2/voltage.c
-> +++ b/arch/arm/mach-omap2/voltage.c
-> @@ -250,6 +250,47 @@ static void omap3_voltage_write_reg(u32
-> val, u16 mod, u8 offset)
->  	omap2_prm_write_mod_reg(val, mod, offset);
->  }
->
-> +/* Voltage debugfs support */
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index 91331a7..298956d 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -31,6 +31,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/irq.h>
+ #include <linux/slab.h>
++#include <linux/mutex.h>
+ 
+ #include <linux/i2c/twl.h>
+ 
+@@ -434,46 +435,36 @@ static inline void activate_irq(int irq)
+ 
+ /*----------------------------------------------------------------------*/
+ 
+-static DEFINE_SPINLOCK(sih_agent_lock);
+-
+-static struct workqueue_struct *wq;
+-
+ struct sih_agent {
+ 	int			irq_base;
+ 	const struct sih	*sih;
+ 
+ 	u32			imr;
+-	bool			imr_change_pending;
+-	struct work_struct	mask_work;
+-
+ 	u32			edge_change;
+-	struct work_struct	edge_work;
++
++	struct mutex		irq_lock;
+ };
+ 
+-static void twl4030_sih_do_mask(struct work_struct *work)
++/*----------------------------------------------------------------------*/
++
++static void twl4030_sih_mask(unsigned irq)
+ {
+-	struct sih_agent	*agent;
+-	const struct sih	*sih;
++	struct sih_agent	*agent = get_irq_chip_data(irq);
++	const struct sih	*sih = agent->sih;
++
+ 	union {
+ 		u8	bytes[4];
+ 		u32	word;
+ 	}			imr;
++
+ 	int			status;
+ 
+-	agent = container_of(work, struct sih_agent, mask_work);
+-
+-	/* see what work we have */
+-	spin_lock_irq(&sih_agent_lock);
+-	if (agent->imr_change_pending) {
+-		sih = agent->sih;
+-		/* byte[0] gets overwritten as we write ... */
+-		imr.word = cpu_to_le32(agent->imr << 8);
+-		agent->imr_change_pending = false;
+-	} else
+-		sih = NULL;
+-	spin_unlock_irq(&sih_agent_lock);
+-	if (!sih)
+-		return;
++	agent->imr |= BIT(irq - agent->irq_base);
++
++	mutex_lock(&agent->irq_lock);
++
++	/* byte[0] gets overwritten as we write ... */
++	imr.word = cpu_to_le32(agent->imr << 8);
+ 
+ 	/* write the whole mask ... simpler than subsetting it */
+ 	status = twl_i2c_write(sih->module, imr.bytes,
+@@ -481,111 +472,42 @@ static void twl4030_sih_do_mask(struct work_struct *work)
+ 	if (status)
+ 		pr_err("twl4030: %s, %s --> %d\n", __func__,
+ 				"write", status);
++	mutex_unlock(&agent->irq_lock);
+ }
+ 
+-static void twl4030_sih_do_edge(struct work_struct *work)
++static void twl4030_sih_unmask(unsigned irq)
+ {
+-	struct sih_agent	*agent;
+-	const struct sih	*sih;
+-	u8			bytes[6];
+-	u32			edge_change;
+-	int			status;
+-
+-	agent = container_of(work, struct sih_agent, edge_work);
+-
+-	/* see what work we have */
+-	spin_lock_irq(&sih_agent_lock);
+-	edge_change = agent->edge_change;
+-	agent->edge_change = 0;
+-	sih = edge_change ? agent->sih : NULL;
+-	spin_unlock_irq(&sih_agent_lock);
+-	if (!sih)
+-		return;
+-
+-	/* Read, reserving first byte for write scratch.  Yes, this
+-	 * could be cached for some speedup ... but be careful about
+-	 * any processor on the other IRQ line, EDR registers are
+-	 * shared.
+-	 */
+-	status = twl_i2c_read(sih->module, bytes + 1,
+-			sih->edr_offset, sih->bytes_edr);
+-	if (status) {
+-		pr_err("twl4030: %s, %s --> %d\n", __func__,
+-				"read", status);
+-		return;
+-	}
++	struct sih_agent	*agent = get_irq_chip_data(irq);
++	const struct sih	*sih = agent->sih;
+ 
+-	/* Modify only the bits we know must change */
+-	while (edge_change) {
+-		int		i = fls(edge_change) - 1;
+-		struct irq_desc	*d = irq_to_desc(i + agent->irq_base);
+-		int		byte = 1 + (i >> 2);
+-		int		off = (i & 0x3) * 2;
+-
+-		if (!d) {
+-			pr_err("twl4030: Invalid IRQ: %d\n",
+-			       i + agent->irq_base);
+-			return;
+-		}
++	union {
++		u8	bytes[4];
++		u32	word;
++	}			imr;
+ 
+-		bytes[byte] &= ~(0x03 << off);
++	int			status;
+ 
+-		raw_spin_lock_irq(&d->lock);
+-		if (d->status & IRQ_TYPE_EDGE_RISING)
+-			bytes[byte] |= BIT(off + 1);
+-		if (d->status & IRQ_TYPE_EDGE_FALLING)
+-			bytes[byte] |= BIT(off + 0);
+-		raw_spin_unlock_irq(&d->lock);
++	mutex_lock(&agent->irq_lock);
++	agent->imr &= ~BIT(irq - agent->irq_base);
+ 
+-		edge_change &= ~BIT(i);
+-	}
++	/* byte[0] gets overwritten as we write ... */
++	imr.word = cpu_to_le32(agent->imr << 8);
+ 
+-	/* Write */
+-	status = twl_i2c_write(sih->module, bytes,
+-			sih->edr_offset, sih->bytes_edr);
++	/* write the whole mask ... simpler than subsetting it */
++	status = twl_i2c_write(sih->module, imr.bytes,
++			sih->mask[irq_line].imr_offset, sih->bytes_ixr);
+ 	if (status)
+ 		pr_err("twl4030: %s, %s --> %d\n", __func__,
+ 				"write", status);
+-}
+-
+-/*----------------------------------------------------------------------*/
+-
+-/*
+- * All irq_chip methods get issued from code holding irq_desc[irq].lock,
+- * which can't perform the underlying I2C operations (because they sleep).
+- * So we must hand them off to a thread (workqueue) and cope with asynch
+- * completion, potentially including some re-ordering, of these requests.
+- */
+-
+-static void twl4030_sih_mask(unsigned irq)
+-{
+-	struct sih_agent *sih = get_irq_chip_data(irq);
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&sih_agent_lock, flags);
+-	sih->imr |= BIT(irq - sih->irq_base);
+-	sih->imr_change_pending = true;
+-	queue_work(wq, &sih->mask_work);
+-	spin_unlock_irqrestore(&sih_agent_lock, flags);
+-}
+-
+-static void twl4030_sih_unmask(unsigned irq)
+-{
+-	struct sih_agent *sih = get_irq_chip_data(irq);
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&sih_agent_lock, flags);
+-	sih->imr &= ~BIT(irq - sih->irq_base);
+-	sih->imr_change_pending = true;
+-	queue_work(wq, &sih->mask_work);
+-	spin_unlock_irqrestore(&sih_agent_lock, flags);
++	mutex_unlock(&agent->irq_lock);
+ }
+ 
+ static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
+ {
+-	struct sih_agent *sih = get_irq_chip_data(irq);
+-	struct irq_desc *desc = irq_to_desc(irq);
+-	unsigned long flags;
++	struct sih_agent	*agent = get_irq_chip_data(irq);
++	const struct sih	*sih = agent->sih;
++	struct irq_desc		*desc = irq_to_desc(irq);
++	int			status = 0;
+ 
+ 	if (!desc) {
+ 		pr_err("twl4030: Invalid IRQ: %d\n", irq);
+@@ -595,15 +517,67 @@ static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
+ 	if (trigger & ~(IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING))
+ 		return -EINVAL;
+ 
+-	spin_lock_irqsave(&sih_agent_lock, flags);
++	mutex_lock(&agent->irq_lock);
+ 	if ((desc->status & IRQ_TYPE_SENSE_MASK) != trigger) {
++		u8			bytes[6];
++		u32			edge_change;
++
+ 		desc->status &= ~IRQ_TYPE_SENSE_MASK;
+ 		desc->status |= trigger;
+-		sih->edge_change |= BIT(irq - sih->irq_base);
+-		queue_work(wq, &sih->edge_work);
++		agent->edge_change |= BIT(irq - agent->irq_base);
++		edge_change = agent->edge_change;
++
++		/* Read, reserving first byte for write scratch.  Yes, this
++		 * could be cached for some speedup ... but be careful about
++		 * any processor on the other IRQ line, EDR registers are
++		 * shared.
++		 */
++		status = twl_i2c_read(sih->module, bytes + 1,
++				sih->edr_offset, sih->bytes_edr);
++		if (status) {
++			pr_err("twl4030: %s, %s --> %d\n", __func__,
++					"read", status);
++			goto out;
++		}
++
++		/* Modify only the bits we know must change */
++		while (edge_change) {
++			int		i = fls(edge_change) - 1;
++			struct irq_desc	*d = irq_to_desc(i + agent->irq_base);
++			int		byte = 1 + (i >> 2);
++			int		off = (i & 0x3) * 2;
++
++			if (!d) {
++				pr_err("twl4030: Invalid IRQ: %d\n",
++						i + agent->irq_base);
++				status = -ENODEV;
++				goto out;
++			}
++
++			bytes[byte] &= ~(0x03 << off);
++
++			raw_spin_lock_irq(&d->lock);
++			if (d->status & IRQ_TYPE_EDGE_RISING)
++				bytes[byte] |= BIT(off + 1);
++			if (d->status & IRQ_TYPE_EDGE_FALLING)
++				bytes[byte] |= BIT(off + 0);
++			raw_spin_unlock_irq(&d->lock);
++
++			edge_change &= ~BIT(i);
++		}
++
++		/* Write */
++		status = twl_i2c_write(sih->module, bytes,
++				sih->edr_offset, sih->bytes_edr);
++		if (status)
++			pr_err("twl4030: %s, %s --> %d\n", __func__,
++					"write", status);
+ 	}
+-	spin_unlock_irqrestore(&sih_agent_lock, flags);
+-	return 0;
++
++out:
++	mutex_unlock(&agent->irq_lock);
++
++	return status;
+ }
+ 
+ static struct irq_chip twl4030_sih_irq_chip = {
+@@ -706,8 +680,7 @@ int twl4030_sih_setup(int module)
+ 	agent->irq_base = irq_base;
+ 	agent->sih = sih;
+ 	agent->imr = ~0;
+-	INIT_WORK(&agent->mask_work, twl4030_sih_do_mask);
+-	INIT_WORK(&agent->edge_work, twl4030_sih_do_edge);
++	mutex_init(&agent->irq_lock);
+ 
+ 	for (i = 0; i < sih->bits; i++) {
+ 		irq = irq_base + i;
+@@ -755,12 +728,6 @@ int twl4030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
+ 	if (status < 0)
+ 		return status;
+ 
+-	wq = create_singlethread_workqueue("twl4030-irqchip");
+-	if (!wq) {
+-		pr_err("twl4030: workqueue FAIL\n");
+-		return -ESRCH;
+-	}
+-
+ 	twl4030_irq_base = irq_base;
+ 
+ 	/* install an irq handler for each of the SIH modules;
+@@ -802,8 +769,7 @@ fail_rqirq:
+ fail:
+ 	for (i = irq_base; i < irq_end; i++)
+ 		set_irq_chip_and_handler(i, NULL, NULL);
+-	destroy_workqueue(wq);
+-	wq = NULL;
++
+ 	return status;
+ }
+ 
+-- 
+1.7.3.4.598.g85356
 
-Add comment for the function.
-
-> +static int vp_volt_debug_get(void *data, u64 *val)
-> +{
-> +	struct omap_vdd_info *vdd = (struct omap_vdd_info *)
-> data;
-> +	u8 vsel;
-> +
-> +	if (!vdd) {
-> +		pr_warning("Wrong paramater passed\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	vsel = vdd->read_reg(vdd->vp_reg.prm_mod, vdd-
-> >vp_offs.voltage);
-> +	pr_notice("curr_vsel = %x\n", vsel);
-> +
-> +	if (!vdd->pmic_info->vsel_to_uv) {
-> +		pr_warning("PMIC function to convert vsel to
-> voltage"
-> +			"in uV not registerd\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	*val = vdd->pmic_info->vsel_to_uv(vsel);
-> +	return 0;
-> +}
-> +
-
-Add comment for the function.
-
-> +static int nom_volt_debug_get(void *data, u64 *val)
-> +{
-> +	struct omap_vdd_info *vdd = (struct omap_vdd_info *)
-> data;
-> +
-> +	if (!vdd) {
-> +		pr_warning("Wrong paramater passed\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	*val = omap_voltage_get_nom_volt(&vdd->voltdm);
-> +
-> +	return 0;
-> +}
-> +
-> +DEFINE_SIMPLE_ATTRIBUTE(vp_volt_debug_fops,
-> vp_volt_debug_get, NULL, "%llu\n");
-> +DEFINE_SIMPLE_ATTRIBUTE(nom_volt_debug_fops,
-> nom_volt_debug_get, NULL,
-> +								"%llu\n");
->  static void vp_latch_vsel(struct omap_vdd_info *vdd)
->  {
->  	u32 vpconfig;
-> @@ -349,7 +390,32 @@ static void __init
-> vdd_debugfs_init(struct omap_vdd_info *vdd)
->  		pr_warning("%s: Unable to create debugfs
-> directory for"
->  			" vdd_%s\n", __func__, vdd->voltdm.name);
->  		vdd->debug_dir = NULL;
-> +		return;
->  	}
-> +
-> +	(void) debugfs_create_x16("vp_errorgain", S_IRUGO,
-> vdd->debug_dir,
-> +				&(vdd->vp_reg.vpconfig_errorgain));
-> +	(void) debugfs_create_x16("vp_smpswaittimemin",
-> S_IRUGO,
-> +				vdd->debug_dir,
-> +				&(vdd-
-> >vp_reg.vstepmin_smpswaittimemin));
-> +	(void) debugfs_create_x8("vp_stepmin", S_IRUGO, vdd-
-> >debug_dir,
-> +				&(vdd->vp_reg.vstepmin_stepmin));
-> +	(void) debugfs_create_x16("vp_smpswaittimemax",
-> S_IRUGO,
-> +				vdd->debug_dir,
-> +				&(vdd-
-> >vp_reg.vstepmax_smpswaittimemax));
-> +	(void) debugfs_create_x8("vp_stepmax", S_IRUGO, vdd-
-> >debug_dir,
-> +				&(vdd->vp_reg.vstepmax_stepmax));
-> +	(void) debugfs_create_x8("vp_vddmax", S_IRUGO, vdd-
-> >debug_dir,
-> +				&(vdd->vp_reg.vlimitto_vddmax));
-> +	(void) debugfs_create_x8("vp_vddmin", S_IRUGO, vdd-
-> >debug_dir,
-> +				&(vdd->vp_reg.vlimitto_vddmin));
-> +	(void) debugfs_create_x16("vp_timeout", S_IRUGO, vdd-
-> >debug_dir,
-> +				&(vdd->vp_reg.vlimitto_timeout));
-> +	(void) debugfs_create_file("curr_vp_volt", S_IRUGO,
-> vdd->debug_dir,
-> +				(void *) vdd, &vp_volt_debug_fops);
-> +	(void) debugfs_create_file("curr_nominal_volt",
-> S_IRUGO,
-> +				vdd->debug_dir, (void *) vdd,
-> +				&nom_volt_debug_fops);
-
-Recommend to add support for vc cmdval & vc bypass_val.
-
-Best Regards,
-
-Anand Sawant
->  }
->
->  /* Voltage scale and accessory APIs */
-> --
-> 1.7.0.4
