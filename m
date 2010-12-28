@@ -1,35 +1,36 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v2] staging: tidspbridge: protect dmm_map properly
-Date: Tue, 28 Dec 2010 16:48:46 +0200
-Message-ID: <AANLkTi=X=Av0SaqphXUfiXMNX_tD8OF1CWes34keZ8O1@mail.gmail.com>
-References: <1292870624-25450-1-git-send-email-felipe.contreras@nokia.com>
- <AANLkTikisHaAMZphRJVYdcokVbaZXVF9COrwkdGTDg__@mail.gmail.com>
- <AANLkTi=9AL3aWUsMeih+Gb-sMov=MgBZ1eTp8wb=q1hZ@mail.gmail.com>
- <AANLkTinX8t=3b48e2sxPU-V_G-nGm_1DyEg6B-CeqXDa@mail.gmail.com>
- <1293452486-notmuch-felipe.contreras@nokia.com> <AANLkTinz0HuhGB_WzTQbK8XkfkGALjtg928WdOUYsySf@mail.gmail.com>
- <AANLkTimCB5g29gzWFzaFU1N8+doROTpWaXy18VU5AJyH@mail.gmail.com>
- <AANLkTi=xmxkWnhuYcjtDNDHgep_2EztfGXDv+winW2Y5@mail.gmail.com> <AANLkTiksjHKjKQ+mWE=Zf0+967_E46V3+RURcMC-s5cD@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC/PATCH 1/2] mfd: twl6030-irq: move to threaded_irq
+Date: Tue, 28 Dec 2010 15:46:17 +0000
+Message-ID: <20101228154617.GC14860@sirena.org.uk>
+References: <1293544790-793-1-git-send-email-balbi@ti.com> <1293544790-793-2-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTiksjHKjKQ+mWE=Zf0+967_E46V3+RURcMC-s5cD@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, greg@kroah.com, omar.ramirez@ti.com, fernando.lugo@ti.com, nm@ti.com, ameya.palande@nokia.com, h-kanigeri2@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:45139 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382Ab0L1PqW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Dec 2010 10:46:22 -0500
+Content-Disposition: inline
+In-Reply-To: <1293544790-793-2-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Thomas Gleixner <tglx@linutronix.de>
 
-On Tue, Dec 28, 2010 at 2:12 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Tue, Dec 28, 2010 at 12:56 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
->> I still don't know how exactly you triggered the bug: is gst-dsp
->> multithreaded ? and one of its threads invoked proc_un_map() while
->> another thread called proc_begin_dma() ?
->
-> I haven't investigated why that happens
+On Tue, Dec 28, 2010 at 03:59:49PM +0200, Felipe Balbi wrote:
 
-Btw, I still think you should look into this.
+> +	disable_irq_nosync(irq);
 
-The kernel panic will be solved, but you may still have a race there
-that can lead to data corruption: if proc_un_map will be fast enough,
-it will acquire the proc_lock mutex before proc_begin_dma(), and then
-you will miss a cache operation.
+You shouldn't need this any more; the driver used to be faffing around
+with this because it wasn't using genirq for this in the past.
+
+> +	for (i = 0; sts.int_sts; sts.int_sts >>= 1, i++) {
+> +		local_irq_disable();
+
+Simiarly here as far as I know; the original code predates genirq
+support for this so is doing some hairy stuff that is no longer
+required and may actually be harmful.
+
+What I'd expect to see from a conversion like this would be that most of
+the locking/IRQ management stuff would be dropped and the bus_lock() and
+bus_sync_unlock() operations would be implemented.
