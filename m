@@ -1,34 +1,44 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC/PATCH 0/3] TWL4030 IRQ Changes
-Date: Tue, 28 Dec 2010 17:41:39 +0000
-Message-ID: <20101228174138.GA3089@opensource.wolfsonmicro.com>
-References: <20101228161657.GF2239@legolas.emea.dhcp.ti.com>
- <1293556459-28613-1-git-send-email-balbi@ti.com>
- <20101228173604.GH2239@legolas.emea.dhcp.ti.com>
+From: "David Lynch Jr." <dhlii@dlasys.net>
+Subject: OMAP Color Rotation
+Date: Tue, 28 Dec 2010 12:44:03 -0500
+Message-ID: <1293558243.3652.1265.camel@t-dhlii>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20101228173604.GH2239@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from oproxy3-pub.bluehost.com ([69.89.21.8]:46758 "HELO
+	oproxy3-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754216Ab0L1RoI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Dec 2010 12:44:08 -0500
+Received: from 24.102.227.170.res-cmts.eph.ptd.net ([24.102.227.170] helo=[206.223.20.140])
+	by host200.hostmonster.com with esmtpa (Exim 4.69)
+	(envelope-from <dhlii@dlasys.net>)
+	id 1PXdah-0002Hn-KF
+	for linux-omap@vger.kernel.org; Tue, 28 Dec 2010 10:44:08 -0700
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Tue, Dec 28, 2010 at 07:36:04PM +0200, Felipe Balbi wrote:
+	I am looking for an example of programing the color rotation
+registers. 
+	I need to swap red and blue in software. 
+	This should be fairly easy, but some code usi_ng the color rotation
+registers would help. 
+	DISPC_CPR_COEF_R  
 
-> when we finally move to struct irq_data, the below could
-> be used. BTW, Thomas do you have any plans for exposing
-> irq_data_to_desc() ?
 
-The general idea is to move to struct irq_data sooner rather than later
-(all the existing MFD drivers have already been converted).
 
-> -static void twl4030_sih_mask(unsigned irq)
-> +/* REVISIT define it here until IRQ Subsystem exports its implementation */
-> +#define irq_data_to_desc(data)	container_of(data, struct irq_desc, irq_data)
+-- 
+Dave Lynch                                                  DLA Systems
+Software Development:                                    Embedded Linux
+717.587.7774           dhlii@dlasys.net    http://www.dlasys.net
+Over 25 years' experience in platforms, languages, and technologies too
+numerous to list.
 
-It looks like all you're using this for is to get the chip_data?  If
-that is the case you're looking for irq_data_get_irq_chip_data() which
-will go directly from the irq_data to the chip_data.  I may have missed
-something, I only scanned the code.
+"Any intelligent fool can make things bigger and more complex... It
+takes a touch of genius - and a lot of courage to move in the opposite
+direction."
+Albert Einstein
+
+
+
