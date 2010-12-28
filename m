@@ -1,40 +1,50 @@
-From: Linus Walleij <linus.walleij@stericsson.com>
-Subject: Re: [PATCH] TWD: enable one-shot mode
-Date: Tue, 28 Dec 2010 02:17:42 +0100
-Message-ID: <AANLkTinU+x2uV34SCO=p2K4z6BO_DSYy2+1BRU5eAgHO@mail.gmail.com>
-References: <20101224191855.GJ20587@n2100.arm.linux.org.uk>
+From: David Lambert <dlambert@ti.com>
+Subject: [PATCH 0/5] Adding OMAP DMIC driver to kernel
+Date: Mon, 27 Dec 2010 22:17:01 -0600
+Message-ID: <1293509826-23253-1-git-send-email-dlambert@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20101224191855.GJ20587@n2100.arm.linux.org.uk>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Bryan Huntsman <bryanh@codeaurora.org>, Colin Cross <ccross@android.com>, Daniel Walker <dwalker@codeaurora.org>, David Brown <davidb@codeaurora.org>, Erik Gilling <konkers@android.com>, Kukjin Kim <kgene.kim@samsung.com>, Olof Johansson <olof@lixom.net>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, linux-tegra@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, David Lambert <dlambert@ti.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-2010/12/24 Russell King - ARM Linux <linux@arm.linux.org.uk>:
-> Allow one shot timer mode to be used with the TWD. =A0This allows
-> NOHZ mode to be used on SMP systems using the TWD localtimer.
->
-> Tested on Versatile Express.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
-> Acks/Tested-by's would be appreciated, thanks.
+This is a patch series to add the OMAP Digital Microphone
+driver for OMAP4.
 
-Tested on the U8500 and doesn't seem to break anything...
+It includes the driver, a generic DMIC codec, platform devices,
+as well as HWMOD entries for OMAP44xx chipsets.
 
-Local interrupts after a few minutes of use before patching
-(and enabling NO_HZ):
-LOC:       8203       8224
+David Lambert (5):
+  ASoC: DMIC: Adding the OMAP DMIC driver
+  ASoC: DMIC codec: Adding a generic DMIC codec
+  ASoC: DMIC: Adding OMAP DMIC driver to build
+  OMAP4: hwmod: add entries for DMIC driver
+  MAP4: DMIC: Add DMIC codec platform devices
 
-After patching;
-LOC:        233        322
-
-Looks like it's working, too.
-
-Tested-by: Linus Walleij <linus.walleij@stericsson.com>
-
-Yours,
-Linus Walleij
+ arch/arm/mach-omap2/board-4430sdp.c        |   11 +
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   91 +++++
+ arch/arm/plat-omap/devices.c               |   35 ++
+ arch/arm/plat-omap/include/plat/dmic.h     |   83 ++++
+ sound/soc/codecs/Kconfig                   |    3 +
+ sound/soc/codecs/Makefile                  |    2 +
+ sound/soc/codecs/dmic.c                    |   79 ++++
+ sound/soc/omap/Kconfig                     |    5 +
+ sound/soc/omap/Makefile                    |    2 +
+ sound/soc/omap/omap-dmic.c                 |  596 ++++++++++++++++++++++++++++
+ sound/soc/omap/omap-dmic.h                 |   38 ++
+ 11 files changed, 945 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/plat/dmic.h
+ create mode 100644 sound/soc/codecs/dmic.c
+ create mode 100644 sound/soc/omap/omap-dmic.c
+ create mode 100644 sound/soc/omap/omap-dmic.h
