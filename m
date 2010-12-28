@@ -1,40 +1,56 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v2] staging: tidspbridge: protect dmm_map properly
-Date: Tue, 28 Dec 2010 14:37:26 +0200
-Message-ID: <AANLkTi=wBG9AXvDva-_uNjGbRphrb356gZ6ChMJjP8aL@mail.gmail.com>
-References: <1292870624-25450-1-git-send-email-felipe.contreras@nokia.com>
- <AANLkTikisHaAMZphRJVYdcokVbaZXVF9COrwkdGTDg__@mail.gmail.com>
- <AANLkTi=9AL3aWUsMeih+Gb-sMov=MgBZ1eTp8wb=q1hZ@mail.gmail.com>
- <AANLkTinX8t=3b48e2sxPU-V_G-nGm_1DyEg6B-CeqXDa@mail.gmail.com>
- <1293452486-notmuch-felipe.contreras@nokia.com> <AANLkTinz0HuhGB_WzTQbK8XkfkGALjtg928WdOUYsySf@mail.gmail.com>
- <AANLkTimCB5g29gzWFzaFU1N8+doROTpWaXy18VU5AJyH@mail.gmail.com>
- <AANLkTi=xmxkWnhuYcjtDNDHgep_2EztfGXDv+winW2Y5@mail.gmail.com>
- <AANLkTiksjHKjKQ+mWE=Zf0+967_E46V3+RURcMC-s5cD@mail.gmail.com>
- <AANLkTi=ZY09yJ=pK4ejqOZjh7YjJp1UemRdMgMfpsz2f@mail.gmail.com> <AANLkTinZ0Uwp8jbmsSwm6ut75A06CxrkESTRJT-GoPkP@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH 0/2] Move twl*-irq.c to threaded_irq infrastructure
+Date: Tue, 28 Dec 2010 15:59:48 +0200
+Message-ID: <1293544790-793-1-git-send-email-balbi@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinZ0Uwp8jbmsSwm6ut75A06CxrkESTRJT-GoPkP@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, greg@kroah.com, omar.ramirez@ti.com, fernando.lugo@ti.com, nm@ti.com, ameya.palande@nokia.com, h-kanigeri2@ti.com
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 28, 2010 at 2:24 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> user-space crashed, not kernel-space; the code would continue to run
-> and eventually release the lock.
+Hi all,
 
-So you'll have to be more specific about the scenario you are describing.
+This is truly untested. I only compile tested thus far
+as I'm not sure it's the right path. It looks like that's
+what's supposed to be done, but I wanted to check with you
+guys before going any further.
 
-If there's a user thread that is still running the proc_*_dma()
-function, and we agree that this thread keeps running until completion
-and then returns to user space, what's the problem ?
+In a few minutes, I'll be starting to test these two
+patches and will try to find any possible errors with them
+but, please, give it a good review as IMO it's a rather
+invasive change.
 
-If that user thread will crash, drv_remove_all_resources() will clean
-up all map_obj's.
+Thomas, I've got one extra question for you. I remember
+reading you suggested all drivers should actually try
+to use threaded IRQ infrastructure for handling the IRQ
+and the hardirq handler would only check if the IRQ
+is coming from this device. Is that how you expect
+theaded IRQ to be used ? What's the purpose ?
 
-> Yeah, so the chances of getting this fixed on 2.6.37 are dimmed.
+Please, correct me if I'm wrong, but I came to the
+conclusion that threaded IRQs can be reniced and
+preempted which would mean we could be setting IRQ
+priorities from userland and we could also be running
+N IRQ threads if we have N cpu cores. Is that correct ?
+Is that your goal ?
 
-I wouldn't worry about that.. In the worst case, "Cc:
-stable@kernel.org" will push the fix into 2.6.37.x..
+I tried searching for some more documentation on
+the threaded IRQ infrastructure but couldn't find
+much by grepping Documentation/ maybe my match string
+wasn't good enough. Anyway, let me know what are your
+feeling about the following two patches and what would
+be your goal should we move all IRQ handlers to threaded
+IRQ infrastructure as I remember you suggested.
+
+Happy new year all.
+
+Felipe Balbi (2):
+  mfd: twl6030-irq: move to threaded_irq
+  mfd: twl4030-irq: move to threaded_irq
+
+ drivers/mfd/twl4030-irq.c |  133 +++++++++++++-----------------------------
+ drivers/mfd/twl6030-irq.c |  141 ++++++++++++++++-----------------------------
+ 2 files changed, 91 insertions(+), 183 deletions(-)
+
+-- 
+1.7.3.4.598.g85356
