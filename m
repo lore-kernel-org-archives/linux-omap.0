@@ -1,209 +1,38 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 1/3] mfd: twl4030-irq: move to threaded_irq
-Date: Tue, 28 Dec 2010 19:14:17 +0200
-Message-ID: <1293556459-28613-2-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 0/3] TWL4030 IRQ Changes
+Date: Tue, 28 Dec 2010 19:14:16 +0200
+Message-ID: <1293556459-28613-1-git-send-email-balbi@ti.com>
 References: <20101228161657.GF2239@legolas.emea.dhcp.ti.com>
- <1293556459-28613-1-git-send-email-balbi@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1293556459-28613-1-git-send-email-balbi@ti.com>
+In-Reply-To: <20101228161657.GF2239@legolas.emea.dhcp.ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Thomas Gleixner <tglx@linutronix.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-... and while at that, also start using
-handle_nested_irq() as we should.
+Hi all,
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/mfd/twl4030-irq.c |  131 +++++++++++++--------------------------------
- 1 files changed, 38 insertions(+), 93 deletions(-)
+I dropped the twl6030-irq.c changes because that
+thing is a bit messy. I hope the original author
+will feel inspired and fix that one up.
 
-diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-index 5d3a147..91331a7 100644
---- a/drivers/mfd/twl4030-irq.c
-+++ b/drivers/mfd/twl4030-irq.c
-@@ -30,7 +30,6 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/irq.h>
--#include <linux/kthread.h>
- #include <linux/slab.h>
- 
- #include <linux/i2c/twl.h>
-@@ -278,91 +277,50 @@ static const struct sih sih_modules_twl5031[8] = {
- 
- static unsigned twl4030_irq_base;
- 
--static struct completion irq_event;
--
- /*
-  * This thread processes interrupts reported by the Primary Interrupt Handler.
-  */
--static int twl4030_irq_thread(void *data)
-+static irqreturn_t twl4030_irq_thread(int irq, void *unused)
- {
--	long irq = (long)data;
--	static unsigned i2c_errors;
--	static const unsigned max_i2c_errors = 100;
--
--
--	current->flags |= PF_NOFREEZE;
--
--	while (!kthread_should_stop()) {
--		int ret;
--		int module_irq;
--		u8 pih_isr;
--
--		/* Wait for IRQ, then read PIH irq status (also blocking) */
--		wait_for_completion_interruptible(&irq_event);
--
--		ret = twl_i2c_read_u8(TWL4030_MODULE_PIH, &pih_isr,
--					  REG_PIH_ISR_P1);
--		if (ret) {
--			pr_warning("twl4030: I2C error %d reading PIH ISR\n",
--					ret);
--			if (++i2c_errors >= max_i2c_errors) {
--				printk(KERN_ERR "Maximum I2C error count"
--						" exceeded.  Terminating %s.\n",
--						__func__);
--				break;
--			}
--			complete(&irq_event);
--			continue;
--		}
-+	int ret;
-+	int module_irq;
-+	u8 pih_isr;
-+
-+	ret = twl_i2c_read_u8(TWL4030_MODULE_PIH, &pih_isr,
-+			REG_PIH_ISR_P1);
-+	if (ret) {
-+		pr_warning("twl4030: I2C error %d reading PIH ISR\n",
-+				ret);
-+		return IRQ_NONE;
-+	}
- 
--		/* these handlers deal with the relevant SIH irq status */
--		local_irq_disable();
--		for (module_irq = twl4030_irq_base;
--				pih_isr;
--				pih_isr >>= 1, module_irq++) {
--			if (pih_isr & 0x1) {
--				struct irq_desc *d = irq_to_desc(module_irq);
--
--				if (!d) {
--					pr_err("twl4030: Invalid SIH IRQ: %d\n",
--					       module_irq);
--					return -EINVAL;
--				}
--
--				/* These can't be masked ... always warn
--				 * if we get any surprises.
--				 */
--				if (d->status & IRQ_DISABLED)
--					note_interrupt(module_irq, d,
--							IRQ_NONE);
--				else
--					d->handle_irq(module_irq, d);
-+	/* these handlers deal with the relevant SIH irq status */
-+	for (module_irq = twl4030_irq_base;
-+			pih_isr;
-+			pih_isr >>= 1, module_irq++) {
-+		if (pih_isr & 0x1) {
-+			struct irq_desc *d = irq_to_desc(module_irq);
-+
-+			if (!d) {
-+				pr_err("twl4030: Invalid SIH IRQ: %d\n",
-+						module_irq);
-+				return IRQ_NONE;
- 			}
--		}
--		local_irq_enable();
- 
--		enable_irq(irq);
-+			/* These can't be masked ... always warn
-+			 * if we get any surprises.
-+			 */
-+			if (d->status & IRQ_DISABLED)
-+				note_interrupt(module_irq, d,
-+						IRQ_NONE);
-+			else
-+				handle_nested_irq(module_irq);
-+		}
- 	}
- 
--	return 0;
--}
--
--/*
-- * handle_twl4030_pih() is the desc->handle method for the twl4030 interrupt.
-- * This is a chained interrupt, so there is no desc->action method for it.
-- * Now we need to query the interrupt controller in the twl4030 to determine
-- * which module is generating the interrupt request.  However, we can't do i2c
-- * transactions in interrupt context, so we must defer that work to a kernel
-- * thread.  All we do here is acknowledge and mask the interrupt and wakeup
-- * the kernel thread.
-- */
--static irqreturn_t handle_twl4030_pih(int irq, void *devid)
--{
--	/* Acknowledge, clear *AND* mask the interrupt... */
--	disable_irq_nosync(irq);
--	complete(devid);
- 	return IRQ_HANDLED;
- }
-+
- /*----------------------------------------------------------------------*/
- 
- /*
-@@ -788,7 +746,6 @@ int twl4030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
- 
- 	int			status;
- 	int			i;
--	struct task_struct	*task;
- 
- 	/*
- 	 * Mask and clear all TWL4030 interrupts since initially we do
-@@ -817,6 +774,7 @@ int twl4030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
- 	for (i = irq_base; i < irq_end; i++) {
- 		set_irq_chip_and_handler(i, &twl4030_irq_chip,
- 				handle_simple_irq);
-+		set_irq_nested_thread(i, 1);
- 		activate_irq(i);
- 	}
- 	twl4030_irq_next = i;
-@@ -830,28 +788,15 @@ int twl4030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
- 		goto fail;
- 	}
- 
--	/* install an irq handler to demultiplex the TWL4030 interrupt */
--
--
--	init_completion(&irq_event);
--
--	status = request_irq(irq_num, handle_twl4030_pih, IRQF_DISABLED,
--				"TWL4030-PIH", &irq_event);
-+	status = request_threaded_irq(irq_num, NULL, twl4030_irq_thread,
-+			IRQF_DISABLED, "TWL4030-PIH", NULL);
- 	if (status < 0) {
- 		pr_err("twl4030: could not claim irq%d: %d\n", irq_num, status);
- 		goto fail_rqirq;
- 	}
- 
--	task = kthread_run(twl4030_irq_thread, (void *)(long)irq_num,
--								"twl4030-irq");
--	if (IS_ERR(task)) {
--		pr_err("twl4030: could not create irq %d thread!\n", irq_num);
--		status = PTR_ERR(task);
--		goto fail_kthread;
--	}
--	return status;
--fail_kthread:
--	free_irq(irq_num, &irq_event);
-+	return 0;
-+
- fail_rqirq:
- 	/* clean up twl4030_sih_setup */
- fail:
+Anyway, twl4030-irq.c seems to be going to the
+right direction now. Thanks to Mark Brown for
+pointing out the need to drop the locking and
+implement bus_lock/bus_sync_unlock methods.
+
+Compile tested only with omap2plus_defconfig.
+
+I'll test after merge window to be sure I have
+all the newest code.
+
+Felipe Balbi (3):
+  mfd: twl4030-irq: move to threaded_irq
+  mfd: twl4030-irq: drop the workqueue hackery
+  mfd: twl4030-irq: implement bus_*lock
+
+ drivers/mfd/twl4030-irq.c |  363 +++++++++++++++++---------------------------
+ 1 files changed, 140 insertions(+), 223 deletions(-)
+
 -- 
 1.7.3.4.598.g85356
