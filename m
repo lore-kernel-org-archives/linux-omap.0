@@ -1,60 +1,35 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/5] ASoC: DMIC codec: Adding a generic DMIC codec
-Date: Tue, 28 Dec 2010 14:29:09 +0000
-Message-ID: <20101228142909.GB31883@opensource.wolfsonmicro.com>
-References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
- <1293509826-23253-3-git-send-email-dlambert@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v2] staging: tidspbridge: protect dmm_map properly
+Date: Tue, 28 Dec 2010 16:48:46 +0200
+Message-ID: <AANLkTi=X=Av0SaqphXUfiXMNX_tD8OF1CWes34keZ8O1@mail.gmail.com>
+References: <1292870624-25450-1-git-send-email-felipe.contreras@nokia.com>
+ <AANLkTikisHaAMZphRJVYdcokVbaZXVF9COrwkdGTDg__@mail.gmail.com>
+ <AANLkTi=9AL3aWUsMeih+Gb-sMov=MgBZ1eTp8wb=q1hZ@mail.gmail.com>
+ <AANLkTinX8t=3b48e2sxPU-V_G-nGm_1DyEg6B-CeqXDa@mail.gmail.com>
+ <1293452486-notmuch-felipe.contreras@nokia.com> <AANLkTinz0HuhGB_WzTQbK8XkfkGALjtg928WdOUYsySf@mail.gmail.com>
+ <AANLkTimCB5g29gzWFzaFU1N8+doROTpWaXy18VU5AJyH@mail.gmail.com>
+ <AANLkTi=xmxkWnhuYcjtDNDHgep_2EztfGXDv+winW2Y5@mail.gmail.com> <AANLkTiksjHKjKQ+mWE=Zf0+967_E46V3+RURcMC-s5cD@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58078 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753242Ab0L1O27 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Dec 2010 09:28:59 -0500
-Content-Disposition: inline
-In-Reply-To: <1293509826-23253-3-git-send-email-dlambert@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTiksjHKjKQ+mWE=Zf0+967_E46V3+RURcMC-s5cD@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, greg@kroah.com, omar.ramirez@ti.com, fernando.lugo@ti.com, nm@ti.com, ameya.palande@nokia.com, h-kanigeri2@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: David Lambert <dlambert@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-On Mon, Dec 27, 2010 at 10:17:03PM -0600, David Lambert wrote:
+On Tue, Dec 28, 2010 at 2:12 PM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> On Tue, Dec 28, 2010 at 12:56 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+>> I still don't know how exactly you triggered the bug: is gst-dsp
+>> multithreaded ? and one of its threads invoked proc_un_map() while
+>> another thread called proc_begin_dma() ?
+>
+> I haven't investigated why that happens
 
-> At this time, the codec driver just registers the codec DAI.
+Btw, I still think you should look into this.
 
-If it's doing more than that it's going to be a separate driver anyway I
-expect.
-
-> +static struct snd_soc_dai_driver dmic_dai = {
-> +	.name = "dmic-hifi",
-> +	.capture = {
-> +		.stream_name = "Capture",
-> +		.channels_min = 1,
-> +		.channels_max = 8,
-> +		.rates = SNDRV_PCM_RATE_CONTINUOUS,
-> +		.formats = SNDRV_PCM_FMTBIT_S32_LE
-> +			| SNDRV_PCM_FMTBIT_S24_LE
-> +			| SNDRV_PCM_FMTBIT_S16_LE,
-
-Hrm, so.  DMIC signals are inherantly stereo, though obviously you can
-bind multiple DMICs in parallel using the same clock line so from the
-CPU side the channel limit makes sense.  Similarly the format here
-really makes very little odds on a PDM interface.
-
-What we probably want here is wildcards for both channel and format
-limits which we can use to say "this is meaningless, just match
-anything" in case the other end needs it (like a CPU PDM interface does
-to set up the DMA).
-
-> +static struct platform_driver dmic_driver = {
-> +	.driver = {
-> +		.name = "dmic-codec",
-
-Just -dmic.
-
-> +MODULE_DESCRIPTION("Generic DMIC driver");
-> +MODULE_AUTHOR("Liam Girdwood <lrg@slimlogic.co.uk>");
-> +MODULE_LICENSE("GPL");
-
-MODULE_ALIAS().
+The kernel panic will be solved, but you may still have a race there
+that can lead to data corruption: if proc_un_map will be fast enough,
+it will acquire the proc_lock mutex before proc_begin_dma(), and then
+you will miss a cache operation.
