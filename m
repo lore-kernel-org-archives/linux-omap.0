@@ -1,194 +1,774 @@
 From: David Lambert <dlambert@ti.com>
-Subject: [PATCH 4/5] OMAP4: hwmod: add entries for DMIC driver
-Date: Mon, 27 Dec 2010 22:17:05 -0600
-Message-ID: <1293509826-23253-5-git-send-email-dlambert@ti.com>
+Subject: [PATCH 1/5] ASoC: DMIC: Adding the OMAP DMIC driver
+Date: Mon, 27 Dec 2010 22:17:02 -0600
+Message-ID: <1293509826-23253-2-git-send-email-dlambert@ti.com>
 References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59044 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753311Ab0L1ERn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Dec 2010 23:17:43 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:37543 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753284Ab0L1ERn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Dec 2010 23:17:43 -0500
 In-Reply-To: <1293509826-23253-1-git-send-email-dlambert@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 Cc: Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, David Lambert <dlambert@ti.com>
 
-Adds HWMOD entries for the OMAP DMIC driver and creates
-a platform device.  The HWMOD entires define the system 
-resource requirements for the drvier such as DMA addresses, channels,
-and IRQ's.  Placing this information in the HWMOD database allows
-for more generic drivers to be written and having the specific
-implementation details defined in HWMOD.
+This patch adds support for the OMAP4 digital microphone DAI.
+
+This DAI can support support recording in 2, 4, or 6 channels
+
+When provided with a 19.2Mhz functional clock, can encode at 96Khz or
+192Khz (all
+channels must have the same sample rate).
+
+Details of the hardware interface can be found in the OMAP4 TRM in Section 23.7
 
 Signed-off-by: David Lambert <dlambert@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   91 ++++++++++++++++++++++++++++
- arch/arm/plat-omap/devices.c               |   35 +++++++++++
- 2 files changed, 126 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/plat/dmic.h |   83 +++++
+ sound/soc/omap/omap-dmic.c             |  596 ++++++++++++++++++++++++++++++++
+ sound/soc/omap/omap-dmic.h             |   38 ++
+ 3 files changed, 717 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/plat/dmic.h
+ create mode 100644 sound/soc/omap/omap-dmic.c
+ create mode 100644 sound/soc/omap/omap-dmic.h
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 7274db4..f9b2ad3 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -383,6 +383,95 @@ static struct omap_hwmod omap44xx_l4_wkup_hwmod = {
- };
- 
- /*
-+ * 'dmic' class
-+ * digital microphone controller
+diff --git a/arch/arm/plat-omap/include/plat/dmic.h b/arch/arm/plat-omap/include/plat/dmic.h
+new file mode 100644
+index 0000000..8a988bf
+--- /dev/null
++++ b/arch/arm/plat-omap/include/plat/dmic.h
+@@ -0,0 +1,83 @@
++/*
++ * omap-dmic.h  --  OMAP Digital Microphone Controller
++ *
++ * Author: Liam Girdwood <lrg@slimlogic.co.uk>
++ *	   David Lambert <dlambert@ti.com>
++ *	   Misael Lopez Cruz <misael.lopez@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
-+static struct omap_hwmod_class_sysconfig omap44xx_dmic_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.sysc_flags	= (SYSC_HAS_EMUFREE | SYSC_HAS_RESET_STATUS |
-+			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type2,
++#ifndef __ASM_ARCH_OMAP_DMIC_H
++#define __ASM_ARCH_OMAP_DMIC_H
++
++#define OMAP44XX_DMIC_L3_BASE	0x4902e000
++
++#define OMAP_DMIC_REVISION		0x00
++#define OMAP_DMIC_SYSCONFIG		0x10
++#define OMAP_DMIC_IRQSTATUS_RAW		0x24
++#define OMAP_DMIC_IRQSTATUS		0x28
++#define OMAP_DMIC_IRQENABLE_SET		0x2C
++#define OMAP_DMIC_IRQENABLE_CLR		0x30
++#define OMAP_DMIC_IRQWAKE_EN		0x34
++#define OMAP_DMIC_DMAENABLE_SET		0x38
++#define OMAP_DMIC_DMAENABLE_CLR		0x3C
++#define OMAP_DMIC_DMAWAKEEN		0x40
++#define OMAP_DMIC_CTRL			0x44
++#define OMAP_DMIC_DATA			0x48
++#define OMAP_DMIC_FIFO_CTRL		0x4C
++#define OMAP_DMIC_FIFO_DMIC1R_DATA	0x50
++#define OMAP_DMIC_FIFO_DMIC1L_DATA	0x54
++#define OMAP_DMIC_FIFO_DMIC2R_DATA	0x58
++#define OMAP_DMIC_FIFO_DMIC2L_DATA	0x5C
++#define OMAP_DMIC_FIFO_DMIC3R_DATA	0x60
++#define OMAP_DMIC_FIFO_DMIC3L_DATA	0x64
++
++/*
++ * DMIC_IRQ bit fields
++ * IRQSTATUS_RAW, IRQSTATUS, IRQENABLE_SET, IRQENABLE_CLR
++ */
++
++#define OMAP_DMIC_IRQ			(1 << 0)
++#define OMAP_DMIC_IRQ_FULL		(1 << 1)
++#define OMAP_DMIC_IRQ_ALMST_EMPTY	(1 << 2)
++#define OMAP_DMIC_IRQ_EMPTY		(1 << 3)
++#define OMAP_DMIC_IRQ_MASK		0x07
++
++/*
++ * DMIC_DMAENABLE bit fields
++ */
++
++#define OMAP_DMIC_DMA_ENABLE		0x1
++
++/*
++ * DMIC_CTRL bit fields
++ */
++
++#define OMAP_DMIC_UP1_ENABLE		0x0001
++#define OMAP_DMIC_UP2_ENABLE		0x0002
++#define OMAP_DMIC_UP3_ENABLE		0x0004
++#define OMAP_DMIC_FORMAT		0x0008
++#define OMAP_DMIC_POLAR1		0x0010
++#define OMAP_DMIC_POLAR2		0x0020
++#define OMAP_DMIC_POLAR3		0x0040
++#define OMAP_DMIC_POLAR_MASK		0x0070
++#define OMAP_DMIC_CLK_DIV_SHIFT		7
++#define OMAP_DMIC_CLK_DIV_MASK		0x0380
++#define	OMAP_DMIC_RESET			0x0400
++
++#define OMAP_DMIC_ENABLE_MASK		0x007
++
++#define OMAP_DMICOUTFORMAT_LJUST	(0 << 3)
++#define OMAP_DMICOUTFORMAT_RJUST	(1 << 3)
++
++/*
++ * DMIC_FIFO_CTRL bit fields
++ */
++
++#define OMAP_DMIC_THRES_MAX		0xF
++
++
++#endif
+diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
+new file mode 100644
+index 0000000..6ba05bd
+--- /dev/null
++++ b/sound/soc/omap/omap-dmic.c
+@@ -0,0 +1,596 @@
++/*
++ * omap-dmic.c  --  OMAP ASoC DMIC DAI driver
++ *
++ * Copyright (C) 2010 Texas Instruments
++ *
++ * Author: Liam Girdwood <lrg@slimlogic.co.uk>
++ *	   David Lambert <dlambert@ti.com>
++ *	   Misael Lopez Cruz <misael.lopez@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#undef DEBUG
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/wait.h>
++#include <linux/interrupt.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/io.h>
++#include <linux/irq.h>
++#include <linux/slab.h>
++#include <linux/pm_runtime.h>
++
++#include <plat/control.h>
++#include <plat/dma.h>
++#include <plat/dmic.h>
++#include <plat/omap_hwmod.h>
++
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/pcm_params.h>
++#include <sound/initval.h>
++#include <sound/soc.h>
++
++#include "omap-dmic.h"
++#include "omap-pcm.h"
++
++#define OMAP_DMIC_RATES		(SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_192000)
++#define OMAP_DMIC_FORMATS	SNDRV_PCM_FMTBIT_S32_LE
++
++struct omap_dmic {
++	struct device *dev;
++	void __iomem *io_base;
++	int irq;
++	int clk_freq;
++	int sysclk;
++	int active;
++	spinlock_t lock;
++	struct omap_dmic_link *link;
 +};
 +
-+static struct omap_hwmod_class omap44xx_dmic_hwmod_class = {
-+	.name = "omap-dmic",
-+	.sysc = &omap44xx_dmic_sysc,
-+};
-+
-+/* dmic */
-+static struct omap_hwmod omap44xx_dmic_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_dmic_irqs[] = {
-+	{ .irq = 114 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_dma_info omap44xx_dmic_sdma_reqs[] = {
-+	{ .dma_req = 66 + OMAP44XX_DMA_REQ_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_dmic_addrs[] = {
-+	{
-+		.pa_start	= 0x4012e000,
-+		.pa_end		= 0x4012e07f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_abe -> dmic */
-+static struct omap_hwmod_ocp_if omap44xx_l4_abe__dmic = {
-+	.master		= &omap44xx_l4_abe_hwmod,
-+	.slave		= &omap44xx_dmic_hwmod,
-+	.clk		= "ocp_abe_iclk",
-+	.addr		= omap44xx_dmic_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_dmic_addrs),
-+	.user		= OCP_USER_MPU,
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_dmic_dma_addrs[] = {
-+	{
-+		.pa_start	= 0x4902e000,
-+		.pa_end		= 0x4902e07f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_abe -> dmic (dma) */
-+static struct omap_hwmod_ocp_if omap44xx_l4_abe__dmic_dma = {
-+	.master		= &omap44xx_l4_abe_hwmod,
-+	.slave		= &omap44xx_dmic_hwmod,
-+	.clk		= "ocp_abe_iclk",
-+	.addr		= omap44xx_dmic_dma_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_dmic_dma_addrs),
-+	.user		= OCP_USER_SDMA,
-+};
-+
-+/* dmic slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_dmic_slaves[] = {
-+	&omap44xx_l4_abe__dmic,
-+	&omap44xx_l4_abe__dmic_dma,
-+};
-+
-+static struct omap_hwmod omap44xx_dmic_hwmod = {
-+	.name		= "omap-dmic",
-+	.class		= &omap44xx_dmic_hwmod_class,
-+	.mpu_irqs	= omap44xx_dmic_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dmic_irqs),
-+	.sdma_reqs	= omap44xx_dmic_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_dmic_sdma_reqs),
-+	.main_clk	= "dmic_fck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM1_ABE_DMIC_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_dmic_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_dmic_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++static struct omap_dmic_link omap_dmic_link = {
++	.irq_mask	= OMAP_DMIC_IRQ_EMPTY | OMAP_DMIC_IRQ_FULL,
++	.threshold	= 2,
++	.format		= OMAP_DMICOUTFORMAT_LJUST,
++	.polar		= OMAP_DMIC_POLAR1 | OMAP_DMIC_POLAR2
++				| OMAP_DMIC_POLAR3,
 +};
 +
 +/*
-  * 'mpu_bus' class
-  * instance(s): mpu_private
-  */
-@@ -826,6 +915,8 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_l4_cfg_hwmod,
- 	&omap44xx_l4_per_hwmod,
- 	&omap44xx_l4_wkup_hwmod,
-+	/* dmic class */
-+	&omap44xx_dmic_hwmod,
- 	/* mpu_bus class */
- 	&omap44xx_mpu_private_hwmod,
- 
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index fc81912..b347f75 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -72,6 +72,40 @@ void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
- 
- /*-------------------------------------------------------------------------*/
- 
-+#if defined(CONFIG_SND_OMAP_SOC_DMIC) || \
-+	defined(CONFIG_SND_OMAP_SOC_DMIC_MODULE)
-+
-+static struct omap_device_pm_latency omap_dmic_latency[] = {
-+	{
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+	},
++ * Stream DMA parameters
++ */
++static struct omap_pcm_dma_data omap_dmic_dai_dma_params = {
++	.name		= "DMIC capture",
++	.data_type	= OMAP_DMA_DATA_TYPE_S32,
++	.sync_mode	= OMAP_DMA_SYNC_PACKET,
++	.packet_size	= 2,
++	.port_addr	= OMAP44XX_DMIC_L3_BASE + OMAP_DMIC_DATA,
 +};
 +
-+static void omap_init_dmic(void)
++
++static inline void omap_dmic_write(struct omap_dmic *dmic,
++		u16 reg, u32 val)
 +{
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
++	__raw_writel(val, dmic->io_base + reg);
++}
 +
-+	oh = omap_hwmod_lookup("omap-dmic");
-+	if (!oh) {
-+		printk(KERN_ERR "Could not look up dmic hw_mod\n");
-+		return;
-+	}
++static inline int omap_dmic_read(struct omap_dmic *dmic, u16 reg)
++{
++	return __raw_readl(dmic->io_base + reg);
++}
 +
-+	od = omap_device_build("omap-dmic-dai", -1, oh, NULL, 0,
-+				omap_dmic_latency,
-+				ARRAY_SIZE(omap_dmic_latency), 0);
-+	if (IS_ERR(od))
-+		printk(KERN_ERR "Could not build omap_device for omap-dmic-dai\n");
++#ifdef DEBUG
++static void omap_dmic_reg_dump(struct omap_dmic *dmic)
++{
++	dev_dbg(dmic->dev, "***********************\n");
++	dev_dbg(dmic->dev, "OMAP_DMIC_IRQSTATUS_RAW:  0x%04x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_IRQSTATUS_RAW));
++	dev_dbg(dmic->dev, "OMAP_DMIC_IRQSTATUS:  0x%04x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_IRQSTATUS));
++	dev_dbg(dmic->dev, "OMAP_DMIC_IRQENABLE_SET:  0x%04x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_IRQENABLE_SET));
++	dev_dbg(dmic->dev, "OMAP_DMIC_IRQENABLE_CLR:  0x%04x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_IRQENABLE_CLR));
++	dev_dbg(dmic->dev, "OMAP_DMIC_IRQWAKE_EN:  0x%04x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_IRQWAKE_EN));
++	dev_dbg(dmic->dev, "OMAP_DMIC_DMAENABLE_SET:  0x%04x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_DMAENABLE_SET));
++	dev_dbg(dmic->dev, "OMAP_DMIC_DMAENABLE_CLR:  0x%04x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_DMAENABLE_CLR));
++	dev_dbg(dmic->dev, "OMAP_DMIC_DMAWAKEEN:  0x%04x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_DMAWAKEEN));
++	dev_dbg(dmic->dev, "OMAP_DMIC_CTRL:  0x%04x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_CTRL));
++	dev_dbg(dmic->dev, "OMAP_DMIC_DATA:  0x%04x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_DATA));
++	dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_CTRL:  0x%04x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_FIFO_CTRL));
++	dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC1R_DATA:  0x%08x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_FIFO_DMIC1R_DATA));
++	dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC1L_DATA:  0x%08x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_FIFO_DMIC1L_DATA));
++	dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC2R_DATA:  0x%08x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_FIFO_DMIC2R_DATA));
++	dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC2L_DATA:  0x%08x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_FIFO_DMIC2L_DATA));
++	dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC3R_DATA:  0x%08x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_FIFO_DMIC3R_DATA));
++	dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC3L_DATA:  0x%08x\n",
++		omap_dmic_read(dmic, OMAP_DMIC_FIFO_DMIC3L_DATA));
++	dev_dbg(dmic->dev, "***********************\n");
 +}
 +#else
-+static inline void omap_init_dmic(void) {}
++static void omap_dmic_reg_dump(struct omap_dmic *dmic) {}
 +#endif
 +
-+/*-------------------------------------------------------------------------*/
++/*
++ * Enables the transfer through the DMIC interface
++ */
++static void omap_dmic_start(struct omap_dmic *dmic, int channels)
++{
++	u32 ctrl = omap_dmic_read(dmic, OMAP_DMIC_CTRL);
++	omap_dmic_write(dmic, OMAP_DMIC_CTRL, ctrl | channels);
 +
- #if defined(CONFIG_SND_OMAP_SOC_MCPDM) || \
- 		defined(CONFIG_SND_OMAP_SOC_MCPDM_MODULE)
- 
-@@ -328,6 +362,7 @@ static int __init omap_init_devices(void)
- 	/* please keep these calls, and their implementations above,
- 	 * in alphabetical order so they're easier to sort through.
- 	 */
-+	omap_init_dmic();
- 	omap_init_rng();
- 	omap_init_mcpdm();
- 	omap_init_uwire();
++}
++
++/*
++ * Disables the transfer through the DMIC interface
++ */
++static void omap_dmic_stop(struct omap_dmic *dmic, int channels)
++{
++	u32 ctrl = omap_dmic_read(dmic, OMAP_DMIC_CTRL);
++	omap_dmic_write(dmic, OMAP_DMIC_CTRL, ctrl & ~channels);
++}
++
++static int omap_dmic_set_clkdiv(struct snd_soc_dai *dai,
++				int div_id, int div)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++	int ctrl, div_sel = -EINVAL;
++
++	if (div_id != OMAP_DMIC_CLKDIV)
++		return -ENODEV;
++
++	switch (dmic->clk_freq) {
++	case 19200000:
++		if (div == 5)
++			div_sel = 0x1;
++		else if (div == 8)
++			div_sel = 0x0;
++		break;
++	case 24000000:
++		if (div == 10)
++			div_sel = 0x2;
++		break;
++	case 24576000:
++		if (div == 8)
++			div_sel = 0x3;
++		else if (div == 16)
++			div_sel = 0x4;
++		break;
++	case 12000000:
++		if (div == 5)
++			div_sel = 0x5;
++		break;
++	default:
++		dev_err(dai->dev, "invalid freq %d\n", dmic->clk_freq);
++		return -EINVAL;
++	}
++
++	if (div_sel < 0) {
++		dev_err(dai->dev, "divider not supported %d\n", div);
++		return -EINVAL;
++	}
++
++	ctrl = omap_dmic_read(dmic, OMAP_DMIC_CTRL) & ~OMAP_DMIC_CLK_DIV_MASK;
++
++	omap_dmic_write(dmic, OMAP_DMIC_CTRL,
++			ctrl | (div_sel << OMAP_DMIC_CLK_DIV_SHIFT));
++
++	return 0;
++}
++
++/*
++ * Configures DMIC for audio recording.
++ * This function should be called before omap_dmic_start.
++ */
++static int omap_dmic_open(struct omap_dmic *dmic)
++{
++	struct omap_dmic_link *link = dmic->link;
++	u32 ctrl;
++
++	/* Enable irq request generation */
++	omap_dmic_write(dmic, OMAP_DMIC_IRQENABLE_SET,
++			link->irq_mask & OMAP_DMIC_IRQ_MASK);
++
++	/* Configure uplink threshold */
++	if (link->threshold > OMAP_DMIC_THRES_MAX)
++		link->threshold = OMAP_DMIC_THRES_MAX;
++
++	omap_dmic_write(dmic, OMAP_DMIC_FIFO_CTRL, link->threshold);
++
++	/* Configure DMA controller */
++	omap_dmic_write(dmic, OMAP_DMIC_DMAENABLE_SET, OMAP_DMIC_DMA_ENABLE);
++
++	/* Set dmic out format */
++	ctrl = omap_dmic_read(dmic, OMAP_DMIC_CTRL)
++		& ~(OMAP_DMIC_FORMAT | OMAP_DMIC_POLAR_MASK);
++	omap_dmic_write(dmic, OMAP_DMIC_CTRL,
++			ctrl | link->format | link->polar);
++
++	return 0;
++}
++
++/*
++ * Cleans DMIC uplink configuration.
++ * This function should be called when the stream is closed.
++ */
++static int omap_dmic_close(struct omap_dmic *dmic)
++{
++	struct omap_dmic_link *link = dmic->link;
++
++	/* Disable irq request generation */
++	omap_dmic_write(dmic, OMAP_DMIC_IRQENABLE_CLR,
++			link->irq_mask & OMAP_DMIC_IRQ_MASK);
++
++	/* Disable DMA request generation */
++	omap_dmic_write(dmic, OMAP_DMIC_DMAENABLE_CLR, OMAP_DMIC_DMA_ENABLE);
++
++	return 0;
++}
++
++static irqreturn_t omap_dmic_irq_handler(int irq, void *dev_id)
++{
++	struct omap_dmic *dmic = dev_id;
++	u32 irq_status;
++
++	irq_status = omap_dmic_read(dmic, OMAP_DMIC_IRQSTATUS);
++
++	/* Acknowledge irq event */
++	omap_dmic_write(dmic, OMAP_DMIC_IRQSTATUS, irq_status);
++	if (irq_status & OMAP_DMIC_IRQ_FULL)
++		dev_dbg(dmic->dev, "DMIC FIFO error %x\n", irq_status);
++
++	if (irq_status & OMAP_DMIC_IRQ_EMPTY)
++		dev_dbg(dmic->dev, "DMIC FIFO error %x\n", irq_status);
++
++	if (irq_status & OMAP_DMIC_IRQ)
++		dev_dbg(dmic->dev, "DMIC write request\n");
++
++	return IRQ_HANDLED;
++}
++
++static int omap_dmic_dai_startup(struct snd_pcm_substream *substream,
++				  struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++
++	if (!dmic->active++)
++		pm_runtime_get_sync(dmic->dev);
++
++	return 0;
++}
++
++static void omap_dmic_dai_shutdown(struct snd_pcm_substream *substream,
++				    struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++
++	if (!--dmic->active)
++		pm_runtime_put_sync(dmic->dev);
++}
++
++static int omap_dmic_dai_hw_params(struct snd_pcm_substream *substream,
++				    struct snd_pcm_hw_params *params,
++				    struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++	struct omap_dmic_link *link = dmic->link;
++	int channels, rate, div;
++	int ret = 0;
++
++	channels = params_channels(params);
++	switch (channels) {
++	case 6:
++		link->channels = OMAP_DMIC_UP1_ENABLE | OMAP_DMIC_UP2_ENABLE
++			 | OMAP_DMIC_UP3_ENABLE;
++		break;
++	case 4:
++		link->channels = OMAP_DMIC_UP1_ENABLE | OMAP_DMIC_UP2_ENABLE;
++		break;
++	case 2:
++		link->channels = OMAP_DMIC_UP1_ENABLE;
++		break;
++	default:
++		dev_err(dmic->dev, "invalid number of channels\n");
++		return -EINVAL;
++	}
++
++	rate = params_rate(params);
++	switch (rate) {
++	case 192000:
++		div = 5;
++		break;
++	default:
++		div = 8;
++	}
++
++	omap_dmic_set_clkdiv(dai, OMAP_DMIC_CLKDIV, div);
++
++	omap_dmic_dai_dma_params.packet_size = link->threshold * channels;
++	snd_soc_dai_set_dma_data(dai, substream, &omap_dmic_dai_dma_params);
++
++	if (dmic->active == 1)
++		ret = omap_dmic_open(dmic);
++
++	return ret;
++}
++
++static int omap_dmic_dai_hw_free(struct snd_pcm_substream *substream,
++				  struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++	struct omap_dmic_link *link = dmic->link;
++	int ret = 0;
++
++	if (dmic->active == 1) {
++		ret = omap_dmic_close(dmic);
++		link->channels = 0;
++	}
++
++	return ret;
++}
++
++static int omap_dmic_dai_trigger(struct snd_pcm_substream *substream,
++				  int cmd, struct snd_soc_dai *dai)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++	int dmic_id = dmic->link->channels;
++
++	omap_dmic_reg_dump(dmic);
++
++	switch (cmd) {
++	case SNDRV_PCM_TRIGGER_START:
++		omap_dmic_start(dmic, dmic_id);
++		break;
++	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
++		break;
++	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
++		break;
++	case SNDRV_PCM_TRIGGER_STOP:
++		omap_dmic_stop(dmic, dmic_id);
++		break;
++	default:
++		break;
++	}
++
++	return 0;
++}
++
++static int omap_dmic_set_dai_sysclk(struct snd_soc_dai *dai,
++				    int clk_id, unsigned int freq,
++				    int dir)
++{
++	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
++	struct clk *dmic_clk, *parent_clk;
++	int ret = 0;
++
++	dmic_clk = clk_get(NULL, "dmic_fck");
++	if (IS_ERR(dmic_clk))
++		return -ENODEV;
++
++	switch (clk_id) {
++	case OMAP_DMIC_SYSCLK_PAD_CLKS:
++		parent_clk = clk_get(NULL, "pad_clks_ck");
++		if (IS_ERR(parent_clk)) {
++			ret = -ENODEV;
++			goto err_par;
++		}
++		break;
++	case OMAP_DMIC_SYSCLK_SLIMBLUS_CLKS:
++		parent_clk = clk_get(NULL, "slimbus_clk");
++		if (IS_ERR(parent_clk)) {
++			ret = -ENODEV;
++			goto err_par;
++		}
++		break;
++	case OMAP_DMIC_SYSCLK_SYNC_MUX_CLKS:
++		parent_clk = clk_get(NULL, "dmic_sync_mux_ck");
++		if (IS_ERR(parent_clk)) {
++			ret = -ENODEV;
++			goto err_par;
++		}
++		break;
++	default:
++		dev_err(dai->dev, "clk_id not supported %d\n", clk_id);
++		ret = -EINVAL;
++		goto err_par;
++	}
++
++	switch (freq) {
++	case 19200000:
++	case 24000000:
++	case 24576000:
++	case 12000000:
++		dmic->clk_freq = freq;
++		break;
++	default:
++		dev_err(dai->dev, "clk freq not supported %d\n", freq);
++		ret = -EINVAL;
++		goto err_freq;
++	}
++
++	if (dmic->sysclk != clk_id) {
++		/* reparent not allowed if a stream is ongoing */
++		if (dmic->active > 1) {
++			ret = -EBUSY;
++			goto err_freq;
++		}
++
++		/* disable clock while reparenting */
++		if (dmic->active == 1)
++			pm_runtime_put_sync(dmic->dev);
++
++		ret = clk_set_parent(dmic_clk, parent_clk);
++
++		if (dmic->active == 1)
++			pm_runtime_get_sync(dmic->dev);
++
++		dmic->sysclk = clk_id;
++	}
++
++err_freq:
++	clk_put(parent_clk);
++err_par:
++	clk_put(dmic_clk);
++
++	return ret;
++}
++
++static struct snd_soc_dai_ops omap_dmic_dai_ops = {
++	.startup	= omap_dmic_dai_startup,
++	.shutdown	= omap_dmic_dai_shutdown,
++	.hw_params	= omap_dmic_dai_hw_params,
++	.trigger	= omap_dmic_dai_trigger,
++	.hw_free	= omap_dmic_dai_hw_free,
++	.set_sysclk	= omap_dmic_set_dai_sysclk,
++	.set_clkdiv	= omap_dmic_set_clkdiv,
++};
++
++static struct snd_soc_dai_driver omap_dmic_dai = {
++
++	.name = "omap-dmic-dai-0",
++	.capture = {
++		.channels_min = 2,
++		.channels_max = 6,
++		.rates = OMAP_DMIC_RATES,
++		.formats = OMAP_DMIC_FORMATS,
++	},
++	.ops = &omap_dmic_dai_ops,
++};
++
++static __devinit int asoc_dmic_probe(struct platform_device *pdev)
++{
++	struct omap_dmic *dmic;
++	struct resource *res;
++	int ret;
++
++	dmic = kzalloc(sizeof(struct omap_dmic), GFP_KERNEL);
++	if (!dmic)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, dmic);
++	dmic->dev = &pdev->dev;
++	dmic->link = &omap_dmic_link;
++	dmic->sysclk = OMAP_DMIC_SYSCLK_SYNC_MUX_CLKS;
++
++	spin_lock_init(&dmic->lock);
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		dev_err(dmic->dev, "invalid memory resource\n");
++		ret = -ENODEV;
++		goto err_res;
++	}
++
++	dmic->io_base = ioremap(res->start, resource_size(res));
++	if (!dmic->io_base) {
++		ret = -ENOMEM;
++		goto err_res;
++	}
++
++	dmic->irq = platform_get_irq(pdev, 0);
++	if (dmic->irq < 0) {
++		ret = dmic->irq;
++		goto err_irq;
++	}
++
++	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
++	if (!res) {
++		dev_err(dmic->dev, "invalid dma resource\n");
++		ret = -ENODEV;
++		goto err_irq;
++	}
++	omap_dmic_dai_dma_params.dma_req = res->start;
++
++	pm_runtime_enable(dmic->dev);
++
++	/* Disable lines while request is ongoing */
++	omap_dmic_write(dmic, OMAP_DMIC_CTRL, 0x00);
++
++	ret = request_threaded_irq(dmic->irq, NULL, omap_dmic_irq_handler,
++				   IRQF_ONESHOT, "DMIC", (void *)dmic);
++	if (ret) {
++		dev_err(dmic->dev, "irq request failed\n");
++		goto err_irq;
++	}
++
++	ret = snd_soc_register_dais(&pdev->dev, &omap_dmic_dai, 1);
++	if (ret)
++		goto err_dai;
++
++	return 0;
++
++err_dai:
++	free_irq(dmic->irq, dmic);
++err_irq:
++	iounmap(dmic->io_base);
++err_res:
++	kfree(dmic);
++	return ret;
++}
++
++static int __devexit asoc_dmic_remove(struct platform_device *pdev)
++{
++	struct omap_dmic *dmic = platform_get_drvdata(pdev);
++
++	snd_soc_unregister_dai(&pdev->dev);
++	free_irq(dmic->irq, dmic);
++	iounmap(dmic->io_base);
++	kfree(dmic);
++
++	return 0;
++}
++
++static struct platform_driver asoc_dmic_driver = {
++	.driver = {
++		.name = "omap-dmic-dai",
++		.owner = THIS_MODULE,
++	},
++	.probe = asoc_dmic_probe,
++	.remove = __devexit_p(asoc_dmic_remove),
++};
++
++static int __init snd_omap_dmic_init(void)
++{
++	return platform_driver_register(&asoc_dmic_driver);
++}
++module_init(snd_omap_dmic_init);
++
++static void __exit snd_omap_dmic_exit(void)
++{
++	platform_driver_unregister(&asoc_dmic_driver);
++}
++module_exit(snd_omap_dmic_exit);
++
++MODULE_AUTHOR("David Lambert <dlambert@ti.com>");
++MODULE_DESCRIPTION("OMAP DMIC SoC Interface");
++MODULE_LICENSE("GPL");
+diff --git a/sound/soc/omap/omap-dmic.h b/sound/soc/omap/omap-dmic.h
+new file mode 100644
+index 0000000..6a95c44
+--- /dev/null
++++ b/sound/soc/omap/omap-dmic.h
+@@ -0,0 +1,38 @@
++/*
++ * omap-dmic.h  --  OMAP Digital Microphone Controller
++ *
++ * Author: Liam Girdwood <lrg@slimlogic.co.uk>
++ *	   David Lambert <dlambert@ti.com>
++ *	   Misael Lopez Cruz <misael.lopez@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _OMAP_DMIC_H
++#define _OMAP_DMIC_H
++
++#include <sound/soc.h>
++
++
++enum omap_dmic_clk {
++	OMAP_DMIC_SYSCLK_PAD_CLKS,		/* PAD_CLKS */
++	OMAP_DMIC_SYSCLK_SLIMBLUS_CLKS,		/* SLIMBUS_CLK */
++	OMAP_DMIC_SYSCLK_SYNC_MUX_CLKS,		/* DMIC_SYNC_MUX_CLK */
++};
++
++/* DMIC dividers */
++enum omap_dmic_div {
++	OMAP_DMIC_CLKDIV,
++};
++
++struct omap_dmic_link {
++	int irq_mask;
++	int threshold;
++	int format;
++	int channels;
++	int polar;
++};
++
++#endif
 -- 
 1.7.0.4
 
