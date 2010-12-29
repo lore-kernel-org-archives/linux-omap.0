@@ -1,44 +1,234 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/5] ASoC: DMIC: Adding the OMAP DMIC driver
-Date: Wed, 29 Dec 2010 12:11:04 +0000
-Message-ID: <20101229121103.GC3017@opensource.wolfsonmicro.com>
-References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
- <1293509826-23253-2-git-send-email-dlambert@ti.com>
- <20101228111424.GB2239@legolas.emea.dhcp.ti.com>
- <AANLkTi=6iWz0jdakBBgw2OEOjADvS2YmCN0ebKODQ7Ke@mail.gmail.com>
- <20101229094738.GA2254@legolas.emea.dhcp.ti.com>
- <1293618931.3451.17.camel@odin>
- <20101229104432.GB2254@legolas.emea.dhcp.ti.com>
- <1293623571.3451.51.camel@odin>
- <20101229115628.GB3017@opensource.wolfsonmicro.com>
- <20101229115924.GA2222@legolas.emea.dhcp.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/PATCH 3/3] mfd: twl4030-irq: implement bus_*lock
+Date: Wed, 29 Dec 2010 14:28:08 +0200
+Message-ID: <20101229122808.GC2222@legolas.emea.dhcp.ti.com>
+References: <20101228161657.GF2239@legolas.emea.dhcp.ti.com>
+ <1293556459-28613-1-git-send-email-balbi@ti.com>
+ <1293556459-28613-4-git-send-email-balbi@ti.com>
+ <20101228235836.GA2609@opensource.wolfsonmicro.com>
+ <1293583108.1822.3.camel@eowin>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:34504 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752210Ab0L2MKx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Dec 2010 07:10:53 -0500
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20101229115924.GA2222@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1293583108.1822.3.camel@eowin>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Felipe Balbi <balbi@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, "Lambert, David" <dlambert@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wed, Dec 29, 2010 at 01:59:24PM +0200, Felipe Balbi wrote:
-> On Wed, Dec 29, 2010 at 11:56:28AM +0000, Mark Brown wrote:
+Hi,
 
-> >The other thing with McBSP is that it's a generic programmable serial
-> >port and so need not be tied to audio use (though as I understand it
-> >other uses are very rare).
+On Wed, Dec 29, 2010 at 02:38:28AM +0200, Felipe Balbi wrote:
+>On Tue, 2010-12-28 at 23:58 +0000, Mark Brown wrote:
+>> On Tue, Dec 28, 2010 at 07:14:19PM +0200, Felipe Balbi wrote:
+>>
+>> > +static void twl4030_sih_bus_sync_unlock(unsigned int irq)
+>> > +{
+>> > +       struct sih_agent        *agent = get_irq_chip_data(irq);
+>> > +
+>> > +       mutex_unlock(&agent->irq_lock);
+>> > +}
+>>
+>> I suspect you need to do some sort of sync with the hardware here - the
+>> _sync bit of the name comes from the fact that the mask and unmask stuff
+>> is still called with IRQs disabled and so can't touch and I2C chip, this
+>> is called after reenabling them give a chance for the updates done to
+>> be reflected in the hardware.  The implementation everyone else has done
+>> is to update a register cache in the other functions then write that
+>> out here before dropping the mutex.
+>
+>now that I look at some gpio chips I see what you're saying, will update
+>that tomorrow. Thanks
 
-> So why is it still tied to OMAP-only ? There's no abstraction layer
-> around McBSP so OMAP McBSP driver has to export a whole bunch of symbols
-> for its users:
+I believe you meant something like below, I'll get back to this in a
+little while. Have lots to test:
 
-As far as I know the hardware has not been used on other platforms - all
-the people who care specifically about the driver are using OMAP and
-don't see any reason to do the work.  There's really no pressure to do
-this.
+ From f15801a5d57041b7669222bdb7cccf8b592c2f63 Mon Sep 17 00:00:00 2001
+From: Felipe Balbi <balbi@ti.com>
+Date: Tue, 28 Dec 2010 19:07:33 +0200
+Subject: [PATCH 1/2] mfd: twl4030-irq: implement bus_*lock
+Organization: Texas Instruments\n
+
+drop all the locking around mask/unmask and
+implement bus_lock and bus_sync_unlock methods.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+  drivers/mfd/twl4030-irq.c |  101 ++++++++++++++++++++++-----------------------
+  1 files changed, 50 insertions(+), 51 deletions(-)
+
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index 298956d..84f6066 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -440,6 +440,7 @@ struct sih_agent {
+  	const struct sih	*sih;
+  
+  	u32			imr;
++	bool			imr_change_pending;
+  	u32			edge_change;
+  
+  	struct mutex		irq_lock;
+@@ -450,64 +451,23 @@ struct sih_agent {
+  static void twl4030_sih_mask(unsigned irq)
+  {
+  	struct sih_agent	*agent = get_irq_chip_data(irq);
+-	const struct sih	*sih = agent->sih;
+-
+-	union {
+-		u8	bytes[4];
+-		u32	word;
+-	}			imr;
+-
+-	int			status;
+  
+  	agent->imr |= BIT(irq - agent->irq_base);
+-
+-	mutex_lock(&agent->irq_lock);
+-
+-	/* byte[0] gets overwritten as we write ... */
+-	imr.word = cpu_to_le32(agent->imr << 8);
+-
+-	/* write the whole mask ... simpler than subsetting it */
+-	status = twl_i2c_write(sih->module, imr.bytes,
+-			sih->mask[irq_line].imr_offset, sih->bytes_ixr);
+-	if (status)
+-		pr_err("twl4030: %s, %s --> %d\n", __func__,
+-				"write", status);
+-	mutex_unlock(&agent->irq_lock);
++	agent->imr_change_pending = true;
+  }
+  
+  static void twl4030_sih_unmask(unsigned irq)
+  {
+  	struct sih_agent	*agent = get_irq_chip_data(irq);
+-	const struct sih	*sih = agent->sih;
+  
+-	union {
+-		u8	bytes[4];
+-		u32	word;
+-	}			imr;
+-
+-	int			status;
+-
+-	mutex_lock(&agent->irq_lock);
+  	agent->imr &= ~BIT(irq - agent->irq_base);
+-
+-	/* byte[0] gets overwritten as we write ... */
+-	imr.word = cpu_to_le32(agent->imr << 8);
+-
+-	/* write the whole mask ... simpler than subsetting it */
+-	status = twl_i2c_write(sih->module, imr.bytes,
+-			sih->mask[irq_line].imr_offset, sih->bytes_ixr);
+-	if (status)
+-		pr_err("twl4030: %s, %s --> %d\n", __func__,
+-				"write", status);
+-	mutex_unlock(&agent->irq_lock);
++	agent->imr_change_pending = true;
+  }
+  
+  static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
+  {
+  	struct sih_agent	*agent = get_irq_chip_data(irq);
+-	const struct sih	*sih = agent->sih;
+  	struct irq_desc		*desc = irq_to_desc(irq);
+-	int			status = 0;
+  
+  	if (!desc) {
+  		pr_err("twl4030: Invalid IRQ: %d\n", irq);
+@@ -517,17 +477,57 @@ static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
+  	if (trigger & ~(IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING))
+  		return -EINVAL;
+  
+-	mutex_lock(&agent->irq_lock);
+  	if ((desc->status & IRQ_TYPE_SENSE_MASK) != trigger) {
+-		u8			bytes[6];
+-		u32			edge_change;
++		agent->edge_change |= BIT(irq - agent->irq_base);
+  
+  		desc->status &= ~IRQ_TYPE_SENSE_MASK;
+  		desc->status |= trigger;
+-		agent->edge_change |= BIT(irq - agent->irq_base);
++	}
++
++	return 0;
++}
++
++static void twl4030_sih_bus_lock(unsigned int irq)
++{
++	struct sih_agent	*agent = get_irq_chip_data(irq);
++
++	mutex_lock(&agent->irq_lock);
++}
++
++static void twl4030_sih_bus_sync_unlock(unsigned int irq)
++{
++	struct sih_agent	*agent = get_irq_chip_data(irq);
++	const struct sih	*sih = agent->sih;
++
++	int			status;
++
++	union {
++		u8	bytes[4];
++		u32	word;
++	}			imr;
++
++	if (agent->imr_change_pending) {
++		/* byte[0] gets overwritten as we write ... */
++		imr.word = cpu_to_le32(agent->imr << 8);
++
++		/* write the whole mask ... simpler than subsetting it */
++		status = twl_i2c_write(sih->module, imr.bytes,
++				sih->mask[irq_line].imr_offset, sih->bytes_ixr);
++		if (status)
++			pr_err("twl4030: %s, %s --> %d\n", __func__,
++					"write", status);
++		agent->imr_change_pending = false;
++	}
++
++	if (agent->edge_change) {
++		u32			edge_change;
++		u8			bytes[6];
++
+  		edge_change = agent->edge_change;
++		agent->edge_change = 0;
+  
+-		/* Read, reserving first byte for write scratch.  Yes, this
++		/*
++		 * Read, reserving first byte for write scratch.  Yes, this
+  		 * could be cached for some speedup ... but be careful about
+  		 * any processor on the other IRQ line, EDR registers are
+  		 * shared.
+@@ -550,7 +550,6 @@ static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
+  			if (!d) {
+  				pr_err("twl4030: Invalid IRQ: %d\n",
+  						i + agent->irq_base);
+-				status = -ENODEV;
+  				goto out;
+  			}
+  
+@@ -576,8 +575,6 @@ static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
+  
+  out:
+  	mutex_unlock(&agent->irq_lock);
+-
+-	return status;
+  }
+  
+  static struct irq_chip twl4030_sih_irq_chip = {
+@@ -585,6 +582,8 @@ static struct irq_chip twl4030_sih_irq_chip = {
+  	.mask		= twl4030_sih_mask,
+  	.unmask		= twl4030_sih_unmask,
+  	.set_type	= twl4030_sih_set_type,
++	.bus_lock	= twl4030_sih_bus_lock,
++	.bus_sync_unlock = twl4030_sih_bus_sync_unlock,
+  };
+  
+  /*----------------------------------------------------------------------*/
+-- 
+1.7.3.4.598.g85356
+
+-- 
+balbi
