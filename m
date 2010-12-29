@@ -1,132 +1,152 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: OMAP NAND redux
-Date: Wed, 29 Dec 2010 19:45:00 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036A495001@dbde02.ent.ti.com>
-References: <201012171101.09244.manningc2@actrix.gen.nz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH] arm: mach-omap2: pm: cleanup !CONFIG_SUSPEND handling
+Date: Wed, 29 Dec 2010 18:34:43 +0200
+Message-ID: <1293640483-25610-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50880 "EHLO arroyo.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.128.26]:44779 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753014Ab0L2OPL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Dec 2010 09:15:11 -0500
-In-Reply-To: <201012171101.09244.manningc2@actrix.gen.nz>
-Content-Language: en-US
+	id S1750847Ab0L2Qdi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Dec 2010 11:33:38 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charles Manning <manningc2@actrix.gen.nz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Grazvydas Ignotas <notasas@gmail.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 
+Make !CONFIG_SUSPEND init declarations identical on all OMAPs and
+eliminate some ifdefs.
 
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ arch/arm/mach-omap2/pm.h     |    4 ++++
+ arch/arm/mach-omap2/pm24xx.c |   16 ++++++++--------
+ arch/arm/mach-omap2/pm34xx.c |   16 ++++++++--------
+ arch/arm/mach-omap2/pm44xx.c |   17 +++++++++--------
+ 4 files changed, 29 insertions(+), 24 deletions(-)
 
-> -----Original Message-----
-> From: Charles Manning [mailto:manningc2@actrix.gen.nz]
-> Sent: Friday, December 17, 2010 3:31 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Ghorai, Sukumar; Grazvydas Ignotas
-> Subject: OMAP NAND redux
-> 
-> Hello All
-> 
-> Over the last while I have been working on getting ubifs working on
-> omap3530
-> using 16-bit NAND with the latest 2.6.37 prefetch code. This is basically
-> a
-> tweaked Overo kernel.
-> 
->  Here is what I found:
-> 
-> After initial exploration I found that there were three problem:
-> 
-> * ECC bytes not being read correctly during sub-page reads.
-> * Disabling prefetch meant that the flash was not being read at all.
-> * NAND access seems to have slowed down significantly.
-> 
-> Both these boiled down to one root cause. After the prefetch changes,
-> nand->IO_ADDR_R is set to an address that only works within the context of
-> the prefetch code. It no longer works if prefetch is disabled. Execution
-> of:
->  static void omap_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
-> {
->  	struct nand_chip *nand = mtd->priv;
-> 
->         ioread16_rep(nand->IO_ADDR_R, buf, len / 2);
-> }
-> 
-> 
-> Even if prefetch is enabled, subpage reads that are not 32-bit aligned
-> call
-> the above function which means the ECC does not read correctly - resulting
-> in
-> ECC errors.
-[Ghorai] please give a try with CONFIG_MTD_NAND_OMAP_HWECC enable; 
-i.e. NAND_ECC_HW; by this I did not see this issue
-
-> 
-> I managed to work around this by applying the following patch to force all
-> buffer reads to u32 alignment:
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -245,6 +245,18 @@ static void omap_read_buf_pref(struct mtd_info *mtd,
-> u_char *buf, int len)
->         int ret = 0;
->         u32 *p = (u32 *)buf;
-> 
-> +       /* u32 align the buffer and read */
-> +       /* NB: This assumes the buf ptr can be aligned *down* which is a
-> valid.
-> +        * Assumption when dealing with ecc buffers etc.
-> +        */
-> +       u32 addr = (u32)p;
-> +
-> +       int diff = addr & 3;
-> +       addr -= diff;
-> +       len += diff;
-> +       len = (len + 3) & ~3;
-> +       p = (u32 *)addr;
-> +
->         /* take care of subpage reads */
->         if (len % 4) {
->                 if (info->nand.options & NAND_BUSWIDTH_16)
-> 
-> Yeah I know that is ugly, but it works!
-> 
-> Prefetch is enabled, dma is disabled. ECC is done in software.
-[Ghorai] please give a try with CONFIG_MTD_NAND_OMAP_HWECC enable
-
-
-> OK, that gives me a working UBIFS, but I found something else...
-> 
-> NAND access has got way, way slower since 2.6.34.
-> 
-> I created a 2MB file foo then do the following:
-> 
-> sync; date; cp foo bar; sync; date
-> 
-> In 2.6.34 the time between the two dates was 3 seconds.
-> In 2.6.37 this now takes 14 seconds!
-> 
-> 
-> Now question time:
-> 
-> 1) How well has the prefetch code been tested?
-[Ghorai] yes, its enable by default even in 2.6.34 onwards
-And many omap products using this.
-
-> 2) Does it work with prefetch disabled?
-[Ghorai] yes. 
-
-> 3) Has it been performance tested?
-[Ghorai] yes. I did not remember the numbers.
-
-> 4) What should the value in nand->IO_ADDR_R be?
-[Ghorai] this could be the same as IO_ADDR_W
-And you can refer Section in TRM: Global Memory Space Mapping
-
-> 
-> 
-> Thanks
-> 
-> Charles
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 1c1b0ab..704766b 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -138,4 +138,8 @@ static inline int omap4_twl_init(void)
+ }
+ #endif
+ 
++#ifndef CONFIG_SUSPEND
++#define omap_pm_ops NULL
++#endif
++
+ #endif
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index dac2d1d..e65b329 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -350,14 +350,14 @@ static void omap2_pm_end(void)
+ 	enable_hlt();
+ }
+ 
+-static struct platform_suspend_ops omap_pm_ops = {
+-	.begin		= omap2_pm_begin,
+-	.enter		= omap2_pm_enter,
+-	.end		= omap2_pm_end,
+-	.valid		= suspend_valid_only_mem,
++static const struct platform_suspend_ops omap_pm_ops[] = {
++	{
++		.begin		= omap2_pm_begin,
++		.enter		= omap2_pm_enter,
++		.end		= omap2_pm_end,
++		.valid		= suspend_valid_only_mem,
++	}
+ };
+-#else
+-static const struct platform_suspend_ops __initdata omap_pm_ops;
+ #endif /* CONFIG_SUSPEND */
+ 
+ /* XXX This function should be shareable between OMAP2xxx and OMAP3 */
+@@ -582,7 +582,7 @@ static int __init omap2_pm_init(void)
+ 						    omap24xx_cpu_suspend_sz);
+ 	}
+ 
+-	suspend_set_ops(&omap_pm_ops);
++	suspend_set_ops(omap_pm_ops);
+ 	pm_idle = omap2_pm_idle;
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 5b323f2..a4c9283 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -605,11 +605,13 @@ static void omap3_pm_end(void)
+ 	return;
+ }
+ 
+-static struct platform_suspend_ops omap_pm_ops = {
+-	.begin		= omap3_pm_begin,
+-	.end		= omap3_pm_end,
+-	.enter		= omap3_pm_enter,
+-	.valid		= suspend_valid_only_mem,
++static const struct platform_suspend_ops omap_pm_ops[] = {
++	{
++		.begin		= omap3_pm_begin,
++		.end		= omap3_pm_end,
++		.enter		= omap3_pm_enter,
++		.valid		= suspend_valid_only_mem,
++	}
+ };
+ #endif /* CONFIG_SUSPEND */
+ 
+@@ -1067,9 +1069,7 @@ static int __init omap3_pm_init(void)
+ 	core_clkdm = clkdm_lookup("core_clkdm");
+ 
+ 	omap_push_sram_idle();
+-#ifdef CONFIG_SUSPEND
+-	suspend_set_ops(&omap_pm_ops);
+-#endif /* CONFIG_SUSPEND */
++	suspend_set_ops(omap_pm_ops);
+ 
+ 	pm_idle = omap3_pm_idle;
+ 	omap3_idle_init();
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index e9f4862..6022c0a 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -16,6 +16,7 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ 
++#include "pm.h"
+ #include "powerdomain.h"
+ #include <mach/omap4-common.h>
+ 
+@@ -65,11 +66,13 @@ static void omap4_pm_end(void)
+ 	return;
+ }
+ 
+-static struct platform_suspend_ops omap_pm_ops = {
+-	.begin		= omap4_pm_begin,
+-	.end		= omap4_pm_end,
+-	.enter		= omap4_pm_enter,
+-	.valid		= suspend_valid_only_mem,
++static const struct platform_suspend_ops omap_pm_ops[] = {
++	{
++		.begin		= omap4_pm_begin,
++		.end		= omap4_pm_end,
++		.enter		= omap4_pm_enter,
++		.valid		= suspend_valid_only_mem,
++	}
+ };
+ #endif /* CONFIG_SUSPEND */
+ 
+@@ -113,9 +116,7 @@ static int __init omap4_pm_init(void)
+ 	}
+ #endif
+ 
+-#ifdef CONFIG_SUSPEND
+-	suspend_set_ops(&omap_pm_ops);
+-#endif /* CONFIG_SUSPEND */
++	suspend_set_ops(omap_pm_ops);
+ 
+ err2:
+ 	return ret;
+-- 
+1.5.6.5
 
