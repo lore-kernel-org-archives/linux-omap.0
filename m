@@ -1,156 +1,116 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v6 1/1] OMAP2: Spi: Force CS to be in inactive state
- after off-mode transition
-Date: Wed, 29 Dec 2010 00:28:00 -0700
-Message-ID: <20101229072800.GF8172@angua.secretlab.ca>
-References: <4D149045.8080801@free-electrons.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH 0/7 v2] OMAP: McSPI: Hwmod adaptation + runtime conversion
+Date: Wed, 29 Dec 2010 12:57:35 +0530
+Message-ID: <AANLkTikbEUjjdy-9J_WxnhjODv5aJx0K-Z0iwbOPsYj-@mail.gmail.com>
+References: <33183.10.24.255.18.1291212072.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f194.google.com ([209.85.214.194]:45766 "EHLO
-	mail-iw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750920Ab0L2H2E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Dec 2010 02:28:04 -0500
-Received: by iwn42 with SMTP id 42so5395004iwn.1
-        for <linux-omap@vger.kernel.org>; Tue, 28 Dec 2010 23:28:03 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4D149045.8080801@free-electrons.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:39721 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750920Ab0L2H14 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Dec 2010 02:27:56 -0500
+Received: by qwa26 with SMTP id 26so9963014qwa.19
+        for <linux-omap@vger.kernel.org>; Tue, 28 Dec 2010 23:27:55 -0800 (PST)
+In-Reply-To: <33183.10.24.255.18.1291212072.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, spi-devel-general <spi-devel-general@lists.sourceforge.net>, David Brownell <dbrownell@users.sourceforge.net>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>, Cousson@dbdmail.itg.ti.com, Benoit <b-cousson@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-On Fri, Dec 24, 2010 at 01:21:25PM +0100, Gregory CLEMENT wrote:
-> When SPI wake up from OFF mode, CS is in the wrong state: force it to the inactive state.
-> 
-> During the system life, I monitored the CS behavior using a oscilloscope.
-> I also activated debug in omap2_mcspi, so I saw when driver disable the clocks and restore context when device is not used.
-> Each time the CS was in the correct state.
-> It was only when system was put suspend to ram with off-mode activated that on resume the CS was in wrong state( ie activated).
-> 
-> Changelog:
-> * Change from v1 to v2:
-> Rebase on linus/master (after 2.6.37-rc1)
-> Do some clean-up and fix indentation on both patches
-> Add more explanations for patch 2
-> 
-> * Change from v2 to v3:
-> Use directly resume function of spi_master instead of using function
-> from spi_device as Grant Likely pointed it out.
-> Force this transition explicitly for each CS used by a device.
-> 
-> * Change from v3 to v4:
-> Patch clean-up according to Kevin Hilman and checkpatch.
-> Now force CS to be in inactive state only if it was inactive when it was
-> suspended.
-> 
-> * Change from v4 to v5:
-> Rebase on linus/master (after 2.6.37-rc3)
-> Collapse some lines as pointed by Grant Likely
-> Fix a spelling
-> 
-> * Change from v5 to v6:
-> Rebase on linus/master (after 2.6.37-rc7)
-> Use CONFIG_SUSPEND instead of CONFIG_PM
-> Didn't use legacy PM methods anymore. Instead, add a struct dev_pm_ops and add the resume method there.
-> Fix multi-line comment style
-> 
-> Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Hi Grant,
 
-Hi Gregory,
 
-Patch does not apply, but I cannot immediately isolate the damage.
-Please see if you can figure out the issue on your end.  Is it your
-mailer?  I could fudge it, but in the long run it is better if this
-issue can get sorted out now.
+On Wed, Dec 1, 2010 at 7:31 PM, Govindraj.R <govindraj.raja@ti.com> wro=
+te:
+> Changes invloves:
+> ----------------
+> 1) Addition of hwmod data for omap2/3/4.
+> 1) McSPI driver hwmod adaptation with cleanup of base address
+> =A0 macros and using omap-device API's.
+> 2) Runtime Conversion of McSPI driver
 
-Also, a few other minor nitpicks (I won't reject a patch over these,
-but it helps to have them right):
 
-Please prefix spi patch names with "spi[/driver]:".  It is the format
-for all spi patches I take through my tree, and if it already follows
-that convention, then I don't need to edit it manually.
+Any comments on this patch series?
+I need your review comments or ack on
+patch 6/6 and patch 7/7.
 
-Second, please keep the line length in the patch description short; in
-general I find that a textwidth limit of 70 characters is about right
-for the purpose of reading/replying in email.  A lot of maintainers
-use text email clients like mutt in 80 column terminal windows.
-Keeping a reasonable right hand margin in the text body is simply
-friendly.
+I hope this patch series can be merged with LO
+tree with your ack.
 
-Finally, in changelogs it is easier to read if there is some kind of
-itemization ticks.  For example:
+--
+Thanks
+Govindraj.R
 
-* Change from v5 to v6:
-  - Rebase on linus/master (after 2.6.37-rc7)
-  - Use CONFIG_SUSPEND instead of CONFIG_PM
-  - Didn't use legacy PM methods anymore. Instead, add a struct
-    dev_pm_ops and add the resume method there.
-  - Fix multi-line comment style
- 
-g.
 
-> ---
->  drivers/spi/omap2_mcspi.c |   40 ++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 40 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index 2a651e6..a17ea97 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -1305,10 +1305,50 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
->  /* work with hotplug and coldplug */
->  MODULE_ALIAS("platform:omap2_mcspi");
->  +#ifdef	CONFIG_SUSPEND
-> +/*
-> + * When SPI wake up from off-mode, CS is in activate state. If it was in
-> + * unactive state when driver was suspend, then force it to unactive state at
-> + * wake up.
-> + */
-> +static int omap2_mcspi_resume(struct device *dev)
-> +{
-> +	struct spi_master	*master = dev_get_drvdata(dev);
-> +	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
-> +	struct omap2_mcspi_cs *cs;
-> +
-> +	omap2_mcspi_enable_clocks(mcspi);
-> +	list_for_each_entry(cs, &omap2_mcspi_ctx[master->bus_num - 1].cs,
-> +			    node) {
-> +		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
-> +
-> +			/*
-> +			 * We need to toggle CS state for OMAP take this
-> +			 * change in account.
-> +			 */
-> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 1);
-> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
-> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 0);
-> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
-> +		}
-> +	}
-> +	omap2_mcspi_disable_clocks(mcspi);
-> +	return 0;
-> +}
-> +#else
-> +#define	omap2_mcspi_resume	NULL
-> +#endif
-> +
-> +static const struct dev_pm_ops omap2_mcspi_pm_ops = {
-> +	.resume = omap2_mcspi_resume,
-> +};
-> +
->  static struct platform_driver omap2_mcspi_driver = {
->  	.driver = {
->  		.name =		"omap2_mcspi",
->  		.owner =	THIS_MODULE,
-> +		.pm =		&omap2_mcspi_pm_ops
-> +
+>
+> Changes from v1:
+> ---------------
+> 1) Fixing patch 5/5 comments for hwmod+runtime
+> =A0 Split the patch 5/5 to hwmod adaptation
+> =A0 and then runtime conversion
+> =A0 http://www.mail-archive.com/linux-omap@vger.kernel.org/msg33387.h=
+tml
+>
+> Testing Updates:
+> ----------------
+> Was tested using data transfer test module available at:
+> http://dev.omapzoom.org/?p=3Dricho/device_driver_test.git;a=3Dblob;f=3D=
+mcspi/test_code/
+> utils/mcspi_modules/omap_mcspi_datatest.c;
+> h=3De42ec10c5c844abdde6a7175a268b379fbbdb655;
+> hb=3D5d9a755d50e58de861c5e8991f2f607bc49b5dc3
+>
+> System wide suspend and ret/off counts observation,
+> ensured that no behavioral difference with and without
+> this patch series.
+>
+> Benoit Cousson (1):
+> =A0OMAP4: hwmod data: Add McSPI
+>
+> Charulatha V (5):
+> =A0OMAP2420: hwmod data: Add McSPI
+> =A0OMAP2430: hwmod data: Add McSPI
+> =A0OMAP3: hwmod data: Add McSPI
+> =A0OMAP3: clocks: Update clock domain name for mcspi fck
+> =A0OMAP: devices: Modify McSPI device to adapt to hwmod framework
+>
+> Govindraj.R (1):
+> =A0OMAP: runtime: McSPI driver runtime conversion
+>
+> =A0arch/arm/mach-omap2/clock3xxx_data.c =A0 =A0 =A0 | =A0 =A04 +
+> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0189 =
+++++---------------
+> =A0arch/arm/mach-omap2/omap_hwmod_2420_data.c | =A0156 ++++++++++++++=
+++
+> =A0arch/arm/mach-omap2/omap_hwmod_2430_data.c | =A0219 ++++++++++++++=
+++++++++
+> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0280 ++++++++++++++=
+++++++++++++++
+> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0267 ++++++++++++++=
+++++++++++++
+> =A0arch/arm/plat-omap/include/plat/mcspi.h =A0 =A0| =A0 11 +
+> =A0drivers/spi/omap2_mcspi.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+225 +++++++---------------
+> =A08 files changed, 1051 insertions(+), 300 deletions(-)
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
-Drop the extra line.
 
->  	},
->  	.remove =	__exit_p(omap2_mcspi_remove),
->  };
-> -- 
-> 1.7.0.4
-> 
+
+--=20
+---
+Regards,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
