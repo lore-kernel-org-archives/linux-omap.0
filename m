@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH 1/5] ASoC: DMIC: Adding the OMAP DMIC driver
-Date: Wed, 29 Dec 2010 13:59:24 +0200
-Message-ID: <20101229115924.GA2222@legolas.emea.dhcp.ti.com>
+Date: Wed, 29 Dec 2010 14:04:43 +0200
+Message-ID: <20101229120443.GB2222@legolas.emea.dhcp.ti.com>
 References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
  <1293509826-23253-2-git-send-email-dlambert@ti.com>
  <20101228111424.GB2239@legolas.emea.dhcp.ti.com>
@@ -10,71 +10,77 @@ References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
  <1293618931.3451.17.camel@odin>
  <20101229104432.GB2254@legolas.emea.dhcp.ti.com>
  <1293623571.3451.51.camel@odin>
- <20101229115628.GB3017@opensource.wolfsonmicro.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:50787 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751883Ab0L2L7a (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:33638 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752096Ab0L2MEs (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Dec 2010 06:59:30 -0500
-Received: by eyf6 with SMTP id 6so4502321eyf.41
-        for <linux-omap@vger.kernel.org>; Wed, 29 Dec 2010 03:59:27 -0800 (PST)
+	Wed, 29 Dec 2010 07:04:48 -0500
+Received: by ewy8 with SMTP id 8so4938991ewy.3
+        for <linux-omap@vger.kernel.org>; Wed, 29 Dec 2010 04:04:46 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20101229115628.GB3017@opensource.wolfsonmicro.com>
+In-Reply-To: <1293623571.3451.51.camel@odin>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, balbi@ti.com, "Lambert, David" <dlambert@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+To: Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: balbi@ti.com, "Lambert, David" <dlambert@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
 Hi,
 
-On Wed, Dec 29, 2010 at 11:56:28AM +0000, Mark Brown wrote:
->> In this case though the other McBSP user afaik is DaVinci, so in this
->> case it does make sense to make this driver support both.
+On Wed, Dec 29, 2010 at 11:52:51AM +0000, Liam Girdwood wrote:
+>I agree that drivers should be arch independent when possible, but in
+>this case the OMAP DMIC DAI driver is coupled to the OMAP platform only.
+>i.e. it performs IO directly on the OMAP DMIC IP. This IP is only found
+>on OMAP silicon.
+
+Let's imagine this IP is sourced from someone else and not created by
+TI, what prevents company XYZ from sourcing the same IP and end up
+re-using the driver ?
+
+>I also agree it would be nice if it builds for PXA, MIPS, SuperH etc but
+>what happens when the driver builds fine for OMAP but breaks the PXA,
+>MIPS, SuperH build ? Who will spend time to fix and test it ?
+
+You forgetting about other ARMs. This won't compile on DaVinci either.
+
+>My main problem here is cost benefit. No one benefits directly by having
+>this driver available for the above platforms but it costs me time
+>fixing it when it breaks.
+
+Of course there's people benefitting: OMAP audio driver writers would
+know their driver is well written and doesn't break build for anybody.
+
+Ok, let me put it this way:
+
+What happens when you want have one kernel image for OMAP and DaVinci ?
+Granted, that's not possible today anyway but e.g. Linaro is pushing for
+it and IMO should be the way to go for us to be able to have a
+distro-like kernel for ARM-based systems too.
+
+>> >It also seems inconsistent with the other OMAP system headers in
+>> >plat-omap too.
+>>
+>> Other than a few drivers which still need converting (and are on their
+>> way) I can only see really arch-specific bits and pieces under plat/.
+>>
+>> Not sure what's your point here.
+>>
 >
->The other thing with McBSP is that it's a generic programmable serial
->port and so need not be tied to audio use (though as I understand it
->other uses are very rare).
+>The point is that David had split the DMIC headers into two files, one
+>for plat specific registers and bit definitions and the other for audio
+>definitions (for the machine drivers) and is/was consistent with the
+>current OMAP platform headers.
 
-So why is it still tied to OMAP-only ? There's no abstraction layer
-around McBSP so OMAP McBSP driver has to export a whole bunch of symbols
-for its users:
+You forgot to mention that plat/ headers are supposed to be used by
+plat-* and mach-* code only to setup the correct state for the driver.
+Just recently one of the musb glue layers got broken because it was
+mistakenly using <plat/control.h> and that got moved.
 
-$ git grep -e EXPORT_SYMBOL arch/arm/*omap*/*mcbsp*.c
-arch/arm/mach-omap2/mcbsp.c:EXPORT_SYMBOL(omap2_mcbsp1_mux_clkr_src);
-arch/arm/mach-omap2/mcbsp.c:EXPORT_SYMBOL(omap2_mcbsp1_mux_fsr_src);
-arch/arm/mach-omap2/mcbsp.c:EXPORT_SYMBOL(omap2_mcbsp_set_clks_src);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_config);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_st_set_chgain);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_st_get_chgain);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_st_enable);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_st_disable);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_st_is_enabled);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_set_tx_threshold);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_set_rx_threshold);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_get_max_tx_threshold);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_get_max_rx_threshold);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_get_fifo_size);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_get_tx_delay);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_get_rx_delay);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_set_io_type);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_request);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_free);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_start);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_stop);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_pollwrite);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_pollread);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_xmit_word);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_recv_word);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_spi_master_xmit_word_poll);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_spi_master_recv_word_poll);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_xmit_buffer);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_recv_buffer);
-arch/arm/plat-omap/mcbsp.c:EXPORT_SYMBOL(omap_mcbsp_set_spi_mode);
+That's actually my point and why I think drivers should not touch plat/*
+and mach/* headers.
 
 -- 
 balbi
