@@ -1,31 +1,124 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 1/1] omap-sham: backlog handling fix
-Date: Wed, 29 Dec 2010 21:52:19 +1100
-Message-ID: <20101229105218.GA9787@gondor.apana.org.au>
-References: <cover.1293616613.git.dmitry.kasatkin@nokia.com> <16ffeda30b634b3ee0c9b55220b30dd689c5d182.1293616613.git.dmitry.kasatkin@nokia.com>
+From: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Subject: [PATCH v7 1/1] spi/omap2_mcspi.c: Force CS to be in inactive state
+ after off-mode transition
+Date: Wed, 29 Dec 2010 11:52:53 +0100
+Message-ID: <4D1B1305.4090709@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <16ffeda30b634b3ee0c9b55220b30dd689c5d182.1293616613.git.dmitry.kasatkin@nokia.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.free-electrons.com ([88.190.12.23]:52408 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751390Ab0L2KxH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Dec 2010 05:53:07 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-omap <linux-omap@vger.kernel.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@deeprootsystems.com>, David Brownell <dbrownell@users.sourceforge.net>
 
-On Wed, Dec 29, 2010 at 11:58:28AM +0200, Dmitry Kasatkin wrote:
-> Previous commit "removed redundant locking" introduced
-> a bug in handling backlog.
-> In certain cases, when async request complete callback will
-> call complete() on -EINPROGRESS code, it will cause uncompleted requests.
-> It does not happen in implementation similar to crypto test manager,
-> but it will happen in implementation similar to dm-crypt.
-> Backlog needs to be checked before dequeuing next request.
-> 
-> Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+When SPI wake up from OFF mode, CS is in the wrong state: force it to the
+inactive state.
 
-Patch applied.  Thanks Dmitry.
+During the system life, I monitored the CS behavior using a oscilloscope.
+I also activated debug in omap2_mcspi, so I saw when driver disable the clocks
+and restore context when device is not used.Each time the CS was in the correct
+state.  It was only when system was put suspend to ram with off-mode activated
+that on resume the CS was in wrong state( ie activated).
+
+Changelog:
+* Change from v1 to v2:
+  - Rebase on linus/master (after 2.6.37-rc1)
+  - Do some clean-up and fix indentation on both patches
+  - Add more explanations for patch 2
+
+* Change from v2 to v3:
+  - Use directly resume function of spi_master instead of using function
+  - from spi_device as Grant Likely pointed it out.
+  - Force this transition explicitly for each CS used by a device.
+
+* Change from v3 to v4:
+  - Patch clean-up according to Kevin Hilman and checkpatch.
+  - Now force CS to be in inactive state only if it was inactive when it was
+    suspended.
+
+* Change from v4 to v5:
+  - Rebase on linus/master (after 2.6.37-rc3)
+  - Collapse some lines as pointed by Grant Likely
+  - Fix a spelling
+
+* Change from v5 to v6:
+  - Rebase on linus/master (after 2.6.37-rc7)
+  - Use CONFIG_SUSPEND instead of CONFIG_PM
+  - Didn't use legacy PM methods anymore. Instead, add a struct dev_pm_ops and
+    add the resume method there.
+  - Fix multi-line comment style
+
+* Change from v6 to v7:
+  - Rebase on linus/master (after 2.6.37-rc8)
+  - Drop an extra line
+
+Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Reviewed-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+---
+ drivers/spi/omap2_mcspi.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index 2a651e6..951a160 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -1305,10 +1305,49 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
+ /* work with hotplug and coldplug */
+ MODULE_ALIAS("platform:omap2_mcspi");
+
++#ifdef	CONFIG_SUSPEND
++/*
++ * When SPI wake up from off-mode, CS is in activate state. If it was in
++ * unactive state when driver was suspend, then force it to unactive state at
++ * wake up.
++ */
++static int omap2_mcspi_resume(struct device *dev)
++{
++	struct spi_master	*master = dev_get_drvdata(dev);
++	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
++	struct omap2_mcspi_cs *cs;
++
++	omap2_mcspi_enable_clocks(mcspi);
++	list_for_each_entry(cs, &omap2_mcspi_ctx[master->bus_num - 1].cs,
++			    node) {
++		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
++
++			/*
++			 * We need to toggle CS state for OMAP take this
++			 * change in account.
++			 */
++			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 1);
++			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
++			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 0);
++			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
++		}
++	}
++	omap2_mcspi_disable_clocks(mcspi);
++	return 0;
++}
++#else
++#define	omap2_mcspi_resume	NULL
++#endif
++
++static const struct dev_pm_ops omap2_mcspi_pm_ops = {
++	.resume = omap2_mcspi_resume,
++};
++
+ static struct platform_driver omap2_mcspi_driver = {
+ 	.driver = {
+ 		.name =		"omap2_mcspi",
+ 		.owner =	THIS_MODULE,
++		.pm =		&omap2_mcspi_pm_ops
+ 	},
+ 	.remove =	__exit_p(omap2_mcspi_remove),
+ };
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+1.7.0.4
+
