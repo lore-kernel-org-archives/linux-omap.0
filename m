@@ -1,234 +1,103 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 3/3] mfd: twl4030-irq: implement bus_*lock
-Date: Wed, 29 Dec 2010 14:28:08 +0200
-Message-ID: <20101229122808.GC2222@legolas.emea.dhcp.ti.com>
-References: <20101228161657.GF2239@legolas.emea.dhcp.ti.com>
- <1293556459-28613-1-git-send-email-balbi@ti.com>
- <1293556459-28613-4-git-send-email-balbi@ti.com>
- <20101228235836.GA2609@opensource.wolfsonmicro.com>
- <1293583108.1822.3.camel@eowin>
-Reply-To: balbi@ti.com
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [PATCH 1/5] ASoC: DMIC: Adding the OMAP DMIC driver
+Date: Wed, 29 Dec 2010 13:00:00 +0000
+Message-ID: <1293627600.3451.93.camel@odin>
+References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
+	 <1293509826-23253-2-git-send-email-dlambert@ti.com>
+	 <20101228111424.GB2239@legolas.emea.dhcp.ti.com>
+	 <AANLkTi=6iWz0jdakBBgw2OEOjADvS2YmCN0ebKODQ7Ke@mail.gmail.com>
+	 <20101229094738.GA2254@legolas.emea.dhcp.ti.com>
+	 <1293618931.3451.17.camel@odin>
+	 <20101229104432.GB2254@legolas.emea.dhcp.ti.com>
+	 <1293623571.3451.51.camel@odin>
+	 <20101229120443.GB2222@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1293583108.1822.3.camel@eowin>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Felipe Balbi <balbi@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:50760 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751914Ab0L2NAE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Dec 2010 08:00:04 -0500
+Received: by wwa36 with SMTP id 36so10661890wwa.1
+        for <linux-omap@vger.kernel.org>; Wed, 29 Dec 2010 05:00:03 -0800 (PST)
+In-Reply-To: <20101229120443.GB2222@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: "Lambert, David" <dlambert@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
+On Wed, 2010-12-29 at 14:04 +0200, Felipe Balbi wrote:
+> Hi,
+> 
+> On Wed, Dec 29, 2010 at 11:52:51AM +0000, Liam Girdwood wrote:
+> >I agree that drivers should be arch independent when possible, but in
+> >this case the OMAP DMIC DAI driver is coupled to the OMAP platform only.
+> >i.e. it performs IO directly on the OMAP DMIC IP. This IP is only found
+> >on OMAP silicon.
+> 
+> Let's imagine this IP is sourced from someone else and not created by
+> TI, what prevents company XYZ from sourcing the same IP and end up
+> re-using the driver ?
 
-On Wed, Dec 29, 2010 at 02:38:28AM +0200, Felipe Balbi wrote:
->On Tue, 2010-12-28 at 23:58 +0000, Mark Brown wrote:
->> On Tue, Dec 28, 2010 at 07:14:19PM +0200, Felipe Balbi wrote:
->>
->> > +static void twl4030_sih_bus_sync_unlock(unsigned int irq)
->> > +{
->> > +       struct sih_agent        *agent = get_irq_chip_data(irq);
->> > +
->> > +       mutex_unlock(&agent->irq_lock);
->> > +}
->>
->> I suspect you need to do some sort of sync with the hardware here - the
->> _sync bit of the name comes from the fact that the mask and unmask stuff
->> is still called with IRQs disabled and so can't touch and I2C chip, this
->> is called after reenabling them give a chance for the updates done to
->> be reflected in the hardware.  The implementation everyone else has done
->> is to update a register cache in the other functions then write that
->> out here before dropping the mutex.
->
->now that I look at some gpio chips I see what you're saying, will update
->that tomorrow. Thanks
+That's fine, but this is not the case atm for this particular DMIC IP
+and we can only justify effort for OMAP atm.
 
-I believe you meant something like below, I'll get back to this in a
-little while. Have lots to test:
+> 
+> >I also agree it would be nice if it builds for PXA, MIPS, SuperH etc but
+> >what happens when the driver builds fine for OMAP but breaks the PXA,
+> >MIPS, SuperH build ? Who will spend time to fix and test it ?
+> 
+> You forgetting about other ARMs. This won't compile on DaVinci either.
+> 
+> >My main problem here is cost benefit. No one benefits directly by having
+> >this driver available for the above platforms but it costs me time
+> >fixing it when it breaks.
+> 
+> Of course there's people benefitting: OMAP audio driver writers would
+> know their driver is well written and doesn't break build for anybody.
+> 
+> Ok, let me put it this way:
+> 
+> What happens when you want have one kernel image for OMAP and DaVinci ?
+> Granted, that's not possible today anyway but e.g. Linaro is pushing for
+> it and IMO should be the way to go for us to be able to have a
+> distro-like kernel for ARM-based systems too.
+> 
 
- From f15801a5d57041b7669222bdb7cccf8b592c2f63 Mon Sep 17 00:00:00 2001
-From: Felipe Balbi <balbi@ti.com>
-Date: Tue, 28 Dec 2010 19:07:33 +0200
-Subject: [PATCH 1/2] mfd: twl4030-irq: implement bus_*lock
-Organization: Texas Instruments\n
+Ok, I now think you meant other "ARM architectures" here than other
+Linux architectures in general. It does make a more sense for ARM
+distribution deployment, but I still think guaranteeing successful build
+for this driver on all non ARM architectures atm just to give us
+satisfaction that the driver is "well written" is unnecessary effort.
 
-drop all the locking around mask/unmask and
-implement bus_lock and bus_sync_unlock methods.
+> >> >It also seems inconsistent with the other OMAP system headers in
+> >> >plat-omap too.
+> >>
+> >> Other than a few drivers which still need converting (and are on their
+> >> way) I can only see really arch-specific bits and pieces under plat/.
+> >>
+> >> Not sure what's your point here.
+> >>
+> >
+> >The point is that David had split the DMIC headers into two files, one
+> >for plat specific registers and bit definitions and the other for audio
+> >definitions (for the machine drivers) and is/was consistent with the
+> >current OMAP platform headers.
+> 
+> You forgot to mention that plat/ headers are supposed to be used by
+> plat-* and mach-* code only to setup the correct state for the driver.
+> Just recently one of the musb glue layers got broken because it was
+> mistakenly using <plat/control.h> and that got moved.
+> 
+> That's actually my point and why I think drivers should not touch plat/*
+> and mach/* headers.
+> 
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
-  drivers/mfd/twl4030-irq.c |  101 ++++++++++++++++++++++-----------------------
-  1 files changed, 50 insertions(+), 51 deletions(-)
+In a lot of cases drivers under drivers/* and sound/* must touch plat/*
+and mach/* headers for runtime access to hardware IP. I've just grepped
+and the list is quite long for drivers/*
 
-diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-index 298956d..84f6066 100644
---- a/drivers/mfd/twl4030-irq.c
-+++ b/drivers/mfd/twl4030-irq.c
-@@ -440,6 +440,7 @@ struct sih_agent {
-  	const struct sih	*sih;
-  
-  	u32			imr;
-+	bool			imr_change_pending;
-  	u32			edge_change;
-  
-  	struct mutex		irq_lock;
-@@ -450,64 +451,23 @@ struct sih_agent {
-  static void twl4030_sih_mask(unsigned irq)
-  {
-  	struct sih_agent	*agent = get_irq_chip_data(irq);
--	const struct sih	*sih = agent->sih;
--
--	union {
--		u8	bytes[4];
--		u32	word;
--	}			imr;
--
--	int			status;
-  
-  	agent->imr |= BIT(irq - agent->irq_base);
--
--	mutex_lock(&agent->irq_lock);
--
--	/* byte[0] gets overwritten as we write ... */
--	imr.word = cpu_to_le32(agent->imr << 8);
--
--	/* write the whole mask ... simpler than subsetting it */
--	status = twl_i2c_write(sih->module, imr.bytes,
--			sih->mask[irq_line].imr_offset, sih->bytes_ixr);
--	if (status)
--		pr_err("twl4030: %s, %s --> %d\n", __func__,
--				"write", status);
--	mutex_unlock(&agent->irq_lock);
-+	agent->imr_change_pending = true;
-  }
-  
-  static void twl4030_sih_unmask(unsigned irq)
-  {
-  	struct sih_agent	*agent = get_irq_chip_data(irq);
--	const struct sih	*sih = agent->sih;
-  
--	union {
--		u8	bytes[4];
--		u32	word;
--	}			imr;
--
--	int			status;
--
--	mutex_lock(&agent->irq_lock);
-  	agent->imr &= ~BIT(irq - agent->irq_base);
--
--	/* byte[0] gets overwritten as we write ... */
--	imr.word = cpu_to_le32(agent->imr << 8);
--
--	/* write the whole mask ... simpler than subsetting it */
--	status = twl_i2c_write(sih->module, imr.bytes,
--			sih->mask[irq_line].imr_offset, sih->bytes_ixr);
--	if (status)
--		pr_err("twl4030: %s, %s --> %d\n", __func__,
--				"write", status);
--	mutex_unlock(&agent->irq_lock);
-+	agent->imr_change_pending = true;
-  }
-  
-  static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
-  {
-  	struct sih_agent	*agent = get_irq_chip_data(irq);
--	const struct sih	*sih = agent->sih;
-  	struct irq_desc		*desc = irq_to_desc(irq);
--	int			status = 0;
-  
-  	if (!desc) {
-  		pr_err("twl4030: Invalid IRQ: %d\n", irq);
-@@ -517,17 +477,57 @@ static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
-  	if (trigger & ~(IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING))
-  		return -EINVAL;
-  
--	mutex_lock(&agent->irq_lock);
-  	if ((desc->status & IRQ_TYPE_SENSE_MASK) != trigger) {
--		u8			bytes[6];
--		u32			edge_change;
-+		agent->edge_change |= BIT(irq - agent->irq_base);
-  
-  		desc->status &= ~IRQ_TYPE_SENSE_MASK;
-  		desc->status |= trigger;
--		agent->edge_change |= BIT(irq - agent->irq_base);
-+	}
-+
-+	return 0;
-+}
-+
-+static void twl4030_sih_bus_lock(unsigned int irq)
-+{
-+	struct sih_agent	*agent = get_irq_chip_data(irq);
-+
-+	mutex_lock(&agent->irq_lock);
-+}
-+
-+static void twl4030_sih_bus_sync_unlock(unsigned int irq)
-+{
-+	struct sih_agent	*agent = get_irq_chip_data(irq);
-+	const struct sih	*sih = agent->sih;
-+
-+	int			status;
-+
-+	union {
-+		u8	bytes[4];
-+		u32	word;
-+	}			imr;
-+
-+	if (agent->imr_change_pending) {
-+		/* byte[0] gets overwritten as we write ... */
-+		imr.word = cpu_to_le32(agent->imr << 8);
-+
-+		/* write the whole mask ... simpler than subsetting it */
-+		status = twl_i2c_write(sih->module, imr.bytes,
-+				sih->mask[irq_line].imr_offset, sih->bytes_ixr);
-+		if (status)
-+			pr_err("twl4030: %s, %s --> %d\n", __func__,
-+					"write", status);
-+		agent->imr_change_pending = false;
-+	}
-+
-+	if (agent->edge_change) {
-+		u32			edge_change;
-+		u8			bytes[6];
-+
-  		edge_change = agent->edge_change;
-+		agent->edge_change = 0;
-  
--		/* Read, reserving first byte for write scratch.  Yes, this
-+		/*
-+		 * Read, reserving first byte for write scratch.  Yes, this
-  		 * could be cached for some speedup ... but be careful about
-  		 * any processor on the other IRQ line, EDR registers are
-  		 * shared.
-@@ -550,7 +550,6 @@ static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
-  			if (!d) {
-  				pr_err("twl4030: Invalid IRQ: %d\n",
-  						i + agent->irq_base);
--				status = -ENODEV;
-  				goto out;
-  			}
-  
-@@ -576,8 +575,6 @@ static int twl4030_sih_set_type(unsigned irq, unsigned trigger)
-  
-  out:
-  	mutex_unlock(&agent->irq_lock);
--
--	return status;
-  }
-  
-  static struct irq_chip twl4030_sih_irq_chip = {
-@@ -585,6 +582,8 @@ static struct irq_chip twl4030_sih_irq_chip = {
-  	.mask		= twl4030_sih_mask,
-  	.unmask		= twl4030_sih_unmask,
-  	.set_type	= twl4030_sih_set_type,
-+	.bus_lock	= twl4030_sih_bus_lock,
-+	.bus_sync_unlock = twl4030_sih_bus_sync_unlock,
-  };
-  
-  /*----------------------------------------------------------------------*/
--- 
-1.7.3.4.598.g85356
+Liam
 
--- 
-balbi
+
