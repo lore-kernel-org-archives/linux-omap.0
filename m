@@ -1,152 +1,134 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH] arm: mach-omap2: pm: cleanup !CONFIG_SUSPEND handling
-Date: Wed, 29 Dec 2010 18:34:43 +0200
-Message-ID: <1293640483-25610-1-git-send-email-aaro.koskinen@nokia.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v7 1/1] spi/omap2_mcspi.c: Force CS to be in inactive
+ state after off-mode transition
+Date: Wed, 29 Dec 2010 15:16:36 -0700
+Message-ID: <20101229221636.GA15648@angua.secretlab.ca>
+References: <4D1B1305.4090709@free-electrons.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:44779 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750847Ab0L2Qdi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Dec 2010 11:33:38 -0500
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:59072 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753729Ab0L2WQo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Dec 2010 17:16:44 -0500
+Received: by pwj3 with SMTP id 3so1220588pwj.19
+        for <linux-omap@vger.kernel.org>; Wed, 29 Dec 2010 14:16:43 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <4D1B1305.4090709@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
+To: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Cc: spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, David Brownell <dbrownell@users.sourceforge.net>
 
-Make !CONFIG_SUSPEND init declarations identical on all OMAPs and
-eliminate some ifdefs.
+On Wed, Dec 29, 2010 at 11:52:53AM +0100, Gregory CLEMENT wrote:
+> When SPI wake up from OFF mode, CS is in the wrong state: force it to the
+> inactive state.
+> 
+> During the system life, I monitored the CS behavior using a oscilloscope.
+> I also activated debug in omap2_mcspi, so I saw when driver disable the clocks
+> and restore context when device is not used.Each time the CS was in the correct
+> state.  It was only when system was put suspend to ram with off-mode activated
+> that on resume the CS was in wrong state( ie activated).
+> 
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
----
- arch/arm/mach-omap2/pm.h     |    4 ++++
- arch/arm/mach-omap2/pm24xx.c |   16 ++++++++--------
- arch/arm/mach-omap2/pm34xx.c |   16 ++++++++--------
- arch/arm/mach-omap2/pm44xx.c |   17 +++++++++--------
- 4 files changed, 29 insertions(+), 24 deletions(-)
+merged, thanks.
 
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 1c1b0ab..704766b 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -138,4 +138,8 @@ static inline int omap4_twl_init(void)
- }
- #endif
- 
-+#ifndef CONFIG_SUSPEND
-+#define omap_pm_ops NULL
-+#endif
-+
- #endif
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index dac2d1d..e65b329 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -350,14 +350,14 @@ static void omap2_pm_end(void)
- 	enable_hlt();
- }
- 
--static struct platform_suspend_ops omap_pm_ops = {
--	.begin		= omap2_pm_begin,
--	.enter		= omap2_pm_enter,
--	.end		= omap2_pm_end,
--	.valid		= suspend_valid_only_mem,
-+static const struct platform_suspend_ops omap_pm_ops[] = {
-+	{
-+		.begin		= omap2_pm_begin,
-+		.enter		= omap2_pm_enter,
-+		.end		= omap2_pm_end,
-+		.valid		= suspend_valid_only_mem,
-+	}
- };
--#else
--static const struct platform_suspend_ops __initdata omap_pm_ops;
- #endif /* CONFIG_SUSPEND */
- 
- /* XXX This function should be shareable between OMAP2xxx and OMAP3 */
-@@ -582,7 +582,7 @@ static int __init omap2_pm_init(void)
- 						    omap24xx_cpu_suspend_sz);
- 	}
- 
--	suspend_set_ops(&omap_pm_ops);
-+	suspend_set_ops(omap_pm_ops);
- 	pm_idle = omap2_pm_idle;
- 
- 	return 0;
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 5b323f2..a4c9283 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -605,11 +605,13 @@ static void omap3_pm_end(void)
- 	return;
- }
- 
--static struct platform_suspend_ops omap_pm_ops = {
--	.begin		= omap3_pm_begin,
--	.end		= omap3_pm_end,
--	.enter		= omap3_pm_enter,
--	.valid		= suspend_valid_only_mem,
-+static const struct platform_suspend_ops omap_pm_ops[] = {
-+	{
-+		.begin		= omap3_pm_begin,
-+		.end		= omap3_pm_end,
-+		.enter		= omap3_pm_enter,
-+		.valid		= suspend_valid_only_mem,
-+	}
- };
- #endif /* CONFIG_SUSPEND */
- 
-@@ -1067,9 +1069,7 @@ static int __init omap3_pm_init(void)
- 	core_clkdm = clkdm_lookup("core_clkdm");
- 
- 	omap_push_sram_idle();
--#ifdef CONFIG_SUSPEND
--	suspend_set_ops(&omap_pm_ops);
--#endif /* CONFIG_SUSPEND */
-+	suspend_set_ops(omap_pm_ops);
- 
- 	pm_idle = omap3_pm_idle;
- 	omap3_idle_init();
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index e9f4862..6022c0a 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -16,6 +16,7 @@
- #include <linux/err.h>
- #include <linux/slab.h>
- 
-+#include "pm.h"
- #include "powerdomain.h"
- #include <mach/omap4-common.h>
- 
-@@ -65,11 +66,13 @@ static void omap4_pm_end(void)
- 	return;
- }
- 
--static struct platform_suspend_ops omap_pm_ops = {
--	.begin		= omap4_pm_begin,
--	.end		= omap4_pm_end,
--	.enter		= omap4_pm_enter,
--	.valid		= suspend_valid_only_mem,
-+static const struct platform_suspend_ops omap_pm_ops[] = {
-+	{
-+		.begin		= omap4_pm_begin,
-+		.end		= omap4_pm_end,
-+		.enter		= omap4_pm_enter,
-+		.valid		= suspend_valid_only_mem,
-+	}
- };
- #endif /* CONFIG_SUSPEND */
- 
-@@ -113,9 +116,7 @@ static int __init omap4_pm_init(void)
- 	}
- #endif
- 
--#ifdef CONFIG_SUSPEND
--	suspend_set_ops(&omap_pm_ops);
--#endif /* CONFIG_SUSPEND */
-+	suspend_set_ops(omap_pm_ops);
- 
- err2:
- 	return ret;
--- 
-1.5.6.5
+g.
 
+> Changelog:
+> * Change from v1 to v2:
+>   - Rebase on linus/master (after 2.6.37-rc1)
+>   - Do some clean-up and fix indentation on both patches
+>   - Add more explanations for patch 2
+> 
+> * Change from v2 to v3:
+>   - Use directly resume function of spi_master instead of using function
+>   - from spi_device as Grant Likely pointed it out.
+>   - Force this transition explicitly for each CS used by a device.
+> 
+> * Change from v3 to v4:
+>   - Patch clean-up according to Kevin Hilman and checkpatch.
+>   - Now force CS to be in inactive state only if it was inactive when it was
+>     suspended.
+> 
+> * Change from v4 to v5:
+>   - Rebase on linus/master (after 2.6.37-rc3)
+>   - Collapse some lines as pointed by Grant Likely
+>   - Fix a spelling
+> 
+> * Change from v5 to v6:
+>   - Rebase on linus/master (after 2.6.37-rc7)
+>   - Use CONFIG_SUSPEND instead of CONFIG_PM
+>   - Didn't use legacy PM methods anymore. Instead, add a struct dev_pm_ops and
+>     add the resume method there.
+>   - Fix multi-line comment style
+> 
+> * Change from v6 to v7:
+>   - Rebase on linus/master (after 2.6.37-rc8)
+>   - Drop an extra line
+> 
+> Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+> Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+> Reviewed-by: Kevin Hilman <khilman@deeprootsystems.com>
+> 
+> ---
+>  drivers/spi/omap2_mcspi.c |   39 +++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 39 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+> index 2a651e6..951a160 100644
+> --- a/drivers/spi/omap2_mcspi.c
+> +++ b/drivers/spi/omap2_mcspi.c
+> @@ -1305,10 +1305,49 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
+>  /* work with hotplug and coldplug */
+>  MODULE_ALIAS("platform:omap2_mcspi");
+> 
+> +#ifdef	CONFIG_SUSPEND
+> +/*
+> + * When SPI wake up from off-mode, CS is in activate state. If it was in
+> + * unactive state when driver was suspend, then force it to unactive state at
+> + * wake up.
+> + */
+> +static int omap2_mcspi_resume(struct device *dev)
+> +{
+> +	struct spi_master	*master = dev_get_drvdata(dev);
+> +	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
+> +	struct omap2_mcspi_cs *cs;
+> +
+> +	omap2_mcspi_enable_clocks(mcspi);
+> +	list_for_each_entry(cs, &omap2_mcspi_ctx[master->bus_num - 1].cs,
+> +			    node) {
+> +		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
+> +
+> +			/*
+> +			 * We need to toggle CS state for OMAP take this
+> +			 * change in account.
+> +			 */
+> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 1);
+> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
+> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 0);
+> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
+> +		}
+> +	}
+> +	omap2_mcspi_disable_clocks(mcspi);
+> +	return 0;
+> +}
+> +#else
+> +#define	omap2_mcspi_resume	NULL
+> +#endif
+> +
+> +static const struct dev_pm_ops omap2_mcspi_pm_ops = {
+> +	.resume = omap2_mcspi_resume,
+> +};
+> +
+>  static struct platform_driver omap2_mcspi_driver = {
+>  	.driver = {
+>  		.name =		"omap2_mcspi",
+>  		.owner =	THIS_MODULE,
+> +		.pm =		&omap2_mcspi_pm_ops
+>  	},
+>  	.remove =	__exit_p(omap2_mcspi_remove),
+>  };
+> -- 
+> 1.7.0.4
+> 
