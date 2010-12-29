@@ -1,52 +1,89 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/5] ASoC: DMIC: Adding the OMAP DMIC driver
-Date: Wed, 29 Dec 2010 15:07:57 +0200
-Message-ID: <20101229130757.GD2222@legolas.emea.dhcp.ti.com>
-References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
- <1293509826-23253-2-git-send-email-dlambert@ti.com>
- <20101228111424.GB2239@legolas.emea.dhcp.ti.com>
- <AANLkTi=6iWz0jdakBBgw2OEOjADvS2YmCN0ebKODQ7Ke@mail.gmail.com>
- <20101229094738.GA2254@legolas.emea.dhcp.ti.com>
- <1293618931.3451.17.camel@odin>
- <20101229104432.GB2254@legolas.emea.dhcp.ti.com>
- <1293623571.3451.51.camel@odin>
- <20101229120443.GB2222@legolas.emea.dhcp.ti.com>
- <1293627600.3451.93.camel@odin>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+From: Sukumar Ghorai <s-ghorai@ti.com>
+Subject: [PATCH v7 0/7] nand prefetch-irq support and ecc layout chanage
+Date: Wed, 29 Dec 2010 19:02:19 +0530
+Message-ID: <1293629546-18831-1-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:53042 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752165Ab0L2NIC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Dec 2010 08:08:02 -0500
-Received: by mail-ey0-f180.google.com with SMTP id 18so4248415eyf.39
-        for <linux-omap@vger.kernel.org>; Wed, 29 Dec 2010 05:08:01 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1293627600.3451.93.camel@odin>
+Received: from comal.ext.ti.com ([198.47.26.152]:57754 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752595Ab0L2Ncj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Dec 2010 08:32:39 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: balbi@ti.com, "Lambert, David" <dlambert@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>
 
-Hi,
+The following set of patches applies on linux-2.6.
 
-On Wed, Dec 29, 2010 at 01:00:00PM +0000, Liam Girdwood wrote:
->Ok, I now think you meant other "ARM architectures" here than other
->Linux architectures in general. It does make a more sense for ARM
->distribution deployment, but I still think guaranteeing successful build
->for this driver on all non ARM architectures atm just to give us
->satisfaction that the driver is "well written" is unnecessary effort.
+The main motivations behind this patch series are -
+        1. support NAND I/O in irq mode.
+        2. support of different ECC schema.
+        3. also add support ecc layout as like in romcode ecc layout, but not enabled
 
-Ok.
+v7: NAND type (x16 or x8) is board specific and not omap specific; this passed form board file.
+    
+v6: configurable transfer type from board file; 
+    #define irq number used for nand-irq
+    http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39397.html
+    
+v5: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35860.html
+This address the input as to support the irq_chained in GPMC.
+And resend of
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35848.html
 
->In a lot of cases drivers under drivers/* and sound/* must touch plat/*
->and mach/* headers for runtime access to hardware IP. I've just grepped
->and the list is quite long for drivers/*
+v4: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34882.html
+and resend of
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32689.html
 
-IMHO that's wrong :-p But that's only my opinion. Anyway, I'm ok with
-your decision FWIW.
+v3: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32071.html
+Rebase on latest codebase and previous patch(posted).
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31963.html
 
--- 
-balbi
+v2: Rebase on latest codebase and previous patch(posted).
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31471.html
+
+v1: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26666.html
+
+Sukumar Ghorai (7):
+  omap3630: nand: fix device size to work in polled mode
+  omap3: nand: configurable transfer type per board
+  omap: gpmc: enable irq mode in gpmc
+  omap3: nand: prefetch in irq mode support
+  omap3: nand: configurable fifo threshold to gain the throughput
+  omap3: nand: ecc layout select from board file
+  omap3: nand: making ecc layout as compatible with romcode ecc
+
+ arch/arm/mach-omap2/board-2430sdp.c        |    1 +
+ arch/arm/mach-omap2/board-3430sdp.c        |    3 +-
+ arch/arm/mach-omap2/board-3630sdp.c        |    4 +-
+ arch/arm/mach-omap2/board-4430sdp.c        |    2 +
+ arch/arm/mach-omap2/board-am3517evm.c      |    2 +
+ arch/arm/mach-omap2/board-apollon.c        |    1 +
+ arch/arm/mach-omap2/board-cm-t35.c         |    1 +
+ arch/arm/mach-omap2/board-devkit8000.c     |    1 +
+ arch/arm/mach-omap2/board-flash.c          |   13 +-
+ arch/arm/mach-omap2/board-flash.h          |    4 +-
+ arch/arm/mach-omap2/board-generic.c        |    2 +
+ arch/arm/mach-omap2/board-h4.c             |    1 +
+ arch/arm/mach-omap2/board-igep0020.c       |    1 +
+ arch/arm/mach-omap2/board-ldp.c            |    3 +-
+ arch/arm/mach-omap2/board-n8x0.c           |    2 +
+ arch/arm/mach-omap2/board-omap3beagle.c    |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c       |    2 +
+ arch/arm/mach-omap2/board-omap3pandora.c   |    2 +
+ arch/arm/mach-omap2/board-omap3stalker.c   |    1 +
+ arch/arm/mach-omap2/board-omap3touchbook.c |    1 +
+ arch/arm/mach-omap2/board-omap4panda.c     |    2 +
+ arch/arm/mach-omap2/board-overo.c          |    1 +
+ arch/arm/mach-omap2/board-rx51.c           |    1 +
+ arch/arm/mach-omap2/board-zoom2.c          |    7 +-
+ arch/arm/mach-omap2/board-zoom3.c          |    7 +-
+ arch/arm/mach-omap2/gpmc-nand.c            |    7 +-
+ arch/arm/mach-omap2/gpmc.c                 |   50 ++++-
+ arch/arm/mach-omap2/io.c                   |    2 -
+ arch/arm/plat-omap/include/plat/gpmc.h     |   17 ++-
+ arch/arm/plat-omap/include/plat/irqs.h     |    9 +-
+ arch/arm/plat-omap/include/plat/nand.h     |   11 +
+ drivers/mtd/nand/Kconfig                   |   17 --
+ drivers/mtd/nand/omap2.c                   |  336 +++++++++++++++++++++-------
+ 33 files changed, 396 insertions(+), 119 deletions(-)
+
