@@ -1,141 +1,156 @@
-From: "Lambert, David" <dlambert@ti.com>
-Subject: Re: [PATCH 3/5] ASoC: DMIC: Adding OMAP DMIC driver to build
-Date: Tue, 28 Dec 2010 20:21:25 -0600
-Message-ID: <AANLkTimRCcBi=FE4h3Daa=zMdmXATLPqM48KNRN8x159@mail.gmail.com>
-References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
- <1293509826-23253-4-git-send-email-dlambert@ti.com> <20101228114000.GD31292@opensource.wolfsonmicro.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v6 1/1] OMAP2: Spi: Force CS to be in inactive state
+ after off-mode transition
+Date: Wed, 29 Dec 2010 00:28:00 -0700
+Message-ID: <20101229072800.GF8172@angua.secretlab.ca>
+References: <4D149045.8080801@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:52851 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751428Ab0L2CVq convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Dec 2010 21:21:46 -0500
-Received: by yxl31 with SMTP id 31so5089963yxl.4
-        for <linux-omap@vger.kernel.org>; Tue, 28 Dec 2010 18:21:45 -0800 (PST)
-In-Reply-To: <20101228114000.GD31292@opensource.wolfsonmicro.com>
+Received: from mail-iw0-f194.google.com ([209.85.214.194]:45766 "EHLO
+	mail-iw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750920Ab0L2H2E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Dec 2010 02:28:04 -0500
+Received: by iwn42 with SMTP id 42so5395004iwn.1
+        for <linux-omap@vger.kernel.org>; Tue, 28 Dec 2010 23:28:03 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <4D149045.8080801@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+To: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, spi-devel-general <spi-devel-general@lists.sourceforge.net>, David Brownell <dbrownell@users.sourceforge.net>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Tue, Dec 28, 2010 at 5:40 AM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Mon, Dec 27, 2010 at 10:17:04PM -0600, David Lambert wrote:
->> Adds the OMAP DMIC driver and codec to the build.
->>
->> Signed-off-by: David Lambert <dlambert@ti.com>
->> ---
->> =A0sound/soc/codecs/Kconfig =A0| =A0 =A03 +++
->> =A0sound/soc/codecs/Makefile | =A0 =A02 ++
->> =A0sound/soc/omap/Kconfig =A0 =A0| =A0 =A05 +++++
->> =A0sound/soc/omap/Makefile =A0 | =A0 =A02 ++
->
-> This should be one of the last patches in the series, but given the s=
-ort
-> of drivers you're introducing I'd expect the drivers to just directly
-> add the build system stuff in the patch.
->
+On Fri, Dec 24, 2010 at 01:21:25PM +0100, Gregory CLEMENT wrote:
+> When SPI wake up from OFF mode, CS is in the wrong state: force it to the inactive state.
+> 
+> During the system life, I monitored the CS behavior using a oscilloscope.
+> I also activated debug in omap2_mcspi, so I saw when driver disable the clocks and restore context when device is not used.
+> Each time the CS was in the correct state.
+> It was only when system was put suspend to ram with off-mode activated that on resume the CS was in wrong state( ie activated).
+> 
+> Changelog:
+> * Change from v1 to v2:
+> Rebase on linus/master (after 2.6.37-rc1)
+> Do some clean-up and fix indentation on both patches
+> Add more explanations for patch 2
+> 
+> * Change from v2 to v3:
+> Use directly resume function of spi_master instead of using function
+> from spi_device as Grant Likely pointed it out.
+> Force this transition explicitly for each CS used by a device.
+> 
+> * Change from v3 to v4:
+> Patch clean-up according to Kevin Hilman and checkpatch.
+> Now force CS to be in inactive state only if it was inactive when it was
+> suspended.
+> 
+> * Change from v4 to v5:
+> Rebase on linus/master (after 2.6.37-rc3)
+> Collapse some lines as pointed by Grant Likely
+> Fix a spelling
+> 
+> * Change from v5 to v6:
+> Rebase on linus/master (after 2.6.37-rc7)
+> Use CONFIG_SUSPEND instead of CONFIG_PM
+> Didn't use legacy PM methods anymore. Instead, add a struct dev_pm_ops and add the resume method there.
+> Fix multi-line comment style
+> 
+> Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
 
-OK... I can put the makefile and kconfig changes in with the DMIC drive=
-r and the
-DMIC codec.
+Hi Gregory,
 
->> =A04 files changed, 12 insertions(+), 0 deletions(-)
->>
->> diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
->> index 0f33db2..f6c6d31 100644
->> --- a/sound/soc/codecs/Kconfig
->> +++ b/sound/soc/codecs/Kconfig
->> @@ -166,6 +166,9 @@ config SND_SOC_L3
->> =A0config SND_SOC_DA7210
->> =A0 =A0 =A0 =A0 =A0tristate
->>
->> +config SND_SOC_DMIC
->> + =A0 =A0 tristate
->> +
->> =A0config SND_SOC_MAX98088
->> =A0 =A0 =A0 =A0 tristate
->>
->> diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
->> index 10e5e09..9139cf9 100644
->> --- a/sound/soc/codecs/Makefile
->> +++ b/sound/soc/codecs/Makefile
->> @@ -14,6 +14,7 @@ snd-soc-cs42l51-objs :=3D cs42l51.o
->> =A0snd-soc-cs4270-objs :=3D cs4270.o
->> =A0snd-soc-cx20442-objs :=3D cx20442.o
->> =A0snd-soc-da7210-objs :=3D da7210.o
->> +snd-soc-dmic-objs :=3D dmic.o
->> =A0snd-soc-l3-objs :=3D l3.o
->> =A0snd-soc-max98088-objs :=3D max98088.o
->> =A0snd-soc-pcm3008-objs :=3D pcm3008.o
->> @@ -91,6 +92,7 @@ obj-$(CONFIG_SND_SOC_CS42L51) =A0 =A0 =A0 +=3D snd=
--soc-cs42l51.o
->> =A0obj-$(CONFIG_SND_SOC_CS4270) +=3D snd-soc-cs4270.o
->> =A0obj-$(CONFIG_SND_SOC_CX20442) =A0 =A0 =A0 =A0+=3D snd-soc-cx20442=
-=2Eo
->> =A0obj-$(CONFIG_SND_SOC_DA7210) +=3D snd-soc-da7210.o
->> +obj-$(CONFIG_SND_SOC_DMIC) =A0 +=3D snd-soc-dmic.o
->> =A0obj-$(CONFIG_SND_SOC_L3) =A0 =A0 +=3D snd-soc-l3.o
->> =A0obj-$(CONFIG_SND_SOC_JZ4740_CODEC) =A0 +=3D snd-soc-jz4740-codec.=
-o
->> =A0obj-$(CONFIG_SND_SOC_MAX98088) =A0 =A0 =A0 +=3D snd-soc-max98088.=
-o
->> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
->> index a088db6..548b13c 100644
->> --- a/sound/soc/omap/Kconfig
->> +++ b/sound/soc/omap/Kconfig
->> @@ -9,6 +9,9 @@ config SND_OMAP_SOC_MCBSP
->> =A0config SND_OMAP_SOC_MCPDM
->> =A0 =A0 =A0 tristate
->>
->> +config SND_OMAP_SOC_DMIC
->> + =A0 =A0 tristate
->> +
->> =A0config SND_OMAP_SOC_N810
->> =A0 =A0 =A0 tristate "SoC Audio support for Nokia N810"
->> =A0 =A0 =A0 depends on SND_OMAP_SOC && MACH_NOKIA_N810 && I2C
->> @@ -103,6 +106,8 @@ config SND_OMAP_SOC_SDP4430
->> =A0 =A0 =A0 depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_443=
-0SDP
->> =A0 =A0 =A0 select SND_OMAP_SOC_MCPDM
->> =A0 =A0 =A0 select SND_SOC_TWL6040
->> + =A0 =A0 select SND_SOC_DMIC
->> + =A0 =A0 select SND_OMAP_SOC_DMIC
->> =A0 =A0 =A0 help
->> =A0 =A0 =A0 =A0 Say Y if you want to add support for SoC audio on Te=
-xas Instruments
->> =A0 =A0 =A0 =A0 SDP4430.
->> diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
->> index ba9fc65..6ff27f5 100644
->> --- a/sound/soc/omap/Makefile
->> +++ b/sound/soc/omap/Makefile
->> @@ -1,9 +1,11 @@
->> =A0# OMAP Platform Support
->> =A0snd-soc-omap-objs :=3D omap-pcm.o
->> +snd-soc-omap-dmic-objs :=3D omap-dmic.o
->> =A0snd-soc-omap-mcbsp-objs :=3D omap-mcbsp.o
->> =A0snd-soc-omap-mcpdm-objs :=3D omap-mcpdm.o mcpdm.o
->>
->> =A0obj-$(CONFIG_SND_OMAP_SOC) +=3D snd-soc-omap.o
->> +obj-$(CONFIG_SND_OMAP_SOC_DMIC) +=3D snd-soc-omap-dmic.o
->> =A0obj-$(CONFIG_SND_OMAP_SOC_MCBSP) +=3D snd-soc-omap-mcbsp.o
->> =A0obj-$(CONFIG_SND_OMAP_SOC_MCPDM) +=3D snd-soc-omap-mcpdm.o
->>
->> --
->> 1.7.0.4
->>
->
+Patch does not apply, but I cannot immediately isolate the damage.
+Please see if you can figure out the issue on your end.  Is it your
+mailer?  I could fudge it, but in the long run it is better if this
+issue can get sorted out now.
 
+Also, a few other minor nitpicks (I won't reject a patch over these,
+but it helps to have them right):
 
---
-David Lambert
-OMAP=99 Multimedia
-214-567-5692
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please prefix spi patch names with "spi[/driver]:".  It is the format
+for all spi patches I take through my tree, and if it already follows
+that convention, then I don't need to edit it manually.
+
+Second, please keep the line length in the patch description short; in
+general I find that a textwidth limit of 70 characters is about right
+for the purpose of reading/replying in email.  A lot of maintainers
+use text email clients like mutt in 80 column terminal windows.
+Keeping a reasonable right hand margin in the text body is simply
+friendly.
+
+Finally, in changelogs it is easier to read if there is some kind of
+itemization ticks.  For example:
+
+* Change from v5 to v6:
+  - Rebase on linus/master (after 2.6.37-rc7)
+  - Use CONFIG_SUSPEND instead of CONFIG_PM
+  - Didn't use legacy PM methods anymore. Instead, add a struct
+    dev_pm_ops and add the resume method there.
+  - Fix multi-line comment style
+ 
+g.
+
+> ---
+>  drivers/spi/omap2_mcspi.c |   40 ++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 40 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+> index 2a651e6..a17ea97 100644
+> --- a/drivers/spi/omap2_mcspi.c
+> +++ b/drivers/spi/omap2_mcspi.c
+> @@ -1305,10 +1305,50 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
+>  /* work with hotplug and coldplug */
+>  MODULE_ALIAS("platform:omap2_mcspi");
+>  +#ifdef	CONFIG_SUSPEND
+> +/*
+> + * When SPI wake up from off-mode, CS is in activate state. If it was in
+> + * unactive state when driver was suspend, then force it to unactive state at
+> + * wake up.
+> + */
+> +static int omap2_mcspi_resume(struct device *dev)
+> +{
+> +	struct spi_master	*master = dev_get_drvdata(dev);
+> +	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
+> +	struct omap2_mcspi_cs *cs;
+> +
+> +	omap2_mcspi_enable_clocks(mcspi);
+> +	list_for_each_entry(cs, &omap2_mcspi_ctx[master->bus_num - 1].cs,
+> +			    node) {
+> +		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
+> +
+> +			/*
+> +			 * We need to toggle CS state for OMAP take this
+> +			 * change in account.
+> +			 */
+> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 1);
+> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
+> +			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 0);
+> +			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
+> +		}
+> +	}
+> +	omap2_mcspi_disable_clocks(mcspi);
+> +	return 0;
+> +}
+> +#else
+> +#define	omap2_mcspi_resume	NULL
+> +#endif
+> +
+> +static const struct dev_pm_ops omap2_mcspi_pm_ops = {
+> +	.resume = omap2_mcspi_resume,
+> +};
+> +
+>  static struct platform_driver omap2_mcspi_driver = {
+>  	.driver = {
+>  		.name =		"omap2_mcspi",
+>  		.owner =	THIS_MODULE,
+> +		.pm =		&omap2_mcspi_pm_ops
+> +
+
+Drop the extra line.
+
+>  	},
+>  	.remove =	__exit_p(omap2_mcspi_remove),
+>  };
+> -- 
+> 1.7.0.4
+> 
