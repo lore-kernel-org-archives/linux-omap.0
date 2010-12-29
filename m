@@ -1,244 +1,75 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/5] ASoC: DMIC: Adding the OMAP DMIC driver
-Date: Wed, 29 Dec 2010 11:47:38 +0200
-Message-ID: <20101229094738.GA2254@legolas.emea.dhcp.ti.com>
-References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
- <1293509826-23253-2-git-send-email-dlambert@ti.com>
- <20101228111424.GB2239@legolas.emea.dhcp.ti.com>
- <AANLkTi=6iWz0jdakBBgw2OEOjADvS2YmCN0ebKODQ7Ke@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v2] staging: tidspbridge: protect dmm_map properly
+Date: Wed, 29 Dec 2010 11:51:34 +0200
+Message-ID: <AANLkTim6kkxV8Bts=CNQqWmCgT+NUi4YoxZYPGCX7ttD@mail.gmail.com>
+References: <1292870624-25450-1-git-send-email-felipe.contreras@nokia.com>
+ <AANLkTikisHaAMZphRJVYdcokVbaZXVF9COrwkdGTDg__@mail.gmail.com>
+ <AANLkTi=9AL3aWUsMeih+Gb-sMov=MgBZ1eTp8wb=q1hZ@mail.gmail.com>
+ <AANLkTinX8t=3b48e2sxPU-V_G-nGm_1DyEg6B-CeqXDa@mail.gmail.com>
+ <1293452486-notmuch-felipe.contreras@nokia.com> <AANLkTinz0HuhGB_WzTQbK8XkfkGALjtg928WdOUYsySf@mail.gmail.com>
+ <AANLkTimCB5g29gzWFzaFU1N8+doROTpWaXy18VU5AJyH@mail.gmail.com>
+ <AANLkTi=xmxkWnhuYcjtDNDHgep_2EztfGXDv+winW2Y5@mail.gmail.com>
+ <AANLkTiksjHKjKQ+mWE=Zf0+967_E46V3+RURcMC-s5cD@mail.gmail.com>
+ <AANLkTi=X=Av0SaqphXUfiXMNX_tD8OF1CWes34keZ8O1@mail.gmail.com> <AANLkTin3A__2OU+N-tQYJ_xOMz7-GXwia1yw10nzpU3V@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:35870 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750837Ab0L2Jro (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Dec 2010 04:47:44 -0500
-Received: by eye27 with SMTP id 27so5483010eye.33
-        for <linux-omap@vger.kernel.org>; Wed, 29 Dec 2010 01:47:42 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=6iWz0jdakBBgw2OEOjADvS2YmCN0ebKODQ7Ke@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTin3A__2OU+N-tQYJ_xOMz7-GXwia1yw10nzpU3V@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, greg@kroah.com, omar.ramirez@ti.com, fernando.lugo@ti.com, nm@ti.com, ameya.palande@nokia.com, h-kanigeri2@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: "Lambert, David" <dlambert@ti.com>
-Cc: balbi@ti.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
-
-On Tue, Dec 28, 2010 at 07:13:58PM -0600, Lambert, David wrote:
->> one blank line only. BTW, are these used anywwhere outside the dmic.=
-c
->> driver ? If not, it's better to move the definitions there.
+On Wed, Dec 29, 2010 at 11:42 AM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> On Tue, Dec 28, 2010 at 4:48 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+>> On Tue, Dec 28, 2010 at 2:12 PM, Felipe Contreras
+>> <felipe.contreras@gmail.com> wrote:
+>>> On Tue, Dec 28, 2010 at 12:56 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+>>>> I still don't know how exactly you triggered the bug: is gst-dsp
+>>>> multithreaded ? and one of its threads invoked proc_un_map() while
+>>>> another thread called proc_begin_dma() ?
+>>>
+>>> I haven't investigated why that happens
 >>
+>> Btw, I still think you should look into this.
+>>
+>> The kernel panic will be solved, but you may still have a race there
+>> that can lead to data corruption: if proc_un_map will be fast enough,
+>> it will acquire the proc_lock mutex before proc_begin_dma(), and then
+>> you will miss a cache operation.
 >
->They were originally in the omap-dmic.h header, but it was suggested
->that we move
->them to a platform header so that the driver could be more
->architecture independent
->and we could put the platform specific details here.  I'm OK putting
->them just about
->anywhere, as long as we have consensus.
+> Aquiring the lock is the first thing done; if proc_un_map() aquires
+> the lock first, it's because it was run first
 
-The thing I don't like about putting register definitions under
-<plat/*.h> is that it creates the need for making the driver "depends o=
-n
-ARCH_OMAP" because it's the only architecture which has that file. If
-you put under <linux/*> or directly on the .c source file, you can have
-a much needed compile test with several architectures.
+Not true.
 
-Even though the driver will never work with those other archs, compile
-testing with several of them isn't bad at all.
+Again, we have two threads:
 
->>> +#ifdef DEBUG
->>> +static void omap_dmic_reg_dump(struct omap_dmic *dmic)
->>> +{
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "***********************\n");
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_IRQSTATUS_RAW: =A00x%04=
-x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_IRQSTA=
-TUS_RAW));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_IRQSTATUS: =A00x%04x\n"=
-,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_IRQSTA=
-TUS));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_IRQENABLE_SET: =A00x%04=
-x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_IRQENA=
-BLE_SET));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_IRQENABLE_CLR: =A00x%04=
-x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_IRQENA=
-BLE_CLR));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_IRQWAKE_EN: =A00x%04x\n=
-",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_IRQWAK=
-E_EN));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_DMAENABLE_SET: =A00x%04=
-x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_DMAENA=
-BLE_SET));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_DMAENABLE_CLR: =A00x%04=
-x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_DMAENA=
-BLE_CLR));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_DMAWAKEEN: =A00x%04x\n"=
-,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_DMAWAK=
-EEN));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_CTRL: =A00x%04x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_CTRL))=
-;
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_DATA: =A00x%04x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_DATA))=
-;
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_CTRL: =A00x%04x\n"=
-,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_FIFO_C=
-TRL));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC1R_DATA: =A00x=
-%08x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_FIFO_D=
-MIC1R_DATA));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC1L_DATA: =A00x=
-%08x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_FIFO_D=
-MIC1L_DATA));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC2R_DATA: =A00x=
-%08x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_FIFO_D=
-MIC2R_DATA));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC2L_DATA: =A00x=
-%08x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_FIFO_D=
-MIC2L_DATA));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC3R_DATA: =A00x=
-%08x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_FIFO_D=
-MIC3R_DATA));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "OMAP_DMIC_FIFO_DMIC3L_DATA: =A00x=
-%08x\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dmic_read(dmic, OMAP_DMIC_FIFO_D=
-MIC3L_DATA));
->>> + =A0 =A0 =A0 dev_dbg(dmic->dev, "***********************\n");
->>> +}
->>> +#else
->>> +static void omap_dmic_reg_dump(struct omap_dmic *dmic) {}
->>> +#endif
->>
->> Would be better to make a debugfs layer ??
+T1 - called proc_begin_dma()
+
+T2 - called proc_un_map()
+
+Let's say T1 called proc_begin_dma() first, but it still didn't
+acquire the lock.
+
+At this point the scheduler let T2 run. It calls proc_un_map() and
+acquire the lock, and free all map_obj's.
+
+Then the scheduler let T1 continue to execute, but it can't find any
+map_obj, and the required cache operation is not performed.
+
+Of course the kernel has nothing to do with this, and don't care really.
+
+That's why I said it's a user space race - you need to make sure T2
+will not call proc_un_map() before T1 (or any other thread you have)
+completed executing all DMA operations (that you care about).
+
+>, and thus a problem for
+> user-space. If user-space wants the cache operation, it must run
+> proc_begin_dma() first, there's nothing kernel-space can do to fix
+> that.
 >
->I'll look in to what it would take to do this.  Could this be a
->feature to add later?
-
-It could, but this omap_dmic_reg_dump() really doesn't look nice. And
-you even have a #undef DEBUG on the top of the file, which will require
-code change to actually make this one work.
-
->>> +static irqreturn_t omap_dmic_irq_handler(int irq, void *dev_id)
->>> +{
->>> + =A0 =A0 =A0 struct omap_dmic *dmic =3D dev_id;
->>> + =A0 =A0 =A0 u32 irq_status;
->>> +
->>> + =A0 =A0 =A0 irq_status =3D omap_dmic_read(dmic, OMAP_DMIC_IRQSTAT=
-US);
->>> +
->>> + =A0 =A0 =A0 /* Acknowledge irq event */
->>> + =A0 =A0 =A0 omap_dmic_write(dmic, OMAP_DMIC_IRQSTATUS, irq_status=
-);
->>> + =A0 =A0 =A0 if (irq_status & OMAP_DMIC_IRQ_FULL)
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(dmic->dev, "DMIC FIFO error %=
-x\n", irq_status);
->>> +
->>> + =A0 =A0 =A0 if (irq_status & OMAP_DMIC_IRQ_EMPTY)
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(dmic->dev, "DMIC FIFO error %=
-x\n", irq_status);
->>> +
->>> + =A0 =A0 =A0 if (irq_status & OMAP_DMIC_IRQ)
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(dmic->dev, "DMIC write reques=
-t\n");
->>
->> no locking needed ??
->>
->>> +static int omap_dmic_dai_startup(struct snd_pcm_substream *substre=
-am,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 s=
-truct snd_soc_dai *dai)
->>> +{
->>> + =A0 =A0 =A0 struct omap_dmic *dmic =3D snd_soc_dai_get_drvdata(da=
-i);
->>> +
->>> + =A0 =A0 =A0 if (!dmic->active++)
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(dmic->dev);
->>> +
->>> + =A0 =A0 =A0 return 0;
->>> +}
->>> +
->>> +static void omap_dmic_dai_shutdown(struct snd_pcm_substream *subst=
-ream,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- struct snd_soc_dai *dai)
->>> +{
->>> + =A0 =A0 =A0 struct omap_dmic *dmic =3D snd_soc_dai_get_drvdata(da=
-i);
->>> +
->>> + =A0 =A0 =A0 if (!--dmic->active)
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(dmic->dev);
->>
->> I could be wrong but I believe pm_runtime implementation on OMAP has
->> its own refcounting, so you could drop the need for dmic->active.
+> --
+> Felipe Contreras
 >
->This was a included for a future use case where the driver would be
->accessed by the
->Audio Back End.  In this case, there are multiple DAI's associated to
->this driver and
->we need to keep track of the number of active DAI's and only cal
->pm_runtime_put_sync()
->when there are no others running.
-
-Isn't it the same thing ?
-
-DAI 0 -> omap_dmic_dai_startup() -> pm_runtime_get_sync() ->
-dev->power.usage_count =3D 1
-
-DAI 1 -> omap_dmic_dai_startup() -> pm_runtime_get_sync() ->
-dev->power.usage_count =3D 2
-
-DAI 2 -> omap_dmic_dai_startup() -> pm_runtime_get_sync() ->
-dev->power.usage_count =3D 3
-
-DAI 0 -> omap_dmic_dai_shutdown() -> pm_runtime_put_sync() ->
-dev->power.usage_count =3D 2
-
-and so on. Device will only be put in suspend again, when
-dev->power.usage_count reaches zero.
-
->>> + =A0 =A0 =A0 ret =3D request_threaded_irq(dmic->irq, NULL, omap_dm=
-ic_irq_handler,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-IRQF_ONESHOT, "DMIC", (void *)dmic);
->>
->> Does this need to be threaded ? Doesn't look like. Also, you don't n=
-eed
->> the (void *) cast.
->
->This was originally not a threaded IRQ handler.  But in an internal
->review, it was
->suggested that this was the current trend in drivers and I should
->follow that course.
->I'm open to having it non-threaded.
-
-Ok, no problem. But in this case you should have a non-threaded part
-which will read the IRQ status register to verify we *do* have an IRQ
-from this device and only in such case you will wake up the thread by
-returning IRQ_WAKE_THREAD.
-
---=20
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
