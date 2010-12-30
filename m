@@ -1,29 +1,31 @@
-From: Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] musb: am35x: fix compile error due to control apis
-Date: Thu, 30 Dec 2010 02:44:40 -0500
-Message-ID: <877heriu1j.fsf@gmail.com>
-References: <1291399965-19623-1-git-send-email-ajay.gupta@ti.com> <87hbe41kbd.fsf@gmail.com> <20101227092038.GB2301@legolas.emea.dhcp.ti.com>
+From: UT Cedar City Family Services Agency
+	<FAM-UT-CedarCity@ldsfamilyservices.org>
+Subject: Claim is Free, (contact Email: beeline@diploma.com)
+Date: Thu, 30 Dec 2010 01:29:11 -0700
+Message-ID: <8D9439B99D5CEF47AB96C3ED0F585015827B82079F@MBX04.ldschurch.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101227092038.GB2301-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail5.gmhwh.org ([216.49.178.95]:45790 "EHLO mail5.gmhwh.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752263Ab0L3Iio convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Dec 2010 03:38:44 -0500
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 27 Dec 2010 11:20:38 +0200, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> On Thu, Dec 23, 2010 at 12:16:22PM -0500, Ben Gamari wrote:
-> >Is this change slated to go into 2.6.37? As it stands it looks like
-> >2.6.37 will be released with completely broken musb support on many boards
-> >(including the BeagleBoard).
-> 
-> yes, it is.
-> 
-Are you sure? We are currently at -rc8 and yet this patch has yet to
-make it into my tree.
 
-- Ben
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+Dear Winner,
+  We have been notified to let you know about your claim of 250,000GBP. You are to reconfirmed your personal information to us immediately for further action.
+Full Name: ,Contact Address:, Phone Number:,Age:, Sex:, Country:
+contact Email: beeline@diploma.com
+Bee Line Services
+Joan Ekblad
+
+
+ NOTICE: This email message is for the sole use of the intended recipient(s) and may contain confidential and privileged information. Any unauthorized review, use, disclosure or distribution is prohibited. If you are not the intended recipient, please contact the sender by reply email and destroy all copies of the original message.
+
+
