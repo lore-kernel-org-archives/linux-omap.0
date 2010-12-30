@@ -1,342 +1,63 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 7/7 v2] OMAP: runtime: McSPI driver runtime conversion
-Date: Thu, 30 Dec 2010 12:29:57 -0700
-Message-ID: <20101230192957.GD2713@angua.secretlab.ca>
-References: <33542.10.24.255.18.1291212131.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [QUESTION] what's the problem with CBUS ?
+Date: Thu, 30 Dec 2010 12:53:31 -0800
+Message-ID: <20101230205331.GF7771@atomide.com>
+References: <20101227171309.GA2235@legolas.emea.dhcp.ti.com>
+ <20101227171815.GB2235@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:58037 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754770Ab0L3TaD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Dec 2010 14:30:03 -0500
-Received: by gxk9 with SMTP id 9so1857728gxk.19
-        for <linux-omap@vger.kernel.org>; Thu, 30 Dec 2010 11:30:01 -0800 (PST)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47871 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755249Ab0L3Uxz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Dec 2010 15:53:55 -0500
 Content-Disposition: inline
-In-Reply-To: <33542.10.24.255.18.1291212131.squirrel@dbdmail.itg.ti.com>
+In-Reply-To: <20101227171815.GB2235@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>, khilman@deeprootsystems.com, tony@atomide.com, p-basak2@ti.com
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Wed, Dec 01, 2010 at 07:32:11PM +0530, Govindraj.R wrote:
-> McSPI runtime conversion.
-> Changes involves:
-> 1) remove clock framework apis to use runtime framework apis.
-> 2) context restore from runtime resume which is a callback for get_sync.
-> 3) Remove SYSCONFIG(sysc) register handling
->         (a) Remove context save and restore of sysc reg and remove soft reset
->             done from sysc reg as this will be done with hwmod framework.
->         (b) Also cleanup sysc reg bit macros.
-> 4) Rename the omap2_mcspi_reset function to omap2_mcspi_master_setup
->    function as with hwmod changes soft reset will be done in
->    hwmod framework itself and use the return value from clock
->    enable function to return for failure scenarios.
-> 
-> Signed-off-by: Charulatha V <charu@ti.com>
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> Reviewed-by: Partha Basak <p-basak2@ti.com>
+Hi,
 
-One comment below, but otherwise looks good to me.  Since the majority
-of the changes are in arch/arm, feel free to add my Acked-by for the
-whole series and merge via the omap tree.  None of my comments are
-showstoppers, so I'm even fine with merging them as-is as long as
-followup patches are posted to address the comments.
+Sorry for the delay in responding, mostly in read-only mode this
+week :)
 
-In particular, I'd really like to see the data duplication issue from
-the first 4 patches addressed.
+* Felipe Balbi <balbi@ti.com> [101227 09:17]:
+> >
+> >What was the problem you saw with N810 which caused the need for
+> >commit fc8c2f1dba400e9a0d1d82756e0e2f52dfe2f4b6, quoted below ?
 
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Heh found it after some debugging, we need to call init_completion :)
+
+> >Also, the rtc->reset_occured flag seems to be quite useless as it's
+> >never read, only written.
+
+Yeah looks like that can be removed.
+
+Reverted the earlier if 0 hack and pushed the following patch
+to the cbus branch.
+
+Regards,
+
+Tony
 
 
-> ---
->  drivers/spi/omap2_mcspi.c |  120 +++++++++++++++++---------------------------
->  1 files changed, 46 insertions(+), 74 deletions(-)
-> 
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index ad3811e..a1b157f 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -33,6 +33,7 @@
->  #include <linux/clk.h>
->  #include <linux/io.h>
->  #include <linux/slab.h>
-> +#include <linux/pm_runtime.h>
-> 
->  #include <linux/spi/spi.h>
-> 
-> @@ -46,7 +47,6 @@
->  #define OMAP2_MCSPI_MAX_CTRL 		4
-> 
->  #define OMAP2_MCSPI_REVISION		0x00
-> -#define OMAP2_MCSPI_SYSCONFIG		0x10
->  #define OMAP2_MCSPI_SYSSTATUS		0x14
->  #define OMAP2_MCSPI_IRQSTATUS		0x18
->  #define OMAP2_MCSPI_IRQENABLE		0x1c
-> @@ -63,13 +63,6 @@
-> 
->  /* per-register bitmasks: */
-> 
-> -#define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	BIT(4)
-> -#define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	BIT(2)
-> -#define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	BIT(0)
-> -#define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	BIT(1)
-> -
-> -#define OMAP2_MCSPI_SYSSTATUS_RESETDONE	BIT(0)
-> -
->  #define OMAP2_MCSPI_MODULCTRL_SINGLE	BIT(0)
->  #define OMAP2_MCSPI_MODULCTRL_MS	BIT(2)
->  #define OMAP2_MCSPI_MODULCTRL_STEST	BIT(3)
-> @@ -122,13 +115,12 @@ struct omap2_mcspi {
->  	spinlock_t		lock;
->  	struct list_head	msg_queue;
->  	struct spi_master	*master;
-> -	struct clk		*ick;
-> -	struct clk		*fck;
->  	/* Virtual base address of the controller */
->  	void __iomem		*base;
->  	unsigned long		phys;
->  	/* SPI1 has 4 channels, while SPI2 has 2 */
->  	struct omap2_mcspi_dma	*dma_channels;
-> +	struct  device          *dev;
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 30 Dec 2010 12:47:00 -0800
+Subject: [PATCH] cbus: Fix retu_rtc_do_reset
 
-Inconsistent indentation with the rest of the structure (tabs vs. spaces).
+We need to also call init_completion before using it.
 
->  };
-> 
->  struct omap2_mcspi_cs {
-> @@ -144,7 +136,6 @@ struct omap2_mcspi_cs {
->   * corresponding registers are modified.
->   */
->  struct omap2_mcspi_regs {
-> -	u32 sysconfig;
->  	u32 modulctrl;
->  	u32 wakeupenable;
->  	struct list_head cs;
-> @@ -268,9 +259,6 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
->  	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
->  			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
-> 
-> -	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
-> -			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
-> -
->  	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
->  			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
-> 
-> @@ -280,20 +268,12 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
->  }
->  static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
->  {
-> -	clk_disable(mcspi->ick);
-> -	clk_disable(mcspi->fck);
-> +	pm_runtime_put_sync(mcspi->dev);
->  }
-> 
->  static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
->  {
-> -	if (clk_enable(mcspi->ick))
-> -		return -ENODEV;
-> -	if (clk_enable(mcspi->fck))
-> -		return -ENODEV;
-> -
-> -	omap2_mcspi_restore_ctx(mcspi);
-> -
-> -	return 0;
-> +	return pm_runtime_get_sync(mcspi->dev);
->  }
-> 
->  static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit)
-> @@ -819,8 +799,9 @@ static int omap2_mcspi_setup(struct spi_device *spi)
->  			return ret;
->  	}
-> 
-> -	if (omap2_mcspi_enable_clocks(mcspi))
-> -		return -ENODEV;
-> +	ret = omap2_mcspi_enable_clocks(mcspi);
-> +	if (ret < 0)
-> +		return ret;
-> 
->  	ret = omap2_mcspi_setup_transfer(spi, NULL);
->  	omap2_mcspi_disable_clocks(mcspi);
-> @@ -863,10 +844,11 @@ static void omap2_mcspi_work(struct work_struct *work)
->  	struct omap2_mcspi	*mcspi;
-> 
->  	mcspi = container_of(work, struct omap2_mcspi, work);
-> -	spin_lock_irq(&mcspi->lock);
-> 
-> -	if (omap2_mcspi_enable_clocks(mcspi))
-> -		goto out;
-> +	if (omap2_mcspi_enable_clocks(mcspi) < 0)
-> +		return;
-> +
-> +	spin_lock_irq(&mcspi->lock);
-> 
->  	/* We only enable one channel at a time -- the one whose message is
->  	 * at the head of the queue -- although this controller would gladly
-> @@ -979,10 +961,9 @@ static void omap2_mcspi_work(struct work_struct *work)
->  		spin_lock_irq(&mcspi->lock);
->  	}
-> 
-> -	omap2_mcspi_disable_clocks(mcspi);
-> -
-> -out:
->  	spin_unlock_irq(&mcspi->lock);
-> +
-> +	omap2_mcspi_disable_clocks(mcspi);
->  }
-> 
->  static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
-> @@ -1063,25 +1044,15 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message
-> *m)
->  	return 0;
->  }
-> 
-> -static int __init omap2_mcspi_reset(struct omap2_mcspi *mcspi)
-> +static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
->  {
->  	struct spi_master	*master = mcspi->master;
->  	u32			tmp;
-> +	int ret = 0;
-> 
-> -	if (omap2_mcspi_enable_clocks(mcspi))
-> -		return -1;
-> -
-> -	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
-> -			OMAP2_MCSPI_SYSCONFIG_SOFTRESET);
-> -	do {
-> -		tmp = mcspi_read_reg(master, OMAP2_MCSPI_SYSSTATUS);
-> -	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
-> -
-> -	tmp = OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
-> -		OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
-> -		OMAP2_MCSPI_SYSCONFIG_SMARTIDLE;
-> -	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG, tmp);
-> -	omap2_mcspi_ctx[master->bus_num - 1].sysconfig = tmp;
-> +	ret = omap2_mcspi_enable_clocks(mcspi);
-> +	if (ret < 0)
-> +		return ret;
-> 
->  	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
->  	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
-> @@ -1092,6 +1063,18 @@ static int __init omap2_mcspi_reset(struct omap2_mcspi *mcspi)
->  	return 0;
->  }
-> 
-> +static int omap_mcspi_runtime_resume(struct device *dev)
-> +{
-> +	struct omap2_mcspi	*mcspi;
-> +	struct spi_master	*master;
-> +
-> +	master = dev_get_drvdata(dev);
-> +	mcspi = spi_master_get_devdata(master);
-> +	omap2_mcspi_restore_ctx(mcspi);
-> +
-> +	return 0;
-> +}
-> +
-> 
->  static int __init omap2_mcspi_probe(struct platform_device *pdev)
->  {
-> @@ -1142,34 +1125,22 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
->  	if (!mcspi->base) {
->  		dev_dbg(&pdev->dev, "can't ioremap MCSPI\n");
->  		status = -ENOMEM;
-> -		goto err1aa;
-> +		goto err2;
->  	}
-> 
-> +	mcspi->dev = &pdev->dev;
->  	INIT_WORK(&mcspi->work, omap2_mcspi_work);
-> 
->  	spin_lock_init(&mcspi->lock);
->  	INIT_LIST_HEAD(&mcspi->msg_queue);
->  	INIT_LIST_HEAD(&omap2_mcspi_ctx[master->bus_num - 1].cs);
-> 
-> -	mcspi->ick = clk_get(&pdev->dev, "ick");
-> -	if (IS_ERR(mcspi->ick)) {
-> -		dev_dbg(&pdev->dev, "can't get mcspi_ick\n");
-> -		status = PTR_ERR(mcspi->ick);
-> -		goto err1a;
-> -	}
-> -	mcspi->fck = clk_get(&pdev->dev, "fck");
-> -	if (IS_ERR(mcspi->fck)) {
-> -		dev_dbg(&pdev->dev, "can't get mcspi_fck\n");
-> -		status = PTR_ERR(mcspi->fck);
-> -		goto err2;
-> -	}
-> -
->  	mcspi->dma_channels = kcalloc(master->num_chipselect,
->  			sizeof(struct omap2_mcspi_dma),
->  			GFP_KERNEL);
-> 
->  	if (mcspi->dma_channels == NULL)
-> -		goto err3;
-> +		goto err2;
-> 
->  	for (i = 0; i < master->num_chipselect; i++) {
->  		char dma_ch_name[14];
-> @@ -1199,8 +1170,10 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
->  		mcspi->dma_channels[i].dma_tx_sync_dev = dma_res->start;
->  	}
-> 
-> -	if (omap2_mcspi_reset(mcspi) < 0)
-> -		goto err4;
-> +	pm_runtime_enable(&pdev->dev);
-> +
-> +	if (status || omap2_mcspi_master_setup(mcspi) < 0)
-> +		goto err3;
-> 
->  	status = spi_register_master(master);
->  	if (status < 0)
-> @@ -1209,17 +1182,13 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
->  	return status;
-> 
->  err4:
-> -	kfree(mcspi->dma_channels);
-> +	spi_master_put(master);
->  err3:
-> -	clk_put(mcspi->fck);
-> +	kfree(mcspi->dma_channels);
->  err2:
-> -	clk_put(mcspi->ick);
-> -err1a:
-> -	iounmap(mcspi->base);
-> -err1aa:
->  	release_mem_region(r->start, (r->end - r->start) + 1);
-> +	iounmap(mcspi->base);
->  err1:
-> -	spi_master_put(master);
->  	return status;
->  }
-> 
-> @@ -1235,9 +1204,7 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
->  	mcspi = spi_master_get_devdata(master);
->  	dma_channels = mcspi->dma_channels;
-> 
-> -	clk_put(mcspi->fck);
-> -	clk_put(mcspi->ick);
-> -
-> +	omap2_mcspi_disable_clocks(mcspi);
->  	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	release_mem_region(r->start, (r->end - r->start) + 1);
-> 
-> @@ -1252,10 +1219,15 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
->  /* work with hotplug and coldplug */
->  MODULE_ALIAS("platform:omap2_mcspi");
-> 
-> +static const struct dev_pm_ops omap_mcspi_dev_pm_ops = {
-> +	.runtime_resume	= omap_mcspi_runtime_resume,
-> +};
-> +
->  static struct platform_driver omap2_mcspi_driver = {
->  	.driver = {
->  		.name =		"omap2_mcspi",
->  		.owner =	THIS_MODULE,
-> +		.pm = &omap_mcspi_dev_pm_ops,
->  	},
->  	.remove =	__exit_p(omap2_mcspi_remove),
->  };
-> -- 
-> 1.7.1
-> 
-> 
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/drivers/cbus/retu-rtc.c
++++ b/drivers/cbus/retu-rtc.c
+@@ -289,6 +289,7 @@ static int __init retu_rtc_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, rtc);
+ 	INIT_WORK(&rtc->work, retu_rtca_expired);
+ 	mutex_init(&rtc->mutex);
++	init_completion(&rtc->sync);
+ 
+ 	r = retu_get_status();
+ 	if (!r) {
