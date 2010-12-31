@@ -1,63 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [QUESTION] what's the problem with CBUS ?
-Date: Thu, 30 Dec 2010 12:53:31 -0800
-Message-ID: <20101230205331.GF7771@atomide.com>
-References: <20101227171309.GA2235@legolas.emea.dhcp.ti.com>
- <20101227171815.GB2235@legolas.emea.dhcp.ti.com>
+From: "Mr. Mike Cassey" <mikecassey@o2.pl>
+Subject: =?utf-8?B?SW1wb3J0YW50IENoYXJpdHkgUHJvamVjdCBXb3JrcyBGb3IgVGhlIE5ldyA=?=
+ =?utf-8?B?WWVhcuKAjw==?=
+Date: Fri, 31 Dec 2010 06:49:18 -0800
+Message-ID: <op.vok14ggu3vxtk7@user-cdcd4bc2ac>
+Reply-To: rtrd.capt.mikecassey101@qatar.io
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47871 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755249Ab0L3Uxz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Dec 2010 15:53:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20101227171815.GB2235@legolas.emea.dhcp.ti.com>
+Received: from tur.go2.pl ([193.17.41.50]:42551 "EHLO tur.go2.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752918Ab0LaFur (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 Dec 2010 00:50:47 -0500
+Received: from moh1-ve3.go2.pl (moh1-ve3.go2.pl [193.17.41.134])
+	by tur.go2.pl (o2.pl Mailer 2.0.1) with ESMTP id A7EAA2300AC
+	for <linux-omap@vger.kernel.org>; Fri, 31 Dec 2010 06:50:45 +0100 (CET)
+Received: from moh1-ve3.go2.pl (unknown [10.0.0.134])
+	by moh1-ve3.go2.pl (Postfix) with ESMTP id BE9995701F0
+	for <linux-omap@vger.kernel.org>; Fri, 31 Dec 2010 06:50:03 +0100 (CET)
+Received: from unknown (unknown [10.0.0.142])
+	by moh1-ve3.go2.pl (Postfix) with SMTP
+	for <linux-omap@vger.kernel.org>; Fri, 31 Dec 2010 06:50:03 +0100 (CET)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hi,
+Good Day,
+I seek your assistance to receive funds on my behalf for mutual business  
+benefits and use it to support less priviledge ones and charity projects  
+,well if you are interested for more details contact me on this email  
+below, for details on how you can proceed to claim the funds.
 
-Sorry for the delay in responding, mostly in read-only mode this
-week :)
+Yours
 
-* Felipe Balbi <balbi@ti.com> [101227 09:17]:
-> >
-> >What was the problem you saw with N810 which caused the need for
-> >commit fc8c2f1dba400e9a0d1d82756e0e2f52dfe2f4b6, quoted below ?
-
-Heh found it after some debugging, we need to call init_completion :)
-
-> >Also, the rtc->reset_occured flag seems to be quite useless as it's
-> >never read, only written.
-
-Yeah looks like that can be removed.
-
-Reverted the earlier if 0 hack and pushed the following patch
-to the cbus branch.
-
-Regards,
-
-Tony
-
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 30 Dec 2010 12:47:00 -0800
-Subject: [PATCH] cbus: Fix retu_rtc_do_reset
-
-We need to also call init_completion before using it.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/drivers/cbus/retu-rtc.c
-+++ b/drivers/cbus/retu-rtc.c
-@@ -289,6 +289,7 @@ static int __init retu_rtc_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, rtc);
- 	INIT_WORK(&rtc->work, retu_rtca_expired);
- 	mutex_init(&rtc->mutex);
-+	init_completion(&rtc->sync);
- 
- 	r = retu_get_status();
- 	if (!r) {
+Mike Cassey
+Email: capt.mikecassey1@live.com
