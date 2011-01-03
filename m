@@ -1,340 +1,554 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFT/PATCH 01/10] cbus: retu: give it a context structure
-Date: Mon,  3 Jan 2011 09:49:39 +0200
-Message-ID: <1294040988-21191-2-git-send-email-balbi@ti.com>
+Subject: [RFT/PATCH 02/10] cbus: retu: get rid of retu-user.c
+Date: Mon,  3 Jan 2011 09:49:40 +0200
+Message-ID: <1294040988-21191-3-git-send-email-balbi@ti.com>
 References: <1294040988-21191-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:40917 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751426Ab1ACHuC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 02:50:02 -0500
-Received: by eyg24 with SMTP id 24so5536285eyg.38
-        for <linux-omap@vger.kernel.org>; Sun, 02 Jan 2011 23:49:59 -0800 (PST)
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:58066 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751426Ab1ACHuF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 02:50:05 -0500
+Received: by eyg5 with SMTP id 5so6075786eyg.16
+        for <linux-omap@vger.kernel.org>; Sun, 02 Jan 2011 23:50:02 -0800 (PST)
 In-Reply-To: <1294040988-21191-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-This is pretty much a cleanup patch just
-adding a context structure for Retu, to avoid
-all the globals it had.
-
-Note that this breaks retu-user.c due to moving
-the lock around, but that retu-user.c has to
-go anyway as it's completely non-standard way
-of accessing Retu children.
+Drop that non-standard of accessing Retu
+as it's bypassing all the correct layers.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/cbus/retu.c |  126 ++++++++++++++++++++++++++++++++++-----------------
- drivers/cbus/retu.h |    2 -
- 2 files changed, 85 insertions(+), 43 deletions(-)
+ drivers/cbus/Kconfig     |    7 -
+ drivers/cbus/Makefile    |    1 -
+ drivers/cbus/retu-user.c |  424 ----------------------------------------------
+ drivers/cbus/retu.c      |   22 ---
+ drivers/cbus/retu.h      |    5 -
+ 5 files changed, 0 insertions(+), 459 deletions(-)
+ delete mode 100644 drivers/cbus/retu-user.c
 
+diff --git a/drivers/cbus/Kconfig b/drivers/cbus/Kconfig
+index c6b39fb..9a827a2 100644
+--- a/drivers/cbus/Kconfig
++++ b/drivers/cbus/Kconfig
+@@ -49,13 +49,6 @@ config CBUS_RETU
+ 
+ 	  If you want Retu support, you should say Y here.
+ 
+-config CBUS_RETU_USER
+-	depends on CBUS_RETU
+-	bool "Support for Retu user space functions"
+-	---help---
+-	  If you want support for Retu's user space read/write etc. functions,
+-	  you should say Y here.
+-
+ config CBUS_RETU_POWERBUTTON
+ 	depends on CBUS_RETU
+ 	bool "Support for Retu power button"
+diff --git a/drivers/cbus/Makefile b/drivers/cbus/Makefile
+index 347c2a4..0ad112f 100644
+--- a/drivers/cbus/Makefile
++++ b/drivers/cbus/Makefile
+@@ -10,5 +10,4 @@ obj-$(CONFIG_CBUS_RETU_POWERBUTTON) += retu-pwrbutton.o
+ obj-$(CONFIG_CBUS_RETU_RTC)	+= retu-rtc.o
+ obj-$(CONFIG_CBUS_RETU_WDT)	+= retu-wdt.o
+ obj-$(CONFIG_CBUS_TAHVO_USER)	+= tahvo-user.o
+-obj-$(CONFIG_CBUS_RETU_USER)	+= retu-user.o
+ obj-$(CONFIG_CBUS_RETU_HEADSET)	+= retu-headset.o
+diff --git a/drivers/cbus/retu-user.c b/drivers/cbus/retu-user.c
+deleted file mode 100644
+index c36f356..0000000
+--- a/drivers/cbus/retu-user.c
++++ /dev/null
+@@ -1,424 +0,0 @@
+-/**
+- * drivers/cbus/retu-user.c
+- *
+- * Retu user space interface functions
+- *
+- * Copyright (C) 2004, 2005 Nokia Corporation
+- *
+- * Written by Mikko Ylinen <mikko.k.ylinen@nokia.com>
+- *
+- * This file is subject to the terms and conditions of the GNU General
+- * Public License. See the file "COPYING" in the main directory of this
+- * archive for more details.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- */
+-
+-#include <linux/types.h>
+-#include <linux/kernel.h>
+-#include <linux/slab.h>
+-#include <linux/interrupt.h>
+-#include <linux/module.h>
+-#include <linux/init.h>
+-#include <linux/fs.h>
+-#include <linux/miscdevice.h>
+-#include <linux/poll.h>
+-#include <linux/list.h>
+-#include <linux/spinlock.h>
+-#include <linux/sched.h>
+-#include <linux/mutex.h>
+-
+-#include <asm/uaccess.h>
+-
+-#include "retu.h"
+-
+-#include "user_retu_tahvo.h"
+-
+-/* Maximum size of IRQ node buffer/pool */
+-#define RETU_MAX_IRQ_BUF_LEN	16
+-
+-#define PFX			"retu-user: "
+-
+-/* Bitmap for marking the interrupt sources as having the handlers */
+-static u32 retu_irq_bits;
+-
+-/* For allowing only one user process to subscribe to the retu interrupts */
+-static struct file *retu_irq_subscr = NULL;
+-
+-/* For poll and IRQ passing */
+-struct retu_irq {
+-	u32 id;
+-	struct list_head node;
+-};
+-
+-static spinlock_t retu_irqs_lock;
+-static struct retu_irq *retu_irq_block;
+-static LIST_HEAD(retu_irqs);
+-static LIST_HEAD(retu_irqs_reserve);
+-
+-/* Wait queue - used when user wants to read the device */
+-DECLARE_WAIT_QUEUE_HEAD(retu_user_waitqueue);
+-
+-/* Semaphore to protect irq subscription sequence */
+-static struct mutex retu_mutex;
+-
+-/* This array specifies RETU register types (read/write/toggle) */
+-static const u8 retu_access_bits[] = {
+-	1,
+-	4,
+-	3,
+-	3,
+-	1,
+-	3,
+-	3,
+-	0,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	4,
+-	4,
+-	3,
+-	0,
+-	0,
+-	0,
+-	0,
+-	1,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3
+-};
+-
+-/*
+- * The handler for all RETU interrupts.
+- *
+- * arg is the interrupt source in RETU.
+- */
+-static void retu_user_irq_handler(unsigned long arg)
+-{
+-	struct retu_irq *irq;
+-
+-	retu_ack_irq(arg);
+-
+-	spin_lock(&retu_irqs_lock);
+-	if (list_empty(&retu_irqs_reserve)) {
+-		spin_unlock(&retu_irqs_lock);
+-		return;
+-	}
+-	irq = list_entry((&retu_irqs_reserve)->next, struct retu_irq, node);
+-	irq->id = arg;
+-	list_move_tail(&irq->node, &retu_irqs);
+-	spin_unlock(&retu_irqs_lock);
+-
+-	/* wake up waiting thread */
+-	wake_up(&retu_user_waitqueue);
+-}
+-
+-/*
+- * This routine sets up the interrupt handler and marks an interrupt source
+- * in RETU as a candidate for signal delivery to the user process.
+- */
+-static int retu_user_subscribe_to_irq(int id, struct file *filp)
+-{
+-	int ret;
+-
+-	mutex_lock(&retu_mutex);
+-	if ((retu_irq_subscr != NULL) && (retu_irq_subscr != filp)) {
+-		mutex_unlock(&retu_mutex);
+-		return -EBUSY;
+-	}
+-	/* Store the file pointer of the first user process registering IRQs */
+-	retu_irq_subscr = filp;
+-	mutex_unlock(&retu_mutex);
+-
+-	if (retu_irq_bits & (1 << id))
+-		return 0;
+-
+-	ret = retu_request_irq(id, retu_user_irq_handler, id, "");
+-	if (ret < 0)
+-		return ret;
+-
+-	/* Mark that this interrupt has a handler */
+-	retu_irq_bits |= 1 << id;
+-
+-	return 0;
+-}
+-
+-/*
+- * Unregisters all RETU interrupt handlers.
+- */
+-static void retu_unreg_irq_handlers(void)
+-{
+-	int id;
+-
+-	if (!retu_irq_bits)
+-		return;
+-
+-	for (id = 0; id < MAX_RETU_IRQ_HANDLERS; id++)
+-		if (retu_irq_bits & (1 << id))
+-			retu_free_irq(id);
+-
+-	retu_irq_bits = 0;
+-}
+-
+-/*
+- * Write to RETU register.
+- * Returns 0 upon success, a negative error value otherwise.
+- */
+-static int retu_user_write_with_mask(u32 field, u16 value)
+-{
+-	u32 mask;
+-	u32 reg;
+-	u_short tmp;
+-	unsigned long flags;
+-
+-	mask = MASK(field);
+-	reg = REG(field);
+-
+-	/* Detect bad mask and reg */
+-	if (mask == 0 || reg > RETU_REG_MAX ||
+-	    retu_access_bits[reg] == READ_ONLY) {
+-		printk(KERN_ERR PFX "invalid arguments (reg=%#x, mask=%#x)\n",
+-		       reg, mask);
+-		return -EINVAL;
+-	}
+-
+-	/* Justify value according to mask */
+-	while (!(mask & 1)) {
+-		value = value << 1;
+-		mask = mask >> 1;
+-	}
+-
+-	spin_lock_irqsave(&retu_lock, flags);
+-	if (retu_access_bits[reg] == TOGGLE) {
+-		/* No need to detect previous content of register */
+-		tmp = 0;
+-	} else {
+-		/* Read current value of register */
+-		tmp = retu_read_reg(reg);
+-	}
+-
+-	/* Generate new value */
+-	tmp = (tmp & ~MASK(field)) | (value & MASK(field));
+-	/* Write data to RETU */
+-	retu_write_reg(reg, tmp);
+-	spin_unlock_irqrestore(&retu_lock, flags);
+-
+-	return 0;
+-}
+-
+-/*
+- * Read RETU register.
+- */
+-static u32 retu_user_read_with_mask(u32 field)
+-{
+-	u_short value;
+-	u32 mask, reg;
+-
+-	mask = MASK(field);
+-	reg = REG(field);
+-
+-	/* Detect bad mask and reg */
+-	if (mask == 0 || reg > RETU_REG_MAX) {
+-		printk(KERN_ERR PFX "invalid arguments (reg=%#x, mask=%#x)\n",
+-		       reg, mask);
+-		return -EINVAL;
+-	}
+-
+-	/* Read the register */
+-	value = retu_read_reg(reg) & mask;
+-
+-	/* Right justify value */
+-	while (!(mask & 1)) {
+-		value = value >> 1;
+-		mask = mask >> 1;
+-	}
+-
+-	return value;
+-}
+-
+-/*
+- * Close device
+- */
+-static int retu_close(struct inode *inode, struct file *filp)
+-{
+-	/* Unregister all interrupts that have been registered */
+-	if (retu_irq_subscr == filp) {
+-		retu_unreg_irq_handlers();
+-		retu_irq_subscr = NULL;
+-	}
+-
+-	return 0;
+-}
+-
+-/*
+- * Device control (ioctl)
+- */
+-static long retu_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+-{
+-	struct retu_tahvo_write_parms par;
+-	int ret;
+-
+-	switch (cmd) {
+-	case URT_IOCT_IRQ_SUBSCR:
+-		return retu_user_subscribe_to_irq(arg, filp);
+-	case RETU_IOCH_READ:
+-		return retu_user_read_with_mask(arg);
+-	case RETU_IOCX_WRITE:
+-		ret = copy_from_user(&par, (void __user *) arg, sizeof(par));
+-		if (ret)
+-			printk(KERN_ERR "copy_from_user failed: %d\n", ret);
+-		par.result = retu_user_write_with_mask(par.field, par.value);
+-		ret = copy_to_user((void __user *) arg, &par, sizeof(par));
+-		if (ret)
+-			printk(KERN_ERR "copy_to_user failed: %d\n", ret);
+-		break;
+-	case RETU_IOCH_ADC_READ:
+-		return retu_read_adc(arg);
+-	default:
+-		return -ENOIOCTLCMD;
+-	}
+-	return 0;
+-}
+-
+-/*
+- * Read from device
+- */
+-static ssize_t retu_read(struct file *filp, char *buf, size_t count,
+-			 loff_t * offp)
+-{
+-	struct retu_irq *irq;
+-
+-	u32 nr, i;
+-
+-	/* read not permitted if neither filp nor anyone has registered IRQs */
+-	if (retu_irq_subscr != filp)
+-		return -EPERM;
+-
+-	if ((count < sizeof(u32)) || ((count % sizeof(u32)) != 0))
+-		return -EINVAL;
+-
+-	nr = count / sizeof(u32);
+-
+-	for (i = 0; i < nr; i++) {
+-		unsigned long flags;
+-		u32 irq_id;
+-		int ret;
+-
+-		ret = wait_event_interruptible(retu_user_waitqueue,
+-					       !list_empty(&retu_irqs));
+-		if (ret < 0)
+-			return ret;
+-
+-		spin_lock_irqsave(&retu_irqs_lock, flags);
+-		irq = list_entry((&retu_irqs)->next, struct retu_irq, node);
+-		irq_id = irq->id;
+-		list_move(&irq->node, &retu_irqs_reserve);
+-		spin_unlock_irqrestore(&retu_irqs_lock, flags);
+-
+-		ret = copy_to_user(buf + i * sizeof(irq_id), &irq_id,
+-				   sizeof(irq_id));
+-		if (ret)
+-			printk(KERN_ERR "copy_to_user failed: %d\n", ret);
+-	}
+-
+-	return count;
+-}
+-
+-/*
+- * Poll method
+- */
+-static unsigned retu_poll(struct file *filp, struct poll_table_struct *pt)
+-{
+-	if (!list_empty(&retu_irqs))
+-		return POLLIN;
+-
+-	poll_wait(filp, &retu_user_waitqueue, pt);
+-
+-	if (!list_empty(&retu_irqs))
+-		return POLLIN;
+-	else
+-		return 0;
+-}
+-
+-static struct file_operations retu_user_fileops = {
+-	.owner = THIS_MODULE,
+-	.unlocked_ioctl = retu_ioctl,
+-	.read = retu_read,
+-	.release = retu_close,
+-	.poll = retu_poll
+-};
+-
+-static struct miscdevice retu_device = {
+-	.minor = MISC_DYNAMIC_MINOR,
+-	.name = "retu",
+-	.fops = &retu_user_fileops
+-};
+-
+-/*
+- * Initialization
+- *
+- * @return 0 if successful, error value otherwise.
+- */
+-int retu_user_init(void)
+-{
+-	struct retu_irq *irq;
+-	int res, i;
+-
+-	irq = kzalloc(sizeof(*irq) * RETU_MAX_IRQ_BUF_LEN, GFP_KERNEL);
+-	if (irq == NULL) {
+-		printk(KERN_ERR PFX "kzalloc failed\n");
+-		return -ENOMEM;
+-	}
+-
+-	for (i = 0; i < RETU_MAX_IRQ_BUF_LEN; i++)
+-		list_add(&irq[i].node, &retu_irqs_reserve);
+-
+-	retu_irq_block = irq;
+-
+-	spin_lock_init(&retu_irqs_lock);
+-	mutex_init(&retu_mutex);
+-
+-	/* Request a misc device */
+-	res = misc_register(&retu_device);
+-	if (res < 0) {
+-		printk(KERN_ERR PFX "unable to register misc device for %s\n",
+-		       retu_device.name);
+-		kfree(irq);
+-		return res;
+-	}
+-
+-	return 0;
+-}
+-
+-/*
+- * Cleanup.
+- */
+-void retu_user_cleanup(void)
+-{
+-	/* Unregister our misc device */
+-	misc_deregister(&retu_device);
+-	/* Unregister and disable all RETU interrupts used by this module */
+-	retu_unreg_irq_handlers();
+-	kfree(retu_irq_block);
+-}
+-
+-MODULE_DESCRIPTION("Retu ASIC user space functions");
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Mikko Ylinen");
 diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index a2977c9..6e130bf 100644
+index 6e130bf..39d4fa4 100644
 --- a/drivers/cbus/retu.c
 +++ b/drivers/cbus/retu.c
-@@ -26,6 +26,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
+@@ -396,10 +396,6 @@ static int retu_allocate_children(struct device *parent)
+ 	if (!child)
+ 		return -ENOMEM;
  
-+#include <linux/slab.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
- #include <linux/device.h>
-@@ -49,11 +50,18 @@
- #define RETU_ID			0x01
- #define PFX			"retu: "
+-	child = retu_allocate_child("retu-user", parent);
+-	if (!child)
+-		return -ENOMEM;
+-
+ 	child = retu_allocate_child("retu-wdt", parent);
+ 	if (!child)
+ 		return -ENOMEM;
+@@ -464,24 +460,9 @@ static int __init retu_probe(struct platform_device *pdev)
+ 	/* Register power off function */
+ 	pm_power_off = retu_power_off;
  
--static int retu_initialized;
--static int retu_is_vilma;
-+struct retu {
-+	/* Device lock */
-+	spinlock_t		lock;
-+	struct tasklet_struct	tasklet;
-+	struct device		*dev;
- 
--static struct tasklet_struct retu_tasklet;
--spinlock_t retu_lock = SPIN_LOCK_UNLOCKED;
-+	int			irq;
-+
-+	bool			is_vilma;
-+};
-+
-+static struct retu *the_retu;
- 
- struct retu_irq_handler_desc {
- 	int (*func)(unsigned long);
-@@ -65,7 +73,7 @@ static struct retu_irq_handler_desc retu_irq_handlers[MAX_RETU_IRQ_HANDLERS];
- 
- int retu_get_status(void)
- {
--	return retu_initialized;
-+	return the_retu ? 1 : 0;
- }
- EXPORT_SYMBOL(retu_get_status);
- 
-@@ -77,7 +85,7 @@ EXPORT_SYMBOL(retu_get_status);
-  */
- int retu_read_reg(unsigned reg)
- {
--	BUG_ON(!retu_initialized);
-+	BUG_ON(!the_retu);
- 	return cbus_read_reg(RETU_ID, reg);
- }
- EXPORT_SYMBOL(retu_read_reg);
-@@ -91,22 +99,23 @@ EXPORT_SYMBOL(retu_read_reg);
-  */
- void retu_write_reg(unsigned reg, u16 val)
- {
--	BUG_ON(!retu_initialized);
-+	BUG_ON(!the_retu);
- 	cbus_write_reg(RETU_ID, reg, val);
- }
- EXPORT_SYMBOL(retu_write_reg);
- 
- void retu_set_clear_reg_bits(unsigned reg, u16 set, u16 clear)
- {
--	unsigned long flags;
--	u16 w;
-+	struct retu		*retu = the_retu;
-+	unsigned long		flags;
-+	u16			w;
- 
--	spin_lock_irqsave(&retu_lock, flags);
-+	spin_lock_irqsave(&retu->lock, flags);
- 	w = retu_read_reg(reg);
- 	w &= ~clear;
- 	w |= set;
- 	retu_write_reg(reg, w);
--	spin_unlock_irqrestore(&retu_lock, flags);
-+	spin_unlock_irqrestore(&retu->lock, flags);
- }
- EXPORT_SYMBOL_GPL(retu_set_clear_reg_bits);
- 
-@@ -114,15 +123,19 @@ EXPORT_SYMBOL_GPL(retu_set_clear_reg_bits);
- 
- int retu_read_adc(int channel)
- {
--	unsigned long flags;
--	int res;
-+	struct retu		*retu = the_retu;
-+	unsigned long		flags;
-+	int			res;
-+
-+	if (!retu)
-+		return -ENODEV;
- 
- 	if (channel < 0 || channel > ADC_MAX_CHAN_NUMBER)
- 		return -EINVAL;
- 
--	spin_lock_irqsave(&retu_lock, flags);
-+	spin_lock_irqsave(&retu->lock, flags);
- 
--	if ((channel == 8) && retu_is_vilma) {
-+	if ((channel == 8) && retu->is_vilma) {
- 		int scr = retu_read_reg(RETU_REG_ADCSCR);
- 		int ch = (retu_read_reg(RETU_REG_ADCR) >> 10) & 0xf;
- 		if (((scr & 0xff) != 0) && (ch != 8))
-@@ -133,11 +146,11 @@ int retu_read_adc(int channel)
- 	retu_write_reg(RETU_REG_ADCR, channel << 10);
- 	res = retu_read_reg(RETU_REG_ADCR) & 0x3ff;
- 
--	if (retu_is_vilma)
-+	if (retu->is_vilma)
- 		retu_write_reg(RETU_REG_ADCR, (1 << 13));
- 
- 	/* Unlock retu */
--	spin_unlock_irqrestore(&retu_lock, flags);
-+	spin_unlock_irqrestore(&retu->lock, flags);
- 
- 	return res;
- }
-@@ -164,15 +177,16 @@ static u16 retu_disable_bogus_irqs(u16 mask)
-  */
- void retu_disable_irq(int id)
- {
--	unsigned long flags;
--	u16 mask;
-+	struct retu		*retu = the_retu;
-+	unsigned long		flags;
-+	u16			mask;
- 
--	spin_lock_irqsave(&retu_lock, flags);
-+	spin_lock_irqsave(&retu->lock, flags);
- 	mask = retu_read_reg(RETU_REG_IMR);
- 	mask |= 1 << id;
- 	mask = retu_disable_bogus_irqs(mask);
- 	retu_write_reg(RETU_REG_IMR, mask);
--	spin_unlock_irqrestore(&retu_lock, flags);
-+	spin_unlock_irqrestore(&retu->lock, flags);
- }
- EXPORT_SYMBOL(retu_disable_irq);
- 
-@@ -181,19 +195,21 @@ EXPORT_SYMBOL(retu_disable_irq);
-  */
- void retu_enable_irq(int id)
- {
--	unsigned long flags;
--	u16 mask;
-+	struct retu		*retu = the_retu;
-+	unsigned long		flags;
-+	u16			mask;
- 
- 	if (id == 3) {
- 		printk("Enabling Retu IRQ %d\n", id);
- 		dump_stack();
- 	}
--	spin_lock_irqsave(&retu_lock, flags);
-+
-+	spin_lock_irqsave(&retu->lock, flags);
- 	mask = retu_read_reg(RETU_REG_IMR);
- 	mask &= ~(1 << id);
- 	mask = retu_disable_bogus_irqs(mask);
- 	retu_write_reg(RETU_REG_IMR, mask);
--	spin_unlock_irqrestore(&retu_lock, flags);
-+	spin_unlock_irqrestore(&retu->lock, flags);
- }
- EXPORT_SYMBOL(retu_enable_irq);
- 
-@@ -209,9 +225,12 @@ EXPORT_SYMBOL(retu_ack_irq);
- /*
-  * RETU interrupt handler. Only schedules the tasklet.
-  */
--static irqreturn_t retu_irq_handler(int irq, void *dev_id)
-+static irqreturn_t retu_irq_handler(int irq, void *_retu)
- {
--	tasklet_schedule(&retu_tasklet);
-+	struct retu		*retu = _retu;
-+
-+	tasklet_schedule(&retu->tasklet);
-+
- 	return IRQ_HANDLED;
- }
- 
-@@ -259,9 +278,10 @@ static void retu_tasklet_handler(unsigned long data)
-  */
- int retu_request_irq(int id, void *irq_handler, unsigned long arg, char *name)
- {
--	struct retu_irq_handler_desc *hnd;
-+	struct retu			*retu = the_retu;
-+	struct retu_irq_handler_desc	*hnd;
- 
--	if (!retu_initialized)
-+	if (!retu)
- 		return -ENODEV;
- 
- 	if (irq_handler == NULL || id >= MAX_RETU_IRQ_HANDLERS ||
-@@ -396,30 +416,46 @@ static int retu_allocate_children(struct device *parent)
-  */
- static int __init retu_probe(struct platform_device *pdev)
- {
--	int rev, ret;
--	int irq;
-+	struct retu	*retu;
-+	int		rev;
-+	int		ret;
-+	int		irq;
-+
-+	retu = kzalloc(sizeof(*retu), GFP_KERNEL);
-+	if (!retu) {
-+		dev_err(&pdev->dev, "not enough memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	platform_set_drvdata(pdev, retu);
-+	the_retu = retu;
- 
- 	/* Prepare tasklet */
--	tasklet_init(&retu_tasklet, retu_tasklet_handler, 0);
-+	tasklet_init(&retu->tasklet, retu_tasklet_handler, 0);
-+	spin_lock_init(&retu->lock);
- 
- 	irq = platform_get_irq(pdev, 0);
- 
--	retu_initialized = 1;
-+	retu->irq = irq;
- 
- 	rev = retu_read_reg(RETU_REG_ASICR) & 0xff;
- 	if (rev & (1 << 7))
--		retu_is_vilma = 1;
-+		retu->is_vilma = true;
- 
--	dev_info(&pdev->dev, "%s v%d.%d found\n", retu_is_vilma ? "Vilma" : "Retu",
--	       (rev >> 4) & 0x07, rev & 0x0f);
-+	dev_info(&pdev->dev, "%s v%d.%d found\n",
-+			retu->is_vilma ? "Vilma" : "Retu",
-+			(rev >> 4) & 0x07, rev & 0x0f);
- 
- 	/* Mask all RETU interrupts */
- 	retu_write_reg(RETU_REG_IMR, 0xffff);
- 
- 	ret = request_irq(irq, retu_irq_handler, 0,
--			  "retu", 0);
-+			  "retu", retu);
+-#ifdef CONFIG_CBUS_RETU_USER
+-	/* Initialize user-space interface */
+-	if (retu_user_init() < 0) {
+-		dev_err(&pdev->dev, "Unable to initialize driver\n");
+-		tasklet_kill(&retu->tasklet);
+-		free_irq(irq, 0);
+-		kfree(retu);
+-		the_retu = NULL;
+-		return ret;
+-	}
+-#endif
+-
+ 	ret = retu_allocate_children(&pdev->dev);
  	if (ret < 0) {
- 		dev_err(&pdev->dev, "Unable to register IRQ handler\n");
-+		tasklet_kill(&retu->tasklet);
-+		kfree(retu);
-+		the_retu = NULL;
- 		return ret;
- 	}
- 
-@@ -432,7 +468,10 @@ static int __init retu_probe(struct platform_device *pdev)
- 	/* Initialize user-space interface */
- 	if (retu_user_init() < 0) {
- 		dev_err(&pdev->dev, "Unable to initialize driver\n");
-+		tasklet_kill(&retu->tasklet);
- 		free_irq(irq, 0);
-+		kfree(retu);
-+		the_retu = NULL;
- 		return ret;
- 	}
- #endif
-@@ -445,7 +484,9 @@ static int __init retu_probe(struct platform_device *pdev)
- #endif
+ 		dev_err(&pdev->dev, "Unable to allocate Retu children\n");
+-#ifdef CONFIG_CBUS_RETU_USER
+-		retu_user_cleanup();
+-#endif
  		retu_write_reg(RETU_REG_IMR, 0xffff);
  		free_irq(irq, 0);
--		tasklet_kill(&retu_tasklet);
-+		tasklet_kill(&retu->tasklet);
-+		kfree(retu);
-+		the_retu = NULL;
- 		return ret;
- 	}
- 
-@@ -454,7 +495,8 @@ static int __init retu_probe(struct platform_device *pdev)
- 
- static int __exit retu_remove(struct platform_device *pdev)
- {
--	int irq;
-+	struct retu		*retu = platform_get_drvdata(pdev);
-+	int			irq;
+ 		tasklet_kill(&retu->tasklet);
+@@ -500,9 +481,6 @@ static int __exit retu_remove(struct platform_device *pdev)
  
  	irq = platform_get_irq(pdev, 0);
  
-@@ -463,8 +505,10 @@ static int __exit retu_remove(struct platform_device *pdev)
- #endif
+-#ifdef CONFIG_CBUS_RETU_USER
+-	retu_user_cleanup();
+-#endif
  	/* Mask all RETU interrupts */
  	retu_write_reg(RETU_REG_IMR, 0xffff);
--	free_irq(irq, 0);
--	tasklet_kill(&retu_tasklet);
-+	free_irq(irq, retu);
-+	tasklet_kill(&retu->tasklet);
-+	kfree(retu);
-+	the_retu = NULL;
- 
- 	return 0;
- }
+ 	free_irq(irq, retu);
 diff --git a/drivers/cbus/retu.h b/drivers/cbus/retu.h
-index cf3cf20..1cc486e 100644
+index 1cc486e..ada7f2e 100644
 --- a/drivers/cbus/retu.h
 +++ b/drivers/cbus/retu.h
-@@ -73,6 +73,4 @@ int retu_user_init(void);
- void retu_user_cleanup(void);
- #endif
+@@ -68,9 +68,4 @@ void retu_enable_irq(int id);
+ void retu_disable_irq(int id);
+ void retu_ack_irq(int id);
  
--extern spinlock_t retu_lock;
+-#ifdef CONFIG_CBUS_RETU_USER
+-int retu_user_init(void);
+-void retu_user_cleanup(void);
+-#endif
 -
  #endif /* __DRIVERS_CBUS_RETU_H */
 -- 
