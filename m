@@ -1,66 +1,43 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFT/PATCH 09/10] cbus: retu-rtc: drop the reset_occurred flag
-Date: Mon,  3 Jan 2011 09:49:47 +0200
-Message-ID: <1294040988-21191-10-git-send-email-balbi@ti.com>
+Subject: [RFT/PATCH 10/10] cbus: Makefile: re-enable retu-wdt
+Date: Mon,  3 Jan 2011 09:49:48 +0200
+Message-ID: <1294040988-21191-11-git-send-email-balbi@ti.com>
 References: <1294040988-21191-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:41193 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752635Ab1ACHuX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 02:50:23 -0500
-Received: by eyh6 with SMTP id 6so2785644eyh.0
-        for <linux-omap@vger.kernel.org>; Sun, 02 Jan 2011 23:50:22 -0800 (PST)
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:47750 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752991Ab1ACHu0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 02:50:26 -0500
+Received: by ewy24 with SMTP id 24so6196065ewy.13
+        for <linux-omap@vger.kernel.org>; Sun, 02 Jan 2011 23:50:24 -0800 (PST)
 In-Reply-To: <1294040988-21191-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-that flag is never read anyway, only written,
-so we can drop it.
+Now that all conversions have been made,
+reenable retu-wdt driver.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/cbus/retu-rtc.c |   10 ++--------
- 1 files changed, 2 insertions(+), 8 deletions(-)
+ drivers/cbus/Makefile |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/cbus/retu-rtc.c b/drivers/cbus/retu-rtc.c
-index 6e201aa..b2b9472 100644
---- a/drivers/cbus/retu-rtc.c
-+++ b/drivers/cbus/retu-rtc.c
-@@ -52,7 +52,6 @@ struct retu_rtc {
- 	struct rtc_device	*rtc;
+diff --git a/drivers/cbus/Makefile b/drivers/cbus/Makefile
+index 7bfd997..c5c3940 100644
+--- a/drivers/cbus/Makefile
++++ b/drivers/cbus/Makefile
+@@ -8,8 +8,7 @@ obj-$(CONFIG_CBUS_RETU)		+= retu.o
+ obj-$(CONFIG_CBUS_TAHVO_USB)	+= tahvo-usb.o
+ obj-$(CONFIG_CBUS_TAHVO_USER)	+= tahvo-user.o
  
- 	u16			alarm_expired;
--	u16			reset_occurred;
- };
- 
- static void retu_rtc_do_reset(struct retu_rtc *rtc)
-@@ -71,7 +70,6 @@ static void retu_rtc_do_reset(struct retu_rtc *rtc)
- 	retu_write_reg(RETU_REG_RTCCALR, 0x00c0);
- 
- 	rtc->alarm_expired = 0;
--	rtc->reset_occurred = 1;
- }
- 
- static irqreturn_t retu_rtc_interrupt(int irq, void *_rtc)
-@@ -223,14 +221,10 @@ static int __init retu_rtc_probe(struct platform_device *pdev)
- 		goto err1;
- 	}
- 
--	/* If the calibration register is zero, we've probably lost
--	 * power */
--	if (retu_read_reg(RETU_REG_RTCCALR) & 0x00ff)
--		rtc->reset_occurred = 0;
--	else
-+	/* If the calibration register is zero, we've probably lost power */
-+	if (!(retu_read_reg(RETU_REG_RTCCALR) & 0x00ff))
- 		retu_rtc_do_reset(rtc);
- 
--
- 	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev, &
- 			retu_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc->rtc)) {
+-## Disable Retu children until converted to threaded IRQ
+ obj-$(CONFIG_CBUS_RETU_POWERBUTTON) += retu-pwrbutton.o
+ obj-$(CONFIG_CBUS_RETU_RTC)	+= retu-rtc.o
+-#obj-$(CONFIG_CBUS_RETU_WDT)	+= retu-wdt.o
++obj-$(CONFIG_CBUS_RETU_WDT)	+= retu-wdt.o
+ obj-$(CONFIG_CBUS_RETU_HEADSET)	+= retu-headset.o
 -- 
 1.7.3.4.598.g85356
 
