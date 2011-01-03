@@ -1,79 +1,101 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] OMAP2+: hwmod: incorrect computation of autoidle_mask
-Date: Mon, 3 Jan 2011 15:42:16 +0100
-Message-ID: <4D21E048.2040005@ti.com>
-References: <1294091991-2078-1-git-send-email-tarun.kanti@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] OMAP PM: Expose vc registers in debugfs
+Date: Mon, 03 Jan 2011 09:21:37 -0600
+Message-ID: <4D21E981.4000008@ti.com>
+References: <1293710669-3014-1-git-send-email-sawant@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56795 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754818Ab1ACOm3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Jan 2011 09:42:29 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p03EgKbg009412
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 3 Jan 2011 08:42:26 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p03EgJl4001298
-	for <linux-omap@vger.kernel.org>; Mon, 3 Jan 2011 08:42:19 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p03EgJRF005614
-	for <linux-omap@vger.kernel.org>; Mon, 3 Jan 2011 08:42:19 -0600 (CST)
-In-Reply-To: <1294091991-2078-1-git-send-email-tarun.kanti@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:36234 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755431Ab1ACPVl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 10:21:41 -0500
+Received: by mail-yi0-f41.google.com with SMTP id 25so3576606yia.14
+        for <linux-omap@vger.kernel.org>; Mon, 03 Jan 2011 07:21:40 -0800 (PST)
+In-Reply-To: <1293710669-3014-1-git-send-email-sawant@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: sawant@ti.com
+Cc: linux-omap@vger.kernel.org
 
-Hi Tarun,
+sawant@ti.com had written, on 12/30/2010 06:04 AM, the following:
+> From: Anand Sawant <sawant@ti.com>
+> 
+> This patch will expose the following voltage controller registers
+> as part of voltage layer debugfs.
+> 1. PRM_VC_BYPASS_VAL
+> 2. PRM_VC_CMD_VAL - for all VDDs
+> 
+> This patch will help in debugging voltage scaling issues.
+How does this patch help in debugging voltage scaling issues?
 
-On 1/3/2011 10:59 PM, DebBarma, Tarun Kanti wrote:
-> Autoidle is just a single bit setting across OMAP platforms.
-> In _set_module_autoidle() I am seeing 0x3 where the mask is
-> computed. I believe this should be 0x1.
-
-Just a minor comment; it looks from this description that you are not 
-100% sure it is a bug :-)
-You need to refer to the various TRMs, stating that this is indeed a bug 
-for all OMAPs!
-
-Adding a "fix" in the subject seems more accurate to describe the patch.
-OMAP2+: Fix incorrect computation of autoidle_mask
-
-Since is it harmless for the moment, I think it will probably go for 2.6.39.
-
-> Baseline:
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
->
-> Tested Info:
-> Boot tested on OMAP 2/3/4.
->
-> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
-> Acked-by: Rajendra Nayak<rnayak@ti.com>
-
-Acked-by: Benoit Cousson <b-cousson@ti.com>
-
-
-Thanks,
-Benoit
-
+> 
+> Tested on Zoom3 & OMAP4430 SDP.
+> 
+> Patch rebased to latest Kevin's PM branch.
+> 
+> Signed-off-by: Anand S Sawant <sawant@ti.com>
 > ---
->   arch/arm/mach-omap2/omap_hwmod.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 5a30658..da49b56 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -373,7 +373,7 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
->   	}
->
->   	autoidle_shift = oh->class->sysc->sysc_fields->autoidle_shift;
-> -	autoidle_mask = (0x3<<  autoidle_shift);
-> +	autoidle_mask = (0x1<<  autoidle_shift);
->
->   	*v&= ~autoidle_mask;
->   	*v |= autoidle<<  autoidle_shift;
+>  arch/arm/mach-omap2/voltage.c |   15 +++++++++++++++
+>  1 files changed, 15 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index ed6079c..a9b52e4 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -336,6 +336,11 @@ static void omap4_voltage_write_reg(u32 val, u16 mod, u8 offset)
+>  }
+>  
+>  /* Voltage debugfs support */
+> +
+> +/**
+> + * Gets the current vp output voltage (auto-compensated) for the
+> + * voltage domain.
+> + */
+please remove this from this patch - has nothing to do with $subject
+also, please read kernel documentation for function comment header style
 
+>  static int vp_volt_debug_get(void *data, u64 *val)
+>  {
+>  	struct omap_vdd_info *vdd = (struct omap_vdd_info *) data;
+> @@ -359,6 +364,10 @@ static int vp_volt_debug_get(void *data, u64 *val)
+>  	return 0;
+>  }
+>  
+> +/**
+> + * Gets the current nominal OPP voltage (non auto-compensated) for the
+> + * voltage domain.
+> + */
+same here
+>  static int nom_volt_debug_get(void *data, u64 *val)
+>  {
+>  	struct omap_vdd_info *vdd = (struct omap_vdd_info *) data;
+> @@ -456,6 +465,7 @@ static void __init vp_init(struct omap_vdd_info *vdd)
+>  	vdd->write_reg(vp_val, mod, vdd->vp_offs.vlimitto);
+>  }
+>  
+> +/* Creates debugfs entries for key vp & vc parameters */
+and here
+>  static void __init vdd_debugfs_init(struct omap_vdd_info *vdd)
+>  {
+>  	char *name;
+> @@ -501,6 +511,11 @@ static void __init vdd_debugfs_init(struct omap_vdd_info *vdd)
+>  	(void) debugfs_create_file("curr_nominal_volt", S_IRUGO,
+>  				vdd->debug_dir, (void *) vdd,
+>  				&nom_volt_debug_fops);
+> +
+> +	(void) debugfs_create_x8("vc_bypass_val", S_IRUGO, vdd->debug_dir,
+> +				&(vdd->vc_reg.bypass_val_reg));
+> +	(void) debugfs_create_x8("vc_cmdval", S_IRUGO, vdd->debug_dir,
+> +				&(vdd->vc_reg.cmdval_reg));
+why the cast to void?
+
+>  }
+>  
+>  /* Voltage scale and accessory APIs */
+
+
+-- 
+Regards,
+Nishanth Menon
