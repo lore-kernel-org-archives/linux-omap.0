@@ -1,99 +1,96 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] OMAP PM: Expose vc registers in debugfs
-Date: Mon, 03 Jan 2011 09:21:37 -0600
-Message-ID: <4D21E981.4000008@ti.com>
-References: <1293710669-3014-1-git-send-email-sawant@ti.com>
+Subject: Re: [PATCH] OMAP3: PM: Adding T2 enabling of smartreflex
+Date: Mon, 03 Jan 2011 09:51:57 -0600
+Message-ID: <4D21F09D.3040007@ti.com>
+References: <1293782878-9756-1-git-send-email-thara@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:36234 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755431Ab1ACPVl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 10:21:41 -0500
-Received: by mail-yi0-f41.google.com with SMTP id 25so3576606yia.14
-        for <linux-omap@vger.kernel.org>; Mon, 03 Jan 2011 07:21:40 -0800 (PST)
-In-Reply-To: <1293710669-3014-1-git-send-email-sawant@ti.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:50510 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755230Ab1ACPwB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 10:52:01 -0500
+Received: by mail-gx0-f169.google.com with SMTP id 5so6653372gxk.14
+        for <linux-omap@vger.kernel.org>; Mon, 03 Jan 2011 07:52:00 -0800 (PST)
+In-Reply-To: <1293782878-9756-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: sawant@ti.com
-Cc: linux-omap@vger.kernel.org
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
 
-sawant@ti.com had written, on 12/30/2010 06:04 AM, the following:
-> From: Anand Sawant <sawant@ti.com>
-> 
-> This patch will expose the following voltage controller registers
-> as part of voltage layer debugfs.
-> 1. PRM_VC_BYPASS_VAL
-> 2. PRM_VC_CMD_VAL - for all VDDs
-> 
-> This patch will help in debugging voltage scaling issues.
-How does this patch help in debugging voltage scaling issues?
+Thara Gopinath had written, on 12/31/2010 02:07 AM, the following:
+> The smartreflex bit on twl4030 needs to be enabled by default irrespective
+> of whether smartreflex module is enabled on the OMAP side or not.
+> This is because without this bit enabled the voltage scaling through
+> vp forceupdate does not function properly on OMAP3.
+s/does not function properly/ does not function ;)
+SR I2C is used for forceupdate/vc bypass modes - so neither will 
+function without switching t2 mode.
+
+T2 voltages could be set in quiet a few methods:
+a) Synchronized Scaling Hardware Strategy (ENABLE_VMODE = 1) (for OMAP2 
+and I had worked on one OMAP3430 product which used this as well) using 
+VDD1_VFLOOR and VDD1_VROOF
+b) Direct Strategy Software Scaling Mode (ENABLE_VMODE = 0) (Smart 
+reflex disabled) - VDD1_VSEL
+c) using smart reflex - as done below - allows OMAP with smart reflex 
+hardware wired to the twl to use that functionality.
+
+Blindly setting it to smartreflex mode is not correct IMHO. It might 
+work on SDP and few TI and non-TI platforms, but not all.
 
 > 
-> Tested on Zoom3 & OMAP4430 SDP.
-> 
-> Patch rebased to latest Kevin's PM branch.
-> 
-> Signed-off-by: Anand S Sawant <sawant@ti.com>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
 > ---
->  arch/arm/mach-omap2/voltage.c |   15 +++++++++++++++
->  1 files changed, 15 insertions(+), 0 deletions(-)
+> This patch is against LO master and has been
+> tested on OMAP3430 SDP and OMAP2430 SDP.
 > 
-> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-> index ed6079c..a9b52e4 100644
-> --- a/arch/arm/mach-omap2/voltage.c
-> +++ b/arch/arm/mach-omap2/voltage.c
-> @@ -336,6 +336,11 @@ static void omap4_voltage_write_reg(u32 val, u16 mod, u8 offset)
->  }
+>  arch/arm/mach-omap2/omap_twl.c |   16 ++++++++++++++++
+>  1 files changed, 16 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+> index 15f8c6c..a59f36b 100644
+> --- a/arch/arm/mach-omap2/omap_twl.c
+> +++ b/arch/arm/mach-omap2/omap_twl.c
+> @@ -58,7 +58,9 @@
+>  static bool is_offset_valid;
+>  static u8 smps_offset;
 >  
->  /* Voltage debugfs support */
+> +#define TWL4030_DCDC_GLOBAL_CFG	0x06
+>  #define REG_SMPS_OFFSET         0xE0
+> +#define SMARTREFLEX_ENABLE	BIT(3)
+>  
+>  unsigned long twl4030_vsel_to_uv(const u8 vsel)
+>  {
+> @@ -256,6 +258,7 @@ int __init omap4_twl_init(void)
+>  int __init omap3_twl_init(void)
+>  {
+>  	struct voltagedomain *voltdm;
+> +	u8 temp;
+>  
+>  	if (!cpu_is_omap34xx())
+>  		return -ENODEV;
+> @@ -267,6 +270,19 @@ int __init omap3_twl_init(void)
+>  		omap3_core_volt_info.vp_vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
+>  	}
+>  
+> +	/*
+> +	 * The smartreflex bit on twl4030 needs to be enabled by
+> +	 * default irrespective of whether smartreflex module is
+> +	 * enabled on the OMAP side or not. This is because without
+> +	 * this bit enabled the voltage scaling through
+> +	 * vp forceupdate does not function properly on OMAP3.
+> +	 */
+> +	twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
+> +			TWL4030_DCDC_GLOBAL_CFG);
+> +	temp |= SMARTREFLEX_ENABLE;
+> +	twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
+> +			TWL4030_DCDC_GLOBAL_CFG);
 > +
-> +/**
-> + * Gets the current vp output voltage (auto-compensated) for the
-> + * voltage domain.
-> + */
-please remove this from this patch - has nothing to do with $subject
-also, please read kernel documentation for function comment header style
-
->  static int vp_volt_debug_get(void *data, u64 *val)
->  {
->  	struct omap_vdd_info *vdd = (struct omap_vdd_info *) data;
-> @@ -359,6 +364,10 @@ static int vp_volt_debug_get(void *data, u64 *val)
->  	return 0;
->  }
+>  	voltdm = omap_voltage_domain_lookup("mpu");
+>  	omap_voltage_register_pmic(voltdm, &omap3_mpu_volt_info);
 >  
-> +/**
-> + * Gets the current nominal OPP voltage (non auto-compensated) for the
-> + * voltage domain.
-> + */
-same here
->  static int nom_volt_debug_get(void *data, u64 *val)
->  {
->  	struct omap_vdd_info *vdd = (struct omap_vdd_info *) data;
-> @@ -456,6 +465,7 @@ static void __init vp_init(struct omap_vdd_info *vdd)
->  	vdd->write_reg(vp_val, mod, vdd->vp_offs.vlimitto);
->  }
->  
-> +/* Creates debugfs entries for key vp & vc parameters */
-and here
->  static void __init vdd_debugfs_init(struct omap_vdd_info *vdd)
->  {
->  	char *name;
-> @@ -501,6 +511,11 @@ static void __init vdd_debugfs_init(struct omap_vdd_info *vdd)
->  	(void) debugfs_create_file("curr_nominal_volt", S_IRUGO,
->  				vdd->debug_dir, (void *) vdd,
->  				&nom_volt_debug_fops);
-> +
-> +	(void) debugfs_create_x8("vc_bypass_val", S_IRUGO, vdd->debug_dir,
-> +				&(vdd->vc_reg.bypass_val_reg));
-> +	(void) debugfs_create_x8("vc_cmdval", S_IRUGO, vdd->debug_dir,
-> +				&(vdd->vc_reg.cmdval_reg));
-why the cast to void?
-
->  }
->  
->  /* Voltage scale and accessory APIs */
 
 
 -- 
