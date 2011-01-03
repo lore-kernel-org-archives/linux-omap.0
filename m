@@ -1,78 +1,66 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v5 1/3] ARM: add CPPI 4.1 DMA support
-Date: Mon, 3 Jan 2011 17:19:45 +0000
-Message-ID: <20110103171945.GA3839@n2100.arm.linux.org.uk>
-References: <201005152214.53993.sshtylyov@ru.mvista.com> <4D21F3F2.6090302@mvista.com> <20110103163447.GB2911@n2100.arm.linux.org.uk> <19F8576C6E063C45BE387C64729E739404BD3F2C4D@dbde02.ent.ti.com> <4D220246.5020303@mvista.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hemant Pedanekar <hemantp@ti.com>
+Subject: [PATCH v3 0/4] Introduce support for TI816X processor series
+Date: Mon,  3 Jan 2011 22:58:49 +0530
+Message-ID: <1294075729-22247-1-git-send-email-hemantp@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56013 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753203Ab1ACRT6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 12:19:58 -0500
-Content-Disposition: inline
-In-Reply-To: <4D220246.5020303@mvista.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44218 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755469Ab1ACR27 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 12:28:59 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@deeprootsystems.com, Hemant Pedanekar <hemantp@ti.com>
 
-On Mon, Jan 03, 2011 at 08:07:18PM +0300, Sergei Shtylyov wrote:
-> Hello.
->
-> On 03-01-2011 20:01, Gupta, Ajay Kumar wrote:
->
->>>>> Add support for Texas Instuments Communication Port Programming Interface 4.1
->>>>> (CPPI 4.1) used on OMAP-L1x/DA8xx and AM35x.
->
->>>>> At this moment, only the DMA controller and queue manager are supported.
->>>>> Support for the buffer manager is lacking but these chips don't have it anyway.
->
->>>>> Signed-off-by: Sergei Shtylyov<sshtylyov@ru.mvista.com>
->>>>> Signed-off-by: Sekhar Nori<nsekhar@ti.com>
->
->>>>     Russell, you have recently discarded this patch from your patch
->>>> system. Can we know the reason?
->
->>> It was recently discussed with TI, and various people raised concerns
->>> about it.  I don't remember the exact details, and I wish they'd raise
->>> them with the patch author directly.  It may have been that it's
->>> inventing its own API rather than using something like the DMA engine
->>> API.
->
->>> Adding linux-omap to try to get a response there.
->
->> Sergei,
->> This issue was discussed recently at TI and proposal was to place it to
->> drivers/dma folder.
->
->    Note that I have neither time nor inclination to do this work (not do 
-> I think it's even feasible), so it will have to fall on TI's shoulders...
->
->> Moreover, even Felipe also seems to move other musb
->> DMAs (Inventra, CPPI3.0, TUSB) to drivers/dma.
->
->    Frankly speaking, I doubt that drivers/dma/ will have place for the 
-> purely MUSB specific DMA engines such as the named ones (there's no TUSB 
-> DMA BTW -- it uses OMAP DMA).
+This patch set adds support for TI816X processor series. This series includes
+DM8168, C6A816x and AM389x devices. The details can be found at following links:
 
-Long term, we need to kill off all these platform private DMA interfaces.
-There's a growing amount of IP that's being shared not only between ARM
-silicon vendors, but also across architectures, and having to re-implement
-drivers because the underlying DMA engine is different is not feasible.
+http://focus.ti.com/general/docs/gencontent.tsp?contentId=77960
+http://www.ti.com/ww/en/dsp/davinci-netra/index.shtml
 
-For example, we're seeing ARMs primecells being used with various
-different DMA controllers in various different ARM SoCs.  I've heard
-rumours of them appearing in MIPS or PPC stuff as well.  We're seeing
-PXA peripheral IP appearing in x86 stuff too.
+This device is architecturally closer to the OMAP devices. Hence, these patches
+are being submitted on linux-omap.
 
-We can't have drivers tied to their SoC DMA engines, and we can't continue
-having SoC DMA engines implementing their own unique APIs.  We do need to
-get on top of this before it becomes a major problem (if it hasn't
-already).
+These patches are tested on OMAP3 EVM with multi-omap build.
 
-The DMA engine API is still evolving, and should not be taken as concrete
-- I've recently been bringing up a number of points with Dan on various
-aspects of the API, some of which ultimately will lead to changes to the
-async-tx API, and others which hopefully will mean that the DMA slave
-API is better documented.
+Note that, additional patches consisting of TI816X specific hwmods, clock data
+and DMTIMER changes, are required to enable successful booting on TI816X EVM.
+These patches will follow shortly.
+
+This patch set adds TI816X support as part of OMAP3 variant. The approach taken
+is in accordance to the discussions in thread related to following post:
+http://www.spinics.net/lists/linux-omap/msg41505.html
+
+Hemant Pedanekar (4):
+  TI816X: Update common omap platform files
+  TI816X: Update common OMAP machine specific sources
+  TI816X: Create board support and enable build for TI816X EVM
+  TI816X: Add low level debug support
+
+ arch/arm/mach-omap2/Kconfig                    |    5 +
+ arch/arm/mach-omap2/Makefile                   |    1 +
+ arch/arm/mach-omap2/board-ti8168evm.c          |   58 +++++++++++
+ arch/arm/mach-omap2/clock3xxx_data.c           |    5 +-
+ arch/arm/mach-omap2/common.c                   |   24 +++++
+ arch/arm/mach-omap2/control.h                  |   17 +++
+ arch/arm/mach-omap2/id.c                       |   33 ++++++-
+ arch/arm/mach-omap2/include/mach/debug-macro.S |   12 ++
+ arch/arm/mach-omap2/include/mach/entry-macro.S |    8 ++
+ arch/arm/mach-omap2/io.c                       |    2 +-
+ arch/arm/mach-omap2/irq.c                      |    5 +-
+ arch/arm/mach-omap2/serial.c                   |    8 +-
+ arch/arm/plat-omap/include/plat/clkdev_omap.h  |    1 +
+ arch/arm/plat-omap/include/plat/clock.h        |    1 +
+ arch/arm/plat-omap/include/plat/common.h       |    1 +
+ arch/arm/plat-omap/include/plat/cpu.h          |   18 ++++
+ arch/arm/plat-omap/include/plat/hardware.h     |    1 +
+ arch/arm/plat-omap/include/plat/irqs-ti816x.h  |  131 ++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/irqs.h         |    3 +
+ arch/arm/plat-omap/include/plat/serial.h       |    8 ++
+ arch/arm/plat-omap/include/plat/ti816x.h       |   31 ++++++
+ arch/arm/plat-omap/include/plat/uncompress.h   |    7 ++
+ 22 files changed, 371 insertions(+), 9 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-ti8168evm.c
+ create mode 100644 arch/arm/plat-omap/include/plat/irqs-ti816x.h
+ create mode 100644 arch/arm/plat-omap/include/plat/ti816x.h
+
