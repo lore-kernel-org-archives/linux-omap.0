@@ -1,48 +1,44 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] OMAP3+: sr_device: include pm header
-Date: Mon,  3 Jan 2011 13:35:41 -0600
-Message-ID: <1294083341-32147-1-git-send-email-nm@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v5 1/3] ARM: add CPPI 4.1 DMA support
+Date: Mon, 3 Jan 2011 22:44:17 +0200
+Message-ID: <20110103204416.GA2240@legolas.emea.dhcp.ti.com>
+References: <201005152214.53993.sshtylyov@ru.mvista.com>
+ <4D21F3F2.6090302@mvista.com>
+ <20110103163447.GB2911@n2100.arm.linux.org.uk>
+ <19F8576C6E063C45BE387C64729E739404BD3F2C4D@dbde02.ent.ti.com>
+ <4D220246.5020303@mvista.com>
+ <19F8576C6E063C45BE387C64729E739404BD3F2C58@dbde02.ent.ti.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33933 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751940Ab1ACTgN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Jan 2011 14:36:13 -0500
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:45517 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751155Ab1ACUoW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 15:44:22 -0500
+Received: by ewy23 with SMTP id 23so6093411ewy.11
+        for <linux-omap@vger.kernel.org>; Mon, 03 Jan 2011 12:44:20 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404BD3F2C58@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony <tony@atomide.com>
-Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>
 
-omap_enable_smartreflex_on_init is meant to be used by boards
-which would like to have SR enabled by default on the platform, while
-omap_devinit_smartreflex is used by pm code, the protos are defined
-in pm.h. This header should be included to ensure that sr_device
-function definitions match the prototypes.
+Hi,
 
-including pm.h fixes the sparse warnings (with CONFIG_OMAP_SMARTREFLEX=y):
-arch/arm/mach-omap2/sr_device.c:138:13: warning: symbol 'omap_enable_smartreflex_on_init' was not declared. Should it be static?
-arch/arm/mach-omap2/sr_device.c:143:12: warning: symbol 'omap_devinit_smartreflex' was not declared. Should it be static?
+On Mon, Jan 03, 2011 at 10:45:35PM +0530, Gupta, Ajay Kumar wrote:
+>> > Moreover, even Felipe also seems to move other musb
+>> > DMAs (Inventra, CPPI3.0, TUSB) to drivers/dma.
+>>
+>>     Frankly speaking, I doubt that drivers/dma/ will have place for the
+>> purely MUSB specific DMA engines such as the named ones (there's no TUSB
+>> DMA BTW it uses OMAP DMA).
+>I think we will get more clarity once we start on this activity.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Based on:
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-branch: omap-for-linus
+I agree, but I personally don't see that many limiting factors.
+dmaengine is just a generic API for doing DMA transfers. If it's not
+enough for us currently, we extend it.
 
- arch/arm/mach-omap2/sr_device.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-index 786d685..b1e0af1 100644
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -27,6 +27,7 @@
- #include <plat/voltage.h>
- 
- #include "control.h"
-+#include "pm.h"
- 
- static bool sr_enable_on_init;
- 
 -- 
-1.6.3.3
-
+balbi
