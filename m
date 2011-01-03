@@ -1,41 +1,44 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/6] Add infrastructure for conditional code and data
- sections
-Date: Sun, 2 Jan 2011 20:37:25 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101022033100.29630@utopia.booyaka.com>
-References: <1292955604-8809-1-git-send-email-thomas.petazzoni@free-electrons.com> <1292955604-8809-2-git-send-email-thomas.petazzoni@free-electrons.com>
+Subject: Re: [PATCH 2/7 v2] OMAP2430: hwmod data: Add McSPI
+Date: Sun, 2 Jan 2011 21:00:39 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101022039040.29630@utopia.booyaka.com>
+References: <33236.10.24.255.18.1291212082.squirrel@dbdmail.itg.ti.com> <20101230190320.GA2713@angua.secretlab.ca>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42201 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:52382 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753565Ab1ACDh1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Jan 2011 22:37:27 -0500
-In-Reply-To: <1292955604-8809-2-git-send-email-thomas.petazzoni@free-electrons.com>
+	with ESMTP id S1753706Ab1ACEAl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Jan 2011 23:00:41 -0500
+In-Reply-To: <20101230190320.GA2713@angua.secretlab.ca>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, aaro.koskinen@nokia.com, Thomas Petazzoni <tpetazzoni@ti.com>, Thomas Petazzoni <t-petazzoni@ti.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org, Cousson@dbdmail.itg.ti.com, Benoit <b-cousson@ti.com>, Charulatha V <charu@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 
-Hello Thomas
+On Thu, 30 Dec 2010, Grant Likely wrote:
 
-On Tue, 21 Dec 2010, Thomas Petazzoni wrote:
+> On Wed, Dec 01, 2010 at 07:31:22PM +0530, Govindraj.R wrote:
+> > From: Charulatha V <charu@ti.com>
+> > 
+> > Update the 2430 hwmod data file with McSPI info.
+> > 
+> > Signed-off-by: Charulatha V <charu@ti.com>
+> > Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> 
+> Hmmm; this patch is virtually identical to the first patch in this
+> series which adds 2420 hwmod support.  I see a large block of
+> identical data with minor differences.  Surely support for these two
+> chips can share the common blocks of data.
 
-> WARNING: This is only a proof-of-concept, there are many known
-> issues. The sole purpose of this patch is to get some feedback on
-> whether the idea is useful or not, and whether it's worth cleaning up
-> the remaining issues.
+Yes, that's probably worth doing at some point, particularly for the chips 
+that don't have auto-generated SoC data (OMAP2420/2430/3xxx).  It's 
+probably possible also for the auto-generated SoC data but will require 
+some major changes to the auto-generation scripts.
 
-As Aaron and Tony commented, I too think this is really good.
-
-I note in your examples that you use "omap2" rather than splitting 2420 
-and 2430.  It seems like it would be a good idea to deallocate 2420 data 
-structures when booting on 2430, and vice versa.  e.g.,
-
-#define __omap2420_data cond_data_section(omap2420)
-#define __omap2430_data cond_data_section(omap2430)
-
-What do you think?
+In the medium term, Thomas's upcoming conditional section patches should 
+reduce the runtime memory usage for hwmod data unrelated to the 
+currently-booted SoC down to zero.
 
 
 - Paul
