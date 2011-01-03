@@ -1,76 +1,47 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ETM: Fix etm_probe and etb_probe section mismatch warnings
- in arch/arm/kernel/etm.c
-Date: Mon, 03 Jan 2011 08:23:52 -0600
-Message-ID: <4D21DBF8.1070504@ti.com>
-References: <EC93877F-CDA7-4231-9B4C-0F72623AAC8F@mac.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: Cannot get USB ports on custom beagleboard to work
+Date: Mon, 3 Jan 2011 19:56:58 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024816D6F2@dbde02.ent.ti.com>
+References: <CD7E5510-23E4-4014-AB49-C1914F11D043@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:51098 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754796Ab1ACOX5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 09:23:57 -0500
-Received: by gye5 with SMTP id 5so6314783gye.18
-        for <linux-omap@vger.kernel.org>; Mon, 03 Jan 2011 06:23:56 -0800 (PST)
-In-Reply-To: <EC93877F-CDA7-4231-9B4C-0F72623AAC8F@mac.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:46762 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754847Ab1ACO1G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 09:27:06 -0500
+In-Reply-To: <CD7E5510-23E4-4014-AB49-C1914F11D043@mac.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Elvis Dowson <elvis.dowson@mac.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-Elvis Dowson had written, on 12/26/2010 03:26 PM, the following:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Elvis Dowson
+> Sent: Monday, January 03, 2011 4:07 AM
+> To: linux-omap Mailing List
+> Subject: Cannot get USB ports on custom beagleboard to work
+> 
 > Hi,
->        This patch fixes section mismatch warnings for etm_probe() and etb_probe() for linux-2.6.37-rc7.
+>        I have a custom beagleboard on which I cannot seem to 
+> get the USB ports to work with a wired mouse, using a powered USB hub.
 > 
-> Elvis Dowson
+> Any suggestions on how I can trouble shoot this issue. This 
+> is based off the TI rowboat-eclair-2.6.32 kernel.
+>
+[snip]...[snip]
 
-Could you post this to l-a and cc l-o?
-a better cc list is got by scripts/get_maintainer.pl patch
+> Starting udev
+> Remounting root file system...
+> Caching udev devnodes
+> Populating dev cache
+> logger: mount: mount point /proc/bus/usb does not exist
 
-> 
-> 
-> From d9168ebf22bfac428955b3a3fe2d657faae4a9ee Mon Sep 17 00:00:00 2001
-> From: Elvis Dowson <elvis.dowson@gmail.com>
-> Date: Mon, 27 Dec 2010 01:21:39 +0400
-> Subject: [PATCH] ETM: Fix etm_probe and etb_probe section mismatch warnings in arch/arm/kernel/etm.c
-> 
-> Fix the following section mismatch warning when building omap2plus_defconfig:
-> 
-> WARNING: vmlinux.o(.data+0x1b70): Section mismatch in reference from the variable etb_driver to the function .init.text:etb_probe()
-> 
-> WARNING: vmlinux.o(.data+0x1bbc): Section mismatch in reference from the variable etm_driver to the function .init.text:etm_probe() 
-> 
-> Signed-off-by: Elvis Dowson <elvis.dowson@gmail.com>
-> ---
->  arch/arm/kernel/etm.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/kernel/etm.c b/arch/arm/kernel/etm.c
-> index 11db628..e881a0d 100644
-> --- a/arch/arm/kernel/etm.c
-> +++ b/arch/arm/kernel/etm.c
-> @@ -338,7 +338,7 @@ static struct miscdevice etb_miscdev = {
->  	.fops = &etb_fops,
->  };
->  
-> -static int __init etb_probe(struct amba_device *dev, struct amba_id *id)
-> +static int __devinit etb_probe(struct amba_device *dev, struct amba_id *id)
->  {
->  	struct tracectx *t = &tracer;
->  	int ret = 0;
-> @@ -530,7 +530,7 @@ static ssize_t trace_mode_store(struct kobject *kobj,
->  static struct kobj_attribute trace_mode_attr =
->  	__ATTR(trace_mode, 0644, trace_mode_show, trace_mode_store);
->  
-> -static int __init etm_probe(struct amba_device *dev, struct amba_id *id)
-> +static int __devinit etm_probe(struct amba_device *dev, struct amba_id *id)
->  {
->  	struct tracectx *t = &tracer;
->  	int ret = 0;
+I not familiar with the Android kernels, but based on this error:
+Check that "CONFIG_USB_DEVICEFS=y" in your kernel configuration.
 
+~sanjeev
 
--- 
-Regards,
-Nishanth Menon
+[snip]...[snip]
