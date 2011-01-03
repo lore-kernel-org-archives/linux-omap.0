@@ -1,44 +1,35 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/7 v2] OMAP2430: hwmod data: Add McSPI
-Date: Sun, 2 Jan 2011 21:00:39 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101022039040.29630@utopia.booyaka.com>
-References: <33236.10.24.255.18.1291212082.squirrel@dbdmail.itg.ti.com> <20101230190320.GA2713@angua.secretlab.ca>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: Cannot get USB ports on custom beagleboard to work
+Date: Mon, 3 Jan 2011 09:20:01 +0200
+Message-ID: <20110103072001.GB2522@legolas.emea.dhcp.ti.com>
+References: <CD7E5510-23E4-4014-AB49-C1914F11D043@mac.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52382 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753706Ab1ACEAl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Jan 2011 23:00:41 -0500
-In-Reply-To: <20101230190320.GA2713@angua.secretlab.ca>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:36036 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751127Ab1ACHUH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 02:20:07 -0500
+Received: by eyg24 with SMTP id 24so6006819eyg.10
+        for <linux-omap@vger.kernel.org>; Sun, 02 Jan 2011 23:20:04 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <CD7E5510-23E4-4014-AB49-C1914F11D043@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org, Cousson@dbdmail.itg.ti.com, Benoit <b-cousson@ti.com>, Charulatha V <charu@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-On Thu, 30 Dec 2010, Grant Likely wrote:
+On Mon, Jan 03, 2011 at 02:37:14AM +0400, Elvis Dowson wrote:
+>Hi, I have a custom beagleboard on which I cannot seem to get the USB
+>ports to work with a wired mouse, using a powered USB hub.
+>
+>Any suggestions on how I can trouble shoot this issue. This is based
+>off the TI rowboat-eclair-2.6.32 kernel.
 
-> On Wed, Dec 01, 2010 at 07:31:22PM +0530, Govindraj.R wrote:
-> > From: Charulatha V <charu@ti.com>
-> > 
-> > Update the 2430 hwmod data file with McSPI info.
-> > 
-> > Signed-off-by: Charulatha V <charu@ti.com>
-> > Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> 
-> Hmmm; this patch is virtually identical to the first patch in this
-> series which adds 2420 hwmod support.  I see a large block of
-> identical data with minor differences.  Surely support for these two
-> chips can share the common blocks of data.
+You'd have to try with linux-2.6.git or at least linux-omap-2.6.git for
+this report to be valuable. Sorry, here we can only help with the open
+source mainline kernel.
 
-Yes, that's probably worth doing at some point, particularly for the chips 
-that don't have auto-generated SoC data (OMAP2420/2430/3xxx).  It's 
-probably possible also for the auto-generated SoC data but will require 
-some major changes to the auto-generation scripts.
-
-In the medium term, Thomas's upcoming conditional section patches should 
-reduce the runtime memory usage for hwmod data unrelated to the 
-currently-booted SoC down to zero.
-
-
-- Paul
+-- 
+balbi
