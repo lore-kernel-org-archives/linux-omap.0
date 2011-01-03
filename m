@@ -1,258 +1,396 @@
-From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v3 14/17] OMAP2,3: DSS2: VENC Move init,exit to driver
-Date: Mon,  3 Jan 2011 18:21:06 +0530
-Message-ID: <1294059069-26737-15-git-send-email-svadivu@ti.com>
-References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH 2/7 v2] OMAP2430: hwmod data: Add McSPI
+Date: Mon, 3 Jan 2011 18:50:39 +0530
+Message-ID: <AANLkTinvQOGhe-Y-6nECig3ZpKHkm1nJ8wNeTMgm4j2U@mail.gmail.com>
+References: <33236.10.24.255.18.1291212082.squirrel@dbdmail.itg.ti.com> <20101230190320.GA2713@angua.secretlab.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57649 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754847Ab1ACMvr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Jan 2011 07:51:47 -0500
-In-Reply-To: <1294059069-26737-1-git-send-email-svadivu@ti.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:48144 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754258Ab1ACNVA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 08:21:00 -0500
+Received: by qyj19 with SMTP id 19so15845127qyj.19
+        for <linux-omap@vger.kernel.org>; Mon, 03 Jan 2011 05:20:59 -0800 (PST)
+In-Reply-To: <20101230190320.GA2713@angua.secretlab.ca>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@deeprootsystems.com, v-hiremath@ti.com, a0919096@ti.com, linux-omap@vger.kernel.org
-Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org, Cousson@dbdmail.itg.ti.com, Benoit <b-cousson@ti.com>, Charulatha V <charu@ti.com>
 
-From: Senthilvadivu Guruswamy <svadivu@ti.com>
+On Fri, Dec 31, 2010 at 12:33 AM, Grant Likely
+<grant.likely@secretlab.ca> wrote:
+> On Wed, Dec 01, 2010 at 07:31:22PM +0530, Govindraj.R wrote:
+>> From: Charulatha V <charu@ti.com>
+>>
+>> Update the 2430 hwmod data file with McSPI info.
+>>
+>> Signed-off-by: Charulatha V <charu@ti.com>
+>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>
+> Hmmm; this patch is virtually identical to the first patch in this
+> series which adds 2420 hwmod support. =A0I see a large block of
+> identical data with minor differences. =A0Surely support for these tw=
+o
+> chips can share the common blocks of data.
+>
+> Is this going to be a common situation for HWMOD data?
 
-For hwmod adaptation, move init exit methods from core.c to its driver probe,
-remove.   pdev member has to be maintained by its own drivers.  Regulator has
-to be privately handled in each driver. Replace printk to dev_dbg for boot time
-optimization.
+Grant,
 
-Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
----
- arch/arm/mach-omap2/board-3430sdp.c |    2 +-
- drivers/video/omap2/dss/core.c      |   29 -----------
- drivers/video/omap2/dss/dss.h       |    1 -
- drivers/video/omap2/dss/venc.c      |   88 ++++++++++++++++++----------------
- 4 files changed, 48 insertions(+), 72 deletions(-)
+Thanks for your Review comments.
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index e1a3318..83baba7 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -302,7 +302,7 @@ static struct omap_dss_board_info sdp3430_dss_data = {
- };
- 
- static struct regulator_consumer_supply sdp3430_vdda_dac_supply =
--	REGULATOR_SUPPLY("vdda_dac", "omap_display");
-+	REGULATOR_SUPPLY("vdda_dac", "omap_venc");
- 
- static struct omap_board_config_kernel sdp3430_config[] __initdata = {
- };
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 3711553..6f9fc38 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -43,7 +43,6 @@ static struct {
- 
- 	struct regulator *vdds_dsi_reg;
- 	struct regulator *vdds_sdi_reg;
--	struct regulator *vdda_dac_reg;
- } core;
- 
- static char *def_disp_name;
-@@ -85,20 +84,6 @@ struct regulator *dss_get_vdds_sdi(void)
- 	return reg;
- }
- 
--struct regulator *dss_get_vdda_dac(void)
--{
--	struct regulator *reg;
--
--	if (core.vdda_dac_reg != NULL)
--		return core.vdda_dac_reg;
--
--	reg = regulator_get(&core.pdev->dev, "vdda_dac");
--	if (!IS_ERR(reg))
--		core.vdda_dac_reg = reg;
--
--	return reg;
--}
--
- #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
- static int dss_debug_show(struct seq_file *s, void *unused)
- {
-@@ -198,12 +183,6 @@ static int omap_dss_probe(struct platform_device *pdev)
- 		goto err_dpi;
- 	}
- 
--	r = venc_init(pdev);
--	if (r) {
--		DSSERR("Failed to initialize venc\n");
--		goto err_venc;
--	}
--
- 	if (cpu_is_omap34xx()) {
- 		r = sdi_init(skip_init);
- 		if (r) {
-@@ -253,8 +232,6 @@ err_dsi:
- 	if (cpu_is_omap34xx())
- 		sdi_exit();
- err_sdi:
--	venc_exit();
--err_venc:
- 	dpi_exit();
- err_dpi:
- 
-@@ -268,7 +245,6 @@ static int omap_dss_remove(struct platform_device *pdev)
- 
- 	dss_uninitialize_debugfs();
- 
--	venc_exit();
- 	dpi_exit();
- 	if (cpu_is_omap34xx()) {
- 		dsi_exit();
-@@ -561,11 +537,6 @@ static void __exit omap_dss_exit(void)
- 		core.vdds_sdi_reg = NULL;
- 	}
- 
--	if (core.vdda_dac_reg != NULL) {
--		regulator_put(core.vdda_dac_reg);
--		core.vdda_dac_reg = NULL;
--	}
--
- 	platform_driver_unregister(&omap_dss_driver);
- 
- 	omap_dss_bus_unregister();
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 0029aff..734e052 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -172,7 +172,6 @@ struct platform_device;
- struct bus_type *dss_get_bus(void);
- struct regulator *dss_get_vdds_dsi(void);
- struct regulator *dss_get_vdds_sdi(void);
--struct regulator *dss_get_vdda_dac(void);
- 
- /* display */
- int dss_suspend_all_devices(void);
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index ac63cee..4e84e71 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -289,6 +289,7 @@ const struct omap_video_timings omap_dss_ntsc_timings = {
- EXPORT_SYMBOL(omap_dss_ntsc_timings);
- 
- static struct {
-+	struct platform_device *pdev;
- 	void __iomem *base;
- 	struct mutex venc_lock;
- 	u32 wss_data;
-@@ -306,6 +307,17 @@ static inline u32 venc_read_reg(int idx)
- 	return l;
- }
- 
-+static struct regulator *venc_get_vdda_dac(void)
-+{
-+	struct regulator *reg;
-+
-+	reg = regulator_get(&venc.pdev->dev, "vdda_dac");
-+	if (!IS_ERR(reg))
-+		venc.vdda_dac_reg = reg;
-+
-+	return reg;
-+}
-+
- static void venc_write_config(const struct venc_config *config)
- {
- 	DSSDBG("write venc conf\n");
-@@ -641,46 +653,6 @@ static struct omap_dss_driver venc_driver = {
- };
- /* driver end */
- 
--
--
--int venc_init(struct platform_device *pdev)
--{
--	u8 rev_id;
--
--	mutex_init(&venc.venc_lock);
--
--	venc.wss_data = 0;
--
--	venc.base = ioremap(VENC_BASE, SZ_1K);
--	if (!venc.base) {
--		DSSERR("can't ioremap VENC\n");
--		return -ENOMEM;
--	}
--
--	venc.vdda_dac_reg = dss_get_vdda_dac();
--	if (IS_ERR(venc.vdda_dac_reg)) {
--		iounmap(venc.base);
--		DSSERR("can't get VDDA_DAC regulator\n");
--		return PTR_ERR(venc.vdda_dac_reg);
--	}
--
--	venc_enable_clocks(1);
--
--	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
--	printk(KERN_INFO "OMAP VENC rev %d\n", rev_id);
--
--	venc_enable_clocks(0);
--
--	return omap_dss_register_driver(&venc_driver);
--}
--
--void venc_exit(void)
--{
--	omap_dss_unregister_driver(&venc_driver);
--
--	iounmap(venc.base);
--}
--
- int venc_init_display(struct omap_dss_device *dssdev)
- {
- 	DSSDBG("init_display\n");
-@@ -744,11 +716,45 @@ void venc_dump_regs(struct seq_file *s)
- /* VENC HW IP initialisation */
- static int omap_venchw_probe(struct platform_device *pdev)
- {
--	return 0;
-+	u8 rev_id;
-+	venc.pdev = pdev;
-+
-+	mutex_init(&venc.venc_lock);
-+
-+	venc.wss_data = 0;
-+
-+	venc.base = ioremap(VENC_BASE, SZ_1K);
-+	if (!venc.base) {
-+		DSSERR("can't ioremap VENC\n");
-+		return -ENOMEM;
-+	}
-+
-+	venc.vdda_dac_reg = venc_get_vdda_dac();
-+	if (IS_ERR(venc.vdda_dac_reg)) {
-+		iounmap(venc.base);
-+		DSSERR("can't get VDDA_DAC regulator\n");
-+		return PTR_ERR(venc.vdda_dac_reg);
-+	}
-+
-+	venc_enable_clocks(1);
-+
-+	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
-+	dev_dbg(&pdev->dev, "OMAP VENC rev %d\n", rev_id);
-+
-+	venc_enable_clocks(0);
-+
-+	return omap_dss_register_driver(&venc_driver);
- }
- 
- static int omap_venchw_remove(struct platform_device *pdev)
- {
-+	if (venc.vdda_dac_reg != NULL) {
-+		regulator_put(venc.vdda_dac_reg);
-+		venc.vdda_dac_reg = NULL;
-+	}
-+	omap_dss_unregister_driver(&venc_driver);
-+
-+	iounmap(venc.base);
- 	return 0;
- }
- 
--- 
-1.6.3.3
+Currently we have four hwmod data files:
+2420, 2430 , 3xxx, 44xx
 
+We need to fill these four files with hw info data to be passed
+to driver there could be small info that might be duplicated.
+
+Currently we are updating all the four files.
+As Paul said there might be some changes done going forward.
+To handle the hwmod files.
+
+Hope this clarifies.
+
+--
+Thanks,
+Govindraj.R
+
+
+>
+> g.
+>
+>> ---
+>> =A0arch/arm/mach-omap2/omap_hwmod_2430_data.c | =A0219 +++++++++++++=
++++++++++++++++
+>> =A01 files changed, 219 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/m=
+ach-omap2/omap_hwmod_2430_data.c
+>> index 7cf0d3a..bcdfb2b 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+>> @@ -17,6 +17,7 @@
+>> =A0#include <plat/dma.h>
+>> =A0#include <plat/serial.h>
+>> =A0#include <plat/i2c.h>
+>> +#include <plat/mcspi.h>
+>> =A0#include <plat/omap24xx.h>
+>>
+>> =A0#include "omap_hwmod_common_data.h"
+>> @@ -38,6 +39,9 @@ static struct omap_hwmod omap2430_iva_hwmod;
+>> =A0static struct omap_hwmod omap2430_l3_main_hwmod;
+>> =A0static struct omap_hwmod omap2430_l4_core_hwmod;
+>> =A0static struct omap_hwmod omap2430_wd_timer2_hwmod;
+>> +static struct omap_hwmod omap2430_mcspi1_hwmod;
+>> +static struct omap_hwmod omap2430_mcspi2_hwmod;
+>> +static struct omap_hwmod omap2430_mcspi3_hwmod;
+>>
+>> =A0/* L3 -> L4_CORE interface */
+>> =A0static struct omap_hwmod_ocp_if omap2430_l3_main__l4_core =3D {
+>> @@ -216,6 +220,60 @@ static struct omap_hwmod_ocp_if *omap2430_l4_wk=
+up_slaves[] =3D {
+>> =A0static struct omap_hwmod_ocp_if *omap2430_l4_wkup_masters[] =3D {
+>> =A0};
+>>
+>> +/* l4 core -> mcspi1 interface */
+>> +static struct omap_hwmod_addr_space omap2430_mcspi1_addr_space[] =3D=
+ {
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x48098000,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x480980ff,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE_RT=
+,
+>> + =A0 =A0 },
+>> +};
+>> +
+>> +static struct omap_hwmod_ocp_if omap2430_l4_core__mcspi1 =3D {
+>> + =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap2430_l4_core_hwmod,
+>> + =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap2430_mcspi1_hwmod,
+>> + =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "mcspi1_ick",
+>> + =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap2430_mcspi1_addr_space,
+>> + =A0 =A0 .addr_cnt =A0 =A0 =A0 =3D ARRAY_SIZE(omap2430_mcspi1_addr_=
+space),
+>> + =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_SDMA=
+,
+>> +};
+>> +
+>> +/* l4 core -> mcspi2 interface */
+>> +static struct omap_hwmod_addr_space omap2430_mcspi2_addr_space[] =3D=
+ {
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x4809a000,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x4809a0ff,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE_RT=
+,
+>> + =A0 =A0 },
+>> +};
+>> +
+>> +static struct omap_hwmod_ocp_if omap2430_l4_core__mcspi2 =3D {
+>> + =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap2430_l4_core_hwmod,
+>> + =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap2430_mcspi2_hwmod,
+>> + =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "mcspi2_ick",
+>> + =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap2430_mcspi2_addr_space,
+>> + =A0 =A0 .addr_cnt =A0 =A0 =A0 =3D ARRAY_SIZE(omap2430_mcspi2_addr_=
+space),
+>> + =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_SDMA=
+,
+>> +};
+>> +
+>> +/* l4 core -> mcspi3 interface */
+>> +static struct omap_hwmod_addr_space omap2430_mcspi3_addr_space[] =3D=
+ {
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x480b8000,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x480b80ff,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE_RT=
+,
+>> + =A0 =A0 },
+>> +};
+>> +
+>> +static struct omap_hwmod_ocp_if omap2430_l4_core__mcspi3 =3D {
+>> + =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap2430_l4_core_hwmod,
+>> + =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap2430_mcspi3_hwmod,
+>> + =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "mcspi3_ick",
+>> + =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap2430_mcspi3_addr_space,
+>> + =A0 =A0 .addr_cnt =A0 =A0 =A0 =3D ARRAY_SIZE(omap2430_mcspi3_addr_=
+space),
+>> + =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_SDMA=
+,
+>> +};
+>> +
+>> =A0/* L4 WKUP */
+>> =A0static struct omap_hwmod omap2430_l4_wkup_hwmod =3D {
+>> =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "l4_wkup",
+>> @@ -569,6 +627,162 @@ static struct omap_hwmod omap2430_i2c2_hwmod =3D=
+ {
+>> =A0 =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP243=
+0),
+>> =A0};
+>>
+>> +/*
+>> + * 'mcspi' class
+>> + * multichannel serial port interface (mcspi) / master/slave synchr=
+onous serial
+>> + * bus
+>> + */
+>> +
+>> +static struct omap_hwmod_class_sysconfig omap2430_mcspi_sysc =3D {
+>> + =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x0000,
+>> + =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x0010,
+>> + =A0 =A0 .syss_offs =A0 =A0 =A0=3D 0x0014,
+>> + =A0 =A0 .sysc_flags =A0 =A0 =3D (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS=
+_SIDLEMODE |
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 SYSC_HAS_E=
+NAWAKEUP | SYSC_HAS_SOFTRESET |
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 SYSC_HAS_A=
+UTOIDLE),
+>> + =A0 =A0 .idlemodes =A0 =A0 =A0=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_=
+SMART),
+>> + =A0 =A0 .sysc_fields =A0 =A0=3D &omap_hwmod_sysc_type1,
+>> +};
+>> +
+>> +static struct omap_hwmod_class omap2430_mcspi_class =3D {
+>> + =A0 =A0 .name =3D "mcspi",
+>> + =A0 =A0 .sysc =3D &omap2430_mcspi_sysc,
+>> + =A0 =A0 .rev =3D OMAP2_MCSPI_REV,
+>> +};
+>> +
+>> +/* mcspi1 */
+>> +static struct omap_hwmod_irq_info omap2430_mcspi1_mpu_irqs[] =3D {
+>> + =A0 =A0 { .irq =3D 65 },
+>> +};
+>> +
+>> +static struct omap_hwmod_dma_info omap2430_mcspi1_sdma_reqs[] =3D {
+>> + =A0 =A0 { .name =3D "tx0", .dma_req =3D 35 }, /* DMA_SPI1_TX0 */
+>> + =A0 =A0 { .name =3D "rx0", .dma_req =3D 36 }, /* DMA_SPI1_RX0 */
+>> + =A0 =A0 { .name =3D "tx1", .dma_req =3D 37 }, /* DMA_SPI1_TX1 */
+>> + =A0 =A0 { .name =3D "rx1", .dma_req =3D 38 }, /* DMA_SPI1_RX1 */
+>> + =A0 =A0 { .name =3D "tx2", .dma_req =3D 39 }, /* DMA_SPI1_TX2 */
+>> + =A0 =A0 { .name =3D "rx2", .dma_req =3D 40 }, /* DMA_SPI1_RX2 */
+>> + =A0 =A0 { .name =3D "tx3", .dma_req =3D 41 }, /* DMA_SPI1_TX3 */
+>> + =A0 =A0 { .name =3D "rx3", .dma_req =3D 42 }, /* DMA_SPI1_RX3 */
+>> +};
+>> +
+>> +static struct omap_hwmod_ocp_if *omap2430_mcspi1_slaves[] =3D {
+>> + =A0 =A0 &omap2430_l4_core__mcspi1,
+>> +};
+>> +
+>> +static struct omap2_mcspi_dev_attr omap_mcspi1_dev_attr =3D {
+>> + =A0 =A0 .num_chipselect =3D 4,
+>> +};
+>> +
+>> +static struct omap_hwmod omap2430_mcspi1_hwmod =3D {
+>> + =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "mcspi1_hwmod",
+>> + =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap2430_mcspi1_mpu_irqs,
+>> + =A0 =A0 .mpu_irqs_cnt =A0 =3D ARRAY_SIZE(omap2430_mcspi1_mpu_irqs)=
+,
+>> + =A0 =A0 .sdma_reqs =A0 =A0 =A0=3D omap2430_mcspi1_sdma_reqs,
+>> + =A0 =A0 .sdma_reqs_cnt =A0=3D ARRAY_SIZE(omap2430_mcspi1_sdma_reqs=
+),
+>> + =A0 =A0 .main_clk =A0 =A0 =A0 =3D "mcspi1_fck",
+>> + =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .omap2 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_offs =3D CORE_MOD,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .prcm_reg_id =3D 1,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_bit =3D OMAP24XX_E=
+N_MCSPI1_SHIFT,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_reg_id =3D 1,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_idle_bit =3D OMAP2=
+4XX_ST_MCSPI1_SHIFT,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 },
+>> + =A0 =A0 },
+>> + =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D omap2430_mcspi1_slaves,
+>> + =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap2430_mcspi1_slaves)=
+,
+>> + =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap2430_mcspi_class,
+>> + =A0 =A0 .dev_attr =A0 =A0 =A0 =3D &omap_mcspi1_dev_attr,
+>> + =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)=
+,
+>> +};
+>> +
+>> +/* mcspi2 */
+>> +static struct omap_hwmod_irq_info omap2430_mcspi2_mpu_irqs[] =3D {
+>> + =A0 =A0 { .irq =3D 66 },
+>> +};
+>> +
+>> +static struct omap_hwmod_dma_info omap2430_mcspi2_sdma_reqs[] =3D {
+>> + =A0 =A0 { .name =3D "tx0", .dma_req =3D 43 }, /* DMA_SPI2_TX0 */
+>> + =A0 =A0 { .name =3D "rx0", .dma_req =3D 44 }, /* DMA_SPI2_RX0 */
+>> + =A0 =A0 { .name =3D "tx1", .dma_req =3D 45 }, /* DMA_SPI2_TX1 */
+>> + =A0 =A0 { .name =3D "rx1", .dma_req =3D 46 }, /* DMA_SPI2_RX1 */
+>> +};
+>> +
+>> +static struct omap_hwmod_ocp_if *omap2430_mcspi2_slaves[] =3D {
+>> + =A0 =A0 &omap2430_l4_core__mcspi2,
+>> +};
+>> +
+>> +static struct omap2_mcspi_dev_attr omap_mcspi2_dev_attr =3D {
+>> + =A0 =A0 .num_chipselect =3D 2,
+>> +};
+>> +
+>> +static struct omap_hwmod omap2430_mcspi2_hwmod =3D {
+>> + =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "mcspi2_hwmod",
+>> + =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap2430_mcspi2_mpu_irqs,
+>> + =A0 =A0 .mpu_irqs_cnt =A0 =3D ARRAY_SIZE(omap2430_mcspi2_mpu_irqs)=
+,
+>> + =A0 =A0 .sdma_reqs =A0 =A0 =A0=3D omap2430_mcspi2_sdma_reqs,
+>> + =A0 =A0 .sdma_reqs_cnt =A0=3D ARRAY_SIZE(omap2430_mcspi2_sdma_reqs=
+),
+>> + =A0 =A0 .main_clk =A0 =A0 =A0 =3D "mcspi2_fck",
+>> + =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .omap2 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_offs =3D CORE_MOD,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .prcm_reg_id =3D 1,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_bit =3D OMAP24XX_E=
+N_MCSPI2_SHIFT,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_reg_id =3D 1,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_idle_bit =3D OMAP2=
+4XX_ST_MCSPI2_SHIFT,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 },
+>> + =A0 =A0 },
+>> + =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D omap2430_mcspi2_slaves,
+>> + =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap2430_mcspi2_slaves)=
+,
+>> + =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap2430_mcspi_class,
+>> + =A0 =A0 .dev_attr =A0 =A0 =A0 =3D &omap_mcspi2_dev_attr,
+>> + =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)=
+,
+>> +};
+>> +
+>> +/* mcspi3 */
+>> +static struct omap_hwmod_irq_info omap2430_mcspi3_mpu_irqs[] =3D {
+>> + =A0 =A0 { .irq =3D 91 },
+>> +};
+>> +
+>> +static struct omap_hwmod_dma_info omap2430_mcspi3_sdma_reqs[] =3D {
+>> + =A0 =A0 { .name =3D "tx0", .dma_req =3D 15 }, /* DMA_SPI3_TX0 */
+>> + =A0 =A0 { .name =3D "rx0", .dma_req =3D 16 }, /* DMA_SPI3_RX0 */
+>> + =A0 =A0 { .name =3D "tx1", .dma_req =3D 23 }, /* DMA_SPI3_TX1 */
+>> + =A0 =A0 { .name =3D "rx1", .dma_req =3D 24 }, /* DMA_SPI3_RX1 */
+>> +};
+>> +
+>> +static struct omap_hwmod_ocp_if *omap2430_mcspi3_slaves[] =3D {
+>> + =A0 =A0 &omap2430_l4_core__mcspi3,
+>> +};
+>> +
+>> +static struct omap2_mcspi_dev_attr omap_mcspi3_dev_attr =3D {
+>> + =A0 =A0 .num_chipselect =3D 2,
+>> +};
+>> +
+>> +static struct omap_hwmod omap2430_mcspi3_hwmod =3D {
+>> + =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "mcspi3_hwmod",
+>> + =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap2430_mcspi3_mpu_irqs,
+>> + =A0 =A0 .mpu_irqs_cnt =A0 =3D ARRAY_SIZE(omap2430_mcspi3_mpu_irqs)=
+,
+>> + =A0 =A0 .sdma_reqs =A0 =A0 =A0=3D omap2430_mcspi3_sdma_reqs,
+>> + =A0 =A0 .sdma_reqs_cnt =A0=3D ARRAY_SIZE(omap2430_mcspi3_sdma_reqs=
+),
+>> + =A0 =A0 .main_clk =A0 =A0 =A0 =3D "mcspi3_fck",
+>> + =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .omap2 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_offs =3D CORE_MOD,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .prcm_reg_id =3D 2,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_bit =3D OMAP2430_E=
+N_MCSPI3_SHIFT,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_reg_id =3D 2,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_idle_bit =3D OMAP2=
+430_ST_MCSPI3_SHIFT,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 },
+>> + =A0 =A0 },
+>> + =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D omap2430_mcspi3_slaves,
+>> + =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap2430_mcspi3_slaves)=
+,
+>> + =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap2430_mcspi_class,
+>> + =A0 =A0 .dev_attr =A0 =A0 =A0 =3D &omap_mcspi3_dev_attr,
+>> + =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430)=
+,
+>> +};
+>> +
+>> =A0static __initdata struct omap_hwmod *omap2430_hwmods[] =3D {
+>> =A0 =A0 =A0 &omap2430_l3_main_hwmod,
+>> =A0 =A0 =A0 &omap2430_l4_core_hwmod,
+>> @@ -581,6 +795,11 @@ static __initdata struct omap_hwmod *omap2430_h=
+wmods[] =3D {
+>> =A0 =A0 =A0 &omap2430_uart3_hwmod,
+>> =A0 =A0 =A0 &omap2430_i2c1_hwmod,
+>> =A0 =A0 =A0 &omap2430_i2c2_hwmod,
+>> +
+>> + =A0 =A0 /* mcspi class */
+>> + =A0 =A0 &omap2430_mcspi1_hwmod,
+>> + =A0 =A0 &omap2430_mcspi2_hwmod,
+>> + =A0 =A0 &omap2430_mcspi3_hwmod,
+>> =A0 =A0 =A0 NULL,
+>> =A0};
+>>
+>> --
+>> 1.7.1
+>>
+>>
+>>
+>> --------------------------------------------------------------------=
+----------
+>> Increase Visibility of Your 3D Game App & Earn a Chance To Win $500!
+>> Tap into the largest installed PC base & get more eyes on your game =
+by
+>> optimizing for Intel(R) Graphics Technology. Get started today with =
+the
+>> Intel(R) Software Partner Program. Five $500 cash prizes are up for =
+grabs.
+>> http://p.sf.net/sfu/intelisp-dev2dev
+>> _______________________________________________
+>> spi-devel-general mailing list
+>> spi-devel-general@lists.sourceforge.net
+>> https://lists.sourceforge.net/lists/listinfo/spi-devel-general
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
