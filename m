@@ -1,13 +1,13 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v3 17/17] OMAP2,3: DSS2: Get DSS IRQ from platform device
-Date: Mon,  3 Jan 2011 18:21:09 +0530
-Message-ID: <1294059069-26737-18-git-send-email-svadivu@ti.com>
+Subject: [PATCH v3 12/17] OMAP2,3: DSS2: RFBI Move init,exit to driver
+Date: Mon,  3 Jan 2011 18:21:04 +0530
+Message-ID: <1294059069-26737-13-git-send-email-svadivu@ti.com>
 References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48205 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754771Ab1ACMv1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Jan 2011 07:51:27 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:53100 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754400Ab1ACMvZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 07:51:25 -0500
 In-Reply-To: <1294059069-26737-1-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,51 +16,160 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-DSS IRQ number can be obtained from platform_get_irq().  This API in turn
-picks the right IRQ number belonging to HW IP from the hwmod database.
-So hardcoding of IRQ number could be removed.
+For hwmod adaptation, move init exit methods from core.c to its driver probe,
+remove.  pdev member has to be maintained by its own drivers.  Replace printk
+with dev_dbg for boot time optimization.
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- drivers/video/omap2/dss/dss.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/video/omap2/dss/core.c |    9 ----
+ drivers/video/omap2/dss/rfbi.c |   80 ++++++++++++++++++----------------------
+ 2 files changed, 36 insertions(+), 53 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index f544160..8fafae9 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -565,7 +565,7 @@ void dss_set_dac_pwrdn_bgz(bool enable)
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 5b0f551..edb025c 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -192,12 +192,6 @@ static int omap_dss_probe(struct platform_device *pdev)
  
- int dss_init(bool skip_init)
- {
--	int r;
-+	int r, dss_irq;
- 	u32 rev;
- 	struct resource *dss_mem;
+ 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
  
-@@ -611,15 +611,18 @@ int dss_init(bool skip_init)
- 	REG_FLD_MOD(DSS_CONTROL, 0, 2, 2);	/* venc clock mode = normal */
- #endif
+-	r = rfbi_init();
+-	if (r) {
+-		DSSERR("Failed to initialize rfbi\n");
+-		goto err_rfbi;
+-	}
+-
+ 	r = dpi_init(pdev);
+ 	if (r) {
+ 		DSSERR("Failed to initialize dpi\n");
+@@ -271,8 +265,6 @@ err_venc:
+ err_dispc:
+ 	dpi_exit();
+ err_dpi:
+-	rfbi_exit();
+-err_rfbi:
  
--	r = request_irq(INT_24XX_DSS_IRQ,
-+	dss_irq = platform_get_irq(dss.pdev, 0);
-+	if (dss_irq != -ENXIO) {
-+		r = request_irq(dss_irq,
- 			cpu_is_omap24xx()
- 			? dss_irq_handler_omap2
- 			: dss_irq_handler_omap3,
- 			0, "OMAP DSS", NULL);
- 
--	if (r < 0) {
--		DSSERR("omap2 dss: request_irq failed\n");
--		goto fail1;
-+		if (r < 0) {
-+			DSSERR("omap2 dss: request_irq failed\n");
-+			goto fail1;
-+		}
- 	}
- 
+ 	return r;
+ }
+@@ -287,7 +279,6 @@ static int omap_dss_remove(struct platform_device *pdev)
+ 	venc_exit();
+ 	dispc_exit();
+ 	dpi_exit();
+-	rfbi_exit();
  	if (cpu_is_omap34xx()) {
+ 		dsi_exit();
+ 		sdi_exit();
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index a086233..14a5262 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -100,6 +100,7 @@ static int rfbi_convert_timings(struct rfbi_timings *t);
+ static void rfbi_get_clk_info(u32 *clk_period, u32 *max_clk_div);
+ 
+ static struct {
++	struct platform_device *pdev;
+ 	void __iomem	*base;
+ 
+ 	unsigned long	l4_khz;
+@@ -957,50 +958,6 @@ void rfbi_dump_regs(struct seq_file *s)
+ #undef DUMPREG
+ }
+ 
+-int rfbi_init(void)
+-{
+-	u32 rev;
+-	u32 l;
+-
+-	spin_lock_init(&rfbi.cmd_lock);
+-
+-	init_completion(&rfbi.cmd_done);
+-	atomic_set(&rfbi.cmd_fifo_full, 0);
+-	atomic_set(&rfbi.cmd_pending, 0);
+-
+-	rfbi.base = ioremap(RFBI_BASE, SZ_256);
+-	if (!rfbi.base) {
+-		DSSERR("can't ioremap RFBI\n");
+-		return -ENOMEM;
+-	}
+-
+-	rfbi_enable_clocks(1);
+-
+-	msleep(10);
+-
+-	rfbi.l4_khz = dss_clk_get_rate(DSS_CLK_ICK) / 1000;
+-
+-	/* Enable autoidle and smart-idle */
+-	l = rfbi_read_reg(RFBI_SYSCONFIG);
+-	l |= (1 << 0) | (2 << 3);
+-	rfbi_write_reg(RFBI_SYSCONFIG, l);
+-
+-	rev = rfbi_read_reg(RFBI_REVISION);
+-	printk(KERN_INFO "OMAP RFBI rev %d.%d\n",
+-	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
+-
+-	rfbi_enable_clocks(0);
+-
+-	return 0;
+-}
+-
+-void rfbi_exit(void)
+-{
+-	DSSDBG("rfbi_exit\n");
+-
+-	iounmap(rfbi.base);
+-}
+-
+ int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
+ {
+ 	int r;
+@@ -1058,11 +1015,46 @@ int rfbi_init_display(struct omap_dss_device *dssdev)
+ /* RFBI HW IP initialisation */
+ static int omap_rfbihw_probe(struct platform_device *pdev)
+ {
++	u32 rev;
++	u32 l;
++
++	rfbi.pdev = pdev;
++
++	spin_lock_init(&rfbi.cmd_lock);
++
++	init_completion(&rfbi.cmd_done);
++	atomic_set(&rfbi.cmd_fifo_full, 0);
++	atomic_set(&rfbi.cmd_pending, 0);
++
++	rfbi.base = ioremap(RFBI_BASE, SZ_256);
++	if (!rfbi.base) {
++		DSSERR("can't ioremap RFBI\n");
++		return -ENOMEM;
++	}
++
++	rfbi_enable_clocks(1);
++
++	msleep(10);
++
++	rfbi.l4_khz = dss_clk_get_rate(DSS_CLK_ICK) / 1000;
++
++	/* Enable autoidle and smart-idle */
++	l = rfbi_read_reg(RFBI_SYSCONFIG);
++	l |= (1 << 0) | (2 << 3);
++	rfbi_write_reg(RFBI_SYSCONFIG, l);
++
++	rev = rfbi_read_reg(RFBI_REVISION);
++	dev_dbg(&pdev->dev, "OMAP RFBI rev %d.%d\n",
++	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
++
++	rfbi_enable_clocks(0);
++
+ 	return 0;
+ }
+ 
+ static int omap_rfbihw_remove(struct platform_device *pdev)
+ {
++	iounmap(rfbi.base);
+ 	return 0;
+ }
+ 
 -- 
 1.6.3.3
 
