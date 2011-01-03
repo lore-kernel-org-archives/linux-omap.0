@@ -1,31 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ETM: Fix etm_probe and etb_probe section mismatch
- warnings in arch/arm/kernel/etm.c
-Date: Mon, 3 Jan 2011 11:02:06 -0800
-Message-ID: <20110103190205.GR7771@atomide.com>
-References: <EC93877F-CDA7-4231-9B4C-0F72623AAC8F@mac.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] OMAP3+: sr_device: include pm header
+Date: Mon,  3 Jan 2011 13:35:41 -0600
+Message-ID: <1294083341-32147-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58223 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429Ab1ACTCK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 14:02:10 -0500
-Content-Disposition: inline
-In-Reply-To: <EC93877F-CDA7-4231-9B4C-0F72623AAC8F@mac.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33933 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751940Ab1ACTgN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Jan 2011 14:36:13 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tony <tony@atomide.com>
+Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
 
-Hi,
+omap_enable_smartreflex_on_init is meant to be used by boards
+which would like to have SR enabled by default on the platform, while
+omap_devinit_smartreflex is used by pm code, the protos are defined
+in pm.h. This header should be included to ensure that sr_device
+function definitions match the prototypes.
 
-* Elvis Dowson <elvis.dowson@mac.com> [101226 13:26]:
-> Hi,
->        This patch fixes section mismatch warnings for etm_probe() and etb_probe() for linux-2.6.37-rc7.
+including pm.h fixes the sparse warnings (with CONFIG_OMAP_SMARTREFLEX=y):
+arch/arm/mach-omap2/sr_device.c:138:13: warning: symbol 'omap_enable_smartreflex_on_init' was not declared. Should it be static?
+arch/arm/mach-omap2/sr_device.c:143:12: warning: symbol 'omap_devinit_smartreflex' was not declared. Should it be static?
 
-This you should resend to linux-arm-kernel.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+Based on:
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+branch: omap-for-linus
 
-Regards,
+ arch/arm/mach-omap2/sr_device.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Tony
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index 786d685..b1e0af1 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -27,6 +27,7 @@
+ #include <plat/voltage.h>
+ 
+ #include "control.h"
++#include "pm.h"
+ 
+ static bool sr_enable_on_init;
+ 
+-- 
+1.6.3.3
+
