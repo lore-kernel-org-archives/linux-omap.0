@@ -1,96 +1,32 @@
-From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH v3 4/4] TI816X: Add low level debug support
-Date: Mon,  3 Jan 2011 22:59:18 +0530
-Message-ID: <1294075758-22583-1-git-send-email-hemantp@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 0/2] OMAP: TWL: sparse fixes
+Date: Mon,  3 Jan 2011 12:58:28 -0600
+Message-ID: <1294081110-23695-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54519 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42384 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932269Ab1ACR3l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Jan 2011 12:29:41 -0500
+	id S1751429Ab1ACS6n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Jan 2011 13:58:43 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@deeprootsystems.com, Hemant Pedanekar <hemantp@ti.com>
+To: Tony <tony@atomide.com>
+Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
 
-This patch adds support for low level debugging on TI816X boards. Currently the
-support for UART3 console on TI816X EVM is added.
+Source:
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+branch: omap-for-linus
 
-Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
----
- arch/arm/mach-omap2/include/mach/debug-macro.S |   12 ++++++++++++
- arch/arm/plat-omap/include/plat/serial.h       |    3 +++
- arch/arm/plat-omap/include/plat/uncompress.h   |    7 +++++++
- 3 files changed, 22 insertions(+), 0 deletions(-)
+Doing a rm arch/arm/mach-omap2/*.o;make C=1 arch/arm/mach-omap2/
+resulted in the following sparse warnings:
+http://pastebin.mozilla.org/907954
 
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index 6a4d413..e1b0f17 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -69,6 +69,12 @@ omap_uart_lsr:	.word	0
- 		beq	34f			@ configure OMAP3UART4
- 		cmp	\rp, #OMAP4UART4	@ only on 44xx
- 		beq	44f			@ configure OMAP4UART4
-+		cmp	\rp, #TI816XUART1	@ ti816x UART offsets different
-+		beq	81f			@ configure UART1
-+		cmp	\rp, #TI816XUART2	@ ti816x UART offsets different
-+		beq	82f			@ configure UART2
-+		cmp	\rp, #TI816XUART3	@ ti816x UART offsets different
-+		beq	83f			@ configure UART3
- 		cmp	\rp, #ZOOM_UART		@ only on zoom2/3
- 		beq	95f			@ configure ZOOM_UART
- 
-@@ -91,6 +97,12 @@ omap_uart_lsr:	.word	0
- 		b	98f
- 44:		mov	\rp, #UART_OFFSET(OMAP4_UART4_BASE)
- 		b	98f
-+81:		mov	\rp, #UART_OFFSET(TI816X_UART1_BASE)
-+		b	98f
-+82:		mov	\rp, #UART_OFFSET(TI816X_UART2_BASE)
-+		b	98f
-+83:		mov	\rp, #UART_OFFSET(TI816X_UART3_BASE)
-+		b	98f
- 95:		ldr	\rp, =ZOOM_UART_BASE
- 		mrc	p15, 0, \rv, c1, c0
- 		tst	\rv, #1			@ MMU enabled?
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index 3c3c319..4102bf4 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -86,6 +86,9 @@
- #define OMAP4UART2		OMAP2UART2
- #define OMAP4UART3		43
- #define OMAP4UART4		44
-+#define TI816XUART1		81
-+#define TI816XUART2		82
-+#define TI816XUART3		83
- #define ZOOM_UART		95		/* Only on zoom2/3 */
- 
- /* This is only used by 8250.c for omap1510 */
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index ad98b85..30b891c 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -93,6 +93,10 @@ static inline void flush(void)
- #define DEBUG_LL_ZOOM(mach)						\
- 	_DEBUG_LL_ENTRY(mach, ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
- 
-+#define DEBUG_LL_TI816X(p, mach)					\
-+	_DEBUG_LL_ENTRY(mach, TI816X_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		TI816XUART##p)
-+
- static inline void __arch_decomp_setup(unsigned long arch_id)
- {
- 	int port = 0;
-@@ -166,6 +170,9 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		DEBUG_LL_ZOOM(omap_zoom2);
- 		DEBUG_LL_ZOOM(omap_zoom3);
- 
-+		/* TI8168 base boards using UART3 */
-+		DEBUG_LL_TI816X(3, ti8168evm);
-+
- 	} while (0);
- }
- 
--- 
-1.6.2.4
+This series fixes the twl warnings
+Nishanth Menon (2):
+  OMAP2+: TWL: make conversion routines static
+  OMAP2+: TWL: include pm header for init protos
 
+ arch/arm/mach-omap2/omap_twl.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+Regards,
+Nishanth Menon
