@@ -1,66 +1,305 @@
 From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH v3 0/4] Introduce support for TI816X processor series
-Date: Mon,  3 Jan 2011 22:58:49 +0530
-Message-ID: <1294075729-22247-1-git-send-email-hemantp@ti.com>
+Subject: [PATCH v3 2/4] TI816X: Update common OMAP machine specific sources
+Date: Mon,  3 Jan 2011 22:59:06 +0530
+Message-ID: <1294075746-22453-1-git-send-email-hemantp@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44218 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755469Ab1ACR27 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 12:28:59 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:50056 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755469Ab1ACR3M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Jan 2011 12:29:12 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, khilman@deeprootsystems.com, Hemant Pedanekar <hemantp@ti.com>
 
-This patch set adds support for TI816X processor series. This series includes
-DM8168, C6A816x and AM389x devices. The details can be found at following links:
+This patch updates the common machine spcific source files with support for
+TI816X.
 
-http://focus.ti.com/general/docs/gencontent.tsp?contentId=77960
-http://www.ti.com/ww/en/dsp/davinci-netra/index.shtml
+Note1: At present, omap34xx_io_desc data is reused for mapping, but TI816X only
+has L4 slow address in common with OMAP3 and thus using omap34xx data results
+into creating mappings for reserved/incorrect regions except for L4.
 
-This device is architecturally closer to the OMAP devices. Hence, these patches
-are being submitted on linux-omap.
+Note2: The optimized irq macro for omap3 skips checking the 4th irq status
+register but this needs to be added for TI816X (interrupts 96 to 127).
+Presently, only the multi-omap irq macro (unoptimized) is updated to check the
+4th status register.
 
-These patches are tested on OMAP3 EVM with multi-omap build.
-
-Note that, additional patches consisting of TI816X specific hwmods, clock data
-and DMTIMER changes, are required to enable successful booting on TI816X EVM.
-These patches will follow shortly.
-
-This patch set adds TI816X support as part of OMAP3 variant. The approach taken
-is in accordance to the discussions in thread related to following post:
-http://www.spinics.net/lists/linux-omap/msg41505.html
-
-Hemant Pedanekar (4):
-  TI816X: Update common omap platform files
-  TI816X: Update common OMAP machine specific sources
-  TI816X: Create board support and enable build for TI816X EVM
-  TI816X: Add low level debug support
-
- arch/arm/mach-omap2/Kconfig                    |    5 +
- arch/arm/mach-omap2/Makefile                   |    1 +
- arch/arm/mach-omap2/board-ti8168evm.c          |   58 +++++++++++
- arch/arm/mach-omap2/clock3xxx_data.c           |    5 +-
- arch/arm/mach-omap2/common.c                   |   24 +++++
- arch/arm/mach-omap2/control.h                  |   17 +++
- arch/arm/mach-omap2/id.c                       |   33 ++++++-
- arch/arm/mach-omap2/include/mach/debug-macro.S |   12 ++
- arch/arm/mach-omap2/include/mach/entry-macro.S |    8 ++
+Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
+---
+ arch/arm/mach-omap2/clock3xxx_data.c           |    5 +++-
+ arch/arm/mach-omap2/common.c                   |   24 +++++++++++++++++
+ arch/arm/mach-omap2/control.h                  |   17 ++++++++++++
+ arch/arm/mach-omap2/id.c                       |   33 ++++++++++++++++++++++-
+ arch/arm/mach-omap2/include/mach/entry-macro.S |    8 ++++++
  arch/arm/mach-omap2/io.c                       |    2 +-
- arch/arm/mach-omap2/irq.c                      |    5 +-
- arch/arm/mach-omap2/serial.c                   |    8 +-
- arch/arm/plat-omap/include/plat/clkdev_omap.h  |    1 +
- arch/arm/plat-omap/include/plat/clock.h        |    1 +
- arch/arm/plat-omap/include/plat/common.h       |    1 +
- arch/arm/plat-omap/include/plat/cpu.h          |   18 ++++
- arch/arm/plat-omap/include/plat/hardware.h     |    1 +
- arch/arm/plat-omap/include/plat/irqs-ti816x.h  |  131 ++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/irqs.h         |    3 +
- arch/arm/plat-omap/include/plat/serial.h       |    8 ++
- arch/arm/plat-omap/include/plat/ti816x.h       |   31 ++++++
- arch/arm/plat-omap/include/plat/uncompress.h   |    7 ++
- 22 files changed, 371 insertions(+), 9 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-ti8168evm.c
- create mode 100644 arch/arm/plat-omap/include/plat/irqs-ti816x.h
- create mode 100644 arch/arm/plat-omap/include/plat/ti816x.h
+ arch/arm/mach-omap2/irq.c                      |    5 +++-
+ arch/arm/mach-omap2/serial.c                   |    8 +++---
+ 8 files changed, 93 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 9ab817e..557de99 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3466,6 +3466,9 @@ int __init omap3xxx_clk_init(void)
+ 	} else if (cpu_is_omap3630()) {
+ 		cpu_mask = (RATE_IN_34XX | RATE_IN_36XX);
+ 		cpu_clkflg = CK_36XX;
++	} else if (cpu_is_ti816x()) {
++		cpu_mask = RATE_IN_TI816X;
++		cpu_clkflg = CK_TI816X;
+ 	} else if (cpu_is_omap34xx()) {
+ 		if (omap_rev() == OMAP3430_REV_ES1_0) {
+ 			cpu_mask = RATE_IN_3430ES1;
+@@ -3545,7 +3548,7 @@ int __init omap3xxx_clk_init(void)
+ 	/*
+ 	 * Lock DPLL5 and put it in autoidle.
+ 	 */
+-	if (omap_rev() >= OMAP3430_REV_ES2_0)
++	if (!cpu_is_ti816x() && (omap_rev() >= OMAP3430_REV_ES2_0))
+ 		omap3_clk_lock_dpll5();
+ 
+ 	/* Avoid sleeping during omap3_core_dpll_m2_set_rate() */
+diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
+index 778929f..7f58b7f 100644
+--- a/arch/arm/mach-omap2/common.c
++++ b/arch/arm/mach-omap2/common.c
+@@ -108,6 +108,30 @@ void __init omap3_map_io(void)
+ 	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
++
++/*
++ * Adjust TAP register base such that omap3_check_revision accesses the correct
++ * TI816X register for checking device ID (it adds 0x204 to tap base while
++ * TI816X DEVICE ID register is at offset 0x600 from control base).
++ */
++#define TI816X_TAP_BASE		(TI816X_CTRL_BASE + \
++				TI816X_CONTROL_DEVICE_ID - 0x204)
++
++static struct omap_globals ti816x_globals = {
++	.class  = OMAP343X_CLASS,
++	.tap    = OMAP2_L4_IO_ADDRESS(TI816X_TAP_BASE),
++	.ctrl   = TI816X_CTRL_BASE,
++	.prm    = TI816X_PRCM_BASE,
++	.cm     = TI816X_PRCM_BASE,
++	.uart1_phys     = TI816X_UART1_BASE,
++	.uart2_phys     = TI816X_UART2_BASE,
++	.uart3_phys     = TI816X_UART3_BASE,
++};
++
++void __init omap2_set_globals_ti816x(void)
++{
++	__omap2_set_globals(&ti816x_globals);
++}
+ #endif
+ 
+ #if defined(CONFIG_ARCH_OMAP4)
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index f0629ae..5c87054 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -52,6 +52,11 @@
+ #define OMAP343X_CONTROL_PADCONFS_WKUP	0xa00
+ #define OMAP343X_CONTROL_GENERAL_WKUP	0xa60
+ 
++/* TI816X spefic control submodules */
++#define TI816X_CONTROL_OCPCONF		0x000
++#define TI816X_CONTROL_DEVBOOT		0x040
++#define TI816X_CONTROL_DEVCONF		0x600
++
+ /* Control register offsets - read/write with omap_ctrl_{read,write}{bwl}() */
+ 
+ #define OMAP2_CONTROL_SYSCONFIG		(OMAP2_CONTROL_INTERFACE + 0x10)
+@@ -241,6 +246,18 @@
+ #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
+ #define OMAP3_PADCONF_SAD2D_IDLEACK    0x254
+ 
++/* TI816X CONTROL_DEVBOOT register offsets */
++#define TI816X_CONTROL_STATUS		(TI816X_CONTROL_DEVBOOT + 0x000)
++#define TI816X_CONTROL_BOOTSTAT		(TI816X_CONTROL_DEVBOOT + 0x004)
++
++/* TI816X CONTROL_DEVCONF register offsets */
++#define TI816X_CONTROL_DEVICE_ID	(TI816X_CONTROL_DEVCONF + 0x000)
++#define TI816X_CONTROL_MAC_ID0_LO	(TI816X_CONTROL_DEVCONF + 0x030)
++#define TI816X_CONTROL_MAC_ID0_HI	(TI816X_CONTROL_DEVCONF + 0x034)
++#define TI816X_CONTROL_MAC_ID1_LO	(TI816X_CONTROL_DEVCONF + 0x038)
++#define TI816X_CONTROL_MAC_ID1_HI	(TI816X_CONTROL_DEVCONF + 0x03c)
++#define TI816X_CONTROL_PCIE_CFG		(TI816X_CONTROL_DEVCONF + 0x040)
++
+ /*
+  * REVISIT: This list of registers is not comprehensive - there are more
+  * that should be added.
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 5f9086c..5c25f1b 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -191,12 +191,19 @@ static void __init omap3_check_features(void)
+ 	if (!cpu_is_omap3505() && !cpu_is_omap3517())
+ 		omap3_features |= OMAP3_HAS_IO_WAKEUP;
+ 
++	omap3_features |= OMAP3_HAS_SDRC;
++
+ 	/*
+ 	 * TODO: Get additional info (where applicable)
+ 	 *       e.g. Size of L2 cache.
+ 	 */
+ }
+ 
++static void __init ti816x_check_features(void)
++{
++	omap3_features = OMAP3_HAS_NEON;
++}
++
+ static void __init omap3_check_revision(void)
+ {
+ 	u32 cpuid, idcode;
+@@ -287,6 +294,20 @@ static void __init omap3_check_revision(void)
+ 			omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
+ 		}
+ 		break;
++	case 0xb81e:
++		omap_chip.oc = CHIP_IS_TI816X;
++
++		switch (rev) {
++		case 0:
++			omap_revision = TI8168_REV_ES1_0;
++			break;
++		case 1:
++			omap_revision = TI8168_REV_ES1_1;
++			break;
++		default:
++			omap_revision =  TI8168_REV_ES1_1;
++		}
++		break;
+ 	default:
+ 		/* Unknown default to latest silicon rev as default*/
+ 		omap_revision =  OMAP3630_REV_ES1_2;
+@@ -372,6 +393,8 @@ static void __init omap3_cpuinfo(void)
+ 			/* Already set in omap3_check_revision() */
+ 			strcpy(cpu_name, "AM3505");
+ 		}
++	} else if (cpu_is_ti816x()) {
++		strcpy(cpu_name, "TI816X");
+ 	} else if (omap3_has_iva() && omap3_has_sgx()) {
+ 		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
+ 		strcpy(cpu_name, "OMAP3430/3530");
+@@ -386,7 +409,7 @@ static void __init omap3_cpuinfo(void)
+ 		strcpy(cpu_name, "OMAP3503");
+ 	}
+ 
+-	if (cpu_is_omap3630()) {
++	if (cpu_is_omap3630() || cpu_is_ti816x()) {
+ 		switch (rev) {
+ 		case OMAP_REVBITS_00:
+ 			strcpy(cpu_rev, "1.0");
+@@ -462,7 +485,13 @@ void __init omap2_check_revision(void)
+ 		omap24xx_check_revision();
+ 	} else if (cpu_is_omap34xx()) {
+ 		omap3_check_revision();
+-		omap3_check_features();
++
++		/* TI816X doesn't have feature register */
++		if (!cpu_is_ti816x())
++			omap3_check_features();
++		else
++			ti816x_check_features();
++
+ 		omap3_cpuinfo();
+ 		return;
+ 	} else if (cpu_is_omap44xx()) {
+diff --git a/arch/arm/mach-omap2/include/mach/entry-macro.S b/arch/arm/mach-omap2/include/mach/entry-macro.S
+index 6032941..a80b7f3 100644
+--- a/arch/arm/mach-omap2/include/mach/entry-macro.S
++++ b/arch/arm/mach-omap2/include/mach/entry-macro.S
+@@ -75,6 +75,14 @@ omap_irq_base:
+ 		bne	9998f
+ 		ldr	\irqnr, [\base, #0xd8] /* IRQ pending reg 3 */
+ 		cmp	\irqnr, #0x0
++		bne	9998f
++
++		/*
++		 * ti816x has additional IRQ pending register. Checking this
++		 * register on omap2 & omap3 has no effect (read as 0).
++		 */
++		ldr	\irqnr, [\base, #0xf8] /* IRQ pending reg 4 */
++		cmp	\irqnr, #0x0
+ 9998:
+ 		ldrne	\irqnr, [\base, #INTCPS_SIR_IRQ_OFFSET]
+ 		and	\irqnr, \irqnr, #ACTIVEIRQ_MASK /* Clear spurious bits */
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index e66687b..3860365 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -404,7 +404,7 @@ void __init omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs0,
+ 
+ 	omap_hwmod_late_init();
+ 
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
++	if (omap3_has_sdrc()) {
+ 		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+ 		_omap2_init_reprogram_sdrc();
+ 	}
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 85bf8ca..13f703c 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -109,7 +109,7 @@ static void omap_mask_irq(unsigned int irq)
+ {
+ 	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
+ 
+-	if (cpu_is_omap34xx()) {
++	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
+ 		int spurious = 0;
+ 
+ 		/*
+@@ -203,6 +203,9 @@ void __init omap_init_irq(void)
+ 
+ 		BUG_ON(!base);
+ 
++		if (cpu_is_ti816x())
++			bank->nr_irqs = 128;
++
+ 		/* Static mapping, never released */
+ 		bank->base_reg = ioremap(base, SZ_4K);
+ 		if (!bank->base_reg) {
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index c645788..b936bc4 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -486,7 +486,7 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		mod_timer(&uart->timer, jiffies + uart->timeout);
+ 	omap_uart_smart_idle_enable(uart, 0);
+ 
+-	if (cpu_is_omap34xx()) {
++	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
+ 		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
+ 		u32 wk_mask = 0;
+ 		u32 padconf = 0;
+@@ -759,13 +759,13 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+ 	p->private_data = uart;
+ 
+ 	/*
+-	 * omap44xx: Never read empty UART fifo
++	 * omap44xx, ti816x: Never read empty UART fifo
+ 	 * omap3xxx: Never read empty UART fifo on UARTs
+ 	 * with IP rev >=0x52
+ 	 */
+ 	uart->regshift = p->regshift;
+ 	uart->membase = p->membase;
+-	if (cpu_is_omap44xx())
++	if (cpu_is_omap44xx() || cpu_is_ti816x())
+ 		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
+ 	else if ((serial_read_reg(uart, UART_OMAP_MVER) & 0xFF)
+ 			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
+@@ -847,7 +847,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+ 	}
+ 
+ 	/* Enable the MDR1 errata for OMAP3 */
+-	if (cpu_is_omap34xx())
++	if (cpu_is_omap34xx() && !cpu_is_ti816x())
+ 		uart->errata |= UART_ERRATA_i202_MDR1_ACCESS;
+ }
+ 
+-- 
+1.6.2.4
 
