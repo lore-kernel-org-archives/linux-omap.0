@@ -1,66 +1,117 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v5 1/3] ARM: add CPPI 4.1 DMA support
-Date: Mon, 3 Jan 2011 22:49:52 +0200
-Message-ID: <20110103204952.GB2240@legolas.emea.dhcp.ti.com>
-References: <201005152214.53993.sshtylyov@ru.mvista.com>
- <4D21F3F2.6090302@mvista.com>
- <20110103163447.GB2911@n2100.arm.linux.org.uk>
- <19F8576C6E063C45BE387C64729E739404BD3F2C4D@dbde02.ent.ti.com>
- <4D220246.5020303@mvista.com>
- <20110103171945.GA3839@n2100.arm.linux.org.uk>
-Reply-To: balbi@ti.com
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: Re: [PATCH 01/32] arm/omap: use system_wq in mailbox
+Date: Mon, 3 Jan 2011 15:35:45 -0600
+Message-ID: <AANLkTimMK2Ec8SQiRyRBR+MdVKhAmMaaf+oa0VK3wWsf@mail.gmail.com>
+References: <1294062595-30097-1-git-send-email-tj@kernel.org>
+	<1294062595-30097-2-git-send-email-tj@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:39636 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751583Ab1ACUt5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jan 2011 15:49:57 -0500
-Received: by ewy1 with SMTP id 1so7046407ewy.15
-        for <linux-omap@vger.kernel.org>; Mon, 03 Jan 2011 12:49:55 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20110103171945.GA3839@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1294062595-30097-2-git-send-email-tj@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>
 
-Hi,
+Tejun,
 
-On Mon, Jan 03, 2011 at 05:19:45PM +0000, Russell King - ARM Linux wrote:
->>    Frankly speaking, I doubt that drivers/dma/ will have place for the
->> purely MUSB specific DMA engines such as the named ones (there's no TUSB
->> DMA BTW -- it uses OMAP DMA).
+On Mon, Jan 3, 2011 at 7:49 AM, Tejun Heo <tj@kernel.org> wrote:
+> With cmwq, there's no reason to use a separate workqueue for mailbox.
+> Use the system_wq instead. =A0mbox->rxq->work is sync flushed in
+> omap_mbox_fini() to make sure it's not running on any cpu, which make=
+s
+> sure that no mbox work is running when omap_mbox_exit() is entered.
 >
->Long term, we need to kill off all these platform private DMA interfaces.
->There's a growing amount of IP that's being shared not only between ARM
->silicon vendors, but also across architectures, and having to re-implement
->drivers because the underlying DMA engine is different is not feasible.
->
->For example, we're seeing ARMs primecells being used with various
->different DMA controllers in various different ARM SoCs.  I've heard
->rumours of them appearing in MIPS or PPC stuff as well.  We're seeing
->PXA peripheral IP appearing in x86 stuff too.
->
->We can't have drivers tied to their SoC DMA engines, and we can't continue
->having SoC DMA engines implementing their own unique APIs.  We do need to
->get on top of this before it becomes a major problem (if it hasn't
->already).
->
->The DMA engine API is still evolving, and should not be taken as concrete
->- I've recently been bringing up a number of points with Dan on various
->aspects of the API, some of which ultimately will lead to changes to the
->async-tx API, and others which hopefully will mean that the DMA slave
->API is better documented.
+> Signed-off-by: Tejun Heo <tj@kernel.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: linux-omap@vger.kernel.org
+> ---
+> Only compile tested. =A0Please feel free to take it into the subsyste=
+m
+> tree or simply ack - I'll route it through the wq tree.
 
-I couldn't agree more with you Russell. If the API isn't enough
-currently, we can always propose an extension.
+This was changed to dedicated work queue because of performance issues
+when there is heavy mailbox traffic between the cores.
 
-Having all sorts of SoC-specific "APIs" has already caused enough
-problems and it still does (non-generic IRQ handling on
-twl?030, menelaus, cbus - which isn't in mainline yet -, etc,
-non-generic McBSP usage, non-generic GPMC usage, etc etc). So, if we can
-plan for making use of generic APIs, let's do so.
+Reference:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg24240.html
 
--- 
-balbi
+
+>
+> Thanks.
+>
+> =A0arch/arm/plat-omap/mailbox.c | =A0 10 ++--------
+> =A01 files changed, 2 insertions(+), 8 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbo=
+x.c
+> index d2fafb8..5bc4d7b 100644
+> --- a/arch/arm/plat-omap/mailbox.c
+> +++ b/arch/arm/plat-omap/mailbox.c
+> @@ -31,7 +31,6 @@
+>
+> =A0#include <plat/mailbox.h>
+>
+> -static struct workqueue_struct *mboxd;
+> =A0static struct omap_mbox **mboxes;
+> =A0static bool rq_full;
+>
+> @@ -186,7 +185,7 @@ static void __mbox_rx_interrupt(struct omap_mbox =
+*mbox)
+> =A0 =A0 =A0 =A0/* no more messages in the fifo. clear IRQ source. */
+> =A0 =A0 =A0 =A0ack_mbox_irq(mbox, IRQ_RX);
+> =A0nomem:
+> - =A0 =A0 =A0 queue_work(mboxd, &mbox->rxq->work);
+> + =A0 =A0 =A0 schedule_work(&mbox->rxq->work);
+> =A0}
+>
+> =A0static irqreturn_t mbox_interrupt(int irq, void *p)
+> @@ -291,7 +290,7 @@ static void omap_mbox_fini(struct omap_mbox *mbox=
+)
+> =A0{
+> =A0 =A0 =A0 =A0free_irq(mbox->irq, mbox);
+> =A0 =A0 =A0 =A0tasklet_kill(&mbox->txq->tasklet);
+> - =A0 =A0 =A0 flush_work(&mbox->rxq->work);
+> + =A0 =A0 =A0 flush_work_sync(&mbox->rxq->work);
+> =A0 =A0 =A0 =A0mbox_queue_free(mbox->txq);
+> =A0 =A0 =A0 =A0mbox_queue_free(mbox->rxq);
+>
+> @@ -385,10 +384,6 @@ static int __init omap_mbox_init(void)
+> =A0 =A0 =A0 =A0if (err)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return err;
+>
+> - =A0 =A0 =A0 mboxd =3D create_workqueue("mboxd");
+> - =A0 =A0 =A0 if (!mboxd)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
+> -
+> =A0 =A0 =A0 =A0/* kfifo size sanity check: alignment and minimal size=
+ */
+> =A0 =A0 =A0 =A0mbox_kfifo_size =3D ALIGN(mbox_kfifo_size, sizeof(mbox=
+_msg_t));
+> =A0 =A0 =A0 =A0mbox_kfifo_size =3D max_t(unsigned int, mbox_kfifo_siz=
+e, sizeof(mbox_msg_t));
+> @@ -399,7 +394,6 @@ subsys_initcall(omap_mbox_init);
+>
+> =A0static void __exit omap_mbox_exit(void)
+> =A0{
+> - =A0 =A0 =A0 destroy_workqueue(mboxd);
+> =A0 =A0 =A0 =A0class_unregister(&omap_mbox_class);
+> =A0}
+> =A0module_exit(omap_mbox_exit);
+> --
+> 1.7.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+--=20
+Thank you,
+Best regards,
+Hari Kanigeri
