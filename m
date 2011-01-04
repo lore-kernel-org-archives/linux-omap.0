@@ -1,123 +1,116 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 3/3] tools, perf: Documentation for the power events API
-Date: Tue,  4 Jan 2011 11:17:43 +0100
-Message-ID: <1294136263-24020-4-git-send-email-j-pihet@ti.com>
-References: <1294136263-24020-1-git-send-email-j-pihet@ti.com>
-Return-path: <linux-perf-users-owner@vger.kernel.org>
-In-Reply-To: <1294136263-24020-1-git-send-email-j-pihet@ti.com>
-Sender: linux-perf-users-owner@vger.kernel.org
-To: mingo@elte.hu, linux-kernel@vger.kernel.org, trenn@suse.de
-Cc: linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, rjw@sisk.pl, Jean Pihet <j-pihet@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] arm: omap: select HAVE_SPARSE_IRQ
+Date: Tue, 4 Jan 2011 12:34:32 +0200
+Message-ID: <20110104103432.GM2656@legolas.emea.dhcp.ti.com>
+References: <1294133966-20279-1-git-send-email-balbi@ti.com>
+ <1294133966-20279-3-git-send-email-balbi@ti.com>
+ <20110104095410.GA17298@n2100.arm.linux.org.uk>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:46692 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750755Ab1ADKeh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 05:34:37 -0500
+Received: by yxd5 with SMTP id 5so5890180yxd.6
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 02:34:36 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20110104095410.GA17298@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-From: Jean Pihet <j-pihet@ti.com>
+Hi,
 
-Provides documentation for the following:
-- the new power trace API,
-- the old (legacy) power trace API,
-- the DEPRECATED Kconfig option usage.
+On Tue, Jan 04, 2011 at 09:54:10AM +0000, Russell King - ARM Linux wrote:
+>On Tue, Jan 04, 2011 at 11:39:26AM +0200, Felipe Balbi wrote:
+>> select HAVE_SPARSE_IRQ and irq_descs can be added
+>> to a radix tree instead of an array.
+>
+>Please move HAVE_GENERIC_HARDIRQS to the config ARM entry, and remove
+>these:
+>
+>config GENERIC_HARDIRQS
+>        bool
+>        default y
+>
+>config GENERIC_HARDIRQS_NO__DO_IRQ
+>        def_bool y
+>
+>as they're in kernel/irq/Kconfig, and are visible if HAVE_GENERIC_HARDIRQS
+>is enabled.
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- Documentation/trace/events-power.txt |   90 ++++++++++++++++++++++++++++++++++
- 1 files changed, 90 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/trace/events-power.txt
+do you mean:
 
-diff --git a/Documentation/trace/events-power.txt b/Documentation/trace/events-power.txt
-new file mode 100644
-index 0000000..8a50653
---- /dev/null
-+++ b/Documentation/trace/events-power.txt
-@@ -0,0 +1,90 @@
-+
-+			Subsystem Trace Points: power
-+
-+The power tracing system captures events related to power transitions
-+within the kernel. Broadly speaking there are three major subheadings:
-+
-+  o Power state switch which reports events related to suspend (S-states),
-+     cpuidle (C-states) and cpufreq (P-states)
-+  o System clock related changes
-+  o Power domains related changes and transitions
-+
-+This document describes what each of the tracepoints is and why they
-+might be useful.
-+
-+Cf. include/trace/events/power.h for the events definitions.
-+
-+1. Power state switch events
-+============================
-+
-+1.1 New trace API
-+-----------------
-+
-+A 'cpu' event class gathers the CPU-related events: cpuidle and
-+cpufreq.
-+
-+cpu_idle		"state=%lu cpu_id=%lu"
-+cpu_frequency		"state=%lu cpu_id=%lu"
-+
-+A suspend event is used to indicate the system going in and out of the
-+suspend mode:
-+
-+machine_suspend		"state=%lu"
-+
-+
-+Note: the value of '-1' or '4294967295' for state means an exit from the current state,
-+i.e. trace_cpu_idle(4, smp_processor_id()) means that the system
-+enters the idle state 4, while trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id())
-+means that the system exits the previous idle state.
-+
-+The event which has 'state=4294967295' in the trace is very important to the user
-+space tools which are using it to detect the end of the current state, and so to
-+correctly draw the states diagrams and to calculate accurate statistics etc.
-+
-+1.2 DEPRECATED trace API
-+------------------------
-+
-+A new Kconfig option CONFIG_EVENT_POWER_TRACING_DEPRECATED with the default value of
-+'y' has been created. This allows the legacy trace power API to be used conjointly
-+with the new trace API.
-+The Kconfig option, the old trace API (in include/trace/events/power.h) and the
-+old trace points will disappear in a future release (namely 2.6.41).
-+
-+power_start		"type=%lu state=%lu cpu_id=%lu"
-+power_frequency		"type=%lu state=%lu cpu_id=%lu"
-+power_end		"cpu_id=%lu"
-+
-+The 'type' parameter takes one of those macros:
-+ . POWER_NONE	= 0,
-+ . POWER_CSTATE	= 1,	/* C-State */
-+ . POWER_PSTATE	= 2,	/* Fequency change or DVFS */
-+
-+The 'state' parameter is set depending on the type:
-+ . Target C-state for type=POWER_CSTATE,
-+ . Target frequency for type=POWER_PSTATE,
-+
-+power_end is used to indicate the exit of a state, corresponding to the latest
-+power_start event.
-+
-+2. Clocks events
-+================
-+The clock events are used for clock enable/disable and for
-+clock rate change.
-+
-+clock_enable		"%s state=%lu cpu_id=%lu"
-+clock_disable		"%s state=%lu cpu_id=%lu"
-+clock_set_rate		"%s state=%lu cpu_id=%lu"
-+
-+The first parameter gives the clock name (e.g. "gpio1_iclk").
-+The second parameter is '1' for enable, '0' for disable, the target
-+clock rate for set_rate.
-+
-+3. Power domains events
-+=======================
-+The power domain events are used for power domains transitions
-+
-+power_domain_target	"%s state=%lu cpu_id=%lu"
-+
-+The first parameter gives the power domain name (e.g. "mpu_pwrdm").
-+The second parameter is the power domain target state.
-+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index d56d21c0..70ff78a 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -14,6 +14,7 @@ config ARM
+  	select HAVE_FUNCTION_TRACER if (!XIP_KERNEL)
+  	select HAVE_FTRACE_MCOUNT_RECORD if (!XIP_KERNEL)
+  	select HAVE_DYNAMIC_FTRACE if (!XIP_KERNEL)
++	select HAVE_GENERIC_HARDIRQS
+  	select HAVE_GENERIC_DMA_COHERENT
+  	select HAVE_KERNEL_GZIP
+  	select HAVE_KERNEL_LZO
+@@ -88,10 +89,6 @@ config MCA
+  	  <file:Documentation/mca.txt> (and especially the web page given
+  	  there) before attempting to build an MCA bus kernel.
+  
+-config GENERIC_HARDIRQS
+-	bool
+-	default y
+-
+  config STACKTRACE_SUPPORT
+  	bool
+  	default y
+@@ -171,9 +168,6 @@ config FIQ
+  config ARCH_MTD_XIP
+  	bool
+  
+-config GENERIC_HARDIRQS_NO__DO_IRQ
+-	def_bool y
+-
+  config ARM_L1_CACHE_SHIFT_6
+  	bool
+  	help
+@@ -510,7 +504,7 @@ config ARCH_MMP
+  	select GENERIC_CLOCKEVENTS
+  	select TICK_ONESHOT
+  	select PLAT_PXA
+-	select SPARSE_IRQ
++	select HAVE_SPARSE_IRQ
+  	help
+  	  Support for Marvell's PXA168/PXA910(MMP) and MMP2 processor line.
+  
+@@ -589,7 +583,7 @@ config ARCH_PXA
+  	select GENERIC_CLOCKEVENTS
+  	select TICK_ONESHOT
+  	select PLAT_PXA
+-	select SPARSE_IRQ
++	select HAVE_SPARSE_IRQ
+  	help
+  	  Support for Intel/Marvell's PXA2xx/PXA3xx processor line.
+  
+@@ -1398,15 +1392,6 @@ config HW_PERF_EVENTS
+  	  Enable hardware performance counter support for perf events. If
+  	  disabled, perf events will use software events only.
+  
+-config SPARSE_IRQ
+-	def_bool n
+-	help
+-	  This enables support for sparse irqs. This is useful in general
+-	  as most CPUs have a fairly sparse array of IRQ vectors, which
+-	  the irq_desc then maps directly on to. Systems with a high
+-	  number of off-chip IRQs will want to treat this as
+-	  experimental until they have been independently verified.
+-
+  source "mm/Kconfig"
+  
+  config FORCE_MAX_ZONEORDER
+
 -- 
-1.7.2.3
+balbi
