@@ -1,59 +1,32 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 1/3] perf: add calls to suspend trace point
-Date: Tue, 4 Jan 2011 12:29:20 +0100
-Message-ID: <20110104112919.GB9879@atrey.karlin.mff.cuni.cz>
-References: <1294136263-24020-1-git-send-email-j-pihet@ti.com> <1294138109-24679-1-git-send-email-j-pihet@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/2] arm: omap: select HAVE_SPARSE_IRQ
+Date: Tue, 4 Jan 2011 11:42:07 +0000
+Message-ID: <20110104114207.GA19293@n2100.arm.linux.org.uk>
+References: <1294133966-20279-1-git-send-email-balbi@ti.com> <1294133966-20279-3-git-send-email-balbi@ti.com> <20110104095410.GA17298@n2100.arm.linux.org.uk> <20110104103432.GM2656@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ksp.mff.cuni.cz ([195.113.26.206]:59518 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750803Ab1ADL3W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 06:29:22 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39997 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750917Ab1ADLmT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 06:42:19 -0500
 Content-Disposition: inline
-In-Reply-To: <1294138109-24679-1-git-send-email-j-pihet@ti.com>
+In-Reply-To: <20110104103432.GM2656@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: mingo@elte.hu, trenn@suse.de, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi!
+On Tue, Jan 04, 2011 at 12:34:32PM +0200, Felipe Balbi wrote:
+> do you mean:
 
-> Uses the machine_suspend trace point, called from the
-> generic kernel suspend_enter function.
-> 
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> CC: Thomas Renninger <trenn@suse.de>
-> ---
->  kernel/power/suspend.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-> index ecf7705..0650596 100644
-> --- a/kernel/power/suspend.c
-> +++ b/kernel/power/suspend.c
-> @@ -22,6 +22,7 @@
->  #include <linux/mm.h>
->  #include <linux/slab.h>
->  #include <linux/suspend.h>
-> +#include <trace/events/power.h>
->  
->  #include "power.h"
->  
-> @@ -164,7 +165,9 @@ static int suspend_enter(suspend_state_t state)
->  	error = sysdev_suspend(PMSG_SUSPEND);
->  	if (!error) {
->  		if (!suspend_test(TEST_CORE) && pm_check_wakeup_events()) {
-> +			trace_machine_suspend(state);
->  			error = suspend_ops->enter(state);
-> +			trace_machine_suspend(PWR_EVENT_EXIT);
->  			events_check_enabled = false;
->  		}
->  		sysdev_resume();
+Yes, but without the breakage caused by your mailer - posting patches
+with flowed formatting is a recipe for this kind of disaster:
 
-Ok... why this place? I mean, perhaps suspend time should include
-device suspend?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Content-Type: text/plain; charset=us-ascii; format=flowed
+
+You appear to be using mutt, so set:
+
+set text_flowed=no
+
+in your .muttrc to avoid this corruption.
