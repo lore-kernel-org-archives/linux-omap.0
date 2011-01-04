@@ -1,558 +1,357 @@
 From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v8 3/7] omap: gpmc: enable irq mode in gpmc
-Date: Tue,  4 Jan 2011 19:03:20 +0530
-Message-ID: <1294148004-10789-4-git-send-email-s-ghorai@ti.com>
+Subject: [PATCH v8 4/7] omap3: nand: prefetch in irq mode support
+Date: Tue,  4 Jan 2011 19:03:21 +0530
+Message-ID: <1294148004-10789-5-git-send-email-s-ghorai@ti.com>
 References: <1294148004-10789-1-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47045 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751354Ab1ADNdm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Jan 2011 08:33:42 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:40434 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249Ab1ADNdi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 08:33:38 -0500
 In-Reply-To: <1294148004-10789-1-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimalsingh@ti.com>
 
-add support the irq mode in GPMC.
-gpmc_init() function move after omap_init_irq() as it has dependecy on irq.
+This patch enable prefetch-irq mode for nand transfer(read, write)
 
+Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c        |    1 +
- arch/arm/mach-omap2/board-3430sdp.c        |    1 +
- arch/arm/mach-omap2/board-3630sdp.c        |    1 +
- arch/arm/mach-omap2/board-4430sdp.c        |    2 +
- arch/arm/mach-omap2/board-am3517evm.c      |    2 +
- arch/arm/mach-omap2/board-apollon.c        |    1 +
- arch/arm/mach-omap2/board-cm-t35.c         |    1 +
- arch/arm/mach-omap2/board-devkit8000.c     |    1 +
- arch/arm/mach-omap2/board-generic.c        |    2 +
- arch/arm/mach-omap2/board-h4.c             |    1 +
- arch/arm/mach-omap2/board-igep0020.c       |    1 +
- arch/arm/mach-omap2/board-ldp.c            |    1 +
- arch/arm/mach-omap2/board-n8x0.c           |    2 +
- arch/arm/mach-omap2/board-omap3beagle.c    |    1 +
- arch/arm/mach-omap2/board-omap3evm.c       |    2 +
- arch/arm/mach-omap2/board-omap3pandora.c   |    2 +
- arch/arm/mach-omap2/board-omap3stalker.c   |    1 +
- arch/arm/mach-omap2/board-omap3touchbook.c |    1 +
- arch/arm/mach-omap2/board-omap4panda.c     |    2 +
- arch/arm/mach-omap2/board-overo.c          |    1 +
- arch/arm/mach-omap2/board-rx51.c           |    1 +
- arch/arm/mach-omap2/board-zoom2.c          |    2 +
- arch/arm/mach-omap2/board-zoom3.c          |    2 +
- arch/arm/mach-omap2/gpmc.c                 |   39 ++++++++++++++++++++++++++-
- arch/arm/mach-omap2/io.c                   |    2 -
- arch/arm/plat-omap/include/plat/gpmc.h     |    4 +++
- arch/arm/plat-omap/include/plat/irqs.h     |    9 +++++-
- 27 files changed, 81 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/board-flash.c      |    2 +
+ arch/arm/plat-omap/include/plat/nand.h |    4 +-
+ drivers/mtd/nand/omap2.c               |  198 ++++++++++++++++++++++++++++++--
+ 3 files changed, 194 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index b527f8d..11c89dc 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -145,6 +145,7 @@ static void __init omap_2430sdp_init_irq(void)
- 	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
- 	omap2_init_common_hw(NULL, NULL);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index f6b7253..1964509 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -16,6 +16,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/mtd/physmap.h>
+ #include <linux/io.h>
++#include <plat/irqs.h>
+ 
+ #include <plat/gpmc.h>
+ #include <plat/nand.h>
+@@ -147,6 +148,7 @@ __init board_nand_init(struct mtd_partition *nand_parts,
+ 	board_nand_data.nr_parts	= nr_parts;
+ 	board_nand_data.devsize		= nand_type;
+ 
++	board_nand_data.gpmc_irq = OMAP_GPMC_IRQ_BASE + cs;
+ 	gpmc_nand_init(&board_nand_data);
  }
- 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 470872e..690fecd 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -328,6 +328,7 @@ static void __init omap_3430sdp_init_irq(void)
- 	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
- 	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index 0a74141..46c1755 100644
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -77,6 +77,7 @@ static void __init omap_sdp_init_irq(void)
- 	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
- 			h8mbx00u0mer0em_sdrc_params);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index df5a425..8d15604 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -34,6 +34,7 @@
- #include <plat/common.h>
- #include <plat/usb.h>
- #include <plat/mmc.h>
-+#include <plat/gpmc.h>
- 
- #include "hsmmc.h"
- #include "timer-gp.h"
-@@ -222,6 +223,7 @@ static void __init omap_4430sdp_init_irq(void)
- 	omap2_gp_clockevent_set_gptimer(1);
- #endif
- 	gic_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 0739950..460e3d1 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -35,6 +35,7 @@
- #include <plat/common.h>
- #include <plat/usb.h>
- #include <plat/display.h>
-+#include <plat/gpmc.h>
- 
- #include "mux.h"
- #include "control.h"
-@@ -392,6 +393,7 @@ static void __init am3517_evm_init_irq(void)
- 
- 	omap2_init_common_hw(NULL, NULL);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index 2c6db1a..8264e7a 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -280,6 +280,7 @@ static void __init omap_apollon_init_irq(void)
- 	omap_board_config_size = ARRAY_SIZE(apollon_config);
- 	omap2_init_common_hw(NULL, NULL);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- 	apollon_init_smc91x();
- }
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 63f764e..7c9a834 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -686,6 +686,7 @@ static void __init cm_t35_init_irq(void)
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
- 			     mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 53ac762..f82d3b7 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -447,6 +447,7 @@ static void __init devkit8000_init_irq(void)
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
- 			     mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
-+	gpmc_init();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
- #endif
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index b1c2c9a..0b0d2cb 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -29,6 +29,7 @@
- #include <plat/usb.h>
- #include <plat/board.h>
- #include <plat/common.h>
-+#include <plat/gpmc.h>
- 
- static struct omap_board_config_kernel generic_config[] = {
+ #else
+diff --git a/arch/arm/plat-omap/include/plat/nand.h b/arch/arm/plat-omap/include/plat/nand.h
+index 78c0bdb..ae5e053 100644
+--- a/arch/arm/plat-omap/include/plat/nand.h
++++ b/arch/arm/plat-omap/include/plat/nand.h
+@@ -13,7 +13,8 @@
+ enum nand_io {
+ 	NAND_OMAP_PREFETCH_POLLED = 0,	/* prefetch polled mode, default */
+ 	NAND_OMAP_POLLED,		/* polled mode, without prefetch */
+-	NAND_OMAP_PREFETCH_DMA		/* prefetch enabled sDMA mode */
++	NAND_OMAP_PREFETCH_DMA,		/* prefetch enabled sDMA mode */
++	NAND_OMAP_PREFETCH_IRQ		/* prefetch enabled irq mode */
  };
-@@ -39,6 +40,7 @@ static void __init omap_generic_init_irq(void)
- 	omap_board_config_size = ARRAY_SIZE(generic_config);
- 	omap2_init_common_hw(NULL, NULL);
- 	omap_init_irq();
-+	gpmc_init();
- }
  
- static void __init omap_generic_init(void)
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index 929993b..41b04c4 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -293,6 +293,7 @@ static void __init omap_h4_init_irq(void)
- 	omap_board_config_size = ARRAY_SIZE(h4_config);
- 	omap2_init_common_hw(NULL, NULL);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- 	h4_init_flash();
- }
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 5e035a5..c4de273 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -497,6 +497,7 @@ static void __init igep2_init_irq(void)
- 	omap_board_config_size = ARRAY_SIZE(igep2_config);
- 	omap2_init_common_hw(m65kxxxxam_sdrc_params, m65kxxxxam_sdrc_params);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index b088b1d..489f40d 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -294,6 +294,7 @@ static void __init omap_ldp_init_irq(void)
- 	omap_board_config_size = ARRAY_SIZE(ldp_config);
- 	omap2_init_common_hw(NULL, NULL);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- 	ldp_init_smsc911x();
- }
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index e823c70..4f7c714 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -33,6 +33,7 @@
- #include <plat/onenand.h>
- #include <plat/mmc.h>
- #include <plat/serial.h>
-+#include <plat/gpmc.h>
- 
- #include "mux.h"
- 
-@@ -641,6 +642,7 @@ static void __init n8x0_init_irq(void)
- {
- 	omap2_init_common_hw(NULL, NULL);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 14f4224..a83c3f3 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -487,6 +487,7 @@ static void __init omap3_beagle_init_irq(void)
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
- 			     mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
-+	gpmc_init();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
- #endif
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index b04365c..21cc9e5 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -43,6 +43,7 @@
- #include <plat/common.h>
- #include <plat/mcspi.h>
- #include <plat/display.h>
-+#include <plat/gpmc.h>
- 
- #include "mux.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
-@@ -625,6 +626,7 @@ static void __init omap3_evm_init_irq(void)
- 	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 89ed1be..e095f1d 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -47,6 +47,7 @@
- #include <plat/mcspi.h>
- #include <plat/usb.h>
- #include <plat/display.h>
-+#include <plat/gpmc.h>
+ struct omap_nand_platform_data {
+@@ -26,6 +27,7 @@ struct omap_nand_platform_data {
+ 	int			(*nand_setup)(void);
+ 	int			(*dev_ready)(struct omap_nand_platform_data *);
+ 	int			dma_channel;
++	int			gpmc_irq;
+ 	enum nand_io		xfer_type;
+ 	unsigned long		phys_base;
+ 	int			devsize;
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 60bac8e..fbe8414 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -11,6 +11,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/delay.h>
++#include <linux/interrupt.h>
+ #include <linux/jiffies.h>
+ #include <linux/sched.h>
+ #include <linux/mtd/mtd.h>
+@@ -24,6 +25,7 @@
  #include <plat/nand.h>
  
- #include "mux.h"
-@@ -639,6 +640,7 @@ static void __init omap3pandora_init_irq(void)
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
- 			     mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
+ #define	DRIVER_NAME	"omap2-nand"
++#define	OMAP_NAND_TIMEOUT_MS	5000
  
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index f252721..c07ba77 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -586,6 +586,7 @@ static void __init omap3_stalker_init_irq(void)
- 	omap_board_config_size = ARRAY_SIZE(omap3_stalker_config);
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL);
- 	omap_init_irq();
-+	gpmc_init();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
- #endif
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 41104bb..d549763 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -425,6 +425,7 @@ static void __init omap3_touchbook_init_irq(void)
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
- 			     mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
-+	gpmc_init();
- #ifdef CONFIG_OMAP_32K_TIMER
- 	omap2_gp_clockevent_set_gptimer(12);
- #endif
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 1ecd0a6..a03a021 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -36,6 +36,7 @@
- #include <plat/common.h>
- #include <plat/usb.h>
- #include <plat/mmc.h>
-+#include <plat/gpmc.h>
- #include "timer-gp.h"
+ #define NAND_Ecc_P1e		(1 << 0)
+ #define NAND_Ecc_P2e		(1 << 1)
+@@ -108,6 +110,13 @@ struct omap_nand_info {
+ 	unsigned long			phys_base;
+ 	struct completion		comp;
+ 	int				dma_ch;
++	int				gpmc_irq;
++	enum {
++		OMAP_NAND_IO_READ = 0,	/* read */
++		OMAP_NAND_IO_WRITE,	/* write */
++	} iomode;
++	u_char				*buf;
++	int					buf_len;
+ };
  
- #include "hsmmc.h"
-@@ -78,6 +79,7 @@ static void __init omap4_panda_init_irq(void)
+ /**
+@@ -267,9 +276,10 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
  {
- 	omap2_init_common_hw(NULL, NULL);
- 	gic_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
+ 	struct omap_nand_info *info = container_of(mtd,
+ 						struct omap_nand_info, mtd);
+-	uint32_t pref_count = 0, w_count = 0;
++	uint32_t w_count = 0;
+ 	int i = 0, ret = 0;
+ 	u16 *p;
++	unsigned long tim, limit;
  
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 7053bc0..c5fe2b0 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -416,6 +416,7 @@ static void __init overo_init_irq(void)
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
- 			     mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index 36f2cf4..3be8729 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -107,6 +107,7 @@ static void __init rx51_init_irq(void)
- 	omap3_pm_init_cpuidle(rx51_cpuidle_params);
- 	sdrc_params = rx51_get_sdram_timings();
- 	omap2_init_common_hw(sdrc_params, sdrc_params);
-+	gpmc_init();
- 	omap_init_irq();
- 	omap_gpio_init();
- }
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 994d286..b77802b 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -22,6 +22,7 @@
- 
- #include <plat/common.h>
- #include <plat/board.h>
-+#include <plat/gpmc.h>
- 
- #include <mach/board-zoom.h>
- 
-@@ -34,6 +35,7 @@ static void __init omap_zoom2_init_irq(void)
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
- 				 mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index 0c9c15e..d56024f 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -22,6 +22,7 @@
- #include <plat/common.h>
- #include <plat/board.h>
- #include <plat/usb.h>
-+#include <plat/gpmc.h>
- 
- #include "board-flash.h"
- #include "mux.h"
-@@ -78,6 +79,7 @@ static void __init omap_zoom_init_irq(void)
- 	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
- 			h8mbx00u0mer0em_sdrc_params);
- 	omap_init_irq();
-+	gpmc_init();
- 	omap_gpio_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index f46933b..a2df8b1 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -14,6 +14,7 @@
-  */
- #undef DEBUG
- 
-+#include <linux/irq.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/err.h>
-@@ -22,12 +23,12 @@
- #include <linux/spinlock.h>
- #include <linux/io.h>
- #include <linux/module.h>
-+#include <linux/interrupt.h>
- 
- #include <asm/mach-types.h>
- #include <plat/gpmc.h>
- 
- #include <plat/sdrc.h>
--
- /* GPMC register offsets */
- #define GPMC_REVISION		0x00
- #define GPMC_SYSCONFIG		0x10
-@@ -100,6 +101,8 @@ static void __iomem *gpmc_base;
- 
- static struct clk *gpmc_l3_clk;
- 
-+static irqreturn_t gpmc_handle_irq(int irq, void *dev);
+ 	/* take care of subpage writes */
+ 	if (len % 2 != 0) {
+@@ -295,9 +305,12 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
+ 				iowrite16(*p++, info->nand.IO_ADDR_W);
+ 		}
+ 		/* wait for data to flushed-out before reset the prefetch */
+-		do {
+-			pref_count = gpmc_read_status(GPMC_PREFETCH_COUNT);
+-		} while (pref_count);
++		tim = 0;
++		limit = (loops_per_jiffy *
++					msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
++		while (gpmc_read_status(GPMC_PREFETCH_COUNT) && (tim++ < limit))
++			cpu_relax();
 +
- static void gpmc_write_reg(int idx, u32 val)
+ 		/* disable and stop the PFPW engine */
+ 		gpmc_prefetch_reset(info->gpmc_cs);
+ 	}
+@@ -326,11 +339,11 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
  {
- 	__raw_writel(val, gpmc_base + idx);
-@@ -487,6 +490,10 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
- 	u32 regval = 0;
+ 	struct omap_nand_info *info = container_of(mtd,
+ 					struct omap_nand_info, mtd);
+-	uint32_t prefetch_status = 0;
+ 	enum dma_data_direction dir = is_write ? DMA_TO_DEVICE :
+ 							DMA_FROM_DEVICE;
+ 	dma_addr_t dma_addr;
+ 	int ret;
++	unsigned long tim, limit;
  
- 	switch (cmd) {
-+	case GPMC_ENABLE_IRQ:
-+		gpmc_write_reg(GPMC_IRQENABLE, wval);
-+		break;
-+
- 	case GPMC_SET_IRQ_STATUS:
- 		gpmc_write_reg(GPMC_IRQSTATUS, wval);
- 		break;
-@@ -670,7 +677,8 @@ static void __init gpmc_mem_init(void)
+ 	/* The fifo depth is 64 bytes. We have a sync at each frame and frame
+ 	 * length is 64 bytes.
+@@ -376,7 +389,7 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 	/*  configure and start prefetch transfer */
+ 	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x1, len, is_write);
+ 	if (ret)
+-		/* PFPW engine is busy, use cpu copy methode */
++		/* PFPW engine is busy, use cpu copy method */
+ 		goto out_copy;
  
- void __init gpmc_init(void)
- {
--	u32 l;
-+	u32 l, irq;
-+	int cs;
- 	char *ck = NULL;
+ 	init_completion(&info->comp);
+@@ -385,10 +398,11 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
  
- 	if (cpu_is_omap24xx()) {
-@@ -713,6 +721,33 @@ void __init gpmc_init(void)
- 	l |= (0x02 << 3) | (1 << 0);
- 	gpmc_write_reg(GPMC_SYSCONFIG, l);
- 	gpmc_mem_init();
-+
-+	/* initalize the irq_chained */
-+	irq = OMAP_GPMC_IRQ_BASE;
-+	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
-+		set_irq_handler(irq, handle_simple_irq);
-+		set_irq_flags(irq, IRQF_VALID);
-+		irq++;
-+	}
-+
-+	if (request_irq(INT_34XX_GPMC_IRQ,
-+			gpmc_handle_irq, IRQF_SHARED, "gpmc", gpmc_base))
-+		pr_err("gpmc: irq-%d could not claim: err %d\n",
-+						INT_34XX_GPMC_IRQ, irq);
-+}
-+
-+static irqreturn_t gpmc_handle_irq(int irq, void *dev)
+ 	/* setup and start DMA using dma_addr */
+ 	wait_for_completion(&info->comp);
++	tim = 0;
++	limit = (loops_per_jiffy * msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
++	while (gpmc_read_status(GPMC_PREFETCH_COUNT) && (tim++ < limit))
++		cpu_relax();
+ 
+-	do {
+-		prefetch_status = gpmc_read_status(GPMC_PREFETCH_COUNT);
+-	} while (prefetch_status);
+ 	/* disable and stop the PFPW engine */
+ 	gpmc_prefetch_reset(info->gpmc_cs);
+ 
+@@ -436,6 +450,155 @@ static void omap_write_buf_dma_pref(struct mtd_info *mtd,
+ 		omap_nand_dma_transfer(mtd, (u_char *) buf, len, 0x1);
+ }
+ 
++/*
++ * omap_nand_irq - GMPC irq handler
++ * @this_irq: gpmc irq number
++ * @dev: omap_nand_info structure pointer is passed here
++ */
++static irqreturn_t omap_nand_irq(int this_irq, void *dev)
 +{
-+	u8 cs;
++	struct omap_nand_info *info = (struct omap_nand_info *) dev;
++	u32 bytes;
++	u32 irq_stat;
 +
-+	if (irq != INT_34XX_GPMC_IRQ)
-+		return IRQ_HANDLED;
-+	/* check cs to invoke the irq */
-+	cs = ((gpmc_read_reg(GPMC_PREFETCH_CONFIG1)) >> CS_NUM_SHIFT) & 0x7;
-+	if (OMAP_GPMC_IRQ_BASE+cs <= OMAP_GPMC_IRQ_END)
-+		generic_handle_irq(OMAP_GPMC_IRQ_BASE+cs);
++	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
++	bytes = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
++	bytes = bytes  & 0xFFFC; /* io in multiple of 4 bytes */
++	if (info->iomode == OMAP_NAND_IO_WRITE) { /* checks for write io */
++		if (irq_stat & 0x2)
++			goto done;
++
++		if (info->buf_len && (info->buf_len < bytes))
++			bytes = info->buf_len;
++		else if (!info->buf_len)
++			bytes = 0;
++		iowrite32_rep(info->nand.IO_ADDR_W,
++						(u32 *)info->buf, bytes >> 2);
++		info->buf = info->buf + bytes;
++		info->buf_len -= bytes;
++
++	} else {
++		ioread32_rep(info->nand.IO_ADDR_R,
++						(u32 *)info->buf, bytes >> 2);
++		info->buf = info->buf + bytes;
++
++		if (irq_stat & 0x2)
++			goto done;
++	}
++	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
 +
 +	return IRQ_HANDLED;
- }
- 
- #ifdef CONFIG_ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index a1939b1..3e67a67 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -30,7 +30,6 @@
- 
- #include <plat/sram.h>
- #include <plat/sdrc.h>
--#include <plat/gpmc.h>
- #include <plat/serial.h>
- 
- #include "clock2xxx.h"
-@@ -351,5 +350,4 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
- 		_omap2_init_reprogram_sdrc();
- 	}
--	gpmc_init();
- }
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 9fd99b9..054e704 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -41,6 +41,8 @@
- #define GPMC_NAND_ADDRESS	0x0000000b
- #define GPMC_NAND_DATA		0x0000000c
- 
-+#define GPMC_ENABLE_IRQ		0x0000000d
 +
- /* ECC commands */
- #define GPMC_ECC_READ		0 /* Reset Hardware ECC for read */
- #define GPMC_ECC_WRITE		1 /* Reset Hardware ECC for write */
-@@ -78,6 +80,8 @@
- #define WR_RD_PIN_MONITORING		0x00600000
- #define GPMC_PREFETCH_STATUS_FIFO_CNT(val)	((val >> 24) & 0x7F)
- #define GPMC_PREFETCH_STATUS_COUNT(val)	(val & 0x00003fff)
-+#define GPMC_IRQ_FIFOEVENTENABLE	0x01
-+#define GPMC_IRQ_COUNT_EVENT		0x02
- 
- /*
-  * Note that all values in this struct are in nanoseconds, while
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index 65e20a6..b90b9ef 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -318,6 +318,7 @@
- #define INT_34XX_PRCM_MPU_IRQ	11
- #define INT_34XX_MCBSP1_IRQ	16
- #define INT_34XX_MCBSP2_IRQ	17
-+#define INT_34XX_GPMC_IRQ	20
- #define INT_34XX_MCBSP3_IRQ	22
- #define INT_34XX_MCBSP4_IRQ	23
- #define INT_34XX_CAM_IRQ	24
-@@ -411,7 +412,13 @@
- #define TWL_IRQ_END		TWL6030_IRQ_END
- #endif
- 
--#define NR_IRQS			TWL_IRQ_END
-+/* GPMC related */
-+#define OMAP_GPMC_IRQ_BASE	(TWL_IRQ_END)
-+#define OMAP_GPMC_NR_IRQS	7
-+#define OMAP_GPMC_IRQ_END	(OMAP_GPMC_IRQ_BASE + OMAP_GPMC_NR_IRQS)
++done:
++	complete(&info->comp);
++	/* disable irq */
++	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ, 0);
 +
++	/* clear status */
++	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
 +
-+#define NR_IRQS			OMAP_GPMC_IRQ_END
++	return IRQ_HANDLED;
++}
++
++/*
++ * omap_read_buf_irq_pref - read data from NAND controller into buffer
++ * @mtd: MTD device structure
++ * @buf: buffer to store date
++ * @len: number of bytes to read
++ */
++static void omap_read_buf_irq_pref(struct mtd_info *mtd, u_char *buf, int len)
++{
++	struct omap_nand_info *info = container_of(mtd,
++						struct omap_nand_info, mtd);
++	int ret = 0;
++
++	if (len <= mtd->oobsize) {
++		omap_read_buf_pref(mtd, buf, len);
++		return;
++	}
++
++	info->iomode = OMAP_NAND_IO_READ;
++	info->buf = buf;
++	init_completion(&info->comp);
++
++	/*  configure and start prefetch transfer */
++	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
++	if (ret)
++		/* PFPW engine is busy, use cpu copy method */
++		goto out_copy;
++
++	info->buf_len = len;
++	/* enable irq */
++	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ,
++		(GPMC_IRQ_FIFOEVENTENABLE | GPMC_IRQ_COUNT_EVENT));
++
++	/* waiting for read to complete */
++	wait_for_completion(&info->comp);
++
++	/* disable and stop the PFPW engine */
++	gpmc_prefetch_reset(info->gpmc_cs);
++	return;
++
++out_copy:
++	if (info->nand.options & NAND_BUSWIDTH_16)
++		omap_read_buf16(mtd, buf, len);
++	else
++		omap_read_buf8(mtd, buf, len);
++}
++
++/*
++ * omap_write_buf_irq_pref - write buffer to NAND controller
++ * @mtd: MTD device structure
++ * @buf: data buffer
++ * @len: number of bytes to write
++ */
++static void omap_write_buf_irq_pref(struct mtd_info *mtd,
++					const u_char *buf, int len)
++{
++	struct omap_nand_info *info = container_of(mtd,
++						struct omap_nand_info, mtd);
++	int ret = 0;
++	unsigned long tim, limit;
++
++	if (len <= mtd->oobsize) {
++		omap_write_buf_pref(mtd, buf, len);
++		return;
++	}
++
++	info->iomode = OMAP_NAND_IO_WRITE;
++	info->buf = (u_char *) buf;
++	init_completion(&info->comp);
++
++	/*  configure and start prefetch transfer */
++	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x1);
++	if (ret)
++		/* PFPW engine is busy, use cpu copy method */
++		goto out_copy;
++
++	info->buf_len = len;
++	/* enable irq */
++	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ,
++			(GPMC_IRQ_FIFOEVENTENABLE | GPMC_IRQ_COUNT_EVENT));
++
++	/* waiting for write to complete */
++	wait_for_completion(&info->comp);
++	/* wait for data to flushed-out before reset the prefetch */
++	tim = 0;
++	limit = (loops_per_jiffy *  msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
++	while (gpmc_read_status(GPMC_PREFETCH_COUNT) && (tim++ < limit))
++		cpu_relax();
++
++	/* disable and stop the PFPW engine */
++	gpmc_prefetch_reset(info->gpmc_cs);
++	return;
++
++out_copy:
++	if (info->nand.options & NAND_BUSWIDTH_16)
++		omap_write_buf16(mtd, buf, len);
++	else
++		omap_write_buf8(mtd, buf, len);
++}
++
+ /**
+  * omap_verify_buf - Verify chip data against buffer
+  * @mtd: MTD device structure
+@@ -846,6 +1009,20 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		}
+ 		break;
  
- #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
++	case NAND_OMAP_PREFETCH_IRQ:
++		err = request_irq(pdata->gpmc_irq,
++				omap_nand_irq, IRQF_SHARED, "gpmc-nand", info);
++		if (err) {
++			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
++							pdata->gpmc_irq, err);
++			goto out_release_mem_region;
++		} else {
++			info->gpmc_irq	     = pdata->gpmc_irq;
++			info->nand.read_buf  = omap_read_buf_irq_pref;
++			info->nand.write_buf = omap_write_buf_irq_pref;
++		}
++		break;
++
+ 	default:
+ 		dev_err(&pdev->dev,
+ 			"xfer_type(%d) not supported!\n", pdata->xfer_type);
+@@ -911,6 +1088,9 @@ static int omap_nand_remove(struct platform_device *pdev)
+ 	if (info->dma_ch != -1)
+ 		omap_free_dma(info->dma_ch);
  
++	if (info->gpmc_irq)
++		free_irq(info->gpmc_irq, info);
++
+ 	/* Release NAND device, its internal structures and partitions */
+ 	nand_release(&info->mtd);
+ 	iounmap(info->nand.IO_ADDR_R);
 -- 
 1.7.0.4
 
