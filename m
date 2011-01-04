@@ -1,152 +1,63 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/3] perf: add OMAP support for the new power events
-Date: Tue, 4 Jan 2011 11:48:53 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101041146160.19319@utopia.booyaka.com>
-References: <1294136263-24020-1-git-send-email-j-pihet@ti.com> <1294138484-24729-1-git-send-email-j-pihet@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 5/5] omap2plus: voltage: Trivial linking fix for 'EINVAL'
+ undeclared
+Date: Tue, 04 Jan 2011 12:49:04 -0600
+Message-ID: <4D236BA0.8010002@ti.com>
+References: <1294165576-15628-1-git-send-email-santosh.shilimkar@ti.com> <1294165576-15628-2-git-send-email-santosh.shilimkar@ti.com> <1294165576-15628-3-git-send-email-santosh.shilimkar@ti.com> <1294165576-15628-4-git-send-email-santosh.shilimkar@ti.com> <1294165576-15628-5-git-send-email-santosh.shilimkar@ti.com> <1294165576-15628-6-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-perf-users-owner@vger.kernel.org>
-In-Reply-To: <1294138484-24729-1-git-send-email-j-pihet@ti.com>
-Sender: linux-perf-users-owner@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: mingo@elte.hu, trenn@suse.de, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, rjw@sisk.pl, Jean Pihet <j-pihet@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:35901 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751638Ab1ADStJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 13:49:09 -0500
+Received: by mail-gw0-f53.google.com with SMTP id 10so4976098gwb.40
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 10:49:08 -0800 (PST)
+In-Reply-To: <1294165576-15628-6-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Thara Gopinath <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hello Jean,
-
-On Tue, 4 Jan 2011, jean.pihet@newoldbits.com wrote:
-
-> From: Jean Pihet <j-pihet@ti.com>
+Santosh Shilimkar had written, on 01/04/2011 12:26 PM, the following:
+> CC      arch/arm/mach-omap2/omap_hwmod_common_data.o
+> In file included from arch/arm/plat-omap/include/plat/omap_hwmod.h:38,
+>                  from arch/arm/mach-omap2/omap_hwmod_common_data.c:20:
+> arch/arm/plat-omap/include/plat/voltage.h: In function 'omap_voltage_late_init':
+> arch/arm/plat-omap/include/plat/voltage.h:145: error: 'EINVAL' undeclared (first use in this function)
+> arch/arm/plat-omap/include/plat/voltage.h:145: error: (Each undeclared identifier is reported only once
+> arch/arm/plat-omap/include/plat/voltage.h:145: error: for each function it appears in.)
+> make[1]: *** [arch/arm/mach-omap2/omap_hwmod_common_data.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
 > 
-> The patch adds the new power management trace points for
-> the OMAP architecture.
+> The error is reported when omap2plus_defconfig built with CONFIG_PM disabled
 > 
-> The trace points are for:
-> - default idle handler. Since the cpuidle framework is
->   instrumented in the generic way there is no need to
->   add trace points in the OMAP specific cpuidle handler;
-> - cpufreq (DVFS),
-> - clocks changes (enable, disable, set_rate),
-
-A question about these.  Are these only meant to track calls to these 
-functions from outside the clock code?  Or meant to track actual hardware 
-clock changes?  If the latter, then it might make sense to put these 
-trace points into the functions that actually change the hardware 
-registers, e.g., omap2_dflt_clk_{enable,disable}(), etc., since a 
-clk_enable() on a leaf clock may result in many internal system clocks 
-being enabled up the clock tree.
-
-
-- Paul
-
-> - change of power domains next power states.
-> 
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Thara Gopinath <thara@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
 > ---
->  arch/arm/mach-omap2/pm34xx.c      |    7 +++++++
->  arch/arm/mach-omap2/powerdomain.c |    3 +++
->  arch/arm/plat-omap/clock.c        |   13 ++++++++++---
->  3 files changed, 20 insertions(+), 3 deletions(-)
+>  arch/arm/plat-omap/include/plat/voltage.h |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 0ec8a04..0ee0b0e 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -29,6 +29,7 @@
->  #include <linux/delay.h>
->  #include <linux/slab.h>
->  #include <linux/console.h>
-> +#include <trace/events/power.h>
+> diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+> index c095351..2b776f0 100644
+> --- a/arch/arm/plat-omap/include/plat/voltage.h
+> +++ b/arch/arm/plat-omap/include/plat/voltage.h
+> @@ -14,6 +14,8 @@
+>  #ifndef __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
+>  #define __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
 >  
->  #include <plat/sram.h>
->  #include <plat/clockdomain.h>
-> @@ -506,8 +507,14 @@ static void omap3_pm_idle(void)
->  	if (omap_irq_pending() || need_resched())
->  		goto out;
->  
-> +	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-> +	trace_cpu_idle(1, smp_processor_id());
+> +#include <linux/err.h>
 > +
->  	omap_sram_idle();
->  
-> +	trace_power_end(smp_processor_id());
-> +	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
-> +
->  out:
->  	local_fiq_enable();
->  	local_irq_enable();
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 6527ec3..73cbe9a 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -23,6 +23,7 @@
->  #include <linux/errno.h>
->  #include <linux/err.h>
->  #include <linux/io.h>
-> +#include <trace/events/power.h>
->  
->  #include <asm/atomic.h>
->  
-> @@ -440,6 +441,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
->  	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
->  		 pwrdm->name, pwrst);
->  
-> +	trace_power_domain_target(pwrdm->name, pwrst, smp_processor_id());
-> +
->  	prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
->  			     (pwrst << OMAP_POWERSTATE_SHIFT),
->  			     pwrdm->prcm_offs, pwrstctrl_reg_offs);
-> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-> index fc62fb5..7cbb09b 100644
-> --- a/arch/arm/plat-omap/clock.c
-> +++ b/arch/arm/plat-omap/clock.c
-> @@ -21,6 +21,7 @@
->  #include <linux/cpufreq.h>
->  #include <linux/debugfs.h>
->  #include <linux/io.h>
-> +#include <trace/events/power.h>
->  
->  #include <plat/clock.h>
->  
-> @@ -43,8 +44,10 @@ int clk_enable(struct clk *clk)
->  		return -EINVAL;
->  
->  	spin_lock_irqsave(&clockfw_lock, flags);
-> -	if (arch_clock->clk_enable)
-> +	if (arch_clock->clk_enable) {
-> +		trace_clock_enable(clk->name, 1, smp_processor_id());
->  		ret = arch_clock->clk_enable(clk);
-> +	}
->  	spin_unlock_irqrestore(&clockfw_lock, flags);
->  
->  	return ret;
-> @@ -66,8 +69,10 @@ void clk_disable(struct clk *clk)
->  		goto out;
->  	}
->  
-> -	if (arch_clock->clk_disable)
-> +	if (arch_clock->clk_disable) {
-> +		trace_clock_disable(clk->name, 0, smp_processor_id());
->  		arch_clock->clk_disable(clk);
-> +	}
->  
->  out:
->  	spin_unlock_irqrestore(&clockfw_lock, flags);
-> @@ -120,8 +125,10 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
->  		return ret;
->  
->  	spin_lock_irqsave(&clockfw_lock, flags);
-> -	if (arch_clock->clk_set_rate)
-> +	if (arch_clock->clk_set_rate) {
-> +		trace_clock_set_rate(clk->name, rate, smp_processor_id());
->  		ret = arch_clock->clk_set_rate(clk, rate);
-> +	}
->  	if (ret == 0) {
->  		if (clk->recalc)
->  			clk->rate = clk->recalc(clk);
-> -- 
-> 1.7.2.3
-> 
 
+Not sure if this is better OR including the err.h in c files is better, 
+since the c file is the location where the error code is actually used..
 
-- Paul
+but no strong feelings about either personally.
+
+[..]
+
+-- 
+Regards,
+Nishanth Menon
