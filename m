@@ -1,45 +1,103 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH v5 1/3] ARM: add CPPI 4.1 DMA support
-Date: Tue, 04 Jan 2011 16:56:28 +0200
-Message-ID: <1294152988.1822.12.camel@eowin>
-References: <201005152214.53993.sshtylyov@ru.mvista.com>
-	 <4D21F3F2.6090302@mvista.com>
-	 <20110103163447.GB2911@n2100.arm.linux.org.uk>
-	 <19F8576C6E063C45BE387C64729E739404BD3F2C4D@dbde02.ent.ti.com>
-	 <4D220246.5020303@mvista.com>
-	 <19F8576C6E063C45BE387C64729E739404BD3F2C58@dbde02.ent.ti.com>
-	 <20110103204416.GA2240@legolas.emea.dhcp.ti.com>
-	 <4D231B5F.7030607@mvista.com> <1294149984.1822.9.camel@eowin>
-	 <AANLkTi=JyoQuP-OQtV1yO0WR1GCM1LieHUj5Sn=ZfVim@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 1/3] perf: add calls to suspend trace point
+Date: Tue, 4 Jan 2011 16:00:05 +0100
+Message-ID: <AANLkTim_ekCNw6xhC_MGY7=gfXUCfinXkLeXtttpHaGc@mail.gmail.com>
+References: <1294136263-24020-1-git-send-email-j-pihet@ti.com>
+	<1294138109-24679-1-git-send-email-j-pihet@ti.com>
+	<20110104112919.GB9879@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:47333 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176Ab1ADO4e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 09:56:34 -0500
-In-Reply-To: <AANLkTi=JyoQuP-OQtV1yO0WR1GCM1LieHUj5Sn=ZfVim@mail.gmail.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:57682 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751324Ab1ADPAG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 10:00:06 -0500
+In-Reply-To: <20110104112919.GB9879@atrey.karlin.mff.cuni.cz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, balbi@ti.com, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: mingo@elte.hu, trenn@suse.de, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
 Hi,
 
-On Tue, 2011-01-04 at 22:40 +0800, Ming Lei wrote:
-> > The end goal is just to drop all these ad-hoc "APIs" for accessing DMA
-> > on musb code.
-> 
-> If this kind of DMA controllers are only used by MUSB, seems not
-> necessary to convert to dmaengine API.  Any benefit we can get
-> from the convert?   MUSB is cross-platform already after all.
+On Tue, Jan 4, 2011 at 12:29 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> Hi!
+>
+>> Uses the machine_suspend trace point, called from the
+>> generic kernel suspend_enter function.
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> CC: Thomas Renninger <trenn@suse.de>
+>> ---
+>> =A0kernel/power/suspend.c | =A0 =A03 +++
+>> =A01 files changed, 3 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
+>> index ecf7705..0650596 100644
+>> --- a/kernel/power/suspend.c
+>> +++ b/kernel/power/suspend.c
+>> @@ -22,6 +22,7 @@
+>> =A0#include <linux/mm.h>
+>> =A0#include <linux/slab.h>
+>> =A0#include <linux/suspend.h>
+>> +#include <trace/events/power.h>
+>>
+>> =A0#include "power.h"
+>>
+>> @@ -164,7 +165,9 @@ static int suspend_enter(suspend_state_t state)
+>> =A0 =A0 =A0 error =3D sysdev_suspend(PMSG_SUSPEND);
+>> =A0 =A0 =A0 if (!error) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!suspend_test(TEST_CORE) && pm_check=
+_wakeup_events()) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 trace_machine_suspend(stat=
+e);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 error =3D suspend_ops->e=
+nter(state);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 trace_machine_suspend(PWR_=
+EVENT_EXIT);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 events_check_enabled =3D=
+ false;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 sysdev_resume();
+>
+> Ok... why this place?
+This trace has been placed here because it traces the machine low
+level mode enter.
 
-<irony>
-correct, OMAP GPIO controller is only used on OMAPs, so why do we even
-bother having gpiolib, right ?
-</irony>
+> I mean, perhaps suspend time should include
+> device suspend?
+That makes sense. We have a few options here:
+1) keep the traces as proposed to trace the low level machine code only=
+,
+2) move the traces to the entry and exit of suspend_enter so that it
+includes the prepare and late_prepare (+ the associated wake-up)
+callbacks as well,
+3) move the traces to suspend_devices_and_enter so that it includes 2)
+and the handling of the console and the devices,
+4) move the traces to enter_state do that it includes 3), the call to
+sys_sync and the user space freeze.
 
--- 
-balbi
+Note that the the SNAPSHOT_2RAM ioctl code also calls
+suspend_devices_and_enter, so if only 4) is used no trace will be
+generated in that case.
 
+I am in favor of 3) of 4).
+What do you think?
+
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+Pavel
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/hors=
+es/blog.html
+>
+
+Thanks,
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
