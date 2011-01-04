@@ -1,85 +1,82 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
-Date: Tue, 4 Jan 2011 14:23:20 +0200
-Message-ID: <AANLkTikLuu+njQA_PRmS_q8zs_xpB2gsqh3oZQJkB_Cm@mail.gmail.com>
-References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
- <AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com>
- <20101214170656.GA3832@kroah.com> <AANLkTi=q=QMQ_Abxb8eUWT_qGG8K=pc892ZB-mqgt_mh@mail.gmail.com>
- <20101216210837.GA22895@kroah.com> <AANLkTi=s_Urcin4SAp1mXrKmoyzR2=6YuS3aU+OYYgqK@mail.gmail.com>
- <20101218005311.GE5941@atomide.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [PATCH v3 07/17] OMAP2,3: DSS2: Build omap_device for each DSS HWIP
+Date: Tue, 4 Jan 2011 17:57:48 +0530
+Message-ID: <AANLkTin=XMafCFVKQwYqRzbv-rvjeDAMon2TBdmE20ww@mail.gmail.com>
+References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
+ <1294059069-26737-8-git-send-email-svadivu@ti.com> <20110104015652.GY7771@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101218005311.GE5941@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:58410 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751353Ab1ADM2K convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Jan 2011 07:28:10 -0500
+Received: by mail-qy0-f182.google.com with SMTP id 36so14117104qyk.6
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 04:28:09 -0800 (PST)
+In-Reply-To: <20110104015652.GY7771@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Guruswamy Senthilvadivu <svadivu@ti.com>, tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@deeprootsystems.com, v-hiremath@ti.com, a0919096@ti.com, linux-omap@vger.kernel.org
 
-Hi Andrew,
+Hi Tony,
 
-On Sat, Dec 18, 2010 at 2:53 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Ohad Ben-Cohen <ohad@wizery.com> [101216 13:34]:
->> Tony, Andrew, can you please have a look ?
->>
->> Any comment or suggestion is appreciated.
+On Tue, Jan 4, 2011 at 7:26 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Guruswamy Senthilvadivu <svadivu@ti.com> [110103 04:51]:
+>> + =A0 =A0 char *omap2_oh_name[] =3D { "dss_dss", "dss_dispc", "dss_r=
+fbi",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "dss_venc"=
+ };
+>> + =A0 =A0 char *omap3_oh_name[] =3D { "dss_dss", "dss_dispc", "dss_r=
+fbi",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "dss_venc"=
+, "dss_dsi1" };
+>> + =A0 =A0 char *omap2_dev_name[] =3D { "omap_dss", "omap_dispc", "om=
+ap_rfbi",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "omap_venc=
+" };
+>> + =A0 =A0 char *omap3_dev_name[] =3D { "omap_dss", "omap_dispc", "om=
+ap_rfbi",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "omap_venc=
+", "omap_dsi1" };
+>> + =A0 =A0 char *(*oh_name)[];
+>> + =A0 =A0 char *(*dev_name)[];
+>> + =A0 =A0 int oh_count;
+>> +
+>> + =A0 =A0 if (cpu_is_omap24xx()) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 oh_name =3D &omap2_oh_name;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_name =3D &omap2_dev_name;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 oh_count =3D ARRAY_SIZE(omap2_oh_name);
+>> + =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 oh_name =3D &omap3_oh_name;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_name =3D &omap3_dev_name;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 oh_count =3D ARRAY_SIZE(omap3_oh_name);
+>> + =A0 =A0 }
 >
-> Looks sane to me from omap point of view and it seems the locks
-> are now all timeout based:
+> Here it looks like you don't need to repeat the common names
+> "dss_dss", "dss_dispc", "dss_rfbi". Instead you can have a
+> common char *omap_oh_name[5] then set oh_count smaller based
+> on the omap type.
+Thanks, yes, that's a good suggestion. Senthil is going to be out for
+sometime, so I will update this and send an updated patch series by
+tomorrow, after waiting for any more comments.
+
+Best regards,
+~Sumit.
 >
-> Acked-by: Tony Lindgren <tony@atomide.com>
-
-Can you please have a look at this patch set (see link no. [1] below) ?
-
-Short summary:
-
-This hwspinlock framework adds support for hardware-based locking
-devices, needed to accomplish synchronization and mutual exclusion
-operations between remote processors that have no alternative
-mechanism to do so.
-
-This patch set adds a framework and an OMAP implementation. It had
-circulated several times in the relevant mailing lists, and all
-comments were addressed. The third version of this patch set [1] was
-submitted about a month ago and so far there is no outstanding
-comment.
-
-Users for this framework that we are aware of:
-
-1. OMAP4 and Davinci Netra (DM8168): both of these SoC have the same
-hwspinlock module and will share the same host implementation.
-
-2. Other platforms (such as omap3530 and omapl1xx) that have no such
-hardware support, but would still need to achieve synchronization (to
-communicate with their DSP).
-
-The only way to achieve mutual exclusion on those platforms is by
-using a shared-memory synchronization algorithm called Peterson's
-Algorithm [2].
-
-We would still need the same hwspinlock framework for that - the busy
-looping, the timeout, the various locking schemes, the lock resource
-allocation - are all still valid. The only difference would be the
-actual lock implementation, therefore we will add another host
-implementation
-for these platforms.
-
-3. The C6474, a multi-core DSP device [3], have Linux running on one
-of its cores, and hardware support for synchronization (btw the C6474
-has a richer hardware module that would need more than the hwspinlock
-framework offer today - it also supports queuing, owner semantics and
-interrupt notification to let a processor know when it acquires a
-lock, so it wouldn't have to spin..).  Disclaimer: it will probably
-take some time until c6x support is merged upstream, but this is
-something that is being actively worked on [4].
-
-
-Any comment or suggestion is appreciated.
-
-Thanks,
-Ohad.
-
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39833.html
-[2] http://en.wikipedia.org/wiki/Peterson's_algorithm
-[3] http://focus.ti.com/docs/prod/folders/print/tms320c6474.html
-[4] http://www.linux-c6x.org/wiki/index.php/Main_Page
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
