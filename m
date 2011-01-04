@@ -1,57 +1,80 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/3] perf: add OMAP support for the new power events
-Date: Tue, 04 Jan 2011 12:03:56 -0600
-Message-ID: <4D23610C.1060009@ti.com>
-References: <1294136263-24020-1-git-send-email-j-pihet@ti.com> <1294136263-24020-3-git-send-email-j-pihet@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH] omap: boards w/ wl12xx should select REGULATOR_FIXED_VOLTAGE
+Date: Tue, 4 Jan 2011 20:04:41 +0200
+Message-ID: <AANLkTinc1xopSYvaJmN_hHaQq1TP=i_HNy5vX_LhdQOh@mail.gmail.com>
+References: <1290593090-6288-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-perf-users-owner@vger.kernel.org>
-In-Reply-To: <1294136263-24020-3-git-send-email-j-pihet@ti.com>
-Sender: linux-perf-users-owner@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: mingo@elte.hu, linux-kernel@vger.kernel.org, trenn@suse.de, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, rjw@sisk.pl, Jean Pihet <j-pihet@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f194.google.com ([209.85.210.194]:48697 "EHLO
+	mail-iy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750954Ab1ADSFD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 13:05:03 -0500
+Received: by iyf40 with SMTP id 40so6758724iyf.1
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 10:05:02 -0800 (PST)
+In-Reply-To: <1290593090-6288-1-git-send-email-ohad@wizery.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-jean.pihet@newoldbits.com had written, on 01/04/2011 04:17 AM, the 
-following:
-[..]
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 0ec8a04..0ee0b0e 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -29,6 +29,7 @@
->  #include <linux/delay.h>
->  #include <linux/slab.h>
->  #include <linux/console.h>
-> +#include <trace/events/power.h>
->  
->  #include <plat/sram.h>
->  #include <plat/clockdomain.h>
-> @@ -506,8 +507,14 @@ static void omap3_pm_idle(void)
->  	if (omap_irq_pending() || need_resched())
->  		goto out;
->  
-> +	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-> +	trace_cpu_idle(1, smp_processor_id());
-> +
->  	omap_sram_idle();
->  
-> +	trace_power_end(smp_processor_id());
-> +	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+On Wed, Nov 24, 2010 at 12:04 PM, Ohad Ben-Cohen <ohad@wizery.com> wrot=
+e:
+> Power to the wl12xx wlan device is controlled by a fixed regulator.
+>
+> Boards that have the wl12xx should select REGULATOR_FIXED_VOLTAGE so
+> users will not be baffled.
+>
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> ---
 
-Dumb question: it just tells me which C state was attempted - not if 
-actually succeeded in hitting it rt? Does'nt this give us a false data?
+Hi Tony,
 
-[..]
-> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-> index fc62fb5..7cbb09b 100644
-> --- a/arch/arm/plat-omap/clock.c
-> +++ b/arch/arm/plat-omap/clock.c
-(from an offline discussion on a related topic): Would it also be nice 
-to hook on mach-omap2/clock.c points as well to hook on indirect changes?
-[..]
+Gentle reminder,
 
--- 
-Regards,
-Nishanth Menon
+Thanks,
+Ohad.
+
+
+> =A0arch/arm/mach-omap2/Kconfig | =A0 =A03 +++
+> =A01 files changed, 3 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfi=
+g
+> index fc3a181..cc386da 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -190,6 +190,7 @@ config MACH_OMAP3_PANDORA
+> =A0 =A0 =A0 =A0depends on ARCH_OMAP3
+> =A0 =A0 =A0 =A0default y
+> =A0 =A0 =A0 =A0select OMAP_PACKAGE_CBB
+> + =A0 =A0 =A0 select REGULATOR_FIXED_VOLTAGE
+>
+> =A0config MACH_OMAP3_TOUCHBOOK
+> =A0 =A0 =A0 =A0bool "OMAP3 Touch Book"
+> @@ -235,6 +236,7 @@ config MACH_OMAP_ZOOM2
+> =A0 =A0 =A0 =A0select SERIAL_8250
+> =A0 =A0 =A0 =A0select SERIAL_CORE_CONSOLE
+> =A0 =A0 =A0 =A0select SERIAL_8250_CONSOLE
+> + =A0 =A0 =A0 select REGULATOR_FIXED_VOLTAGE
+>
+> =A0config MACH_OMAP_ZOOM3
+> =A0 =A0 =A0 =A0bool "OMAP3630 Zoom3 board"
+> @@ -244,6 +246,7 @@ config MACH_OMAP_ZOOM3
+> =A0 =A0 =A0 =A0select SERIAL_8250
+> =A0 =A0 =A0 =A0select SERIAL_CORE_CONSOLE
+> =A0 =A0 =A0 =A0select SERIAL_8250_CONSOLE
+> + =A0 =A0 =A0 select REGULATOR_FIXED_VOLTAGE
+>
+> =A0config MACH_CM_T35
+> =A0 =A0 =A0 =A0bool "CompuLab CM-T35 module"
+> --
+> 1.7.0.4
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
