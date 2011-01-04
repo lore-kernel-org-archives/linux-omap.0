@@ -1,25 +1,65 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [RFC 0/5] runtime P2V translations
-Date: Tue, 4 Jan 2011 20:20:52 +0000
-Message-ID: <20110104202052.GE24935@n2100.arm.linux.org.uk>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 0/2] OMAP: TWL: sparse fixes
+Date: Tue, 04 Jan 2011 14:37:23 -0600
+Message-ID: <4D238503.6070103@ti.com>
+References: <1294081110-23695-1-git-send-email-nm@ti.com> <20110103223656.GA8414@n2100.arm.linux.org.uk> <4D22503F.9060100@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Viresh Kumar <viresh.kumar@st.com>, linux-sh@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Magnus Damm <magnus.damm@gmail.com>, Scott Branden <sbranden@broadcom.com>, Marc Singer <elf@buici.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Amit Kucheria <amit.kucheria@canonical.com>, Sascha Hauer <kernel@pengutronix.de>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>, Ryan Mallon <ryan@bluewatersys.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.orglin
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:45191 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751205Ab1ADUh0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 15:37:26 -0500
+Received: by mail-yx0-f170.google.com with SMTP id 11so5444011yxi.1
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 12:37:26 -0800 (PST)
+In-Reply-To: <4D22503F.9060100@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony <tony@atomide.com>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
 
-Here's my solution to this, which should allow it to be used on almost
-all platforms, including MSM, with the exception of Realview when
-SPARSEMEM is enabled.
+Nishanth Menon had written, on 01/03/2011 04:39 PM, the following:
+> Russell King - ARM Linux had written, on 01/03/2011 04:36 PM, the 
+> following:
+>> On Mon, Jan 03, 2011 at 12:58:28PM -0600, Nishanth Menon wrote:
+>>> Source:
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+>>> branch: omap-for-linus
+>>>
+>>> Doing a rm arch/arm/mach-omap2/*.o;make C=1 arch/arm/mach-omap2/
+>>> resulted in the following sparse warnings:
+>>> http://pastebin.mozilla.org/907954
+>>
+>> FYI, you may like to try:
+>>
+>> make C=2 arch/arm/mach-omap2/
+>>
+>> instead of the two-step process:
+>> | Do a kernel make with "make C=1" to run sparse on all the C files 
+>> that get
+>> | recompiled, or use "make C=2" to run sparse on the files whether 
+>> they need to
+>> | be recompiled or not.  The latter is a fast way to check the whole 
+>> tree if you
+>> | have already built it.
+> Gee thanks. /me should update my old bash aliases :D
+hmm.. minor nit (with codesourcery 2010.09-50 - 4.5.1):
+rm arch/arm/mach-omap2/*.o;make C=1 arch/arm/mach-omap2/ 2>Kerr;make C=2 
+arch/arm/mach-omap2/ 2>Kerr1;diff Kerr Kerr1
+[..]
+1,4d0
+< arch/arm/mach-omap2/mux.c: In function 'omap_mux_get_by_name':
+< arch/arm/mach-omap2/mux.c:163:17: warning: 'found_mode' may be used 
+uninitialized in this function
+< arch/arm/mach-omap2/clkt_clksel.c: In function 'omap2_clksel_set_parent':
+< arch/arm/mach-omap2/clkt_clksel.c:100:35: warning: 'max_clkr' may be 
+used uninitialized in this function
+
+Kinda interesting to note that C=2 does'nt list all potential gcc 
+warnings :( if one wanted a collated list of all warnings, rm .../*.o 
+helps I guess.
+
+-- 
+Regards,
+Nishanth Menon
