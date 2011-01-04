@@ -1,50 +1,49 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/2] OMAP: TWL: sparse fixes
-Date: Tue, 04 Jan 2011 14:44:46 -0800
-Message-ID: <1294181086.18162.38.camel@localhost>
-References: <1294081110-23695-1-git-send-email-nm@ti.com>
-	 <8762u47dmk.fsf@ti.com>
+Subject: Re: [PATCH] OMAP: GPIO: fix _set_gpio_triggering() for OMAP2+
+Date: Tue, 04 Jan 2011 14:45:54 -0800
+Message-ID: <1294181154.18162.39.camel@localhost>
+References: <1293620491-7201-1-git-send-email-ext-mika.1.westerberg@nokia.com>
+	 <87aajg7dzu.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:57552 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750875Ab1ADWou (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 17:44:50 -0500
-Received: by ewy27 with SMTP id 27so6450899ewy.28
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 14:44:49 -0800 (PST)
-In-Reply-To: <8762u47dmk.fsf@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:39846 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750976Ab1ADWp7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 17:45:59 -0500
+Received: by eyd10 with SMTP id 10so6581429eyd.17
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 14:45:57 -0800 (PST)
+In-Reply-To: <87aajg7dzu.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony <tony@atomide.com>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
+To: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-On Tue, 2011-01-04 at 10:00 -0800, Kevin Hilman wrote:
-> Nishanth Menon <nm@ti.com> writes:
+On Tue, 2011-01-04 at 09:52 -0800, Kevin Hilman wrote:
+> Mika Westerberg <ext-mika.1.westerberg@nokia.com> writes:
 > 
-> > Source:
-> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-> > branch: omap-for-linus
+> > In case on OMAP2+ we call set_24xx_gpio_triggering() instead of
+> > updating reg and l values. However, at the end of the function we
+> > perform a write:
 > >
-> > Doing a rm arch/arm/mach-omap2/*.o;make C=1 arch/arm/mach-omap2/
-> > resulted in the following sparse warnings:
-> > http://pastebin.mozilla.org/907954
+> > 	__raw_writel(l, reg);
 > >
-> > This series fixes the twl warnings
-> > Nishanth Menon (2):
-> >   OMAP2+: TWL: make conversion routines static
-> >   OMAP2+: TWL: include pm header for init protos
+> > So on OMAP2+ we end up writing 0 to the bank->base which is not
+> > correct (typically this points to GPIO_REVISION register).
 > >
-> >  arch/arm/mach-omap2/omap_twl.c |   10 ++++++----
-> >  1 files changed, 6 insertions(+), 4 deletions(-)
+> > Fix this by returning immediately after call to
+> > set_24xx_gpio_triggering().
+> >
+> > Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
 > 
 > Acked-by: Kevin Hilman <khilman@ti.com>
 > 
-> Tony, these should probably queue for .38 if it's not too late.
+> Tony, this should be added to omap-for-linus as it fixes a problem in
+> the recently merged GPIO omap_device/hwmod conversion.
 
-On second thought, it's too late for the main 2.6.38 merge window for
-these.  I'll queue these in my pm-fixes branch for the 2.6.38-rc cycle.
+On second thought, it's a bit late for the main 2.6.38 window, so will
+queue this in my pm-fixes branch for the .38-rc cycle.
 
 Kevin
 
