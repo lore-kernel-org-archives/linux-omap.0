@@ -1,81 +1,72 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/4] arm: Kconfig: remove duplicated GENERIC_HARDIRQS
-	entry
-Date: Tue, 4 Jan 2011 17:33:01 +0000
-Message-ID: <20110104173301.GA25976@n2100.arm.linux.org.uk>
-References: <1294142577-28772-1-git-send-email-balbi@ti.com> <1294142577-28772-3-git-send-email-balbi@ti.com> <20110104140031.GE25121@pengutronix.de>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH v3 1/4] TI816X: Update common omap platform files
+Date: Tue, 4 Jan 2011 23:08:37 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036A57AF93@dbde02.ent.ti.com>
+References: <1294075737-22320-1-git-send-email-hemantp@ti.com>
+ <alpine.DEB.2.00.1101031603070.10403@utopia.booyaka.com>
+ <20110104015008.GX7771@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53636 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974Ab1ADRdh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 12:33:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20110104140031.GE25121@pengutronix.de>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51126 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751941Ab1ADRjm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 12:39:42 -0500
+In-Reply-To: <20110104015008.GX7771@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-On Tue, Jan 04, 2011 at 03:00:31PM +0100, Uwe Kleine-K=F6nig wrote:
-> On Tue, Jan 04, 2011 at 02:02:55PM +0200, Felipe Balbi wrote:
-> > GENERIC_HARDIRQS is defined under kernel/irq/Kconfig,
-> > so it's safe to drop the duplicated entry and simply
-> > select HAVE_GENERIC_HARDIRQS.
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >  arch/arm/Kconfig |    8 +-------
-> >  1 files changed, 1 insertions(+), 7 deletions(-)
-> >=20
-> > diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> > index d56d21c0..e6f0f8b 100644
-> > --- a/arch/arm/Kconfig
-> > +++ b/arch/arm/Kconfig
-> > @@ -15,6 +15,7 @@ config ARM
-> >  	select HAVE_FTRACE_MCOUNT_RECORD if (!XIP_KERNEL)
-> >  	select HAVE_DYNAMIC_FTRACE if (!XIP_KERNEL)
-> >  	select HAVE_GENERIC_DMA_COHERENT
-> > +	select HAVE_GENERIC_HARDIRQS
-> >  	select HAVE_KERNEL_GZIP
-> >  	select HAVE_KERNEL_LZO
-> >  	select HAVE_KERNEL_LZMA
-> > @@ -88,10 +89,6 @@ config MCA
-> >  	  <file:Documentation/mca.txt> (and especially the web page given
-> >  	  there) before attempting to build an MCA bus kernel.
-> > =20
-> > -config GENERIC_HARDIRQS
-> > -	bool
-> > -	default y
-> > -
-> >  config STACKTRACE_SUPPORT
-> >  	bool
-> >  	default y
-> > @@ -171,9 +168,6 @@ config FIQ
-> >  config ARCH_MTD_XIP
-> >  	bool
-> > =20
-> > -config GENERIC_HARDIRQS_NO__DO_IRQ
-> > -	def_bool y
-> > -
-> You didn't mention this change in the commit log.  Is this duplicated=
-,
-> too or did it just slip through?
+Tony Lindgren wrote on Tuesday, January 04, 2011 7:20 AM:
 
-If you look at kernel/irq/Kconfig (as I did with the original patch)
-you'd notice kernel/irq/Kconfig defines both of these symbols being
-removed when HAVE_GENERIC_HARDIRQS is enabled.
+> * Paul Walmsley <paul@pwsan.com> [110103 15:06]:
+>> Hello Hemant
+>> 
+>> On Mon, 3 Jan 2011, Hemant Pedanekar wrote:
+>> 
+>>> This patch updates the common platform files with TI816X support. Also
+>>> adds new files for TI816X modules base addresseses and irq definitions.
+>>> 
+>>> The approach taken in this patch is to add TI816X as part of OMAP3
+>>> variant where the cpu class is considered as OMAP34XX and the type is
+>>> TI816X. This means, both cpu_is_omap34xx() and cpu_is_ti816x() checks
+>>> return success on TI816X. 
+>> 
+>> Looks like you should add a CONFIG_ARCH_OMAPTI816X Kconfig option for this
+>> chip.  I suspect that many handheld device manufacturers won't want to
+>> include TI816X-specific code/data in their builds, and vice versa.
+> 
+> Please use CONFIG_SOC_OMAPTI816X instead, eventually we should use
+> CONFIG_ARCH_OMAPX only for something that requires different compiler
+> options. 
+> 
+> Regards,
+> 
+> Tony
 
-If you read the discussion in the previous version of this patch set,
-you'd notice that the removal of this was specifically requested.
+Thanks Tony and Paul for comments.
 
-It's very tiresome to have to re-explain these things.  Please take
-some more time to research the points you bring up, rather than
-impulse-replying.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This means following cases need to handle:
+1) Multi-OMAP build.
+2) OMAP3 build for OMAP3xxx as well as TI816X SoCs - have precedence to default
+OMAP3 only build at most of the places. Note that this build will not really be
+optimized for either of them - some areas being irq macro, clock data handling
+with various run time checks being executed, few cpu_is_ti816x checks being
+executed etc.
+3) OMAP3 build for OMAP3xxx SoCs only - This should be same as having
+CONFIG_ARCH_OMAP3 alone as earlier without TI816X patches. Thus,
+CONFIG_SOC_OMAPTI816X should  be disabled in this case.
+4) OMAP3 build for TI816X only - CONFIG_SOC_OMAPTI816X should be enabled here,
+which should lead to apply TI816X specific changes to OMAP3 code.
+
+Am I getting this correct? Looking at above, it seems another config option like
+CONFIG_SOC_OMAP3XXX is also needed in addition to CONFIG_SOC_OMAPTI816X.
+
+Please let me know your comments about this.
+
+Thanks 
+-
+Hemant
