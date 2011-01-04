@@ -1,108 +1,169 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Subject: Re: [RFC 1/5] ARM: P2V: separate PHYS_OFFSET from platform definitions
-Date: Tue, 4 Jan 2011 22:23:59 +0100
-Message-ID: <20110104212359.GH25121@pengutronix.de>
-References: <20110104202052.GE24935@n2100.arm.linux.org.uk>
-	<E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] arm: mach-omap2: pm: cleanup !CONFIG_SUSPEND handling
+Date: Tue, 04 Jan 2011 14:41:09 -0800
+Message-ID: <87sjx85m2i.fsf@ti.com>
+References: <1293640483-25610-1-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Viresh Kumar <viresh.kumar@st.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-sh@vger.kernel.org, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Magnus Damm <magnus.damm@gmail.com>, Scott Branden <sbranden@broadcom.com>, Marc Singer <elf@buici.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Sascha Hauer <kernel@pengutronix.de>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>, Ryan Mallon <ryan@bluewatersys.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.o
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:58517 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750954Ab1ADWlV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 17:41:21 -0500
+Received: by pvc30 with SMTP id 30so2945520pvc.28
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 14:41:13 -0800 (PST)
+In-Reply-To: <1293640483-25610-1-git-send-email-aaro.koskinen@nokia.com> (Aaro
+	Koskinen's message of "Wed, 29 Dec 2010 18:34:43 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello Russell,
+Aaro Koskinen <aaro.koskinen@nokia.com> writes:
 
-On Tue, Jan 04, 2011 at 08:22:17PM +0000, Russell King - ARM Linux wrote:
-> This uncouple PHYS_OFFSET from the platform definitions, thereby
-> facilitating run-time computation of the physical memory offset.
-> =
+> Make !CONFIG_SUSPEND init declarations identical on all OMAPs and
+> eliminate some ifdefs.
+>
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Very nice.
+
+I was going to tackle something like this with that last cleanup I did,
+but was rather late for the main 2.6.38 merge window so I just fixed
+problem at hand.  This is much better, thanks.
+
+Will queue for 2.6.38-rc2 in my pm-fixes branch.
+
+Kevin
+
 > ---
->  arch/arm/include/asm/memory.h                  |    2 ++
->  arch/arm/kernel/tcm.c                          |    2 +-
->  arch/arm/mach-aaec2000/include/mach/memory.h   |    2 +-
->  arch/arm/mach-at91/include/mach/memory.h       |    2 +-
->  arch/arm/mach-bcmring/include/mach/hardware.h  |    2 +-
->  arch/arm/mach-bcmring/include/mach/memory.h    |    2 +-
->  arch/arm/mach-clps711x/include/mach/memory.h   |    2 +-
->  arch/arm/mach-cns3xxx/include/mach/memory.h    |    2 +-
->  arch/arm/mach-davinci/include/mach/memory.h    |    4 ++--
->  arch/arm/mach-dove/include/mach/memory.h       |    2 +-
->  arch/arm/mach-ebsa110/include/mach/memory.h    |    2 +-
->  arch/arm/mach-ep93xx/include/mach/memory.h     |   10 +++++-----
->  arch/arm/mach-footbridge/include/mach/memory.h |    2 +-
->  arch/arm/mach-h720x/include/mach/memory.h      |    2 +-
->  arch/arm/mach-integrator/include/mach/memory.h |    2 +-
->  arch/arm/mach-iop13xx/include/mach/memory.h    |    2 +-
->  arch/arm/mach-iop32x/include/mach/memory.h     |    2 +-
->  arch/arm/mach-iop33x/include/mach/memory.h     |    2 +-
->  arch/arm/mach-ixp2000/include/mach/memory.h    |    2 +-
->  arch/arm/mach-ixp23xx/include/mach/memory.h    |    2 +-
->  arch/arm/mach-ixp4xx/include/mach/memory.h     |    2 +-
->  arch/arm/mach-kirkwood/include/mach/memory.h   |    2 +-
->  arch/arm/mach-ks8695/include/mach/memory.h     |    2 +-
->  arch/arm/mach-lh7a40x/include/mach/memory.h    |    2 +-
->  arch/arm/mach-loki/include/mach/memory.h       |    2 +-
->  arch/arm/mach-lpc32xx/include/mach/memory.h    |    2 +-
->  arch/arm/mach-mmp/include/mach/memory.h        |    2 +-
->  arch/arm/mach-msm/board-msm7x30.c              |    2 +-
->  arch/arm/mach-msm/include/mach/memory.h        |   10 +++++-----
->  arch/arm/mach-mv78xx0/include/mach/memory.h    |    2 +-
->  arch/arm/mach-mx3/mach-kzm_arm11_01.c          |    2 +-
->  arch/arm/mach-netx/include/mach/memory.h       |    2 +-
->  arch/arm/mach-nomadik/include/mach/memory.h    |    2 +-
->  arch/arm/mach-ns9xxx/include/mach/memory.h     |    2 +-
->  arch/arm/mach-nuc93x/include/mach/memory.h     |    2 +-
->  arch/arm/mach-orion5x/include/mach/memory.h    |    2 +-
->  arch/arm/mach-pnx4008/include/mach/memory.h    |    2 +-
->  arch/arm/mach-pxa/include/mach/memory.h        |    2 +-
->  arch/arm/mach-realview/include/mach/memory.h   |    4 ++--
->  arch/arm/mach-rpc/include/mach/memory.h        |    2 +-
->  arch/arm/mach-s3c2400/include/mach/memory.h    |    2 +-
->  arch/arm/mach-s3c2410/include/mach/memory.h    |    2 +-
->  arch/arm/mach-s3c24a0/include/mach/memory.h    |    2 +-
->  arch/arm/mach-s3c64xx/include/mach/memory.h    |    2 +-
->  arch/arm/mach-s5p6442/include/mach/memory.h    |    2 +-
->  arch/arm/mach-s5p64x0/include/mach/memory.h    |    2 +-
->  arch/arm/mach-s5pc100/include/mach/memory.h    |    2 +-
->  arch/arm/mach-s5pv210/include/mach/memory.h    |    2 +-
->  arch/arm/mach-s5pv310/include/mach/memory.h    |    2 +-
->  arch/arm/mach-sa1100/include/mach/memory.h     |    2 +-
->  arch/arm/mach-shark/include/mach/memory.h      |    2 +-
->  arch/arm/mach-shmobile/include/mach/memory.h   |    2 +-
->  arch/arm/mach-tegra/include/mach/memory.h      |    2 +-
->  arch/arm/mach-u300/include/mach/memory.h       |    6 +++---
->  arch/arm/mach-u300/u300.c                      |    2 +-
->  arch/arm/mach-ux500/include/mach/memory.h      |    2 +-
->  arch/arm/mach-versatile/include/mach/memory.h  |    2 +-
->  arch/arm/mach-vexpress/include/mach/memory.h   |    2 +-
->  arch/arm/mach-w90x900/include/mach/memory.h    |    2 +-
->  arch/arm/plat-omap/include/plat/memory.h       |    4 ++--
->  arch/arm/plat-spear/include/plat/memory.h      |    2 +-
->  arch/arm/plat-stmp3xxx/include/mach/memory.h   |    2 +-
->  arch/arm/plat-tcc/include/mach/memory.h        |    2 +-
->  63 files changed, 77 insertions(+), 75 deletions(-)
-You didn't touch arch/arm/plat-mxc/include/mach/memory.h which defines
-PHYS_OFFSET, too.  I assume you just missed these?
-
-Best regards
-Uwe
-
--- =
-
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+>  arch/arm/mach-omap2/pm.h     |    4 ++++
+>  arch/arm/mach-omap2/pm24xx.c |   16 ++++++++--------
+>  arch/arm/mach-omap2/pm34xx.c |   16 ++++++++--------
+>  arch/arm/mach-omap2/pm44xx.c |   17 +++++++++--------
+>  4 files changed, 29 insertions(+), 24 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index 1c1b0ab..704766b 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -138,4 +138,8 @@ static inline int omap4_twl_init(void)
+>  }
+>  #endif
+>  
+> +#ifndef CONFIG_SUSPEND
+> +#define omap_pm_ops NULL
+> +#endif
+> +
+>  #endif
+> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+> index dac2d1d..e65b329 100644
+> --- a/arch/arm/mach-omap2/pm24xx.c
+> +++ b/arch/arm/mach-omap2/pm24xx.c
+> @@ -350,14 +350,14 @@ static void omap2_pm_end(void)
+>  	enable_hlt();
+>  }
+>  
+> -static struct platform_suspend_ops omap_pm_ops = {
+> -	.begin		= omap2_pm_begin,
+> -	.enter		= omap2_pm_enter,
+> -	.end		= omap2_pm_end,
+> -	.valid		= suspend_valid_only_mem,
+> +static const struct platform_suspend_ops omap_pm_ops[] = {
+> +	{
+> +		.begin		= omap2_pm_begin,
+> +		.enter		= omap2_pm_enter,
+> +		.end		= omap2_pm_end,
+> +		.valid		= suspend_valid_only_mem,
+> +	}
+>  };
+> -#else
+> -static const struct platform_suspend_ops __initdata omap_pm_ops;
+>  #endif /* CONFIG_SUSPEND */
+>  
+>  /* XXX This function should be shareable between OMAP2xxx and OMAP3 */
+> @@ -582,7 +582,7 @@ static int __init omap2_pm_init(void)
+>  						    omap24xx_cpu_suspend_sz);
+>  	}
+>  
+> -	suspend_set_ops(&omap_pm_ops);
+> +	suspend_set_ops(omap_pm_ops);
+>  	pm_idle = omap2_pm_idle;
+>  
+>  	return 0;
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 5b323f2..a4c9283 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -605,11 +605,13 @@ static void omap3_pm_end(void)
+>  	return;
+>  }
+>  
+> -static struct platform_suspend_ops omap_pm_ops = {
+> -	.begin		= omap3_pm_begin,
+> -	.end		= omap3_pm_end,
+> -	.enter		= omap3_pm_enter,
+> -	.valid		= suspend_valid_only_mem,
+> +static const struct platform_suspend_ops omap_pm_ops[] = {
+> +	{
+> +		.begin		= omap3_pm_begin,
+> +		.end		= omap3_pm_end,
+> +		.enter		= omap3_pm_enter,
+> +		.valid		= suspend_valid_only_mem,
+> +	}
+>  };
+>  #endif /* CONFIG_SUSPEND */
+>  
+> @@ -1067,9 +1069,7 @@ static int __init omap3_pm_init(void)
+>  	core_clkdm = clkdm_lookup("core_clkdm");
+>  
+>  	omap_push_sram_idle();
+> -#ifdef CONFIG_SUSPEND
+> -	suspend_set_ops(&omap_pm_ops);
+> -#endif /* CONFIG_SUSPEND */
+> +	suspend_set_ops(omap_pm_ops);
+>  
+>  	pm_idle = omap3_pm_idle;
+>  	omap3_idle_init();
+> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+> index e9f4862..6022c0a 100644
+> --- a/arch/arm/mach-omap2/pm44xx.c
+> +++ b/arch/arm/mach-omap2/pm44xx.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/err.h>
+>  #include <linux/slab.h>
+>  
+> +#include "pm.h"
+>  #include "powerdomain.h"
+>  #include <mach/omap4-common.h>
+>  
+> @@ -65,11 +66,13 @@ static void omap4_pm_end(void)
+>  	return;
+>  }
+>  
+> -static struct platform_suspend_ops omap_pm_ops = {
+> -	.begin		= omap4_pm_begin,
+> -	.end		= omap4_pm_end,
+> -	.enter		= omap4_pm_enter,
+> -	.valid		= suspend_valid_only_mem,
+> +static const struct platform_suspend_ops omap_pm_ops[] = {
+> +	{
+> +		.begin		= omap4_pm_begin,
+> +		.end		= omap4_pm_end,
+> +		.enter		= omap4_pm_enter,
+> +		.valid		= suspend_valid_only_mem,
+> +	}
+>  };
+>  #endif /* CONFIG_SUSPEND */
+>  
+> @@ -113,9 +116,7 @@ static int __init omap4_pm_init(void)
+>  	}
+>  #endif
+>  
+> -#ifdef CONFIG_SUSPEND
+> -	suspend_set_ops(&omap_pm_ops);
+> -#endif /* CONFIG_SUSPEND */
+> +	suspend_set_ops(omap_pm_ops);
+>  
+>  err2:
+>  	return ret;
