@@ -1,81 +1,152 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 4/5] omap2plus: voltage: Trivial linking fix 'undefined reference'
-Date: Wed, 5 Jan 2011 00:18:23 +0530
-Message-ID: <2a7055e7c506648a2a48a0454756687b@mail.gmail.com>
-References: <1294165576-15628-1-git-send-email-santosh.shilimkar@ti.com>
- <1294165576-15628-2-git-send-email-santosh.shilimkar@ti.com>
- <1294165576-15628-3-git-send-email-santosh.shilimkar@ti.com>
- <1294165576-15628-4-git-send-email-santosh.shilimkar@ti.com>
- <1294165576-15628-5-git-send-email-santosh.shilimkar@ti.com> <4D236AFB.2050301@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/3] perf: add OMAP support for the new power events
+Date: Tue, 4 Jan 2011 11:48:53 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101041146160.19319@utopia.booyaka.com>
+References: <1294136263-24020-1-git-send-email-j-pihet@ti.com> <1294138484-24729-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:51084 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751150Ab1ADSsZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 13:48:25 -0500
-Received: by mail-gx0-f180.google.com with SMTP id 19so6809029gxk.11
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 10:48:25 -0800 (PST)
-In-Reply-To: <4D236AFB.2050301@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-perf-users-owner@vger.kernel.org>
+In-Reply-To: <1294138484-24729-1-git-send-email-j-pihet@ti.com>
+Sender: linux-perf-users-owner@vger.kernel.org
+To: jean.pihet@newoldbits.com
+Cc: mingo@elte.hu, trenn@suse.de, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, rjw@sisk.pl, Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Thara Gopinath <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Nishanth Menon
-> Sent: Wednesday, January 05, 2011 12:16 AM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; khilman@ti.com; tony@atomide.com;
-> linux-arm-kernel@lists.infradead.org; Thara Gopinath; Kevin Hilman
-> Subject: Re: [PATCH 4/5] omap2plus: voltage: Trivial linking fix
-> 'undefined reference'
->
-> Santosh Shilimkar had written, on 01/04/2011 12:26 PM, the
-> following:
-> [..]
->
-> > diff --git a/arch/arm/plat-omap/include/plat/voltage.h
-> b/arch/arm/plat-omap/include/plat/voltage.h
-> > index 710f4ea..c095351 100644
-> > --- a/arch/arm/plat-omap/include/plat/voltage.h
-> > +++ b/arch/arm/plat-omap/include/plat/voltage.h
-> > @@ -65,9 +65,6 @@ struct voltagedomain {
-> >  	char *name;
-> >  };
-> >
-> > -/* API to get the voltagedomain pointer */
-> > -struct voltagedomain *omap_voltage_domain_lookup(char *name);
-> > -
-> >  /**
-> >   * struct omap_volt_data - Omap voltage specific data.
-> >   * @voltage_nominal:	The possible voltage value in uV
-> > @@ -131,6 +128,9 @@ int omap_voltage_register_pmic(struct
-> voltagedomain *voltdm,
-> >  		struct omap_volt_pmic_info *pmic_info);
-> >  void omap_change_voltscale_method(struct voltagedomain *voltdm,
-> >  		int voltscale_method);
-> > +/* API to get the voltagedomain pointer */
-> > +struct voltagedomain *omap_voltage_domain_lookup(char *name);
-> > +
-> >  int omap_voltage_late_init(void);
-> >  #else
-> >  static inline int omap_voltage_register_pmic(struct voltagedomain
-> *voltdm,
-> > @@ -144,6 +144,10 @@ static inline int
-> omap_voltage_late_init(void)
-> >  {
-> >  	return -EINVAL;
-> >  }
-> > +static inline struct voltagedomain
-> *omap_voltage_domain_lookup(char *name)
-> > +{
-> > +	return NULL;
-> the omap_voltage_domain_lookup uses ERR_PTR() for all return values
-> which are handled by the callers with IS_ERR()
->
-> I think you should return ERR_PTR(-EINVAL)
->
-The expected return value is pointer type and hence used
-NULL.
+Hello Jean,
+
+On Tue, 4 Jan 2011, jean.pihet@newoldbits.com wrote:
+
+> From: Jean Pihet <j-pihet@ti.com>
+> 
+> The patch adds the new power management trace points for
+> the OMAP architecture.
+> 
+> The trace points are for:
+> - default idle handler. Since the cpuidle framework is
+>   instrumented in the generic way there is no need to
+>   add trace points in the OMAP specific cpuidle handler;
+> - cpufreq (DVFS),
+> - clocks changes (enable, disable, set_rate),
+
+A question about these.  Are these only meant to track calls to these 
+functions from outside the clock code?  Or meant to track actual hardware 
+clock changes?  If the latter, then it might make sense to put these 
+trace points into the functions that actually change the hardware 
+registers, e.g., omap2_dflt_clk_{enable,disable}(), etc., since a 
+clk_enable() on a leaf clock may result in many internal system clocks 
+being enabled up the clock tree.
+
+
+- Paul
+
+> - change of power domains next power states.
+> 
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c      |    7 +++++++
+>  arch/arm/mach-omap2/powerdomain.c |    3 +++
+>  arch/arm/plat-omap/clock.c        |   13 ++++++++++---
+>  3 files changed, 20 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 0ec8a04..0ee0b0e 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -29,6 +29,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/slab.h>
+>  #include <linux/console.h>
+> +#include <trace/events/power.h>
+>  
+>  #include <plat/sram.h>
+>  #include <plat/clockdomain.h>
+> @@ -506,8 +507,14 @@ static void omap3_pm_idle(void)
+>  	if (omap_irq_pending() || need_resched())
+>  		goto out;
+>  
+> +	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+> +	trace_cpu_idle(1, smp_processor_id());
+> +
+>  	omap_sram_idle();
+>  
+> +	trace_power_end(smp_processor_id());
+> +	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+> +
+>  out:
+>  	local_fiq_enable();
+>  	local_irq_enable();
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 6527ec3..73cbe9a 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/errno.h>
+>  #include <linux/err.h>
+>  #include <linux/io.h>
+> +#include <trace/events/power.h>
+>  
+>  #include <asm/atomic.h>
+>  
+> @@ -440,6 +441,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>  	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
+>  		 pwrdm->name, pwrst);
+>  
+> +	trace_power_domain_target(pwrdm->name, pwrst, smp_processor_id());
+> +
+>  	prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
+>  			     (pwrst << OMAP_POWERSTATE_SHIFT),
+>  			     pwrdm->prcm_offs, pwrstctrl_reg_offs);
+> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+> index fc62fb5..7cbb09b 100644
+> --- a/arch/arm/plat-omap/clock.c
+> +++ b/arch/arm/plat-omap/clock.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/cpufreq.h>
+>  #include <linux/debugfs.h>
+>  #include <linux/io.h>
+> +#include <trace/events/power.h>
+>  
+>  #include <plat/clock.h>
+>  
+> @@ -43,8 +44,10 @@ int clk_enable(struct clk *clk)
+>  		return -EINVAL;
+>  
+>  	spin_lock_irqsave(&clockfw_lock, flags);
+> -	if (arch_clock->clk_enable)
+> +	if (arch_clock->clk_enable) {
+> +		trace_clock_enable(clk->name, 1, smp_processor_id());
+>  		ret = arch_clock->clk_enable(clk);
+> +	}
+>  	spin_unlock_irqrestore(&clockfw_lock, flags);
+>  
+>  	return ret;
+> @@ -66,8 +69,10 @@ void clk_disable(struct clk *clk)
+>  		goto out;
+>  	}
+>  
+> -	if (arch_clock->clk_disable)
+> +	if (arch_clock->clk_disable) {
+> +		trace_clock_disable(clk->name, 0, smp_processor_id());
+>  		arch_clock->clk_disable(clk);
+> +	}
+>  
+>  out:
+>  	spin_unlock_irqrestore(&clockfw_lock, flags);
+> @@ -120,8 +125,10 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
+>  		return ret;
+>  
+>  	spin_lock_irqsave(&clockfw_lock, flags);
+> -	if (arch_clock->clk_set_rate)
+> +	if (arch_clock->clk_set_rate) {
+> +		trace_clock_set_rate(clk->name, rate, smp_processor_id());
+>  		ret = arch_clock->clk_set_rate(clk, rate);
+> +	}
+>  	if (ret == 0) {
+>  		if (clk->recalc)
+>  			clk->rate = clk->recalc(clk);
+> -- 
+> 1.7.2.3
+> 
+
+
+- Paul
