@@ -1,43 +1,25 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v3 0/4] Introduce hardware spinlock framework
-Date: Tue, 4 Jan 2011 12:19:21 -0800
-Message-ID: <20110104121921.3550dcfa.akpm@linux-foundation.org>
-References: <1291420247-18171-1-git-send-email-ohad@wizery.com>
-	<AANLkTin1fd=Kei7Fo6G+uR+270HdTkc71fvsA6qjBjcA@mail.gmail.com>
-	<20101214170656.GA3832@kroah.com>
-	<AANLkTi=q=QMQ_Abxb8eUWT_qGG8K=pc892ZB-mqgt_mh@mail.gmail.com>
-	<20101216210837.GA22895@kroah.com>
-	<AANLkTi=s_Urcin4SAp1mXrKmoyzR2=6YuS3aU+OYYgqK@mail.gmail.com>
-	<20101218005311.GE5941@atomide.com>
-	<AANLkTikLuu+njQA_PRmS_q8zs_xpB2gsqh3oZQJkB_Cm@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [RFC 0/5] runtime P2V translations
+Date: Tue, 4 Jan 2011 20:20:52 +0000
+Message-ID: <20110104202052.GE24935@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikLuu+njQA_PRmS_q8zs_xpB2gsqh3oZQJkB_Cm@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: Viresh Kumar <viresh.kumar@st.com>, linux-sh@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Magnus Damm <magnus.damm@gmail.com>, Scott Branden <sbranden@broadcom.com>, Marc Singer <elf@buici.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Amit Kucheria <amit.kucheria@canonical.com>, Sascha Hauer <kernel@pengutronix.de>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>, Ryan Mallon <ryan@bluewatersys.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.orglin
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 4 Jan 2011 14:23:20 +0200
-Ohad Ben-Cohen <ohad@wizery.com> wrote:
-
-> Hi Andrew,
-> 
-> On Sat, Dec 18, 2010 at 2:53 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Ohad Ben-Cohen <ohad@wizery.com> [101216 13:34]:
-> >> Tony, Andrew, can you please have a look ?
-> >>
-> >> Any comment or suggestion is appreciated.
-> >
-> > Looks sane to me from omap point of view and it seems the locks
-> > are now all timeout based:
-> >
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> Can you please have a look at this patch set (see link no. [1] below) ?
-
-I looked - it looks reasonable.  This is exactly the wrong time to be
-looking at large new patchsets - please refresh, retest and resend
-after -rc1 is released?
+Here's my solution to this, which should allow it to be used on almost
+all platforms, including MSM, with the exception of Realview when
+SPARSEMEM is enabled.
