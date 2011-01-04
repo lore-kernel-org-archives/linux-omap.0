@@ -1,80 +1,64 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] omap: boards w/ wl12xx should select REGULATOR_FIXED_VOLTAGE
-Date: Tue, 4 Jan 2011 20:04:41 +0200
-Message-ID: <AANLkTinc1xopSYvaJmN_hHaQq1TP=i_HNy5vX_LhdQOh@mail.gmail.com>
-References: <1290593090-6288-1-git-send-email-ohad@wizery.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 1/5] omap2plus: clockdomain: Trivial fix for build break because of clktrctrl_mask
+Date: Tue,  4 Jan 2011 23:56:12 +0530
+Message-ID: <1294165576-15628-2-git-send-email-santosh.shilimkar@ti.com>
+References: <1294165576-15628-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f194.google.com ([209.85.210.194]:48697 "EHLO
-	mail-iy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750954Ab1ADSFD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 13:05:03 -0500
-Received: by iyf40 with SMTP id 40so6758724iyf.1
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 10:05:02 -0800 (PST)
-In-Reply-To: <1290593090-6288-1-git-send-email-ohad@wizery.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:54745 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751099Ab1ADS0f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Jan 2011 13:26:35 -0500
+In-Reply-To: <1294165576-15628-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wed, Nov 24, 2010 at 12:04 PM, Ohad Ben-Cohen <ohad@wizery.com> wrot=
-e:
-> Power to the wl12xx wlan device is controlled by a fixed regulator.
->
-> Boards that have the wl12xx should select REGULATOR_FIXED_VOLTAGE so
-> users will not be baffled.
->
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> ---
+struct clockdomain member clktrctrl_mask is available for only for OMAP2
+and OMAP3 architectures. Technially it is also used only for these archs
+but this breaks the build with custom OMAP4 configuration.
 
-Hi Tony,
+ CC      arch/arm/mach-omap2/clockdomain.o
+arch/arm/mach-omap2/clockdomain.c: In function '_enable_hwsup':
+arch/arm/mach-omap2/clockdomain.c:251: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
+arch/arm/mach-omap2/clockdomain.c:254: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
+arch/arm/mach-omap2/clockdomain.c: In function '_disable_hwsup':
+arch/arm/mach-omap2/clockdomain.c:277: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
+arch/arm/mach-omap2/clockdomain.c:280: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
+arch/arm/mach-omap2/clockdomain.c: In function 'omap2_clkdm_sleep':
+arch/arm/mach-omap2/clockdomain.c:744: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
+arch/arm/mach-omap2/clockdomain.c: In function 'omap2_clkdm_wakeup':
+arch/arm/mach-omap2/clockdomain.c:789: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
+arch/arm/mach-omap2/clockdomain.c: In function 'omap2_clkdm_clk_enable':
+arch/arm/mach-omap2/clockdomain.c:922: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
+arch/arm/mach-omap2/clockdomain.c:926: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
+arch/arm/mach-omap2/clockdomain.c: In function 'omap2_clkdm_clk_disable':
+arch/arm/mach-omap2/clockdomain.c:994: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
+arch/arm/mach-omap2/clockdomain.c:998: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
+make[1]: *** [arch/arm/mach-omap2/clockdomain.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
 
-Gentle reminder,
+Fix the build break with use of ARCH_OMAP2PLUS instead of OMAP2 or OMAP3
 
-Thanks,
-Ohad.
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clockdomain.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index de3faa2..6fa82f5 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -103,7 +103,7 @@ struct clockdomain {
+ 		const char *name;
+ 		struct powerdomain *ptr;
+ 	} pwrdm;
+-#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
++#ifdef CONFIG_ARCH_OMAP2PLUS
+ 	const u16 clktrctrl_mask;
+ #endif
+ 	const u8 flags;
+-- 
+1.6.0.4
 
-> =A0arch/arm/mach-omap2/Kconfig | =A0 =A03 +++
-> =A01 files changed, 3 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfi=
-g
-> index fc3a181..cc386da 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -190,6 +190,7 @@ config MACH_OMAP3_PANDORA
-> =A0 =A0 =A0 =A0depends on ARCH_OMAP3
-> =A0 =A0 =A0 =A0default y
-> =A0 =A0 =A0 =A0select OMAP_PACKAGE_CBB
-> + =A0 =A0 =A0 select REGULATOR_FIXED_VOLTAGE
->
-> =A0config MACH_OMAP3_TOUCHBOOK
-> =A0 =A0 =A0 =A0bool "OMAP3 Touch Book"
-> @@ -235,6 +236,7 @@ config MACH_OMAP_ZOOM2
-> =A0 =A0 =A0 =A0select SERIAL_8250
-> =A0 =A0 =A0 =A0select SERIAL_CORE_CONSOLE
-> =A0 =A0 =A0 =A0select SERIAL_8250_CONSOLE
-> + =A0 =A0 =A0 select REGULATOR_FIXED_VOLTAGE
->
-> =A0config MACH_OMAP_ZOOM3
-> =A0 =A0 =A0 =A0bool "OMAP3630 Zoom3 board"
-> @@ -244,6 +246,7 @@ config MACH_OMAP_ZOOM3
-> =A0 =A0 =A0 =A0select SERIAL_8250
-> =A0 =A0 =A0 =A0select SERIAL_CORE_CONSOLE
-> =A0 =A0 =A0 =A0select SERIAL_8250_CONSOLE
-> + =A0 =A0 =A0 select REGULATOR_FIXED_VOLTAGE
->
-> =A0config MACH_CM_T35
-> =A0 =A0 =A0 =A0bool "CompuLab CM-T35 module"
-> --
-> 1.7.0.4
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
