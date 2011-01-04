@@ -1,54 +1,45 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 5/5] omap2+: pm_bus: make functions used as pointers as static
-Date: Tue,  4 Jan 2011 14:07:14 -0600
-Message-ID: <1294171634-13943-6-git-send-email-nm@ti.com>
-References: <1294171634-13943-1-git-send-email-nm@ti.com>
+Subject: [PATCH 0/5] OMAP2+: trivial sparse fixes
+Date: Tue,  4 Jan 2011 14:07:09 -0600
+Message-ID: <1294171634-13943-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40665 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40696 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750886Ab1ADUIT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Jan 2011 15:08:19 -0500
-In-Reply-To: <1294171634-13943-1-git-send-email-nm@ti.com>
+	id S1751174Ab1ADUIX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Jan 2011 15:08:23 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony <tony@atomide.com>
 Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
 
-omap_pm_runtime_suspend and omap_pm_runtime_resume are used
-as function pointers and does not really need to be exposed
-to the world.
+Source: git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+branch: omap-for-linus (dc69d1a omap2: Make OMAP2PLUS select OMAP_DM_TIMER)
 
-Fixes sparse warnings:
-arch/arm/mach-omap2/pm_bus.c:23:5: warning: symbol 'omap_pm_runtime_suspend' was not declared. Should it be static?
-arch/arm/mach-omap2/pm_bus.c:40:5: warning: symbol 'omap_pm_runtime_resume' was not declared. Should it be static?
+Building for sparse warnings result in the following warnings:
+http://pastebin.mozilla.org/907954
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
+This is series 2 of the sparse fixes
+(series 1:
+ http://marc.info/?t=129408118000003&r=1&w=2
+ and
+ http://marc.info/?t=129408352700002&r=1&w=2)
+
+Nishanth Menon (5):
+  omap3|4: mux: make local structures static
+  omap3: zoom: use static for pointer passing
+  omap3: igep3: make igep3_flash_init static
+  omap2+: wdt: trivial sparse fixes
+  omap2+: pm_bus: make functions used as pointers as static
+
+ arch/arm/mach-omap2/board-igep0030.c         |    4 ++--
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    4 ++--
+ arch/arm/mach-omap2/devices.c                |    2 +-
+ arch/arm/mach-omap2/mux34xx.c                |    4 ++--
+ arch/arm/mach-omap2/mux44xx.c                |    6 +++---
+ arch/arm/mach-omap2/pm_bus.c                 |    4 ++--
+ arch/arm/mach-omap2/wd_timer.c               |    2 ++
+ 7 files changed, 14 insertions(+), 12 deletions(-)
+
 ---
- arch/arm/mach-omap2/pm_bus.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm_bus.c b/arch/arm/mach-omap2/pm_bus.c
-index 784989f..5acd2ab 100644
---- a/arch/arm/mach-omap2/pm_bus.c
-+++ b/arch/arm/mach-omap2/pm_bus.c
-@@ -20,7 +20,7 @@
- #include <plat/omap-pm.h>
- 
- #ifdef CONFIG_PM_RUNTIME
--int omap_pm_runtime_suspend(struct device *dev)
-+static int omap_pm_runtime_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	int r, ret = 0;
-@@ -37,7 +37,7 @@ int omap_pm_runtime_suspend(struct device *dev)
- 	return ret;
- };
- 
--int omap_pm_runtime_resume(struct device *dev)
-+static int omap_pm_runtime_resume(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	int r;
--- 
-1.6.3.3
-
+Regards,
+Nishanth Menon
