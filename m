@@ -1,59 +1,42 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 1/2] arm: omap: gpio: don't access irq_desc array directly
-Date: Tue,  4 Jan 2011 11:39:25 +0200
-Message-ID: <1294133966-20279-2-git-send-email-balbi@ti.com>
+Subject: [PATCH 2/2] arm: omap: select HAVE_SPARSE_IRQ
+Date: Tue,  4 Jan 2011 11:39:26 +0200
+Message-ID: <1294133966-20279-3-git-send-email-balbi@ti.com>
 References: <1294133966-20279-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:57061 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751170Ab1ADJjh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 04:39:37 -0500
-Received: by mail-gx0-f178.google.com with SMTP id 25so3381463gxk.9
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 01:39:36 -0800 (PST)
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:51933 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751170Ab1ADJjl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 04:39:41 -0500
+Received: by mail-yw0-f52.google.com with SMTP id 9so5342322ywf.39
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 01:39:41 -0800 (PST)
 In-Reply-To: <1294133966-20279-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-Instead of accessing the irq_desc array directly
-we can use irq_to_desc(irq). That will allow us to,
-if wanted, select SPARSE_IRQ and irq_descs will be
-added to a radix tree, instead of a array.
+select HAVE_SPARSE_IRQ and irq_descs can be added
+to a radix tree instead of an array.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/plat-omap/gpio.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+ arch/arm/Kconfig |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index c05c653..c351758 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -905,8 +905,10 @@ static int gpio_irq_type(unsigned irq, unsigned type)
- 	spin_lock_irqsave(&bank->lock, flags);
- 	retval = _set_gpio_triggering(bank, get_gpio_index(gpio), type);
- 	if (retval == 0) {
--		irq_desc[irq].status &= ~IRQ_TYPE_SENSE_MASK;
--		irq_desc[irq].status |= type;
-+		struct irq_desc *d = irq_to_desc(irq);
-+
-+		d->status &= ~IRQ_TYPE_SENSE_MASK;
-+		d->status |= type;
- 	}
- 	spin_unlock_irqrestore(&bank->lock, flags);
- 
-@@ -1925,7 +1927,9 @@ static int __init _omap_gpio_init(void)
- 
- 		for (j = bank->virtual_irq_start;
- 		     j < bank->virtual_irq_start + gpio_count; j++) {
--			lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
-+			struct irq_desc *d = irq_to_desc(j);
-+
-+			lockdep_set_class(&d->lock, &gpio_lock_class);
- 			set_irq_chip_data(j, bank);
- 			if (bank_is_mpuio(bank))
- 				set_irq_chip(j, &mpuio_irq_chip);
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index d56d21c0..c4ffe2e 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -826,6 +826,8 @@ config ARCH_DAVINCI
+ config ARCH_OMAP
+ 	bool "TI OMAP"
+ 	select HAVE_CLK
++	select HAVE_GENERIC_HARDIRQS
++	select HAVE_SPARSE_IRQ
+ 	select ARCH_REQUIRE_GPIOLIB
+ 	select ARCH_HAS_CPUFREQ
+ 	select GENERIC_CLOCKEVENTS
 -- 
 1.7.3.4.598.g85356
 
