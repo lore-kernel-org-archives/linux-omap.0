@@ -1,64 +1,76 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 1/5] omap2plus: clockdomain: Trivial fix for build break because of clktrctrl_mask
-Date: Tue,  4 Jan 2011 23:56:12 +0530
-Message-ID: <1294165576-15628-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 3/5] omap2plus: voltage: Trivial warning fix 'no return statement'
+Date: Tue,  4 Jan 2011 23:56:14 +0530
+Message-ID: <1294165576-15628-4-git-send-email-santosh.shilimkar@ti.com>
 References: <1294165576-15628-1-git-send-email-santosh.shilimkar@ti.com>
+ <1294165576-15628-2-git-send-email-santosh.shilimkar@ti.com>
+ <1294165576-15628-3-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54745 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38327 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751099Ab1ADS0f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Jan 2011 13:26:35 -0500
-In-Reply-To: <1294165576-15628-1-git-send-email-santosh.shilimkar@ti.com>
+	id S1751823Ab1ADS0k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Jan 2011 13:26:40 -0500
+In-Reply-To: <1294165576-15628-3-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Thara Gopinath <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-struct clockdomain member clktrctrl_mask is available for only for OMAP2
-and OMAP3 architectures. Technially it is also used only for these archs
-but this breaks the build with custom OMAP4 configuration.
+Fix below build warnings
 
- CC      arch/arm/mach-omap2/clockdomain.o
-arch/arm/mach-omap2/clockdomain.c: In function '_enable_hwsup':
-arch/arm/mach-omap2/clockdomain.c:251: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c:254: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c: In function '_disable_hwsup':
-arch/arm/mach-omap2/clockdomain.c:277: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c:280: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c: In function 'omap2_clkdm_sleep':
-arch/arm/mach-omap2/clockdomain.c:744: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c: In function 'omap2_clkdm_wakeup':
-arch/arm/mach-omap2/clockdomain.c:789: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c: In function 'omap2_clkdm_clk_enable':
-arch/arm/mach-omap2/clockdomain.c:922: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c:926: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c: In function 'omap2_clkdm_clk_disable':
-arch/arm/mach-omap2/clockdomain.c:994: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c:998: error: 'struct clockdomain' has no member named 'clktrctrl_mask'
-make[1]: *** [arch/arm/mach-omap2/clockdomain.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
+ CC      arch/arm/mach-omap2/common.o
+  CC      arch/arm/mach-omap2/gpio.o
+In file included from arch/arm/plat-omap/include/plat/omap_hwmod.h:38,
+                 from arch/arm/mach-omap2/gpio.c:25:
+arch/arm/plat-omap/include/plat/voltage.h: In function 'omap_voltage_register_pmic':
+arch/arm/plat-omap/include/plat/voltage.h:137: warning: no return statement in function returning non-void
+  CC      arch/arm/mach-omap2/dma.o
+In file included from arch/arm/plat-omap/include/plat/omap_hwmod.h:38,
+                 from arch/arm/mach-omap2/dma.c:32:
+arch/arm/plat-omap/include/plat/voltage.h: In function 'omap_voltage_register_pmic':
+arch/arm/plat-omap/include/plat/voltage.h:137: warning: no return statement in function returning non-void
+  CC      arch/arm/mach-omap2/wd_timer.o
+In file included from arch/arm/plat-omap/include/plat/omap_hwmod.h:38,
+                 from arch/arm/mach-omap2/wd_timer.c:15:
+arch/arm/plat-omap/include/plat/voltage.h: In function 'omap_voltage_register_pmic':
+arch/arm/plat-omap/include/plat/voltage.h:137: warning: no return statement in function returning non-void
+  CC      arch/arm/mach-omap2/prm44xx.o
+  CC      arch/arm/mach-omap2/omap_hwmod.o
+In file included from arch/arm/plat-omap/include/plat/omap_hwmod.h:38,
+                 from arch/arm/mach-omap2/omap_hwmod.c:145:
+arch/arm/plat-omap/include/plat/voltage.h: In function 'omap_voltage_register_pmic':
+arch/arm/plat-omap/include/plat/voltage.h:137: warning: no return statement in function returning non-void
+  CC      arch/arm/mach-omap2/omap_hwmod_common_data.o
+In file included from arch/arm/plat-omap/include/plat/omap_hwmod.h:38,
+                 from arch/arm/mach-omap2/omap_hwmod_common_data.c:20:
+arch/arm/plat-omap/include/plat/voltage.h: In function 'omap_voltage_register_pmic':
+arch/arm/plat-omap/include/plat/voltage.h:137: warning: no return statement in function returning non-void
 
-Fix the build break with use of ARCH_OMAP2PLUS instead of OMAP2 or OMAP3
+The error is reported when omap2plus_defconfig built with CONFIG_PM disabled
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Thara Gopinath <thara@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/clockdomain.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/include/plat/voltage.h |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index de3faa2..6fa82f5 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -103,7 +103,7 @@ struct clockdomain {
- 		const char *name;
- 		struct powerdomain *ptr;
- 	} pwrdm;
--#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-+#ifdef CONFIG_ARCH_OMAP2PLUS
- 	const u16 clktrctrl_mask;
- #endif
- 	const u8 flags;
+diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+index 0ff1233..710f4ea 100644
+--- a/arch/arm/plat-omap/include/plat/voltage.h
++++ b/arch/arm/plat-omap/include/plat/voltage.h
+@@ -134,7 +134,10 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+ int omap_voltage_late_init(void);
+ #else
+ static inline int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+-		struct omap_volt_pmic_info *pmic_info) {}
++		struct omap_volt_pmic_info *pmic_info)
++{
++	return 0;
++}
+ static inline  void omap_change_voltscale_method(struct voltagedomain *voltdm,
+ 		int voltscale_method) {}
+ static inline int omap_voltage_late_init(void)
 -- 
 1.6.0.4
 
