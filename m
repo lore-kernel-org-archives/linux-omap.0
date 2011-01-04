@@ -1,84 +1,40 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 5/5] omap2plus: voltage: Trivial linking fix for 'EINVAL' undeclared
-Date: Wed, 5 Jan 2011 00:21:33 +0530
-Message-ID: <bd04d3678881a910a0639746ed04043d@mail.gmail.com>
-References: <1294165576-15628-1-git-send-email-santosh.shilimkar@ti.com>
- <1294165576-15628-2-git-send-email-santosh.shilimkar@ti.com>
- <1294165576-15628-3-git-send-email-santosh.shilimkar@ti.com>
- <1294165576-15628-4-git-send-email-santosh.shilimkar@ti.com>
- <1294165576-15628-5-git-send-email-santosh.shilimkar@ti.com>
- <1294165576-15628-6-git-send-email-santosh.shilimkar@ti.com> <4D236BA0.8010002@ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH v5 1/3] ARM: add CPPI 4.1 DMA support
+Date: Tue, 04 Jan 2011 21:50:43 +0300
+Message-ID: <4D236C03.9040707@mvista.com>
+References: <20110103163447.GB2911@n2100.arm.linux.org.uk> <19F8576C6E063C45BE387C64729E739404BD3F2C4D@dbde02.ent.ti.com> <4D220246.5020303@mvista.com> <19F8576C6E063C45BE387C64729E739404BD3F2C58@dbde02.ent.ti.com> <20110103204416.GA2240@legolas.emea.dhcp.ti.com> <4D231B5F.7030607@mvista.com> <1294149984.1822.9.camel@eowin> <AANLkTi=JyoQuP-OQtV1yO0WR1GCM1LieHUj5Sn=ZfVim@mail.gmail.com> <1294152988.1822.12.camel@eowin> <AANLkTinPEpMofTX0YWbv18gSdWtPLVFa85S1E=+QxFT=@mail.gmail.com> <20110104184244.GC2647@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:56472 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751104Ab1ADSvg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 13:51:36 -0500
-Received: by mail-gx0-f173.google.com with SMTP id 24so6680163gxk.4
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 10:51:34 -0800 (PST)
-In-Reply-To: <4D236BA0.8010002@ti.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:34711 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751474Ab1ADSwJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 13:52:09 -0500
+Received: by eye27 with SMTP id 27so6438414eye.19
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 10:52:08 -0800 (PST)
+In-Reply-To: <20110104184244.GC2647@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Thara Gopinath <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: balbi@ti.com
+Cc: Ming Lei <tom.leiming@gmail.com>, Felipe Balbi <me@felipebalbi.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-> -----Original Message-----
-> From: Nishanth Menon [mailto:nm@ti.com]
-> Sent: Wednesday, January 05, 2011 12:19 AM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; khilman@ti.com; tony@atomide.com;
-> linux-arm-kernel@lists.infradead.org; Thara Gopinath; Kevin Hilman
-> Subject: Re: [PATCH 5/5] omap2plus: voltage: Trivial linking fix for
-> 'EINVAL' undeclared
->
-> Santosh Shilimkar had written, on 01/04/2011 12:26 PM, the
-> following:
-> > CC      arch/arm/mach-omap2/omap_hwmod_common_data.o
-> > In file included from arch/arm/plat-
-> omap/include/plat/omap_hwmod.h:38,
-> >                  from arch/arm/mach-
-> omap2/omap_hwmod_common_data.c:20:
-> > arch/arm/plat-omap/include/plat/voltage.h: In function
-> 'omap_voltage_late_init':
-> > arch/arm/plat-omap/include/plat/voltage.h:145: error: 'EINVAL'
-> undeclared (first use in this function)
-> > arch/arm/plat-omap/include/plat/voltage.h:145: error: (Each
-> undeclared identifier is reported only once
-> > arch/arm/plat-omap/include/plat/voltage.h:145: error: for each
-> function it appears in.)
-> > make[1]: *** [arch/arm/mach-omap2/omap_hwmod_common_data.o] Error
-> 1
-> > make: *** [arch/arm/mach-omap2] Error 2
-> >
-> > The error is reported when omap2plus_defconfig built with
-> CONFIG_PM disabled
-> >
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Cc: Thara Gopinath <thara@ti.com>
-> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> > ---
-> >  arch/arm/plat-omap/include/plat/voltage.h |    2 ++
-> >  1 files changed, 2 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/include/plat/voltage.h
-> b/arch/arm/plat-omap/include/plat/voltage.h
-> > index c095351..2b776f0 100644
-> > --- a/arch/arm/plat-omap/include/plat/voltage.h
-> > +++ b/arch/arm/plat-omap/include/plat/voltage.h
-> > @@ -14,6 +14,8 @@
-> >  #ifndef __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
-> >  #define __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
-> >
-> > +#include <linux/err.h>
-> > +
->
-> Not sure if this is better OR including the err.h in c files is
-> better,
-> since the c file is the location where the error code is actually
-> used..
->
-> but no strong feelings about either personally.
->
-The error is because of 'EINVAL' usage in header file. How
-Will this error get fixed by including err.h is C file ?
+Hello.
+
+Felipe Balbi wrote:
+
+> On Tue, Jan 04, 2011 at 11:41:05PM +0800, Ming Lei wrote:
+>> OMAP GPIOs have many usages or use cases, so we can use gpiolib
+>> to simplify access to GPIOs.  If GPIOs has only one usage or use case,
+>> it is not necessary to access GPIOs by gpiolib.
+
+>> Now this kind of DMA controllers are only used by MUSB or only for
+>> MUSB, so it doesn't matter to access them by dmaengine or not.
+
+> Not entirely true. TUSB uses OMAP system DMA and AFAICT CPPI is used
+> also for ethernet.
+
+    Yes, but the CPPI registers are not compatible between MUSB and EMAC, only 
+the descriptors are, AFAIK.
+
+WBR, Sergei
