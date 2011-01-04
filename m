@@ -1,44 +1,54 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] omap: boards w/ wl12xx should select REGULATOR_FIXED_VOLTAGE
-Date: Tue, 4 Jan 2011 21:21:51 +0200
-Message-ID: <AANLkTimUd4VGycPi2y6QjrWHAVVfuMit1H20VWZ2nKJr@mail.gmail.com>
-References: <1290593090-6288-1-git-send-email-ohad@wizery.com>
- <AANLkTinc1xopSYvaJmN_hHaQq1TP=i_HNy5vX_LhdQOh@mail.gmail.com> <20110104191732.GI7771@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 2/5] omap3: zoom: use static for pointer passing
+Date: Tue,  4 Jan 2011 14:07:11 -0600
+Message-ID: <1294171634-13943-3-git-send-email-nm@ti.com>
+References: <1294171634-13943-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f194.google.com ([209.85.210.194]:37929 "EHLO
-	mail-iy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750980Ab1ADTWM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 14:22:12 -0500
-Received: by iyf40 with SMTP id 40so6782123iyf.1
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 11:22:12 -0800 (PST)
-In-Reply-To: <20110104191732.GI7771@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54388 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750840Ab1ADUHX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Jan 2011 15:07:23 -0500
+In-Reply-To: <1294171634-13943-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony <tony@atomide.com>
+Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
 
-On Tue, Jan 4, 2011 at 9:17 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Ohad Ben-Cohen <ohad@wizery.com> [110104 10:04]:
->> On Wed, Nov 24, 2010 at 12:04 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
->> > Power to the wl12xx wlan device is controlled by a fixed regulator.
->> >
->> > Boards that have the wl12xx should select REGULATOR_FIXED_VOLTAGE so
->> > users will not be baffled.
->> >
->> > Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
->> > ---
->>
->> Hi Tony,
->>
->> Gentle reminder,
->
-> This is queued for 2.6.38 in omap-for-linus as commit
-> 7c50152f0851e44ef7491546a29fddbbea47735b?
+omap_zoom_wlan_data and zoom2_set_hs_extmute are not used beyond
+the scope of zoom-peripherals directly, instead pointers are used.
+make them static instead.
 
-Thanks!
+Fixes sparse warnings:
+arch/arm/mach-omap2/board-zoom-peripherals.c:193:29: warning: symbol 'omap_zoom_wlan_data' was not declared. Should it be static?
+arch/arm/mach-omap2/board-zoom-peripherals.c:245:6: warning: symbol 'zoom2_set_hs_extmute' was not declared. Should it be static?
 
->
-> Tony
->
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 3fbd0ed..3d1f9ab 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -190,7 +190,7 @@ static struct platform_device omap_vwlan_device = {
+ 	},
+ };
+ 
+-struct wl12xx_platform_data omap_zoom_wlan_data __initdata = {
++static struct wl12xx_platform_data omap_zoom_wlan_data __initdata = {
+ 	.irq = OMAP_GPIO_IRQ(OMAP_ZOOM_WLAN_IRQ_GPIO),
+ 	/* ZOOM ref clock is 26 MHz */
+ 	.board_ref_clock = 1,
+@@ -242,7 +242,7 @@ static int zoom_twl_gpio_setup(struct device *dev,
+ }
+ 
+ /* EXTMUTE callback function */
+-void zoom2_set_hs_extmute(int mute)
++static void zoom2_set_hs_extmute(int mute)
+ {
+ 	gpio_set_value(ZOOM2_HEADSET_EXTMUTE_GPIO, mute);
+ }
+-- 
+1.6.3.3
+
