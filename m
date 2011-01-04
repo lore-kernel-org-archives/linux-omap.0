@@ -1,164 +1,43 @@
-From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v8 5/7] omap3: nand: configurable fifo threshold to gain the throughput
-Date: Tue,  4 Jan 2011 19:03:22 +0530
-Message-ID: <1294148004-10789-6-git-send-email-s-ghorai@ti.com>
-References: <1294148004-10789-1-git-send-email-s-ghorai@ti.com>
+From: tom.leiming@gmail.com
+Subject: [PATCH] arm: omap4: panda: remove usb_nop_xceiv_register
+Date: Tue,  4 Jan 2011 21:39:57 +0800
+Message-ID: <1294148397-26582-1-git-send-email-tom.leiming@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52178 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751353Ab1ADNdl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Jan 2011 08:33:41 -0500
-In-Reply-To: <1294148004-10789-1-git-send-email-s-ghorai@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:33561 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906Ab1ADNkS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 08:40:18 -0500
+Received: by iyi12 with SMTP id 12so12970761iyi.19
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 05:40:18 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimalsingh@ti.com>
+To: tony@atomide.com, khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, Ming Lei <tom.leiming@gmail.com>, Felipe Balbi <balbi@ti.com>
 
-Configure the FIFO THREASHOLD value different for read and write to keep busy
-both filling and to drain out of FIFO at reading and writing.
+From: Ming Lei <tom.leiming@gmail.com>
 
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+Panda uses twl6030 otg phy instead of internal phy,
+so removes usb_nop_xceiv_register to make musb working.
+
+Cc: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
 ---
- arch/arm/mach-omap2/gpmc.c             |   11 +++++++----
- arch/arm/plat-omap/include/plat/gpmc.h |    5 ++++-
- drivers/mtd/nand/omap2.c               |   22 ++++++++++++++--------
- 3 files changed, 25 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/board-omap4panda.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index a2df8b1..117ab29 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -59,7 +59,6 @@
- #define GPMC_CHUNK_SHIFT	24		/* 16 MB */
- #define GPMC_SECTION_SHIFT	28		/* 128 MB */
- 
--#define PREFETCH_FIFOTHRESHOLD	(0x40 << 8)
- #define CS_NUM_SHIFT		24
- #define ENABLE_PREFETCH		(0x1 << 7)
- #define DMA_MPU_MODE		2
-@@ -595,15 +594,19 @@ EXPORT_SYMBOL(gpmc_nand_write);
- /**
-  * gpmc_prefetch_enable - configures and starts prefetch transfer
-  * @cs: cs (chip select) number
-+ * @fifo_th: fifo threshold to be used for read/ write
-  * @dma_mode: dma mode enable (1) or disable (0)
-  * @u32_count: number of bytes to be transferred
-  * @is_write: prefetch read(0) or write post(1) mode
-  */
--int gpmc_prefetch_enable(int cs, int dma_mode,
-+int gpmc_prefetch_enable(int cs, int fifo_th, int dma_mode,
- 				unsigned int u32_count, int is_write)
- {
- 
--	if (!(gpmc_read_reg(GPMC_PREFETCH_CONTROL))) {
-+	if (fifo_th > PREFETCH_FIFOTHRESHOLD_MAX) {
-+		pr_err("gpmc: fifo threshold is not supported\n");
-+		return -1;
-+	} else if (!(gpmc_read_reg(GPMC_PREFETCH_CONTROL))) {
- 		/* Set the amount of bytes to be prefetched */
- 		gpmc_write_reg(GPMC_PREFETCH_CONFIG2, u32_count);
- 
-@@ -611,7 +614,7 @@ int gpmc_prefetch_enable(int cs, int dma_mode,
- 		 * enable the engine. Set which cs is has requested for.
- 		 */
- 		gpmc_write_reg(GPMC_PREFETCH_CONFIG1, ((cs << CS_NUM_SHIFT) |
--					PREFETCH_FIFOTHRESHOLD |
-+					PREFETCH_FIFOTHRESHOLD(fifo_th) |
- 					ENABLE_PREFETCH |
- 					(dma_mode << DMA_MPU_MODE) |
- 					(0x1 & is_write)));
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 054e704..9e4dc7a 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -83,6 +83,9 @@
- #define GPMC_IRQ_FIFOEVENTENABLE	0x01
- #define GPMC_IRQ_COUNT_EVENT		0x02
- 
-+#define PREFETCH_FIFOTHRESHOLD_MAX	0x40
-+#define PREFETCH_FIFOTHRESHOLD(val)	((val) << 8)
-+
- /*
-  * Note that all values in this struct are in nanoseconds, while
-  * the register values are in gpmc_fck cycles.
-@@ -133,7 +136,7 @@ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
- extern void gpmc_cs_free(int cs);
- extern int gpmc_cs_set_reserved(int cs, int reserved);
- extern int gpmc_cs_reserved(int cs);
--extern int gpmc_prefetch_enable(int cs, int dma_mode,
-+extern int gpmc_prefetch_enable(int cs, int fifo_th, int dma_mode,
- 					unsigned int u32_count, int is_write);
- extern int gpmc_prefetch_reset(int cs);
- extern void omap3_gpmc_save_context(void);
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index fbe8414..f1648fd 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -244,7 +244,8 @@ static void omap_read_buf_pref(struct mtd_info *mtd, u_char *buf, int len)
- 	}
- 
- 	/* configure and start prefetch transfer */
--	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
-+	ret = gpmc_prefetch_enable(info->gpmc_cs,
-+			PREFETCH_FIFOTHRESHOLD_MAX, 0x0, len, 0x0);
- 	if (ret) {
- 		/* PFPW engine is busy, use cpu copy method */
- 		if (info->nand.options & NAND_BUSWIDTH_16)
-@@ -289,7 +290,8 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
- 	}
- 
- 	/*  configure and start prefetch transfer */
--	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x1);
-+	ret = gpmc_prefetch_enable(info->gpmc_cs,
-+			PREFETCH_FIFOTHRESHOLD_MAX, 0x0, len, 0x1);
- 	if (ret) {
- 		/* PFPW engine is busy, use cpu copy method */
- 		if (info->nand.options & NAND_BUSWIDTH_16)
-@@ -345,8 +347,9 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 	int ret;
- 	unsigned long tim, limit;
- 
--	/* The fifo depth is 64 bytes. We have a sync at each frame and frame
--	 * length is 64 bytes.
-+	/* The fifo depth is 64 bytes max.
-+	 * But configure the FIFO-threahold to 32 to get a sync at each frame
-+	 * and frame length is 32 bytes.
- 	 */
- 	int buf_len = len >> 6;
- 
-@@ -387,7 +390,8 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 					OMAP24XX_DMA_GPMC, OMAP_DMA_SRC_SYNC);
- 	}
- 	/*  configure and start prefetch transfer */
--	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x1, len, is_write);
-+	ret = gpmc_prefetch_enable(info->gpmc_cs,
-+			PREFETCH_FIFOTHRESHOLD_MAX, 0x1, len, is_write);
- 	if (ret)
- 		/* PFPW engine is busy, use cpu copy method */
- 		goto out_copy;
-@@ -522,7 +526,8 @@ static void omap_read_buf_irq_pref(struct mtd_info *mtd, u_char *buf, int len)
- 	init_completion(&info->comp);
- 
- 	/*  configure and start prefetch transfer */
--	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
-+	ret = gpmc_prefetch_enable(info->gpmc_cs,
-+			PREFETCH_FIFOTHRESHOLD_MAX/2, 0x0, len, 0x0);
- 	if (ret)
- 		/* PFPW engine is busy, use cpu copy method */
- 		goto out_copy;
-@@ -569,8 +574,9 @@ static void omap_write_buf_irq_pref(struct mtd_info *mtd,
- 	info->buf = (u_char *) buf;
- 	init_completion(&info->comp);
- 
--	/*  configure and start prefetch transfer */
--	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x1);
-+	/* configure and start prefetch transfer : size=24 */
-+	ret = gpmc_prefetch_enable(info->gpmc_cs,
-+			(PREFETCH_FIFOTHRESHOLD_MAX * 3) / 8, 0x0, len, 0x1);
- 	if (ret)
- 		/* PFPW engine is busy, use cpu copy method */
- 		goto out_copy;
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 1ecd0a6..802ae20 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -374,8 +374,6 @@ static void __init omap4_panda_init(void)
+ 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+ 	omap_serial_init();
+ 	omap4_twl6030_hsmmc_init(mmc);
+-	/* OMAP4 Panda uses internal transceiver so register nop transceiver */
+-	usb_nop_xceiv_register();
+ 	omap4_ehci_init();
+ 	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
+ 	if (!cpu_is_omap44xx())
 -- 
-1.7.0.4
+1.7.3
 
