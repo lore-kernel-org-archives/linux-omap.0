@@ -1,50 +1,38 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] arm: omap: select HAVE_SPARSE_IRQ
-Date: Tue, 4 Jan 2011 13:52:08 +0200
-Message-ID: <20110104115208.GB24553@legolas.emea.dhcp.ti.com>
-References: <1294133966-20279-1-git-send-email-balbi@ti.com>
- <1294133966-20279-3-git-send-email-balbi@ti.com>
- <20110104095410.GA17298@n2100.arm.linux.org.uk>
- <20110104103432.GM2656@legolas.emea.dhcp.ti.com>
- <20110104114207.GA19293@n2100.arm.linux.org.uk>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Subject: [PATCH 0/4] ARM IRQ Changes
+Date: Tue,  4 Jan 2011 14:02:53 +0200
+Message-ID: <1294142577-28772-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:48340 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751016Ab1ADLwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 06:52:12 -0500
-Received: by gxk24 with SMTP id 24so6307115gxk.32
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 03:52:12 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20110104114207.GA19293@n2100.arm.linux.org.uk>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:59872 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751100Ab1ADMDB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 07:03:01 -0500
+Received: by mail-yx0-f174.google.com with SMTP id 3so6357443yxt.5
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 04:03:01 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>
 
-Hi,
+Hi all,
 
-On Tue, Jan 04, 2011 at 11:42:07AM +0000, Russell King - ARM Linux wrote:
->On Tue, Jan 04, 2011 at 12:34:32PM +0200, Felipe Balbi wrote:
->> do you mean:
->
->Yes, but without the breakage caused by your mailer - posting patches
+a few patches to enable sparse IRQ numbering on OMAP.
+Also a few cleanups to arch/arm/Kconfig.
 
-good, I'll re-send the series in a bit.
+for convenience patches are also available from [1]:
 
->with flowed formatting is a recipe for this kind of disaster:
->
->Content-Type: text/plain; charset=us-ascii; format=flowed
->
->You appear to be using mutt, so set:
->
->set text_flowed=no
->
->in your .muttrc to avoid this corruption.
+[1] git://gitorious.org/usb/usb.git irq
 
-sorry about that, fixed.
+Felipe Balbi (4):
+  arm: omap: gpio: don't access irq_desc array directly
+  arm: Kconfig: remove duplicated GENERIC_HARDIRQS entry
+  arm: Kconfig: remove duplicated SPARSE_IRQ entry
+  arm: Kconfig: allow OMAP to use sparse IRQ numbering
+
+ arch/arm/Kconfig          |   22 ++++------------------
+ arch/arm/plat-omap/gpio.c |   10 +++++++---
+ 2 files changed, 11 insertions(+), 21 deletions(-)
 
 -- 
-balbi
+1.7.3.4.598.g85356
+
