@@ -1,101 +1,63 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 1/3] perf: add calls to suspend trace point
-Date: Tue, 4 Jan 2011 16:00:05 +0100
-Message-ID: <AANLkTim_ekCNw6xhC_MGY7=gfXUCfinXkLeXtttpHaGc@mail.gmail.com>
-References: <1294136263-24020-1-git-send-email-j-pihet@ti.com>
-	<1294138109-24679-1-git-send-email-j-pihet@ti.com>
-	<20110104112919.GB9879@atrey.karlin.mff.cuni.cz>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH v5 1/3] ARM: add CPPI 4.1 DMA support
+Date: Tue, 4 Jan 2011 23:41:05 +0800
+Message-ID: <AANLkTinPEpMofTX0YWbv18gSdWtPLVFa85S1E=+QxFT=@mail.gmail.com>
+References: <201005152214.53993.sshtylyov@ru.mvista.com>
+	<4D21F3F2.6090302@mvista.com>
+	<20110103163447.GB2911@n2100.arm.linux.org.uk>
+	<19F8576C6E063C45BE387C64729E739404BD3F2C4D@dbde02.ent.ti.com>
+	<4D220246.5020303@mvista.com>
+	<19F8576C6E063C45BE387C64729E739404BD3F2C58@dbde02.ent.ti.com>
+	<20110103204416.GA2240@legolas.emea.dhcp.ti.com>
+	<4D231B5F.7030607@mvista.com>
+	<1294149984.1822.9.camel@eowin>
+	<AANLkTi=JyoQuP-OQtV1yO0WR1GCM1LieHUj5Sn=ZfVim@mail.gmail.com>
+	<1294152988.1822.12.camel@eowin>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:57682 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751324Ab1ADPAG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 10:00:06 -0500
-In-Reply-To: <20110104112919.GB9879@atrey.karlin.mff.cuni.cz>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33511 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751002Ab1ADPlH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 10:41:07 -0500
+Received: by wyb28 with SMTP id 28so14419238wyb.19
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 07:41:06 -0800 (PST)
+In-Reply-To: <1294152988.1822.12.camel@eowin>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: mingo@elte.hu, trenn@suse.de, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, balbi@ti.com, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 Hi,
 
-On Tue, Jan 4, 2011 at 12:29 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> Hi!
+2011/1/4 Felipe Balbi <me@felipebalbi.com>:
+> Hi,
 >
->> Uses the machine_suspend trace point, called from the
->> generic kernel suspend_enter function.
+> On Tue, 2011-01-04 at 22:40 +0800, Ming Lei wrote:
+>> > The end goal is just to drop all these ad-hoc "APIs" for accessing=
+ DMA
+>> > on musb code.
 >>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->> CC: Thomas Renninger <trenn@suse.de>
->> ---
->> =A0kernel/power/suspend.c | =A0 =A03 +++
->> =A01 files changed, 3 insertions(+), 0 deletions(-)
->>
->> diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
->> index ecf7705..0650596 100644
->> --- a/kernel/power/suspend.c
->> +++ b/kernel/power/suspend.c
->> @@ -22,6 +22,7 @@
->> =A0#include <linux/mm.h>
->> =A0#include <linux/slab.h>
->> =A0#include <linux/suspend.h>
->> +#include <trace/events/power.h>
->>
->> =A0#include "power.h"
->>
->> @@ -164,7 +165,9 @@ static int suspend_enter(suspend_state_t state)
->> =A0 =A0 =A0 error =3D sysdev_suspend(PMSG_SUSPEND);
->> =A0 =A0 =A0 if (!error) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!suspend_test(TEST_CORE) && pm_check=
-_wakeup_events()) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 trace_machine_suspend(stat=
-e);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 error =3D suspend_ops->e=
-nter(state);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 trace_machine_suspend(PWR_=
-EVENT_EXIT);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 events_check_enabled =3D=
- false;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 sysdev_resume();
+>> If this kind of DMA controllers are only used by MUSB, seems not
+>> necessary to convert to dmaengine API. =A0Any benefit we can get
+>> from the convert? =A0 MUSB is cross-platform already after all.
 >
-> Ok... why this place?
-This trace has been placed here because it traces the machine low
-level mode enter.
+> <irony>
+> correct, OMAP GPIO controller is only used on OMAPs, so why do we eve=
+n
+> bother having gpiolib, right ?
 
-> I mean, perhaps suspend time should include
-> device suspend?
-That makes sense. We have a few options here:
-1) keep the traces as proposed to trace the low level machine code only=
-,
-2) move the traces to the entry and exit of suspend_enter so that it
-includes the prepare and late_prepare (+ the associated wake-up)
-callbacks as well,
-3) move the traces to suspend_devices_and_enter so that it includes 2)
-and the handling of the console and the devices,
-4) move the traces to enter_state do that it includes 3), the call to
-sys_sync and the user space freeze.
+OMAP GPIOs have many usages or use cases, so we can use gpiolib
+to simplify access to GPIOs.  If GPIOs has only one usage or use case,
+it is not necessary to access GPIOs by gpiolib.
 
-Note that the the SNAPSHOT_2RAM ioctl code also calls
-suspend_devices_and_enter, so if only 4) is used no trace will be
-generated in that case.
+Now this kind of DMA controllers are only used by MUSB or only for
+MUSB, so it doesn't matter to access them by dmaengine or not.
 
-I am in favor of 3) of 4).
-What do you think?
-
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-Pavel
-> --
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/hors=
-es/blog.html
->
-
-Thanks,
-Jean
+thanks,
+--=20
+Lei Ming
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
