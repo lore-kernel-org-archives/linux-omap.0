@@ -1,47 +1,76 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC 1/5] ARM: P2V: separate PHYS_OFFSET from platform definitions
-Date: Wed, 5 Jan 2011 22:30:53 +0000
-Message-ID: <20110105223053.GN8638@n2100.arm.linux.org.uk>
-References: <20110104202052.GE24935@n2100.arm.linux.org.uk>
-	<E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
-	<alpine.LFD.2.00.1101041607110.22191@xanadu.home>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/1] arm: omap: gpio: define .disable callback for gpio irq chip
+Date: Wed, 05 Jan 2011 15:22:51 -0800
+Message-ID: <87aajfvstw.fsf@ti.com>
+References: <1294250283-18182-1-git-send-email-eduardo.valentin@nokia.com>
+	<20110105181918.GB8717@n2100.arm.linux.org.uk>
+	<20110105192425.GA24729@besouro.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1101041607110.22191@xanadu.home>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Viresh Kumar <viresh.kumar@st.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Erik Gilling <konkers@android.com>, linux-sh@vger.kernel.org, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Magnus Damm <magnus.damm@gmail.com>, Marc Singer <elf@buici.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Jiandong Zheng <jdzheng@broadcom.com>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, Olof Johansson <olof@lixom.net>, Ryan Mallon <ryan@bluewatersys.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:45803 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751392Ab1AEXXB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 18:23:01 -0500
+Received: by mail-yw0-f53.google.com with SMTP id 6so9476206ywa.40
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 15:22:55 -0800 (PST)
+In-Reply-To: <20110105192425.GA24729@besouro.research.nokia.com> (Eduardo
+	Valentin's message of "Wed, 5 Jan 2011 21:24:25 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: eduardo.valentin@nokia.com
+Cc: ext Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 04, 2011 at 04:10:44PM -0500, Nicolas Pitre wrote:
-> On Tue, 4 Jan 2011, Russell King - ARM Linux wrote:
-> 
-> > This uncouple PHYS_OFFSET from the platform definitions, thereby
-> > facilitating run-time computation of the physical memory offset.
-> > 
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> 
-> Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
-> 
-> This might even be a good time to merge such patch now even if the later 
-> patches don't make it into the next merge window as this would produce 
-> fewer conflicts later.
+Eduardo Valentin <eduardo.valentin@nokia.com> writes:
 
-I think waiting might be in order - MXC conflicts with this patch set
-and needs rechecking to make sure it's right.  ATM, it's had no
-visibility in linux-next.
+> Hello Russell,
+>
+> On Wed, Jan 05, 2011 at 06:19:18PM +0000, Russell King wrote:
+>> On Wed, Jan 05, 2011 at 07:58:03PM +0200, Eduardo Valentin wrote:
+>> > Currently, if one calls disable_irq(gpio_irq), the irq
+>> > won't get disabled.
+>> > 
+>> > This is happening because the omap gpio code defines only
+>> > a .mask callback. And the default_disable function is just
+>> > a stub. The result is that, when someone calls disable_irq
+>> > for an irq in a gpio line, it will be kept enabled.
+>> > 
+>> > This patch solves this issue by setting the .disable
+>> > callback to point to the same .mask callback.
+>> 
+>> Amd this is a problem because?
+>
+> errr.. because the interrupt is enabled when it was supposed to be disabled?
+>
 
-However, it makes sense to get the likely to conflict bits in sooner
-rather than later - or I need to publish them from my git tree in a
-stable form so that people can include those changes in their patchsets.
+As Russell pointed out, it's not actually "supposed" to be.
+
+With lazy disable, what disable_irq() does is prevent the *handler* from
+ever being called.  If another interrupt arrives, it will be caught by
+the genirq core, marked as IRQ_PENDING and then masked.  This "don't
+disable unless we really have to" is the desired behavior of the lazy
+disable feature.
+
+>> 
+>> The way this works is that although it isn't disabled at that point,
+>> if it never triggers, then everything remains happy.  However, if it
+>> does trigger, the genirq code will then mask the interrupt and won't
+>> call the handler.
+>
+> Right.. I didn't see from this point. I will check how that gets unmasked.
+> But even so, if I understood correctly what you described, it would still
+> open a time window which the system would see at least 1 interrupt during
+> the time it was not suppose to. And that can wakeup a system which  is in
+> deep sleep mode, either via dynamic idle or static suspend.
+>
+> It is unlikely, I know. But it can still happen. And can be avoided.
+
+If the GPIO is configured as a wakeup source, then wouldn't you want
+activity on that GPIO to wake up the system?
+
+If you don't want wakeups on that GPIO, then the driver should probably
+be using disable_irq_wake().
+
+Kevin
+
+
