@@ -1,73 +1,42 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH 2/2] OMAP: DMA: clear interrupt status correctly
-Date: Wed, 05 Jan 2011 11:58:56 +0200
-Message-ID: <4D2440E0.7040008@nokia.com>
-References: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com> <20101130132355.13286.77389.sendpatchset@ahunter-work.research.nokia.com> <541b3a50479779f3e814aa93d506cbdd@mail.gmail.com> <20101221202914.GK5829@atomide.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] staging: tidspbridge - configure full L1 MMU range
+Date: Wed, 5 Jan 2011 12:05:31 +0200
+Message-ID: <AANLkTimYymY2vqCg3J_0KNiwSpF3FQL32FP=CE27BTvG@mail.gmail.com>
+References: <1294208410-4772-1-git-send-email-fernando.lugo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:30301 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751507Ab1AEJ7G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Jan 2011 04:59:06 -0500
-In-Reply-To: <20101221202914.GK5829@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1294208410-4772-1-git-send-email-fernando.lugo@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Fernando Guzman Lugo <fernando.lugo@ti.com>
+Cc: omar.ramirez@ti.com, gregkh@suse.de, rene.sapiens@ti.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Manjunath Kondaiah G <manjugk@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
+On Wed, Jan 5, 2011 at 8:20 AM, Fernando Guzman Lugo
+<fernando.lugo@ti.com> wrote:
+> Otherwise a virtual address beyond of the L1 size is used,
+> the MMU hardware will look into a memory that does not belong to
+> L1 translation tables. IOW; the MMU would allow to access any
+> memory, configured or not.
+>
+> Reported-by: Felipe Contreras <felipe.contreras@nokia.com>
+> Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
+> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
 
- From fffa19df17d73c1ed2e8c65c0b6604ee1dddff84 Mon Sep 17 00:00:00 2001
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Wed, 24 Nov 2010 13:23:21 +0200
-Subject: [PATCH] OMAP: DMA: clear interrupt status correctly
+People rarely use ' - ' in the commit summary:
+% git log --oneline -1000 | grep -e ' - ' | wc -l
+32
 
-When clearing the DMA channel, clear all status bits.
+Which means about only 3%. If you do the same on
+drivers/staging/tidspbridge, you'll see that the only commits that
+have that are from you.
 
-When handling a DMA interrupt, clear only the interrupt
-status bits that have been read and are passed to the
-channel's interrupt handler, not every status bit.
+staging: tidspbridge: configure full L1 MMU range
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
-  arch/arm/plat-omap/dma.c |    7 +++----
-  1 files changed, 3 insertions(+), 4 deletions(-)
+Other than that, I think this is is a critical bugfix, and should be
+applied ASAP.
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index c4b2b47..8536308 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -53,7 +53,7 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
-  #endif
-  
-  #define OMAP_DMA_ACTIVE			0x01
--#define OMAP2_DMA_CSR_CLEAR_MASK	0xffe
-+#define OMAP2_DMA_CSR_CLEAR_MASK	0xffffffff
-  
-  #define OMAP_FUNC_MUX_ARM_BASE		(0xfffe1000 + 0xec)
-  
-@@ -1873,7 +1873,7 @@ static int omap2_dma_handle_ch(int ch)
-  		printk(KERN_INFO "DMA misaligned error with device %d\n",
-  		       dma_chan[ch].dev_id);
-  
--	p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, ch);
-+	p->dma_write(status, CSR, ch);
-  	p->dma_write(1 << ch, IRQSTATUS_L0, ch);
-  	/* read back the register to flush the write */
-  	p->dma_read(IRQSTATUS_L0, ch);
-@@ -1893,10 +1893,9 @@ static int omap2_dma_handle_ch(int ch)
-  			OMAP_DMA_CHAIN_INCQHEAD(chain_id);
-  
-  		status = p->dma_read(CSR, ch);
-+		p->dma_write(status, CSR, ch);
-  	}
-  
--	p->dma_write(status, CSR, ch);
--
-  	if (likely(dma_chan[ch].callback != NULL))
-  		dma_chan[ch].callback(ch, status, dma_chan[ch].data);
-  
+Cheers.
+
 -- 
-1.7.0.4
+Felipe Contreras
