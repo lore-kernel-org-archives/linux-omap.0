@@ -1,54 +1,84 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/5] omap2plus: Trivial build break fixes
-Date: Wed, 05 Jan 2011 09:20:00 -0800
-Message-ID: <87r5crz2rj.fsf@ti.com>
-References: <1294165576-15628-1-git-send-email-santosh.shilimkar@ti.com>
-	<8762u4423o.fsf@ti.com>
-	<6a39d0124306a5ac6b567edca88f0671@mail.gmail.com>
+Subject: Re: [PATCH 2/2] OMAP: DMA: clear interrupt status correctly
+Date: Wed, 05 Jan 2011 09:27:27 -0800
+Message-ID: <87mxnfz2f4.fsf@ti.com>
+References: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com>
+	<20101130132355.13286.77389.sendpatchset@ahunter-work.research.nokia.com>
+	<541b3a50479779f3e814aa93d506cbdd@mail.gmail.com>
+	<20101221202914.GK5829@atomide.com> <4D2440E0.7040008@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:44026 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751725Ab1AERUE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 12:20:04 -0500
-Received: by mail-yw0-f45.google.com with SMTP id 5so7046345ywl.32
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 09:20:04 -0800 (PST)
-In-Reply-To: <6a39d0124306a5ac6b567edca88f0671@mail.gmail.com> (Santosh
-	Shilimkar's message of "Wed, 5 Jan 2011 16:28:47 +0530")
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:47211 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751369Ab1AER1e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 12:27:34 -0500
+Received: by gxk20 with SMTP id 20so6636935gxk.6
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 09:27:33 -0800 (PST)
+In-Reply-To: <4D2440E0.7040008@nokia.com> (Adrian Hunter's message of "Wed, 05
+	Jan 2011 11:58:56 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Manjunath Kondaiah G <manjugk@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+Adrian Hunter <adrian.hunter@nokia.com> writes:
 
-[...]
+> From fffa19df17d73c1ed2e8c65c0b6604ee1dddff84 Mon Sep 17 00:00:00 2001
+> From: Adrian Hunter <adrian.hunter@nokia.com>
+> Date: Wed, 24 Nov 2010 13:23:21 +0200
+> Subject: [PATCH] OMAP: DMA: clear interrupt status correctly
+>
+> When clearing the DMA channel, clear all status bits.
+>
+> When handling a DMA interrupt, clear only the interrupt
+> status bits that have been read and are passed to the
+> channel's interrupt handler, not every status bit.
+>
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
->> Minor nit in your git-send-email config.
->>
->> Can you add the following to your ~/.gitconfig, or update to newer
->> git
->> where this is now the default:
->>
->> [sendemail]
->> 	chainreplyto = false
->>
->> This will make all patches a reply to PATCH 0 instead of to the
->> previous
->> patch.
->>
-> Have tried this in v2 I posted but it didn't appear to be a
-> reply for PATCH 0.
+Looks like a fix that should go into 2.6.38-rc2.  Can you repost and Cc
+linux-arm-kernel as well?
 
-You didn't have (or I didn't see) a PATCH 0 in your v2 version.  After
-patch 1, all patches are replies to patch 1 (using In-Reply-To: and
-References:) resulting in proper threading.
-
-> May be I missed something.
-
-I don't think so, it looks right now.
+Thanks,
 
 Kevin
 
-
+> ---
+>  arch/arm/plat-omap/dma.c |    7 +++----
+>  1 files changed, 3 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index c4b2b47..8536308 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -53,7 +53,7 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
+>  #endif
+>  #define OMAP_DMA_ACTIVE			0x01
+> -#define OMAP2_DMA_CSR_CLEAR_MASK	0xffe
+> +#define OMAP2_DMA_CSR_CLEAR_MASK	0xffffffff
+>  #define OMAP_FUNC_MUX_ARM_BASE		(0xfffe1000 + 0xec)
+>  @@ -1873,7 +1873,7 @@ static int omap2_dma_handle_ch(int ch)
+>  		printk(KERN_INFO "DMA misaligned error with device %d\n",
+>  		       dma_chan[ch].dev_id);
+>  -	p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, ch);
+> +	p->dma_write(status, CSR, ch);
+>  	p->dma_write(1 << ch, IRQSTATUS_L0, ch);
+>  	/* read back the register to flush the write */
+>  	p->dma_read(IRQSTATUS_L0, ch);
+> @@ -1893,10 +1893,9 @@ static int omap2_dma_handle_ch(int ch)
+>  			OMAP_DMA_CHAIN_INCQHEAD(chain_id);
+>  		status = p->dma_read(CSR, ch);
+> +		p->dma_write(status, CSR, ch);
+>  	}
+>  -	p->dma_write(status, CSR, ch);
+> -
+>  	if (likely(dma_chan[ch].callback != NULL))
+>  		dma_chan[ch].callback(ch, status, dma_chan[ch].data);
+>  -- 
+> 1.7.0.4
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
