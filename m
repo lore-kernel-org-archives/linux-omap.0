@@ -1,106 +1,63 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/5] omap2plus: prm: Trvial build break fix for undefined reference to 'omap2_prm_read_mod_reg'
-Date: Tue, 04 Jan 2011 16:32:24 -0800
-Message-ID: <87d3oc42cn.fsf@ti.com>
+Subject: Re: [PATCH 0/5] omap2plus: Trivial build break fixes
+Date: Tue, 04 Jan 2011 16:37:47 -0800
+Message-ID: <8762u4423o.fsf@ti.com>
 References: <1294165576-15628-1-git-send-email-santosh.shilimkar@ti.com>
-	<1294165576-15628-2-git-send-email-santosh.shilimkar@ti.com>
-	<1294165576-15628-3-git-send-email-santosh.shilimkar@ti.com>
-	<alpine.DEB.2.00.1101041139110.19319@utopia.booyaka.com>
-	<cc76ecb39b950683cd12d254968e851c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:38991 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751639Ab1AEAc1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 19:32:27 -0500
-Received: by mail-iw0-f171.google.com with SMTP id 2so14990873iwn.16
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 16:32:27 -0800 (PST)
-In-Reply-To: <cc76ecb39b950683cd12d254968e851c@mail.gmail.com> (Santosh
-	Shilimkar's message of "Wed, 5 Jan 2011 00:13:58 +0530")
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:37230 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750957Ab1AEAhv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 19:37:51 -0500
+Received: by yib17 with SMTP id 17so4430337yib.35
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 16:37:50 -0800 (PST)
+In-Reply-To: <1294165576-15628-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Tue, 4 Jan 2011 23:56:11 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
 Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
->> -----Original Message-----
->> From: Paul Walmsley [mailto:paul@pwsan.com]
->> Sent: Wednesday, January 05, 2011 12:11 AM
->> To: Santosh Shilimkar
->> Cc: linux-omap@vger.kernel.org; khilman@ti.com; tony@atomide.com;
->> linux-arm-kernel@lists.infradead.org
->> Subject: Re: [PATCH 2/5] omap2plus: prm: Trvial build break fix for
->> undefined reference to 'omap2_prm_read_mod_reg'
->>
->> Hi Santosh,
->>
->> On Tue, 4 Jan 2011, Santosh Shilimkar wrote:
->>
->> > omap2plus_defocnfig build breaks when customised with only
->> ARCH_OMAP4
->> > selected. This is because common files make references to the
->> functions
->> > which are defined only for omap2xxx and omap3xxx.
->> >
->> >  LD      .tmp_vmlinux1
->> > arch/arm/mach-omap2/built-in.o: In function `pm_dbg_regset_store':
->> > arch/arm/mach-omap2/pm-debug.c:335: undefined reference to
->> `omap2_prm_read_mod_reg'
->> > arch/arm/mach-omap2/built-in.o: In function `omap2_pm_dump':
->> > arch/arm/mach-omap2/pm-debug.c:121: undefined reference to
->> `omap2_prm_read_mod_reg'
->> > arch/arm/mach-omap2/pm-debug.c:123: undefined reference to
->> `omap2_prm_read_mod_reg'
->> > arch/arm/mach-omap2/pm-debug.c:124: undefined reference to
->> `omap2_prm_read_mod_reg'
->> > arch/arm/mach-omap2/pm-debug.c:125: undefined reference to
->> `omap2_prm_read_mod_reg'
->> > arch/arm/mach-omap2/built-in.o: In function
->> `omap_prcm_arch_reset':
->> > arch/arm/mach-omap2/prcm.c:106: undefined reference to
->> `omap2_prm_set_mod_reg_bits'
->> > arch/arm/mach-omap2/prcm.c:108: undefined reference to
->> `omap2_prm_read_mod_reg'
->> > arch/arm/mach-omap2/built-in.o: In function
->> `omap_prcm_get_reset_sources':
->> > arch/arm/mach-omap2/prcm.c:53: undefined reference to
->> `omap2_prm_read_mod_reg'
->> > arch/arm/mach-omap2/built-in.o: In function
->> `clkdm_clear_all_wkdeps':
->> > arch/arm/mach-omap2/clockdomain.c:545: undefined reference to
->> `omap2_prm_clear_mod_reg_bits'
->> > arch/arm/mach-omap2/built-in.o: In function `clkdm_del_wkdep':
->> > arch/arm/mach-omap2/clockdomain.c:475: undefined reference to
->> `omap2_prm_clear_mod_reg_bits'
->> > arch/arm/mach-omap2/built-in.o: In function `clkdm_read_wkdep':
->> > arch/arm/mach-omap2/clockdomain.c:511: undefined reference to
->> `omap2_prm_read_mod_bits_shift'
->> > arch/arm/mach-omap2/built-in.o: In function `clkdm_add_wkdep':
->> > arch/arm/mach-omap2/clockdomain.c:440: undefined reference to
->> `omap2_prm_set_mod_reg_bits'
->> > make: *** [.tmp_vmlinux1] Error 1
->> >
->> > This patch adds stubs for these functions so that build continues
->> to work.
->> >
->> > Probably alternately  the build can be fixed as below but that not
->> seems to
->> > be the right way.
->>
->> Since these functions now return 0, maybe it would be better to call
->> WARN() or BUG() in these functions for OMAP4.  Otherwise, they are
->> going
->> to silently do the wrong thing, and someone needs to fix any usage
->> of
->> these functions where they shouldn't be used.  e.g., in mach-
->> omap2/prcm.c
->> or mach-omap2/pm-debug.c ...
->>
-> Good point. Will update the patch accordingly and repost.
+> These are trivial build fixes which I found while doing some 
+> testing 'omap-for-linus' branch.
+>
+> The series is generated against the linux-omap 'omap-for-linus' branch
+> and boot tested on OMAP4430 SDP and OMAP3630 ZOOM.
 
-Please use WARN() instead of BUG() as this is not worthy of causing a
-panic() for the whole kernel.
+Minor nit in your git-send-email config.  
+
+Can you add the following to your ~/.gitconfig, or update to newer git
+where this is now the default:
+
+[sendemail]
+	chainreplyto = false
+
+This will make all patches a reply to PATCH 0 instead of to the previous
+patch.
+
+Thanks,
 
 Kevin
+
+>
+>
+> The following changes since commit dc69d1af9e8d9cbbabff88bb35a6782187a22229:
+>   Ben Gamari (1):
+>         omap2: Make OMAP2PLUS select OMAP_DM_TIMER
+>
+>
+> Santosh Shilimkar (5):
+>       omap2plus: clockdomain: Trivial fix for build break because of clktrctrl_mask
+>       omap2plus: prm: Trvial build break fix for undefined reference to 'omap2_prm_read_mod_reg'
+>       omap2plus: voltage: Trivial warning fix 'no return statement'
+>       omap2plus: voltage: Trivial linking fix 'undefined reference'
+>       omap2plus: voltage: Trivial linking fix for 'EINVAL' undeclared
+>
+>  arch/arm/mach-omap2/Makefile              |    2 +-
+>  arch/arm/mach-omap2/clockdomain.h         |    2 +-
+>  arch/arm/mach-omap2/prm2xxx_3xxx.h        |   45 ++++++++++++++++++++++++++++-
+>  arch/arm/plat-omap/include/plat/voltage.h |   17 ++++++++--
+>  4 files changed, 59 insertions(+), 7 deletions(-)
