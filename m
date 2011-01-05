@@ -1,109 +1,73 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC 1/5] ARM: P2V: separate PHYS_OFFSET from platform definitions
-Date: Wed, 5 Jan 2011 00:04:44 +0000
-Message-ID: <20110105000444.GA1085@n2100.arm.linux.org.uk>
-References: <20110104202052.GE24935@n2100.arm.linux.org.uk>
-	<E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
-	<20110104212359.GH25121@pengutronix.de>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/4] arm: omap: gpio: don't access irq_desc array directly
+Date: Tue, 04 Jan 2011 16:24:58 -0800
+Message-ID: <87r5cs42p1.fsf@ti.com>
+References: <1294142577-28772-1-git-send-email-balbi@ti.com>
+	<1294142577-28772-2-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20110104212359.GH25121@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Viresh Kumar <viresh.kumar@st.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-sh@vger.kernel.org, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Magnus Damm <magnus.damm@gmail.com>, Scott Branden <sbranden@broadcom.com>, Marc Singer <elf@buici.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Sascha Hauer <kernel@pengutronix.de>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>, Ryan Mallon <ryan@bluewatersys.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.o
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:45038 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751078Ab1AEAZF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 19:25:05 -0500
+Received: by mail-gx0-f182.google.com with SMTP id 8so6338317gxk.27
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 16:25:03 -0800 (PST)
+In-Reply-To: <1294142577-28772-2-git-send-email-balbi@ti.com> (Felipe Balbi's
+	message of "Tue, 4 Jan 2011 14:02:54 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>
 
-On Tue, Jan 04, 2011 at 10:23:59PM +0100, Uwe Kleine-K=F6nig wrote:
-> Hello Russell,
-> =
+Felipe Balbi <balbi@ti.com> writes:
 
-> On Tue, Jan 04, 2011 at 08:22:17PM +0000, Russell King - ARM Linux wrote:
-> > This uncouple PHYS_OFFSET from the platform definitions, thereby
-> > facilitating run-time computation of the physical memory offset.
-> > =
+> Instead of accessing the irq_desc array directly
+> we can use irq_to_desc(irq). That will allow us to,
+> if wanted, select SPARSE_IRQ and irq_descs will be
+> added to a radix tree, instead of a array.
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > ---
-> >  arch/arm/include/asm/memory.h                  |    2 ++
-> >  arch/arm/kernel/tcm.c                          |    2 +-
-> >  arch/arm/mach-aaec2000/include/mach/memory.h   |    2 +-
-> >  arch/arm/mach-at91/include/mach/memory.h       |    2 +-
-> >  arch/arm/mach-bcmring/include/mach/hardware.h  |    2 +-
-> >  arch/arm/mach-bcmring/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-clps711x/include/mach/memory.h   |    2 +-
-> >  arch/arm/mach-cns3xxx/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-davinci/include/mach/memory.h    |    4 ++--
-> >  arch/arm/mach-dove/include/mach/memory.h       |    2 +-
-> >  arch/arm/mach-ebsa110/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-ep93xx/include/mach/memory.h     |   10 +++++-----
-> >  arch/arm/mach-footbridge/include/mach/memory.h |    2 +-
-> >  arch/arm/mach-h720x/include/mach/memory.h      |    2 +-
-> >  arch/arm/mach-integrator/include/mach/memory.h |    2 +-
-> >  arch/arm/mach-iop13xx/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-iop32x/include/mach/memory.h     |    2 +-
-> >  arch/arm/mach-iop33x/include/mach/memory.h     |    2 +-
-> >  arch/arm/mach-ixp2000/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-ixp23xx/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-ixp4xx/include/mach/memory.h     |    2 +-
-> >  arch/arm/mach-kirkwood/include/mach/memory.h   |    2 +-
-> >  arch/arm/mach-ks8695/include/mach/memory.h     |    2 +-
-> >  arch/arm/mach-lh7a40x/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-loki/include/mach/memory.h       |    2 +-
-> >  arch/arm/mach-lpc32xx/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-mmp/include/mach/memory.h        |    2 +-
-> >  arch/arm/mach-msm/board-msm7x30.c              |    2 +-
-> >  arch/arm/mach-msm/include/mach/memory.h        |   10 +++++-----
-> >  arch/arm/mach-mv78xx0/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-mx3/mach-kzm_arm11_01.c          |    2 +-
-> >  arch/arm/mach-netx/include/mach/memory.h       |    2 +-
-> >  arch/arm/mach-nomadik/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-ns9xxx/include/mach/memory.h     |    2 +-
-> >  arch/arm/mach-nuc93x/include/mach/memory.h     |    2 +-
-> >  arch/arm/mach-orion5x/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-pnx4008/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-pxa/include/mach/memory.h        |    2 +-
-> >  arch/arm/mach-realview/include/mach/memory.h   |    4 ++--
-> >  arch/arm/mach-rpc/include/mach/memory.h        |    2 +-
-> >  arch/arm/mach-s3c2400/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-s3c2410/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-s3c24a0/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-s3c64xx/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-s5p6442/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-s5p64x0/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-s5pc100/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-s5pv210/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-s5pv310/include/mach/memory.h    |    2 +-
-> >  arch/arm/mach-sa1100/include/mach/memory.h     |    2 +-
-> >  arch/arm/mach-shark/include/mach/memory.h      |    2 +-
-> >  arch/arm/mach-shmobile/include/mach/memory.h   |    2 +-
-> >  arch/arm/mach-tegra/include/mach/memory.h      |    2 +-
-> >  arch/arm/mach-u300/include/mach/memory.h       |    6 +++---
-> >  arch/arm/mach-u300/u300.c                      |    2 +-
-> >  arch/arm/mach-ux500/include/mach/memory.h      |    2 +-
-> >  arch/arm/mach-versatile/include/mach/memory.h  |    2 +-
-> >  arch/arm/mach-vexpress/include/mach/memory.h   |    2 +-
-> >  arch/arm/mach-w90x900/include/mach/memory.h    |    2 +-
-> >  arch/arm/plat-omap/include/plat/memory.h       |    4 ++--
-> >  arch/arm/plat-spear/include/plat/memory.h      |    2 +-
-> >  arch/arm/plat-stmp3xxx/include/mach/memory.h   |    2 +-
-> >  arch/arm/plat-tcc/include/mach/memory.h        |    2 +-
-> >  63 files changed, 77 insertions(+), 75 deletions(-)
-> You didn't touch arch/arm/plat-mxc/include/mach/memory.h which defines
-> PHYS_OFFSET, too.  I assume you just missed these?
+Can you refresh this one against Tony's omap-for-linus branch. The GPIO
+omap_device/hwmod conversion changed things around a bit and this patch
+doesn't apply.
 
-Grr.
+After that, you can send separately, and I'll queue this one along with
+some other GPIO core fixes for the 2.6.38-rc series after -rc1 comes
+out.
 
-That's because it didn't match the '#define *PHYS_OFFSET' regexp I used
-to find all the definitions.  This is exactly why being different from
-everyone else is a bad idea - you get missed.
+Kevin
+
+> ---
+>  arch/arm/plat-omap/gpio.c |   10 +++++++---
+>  1 files changed, 7 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index c05c653..c351758 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -905,8 +905,10 @@ static int gpio_irq_type(unsigned irq, unsigned type)
+>  	spin_lock_irqsave(&bank->lock, flags);
+>  	retval = _set_gpio_triggering(bank, get_gpio_index(gpio), type);
+>  	if (retval == 0) {
+> -		irq_desc[irq].status &= ~IRQ_TYPE_SENSE_MASK;
+> -		irq_desc[irq].status |= type;
+> +		struct irq_desc *d = irq_to_desc(irq);
+> +
+> +		d->status &= ~IRQ_TYPE_SENSE_MASK;
+> +		d->status |= type;
+>  	}
+>  	spin_unlock_irqrestore(&bank->lock, flags);
+>  
+> @@ -1925,7 +1927,9 @@ static int __init _omap_gpio_init(void)
+>  
+>  		for (j = bank->virtual_irq_start;
+>  		     j < bank->virtual_irq_start + gpio_count; j++) {
+> -			lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
+> +			struct irq_desc *d = irq_to_desc(j);
+> +
+> +			lockdep_set_class(&d->lock, &gpio_lock_class);
+>  			set_irq_chip_data(j, bank);
+>  			if (bank_is_mpuio(bank))
+>  				set_irq_chip(j, &mpuio_irq_chip);
