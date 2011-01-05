@@ -1,63 +1,86 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH v3 08/17] OMAP2,3: DSS2: Create platform_driver for
- each DSS HW IP
-Date: Wed, 05 Jan 2011 16:58:24 +0200
-Message-ID: <1294239504.14254.126.camel@tubuntu>
+Subject: Re: [PATCH v3 09/17] OMAP2,3: DSS2: Move clocks from core driver
+ to dss driver
+Date: Wed, 05 Jan 2011 17:35:55 +0200
+Message-ID: <1294241755.14254.142.camel@tubuntu>
 References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
-	 <1294059069-26737-9-git-send-email-svadivu@ti.com>
-	 <1294226823.14254.51.camel@tubuntu>
-	 <AANLkTikCUbyqwyhnqF9UDF2Nc9q6-EJqAaeHfjSkiwxM@mail.gmail.com>
+	 <1294059069-26737-10-git-send-email-svadivu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-da02.ext.nokia.com ([147.243.128.26]:51120 "EHLO
-	mgw-da02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751662Ab1AEO6c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 09:58:32 -0500
-In-Reply-To: <AANLkTikCUbyqwyhnqF9UDF2Nc9q6-EJqAaeHfjSkiwxM@mail.gmail.com>
+Received: from smtp.nokia.com ([147.243.128.24]:27927 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751641Ab1AEPgK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jan 2011 10:36:10 -0500
+In-Reply-To: <1294059069-26737-10-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Semwal, Sumit" <sumit.semwal@ti.com>
-Cc: ext Guruswamy Senthilvadivu <svadivu@ti.com>, paul@pwsan.com, khilman@deeprootsystems.com, a0919096@ti.com, linux-omap@vger.kernel.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: ext Guruswamy Senthilvadivu <svadivu@ti.com>, "ext Semwal, Sumit" <sumit.semwal@ti.com>
+Cc: paul@pwsan.com, khilman@deeprootsystems.com, v-hiremath@ti.com, a0919096@ti.com, linux-omap@vger.kernel.org
 
-On Wed, 2011-01-05 at 18:55 +0530, ext Semwal, Sumit wrote:
-> Hi Tomi,
+On Mon, 2011-01-03 at 18:21 +0530, ext Guruswamy Senthilvadivu wrote:
+> From: Senthilvadivu Guruswamy <svadivu@ti.com>
 > 
-> On Wed, Jan 5, 2011 at 4:57 PM, Tomi Valkeinen <tomi.valkeinen@nokia.com> wrote:
-> > Hi,
-
-> >
-> > Does this even work if the DSS is compiled as a module? I have the
-> > recollection that a module can only have one initcall, and in this case
-> > omapdss would have many.
+> clks are moved to dss platform driver.  clk_get/put APIs use dss device instead
+> of core platform device. So the device name is changed from omap_display to
+> omap_dss in 2420, 2430, 3xxx clock database files. Now teh core driver
+> "omap_display" only takes care of panel registration with the custom bus.
+> dss driver would take care of the clocks needed by DISPC, RFBI, DSI, VENC.
 > 
-> [Sumit]: we haven't tried compiling DSS as module - I guess we will
-> have to create each dss hw IP also as a separate module.
+> TODO:  The clock content would be adapted to omap_hwmod in a seperate series.
+> 
+> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Having them as separate modules makes things quite complex: then you
-need to be able to load only the modules you want (eg. leave dsi.ko
-out). But you'd also need to be able to load the dsi.ko later, after you
-decide to use a dsi based panel.
+<snip>
 
-This would of course be very neat, but I don't believe it's a very easy
-task. For the time being I would keep the DSS as one module, and if
-needed, try dividing it into separate modules later as a separate task.
+> @@ -508,14 +192,7 @@ static int omap_dss_probe(struct platform_device *pdev)
+>  	dss_init_overlay_managers(pdev);
+>  	dss_init_overlays(pdev);
+>  
+> -	r = dss_get_clocks();
+> -	if (r)
+> -		goto err_clocks;
+> -
+> -	dss_clk_enable_all_no_ctx();
+> -
+> -	core.ctx_id = dss_get_ctx_id();
+> -	DSSDBG("initial ctx id %u\n", core.ctx_id);
+> +	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
+>  
+>  #ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
+>  	/* DISPC_CONTROL */
+> @@ -589,7 +266,7 @@ static int omap_dss_probe(struct platform_device *pdev)
+>  			pdata->default_device = dssdev;
+>  	}
+>  
+> -	dss_clk_disable_all();
+> +	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
 
-> About making one common initcall, then I think we would need to have
-> all platform_driver related functions either as global or in one file.
-> is this a better option than having each as a separate module?
+Why are the calls dss_clk_enable_all_no_ctx() and dss_clk_disable_all()
+changed?
 
-I'd say it's better in the sense that a) it would work and b) it would
-be much easier than dividing DSS into multiple modules.
+>  /* DSS HW IP initialisation */
+>  static int omap_dsshw_probe(struct platform_device *pdev)
+>  {
+> -	return 0;
+> +	int r;
+> +
+> +	dss.pdev = pdev;
+> +
+> +	r = dss_get_clocks();
+> +	if (r)
+> +		goto err_clocks;
+> +
+> +	dss_clk_enable_all_no_ctx();
+> +
+> +	dss.ctx_id = dss_get_ctx_id();
+> +	DSSDBG("initial ctx id %u\n", dss.ctx_id);
+> +
+> +	dss_clk_disable_all_no_ctx();
 
-I'd say have the platform driver code in their respective files (dsi.c,
-venc.c etc), and call dsi_init_platform_driver() from the probe
-function. That would keep the code clean if we decide to split the DSS
-into multiple modules.
-
-Also, shouldn't there be platform_driver_unregister() calls somewhere?
-You should definitely also test with DSS as a module =).
+I don't think clock enable/disable are needed here. dss_get_ctx_id()
+should work fine without DSS's clocks.
 
  Tomi
 
