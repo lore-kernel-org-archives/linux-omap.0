@@ -1,136 +1,144 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: OMAP4 panda gets stuck during reboot
-Date: Wed, 5 Jan 2011 19:52:34 +0530
-Message-ID: <7f40d94c30aa807513e7cdbc097a5caf@mail.gmail.com>
-References: <20110105140801.GC2304@legolas.emea.dhcp.ti.com>
- <45ff6d061a3e0bdcaf676671bf447b3b@mail.gmail.com> <20110105141814.GF2304@legolas.emea.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 1/5] OMAP: clockdomain: Infrastructure to put arch specific code
+Date: Wed,  5 Jan 2011 19:52:41 +0530
+Message-ID: <1294237365-10893-2-git-send-email-rnayak@ti.com>
+References: <1294237365-10893-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:55744 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751146Ab1AEOWg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 09:22:36 -0500
-Received: by mail-gy0-f173.google.com with SMTP id 5so6849821gye.32
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 06:22:36 -0800 (PST)
-In-Reply-To: <20110105141814.GF2304@legolas.emea.dhcp.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55822 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751256Ab1AEOW5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jan 2011 09:22:57 -0500
+In-Reply-To: <1294237365-10893-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:balbi@ti.com]
-> Sent: Wednesday, January 05, 2011 7:48 PM
-> To: Santosh Shilimkar
-> Cc: balbi@ti.com; Russell King; Tony Lindgren; Linux ARM Kernel
-> Mailing List; Linux OMAP Mailing List
-> Subject: Re: OMAP4 panda gets stuck during reboot
->
-> Hi,
->
-> On Wed, Jan 05, 2011 at 07:44:31PM +0530, Santosh Shilimkar wrote:
-> > > What could it be ? Any more debugging I could do to help ?
-> > >
-> > This is known and seems to OMAP specific issue. Test patch and
->
-> Doesn't look like omap-specific from patch description. Looks like
-> like
-> CPU1 is turned off and the instruction to flush PMD entry fails.
-> Could
-> it be that all ARM SMPs are affected ?
->
-Thread is broken some how. There were more emails on this one...
-Russell confirmed that he don't see the issue on his A9 Versatile
-platform and no one else complained except OMAP.
+Put infrastructure in place, so arch specific func pointers
+can be hooked up to the platform-independent part of the
+framework.
+This is in preparation of splitting the clockdomain framework into
+platform-independent part (for all omaps) and platform-specific
+parts.
 
-Copy pasting some last updates..
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/clockdomain.c                |   10 +++++-
+ arch/arm/mach-omap2/clockdomain.h                |   37 +++++++++++++++++++++-
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    2 +-
+ arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 +-
+ 4 files changed, 47 insertions(+), 4 deletions(-)
 
-------------------------------------------------
-> -----Original Message-----
-> From: Catalin Marinas [mailto:catalin.marinas@arm.com]
-> Sent: Wednesday, November 10, 2010 7:35 PM
-> To: Russell King - ARM Linux
-> Cc: Shilimkar, Santosh; linux-arm-kernel@lists.infradead.org; Gadiyar,
-> Anand
-> Subject: Re: [PATCH] ARM: Temporary fix for broken arch reboot
->
-> On Wed, 2010-11-10 at 10:06 +0000, Russell King - ARM Linux wrote:
-> > On Wed, Nov 10, 2010 at 11:25:21AM +0530, Shilimkar, Santosh wrote:
-> > > > -----Original Message-----
-> > > > From: Catalin Marinas [mailto:catalin.marinas@arm.com]
-> > > > Sent: Tuesday, November 09, 2010 10:08 PM
-> > > > To: Russell King - ARM Linux
-> > > > Cc: Shilimkar, Santosh; linux-arm-kernel@lists.infradead.org;
-> Gadiyar,
-> > > > Anand
-> > > > Subject: Re: [PATCH] ARM: Temporary fix for broken arch reboot
-> > > >
-> > > > On Tue, 2010-11-09 at 13:18 +0000, Russell King - ARM Linux wrote:
-> > > > > On Tue, Nov 09, 2010 at 06:40:39PM +0530, Shilimkar, Santosh
-> wrote:
-> > > > > > With commit 3d3f78d752bf, reboot seems to broken on ARM
-> > > > > > machines. CPU dies while doing flush_pmd_entry() as part of
-> > > > > > setup_mm_for_reboot()
-> > > >
-> > > > What do you mean by 'dies'? Can you still connect with a debugger
-or
-> it
-> > > > got to some weird state?
-> > > >
-> > > It goes to some weird state. Basically the emulation connection
-dies,
-> > > and debugger gets disconnected.
-> > >
-> > > > > > I know this is not the fix but intention is to report the
-> > > > > > issue and also provide temporary fix till it get fixed
-correctly
-> > > > >
-> > > > > So you're now rebooting with the secondary CPUs still running.
-I
-> guess
-> > > > > that the secondary CPUs end up crashing and don't restart.
-> > > > >
-> > > > > I think more the question is why the CP15 cache clean/flush is
-> hanging
-> > > > > with the other CPUs taken down.  All the other CPUs will be
-doing
-> is
-> > > > > sitting in a loop doing nothing.
-> > > >
-> > > > I can't think of anything. Did the other CPUs print 'stopping'?
-> > > No it doesn't not print anything.
-> >
-> > The processing of the IPI is asynchronous to the CPU which is
-rebooting
-> > continuing - which means that if there is some kind of bus lockup, you
-> > won't get anything from any of the CPUs.
->
-> The printing only happens for SYSTEM_BOOTING or SYSTEM_RUNNING. I
-> suspect in this case we have SYSTEM_RESTARTING and the condition in
-> ipi_cpu_stop() is false, therefore no printing. It may be worth putting
-> some printks outside the 'if' to see whether the secondary CPUs get
-> there.
->
-While doing some experiments on this issue, one interesting
-observation I made. Looks like there is race between two
-Cores which makes system behave badly in reboot path.
-
-Just adding a delay in the ipi_cpu_stop() makes the reboot work
-as well
-
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index 8c19595..f7dadbf 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -526,6 +526,8 @@ static void ipi_cpu_stop(unsigned int cpu)
-                spin_unlock(&stop_lock);
-        }
-
-+       udelay(500);
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index e20b986..3e40184 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -44,6 +44,7 @@ static LIST_HEAD(clkdm_list);
+ /* array of clockdomain deps to be added/removed when clkdm in hwsup mode */
+ static struct clkdm_autodep *autodeps;
+ 
++static struct clkdm_ops *arch_clkdm;
+ 
+ /* Private functions */
+ 
+@@ -292,6 +293,7 @@ static void _disable_hwsup(struct clockdomain *clkdm)
+  * clkdm_init - set up the clockdomain layer
+  * @clkdms: optional pointer to an array of clockdomains to register
+  * @init_autodeps: optional pointer to an array of autodeps to register
++ * @custom_funcs: func pointers for arch specfic implementations
+  *
+  * Set up internal state.  If a pointer to an array of clockdomains
+  * @clkdms was supplied, loop through the list of clockdomains,
+@@ -300,12 +302,18 @@ static void _disable_hwsup(struct clockdomain *clkdm)
+  * @init_autodeps was provided, register those.  No return value.
+  */
+ void clkdm_init(struct clockdomain **clkdms,
+-		struct clkdm_autodep *init_autodeps)
++		struct clkdm_autodep *init_autodeps,
++		struct clkdm_ops *custom_funcs)
+ {
+ 	struct clockdomain **c = NULL;
+ 	struct clockdomain *clkdm;
+ 	struct clkdm_autodep *autodep = NULL;
+ 
++	if (!custom_funcs)
++		WARN(1, "No custom clkdm functions registered\n");
++	else
++		arch_clkdm = custom_funcs;
 +
-        set_cpu_online(cpu, false);
+ 	if (clkdms)
+ 		for (c = clkdms; *c; c++)
+ 			_clkdm_register(*c);
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index de3faa2..346efa2 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -118,7 +118,42 @@ struct clockdomain {
+ 	struct list_head node;
+ };
+ 
+-void clkdm_init(struct clockdomain **clkdms, struct clkdm_autodep *autodeps);
++/**
++ * struct clkdm_ops - Arch specfic function implementations
++ * @clkdm_add_wkdep: Add a wakeup dependency between clk domains
++ * @clkdm_del_wkdep: Delete a wakeup dependency between clk domains
++ * @clkdm_read_wkdep: Read wakeup dependency state between clk domains
++ * @clkdm_clear_all_wkdeps: Remove all wakeup dependencies from the clk domain
++ * @clkdm_add_sleepdep: Add a sleep dependency between clk domains
++ * @clkdm_del_sleepdep: Delete a sleep dependency between clk domains
++ * @clkdm_read_sleepdep: Read sleep dependency state between clk domains
++ * @clkdm_clear_all_sleepdeps: Remove all sleep dependencies from the clk domain
++ * @clkdm_sleep: Force a clockdomain to sleep
++ * @clkdm_wakeup: Force a clockdomain to wakeup
++ * @clkdm_allow_idle: Enable hw supervised idle transitions for clock domain
++ * @clkdm_deny_idle: Disable hw supervised idle transitions for clock domain
++ * @clkdm_clk_enable: Put the clkdm in right state for a clock enable
++ * @clkdm_clk_disable: Put the clkdm in right state for a clock disable
++ */
++struct clkdm_ops {
++	void	(*clkdm_add_wkdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	void	(*clkdm_del_wkdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	int	(*clkdm_read_wkdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	void	(*clkdm_clear_all_wkdeps)(struct clockdomain *clkdm);
++	void	(*clkdm_add_sleepdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	void	(*clkdm_del_sleepdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	int	(*clkdm_read_sleepdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	void	(*clkdm_clear_all_sleepdeps)(struct clockdomain *clkdm);
++	int	(*clkdm_sleep)(struct clockdomain *clkdm);
++	int	(*clkdm_wakeup)(struct clockdomain *clkdm);
++	void	(*clkdm_allow_idle)(struct clockdomain *clkdm);
++	void	(*clkdm_deny_idle)(struct clockdomain *clkdm);
++	int	(*clkdm_clk_enable)(struct clockdomain *clkdm);
++	int	(*clkdm_clk_disable)(struct clockdomain *clkdm);
++};
++
++void clkdm_init(struct clockdomain **clkdms, struct clkdm_autodep *autodeps,
++			struct clkdm_ops *custom_funcs);
+ struct clockdomain *clkdm_lookup(const char *name);
+ 
+ int clkdm_for_each(int (*fn)(struct clockdomain *clkdm, void *user),
+diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+index e4a7133..8cab07a 100644
+--- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
++++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+@@ -856,5 +856,5 @@ static struct clockdomain *clockdomains_omap2[] __initdata = {
+ 
+ void __init omap2_clockdomains_init(void)
+ {
+-	clkdm_init(clockdomains_omap2, clkdm_autodeps);
++	clkdm_init(clockdomains_omap2, clkdm_autodeps, NULL);
+ }
+diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-omap2/clockdomains44xx_data.c
+index 51920fc..f04abc5 100644
+--- a/arch/arm/mach-omap2/clockdomains44xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+@@ -307,5 +307,5 @@ static struct clockdomain *clockdomains_omap44xx[] __initdata = {
+ 
+ void __init omap44xx_clockdomains_init(void)
+ {
+-	clkdm_init(clockdomains_omap44xx, NULL);
++	clkdm_init(clockdomains_omap44xx, NULL, NULL);
+ }
+-- 
+1.7.0.4
 
-        local_fiq_disable();
-
-------------------------------------------------
