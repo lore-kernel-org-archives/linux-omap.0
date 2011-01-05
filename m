@@ -1,73 +1,42 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/4] arm: omap: gpio: don't access irq_desc array directly
-Date: Tue, 04 Jan 2011 16:24:58 -0800
-Message-ID: <87r5cs42p1.fsf@ti.com>
-References: <1294142577-28772-1-git-send-email-balbi@ti.com>
-	<1294142577-28772-2-git-send-email-balbi@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 0/2] OMAP: TWL: sparse fixes
+Date: Wed, 5 Jan 2011 00:25:49 +0000
+Message-ID: <20110105002549.GA1445@n2100.arm.linux.org.uk>
+References: <1294081110-23695-1-git-send-email-nm@ti.com> <20110103223656.GA8414@n2100.arm.linux.org.uk> <4D22503F.9060100@ti.com> <4D238503.6070103@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:45038 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751078Ab1AEAZF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 19:25:05 -0500
-Received: by mail-gx0-f182.google.com with SMTP id 8so6338317gxk.27
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 16:25:03 -0800 (PST)
-In-Reply-To: <1294142577-28772-2-git-send-email-balbi@ti.com> (Felipe Balbi's
-	message of "Tue, 4 Jan 2011 14:02:54 +0200")
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42721 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750919Ab1AEAZ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 19:25:59 -0500
+Content-Disposition: inline
+In-Reply-To: <4D238503.6070103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony <tony@atomide.com>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
 
-Felipe Balbi <balbi@ti.com> writes:
-
-> Instead of accessing the irq_desc array directly
-> we can use irq_to_desc(irq). That will allow us to,
-> if wanted, select SPARSE_IRQ and irq_descs will be
-> added to a radix tree, instead of a array.
+On Tue, Jan 04, 2011 at 02:37:23PM -0600, Nishanth Menon wrote:
+> hmm.. minor nit (with codesourcery 2010.09-50 - 4.5.1):
+> rm arch/arm/mach-omap2/*.o;make C=1 arch/arm/mach-omap2/ 2>Kerr;make C=2  
+> arch/arm/mach-omap2/ 2>Kerr1;diff Kerr Kerr1
+> [..]
+> 1,4d0
+> < arch/arm/mach-omap2/mux.c: In function 'omap_mux_get_by_name':
+> < arch/arm/mach-omap2/mux.c:163:17: warning: 'found_mode' may be used  
+> uninitialized in this function
+> < arch/arm/mach-omap2/clkt_clksel.c: In function 'omap2_clksel_set_parent':
+> < arch/arm/mach-omap2/clkt_clksel.c:100:35: warning: 'max_clkr' may be  
+> used uninitialized in this function
 >
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> Kinda interesting to note that C=2 does'nt list all potential gcc  
+> warnings :( if one wanted a collated list of all warnings, rm .../*.o  
+> helps I guess.
 
-Can you refresh this one against Tony's omap-for-linus branch. The GPIO
-omap_device/hwmod conversion changed things around a bit and this patch
-doesn't apply.
+C=2 only runs sparse - so if you're committing patches to fix sparse
+warnings, that's what you should be interested in.
 
-After that, you can send separately, and I'll queue this one along with
-some other GPIO core fixes for the 2.6.38-rc series after -rc1 comes
-out.
-
-Kevin
-
-> ---
->  arch/arm/plat-omap/gpio.c |   10 +++++++---
->  1 files changed, 7 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index c05c653..c351758 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -905,8 +905,10 @@ static int gpio_irq_type(unsigned irq, unsigned type)
->  	spin_lock_irqsave(&bank->lock, flags);
->  	retval = _set_gpio_triggering(bank, get_gpio_index(gpio), type);
->  	if (retval == 0) {
-> -		irq_desc[irq].status &= ~IRQ_TYPE_SENSE_MASK;
-> -		irq_desc[irq].status |= type;
-> +		struct irq_desc *d = irq_to_desc(irq);
-> +
-> +		d->status &= ~IRQ_TYPE_SENSE_MASK;
-> +		d->status |= type;
->  	}
->  	spin_unlock_irqrestore(&bank->lock, flags);
->  
-> @@ -1925,7 +1927,9 @@ static int __init _omap_gpio_init(void)
->  
->  		for (j = bank->virtual_irq_start;
->  		     j < bank->virtual_irq_start + gpio_count; j++) {
-> -			lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
-> +			struct irq_desc *d = irq_to_desc(j);
-> +
-> +			lockdep_set_class(&d->lock, &gpio_lock_class);
->  			set_irq_chip_data(j, bank);
->  			if (bank_is_mpuio(bank))
->  				set_irq_chip(j, &mpuio_irq_chip);
+I'd suggest that fixing sparse warnings and GCC warnings in a single
+patch is probably not the best thing to do - GCC warnings are less
+subjective than sparse warnings.
