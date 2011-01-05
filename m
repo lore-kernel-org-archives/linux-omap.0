@@ -1,46 +1,60 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH v3 08/17] OMAP2,3: DSS2: Create platform_driver for
- each DSS HW IP
-Date: Wed, 05 Jan 2011 13:27:03 +0200
-Message-ID: <1294226823.14254.51.camel@tubuntu>
-References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
-	 <1294059069-26737-9-git-send-email-svadivu@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v2 5/5] omap2plus: voltage: Trivial linking fix
+ for'EINVAL' undeclared
+Date: Wed, 5 Jan 2011 17:06:09 +0530
+Message-ID: <769ddee220c7dca3239db8f5a73896b3@mail.gmail.com>
+References: <1294225024-21857-1-git-send-email-santosh.shilimkar@ti.com>
+ <1294225024-21857-5-git-send-email-santosh.shilimkar@ti.com> <20110105111945.GA8717@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-da02.ext.nokia.com ([147.243.128.26]:35212 "EHLO
-	mgw-da02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751676Ab1AEL1K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 06:27:10 -0500
-In-Reply-To: <1294059069-26737-9-git-send-email-svadivu@ti.com>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:46585 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751507Ab1AELgM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 06:36:12 -0500
+Received: by mail-yx0-f174.google.com with SMTP id 3so5961965yxt.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 03:36:11 -0800 (PST)
+In-Reply-To: <20110105111945.GA8717@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Guruswamy Senthilvadivu <svadivu@ti.com>
-Cc: paul@pwsan.com, khilman@deeprootsystems.com, v-hiremath@ti.com, a0919096@ti.com, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Nishanth Menon <nm@ti.com>, tony@atomide.com, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi,
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Wednesday, January 05, 2011 4:50 PM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; khilman@ti.com; Nishanth Menon;
+> tony@atomide.com; Kevin Hilman; Thara Gopinath; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [PATCH v2 5/5] omap2plus: voltage: Trivial linking fix
+> for'EINVAL' undeclared
+>
+> On Wed, Jan 05, 2011 at 04:27:04PM +0530, Santosh Shilimkar wrote:
+> > CC      arch/arm/mach-omap2/omap_hwmod_common_data.o
+> > In file included from arch/arm/plat-
+> omap/include/plat/omap_hwmod.h:38,
+> >                  from arch/arm/mach-
+> omap2/omap_hwmod_common_data.c:20:
+> > arch/arm/plat-omap/include/plat/voltage.h: In function
+> 'omap_voltage_late_init':
+> > arch/arm/plat-omap/include/plat/voltage.h:145: error: 'EINVAL'
+> undeclared (first use in this function)
+> > arch/arm/plat-omap/include/plat/voltage.h:145: error: (Each
+> undeclared identifier is reported only once
+> > arch/arm/plat-omap/include/plat/voltage.h:145: error: for each
+> function it appears in.)
+> > make[1]: *** [arch/arm/mach-omap2/omap_hwmod_common_data.o] Error
+> 1
+> > make: *** [arch/arm/mach-omap2] Error 2
+>
+> The correct include for this is linux/errno.h, not linux/err.h - you
+> want the errno definitions, not the IS_ERR/PTR_ERR/ERR_PTR stuff.
 
-On Mon, 2011-01-03 at 18:21 +0530, ext Guruswamy Senthilvadivu wrote:
-> From: Senthilvadivu Guruswamy <svadivu@ti.com>
-> 
-> Hwmod adaptation design requires each of the DSS HW IP to be a platform driver. 
-> Platform driver of dsshw has to be registered before of dispc, rfbi, dsi1,
-> venc and omapdisplay driver should be after all the HW IPs. Sequence it with
-> arch_initcall and device_initcall_sync.
 
-Do you know if there some extra meaning for the _sync initcalls? The
-name would imply something else that just init ordering.
-
-I don't like using multiple initcall levels in the same driver. It's
-already quite complicated with omapdss, omapfb and the panel drivers.
-What were the dependencies here? Could we have just one initcall which
-would do the registration of platform drivers in the correct order?
-
-Does this even work if the DSS is compiled as a module? I have the
-recollection that a module can only have one initcall, and in this case
-omapdss would have many.
-
- Tomi
+In this series, newly added stub of 'omap_voltage_domain_lookup'
+in [PATCH v2 4/5] make use of 'ERR_PTR' which needs linux/err.h.
 
 
+Regards
+Santosh
