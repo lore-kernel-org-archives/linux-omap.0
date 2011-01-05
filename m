@@ -1,64 +1,56 @@
 From: "Gopinath, Thara" <thara@ti.com>
 Subject: RE: [PATCH] OMAP3: PM: Adding T2 enabling of smartreflex
-Date: Wed, 5 Jan 2011 16:16:32 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F0E0@dbde02.ent.ti.com>
+Date: Wed, 5 Jan 2011 16:21:18 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F0E6@dbde02.ent.ti.com>
 References: <1293782878-9756-1-git-send-email-thara@ti.com>
- <4D21F09D.3040007@ti.com>
+ <87ipy45lr3.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48438 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751507Ab1AEKqn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 05:46:43 -0500
-In-Reply-To: <4D21F09D.3040007@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49545 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751630Ab1AEKv1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 05:51:27 -0500
+In-Reply-To: <87ipy45lr3.fsf@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
 
 
 >>-----Original Message-----
->>From: Menon, Nishanth
->>Sent: Monday, January 03, 2011 9:22 PM
+>>From: Hilman, Kevin
+>>Sent: Wednesday, January 05, 2011 4:18 AM
 >>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com;
->>paul@pwsan.com; Cousson, Benoit; Sripathy, Vishwanath; Sawant, Anand
+>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
+>>Vishwanath; Sawant, Anand; Menon, Nishanth
 >>Subject: Re: [PATCH] OMAP3: PM: Adding T2 enabling of smartreflex
 >>
->>Thara Gopinath had written, on 12/31/2010 02:07 AM, the following:
+>>Thara Gopinath <thara@ti.com> writes:
+>>
 >>> The smartreflex bit on twl4030 needs to be enabled by default
 >>irrespective
 >>> of whether smartreflex module is enabled on the OMAP side or not.
 >>> This is because without this bit enabled the voltage scaling through
 >>> vp forceupdate does not function properly on OMAP3.
->>s/does not function properly/ does not function ;)
->>SR I2C is used for forceupdate/vc bypass modes - so neither will
->>function without switching t2 mode.
 >>
->>T2 voltages could be set in quiet a few methods:
->>a) Synchronized Scaling Hardware Strategy (ENABLE_VMODE = 1) (for OMAP2
->>and I had worked on one OMAP3430 product which used this as well) using
->>VDD1_VFLOOR and VDD1_VROOF
->>b) Direct Strategy Software Scaling Mode (ENABLE_VMODE = 0) (Smart
->>reflex disabled) - VDD1_VSEL
->>c) using smart reflex - as done below - allows OMAP with smart reflex
->>hardware wired to the twl to use that functionality.
+>>Based on Nishanth's comments, the abofe statements need a little more
+>>justification.
 >>
->>Blindly setting it to smartreflex mode is not correct IMHO. It might
->>work on SDP and few TI and non-TI platforms, but not all.
+>>What is probably needed is some default setting (possibly this one) but
+>>with the possibility of board code to disable this if needed.
 
-Yes you are right. The SR I2C needs to be enabled for vp force update
-and vc bypass method of voltage scaling as well as for smartreflex
-feature. Are you telling that there are platforms out there using OMAP3
-and T2 and still using VMODE or VSEL. As far as I am aware our h/w folks themselves do not recommend these methods. 
+Yes. If we need to support the other means of voltage scaling, we definitely need to override this bit from board files. I am not so convinced that we need to support them though. IMHO, this patch can still go in with change in the comment and if needed, there can be another patch with an API in omap_twl.c allowing overriding/ enabling-disabling of sr - i2c bit on
+the T2 side.
 
 Regards
 Thara
 
+>>
+>>Kevin
 >>
 >>>
 >>> Signed-off-by: Thara Gopinath <thara@ti.com>
@@ -111,9 +103,3 @@ Thara
 >>> +
 >>>  	voltdm = omap_voltage_domain_lookup("mpu");
 >>>  	omap_voltage_register_pmic(voltdm, &omap3_mpu_volt_info);
->>>
->>
->>
->>--
->>Regards,
->>Nishanth Menon
