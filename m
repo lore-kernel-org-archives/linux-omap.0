@@ -1,59 +1,96 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 1/1] arm: omap: gpio: define .disable callback for gpio
- irq chip
-Date: Wed, 5 Jan 2011 21:24:25 +0200
-Message-ID: <20110105192425.GA24729@besouro.research.nokia.com>
-References: <1294250283-18182-1-git-send-email-eduardo.valentin@nokia.com>
- <20110105181918.GB8717@n2100.arm.linux.org.uk>
-Reply-To: eduardo.valentin@nokia.com
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: Re: [PATCH] staging: tidspbridge - configure full L1 MMU range
+Date: Wed, 5 Jan 2011 13:45:12 -0600
+Message-ID: <AANLkTi=g+Z1wGHYGUZFRZFPTyYVadQiHm7Ex3ET0PcVz@mail.gmail.com>
+References: <1294208410-4772-1-git-send-email-fernando.lugo@ti.com>
+	<AANLkTinNhBwjFPXwWFWUVfccUzJFN+6NDgxiuKNa_9N7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:43760 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751523Ab1AET3u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Jan 2011 14:29:50 -0500
-Content-Disposition: inline
-In-Reply-To: <20110105181918.GB8717@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinNhBwjFPXwWFWUVfccUzJFN+6NDgxiuKNa_9N7@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: gregkh@suse.de, rene.sapiens@ti.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-Hello Russell,
+On Wed, Jan 5, 2011 at 12:46 PM, Ramirez Luna, Omar <omar.ramirez@ti.co=
+m> wrote:
+> Hi,
+>
+> On Wed, Jan 5, 2011 at 12:20 AM, Fernando Guzman Lugo
+> <fernando.lugo@ti.com> wrote:
+>> Otherwise a virtual address beyond of the L1 size is used,
+>> the MMU hardware will look into a memory that does not belong to
+>> L1 translation tables. IOW; the MMU would allow to access any
+>> memory, configured or not.
+>>
+>
+> How about:
+>
+> IVA MMU can manage up to 4GB of address space through its page tables=
+,
+> given that it's L1 is divided into 1MB sections it requires at least
+> 16KB for its table which represents 4096 entries of 32 bits each.
+>
+> Previously, only 1GB was being handled by setting the page table size
+> to 4KB, any virtual address beyond of the L1 size used, would fall
+> into memory that does not belong to L1 translation tables, leading to
+> unpredictable results.
+>
+> So, set the L1 table size to cover the entire MMU range (4GB) whether
+> is meant to be used or not.
 
-On Wed, Jan 05, 2011 at 06:19:18PM +0000, Russell King wrote:
-> On Wed, Jan 05, 2011 at 07:58:03PM +0200, Eduardo Valentin wrote:
-> > Currently, if one calls disable_irq(gpio_irq), the irq
-> > won't get disabled.
-> > 
-> > This is happening because the omap gpio code defines only
-> > a .mask callback. And the default_disable function is just
-> > a stub. The result is that, when someone calls disable_irq
-> > for an irq in a gpio line, it will be kept enabled.
-> > 
-> > This patch solves this issue by setting the .disable
-> > callback to point to the same .mask callback.
-> 
-> Amd this is a problem because?
+looks good to me.
 
-errr.. because the interrupt is enabled when it was supposed to be disabled?
+>
+>> Reported-by: Felipe Contreras <felipe.contreras@nokia.com>
+>> Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
+>> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+>> ---
+>> =A0drivers/staging/tidspbridge/core/tiomap3430.c | =A0 =A06 ++----
+>> =A01 files changed, 2 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers=
+/staging/tidspbridge/core/tiomap3430.c
+>> index 1be081f..ec96d1e 100644
+>> --- a/drivers/staging/tidspbridge/core/tiomap3430.c
+>> +++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+>> @@ -70,6 +70,7 @@
+>> =A0#define MMU_LARGE_PAGE_MASK =A0 =A0 =A00xFFFF0000
+>> =A0#define MMU_SMALL_PAGE_MASK =A0 =A0 =A00xFFFFF000
+>> =A0#define OMAP3_IVA2_BOOTADDR_MASK 0xFFFFFC00
+>> +#define MMU_L1_SIZE =A0 =A0 =A0 =A0 =A0 =A0 =A00x4000
+>> =A0#define PAGES_II_LVL_TABLE =A0 512
+>> =A0#define PHYS_TO_PAGE(phys) =A0 =A0 =A0pfn_to_page((phys) >> PAGE_=
+SHIFT)
+>>
+>> @@ -786,10 +787,7 @@ static int bridge_dev_create(struct bridge_dev_=
+context
+>>
+>> =A0 =A0 =A0 =A0pt_attrs =3D kzalloc(sizeof(struct pg_table_attrs), G=
+=46P_KERNEL);
+>> =A0 =A0 =A0 =A0if (pt_attrs !=3D NULL) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Assuming that we use only DSP's mem=
+ory map
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* until 0x4000:0000 , we would need=
+ only 1024
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* L1 enties i.e L1 size =3D 4K */
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pt_attrs->l1_size =3D 0x1000;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pt_attrs->l1_size =3D MMU_L1_SIZE;
+>
+> How about using SZ_16K instead, struct member name already specifies
+> it is L1 size, is the new define needed?
 
-> 
-> The way this works is that although it isn't disabled at that point,
-> if it never triggers, then everything remains happy.  However, if it
-> does trigger, the genirq code will then mask the interrupt and won't
-> call the handler.
+Ok, maybe a comment to state why 16K is used should be good.
 
-Right.. I didn't see from this point. I will check how that gets unmasked.
-But even so, if I understood correctly what you described, it would still
-open a time window which the system would see at least 1 interrupt during
-the time it was not suppose to. And that can wakeup a system which  is in
-deep sleep mode, either via dynamic idle or static suspend.
-
-It is unlikely, I know. But it can still happen. And can be avoided.
+I will make the changes.
 
 Regards,
+=46ernando.
 
--- 
-Eduardo Valentin
+>
+> Regards,
+>
+> Omar
+>
