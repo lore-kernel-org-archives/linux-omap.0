@@ -1,36 +1,65 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] OMAP3: PM: Adding T2 enabling of smartreflex
-Date: Wed, 05 Jan 2011 07:37:22 -0600
-Message-ID: <4D247412.5070008@ti.com>
-References: <1293782878-9756-1-git-send-email-thara@ti.com> <4D21F09D.3040007@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F0E0@dbde02.ent.ti.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH] arm: omap4: panda: remove usb_nop_xceiv_register
+Date: Wed, 5 Jan 2011 21:40:19 +0800
+Message-ID: <AANLkTik3Mw3fTZ6TPv4aiiWet-dARVQOLtUv_DAMqoNo@mail.gmail.com>
+References: <1294148397-26582-1-git-send-email-tom.leiming@gmail.com>
+	<87ipy442i7.fsf@ti.com>
+	<20110105065643.GE2458@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:42519 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751257Ab1AENhe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 08:37:34 -0500
-Received: by gyg4 with SMTP id 4so5938459gyg.8
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 05:37:33 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F0E0@dbde02.ent.ti.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:56656 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751298Ab1AENkV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 08:40:21 -0500
+Received: by wyb28 with SMTP id 28so15344621wyb.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 05:40:20 -0800 (PST)
+In-Reply-To: <20110105065643.GE2458@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: balbi@ti.com
+Cc: Kevin Hilman <khilman@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org
 
-Gopinath, Thara wrote, on 01/05/2011 04:46 AM:
-[..]
-> Yes you are right. The SR I2C needs to be enabled for vp force update
-> and vc bypass method of voltage scaling as well as for smartreflex
-> feature. Are you telling that there are platforms out there using OMAP3
-> and T2 and still using VMODE or VSEL. As far as I am aware our h/w folks themselves do not recommend these methods.
+Hi,
 
-;) not every one likes to follow recommendations rt? but yeah, there are 
-folks who use vmode for 3430, vsel is possible even for 3630 - using 
-class2 implementation if desired or forced to if the SR lines are not 
-hooked up on the board.
+2011/1/5 Felipe Balbi <balbi@ti.com>:
+> On Tue, Jan 04, 2011 at 04:29:04PM -0800, Kevin Hilman wrote:
+>> tom.leiming@gmail.com writes:
+>>
+>> > From: Ming Lei <tom.leiming@gmail.com>
+>> >
+>> > Panda uses twl6030 otg phy instead of internal phy,
+>
+> This is wrong, it uses both. TWL6030 handles VBUS and ID pin
+> and the internal PHY handles Data Lines. I know it's a bit
+> crazy but this kind of design is becoming more and more usual
+> on different boards.
 
+I see now after your explanation.
+
+>
+> What truly needs to happen is that we allow for multiple PHYs
+> to be added to otg_transceiver (BTW, that's a mis-naming as
+> transceiver aren't only for OTG use-cases).
+>
+> Anyway, change this phrasing.
+>
+>> > so removes usb_nop_xceiv_register to make musb working.
+>> >
+>> > Cc: Felipe Balbi <balbi@ti.com>
+>> > Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+>
+> Considering you change the commit log above:
+>
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
+>
+> This is ok, but can only go after 2.6.38 merge window. There are patches
+> to add support for internal PHY. Ideally we would actually register both
+> PHYs and it would work. They would have different capabilities, though.
+
+The current otg only supports one global transceiver, so we have to remove
+the nop on Panda.
+
+thanks,
 -- 
-Regards,
-Nishanth Menon
+Lei Ming
