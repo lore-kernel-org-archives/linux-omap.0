@@ -1,72 +1,72 @@
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Subject: Re: [PATCH v3 06/17] OMAP2,3 DSS2 Move DSS driver register from board
- file to devices.c
-Date: Wed, 5 Jan 2011 16:25:46 +0530
-Message-ID: <AANLkTik4PW=XCk3s7Y7AdmRBA+cezts3uD5AkLYkOkuR@mail.gmail.com>
-References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
- <1294059069-26737-7-git-send-email-svadivu@ti.com> <1294224676.14254.40.camel@tubuntu>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 2/3] perf: add OMAP support for the new power events
+Date: Wed, 5 Jan 2011 11:56:08 +0100
+Message-ID: <AANLkTimHQ0jPjotGTS+V6bhuNBh_Vv_VHGKOBy1_63TK@mail.gmail.com>
+References: <1294136263-24020-1-git-send-email-j-pihet@ti.com>
+	<1294136263-24020-3-git-send-email-j-pihet@ti.com>
+	<4D23610C.1060009@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:60582 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751630Ab1AEK4H convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Jan 2011 05:56:07 -0500
-Received: by qwg5 with SMTP id 5so14573838qwg.34
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 02:56:06 -0800 (PST)
-In-Reply-To: <1294224676.14254.40.camel@tubuntu>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4D23610C.1060009@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: mingo@elte.hu, linux-kernel@vger.kernel.org, trenn@suse.de, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, rjw@sisk.pl, Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: ext Guruswamy Senthilvadivu <svadivu@ti.com>, paul@pwsan.com, khilman@deeprootsystems.com, a0919096@ti.com, linux-omap@vger.kernel.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-Hi Tomi,
-
-On Wed, Jan 5, 2011 at 4:21 PM, Tomi Valkeinen <tomi.valkeinen@nokia.co=
-m> wrote:
-> Hi,
->
-> On Mon, 2011-01-03 at 18:20 +0530, ext Guruswamy Senthilvadivu wrote:
->> From: Senthilvadivu Guruswamy <svadivu@ti.com>
+On Tue, Jan 4, 2011 at 7:03 PM, Nishanth Menon <nm@ti.com> wrote:
+> jean.pihet@newoldbits.com had written, on 01/04/2011 04:17 AM, the
+> following:
+> [..]
 >>
->> omap_display_init function is introduced in devices.c to do the DSS =
-driver
->> registration. =A0So replace platform_device_register or platform_add=
-_devices of
->> DSS with omap_display_init().
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34=
+xx.c
+>> index 0ec8a04..0ee0b0e 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -29,6 +29,7 @@
+>> =A0#include <linux/delay.h>
+>> =A0#include <linux/slab.h>
+>> =A0#include <linux/console.h>
+>> +#include <trace/events/power.h>
+>> =A0#include <plat/sram.h>
+>> =A0#include <plat/clockdomain.h>
+>> @@ -506,8 +507,14 @@ static void omap3_pm_idle(void)
+>> =A0 =A0 =A0 =A0if (omap_irq_pending() || need_resched())
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out;
+>> =A0+ =A0 =A0 =A0trace_power_start(POWER_CSTATE, 1, smp_processor_id(=
+));
+>> + =A0 =A0 =A0 trace_cpu_idle(1, smp_processor_id());
+>> +
+>> =A0 =A0 =A0 =A0omap_sram_idle();
+>> =A0+ =A0 =A0 =A0trace_power_end(smp_processor_id());
+>> + =A0 =A0 =A0 trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
 >
-> This and two previous patches are missing a color in the subject.
->
-> I'm also ok with Kevin's suggestion to put display code in separate
-> file. There's other stuff to add there also at some point, like chang=
-ing
-> pinmuxing.
->
-> Also, I think it would be cleaner to first add the new code to device=
-s.c
-> (or display.c) and display.h in one patch, then in another patch chan=
-ge
-> the board files to use this new display init.
-Since Senthil is going to be out for some time, I am in the process of
-updating this patch-set based on Kevin's, Tony's and your comment. I
-should be able to give you the updated set pretty soon.
+> Dumb question: it just tells me which C state was attempted - not if
+> actually succeeded in hitting it rt? Does'nt this give us a false dat=
+a?
+Yes this tracks the idle requests only. The actual hit state might be
+different depending on various factors: HW state, enabled clocks,
+power domains dependencies etc.
+Debugging the actual PM hit state requires other tools, which could
+use the trace API. There is definitely more to come on that topic.
 
-Best regards,
-~Sumit.
 >
-> =A0Tomi
+> [..]
+>>
+>> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+>> index fc62fb5..7cbb09b 100644
+>> --- a/arch/arm/plat-omap/clock.c
+>> +++ b/arch/arm/plat-omap/clock.c
 >
+> (from an offline discussion on a related topic): Would it also be nic=
+e to
+> hook on mach-omap2/clock.c points as well to hook on indirect changes=
+?
+> [..]
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Regards,
+> Nishanth Menon
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
