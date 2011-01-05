@@ -1,84 +1,69 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/2] OMAP: DMA: clear interrupt status correctly
-Date: Wed, 05 Jan 2011 09:27:27 -0800
-Message-ID: <87mxnfz2f4.fsf@ti.com>
-References: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com>
-	<20101130132355.13286.77389.sendpatchset@ahunter-work.research.nokia.com>
-	<541b3a50479779f3e814aa93d506cbdd@mail.gmail.com>
-	<20101221202914.GK5829@atomide.com> <4D2440E0.7040008@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sumit Semwal <sumit.semwal@ti.com>
+Subject: [PATCH 0/3] OMAP2PLUS: DSS: Generalize clock names
+Date: Wed,  5 Jan 2011 23:07:41 +0530
+Message-ID: <1294249064-11491-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:47211 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751369Ab1AER1e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 12:27:34 -0500
-Received: by gxk20 with SMTP id 20so6636935gxk.6
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 09:27:33 -0800 (PST)
-In-Reply-To: <4D2440E0.7040008@nokia.com> (Adrian Hunter's message of "Wed, 05
-	Jan 2011 11:58:56 +0200")
+Received: from bear.ext.ti.com ([192.94.94.41]:46124 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752130Ab1AERiF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jan 2011 12:38:05 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Manjunath Kondaiah G <manjugk@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@deeprootsystems.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
+Cc: Sumit Semwal <sumit.semwal@ti.com>
 
-Adrian Hunter <adrian.hunter@nokia.com> writes:
+This patch series changes dss clock names to generic role names for all DSS
+clocks across clk APIs, hwmod data, dss driver. 
 
-> From fffa19df17d73c1ed2e8c65c0b6604ee1dddff84 Mon Sep 17 00:00:00 2001
-> From: Adrian Hunter <adrian.hunter@nokia.com>
-> Date: Wed, 24 Nov 2010 13:23:21 +0200
-> Subject: [PATCH] OMAP: DMA: clear interrupt status correctly
->
-> When clearing the DMA channel, clear all status bits.
->
-> When handling a DMA interrupt, clear only the interrupt
-> status bits that have been read and are passed to the
-> channel's interrupt handler, not every status bit.
->
-> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+It also changes the enums used within DSS framework to refer to the clocks
+to make them generic and related to functionality than value.
+eg.	DSS_CLK_TVFCK replaces DSS_CLK_54M,
+	dss_tv_fck replaces dss_54m_fck
 
-Looks like a fix that should go into 2.6.38-rc2.  Can you repost and Cc
-linux-arm-kernel as well?
+This serves as the base for common hwmod DSS opt-clock roles across all OMAP
+platforms, and increases extendability.
 
-Thanks,
+===
+Note: This is interim change set to enable DSS on OMAP2/3/4 platforms; there is an
+ongoing design discussion for de-centralizing the DSS clock framework handling
+in favour of using pm_runtime APIs directly in each DSS IP.
 
-Kevin
+Once a consensus is reached on that, much of this code will become cleaner, as
+each DSS IP block handles its own clocks using the common clocks framework.
 
-> ---
->  arch/arm/plat-omap/dma.c |    7 +++----
->  1 files changed, 3 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index c4b2b47..8536308 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -53,7 +53,7 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
->  #endif
->  #define OMAP_DMA_ACTIVE			0x01
-> -#define OMAP2_DMA_CSR_CLEAR_MASK	0xffe
-> +#define OMAP2_DMA_CSR_CLEAR_MASK	0xffffffff
->  #define OMAP_FUNC_MUX_ARM_BASE		(0xfffe1000 + 0xec)
->  @@ -1873,7 +1873,7 @@ static int omap2_dma_handle_ch(int ch)
->  		printk(KERN_INFO "DMA misaligned error with device %d\n",
->  		       dma_chan[ch].dev_id);
->  -	p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, ch);
-> +	p->dma_write(status, CSR, ch);
->  	p->dma_write(1 << ch, IRQSTATUS_L0, ch);
->  	/* read back the register to flush the write */
->  	p->dma_read(IRQSTATUS_L0, ch);
-> @@ -1893,10 +1893,9 @@ static int omap2_dma_handle_ch(int ch)
->  			OMAP_DMA_CHAIN_INCQHEAD(chain_id);
->  		status = p->dma_read(CSR, ch);
-> +		p->dma_write(status, CSR, ch);
->  	}
->  -	p->dma_write(status, CSR, ch);
-> -
->  	if (likely(dma_chan[ch].callback != NULL))
->  		dma_chan[ch].callback(ch, status, dma_chan[ch].data);
->  -- 
-> 1.7.0.4
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Patch Base:
+===========
+url = git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+branch "master"
+Commit id: fa3b4e23ec20cfc944db7cc2b30b0d82c20e4472
+Description:  cbus: Fix retu_rtc_do_reset
++
+hwmod patches under discussion: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41534.html
+
+Archit Taneja (2):
+  OMAP2PLUS: DSS2: Generalize naming of PRCM related clock enums in DSS
+    driver
+  OMAP2PLUS: DSS2: Generalize external clock names in struct dss of
+    dss.c
+
+Sumit Semwal (1):
+  OMAP2PLUS: opt-clocks: align dss clock roles and names
+
+ arch/arm/mach-omap2/clock2420_data.c       |   10 +-
+ arch/arm/mach-omap2/clock2430_data.c       |   10 +-
+ arch/arm/mach-omap2/clock3xxx_data.c       |   22 +++-
+ arch/arm/mach-omap2/clock44xx_data.c       |    7 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
+ drivers/video/omap2/dss/core.c             |    4 +-
+ drivers/video/omap2/dss/dispc.c            |   10 +-
+ drivers/video/omap2/dss/dpi.c              |   16 ++--
+ drivers/video/omap2/dss/dsi.c              |   18 ++--
+ drivers/video/omap2/dss/dss.c              |  170 ++++++++++++++--------------
+ drivers/video/omap2/dss/dss.h              |   10 +-
+ drivers/video/omap2/dss/manager.c          |    4 +-
+ drivers/video/omap2/dss/overlay.c          |    4 +-
+ drivers/video/omap2/dss/rfbi.c             |   10 +-
+ drivers/video/omap2/dss/sdi.c              |    8 +-
+ drivers/video/omap2/dss/venc.c             |    8 +-
+ 16 files changed, 167 insertions(+), 146 deletions(-)
+
