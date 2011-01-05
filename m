@@ -1,87 +1,35 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH v3 09/17] OMAP2,3: DSS2: Move clocks from core driver
- to dss driver
-Date: Wed, 05 Jan 2011 17:35:55 +0200
-Message-ID: <1294241755.14254.142.camel@tubuntu>
-References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
-	 <1294059069-26737-10-git-send-email-svadivu@ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: OMAP DVFS rebase
+Date: Wed, 5 Jan 2011 21:13:53 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F204@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:27927 "EHLO mgw-da01.nokia.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37742 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751641Ab1AEPgK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Jan 2011 10:36:10 -0500
-In-Reply-To: <1294059069-26737-10-git-send-email-svadivu@ti.com>
+	id S1751994Ab1AEPn5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 10:43:57 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p05FhsEZ013477
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 5 Jan 2011 09:43:56 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p05Fhsr9006481
+	for <linux-omap@vger.kernel.org>; Wed, 5 Jan 2011 21:13:54 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Guruswamy Senthilvadivu <svadivu@ti.com>, "ext Semwal, Sumit" <sumit.semwal@ti.com>
-Cc: paul@pwsan.com, khilman@deeprootsystems.com, v-hiremath@ti.com, a0919096@ti.com, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2011-01-03 at 18:21 +0530, ext Guruswamy Senthilvadivu wrote:
-> From: Senthilvadivu Guruswamy <svadivu@ti.com>
-> 
-> clks are moved to dss platform driver.  clk_get/put APIs use dss device instead
-> of core platform device. So the device name is changed from omap_display to
-> omap_dss in 2420, 2430, 3xxx clock database files. Now teh core driver
-> "omap_display" only takes care of panel registration with the custom bus.
-> dss driver would take care of the clocks needed by DISPC, RFBI, DSI, VENC.
-> 
-> TODO:  The clock content would be adapted to omap_hwmod in a seperate series.
-> 
-> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+Hello All,
 
-<snip>
+I have rebased the available DVFS code for OMAP tree
+against LO master which contains the latest OMAP voltage
+layer and smartreflex changes and hosted it at
+	http://dev.omapzoom.org/?p=thara/omap-dvfs.git;a=shortlog;h=refs/heads/pm-dvfs
 
-> @@ -508,14 +192,7 @@ static int omap_dss_probe(struct platform_device *pdev)
->  	dss_init_overlay_managers(pdev);
->  	dss_init_overlays(pdev);
->  
-> -	r = dss_get_clocks();
-> -	if (r)
-> -		goto err_clocks;
-> -
-> -	dss_clk_enable_all_no_ctx();
-> -
-> -	core.ctx_id = dss_get_ctx_id();
-> -	DSSDBG("initial ctx id %u\n", core.ctx_id);
-> +	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
->  
->  #ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
->  	/* DISPC_CONTROL */
-> @@ -589,7 +266,7 @@ static int omap_dss_probe(struct platform_device *pdev)
->  			pdata->default_device = dssdev;
->  	}
->  
-> -	dss_clk_disable_all();
-> +	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
+	head - pm-dvfs
 
-Why are the calls dss_clk_enable_all_no_ctx() and dss_clk_disable_all()
-changed?
-
->  /* DSS HW IP initialisation */
->  static int omap_dsshw_probe(struct platform_device *pdev)
->  {
-> -	return 0;
-> +	int r;
-> +
-> +	dss.pdev = pdev;
-> +
-> +	r = dss_get_clocks();
-> +	if (r)
-> +		goto err_clocks;
-> +
-> +	dss_clk_enable_all_no_ctx();
-> +
-> +	dss.ctx_id = dss_get_ctx_id();
-> +	DSSDBG("initial ctx id %u\n", dss.ctx_id);
-> +
-> +	dss_clk_disable_all_no_ctx();
-
-I don't think clock enable/disable are needed here. dss_get_ctx_id()
-should work fine without DSS's clocks.
-
- Tomi
-
-
+Regards
+Thara	
