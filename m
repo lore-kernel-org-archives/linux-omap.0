@@ -1,76 +1,128 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/1] arm: omap: gpio: define .disable callback for gpio irq chip
-Date: Wed, 05 Jan 2011 15:22:51 -0800
-Message-ID: <87aajfvstw.fsf@ti.com>
-References: <1294250283-18182-1-git-send-email-eduardo.valentin@nokia.com>
-	<20110105181918.GB8717@n2100.arm.linux.org.uk>
-	<20110105192425.GA24729@besouro.research.nokia.com>
+Subject: Re: [PATCH 2/2] OMAP3: beagle xm: enable upto 800MHz OPP
+Date: Wed, 05 Jan 2011 15:28:18 -0800
+Message-ID: <874o9nvskt.fsf@ti.com>
+References: <1294260576-20237-1-git-send-email-nm@ti.com>
+	<1294260576-20237-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:45803 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751392Ab1AEXXB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 18:23:01 -0500
-Received: by mail-yw0-f53.google.com with SMTP id 6so9476206ywa.40
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 15:22:55 -0800 (PST)
-In-Reply-To: <20110105192425.GA24729@besouro.research.nokia.com> (Eduardo
-	Valentin's message of "Wed, 5 Jan 2011 21:24:25 +0200")
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:49608 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752338Ab1AEX2W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 18:28:22 -0500
+Received: by mail-pz0-f43.google.com with SMTP id 28so3948683pzk.2
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 15:28:21 -0800 (PST)
+In-Reply-To: <1294260576-20237-3-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Wed, 5 Jan 2011 14:49:36 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: eduardo.valentin@nokia.com
-Cc: ext Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Tony <tony@atomide.com>, Koen Kooi <koen@beagleboard.org>
 
-Eduardo Valentin <eduardo.valentin@nokia.com> writes:
+Nishanth Menon <nm@ti.com> writes:
 
-> Hello Russell,
->
-> On Wed, Jan 05, 2011 at 06:19:18PM +0000, Russell King wrote:
->> On Wed, Jan 05, 2011 at 07:58:03PM +0200, Eduardo Valentin wrote:
->> > Currently, if one calls disable_irq(gpio_irq), the irq
->> > won't get disabled.
->> > 
->> > This is happening because the omap gpio code defines only
->> > a .mask callback. And the default_disable function is just
->> > a stub. The result is that, when someone calls disable_irq
->> > for an irq in a gpio line, it will be kept enabled.
->> > 
->> > This patch solves this issue by setting the .disable
->> > callback to point to the same .mask callback.
->> 
->> Amd this is a problem because?
->
-> errr.. because the interrupt is enabled when it was supposed to be disabled?
->
+> Beagle XM uses 3730 and the board design allows enabling 800MHz and 1GHz
+> OPPs. However, We need Smart reflex class 1.5 and ABB to enable 1GHz safely.
+> For the moment, we tweak the default table to allow for 800Mhz OPP usage.
 
-As Russell pointed out, it's not actually "supposed" to be.
+Isn't this common to any board using 3730 (or 3630?)
 
-With lazy disable, what disable_irq() does is prevent the *handler* from
-ever being called.  If another interrupt arrives, it will be caught by
-the genirq core, marked as IRQ_PENDING and then masked.  This "don't
-disable unless we really have to" is the desired behavior of the lazy
-disable feature.
-
->> 
->> The way this works is that although it isn't disabled at that point,
->> if it never triggers, then everything remains happy.  However, if it
->> does trigger, the genirq code will then mask the interrupt and won't
->> call the handler.
->
-> Right.. I didn't see from this point. I will check how that gets unmasked.
-> But even so, if I understood correctly what you described, it would still
-> open a time window which the system would see at least 1 interrupt during
-> the time it was not suppose to. And that can wakeup a system which  is in
-> deep sleep mode, either via dynamic idle or static suspend.
->
-> It is unlikely, I know. But it can still happen. And can be avoided.
-
-If the GPIO is configured as a wakeup source, then wouldn't you want
-activity on that GPIO to wake up the system?
-
-If you don't want wakeups on that GPIO, then the driver should probably
-be using disable_irq_wake().
+IOW, what is Beagle specific about this?
 
 Kevin
 
-
+> Reported-by: Koen Kooi <koen@beagleboard.org>
+> Tested-by: Koen Kooi <koen@beagleboard.org>
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3beagle.c |   50 +++++++++++++++++++++++++++++++
+>  1 files changed, 50 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 6c12760..0b99b80 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/gpio.h>
+>  #include <linux/input.h>
+>  #include <linux/gpio_keys.h>
+> +#include <linux/opp.h>
+>  
+>  #include <linux/mtd/mtd.h>
+>  #include <linux/mtd/partitions.h>
+> @@ -44,10 +45,12 @@
+>  #include <plat/gpmc.h>
+>  #include <plat/nand.h>
+>  #include <plat/usb.h>
+> +#include <plat/omap_device.h>
+>  
+>  #include "mux.h"
+>  #include "hsmmc.h"
+>  #include "timer-gp.h"
+> +#include "pm.h"
+>  
+>  #define NAND_BLOCK_SIZE		SZ_128K
+>  
+> @@ -556,6 +559,52 @@ static struct omap_musb_board_data musb_board_data = {
+>  	.power			= 100,
+>  };
+>  
+> +static void __init beagle_opp_init(void)
+> +{
+> +	int r = 0;
+> +
+> +	/* Initialize the omap3 opp table */
+> +	if (omap3_opp_init()) {
+> +		pr_err("%s: opp default init failed\n", __func__);
+> +		return;
+> +	}
+> +
+> +	/* Custom OPP enabled for XM */
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> +		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
+> +		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
+> +		struct device *dev;
+> +
+> +		if (!mh || !dh) {
+> +			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
+> +				__func__, mh, dh);
+> +			r = -EINVAL;
+> +		} else {
+> +			/* Enable MPU 1GHz and lower opps */
+> +			dev = &mh->od->pdev.dev;
+> +			r = opp_enable(dev, 800000000);
+> +			/* TODO: MPU 1GHz needs SR and ABB */
+> +
+> +			/* Enable IVA 800MHz and lower opps */
+> +			dev = &dh->od->pdev.dev;
+> +			r |= opp_enable(dev, 660000000);
+> +			/* TODO: DSP 800MHz needs SR and ABB */
+> +		}
+> +		if (r) {
+> +			pr_err("%s: failed to enable higher opp %d\n",
+> +				__func__, r);
+> +			/*
+> +			 * Cleanup - disable the higher freqs - we dont care
+> +			 * about the results
+> +			 */
+> +			dev = &mh->od->pdev.dev;
+> +			opp_disable(dev, 800000000);
+> +			dev = &dh->od->pdev.dev;
+> +			opp_disable(dev, 660000000);
+> +		}
+> +	}
+> +}
+> +
+>  static void __init omap3_beagle_init(void)
+>  {
+>  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+> @@ -579,6 +628,7 @@ static void __init omap3_beagle_init(void)
+>  	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+>  
+>  	beagle_display_init();
+> +	beagle_opp_init();
+>  }
+>  
+>  MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
