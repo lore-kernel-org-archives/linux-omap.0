@@ -1,42 +1,111 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] staging: tidspbridge - configure full L1 MMU range
-Date: Wed, 5 Jan 2011 12:05:31 +0200
-Message-ID: <AANLkTimYymY2vqCg3J_0KNiwSpF3FQL32FP=CE27BTvG@mail.gmail.com>
-References: <1294208410-4772-1-git-send-email-fernando.lugo@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 1/3] perf: add calls to suspend trace point
+Date: Wed, 5 Jan 2011 11:09:35 +0100
+Message-ID: <AANLkTimRvZs2QBZ4y+AEO7CWUudwBSM6-K0ZQxFTF+Fm@mail.gmail.com>
+References: <1294136263-24020-1-git-send-email-j-pihet@ti.com>
+	<20110104112919.GB9879@atrey.karlin.mff.cuni.cz>
+	<AANLkTim_ekCNw6xhC_MGY7=gfXUCfinXkLeXtttpHaGc@mail.gmail.com>
+	<201101050001.23979.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1294208410-4772-1-git-send-email-fernando.lugo@ti.com>
+In-Reply-To: <201101050001.23979.rjw@sisk.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Fernando Guzman Lugo <fernando.lugo@ti.com>
-Cc: omar.ramirez@ti.com, gregkh@suse.de, rene.sapiens@ti.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>, mingo@elte.hu, trenn@suse.de, Len Brown <len.brown@intel.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 5, 2011 at 8:20 AM, Fernando Guzman Lugo
-<fernando.lugo@ti.com> wrote:
-> Otherwise a virtual address beyond of the L1 size is used,
-> the MMU hardware will look into a memory that does not belong to
-> L1 translation tables. IOW; the MMU would allow to access any
-> memory, configured or not.
+On Wed, Jan 5, 2011 at 12:01 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Tuesday, January 04, 2011, Jean Pihet wrote:
+>> Hi,
+>>
+>> On Tue, Jan 4, 2011 at 12:29 PM, Pavel Machek <pavel@ucw.cz> wrote:
+>> > Hi!
+>> >
+>> >> Uses the machine_suspend trace point, called from the
+>> >> generic kernel suspend_enter function.
+>> >>
+>> >> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> >> CC: Thomas Renninger <trenn@suse.de>
+>> >> ---
+>> >> =A0kernel/power/suspend.c | =A0 =A03 +++
+>> >> =A01 files changed, 3 insertions(+), 0 deletions(-)
+>> >>
+>> >> diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
+>> >> index ecf7705..0650596 100644
+>> >> --- a/kernel/power/suspend.c
+>> >> +++ b/kernel/power/suspend.c
+>> >> @@ -22,6 +22,7 @@
+>> >> =A0#include <linux/mm.h>
+>> >> =A0#include <linux/slab.h>
+>> >> =A0#include <linux/suspend.h>
+>> >> +#include <trace/events/power.h>
+>> >>
+>> >> =A0#include "power.h"
+>> >>
+>> >> @@ -164,7 +165,9 @@ static int suspend_enter(suspend_state_t stat=
+e)
+>> >> =A0 =A0 =A0 error =3D sysdev_suspend(PMSG_SUSPEND);
+>> >> =A0 =A0 =A0 if (!error) {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!suspend_test(TEST_CORE) && pm_ch=
+eck_wakeup_events()) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 trace_machine_suspend(s=
+tate);
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 error =3D suspend_ops=
+->enter(state);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 trace_machine_suspend(P=
+WR_EVENT_EXIT);
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 events_check_enabled =
+=3D false;
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 sysdev_resume();
+>> >
+>> > Ok... why this place?
+>> This trace has been placed here because it traces the machine low
+>> level mode enter.
+>>
+>> > I mean, perhaps suspend time should include
+>> > device suspend?
+>> That makes sense. We have a few options here:
+>> 1) keep the traces as proposed to trace the low level machine code o=
+nly,
+>> 2) move the traces to the entry and exit of suspend_enter so that it
+>> includes the prepare and late_prepare (+ the associated wake-up)
+>> callbacks as well,
+>> 3) move the traces to suspend_devices_and_enter so that it includes =
+2)
+>> and the handling of the console and the devices,
+>> 4) move the traces to enter_state do that it includes 3), the call t=
+o
+>> sys_sync and the user space freeze.
+>>
+>> Note that the the SNAPSHOT_2RAM ioctl code also calls
+>> suspend_devices_and_enter, so if only 4) is used no trace will be
+>> generated in that case.
+>>
+>> I am in favor of 3) of 4).
+>> What do you think?
 >
-> Reported-by: Felipe Contreras <felipe.contreras@nokia.com>
-> Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
-> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+> Why don't we keep the tracepoints as proposed _and_ add two additiona=
+l
+> tracepoints around device suspend-resume?
+I like the idea but that requires to extend the current API with
+additional suspend tracepoints or device state change tracepoints.
+That can be done once the current API is firmly in place.
+Today the only trace API for suspend is machine_suspend(unsigned int
+state), so I think the best option is 3) here above.
 
-People rarely use ' - ' in the commit summary:
-% git log --oneline -1000 | grep -e ' - ' | wc -l
-32
+Unless there is an objection I am pushing 3) asap.
 
-Which means about only 3%. If you do the same on
-drivers/staging/tidspbridge, you'll see that the only commits that
-have that are from you.
+Thanks!
+Jean
 
-staging: tidspbridge: configure full L1 MMU range
-
-Other than that, I think this is is a critical bugfix, and should be
-applied ASAP.
-
-Cheers.
-
--- 
-Felipe Contreras
+>
+> Rafael
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
