@@ -1,345 +1,51 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 4/5] OMAP: clockdomain: Arch specific funcs for hwsup control of clkdm
-Date: Wed,  5 Jan 2011 19:52:44 +0530
-Message-ID: <1294237365-10893-5-git-send-email-rnayak@ti.com>
-References: <1294237365-10893-1-git-send-email-rnayak@ti.com>
- <1294237365-10893-2-git-send-email-rnayak@ti.com>
- <1294237365-10893-3-git-send-email-rnayak@ti.com>
- <1294237365-10893-4-git-send-email-rnayak@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: OMAP4 panda gets stuck during reboot
+Date: Wed, 5 Jan 2011 16:26:27 +0200
+Message-ID: <20110105142627.GG2304@legolas.emea.dhcp.ti.com>
+References: <20110105140801.GC2304@legolas.emea.dhcp.ti.com>
+ <45ff6d061a3e0bdcaf676671bf447b3b@mail.gmail.com>
+ <20110105141814.GF2304@legolas.emea.dhcp.ti.com>
+ <7f40d94c30aa807513e7cdbc097a5caf@mail.gmail.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59181 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309Ab1AEOW5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 09:22:57 -0500
-In-Reply-To: <1294237365-10893-4-git-send-email-rnayak@ti.com>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:45443 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751176Ab1AEO0d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 09:26:33 -0500
+Received: by ewy8 with SMTP id 8so6961986ewy.31
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 06:26:31 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <7f40d94c30aa807513e7cdbc097a5caf@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: balbi@ti.com, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Define the following architecture specific funtions for omap2/3/4
-.clkdm_allow_idle
-.clkdm_deny_idle
+Hi,
 
-Convert the platform-independent framework to call these functions.
-Also rename the api's by removing the omap2_ preamble.
-Hence call omap2_clkdm_allow_idle as clkdm_allow_idle and
-omap2_clkdm_deny_idle as clkdm_deny_idle.
+On Wed, Jan 05, 2011 at 07:52:34PM +0530, Santosh Shilimkar wrote:
+> > On Wed, Jan 05, 2011 at 07:44:31PM +0530, Santosh Shilimkar wrote:
+> > > > What could it be ? Any more debugging I could do to help ?
+> > > >
+> > > This is known and seems to OMAP specific issue. Test patch and
+> >
+> > Doesn't look like omap-specific from patch description. Looks like
+> > like
+> > CPU1 is turned off and the instruction to flush PMD entry fails.
+> > Could
+> > it be that all ARM SMPs are affected ?
+> >
+> Thread is broken some how. There were more emails on this one...
+> Russell confirmed that he don't see the issue on his A9 Versatile
+> platform and no one else complained except OMAP.
 
-Make the _clkdm_add_autodeps and _clkdm_del_autodeps as non-static
-so they can be accessed from OMAP2/3 platform specific code.
+I see...
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/clockdomain.c          |   46 +++++++--------------------
- arch/arm/mach-omap2/clockdomain.h          |    6 ++-
- arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |   40 ++++++++++++++++++++++++
- arch/arm/mach-omap2/clockdomain44xx.c      |   14 ++++++++
- arch/arm/mach-omap2/cpuidle34xx.c          |    4 +-
- arch/arm/mach-omap2/pm.c                   |    2 +-
- arch/arm/mach-omap2/pm24xx.c               |    2 +-
- arch/arm/mach-omap2/pm34xx.c               |    4 +-
- 8 files changed, 76 insertions(+), 42 deletions(-)
+> Copy pasting some last updates..
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index ce55279..1dafbb1 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -178,7 +178,7 @@ static void _autodep_lookup(struct clkdm_autodep *autodep)
-  * XXX autodeps are deprecated and should be removed at the earliest
-  * opportunity
-  */
--static void _clkdm_add_autodeps(struct clockdomain *clkdm)
-+void _clkdm_add_autodeps(struct clockdomain *clkdm)
- {
- 	struct clkdm_autodep *autodep;
- 
-@@ -212,7 +212,7 @@ static void _clkdm_add_autodeps(struct clockdomain *clkdm)
-  * XXX autodeps are deprecated and should be removed at the earliest
-  * opportunity
-  */
--static void _clkdm_del_autodeps(struct clockdomain *clkdm)
-+void _clkdm_del_autodeps(struct clockdomain *clkdm)
- {
- 	struct clkdm_autodep *autodep;
- 
-@@ -332,7 +332,7 @@ void clkdm_init(struct clockdomain **clkdms,
- 		if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
- 			clkdm_wakeup(clkdm);
- 		else if (clkdm->flags & CLKDM_CAN_DISABLE_AUTO)
--			omap2_clkdm_deny_idle(clkdm);
-+			clkdm_deny_idle(clkdm);
- 
- 		for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
- 			if (!omap_chip_is(cd->omap_chip))
-@@ -760,7 +760,7 @@ int clkdm_wakeup(struct clockdomain *clkdm)
- }
- 
- /**
-- * omap2_clkdm_allow_idle - enable hwsup idle transitions for clkdm
-+ * clkdm_allow_idle - enable hwsup idle transitions for clkdm
-  * @clkdm: struct clockdomain *
-  *
-  * Allow the hardware to automatically switch the clockdomain @clkdm into
-@@ -769,7 +769,7 @@ int clkdm_wakeup(struct clockdomain *clkdm)
-  * framework, wkdep/sleepdep autodependencies are added; this is so
-  * device drivers can read and write to the device.  No return value.
-  */
--void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
-+void clkdm_allow_idle(struct clockdomain *clkdm)
- {
- 	if (!clkdm)
- 		return;
-@@ -783,25 +783,14 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
- 	pr_debug("clockdomain: enabling automatic idle transitions for %s\n",
- 		 clkdm->name);
- 
--	/*
--	 * XXX This should be removed once TI adds wakeup/sleep
--	 * dependency code and data for OMAP4.
--	 */
--	if (cpu_is_omap44xx()) {
--		WARN_ONCE(1, "clockdomain: OMAP4 wakeup/sleep dependency "
--			  "support is not yet implemented\n");
--	} else {
--		if (atomic_read(&clkdm->usecount) > 0)
--			_clkdm_add_autodeps(clkdm);
-+	if (arch_clkdm && arch_clkdm->clkdm_allow_idle) {
-+		arch_clkdm->clkdm_allow_idle(clkdm);
-+		pwrdm_clkdm_state_switch(clkdm);
- 	}
--
--	_enable_hwsup(clkdm);
--
--	pwrdm_clkdm_state_switch(clkdm);
- }
- 
- /**
-- * omap2_clkdm_deny_idle - disable hwsup idle transitions for clkdm
-+ * clkdm_deny_idle - disable hwsup idle transitions for clkdm
-  * @clkdm: struct clockdomain *
-  *
-  * Prevent the hardware from automatically switching the clockdomain
-@@ -809,7 +798,7 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
-  * downstream clocks enabled in the clock framework, wkdep/sleepdep
-  * autodependencies are removed.  No return value.
-  */
--void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
-+void clkdm_deny_idle(struct clockdomain *clkdm)
- {
- 	if (!clkdm)
- 		return;
-@@ -823,19 +812,8 @@ void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
- 	pr_debug("clockdomain: disabling automatic idle transitions for %s\n",
- 		 clkdm->name);
- 
--	_disable_hwsup(clkdm);
--
--	/*
--	 * XXX This should be removed once TI adds wakeup/sleep
--	 * dependency code and data for OMAP4.
--	 */
--	if (cpu_is_omap44xx()) {
--		WARN_ONCE(1, "clockdomain: OMAP4 wakeup/sleep dependency "
--			  "support is not yet implemented\n");
--	} else {
--		if (atomic_read(&clkdm->usecount) > 0)
--			_clkdm_del_autodeps(clkdm);
--	}
-+	if (arch_clkdm && arch_clkdm->clkdm_deny_idle)
-+		arch_clkdm->clkdm_deny_idle(clkdm);
- }
- 
- 
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 9f28aa9..fe220f7 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -169,8 +169,8 @@ int clkdm_del_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
- int clkdm_read_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
- int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm);
- 
--void omap2_clkdm_allow_idle(struct clockdomain *clkdm);
--void omap2_clkdm_deny_idle(struct clockdomain *clkdm);
-+void clkdm_allow_idle(struct clockdomain *clkdm);
-+void clkdm_deny_idle(struct clockdomain *clkdm);
- 
- int clkdm_wakeup(struct clockdomain *clkdm);
- int clkdm_sleep(struct clockdomain *clkdm);
-@@ -181,6 +181,8 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk);
- extern void __init omap2xxx_clockdomains_init(void);
- extern void __init omap3xxx_clockdomains_init(void);
- extern void __init omap44xx_clockdomains_init(void);
-+extern void _clkdm_add_autodeps(struct clockdomain *clkdm);
-+extern void _clkdm_del_autodeps(struct clockdomain *clkdm);
- 
- extern struct clkdm_ops omap2_clkdm_operations;
- extern struct clkdm_ops omap3_clkdm_operations;
-diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-index 555e394..2bc9970 100644
---- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-@@ -118,6 +118,24 @@ static int omap2_clkdm_wakeup(struct clockdomain *clkdm)
- 	return 0;
- }
- 
-+static void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
-+{
-+	if (atomic_read(&clkdm->usecount) > 0)
-+		_clkdm_add_autodeps(clkdm);
-+
-+	omap2xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-+				clkdm->clktrctrl_mask);
-+}
-+
-+static void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
-+{
-+	omap2xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-+				clkdm->clktrctrl_mask);
-+
-+	if (atomic_read(&clkdm->usecount) > 0)
-+		_clkdm_del_autodeps(clkdm);
-+}
-+
- static int omap3_clkdm_sleep(struct clockdomain *clkdm)
- {
- 	omap3xxx_cm_clkdm_force_sleep(clkdm->pwrdm.ptr->prcm_offs,
-@@ -132,6 +150,24 @@ static int omap3_clkdm_wakeup(struct clockdomain *clkdm)
- 	return 0;
- }
- 
-+static void omap3_clkdm_allow_idle(struct clockdomain *clkdm)
-+{
-+	if (atomic_read(&clkdm->usecount) > 0)
-+		_clkdm_add_autodeps(clkdm);
-+
-+	omap3xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-+				clkdm->clktrctrl_mask);
-+}
-+
-+static void omap3_clkdm_deny_idle(struct clockdomain *clkdm)
-+{
-+	omap3xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-+				clkdm->clktrctrl_mask);
-+
-+	if (atomic_read(&clkdm->usecount) > 0)
-+		_clkdm_del_autodeps(clkdm);
-+}
-+
- struct clkdm_ops omap2_clkdm_operations = {
- 	.clkdm_add_wkdep	= omap2_clkdm_add_wkdep,
- 	.clkdm_del_wkdep	= omap2_clkdm_del_wkdep,
-@@ -143,6 +179,8 @@ struct clkdm_ops omap2_clkdm_operations = {
- 	.clkdm_clear_all_sleepdeps	= omap2_clkdm_clear_all_sleepdeps,
- 	.clkdm_sleep		= omap2_clkdm_sleep,
- 	.clkdm_wakeup		= omap2_clkdm_wakeup,
-+	.clkdm_allow_idle	= omap2_clkdm_allow_idle,
-+	.clkdm_deny_idle	= omap2_clkdm_deny_idle,
- };
- 
- struct clkdm_ops omap3_clkdm_operations = {
-@@ -156,4 +194,6 @@ struct clkdm_ops omap3_clkdm_operations = {
- 	.clkdm_clear_all_sleepdeps	= omap2_clkdm_clear_all_sleepdeps,
- 	.clkdm_sleep		= omap3_clkdm_sleep,
- 	.clkdm_wakeup		= omap3_clkdm_wakeup,
-+	.clkdm_allow_idle	= omap3_clkdm_allow_idle,
-+	.clkdm_deny_idle	= omap3_clkdm_deny_idle,
- };
-diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
-index 9ccb406..a46125f 100644
---- a/arch/arm/mach-omap2/clockdomain44xx.c
-+++ b/arch/arm/mach-omap2/clockdomain44xx.c
-@@ -29,7 +29,21 @@ static int omap4_clkdm_wakeup(struct clockdomain *clkdm)
- 	return 0;
- }
- 
-+static void omap4_clkdm_allow_idle(struct clockdomain *clkdm)
-+{
-+	omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
-+					clkdm->cm_inst, clkdm->clkdm_offs);
-+}
-+
-+static void omap4_clkdm_deny_idle(struct clockdomain *clkdm)
-+{
-+	omap4_cminst_clkdm_disable_hwsup(clkdm->prcm_partition,
-+					clkdm->cm_inst, clkdm->clkdm_offs);
-+}
-+
- struct clkdm_ops omap4_clkdm_operations = {
- 	.clkdm_sleep		= omap4_clkdm_sleep,
- 	.clkdm_wakeup		= omap4_clkdm_wakeup,
-+	.clkdm_allow_idle	= omap4_clkdm_allow_idle,
-+	.clkdm_deny_idle	= omap4_clkdm_deny_idle,
- };
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index f3e043f..33837f6 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -97,14 +97,14 @@ static int omap3_idle_bm_check(void)
- static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
- 				struct clockdomain *clkdm)
- {
--	omap2_clkdm_allow_idle(clkdm);
-+	clkdm_allow_idle(clkdm);
- 	return 0;
- }
- 
- static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
- 				struct clockdomain *clkdm)
- {
--	omap2_clkdm_deny_idle(clkdm);
-+	clkdm_deny_idle(clkdm);
- 	return 0;
- }
- 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 74c3100..7bb64d8 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -140,7 +140,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
- 	switch (sleep_switch) {
- 	case FORCEWAKEUP_SWITCH:
- 		if (pwrdm->pwrdm_clkdms[0]->flags & CLKDM_CAN_ENABLE_AUTO)
--			omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
-+			clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
- 		else
- 			clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
- 		break;
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index c14113b..dca91ce 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -367,7 +367,7 @@ static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
- 	clkdm_clear_all_sleepdeps(clkdm);
- 
- 	if (clkdm->flags & CLKDM_CAN_ENABLE_AUTO)
--		omap2_clkdm_allow_idle(clkdm);
-+		clkdm_allow_idle(clkdm);
- 	else if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP &&
- 		 atomic_read(&clkdm->usecount) == 0)
- 		clkdm_sleep(clkdm);
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c7712c7..e410f39 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -495,7 +495,7 @@ console_still_active:
- 
- 	pwrdm_post_transition();
- 
--	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
-+	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
- }
- 
- int omap3_can_sleep(void)
-@@ -989,7 +989,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
- {
- 	if (clkdm->flags & CLKDM_CAN_ENABLE_AUTO)
--		omap2_clkdm_allow_idle(clkdm);
-+		clkdm_allow_idle(clkdm);
- 	else if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP &&
- 		 atomic_read(&clkdm->usecount) == 0)
- 		clkdm_sleep(clkdm);
+Just finished reading the thread. Quite a problem on our side :-(
+
 -- 
-1.7.0.4
-
+balbi
