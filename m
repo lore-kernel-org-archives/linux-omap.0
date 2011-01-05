@@ -1,80 +1,32 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH] staging: tidspbridge - configure full L1 MMU range
-Date: Wed, 5 Jan 2011 12:46:05 -0600
-Message-ID: <AANLkTinNhBwjFPXwWFWUVfccUzJFN+6NDgxiuKNa_9N7@mail.gmail.com>
-References: <1294208410-4772-1-git-send-email-fernando.lugo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1294208410-4772-1-git-send-email-fernando.lugo@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Fernando Guzman Lugo <fernando.lugo@ti.com>
-Cc: gregkh@suse.de, rene.sapiens@ti.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>
+From: jean.pihet@newoldbits.com
+Subject: [PATCH 0/2] tools, perf: new power trace API
+Date: Wed,  5 Jan 2011 19:49:00 +0100
+Message-ID: <1294253342-29056-1-git-send-email-j-pihet@ti.com>
+Return-path: <linux-perf-users-owner@vger.kernel.org>
+Sender: linux-perf-users-owner@vger.kernel.org
+To: mingo@elte.hu, trenn@suse.de, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: Jean Pihet <j-pihet@ti.com>
 
-On Wed, Jan 5, 2011 at 12:20 AM, Fernando Guzman Lugo
-<fernando.lugo@ti.com> wrote:
-> Otherwise a virtual address beyond of the L1 size is used,
-> the MMU hardware will look into a memory that does not belong to
-> L1 translation tables. IOW; the MMU would allow to access any
-> memory, configured or not.
->
+Provides:
+. calls to machine_suspend trace point,
+. API Documentation
 
-How about:
+The OMAP specific changes will be submitted separately on
+the linux-omap ML because:
+- the OMAP changes need to be rebased on the latest linux-omap 2.6.37 tree,
+- more feedback is needed from the linux-omap folks.
 
-IVA MMU can manage up to 4GB of address space through its page tables,
-given that it's L1 is divided into 1MB sections it requires at least
-16KB for its table which represents 4096 entries of 32 bits each.
+Jean Pihet (2):
+  perf: add calls to suspend trace point
+  tools, perf: Documentation for the power events API
 
-Previously, only 1GB was being handled by setting the page table size
-to 4KB, any virtual address beyond of the L1 size used, would fall
-into memory that does not belong to L1 translation tables, leading to
-unpredictable results.
+ Documentation/trace/events-power.txt |   90 ++++++++++++++++++++++++++++++++++
+ kernel/power/suspend.c               |    3 +
+ 2 files changed, 93 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/trace/events-power.txt
 
-So, set the L1 table size to cover the entire MMU range (4GB) whether
-is meant to be used or not.
-
-> Reported-by: Felipe Contreras <felipe.contreras@nokia.com>
-> Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
-> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
-> ---
-> =A0drivers/staging/tidspbridge/core/tiomap3430.c | =A0 =A06 ++----
-> =A01 files changed, 2 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/=
-staging/tidspbridge/core/tiomap3430.c
-> index 1be081f..ec96d1e 100644
-> --- a/drivers/staging/tidspbridge/core/tiomap3430.c
-> +++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-> @@ -70,6 +70,7 @@
-> =A0#define MMU_LARGE_PAGE_MASK =A0 =A0 =A00xFFFF0000
-> =A0#define MMU_SMALL_PAGE_MASK =A0 =A0 =A00xFFFFF000
-> =A0#define OMAP3_IVA2_BOOTADDR_MASK 0xFFFFFC00
-> +#define MMU_L1_SIZE =A0 =A0 =A0 =A0 =A0 =A0 =A00x4000
-> =A0#define PAGES_II_LVL_TABLE =A0 512
-> =A0#define PHYS_TO_PAGE(phys) =A0 =A0 =A0pfn_to_page((phys) >> PAGE_S=
-HIFT)
->
-> @@ -786,10 +787,7 @@ static int bridge_dev_create(struct bridge_dev_c=
-ontext
->
-> =A0 =A0 =A0 =A0pt_attrs =3D kzalloc(sizeof(struct pg_table_attrs), GF=
-P_KERNEL);
-> =A0 =A0 =A0 =A0if (pt_attrs !=3D NULL) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Assuming that we use only DSP's memo=
-ry map
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* until 0x4000:0000 , we would need =
-only 1024
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* L1 enties i.e L1 size =3D 4K */
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pt_attrs->l1_size =3D 0x1000;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pt_attrs->l1_size =3D MMU_L1_SIZE;
-
-How about using SZ_16K instead, struct member name already specifies
-it is L1 size, is the new define needed?
-
-Regards,
-
-Omar
+-- 
+1.7.2.3
