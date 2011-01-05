@@ -1,64 +1,59 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 5/5] omap2+: pm_bus: make functions used as pointers as static
-Date: Tue, 04 Jan 2011 16:40:09 -0800
-Message-ID: <87zkrg2nfa.fsf@ti.com>
-References: <1294171634-13943-1-git-send-email-nm@ti.com>
-	<1294171634-13943-6-git-send-email-nm@ti.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH v3 1/4] TI816X: Update common omap platform files
+Date: Wed, 5 Jan 2011 06:52:08 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036A57AFF5@dbde02.ent.ti.com>
+References: <1294075737-22320-1-git-send-email-hemantp@ti.com>
+ <alpine.DEB.2.00.1101031603070.10403@utopia.booyaka.com>
+ <20110104015008.GX7771@atomide.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B036A57AF93@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1101041046540.9203@utopia.booyaka.com>
+ <20110104232547.GP7771@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:49467 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750801Ab1AEAkN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 19:40:13 -0500
-Received: by gyg4 with SMTP id 4so7722877gyg.22
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 16:40:12 -0800 (PST)
-In-Reply-To: <1294171634-13943-6-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Tue, 4 Jan 2011 14:07:14 -0600")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47656 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750919Ab1AEBWQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 20:22:16 -0500
+In-Reply-To: <20110104232547.GP7771@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony <tony@atomide.com>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-Nishanth Menon <nm@ti.com> writes:
+Tony Lindgren wrote on Wednesday, January 05, 2011 4:56 AM:
 
-> omap_pm_runtime_suspend and omap_pm_runtime_resume are used
-> as function pointers and does not really need to be exposed
-> to the world.
->
-> Fixes sparse warnings:
-> arch/arm/mach-omap2/pm_bus.c:23:5: warning: symbol 'omap_pm_runtime_suspend' was not declared. Should it be static?
-> arch/arm/mach-omap2/pm_bus.c:40:5: warning: symbol 'omap_pm_runtime_resume' was not declared. Should it be static?
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> * Paul Walmsley <paul@pwsan.com> [110104 09:48]:
+>> On Tue, 4 Jan 2011, Pedanekar, Hemant wrote:
+>> 
+>>> Looking at above, it seems another config option like
+>>> CONFIG_SOC_OMAP3XXX is also needed in addition to CONFIG_SOC_OMAPTI816X.
+>> 
+>> We already have CONFIG_ARCH_OMAP3430, CONFIG_ARCH_OMAP2430, and
+>> CONFIG_ARCH_OMAP2420.  I guess at some point those need to be renamed to
+>> CONFIG_SOC_*.
+> 
+> Yes that's what I was thinking too. Keep CONFIG_ARCH_OMAP2, 3, and 4,
+> and rename CONFIG_ARCH_OMAP3430 etc to CONFIG_SO_COMAP3430 and so on.
+> 
+> Regards,
+> 
+> Tony
 
-Thanks, will queue this one in my pm-fixes branch for 2.6.38-rc.
+So I will add CONFIG_SOC_OMAPTI816X to handle TI816X specific variations.
+But I think without addition of corresponding CONFIG_SOC_OMAP3XXX, it would be
+difficult to handle 2nd case I mentioned (OMAP3 build for OMAP3xxx as well as
+TI816X SoCs). Will it be OK if we consider this 2nd case as invalid/unsupported
+for the moment - that is, 2nd case = 4th case (OMAP3 build for TI816X only)?
+Same applies for multi-omap case too.
 
-Kevin
+In short, if CONFIG_SOC_OMAPTI816X is selected, the build becomes specific to
+TI816X and not OMAP3xxx in all the cases (so keep CONFIG_SOC_OMAPTI816X disabled
+by default in multi-omap configuration).
 
-> ---
->  arch/arm/mach-omap2/pm_bus.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm_bus.c b/arch/arm/mach-omap2/pm_bus.c
-> index 784989f..5acd2ab 100644
-> --- a/arch/arm/mach-omap2/pm_bus.c
-> +++ b/arch/arm/mach-omap2/pm_bus.c
-> @@ -20,7 +20,7 @@
->  #include <plat/omap-pm.h>
->  
->  #ifdef CONFIG_PM_RUNTIME
-> -int omap_pm_runtime_suspend(struct device *dev)
-> +static int omap_pm_runtime_suspend(struct device *dev)
->  {
->  	struct platform_device *pdev = to_platform_device(dev);
->  	int r, ret = 0;
-> @@ -37,7 +37,7 @@ int omap_pm_runtime_suspend(struct device *dev)
->  	return ret;
->  };
->  
-> -int omap_pm_runtime_resume(struct device *dev)
-> +static int omap_pm_runtime_resume(struct device *dev)
->  {
->  	struct platform_device *pdev = to_platform_device(dev);
->  	int r;
+Thanks
+-
+Hemant
+
