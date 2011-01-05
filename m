@@ -1,128 +1,51 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/2] OMAP3: beagle xm: enable upto 800MHz OPP
-Date: Wed, 05 Jan 2011 15:28:18 -0800
-Message-ID: <874o9nvskt.fsf@ti.com>
-References: <1294260576-20237-1-git-send-email-nm@ti.com>
-	<1294260576-20237-3-git-send-email-nm@ti.com>
+Subject: Re: [PATCH v8 6/11] OMAP1: dmtimer: conversion to platform devices
+Date: Wed, 05 Jan 2011 15:51:08 -0800
+Message-ID: <87r5cqvrir.fsf@ti.com>
+References: <1294228127-11549-1-git-send-email-tarun.kanti@ti.com>
+	<1294228127-11549-7-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:49608 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752338Ab1AEX2W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 18:28:22 -0500
-Received: by mail-pz0-f43.google.com with SMTP id 28so3948683pzk.2
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 15:28:21 -0800 (PST)
-In-Reply-To: <1294260576-20237-3-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Wed, 5 Jan 2011 14:49:36 -0600")
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:43414 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753581Ab1AEXvM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 18:51:12 -0500
+Received: by mail-yx0-f170.google.com with SMTP id 11so9898184yxi.15
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 15:51:12 -0800 (PST)
+In-Reply-To: <1294228127-11549-7-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Wed, 5 Jan 2011 17:18:42 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Tony <tony@atomide.com>, Koen Kooi <koen@beagleboard.org>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>
 
-Nishanth Menon <nm@ti.com> writes:
+Hi Tarun,
 
-> Beagle XM uses 3730 and the board design allows enabling 800MHz and 1GHz
-> OPPs. However, We need Smart reflex class 1.5 and ABB to enable 1GHz safely.
-> For the moment, we tweak the default table to allow for 800Mhz OPP usage.
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-Isn't this common to any board using 3730 (or 3630?)
+> From: Thara Gopinath <thara@ti.com>
+>
+> Convert OMAP1 dmtimers into a platform devices and then registers with
+> device model framework so that it can be bound to corresponding driver.
+>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Acked-by: Cousson, Benoit <b-cousson@ti.com>
 
-IOW, what is Beagle specific about this?
+One minor nit...
+
+[...]
+
+> +int __init omap1_dm_timer_init(void)
+> +{
+> +	int i;
+> +	int ret;
+> +	struct dmtimer_platform_data *pdata;
+> +	struct platform_device *pdev;
+> +
+> +	pr_debug("%s: +\n", __func__);
+
+stray debug print?
 
 Kevin
-
-> Reported-by: Koen Kooi <koen@beagleboard.org>
-> Tested-by: Koen Kooi <koen@beagleboard.org>
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap3beagle.c |   50 +++++++++++++++++++++++++++++++
->  1 files changed, 50 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 6c12760..0b99b80 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -23,6 +23,7 @@
->  #include <linux/gpio.h>
->  #include <linux/input.h>
->  #include <linux/gpio_keys.h>
-> +#include <linux/opp.h>
->  
->  #include <linux/mtd/mtd.h>
->  #include <linux/mtd/partitions.h>
-> @@ -44,10 +45,12 @@
->  #include <plat/gpmc.h>
->  #include <plat/nand.h>
->  #include <plat/usb.h>
-> +#include <plat/omap_device.h>
->  
->  #include "mux.h"
->  #include "hsmmc.h"
->  #include "timer-gp.h"
-> +#include "pm.h"
->  
->  #define NAND_BLOCK_SIZE		SZ_128K
->  
-> @@ -556,6 +559,52 @@ static struct omap_musb_board_data musb_board_data = {
->  	.power			= 100,
->  };
->  
-> +static void __init beagle_opp_init(void)
-> +{
-> +	int r = 0;
-> +
-> +	/* Initialize the omap3 opp table */
-> +	if (omap3_opp_init()) {
-> +		pr_err("%s: opp default init failed\n", __func__);
-> +		return;
-> +	}
-> +
-> +	/* Custom OPP enabled for XM */
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-> +		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-> +		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
-> +		struct device *dev;
-> +
-> +		if (!mh || !dh) {
-> +			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
-> +				__func__, mh, dh);
-> +			r = -EINVAL;
-> +		} else {
-> +			/* Enable MPU 1GHz and lower opps */
-> +			dev = &mh->od->pdev.dev;
-> +			r = opp_enable(dev, 800000000);
-> +			/* TODO: MPU 1GHz needs SR and ABB */
-> +
-> +			/* Enable IVA 800MHz and lower opps */
-> +			dev = &dh->od->pdev.dev;
-> +			r |= opp_enable(dev, 660000000);
-> +			/* TODO: DSP 800MHz needs SR and ABB */
-> +		}
-> +		if (r) {
-> +			pr_err("%s: failed to enable higher opp %d\n",
-> +				__func__, r);
-> +			/*
-> +			 * Cleanup - disable the higher freqs - we dont care
-> +			 * about the results
-> +			 */
-> +			dev = &mh->od->pdev.dev;
-> +			opp_disable(dev, 800000000);
-> +			dev = &dh->od->pdev.dev;
-> +			opp_disable(dev, 660000000);
-> +		}
-> +	}
-> +}
-> +
->  static void __init omap3_beagle_init(void)
->  {
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> @@ -579,6 +628,7 @@ static void __init omap3_beagle_init(void)
->  	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
->  
->  	beagle_display_init();
-> +	beagle_opp_init();
->  }
->  
->  MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
