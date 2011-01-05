@@ -1,35 +1,37 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: OMAP DVFS rebase
-Date: Wed, 5 Jan 2011 21:13:53 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F204@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH v3 12/17] OMAP2,3: DSS2: RFBI Move init,exit to driver
+Date: Wed, 05 Jan 2011 17:46:30 +0200
+Message-ID: <1294242390.14254.147.camel@tubuntu>
+References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
+	 <1294059069-26737-13-git-send-email-svadivu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37742 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751994Ab1AEPn5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 10:43:57 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p05FhsEZ013477
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 5 Jan 2011 09:43:56 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p05Fhsr9006481
-	for <linux-omap@vger.kernel.org>; Wed, 5 Jan 2011 21:13:54 +0530 (IST)
-Content-Language: en-US
+Received: from mgw-da02.ext.nokia.com ([147.243.128.26]:60121 "EHLO
+	mgw-da02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751958Ab1AEPqh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 10:46:37 -0500
+In-Reply-To: <1294059069-26737-13-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Guruswamy Senthilvadivu <svadivu@ti.com>, "ext Semwal, Sumit" <sumit.semwal@ti.com>
+Cc: paul@pwsan.com, khilman@deeprootsystems.com, v-hiremath@ti.com, a0919096@ti.com, linux-omap@vger.kernel.org
 
-Hello All,
+On Mon, 2011-01-03 at 18:21 +0530, ext Guruswamy Senthilvadivu wrote:
+> From: Senthilvadivu Guruswamy <svadivu@ti.com>
+> 
+> For hwmod adaptation, move init exit methods from core.c to its driver probe,
+> remove.  pdev member has to be maintained by its own drivers.  Replace printk
+> with dev_dbg for boot time optimization.
 
-I have rebased the available DVFS code for OMAP tree
-against LO master which contains the latest OMAP voltage
-layer and smartreflex changes and hosted it at
-	http://dev.omapzoom.org/?p=thara/omap-dvfs.git;a=shortlog;h=refs/heads/pm-dvfs
+Changing the printk to dev_dbg is a separate change. This is also done
+in the following patches. When moving code, never do any changes to the
+code being moved if not absolutely necessary.
 
-	head - pm-dvfs
+The version printks could be all put to one patch, which would change
+them for all components.
 
-Regards
-Thara	
+ Tomi
+
+
