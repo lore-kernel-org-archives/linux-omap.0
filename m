@@ -1,156 +1,159 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] omap: wd_timer: Fix crash frm wdt_probe when !CONFIG_RUNTIME_PM
-Date: Wed, 5 Jan 2011 19:23:07 +0530
-Message-ID: <68789fa8ba11b9427aa6321da55c9a8b@mail.gmail.com>
-References: <1294234855-6623-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Lambert, David" <dlambert@ti.com>
+Subject: Re: [PATCH 1/5] ASoC: DMIC: Adding the OMAP DMIC driver
+Date: Wed, 5 Jan 2011 07:56:13 -0600
+Message-ID: <AANLkTi=k981bx0jjWhJdZmxY8-Uyt=KSB4v0E-uKQ_pL@mail.gmail.com>
+References: <1293509826-23253-1-git-send-email-dlambert@ti.com>
+ <1293509826-23253-2-git-send-email-dlambert@ti.com> <20101228141759.GA31883@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0023547c8d738ed0f8049919b4d5
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:42095 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750699Ab1AENxK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 08:53:10 -0500
-Received: by yib17 with SMTP id 17so4910714yib.7
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 05:53:09 -0800 (PST)
-In-Reply-To: <1294234855-6623-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:38702 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751005Ab1AEN4t convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jan 2011 08:56:49 -0500
+Received: by mail-gx0-f176.google.com with SMTP id 4so6861690gxk.35
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 05:56:49 -0800 (PST)
+In-Reply-To: <20101228141759.GA31883@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
---0023547c8d738ed0f8049919b4d5
-Content-Type: text/plain; charset=ISO-8859-1
+Mark,
 
-> -----Original Message-----
-> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
-> Sent: Wednesday, January 05, 2011 7:11 PM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org; Santosh Shilimkar; Paul
-> Walmsley
-> Subject: [PATCH] omap: wd_timer: Fix crash frm wdt_probe when
-> !CONFIG_RUNTIME_PM
+On Tue, Dec 28, 2010 at 8:18 AM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Mon, Dec 27, 2010 at 10:17:02PM -0600, David Lambert wrote:
 >
-(Removing unnecessary changes which got committed by mistake)
+>> + =A0 =A0 case 19200000:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (div =3D=3D 5)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 div_sel =3D 0x1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 else if (div =3D=3D 8)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 div_sel =3D 0x0;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>
+> A switch statement for the valid div values would feel more natural,
+> together with a default case to report errors though that's handled
+> below so could be skipped.
+>
+>> + =A0 =A0 /* Acknowledge irq event */
+>> + =A0 =A0 omap_dmic_write(dmic, OMAP_DMIC_IRQSTATUS, irq_status);
+>> + =A0 =A0 if (irq_status & OMAP_DMIC_IRQ_FULL)
+>
+> Blank line between these two.
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(dmic->dev, "DMIC FIFO error %x\n",=
+ irq_status);
+>> +
+>> + =A0 =A0 if (irq_status & OMAP_DMIC_IRQ_EMPTY)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(dmic->dev, "DMIC FIFO error %x\n",=
+ irq_status);
+>
+> I'd expect these errors to be displayed by default.
+>
+>> + =A0 =A0 if (irq_status & OMAP_DMIC_IRQ)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(dmic->dev, "DMIC write request\n")=
+;
+>
+> A comment explaining why we don't actually do anything with the reque=
+st
+> would be helpful. =A0Given that we're ignoring the event it'd seem be=
+tter
+> to just leave it masked and not take the interrupt in the first place=
+=2E
 
->From c9c34f9bcff789bb2354c299e2c47aa74c8c07ed Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Wed, 5 Jan 2011 18:41:20 +0530
-Subject: [PATCH] omap: wd_timer: Fix crash frm wdt_probe when
-!CONFIG_RUNTIME_PM
+Since the IRQ handler isn't really doing anything in this driver,
+would it better
+to just not have one?
 
-Commit ff2516fb 'wd_timer: disable on boot via hwmod postsetup mechanism'
-introduced watchdog timer state state management using postsetup_state.
-This was done to allow some board files to support watchdog coverage
-throughout kernel initialization and it work as intended when RUNTIME_PM
-is enabled.
+>
+>> +static int omap_dmic_dai_startup(struct snd_pcm_substream *substrea=
+m,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct=
+ snd_soc_dai *dai)
+>> +{
+>> + =A0 =A0 struct omap_dmic *dmic =3D snd_soc_dai_get_drvdata(dai);
+>> +
+>> + =A0 =A0 if (!dmic->active++)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(dmic->dev);
+>
+> The pm_runtime API does refcounting for you so you should be able to
+> just skip the active count check here, IIRC there's a pm_runtime API =
+you
+> could use to query if the DMIC is enabled so you could skip the local
+> refcount entirely.
+>
 
-With !CONFIG_RUNTIME_PM and no board is specifically requests watchdog
-to remain enabled the omap_wdt_probe crashesh. This is because hwmod
-in absense of runtime PM unable to turn watchdog clocks because it's
-state is set to be disabled. For rest of the device, the state is
-set as enabled in absense of RUNTIME_PM
+I haven't been able to find a an API to query it, but I could just
+reference the count
+directly with dmic->dev->power.usage_count.
 
-[    1.372558] Unhandled fault: imprecise external abort (0x1406) at
-0xad733eeb
-[    1.379913] Internal error: : 1406 [#1] SMP
-[    1.384277] last sysfs file:
-[    1.387359] Modules linked in:
-[    1.390563] CPU: 0    Tainted: G        W
-(2.6.37-rc7-00265-g4298a4c-dirty #23)
-[    1.398468] PC is at omap_wdt_disable+0x2c/0x3c
-[    1.403198] LR is at omap_wdt_probe+0x124/0x1e0
-[    1.407928] pc : [<c02f5bf4>]    lr : [<c03be10c>]    psr: 60000013
-[    1.407958] sp : df833f00  ip : 00000000  fp : 00000000
-[    1.419921] r10: c0ac57ac  r9 : df959e00  r8 : 00000000
-[    1.425384] r7 : df959e08  r6 : df8000c0  r5 : df95bebc  r4 : df87dde0
-[    1.432189] r3 : fc314000  r2 : 00005555  r1 : fc314034  r0 : df87dde0
+>> +static int omap_dmic_dai_hw_free(struct snd_pcm_substream *substrea=
+m,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct=
+ snd_soc_dai *dai)
+>> +{
+>> + =A0 =A0 struct omap_dmic *dmic =3D snd_soc_dai_get_drvdata(dai);
+>> + =A0 =A0 struct omap_dmic_link *link =3D dmic->link;
+>> + =A0 =A0 int ret =3D 0;
+>> +
+>> + =A0 =A0 if (dmic->active =3D=3D 1) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D omap_dmic_close(dmic);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 link->channels =3D 0;
+>> + =A0 =A0 }
+>
+> I'd feel a bit more happy if this were done in the same place as the
+> drop of the refcount though this should actually be OK I think.
+>
+>> + =A0 =A0 switch (freq) {
+>> + =A0 =A0 case 19200000:
+>> + =A0 =A0 case 24000000:
+>> + =A0 =A0 case 24576000:
+>> + =A0 =A0 case 12000000:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dmic->clk_freq =3D freq;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 default:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dai->dev, "clk freq not supported =
+%d\n", freq);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EINVAL;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto err_freq;
+>> + =A0 =A0 }
+>
+> Can't you ask the parent clock what rate it's set to?
+>
 
-This patch make the default watchdog state to be enabled in case of
-!CONFIG_RUNTIME_PM. This fixes the crash
+Didn't really think there was a need for that on the audio driver.
+There are clock API's available
+to query that already.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
-Paul, I am not too sure if it breaks your _shutdown idea of watchdog
-timer.
-Patch generated against 'omap-for-linus' branch and boot tested on OMAP4
-with and without CONFIG_OMAP_WATCHDOG.
+>> + =A0 =A0 ret =3D request_threaded_irq(dmic->irq, NULL, omap_dmic_ir=
+q_handler,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0IRQ=
+=46_ONESHOT, "DMIC", (void *)dmic);
+>> + =A0 =A0 if (ret) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dmic->dev, "irq request failed\n")=
+;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto err_irq;
+>> + =A0 =A0 }
+>
+> Does this really need to be a threaded IRQ - the IRQ was just reading
+> from CPU registers as far as I remember?
+>
+>> +MODULE_AUTHOR("David Lambert <dlambert@ti.com>");
+>> +MODULE_DESCRIPTION("OMAP DMIC SoC Interface");
+>> +MODULE_LICENSE("GPL");
+>
+> Should have a MODULE_ALIAS too in case it gets built modular.
+>
 
- arch/arm/mach-omap2/io.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index e66687b..b879a16 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -378,7 +378,11 @@ void __init omap2_init_common_infrastructure(void)
- 	 * XXX ideally we could detect whether the MPU WDT was currently
- 	 * enabled here and make this conditional
- 	 */
-+#ifdef CONFIG_PM_RUNTIME
- 	postsetup_state = _HWMOD_STATE_DISABLED;
-+#else
-+	postsetup_state = _HWMOD_STATE_ENABLED;
-+#endif
- 	omap_hwmod_for_each_by_class("wd_timer",
- 				     _set_hwmod_postsetup_state,
- 				     &postsetup_state);
--- 
-1.6.0.4
-
---0023547c8d738ed0f8049919b4d5
-Content-Type: application/octet-stream;
-	name="0001-omap-wd_timer-Fix-crash-frm-wdt_probe-when-CONFIG.patch"
-Content-Disposition: attachment;
-	filename="0001-omap-wd_timer-Fix-crash-frm-wdt_probe-when-CONFIG.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: e21da8a46d45c72a_0.1
-
-RnJvbSBjOWMzNGY5YmNmZjc4OWJiMjM1NGMyOTllMmM0N2FhNzRjOGMwN2VkIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
-dGkuY29tPgpEYXRlOiBXZWQsIDUgSmFuIDIwMTEgMTg6NDE6MjAgKzA1MzAKU3ViamVjdDogW1BB
-VENIXSBvbWFwOiB3ZF90aW1lcjogRml4IGNyYXNoIGZybSB3ZHRfcHJvYmUgd2hlbiAhQ09ORklH
-X1JVTlRJTUVfUE0KCkNvbW1pdCBmZjI1MTZmYiAnd2RfdGltZXI6IGRpc2FibGUgb24gYm9vdCB2
-aWEgaHdtb2QgcG9zdHNldHVwIG1lY2hhbmlzbScKaW50cm9kdWNlZCB3YXRjaGRvZyB0aW1lciBz
-dGF0ZSBzdGF0ZSBtYW5hZ2VtZW50IHVzaW5nIHBvc3RzZXR1cF9zdGF0ZS4KVGhpcyB3YXMgZG9u
-ZSB0byBhbGxvdyBzb21lIGJvYXJkIGZpbGVzIHRvIHN1cHBvcnQgd2F0Y2hkb2cgY292ZXJhZ2UK
-dGhyb3VnaG91dCBrZXJuZWwgaW5pdGlhbGl6YXRpb24gYW5kIGl0IHdvcmsgYXMgaW50ZW5kZWQg
-d2hlbiBSVU5USU1FX1BNCmlzIGVuYWJsZWQuCgpXaXRoICFDT05GSUdfUlVOVElNRV9QTSBhbmQg
-bm8gYm9hcmQgaXMgc3BlY2lmaWNhbGx5IHJlcXVlc3RzIHdhdGNoZG9nCnRvIHJlbWFpbiBlbmFi
-bGVkIHRoZSBvbWFwX3dkdF9wcm9iZSBjcmFzaGVzaC4gVGhpcyBpcyBiZWNhdXNlIGh3bW9kCmlu
-IGFic2Vuc2Ugb2YgcnVudGltZSBQTSB1bmFibGUgdG8gdHVybiB3YXRjaGRvZyBjbG9ja3MgYmVj
-YXVzZSBpdCdzCnN0YXRlIGlzIHNldCB0byBiZSBkaXNhYmxlZC4gRm9yIHJlc3Qgb2YgdGhlIGRl
-dmljZSwgdGhlIHN0YXRlIGlzCnNldCBhcyBlbmFibGVkIGluIGFic2Vuc2Ugb2YgUlVOVElNRV9Q
-TQoKWyAgICAxLjM3MjU1OF0gVW5oYW5kbGVkIGZhdWx0OiBpbXByZWNpc2UgZXh0ZXJuYWwgYWJv
-cnQgKDB4MTQwNikgYXQgMHhhZDczM2VlYgpbICAgIDEuMzc5OTEzXSBJbnRlcm5hbCBlcnJvcjog
-OiAxNDA2IFsjMV0gU01QClsgICAgMS4zODQyNzddIGxhc3Qgc3lzZnMgZmlsZToKWyAgICAxLjM4
-NzM1OV0gTW9kdWxlcyBsaW5rZWQgaW46ClsgICAgMS4zOTA1NjNdIENQVTogMCAgICBUYWludGVk
-OiBHICAgICAgICBXICAgICgyLjYuMzctcmM3LTAwMjY1LWc0Mjk4YTRjLWRpcnR5ICMyMykKWyAg
-ICAxLjM5ODQ2OF0gUEMgaXMgYXQgb21hcF93ZHRfZGlzYWJsZSsweDJjLzB4M2MKWyAgICAxLjQw
-MzE5OF0gTFIgaXMgYXQgb21hcF93ZHRfcHJvYmUrMHgxMjQvMHgxZTAKWyAgICAxLjQwNzkyOF0g
-cGMgOiBbPGMwMmY1YmY0Pl0gICAgbHIgOiBbPGMwM2JlMTBjPl0gICAgcHNyOiA2MDAwMDAxMwpb
-ICAgIDEuNDA3OTU4XSBzcCA6IGRmODMzZjAwICBpcCA6IDAwMDAwMDAwICBmcCA6IDAwMDAwMDAw
-ClsgICAgMS40MTk5MjFdIHIxMDogYzBhYzU3YWMgIHI5IDogZGY5NTllMDAgIHI4IDogMDAwMDAw
-MDAKWyAgICAxLjQyNTM4NF0gcjcgOiBkZjk1OWUwOCAgcjYgOiBkZjgwMDBjMCAgcjUgOiBkZjk1
-YmViYyAgcjQgOiBkZjg3ZGRlMApbICAgIDEuNDMyMTg5XSByMyA6IGZjMzE0MDAwICByMiA6IDAw
-MDA1NTU1ICByMSA6IGZjMzE0MDM0ICByMCA6IGRmODdkZGUwCgpUaGlzIHBhdGNoIG1ha2UgdGhl
-IGRlZmF1bHQgd2F0Y2hkb2cgc3RhdGUgdG8gYmUgZW5hYmxlZCBpbiBjYXNlIG9mCiFDT05GSUdf
-UlVOVElNRV9QTS4gVGhpcyBmaXhlcyB0aGUgY3Jhc2gKClNpZ25lZC1vZmYtYnk6IFNhbnRvc2gg
-U2hpbGlta2FyIDxzYW50b3NoLnNoaWxpbWthckB0aS5jb20+CkNjOiBQYXVsIFdhbG1zbGV5IDxw
-YXVsQHB3c2FuLmNvbT4KLS0tClBhdWwsIEkgYW0gbm90IHRvbyBzdXJlIGlmIGl0IGJyZWFrcyB5
-b3VyIF9zaHV0ZG93biBpZGVhIG9mIHdhdGNoZG9nCnRpbWVyLgpQYXRjaCBnZW5lcmF0ZWQgYWdh
-aW5zdCAnb21hcC1mb3ItbGludXMnIGJyYW5jaCBhbmQgYm9vdCB0ZXN0ZWQgb24gT01BUDQKd2l0
-aCBhbmQgd2l0aG91dCBDT05GSUdfT01BUF9XQVRDSERPRy4KCiBhcmNoL2FybS9tYWNoLW9tYXAy
-L2lvLmMgfCAgICA0ICsrKysKIDEgZmlsZXMgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCAwIGRl
-bGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvaW8uYyBiL2FyY2gv
-YXJtL21hY2gtb21hcDIvaW8uYwppbmRleCBlNjY2ODdiLi5iODc5YTE2IDEwMDY0NAotLS0gYS9h
-cmNoL2FybS9tYWNoLW9tYXAyL2lvLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9pby5jCkBA
-IC0zNzgsNyArMzc4LDExIEBAIHZvaWQgX19pbml0IG9tYXAyX2luaXRfY29tbW9uX2luZnJhc3Ry
-dWN0dXJlKHZvaWQpCiAJICogWFhYIGlkZWFsbHkgd2UgY291bGQgZGV0ZWN0IHdoZXRoZXIgdGhl
-IE1QVSBXRFQgd2FzIGN1cnJlbnRseQogCSAqIGVuYWJsZWQgaGVyZSBhbmQgbWFrZSB0aGlzIGNv
-bmRpdGlvbmFsCiAJICovCisjaWZkZWYgQ09ORklHX1BNX1JVTlRJTUUKIAlwb3N0c2V0dXBfc3Rh
-dGUgPSBfSFdNT0RfU1RBVEVfRElTQUJMRUQ7CisjZWxzZQorCXBvc3RzZXR1cF9zdGF0ZSA9IF9I
-V01PRF9TVEFURV9FTkFCTEVEOworI2VuZGlmCiAJb21hcF9od21vZF9mb3JfZWFjaF9ieV9jbGFz
-cygid2RfdGltZXIiLAogCQkJCSAgICAgX3NldF9od21vZF9wb3N0c2V0dXBfc3RhdGUsCiAJCQkJ
-ICAgICAmcG9zdHNldHVwX3N0YXRlKTsKLS0gCjEuNi4wLjQKCg==
---0023547c8d738ed0f8049919b4d5--
+--
+David Lambert
+OMAP=99 Multimedia
+214-567-5692
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
