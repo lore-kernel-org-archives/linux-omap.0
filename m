@@ -1,72 +1,74 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 2/3] perf: add OMAP support for the new power events
-Date: Wed, 5 Jan 2011 11:56:08 +0100
-Message-ID: <AANLkTimHQ0jPjotGTS+V6bhuNBh_Vv_VHGKOBy1_63TK@mail.gmail.com>
-References: <1294136263-24020-1-git-send-email-j-pihet@ti.com>
-	<1294136263-24020-3-git-send-email-j-pihet@ti.com>
-	<4D23610C.1060009@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4D23610C.1060009@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: mingo@elte.hu, linux-kernel@vger.kernel.org, trenn@suse.de, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, rjw@sisk.pl, Jean Pihet <j-pihet@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH v2 4/5] omap2plus: voltage: Trivial linking fix 'undefined reference'
+Date: Wed,  5 Jan 2011 16:27:03 +0530
+Message-ID: <1294225024-21857-4-git-send-email-santosh.shilimkar@ti.com>
+References: <1294225024-21857-1-git-send-email-santosh.shilimkar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46057 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751810Ab1AEK5Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jan 2011 05:57:16 -0500
+In-Reply-To: <1294225024-21857-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Thara Gopinath <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Nishanth Menon <nm@ti.com>
 
-On Tue, Jan 4, 2011 at 7:03 PM, Nishanth Menon <nm@ti.com> wrote:
-> jean.pihet@newoldbits.com had written, on 01/04/2011 04:17 AM, the
-> following:
-> [..]
->>
->> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34=
-xx.c
->> index 0ec8a04..0ee0b0e 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -29,6 +29,7 @@
->> =A0#include <linux/delay.h>
->> =A0#include <linux/slab.h>
->> =A0#include <linux/console.h>
->> +#include <trace/events/power.h>
->> =A0#include <plat/sram.h>
->> =A0#include <plat/clockdomain.h>
->> @@ -506,8 +507,14 @@ static void omap3_pm_idle(void)
->> =A0 =A0 =A0 =A0if (omap_irq_pending() || need_resched())
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out;
->> =A0+ =A0 =A0 =A0trace_power_start(POWER_CSTATE, 1, smp_processor_id(=
-));
->> + =A0 =A0 =A0 trace_cpu_idle(1, smp_processor_id());
->> +
->> =A0 =A0 =A0 =A0omap_sram_idle();
->> =A0+ =A0 =A0 =A0trace_power_end(smp_processor_id());
->> + =A0 =A0 =A0 trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
->
-> Dumb question: it just tells me which C state was attempted - not if
-> actually succeeded in hitting it rt? Does'nt this give us a false dat=
-a?
-Yes this tracks the idle requests only. The actual hit state might be
-different depending on various factors: HW state, enabled clocks,
-power domains dependencies etc.
-Debugging the actual PM hit state requires other tools, which could
-use the trace API. There is definitely more to come on that topic.
+LD      init/built-in.o
+LD      .tmp_vmlinux1
+arch/arm/mach-omap2/built-in.o: In function `omap2_set_init_voltage':
+arch/arm/mach-omap2/pm.c:181: undefined reference to `omap_voltage_domain_lookup'
+arch/arm/mach-omap2/built-in.o: In function `omap4_twl_init':
+arch/arm/mach-omap2/omap_twl.c:244: undefined reference to `omap_voltage_domain_lookup'
+arch/arm/mach-omap2/omap_twl.c:247: undefined reference to `omap_voltage_domain_lookup'
+arch/arm/mach-omap2/omap_twl.c:250: undefined reference to `omap_voltage_domain_lookup'
+make: *** [.tmp_vmlinux1] Error 1
 
->
-> [..]
->>
->> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
->> index fc62fb5..7cbb09b 100644
->> --- a/arch/arm/plat-omap/clock.c
->> +++ b/arch/arm/plat-omap/clock.c
->
-> (from an offline discussion on a related topic): Would it also be nic=
-e to
-> hook on mach-omap2/clock.c points as well to hook on indirect changes=
-?
-> [..]
->
-> --
-> Regards,
-> Nishanth Menon
->
+The error is reported when omap2plus_defconfig built with CONFIG_PM disabled
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Thara Gopinath <thara@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/plat-omap/include/plat/voltage.h |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+index 9943c66..4b02227 100644
+--- a/arch/arm/plat-omap/include/plat/voltage.h
++++ b/arch/arm/plat-omap/include/plat/voltage.h
+@@ -65,9 +65,6 @@ struct voltagedomain {
+ 	char *name;
+ };
+ 
+-/* API to get the voltagedomain pointer */
+-struct voltagedomain *omap_voltage_domain_lookup(char *name);
+-
+ /**
+  * struct omap_volt_data - Omap voltage specific data.
+  * @voltage_nominal:	The possible voltage value in uV
+@@ -131,6 +128,9 @@ int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+ 		struct omap_volt_pmic_info *pmic_info);
+ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+ 		int voltscale_method);
++/* API to get the voltagedomain pointer */
++struct voltagedomain *omap_voltage_domain_lookup(char *name);
++
+ int omap_voltage_late_init(void);
+ #else
+ static inline int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+@@ -144,6 +144,10 @@ static inline int omap_voltage_late_init(void)
+ {
+ 	return -EINVAL;
+ }
++static inline struct voltagedomain *omap_voltage_domain_lookup(char *name)
++{
++	return ERR_PTR(-EINVAL);
++}
+ #endif
+ 
+ #endif
+-- 
+1.6.0.4
+
