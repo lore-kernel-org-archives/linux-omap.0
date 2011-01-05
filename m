@@ -1,95 +1,60 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/4] arm: omap: gpio: don't access irq_desc array directly
-Date: Wed, 05 Jan 2011 09:11:34 -0800
-Message-ID: <8762u31dix.fsf@ti.com>
-References: <1294142577-28772-1-git-send-email-balbi@ti.com>
-	<1294142577-28772-2-git-send-email-balbi@ti.com>
-	<87r5cs42p1.fsf@ti.com>
-	<20110105064722.GC2458@legolas.emea.dhcp.ti.com>
+Subject: Re: [PATCH] OMAP3: PM: Adding T2 enabling of smartreflex
+Date: Wed, 05 Jan 2011 09:15:32 -0800
+Message-ID: <87zkrfz2yz.fsf@ti.com>
+References: <1293782878-9756-1-git-send-email-thara@ti.com>
+	<87ipy45lr3.fsf@ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0373D2F0E6@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:34034 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751298Ab1AERLn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 12:11:43 -0500
-Received: by mail-yi0-f50.google.com with SMTP id 1so4130753yic.23
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 09:11:38 -0800 (PST)
-In-Reply-To: <20110105064722.GC2458@legolas.emea.dhcp.ti.com> (Felipe Balbi's
-	message of "Wed, 5 Jan 2011 08:47:22 +0200")
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:60503 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751796Ab1AERPq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 12:15:46 -0500
+Received: by mail-yx0-f178.google.com with SMTP id 42so6492112yxe.9
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 09:15:45 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F0E6@dbde02.ent.ti.com>
+	(Thara Gopinath's message of "Wed, 5 Jan 2011 16:21:18 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
-Felipe Balbi <balbi@ti.com> writes:
+"Gopinath, Thara" <thara@ti.com> writes:
 
-> On Tue, Jan 04, 2011 at 04:24:58PM -0800, Kevin Hilman wrote:
->> Felipe Balbi <balbi@ti.com> writes:
->> 
->> > Instead of accessing the irq_desc array directly
->> > we can use irq_to_desc(irq). That will allow us to,
->> > if wanted, select SPARSE_IRQ and irq_descs will be
->> > added to a radix tree, instead of a array.
->> >
->> > Signed-off-by: Felipe Balbi <balbi@ti.com>
->> 
->> Can you refresh this one against Tony's omap-for-linus branch. The GPIO
->> omap_device/hwmod conversion changed things around a bit and this patch
->> doesn't apply.
->> 
->> After that, you can send separately, and I'll queue this one along with
->> some other GPIO core fixes for the 2.6.38-rc series after -rc1 comes
->> out.
+>>>-----Original Message-----
+>>>From: Hilman, Kevin
+>>>Sent: Wednesday, January 05, 2011 4:18 AM
+>>>To: Gopinath, Thara
+>>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
+>>>Vishwanath; Sawant, Anand; Menon, Nishanth
+>>>Subject: Re: [PATCH] OMAP3: PM: Adding T2 enabling of smartreflex
+>>>
+>>>Thara Gopinath <thara@ti.com> writes:
+>>>
+>>>> The smartreflex bit on twl4030 needs to be enabled by default
+>>>irrespective
+>>>> of whether smartreflex module is enabled on the OMAP side or not.
+>>>> This is because without this bit enabled the voltage scaling through
+>>>> vp forceupdate does not function properly on OMAP3.
+>>>
+>>>Based on Nishanth's comments, the abofe statements need a little more
+>>>justification.
+>>>
+>>>What is probably needed is some default setting (possibly this one) but
+>>>with the possibility of board code to disable this if needed.
 >
-> Sure, it's attached to this mail.
+> Yes. If we need to support the other means of voltage scaling, we
+> definitely need to override this bit from board files. I am not so
+> convinced that we need to support them though. IMHO, this patch can
+> still go in with change in the comment and if needed, there can be
+> another patch with an API in omap_twl.c allowing overriding/
+> enabling-disabling of sr - i2c bit on the T2 side.
 
-Thanks.  Queueing for 2.6.38-rc
+I'm OK with this.
 
 Kevin
 
->
-> From 8d216ccac14e4eebf259d5b40ed2d239248710e1 Mon Sep 17 00:00:00 2001
-> From: Felipe Balbi <balbi@ti.com>
-> Date: Wed, 5 Jan 2011 08:46:18 +0200
-> Subject: [PATCH] arm: omap: gpio: don't access irq_desc array directly
-> Organization: Texas Instruments\n
->
-> Instead of accessing the irq_desc array directly
-> we can use irq_to_desc(irq). That will allow us to,
-> if wanted, select SPARSE_IRQ and irq_descs will be
-> added to a radix tree, instead of a array.
->
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
->  arch/arm/plat-omap/gpio.c |   10 +++++++---
->  1 files changed, 7 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 1f98e0b..197a6c0 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -756,8 +756,10 @@ static int gpio_irq_type(unsigned irq, unsigned type)
->  	spin_lock_irqsave(&bank->lock, flags);
->  	retval = _set_gpio_triggering(bank, get_gpio_index(gpio), type);
->  	if (retval == 0) {
-> -		irq_desc[irq].status &= ~IRQ_TYPE_SENSE_MASK;
-> -		irq_desc[irq].status |= type;
-> +		struct irq_desc *d = irq_to_desc(irq);
-> +
-> +		d->status &= ~IRQ_TYPE_SENSE_MASK;
-> +		d->status |= type;
->  	}
->  	spin_unlock_irqrestore(&bank->lock, flags);
->  
-> @@ -1671,7 +1673,9 @@ static void __init omap_gpio_chip_init(struct gpio_bank *bank)
->  
->  	for (j = bank->virtual_irq_start;
->  		     j < bank->virtual_irq_start + bank_width; j++) {
-> -		lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
-> +		struct irq_desc *d = irq_to_desc(j);
-> +
-> +		lockdep_set_class(&d->lock, &gpio_lock_class);
->  		set_irq_chip_data(j, bank);
->  		if (bank_is_mpuio(bank))
->  			set_irq_chip(j, &mpuio_irq_chip);
+
+
