@@ -1,33 +1,37 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 5/5] omap2plus: voltage: Trivial linking fix for
-	'EINVAL' undeclared
-Date: Wed, 5 Jan 2011 11:19:45 +0000
-Message-ID: <20110105111945.GA8717@n2100.arm.linux.org.uk>
-References: <1294225024-21857-1-git-send-email-santosh.shilimkar@ti.com> <1294225024-21857-5-git-send-email-santosh.shilimkar@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 1/3] perf: add calls to suspend trace point
+Date: Wed, 5 Jan 2011 12:23:13 +0100
+Message-ID: <20110105112313.GA18546@atrey.karlin.mff.cuni.cz>
+References: <1294136263-24020-1-git-send-email-j-pihet@ti.com> <201101050001.23979.rjw@sisk.pl> <AANLkTimRvZs2QBZ4y+AEO7CWUudwBSM6-K0ZQxFTF+Fm@mail.gmail.com> <201101051115.55528.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35108 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560Ab1AELT5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 06:19:57 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1294225024-21857-5-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <201101051115.55528.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, mingo@elte.hu, trenn@suse.de, Len Brown <len.brown@intel.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, Nishanth Menon <nm@ti.com>, tony@atomide.com, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Jan 05, 2011 at 04:27:04PM +0530, Santosh Shilimkar wrote:
-> CC      arch/arm/mach-omap2/omap_hwmod_common_data.o
-> In file included from arch/arm/plat-omap/include/plat/omap_hwmod.h:38,
->                  from arch/arm/mach-omap2/omap_hwmod_common_data.c:20:
-> arch/arm/plat-omap/include/plat/voltage.h: In function 'omap_voltage_late_init':
-> arch/arm/plat-omap/include/plat/voltage.h:145: error: 'EINVAL' undeclared (first use in this function)
-> arch/arm/plat-omap/include/plat/voltage.h:145: error: (Each undeclared identifier is reported only once
-> arch/arm/plat-omap/include/plat/voltage.h:145: error: for each function it appears in.)
-> make[1]: *** [arch/arm/mach-omap2/omap_hwmod_common_data.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
+Hi!
 
-The correct include for this is linux/errno.h, not linux/err.h - you
-want the errno definitions, not the IS_ERR/PTR_ERR/ERR_PTR stuff.
+> > >> I am in favor of 3) of 4).
+> > >> What do you think?
+> > >
+> > > Why don't we keep the tracepoints as proposed _and_ add two additional
+> > > tracepoints around device suspend-resume?
+> > I like the idea but that requires to extend the current API with
+> > additional suspend tracepoints or device state change tracepoints.
+> > That can be done once the current API is firmly in place.
+> > Today the only trace API for suspend is machine_suspend(unsigned int
+> > state), so I think the best option is 3) here above.
+> > 
+> > Unless there is an objection I am pushing 3) asap.
+> 
+> Fine by me.
+
+Why not...
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
