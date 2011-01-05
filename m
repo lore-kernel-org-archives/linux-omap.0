@@ -1,42 +1,56 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 0/2] OMAP: TWL: sparse fixes
-Date: Wed, 5 Jan 2011 00:25:49 +0000
-Message-ID: <20110105002549.GA1445@n2100.arm.linux.org.uk>
-References: <1294081110-23695-1-git-send-email-nm@ti.com> <20110103223656.GA8414@n2100.arm.linux.org.uk> <4D22503F.9060100@ti.com> <4D238503.6070103@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] arm: omap4: panda: remove usb_nop_xceiv_register
+Date: Tue, 04 Jan 2011 16:29:04 -0800
+Message-ID: <87ipy442i7.fsf@ti.com>
+References: <1294148397-26582-1-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42721 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919Ab1AEAZ7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 19:25:59 -0500
-Content-Disposition: inline
-In-Reply-To: <4D238503.6070103@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:34981 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750919Ab1AEA3I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jan 2011 19:29:08 -0500
+Received: by pwj8 with SMTP id 8so2992793pwj.22
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jan 2011 16:29:07 -0800 (PST)
+In-Reply-To: <1294148397-26582-1-git-send-email-tom.leiming@gmail.com> (tom
+	leiming's message of "Tue, 4 Jan 2011 21:39:57 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony <tony@atomide.com>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
+To: tom.leiming@gmail.com
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-On Tue, Jan 04, 2011 at 02:37:23PM -0600, Nishanth Menon wrote:
-> hmm.. minor nit (with codesourcery 2010.09-50 - 4.5.1):
-> rm arch/arm/mach-omap2/*.o;make C=1 arch/arm/mach-omap2/ 2>Kerr;make C=2  
-> arch/arm/mach-omap2/ 2>Kerr1;diff Kerr Kerr1
-> [..]
-> 1,4d0
-> < arch/arm/mach-omap2/mux.c: In function 'omap_mux_get_by_name':
-> < arch/arm/mach-omap2/mux.c:163:17: warning: 'found_mode' may be used  
-> uninitialized in this function
-> < arch/arm/mach-omap2/clkt_clksel.c: In function 'omap2_clksel_set_parent':
-> < arch/arm/mach-omap2/clkt_clksel.c:100:35: warning: 'max_clkr' may be  
-> used uninitialized in this function
+tom.leiming@gmail.com writes:
+
+> From: Ming Lei <tom.leiming@gmail.com>
 >
-> Kinda interesting to note that C=2 does'nt list all potential gcc  
-> warnings :( if one wanted a collated list of all warnings, rm .../*.o  
-> helps I guess.
+> Panda uses twl6030 otg phy instead of internal phy,
+> so removes usb_nop_xceiv_register to make musb working.
+>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
 
-C=2 only runs sparse - so if you're committing patches to fix sparse
-warnings, that's what you should be interested in.
+Please Cc the linux-arm-kernel list for OMAP kernel patches targetted
+for upstream.
 
-I'd suggest that fixing sparse warnings and GCC warnings in a single
-patch is probably not the best thing to do - GCC warnings are less
-subjective than sparse warnings.
+Also, would be nice to get some Reviewed-by and/or Tested-by tags from
+Panda users on this one as well.
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/board-omap4panda.c |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+> index 1ecd0a6..802ae20 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -374,8 +374,6 @@ static void __init omap4_panda_init(void)
+>  	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+>  	omap_serial_init();
+>  	omap4_twl6030_hsmmc_init(mmc);
+> -	/* OMAP4 Panda uses internal transceiver so register nop transceiver */
+> -	usb_nop_xceiv_register();
+>  	omap4_ehci_init();
+>  	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
+>  	if (!cpu_is_omap44xx())
