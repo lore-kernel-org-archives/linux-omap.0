@@ -1,79 +1,95 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP: GPIO: fix _set_gpio_triggering() for OMAP2+
-Date: Wed, 05 Jan 2011 08:54:48 -0800
-Message-ID: <87oc7v1eav.fsf@ti.com>
-References: <1293620491-7201-1-git-send-email-ext-mika.1.westerberg@nokia.com>
-	<87aajg7dzu.fsf@ti.com> <1294181154.18162.39.camel@localhost>
-	<20110104231721.GO7771@atomide.com>
-	<AANLkTi=-9soJBeSGGUmcKNckzV651y=uJ9co9rByJyQB@mail.gmail.com>
+Subject: Re: [PATCH 1/4] arm: omap: gpio: don't access irq_desc array directly
+Date: Wed, 05 Jan 2011 09:11:34 -0800
+Message-ID: <8762u31dix.fsf@ti.com>
+References: <1294142577-28772-1-git-send-email-balbi@ti.com>
+	<1294142577-28772-2-git-send-email-balbi@ti.com>
+	<87r5cs42p1.fsf@ti.com>
+	<20110105064722.GC2458@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:40460 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751097Ab1AEQy5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Jan 2011 11:54:57 -0500
-Received: by pxi16 with SMTP id 16so3101231pxi.32
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 08:54:54 -0800 (PST)
-In-Reply-To: <AANLkTi=-9soJBeSGGUmcKNckzV651y=uJ9co9rByJyQB@mail.gmail.com>
-	(Charulatha Varadarajan's message of "Wed, 5 Jan 2011 15:52:50 +0530")
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:34034 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751298Ab1AERLn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 12:11:43 -0500
+Received: by mail-yi0-f50.google.com with SMTP id 1so4130753yic.23
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 09:11:38 -0800 (PST)
+In-Reply-To: <20110105064722.GC2458@legolas.emea.dhcp.ti.com> (Felipe Balbi's
+	message of "Wed, 5 Jan 2011 08:47:22 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Mika Westerberg <ext-mika.1.westerberg@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>
 
-Hi Charu,
+Felipe Balbi <balbi@ti.com> writes:
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
-
-> On Wed, Jan 5, 2011 at 04:47, Tony Lindgren <tony@atomide.com> wrote:
->> * Kevin Hilman <khilman@ti.com> [110104 14:45]:
->>> On Tue, 2011-01-04 at 09:52 -0800, Kevin Hilman wrote:
->>> > Mika Westerberg <ext-mika.1.westerberg@nokia.com> writes:
->>> >
->>> > > In case on OMAP2+ we call set_24xx_gpio_triggering() instead of
->>> > > updating reg and l values. However, at the end of the function =
-we
->>> > > perform a write:
->>> > >
->>> > > =C2=A0 __raw_writel(l, reg);
->>> > >
->>> > > So on OMAP2+ we end up writing 0 to the bank->base which is not
->>> > > correct (typically this points to GPIO_REVISION register).
->>> > >
->>> > > Fix this by returning immediately after call to
->>> > > set_24xx_gpio_triggering().
->>> > >
->>> > > Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com=
+> On Tue, Jan 04, 2011 at 04:24:58PM -0800, Kevin Hilman wrote:
+>> Felipe Balbi <balbi@ti.com> writes:
+>> 
+>> > Instead of accessing the irq_desc array directly
+>> > we can use irq_to_desc(irq). That will allow us to,
+>> > if wanted, select SPARSE_IRQ and irq_descs will be
+>> > added to a radix tree, instead of a array.
+>> >
+>> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+>> 
+>> Can you refresh this one against Tony's omap-for-linus branch. The GPIO
+>> omap_device/hwmod conversion changed things around a bit and this patch
+>> doesn't apply.
+>> 
+>> After that, you can send separately, and I'll queue this one along with
+>> some other GPIO core fixes for the 2.6.38-rc series after -rc1 comes
+>> out.
 >
->>> >
->>> > Acked-by: Kevin Hilman <khilman@ti.com>
->>> >
->>> > Tony, this should be added to omap-for-linus as it fixes a proble=
-m in
->>> > the recently merged GPIO omap_device/hwmod conversion.
->
-> One clarification - This problem should be existing since the followi=
-ng commit
-> 92105bb70634abacc08bbe12bf6f888fbd7dad38
-> which was introduced on Sep 7, 2005
->
-> FYI, this part of the code remained untouched during GPIO omap_device=
-/hwmod
-> conversion.
->
+> Sure, it's attached to this mail.
 
-OK, thanks for the clarification.
-
-I had assumed it was recent changes since the patch didn't apply
-cleanly, but am glad to be wrong. :)
+Thanks.  Queueing for 2.6.38-rc
 
 Kevin
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> From 8d216ccac14e4eebf259d5b40ed2d239248710e1 Mon Sep 17 00:00:00 2001
+> From: Felipe Balbi <balbi@ti.com>
+> Date: Wed, 5 Jan 2011 08:46:18 +0200
+> Subject: [PATCH] arm: omap: gpio: don't access irq_desc array directly
+> Organization: Texas Instruments\n
+>
+> Instead of accessing the irq_desc array directly
+> we can use irq_to_desc(irq). That will allow us to,
+> if wanted, select SPARSE_IRQ and irq_descs will be
+> added to a radix tree, instead of a array.
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  arch/arm/plat-omap/gpio.c |   10 +++++++---
+>  1 files changed, 7 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index 1f98e0b..197a6c0 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -756,8 +756,10 @@ static int gpio_irq_type(unsigned irq, unsigned type)
+>  	spin_lock_irqsave(&bank->lock, flags);
+>  	retval = _set_gpio_triggering(bank, get_gpio_index(gpio), type);
+>  	if (retval == 0) {
+> -		irq_desc[irq].status &= ~IRQ_TYPE_SENSE_MASK;
+> -		irq_desc[irq].status |= type;
+> +		struct irq_desc *d = irq_to_desc(irq);
+> +
+> +		d->status &= ~IRQ_TYPE_SENSE_MASK;
+> +		d->status |= type;
+>  	}
+>  	spin_unlock_irqrestore(&bank->lock, flags);
+>  
+> @@ -1671,7 +1673,9 @@ static void __init omap_gpio_chip_init(struct gpio_bank *bank)
+>  
+>  	for (j = bank->virtual_irq_start;
+>  		     j < bank->virtual_irq_start + bank_width; j++) {
+> -		lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
+> +		struct irq_desc *d = irq_to_desc(j);
+> +
+> +		lockdep_set_class(&d->lock, &gpio_lock_class);
+>  		set_irq_chip_data(j, bank);
+>  		if (bank_is_mpuio(bank))
+>  			set_irq_chip(j, &mpuio_irq_chip);
