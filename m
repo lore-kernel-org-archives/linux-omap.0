@@ -1,73 +1,49 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 1/2] omap3|4: opp: make omapx_opp_init non-static
-Date: Wed,  5 Jan 2011 14:49:35 -0600
-Message-ID: <1294260576-20237-2-git-send-email-nm@ti.com>
-References: <1294260576-20237-1-git-send-email-nm@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49253 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753047Ab1AEUtw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Jan 2011 15:49:52 -0500
-In-Reply-To: <1294260576-20237-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Fernando Guzman Lugo <fernando.lugo@ti.com>
+Subject: [PATCHv2] staging: tidspbridge: configure full L1 MMU range
+Date: Wed,  5 Jan 2011 15:25:33 -0600
+Message-ID: <1294262733-9585-1-git-send-email-fernando.lugo@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: omar.ramirez@ti.com
+Cc: gregkh@suse.de, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: l-o <linux-omap@vger.kernel.org>
-Cc: l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Tony <tony@atomide.com>, Koen Kooi <koen@beagleboard.org>, Nishanth Menon <nm@ti.com>
 
-omap3 and omap4 opp_init should be made non-static to allow
-for platform specific opp table tweaking. making these static
-conflicts with the definition in pm.h(global) as well.
-we include pm.h as well to ensure that there are no such prototype
-conflicts with actual implementation in the future.
+From: Guzman Lugo, Fernando <fernando.lugo@ti.com>
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
+IVA MMU can manage up to 4GB of address space through its page tables,
+given that it's L1 is divided into 1MB sections it requires at least
+16KB for its table which represents 4096 entries of 32 bits each.
+
+Previously, only 1GB was being handled by setting the page table size
+to 4KB, any virtual address beyond of the L1 size used, would fall
+into memory that does not belong to L1 translation tables, leading to
+unpredictable results.
+
+So, set the L1 table size to cover the entire MMU range (4GB) whether
+is meant to be used or not.
+
+Reported-by: Felipe Contreras <felipe.contreras@nokia.com>
+Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
+Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
 ---
- arch/arm/mach-omap2/opp3xxx_data.c |    3 ++-
- arch/arm/mach-omap2/opp4xxx_data.c |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/staging/tidspbridge/core/tiomap3430.c |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index 0486fce..fd3a1af 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -21,6 +21,7 @@
- #include <plat/cpu.h>
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
+index cacd30e..7608822 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+@@ -784,10 +784,7 @@ static int bridge_dev_create(struct bridge_dev_context
  
- #include "omap_opp_data.h"
-+#include "pm.h"
- 
- static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	/* MPU OPP1 */
-@@ -88,7 +89,7 @@ static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
- /**
-  * omap3_opp_init() - initialize omap3 opp table
-  */
--static int __init omap3_opp_init(void)
-+int __init omap3_opp_init(void)
- {
- 	int r = -ENODEV;
- 
-diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
-index a11fa56..f0e9939 100644
---- a/arch/arm/mach-omap2/opp4xxx_data.c
-+++ b/arch/arm/mach-omap2/opp4xxx_data.c
-@@ -22,6 +22,7 @@
- #include <plat/cpu.h>
- 
- #include "omap_opp_data.h"
-+#include "pm.h"
- 
- static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
- 	/* MPU OPP1 - OPP50 */
-@@ -42,7 +43,7 @@ static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
- /**
-  * omap4_opp_init() - initialize omap4 opp table
-  */
--static int __init omap4_opp_init(void)
-+int __init omap4_opp_init(void)
- {
- 	int r = -ENODEV;
- 
+ 	pt_attrs = kzalloc(sizeof(struct pg_table_attrs), GFP_KERNEL);
+ 	if (pt_attrs != NULL) {
+-		/* Assuming that we use only DSP's memory map
+-		 * until 0x4000:0000 , we would need only 1024
+-		 * L1 enties i.e L1 size = 4K */
+-		pt_attrs->l1_size = 0x1000;
++		pt_attrs->l1_size = SZ_16K; /* 4096 entries of 32 bits */
+ 		align_size = pt_attrs->l1_size;
+ 		/* Align sizes are expected to be power of 2 */
+ 		/* we like to get aligned on L1 table size */
 -- 
-1.6.3.3
-
+1.7.0.4
