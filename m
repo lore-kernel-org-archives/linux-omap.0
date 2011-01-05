@@ -1,49 +1,35 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 0/2] OMAP: TWL: sparse fixes
-Date: Wed, 05 Jan 2011 07:32:58 -0600
-Message-ID: <4D24730A.3050905@ti.com>
-References: <1294081110-23695-1-git-send-email-nm@ti.com> <20110103223656.GA8414@n2100.arm.linux.org.uk> <4D22503F.9060100@ti.com> <4D238503.6070103@ti.com> <20110105002549.GA1445@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH] OMAP3: PM: Adding T2 enabling of smartreflex
+Date: Wed, 05 Jan 2011 07:37:22 -0600
+Message-ID: <4D247412.5070008@ti.com>
+References: <1293782878-9756-1-git-send-email-thara@ti.com> <4D21F09D.3040007@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F0E0@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:60533 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752101Ab1AENdP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 08:33:15 -0500
-Received: by mail-gw0-f47.google.com with SMTP id a12so3568422gwa.34
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 05:33:15 -0800 (PST)
-In-Reply-To: <20110105002549.GA1445@n2100.arm.linux.org.uk>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:42519 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751257Ab1AENhe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 08:37:34 -0500
+Received: by gyg4 with SMTP id 4so5938459gyg.8
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 05:37:33 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F0E0@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony <tony@atomide.com>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Russell King - ARM Linux wrote, on 01/04/2011 06:25 PM:
-> On Tue, Jan 04, 2011 at 02:37:23PM -0600, Nishanth Menon wrote:
->> hmm.. minor nit (with codesourcery 2010.09-50 - 4.5.1):
->> rm arch/arm/mach-omap2/*.o;make C=1 arch/arm/mach-omap2/ 2>Kerr;make C=2
->> arch/arm/mach-omap2/ 2>Kerr1;diff Kerr Kerr1
->> [..]
->> 1,4d0
->> <  arch/arm/mach-omap2/mux.c: In function 'omap_mux_get_by_name':
->> <  arch/arm/mach-omap2/mux.c:163:17: warning: 'found_mode' may be used
->> uninitialized in this function
->> <  arch/arm/mach-omap2/clkt_clksel.c: In function 'omap2_clksel_set_parent':
->> <  arch/arm/mach-omap2/clkt_clksel.c:100:35: warning: 'max_clkr' may be
->> used uninitialized in this function
->>
->> Kinda interesting to note that C=2 does'nt list all potential gcc
->> warnings :( if one wanted a collated list of all warnings, rm .../*.o
->> helps I guess.
->
-> C=2 only runs sparse - so if you're committing patches to fix sparse
-> warnings, that's what you should be interested in.
->
-> I'd suggest that fixing sparse warnings and GCC warnings in a single
-> patch is probably not the best thing to do - GCC warnings are less
-> subjective than sparse warnings.
-I agree.
+Gopinath, Thara wrote, on 01/05/2011 04:46 AM:
+[..]
+> Yes you are right. The SR I2C needs to be enabled for vp force update
+> and vc bypass method of voltage scaling as well as for smartreflex
+> feature. Are you telling that there are platforms out there using OMAP3
+> and T2 and still using VMODE or VSEL. As far as I am aware our h/w folks themselves do not recommend these methods.
+
+;) not every one likes to follow recommendations rt? but yeah, there are 
+folks who use vmode for 3430, vsel is possible even for 3630 - using 
+class2 implementation if desired or forced to if the SR lines are not 
+hooked up on the board.
 
 -- 
 Regards,
