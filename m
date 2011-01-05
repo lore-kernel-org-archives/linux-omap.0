@@ -1,353 +1,121 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v8 1/11] OMAP2+: dmtimer: add device names to flck nodes
-Date: Wed,  5 Jan 2011 17:18:37 +0530
-Message-ID: <1294228127-11549-2-git-send-email-tarun.kanti@ti.com>
-References: <1294228127-11549-1-git-send-email-tarun.kanti@ti.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [PATCH v3 08/17] OMAP2,3: DSS2: Create platform_driver for each
+ DSS HW IP
+Date: Wed, 5 Jan 2011 18:55:37 +0530
+Message-ID: <AANLkTikCUbyqwyhnqF9UDF2Nc9q6-EJqAaeHfjSkiwxM@mail.gmail.com>
+References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
+ <1294059069-26737-9-git-send-email-svadivu@ti.com> <1294226823.14254.51.camel@tubuntu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50857 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751889Ab1AELsD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 06:48:03 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p05Blx4q007696
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 5 Jan 2011 05:48:01 -0600
-In-Reply-To: <1294228127-11549-1-git-send-email-tarun.kanti@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:52044 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751926Ab1AENZ6 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jan 2011 08:25:58 -0500
+Received: by mail-iy0-f171.google.com with SMTP id 21so16533484iyj.2
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jan 2011 05:25:57 -0800 (PST)
+In-Reply-To: <1294226823.14254.51.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Thara Gopinath <thara@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Guruswamy Senthilvadivu <svadivu@ti.com>, paul@pwsan.com, khilman@deeprootsystems.com, a0919096@ti.com, linux-omap@vger.kernel.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-From: Thara Gopinath <thara@ti.com>
+Hi Tomi,
 
-Add device name to OMAP2 dmtimer fclk nodes so that the fclk nodes can be
-retrieved by doing a clk_get with the corresponding device pointers or
-device names.
+On Wed, Jan 5, 2011 at 4:57 PM, Tomi Valkeinen <tomi.valkeinen@nokia.co=
+m> wrote:
+> Hi,
+>
+> On Mon, 2011-01-03 at 18:21 +0530, ext Guruswamy Senthilvadivu wrote:
+>> From: Senthilvadivu Guruswamy <svadivu@ti.com>
+>>
+>> Hwmod adaptation design requires each of the DSS HW IP to be a platf=
+orm driver.
+>> Platform driver of dsshw has to be registered before of dispc, rfbi,=
+ dsi1,
+>> venc and omapdisplay driver should be after all the HW IPs. Sequence=
+ it with
+>> arch_initcall and device_initcall_sync.
+>
+> Do you know if there some extra meaning for the _sync initcalls? The
+> name would imply something else that just init ordering.
 
-NOTE: gpt1_fck is modified in patch-10 when we switch to platform device
-driver. This is to make sure that each patch compiles and boots.
+[Sumit]:Looking at include/linux/init.h and some web-references [1]
+[2] [3], our understanding is that all inits called via
+device_initcall_sync() would be called later than the ones called by
+device_initcall() in an SMP environment. [1] points to the patch for
+enabling all probes on one level to finish before initcall for next
+level are processed.
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Acked-by: Cousson, Benoit <b-cousson@ti.com>
----
- arch/arm/mach-omap2/clock2420_data.c |   58 +++++++++++++++++++++++++++------
- arch/arm/mach-omap2/clock2430_data.c |   58 +++++++++++++++++++++++++++------
- arch/arm/mach-omap2/clock3xxx_data.c |   46 ++++++++++++++++++++------
- arch/arm/mach-omap2/clock44xx_data.c |   43 +++++++++++++++++++------
- 4 files changed, 162 insertions(+), 43 deletions(-)
+>
+> I don't like using multiple initcall levels in the same driver. It's
+> already quite complicated with omapdss, omapfb and the panel drivers.
+> What were the dependencies here? Could we have just one initcall whic=
+h
+> would do the registration of platform drivers in the correct order?
 
-diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index ed1295f..00c72a0 100644
---- a/arch/arm/mach-omap2/clock2420_data.c
-+++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -1803,27 +1803,27 @@ static struct omap_clk omap2420_clks[] = {
- 	CLK(NULL,	"gpt1_ick",	&gpt1_ick,	CK_242X),
- 	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_242X),
- 	CLK(NULL,	"gpt2_ick",	&gpt2_ick,	CK_242X),
--	CLK(NULL,	"gpt2_fck",	&gpt2_fck,	CK_242X),
-+	CLK("omap_timer.2",	"fck",	&gpt2_fck,	CK_242X),
- 	CLK(NULL,	"gpt3_ick",	&gpt3_ick,	CK_242X),
--	CLK(NULL,	"gpt3_fck",	&gpt3_fck,	CK_242X),
-+	CLK("omap_timer.3",	"fck",	&gpt3_fck,	CK_242X),
- 	CLK(NULL,	"gpt4_ick",	&gpt4_ick,	CK_242X),
--	CLK(NULL,	"gpt4_fck",	&gpt4_fck,	CK_242X),
-+	CLK("omap_timer.4",	"fck",	&gpt4_fck,	CK_242X),
- 	CLK(NULL,	"gpt5_ick",	&gpt5_ick,	CK_242X),
--	CLK(NULL,	"gpt5_fck",	&gpt5_fck,	CK_242X),
-+	CLK("omap_timer.5",	"fck",	&gpt5_fck,	CK_242X),
- 	CLK(NULL,	"gpt6_ick",	&gpt6_ick,	CK_242X),
--	CLK(NULL,	"gpt6_fck",	&gpt6_fck,	CK_242X),
-+	CLK("omap_timer.6",	"fck",	&gpt6_fck,	CK_242X),
- 	CLK(NULL,	"gpt7_ick",	&gpt7_ick,	CK_242X),
--	CLK(NULL,	"gpt7_fck",	&gpt7_fck,	CK_242X),
-+	CLK("omap_timer.7",	"fck",	&gpt7_fck,	CK_242X),
- 	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_242X),
--	CLK(NULL,	"gpt8_fck",	&gpt8_fck,	CK_242X),
-+	CLK("omap_timer.8",	"fck",	&gpt8_fck,	CK_242X),
- 	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_242X),
--	CLK(NULL,	"gpt9_fck",	&gpt9_fck,	CK_242X),
-+	CLK("omap_timer.9",	"fck",	&gpt9_fck,	CK_242X),
- 	CLK(NULL,	"gpt10_ick",	&gpt10_ick,	CK_242X),
--	CLK(NULL,	"gpt10_fck",	&gpt10_fck,	CK_242X),
-+	CLK("omap_timer.10",	"fck",	&gpt10_fck,	CK_242X),
- 	CLK(NULL,	"gpt11_ick",	&gpt11_ick,	CK_242X),
--	CLK(NULL,	"gpt11_fck",	&gpt11_fck,	CK_242X),
-+	CLK("omap_timer.11",	"fck",	&gpt11_fck,	CK_242X),
- 	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_242X),
--	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_242X),
-+	CLK("omap_timer.12",	"fck",	&gpt12_fck,	CK_242X),
- 	CLK("omap-mcbsp.1", "ick",	&mcbsp1_ick,	CK_242X),
- 	CLK("omap-mcbsp.1", "fck",	&mcbsp1_fck,	CK_242X),
- 	CLK("omap-mcbsp.2", "ick",	&mcbsp2_ick,	CK_242X),
-@@ -1878,6 +1878,42 @@ static struct omap_clk omap2420_clks[] = {
- 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
- 	CLK(NULL,	"usb_fck",	&usb_fck,	CK_242X),
- 	CLK("musb_hdrc",	"fck",	&osc_ck,	CK_242X),
-+	CLK("omap_timer.1",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.2",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.3",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.4",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.5",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.6",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.7",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.8",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.9",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.10",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.11",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.12",	"32k_ck",	&func_32k_ck,	CK_243X),
-+	CLK("omap_timer.1",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.2",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.3",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.4",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.5",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.6",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.7",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.8",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.9",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.10",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.11",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.12",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.1",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.2",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.3",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.4",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.5",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.6",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.7",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.8",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.9",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.10",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.11",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.12",	"alt_ck",	&alt_ck,	CK_243X),
- };
- 
- /*
-diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-index 38341a7..323b43e 100644
---- a/arch/arm/mach-omap2/clock2430_data.c
-+++ b/arch/arm/mach-omap2/clock2430_data.c
-@@ -1907,27 +1907,27 @@ static struct omap_clk omap2430_clks[] = {
- 	CLK(NULL,	"gpt1_ick",	&gpt1_ick,	CK_243X),
- 	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_243X),
- 	CLK(NULL,	"gpt2_ick",	&gpt2_ick,	CK_243X),
--	CLK(NULL,	"gpt2_fck",	&gpt2_fck,	CK_243X),
-+	CLK("omap_timer.2",	"fck",	&gpt2_fck,	CK_243X),
- 	CLK(NULL,	"gpt3_ick",	&gpt3_ick,	CK_243X),
--	CLK(NULL,	"gpt3_fck",	&gpt3_fck,	CK_243X),
-+	CLK("omap_timer.3",	"fck",	&gpt3_fck,	CK_243X),
- 	CLK(NULL,	"gpt4_ick",	&gpt4_ick,	CK_243X),
--	CLK(NULL,	"gpt4_fck",	&gpt4_fck,	CK_243X),
-+	CLK("omap_timer.4",	"fck",	&gpt4_fck,	CK_243X),
- 	CLK(NULL,	"gpt5_ick",	&gpt5_ick,	CK_243X),
--	CLK(NULL,	"gpt5_fck",	&gpt5_fck,	CK_243X),
-+	CLK("omap_timer.5",	"fck",	&gpt5_fck,	CK_243X),
- 	CLK(NULL,	"gpt6_ick",	&gpt6_ick,	CK_243X),
--	CLK(NULL,	"gpt6_fck",	&gpt6_fck,	CK_243X),
-+	CLK("omap_timer.6",	"fck",	&gpt6_fck,	CK_243X),
- 	CLK(NULL,	"gpt7_ick",	&gpt7_ick,	CK_243X),
--	CLK(NULL,	"gpt7_fck",	&gpt7_fck,	CK_243X),
-+	CLK("omap_timer.7",	"fck",	&gpt7_fck,	CK_243X),
- 	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_243X),
--	CLK(NULL,	"gpt8_fck",	&gpt8_fck,	CK_243X),
-+	CLK("omap_timer.8",	"fck",	&gpt8_fck,	CK_243X),
- 	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_243X),
--	CLK(NULL,	"gpt9_fck",	&gpt9_fck,	CK_243X),
-+	CLK("omap_timer.9",	"fck",	&gpt9_fck,	CK_243X),
- 	CLK(NULL,	"gpt10_ick",	&gpt10_ick,	CK_243X),
--	CLK(NULL,	"gpt10_fck",	&gpt10_fck,	CK_243X),
-+	CLK("omap_timer.10",	"fck",	&gpt10_fck,	CK_243X),
- 	CLK(NULL,	"gpt11_ick",	&gpt11_ick,	CK_243X),
--	CLK(NULL,	"gpt11_fck",	&gpt11_fck,	CK_243X),
-+	CLK("omap_timer.11",	"fck",	&gpt11_fck,	CK_243X),
- 	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_243X),
--	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_243X),
-+	CLK("omap_timer.12",	"fck",	&gpt12_fck,	CK_243X),
- 	CLK("omap-mcbsp.1", "ick",	&mcbsp1_ick,	CK_243X),
- 	CLK("omap-mcbsp.1", "fck",	&mcbsp1_fck,	CK_243X),
- 	CLK("omap-mcbsp.2", "ick",	&mcbsp2_ick,	CK_243X),
-@@ -1993,6 +1993,42 @@ static struct omap_clk omap2430_clks[] = {
- 	CLK(NULL,	"mdm_intc_ick",	&mdm_intc_ick,	CK_243X),
- 	CLK("mmci-omap-hs.0", "mmchsdb_fck",	&mmchsdb1_fck,	CK_243X),
- 	CLK("mmci-omap-hs.1", "mmchsdb_fck", 	&mmchsdb2_fck,	CK_243X),
-+	CLK("omap_timer.1",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.2",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.3",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.4",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.5",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.6",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.7",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.8",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.9",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.10",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.11",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.12",	"32k_ck",  &func_32k_ck,   CK_243X),
-+	CLK("omap_timer.1",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.2",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.3",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.4",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.5",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.6",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.7",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.8",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.9",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.10",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.11",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.12",	"sys_ck",	&sys_ck,	CK_243X),
-+	CLK("omap_timer.1",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.2",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.3",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.4",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.5",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.6",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.7",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.8",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.9",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.10",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.11",	"alt_ck",	&alt_ck,	CK_243X),
-+	CLK("omap_timer.12",	"alt_ck",	&alt_ck,	CK_243X),
- };
- 
- /*
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 9ab817e..01e3977 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3281,8 +3281,8 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"modem_fck",	&modem_fck,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"sad2d_ick",	&sad2d_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"mad2d_ick",	&mad2d_ick,	CK_34XX | CK_36XX),
--	CLK(NULL,	"gpt10_fck",	&gpt10_fck,	CK_3XXX),
--	CLK(NULL,	"gpt11_fck",	&gpt11_fck,	CK_3XXX),
-+	CLK("omap_timer.10",	"fck",	&gpt10_fck,	CK_3XXX),
-+	CLK("omap_timer.11",	"fck",	&gpt11_fck,	CK_3XXX),
- 	CLK(NULL,	"cpefuse_fck",	&cpefuse_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"ts_fck",	&ts_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-@@ -3388,14 +3388,14 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"per_48m_fck",	&per_48m_fck,	CK_3XXX),
- 	CLK(NULL,	"uart3_fck",	&uart3_fck,	CK_3XXX),
- 	CLK(NULL,	"uart4_fck",	&uart4_fck,	CK_36XX),
--	CLK(NULL,	"gpt2_fck",	&gpt2_fck,	CK_3XXX),
--	CLK(NULL,	"gpt3_fck",	&gpt3_fck,	CK_3XXX),
--	CLK(NULL,	"gpt4_fck",	&gpt4_fck,	CK_3XXX),
--	CLK(NULL,	"gpt5_fck",	&gpt5_fck,	CK_3XXX),
--	CLK(NULL,	"gpt6_fck",	&gpt6_fck,	CK_3XXX),
--	CLK(NULL,	"gpt7_fck",	&gpt7_fck,	CK_3XXX),
--	CLK(NULL,	"gpt8_fck",	&gpt8_fck,	CK_3XXX),
--	CLK(NULL,	"gpt9_fck",	&gpt9_fck,	CK_3XXX),
-+	CLK("omap_timer.2",	"fck",	&gpt2_fck,	CK_3XXX),
-+	CLK("omap_timer.3",	"fck",	&gpt3_fck,	CK_3XXX),
-+	CLK("omap_timer.4",	"fck",	&gpt4_fck,	CK_3XXX),
-+	CLK("omap_timer.5",	"fck",	&gpt5_fck,	CK_3XXX),
-+	CLK("omap_timer.6",	"fck",	&gpt6_fck,	CK_3XXX),
-+	CLK("omap_timer.7",	"fck",	&gpt7_fck,	CK_3XXX),
-+	CLK("omap_timer.8",	"fck",	&gpt8_fck,	CK_3XXX),
-+	CLK("omap_timer.9",	"fck",	&gpt9_fck,	CK_3XXX),
- 	CLK(NULL,	"per_32k_alwon_fck", &per_32k_alwon_fck, CK_3XXX),
- 	CLK(NULL,	"gpio6_dbck",	&gpio6_dbck,	CK_3XXX),
- 	CLK(NULL,	"gpio5_dbck",	&gpio5_dbck,	CK_3XXX),
-@@ -3436,7 +3436,7 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"sr2_fck",	&sr2_fck,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"secure_32k_fck", &secure_32k_fck, CK_3XXX),
--	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_3XXX),
-+	CLK("omap_timer.12",	"fck",	&gpt12_fck,	CK_3XXX),
- 	CLK(NULL,	"wdt1_fck",	&wdt1_fck,	CK_3XXX),
- 	CLK(NULL,	"ipss_ick",	&ipss_ick,	CK_AM35XX),
- 	CLK(NULL,	"rmii_ck",	&rmii_ck,	CK_AM35XX),
-@@ -3449,6 +3449,30 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK("musb_hdrc",	"fck",		&hsotgusb_fck_am35xx,	CK_AM35XX),
- 	CLK(NULL,	"hecc_ck",	&hecc_ck,	CK_AM35XX),
- 	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx,	CK_AM35XX),
-+	CLK("omap_timer.1",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.2",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.3",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.4",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.5",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.6",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.7",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.8",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.9",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.10",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.11",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.12",	"32k_ck",	&omap_32k_fck,  CK_3XXX),
-+	CLK("omap_timer.1",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.2",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.3",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.4",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.5",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.6",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.7",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.8",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.9",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.10",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.11",	"sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK("omap_timer.12",	"sys_ck",	&sys_ck,	CK_3XXX),
- };
- 
- 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index c426adc..f319c69 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3183,16 +3183,16 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"smartreflex_iva_fck",		&smartreflex_iva_fck,	CK_443X),
- 	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_mpu_fck,	CK_443X),
- 	CLK(NULL,	"gpt1_fck",			&timer1_fck,	CK_443X),
--	CLK(NULL,	"gpt10_fck",			&timer10_fck,	CK_443X),
--	CLK(NULL,	"gpt11_fck",			&timer11_fck,	CK_443X),
--	CLK(NULL,	"gpt2_fck",			&timer2_fck,	CK_443X),
--	CLK(NULL,	"gpt3_fck",			&timer3_fck,	CK_443X),
--	CLK(NULL,	"gpt4_fck",			&timer4_fck,	CK_443X),
--	CLK(NULL,	"gpt5_fck",			&timer5_fck,	CK_443X),
--	CLK(NULL,	"gpt6_fck",			&timer6_fck,	CK_443X),
--	CLK(NULL,	"gpt7_fck",			&timer7_fck,	CK_443X),
--	CLK(NULL,	"gpt8_fck",			&timer8_fck,	CK_443X),
--	CLK(NULL,	"gpt9_fck",			&timer9_fck,	CK_443X),
-+	CLK("omap_timer.10",	"fck",		&timer10_fck,	CK_443X),
-+	CLK("omap_timer.11",	"fck",		&timer11_fck,	CK_443X),
-+	CLK("omap_timer.2",	"fck",		&timer2_fck,	CK_443X),
-+	CLK("omap_timer.3",	"fck",		&timer3_fck,	CK_443X),
-+	CLK("omap_timer.4",	"fck",		&timer4_fck,	CK_443X),
-+	CLK("omap_timer.5",	"fck",		&timer5_fck,	CK_443X),
-+	CLK("omap_timer.6",	"fck",		&timer6_fck,	CK_443X),
-+	CLK("omap_timer.7",	"fck",		&timer7_fck,	CK_443X),
-+	CLK("omap_timer.8",	"fck",		&timer8_fck,	CK_443X),
-+	CLK("omap_timer.9",	"fck",		&timer9_fck,	CK_443X),
- 	CLK(NULL,	"uart1_fck",			&uart1_fck,	CK_443X),
- 	CLK(NULL,	"uart2_fck",			&uart2_fck,	CK_443X),
- 	CLK(NULL,	"uart3_fck",			&uart3_fck,	CK_443X),
-@@ -3271,6 +3271,29 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"auxclkreq3_ck",		&auxclkreq3_ck,	CK_443X),
- 	CLK(NULL,	"auxclkreq4_ck",		&auxclkreq4_ck,	CK_443X),
- 	CLK(NULL,	"auxclkreq5_ck",		&auxclkreq5_ck,	CK_443X),
-+
-+	CLK("omap_timer.1",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.2",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.3",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.4",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.5",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.6",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.7",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.8",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.9",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.10",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.11",	"32k_ck",	&sys_32k_ck,	CK_443X),
-+	CLK("omap_timer.1",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.2",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.3",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.4",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.9",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.10",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.11",	"sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("omap_timer.5",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("omap_timer.6",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("omap_timer.7",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("omap_timer.8",	"sys_ck",	&syc_clk_div_ck,	CK_443X),
- };
- 
- int __init omap4xxx_clk_init(void)
--- 
-1.6.0.4
+[Sumit]: With this patchset, dss would have platform drivers for each
+of the DSS h/w IPs - core would only do panel registration and s/w
+inits (like dpi and sdi).
+dispc, dss, rfbi, venc each of these are separate platform drivers
+which will have their own init().
 
+The idea was to order the inits like this: [bus, then h/w IPs, then s/w=
+ blocks].
+
+So,
+omap_dss_bus_init first =3D> core_initcall()
+then omap_dss for dss hw ip init =3D> arch_initcall()
+then any of the other h/w IPs (dsi, rfbi, venc, dispc) in any order =3D=
+>
+device_initcall().
+
+omap_display device in the end =3D> device_initcall_sync(); this would
+also call s/w blocks init, and the panel devices. (this should wait
+for all others to have finished).
+
+omapfb is a lateinit call, so will happen after all other dss inits
+have happened.
+
+>
+> Does this even work if the DSS is compiled as a module? I have the
+> recollection that a module can only have one initcall, and in this ca=
+se
+> omapdss would have many.
+
+[Sumit]: we haven't tried compiling DSS as module - I guess we will
+have to create each dss hw IP also as a separate module.
+
+About making one common initcall, then I think we would need to have
+all platform_driver related functions either as global or in one file.
+is this a better option than having each as a separate module?
+
+I guess I will send the updated patch series once we agree on this. [I
+have incorporated all other comments from Tony, Kevin and you on the
+other patches].
+
+Best regards,
+~Sumit.
+>
+> =A0Tomi
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+
+[1]: http://readlist.com/lists/vger.kernel.org/linux-kernel/54/273365.h=
+tml
+[2]: http://www.webservertalk.com/archive242-2006-10-1713467.html
+[3]: http://linux.derkeiler.com/Mailing-Lists/Kernel/2009-01/msg11683.h=
+tml
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
