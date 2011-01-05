@@ -1,123 +1,59 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 2/2] tools, perf: Documentation for the power events API
-Date: Wed,  5 Jan 2011 19:49:02 +0100
-Message-ID: <1294253342-29056-3-git-send-email-j-pihet@ti.com>
-References: <1294253342-29056-1-git-send-email-j-pihet@ti.com>
-Return-path: <linux-perf-users-owner@vger.kernel.org>
-In-Reply-To: <1294253342-29056-1-git-send-email-j-pihet@ti.com>
-Sender: linux-perf-users-owner@vger.kernel.org
-To: mingo@elte.hu, trenn@suse.de, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 1/1] arm: omap: gpio: define .disable callback for gpio
+ irq chip
+Date: Wed, 5 Jan 2011 21:24:25 +0200
+Message-ID: <20110105192425.GA24729@besouro.research.nokia.com>
+References: <1294250283-18182-1-git-send-email-eduardo.valentin@nokia.com>
+ <20110105181918.GB8717@n2100.arm.linux.org.uk>
+Reply-To: eduardo.valentin@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.24]:43760 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751523Ab1AET3u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jan 2011 14:29:50 -0500
+Content-Disposition: inline
+In-Reply-To: <20110105181918.GB8717@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-From: Jean Pihet <j-pihet@ti.com>
+Hello Russell,
 
-Provides documentation for the following:
-- the new power trace API,
-- the old (legacy) power trace API,
-- the DEPRECATED Kconfig option usage.
+On Wed, Jan 05, 2011 at 06:19:18PM +0000, Russell King wrote:
+> On Wed, Jan 05, 2011 at 07:58:03PM +0200, Eduardo Valentin wrote:
+> > Currently, if one calls disable_irq(gpio_irq), the irq
+> > won't get disabled.
+> > 
+> > This is happening because the omap gpio code defines only
+> > a .mask callback. And the default_disable function is just
+> > a stub. The result is that, when someone calls disable_irq
+> > for an irq in a gpio line, it will be kept enabled.
+> > 
+> > This patch solves this issue by setting the .disable
+> > callback to point to the same .mask callback.
+> 
+> Amd this is a problem because?
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- Documentation/trace/events-power.txt |   90 ++++++++++++++++++++++++++++++++++
- 1 files changed, 90 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/trace/events-power.txt
+errr.. because the interrupt is enabled when it was supposed to be disabled?
 
-diff --git a/Documentation/trace/events-power.txt b/Documentation/trace/events-power.txt
-new file mode 100644
-index 0000000..96d87b6
---- /dev/null
-+++ b/Documentation/trace/events-power.txt
-@@ -0,0 +1,90 @@
-+
-+			Subsystem Trace Points: power
-+
-+The power tracing system captures events related to power transitions
-+within the kernel. Broadly speaking there are three major subheadings:
-+
-+  o Power state switch which reports events related to suspend (S-states),
-+     cpuidle (C-states) and cpufreq (P-states)
-+  o System clock related changes
-+  o Power domains related changes and transitions
-+
-+This document describes what each of the tracepoints is and why they
-+might be useful.
-+
-+Cf. include/trace/events/power.h for the events definitions.
-+
-+1. Power state switch events
-+============================
-+
-+1.1 New trace API
-+-----------------
-+
-+A 'cpu' event class gathers the CPU-related events: cpuidle and
-+cpufreq.
-+
-+cpu_idle		"state=%lu cpu_id=%lu"
-+cpu_frequency		"state=%lu cpu_id=%lu"
-+
-+A suspend event is used to indicate the system going in and out of the
-+suspend mode:
-+
-+machine_suspend		"state=%lu"
-+
-+
-+Note: the value of '-1' or '4294967295' for state means an exit from the current state,
-+i.e. trace_cpu_idle(4, smp_processor_id()) means that the system
-+enters the idle state 4, while trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id())
-+means that the system exits the previous idle state.
-+
-+The event which has 'state=4294967295' in the trace is very important to the user
-+space tools which are using it to detect the end of the current state, and so to
-+correctly draw the states diagrams and to calculate accurate statistics etc.
-+
-+1.2 DEPRECATED trace API
-+------------------------
-+
-+A new Kconfig option CONFIG_EVENT_POWER_TRACING_DEPRECATED with the default value of
-+'y' has been created. This allows the legacy trace power API to be used conjointly
-+with the new trace API.
-+The Kconfig option, the old trace API (in include/trace/events/power.h) and the
-+old trace points will disappear in a future release (namely 2.6.41).
-+
-+power_start		"type=%lu state=%lu cpu_id=%lu"
-+power_frequency		"type=%lu state=%lu cpu_id=%lu"
-+power_end		"cpu_id=%lu"
-+
-+The 'type' parameter takes one of those macros:
-+ . POWER_NONE	= 0,
-+ . POWER_CSTATE	= 1,	/* C-State */
-+ . POWER_PSTATE	= 2,	/* Fequency change or DVFS */
-+
-+The 'state' parameter is set depending on the type:
-+ . Target C-state for type=POWER_CSTATE,
-+ . Target frequency for type=POWER_PSTATE,
-+
-+power_end is used to indicate the exit of a state, corresponding to the latest
-+power_start event.
-+
-+2. Clocks events
-+================
-+The clock events are used for clock enable/disable and for
-+clock rate change.
-+
-+clock_enable		"%s state=%lu cpu_id=%lu"
-+clock_disable		"%s state=%lu cpu_id=%lu"
-+clock_set_rate		"%s state=%lu cpu_id=%lu"
-+
-+The first parameter gives the clock name (e.g. "gpio1_iclk").
-+The second parameter is '1' for enable, '0' for disable, the target
-+clock rate for set_rate.
-+
-+3. Power domains events
-+=======================
-+The power domain events are used for power domains transitions
-+
-+power_domain_target	"%s state=%lu cpu_id=%lu"
-+
-+The first parameter gives the power domain name (e.g. "mpu_pwrdm").
-+The second parameter is the power domain target state.
-+
+> 
+> The way this works is that although it isn't disabled at that point,
+> if it never triggers, then everything remains happy.  However, if it
+> does trigger, the genirq code will then mask the interrupt and won't
+> call the handler.
+
+Right.. I didn't see from this point. I will check how that gets unmasked.
+But even so, if I understood correctly what you described, it would still
+open a time window which the system would see at least 1 interrupt during
+the time it was not suppose to. And that can wakeup a system which  is in
+deep sleep mode, either via dynamic idle or static suspend.
+
+It is unlikely, I know. But it can still happen. And can be avoided.
+
+Regards,
+
 -- 
-1.7.2.3
+Eduardo Valentin
