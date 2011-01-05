@@ -1,105 +1,43 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH] OMAP3: PM: Adding T2 enabling of smartreflex
-Date: Wed, 5 Jan 2011 16:21:18 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F0E6@dbde02.ent.ti.com>
-References: <1293782878-9756-1-git-send-email-thara@ti.com>
- <87ipy45lr3.fsf@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH v3 06/17] OMAP2,3 DSS2 Move DSS driver register from
+ board file to devices.c
+Date: Wed, 05 Jan 2011 12:51:16 +0200
+Message-ID: <1294224676.14254.40.camel@tubuntu>
+References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
+	 <1294059069-26737-7-git-send-email-svadivu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49545 "EHLO bear.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.128.24]:17823 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751630Ab1AEKv1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jan 2011 05:51:27 -0500
-In-Reply-To: <87ipy45lr3.fsf@ti.com>
-Content-Language: en-US
+	id S1751569Ab1AEKvW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jan 2011 05:51:22 -0500
+In-Reply-To: <1294059069-26737-7-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Menon, Nishanth" <nm@ti.com>
+To: ext Guruswamy Senthilvadivu <svadivu@ti.com>
+Cc: paul@pwsan.com, khilman@deeprootsystems.com, v-hiremath@ti.com, a0919096@ti.com, linux-omap@vger.kernel.org
+
+Hi,
+
+On Mon, 2011-01-03 at 18:20 +0530, ext Guruswamy Senthilvadivu wrote:
+> From: Senthilvadivu Guruswamy <svadivu@ti.com>
+> 
+> omap_display_init function is introduced in devices.c to do the DSS driver
+> registration.  So replace platform_device_register or platform_add_devices of
+> DSS with omap_display_init().
+
+This and two previous patches are missing a color in the subject.
+
+I'm also ok with Kevin's suggestion to put display code in separate
+file. There's other stuff to add there also at some point, like changing
+pinmuxing.
+
+Also, I think it would be cleaner to first add the new code to devices.c
+(or display.c) and display.h in one patch, then in another patch change
+the board files to use this new display init.
+
+ Tomi
 
 
-
->>-----Original Message-----
->>From: Hilman, Kevin
->>Sent: Wednesday, January 05, 2011 4:18 AM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
->>Vishwanath; Sawant, Anand; Menon, Nishanth
->>Subject: Re: [PATCH] OMAP3: PM: Adding T2 enabling of smartreflex
->>
->>Thara Gopinath <thara@ti.com> writes:
->>
->>> The smartreflex bit on twl4030 needs to be enabled by default
->>irrespective
->>> of whether smartreflex module is enabled on the OMAP side or not.
->>> This is because without this bit enabled the voltage scaling through
->>> vp forceupdate does not function properly on OMAP3.
->>
->>Based on Nishanth's comments, the abofe statements need a little more
->>justification.
->>
->>What is probably needed is some default setting (possibly this one) but
->>with the possibility of board code to disable this if needed.
-
-Yes. If we need to support the other means of voltage scaling, we definitely need to override this bit from board files. I am not so convinced that we need to support them though. IMHO, this patch can still go in with change in the comment and if needed, there can be another patch with an API in omap_twl.c allowing overriding/ enabling-disabling of sr - i2c bit on
-the T2 side.
-
-Regards
-Thara
-
->>
->>Kevin
->>
->>>
->>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>> ---
->>> This patch is against LO master and has been
->>> tested on OMAP3430 SDP and OMAP2430 SDP.
->>>
->>>  arch/arm/mach-omap2/omap_twl.c |   16 ++++++++++++++++
->>>  1 files changed, 16 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-
->>omap2/omap_twl.c
->>> index 15f8c6c..a59f36b 100644
->>> --- a/arch/arm/mach-omap2/omap_twl.c
->>> +++ b/arch/arm/mach-omap2/omap_twl.c
->>> @@ -58,7 +58,9 @@
->>>  static bool is_offset_valid;
->>>  static u8 smps_offset;
->>>
->>> +#define TWL4030_DCDC_GLOBAL_CFG	0x06
->>>  #define REG_SMPS_OFFSET         0xE0
->>> +#define SMARTREFLEX_ENABLE	BIT(3)
->>>
->>>  unsigned long twl4030_vsel_to_uv(const u8 vsel)
->>>  {
->>> @@ -256,6 +258,7 @@ int __init omap4_twl_init(void)
->>>  int __init omap3_twl_init(void)
->>>  {
->>>  	struct voltagedomain *voltdm;
->>> +	u8 temp;
->>>
->>>  	if (!cpu_is_omap34xx())
->>>  		return -ENODEV;
->>> @@ -267,6 +270,19 @@ int __init omap3_twl_init(void)
->>>  		omap3_core_volt_info.vp_vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
->>>  	}
->>>
->>> +	/*
->>> +	 * The smartreflex bit on twl4030 needs to be enabled by
->>> +	 * default irrespective of whether smartreflex module is
->>> +	 * enabled on the OMAP side or not. This is because without
->>> +	 * this bit enabled the voltage scaling through
->>> +	 * vp forceupdate does not function properly on OMAP3.
->>> +	 */
->>> +	twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
->>> +			TWL4030_DCDC_GLOBAL_CFG);
->>> +	temp |= SMARTREFLEX_ENABLE;
->>> +	twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
->>> +			TWL4030_DCDC_GLOBAL_CFG);
->>> +
->>>  	voltdm = omap_voltage_domain_lookup("mpu");
->>>  	omap_voltage_register_pmic(voltdm, &omap3_mpu_volt_info);
