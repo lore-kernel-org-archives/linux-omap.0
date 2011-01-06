@@ -1,172 +1,67 @@
-From: Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [RESEND #2] [PATCH v2] LEDS: Add output invertion option to backlight trigger
-Date: Thu, 6 Jan 2011 16:08:16 +0900
-Message-ID: <20110106070816.GA15914@linux-sh.org>
-References: <201012091441.51846.jkrzyszt@tis.icnet.pl>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v8 6/11] OMAP1: dmtimer: conversion to platform devices
+Date: Thu, 6 Jan 2011 14:58:05 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F4A7@dbde02.ent.ti.com>
+References: <1294228127-11549-1-git-send-email-tarun.kanti@ti.com>
+	<1294228127-11549-7-git-send-email-tarun.kanti@ti.com>
+ <87r5cqvrir.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:44275 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753612Ab1AFHKO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 02:10:14 -0500
-Content-Disposition: inline
-In-Reply-To: <201012091441.51846.jkrzyszt@tis.icnet.pl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57755 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751319Ab1AFJ2O convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 04:28:14 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p069SAlq010486
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 6 Jan 2011 03:28:12 -0600
+In-Reply-To: <87r5cqvrir.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Richard Purdie <rpurdie@rpsys.net>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
-(Trying an alternate address for Richard, and adding Andrew to Cc..)
-
-On Thu, Dec 09, 2010 at 02:41:50PM +0100, Janusz Krzysztofik wrote:
-> This patch extends the LED backlight tirgger driver with an option that allows 
-> for inverting the trigger output polarity.
+Kevin,
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Thursday, January 06, 2011 5:21 AM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org; Gopinath, Thara
+> Subject: Re: [PATCH v8 6/11] OMAP1: dmtimer: conversion to platform
+> devices
 > 
-> With the invertion option provided, I (ab)use the backlight trigger for 
-> driving a LED that indicates LCD display blank condtition on my Amstrad Delta 
-> videophone. Since the machine has no dedicated power LED, it was not possible 
-> to distinguish if the display was blanked, or the machine was turned off, 
-> without touching it.
+> Hi Tarun,
 > 
-> The invert sysfs control is patterned after a similiar function of the GPIO 
-> trigger driver.
+> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 > 
-> Created and tested against linux-2.6.36-rc5 on Amstrad Delta.
-> Retested on linux-2.6.37-rc4.
+> > From: Thara Gopinath <thara@ti.com>
+> >
+> > Convert OMAP1 dmtimers into a platform devices and then registers with
+> > device model framework so that it can be bound to corresponding driver.
+> >
+> > Signed-off-by: Thara Gopinath <thara@ti.com>
+> > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > Acked-by: Cousson, Benoit <b-cousson@ti.com>
 > 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> ---
+> One minor nit...
 > 
-> Resent because I still can't see any response received, while yet another 
-> merge window is going to pass away soon.
+> [...]
 > 
-> Applies cleanly on top of 2.6.37-rc4, so no need for yet another refresh. Only 
-> tried to clean up the commit message slightly - maybe my English is not good 
-> enough to bother with, if not the code?
+> > +int __init omap1_dm_timer_init(void)
+> > +{
+> > +	int i;
+> > +	int ret;
+> > +	struct dmtimer_platform_data *pdata;
+> > +	struct platform_device *pdev;
+> > +
+> > +	pr_debug("%s: +\n", __func__);
 > 
-> v1 -> v2 changes:
-> - improve some conditional expressions to be more readable; thanks to Ralph 
->   Corderoy (from e3-hacking) and Lars-Peter Clausen for their suggestions,
-> - refresh against linux-2.6.36-rc5.
+> stray debug print?
+I kept for debugging; well it can be removed.
+--
+Tarun
 > 
->  drivers/leds/ledtrig-backlight.c |   60 
-> ++++++++++++++++++++++++++++++++++++---
->  1 file changed, 56 insertions(+), 4 deletions(-)
-> 
-> diff -upr linux-2.6.36-rc5.orig/drivers/leds/ledtrig-backlight.c linux-2.6.36-rc5/drivers/leds/ledtrig-backlight.c
-> --- linux-2.6.36-rc5.orig/drivers/leds/ledtrig-backlight.c	2010-09-24 15:35:13.000000000 +0200
-> +++ linux-2.6.36-rc5/drivers/leds/ledtrig-backlight.c	2010-10-03 15:59:49.000000000 +0200
-> @@ -26,6 +26,7 @@ struct bl_trig_notifier {
->  	int brightness;
->  	int old_status;
->  	struct notifier_block notifier;
-> +	unsigned invert;
->  };
->  
->  static int fb_notifier_callback(struct notifier_block *p,
-> @@ -36,23 +37,63 @@ static int fb_notifier_callback(struct n
->  	struct led_classdev *led = n->led;
->  	struct fb_event *fb_event = data;
->  	int *blank = fb_event->data;
-> +	int new_status = *blank ? BLANK : UNBLANK;
->  
->  	switch (event) {
->  	case FB_EVENT_BLANK :
-> -		if (*blank && n->old_status == UNBLANK) {
-> +		if (new_status == n->old_status)
-> +			break;
-> +
-> +		if ((n->old_status == UNBLANK) ^ n->invert) {
->  			n->brightness = led->brightness;
->  			led_set_brightness(led, LED_OFF);
-> -			n->old_status = BLANK;
-> -		} else if (!*blank && n->old_status == BLANK) {
-> +		} else {
->  			led_set_brightness(led, n->brightness);
-> -			n->old_status = UNBLANK;
->  		}
-> +
-> +		n->old_status = new_status;
-> +
->  		break;
->  	}
->  
->  	return 0;
->  }
->  
-> +static ssize_t bl_trig_invert_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct led_classdev *led = dev_get_drvdata(dev);
-> +	struct bl_trig_notifier *n = led->trigger_data;
-> +
-> +	return sprintf(buf, "%s\n", n->invert ? "yes" : "no");
-> +}
-> +
-> +static ssize_t bl_trig_invert_store(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t num)
-> +{
-> +	struct led_classdev *led = dev_get_drvdata(dev);
-> +	struct bl_trig_notifier *n = led->trigger_data;
-> +	unsigned invert;
-> +	int ret;
-> +
-> +	ret = sscanf(buf, "%u", &invert);
-> +	if (ret < 1) {
-> +		dev_err(dev, "invalid value\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	n->invert = !!invert;
-> +
-> +	/* After inverting, we need to update the LED. */
-> +	if ((n->old_status == BLANK) ^ n->invert)
-> +		led_set_brightness(led, LED_OFF);
-> +	else
-> +		led_set_brightness(led, n->brightness);
-> +
-> +	return num;
-> +}
-> +static DEVICE_ATTR(invert, 0644, bl_trig_invert_show, bl_trig_invert_store);
-> +
->  static void bl_trig_activate(struct led_classdev *led)
->  {
->  	int ret;
-> @@ -66,6 +107,10 @@ static void bl_trig_activate(struct led_
->  		return;
->  	}
->  
-> +	ret = device_create_file(led->dev, &dev_attr_invert);
-> +	if (ret)
-> +		goto err_invert;
-> +
->  	n->led = led;
->  	n->brightness = led->brightness;
->  	n->old_status = UNBLANK;
-> @@ -74,6 +119,12 @@ static void bl_trig_activate(struct led_
->  	ret = fb_register_client(&n->notifier);
->  	if (ret)
->  		dev_err(led->dev, "unable to register backlight trigger\n");
-> +
-> +	return;
-> +
-> +err_invert:
-> +	led->trigger_data = NULL;
-> +	kfree(n);
->  }
->  
->  static void bl_trig_deactivate(struct led_classdev *led)
-> @@ -82,6 +133,7 @@ static void bl_trig_deactivate(struct le
->  		(struct bl_trig_notifier *) led->trigger_data;
->  
->  	if (n) {
-> +		device_remove_file(led->dev, &dev_attr_invert);
->  		fb_unregister_client(&n->notifier);
->  		kfree(n);
->  	}
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Kevin
