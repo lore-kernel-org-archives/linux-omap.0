@@ -1,85 +1,138 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] OMAP4 PM: To correct voltages in MPU OPP Table
-Date: Thu, 06 Jan 2011 06:21:38 -0600
-Message-ID: <4D25B3D2.4030802@ti.com>
-References: <1294295222-20035-1-git-send-email-shweta.gulati@ti.com>
+Subject: Re: [PATCH 2/2] OMAP3: beagle xm: enable upto 800MHz OPP
+Date: Thu, 06 Jan 2011 06:24:34 -0600
+Message-ID: <4D25B482.3080709@ti.com>
+References: <1294260576-20237-1-git-send-email-nm@ti.com>	<1294260576-20237-3-git-send-email-nm@ti.com> <874o9nvskt.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:38637 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751145Ab1AFMVs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 07:21:48 -0500
-Received: by mail-yi0-f45.google.com with SMTP id 21so4821280yie.32
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 04:21:47 -0800 (PST)
-In-Reply-To: <1294295222-20035-1-git-send-email-shweta.gulati@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:45636 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752187Ab1AFMYp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 07:24:45 -0500
+Received: by mail-gw0-f43.google.com with SMTP id 17so7358488gwb.16
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 04:24:44 -0800 (PST)
+In-Reply-To: <874o9nvskt.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: shweta.gulati@ti.com
-Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Tony <tony@atomide.com>, Koen Kooi <koen@beagleboard.org>
 
-it is pretty unfortunate that I have to NAK this patch in the public ML 
-as well.
-
-shweta.gulati@ti.com wrote, on 01/06/2011 12:27 AM:
-> From: Shweta Gulati<shweta.gulati@ti.com>
+Kevin Hilman wrote, on 01/05/2011 05:28 PM:
+> Nishanth Menon<nm@ti.com>  writes:
 >
-> There is a mismatch in voltages specified in OPP table of MPU
-> and voltage specified in voltage table 'omap44xx_vdd_mpu_volt_data'
-> This Patch corrects MPU OPP Table as
-> well as enable OPP-Turbo and OPP-SB  for MPU by default.
+>> Beagle XM uses 3730 and the board design allows enabling 800MHz and 1GHz
+>> OPPs. However, We need Smart reflex class 1.5 and ABB to enable 1GHz safely.
+>> For the moment, we tweak the default table to allow for 800Mhz OPP usage.
 >
-> Signed-off-by: Thara Gopinath<thara@ti.com>
-> Signed-off-by: Shweta Gulati<shweta.gulati@ti.com>
-> ---
-> The patch is generated on top of Kevin's PM branch. It's needed for SR
-> functionality on the current pm branch. Have tested SR with this patch
-> with different OPP configurations from boot loader.
+> Isn't this common to any board using 3730 (or 3630?)
+
+no it is not. only certain boards are capable of higher frequencies - 
+there is a procedure called PDN analysis and vmin search that needs to 
+be performed to guarentee this.
+
 >
->   arch/arm/mach-omap2/opp4xxx_data.c |    8 ++++----
->   1 files changed, 4 insertions(+), 4 deletions(-)
+> IOW, what is Beagle specific about this?
+beagle is one of the boards capable of higher frequencies.
+
 >
-> diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
-> index a11fa56..4f35361 100644
-> --- a/arch/arm/mach-omap2/opp4xxx_data.c
-> +++ b/arch/arm/mach-omap2/opp4xxx_data.c
-> @@ -25,13 +25,13 @@
+> Kevin
 >
->   static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
->   	/* MPU OPP1 - OPP50 */
-> -	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
-> +	OPP_INITIALIZER("mpu", true, 300000000, 930000),
->   	/* MPU OPP2 - OPP100 */
-> -	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
-> +	OPP_INITIALIZER("mpu", true, 600000000, 1100000),
-
-
-Did we finalize on the nominal voltages yet?
-
-As of yesterday's discussion, we were still debating about the actual 
-voltage at OMAP ball level, while there is a secondary voltage called 
-cap voltage - we have been discussing on this for some time. I suggest 
-strongly that we dont touch this for the time being (the voltage in 
-mainline is slightly higher - let it be so till the h/w folks finalize 
-things).
-
->   	/* MPU OPP3 - OPP-Turbo */
-> -	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
-> +	OPP_INITIALIZER("mpu", true, 800000000, 1260000),
-I disagree.  This is not $subject. Also - not all boards will be capable 
-of supporting all higher frequencies rt? - remember the 3630 experience? 
-is'nt it wiser to enable it based on board capabilities - e.g. similar 
-to the patch I did for beagle XM yesterday - we wont be able to enable 
-higher frequencies on SDP3630 as we have not guarenteed with PDN 
-analysis that it is ok.
-
->   	/* MPU OPP4 - OPP-SB */
-> -	OPP_INITIALIZER("mpu", false, 1008000000, 1350000),
-> +	OPP_INITIALIZER("mpu", true, 1008000000, 1350000),
->   	/* L3 OPP1 - OPP50 */
->   	OPP_INITIALIZER("l3_main_1", true, 100000000, 930000),
->   	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
+>> Reported-by: Koen Kooi<koen@beagleboard.org>
+>> Tested-by: Koen Kooi<koen@beagleboard.org>
+>>
+>> Signed-off-by: Nishanth Menon<nm@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/board-omap3beagle.c |   50 +++++++++++++++++++++++++++++++
+>>   1 files changed, 50 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+>> index 6c12760..0b99b80 100644
+>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>> @@ -23,6 +23,7 @@
+>>   #include<linux/gpio.h>
+>>   #include<linux/input.h>
+>>   #include<linux/gpio_keys.h>
+>> +#include<linux/opp.h>
+>>
+>>   #include<linux/mtd/mtd.h>
+>>   #include<linux/mtd/partitions.h>
+>> @@ -44,10 +45,12 @@
+>>   #include<plat/gpmc.h>
+>>   #include<plat/nand.h>
+>>   #include<plat/usb.h>
+>> +#include<plat/omap_device.h>
+>>
+>>   #include "mux.h"
+>>   #include "hsmmc.h"
+>>   #include "timer-gp.h"
+>> +#include "pm.h"
+>>
+>>   #define NAND_BLOCK_SIZE		SZ_128K
+>>
+>> @@ -556,6 +559,52 @@ static struct omap_musb_board_data musb_board_data = {
+>>   	.power			= 100,
+>>   };
+>>
+>> +static void __init beagle_opp_init(void)
+>> +{
+>> +	int r = 0;
+>> +
+>> +	/* Initialize the omap3 opp table */
+>> +	if (omap3_opp_init()) {
+>> +		pr_err("%s: opp default init failed\n", __func__);
+>> +		return;
+>> +	}
+>> +
+>> +	/* Custom OPP enabled for XM */
+>> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+>> +		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
+>> +		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
+>> +		struct device *dev;
+>> +
+>> +		if (!mh || !dh) {
+>> +			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
+>> +				__func__, mh, dh);
+>> +			r = -EINVAL;
+>> +		} else {
+>> +			/* Enable MPU 1GHz and lower opps */
+>> +			dev =&mh->od->pdev.dev;
+>> +			r = opp_enable(dev, 800000000);
+>> +			/* TODO: MPU 1GHz needs SR and ABB */
+>> +
+>> +			/* Enable IVA 800MHz and lower opps */
+>> +			dev =&dh->od->pdev.dev;
+>> +			r |= opp_enable(dev, 660000000);
+>> +			/* TODO: DSP 800MHz needs SR and ABB */
+>> +		}
+>> +		if (r) {
+>> +			pr_err("%s: failed to enable higher opp %d\n",
+>> +				__func__, r);
+>> +			/*
+>> +			 * Cleanup - disable the higher freqs - we dont care
+>> +			 * about the results
+>> +			 */
+>> +			dev =&mh->od->pdev.dev;
+>> +			opp_disable(dev, 800000000);
+>> +			dev =&dh->od->pdev.dev;
+>> +			opp_disable(dev, 660000000);
+>> +		}
+>> +	}
+>> +}
+>> +
+>>   static void __init omap3_beagle_init(void)
+>>   {
+>>   	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+>> @@ -579,6 +628,7 @@ static void __init omap3_beagle_init(void)
+>>   	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+>>
+>>   	beagle_display_init();
+>> +	beagle_opp_init();
+>>   }
+>>
+>>   MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
 
 
 -- 
