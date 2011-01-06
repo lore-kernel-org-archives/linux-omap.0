@@ -1,118 +1,172 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 1/1] arm: omap: gpio: define .disable callback for gpio
- irq chip
-Date: Thu, 6 Jan 2011 08:24:04 +0200
-Message-ID: <20110106062404.GA14141@besouro.research.nokia.com>
-References: <1294250283-18182-1-git-send-email-eduardo.valentin@nokia.com>
- <20110105181918.GB8717@n2100.arm.linux.org.uk>
- <20110105192425.GA24729@besouro.research.nokia.com>
- <87aajfvstw.fsf@ti.com>
-Reply-To: eduardo.valentin@nokia.com
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [RESEND #2] [PATCH v2] LEDS: Add output invertion option to backlight trigger
+Date: Thu, 6 Jan 2011 16:08:16 +0900
+Message-ID: <20110106070816.GA15914@linux-sh.org>
+References: <201012091441.51846.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:20533 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751118Ab1AFG3j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Jan 2011 01:29:39 -0500
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:44275 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753612Ab1AFHKO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 02:10:14 -0500
 Content-Disposition: inline
-In-Reply-To: <87aajfvstw.fsf@ti.com>
+In-Reply-To: <201012091441.51846.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@ti.com>
-Cc: eduardo.valentin@nokia.com, ext Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Richard Purdie <rpurdie@rpsys.net>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>
 
-On Wed, Jan 05, 2011 at 03:22:51PM -0800, ext Kevin Hilman wrote:
-> Eduardo Valentin <eduardo.valentin@nokia.com> writes:
+(Trying an alternate address for Richard, and adding Andrew to Cc..)
+
+On Thu, Dec 09, 2010 at 02:41:50PM +0100, Janusz Krzysztofik wrote:
+> This patch extends the LED backlight tirgger driver with an option that allows 
+> for inverting the trigger output polarity.
 > 
-> > Hello Russell,
-> >
-> > On Wed, Jan 05, 2011 at 06:19:18PM +0000, Russell King wrote:
-> >> On Wed, Jan 05, 2011 at 07:58:03PM +0200, Eduardo Valentin wrote:
-> >> > Currently, if one calls disable_irq(gpio_irq), the irq
-> >> > won't get disabled.
-> >> > 
-> >> > This is happening because the omap gpio code defines only
-> >> > a .mask callback. And the default_disable function is just
-> >> > a stub. The result is that, when someone calls disable_irq
-> >> > for an irq in a gpio line, it will be kept enabled.
-> >> > 
-> >> > This patch solves this issue by setting the .disable
-> >> > callback to point to the same .mask callback.
-> >> 
-> >> Amd this is a problem because?
-> >
-> > errr.. because the interrupt is enabled when it was supposed to be disabled?
-> >
+> With the invertion option provided, I (ab)use the backlight trigger for 
+> driving a LED that indicates LCD display blank condtition on my Amstrad Delta 
+> videophone. Since the machine has no dedicated power LED, it was not possible 
+> to distinguish if the display was blanked, or the machine was turned off, 
+> without touching it.
 > 
-> As Russell pointed out, it's not actually "supposed" to be.
+> The invert sysfs control is patterned after a similiar function of the GPIO 
+> trigger driver.
 > 
-> With lazy disable, what disable_irq() does is prevent the *handler* from
-> ever being called.  If another interrupt arrives, it will be caught by
-> the genirq core, marked as IRQ_PENDING and then masked.  This "don't
-> disable unless we really have to" is the desired behavior of the lazy
-> disable feature.
-
-Right. I'm convinced that the handler won't be called because of the lazy
-disable mechanism.
-
+> Created and tested against linux-2.6.36-rc5 on Amstrad Delta.
+> Retested on linux-2.6.37-rc4.
 > 
-> >> 
-> >> The way this works is that although it isn't disabled at that point,
-> >> if it never triggers, then everything remains happy.  However, if it
-> >> does trigger, the genirq code will then mask the interrupt and won't
-> >> call the handler.
-> >
-> > Right.. I didn't see from this point. I will check how that gets unmasked.
-> > But even so, if I understood correctly what you described, it would still
-> > open a time window which the system would see at least 1 interrupt during
-> > the time it was not suppose to. And that can wakeup a system which  is in
-> > deep sleep mode, either via dynamic idle or static suspend.
-> >
-> > It is unlikely, I know. But it can still happen. And can be avoided.
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> ---
 > 
-> If the GPIO is configured as a wakeup source, then wouldn't you want
-> activity on that GPIO to wake up the system?
-
-Yes I would want it.. of course, if the interrupt is enabled though..
-
-I'm still trying to find a valid situation where someone disables an irq
-but still wants its activity to be a wakeup source. I couldn't find so far..
-
-
+> Resent because I still can't see any response received, while yet another 
+> merge window is going to pass away soon.
 > 
-> If you don't want wakeups on that GPIO, then the driver should probably
-> be using disable_irq_wake().
-
-Yes. Let's take this situation. Let's assume a driver, at its suspend callback,
-explicitly reports to the system that its irq can be disabled and also should
-not be seen as a wakeup source, by calling disable_irq(gpio_irq) and
-disable_irq_wake(gpio_irq).
-
-What should be the expected system behavior when the user says echo mem > /sys/power/state?
-
->From the point we are done with devices suspend, that gpio will still
-be marked as an irq, at the bank level. But its corresponding pad will
-have its wakeup bit disabled. Would that work? I think yes, in most cases.
-
-Now let's take the WFI instruction as a divisor for 2 situations:
-
-A - common / working case: an interrupt on that gpio still happens after the WFI instruction.
-Since the system is in sleep mode and the pad for that gpio is not wakeup
-capable, then nothing would happen and the system won't wakeup. Then, I think
-everyone is happy here.
-
-B - corner case: an interrupt on that gpio happens before the WFI instruction.
-Since the system is active, the gpio bank can still report this interrupt
-and will do it. The suspend won't happen due to a irq which has been
-explicitly marked as disabled and wakeup incapable.
-
-Then, would that be the expected behavior? Assuming that the driver
-has explicitly said to the system, you should not bother about this at all.
-
+> Applies cleanly on top of 2.6.37-rc4, so no need for yet another refresh. Only 
+> tried to clean up the commit message slightly - maybe my English is not good 
+> enough to bother with, if not the code?
 > 
-> Kevin
+> v1 -> v2 changes:
+> - improve some conditional expressions to be more readable; thanks to Ralph 
+>   Corderoy (from e3-hacking) and Lars-Peter Clausen for their suggestions,
+> - refresh against linux-2.6.36-rc5.
 > 
-
--- 
-Eduardo Valentin
+>  drivers/leds/ledtrig-backlight.c |   60 
+> ++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 56 insertions(+), 4 deletions(-)
+> 
+> diff -upr linux-2.6.36-rc5.orig/drivers/leds/ledtrig-backlight.c linux-2.6.36-rc5/drivers/leds/ledtrig-backlight.c
+> --- linux-2.6.36-rc5.orig/drivers/leds/ledtrig-backlight.c	2010-09-24 15:35:13.000000000 +0200
+> +++ linux-2.6.36-rc5/drivers/leds/ledtrig-backlight.c	2010-10-03 15:59:49.000000000 +0200
+> @@ -26,6 +26,7 @@ struct bl_trig_notifier {
+>  	int brightness;
+>  	int old_status;
+>  	struct notifier_block notifier;
+> +	unsigned invert;
+>  };
+>  
+>  static int fb_notifier_callback(struct notifier_block *p,
+> @@ -36,23 +37,63 @@ static int fb_notifier_callback(struct n
+>  	struct led_classdev *led = n->led;
+>  	struct fb_event *fb_event = data;
+>  	int *blank = fb_event->data;
+> +	int new_status = *blank ? BLANK : UNBLANK;
+>  
+>  	switch (event) {
+>  	case FB_EVENT_BLANK :
+> -		if (*blank && n->old_status == UNBLANK) {
+> +		if (new_status == n->old_status)
+> +			break;
+> +
+> +		if ((n->old_status == UNBLANK) ^ n->invert) {
+>  			n->brightness = led->brightness;
+>  			led_set_brightness(led, LED_OFF);
+> -			n->old_status = BLANK;
+> -		} else if (!*blank && n->old_status == BLANK) {
+> +		} else {
+>  			led_set_brightness(led, n->brightness);
+> -			n->old_status = UNBLANK;
+>  		}
+> +
+> +		n->old_status = new_status;
+> +
+>  		break;
+>  	}
+>  
+>  	return 0;
+>  }
+>  
+> +static ssize_t bl_trig_invert_show(struct device *dev,
+> +		struct device_attribute *attr, char *buf)
+> +{
+> +	struct led_classdev *led = dev_get_drvdata(dev);
+> +	struct bl_trig_notifier *n = led->trigger_data;
+> +
+> +	return sprintf(buf, "%s\n", n->invert ? "yes" : "no");
+> +}
+> +
+> +static ssize_t bl_trig_invert_store(struct device *dev,
+> +		struct device_attribute *attr, const char *buf, size_t num)
+> +{
+> +	struct led_classdev *led = dev_get_drvdata(dev);
+> +	struct bl_trig_notifier *n = led->trigger_data;
+> +	unsigned invert;
+> +	int ret;
+> +
+> +	ret = sscanf(buf, "%u", &invert);
+> +	if (ret < 1) {
+> +		dev_err(dev, "invalid value\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	n->invert = !!invert;
+> +
+> +	/* After inverting, we need to update the LED. */
+> +	if ((n->old_status == BLANK) ^ n->invert)
+> +		led_set_brightness(led, LED_OFF);
+> +	else
+> +		led_set_brightness(led, n->brightness);
+> +
+> +	return num;
+> +}
+> +static DEVICE_ATTR(invert, 0644, bl_trig_invert_show, bl_trig_invert_store);
+> +
+>  static void bl_trig_activate(struct led_classdev *led)
+>  {
+>  	int ret;
+> @@ -66,6 +107,10 @@ static void bl_trig_activate(struct led_
+>  		return;
+>  	}
+>  
+> +	ret = device_create_file(led->dev, &dev_attr_invert);
+> +	if (ret)
+> +		goto err_invert;
+> +
+>  	n->led = led;
+>  	n->brightness = led->brightness;
+>  	n->old_status = UNBLANK;
+> @@ -74,6 +119,12 @@ static void bl_trig_activate(struct led_
+>  	ret = fb_register_client(&n->notifier);
+>  	if (ret)
+>  		dev_err(led->dev, "unable to register backlight trigger\n");
+> +
+> +	return;
+> +
+> +err_invert:
+> +	led->trigger_data = NULL;
+> +	kfree(n);
+>  }
+>  
+>  static void bl_trig_deactivate(struct led_classdev *led)
+> @@ -82,6 +133,7 @@ static void bl_trig_deactivate(struct le
+>  		(struct bl_trig_notifier *) led->trigger_data;
+>  
+>  	if (n) {
+> +		device_remove_file(led->dev, &dev_attr_invert);
+>  		fb_unregister_client(&n->notifier);
+>  		kfree(n);
+>  	}
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
