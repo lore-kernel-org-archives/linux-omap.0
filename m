@@ -1,44 +1,49 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: linux-next: manual merge of the usb tree with the omap tree
-Date: Thu, 06 Jan 2011 10:15:41 -0800
-Message-ID: <87pqs9vqya.fsf@ti.com>
-References: <20101223171859.f6842045.sfr@canb.auug.org.au>
-	<4D139517.3010608@ti.com>
-	<AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com>
-	<4ce0f816f951f24ca3de9c84d9f70842@mail.gmail.com>
-	<4D25E313.4060202@heeltoe.com>
-	<8B3471BB-CB3F-4CE6-B523-D9C5E87B9CEC@dominion.thruhere.net>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: 4430SDP boot failure
+Date: Thu, 6 Jan 2011 18:17:54 +0000
+Message-ID: <20110106181754.GA8975@n2100.arm.linux.org.uk>
+References: <20110106170805.GE1198@n2100.arm.linux.org.uk> <20110106180030.GA8249@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8B3471BB-CB3F-4CE6-B523-D9C5E87B9CEC@dominion.thruhere.net>
-	(Koen Kooi's message of "Thu, 6 Jan 2011 17:59:21 +0100")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: Brad Parker <brad@heeltoe.com>, Anand Gadiyar <gadiyar@ti.com>, Ming Lei <tom.leiming@gmail.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45576 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752308Ab1AFSR7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:17:59 -0500
+Received: from n2100.arm.linux.org.uk ([2002:4e20:1eda:1:214:fdff:fe10:4f86])
+	by caramon.arm.linux.org.uk with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.72)
+	(envelope-from <linux@arm.linux.org.uk>)
+	id 1PauPM-0000yB-FF
+	for linux-omap@vger.kernel.org; Thu, 06 Jan 2011 18:17:56 +0000
+Received: from linux by n2100.arm.linux.org.uk with local (Exim 4.72)
+	(envelope-from <linux@n2100.arm.linux.org.uk>)
+	id 1PauPL-0002O7-1h
+	for linux-omap@vger.kernel.org; Thu, 06 Jan 2011 18:17:55 +0000
+Content-Disposition: inline
+In-Reply-To: <20110106180030.GA8249@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Koen Kooi <koen@dominion.thruhere.net> writes:
+On Thu, Jan 06, 2011 at 06:00:30PM +0000, Russell King - ARM Linux wrote:
+> Therefore, I believe the debugging address calculation stuff in
+> arch/arm/mach-omap2/include/mach/debug-macros.S to be rather broken,
+> causing an abort when it tries to access the serial port.
 
-> Op 6 jan 2011, om 16:43 heeft Brad Parker het volgende geschreven:
->
->> It's probably expected, but I can't get the EHCI USB port  to work
->> on a beagle board XM (36xx) using the current omap tree.
->> 
->> It this most likely due to these clock issues?
->
-> You need this patch: http://thread.gmane.org/gmane.linux.ports.arm.omap/47807/
->
-> I'm currently too lazy to split it up like Nishant wants as I don't
-> see the point splitting for the sake of splitting.--
+I'm sorry, I think this crap has to go.  Trying to make it fit every
+platform in one kernel is just too complicated.  It _needs_ to be
+something so damned simple that it always works without fail, every
+single time someone wants to use it.
 
-IMO, it doesn't need to be split up.
+The current code really hasn't a hope of doing that.
 
-But it does have to fix the other comments I made on the same thread[1]
+Yes, that means you only configure it when you're not building a multi-
+platform kernel, but that's worth giving up if in return we have something
+that is 100% reliable.
 
-1) add a descriptive changelog, and
-2) Cc linux-arm-kernel
-
-Kevin
-
-[1] http://article.gmane.org/gmane.linux.ports.arm.omap/48920
+As it is, I need to invent new debugging code to debug this mess.  Sorry,
+I'm actually not going to bother - as the LL debug stuff was my debugging
+code to debug exactly these kinds of boot problems.  Someone else can have
+the pain of sorting out this breakage, and tell me when they expect OMAP
+to work again.
