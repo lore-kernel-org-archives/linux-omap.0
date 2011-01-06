@@ -1,50 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 4430SDP boot failure
-Date: Thu, 6 Jan 2011 10:25:56 -0800
-Message-ID: <20110106182555.GW7771@atomide.com>
-References: <20110106170805.GE1198@n2100.arm.linux.org.uk>
- <20110106180030.GA8249@n2100.arm.linux.org.uk>
- <20110106181754.GA8975@n2100.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: linux-next: manual merge of the usb tree with the omap tree
+Date: Thu, 6 Jan 2011 11:27:22 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101061126440.31961@utopia.booyaka.com>
+References: <20101223171859.f6842045.sfr@canb.auug.org.au> <4D139517.3010608@ti.com> <AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com> <4ce0f816f951f24ca3de9c84d9f70842@mail.gmail.com> <4D25E313.4060202@heeltoe.com>
+ <8B3471BB-CB3F-4CE6-B523-D9C5E87B9CEC@dominion.thruhere.net> <87pqs9vqya.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46934 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751686Ab1AFS0H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:26:07 -0500
-Content-Disposition: inline
-In-Reply-To: <20110106181754.GA8975@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87pqs9vqya.fsf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, Brad Parker <brad@heeltoe.com>, Anand Gadiyar <gadiyar@ti.com>, Ming Lei <tom.leiming@gmail.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110106 10:17]:
-> On Thu, Jan 06, 2011 at 06:00:30PM +0000, Russell King - ARM Linux wrote:
-> > Therefore, I believe the debugging address calculation stuff in
-> > arch/arm/mach-omap2/include/mach/debug-macros.S to be rather broken,
-> > causing an abort when it tries to access the serial port.
-> 
-> I'm sorry, I think this crap has to go.  Trying to make it fit every
-> platform in one kernel is just too complicated.  It _needs_ to be
-> something so damned simple that it always works without fail, every
-> single time someone wants to use it.
-> 
-> The current code really hasn't a hope of doing that.
-> 
-> Yes, that means you only configure it when you're not building a multi-
-> platform kernel, but that's worth giving up if in return we have something
-> that is 100% reliable.
-> 
-> As it is, I need to invent new debugging code to debug this mess.  Sorry,
-> I'm actually not going to bother - as the LL debug stuff was my debugging
-> code to debug exactly these kinds of boot problems.  Someone else can have
-> the pain of sorting out this breakage, and tell me when they expect OMAP
-> to work again.
+On Thu, 6 Jan 2011, Kevin Hilman wrote:
 
-Something that could help with the DEBUG_LL code is to pass optional
-debug UART info masked into the machine_id using the high bits..
+> Koen Kooi <koen@dominion.thruhere.net> writes:
+> 
+> > Op 6 jan 2011, om 16:43 heeft Brad Parker het volgende geschreven:
+> >
+> >> It's probably expected, but I can't get the EHCI USB port  to work
+> >> on a beagle board XM (36xx) using the current omap tree.
+> >> 
+> >> It this most likely due to these clock issues?
+> >
+> > You need this patch: http://thread.gmane.org/gmane.linux.ports.arm.omap/47807/
+> >
+> > I'm currently too lazy to split it up like Nishant wants as I don't
+> > see the point splitting for the sake of splitting.--
+> 
+> IMO, it doesn't need to be split up.
+> 
+> But it does have to fix the other comments I made on the same thread[1]
+> 
+> 1) add a descriptive changelog, and
+> 2) Cc linux-arm-kernel
 
-Regards,
+and glancing at the patch
 
-Tony
+3) Fix the multiline comments to conform to Documentation/CodingStyle
+
+as I think Nishanth mentioned.
+
+
+- Paul
