@@ -1,102 +1,85 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: 4430SDP boot failure
-Date: Thu, 6 Jan 2011 12:40:54 -0800
-Message-ID: <20110106204053.GA7771@atomide.com>
-References: <20110106170805.GE1198@n2100.arm.linux.org.uk>
- <20110106180030.GA8249@n2100.arm.linux.org.uk>
- <20110106182023.GV7771@atomide.com>
- <20110106203238.GH1198@n2100.arm.linux.org.uk>
+Date: Thu, 6 Jan 2011 20:51:07 +0000
+Message-ID: <20110106205107.GI1198@n2100.arm.linux.org.uk>
+References: <20110106170805.GE1198@n2100.arm.linux.org.uk> <20110106180030.GA8249@n2100.arm.linux.org.uk> <20110106182023.GV7771@atomide.com> <20110106195225.GX7771@atomide.com> <20110106203431.GZ7771@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53899 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751838Ab1AFUlG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 15:41:06 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52499 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752489Ab1AFUvP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 15:51:15 -0500
 Content-Disposition: inline
-In-Reply-To: <20110106203238.GH1198@n2100.arm.linux.org.uk>
+In-Reply-To: <20110106203431.GZ7771@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110106 12:32]:
-> On Thu, Jan 06, 2011 at 10:20:23AM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [110106 10:00]:
-> > > can't be in the BSS section?
-> > 
-> > BSS works too, got a patch for that?
+On Thu, Jan 06, 2011 at 12:34:32PM -0800, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [110106 11:52]:
+> > --- a/arch/arm/boot/compressed/head.S
+> > +++ b/arch/arm/boot/compressed/head.S
+> > @@ -71,6 +71,23 @@ wait:		mrc	p14, 0, pc, c0, c1, 0
+> >  		mov	\rb, #0x50000000
+> >  		add	\rb, \rb, #0x4000 * CONFIG_S3C_LOWLEVEL_UART_PORT
+> >  		.endm
+> > +#elif defined(CONFIG_ARCH_OMAP2PLUS)
+> > +#include <plat/multi.h>
+> > +#ifdef MULTI_OMAP2)
+>                      ^
+> Looks like my last change to this patch from if defined to ifdef
+> broke the warning above with an unbalanced bracket..
 > 
-> Yes.
-> 
-> sed -i '/\.pushsection \.data/,/\.popsection/ {
-> 	s/\.data/.bss/;
-> 	s/.word\t0/.space\t4/;
-> }' arch/arm/mach-omap2/include/mach/debug-macro.S
+> Thanks Nishant for catching that, updated patch below.
 
-That does not work as BSS gets cleared in head-common.S.. See my other patch.
- 
-> > Can you please check if you have some older bootloader that passes
-> > some wrong machine ID? 
-> 
-> If previous kernels didn't explicitly force the SDP4430 platform ID
-> number (which they didn't for OMAP back to 2007), then it must be
-> correct as previous kernels booted fine when only configured for
-> the SDP4430.
-> 
-> It must also be correct as the decompressor can select the correct port
-> for outputting the "Decompressing kernel..." message.
-> 
-> So by implication I think we can say that the ID number is correct.
+Just tried that patch, but I now have bigger problems:
 
-OK thanks.
- 
-> I've just tried forcing it to use OMAP4 UART3, which seems to be what
-> the decompressor is using for its output:
-> 
-> 0000090c <puts>:
->      90c:       e3a03802        mov     r3, #131072     ; 0x20000
->      910:       e38314fa        orr     r1, r3, #-100663296     ; 0xfa000000
->      914:       e3833312        orr     r3, r3, #1207959552     ; 0x48000000
->      918:       e4d02001        ldrb    r2, [r0], #1
->      91c:       e3320000        teq     r2, #0  ; 0x0
->      920:       01a0f00e        moveq   pc, lr
->      924:       e5c32000        strb    r2, [r3]
->      928:       e3a01802        mov     r1, #131072     ; 0x20000
->      92c:       e2511001        subs    r1, r1, #1      ; 0x1
->      930:       1afffffd        bne     92c <puts+0x20>
->      934:       e332000a        teq     r2, #10 ; 0xa
->      938:       03a0200d        moveq   r2, #13 ; 0xd
->      93c:       0afffff8        beq     924 <puts+0x18>
->      940:       e3300000        teq     r0, #0  ; 0x0
->      944:       1afffff3        bne     918 <puts+0xc>
->      948:       e1a0f00e        mov     pc, lr
-> 
-> 0x48020000 is the only UART address contained within the disassembly for
-> the decompressor to use, so that must be the correct address.
-> 
-> However, even with that, it causes the 'X-Loader hangs' before producing
-> any output.  No idea what to try next - and it's soo much hastle to keep
-> moving SD cards around - which the laptop sometimes doesn't recognise -
-> just to try new kernels that I'm wasting quite a bit of effort on each
-> iteration it's untrue.
-> 
-> As I said previously, I think someone else can look into this - someone
-> who understands the hardware quirks of OMAP, who has a decent test setup,
-> and has the tools necessary to do hardware debug on OMAP.
+OMAP44XX SDP # mmcinit 0
+OMAP44XX SDP # fatload mmc 0 0x80300000 uImage-test
 
-I think I got it fixed, see the other patch I just posted.
- 
-> (If it could do dhcp/tftp - and be configured to do that from powerup
-> without interruption, then I might feel differently as that would
-> significantly reduce the hastle factor and amount of time involved with
-> testing each iteration.)
+0 bytes read
+OMAP44XX SDP #
 
-Yes these new boards badly need the Ethernet working in u-boot..
+God knows why it's doing this now, as the file is present on the SD
+card:
 
-Anyways, I can debug the DEBUG_LL booting issue further if the patch
-I posted does not help.
+-rwxr-xr-x. 1 rmk rmk 1836636 Jan  6 20:35 uImage-test
 
-Regards,
+is what's on the SD card - with no FAT errors:
 
-Tony
+$ fsck.msdos /dev/mmcblk0p1
+dosfsck 3.0.1, 23 Nov 2008, FAT32, LFN
+/dev/mmcblk0p1: 8 files, 10249/142266 clusters
+
+The file's not corrupt either:
+
+$ md5sum /media/boot/uImage-test
+be3edd928f1dbb3c15215b1a8a62fa1f  /media/boot/uImage-test
+$ md5sum ../build/omap4/arch/arm/boot/uImage
+be3edd928f1dbb3c15215b1a8a62fa1f  ../build/omap4/arch/arm/boot/uImage
+
+Nope, still won't work:
+
+OMAP44XX SDP # setenv bootargs 'root=/dev/mmcblk0p2 rw mem=512M vmalloc=1G console=ttyO2,115200n8 rootdelay=2'
+OMAP44XX SDP # mmcinit 0
+OMAP44XX SDP # fatload mmc 0 0x80300000 uImage-test
+
+0 bytes read
+OMAP44XX SDP #
+
+However, it can still boot the uImage contained on the SD card, so the
+card must be okay, and the SDP must still be able to successfully read
+from the card.  I can only assume that uboot's FAT support is buggered
+in some way.
+
+We _really_ need a _decent_ boot loader on these boards, one which can
+do network booting _and_ can be configured to do so from bootup.  SD
+cards just don't hack it for kernel development.  It's a far too long-
+winded process for each cycle, and with all the additional problems
+(such as SD cards not being recognised 50% of the time, FAT filesystem
+bugs in boot loaders, etc) it's really not funny.
+
+So, I give up at this point with the OMAP4430SDP board.  It's not worth
+spending the time with this kind of unreliability.
