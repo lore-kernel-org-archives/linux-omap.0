@@ -1,51 +1,35 @@
-From: Koen Kooi <koen@beagleboard.org>
-Subject: Re: [PATCH v3 0/3] OMAP3: beaglexm: GPIO fixes
-Date: Thu, 6 Jan 2011 20:57:45 +0100
-Message-ID: <57D491AC-1370-455D-B425-FB047EB70634@beagleboard.org>
-References: <1294343679-10605-1-git-send-email-nm@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [lm-sensors] [PATCH v3] hwmon: twl4030: Driver for twl4030
+ madc module
+Date: Thu, 6 Jan 2011 20:21:42 +0000
+Message-ID: <20110106202142.GC8018@opensource.wolfsonmicro.com>
+References: <1294287457-2438-1-git-send-email-j-keerthy@ti.com>
+ <20110106053328.GA7489@ericsson.com>
+ <20110106120713.GD17184@sirena.org.uk>
+ <20110106150430.GA9053@ericsson.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:46261 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761Ab1AFT6J convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 14:58:09 -0500
-Received: by wwi17 with SMTP id 17so17371747wwi.1
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 11:58:07 -0800 (PST)
-In-Reply-To: <1294343679-10605-1-git-send-email-nm@ti.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40733 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751907Ab1AFUV0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 15:21:26 -0500
+Content-Disposition: inline
+In-Reply-To: <20110106150430.GA9053@ericsson.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Tony <tony@atomide.com>
+To: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Keerthy <j-keerthy@ti.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balajitk@ti.com" <balajitk@ti.com>
 
-Thanks for splitting it up! Now I can work on the patches for xM rev C where the pins changed again :)
+On Thu, Jan 06, 2011 at 07:04:30AM -0800, Guenter Roeck wrote:
+> On Thu, Jan 06, 2011 at 07:07:13AM -0500, Mark Brown wrote:
 
-Op 6 jan 2011, om 20:54 heeft Nishanth Menon het volgende geschreven:
+> > Why?  It's not like hwmon has an unreasonably large core or similar.
 
-> Hi,
-> As discussed in the threads:
-> http://thread.gmane.org/gmane.linux.ports.arm.omap/47807/
-> http://marc.info/?t=121540030800004&r=1&w=2
-> 
-> here is the split up series with commit message after discussion:
-> http://www.beagleboard.org/irclogs/index.php?date=2011-01-06#T19:12:21
-> 
-> Koen Kooi (3):
->  omap3: beaglexm: fix EHCI power up GPIO dir
->  omap3: beaglexm: fix DVI reset GPIO
->  omap3: beaglexm: power on DVI
-> 
-> arch/arm/mach-omap2/board-omap3beagle.c |   37 ++++++++++++++++++++++++++----
-> 1 files changed, 32 insertions(+), 5 deletions(-)
-> 
-> v3:
-> 	split up the series, addressed review comments
-> 
-> v2: http://marc.info/?t=129276977900002&r=1&w=2
-> 	Reenable the PMU stat LED
-> v1: http://marc.info/?t=129172571000001&r=1&w=2
-> 
-> Regards,
-> Nishanth Menon
+> Because it creates an unnecessary dependency, and because it is not hwmon's 
+> responsibility to provide infrastructure for other subsystems or drivers.
 
+hwmon isn't really doing anything, though.  The *driver* is doing
+something but it doesn't really impact the core that much.  Not that I'm
+particularly sold on putting the ADC core in here, but total NACK based
+on that alone seems rather harsh.
