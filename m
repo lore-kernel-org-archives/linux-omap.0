@@ -1,55 +1,85 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: Errors when building for omap4 only
-Date: Thu, 6 Jan 2011 19:25:34 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930248201A31@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59302482019D4@dbde02.ent.ti.com>
- <568127b70200733a61aa8c358fb49292@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] arm: mach-omap2: pm: cleanup !CONFIG_SUSPEND handling
+Date: Thu, 6 Jan 2011 13:58:10 +0000
+Message-ID: <20110106135810.GB1198@n2100.arm.linux.org.uk>
+References: <1293640483-25610-1-git-send-email-aaro.koskinen@nokia.com> <874o9mvpxf.fsf@ti.com> <20110106111957.GA1198@n2100.arm.linux.org.uk> <BC214410FD04D84F9079A62423659707164311@008-AM1MPN1-003.mgdnok.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49880 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751914Ab1AFNzm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 08:55:42 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p06Dtd61003231
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 6 Jan 2011 07:55:41 -0600
-In-Reply-To: <568127b70200733a61aa8c358fb49292@mail.gmail.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55785 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752289Ab1AFN60 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 08:58:26 -0500
+Content-Disposition: inline
+In-Reply-To: <BC214410FD04D84F9079A62423659707164311@008-AM1MPN1-003.mgdnok.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+To: aaro.koskinen@nokia.com
+Cc: khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
- 
-
-> -----Original Message-----
-> From: Shilimkar, Santosh 
-> Sent: Thursday, January 06, 2011 7:19 PM
-> To: Premi, Sanjeev; linux-omap Mailing List
-> Subject: RE: Errors when building for omap4 only
+On Thu, Jan 06, 2011 at 12:05:51PM +0000, aaro.koskinen@nokia.com wrote:
+> Hi,
 > 
-> Sanjeev,
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
-> > Sent: Thursday, January 06, 2011 6:18 PM
-> > To: linux-omap Mailing List
-> > Subject: Errors when building for omap4 only
+> Russell King - ARM Linux [linux@arm.linux.org.uk]:
+> > > > -static struct platform_suspend_ops omap_pm_ops = {
+> > > > -   .begin          = omap2_pm_begin,
+> > > > -   .enter          = omap2_pm_enter,
+> > > > -   .end            = omap2_pm_end,
+> > > > -   .valid          = suspend_valid_only_mem,
+> > > > +static const struct platform_suspend_ops omap_pm_ops[] = {
+> > > > +   {
+> > > > +           .begin          = omap2_pm_begin,
+> > > > +           .enter          = omap2_pm_enter,
+> > > > +           .end            = omap2_pm_end,
+> > > > +           .valid          = suspend_valid_only_mem,
+> > > > +   }
+> > > >  };
+> > > > -#else
+> > > > -static const struct platform_suspend_ops __initdata omap_pm_ops;
+> > > >  #endif /* CONFIG_SUSPEND */
+> > > >
+> > > >  /* XXX This function should be shareable between OMAP2xxx and OMAP3 */
+> > > > @@ -582,7 +582,7 @@ static int __init omap2_pm_init(void)
+> > > >                                                 omap24xx_cpu_suspend_sz);
+> > > >     }
+> > > >
+> > > > -   suspend_set_ops(&omap_pm_ops);
+> > > > +   suspend_set_ops(omap_pm_ops);
 > >
-> > Hi all,
-> >
-> > I was trying to build OMAP4 only kernel from the linux-omap master.
-> > Came across few failures caused by exclusion of OMAP3/3 specific
-> > code via #ifdef.
-> >
-> These are addressed already. You could look at below series
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41712.html
+> > Utterly yuck.  Declaring it as a single element array just to avoid an
+> > ifdef.  That's worse than having an ifdef here.
 > 
+> Why it is worse? Reducing the amount of different preprocessor branches will
+> result in better compile test / static analysis coverage.
 
-Great! I missed the series.
+You're not doing that.  You're just spreading the yuck around making it
+far worse:
 
-Question (after quick browse): Don't addition stubs add too many strings to the code?
+- in some header file
+#ifndef CONFIG_FOO
+#define omap_pm_ops NULL
+#endif
 
-~sanjeev
+- in lots of C files
+#ifdef CONFIG_FOO
+static const struct platform_suspend_ops omap_pm_ops[] = {
+	{
+		...
+	}
+};
+#endif
+
+	suspend_set_ops(omap_pm_ops);
+
+So, rather than just having the full story in each file, it's spread
+across two files.  Not only that, but over time CONFIG_FOO will probably
+change, and that will lead to compile errors.
+
+You're creating an array just to be able to use the symbol as a pointer.
+That's a hack rather than an elegant solution.
+
+So no, your implementation is _NOT_ a sane approach.
+
+I'm going to explicitly say NAK to your patch here and now.  I really
+don't like it one bit.  It's a complete hack through and through, and
+that hack is spread across many files.
