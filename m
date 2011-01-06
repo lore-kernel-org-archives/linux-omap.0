@@ -1,100 +1,38 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 2/5] omap2plus: prm: Trvial build break fix for undefined reference to 'omap2_prm_read_mod_reg'
-Date: Thu, 06 Jan 2011 10:09:50 -0800
-Message-ID: <87wrmhvr81.fsf@ti.com>
-References: <1294225024-21857-1-git-send-email-santosh.shilimkar@ti.com>
-	<1294225024-21857-2-git-send-email-santosh.shilimkar@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB5930248201A7E@dbde02.ent.ti.com>
-	<65442ed447ba6e1fc8dab9f9d944c03a@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@iki.fi>
+Subject: Re: [PATCH] OMAP: GPIO: fix _set_gpio_triggering() for OMAP2+
+Date: Thu, 6 Jan 2011 20:12:49 +0200
+Message-ID: <20110106181249.GA2466@acer>
+References: <1293620491-7201-1-git-send-email-ext-mika.1.westerberg@nokia.com>
+ <87aajg7dzu.fsf@ti.com>
+ <1294181154.18162.39.camel@localhost>
+ <20110104231721.GO7771@atomide.com>
+ <AANLkTi=-9soJBeSGGUmcKNckzV651y=uJ9co9rByJyQB@mail.gmail.com>
+ <87oc7v1eav.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:46223 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752368Ab1AFSJy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:09:54 -0500
-Received: by mail-gw0-f51.google.com with SMTP id a18so7453970gwa.38
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 10:09:54 -0800 (PST)
-In-Reply-To: <65442ed447ba6e1fc8dab9f9d944c03a@mail.gmail.com> (Santosh
-	Shilimkar's message of "Thu, 6 Jan 2011 20:08:21 +0530")
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:53694 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362Ab1AFSNz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:13:55 -0500
+Received: by fxm20 with SMTP id 20so16247409fxm.19
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 10:13:54 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <87oc7v1eav.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, Tony Lindgren <tony@atomide.com>, Mika Westerberg <ext-mika.1.westerberg@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+Hi Kevin,
 
->> -----Original Message-----
->> From: Premi, Sanjeev [mailto:premi@ti.com]
->> Sent: Thursday, January 06, 2011 8:03 PM
->> To: Shilimkar, Santosh; linux-omap@vger.kernel.org
->> Cc: Hilman, Kevin; tony@atomide.com; linux-arm-
->> kernel@lists.infradead.org; Shilimkar, Santosh; Paul Walmsley
->> Subject: RE: [PATCH v2 2/5] omap2plus: prm: Trvial build break fix
->> for undefined reference to 'omap2_prm_read_mod_reg'
->>
->> > -----Original Message-----
->> > From: linux-omap-owner@vger.kernel.org
->> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->> > Santosh Shilimkar
->> > Sent: Wednesday, January 05, 2011 4:27 PM
->> > To: linux-omap@vger.kernel.org
->> > Cc: Hilman, Kevin; tony@atomide.com;
->> > linux-arm-kernel@lists.infradead.org; Shilimkar, Santosh;
->> > Paul Walmsley
->> > Subject: [PATCH v2 2/5] omap2plus: prm: Trvial build break
->> > fix for undefined reference to 'omap2_prm_read_mod_reg'
->>
->> [snip]
->>
->> >
->> >  #ifndef __ASSEMBLER__
->> > -
->> > +/*
->> > + * Stub omap2xxx/omap3xxx functions so that common files
->> > + * continue to build when custom builds are used
->> > + */
->> > +#if defined(CONFIG_ARCH_OMAP4) &&
->> > !(defined(CONFIG_ARCH_OMAP2) ||	\
->> > +					defined(CONFIG_ARCH_OMAP3))
->> > +static inline u32 omap2_prm_read_mod_reg(s16 module, u16 idx)
->> > +{
->> > +	WARN_ONCE(1, "prm: omap2xxx/omap3xxx specific function and "
->> > +		"not suppose to be used on omap4\n");
->> > +	return 0;
->> > +}
->> Looking forward, the warning of incorrect SOC may be required
->> for when kernel is build for one specific SOC.
->>
->> Wouldn't it be easy/better to have common global function:
->>
->> void wrong_soc(char* func, int soc_id)
->> {
->> 	WARN_ONCE(1, "Function %s cannot be used for %d", func,
->> soc_id);
->> }
->>
->> OR we could have soc specific functions e.g.
->>
->> void omap2xxx_only (char* func)
->> {
->> 	WARN_ONCE(1, "Function %s is specific to OMAP2XXX");
->> }
->> ..etc..
->>
->> Later these functions can be called from the stubs.
->>
->> This is prelim idea, will need to be worked upon.
->>
-> Not sure. May appear like over engineering considering it's a
-> stub.
-> Paul can comment.
+On Wed, Jan 05, 2011 at 08:54:48AM -0800, Kevin Hilman wrote:
+> 
+> I had assumed it was recent changes since the patch didn't apply
+> cleanly, but am glad to be wrong. :)
 
-I guess Sanjeev's approach is meant eliminate duplicate strings that
-waste space.
+The patch should apply cleanly on the latest mainline. Do you want me to
+rebase it against some other tree and resend?
 
-Sanjeev, did you check whether multiple copies of the exact same string
-actually exist in the binary?  I'm wondering if gcc is smart enough to
-only have one copy of the string (but have doubts.)
-
-Kevin
+Thanks,
+MW
