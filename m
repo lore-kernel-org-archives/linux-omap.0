@@ -1,113 +1,315 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] OMAP4 PM: To correct voltages in MPU OPP Table
-Date: Thu, 06 Jan 2011 08:59:04 -0600
-Message-ID: <4D25D8B8.1020808@ti.com>
-References: <1294295222-20035-1-git-send-email-shweta.gulati@ti.com> <4D25B3D2.4030802@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F62E@dbde02.ent.ti.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: linux-next: manual merge of the usb tree with the omap tree
+Date: Thu, 6 Jan 2011 23:02:00 +0800
+Message-ID: <AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com>
+References: <20101223171859.f6842045.sfr@canb.auug.org.au>
+	<4D139517.3010608@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:55277 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752785Ab1AFO7K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 09:59:10 -0500
-Received: by gya6 with SMTP id 6so6812520gya.11
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 06:59:09 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F62E@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <4D139517.3010608@ti.com>
+Sender: linux-next-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Greg KH <greg@kroah.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "Gulati, Shweta" <shweta.gulati@ti.com>, l-o <linux-omap@vger.kernel.org>
 
-Gopinath, Thara had written, on 01/06/2011 08:52 AM, the following:
-> 
->>> -----Original Message-----
->>> From: Menon, Nishanth
->>> Sent: Thursday, January 06, 2011 5:52 PM
->>> To: Gulati, Shweta
->>> Cc: linux-omap@vger.kernel.org; Gopinath, Thara
->>> Subject: Re: [PATCH] OMAP4 PM: To correct voltages in MPU OPP Table
->>>
->>> it is pretty unfortunate that I have to NAK this patch in the public ML
->>> as well.
->>>
->>> shweta.gulati@ti.com wrote, on 01/06/2011 12:27 AM:
->>>> From: Shweta Gulati<shweta.gulati@ti.com>
->>>>
->>>> There is a mismatch in voltages specified in OPP table of MPU
->>>> and voltage specified in voltage table 'omap44xx_vdd_mpu_volt_data'
->>>> This Patch corrects MPU OPP Table as
->>>> well as enable OPP-Turbo and OPP-SB  for MPU by default.
->>>>
->>>> Signed-off-by: Thara Gopinath<thara@ti.com>
->>>> Signed-off-by: Shweta Gulati<shweta.gulati@ti.com>
->>>> ---
->>>> The patch is generated on top of Kevin's PM branch. It's needed for SR
->>>> functionality on the current pm branch. Have tested SR with this patch
->>>> with different OPP configurations from boot loader.
->>>>
->>>>   arch/arm/mach-omap2/opp4xxx_data.c |    8 ++++----
->>>>   1 files changed, 4 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-
->>> omap2/opp4xxx_data.c
->>>> index a11fa56..4f35361 100644
->>>> --- a/arch/arm/mach-omap2/opp4xxx_data.c
->>>> +++ b/arch/arm/mach-omap2/opp4xxx_data.c
->>>> @@ -25,13 +25,13 @@
->>>>
->>>>   static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
->>>>   	/* MPU OPP1 - OPP50 */
->>>> -	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
->>>> +	OPP_INITIALIZER("mpu", true, 300000000, 930000),
->>>>   	/* MPU OPP2 - OPP100 */
->>>> -	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
->>>> +	OPP_INITIALIZER("mpu", true, 600000000, 1100000),
->>>
->>> Did we finalize on the nominal voltages yet?
->>>
->>> As of yesterday's discussion, we were still debating about the actual
->>> voltage at OMAP ball level, while there is a secondary voltage called
->>> cap voltage - we have been discussing on this for some time. I suggest
->>> strongly that we dont touch this for the time being (the voltage in
->>> mainline is slightly higher - let it be so till the h/w folks finalize
->>> things).
-> 
-> Actually no. The latest voltage layer pushed uses these voltages. Also
-Arrgh... another reason to avoid messy duplicate tables!!
-> We have been having this setting in the internal android code base for
-> some time now without anybody having issues. So till the new voltages
-> are conveyed officially, these remain the official voltage.
-Funny,
-how many versions of "internal" code bases are present?
+Hi,
 
-http://dev.omapzoom.org/?p=santosh/kernel-omap4-base.git;a=blob;f=arch/arm/mach-omap2/opp44xx_data.c;h=252e3d0cb6050a64f390b9311c1c4977d74f762a
+2010/12/24 Cousson, Benoit <b-cousson@ti.com>:
+> + Paul "the omap clock guru".
+>
+> At first glance, that seems almost good.
+> Except for a couple of nodes that seems to lose their 3630 support.
+>
+> I'm just wondering why the original usb clock node is
+> kept after the introduction of the "ehci-omap.0" clock
+> node. But this is anyway harmless.
+>
+> What commits are generating this conflict?
+>
+> On 12/23/2010 7:18 AM, Stephen Rothwell wrote:
+>> Hi Greg,
+>>
+>> Today's linux-next merge of the usb tree got a conflict in
+>> arch/arm/mach-omap2/clock3xxx_data.c and
+>> arch/arm/mach-omap2/clock44xx_data.c between various commits from th=
+e omap
+>> tree and various commits from the usb tree.
+>>
+>> I did a quick fix (which may be completely wrong - see below).
+>
+>> diff --cc arch/arm/mach-omap2/clock3xxx_data.c
+>> index 9ab817e,0579604..0000000
+>> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+>> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+>> @@@ -3275,17 -3267,18 +3275,18 @@@ static struct omap_clk omap3xxx_c=
+lks[]
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "gfx_l3_ick", =A0 &gfx_l3_ick, =A0=
+ =A0CK_3430ES1),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "gfx_cg1_ck", =A0 &gfx_cg1_ck, =A0=
+ =A0CK_3430ES1),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "gfx_cg2_ck", =A0 &gfx_cg2_ck, =A0=
+ =A0CK_3430ES1),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "sgx_fck", =A0 =A0 =A0&sgx_fck, =A0=
+ =A0 =A0 CK_3430ES2 | CK_3517),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "sgx_ick", =A0 =A0 =A0&sgx_ick, =A0=
+ =A0 =A0 CK_3430ES2 | CK_3517),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "sgx_fck", =A0 =A0 =A0&sgx_fck, =A0=
+ =A0 =A0 CK_3430ES2PLUS | CK_3517 | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "sgx_ick", =A0 =A0 =A0&sgx_ick, =A0=
+ =A0 =A0 CK_3430ES2PLUS | CK_3517 | CK_36XX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "d2d_26m_fck", =A0&d2d_26m_fck, =A0=
+ CK_3430ES1),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "modem_fck", =A0 =A0&modem_fck, =A0=
+ =A0 CK_343X),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "sad2d_ick", =A0 =A0&sad2d_ick, =A0=
+ =A0 CK_343X),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "mad2d_ick", =A0 =A0&mad2d_ick, =A0=
+ =A0 CK_343X),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "modem_fck", =A0 =A0&modem_fck, =A0=
+ =A0 CK_34XX | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "sad2d_ick", =A0 =A0&sad2d_ick, =A0=
+ =A0 CK_34XX | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "mad2d_ick", =A0 =A0&mad2d_ick, =A0=
+ =A0 CK_34XX | CK_36XX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "gpt10_fck", =A0 =A0&gpt10_fck, =A0=
+ =A0 CK_3XXX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "gpt11_fck", =A0 =A0&gpt11_fck, =A0=
+ =A0 CK_3XXX),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "cpefuse_fck", =A0&cpefuse_fck, =A0=
+ CK_3430ES2 | CK_AM35XX),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "ts_fck", =A0 =A0 =A0 &ts_fck, =A0=
+ =A0 =A0 =A0CK_3430ES2 | CK_AM35XX),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "usbtll_fck", =A0 &usbtll_fck, =A0=
+ =A0CK_3430ES2 | CK_AM35XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "cpefuse_fck", =A0&cpefuse_fck, =A0=
+ CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "ts_fck", =A0 =A0 =A0 &ts_fck, =A0=
+ =A0 =A0 =A0CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "usbtll_fck", =A0 &usbtll_fck, =A0=
+ =A0CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>
+> That one could be removed after the introduction of the following one=
+ if the
+> clk_get(dev, "usbtll_fck") API is used.
+>
+>> + =A0 =A0 CLK("ehci-omap.0", =A0 =A0 =A0"usbtll_fck", =A0 &usbtll_fc=
+k, =A0 =A0CK_3430ES2 | CK_AM35XX),
+>
+> If only that one is kept it should be:
+> + =A0 =A0 =A0 CLK("ehci-omap.0", =A0 =A0 =A0"usbtll_fck", =A0 &usbtll=
+_fck, =A0 =A0CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>
+> Assuming that one of the conflicting commits was trying to add the 36=
+30 support.
+>
+>> =A0 =A0 =A0 CLK("omap-mcbsp.1", =A0 =A0 "prcm_fck", =A0 =A0 &core_96=
+m_fck, =A0CK_3XXX),
+>> =A0 =A0 =A0 CLK("omap-mcbsp.5", =A0 =A0 "prcm_fck", =A0 =A0 &core_96=
+m_fck, =A0CK_3XXX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "core_96m_fck", &core_96m_fck, =A0=
+CK_3XXX),
+>> @@@ -3309,26 -3302,27 +3310,27 @@@
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "core_12m_fck", &core_12m_fck, =A0=
+CK_3XXX),
+>> =A0 =A0 =A0 CLK("omap_hdq.0", "fck", =A0 =A0 =A0 =A0&hdq_fck, =A0 =A0=
+ =A0 CK_3XXX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "ssi_ssr_fck", =A0&ssi_ssr_fck_343=
+0es1, =A0 CK_3430ES1),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "ssi_ssr_fck", =A0&ssi_ssr_fck_343=
+0es2, =A0 CK_3430ES2),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "ssi_ssr_fck", =A0&ssi_ssr_fck_343=
+0es2, =A0 CK_3430ES2PLUS | CK_36XX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "ssi_sst_fck", =A0&ssi_sst_fck_343=
+0es1, =A0 CK_3430ES1),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "ssi_sst_fck", =A0&ssi_sst_fck_343=
+0es2, =A0 CK_3430ES2),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "ssi_sst_fck", =A0&ssi_sst_fck_343=
+0es2, =A0 CK_3430ES2PLUS | CK_36XX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "core_l3_ick", =A0&core_l3_ick, =A0=
+ CK_3XXX),
+>> - =A0 =A0 CLK("musb_hdrc", =A0 =A0 =A0 =A0"ick", =A0&hsotgusb_ick_34=
+30es1, =A0CK_3430ES1),
+>> - =A0 =A0 CLK("musb_hdrc", =A0 =A0 =A0 =A0"ick", =A0&hsotgusb_ick_34=
+30es2, =A0CK_3430ES2PLUS | CK_36XX),
+>> + =A0 =A0 CLK("musb-omap2430", =A0 =A0"ick", =A0&hsotgusb_ick_3430es=
+1, =A0CK_3430ES1),
+>> =A0- =A0 =A0CLK("musb-omap2430", =A0 =A0"ick", =A0&hsotgusb_ick_3430=
+es2, =A0CK_3430ES2),
+>> ++ =A0 =A0CLK("musb-omap2430", =A0 =A0"ick", =A0&hsotgusb_ick_3430es=
+2, =A0CK_3430ES2PLUS | CK_36XX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "sdrc_ick", =A0 =A0 &sdrc_ick, =A0=
+ =A0 =A0CK_3XXX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "gpmc_fck", =A0 =A0 &gpmc_fck, =A0=
+ =A0 =A0CK_3XXX),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "security_l3_ick", &security_l3_ic=
+k, CK_343X),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "pka_ick", =A0 =A0 =A0&pka_ick, =A0=
+ =A0 =A0 CK_343X),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "security_l3_ick", &security_l3_ic=
+k, CK_34XX | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "pka_ick", =A0 =A0 =A0&pka_ick, =A0=
+ =A0 =A0 CK_34XX | CK_36XX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "core_l4_ick", =A0&core_l4_ick, =A0=
+ CK_3XXX),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "usbtll_ick", =A0 &usbtll_ick, =A0=
+ =A0CK_3430ES2 | CK_AM35XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "usbtll_ick", =A0 &usbtll_ick, =A0=
+ =A0CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>> + =A0 =A0 CLK("ehci-omap.0", =A0 =A0 =A0"usbtll_ick", =A0 &usbtll_ic=
+k, =A0 =A0CK_3430ES2 | CK_AM35XX),
+>
+> ditto, should probably be:
+> =A0+ =A0 =A0 =A0CLK("ehci-omap.0", =A0 =A0 =A0"usbtll_ick", =A0 &usbt=
+ll_ick, =A0 =A0CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>
+>> =A0- =A0 =A0CLK("mmci-omap-hs.2", =A0 "ick", =A0&mmchs3_ick, =A0 =A0=
+CK_3430ES2 | CK_AM35XX),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "icr_ick", =A0 =A0 =A0&icr_ick, =A0=
+ =A0 =A0 CK_343X),
+>> =A0- =A0 =A0CLK("omap-aes", "ick", =A0&aes2_ick, =A0 =A0 =A0CK_343X)=
+,
+>> =A0- =A0 =A0CLK("omap-sham", =A0 =A0 =A0 =A0"ick", =A0&sha12_ick, =A0=
+ =A0 CK_343X),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "des2_ick", =A0 =A0 &des2_ick, =A0=
+ =A0 =A0CK_343X),
+>> =A0+ =A0 =A0CLK("mmci-omap-hs.2", =A0 "ick", =A0&mmchs3_ick, =A0 =A0=
+CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "icr_ick", =A0 =A0 =A0&icr_ick, =A0=
+ =A0 =A0 CK_34XX | CK_36XX),
+>> =A0+ =A0 =A0CLK("omap-aes", "ick", =A0&aes2_ick, =A0 =A0 =A0CK_34XX =
+| CK_36XX),
+>> =A0+ =A0 =A0CLK("omap-sham", =A0 =A0 =A0 =A0"ick", =A0&sha12_ick, =A0=
+ =A0 CK_34XX | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "des2_ick", =A0 =A0 &des2_ick, =A0=
+ =A0 =A0CK_34XX | CK_36XX),
+>> =A0 =A0 =A0 CLK("mmci-omap-hs.1", =A0 "ick", =A0&mmchs2_ick, =A0 =A0=
+CK_3XXX),
+>> =A0 =A0 =A0 CLK("mmci-omap-hs.0", =A0 "ick", =A0&mmchs1_ick, =A0 =A0=
+CK_3XXX),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "mspro_ick", =A0 =A0&mspro_ick, =A0=
+ =A0 CK_343X),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "mspro_ick", =A0 =A0&mspro_ick, =A0=
+ =A0 CK_34XX | CK_36XX),
+>> =A0 =A0 =A0 CLK("omap_hdq.0", "ick", =A0 =A0 =A0 =A0&hdq_ick, =A0 =A0=
+ =A0 CK_3XXX),
+>> =A0 =A0 =A0 CLK("omap2_mcspi.4", "ick", =A0 =A0 &mcspi4_ick, =A0 =A0=
+CK_3XXX),
+>> =A0 =A0 =A0 CLK("omap2_mcspi.3", "ick", =A0 =A0 &mcspi3_ick, =A0 =A0=
+CK_3XXX),
+>> @@@ -3361,14 -3355,17 +3363,17 @@@
+>> =A0 =A0 =A0 CLK("omapdss", =A0"video_fck", =A0 =A0&dss_96m_fck, =A0 =
+CK_3XXX),
+>> =A0 =A0 =A0 CLK("omapdss", =A0"dss2_fck", =A0 =A0 &dss2_alwon_fck, C=
+K_3XXX),
+>> =A0 =A0 =A0 CLK("omapdss", =A0"ick", =A0 =A0 =A0 =A0 =A0&dss_ick_343=
+0es1, =A0 =A0 =A0 CK_3430ES1),
+>> =A0- =A0 =A0CLK("omapdss", =A0"ick", =A0 =A0 =A0 =A0 =A0&dss_ick_343=
+0es2, =A0 =A0 =A0 CK_3430ES2 | CK_AM35XX),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "cam_mclk", =A0 =A0 &cam_mclk, =A0=
+ =A0 =A0CK_343X),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "cam_ick", =A0 =A0 =A0&cam_ick, =A0=
+ =A0 =A0 CK_343X),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "csi2_96m_fck", &csi2_96m_fck, =A0=
+CK_343X),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "usbhost_120m_fck", &usbhost_120m_=
+fck, CK_3430ES2 | CK_AM35XX),
+>> =A0+ =A0 =A0CLK("omapdss", =A0"ick", =A0 =A0 =A0 =A0 =A0&dss_ick_343=
+0es2, =A0 =A0 =A0 CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "cam_mclk", =A0 =A0 &cam_mclk, =A0=
+ =A0 =A0CK_34XX | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "cam_ick", =A0 =A0 =A0&cam_ick, =A0=
+ =A0 =A0 CK_34XX | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "csi2_96m_fck", &csi2_96m_fck, =A0=
+CK_34XX | CK_36XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "usbhost_120m_fck", &usbhost_120m_=
+fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>> + =A0 =A0 CLK("ehci-omap.0", =A0 =A0 =A0"hs_fck", &usbhost_120m_fck,=
+ CK_3430ES2 | CK_AM35XX),
+>
+> ditto
+>
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "usbhost_48m_fck", &usbhost_48m_fc=
+k, CK_3430ES2 | CK_AM35XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "usbhost_48m_fck", &usbhost_48m_fc=
+k, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>> + =A0 =A0 CLK("ehci-omap.0", =A0 =A0 =A0"fs_fck", &usbhost_48m_fck, =
+CK_3430ES2 | CK_AM35XX),
+>
+> ditto
+>
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "usbhost_ick", =A0&usbhost_ick, =A0=
+ CK_3430ES2 | CK_AM35XX),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "usbhost_ick", =A0&usbhost_ick, =A0=
+ CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>> + =A0 =A0 CLK("ehci-omap.0", =A0 =A0 =A0"usbhost_ick", =A0&usbhost_i=
+ck, =A0 CK_3430ES2 | CK_AM35XX),
+>
+> ditto
+>
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "usim_fck", =A0 =A0 &usim_fck, =A0=
+ =A0 =A0CK_3430ES2),
+>> =A0+ =A0 =A0CLK(NULL, =A0 =A0 =A0 "usim_fck", =A0 =A0 &usim_fck, =A0=
+ =A0 =A0CK_3430ES2PLUS | CK_36XX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "gpt1_fck", =A0 =A0 &gpt1_fck, =A0=
+ =A0 =A0CK_3XXX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "wkup_32k_fck", &wkup_32k_fck, =A0=
+CK_3XXX),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "gpio1_dbck", =A0 &gpio1_dbck, =A0=
+ =A0CK_3XXX),
+>> diff --cc arch/arm/mach-omap2/clock44xx_data.c
+>> index c426adc,bfcd19f..0000000
+>> --- a/arch/arm/mach-omap2/clock44xx_data.c
+>> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+>> @@@ -3198,6 -2937,10 +3198,7 @@@ static struct omap_clk omap44xx_clk=
+s[]
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "uart3_fck", =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0&uart3_fck, =A0 =A0 CK_443X),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "uart4_fck", =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0&uart4_fck, =A0 =A0 CK_443X),
+>> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "usb_host_fs_fck", =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0&usb_host_fs_fck, =A0 =A0 =A0 CK_443X),
+>> + =A0 =A0 CLK("ehci-omap.0", =A0 =A0 =A0"fs_fck", =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 &usb_host_fs_fck, =A0 =A0 =A0 CK_443X),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "usb_host_hs_utmi_p3_clk", =A0 =A0=
+ =A0&usb_host_hs_utmi_p3_clk, =A0 =A0 =A0 CK_443X),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "usb_host_hs_hsic60m_p1_clk", =A0 =
+&usb_host_hs_hsic60m_p1_clk, =A0 =A0CK_443X),
+>> =A0- =A0 =A0CLK(NULL, =A0 =A0 =A0 "usb_host_hs_hsic60m_p2_clk", =A0 =
+&usb_host_hs_hsic60m_p2_clk, =A0 =A0CK_443X),
+>
+> I'm not sure these 3 nodes should be removed. AFAIR, they were just s=
+lightly moved in lo branch.
 
+Even with the fixes above, ehci on my beagle xM/Panda still doesn't wor=
+k
+with 2.6.37-next-20110106+, follows the failure messages:
 
-> 
->>>>   	/* MPU OPP3 - OPP-Turbo */
->>>> -	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
->>>> +	OPP_INITIALIZER("mpu", true, 800000000, 1260000),
->>> I disagree.  This is not $subject. Also - not all boards will be capable
->>> of supporting all higher frequencies rt? - remember the 3630 experience?
->>> is'nt it wiser to enable it based on board capabilities - e.g. similar
->>> to the patch I did for beagle XM yesterday - we wont be able to enable
->>> higher frequencies on SDP3630 as we have not guarenteed with PDN
->>> analysis that it is ok.
-> I am not sure about this for OMAP4. Have you come across a board
-> where these OPPs cannot be supported? We have been enabling these
-> OPPs internally now for quite some time across all OMAP4 boards.
-*all* as in how many? SDP/Blaze, Panda and....??? How many boards are 
-available which is in production?
+[   57.918182] bus: 'platform': really_probe: probing driver ehci-omap
+with device ehci-omap.0
+[   57.918243] ehci-omap ehci-omap.0: failed to get ehci port0 regulato=
+r
+[   57.918273] ehci-omap ehci-omap.0: failed to get ehci port1 regulato=
+r
+[   57.918304] ehci-omap ehci-omap.0: starting TI EHCI USB Controller
+[   57.918457] ehci-omap ehci-omap.0: OMAP UHH_REVISION 0x10
+[   57.918487] ehci-omap ehci-omap.0: TLL RESET DONE
+[   57.918487] ehci-omap ehci-omap.0: OMAP3 ES version > ES2.1
+[   57.918518] ehci-omap ehci-omap.0: UHH setup done, uhh_hostconfig=3D=
+31c
+[   58.922302] ehci-omap ehci-omap.0: phy reset operation timed out
+[   59.930114] ehci-omap ehci-omap.0: phy reset operation timed out
+[   59.930145] ehci-omap ehci-omap.0: reset hcs_params 0x1313 dbg=3D0
+cc=3D1 pcc=3D3 ordered ports=3D3
+[   59.930175] ehci-omap ehci-omap.0: reset hcc_params 0016 thresh 1
+uframes 256/512/1024 park
+[   59.930206] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
+[   59.936218] drivers/usb/core/inode.c: creating file 'devices'
+[   59.936279] drivers/usb/core/inode.c: creating file '001'
 
-> But still if you guys are paranoid about boards breaking, I am ok
-> With keeping these OPPs disabled by default. But then anybody running
-> the mainline code with a 800Mhz or 1GHz x-loader, will see a couple
-> of warns in the kernel code.
-You do have the option of enabling the frequency for specific boards 
-like SDP/Blaze (e.g. if you have h/w team's signoff that these can do 
-high frequencies - and I think they do).
+Any ideas?
 
--- 
-Regards,
-Nishanth Menon
+thanks,
+--=20
+Lei Ming
