@@ -1,99 +1,174 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] OMAP4 PM: To correct voltages in MPU OPP Table
-Date: Thu, 06 Jan 2011 09:46:41 -0600
-Message-ID: <4D25E3E1.70901@ti.com>
-References: <1294295222-20035-1-git-send-email-shweta.gulati@ti.com> <4D25B3D2.4030802@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F62E@dbde02.ent.ti.com> <4D25D8B8.1020808@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F63A@dbde02.ent.ti.com> <4D25DD67.4030403@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F647@dbde02.ent.ti.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: linux-next: manual merge of the usb tree with the omap tree
+Date: Thu, 6 Jan 2011 23:50:02 +0800
+Message-ID: <AANLkTimzQ1PHN986fqPF0yjd1M+390nSUDYJ65pu0z_f@mail.gmail.com>
+References: <20101223171859.f6842045.sfr@canb.auug.org.au>
+	<4D139517.3010608@ti.com>
+	<AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com>
+	<4ce0f816f951f24ca3de9c84d9f70842@mail.gmail.com>
+	<AANLkTimA5UOVn6+xe0ofV1F3_XhAP0daBvOAX2k1u_dU@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:50635 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753388Ab1AFPqp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 10:46:45 -0500
-Received: by gwb17 with SMTP id 17so8473016gwb.2
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 07:46:45 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F647@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0016e65b60fe6fe40104992f7454
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimA5UOVn6+xe0ofV1F3_XhAP0daBvOAX2k1u_dU@mail.gmail.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "Gulati, Shweta" <shweta.gulati@ti.com>, l-o <linux-omap@vger.kernel.org>
 
-Gopinath, Thara had written, on 01/06/2011 09:26 AM, the following:
-> 
->>> -----Original Message-----
->>> From: Menon, Nishanth
->>> Sent: Thursday, January 06, 2011 8:49 PM
->>> To: Gopinath, Thara
->>> Cc: Gulati, Shweta; l-o
->>> Subject: Re: [PATCH] OMAP4 PM: To correct voltages in MPU OPP Table
->>>
->>> Gopinath, Thara had written, on 01/06/2011 09:09 AM, the following:
->>> [..]
->>>>>>> Actually no. The latest voltage layer pushed uses these voltages.
->>> Also
->>>>>> Arrgh... another reason to avoid messy duplicate tables!!
->>>> Oh there is a patch in my bag where we use a single macro for each
->>> voltage
->>>> across the voltage and opp layer!! Not yet posted because I am waiting
->>> for
->>>> voltage layer to be merged.
->>> I think I would find that patch interesting - Just fyi, the SR series is
->>> already in omap-for-linus branch and slated for .38-rc1, so feel free to
->>> post additional changes.
-> 
-> Yes I will post it.
-> 
->>>>>>> We have been having this setting in the internal android code base
->>> for
->>>>>>> some time now without anybody having issues. So till the new voltages
->>>>>>> are conveyed officially, these remain the official voltage.
->>>>>> Funny,
->>>>>> how many versions of "internal" code bases are present?
->>>>>>
->>>>>> http://dev.omapzoom.org/?p=santosh/kernel-omap4-
->>>>>> base.git;a=blob;f=arch/arm/mach-
->>>>>> omap2/opp44xx_data.c;h=252e3d0cb6050a64f390b9311c1c4977d74f762a
->>>> What are you complaining about here? I thought Shweta's patch
->>>> was making the mpu entries in the opp table similar to the
->>>> ones in the link above. Anything I am missing?
->>> Yes, I am lost as to what the official voltage at PMIC level is for each
->>> OPP for OMAP4 is now :(! there are half a dozen trees out there - Ubuntu
->>> kernel, generic linux tree, android kernel tree etc - so the claim of
->>> one tree containing official table is kinda interesting as one wonders
->>> what one gets with other trees ;).
-> 
-> Are you sure all these tree do not have the same voltage values for mpu rail
-> on OMAP4? Because as far as I am aware I am the one who has been writing this code and I have never used any other values. So then it is kind of
-> interesting!
+--0016e65b60fe6fe40104992f7454
+Content-Type: text/plain; charset=ISO-8859-1
 
-I take this back. Apologies, I missed your point and had been lazy to 
-research earlier - looking at the code yet again,  I decided to look up 
-official documentation :) and I finally get it - I was wrong to depend 
-on some internal tree code base :(
+Hi,
 
-Just FYI I looked at the public DM:
-http://focus.ti.com/pdfs/wtbu/SWPS041B_FinalEPDF_12_22_2010.pdf
-it pointed to the operating conditions Addendum which I only found in TI 
-internal site (unfortunately).
+2011/1/6 Ming Lei <tom.leiming@gmail.com>:
+> Hi,
+>
+> 2011/1/6 Anand Gadiyar <gadiyar@ti.com>:
+>
+>> I'll take a look in a short while. I don't have an XM to
+>> test, so you'll have to help me out here.
+>
+> No problem for me, :-)
 
-As per this max voltages are (MPU domain)
-300000000 - 976mV (nom 930mV)
-600000000 - 1.155 (nom 1.1V)
-800000000 - 1.323 (nom 1.26 which is coded in)
-1008000000 - Nom is 1.35V (we have put that in)
+I see why the beagle xM does not work, the attachment patch is
+needed to make it working.
 
-Keep in mind that the voltage we put in the table is the PMIC voltage 
-and the DM addendum states nominal voltage at OMAP ball level(you need 
-to read (1) footnote to get the secret ;) ). What we need is to add 
-additional voltage to provide at PMIC ball leve for typical board 
-characteristics (this is pointed by the "Max voltage" in the addendum) 
-and we allow SR to adjust to optimal voltage for that device on that board.
+But the ehci on panda(omap4430) still does not work with
+2.6.37-next-20110106+, and follows the failure messages:
 
-So the right table (if you are changing the values should be to switch 
-to Max ones). I am ok on changing the voltages now that I have official 
-documentation to back the change :).
+[   46.572601] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[   46.580017] ehci_hcd: block sizes: qh 60 qtd 96 itd 160 sitd 96
+[   46.580078] bus: 'platform': add driver ehci-omap
+[   46.580139] bus: 'platform': driver_probe_device: matched device
+ehci-omap.0 with driver ehci-omap
+[   46.580169] bus: 'platform': really_probe: probing driver ehci-omap
+with device ehci-omap.0
+[   46.580200] ehci-omap ehci-omap.0: failed to get ehci port0 regulator
+[   46.580200] ehci-omap ehci-omap.0: starting TI EHCI USB Controller
+[   46.580291] ehci-omap ehci-omap.0: OMAP UHH_REVISION 0x50700100
+[   46.580352] ehci-omap ehci-omap.0: TLL RESET DONE
+[   46.580352] ehci-omap ehci-omap.0: UHH setup done, uhh_hostconfig=1c
+[   46.580383] ehci-omap ehci-omap.0: reset hcs_params 0x1313 dbg=0
+cc=1 pcc=3 ordered ports=3
+[   46.580383] ehci-omap ehci-omap.0: reset hcc_params 20016 thresh 1
+uframes 256/512/1024 park LPM
+[   46.580383] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
+[   46.588592] drivers/usb/core/inode.c: creating file 'devices'
+[   46.588623] drivers/usb/core/inode.c: creating file '001'
+[   46.588684] device: 'usbmon1': device_add
+[   46.588867] PM: Adding info for No Bus:usbmon1
+[   46.590026] ehci-omap ehci-omap.0: new USB bus registered, assigned
+bus number 1
+[   46.645721] ehci-omap ehci-omap.0: park 0
+[   46.645721] ehci-omap ehci-omap.0: support lpm
+[   46.645751] ehci-omap ehci-omap.0: irq 109, io mem 0x4a064c00
+[   46.651763] ehci-omap ehci-omap.0: reset command 0080b02  park=3
+ithresh=8 period=1024 Reset HALT
+[   46.651763] ehci-omap ehci-omap.0: init command 0010005 (park)=0
+ithresh=1 period=512 RUN
+[   46.661254] ehci-omap ehci-omap.0: USB 2.0 started, EHCI 1.00
+[   46.667297] usb usb1: rpm_resume flags 0x0
+[   46.667297] usb usb1: rpm_resume returns 1
+[   46.667358] usb usb1: default language 0x0409
+[   46.667358] usb usb1: udev 1, busnum 1, minor = 0
+[   46.667388] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+[   46.675476] usb usb1: New USB device strings: Mfr=3, Product=2,
+SerialNumber=1
+[   46.683288] usb usb1: Product: OMAP-EHCI Host Controller
+[   46.689086] usb usb1: Manufacturer: Linux 2.6.37-next-20110106+ ehci_hcd
+[   46.696350] usb usb1: SerialNumber: ehci-omap.0
+[   46.701354] device: 'usb1': device_add
+[   46.701568] bus: 'usb': add device usb1
+[   46.701629] PM: Adding info for usb:usb1
+[   46.702758] bus: 'usb': driver_probe_device: matched device usb1
+with driver usb
+[   46.702758] bus: 'usb': really_probe: probing driver usb with device usb1
+[   46.702819] usb usb1: usb_probe_device
+[   46.702819] usb usb1: configuration #1 chosen from 1 choice
+[   46.702850] usb usb1: rpm_resume flags 0x4
+[   46.702850] usb usb1: rpm_resume returns 1
+[   46.702911] usb usb1: adding 1-0:1.0 (config #1, interface 0)
+[   46.702911] device: '1-0:1.0': device_add
+[   46.702941] bus: 'usb': add device 1-0:1.0
+[   46.703002] PM: Adding info for usb:1-0:1.0
+[   46.703430] bus: 'usb': driver_probe_device: matched device 1-0:1.0
+with driver hub
+[   46.703460] bus: 'usb': really_probe: probing driver hub with device 1-0:1.0
+[   46.703460] hub 1-0:1.0: usb_probe_interface
+[   46.703491] hub 1-0:1.0: usb_probe_interface - got id
+[   46.703491] usb usb1: rpm_resume flags 0x4
+[   46.703491] usb usb1: rpm_resume returns 1
+[   46.703521] hub 1-0:1.0: USB hub found
+[   46.707427] hub 1-0:1.0: 3 ports detected
+[   46.715698] hub 1-0:1.0: standalone hub
+[   46.715698] hub 1-0:1.0: individual port power switching
+[   46.715728] hub 1-0:1.0: individual port over-current protection
+[   46.715728] hub 1-0:1.0: power on to power good time: 20ms
+[   46.715759] hub 1-0:1.0: local power source is good
+[   46.715759] hub 1-0:1.0: enabling power on all ports
+[   46.715820] driver: '1-0:1.0': driver_bound: bound to device 'hub'
+[   46.715820] bus: 'usb': really_probe: bound device 1-0:1.0 to driver hub
+[   46.715850] device: 'ep_81': device_add
+[   46.717468] PM: Adding info for No Bus:ep_81
+[   46.717498] device: 'usbdev1.1': device_add
+[   46.717590] PM: Adding info for No Bus:usbdev1.1
+[   46.717773] drivers/usb/core/inode.c: creating file '001'
+[   46.717803] driver: 'usb1': driver_bound: bound to device 'usb'
+[   46.717803] bus: 'usb': really_probe: bound device usb1 to driver usb
+[   46.717834] device: 'ep_00': device_add
+[   46.717895] PM: Adding info for No Bus:ep_00
+[   46.717895] usb usb1: rpm_suspend flags 0xc
+[   46.717926] usb usb1: rpm_suspend returns -16
+[   46.717926] ehci-omap ehci-omap.0: ...powerup ports...
+[   46.747161] driver: 'ehci-omap.0': driver_bound: bound to device 'ehci-omap'
+[   46.747192] bus: 'platform': really_probe: bound device ehci-omap.0
+to driver ehci-omap
+[   46.809661] ehci-omap ehci-omap.0: GetStatus port:1 status 001803 0
+ ACK POWER sig=j CSC CONNECT
+[   46.809692] hub 1-0:1.0: port 1: status 0501 change 0001
+[   46.911193] hub 1-0:1.0: state 7 ports 3 chg 0002 evt 0000
+[   46.911193] hub 1-0:1.0: rpm_resume flags 0x4
+[   46.911193] hub 1-0:1.0: rpm_resume returns 1
+[   46.911224] hub 1-0:1.0: port 1, status 0501, change 0000, 480 Mb/s
+[   46.973907] ehci-omap ehci-omap.0: port 1 high speed
+[   46.973907] ehci-omap ehci-omap.0: GetStatus port:1 status 001005 0
+ ACK POWER sig=se0 PE CONNECT
+[   47.036102] usb 1-1: new high speed USB device using ehci-omap and address 2
+[   47.044036] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 1
+[   47.044158] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
+[   47.044281] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 3
+[   47.044403] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 4
+[   47.044525] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
+[   47.044647] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 6
+[   47.044799] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 7
+[   47.044921] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 8
+......
 
+Anand, could you help to check it?
+
+thanks,
 -- 
-Regards,
-Nishanth Menon
+Lei Ming
+
+--0016e65b60fe6fe40104992f7454
+Content-Type: text/x-patch; charset=US-ASCII; name="fix_ehci_gpio_beagle_xm.patch"
+Content-Disposition: attachment; filename="fix_ehci_gpio_beagle_xm.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_giltxdr80
+
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNiZWFnbGUuYyBiL2Fy
+Y2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNiZWFnbGUuYwppbmRleCBmMWE4ZWRlLi4zZTEz
+MGFlIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAzYmVhZ2xlLmMK
+KysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vbWFwM2JlYWdsZS5jCkBAIC0yOTksNyAr
+Mjk5LDEwIEBAIHN0YXRpYyBpbnQgYmVhZ2xlX3R3bF9ncGlvX3NldHVwKHN0cnVjdCBkZXZpY2Ug
+KmRldiwKIAogCS8qIFRXTDQwMzBfR1BJT19NQVggKyAwID09IGxlZEEsIEVIQ0kgbkVOX1VTQl9Q
+V1IgKG91dCwgYWN0aXZlIGxvdykgKi8KIAlncGlvX3JlcXVlc3QoZ3BpbyArIFRXTDQwMzBfR1BJ
+T19NQVgsICJuRU5fVVNCX1BXUiIpOwotCWdwaW9fZGlyZWN0aW9uX291dHB1dChncGlvICsgVFdM
+NDAzMF9HUElPX01BWCwgMCk7CisJaWYgKG9tYXAzX2JlYWdsZV9nZXRfcmV2KCkgPT0gT01BUDNC
+RUFHTEVfQk9BUkRfWE0pCisJCWdwaW9fZGlyZWN0aW9uX291dHB1dChncGlvICsgVFdMNDAzMF9H
+UElPX01BWCwgMSk7CisJZWxzZQorCQlncGlvX2RpcmVjdGlvbl9vdXRwdXQoZ3BpbyArIFRXTDQw
+MzBfR1BJT19NQVgsIDApOwogCiAJLyogVFdMNDAzMF9HUElPX01BWCArIDEgPT0gbGVkQiwgUE1V
+X1NUQVQgKG91dCwgYWN0aXZlIGxvdyBMRUQpICovCiAJZ3Bpb19sZWRzWzJdLmdwaW8gPSBncGlv
+ICsgVFdMNDAzMF9HUElPX01BWCArIDE7Ci0tIAoxLjcuMwoK
+--0016e65b60fe6fe40104992f7454--
