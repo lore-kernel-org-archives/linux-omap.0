@@ -1,66 +1,62 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] omap: wd_timer: Fix crash frm wdt_probe
-	when!CONFIG_RUNTIME_PM
-Date: Thu, 6 Jan 2011 15:26:38 +0000
-Message-ID: <20110106152638.GC1198@n2100.arm.linux.org.uk>
-References: <1294234855-6623-1-git-send-email-santosh.shilimkar@ti.com> <20110105221839.GD8717@n2100.arm.linux.org.uk> <19b4a66bfdd4ef3e51fdb27bf43b9ce2@mail.gmail.com>
+From: Ben Tucker <btucker@mpcdata.com>
+Subject: RFBI worked example
+Date: Thu, 6 Jan 2011 15:32:08 -0000
+Message-ID: <b3985d3b9ab26a0aac963651376b21ac@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42471 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753128Ab1AFP0s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 10:26:48 -0500
-Content-Disposition: inline
-In-Reply-To: <19b4a66bfdd4ef3e51fdb27bf43b9ce2@mail.gmail.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:46015 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753035Ab1AFPbQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 10:31:16 -0500
+Received: by iyi12 with SMTP id 12so14946288iyi.19
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 07:31:16 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@nokia.com
 
-On Thu, Jan 06, 2011 at 09:27:32AM +0530, Santosh Shilimkar wrote:
-> > -----Original Message-----
-> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> > Sent: Thursday, January 06, 2011 3:49 AM
-> > To: Santosh Shilimkar
-> > Cc: linux-omap@vger.kernel.org; Paul Walmsley; linux-arm-
-> > kernel@lists.infradead.org
-> > Subject: Re: [PATCH] omap: wd_timer: Fix crash frm wdt_probe
-> > when!CONFIG_RUNTIME_PM
-> >
-> > On Wed, Jan 05, 2011 at 07:10:55PM +0530, Santosh Shilimkar wrote:
-> > > Commit ff2516fb 'wd_timer: disable on boot via hwmod postsetup
-> > mechanism'
-> > > introduced watchdog timer state state management using
-> > postsetup_state.
-> > > This was done to allow some board files to support watchdog
-> > coverage
-> > > throughout kernel initialization and it work as intended when
-> > RUNTIME_PM
-> > > is enabled.
-> > >
-> > > With !CONFIG_RUNTIME_PM and no board is specifically requests
-> > watchdog
-> > > to remain enabled the omap_wdt_probe crashesh. This is because
-> > hwmod
-> > > in absense of runtime PM unable to turn watchdog clocks because
-> > it's
-> > > state is set to be disabled. For rest of the device, the state is
-> > > set as enabled in absense of RUNTIME_PM
-> >
-> > Err... wasn't this provoked by an attempt to fix the LDP issue, that
-> > is
-> > (I believe) because the boot loader enables the watchdog and pre-
-> > hwmod
-> > kernels used to disable it.  Post-hwmod kernels stopped disabling
-> > the
-> > watchdog, resulting in a few seconds booting userspace before the
-> > system
-> > resets itself.
-> 
-> Yes. That's managed through the shutdown part. Apart from that there
-> is another enhancement done in case some one wants to have WDT running
-> throughout the kernel boot.
+Hi,
 
-Good - and just to confirm, the fix for LDP watchdogging will be submitted
-in the current merge window?
+I am trying to setup an OMAP3530 based system for RFBI video output using
+external triggering. Looking at the omap dss2 source code (and also
+searching around) I cannot find any worked example of how to use the rfbi
+driver. I know that RFBI has worked in the past for a Nokia N800 device.
+Can you dig out any source code that shows how to use the RFBI driver?
+In particular I need to see how the omap_rfbi_prepare_update() and
+omap_rfbi_update() calls operate with their callback. I am thinking that I
+should simply call omap_rfbi_update() in a thread and wait for the
+completion call back after each call. I want to confirm that this is the
+correct way to run the driver.
+
+Thanks,
+	Ben
+
+
+
+Ben Tucker
+Senior Software Engineer
+MPC Data Limited
+e-mail: <btucker@mpc-data.co.uk>      web: www.mpc-data.co.uk
+tel: +44 (0) 1225 710600              fax: +44 (0) 1225 710601
+ddi: +44 (0) 1225 710660
+
+MPC Data Limited is a company registered in England and Wales with company
+number 05507446
+Registered Address: County Gate, County Way, Trowbridge, Wiltshire, BA14
+7FJ
+VAT no: 850625238
+
+The information in this email and in the attached documents is
+confidential and may be
+legally privileged. Any unauthorized review, copying, disclosure or
+distribution is
+prohibited and may be unlawful. It is intended solely for the addressee.
+Access to this
+email by anyone else is unauthorized. If you are not the intended
+recipient, please
+contact the sender by reply email and destroy all copies of the original
+message. When
+addressed to our clients any opinions or advice contained in this email is
+subject to
+the terms and conditions expressed in the governing contract.
