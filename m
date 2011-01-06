@@ -1,194 +1,36 @@
-From: David Lambert <dlambert@ti.com>
-Subject: [PATCH v2 3/4] OMAP4: hwmod: add entries for DMIC driver
-Date: Thu,  6 Jan 2011 08:00:38 -0600
-Message-ID: <1294322439-16305-4-git-send-email-dlambert@ti.com>
-References: <1294322439-16305-1-git-send-email-dlambert@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/2] OMAP3: beagle xm: enable upto 800MHz OPP
+Date: Thu, 06 Jan 2011 08:00:56 -0600
+Message-ID: <4D25CB18.3080904@ti.com>
+References: <1294260576-20237-1-git-send-email-nm@ti.com>	<1294260576-20237-3-git-send-email-nm@ti.com> <874o9nvskt.fsf@ti.com> <4D25B482.3080709@ti.com> <579AA000-EB86-4DD3-B3B7-29F7A72E0415@beagleboard.org> <4D25C745.7060600@ti.com> <B85A65D85D7EB246BE421B3FB0FBB5930248201A37@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46855 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232Ab1AFOA5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 09:00:57 -0500
-In-Reply-To: <1294322439-16305-1-git-send-email-dlambert@ti.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:49949 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752504Ab1AFOA7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 09:00:59 -0500
+Received: by mail-yw0-f53.google.com with SMTP id 6so6934640ywa.12
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 06:00:58 -0800 (PST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930248201A37@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, David Lambert <dlambert@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: Koen Kooi <koen@beagleboard.org>, "Hilman, Kevin" <khilman@ti.com>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Tony <tony@atomide.com>
 
-Adds HWMOD entries for the OMAP DMIC driver and creates
-a platform device.  The HWMOD entires define the system
-resource requirements for the drvier such as DMA addresses, channels,
-and IRQ's.  Placing this information in the HWMOD database allows
-for more generic drivers to be written and having the specific
-implementation details defined in HWMOD.
+Premi, Sanjeev had written, on 01/06/2011 07:58 AM, the following:
+[..]
+> Some of the patches generic that Koen attached are based on my
+> submissions. As part of migration to 2.6.37, I am in process of
+> validating them on internal integration tree. Will post them
+> soon... may be end of tomorrow.
+> 
+> I will be testing them on OMAP3EVM.
+Sure. please do post them to l-o and cc l-a - I suppose until then, they 
+are unofficial if they are lying around in some private tree(even if 
+viewable over internet ;) ).
 
-Signed-off-by: David Lambert <dlambert@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   91 ++++++++++++++++++++++++++++
- arch/arm/plat-omap/devices.c               |   35 +++++++++++
- 2 files changed, 126 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 7274db4..f9b2ad3 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -383,6 +383,95 @@ static struct omap_hwmod omap44xx_l4_wkup_hwmod = {
- };
- 
- /*
-+ * 'dmic' class
-+ * digital microphone controller
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap44xx_dmic_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.sysc_flags	= (SYSC_HAS_EMUFREE | SYSC_HAS_RESET_STATUS |
-+			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type2,
-+};
-+
-+static struct omap_hwmod_class omap44xx_dmic_hwmod_class = {
-+	.name = "omap-dmic",
-+	.sysc = &omap44xx_dmic_sysc,
-+};
-+
-+/* dmic */
-+static struct omap_hwmod omap44xx_dmic_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_dmic_irqs[] = {
-+	{ .irq = 114 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_dma_info omap44xx_dmic_sdma_reqs[] = {
-+	{ .dma_req = 66 + OMAP44XX_DMA_REQ_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_dmic_addrs[] = {
-+	{
-+		.pa_start	= 0x4012e000,
-+		.pa_end		= 0x4012e07f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_abe -> dmic */
-+static struct omap_hwmod_ocp_if omap44xx_l4_abe__dmic = {
-+	.master		= &omap44xx_l4_abe_hwmod,
-+	.slave		= &omap44xx_dmic_hwmod,
-+	.clk		= "ocp_abe_iclk",
-+	.addr		= omap44xx_dmic_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_dmic_addrs),
-+	.user		= OCP_USER_MPU,
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_dmic_dma_addrs[] = {
-+	{
-+		.pa_start	= 0x4902e000,
-+		.pa_end		= 0x4902e07f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_abe -> dmic (dma) */
-+static struct omap_hwmod_ocp_if omap44xx_l4_abe__dmic_dma = {
-+	.master		= &omap44xx_l4_abe_hwmod,
-+	.slave		= &omap44xx_dmic_hwmod,
-+	.clk		= "ocp_abe_iclk",
-+	.addr		= omap44xx_dmic_dma_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_dmic_dma_addrs),
-+	.user		= OCP_USER_SDMA,
-+};
-+
-+/* dmic slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_dmic_slaves[] = {
-+	&omap44xx_l4_abe__dmic,
-+	&omap44xx_l4_abe__dmic_dma,
-+};
-+
-+static struct omap_hwmod omap44xx_dmic_hwmod = {
-+	.name		= "omap-dmic",
-+	.class		= &omap44xx_dmic_hwmod_class,
-+	.mpu_irqs	= omap44xx_dmic_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dmic_irqs),
-+	.sdma_reqs	= omap44xx_dmic_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_dmic_sdma_reqs),
-+	.main_clk	= "dmic_fck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM1_ABE_DMIC_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_dmic_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_dmic_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/*
-  * 'mpu_bus' class
-  * instance(s): mpu_private
-  */
-@@ -826,6 +915,8 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_l4_cfg_hwmod,
- 	&omap44xx_l4_per_hwmod,
- 	&omap44xx_l4_wkup_hwmod,
-+	/* dmic class */
-+	&omap44xx_dmic_hwmod,
- 	/* mpu_bus class */
- 	&omap44xx_mpu_private_hwmod,
- 
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index fc81912..b347f75 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -72,6 +72,40 @@ void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
- 
- /*-------------------------------------------------------------------------*/
- 
-+#if defined(CONFIG_SND_OMAP_SOC_DMIC) || \
-+	defined(CONFIG_SND_OMAP_SOC_DMIC_MODULE)
-+
-+static struct omap_device_pm_latency omap_dmic_latency[] = {
-+	{
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+	},
-+};
-+
-+static void omap_init_dmic(void)
-+{
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
-+
-+	oh = omap_hwmod_lookup("omap-dmic");
-+	if (!oh) {
-+		printk(KERN_ERR "Could not look up dmic hw_mod\n");
-+		return;
-+	}
-+
-+	od = omap_device_build("omap-dmic-dai", -1, oh, NULL, 0,
-+				omap_dmic_latency,
-+				ARRAY_SIZE(omap_dmic_latency), 0);
-+	if (IS_ERR(od))
-+		printk(KERN_ERR "Could not build omap_device for omap-dmic-dai\n");
-+}
-+#else
-+static inline void omap_init_dmic(void) {}
-+#endif
-+
-+/*-------------------------------------------------------------------------*/
-+
- #if defined(CONFIG_SND_OMAP_SOC_MCPDM) || \
- 		defined(CONFIG_SND_OMAP_SOC_MCPDM_MODULE)
- 
-@@ -328,6 +362,7 @@ static int __init omap_init_devices(void)
- 	/* please keep these calls, and their implementations above,
- 	 * in alphabetical order so they're easier to sort through.
- 	 */
-+	omap_init_dmic();
- 	omap_init_rng();
- 	omap_init_mcpdm();
- 	omap_init_uwire();
 -- 
-1.7.0.4
-
+Regards,
+Nishanth Menon
