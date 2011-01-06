@@ -1,72 +1,40 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: 4430SDP boot failure
-Date: Thu, 6 Jan 2011 18:00:30 +0000
-Message-ID: <20110106180030.GA8249@n2100.arm.linux.org.uk>
-References: <20110106170805.GE1198@n2100.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 1/5] omap2plus: clockdomain: Trivial fix for build
+ break because of clktrctrl_mask
+Date: Thu, 6 Jan 2011 11:02:02 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101061059590.22048@utopia.booyaka.com>
+References: <1294225024-21857-1-git-send-email-santosh.shilimkar@ti.com> <87fwt7z1p3.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39321 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751510Ab1AFSAf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:00:35 -0500
-Received: from n2100.arm.linux.org.uk ([2002:4e20:1eda:1:214:fdff:fe10:4f86])
-	by caramon.arm.linux.org.uk with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.72)
-	(envelope-from <linux@arm.linux.org.uk>)
-	id 1Pau8V-0000wW-SZ
-	for linux-omap@vger.kernel.org; Thu, 06 Jan 2011 18:00:32 +0000
-Received: from linux by n2100.arm.linux.org.uk with local (Exim 4.72)
-	(envelope-from <linux@n2100.arm.linux.org.uk>)
-	id 1Pau8U-0002H4-Nf
-	for linux-omap@vger.kernel.org; Thu, 06 Jan 2011 18:00:30 +0000
-Content-Disposition: inline
-In-Reply-To: <20110106170805.GE1198@n2100.arm.linux.org.uk>
+Received: from utopia.booyaka.com ([72.9.107.138]:32812 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751510Ab1AFSCD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:02:03 -0500
+In-Reply-To: <87fwt7z1p3.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, Jan 06, 2011 at 05:08:05PM +0000, Russell King - ARM Linux wrote:
-> This looks like something's rather broken on OMAP4 too - even with the
-> DEBUG_LL stuff enabled and my printk hack, I get nothing more, same with
-> vanilla 2.6.37.  So, no OMAP platform I have seems to be usable with
-> 2.6.37...
+On Wed, 5 Jan 2011, Kevin Hilman wrote:
+
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 > 
-> It's worth noting that the kernel which was originally supplied with the
-> board works fine (2.6.31-00682-g49ab82a-dirty) with this uboot, as have
-> previous kernels I've built.
+> > struct clockdomain member clktrctrl_mask is available for only for OMAP2
+> > and OMAP3 architectures. Technially it is also used only for these archs
+> > but this breaks the build with custom OMAP4 configuration.
 > 
-> Is there yet an updated uboot for this platform which works with ethernet,
-> and which has the uboot environment saving implemented?  Or are we stuck
-> with having to catch uboot before it runs the default settings and paste
-> the commands in each time?  Also, if possible please extend the default
-> timeout - I can only just get from the board to the terminal to stop it
-> booting the default environment.
+> I'll queue patches 3-5 for the 2.6.38-rc fixes cycle.
 > 
-> For TI folk: it may be an idea to make X-loader say why it's hanging so
-> that we know what is going on.
+> With Paul's ack, I can queue the others too, or Paul can decide to take
+> them via his tree.  Paul can decide.
 
-And another thing: turning on DEBUG in the decompressor breaks the build
-on OMAP:
+I've acked one and requested minor changes on the other, after which it 
+can be acked by me.  You're welcome to take them at that point.  Just a 
+request, maybe you can post a branch with just these patches in them; that 
+way Rajendra and/or I can rebase his new clockdomain changes on it until 
+-rc1 comes out.
 
-`.data' referenced in section `.text' of arch/arm/boot/compressed/head.o: defined in discarded section `.data' of arch/arm/boot/compressed/head.o
-`.data' referenced in section `.text' of arch/arm/boot/compressed/head.o: defined in discarded section `.data' of arch/arm/boot/compressed/head.o
 
-Is there a reason why this:
-
-                .pushsection .data
-omap_uart_phys: .word   0
-omap_uart_virt: .word   0
-omap_uart_lsr:  .word   0
-                .popsection
-
-can't be in the BSS section?
-
-With that fixed, and a debug version of the decompressor built, when I
-load and run this I get the same results - without the debugging output.
-If I put additional debugging earlier in the decompressor, I don't see
-it decompressing the kernel at all.
-
-Therefore, I believe the debugging address calculation stuff in
-arch/arm/mach-omap2/include/mach/debug-macros.S to be rather broken,
-causing an abort when it tries to access the serial port.
+- Paul
