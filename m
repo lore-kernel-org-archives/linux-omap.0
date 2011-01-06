@@ -1,46 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: linux-next: manual merge of the usb tree with the omap tree
-Date: Thu, 6 Jan 2011 11:27:22 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101061126440.31961@utopia.booyaka.com>
-References: <20101223171859.f6842045.sfr@canb.auug.org.au> <4D139517.3010608@ti.com> <AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com> <4ce0f816f951f24ca3de9c84d9f70842@mail.gmail.com> <4D25E313.4060202@heeltoe.com>
- <8B3471BB-CB3F-4CE6-B523-D9C5E87B9CEC@dominion.thruhere.net> <87pqs9vqya.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 1/5] omap2plus: clockdomain: Trivial fix for build break because of clktrctrl_mask
+Date: Thu, 06 Jan 2011 10:28:09 -0800
+Message-ID: <87ipy1vqdi.fsf@ti.com>
+References: <1294225024-21857-1-git-send-email-santosh.shilimkar@ti.com>
+	<87fwt7z1p3.fsf@ti.com>
+	<alpine.DEB.2.00.1101061059590.22048@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87pqs9vqya.fsf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, Brad Parker <brad@heeltoe.com>, Anand Gadiyar <gadiyar@ti.com>, Ming Lei <tom.leiming@gmail.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:47655 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751686Ab1AFS2M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:28:12 -0500
+Received: by mail-pw0-f41.google.com with SMTP id 8so3036276pwj.0
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 10:28:12 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1101061059590.22048@utopia.booyaka.com> (Paul
+	Walmsley's message of "Thu, 6 Jan 2011 11:02:02 -0700 (MST)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, 6 Jan 2011, Kevin Hilman wrote:
+Paul Walmsley <paul@pwsan.com> writes:
 
-> Koen Kooi <koen@dominion.thruhere.net> writes:
-> 
-> > Op 6 jan 2011, om 16:43 heeft Brad Parker het volgende geschreven:
-> >
-> >> It's probably expected, but I can't get the EHCI USB port  to work
-> >> on a beagle board XM (36xx) using the current omap tree.
-> >> 
-> >> It this most likely due to these clock issues?
-> >
-> > You need this patch: http://thread.gmane.org/gmane.linux.ports.arm.omap/47807/
-> >
-> > I'm currently too lazy to split it up like Nishant wants as I don't
-> > see the point splitting for the sake of splitting.--
-> 
-> IMO, it doesn't need to be split up.
-> 
-> But it does have to fix the other comments I made on the same thread[1]
-> 
-> 1) add a descriptive changelog, and
-> 2) Cc linux-arm-kernel
+> On Wed, 5 Jan 2011, Kevin Hilman wrote:
+>
+>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>> 
+>> > struct clockdomain member clktrctrl_mask is available for only for OMAP2
+>> > and OMAP3 architectures. Technially it is also used only for these archs
+>> > but this breaks the build with custom OMAP4 configuration.
+>> 
+>> I'll queue patches 3-5 for the 2.6.38-rc fixes cycle.
+>> 
+>> With Paul's ack, I can queue the others too, or Paul can decide to take
+>> them via his tree.  Paul can decide.
+>
+> I've acked one and requested minor changes on the other, after which it 
+> can be acked by me.  You're welcome to take them at that point.  Just a 
+> request, maybe you can post a branch with just these patches in them; that 
+> way Rajendra and/or I can rebase his new clockdomain changes on it until 
+> -rc1 comes out.
 
-and glancing at the patch
+Sure, will do.
 
-3) Fix the multiline comments to conform to Documentation/CodingStyle
+I currently have a 'fixes-for-tony' branch in my tree which has all the
+fixes I've collected for the -rc cycle.
 
-as I think Nishanth mentioned.
+If you prefer something separate with only the prm and clockdomain
+patches from this series, I can do that as well.
 
-
-- Paul
+Kevin
