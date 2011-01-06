@@ -1,43 +1,57 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP: GPIO: fix _set_gpio_triggering() for OMAP2+
-Date: Thu, 06 Jan 2011 10:34:56 -0800
-Message-ID: <87bp3tvq27.fsf@ti.com>
-References: <1293620491-7201-1-git-send-email-ext-mika.1.westerberg@nokia.com>
-	<87aajg7dzu.fsf@ti.com> <1294181154.18162.39.camel@localhost>
-	<20110104231721.GO7771@atomide.com>
-	<AANLkTi=-9soJBeSGGUmcKNckzV651y=uJ9co9rByJyQB@mail.gmail.com>
-	<87oc7v1eav.fsf@ti.com> <20110106181249.GA2466@acer>
-Mime-Version: 1.0
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH v2] ARM: OMAP: Power on EHCI, serial, camera and DVI on beagleboard-xM
+Date: Thu, 6 Jan 2011 19:33:01 +0100
+Message-ID: <C29E2E05-1E8C-4A3F-8A64-0C8450049FB8@dominion.thruhere.net>
+References: <1291725639-86397-1-git-send-email-koen@beagleboard.org> <1292769735-54159-1-git-send-email-koen@dominion.thruhere.net> <4D2609F6.8090204@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1082)
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:46904 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751649Ab1AFSfD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:35:03 -0500
-Received: by mail-gx0-f170.google.com with SMTP id 20so9509045gxk.15
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 10:35:00 -0800 (PST)
-In-Reply-To: <20110106181249.GA2466@acer> (Mika Westerberg's message of "Thu,
-	6 Jan 2011 20:12:49 +0200")
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:37858 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751649Ab1AFSfG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:35:06 -0500
+Received: by wwa36 with SMTP id 36so17692616wwa.1
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 10:35:01 -0800 (PST)
+In-Reply-To: <4D2609F6.8090204@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@iki.fi>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, Tony Lindgren <tony@atomide.com>, Mika Westerberg <ext-mika.1.westerberg@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
-Mika Westerberg <mika.westerberg@iki.fi> writes:
-
-> Hi Kevin,
->
-> On Wed, Jan 05, 2011 at 08:54:48AM -0800, Kevin Hilman wrote:
->> 
->> I had assumed it was recent changes since the patch didn't apply
->> cleanly, but am glad to be wrong. :)
->
-> The patch should apply cleanly on the latest mainline. Do you want me to
-> rebase it against some other tree and resend?
-
-No, it's fine.  I'll be queueing it for .38-rc2 and it's in my
-'fixes-for-tony' branch.
-
-Kevin
+To: Nishanth Menon <nm@ti.com>
+Cc: Koen Kooi <koen.kooi@gmail.com>, l-o Mailing List <linux-omap@vger.kernel.org>, Gerald Coley <g-coley1@ti.com>
 
 
+Op 6 jan 2011, om 19:29 heeft Nishanth Menon het volgende geschreven:
+
+> Koen,
+> Apologies on a late response.
+> 
+> Koen Kooi had written, on 12/19/2010 08:42 AM, the following:
+> [...]
+>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+>> index f1a8ede..4756ac7 100644
+>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>> @@ -297,13 +297,35 @@ static int beagle_twl_gpio_setup(struct device *dev,
+> [..]
+>> +
+>> +	 /* Power on DVI, Serial and PWR led */
+>> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+>> +		gpio_request(gpio + 1, "nDVI_PWR_EN");
+>> +		gpio_direction_output(gpio + 1, 0);
+>> +	}
+> earlier in this function, we do:
+> 	gpio_request(gpio + 1, "EHCI_nOC");
+>  	gpio_direction_input(gpio + 1);
+> here we do
+> gpio_request(gpio + 1, "nDVI_PWR_EN");
+> gpio_direction_output(gpio + 1, 0);
+> 
+> I am confused. is gpio+1 input or output line? and what level should it be on?
+
+On early revB prototypes it was used to sense USB overcurrent, I'm not sure what the current status is for that pin on revB and revC, but on xM it controls the DVI, serial and led block.
+
+Adding Gerald to CC: to see if he has some pearls of wisdom on this :)
+
+regards,
+
+Koen
