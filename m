@@ -1,72 +1,47 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] arm: mach-omap2: pm: cleanup !CONFIG_SUSPEND handling
-Date: Thu, 06 Jan 2011 14:31:09 -0800
-Message-ID: <87vd21slzm.fsf@ti.com>
-References: <1293640483-25610-1-git-send-email-aaro.koskinen@nokia.com>
-	<874o9mvpxf.fsf@ti.com>
-	<BC214410FD04D84F9079A62423659707161C0C@008-AM1MPN1-003.mgdnok.nokia.com>
-	<87ei8qx8v3.fsf@ti.com>
+Subject: Re: [PATCH v2 3/4] OMAP4: hwmod: add entries for DMIC driver
+Date: Thu, 06 Jan 2011 14:39:44 -0800
+Message-ID: <87k4ihsllb.fsf@ti.com>
+References: <1294322439-16305-1-git-send-email-dlambert@ti.com>
+	<1294322439-16305-4-git-send-email-dlambert@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:53936 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754453Ab1AFWbT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 17:31:19 -0500
-Received: by mail-gw0-f51.google.com with SMTP id a18so8360639gwa.24
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 14:31:18 -0800 (PST)
-In-Reply-To: <87ei8qx8v3.fsf@ti.com> (Kevin Hilman's message of "Thu, 06 Jan
-	2011 09:03:28 -0800")
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:55671 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754470Ab1AFWju (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 17:39:50 -0500
+Received: by pxi17 with SMTP id 17so3590723pxi.20
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 14:39:48 -0800 (PST)
+In-Reply-To: <1294322439-16305-4-git-send-email-dlambert@ti.com> (David
+	Lambert's message of "Thu, 6 Jan 2011 08:00:38 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: aaro.koskinen@nokia.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: David Lambert <dlambert@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-Kevin Hilman <khilman@ti.com> writes:
+David Lambert <dlambert@ti.com> writes:
 
-> <aaro.koskinen@nokia.com> writes:
+> Adds HWMOD entries for the OMAP DMIC driver and creates
+> a platform device.  The HWMOD entires define the system
+> resource requirements for the drvier such as DMA addresses, channels,
+> and IRQ's.  Placing this information in the HWMOD database allows
+> for more generic drivers to be written and having the specific
+> implementation details defined in HWMOD.
 >
->> Hi,
->>
->> Kevin Hilman [khilman@ti.com]:
->>> Aaro Koskinen <aaro.koskinen@nokia.com> writes:
->>>
->>> > Make !CONFIG_SUSPEND init declarations identical on all OMAPs and
->>> > eliminate some ifdefs.
->>> >
->>> > Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
->>>
->>> I like this solution, but it introduces compiler warnings:
->>>
->>> [...]
->>>
->>> As you likely noticed, removing the const leads to checkpatch warnings:
->>>
->>> WARNING: struct platform_suspend_ops should normally be const
->>>
->>> so the choice is between a checkpatch warning or a bunch of compiler
->>> warnings.
->>>
->>> Alternatively, I just posted a patch[1] to linux-pm propsing to fix this
->>> at the source.  Let's see what happens there.  Merging $SUBJECT patch
->>> will depend on how this is fixed upstream.
->>
->> Sorry, I should have mentioned this when I posted the patch. I was aware of
->> this issue, but I thought this was already fixed in upstream. Check the following
->> commit in linux-next:
->>
->> http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commitdiff;h=2f55ac072f5344519348c0c94b3d2f4cca46847b
->>
->> (suspend: constify platform_suspend_ops)
+> Signed-off-by: David Lambert <dlambert@ti.com>
 >
-> ah, thanks.  somehow I missed that one when looking to see if this was
-> already fixed.
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   91 ++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/devices.c               |   35 +++++++++++
+>  2 files changed, 126 insertions(+), 0 deletions(-)
 
-OK, now your patch and the one from linux-next are conflicting as they
-both touch the platform_suspend_ops in pm*.c.
+Please split this into two patches: one for just the hwmod data, and the
+other for initializing the device.
 
-So for now, I'm gonna drop this one, but it should be rebased/reposted as
-soon as 2.6.38-rc1 is out.
+Also, I'm assuming the hwmod data came from the auto-generated data from
+Benoit, correct?  If so authorship and signoff of the hwmod data patch
+should reflect that.
 
 Thanks,
 
