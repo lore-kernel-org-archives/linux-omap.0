@@ -1,57 +1,73 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 4/4] OMAP4: DMIC: Add DMIC codec
-	platform devices
-Date: Thu, 6 Jan 2011 22:25:42 +0000
-Message-ID: <20110106222542.GF8408@opensource.wolfsonmicro.com>
-References: <1294322439-16305-1-git-send-email-dlambert@ti.com>
-	<1294322439-16305-5-git-send-email-dlambert@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] arm: mach-omap2: pm: cleanup !CONFIG_SUSPEND handling
+Date: Thu, 06 Jan 2011 14:31:09 -0800
+Message-ID: <87vd21slzm.fsf@ti.com>
+References: <1293640483-25610-1-git-send-email-aaro.koskinen@nokia.com>
+	<874o9mvpxf.fsf@ti.com>
+	<BC214410FD04D84F9079A62423659707161C0C@008-AM1MPN1-003.mgdnok.nokia.com>
+	<87ei8qx8v3.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1294322439-16305-5-git-send-email-dlambert@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: David Lambert <dlambert@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:53936 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754453Ab1AFWbT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 17:31:19 -0500
+Received: by mail-gw0-f51.google.com with SMTP id a18so8360639gwa.24
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 14:31:18 -0800 (PST)
+In-Reply-To: <87ei8qx8v3.fsf@ti.com> (Kevin Hilman's message of "Thu, 06 Jan
+	2011 09:03:28 -0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: aaro.koskinen@nokia.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Jan 06, 2011 at 08:00:39AM -0600, David Lambert wrote:
-> This creates the DMIC codec platform devices.
-> 
-> The platform devices create an instance of the driver during boot up.
-> 
-> Signed-off-by: David Lambert <dlambert@ti.com>
+Kevin Hilman <khilman@ti.com> writes:
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> <aaro.koskinen@nokia.com> writes:
+>
+>> Hi,
+>>
+>> Kevin Hilman [khilman@ti.com]:
+>>> Aaro Koskinen <aaro.koskinen@nokia.com> writes:
+>>>
+>>> > Make !CONFIG_SUSPEND init declarations identical on all OMAPs and
+>>> > eliminate some ifdefs.
+>>> >
+>>> > Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+>>>
+>>> I like this solution, but it introduces compiler warnings:
+>>>
+>>> [...]
+>>>
+>>> As you likely noticed, removing the const leads to checkpatch warnings:
+>>>
+>>> WARNING: struct platform_suspend_ops should normally be const
+>>>
+>>> so the choice is between a checkpatch warning or a bunch of compiler
+>>> warnings.
+>>>
+>>> Alternatively, I just posted a patch[1] to linux-pm propsing to fix this
+>>> at the source.  Let's see what happens there.  Merging $SUBJECT patch
+>>> will depend on how this is fixed upstream.
+>>
+>> Sorry, I should have mentioned this when I posted the patch. I was aware of
+>> this issue, but I thought this was already fixed in upstream. Check the following
+>> commit in linux-next:
+>>
+>> http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commitdiff;h=2f55ac072f5344519348c0c94b3d2f4cca46847b
+>>
+>> (suspend: constify platform_suspend_ops)
+>
+> ah, thanks.  somehow I missed that one when looking to see if this was
+> already fixed.
 
-though:
+OK, now your patch and the one from linux-next are conflicting as they
+both touch the platform_suspend_ops in pm*.c.
 
-> +static struct platform_device codec_dmic0 = {
-> +	.name   = "dmic-codec",
-> +	.id     = -1,
-> +};
+So for now, I'm gonna drop this one, but it should be rebased/reposted as
+soon as 2.6.38-rc1 is out.
 
-> +static inline void omap_dmic_init(void)
-> +{
-> +	platform_device_register(&codec_dmic0);
-> +}
+Thanks,
 
-This feels like bad namespacing as the name is OMAP-generic but it's
-actually board specific.
-
-It might also be more sensible to just have an array of platform devices
-with one entry and register that rather than bouncing through this
-function as it doesn't add anything and it'll get more and more verbose
-as more platform devices are added.
-
-It may be that these things are idiomatic, though - I've not looked at
-the surrounding code.
+Kevin
