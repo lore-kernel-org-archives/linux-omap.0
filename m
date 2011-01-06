@@ -1,83 +1,150 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] arm: mach-omap2: pm: cleanup !CONFIG_SUSPEND handling
-Date: Thu, 6 Jan 2011 11:19:57 +0000
-Message-ID: <20110106111957.GA1198@n2100.arm.linux.org.uk>
-References: <1293640483-25610-1-git-send-email-aaro.koskinen@nokia.com> <874o9mvpxf.fsf@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [lm-sensors] [PATCH v3] hwmon: twl4030: Driver for twl4030
+	madc module
+Date: Thu, 6 Jan 2011 12:04:34 +0000
+Message-ID: <20110106120433.GC17184@sirena.org.uk>
+References: <1294286200-16446-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43989 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753180Ab1AFLUK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 06:20:10 -0500
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:36231 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753472Ab1AFMFH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 07:05:07 -0500
 Content-Disposition: inline
-In-Reply-To: <874o9mvpxf.fsf@ti.com>
+In-Reply-To: <1294286200-16446-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com, khali@linux-fr.org, mikko.k.ylinen@nokia.com, linux-omap@vger.kernel.org, amit.kucheria@canonical.com, balajitk@ti.com
 
-On Wed, Jan 05, 2011 at 04:25:32PM -0800, Kevin Hilman wrote:
-> As you likely noticed, removing the const leads to checkpatch warnings:
-> 
-> WARNING: struct platform_suspend_ops should normally be const
-> 
-> so the choice is between a checkpatch warning or a bunch of compiler
-> warnings.
+On Thu, Jan 06, 2011 at 09:26:40AM +0530, Keerthy wrote:
 
-checkpatch should not be checking that data declarations are const.
-That's a decision for those people declaring them to decide upon, as
-they may need to modify the structure before registration.
+> ---
+>  drivers/hwmon/Kconfig            |   11 +
+>  drivers/hwmon/Makefile           |    1 +
+>  drivers/hwmon/twl4030-madc.c     |  794 ++++++++++++++++++++++++++++++++++++++
+>  include/linux/i2c/twl4030-madc.h |  118 ++++++
+>  4 files changed, 924 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/hwmon/twl4030-madc.c
+>  create mode 100644 include/linux/i2c/twl4030-madc.h
 
-By doing so, we end up encouraging people to write more code - such
-as declaring it __initconst, and then kmalloc'ing, memcpy'ing and
-modifying that before registering it.
+hwmon drivers are also expected to have a file under Documentation.
 
-> > -static struct platform_suspend_ops omap_pm_ops = {
-> > -	.begin		= omap2_pm_begin,
-> > -	.enter		= omap2_pm_enter,
-> > -	.end		= omap2_pm_end,
-> > -	.valid		= suspend_valid_only_mem,
-> > +static const struct platform_suspend_ops omap_pm_ops[] = {
-> > +	{
-> > +		.begin		= omap2_pm_begin,
-> > +		.enter		= omap2_pm_enter,
-> > +		.end		= omap2_pm_end,
-> > +		.valid		= suspend_valid_only_mem,
-> > +	}
-> >  };
-> > -#else
-> > -static const struct platform_suspend_ops __initdata omap_pm_ops;
-> >  #endif /* CONFIG_SUSPEND */
-> >  
-> >  /* XXX This function should be shareable between OMAP2xxx and OMAP3 */
-> > @@ -582,7 +582,7 @@ static int __init omap2_pm_init(void)
-> >  						    omap24xx_cpu_suspend_sz);
-> >  	}
-> >  
-> > -	suspend_set_ops(&omap_pm_ops);
-> > +	suspend_set_ops(omap_pm_ops);
+> +struct twl4030_madc_data {
+> +	struct device *hwmon_dev;
+> +	struct mutex lock;/* mutex protecting this data structire */
+> +	struct twl4030_madc_request requests[TWL4030_MADC_NUM_METHODS];
+> +	int imr;
+> +	int isr;
+> +};
 
-Utterly yuck.  Declaring it as a single element array just to avoid an
-ifdef.  That's worse than having an ifdef here.
+> +static struct twl4030_madc_data *twl4030_madc;
 
-There's another solution.  Don't mess about with sticking such stuff in
-the header either.
+I'd expect this to be per driver instance rather than global (I know
+it's vanishingly unlikely that you'll get multiple twl4030s in a single
+system but it's nicer).
 
-#ifdef WHATEVER
-static const struct platform_suspend_ops omap_pm_ops = {
-	.begin		= omap2_pm_begin,
-	.enter		= omap2_pm_enter,
-	.end		= omap2_pm_end,
-	.valid		= suspend_valid_only_mem,
-};
-#define PM_OPS omap_pm_ops
-#else
-#define PM_OPS NULL
-#endif
-...
+> +/*
+> + * sysfs hook function
+> + */
+> +static ssize_t madc_read(struct device *dev,
+> +			 struct device_attribute *devattr, char *buf)
+> +{
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct twl4030_madc_request req;
+> +	long val;
+> +
+> +	req.channels = (1 << attr->index);
+> +	req.method = TWL4030_MADC_SW2;
+> +	req.func_cb = NULL;
+> +	val = twl4030_madc_conversion(&req);
+> +	if (val >= 0)
+> +		val = req.rbuf[attr->index];
+> +	else
+> +		return val;
+> +	return sprintf(buf, "%ld\n", val);
 
-	suspend_set_ops(PM_OPS);
+Does this return data in the appropriate units - milivolts for voltages?
 
-That keeps it all nice and local, and you can see exactly what's going on
-without having it spread across many different random files.
+> +/*
+> + * Enables irq.
+> + * @madc - pointer to twl4030_madc_data struct
+> + * @id - irq number to be enabled
+> + * can take one of TWL4030_MADC_RT, TWL4030_MADC_SW1, TWL4030_MADC_SW2
+> + * corresponding to RT, SW1, SW2 conversion requests.
+> + * If the i2c read fails it returns an error else returns 0.
+> + */
+> +static int twl4030_madc_enable_irq(struct twl4030_madc_data *madc, int id)
+
+It'd be good to clarify that this is interrupt sources within this
+module rather than Linux interrupt numbers.
+
+> +			dev_dbg(madc->hwmon_dev,
+> +			"Disable interrupt failed%d\n", i);
+> +		}
+> +
+> +		madc->requests[i].result_pending = 1;
+> +	}
+> +	mutex_lock(&madc->lock);
+> +	for (i = 0; i < TWL4030_MADC_NUM_METHODS; i++) {
+> +
+> +		r = &madc->requests[i];
+
+In general through the driver your use of blank lines is really odd
+which doesn't help readability.
+
+> +	switch (conv_method) {
+> +	case TWL4030_MADC_SW1:
+> +	case TWL4030_MADC_SW2:
+> +		ret = twl_i2c_write_u8(TWL4030_MODULE_MADC,
+> +			TWL4030_MADC_SW_START, method->ctrl);
+> +		if (ret) {
+> +			dev_err(madc->hwmon_dev,
+> +			"unable to write ctrl register 0x%X\n", method->ctrl);
+> +			return ret;
+> +		}
+> +		break;
+> +	case TWL4030_MADC_RT:
+> +	default:
+> +		break;
+
+This looks odd - the function won't actually do anything for non-SW
+conversions but won't return an error?
+
+> +/* sysfs nodes to read individual channels from user side */
+> +static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, madc_read, NULL, 0);
+> +static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, madc_read, NULL, 1);
+> +static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, madc_read, NULL, 2);
+> +static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, madc_read, NULL, 3);
+> +static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, madc_read, NULL, 4);
+> +static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, madc_read, NULL, 5);
+> +static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, madc_read, NULL, 6);
+> +static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, madc_read, NULL, 7);
+> +static SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, madc_read, NULL, 8);
+> +static SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, madc_read, NULL, 9);
+> +static SENSOR_DEVICE_ATTR(in10_input, S_IRUGO, madc_read, NULL, 10);
+> +static SENSOR_DEVICE_ATTR(in11_input, S_IRUGO, madc_read, NULL, 11);
+> +static SENSOR_DEVICE_ATTR(in12_input, S_IRUGO, madc_read, NULL, 12);
+> +static SENSOR_DEVICE_ATTR(in13_input, S_IRUGO, madc_read, NULL, 13);
+> +static SENSOR_DEVICE_ATTR(in14_input, S_IRUGO, madc_read, NULL, 14);
+> +static SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, madc_read, NULL, 15);
+
+I suspect some of these are temperatures, some are voltages and that
+some are fixed to particular inputs?  The temperatures should be temp_
+and if the inputs are from known sources it'd be good to label them.
+
+> +	madc->imr = (pdata->irq_line == 1) ?
+> +	    TWL4030_MADC_IMR1 : TWL4030_MADC_IMR2;
+> +	madc->isr = (pdata->irq_line == 1) ?
+> +	    TWL4030_MADC_ISR1 : TWL4030_MADC_ISR2;
+
+This looks really odd - what's going on here?  Comments might help.
+
+> +
+> +MODULE_DESCRIPTION("TWL4030 ADC driver");
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("J Keerthy");
+
+A MODULE_ALIAS to enable automatic loading of teh driver would also be
+good.
