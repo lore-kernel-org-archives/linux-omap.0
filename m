@@ -1,66 +1,73 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: linux-next: manual merge of the usb tree with the omap tree
-Date: Thu, 06 Jan 2011 10:38:59 -0800
-Message-ID: <871v4pvpvg.fsf@ti.com>
-References: <20101223171859.f6842045.sfr@canb.auug.org.au>
-	<4D139517.3010608@ti.com>
-	<AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com>
-	<4ce0f816f951f24ca3de9c84d9f70842@mail.gmail.com>
-	<4D25E313.4060202@heeltoe.com>
-	<8B3471BB-CB3F-4CE6-B523-D9C5E87B9CEC@dominion.thruhere.net>
-	<87pqs9vqya.fsf@ti.com> <4D260812.3010605@ti.com>
+Subject: Re: [PATCH] PM: fix suspend_set_ops() to take const pointer
+Date: Thu, 06 Jan 2011 10:55:37 -0800
+Message-ID: <1294340137.328.6.camel@vence>
+References: <1294273373-8967-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <4D260812.3010605@ti.com> (Nishanth Menon's message of "Thu, 06
-	Jan 2011 12:21:06 -0600")
-Sender: linux-next-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, Brad Parker <brad@heeltoe.com>, Anand Gadiyar <gadiyar@ti.com>, Ming Lei <tom.leiming@gmail.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1294273373-8967-1-git-send-email-khilman@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+On Wed, 2011-01-05 at 16:22 -0800, Kevin Hilman wrote:
+> checkpatch warns that pointers for certain structs should be const,
+> and platform_suspend_ops is one of those structs.  If you follow this
+> suggestion you trade a checkpatch warning for a compiler warning of
+> the form:
+> 
+>    warning: passing argument 1 of 'suspend_set_ops' discards qualifiers from pointer target type
+> 
+> Fix suspend_set_ops() to take a const pointer so everyone expects
+> const.
+> 
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> Applies to v2.6.37, but also applies cleanly to suspend-2.6/linux-next
 
-> Kevin Hilman had written, on 01/06/2011 12:15 PM, the following:
->> Koen Kooi <koen@dominion.thruhere.net> writes:
->>
->>> Op 6 jan 2011, om 16:43 heeft Brad Parker het volgende geschreven:
->>>
->>>> It's probably expected, but I can't get the EHCI USB port  to work
->>>> on a beagle board XM (36xx) using the current omap tree.
->>>>
->>>> It this most likely due to these clock issues?
->>> You need this patch: http://thread.gmane.org/gmane.linux.ports.arm.omap/47807/
->>>
->>> I'm currently too lazy to split it up like Nishant wants as I don't
->>> see the point splitting for the sake of splitting.--
->>
->> IMO, it doesn't need to be split up.
->>
->> But it does have to fix the other comments I made on the same thread[1]
->>
->> 1) add a descriptive changelog, and
->> 2) Cc linux-arm-kernel
->
-> Kevin,
-> there are four things being done in the patch:
-> a) fix GPIO number for EHCI power on
-> b) fix GPIO number for DVI reset line
-> c) switch on DVI
-> d) switch on Camera
->
-> I have split the first 2 up. I just splitting the (c) up when I
-> noticed the code is confusing - I will reply in thread to the original
-> patch.
->
-> I apologize, but I disagree - as far as I see it, these are separate
-> changes being done.
-
-Sure, but there are all tiny and isolated.  For me, what's missing is
-just a changlog describing all the changes.
-
-Feel free to break it up if you prefer, but IMO it would be mergable as
-a single patch if there was a descriptive changelog actually mentioning 
-all the changes made (as you just did above.)
+Oops, plese disregard.  This is already fixed in linux-next.
 
 Kevin
+
+>  include/linux/suspend.h |    4 ++--
+>  kernel/power/suspend.c  |    2 +-
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+> index 2669751..bb98383 100644
+> --- a/include/linux/suspend.h
+> +++ b/include/linux/suspend.h
+> @@ -122,7 +122,7 @@ struct platform_suspend_ops {
+>   * suspend_set_ops - set platform dependent suspend operations
+>   * @ops: The new suspend operations to set.
+>   */
+> -extern void suspend_set_ops(struct platform_suspend_ops *ops);
+> +extern void suspend_set_ops(const struct platform_suspend_ops *ops);
+>  extern int suspend_valid_only_mem(suspend_state_t state);
+>  
+>  /**
+> @@ -147,7 +147,7 @@ extern int pm_suspend(suspend_state_t state);
+>  #else /* !CONFIG_SUSPEND */
+>  #define suspend_valid_only_mem	NULL
+>  
+> -static inline void suspend_set_ops(struct platform_suspend_ops *ops) {}
+> +static inline void suspend_set_ops(const struct platform_suspend_ops *ops) {}
+>  static inline int pm_suspend(suspend_state_t state) { return -ENOSYS; }
+>  #endif /* !CONFIG_SUSPEND */
+>  
+> diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
+> index ecf7705..0c0af3d 100644
+> --- a/kernel/power/suspend.c
+> +++ b/kernel/power/suspend.c
+> @@ -36,7 +36,7 @@ static struct platform_suspend_ops *suspend_ops;
+>   *	suspend_set_ops - Set the global suspend method table.
+>   *	@ops:	Pointer to ops structure.
+>   */
+> -void suspend_set_ops(struct platform_suspend_ops *ops)
+> +void suspend_set_ops(const struct platform_suspend_ops *ops)
+>  {
+>  	mutex_lock(&pm_mutex);
+>  	suspend_ops = ops;
