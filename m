@@ -1,52 +1,84 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v3 0/3] OMAP3: beaglexm: GPIO fixes
-Date: Thu, 06 Jan 2011 14:15:23 -0800
-Message-ID: <8739p5u1ac.fsf@ti.com>
-References: <1294343679-10605-1-git-send-email-nm@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 1/4] ASoC: DMIC: Adding the OMAP DMIC
+	driver
+Date: Thu, 6 Jan 2011 22:20:52 +0000
+Message-ID: <20110106222052.GC8408@opensource.wolfsonmicro.com>
+References: <1294322439-16305-1-git-send-email-dlambert@ti.com>
+	<1294322439-16305-2-git-send-email-dlambert@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:37381 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754232Ab1AFWP3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 17:15:29 -0500
-Received: by gwaa20 with SMTP id a20so8312631gwa.21
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 14:15:28 -0800 (PST)
-In-Reply-To: <1294343679-10605-1-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Thu, 6 Jan 2011 13:54:36 -0600")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1294322439-16305-2-git-send-email-dlambert@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: David Lambert <dlambert@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Tony <tony@atomide.com>, Koen Kooi <koen@beagleboard.org>
 
-Nishanth Menon <nm@ti.com> writes:
+On Thu, Jan 06, 2011 at 08:00:36AM -0600, David Lambert wrote:
 
-> Hi,
-> As discussed in the threads:
-> http://thread.gmane.org/gmane.linux.ports.arm.omap/47807/
-> http://marc.info/?t=121540030800004&r=1&w=2
->
-> here is the split up series with commit message after discussion:
-> http://www.beagleboard.org/irclogs/index.php?date=2011-01-06#T19:12:21
->
-> Koen Kooi (3):
->   omap3: beaglexm: fix EHCI power up GPIO dir
->   omap3: beaglexm: fix DVI reset GPIO
->   omap3: beaglexm: power on DVI
->
->  arch/arm/mach-omap2/board-omap3beagle.c |   37 ++++++++++++++++++++++++++----
->  1 files changed, 32 insertions(+), 5 deletions(-)
->
-> v3:
-> 	split up the series, addressed review comments
+> @@ -103,6 +106,7 @@ config SND_OMAP_SOC_SDP4430
+>  	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_4430SDP
+>  	select SND_OMAP_SOC_MCPDM
+>  	select SND_SOC_TWL6040
+> +	select SND_SOC_DMIC
+>  	help
+>  	  Say Y if you want to add support for SoC audio on Texas Instruments
+>  	  SDP4430.
 
-Thanks, queueing for the .38-rc cycle.
+Any tweaks to specific machines should be done separately to adding the
+new drivers.
 
-Kevin
+> +	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
+> +	int ctrl, div_sel = -EINVAL;
+> +
+> +	if (div_id != OMAP_DMIC_CLKDIV)
+> +		return -ENODEV;
+> +
+> +	switch (dmic->clk_freq) {
+> +	case 19200000:
+> +		if (div == 5)
+> +			div_sel = 0x1;
+> +		else if (div == 8)
+> +			div_sel = 0x0;
 
-> v2: http://marc.info/?t=129276977900002&r=1&w=2
-> 	Reenable the PMU stat LED
-> v1: http://marc.info/?t=129172571000001&r=1&w=2
->
-> Regards,
-> Nishanth Menon
+I suggested switch statements previously; you didn't comment on my
+reply.
+
+> +static irqreturn_t omap_dmic_irq_handler(int irq, void *dev_id)
+> +{
+> +	struct omap_dmic *dmic = dev_id;
+
+My comments on this function appear to have been mostly ignored also.
+
+> +	switch (rate) {
+> +	case 192000:
+> +		div = 5;
+> +		break;
+> +	default:
+> +		div = 8;
+
+Shouldn't the default case be a case 96000?
+
+> +	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+> +		break;
+> +	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+> +		break;
+
+Remove the empty cases, they're handled by the default.
+
+> +
+> +MODULE_AUTHOR("David Lambert <dlambert@ti.com>");
+> +MODULE_DESCRIPTION("OMAP DMIC SoC Interface");
+> +MODULE_LICENSE("GPL");
+
+As also previously noted you should have a MODULE_ALIAS.
