@@ -1,53 +1,52 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 1/5] omap2plus: clockdomain: Trivial fix for build break because of clktrctrl_mask
-Date: Thu, 06 Jan 2011 10:28:09 -0800
-Message-ID: <87ipy1vqdi.fsf@ti.com>
-References: <1294225024-21857-1-git-send-email-santosh.shilimkar@ti.com>
-	<87fwt7z1p3.fsf@ti.com>
-	<alpine.DEB.2.00.1101061059590.22048@utopia.booyaka.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2] ARM: OMAP: Power on EHCI, serial, camera and DVI on
+ beagleboard-xM
+Date: Thu, 06 Jan 2011 12:29:10 -0600
+Message-ID: <4D2609F6.8090204@ti.com>
+References: <1291725639-86397-1-git-send-email-koen@beagleboard.org> <1292769735-54159-1-git-send-email-koen@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:47655 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751686Ab1AFS2M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:28:12 -0500
-Received: by mail-pw0-f41.google.com with SMTP id 8so3036276pwj.0
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 10:28:12 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1101061059590.22048@utopia.booyaka.com> (Paul
-	Walmsley's message of "Thu, 6 Jan 2011 11:02:02 -0700 (MST)")
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:38866 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752444Ab1AFS3N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:29:13 -0500
+Received: by mail-yx0-f170.google.com with SMTP id 11so6178144yxi.1
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 10:29:13 -0800 (PST)
+In-Reply-To: <1292769735-54159-1-git-send-email-koen@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: Koen Kooi <koen.kooi@gmail.com>
+Cc: linux-omap@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Koen Kooi <koen@beagleboard.org>
 
-Paul Walmsley <paul@pwsan.com> writes:
+Koen,
+Apologies on a late response.
 
-> On Wed, 5 Jan 2011, Kevin Hilman wrote:
->
->> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->> 
->> > struct clockdomain member clktrctrl_mask is available for only for OMAP2
->> > and OMAP3 architectures. Technially it is also used only for these archs
->> > but this breaks the build with custom OMAP4 configuration.
->> 
->> I'll queue patches 3-5 for the 2.6.38-rc fixes cycle.
->> 
->> With Paul's ack, I can queue the others too, or Paul can decide to take
->> them via his tree.  Paul can decide.
->
-> I've acked one and requested minor changes on the other, after which it 
-> can be acked by me.  You're welcome to take them at that point.  Just a 
-> request, maybe you can post a branch with just these patches in them; that 
-> way Rajendra and/or I can rebase his new clockdomain changes on it until 
-> -rc1 comes out.
+Koen Kooi had written, on 12/19/2010 08:42 AM, the following:
+[...]
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index f1a8ede..4756ac7 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -297,13 +297,35 @@ static int beagle_twl_gpio_setup(struct device *dev,
+[..]
+> +
+> +	 /* Power on DVI, Serial and PWR led */
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> +		gpio_request(gpio + 1, "nDVI_PWR_EN");
+> +		gpio_direction_output(gpio + 1, 0);
+> +	}
+earlier in this function, we do:
+	gpio_request(gpio + 1, "EHCI_nOC");
+   	gpio_direction_input(gpio + 1);
+here we do
+gpio_request(gpio + 1, "nDVI_PWR_EN");
+gpio_direction_output(gpio + 1, 0);
 
-Sure, will do.
+I am confused. is gpio+1 input or output line? and what level should it 
+be on?
 
-I currently have a 'fixes-for-tony' branch in my tree which has all the
-fixes I've collected for the -rc cycle.
-
-If you prefer something separate with only the prm and clockdomain
-patches from this series, I can do that as well.
-
-Kevin
+-- 
+Regards,
+Nishanth Menon
