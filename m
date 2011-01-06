@@ -1,64 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] omap: wd_timer: Fix crash frm wdt_probe when
- !CONFIG_RUNTIME_PM
-Date: Thu, 6 Jan 2011 11:25:31 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101061120480.31961@utopia.booyaka.com>
-References: <1294234855-6623-1-git-send-email-santosh.shilimkar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 4430SDP boot failure
+Date: Thu, 6 Jan 2011 10:25:56 -0800
+Message-ID: <20110106182555.GW7771@atomide.com>
+References: <20110106170805.GE1198@n2100.arm.linux.org.uk>
+ <20110106180030.GA8249@n2100.arm.linux.org.uk>
+ <20110106181754.GA8975@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50287 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751686Ab1AFSZc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:25:32 -0500
-In-Reply-To: <1294234855-6623-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46934 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751686Ab1AFS0H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 13:26:07 -0500
+Content-Disposition: inline
+In-Reply-To: <20110106181754.GA8975@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
 
-Hi Santosh,
-
-On Wed, 5 Jan 2011, Santosh Shilimkar wrote:
-
-> Commit ff2516fb 'wd_timer: disable on boot via hwmod postsetup mechanism'
-> introduced watchdog timer state state management using postsetup_state.
-> This was done to allow some board files to support watchdog coverage
-> throughout kernel initialization and it work as intended when RUNTIME_PM
-> is enabled.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110106 10:17]:
+> On Thu, Jan 06, 2011 at 06:00:30PM +0000, Russell King - ARM Linux wrote:
+> > Therefore, I believe the debugging address calculation stuff in
+> > arch/arm/mach-omap2/include/mach/debug-macros.S to be rather broken,
+> > causing an abort when it tries to access the serial port.
 > 
-> With !CONFIG_RUNTIME_PM and no board is specifically requests watchdog
-> to remain enabled the omap_wdt_probe crashesh. This is because hwmod
-> in absense of runtime PM unable to turn watchdog clocks because it's
-> state is set to be disabled. For rest of the device, the state is
-> set as enabled in absense of RUNTIME_PM
+> I'm sorry, I think this crap has to go.  Trying to make it fit every
+> platform in one kernel is just too complicated.  It _needs_ to be
+> something so damned simple that it always works without fail, every
+> single time someone wants to use it.
 > 
-> [    1.372558] Unhandled fault: imprecise external abort (0x1406) at 0xad733eeb
-> [    1.379913] Internal error: : 1406 [#1] SMP
-> [    1.384277] last sysfs file:
-> [    1.387359] Modules linked in:
-> [    1.390563] CPU: 0    Tainted: G        W    (2.6.37-rc7-00265-g4298a4c-dirty #23)
-> [    1.398468] PC is at omap_wdt_disable+0x2c/0x3c
-> [    1.403198] LR is at omap_wdt_probe+0x124/0x1e0
-> [    1.407928] pc : [<c02f5bf4>]    lr : [<c03be10c>]    psr: 60000013
-> [    1.407958] sp : df833f00  ip : 00000000  fp : 00000000
-> [    1.419921] r10: c0ac57ac  r9 : df959e00  r8 : 00000000
-> [    1.425384] r7 : df959e08  r6 : df8000c0  r5 : df95bebc  r4 : df87dde0
-> [    1.432189] r3 : fc314000  r2 : 00005555  r1 : fc314034  r0 : df87dde0
+> The current code really hasn't a hope of doing that.
 > 
-> This patch make the default watchdog state to be enabled in case of
-> !CONFIG_RUNTIME_PM. This fixes the crash
+> Yes, that means you only configure it when you're not building a multi-
+> platform kernel, but that's worth giving up if in return we have something
+> that is 100% reliable.
 > 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> ---
-> Paul, I am not too sure if it breaks your _shutdown idea of watchdog
-> timer.
+> As it is, I need to invent new debugging code to debug this mess.  Sorry,
+> I'm actually not going to bother - as the LL debug stuff was my debugging
+> code to debug exactly these kinds of boot problems.  Someone else can have
+> the pain of sorting out this breakage, and tell me when they expect OMAP
+> to work again.
 
-Maybe.  What happens in a case where the bootloader enables the watchdog, 
-but the booting kernel is compiled with !CONFIG_OMAP_WATCHDOG and 
-!CONFIG_PM_RUNTIME?  Won't the watchdog reset the MPU unexpectedly in that 
-case?  Or am I missing something...
+Something that could help with the DEBUG_LL code is to pass optional
+debug UART info masked into the machine_id using the high bits..
 
+Regards,
 
-- Paul
+Tony
