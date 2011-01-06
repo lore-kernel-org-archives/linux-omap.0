@@ -1,62 +1,43 @@
-From: Ben Tucker <btucker@mpcdata.com>
-Subject: RFBI worked example
-Date: Thu, 6 Jan 2011 15:32:08 -0000
-Message-ID: <b3985d3b9ab26a0aac963651376b21ac@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: More LDP stuff
+Date: Thu, 6 Jan 2011 15:36:53 +0000
+Message-ID: <20110106153653.GD1198@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:46015 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753035Ab1AFPbQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 10:31:16 -0500
-Received: by iyi12 with SMTP id 12so14946288iyi.19
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 07:31:16 -0800 (PST)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41133 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753025Ab1AFPg6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 10:36:58 -0500
+Received: from n2100.arm.linux.org.uk ([2002:4e20:1eda:1:214:fdff:fe10:4f86])
+	by caramon.arm.linux.org.uk with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.72)
+	(envelope-from <linux@arm.linux.org.uk>)
+	id 1PartX-0000qT-9H
+	for linux-omap@vger.kernel.org; Thu, 06 Jan 2011 15:36:55 +0000
+Received: from linux by n2100.arm.linux.org.uk with local (Exim 4.72)
+	(envelope-from <linux@n2100.arm.linux.org.uk>)
+	id 1PartW-0001au-1R
+	for linux-omap@vger.kernel.org; Thu, 06 Jan 2011 15:36:54 +0000
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@nokia.com
 
-Hi,
+During boot, apart from the watchdog issue, I'm also seeing:
 
-I am trying to setup an OMAP3530 based system for RFBI video output using
-external triggering. Looking at the omap dss2 source code (and also
-searching around) I cannot find any worked example of how to use the rfbi
-driver. I know that RFBI has worked in the past for a Nokia N800 device.
-Can you dig out any source code that shows how to use the RFBI driver?
-In particular I need to see how the omap_rfbi_prepare_update() and
-omap_rfbi_update() calls operate with their callback. I am thinking that I
-should simply call omap_rfbi_update() in a thread and wait for the
-completion call back after each call. I want to confirm that this is the
-correct way to run the driver.
+Clocking rate (Crystal/Core/MPU): 26.0/266/500 MHz
+Reprogramming SDRC clock to 266000000 Hz
+dpll3_m2_clk rate change failed: -22
 
-Thanks,
-	Ben
+Is that something to be concerned about?
 
+ads7846 spi1.0: unable to get regulator: -19
 
+Is something missing from the ldp support code to declare this regulator?
 
-Ben Tucker
-Senior Software Engineer
-MPC Data Limited
-e-mail: <btucker@mpc-data.co.uk>      web: www.mpc-data.co.uk
-tel: +44 (0) 1225 710600              fax: +44 (0) 1225 710601
-ddi: +44 (0) 1225 710660
+mmcblk0: retrying using single block read
+(repeated many times)
 
-MPC Data Limited is a company registered in England and Wales with company
-number 05507446
-Registered Address: County Gate, County Way, Trowbridge, Wiltshire, BA14
-7FJ
-VAT no: 850625238
-
-The information in this email and in the attached documents is
-confidential and may be
-legally privileged. Any unauthorized review, copying, disclosure or
-distribution is
-prohibited and may be unlawful. It is intended solely for the addressee.
-Access to this
-email by anyone else is unauthorized. If you are not the intended
-recipient, please
-contact the sender by reply email and destroy all copies of the original
-message. When
-addressed to our clients any opinions or advice contained in this email is
-subject to
-the terms and conditions expressed in the governing contract.
+Is the OMAP HSMMC driver really unable to handle multi-block read
+requests, or is something missing on the LDP to make it work?
