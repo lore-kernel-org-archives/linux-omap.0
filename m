@@ -1,41 +1,84 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: twl4030: Driver for twl4030
-	madc module
-Date: Thu, 6 Jan 2011 12:07:13 +0000
-Message-ID: <20110106120713.GD17184@sirena.org.uk>
-References: <1294287457-2438-1-git-send-email-j-keerthy@ti.com> <20110106053328.GA7489@ericsson.com>
+From: <aaro.koskinen@nokia.com>
+Subject: RE: [PATCH] arm: mach-omap2: pm: cleanup !CONFIG_SUSPEND handling
+Date: Thu, 6 Jan 2011 12:05:51 +0000
+Message-ID: <BC214410FD04D84F9079A62423659707164311@008-AM1MPN1-003.mgdnok.nokia.com>
+References: <1293640483-25610-1-git-send-email-aaro.koskinen@nokia.com>
+	<874o9mvpxf.fsf@ti.com>, <20110106111957.GA1198@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:36274 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753887Ab1AFMHR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 07:07:17 -0500
-Content-Disposition: inline
-In-Reply-To: <20110106053328.GA7489@ericsson.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110106111957.GA1198@n2100.arm.linux.org.uk>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux@arm.linux.org.uk, khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Keerthy <j-keerthy@ti.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balajitk@ti.com" <balajitk@ti.com>
 
-On Wed, Jan 05, 2011 at 09:33:28PM -0800, Guenter Roeck wrote:
+Hi,
 
-> [...]
-> > +EXPORT_SYMBOL_GPL(twl4030_madc_conversion);
-> [...]
-> > +EXPORT_SYMBOL_GPL(twl4030_get_madc_conversion);
+Russell King - ARM Linux [linux@arm.linux.org.uk]:
+> > > -static struct platform_suspend_ops omap_pm_ops = {
+> > > -   .begin          = omap2_pm_begin,
+> > > -   .enter          = omap2_pm_enter,
+> > > -   .end            = omap2_pm_end,
+> > > -   .valid          = suspend_valid_only_mem,
+> > > +static const struct platform_suspend_ops omap_pm_ops[] = {
+> > > +   {
+> > > +           .begin          = omap2_pm_begin,
+> > > +           .enter          = omap2_pm_enter,
+> > > +           .end            = omap2_pm_end,
+> > > +           .valid          = suspend_valid_only_mem,
+> > > +   }
+> > >  };
+> > > -#else
+> > > -static const struct platform_suspend_ops __initdata omap_pm_ops;
+> > >  #endif /* CONFIG_SUSPEND */
+> > >
+> > >  /* XXX This function should be shareable between OMAP2xxx and OMAP3 */
+> > > @@ -582,7 +582,7 @@ static int __init omap2_pm_init(void)
+> > >                                                 omap24xx_cpu_suspend_sz);
+> > >     }
+> > >
+> > > -   suspend_set_ops(&omap_pm_ops);
+> > > +   suspend_set_ops(omap_pm_ops);
+>
+> Utterly yuck.  Declaring it as a single element array just to avoid an
+> ifdef.  That's worse than having an ifdef here.
 
-> No symbol export from hwmon drivers. Other parts of the kernel
-> should not depend on HWMON configuration.
+Why it is worse? Reducing the amount of different preprocessor branches will
+result in better compile test / static analysis coverage.
 
-Why?  It's not like hwmon has an unreasonably large core or similar.
+> There's another solution.  Don't mess about with sticking such stuff in
+> the header either.
+>
+> #ifdef WHATEVER
+> static const struct platform_suspend_ops omap_pm_ops = {
+>         .begin          = omap2_pm_begin,
+>         .enter          = omap2_pm_enter,
+>         .end            = omap2_pm_end,
+>         .valid          = suspend_valid_only_mem,
+> };
+> #define PM_OPS omap_pm_ops
+> #else
+> #define PM_OPS NULL
+> #endif
+> ...
+> 
+>         suspend_set_ops(PM_OPS);
+>
+> That keeps it all nice and local, and you can see exactly what's going on
+> without having it spread across many different random files.
 
-> I would suggest to check if drivers/staging/iio would be a better fit.
+I don't think it's obviously better or simpler. There's already made a mistake in
+your example...
 
-That does have the problem that it's in staging and constantly churning,
-though.  When I've looked at it it seemed like awfully hard work to use
-for devices like this.
-
-What I've done in some of my drivers is put the ADC core in the MFD core
-(it's used by both hwmon and power supply function drivers, plus any
-board specific stuff people do).
+A.
