@@ -1,48 +1,45 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 3/4] OMAP4: hwmod: add entries for DMIC driver
-Date: Thu, 06 Jan 2011 14:39:44 -0800
-Message-ID: <87k4ihsllb.fsf@ti.com>
-References: <1294322439-16305-1-git-send-email-dlambert@ti.com>
-	<1294322439-16305-4-git-send-email-dlambert@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 5/5] omap2+: pm_bus: make functions used as pointers as
+	static
+Date: Thu, 6 Jan 2011 14:43:26 -0800
+Message-ID: <20110106224326.GC7771@atomide.com>
+References: <1294171634-13943-1-git-send-email-nm@ti.com>
+	<1294171634-13943-6-git-send-email-nm@ti.com>
+	<87zkrg2nfa.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:55671 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754470Ab1AFWju (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 17:39:50 -0500
-Received: by pxi17 with SMTP id 17so3590723pxi.20
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 14:39:48 -0800 (PST)
-In-Reply-To: <1294322439-16305-4-git-send-email-dlambert@ti.com> (David
-	Lambert's message of "Thu, 6 Jan 2011 08:00:38 -0600")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <87zkrg2nfa.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: David Lambert <dlambert@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-David Lambert <dlambert@ti.com> writes:
+* Kevin Hilman <khilman@ti.com> [110104 16:39]:
+> Nishanth Menon <nm@ti.com> writes:
+> 
+> > omap_pm_runtime_suspend and omap_pm_runtime_resume are used
+> > as function pointers and does not really need to be exposed
+> > to the world.
+> >
+> > Fixes sparse warnings:
+> > arch/arm/mach-omap2/pm_bus.c:23:5: warning: symbol 'omap_pm_runtime_suspend' was not declared. Should it be static?
+> > arch/arm/mach-omap2/pm_bus.c:40:5: warning: symbol 'omap_pm_runtime_resume' was not declared. Should it be static?
+> >
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> 
+> Thanks, will queue this one in my pm-fixes branch for 2.6.38-rc.
 
-> Adds HWMOD entries for the OMAP DMIC driver and creates
-> a platform device.  The HWMOD entires define the system
-> resource requirements for the drvier such as DMA addresses, channels,
-> and IRQ's.  Placing this information in the HWMOD database allows
-> for more generic drivers to be written and having the specific
-> implementation details defined in HWMOD.
->
-> Signed-off-by: David Lambert <dlambert@ti.com>
->
-> ---
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   91 ++++++++++++++++++++++++++++
->  arch/arm/plat-omap/devices.c               |   35 +++++++++++
->  2 files changed, 126 insertions(+), 0 deletions(-)
+I'll take patches 1 - 4.
 
-Please split this into two patches: one for just the hwmod data, and the
-other for initializing the device.
-
-Also, I'm assuming the hwmod data came from the auto-generated data from
-Benoit, correct?  If so authorship and signoff of the hwmod data patch
-should reflect that.
-
-Thanks,
-
-Kevin
+Tony
