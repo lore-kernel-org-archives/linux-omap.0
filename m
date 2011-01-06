@@ -1,42 +1,42 @@
-From: Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: [RFC 1/5] ARM: P2V: separate PHYS_OFFSET from platform definitions
-Date: Thu, 6 Jan 2011 14:02:02 +0900
-Message-ID: <AANLkTi=qtRP1tAs1wPnGugE2rGBTERgHuUKKBWhbs=ST@mail.gmail.com>
-References: <20110104202052.GE24935@n2100.arm.linux.org.uk>
-	<E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Subject: Re: [PATCH v3] hwmon: twl4030: Driver for twl4030 madc module
+Date: Wed, 5 Jan 2011 21:33:28 -0800
+Message-ID: <20110106053328.GA7489@ericsson.com>
+References: <1294287457-2438-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Viresh Kumar <viresh.kumar@st.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Erik Gilling <konkers@android.com>, linux-sh@vger.kernel.org, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Marc Singer <elf@buici.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Jiandong Zheng <jdzheng@broadcom.com>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, Olof Johansson <olof@lixom.net>, Ryan Mallon <ryan@bluewatersys.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Daniel
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from imr4.ericy.com ([198.24.6.8]:37751 "EHLO imr4.ericy.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752486Ab1AFFen (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Jan 2011 00:34:43 -0500
+Content-Disposition: inline
+In-Reply-To: <1294287457-2438-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "khali@linux-fr.org" <khali@linux-fr.org>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balajitk@ti.com" <balajitk@ti.com>
 
-On Wed, Jan 5, 2011 at 5:22 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> This uncouple PHYS_OFFSET from the platform definitions, thereby
-> facilitating run-time computation of the physical memory offset.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+On Wed, Jan 05, 2011 at 11:17:37PM -0500, Keerthy wrote:
+> Introducing a driver for MADC on TWL4030 powerIC. MADC stands for monitoring
+> ADC. This driver monitors the real time conversion of analog signals like
+> battery temperature, battery type, battery level etc. User can also ask for
+> the conversion on a particular channel using the sysfs nodes. Tested the
+> conversion through sysfs nodes. Tested with DEBUG_LOCKDEP enabled.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
-> =A0arch/arm/include/asm/memory.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- =A02 ++
-> =A0arch/arm/kernel/tcm.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0| =A0 =A02 +-
-...
-> =A0arch/arm/mach-shmobile/include/mach/memory.h =A0 | =A0 =A02 +-
+> 
+NACK for:
 
-Applied on top of sh-2.6 git c422a5992e9ca072e8e472ee8f518649fb07470e
-and successfully booted on a sh7372-based Mackerel board.
+[...]
+> +EXPORT_SYMBOL_GPL(twl4030_madc_conversion);
+[...]
+> +EXPORT_SYMBOL_GPL(twl4030_get_madc_conversion);
 
-Acked-by: Magnus Damm <damm@opensource.se>
+No symbol export from hwmon drivers. Other parts of the kernel
+should not depend on HWMON configuration.
+
+I would suggest to check if drivers/staging/iio would be a better fit.
+
+Guenter
