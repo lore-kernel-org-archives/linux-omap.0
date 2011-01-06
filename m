@@ -1,78 +1,153 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: RE: linux-next: manual merge of the usb tree with the omap tree
-Date: Thu, 6 Jan 2011 20:37:59 +0530
-Message-ID: <4ce0f816f951f24ca3de9c84d9f70842@mail.gmail.com>
-References: <20101223171859.f6842045.sfr@canb.auug.org.au><4D139517.3010608@ti.com>
- <AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH] OMAP4 PM: To correct voltages in MPU OPP Table
+Date: Thu, 6 Jan 2011 20:39:21 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F63A@dbde02.ent.ti.com>
+References: <1294295222-20035-1-git-send-email-shweta.gulati@ti.com>
+ <4D25B3D2.4030802@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F62E@dbde02.ent.ti.com>
+ <4D25D8B8.1020808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:51184 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753289Ab1AFPJ3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 10:09:29 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p06F9QBt006426
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 6 Jan 2011 09:09:28 -0600
+In-Reply-To: <4D25D8B8.1020808@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "Gulati, Shweta" <shweta.gulati@ti.com>, l-o <linux-omap@vger.kernel.org>
 
-Ming Lei wrote:
 
-> Hi,
->
-> 2010/12/24 Cousson, Benoit <b-cousson@ti.com>:
-> > + Paul "the omap clock guru".
-> >
-> > At first glance, that seems almost good.
-> > Except for a couple of nodes that seems to lose their 3630 support.
-> >
-> > I'm just wondering why the original usb clock node is
-> > kept after the introduction of the "ehci-omap.0" clock
-> > node. But this is anyway harmless.
-> >
-> > What commits are generating this conflict?
-> >
-> > On 12/23/2010 7:18 AM, Stephen Rothwell wrote:
-> >> Hi Greg,
-> >>
-> >> Today's linux-next merge of the usb tree got a conflict in
-> >> arch/arm/mach-omap2/clock3xxx_data.c and
-> >> arch/arm/mach-omap2/clock44xx_data.c between various commits from the
-omap
-> >> tree and various commits from the usb tree.
-> >>
-> >> I did a quick fix (which may be completely wrong - see below).
-> >
 
-<snip>
+>>-----Original Message-----
+>>From: Menon, Nishanth
+>>Sent: Thursday, January 06, 2011 8:29 PM
+>>To: Gopinath, Thara
+>>Cc: Gulati, Shweta; l-o
+>>Subject: Re: [PATCH] OMAP4 PM: To correct voltages in MPU OPP Table
+>>
+>>Gopinath, Thara had written, on 01/06/2011 08:52 AM, the following:
+>>>
+>>>>> -----Original Message-----
+>>>>> From: Menon, Nishanth
+>>>>> Sent: Thursday, January 06, 2011 5:52 PM
+>>>>> To: Gulati, Shweta
+>>>>> Cc: linux-omap@vger.kernel.org; Gopinath, Thara
+>>>>> Subject: Re: [PATCH] OMAP4 PM: To correct voltages in MPU OPP Table
+>>>>>
+>>>>> it is pretty unfortunate that I have to NAK this patch in the public
+>>ML
+>>>>> as well.
+>>>>>
+>>>>> shweta.gulati@ti.com wrote, on 01/06/2011 12:27 AM:
+>>>>>> From: Shweta Gulati<shweta.gulati@ti.com>
+>>>>>>
+>>>>>> There is a mismatch in voltages specified in OPP table of MPU
+>>>>>> and voltage specified in voltage table 'omap44xx_vdd_mpu_volt_data'
+>>>>>> This Patch corrects MPU OPP Table as
+>>>>>> well as enable OPP-Turbo and OPP-SB  for MPU by default.
+>>>>>>
+>>>>>> Signed-off-by: Thara Gopinath<thara@ti.com>
+>>>>>> Signed-off-by: Shweta Gulati<shweta.gulati@ti.com>
+>>>>>> ---
+>>>>>> The patch is generated on top of Kevin's PM branch. It's needed for
+>>SR
+>>>>>> functionality on the current pm branch. Have tested SR with this
+>>patch
+>>>>>> with different OPP configurations from boot loader.
+>>>>>>
+>>>>>>   arch/arm/mach-omap2/opp4xxx_data.c |    8 ++++----
+>>>>>>   1 files changed, 4 insertions(+), 4 deletions(-)
+>>>>>>
+>>>>>> diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-
+>>>>> omap2/opp4xxx_data.c
+>>>>>> index a11fa56..4f35361 100644
+>>>>>> --- a/arch/arm/mach-omap2/opp4xxx_data.c
+>>>>>> +++ b/arch/arm/mach-omap2/opp4xxx_data.c
+>>>>>> @@ -25,13 +25,13 @@
+>>>>>>
+>>>>>>   static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
+>>>>>>   	/* MPU OPP1 - OPP50 */
+>>>>>> -	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
+>>>>>> +	OPP_INITIALIZER("mpu", true, 300000000, 930000),
+>>>>>>   	/* MPU OPP2 - OPP100 */
+>>>>>> -	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
+>>>>>> +	OPP_INITIALIZER("mpu", true, 600000000, 1100000),
+>>>>>
+>>>>> Did we finalize on the nominal voltages yet?
+>>>>>
+>>>>> As of yesterday's discussion, we were still debating about the actual
+>>>>> voltage at OMAP ball level, while there is a secondary voltage called
+>>>>> cap voltage - we have been discussing on this for some time. I suggest
+>>>>> strongly that we dont touch this for the time being (the voltage in
+>>>>> mainline is slightly higher - let it be so till the h/w folks finalize
+>>>>> things).
+>>>
+>>> Actually no. The latest voltage layer pushed uses these voltages. Also
+>>Arrgh... another reason to avoid messy duplicate tables!!
 
-> > I'm not sure these 3 nodes should be removed. AFAIR, they
-> were just slightly moved in lo branch.
->
-> Even with the fixes above, ehci on my beagle xM/Panda still
-> doesn't work
-> with 2.6.37-next-20110106+, follows the failure messages:
->
-> [   57.918182] bus: 'platform': really_probe: probing driver
-ehci-omapwith device ehci-omap.0
-> [   57.918243] ehci-omap ehci-omap.0: failed to get ehci port0 regulator
-> [   57.918273] ehci-omap ehci-omap.0: failed to get ehci port1 regulator
-> [   57.918304] ehci-omap ehci-omap.0: starting TI EHCI USB Controller
-> [   57.918457] ehci-omap ehci-omap.0: OMAP UHH_REVISION 0x10
-> [   57.918487] ehci-omap ehci-omap.0: TLL RESET DONE
-> [   57.918487] ehci-omap ehci-omap.0: OMAP3 ES version > ES2.1
-> [   57.918518] ehci-omap ehci-omap.0: UHH setup done, uhh_hostconfig=31c
-> [   58.922302] ehci-omap ehci-omap.0: phy reset operation timed out
-> [   59.930114] ehci-omap ehci-omap.0: phy reset operation timed out
-> [   59.930145] ehci-omap ehci-omap.0: reset hcs_params 0x1313 dbg=0 cc=1
-pcc=3 ordered ports=3
-> [   59.930175] ehci-omap ehci-omap.0: reset hcc_params 0016 thresh 1
-uframes 256/512/1024 park
-> [   59.930206] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
-> [   59.936218] drivers/usb/core/inode.c: creating file 'devices'
-> [   59.936279] drivers/usb/core/inode.c: creating file '001'
->
-> Any ideas?
->
+Oh there is a patch in my bag where we use a single macro for each voltage
+across the voltage and opp layer!! Not yet posted because I am waiting for
+voltage layer to be merged.
 
-I'll take a look in a short while. I don't have an XM to
-test, so you'll have to help me out here.
+>>> We have been having this setting in the internal android code base for
+>>> some time now without anybody having issues. So till the new voltages
+>>> are conveyed officially, these remain the official voltage.
+>>Funny,
+>>how many versions of "internal" code bases are present?
+>>
+>>http://dev.omapzoom.org/?p=santosh/kernel-omap4-
+>>base.git;a=blob;f=arch/arm/mach-
+>>omap2/opp44xx_data.c;h=252e3d0cb6050a64f390b9311c1c4977d74f762a
 
-- Anand
+What are you complaining about here? I thought Shweta's patch
+was making the mpu entries in the opp table similar to the
+ones in the link above. Anything I am missing?
+
+>>
+>>
+>>>
+>>>>>>   	/* MPU OPP3 - OPP-Turbo */
+>>>>>> -	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
+>>>>>> +	OPP_INITIALIZER("mpu", true, 800000000, 1260000),
+>>>>> I disagree.  This is not $subject. Also - not all boards will be
+>>capable
+>>>>> of supporting all higher frequencies rt? - remember the 3630
+>>experience?
+>>>>> is'nt it wiser to enable it based on board capabilities - e.g. similar
+>>>>> to the patch I did for beagle XM yesterday - we wont be able to enable
+>>>>> higher frequencies on SDP3630 as we have not guarenteed with PDN
+>>>>> analysis that it is ok.
+>>> I am not sure about this for OMAP4. Have you come across a board
+>>> where these OPPs cannot be supported? We have been enabling these
+>>> OPPs internally now for quite some time across all OMAP4 boards.
+>>*all* as in how many? SDP/Blaze, Panda and....??? How many boards are
+>>available which is in production?
+
+All as in SDP, Blaze and Panda, today by default we boot up at 1 Ghz.
+I have not heard of anybody asking to lower the frequencies. If you are
+talking about any customer board, I am not the person to comment.
+
+Regards
+Thara
+
+>>
+>>> But still if you guys are paranoid about boards breaking, I am ok
+>>> With keeping these OPPs disabled by default. But then anybody running
+>>> the mainline code with a 800Mhz or 1GHz x-loader, will see a couple
+>>> of warns in the kernel code.
+>>You do have the option of enabling the frequency for specific boards
+>>like SDP/Blaze (e.g. if you have h/w team's signoff that these can do
+>>high frequencies - and I think they do).
+>>
+>>--
+>>Regards,
+>>Nishanth Menon
