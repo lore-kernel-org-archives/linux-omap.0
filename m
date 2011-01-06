@@ -1,67 +1,123 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v8 6/11] OMAP1: dmtimer: conversion to platform devices
-Date: Thu, 6 Jan 2011 14:58:05 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0373D2F4A7@dbde02.ent.ti.com>
-References: <1294228127-11549-1-git-send-email-tarun.kanti@ti.com>
-	<1294228127-11549-7-git-send-email-tarun.kanti@ti.com>
- <87r5cqvrir.fsf@ti.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [PATCH v3 09/17] OMAP2,3: DSS2: Move clocks from core driver to
+ dss driver
+Date: Thu, 6 Jan 2011 15:10:56 +0530
+Message-ID: <AANLkTikeJX2qnhf-AmiDcb_9Dkmc1pQAFcj=WF9xo5R1@mail.gmail.com>
+References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
+ <1294059069-26737-10-git-send-email-svadivu@ti.com> <1294241755.14254.142.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57755 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751319Ab1AFJ2O convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 04:28:14 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p069SAlq010486
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 6 Jan 2011 03:28:12 -0600
-In-Reply-To: <87r5cqvrir.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:48992 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752097Ab1AFJlR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Jan 2011 04:41:17 -0500
+Received: by mail-bw0-f47.google.com with SMTP id 10so15584304bwz.6
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 01:41:16 -0800 (PST)
+In-Reply-To: <1294241755.14254.142.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Guruswamy Senthilvadivu <svadivu@ti.com>, paul@pwsan.com, khilman@deeprootsystems.com, v-hiremath@ti.com, a0919096@ti.com, linux-omap@vger.kernel.org
 
-Kevin,
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@ti.com]
-> Sent: Thursday, January 06, 2011 5:21 AM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org; Gopinath, Thara
-> Subject: Re: [PATCH v8 6/11] OMAP1: dmtimer: conversion to platform
-> devices
-> 
-> Hi Tarun,
-> 
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
-> 
-> > From: Thara Gopinath <thara@ti.com>
-> >
-> > Convert OMAP1 dmtimers into a platform devices and then registers with
-> > device model framework so that it can be bound to corresponding driver.
-> >
-> > Signed-off-by: Thara Gopinath <thara@ti.com>
-> > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> > Acked-by: Cousson, Benoit <b-cousson@ti.com>
-> 
-> One minor nit...
-> 
-> [...]
-> 
-> > +int __init omap1_dm_timer_init(void)
-> > +{
-> > +	int i;
-> > +	int ret;
-> > +	struct dmtimer_platform_data *pdata;
-> > +	struct platform_device *pdev;
-> > +
-> > +	pr_debug("%s: +\n", __func__);
-> 
-> stray debug print?
-I kept for debugging; well it can be removed.
+Hi Tomi,
+
+On Wed, Jan 5, 2011 at 9:05 PM, Tomi Valkeinen <tomi.valkeinen@nokia.co=
+m> wrote:
+> On Mon, 2011-01-03 at 18:21 +0530, ext Guruswamy Senthilvadivu wrote:
+>> From: Senthilvadivu Guruswamy <svadivu@ti.com>
+>>
+>> clks are moved to dss platform driver. =A0clk_get/put APIs use dss d=
+evice instead
+>> of core platform device. So the device name is changed from omap_dis=
+play to
+>> omap_dss in 2420, 2430, 3xxx clock database files. Now teh core driv=
+er
+>> "omap_display" only takes care of panel registration with the custom=
+ bus.
+>> dss driver would take care of the clocks needed by DISPC, RFBI, DSI,=
+ VENC.
+>>
+>> TODO: =A0The clock content would be adapted to omap_hwmod in a seper=
+ate series.
+>>
+>> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+>
+> <snip>
+>
+>> @@ -508,14 +192,7 @@ static int omap_dss_probe(struct platform_devic=
+e *pdev)
+>> =A0 =A0 =A0 dss_init_overlay_managers(pdev);
+>> =A0 =A0 =A0 dss_init_overlays(pdev);
+>>
+>> - =A0 =A0 r =3D dss_get_clocks();
+>> - =A0 =A0 if (r)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 goto err_clocks;
+>> -
+>> - =A0 =A0 dss_clk_enable_all_no_ctx();
+>> -
+>> - =A0 =A0 core.ctx_id =3D dss_get_ctx_id();
+>> - =A0 =A0 DSSDBG("initial ctx id %u\n", core.ctx_id);
+>> + =A0 =A0 dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
+>>
+>> =A0#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
+>> =A0 =A0 =A0 /* DISPC_CONTROL */
+>> @@ -589,7 +266,7 @@ static int omap_dss_probe(struct platform_device=
+ *pdev)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->default_device =3D=
+ dssdev;
+>> =A0 =A0 =A0 }
+>>
+>> - =A0 =A0 dss_clk_disable_all();
+>> + =A0 =A0 dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
+>
+> Why are the calls dss_clk_enable_all_no_ctx() and dss_clk_disable_all=
+()
+> changed?
+This came as an after-effect of moving all clk related stuff to dss.c;
+I think the idea is that all the new DSS IP platform drivers should
+use only the exposed clock mgmt APIs [dss_clk_enable() /
+dss_clk_disable()].
+However, you are right; all the required clocks might not be getting
+enabled / disabled as required.
+I can (re)create the static dss_clk_disable_all() /
+dss_clk_enable_all_no_ctx() locally inside core.c - do you think
+that's ok, or should I export these functions too from dss.c?
+>
+>> =A0/* DSS HW IP initialisation */
+>> =A0static int omap_dsshw_probe(struct platform_device *pdev)
+>> =A0{
+>> - =A0 =A0 return 0;
+>> + =A0 =A0 int r;
+>> +
+>> + =A0 =A0 dss.pdev =3D pdev;
+>> +
+>> + =A0 =A0 r =3D dss_get_clocks();
+>> + =A0 =A0 if (r)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto err_clocks;
+>> +
+>> + =A0 =A0 dss_clk_enable_all_no_ctx();
+>> +
+>> + =A0 =A0 dss.ctx_id =3D dss_get_ctx_id();
+>> + =A0 =A0 DSSDBG("initial ctx id %u\n", dss.ctx_id);
+>> +
+>> + =A0 =A0 dss_clk_disable_all_no_ctx();
+>
+> I don't think clock enable/disable are needed here. dss_get_ctx_id()
+> should work fine without DSS's clocks.
+you're right; this is not required. will remove.
+
+Best regards,
+~Sumit.
+>
+> =A0Tomi
+>
+>
+>
 --
-Tarun
-> 
-> Kevin
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
