@@ -1,35 +1,26 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: twl4030: Driver for twl4030
- madc module
-Date: Thu, 6 Jan 2011 20:21:42 +0000
-Message-ID: <20110106202142.GC8018@opensource.wolfsonmicro.com>
-References: <1294287457-2438-1-git-send-email-j-keerthy@ti.com>
- <20110106053328.GA7489@ericsson.com>
- <20110106120713.GD17184@sirena.org.uk>
- <20110106150430.GA9053@ericsson.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: linux-next: manual merge of the usb tree with the omap tree
+Date: Thu, 06 Jan 2011 14:24:25 -0600
+Message-ID: <4D2624F9.9090100@ti.com>
+References: <20101223171859.f6842045.sfr@canb.auug.org.au>	<4D139517.3010608@ti.com>	<AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com>	<4ce0f816f951f24ca3de9c84d9f70842@mail.gmail.com>	<4D25E313.4060202@heeltoe.com>	<8B3471BB-CB3F-4CE6-B523-D9C5E87B9CEC@dominion.thruhere.net>	<87pqs9vqya.fsf@ti.com> <4D260812.3010605@ti.com> <871v4pvpvg.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40733 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751907Ab1AFUV0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 15:21:26 -0500
-Content-Disposition: inline
-In-Reply-To: <20110106150430.GA9053@ericsson.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <871v4pvpvg.fsf@ti.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, Brad Parker <brad@heeltoe.com>, Anand Gadiyar <gadiyar@ti.com>, Ming Lei <tom.leiming@gmail.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Keerthy <j-keerthy@ti.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balajitk@ti.com" <balajitk@ti.com>
 
-On Thu, Jan 06, 2011 at 07:04:30AM -0800, Guenter Roeck wrote:
-> On Thu, Jan 06, 2011 at 07:07:13AM -0500, Mark Brown wrote:
+Kevin Hilman had written, on 01/06/2011 12:38 PM, the following:
+[..]
+> Feel free to break it up if you prefer, but IMO it would be mergable as
+just for the record, posted the same here:
+http://marc.info/?l=linux-omap&m=129434370207879&w=2
 
-> > Why?  It's not like hwmon has an unreasonably large core or similar.
+[..]
 
-> Because it creates an unnecessary dependency, and because it is not hwmon's 
-> responsibility to provide infrastructure for other subsystems or drivers.
-
-hwmon isn't really doing anything, though.  The *driver* is doing
-something but it doesn't really impact the core that much.  Not that I'm
-particularly sold on putting the ADC core in here, but total NACK based
-on that alone seems rather harsh.
+-- 
+Regards,
+Nishanth Menon
