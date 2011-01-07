@@ -1,46 +1,76 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: 4430SDP boot failure
-Date: Fri, 7 Jan 2011 18:55:52 +0000
-Message-ID: <20110107185552.GU1198@n2100.arm.linux.org.uk>
-References: <d540408e2df154cf13932e79d3a11ceb@mail.gmail.com> <20110107092800.GJ1198@n2100.arm.linux.org.uk> <86f60bc5418ca1d3e87db960e5e2c48f@mail.gmail.com> <729152acd9ee0c3e3e3cd505e84f8865@mail.gmail.com> <20110107125132.GM1198@n2100.arm.linux.org.uk> <48cbfb338be4d33a8a19e070430d015b@mail.gmail.com> <20110107142432.GO1198@n2100.arm.linux.org.uk> <c71399f20609c539b8c335344963253f@mail.gmail.com> <20110107162429.GS1198@n2100.arm.linux.org.uk> <bd43a9ab39b53bfad963a471204e7b92@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: 4430SDP boot failure - solved + SPI bug fix
+Date: Sat, 8 Jan 2011 00:35:38 +0530
+Message-ID: <04b3a28e12c18714cce8c15c1645cc2d@mail.gmail.com>
+References: <d540408e2df154cf13932e79d3a11ceb@mail.gmail.com>
+ <20110107092800.GJ1198@n2100.arm.linux.org.uk> <86f60bc5418ca1d3e87db960e5e2c48f@mail.gmail.com>
+ <729152acd9ee0c3e3e3cd505e84f8865@mail.gmail.com> <20110107125132.GM1198@n2100.arm.linux.org.uk>
+ <48cbfb338be4d33a8a19e070430d015b@mail.gmail.com> <20110107142432.GO1198@n2100.arm.linux.org.uk>
+ <c71399f20609c539b8c335344963253f@mail.gmail.com> <20110107154920.GQ1198@n2100.arm.linux.org.uk>
+ <b52c0ce136053d3185debccaa3a9d252@mail.gmail.com> <20110107185250.GT1198@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49401 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751590Ab1AGS4B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 13:56:01 -0500
-Content-Disposition: inline
-In-Reply-To: <bd43a9ab39b53bfad963a471204e7b92@mail.gmail.com>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:42390 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754693Ab1AGTFl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 14:05:41 -0500
+Received: by mail-bw0-f47.google.com with SMTP id 10so16565305bwz.34
+        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 11:05:40 -0800 (PST)
+In-Reply-To: <20110107185250.GT1198@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Fri, Jan 07, 2011 at 11:59:07PM +0530, Santosh Shilimkar wrote:
-> > ks8851 spi1.0: message enable is 0
-> > ks8851 spi1.0: eth0: revision 0, MAC 1a:6a:b1:02:1d:90, IRQ 194
-> > IP-Config: Got DHCP answer from 0.0.0.0, my address is 192.168.0.144
-> > IP-Config: Complete:
-> >      device=eth0, addr=192.168.0.144, mask=255.255.255.0,
-> > gw=192.168.0.1,
-> >      host=192.168.0.144, domain=arm.linux.org.uk, nis-domain=(none),
-> >      bootserver=0.0.0.0, rootserver=0.0.0.0, rootpath=
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Saturday, January 08, 2011 12:23 AM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; Tony Lindgren
+> Subject: Re: 4430SDP boot failure - solved + SPI bug fix
+>
+> On Fri, Jan 07, 2011 at 11:55:10PM +0530, Santosh Shilimkar wrote:
+> > > And, with one ARM errata disabled, the kernel finally boots.  So
+> the
+> > > "X-Loader hangs" message means that we did something that non-
+> secure
+> > > mode prevented us from doing.
+> > >
+> > Actually it's not. The error message is quite misleading.
+> Basically in
+> > x-loader exception handlers are setup and all these handlers
+> report
+> > same message ("X-Loader hangs"). This should be fixed so that it
+> can
+> > report more meaningful info like data abort, prefetch abort etc.
 > >
-> > but the board doesn't respond to that IP address.  Meanwhile the
-> > DHCP
-> > server shows:
-> >
-> > 	DHCPDISCOVER from 1a:6a:b1:02:1d:90 via eth0
-> >
-> > in its log, and the ethernet address appears to be random for each
-> > boot.
-> > Obviously, as I can't log into the board via any means, it's nigh on
-> > impossible to work out what's actually going on.
-> 
-> DHCP seems to work for me without any issues.
+> > Till the vector relocation in the kernel exceptions are not set up
+> > so code jumps to already installed exceptions in the x-loader and
+> > hence the messege.
+>
+> I disagree with your "actually it's not".  It was errata 742230,
+> which
+> requires access to the CP15, c15, c0, 1 register (a diagnostic
+> register)
+> which I bet provokes an undefined instruction trap from non-secure
+> mode.
+>
+742230 errata workaround is not implemented in the x-loader so I
+can surely say it's not the secure violation.
 
-The board now has an ethernet address of 1E:89:8E:DA:80:7C - it
-seems to be intentionally random which isn't particularly nice.
-At least it's intentionally random and not some undefined region of
-memory being poked in there...
+He is the x-loader source tree.
+http://dev.omapzoom.org/?p=bootloader/x-loader.git;a=shortlog;h=refs/heads
+/omap4_dev
+
+Even simple things like if DDR is not configured correctly or not
+Stable, code/data access takes abort which lands up in the "X-loader
+hang messege"
+
+> Hence, the reason it vectored to the X-loader was because we tried
+> to
+> do something in the non-secure mode which we're prevented from
+> doing.
+My suspect was clock configurations on the older boot loaders were
+Incomplete that might have lead to issue since now more drivers are
+getting enabled in newer kernels.
