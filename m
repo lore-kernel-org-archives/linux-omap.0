@@ -1,46 +1,95 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: linux-next: manual merge of the usb tree with the omap tree
-Date: Fri, 7 Jan 2011 21:24:43 +0200
-Message-ID: <20110107192443.GE2272@legolas.emea.dhcp.ti.com>
-References: <4D139517.3010608@ti.com>
- <AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com>
- <4ce0f816f951f24ca3de9c84d9f70842@mail.gmail.com>
- <AANLkTimA5UOVn6+xe0ofV1F3_XhAP0daBvOAX2k1u_dU@mail.gmail.com>
- <AANLkTimzQ1PHN986fqPF0yjd1M+390nSUDYJ65pu0z_f@mail.gmail.com>
- <4D271E0E.8050401@ti.com>
- <AANLkTikLQRHyp-TS_idEp5Fr74qC3vDoMqqsAA2v_oV8@mail.gmail.com>
- <c822ad4569a9dc865b5ccf39e12c828b@mail.gmail.com>
- <f853a77e2aebea4130fc486bdbf4aa06@mail.gmail.com>
- <AANLkTiku=1-NftQGkOiG0Sm5Fp1-Szqe+39kzWz+4dAC@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: 4430SDP boot failure - solved + SPI bug fix
+Date: Sat, 8 Jan 2011 00:58:49 +0530
+Message-ID: <f3d46b4669eca2d370275ce730d8ce8a@mail.gmail.com>
+References: <86f60bc5418ca1d3e87db960e5e2c48f@mail.gmail.com>
+ <729152acd9ee0c3e3e3cd505e84f8865@mail.gmail.com> <20110107125132.GM1198@n2100.arm.linux.org.uk>
+ <48cbfb338be4d33a8a19e070430d015b@mail.gmail.com> <20110107142432.GO1198@n2100.arm.linux.org.uk>
+ <c71399f20609c539b8c335344963253f@mail.gmail.com> <20110107154920.GQ1198@n2100.arm.linux.org.uk>
+ <b52c0ce136053d3185debccaa3a9d252@mail.gmail.com> <20110107185250.GT1198@n2100.arm.linux.org.uk>
+ <04b3a28e12c18714cce8c15c1645cc2d@mail.gmail.com> <20110107191949.GV1198@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTiku=1-NftQGkOiG0Sm5Fp1-Szqe+39kzWz+4dAC@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Ming Lei <tom.leiming@gmail.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:35723 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753934Ab1AGT2w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 14:28:52 -0500
+Received: by mail-bw0-f53.google.com with SMTP id 12so12231951bwg.26
+        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 11:28:51 -0800 (PST)
+In-Reply-To: <20110107191949.GV1198@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Sat, Jan 08, 2011 at 12:24:24AM +0530, Gadiyar, Anand wrote:
-> On Fri, Jan 7, 2011 at 8:50 PM, Anand Gadiyar <gadiyar@ti.com> wrote:
-> > Update: I disabled CONFIG_OMAP_RESET_CLOCKS and the PHY and other
-> > connected devices enumerate just fine. Could you try this out on
-> > your board as well?
-> >
-> > I'll look deeper and see if there are some required clocks that are
-> > accidentally getting turned off.
-> >
-> 
-> A final update from today: It appears that disabling auxclk3_ck causes
-> EHCI to fail. I'm not sure what this clock feeds, and will need to look it
-> up. Keeping this clock alive is sufficient to get the hub to enumerate.
-> 
-> I would've looked it up, but got booted out by a fire alarm drill. I'll
-> take a look tomorrow and cook up a fix.
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Saturday, January 08, 2011 12:50 AM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; Tony Lindgren
+> Subject: Re: 4430SDP boot failure - solved + SPI bug fix
+>
+> On Sat, Jan 08, 2011 at 12:35:38AM +0530, Santosh Shilimkar wrote:
+> > > -----Original Message-----
+> > > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> > > Sent: Saturday, January 08, 2011 12:23 AM
+> > > To: Santosh Shilimkar
+> > > Cc: linux-omap@vger.kernel.org; Tony Lindgren
+> > > Subject: Re: 4430SDP boot failure - solved + SPI bug fix
+> > >
+> > > On Fri, Jan 07, 2011 at 11:55:10PM +0530, Santosh Shilimkar
+> wrote:
+> > > > > And, with one ARM errata disabled, the kernel finally boots.
+> So
+> > > the
+> > > > > "X-Loader hangs" message means that we did something that
+> non-
+> > > secure
+> > > > > mode prevented us from doing.
+> > > > >
+> > > > Actually it's not. The error message is quite misleading.
+> > > Basically in
+> > > > x-loader exception handlers are setup and all these handlers
+> > > report
+> > > > same message ("X-Loader hangs"). This should be fixed so that
+> it
+> > > can
+> > > > report more meaningful info like data abort, prefetch abort
+> etc.
+> > > >
+> > > > Till the vector relocation in the kernel exceptions are not
+> set up
+> > > > so code jumps to already installed exceptions in the x-loader
+> and
+> > > > hence the messege.
+> > >
+> > > I disagree with your "actually it's not".  It was errata 742230,
+> > > which
+> > > requires access to the CP15, c15, c0, 1 register (a diagnostic
+> > > register)
+> > > which I bet provokes an undefined instruction trap from non-
+> secure
+> > > mode.
+> > >
+> > 742230 errata workaround is not implemented in the x-loader so I
+> > can surely say it's not the secure violation.
+>
+> Precisely.  So when we directly read, modify and write this
+> diagnostic
+> register in the non-secure world during kernel boot, we end up
+> faulting.
+> Comment those instructions out, we don't get a fault, and the kernel
+> boots normally.
 
-Good finding :-) Thanks a lot :-)
+I understand now. Was confused last time.
 
--- 
-balbi
+So your custom build did have this errata
+CONFIG_ARM_ERRATA_742230 where there is an access
+to diagnostic register which is not accessible on OMAP4
+from non-secure side.
+
+Thanks for clarification.
+
+Regards,
+Santosh
