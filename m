@@ -1,64 +1,135 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: 4430SDP boot failure
-Date: Fri, 7 Jan 2011 16:24:29 +0000
-Message-ID: <20110107162429.GS1198@n2100.arm.linux.org.uk>
-References: <20110106205107.GI1198@n2100.arm.linux.org.uk> <20110106235203.GA14425@n2100.arm.linux.org.uk> <d540408e2df154cf13932e79d3a11ceb@mail.gmail.com> <20110107092800.GJ1198@n2100.arm.linux.org.uk> <86f60bc5418ca1d3e87db960e5e2c48f@mail.gmail.com> <729152acd9ee0c3e3e3cd505e84f8865@mail.gmail.com> <20110107125132.GM1198@n2100.arm.linux.org.uk> <48cbfb338be4d33a8a19e070430d015b@mail.gmail.com> <20110107142432.GO1198@n2100.arm.linux.org.uk> <c71399f20609c539b8c335344963253f@mail.gmail.com>
+From: "Lambert, David" <dlambert@ti.com>
+Subject: Re: [PATCH v2 1/4] ASoC: DMIC: Adding the OMAP DMIC driver
+Date: Fri, 7 Jan 2011 10:34:53 -0600
+Message-ID: <AANLkTinraf3OO+exD=ScMf6opsRRW7Kopt1k7ZpEiiB2@mail.gmail.com>
+References: <1294322439-16305-1-git-send-email-dlambert@ti.com>
+ <1294322439-16305-2-git-send-email-dlambert@ti.com> <20110106222052.GC8408@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49976 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754313Ab1AGQYj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 11:24:39 -0500
-Content-Disposition: inline
-In-Reply-To: <c71399f20609c539b8c335344963253f@mail.gmail.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:48928 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754404Ab1AGQfO convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jan 2011 11:35:14 -0500
+Received: by mail-qw0-f51.google.com with SMTP id 8so17962870qwj.38
+        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 08:35:14 -0800 (PST)
+In-Reply-To: <20110106222052.GC8408@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-On Fri, Jan 07, 2011 at 07:56:34PM +0530, Santosh Shilimkar wrote:
-> > -----Original Message-----
-> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> > Sent: Friday, January 07, 2011 7:55 PM
-> > To: Santosh Shilimkar
-> > Cc: linux-omap@vger.kernel.org; Tony Lindgren
-> > Subject: Re: 4430SDP boot failure
-> >
-> > On Fri, Jan 07, 2011 at 06:39:06PM +0530, Santosh Shilimkar wrote:
-> > > Have sent you latest bootloaders and full bootlog on my ES1.0
-> > > OMAP4430SDP. 2.6.37 just boots fine for me.
-> > >
-> > > Low level debug as you reported seems to be broken though.
-> >
-> > Many thanks, the new mlo and uboot gets dhcp/tftp working nicely on
-> > the board - which should ease the debugging problem as it no longer
-> > requires anything but the reset button pressed to test a new kernel.
-> 
-> Glad to hear that.
+On Thu, Jan 6, 2011 at 4:20 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Thu, Jan 06, 2011 at 08:00:36AM -0600, David Lambert wrote:
+>
+>> @@ -103,6 +106,7 @@ config SND_OMAP_SOC_SDP4430
+>> =A0 =A0 =A0 depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_443=
+0SDP
+>> =A0 =A0 =A0 select SND_OMAP_SOC_MCPDM
+>> =A0 =A0 =A0 select SND_SOC_TWL6040
+>> + =A0 =A0 select SND_SOC_DMIC
+>> =A0 =A0 =A0 help
+>> =A0 =A0 =A0 =A0 Say Y if you want to add support for SoC audio on Te=
+xas Instruments
+>> =A0 =A0 =A0 =A0 SDP4430.
+>
+> Any tweaks to specific machines should be done separately to adding t=
+he
+> new drivers.
 
-Right, next couple of problems.
+OK... I'll put that in to a separate patch.
 
-udev isn't creating the ttyO* nodes for whatever reason on my fs - does
-anyone know what device major/minor numbers these end up with?  It seems
-they're dynamically assigned.
+>
+>> + =A0 =A0 struct omap_dmic *dmic =3D snd_soc_dai_get_drvdata(dai);
+>> + =A0 =A0 int ctrl, div_sel =3D -EINVAL;
+>> +
+>> + =A0 =A0 if (div_id !=3D OMAP_DMIC_CLKDIV)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+>> +
+>> + =A0 =A0 switch (dmic->clk_freq) {
+>> + =A0 =A0 case 19200000:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (div =3D=3D 5)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 div_sel =3D 0x1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 else if (div =3D=3D 8)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 div_sel =3D 0x0;
+>
+> I suggested switch statements previously; you didn't comment on my
+> reply.
+>
 
-There's also something fishy going on with networking (if I configure
-PNP IP, I get an IP:
+Sorry... my personal standard on when to go with a switch statement is
+>2 choices,
+I'll change it over to a switch...
 
-ks8851 spi1.0: message enable is 0
-ks8851 spi1.0: eth0: revision 0, MAC 1a:6a:b1:02:1d:90, IRQ 194
-IP-Config: Got DHCP answer from 0.0.0.0, my address is 192.168.0.144
-IP-Config: Complete:
-     device=eth0, addr=192.168.0.144, mask=255.255.255.0, gw=192.168.0.1,
-     host=192.168.0.144, domain=arm.linux.org.uk, nis-domain=(none),
-     bootserver=0.0.0.0, rootserver=0.0.0.0, rootpath=
+>> +static irqreturn_t omap_dmic_irq_handler(int irq, void *dev_id)
+>> +{
+>> + =A0 =A0 struct omap_dmic *dmic =3D dev_id;
+>
+> My comments on this function appear to have been mostly ignored also.
+>
 
-but the board doesn't respond to that IP address.  Meanwhile the DHCP
-server shows:
+Being as with this hardware, the IRQ handler really does nothing, I
+think it best
+if I just take it out for now.  It is useful in debugging cases to ensu=
+re you're
+moving data.  I'll just remove it.
 
-	DHCPDISCOVER from 1a:6a:b1:02:1d:90 via eth0
+>> + =A0 =A0 switch (rate) {
+>> + =A0 =A0 case 192000:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 div =3D 5;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 default:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 div =3D 8;
+>
+> Shouldn't the default case be a case 96000?
 
-in its log, and the ethernet address appears to be random for each boot.
-Obviously, as I can't log into the board via any means, it's nigh on
-impossible to work out what's actually going on.
+The default case IS 96000 (only options for rate here are 96000 and
+192000), isn't it?
+
+>
+>> + =A0 =A0 case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>
+> Remove the empty cases, they're handled by the default.
+>
+
+OK
+
+>> +
+>> +MODULE_AUTHOR("David Lambert <dlambert@ti.com>");
+>> +MODULE_DESCRIPTION("OMAP DMIC SoC Interface");
+>> +MODULE_LICENSE("GPL");
+>
+> As also previously noted you should have a MODULE_ALIAS.
+
+The MODULE_ALIAS is in there... just following example of the other dri=
+vers
+I looked at, it was placed above the platform_driver declaration.
+
++MODULE_ALIAS("platform:omap-dmic-dai");
++
++static struct platform_driver asoc_dmic_driver =3D {
++       .driver =3D {
++               .name =3D "omap-dmic-dai",
++               .owner =3D THIS_MODULE,
++       },
++       .probe =3D asoc_dmic_probe,
++       .remove =3D __devexit_p(asoc_dmic_remove),
++};
+
+>
+
+--
+David Lambert
+OMAP=99 Multimedia
+214-567-5692
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
