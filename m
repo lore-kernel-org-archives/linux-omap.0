@@ -1,211 +1,82 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v5 12/17] OMAP2,3: DSS2: DISPC: create platform_driver, move init,exit to driver
-Date: Fri,  7 Jan 2011 16:55:46 +0530
-Message-ID: <1294399551-10457-13-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v5 15/17] OMAP2,3: DSS2: replace printk with dev_dbg in init
+Date: Fri,  7 Jan 2011 16:55:49 +0530
+Message-ID: <1294399551-10457-16-git-send-email-sumit.semwal@ti.com>
 References: <1294399551-10457-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53299 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45951 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751616Ab1AGL13 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jan 2011 06:27:29 -0500
+	id S1751970Ab1AGL1n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jan 2011 06:27:43 -0500
 In-Reply-To: <1294399551-10457-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@deeprootsystems.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
-Cc: Senthilvadivu Guruswamy <svadivu@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
+Cc: Sumit Semwal <sumit.semwal@ti.com>
 
-From: Senthilvadivu Guruswamy <svadivu@ti.com>
+This patch replaces printk's in the init/probe functions to dev_dbg
+for boot time optimization.
 
-Hwmod adaptation design requires each of the DSS HW IP to be a platform driver.
-So a platform_driver for DISPC is created and init exit methods are moved from core.c
-to its driver probe,remove. pdev member has to be maintained by its own drivers.
-
-DISPC platform driver is registered from inside omap_dss_probe, in the order desired.
-
-Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 ---
- drivers/video/omap2/dss/core.c  |    8 ++--
- drivers/video/omap2/dss/dispc.c |  105 ++++++++++++++++++++++++---------------
- drivers/video/omap2/dss/dss.h   |    4 +-
- 3 files changed, 70 insertions(+), 47 deletions(-)
+ drivers/video/omap2/dss/dispc.c |    2 +-
+ drivers/video/omap2/dss/dsi.c   |    2 +-
+ drivers/video/omap2/dss/rfbi.c  |    2 +-
+ drivers/video/omap2/dss/venc.c  |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 2ad7351..ace869e 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -213,9 +213,9 @@ static int omap_dss_probe(struct platform_device *pdev)
- 		goto err_dpi;
- 	}
- 
--	r = dispc_init();
-+	r = dispc_init_platform_driver();
- 	if (r) {
--		DSSERR("Failed to initialize dispc\n");
-+		DSSERR("Failed to initialize dispc platform driver\n");
- 		goto err_dispc;
- 	}
- 
-@@ -281,7 +281,7 @@ err_dsi:
- err_sdi:
- 	venc_exit();
- err_venc:
--	dispc_exit();
-+	dispc_deinit_platform_driver();
- err_dispc:
- 	dpi_exit();
- err_dpi:
-@@ -301,7 +301,7 @@ static int omap_dss_remove(struct platform_device *pdev)
- 	dss_uninitialize_debugfs();
- 
- 	venc_exit();
--	dispc_exit();
-+	dispc_deinit_platform_driver();
- 	dpi_exit();
- 	rfbi_deinit_platform_driver();
- 	if (cpu_is_omap34xx()) {
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index fa40fa5..e19c4cd 100644
+index e19c4cd..97dfc84 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -173,6 +173,7 @@ struct dispc_irq_stats {
- };
+@@ -3158,7 +3158,7 @@ static int omap_dispchw_probe(struct platform_device *pdev)
+ 	dispc_save_context();
  
- static struct {
-+	struct platform_device *pdev;
- 	void __iomem    *base;
- 
- 	u32	fifo_size[3];
-@@ -3079,47 +3080,6 @@ static void _omap_dispc_initial_config(void)
- 	dispc_read_plane_fifo_sizes();
- }
- 
--int dispc_init(void)
--{
--	u32 rev;
--
--	spin_lock_init(&dispc.irq_lock);
--
--#ifdef CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS
--	spin_lock_init(&dispc.irq_stats_lock);
--	dispc.irq_stats.last_reset = jiffies;
--#endif
--
--	INIT_WORK(&dispc.error_work, dispc_error_worker);
--
--	dispc.base = ioremap(DISPC_BASE, DISPC_SZ_REGS);
--	if (!dispc.base) {
--		DSSERR("can't ioremap DISPC\n");
--		return -ENOMEM;
--	}
--
--	enable_clocks(1);
--
--	_omap_dispc_initial_config();
--
--	_omap_dispc_initialize_irq();
--
--	dispc_save_context();
--
--	rev = dispc_read_reg(DISPC_REVISION);
+ 	rev = dispc_read_reg(DISPC_REVISION);
 -	printk(KERN_INFO "OMAP DISPC rev %d.%d\n",
--	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
--
--	enable_clocks(0);
--
--	return 0;
--}
--
--void dispc_exit(void)
--{
--	iounmap(dispc.base);
--}
--
- int dispc_enable_plane(enum omap_plane plane, bool enable)
- {
- 	DSSDBG("dispc_enable_plane %d, %d\n", plane, enable);
-@@ -3167,3 +3127,66 @@ int dispc_setup_plane(enum omap_plane plane,
++	dev_dbg(&pdev->dev, "OMAP DISPC rev %d.%d\n",
+ 	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
  
- 	return r;
- }
-+
-+/* DISPC HW IP initialisation */
-+static int omap_dispchw_probe(struct platform_device *pdev)
-+{
-+	u32 rev;
-+	dispc.pdev = pdev;
-+
-+	spin_lock_init(&dispc.irq_lock);
-+
-+#ifdef CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS
-+	spin_lock_init(&dispc.irq_stats_lock);
-+	dispc.irq_stats.last_reset = jiffies;
-+#endif
-+
-+	INIT_WORK(&dispc.error_work, dispc_error_worker);
-+
-+	dispc.base = ioremap(DISPC_BASE, DISPC_SZ_REGS);
-+	if (!dispc.base) {
-+		DSSERR("can't ioremap DISPC\n");
-+		return -ENOMEM;
-+	}
-+
-+	enable_clocks(1);
-+
-+	_omap_dispc_initial_config();
-+
-+	_omap_dispc_initialize_irq();
-+
-+	dispc_save_context();
-+
-+	rev = dispc_read_reg(DISPC_REVISION);
-+	printk(KERN_INFO "OMAP DISPC rev %d.%d\n",
-+	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
-+
-+	enable_clocks(0);
-+
-+	return 0;
-+}
-+
-+static int omap_dispchw_remove(struct platform_device *pdev)
-+{
-+	iounmap(dispc.base);
-+	return 0;
-+}
-+
-+static struct platform_driver omap_dispchw_driver = {
-+	.probe          = omap_dispchw_probe,
-+	.remove         = omap_dispchw_remove,
-+	.driver         = {
-+		.name   = "omap_dispc",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+int dispc_init_platform_driver(void)
-+{
-+	return platform_driver_register(&omap_dispchw_driver);
-+}
-+
-+void dispc_deinit_platform_driver(void)
-+{
-+	return platform_driver_unregister(&omap_dispchw_driver);
-+}
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 665ad58..90048b9 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -319,8 +319,8 @@ static inline void dpi_exit(void)
- #endif
+ 	enable_clocks(0);
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 411d0c6..cf1a2ad 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -3297,7 +3297,7 @@ static int dsi_init(struct platform_device *pdev)
+ 	enable_clocks(1);
  
- /* DISPC */
--int dispc_init(void);
--void dispc_exit(void);
-+int dispc_init_platform_driver(void);
-+void dispc_deinit_platform_driver(void);
- void dispc_dump_clocks(struct seq_file *s);
- void dispc_dump_irqs(struct seq_file *s);
- void dispc_dump_regs(struct seq_file *s);
+ 	rev = dsi_read_reg(DSI_REVISION);
+-	printk(KERN_INFO "OMAP DSI rev %d.%d\n",
++	dev_dbg(&pdev->dev, "OMAP DSI rev %d.%d\n",
+ 	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
+ 
+ 	enable_clocks(0);
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index 52bfb1c..24936f8 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -1044,7 +1044,7 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
+ 	rfbi_write_reg(RFBI_SYSCONFIG, l);
+ 
+ 	rev = rfbi_read_reg(RFBI_REVISION);
+-	printk(KERN_INFO "OMAP RFBI rev %d.%d\n",
++	dev_dbg(&pdev->dev, "OMAP RFBI rev %d.%d\n",
+ 	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
+ 
+ 	rfbi_enable_clocks(0);
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 029fbc3..edccd59 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -739,7 +739,7 @@ static int omap_venchw_probe(struct platform_device *pdev)
+ 	venc_enable_clocks(1);
+ 
+ 	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
+-	printk(KERN_INFO "OMAP VENC rev %d\n", rev_id);
++	dev_dbg(&pdev->dev, "OMAP VENC rev %d\n", rev_id);
+ 
+ 	venc_enable_clocks(0);
+ 
 -- 
 1.7.0.4
 
