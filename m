@@ -1,31 +1,58 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: 4430SDP boot failure
-Date: Fri, 7 Jan 2011 14:07:53 +0100
-Message-ID: <21BAFE00-CDAF-4DDB-9DC1-C42F0D61DC0E@dominion.thruhere.net>
-References: <20110106180030.GA8249@n2100.arm.linux.org.uk> <20110106182023.GV7771@atomide.com> <20110106195225.GX7771@atomide.com> <20110106203431.GZ7771@atomide.com> <20110106205107.GI1198@n2100.arm.linux.org.uk> <20110106235203.GA14425@n2100.arm.linux.org.uk> <d540408e2df154cf13932e79d3a11ceb@mail.gmail.com> <20110107092800.GJ1198@n2100.arm.linux.org.uk> <86f60bc5418ca1d3e87db960e5e2c48f@mail.gmail.com> <729152acd9ee0c3e3e3cd505e84f8865@mail.gmail.com> <20110107125132.GM1198@n2100.arm.linux.org.uk>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] omap3: Add basic support for 720MHz part
+Date: Fri, 7 Jan 2011 19:20:33 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930248202128@dbde02.ent.ti.com>
+References: <1294405659-25662-1-git-send-email-premi@ti.com>
+ <4D27162E.6070203@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:34422 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753304Ab1AGNlr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 08:41:47 -0500
-Received: by wyb28 with SMTP id 28so17389524wyb.19
-        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 05:41:46 -0800 (PST)
-In-Reply-To: <20110107125132.GM1198@n2100.arm.linux.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:37589 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750950Ab1AGNum convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 08:50:42 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p07Docjj032130
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 7 Jan 2011 07:50:41 -0600
+In-Reply-To: <4D27162E.6070203@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Op 7 jan 2011, om 13:51 heeft Russell King - ARM Linux het volgende geschreven:
-> This is the command line I've been giving it:
+> -----Original Message-----
+> From: Menon, Nishanth 
+> Sent: Friday, January 07, 2011 7:04 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
 > 
-> setenv bootargs 'root=/dev/mmcblk0p2 rw mem=512M vmalloc=1G console=ttyO2,115200n8 rootdelay=2'
+> Sanjeev Premi wrote, on 01/07/2011 07:07 AM:
+> > +		if (omap3_has_720mhz()) {
+> > +			pr_info("Enabled OPP corresponding to 
+> 720MHz\n");
+> > +
+> > +			omap34xx_opp_def_list[INDEX_MPU_720MHZ]
+> > +				.default_available = true;
+> > +			omap34xx_opp_def_list[INDEX_IVA_720MHZ]
+> > +				.default_available = true;
+> for many reasons, I dont like this indexing - I am ok with 
+> most part of 
+> the patch otherwise - how about opp_enable(dev, freq) instead?
 
-Why are people still using rootdelay? 'rootwait' is vastly superior and doesn't need tweaking for every card/controller combo.
+I had thought about it, but opp_enable would have to be done after
+omap_init_opp_table(). Two factors led me to current implementation:
 
-regards,
+1) Numer of lines of code required to get same thing done one the
+   opp table has been initialized.
 
-Koen
+2) The index definition and usage are localized in same file.
+
+> 
+> -- 
+> Regards,
+> Nishanth Menon
+> 
