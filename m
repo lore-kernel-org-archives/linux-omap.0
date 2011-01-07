@@ -1,13 +1,13 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v4 01/17] OMAP2420: hwmod data: add DSS DISPC RFBI VENC
-Date: Fri,  7 Jan 2011 08:48:55 +0530
-Message-ID: <1294370351-8654-2-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v4 02/17] OMAP2430: hwmod data: add DSS DISPC RFBI VENC
+Date: Fri,  7 Jan 2011 08:48:56 +0530
+Message-ID: <1294370351-8654-3-git-send-email-sumit.semwal@ti.com>
 References: <1294370351-8654-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33755 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:33764 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755437Ab1AGDTh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 22:19:37 -0500
+	with ESMTP id S1755469Ab1AGDTm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 22:19:42 -0500
 In-Reply-To: <1294370351-8654-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -17,46 +17,46 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 Hwmod needs database of all IPs in a system. This patch generates the hwmod
-database for OMAP2420 Display Sub System,. Since DSS is also considered as an
+database for OMAP2430 Display Sub System. Since DSS is also considered as an
 IP as DISPC, RFBI, name it as dss_dss.
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 Acked-by: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |  283 ++++++++++++++++++++++++++++
- 1 files changed, 283 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |  282 ++++++++++++++++++++++++++++
+ 1 files changed, 282 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index b85c630..14ae4a8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -38,6 +38,10 @@ static struct omap_hwmod omap2420_mpu_hwmod;
- static struct omap_hwmod omap2420_iva_hwmod;
- static struct omap_hwmod omap2420_l3_main_hwmod;
- static struct omap_hwmod omap2420_l4_core_hwmod;
-+static struct omap_hwmod omap2420_dss_dss_hwmod;
-+static struct omap_hwmod omap2420_dss_dispc_hwmod;
-+static struct omap_hwmod omap2420_dss_rfbi_hwmod;
-+static struct omap_hwmod omap2420_dss_venc_hwmod;
- static struct omap_hwmod omap2420_wd_timer2_hwmod;
- static struct omap_hwmod omap2420_gpio1_hwmod;
- static struct omap_hwmod omap2420_gpio2_hwmod;
-@@ -64,6 +68,13 @@ static struct omap_hwmod_ocp_if *omap2420_l3_main_slaves[] = {
- 	&omap2420_mpu__l3_main,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 8ecfbcd..b06eeea 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -38,6 +38,10 @@ static struct omap_hwmod omap2430_mpu_hwmod;
+ static struct omap_hwmod omap2430_iva_hwmod;
+ static struct omap_hwmod omap2430_l3_main_hwmod;
+ static struct omap_hwmod omap2430_l4_core_hwmod;
++static struct omap_hwmod omap2430_dss_dss_hwmod;
++static struct omap_hwmod omap2430_dss_dispc_hwmod;
++static struct omap_hwmod omap2430_dss_rfbi_hwmod;
++static struct omap_hwmod omap2430_dss_venc_hwmod;
+ static struct omap_hwmod omap2430_wd_timer2_hwmod;
+ static struct omap_hwmod omap2430_gpio1_hwmod;
+ static struct omap_hwmod omap2430_gpio2_hwmod;
+@@ -65,6 +69,13 @@ static struct omap_hwmod_ocp_if *omap2430_l3_main_slaves[] = {
+ 	&omap2430_mpu__l3_main,
  };
  
 +/* DSS -> l3 */
-+static struct omap_hwmod_ocp_if omap2420_dss__l3 = {
-+	.master		= &omap2420_dss_dss_hwmod,
-+	.slave		= &omap2420_l3_main_hwmod,
++static struct omap_hwmod_ocp_if omap2430_dss__l3 = {
++	.master		= &omap2430_dss_dss_hwmod,
++	.slave		= &omap2430_l3_main_hwmod,
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
  /* Master interfaces on the L3 interconnect */
- static struct omap_hwmod_ocp_if *omap2420_l3_main_masters[] = {
- 	&omap2420_l3_main__l4_core,
-@@ -470,6 +481,272 @@ static struct omap_hwmod omap2420_uart3_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ static struct omap_hwmod_ocp_if *omap2430_l3_main_masters[] = {
+ 	&omap2430_l3_main__l4_core,
+@@ -469,6 +480,271 @@ static struct omap_hwmod omap2430_uart3_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
  };
  
 +/*
@@ -64,7 +64,7 @@ index b85c630..14ae4a8 100644
 + * display sub-system
 + */
 +
-+static struct omap_hwmod_class_sysconfig omap2420_dss_sysc = {
++static struct omap_hwmod_class_sysconfig omap2430_dss_sysc = {
 +	.rev_offs	= 0x0000,
 +	.sysc_offs	= 0x0010,
 +	.syss_offs	= 0x0014,
@@ -72,27 +72,26 @@ index b85c630..14ae4a8 100644
 +	.sysc_fields	= &omap_hwmod_sysc_type1,
 +};
 +
-+static struct omap_hwmod_class omap2420_dss_hwmod_class = {
++static struct omap_hwmod_class omap2430_dss_hwmod_class = {
 +	.name = "dss",
-+	.sysc = &omap2420_dss_sysc,
++	.sysc = &omap2430_dss_sysc,
 +};
 +
 +/* dss */
-+static struct omap_hwmod_irq_info omap2420_dss_irqs[] = {
++static struct omap_hwmod_irq_info omap2430_dss_irqs[] = {
 +	{ .irq = 25 },
 +};
-+
-+static struct omap_hwmod_dma_info omap2420_dss_sdma_chs[] = {
++static struct omap_hwmod_dma_info omap2430_dss_sdma_chs[] = {
 +	{ .name = "dispc", .dma_req = 5 },
 +};
 +
 +/* dss */
 +/* dss master ports */
-+static struct omap_hwmod_ocp_if *omap2420_dss_masters[] = {
-+	&omap2420_dss__l3,
++static struct omap_hwmod_ocp_if *omap2430_dss_masters[] = {
++	&omap2430_dss__l3,
 +};
 +
-+static struct omap_hwmod_addr_space omap2420_dss_addrs[] = {
++static struct omap_hwmod_addr_space omap2430_dss_addrs[] = {
 +	{
 +		.pa_start	= 0x48050000,
 +		.pa_end		= 0x480503FF,
@@ -101,18 +100,18 @@ index b85c630..14ae4a8 100644
 +};
 +
 +/* l4_core -> dss */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__dss = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_dss_dss_hwmod,
++static struct omap_hwmod_ocp_if omap2430_l4_core__dss = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_dss_dss_hwmod,
 +	.clk		= "dss_ick",
-+	.addr		= omap2420_dss_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_dss_addrs),
++	.addr		= omap2430_dss_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2430_dss_addrs),
 +	.user		= OCP_USER_MPU,
 +};
 +
 +/* dss slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_dss_slaves[] = {
-+	&omap2420_l4_core__dss,
++static struct omap_hwmod_ocp_if *omap2430_dss_slaves[] = {
++	&omap2430_l4_core__dss,
 +};
 +
 +static struct omap_hwmod_opt_clk dss_opt_clks[] = {
@@ -120,14 +119,14 @@ index b85c630..14ae4a8 100644
 +	{ .role = "sys_clk", .clk = "dss2_fck" },
 +};
 +
-+static struct omap_hwmod omap2420_dss_dss_hwmod = {
++static struct omap_hwmod omap2430_dss_dss_hwmod = {
 +	.name		= "dss_dss",
-+	.class		= &omap2420_dss_hwmod_class,
++	.class		= &omap2430_dss_hwmod_class,
 +	.main_clk	= "dss1_fck", /* instead of dss_fck */
-+	.mpu_irqs	= omap2420_dss_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_dss_irqs),
-+	.sdma_reqs	= omap2420_dss_sdma_chs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap2420_dss_sdma_chs),
++	.mpu_irqs	= omap2430_dss_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_dss_irqs),
++	.sdma_reqs	= omap2430_dss_sdma_chs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap2430_dss_sdma_chs),
 +
 +	.prcm		= {
 +		.omap2 = {
@@ -140,11 +139,11 @@ index b85c630..14ae4a8 100644
 +	},
 +	.opt_clks	= dss_opt_clks,
 +	.opt_clks_cnt = ARRAY_SIZE(dss_opt_clks),
-+	.slaves		= omap2420_dss_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_dss_slaves),
-+	.masters	= omap2420_dss_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap2420_dss_masters),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++	.slaves		= omap2430_dss_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_dss_slaves),
++	.masters	= omap2430_dss_masters,
++	.masters_cnt	= ARRAY_SIZE(omap2430_dss_masters),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
 +	.flags		= HWMOD_NO_IDLEST,
 +};
 +
@@ -153,7 +152,7 @@ index b85c630..14ae4a8 100644
 + * display controller
 + */
 +
-+static struct omap_hwmod_class_sysconfig omap2420_dispc_sysc = {
++static struct omap_hwmod_class_sysconfig omap2430_dispc_sysc = {
 +	.rev_offs	= 0x0000,
 +	.sysc_offs	= 0x0010,
 +	.syss_offs	= 0x0014,
@@ -164,12 +163,12 @@ index b85c630..14ae4a8 100644
 +	.sysc_fields	= &omap_hwmod_sysc_type1,
 +};
 +
-+static struct omap_hwmod_class omap2420_dispc_hwmod_class = {
++static struct omap_hwmod_class omap2430_dispc_hwmod_class = {
 +	.name = "dispc",
-+	.sysc = &omap2420_dispc_sysc,
++	.sysc = &omap2430_dispc_sysc,
 +};
 +
-+static struct omap_hwmod_addr_space omap2420_dss_dispc_addrs[] = {
++static struct omap_hwmod_addr_space omap2430_dss_dispc_addrs[] = {
 +	{
 +		.pa_start	= 0x48050400,
 +		.pa_end		= 0x480507FF,
@@ -178,23 +177,23 @@ index b85c630..14ae4a8 100644
 +};
 +
 +/* l4_core -> dss_dispc */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__dss_dispc = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_dss_dispc_hwmod,
++static struct omap_hwmod_ocp_if omap2430_l4_core__dss_dispc = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_dss_dispc_hwmod,
 +	.clk		= "dss_ick",
-+	.addr		= omap2420_dss_dispc_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_dss_dispc_addrs),
++	.addr		= omap2430_dss_dispc_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2430_dss_dispc_addrs),
 +	.user		= OCP_USER_MPU,
 +};
 +
 +/* dss_dispc slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_dss_dispc_slaves[] = {
-+	&omap2420_l4_core__dss_dispc,
++static struct omap_hwmod_ocp_if *omap2430_dss_dispc_slaves[] = {
++	&omap2430_l4_core__dss_dispc,
 +};
 +
-+static struct omap_hwmod omap2420_dss_dispc_hwmod = {
++static struct omap_hwmod omap2430_dss_dispc_hwmod = {
 +	.name		= "dss_dispc",
-+	.class		= &omap2420_dispc_hwmod_class,
++	.class		= &omap2430_dispc_hwmod_class,
 +	.main_clk	= "dss1_fck",
 +	.prcm		= {
 +		.omap2 = {
@@ -205,9 +204,9 @@ index b85c630..14ae4a8 100644
 +			.idlest_idle_bit = OMAP24XX_ST_DSS_SHIFT,
 +		},
 +	},
-+	.slaves		= omap2420_dss_dispc_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_dss_dispc_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++	.slaves		= omap2430_dss_dispc_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_dss_dispc_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
 +	.flags		= HWMOD_NO_IDLEST,
 +};
 +
@@ -216,7 +215,7 @@ index b85c630..14ae4a8 100644
 + * remote frame buffer interface
 + */
 +
-+static struct omap_hwmod_class_sysconfig omap2420_rfbi_sysc = {
++static struct omap_hwmod_class_sysconfig omap2430_rfbi_sysc = {
 +	.rev_offs	= 0x0000,
 +	.sysc_offs	= 0x0010,
 +	.syss_offs	= 0x0014,
@@ -226,12 +225,12 @@ index b85c630..14ae4a8 100644
 +	.sysc_fields	= &omap_hwmod_sysc_type1,
 +};
 +
-+static struct omap_hwmod_class omap2420_rfbi_hwmod_class = {
++static struct omap_hwmod_class omap2430_rfbi_hwmod_class = {
 +	.name = "rfbi",
-+	.sysc = &omap2420_rfbi_sysc,
++	.sysc = &omap2430_rfbi_sysc,
 +};
 +
-+static struct omap_hwmod_addr_space omap2420_dss_rfbi_addrs[] = {
++static struct omap_hwmod_addr_space omap2430_dss_rfbi_addrs[] = {
 +	{
 +		.pa_start	= 0x48050800,
 +		.pa_end		= 0x48050BFF,
@@ -240,23 +239,23 @@ index b85c630..14ae4a8 100644
 +};
 +
 +/* l4_core -> dss_rfbi */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__dss_rfbi = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_dss_rfbi_hwmod,
++static struct omap_hwmod_ocp_if omap2430_l4_core__dss_rfbi = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_dss_rfbi_hwmod,
 +	.clk		= "dss_ick",
-+	.addr		= omap2420_dss_rfbi_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_dss_rfbi_addrs),
++	.addr		= omap2430_dss_rfbi_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2430_dss_rfbi_addrs),
 +	.user		= OCP_USER_MPU,
 +};
 +
 +/* dss_rfbi slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_dss_rfbi_slaves[] = {
-+	&omap2420_l4_core__dss_rfbi,
++static struct omap_hwmod_ocp_if *omap2430_dss_rfbi_slaves[] = {
++	&omap2430_l4_core__dss_rfbi,
 +};
 +
-+static struct omap_hwmod omap2420_dss_rfbi_hwmod = {
++static struct omap_hwmod omap2430_dss_rfbi_hwmod = {
 +	.name		= "dss_rfbi",
-+	.class		= &omap2420_rfbi_hwmod_class,
++	.class		= &omap2430_rfbi_hwmod_class,
 +	.main_clk	= "dss1_fck",
 +	.prcm		= {
 +		.omap2 = {
@@ -267,9 +266,9 @@ index b85c630..14ae4a8 100644
 +			.idlest_idle_bit = OMAP24XX_ST_DSS_SHIFT,
 +		},
 +	},
-+	.slaves		= omap2420_dss_rfbi_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_dss_rfbi_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++	.slaves		= omap2430_dss_rfbi_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_dss_rfbi_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
 +	.flags		= HWMOD_NO_IDLEST,
 +};
 +
@@ -278,12 +277,12 @@ index b85c630..14ae4a8 100644
 + * video encoder
 + */
 +
-+static struct omap_hwmod_class omap2420_venc_hwmod_class = {
++static struct omap_hwmod_class omap2430_venc_hwmod_class = {
 +	.name = "venc",
 +};
 +
 +/* dss_venc */
-+static struct omap_hwmod_addr_space omap2420_dss_venc_addrs[] = {
++static struct omap_hwmod_addr_space omap2430_dss_venc_addrs[] = {
 +	{
 +		.pa_start	= 0x48050C00,
 +		.pa_end		= 0x48050FFF,
@@ -292,23 +291,23 @@ index b85c630..14ae4a8 100644
 +};
 +
 +/* l4_core -> dss_venc */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__dss_venc = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_dss_venc_hwmod,
++static struct omap_hwmod_ocp_if omap2430_l4_core__dss_venc = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_dss_venc_hwmod,
 +	.clk		= "dss_54m_fck",
-+	.addr		= omap2420_dss_venc_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_dss_venc_addrs),
++	.addr		= omap2430_dss_venc_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2430_dss_venc_addrs),
 +	.user		= OCP_USER_MPU,
 +};
 +
 +/* dss_venc slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_dss_venc_slaves[] = {
-+	&omap2420_l4_core__dss_venc,
++static struct omap_hwmod_ocp_if *omap2430_dss_venc_slaves[] = {
++	&omap2430_l4_core__dss_venc,
 +};
 +
-+static struct omap_hwmod omap2420_dss_venc_hwmod = {
++static struct omap_hwmod omap2430_dss_venc_hwmod = {
 +	.name		= "dss_venc",
-+	.class		= &omap2420_venc_hwmod_class,
++	.class		= &omap2430_venc_hwmod_class,
 +	.main_clk	= "dss1_fck",
 +	.prcm		= {
 +		.omap2 = {
@@ -319,27 +318,27 @@ index b85c630..14ae4a8 100644
 +			.idlest_idle_bit = OMAP24XX_ST_DSS_SHIFT,
 +		},
 +	},
-+	.slaves		= omap2420_dss_venc_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_dss_venc_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++	.slaves		= omap2430_dss_venc_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_dss_venc_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
 +	.flags		= HWMOD_NO_IDLEST,
 +};
 +
  /* I2C common */
  static struct omap_hwmod_class_sysconfig i2c_sysc = {
  	.rev_offs	= 0x00,
-@@ -874,6 +1151,12 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	&omap2420_uart1_hwmod,
- 	&omap2420_uart2_hwmod,
- 	&omap2420_uart3_hwmod,
+@@ -929,6 +1205,12 @@ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
+ 	&omap2430_uart1_hwmod,
+ 	&omap2430_uart2_hwmod,
+ 	&omap2430_uart3_hwmod,
 +	/* dss class */
-+	&omap2420_dss_dss_hwmod,
-+	&omap2420_dss_dispc_hwmod,
-+	&omap2420_dss_rfbi_hwmod,
-+	&omap2420_dss_venc_hwmod,
++	&omap2430_dss_dss_hwmod,
++	&omap2430_dss_dispc_hwmod,
++	&omap2430_dss_rfbi_hwmod,
++	&omap2430_dss_venc_hwmod,
 +	/* i2c class */
- 	&omap2420_i2c1_hwmod,
- 	&omap2420_i2c2_hwmod,
+ 	&omap2430_i2c1_hwmod,
+ 	&omap2430_i2c2_hwmod,
  
 -- 
 1.7.0.4
