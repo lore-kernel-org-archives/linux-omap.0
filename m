@@ -1,39 +1,36 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: 4430SDP boot failure - solved + SPI bug fix
-Date: Fri, 7 Jan 2011 18:52:50 +0000
-Message-ID: <20110107185250.GT1198@n2100.arm.linux.org.uk>
-References: <d540408e2df154cf13932e79d3a11ceb@mail.gmail.com> <20110107092800.GJ1198@n2100.arm.linux.org.uk> <86f60bc5418ca1d3e87db960e5e2c48f@mail.gmail.com> <729152acd9ee0c3e3e3cd505e84f8865@mail.gmail.com> <20110107125132.GM1198@n2100.arm.linux.org.uk> <48cbfb338be4d33a8a19e070430d015b@mail.gmail.com> <20110107142432.GO1198@n2100.arm.linux.org.uk> <c71399f20609c539b8c335344963253f@mail.gmail.com> <20110107154920.GQ1198@n2100.arm.linux.org.uk> <b52c0ce136053d3185debccaa3a9d252@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Re: linux-next: manual merge of the usb tree with the omap tree
+Date: Sat, 8 Jan 2011 00:24:24 +0530
+Message-ID: <AANLkTiku=1-NftQGkOiG0Sm5Fp1-Szqe+39kzWz+4dAC@mail.gmail.com>
+References: <20101223171859.f6842045.sfr@canb.auug.org.au> <4D139517.3010608@ti.com>
+ <AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com>
+ <4ce0f816f951f24ca3de9c84d9f70842@mail.gmail.com> <AANLkTimA5UOVn6+xe0ofV1F3_XhAP0daBvOAX2k1u_dU@mail.gmail.com>
+ <AANLkTimzQ1PHN986fqPF0yjd1M+390nSUDYJ65pu0z_f@mail.gmail.com>
+ <4D271E0E.8050401@ti.com> <AANLkTikLQRHyp-TS_idEp5Fr74qC3vDoMqqsAA2v_oV8@mail.gmail.com>
+ <c822ad4569a9dc865b5ccf39e12c828b@mail.gmail.com> <f853a77e2aebea4130fc486bdbf4aa06@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49395 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753136Ab1AGSxA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 13:53:00 -0500
-Content-Disposition: inline
-In-Reply-To: <b52c0ce136053d3185debccaa3a9d252@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <f853a77e2aebea4130fc486bdbf4aa06@mail.gmail.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Anand Gadiyar <gadiyar@ti.com>, Ming Lei <tom.leiming@gmail.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Fri, Jan 07, 2011 at 11:55:10PM +0530, Santosh Shilimkar wrote:
-> > And, with one ARM errata disabled, the kernel finally boots.  So the
-> > "X-Loader hangs" message means that we did something that non-secure
-> > mode prevented us from doing.
-> >
-> Actually it's not. The error message is quite misleading. Basically in
-> x-loader exception handlers are setup and all these handlers report
-> same message ("X-Loader hangs"). This should be fixed so that it can
-> report more meaningful info like data abort, prefetch abort etc.
-> 
-> Till the vector relocation in the kernel exceptions are not set up
-> so code jumps to already installed exceptions in the x-loader and
-> hence the messege.
+On Fri, Jan 7, 2011 at 8:50 PM, Anand Gadiyar <gadiyar@ti.com> wrote:
+> Update: I disabled CONFIG_OMAP_RESET_CLOCKS and the PHY and other
+> connected devices enumerate just fine. Could you try this out on
+> your board as well?
+>
+> I'll look deeper and see if there are some required clocks that are
+> accidentally getting turned off.
+>
 
-I disagree with your "actually it's not".  It was errata 742230, which
-requires access to the CP15, c15, c0, 1 register (a diagnostic register)
-which I bet provokes an undefined instruction trap from non-secure mode.
+A final update from today: It appears that disabling auxclk3_ck causes
+EHCI to fail. I'm not sure what this clock feeds, and will need to look it
+up. Keeping this clock alive is sufficient to get the hub to enumerate.
 
-Hence, the reason it vectored to the X-loader was because we tried to
-do something in the non-secure mode which we're prevented from doing.
+I would've looked it up, but got booted out by a fire alarm drill. I'll
+take a look tomorrow and cook up a fix.
+
+- Anand
