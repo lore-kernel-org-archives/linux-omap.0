@@ -1,191 +1,129 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
-Date: Fri, 07 Jan 2011 08:48:13 -0800
-Message-ID: <87wrmgoe2a.fsf@ti.com>
-References: <1294405659-25662-1-git-send-email-premi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Latest regressions
+Date: Fri, 7 Jan 2011 08:56:26 -0800
+Message-ID: <20110107165626.GD880@atomide.com>
+References: <20110107115744.GL1198@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:58739 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754492Ab1AGQsS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 11:48:18 -0500
-Received: by mail-px0-f181.google.com with SMTP id 2so4946248pxi.40
-        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 08:48:18 -0800 (PST)
-In-Reply-To: <1294405659-25662-1-git-send-email-premi@ti.com> (Sanjeev Premi's
-	message of "Fri, 7 Jan 2011 18:37:39 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42900 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754470Ab1AGQ4k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 11:56:40 -0500
+Content-Disposition: inline
+In-Reply-To: <20110107115744.GL1198@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: linux-omap@vger.kernel.org
 
-Sanjeev Premi <premi@ti.com> writes:
-
-> This patch adds support for new speed enhanced parts with ARM
-> and IVA running at 720MHz and 520MHz respectively. These parts
-> can be probed at run-time by reading PRODID.SKUID[3:0] at
-> 0x4830A20C [1].
-
-Please expand this a little to describe exactly which parts have this
-feature.  All OMAP3?  34xx? 35xx? what about 36xx/37xx?  ISTR the
-runtime probing for this feature is available on 35xx but not on 34xx,
-but a summary of this should be here.
-
-> This patch specifically does following:
->  * Detect devices capable of 720MHz.
->  * Add new OPP
->  * Ensure that OPP is conditionally enabled.
->
-> The patch was tested on OMAP3EVM.
-
-nit: Unrelated to this patch, but OMAP3EVM ethernet is still broken due to
-missing GPIO configuration for the network reset.  This has been broken
-since the GPIO hwmod merge and pointed out but nobody seems to be fixing
-it.
-
-> On 720MHz capable device:
-> # cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
-> 720000
->
-> On other devices:
-> # cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
-> 600000
->
->   [1] http://focus.ti.com/lit/ug/spruff1d/spruff1d.pdf
->
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> ---
->  arch/arm/mach-omap2/control.h         |    7 +++++++
->  arch/arm/mach-omap2/id.c              |   10 ++++++++++
->  arch/arm/mach-omap2/opp3xxx_data.c    |   19 ++++++++++++++++++-
->  arch/arm/plat-omap/include/plat/cpu.h |    2 ++
->  4 files changed, 37 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-> index f0629ae..eebc045 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -365,6 +365,13 @@
->  #define		FEAT_NEON		0
->  #define		FEAT_NEON_NONE		1
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110107 03:57]:
+> 
+> So, this is what I currently have to get that far:
+> 
+> diff --git a/arch/arm/mach-omap2/include/mach/entry-macro.S b/arch/arm/mach-omap2/include/mach/entry-macro.S
+> index befa321..81985a6 100644
+> --- a/arch/arm/mach-omap2/include/mach/entry-macro.S
+> +++ b/arch/arm/mach-omap2/include/mach/entry-macro.S
+> @@ -38,20 +38,6 @@
+>   */
 >  
-> +/*
-> + * Product ID register
-> + */
-> +#define OMAP3_PRODID			0x020C
-> +
-> +#define OMAP3_SKUID_MASK		0x0f
-> +#define		OMAP3_SKUID_720MHZ	0x08
->  
->  #ifndef __ASSEMBLY__
->  #ifdef CONFIG_ARCH_OMAP2PLUS
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 5f9086c..53fbe01 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -195,6 +195,15 @@ static void __init omap3_check_features(void)
->  	 * TODO: Get additional info (where applicable)
->  	 *       e.g. Size of L2 cache.
->  	 */
-> +
-> +	/*
-> +	 * Does it support 720MHz?
-> +	 */
-> +	status = (OMAP3_SKUID_MASK & read_tap_reg(OMAP3_PRODID));
-> +
-> +	if (status & OMAP3_SKUID_720MHZ) {
-> +		omap3_features |= OMAP3_HAS_720MHZ;
-> +	}
+>  #ifdef MULTI_OMAP2
+> -
+> -/*
+> - * We use __glue to avoid errors with multiple definitions of
+> - * .globl omap_irq_base as it's included from entry-armv.S but not
+> - * from entry-common.S.
+> - */
+> -#ifdef __glue
+> -		.pushsection .data
+> -		.globl	omap_irq_base
+> -omap_irq_base:
+> -		.word	0
+> -		.popsection
+> -#endif
+> -
+>  		/*
+>  		 * Configure the interrupt base on the first interrupt.
+>  		 * See also omap_irq_base_init for setting omap_irq_base.
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index e66687b..c203204 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -314,14 +314,13 @@ static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
+>  	return omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
 >  }
 >  
->  static void __init omap3_check_revision(void)
-> @@ -445,6 +454,7 @@ static void __init omap3_cpuinfo(void)
->  	OMAP3_SHOW_FEATURE(neon);
->  	OMAP3_SHOW_FEATURE(isp);
->  	OMAP3_SHOW_FEATURE(192mhz_clk);
-> +	OMAP3_SHOW_FEATURE(720mhz);
->  
->  	printk(")\n");
+> +void __iomem *omap_irq_base;
+> +
+>  /*
+>   * Initialize asm_irq_base for entry-macro.S
+>   */
+>  static inline void omap_irq_base_init(void)
+>  {
+> -	extern void __iomem *omap_irq_base;
+> -
+> -#ifdef MULTI_OMAP2
+>  	if (cpu_is_omap24xx())
+>  		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP24XX_IC_BASE);
+>  	else if (cpu_is_omap34xx())
+> @@ -330,7 +329,6 @@ static inline void omap_irq_base_init(void)
+>  		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE);
+>  	else
+>  		pr_err("Could not initialize omap_irq_base\n");
+> -#endif
 >  }
-> diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-> index 0486fce..01582b7 100644
-> --- a/arch/arm/mach-omap2/opp3xxx_data.c
-> +++ b/arch/arm/mach-omap2/opp3xxx_data.c
-> @@ -22,6 +22,9 @@
 >  
->  #include "omap_opp_data.h"
+>  void __init omap2_init_common_infrastructure(void)
+
+This looks good to me.
+
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 17bd639..9eaa28c 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -160,7 +160,7 @@ static int __init _omap_mux_get_by_name(struct omap_mux_partition *partition,
+>  	struct omap_mux *mux = NULL;
+>  	struct omap_mux_entry *e;
+>  	const char *mode_name;
+> -	int found = 0, found_mode, mode0_len = 0;
+> +	int found = 0, found_mode = 0, mode0_len = 0;
+>  	struct list_head *muxmodes = &partition->muxmodes;
 >  
-> +#define INDEX_MPU_720MHZ	5
-> +#define INDEX_IVA_720MHZ	14
+>  	mode_name = strchr(muxname, '.');
+
+Ack.
+
+> diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+> index 0ff1233..ffcdff9 100644
+> --- a/arch/arm/plat-omap/include/plat/voltage.h
+> +++ b/arch/arm/plat-omap/include/plat/voltage.h
+> @@ -14,6 +14,8 @@
+>  #ifndef __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
+>  #define __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
+>  
+> +#include <linux/errno.h>
 > +
->  static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
->  	/* MPU OPP1 */
->  	OPP_INITIALIZER("mpu", true, 125000000, 975000),
-> @@ -33,6 +36,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
->  	OPP_INITIALIZER("mpu", true, 550000000, 1270000),
->  	/* MPU OPP5 */
->  	OPP_INITIALIZER("mpu", true, 600000000, 1350000),
-> +	/* MPU OPP6 */
-> +	OPP_INITIALIZER("mpu", false, 720000000, 1350000),
->  
->  	/*
->  	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-> @@ -58,6 +63,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
->  	OPP_INITIALIZER("iva", true, 400000000, 1270000),
->  	/* DSP OPP5 */
->  	OPP_INITIALIZER("iva", true, 430000000, 1350000),
-> +	/* DSP OPP6 */
-> +	OPP_INITIALIZER("iva", false, 520000000, 1350000),
->  };
->  
->  static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
-> @@ -98,9 +105,19 @@ static int __init omap3_opp_init(void)
->  	if (cpu_is_omap3630())
->  		r = omap_init_opp_table(omap36xx_opp_def_list,
->  			ARRAY_SIZE(omap36xx_opp_def_list));
-> -	else
-> +	else {
-> +		if (omap3_has_720mhz()) {
-> +			pr_info("Enabled OPP corresponding to 720MHz\n");
-> +
-> +			omap34xx_opp_def_list[INDEX_MPU_720MHZ]
-> +				.default_available = true;
-> +			omap34xx_opp_def_list[INDEX_IVA_720MHZ]
-> +				.default_available = true;
-> +		}
-> +
+>  #define VOLTSCALE_VPFORCEUPDATE		1
+>  #define VOLTSCALE_VCBYPASS		2
 
-I'm with Nishanth here.  Please stick to the OPP API for enabling OPPs.
+This fix is already queued up by Kevin, but missing..
+  
+> @@ -133,9 +135,9 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+>  		int voltscale_method);
+>  int omap_voltage_late_init(void);
+>  #else
+> -static inline int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+> +static inline void omap_voltage_register_pmic(struct voltagedomain *voltdm,
+>  		struct omap_volt_pmic_info *pmic_info) {}
+> -static inline  void omap_change_voltscale_method(struct voltagedomain *voltdm,
+> +static inline void omap_change_voltscale_method(struct voltagedomain *voltdm,
+>  		int voltscale_method) {}
+>  static inline int omap_voltage_late_init(void)
+>  {
 
-First, it is future proof to internal table changes, but it also sets a
-better precedent for others wanting to fiddle with OPPs.
+..this change.
 
-Thanks,
+Regards,
 
-Kevin
-
->  		r = omap_init_opp_table(omap34xx_opp_def_list,
->  			ARRAY_SIZE(omap34xx_opp_def_list));
-> +	}
->  
->  	return r;
->  }
-> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-> index 3fd8b40..5c77987 100644
-> --- a/arch/arm/plat-omap/include/plat/cpu.h
-> +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> @@ -455,6 +455,7 @@ extern u32 omap3_features;
->  #define OMAP3_HAS_ISP			BIT(4)
->  #define OMAP3_HAS_192MHZ_CLK		BIT(5)
->  #define OMAP3_HAS_IO_WAKEUP		BIT(6)
-> +#define OMAP3_HAS_720MHZ		BIT(7)
->  
->  #define OMAP3_HAS_FEATURE(feat,flag)			\
->  static inline unsigned int omap3_has_ ##feat(void)	\
-> @@ -469,5 +470,6 @@ OMAP3_HAS_FEATURE(neon, NEON)
->  OMAP3_HAS_FEATURE(isp, ISP)
->  OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
->  OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
-> +OMAP3_HAS_FEATURE(720mhz, 720MHZ)
->  
->  #endif
+Tony
