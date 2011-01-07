@@ -1,82 +1,66 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v4 15/17] OMAP2,3: DSS2: replace printk with dev_dbg in init
-Date: Fri,  7 Jan 2011 08:49:09 +0530
-Message-ID: <1294370351-8654-16-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v4 17/17] OMAP2,3: DSS2: Get DSS IRQ from platform device
+Date: Fri,  7 Jan 2011 08:49:11 +0530
+Message-ID: <1294370351-8654-18-git-send-email-sumit.semwal@ti.com>
 References: <1294370351-8654-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59681 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37849 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756036Ab1AGDUs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Jan 2011 22:20:48 -0500
+	id S1756036Ab1AGDU5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Jan 2011 22:20:57 -0500
 In-Reply-To: <1294370351-8654-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@deeprootsystems.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
-Cc: Sumit Semwal <sumit.semwal@ti.com>
+Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-This patch replaces printk's in the init/probe functions to dev_dbg
-for boot time optimization.
+From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+DSS IRQ number can be obtained from platform_get_irq().  This API in turn
+picks the right IRQ number belonging to HW IP from the hwmod database.
+So hardcoding of IRQ number could be removed.
+
+Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |    2 +-
- drivers/video/omap2/dss/dsi.c   |    2 +-
- drivers/video/omap2/dss/rfbi.c  |    2 +-
- drivers/video/omap2/dss/venc.c  |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/omap2/dss/dss.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index e19c4cd..97dfc84 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -3158,7 +3158,7 @@ static int omap_dispchw_probe(struct platform_device *pdev)
- 	dispc_save_context();
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 8ca21cd..ebf6f76 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -563,7 +563,7 @@ void dss_set_dac_pwrdn_bgz(bool enable)
  
- 	rev = dispc_read_reg(DISPC_REVISION);
--	printk(KERN_INFO "OMAP DISPC rev %d.%d\n",
-+	dev_dbg(&pdev->dev, "OMAP DISPC rev %d.%d\n",
- 	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
+ static int dss_init(bool skip_init)
+ {
+-	int r;
++	int r, dss_irq;
+ 	u32 rev;
+ 	struct resource *dss_mem;
  
- 	enable_clocks(0);
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 411d0c6..cf1a2ad 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -3297,7 +3297,7 @@ static int dsi_init(struct platform_device *pdev)
- 	enable_clocks(1);
+@@ -609,15 +609,18 @@ static int dss_init(bool skip_init)
+ 	REG_FLD_MOD(DSS_CONTROL, 0, 2, 2);	/* venc clock mode = normal */
+ #endif
  
- 	rev = dsi_read_reg(DSI_REVISION);
--	printk(KERN_INFO "OMAP DSI rev %d.%d\n",
-+	dev_dbg(&pdev->dev, "OMAP DSI rev %d.%d\n",
- 	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
+-	r = request_irq(INT_24XX_DSS_IRQ,
++	dss_irq = platform_get_irq(dss.pdev, 0);
++	if (dss_irq != -ENXIO) {
++		r = request_irq(dss_irq,
+ 			cpu_is_omap24xx()
+ 			? dss_irq_handler_omap2
+ 			: dss_irq_handler_omap3,
+ 			0, "OMAP DSS", NULL);
  
- 	enable_clocks(0);
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 52bfb1c..24936f8 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -1044,7 +1044,7 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
- 	rfbi_write_reg(RFBI_SYSCONFIG, l);
+-	if (r < 0) {
+-		DSSERR("omap2 dss: request_irq failed\n");
+-		goto fail1;
++		if (r < 0) {
++			DSSERR("omap2 dss: request_irq failed\n");
++			goto fail1;
++		}
+ 	}
  
- 	rev = rfbi_read_reg(RFBI_REVISION);
--	printk(KERN_INFO "OMAP RFBI rev %d.%d\n",
-+	dev_dbg(&pdev->dev, "OMAP RFBI rev %d.%d\n",
- 	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
- 
- 	rfbi_enable_clocks(0);
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 029fbc3..edccd59 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -739,7 +739,7 @@ static int omap_venchw_probe(struct platform_device *pdev)
- 	venc_enable_clocks(1);
- 
- 	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
--	printk(KERN_INFO "OMAP VENC rev %d\n", rev_id);
-+	dev_dbg(&pdev->dev, "OMAP VENC rev %d\n", rev_id);
- 
- 	venc_enable_clocks(0);
- 
+ 	if (cpu_is_omap34xx()) {
 -- 
 1.7.0.4
 
