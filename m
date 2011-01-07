@@ -1,87 +1,96 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Latest regressions
-Date: Fri, 7 Jan 2011 14:57:54 +0000
-Message-ID: <20110107145754.GP1198@n2100.arm.linux.org.uk>
-References: <20110107115744.GL1198@n2100.arm.linux.org.uk> <20110107144123.GA28049@n2100.arm.linux.org.uk> <041d2be25d29537d75bea1d949249176@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: RFBI worked example
+Date: Fri, 07 Jan 2011 17:13:58 +0200
+Message-ID: <1294413238.3968.110.camel@nubuntu>
+References: b3985d3b9ab26a0aac963651376b21ac@mail.gmail.com  <fd876042b2837b7dd3eaea2257dcbd6f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57228 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753617Ab1AGO6C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 09:58:02 -0500
-Content-Disposition: inline
-In-Reply-To: <041d2be25d29537d75bea1d949249176@mail.gmail.com>
+Received: from smtp.nokia.com ([147.243.1.47]:20122 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753845Ab1AGPOC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jan 2011 10:14:02 -0500
+In-Reply-To: <fd876042b2837b7dd3eaea2257dcbd6f@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: ext Ben Tucker <btucker@mpcdata.com>
 Cc: linux-omap@vger.kernel.org
 
-On Fri, Jan 07, 2011 at 08:24:26PM +0530, Santosh Shilimkar wrote:
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Russell King - ARM Linux
-> > Sent: Friday, January 07, 2011 8:11 PM
-> > To: linux-omap@vger.kernel.org
-> > Subject: Re: Latest regressions
-> >
-> > While trying to build the latest kernel for the SDP4430 board:
-> >
-> > arch/arm/mach-omap2/clockdomain.c: In function =E2=94=82_enable_hws=
-up=E2=94=82:
-> > arch/arm/mach-omap2/clockdomain.c:251: error: =E2=94=82struct clock=
-domain=E2=94=82
-> > has no member named =E2=94=82clktrctrl_mask=E2=94=82
-> > arch/arm/mach-omap2/clockdomain.c:254: error: =E2=94=82struct clock=
-domain=E2=94=82
-> > has no member named =E2=94=82clktrctrl_mask=E2=94=82
-> > arch/arm/mach-omap2/clockdomain.c: In function =E2=94=82_disable_hw=
-sup=E2=94=82:
-> > arch/arm/mach-omap2/clockdomain.c:277: error: =E2=94=82struct clock=
-domain=E2=94=82
-> > has no member named =E2=94=82clktrctrl_mask=E2=94=82
-> > arch/arm/mach-omap2/clockdomain.c:280: error: =E2=94=82struct clock=
-domain=E2=94=82
-> > has no member named =E2=94=82clktrctrl_mask=E2=94=82
-> > arch/arm/mach-omap2/clockdomain.c: In function =E2=94=82omap2_clkdm=
-_sleep=E2=94=82:
-> > arch/arm/mach-omap2/clockdomain.c:744: error: =E2=94=82struct clock=
-domain=E2=94=82
-> > has no member named =E2=94=82clktrctrl_mask=E2=94=82
-> > arch/arm/mach-omap2/clockdomain.c: In function =E2=94=82omap2_clkdm=
-_wakeup=E2=94=82:
-> > arch/arm/mach-omap2/clockdomain.c:789: error: =E2=94=82struct clock=
-domain=E2=94=82
-> > has no member named =E2=94=82clktrctrl_mask=E2=94=82
-> > arch/arm/mach-omap2/clockdomain.c: In function
-> > =E2=94=82omap2_clkdm_clk_enable=E2=94=82:
-> > arch/arm/mach-omap2/clockdomain.c:922: error: =E2=94=82struct clock=
-domain=E2=94=82
-> > has no member named =E2=94=82clktrctrl_mask=E2=94=82
-> > arch/arm/mach-omap2/clockdomain.c:926: error: =E2=94=82struct clock=
-domain=E2=94=82
-> > has no member named =E2=94=82clktrctrl_mask=E2=94=82
-> > arch/arm/mach-omap2/clockdomain.c: In function
-> > =E2=94=82omap2_clkdm_clk_disable=E2=94=82:
-> > arch/arm/mach-omap2/clockdomain.c:994: error: =E2=94=82struct clock=
-domain=E2=94=82
-> > has no member named =E2=94=82clktrctrl_mask=E2=94=82
-> > arch/arm/mach-omap2/clockdomain.c:998: error: =E2=94=82struct clock=
-domain=E2=94=82
-> > has no member named =E2=94=82clktrctrl_mask=E2=94=82
-> >
-> > Linus' tree prior to the OMAP merge is buildable for the same
-> > config.
-> :)  This one is also fixed with the series but would get merged in rc=
-1
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41712.html
+On Fri, 2011-01-07 at 14:18 +0000, ext Ben Tucker wrote:
+> With further experimentation it appears that I can call the
+> omap_rfbi_update() from the call back, but as the callback is in interrupt
+> context this could be dangerous. I would love to see an example of this
+> elsewhere.
 
-It's something that should be queued up to also go in during the merge
-window IMHO.  Let's try to make rc1 a little less problematical than it
-currently is.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Did you get it working enough to get an image on the panel?
+
+It's been long since I've touched the rfbi code, and I honestly don't
+know the state of it, but basically it should work similarly as DSI
+command mode:
+
+The panel driver issues an update when the user space has requested it
+via OMAPFB_UPDATE_WINDOW. So it's not meant to be triggered
+automatically.
+
+If you really want to update the display automatically (which you
+shouldn't, as the point with panels with their own framebuffer is to
+update only when necessary), you can do it either directly as you do, or
+via workqueue or thread.
+
+I don't know right away if calling omap_rfbi_update() from interrupt
+context is dangerous, but it might well be so you should check if
+carefully.
+
+Also, remember that you may need to stop updates somehow when the panel
+is blanked or the driver is unloaded.
+
+> 
+> static void framedone_callback(void *data)
+> {
+>     int r;
+>     u16 dw, dh;
+>     struct omap_dss_device *dssdev = (struct omap_dss_device *)data;
+> 
+>     /* Start the next update, triggered on the external H/VSync signals */
+>     dssdev->driver->get_resolution(dssdev, &dw, &dh);
+>     r = omap_rfbi_update(dssdev, 0, 0, dw, dh, framedone_callback,
+> dssdev);
+>     if (r < 0)
+>         printk("omap_rfbi_update FAILED");
+> }
+> 
+> static int generic_panel_power_on(struct omap_dss_device *dssdev)
+> {
+>     int r;
+>     u16 dw, dh;
+> 
+>     r = omapdss_rfbi_display_enable(dssdev);
+>     if (r < 0)
+>         goto err0;
+> 
+>     /* Setup external HSYNC/VSYNC triggering */
+>     r = omap_rfbi_setup_te(OMAP_DSS_RFBI_TE_MODE_2,
+>                            4000000,     /* HSYNS pulse 4uS */
+>                            1000000000,  /* VSYNC pulse 1ms */
+>                            0, 0,       /* H/VSYNC not inverted */
+>                            0);
+>     if (r < 0)
+>         goto err1;
+> 
+>     /* Enable external triggering */
+>     r = omap_rfbi_enable_te(1, 0);
+>     if (r < 0)
+>         goto err1;
+> 
+> #if 0
+>     /* At a guess I do not think we need to do the prepare_update
+>      * if we are updating the whole area
+>      */
+
+I'm not sure if it's ok not to call it every time, but you should at
+least call it once to be sure everything is configured properly.
+
+ Tomi
+
+
