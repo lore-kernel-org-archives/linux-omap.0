@@ -1,203 +1,42 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: twl4030: Driver for twl4030 madc module
-Date: Fri, 7 Jan 2011 14:55:45 +0530
-Message-ID: <AANLkTinuwejAgJ+F0e4LFAhR-gL8bfFmyOwHdSEWAsRw@mail.gmail.com>
-References: <1294286200-16446-1-git-send-email-j-keerthy@ti.com>
-	<20110106120433.GC17184@sirena.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: 4430SDP boot failure
+Date: Fri, 7 Jan 2011 09:28:00 +0000
+Message-ID: <20110107092800.GJ1198@n2100.arm.linux.org.uk>
+References: <20110106170805.GE1198@n2100.arm.linux.org.uk> <20110106180030.GA8249@n2100.arm.linux.org.uk> <20110106182023.GV7771@atomide.com> <20110106195225.GX7771@atomide.com> <20110106203431.GZ7771@atomide.com> <20110106205107.GI1198@n2100.arm.linux.org.uk> <20110106235203.GA14425@n2100.arm.linux.org.uk> <d540408e2df154cf13932e79d3a11ceb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:60063 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754375Ab1AGJZq convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jan 2011 04:25:46 -0500
-Received: by mail-gw0-f41.google.com with SMTP id 22so8026438gwj.14
-        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 01:25:45 -0800 (PST)
-In-Reply-To: <20110106120433.GC17184@sirena.org.uk>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60568 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754314Ab1AGJ2K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 04:28:10 -0500
+Content-Disposition: inline
+In-Reply-To: <d540408e2df154cf13932e79d3a11ceb@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com, khali@linux-fr.org, mikko.k.ylinen@nokia.com, linux-omap@vger.kernel.org, amit.kucheria@canonical.com, balajitk@ti.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Thu, Jan 6, 2011 at 5:34 PM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Thu, Jan 06, 2011 at 09:26:40AM +0530, Keerthy wrote:
->
->> ---
->> =A0drivers/hwmon/Kconfig =A0 =A0 =A0 =A0 =A0 =A0| =A0 11 +
->> =A0drivers/hwmon/Makefile =A0 =A0 =A0 =A0 =A0 | =A0 =A01 +
->> =A0drivers/hwmon/twl4030-madc.c =A0 =A0 | =A0794 +++++++++++++++++++=
-+++++++++++++++++++
->> =A0include/linux/i2c/twl4030-madc.h | =A0118 ++++++
->> =A04 files changed, 924 insertions(+), 0 deletions(-)
->> =A0create mode 100644 drivers/hwmon/twl4030-madc.c
->> =A0create mode 100644 include/linux/i2c/twl4030-madc.h
->
-> hwmon drivers are also expected to have a file under Documentation.
+On Fri, Jan 07, 2011 at 02:09:17PM +0530, Santosh Shilimkar wrote:
+> > Can we _please_ have a version of uboot for the SDP4430 platform
+> > which
+> > can be configured at runtime _and_ which is capable of DHCP/TFTP ?
+> > I really don't want to mess about anymore with buggy boot loaders.
+> Just read this thread. Looks like you are not able to boot the kernel
+> at all. 2.6.37 + Tony's queue booted for me without any issues.
 
-I will add a documentation file.
->
->> +struct twl4030_madc_data {
->> + =A0 =A0 struct device *hwmon_dev;
->> + =A0 =A0 struct mutex lock;/* mutex protecting this data structire =
-*/
->> + =A0 =A0 struct twl4030_madc_request requests[TWL4030_MADC_NUM_METH=
-ODS];
->> + =A0 =A0 int imr;
->> + =A0 =A0 int isr;
->> +};
->
->> +static struct twl4030_madc_data *twl4030_madc;
->
-> I'd expect this to be per driver instance rather than global (I know
-> it's vanishingly unlikely that you'll get multiple twl4030s in a sing=
-le
-> system but it's nicer).
->
->> +/*
->> + * sysfs hook function
->> + */
->> +static ssize_t madc_read(struct device *dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct device_attribute=
- *devattr, char *buf)
->> +{
->> + =A0 =A0 struct sensor_device_attribute *attr =3D to_sensor_dev_att=
-r(devattr);
->> + =A0 =A0 struct twl4030_madc_request req;
->> + =A0 =A0 long val;
->> +
->> + =A0 =A0 req.channels =3D (1 << attr->index);
->> + =A0 =A0 req.method =3D TWL4030_MADC_SW2;
->> + =A0 =A0 req.func_cb =3D NULL;
->> + =A0 =A0 val =3D twl4030_madc_conversion(&req);
->> + =A0 =A0 if (val >=3D 0)
->> + =A0 =A0 =A0 =A0 =A0 =A0 val =3D req.rbuf[attr->index];
->> + =A0 =A0 else
->> + =A0 =A0 =A0 =A0 =A0 =A0 return val;
->> + =A0 =A0 return sprintf(buf, "%ld\n", val);
->
-> Does this return data in the appropriate units - milivolts for voltag=
-es?
+I can only boot older kernels.  I can't debug later kernels because
+as soon as I access the UART, I get this very bland 'X-loader hangs'
+message which is no help what so ever (for the amount of use it is, it
+might as well not even print that.)
 
-This function returns the raw channel values read and not in terms of t=
-he
-units.
->
->> +/*
->> + * Enables irq.
->> + * @madc - pointer to twl4030_madc_data struct
->> + * @id - irq number to be enabled
->> + * can take one of TWL4030_MADC_RT, TWL4030_MADC_SW1, TWL4030_MADC_=
-SW2
->> + * corresponding to RT, SW1, SW2 conversion requests.
->> + * If the i2c read fails it returns an error else returns 0.
->> + */
->> +static int twl4030_madc_enable_irq(struct twl4030_madc_data *madc, =
-int id)
->
-> It'd be good to clarify that this is interrupt sources within this
-> module rather than Linux interrupt numbers.
-Ok.
->
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(madc->hwmon_dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Disable interrupt failed%=
-d\n", i);
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 madc->requests[i].result_pending =3D 1;
->> + =A0 =A0 }
->> + =A0 =A0 mutex_lock(&madc->lock);
->> + =A0 =A0 for (i =3D 0; i < TWL4030_MADC_NUM_METHODS; i++) {
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 r =3D &madc->requests[i];
->
-> In general through the driver your use of blank lines is really odd
-> which doesn't help readability.
-Ok. I will correct it.
->
->> + =A0 =A0 switch (conv_method) {
->> + =A0 =A0 case TWL4030_MADC_SW1:
->> + =A0 =A0 case TWL4030_MADC_SW2:
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL4030_MODULE_MA=
-DC,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 TWL4030_MADC_SW_START, met=
-hod->ctrl);
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(madc->hwmon_dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "unable to write ctrl regi=
-ster 0x%X\n", method->ctrl);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 case TWL4030_MADC_RT:
->> + =A0 =A0 default:
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->
-> This looks odd - the function won't actually do anything for non-SW
-> conversions but won't return an error?
+I don't know whether that's because I'm doing something wrong or what as
+there's no way to get any diagnostics out of the system.
 
-Ok. In the case of RT conversion request no software setting is require=
-d
-and it is signal driven. So the function does nothing in case of RT.
->
->> +/* sysfs nodes to read individual channels from user side */
->> +static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, madc_read, NULL, 0);
->> +static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, madc_read, NULL, 1);
->> +static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, madc_read, NULL, 2);
->> +static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, madc_read, NULL, 3);
->> +static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, madc_read, NULL, 4);
->> +static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, madc_read, NULL, 5);
->> +static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, madc_read, NULL, 6);
->> +static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, madc_read, NULL, 7);
->> +static SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, madc_read, NULL, 8);
->> +static SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, madc_read, NULL, 9);
->> +static SENSOR_DEVICE_ATTR(in10_input, S_IRUGO, madc_read, NULL, 10)=
-;
->> +static SENSOR_DEVICE_ATTR(in11_input, S_IRUGO, madc_read, NULL, 11)=
-;
->> +static SENSOR_DEVICE_ATTR(in12_input, S_IRUGO, madc_read, NULL, 12)=
-;
->> +static SENSOR_DEVICE_ATTR(in13_input, S_IRUGO, madc_read, NULL, 13)=
-;
->> +static SENSOR_DEVICE_ATTR(in14_input, S_IRUGO, madc_read, NULL, 14)=
-;
->> +static SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, madc_read, NULL, 15)=
-;
->
-> I suspect some of these are temperatures, some are voltages and that
-> some are fixed to particular inputs? =A0The temperatures should be te=
-mp_
-> and if the inputs are from known sources it'd be good to label them.
+The u-boot SD card issues are just another layer of timewasting frustration
+which really doesn't help.  I don't want to spend many hours debugging
+the boot loader because it also doesn't work properly.  I want something
+which works every time without fail.
 
-Yes some are voltages and some are fixed to particular inputs.
-I will label them.
->
->> + =A0 =A0 madc->imr =3D (pdata->irq_line =3D=3D 1) ?
->> + =A0 =A0 =A0 =A0 TWL4030_MADC_IMR1 : TWL4030_MADC_IMR2;
->> + =A0 =A0 madc->isr =3D (pdata->irq_line =3D=3D 1) ?
->> + =A0 =A0 =A0 =A0 TWL4030_MADC_ISR1 : TWL4030_MADC_ISR2;
->
-> This looks really odd - what's going on here? =A0Comments might help.
-
-Phoenix provides 2 interrupt lines. The first one is connected to
-the OMAP. The other one can be connected to other processor.
-So this check. I will add comments.
->
->> +
->> +MODULE_DESCRIPTION("TWL4030 ADC driver");
->> +MODULE_LICENSE("GPL");
->> +MODULE_AUTHOR("J Keerthy");
->
-> A MODULE_ALIAS to enable automatic loading of teh driver would also b=
-e
-> good.
-
-Ok.
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+BTW, if it makes any difference to the boot loader, please note that I'm
+still waiting for the upgrade for the SDP board.
