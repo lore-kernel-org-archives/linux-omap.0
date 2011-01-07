@@ -1,146 +1,125 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 2/2] tools, perf: Documentation for the power events API
-Date: Fri, 7 Jan 2011 07:50:42 +0200
-Message-ID: <20110107055042.GA6137@besouro.research.nokia.com>
-References: <1294253342-29056-1-git-send-email-j-pihet@ti.com>
- <1294253342-29056-3-git-send-email-j-pihet@ti.com>
-Reply-To: eduardo.valentin@nokia.com
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFT/PATCH 05/10] cbus: retu: move to threaded IRQ and GENIRQ
+Date: Fri, 7 Jan 2011 09:48:14 +0200
+Message-ID: <20110107074814.GC3230@legolas.emea.dhcp.ti.com>
+References: <1294040988-21191-1-git-send-email-balbi@ti.com>
+ <1294040988-21191-6-git-send-email-balbi@ti.com>
+ <20110104014002.GV7771@atomide.com>
+ <20110104065229.GB2367@legolas.emea.dhcp.ti.com>
+ <20110104074615.GC2656@legolas.emea.dhcp.ti.com>
+ <20110104074756.GD2656@legolas.emea.dhcp.ti.com>
+ <20110104191359.GH7771@atomide.com>
+ <20110105063751.GB2458@legolas.emea.dhcp.ti.com>
+ <20110107030449.GH7771@atomide.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-perf-users-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:52812 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752782Ab1AGHsT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 02:48:19 -0500
+Received: by mail-ew0-f51.google.com with SMTP id 19so8127398ewy.10
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jan 2011 23:48:18 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1294253342-29056-3-git-send-email-j-pihet@ti.com>
-Sender: linux-perf-users-owner@vger.kernel.org
-To: "ext jean.pihet@newoldbits.com" <jean.pihet@newoldbits.com>
-Cc: mingo@elte.hu, trenn@suse.de, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+In-Reply-To: <20110107030449.GH7771@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hello Jean,
+On Thu, Jan 06, 2011 at 07:04:50PM -0800, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [110104 22:37]:
+> > Hi,
+> > 
+> > On Tue, Jan 04, 2011 at 11:14:00AM -0800, Tony Lindgren wrote:
+> > > I think there's been some patches related to this to get rid
+> > > of NR_IRQS? Might be worth taking a look at those first as it's
+> > > a generic solution.
+> > 
+> > Yeah, one way would be to use Sparse IRQ numbering scheme and define
+> > different bases for different IRQ chips. We could use for example,
+> > something like:
+> > 
+> > IRQ	|	Chip
+> > =====================
+> > 0-299	|	INTC
+> > 300-499	|	TWL4030
+> > 500-599	|	MENELAUS
+> > 600-799	|	RETU
+> > 800-999	|	TAHVO
+> > 
+> > and so on. But I'm not sure that's good enough (numbers are just from
+> > the top of my head, didn't really check how many IRQs each one have).
+> > 
+> > The only problem I see is with INTC, what happens if we give it an
+> > interval which ends up not being big enough for next OMAP versions ?
+> 
+> I think that's the way to go, but we should not allocate that
+> many irqs.. We can define the ranges like we already do in irqs.h
+> based on what gets compiled in. There are few more blocks though:
 
-On Wed, Jan 05, 2011 at 07:49:02PM +0100, ext jean.pihet@newoldbits.com wrote:
-> From: Jean Pihet <j-pihet@ti.com>
-> 
-> Provides documentation for the following:
-> - the new power trace API,
-> - the old (legacy) power trace API,
-> - the DEPRECATED Kconfig option usage.
-> 
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> ---
->  Documentation/trace/events-power.txt |   90 ++++++++++++++++++++++++++++++++++
->  1 files changed, 90 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/trace/events-power.txt
-> 
-> diff --git a/Documentation/trace/events-power.txt b/Documentation/trace/events-power.txt
-> new file mode 100644
-> index 0000000..96d87b6
-> --- /dev/null
-> +++ b/Documentation/trace/events-power.txt
-> @@ -0,0 +1,90 @@
-> +
-> +			Subsystem Trace Points: power
-> +
-> +The power tracing system captures events related to power transitions
-> +within the kernel. Broadly speaking there are three major subheadings:
-> +
-> +  o Power state switch which reports events related to suspend (S-states),
-> +     cpuidle (C-states) and cpufreq (P-states)
-> +  o System clock related changes
+The main point of using Sparse IRQ numbering is exactly avoiding
+pre-processor branches. Instead of defining ranges only when a device is
+compile, we can always keep the range allocated no matter if the device
+probes or not. So, I suggest dropping the ifdeffery on <plat/irqs.h> and
+move that to something like below:
 
-What do you mean by system clock here? I see that you are covering cpu rate
-changes and system clock (?) here. How about memory clock changes?
-Would it make sense to have a major subheading for it? Maybe you are
-targeting it be traced by means of clocks event (item 2. bellow)..
-
-> +  o Power domains related changes and transitions
-> +
-> +This document describes what each of the tracepoints is and why they
-> +might be useful.
-> +
-> +Cf. include/trace/events/power.h for the events definitions.
-> +
-> +1. Power state switch events
-> +============================
-> +
-> +1.1 New trace API
-> +-----------------
-> +
-> +A 'cpu' event class gathers the CPU-related events: cpuidle and
-> +cpufreq.
-> +
-> +cpu_idle		"state=%lu cpu_id=%lu"
-> +cpu_frequency		"state=%lu cpu_id=%lu"
-> +
-> +A suspend event is used to indicate the system going in and out of the
-> +suspend mode:
-> +
-> +machine_suspend		"state=%lu"
-> +
-> +
-> +Note: the value of '-1' or '4294967295' for state means an exit from the current state,
-> +i.e. trace_cpu_idle(4, smp_processor_id()) means that the system
-> +enters the idle state 4, while trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id())
-> +means that the system exits the previous idle state.
-> +
-> +The event which has 'state=4294967295' in the trace is very important to the user
-> +space tools which are using it to detect the end of the current state, and so to
-> +correctly draw the states diagrams and to calculate accurate statistics etc.
-> +
-> +1.2 DEPRECATED trace API
-> +------------------------
-> +
-> +A new Kconfig option CONFIG_EVENT_POWER_TRACING_DEPRECATED with the default value of
-> +'y' has been created. This allows the legacy trace power API to be used conjointly
-> +with the new trace API.
-> +The Kconfig option, the old trace API (in include/trace/events/power.h) and the
-> +old trace points will disappear in a future release (namely 2.6.41).
-> +
-> +power_start		"type=%lu state=%lu cpu_id=%lu"
-> +power_frequency		"type=%lu state=%lu cpu_id=%lu"
-> +power_end		"cpu_id=%lu"
-> +
-> +The 'type' parameter takes one of those macros:
-> + . POWER_NONE	= 0,
-> + . POWER_CSTATE	= 1,	/* C-State */
-> + . POWER_PSTATE	= 2,	/* Fequency change or DVFS */
-> +
-> +The 'state' parameter is set depending on the type:
-> + . Target C-state for type=POWER_CSTATE,
-> + . Target frequency for type=POWER_PSTATE,
-> +
-> +power_end is used to indicate the exit of a state, corresponding to the latest
-> +power_start event.
-> +
-> +2. Clocks events
-> +================
-> +The clock events are used for clock enable/disable and for
-> +clock rate change.
-> +
-> +clock_enable		"%s state=%lu cpu_id=%lu"
-> +clock_disable		"%s state=%lu cpu_id=%lu"
-> +clock_set_rate		"%s state=%lu cpu_id=%lu"
-> +
-> +The first parameter gives the clock name (e.g. "gpio1_iclk").
-> +The second parameter is '1' for enable, '0' for disable, the target
-> +clock rate for set_rate.
-> +
-> +3. Power domains events
-> +=======================
-> +The power domain events are used for power domains transitions
-> +
-> +power_domain_target	"%s state=%lu cpu_id=%lu"
-> +
-> +The first parameter gives the power domain name (e.g. "mpu_pwrdm").
-> +The second parameter is the power domain target state.
-> +
-> -- 
-> 1.7.2.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+index 65e20a6..c4fcd9d 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -367,49 +367,28 @@
+ 
+ /* External FPGA handles interrupts on Innovator boards */
+ #define        OMAP_FPGA_IRQ_BASE      (OMAP_IRQ_END)
+-#ifdef CONFIG_MACH_OMAP_INNOVATOR
+ #define OMAP_FPGA_NR_IRQS      24
+-#else
+-#define OMAP_FPGA_NR_IRQS      0
+-#endif
+ #define OMAP_FPGA_IRQ_END      (OMAP_FPGA_IRQ_BASE + OMAP_FPGA_NR_IRQS)
+ 
+ /* External TWL4030 can handle interrupts on 2430 and 34xx boards */
+ #define        TWL4030_IRQ_BASE        (OMAP_FPGA_IRQ_END)
+-#ifdef CONFIG_TWL4030_CORE
+ #define        TWL4030_BASE_NR_IRQS    8
+ #define        TWL4030_PWR_NR_IRQS     8
+-#else
+-#define        TWL4030_BASE_NR_IRQS    0
+-#define        TWL4030_PWR_NR_IRQS     0
+-#endif
+ #define TWL4030_IRQ_END                (TWL4030_IRQ_BASE + TWL4030_BASE_NR_IRQS)
+ #define TWL4030_PWR_IRQ_BASE   TWL4030_IRQ_END
+ #define        TWL4030_PWR_IRQ_END     (TWL4030_PWR_IRQ_BASE + TWL4030_PWR_NR_IRQS)
+ 
+ /* External TWL4030 gpio interrupts are optional */
+ #define TWL4030_GPIO_IRQ_BASE  TWL4030_PWR_IRQ_END
+-#ifdef CONFIG_GPIO_TWL4030
+ #define TWL4030_GPIO_NR_IRQS   18
+-#else
+-#define        TWL4030_GPIO_NR_IRQS    0
+-#endif
+ #define TWL4030_GPIO_IRQ_END   (TWL4030_GPIO_IRQ_BASE + TWL4030_GPIO_NR_IRQS)
+ 
+ #define        TWL6030_IRQ_BASE        (OMAP_FPGA_IRQ_END)
+-#ifdef CONFIG_TWL4030_CORE
+ #define        TWL6030_BASE_NR_IRQS    20
+-#else
+-#define        TWL6030_BASE_NR_IRQS    0
+-#endif
+ #define TWL6030_IRQ_END                (TWL6030_IRQ_BASE + TWL6030_BASE_NR_IRQS)
+ 
+ /* Total number of interrupts depends on the enabled blocks above */
+-#if (TWL4030_GPIO_IRQ_END > TWL6030_IRQ_END)
+-#define TWL_IRQ_END            TWL4030_GPIO_IRQ_END
+-#else
+-#define TWL_IRQ_END            TWL6030_IRQ_END
+-#endif
++#define TWL_IRQ_END            TWL4030_GPIO_IRQ_END
+ 
+ #define NR_IRQS                        TWL_IRQ_END
+ 
 
 -- 
-Eduardo Valentin
+balbi
