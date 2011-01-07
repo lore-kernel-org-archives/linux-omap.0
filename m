@@ -1,76 +1,74 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Build breakage with omap2plus_defconfig
-Date: Fri, 7 Jan 2011 14:59:30 +0200
-Message-ID: <20110107125929.GD9592@legolas.emea.dhcp.ti.com>
-References: <20110107123859.GA9592@legolas.emea.dhcp.ti.com>
- <8663c7bb00ba574693af177a10e24043@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: omap: Beagle: detect new xM revision B
+Date: Fri, 07 Jan 2011 07:03:30 -0600
+Message-ID: <4D270F22.7050703@ti.com>
+References: <1294391413-3612-1-git-send-email-koen@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:56721 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752641Ab1AGM7e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 07:59:34 -0500
-Received: by mail-ew0-f43.google.com with SMTP id 22so8241337ewy.2
-        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 04:59:33 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <8663c7bb00ba574693af177a10e24043@mail.gmail.com>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:47901 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752781Ab1AGNDp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 08:03:45 -0500
+Received: by mail-gy0-f179.google.com with SMTP id 8so6395495gyg.10
+        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 05:03:44 -0800 (PST)
+In-Reply-To: <1294391413-3612-1-git-send-email-koen@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: balbi@ti.com, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Koen Kooi <koen@beagleboard.org>
 
-On Fri, Jan 07, 2011 at 06:18:51PM +0530, Santosh Shilimkar wrote:
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Felipe Balbi
-> > Sent: Friday, January 07, 2011 6:09 PM
-> > To: Russell King; Tony Lindgren
-> > Cc: Linux OMAP Mailing List; Linux ARM Kernel Mailing List
-> > Subject: Build breakage with omap2plus_defconfig
-> >
-> > Hi all,
-> >
-> > Today's Linus' tree (01539ba2a706ab7d35fc0667dff919ade7f87d63) fails
-> > to
-> > build with omap2plus_defconfig:
-> >
-> > $ crossmake
-> >   CHK     include/linux/version.h
-> >   CHK     include/generated/utsrelease.h
-> > make[1]: `include/generated/mach-types.h' is up to date.
-> >   CALL    scripts/checksyscalls.sh
-> >   CHK     include/generated/compile.h
-> >   CC      arch/arm/kernel/swp_emulate.o
-> > /tmp/cc2V7p5j.s: Assembler messages:
-> > /tmp/cc2V7p5j.s:161: Error: selected processor does not support ARM
-> > mode `ldrexb r3,[r4]'
-> > /tmp/cc2V7p5j.s:162: Error: selected processor does not support ARM
-> > mode `strexb r0,r2,[r4]'
-> 
-> Well it's not toolchain issue but the omap2plus_defconfig which
-> selects ARMv6 and ARMV7 together.
-> 
-> If you remove ARCH_OMAP2 from build, it will go through.
+Koen Kooi wrote, on 01/07/2011 03:10 AM:
+> From: Robert Nelson<robertcnelson@gmail.com>
+>
+> The xM B uses a DM3730 ES1.1 over the ES1.0 on xM A's, no other board changes.
 
-I like Catalin's approach:
+unrelated to patch: funny why the GPIO version changed then!
 
-diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
-index 49db8b3..0fe2389 100644
---- a/arch/arm/mm/Kconfig
-+++ b/arch/arm/mm/Kconfig
-@@ -644,7 +644,7 @@ config ARM_THUMBEE
- 
- config SWP_EMULATE
-        bool "Emulate SWP/SWPB instructions"
--       depends on CPU_V7
-+       depends on CPU_V7 && !CPU_V6
-        select HAVE_PROC_CPU if PROC_FS
-        default y if SMP
-        help
+related to patch: please add [PATCH] in $subject.. minor comment follows:
 
-Simple.
+>
+> Signed-off-by: Robert Nelson<robertcnelson@gmail.com>
+> Signed-off-by: Koen Kooi<koen@beagleboard.org>
+> ---
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 7c82730..4fd73e7 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -58,7 +58,8 @@
+>    *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
+>    *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
+>    *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
+> - *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
+> + *	XMA	= GPIO173, GPIO172, GPIO171: 0 0 0
+> + *	XMB	= GPIO173, GPIO172, GPIO171: 0 0 1
+>    */
+>   enum {
+>   	OMAP3BEAGLE_BOARD_UNKN = 0,
+> @@ -117,7 +118,11 @@ static void __init omap3_beagle_init_rev(void)
+>   		omap3_beagle_version = OMAP3BEAGLE_BOARD_C4;
+>   		break;
+>   	case 0:
+> -		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
+> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM A\n");
+> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+> +		break;
+> +	case 1:
+> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM B\n");
+
+could you replace printk(KERN_INFO with pr_info?
+>   		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+>   		break;
+>   	default:
+> --
+> cgit v0.8.3.1-30-gff3a
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
 -- 
-balbi
+Regards,
+Nishanth Menon
