@@ -1,76 +1,51 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: 4430SDP boot failure - solved + SPI bug fix
-Date: Sat, 8 Jan 2011 00:35:38 +0530
-Message-ID: <04b3a28e12c18714cce8c15c1645cc2d@mail.gmail.com>
-References: <d540408e2df154cf13932e79d3a11ceb@mail.gmail.com>
- <20110107092800.GJ1198@n2100.arm.linux.org.uk> <86f60bc5418ca1d3e87db960e5e2c48f@mail.gmail.com>
- <729152acd9ee0c3e3e3cd505e84f8865@mail.gmail.com> <20110107125132.GM1198@n2100.arm.linux.org.uk>
- <48cbfb338be4d33a8a19e070430d015b@mail.gmail.com> <20110107142432.GO1198@n2100.arm.linux.org.uk>
- <c71399f20609c539b8c335344963253f@mail.gmail.com> <20110107154920.GQ1198@n2100.arm.linux.org.uk>
- <b52c0ce136053d3185debccaa3a9d252@mail.gmail.com> <20110107185250.GT1198@n2100.arm.linux.org.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFT/PATCH 05/10] cbus: retu: move to threaded IRQ and GENIRQ
+Date: Fri, 7 Jan 2011 21:15:38 +0200
+Message-ID: <20110107191538.GC2272@legolas.emea.dhcp.ti.com>
+References: <1294040988-21191-6-git-send-email-balbi@ti.com>
+ <20110104014002.GV7771@atomide.com>
+ <20110104065229.GB2367@legolas.emea.dhcp.ti.com>
+ <20110104074615.GC2656@legolas.emea.dhcp.ti.com>
+ <20110104074756.GD2656@legolas.emea.dhcp.ti.com>
+ <20110104191359.GH7771@atomide.com>
+ <20110105063751.GB2458@legolas.emea.dhcp.ti.com>
+ <20110107030449.GH7771@atomide.com>
+ <20110107074814.GC3230@legolas.emea.dhcp.ti.com>
+ <20110107170455.GE880@atomide.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:42390 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754693Ab1AGTFl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 14:05:41 -0500
-Received: by mail-bw0-f47.google.com with SMTP id 10so16565305bwz.34
-        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 11:05:40 -0800 (PST)
-In-Reply-To: <20110107185250.GT1198@n2100.arm.linux.org.uk>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:38735 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752470Ab1AGTPn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 14:15:43 -0500
+Received: by mail-ew0-f46.google.com with SMTP id 5so7513348ewy.33
+        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 11:15:42 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20110107170455.GE880@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Saturday, January 08, 2011 12:23 AM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; Tony Lindgren
-> Subject: Re: 4430SDP boot failure - solved + SPI bug fix
->
-> On Fri, Jan 07, 2011 at 11:55:10PM +0530, Santosh Shilimkar wrote:
-> > > And, with one ARM errata disabled, the kernel finally boots.  So
-> the
-> > > "X-Loader hangs" message means that we did something that non-
-> secure
-> > > mode prevented us from doing.
-> > >
-> > Actually it's not. The error message is quite misleading.
-> Basically in
-> > x-loader exception handlers are setup and all these handlers
-> report
-> > same message ("X-Loader hangs"). This should be fixed so that it
-> can
-> > report more meaningful info like data abort, prefetch abort etc.
-> >
-> > Till the vector relocation in the kernel exceptions are not set up
-> > so code jumps to already installed exceptions in the x-loader and
-> > hence the messege.
->
-> I disagree with your "actually it's not".  It was errata 742230,
-> which
-> requires access to the CP15, c15, c0, 1 register (a diagnostic
-> register)
-> which I bet provokes an undefined instruction trap from non-secure
-> mode.
->
-742230 errata workaround is not implemented in the x-loader so I
-can surely say it's not the secure violation.
+On Fri, Jan 07, 2011 at 09:04:55AM -0800, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [110106 23:47]:
+> > 
+> > The main point of using Sparse IRQ numbering is exactly avoiding
+> > pre-processor branches. Instead of defining ranges only when a device is
+> > compile, we can always keep the range allocated no matter if the device
+> > probes or not. So, I suggest dropping the ifdeffery on <plat/irqs.h> and
+> > move that to something like below:
+> 
+> This is fine as long as we we don't run out of allocated IRQs before
+> switching over to sparse IRQ. The original reason for the ifdeffery
+> was to keep NR_IRQS below 256 when possible as it optimizes the interrupt
+> handling in that case. See NR_IRQS in arch/arm/include/asm/hardirq.h
+> for more info.
 
-He is the x-loader source tree.
-http://dev.omapzoom.org/?p=bootloader/x-loader.git;a=shortlog;h=refs/heads
-/omap4_dev
+I've sent patches (you're in Cc) enabling SPARSE_IRQ on OMAP. I boot
+tested on panda and overo and it was working fine.
 
-Even simple things like if DDR is not configured correctly or not
-Stable, code/data access takes abort which lands up in the "X-loader
-hang messege"
-
-> Hence, the reason it vectored to the X-loader was because we tried
-> to
-> do something in the non-secure mode which we're prevented from
-> doing.
-My suspect was clock configurations on the older boot loaders were
-Incomplete that might have lead to issue since now more drivers are
-getting enabled in newer kernels.
+-- 
+balbi
