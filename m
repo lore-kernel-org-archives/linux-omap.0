@@ -1,68 +1,91 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: Latest regressions
-Date: Fri, 07 Jan 2011 13:56:35 -0800
-Message-ID: <8739p4ml7w.fsf@ti.com>
-References: <20110107115744.GL1198@n2100.arm.linux.org.uk>
-	<20110107165626.GD880@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [RFC] omap3: Enable SmartReflex calculations for 720MHz
+Date: Fri, 7 Jan 2011 23:12:51 +0100
+Message-ID: <ACB876EC-7696-4253-AC8D-C56663F4F79B@dominion.thruhere.net>
+References: <1294421217-18730-1-git-send-email-premi@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:41916 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754145Ab1AGV4k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 16:56:40 -0500
-Received: by mail-iy0-f173.google.com with SMTP id 19so18160801iye.32
-        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 13:56:39 -0800 (PST)
-In-Reply-To: <20110107165626.GD880@atomide.com> (Tony Lindgren's message of
-	"Fri, 7 Jan 2011 08:56:26 -0800")
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:59436 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754243Ab1AGWMz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 17:12:55 -0500
+Received: by wyb28 with SMTP id 28so17829983wyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 14:12:53 -0800 (PST)
+In-Reply-To: <1294421217-18730-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
 
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [110107 03:57]:
+Op 7 jan 2011, om 18:26 heeft Sanjeev Premi het volgende geschreven:
 
-[...]
+> The eFuse registers do not contain the nValue to be used
+> with 720MHz (OPP6). This patch implements procedure to
+> calculate the nValue(OPP6) based on the nValue(OPP5).
+>=20
+>  [1] SPRUFF1D-June 2009 section 1.5.2.1.1
+>=20
+> This is first attempt to fit this mechanism into new
+> smartreflex framework. Do note a FIXME which is added
+> to illustrate the calculations; and express need for
+> a mechanism to get nValues for each OPP.
+>=20
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+> arch/arm/mach-omap2/sr_device.c           |   54 ++++++++++++++++++++=
++++++++++
+> arch/arm/mach-omap2/voltage.c             |    1 +
+> arch/arm/plat-omap/include/plat/voltage.h |    1 +
+> 3 files changed, 56 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr=
+_device.c
+> index 786d685..43640a3 100644
+> --- a/arch/arm/mach-omap2/sr_device.c
+> +++ b/arch/arm/mach-omap2/sr_device.c
+> @@ -38,6 +38,51 @@ static struct omap_device_pm_latency omap_sr_laten=
+cy[] =3D {
+> 	},
+> };
+>=20
+> +static void swcalc_opp6_RG(u32 rFuse, u32 gainFuse, u32 deltaNT,
+> +                               u32* rAdj, u32* gainAdj)
+> +{
+> +       u32 nAdj;
+> +       u32 g, r;
+> +
+> +       nAdj =3D ((1 << (gainFuse + 8))/rFuse) + deltaNT;
+> +
+> +       for (g =3D 0; g < GAIN_MAXLIMIT; g++) {
 
->> diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
->> index 0ff1233..ffcdff9 100644
->> --- a/arch/arm/plat-omap/include/plat/voltage.h
->> +++ b/arch/arm/plat-omap/include/plat/voltage.h
->> @@ -14,6 +14,8 @@
->>  #ifndef __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
->>  #define __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
->>  
->> +#include <linux/errno.h>
->> +
->>  #define VOLTSCALE_VPFORCEUPDATE		1
->>  #define VOLTSCALE_VCBYPASS		2
->
-> This fix is already queued up by Kevin, but missing..
+GAIN_MAXLIMIT is undeclared at this point:
 
-Yeah, the one in my queue uses <linux/err.h> because of usage of
-ERR_PTR(), but fixes the same problem.
+arch/arm/mach-omap2/sr_device.c: In function =91swcalc_opp6_RG=92:
+arch/arm/mach-omap2/sr_device.c:49: error: =91GAIN_MAXLIMIT=92 undeclar=
+ed (first use in this function)
 
->> @@ -133,9 +135,9 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
->>  		int voltscale_method);
->>  int omap_voltage_late_init(void);
->>  #else
->> -static inline int omap_voltage_register_pmic(struct voltagedomain *voltdm,
->> +static inline void omap_voltage_register_pmic(struct voltagedomain *voltdm,
->>  		struct omap_volt_pmic_info *pmic_info) {}
->> -static inline  void omap_change_voltscale_method(struct voltagedomain *voltdm,
->> +static inline void omap_change_voltscale_method(struct voltagedomain *voltdm,
->>  		int voltscale_method) {}
->>  static inline int omap_voltage_late_init(void)
->>  {
->
-> ..this change.
 
-And this is fixed in my queue as well, but differently.  Instead of
-changing to void, it keeps the int return value and returns -EINVAL.
+> +               r =3D (1 << (g + 8)) / nAdj;
+> +               if (r < 256) {
+> +                       *rAdj =3D r;
+> +                       *gainAdj =3D g;
+> +               }
+> +       }
+> +}
+> +
+> +#define SWCALC_OPP6_DELTA_NNT	379
+> +#define SWCALC_OPP6_DELTA_PNT	227
+> +#define GAIN_MAXLIMIT		16
 
-Will be sending pull request for my queue of fixes shortly, after a
-little more build/boot testing.
+So these have to move up at bit.
 
-Kevin
+regards,
+
+Koen--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
