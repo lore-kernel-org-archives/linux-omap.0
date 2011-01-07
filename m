@@ -1,74 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 1/4] TI816X: Update common omap platform files
-Date: Thu, 6 Jan 2011 18:56:20 -0800
-Message-ID: <20110107025620.GG7771@atomide.com>
-References: <1294075737-22320-1-git-send-email-hemantp@ti.com>
- <alpine.DEB.2.00.1101031603070.10403@utopia.booyaka.com>
- <20110104015008.GX7771@atomide.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B036A57AF93@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1101041046540.9203@utopia.booyaka.com>
- <20110104232547.GP7771@atomide.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B036A57AFF5@dbde02.ent.ti.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B036A57B5DB@dbde02.ent.ti.com>
+Subject: Re: [RFT/PATCH 05/10] cbus: retu: move to threaded IRQ and GENIRQ
+Date: Thu, 6 Jan 2011 19:04:50 -0800
+Message-ID: <20110107030449.GH7771@atomide.com>
+References: <1294040988-21191-1-git-send-email-balbi@ti.com>
+ <1294040988-21191-6-git-send-email-balbi@ti.com>
+ <20110104014002.GV7771@atomide.com>
+ <20110104065229.GB2367@legolas.emea.dhcp.ti.com>
+ <20110104074615.GC2656@legolas.emea.dhcp.ti.com>
+ <20110104074756.GD2656@legolas.emea.dhcp.ti.com>
+ <20110104191359.GH7771@atomide.com>
+ <20110105063751.GB2458@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:15719 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755350Ab1AGC41 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 21:56:27 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:21982 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755451Ab1AGDE5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jan 2011 22:04:57 -0500
 Content-Disposition: inline
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B036A57B5DB@dbde02.ent.ti.com>
+In-Reply-To: <20110105063751.GB2458@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pedanekar, Hemant" <hemantp@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Pedanekar, Hemant <hemantp@ti.com> [110105 15:59]:
-> linux-omap-owner@vger.kernel.org wrote on :
+* Felipe Balbi <balbi@ti.com> [110104 22:37]:
+> Hi,
 > 
-> > Tony Lindgren wrote on Wednesday, January 05, 2011 4:56 AM:
-> > 
-> >> * Paul Walmsley <paul@pwsan.com> [110104 09:48]:
-> >>> On Tue, 4 Jan 2011, Pedanekar, Hemant wrote:
-> >>> 
-> >>>> Looking at above, it seems another config option like
-> >>>> CONFIG_SOC_OMAP3XXX is also needed in addition to CONFIG_SOC_OMAPTI816X.
-> >>> 
-> >>> We already have CONFIG_ARCH_OMAP3430, CONFIG_ARCH_OMAP2430, and
-> >>> CONFIG_ARCH_OMAP2420.  I guess at some point those need to be renamed to
-> >>> CONFIG_SOC_*.
-> >> 
-> >> Yes that's what I was thinking too. Keep CONFIG_ARCH_OMAP2, 3, and 4,
-> >> and rename CONFIG_ARCH_OMAP3430 etc to CONFIG_SO_COMAP3430 and so on.
-> >> 
-> >> Regards,
-> >> 
-> >> Tony
-> > 
-> > So I will add CONFIG_SOC_OMAPTI816X to handle TI816X specific variations.
-> > But I think without addition of corresponding
-> > CONFIG_SOC_OMAP3XXX, it would be
-> > difficult to handle 2nd case I mentioned (OMAP3 build for OMAP3xxx as well
-> > as TI816X SoCs). Will it be OK if we consider this 2nd case as
-> > invalid/unsupported for the moment - that is, 2nd case = 4th case (OMAP3
-> > build for TI816X only)? Same applies for multi-omap case too.
-> > 
-> > In short, if CONFIG_SOC_OMAPTI816X is selected, the build becomes specific
-> > to TI816X and not OMAP3xxx in all the cases (so keep
-> > CONFIG_SOC_OMAPTI816X disabled
-> > by default in multi-omap configuration).
-> > 
-> Tony,
-> Does the above look ok? Also please let me know any other comments and I will
-> send updated patches.
+> On Tue, Jan 04, 2011 at 11:14:00AM -0800, Tony Lindgren wrote:
+> > I think there's been some patches related to this to get rid
+> > of NR_IRQS? Might be worth taking a look at those first as it's
+> > a generic solution.
+> 
+> Yeah, one way would be to use Sparse IRQ numbering scheme and define
+> different bases for different IRQ chips. We could use for example,
+> something like:
+> 
+> IRQ	|	Chip
+> =====================
+> 0-299	|	INTC
+> 300-499	|	TWL4030
+> 500-599	|	MENELAUS
+> 600-799	|	RETU
+> 800-999	|	TAHVO
+> 
+> and so on. But I'm not sure that's good enough (numbers are just from
+> the top of my head, didn't really check how many IRQs each one have).
+> 
+> The only problem I see is with INTC, what happens if we give it an
+> interval which ends up not being big enough for next OMAP versions ?
 
-Let's try to keep all the possible dependencies out of this for now.
-Please just add CONFIG_SOC_OMAPTI816X and keep CONFIG_ARCH_OMAP3 selected.
-The CONFIG_SOC_XXXX things must be optional to save memory, whatever we
-do we should also be able to do without them.
+I think that's the way to go, but we should not allocate that
+many irqs.. We can define the ranges like we already do in irqs.h
+based on what gets compiled in. There are few more blocks though:
+
+INTC
+GPIO		
+MPUIO
+GIC
+FPGA
+RETU
+TAHVO
+MENELAUS
+TWL4030
+
+The numbers for INTC we know assuming new omaps will use GIC. The
+external chips rarely have more than few interrupts.
 
 Regards,
 
 Tony
-
