@@ -1,74 +1,71 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: omap: Beagle: detect new xM revision B
-Date: Fri, 07 Jan 2011 07:03:30 -0600
-Message-ID: <4D270F22.7050703@ti.com>
-References: <1294391413-3612-1-git-send-email-koen@dominion.thruhere.net>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: [PATCH 2/2] OMAP3: beagle xm: enable upto 800MHz OPP
+Date: Fri, 7 Jan 2011 15:04:09 +0200 (EET)
+Message-ID: <alpine.DEB.1.10.1101071457540.18906@esdhcp041196.research.nokia.com>
+References: <1294260576-20237-1-git-send-email-nm@ti.com> <1294260576-20237-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:47901 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752781Ab1AGNDp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 08:03:45 -0500
-Received: by mail-gy0-f179.google.com with SMTP id 8so6395495gyg.10
-        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 05:03:44 -0800 (PST)
-In-Reply-To: <1294391413-3612-1-git-send-email-koen@dominion.thruhere.net>
+Received: from smtp.nokia.com ([147.243.1.48]:62624 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752561Ab1AGNE6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jan 2011 08:04:58 -0500
+In-Reply-To: <1294260576-20237-3-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Koen Kooi <koen@beagleboard.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Tony <tony@atomide.com>, Koen Kooi <koen@beagleboard.org>
 
-Koen Kooi wrote, on 01/07/2011 03:10 AM:
-> From: Robert Nelson<robertcnelson@gmail.com>
->
-> The xM B uses a DM3730 ES1.1 over the ES1.0 on xM A's, no other board changes.
+Hi,
 
-unrelated to patch: funny why the GPIO version changed then!
+On Wed, 5 Jan 2011, Nishanth Menon wrote:
+> +static void __init beagle_opp_init(void)
+> +{
+> +	int r = 0;
+> +
+> +	/* Initialize the omap3 opp table */
+> +	if (omap3_opp_init()) {
+> +		pr_err("%s: opp default init failed\n", __func__);
+> +		return;
+> +	}
+> +
+> +	/* Custom OPP enabled for XM */
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> +		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
+> +		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
+> +		struct device *dev;
+> +
+> +		if (!mh || !dh) {
+> +			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
+> +				__func__, mh, dh);
+> +			r = -EINVAL;
+> +		} else {
+> +			/* Enable MPU 1GHz and lower opps */
+> +			dev = &mh->od->pdev.dev;
+> +			r = opp_enable(dev, 800000000);
+> +			/* TODO: MPU 1GHz needs SR and ABB */
+> +
+> +			/* Enable IVA 800MHz and lower opps */
+> +			dev = &dh->od->pdev.dev;
+> +			r |= opp_enable(dev, 660000000);
+> +			/* TODO: DSP 800MHz needs SR and ABB */
+> +		}
+> +		if (r) {
+> +			pr_err("%s: failed to enable higher opp %d\n",
+> +				__func__, r);
+> +			/*
+> +			 * Cleanup - disable the higher freqs - we dont care
+> +			 * about the results
+> +			 */
+> +			dev = &mh->od->pdev.dev;
+> +			opp_disable(dev, 800000000);
+> +			dev = &dh->od->pdev.dev;
 
-related to patch: please add [PATCH] in $subject.. minor comment follows:
+This branch will be reached also when !mh || !dh, so it won't work.
 
->
-> Signed-off-by: Robert Nelson<robertcnelson@gmail.com>
-> Signed-off-by: Koen Kooi<koen@beagleboard.org>
-> ---
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 7c82730..4fd73e7 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -58,7 +58,8 @@
->    *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
->    *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
->    *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
-> - *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
-> + *	XMA	= GPIO173, GPIO172, GPIO171: 0 0 0
-> + *	XMB	= GPIO173, GPIO172, GPIO171: 0 0 1
->    */
->   enum {
->   	OMAP3BEAGLE_BOARD_UNKN = 0,
-> @@ -117,7 +118,11 @@ static void __init omap3_beagle_init_rev(void)
->   		omap3_beagle_version = OMAP3BEAGLE_BOARD_C4;
->   		break;
->   	case 0:
-> -		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
-> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM A\n");
-> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
-> +		break;
-> +	case 1:
-> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM B\n");
+> +			opp_disable(dev, 660000000);
+> +		}
+> +	}
+> +}
 
-could you replace printk(KERN_INFO with pr_info?
->   		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
->   		break;
->   	default:
-> --
-> cgit v0.8.3.1-30-gff3a
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-Regards,
-Nishanth Menon
+A.
