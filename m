@@ -1,36 +1,46 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: Re: linux-next: manual merge of the usb tree with the omap tree
-Date: Sat, 8 Jan 2011 00:24:24 +0530
-Message-ID: <AANLkTiku=1-NftQGkOiG0Sm5Fp1-Szqe+39kzWz+4dAC@mail.gmail.com>
-References: <20101223171859.f6842045.sfr@canb.auug.org.au> <4D139517.3010608@ti.com>
- <AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com>
- <4ce0f816f951f24ca3de9c84d9f70842@mail.gmail.com> <AANLkTimA5UOVn6+xe0ofV1F3_XhAP0daBvOAX2k1u_dU@mail.gmail.com>
- <AANLkTimzQ1PHN986fqPF0yjd1M+390nSUDYJ65pu0z_f@mail.gmail.com>
- <4D271E0E.8050401@ti.com> <AANLkTikLQRHyp-TS_idEp5Fr74qC3vDoMqqsAA2v_oV8@mail.gmail.com>
- <c822ad4569a9dc865b5ccf39e12c828b@mail.gmail.com> <f853a77e2aebea4130fc486bdbf4aa06@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: 4430SDP boot failure
+Date: Fri, 7 Jan 2011 18:55:52 +0000
+Message-ID: <20110107185552.GU1198@n2100.arm.linux.org.uk>
+References: <d540408e2df154cf13932e79d3a11ceb@mail.gmail.com> <20110107092800.GJ1198@n2100.arm.linux.org.uk> <86f60bc5418ca1d3e87db960e5e2c48f@mail.gmail.com> <729152acd9ee0c3e3e3cd505e84f8865@mail.gmail.com> <20110107125132.GM1198@n2100.arm.linux.org.uk> <48cbfb338be4d33a8a19e070430d015b@mail.gmail.com> <20110107142432.GO1198@n2100.arm.linux.org.uk> <c71399f20609c539b8c335344963253f@mail.gmail.com> <20110107162429.GS1198@n2100.arm.linux.org.uk> <bd43a9ab39b53bfad963a471204e7b92@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <f853a77e2aebea4130fc486bdbf4aa06@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>, Ming Lei <tom.leiming@gmail.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49401 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751590Ab1AGS4B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 13:56:01 -0500
+Content-Disposition: inline
+In-Reply-To: <bd43a9ab39b53bfad963a471204e7b92@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Fri, Jan 7, 2011 at 8:50 PM, Anand Gadiyar <gadiyar@ti.com> wrote:
-> Update: I disabled CONFIG_OMAP_RESET_CLOCKS and the PHY and other
-> connected devices enumerate just fine. Could you try this out on
-> your board as well?
->
-> I'll look deeper and see if there are some required clocks that are
-> accidentally getting turned off.
->
+On Fri, Jan 07, 2011 at 11:59:07PM +0530, Santosh Shilimkar wrote:
+> > ks8851 spi1.0: message enable is 0
+> > ks8851 spi1.0: eth0: revision 0, MAC 1a:6a:b1:02:1d:90, IRQ 194
+> > IP-Config: Got DHCP answer from 0.0.0.0, my address is 192.168.0.144
+> > IP-Config: Complete:
+> >      device=eth0, addr=192.168.0.144, mask=255.255.255.0,
+> > gw=192.168.0.1,
+> >      host=192.168.0.144, domain=arm.linux.org.uk, nis-domain=(none),
+> >      bootserver=0.0.0.0, rootserver=0.0.0.0, rootpath=
+> >
+> > but the board doesn't respond to that IP address.  Meanwhile the
+> > DHCP
+> > server shows:
+> >
+> > 	DHCPDISCOVER from 1a:6a:b1:02:1d:90 via eth0
+> >
+> > in its log, and the ethernet address appears to be random for each
+> > boot.
+> > Obviously, as I can't log into the board via any means, it's nigh on
+> > impossible to work out what's actually going on.
+> 
+> DHCP seems to work for me without any issues.
 
-A final update from today: It appears that disabling auxclk3_ck causes
-EHCI to fail. I'm not sure what this clock feeds, and will need to look it
-up. Keeping this clock alive is sufficient to get the hub to enumerate.
-
-I would've looked it up, but got booted out by a fire alarm drill. I'll
-take a look tomorrow and cook up a fix.
-
-- Anand
+The board now has an ethernet address of 1E:89:8E:DA:80:7C - it
+seems to be intentionally random which isn't particularly nice.
+At least it's intentionally random and not some undefined region of
+memory being poked in there...
