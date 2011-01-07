@@ -1,65 +1,43 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: twl4030: Driver for twl4030
- madc module
-Date: Fri, 7 Jan 2011 10:44:55 +0000
-Message-ID: <20110107104455.GB9209@opensource.wolfsonmicro.com>
-References: <1294286200-16446-1-git-send-email-j-keerthy@ti.com>
- <20110106120433.GC17184@sirena.org.uk>
- <AANLkTinuwejAgJ+F0e4LFAhR-gL8bfFmyOwHdSEWAsRw@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 8/9] perf timechart: Map power:cpu_idle events to the corresponding cpuidle state
+Date: Fri, 7 Jan 2011 11:52:11 +0100
+Message-ID: <201101071152.11407.trenn@suse.de>
+References: <1294396190-23031-1-git-send-email-trenn@suse.de> <1294396190-23031-9-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:56430 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751543Ab1AGKoj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 05:44:39 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTinuwejAgJ+F0e4LFAhR-gL8bfFmyOwHdSEWAsRw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1294396190-23031-9-git-send-email-trenn@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-perf-users@vger.kernel.org
+Cc: mingo@elte.hu, arjan@linux.intel.com, lenb@kernel.org, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Frederic Weisbecker <fweisbec@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com, khali@linux-fr.org, mikko.k.ylinen@nokia.com, linux-omap@vger.kernel.org, amit.kucheria@canonical.com, balajitk@ti.com
 
-On Fri, Jan 07, 2011 at 02:55:45PM +0530, J, KEERTHY wrote:
-> On Thu, Jan 6, 2011 at 5:34 PM, Mark Brown
-> > On Thu, Jan 06, 2011 at 09:26:40AM +0530, Keerthy wrote:
+Argh, forgot guilt refresh on this one.
+The changelog could be a bit more detailed by adding:
 
-> >> +static ssize_t madc_read(struct device *dev,
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct device_attribu=
-te *devattr, char *buf)
-> >> +{
-> >> + =A0 =A0 struct sensor_device_attribute *attr =3D to_sensor_dev_a=
-ttr(devattr);
+On Friday 07 January 2011 11:29:49 Thomas Renninger wrote:
+> Before, power:cpu_idle events were very specific X86 Intel mwait events.
+> This got fixed with previous patches and cpu_idle events are now thrown by
+> all cpuidle drivers and can be mapped to the corresponding cpuidle state
+> in /sys.
+> 
+> This patch reads out the corresponding cpuidle name of a cpu_idle event
+> and uses it in the title line of the chart (c-states Cx in x86, omap2
+> - DDR self refresh states for various arm archs).
+> 
+> It also reads out the corresponding abbr(eviation) and uses the string
+> to draw the cpu idle occurences. This needs a short (3 letter) string
+> to keep the overview in the chart.
 
-=2E..
+All features/fixes this patch includes:
+  - Read up cpuidle events from sysfs if available
+    and thus make them architecture independent
+  - Use (free) green color to display idle events in the chart,
+    red is also used by "Blocked IO" event(s)
+  - Fix wrong class="rect.cX" to class="cX" idle box svg drawing
+    definitions. This fixes up black idle drawings for eog (eye of gnome)
+    and firefox (inkscape somehow could handle the broken case).
 
-> >> + =A0 =A0 return sprintf(buf, "%ld\n", val);
-
-> > Does this return data in the appropriate units - milivolts for volt=
-ages?
-
-> This function returns the raw channel values read and not in terms of=
- the
-> units.
-
-It needs to convert the values into real world units before they go to
-userspace - look at what applications like sensors do with the values.
-
-> >> + =A0 =A0 case TWL4030_MADC_RT:
-> >> + =A0 =A0 default:
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 break;
-
-> > This looks odd - the function won't actually do anything for non-SW
-> > conversions but won't return an error?
-
-> Ok. In the case of RT conversion request no software setting is requi=
-red
-> and it is signal driven. So the function does nothing in case of RT.
-
-Again, the biggest problem is that the code isn't clear.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    Thomas
