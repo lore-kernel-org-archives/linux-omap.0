@@ -1,98 +1,203 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH v3 09/17] OMAP2,3: DSS2: Move clocks from core driver
- to dss driver
-Date: Fri, 07 Jan 2011 11:14:08 +0200
-Message-ID: <1294391648.3968.27.camel@nubuntu>
-References: <1294059069-26737-1-git-send-email-svadivu@ti.com>
-	 <1294059069-26737-10-git-send-email-svadivu@ti.com>
-	 <1294241755.14254.142.camel@tubuntu>
-	 <AANLkTikeJX2qnhf-AmiDcb_9Dkmc1pQAFcj=WF9xo5R1@mail.gmail.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [lm-sensors] [PATCH v3] hwmon: twl4030: Driver for twl4030 madc module
+Date: Fri, 7 Jan 2011 14:55:45 +0530
+Message-ID: <AANLkTinuwejAgJ+F0e4LFAhR-gL8bfFmyOwHdSEWAsRw@mail.gmail.com>
+References: <1294286200-16446-1-git-send-email-j-keerthy@ti.com>
+	<20110106120433.GC17184@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:42052 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754080Ab1AGJOQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jan 2011 04:14:16 -0500
-In-Reply-To: <AANLkTikeJX2qnhf-AmiDcb_9Dkmc1pQAFcj=WF9xo5R1@mail.gmail.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:60063 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754375Ab1AGJZq convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jan 2011 04:25:46 -0500
+Received: by mail-gw0-f41.google.com with SMTP id 22so8026438gwj.14
+        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 01:25:45 -0800 (PST)
+In-Reply-To: <20110106120433.GC17184@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Semwal, Sumit" <sumit.semwal@ti.com>
-Cc: ext Guruswamy Senthilvadivu <svadivu@ti.com>, paul@pwsan.com, khilman@deeprootsystems.com, v-hiremath@ti.com, a0919096@ti.com, linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com, khali@linux-fr.org, mikko.k.ylinen@nokia.com, linux-omap@vger.kernel.org, amit.kucheria@canonical.com, balajitk@ti.com
 
-On Thu, 2011-01-06 at 15:10 +0530, ext Semwal, Sumit wrote:
-> Hi Tomi,
-> 
-> On Wed, Jan 5, 2011 at 9:05 PM, Tomi Valkeinen <tomi.valkeinen@nokia.com> wrote:
-> > On Mon, 2011-01-03 at 18:21 +0530, ext Guruswamy Senthilvadivu wrote:
-> >> From: Senthilvadivu Guruswamy <svadivu@ti.com>
-> >>
-> >> clks are moved to dss platform driver.  clk_get/put APIs use dss device instead
-> >> of core platform device. So the device name is changed from omap_display to
-> >> omap_dss in 2420, 2430, 3xxx clock database files. Now teh core driver
-> >> "omap_display" only takes care of panel registration with the custom bus.
-> >> dss driver would take care of the clocks needed by DISPC, RFBI, DSI, VENC.
-> >>
-> >> TODO:  The clock content would be adapted to omap_hwmod in a seperate series.
-> >>
-> >> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
-> >
-> > <snip>
-> >
-> >> @@ -508,14 +192,7 @@ static int omap_dss_probe(struct platform_device *pdev)
-> >>       dss_init_overlay_managers(pdev);
-> >>       dss_init_overlays(pdev);
-> >>
-> >> -     r = dss_get_clocks();
-> >> -     if (r)
-> >> -             goto err_clocks;
-> >> -
-> >> -     dss_clk_enable_all_no_ctx();
-> >> -
-> >> -     core.ctx_id = dss_get_ctx_id();
-> >> -     DSSDBG("initial ctx id %u\n", core.ctx_id);
-> >> +     dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
-> >>
-> >>  #ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
-> >>       /* DISPC_CONTROL */
-> >> @@ -589,7 +266,7 @@ static int omap_dss_probe(struct platform_device *pdev)
-> >>                       pdata->default_device = dssdev;
-> >>       }
-> >>
-> >> -     dss_clk_disable_all();
-> >> +     dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
-> >
-> > Why are the calls dss_clk_enable_all_no_ctx() and dss_clk_disable_all()
-> > changed?
-> This came as an after-effect of moving all clk related stuff to dss.c;
-> I think the idea is that all the new DSS IP platform drivers should
-> use only the exposed clock mgmt APIs [dss_clk_enable() /
-> dss_clk_disable()].
+On Thu, Jan 6, 2011 at 5:34 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Thu, Jan 06, 2011 at 09:26:40AM +0530, Keerthy wrote:
+>
+>> ---
+>> =A0drivers/hwmon/Kconfig =A0 =A0 =A0 =A0 =A0 =A0| =A0 11 +
+>> =A0drivers/hwmon/Makefile =A0 =A0 =A0 =A0 =A0 | =A0 =A01 +
+>> =A0drivers/hwmon/twl4030-madc.c =A0 =A0 | =A0794 +++++++++++++++++++=
++++++++++++++++++++
+>> =A0include/linux/i2c/twl4030-madc.h | =A0118 ++++++
+>> =A04 files changed, 924 insertions(+), 0 deletions(-)
+>> =A0create mode 100644 drivers/hwmon/twl4030-madc.c
+>> =A0create mode 100644 include/linux/i2c/twl4030-madc.h
+>
+> hwmon drivers are also expected to have a file under Documentation.
 
-Ah, right.
+I will add a documentation file.
+>
+>> +struct twl4030_madc_data {
+>> + =A0 =A0 struct device *hwmon_dev;
+>> + =A0 =A0 struct mutex lock;/* mutex protecting this data structire =
+*/
+>> + =A0 =A0 struct twl4030_madc_request requests[TWL4030_MADC_NUM_METH=
+ODS];
+>> + =A0 =A0 int imr;
+>> + =A0 =A0 int isr;
+>> +};
+>
+>> +static struct twl4030_madc_data *twl4030_madc;
+>
+> I'd expect this to be per driver instance rather than global (I know
+> it's vanishingly unlikely that you'll get multiple twl4030s in a sing=
+le
+> system but it's nicer).
+>
+>> +/*
+>> + * sysfs hook function
+>> + */
+>> +static ssize_t madc_read(struct device *dev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct device_attribute=
+ *devattr, char *buf)
+>> +{
+>> + =A0 =A0 struct sensor_device_attribute *attr =3D to_sensor_dev_att=
+r(devattr);
+>> + =A0 =A0 struct twl4030_madc_request req;
+>> + =A0 =A0 long val;
+>> +
+>> + =A0 =A0 req.channels =3D (1 << attr->index);
+>> + =A0 =A0 req.method =3D TWL4030_MADC_SW2;
+>> + =A0 =A0 req.func_cb =3D NULL;
+>> + =A0 =A0 val =3D twl4030_madc_conversion(&req);
+>> + =A0 =A0 if (val >=3D 0)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 val =3D req.rbuf[attr->index];
+>> + =A0 =A0 else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return val;
+>> + =A0 =A0 return sprintf(buf, "%ld\n", val);
+>
+> Does this return data in the appropriate units - milivolts for voltag=
+es?
 
-> However, you are right; all the required clocks might not be getting
-> enabled / disabled as required.
-> I can (re)create the static dss_clk_disable_all() /
-> dss_clk_enable_all_no_ctx() locally inside core.c - do you think
-> that's ok, or should I export these functions too from dss.c?
+This function returns the raw channel values read and not in terms of t=
+he
+units.
+>
+>> +/*
+>> + * Enables irq.
+>> + * @madc - pointer to twl4030_madc_data struct
+>> + * @id - irq number to be enabled
+>> + * can take one of TWL4030_MADC_RT, TWL4030_MADC_SW1, TWL4030_MADC_=
+SW2
+>> + * corresponding to RT, SW1, SW2 conversion requests.
+>> + * If the i2c read fails it returns an error else returns 0.
+>> + */
+>> +static int twl4030_madc_enable_irq(struct twl4030_madc_data *madc, =
+int id)
+>
+> It'd be good to clarify that this is interrupt sources within this
+> module rather than Linux interrupt numbers.
+Ok.
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(madc->hwmon_dev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Disable interrupt failed%=
+d\n", i);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 madc->requests[i].result_pending =3D 1;
+>> + =A0 =A0 }
+>> + =A0 =A0 mutex_lock(&madc->lock);
+>> + =A0 =A0 for (i =3D 0; i < TWL4030_MADC_NUM_METHODS; i++) {
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 r =3D &madc->requests[i];
+>
+> In general through the driver your use of blank lines is really odd
+> which doesn't help readability.
+Ok. I will correct it.
+>
+>> + =A0 =A0 switch (conv_method) {
+>> + =A0 =A0 case TWL4030_MADC_SW1:
+>> + =A0 =A0 case TWL4030_MADC_SW2:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL4030_MODULE_MA=
+DC,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 TWL4030_MADC_SW_START, met=
+hod->ctrl);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(madc->hwmon_dev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "unable to write ctrl regi=
+ster 0x%X\n", method->ctrl);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 case TWL4030_MADC_RT:
+>> + =A0 =A0 default:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>
+> This looks odd - the function won't actually do anything for non-SW
+> conversions but won't return an error?
 
-Well... I think all the xxx_init() functions should enable the clocks
-they require, so in that sense enabling the clocks is not needed at all.
+Ok. In the case of RT conversion request no software setting is require=
+d
+and it is signal driven. So the function does nothing in case of RT.
+>
+>> +/* sysfs nodes to read individual channels from user side */
+>> +static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, madc_read, NULL, 0);
+>> +static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, madc_read, NULL, 1);
+>> +static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, madc_read, NULL, 2);
+>> +static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, madc_read, NULL, 3);
+>> +static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, madc_read, NULL, 4);
+>> +static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, madc_read, NULL, 5);
+>> +static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, madc_read, NULL, 6);
+>> +static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, madc_read, NULL, 7);
+>> +static SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, madc_read, NULL, 8);
+>> +static SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, madc_read, NULL, 9);
+>> +static SENSOR_DEVICE_ATTR(in10_input, S_IRUGO, madc_read, NULL, 10)=
+;
+>> +static SENSOR_DEVICE_ATTR(in11_input, S_IRUGO, madc_read, NULL, 11)=
+;
+>> +static SENSOR_DEVICE_ATTR(in12_input, S_IRUGO, madc_read, NULL, 12)=
+;
+>> +static SENSOR_DEVICE_ATTR(in13_input, S_IRUGO, madc_read, NULL, 13)=
+;
+>> +static SENSOR_DEVICE_ATTR(in14_input, S_IRUGO, madc_read, NULL, 14)=
+;
+>> +static SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, madc_read, NULL, 15)=
+;
+>
+> I suspect some of these are temperatures, some are voltages and that
+> some are fixed to particular inputs? =A0The temperatures should be te=
+mp_
+> and if the inputs are from known sources it'd be good to label them.
 
-But there's the (hackish) code for CONFIG_FB_OMAP_BOOTLOADER_INIT, which
-requires normal dss clocks. Also if each xxx_init() call enables and
-disables the clocks, and dss_probe doesn't keep the clocks enabled, then
-we would get a ctx save/restore after every init, which would not be
-nice.
+Yes some are voltages and some are fixed to particular inputs.
+I will label them.
+>
+>> + =A0 =A0 madc->imr =3D (pdata->irq_line =3D=3D 1) ?
+>> + =A0 =A0 =A0 =A0 TWL4030_MADC_IMR1 : TWL4030_MADC_IMR2;
+>> + =A0 =A0 madc->isr =3D (pdata->irq_line =3D=3D 1) ?
+>> + =A0 =A0 =A0 =A0 TWL4030_MADC_ISR1 : TWL4030_MADC_ISR2;
+>
+> This looks really odd - what's going on here? =A0Comments might help.
 
-So I think enabling just ICK and FCK1 would be enough, to get
-CONFIG_FB_OMAP_BOOTLOADER_INIT work and to prevent ctx save/restore.
+Phoenix provides 2 interrupt lines. The first one is connected to
+the OMAP. The other one can be connected to other processor.
+So this check. I will add comments.
+>
+>> +
+>> +MODULE_DESCRIPTION("TWL4030 ADC driver");
+>> +MODULE_LICENSE("GPL");
+>> +MODULE_AUTHOR("J Keerthy");
+>
+> A MODULE_ALIAS to enable automatic loading of teh driver would also b=
+e
+> good.
 
-Perhaps there should be a comment above the dss_clk_enable, like "keep
-clocks enabled to prevent context saves/restores during init".
-
- Tomi
-
-
+Ok.
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
