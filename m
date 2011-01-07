@@ -1,175 +1,141 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: 4430SDP boot failure - solved + SPI bug fix
-Date: Fri, 7 Jan 2011 10:19:14 -0700
-Message-ID: <20110107171914.GB25446@angua.secretlab.ca>
-References: <d540408e2df154cf13932e79d3a11ceb@mail.gmail.com>
- <20110107092800.GJ1198@n2100.arm.linux.org.uk>
- <86f60bc5418ca1d3e87db960e5e2c48f@mail.gmail.com>
- <729152acd9ee0c3e3e3cd505e84f8865@mail.gmail.com>
- <20110107125132.GM1198@n2100.arm.linux.org.uk>
- <48cbfb338be4d33a8a19e070430d015b@mail.gmail.com>
- <20110107142432.GO1198@n2100.arm.linux.org.uk>
- <c71399f20609c539b8c335344963253f@mail.gmail.com>
- <20110107154920.GQ1198@n2100.arm.linux.org.uk>
- <20110107171020.GF880@atomide.com>
+From: Ben Tucker <btucker@mpcdata.com>
+Subject: RE: RFBI worked example
+Date: Fri, 7 Jan 2011 17:25:19 -0000
+Message-ID: <78677181845a6577fe0955a1984ac16a@mail.gmail.com>
+References: b3985d3b9ab26a0aac963651376b21ac@mail.gmail.com
+  <fd876042b2837b7dd3eaea2257dcbd6f@mail.gmail.com> <1294413238.3968.110.camel@nubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:34389 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754556Ab1AGRTS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 12:19:18 -0500
-Received: by iwn9 with SMTP id 9so17405522iwn.19
-        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 09:19:17 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20110107171020.GF880@atomide.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:58585 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754637Ab1AGRY0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 12:24:26 -0500
+Received: by iyi12 with SMTP id 12so15964267iyi.19
+        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 09:24:25 -0800 (PST)
+In-Reply-To: <1294413238.3968.110.camel@nubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Jan 07, 2011 at 09:10:20AM -0800, Tony Lindgren wrote:
-> Grant,
-> 
-> Care to queue or ack the following fix?
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> Sent: 07 January 2011 15:14
+> To: ext Ben Tucker
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: RFBI worked example
+>
+> On Fri, 2011-01-07 at 14:18 +0000, ext Ben Tucker wrote:
+> > With further experimentation it appears that I can call the
+> > omap_rfbi_update() from the call back, but as the callback is in
+> interrupt
+> > context this could be dangerous. I would love to see an example of
+> this
+> > elsewhere.
+>
+> Did you get it working enough to get an image on the panel?
 
-If you bounce the patch to me, then I'll pick it up into the spi tree
-and send it on to Linus right away.  (It didn't get sent to either me
-or the spi list, so I don't have the original).
+The panel in this case is under development so (it's actually an FPGA) so we
+have some way to go before we have an image.
 
-Or if you want to pick it up:
+>
+> It's been long since I've touched the rfbi code, and I honestly don't
+> know the state of it, but basically it should work similarly as DSI
+> command mode:
 
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
+It appears to be working. As a test I tried using internal triggering with
+my panel code (below). Pixel data appears to flow out of the port (the
+RFBI_PIXEL_CNT register is decrementing).
 
-Nothing in my tree touches omap_mcspi.c for this merge window, so
-there won't be a merge conflict (I'm assuming you want this fix to go
-into 2.6.28).
+>
+> The panel driver issues an update when the user space has requested it
+> via OMAPFB_UPDATE_WINDOW. So it's not meant to be triggered
+> automatically.
 
-g.
+OK, that helps my understanding.
 
-> 
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [110107 07:48]:
-> > On Fri, Jan 07, 2011 at 07:56:34PM +0530, Santosh Shilimkar wrote:
-> > > > -----Original Message-----
-> > > > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> > > > Sent: Friday, January 07, 2011 7:55 PM
-> > > > To: Santosh Shilimkar
-> > > > Cc: linux-omap@vger.kernel.org; Tony Lindgren
-> > > > Subject: Re: 4430SDP boot failure
-> > > >
-> > > > On Fri, Jan 07, 2011 at 06:39:06PM +0530, Santosh Shilimkar wrote:
-> > > > > Have sent you latest bootloaders and full bootlog on my ES1.0
-> > > > > OMAP4430SDP. 2.6.37 just boots fine for me.
-> > > > >
-> > > > > Low level debug as you reported seems to be broken though.
-> > > >
-> > > > Many thanks, the new mlo and uboot gets dhcp/tftp working nicely on
-> > > > the board - which should ease the debugging problem as it no longer
-> > > > requires anything but the reset button pressed to test a new kernel.
-> > > 
-> > > Glad to hear that.
-> > 
-> > And, with one ARM errata disabled, the kernel finally boots.  So the
-> > "X-Loader hangs" message means that we did something that non-secure
-> > mode prevented us from doing.
-> > 
-> > It would be a good idea if X-loader could tell dump out the exception,
-> > register dump, and for data/prefetch aborts, the relevent FSR and FAR
-> > registers - that would make debugging this kind of failure a lot
-> > easier.
-> > 
-> > =================
-> > Subject: Fix DMA API usage in OMAP MCSPI driver
-> > 
-> > Running the latest kernel on the 4430SDP board with DMA API debugging
-> > enabled results in this:
-> > 
-> > WARNING: at lib/dma-debug.c:803 check_unmap+0x19c/0x6f0()
-> > NULL NULL: DMA-API: device driver tries to free DMA memory it has not allocated
-> > [device address=0x000000008129901a] [size=260 bytes]
-> > Modules linked in:
-> > Backtrace:
-> > [<c003cbe0>] (dump_backtrace+0x0/0x10c) from [<c0278da8>] (dump_stack+0x18/0x1c)
-> >  r7:c1839dc0 r6:c0198578 r5:c0304b17 r4:00000323
-> > [<c0278d90>] (dump_stack+0x0/0x1c) from [<c005b158>] (warn_slowpath_common+0x58/0x70)
-> > [<c005b100>] (warn_slowpath_common+0x0/0x70) from [<c005b214>] (warn_slowpath_fmt+0x38/0x40)
-> >  r8:c1839e40 r7:00000000 r6:00000104 r5:00000000 r4:8129901a
-> > [<c005b1dc>] (warn_slowpath_fmt+0x0/0x40) from [<c0198578>] (check_unmap+0x19c/0x6f0)
-> >  r3:c03110de r2:c0304e6b
-> > [<c01983dc>] (check_unmap+0x0/0x6f0) from [<c0198cd8>] (debug_dma_unmap_page+0x74/0x80)
-> > [<c0198c64>] (debug_dma_unmap_page+0x0/0x80) from [<c01d5ad8>] (omap2_mcspi_work+0x514/0xbf0)
-> > [<c01d55c4>] (omap2_mcspi_work+0x0/0xbf0) from [<c006dfb0>] (process_one_work+0x294/0x400)
-> > [<c006dd1c>] (process_one_work+0x0/0x400) from [<c006e50c>] (worker_thread+0x220/0x3f8)
-> > [<c006e2ec>] (worker_thread+0x0/0x3f8) from [<c00738d0>] (kthread+0x88/0x90)
-> > [<c0073848>] (kthread+0x0/0x90) from [<c005e924>] (do_exit+0x0/0x5fc)
-> >  r7:00000013 r6:c005e924 r5:c0073848 r4:c1829ee0
-> > ---[ end trace 1b75b31a2719ed20 ]---
-> > 
-> > I've no idea why this driver uses NULL for dma_unmap_single instead of
-> > the &spi->dev that is laying around just waiting to be used in that
-> > function - but it's an easy fix.
-> > 
-> > Also replace this comment with a FIXME comment:
-> >                 /* Do DMA mapping "early" for better error reporting and
-> >                  * dcache use.  Note that if dma_unmap_single() ever starts
-> >                  * to do real work on ARM, we'd need to clean up mappings
-> >                  * for previous transfers on *ALL* exits of this loop...
-> >                  */
-> > as the comment is not true - we do work in dma_unmap() functions,
-> > particularly on ARMv6 and above.  I've corrected the existing unmap
-> > functions but if any others are required they must be added ASAP.
-> > 
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> 
-> > ---
-> > I'm surprised this driver got merged as it has such a comment, and is
-> > abusing the DMA API... well, at least with the DMA API debugging we
-> > can now catch this stuff.
-> > 
-> > diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> > index 951a160..abb1ffb 100644
-> > --- a/drivers/spi/omap2_mcspi.c
-> > +++ b/drivers/spi/omap2_mcspi.c
-> > @@ -397,7 +397,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
-> >  
-> >  	if (tx != NULL) {
-> >  		wait_for_completion(&mcspi_dma->dma_tx_completion);
-> > -		dma_unmap_single(NULL, xfer->tx_dma, count, DMA_TO_DEVICE);
-> > +		dma_unmap_single(&spi->dev, xfer->tx_dma, count, DMA_TO_DEVICE);
-> >  
-> >  		/* for TX_ONLY mode, be sure all words have shifted out */
-> >  		if (rx == NULL) {
-> > @@ -412,7 +412,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
-> >  
-> >  	if (rx != NULL) {
-> >  		wait_for_completion(&mcspi_dma->dma_rx_completion);
-> > -		dma_unmap_single(NULL, xfer->rx_dma, count, DMA_FROM_DEVICE);
-> > +		dma_unmap_single(&spi->dev, xfer->rx_dma, count, DMA_FROM_DEVICE);
-> >  		omap2_mcspi_set_enable(spi, 0);
-> >  
-> >  		if (l & OMAP2_MCSPI_CHCONF_TURBO) {
-> > @@ -1025,11 +1025,6 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
-> >  		if (m->is_dma_mapped || len < DMA_MIN_BYTES)
-> >  			continue;
-> >  
-> > -		/* Do DMA mapping "early" for better error reporting and
-> > -		 * dcache use.  Note that if dma_unmap_single() ever starts
-> > -		 * to do real work on ARM, we'd need to clean up mappings
-> > -		 * for previous transfers on *ALL* exits of this loop...
-> > -		 */
-> >  		if (tx_buf != NULL) {
-> >  			t->tx_dma = dma_map_single(&spi->dev, (void *) tx_buf,
-> >  					len, DMA_TO_DEVICE);
-> > @@ -1046,7 +1041,7 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
-> >  				dev_dbg(&spi->dev, "dma %cX %d bytes error\n",
-> >  						'R', len);
-> >  				if (tx_buf != NULL)
-> > -					dma_unmap_single(NULL, t->tx_dma,
-> > +					dma_unmap_single(&spi->dev, t->tx_dma,
-> >  							len, DMA_TO_DEVICE);
-> >  				return -EINVAL;
-> >  			}
-> > 
+>
+> If you really want to update the display automatically (which you
+> shouldn't, as the point with panels with their own framebuffer is to
+> update only when necessary), you can do it either directly as you do,
+> or
+> via workqueue or thread.
+
+The primary reason for using RFBI in this design is to allow the RFB to
+control the H/VSync's and thus the delivery of pixel data. This is not the
+traditional RFBI design.
+
+I am concerned that a thread or workqueue may introduce an unacceptable
+delay between FRAMEDONE and re-arming the DSS/RFBI for the next frame. I
+guess it depends on the rate that the panel requests frames.
+
+>
+> I don't know right away if calling omap_rfbi_update() from interrupt
+> context is dangerous, but it might well be so you should check if
+> carefully.
+
+OK, thankyou. I will check.
+
+>
+> Also, remember that you may need to stop updates somehow when the panel
+> is blanked or the driver is unloaded.
+>
+
+I *think* this is OK because the FRAMEDONE interrupt is deregistered in
+omapdss_rfbi_display_disable().
+
+> >
+> > static void framedone_callback(void *data)
+> > {
+> >     int r;
+> >     u16 dw, dh;
+> >     struct omap_dss_device *dssdev = (struct omap_dss_device *)data;
+> >
+> >     /* Start the next update, triggered on the external H/VSync
+> signals */
+> >     dssdev->driver->get_resolution(dssdev, &dw, &dh);
+> >     r = omap_rfbi_update(dssdev, 0, 0, dw, dh, framedone_callback,
+> > dssdev);
+> >     if (r < 0)
+> >         printk("omap_rfbi_update FAILED");
+> > }
+> >
+> > static int generic_panel_power_on(struct omap_dss_device *dssdev)
+> > {
+> >     int r;
+> >     u16 dw, dh;
+> >
+> >     r = omapdss_rfbi_display_enable(dssdev);
+> >     if (r < 0)
+> >         goto err0;
+> >
+> >     /* Setup external HSYNC/VSYNC triggering */
+> >     r = omap_rfbi_setup_te(OMAP_DSS_RFBI_TE_MODE_2,
+> >                            4000000,     /* HSYNS pulse 4uS */
+> >                            1000000000,  /* VSYNC pulse 1ms */
+> >                            0, 0,       /* H/VSYNC not inverted */
+> >                            0);
+> >     if (r < 0)
+> >         goto err1;
+> >
+> >     /* Enable external triggering */
+> >     r = omap_rfbi_enable_te(1, 0);
+> >     if (r < 0)
+> >         goto err1;
+> >
+> > #if 0
+> >     /* At a guess I do not think we need to do the prepare_update
+> >      * if we are updating the whole area
+> >      */
+>
+> I'm not sure if it's ok not to call it every time, but you should at
+> least call it once to be sure everything is configured properly.
+
+Thanks. I will add this call.
+
+>
+>  Tomi
+>
+
+Ben
