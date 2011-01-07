@@ -1,97 +1,57 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH v5 06/17] OMAP2,3: DSS2: Create new file display.c for
- central dss driver registration.
-Date: Fri, 07 Jan 2011 16:03:34 +0200
-Message-ID: <1294409014.3968.94.camel@nubuntu>
-References: <1294399551-10457-1-git-send-email-sumit.semwal@ti.com>
-	 <1294399551-10457-7-git-send-email-sumit.semwal@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
+Date: Fri, 07 Jan 2011 08:04:13 -0600
+Message-ID: <4D271D5D.4080702@ti.com>
+References: <1294405659-25662-1-git-send-email-premi@ti.com> <4D27162E.6070203@ti.com> <B85A65D85D7EB246BE421B3FB0FBB5930248202128@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:40629 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751338Ab1AGODj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jan 2011 09:03:39 -0500
-In-Reply-To: <1294399551-10457-7-git-send-email-sumit.semwal@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:36751 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751233Ab1AGOET (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 09:04:19 -0500
+Received: by mail-gy0-f170.google.com with SMTP id 2so10321143gyf.15
+        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 06:04:18 -0800 (PST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930248202128@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Sumit Semwal <sumit.semwal@ti.com>
-Cc: paul@pwsan.com, khilman@deeprootsystems.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, Senthilvadivu Guruswamy <svadivu@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Premi, Sanjeev wrote, on 01/07/2011 07:50 AM:
+>> -----Original Message-----
+>> From: Menon, Nishanth
+>> Sent: Friday, January 07, 2011 7:04 PM
+>> To: Premi, Sanjeev
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
+>>
+>> Sanjeev Premi wrote, on 01/07/2011 07:07 AM:
+>>> +		if (omap3_has_720mhz()) {
+>>> +			pr_info("Enabled OPP corresponding to
+>> 720MHz\n");
+>>> +
+>>> +			omap34xx_opp_def_list[INDEX_MPU_720MHZ]
+>>> +				.default_available = true;
+>>> +			omap34xx_opp_def_list[INDEX_IVA_720MHZ]
+>>> +				.default_available = true;
+>> for many reasons, I dont like this indexing - I am ok with
+>> most part of
+>> the patch otherwise - how about opp_enable(dev, freq) instead?
+>
+> I had thought about it, but opp_enable would have to be done after
+> omap_init_opp_table(). Two factors led me to current implementation:
+>
+> 1) Numer of lines of code required to get same thing done one the
+>     opp table has been initialized.
+>
+> 2) The index definition and usage are localized in same file.
 
-On Fri, 2011-01-07 at 16:55 +0530, ext Sumit Semwal wrote:
-> A new file display.c is introduced for display driver init, which adds a function
-> omap_display_init to do the DSS driver registration. This is the first step in moving
-> away registration of DSS from board files into a common place.
-> 
-> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
-> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile              |    2 +
->  arch/arm/mach-omap2/display.c             |   57 +++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/display.h |    4 ++
->  3 files changed, 63 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/display.c
-> 
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 4ab82f6..57b89e6 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -237,3 +237,5 @@ obj-y					+= $(smc91x-m) $(smc91x-y)
->  
->  smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
->  obj-y					+= $(smsc911x-m) $(smsc911x-y)
-> +
-> +obj-y					+= display.o
-> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-> new file mode 100644
-> index 0000000..26d3feb
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/display.c
-> @@ -0,0 +1,57 @@
-> +/*
-> + * OMAP2plus display device setup / initialization.
-> + *
-> + * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
-> + * 	Senthilvadivu Guruswamy
-> + *      Sumit Semwal
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/io.h>
-> +#include <linux/clk.h>
-> +#include <linux/err.h>
-> +
-> +#include <plat/display.h>
-> +#include <plat/omap_hwmod.h>
-> +#include <plat/omap_device.h>
-> +
-> +#ifdef CONFIG_OMAP2_DSS
+right - i will leave it to kevin to comment - IMHO both will work, 
+though (1) might be a little more elgant and resistant to future changes 
+to the table (I am not sure if there would be any, but what the heck.)
 
-This also needs to be built in when DSS is configured as module. The
-define above is only valid when DSS is configured as built-in.
-
-So you can either check for both CONFIG_OMAP2_DSS and
-CONFIG_OMAP2_DSS_MODULE here, or, I think a bit more cleanly:
-
-- Compile display.c only if CONFIG_OMAP2_DSS[_MODULE] is defined (see
-the Makefile, look for example how i2c-omap is handled).
-- Check for CONFIG_OMAP2_DSS[_MODULE] in the header file, and define an
-empty static inline function for omap_display_init() if DSS is disabled.
-
- Tomi
-
-
+-- 
+Regards,
+Nishanth Menon
