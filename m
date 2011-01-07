@@ -1,221 +1,214 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v5 14/17] OMAP2,3: DSS2: DSI: create platform_driver, move init,exit to driver
-Date: Fri,  7 Jan 2011 16:55:48 +0530
-Message-ID: <1294399551-10457-15-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v5 16/17] OMAP2,3: DSS2: Use platform device to get baseaddr
+Date: Fri,  7 Jan 2011 16:55:50 +0530
+Message-ID: <1294399551-10457-17-git-send-email-sumit.semwal@ti.com>
 References: <1294399551-10457-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53306 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45952 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752502Ab1AGL1e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jan 2011 06:27:34 -0500
+	id S1752579Ab1AGL1n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jan 2011 06:27:43 -0500
 In-Reply-To: <1294399551-10457-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@deeprootsystems.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
-Cc: Senthilvadivu Guruswamy <svadivu@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
+Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Hwmod adaptation design requires each of the DSS HW IP to be a platform driver.
-So a platform_driver for DSI is created and init exit methods are moved from core.c
-to its driver probe,remove. pdev member has to be maintained by its own drivers.
-
-Also, vdds_dsi regulator handling is copied to dsi.c.
-
-DSI platform driver is registered from inside omap_dss_probe, in the order desired.
+DSS, DISPC, DSI, RFBI, VENC baseaddr can be obtained from platform_get_resource().
+This API in turn picks the right silicon baseaddr from the hwmod database.
+So hardcoding of base addr could be removed.
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |    1 +
- drivers/video/omap2/dss/core.c      |    8 ++--
- drivers/video/omap2/dss/dsi.c       |   64 +++++++++++++++++++++++++++++++++--
- drivers/video/omap2/dss/dss.h       |    8 ++--
- 4 files changed, 70 insertions(+), 11 deletions(-)
+ drivers/video/omap2/dss/dispc.c |   11 ++++++++---
+ drivers/video/omap2/dss/dsi.c   |   12 +++++++++---
+ drivers/video/omap2/dss/dss.c   |   11 ++++++++---
+ drivers/video/omap2/dss/rfbi.c  |   10 +++++++---
+ drivers/video/omap2/dss/venc.c  |   11 ++++++++---
+ 5 files changed, 40 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 83baba7..88f5b01 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -527,6 +527,7 @@ static struct regulator_init_data sdp3430_vdac = {
- /* VPLL2 for digital video outputs */
- static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
- 	REGULATOR_SUPPLY("vdds_dsi", "omap_display"),
-+	REGULATOR_SUPPLY("vdds_dsi", "omap_dsi1"),
- };
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 97dfc84..9da59fe 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -42,8 +42,6 @@
+ #include "dss_features.h"
  
- static struct regulator_init_data sdp3430_vpll2 = {
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 5314593..afc0f3b 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -222,9 +222,9 @@ static int omap_dss_probe(struct platform_device *pdev)
- 			goto err_sdi;
- 		}
+ /* DISPC */
+-#define DISPC_BASE			0x48050400
+-
+ #define DISPC_SZ_REGS			SZ_1K
  
--		r = dsi_init(pdev);
-+		r = dsi_init_platform_driver();
- 		if (r) {
--			DSSERR("Failed to initialize DSI\n");
-+			DSSERR("Failed to initialize DSI platform driver\n");
- 			goto err_dsi;
- 		}
- 	}
-@@ -259,7 +259,7 @@ err_register:
- 	dss_uninitialize_debugfs();
- err_debugfs:
- 	if (cpu_is_omap34xx())
--		dsi_exit();
-+		dsi_deinit_platform_driver();
- err_dsi:
- 	if (cpu_is_omap34xx())
- 		sdi_exit();
-@@ -290,7 +290,7 @@ static int omap_dss_remove(struct platform_device *pdev)
- 	dpi_exit();
- 	rfbi_deinit_platform_driver();
- 	if (cpu_is_omap34xx()) {
--		dsi_exit();
-+		dsi_deinit_platform_driver();
- 		sdi_exit();
- 	}
+ struct dispc_reg { u16 idx; };
+@@ -3132,6 +3130,8 @@ int dispc_setup_plane(enum omap_plane plane,
+ static int omap_dispchw_probe(struct platform_device *pdev)
+ {
+ 	u32 rev;
++	struct resource *dispc_mem;
++
+ 	dispc.pdev = pdev;
  
+ 	spin_lock_init(&dispc.irq_lock);
+@@ -3143,7 +3143,12 @@ static int omap_dispchw_probe(struct platform_device *pdev)
+ 
+ 	INIT_WORK(&dispc.error_work, dispc_error_worker);
+ 
+-	dispc.base = ioremap(DISPC_BASE, DISPC_SZ_REGS);
++	dispc_mem = platform_get_resource(dispc.pdev, IORESOURCE_MEM, 0);
++	if (!dispc_mem) {
++		DSSERR("can't get IORESOURCE_MEM DISPC\n");
++		return -EINVAL;
++	}
++	dispc.base = ioremap(dispc_mem->start, resource_size(dispc_mem));
+ 	if (!dispc.base) {
+ 		DSSERR("can't ioremap DISPC\n");
+ 		return -ENOMEM;
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index aa4f7a5..411d0c6 100644
+index cf1a2ad..74ee776 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -222,6 +222,7 @@ struct dsi_irq_stats {
+@@ -42,8 +42,6 @@
+ /*#define VERBOSE_IRQ*/
+ #define DSI_CATCH_MISSING_TE
  
- static struct
- {
-+	struct platform_device *pdev;
- 	void __iomem	*base;
+-#define DSI_BASE		0x4804FC00
+-
+ struct dsi_reg { u16 idx; };
  
- 	struct dsi_clock_info current_cinfo;
-@@ -292,6 +293,20 @@ static inline u32 dsi_read_reg(const struct dsi_reg idx)
- 	return __raw_readl(dsi.base + idx.idx);
- }
- 
-+static struct regulator *dsi_get_vdds_dsi(void)
-+{
-+	struct regulator *reg;
-+
-+	if (dsi.vdds_dsi_reg != NULL)
-+		return dsi.vdds_dsi_reg;
-+
-+	reg = regulator_get(&dsi.pdev->dev, "vdds_dsi");
-+	if (!IS_ERR(reg))
-+		dsi.vdds_dsi_reg = reg;
-+
-+	return reg;
-+}
-+
- 
- void dsi_save_context(void)
- {
-@@ -3235,7 +3250,7 @@ void dsi_wait_dsi2_pll_active(void)
- 		DSSERR("DSI2 PLL clock not active\n");
- }
- 
--int dsi_init(struct platform_device *pdev)
-+static int dsi_init(struct platform_device *pdev)
+ #define DSI_REG(idx)		((const struct dsi_reg) { idx })
+@@ -3254,6 +3252,7 @@ static int dsi_init(struct platform_device *pdev)
  {
  	u32 rev;
  	int r;
-@@ -3272,7 +3287,7 @@ int dsi_init(struct platform_device *pdev)
- 		goto err1;
- 	}
++	struct resource *dsi_mem;
  
--	dsi.vdds_dsi_reg = dss_get_vdds_dsi();
-+	dsi.vdds_dsi_reg = dsi_get_vdds_dsi();
- 	if (IS_ERR(dsi.vdds_dsi_reg)) {
- 		DSSERR("can't get VDDS_DSI regulator\n");
- 		r = PTR_ERR(dsi.vdds_dsi_reg);
-@@ -3295,8 +3310,13 @@ err1:
+ 	spin_lock_init(&dsi.errors_lock);
+ 	dsi.errors = 0;
+@@ -3280,7 +3279,13 @@ static int dsi_init(struct platform_device *pdev)
+ 	dsi.te_timer.function = dsi_te_timeout;
+ 	dsi.te_timer.data = 0;
+ #endif
+-	dsi.base = ioremap(DSI_BASE, DSI_SZ_REGS);
++	dsi_mem = platform_get_resource(dsi.pdev, IORESOURCE_MEM, 0);
++	if (!dsi_mem) {
++		DSSERR("can't get IORESOURCE_MEM DSI\n");
++		r = -EINVAL;
++		goto err0;
++	}
++	dsi.base = ioremap(dsi_mem->start, resource_size(dsi_mem));
+ 	if (!dsi.base) {
+ 		DSSERR("can't ioremap DSI\n");
+ 		r = -ENOMEM;
+@@ -3307,6 +3312,7 @@ err2:
+ 	iounmap(dsi.base);
+ err1:
+ 	destroy_workqueue(dsi.workqueue);
++err0:
  	return r;
  }
  
--void dsi_exit(void)
-+static void dsi_exit(void)
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 02a2a3e..8ca21cd 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -34,8 +34,6 @@
+ #include <plat/clock.h>
+ #include "dss.h"
+ 
+-#define DSS_BASE			0x48050000
+-
+ #define DSS_SZ_REGS			SZ_512
+ 
+ struct dss_reg {
+@@ -567,8 +565,15 @@ static int dss_init(bool skip_init)
  {
-+	if (dsi.vdds_dsi_reg != NULL) {
-+		regulator_put(dsi.vdds_dsi_reg);
-+		dsi.vdds_dsi_reg = NULL;
+ 	int r;
+ 	u32 rev;
++	struct resource *dss_mem;
+ 
+-	dss.base = ioremap(DSS_BASE, DSS_SZ_REGS);
++	dss_mem = platform_get_resource(dss.pdev, IORESOURCE_MEM, 0);
++	if (!dss_mem) {
++		DSSERR("can't get IORESOURCE_MEM DSS\n");
++		r = -EINVAL;
++		goto fail0;
 +	}
-+
- 	iounmap(dsi.base);
++	dss.base = ioremap(dss_mem->start, resource_size(dss_mem));
+ 	if (!dss.base) {
+ 		DSSERR("can't ioremap DSS\n");
+ 		r = -ENOMEM;
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index 24936f8..54f2279 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -36,8 +36,6 @@
+ #include <plat/display.h>
+ #include "dss.h"
  
- 	destroy_workqueue(dsi.workqueue);
-@@ -3304,3 +3324,41 @@ void dsi_exit(void)
- 	DSSDBG("omap_dsi_exit\n");
- }
+-#define RFBI_BASE               0x48050800
+-
+ struct rfbi_reg { u16 idx; };
  
-+/* DSI1 HW IP initialisation */
-+static int omap_dsi1hw_probe(struct platform_device *pdev)
-+{
-+	int r;
-+	dsi.pdev = pdev;
-+	r = dsi_init(pdev);
-+	if (r) {
-+		DSSERR("Failed to initialize DSI\n");
-+		goto err_dsi;
+ #define RFBI_REG(idx)		((const struct rfbi_reg) { idx })
+@@ -1017,6 +1015,7 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
+ {
+ 	u32 rev;
+ 	u32 l;
++	struct resource *rfbi_mem;
+ 
+ 	rfbi.pdev = pdev;
+ 
+@@ -1026,7 +1025,12 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
+ 	atomic_set(&rfbi.cmd_fifo_full, 0);
+ 	atomic_set(&rfbi.cmd_pending, 0);
+ 
+-	rfbi.base = ioremap(RFBI_BASE, SZ_256);
++	rfbi_mem = platform_get_resource(rfbi.pdev, IORESOURCE_MEM, 0);
++	if (!rfbi_mem) {
++		DSSERR("can't get IORESOURCE_MEM RFBI\n");
++		return -EINVAL;
 +	}
-+err_dsi:
-+	return r;
-+}
-+
-+static int omap_dsi1hw_remove(struct platform_device *pdev)
-+{
-+	dsi_exit();
-+	return 0;
-+}
-+
-+static struct platform_driver omap_dsi1hw_driver = {
-+	.probe          = omap_dsi1hw_probe,
-+	.remove         = omap_dsi1hw_remove,
-+	.driver         = {
-+		.name   = "omap_dsi1",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+int dsi_init_platform_driver(void)
-+{
-+	return platform_driver_register(&omap_dsi1hw_driver);
-+}
-+
-+void dsi_deinit_platform_driver(void)
-+{
-+	return platform_driver_unregister(&omap_dsi1hw_driver);
-+}
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index c1ab6c6..9c4ebf4 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -261,8 +261,8 @@ static inline void sdi_exit(void)
++	rfbi.base = ioremap(rfbi_mem->start, resource_size(rfbi_mem));
+ 	if (!rfbi.base) {
+ 		DSSERR("can't ioremap RFBI\n");
+ 		return -ENOMEM;
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index edccd59..5eb9d07 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -39,8 +39,6 @@
  
- /* DSI */
- #ifdef CONFIG_OMAP2_DSS_DSI
--int dsi_init(struct platform_device *pdev);
--void dsi_exit(void);
-+int dsi_init_platform_driver(void);
-+void dsi_deinit_platform_driver(void);
+ #include "dss.h"
  
- void dsi_dump_clocks(struct seq_file *s);
- void dsi_dump_irqs(struct seq_file *s);
-@@ -287,11 +287,11 @@ void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
- void dsi_wait_dsi1_pll_active(void);
- void dsi_wait_dsi2_pll_active(void);
- #else
--static inline int dsi_init(struct platform_device *pdev)
-+static inline int dsi_init_platform_driver(void)
+-#define VENC_BASE	0x48050C00
+-
+ /* Venc registers */
+ #define VENC_REV_ID				0x00
+ #define VENC_STATUS				0x04
+@@ -717,13 +715,20 @@ void venc_dump_regs(struct seq_file *s)
+ static int omap_venchw_probe(struct platform_device *pdev)
  {
- 	return 0;
- }
--static inline void dsi_exit(void)
-+static inline void dsi_deinit_platform_driver(void)
- {
- }
- static inline void dsi_wait_dsi1_pll_active(void)
+ 	u8 rev_id;
++	struct resource *venc_mem;
++
+ 	venc.pdev = pdev;
+ 
+ 	mutex_init(&venc.venc_lock);
+ 
+ 	venc.wss_data = 0;
+ 
+-	venc.base = ioremap(VENC_BASE, SZ_1K);
++	venc_mem = platform_get_resource(venc.pdev, IORESOURCE_MEM, 0);
++	if (!venc_mem) {
++		DSSERR("can't get IORESOURCE_MEM VENC\n");
++		return -EINVAL;
++	}
++	venc.base = ioremap(venc_mem->start, resource_size(venc_mem));
+ 	if (!venc.base) {
+ 		DSSERR("can't ioremap VENC\n");
+ 		return -ENOMEM;
 -- 
 1.7.0.4
 
