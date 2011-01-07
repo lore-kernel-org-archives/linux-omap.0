@@ -1,85 +1,55 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/3] OMAP4: DSS OMAP4 hwmod support
-Date: Fri, 07 Jan 2011 15:02:21 -0800
-Message-ID: <87wrmgjp1e.fsf@ti.com>
-References: <1294249444-11951-1-git-send-email-sumit.semwal@ti.com>
+Subject: Re: [PATCH v4 0/3] OMAP3: beaglexm: GPIO fixes
+Date: Fri, 07 Jan 2011 15:17:05 -0800
+Message-ID: <87sjx4jocu.fsf@ti.com>
+References: <1294441282-17986-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:48966 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755338Ab1AGXCZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 18:02:25 -0500
-Received: by pxi17 with SMTP id 17so2007645pxi.39
-        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 15:02:24 -0800 (PST)
-In-Reply-To: <1294249444-11951-1-git-send-email-sumit.semwal@ti.com> (Sumit
-	Semwal's message of "Wed, 5 Jan 2011 23:14:01 +0530")
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:44671 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751231Ab1AGXRL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jan 2011 18:17:11 -0500
+Received: by mail-iy0-f176.google.com with SMTP id 26so17939489iyb.21
+        for <linux-omap@vger.kernel.org>; Fri, 07 Jan 2011 15:17:10 -0800 (PST)
+In-Reply-To: <1294441282-17986-1-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Fri, 7 Jan 2011 17:01:19 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sumit Semwal <sumit.semwal@ti.com>
-Cc: tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Tony <tony@atomide.com>, Koen Kooi <koen@beagleboard.org>, Aaro <aaro.koskinen@nokia.com>
 
-Sumit Semwal <sumit.semwal@ti.com> writes:
+Nishanth Menon <nm@ti.com> writes:
 
-> This patch series enables support for OMAP4 DSS, and adds hwmod support
-> for dss, dispc, dsi1, dsi2, hdmi, rfbi and venc hwmods.
+> As discussed in the threads:
+> http://thread.gmane.org/gmane.linux.ports.arm.omap/47807/
+> http://marc.info/?t=121540030800004&r=1&w=2
+>
+> here is the split up series with commit message after discussion:
+> http://www.beagleboard.org/irclogs/index.php?date=2011-01-06#T19:12:21
+>
+> Koen Kooi (3):
+>   omap3: beaglexm: fix EHCI power up GPIO dir
+>   omap3: beaglexm: fix DVI reset GPIO
+>   omap3: beaglexm: fix power on of DVI
+>
+>  arch/arm/mach-omap2/board-omap3beagle.c |   37 ++++++++++++++++++++++++++----
+>  1 files changed, 32 insertions(+), 5 deletions(-)
+>
+> v4:
+>   no functional change.
+>   minor cleanups in commit logs incorporating offline feedback
 
-This series is confusing as the 3 patches here do not do all the things
-described here.
-
-It also doesn't apply to the master branch (e.g. PATCH 3/3 modifies
-display.c, which doesn't exist until your other series.)
-
-Please take care when writing these cover letters to be sure they are
-accurate, otherwise reviewers/maintainers can't help but be confused
-about what is going on.
+Thanks for the updates.  Will queue in  my fixes queue.
 
 Kevin
 
-
-> In OMAP4 there are severals IPs that can be reached by differents
-> interconnect paths depending of the access initiator (MPU vs. SDMA).
+> v3: http://marc.info/?t=129434384700006&r=1&w=2
+> 	split up the series, addressed review comments
 >
-> In the case of the DSS, both L3 direct path and L4 CFG path can be
-> used to access all the DSS IPs.
-> dss is also considered as an IP as dispc, rfbi, and named as dss_dss.
+> v2: http://marc.info/?t=129276977900002&r=1&w=2
+> 	Reenable the PMU stat LED
+> v1: http://marc.info/?t=129172571000001&r=1&w=2
 >
-> TODO:
-> This patch doesn't handle the opt clocks via hwmod - there will be a separate
-> patch series which will take opt clock roles from hwmod, populate them in
-> the device structure, so that the driver can ask for relevant opt-clocks.
->
-> Also TBD is the migration to pm_runtime APIs, which need to be adapted a little
-> for handling DSS-family of clocks completely.
->
-> Patch Base:
-> ===========
-> url = git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-> branch "master"
-> Commit id: fa3b4e23ec20cfc944db7cc2b30b0d82c20e4472
-> Description:  cbus: Fix retu_rtc_do_reset
-> +
-> hwmod patches under discussion: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41534.html
-> +
-> patch series: OMAP2PLUS: DSS: Generalize clock names
-> --------------------------------------------------------
->
-> Benoit Cousson (1):
->   OMAP4: hwmod data: add DSS DISPC DSI1,2 RFBI HDMI VENC
->
-> Mayuresh Janorkar (1):
->   OMAP2PLUS: DSS2: Add OMAP4 support
->
-> Sumit Semwal (1):
->   OMAP4: DSS2: Add hwmod device names for OMAP4.
->
->  arch/arm/mach-omap2/display.c              |   23 +-
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  588 ++++++++++++++++++++++++++++
->  drivers/video/omap2/dss/Kconfig            |    6 +-
->  drivers/video/omap2/omapfb/Kconfig         |    6 +-
->  4 files changed, 609 insertions(+), 14 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> Nishanth Menon
