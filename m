@@ -1,85 +1,85 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [RFC] omap3: Enable SmartReflex calculations for 720MHz
-Date: Sat, 8 Jan 2011 11:59:55 +0100
-Message-ID: <012DC19D-D4D1-4DE4-B709-F2E535485B73@dominion.thruhere.net>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [RFC] omap3: Enable SmartReflex calculations for 720MHz
+Date: Sat, 8 Jan 2011 16:42:44 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024829AF5F@dbde02.ent.ti.com>
 References: <1294421217-18730-1-git-send-email-premi@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
+ <4D276F99.1080007@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:57780 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751613Ab1AHK77 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Jan 2011 05:59:59 -0500
-Received: by wyb28 with SMTP id 28so18147907wyb.19
-        for <linux-omap@vger.kernel.org>; Sat, 08 Jan 2011 02:59:57 -0800 (PST)
-In-Reply-To: <1294421217-18730-1-git-send-email-premi@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50621 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751548Ab1AHLMx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Jan 2011 06:12:53 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p08BCoBO026868
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Sat, 8 Jan 2011 05:12:52 -0600
+In-Reply-To: <4D276F99.1080007@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: l-o List <linux-omap@vger.kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Sanjeev Premi <premi@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Op 7 jan 2011, om 18:26 heeft Sanjeev Premi het volgende geschreven:
 
-> The eFuse registers do not contain the nValue to be used
-> with 720MHz (OPP6). This patch implements procedure to
-> calculate the nValue(OPP6) based on the nValue(OPP5).
+> -----Original Message-----
+> From: Nishanth Menon [mailto:nm@ti.com] 
+> Sent: Saturday, January 08, 2011 1:25 AM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [RFC] omap3: Enable SmartReflex calculations for 720MHz
+> 
+> Sanjeev Premi had written, on 01/07/2011 11:26 AM, the following:
 
-[..]
+[snip]...[snip]
 
-> --- a/arch/arm/mach-omap2/voltage.c
-> +++ b/arch/arm/mach-omap2/voltage.c
-> @@ -258,6 +258,7 @@ static struct omap_volt_data omap34xx_vddmpu_volt_data[] = {
-> 	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, OMAP343X_CONTROL_FUSE_OPP3_VDD1, 0xf9, 0x18),
-> 	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP4_UV, OMAP343X_CONTROL_FUSE_OPP4_VDD1, 0xf9, 0x18),
-> 	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP5_UV, OMAP343X_CONTROL_FUSE_OPP5_VDD1, 0xf9, 0x18),
-> +	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP6_UV, OMAP343X_CONTROL_FUSE_OPP5_VDD1, 0xf9, 0x18),
-> 	VOLT_DATA_DEFINE(0, 0, 0, 0),
-> };
+> Sorry, Dumb question:
+> a) You are using OPP5's nTarget to use in OPP6's nTarget? 
+> is'nt it fused 
+> in for OPP6 offset?
+> b) you are using OMAP343X_CONTROL_FUSE_OPP5_VDD1 itself
+> c) these should be __init functions.
+> d) how would you allow this code to work with 3440?
+> e) next time could you please try STOP using CaMELCASInG in your 
+> variables and functions?
+> f) please add sufficient documentation in kernel-doc style to 
+> allow us 
+> to understand the story below?
+> g) dont use magic numbers
+> h) please take care of ROUND_DOWN and ROUND_UP and truncation errors
+> i) is this equation ONLY valid for opp5 ntarget modification on 
+> OMAP3530? or valid for 3440 as well? or valid for any OPP ntarget 
+> modification?
+> 
 
-When using the 720MHz patches on top of Thara's DVFS patches it highlights some bugs in the voltage code. When testing on an USRP-E100 with an Gumstix Overo Tide inside:
+Under garb of asking dumb questions, you seem to be exposing yourself as one!!
+(Specifically since we exchanged multiple private emails on this topic yesterday)
 
-root@usrp-e1xx:~# uname -a
-Linux usrp-e1xx 2.6.37-rc8+ #87 PREEMPT Sat Jan 8 09:58:26 CET 2011 armv7l GNU/Linux
-root@usrp-e1xx:~# cat /proc/cmdline 
-console=ttyO2,115200n8 mpurate=720 [..] root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait
+You have completely missed the whole intent of this RFC:
 
-root@usrp-e1xx:~# cat /proc/cpuinfo  | grep MIPS
-BogoMIPS	: 717.37
+1) Look for possible problems that might arise because adding additional entry
+   in the omap34xx_vddmpu_volt_data[]
 
-So right after boot it's running at 720MHz, good.
+   I didn't thinks so, since the array is static data and currently this array
+   size is related to the array holding nValues for each OPP.
 
-root@usrp-e1xx:~# cpufreq-set -g ondemand ; sleep 1 ; cpufreq-set -g performance
-root@usrp-e1xx:~# dmesg | grep -e platform -e omap
-[ 5281.306762] cpufreq-omap: transition: 720000 --> 125000
-[ 5282.017913] cpufreq-omap: transition: 125000 --> 720000
-[ 5282.019409] cpufreq-omap: transition: 720000 --> 720000
-[ 5282.019439] platform iva.0: omap_voltage_scale: Already at the requestedrate 430000000
-[ 5282.029998] platform mpu.0: omap_voltage_scale: Already at the requestedrate 600000000
-root@usrp-e1xx:~# cpufreq-info 
-cpufrequtils 006: cpufreq-info (C) Dominik Brodowski 2004-2009
-Report errors and bugs to cpufreq@vger.kernel.org, please.
-analyzing CPU 0:
-  driver: omap
-  CPUs which run at the same hardware frequency: 0
-  CPUs which need to have their frequency coordinated by software: 0
-  maximum transition latency: 300 us.
-  hardware limits: 125 MHz - 720 MHz
-  available frequency steps: 125 MHz, 250 MHz, 500 MHz, 550 MHz, 600 MHz, 720 MHz
-  available cpufreq governors: conservative, ondemand, userspace, powersave, performance
-  current policy: frequency should be within 125 MHz and 720 MHz.
-                  The governor "performance" may decide which speed to use
-                  within this range.
-  current CPU frequency is 600 MHz (asserted by call to hardware).
-  cpufreq stats: 125 MHz:0.13%, 250 MHz:0.00%, 500 MHz:0.00%, 550 MHz:0.00%, 600 MHz:0.00%, 720 MHz:99.87%  (10)
+2) Look for advice on (or work in procress if) any that may help fix the kludge
+   in the code section marked FIXME where better mechanism is required to extract
+   the nvalues corresponding to OPP5.
 
-It seems that because the voltages are the same for OPP5 and OPP6 it doesn't want to switch back to 720MHz.  But the strange this is:
+3) Use this weekend to esp the lead time available due to time difference to have
+   something valuable to start working on the 
 
-root@usrp-e1xx:~# cat /proc/cpuinfo  | grep MIPS
-BogoMIPS	: 717.37
+I would have loved to see coding and documentation related comments had this been
+a formal patch.
 
-I haven't run any benchmarks yet to see what the actual frequency is, but the above should demonstrate that things don't work quite right. 
+I will respond to some of other 'valid' queries in separate mail.
 
-regards,
+Have tried to stop myself a lot before, but couldn't find a better way to
+respond :)
 
-Koen
+~sanjeev
+
+[snip]...[snip]
