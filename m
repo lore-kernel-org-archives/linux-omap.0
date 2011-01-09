@@ -1,131 +1,55 @@
 From: Steve Sakoman <sakoman@gmail.com>
 Subject: Re: Issues with ADATA SD cards on OMAP?
-Date: Sun, 9 Jan 2011 09:00:31 -0800
-Message-ID: <AANLkTi=SKb9wCUMyvvT59qYCMm8wViZRAYgtDOJXiLKy@mail.gmail.com>
+Date: Sun, 9 Jan 2011 09:14:46 -0800
+Message-ID: <AANLkTik8wTknohEDfNnoYsZt8xuQRb48gUC7T_Xg+afz@mail.gmail.com>
 References: <AANLkTinw=ZjiOr1KHNxu1Npq5iLucOPyw0Gumdyq1jjS@mail.gmail.com>
+	<AANLkTi=SKb9wCUMyvvT59qYCMm8wViZRAYgtDOJXiLKy@mail.gmail.com>
+	<B00BD5DB-31BB-42C8-B360-241173342F86@mac.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:34621 "EHLO
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:41761 "EHLO
 	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752276Ab1AIRAc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Jan 2011 12:00:32 -0500
-Received: by qyj19 with SMTP id 19so908620qyj.19
-        for <linux-omap@vger.kernel.org>; Sun, 09 Jan 2011 09:00:31 -0800 (PST)
-In-Reply-To: <AANLkTinw=ZjiOr1KHNxu1Npq5iLucOPyw0Gumdyq1jjS@mail.gmail.com>
+	with ESMTP id S1751564Ab1AIROr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Jan 2011 12:14:47 -0500
+Received: by qyj19 with SMTP id 19so916474qyj.19
+        for <linux-omap@vger.kernel.org>; Sun, 09 Jan 2011 09:14:46 -0800 (PST)
+In-Reply-To: <B00BD5DB-31BB-42C8-B360-241173342F86@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-=46WIW, I am seeing this same behavior with a brand new SanDisk 4GB
-Class 4 microSD card.
+On Sun, Jan 9, 2011 at 9:07 AM, Elvis Dowson <elvis.dowson@mac.com> wrote:
+> Hi Steve,
+>
+> On Jan 9, 2011, at 9:00 PM, Steve Sakoman wrote:
+>
+>>> mmcblk0: error -110 sending read/write command, response 0x900, card
+>>> status 0xe00
+>
+> Error -110 is ETIMEOUT.
+>
+> The card might be getting detected but not powering up, perhaps? something to do with
+> voltage regulator setup or probably a bad mmc hardware port?
+
+Not likely to be bad hardware since it fails the same way on multiple
+Overo and Beagle boards.
+
+And not likely to be a bad SD card, since the cards work perfectly on
+my desktop and laptop.
+
+I suspect something marginal in the mmc interface hw/config.  If you
+look at the schematics for most boards the mmc card is directly
+connected to the OMAP for signal lines, and the twl4030 for power.
+
+As such, I'm not surprised that these cards fail with every OMAP3
+board I've tried.
+
+> I'm using a 2GB class 4 SanDisk microSD card with a custom beagle board, and tried it with
+> android-2.6.32 kernel as well as mainline 2.6.37-rc7 kernel, it worked fine.
+
+Sure, I have tons of SanDisk cards that work perfectly (and always
+have).  It is the brand new, just out of the box Sandisk that fails.
 
 Steve
-
-On Sat, Jan 8, 2011 at 10:04 PM, Steve Sakoman <sakoman@gmail.com> wrot=
-e:
-> I've recently been testing memory card performance to identify the
-> best performing brands/models.
->
-> As expected, I found a huge difference in performance between brands.
-> What I didn't expect to find, however, was a brand (ADATA) that
-> doesn't seem to play well with the 2.6.36 kernel on OMAP3 hardware.
-> I'm wondering if this failure might be exposing an issue in the OMAP
-> mmc driver/hw setup.
->
-> I tested both 4GB and 8GB versions of the ADATA Class 6 cards. =A0I w=
-as
-> not able to boot successfully from either card on both Overo and
-> Beagle hardware (both 35xx and 37xx versions were tested).
->
-> The error was the same in all cases: x-load, u-boot, and the kernel
-> were all loaded successfully from SD, but the kernel was not able to
-> mount the rootfs:
->
-> Waiting for root device /dev/mmcblk0p2...
-> mmc0: host does not support reading read-only switch. assuming write-=
-enable.
-> mmc0: new high speed SDHC card at address 0260
-> mmcblk0: mmc0:0260 SD =A0 =A03.75 GiB
-> =A0mmcblk0: p1 p2
-> EXT3-fs: barriers not enabled
-> kjournald starting. =A0Commit interval 5 seconds
-> EXT3-fs (mmcblk0p2): using internal journal
-> EXT3-fs (mmcblk0p2): mounted filesystem with writeback data mode
-> VFS: Mounted root (ext3 filesystem) on device 179:2.
-> devtmpfs: mounted
-> Freeing init memory: 168K
-> INIT: version 2.86 booting
-> Please wait: booting...
-> Starting udev
-> Remounting root file system...
-> mmcblk0: error -110 sending read/write command, response 0x900, card
-> status 0xe00
-> mmcblk0: error -110 transferring data, sector 3556505, nr 8, card sta=
-tus 0xc00
-> end_request: I/O error, dev mmcblk0, sector 3556512
-> Buffer I/O error on device mmcblk0p2, logical block 426490
-> lost page write due to I/O error on mmcblk0p2
-> mmcblk0: error -110 sending read/write command, response 0x900, card
-> status 0xe00
-> mmcblk0: error -110 transferring data, sector 4076825, nr 8, card sta=
-tus 0xc00
-> end_request: I/O error, dev mmcblk0, sector 4076832
-> Buffer I/O error on device mmcblk0p2, logical block 491530
-> lost page write due to I/O error on mmcblk0p2
-> mmcblk0: error -110 sending read/write command, response 0x900, card
-> status 0xe00
-> mmcblk0: error -110 transferring data, sector 4126233, nr 8, card sta=
-tus 0xc00
-> end_request: I/O error, dev mmcblk0, sector 4126234
-> Buffer I/O error on device mmcblk0p2, logical block 497706
-> lost page write due to I/O error on mmcblk0p2
->
-> And so on, with many more mmc errors.
->
-> If I reset and try again, things go wrong even sooner:
->
-> Waiting for root device /dev/mmcblk0p2...
-> mmc0: host does not support reading read-only switch. assuming write-=
-enable.
-> mmc0: new high speed SDHC card at address 0260
-> mmcblk0: mmc0:0260 SD =A0 =A03.75 GiB
-> =A0mmcblk0: p1 p2
-> EXT3-fs: barriers not enabled
-> mmcblk0: error -110 sending read/write command, response 0x900, card
-> status 0xe00
-> mmcblk0: error -110 transferring data, sector 147545, nr 8, card stat=
-us 0xc00
-> end_request: I/O error, dev mmcblk0, sector 147552
-> Buffer I/O error on device mmcblk0p2, logical block 370
-> lost page write due to I/O error on mmcblk0p2
->
-> The ADATA cards seem to work with no issues on my desktop system.
->
-> Has anyone else run into this issue? =A0Any theories on where to star=
-t looking?
->
-> FWIW, there is this thread on the beagleboard list discussing issues
-> with mmc writes:
->
-> http://groups.google.com/group/beagleboard/browse_thread/thread/00837=
-24ff7e54c58/f55578bb1c1379db#f55578bb1c1379db
->
-> In this thread Gerald Coley speculates that the driver may be setting
-> the mmc1 voltage to 3.0V rather than 3.15V.
->
-> Regards,
->
-> Steve
->
-> PS: For those who might be interested in the microSD card performance=
- tests:
->
-> http://www.sakoman.com/OMAP/microsd-card-perfomance-test-results.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
