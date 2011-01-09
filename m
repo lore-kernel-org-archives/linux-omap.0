@@ -1,176 +1,105 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH 26/30] mmc: update workqueue usages
-Date: Sun, 9 Jan 2011 02:30:59 +0000
-Message-ID: <20110109023058.GA17232@void.printf.net>
-References: <1292086307-19211-27-git-send-email-tj@kernel.org>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Issues with ADATA SD cards on OMAP?
+Date: Sat, 8 Jan 2011 22:04:05 -0800
+Message-ID: <AANLkTinw=ZjiOr1KHNxu1Npq5iLucOPyw0Gumdyq1jjS@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:36909 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750849Ab1AICbJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 8 Jan 2011 21:31:09 -0500
-Content-Disposition: inline
-In-Reply-To: <1292086307-19211-27-git-send-email-tj@kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:44219 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750703Ab1AIGEH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Jan 2011 01:04:07 -0500
+Received: by vws16 with SMTP id 16so7736366vws.19
+        for <linux-omap@vger.kernel.org>; Sat, 08 Jan 2011 22:04:05 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi linux-omap folks,
+I've recently been testing memory card performance to identify the
+best performing brands/models.
 
-I'd like to merge this patch via the MMC tree; please review/ACK.
+As expected, I found a huge difference in performance between brands.
+What I didn't expect to find, however, was a brand (ADATA) that
+doesn't seem to play well with the 2.6.36 kernel on OMAP3 hardware.
+I'm wondering if this failure might be exposing an issue in the OMAP
+mmc driver/hw setup.
 
-Thanks,
+I tested both 4GB and 8GB versions of the ADATA Class 6 cards.  I was
+not able to boot successfully from either card on both Overo and
+Beagle hardware (both 35xx and 37xx versions were tested).
 
-- Chris.
+The error was the same in all cases: x-load, u-boot, and the kernel
+were all loaded successfully from SD, but the kernel was not able to
+mount the rootfs:
 
-From: Tejun Heo <tj@kernel.org>
+Waiting for root device /dev/mmcblk0p2...
+mmc0: host does not support reading read-only switch. assuming write-enable.
+mmc0: new high speed SDHC card at address 0260
+mmcblk0: mmc0:0260 SD    3.75 GiB
+ mmcblk0: p1 p2
+EXT3-fs: barriers not enabled
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs (mmcblk0p2): using internal journal
+EXT3-fs (mmcblk0p2): mounted filesystem with writeback data mode
+VFS: Mounted root (ext3 filesystem) on device 179:2.
+devtmpfs: mounted
+Freeing init memory: 168K
+INIT: version 2.86 booting
+Please wait: booting...
+Starting udev
+Remounting root file system...
+mmcblk0: error -110 sending read/write command, response 0x900, card
+status 0xe00
+mmcblk0: error -110 transferring data, sector 3556505, nr 8, card status 0xc00
+end_request: I/O error, dev mmcblk0, sector 3556512
+Buffer I/O error on device mmcblk0p2, logical block 426490
+lost page write due to I/O error on mmcblk0p2
+mmcblk0: error -110 sending read/write command, response 0x900, card
+status 0xe00
+mmcblk0: error -110 transferring data, sector 4076825, nr 8, card status 0xc00
+end_request: I/O error, dev mmcblk0, sector 4076832
+Buffer I/O error on device mmcblk0p2, logical block 491530
+lost page write due to I/O error on mmcblk0p2
+mmcblk0: error -110 sending read/write command, response 0x900, card
+status 0xe00
+mmcblk0: error -110 transferring data, sector 4126233, nr 8, card status 0xc00
+end_request: I/O error, dev mmcblk0, sector 4126234
+Buffer I/O error on device mmcblk0p2, logical block 497706
+lost page write due to I/O error on mmcblk0p2
 
-Workqueue creation API has been updated and flush_scheduled_work() is
-deprecated and scheduled to be removed.
+And so on, with many more mmc errors.
 
-* core/core.c: Use alloc_ordered_workqueue() instead of
-  create_singlethread_workqueue().  This removes an unnecessary
-  rescuer.
+If I reset and try again, things go wrong even sooner:
 
-* host/omap.c: Create, use and flush mmc_omap_wq instead of the
-  system_wq.
+Waiting for root device /dev/mmcblk0p2...
+mmc0: host does not support reading read-only switch. assuming write-enable.
+mmc0: new high speed SDHC card at address 0260
+mmcblk0: mmc0:0260 SD    3.75 GiB
+ mmcblk0: p1 p2
+EXT3-fs: barriers not enabled
+mmcblk0: error -110 sending read/write command, response 0x900, card
+status 0xe00
+mmcblk0: error -110 transferring data, sector 147545, nr 8, card status 0xc00
+end_request: I/O error, dev mmcblk0, sector 147552
+Buffer I/O error on device mmcblk0p2, logical block 370
+lost page write due to I/O error on mmcblk0p2
 
-* Flush host->mmc_carddetect_work directly on removal instead of using
-  flush_scheduled_work().
+The ADATA cards seem to work with no issues on my desktop system.
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Chris Ball <cjb@laptop.org>
-Cc: linux-mmc@vger.kernel.org
----
-This is part of a series to remove flush_scheduled_work() usage to
-prepare for deprecation of flush_scheduled_work().  Patches in this
-series are self contained and mostly straight-forward.
+Has anyone else run into this issue?  Any theories on where to start looking?
 
-Please feel free to take it into the appropriate tree, or just ack it.
-In the latter case, I'll merge the patch through the workqueue tree
-during the next merge window.
+FWIW, there is this thread on the beagleboard list discussing issues
+with mmc writes:
 
-If you're seeing this patch for the second time, it's because the
-commit hasn't showed up in mainline yet.  Please let me know what
-should be done.
+http://groups.google.com/group/beagleboard/browse_thread/thread/0083724ff7e54c58/f55578bb1c1379db#f55578bb1c1379db
 
-Thank you.
+In this thread Gerald Coley speculates that the driver may be setting
+the mmc1 voltage to 3.0V rather than 3.15V.
 
- drivers/mmc/core/core.c       |    2 +-
- drivers/mmc/host/omap.c       |   24 ++++++++++++++++++------
- drivers/mmc/host/omap_hsmmc.c |    2 +-
- 3 files changed, 20 insertions(+), 8 deletions(-)
+Regards,
 
-diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
-index 31ae07a..c76f492 100644
---- a/drivers/mmc/core/core.c
-+++ b/drivers/mmc/core/core.c
-@@ -1789,7 +1789,7 @@ static int __init mmc_init(void)
- {
- 	int ret;
- 
--	workqueue = create_singlethread_workqueue("kmmcd");
-+	workqueue = alloc_ordered_workqueue("kmmcd", 0);
- 	if (!workqueue)
- 		return -ENOMEM;
- 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 0c7e37f..379d2ff 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -173,6 +173,8 @@ struct mmc_omap_host {
- 	struct omap_mmc_platform_data *pdata;
- };
- 
-+static struct workqueue_struct *mmc_omap_wq;
-+
- static void mmc_omap_fclk_offdelay(struct mmc_omap_slot *slot)
- {
- 	unsigned long tick_ns;
-@@ -289,7 +291,7 @@ static void mmc_omap_release_slot(struct mmc_omap_slot *slot, int clk_enabled)
- 		host->next_slot = new_slot;
- 		host->mmc = new_slot->mmc;
- 		spin_unlock_irqrestore(&host->slot_lock, flags);
--		schedule_work(&host->slot_release_work);
-+		queue_work(mmc_omap_wq, &host->slot_release_work);
- 		return;
- 	}
- 
-@@ -457,7 +459,7 @@ mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
- 	}
- 
- 	host->stop_data = data;
--	schedule_work(&host->send_stop_work);
-+	queue_work(mmc_omap_wq, &host->send_stop_work);
- }
- 
- static void
-@@ -637,7 +639,7 @@ mmc_omap_cmd_timer(unsigned long data)
- 		OMAP_MMC_WRITE(host, IE, 0);
- 		disable_irq(host->irq);
- 		host->abort = 1;
--		schedule_work(&host->cmd_abort_work);
-+		queue_work(mmc_omap_wq, &host->cmd_abort_work);
- 	}
- 	spin_unlock_irqrestore(&host->slot_lock, flags);
- }
-@@ -826,7 +828,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
- 		host->abort = 1;
- 		OMAP_MMC_WRITE(host, IE, 0);
- 		disable_irq_nosync(host->irq);
--		schedule_work(&host->cmd_abort_work);
-+		queue_work(mmc_omap_wq, &host->cmd_abort_work);
- 		return IRQ_HANDLED;
- 	}
- 
-@@ -1387,7 +1389,7 @@ static void mmc_omap_remove_slot(struct mmc_omap_slot *slot)
- 
- 	tasklet_kill(&slot->cover_tasklet);
- 	del_timer_sync(&slot->cover_timer);
--	flush_scheduled_work();
-+	flush_workqueue(mmc_omap_wq);
- 
- 	mmc_remove_host(mmc);
- 	mmc_free_host(mmc);
-@@ -1608,12 +1610,22 @@ static struct platform_driver mmc_omap_driver = {
- 
- static int __init mmc_omap_init(void)
- {
--	return platform_driver_probe(&mmc_omap_driver, mmc_omap_probe);
-+	int ret;
-+
-+	mmc_omap_wq = alloc_workqueue("mmc_omap", 0, 0);
-+	if (!mmc_omap_wq)
-+		return -ENOMEM;
-+
-+	ret = platform_driver_probe(&mmc_omap_driver, mmc_omap_probe);
-+	if (ret)
-+		destroy_workqueue(mmc_omap_wq);
-+	return ret;
- }
- 
- static void __exit mmc_omap_exit(void)
- {
- 	platform_driver_unregister(&mmc_omap_driver);
-+	destroy_workqueue(mmc_omap_wq);
- }
- 
- module_init(mmc_omap_init);
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 5d46021..078fdf1 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2290,7 +2290,7 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
- 		free_irq(host->irq, host);
- 		if (mmc_slot(host).card_detect_irq)
- 			free_irq(mmc_slot(host).card_detect_irq, host);
--		flush_scheduled_work();
-+		flush_work_sync(&host->mmc_carddetect_work);
- 
- 		mmc_host_disable(host->mmc);
- 		clk_disable(host->iclk);
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Steve
+
+PS: For those who might be interested in the microSD card performance tests:
+
+http://www.sakoman.com/OMAP/microsd-card-perfomance-test-results.html
