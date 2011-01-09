@@ -1,21 +1,22 @@
 From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Subject: Re: [PATCH v5 08/17] OMAP2,3: DSS2: Build omap_device for each DSS HWIP
-Date: Sun, 9 Jan 2011 13:34:11 +0530
-Message-ID: <AANLkTimKE4SQZYygXef4Ax14X0Y9pnD65RivGqLA_UiG@mail.gmail.com>
+Subject: Re: [PATCH v5 09/17] OMAP2,3: DSS2: DSS: create platform_driver, move
+ init,exit to driver
+Date: Sun, 9 Jan 2011 14:03:13 +0530
+Message-ID: <AANLkTimXmFUBxr7fk=JkyMb=YXpk_DULhAj=R8_u=ngY@mail.gmail.com>
 References: <1294399551-10457-1-git-send-email-sumit.semwal@ti.com>
- <1294399551-10457-9-git-send-email-sumit.semwal@ti.com> <87zkrci8zb.fsf@ti.com>
+ <1294399551-10457-10-git-send-email-sumit.semwal@ti.com> <87fwt4i8kd.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:44262 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750764Ab1AIIEp convert rfc822-to-8bit
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:57087 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750998Ab1AIIdg convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 9 Jan 2011 03:04:45 -0500
-Received: by bwz10 with SMTP id 10so12108628bwz.24
-        for <linux-omap@vger.kernel.org>; Sun, 09 Jan 2011 00:04:31 -0800 (PST)
-In-Reply-To: <87zkrci8zb.fsf@ti.com>
+	Sun, 9 Jan 2011 03:33:36 -0500
+Received: by bwz12 with SMTP id 12so12056725bwz.41
+        for <linux-omap@vger.kernel.org>; Sun, 09 Jan 2011 00:33:34 -0800 (PST)
+In-Reply-To: <87fwt4i8kd.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
@@ -23,164 +24,238 @@ Cc: tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.k
 
 Hi Kevin,
 
-On Sat, Jan 8, 2011 at 5:04 AM, Kevin Hilman <khilman@ti.com> wrote:
+On Sat, Jan 8, 2011 at 5:13 AM, Kevin Hilman <khilman@ti.com> wrote:
 > Sumit Semwal <sumit.semwal@ti.com> writes:
 >
 >> From: Senthilvadivu Guruswamy <svadivu@ti.com>
 >>
->> Looks up the hwmod database for each of the given DSS HW IP and buil=
-ds
->> omap_device which inturn does the platform device register for each =
-of DSS HW IP
+>> Hwmod adaptation design requires each of the DSS HW IP to be a platf=
+orm driver.
+>> So a platform_driver of DSS is created and init exit methods are mov=
+ed from core.c
+>> to its driver probe,remove. pdev member has to be maintained by its =
+own drivers.
+>>
+>> DSS platform driver is registered from inside omap_dss_probe, in the=
+ order desired.
 >>
 >> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 >> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 >> ---
->> =A0arch/arm/mach-omap2/display.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 44 ++=
-+++++++++++++++++++++++++++
->> =A0arch/arm/plat-omap/include/plat/display.h | =A0 =A06 ++++
->> =A02 files changed, 50 insertions(+), 0 deletions(-)
+>> =A0drivers/video/omap2/dss/core.c | =A0 21 +++++++--------
+>> =A0drivers/video/omap2/dss/dss.c =A0| =A0 55 +++++++++++++++++++++++=
++++++++++++++++-
+>> =A0drivers/video/omap2/dss/dss.h =A0| =A0 =A04 +-
+>> =A03 files changed, 65 insertions(+), 15 deletions(-)
 >>
->> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/dis=
-play.c
->> index 26d3feb..276b800 100644
->> --- a/arch/arm/mach-omap2/display.c
->> +++ b/arch/arm/mach-omap2/display.c
->> @@ -36,10 +36,54 @@ static struct platform_device omap_display_devic=
-e =3D {
->> =A0 =A0 =A0 },
->> =A0};
+>> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/ds=
+s/core.c
+>> index 48d20d8..faca859 100644
+>> --- a/drivers/video/omap2/dss/core.c
+>> +++ b/drivers/video/omap2/dss/core.c
+>> @@ -497,9 +497,9 @@ static inline void dss_uninitialize_debugfs(void=
+)
+>> =A0static int omap_dss_probe(struct platform_device *pdev)
+>> =A0{
+>> =A0 =A0 =A0 struct omap_dss_board_info *pdata =3D pdev->dev.platform=
+_data;
+>> - =A0 =A0 int skip_init =3D 0;
+>> =A0 =A0 =A0 int r;
+>> =A0 =A0 =A0 int i;
+>> + =A0 =A0 int skip_init =3D 0;
+>
+> looks like unnessary move.
+>
+> maybe you meant to remove this var since its usage was removed from t=
+his
+> function?
+>
+>> =A0 =A0 =A0 core.pdev =3D pdev;
 >>
->> +static struct omap_device_pm_latency omap_dss_latency[] =3D {
->> + =A0 =A0 [0] =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 .deactivate_func =A0 =A0 =A0 =A0=3D omap_d=
-evice_idle_hwmods,
->> + =A0 =A0 =A0 =A0 =A0 =A0 .activate_func =A0 =A0 =A0 =A0 =A0=3D omap=
-_device_enable_hwmods,
+>> @@ -517,15 +517,9 @@ static int omap_dss_probe(struct platform_devic=
+e *pdev)
+>> =A0 =A0 =A0 core.ctx_id =3D dss_get_ctx_id();
+>> =A0 =A0 =A0 DSSDBG("initial ctx id %u\n", core.ctx_id);
+>>
+>> -#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
+>> - =A0 =A0 /* DISPC_CONTROL */
+>> - =A0 =A0 if (omap_readl(0x48050440) & 1) /* LCD enabled? */
+>> - =A0 =A0 =A0 =A0 =A0 =A0 skip_init =3D 1;
+>> -#endif
+>> -
+>> - =A0 =A0 r =3D dss_init(skip_init);
+>> + =A0 =A0 r =3D dss_init_platform_driver();
+>> =A0 =A0 =A0 if (r) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 DSSERR("Failed to initialize DSS\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 DSSERR("Failed to initialize DSS platform =
+driver\n");
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_dss;
+>> =A0 =A0 =A0 }
+>>
+>> @@ -553,6 +547,11 @@ static int omap_dss_probe(struct platform_devic=
+e *pdev)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_venc;
+>> =A0 =A0 =A0 }
+>>
+>> +#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
+>> + =A0 =A0 /* DISPC_CONTROL */
+>> + =A0 =A0 if (omap_readl(0x48050440) & 1) /* LCD enabled? */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 skip_init =3D 1;
+>> +#endif
 >
-> Without any latency numbers or AUTO_ADJUST you're going to have noisy
-> output from omap_device.
+> nope, you just moved it here.
 >
+> But it's also duplicated in dsshw_probe below. =A0Is that needed?
+Yes; these two are needed as both dss_init() (which is replaced with
+dss_init_platform_driver() in this patch) and also by sdi_init().
+sdi_init() is a software init, so it will not be moved to a
+platform_driver. That's why we need the #ifdef.. #endif in both
+dss_probe() and dsshw_probe().
+>
+>> =A0 =A0 =A0 if (cpu_is_omap34xx()) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 r =3D sdi_init(skip_init);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (r) {
+>> @@ -610,7 +609,7 @@ err_dispc:
+>> =A0err_dpi:
+>> =A0 =A0 =A0 rfbi_exit();
+>> =A0err_rfbi:
+>> - =A0 =A0 dss_exit();
+>> + =A0 =A0 dss_deinit_platform_driver();
+>
+> s/deinit/uninit/ or uninitial
+Sure, will change.
+>> =A0err_dss:
+>> =A0 =A0 =A0 dss_clk_disable_all_no_ctx();
+>> =A0 =A0 =A0 dss_put_clocks();
+>> @@ -636,7 +635,7 @@ static int omap_dss_remove(struct platform_devic=
+e *pdev)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 sdi_exit();
+>> =A0 =A0 =A0 }
+>>
+>> - =A0 =A0 dss_exit();
+>> + =A0 =A0 dss_deinit_platform_driver();
+>>
+>> =A0 =A0 =A0 /* these should be removed at some point */
+>> =A0 =A0 =A0 c =3D core.dss_ick->usecount;
+>> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss=
+/dss.c
+>> index 77c3621..ebb294a 100644
+>> --- a/drivers/video/omap2/dss/dss.c
+>> +++ b/drivers/video/omap2/dss/dss.c
+>> @@ -59,6 +59,7 @@ struct dss_reg {
+>> =A0 =A0 =A0 dss_write_reg(idx, FLD_MOD(dss_read_reg(idx), val, start=
+, end))
+>>
+>> =A0static struct {
+>> + =A0 =A0 struct platform_device *pdev;
+>> =A0 =A0 =A0 void __iomem =A0 =A0*base;
+>>
+>> =A0 =A0 =A0 struct clk =A0 =A0 =A0*dpll4_m4_ck;
+>> @@ -549,7 +550,7 @@ void dss_set_dac_pwrdn_bgz(bool enable)
+>> =A0 =A0 =A0 REG_FLD_MOD(DSS_CONTROL, enable, 5, 5); /* DAC Power-Dow=
+n Control */
+>> =A0}
+>>
+>> -int dss_init(bool skip_init)
+>> +static int dss_init(bool skip_init)
+>> =A0{
+>> =A0 =A0 =A0 int r;
+>> =A0 =A0 =A0 u32 rev;
+>> @@ -629,7 +630,7 @@ fail0:
+>> =A0 =A0 =A0 return r;
+>> =A0}
+>>
+>> -void dss_exit(void)
+>> +static void dss_exit(void)
+>> =A0{
+>> =A0 =A0 =A0 if (cpu_is_omap34xx())
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_put(dss.dpll4_m4_ck);
+>> @@ -639,3 +640,53 @@ void dss_exit(void)
+>> =A0 =A0 =A0 iounmap(dss.base);
+>> =A0}
+>>
+>> +/* DSS HW IP initialisation */
+>> +static int omap_dsshw_probe(struct platform_device *pdev)
+>> +{
+>> + =A0 =A0 int r;
+>> + =A0 =A0 int skip_init =3D 0;
+>> +
+>> + =A0 =A0 dss.pdev =3D pdev;
+>> +
+>> +#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
+>> + =A0 =A0 /* DISPC_CONTROL */
+>> + =A0 =A0 if (omap_readl(0x48050440) & 1) /* LCD enabled? */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 skip_init =3D 1;
+>> +#endif
+>> +
+>> + =A0 =A0 r =3D dss_init(skip_init);
+>> + =A0 =A0 if (r) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 DSSERR("Failed to initialize DSS\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto err_dss;
+>> + =A0 =A0 }
+>> +
+>> +err_dss:
+>> +
+>> + =A0 =A0 return r;
+>> +}
+>> +
+>> +static int omap_dsshw_remove(struct platform_device *pdev)
+>> +{
+>> + =A0 =A0 dss_exit();
+>> +
+>> + =A0 =A0 return 0;
+>> +}
+>> +
+>> +static struct platform_driver omap_dsshw_driver =3D {
+>> + =A0 =A0 .probe =A0 =A0 =A0 =A0 =A0=3D omap_dsshw_probe,
+>> + =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D omap_dsshw_remove,
+>> + =A0 =A0 .driver =A0 =A0 =A0 =A0 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "omap_dss",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .owner =A0=3D THIS_MODULE,
 >> + =A0 =A0 },
 >> +};
 >> +
->> =A0int __init omap_display_init(struct omap_dss_board_info
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 *board_data)
->> =A0{
->> =A0 =A0 =A0 int r =3D 0;
->> + =A0 =A0 struct omap_hwmod *oh;
->> + =A0 =A0 struct omap_device *od;
->> + =A0 =A0 int i;
->> + =A0 =A0 struct omap_display_platform_data pdata;
->> + =A0 =A0 char *oh_name[] =3D { =A0 =A0 "dss_dss", =A0 =A0 =A0/* oma=
-p2,3 */
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "dss_dispc=
-", =A0 =A0/* omap2,3 */
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "dss_rfbi"=
-, =A0 =A0 /* omap2,3 */
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "dss_venc"=
-, =A0 =A0 /* omap2,3 */
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "dss_dsi1"=
- }; =A0 /* omap3 */
->
-> Why all the extra whitespace before the strings?
->
->> + =A0 =A0 char *dev_name[] =3D { "omap_dss", "omap_dispc", "omap_rfb=
-i",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "omap_venc=
-", "omap_dsi1" };
->
-> ditto
->
->> + =A0 =A0 int oh_count;
+>> +int dss_init_platform_driver(void)
+>> +{
+>> + =A0 =A0 return platform_driver_register(&omap_dsshw_driver);
+>> +}
 >> +
->> + =A0 =A0 if (cpu_is_omap24xx()) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 oh_count =3D ARRAY_SIZE(oh_name) - 1;
->> + =A0 =A0 =A0 =A0 =A0 =A0 /* last hwmod dev in oh_name is not availa=
-ble for omap2 */
->> + =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 oh_count =3D ARRAY_SIZE(oh_name);
->> + =A0 =A0 }
+>> +void dss_deinit_platform_driver(void)
+>> +{
+>> + =A0 =A0 return platform_driver_unregister(&omap_dsshw_driver);
+>> +}
 >
-> braces not needed
+> Is there a reason for these extra functions?
 >
->> + =A0 =A0 pdata.board_data =A0 =A0 =A0 =A0=3D =A0 =A0 =A0 board_data=
-;
->
-> extra whitespace not necessary
->
->> + =A0 =A0 pdata.board_data->get_last_off_on_transaction_id =3D NULL;
->
-> instead, you should probably zero all of pdata before using it since =
-it
-> is on the stack
->
->> + =A0 =A0 for (i =3D 0; i < oh_count; i++) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 oh =3D omap_hwmod_lookup(oh_name[i]);
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (!oh) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Could not look up =
-%s\n", oh_name[i]);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return r;
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> + =A0 =A0 =A0 =A0 =A0 =A0 od =3D omap_device_build(dev_name[i], -1, =
-oh, &pdata,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sizeof(str=
-uct omap_display_platform_data),
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dss_l=
-atency,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ARRAY_SIZE=
-(omap_dss_latency), 0);
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 WARN((IS_ERR(od)), "Could not build omap_d=
-evice for %s\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 oh_name[i]=
-);
->
-> yet code below will still try and register it?
->
->> + =A0 =A0 }
->> =A0 =A0 =A0 omap_display_device.dev.platform_data =3D board_data;
->>
->> =A0 =A0 =A0 r =3D platform_device_register(&omap_display_device);
->> diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/pl=
-at-omap/include/plat/display.h
->> index 871bbae..23afd6d 100644
->> --- a/arch/arm/plat-omap/include/plat/display.h
->> +++ b/arch/arm/plat-omap/include/plat/display.h
->> @@ -26,6 +26,7 @@
->> =A0#include <linux/platform_device.h>
->> =A0#include <asm/atomic.h>
->>
->> +
->
-> stray whitespace change
->
->> =A0#define DISPC_IRQ_FRAMEDONE =A0 =A0 =A0 =A0 =A0(1 << 0)
->> =A0#define DISPC_IRQ_VSYNC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-(1 << 1)
->> =A0#define DISPC_IRQ_EVSYNC_EVEN =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 <=
-< 2)
->> @@ -224,6 +225,11 @@ struct omap_dss_board_info {
->> =A0/* Init with the board info */
->> =A0extern int omap_display_init(struct omap_dss_board_info *board_da=
-ta);
->>
->> +struct omap_display_platform_data {
->> + =A0 =A0 struct omap_dss_board_info *board_data;
->> + =A0 =A0 /* TODO: Additional members to be added when PM is conside=
-red */
->> +};
->> +
->> =A0struct omap_video_timings {
->> =A0 =A0 =A0 /* Unit: pixels */
->> =A0 =A0 =A0 u16 x_res;
->
-Thanks for all your comments; will incorporate in the upcoming version.
+> Why can't the platform_driver APIs be called directly?
+Of all these platform devices (in this and later patches of this
+series), the initialization needs to be in a sequence. That's achieved
+by calling the init_platform_driver / uninit_platform_driver centrally
+from core.c's omap_dss_probe() in the required sequence. Since
+platform driver data for each platform device is static within each
+platform driver's file, these functions are required.
 
 Best regards,
 ~Sumit.
-> Kevin
+>
+>> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss=
+/dss.h
+>> index 5c7940d..50b4223 100644
+>> --- a/drivers/video/omap2/dss/dss.h
+>> +++ b/drivers/video/omap2/dss/dss.h
+>> @@ -214,8 +214,8 @@ void dss_overlay_setup_l4_manager(struct omap_ov=
+erlay_manager *mgr);
+>> =A0void dss_recheck_connections(struct omap_dss_device *dssdev, bool=
+ force);
+>>
+>> =A0/* DSS */
+>> -int dss_init(bool skip_init);
+>> -void dss_exit(void);
+>> +int dss_init_platform_driver(void);
+>> +void dss_deinit_platform_driver(void);
+>>
+>> =A0void dss_save_context(void);
+>> =A0void dss_restore_context(void);
 >
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
