@@ -1,124 +1,128 @@
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Subject: Re: [PATCH 0/3] OMAP4: DSS OMAP4 hwmod support
-Date: Sun, 9 Jan 2011 14:19:46 +0530
-Message-ID: <AANLkTi=A75kAw_=829CLPSPcd3=B6SxgQzrXEvOub6fG@mail.gmail.com>
-References: <1294249444-11951-1-git-send-email-sumit.semwal@ti.com> <87wrmgjp1e.fsf@ti.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: Issues with ADATA SD cards on OMAP?
+Date: Sun, 9 Jan 2011 09:00:31 -0800
+Message-ID: <AANLkTi=SKb9wCUMyvvT59qYCMm8wViZRAYgtDOJXiLKy@mail.gmail.com>
+References: <AANLkTinw=ZjiOr1KHNxu1Npq5iLucOPyw0Gumdyq1jjS@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:50864 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750703Ab1AIIuH convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 9 Jan 2011 03:50:07 -0500
-Received: by mail-bw0-f43.google.com with SMTP id 14so20229882bwz.2
-        for <linux-omap@vger.kernel.org>; Sun, 09 Jan 2011 00:50:06 -0800 (PST)
-In-Reply-To: <87wrmgjp1e.fsf@ti.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:34621 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752276Ab1AIRAc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Jan 2011 12:00:32 -0500
+Received: by qyj19 with SMTP id 19so908620qyj.19
+        for <linux-omap@vger.kernel.org>; Sun, 09 Jan 2011 09:00:31 -0800 (PST)
+In-Reply-To: <AANLkTinw=ZjiOr1KHNxu1Npq5iLucOPyw0Gumdyq1jjS@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Kevin,
+=46WIW, I am seeing this same behavior with a brand new SanDisk 4GB
+Class 4 microSD card.
 
-On Sat, Jan 8, 2011 at 4:32 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Sumit Semwal <sumit.semwal@ti.com> writes:
->
->> This patch series enables support for OMAP4 DSS, and adds hwmod supp=
-ort
->> for dss, dispc, dsi1, dsi2, hdmi, rfbi and venc hwmods.
->
-> This series is confusing as the 3 patches here do not do all the thin=
-gs
-> described here.
->
-> It also doesn't apply to the master branch (e.g. PATCH 3/3 modifies
-> display.c, which doesn't exist until your other series.)
-=46irst up, apologies for submitting these patches while the dependent
-patch series is still under discussion - I guess I should've waited
-till the hwmod patch series is accepted, but I thought mentioning the
-dependency might be sufficient. will take care in future.
+Steve
 
-Though I don't quite understand why you think that the 3 patches don't
-do all that is described.
-
-The first patch enables building DSS for OMAP4 by updating the Kconfig
-accordingly.
-The second patch enables hwmod support for all the dss IP hwmod
-devices, and the third one enhances the hwmod lookup to lookup OMAP4
-devices as well.
-
-If you could tell me what is missing or extra, I would correct that
-and send an updated version.
-
-Thanks, and best regards,
-~Sumit.
+On Sat, Jan 8, 2011 at 10:04 PM, Steve Sakoman <sakoman@gmail.com> wrot=
+e:
+> I've recently been testing memory card performance to identify the
+> best performing brands/models.
 >
-> Please take care when writing these cover letters to be sure they are
-> accurate, otherwise reviewers/maintainers can't help but be confused
-> about what is going on.
+> As expected, I found a huge difference in performance between brands.
+> What I didn't expect to find, however, was a brand (ADATA) that
+> doesn't seem to play well with the 2.6.36 kernel on OMAP3 hardware.
+> I'm wondering if this failure might be exposing an issue in the OMAP
+> mmc driver/hw setup.
 >
-> Kevin
+> I tested both 4GB and 8GB versions of the ADATA Class 6 cards. =A0I w=
+as
+> not able to boot successfully from either card on both Overo and
+> Beagle hardware (both 35xx and 37xx versions were tested).
 >
+> The error was the same in all cases: x-load, u-boot, and the kernel
+> were all loaded successfully from SD, but the kernel was not able to
+> mount the rootfs:
 >
->> In OMAP4 there are severals IPs that can be reached by differents
->> interconnect paths depending of the access initiator (MPU vs. SDMA).
->>
->> In the case of the DSS, both L3 direct path and L4 CFG path can be
->> used to access all the DSS IPs.
->> dss is also considered as an IP as dispc, rfbi, and named as dss_dss=
-=2E
->>
->> TODO:
->> This patch doesn't handle the opt clocks via hwmod - there will be a=
- separate
->> patch series which will take opt clock roles from hwmod, populate th=
-em in
->> the device structure, so that the driver can ask for relevant opt-cl=
-ocks.
->>
->> Also TBD is the migration to pm_runtime APIs, which need to be adapt=
-ed a little
->> for handling DSS-family of clocks completely.
->>
->> Patch Base:
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> url =3D git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-o=
-map-2.6.git
->> branch "master"
->> Commit id: fa3b4e23ec20cfc944db7cc2b30b0d82c20e4472
->> Description: =A0cbus: Fix retu_rtc_do_reset
->> +
->> hwmod patches under discussion: http://www.mail-archive.com/linux-om=
-ap@vger.kernel.org/msg41534.html
->> +
->> patch series: OMAP2PLUS: DSS: Generalize clock names
->> --------------------------------------------------------
->>
->> Benoit Cousson (1):
->> =A0 OMAP4: hwmod data: add DSS DISPC DSI1,2 RFBI HDMI VENC
->>
->> Mayuresh Janorkar (1):
->> =A0 OMAP2PLUS: DSS2: Add OMAP4 support
->>
->> Sumit Semwal (1):
->> =A0 OMAP4: DSS2: Add hwmod device names for OMAP4.
->>
->> =A0arch/arm/mach-omap2/display.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 23=
- +-
->> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0588 +++++++++++++=
-+++++++++++++++
->> =A0drivers/video/omap2/dss/Kconfig =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A06=
- +-
->> =A0drivers/video/omap2/omapfb/Kconfig =A0 =A0 =A0 =A0 | =A0 =A06 +-
->> =A04 files changed, 609 insertions(+), 14 deletions(-)
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Waiting for root device /dev/mmcblk0p2...
+> mmc0: host does not support reading read-only switch. assuming write-=
+enable.
+> mmc0: new high speed SDHC card at address 0260
+> mmcblk0: mmc0:0260 SD =A0 =A03.75 GiB
+> =A0mmcblk0: p1 p2
+> EXT3-fs: barriers not enabled
+> kjournald starting. =A0Commit interval 5 seconds
+> EXT3-fs (mmcblk0p2): using internal journal
+> EXT3-fs (mmcblk0p2): mounted filesystem with writeback data mode
+> VFS: Mounted root (ext3 filesystem) on device 179:2.
+> devtmpfs: mounted
+> Freeing init memory: 168K
+> INIT: version 2.86 booting
+> Please wait: booting...
+> Starting udev
+> Remounting root file system...
+> mmcblk0: error -110 sending read/write command, response 0x900, card
+> status 0xe00
+> mmcblk0: error -110 transferring data, sector 3556505, nr 8, card sta=
+tus 0xc00
+> end_request: I/O error, dev mmcblk0, sector 3556512
+> Buffer I/O error on device mmcblk0p2, logical block 426490
+> lost page write due to I/O error on mmcblk0p2
+> mmcblk0: error -110 sending read/write command, response 0x900, card
+> status 0xe00
+> mmcblk0: error -110 transferring data, sector 4076825, nr 8, card sta=
+tus 0xc00
+> end_request: I/O error, dev mmcblk0, sector 4076832
+> Buffer I/O error on device mmcblk0p2, logical block 491530
+> lost page write due to I/O error on mmcblk0p2
+> mmcblk0: error -110 sending read/write command, response 0x900, card
+> status 0xe00
+> mmcblk0: error -110 transferring data, sector 4126233, nr 8, card sta=
+tus 0xc00
+> end_request: I/O error, dev mmcblk0, sector 4126234
+> Buffer I/O error on device mmcblk0p2, logical block 497706
+> lost page write due to I/O error on mmcblk0p2
+>
+> And so on, with many more mmc errors.
+>
+> If I reset and try again, things go wrong even sooner:
+>
+> Waiting for root device /dev/mmcblk0p2...
+> mmc0: host does not support reading read-only switch. assuming write-=
+enable.
+> mmc0: new high speed SDHC card at address 0260
+> mmcblk0: mmc0:0260 SD =A0 =A03.75 GiB
+> =A0mmcblk0: p1 p2
+> EXT3-fs: barriers not enabled
+> mmcblk0: error -110 sending read/write command, response 0x900, card
+> status 0xe00
+> mmcblk0: error -110 transferring data, sector 147545, nr 8, card stat=
+us 0xc00
+> end_request: I/O error, dev mmcblk0, sector 147552
+> Buffer I/O error on device mmcblk0p2, logical block 370
+> lost page write due to I/O error on mmcblk0p2
+>
+> The ADATA cards seem to work with no issues on my desktop system.
+>
+> Has anyone else run into this issue? =A0Any theories on where to star=
+t looking?
+>
+> FWIW, there is this thread on the beagleboard list discussing issues
+> with mmc writes:
+>
+> http://groups.google.com/group/beagleboard/browse_thread/thread/00837=
+24ff7e54c58/f55578bb1c1379db#f55578bb1c1379db
+>
+> In this thread Gerald Coley speculates that the driver may be setting
+> the mmc1 voltage to 3.0V rather than 3.15V.
+>
+> Regards,
+>
+> Steve
+>
+> PS: For those who might be interested in the microSD card performance=
+ tests:
+>
+> http://www.sakoman.com/OMAP/microsd-card-perfomance-test-results.html
 >
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
