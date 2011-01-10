@@ -1,29 +1,40 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] omap3: clocks: Fix build error 'CK_3430ES2' undeclared
- here
-Date: Mon, 10 Jan 2011 11:58:50 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101101158360.5731@utopia.booyaka.com>
-References: <1294611373-1992-1-git-send-email-santosh.shilimkar@ti.com> <4D2B0B86.3010201@ti.com> <32cc9f4ba82187480f1e4d15d4e93dc0@mail.gmail.com> <alpine.DEB.2.00.1101101156220.5731@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 0/3] OMAP3: beaglexm: GPIO fixes
+Date: Mon, 10 Jan 2011 11:04:37 -0800
+Message-ID: <20110110190436.GE4957@atomide.com>
+References: <1294441282-17986-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43240 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751292Ab1AJS6v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jan 2011 13:58:51 -0500
-In-Reply-To: <alpine.DEB.2.00.1101101156220.5731@utopia.booyaka.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:34228 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751011Ab1AJTEm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jan 2011 14:04:42 -0500
+Content-Disposition: inline
+In-Reply-To: <1294441282-17986-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Koen Kooi <koen@beagleboard.org>, Aaro <aaro.koskinen@nokia.com>
 
-On Mon, 10 Jan 2011, Paul Walmsley wrote:
-
-> Looks good to me.  Tony, do you want to merge this one as part of the -rc 
-> series?  If so then it is:
+* Nishanth Menon <nm@ti.com> [110107 15:00]:
+> Hi,
+> As discussed in the threads:
+> http://thread.gmane.org/gmane.linux.ports.arm.omap/47807/
+> http://marc.info/?t=121540030800004&r=1&w=2
 > 
-> Acked-by: Paul Walmsley <paul@pwsan.com>
+> here is the split up series with commit message after discussion:
+> http://www.beagleboard.org/irclogs/index.php?date=2011-01-06#T19:12:21
+> 
+> Koen Kooi (3):
+>   omap3: beaglexm: fix EHCI power up GPIO dir
+>   omap3: beaglexm: fix DVI reset GPIO
+>   omap3: beaglexm: fix power on of DVI
 
-(once Santosh reposts the updated fix, that is)
+Dropping the earlier versions from omap-fixes, I want to get the
+build fixes in ASAP. These can wait a bit until Aaro's comments
+are addressed.
 
-- Paul
+Regards,
+
+Tony
