@@ -1,188 +1,381 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 2/2] tools, perf: Documentation for the power events API
-Date: Mon, 10 Jan 2011 11:10:43 +0100
-Message-ID: <AANLkTikC2SbRxJ-uMu6PYO9iXNyvDivZAt8jZwc-7YOT@mail.gmail.com>
-References: <1294253342-29056-1-git-send-email-j-pihet@ti.com>
-	<1294253342-29056-3-git-send-email-j-pihet@ti.com>
-	<20110107055042.GA6137@besouro.research.nokia.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v8 0/11] dmtimer adaptation to platform_driver
+Date: Mon, 10 Jan 2011 16:40:55 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0373E1D90C@dbde02.ent.ti.com>
+References: <1294228127-11549-1-git-send-email-tarun.kanti@ti.com>
+	<87bp3uu9lx.fsf@ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0373D2F357@dbde02.ent.ti.com>
+ <8739p60zx9.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-perf-users-owner@vger.kernel.org>
-In-Reply-To: <20110107055042.GA6137@besouro.research.nokia.com>
-Sender: linux-perf-users-owner@vger.kernel.org
-To: eduardo.valentin@nokia.com
-Cc: mingo@elte.hu, trenn@suse.de, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:50825 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750982Ab1AJLLF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jan 2011 06:11:05 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p0ABB0un020907
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 10 Jan 2011 05:11:03 -0600
+In-Reply-To: <8739p60zx9.fsf@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Eduardo,
+Kevin.
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Thursday, January 06, 2011 9:48 PM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v8 0/11] dmtimer adaptation to platform_driver
+> 
+> Hi Tarun,
+> 
+> "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+> 
+> >> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+> >>
+> >> > dmtimer adaptation to platform_driver.
+> >> >
+> >> > This patch series is adaptation of dmtimer code to platform driver
+> >> > using omap_device and omap_hwmod abstraction.
+> >> >
+> >> > Tested on following platforms:
+> >> > OMAP1710 H3 SDP
+> >> > OMAP2420 SDP
+> >> > OMAP2430 SDP
+> >> > OMAP3430 SDP
+> >> > OMAP3630 SDP
+> >> > OMAP4430 SDP
+> >>
+> >> How exactly was this tested?   Boot tested only?   Do you have a test
+> >> that attempts to request/configure/enable all the timers?  The timer-gp
+> >> code allows all the way to GPT12 which obviously will not work in this
+> >> series.
+> >
+> > I have test case which acquires a timer, configures timeout, and
+> enables.
+> > After timeout, the timer is stopped and released. This is done for all
+> > Supported timers in the platform.
+> >
+> > With regard to the timers tested, it is based upon the platform:
+> > OMAP2420 => 12 timers
+> > OMAP2430 => 12 timers
+> > OMAP3xxx => 11 timers
+> 
+> OMAP3 actually has 12 timers.  GPT12 is a secure timer on HS devices,
+> but is available for general use on GP (and notably on 35xx devices,
+> like Beagle.)
+> 
+> Older TRMs listed 12 timers, but I see now that GPT12 is not in the main
+> TRM but is moved to the HS Security addendum.
+> 
+> As was discussed in early reviews of this series, we really need some
+> sort of capabilities assocaited with these timers.  e.g., some are PWM
+> capable, others can interrupt the IVA or modem, and some are
+> conditionally available.
+> 
+> Until some generic support for timer capabilities is available, I
+> suggest you add hwmods for all timers which will keep current
+> functionality.
+> 
+> > OMAP44xx => 11 timers
+> >
+> > I am not sure if I have understood your comments correctly.
+> 
+> Try booting on Beagle to see what I mean, and note especially the call
+> to
+> 
+> 	omap2_gp_clockevent_set_gptimer(12);
+> 
+> in Beagle's board file.
+Yes, I have updated the hwmod database.
+--
+Tarun
 
-On Fri, Jan 7, 2011 at 6:50 AM, Eduardo Valentin
-<eduardo.valentin@nokia.com> wrote:
-> Hello Jean,
->
-> On Wed, Jan 05, 2011 at 07:49:02PM +0100, ext jean.pihet@newoldbits.c=
-om wrote:
->> From: Jean Pihet <j-pihet@ti.com>
->>
->> Provides documentation for the following:
->> - the new power trace API,
->> - the old (legacy) power trace API,
->> - the DEPRECATED Kconfig option usage.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->> ---
->> =A0Documentation/trace/events-power.txt | =A0 90 +++++++++++++++++++=
-+++++++++++++++
->> =A01 files changed, 90 insertions(+), 0 deletions(-)
->> =A0create mode 100644 Documentation/trace/events-power.txt
->>
->> diff --git a/Documentation/trace/events-power.txt b/Documentation/tr=
-ace/events-power.txt
->> new file mode 100644
->> index 0000000..96d87b6
->> --- /dev/null
->> +++ b/Documentation/trace/events-power.txt
->> @@ -0,0 +1,90 @@
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 Subsystem Trace Points: po=
-wer
->> +
->> +The power tracing system captures events related to power transitio=
-ns
->> +within the kernel. Broadly speaking there are three major subheadin=
-gs:
->> +
->> + =A0o Power state switch which reports events related to suspend (S=
--states),
->> + =A0 =A0 cpuidle (C-states) and cpufreq (P-states)
->> + =A0o System clock related changes
->
-> What do you mean by system clock here? I see that you are covering cp=
-u rate
-> changes and system clock (?) here. How about memory clock changes?
-> Would it make sense to have a major subheading for it? Maybe you are
-> targeting it be traced by means of clocks event (item 2. bellow)..
-The meaning is to trace the system clocks changes, i.e. clocks that
-the CPUs can control. Maybe 'SoC clocks' is a better name for it.
-Indeed 'System clock related changes' is for '2. Clocks events'
-
-Thanks for the review!
-
-Regards,
-Jean
-
->
->> + =A0o Power domains related changes and transitions
->> +
->> +This document describes what each of the tracepoints is and why the=
-y
->> +might be useful.
->> +
->> +Cf. include/trace/events/power.h for the events definitions.
->> +
->> +1. Power state switch events
->> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
->> +
->> +1.1 New trace API
->> +-----------------
->> +
->> +A 'cpu' event class gathers the CPU-related events: cpuidle and
->> +cpufreq.
->> +
->> +cpu_idle =A0 =A0 =A0 =A0 =A0 =A0 "state=3D%lu cpu_id=3D%lu"
->> +cpu_frequency =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"state=3D%lu cpu_id=3D=
-%lu"
->> +
->> +A suspend event is used to indicate the system going in and out of =
-the
->> +suspend mode:
->> +
->> +machine_suspend =A0 =A0 =A0 =A0 =A0 =A0 =A0"state=3D%lu"
->> +
->> +
->> +Note: the value of '-1' or '4294967295' for state means an exit fro=
-m the current state,
->> +i.e. trace_cpu_idle(4, smp_processor_id()) means that the system
->> +enters the idle state 4, while trace_cpu_idle(PWR_EVENT_EXIT, smp_p=
-rocessor_id())
->> +means that the system exits the previous idle state.
->> +
->> +The event which has 'state=3D4294967295' in the trace is very impor=
-tant to the user
->> +space tools which are using it to detect the end of the current sta=
-te, and so to
->> +correctly draw the states diagrams and to calculate accurate statis=
-tics etc.
->> +
->> +1.2 DEPRECATED trace API
->> +------------------------
->> +
->> +A new Kconfig option CONFIG_EVENT_POWER_TRACING_DEPRECATED with the=
- default value of
->> +'y' has been created. This allows the legacy trace power API to be =
-used conjointly
->> +with the new trace API.
->> +The Kconfig option, the old trace API (in include/trace/events/powe=
-r.h) and the
->> +old trace points will disappear in a future release (namely 2.6.41)=
-=2E
->> +
->> +power_start =A0 =A0 =A0 =A0 =A0"type=3D%lu state=3D%lu cpu_id=3D%lu=
-"
->> +power_frequency =A0 =A0 =A0 =A0 =A0 =A0 =A0"type=3D%lu state=3D%lu =
-cpu_id=3D%lu"
->> +power_end =A0 =A0 =A0 =A0 =A0 =A0"cpu_id=3D%lu"
->> +
->> +The 'type' parameter takes one of those macros:
->> + . POWER_NONE =A0 =A0 =A0 =A0=3D 0,
->> + . POWER_CSTATE =A0 =A0 =A0=3D 1, =A0 =A0/* C-State */
->> + . POWER_PSTATE =A0 =A0 =A0=3D 2, =A0 =A0/* Fequency change or DVFS=
- */
->> +
->> +The 'state' parameter is set depending on the type:
->> + . Target C-state for type=3DPOWER_CSTATE,
->> + . Target frequency for type=3DPOWER_PSTATE,
->> +
->> +power_end is used to indicate the exit of a state, corresponding to=
- the latest
->> +power_start event.
->> +
->> +2. Clocks events
->> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> +The clock events are used for clock enable/disable and for
->> +clock rate change.
->> +
->> +clock_enable =A0 =A0 =A0 =A0 "%s state=3D%lu cpu_id=3D%lu"
->> +clock_disable =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"%s state=3D%lu cpu_id=
-=3D%lu"
->> +clock_set_rate =A0 =A0 =A0 =A0 =A0 =A0 =A0 "%s state=3D%lu cpu_id=3D=
-%lu"
->> +
->> +The first parameter gives the clock name (e.g. "gpio1_iclk").
->> +The second parameter is '1' for enable, '0' for disable, the target
->> +clock rate for set_rate.
->> +
->> +3. Power domains events
->> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> +The power domain events are used for power domains transitions
->> +
->> +power_domain_target =A0"%s state=3D%lu cpu_id=3D%lu"
->> +
->> +The first parameter gives the power domain name (e.g. "mpu_pwrdm").
->> +The second parameter is the power domain target state.
->> +
->> --
->> 1.7.2.3
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kern=
-el" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at =A0http://www.tux.org/lkml/
->
-> --
-> Eduardo Valentin
->
+> 
+> 
+> >>
+> >> Also, testing with PM on 34xx/n900, I noticed that this series prevents
+> >> PER and CORE from hitting retention during suspend.  I haven't debugged
+> >> why yet.
+> > I have not done power testing. I will try this out right away and
+> confirm.
+> >
+> > --
+> > Tarun
+> >
+> >>
+> >> Kevin
+> >>
+> >>
+> >> > Baseline:
+> >> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-
+> 2.6.git
+> >> > Branch: origin/omap-for-linus
+> >> >
+> >> > v8:
+> >> > (1) Baselined on Tony's tree in omap-for-linus branch
+> >> >
+> >> > (2) The last patch in v7 series has been removed because it is fixed
+> >> > by following patch:
+> >> > commit: 78f26e872f77b6312273216de1a8f836c6f2e143
+> >> > OMAP: hwmod: Set autoidle after smartidle during _sysc_enable
+> >> >
+> >> >
+> >> > TODO:
+> >> > (1) OFF Mode support
+> >> >
+> >> > (2) Upgrade timeout implementation in low-level read/write access to
+> >> return
+> >> > error condition to EXPORT APIs. This is re-frained in the present
+> >> implementation
+> >> > because that would involve change to EXPORTED APIs. Besides, there is
+> no
+> >> clear
+> >> > design as yet which is agreed upon by the community.
+> >> >
+> >> > v7:
+> >> > (1) In omap1_dm_timer_set_src(), the computation of shift value to
+> >> respective
+> >> > dmtimer clock source was corrected:
+> >> > From:
+> >> > int n = (pdev->id) << 1;
+> >> > To:
+> >> > int n = (pdev->id - 1) << 1;
+> >> >
+> >> > This change is needed because dmtimer is indexed from 1 now instead
+> of
+> >> 0.
+> >> >
+> >> > (2) In  omap1_dm_timer_init(void) memory resource end address
+> chnaged:
+> >> > From:
+> >> > res[0].end = base + 0xff;
+> >> > To:
+> >> > res[0].end = base + 0x46;
+> >> >
+> >> > This was causing request_mem_region() failure in driver probe().
+> >> >
+> >> > (3) In the export APIs there are some calls which are not applicable
+> to
+> >> OMAP1.
+> >> > They have been made conditional now. They include following calls:
+> >> >
+> >> > timer->fclk = clk_get(&timer->pdev->dev, "fck");
+> >> > omap_dm_timer_enable()
+> >> > omap_dm_timer_disable()
+> >> >
+> >> > (4) Remove usage of cpu_is_omap16xx() and instead a flag has been
+> added
+> >> in
+> >> > struct dmtimer_platform_data {
+> >> > ...
+> >> > u32 is_omap16xx:1;
+> >> > }
+> >> >
+> >> > This flag is set to 1 in mach-omap1/dmtimer.c and set to 0 in mach-
+> >> omap2/dmtimer.c
+> >> > This flag is used in plat-omap/dmtimer.c wherever it needs to
+> distiguish
+> >> omap16xx.
+> >> >
+> >> > (5) Remove #include <plat/omap_device.h> from mach-omap1/dmtimer.c
+> >> >
+> >> > (6) Instead of using macros like INT_24XX_GPTIMERx, use the numbers
+> >> > directly in OMAP2420, OMAP2430 and OMAP3xxx hwmod database.
+> >> >
+> >> > (7) pm_runtime_get_sync() and pm_runtime_put_sync() return value
+> check
+> >> modified
+> >> > from positive to negative value:
+> >> >
+> >> > if (pm_runtime_get_sync(...) < 0) {
+> >> > ...
+> >> > }
+> >> >
+> >> > v6:
+> >> > (1) Removed reset functions to mach-omap1/dmtimer.c.
+> >> > Access to reset function from plat-omap/dmtimer.c is provided by
+> means
+> >> > of function pointer.
+> >> >
+> >> > (2) Remove multiple calls to omap_device_build() for registering
+> timer
+> >> devices
+> >> > during early and regular initialization. Regular device registration
+> is
+> >> now done
+> >> > by reading data from temporary list. This list is populated during
+> early
+> >> init
+> >> > where timer data is read from hwmod database and corresponding memory
+> >> allocated.
+> >> >
+> >> > (3) kfree(pdata) under error condition since
+> platform_device_unregister
+> >> does
+> >> > not free its pdata.
+> >> >
+> >> > (4) Removed extra header inclusion in mach-omap2 and plat-omap
+> >> >
+> >> > NOTE: omap_dm_timer.<id> field could not be removed because during
+> >> regular boot
+> >> > there is no mechanism to match the current pdev with corresponding
+> entry
+> >> in the
+> >> > timer list which was partially initialized during early boot.
+> >> >
+> >> > v4:
+> >> > (1) clock aliases are renamed as "32k_ck", "sys_ck" and "alt_ck"
+> >> > (2) incorporate missing clk_put() for corresponding clk_get()
+> >> > (3) modified clk_get()/clk_put() to be called once once in platform
+> >> driver.
+> >> > (4) consistent header for new files
+> >> > (5) check return value of omap_hwmod_for_each_by_class() in device
+> init
+> >> > routines.
+> >> > (6) remove is_abe_timer field in dmtimer_platform_data structure.
+> this
+> >> is
+> >> > no longer needed with new input clock source aliasing.
+> >> > (7) proper splitting of patch series
+> >> > (8) remove register map from hwmod database.
+> >> > (9) remove clock source strings array from hwmod database and
+> associated
+> >> > structure declaration from plat/dmtimer.h. this is no longer needed.
+> >> > (10) remove dev_attr from hwmod database. this is no longer needed.
+> >> > (11) use register offsets to identify OMAP 4 registers instead of
+> >> register map.
+> >> > (12) remove clock source name strings from hwmod database.
+> >> > (13) introduce new mechanism for getting struct clk associated with
+> >> clock source
+> >> > names. this is achieved by adding clock alisases for all supported
+> clock
+> >> sources.
+> >> > (14) remove clock setup functions in mach-omap2 for populating struct
+> >> clk
+> >> > associated with all input clock sources because this is no longer
+> needed
+> >> with
+> >> > above implementation.
+> >> > (15) device names changed from dmtimer to omap-timer
+> >> > (16) device index starts from 1 instead of 0
+> >> > (17) remove .init_name from hwmod database. this is not needed.
+> >> > (18) introduce separate functions for reading/writing interrupt
+> >> registers instead of
+> >> > doing all operations within a single function.
+> >> >
+> >> > v3:
+> >> > (1) multi-line comment error correction
+> >> > (2) provision to allow any of the available dmtimers as early timers
+> >> > instead of restricting them to millisecond timers only.
+> >> > (3) in 'struct omap_dmtimer{}' is_initialized flag is redundant and
+> >> > so must be removed. if the element is found in the list it is already
+> >> > initialized.
+> >> > (4) remove 'found' flag in omap_dm_timer_request() and
+> >> > omap_dm_timer_request_specific() functions.
+> >> > this is not needed with alternate implementation.
+> >> > (5) use .init_name to initialize device names so that it can be
+> >> identified
+> >> > during early boot as well. This is to avoid duplicate functions for
+> >> clock
+> >> > manipulations during early boot and later.
+> >> > (6) remove redundant functions from mach-omap2 which are created just
+> to
+> >> > call pm functions like:
+> pm_runtime_get_sync(),pm_runtime_put_sync(),..
+> >> > and instead call them directly from plat-omap function api's.
+> >> > (7) timer clock source names made part of hwmod database.
+> source_clock[]
+> >> > of type 'struct clk' is made part of platform data.
+> >> > (8) clockactivity field initialized in hwmod database to preserve
+> fclk
+> >> > during idle. code which manipulate OCP config removed since they are
+> >> > already taken care by hwmod framework.
+> >> > (9) omap2_dm_timer_set_src() is optimized. Clock enable/disbale
+> routines
+> >> > moved to plat-omap layer and simplfied to the level so as not to
+> >> sacrifice
+> >> > intended functionality.
+> >> > NOTE: During early boot clock management was requested to be placed
+> upon
+> >> > client drivers responsibility. this has not been done keeping in mind
+> >> > that it would entail (i) multiple modifications of client drivers
+> (ii)
+> >> it
+> >> > would violate the purpose of having a framework (open to debate).
+> >> > (10) dmtimer register maps moved to hwmod database
+> >> >
+> >> > v2:
+> >> > (1) removed dedicated functions for early timer clock access.
+> >> > instead, now we have common functions for early and normal timers.
+> >> > (2) removed usage of clock source strings for reading corresponding
+> >> > struct clks. this is now achieved through clock aliases introduced
+> >> > for each input clock sources.
+> >> > (3) IP revision to distinguish new IP standard and the rest and then
+> >> > initialize dmtimer interrupt and functional offsets.
+> >> > (4) provision to initialize all dmtimers as early timers.
+> >> > (5) remove dm_timer_setup() function because this is no longer
+> needed.
+> >> > (6) modify the device index to start from 1 instead of 0.
+> >> > (7) device name changed from dmtimer to omap-timer
+> >> > (8) extract device ids' from hwmod name and same used for device
+> build.
+> >> > (9) additional resource allocation checks and free
+> >> > (10) early timer variable initialization
+> >> > (11) initialize timer_ip_type and register offsets in platform data
+> >> structure.
+> >> > (12) some more comments/logs
+> >> >
+> >> > Tarun Kanti DebBarma (11):
+> >> >   OMAP2+: dmtimer: add device names to flck nodes
+> >> >   OMAP2420: hwmod data: add dmtimer
+> >> >   OMAP2430: hwmod data: add dmtimer
+> >> >   OMAP3: hwmod data: add dmtimer
+> >> >   OMAP4: hwmod data: add dmtimer
+> >> >   OMAP1: dmtimer: conversion to platform devices
+> >> >   OMAP2+: dmtimer: convert to platform devices
+> >> >   OMAP: dmtimer: platform driver
+> >> >   OMAP: dmtimer: switch-over to platform device driver
+> >> >   OMAP: dmtimer: pm_runtime support
+> >> >   OMAP: dmtimer: add timeout to low-level routines
+> >> >
+> >> >  arch/arm/mach-omap1/Makefile               |    2 +-
+> >> >  arch/arm/mach-omap1/dmtimer.c              |  217 +++++++++
+> >> >  arch/arm/mach-omap1/timer32k.c             |    4 -
+> >> >  arch/arm/mach-omap2/Makefile               |    2 +-
+> >> >  arch/arm/mach-omap2/clock2420_data.c       |   60 ++-
+> >> >  arch/arm/mach-omap2/clock2430_data.c       |   60 ++-
+> >> >  arch/arm/mach-omap2/clock3xxx_data.c       |   48 ++-
+> >> >  arch/arm/mach-omap2/clock44xx_data.c       |   45 ++-
+> >> >  arch/arm/mach-omap2/dmtimer.c              |  255 +++++++++++
+> >> >  arch/arm/mach-omap2/dmtimer.h              |   30 ++
+> >> >  arch/arm/mach-omap2/io.c                   |    4 +-
+> >> >  arch/arm/mach-omap2/omap_hwmod_2420_data.c |  634
+> >> ++++++++++++++++++++++++++
+> >> >  arch/arm/mach-omap2/omap_hwmod_2430_data.c |  633
+> >> ++++++++++++++++++++++++++
+> >> >  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  675
+> >> ++++++++++++++++++++++++++++
+> >> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  622
+> >> +++++++++++++++++++++++++
+> >> >  arch/arm/mach-omap2/timer-gp.c             |    1 -
+> >> >  arch/arm/plat-omap/dmtimer.c               |  608 +++++++++++++-----
+> ---
+> >> ----
+> >> >  arch/arm/plat-omap/include/plat/dmtimer.h  |   39 ++-
+> >> >  18 files changed, 3584 insertions(+), 355 deletions(-)
+> >> >  create mode 100644 arch/arm/mach-omap1/dmtimer.c
+> >> >  create mode 100644 arch/arm/mach-omap2/dmtimer.c
+> >> >  create mode 100644 arch/arm/mach-omap2/dmtimer.h
+> >> >
+> >> > --
+> >> > To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in
+> >> > the body of a message to majordomo@vger.kernel.org
+> >> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
