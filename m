@@ -1,86 +1,66 @@
-From: Enric Balletbo i Serra <eballetbo@gmail.com>
-Subject: [PATCH 3/3] omap3: igep2: Add keypad support.
-Date: Mon, 10 Jan 2011 14:26:14 +0100
-Message-ID: <1294665974-10590-4-git-send-email-eballetbo@gmail.com>
-References: <1294665974-10590-1-git-send-email-eballetbo@gmail.com>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: Re: [PATCH] omap3: clocks: Fix build error 'CK_3430ES2' undeclared
+ here
+Date: Mon, 10 Jan 2011 19:07:10 +0530
+Message-ID: <4D2B0B86.3010201@ti.com>
+References: <1294611373-1992-1-git-send-email-santosh.shilimkar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:46222 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753883Ab1AJN0b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jan 2011 08:26:31 -0500
-Received: by wwa36 with SMTP id 36so651111wwa.1
-        for <linux-omap@vger.kernel.org>; Mon, 10 Jan 2011 05:26:29 -0800 (PST)
-In-Reply-To: <1294665974-10590-1-git-send-email-eballetbo@gmail.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:51460 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753722Ab1AJNh0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Jan 2011 08:37:26 -0500
+Received: by mail-yx0-f175.google.com with SMTP id 5so7960524yxd.20
+        for <linux-omap@vger.kernel.org>; Mon, 10 Jan 2011 05:37:25 -0800 (PST)
+In-Reply-To: <1294611373-1992-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 
-Support twl4030 keypad and gpio keys on IGEP v2.
+On 1/10/2011 3:46 AM, Santosh Shilimkar wrote:
+> At latest mainline commit 0c21e3aaf6a,  omap2plus build is broken. This
+> patch is trivial fix for the missed usb clock node for CK_3430ES2PLUS
+> flag update.
+> 
+>  CHK     include/generated/compile.h
+>   CC      arch/arm/mach-omap2/clock3xxx_data.o
+> arch/arm/mach-omap2/clock3xxx_data.c:3289: error: 'CK_3430ES2' undeclared
+> here (not in a function)
+> make[1]: *** [arch/arm/mach-omap2/clock3xxx_data.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/clock3xxx_data.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> index d3ab1c9..c54cc33 100644
+> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> @@ -3286,7 +3286,7 @@ static struct omap_clk omap3xxx_clks[] = {
+>  	CLK(NULL,	"cpefuse_fck",	&cpefuse_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>  	CLK(NULL,	"ts_fck",	&ts_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+>  	CLK(NULL,	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+> -	CLK("ehci-omap.0",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2 | CK_AM35XX),
+> +	CLK("ehci-omap.0",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX),
 
-Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
----
- arch/arm/mach-omap2/board-igep0020.c |   33 +++++++++++++++++++++++++++++++++
- 1 files changed, 33 insertions(+), 0 deletions(-)
+Was about to post something similar.
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 0afa301..3a6cce5 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -17,6 +17,7 @@
- #include <linux/io.h>
- #include <linux/gpio.h>
- #include <linux/interrupt.h>
-+#include <linux/input.h>
- 
- #include <linux/regulator/machine.h>
- #include <linux/regulator/fixed.h>
-@@ -535,6 +536,37 @@ static struct twl4030_codec_data igep2_codec_data = {
- 	.audio = &igep2_audio_data,
- };
- 
-+static int igep2_keymap[] = {
-+	KEY(0, 0, KEY_LEFT),
-+	KEY(0, 1, KEY_RIGHT),
-+	KEY(0, 2, KEY_A),
-+	KEY(0, 3, KEY_B),
-+	KEY(1, 0, KEY_DOWN),
-+	KEY(1, 1, KEY_UP),
-+	KEY(1, 2, KEY_E),
-+	KEY(1, 3, KEY_F),
-+	KEY(2, 0, KEY_ENTER),
-+	KEY(2, 1, KEY_I),
-+	KEY(2, 2, KEY_J),
-+	KEY(2, 3, KEY_K),
-+	KEY(3, 0, KEY_M),
-+	KEY(3, 1, KEY_N),
-+	KEY(3, 2, KEY_O),
-+	KEY(3, 3, KEY_P)
-+};
-+
-+static struct matrix_keymap_data igep2_keymap_data = {
-+	.keymap			= igep2_keymap,
-+	.keymap_size		= ARRAY_SIZE(igep2_keymap),
-+};
-+
-+static struct twl4030_keypad_data igep2_keypad_pdata = {
-+	.keymap_data	= &igep2_keymap_data,
-+	.rows		= 4,
-+	.cols		= 4,
-+	.rep		= 1,
-+};
-+
- static struct twl4030_platform_data igep2_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
- 	.irq_end	= TWL4030_IRQ_END,
-@@ -543,6 +575,7 @@ static struct twl4030_platform_data igep2_twldata = {
- 	.usb		= &igep2_usb_data,
- 	.codec		= &igep2_codec_data,
- 	.gpio		= &igep2_twl4030_gpio_pdata,
-+	.keypad		= &igep2_keypad_pdata,
- 	.vmmc1          = &igep2_vmmc1,
- 	.vpll2		= &igep2_vpll2,
- 	.vio		= &igep2_vio,
--- 
-1.7.0.4
+Can you update this line to add CK_36XX as well. Without this, we won't be able to use
+the USBHOST on 36xx/37xx platforms.
+
+With this, feel free to add my
+Acked-by: Anand Gadiyar <gadiyar@ti.com>
+
+- Anand
+
+>  	CLK("omap-mcbsp.1",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
+>  	CLK("omap-mcbsp.5",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
+>  	CLK(NULL,	"core_96m_fck",	&core_96m_fck,	CK_3XXX),
 
