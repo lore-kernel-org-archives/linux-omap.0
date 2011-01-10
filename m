@@ -1,43 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap4: pandaboard: turn on PHY reference clock at
- init
-Date: Mon, 10 Jan 2011 11:12:01 -0800
-Message-ID: <20110110191201.GG4957@atomide.com>
-References: <1294670535-9059-1-git-send-email-gadiyar@ti.com>
- <alpine.DEB.2.00.1101101152040.5731@utopia.booyaka.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v4 0/3] OMAP3: beaglexm: GPIO fixes
+Date: Mon, 10 Jan 2011 13:13:17 -0600
+Message-ID: <4D2B5A4D.5000300@ti.com>
+References: <1294441282-17986-1-git-send-email-nm@ti.com> <20110110190436.GE4957@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1101101152040.5731@utopia.booyaka.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Greg KH <gregkh@suse.de>, Felipe Balbi <balbi@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Benoit Cousson <b-cousson@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:43557 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752503Ab1AJTNZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Jan 2011 14:13:25 -0500
+Received: by mail-vw0-f43.google.com with SMTP id 17so7959064vws.16
+        for <linux-omap@vger.kernel.org>; Mon, 10 Jan 2011 11:13:22 -0800 (PST)
+In-Reply-To: <20110110190436.GE4957@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Koen Kooi <koen@beagleboard.org>, Aaro <aaro.koskinen@nokia.com>
 
-* Paul Walmsley <paul@pwsan.com> [110110 10:51]:
-> On Mon, 10 Jan 2011, Anand Gadiyar wrote:
+Tony Lindgren had written, on 01/10/2011 01:04 PM, the following:
+> * Nishanth Menon <nm@ti.com> [110107 15:00]:
+>> Hi,
+>> As discussed in the threads:
+>> http://thread.gmane.org/gmane.linux.ports.arm.omap/47807/
+>> http://marc.info/?t=121540030800004&r=1&w=2
+>>
+>> here is the split up series with commit message after discussion:
+>> http://www.beagleboard.org/irclogs/index.php?date=2011-01-06#T19:12:21
+>>
+>> Koen Kooi (3):
+>>   omap3: beaglexm: fix EHCI power up GPIO dir
+>>   omap3: beaglexm: fix DVI reset GPIO
+>>   omap3: beaglexm: fix power on of DVI
 > 
-> > The SMSC 3320 USB PHY on the OMAP4 Pandaboard needs a 19.2 MHz
-> > reference clock. This clock is provided from the OMAP4's fref_clk3
-> > pad.
-> > 
-> > Recent changes to clock44xx_data.c made the clock framework aware
-> > of the existence of these fref_clk[i] lines. If the option
-> > CONFIG_OMAP_RESET_CLOCKS is enabled in the kernel, then the
-> > clock framework will turn these clocks off during bootup.
-> > 
-> > Explicitly request and keep this clock enabled at init for the
-> > Pandaboard, so that the PHY receives this clock at all times.
-> > 
-> > Reported-by: Ming Lei <tom.leiming@gmail.com>
-> > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> > Cc: Benoit Cousson <b-cousson@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> 
-> Reviewed-by: Paul Walmsley <paul@pwsan.com>
+> Dropping the earlier versions from omap-fixes, I want to get the
+> build fixes in ASAP. These can wait a bit until Aaro's comments
+> are addressed.
+Ack. will post a v5 after aligning. build breakages have higher priority 
+ofcourse ;)
 
-Will queue as a fix.
-
-Tony
+-- 
+Regards,
+Nishanth Menon
