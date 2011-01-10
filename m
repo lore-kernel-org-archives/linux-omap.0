@@ -1,116 +1,188 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [GIT PULL] OMAP DSS changes for .38 merge window v2
-Date: Mon, 10 Jan 2011 11:51:02 +0200
-Message-ID: <1294653062.2529.28.camel@tubuntu>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 2/2] tools, perf: Documentation for the power events API
+Date: Mon, 10 Jan 2011 11:10:43 +0100
+Message-ID: <AANLkTikC2SbRxJ-uMu6PYO9iXNyvDivZAt8jZwc-7YOT@mail.gmail.com>
+References: <1294253342-29056-1-git-send-email-j-pihet@ti.com>
+	<1294253342-29056-3-git-send-email-j-pihet@ti.com>
+	<20110107055042.GA6137@besouro.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:17545 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751702Ab1AJJvJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Jan 2011 04:51:09 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-perf-users-owner@vger.kernel.org>
+In-Reply-To: <20110107055042.GA6137@besouro.research.nokia.com>
+Sender: linux-perf-users-owner@vger.kernel.org
+To: eduardo.valentin@nokia.com
+Cc: mingo@elte.hu, trenn@suse.de, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-perf-users@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: ext Paul Mundt <lethal@linux-sh.org>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>
 
-Hi Paul,
+Hello Eduardo,
 
-Here's a new pull request for OMAP display subsystem patches. This one
-is rebased on top of the new omap patches on mainline, and the resulting
-board file conflict has been fixed.
+On Fri, Jan 7, 2011 at 6:50 AM, Eduardo Valentin
+<eduardo.valentin@nokia.com> wrote:
+> Hello Jean,
+>
+> On Wed, Jan 05, 2011 at 07:49:02PM +0100, ext jean.pihet@newoldbits.c=
+om wrote:
+>> From: Jean Pihet <j-pihet@ti.com>
+>>
+>> Provides documentation for the following:
+>> - the new power trace API,
+>> - the old (legacy) power trace API,
+>> - the DEPRECATED Kconfig option usage.
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> ---
+>> =A0Documentation/trace/events-power.txt | =A0 90 +++++++++++++++++++=
++++++++++++++++
+>> =A01 files changed, 90 insertions(+), 0 deletions(-)
+>> =A0create mode 100644 Documentation/trace/events-power.txt
+>>
+>> diff --git a/Documentation/trace/events-power.txt b/Documentation/tr=
+ace/events-power.txt
+>> new file mode 100644
+>> index 0000000..96d87b6
+>> --- /dev/null
+>> +++ b/Documentation/trace/events-power.txt
+>> @@ -0,0 +1,90 @@
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 Subsystem Trace Points: po=
+wer
+>> +
+>> +The power tracing system captures events related to power transitio=
+ns
+>> +within the kernel. Broadly speaking there are three major subheadin=
+gs:
+>> +
+>> + =A0o Power state switch which reports events related to suspend (S=
+-states),
+>> + =A0 =A0 cpuidle (C-states) and cpufreq (P-states)
+>> + =A0o System clock related changes
+>
+> What do you mean by system clock here? I see that you are covering cp=
+u rate
+> changes and system clock (?) here. How about memory clock changes?
+> Would it make sense to have a major subheading for it? Maybe you are
+> targeting it be traced by means of clocks event (item 2. bellow)..
+The meaning is to trace the system clocks changes, i.e. clocks that
+the CPUs can control. Maybe 'SoC clocks' is a better name for it.
+Indeed 'System clock related changes' is for '2. Clocks events'
 
-And while rebasing, I squashed the topmost patch, OMAP: DSS2: Fix build
-breaks for rfbi.c and dsi.c, into the respective patches. The patch
-contained only a few trivial compile fixes to errors which mistakenly
-slipped in.
+Thanks for the review!
 
- Tomi
+Regards,
+Jean
 
-
-The following changes since commit 01539ba2a706ab7d35fc0667dff919ade7f87d63:
-
-  Merge branch 'omap-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6 (2011-01-06 19:13:58 -0800)
-
-are available in the git repository at:
-
-  git://gitorious.org/linux-omap-dss2/linux.git for-paul-38-rebased
-
-Archit Taneja (4):
-      OMAP: DSS2: Fix: Read correct bit in dispc_enable_alpha_blending()
-      OMAP: DSS2: Clean up DISPC color mode validation checks
-      OMAP: DSS2: Add dss_features for omap4 and overlay manager related features
-      OMAP: DSS2: Use dss_features to handle DISPC bits removed on OMAP4
-
-Bryan Wu (4):
-      OMAP: DSS2: Add generic DPI panel display driver
-      OMAP: use generic DPI panel driver in board files
-      OMAP: DSS2: remove generic DPI panel driver duplicated panel drivers
-      OMAP: DSS2: Add back authors of panel-generic.c based drivers
-
-Erik Gilling (1):
-      OMAP: DSS2: Add NEC NL8048HL11-01B display panel
-
-Kishore Y (2):
-      OMAP3: ZOOM2/3/3630SDP: Add display board file for OMAP3
-      OMAP3: Enable display on ZOOM2/3/3630SDP
-
-Rajkumar N (1):
-      OMAP3630: DSS2: Enable Pre-Multiplied Alpha Support
-
-Samreen (2):
-      OMAP3: DSS2: Split OMAP3 has feature for 3430 & 3630
-      OMAP: DSS2: OMAPFB: Add null pointer check
-
-Sumit Semwal (5):
-      OMAP: DSS2: Represent DISPC register defines with channel as parameter
-      OMAP: DSS2: Introduce omap_channel argument to DISPC functions used by interface drivers
-      OMAP: DSS2: Change remaining DISPC functions for new omap_channel argument
-      OMAP: DSS2: LCD2 Channel Changes for DISPC
-      OMAP: DSS2: Introduce omap_channel as an omap_dss_device parameter, add new overlay manager.
-
- arch/arm/mach-omap2/Makefile                       |    3 +
- arch/arm/mach-omap2/board-3430sdp.c                |   12 +-
- arch/arm/mach-omap2/board-3630sdp.c                |    1 +
- arch/arm/mach-omap2/board-am3517evm.c              |   23 +-
- arch/arm/mach-omap2/board-cm-t35.c                 |   23 +-
- arch/arm/mach-omap2/board-devkit8000.c             |   26 +-
- arch/arm/mach-omap2/board-igep0020.c               |   12 +-
- arch/arm/mach-omap2/board-omap3beagle.c            |   12 +-
- arch/arm/mach-omap2/board-omap3evm.c               |   12 +-
- arch/arm/mach-omap2/board-omap3stalker.c           |   23 +-
- arch/arm/mach-omap2/board-zoom-display.c           |  168 +++++
- arch/arm/mach-omap2/board-zoom-peripherals.c       |   49 ++-
- arch/arm/mach-omap2/board-zoom.c                   |    1 +
- arch/arm/mach-omap2/include/mach/board-zoom.h      |    3 +
- arch/arm/plat-omap/include/plat/display.h          |    9 +
- .../arm/plat-omap/include/plat/panel-generic-dpi.h |   37 ++
- drivers/video/omap2/displays/Kconfig               |   27 +-
- drivers/video/omap2/displays/Makefile              |    5 +-
- drivers/video/omap2/displays/panel-generic-dpi.c   |  365 +++++++++++
- drivers/video/omap2/displays/panel-generic.c       |  174 ------
- .../omap2/displays/panel-nec-nl8048hl11-01b.c      |  325 ++++++++++
- .../video/omap2/displays/panel-sharp-lq043t1dg01.c |  165 -----
- .../video/omap2/displays/panel-toppoly-tdo35s.c    |  164 -----
- drivers/video/omap2/dss/dispc.c                    |  636 +++++++++++++-------
- drivers/video/omap2/dss/dpi.c                      |   40 +-
- drivers/video/omap2/dss/dsi.c                      |   27 +-
- drivers/video/omap2/dss/dss.h                      |   35 +-
- drivers/video/omap2/dss/dss_features.c             |   66 ++-
- drivers/video/omap2/dss/dss_features.h             |   10 +-
- drivers/video/omap2/dss/manager.c                  |   80 ++-
- drivers/video/omap2/dss/overlay.c                  |   55 ++-
- drivers/video/omap2/dss/rfbi.c                     |   20 +-
- drivers/video/omap2/dss/sdi.c                      |   24 +-
- drivers/video/omap2/omapfb/omapfb-main.c           |    5 +-
- 34 files changed, 1754 insertions(+), 883 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-zoom-display.c
- create mode 100644 arch/arm/plat-omap/include/plat/panel-generic-dpi.h
- create mode 100644 drivers/video/omap2/displays/panel-generic-dpi.c
- delete mode 100644 drivers/video/omap2/displays/panel-generic.c
- create mode 100644 drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
- delete mode 100644 drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
- delete mode 100644 drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-
-
+>
+>> + =A0o Power domains related changes and transitions
+>> +
+>> +This document describes what each of the tracepoints is and why the=
+y
+>> +might be useful.
+>> +
+>> +Cf. include/trace/events/power.h for the events definitions.
+>> +
+>> +1. Power state switch events
+>> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D
+>> +
+>> +1.1 New trace API
+>> +-----------------
+>> +
+>> +A 'cpu' event class gathers the CPU-related events: cpuidle and
+>> +cpufreq.
+>> +
+>> +cpu_idle =A0 =A0 =A0 =A0 =A0 =A0 "state=3D%lu cpu_id=3D%lu"
+>> +cpu_frequency =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"state=3D%lu cpu_id=3D=
+%lu"
+>> +
+>> +A suspend event is used to indicate the system going in and out of =
+the
+>> +suspend mode:
+>> +
+>> +machine_suspend =A0 =A0 =A0 =A0 =A0 =A0 =A0"state=3D%lu"
+>> +
+>> +
+>> +Note: the value of '-1' or '4294967295' for state means an exit fro=
+m the current state,
+>> +i.e. trace_cpu_idle(4, smp_processor_id()) means that the system
+>> +enters the idle state 4, while trace_cpu_idle(PWR_EVENT_EXIT, smp_p=
+rocessor_id())
+>> +means that the system exits the previous idle state.
+>> +
+>> +The event which has 'state=3D4294967295' in the trace is very impor=
+tant to the user
+>> +space tools which are using it to detect the end of the current sta=
+te, and so to
+>> +correctly draw the states diagrams and to calculate accurate statis=
+tics etc.
+>> +
+>> +1.2 DEPRECATED trace API
+>> +------------------------
+>> +
+>> +A new Kconfig option CONFIG_EVENT_POWER_TRACING_DEPRECATED with the=
+ default value of
+>> +'y' has been created. This allows the legacy trace power API to be =
+used conjointly
+>> +with the new trace API.
+>> +The Kconfig option, the old trace API (in include/trace/events/powe=
+r.h) and the
+>> +old trace points will disappear in a future release (namely 2.6.41)=
+=2E
+>> +
+>> +power_start =A0 =A0 =A0 =A0 =A0"type=3D%lu state=3D%lu cpu_id=3D%lu=
+"
+>> +power_frequency =A0 =A0 =A0 =A0 =A0 =A0 =A0"type=3D%lu state=3D%lu =
+cpu_id=3D%lu"
+>> +power_end =A0 =A0 =A0 =A0 =A0 =A0"cpu_id=3D%lu"
+>> +
+>> +The 'type' parameter takes one of those macros:
+>> + . POWER_NONE =A0 =A0 =A0 =A0=3D 0,
+>> + . POWER_CSTATE =A0 =A0 =A0=3D 1, =A0 =A0/* C-State */
+>> + . POWER_PSTATE =A0 =A0 =A0=3D 2, =A0 =A0/* Fequency change or DVFS=
+ */
+>> +
+>> +The 'state' parameter is set depending on the type:
+>> + . Target C-state for type=3DPOWER_CSTATE,
+>> + . Target frequency for type=3DPOWER_PSTATE,
+>> +
+>> +power_end is used to indicate the exit of a state, corresponding to=
+ the latest
+>> +power_start event.
+>> +
+>> +2. Clocks events
+>> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>> +The clock events are used for clock enable/disable and for
+>> +clock rate change.
+>> +
+>> +clock_enable =A0 =A0 =A0 =A0 "%s state=3D%lu cpu_id=3D%lu"
+>> +clock_disable =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"%s state=3D%lu cpu_id=
+=3D%lu"
+>> +clock_set_rate =A0 =A0 =A0 =A0 =A0 =A0 =A0 "%s state=3D%lu cpu_id=3D=
+%lu"
+>> +
+>> +The first parameter gives the clock name (e.g. "gpio1_iclk").
+>> +The second parameter is '1' for enable, '0' for disable, the target
+>> +clock rate for set_rate.
+>> +
+>> +3. Power domains events
+>> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>> +The power domain events are used for power domains transitions
+>> +
+>> +power_domain_target =A0"%s state=3D%lu cpu_id=3D%lu"
+>> +
+>> +The first parameter gives the power domain name (e.g. "mpu_pwrdm").
+>> +The second parameter is the power domain target state.
+>> +
+>> --
+>> 1.7.2.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kern=
+el" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at =A0http://www.tux.org/lkml/
+>
+> --
+> Eduardo Valentin
+>
