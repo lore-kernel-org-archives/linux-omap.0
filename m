@@ -1,35 +1,64 @@
-From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Subject: Re: [PATCH] musb: move usb_add_hcd to the core init code from gadget code (v2)
-Date: Mon, 10 Jan 2011 04:38:47 -0800 (PST)
-Message-ID: <898333.24180.qm@web180304.mail.gq1.yahoo.com>
-References: <4D2AF1EE.8010105@heeltoe.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: [PATCH v4 1/3] omap3: beaglexm: fix EHCI power up GPIO dir
+Date: Mon, 10 Jan 2011 14:44:19 +0200 (EET)
+Message-ID: <alpine.DEB.1.10.1101101442460.18906@esdhcp041196.research.nokia.com>
+References: <[PATCH v3 0/3] OMAP3: beaglexm: GPIO fixes> <1294441282-17986-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D2AF1EE.8010105-k3bCrp9g88tBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, Brad Parker <brad-k3bCrp9g88tBDgjK7y7TUQ@public.gmane.org>
-Cc: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-team-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ricardo.salveti-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.48]:43421 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752246Ab1AJMp6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Jan 2011 07:45:58 -0500
+In-Reply-To: <1294441282-17986-2-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Tony <tony@atomide.com>, Koen Kooi <koen@beagleboard.org>, Aaro <aaro.koskinen@nokia.com>
 
+Hi,
 
-> With this patch, host mode works.
+On Fri, 7 Jan 2011, Nishanth Menon wrote:
+> From: Koen Kooi <koen@beagleboard.org>
+>
+> EHCI enable power pin is inverted (active high) in comparison
+> to vanilla beagle which is active low. Handle this case conditionally.
+>
+> Without this fix, Beagle XM 4 port EHCI will not function and no
+> networking will be available
+>
+> [nm@ti.com: split up, added descriptive changelogs]
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Koen Kooi <koen@beagleboard.org>
+> ---
+> arch/arm/mach-omap2/board-omap3beagle.c |    9 ++++++++-
+> 1 files changed, 8 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 6c12760..1b5aa7a 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -297,9 +297,16 @@ static int beagle_twl_gpio_setup(struct device *dev,
+> 	gpio_request(gpio + 1, "EHCI_nOC");
+> 	gpio_direction_input(gpio + 1);
+>
+> -	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
+> +	/*
+> +	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
+> +	 * high / others active low)
+> +	 */
+> 	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
+> 	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
 
-What about OTG and gadget modes?
+This call should be deleted.
 
-The MUSB hardware is flakey with respect to
-those init issues.  Re-ordering host vs gadget
-init has been a good way to waste a few months,
-for anyone who has a few to waste.  (And a
-better way to waste them for folk who do NOT
-but just need to stay on schedule.)  One learns
-quickly that the Mentor IP follows some other
-state machine than the USB-OTG says, but even their
-docs don't help uncover whatever init model they
-are trying  to follow.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
+> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
+> +	else
+> +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+>
+> 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+> 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+> -- 
+> 1.6.3.3
+>
