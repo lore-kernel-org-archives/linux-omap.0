@@ -1,45 +1,34 @@
-From: Brad Parker <brad@heeltoe.com>
-Subject: Re: UNS: Re: [PATCH] musb: move usb_add_hcd to the core init code
- from gadget code (v2)
-Date: Mon, 10 Jan 2011 09:08:17 -0500
-Message-ID: <4D2B12D1.5060807@heeltoe.com>
-References: <1279895783-7313-1-git-send-email-bryan.wu@canonical.com> <4C600171.5020405@canonical.com> <4D2AF1EE.8010105@heeltoe.com> <20110110115714.GA5573@legolas.emea.dhcp.ti.com> (sfid-20110110_070231_150867_75CADAA4)
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: Re: linux-next: manual merge of the usb tree with the omap tree
+Date: Mon, 10 Jan 2011 19:39:24 +0530
+Message-ID: <4D2B1314.3010901@ti.com>
+References: <20101223171859.f6842045.sfr@canb.auug.org.au>	<4D139517.3010608@ti.com>	<AANLkTi=pTNg2iWN+=uEv=CyZHHCoddF51pmmCMjPeMUF@mail.gmail.com>	<4ce0f816f951f24ca3de9c84d9f70842@mail.gmail.com>	<AANLkTimA5UOVn6+xe0ofV1F3_XhAP0daBvOAX2k1u_dU@mail.gmail.com>	<AANLkTimzQ1PHN986fqPF0yjd1M+390nSUDYJ65pu0z_f@mail.gmail.com>	<4D271E0E.8050401@ti.com>	<AANLkTikLQRHyp-TS_idEp5Fr74qC3vDoMqqsAA2v_oV8@mail.gmail.com>	<c822ad4569a9dc865b5ccf39e12c828b@mail.gmail.com>	<f853a77e2aebea4130fc486bdbf4aa06@mail.gmail.com> <AANLkTimakCyo5WB4v677-y+V=EO3nPiMTh+msnxkJiwH@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110110115714.GA5573@legolas.emea.dhcp.ti.com> (sfid-20110110_070231_150867_75CADAA4)
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: bryan.wu@canonical.com, felipe.balbi@nokia.com, linux-usb@vger.kernel.org, david-b@pacbell.net, kernel-team@lists.ubuntu.com, linux-kernel@vger.kernel.org, ricardo.salveti@canonical.com, linux-omap@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimakCyo5WB4v677-y+V=EO3nPiMTh+msnxkJiwH@mail.gmail.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Felipe Balbi wrote:
+On 1/10/2011 7:23 PM, Ming Lei wrote:
 > Hi,
->
-> On Mon, Jan 10, 2011 at 06:47:58AM -0500, Brad Parker wrote:
->   
->> ...
->> (my expectation is that the mode should toggle from "b_idle" to "a_host"
->> when I plug in an a connector with the id pin tied correctly, and
->> back to "b_idle"
->> when I disconnect)
->>     
-> What's the problem in simply insmoding a gadget driver ? If you have OTG
-> enabled, you _need_ a gadget driver to have a fully working setup. If
-> you want host only, then change Kconfig
-I guess there are multiple "modalities".
+> 
+> 2011/1/7 Anand Gadiyar <gadiyar@ti.com>:
+> 
+>> Update: I disabled CONFIG_OMAP_RESET_CLOCKS and the PHY and other
+>> connected devices enumerate just fine. Could you try this out on
+>> your board as well?
+> 
+> Yes, it does work for me if CONFIG_OMAP_RESET_CLOCKS is disabled.
+> 
+> thanks,
 
-- some users don't use a gadget driver and expect host mode to work 
-(they fail)
-- some users use a gadget driver and host mode (apparently that works)
-- some users use a gadget driver only (they work)
+Great, patch coming up in a few minutes.
 
-I'd  like to avoid having multiple kernels.  (and to be honest, I'm not 
-convinced
-just convince I can get the right behaviors by changing the .config; I 
-assume
-you mean .config and not Kconfig...  I don't think it works but I'll try 
-it out)
+I figured out why we need auxclk3 - the PHY's reference clock
+is provided by it.
 
--brad
+- Anand
