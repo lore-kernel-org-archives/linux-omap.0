@@ -1,84 +1,83 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 1/5] omap2plus: clockdomain: Trivial fix for build break because of clktrctrl_mask
-Date: Mon, 10 Jan 2011 17:31:40 -0800
-Message-ID: <87wrmcfcoz.fsf@ti.com>
-References: <1294225024-21857-1-git-send-email-santosh.shilimkar@ti.com>
-	<87fwt7z1p3.fsf@ti.com>
-	<alpine.DEB.2.00.1101061059590.22048@utopia.booyaka.com>
-	<87ipy1vqdi.fsf@ti.com>
-	<3f76fc53e9b50d75480bcfe1d2b6312e@mail.gmail.com>
-	<874o9ko25j.fsf@ti.com>
-	<alpine.DEB.2.00.1101101214430.5731@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/5] OMAP: clockdomain: Arch specific funcs to handle
+ deps
+Date: Mon, 10 Jan 2011 18:32:09 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101101808530.5731@utopia.booyaka.com>
+References: <1294237365-10893-1-git-send-email-rnayak@ti.com> <1294237365-10893-2-git-send-email-rnayak@ti.com> <1294237365-10893-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:60438 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752391Ab1AKBbo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Jan 2011 20:31:44 -0500
-Received: by mail-iy0-f173.google.com with SMTP id 19so20579115iye.32
-        for <linux-omap@vger.kernel.org>; Mon, 10 Jan 2011 17:31:44 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1101101214430.5731@utopia.booyaka.com> (Paul
-	Walmsley's message of "Mon, 10 Jan 2011 12:16:28 -0700 (MST)")
+Received: from utopia.booyaka.com ([72.9.107.138]:53531 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754288Ab1AKBcJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jan 2011 20:32:09 -0500
+In-Reply-To: <1294237365-10893-3-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, b-cousson@ti.com
 
-Paul Walmsley <paul@pwsan.com> writes:
+On Wed, 5 Jan 2011, Rajendra Nayak wrote:
 
-> On Fri, 7 Jan 2011, Kevin Hilman wrote:
->
->> Rajendra Nayak <rnayak@ti.com> writes:
->> 
->> [...]
->> 
->> > Just another trivial fix.
->> >
->> > From bb46b74d2b0ab3d35e72b760da7e123a891e6813 Mon Sep 17 00:00:00 2001
->> > From: Rajendra Nayak <rnayak@ti.com>
->> > Date: Fri, 7 Jan 2011 14:07:25 +0530
->> > Subject: [PATCH] OMAP: powerdomain: remove unused func declaration
->> >
->> > Trivial fix to remove the unused function declaration
->> > from the powerdomain header.
->> >
->> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> > ---
->> >  arch/arm/mach-omap2/powerdomain.h |    1 -
->> >  1 files changed, 0 insertions(+), 1 deletions(-)
->> >
->> > diff --git a/arch/arm/mach-omap2/powerdomain.h
->> > b/arch/arm/mach-omap2/powerdomain.h
->> > index c66431e..0b7a357 100644
->> > --- a/arch/arm/mach-omap2/powerdomain.h
->> > +++ b/arch/arm/mach-omap2/powerdomain.h
->> > @@ -165,7 +165,6 @@ struct pwrdm_ops {
->> >  	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
->> >  };
->> >
->> > -void pwrdm_fw_init(void);
->> >  void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_ops
->> > *custom_funcs);
->> 
->> Note this is line-wrapped. 
->> 
->> Looks like you need to get get-send-email setup so you can avoid having
->> the patch sending problems.
->> 
->> >
->> >  struct powerdomain *pwrdm_lookup(const char *name);
->> 
->> In any case, with Paul's ack, I can queue this with the others.
->
-> Normally I would wait for the .39 merge window with something like this, 
-> but you're welcome to queue it for the -rc fixes if you feel it's 
-> appropriate:
+> Define the following architecture specific funtions for omap2/3
+> .clkdm_add_wkdep
+> .clkdm_del_wkdep
+> .clkdm_read_wkdep
+> .clkdm_clear_all_wkdeps
+> .clkdm_add_sleepdep
+> .clkdm_del_sleepdep
+> .clkdm_read_sleepdep
+> .clkdm_clear_all_sleepdeps
+> 
+> Convert the platform-independent framework to call these functions.
+> With this also move the clkdm lookups for all wkdep_srcs and
+> sleepdep_srcs at clkdm_init.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/Makefile                     |    2 +
+>  arch/arm/mach-omap2/clockdomain.c                |   80 ++++++---------
+>  arch/arm/mach-omap2/clockdomain.h                |    2 +
+>  arch/arm/mach-omap2/clockdomain2xxx_3xxx.c       |  113 ++++++++++++++++++++++
+>  arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    2 +-
 
-Yeah, I agree.  I'll let you queue this one for .39 as it's not really a
-fix.
+This is definitely a good start, but a lot of OMAP4 stuff still needs 
+to be done.
 
-Kevin
+For example, OMAP4 has static wakeup dependencies just like OMAP2/3; 
+described in section 3.1.1.1.7.3 "Wake-Up Dependency" of the OMAP4430 TRM 
+Rev. L.
+
+OMAP4 also has static sleep dependencies just like OMAP3; described in 
+section 3.1.1.1.7.1 "Static Dependency" of the OMAP4430 TRM
+Rev. L.
+
+The dynamic wakeup dependencies (section 3.1.1.1.7.2 of the TRM) and the 
+hardware inactivity timer are new for OMAP4.
+
+What's the plan to add support for these?
+
+Based on a brief look, it would seem to make sense to add support now for 
+static sleep dependencies.  These seem quite similar to the OMAP3 
+implementation, in that they are between clockdomains.
+
+Dynamic wakeup dependencies and the prescaler timer configuration should 
+be fairly easy to add since it is a new feature, and thus no OMAP2/3 
+implementation is needed.  The dyndep stuff is between clockdomains, so 
+there shouldn't be any interaction needed with the hwmod code by my 
+reading.
+
+Static wakeup dependency support appears a little more tricky, since the 
+dependencies are between modules and clockdomains on OMAP4, rather than 
+between clockdomains and clockdomains as they were on OMAP2/3.  One way to 
+handle this would be to change the existing wkdep interface for all OMAPs 
+to be between modules and clockdomains; then for the OMAP2/3 
+implementations, use the hwmod code/data to get the clockdomain of the 
+module's main_clk.  Another is to add a separate interface to add wkdeps 
+between a module and clockdomain, use that for OMAP4, but use the existing 
+clockdomain-to-clockdomain interface for OMAP2/3.  It might be necessary 
+to do both until the hwmod data is more complete, then perhaps phase out 
+the latter interface.  Thoughts?
 
 
+- Paul
