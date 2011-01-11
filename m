@@ -1,77 +1,51 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v5 3/3] omap3: beaglexm: fix power on of DVI
-Date: Tue, 11 Jan 2011 11:13:37 -0600
-Message-ID: <1294766017-12182-4-git-send-email-nm@ti.com>
-References: <[PATCH v4 0/3] OMAP3: beaglexm: GPIO fixes>
+From: Ben Tucker <btucker@mpcdata.com>
+Subject: OMAP DSS Enable clocks in dss_setup_partial_planes
+Date: Tue, 11 Jan 2011 17:41:23 -0000
+Message-ID: <c08bf1989fbe2e704960116748c416f3@mail.gmail.com>
+References: b3985d3b9ab26a0aac963651376b21ac@mail.gmail.com
+  <fd876042b2837b7dd3eaea2257dcbd6f@mail.gmail.com> <1294413238.3968.110.camel@nubuntu>
+ <78677181845a6577fe0955a1984ac16a@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45785 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932422Ab1AKRNu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Jan 2011 12:13:50 -0500
-In-Reply-To: <[PATCH v4 0/3] OMAP3: beaglexm: GPIO fixes>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:41538 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493Ab1AKRl0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jan 2011 12:41:26 -0500
+Received: by iwn9 with SMTP id 9so20382745iwn.19
+        for <linux-omap@vger.kernel.org>; Tue, 11 Jan 2011 09:41:26 -0800 (PST)
+In-Reply-To: <78677181845a6577fe0955a1984ac16a@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: l-o <linux-omap@vger.kernel.org>
-Cc: l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Tony <tony@atomide.com>, Koen Kooi <koen@beagleboard.org>, Aaro <aaro.koskinen@nokia.com>, Nishanth Menon <nm@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Koen Kooi <koen@beagleboard.org>
+>From 086e3454c8f154cd90a4669899f2179f16ef32cd Mon Sep 17 00:00:00 2001
+From: Ben Tucker <btucker@mpc-data.co.uk>
+Date: Thu, 13 Jan 2011 12:56:45 +0000
+Subject: [PATCH] OMAP DSS Enable clocks in dss_setup_partial_planes
+ Enable the interface clocks while calling
+ configure_dispc().
 
-TFP410 DVI chip is used to provide display out.
-This chip is controlled by 2 lines:
-LDO which supplies the power is controlled over gpio + 2
-and the enable of the chip itself is done over gpio + 1
-NOTE: the LDO is necessary for LED, serial blocks as well.
-
-gpio + 1 was used to sense USB overcurrent in vanilla beagle.
-
-Without this fix, the display would not function as the LDO
-remains shut down.
-
-[nm@ti.com: split up, added descriptive changelogs]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Koen Kooi <koen@beagleboard.org>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |   20 +++++++++++++++++---
- 1 files changed, 17 insertions(+), 3 deletions(-)
+ drivers/video/omap2/dss/manager.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 673deb9..458aee4 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -293,9 +293,10 @@ static int beagle_twl_gpio_setup(struct device *dev,
- 	/* REVISIT: need ehci-omap hooks for external VBUS
- 	 * power switch and overcurrent detect
- 	 */
--
--	gpio_request(gpio + 1, "EHCI_nOC");
--	gpio_direction_input(gpio + 1);
-+	if (omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XM) {
-+		gpio_request(gpio + 1, "EHCI_nOC");
-+		gpio_direction_input(gpio + 1);
-+	}
- 
- 	/*
- 	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
-@@ -316,6 +317,19 @@ static int beagle_twl_gpio_setup(struct device *dev,
- 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
- 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
- 
-+	/*
-+	 * gpio + 1 on Xm controls the TFP410's enable line (active low)
-+	 * gpio + 2 control varies depending on the board rev as follows:
-+	 * P7/P8 revisions(prototype): Camera EN
-+	 * A2+ revisions (production): LDO (supplies DVI, serial, led blocks)
-+	 */
-+	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-+		gpio_request(gpio + 1, "nDVI_PWR_EN");
-+		gpio_direction_output(gpio + 1, 0);
-+		gpio_request(gpio + 2, "DVI_LDO_EN");
-+		gpio_direction_output(gpio + 2, 1);
-+	}
-+
- 	return 0;
- }
- 
--- 
-1.6.3.3
+diff --git a/drivers/video/omap2/dss/manager.c
+b/drivers/video/omap2/dss/manager.c
+index 545e9b9..cb90dac 100644
+--- a/drivers/video/omap2/dss/manager.c
++++ b/drivers/video/omap2/dss/manager.c
+@@ -1106,7 +1106,9 @@ void dss_setup_partial_planes(struct omap_dss_device
+*dssdev,
+        mc->w = w;
+        mc->h = h;
 
++       dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
+        configure_dispc();
++       dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
+
+        mc->do_manual_update = false;
+
+--
+1.7.3.2
