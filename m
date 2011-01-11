@@ -1,21 +1,21 @@
 From: Rajendra Nayak <rnayak@ti.com>
 Subject: RE: [PATCH 2/5] OMAP: clockdomain: Arch specific funcs to handle deps
-Date: Tue, 11 Jan 2011 19:50:25 +0530
-Message-ID: <327d60b24fab12f48959caa67ba83c51@mail.gmail.com>
+Date: Tue, 11 Jan 2011 19:52:27 +0530
+Message-ID: <9d4bc48cf55c9070297ef446d6d7d260@mail.gmail.com>
 References: <1294237365-10893-1-git-send-email-rnayak@ti.com>
  <1294237365-10893-2-git-send-email-rnayak@ti.com> <1294237365-10893-3-git-send-email-rnayak@ti.com>
- <alpine.DEB.2.00.1101101808530.5731@utopia.booyaka.com>
+ <alpine.DEB.2.00.1101101749140.5731@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:47807 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932122Ab1AKOU2 (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:49043 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753800Ab1AKOWf (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Jan 2011 09:20:28 -0500
-Received: by mail-bw0-f47.google.com with SMTP id 10so19906858bwz.20
-        for <linux-omap@vger.kernel.org>; Tue, 11 Jan 2011 06:20:27 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1101101808530.5731@utopia.booyaka.com>
+	Tue, 11 Jan 2011 09:22:35 -0500
+Received: by eyf18 with SMTP id 18so8280155eyf.39
+        for <linux-omap@vger.kernel.org>; Tue, 11 Jan 2011 06:22:31 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1101101749140.5731@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
@@ -25,12 +25,14 @@ Hi Paul,
 
 > -----Original Message-----
 > From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Tuesday, January 11, 2011 7:02 AM
+> Sent: Tuesday, January 11, 2011 6:36 AM
 > To: Rajendra Nayak
 > Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com;
 b-cousson@ti.com
 > Subject: Re: [PATCH 2/5] OMAP: clockdomain: Arch specific funcs to
 handle deps
+>
+> Hi Rajendra
 >
 > On Wed, 5 Jan 2011, Rajendra Nayak wrote:
 >
@@ -57,89 +59,439 @@ handle deps
 > >  arch/arm/mach-omap2/clockdomain2xxx_3xxx.c       |  113
 ++++++++++++++++++++++
 > >  arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    2 +-
+> >  5 files changed, 150 insertions(+), 49 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+> >
+> > diff --git a/arch/arm/mach-omap2/Makefile
+b/arch/arm/mach-omap2/Makefile
+> > index 4ab82f6..d28db0a 100644
+> > --- a/arch/arm/mach-omap2/Makefile
+> > +++ b/arch/arm/mach-omap2/Makefile
+> > @@ -102,8 +102,10 @@ obj-$(CONFIG_ARCH_OMAP4)		+=
+$(powerdomain-common) \
+> >
+> >  # PRCM clockdomain control
+> >  obj-$(CONFIG_ARCH_OMAP2)		+= clockdomain.o \
+> > +					   clockdomain2xxx_3xxx.o \
+> >  					   clockdomains2xxx_3xxx_data.o
+> >  obj-$(CONFIG_ARCH_OMAP3)		+= clockdomain.o \
+> > +					   clockdomain2xxx_3xxx.o \
+> >  					   clockdomains2xxx_3xxx_data.o
+> >  obj-$(CONFIG_ARCH_OMAP4)		+= clockdomain.o \
+> >  					   clockdomains44xx_data.o
+> > diff --git a/arch/arm/mach-omap2/clockdomain.c
+b/arch/arm/mach-omap2/clockdomain.c
+> > index 3e40184..c32480c 100644
+> > --- a/arch/arm/mach-omap2/clockdomain.c
+> > +++ b/arch/arm/mach-omap2/clockdomain.c
+> > @@ -308,6 +308,7 @@ void clkdm_init(struct clockdomain **clkdms,
+> >  	struct clockdomain **c = NULL;
+> >  	struct clockdomain *clkdm;
+> >  	struct clkdm_autodep *autodep = NULL;
+> > +	struct clkdm_dep *cd;
+> >
+> >  	if (!custom_funcs)
+> >  		WARN(1, "No custom clkdm functions registered\n");
+> > @@ -333,7 +334,18 @@ void clkdm_init(struct clockdomain **clkdms,
+> >  		else if (clkdm->flags & CLKDM_CAN_DISABLE_AUTO)
+> >  			omap2_clkdm_deny_idle(clkdm);
+> >
+> > +		for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
+> > +			if (!omap_chip_is(cd->omap_chip))
+> > +				continue;
+> > +			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
+> > +		}
+> >  		clkdm_clear_all_wkdeps(clkdm);
+> > +
+> > +		for (cd = clkdm->sleepdep_srcs; cd && cd->clkdm_name;
+cd++) {
+> > +			if (!omap_chip_is(cd->omap_chip))
+> > +				continue;
+> > +			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
+> > +		}
+> >  		clkdm_clear_all_sleepdeps(clkdm);
+> >  	}
+> >  }
+> > @@ -445,8 +457,8 @@ int clkdm_add_wkdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+> >  		pr_debug("clockdomain: hardware will wake up %s when %s
+wakes "
+> >  			 "up\n", clkdm1->name, clkdm2->name);
+> >
+> > -		omap2_prm_set_mod_reg_bits((1 << clkdm2->dep_bit),
+> > -				     clkdm1->pwrdm.ptr->prcm_offs,
+PM_WKDEP);
+> > +		if (arch_clkdm && arch_clkdm->clkdm_add_wkdep)
+> > +			arch_clkdm->clkdm_add_wkdep(clkdm1, clkdm2);
 >
-> This is definitely a good start, but a lot of OMAP4 stuff still needs
-> to be done.
->
-> For example, OMAP4 has static wakeup dependencies just like OMAP2/3;
-> described in section 3.1.1.1.7.3 "Wake-Up Dependency" of the OMAP4430
-TRM
-> Rev. L.
->
-> OMAP4 also has static sleep dependencies just like OMAP3; described in
-> section 3.1.1.1.7.1 "Static Dependency" of the OMAP4430 TRM
-> Rev. L.
+> Putting this test inside the loop doesn't make sense to me; arch_clkdm
+and
+> arch_clkdm->clkdm_* only need to be tested once outside the loop.
+Please
+> do somtehing like this instead:
 
-I already have some patches to support static dependencies for OMAP4.
-Still working towards getting the autogen scripts in place, they seem to
-be a bit out of sync with whats in mainline today for clockdomains.
-I can post early patches as RFC to get your views on it.
-
-The only difference wrt OMAP3 is there is no control on OMAP4 to
-set/clear sleep and wakeup dependencies separately and hence
-they are called Static dependency and not 'Static wakeup' or 'Static
-sleep'.
-Setting a static dependency between clock domains on OMAP4 means setting
-sleep *as well as* wakeup dependency.
+Sure, will do the changes.
 
 >
-> The dynamic wakeup dependencies (section 3.1.1.1.7.2 of the TRM) and the
-> hardware inactivity timer are new for OMAP4.
+> 	cd = _clkdm_deps_lookup(clkdm2, clkdm1->wkdep_srcs);
+> 	if (IS_ERR(cd))
+> 		ret = PTR_ERR(cd);
 >
-> What's the plan to add support for these?
-
-I will be working on supporting these as well. Can be supported easily on
-top
-of the clockdomain split series. Still need to get the autogen scripts
-updated
-to generate the dynamic dependency data.
-
+> 	if (!arch_clkdm || !arch_clkdm->clkdm_add_wkdep)
+> 		ret = -EINVAL;
 >
-> Based on a brief look, it would seem to make sense to add support now
-for
-> static sleep dependencies.  These seem quite similar to the OMAP3
-> implementation, in that they are between clockdomains.
-
-Again like I said above, my next patch series will add support for static
-(sleep
-and wakeup) dependencies. The other 'wakeup dependency' that the TRM
-section 3.1.1.1.7.3 talks about is slightly different. See my comments
-below.
-
+> 	if (ret) {
+> 		pr_debug("clockdomain: hardware cannot set/clear wake up
+of "
+> 			 "%s when %s wakes up\n", clkdm1->name,
+clkdm2->name);
+> 		return ret;
+> 	}
 >
-> Dynamic wakeup dependencies and the prescaler timer configuration should
-> be fairly easy to add since it is a new feature, and thus no OMAP2/3
-> implementation is needed.  The dyndep stuff is between clockdomains, so
-> there shouldn't be any interaction needed with the hwmod code by my
-> reading.
+> 	if (atomic_inc_return(&cd->wkdep_usecount) == 1) {
+> 		pr_debug("clockdomain: hardware will wake up %s when %s
+wakes "
+> 			 "up\n", clkdm1->name, clkdm2->name);
 >
-> Static wakeup dependency support appears a little more tricky, since the
-> dependencies are between modules and clockdomains on OMAP4, rather than
-> between clockdomains and clockdomains as they were on OMAP2/3.  One way
-to
-> handle this would be to change the existing wkdep interface for all
-OMAPs
-> to be between modules and clockdomains; then for the OMAP2/3
-> implementations, use the hwmod code/data to get the clockdomain of the
-> module's main_clk.  Another is to add a separate interface to add wkdeps
-> between a module and clockdomain, use that for OMAP4, but use the
-existing
-> clockdomain-to-clockdomain interface for OMAP2/3.  It might be necessary
-> to do both until the hwmod data is more complete, then perhaps phase out
-> the latter interface.  Thoughts?
+> 		arch_clkdm->clkdm_add_wkdep(clkdm1, clkdm2);
+> 	}
+>
+> As in the above code, we should probably return an error if the function
+> pointers don't exist.  That should allow us to get rid of the
+>
+> 	if (!cpu_is_omap34xx())
+> 		return -EINVAL;
+>
+> tests in the sleepdep functions, since that can now be handled by just
+> leaving those function pointers NULL; see the below comments.
+>
+> These comments also apply to most of the other functions here.
+>
+> > @@ -480,8 +492,8 @@ int clkdm_del_wkdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+> >  		pr_debug("clockdomain: hardware will no longer wake up %s
+"
+> >  			 "after %s wakes up\n", clkdm1->name,
+clkdm2->name);
+> >
+> > -		omap2_prm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
+> > -				       clkdm1->pwrdm.ptr->prcm_offs,
+PM_WKDEP);
+> > +		if (arch_clkdm && arch_clkdm->clkdm_del_wkdep)
+> > +			arch_clkdm->clkdm_del_wkdep(clkdm1, clkdm2);
+> >  	}
+> >
+> >  	return 0;
+> > @@ -516,8 +528,10 @@ int clkdm_read_wkdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+> >  	}
+> >
+> >  	/* XXX It's faster to return the atomic wkdep_usecount */
+> > -	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
+PM_WKDEP,
+> > -				       (1 << clkdm2->dep_bit));
+> > +	if (arch_clkdm && arch_clkdm->clkdm_read_wkdep)
+> > +		return arch_clkdm->clkdm_read_wkdep(clkdm1, clkdm2);
+> > +
+> > +	return -EINVAL;
+> >  }
+> >
+> >  /**
+> > @@ -532,25 +546,11 @@ int clkdm_read_wkdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+> >   */
+> >  int clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
+> >  {
+> > -	struct clkdm_dep *cd;
+> > -	u32 mask = 0;
+> > -
+> >  	if (!clkdm)
+> >  		return -EINVAL;
+> >
+> > -	for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
+> > -		if (!omap_chip_is(cd->omap_chip))
+> > -			continue;
+> > -
+> > -		if (!cd->clkdm && cd->clkdm_name)
+> > -			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
+> > -
+> > -		/* PRM accesses are slow, so minimize them */
+> > -		mask |= 1 << cd->clkdm->dep_bit;
+> > -		atomic_set(&cd->wkdep_usecount, 0);
+> > -	}
+> > -
+> > -	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
+PM_WKDEP);
+> > +	if (arch_clkdm && arch_clkdm->clkdm_clear_all_wkdeps)
+> > +		arch_clkdm->clkdm_clear_all_wkdeps(clkdm);
+> >
+> >  	return 0;
+> >  }
+> > @@ -589,9 +589,8 @@ int clkdm_add_sleepdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+> >  		pr_debug("clockdomain: will prevent %s from sleeping if %s
+"
+> >  			 "is active\n", clkdm1->name, clkdm2->name);
+> >
+> > -		omap2_cm_set_mod_reg_bits((1 << clkdm2->dep_bit),
+> > -				    clkdm1->pwrdm.ptr->prcm_offs,
+> > -				    OMAP3430_CM_SLEEPDEP);
+> > +		if (arch_clkdm && arch_clkdm->clkdm_add_sleepdep)
+> > +			arch_clkdm->clkdm_add_sleepdep(clkdm1, clkdm2);
+> >  	}
+> >
+> >  	return 0;
+> > @@ -632,9 +631,8 @@ int clkdm_del_sleepdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+> >  			 "sleeping if %s is active\n", clkdm1->name,
+> >  			 clkdm2->name);
+> >
+> > -		omap2_cm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
+> > -				      clkdm1->pwrdm.ptr->prcm_offs,
+> > -				      OMAP3430_CM_SLEEPDEP);
+> > +		if (arch_clkdm && arch_clkdm->clkdm_del_sleepdep)
+> > +			arch_clkdm->clkdm_del_sleepdep(clkdm1, clkdm2);
+> >  	}
+> >
+> >  	return 0;
+> > @@ -675,9 +673,10 @@ int clkdm_read_sleepdep(struct clockdomain
+*clkdm1, struct clockdomain *clkdm2)
+> >  	}
+> >
+> >  	/* XXX It's faster to return the atomic sleepdep_usecount */
+> > -	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
+> > -				       OMAP3430_CM_SLEEPDEP,
+> > -				       (1 << clkdm2->dep_bit));
+> > +	if (arch_clkdm && arch_clkdm->clkdm_read_sleepdep)
+> > +		return arch_clkdm->clkdm_read_sleepdep(clkdm1, clkdm2);
+> > +
+> > +	return -EINVAL;
+> >  }
+> >
+> >  /**
+> > @@ -692,29 +691,14 @@ int clkdm_read_sleepdep(struct clockdomain
+*clkdm1, struct clockdomain *clkdm2)
+> >   */
+> >  int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
+> >  {
+> > -	struct clkdm_dep *cd;
+> > -	u32 mask = 0;
+> > -
+> >  	if (!cpu_is_omap34xx())
+> >  		return -EINVAL;
+> >
+> >  	if (!clkdm)
+> >  		return -EINVAL;
+> >
+> > -	for (cd = clkdm->sleepdep_srcs; cd && cd->clkdm_name; cd++) {
+> > -		if (!omap_chip_is(cd->omap_chip))
+> > -			continue;
+> > -
+> > -		if (!cd->clkdm && cd->clkdm_name)
+> > -			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
+> > -
+> > -		/* PRM accesses are slow, so minimize them */
+> > -		mask |= 1 << cd->clkdm->dep_bit;
+> > -		atomic_set(&cd->sleepdep_usecount, 0);
+> > -	}
+> > -
+> > -	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
+> > -			       OMAP3430_CM_SLEEPDEP);
+> > +	if (arch_clkdm && arch_clkdm->clkdm_clear_all_sleepdeps)
+> > +		arch_clkdm->clkdm_clear_all_sleepdeps(clkdm);
+> >
+> >  	return 0;
+> >  }
+> > diff --git a/arch/arm/mach-omap2/clockdomain.h
+b/arch/arm/mach-omap2/clockdomain.h
+> > index 346efa2..a9cda27 100644
+> > --- a/arch/arm/mach-omap2/clockdomain.h
+> > +++ b/arch/arm/mach-omap2/clockdomain.h
+> > @@ -181,4 +181,6 @@ int omap2_clkdm_clk_disable(struct clockdomain
+*clkdm, struct clk *clk);
+> >  extern void __init omap2_clockdomains_init(void);
+> >  extern void __init omap44xx_clockdomains_init(void);
+> >
+> > +extern struct clkdm_ops omap2_clkdm_operations;
+> > +
+> >  #endif
+> > diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+> > new file mode 100644
+> > index 0000000..a7303bd
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+> > @@ -0,0 +1,113 @@
+> > +/*
+> > + * OMAP2 and OMAP3 clockdomain control
+> > + *
+> > + * Copyright (C) 2008-2010 Texas Instruments, Inc.
+> > + * Copyright (C) 2008-2010 Nokia Corporation
+> > + *
+> > + * Derived from mach-omap2/clockdomain.c written by Paul Walmsley
+> > + * Rajendra Nayak <rnayak@ti.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#include <linux/types.h>
+> > +#include <plat/prcm.h>
+> > +#include "prm.h"
+> > +#include "prm2xxx_3xxx.h"
+> > +#include "cm.h"
+> > +#include "cm2xxx_3xxx.h"
+> > +#include "cm-regbits-24xx.h"
+> > +#include "cm-regbits-34xx.h"
+> > +#include "clockdomain.h"
+> > +
+> > +static void omap2_clkdm_add_wkdep(struct clockdomain *clkdm1,
+> > +						struct clockdomain
+*clkdm2)
+> > +{
+> > +	omap2_prm_set_mod_reg_bits((1 << clkdm2->dep_bit),
+> > +				clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
+> > +}
+> > +
+> > +static void omap2_clkdm_del_wkdep(struct clockdomain *clkdm1,
+> > +						 struct clockdomain
+*clkdm2)
+> > +{
+> > +	omap2_prm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
+> > +				clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
+> > +}
+> > +
+> > +static int omap2_clkdm_read_wkdep(struct clockdomain *clkdm1,
+> > +						 struct clockdomain
+*clkdm2)
+> > +{
+> > +	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
+> > +				PM_WKDEP, (1 << clkdm2->dep_bit));
+> > +}
+> > +
+> > +static void omap2_clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
+> > +{
+> > +	struct clkdm_dep *cd;
+> > +	u32 mask = 0;
+> > +
+> > +	for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
+> > +		if (!omap_chip_is(cd->omap_chip))
+> > +			continue;
+> > +
+> > +		/* PRM accesses are slow, so minimize them */
+> > +		mask |= 1 << cd->clkdm->dep_bit;
+> > +		atomic_set(&cd->wkdep_usecount, 0);
+> > +	}
+> > +
+> > +	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
+> > +				 PM_WKDEP);
+> > +}
+> > +
+> > +static void omap2_clkdm_add_sleepdep(struct clockdomain *clkdm1,
+> > +						 struct clockdomain
+*clkdm2)
+> > +{
+> > +	omap2_cm_set_mod_reg_bits((1 << clkdm2->dep_bit),
+> > +				clkdm1->pwrdm.ptr->prcm_offs,
+> > +				OMAP3430_CM_SLEEPDEP);
+> > +}
+>
+> OMAP2xxx didn't support software-controlled sleepdeps, so this should
+not
+> be present (note the 'OMAP3430' in the OMAP3430_CM_SLEEPDEP macro).
 
-The wakeup dependency here (between a module and a clock domain)
-is very different from the static dependency (between clock domains) and
-is
-very much like what the PM_<processor>_GRPSEL registers handled in OMAP3.
-They are used to control which processor is woken up on a given module/
-peripheral wakeup event. I have not given much thought on this for now but
-looks like this needs to be handled in some way using hwmod itself.
-I need to work some more to see how this can be handled.
-
-Regards,
+Yup, realized after I sent the patches out. Will fix them in V2.
+Thanks
 Rajendra
 
+>
+> > +
+> > +static void omap2_clkdm_del_sleepdep(struct clockdomain *clkdm1,
+> > +						 struct clockdomain
+*clkdm2)
+> > +{
+> > +	omap2_cm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
+> > +				clkdm1->pwrdm.ptr->prcm_offs,
+> > +				OMAP3430_CM_SLEEPDEP);
+> > +}
+>
+> as above
+>
+> > +
+> > +static int omap2_clkdm_read_sleepdep(struct clockdomain *clkdm1,
+> > +						 struct clockdomain
+*clkdm2)
+> > +{
+> > +	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
+> > +				OMAP3430_CM_SLEEPDEP, (1 <<
+clkdm2->dep_bit));
+> > +}
+>
+> as above
+>
+> > +
+> > +static void omap2_clkdm_clear_all_sleepdeps(struct clockdomain
+*clkdm)
+> > +{
+> > +	struct clkdm_dep *cd;
+> > +	u32 mask = 0;
+> > +
+> > +	for (cd = clkdm->sleepdep_srcs; cd && cd->clkdm_name; cd++) {
+> > +		if (!omap_chip_is(cd->omap_chip))
+> > +			continue;
+> > +
+> > +		/* PRM accesses are slow, so minimize them */
+> > +		mask |= 1 << cd->clkdm->dep_bit;
+> > +		atomic_set(&cd->sleepdep_usecount, 0);
+> > +	}
+> > +	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
+> > +				OMAP3430_CM_SLEEPDEP);
+> > +}
+>
+> as above
+>
+> > +
+> > +struct clkdm_ops omap2_clkdm_operations = {
+> > +	.clkdm_add_wkdep	= omap2_clkdm_add_wkdep,
+> > +	.clkdm_del_wkdep	= omap2_clkdm_del_wkdep,
+> > +	.clkdm_read_wkdep	= omap2_clkdm_read_wkdep,
+> > +	.clkdm_clear_all_wkdeps	= omap2_clkdm_clear_all_wkdeps,
+> > +	.clkdm_add_sleepdep	= omap2_clkdm_add_sleepdep,
+> > +	.clkdm_del_sleepdep	= omap2_clkdm_del_sleepdep,
+> > +	.clkdm_read_sleepdep	= omap2_clkdm_read_sleepdep,
+> > +	.clkdm_clear_all_sleepdeps	= omap2_clkdm_clear_all_sleepdeps,
+>
+> These four function pointers should not be present.  OMAP2xxx did not
+> support software-controlled sleepdeps.  You'll probably need to add
+> omap3_clkdm_operations in this patch.
+>
+> > +};
+> > diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+b/arch/arm/mach-
+> omap2/clockdomains2xxx_3xxx_data.c
+> > index 8cab07a..ba0bbbd 100644
+> > --- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+> > +++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+> > @@ -856,5 +856,5 @@ static struct clockdomain *clockdomains_omap2[]
+__initdata = {
+> >
+> >  void __init omap2_clockdomains_init(void)
+> >  {
+> > -	clkdm_init(clockdomains_omap2, clkdm_autodeps, NULL);
+> > +	clkdm_init(clockdomains_omap2, clkdm_autodeps,
+&omap2_clkdm_operations);
+> >  }
+> > --
+> > 1.7.0.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap"
+in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
 >
 >
 > - Paul
