@@ -1,49 +1,56 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v5 0/3] OMAP3: beaglexm: GPIO fixes
-Date: Tue, 11 Jan 2011 11:13:34 -0600
-Message-ID: <1294766017-12182-1-git-send-email-nm@ti.com>
+Subject: [PATCH v5 1/3] omap3: beaglexm: fix EHCI power up GPIO dir
+Date: Tue, 11 Jan 2011 11:13:35 -0600
+Message-ID: <1294766017-12182-2-git-send-email-nm@ti.com>
 References: <[PATCH v4 0/3] OMAP3: beaglexm: GPIO fixes>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40402 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932192Ab1AKRNr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jan 2011 12:13:47 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40304 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932329Ab1AKRNr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Jan 2011 12:13:47 -0500
 In-Reply-To: <[PATCH v4 0/3] OMAP3: beaglexm: GPIO fixes>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: l-o <linux-omap@vger.kernel.org>
 Cc: l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Tony <tony@atomide.com>, Koen Kooi <koen@beagleboard.org>, Aaro <aaro.koskinen@nokia.com>, Nishanth Menon <nm@ti.com>
 
-Hi,
-revision 5 of this series.
-As discussed in the threads:
-http://thread.gmane.org/gmane.linux.ports.arm.omap/47807/
-http://marc.info/?t=121540030800004&r=1&w=2
+From: Koen Kooi <koen@beagleboard.org>
 
-here is the split up series with commit message after discussion:
-http://www.beagleboard.org/irclogs/index.php?date=2011-01-06#T19:12:21
+EHCI enable power pin is inverted (active high) in comparison
+to vanilla beagle which is active low. Handle this case conditionally.
 
-Koen Kooi (3):
-  omap3: beaglexm: fix EHCI power up GPIO dir
-  omap3: beaglexm: fix DVI reset GPIO
-  omap3: beaglexm: fix power on of DVI
+Without this fix, Beagle XM 4 port EHCI will not function and no
+networking will be available
 
- arch/arm/mach-omap2/board-omap3beagle.c |   38 ++++++++++++++++++++++++++-----
- 1 files changed, 32 insertions(+), 6 deletions(-)
+[nm@ti.com: split up, added descriptive changelogs]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Koen Kooi <koen@beagleboard.org>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-v5:
-	review comment incorporation - gpio_direction_output removable.
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 6c12760..af1166b 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -297,9 +297,15 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 	gpio_request(gpio + 1, "EHCI_nOC");
+ 	gpio_direction_input(gpio + 1);
+ 
+-	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
++	/*
++	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
++	 * high / others active low)
++	 */
+ 	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
+-	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
++	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
++		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
++	else
++		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+ 
+ 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+ 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+-- 
+1.6.3.3
 
-v4: http://marc.info/?t=129444130100001&r=1&w=2
-  no functional change.
-  minor cleanups in commit logs incorporating offline feedback
-
-v3: http://marc.info/?t=129434384700006&r=1&w=2
-	split up the series, addressed review comments
-
-v2: http://marc.info/?t=129276977900002&r=1&w=2
-	Reenable the PMU stat LED
-v1: http://marc.info/?t=129172571000001&r=1&w=2
-
-Regards,
-Nishanth Menon
