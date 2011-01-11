@@ -1,86 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 3/3] omap3: beaglexm: fix power on of DVI
-Date: Tue, 11 Jan 2011 15:23:30 -0800
-Message-ID: <20110111232329.GY4957@atomide.com>
-References: <1294766017-12182-4-git-send-email-nm@ti.com>
+Subject: Re: [PATCH] omap3: igep3: Add omap_reserve functionality
+Date: Tue, 11 Jan 2011 15:29:08 -0800
+Message-ID: <20110111232908.GZ4957@atomide.com>
+References: <1294760874-28088-1-git-send-email-eballetbo@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51216 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57868 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753816Ab1AKXXk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jan 2011 18:23:40 -0500
+	with ESMTP id S1754661Ab1AKX3W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jan 2011 18:29:22 -0500
 Content-Disposition: inline
-In-Reply-To: <1294766017-12182-4-git-send-email-nm@ti.com>
+In-Reply-To: <1294760874-28088-1-git-send-email-eballetbo@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Koen Kooi <koen@beagleboard.org>, Aaro <aaro.koskinen@nokia.com>
+To: Enric Balletbo i Serra <eballetbo@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rmk+kernel@arm.linux.org.uk
 
-* Nishanth Menon <nm@ti.com> [110111 09:12]:
-> From: Koen Kooi <koen@beagleboard.org>
+* Enric Balletbo i Serra <eballetbo@gmail.com> [110111 07:47]:
+> This patch adds omap_reserve functionality to board-igep0030.c.
 > 
-> TFP410 DVI chip is used to provide display out.
-> This chip is controlled by 2 lines:
-> LDO which supplies the power is controlled over gpio + 2
-> and the enable of the chip itself is done over gpio + 1
-> NOTE: the LDO is necessary for LED, serial blocks as well.
-> 
-> gpio + 1 was used to sense USB overcurrent in vanilla beagle.
-> 
-> Without this fix, the display would not function as the LDO
-> remains shut down.
-> 
-> [nm@ti.com: split up, added descriptive changelogs]
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Koen Kooi <koen@beagleboard.org>
-> ---
->  arch/arm/mach-omap2/board-omap3beagle.c |   20 +++++++++++++++++---
->  1 files changed, 17 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 673deb9..458aee4 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -293,9 +293,10 @@ static int beagle_twl_gpio_setup(struct device *dev,
->  	/* REVISIT: need ehci-omap hooks for external VBUS
->  	 * power switch and overcurrent detect
->  	 */
-> -
-> -	gpio_request(gpio + 1, "EHCI_nOC");
-> -	gpio_direction_input(gpio + 1);
-> +	if (omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XM) {
-> +		gpio_request(gpio + 1, "EHCI_nOC");
-> +		gpio_direction_input(gpio + 1);
-> +	}
+> This patch is in similar lines to commit id 71ee7dad9b6991, from
+> Russell king
 
-The return value for gpio_request must be checked.
-  
->  	/*
->  	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
-> @@ -316,6 +317,19 @@ static int beagle_twl_gpio_setup(struct device *dev,
->  	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
->  	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
->  
-> +	/*
-> +	 * gpio + 1 on Xm controls the TFP410's enable line (active low)
-> +	 * gpio + 2 control varies depending on the board rev as follows:
-> +	 * P7/P8 revisions(prototype): Camera EN
-> +	 * A2+ revisions (production): LDO (supplies DVI, serial, led blocks)
-> +	 */
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-> +		gpio_request(gpio + 1, "nDVI_PWR_EN");
-> +		gpio_direction_output(gpio + 1, 0);
-> +		gpio_request(gpio + 2, "DVI_LDO_EN");
-> +		gpio_direction_output(gpio + 2, 1);
-> +	}
-> +
->  	return 0;
->  }
-
-Here too. I've applied the first two patches into devel-board branch,
-but not this one.
-
-Regards,
+Applying to devel-board.
 
 Tony
+ 
+> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+> Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+> ---
+>  arch/arm/mach-omap2/board-igep0030.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-igep0030.c b/arch/arm/mach-omap2/board-igep0030.c
+> index 11b944f..4dc62a9 100644
+> --- a/arch/arm/mach-omap2/board-igep0030.c
+> +++ b/arch/arm/mach-omap2/board-igep0030.c
+> @@ -450,6 +450,7 @@ static void __init igep3_init(void)
+>  
+>  MACHINE_START(IGEP0030, "IGEP OMAP3 module")
+>  	.boot_params	= 0x80000100,
+> +	.reserve	= omap_reserve,
+>  	.map_io		= omap3_map_io,
+>  	.init_irq	= igep3_init_irq,
+>  	.init_machine	= igep3_init,
+> -- 
+> 1.7.0.4
+> 
