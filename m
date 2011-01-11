@@ -1,46 +1,60 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: Passing mem=1G to kernel on Panda, system is unstable.
-Date: Wed, 12 Jan 2011 00:52:23 +0800
-Message-ID: <AANLkTin+ZjUoD9i+JxV7wW2+U6oEp42PdP5R4gdtzy=F@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH v5 2/3] omap3: beaglexm: fix DVI reset GPIO
+Date: Tue, 11 Jan 2011 11:13:36 -0600
+Message-ID: <1294766017-12182-3-git-send-email-nm@ti.com>
+References: <[PATCH v4 0/3] OMAP3: beaglexm: GPIO fixes>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f66.google.com ([209.85.216.66]:44800 "EHLO
-	mail-qw0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932349Ab1AKQwp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jan 2011 11:52:45 -0500
-Received: by qwk3 with SMTP id 3so6505299qwk.1
-        for <linux-omap@vger.kernel.org>; Tue, 11 Jan 2011 08:52:44 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:40401 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932138Ab1AKRNr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jan 2011 12:13:47 -0500
+In-Reply-To: <[PATCH v4 0/3] OMAP3: beaglexm: GPIO fixes>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+To: l-o <linux-omap@vger.kernel.org>
+Cc: l-a <linux-arm-kernel@lists.infradead.org>, Kevin <khilman@ti.com>, Tony <tony@atomide.com>, Koen Kooi <koen@beagleboard.org>, Aaro <aaro.koskinen@nokia.com>, Nishanth Menon <nm@ti.com>
 
-Hi folks,
+From: Koen Kooi <koen@beagleboard.org>
 
-We are trying to build kernel package or GCC natively on OMAP4 panda
-board. With the mainline 2.6.37 kernel or Ubuntu Natty 2.6.35 based
-kernel, we met same instabilities on the system when we try to use
-mem=3D1G on the board.
+GPIO reset line for Beagle XM is different from vanilla beagle
+so we populate it as part of gpio update routine.
 
-Please find our bug tracker here:
-https://bugs.launchpad.net/ubuntu/+source/linux-ti-omap4/+bug/633227
-and I think another bug is also related:
-https://bugs.launchpad.net/ubuntu/+source/linux-ti-omap4/+bug/690370.
-System will freeze at all when building GCC natively on Panda.
+This in part fixes the issue of display not functioning on beagle XM
+platform.
 
-Did any folks meet this issue? or we need more simple test case to
-catch the root cause of this issue.
+[nm@ti.com: split up, added descriptive changelogs]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Koen Kooi <koen@beagleboard.org>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-Thanks a lot,
---=20
-Bryan Wu <bryan.wu@canonical.com>
-Kernel Developer =A0 =A0+86.138-1617-6545 Mobile
-Ubuntu Kernel Team
-Canonical Ltd. =A0 =A0 =A0www.canonical.com
-Ubuntu - Linux for human beings | www.ubuntu.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index af1166b..673deb9 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -199,7 +199,7 @@ static struct omap_dss_device beagle_dvi_device = {
+ 	.name = "dvi",
+ 	.driver_name = "generic_panel",
+ 	.phy.dpi.data_lines = 24,
+-	.reset_gpio = 170,
++	.reset_gpio = -EINVAL,
+ 	.platform_enable = beagle_enable_dvi,
+ 	.platform_disable = beagle_disable_dvi,
+ };
+@@ -307,6 +307,12 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 	else
+ 		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+ 
++	/* DVI reset GPIO is different between beagle revisions */
++	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
++		beagle_dvi_device.reset_gpio = 129;
++	else
++		beagle_dvi_device.reset_gpio = 170;
++
+ 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+ 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+ 
+-- 
+1.6.3.3
+
