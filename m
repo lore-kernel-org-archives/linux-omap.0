@@ -1,77 +1,66 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: OMAP DSS Enable clocks in dss_setup_partial_planes
-Date: Wed, 12 Jan 2011 15:10:56 +0200
-Message-ID: <1294837856.15030.33.camel@tubuntu>
-References: b3985d3b9ab26a0aac963651376b21ac@mail.gmail.com <fd876042b2837b7dd3eaea2257dcbd6f@mail.gmail.com>
-	 <1294413238.3968.110.camel@nubuntu>
-	 <78677181845a6577fe0955a1984ac16a@mail.gmail.com>
-	 <c08bf1989fbe2e704960116748c416f3@mail.gmail.com>
-	 <1294823658.4156.18.camel@tubuntu>
-	 <93718b46f4f9309fb4b87599040a432f@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 4/9] cpuidle: Introduce .abbr (abbrevation) for cpuidle states
+Date: Wed, 12 Jan 2011 14:37:50 +0100
+Message-ID: <201101121437.51122.trenn@suse.de>
+References: <1294396190-23031-1-git-send-email-trenn@suse.de> <1294396190-23031-5-git-send-email-trenn@suse.de> <alpine.LFD.2.02.1101120150570.19140@x980>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:17312 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932125Ab1ALNK7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Jan 2011 08:10:59 -0500
-In-Reply-To: <93718b46f4f9309fb4b87599040a432f@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.02.1101120150570.19140@x980>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Frederic Weisbecker <fweisbec@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Ben Tucker <btucker@mpcdata.com>
-Cc: linux-omap@vger.kernel.org
 
-On Wed, 2011-01-12 at 11:20 +0000, ext Ben Tucker wrote:
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: 12 January 2011 09:14
-> > To: ext Ben Tucker
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: OMAP DSS Enable clocks in dss_setup_partial_planes
-> >
-> > Hi,
-> >
-> > On Tue, 2011-01-11 at 17:41 +0000, ext Ben Tucker wrote:
-> > > From 086e3454c8f154cd90a4669899f2179f16ef32cd Mon Sep 17 00:00:00
-> > 2001
-> > > From: Ben Tucker <btucker@mpc-data.co.uk>
-> > > Date: Thu, 13 Jan 2011 12:56:45 +0000
-> > > Subject: [PATCH] OMAP DSS Enable clocks in dss_setup_partial_planes
-> > >  Enable the interface clocks while calling>
-> > >  >  configure_dispc().
-> >
-> > This description doesn't really tell anything which isn't selfevident
-> > from the code below. Please check
-> > http://who-t.blogspot.com/2009/12/on-commit-messages.html
-> >
-> > But I presume this is about RFBI. If so, correct place to enable the
-> > clocks would be in rfbi.c.
-> >
-> >  Tomi
-> >
-> 
-> Apologies for the commit message. Updated patch below.
-> 
-> Are you sure the code to enable clocks should be placed in rfbi.c? The DSI
-> code (dsi.c) uses dss_setup_partial_planes() in the same way as rfbi.c and
-> there is no clock enable code there. Also omap_dss_mgr_apply() within
-> manager.c enables clocks for the configure_dispc() call.
+On Wednesday 12 January 2011 07:56:45 Len Brown wrote:
+> I'm not fond of inventing a new 3-character abbreviation field
+> for every state because display tools can't handle the existing
+> 16-character name field.
+I am also not "fond" of it, but it's a sane and easy
+solution and appropriate for this issue.
+ 
+> If the display tools can only handle 3 characters,
+> then why not have them simply use the 1st 3 characters
+> of the existing name field?
+You mean use:
+C3 NHM
+instead of
+NHM-C3
+for intel_idle?
 
-Usually the user should enable the clocks, in this case rfbi.c. DSI
-handles this so that the clocks are always enabled when the display is
-enabled. This could be easier for RFBI also, but due to legacy reasons
-RFBI currently tries to keep clocks disabled except when its actually
-doing something.
+Then userspace has to parse the two informations glued
+together, get rid of the whitespace, etc.
+But by sysfs convention a separate file must be used
+if two data are passed to userspace which is the case here.
 
-As for omap_dss_mgr_apply(), that function is also a "user" in this
-case. Apply is called from outside DSS driver, usually from omapfb.
+> If that is not unique,
+> then re-arrange the strings so that it is unique...
+See above, it would unnecessarily make life hard for
+userspace.
+Afaik sysfs entries do not consume resources as long as
+they do not get accessed.
 
-If the clk_enable/disable calls would be in the lower levels, this would
-mean a) greater overhead from clk_enable/disable calls and b) context
-saves and restores, as the DSS HW could go into OFF mode when the clocks
-are disabled.
+> Of course the ACPI part of this patch will not apply,
+> as it depends on patch 1 in this series, which was erroneous.
+> For ACPI, the existing name field is already fine,
+> as C%d fits into 3 characters.
+For acpi_idle only it would work, but this is (nearly) the only
+one.
+For example for sh arch:
+name: SuperH
+"SH SuperH" contains two data and should get split up into:
+name: SuperH
+abbr: SH
 
- Tomi
+By convention the first characters of "description" could be
+used, but you would again end up in userspace parsing and
+double info in one sysfs file.
 
+I hope that's enough for convincing, I'd really like to go
+the .abbr way. Do you give me an acked-by for that one?
 
+Thanks,
+
+    Thomas
