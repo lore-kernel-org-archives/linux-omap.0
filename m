@@ -1,71 +1,99 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] adding gpmc configuration functions, west bridge
- related
-Date: Wed, 12 Jan 2011 13:36:29 -0800
-Message-ID: <20110112213629.GA15225@kroah.com>
-References: <AANLkTim-1+CwW50mPwi6DnQDF680fxjJms7JrEPqsqkv@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 4/9] cpuidle: Introduce .abbr (abbrevation) for cpuidle
+ states
+Date: Wed, 12 Jan 2011 17:25:12 -0500 (EST)
+Message-ID: <alpine.LFD.2.02.1101121705130.19754@x980>
+References: <1294396190-23031-1-git-send-email-trenn@suse.de>
+ <1294396190-23031-5-git-send-email-trenn@suse.de>
+ <alpine.LFD.2.02.1101120150570.19140@x980> <201101121437.51122.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTim-1+CwW50mPwi6DnQDF680fxjJms7JrEPqsqkv@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sutharsan Ramamoorthy <sutharsan.tech@gmail.com>
-Cc: tony@atomide.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, david.cross@cypress.com, sutharsan.ramamoorthy@cypress.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-perf-users-owner@vger.kernel.org>
+In-reply-to: <201101121437.51122.trenn@suse.de>
+Sender: linux-perf-users-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Frederic Weisbecker <fweisbec@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 12, 2011 at 12:56:44PM -0800, Sutharsan Ramamoorthy wrote:
-> This patch implements gpmc configuration functions.
+> > If the display tools can only handle 3 characters,
+> > then why not have them simply use the 1st 3 characters
+> > of the existing name field?
 
-Why?
+> You mean use:
+> C3 NHM
+> instead of
+> NHM-C3
+> for intel_idle?
 
-> These gpmc functions are used by westbridge device controller driver
-> in staging tree to configure gpmc timings and bus width.
+Yes.
+is there a reason that would be a problem?
 
-How does the driver live today without these functions?
+If only 3 characters are useful,
+then I'd rather see you simly do this:
 
-And as this is a staging driver, any way to just leave the functions in
-the staging driver for now, as there are lots of other things that need
-to be done to this driver before it can be moved out of the staging
-tree.
+#define CPUIDLE_NAME_LEN 3
 
-Or is this one of those things?
+> Then userspace has to parse the two informations glued
+> together, get rid of the whitespace, etc.
 
-> This patch has been compiled in linux-2.6.37-rc4
+what "two informations"?
+why is kernel bloat the instrument of choice
+to avoid the expense of string truncation
+in user-space tools?
 
-This line isn't needed.
+> But by sysfs convention a separate file must be used
+> if two data are passed to userspace which is the case here.
 
-You also forgot the line:
-	This patch is corrupted by my email client and can not be
-	applied or built properly.
-:(
+what two data?
 
-> New files:
-> 1. ../arch/arm/mach-omap2/usb-cywb-pnand.c
-> 2. ../include/linux/usb/cywb.h
+It is fine for a string to include space characters.
+
+> > If that is not unique,
+> > then re-arrange the strings so that it is unique...
+
+> See above, it would unnecessarily make life hard for
+> userspace.
+> Afaik sysfs entries do not consume resources as long as
+> they do not get accessed.
+
+they clutter the source code,
+they create  an additional name for something
+that arguably already has 3 names --
+the state #, the name, and the description.
+I'd rather delete a few of the fields than add a 4th...
+
+> >Of course the ACPI part of this patch will not apply,
+> > as it depends on patch 1 in this series, which was erroneous.
+> > For ACPI, the existing name field is already fine,
+> > as C%d fits into 3 characters.
+
+> For acpi_idle only it would work, but this is (nearly) the only
+> one.
+> For example for sh arch:
+> name: SuperH
+> "SH SuperH" contains two data and should get split up into:
+> name: SuperH
+> abbr: SH
+
+acpi/arch/sh/kernel/cpu/shmobile/cpuidle.c
+already uses state->name = "C0", "C1", "C2".
+
+Just use them and be done.
+
+> By convention the first characters of "description" could be
+> used, but you would again end up in userspace parsing and
+> double info in one sysfs file.
 > 
-> Modified files:
-> 1. ../arch/arm/mach-omap2/board-zoom-peripherals.c
-> 2. ../arch/arm/mach-omap2/Makefile
-> 3.
-> ../drivers/staging/westbridge/astoria/arch/arm/mach-omap2/cyashalomap_kernel.c
-> 4.
-> ../drivers/staging/westbridge/astoria/arch/arm/plat-omap/include/mach/westbridge/westbridge-omap3-pnand-hal/cyashalomap_kernel.h
-> 5. ../drivers/staging/westbridge/astoria/device/cyasdevice.c
+> I hope that's enough for convincing, I'd really like to go
+> the .abbr way. Do you give me an acked-by for that one?
 
-What is this?  We know what has been added and modified by virtue of the
-patch itself.  Please use 'git format-patch' to create a patch that
-includes the diffstat in it automatically, if you want to show that
-(which you should.)
+No.
 
-> Signed-off by: Sutharsan Ramamoorthy <srmt@cypress.com>
-
-This differs from your "From:" line in your email.  If you want to
-properly attribute the patch's author, please read
-Documentation/SubmittingPatches to do that.
-
-Care to try it again?
+We should not invent an additional abbreviation field.
+The tools should use the existing name field.
+If the existing name field is not sufficient, then
+the states should simply be enumerated and numbers
+be shown in the GUI.
 
 thanks,
-
-greg k-h
+Len Brown, Intel Open Source Technology Center
