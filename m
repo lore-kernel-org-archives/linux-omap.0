@@ -1,214 +1,70 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCHv2] omap3: Add basic support for 720MHz part
-Date: Thu, 13 Jan 2011 00:03:54 +0530
-Message-ID: <1294857234-1676-1-git-send-email-premi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: 2.6.37-omap1 tag?
+Date: Wed, 12 Jan 2011 12:04:01 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101121121450.5731@utopia.booyaka.com>
+References: <0C40218E-D65B-4DAE-ABBB-0CB1A02A0E5E@dominion.thruhere.net> <0a8f7e11ed463078411f7692ea233a92@mail.gmail.com> <20110111163454.GS4957@atomide.com> <CA2B2459-D659-4CA9-9D1C-09C65A37DDE6@dominion.thruhere.net>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-619561520-1294859041=:5731"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40217 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751404Ab1ALSeD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Jan 2011 13:34:03 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p0CIXx35024345
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 12 Jan 2011 12:34:01 -0600
+Received: from utopia.booyaka.com ([72.9.107.138]:45163 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750741Ab1ALTED (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jan 2011 14:04:03 -0500
+In-Reply-To: <CA2B2459-D659-4CA9-9D1C-09C65A37DDE6@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: Tony Lindgren <tony@atomide.com>, Anand Gadiyar <gadiyar@ti.com>, l-o List <linux-omap@vger.kernel.org>
 
-This patch adds support for new speed enhanced parts with ARM
-and IVA running at 720MHz and 520MHz respectively. These parts
-can be probed at run-time by reading PRODID.SKUID[3:0] at
-0x4830A20C [1].
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-This patch specifically doe following:
- * Detect devices capable of 720MHz.
- * Add new OPP
- * Ensure that OPP is conditionally enabled.
+--155748971-619561520-1294859041=:5731
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-  [1] http://focus.ti.com/lit/ug/spruff1d/spruff1d.pdf
+On Wed, 12 Jan 2011, Koen Kooi wrote:
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
-Since last revision:
-1) Using opp_enable() to enable the OPP after the OPP
-   table has been initialized.
-2) Starting at 3 levels of indent, the statements had
-   be broken into multiple lines for most of the code.
-   So, opted to create a new static that enables the
-   OPPs corresponding to 720MHz.
-3) I have only build tested this patch - will be able
-   to confirm working tomorrow. With any further change,
-   if needed. (However, functionally nothing has changed.)
+> Op 11 jan 2011, om 17:34 heeft Tony Lindgren het volgende geschreven:
+>=20
+> > * Anand Gadiyar <gadiyar@ti.com> [110111 03:04]:
+> >> Koen Kooi wrote:
+> >>> Are there any plans to do a 2.6.37-omap1 tag?
+> >>=20
+> >> Given that linux-omap is now closely tracking mainline, is
+> >> this still needed?
+> >=20
+> > Those tags are no longer needed, the mainline kernel is now the
+> > stable kernel and should be used as the base for any distros
+> > or products.
+>=20
+> It turns out that l-o head (.37-rc8 currently) and Linus' .37 differ a=20
+> lot,
 
- arch/arm/mach-omap2/control.h         |    7 ++++
- arch/arm/mach-omap2/id.c              |   10 ++++++
- arch/arm/mach-omap2/opp3xxx_data.c    |   53 ++++++++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/cpu.h |    2 +
- 4 files changed, 71 insertions(+), 1 deletions(-)
+Tony's master branch is basically a development branch.  It's rebuilt=20
+often, and it's up to Tony what gets added or dropped.
 
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index f0629ae..eebc045 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -365,6 +365,13 @@
- #define		FEAT_NEON		0
- #define		FEAT_NEON_NONE		1
- 
-+/*
-+ * Product ID register
-+ */
-+#define OMAP3_PRODID			0x020C
-+
-+#define OMAP3_SKUID_MASK		0x0f
-+#define		OMAP3_SKUID_720MHZ	0x08
- 
- #ifndef __ASSEMBLY__
- #ifdef CONFIG_ARCH_OMAP2PLUS
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 5f9086c..53fbe01 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -195,6 +195,15 @@ static void __init omap3_check_features(void)
- 	 * TODO: Get additional info (where applicable)
- 	 *       e.g. Size of L2 cache.
- 	 */
-+
-+	/*
-+	 * Does it support 720MHz?
-+	 */
-+	status = (OMAP3_SKUID_MASK & read_tap_reg(OMAP3_PRODID));
-+
-+	if (status & OMAP3_SKUID_720MHZ) {
-+		omap3_features |= OMAP3_HAS_720MHZ;
-+	}
- }
- 
- static void __init omap3_check_revision(void)
-@@ -445,6 +454,7 @@ static void __init omap3_cpuinfo(void)
- 	OMAP3_SHOW_FEATURE(neon);
- 	OMAP3_SHOW_FEATURE(isp);
- 	OMAP3_SHOW_FEATURE(192mhz_clk);
-+	OMAP3_SHOW_FEATURE(720mhz);
- 
- 	printk(")\n");
- }
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index 0486fce..9405c3f 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -17,8 +17,10 @@
-  * GNU General Public License for more details.
-  */
- #include <linux/module.h>
-+#include <linux/opp.h>
- 
- #include <plat/cpu.h>
-+#include <plat/omap_device.h>
- 
- #include "omap_opp_data.h"
- 
-@@ -33,6 +35,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("mpu", true, 550000000, 1270000),
- 	/* MPU OPP5 */
- 	OPP_INITIALIZER("mpu", true, 600000000, 1350000),
-+	/* MPU OPP6 */
-+	OPP_INITIALIZER("mpu", false, 720000000, 1350000),
- 
- 	/*
- 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-@@ -58,6 +62,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("iva", true, 400000000, 1270000),
- 	/* DSP OPP5 */
- 	OPP_INITIALIZER("iva", true, 430000000, 1350000),
-+	/* DSP OPP6 */
-+	OPP_INITIALIZER("iva", false, 520000000, 1350000),
- };
- 
- static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
-@@ -85,6 +91,46 @@ static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
- 	OPP_INITIALIZER("iva", false, 800000000, 1375000),
- };
- 
-+
-+/**
-+ * omap3_opp_enable_720Mhz() - Enable the OPP corresponding to 720MHz
-+ *
-+ * This function would be executed only if the silicon is capable of
-+ * running at the 720MHz.
-+ */
-+static int __init omap3_opp_enable_720Mhz(void)
-+{
-+	int r = -ENODEV;
-+	struct omap_hwmod *oh_mpu = omap_hwmod_lookup("mpu");
-+	struct omap_hwmod *oh_iva = omap_hwmod_lookup("iva");
-+
-+	if (!oh_mpu || !oh_mpu->od) {
-+		goto err;
-+	} else {
-+		r = opp_enable(&(oh_mpu->od->pdev.dev),	720000000);
-+		if (r < 0) {
-+			pr_err("%s: Unable to enable OPP for mpu.", __func__);
-+			goto err;
-+		}
-+	}
-+
-+	if (!oh_iva || !oh_iva->od) {
-+		r = -ENODEV;
-+		goto err;
-+	} else {
-+		r = opp_enable(&(oh_iva->od->pdev.dev), 520000000);
-+		if (r < 0) {
-+			pr_err("%s: Unable to enable OPP for iva.", __func__);
-+			goto err;
-+		}
-+	}
-+
-+	pr_info("Enabled OPP corresponding to 720MHz\n");
-+
-+err:
-+	return r;
-+}
-+
- /**
-  * omap3_opp_init() - initialize omap3 opp table
-  */
-@@ -98,10 +144,15 @@ static int __init omap3_opp_init(void)
- 	if (cpu_is_omap3630())
- 		r = omap_init_opp_table(omap36xx_opp_def_list,
- 			ARRAY_SIZE(omap36xx_opp_def_list));
--	else
-+	else {
- 		r = omap_init_opp_table(omap34xx_opp_def_list,
- 			ARRAY_SIZE(omap34xx_opp_def_list));
- 
-+		if (omap3_has_720mhz()) {
-+			r = omap3_opp_enable_720Mhz();
-+		}
-+	}
-+
- 	return r;
- }
- device_initcall(omap3_opp_init);
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 3fd8b40..5c77987 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -455,6 +455,7 @@ extern u32 omap3_features;
- #define OMAP3_HAS_ISP			BIT(4)
- #define OMAP3_HAS_192MHZ_CLK		BIT(5)
- #define OMAP3_HAS_IO_WAKEUP		BIT(6)
-+#define OMAP3_HAS_720MHZ		BIT(7)
- 
- #define OMAP3_HAS_FEATURE(feat,flag)			\
- static inline unsigned int omap3_has_ ##feat(void)	\
-@@ -469,5 +470,6 @@ OMAP3_HAS_FEATURE(neon, NEON)
- OMAP3_HAS_FEATURE(isp, ISP)
- OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
- OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
-+OMAP3_HAS_FEATURE(720mhz, 720MHZ)
- 
- #endif
--- 
-1.7.2.2
+The patches that Tony sends to linux-next, and then Linus, go into Tony's=
+=20
+omap-for-linus branch.  That branch includes changes from other OMAP=20
+maintainers or submaintainers, like Kevin, Beno=EEt, myself, etc. =20
 
+A significant amount of effort is focused after -rc6 making sure that=20
+omap-for-linus builds cleanly and that features important to us work.  Of=
+=20
+course, sometimes we miss things, but in general, omap-for-linus receives=
+=20
+much more OMAP maintainer testing than Tony's master branch.
+
+> so after spending an evening fruitlessly trying to rebase my=20
+> patches on top of Linus' .37 I decided to go the other way and just do=20
+> 'git format-patch v2.6.37-rc8..v2.6.37', apply those on top of l-o rc8=20
+> and then rebase my patchset on top of that. That was 5 minutes of work.
+
+Sounds fine if you are creating Koenux.  If not, I guess you'll eventually=
+=20
+need to rebase the patches on mainline anyway.
+
+
+- Paul
+--155748971-619561520-1294859041=:5731--
