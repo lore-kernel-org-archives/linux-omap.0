@@ -1,66 +1,46 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 0/0] RFC: ARM: Thumb-2: Symbol manipulation macros for
-	function body copying
-Date: Wed, 12 Jan 2011 16:11:51 +0000
-Message-ID: <20110112161151.GB18833@n2100.arm.linux.org.uk>
-References: <1294790551-17069-1-git-send-email-dave.martin@linaro.org> <20110112093209.GA18833@n2100.arm.linux.org.uk> <AANLkTimB1dcK=F1bFh6bUtBPY0gk+Y+Y0SQqrSRW0YFa@mail.gmail.com>
+From: Thomas Winkler <tom.winkler@gmail.com>
+Subject: Q: OMAP 4430 FDIF (Face Detection Interface)
+Date: Wed, 12 Jan 2011 17:42:22 +0100
+Message-ID: <AANLkTimZqR3OTKzJ=KdLNYGjOfPFZtCKtrJMqZGPP+rb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37860 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752212Ab1ALQME (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jan 2011 11:12:04 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTimB1dcK=F1bFh6bUtBPY0gk+Y+Y0SQqrSRW0YFa@mail.gmail.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:51391 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752200Ab1ALQmX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jan 2011 11:42:23 -0500
+Received: by iwn9 with SMTP id 9so684441iwn.19
+        for <linux-omap@vger.kernel.org>; Wed, 12 Jan 2011 08:42:22 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: linux-omap@vger.kernel.org
 
-On Wed, Jan 12, 2011 at 10:00:25AM -0600, Dave Martin wrote:
-> omap provides some infrastructure for both allocating SRAM space and
-> doing the copy, using omap_sram_push() and friends.  So I wasn't sure
-> what the correct level of abstraction was for the new helpers.
-> Certainly, providing a sort of "function memcpy" macro like your
-> copy_fn_to_sram makes sense.
+Dear OMAP Developers,
 
-It'd just be a matter of splitting the copying out of omap_sram_push().
+I'm working on a driver for the face detection interface (FDIF) IP
+core that is part of the OMAP 4430 SoC.
+My development platform is the Pandaboard. I'm make good progress - I
+was able to set up the IP
+core according to the TI documents (SWPU231N). For now, I'm not using
+interrupts but poll while waiting
+for the results. Starting the FDIF engine (FD_CTRL RUN bit) works as
+expected and the completion of the
+procedure is indicated via the FD_CTRL FINISH bit as described by the
+documentation. So far so good.
+The issue I have is that no matter what data (i.e., 320x240 grayscale
+image with faces on it) i send to the
+core, I always get 0 detections reported in the FD_DNUM register.
+I've been playing around with the "performance parameters" exposed by
+the core via the FD_COND and
+FD_LHIT registers but had no luck. I have no idea why I'm not getting
+any detections. And since I do not
+get any other feedback than the 0 in FD_DNUM from the core, this is
+difficult to debug.
+Are there somewhere  test images available that are known to produce
+results other than 0 faces? Maybe
+someone from TI who is familiar with the FDIF subsystem could help me
+with this one.
+I'd really appreciate that!
 
-> I think this should still be safe from a type system perspective:
-> providing the "blind" type casts using asm() appear somewhere in
-> the execution flow C shouldn't make silly assumptions even if Linux
-> ends up enabling multifile optimisation sometime in the future.
-
-Yes.  The only thing that is missing from my version is the
-flush_icache_range() which should also be there.
-
-> > Used by:
-> > extern void my_func(int foo);
-> > extern int my_func_size;
-> 
-> Potentially, we could define, an extra assembler macro to complement
-> ENDPROC() which records the size of a function automatically.  What do
-> you think?
-
-That would pad the code out with a fair number of additional integers.
-That's probably not a good idea.
-
-> The model used in the omap code is to copy some functions into SRAM
-> ahead of time and stash the pointers away to be called later: for that
-> model, it's not so useful to have something like call_my_func
-> directly.  Also, I wasn't sure whether conflating other functionality
-> such as cache flushing into the new macros would be a good idea -- is
-> might be cleaner and more maintainable, but might result in less
-> efficient usage.  Any thoughts?
-
-My example was only that - an example.  You can also use it in the
-way you describe too:
-
-	to = omap_sram_push(size);
-	_omap_sram_reprogram_clock = copy_fn_to_sram(to,
-					omap1_sram_reprogram_clock, size);
-
-and it'll also ensure type-safety between the omap1_sram_reprogram_clock
-and _omap_sram_reprogram_clock symbols, which the current code doesn't
-do.
+Thank you,
+Thomas
