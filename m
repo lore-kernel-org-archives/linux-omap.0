@@ -1,47 +1,39 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 4/9] cpuidle: Introduce .abbr (abbrevation) for cpuidle states
-Date: Thu, 13 Jan 2011 00:39:18 +0100
-Message-ID: <201101130039.19519.trenn@suse.de>
-References: <1294396190-23031-1-git-send-email-trenn@suse.de> <201101121437.51122.trenn@suse.de> <alpine.LFD.2.02.1101121705130.19754@x980>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Passing mem=1G to kernel on Panda, system is unstable.
+Date: Wed, 12 Jan 2011 16:50:47 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101121649560.5731@utopia.booyaka.com>
+References: <AANLkTin+ZjUoD9i+JxV7wW2+U6oEp42PdP5R4gdtzy=F@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.02.1101121705130.19754@x980>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Frederic Weisbecker <fweisbec@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:60686 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755462Ab1ALXus (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jan 2011 18:50:48 -0500
+In-Reply-To: <AANLkTin+ZjUoD9i+JxV7wW2+U6oEp42PdP5R4gdtzy=F@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Bryan Wu <bryan.wu@canonical.com>
+Cc: linux-omap@vger.kernel.org, Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
 
-On Wednesday 12 January 2011 23:25:12 Len Brown wrote:
-> > > If the display tools can only handle 3 characters,
-> > > then why not have them simply use the 1st 3 characters
-> > > of the existing name field?
+On Wed, 12 Jan 2011, Bryan Wu wrote:
+
+> We are trying to build kernel package or GCC natively on OMAP4 panda
+> board. With the mainline 2.6.37 kernel or Ubuntu Natty 2.6.35 based
+> kernel, we met same instabilities on the system when we try to use
+> mem=1G on the board.
 > 
-> > You mean use:
-> > C3 NHM
-> > instead of
-> > NHM-C3
-> > for intel_idle?
+> Please find our bug tracker here:
+> https://bugs.launchpad.net/ubuntu/+source/linux-ti-omap4/+bug/633227
+> and I think another bug is also related:
+> https://bugs.launchpad.net/ubuntu/+source/linux-ti-omap4/+bug/690370.
+> System will freeze at all when building GCC natively on Panda.
 > 
-> Yes.
-> is there a reason that would be a problem?
-A much more elegant solution came to my mind:
-I'll rewrite the perf timechart patch to do:
-Title:   C-stateName1 [1] , C-stateName2 [2]
-and later I will refer to the states by 1, 2, ...
-Eventually a:
-Description:
-[1] C-stateDescription1
-[2] C-stateDescription2
-...
-can be put somewhere as well.
+> Did any folks meet this issue? or we need more simple test case to
+> catch the root cause of this issue.
 
-Please ignore this patch.
+Does the problem also happen if you boot with 'nosmp' on the kernel 
+command line?
 
-Stupid that I didn't think of that in the first place.
 
-Thanks,
-
-   Thomas
+- Paul
