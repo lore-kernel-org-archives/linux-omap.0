@@ -1,55 +1,63 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: [PATCH 4/9] cpuidle: Introduce .abbr (abbrevation) for cpuidle states
-Date: Thu, 13 Jan 2011 10:42:29 -0500
-Message-ID: <13258.1294933349@localhost>
-References: <1294396190-23031-1-git-send-email-trenn@suse.de> <1294396190-23031-5-git-send-email-trenn@suse.de> <alpine.LFD.2.02.1101120150570.19140@x980> <201101121437.51122.trenn@suse.de>
-            <alpine.LFD.2.02.1101121705130.19754@x980>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP
+ boot failure)
+Date: Thu, 13 Jan 2011 07:51:53 -0800
+Message-ID: <20110113155152.GG4957@atomide.com>
+References: <20110106170805.GE1198@n2100.arm.linux.org.uk>
+ <20110106180030.GA8249@n2100.arm.linux.org.uk>
+ <20110106182023.GV7771@atomide.com>
+ <20110106203238.GH1198@n2100.arm.linux.org.uk>
+ <20110106204053.GA7771@atomide.com>
+ <20110107161230.GR1198@n2100.arm.linux.org.uk>
+ <20110110185209.GC4957@atomide.com>
+ <20110111231611.GX4957@atomide.com>
+ <2f1a86cfda277de8d190e5eb9b9ccd77@mail.gmail.com>
+ <20110113091546.GA24429@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1294933349_5688P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: Your message of "Wed, 12 Jan 2011 17:25:12 EST."
-             <alpine.LFD.2.02.1101121705130.19754@x980>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>, linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, j-pihet@ti.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Frederic Weisbecker <fweisbec@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
---==_Exmh_1294933349_5688P
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58864 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756747Ab1AMPwL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jan 2011 10:52:11 -0500
+Content-Disposition: inline
+In-Reply-To: <20110113091546.GA24429@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Anand Gadiyar <gadiyar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On Wed, 12 Jan 2011 17:25:12 EST, Len Brown said:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110113 01:15]:
+> On Thu, Jan 13, 2011 at 02:22:06PM +0530, Anand Gadiyar wrote:
+> > Tony Lindgren wrote:
+> > >  	/* Power on the ULPI PHY */
+> > > -	if (gpio_is_valid(OMAP4SDP_MDM_PWR_EN_GPIO)) {
+> > > -		/* FIXME: Assumes pad is already muxed for GPIO mode */
+> > > -		gpio_request(OMAP4SDP_MDM_PWR_EN_GPIO, "USBB1 PHY
+> > VMDM_3V3");
+> > > +	status = gpio_request(OMAP4SDP_MDM_PWR_EN_GPIO, "USBB1 PHY
+> > VMDM_3V3");
+> > > +	if (status)
+> > > +		pr_err("%s: Could not get USBB1 PHY GPIO\n");
+> > 
+> > Tony,
+> > 
+> > This throws up a build warning as there's no parameter corresponding to
+> > the %s. Showed up in linux-next as of today.
 
-> > But by sysfs convention a separate file must be used
-> > if two data are passed to userspace which is the case here.
-> 
-> what two data?
-> 
-> It is fine for a string to include space characters.
+Oops, sorry, will fix.
+ 
+> It's pretty obvious that the above is wrong, and the compiler would
+> have caught it with a warning when building it.  Was the above patch
+> not build-tested before it was committed?
 
-I think Thomas is concerned that although when you actually read a /sys
-file, you know it's one string, that fact can get easily lost and cause issues
-down the road. Consider this code:
+Sure, boot tested it but missed the warning though.
+ 
+> Given the very sorry state of OMAP in mainline at present, I'm surprised
+> that this kind of stuff is still going on...
 
-foo=`cat /sys/some/file`
-bar=`cat /sys/other/file`
-baz=`cat /sys/third/file`
-echo $foo $bar $baz | awk '{print $2 $3}'
+At least I boot test the patches I send..
 
-Suddenly your output isn't what you expected...
+Regards,
 
---==_Exmh_1294933349_5688P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFNLx1lcC3lWbTT17ARAh+5AKDO3njvfdeLwHRolBhga5tdWk17GQCfQjna
-5NRZO5tAIu4zmvbxJ2zLUe4=
-=B2BS
------END PGP SIGNATURE-----
-
---==_Exmh_1294933349_5688P--
-
+Tony
