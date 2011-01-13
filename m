@@ -1,114 +1,99 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCHv2] omap3: Add basic support for 720MHz part
-Date: Thu, 13 Jan 2011 17:25:32 +0530
-Message-ID: <AANLkTinOvidTo7tUftHk4_7+VK980pwQyHN15Dvo9eUB@mail.gmail.com>
-References: <1294857234-1676-1-git-send-email-premi@ti.com>
-	<20110113035355.GA2178@manju-desktop>
-	<B85A65D85D7EB246BE421B3FB0FBB593024834A32F@dbde02.ent.ti.com>
-	<AANLkTiknC64=nqG2ch9e9GA=MK0iazvd4tOO5GPxVjgQ@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59302483D803C@dbde02.ent.ti.com>
-	<AANLkTi=RJPJEKpPgej+DQ7dWkajxx7=K4WR80j9mNxtc@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59302483D808D@dbde02.ent.ti.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: Issues with ADATA SD cards on OMAP?
+Date: Thu, 13 Jan 2011 05:34:28 -0800
+Message-ID: <AANLkTik2rq1=Uhs+Nxn4oMCsUzpKG-_PF3qWYZYo6jWF@mail.gmail.com>
+References: <AANLkTinw=ZjiOr1KHNxu1Npq5iLucOPyw0Gumdyq1jjS@mail.gmail.com>
+	<AANLkTi=SKb9wCUMyvvT59qYCMm8wViZRAYgtDOJXiLKy@mail.gmail.com>
+	<B00BD5DB-31BB-42C8-B360-241173342F86@mac.com>
+	<AANLkTik8wTknohEDfNnoYsZt8xuQRb48gUC7T_Xg+afz@mail.gmail.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B036A6F2808@dbde02.ent.ti.com>
+	<AANLkTimo_7zK0WT81jJ1F2iat+9G0aC0O=4pJPt6O4J2@mail.gmail.com>
+	<AANLkTimzYff_9PSSMpiXAyVX0FGHafVdBusCCGNyZqQP@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:47345 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932641Ab1AMLze convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Jan 2011 06:55:34 -0500
-Received: by bwz13 with SMTP id 13so1323073bwz.1
-        for <linux-omap@vger.kernel.org>; Thu, 13 Jan 2011 03:55:32 -0800 (PST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59302483D808D@dbde02.ent.ti.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:58984 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756571Ab1AMNe3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jan 2011 08:34:29 -0500
+Received: by qwa26 with SMTP id 26so1791648qwa.19
+        for <linux-omap@vger.kernel.org>; Thu, 13 Jan 2011 05:34:28 -0800 (PST)
+In-Reply-To: <AANLkTimzYff_9PSSMpiXAyVX0FGHafVdBusCCGNyZqQP@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: Elvis Dowson <elvis.dowson@mac.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-On Thu, Jan 13, 2011 at 5:21 PM, Premi, Sanjeev <premi@ti.com> wrote:
+On Wed, Jan 12, 2011 at 8:30 PM, Steve Sakoman <sakoman@gmail.com> wrot=
+e:
+> On Wed, Jan 12, 2011 at 9:48 AM, Steve Sakoman <sakoman@gmail.com> wr=
+ote:
+>> On Tue, Jan 11, 2011 at 10:17 PM, Ghorai, Sukumar <s-ghorai@ti.com> =
+wrote:
+>>
+>>> [Ghorai]
+>>> We also experienced the same issue using 32GB SD card for omap3 and=
+ omap4.
+>>> And the problem is seen is that DTO value (in SYSCTL) is not curren=
+t
+>>> in following function.
+>>>
+>>> So add the following modification and please update the status.
+>>> And we will submit proper patch towards the same.
+>>>
+>>> static void set_data_timeout(..){
+>>> ...
+>>> =A0 =A0 =A0cycle_ns =3D 1000000000 / (clk_get_rate(host->fclk) / cl=
+kd);
+>>> =A0 =A0 =A0 =A0timeout =3D timeout_ns / cycle_ns;
+>>> =A0 =A0 =A0 =A0timeout +=3D timeout_clks;
+>>> + timeout *=3D2;
+>>> =A0 =A0 =A0if (timeout) {
+>>> ...
+>>> }
+>>
+>> I tried this change. =A0While it seemed to improve things a bit for =
+the
+>> ADATA card I tested, I was still not able to boot successfully.
+>>
+>> I will investigate further. =A0Forcing a value of 14 makes the card
+>> work. =A0I'll add a printk to see what dto value is computed by your
+>> patch.
 >
->> -----Original Message-----
->> From: G, Manjunath Kondaiah [mailto:manjugk@ti.com]
->> Sent: Thursday, January 13, 2011 5:16 PM
->> To: Premi, Sanjeev
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: [PATCHv2] omap3: Add basic support for 720MHz part
->>
->> On Thu, Jan 13, 2011 at 4:48 PM, Premi, Sanjeev <premi@ti.com> wrote=
-:
->> >> -----Original Message-----
->> >> From: G, Manjunath Kondaiah
->> >> Sent: Thursday, January 13, 2011 2:58 PM
->> >> To: Premi, Sanjeev
->> >> Cc: linux-omap@vger.kernel.org
->> >> Subject: Re: [PATCHv2] omap3: Add basic support for 720MHz part
->> >>
->> >
->> > [....]
->> >
->> >> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
->> >> >> =A0 =A0 =A0 }
->> >> >>
->> >> >> Do you see any issues?
->> >> >
->> >> > Though it is not considered in this patch, but in the
->> devices that
->> >> > don't contain iva, the code related to enabling the iva freq ca=
-n
->> >> > be easily excluded in current flow.
->> >>
->> >> In this case, the function returns error if we have device with n=
-o
->> >> iva. The API should
->> >> enable only mpu opp and return sane value for devices with no iva=
-=2E
->> >>
->> >
->> > [sp] Don't want to get into details of next patch here, but
->> when there
->> > is no IVA, the "if" condition for for iva won't/shouldn't
->> be entered.
->> exactly
->> >
->> > Values returned should just be the status opp_enable. OR am
->> I missing
->> > something in your comment.
->> > e.g.
->> > =A0 =A0 =A0 =A0pdev =3D oh_mpu->od->pdev;
->> > =A0 =A0 =A0 =A0r =3D opp_enable(&pdev->dev, 720000000);
->> > =A0 =A0 =A0 =A0if (r < 0) {
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(&pdev->dev, "Unable to enab=
-le OPP
->> for mpu.\n");
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err;
->> > =A0 =A0 =A0 =A0}
->> >
->> > =A0 =A0 =A0 =A0if omap3_has_iva()) {
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh_iva =3D omap_hwmod_lookup("iva")=
-; //move
->> from current impl.
->>
->> This looks fine and it can translate into:
->> =A0 =A0 =A0 if (!oh_mpu || !oh_mpu->od)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_nodevice;
->>
->> =A0 =A0 =A0 =A0pdev =3D oh_mpu->od->pdev;
->> =A0 =A0 =A0 =A0r =3D opp_enable(&pdev->dev, 720000000);
->> =A0 =A0 =A0 =A0if (r < 0)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_oppenable;
->>
->> =A0 =A0 =A0 if (!omap3_has_iva())
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_nodevice;
+> The printk showed that dto was being set in the range 11-13 with your=
+ patch.
 >
-> Not having an IVA is not error! and goto's really aren't saving anyth=
-ing.
+> I still was seeing some corruption occurring with the patch -- but at
+> a much lower level that without the patch.
+>
+> Since I knew that the card would definitely work if dto were hard
+> coded to 14, I next tried bumping the value your patch computed by 1:
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
+mmc.c
+> index 9c7c590..09a7e21 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1372,6 +1372,7 @@ static void set_data_timeout(struct omap_hsmmc_=
+host *host,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dto -=3D 13;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dto =3D 0;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dto++;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (dto > 14)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dto =3D 14;
+> =A0 =A0 =A0 =A0}
+>
+> I've been running fairly intensive testing for the past 6 hours with =
+out issue.
 
-it is returning value from mpu opp enable and goto naming is
-misleading. You can change the name if it is misleading.
+Just to add another data point, Transcend 16GB Class 6 cards will not
+work on OMAP3 with an unpatched kernel -- lots of -110 timeout errors.
 
--Manjunath
-[...]
+With the patches above the card does work.
+
+Steve
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
