@@ -1,195 +1,126 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 12/12] cpuidle/x86/perf: fix power:cpu_idle double end events
- and throw cpu_idle events from the cpuidle layer
-Date: Wed, 12 Jan 2011 22:40:02 -0500
-Message-ID: <f77cfe4ea21760268c0277fa3e4b02dfd2a2c2f4.1294889887.git.len.brown@intel.com>
-References: <1294890002-6274-1-git-send-email-lenb@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-reply-to: <1294890002-6274-1-git-send-email-lenb@kernel.org>
-In-reply-to: <ddbd550d503c9cdefcd6674a0ef168d57d3f0917.1294889887.git.len.brown@intel.com>
-References: <ddbd550d503c9cdefcd6674a0ef168d57d3f0917.1294889887.git.len.brown@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: Thomas Renninger <trenn@suse.de>, Robert Schoene <robert.schoene@tu-dresden.de>, Jean Pihet <j-pihet@ti.com>, Arjan van de Ven <arjan@linux.intel.com>, Ingo Molnar <mingo@elte.hu>, Frederic Weisbecker <fweisbec@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-omap@vger.kernel.org, Len Brown <len.brown@intel.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH RFC:] FIX: OMAP3EVM: Ethernet controller smsc911x reset
+Date: Thu, 13 Jan 2011 09:32:33 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404BD52306F@dbde02.ent.ti.com>
+References: <1285414593-28013-1-git-send-email-charu@ti.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030C8FBC4D@dbde02.ent.ti.com>
+ <87vd5rtevs.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42348 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751696Ab1AMECl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jan 2011 23:02:41 -0500
+In-Reply-To: <87vd5rtevs.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Premi, Sanjeev" <premi@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-From: Thomas Renninger <trenn@suse.de>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Monday, September 27, 2010 8:26 PM
+> To: Varadarajan, Charulatha
+> Cc: linux-omap@vger.kernel.org; Premi, Sanjeev; tony@atomide.com
+> Subject: Re: [PATCH RFC:] FIX: OMAP3EVM: Ethernet controller smsc911x
+> reset
+> 
+> "Varadarajan, Charulatha" <charu@ti.com> writes:
+> 
+> > Sanjeev,
+> >
+> > With GPIO hwmod series, OMAP3EVM board is not up with DHCP + nfs root.
+> > This issue was reported by Kevin.
+> >
+> > The root cause of this issue is that during OMAP3EVM board init, the
+> > Ethernet controller (smsc911x) is not reset and it relies on the uboot
+> > configurations for it's operations. The reset GPIO pin used for this
+> > purpose is not even reserved.
+> >
+> > After gpio hmwod series are merged, this patch is required to make the
+> > EVM board working. Also omap3evm_init_smsc911x() needs to be fixed
+> > including CS settings and other required settings for Ethernet
+> controller.
+> >
+> > Links to related discussions:
+> > http://www.spinics.net/lists/linux-omap/msg37234.html
+> > http://www.spinics.net/lists/linux-omap/msg36698.html
+> > http://www.spinics.net/lists/linux-omap/msg36799.html
+> >
+> > The below patch is tested on OMAP3 EVM board (ES3.1).
+> 
+> Also note that the patch below didn't work on my EVM (ES2.1), making me
+> assume that it uses a different GPIO for older boards.
+> 
+[Hiremath, Vaibhav] I have also tried it on my REV-G version of EVM (Silicon ES3.1) and it is not working for me.
 
-Currently intel_idle and acpi_idle driver show double cpu_idle "exit idle"
-events -> this patch fixes it and makes cpu_idle events throwing less complex.
+Trying to debug further.
 
-It also introduces cpu_idle events for all architectures which use
-the cpuidle subsystem, namely:
-  - arch/arm/mach-at91/cpuidle.c
-  - arch/arm/mach-davinci/cpuidle.c
-  - arch/arm/mach-kirkwood/cpuidle.c
-  - arch/arm/mach-omap2/cpuidle34xx.c
-  - arch/drivers/acpi/processor_idle.c (for all cases, not only mwait)
-  - arch/x86/kernel/process.c (did throw events before, but was a mess)
-  - drivers/idle/intel_idle.c (did throw events before)
-
-Convention should be:
-Fire cpu_idle events inside the current pm_idle function (not somewhere
-down the the callee tree) to keep things easy.
-
-Current possible pm_idle functions in X86:
-c1e_idle, poll_idle, cpuidle_idle_call, mwait_idle, default_idle
--> this is really easy is now.
-
-This affects userspace:
-The type field of the cpu_idle power event can now direclty get
-mapped to:
-/sys/devices/system/cpu/cpuX/cpuidle/stateX/{name,desc,usage,time,...}
-instead of throwing very CPU/mwait specific values.
-This change is not visible for the intel_idle driver.
-For the acpi_idle driver it should only be visible if the vendor
-misses out C-states in his BIOS.
-Another (perf timechart) patch reads out cpuidle info of cpu_idle
-events from:
-/sys/.../cpuidle/stateX/*, then the cpuidle events are mapped
-to the correct C-/cpuidle state again, even if e.g. vendors miss
-out C-states in their BIOS and for example only export C1 and C3.
--> everything is fine.
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-CC: Robert Schoene <robert.schoene@tu-dresden.de>
-CC: Jean Pihet <j-pihet@ti.com>
-CC: Arjan van de Ven <arjan@linux.intel.com>
-CC: Ingo Molnar <mingo@elte.hu>
-CC: Frederic Weisbecker <fweisbec@gmail.com>
-CC: linux-pm@lists.linux-foundation.org
-CC: linux-acpi@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
-CC: linux-perf-users@vger.kernel.org
-CC: linux-omap@vger.kernel.org
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- arch/x86/kernel/process.c    |    6 ++++--
- arch/x86/kernel/process_32.c |    4 ----
- arch/x86/kernel/process_64.c |    6 ------
- drivers/cpuidle/cpuidle.c    |   10 ++++++++--
- drivers/idle/intel_idle.c    |    2 --
- 5 files changed, 12 insertions(+), 16 deletions(-)
-
-diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
-index 09c08a1..67e96e6 100644
---- a/arch/x86/kernel/process.c
-+++ b/arch/x86/kernel/process.c
-@@ -386,6 +386,8 @@ void default_idle(void)
- 		else
- 			local_irq_enable();
- 		current_thread_info()->status |= TS_POLLING;
-+		trace_power_end(smp_processor_id());
-+		trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
- 	} else {
- 		local_irq_enable();
- 		/* loop is done by the caller */
-@@ -443,8 +445,6 @@ EXPORT_SYMBOL_GPL(cpu_idle_wait);
-  */
- void mwait_idle_with_hints(unsigned long ax, unsigned long cx)
- {
--	trace_power_start(POWER_CSTATE, (ax>>4)+1, smp_processor_id());
--	trace_cpu_idle((ax>>4)+1, smp_processor_id());
- 	if (!need_resched()) {
- 		if (cpu_has(__this_cpu_ptr(&cpu_info), X86_FEATURE_CLFLUSH_MONITOR))
- 			clflush((void *)&current_thread_info()->flags);
-@@ -471,6 +471,8 @@ static void mwait_idle(void)
- 			__sti_mwait(0, 0);
- 		else
- 			local_irq_enable();
-+		trace_power_end(smp_processor_id());
-+		trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
- 	} else
- 		local_irq_enable();
- }
-diff --git a/arch/x86/kernel/process_32.c b/arch/x86/kernel/process_32.c
-index 4b9befa..8d12878 100644
---- a/arch/x86/kernel/process_32.c
-+++ b/arch/x86/kernel/process_32.c
-@@ -57,8 +57,6 @@
- #include <asm/syscalls.h>
- #include <asm/debugreg.h>
- 
--#include <trace/events/power.h>
--
- asmlinkage void ret_from_fork(void) __asm__("ret_from_fork");
- 
- /*
-@@ -113,8 +111,6 @@ void cpu_idle(void)
- 			stop_critical_timings();
- 			pm_idle();
- 			start_critical_timings();
--			trace_power_end(smp_processor_id());
--			trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
- 		}
- 		tick_nohz_restart_sched_tick();
- 		preempt_enable_no_resched();
-diff --git a/arch/x86/kernel/process_64.c b/arch/x86/kernel/process_64.c
-index 4c818a7..bd387e8 100644
---- a/arch/x86/kernel/process_64.c
-+++ b/arch/x86/kernel/process_64.c
-@@ -51,8 +51,6 @@
- #include <asm/syscalls.h>
- #include <asm/debugreg.h>
- 
--#include <trace/events/power.h>
--
- asmlinkage extern void ret_from_fork(void);
- 
- DEFINE_PER_CPU(unsigned long, old_rsp);
-@@ -141,10 +139,6 @@ void cpu_idle(void)
- 			pm_idle();
- 			start_critical_timings();
- 
--			trace_power_end(smp_processor_id());
--			trace_cpu_idle(PWR_EVENT_EXIT,
--				       smp_processor_id());
--
- 			/* In many cases the interrupt that ended idle
- 			   has already called exit_idle. But some idle
- 			   loops can be woken up without interrupt. */
-diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index 386888f..e4855c3 100644
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -96,7 +96,15 @@ static void cpuidle_idle_call(void)
- 
- 	/* enter the state and update stats */
- 	dev->last_state = target_state;
-+
-+	trace_power_start(POWER_CSTATE, next_state, dev->cpu);
-+	trace_cpu_idle(next_state, dev->cpu);
-+
- 	dev->last_residency = target_state->enter(dev, target_state);
-+
-+	trace_power_end(dev->cpu);
-+	trace_cpu_idle(PWR_EVENT_EXIT, dev->cpu);
-+
- 	if (dev->last_state)
- 		target_state = dev->last_state;
- 
-@@ -106,8 +114,6 @@ static void cpuidle_idle_call(void)
- 	/* give the governor an opportunity to reflect on the outcome */
- 	if (cpuidle_curr_governor->reflect)
- 		cpuidle_curr_governor->reflect(dev);
--	trace_power_end(smp_processor_id());
--	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
- }
- 
- /**
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index 56ac09d..60fa6ec 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -220,8 +220,6 @@ static int intel_idle(struct cpuidle_device *dev, struct cpuidle_state *state)
- 	kt_before = ktime_get_real();
- 
- 	stop_critical_timings();
--	trace_power_start(POWER_CSTATE, (eax >> 4) + 1, cpu);
--	trace_cpu_idle((eax >> 4) + 1, cpu);
- 	if (!need_resched()) {
- 
- 		__monitor((void *)&current_thread_info()->flags, 0, 0);
--- 
-1.7.4.rc1.14.g7fad99
-
+Thanks,
+Vaibhav
+> Kevin
+> 
+> >
+> >
+> >> -----Original Message-----
+> >> From: Varadarajan, Charulatha
+> >> Sent: Saturday, September 25, 2010 5:07 PM
+> >> To: linux-omap@vger.kernel.org
+> >> Cc: khilman@deeprootsystems.com; tony@atomide.com; Premi, Sanjeev;
+> >> Varadarajan, Charulatha
+> >> Subject: [PATCH RFC:] FIX: OMAP3EVM: Ethernet controller smsc911x reset
+> >>
+> >> Do reset of Ethernet controller smsc911x using OMAP gpio7
+> >> while initializing the Ethernet controller.
+> >>
+> >> Signed-off-by: Charulatha V <charu@ti.com>
+> >> ---
+> >>  arch/arm/mach-omap2/board-omap3evm.c |   16 ++++++++++++++++
+> >>  1 files changed, 16 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> >> omap2/board-omap3evm.c
+> >> index f76d9c0..54a7e20 100644
+> >> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> >> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> >> @@ -55,6 +55,7 @@
+> >>  #define OMAP3EVM_ETHR_SIZE	1024
+> >>  #define OMAP3EVM_ETHR_ID_REV	0x50
+> >>  #define OMAP3EVM_ETHR_GPIO_IRQ	176
+> >> +#define OMAP3EVM_ETHR_GPIO_RST  7
+> >>  #define OMAP3EVM_SMSC911X_CS	5
+> >>
+> >>  static u8 omap3_evm_version;
+> >> @@ -134,6 +135,20 @@ static inline void __init
+> >> omap3evm_init_smsc911x(void)
+> >>  	else
+> >>  		rate = clk_get_rate(l3ck);
+> >>
+> >> +	/* Configure ethernet controller reset gpio */
+> >> +	if (gpio_request(OMAP3EVM_ETHR_GPIO_RST, "SMSC911x gpio") < 0) {
+> >> +		pr_err(KERN_ERR "Failed to request GPIO8 for smsc911x
+> >> gpio\n");
+> >> +		return;
+> >> +	}
+> >> +
+> >> +	gpio_direction_output(OMAP3EVM_ETHR_GPIO_RST, 1);
+> >> +
+> >> +	/* reset pulse to ethernet controller*/
+> >> +	gpio_set_value(OMAP3EVM_ETHR_GPIO_RST, 0);
+> >> +	usleep_range(150, 220);
+> >> +	gpio_set_value(OMAP3EVM_ETHR_GPIO_RST, 1);
+> >> +	usleep_range(1, 2);
+> >> +
+> >>  	if (gpio_request(OMAP3EVM_ETHR_GPIO_IRQ, "SMSC911x irq") < 0) {
+> >>  		printk(KERN_ERR "Failed to request GPIO%d for smsc911x IRQ\n",
+> >>  			OMAP3EVM_ETHR_GPIO_IRQ);
+> >> --
+> >> 1.7.0.4
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
