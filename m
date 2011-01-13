@@ -1,45 +1,30 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH 2/2] arm: omap3: cm-t3517: minor comment fix
-Date: Thu, 13 Jan 2011 18:24:50 +0200
-Message-ID: <1294935890-31160-3-git-send-email-grinberg@compulab.co.il>
-References: <1294935890-31160-1-git-send-email-grinberg@compulab.co.il>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP
+	boot failure)
+Date: Thu, 13 Jan 2011 16:49:57 +0000
+Message-ID: <20110113164957.GA28040@n2100.arm.linux.org.uk>
+References: <20110106180030.GA8249@n2100.arm.linux.org.uk> <20110106182023.GV7771@atomide.com> <20110106203238.GH1198@n2100.arm.linux.org.uk> <20110106204053.GA7771@atomide.com> <20110107161230.GR1198@n2100.arm.linux.org.uk> <20110110185209.GC4957@atomide.com> <20110111231611.GX4957@atomide.com> <2f1a86cfda277de8d190e5eb9b9ccd77@mail.gmail.com> <20110113091546.GA24429@n2100.arm.linux.org.uk> <20110113155152.GG4957@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:41721 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933085Ab1AMQYz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Jan 2011 11:24:55 -0500
-In-Reply-To: <1294935890-31160-1-git-send-email-grinberg@compulab.co.il>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43399 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756795Ab1AMQuS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jan 2011 11:50:18 -0500
+Content-Disposition: inline
+In-Reply-To: <20110113155152.GG4957@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
+Cc: Anand Gadiyar <gadiyar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
 
-offsets in the comment were wrong - fix this.
+On Thu, Jan 13, 2011 at 07:51:53AM -0800, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [110113 01:15]:
+> > Given the very sorry state of OMAP in mainline at present, I'm surprised
+> > that this kind of stuff is still going on...
+> 
+> At least I boot test the patches I send..
 
-Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
----
- arch/arm/mach-omap2/board-cm-t3517.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index 1706df0..8f9a64d 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -225,12 +225,12 @@ static struct mtd_partition cm_t3517_nand_partitions[] = {
- 	},
- 	{
- 		.name           = "linux",
--		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
-+		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x2A0000 */
- 		.size           = 32 * NAND_BLOCK_SIZE,
- 	},
- 	{
- 		.name           = "rootfs",
--		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
-+		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x6A0000 */
- 		.size           = MTDPART_SIZ_FULL,
- 	},
- };
--- 
-1.7.2.5
-
+Which is why OMAP3 and OMAP4 can't be built in mainline because they
+spit out lots of compile errors in the OMAP code...  As they won't
+even compile they couldn't have been boot tested.
