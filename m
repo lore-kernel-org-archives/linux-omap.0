@@ -1,164 +1,557 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: [PATCH v3 1/1] ARM: Thumb-2: Symbol manipulation macros for function body copying
-Date: Thu, 13 Jan 2011 16:41:43 -0600
-Message-ID: <1294958503-6537-2-git-send-email-dave.martin@linaro.org>
-References: <1294958503-6537-1-git-send-email-dave.martin@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:56643 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752260Ab1AMWlw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jan 2011 17:41:52 -0500
-Received: by mail-yw0-f46.google.com with SMTP id 5so645851ywl.19
-        for <linux-omap@vger.kernel.org>; Thu, 13 Jan 2011 14:41:52 -0800 (PST)
-In-Reply-To: <1294958503-6537-1-git-send-email-dave.martin@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sutharsan Ramamoorthy <sutharsan.ramamoorthy-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] adding gpmc configuration functions, west bridge related
+Date: Thu, 13 Jan 2011 15:23:14 -0800 (PST)
+Message-ID: <524702.86777.qm@web121609.mail.ne1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david.cross-+wT8y+m8/X5BDgjK7y7TUQ@public.gmane.org, srmt-+wT8y+m8/X5BDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-In low-level board support code, there is sometimes a need to
-copy a function body to another location at run-time.
+This patch implements gpmc configuration functions needed by westbridge
+device controller driver in staging tree. These functions currently 
+implemented in staging tree. This patch is part of the effort to bring 
+westbridge device controller driver out of staging tree.
 
-A straightforward call to memcpy doesn't work in Thumb-2,
-because bit 0 of external Thumb function symbols is set to 1,
-indicating that the function is Thumb.  Without corrective
-measures, this will cause an off-by-one copy, and the copy
-may be called using the wrong instruction set.
+Signed-off by: Sutharsan Ramamoorthy <sutharsan.ramamoorthy-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 
-This patch adds macros to help with such cases.
-
-Particular care is needed, because C doesn't guarantee any
-defined behaviour when casting a function pointer to any other
-type.  This has been observed to lead to strange optimisation
-side-effects when doing the arithmetic which is required in
-order to copy/move function bodies correctly in Thumb-2.
-
-Thanks to Russell King and Nicolas Pitre for their input.
-
-Signed-off-by: Dave Martin <dave.martin@linaro.org>
 ---
-KernelVersion: v2.6.37
 
- arch/arm/include/asm/fncpy.h |  110 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 110 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/include/asm/fncpy.h
+diff -uprN -X linux-2.6.37_vanilla/Documentation/dontdiff linux-2.6.37_vanilla/arch/arm/mach-omap2/board-zoom-peripherals.c linux-2.6.37-gpmc/arch/arm/mach-omap2/board-zoom-peripherals.c
+--- linux-2.6.37_vanilla/arch/arm/mach-omap2/board-zoom-peripherals.c	2010-11-29 20:42:04.000000000 -0800
++++ linux-2.6.37-gpmc/arch/arm/mach-omap2/board-zoom-peripherals.c	2011-01-11 13:33:20.750681000 -0800
+@@ -19,6 +19,7 @@
+ #include <linux/regulator/fixed.h>
+ #include <linux/wl12xx.h>
+ #include <linux/mmc/host.h>
++#include <linux/usb/cywb.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -348,6 +349,9 @@ void __init zoom_peripherals_init(void)
+ 	omap_i2c_init();
+ 	platform_device_register(&omap_vwlan_device);
+ 	usb_musb_init(&musb_board_data);
++#ifdef CONFIG_WESTBRIDGE_ASTORIA
++	usb_cywb_init();
++#endif
+ 	enable_board_wakeup_source();
+ 	omap_serial_init();
+ }
+diff -uprN -X linux-2.6.37_vanilla/Documentation/dontdiff linux-2.6.37_vanilla/arch/arm/mach-omap2/Makefile linux-2.6.37-gpmc/arch/arm/mach-omap2/Makefile
+--- linux-2.6.37_vanilla/arch/arm/mach-omap2/Makefile	2010-11-29 20:42:04.000000000 -0800
++++ linux-2.6.37-gpmc/arch/arm/mach-omap2/Makefile	2010-12-28 15:24:28.218691000 -0800
+@@ -182,6 +182,7 @@ obj-y					+= $(usbfs-m) $(usbfs-y)
+ obj-y					+= usb-musb.o
+ obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
+ obj-y					+= usb-ehci.o
++obj-$(CONFIG_WESTBRIDGE_ASTORIA)        += usb-cywb-pnand.o
+ 
+ onenand-$(CONFIG_MTD_ONENAND_OMAP2)	:= gpmc-onenand.o
+ obj-y					+= $(onenand-m) $(onenand-y)
+diff -uprN -X linux-2.6.37_vanilla/Documentation/dontdiff linux-2.6.37_vanilla/arch/arm/mach-omap2/usb-cywb-pnand.c linux-2.6.37-gpmc/arch/arm/mach-omap2/usb-cywb-pnand.c
+--- linux-2.6.37_vanilla/arch/arm/mach-omap2/usb-cywb-pnand.c	1969-12-31 16:00:00.000000000 -0800
++++ linux-2.6.37-gpmc/arch/arm/mach-omap2/usb-cywb-pnand.c	2011-01-12 12:37:23.154716913 -0800
+@@ -0,0 +1,171 @@
++/*
++ * linux /arch/arm/mach-omap2/usb-cywb-pnand.c
++ *
++ * Copyright (C) 2010  Cypress Semiconductor
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/device.h>
++#include <linux/usb/cywb.h>
++#include <plat/gpmc.h>
++
++/*
++ * chip select number on GPMC ( 0..7 )
++ */
++#define AST_GPMC_CS 4
++
++/*
++ * for use by gpmc_set_timings api, measured in ns, not clocks
++ */
++#define WB_GPMC_BUSCYC_T    (7 * 6)
++#define WB_GPMC_CS_T_O_N    (0)
++#define WB_GPMC_ADV_T_O_N   (0)
++#define WB_GPMC_OE_T_O_N    (0)
++#define WB_GPMC_OE_T_O_F_F  (5 * 6)
++#define WB_GPMC_WE_T_O_N    (1 * 6)
++#define WB_GPMC_WE_T_O_F_F  (5 * 6)
++#define WB_GPMC_RDS_ADJ     (2 * 6)
++#define WB_GPMC_RD_T_A_C_C  (WB_GPMC_OE_T_O_F_F + WB_GPMC_RDS_ADJ)
++#define WB_GPMC_WR_T_A_C_C  (WB_GPMC_BUSCYC_T)
++
++#define AS_CS_MASK	(0X7 << 8)
++#define AS_CS_BADDR	 0x02
++#define CSVALID_B (1 << 6)
++
++#define BLKSZ_4K 0x1000
++
++/*
++ * switch GPMC DATA bus mode
++ */
++void cywb_gpmc_enable_16bit_bus(bool dbus16_enabled)
++{
++	u32 tmp32;
++
++	/*
++	 * disable gpmc CS4 operation 1st
++	 */
++	tmp32 = gpmc_cs_read_reg(AST_GPMC_CS,
++				GPMC_CS_CONFIG7) & ~GPMC_CONFIG7_CSVALID;
++	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7, tmp32);
++
++	/*
++	 * GPMC NAND data bus can be 8 or 16 bit wide
++	 */
++	if (dbus16_enabled) {
++		gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
++				(GPMC_CONFIG1_DEVICETYPE(2) |
++				GPMC_CONFIG1_WAIT_PIN_SEL(2) |
++				GPMC_CONFIG1_DEVICESIZE_16));
++	} else {
++		gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
++				(GPMC_CONFIG1_DEVICETYPE(2) |
++				GPMC_CONFIG1_WAIT_PIN_SEL(2)));
++	}
++
++	/*
++	 * re-enable astoria CS operation on GPMC
++	 */
++	 gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7,
++			(tmp32 | GPMC_CONFIG7_CSVALID));
++}
++
++int cywb_pnand_platform_retime()
++{
++	u32 tmp32;
++	struct gpmc_timings timings;
++	int retval = 0;
++
++
++	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
++					(GPMC_CONFIG1_DEVICETYPE(2) |
++					GPMC_CONFIG1_WAIT_PIN_SEL(2)));
++
++	memset(&timings, 0, sizeof(timings));
++
++	/* cs timing */
++	timings.cs_on = WB_GPMC_CS_T_O_N;
++	timings.cs_wr_off = WB_GPMC_BUSCYC_T;
++	timings.cs_rd_off = WB_GPMC_BUSCYC_T;
++
++	/* adv timing */
++	timings.adv_on = WB_GPMC_ADV_T_O_N;
++	timings.adv_rd_off = WB_GPMC_BUSCYC_T;
++	timings.adv_wr_off = WB_GPMC_BUSCYC_T;
++
++	/* oe timing */
++	timings.oe_on = WB_GPMC_OE_T_O_N;
++	timings.oe_off = WB_GPMC_OE_T_O_F_F;
++	timings.access = WB_GPMC_RD_T_A_C_C;
++	timings.rd_cycle = WB_GPMC_BUSCYC_T;
++
++	/* we timing */
++	timings.we_on = WB_GPMC_WE_T_O_N;
++	timings.we_off = WB_GPMC_WE_T_O_F_F;
++	timings.wr_access = WB_GPMC_WR_T_A_C_C;
++	timings.wr_cycle = WB_GPMC_BUSCYC_T;
++
++	timings.page_burst_access = WB_GPMC_BUSCYC_T;
++	timings.wr_data_mux_bus = WB_GPMC_BUSCYC_T;
++	gpmc_cs_set_timings(AST_GPMC_CS, &timings);
++
++	/*
++	 * DISABLE cs4, NOTE GPMC REG7 is already configured
++	 * at this point by gpmc_cs_request
++	 */
++	tmp32 = gpmc_cs_read_reg(AST_GPMC_CS, GPMC_CS_CONFIG7) &
++					~GPMC_CONFIG7_CSVALID;
++	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7, tmp32);
++
++	/*
++	 * PROGRAM chip select Region, (see OMAP3430 TRM PAGE 1088)
++	 */
++	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7,
++				(AS_CS_MASK | AS_CS_BADDR));
++
++	/*
++	 * by default configure GPMC into 8 bit mode
++	 * (to match astoria default mode)
++	 */
++	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
++				(GPMC_CONFIG1_DEVICETYPE(2) |
++				GPMC_CONFIG1_WAIT_PIN_SEL(2)));
++
++	/*
++	 * ENABLE astoria cs operation on GPMC
++	 */
++	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7,
++					(tmp32 | GPMC_CONFIG7_CSVALID));
++
++	return retval;
++
++}
++
++static struct cywb_platform_data cywb_plat = {
++	.retime			= cywb_pnand_platform_retime,
++	.config_bus_width	= cywb_gpmc_enable_16bit_bus,
++};
++
++static struct platform_device cywb_device = {
++	.name		= "west_bridge_dev",
++	.id		= -1,
++	.dev = {
++		.platform_data		= &cywb_plat,
++	}
++};
++
++#ifdef CONFIG_WESTBRIDGE_ASTORIA
++void __init usb_cywb_init()
++{
++	if (platform_device_register(&cywb_device) < 0)
++		dev_err(&cywb_device.dev, "Unable to register cywb-astoria device\n");
++}
++#else
++void __init usb_cywb_init()
++{
++}
++#endif /* CONFIG_WESTBRIDGE_ASTORIA */
+diff -uprN -X linux-2.6.37_vanilla/Documentation/dontdiff linux-2.6.37_vanilla/drivers/staging/westbridge/astoria/arch/arm/mach-omap2/cyashalomap_kernel.c linux-2.6.37-gpmc/drivers/staging/westbridge/astoria/arch/arm/mach-omap2/cyashalomap_kernel.c
+--- linux-2.6.37_vanilla/drivers/staging/westbridge/astoria/arch/arm/mach-omap2/cyashalomap_kernel.c	2010-11-29 20:42:04.000000000 -0800
++++ linux-2.6.37-gpmc/drivers/staging/westbridge/astoria/arch/arm/mach-omap2/cyashalomap_kernel.c	2011-01-11 17:57:48.766357001 -0800
+@@ -298,60 +298,17 @@ static u16 omap_cfg_reg_L(u32 pad_func_i
+ 
+ #define BLKSZ_4K 0x1000
+ 
+-/*
+- * switch GPMC DATA bus mode
+- */
+-void cy_as_hal_gpmc_enable_16bit_bus(bool dbus16_enabled)
+-{
+-	uint32_t tmp32;
+-
+-	/*
+-	 * disable gpmc CS4 operation 1st
+-	 */
+-	tmp32 = gpmc_cs_read_reg(AST_GPMC_CS,
+-				GPMC_CS_CONFIG7) & ~GPMC_CONFIG7_CSVALID;
+-	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7, tmp32);
+-
+-	/*
+-	 * GPMC NAND data bus can be 8 or 16 bit wide
+-	 */
+-	if (dbus16_enabled) {
+-		DBGPRN("enabling 16 bit bus\n");
+-		gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
+-				(GPMC_CONFIG1_DEVICETYPE(2) |
+-				GPMC_CONFIG1_WAIT_PIN_SEL(2) |
+-				GPMC_CONFIG1_DEVICESIZE_16)
+-				);
+-	} else {
+-		DBGPRN(KERN_INFO "enabling 8 bit bus\n");
+-		gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
+-				(GPMC_CONFIG1_DEVICETYPE(2) |
+-				GPMC_CONFIG1_WAIT_PIN_SEL(2))
+-				);
+-	}
+-
+-	/*
+-	 * re-enable astoria CS operation on GPMC
+-	 */
+-	 gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7,
+-			(tmp32 | GPMC_CONFIG7_CSVALID));
+-
+-	/*
+-	 *remember the state
+-	 */
+-	pnand_16bit = dbus16_enabled;
+-}
+-
+-static int cy_as_hal_gpmc_init(void)
++static int cy_as_hal_gpmc_init(struct cywb_platform_data *cywb_pd)
+ {
+ 	u32 tmp32;
+ 	int err;
+ 	struct gpmc_timings	timings;
++
+ 	/*
+ 	 * get GPMC i/o registers base(already been i/o mapped
+ 	 * in kernel, no need for separate i/o remap)
+ 	 */
+-	gpmc_base = phys_to_virt(OMAP34XX_GPMC_BASE);
++	gpmc_base = (u32)ioremap_nocache(OMAP34XX_GPMC_BASE, BLKSZ_4K);
+ 	DBGPRN(KERN_INFO "kernel has gpmc_base=%x , val@ the base=%x",
+ 		gpmc_base, __raw_readl(gpmc_base)
+ 	);
+@@ -404,68 +361,7 @@ static int cy_as_hal_gpmc_init(void)
+ 	cy_as_hal_print_message(KERN_INFO "ioremap(%x) returned vma=%x\n",
+ 							csa_phy, gpmc_data_vma);
+ 
+-	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
+-						(GPMC_CONFIG1_DEVICETYPE(2) |
+-						GPMC_CONFIG1_WAIT_PIN_SEL(2)));
+-
+-	memset(&timings, 0, sizeof(timings));
+-
+-	/* cs timing */
+-	timings.cs_on = WB_GPMC_CS_t_o_n;
+-	timings.cs_wr_off = WB_GPMC_BUSCYC_t;
+-	timings.cs_rd_off = WB_GPMC_BUSCYC_t;
+-
+-	/* adv timing */
+-	timings.adv_on = WB_GPMC_ADV_t_o_n;
+-	timings.adv_rd_off = WB_GPMC_BUSCYC_t;
+-	timings.adv_wr_off = WB_GPMC_BUSCYC_t;
+-
+-	/* oe timing */
+-	timings.oe_on = WB_GPMC_OE_t_o_n;
+-	timings.oe_off = WB_GPMC_OE_t_o_f_f;
+-	timings.access = WB_GPMC_RD_t_a_c_c;
+-	timings.rd_cycle = WB_GPMC_BUSCYC_t;
+-
+-	/* we timing */
+-	timings.we_on = WB_GPMC_WE_t_o_n;
+-	timings.we_off = WB_GPMC_WE_t_o_f_f;
+-	timings.wr_access = WB_GPMC_WR_t_a_c_c;
+-	timings.wr_cycle = WB_GPMC_BUSCYC_t;
+-
+-	timings.page_burst_access = WB_GPMC_BUSCYC_t;
+-	timings.wr_data_mux_bus = WB_GPMC_BUSCYC_t;
+-	gpmc_cs_set_timings(AST_GPMC_CS, &timings);
+-
+-	cy_as_hal_print_omap_regs("GPMC_CONFIG", 1,
+-			GPMC_VMA(GPMC_CFG_REG(1, AST_GPMC_CS)), 7);
+-
+-	/*
+-	 * DISABLE cs4, NOTE GPMC REG7 is already configured
+-	 * at this point by gpmc_cs_request
+-	 */
+-	tmp32 = gpmc_cs_read_reg(AST_GPMC_CS, GPMC_CS_CONFIG7) &
+-						~GPMC_CONFIG7_CSVALID;
+-	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7, tmp32);
+-
+-	/*
+-	 * PROGRAM chip select Region, (see OMAP3430 TRM PAGE 1088)
+-	 */
+-	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7,
+-					(AS_CS_MASK | AS_CS_BADDR));
+-
+-	/*
+-	 * by default configure GPMC into 8 bit mode
+-	 * (to match astoria default mode)
+-	 */
+-	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG1,
+-					(GPMC_CONFIG1_DEVICETYPE(2) |
+-					GPMC_CONFIG1_WAIT_PIN_SEL(2)));
+-
+-	/*
+-	 * ENABLE astoria cs operation on GPMC
+-	 */
+-	gpmc_cs_write_reg(AST_GPMC_CS, GPMC_CS_CONFIG7,
+-					(tmp32 | GPMC_CONFIG7_CSVALID));
++	cywb_pd->retime();
+ 
+ 	/*
+ 	 * No method currently exists to write this register through GPMC APIs
+@@ -749,7 +645,7 @@ EXPORT_SYMBOL(cy_as_hal_config_c_s_mux);
+ /*
+  * inits all omap h/w
+  */
+-uint32_t cy_as_hal_processor_hw_init(void)
++uint32_t cy_as_hal_processor_hw_init(struct cywb_platform_data *cywb_pd)
+ {
+ 	int i, err;
+ 
+@@ -789,7 +685,7 @@ uint32_t cy_as_hal_processor_hw_init(voi
+ 	 */
+ 	cy_as_hal_init_user_pads(user_pad_cfg);
+ 
+-	err = cy_as_hal_gpmc_init();
++	err = cy_as_hal_gpmc_init(cywb_pd);
+ 	if (err < 0)
+ 		cy_as_hal_print_message(KERN_INFO"gpmc init failed:%d", err);
+ 
+@@ -2285,7 +2181,9 @@ cy_bool cy_as_hal_sync_device_clocks(cy_
+  * init OMAP h/w resources
+  */
+ int start_o_m_a_p_kernel(const char *pgm,
+-				cy_as_hal_device_tag *tag, cy_bool debug)
++				cy_as_hal_device_tag *tag,
++				struct cywb_platform_data *cywb_pd,
++				cy_bool debug)
+ {
+ 	cy_as_omap_dev_kernel *dev_p;
+ 	int i;
+@@ -2333,7 +2231,7 @@ int start_o_m_a_p_kernel(const char *pgm
+ 	/*
+ 	 * initialize OMAP hardware and StartOMAPKernelall gpio pins
+ 	 */
+-	dev_p->m_addr_base = (void *)cy_as_hal_processor_hw_init();
++	dev_p->m_addr_base = (void *)cy_as_hal_processor_hw_init(cywb_pd);
+ 
+ 	/*
+ 	 * Now perform a hard reset of the device to have
+@@ -2361,7 +2259,6 @@ int start_o_m_a_p_kernel(const char *pgm
+ 	pncfg_reg = ast_p_nand_casdo_read(CY_AS_MEM_PNAND_CFG);
+ 
+ #ifdef PNAND_16BIT_MODE
+-
+ 	/*
+ 	 * switch to 16 bit mode, force NON-LNA LBD mode, 3 RA addr bytes
+ 	 */
+@@ -2370,8 +2267,12 @@ int start_o_m_a_p_kernel(const char *pgm
+ 	/*
+ 	 * now in order to continue to talk to astoria
+ 	 * sw OMAP GPMC into 16 bit mode as well
++	 *
++	 * remember bus width state
++	 * pnand_16bit = cy_true  - bus width is 16-bit
+ 	 */
+-	cy_as_hal_gpmc_enable_16bit_bus(cy_true);
++	pnand_16bit = cy_true;
++	cywb_pd->config_bus_width(pnand_16bit);
+ #else
+    /* Astoria and GPMC are already in 8 bit mode, jsut initialize PNAND_CFG */
+ 	ast_p_nand_casdi_write(CY_AS_MEM_PNAND_CFG, 0x0000);
+diff -uprN -X linux-2.6.37_vanilla/Documentation/dontdiff linux-2.6.37_vanilla/drivers/staging/westbridge/astoria/arch/arm/plat-omap/include/mach/westbridge/westbridge-omap3-pnand-hal/cyashalomap_kernel.h linux-2.6.37-gpmc/drivers/staging/westbridge/astoria/arch/arm/plat-omap/include/mach/westbridge/westbridge-omap3-pnand-hal/cyashalomap_kernel.h
+--- linux-2.6.37_vanilla/drivers/staging/westbridge/astoria/arch/arm/plat-omap/include/mach/westbridge/westbridge-omap3-pnand-hal/cyashalomap_kernel.h	2010-11-29 20:42:04.000000000 -0800
++++ linux-2.6.37-gpmc/drivers/staging/westbridge/astoria/arch/arm/plat-omap/include/mach/westbridge/westbridge-omap3-pnand-hal/cyashalomap_kernel.h	2011-01-11 17:58:50.862357870 -0800
+@@ -32,6 +32,7 @@
+ #include <linux/module.h>
+ #include <linux/wait.h>
+ #include <linux/string.h>
++#include <linux/usb/cywb.h>
+ /* include does not seem to work
+  * moving for patch submission
+ #include <mach/gpmc.h>
+@@ -307,7 +308,9 @@ void cyashal_prn_buf(void  *buf, uint16_
+  * but are required to be called for this HAL.
+  */
+ int start_o_m_a_p_kernel(const char *pgm,
+-	cy_as_hal_device_tag *tag, cy_bool debug);
++	cy_as_hal_device_tag *tag,
++	struct cywb_platform_data *cywb_pd,
++	cy_bool debug);
+ int stop_o_m_a_p_kernel(const char *pgm, cy_as_hal_device_tag tag);
+ int omap_start_intr(cy_as_hal_device_tag tag);
+ void cy_as_hal_set_ep_dma_mode(uint8_t ep, bool sg_xfer_enabled);
+diff -uprN -X linux-2.6.37_vanilla/Documentation/dontdiff linux-2.6.37_vanilla/drivers/staging/westbridge/astoria/device/cyasdevice.c linux-2.6.37-gpmc/drivers/staging/westbridge/astoria/device/cyasdevice.c
+--- linux-2.6.37_vanilla/drivers/staging/westbridge/astoria/device/cyasdevice.c	2010-11-29 20:42:04.000000000 -0800
++++ linux-2.6.37-gpmc/drivers/staging/westbridge/astoria/device/cyasdevice.c	2011-01-12 11:57:02.671217929 -0800
+@@ -28,6 +28,7 @@
+ #include <linux/firmware.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
++#include <linux/usb/cywb.h>
+ 
+ /* moved for staging location
+  * update/patch submission
+@@ -57,6 +58,7 @@ static cyasdevice *cy_as_device_controll
+ int cy_as_device_init_done;
+ const char *dev_handle_name = "cy_astoria_dev_handle";
+ 
++static int cyasdevice_initialize(void);
+ #ifdef CONFIG_MACH_OMAP3_WESTBRIDGE_AST_PNAND_HAL
+ extern void cy_as_hal_config_c_s_mux(void);
+ #endif
+@@ -172,6 +174,10 @@ static struct platform_device *westbridg
+ static int __devinit wb_probe(struct platform_device *devptr)
+ {
+ 	cy_as_hal_print_message("%s called\n", __func__);
++	westbridge_pd = devptr;
++	if (cyasdevice_initialize() != 0)
++		return -ENODEV;
++
+ 	return 0;
+ }
+ 
+@@ -229,8 +235,9 @@ static int cyasdevice_initialize(void)
+  /* start OMAP HAL init instsnce */
+ 
+ 	if (!start_o_m_a_p_kernel(dev_handle_name,
+-		&(cy_as_dev->hal_tag), cy_false)) {
+-
++		&(cy_as_dev->hal_tag),
++		westbridge_pd ? westbridge_pd->dev.platform_data : NULL,
++		cy_false)) {
+ 		cy_as_hal_print_message(
+ 			"<1>_cy_as_device: start OMAP34xx HAL failed\n");
+ 		goto done;
+@@ -267,16 +274,6 @@ static int cyasdevice_initialize(void)
+ 		goto done;
+ 	}
+ 
+-	ret = platform_driver_register(&west_bridge_driver);
+-	if (unlikely(ret < 0))
+-		return ret;
+-	westbridge_pd = platform_device_register_simple(
+-		"west_bridge_dev", -1, NULL, 0);
+-
+-	if (IS_ERR(westbridge_pd)) {
+-		platform_driver_unregister(&west_bridge_driver);
+-		return PTR_ERR(westbridge_pd);
+-	}
+ 	/* Load the firmware */
+ 	ret = request_firmware(&fw_entry,
+ 		"west bridge fw", &westbridge_pd->dev);
+@@ -384,17 +381,12 @@ cy_as_hal_device_tag cyasdevice_gethalta
+ }
+ EXPORT_SYMBOL(cyasdevice_gethaltag);
+ 
+-
+ /*init Westbridge device driver **/
+ static int __init cyasdevice_init(void)
+ {
+-	if (cyasdevice_initialize() != 0)
+-		return ENODEV;
+-
+-	return 0;
++	return platform_driver_register(&west_bridge_driver);
+ }
+ 
+-
+ static void __exit cyasdevice_cleanup(void)
+ {
+ 
+diff -uprN -X linux-2.6.37_vanilla/Documentation/dontdiff linux-2.6.37_vanilla/include/linux/usb/cywb.h linux-2.6.37-gpmc/include/linux/usb/cywb.h
+--- linux-2.6.37_vanilla/include/linux/usb/cywb.h	1969-12-31 16:00:00.000000000 -0800
++++ linux-2.6.37-gpmc/include/linux/usb/cywb.h	2011-01-12 12:35:40.054775557 -0800
+@@ -0,0 +1,21 @@
++/*
++ * data structure declaration for passing gpmc configuration
++ * functions to westbridge device controller driver.
++ * usb-cywb-pnand.c defines the configuration functions
++ */
++
++#ifndef __LINUX_USB_CYWB_H
++#define __LINUX_USB_CYWB_H
++
++
++struct cywb_platform_data {
++	/* PNAND retime function */
++	int		(*retime)(void);
++
++	/* PNAND bus width configuration */
++	void		(*config_bus_width)(bool dbus16_enabled);
++};
++
++extern void usb_cywb_init(void);
++
++#endif /* __LINUX_USB_CYWB_H */
 
-diff --git a/arch/arm/include/asm/fncpy.h b/arch/arm/include/asm/fncpy.h
-new file mode 100644
-index 0000000..6399265
---- /dev/null
-+++ b/arch/arm/include/asm/fncpy.h
-@@ -0,0 +1,110 @@
-+/*
-+ * arch/arm/include/asm/fncpy.h - helper macros for function body copying
-+ *
-+ * Copyright (C) 2011 Linaro Limited
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+/*
-+ * These macros are intended for use when there is a need to copy a low-level
-+ * function body into special memory.
-+ *
-+ * For example, when reconfiguring the SDRAM controller, the code doing the
-+ * reconfiguration may need to run from SRAM.
-+ *
-+ * NOTE: that the copied function body must be entirely self-contained and
-+ * position-independent in order for this to work properly.
-+ *
-+ *
-+ * Typical usage example:
-+ *
-+ * extern int f(args);
-+ * extern uint32_t size_of_f;
-+ * int (*copied_f)(args);
-+ * void *sram_buffer;
-+ *
-+ * copied_f = fncpy(sram_buffer, &f, size_of_f);
-+ *
-+ * ... do any required D-side/I-side synchronisation ...
-+ *
-+ * ... later, call the function: ...
-+ *
-+ * copied_f(args);
-+ *
-+ * The size of the function to be copied can't be determined from C:
-+ * this must be determined by other means, such as adding assmbler directives
-+ * in the file where f is defined.
-+ */
-+
-+#ifndef __ASM_FNCPY_H
-+#define __ASM_FNCPY_H
-+
-+#include <linux/types.h>
-+#include <linux/string.h>
-+
-+#include <asm/cacheflush.h>
-+
-+/* Function pointer casting macros */
-+
-+/* Cast function pointer to integer: */
-+#define __funcp_to_uint(funcp) ({				\
-+		uintptr_t __result;				\
-+								\
-+		asm("" : "=r" (__result) : "0" (funcp));	\
-+		__result;					\
-+	})
-+
-+/* Cast integer to function pointer with type matching funcp: */
-+#define __uint_to_funcp(i, funcp) ({			\
-+		typeof(funcp) __result;			\
-+							\
-+		asm("" : "=r" (__result) : "0" (i));	\
-+		__result;				\
-+	})
-+
-+
-+/* Function symbol manipulation macros */
-+
-+/*
-+ * FSYM_REBASE: Determine the correct function pointer for funcp,
-+ * after the function has been copied to dest_buf:
-+ */
-+#define FSYM_REBASE(funcp, dest_buf)					\
-+	__uint_to_funcp((uintptr_t)(dest_buf) | FSYM_TYPE(funcp), funcp)
-+
-+/*
-+ * FSYM_BASE: Determine the base address in memory of the function funcp
-+ * FSYM_TYPE: Determine the instruction set type (ARM/Thumb) of funcp
-+ * (both defined below)
-+ */
-+
-+#ifdef CONFIG_THUMB2_KERNEL
-+#define FSYM_BASE(funcp) ((void *)(__funcp_to_uint(funcp) & ~(uintptr_t)1))
-+#define FSYM_TYPE(funcp) (__funcp_to_uint(funcp) & 1)
-+#else /* !CONFIG_THUMB2_KERNEL */
-+#define FSYM_BASE(funcp) ((void *)__funcp_to_uint(funcp))
-+#define FSYM_TYPE(funcp) 0
-+#endif /* !CONFIG_THUMB2_KERNEL */
-+
-+/* Function copy helper */
-+#define fncpy(dest_buf, funcp, size) ({				\
-+		memcpy(dest_buf, FSYM_BASE(funcp), size);	\
-+		flush_icache_range((unsigned long)(dest_buf),	\
-+			(unsigned long)(dest_buf) + (size));	\
-+								\
-+		FSYM_REBASE(funcp, dest_buf);			\
-+	})
-+
-+#endif /* !__ASM_FNCPY_H */
--- 
-1.7.1
 
+      
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
