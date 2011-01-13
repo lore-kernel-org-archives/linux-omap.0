@@ -1,75 +1,107 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 4/4] arm: omap: clockdomain: fix compile error
-Date: Thu, 13 Jan 2011 13:41:08 +0200
-Message-ID: <1294918868-16263-5-git-send-email-balbi@ti.com>
-References: <1294918868-16263-1-git-send-email-balbi@ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCHv2] omap3: Add basic support for 720MHz part
+Date: Thu, 13 Jan 2011 17:16:14 +0530
+Message-ID: <AANLkTi=RJPJEKpPgej+DQ7dWkajxx7=K4WR80j9mNxtc@mail.gmail.com>
+References: <1294857234-1676-1-git-send-email-premi@ti.com>
+	<20110113035355.GA2178@manju-desktop>
+	<B85A65D85D7EB246BE421B3FB0FBB593024834A32F@dbde02.ent.ti.com>
+	<AANLkTiknC64=nqG2ch9e9GA=MK0iazvd4tOO5GPxVjgQ@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59302483D803C@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:44968 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932891Ab1AMLle (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Jan 2011 06:41:34 -0500
-Received: by mail-gw0-f46.google.com with SMTP id 20so632262gwj.33
-        for <linux-omap@vger.kernel.org>; Thu, 13 Jan 2011 03:41:34 -0800 (PST)
-In-Reply-To: <1294918868-16263-1-git-send-email-balbi@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:45615 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932641Ab1AMLqQ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Jan 2011 06:46:16 -0500
+Received: by bwz14 with SMTP id 14so1388297bwz.16
+        for <linux-omap@vger.kernel.org>; Thu, 13 Jan 2011 03:46:15 -0800 (PST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59302483D803C@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-If building OMAP4-only kernel, we will see
-the following compile error:
+On Thu, Jan 13, 2011 at 4:48 PM, Premi, Sanjeev <premi@ti.com> wrote:
+>> -----Original Message-----
+>> From: G, Manjunath Kondaiah
+>> Sent: Thursday, January 13, 2011 2:58 PM
+>> To: Premi, Sanjeev
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: [PATCHv2] omap3: Add basic support for 720MHz part
+>>
+>
+> [....]
+>
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
+>> >> =A0 =A0 =A0 }
+>> >>
+>> >> Do you see any issues?
+>> >
+>> > Though it is not considered in this patch, but in the devices that
+>> > don't contain iva, the code related to enabling the iva freq can
+>> > be easily excluded in current flow.
+>>
+>> In this case, the function returns error if we have device with no
+>> iva. The API should
+>> enable only mpu opp and return sane value for devices with no iva.
+>>
+>
+> [sp] Don't want to get into details of next patch here, but when ther=
+e
+> is no IVA, the "if" condition for for iva won't/shouldn't be entered.
+exactly
+>
+> Values returned should just be the status opp_enable. OR am I missing
+> something in your comment.
+> e.g.
+> =A0 =A0 =A0 =A0pdev =3D oh_mpu->od->pdev;
+> =A0 =A0 =A0 =A0r =3D opp_enable(&pdev->dev, 720000000);
+> =A0 =A0 =A0 =A0if (r < 0) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(&pdev->dev, "Unable to enable =
+OPP for mpu.\n");
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err;
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0if omap3_has_iva()) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh_iva =3D omap_hwmod_lookup("iva"); /=
+/move from current impl.
 
-arch/arm/mach-omap2/clockdomain.c: In function '_enable_hwsup':
-arch/arm/mach-omap2/clockdomain.c:251:18: error: 'struct clockdomain'
-has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c:254:18: error: 'struct clockdomain'
-has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c: In function '_disable_hwsup':
-arch/arm/mach-omap2/clockdomain.c:277:12: error: 'struct clockdomain'
-has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c:280:12: error: 'struct clockdomain'
-has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c: In function 'omap2_clkdm_sleep':
-arch/arm/mach-omap2/clockdomain.c:744:17: error: 'struct clockdomain'
-has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c: In function 'omap2_clkdm_wakeup':
-arch/arm/mach-omap2/clockdomain.c:789:18: error: 'struct clockdomain'
-has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c: In function 'omap2_clkdm_clk_enable':
-arch/arm/mach-omap2/clockdomain.c:922:13: error: 'struct clockdomain'
-has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c:926:15: error: 'struct clockdomain'
-has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c: In function
-'omap2_clkdm_clk_disable':
-arch/arm/mach-omap2/clockdomain.c:994:13: error: 'struct clockdomain'
-has no member named 'clktrctrl_mask'
-arch/arm/mach-omap2/clockdomain.c:998:15: error: 'struct clockdomain'
-has no member named 'clktrctrl_mask'
-make[1]: *** [arch/arm/mach-omap2/clockdomain.o] Error 1
+This looks fine and it can translate into:
+	if (!oh_mpu || !oh_mpu->od)
+               goto err_nodevice;
 
-Fix it.
+       pdev =3D oh_mpu->od->pdev;
+       r =3D opp_enable(&pdev->dev, 720000000);
+       if (r < 0)
+               goto err_oppenable;
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/clockdomain.h |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+	if (!omap3_has_iva())
+		goto err_nodevice;
 
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index de3faa2..092256d 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -103,7 +103,8 @@ struct clockdomain {
- 		const char *name;
- 		struct powerdomain *ptr;
- 	} pwrdm;
--#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-+#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
-+	defined(CONFIG_ARCH_OMAP4)
- 	const u16 clktrctrl_mask;
- #endif
- 	const u8 flags;
--- 
-1.7.3.4.598.g85356
+	r =3D -ENODEV;
+	if(!oh_iva || !oh_iva->od)
+               goto err_nodevice;
 
+       pdev =3D oh_iva->od->pdev;
+       r =3D opp_enable(&pdev->dev, 520000000);
+       if (r < 0)
+               goto err_oppenable;
+
+	return r;
+
+err_oppenable:
+	dev_err(&pdev->dev, "Unable to enable OPP\n");
+err_nodevice:
+	return r;
+
+-Manjunath
+
+[...]
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
