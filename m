@@ -1,107 +1,68 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCHv2] omap3: Add basic support for 720MHz part
-Date: Thu, 13 Jan 2011 17:16:14 +0530
-Message-ID: <AANLkTi=RJPJEKpPgej+DQ7dWkajxx7=K4WR80j9mNxtc@mail.gmail.com>
-References: <1294857234-1676-1-git-send-email-premi@ti.com>
-	<20110113035355.GA2178@manju-desktop>
-	<B85A65D85D7EB246BE421B3FB0FBB593024834A32F@dbde02.ent.ti.com>
-	<AANLkTiknC64=nqG2ch9e9GA=MK0iazvd4tOO5GPxVjgQ@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59302483D803C@dbde02.ent.ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 4/4] arm: omap: clockdomain: fix compile error
+Date: Thu, 13 Jan 2011 17:18:47 +0530
+Message-ID: <dd0e64dec64280058f5571494fb60114@mail.gmail.com>
+References: <1294918868-16263-1-git-send-email-balbi@ti.com> <1294918868-16263-5-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:45615 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932641Ab1AMLqQ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Jan 2011 06:46:16 -0500
-Received: by bwz14 with SMTP id 14so1388297bwz.16
-        for <linux-omap@vger.kernel.org>; Thu, 13 Jan 2011 03:46:15 -0800 (PST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59302483D803C@dbde02.ent.ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:54724 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756576Ab1AMLst (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Jan 2011 06:48:49 -0500
+Received: by mail-fx0-f48.google.com with SMTP id 2so1615362fxm.35
+        for <linux-omap@vger.kernel.org>; Thu, 13 Jan 2011 03:48:48 -0800 (PST)
+In-Reply-To: <1294918868-16263-5-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Thu, Jan 13, 2011 at 4:48 PM, Premi, Sanjeev <premi@ti.com> wrote:
->> -----Original Message-----
->> From: G, Manjunath Kondaiah
->> Sent: Thursday, January 13, 2011 2:58 PM
->> To: Premi, Sanjeev
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: [PATCHv2] omap3: Add basic support for 720MHz part
->>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Felipe Balbi
+> Sent: Thursday, January 13, 2011 5:11 PM
+> To: Tony Lindgren
+> Cc: Paul Walmsley; Linux OMAP Mailing List; Felipe Balbi
+> Subject: [PATCH 4/4] arm: omap: clockdomain: fix compile error
 >
-> [....]
+> If building OMAP4-only kernel, we will see
+> the following compile error:
 >
->> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
->> >> =A0 =A0 =A0 }
->> >>
->> >> Do you see any issues?
->> >
->> > Though it is not considered in this patch, but in the devices that
->> > don't contain iva, the code related to enabling the iva freq can
->> > be easily excluded in current flow.
->>
->> In this case, the function returns error if we have device with no
->> iva. The API should
->> enable only mpu opp and return sane value for devices with no iva.
->>
->
-> [sp] Don't want to get into details of next patch here, but when ther=
-e
-> is no IVA, the "if" condition for for iva won't/shouldn't be entered.
-exactly
->
-> Values returned should just be the status opp_enable. OR am I missing
-> something in your comment.
-> e.g.
-> =A0 =A0 =A0 =A0pdev =3D oh_mpu->od->pdev;
-> =A0 =A0 =A0 =A0r =3D opp_enable(&pdev->dev, 720000000);
-> =A0 =A0 =A0 =A0if (r < 0) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(&pdev->dev, "Unable to enable =
-OPP for mpu.\n");
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err;
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0if omap3_has_iva()) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh_iva =3D omap_hwmod_lookup("iva"); /=
-/move from current impl.
-
-This looks fine and it can translate into:
-	if (!oh_mpu || !oh_mpu->od)
-               goto err_nodevice;
-
-       pdev =3D oh_mpu->od->pdev;
-       r =3D opp_enable(&pdev->dev, 720000000);
-       if (r < 0)
-               goto err_oppenable;
-
-	if (!omap3_has_iva())
-		goto err_nodevice;
-
-	r =3D -ENODEV;
-	if(!oh_iva || !oh_iva->od)
-               goto err_nodevice;
-
-       pdev =3D oh_iva->od->pdev;
-       r =3D opp_enable(&pdev->dev, 520000000);
-       if (r < 0)
-               goto err_oppenable;
-
-	return r;
-
-err_oppenable:
-	dev_err(&pdev->dev, "Unable to enable OPP\n");
-err_nodevice:
-	return r;
-
--Manjunath
 
 [...]
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>
+> Fix it.
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+
+Looks like you missed the series what I posted and in the
+queue.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41712.html
+
+
+
+> ---
+>  arch/arm/mach-omap2/clockdomain.h |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-
+> omap2/clockdomain.h
+> index de3faa2..092256d 100644
+> --- a/arch/arm/mach-omap2/clockdomain.h
+> +++ b/arch/arm/mach-omap2/clockdomain.h
+> @@ -103,7 +103,8 @@ struct clockdomain {
+>  		const char *name;
+>  		struct powerdomain *ptr;
+>  	} pwrdm;
+> -#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> +#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
+> +	defined(CONFIG_ARCH_OMAP4)
+>  	const u16 clktrctrl_mask;
+>  #endif
+>  	const u8 flags;
+> --
+
+Santosh
