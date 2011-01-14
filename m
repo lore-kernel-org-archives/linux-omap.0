@@ -1,60 +1,45 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/1 v2] ARM: Thumb-2: Symbol manipulation macros for
-	function body copying
-Date: Thu, 13 Jan 2011 23:55:24 +0000
-Message-ID: <20110113235524.GB28040@n2100.arm.linux.org.uk>
-References: <1294951905-23748-1-git-send-email-dave.martin@linaro.org> <1294951905-23748-2-git-send-email-dave.martin@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Daniel Morsing <daniel.morsing@gmail.com>
+Subject: [PATCH 2/3] omap3: devkit8000: fix tps65930 pullup/pulldown configuration
+Date: Fri, 14 Jan 2011 01:03:28 +0100
+Message-ID: <1294963409-29891-3-git-send-email-daniel.morsing@gmail.com>
+References: <1294963409-29891-1-git-send-email-daniel.morsing@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56063 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187Ab1AMXzj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jan 2011 18:55:39 -0500
-Content-Disposition: inline
-In-Reply-To: <1294951905-23748-2-git-send-email-dave.martin@linaro.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:56247 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757362Ab1ANAD0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jan 2011 19:03:26 -0500
+Received: by mail-ey0-f174.google.com with SMTP id 27so1191165eye.19
+        for <linux-omap@vger.kernel.org>; Thu, 13 Jan 2011 16:03:25 -0800 (PST)
+In-Reply-To: <1294963409-29891-1-git-send-email-daniel.morsing@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Thomas Weber <weber@corscience.de>, Daniel Morsing <daniel.morsing@gmail.com>
 
-On Thu, Jan 13, 2011 at 02:51:45PM -0600, Dave Martin wrote:
-> +/* Cast function pointer to integer: */
-> +#define __funcp_to_uint(funcp) ({				\
+gpio1 and gpio7 on the tps65930 are used as outputs on the devkit8000.
+Remove them from the pu/pd configuration.
 
-uint is confusing here - it suggests casting a pointer to an unsigned int,
-rather than a uintptr_t.  Please use uintptr here.
+Signed-off-by: Daniel Morsing <daniel.morsing@gmail.com>
+---
+ arch/arm/mach-omap2/board-devkit8000.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-> +/*
-> + * FSYM_REBASE: Determine the correct function pointer for funcp,
-> + * after the function has been copied to dest_buf:
-> + */
-> +#define FSYM_REBASE(funcp, dest_buf)					\
-> +	__uint_to_funcp((uintptr_t)(dest_buf) | FSYM_TYPE(funcp), funcp)
-> +
-> +/*
-> + * FSYM_BASE: Determine the base address in memory of the function funcp
-> + * FSYM_TYPE: Determine the instruction set type (ARM/Thumb) of funcp
-> + * (both defined below)
-> + */
-> +
-> +#ifdef CONFIG_THUMB2_KERNEL
-> +#define FSYM_BASE(funcp) ((void *)(__funcp_to_uint(funcp) & ~(uintptr_t)1))
-> +#define FSYM_TYPE(funcp) (__funcp_to_uint(funcp) & 1)
-> +#else /* !CONFIG_THUMB2_KERNEL */
-> +#define FSYM_BASE(funcp) ((void *)__funcp_to_uint(funcp))
-> +#define FSYM_TYPE(funcp) 0
-> +#endif /* !CONFIG_THUMB2_KERNEL */
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 864a08f..8dc7a24 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -265,9 +265,8 @@ static struct twl4030_gpio_platform_data devkit8000_gpio_data = {
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+ 	.irq_end	= TWL4030_GPIO_IRQ_END,
+ 	.use_leds	= true,
+-	.pullups	= BIT(1),
+-	.pulldowns	= BIT(2) | BIT(6) | BIT(7) | BIT(8) | BIT(13)
+-				| BIT(15) | BIT(16) | BIT(17),
++	.pulldowns	= BIT(2) | BIT(6) | BIT(8) | BIT(13) | BIT(15)
++				| BIT(16) | BIT(17),
+ 	.setup		= devkit8000_twl_gpio_setup,
+ };
+ 
+-- 
+1.7.3.4
 
-I'd really like to see these gone - otherwise they'll end up being used
-in code inappropriately.  I like things to be kept as simple as possible
-with as few opportunities for people to needlessly hook into internal
-implementation details.
-
-If you expose implementation details, people will use them, and then if
-you need to change the implementation, you've got a lot of code to deal
-with.
-
-I don't think we need to make this conditional on THUMB2 either - we're
-probably not wasting much by always clearing and copying the LSB.  And
-this isn't particularly performance code.
