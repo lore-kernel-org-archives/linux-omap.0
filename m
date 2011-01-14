@@ -1,50 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP
- boot failure)
-Date: Fri, 14 Jan 2011 09:29:10 -0800
-Message-ID: <20110114172910.GH4957@atomide.com>
-References: <20110106182023.GV7771@atomide.com>
- <20110106203238.GH1198@n2100.arm.linux.org.uk>
- <20110106204053.GA7771@atomide.com>
- <20110107161230.GR1198@n2100.arm.linux.org.uk>
- <20110110185209.GC4957@atomide.com>
- <20110111231611.GX4957@atomide.com>
- <2f1a86cfda277de8d190e5eb9b9ccd77@mail.gmail.com>
- <20110113091546.GA24429@n2100.arm.linux.org.uk>
- <20110113155152.GG4957@atomide.com>
- <20110113164957.GA28040@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] OMAP: use fncpy to copy the PM code functions to SRAM
+Date: Fri, 14 Jan 2011 17:34:00 +0000
+Message-ID: <20110114173400.GB22505@n2100.arm.linux.org.uk>
+References: <1295018470-18099-1-git-send-email-j-pihet@ti.com> <20110114155806.GA22505@n2100.arm.linux.org.uk> <AANLkTikz_gSQE5QfO6ZXwbp9w+HTNMtb6RLBY+3Z0XF6@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17635 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752276Ab1ANR3a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 12:29:30 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33132 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757625Ab1ANReQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 12:34:16 -0500
 Content-Disposition: inline
-In-Reply-To: <20110113164957.GA28040@n2100.arm.linux.org.uk>
+In-Reply-To: <AANLkTikz_gSQE5QfO6ZXwbp9w+HTNMtb6RLBY+3Z0XF6@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Anand Gadiyar <gadiyar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110113 08:49]:
-> On Thu, Jan 13, 2011 at 07:51:53AM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [110113 01:15]:
-> > > Given the very sorry state of OMAP in mainline at present, I'm surprised
-> > > that this kind of stuff is still going on...
-> > 
-> > At least I boot test the patches I send..
+On Fri, Jan 14, 2011 at 05:13:01PM +0100, Jean Pihet wrote:
+> Is the name 'omap_sram_push' wrong then?
+> What about the following?
+> @@ -251,9 +251,8 @@ void * omap_sram_push(void * start, unsigned long size)
 > 
-> Which is why OMAP3 and OMAP4 can't be built in mainline because they
-> spit out lots of compile errors in the OMAP code...  As they won't
-> even compile they couldn't have been boot tested.
+>        omap_sram_ceil -= size;
+>        omap_sram_ceil = ROUND_DOWN(omap_sram_ceil, sizeof(void *));
+>  -     memcpy((void *)omap_sram_ceil, start, size);
+>  -     flush_icache_range((unsigned long)omap_sram_ceil,
+>  -             (unsigned long)(omap_sram_ceil + size));
+> 
+>  -     return (void *)omap_sram_ceil;
+>  +    return fncpy((void *)omap_sram_ceil, start, size);
 
-Huh? I have fixes queued up for the issues that showed up with
-merges with various other trees.
-
-I certainly make sure everything I merge is compile and boot
-tested. Sure there are still tons of issues still remaining,
-but people are working on those. That's why we have the -rc
-releases.
-
-Tony
+It's more correct, but still missing out on the type safety which we've
+tried to provide with fncpy.  Note also the other issue with Dave Martin
+has raised though - this isn't ready for merging yet.
