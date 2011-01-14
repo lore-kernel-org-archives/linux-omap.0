@@ -1,80 +1,46 @@
-From: Daniel Morsing <daniel.morsing@gmail.com>
-Subject: [PATCH 3/3] omap3: devkit8000: Use generic gpio for second lcd enable
-Date: Fri, 14 Jan 2011 01:03:29 +0100
-Message-ID: <1294963409-29891-4-git-send-email-daniel.morsing@gmail.com>
-References: <1294963409-29891-1-git-send-email-daniel.morsing@gmail.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCHv2] staging: tidspbridge: configure full L1 MMU range
+Date: Thu, 13 Jan 2011 19:39:19 -0600
+Message-ID: <AANLkTi=xedun+g=5295CFZXPn=2nPuVUhC4TPVsPR4Ya@mail.gmail.com>
+References: <1294262733-9585-1-git-send-email-fernando.lugo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:54592 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757359Ab1ANAD1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jan 2011 19:03:27 -0500
-Received: by ewy5 with SMTP id 5so1230888ewy.19
-        for <linux-omap@vger.kernel.org>; Thu, 13 Jan 2011 16:03:26 -0800 (PST)
-In-Reply-To: <1294963409-29891-1-git-send-email-daniel.morsing@gmail.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:33079 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757292Ab1ANBjU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Jan 2011 20:39:20 -0500
+In-Reply-To: <1294262733-9585-1-git-send-email-fernando.lugo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Thomas Weber <weber@corscience.de>, Daniel Morsing <daniel.morsing@gmail.com>
+To: Fernando Guzman Lugo <fernando.lugo@ti.com>
+Cc: gregkh@suse.de, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>
 
-The Devkit8000 uses 2 gpios for the lcd enable line. twl4030_gpio1 and
-twl4030_ledA, with ledA configured as an output only gpio. gpio1 is used
-through the generic gpio functions while ledA is used via low level
-twl4030 calls. Remove the low level calls and use the generic gpio
-functions for initialization and use of ledA.
+Hi,
 
-This also fixes a bug where the lcd would not power down when blanking.
+On Wed, Jan 5, 2011 at 3:25 PM, Fernando Guzman Lugo
+<fernando.lugo@ti.com> wrote:
+> From: Guzman Lugo, Fernando <fernando.lugo@ti.com>
+>
+> IVA MMU can manage up to 4GB of address space through its page tables,
+> given that it's L1 is divided into 1MB sections it requires at least
+> 16KB for its table which represents 4096 entries of 32 bits each.
+>
+> Previously, only 1GB was being handled by setting the page table size
+> to 4KB, any virtual address beyond of the L1 size used, would fall
+> into memory that does not belong to L1 translation tables, leading to
+> unpredictable results.
+>
+> So, set the L1 table size to cover the entire MMU range (4GB) whether
+> is meant to be used or not.
+>
+> Reported-by: Felipe Contreras <felipe.contreras@nokia.com>
+> Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
+> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
 
-Signed-off-by: Daniel Morsing <daniel.morsing@gmail.com>
----
- arch/arm/mach-omap2/board-devkit8000.c |   19 +++++++++++++++++--
- 1 files changed, 17 insertions(+), 2 deletions(-)
+Nice fix, pushed to for-gkh-2.6.38 branch.
 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 8dc7a24..c1fdb1e 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -112,10 +112,16 @@ static struct omap2_hsmmc_info mmc[] = {
- 	{}	/* Terminator */
- };
- 
-+/* This board uses 2 gpios for the lcd reset line, so use
-+ * omap_dss_device.reset_gpio for storing one and this variable
-+ * for storing the other.
-+ */
-+static int lcd_enable_gpio = -EINVAL; /* will be replaced */
-+
- static int devkit8000_panel_enable_lcd(struct omap_dss_device *dssdev)
- {
--	twl_i2c_write_u8(TWL4030_MODULE_GPIO, 0x80, REG_GPIODATADIR1);
--	twl_i2c_write_u8(TWL4030_MODULE_LED, 0x0, 0x0);
-+	if (gpio_is_valid(lcd_enable_gpio))
-+		gpio_set_value_cansleep(lcd_enable_gpio, 1);
- 
- 	if (gpio_is_valid(dssdev->reset_gpio))
- 		gpio_set_value_cansleep(dssdev->reset_gpio, 1);
-@@ -124,6 +130,9 @@ static int devkit8000_panel_enable_lcd(struct omap_dss_device *dssdev)
- 
- static void devkit8000_panel_disable_lcd(struct omap_dss_device *dssdev)
- {
-+	if (gpio_is_valid(lcd_enable_gpio))
-+		gpio_set_value_cansleep(lcd_enable_gpio, 0);
-+
- 	if (gpio_is_valid(dssdev->reset_gpio))
- 		gpio_set_value_cansleep(dssdev->reset_gpio, 0);
- }
-@@ -251,6 +260,12 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
- 	/* Disable until needed */
- 	gpio_direction_output(devkit8000_lcd_device.reset_gpio, 0);
- 
-+	/* TWL4030_GPIO_MAX + 0 == ledA which is also "LCD_PWREN" */
-+	lcd_enable_gpio = gpio + TWL4030_GPIO_MAX + 0;
-+	gpio_request(lcd_enable_gpio, "LCD_PWREN");
-+	/* Disable until needed */
-+	gpio_direction_output(lcd_enable_gpio, 0);
-+
- 	/* gpio + 7 is "DVI_PD" (out, active low) */
- 	devkit8000_dvi_device.reset_gpio = gpio + 7;
- 	gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
--- 
-1.7.3.4
+Regards,
 
+Omar
