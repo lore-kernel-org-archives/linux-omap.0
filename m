@@ -1,56 +1,71 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: Re: Passing mem=1G to kernel on Panda, system is unstable.
-Date: Sat, 15 Jan 2011 02:41:18 +0800
-Message-ID: <AANLkTime0otkEhqwFBS4k_aYiU7a8hnbhYQsfE=GBHdr@mail.gmail.com>
-References: <AANLkTin+ZjUoD9i+JxV7wW2+U6oEp42PdP5R4gdtzy=F@mail.gmail.com>
- <alpine.DEB.2.00.1101121649560.5731@utopia.booyaka.com> <AANLkTi=X-yUNvSkn-qNrAGSUoy_sNy9FzkeCzFECsBZF@mail.gmail.com>
- <alpine.DEB.2.00.1101132240220.28621@utopia.booyaka.com> <AANLkTimoSGkQV8suHD0-KFBq1wZc-VkzZ8ziZ81QaL9V@mail.gmail.com>
- <AANLkTimmnUq19qmBgAetA-+pkrCxwwfwA-kaBtAOqVeu@mail.gmail.com>
- <36befcf1947882da51ace32cbfb0b922@mail.gmail.com> <AANLkTim2dv+cKDsDgPMQFWgEcN_p1Q1_R6HFh3=v44Xk@mail.gmail.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH] TWD: enable one-shot mode
+Date: Fri, 14 Jan 2011 10:45:08 -0800
+Message-ID: <4D3099B4.40900@codeaurora.org>
+References: <20101224191855.GJ20587@n2100.arm.linux.org.uk> <4D2BE6C4.4040806@codeaurora.org> <20110111115209.GA12781@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:56088 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752518Ab1ANSlj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 13:41:39 -0500
-Received: by qwa26 with SMTP id 26so3016648qwa.19
-        for <linux-omap@vger.kernel.org>; Fri, 14 Jan 2011 10:41:38 -0800 (PST)
-In-Reply-To: <AANLkTim2dv+cKDsDgPMQFWgEcN_p1Q1_R6HFh3=v44Xk@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <20110111115209.GA12781@n2100.arm.linux.org.uk>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Bryan Huntsman <bryanh@codeaurora.org>, Colin Cross <ccross@android.com>, Daniel Walker <dwalker@codeaurora.org>, David Brown <davidb@codeaurora.org>, Erik Gilling <konkers@android.com>, Kukjin Kim <kgene.kim@samsung.com>, Linus Walleij <linus.walleij@stericsson.com>, Olof Johansson <olof@lixom.net>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, linux-tegra@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Jan, Sebastien" <s-jan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
 
-On Sat, Jan 15, 2011 at 1:48 AM, Jan, Sebastien <s-jan@ti.com> wrote:
-> Hi Santosh,
+On 01/11/2011 03:52 AM, Russell King - ARM Linux wrote:
+> On Mon, Jan 10, 2011 at 09:12:36PM -0800, Stephen Boyd wrote:
+>>
+>> I see this patch was already tested and merged but can you elaborate on
+>> why this was done? From what I understand, NOHZ selects one-shot (like
+>> is done in this patch), so why don't the machines with a TWD choose NOHZ
+>> or high res timers?
 >
-> On Fri, Jan 14, 2011 at 6:22 PM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com> wrote:
->>>
->>> I just tested with the 2.6.37 mainline kernel and Bryan config, and
->>> can reproduce the issue with CONFIG_SMP disabled.
->> Can you try the patch I sent on the list as well ?
->
+> You're right - so it's not actually required.  It should probably be
+> reverted, though it does no damage...
 
-Unfortunately, I still can reproduce this issue with mainline 2.6.37
-kernel + the patch here:
----
-[ 3391.102539] Unhandled fault: imprecise external abort (0x1406) at 0x4278f000
-/home/ubuntu/ubuntu-natty/drivers/media/dvb/dvb-usb/a800.c:197:1:
-internal compiler error: Bus error
-Please submit a full bug report,
-with preprocessed source if appropriate.
-See <file:///usr/share/doc/gcc-4.5/README.Bugs> for instructions.
----
+Now I'm wondering why there are other 'select TICK_ONESHOT' lines in
+arch/arm/Kconfig. Can we just remove them all? Otherwise it feels like
+we're making it confusing for others later on.
 
--Bryan
+----->8---[cut here]----8<-----
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index e2f8011..7750a78 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -532,7 +532,6 @@ config ARCH_MMP
+        select CLKDEV_LOOKUP
+        select GENERIC_CLOCKEVENTS
+        select HAVE_SCHED_CLOCK
+-       select TICK_ONESHOT
+        select PLAT_PXA
+        select SPARSE_IRQ
+        help
+@@ -613,7 +612,6 @@ config ARCH_PXA
+        select ARCH_REQUIRE_GPIOLIB
+        select GENERIC_CLOCKEVENTS
+        select HAVE_SCHED_CLOCK
+-       select TICK_ONESHOT
+        select PLAT_PXA
+        select SPARSE_IRQ
+        help
+@@ -668,7 +666,6 @@ config ARCH_SA1100
+        select GENERIC_CLOCKEVENTS
+        select HAVE_CLK
+        select HAVE_SCHED_CLOCK
+-       select TICK_ONESHOT
+        select ARCH_REQUIRE_GPIOLIB
+        help
+          Support for StrongARM 11x0 based boards.
+@@ -1300,7 +1297,6 @@ config HAVE_ARM_SCU
+ config HAVE_ARM_TWD
+        bool
+        depends on SMP
+-       select TICK_ONESHOT
+        help
+          This options enables support for the ARM timer and watchdog unit
 
-> Bryan is currently testing your patch. I have a build running with
-> HIGHMEM deactivated.
->
-> I'll also make a try on blaze board. I do not expect any difference
-> here. Note that the only way to trigger this issue for me was to make
-> native compilation of a big component (like native kernel
-> compilation).
->
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+
