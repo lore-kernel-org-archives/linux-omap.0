@@ -1,67 +1,56 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: OMAP4 ES2.0 Unhandled fault: imprecise external abort
-Date: Fri, 14 Jan 2011 23:31:34 +0530
-Message-ID: <b5cc87170d3e76e0cf62b3dfda70ffc2@mail.gmail.com>
-References: <AANLkTinXqSA0botGAGzEtk8_xOVt0W05k9+0w4v1gqF0@mail.gmail.com>
- <AANLkTin7YJ9GKdpFH1C_fwFXJp6yyO09s5ZJRos1Er1T@mail.gmail.com>
- <AANLkTi=iMXB6LvkNkj5JU17PPC3Kt+hnbDd1s=Dj8voq@mail.gmail.com>
- <aed955b665a0511402480c258615c2d8@mail.gmail.com> <AANLkTimYCzNO0skDLForDWM5v_A6aPmfQ2qoZMBJUC4s@mail.gmail.com>
- <e56efff1efde6669f06463a9af017967@mail.gmail.com> <AANLkTimA3Ypk6HH=Gn+wU-1-_mqF184tx-uvAtJ4Pac5@mail.gmail.com>
- <c77cce3143f47a793057b2a9a90a277b@mail.gmail.com> <AANLkTik4eDy+QcMqp-0KcNTS0FdQYTfka__e8wB8KcpA@mail.gmail.com>
- <7c601ad1e2d45e00240055319cfec2f9@mail.gmail.com> <AANLkTinwK9GtVUiUFeE=75cjyOLb5dzVhdGQHzPKCzQw@mail.gmail.com>
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: Re: Passing mem=1G to kernel on Panda, system is unstable.
+Date: Sat, 15 Jan 2011 02:41:18 +0800
+Message-ID: <AANLkTime0otkEhqwFBS4k_aYiU7a8hnbhYQsfE=GBHdr@mail.gmail.com>
+References: <AANLkTin+ZjUoD9i+JxV7wW2+U6oEp42PdP5R4gdtzy=F@mail.gmail.com>
+ <alpine.DEB.2.00.1101121649560.5731@utopia.booyaka.com> <AANLkTi=X-yUNvSkn-qNrAGSUoy_sNy9FzkeCzFECsBZF@mail.gmail.com>
+ <alpine.DEB.2.00.1101132240220.28621@utopia.booyaka.com> <AANLkTimoSGkQV8suHD0-KFBq1wZc-VkzZ8ziZ81QaL9V@mail.gmail.com>
+ <AANLkTimmnUq19qmBgAetA-+pkrCxwwfwA-kaBtAOqVeu@mail.gmail.com>
+ <36befcf1947882da51ace32cbfb0b922@mail.gmail.com> <AANLkTim2dv+cKDsDgPMQFWgEcN_p1Q1_R6HFh3=v44Xk@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:44054 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751923Ab1ANSBk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Jan 2011 13:01:40 -0500
-Received: by ewy8 with SMTP id 8so1532090ewy.17
-        for <linux-omap@vger.kernel.org>; Fri, 14 Jan 2011 10:01:35 -0800 (PST)
-In-Reply-To: <AANLkTinwK9GtVUiUFeE=75cjyOLb5dzVhdGQHzPKCzQw@mail.gmail.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:56088 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752518Ab1ANSlj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 13:41:39 -0500
+Received: by qwa26 with SMTP id 26so3016648qwa.19
+        for <linux-omap@vger.kernel.org>; Fri, 14 Jan 2011 10:41:38 -0800 (PST)
+In-Reply-To: <AANLkTim2dv+cKDsDgPMQFWgEcN_p1Q1_R6HFh3=v44Xk@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan Wu <bryan.wu@canonical.com>
-Cc: TAO HU <tghk48@motorola.com>, TAO HU <taohu@motorola.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "Jan, Sebastien" <s-jan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
 
-> -----Original Message-----
-> From: cooloney@gmail.com [mailto:cooloney@gmail.com] On Behalf Of
-> Bryan Wu
-> Sent: Friday, January 14, 2011 11:24 PM
-> To: Santosh Shilimkar
-> Cc: TAO HU; TAO HU; linux-omap
-> Subject: Re: OMAP4 ES2.0 Unhandled fault: imprecise external abort
+On Sat, Jan 15, 2011 at 1:48 AM, Jan, Sebastien <s-jan@ti.com> wrote:
+> Hi Santosh,
 >
-> On Fri, Jan 14, 2011 at 4:06 PM, Santosh Shilimkar
+> On Fri, Jan 14, 2011 at 6:22 PM, Santosh Shilimkar
 > <santosh.shilimkar@ti.com> wrote:
-> >> -----Original Message-----
-> >> From: TAO HU [mailto:tghk48@motorola.com]
-> >> Sent: Friday, January 14, 2011 1:29 PM
-> >> To: Santosh Shilimkar
-> >> Cc: Bryan Wu; TAO HU; linux-omap
-> >> Subject: Re: OMAP4 ES2.0 Unhandled fault: imprecise external
-> abort
-> >>
-> >> Hi, Santosh
-> >>
-> >> I think it depends on whether IRQ is enabled.
-> >> It is a limitation for current L3 error logging mechanism.
-> >>
-> > L3 IRQ is always enabled except low power states. I guess
-> > we patched this part as well so that error is not lost and
-> > its logged.
-> >
-> > It's not a limitation L3 interrupt but behavior of CPU.
-> > Because scenario's where the I bit is cleared at CPU level
-> > (Interrupt disable), it's immune to interrupts.
-> >
-> > Note the interrupt is not lost but just got delayed a bit
-> >
+>>>
+>>> I just tested with the 2.6.37 mainline kernel and Bryan config, and
+>>> can reproduce the issue with CONFIG_SMP disabled.
+>> Can you try the patch I sent on the list as well ?
 >
-> Is there any testcase I can try to make sure the L3 error interrupt
-> is working?
+
+Unfortunately, I still can reproduce this issue with mainline 2.6.37
+kernel + the patch here:
+---
+[ 3391.102539] Unhandled fault: imprecise external abort (0x1406) at 0x4278f000
+/home/ubuntu/ubuntu-natty/drivers/media/dvb/dvb-usb/a800.c:197:1:
+internal compiler error: Bus error
+Please submit a full bug report,
+with preprocessed source if appropriate.
+See <file:///usr/share/doc/gcc-4.5/README.Bugs> for instructions.
+---
+
+-Bryan
+
+> Bryan is currently testing your patch. I have a build running with
+> HIGHMEM deactivated.
 >
-I guess with simple readmem to some non-initalised modules should
-trigger the error. Just read the change log of the patch. I guess
-there are couple of examples
+> I'll also make a try on blaze board. I do not expect any difference
+> here. Note that the only way to trigger this issue for me was to make
+> native compilation of a big component (like native kernel
+> compilation).
+>
