@@ -1,86 +1,93 @@
-From: TAO HU <tghk48@motorola.com>
-Subject: Re: OMAP4 ES2.0 Unhandled fault: imprecise external abort
-Date: Fri, 14 Jan 2011 15:58:37 +0800
-Message-ID: <AANLkTik4eDy+QcMqp-0KcNTS0FdQYTfka__e8wB8KcpA@mail.gmail.com>
-References: <AANLkTinXqSA0botGAGzEtk8_xOVt0W05k9+0w4v1gqF0@mail.gmail.com>
-	<AANLkTin7YJ9GKdpFH1C_fwFXJp6yyO09s5ZJRos1Er1T@mail.gmail.com>
-	<AANLkTi=iMXB6LvkNkj5JU17PPC3Kt+hnbDd1s=Dj8voq@mail.gmail.com>
-	<aed955b665a0511402480c258615c2d8@mail.gmail.com>
-	<AANLkTimYCzNO0skDLForDWM5v_A6aPmfQ2qoZMBJUC4s@mail.gmail.com>
-	<e56efff1efde6669f06463a9af017967@mail.gmail.com>
-	<AANLkTimA3Ypk6HH=Gn+wU-1-_mqF184tx-uvAtJ4Pac5@mail.gmail.com>
-	<c77cce3143f47a793057b2a9a90a277b@mail.gmail.com>
+From: Thomas Weber <weber@corscience.de>
+Subject: Re: [PATCH 0/3] omap3: devkit8000: misc fixes
+Date: Fri, 14 Jan 2011 09:48:08 +0100
+Message-ID: <4D300DC8.7000803@corscience.de>
+References: <1294963409-29891-1-git-send-email-daniel.morsing@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exprod5og108.obsmtp.com ([64.18.0.186]:52437 "EHLO
-	exprod5og108.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752865Ab1ANIkd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 03:40:33 -0500
-Received: from il93mgrg01.am.mot-mobility.com ([10.22.94.168])
-	by il93mgrg01.am.mot-mobility.com (8.14.3/8.14.3) with ESMTP id p0E7w6gV004712
-	for <linux-omap@vger.kernel.org>; Fri, 14 Jan 2011 02:58:06 -0500 (EST)
-Received: from mail-ey0-f170.google.com (mail-ey0-f170.google.com [209.85.215.170])
-	by il93mgrg01.am.mot-mobility.com (8.14.3/8.14.3) with ESMTP id p0E7w5WA004705
-	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=OK)
-	for <linux-omap@vger.kernel.org>; Fri, 14 Jan 2011 02:58:06 -0500 (EST)
-Received: by eyf5 with SMTP id 5so1736880eyf.15
-        for <linux-omap@vger.kernel.org>; Thu, 13 Jan 2011 23:58:37 -0800 (PST)
-In-Reply-To: <c77cce3143f47a793057b2a9a90a277b@mail.gmail.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:49289 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751478Ab1ANIsL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 03:48:11 -0500
+In-Reply-To: <1294963409-29891-1-git-send-email-daniel.morsing@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Bryan Wu <bryan.wu@canonical.com>, TAO HU <taohu@motorola.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Daniel Morsing <daniel.morsing@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi, Santosh
-
-I think it depends on whether IRQ is enabled.
-It is a limitation for current L3 error logging mechanism.
-
-On Fri, Jan 14, 2011 at 3:17 PM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
->> -----Original Message-----
->> From: cooloney@gmail.com [mailto:cooloney@gmail.com] On Behalf Of
->> Bryan Wu
->> Sent: Friday, January 14, 2011 3:08 AM
->> To: Santosh Shilimkar
->> Cc: TAO HU; TAO HU; linux-omap
->> Subject: Re: OMAP4 ES2.0 Unhandled fault: imprecise external abort
->>
->> On Wed, Nov 24, 2010 at 2:23 PM, Santosh Shilimkar
->> <santosh.shilimkar@ti.com> wrote:
->> >> -----Original Message-----
->> >> From: TAO HU [mailto:tghk48@motorola.com]
->> >> Sent: Wednesday, November 24, 2010 11:40 AM
->> >> To: Santosh Shilimkar
->> >> Cc: TAO HU; Bryan Wu; linux-omap
->> >> Subject: Re: OMAP4 ES2.0 Unhandled fault: imprecise external
->> abort
->> >>
->> >> Hi, Santosh
->> >>
->> >> Could you point out the specific kernel option for "L3 error
->> debugging"?
->> >>
->> > System Type =A0--->
->> > =A0 =A0 =A0 =A0[*] Enable L3 error logging
->> >
->>
->> I've enabled that for my Panda kernel. How to get the error log? I
->> still got the same "Unhandled fault: imprecise external abort"
->> message. Maybe L3 does not have any error at all.
->>
-> Strange. It should have =A0triggered an L3 eror interrupt.
+Am 14.01.2011 01:03, schrieb Daniel Morsing:
+> Here is a set of misc fixes for the devkit8000.
+>
+> The only really notable one is the lcd enable gpio fix. It gets rid
+> of some nasty low level twl4030 calls and replaces them with generic gpio
+> calls. It also fixes a bug where the screen would not turn off when
+> blanking.
+>
+> Daniel Morsing (3):
+>   omap3: devkit8000: Fix indentation issue
+>   omap3: devkit8000: fix tps65930 pullup/pulldown configuration
+>   omap3: devkit8000: Use generic gpio for second lcd enable
+>
+>  arch/arm/mach-omap2/board-devkit8000.c |   26 ++++++++++++++++++++------
+>  1 files changed, 20 insertions(+), 6 deletions(-)
 >
 
+Hello Daniel,
+
+the LCD_PWREN is connected to TWL4030 LEDA only.
+The TWL4030 GPIO.1 has a not connected resistor (R61).
+
+My test case is:
+
+# echo 0 > /sys/devices/omapdss/display0/enabled
+# echo 1 > /sys/devices/omapdss/display0/enabled
 
 
---=20
-Best Regards
-Hu Tao
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I changed your patch the following way.
+I think I cannot write a sign-off-by for you.
+
+Thomas
+
+-----
+
+commit b93fb7d72993e20de4cedb9393dda793c88c7deb
+Author: Daniel Morsing <daniel.morsing@gmail.com>
+Date:   Fri Jan 14 00:03:29 2011 +0000
+
+    OMAP3: Devkit8000: Use generic gpio for lcd power pin
+   
+    The reset_gpio pin for lcd is connected with TWL4030 LedA.
+    The TWL4030 GPIO.1 has a not connected resistor in the line.
+   
+    Reported-by: Daniel Morsing <daniel.morsing@gmail.com>
+    Signed-off-by: Thomas Weber <weber@corscience.de>
+
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c
+b/arch/arm/mach-omap2/board-devkit8000.c
+index 8dc7a24..54f1f7f 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -114,9 +114,6 @@ static struct omap2_hsmmc_info mmc[] = {
+ 
+ static int devkit8000_panel_enable_lcd(struct omap_dss_device *dssdev)
+ {
+-       twl_i2c_write_u8(TWL4030_MODULE_GPIO, 0x80, REG_GPIODATADIR1);
+-       twl_i2c_write_u8(TWL4030_MODULE_LED, 0x0, 0x0);
+-
+        if (gpio_is_valid(dssdev->reset_gpio))
+                gpio_set_value_cansleep(dssdev->reset_gpio, 1);
+        return 0;
+@@ -245,8 +242,8 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
+        /* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+        gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+ 
+-       /* gpio + 1 is "LCD_PWREN" (out, active high) */
+-       devkit8000_lcd_device.reset_gpio = gpio + 1;
++       /* TWL4030_GPIO_MAX + 0 is "LCD_PWREN" (out, active high) */
++       devkit8000_lcd_device.reset_gpio = gpio + TWL4030_GPIO_MAX + 0;
+        gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
+        /* Disable until needed */
+        gpio_direction_output(devkit8000_lcd_device.reset_gpio, 0);
+
