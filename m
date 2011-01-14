@@ -1,43 +1,51 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/1 v2] ARM: Thumb-2: Symbol manipulation macros for
-	function body copying
-Date: Fri, 14 Jan 2011 17:43:39 +0000
-Message-ID: <20110114174339.GC22505@n2100.arm.linux.org.uk>
-References: <1294951905-23748-1-git-send-email-dave.martin@linaro.org> <1294951905-23748-2-git-send-email-dave.martin@linaro.org> <20110113235524.GB28040@n2100.arm.linux.org.uk> <AANLkTi=QRDt62wgnHW6ya+956BS9x7pQj2voTiF+H0vs@mail.gmail.com> <AANLkTikiR+XN4Jb9GSEdUUiOciLvxqXB+NA3DEWhNCga@mail.gmail.com>
+From: Mian Yousaf Kaukab <yrehan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [OFF TOPIC] Off on business travel for next two weeks
+Date: Fri, 14 Jan 2011 18:47:03 +0100
+Message-ID: <AANLkTinTPm_4ZenS5nXWF84ab74Ugn0AmuV9GU_mW+Wk@mail.gmail.com>
+References: <20110114101809.GG2476@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34580 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752190Ab1ANRnv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 12:43:51 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTikiR+XN4Jb9GSEdUUiOciLvxqXB+NA3DEWhNCga@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110114101809.GG2476-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, mian.yousaf.kaukab-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Fri, Jan 14, 2011 at 11:15:19AM -0600, Dave Martin wrote:
-> There's another problem which I hadn't spotted before:
-> 
-> In the Thumb case, we risk violating the alignment constraints of the
-> code which gets copied (actually, this is also true of the ARM case,
-> but less likely to bite).  This matters because the code may contain
-> literals and other data words -- quite likely given the requirement
-> for self-containedness.
+Hi,
 
-There's a solution to this - require that the thumb function is
-preceded by a .align 3 (which according to the GAS documentation I
-have means for ARM, it aligns the PC to 1 << 3 not 3 bytes.)
+On Fri, Jan 14, 2011 at 11:18 AM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> Hi all,
+>
+> I'll be off on business travel for the next two weeks. Hopefully I'll
+> have good internet access and will be able to continue working.
+>
+> For reference, this is what I have queued for 2.6.38-rc1 cycle:
+>
+> Bob Liu (1):
+> =A0 =A0 =A0usb: musb: hsdma: change back to use musb_read/writew
+>
+> Ming Lei (1):
+> =A0 =A0 =A0usb: musb: fix kernel panic during s2ram(v2)
+>
+> Sergei Shtylyov (1):
+> =A0 =A0 =A0usb: musb: core: fix IRQ check
+>
 
-Also require 8-byte alignment from the allocation function, and make
-fncpy() bug if the destination isn't 8-byte aligned.  Same for the
-source function argument (but ignoring bit 0 of course.)
+If you get a chance, can you please queue the following patch for
+2.6.38-rc as well?
 
-We don't then have to mess with rounding allocation sizes up, nor worry
-about aligning the destination according to the source or any other
-games like that.
+usb: musb: maintain three states for buffer mappings instead of two
 
-The down-side is wastage of maybe 7 bytes a function, but that's
-probably going to happen anyway.
+I am also travelling so I may not be able to follow-up for next couple =
+of days.
+
+Thanks,
+
+--
+Mian Yousaf Kaukab
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
