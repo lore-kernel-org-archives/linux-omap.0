@@ -1,148 +1,124 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: [PATCH v4] ARM: Thumb-2: Symbol manipulation macros for function body copying
-Date: Fri, 14 Jan 2011 15:17:57 -0600
-Message-ID: <1295039877-7976-1-git-send-email-dave.martin@linaro.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP
+	boot failure)
+Date: Fri, 14 Jan 2011 21:20:27 +0000
+Message-ID: <20110114212027.GD22505@n2100.arm.linux.org.uk>
+References: <20110106203238.GH1198@n2100.arm.linux.org.uk> <20110106204053.GA7771@atomide.com> <20110107161230.GR1198@n2100.arm.linux.org.uk> <20110110185209.GC4957@atomide.com> <20110111231611.GX4957@atomide.com> <2f1a86cfda277de8d190e5eb9b9ccd77@mail.gmail.com> <20110113091546.GA24429@n2100.arm.linux.org.uk> <20110113155152.GG4957@atomide.com> <20110113164957.GA28040@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1101141216040.28621@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:41787 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752178Ab1ANVSW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 16:18:22 -0500
-Received: by ywl5 with SMTP id 5so1034354ywl.19
-        for <linux-omap@vger.kernel.org>; Fri, 14 Jan 2011 13:18:21 -0800 (PST)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43929 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752615Ab1ANVUu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 16:20:50 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1101141216040.28621@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, Anand Gadiyar <gadiyar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
 
-In low-level board support code, there is sometimes a need to
-copy a function body to another location at run-time.
+On Fri, Jan 14, 2011 at 12:18:50PM -0700, Paul Walmsley wrote:
+> On Thu, 13 Jan 2011, Russell King - ARM Linux wrote:
+> > On Thu, Jan 13, 2011 at 07:51:53AM -0800, Tony Lindgren wrote:
+> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [110113 01:15]:
+> > > > Given the very sorry state of OMAP in mainline at present, I'm surprised
+> > > > that this kind of stuff is still going on...
+> > > 
+> > > At least I boot test the patches I send..
+> > 
+> > Which is why OMAP3 and OMAP4 can't be built in mainline because they
+> > spit out lots of compile errors in the OMAP code...  As they won't
+> > even compile they couldn't have been boot tested.
+> 
+> Current mainline != the patches that Tony sent to Linus[1].
+> 
+> The patches that Tony sent to Linus, which Linus merged, build fine
+> with omap2plus_defconfig[2].
 
-A straightforward call to memcpy doesn't work in Thumb-2,
-because bit 0 of external Thumb function symbols is set to 1,
-indicating that the function is Thumb.  Without corrective
-measures, this will cause an off-by-one copy, and the copy
-may be called using the wrong instruction set.
+Right, but is that sufficient testing?
 
-This patch adds an fncpy() macro to help with such copies.
+Can I read into your statement that the only testing which was done was
+a build of the omap2plus defconfig?  Weren't builds specific to OMAP2,
+OMAP3, and OMAP4 tried?
 
-Particular care is needed, because C doesn't guarantee any
-defined behaviour when casting a function pointer to any other
-type.  This has been observed to lead to strange optimisation
-side-effects when doing the arithmetic which is required in
-order to copy/move function bodies correctly in Thumb-2.
+As there is stuff like:
 
-Thanks to Russell King and Nicolas Pitre for their input
-on this patch.
+struct clockdomain {
+        const char *name;
+        union {
+                const char *name;
+                struct powerdomain *ptr;
+        } pwrdm;
+#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+        const u16 clktrctrl_mask;
+#endif
 
-Signed-off-by: Dave Martin <dave.martin@linaro.org>
-Tested-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/include/asm/fncpy.h |   96 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 96 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/include/asm/fncpy.h
+would you consider it's a good idea to at least run a build test with
+an OMAP4-only configuration?
 
-diff --git a/arch/arm/include/asm/fncpy.h b/arch/arm/include/asm/fncpy.h
-new file mode 100644
-index 0000000..8b94b5f
---- /dev/null
-+++ b/arch/arm/include/asm/fncpy.h
-@@ -0,0 +1,96 @@
-+/*
-+ * arch/arm/include/asm/fncpy.h - helper macros for function body copying
-+ *
-+ * Copyright (C) 2011 Linaro Limited
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+/*
-+ * These macros are intended for use when there is a need to copy a low-level
-+ * function body into special memory.
-+ *
-+ * For example, when reconfiguring the SDRAM controller, the code doing the
-+ * reconfiguration may need to run from SRAM.
-+ *
-+ * NOTE: that the copied function body must be entirely self-contained and
-+ * position-independent in order for this to work properly.
-+ *
-+ * NOTE: in order for embedded literals and data to get referenced correctly,
-+ * the alignment of functions must be preserved when copying.  To ensure this,
-+ * the source and destination addresses for fncpy() must be aligned to a
-+ * multiple of 8 bytes: you will be get a BUG() if this condition is not met.
-+ * You will typically need a ".align 3" directive in the assembler where the
-+ * function to be copied is defined, and ensure that your allocator for the
-+ * destination buffer returns 8-byte-aligned pointers.
-+ *
-+ * Typical usage example:
-+ *
-+ * extern int f(args);
-+ * extern uint32_t size_of_f;
-+ * int (*copied_f)(args);
-+ * void *sram_buffer;
-+ *
-+ * copied_f = fncpy(sram_buffer, &f, size_of_f);
-+ *
-+ * ... do any required D-side/I-side synchronisation ...
-+ *
-+ * ... later, call the function: ...
-+ *
-+ * copied_f(args);
-+ *
-+ * The size of the function to be copied can't be determined from C:
-+ * this must be determined by other means, such as adding assmbler directives
-+ * in the file where f is defined.
-+ */
-+
-+#ifndef __ASM_FNCPY_H
-+#define __ASM_FNCPY_H
-+
-+#include <linux/types.h>
-+#include <linux/string.h>
-+
-+#include <asm/bug.h>
-+#include <asm/cacheflush.h>
-+
-+/*
-+ * Minimum alignment requirement for the source and destination addresses
-+ * for function copying.
-+ */
-+#define FNCPY_ALIGN 8
-+
-+#define fncpy(dest_buf, funcp, size) ({					\
-+	uintptr_t __funcp_address;					\
-+	typeof(funcp) __result;						\
-+									\
-+	asm("" : "=r" (__funcp_address) : "0" (funcp));			\
-+									\
-+	/*								\
-+	 * Ensure alignment of source and destination addresses,	\
-+	 * disregarding the function's Thumb bit:			\
-+	 */								\
-+	BUG_ON((uintptr_t)(dest_buf) & (FNCPY_ALIGN - 1) ||		\
-+		(__funcp_address & ~(uintptr_t)1 & (FNCPY_ALIGN - 1)));	\
-+									\
-+	memcpy(dest_buf, (void const *)(__funcp_address & ~1), size);	\
-+	flush_icache_range((unsigned long)(dest_buf),			\
-+		(unsigned long)(dest_buf) + (size));			\
-+									\
-+	asm("" : "=r" (__result)					\
-+		: "0" ((uintptr_t)(dest_buf) | (__funcp_address & 1)));	\
-+									\
-+	__result;							\
-+})
-+
-+#endif /* !__ASM_FNCPY_H */
--- 
-1.7.1
 
+If it helps, here's what I do - not only do I run a few of the standard
+defconfigs in the tree, but I also run a number of platform specific
+builds, both covering platforms I do and do not have.  I'll pick a random
+selection of existing build trees to rebuild and see what the results are.
+This shows the spread of trees which I've built over the last year - and
+note that many of these I don't even have:
+
+drwxrwxr-x. 20 rmk rmk   4096 Jan 14 20:30 omap4
+drwxrwxr-x. 21 rmk rmk   4096 Jan 14 11:45 versatile
+drwxrwxr-x. 21 rmk rmk   4096 Jan 14 11:14 iop13xx
+drwxrwxr-x. 20 rmk rmk   4096 Jan 13 23:10 vexpress
+drwxrwxr-x. 21 rmk rmk   4096 Jan 11 13:48 integrator
+drwxrwxr-x. 21 rmk rmk   4096 Jan 11 13:44 realview
+drwxrwxr-x. 21 rmk rmk   4096 Jan  8 11:10 assabet
+drwxrwxr-x. 21 rmk rmk   4096 Jan  8 11:07 rpc
+drwxrwxr-x. 21 rmk rmk   4096 Jan  7 17:34 omap3
+drwxrwxr-x. 20 rmk rmk   4096 Jan  6 14:24 nommu
+drwxrwxr-x. 21 rmk rmk   4096 Jan  6 10:44 omap2
+drwxrwxr-x. 21 rmk rmk   4096 Jan  6 10:27 omap
+drwxrwxr-x. 21 rmk rmk   4096 Jan  6 10:24 u300
+drwxrwxr-x. 21 rmk rmk   4096 Jan  5 19:14 pxa
+drwxrwxr-x. 21 rmk rmk   4096 Jan  5 10:30 msm
+drwxrwxr-x. 21 rmk rmk   4096 Jan  4 17:25 orion-kirkwood
+drwxrwxr-x. 21 rmk rmk   4096 Dec 24 11:06 ks8695
+drwxrwxr-x. 21 rmk rmk   4096 Dec 16 16:12 s3c2410
+drwxrwxr-x. 21 rmk rmk   4096 Dec 11 17:17 ixp4xx
+drwxrwxr-x. 20 rmk rmk   4096 Oct  9 22:59 netwinder2
+drwxrwxr-x. 21 rmk rmk   4096 Sep  5 23:54 ebsa285
+drwxrwxr-x. 21 rmk rmk   4096 Aug  4  2010 zylonite
+drwxrwxr-x. 21 rmk rmk   4096 Jul  8  2010 ep93xx
+drwxrwxr-x. 21 rmk rmk   4096 Jun 29  2010 corgi
+drwxrwxr-x. 21 rmk rmk   4096 Apr 25  2010 ebsa110
+drwxrwxr-x. 21 rmk rmk   4096 Mar 25  2010 clps711x
+drwxrwxr-x. 21 rmk rmk   4096 Mar 24  2010 ixp23xx
+drwxrwxr-x. 21 rmk rmk   4096 Mar 20  2010 n2100
+drwxrwxr-x. 21 rmk rmk   4096 Feb 19  2010 iop32x
+drwxrwxr-x. 21 rmk rmk   4096 Jan 20  2010 mx1
+drwxrwxr-x. 21 rmk rmk   4096 Jan 10  2010 w90p910evb
+
+omap4 = 4430SDP only (I have). 
+omap3 = 3430LDP (I have) + 3430SDP + RX51 (I don't)
+omap2 = H2 (whose config can be traced to 2005 from when I once had one.)
+omap = some random omap1 config
+realview = realview eb/smp only
+assabet = assabet+neponset daugter board
+
+All those are build trees, built from my git tree with:
+	make ARCH=arm CROSS_COMPILE=arm-linux- O=../build/$tree <args>
+
+You can see from the above that I built a kernel for at least orion-kirkwood,
+msm, u300, omap, nommu trees before sending my pull to Linus on the 6th,
+none of which I have (ever) had hardware for.  I also built omap3, omap4,
+and a bunch of the ARM evaluation platforms as well as older platforms
+like RiscPC, but those are hidden by later re-builds for work I've been
+doing since (which is all based upon commit 9e9bc97.)
+
+I'm not saying that's perfect - it isn't.  It's better than just testing
+the defconfigs - and with regular checking of kautobuild/linux-next, it
+seems to catch quite a bit of really silly stuff.
+
+Please test a (small) selection of configurations to improve build
+coverage.  Try to develop a set of configurations which trip up common
+issues which won't be found with the omap2plus defconfig.  Don't assume
+that just because the omap2plus defconfig builds that it's ready.
