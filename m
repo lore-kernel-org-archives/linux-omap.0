@@ -1,304 +1,82 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v6 14/18] OMAP2,3: DSS2: VENC: create platform_driver, move init,exit to driver
-Date: Sat, 15 Jan 2011 00:21:47 +0530
-Message-ID: <1295031111-32229-15-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v6 16/18] OMAP2,3: DSS2: replace printk with dev_dbg in init
+Date: Sat, 15 Jan 2011 00:21:49 +0530
+Message-ID: <1295031111-32229-17-git-send-email-sumit.semwal@ti.com>
 References: <1295031111-32229-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45173 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:45191 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932780Ab1ANSyL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 13:54:11 -0500
+	with ESMTP id S932819Ab1ANSyU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 13:54:20 -0500
 In-Reply-To: <1295031111-32229-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@deeprootsystems.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
-Cc: Senthilvadivu Guruswamy <svadivu@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
+Cc: Sumit Semwal <sumit.semwal@ti.com>
 
-From: Senthilvadivu Guruswamy <svadivu@ti.com>
+This patch replaces printk's in the init/probe functions to dev_dbg
+for boot time optimization.
 
-Hwmod adaptation design requires each of the DSS HW IP to be a platform driver.
-So a platform_driver for VENC is created and init exit methods are moved from core.c
-to its driver probe,remove. pdev member has to be maintained by its own drivers.
-
-Also, venc_vdda_dac reading is moved to venc.c.
-
-VENC platform driver is registered from inside omap_dss_probe, in the order desired.
-
-Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |    2 +-
- drivers/video/omap2/dss/core.c      |   28 +-------
- drivers/video/omap2/dss/dss.h       |    9 +--
- drivers/video/omap2/dss/venc.c      |  116 +++++++++++++++++++++++------------
- 4 files changed, 85 insertions(+), 70 deletions(-)
+ drivers/video/omap2/dss/dispc.c |    2 +-
+ drivers/video/omap2/dss/dsi.c   |    2 +-
+ drivers/video/omap2/dss/rfbi.c  |    2 +-
+ drivers/video/omap2/dss/venc.c  |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index d00f356..e0d13ae 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -308,7 +308,7 @@ static struct omap_dss_board_info sdp3430_dss_data = {
- };
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index abfed47..1c22cf0 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -3350,7 +3350,7 @@ static int omap_dispchw_probe(struct platform_device *pdev)
+ 	dispc_save_context();
  
- static struct regulator_consumer_supply sdp3430_vdda_dac_supply =
--	REGULATOR_SUPPLY("vdda_dac", "omap_display");
-+	REGULATOR_SUPPLY("vdda_dac", "omap_venc");
+ 	rev = dispc_read_reg(DISPC_REVISION);
+-	printk(KERN_INFO "OMAP DISPC rev %d.%d\n",
++	dev_dbg(&pdev->dev, "OMAP DISPC rev %d.%d\n",
+ 	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
  
- static struct omap_board_config_kernel sdp3430_config[] __initdata = {
- };
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 5acb5e6..9852a70 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -43,7 +43,6 @@ static struct {
+ 	enable_clocks(0);
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index d854137..39a1c04 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -3300,7 +3300,7 @@ static int dsi_init(struct platform_device *pdev)
+ 	enable_clocks(1);
  
- 	struct regulator *vdds_dsi_reg;
- 	struct regulator *vdds_sdi_reg;
--	struct regulator *vdda_dac_reg;
- } core;
+ 	rev = dsi_read_reg(DSI_REVISION);
+-	printk(KERN_INFO "OMAP DSI rev %d.%d\n",
++	dev_dbg(&pdev->dev, "OMAP DSI rev %d.%d\n",
+ 	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
  
- static char *def_disp_name;
-@@ -85,20 +84,6 @@ struct regulator *dss_get_vdds_sdi(void)
- 	return reg;
- }
+ 	enable_clocks(0);
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index a64e119..93b13c5 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -1046,7 +1046,7 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
+ 	rfbi_write_reg(RFBI_SYSCONFIG, l);
  
--struct regulator *dss_get_vdda_dac(void)
--{
--	struct regulator *reg;
--
--	if (core.vdda_dac_reg != NULL)
--		return core.vdda_dac_reg;
--
--	reg = regulator_get(&core.pdev->dev, "vdda_dac");
--	if (!IS_ERR(reg))
--		core.vdda_dac_reg = reg;
--
--	return reg;
--}
--
- #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
- static int dss_debug_show(struct seq_file *s, void *unused)
- {
-@@ -219,9 +204,9 @@ static int omap_dss_probe(struct platform_device *pdev)
- 		goto err_dispc;
- 	}
+ 	rev = rfbi_read_reg(RFBI_REVISION);
+-	printk(KERN_INFO "OMAP RFBI rev %d.%d\n",
++	dev_dbg(&pdev->dev, "OMAP RFBI rev %d.%d\n",
+ 	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
  
--	r = venc_init(pdev);
-+	r = venc_init_platform_driver();
- 	if (r) {
--		DSSERR("Failed to initialize venc\n");
-+		DSSERR("Failed to initialize venc platform driver\n");
- 		goto err_venc;
- 	}
- 
-@@ -279,7 +264,7 @@ err_dsi:
- 	if (cpu_is_omap34xx())
- 		sdi_exit();
- err_sdi:
--	venc_exit();
-+	venc_uninit_platform_driver();
- err_venc:
- 	dispc_uninit_platform_driver();
- err_dispc:
-@@ -300,7 +285,7 @@ static int omap_dss_remove(struct platform_device *pdev)
- 
- 	dss_uninitialize_debugfs();
- 
--	venc_exit();
-+	venc_uninit_platform_driver();
- 	dispc_uninit_platform_driver();
- 	dpi_exit();
- 	rfbi_uninit_platform_driver();
-@@ -597,11 +582,6 @@ static void __exit omap_dss_exit(void)
- 		core.vdds_sdi_reg = NULL;
- 	}
- 
--	if (core.vdda_dac_reg != NULL) {
--		regulator_put(core.vdda_dac_reg);
--		core.vdda_dac_reg = NULL;
--	}
--
- 	platform_driver_unregister(&omap_dss_driver);
- 
- 	omap_dss_bus_unregister();
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index f4835c8..9313851 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -172,7 +172,6 @@ struct platform_device;
- struct bus_type *dss_get_bus(void);
- struct regulator *dss_get_vdds_dsi(void);
- struct regulator *dss_get_vdds_sdi(void);
--struct regulator *dss_get_vdda_dac(void);
- 
- /* display */
- int dss_suspend_all_devices(void);
-@@ -412,16 +411,16 @@ int dispc_get_clock_div(enum omap_channel channel,
- 
- /* VENC */
- #ifdef CONFIG_OMAP2_DSS_VENC
--int venc_init(struct platform_device *pdev);
--void venc_exit(void);
-+int venc_init_platform_driver(void);
-+void venc_uninit_platform_driver(void);
- void venc_dump_regs(struct seq_file *s);
- int venc_init_display(struct omap_dss_device *display);
- #else
--static inline int venc_init(struct platform_device *pdev)
-+static inline int venc_init_platform_driver(void)
- {
- 	return 0;
- }
--static inline void venc_exit(void)
-+static inline void venc_uninit_platform_driver(void)
- {
- }
- #endif
+ 	rfbi_enable_clocks(0);
 diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index eff3505..935ae8e 100644
+index 935ae8e..3db9061 100644
 --- a/drivers/video/omap2/dss/venc.c
 +++ b/drivers/video/omap2/dss/venc.c
-@@ -289,6 +289,7 @@ const struct omap_video_timings omap_dss_ntsc_timings = {
- EXPORT_SYMBOL(omap_dss_ntsc_timings);
+@@ -739,7 +739,7 @@ static int omap_venchw_probe(struct platform_device *pdev)
+ 	venc_enable_clocks(1);
  
- static struct {
-+	struct platform_device *pdev;
- 	void __iomem *base;
- 	struct mutex venc_lock;
- 	u32 wss_data;
-@@ -306,6 +307,17 @@ static inline u32 venc_read_reg(int idx)
- 	return l;
- }
- 
-+static struct regulator *venc_get_vdda_dac(void)
-+{
-+	struct regulator *reg;
-+
-+	reg = regulator_get(&venc.pdev->dev, "vdda_dac");
-+	if (!IS_ERR(reg))
-+		venc.vdda_dac_reg = reg;
-+
-+	return reg;
-+}
-+
- static void venc_write_config(const struct venc_config *config)
- {
- 	DSSDBG("write venc conf\n");
-@@ -641,46 +653,6 @@ static struct omap_dss_driver venc_driver = {
- };
- /* driver end */
- 
--
--
--int venc_init(struct platform_device *pdev)
--{
--	u8 rev_id;
--
--	mutex_init(&venc.venc_lock);
--
--	venc.wss_data = 0;
--
--	venc.base = ioremap(VENC_BASE, SZ_1K);
--	if (!venc.base) {
--		DSSERR("can't ioremap VENC\n");
--		return -ENOMEM;
--	}
--
--	venc.vdda_dac_reg = dss_get_vdda_dac();
--	if (IS_ERR(venc.vdda_dac_reg)) {
--		iounmap(venc.base);
--		DSSERR("can't get VDDA_DAC regulator\n");
--		return PTR_ERR(venc.vdda_dac_reg);
--	}
--
--	venc_enable_clocks(1);
--
--	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
+ 	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
 -	printk(KERN_INFO "OMAP VENC rev %d\n", rev_id);
--
--	venc_enable_clocks(0);
--
--	return omap_dss_register_driver(&venc_driver);
--}
--
--void venc_exit(void)
--{
--	omap_dss_unregister_driver(&venc_driver);
--
--	iounmap(venc.base);
--}
--
- int venc_init_display(struct omap_dss_device *dssdev)
- {
- 	DSSDBG("init_display\n");
-@@ -740,3 +712,67 @@ void venc_dump_regs(struct seq_file *s)
++	dev_dbg(&pdev->dev, "OMAP VENC rev %d\n", rev_id);
  
- #undef DUMPREG
- }
-+
-+/* VENC HW IP initialisation */
-+static int omap_venchw_probe(struct platform_device *pdev)
-+{
-+	u8 rev_id;
-+	venc.pdev = pdev;
-+
-+	mutex_init(&venc.venc_lock);
-+
-+	venc.wss_data = 0;
-+
-+	venc.base = ioremap(VENC_BASE, SZ_1K);
-+	if (!venc.base) {
-+		DSSERR("can't ioremap VENC\n");
-+		return -ENOMEM;
-+	}
-+
-+	venc.vdda_dac_reg = venc_get_vdda_dac();
-+	if (IS_ERR(venc.vdda_dac_reg)) {
-+		iounmap(venc.base);
-+		DSSERR("can't get VDDA_DAC regulator\n");
-+		return PTR_ERR(venc.vdda_dac_reg);
-+	}
-+
-+	venc_enable_clocks(1);
-+
-+	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
-+	printk(KERN_INFO "OMAP VENC rev %d\n", rev_id);
-+
-+	venc_enable_clocks(0);
-+
-+	return omap_dss_register_driver(&venc_driver);
-+}
-+
-+static int omap_venchw_remove(struct platform_device *pdev)
-+{
-+	if (venc.vdda_dac_reg != NULL) {
-+		regulator_put(venc.vdda_dac_reg);
-+		venc.vdda_dac_reg = NULL;
-+	}
-+	omap_dss_unregister_driver(&venc_driver);
-+
-+	iounmap(venc.base);
-+	return 0;
-+}
-+
-+static struct platform_driver omap_venchw_driver = {
-+	.probe          = omap_venchw_probe,
-+	.remove         = omap_venchw_remove,
-+	.driver         = {
-+		.name   = "omap_venc",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+int venc_init_platform_driver(void)
-+{
-+	return platform_driver_register(&omap_venchw_driver);
-+}
-+
-+void venc_uninit_platform_driver(void)
-+{
-+	return platform_driver_unregister(&omap_venchw_driver);
-+}
+ 	venc_enable_clocks(0);
+ 
 -- 
 1.7.0.4
 
