@@ -1,40 +1,48 @@
-From: Paul Walmsley <paul@pwsan.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: State of LDP3430 platform
-Date: Sat, 15 Jan 2011 12:38:46 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101151237240.32245@utopia.booyaka.com>
-References: <20101206125526.GC31777@n2100.arm.linux.org.uk> <20101206181913.GH8345@atomide.com> <alpine.DEB.2.00.1012061125400.13430@utopia.booyaka.com> <20101207083720.GB18336@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1012071745120.13430@utopia.booyaka.com>
- <alpine.DEB.2.00.1012072012000.13430@utopia.booyaka.com> <20110115000301.GT4957@atomide.com>
+Date: Sat, 15 Jan 2011 23:37:44 +0000
+Message-ID: <20110115233744.GA18159@n2100.arm.linux.org.uk>
+References: <20101206125526.GC31777@n2100.arm.linux.org.uk> <20101206181913.GH8345@atomide.com> <alpine.DEB.2.00.1012061125400.13430@utopia.booyaka.com> <20101207083720.GB18336@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1012071745120.13430@utopia.booyaka.com> <alpine.DEB.2.00.1012072012000.13430@utopia.booyaka.com> <20110115000301.GT4957@atomide.com> <alpine.DEB.2.00.1101151237240.32245@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54139 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751180Ab1AOTir (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Jan 2011 14:38:47 -0500
-In-Reply-To: <20110115000301.GT4957@atomide.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40797 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754086Ab1AOXh7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Jan 2011 18:37:59 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1101151237240.32245@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
 
-On Fri, 14 Jan 2011, Tony Lindgren wrote:
-
-> * Paul Walmsley <paul@pwsan.com> [101207 19:30]:
-> > On Tue, 7 Dec 2010, Paul Walmsley wrote:
-> > 
-> > Regarding the watchdog problem, unfortunately, I can't reproduce on the 
-> > BeagleBoard with v2.6.37-rc5 with either omap2plus_defconfig or 
-> > omap2plus_defconfig without CONFIG_WATCHDOG.  If you send along your 
-> > .config, one of us can try to reproduce the problem with it.  Do the 
-> > 2.6.38 hwmod and wdt patchsets fix the problem for .38, at least?
+On Sat, Jan 15, 2011 at 12:38:46PM -0700, Paul Walmsley wrote:
+> On Fri, 14 Jan 2011, Tony Lindgren wrote:
 > 
-> I've been seeing this on my omap4 panda. While debugging it, I left
-> u-boot console only running for a few minutes to see if that stays up.
-> It did.. And after doing that somehow now my panda boots all the way
-> and stays up. Weird.
+> > * Paul Walmsley <paul@pwsan.com> [101207 19:30]:
+> > > On Tue, 7 Dec 2010, Paul Walmsley wrote:
+> > > 
+> > > Regarding the watchdog problem, unfortunately, I can't reproduce on the 
+> > > BeagleBoard with v2.6.37-rc5 with either omap2plus_defconfig or 
+> > > omap2plus_defconfig without CONFIG_WATCHDOG.  If you send along your 
+> > > .config, one of us can try to reproduce the problem with it.  Do the 
+> > > 2.6.38 hwmod and wdt patchsets fix the problem for .38, at least?
+> > 
+> > I've been seeing this on my omap4 panda. While debugging it, I left
+> > u-boot console only running for a few minutes to see if that stays up.
+> > It did.. And after doing that somehow now my panda boots all the way
+> > and stays up. Weird.
+> 
+> Hmmm, do you think the watchdog is what's killing it?  I don't think 
+> leaving u-boot running would affect that?
 
-Hmmm, do you think the watchdog is what's killing it?  I don't think 
-leaving u-boot running would affect that?
+Right, well, the LDP3430 (and probably all OMAP) is broken by my
+init_sched_clock() changes because I gave up with testing on OMAP
+platforms.
 
+Why does OMAP initialize its clock sources soo late, outside of
+the timer initialization?  This means you have no counter in place
+(except for the jiffies counter) during early boot.
 
-- Paul
+Is there a reason why OMAP uniquely does this?
