@@ -1,58 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Open issues after 2.6.38 merge window
-Date: Fri, 14 Jan 2011 15:59:43 -0800
-Message-ID: <20110114235942.GS4957@atomide.com>
-References: <20110114194758.GM4957@atomide.com>
- <4D30B8BB.90804@ti.com>
- <20110114233838.GR4957@atomide.com>
+Subject: Re: State of LDP3430 platform
+Date: Fri, 14 Jan 2011 16:03:02 -0800
+Message-ID: <20110115000301.GT4957@atomide.com>
+References: <20101206125526.GC31777@n2100.arm.linux.org.uk>
+ <20101206181913.GH8345@atomide.com>
+ <alpine.DEB.2.00.1012061125400.13430@utopia.booyaka.com>
+ <20101207083720.GB18336@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.1012071745120.13430@utopia.booyaka.com>
+ <alpine.DEB.2.00.1012072012000.13430@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27656 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31179 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750708Ab1ANX7u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 18:59:50 -0500
+	with ESMTP id S1750774Ab1AOADQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jan 2011 19:03:16 -0500
 Content-Disposition: inline
-In-Reply-To: <20110114233838.GR4957@atomide.com>
+In-Reply-To: <alpine.DEB.2.00.1012072012000.13430@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Anders <x0132446@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [110114 15:38]:
-> * David Anders <x0132446@ti.com> [110114 12:56]:
-> > Tony,
-> > 
-> > i've been testing the 2.6.37 kernel on ES2.0, ES2.1, ES2.2 using the
-> > following:
-> > 
-> > x-loader:
-> > git://gitorious.org/x-loader/x-loader.git
-> > branch: master
-> >  6f3a261 omap1: remove support for 1710 and 1510
-> > defconfig: omap4430panda_config
-> > 
-> > U-boot:
-> > git://git.denx.de/u-boot.git
-> > tag: v2010.12
-> > defconfig: omap4_panda_config
+* Paul Walmsley <paul@pwsan.com> [101207 19:30]:
+> On Tue, 7 Dec 2010, Paul Walmsley wrote:
 > 
-> That's what I'm using too.
->  
-> > kernel:
-> > git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> > tag: v2.6.37
-> > defconfig: omap2plus_defconfig
-> > 
-> > i've not seen the power off issue you have described.
-> 
-> Hmm well it happens also with v2.6.37, so sounds like it's
-> a u-boot or hardware issue. I'll debug a bit further.
+> Regarding the watchdog problem, unfortunately, I can't reproduce on the 
+> BeagleBoard with v2.6.37-rc5 with either omap2plus_defconfig or 
+> omap2plus_defconfig without CONFIG_WATCHDOG.  If you send along your 
+> .config, one of us can try to reproduce the problem with it.  Do the 
+> 2.6.38 hwmod and wdt patchsets fix the problem for .38, at least?
 
-Weird. While debugging the problem, I left just the u-boot console
-running for a few minutes to see if panda shuts down on it's own.
-
-It did not, but instead it now stays running with the kernel
-booted also.. No idea why. Did not touch anything with u-boot..
+I've been seeing this on my omap4 panda. While debugging it, I left
+u-boot console only running for a few minutes to see if that stays up.
+It did.. And after doing that somehow now my panda boots all the way
+and stays up. Weird.
 
 Tony
