@@ -1,139 +1,40 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP
-	boot failure)
-Date: Sat, 15 Jan 2011 17:04:55 +0000
-Message-ID: <20110115170455.GG22505@n2100.arm.linux.org.uk>
-References: <20110113091546.GA24429@n2100.arm.linux.org.uk> <20110113155152.GG4957@atomide.com> <20110113164957.GA28040@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1101141216040.28621@utopia.booyaka.com> <20110114212027.GD22505@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1101141551140.28621@utopia.booyaka.com> <20110114235840.GE22505@n2100.arm.linux.org.uk> <20110115001254.GU4957@atomide.com> <20110115002531.GF22505@n2100.arm.linux.org.uk> <20110115003734.GV4957@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: State of LDP3430 platform
+Date: Sat, 15 Jan 2011 12:38:46 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101151237240.32245@utopia.booyaka.com>
+References: <20101206125526.GC31777@n2100.arm.linux.org.uk> <20101206181913.GH8345@atomide.com> <alpine.DEB.2.00.1012061125400.13430@utopia.booyaka.com> <20101207083720.GB18336@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1012071745120.13430@utopia.booyaka.com>
+ <alpine.DEB.2.00.1012072012000.13430@utopia.booyaka.com> <20110115000301.GT4957@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52284 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752671Ab1AORFT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Jan 2011 12:05:19 -0500
-Content-Disposition: inline
-In-Reply-To: <20110115003734.GV4957@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:54139 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751180Ab1AOTir (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Jan 2011 14:38:47 -0500
+In-Reply-To: <20110115000301.GT4957@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Paul Walmsley <paul@pwsan.com>, Anand Gadiyar <gadiyar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
 
-On Fri, Jan 14, 2011 at 04:37:34PM -0800, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [110114 16:24]:
-> > On Fri, Jan 14, 2011 at 04:12:55PM -0800, Tony Lindgren wrote:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [110114 15:58]:
-> > > > 
-> > > > # ARMv6k
-> > > > config CPU_32v6K
-> > > >         bool "Support ARM V6K processor extensions" if !SMP
-> > > >         depends on CPU_V6 || CPU_V7
-> > > >         default y if SMP && !(ARCH_MX3 || ARCH_OMAP2)
-> > > > 
-> > > > OMAP2 prevents the selection of armv6k support.  This is probably a very
-> > > > bad idea if you want to run the resulting kernel on SMP hardware as it
-> > > > removes a barrier in the spinlock code and disables the SMP-safe bitops.
-> > > 
-> > > I have some ideas to fix this. Unfortunately it will be inefficient
-> > > as spinlock.h can be included from modules too :( I was thinking we can
-> > > implement dsb_sev in the proc-*.S functions for the unoptimized multi-arm
-> > > builds.
+On Fri, 14 Jan 2011, Tony Lindgren wrote:
+
+> * Paul Walmsley <paul@pwsan.com> [101207 19:30]:
+> > On Tue, 7 Dec 2010, Paul Walmsley wrote:
 > > 
-> > For spinlocks, the important thing is the barrier.  The wfe/sev are an
-> > optimization.  The barrier contained with the ifdef is a valid V6
-> > instruction.
+> > Regarding the watchdog problem, unfortunately, I can't reproduce on the 
+> > BeagleBoard with v2.6.37-rc5 with either omap2plus_defconfig or 
+> > omap2plus_defconfig without CONFIG_WATCHDOG.  If you send along your 
+> > .config, one of us can try to reproduce the problem with it.  Do the 
+> > 2.6.38 hwmod and wdt patchsets fix the problem for .38, at least?
 > 
-> OK, great it's just drain WB. Then we can do the ussual iffdeffery
-> on it for multi-arm builds as it does not depend on the 6K extensions.
-> I can do a patch for this on Monday, gotta run now.
->  
-> > > > The original patch which started turning this off was from the MX3 stuff,
-> > > > but without explaination.
-> > > > 
-> > > > However, OMAP extended this to disabling the select statement for CPU_32v6K
-> > > > even if CPU_V7 is set:
-> > > > 
-> > > >  config CPU_V7
-> > > >         bool "Support ARM V7 processor" if ARCH_INTEGRATOR || MACH_REALVIEW_EB |-       select CPU_32v6K
-> > > > +       select CPU_32v6K if !ARCH_OMAP2
-> > > > 
-> > > > Arguably, SMP _requires_ CPU_32v6K to be enabled for a safe kernel, and this
-> > > > patch should not have been merged.
-> > > 
-> > > The only way we can fix that is do smp_on_up style rewriting of the assembly
-> > > during init between CPUv6 and v6K. Want me to do a patch for that?
-> > 
-> > The bitops code is quite different between the two versions, and I doubt
-> > the smp_on_up rewriting will look at all pretty.  I think it needs an
-> > alternative idea - like not using the 'byte' operations at all.
-> > 
-> > Whether we have any code which passes non-word aligned pointers to bitops
-> > isn't particularly known - in theory they should all be unsigned long *'s,
-> > so should be word-aligned.  Who knows what filesystems do though... and
-> > such a change could be disasterous to peoples data if the block/inode
-> > bitmaps get corrupted.
-> 
-> Hmm, how about emulation of those instructions for non-v6K ARMv6 processors?
-> I guess we could do some address checking in the bitops functions too for
-> multi-arm builds..
->  
-> > IOW, such a change needs testing on a box where a range of filesystems are
-> > used, and the filesystems can be thrown away if corrupted.
-> 
-> Or we could patch in the address checking first and only disable it
-> later if now warnings.
+> I've been seeing this on my omap4 panda. While debugging it, I left
+> u-boot console only running for a few minutes to see if that stays up.
+> It did.. And after doing that somehow now my panda boots all the way
+> and stays up. Weird.
 
-Right, this is what I'm going to do - and it's going to *intentionally*
-break omap2plus_defconfig.  Please see the commit comments for the
-reason why.  We need to address the V6 issue properly without risking
-users data.
+Hmmm, do you think the watchdog is what's killing it?  I don't think 
+leaving u-boot running would affect that?
 
-To Sascha: this replaces the previous patch which I asked for your ack.
 
-8<-----------
-Subject: [PATCH] ARM: Do not disable CPU_32v6K based on platform selection
-
-CPU_32v6K controls whether we use the ARMv6K extension instructions in
-the kernel, and in some places whether we use SMP-safe code sequences
-(eg, bitops.)
-
-Having this configuration option disabled on a SMP supporting kernel
-results in a problem: the SMP-unsafe code sequences will be used, and
-as such the resulting kernel is not SMP safe.
-
-As the atomic bitops are used by filesystems (eg, ext2 - to manipulate
-the inode and block bitmaps) not having the SMP safe code sequences is
-fatal for filesystem data integrity.  So running an SMP kernel without
-CPU_32v6K set is dangerous.
-
-MX3 prevents the selection of this option to ensure that it is not
-enabled for their CPU, which is ARMv6 only.  MX3 folk need to ensure
-that their kernel is properly configured.
-
-OMAP prevents the selection of this option in an attempt to produce a
-kernel which runs on architectures from ARMv6 to ARMv7 MPCore.
-
-Balancing between oopsing on boot and filesystem corruption, it is far
-more preferable to oops on boot until the code sequences are sorted out
-properly.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/mm/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
-index 49db8b3..d61af9c 100644
---- a/arch/arm/mm/Kconfig
-+++ b/arch/arm/mm/Kconfig
-@@ -405,7 +405,7 @@ config CPU_V6
- config CPU_32v6K
- 	bool "Support ARM V6K processor extensions" if !SMP
- 	depends on CPU_V6 || CPU_V7
--	default y if SMP && !(ARCH_MX3 || ARCH_OMAP2)
-+	default y if SMP
- 	help
- 	  Say Y here if your ARMv6 processor supports the 'K' extension.
- 	  This enables the kernel to use some instructions not present
--- 
-1.6.2.5
-
+- Paul
