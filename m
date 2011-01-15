@@ -1,65 +1,111 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: Open issues after 2.6.38 merge window
-Date: Sat, 15 Jan 2011 10:49:37 +0530
-Message-ID: <9ba47985064c771620bac3f4fce6a3b0@mail.gmail.com>
-References: <20110114194758.GM4957@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH] Remove CPU_32v6K dependencies in asm/spinlock.h
+Date: Sat, 15 Jan 2011 16:11:32 +0000
+Message-ID: <20110115161132.GH15996@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:57534 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750739Ab1AOFTj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 15 Jan 2011 00:19:39 -0500
-Received: by mail-fx0-f44.google.com with SMTP id 9so3656477fxm.3
-        for <linux-omap@vger.kernel.org>; Fri, 14 Jan 2011 21:19:38 -0800 (PST)
-In-Reply-To: <20110114194758.GM4957@atomide.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54183 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752633Ab1AOQLr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Jan 2011 11:11:47 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Saturday, January 15, 2011 1:18 AM
-> To: linux-omap@vger.kernel.org
-> Subject: Open issues after 2.6.38 merge window
->
-> Hi all,
->
-> Before I update out master branch, let's try to summarize the
-> open issues after the merge window. Here's a list of issues
-> in omap-fixes-for-linus that I'm aware of:
->
+SMP requires at least the ARMv6K extensions to be present, so if we're
+running on SMP, the WFE and SEV instructions must be available.
 
-> - omap4430 es1.0 hangs if L2X0 cache is enabled
->
-Will have look at this one on Monday
+However, when we run on UP, the v6K extensions may not be available,
+and so we don't want WFE/SEV to be in the instruction stream.  Use the
+SMP alternatives infrastructure to replace these instructions with NOPs
+if we build for SMP but run on UP.
 
-> - omap4 panda powers down after boot (watchdog?)
->
-Must be watchdog
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+This removes one of the reasons that OMAP disables V6K on multi-omap
+kernels - which subtly breaks SMP support.  Build tested and verified
+by examination of resulting disassembly, but not boot tested.
 
-> - omap3 ldp board powers down after boot?
->
-I guess this was already concluded as a watchdog issue.
+ arch/arm/include/asm/spinlock.h |   37 +++++++++++++++++++++++++------------
+ 1 files changed, 25 insertions(+), 12 deletions(-)
 
-
-> Any other issues?
->
-I saw the build related pull request from you, so most
-of those gets sorted out.
-
-- !CONFIG_RUNTIME_PM, boot crash because of watchdog.
-
-Posted the patch for this but I need to verify one scenario
-pointed out by Paul Where if the boot-loader keeps watchdog
-enabled.
-
-- omap2plus_defconfig build break because of SWP_EMULATE
-missing patch.
-
-This one will gets fixed once the Catalin patch is merged
-
-Regards,
-Santosh
+diff --git a/arch/arm/include/asm/spinlock.h b/arch/arm/include/asm/spinlock.h
+index 17eb355..da1af52 100644
+--- a/arch/arm/include/asm/spinlock.h
++++ b/arch/arm/include/asm/spinlock.h
+@@ -5,17 +5,36 @@
+ #error SMP not supported on pre-ARMv6 CPUs
+ #endif
+ 
++/*
++ * sev and wfe are ARMv6K extensions.  Uniprocessor ARMv6 may not have the K
++ * extensions, so when running on UP, we have to patch these instructions away.
++ */
++#define ALT_SMP(smp, up)					\
++	"9998:	" smp "\n"					\
++	"	.pushsection \".alt.smp.init\", \"a\"\n"	\
++	"	.long	9998b\n"				\
++	"	" up "\n"					\
++	"	.popsection\n"
++
++#ifdef CONFIG_THUMB2_KERNEL
++#define SEV		ALT_SMP("sev.w", "nop.w")
++#define WFE(cond)	ALT_SMP("wfe" cond ".w", "nop.w")
++#else
++#define SEV		ALT_SMP("sev", "nop")
++#define WFE(cond)	ALT_SMP("wfe" cond, "nop")
++#endif
++
+ static inline void dsb_sev(void)
+ {
+ #if __LINUX_ARM_ARCH__ >= 7
+ 	__asm__ __volatile__ (
+ 		"dsb\n"
+-		"sev"
++		SEV
+ 	);
+-#elif defined(CONFIG_CPU_32v6K)
++#else
+ 	__asm__ __volatile__ (
+ 		"mcr p15, 0, %0, c7, c10, 4\n"
+-		"sev"
++		SEV
+ 		: : "r" (0)
+ 	);
+ #endif
+@@ -46,9 +65,7 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
+ 	__asm__ __volatile__(
+ "1:	ldrex	%0, [%1]\n"
+ "	teq	%0, #0\n"
+-#ifdef CONFIG_CPU_32v6K
+-"	wfene\n"
+-#endif
++	WFE("ne")
+ "	strexeq	%0, %2, [%1]\n"
+ "	teqeq	%0, #0\n"
+ "	bne	1b"
+@@ -107,9 +124,7 @@ static inline void arch_write_lock(arch_rwlock_t *rw)
+ 	__asm__ __volatile__(
+ "1:	ldrex	%0, [%1]\n"
+ "	teq	%0, #0\n"
+-#ifdef CONFIG_CPU_32v6K
+-"	wfene\n"
+-#endif
++	WFE("ne")
+ "	strexeq	%0, %2, [%1]\n"
+ "	teq	%0, #0\n"
+ "	bne	1b"
+@@ -176,9 +191,7 @@ static inline void arch_read_lock(arch_rwlock_t *rw)
+ "1:	ldrex	%0, [%2]\n"
+ "	adds	%0, %0, #1\n"
+ "	strexpl	%1, %0, [%2]\n"
+-#ifdef CONFIG_CPU_32v6K
+-"	wfemi\n"
+-#endif
++	WFE("mi")
+ "	rsbpls	%0, %1, #0\n"
+ "	bmi	1b"
+ 	: "=&r" (tmp), "=&r" (tmp2)
