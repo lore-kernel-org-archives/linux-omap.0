@@ -1,36 +1,76 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [OFF TOPIC] Off on business travel for next two weeks
-Date: Sun, 16 Jan 2011 12:42:14 +0200
-Message-ID: <20110116104213.GA2456@legolas.emea.dhcp.ti.com>
-References: <20110114101809.GG2476@legolas.emea.dhcp.ti.com>
- <AANLkTinTPm_4ZenS5nXWF84ab74Ugn0AmuV9GU_mW+Wk@mail.gmail.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTinTPm_4ZenS5nXWF84ab74Ugn0AmuV9GU_mW+Wk-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mian Yousaf Kaukab <yrehan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, mian.yousaf.kaukab-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 2/2] arm: omap: remove duplicated headers
+Date: Sun, 16 Jan 2011 12:46:23 +0200
+Message-ID: <1295174783-4099-2-git-send-email-balbi@ti.com>
+References: <1295174783-4099-1-git-send-email-balbi@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1295174783-4099-1-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+A few headers are included twice, remove them.
 
-On Fri, Jan 14, 2011 at 06:47:03PM +0100, Mian Yousaf Kaukab wrote:
-> If you get a chance, can you please queue the following patch for
-> 2.6.38-rc as well?
-> 
-> usb: musb: maintain three states for buffer mappings instead of two
-> 
-> I am also travelling so I may not be able to follow-up for next couple of days.
+Found the following errors using make includecheck:
+arch/arm/mach-omap2/clock44xx_data.c: prm44xx.h is
+included more than once.
+arch/arm/mach-omap2/clockdomains44xx_data.c: cm1_44xx.h
+is included more than once.
+arch/arm/mach-omap2/clockdomains44xx_data.c: cm2_44xx.h
+is included more than once.
+arch/arm/mach-omap2/powerdomain2xxx_3xxx.c: prm-regbits-34xx.h
+is included more than once.
 
-I'll get to those. Still under review. I'll try to get some time to test
-those properly.
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/clock44xx_data.c        |    1 -
+ arch/arm/mach-omap2/clockdomains44xx_data.c |    2 --
+ arch/arm/mach-omap2/powerdomain2xxx_3xxx.c  |    1 -
+ 3 files changed, 0 insertions(+), 4 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index e8cb32f..de9ec8d 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -34,7 +34,6 @@
+ #include "cm2_44xx.h"
+ #include "cm-regbits-44xx.h"
+ #include "prm44xx.h"
+-#include "prm44xx.h"
+ #include "prm-regbits-44xx.h"
+ #include "control.h"
+ #include "scrm44xx.h"
+diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-omap2/clockdomains44xx_data.c
+index 51920fc..10622c9 100644
+--- a/arch/arm/mach-omap2/clockdomains44xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+@@ -30,8 +30,6 @@
+ #include "cm1_44xx.h"
+ #include "cm2_44xx.h"
+ 
+-#include "cm1_44xx.h"
+-#include "cm2_44xx.h"
+ #include "cm-regbits-44xx.h"
+ #include "prm44xx.h"
+ #include "prcm44xx.h"
+diff --git a/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c b/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
+index d523389..cf600e2 100644
+--- a/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
+@@ -19,7 +19,6 @@
+ #include <plat/prcm.h>
+ 
+ #include "powerdomain.h"
+-#include "prm-regbits-34xx.h"
+ #include "prm.h"
+ #include "prm-regbits-24xx.h"
+ #include "prm-regbits-34xx.h"
 -- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.3.4.598.g85356
