@@ -1,186 +1,303 @@
-From: Thomas Weber <thomas.weber.linux@googlemail.com>
-Subject: Re: State of LDP3430 platform
-Date: Sun, 16 Jan 2011 16:08:41 +0100
-Message-ID: <4D3309F9.8090900@gmail.com>
-References: <20101206125526.GC31777@n2100.arm.linux.org.uk> <20101206181913.GH8345@atomide.com> <alpine.DEB.2.00.1012061125400.13430@utopia.booyaka.com> <20101207083720.GB18336@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1012071745120.13430@utopia.booyaka.com> <alpine.DEB.2.00.1012072012000.13430@utopia.booyaka.com> <20110115000301.GT4957@atomide.com> <alpine.DEB.2.00.1101151237240.32245@utopia.booyaka.com> <20110115233744.GA18159@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1101152028580.13225@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Sumit Semwal <sumit.semwal@ti.com>
+Subject: [PATCH v7 00/18] OMAP2,3: hwmod DSS Adaptation
+Date: Sun, 16 Jan 2011 22:11:25 +0530
+Message-ID: <1295196103-29417-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:34548 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753170Ab1APPIk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Jan 2011 10:08:40 -0500
-Received: by fxm20 with SMTP id 20so4883626fxm.19
-        for <linux-omap@vger.kernel.org>; Sun, 16 Jan 2011 07:08:38 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1101152028580.13225@utopia.booyaka.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:44925 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751467Ab1APQmH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 16 Jan 2011 11:42:07 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
+To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@deeprootsystems.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
+Cc: Sumit Semwal <sumit.semwal@ti.com>
 
-Am 16.01.2011 05:32, schrieb Paul Walmsley:
-> On Sat, 15 Jan 2011, Russell King - ARM Linux wrote:
->
->> On Sat, Jan 15, 2011 at 12:38:46PM -0700, Paul Walmsley wrote:
->>> On Fri, 14 Jan 2011, Tony Lindgren wrote:
->>>
->>>> * Paul Walmsley <paul@pwsan.com> [101207 19:30]:
->>>>> On Tue, 7 Dec 2010, Paul Walmsley wrote:
->>>>>
->>>>> Regarding the watchdog problem, unfortunately, I can't reproduce on the 
->>>>> BeagleBoard with v2.6.37-rc5 with either omap2plus_defconfig or 
->>>>> omap2plus_defconfig without CONFIG_WATCHDOG.  If you send along your 
->>>>> .config, one of us can try to reproduce the problem with it.  Do the 
->>>>> 2.6.38 hwmod and wdt patchsets fix the problem for .38, at least?
->>>> I've been seeing this on my omap4 panda. While debugging it, I left
->>>> u-boot console only running for a few minutes to see if that stays up.
->>>> It did.. And after doing that somehow now my panda boots all the way
->>>> and stays up. Weird.
->>> Hmmm, do you think the watchdog is what's killing it?  I don't think 
->>> leaving u-boot running would affect that?
->> Right, well, the LDP3430 (and probably all OMAP) is broken by my
->> init_sched_clock() changes because I gave up with testing on OMAP
->> platforms.
->>
->> Why does OMAP initialize its clock sources soo late, outside of
->> the timer initialization?  This means you have no counter in place
->> (except for the jiffies counter) during early boot.
->>
->> Is there a reason why OMAP uniquely does this?
-> I don't think so.
->
-> Patch attached.
->
->
-> - Paul
->
->
-> [PATCH] OMAP: counter_32k: init clocksource as part of machine timer init
->
-> Linus's master branch, currently at commit
-> 1b59be2a6cdcb5a12e18d8315c07c94a624de48f ("Merge branch 'slab/urgent'
-> of git://git.kernel.org/pub/scm/linux/kernel/git/penberg/slab-2.6"),
-> crashes during boot on OMAP4430 ES2.0 Panda:
->
-> [    0.000000] OMAP clockevent source: GPTIMER1 at 32768 Hz
-> [    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
-> [    0.000000] pgd = c0004000
-> [    0.000000] [00000000] *pgd=00000000
-> [    0.000000] Internal error: Oops: 80000005 [#1] SMP
-> [    0.000000] last sysfs file:
-> [    0.000000] Modules linked in:
-> [    0.000000] CPU: 0    Tainted: G        W    (2.6.37-07734-g2467802 #7)
-> [    0.000000] PC is at 0x0
-> [    0.000000] LR is at sched_clock_poll+0x2c/0x3c
-> [    0.000000] pc : [<00000000>]    lr : [<c0060b74>]    psr: 600001d3
-> [    0.000000] sp : c058bfd0  ip : c058a000  fp : 00000000
-> [    0.000000] r10: 00000000  r9 : 411fc092  r8 : 800330c8
-> [    0.000000] r7 : c05a08e0  r6 : c0034c48  r5 : c05ffc40  r4 : c0034c4c
-> [    0.000000] r3 : c05ffe6c  r2 : c05a0bc0  r1 : c059f098  r0 : 00000000
-> [    0.000000] Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
-> [    0.000000] Control: 10c53c7f  Table: 8000404a  DAC: 00000017
->
-> This is due to the recent ARM init_sched_clock() changes and the late
-> initialization of the counter_32k clock source:
->
->    http://marc.info/?l=linux-omap&m=129513468605208&w=2
->
-> Fix by initializing the counter_32k clocksource during the machine timer
-> initialization.
->
-> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
->
-> ---
->  arch/arm/mach-omap1/time.c               |    7 +++++++
->  arch/arm/mach-omap2/timer-gp.c           |   10 ++++++++--
->  arch/arm/plat-omap/counter_32k.c         |    3 +--
->  arch/arm/plat-omap/include/plat/common.h |    1 +
->  4 files changed, 17 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
-> index ed7a61f..6ec65e5 100644
-> --- a/arch/arm/mach-omap1/time.c
-> +++ b/arch/arm/mach-omap1/time.c
-> @@ -244,6 +244,13 @@ static void __init omap_timer_init(void)
->  
->  	omap_init_mpu_timer(rate);
->  	omap_init_clocksource(rate);
-> +	/*
-> +	 * XXX Since this file seems to deal mostly with the MPU timer,
-> +	 * this doesn't seem like the correct place for the sync timer
-> +	 * clocksource init.
-> +	 */
-> +	if (!cpu_is_omap7xx() && !cpu_is_omap15xx())
-> +		omap_init_clocksource_32k();
->  }
->  
->  struct sys_timer omap_timer = {
-> diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-> index 4e48e78..57d53e0 100644
-> --- a/arch/arm/mach-omap2/timer-gp.c
-> +++ b/arch/arm/mach-omap2/timer-gp.c
-> @@ -42,6 +42,8 @@
->  
->  #include "timer-gp.h"
->  
-> +#include <plat/common.h>
-> +
->  /* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
->  #define MAX_GPTIMER_ID		12
->  
-> @@ -176,10 +178,14 @@ static void __init omap2_gp_clockevent_init(void)
->  /* 
->   * When 32k-timer is enabled, don't use GPTimer for clocksource
->   * instead, just leave default clocksource which uses the 32k
-> - * sync counter.  See clocksource setup in see plat-omap/common.c. 
-> + * sync counter.  See clocksource setup in plat-omap/timer-32k.c
->   */
->  
-> -static inline void __init omap2_gp_clocksource_init(void) {}
-> +static void __init omap2_gp_clocksource_init(void)
-> +{
-> +	omap_init_clocksource_32k();
-> +}
-> +
->  #else
->  /*
->   * clocksource
-> diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-> index ea46440..0367998 100644
-> --- a/arch/arm/plat-omap/counter_32k.c
-> +++ b/arch/arm/plat-omap/counter_32k.c
-> @@ -160,7 +160,7 @@ void read_persistent_clock(struct timespec *ts)
->  	*ts = *tsp;
->  }
->  
-> -static int __init omap_init_clocksource_32k(void)
-> +int __init omap_init_clocksource_32k(void)
->  {
->  	static char err[] __initdata = KERN_ERR
->  			"%s: can't register clocksource!\n";
-> @@ -195,7 +195,6 @@ static int __init omap_init_clocksource_32k(void)
->  	}
->  	return 0;
->  }
-> -arch_initcall(omap_init_clocksource_32k);
->  
->  #endif	/* !(defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP15XX)) */
->  
-> diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-> index 6b8088e..84c707f 100644
-> --- a/arch/arm/plat-omap/include/plat/common.h
-> +++ b/arch/arm/plat-omap/include/plat/common.h
-> @@ -35,6 +35,7 @@ struct sys_timer;
->  
->  extern void omap_map_common_io(void);
->  extern struct sys_timer omap_timer;
-> +extern int __init omap_init_clocksource_32k(void);
->  
->  extern void omap_reserve(void);
->  
+v7 of the DSS hwmod patch series fixes one issue found in testing after rebase
+on top of linux-next master (next-20110115 tag).
 
-This patch works on Devkit8000. Thanks.
+A device rename in patch 05/18 was missed from board-zoom-peripherals.c, which
+is fixed in this version.
 
-Tested-by: Thomas Weber <weber@corscience.de>
+A patch mentioned in 
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42384.html
+was needed to get OMAP3 to boot up on top of the said branch. 
+
+OMAP4 hwmod support will be posted after the acceptance of this basic change in
+the dss2 design.
+
+This patch series decouples the "Clocks for DSS in hwmod adaptation" changes
+from this series.  Another series would be posted which could be discussed
+w.r.t clocks in DSS across omap2,3.
+
+Removing the SYSCONFIG settings from DSS driver would also be part of these
+clock changes series and not covered in this series as it depends on some of
+the omap_hwmod framework changes w.r.t opt clocks handling.
+
+Summary of the hwmod DSS design:
+================================
+DSS, DISPC, DSI, RFBI, VENC are made as platform drivers each 
+corresponding to the hwmod class in the hwmod database. 
+
+Each of these platform drivers' init / deinit are handled from core.c's
+omap_dss_probe() in the exact sequence as required.
+
+No Hardcoding of silicon data:
+hwmod database abstracts the SOC data like base addr, irq numbers and are
+implemented in this patch series.
+
+Continue to have custom bus for display panels:
+"omap_display" driver continues to be a platform driver that registers the custom
+bus.  It also continues to register the display panels(omap_dss_device) on the
+board to the panel drivers (omap_dss_driver)
+For Eg:  primary lcd device would be registered with lcd panel driver.
+lcd panel driver if it is on a parallel interface would use library functions 
+exported from dpi.o.  if it is on a dsi interface would use library functions
+exported from dsi platform driver(dsi.o).
+
+Clocks:
+Handling of clocks in DSS only is one of the design approaches, that does not
+change the existing implementation.  If each of the DSS HW IPs had to handle
+their own clocks, then corresponding clock changes can be requested in the hwmod
+database as well which is not the current design/implementation.  As stated, 
+this would be handled in another series seperately.
+For Eg: VENC would need 54MCLK which is termed as dss_opt clocks as of now apart
+for the dss main clocks.  Currently VENC driver needs to be aware of this and has to
+use clk_get/put, clk_enable/disable, since VENC hwmod is not aware of 54MCLK.
+
+
+
+Current dss driver:
+-------------------
+1.  Omapdss platform driver
+        - initialises necessary Ips dss, dispc.
+        - also initialises Ips like sdi, dsi, venc, rfbi
+        - creates a custom bus and registers the display devices/drivers
+        connected on the board to the custom bus.
+
+2.  Suspend/resume of omapdss
+        - in turn sends suspend/resume calls for each of the display devices
+        registered to it.
+
+Modified change:
+---------------
+Platform driver for each DSS HW IP in addition to the software "omap_display"
+driver.
+
+Omapdss platform driver
+        - initialises necessary h/w IPs' platform drivers [dss, dispc, dsi, venc, rfbi]
+	  and software libraries like dpi, sdi.
+        - continues to have a custom bus and registers the display devices 
+        and drivers connected on the board to the custom bus.
+        - continues to handle suspend/resume of the display devices registered
+        to the custom bus.
+
+DSS platform driver
+        - initialises DSS IP alone
+	- Handles the clocks related to the DSS and other DSSHW IPs like RFBI,
+	DSI, VENC, DISPC.  Previously this was a part of "omapdss" driver in core.c
+	- Continues to handle the DSS IRQs.
+	- No suspend/resume hooks.
+
+DISPC platform driver
+        - initialises DISPC IP alone
+	- Gets the required clock from DSS platform driver.
+	- No suspend/resume hooks.
+	- Continues to provide DISPC library functions.
+
+DSI platform driver
+        - initialises DSI IP alone
+	- Gets the required clock from DSS platform driver.
+	- No suspend/resume hooks.
+	- Continues to provide DSI library functions.
+
+RFBI, VENC platform drivers
+        - initialises DSI,VENC IPs
+	- Gets the required clock from DSS platform driver.
+	- No suspend/resume hooks.
+	- Continues to provide RFBI and VENC library functions.
+
+Testing:
+---------
+The patches are tested on 2420-n800, 2430sdp, 3630zoom, 3430sdp.
+Complete bootup with penguins on panel is done on 3430sdp.
+For the rest of the mentioned platforms, kernel is built with "OMAP2_DSS"
+and bootup is tested so that base address and clk_get calls are successful.
+
+DSS was built successfully as module, though not tested yet.
+
+Changes since v6:
+-----------------
+* board-zoom-peripherals.c: Added missing change of device name from omapdss to omap_display.
+	Found during testing on OMAP3630 on top of 
+Changes since v5:
+----------------
+1) Following review comments incorporated:
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42031.html
+		Make sure display.c is built when DSS is enabled built-in or as a module.
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42083.html
+		hwmod and omap_device headers moved to patch 8 when they're
+		needed the first time.
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42094.html
+		- latency set to AUTO_ADJUST
+		- extra whitespaces removed.
+		- pdata memset to 0 before use.
+		- if omap_device_build fails, return error.
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42095.html
+		renamed *_deinit_* to *_uninit_*
+
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42171.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42172.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42173.html
+		- added L3 and L4 firewall related data,
+		- corrected handling of .idlest_idle_bit v/w .idlest_stdby_bit
+		- no .idlest_*_bit setting for dependent hwmods
+		- corrected .user to add SDMA
+		- renamed dss_dss to dss_core
+		- hwmod for 3430es1 and later 3xxx are separated out, with some
+		  reuse of data.
+ *	Removed forced-disable of dss clocks from omap_dss_remove.
+
+Changes since v4:
+----------------
+1) Following review comments incorporated:
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41970.html
+		Corrected the clocks to be enabled in omap_dss_probe.
+Changes since v3:
+----------------
+1.) Following review comments incorporated:
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41705.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41683.html
+		Created a new display.c file for dss driver registration 
+		related code.	
+
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41573.html
+		Changed the oh_name/dev_name handling in hwmod usage.
+
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41753.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41718.html
+		removed device_initcall_sync(); init / deinit of each DSS h/w IP
+		platform drivers are done from omap_dss_probe() in sequence.
+
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41754.html
+		clock patches were cleaned up as per review comments.
+
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41756.html
+		printk() => dev_dbg change was separated out.
+
+
+Changes since v2:
+-------------------
+1.) Following review comments incorporated:
+	Split the device/driver name change and registration patches logically.
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41205.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41204.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41203.html
+
+Changes since v1:
+------------------
+1.) Dynamically register for OMAP2,3 specific DSS HW IPs in devices.c
+2.) Following review comments incorporated:
+	Updation of all the board files on l-o dss2 branch as per
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36915.html
+	Comments incorporated in devices.c and display.h as per
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36919.html
+	Comments incorporated in dispc.c, dss.c, dsi.c, venc.c, rfbi.c 
+	so that platform_device is just above platform_driver registrations as per
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36963.html
+3.) Squashed some of the patches to one patch.
+
+Changes since RFC:
+-------------------
+1) All the platform driver registration except DSS, were within the file core.c.
+Registeration of these driver got seperated to its own file.
+2) Usage of regulators by different drivers are implemented.
+For Eg: Regulator used by VENC is moved to venc driver.  But vdda_dac would be 
+needed by DPI and DSI as well.
+4) OMAP2420 and OMAP2430 hwmod database are generated in this v1.
+5) Module support for omapdss driver can continue as the DSS HW IP specific platform
+drivers are decoupled from omapdss driver.
+6) Following review comments incorporated:
+	Changed the hwmod device name from "dss" to "dss_dss"
+	Changed name of core driver from "omapdss" to "omap_display" as it deals with panels.
+	Fixed comments on return values from platform_get_resource/irq functions.
+
+Patch Base:
+===========
+Patch-set rebased and tested w/ Zoom3 (OMAP3630) on top of:
+url = git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+branch "master"
+commit	e8883f8057c0f7c9950fa9f20568f37bfa62f34a
+Description: Add linux-next specific files for 20110115
++
+Patch mentioned in http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42384.html
+[PATCH] OMAP: counter_32k: init clocksource as part of machine timer init
+
+(This patch is required for OMAP bootup w/ 20110115 linux-next)
+
+----------------------------------------------------------------------------
+
+
+Senthilvadivu Guruswamy (15):
+  OMAP2420: hwmod data: add DSS DISPC RFBI VENC
+  OMAP2430: hwmod data: add DSS DISPC RFBI VENC
+  OMAP3: hwmod data: add DSS DISPC RFBI DSI VENC
+  OMAP2,3 DSS2 Change driver name to omap_display
+  OMAP2,3 DSS2 Use Regulator init with driver name
+  OMAP2,3: DSS2: board files: replace platform_device_register with
+    omap_display_init()
+  OMAP2,3: DSS2: Build omap_device for each DSS HWIP
+  OMAP2,3: DSS2: DSS: create platform_driver, move init,exit to driver
+  OMAP2,3: DSS2: Move clocks from core driver to dss driver
+  OMAP2,3: DSS2: RFBI: create platform_driver, move init,exit to driver
+  OMAP2,3: DSS2: DISPC: create platform_driver, move init,exit to
+    driver
+  OMAP2,3: DSS2: VENC: create platform_driver, move init,exit to driver
+  OMAP2,3: DSS2: DSI: create platform_driver, move init,exit to driver
+  OMAP2,3: DSS2: Use platform device to get baseaddr
+  OMAP2,3: DSS2: Get DSS IRQ from platform device
+
+Sumit Semwal (3):
+  OMAP2,3: DSS2: remove forced clk-disable from omap_dss_remove
+  OMAP2,3: DSS2: Create new file display.c for central dss driver
+    registration.
+  OMAP2,3: DSS2: replace printk with dev_dbg in init
+
+ arch/arm/mach-omap2/Makefile                 |    3 +
+ arch/arm/mach-omap2/board-3430sdp.c          |   26 +--
+ arch/arm/mach-omap2/board-am3517evm.c        |   16 +-
+ arch/arm/mach-omap2/board-cm-t35.c           |   22 +-
+ arch/arm/mach-omap2/board-devkit8000.c       |   14 +-
+ arch/arm/mach-omap2/board-igep0020.c         |   16 +-
+ arch/arm/mach-omap2/board-omap3beagle.c      |   14 +-
+ arch/arm/mach-omap2/board-omap3evm.c         |   22 +-
+ arch/arm/mach-omap2/board-omap3pandora.c     |   16 +-
+ arch/arm/mach-omap2/board-omap3stalker.c     |   22 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    4 +-
+ arch/arm/mach-omap2/board-rx51-video.c       |   15 +-
+ arch/arm/mach-omap2/board-zoom-display.c     |   15 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    4 +-
+ arch/arm/mach-omap2/clock2420_data.c         |    8 +-
+ arch/arm/mach-omap2/clock2430_data.c         |    8 +-
+ arch/arm/mach-omap2/clock3xxx_data.c         |   14 +-
+ arch/arm/mach-omap2/display.c                |   96 ++++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c   |  311 ++++++++++++++++++-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c   |  284 ++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |  433 +++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/display.h    |   16 +
+ arch/arm/plat-omap/include/plat/l3_2xxx.h    |   20 ++
+ arch/arm/plat-omap/include/plat/l3_3xxx.h    |   20 ++
+ arch/arm/plat-omap/include/plat/l4_2xxx.h    |   24 ++
+ arch/arm/plat-omap/include/plat/l4_3xxx.h    |   10 +
+ drivers/video/omap2/dss/core.c               |  448 ++------------------------
+ drivers/video/omap2/dss/dispc.c              |  114 ++++---
+ drivers/video/omap2/dss/dsi.c                |   78 ++++-
+ drivers/video/omap2/dss/dss.c                |  411 +++++++++++++++++++++++-
+ drivers/video/omap2/dss/dss.h                |   46 ++--
+ drivers/video/omap2/dss/rfbi.c               |  118 ++++---
+ drivers/video/omap2/dss/venc.c               |  125 +++++---
+ 33 files changed, 2022 insertions(+), 771 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/display.c
+ create mode 100644 arch/arm/plat-omap/include/plat/l3_2xxx.h
+ create mode 100644 arch/arm/plat-omap/include/plat/l3_3xxx.h
+ create mode 100644 arch/arm/plat-omap/include/plat/l4_2xxx.h
+
