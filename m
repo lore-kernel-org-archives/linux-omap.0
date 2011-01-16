@@ -1,68 +1,38 @@
-From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v7 18/18] OMAP2,3: DSS2: Get DSS IRQ from platform device
-Date: Sun, 16 Jan 2011 22:11:43 +0530
-Message-ID: <1295196103-29417-19-git-send-email-sumit.semwal@ti.com>
-References: <1295196103-29417-1-git-send-email-sumit.semwal@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/2] arm: omap: remove duplicated headers
+Date: Sun, 16 Jan 2011 11:00:42 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101161059190.13225@utopia.booyaka.com>
+References: <1295174783-4099-1-git-send-email-balbi@ti.com> <1295174783-4099-2-git-send-email-balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37989 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753431Ab1APQoq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 16 Jan 2011 11:44:46 -0500
-In-Reply-To: <1295196103-29417-1-git-send-email-sumit.semwal@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:50023 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753170Ab1APSAo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Jan 2011 13:00:44 -0500
+In-Reply-To: <1295174783-4099-2-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@deeprootsystems.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
-Cc: Senthilvadivu Guruswamy <svadivu@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Senthilvadivu Guruswamy <svadivu@ti.com>
+On Sun, 16 Jan 2011, Felipe Balbi wrote:
 
-DSS IRQ number can be obtained from platform_get_irq().  This API in turn
-picks the right IRQ number belonging to HW IP from the hwmod database.
-So hardcoding of IRQ number could be removed.
+> A few headers are included twice, remove them.
+> 
+> Found the following errors using make includecheck:
+> arch/arm/mach-omap2/clock44xx_data.c: prm44xx.h is
+> included more than once.
+> arch/arm/mach-omap2/clockdomains44xx_data.c: cm1_44xx.h
+> is included more than once.
+> arch/arm/mach-omap2/clockdomains44xx_data.c: cm2_44xx.h
+> is included more than once.
+> arch/arm/mach-omap2/powerdomain2xxx_3xxx.c: prm-regbits-34xx.h
+> is included more than once.
 
-Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Reviewed-by: Paul Walmsley <paul@pwsan.com>
----
- drivers/video/omap2/dss/dss.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+These are probably merge-related.  I'll take this patch for 2.6.38-rc.
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 4d7a816..22690e9 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -563,7 +563,7 @@ void dss_set_dac_pwrdn_bgz(bool enable)
- 
- static int dss_init(bool skip_init)
- {
--	int r;
-+	int r, dss_irq;
- 	u32 rev;
- 	struct resource *dss_mem;
- 
-@@ -609,15 +609,18 @@ static int dss_init(bool skip_init)
- 	REG_FLD_MOD(DSS_CONTROL, 0, 2, 2);	/* venc clock mode = normal */
- #endif
- 
--	r = request_irq(INT_24XX_DSS_IRQ,
-+	dss_irq = platform_get_irq(dss.pdev, 0);
-+	if (dss_irq != -ENXIO) {
-+		r = request_irq(dss_irq,
- 			cpu_is_omap24xx()
- 			? dss_irq_handler_omap2
- 			: dss_irq_handler_omap3,
- 			0, "OMAP DSS", NULL);
- 
--	if (r < 0) {
--		DSSERR("omap2 dss: request_irq failed\n");
--		goto fail1;
-+		if (r < 0) {
-+			DSSERR("omap2 dss: request_irq failed\n");
-+			goto fail1;
-+		}
- 	}
- 
- 	if (cpu_is_omap34xx()) {
--- 
-1.7.0.4
+Thanks,
 
+
+- Paul
