@@ -1,38 +1,69 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: [PATCHv2 2/2] omap3: devkit8000: fix tps65930 pullup/pulldown configuration
-Date: Mon, 17 Jan 2011 15:11:59 +0100
-Message-ID: <1295273519-6189-3-git-send-email-weber@corscience.de>
-References: <1295273519-6189-1-git-send-email-weber@corscience.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1295273519-6189-1-git-send-email-weber@corscience.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Daniel Morsing <daniel.morsing@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH v3 0/6] OMAP: McSPI: Hwmod adaptation + runtime conversion
+Date: Mon, 17 Jan 2011 19:53:01 +0530 (IST)
+Message-ID: <32036.10.24.255.18.1295274181.squirrel@dbdmail.itg.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53306 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751438Ab1AQOXO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 09:23:14 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org
+Cc: Grant Likely <grant.likely@secretlab.ca>, Charulatha V <charu@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
 
-From: Daniel Morsing <daniel.morsing@gmail.com>
+Changes invloves:
+----------------
+1) Addition of hwmod data for omap2/3/4.
+2) McSPI driver hwmod adaptation with cleanup of base address
+   macros and using omap-device API's.
+3) Runtime Conversion of McSPI driver.
 
-gpio7 on the tps65930 is used as an output on the devkit8000 and gpio1
-is not connected. Remove gpio7 and change gpio1 to pulldown
+Changes from v2:
+---------------
+1) Fixing minor comments and adding ack from Grant Likely.
+	https://patchwork.kernel.org/patch/371321/
+	https://patchwork.kernel.org/patch/371331/
 
-Signed-off-by: Daniel Morsing <daniel.morsing@gmail.com>
----
- arch/arm/mach-omap2/board-devkit8000.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+Changes from v1:
+---------------
+1) Fixing patch 5/5 comments for hwmod+runtime
+  Split the patch 5/5 to hwmod adaptation
+  and then runtime conversion
+  http://www.mail-archive.com/linux-omap@vger.kernel.org/msg33387.html
 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 719f4e5..9fb416b 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -262,8 +262,7 @@ static struct twl4030_gpio_platform_data devkit8000_gpio_data = {
- 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
- 	.irq_end	= TWL4030_GPIO_IRQ_END,
- 	.use_leds	= true,
--	.pullups	= BIT(1),
--	.pulldowns	= BIT(2) | BIT(6) | BIT(7) | BIT(8) | BIT(13)
-+	.pulldowns	= BIT(1) | BIT(2) | BIT(6) | BIT(8) | BIT(13)
- 				| BIT(15) | BIT(16) | BIT(17),
- 	.setup		= devkit8000_twl_gpio_setup,
- };
--- 
-1.7.4.rc2
+Testing Updates:
+----------------
+Was tested using data transfer test module available at:
+http://dev.omapzoom.org/?p=richo/device_driver_test.git;a=blob;f=mcspi/test_code/
+utils/mcspi_modules/omap_mcspi_datatest.c;
+h=e42ec10c5c844abdde6a7175a268b379fbbdb655;
+hb=5d9a755d50e58de861c5e8991f2f607bc49b5dc3
+This test basically involves MISO <--> MOSI lines looped and data transfer test
+done using the above test module.
+System wide suspend and ret/off counts observation, ensured that no behavioral
+difference with and without this patch series.
+
+Charulatha V (1):
+  OMAP: devices: Modify McSPI device to adapt to hwmod framework
+
+Govindraj.R (5):
+  OMAP2420: hwmod data: Add McSPI
+  OMAP2430: hwmod data: Add McSPI
+  OMAP3: hwmod data: Add McSPI
+  OMAP4: hwmod data: Add McSPI
+  OMAP: runtime: McSPI driver runtime conversion
+
+ arch/arm/mach-omap2/devices.c              |  187 ++++---------------
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |  156 ++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |  219 ++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  280 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  266 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/mcspi.h    |   11 +
+ drivers/spi/omap2_mcspi.c                  |  224 +++++++---------------
+ 7 files changed, 1043 insertions(+), 300 deletions(-)
+
+
