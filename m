@@ -1,33 +1,46 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCHv2 1/2] OMAP3: Devkit8000: Change lcd power pin
-Date: Mon, 17 Jan 2011 18:05:44 +0300
-Message-ID: <4D345AC8.8030304@ru.mvista.com>
-References: <1295273519-6189-1-git-send-email-weber@corscience.de> <1295273519-6189-2-git-send-email-weber@corscience.de>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH v4] ARM: Thumb-2: Symbol manipulation macros for function
+ body copying
+Date: Mon, 17 Jan 2011 15:35:57 +0000
+Message-ID: <AANLkTin6gfN6hpExQ0iof14Hy7_MmaOdgpgS2OgyZOLd@mail.gmail.com>
+References: <1295039877-7976-1-git-send-email-dave.martin@linaro.org>
+	<AANLkTintFe4V6BxrUxh-gwvhoa=RcH0tkHjYbfyGHKD=@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1295273519-6189-2-git-send-email-weber@corscience.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Weber <weber@corscience.de>
-Cc: linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:33115 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714Ab1AQPf7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 10:35:59 -0500
+Received: by ewy5 with SMTP id 5so2678711ewy.19
+        for <linux-omap@vger.kernel.org>; Mon, 17 Jan 2011 07:35:57 -0800 (PST)
+In-Reply-To: <AANLkTintFe4V6BxrUxh-gwvhoa=RcH0tkHjYbfyGHKD=@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-Hello.
+Hi,
 
-Thomas Weber wrote:
+On Mon, Jan 17, 2011 at 2:02 PM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
 
-> The reset_gpio pin for lcd is connected with TWL4030 LedA.
-> TWL4030 GPIO.1 has a not connected resistor.
+[...]
 
-> Fix indention issue.
+> Note that aligning the source and destination pointers to a multiple
+> of 8 bytes has an impact on the behavio(u)r and so must be carefully
+> thought and tested on OMAP1/2/3 platforms.
 
-    Indentation.
+Do you have any specific concerns regarding this?
 
-> The comment line uses 8 whitespaces. 
-> Replaced with one tabulator.
+Currently, the only issue I can think of is that the need to allocate
+aligned memory from the SRAM will increase the total amount allocated,
+which could be a problem if we end up overflowing the available SRAM.
 
-> Reported-by: Daniel Morsing <daniel.morsing@gmail.com>
-> Signed-off-by: Thomas Weber <weber@corscience.de>
+This does not appear to happen in the case I've tested -- I currently
+round up the amount allocated in omap_sram_push to be a multiple of 8
+bytes.  This, combined with a couple of ".align 3" directives, is
+enough to get me a booting system on omap3... but I haven't tested
+exhaustively.
 
-WBR, Sergei
+Cheers
+---Dave
