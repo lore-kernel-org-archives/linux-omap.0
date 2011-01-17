@@ -1,71 +1,111 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 01/14] ARM: bitops: ensure set/clear/change bitops take a word-aligned pointer
-Date: Mon, 17 Jan 2011 19:21:20 +0000
-Message-ID: <E1Peudk-0003SJ-Aj@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 03/14] ARM: v6k: remove CPU_32v6K dependencies in asm/spinlock.h
+Date: Mon, 17 Jan 2011 19:22:01 +0000
+Message-ID: <E1PeueP-0003SR-03@rmk-PC.arm.linux.org.uk>
 References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51081 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51084 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752316Ab1AQTVm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 14:21:42 -0500
+	with ESMTP id S1752316Ab1AQTWM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 14:22:12 -0500
 In-Reply-To: <20110117192050.GE23331@n2100.arm.linux.org.uk>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Add additional instructions to our assembly bitops functions to ensure
-that they only operate on word-aligned pointers.  This will be necessary
-when we switch these operations to use the word-based exclusive
-operations.
+SMP requires at least the ARMv6K extensions to be present, so if we're
+running on SMP, the WFE and SEV instructions must be available.
+
+However, when we run on UP, the v6K extensions may not be available,
+and so we don't want WFE/SEV to be in the instruction stream.  Use the
+SMP alternatives infrastructure to replace these instructions with NOPs
+if we build for SMP but run on UP.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/lib/bitops.h |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ arch/arm/include/asm/spinlock.h |   37 +++++++++++++++++++++++++------------
+ 1 files changed, 25 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/lib/bitops.h b/arch/arm/lib/bitops.h
-index d422529..910d599 100644
---- a/arch/arm/lib/bitops.h
-+++ b/arch/arm/lib/bitops.h
-@@ -1,6 +1,8 @@
+diff --git a/arch/arm/include/asm/spinlock.h b/arch/arm/include/asm/spinlock.h
+index 17eb355..da1af52 100644
+--- a/arch/arm/include/asm/spinlock.h
++++ b/arch/arm/include/asm/spinlock.h
+@@ -5,17 +5,36 @@
+ #error SMP not supported on pre-ARMv6 CPUs
+ #endif
  
- #if __LINUX_ARM_ARCH__ >= 6 && defined(CONFIG_CPU_32v6K)
- 	.macro	bitop, instr
-+	tst	r1, #3
-+	strne	r1, [r1, -r1]		@ assert word-aligned
- 	mov	r2, #1
- 	and	r3, r0, #7		@ Get bit offset
- 	add	r1, r1, r0, lsr #3	@ Get byte offset
-@@ -14,6 +16,8 @@
- 	.endm
- 
- 	.macro	testop, instr, store
-+	tst	r1, #3
-+	strne	r1, [r1, -r1]		@ assert word-aligned
- 	and	r3, r0, #7		@ Get bit offset
- 	mov	r2, #1
- 	add	r1, r1, r0, lsr #3	@ Get byte offset
-@@ -32,6 +36,8 @@
- 	.endm
- #else
- 	.macro	bitop, instr
-+	tst	r1, #3
-+	strne	r1, [r1, -r1]		@ assert word-aligned
- 	and	r2, r0, #7
- 	mov	r3, #1
- 	mov	r3, r3, lsl r2
-@@ -52,6 +58,8 @@
-  * to avoid dirtying the data cache.
-  */
- 	.macro	testop, instr, store
-+	tst	r1, #3
-+	strne	r1, [r1, -r1]		@ assert word-aligned
- 	add	r1, r1, r0, lsr #3
- 	and	r3, r0, #7
- 	mov	r0, #1
++/*
++ * sev and wfe are ARMv6K extensions.  Uniprocessor ARMv6 may not have the K
++ * extensions, so when running on UP, we have to patch these instructions away.
++ */
++#define ALT_SMP(smp, up)					\
++	"9998:	" smp "\n"					\
++	"	.pushsection \".alt.smp.init\", \"a\"\n"	\
++	"	.long	9998b\n"				\
++	"	" up "\n"					\
++	"	.popsection\n"
++
++#ifdef CONFIG_THUMB2_KERNEL
++#define SEV		ALT_SMP("sev.w", "nop.w")
++#define WFE(cond)	ALT_SMP("wfe" cond ".w", "nop.w")
++#else
++#define SEV		ALT_SMP("sev", "nop")
++#define WFE(cond)	ALT_SMP("wfe" cond, "nop")
++#endif
++
+ static inline void dsb_sev(void)
+ {
+ #if __LINUX_ARM_ARCH__ >= 7
+ 	__asm__ __volatile__ (
+ 		"dsb\n"
+-		"sev"
++		SEV
+ 	);
+-#elif defined(CONFIG_CPU_32v6K)
++#else
+ 	__asm__ __volatile__ (
+ 		"mcr p15, 0, %0, c7, c10, 4\n"
+-		"sev"
++		SEV
+ 		: : "r" (0)
+ 	);
+ #endif
+@@ -46,9 +65,7 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
+ 	__asm__ __volatile__(
+ "1:	ldrex	%0, [%1]\n"
+ "	teq	%0, #0\n"
+-#ifdef CONFIG_CPU_32v6K
+-"	wfene\n"
+-#endif
++	WFE("ne")
+ "	strexeq	%0, %2, [%1]\n"
+ "	teqeq	%0, #0\n"
+ "	bne	1b"
+@@ -107,9 +124,7 @@ static inline void arch_write_lock(arch_rwlock_t *rw)
+ 	__asm__ __volatile__(
+ "1:	ldrex	%0, [%1]\n"
+ "	teq	%0, #0\n"
+-#ifdef CONFIG_CPU_32v6K
+-"	wfene\n"
+-#endif
++	WFE("ne")
+ "	strexeq	%0, %2, [%1]\n"
+ "	teq	%0, #0\n"
+ "	bne	1b"
+@@ -176,9 +191,7 @@ static inline void arch_read_lock(arch_rwlock_t *rw)
+ "1:	ldrex	%0, [%2]\n"
+ "	adds	%0, %0, #1\n"
+ "	strexpl	%1, %0, [%2]\n"
+-#ifdef CONFIG_CPU_32v6K
+-"	wfemi\n"
+-#endif
++	WFE("mi")
+ "	rsbpls	%0, %1, #0\n"
+ "	bmi	1b"
+ 	: "=&r" (tmp), "=&r" (tmp2)
 -- 
 1.6.2.5
 
