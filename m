@@ -1,38 +1,33 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v3 1/6] OMAP2420: hwmod data: Add McSPI
-Date: Mon, 17 Jan 2011 19:53:11 +0530 (IST)
-Message-ID: <32092.10.24.255.18.1295274191.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH v3 2/6] OMAP2430: hwmod data: Add McSPI
+Date: Mon, 17 Jan 2011 19:53:20 +0530 (IST)
+Message-ID: <32094.10.24.255.18.1295274200.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33290 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49858 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751813Ab1AQOXb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Jan 2011 09:23:31 -0500
+	id S1751813Ab1AQOXh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Jan 2011 09:23:37 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-arm-kernel@lists.infradead.org
 Cc: Grant Likely <grant.likely@secretlab.ca>, Charulatha V <charu@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Update the omap2420 hwmod data with the McSPI info.
-Add a device attribute structure which will be used
-for passing number of chipselects from hwmod data.
-Add revision macros to be passed from rev field from
-hwmod.
+Update the 2430 hwmod data file with McSPI info.
 
 Signed-off-by: Charulatha V <charu@ti.com>
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 Acked-by: Grant Likely <grant.likely@secretlab.ca>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |  156 ++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/mcspi.h    |    8 ++
- 2 files changed, 164 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |  219 ++++++++++++++++++++++++++++
+ 1 files changed, 219 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index b85c630..27c00be 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 8ecfbcd..9bf9dbe 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
 @@ -18,6 +18,7 @@
  #include <plat/serial.h>
  #include <plat/i2c.h>
@@ -41,21 +36,22 @@ index b85c630..27c00be 100644
 
  #include "omap_hwmod_common_data.h"
 
-@@ -44,6 +45,8 @@ static struct omap_hwmod omap2420_gpio2_hwmod;
- static struct omap_hwmod omap2420_gpio3_hwmod;
- static struct omap_hwmod omap2420_gpio4_hwmod;
- static struct omap_hwmod omap2420_dma_system_hwmod;
-+static struct omap_hwmod omap2420_mcspi1_hwmod;
-+static struct omap_hwmod omap2420_mcspi2_hwmod;
+@@ -45,6 +46,9 @@ static struct omap_hwmod omap2430_gpio3_hwmod;
+ static struct omap_hwmod omap2430_gpio4_hwmod;
+ static struct omap_hwmod omap2430_gpio5_hwmod;
+ static struct omap_hwmod omap2430_dma_system_hwmod;
++static struct omap_hwmod omap2430_mcspi1_hwmod;
++static struct omap_hwmod omap2430_mcspi2_hwmod;
++static struct omap_hwmod omap2430_mcspi3_hwmod;
 
  /* L3 -> L4_CORE interface */
- static struct omap_hwmod_ocp_if omap2420_l3_main__l4_core = {
-@@ -88,6 +91,42 @@ static struct omap_hwmod omap2420_uart3_hwmod;
- static struct omap_hwmod omap2420_i2c1_hwmod;
- static struct omap_hwmod omap2420_i2c2_hwmod;
+ static struct omap_hwmod_ocp_if omap2430_l3_main__l4_core = {
+@@ -223,6 +227,60 @@ static struct omap_hwmod_ocp_if *omap2430_l4_wkup_slaves[] = {
+ static struct omap_hwmod_ocp_if *omap2430_l4_wkup_masters[] = {
+ };
 
 +/* l4 core -> mcspi1 interface */
-+static struct omap_hwmod_addr_space omap2420_mcspi1_addr_space[] = {
++static struct omap_hwmod_addr_space omap2430_mcspi1_addr_space[] = {
 +	{
 +		.pa_start	= 0x48098000,
 +		.pa_end		= 0x480980ff,
@@ -63,17 +59,17 @@ index b85c630..27c00be 100644
 +	},
 +};
 +
-+static struct omap_hwmod_ocp_if omap2420_l4_core__mcspi1 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_mcspi1_hwmod,
++static struct omap_hwmod_ocp_if omap2430_l4_core__mcspi1 = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_mcspi1_hwmod,
 +	.clk		= "mcspi1_ick",
-+	.addr		= omap2420_mcspi1_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_mcspi1_addr_space),
++	.addr		= omap2430_mcspi1_addr_space,
++	.addr_cnt	= ARRAY_SIZE(omap2430_mcspi1_addr_space),
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
 +/* l4 core -> mcspi2 interface */
-+static struct omap_hwmod_addr_space omap2420_mcspi2_addr_space[] = {
++static struct omap_hwmod_addr_space omap2430_mcspi2_addr_space[] = {
 +	{
 +		.pa_start	= 0x4809a000,
 +		.pa_end		= 0x4809a0ff,
@@ -81,19 +77,37 @@ index b85c630..27c00be 100644
 +	},
 +};
 +
-+static struct omap_hwmod_ocp_if omap2420_l4_core__mcspi2 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_mcspi2_hwmod,
++static struct omap_hwmod_ocp_if omap2430_l4_core__mcspi2 = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_mcspi2_hwmod,
 +	.clk		= "mcspi2_ick",
-+	.addr		= omap2420_mcspi2_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_mcspi2_addr_space),
++	.addr		= omap2430_mcspi2_addr_space,
++	.addr_cnt	= ARRAY_SIZE(omap2430_mcspi2_addr_space),
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
- /* L4_CORE -> L4_WKUP interface */
- static struct omap_hwmod_ocp_if omap2420_l4_core__l4_wkup = {
- 	.master	= &omap2420_l4_core_hwmod,
-@@ -864,6 +903,119 @@ static struct omap_hwmod omap2420_dma_system_hwmod = {
++/* l4 core -> mcspi3 interface */
++static struct omap_hwmod_addr_space omap2430_mcspi3_addr_space[] = {
++	{
++		.pa_start	= 0x480b8000,
++		.pa_end		= 0x480b80ff,
++		.flags		= ADDR_TYPE_RT,
++	},
++};
++
++static struct omap_hwmod_ocp_if omap2430_l4_core__mcspi3 = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_mcspi3_hwmod,
++	.clk		= "mcspi3_ick",
++	.addr		= omap2430_mcspi3_addr_space,
++	.addr_cnt	= ARRAY_SIZE(omap2430_mcspi3_addr_space),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* L4 WKUP */
+ static struct omap_hwmod omap2430_l4_wkup_hwmod = {
+ 	.name		= "l4_wkup",
+@@ -919,6 +977,162 @@ static struct omap_hwmod omap2430_dma_system_hwmod = {
  	.flags		= HWMOD_NO_IDLEST,
  };
 
@@ -103,7 +117,7 @@ index b85c630..27c00be 100644
 + * bus
 + */
 +
-+static struct omap_hwmod_class_sysconfig omap2420_mcspi_sysc = {
++static struct omap_hwmod_class_sysconfig omap2430_mcspi_sysc = {
 +	.rev_offs	= 0x0000,
 +	.sysc_offs	= 0x0010,
 +	.syss_offs	= 0x0014,
@@ -114,18 +128,18 @@ index b85c630..27c00be 100644
 +	.sysc_fields    = &omap_hwmod_sysc_type1,
 +};
 +
-+static struct omap_hwmod_class omap2420_mcspi_class = {
++static struct omap_hwmod_class omap2430_mcspi_class = {
 +	.name = "mcspi",
-+	.sysc = &omap2420_mcspi_sysc,
++	.sysc = &omap2430_mcspi_sysc,
 +	.rev = OMAP2_MCSPI_REV,
 +};
 +
 +/* mcspi1 */
-+static struct omap_hwmod_irq_info omap2420_mcspi1_mpu_irqs[] = {
++static struct omap_hwmod_irq_info omap2430_mcspi1_mpu_irqs[] = {
 +	{ .irq = 65 },
 +};
 +
-+static struct omap_hwmod_dma_info omap2420_mcspi1_sdma_reqs[] = {
++static struct omap_hwmod_dma_info omap2430_mcspi1_sdma_reqs[] = {
 +	{ .name = "tx0", .dma_req = 35 }, /* DMA_SPI1_TX0 */
 +	{ .name = "rx0", .dma_req = 36 }, /* DMA_SPI1_RX0 */
 +	{ .name = "tx1", .dma_req = 37 }, /* DMA_SPI1_TX1 */
@@ -136,20 +150,20 @@ index b85c630..27c00be 100644
 +	{ .name = "rx3", .dma_req = 42 }, /* DMA_SPI1_RX3 */
 +};
 +
-+static struct omap_hwmod_ocp_if *omap2420_mcspi1_slaves[] = {
-+	&omap2420_l4_core__mcspi1,
++static struct omap_hwmod_ocp_if *omap2430_mcspi1_slaves[] = {
++	&omap2430_l4_core__mcspi1,
 +};
 +
 +static struct omap2_mcspi_dev_attr omap_mcspi1_dev_attr = {
 +	.num_chipselect = 4,
 +};
 +
-+static struct omap_hwmod omap2420_mcspi1_hwmod = {
++static struct omap_hwmod omap2430_mcspi1_hwmod = {
 +	.name		= "mcspi1_hwmod",
-+	.mpu_irqs	= omap2420_mcspi1_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_mcspi1_mpu_irqs),
-+	.sdma_reqs	= omap2420_mcspi1_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap2420_mcspi1_sdma_reqs),
++	.mpu_irqs	= omap2430_mcspi1_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_mcspi1_mpu_irqs),
++	.sdma_reqs	= omap2430_mcspi1_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap2430_mcspi1_sdma_reqs),
 +	.main_clk	= "mcspi1_fck",
 +	.prcm		= {
 +		.omap2 = {
@@ -160,39 +174,39 @@ index b85c630..27c00be 100644
 +			.idlest_idle_bit = OMAP24XX_ST_MCSPI1_SHIFT,
 +		},
 +	},
-+	.slaves		= omap2420_mcspi1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_mcspi1_slaves),
-+	.class		= &omap2420_mcspi_class,
++	.slaves		= omap2430_mcspi1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_mcspi1_slaves),
++	.class		= &omap2430_mcspi_class,
 +	.dev_attr       = &omap_mcspi1_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
 +};
 +
 +/* mcspi2 */
-+static struct omap_hwmod_irq_info omap2420_mcspi2_mpu_irqs[] = {
++static struct omap_hwmod_irq_info omap2430_mcspi2_mpu_irqs[] = {
 +	{ .irq = 66 },
 +};
 +
-+static struct omap_hwmod_dma_info omap2420_mcspi2_sdma_reqs[] = {
++static struct omap_hwmod_dma_info omap2430_mcspi2_sdma_reqs[] = {
 +	{ .name = "tx0", .dma_req = 43 }, /* DMA_SPI2_TX0 */
 +	{ .name = "rx0", .dma_req = 44 }, /* DMA_SPI2_RX0 */
 +	{ .name = "tx1", .dma_req = 45 }, /* DMA_SPI2_TX1 */
 +	{ .name = "rx1", .dma_req = 46 }, /* DMA_SPI2_RX1 */
 +};
 +
-+static struct omap_hwmod_ocp_if *omap2420_mcspi2_slaves[] = {
-+	&omap2420_l4_core__mcspi2,
++static struct omap_hwmod_ocp_if *omap2430_mcspi2_slaves[] = {
++	&omap2430_l4_core__mcspi2,
 +};
 +
 +static struct omap2_mcspi_dev_attr omap_mcspi2_dev_attr = {
 +	.num_chipselect = 2,
 +};
 +
-+static struct omap_hwmod omap2420_mcspi2_hwmod = {
++static struct omap_hwmod omap2430_mcspi2_hwmod = {
 +	.name		= "mcspi2_hwmod",
-+	.mpu_irqs	= omap2420_mcspi2_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_mcspi2_mpu_irqs),
-+	.sdma_reqs	= omap2420_mcspi2_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap2420_mcspi2_sdma_reqs),
++	.mpu_irqs	= omap2430_mcspi2_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_mcspi2_mpu_irqs),
++	.sdma_reqs	= omap2430_mcspi2_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap2430_mcspi2_sdma_reqs),
 +	.main_clk	= "mcspi2_fck",
 +	.prcm		= {
 +		.omap2 = {
@@ -203,49 +217,70 @@ index b85c630..27c00be 100644
 +			.idlest_idle_bit = OMAP24XX_ST_MCSPI2_SHIFT,
 +		},
 +	},
-+	.slaves		= omap2420_mcspi2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_mcspi2_slaves),
-+	.class		= &omap2420_mcspi_class,
++	.slaves		= omap2430_mcspi2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_mcspi2_slaves),
++	.class		= &omap2430_mcspi_class,
 +	.dev_attr       = &omap_mcspi2_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
 +};
 +
- static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	&omap2420_l3_main_hwmod,
- 	&omap2420_l4_core_hwmod,
-@@ -885,6 +1037,10 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
++/* mcspi3 */
++static struct omap_hwmod_irq_info omap2430_mcspi3_mpu_irqs[] = {
++	{ .irq = 91 },
++};
++
++static struct omap_hwmod_dma_info omap2430_mcspi3_sdma_reqs[] = {
++	{ .name = "tx0", .dma_req = 15 }, /* DMA_SPI3_TX0 */
++	{ .name = "rx0", .dma_req = 16 }, /* DMA_SPI3_RX0 */
++	{ .name = "tx1", .dma_req = 23 }, /* DMA_SPI3_TX1 */
++	{ .name = "rx1", .dma_req = 24 }, /* DMA_SPI3_RX1 */
++};
++
++static struct omap_hwmod_ocp_if *omap2430_mcspi3_slaves[] = {
++	&omap2430_l4_core__mcspi3,
++};
++
++static struct omap2_mcspi_dev_attr omap_mcspi3_dev_attr = {
++	.num_chipselect = 2,
++};
++
++static struct omap_hwmod omap2430_mcspi3_hwmod = {
++	.name		= "mcspi3_hwmod",
++	.mpu_irqs	= omap2430_mcspi3_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_mcspi3_mpu_irqs),
++	.sdma_reqs	= omap2430_mcspi3_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap2430_mcspi3_sdma_reqs),
++	.main_clk	= "mcspi3_fck",
++	.prcm		= {
++		.omap2 = {
++			.module_offs = CORE_MOD,
++			.prcm_reg_id = 2,
++			.module_bit = OMAP2430_EN_MCSPI3_SHIFT,
++			.idlest_reg_id = 2,
++			.idlest_idle_bit = OMAP2430_ST_MCSPI3_SHIFT,
++		},
++	},
++	.slaves		= omap2430_mcspi3_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_mcspi3_slaves),
++	.class		= &omap2430_mcspi_class,
++	.dev_attr       = &omap_mcspi3_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++};
++
+ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
+ 	&omap2430_l3_main_hwmod,
+ 	&omap2430_l4_core_hwmod,
+@@ -941,6 +1155,11 @@ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
 
  	/* dma_system class*/
- 	&omap2420_dma_system_hwmod,
+ 	&omap2430_dma_system_hwmod,
 +
 +	/* mcspi class */
-+	&omap2420_mcspi1_hwmod,
-+	&omap2420_mcspi2_hwmod,
++	&omap2430_mcspi1_hwmod,
++	&omap2430_mcspi2_hwmod,
++	&omap2430_mcspi3_hwmod,
  	NULL,
  };
-
-diff --git a/arch/arm/plat-omap/include/plat/mcspi.h b/arch/arm/plat-omap/include/plat/mcspi.h
-index 1254e49..560e266 100644
---- a/arch/arm/plat-omap/include/plat/mcspi.h
-+++ b/arch/arm/plat-omap/include/plat/mcspi.h
-@@ -1,10 +1,18 @@
- #ifndef _OMAP2_MCSPI_H
- #define _OMAP2_MCSPI_H
-
-+#define OMAP2_MCSPI_REV 0
-+#define OMAP3_MCSPI_REV 1
-+#define OMAP4_MCSPI_REV 2
-+
- struct omap2_mcspi_platform_config {
- 	unsigned short	num_cs;
- };
-
-+struct omap2_mcspi_dev_attr {
-+	unsigned short num_chipselect;
-+};
-+
- struct omap2_mcspi_device_config {
- 	unsigned turbo_mode:1;
 
 -- 
 1.7.1
