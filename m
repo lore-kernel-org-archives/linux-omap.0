@@ -1,45 +1,73 @@
-From: Jamie Iles <jamie@jamieiles.com>
-Subject: Re: [RFC+CFT] Use word operations in bitops
-Date: Mon, 17 Jan 2011 09:46:02 +0000
-Message-ID: <20110117094602.GA2622@pulham.picochip.com>
-References: <20110116121911.GB27542@n2100.arm.linux.org.uk>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: State of SDP4430 platform
+Date: Mon, 17 Jan 2011 15:37:34 +0530
+Message-ID: <ceedbf20a12a6e821fda1496b10297a2@mail.gmail.com>
+References: <20110116010936.GA21795@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.1101152255100.13225@utopia.booyaka.com> <a40bc7a304b60cef73a3a0cfb84b2ee8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:63942 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753030Ab1AQJqG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 04:46:06 -0500
-Received: by wyb28 with SMTP id 28so4909009wyb.19
-        for <linux-omap@vger.kernel.org>; Mon, 17 Jan 2011 01:46:04 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20110116121911.GB27542@n2100.arm.linux.org.uk>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:38709 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751033Ab1AQKHh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Jan 2011 05:07:37 -0500
+Received: by mail-fx0-f46.google.com with SMTP id 20so6435130fxm.5
+        for <linux-omap@vger.kernel.org>; Mon, 17 Jan 2011 02:07:36 -0800 (PST)
+In-Reply-To: <a40bc7a304b60cef73a3a0cfb84b2ee8@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
 
-On Sun, Jan 16, 2011 at 12:19:11PM +0000, Russell King - ARM Linux wrote:
-> XXX WARNING: bitops are used heavily by filesystem code: there be dragons XXX
-> I strongly suggest you ensure you have a copy of your filesystems before
-> trying this patch.
-> 
-> The patch below switches the bitops to use word loads/stores rather than
-> byte operations - so that we can avoid using the ldrexb/strexb instructions
-> which are only supported from ARMv6k and up.
-[...]
-> This does need a fair amount of testing before it can be merged, so I'd
-> like to see a number of Tested-by's against this patch.  Please also
-> indicate whether you tested on LE or BE or both, which filesystems, and
-> whether they were read-only mounted or read-write mounted.
+> -----Original Message-----
+> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
+> Sent: Sunday, January 16, 2011 11:56 AM
+> To: Paul Walmsley; Russell King - ARM Linux
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: State of SDP4430 platform
+>
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> > Sent: Sunday, January 16, 2011 11:37 AM
+> > To: Russell King - ARM Linux
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: State of SDP4430 platform
+> >
 
-Hi Russell,
+[.....]
 
-I've tested these on my picoxcell board (ARMv6K UP LE) with UBIFS, JFFS2 
-and NFS all mounted rw and haven't seen any problems.  Our platforms 
-aren't particulary FS intensive so I'll keep these patches applied to 
-give them a bit more time.
+> > > Other stuff that shows in this boot log:
+> >
+> > ...
+> >
+> > > - Bunch of regulators are returning errors (is this a problem?)
+> > > - I2C timeouts which add quite a bit to the boot-time
+> >
+> > These two are probably related.  Looks like something is wrong
+> with
+> > communication with the TWL/TPS PMIC on that board.  Those problems
+> > don't
+> > show up on the OMAP4430ES2 Panda here, so they are probably
+> > 4430SDP-specific.
+> >
+> >
+> Actually I don't see these errors which ring a bell. There was an
+> I2C pull related issue with ES1.0 silicon. I guess these timeouts
+> would show up only on ES1.0 OMAP4 boards and not on ES2.0 boards.
+>
+> Monday I will check on my ES1.0 board and if needed send an updated
+> bootloader ( setting up right pull values) or a patch to kernel.
+>
+The I2C timeout issue I could reproduce on my ES1.0 board. It's ES1.0
+specific issue because I2C burst mode wasn't fuctional on it. Twl RTC
+driver uses I2C burst mode and hence it times out. Other TWL I2C
+module has no such issue.
+The pull work-around we tried was not reliable hence it was dropped.
 
-Tested-by: Jamie Iles <jamie@jamieiles.com>
+In short the TWL RTC driver won't function on ES1.0. Apart from that
+rest of the I2C clients should work as usual.
 
-Jamie
+Regards,
+Santosh
