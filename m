@@ -1,35 +1,47 @@
-From: Jamie Iles <jamie@jamieiles.com>
-Subject: Re: [RFC+CFT] Use word operations in bitops
-Date: Mon, 17 Jan 2011 11:03:08 +0000
-Message-ID: <20110117110308.GC2622@pulham.picochip.com>
-References: <20110116121911.GB27542@n2100.arm.linux.org.uk>
- <20110116181551.GB21795@n2100.arm.linux.org.uk>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: Open issues after 2.6.38 merge window
+Date: Mon, 17 Jan 2011 13:37:14 +0200 (EET)
+Message-ID: <alpine.DEB.1.10.1101171328440.8142@esdhcp041196.research.nokia.com>
+References: <20110114194758.GM4957@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:57701 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750900Ab1AQLDL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 06:03:11 -0500
-Received: by wyb28 with SMTP id 28so4968033wyb.19
-        for <linux-omap@vger.kernel.org>; Mon, 17 Jan 2011 03:03:10 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20110116181551.GB21795@n2100.arm.linux.org.uk>
+Received: from smtp.nokia.com ([147.243.1.47]:40435 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751646Ab1AQLiW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Jan 2011 06:38:22 -0500
+In-Reply-To: <20110114194758.GM4957@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, rmk+kernel@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
-On Sun, Jan 16, 2011 at 06:15:51PM +0000, Russell King - ARM Linux wrote:
-> Revised patch - the previous one was slightly buggered for BE.  We also
-> don't need to touch the findbit operations at all, so that part has been
-> dropped.
-> 
-> This includes a patch by Akinobu Mita ("arm: introduce little-endian
-> bitops", v4).
+Hi,
 
-Oops, I hit reply to the wrong patch before.  Sorry!
+On Fri, 14 Jan 2011, Tony Lindgren wrote:
+> Before I update out master branch, let's try to summarize the
+> open issues after the merge window. Here's a list of issues
+> in omap-fixes-for-linus that I'm aware of:
+>
+> - NFS root oopses while mounting root
+>
+> - omap4430 es1.0 hangs if L2X0 cache is enabled
+>
+> - omap4 panda powers down after boot (watchdog?)
+>
+> - omap3 ldp board powers down after boot?
+>
+> Any other issues?
 
-Tested-by: Jamie Iles <jamie@jamieiles.com>
+Amstrad E3 fails during the boot. Bisection points to:
 
-Jamie
+ 	commit 211baa7016894c02fc18693e21ca479cd08ac0c0
+ 	Author: Russell King <rmk+kernel@arm.linux.org.uk>
+ 	Date:   Tue Jan 11 16:23:04 2011 +0000
+
+ 	    ARM: sched_clock: allow init_sched_clock() to be called early
+
+The board does not have sched_clock(), although HAVE_SCHED_CLOCK is
+defined for all OMAP.
+
+A.
