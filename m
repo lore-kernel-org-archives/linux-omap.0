@@ -1,73 +1,112 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: State of SDP4430 platform
-Date: Mon, 17 Jan 2011 15:37:34 +0530
-Message-ID: <ceedbf20a12a6e821fda1496b10297a2@mail.gmail.com>
-References: <20110116010936.GA21795@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1101152255100.13225@utopia.booyaka.com> <a40bc7a304b60cef73a3a0cfb84b2ee8@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: [PATCH] arm: mach-omap2: potential NULL dereference
+Date: Mon, 17 Jan 2011 13:08:32 +0300
+Message-ID: <1295258913-31048-1-git-send-email-segoon@openwall.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:38709 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751033Ab1AQKHh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Jan 2011 05:07:37 -0500
-Received: by mail-fx0-f46.google.com with SMTP id 20so6435130fxm.5
-        for <linux-omap@vger.kernel.org>; Mon, 17 Jan 2011 02:07:36 -0800 (PST)
-In-Reply-To: <a40bc7a304b60cef73a3a0cfb84b2ee8@mail.gmail.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:54738 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751033Ab1AQKIi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 05:08:38 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-> -----Original Message-----
-> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
-> Sent: Sunday, January 16, 2011 11:56 AM
-> To: Paul Walmsley; Russell King - ARM Linux
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: State of SDP4430 platform
->
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> > Sent: Sunday, January 16, 2011 11:37 AM
-> > To: Russell King - ARM Linux
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: State of SDP4430 platform
-> >
+If kzalloc() failed, return -ENOMEM.
+sr_dev_init() should signal by return value that there is an error.
 
-[.....]
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+---
+ Cannot compile this driver, so it is not tested at all.
 
-> > > Other stuff that shows in this boot log:
-> >
-> > ...
-> >
-> > > - Bunch of regulators are returning errors (is this a problem?)
-> > > - I2C timeouts which add quite a bit to the boot-time
-> >
-> > These two are probably related.  Looks like something is wrong
-> with
-> > communication with the TWL/TPS PMIC on that board.  Those problems
-> > don't
-> > show up on the OMAP4430ES2 Panda here, so they are probably
-> > 4430SDP-specific.
-> >
-> >
-> Actually I don't see these errors which ring a bell. There was an
-> I2C pull related issue with ES1.0 silicon. I guess these timeouts
-> would show up only on ES1.0 OMAP4 boards and not on ES2.0 boards.
->
-> Monday I will check on my ES1.0 board and if needed send an updated
-> bootloader ( setting up right pull values) or a patch to kernel.
->
-The I2C timeout issue I could reproduce on my ES1.0 board. It's ES1.0
-specific issue because I2C burst mode wasn't fuctional on it. Twl RTC
-driver uses I2C burst mode and hence it times out. Other TWL I2C
-module has no such issue.
-The pull work-around we tried was not reliable hence it was dropped.
+ arch/arm/mach-omap2/sr_device.c |   19 +++++++++++++++----
+ 1 files changed, 15 insertions(+), 4 deletions(-)
 
-In short the TWL RTC driver won't function on ES1.0. Apart from that
-rest of the I2C clients should work as usual.
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index b1e0af1..20fccfb 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -40,7 +40,7 @@ static struct omap_device_pm_latency omap_sr_latency[] = {
+ };
+ 
+ /* Read EFUSE values from control registers for OMAP3430 */
+-static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
++static int __init sr_set_nvalues(struct omap_volt_data *volt_data,
+ 				struct omap_sr_data *sr_data)
+ {
+ 	struct omap_sr_nvalue_table *nvalue_table;
+@@ -51,6 +51,8 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+ 
+ 	nvalue_table = kzalloc(sizeof(struct omap_sr_nvalue_table)*count,
+ 			GFP_KERNEL);
++	if (nvalue_table == NULL)
++		return -ENOMEM;
+ 
+ 	for (i = 0; i < count; i++) {
+ 		u32 v;
+@@ -75,6 +77,8 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+ 
+ 	sr_data->nvalue_table = nvalue_table;
+ 	sr_data->nvalue_count = count;
++
++	return 0;
+ }
+ 
+ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+@@ -84,15 +88,18 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ 	struct omap_volt_data *volt_data;
+ 	char *name = "smartreflex";
+ 	static int i;
++	int err = 0;
+ 
+ 	sr_data = kzalloc(sizeof(struct omap_sr_data), GFP_KERNEL);
+ 	if (!sr_data) {
++		err = -ENOMEM;
+ 		pr_err("%s: Unable to allocate memory for %s sr_data.Error!\n",
+ 			__func__, oh->name);
+-		return -ENOMEM;
++		goto exit;
+ 	}
+ 
+ 	if (!oh->vdd_name) {
++		err = -EINVAL;
+ 		pr_err("%s: No voltage domain specified for %s."
+ 			"Cannot initialize\n", __func__, oh->name);
+ 		goto exit;
+@@ -104,6 +111,7 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ 
+ 	sr_data->voltdm = omap_voltage_domain_lookup(oh->vdd_name);
+ 	if (IS_ERR(sr_data->voltdm)) {
++		err = PTR_ERR(sr_data->voltdm);
+ 		pr_err("%s: Unable to get voltage domain pointer for VDD %s\n",
+ 			__func__, oh->vdd_name);
+ 		goto exit;
+@@ -111,12 +119,15 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ 
+ 	omap_voltage_get_volttable(sr_data->voltdm, &volt_data);
+ 	if (!volt_data) {
++		err = -EINVAL;
+ 		pr_warning("%s: No Voltage table registerd fo VDD%d."
+ 			"Something really wrong\n\n", __func__, i + 1);
+ 		goto exit;
+ 	}
+ 
+-	sr_set_nvalues(volt_data, sr_data);
++	err = sr_set_nvalues(volt_data, sr_data);
++	if (err)
++		goto exit;
+ 
+ 	sr_data->enable_on_init = sr_enable_on_init;
+ 
+@@ -129,7 +140,7 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ exit:
+ 	i++;
+ 	kfree(sr_data);
+-	return 0;
++	return err;
+ }
+ 
+ /*
+-- 
+1.7.0.4
 
-Regards,
-Santosh
