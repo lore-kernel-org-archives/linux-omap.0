@@ -1,159 +1,163 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 3/7] arm: omap1: fix compile warnings
-Date: Mon, 17 Jan 2011 06:31:16 +0200
-Message-ID: <1295238680-26738-4-git-send-email-balbi@ti.com>
+Subject: [PATCH 4/7] arm: omap1: fix a bunch of section mismatches
+Date: Mon, 17 Jan 2011 06:31:17 +0200
+Message-ID: <1295238680-26738-5-git-send-email-balbi@ti.com>
 References: <1295238680-26738-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:34690 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752338Ab1AQEbu (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:53180 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752338Ab1AQEb5 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 16 Jan 2011 23:31:50 -0500
-Received: by mail-yw0-f41.google.com with SMTP id 3so1576752ywj.28
-        for <linux-omap@vger.kernel.org>; Sun, 16 Jan 2011 20:31:49 -0800 (PST)
+	Sun, 16 Jan 2011 23:31:57 -0500
+Received: by gwb20 with SMTP id 20so1646006gwb.1
+        for <linux-omap@vger.kernel.org>; Sun, 16 Jan 2011 20:31:56 -0800 (PST)
 In-Reply-To: <1295238680-26738-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-Fix the following compile warnings:
-arch/arm/mach-omap1/board-innovator.c:165:3: warning: initialization
-makes integer from pointer without a cast
-arch/arm/mach-omap1/board-perseus2.c:305:3: warning: initialization
-makes integer from pointer without a cast
-arch/arm/mach-omap1/board-fsample.c:338:3: warning: initialization makes
-integer from pointer without a cast
+Fix the following section mismatches:
+WARNING: arch/arm/mach-omap1/built-in.o(.data+0x491c): Section mismatch
+in reference from the variable fsample_config to the (unknown reference)
+.init.data:(unknown)
+The variable fsample_config references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the
+variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+
+WARNING: arch/arm/mach-omap1/built-in.o(.data+0x8f0c): Section mismatch
+in reference from the variable ams_delta_config to the (unknown
+reference) .init.data:(unknown)
+The variable ams_delta_config references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the
+variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+
+WARNING: arch/arm/mach-omap1/built-in.o(.data+0x93ac): Section mismatch
+in reference from the variable ams_delta_camera_device to the (unknown
+reference) .init.data:(unknown)
+The variable ams_delta_camera_device references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the
+variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+
+WARNING: vmlinux.o(.data+0x5e94): Section mismatch in reference from the
+variable fsample_config to the (unknown reference) .init.data:(unknown)
+The variable fsample_config references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the
+variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+
+WARNING: vmlinux.o(.data+0xa484): Section mismatch in reference from the
+variable ams_delta_config to the (unknown reference)
+.init.data:(unknown)
+The variable ams_delta_config references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the
+variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+
+WARNING: vmlinux.o(.data+0xa924): Section mismatch in reference from the
+variable ams_delta_camera_device to the (unknown reference)
+.init.data:(unknown)
+The variable ams_delta_camera_device references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the
+variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/plat-omap/include/plat/fpga.h |   92 ++++++++++++++++----------------
- 1 files changed, 46 insertions(+), 46 deletions(-)
+ arch/arm/mach-omap1/board-ams-delta.c |   14 +++++++-------
+ arch/arm/mach-omap1/board-fsample.c   |    2 +-
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/fpga.h b/arch/arm/plat-omap/include/plat/fpga.h
-index ae39bcb..bd3c632 100644
---- a/arch/arm/plat-omap/include/plat/fpga.h
-+++ b/arch/arm/plat-omap/include/plat/fpga.h
-@@ -30,18 +30,18 @@ extern void omap1510_fpga_init_irq(void);
-  * ---------------------------------------------------------------------------
-  */
- /* maps in the FPGA registers and the ETHR registers */
--#define H2P2_DBG_FPGA_BASE		IOMEM(0xE8000000)	/* VA */
-+#define H2P2_DBG_FPGA_BASE		0xE8000000		/* VA */
- #define H2P2_DBG_FPGA_SIZE		SZ_4K			/* SIZE */
- #define H2P2_DBG_FPGA_START		0x04000000		/* PA */
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index bd0495a..be2feca 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -165,7 +165,7 @@ static struct map_desc ams_delta_io_desc[] __initdata = {
+ 	}
+ };
  
- #define H2P2_DBG_FPGA_ETHR_START	(H2P2_DBG_FPGA_START + 0x300)
--#define H2P2_DBG_FPGA_FPGA_REV		(H2P2_DBG_FPGA_BASE + 0x10)	/* FPGA Revision */
--#define H2P2_DBG_FPGA_BOARD_REV		(H2P2_DBG_FPGA_BASE + 0x12)	/* Board Revision */
--#define H2P2_DBG_FPGA_GPIO		(H2P2_DBG_FPGA_BASE + 0x14)	/* GPIO outputs */
--#define H2P2_DBG_FPGA_LEDS		(H2P2_DBG_FPGA_BASE + 0x16)	/* LEDs outputs */
--#define H2P2_DBG_FPGA_MISC_INPUTS	(H2P2_DBG_FPGA_BASE + 0x18)	/* Misc inputs */
--#define H2P2_DBG_FPGA_LAN_STATUS	(H2P2_DBG_FPGA_BASE + 0x1A)	/* LAN Status line */
--#define H2P2_DBG_FPGA_LAN_RESET		(H2P2_DBG_FPGA_BASE + 0x1C)	/* LAN Reset line */
-+#define H2P2_DBG_FPGA_FPGA_REV		IOMEM(H2P2_DBG_FPGA_BASE + 0x10)	/* FPGA Revision */
-+#define H2P2_DBG_FPGA_BOARD_REV		IOMEM(H2P2_DBG_FPGA_BASE + 0x12)	/* Board Revision */
-+#define H2P2_DBG_FPGA_GPIO		IOMEM(H2P2_DBG_FPGA_BASE + 0x14)	/* GPIO outputs */
-+#define H2P2_DBG_FPGA_LEDS		IOMEM(H2P2_DBG_FPGA_BASE + 0x16)	/* LEDs outputs */
-+#define H2P2_DBG_FPGA_MISC_INPUTS	IOMEM(H2P2_DBG_FPGA_BASE + 0x18)	/* Misc inputs */
-+#define H2P2_DBG_FPGA_LAN_STATUS	IOMEM(H2P2_DBG_FPGA_BASE + 0x1A)	/* LAN Status line */
-+#define H2P2_DBG_FPGA_LAN_RESET		IOMEM(H2P2_DBG_FPGA_BASE + 0x1C)	/* LAN Reset line */
+-static struct omap_lcd_config ams_delta_lcd_config __initdata = {
++static struct omap_lcd_config ams_delta_lcd_config = {
+ 	.ctrl_name	= "internal",
+ };
  
- /* NOTE:  most boards don't have a static mapping for the FPGA ... */
- struct h2p2_dbg_fpga {
-@@ -81,55 +81,55 @@ struct h2p2_dbg_fpga {
-  *  OMAP-1510 FPGA
-  * ---------------------------------------------------------------------------
-  */
--#define OMAP1510_FPGA_BASE		IOMEM(0xE8000000)	/* VA */
-+#define OMAP1510_FPGA_BASE		0xE8000000		/* VA */
- #define OMAP1510_FPGA_SIZE		SZ_4K
- #define OMAP1510_FPGA_START		0x08000000		/* PA */
+@@ -192,14 +192,14 @@ static const struct matrix_keymap_data ams_delta_keymap_data = {
+ 	.keymap_size	= ARRAY_SIZE(ams_delta_keymap),
+ };
  
- /* Revision */
--#define OMAP1510_FPGA_REV_LOW			(OMAP1510_FPGA_BASE + 0x0)
--#define OMAP1510_FPGA_REV_HIGH			(OMAP1510_FPGA_BASE + 0x1)
-+#define OMAP1510_FPGA_REV_LOW			IOMEM(OMAP1510_FPGA_BASE + 0x0)
-+#define OMAP1510_FPGA_REV_HIGH			IOMEM(OMAP1510_FPGA_BASE + 0x1)
+-static struct omap_kp_platform_data ams_delta_kp_data = {
++static struct omap_kp_platform_data ams_delta_kp_data __initdata = {
+ 	.rows		= 8,
+ 	.cols		= 8,
+ 	.keymap_data	= &ams_delta_keymap_data,
+ 	.delay		= 9,
+ };
  
--#define OMAP1510_FPGA_LCD_PANEL_CONTROL		(OMAP1510_FPGA_BASE + 0x2)
--#define OMAP1510_FPGA_LED_DIGIT			(OMAP1510_FPGA_BASE + 0x3)
--#define INNOVATOR_FPGA_HID_SPI			(OMAP1510_FPGA_BASE + 0x4)
--#define OMAP1510_FPGA_POWER			(OMAP1510_FPGA_BASE + 0x5)
-+#define OMAP1510_FPGA_LCD_PANEL_CONTROL		IOMEM(OMAP1510_FPGA_BASE + 0x2)
-+#define OMAP1510_FPGA_LED_DIGIT			IOMEM(OMAP1510_FPGA_BASE + 0x3)
-+#define INNOVATOR_FPGA_HID_SPI			IOMEM(OMAP1510_FPGA_BASE + 0x4)
-+#define OMAP1510_FPGA_POWER			IOMEM(OMAP1510_FPGA_BASE + 0x5)
+-static struct platform_device ams_delta_kp_device = {
++static struct platform_device ams_delta_kp_device __initdata = {
+ 	.name		= "omap-keypad",
+ 	.id		= -1,
+ 	.dev		= {
+@@ -209,12 +209,12 @@ static struct platform_device ams_delta_kp_device = {
+ 	.resource	= ams_delta_kp_resources,
+ };
  
- /* Interrupt status */
--#define OMAP1510_FPGA_ISR_LO			(OMAP1510_FPGA_BASE + 0x6)
--#define OMAP1510_FPGA_ISR_HI			(OMAP1510_FPGA_BASE + 0x7)
-+#define OMAP1510_FPGA_ISR_LO			IOMEM(OMAP1510_FPGA_BASE + 0x6)
-+#define OMAP1510_FPGA_ISR_HI			IOMEM(OMAP1510_FPGA_BASE + 0x7)
+-static struct platform_device ams_delta_lcd_device = {
++static struct platform_device ams_delta_lcd_device __initdata = {
+ 	.name	= "lcd_ams_delta",
+ 	.id	= -1,
+ };
  
- /* Interrupt mask */
--#define OMAP1510_FPGA_IMR_LO			(OMAP1510_FPGA_BASE + 0x8)
--#define OMAP1510_FPGA_IMR_HI			(OMAP1510_FPGA_BASE + 0x9)
-+#define OMAP1510_FPGA_IMR_LO			IOMEM(OMAP1510_FPGA_BASE + 0x8)
-+#define OMAP1510_FPGA_IMR_HI			IOMEM(OMAP1510_FPGA_BASE + 0x9)
+-static struct platform_device ams_delta_led_device = {
++static struct platform_device ams_delta_led_device __initdata = {
+ 	.name	= "ams-delta-led",
+ 	.id	= -1
+ };
+@@ -243,7 +243,7 @@ static int ams_delta_camera_power(struct device *dev, int power)
+ #define ams_delta_camera_power	NULL
+ #endif
  
- /* Reset registers */
--#define OMAP1510_FPGA_HOST_RESET		(OMAP1510_FPGA_BASE + 0xa)
--#define OMAP1510_FPGA_RST			(OMAP1510_FPGA_BASE + 0xb)
--
--#define OMAP1510_FPGA_AUDIO			(OMAP1510_FPGA_BASE + 0xc)
--#define OMAP1510_FPGA_DIP			(OMAP1510_FPGA_BASE + 0xe)
--#define OMAP1510_FPGA_FPGA_IO			(OMAP1510_FPGA_BASE + 0xf)
--#define OMAP1510_FPGA_UART1			(OMAP1510_FPGA_BASE + 0x14)
--#define OMAP1510_FPGA_UART2			(OMAP1510_FPGA_BASE + 0x15)
--#define OMAP1510_FPGA_OMAP1510_STATUS		(OMAP1510_FPGA_BASE + 0x16)
--#define OMAP1510_FPGA_BOARD_REV			(OMAP1510_FPGA_BASE + 0x18)
--#define OMAP1510P1_PPT_DATA			(OMAP1510_FPGA_BASE + 0x100)
--#define OMAP1510P1_PPT_STATUS			(OMAP1510_FPGA_BASE + 0x101)
--#define OMAP1510P1_PPT_CONTROL			(OMAP1510_FPGA_BASE + 0x102)
--
--#define OMAP1510_FPGA_TOUCHSCREEN		(OMAP1510_FPGA_BASE + 0x204)
--
--#define INNOVATOR_FPGA_INFO			(OMAP1510_FPGA_BASE + 0x205)
--#define INNOVATOR_FPGA_LCD_BRIGHT_LO		(OMAP1510_FPGA_BASE + 0x206)
--#define INNOVATOR_FPGA_LCD_BRIGHT_HI		(OMAP1510_FPGA_BASE + 0x207)
--#define INNOVATOR_FPGA_LED_GRN_LO		(OMAP1510_FPGA_BASE + 0x208)
--#define INNOVATOR_FPGA_LED_GRN_HI		(OMAP1510_FPGA_BASE + 0x209)
--#define INNOVATOR_FPGA_LED_RED_LO		(OMAP1510_FPGA_BASE + 0x20a)
--#define INNOVATOR_FPGA_LED_RED_HI		(OMAP1510_FPGA_BASE + 0x20b)
--#define INNOVATOR_FPGA_CAM_USB_CONTROL		(OMAP1510_FPGA_BASE + 0x20c)
--#define INNOVATOR_FPGA_EXP_CONTROL		(OMAP1510_FPGA_BASE + 0x20d)
--#define INNOVATOR_FPGA_ISR2			(OMAP1510_FPGA_BASE + 0x20e)
--#define INNOVATOR_FPGA_IMR2			(OMAP1510_FPGA_BASE + 0x210)
-+#define OMAP1510_FPGA_HOST_RESET		IOMEM(OMAP1510_FPGA_BASE + 0xa)
-+#define OMAP1510_FPGA_RST			IOMEM(OMAP1510_FPGA_BASE + 0xb)
-+
-+#define OMAP1510_FPGA_AUDIO			IOMEM(OMAP1510_FPGA_BASE + 0xc)
-+#define OMAP1510_FPGA_DIP			IOMEM(OMAP1510_FPGA_BASE + 0xe)
-+#define OMAP1510_FPGA_FPGA_IO			IOMEM(OMAP1510_FPGA_BASE + 0xf)
-+#define OMAP1510_FPGA_UART1			IOMEM(OMAP1510_FPGA_BASE + 0x14)
-+#define OMAP1510_FPGA_UART2			IOMEM(OMAP1510_FPGA_BASE + 0x15)
-+#define OMAP1510_FPGA_OMAP1510_STATUS		IOMEM(OMAP1510_FPGA_BASE + 0x16)
-+#define OMAP1510_FPGA_BOARD_REV			IOMEM(OMAP1510_FPGA_BASE + 0x18)
-+#define OMAP1510P1_PPT_DATA			IOMEM(OMAP1510_FPGA_BASE + 0x100)
-+#define OMAP1510P1_PPT_STATUS			IOMEM(OMAP1510_FPGA_BASE + 0x101)
-+#define OMAP1510P1_PPT_CONTROL			IOMEM(OMAP1510_FPGA_BASE + 0x102)
-+
-+#define OMAP1510_FPGA_TOUCHSCREEN		IOMEM(OMAP1510_FPGA_BASE + 0x204)
-+
-+#define INNOVATOR_FPGA_INFO			IOMEM(OMAP1510_FPGA_BASE + 0x205)
-+#define INNOVATOR_FPGA_LCD_BRIGHT_LO		IOMEM(OMAP1510_FPGA_BASE + 0x206)
-+#define INNOVATOR_FPGA_LCD_BRIGHT_HI		IOMEM(OMAP1510_FPGA_BASE + 0x207)
-+#define INNOVATOR_FPGA_LED_GRN_LO		IOMEM(OMAP1510_FPGA_BASE + 0x208)
-+#define INNOVATOR_FPGA_LED_GRN_HI		IOMEM(OMAP1510_FPGA_BASE + 0x209)
-+#define INNOVATOR_FPGA_LED_RED_LO		IOMEM(OMAP1510_FPGA_BASE + 0x20a)
-+#define INNOVATOR_FPGA_LED_RED_HI		IOMEM(OMAP1510_FPGA_BASE + 0x20b)
-+#define INNOVATOR_FPGA_CAM_USB_CONTROL		IOMEM(OMAP1510_FPGA_BASE + 0x20c)
-+#define INNOVATOR_FPGA_EXP_CONTROL		IOMEM(OMAP1510_FPGA_BASE + 0x20d)
-+#define INNOVATOR_FPGA_ISR2			IOMEM(OMAP1510_FPGA_BASE + 0x20e)
-+#define INNOVATOR_FPGA_IMR2			IOMEM(OMAP1510_FPGA_BASE + 0x210)
+-static struct soc_camera_link __initdata ams_delta_iclink = {
++static struct soc_camera_link ams_delta_iclink __initdata = {
+ 	.bus_id         = 0,	/* OMAP1 SoC camera bus */
+ 	.i2c_adapter_id = 1,
+ 	.board_info     = &ams_delta_camera_board_info[0],
+@@ -251,7 +251,7 @@ static struct soc_camera_link __initdata ams_delta_iclink = {
+ 	.power		= ams_delta_camera_power,
+ };
  
- #define OMAP1510_FPGA_ETHR_START		(OMAP1510_FPGA_START + 0x300)
+-static struct platform_device ams_delta_camera_device = {
++static struct platform_device ams_delta_camera_device __initdata = {
+ 	.name   = "soc-camera-pdrv",
+ 	.id     = 0,
+ 	.dev    = {
+diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
+index 0efb9db..27fb1be 100644
+--- a/arch/arm/mach-omap1/board-fsample.c
++++ b/arch/arm/mach-omap1/board-fsample.c
+@@ -287,7 +287,7 @@ static struct platform_device *devices[] __initdata = {
+ 	&lcd_device,
+ };
+ 
+-static struct omap_lcd_config fsample_lcd_config __initdata = {
++static struct omap_lcd_config fsample_lcd_config = {
+ 	.ctrl_name	= "internal",
+ };
  
 -- 
 1.7.3.4.598.g85356
