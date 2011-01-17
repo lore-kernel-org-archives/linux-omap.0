@@ -1,84 +1,123 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: Open issues after 2.6.38 merge window
-Date: Mon, 17 Jan 2011 10:20:31 -0800
-Message-ID: <20110117182031.GY4957@atomide.com>
+Date: Mon, 17 Jan 2011 10:29:01 -0800
+Message-ID: <20110117182901.GZ4957@atomide.com>
 References: <20110114194758.GM4957@atomide.com>
  <alpine.DEB.1.10.1101171328440.8142@esdhcp041196.research.nokia.com>
  <701a8169276ef3a1eccbac0d31117a6b@mail.gmail.com>
- <alpine.DEB.1.10.1101171410290.8142@esdhcp041196.research.nokia.com>
- <78caabae29d28f26d5d003eeb7e75526@mail.gmail.com>
- <20110117125015.GC18600@flint.arm.linux.org.uk>
+ <20110117121144.GA18600@flint.arm.linux.org.uk>
+ <9aa00167a81147bc0104bb7af010d9a5@mail.gmail.com>
+ <20110117122456.GB18600@flint.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26165 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752131Ab1AQSUr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 13:20:47 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:45023 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752144Ab1AQS3S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 13:29:18 -0500
 Content-Disposition: inline
-In-Reply-To: <20110117125015.GC18600@flint.arm.linux.org.uk>
+In-Reply-To: <20110117122456.GB18600@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King <rmk@arm.linux.org.uk>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
 
-* Russell King <rmk@arm.linux.org.uk> [110117 04:49]:
-> On Mon, Jan 17, 2011 at 06:05:36PM +0530, Santosh Shilimkar wrote:
+* Russell King <rmk@arm.linux.org.uk> [110117 04:24]:
+> On Mon, Jan 17, 2011 at 05:49:00PM +0530, Santosh Shilimkar wrote:
 > > > -----Original Message-----
-> > > From: Aaro Koskinen [mailto:aaro.koskinen@nokia.com]
-> > > Sent: Monday, January 17, 2011 5:52 PM
+> > > From: Russell King [mailto:rmk@arm.linux.org.uk]
+> > > Sent: Monday, January 17, 2011 5:42 PM
 > > > To: Santosh Shilimkar
-> > > Cc: Aaro Koskinen; Tony Lindgren; rmk+kernel@arm.linux.org.uk;
-> > > linux-omap@vger.kernel.org
-> > > Subject: RE: Open issues after 2.6.38 merge window
+> > > Cc: Aaro Koskinen; Tony Lindgren; linux-omap@vger.kernel.org
+> > > Subject: Re: Open issues after 2.6.38 merge window
 > > >
-> > > Hi,
+> > > On Mon, Jan 17, 2011 at 05:29:01PM +0530, Santosh Shilimkar wrote:
+> > > > > On Fri, 14 Jan 2011, Tony Lindgren wrote:
+> > > > > > Before I update out master branch, let's try to summarize the
+> > > > > > open issues after the merge window. Here's a list of issues
+> > > > > > in omap-fixes-for-linus that I'm aware of:
+> > > > > >
+> > > > > > - NFS root oopses while mounting root
+> > > > > >
+> > > > > > - omap4430 es1.0 hangs if L2X0 cache is enabled
+> > > > > >
+> > > > > > - omap4 panda powers down after boot (watchdog?)
+> > > > > >
+> > > > > > - omap3 ldp board powers down after boot?
 > > >
-> > > On Mon, 17 Jan 2011, Santosh Shilimkar wrote:
-> > > >> Amstrad E3 fails during the boot. Bisection points to:
-> > > >>
-> > > >>  	commit 211baa7016894c02fc18693e21ca479cd08ac0c0
-> > > >>  	Author: Russell King <rmk+kernel@arm.linux.org.uk>
-> > > >>  	Date:   Tue Jan 11 16:23:04 2011 +0000
-> > > >>
-> > > >>  	    ARM: sched_clock: allow init_sched_clock() to be called
-> > > >> early
-> > > >>
-> > > >> The board does not have sched_clock(), although HAVE_SCHED_CLOCK
+> > > This doesn't happen for me.
+
+OK, good to hear that's a separate issue and fixed.
+
+> > > > > >
+> > > > > > Any other issues?
+> > > > >
+> > > > > Amstrad E3 fails during the boot. Bisection points to:
+> > > > >
+> > > > >  	commit 211baa7016894c02fc18693e21ca479cd08ac0c0
+> > > > >  	Author: Russell King <rmk+kernel@arm.linux.org.uk>
+> > > > >  	Date:   Tue Jan 11 16:23:04 2011 +0000
+> > > > >
+> > > > >  	    ARM: sched_clock: allow init_sched_clock() to be called
+> > > > > early
+> > > > >
+> > > > > The board does not have sched_clock(), although HAVE_SCHED_CLOCK
 > > > is
-> > > >> defined for all OMAP.
-> > > >>
+> > > > > defined for all OMAP.
+> > > > >
 > > > > I guess above is sorted out by the attached patch from Paul.
 > > >
-> > > I don't see how it could help? Amstrad E3 is OMAP 15xx.
+> > > There's an issue missing from Tony's list:
 > > >
-> > I read patch again and omap15xx is skipped. Not sure
-> > why 15xx is skipped.
+> > > - running an omap2plus_defconfig kernel on SMP is unsafe to the
+> > > point
+> > >   of being data corrupting for filesystems, especially for ext2/ext3
+> > >   mounted read-write.
+> > >
+> > > This is because when CPU_32v6K is disabled - which is required to
+> > > build
+> > > a kernel to boot on ARMv6, it turns off the SMP safe bitops - the
+> > > SMP
+> > > safe bitops only use instructions available to ARMv6K and above.
+> > > They
+> > > are reduced to local-irq-disabling, plain byte loads and stores.
+> > >
+> > > So, running omap2plus_defconfig on SMP is risking filesystem
+> > > corruption.
+> > >
+> > > Patches for this are being worked on, but they won't be ready for -
+> > > rc1.
+> > > I strongly suggest someone restores some kind of build or runtime
+> > > error
+> > > (eg, by removing CPU_32v6K's dependence on !OMAP2 - thereby
+> > > _intentionally_
+> > > breaking omap2plus_defconfig) before someone ends up with a
+> > > corrupted
+> > > filesystem.  Or just make sure that everyone is aware that
+> > > omap2plus_defconfig can eat filesystems at the moment.
+> > >
+> > Thanks. I missed your other patch of removing !OMAP2 from
+> > CPU_32v6K config.
 > 
-> EWW.  This is horrible - and too far complicated.
-> 
-> So if we build a kernel with OMAP730 or OMAP15xx support, the 32k
-> counter support is disabled for every platform, which also removes
-> sched_clock() support (as this uses the 32k timer).
-> 
-> If CONFIG_OMAP_32K_TIMER is also true (eg, because you enabled
-> OMAP16xx) then we won't have the GP clocksource code.  So a kernel
-> which is configured for OMAP15xx + OMAP16xx won't have any clocksource
-> code at all.
-> 
-> In effect, all this being done by _negative_ dependencies.  As has
-> been seen with deselecting the V6K configuration symbol, negative
-> dependencies are Bad News(tm).
-> 
-> This code needs to be restructured for positive dependencies and
-> proper selection of the appopriate clock sources - which then
-> needs to be coupled into sched_clock() properly so OMAP15xx can also
-> benefit from sched_clock() support.
+> With the problems addressed, I think that removal of !OMAP2 is not
+> strictly required - but I don't like the idea of disabling CPU_32v6K
+> in general as we can't ensure that this kind of thing doesn't happen
+> in the future.
 
-I'll take a look at fixing this. Sounds like we need both MPU
-timer and the 32K timer compiled in, then enable the right one
-based on runtime checks.
+For the current -rc cycle, is the spinlock fix is enough while
+keeping CPU_32v6K disabled?
+ 
+> Not disabling CPU_32v6K also fixes the swp_emulate build problem too
+> (which is why I've never seen it here.)
+> 
+> There are several V6K bits that need to be addressed (such as a single
+> clrex vs two instruction strex) before we can properly build a kernel
+> supporting V6 but also containing V6K extensions.
+
+I agree building in the V6K extensions would the best solution in
+the long run.
 
 Regards,
 
 Tony
+
