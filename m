@@ -1,30 +1,45 @@
-From: "Mr. Song Lile" <songlile221@aol.nl>
-Subject: Business proposal,
-Date: Mon, 17 Jan 2011 13:08:06 +0100
-Message-ID: <43ee5871e684942f0173c52a0e8349fb.squirrel@mail.teletoria.ru>
-Reply-To: songlile221@aol.nl
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH] arm: mach-omap2: potential NULL dereference
+Date: Mon, 17 Jan 2011 15:30:56 +0300
+Message-ID: <4D343680.1030701@ru.mvista.com>
+References: <1295258922-31242-1-git-send-email-segoon@openwall.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kolatelecom.ru ([94.100.192.6]:52944 "EHLO
-	mail.teletoria.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751823Ab1AQM37 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 07:29:59 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1295258922-31242-1-git-send-email-segoon@openwall.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vasiliy Kulikov <segoon@openwall.com>
+Cc: kernel-janitors@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hello.
 
+On 17-01-2011 13:08, Vasiliy Kulikov wrote:
 
+> kzalloc() may fail, if so return -ENOMEM.
 
-Business proposal,
-My name is Mr. Song Lile I work with the Hang Seng Bank.There is the sum
-of $19,500,000.00 in my bank"Hang Seng Bank",Hong kong.I do solicit for
-your assistance in effecting this transaction.I intend to give 30% of the
-total funds as compensation for your assistance.
-Sincerely,
+> Signed-off-by: Vasiliy Kulikov<segoon@openwall.com>
+[...]
 
-Mr. Song Lile
-Private e-mail: songlile221@aol.nl
-Phone: +852-9534-8675
+> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+> index 77ecebf..871bca9 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -260,7 +260,10 @@ static int sr_late_init(struct omap_sr *sr_info)
+>   	if (sr_class->class_type == SR_CLASS2&&
+>   		sr_class->notify_flags&&  sr_info->irq) {
+>
+> +		ret = -ENOMEM;
+>   		name = kzalloc(SMARTREFLEX_NAME_LEN + 1, GFP_KERNEL);
+> +		if (name == NULL)
+> +			goto error;
 
+    Why not:
+
+		if (name == NULL) {
+			ret = -ENOMEM;
+			goto error;
+		}
+
+WBR, Sergei
