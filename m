@@ -1,71 +1,85 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH v4] ARM: Thumb-2: Symbol manipulation macros for function
- body copying
-Date: Mon, 17 Jan 2011 16:48:02 +0100
-Message-ID: <AANLkTik4Q9f4t_CrNxcov+iSnpNkZ-KeGZJPcKuQvj2G@mail.gmail.com>
-References: <1295039877-7976-1-git-send-email-dave.martin@linaro.org>
-	<AANLkTintFe4V6BxrUxh-gwvhoa=RcH0tkHjYbfyGHKD=@mail.gmail.com>
-	<AANLkTin6gfN6hpExQ0iof14Hy7_MmaOdgpgS2OgyZOLd@mail.gmail.com>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH] OMAP: use fncpy to copy the PM code functions to SRAM
+Date: Mon, 17 Jan 2011 15:46:44 +0000
+Message-ID: <AANLkTinJPyXKWwbyW05+HUW0LJUxsu=1Exbrr6ut27Kr@mail.gmail.com>
+References: <1295018470-18099-1-git-send-email-j-pihet@ti.com>
+	<20110114155806.GA22505@n2100.arm.linux.org.uk>
+	<AANLkTikz_gSQE5QfO6ZXwbp9w+HTNMtb6RLBY+3Z0XF6@mail.gmail.com>
+	<20110114173400.GB22505@n2100.arm.linux.org.uk>
+	<AANLkTim9At1MZmid1jqqCJAk28BPo0aJEf7QkZM=y4h2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:54881 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752977Ab1AQPsE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 10:48:04 -0500
-Received: by qyk12 with SMTP id 12so5878924qyk.19
-        for <linux-omap@vger.kernel.org>; Mon, 17 Jan 2011 07:48:03 -0800 (PST)
-In-Reply-To: <AANLkTin6gfN6hpExQ0iof14Hy7_MmaOdgpgS2OgyZOLd@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <AANLkTim9At1MZmid1jqqCJAk28BPo0aJEf7QkZM=y4h2@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jean Pihet <j-pihet@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-Hi Dave,
+On Mon, Jan 17, 2011 at 2:01 PM, Jean Pihet <jean.pihet@newoldbits.com> wro=
+te:
+> On Fri, Jan 14, 2011 at 6:34 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+>> On Fri, Jan 14, 2011 at 05:13:01PM +0100, Jean Pihet wrote:
+>>> Is the name 'omap_sram_push' wrong then?
+>>> What about the following?
+>>> @@ -251,9 +251,8 @@ void * omap_sram_push(void * start, unsigned long s=
+ize)
+>>>
+>>> =A0 =A0 =A0 =A0omap_sram_ceil -=3D size;
+>>> =A0 =A0 =A0 =A0omap_sram_ceil =3D ROUND_DOWN(omap_sram_ceil, sizeof(voi=
+d *));
+>>> =A0- =A0 =A0 memcpy((void *)omap_sram_ceil, start, size);
+>>> =A0- =A0 =A0 flush_icache_range((unsigned long)omap_sram_ceil,
+>>> =A0- =A0 =A0 =A0 =A0 =A0 =A0 (unsigned long)(omap_sram_ceil + size));
+>>>
+>>> =A0- =A0 =A0 return (void *)omap_sram_ceil;
+>>> =A0+ =A0 =A0return fncpy((void *)omap_sram_ceil, start, size);
+>>
+>> It's more correct, but still missing out on the type safety which we've
+>> tried to provide with fncpy.
+> IIUC the type of the function is propagated from the 2nd argument
+> (funcp) to the return value, which is fine here. The (void)* is here
+> only to avoid a warning thrown by memcpy.
 
-On Mon, Jan 17, 2011 at 4:35 PM, Dave Martin <dave.martin@linaro.org> w=
-rote:
-> Hi,
->
-> On Mon, Jan 17, 2011 at 2:02 PM, Jean Pihet <jean.pihet@newoldbits.co=
-m> wrote:
->
-> [...]
->
->> Note that aligning the source and destination pointers to a multiple
->> of 8 bytes has an impact on the behavio(u)r and so must be carefully
->> thought and tested on OMAP1/2/3 platforms.
->
-> Do you have any specific concerns regarding this?
->
-> Currently, the only issue I can think of is that the need to allocate
-> aligned memory from the SRAM will increase the total amount allocated=
-,
-> which could be a problem if we end up overflowing the available SRAM.
-Agree. It does not look like there are SRAM overflows today. Note that
-in that case you will get warned soon enough by the 'Not enough space
-in SRAM' message.
-One could think about some nasty side-effects bugs like badly written
-PIC code, hardcoded addresses... that appear to work with the current
-version. In short this needs to be thoroughly tested on OMAP1/2/3
-platforms.
+I think Russell's argument was that the compiler will not notice if
+you mismatch the return type and the function to be copied, because
+the casts to/from void * make the compiler blind to the real types
+involved.  So:
 
-> This does not appear to happen in the case I've tested -- I currently
-> round up the amount allocated in omap_sram_push to be a multiple of 8
-> bytes. =A0This, combined with a couple of ".align 3" directives, is
-> enough to get me a booting system on omap3... but I haven't tested
-> exhaustively.
-That is OK. I have a patch ready for OMAP1/2/3, tested on OMAP3 only.
+int f(int);
+size_t size_of_f;
 
-> Cheers
-> ---Dave
->
+void *buffer;
+int (*_copied_f1)(int);
+char *(*_copied_f2)(char *);
 
-Thanks,
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+_copied_f1 =3D fncpy(buffer, f, size_of_f); /* OK */
+_copied_f2 =3D fncpy(buffer, f, size_of_f); /* compile error */
+_copied_f1 =3D omap_sram_push(f, size_of_f); /* OK */
+_copied_f2 =3D opam_sram_push(f, size_of_f); /* type mismatch, but
+compilation succeeds */
+
+
+One way to work around this is would be to make omap_sram_push() a macro:
+
+#define omap_sram_push(funcp, size) \
+    (typeof(funcp))_do_omap_sram_push((void *)(funcp), size)
+
+... where the definition of _do_omap_sram_push() is the same is the
+existing definition of omap_sram_push().  Providing
+_do_omap_sram_push() is not called directly, this should now be
+type-safe.
+
+
+Cheers
+---Dave
