@@ -1,76 +1,72 @@
-From: Russell King <rmk@arm.linux.org.uk>
-Subject: Re: Open issues after 2.6.38 merge window
-Date: Mon, 17 Jan 2011 12:11:44 +0000
-Message-ID: <20110117121144.GA18600@flint.arm.linux.org.uk>
-References: <20110114194758.GM4957@atomide.com> <alpine.DEB.1.10.1101171328440.8142@esdhcp041196.research.nokia.com> <701a8169276ef3a1eccbac0d31117a6b@mail.gmail.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH] Remove CPU_32v6K dependencies in asm/spinlock.h
+Date: Mon, 17 Jan 2011 12:12:55 +0000
+Message-ID: <AANLkTikrgOLJ0bj_V23i-RM_wYa_4dDTXb_RaPY8Cr8v@mail.gmail.com>
+References: <20110115161132.GH15996@n2100.arm.linux.org.uk>
+	<AANLkTik8j2a9XXPQXw51Vbs=24hvP-PUJrVD--VNX0DG@mail.gmail.com>
+	<20110117103739.GA18626@n2100.arm.linux.org.uk>
+	<20110117105332.GC18626@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38052 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750728Ab1AQMMD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 07:12:03 -0500
-Content-Disposition: inline
-In-Reply-To: <701a8169276ef3a1eccbac0d31117a6b@mail.gmail.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:60482 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750728Ab1AQMM4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 07:12:56 -0500
+Received: by iyj18 with SMTP id 18so4546945iyj.19
+        for <linux-omap@vger.kernel.org>; Mon, 17 Jan 2011 04:12:56 -0800 (PST)
+In-Reply-To: <20110117105332.GC18626@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Jan 17, 2011 at 05:29:01PM +0530, Santosh Shilimkar wrote:
-> > On Fri, 14 Jan 2011, Tony Lindgren wrote:
-> > > Before I update out master branch, let's try to summarize the
-> > > open issues after the merge window. Here's a list of issues
-> > > in omap-fixes-for-linus that I'm aware of:
-> > >
-> > > - NFS root oopses while mounting root
-> > >
-> > > - omap4430 es1.0 hangs if L2X0 cache is enabled
-> > >
-> > > - omap4 panda powers down after boot (watchdog?)
-> > >
-> > > - omap3 ldp board powers down after boot?
+On 17 January 2011 10:53, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Mon, Jan 17, 2011 at 10:37:39AM +0000, Russell King - ARM Linux wr=
+ote:
+>> 3. Do we always need a dsb prior to a sev? =C2=A0Maybe the SPEAR pat=
+ches need
+>> another review to determine how they're using sev()?
+>
+> FYI, this is how the SPEAR patches use sev():
+>
+> | +static void __init wakeup_secondary(void)
+> | +{
+> | + =C2=A0 =C2=A0 /* nobody is to be released from the pen yet */
+> | + =C2=A0 =C2=A0 pen_release =3D -1;
+> | +
+> | + =C2=A0 =C2=A0 /*
+> | + =C2=A0 =C2=A0 =C2=A0* Write the address of secondary startup into=
+ the system-wide
+> | + =C2=A0 =C2=A0 =C2=A0* location (presently it is in SRAM). The Boo=
+tMonitor waits
+> | + =C2=A0 =C2=A0 =C2=A0* for this register to become non-zero.
+> | + =C2=A0 =C2=A0 =C2=A0* We must also send an sev to wake it up
+> | + =C2=A0 =C2=A0 =C2=A0*/
+> | + =C2=A0 =C2=A0 __raw_writel(BSYM(virt_to_phys(spear13xx_secondary_=
+startup)),
+> | + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 __io_address(SPEAR13XX_SYS_LOCATION));
+> | +
+> | + =C2=A0 =C2=A0 mb();
+> | +
+> | + =C2=A0 =C2=A0 /*
+> | + =C2=A0 =C2=A0 =C2=A0* Send a 'sev' to wake the secondary core fro=
+m WFE.
+> | + =C2=A0 =C2=A0 =C2=A0*/
+> | + =C2=A0 =C2=A0 sev();
+> | +}
+>
+> so the dsb() is inside mb(), before the outer sync call.
 
-This doesn't happen for me.
+BTW, don't we need some cache flushing for the pen_release?
 
-> > >
-> > > Any other issues?
-> >
-> > Amstrad E3 fails during the boot. Bisection points to:
-> >
-> >  	commit 211baa7016894c02fc18693e21ca479cd08ac0c0
-> >  	Author: Russell King <rmk+kernel@arm.linux.org.uk>
-> >  	Date:   Tue Jan 11 16:23:04 2011 +0000
-> >
-> >  	    ARM: sched_clock: allow init_sched_clock() to be called
-> > early
-> >
-> > The board does not have sched_clock(), although HAVE_SCHED_CLOCK is
-> > defined for all OMAP.
-> >
-> I guess above is sorted out by the attached patch from Paul.
-
-There's an issue missing from Tony's list:
-
-- running an omap2plus_defconfig kernel on SMP is unsafe to the point
-  of being data corrupting for filesystems, especially for ext2/ext3
-  mounted read-write.
-
-This is because when CPU_32v6K is disabled - which is required to build
-a kernel to boot on ARMv6, it turns off the SMP safe bitops - the SMP
-safe bitops only use instructions available to ARMv6K and above.  They
-are reduced to local-irq-disabling, plain byte loads and stores.
-
-So, running omap2plus_defconfig on SMP is risking filesystem corruption.
-
-Patches for this are being worked on, but they won't be ready for -rc1.
-I strongly suggest someone restores some kind of build or runtime error
-(eg, by removing CPU_32v6K's dependence on !OMAP2 - thereby _intentionally_
-breaking omap2plus_defconfig) before someone ends up with a corrupted
-filesystem.  Or just make sure that everyone is aware that
-omap2plus_defconfig can eat filesystems at the moment.
-
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:
+--=20
+Catalin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
