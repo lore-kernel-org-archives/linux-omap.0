@@ -1,69 +1,43 @@
-From: "Jan, Sebastien" <s-jan@ti.com>
-Subject: Re: Passing mem=1G to kernel on Panda, system is unstable.
-Date: Mon, 17 Jan 2011 19:41:17 +0100
-Message-ID: <AANLkTi=OQ-RYmuz71qXeYKiY3i4j+Nxv_n3R_7cr8qKC@mail.gmail.com>
-References: <AANLkTin+ZjUoD9i+JxV7wW2+U6oEp42PdP5R4gdtzy=F@mail.gmail.com>
- <641ab84b6cedfd62b9b6bedeae077f1b@mail.gmail.com> <AANLkTi=EaxW9D_rtNuk3CT1K-CoTBXiy5qOW=EL9ay1d@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
+Date: Mon, 17 Jan 2011 19:20:50 +0000
+Message-ID: <20110117192050.GE23331@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:60293 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752600Ab1AQSl4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Jan 2011 13:41:56 -0500
-Received: by mail-ew0-f45.google.com with SMTP id 10so3007732ewy.4
-        for <linux-omap@vger.kernel.org>; Mon, 17 Jan 2011 10:41:48 -0800 (PST)
-In-Reply-To: <AANLkTi=EaxW9D_rtNuk3CT1K-CoTBXiy5qOW=EL9ay1d@mail.gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42070 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752316Ab1AQTVD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 14:21:03 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan Wu <bryan.wu@canonical.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, Jan 14, 2011 at 11:12 AM, Bryan Wu <bryan.wu@canonical.com> wrote:
->
-> On Fri, Jan 14, 2011 at 4:12 PM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com> wrote:
-> > Bryan,
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Bryan Wu
-> >> Sent: Tuesday, January 11, 2011 10:22 PM
-> >> To: linux-omap@vger.kernel.org; Ricardo Salveti de Araujo
-> >> Subject: Passing mem=1G to kernel on Panda, system is unstable.
-> >>
-> >> Hi folks,
-> >>
-> >> We are trying to build kernel package or GCC natively on OMAP4 panda
-> >> board. With the mainline 2.6.37 kernel or Ubuntu Natty 2.6.35 based
-> >> kernel, we met same instabilities on the system when we try to use
-> >> mem=1G on the board.
-> >>
-> >> Please find our bug tracker here:
-> >> https://bugs.launchpad.net/ubuntu/+source/linux-ti-omap4/+bug/633227
-> >> and I think another bug is also related:
-> >> https://bugs.launchpad.net/ubuntu/+source/linux-ti-
-> >> omap4/+bug/690370.
-> >> System will freeze at all when building GCC natively on Panda.
-> >>
-> >> Did any folks meet this issue? or we need more simple test case to
-> >> catch the root cause of this issue.
-> >>
-> > Haven't seen this issue on my SDP with 2.6.37.
-> Do you have Panda for testing? I don't have SDP. Maybe Sebastien can
-> help to verify on SDP.
+This patch series reworks the ARMv6/ARMv6K support options, code
+selection, and bit operations such that it's possible to safely
+build a kernel which supports ARMv6, ARMv6K, ARMv7 and ARMv7 SMP
+in one image.
 
-I reproduced the issue on my Blaze board, confirming that this issue
-is not specific to panda.
+Currently, we use CPU_V6 for both ARMv6 and ARMv6K, setting CPU_32v6K
+if we have the K extensions.  CPU_32v6K directly controlled whether
+we should include the ARMv6K instructions (clrex, load/store exclusive
+byte, half-word, double).  As the bitops code uses the load/store
+exclusive byte operations, unsetting CPU_32v6K results in these
+falling back to their non-SMP local-irq-disabling variants.  These
+are only safe in uniprocessor environments.
 
-> > Have you enabled HIGHMEM, when tried mem = 1G on 2.6.37 ?
-> >
->
-> Yeah, CONFIG_HIGHMEM=y for this mainline testing. Please use this
-> kernel config file:
-> http://launchpadlibrarian.net/62061659/mainline_config
+So, the first two patches convert the bitops to use the ARMv6 load/store
+exclusive word operations - and ensuring correctness by ensuring that
+the pointer passed in is word-aligned.
 
-So far, I have not been able to reproduce the issue with
-CONFIG_HIGHMEM option deactivated (I am cleaning/building kernels for
-more than 24 hours now), and mem=1G. I will keep my test run, but it
-seems that deactivating highmem at least hides the issue.
+We then introduce a new CPU_V6K which indicates that we're including
+an ARMv6K CPU in the build, which frees up CPU_V6 to mean that we're
+including an ARMv6 non-K CPU.
+
+We can then use CPU_V6 to ensure that the non-v6K code paths which are
+still SMP safe are selected.
+
+Without this patch set, such a kernel will be unsafe when run on
+SMP platforms as it omits necessary SMP code to ensure that bit
+operations are safe.
