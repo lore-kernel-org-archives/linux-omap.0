@@ -1,34 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 11/14] ARM: v6k: use CPU domain feature if we include
- support for arch < ARMv6K
-Date: Mon, 17 Jan 2011 15:23:18 -0800
-Message-ID: <20110117232318.GJ4957@atomide.com>
+Subject: Re: [PATCH 12/14] ARM: v6k: do not disable CPU_32v6K based on
+ platform selection
+Date: Mon, 17 Jan 2011 15:24:11 -0800
+Message-ID: <20110117232410.GK4957@atomide.com>
 References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
- <E1Peuh2-0003Sx-5e@rmk-PC.arm.linux.org.uk>
- <alpine.LFD.2.00.1101171702510.8580@xanadu.home>
+ <E1PeuhM-0003T1-Js@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:42985 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092Ab1AQXXf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 18:23:35 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34539 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092Ab1AQXYQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 18:24:16 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1101171702510.8580@xanadu.home>
+In-Reply-To: <E1PeuhM-0003T1-Js@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Nicolas Pitre <nico@fluxnic.net> [110117 14:02]:
-> On Mon, 17 Jan 2011, Russell King - ARM Linux wrote:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110117 11:24]:
+> CPU_32v6K controls whether we use the ARMv6K extension instructions in
+> the kernel, and in some places whether we use SMP-safe code sequences
+> (eg, bitops.)
 > 
-> > Rather than turning off CPU domain switching when the build architecture
-> > includes ARMv6K, thereby causing problems for ARMv6-supporting kernels,
-> > turn it on when it's required to support a CPU architecture.
-> > 
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> MX3 prevents the selection of this option to ensure that it is not
+> enabled for their CPU, which is ARMv6 only.  Now that we've split the
+> CPU_V6 option, V6K support won't be offered for MX3 anymore.
 > 
-> Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
+> OMAP prevents the selection of this option in an attempt to produce a
+> kernel which runs on architectures from ARMv6 to ARMv7 MPCore.  We now
+> achieve this in a different way (see the previous patches).
+> 
+> As such, we no longer need to offer this as a configuration option to
+> the user.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Tested-by: Tony Lindgren <tony@atomide.com>
