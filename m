@@ -1,84 +1,54 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH] Remove CPU_32v6K dependencies in asm/spinlock.h
-Date: Mon, 17 Jan 2011 10:15:25 +0000
-Message-ID: <AANLkTik8j2a9XXPQXw51Vbs=24hvP-PUJrVD--VNX0DG@mail.gmail.com>
-References: <20110115161132.GH15996@n2100.arm.linux.org.uk>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: Open issues after 2.6.38 merge window
+Date: Mon, 17 Jan 2011 15:45:37 +0530
+Message-ID: <126c39969c8e98576bfed2b4d28794b3@mail.gmail.com>
+References: <20110114194758.GM4957@atomide.com> <9ba47985064c771620bac3f4fce6a3b0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:65038 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751212Ab1AQKP0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 05:15:26 -0500
-Received: by iyj18 with SMTP id 18so4462363iyj.19
-        for <linux-omap@vger.kernel.org>; Mon, 17 Jan 2011 02:15:25 -0800 (PST)
-In-Reply-To: <20110115161132.GH15996@n2100.arm.linux.org.uk>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47838 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751212Ab1AQKPk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Jan 2011 05:15:40 -0500
+Received: by fxm9 with SMTP id 9so6019148fxm.17
+        for <linux-omap@vger.kernel.org>; Mon, 17 Jan 2011 02:15:39 -0800 (PST)
+In-Reply-To: <9ba47985064c771620bac3f4fce6a3b0@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On 15 January 2011 16:11, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> SMP requires at least the ARMv6K extensions to be present, so if we'r=
-e
-> running on SMP, the WFE and SEV instructions must be available.
+Tony,
+> -----Original Message-----
+> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
+> Sent: Saturday, January 15, 2011 10:50 AM
+> To: Tony Lindgren; linux-omap@vger.kernel.org
+> Subject: RE: Open issues after 2.6.38 merge window
 >
-> However, when we run on UP, the v6K extensions may not be available,
-> and so we don't want WFE/SEV to be in the instruction stream. =C2=A0U=
-se the
-> SMP alternatives infrastructure to replace these instructions with NO=
-Ps
-> if we build for SMP but run on UP.
-[...]
-> --- a/arch/arm/include/asm/spinlock.h
-> +++ b/arch/arm/include/asm/spinlock.h
-> @@ -5,17 +5,36 @@
-> =C2=A0#error SMP not supported on pre-ARMv6 CPUs
-> =C2=A0#endif
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> > Sent: Saturday, January 15, 2011 1:18 AM
+> > To: linux-omap@vger.kernel.org
+> > Subject: Open issues after 2.6.38 merge window
+> >
+> > Hi all,
+> >
+> > Before I update out master branch, let's try to summarize the
+> > open issues after the merge window. Here's a list of issues
+> > in omap-fixes-for-linus that I'm aware of:
+> >
 >
-> +/*
-> + * sev and wfe are ARMv6K extensions. =C2=A0Uniprocessor ARMv6 may n=
-ot have the K
-> + * extensions, so when running on UP, we have to patch these instruc=
-tions away.
-> + */
-> +#define ALT_SMP(smp, up) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 \
-> + =C2=A0 =C2=A0 =C2=A0 "9998: =C2=A0" smp "\n" =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0\
-> + =C2=A0 =C2=A0 =C2=A0 " =C2=A0 =C2=A0 =C2=A0 .pushsection \".alt.smp=
-=2Einit\", \"a\"\n" =C2=A0 =C2=A0 =C2=A0 =C2=A0\
-> + =C2=A0 =C2=A0 =C2=A0 " =C2=A0 =C2=A0 =C2=A0 .long =C2=A0 9998b\n" =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0\
-> + =C2=A0 =C2=A0 =C2=A0 " =C2=A0 =C2=A0 =C2=A0 " up "\n" =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 \
-> + =C2=A0 =C2=A0 =C2=A0 " =C2=A0 =C2=A0 =C2=A0 .popsection\n"
-> +
-> +#ifdef CONFIG_THUMB2_KERNEL
-> +#define SEV =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ALT_SMP("sev.w"=
-, "nop.w")
-> +#define WFE(cond) =C2=A0 =C2=A0 =C2=A0ALT_SMP("wfe" cond ".w", "nop.=
-w")
-> +#else
-> +#define SEV =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ALT_SMP("sev", =
-"nop")
-> +#define WFE(cond) =C2=A0 =C2=A0 =C2=A0ALT_SMP("wfe" cond, "nop")
-> +#endif
+> > - omap4430 es1.0 hangs if L2X0 cache is enabled
+> >
+> Will have look at this one on Monday
+>
+I don't see the hang with L2X0 enable on my ES1.0 SDP
+with the latest Linus's head.
 
-In the SEV macro definition, can you also include the dsb? This
-barrier is only there because of sev, otherwise we don't need it (we
-have a dmb prior to releasing the lock).
+(Mainline 'e78bf5e6cbe837' + Paul's sync timer fix)
 
---=20
-Catalin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The kernel boots fine.
+
+Regards
+Santosh
