@@ -1,52 +1,85 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
-Date: Mon, 17 Jan 2011 14:21:07 -0800
-Message-ID: <20110117222107.GB4957@atomide.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH 10/14] ARM: v6k: select TLS register code according to V6
+ variants
+Date: Mon, 17 Jan 2011 17:23:43 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1101171717090.8580@xanadu.home>
 References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+ <E1Peugh-0003St-DY@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:15848 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752879Ab1AQWVU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 17:21:20 -0500
-Content-Disposition: inline
-In-Reply-To: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+Received: from relais.videotron.ca ([24.201.245.36]:15913 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752799Ab1AQWXo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 17:23:44 -0500
+Received: from xanadu.home ([66.130.28.92]) by vl-mh-mrz21.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
+ with ESMTP id <0LF60017CU6Y0RF0@vl-mh-mrz21.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Mon, 17 Jan 2011 17:23:22 -0500 (EST)
+In-reply-to: <E1Peugh-0003St-DY@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110117 11:20]:
-> This patch series reworks the ARMv6/ARMv6K support options, code
-> selection, and bit operations such that it's possible to safely
-> build a kernel which supports ARMv6, ARMv6K, ARMv7 and ARMv7 SMP
-> in one image.
-> 
-> Currently, we use CPU_V6 for both ARMv6 and ARMv6K, setting CPU_32v6K
-> if we have the K extensions.  CPU_32v6K directly controlled whether
-> we should include the ARMv6K instructions (clrex, load/store exclusive
-> byte, half-word, double).  As the bitops code uses the load/store
-> exclusive byte operations, unsetting CPU_32v6K results in these
-> falling back to their non-SMP local-irq-disabling variants.  These
-> are only safe in uniprocessor environments.
-> 
-> So, the first two patches convert the bitops to use the ARMv6 load/store
-> exclusive word operations - and ensuring correctness by ensuring that
-> the pointer passed in is word-aligned.
-> 
-> We then introduce a new CPU_V6K which indicates that we're including
-> an ARMv6K CPU in the build, which frees up CPU_V6 to mean that we're
-> including an ARMv6 non-K CPU.
-> 
-> We can then use CPU_V6 to ensure that the non-v6K code paths which are
-> still SMP safe are selected.
-> 
-> Without this patch set, such a kernel will be unsafe when run on
-> SMP platforms as it omits necessary SMP code to ensure that bit
-> operations are safe.
+On Mon, 17 Jan 2011, Russell King - ARM Linux wrote:
 
-Amazing, based on a quick test this series boots just fine on non-v6K
-omap2420 using omap2plus_defconfig :)
+> If CONFIG_CPU_V6 is enabled, we may or may not have the TLS register.
+> Use the conditional code which copes with this variability.  Otherwise,
+> if CONFIG_CPU_32v6K is set, we know we have the TLS register on all
+> supported CPUs, so use it unconditionally.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Tony
+Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
+
+Note: this is becoming a bit confusing and prone to mistake when we have:
+
+	CONFIG_CPU_V6
+	CONFIG_CPU_V6K
+	CONFIG_CPU_32v6
+	CONFIG_CPU_32v6K
+
+I don't know what to suggest for a less similar naming scheme between 
+the CPU design and the allowed instruction set though.
+
+
+> ---
+>  arch/arm/include/asm/tls.h |   11 +++++------
+>  1 files changed, 5 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/include/asm/tls.h b/arch/arm/include/asm/tls.h
+> index e71d6ff..60843eb 100644
+> --- a/arch/arm/include/asm/tls.h
+> +++ b/arch/arm/include/asm/tls.h
+> @@ -28,15 +28,14 @@
+>  #define tls_emu		1
+>  #define has_tls_reg		1
+>  #define set_tls		set_tls_none
+> -#elif __LINUX_ARM_ARCH__ >= 7 ||					\
+> -	(__LINUX_ARM_ARCH__ == 6 && defined(CONFIG_CPU_32v6K))
+> -#define tls_emu		0
+> -#define has_tls_reg		1
+> -#define set_tls		set_tls_v6k
+> -#elif __LINUX_ARM_ARCH__ == 6
+> +#elif defined(CONFIG_CPU_V6)
+>  #define tls_emu		0
+>  #define has_tls_reg		(elf_hwcap & HWCAP_TLS)
+>  #define set_tls		set_tls_v6
+> +#elif defined(CONFIG_CPU_32v6K)
+> +#define tls_emu		0
+> +#define has_tls_reg		1
+> +#define set_tls		set_tls_v6k
+>  #else
+>  #define tls_emu		0
+>  #define has_tls_reg		0
+> -- 
+> 1.6.2.5
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
