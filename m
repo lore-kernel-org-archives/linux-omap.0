@@ -1,48 +1,41 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [RFC+CFT] Use word operations in bitops
-Date: Mon, 17 Jan 2011 11:08:57 +0100
-Message-ID: <20110117100857.GS6917@pengutronix.de>
-References: <20110116121911.GB27542@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: [PATCH] arm: mach-omap2: potential NULL dereference
+Date: Mon, 17 Jan 2011 13:08:42 +0300
+Message-ID: <1295258922-31242-1-git-send-email-segoon@openwall.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60275 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752998Ab1AQKJC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 05:09:02 -0500
-Content-Disposition: inline
-In-Reply-To: <20110116121911.GB27542@n2100.arm.linux.org.uk>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:34325 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751903Ab1AQKIr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 05:08:47 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hello Russell,
+kzalloc() may fail, if so return -ENOMEM.
 
-On Sun, Jan 16, 2011 at 12:19:11PM +0000, Russell King - ARM Linux wrot=
-e:
-> This does need a fair amount of testing before it can be merged, so I=
-'d
-> like to see a number of Tested-by's against this patch.  Please also
-> indicate whether you tested on LE or BE or both, which filesystems, a=
-nd
-> whether they were read-only mounted or read-write mounted.
-You could make life a bit easier (at least for us at Pengutronix,
-probably more) if you had a branch with a defined name for patches like
-these.  We could add that to our daily test then.
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+---
+ Cannot compile this driver, so it is not tested at all.
 
-Best regards
-Uwe
+ arch/arm/mach-omap2/smartreflex.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 77ecebf..871bca9 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -260,7 +260,10 @@ static int sr_late_init(struct omap_sr *sr_info)
+ 	if (sr_class->class_type == SR_CLASS2 &&
+ 		sr_class->notify_flags && sr_info->irq) {
+ 
++		ret = -ENOMEM;
+ 		name = kzalloc(SMARTREFLEX_NAME_LEN + 1, GFP_KERNEL);
++		if (name == NULL)
++			goto error;
+ 		strcpy(name, "sr_");
+ 		strcat(name, sr_info->voltdm->name);
+ 		ret = request_irq(sr_info->irq, sr_interrupt,
+-- 
+1.7.0.4
+
