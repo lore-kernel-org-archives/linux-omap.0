@@ -1,56 +1,38 @@
 From: Thomas Weber <weber@corscience.de>
-Subject: [PATCHv2 1/2] OMAP3: Devkit8000: Change lcd power pin
-Date: Mon, 17 Jan 2011 15:11:58 +0100
-Message-ID: <1295273519-6189-2-git-send-email-weber@corscience.de>
+Subject: [PATCHv2 2/2] omap3: devkit8000: fix tps65930 pullup/pulldown configuration
+Date: Mon, 17 Jan 2011 15:11:59 +0100
+Message-ID: <1295273519-6189-3-git-send-email-weber@corscience.de>
 References: <1295273519-6189-1-git-send-email-weber@corscience.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:54171 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753238Ab1AQOM0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 09:12:26 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1295273519-6189-1-git-send-email-weber@corscience.de>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Thomas Weber <weber@corscience.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>
+Cc: Daniel Morsing <daniel.morsing@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-The reset_gpio pin for lcd is connected with TWL4030 LedA.
-TWL4030 GPIO.1 has a not connected resistor.
+From: Daniel Morsing <daniel.morsing@gmail.com>
 
-Fix indention issue. The comment line uses 8 whitespaces. 
-Replaced with one tabulator.
+gpio7 on the tps65930 is used as an output on the devkit8000 and gpio1
+is not connected. Remove gpio7 and change gpio1 to pulldown
 
-Reported-by: Daniel Morsing <daniel.morsing@gmail.com>
-Signed-off-by: Thomas Weber <weber@corscience.de>
+Signed-off-by: Daniel Morsing <daniel.morsing@gmail.com>
 ---
- arch/arm/mach-omap2/board-devkit8000.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/board-devkit8000.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 451e7ff..719f4e5 100644
+index 719f4e5..9fb416b 100644
 --- a/arch/arm/mach-omap2/board-devkit8000.c
 +++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -114,9 +114,6 @@ static struct omap2_hsmmc_info mmc[] = {
- 
- static int devkit8000_panel_enable_lcd(struct omap_dss_device *dssdev)
- {
--	twl_i2c_write_u8(TWL4030_MODULE_GPIO, 0x80, REG_GPIODATADIR1);
--	twl_i2c_write_u8(TWL4030_MODULE_LED, 0x0, 0x0);
--
- 	if (gpio_is_valid(dssdev->reset_gpio))
- 		gpio_set_value_cansleep(dssdev->reset_gpio, 1);
- 	return 0;
-@@ -245,8 +242,8 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
- 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
- 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
- 
--        /* gpio + 1 is "LCD_PWREN" (out, active high) */
--	devkit8000_lcd_device.reset_gpio = gpio + 1;
-+	/* TWL4030_GPIO_MAX + 0 is "LCD_PWREN" (out, active high) */
-+	devkit8000_lcd_device.reset_gpio = gpio + TWL4030_GPIO_MAX + 0;
- 	gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
- 	/* Disable until needed */
- 	gpio_direction_output(devkit8000_lcd_device.reset_gpio, 0);
+@@ -262,8 +262,7 @@ static struct twl4030_gpio_platform_data devkit8000_gpio_data = {
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+ 	.irq_end	= TWL4030_GPIO_IRQ_END,
+ 	.use_leds	= true,
+-	.pullups	= BIT(1),
+-	.pulldowns	= BIT(2) | BIT(6) | BIT(7) | BIT(8) | BIT(13)
++	.pulldowns	= BIT(1) | BIT(2) | BIT(6) | BIT(8) | BIT(13)
+ 				| BIT(15) | BIT(16) | BIT(17),
+ 	.setup		= devkit8000_twl_gpio_setup,
+ };
 -- 
 1.7.4.rc2
-
