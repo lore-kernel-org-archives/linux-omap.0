@@ -1,81 +1,47 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [RFC+CFT] Use word operations in bitops
-Date: Tue, 18 Jan 2011 16:32:57 +0100
-Message-ID: <20110118153257.GA10686@pengutronix.de>
-References: <20110116121911.GB27542@n2100.arm.linux.org.uk>
- <20110117100857.GS6917@pengutronix.de>
- <20110117104618.GB18626@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
+Date: Tue, 18 Jan 2011 16:38:01 +0100
+Message-ID: <789E54BD-D2B6-4B98-B9B8-19688E415E39@dominion.thruhere.net>
+References: <1295336995-15831-1-git-send-email-premi@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49367 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752604Ab1ARPdE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 10:33:04 -0500
-Content-Disposition: inline
-In-Reply-To: <20110117104618.GB18626@n2100.arm.linux.org.uk>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62985 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750961Ab1ARPiH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 10:38:07 -0500
+Received: by wwa36 with SMTP id 36so6615706wwa.1
+        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 07:38:05 -0800 (PST)
+In-Reply-To: <1295336995-15831-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Sanjeev Premi <premi@ti.com>
+Cc: l-o List <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, thara@ti.com
 
-Hi Russell,
 
-On Mon, Jan 17, 2011 at 10:46:18AM +0000, Russell King - ARM Linux wrot=
-e:
-> On Mon, Jan 17, 2011 at 11:08:57AM +0100, Uwe Kleine-K=F6nig wrote:
-> > On Sun, Jan 16, 2011 at 12:19:11PM +0000, Russell King - ARM Linux =
-wrote:
-> > > This does need a fair amount of testing before it can be merged, =
-so I'd
-> > > like to see a number of Tested-by's against this patch.  Please a=
-lso
-> > > indicate whether you tested on LE or BE or both, which filesystem=
-s, and
-> > > whether they were read-only mounted or read-write mounted.
-> > You could make life a bit easier (at least for us at Pengutronix,
-> > probably more) if you had a branch with a defined name for patches =
-like
-> > these.  We could add that to our daily test then.
->=20
-> No, because then it's not possible to properly tie down what has been
-> tested and what hasn't.
->=20
-> The advantage of emailed patches is that when people reply to them, y=
-ou
-> have a better idea that the patch to which they're replying to is the
-> one they tested.
->=20
-> Such as in this case where the follow-up patch hasn't received any
-> replies, and so I can't add the one received tested-by to the follow-=
-up
-> patch.  With the git approach, I wouldn't know what was tested unless
-> you included the commit IDs each time.
->=20
-> And let's face it - if it was tested daily, are you going to go throu=
-gh
-> the hastle of digging out the commit IDs and emailing each day to say
-> what was tested?  That sounds to me like a _lot_ more work than testi=
-ng
-> the occasional emailed patch.
-I maybe wouldn't report each success, I would report if my test fails.
-You can consider this more or less valuable. Still I think given the
-ease this could be done it's worth it.
+Op 18 jan 2011, om 08:49 heeft Sanjeev Premi het volgende geschreven:
 
-That's how linux-next works, too.
+> This patch adds support for new speed enhanced parts with ARM
+> and IVA running at 720MHz and 520MHz respectively. These parts
+> can be probed at run-time by reading PRODID.SKUID[3:0] at
+> 0x4830A20C [1].
+> 
+> This patch specifically does following:
+> * Detect devices capable of 720MHz.
+> * Add new OPP
+> * Ensure that OPP is conditionally enabled.
+> * Check for presence of IVA before attempting to enable
+>   the corresponding OPP.
 
-Best regards
-Uwe
+Thanks for the updated patch! 
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm still having problem using this together with DVFS, the kernel won't scale beyond 600MHz because 600MHz and 720MHz share the same voltage. Thara, Nishant, do you have any suggestions on how to convince the kernel that 2 frequencies can share the same voltage settings? 
+
+If that isn't possible, should we lower the voltages for the lower opps when detecting a 720MHz capable SoC? It would make sense that if 720MHz works at X volt that 600MHz would work at less  than X volt. (I don't have a PDF reader at hand to check the TRM at the moment).
+
+Complete tree at http://dominion.thruhere.net/git/cgit.cgi/linux-omap/log/?h=koen/beagle-next but this can be reproduced as well by merging Thara's dvfs branch and applying Sanjeevs patch.
+
+regards,
+
+Koen
