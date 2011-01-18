@@ -1,47 +1,79 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
-Date: Tue, 18 Jan 2011 16:38:01 +0100
-Message-ID: <789E54BD-D2B6-4B98-B9B8-19688E415E39@dominion.thruhere.net>
-References: <1295336995-15831-1-git-send-email-premi@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:62985 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961Ab1ARPiH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 10:38:07 -0500
-Received: by wwa36 with SMTP id 36so6615706wwa.1
-        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 07:38:05 -0800 (PST)
-In-Reply-To: <1295336995-15831-1-git-send-email-premi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Will Deacon" <will.deacon@arm.com>
+Subject: RE: [PATCH 04/14] ARM: v6k: introduce CPU_V6K option
+Date: Tue, 18 Jan 2011 15:22:05 -0000
+Message-ID: <47827.147859107$1295365249@news.gmane.org>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+	<E1Peuej-0003SV-Dn@rmk-PC.arm.linux.org.uk>
+	<000601cbb6fb$8465c620$8d315260$@deacon@arm.com>
+	<20110118110922.GB10997@n2100.arm.linux.org.uk>
+	<20110118133559.GC10997@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110118133559.GC10997@n2100.arm.linux.org.uk>
+Content-Language: en-gb
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: l-o List <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, thara@ti.com
 
-
-Op 18 jan 2011, om 08:49 heeft Sanjeev Premi het volgende geschreven:
-
-> This patch adds support for new speed enhanced parts with ARM
-> and IVA running at 720MHz and 520MHz respectively. These parts
-> can be probed at run-time by reading PRODID.SKUID[3:0] at
-> 0x4830A20C [1].
+> On Tue, Jan 18, 2011 at 11:09:22AM +0000, Russell King - ARM Linux wrote:
+> > I'd rather not in this patch - this patch adds CPU_V6K as an alias for
+> > CPU_V6 - so eveywhere which referenced CPU_V6 becomes (CPU_V6 || CPU_V6K).
+> > We could remove it in a later patch though.
 > 
-> This patch specifically does following:
-> * Detect devices capable of 720MHz.
-> * Add new OPP
-> * Ensure that OPP is conditionally enabled.
-> * Check for presence of IVA before attempting to enable
->   the corresponding OPP.
+> Here's a follow-up patch to do that.  There's a few other things which
+> could do with updating now that we have CPU_Vx* straightened out.  I've
+> also recently noticed that the v6 and v7 cache stuff doesn't use the
+> direct-call optimization (see commented out bits in cacheflush.h).
+> 
+> That was because my original V6 support used the block cache operations,
+> which had to be run-time tested for presence, and so modified the
+> global cpu_cache methods directly.  As the block cache stuff was dropped,
+> we should re-enable this optimization.
+> 
+> That said, I'd rather not add too much to this series as I think it needs
+> to go into mainline ASAP - and probably stable as well, even though it's
+> on the large side - once properly and fully tested.
 
-Thanks for the updated patch! 
+Understood. Pruning the Kconfig is an optimisation and can be done once
+the initial bulk is merged.
+ 
+> Subject: [PATCH] ARM: v6k: DMA_CACHE_RWFO isn't appropriate for non-v6k CPUs
+> 
+> Limit DMA_CACHE_RWFO to only v6k SMP CPUs - V6 CPUs aren't SMP capable,
+> so the read/write for ownership work-around doesn't apply to them.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  arch/arm/mm/Kconfig |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
+> index 843bc8c..808b832 100644
+> --- a/arch/arm/mm/Kconfig
+> +++ b/arch/arm/mm/Kconfig
+> @@ -775,7 +775,7 @@ config NEEDS_SYSCALL_FOR_CMPXCHG
+> 
+>  config DMA_CACHE_RWFO
+>  	bool "Enable read/write for ownership DMA cache maintenance"
+> -	depends on (CPU_V6 || CPU_V6K) && SMP
+> +	depends on CPU_V6K && SMP
+>  	default y
+>  	help
+>  	  The Snoop Control Unit on ARM11MPCore does not detect the
 
-I'm still having problem using this together with DVFS, the kernel won't scale beyond 600MHz because 600MHz and 720MHz share the same voltage. Thara, Nishant, do you have any suggestions on how to convince the kernel that 2 frequencies can share the same voltage settings? 
+Looks good to me:
 
-If that isn't possible, should we lower the voltages for the lower opps when detecting a 720MHz capable SoC? It would make sense that if 720MHz works at X volt that 600MHz would work at less  than X volt. (I don't have a PDF reader at hand to check the TRM at the moment).
+Acked-by: Will Deacon <will.deacon@arm.com>
 
-Complete tree at http://dominion.thruhere.net/git/cgit.cgi/linux-omap/log/?h=koen/beagle-next but this can be reproduced as well by merging Thara's dvfs branch and applying Sanjeevs patch.
-
-regards,
-
-Koen
+Will
