@@ -1,94 +1,70 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
-Date: Tue, 18 Jan 2011 19:17:17 +0100
-Message-ID: <4F6B1267-93B8-4698-9880-376076825598@dominion.thruhere.net>
-References: <1295336995-15831-1-git-send-email-premi@ti.com> <789E54BD-D2B6-4B98-B9B8-19688E415E39@dominion.thruhere.net> <4D35C47D.6000102@ti.com> <b8bd13a9f9b383c7db6af63e1aa984be@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH 01/14] ARM: bitops: ensure set/clear/change bitops take a
+ word-aligned pointer
+Date: Tue, 18 Jan 2011 13:20:52 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1101181312360.8580@xanadu.home>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+ <E1Peudk-0003SJ-Aj@rmk-PC.arm.linux.org.uk>
+ <alpine.LFD.2.00.1101180043140.8580@xanadu.home>
+ <20110118143033.GD10997@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:60628 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751122Ab1ARSSB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 13:18:01 -0500
-Received: by wwa36 with SMTP id 36so6790192wwa.1
-        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 10:17:57 -0800 (PST)
-In-Reply-To: <b8bd13a9f9b383c7db6af63e1aa984be@mail.gmail.com>
+Received: from relais.videotron.ca ([24.201.245.36]:52813 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751943Ab1ARSVV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 13:21:21 -0500
+Received: from xanadu.home ([66.130.28.92]) by vl-mh-mrz21.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
+ with ESMTP id <0LF800FJ7DM8FWE0@vl-mh-mrz21.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Tue, 18 Jan 2011 13:20:32 -0500 (EST)
+In-reply-to: <20110118143033.GD10997@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Sanjeev Premi <premi@ti.com>, l-o List <linux-omap@vger.kernel.org>, Thara Gopinath <thara@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
+On Tue, 18 Jan 2011, Russell King - ARM Linux wrote:
 
-Op 18 jan 2011, om 18:18 heeft Vishwanath Sripathy het volgende geschreven:
-
-> Kooi,
+> On Tue, Jan 18, 2011 at 01:00:21AM -0500, Nicolas Pitre wrote:
+> > I also wonder what happens with a misaligned ldrex/strex... Does the 
+> > alignment trap get invoked?  If so, the assertion could be put there 
+> > instead if that's not done already, removing this overhead from bitops 
+> > calls.  In the pre-ARMv6 case the alignment trap fixup would be applied 
+> > as usual since the ldr/str are not special, but the previous code 
+> > allowed for misaligned pointer so result would be no worse than before 
+> > in that case.  Testing appears to indicate those misaligned bitops are 
+> > rather nonexistent so far.
 > 
->> -----Original Message-----
->> From: Nishanth Menon [mailto:nm@ti.com]
->> Sent: Tuesday, January 18, 2011 10:19 PM
->> To: Koen Kooi
->> Cc: Sanjeev Premi; l-o List; thara@ti.com; Vishwanath Sripathy
->> Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
->> 
->> Koen Kooi wrote, on 01/18/2011 05:38 PM:
->>> 
->>> Op 18 jan 2011, om 08:49 heeft Sanjeev Premi het volgende
->> geschreven:
->>> 
->>>> This patch adds support for new speed enhanced parts with ARM
->>>> and IVA running at 720MHz and 520MHz respectively. These parts
->>>> can be probed at run-time by reading PRODID.SKUID[3:0] at
->>>> 0x4830A20C [1].
->>>> 
->>>> This patch specifically does following:
->>>> * Detect devices capable of 720MHz.
->>>> * Add new OPP
->>>> * Ensure that OPP is conditionally enabled.
->>>> * Check for presence of IVA before attempting to enable
->>>>   the corresponding OPP.
->>> 
->>> Thanks for the updated patch!
->>> 
->>> I'm still having problem using this together with DVFS, the kernel
->> won't scale beyond 600MHz because 600MHz and 720MHz share the
->> same voltage. Thara, Nishant, do you have any suggestions on how to
->> convince the kernel that 2 frequencies can share the same voltage
->> settings?
->> + Vishwa
-> Yes, this is a limitation with the current set of DVFS patches.
-> With the next version of DVFS patches (will be out soon) this feature is
-> going to be supported. That means you can have 2 opps with the same
-> voltage but with different frequency. The device will be configured based
-> on user requested frequency.
+> Well, whether LDREX/STREX always fault for misalignment is well open to
+> debate.  The ARM ARM for ARMv7 seems to imply they will always fault for
+> misaligned accesses.  For ARMv6, the situation is less clear - the way
+> the manual is arranged, it suggests that they will if SCTLR.U is set.
+> When it's clear, the ARM ARM doesn't specify what the outcome is.
 
-Just to have a crude hack, would something like this work?:
+Probably we should make sure they always fault on both ARMv6 and ARMv7 
+regardless of this particular issue.
 
-	/* MPU OPP6 */
--	OPP_INITIALIZER("mpu", false, 720000000, 1350000),
-+	OPP_INITIALIZER("mpu", false, 720000000, 1350001),
+> I also don't know how our unaligned fixup will behave with an unaligned
+> LDREX/STREX without checking the bit patterns.
 
-Or will I fall into a (post)divider trap where the kernel panics because it can't do that exact voltage?
+Making ldrex/strex always fault means that we also need to make the 
+alignment fixup code produce a SIGBUS, or panic the kernel if in atomic 
+context.
 
-The TRM[1] chickens out with the OPP definitions:
+> So... I think that's too many unknowns to rely on it, especially when
+> filesystem data is at stake.
+> 
+> Maybe changing it to:
+> 
+> 	ands	ip, r1, #3
+> 	strneb	r1, [ip]
+> 
+> instead?
 
------------------->8---------------------------------------------------------------
-Six generic processor OPPs can be defined as:
-1. OPP6 (VDD1 = v4, (MPU_CLK = fmpu5, IVA2_CLK = fiva5))
-2. OPP5 (VDD1 = v4, (MPU_CLK = fmpu4, IVA2_CLK = fiva4))
-3. OPP4 (VDD1 = v3, (MPU_CLK = fmpu3, IVA2_CLK = fiva3))
-4. OPP3 (VDD1 = v2 , (MPU_CLK = fmpu2, IVA2_CLK = fiva2))
-5. OPP2 (VDD1 = v1 , (MPU_CLK = fmpu1, IVA2_CLK = fiva1))
-6. OPP1 (VDD1 = v0 , (MPU_CLK = fmpu0, IVA2_CLK = fiva0))
-where v4 > v3 > v2 > v1 > v0,
-------------------8<---------------------------------------------------------------
+Sure.  That would solve the T2 issue.  Eventually we could revisit the 
+need for this assertion here once the above is done.
 
-My limited sample size of 3 board (2x beagle C4, 1x overo tide) shows 600MHz@1.3V works as well, but I don't know how much slack that has. And I haven't check if the hardware can do 1.3V exactly or has rounded up.
 
-So, what's the quickest way with the current code to get 720MHz "working"? I've voided my warranty on everything already, so that isn't a problem :)
-
-regards,
-
-Koen
-
-[1] spruf98m.pdf page 355
+Nicolas
