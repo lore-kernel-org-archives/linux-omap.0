@@ -1,54 +1,364 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: State of LDP3430 platform
-Date: Mon, 17 Jan 2011 17:25:42 -0800
-Message-ID: <20110118012541.GN4957@atomide.com>
-References: <20101206125526.GC31777@n2100.arm.linux.org.uk>
- <20101206181913.GH8345@atomide.com>
- <alpine.DEB.2.00.1012061125400.13430@utopia.booyaka.com>
- <20101207083720.GB18336@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1012071745120.13430@utopia.booyaka.com>
- <alpine.DEB.2.00.1012072012000.13430@utopia.booyaka.com>
- <20110115000301.GT4957@atomide.com>
- <alpine.DEB.2.00.1101151237240.32245@utopia.booyaka.com>
- <20110115233744.GA18159@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1101152028580.13225@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Armando Uribe <x0095078@ti.com>
+Subject: [PATCH 12/12] staging:tidspbridge - set12 remove hungarian from structs
+Date: Mon, 17 Jan 2011 21:19:14 -0600
+Message-ID: <1295320754-21316-13-git-send-email-x0095078__29928.326936397$1295319968$gmane$org@ti.com>
+References: <1295320754-21316-1-git-send-email-x0095078@ti.com>
+ <1295320754-21316-2-git-send-email-x0095078@ti.com>
+ <1295320754-21316-3-git-send-email-x0095078@ti.com>
+ <1295320754-21316-4-git-send-email-x0095078@ti.com>
+ <1295320754-21316-5-git-send-email-x0095078@ti.com>
+ <1295320754-21316-6-git-send-email-x0095078@ti.com>
+ <1295320754-21316-7-git-send-email-x0095078@ti.com>
+ <1295320754-21316-8-git-send-email-x0095078@ti.com>
+ <1295320754-21316-9-git-send-email-x0095078@ti.com>
+ <1295320754-21316-10-git-send-email-x0095078@ti.com>
+ <1295320754-21316-11-git-send-email-x0095078@ti.com>
+ <1295320754-21316-12-git-send-email-x0095078@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:32033 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753122Ab1ARBZ4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 20:25:56 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1101152028580.13225@utopia.booyaka.com>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:36253 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753697Ab1ARDEy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Jan 2011 22:04:54 -0500
+In-Reply-To: <1295320754-21316-12-git-send-email-x0095078@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Ohad Ben-Cohen <ohad@wizery>
+Cc: Rene Sapiens <rene.sapiens@ti.com>, Armando Uribe <x0095078@ti.com>
 
-Hi,
+From: Rene Sapiens <rene.sapiens@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [110115 20:31]:
-> --- a/arch/arm/mach-omap1/time.c
-> +++ b/arch/arm/mach-omap1/time.c
-> @@ -244,6 +244,13 @@ static void __init omap_timer_init(void)
->  
->  	omap_init_mpu_timer(rate);
->  	omap_init_clocksource(rate);
-> +	/*
-> +	 * XXX Since this file seems to deal mostly with the MPU timer,
-> +	 * this doesn't seem like the correct place for the sync timer
-> +	 * clocksource init.
-> +	 */
-> +	if (!cpu_is_omap7xx() && !cpu_is_omap15xx())
-> +		omap_init_clocksource_32k();
->  }
->  
->  struct sys_timer omap_timer = {
+hungarian notation will be removed from the elements inside
+structures, the next varibles will be renamed:
 
-To me it looks like the omap_init_clocksource_32k() call should be
-in arch/arm/mach-omap1/timer32k.c instead.
+Original:               Replacement:
+dw_buf_size             buf_size
+dw_bytes                bytes
+pattr                   attr
+pdw_arg                 arg
+ph_cmm_mgr              cmm_mgr
+ph_event                event
+ph_node                 node
+ph_stream               stream
+pmask                   mask
+pp_argv                 argv
+pp_buf_va               buf_va
+pstatus                 status
+ul_flags                flags
+ul_seg_id               seg_id
+usize                   size
 
-Regards,
+Signed-off-by: Rene Sapiens <rene.sapiens@ti.com>
+Signed-off-by: Armando Uribe <x0095078@ti.com>
+---
+ .../tidspbridge/include/dspbridge/dspapi-ioctl.h   |   42 ++++++++++----------
+ drivers/staging/tidspbridge/pmgr/dspapi.c          |   40 +++++++++---------
+ 2 files changed, 41 insertions(+), 41 deletions(-)
 
-Tony
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h b/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h
+index 6d1e33e..6ff8082 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dspapi-ioctl.h
+@@ -156,7 +156,7 @@ union trapped_args {
+ 		void *processor;
+ 		void *mpu_addr;
+ 		u32 size;
+-		u32 ul_flags;
++		u32 flags;
+ 	} args_proc_flushmemory;
+ 
+ 	struct {
+@@ -171,13 +171,13 @@ union trapped_args {
+ 		struct dsp_uuid __user *node_id_ptr;
+ 		struct dsp_cbdata __user *args;
+ 		struct dsp_nodeattrin __user *attr_in;
+-		void *__user *ph_node;
++		void *__user *node;
+ 	} args_node_allocate;
+ 
+ 	struct {
+ 		void *node;
+-		u32 usize;
+-		struct dsp_bufferattr __user *pattr;
++		u32 size;
++		struct dsp_bufferattr __user *attr;
+ 		u8 *__user *buffer;
+ 	} args_node_allocmsgbuf;
+ 
+@@ -191,7 +191,7 @@ union trapped_args {
+ 		u32 stream_id;
+ 		void *other_node;
+ 		u32 other_stream;
+-		struct dsp_strmattr __user *pattrs;
++		struct dsp_strmattr __user *attrs;
+ 		struct dsp_cbdata __user *conn_param;
+ 	} args_node_connect;
+ 
+@@ -205,13 +205,13 @@ union trapped_args {
+ 
+ 	struct {
+ 		void *node;
+-		struct dsp_bufferattr __user *pattr;
++		struct dsp_bufferattr __user *attr;
+ 		u8 *buffer;
+ 	} args_node_freemsgbuf;
+ 
+ 	struct {
+ 		void *node;
+-		struct dsp_nodeattr __user *pattr;
++		struct dsp_nodeattr __user *attr;
+ 		u32 attr_size;
+ 	} args_node_getattr;
+ 
+@@ -244,7 +244,7 @@ union trapped_args {
+ 
+ 	struct {
+ 		void *node;
+-		int __user *pstatus;
++		int __user *status;
+ 	} args_node_terminate;
+ 
+ 	struct {
+@@ -257,7 +257,7 @@ union trapped_args {
+ 
+ 	struct {
+ 		void *stream;
+-		u32 usize;
++		u32 size;
+ 		u8 *__user *ap_buffer;
+ 		u32 num_bufs;
+ 	} args_strm_allocatebuffer;
+@@ -274,7 +274,7 @@ union trapped_args {
+ 
+ 	struct {
+ 		void *stream;
+-		void **ph_event;
++		void **event;
+ 	} args_strm_geteventhandle;
+ 
+ 	struct {
+@@ -291,8 +291,8 @@ union trapped_args {
+ 	struct {
+ 		void *stream;
+ 		u8 *buffer;
+-		u32 dw_bytes;
+-		u32 dw_buf_size;
++		u32 bytes;
++		u32 buf_size;
+ 		u32 arg;
+ 	} args_strm_issue;
+ 
+@@ -301,7 +301,7 @@ union trapped_args {
+ 		u32 direction;
+ 		u32 index;
+ 		struct strm_attr __user *attr_in;
+-		void *__user *ph_stream;
++		void *__user *stream;
+ 	} args_strm_open;
+ 
+ 	struct {
+@@ -309,7 +309,7 @@ union trapped_args {
+ 		u8 *__user *buf_ptr;
+ 		u32 __user *bytes;
+ 		u32 __user *buf_size_ptr;
+-		u32 __user *pdw_arg;
++		u32 __user *arg;
+ 	} args_strm_reclaim;
+ 
+ 	struct {
+@@ -322,27 +322,27 @@ union trapped_args {
+ 	struct {
+ 		void *__user *stream_tab;
+ 		u32 strm_num;
+-		u32 __user *pmask;
++		u32 __user *mask;
+ 		u32 timeout;
+ 	} args_strm_select;
+ 
+ 	/* CMM Module */
+ 	struct {
+ 		struct cmm_object *cmm_mgr;
+-		u32 usize;
+-		struct cmm_attrs *pattrs;
+-		void **pp_buf_va;
++		u32 size;
++		struct cmm_attrs *attrs;
++		void **buf_va;
+ 	} args_cmm_allocbuf;
+ 
+ 	struct {
+ 		struct cmm_object *cmm_mgr;
+ 		void *buf_pa;
+-		u32 ul_seg_id;
++		u32 seg_id;
+ 	} args_cmm_freebuf;
+ 
+ 	struct {
+ 		void *processor;
+-		struct cmm_object *__user *ph_cmm_mgr;
++		struct cmm_object *__user *cmm_mgr;
+ 	} args_cmm_gethandle;
+ 
+ 	struct {
+@@ -353,7 +353,7 @@ union trapped_args {
+ 	/* UTIL module */
+ 	struct {
+ 		s32 util_argc;
+-		char **pp_argv;
++		char **argv;
+ 	} args_util_testdll;
+ };
+ 
+diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/staging/tidspbridge/pmgr/dspapi.c
+index 52717d9..767ffe2 100644
+--- a/drivers/staging/tidspbridge/pmgr/dspapi.c
++++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
+@@ -721,14 +721,14 @@ u32 procwrap_flush_memory(union trapped_args *args, void *pr_ctxt)
+ {
+ 	int status;
+ 
+-	if (args->args_proc_flushmemory.ul_flags >
++	if (args->args_proc_flushmemory.flags >
+ 	    PROC_WRITEBACK_INVALIDATE_MEM)
+ 		return -EINVAL;
+ 
+ 	status = proc_flush_memory(pr_ctxt,
+ 				   args->args_proc_flushmemory.mpu_addr,
+ 				   args->args_proc_flushmemory.size,
+-				   args->args_proc_flushmemory.ul_flags);
++				   args->args_proc_flushmemory.flags);
+ 	return status;
+ }
+ 
+@@ -1129,7 +1129,7 @@ u32 nodewrap_allocate(union trapped_args *args, void *pr_ctxt)
+ 	}
+ 	if (!status) {
+ 		nodeid = node_res->id + 1;
+-		CP_TO_USR(args->args_node_allocate.ph_node, &nodeid,
++		CP_TO_USR(args->args_node_allocate.node, &nodeid,
+ 			status, 1);
+ 		if (status) {
+ 			status = -EFAULT;
+@@ -1159,11 +1159,11 @@ u32 nodewrap_alloc_msg_buf(union trapped_args *args, void *pr_ctxt)
+ 	if (!node_res)
+ 		return -EFAULT;
+ 
+-	if (!args->args_node_allocmsgbuf.usize)
++	if (!args->args_node_allocmsgbuf.size)
+ 		return -EINVAL;
+ 
+-	if (args->args_node_allocmsgbuf.pattr) {	/* Optional argument */
+-		CP_FM_USR(&attr, args->args_node_allocmsgbuf.pattr, status, 1);
++	if (args->args_node_allocmsgbuf.attr) {	/* Optional argument */
++		CP_FM_USR(&attr, args->args_node_allocmsgbuf.attr, status, 1);
+ 		if (!status)
+ 			pattr = &attr;
+ 
+@@ -1172,7 +1172,7 @@ u32 nodewrap_alloc_msg_buf(union trapped_args *args, void *pr_ctxt)
+ 	CP_FM_USR(&pbuffer, args->args_node_allocmsgbuf.buffer, status, 1);
+ 	if (!status) {
+ 		status = node_alloc_msg_buf(node_res->node,
+-					    args->args_node_allocmsgbuf.usize,
++					    args->args_node_allocmsgbuf.size,
+ 					    pattr, &pbuffer);
+ 	}
+ 	CP_TO_USR(args->args_node_allocmsgbuf.buffer, &pbuffer, status, 1);
+@@ -1253,8 +1253,8 @@ u32 nodewrap_connect(union trapped_args *args, void *pr_ctxt)
+ 		if (status)
+ 			goto func_cont;
+ 	}
+-	if (args->args_node_connect.pattrs) {	/* Optional argument */
+-		CP_FM_USR(&attrs, args->args_node_connect.pattrs, status, 1);
++	if (args->args_node_connect.attrs) {	/* Optional argument */
++		CP_FM_USR(&attrs, args->args_node_connect.attrs, status, 1);
+ 		if (!status)
+ 			pattrs = &attrs;
+ 
+@@ -1323,8 +1323,8 @@ u32 nodewrap_free_msg_buf(union trapped_args *args, void *pr_ctxt)
+ 	if (!node_res)
+ 		return -EFAULT;
+ 
+-	if (args->args_node_freemsgbuf.pattr) {	/* Optional argument */
+-		CP_FM_USR(&attr, args->args_node_freemsgbuf.pattr, status, 1);
++	if (args->args_node_freemsgbuf.attr) {	/* Optional argument */
++		CP_FM_USR(&attr, args->args_node_freemsgbuf.attr, status, 1);
+ 		if (!status)
+ 			pattr = &attr;
+ 
+@@ -1358,7 +1358,7 @@ u32 nodewrap_get_attr(union trapped_args *args, void *pr_ctxt)
+ 
+ 	status = node_get_attr(node_res->node, &attr,
+ 			       args->args_node_getattr.attr_size);
+-	CP_TO_USR(args->args_node_getattr.pattr, &attr, status, 1);
++	CP_TO_USR(args->args_node_getattr.attr, &attr, status, 1);
+ 
+ 	return status;
+ }
+@@ -1495,7 +1495,7 @@ u32 nodewrap_terminate(union trapped_args *args, void *pr_ctxt)
+ 
+ 	status = node_terminate(node_res->node, &tempstatus);
+ 
+-	CP_TO_USR(args->args_node_terminate.pstatus, &tempstatus, status, 1);
++	CP_TO_USR(args->args_node_terminate.status, &tempstatus, status, 1);
+ 
+ 	return status;
+ }
+@@ -1564,7 +1564,7 @@ u32 strmwrap_allocate_buffer(union trapped_args *args, void *pr_ctxt)
+ 		return -ENOMEM;
+ 
+ 	status = strm_allocate_buffer(strm_res,
+-				      args->args_strm_allocatebuffer.usize,
++				      args->args_strm_allocatebuffer.size,
+ 				      ap_buffer, num_bufs, pr_ctxt);
+ 	if (!status) {
+ 		CP_TO_USR(args->args_strm_allocatebuffer.ap_buffer, ap_buffer,
+@@ -1715,8 +1715,8 @@ u32 strmwrap_issue(union trapped_args *args, void *pr_ctxt)
+ 	   in chnl_sm.c */
+ 	status = strm_issue(strm_res->stream,
+ 			    args->args_strm_issue.buffer,
+-			    args->args_strm_issue.dw_bytes,
+-			    args->args_strm_issue.dw_buf_size,
++			    args->args_strm_issue.bytes,
++			    args->args_strm_issue.buf_size,
+ 			    args->args_strm_issue.arg);
+ 
+ 	return status;
+@@ -1756,7 +1756,7 @@ u32 strmwrap_open(union trapped_args *args, void *pr_ctxt)
+ 			   pr_ctxt);
+ 	if (!status) {
+ 		strmid = strm_res_obj->id + 1;
+-		CP_TO_USR(args->args_strm_open.ph_stream, &strmid, status, 1);
++		CP_TO_USR(args->args_strm_open.stream, &strmid, status, 1);
+ 	}
+ 	return status;
+ }
+@@ -1782,7 +1782,7 @@ u32 strmwrap_reclaim(union trapped_args *args, void *pr_ctxt)
+ 			      &ul_bytes, &ul_buf_size, &dw_arg);
+ 	CP_TO_USR(args->args_strm_reclaim.buf_ptr, &buf_ptr, status, 1);
+ 	CP_TO_USR(args->args_strm_reclaim.bytes, &ul_bytes, status, 1);
+-	CP_TO_USR(args->args_strm_reclaim.pdw_arg, &dw_arg, status, 1);
++	CP_TO_USR(args->args_strm_reclaim.arg, &dw_arg, status, 1);
+ 
+ 	if (args->args_strm_reclaim.buf_size_ptr != NULL) {
+ 		CP_TO_USR(args->args_strm_reclaim.buf_size_ptr, &ul_buf_size,
+@@ -1855,7 +1855,7 @@ u32 strmwrap_select(union trapped_args *args, void *pr_ctxt)
+ 		status = strm_select(strm_tab, args->args_strm_select.strm_num,
+ 				     &mask, args->args_strm_select.timeout);
+ 	}
+-	CP_TO_USR(args->args_strm_select.pmask, &mask, status, 1);
++	CP_TO_USR(args->args_strm_select.mask, &mask, status, 1);
+ 	return status;
+ }
+ 
+@@ -1892,7 +1892,7 @@ u32 cmmwrap_get_handle(union trapped_args *args, void *pr_ctxt)
+ 
+ 	status = cmm_get_handle(hprocessor, &hcmm_mgr);
+ 
+-	CP_TO_USR(args->args_cmm_gethandle.ph_cmm_mgr, &hcmm_mgr, status, 1);
++	CP_TO_USR(args->args_cmm_gethandle.cmm_mgr, &hcmm_mgr, status, 1);
+ 
+ 	return status;
+ }
+-- 
+1.6.3.3
+
