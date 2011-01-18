@@ -1,40 +1,37 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH 1/7] arm: plat-omap: dma: make omap_dma_in_1510_mode() static
-Date: Tue, 18 Jan 2011 09:52:39 +0200
-Message-ID: <1295337165-22934-2-git-send-email-aaro.koskinen@iki.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 7/7] arm: mach-omap1: board-voiceblue: add missing
+ include
+Date: Tue, 18 Jan 2011 10:11:56 +0200
+Message-ID: <20110118081156.GI2436@legolas.emea.dhcp.ti.com>
 References: <1295337165-22934-1-git-send-email-aaro.koskinen@iki.fi>
+ <1295337165-22934-8-git-send-email-aaro.koskinen@iki.fi>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:37517 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752446Ab1ARIAG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 03:00:06 -0500
-In-Reply-To: <1295337165-22934-1-git-send-email-aaro.koskinen@iki.fi>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:54328 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752740Ab1ARIME (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Jan 2011 03:12:04 -0500
+Received: by yxd5 with SMTP id 5so2345324yxd.20
+        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 00:12:02 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1295337165-22934-8-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Eliminates the following sparse warning:
+On Tue, Jan 18, 2011 at 09:52:45AM +0200, Aaro Koskinen wrote:
+> Eliminates the following sparse warnings:
+> 
+> 	arch/arm/mach-omap1/board-voiceblue.c:253:6: warning: symbol 'voiceblue_wdt_enable' was not declared. Should it be static?
+> 	arch/arm/mach-omap1/board-voiceblue.c:261:6: warning: symbol 'voiceblue_wdt_disable' was not declared. Should it be static?
+> 	arch/arm/mach-omap1/board-voiceblue.c:269:6: warning: symbol 'voiceblue_wdt_ping' was not declared. Should it be static?
+> 	arch/arm/mach-omap1/board-voiceblue.c:278:6: warning: symbol 'voiceblue_reset' was not declared. Should it be static?
 
-	arch/arm/plat-omap/dma.c:137:5: warning: symbol 'omap_dma_in_1510_mode' was not declared. Should it be static?
+wasn't this caused by previous patch ?
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- arch/arm/plat-omap/dma.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index c4b2b47..28cdac2 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -134,7 +134,7 @@ static inline void omap_enable_channel_irq(int lch);
- 
- #ifdef CONFIG_ARCH_OMAP15XX
- /* Returns 1 if the DMA module is in OMAP1510-compatible mode, 0 otherwise */
--int omap_dma_in_1510_mode(void)
-+static int omap_dma_in_1510_mode(void)
- {
- 	return enable_1510_mode;
- }
 -- 
-1.5.6.5
-
+balbi
