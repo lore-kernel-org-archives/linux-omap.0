@@ -1,29 +1,48 @@
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: Re: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
-Date: Tue, 18 Jan 2011 16:30:41 +0200
-Message-ID: <20110118143041.GA13576@shutemov.name>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 01/14] ARM: bitops: ensure set/clear/change bitops take
+	a word-aligned pointer
+Date: Tue, 18 Jan 2011 14:30:33 +0000
+Message-ID: <20110118143033.GD10997@n2100.arm.linux.org.uk>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk> <E1Peudk-0003SJ-Aj@rmk-PC.arm.linux.org.uk> <alpine.LFD.2.00.1101180043140.8580@xanadu.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from shutemov.name ([188.40.19.243]:43523 "EHLO shutemov.name"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750865Ab1AROam (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Jan 2011 09:30:42 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36224 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750865Ab1AROap (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 09:30:45 -0500
 Content-Disposition: inline
-In-Reply-To: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+In-Reply-To: <alpine.LFD.2.00.1101180043140.8580@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Nicolas Pitre <nico@fluxnic.net>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Mon, Jan 17, 2011 at 07:20:50PM +0000, Russell King - ARM Linux wrote:
-> This patch series reworks the ARMv6/ARMv6K support options, code
-> selection, and bit operations such that it's possible to safely
-> build a kernel which supports ARMv6, ARMv6K, ARMv7 and ARMv7 SMP
-> in one image.
+On Tue, Jan 18, 2011 at 01:00:21AM -0500, Nicolas Pitre wrote:
+> I also wonder what happens with a misaligned ldrex/strex... Does the 
+> alignment trap get invoked?  If so, the assertion could be put there 
+> instead if that's not done already, removing this overhead from bitops 
+> calls.  In the pre-ARMv6 case the alignment trap fixup would be applied 
+> as usual since the ldr/str are not special, but the previous code 
+> allowed for misaligned pointer so result would be no worse than before 
+> in that case.  Testing appears to indicate those misaligned bitops are 
+> rather nonexistent so far.
 
-Is it posible to implement CPU_ARCH_ARMv6K as well for runtime checks?
+Well, whether LDREX/STREX always fault for misalignment is well open to
+debate.  The ARM ARM for ARMv7 seems to imply they will always fault for
+misaligned accesses.  For ARMv6, the situation is less clear - the way
+the manual is arranged, it suggests that they will if SCTLR.U is set.
+When it's clear, the ARM ARM doesn't specify what the outcome is.
 
--- 
- Kirill A. Shutemov
+I also don't know how our unaligned fixup will behave with an unaligned
+LDREX/STREX without checking the bit patterns.
+
+So... I think that's too many unknowns to rely on it, especially when
+filesystem data is at stake.
+
+Maybe changing it to:
+
+	ands	ip, r1, #3
+	strneb	r1, [ip]
+
+instead?
