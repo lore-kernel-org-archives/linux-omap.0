@@ -1,45 +1,64 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v4 1/4] TI816X: Update common omap platform files
-Date: Mon, 17 Jan 2011 17:08:27 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101171707070.13225@utopia.booyaka.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH v4 1/4] TI816X: Update common omap platform files
+Date: Tue, 18 Jan 2011 06:37:36 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036A8346C3@dbde02.ent.ti.com>
 References: <1294677465-18658-1-git-send-email-hemantp@ti.com>
+ <alpine.DEB.2.00.1101171707070.13225@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1685402688-1295309307=:13225"
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40980 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753215Ab1ARAI2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 19:08:28 -0500
-In-Reply-To: <1294677465-18658-1-git-send-email-hemantp@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43474 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753241Ab1ARBHr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2011 20:07:47 -0500
+In-Reply-To: <alpine.DEB.2.00.1101171707070.13225@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemant Pedanekar <hemantp@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@deeprootsystems.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Paul Walmsley wrote on Tuesday, January 18, 2011 5:38 AM:
 
---155748971-1685402688-1295309307=:13225
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+> Hello Hemant,
+>=20
+> On Mon, 10 Jan 2011, Hemant Pedanekar wrote:
+>=20
+>>  2) OMAP3 only build with CONFIG_SOC_OMAPTI816X: This will build TI8=
+16X
+>>  optimized kernel. May not boot on other OMAP3 SoCs.
+>=20
+> ...
+>=20
+>> Note that OMAP3 only build with support for OMAP3 SoCs as well as TI=
+816X
+>> is not possible.
+>=20
+> Could you explain a little bit why this is not possible? Na=EFvely, t=
+o me,
+> it seems that it should be possible.
+>=20
+>=20
+> - Paul
 
-Hello Hemant,
+Hi Paul,
+You are correct, the OMAP3 only kernel built with TI816X also boots on
+OMAP3 EVM. But my main concern is with cpu_is_ti816x becoming true for =
+this
+build (optimized build for TI816X only), some of the OMAP3 related part
+will be skipped. E.g.,
 
-On Mon, 10 Jan 2011, Hemant Pedanekar wrote:
+-       if (omap_rev() >=3D OMAP3430_REV_ES2_0)    =20
++       if (!cpu_is_ti816x() && (omap_rev() >=3D OMAP3430_REV_ES2_0))=20
+                omap3_clk_lock_dpll5();=20
 
->  2) OMAP3 only build with CONFIG_SOC_OMAPTI816X: This will build TI816X
->  optimized kernel. May not boot on other OMAP3 SoCs.
+Thanks
+-
+Hemant
 
-=2E..
-
-> Note that OMAP3 only build with support for OMAP3 SoCs as well as TI816X =
-is not
-> possible.
-
-Could you explain a little bit why this is not possible?  Na=EFvely, to me,=
-=20
-it seems that it should be possible.
-
-
-- Paul
---155748971-1685402688-1295309307=:13225--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
