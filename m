@@ -1,66 +1,76 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 04/14] ARM: v6k: introduce CPU_V6K option
-Date: Tue, 18 Jan 2011 13:35:59 +0000
-Message-ID: <20110118133559.GC10997@n2100.arm.linux.org.uk>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk> <E1Peuej-0003SV-Dn@rmk-PC.arm.linux.org.uk> <000601cbb6fb$8465c620$8d315260$@deacon@arm.com> <20110118110922.GB10997@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH v4 0/6] OMAP: McSPI: Hwmod adaptation + runtime conversion
+Date: Tue, 18 Jan 2011 19:22:33 +0530
+Message-ID: <1295358759-11731-1-git-send-email-govindraj.raja@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35580 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751190Ab1ARNgS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 08:36:18 -0500
-Content-Disposition: inline
-In-Reply-To: <20110118110922.GB10997@n2100.arm.linux.org.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:45248 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751018Ab1ARNhl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Jan 2011 08:37:41 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org
+Cc: grant.likely@secretlab.ca, charu@ti.com, b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, tony@atomide.com, "Govindraj.R" <govindraj.raja@ti.com>
 
-On Tue, Jan 18, 2011 at 11:09:22AM +0000, Russell King - ARM Linux wrote:
-> I'd rather not in this patch - this patch adds CPU_V6K as an alias for
-> CPU_V6 - so eveywhere which referenced CPU_V6 becomes (CPU_V6 || CPU_V6K).
-> We could remove it in a later patch though.
+Changes invloves:
+----------------
+1) Addition of hwmod data for omap2/3/4.
+2) McSPI driver hwmod adaptation with cleanup of base address
+   macros and using omap-device API's.
+3) Runtime Conversion of McSPI driver.
 
-Here's a follow-up patch to do that.  There's a few other things which
-could do with updating now that we have CPU_Vx* straightened out.  I've
-also recently noticed that the v6 and v7 cache stuff doesn't use the
-direct-call optimization (see commented out bits in cacheflush.h).
+Changes fomr v3:
+---------------
+1) Updated proper Author for all patches which was missed
+   in v2. 
+2) Modified 4430 hwmod data file so that mcspi data gets
+   updated in proper alphabetical order.
+3) Update omap2/3 hwmod dat files with SYSS_HAS_RESET_STATUS
+   flag.
 
-That was because my original V6 support used the block cache operations,
-which had to be run-time tested for presence, and so modified the
-global cpu_cache methods directly.  As the block cache stuff was dropped,
-we should re-enable this optimization.
+Changes from v2:
+---------------
+1) Fixing minor comments and adding ack from Grant Likely.
+	https://patchwork.kernel.org/patch/371321/
+	https://patchwork.kernel.org/patch/371331/
 
-That said, I'd rather not add too much to this series as I think it needs
-to go into mainline ASAP - and probably stable as well, even though it's
-on the large side - once properly and fully tested.
+Changes from v1:
+---------------
+1) Fixing patch 5/5 comments for hwmod+runtime
+  Split the patch 5/5 to hwmod adaptation
+  and then runtime conversion
+  http://www.mail-archive.com/linux-omap@vger.kernel.org/msg33387.html
 
-8<----
-Subject: [PATCH] ARM: v6k: DMA_CACHE_RWFO isn't appropriate for non-v6k CPUs
+Testing Updates:
+----------------
+Was tested using data transfer test module available at:
+http://dev.omapzoom.org/?p=richo/device_driver_test.git;a=blob;f=mcspi/test_code/
+utils/mcspi_modules/omap_mcspi_datatest.c;
+h=e42ec10c5c844abdde6a7175a268b379fbbdb655;
+hb=5d9a755d50e58de861c5e8991f2f607bc49b5dc3
+This test basically involves MISO <--> MOSI lines looped and data transfer test
+done using the above test module.
+System wide suspend and ret/off counts observation, ensured that no behavioral
+difference with and without this patch series.
 
-Limit DMA_CACHE_RWFO to only v6k SMP CPUs - V6 CPUs aren't SMP capable,
-so the read/write for ownership work-around doesn't apply to them.
+Benoit Cousson (1):
+  OMAP4: hwmod data: Add McSPI
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/mm/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Charulatha V (4):
+  OMAP2420: hwmod data: Add McSPI
+  OMAP2430: hwmod data: Add McSPI
+  OMAP3: hwmod data: Add McSPI
+  OMAP: devices: Modify McSPI device to adapt to hwmod framework
 
-diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
-index 843bc8c..808b832 100644
---- a/arch/arm/mm/Kconfig
-+++ b/arch/arm/mm/Kconfig
-@@ -775,7 +775,7 @@ config NEEDS_SYSCALL_FOR_CMPXCHG
- 
- config DMA_CACHE_RWFO
- 	bool "Enable read/write for ownership DMA cache maintenance"
--	depends on (CPU_V6 || CPU_V6K) && SMP
-+	depends on CPU_V6K && SMP
- 	default y
- 	help
- 	  The Snoop Control Unit on ARM11MPCore does not detect the
--- 
-1.6.2.5
+Govindraj.R (1):
+  OMAP: runtime: McSPI driver runtime conversion
 
+ arch/arm/mach-omap2/devices.c              |  187 ++++---------------
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |  156 ++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |  219 ++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  280 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  266 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/mcspi.h    |   11 +
+ drivers/spi/omap2_mcspi.c                  |  224 +++++++---------------
+ 7 files changed, 1043 insertions(+), 300 deletions(-)
 
