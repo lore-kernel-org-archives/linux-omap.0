@@ -1,61 +1,59 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC+CFT] Use word operations in bitops
-Date: Tue, 18 Jan 2011 16:28:58 +0000
-Message-ID: <20110118162858.GA17398@n2100.arm.linux.org.uk>
-References: <20110116121911.GB27542@n2100.arm.linux.org.uk> <20110117100857.GS6917@pengutronix.de> <20110117104618.GB18626@n2100.arm.linux.org.uk> <20110118153257.GA10686@pengutronix.de> <20110118154344.GG10997@n2100.arm.linux.org.uk> <20110118155851.GC10686@pengutronix.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
+Date: Tue, 18 Jan 2011 18:49:01 +0200
+Message-ID: <4D35C47D.6000102@ti.com>
+References: <1295336995-15831-1-git-send-email-premi@ti.com> <789E54BD-D2B6-4B98-B9B8-19688E415E39@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40456 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967Ab1ARQaM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 11:30:12 -0500
-Content-Disposition: inline
-In-Reply-To: <20110118155851.GC10686@pengutronix.de>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:47901 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751199Ab1ARQtG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Jan 2011 11:49:06 -0500
+Received: by mail-bw0-f45.google.com with SMTP id 16so3819122bwz.18
+        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 08:49:04 -0800 (PST)
+In-Reply-To: <789E54BD-D2B6-4B98-B9B8-19688E415E39@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: Sanjeev Premi <premi@ti.com>, l-o List <linux-omap@vger.kernel.org>, thara@ti.com, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-On Tue, Jan 18, 2011 at 04:58:51PM +0100, Uwe Kleine-K=F6nig wrote:
-> Hello Russell,
->=20
-> On Tue, Jan 18, 2011 at 03:43:44PM +0000, Russell King - ARM Linux wr=
-ote:
-> > On Tue, Jan 18, 2011 at 04:32:57PM +0100, Uwe Kleine-K=F6nig wrote:
-> > > On Mon, Jan 17, 2011 at 10:46:18AM +0000, Russell King - ARM Linu=
-x wrote:
-> > I will continue to mail out patches which I want people to test and=
- give
-> > feedback on, because that is the _only_ way to do it.
-> Note that I didn't suggest to stop sending out patches and collecting
-> the acks and tested-bys there.  The automated tests are just a differ=
-ent
-> test.
->=20
-> And IMHO it's not harder to reply with a git commit-id, but it makes =
-it
-> more likely that a reply to a wrong mail is detected.
+Koen Kooi wrote, on 01/18/2011 05:38 PM:
+>
+> Op 18 jan 2011, om 08:49 heeft Sanjeev Premi het volgende geschreven:
+>
+>> This patch adds support for new speed enhanced parts with ARM
+>> and IVA running at 720MHz and 520MHz respectively. These parts
+>> can be probed at run-time by reading PRODID.SKUID[3:0] at
+>> 0x4830A20C [1].
+>>
+>> This patch specifically does following:
+>> * Detect devices capable of 720MHz.
+>> * Add new OPP
+>> * Ensure that OPP is conditionally enabled.
+>> * Check for presence of IVA before attempting to enable
+>>    the corresponding OPP.
+>
+> Thanks for the updated patch!
+>
+> I'm still having problem using this together with DVFS, the kernel won't scale beyond 600MHz because 600MHz and 720MHz share the same voltage. Thara, Nishant, do you have any suggestions on how to convince the kernel that 2 frequencies can share the same voltage settings?
++ Vishwa
 
-No.  Take a moment and think.
+>
+> If that isn't possible, should we lower the voltages for the lower opps when detecting a 720MHz capable SoC? It would make sense that if 720MHz works at X volt that 600MHz would work at less  than X volt. (I don't have a PDF reader at hand to check the TRM at the moment).
+>
+> Complete tree at http://dominion.thruhere.net/git/cgit.cgi/linux-omap/log/?h=koen/beagle-next but this can be reproduced as well by merging Thara's dvfs branch and applying Sanjeevs patch.
+I suspect the problem lies here:
 
-Two people pull the commits one evening.  One gets in during GMT mornin=
-g,
-checks their tests, and reports "git commit X passed, have this Tested-=
-by".
-So, their tested-by is added to the commit, which changes the git ID to
-Y.
+http://dominion.thruhere.net/git/cgit.cgi/linux-omap/tree/arch/arm/mach-omap2/voltage.c?h=koen/beagle-next#n1847
+if two OPP frequencies have same voltage, the api introduced in
+http://dominion.thruhere.net/git/cgit.cgi/linux-omap/commit/?h=koen/beagle-next&id=fd2991c20a8f770c7b8f5a29b3cbb17b9fca4768
 
-Second person gets in during GMT afternoon, and reports "git commit X
-passed."  Now instead of looking in the current branch, I'd have to
-cross-reference it back to what was originally there, check that's
-what they actually meant, look that up in the new branch, and apply
-their tested-by to that instead.
+will return back the first OPP entry which matches, which would be the 
+lower frequency as OPPs are organized in the OPP layer in increasing order.
 
-More complicated means more things to go wrong.  No thank you.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Nishanth Menon
