@@ -1,578 +1,433 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 2/5] OMAP: clockdomain: Arch specific funcs to handle deps
-Date: Tue, 18 Jan 2011 19:57:37 +0530
-Message-ID: <1295360860-26490-3-git-send-email-rnayak@ti.com>
+Subject: [PATCH v2 5/5] OMAP: clockdomain: Arch specific funcs for clkdm_clk_enable/disable
+Date: Tue, 18 Jan 2011 19:57:40 +0530
+Message-ID: <1295360860-26490-6-git-send-email-rnayak@ti.com>
 References: <1295360860-26490-1-git-send-email-rnayak@ti.com>
  <1295360860-26490-2-git-send-email-rnayak@ti.com>
+ <1295360860-26490-3-git-send-email-rnayak@ti.com>
+ <1295360860-26490-4-git-send-email-rnayak@ti.com>
+ <1295360860-26490-5-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53199 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751899Ab1ARO1t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Jan 2011 09:27:49 -0500
-In-Reply-To: <1295360860-26490-2-git-send-email-rnayak@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47366 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752123Ab1ARO1x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 09:27:53 -0500
+In-Reply-To: <1295360860-26490-5-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, b-cousson@ti.com, khilman@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-Define the following architecture specific funtions for omap2/3
-.clkdm_add_wkdep
-.clkdm_del_wkdep
-.clkdm_read_wkdep
-.clkdm_clear_all_wkdeps
-.clkdm_add_sleepdep
-.clkdm_del_sleepdep
-.clkdm_read_sleepdep
-.clkdm_clear_all_sleepdeps
+Define the following architecture specific funtions for omap2/3/4
+.clkdm_clk_enable
+.clkdm_clk_disable
 
 Convert the platform-independent framework to call these functions.
-With this also move the clkdm lookups for all wkdep_srcs and
-sleepdep_srcs at clkdm_init.
+Also rename the api's by removing the omap2_ preamble.
+Hence call omap2_clkdm_k_enable as clkdm_clk_enable and
+omap2_clkdm_clk_disable as clkdm_clk_disable.a
+
+Remove unused functions (_enable/_disable_hwsup) and unsed
+headers from clockdomain.c file.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/Makefile                     |    2 +
- arch/arm/mach-omap2/clockdomain.c                |  160 +++++++++++-----------
- arch/arm/mach-omap2/clockdomain.h                |    6 +-
- arch/arm/mach-omap2/clockdomain2xxx_3xxx.c       |  126 +++++++++++++++++
- arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    9 +-
- arch/arm/mach-omap2/io.c                         |    6 +-
- 6 files changed, 225 insertions(+), 84 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+ arch/arm/mach-omap2/clock.c                |    6 +-
+ arch/arm/mach-omap2/clockdomain.c          |  131 +++-------------------------
+ arch/arm/mach-omap2/clockdomain.h          |    4 +-
+ arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |   69 +++++++++++++++
+ arch/arm/mach-omap2/clockdomain44xx.c      |   28 ++++++
+ 5 files changed, 114 insertions(+), 124 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 1c0c2b0..6b2824d 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -102,8 +102,10 @@ obj-$(CONFIG_ARCH_OMAP4)		+= $(powerdomain-common) \
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 2a2f152..e9625fc 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -264,7 +264,7 @@ void omap2_clk_disable(struct clk *clk)
+ 	clk->ops->disable(clk);
  
- # PRCM clockdomain control
- obj-$(CONFIG_ARCH_OMAP2)		+= clockdomain.o \
-+					   clockdomain2xxx_3xxx.o \
- 					   clockdomains2xxx_3xxx_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+= clockdomain.o \
-+					   clockdomain2xxx_3xxx.o \
- 					   clockdomains2xxx_3xxx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= clockdomain.o \
- 					   clockdomains44xx_data.o
+ 	if (clk->clkdm)
+-		omap2_clkdm_clk_disable(clk->clkdm, clk);
++		clkdm_clk_disable(clk->clkdm, clk);
+ 
+ 	if (clk->parent)
+ 		omap2_clk_disable(clk->parent);
+@@ -304,7 +304,7 @@ int omap2_clk_enable(struct clk *clk)
+ 	}
+ 
+ 	if (clk->clkdm) {
+-		ret = omap2_clkdm_clk_enable(clk->clkdm, clk);
++		ret = clkdm_clk_enable(clk->clkdm, clk);
+ 		if (ret) {
+ 			WARN(1, "clock: %s: could not enable clockdomain %s: "
+ 			     "%d\n", clk->name, clk->clkdm->name, ret);
+@@ -322,7 +322,7 @@ int omap2_clk_enable(struct clk *clk)
+ 
+ oce_err3:
+ 	if (clk->clkdm)
+-		omap2_clkdm_clk_disable(clk->clkdm, clk);
++		clkdm_clk_disable(clk->clkdm, clk);
+ oce_err2:
+ 	if (clk->parent)
+ 		omap2_clk_disable(clk->parent);
 diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 3e40184..1c461ed 100644
+index 9f1f37b..633567e 100644
 --- a/arch/arm/mach-omap2/clockdomain.c
 +++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -308,6 +308,7 @@ void clkdm_init(struct clockdomain **clkdms,
- 	struct clockdomain **c = NULL;
- 	struct clockdomain *clkdm;
- 	struct clkdm_autodep *autodep = NULL;
-+	struct clkdm_dep *cd;
+@@ -26,17 +26,8 @@
  
- 	if (!custom_funcs)
- 		WARN(1, "No custom clkdm functions registered\n");
-@@ -333,7 +334,18 @@ void clkdm_init(struct clockdomain **clkdms,
- 		else if (clkdm->flags & CLKDM_CAN_DISABLE_AUTO)
- 			omap2_clkdm_deny_idle(clkdm);
+ #include <linux/bitops.h>
  
-+		for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
-+			if (!omap_chip_is(cd->omap_chip))
-+				continue;
-+			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
-+		}
- 		clkdm_clear_all_wkdeps(clkdm);
-+
-+		for (cd = clkdm->sleepdep_srcs; cd && cd->clkdm_name; cd++) {
-+			if (!omap_chip_is(cd->omap_chip))
-+				continue;
-+			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
-+		}
- 		clkdm_clear_all_sleepdeps(clkdm);
+-#include "prm2xxx_3xxx.h"
+-#include "prm-regbits-24xx.h"
+-#include "cm2xxx_3xxx.h"
+-#include "cm-regbits-24xx.h"
+-#include "cminst44xx.h"
+-#include "prcm44xx.h"
+-
+ #include <plat/clock.h>
+-#include "powerdomain.h"
+ #include "clockdomain.h"
+-#include <plat/prcm.h>
+ 
+ /* clkdm_list contains all registered struct clockdomains */
+ static LIST_HEAD(clkdm_list);
+@@ -235,58 +226,6 @@ void _clkdm_del_autodeps(struct clockdomain *clkdm)
  	}
  }
-@@ -430,26 +442,32 @@ struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm)
- int clkdm_add_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- {
- 	struct clkdm_dep *cd;
-+	int ret = 0;
  
- 	if (!clkdm1 || !clkdm2)
- 		return -EINVAL;
- 
- 	cd = _clkdm_deps_lookup(clkdm2, clkdm1->wkdep_srcs);
--	if (IS_ERR(cd)) {
-+	if (IS_ERR(cd))
-+		ret = PTR_ERR(cd);
-+
-+	if (!arch_clkdm || !arch_clkdm->clkdm_add_wkdep)
-+		ret = -EINVAL;
-+
-+	if (ret) {
- 		pr_debug("clockdomain: hardware cannot set/clear wake up of "
- 			 "%s when %s wakes up\n", clkdm1->name, clkdm2->name);
--		return PTR_ERR(cd);
-+		return ret;
- 	}
- 
- 	if (atomic_inc_return(&cd->wkdep_usecount) == 1) {
- 		pr_debug("clockdomain: hardware will wake up %s when %s wakes "
- 			 "up\n", clkdm1->name, clkdm2->name);
- 
--		omap2_prm_set_mod_reg_bits((1 << clkdm2->dep_bit),
--				     clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
-+		ret = arch_clkdm->clkdm_add_wkdep(clkdm1, clkdm2);
- 	}
- 
--	return 0;
-+	return ret;
- }
+-/**
+- * _enable_hwsup - place a clockdomain into hardware-supervised idle
+- * @clkdm: struct clockdomain *
+- *
+- * Place the clockdomain into hardware-supervised idle mode.  No return
+- * value.
+- *
+- * XXX Should this return an error if the clockdomain does not support
+- * hardware-supervised idle mode?
+- */
+-static void _enable_hwsup(struct clockdomain *clkdm)
+-{
+-	if (cpu_is_omap24xx())
+-		omap2xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+-					       clkdm->clktrctrl_mask);
+-	else if (cpu_is_omap34xx())
+-		omap3xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+-					       clkdm->clktrctrl_mask);
+-	else if (cpu_is_omap44xx())
+-		return omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
+-						       clkdm->cm_inst,
+-						       clkdm->clkdm_offs);
+-	else
+-		BUG();
+-}
+-
+-/**
+- * _disable_hwsup - place a clockdomain into software-supervised idle
+- * @clkdm: struct clockdomain *
+- *
+- * Place the clockdomain @clkdm into software-supervised idle mode.
+- * No return value.
+- *
+- * XXX Should this return an error if the clockdomain does not support
+- * software-supervised idle mode?
+- */
+-static void _disable_hwsup(struct clockdomain *clkdm)
+-{
+-	if (cpu_is_omap24xx())
+-		omap2xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+-						clkdm->clktrctrl_mask);
+-	else if (cpu_is_omap34xx())
+-		omap3xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+-						clkdm->clktrctrl_mask);
+-	else if (cpu_is_omap44xx())
+-		return omap4_cminst_clkdm_disable_hwsup(clkdm->prcm_partition,
+-							clkdm->cm_inst,
+-							clkdm->clkdm_offs);
+-	else
+-		BUG();
+-}
+-
+ /* Public functions */
  
  /**
-@@ -465,26 +483,32 @@ int clkdm_add_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- int clkdm_del_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- {
- 	struct clkdm_dep *cd;
-+	int ret = 0;
- 
- 	if (!clkdm1 || !clkdm2)
- 		return -EINVAL;
- 
- 	cd = _clkdm_deps_lookup(clkdm2, clkdm1->wkdep_srcs);
--	if (IS_ERR(cd)) {
-+	if (IS_ERR(cd))
-+		ret = PTR_ERR(cd);
-+
-+	if (!arch_clkdm || !arch_clkdm->clkdm_del_wkdep)
-+		ret = -EINVAL;
-+
-+	if (ret) {
- 		pr_debug("clockdomain: hardware cannot set/clear wake up of "
- 			 "%s when %s wakes up\n", clkdm1->name, clkdm2->name);
--		return PTR_ERR(cd);
-+		return ret;
- 	}
- 
- 	if (atomic_dec_return(&cd->wkdep_usecount) == 0) {
- 		pr_debug("clockdomain: hardware will no longer wake up %s "
- 			 "after %s wakes up\n", clkdm1->name, clkdm2->name);
- 
--		omap2_prm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
--				       clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
-+		ret = arch_clkdm->clkdm_del_wkdep(clkdm1, clkdm2);
- 	}
- 
--	return 0;
-+	return ret;
- }
+@@ -843,7 +782,7 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+ /* Clockdomain-to-clock framework interface code */
  
  /**
-@@ -504,20 +528,26 @@ int clkdm_del_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- int clkdm_read_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- {
- 	struct clkdm_dep *cd;
-+	int ret = 0;
- 
- 	if (!clkdm1 || !clkdm2)
- 		return -EINVAL;
- 
- 	cd = _clkdm_deps_lookup(clkdm2, clkdm1->wkdep_srcs);
--	if (IS_ERR(cd)) {
-+	if (IS_ERR(cd))
-+		ret = PTR_ERR(cd);
-+
-+	if (!arch_clkdm || !arch_clkdm->clkdm_read_wkdep)
-+		ret = -EINVAL;
-+
-+	if (ret) {
- 		pr_debug("clockdomain: hardware cannot set/clear wake up of "
- 			 "%s when %s wakes up\n", clkdm1->name, clkdm2->name);
--		return PTR_ERR(cd);
-+		return ret;
- 	}
- 
- 	/* XXX It's faster to return the atomic wkdep_usecount */
--	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP,
--				       (1 << clkdm2->dep_bit));
-+	return arch_clkdm->clkdm_read_wkdep(clkdm1, clkdm2);
- }
- 
- /**
-@@ -532,27 +562,13 @@ int clkdm_read_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
+- * omap2_clkdm_clk_enable - add an enabled downstream clock to this clkdm
++ * clkdm_clk_enable - add an enabled downstream clock to this clkdm
+  * @clkdm: struct clockdomain *
+  * @clk: struct clk * of the enabled downstream clock
+  *
+@@ -856,10 +795,8 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+  * by on-chip processors.  Returns -EINVAL if passed null pointers;
+  * returns 0 upon success or if the clockdomain is in hwsup idle mode.
   */
- int clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
+-int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
++int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
  {
--	struct clkdm_dep *cd;
--	u32 mask = 0;
+-	bool hwsup = false;
 -
- 	if (!clkdm)
+ 	/*
+ 	 * XXX Rewrite this code to maintain a list of enabled
+ 	 * downstream clocks for debugging purposes?
+@@ -868,6 +805,9 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	if (!clkdm || !clk)
  		return -EINVAL;
  
--	for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
--		if (!omap_chip_is(cd->omap_chip))
--			continue;
++	if (!arch_clkdm || !arch_clkdm->clkdm_clk_enable)
++		return -EINVAL;
++
+ 	if (atomic_inc_return(&clkdm->usecount) > 1)
+ 		return 0;
+ 
+@@ -876,31 +816,7 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	pr_debug("clockdomain: clkdm %s: clk %s now enabled\n", clkdm->name,
+ 		 clk->name);
+ 
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
 -
--		if (!cd->clkdm && cd->clkdm_name)
--			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
+-		if (!clkdm->clktrctrl_mask)
+-			return 0;
 -
--		/* PRM accesses are slow, so minimize them */
--		mask |= 1 << cd->clkdm->dep_bit;
--		atomic_set(&cd->wkdep_usecount, 0);
+-		hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+-						   clkdm->clktrctrl_mask);
+-
+-	} else if (cpu_is_omap44xx()) {
+-
+-		hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
+-						       clkdm->cm_inst,
+-						       clkdm->clkdm_offs);
+-
 -	}
 -
--	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs, PM_WKDEP);
-+	if (!arch_clkdm || !arch_clkdm->clkdm_clear_all_wkdeps)
-+		return -EINVAL;
- 
--	return 0;
-+	return arch_clkdm->clkdm_clear_all_wkdeps(clkdm);
- }
- 
- /**
-@@ -570,31 +586,33 @@ int clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
- int clkdm_add_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- {
- 	struct clkdm_dep *cd;
--
--	if (!cpu_is_omap34xx())
--		return -EINVAL;
-+	int ret = 0;
- 
- 	if (!clkdm1 || !clkdm2)
- 		return -EINVAL;
- 
- 	cd = _clkdm_deps_lookup(clkdm2, clkdm1->sleepdep_srcs);
--	if (IS_ERR(cd)) {
-+	if (IS_ERR(cd))
-+		ret = PTR_ERR(cd);
-+
-+	if (!arch_clkdm || !arch_clkdm->clkdm_add_sleepdep)
-+		ret = -EINVAL;
-+
-+	if (ret) {
- 		pr_debug("clockdomain: hardware cannot set/clear sleep "
- 			 "dependency affecting %s from %s\n", clkdm1->name,
- 			 clkdm2->name);
--		return PTR_ERR(cd);
-+		return ret;
- 	}
- 
- 	if (atomic_inc_return(&cd->sleepdep_usecount) == 1) {
- 		pr_debug("clockdomain: will prevent %s from sleeping if %s "
- 			 "is active\n", clkdm1->name, clkdm2->name);
- 
--		omap2_cm_set_mod_reg_bits((1 << clkdm2->dep_bit),
--				    clkdm1->pwrdm.ptr->prcm_offs,
--				    OMAP3430_CM_SLEEPDEP);
-+		ret = arch_clkdm->clkdm_add_sleepdep(clkdm1, clkdm2);
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- /**
-@@ -612,19 +630,23 @@ int clkdm_add_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- int clkdm_del_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- {
- 	struct clkdm_dep *cd;
--
--	if (!cpu_is_omap34xx())
--		return -EINVAL;
-+	int ret = 0;
- 
- 	if (!clkdm1 || !clkdm2)
- 		return -EINVAL;
- 
- 	cd = _clkdm_deps_lookup(clkdm2, clkdm1->sleepdep_srcs);
--	if (IS_ERR(cd)) {
-+	if (IS_ERR(cd))
-+		ret = PTR_ERR(cd);
-+
-+	if (!arch_clkdm || !arch_clkdm->clkdm_del_sleepdep)
-+		ret = -EINVAL;
-+
-+	if (ret) {
- 		pr_debug("clockdomain: hardware cannot set/clear sleep "
- 			 "dependency affecting %s from %s\n", clkdm1->name,
- 			 clkdm2->name);
--		return PTR_ERR(cd);
-+		return ret;
- 	}
- 
- 	if (atomic_dec_return(&cd->sleepdep_usecount) == 0) {
-@@ -632,12 +654,10 @@ int clkdm_del_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- 			 "sleeping if %s is active\n", clkdm1->name,
- 			 clkdm2->name);
- 
--		omap2_cm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
--				      clkdm1->pwrdm.ptr->prcm_offs,
--				      OMAP3430_CM_SLEEPDEP);
-+		ret = arch_clkdm->clkdm_del_sleepdep(clkdm1, clkdm2);
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- /**
-@@ -659,25 +679,27 @@ int clkdm_del_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- int clkdm_read_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- {
- 	struct clkdm_dep *cd;
--
--	if (!cpu_is_omap34xx())
--		return -EINVAL;
-+	int ret = 0;
- 
- 	if (!clkdm1 || !clkdm2)
- 		return -EINVAL;
- 
- 	cd = _clkdm_deps_lookup(clkdm2, clkdm1->sleepdep_srcs);
--	if (IS_ERR(cd)) {
-+	if (IS_ERR(cd))
-+		ret = PTR_ERR(cd);
-+
-+	if (!arch_clkdm || !arch_clkdm->clkdm_read_sleepdep)
-+		ret = -EINVAL;
-+
-+	if (ret) {
- 		pr_debug("clockdomain: hardware cannot set/clear sleep "
- 			 "dependency affecting %s from %s\n", clkdm1->name,
- 			 clkdm2->name);
--		return PTR_ERR(cd);
-+		return ret;
- 	}
- 
- 	/* XXX It's faster to return the atomic sleepdep_usecount */
--	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
--				       OMAP3430_CM_SLEEPDEP,
--				       (1 << clkdm2->dep_bit));
-+	return arch_clkdm->clkdm_read_sleepdep(clkdm1, clkdm2);
- }
- 
- /**
-@@ -692,31 +714,13 @@ int clkdm_read_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
-  */
- int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
- {
--	struct clkdm_dep *cd;
--	u32 mask = 0;
--
--	if (!cpu_is_omap34xx())
--		return -EINVAL;
--
- 	if (!clkdm)
- 		return -EINVAL;
- 
--	for (cd = clkdm->sleepdep_srcs; cd && cd->clkdm_name; cd++) {
--		if (!omap_chip_is(cd->omap_chip))
--			continue;
--
--		if (!cd->clkdm && cd->clkdm_name)
--			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
--
--		/* PRM accesses are slow, so minimize them */
--		mask |= 1 << cd->clkdm->dep_bit;
--		atomic_set(&cd->sleepdep_usecount, 0);
+-	if (hwsup) {
+-		/* Disable HW transitions when we are changing deps */
+-		_disable_hwsup(clkdm);
+-		_clkdm_add_autodeps(clkdm);
+-		_enable_hwsup(clkdm);
+-	} else {
+-		clkdm_wakeup(clkdm);
 -	}
 -
--	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
--			       OMAP3430_CM_SLEEPDEP);
-+	if (!arch_clkdm || !arch_clkdm->clkdm_clear_all_sleepdeps)
-+		return -EINVAL;
++	arch_clkdm->clkdm_clk_enable(clkdm);
+ 	pwrdm_wait_transition(clkdm->pwrdm.ptr);
+ 	pwrdm_clkdm_state_switch(clkdm);
  
--	return 0;
-+	return arch_clkdm->clkdm_clear_all_sleepdeps(clkdm);
+@@ -908,7 +824,7 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
  }
  
  /**
+- * omap2_clkdm_clk_disable - remove an enabled downstream clock from this clkdm
++ * clkdm_clk_disable - remove an enabled downstream clock from this clkdm
+  * @clkdm: struct clockdomain *
+  * @clk: struct clk * of the disabled downstream clock
+  *
+@@ -921,10 +837,8 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+  * is enabled; or returns 0 upon success or if the clockdomain is in
+  * hwsup idle mode.
+  */
+-int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
++int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ {
+-	bool hwsup = false;
+-
+ 	/*
+ 	 * XXX Rewrite this code to maintain a list of enabled
+ 	 * downstream clocks for debugging purposes?
+@@ -933,6 +847,9 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	if (!clkdm || !clk)
+ 		return -EINVAL;
+ 
++	if (!arch_clkdm || !arch_clkdm->clkdm_clk_disable)
++		return -EINVAL;
++
+ #ifdef DEBUG
+ 	if (atomic_read(&clkdm->usecount) == 0) {
+ 		WARN_ON(1); /* underflow */
+@@ -948,31 +865,7 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	pr_debug("clockdomain: clkdm %s: clk %s now disabled\n", clkdm->name,
+ 		 clk->name);
+ 
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+-
+-		if (!clkdm->clktrctrl_mask)
+-			return 0;
+-
+-		hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+-						   clkdm->clktrctrl_mask);
+-
+-	} else if (cpu_is_omap44xx()) {
+-
+-		hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
+-						       clkdm->cm_inst,
+-						       clkdm->clkdm_offs);
+-
+-	}
+-
+-	if (hwsup) {
+-		/* Disable HW transitions when we are changing deps */
+-		_disable_hwsup(clkdm);
+-		_clkdm_del_autodeps(clkdm);
+-		_enable_hwsup(clkdm);
+-	} else {
+-		clkdm_sleep(clkdm);
+-	}
+-
++	arch_clkdm->clkdm_clk_disable(clkdm);
+ 	pwrdm_clkdm_state_switch(clkdm);
+ 
+ 	return 0;
 diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 71ad265..90b6d6a 100644
+index 7126658..de52f05 100644
 --- a/arch/arm/mach-omap2/clockdomain.h
 +++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -176,7 +176,11 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm);
- int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk);
- int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk);
+@@ -173,8 +173,8 @@ void clkdm_deny_idle(struct clockdomain *clkdm);
+ int clkdm_wakeup(struct clockdomain *clkdm);
+ int clkdm_sleep(struct clockdomain *clkdm);
  
--extern void __init omap2_clockdomains_init(void);
-+extern void __init omap2xxx_clockdomains_init(void);
-+extern void __init omap3xxx_clockdomains_init(void);
- extern void __init omap44xx_clockdomains_init(void);
+-int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk);
+-int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk);
++int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk);
++int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk);
  
-+extern struct clkdm_ops omap2_clkdm_operations;
-+extern struct clkdm_ops omap3_clkdm_operations;
-+
- #endif
+ extern void __init omap2xxx_clockdomains_init(void);
+ extern void __init omap3xxx_clockdomains_init(void);
 diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-new file mode 100644
-index 0000000..58b0626
---- /dev/null
+index 54b0ca9..6bf2b17 100644
+--- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
 +++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-@@ -0,0 +1,126 @@
-+/*
-+ * OMAP2 and OMAP3 clockdomain control
-+ *
-+ * Copyright (C) 2008-2010 Texas Instruments, Inc.
-+ * Copyright (C) 2008-2010 Nokia Corporation
-+ *
-+ * Derived from mach-omap2/clockdomain.c written by Paul Walmsley
-+ * Rajendra Nayak <rnayak@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/types.h>
-+#include <plat/prcm.h>
-+#include "prm.h"
-+#include "prm2xxx_3xxx.h"
-+#include "cm.h"
-+#include "cm2xxx_3xxx.h"
-+#include "cm-regbits-24xx.h"
-+#include "cm-regbits-34xx.h"
-+#include "clockdomain.h"
-+
-+static int omap2_clkdm_add_wkdep(struct clockdomain *clkdm1,
-+						struct clockdomain *clkdm2)
+@@ -142,6 +142,71 @@ static void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
+ 		_clkdm_del_autodeps(clkdm);
+ }
+ 
++static void _enable_hwsup(struct clockdomain *clkdm)
 +{
-+	omap2_prm_set_mod_reg_bits((1 << clkdm2->dep_bit),
-+				clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
-+	return 0;
++	if (cpu_is_omap24xx())
++		omap2xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
++					       clkdm->clktrctrl_mask);
++	else if (cpu_is_omap34xx())
++		omap3xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
++					       clkdm->clktrctrl_mask);
 +}
 +
-+static int omap2_clkdm_del_wkdep(struct clockdomain *clkdm1,
-+						 struct clockdomain *clkdm2)
++static void _disable_hwsup(struct clockdomain *clkdm)
 +{
-+	omap2_prm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
-+				clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
-+	return 0;
++	if (cpu_is_omap24xx())
++		omap2xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
++						clkdm->clktrctrl_mask);
++	else if (cpu_is_omap34xx())
++		omap3xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
++						clkdm->clktrctrl_mask);
 +}
 +
-+static int omap2_clkdm_read_wkdep(struct clockdomain *clkdm1,
-+						 struct clockdomain *clkdm2)
++
++static int omap2_clkdm_clk_enable(struct clockdomain *clkdm)
 +{
-+	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
-+				PM_WKDEP, (1 << clkdm2->dep_bit));
-+}
++	bool hwsup = false;
 +
-+static int omap2_clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
-+{
-+	struct clkdm_dep *cd;
-+	u32 mask = 0;
++	if (!clkdm->clktrctrl_mask)
++		return 0;
 +
-+	for (cd = clkdm->wkdep_srcs; cd && cd->clkdm; cd++) {
-+		if (!omap_chip_is(cd->omap_chip))
-+			continue;
++	hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
++				clkdm->clktrctrl_mask);
 +
-+		/* PRM accesses are slow, so minimize them */
-+		mask |= 1 << cd->clkdm->dep_bit;
-+		atomic_set(&cd->wkdep_usecount, 0);
++	if (hwsup) {
++		/* Disable HW transitions when we are changing deps */
++		_disable_hwsup(clkdm);
++		_clkdm_add_autodeps(clkdm);
++		_enable_hwsup(clkdm);
++	} else {
++		clkdm_wakeup(clkdm);
 +	}
 +
-+	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
-+				 PM_WKDEP);
 +	return 0;
 +}
 +
-+static int omap3_clkdm_add_sleepdep(struct clockdomain *clkdm1,
-+						 struct clockdomain *clkdm2)
++static int omap2_clkdm_clk_disable(struct clockdomain *clkdm)
 +{
-+	omap2_cm_set_mod_reg_bits((1 << clkdm2->dep_bit),
-+				clkdm1->pwrdm.ptr->prcm_offs,
-+				OMAP3430_CM_SLEEPDEP);
-+	return 0;
-+}
++	bool hwsup = false;
 +
-+static int omap3_clkdm_del_sleepdep(struct clockdomain *clkdm1,
-+						 struct clockdomain *clkdm2)
-+{
-+	omap2_cm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
-+				clkdm1->pwrdm.ptr->prcm_offs,
-+				OMAP3430_CM_SLEEPDEP);
-+	return 0;
-+}
++	if (!clkdm->clktrctrl_mask)
++		return 0;
 +
-+static int omap3_clkdm_read_sleepdep(struct clockdomain *clkdm1,
-+						 struct clockdomain *clkdm2)
-+{
-+	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
-+				OMAP3430_CM_SLEEPDEP, (1 << clkdm2->dep_bit));
-+}
++	hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
++				clkdm->clktrctrl_mask);
 +
-+static int omap3_clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
-+{
-+	struct clkdm_dep *cd;
-+	u32 mask = 0;
-+
-+	for (cd = clkdm->sleepdep_srcs; cd && cd->clkdm; cd++) {
-+		if (!omap_chip_is(cd->omap_chip))
-+			continue;
-+
-+		/* PRM accesses are slow, so minimize them */
-+		mask |= 1 << cd->clkdm->dep_bit;
-+		atomic_set(&cd->sleepdep_usecount, 0);
++	if (hwsup) {
++		/* Disable HW transitions when we are changing deps */
++		_disable_hwsup(clkdm);
++		_clkdm_del_autodeps(clkdm);
++		_enable_hwsup(clkdm);
++	} else {
++		clkdm_sleep(clkdm);
 +	}
-+	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
-+				OMAP3430_CM_SLEEPDEP);
++
 +	return 0;
 +}
 +
-+struct clkdm_ops omap2_clkdm_operations = {
-+	.clkdm_add_wkdep	= omap2_clkdm_add_wkdep,
-+	.clkdm_del_wkdep	= omap2_clkdm_del_wkdep,
-+	.clkdm_read_wkdep	= omap2_clkdm_read_wkdep,
-+	.clkdm_clear_all_wkdeps	= omap2_clkdm_clear_all_wkdeps,
-+};
-+
-+struct clkdm_ops omap3_clkdm_operations = {
-+	.clkdm_add_wkdep	= omap2_clkdm_add_wkdep,
-+	.clkdm_del_wkdep	= omap2_clkdm_del_wkdep,
-+	.clkdm_read_wkdep	= omap2_clkdm_read_wkdep,
-+	.clkdm_clear_all_wkdeps	= omap2_clkdm_clear_all_wkdeps,
-+	.clkdm_add_sleepdep	= omap3_clkdm_add_sleepdep,
-+	.clkdm_del_sleepdep	= omap3_clkdm_del_sleepdep,
-+	.clkdm_read_sleepdep	= omap3_clkdm_read_sleepdep,
-+	.clkdm_clear_all_sleepdeps	= omap3_clkdm_clear_all_sleepdeps,
-+};
-diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
-index 8cab07a..f85de72 100644
---- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
-@@ -854,7 +854,12 @@ static struct clockdomain *clockdomains_omap2[] __initdata = {
- 	NULL,
+ static int omap3_clkdm_sleep(struct clockdomain *clkdm)
+ {
+ 	omap3xxx_cm_clkdm_force_sleep(clkdm->pwrdm.ptr->prcm_offs,
+@@ -183,6 +248,8 @@ struct clkdm_ops omap2_clkdm_operations = {
+ 	.clkdm_wakeup		= omap2_clkdm_wakeup,
+ 	.clkdm_allow_idle	= omap2_clkdm_allow_idle,
+ 	.clkdm_deny_idle	= omap2_clkdm_deny_idle,
++	.clkdm_clk_enable	= omap2_clkdm_clk_enable,
++	.clkdm_clk_disable	= omap2_clkdm_clk_disable,
  };
  
--void __init omap2_clockdomains_init(void)
-+void __init omap2xxx_clockdomains_init(void)
- {
--	clkdm_init(clockdomains_omap2, clkdm_autodeps, NULL);
-+	clkdm_init(clockdomains_omap2, clkdm_autodeps, &omap2_clkdm_operations);
+ struct clkdm_ops omap3_clkdm_operations = {
+@@ -198,4 +265,6 @@ struct clkdm_ops omap3_clkdm_operations = {
+ 	.clkdm_wakeup		= omap3_clkdm_wakeup,
+ 	.clkdm_allow_idle	= omap3_clkdm_allow_idle,
+ 	.clkdm_deny_idle	= omap3_clkdm_deny_idle,
++	.clkdm_clk_enable	= omap2_clkdm_clk_enable,
++	.clkdm_clk_disable	= omap2_clkdm_clk_disable,
+ };
+diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
+index a46125f..c0ccc47 100644
+--- a/arch/arm/mach-omap2/clockdomain44xx.c
++++ b/arch/arm/mach-omap2/clockdomain44xx.c
+@@ -41,9 +41,37 @@ static void omap4_clkdm_deny_idle(struct clockdomain *clkdm)
+ 					clkdm->cm_inst, clkdm->clkdm_offs);
+ }
+ 
++static int omap4_clkdm_clk_enable(struct clockdomain *clkdm)
++{
++	bool hwsup = false;
++
++	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
++					clkdm->cm_inst, clkdm->clkdm_offs);
++
++	if (!hwsup)
++		clkdm_wakeup(clkdm);
++
++	return 0;
 +}
 +
-+void __init omap3xxx_clockdomains_init(void)
++static int omap4_clkdm_clk_disable(struct clockdomain *clkdm)
 +{
-+	clkdm_init(clockdomains_omap2, clkdm_autodeps, &omap3_clkdm_operations);
- }
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index e66687b..e1c5e76 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -339,15 +339,15 @@ void __init omap2_init_common_infrastructure(void)
- 
- 	if (cpu_is_omap242x()) {
- 		omap2xxx_powerdomains_init();
--		omap2_clockdomains_init();
-+		omap2xxx_clockdomains_init();
- 		omap2420_hwmod_init();
- 	} else if (cpu_is_omap243x()) {
- 		omap2xxx_powerdomains_init();
--		omap2_clockdomains_init();
-+		omap2xxx_clockdomains_init();
- 		omap2430_hwmod_init();
- 	} else if (cpu_is_omap34xx()) {
- 		omap3xxx_powerdomains_init();
--		omap2_clockdomains_init();
-+		omap3xxx_clockdomains_init();
- 		omap3xxx_hwmod_init();
- 	} else if (cpu_is_omap44xx()) {
- 		omap44xx_powerdomains_init();
++	bool hwsup = false;
++
++	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
++					clkdm->cm_inst, clkdm->clkdm_offs);
++
++	if (!hwsup)
++		clkdm_sleep(clkdm);
++
++	return 0;
++}
++
+ struct clkdm_ops omap4_clkdm_operations = {
+ 	.clkdm_sleep		= omap4_clkdm_sleep,
+ 	.clkdm_wakeup		= omap4_clkdm_wakeup,
+ 	.clkdm_allow_idle	= omap4_clkdm_allow_idle,
+ 	.clkdm_deny_idle	= omap4_clkdm_deny_idle,
++	.clkdm_clk_enable	= omap4_clkdm_clk_enable,
++	.clkdm_clk_disable	= omap4_clkdm_clk_disable,
+ };
 -- 
 1.7.0.4
 
