@@ -1,324 +1,53 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 6/7] arm: plat-omap: system.h: move voiceblue
-	definitions into the board header
-Date: Tue, 18 Jan 2011 09:22:03 +0000
-Message-ID: <20110118092203.GA10997@n2100.arm.linux.org.uk>
-References: <1295337165-22934-1-git-send-email-aaro.koskinen@iki.fi> <1295337165-22934-7-git-send-email-aaro.koskinen@iki.fi>
+From: "Will Deacon" <will.deacon@arm.com>
+Subject: RE: [PATCH 09/14] ARM: v6k: select generic atomic64 code according to
+	V6	variants
+Date: Tue, 18 Jan 2011 10:24:20 -0000
+Message-ID: <24079.7136015773$1295346396@news.gmane.org>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+	<E1PeugN-0003Sp-0J@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38555 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752837Ab1ARJWT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 04:22:19 -0500
-Content-Disposition: inline
-In-Reply-To: <1295337165-22934-7-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <E1PeugN-0003Sp-0J@rmk-PC.arm.linux.org.uk>
+Content-Language: en-gb
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 18, 2011 at 09:52:44AM +0200, Aaro Koskinen wrote:
-> Move voiceblue definitions into the board-specific header.
+> If CONFIG_CPU_V6 is enabled, avoid using the double-word exclusive
+> instructions in the kernel's atomic implementations as these are not
+> supported.  Fall back to the generic spinlock code instead.
 > 
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  arch/arm/Kconfig |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+> index 95ba92f..283d7b9 100644
+> --- a/arch/arm/Kconfig
+> +++ b/arch/arm/Kconfig
+> @@ -7,7 +7,7 @@ config ARM
+>  	select HAVE_MEMBLOCK
+>  	select RTC_LIB
+>  	select SYS_SUPPORTS_APM_EMULATION
+> -	select GENERIC_ATOMIC64 if (!CPU_32v6K || !AEABI)
+> +	select GENERIC_ATOMIC64 if (CPU_V6 || !CPU_32v6K || !AEABI)
+>  	select HAVE_OPROFILE if (HAVE_PERF_EVENTS)
+>  	select HAVE_ARCH_KGDB
+>  	select HAVE_KPROBES if (!XIP_KERNEL && !THUMB2_KERNEL)
 
-Let's instead simplify this, and allow other platforms to hook into the
-reset handler if they choose.  This has only been build-tested on my
-omap1 (which includes voiceblue) and omap4 configurations.
+Acked-by: Will Deacon <will.deacon@arm.com>
 
-8<------
-Subject: ARM: OMAP: Allow platforms to hook reset cleanly
+Thanks,
 
-This adds a clean method to allow platforms to hook into the reset
-code if they require to.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/mach-omap1/Makefile             |    2
- arch/arm/mach-omap1/board-voiceblue.c    |  106 +++++++++++++++++--------------
- arch/arm/mach-omap1/reset.c              |   25 +++++++
- arch/arm/mach-omap2/prcm.c               |    5 +
- arch/arm/plat-omap/include/plat/prcm.h   |    1
- arch/arm/plat-omap/include/plat/system.h |   38 -----------
- 6 files changed, 91 insertions(+), 86 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index 6ee1950..148dc6b 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -4,7 +4,7 @@
- 
- # Common support
- obj-y := io.o id.o sram.o irq.o mux.o flash.o serial.o devices.o dma.o
--obj-y += clock.o clock_data.o opp_data.o
-+obj-y += clock.o clock_data.o opp_data.o reset.o
- 
- obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
- 
-diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index 815a69c..6712817 100644
---- a/arch/arm/mach-omap1/board-voiceblue.c
-+++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -26,6 +26,7 @@
- #include <linux/smc91x.h>
- 
- #include <mach/hardware.h>
-+#include <mach/system.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-@@ -163,52 +164,6 @@ static void __init voiceblue_init_irq(void)
- 	omap_init_irq();
- }
- 
--static void __init voiceblue_init(void)
--{
--	/* mux pins for uarts */
--	omap_cfg_reg(UART1_TX);
--	omap_cfg_reg(UART1_RTS);
--	omap_cfg_reg(UART2_TX);
--	omap_cfg_reg(UART2_RTS);
--	omap_cfg_reg(UART3_TX);
--	omap_cfg_reg(UART3_RX);
--
--	/* Watchdog */
--	gpio_request(0, "Watchdog");
--	/* smc91x reset */
--	gpio_request(7, "SMC91x reset");
--	gpio_direction_output(7, 1);
--	udelay(2);	/* wait at least 100ns */
--	gpio_set_value(7, 0);
--	mdelay(50);	/* 50ms until PHY ready */
--	/* smc91x interrupt pin */
--	gpio_request(8, "SMC91x irq");
--	/* 16C554 reset*/
--	gpio_request(6, "16C554 reset");
--	gpio_direction_output(6, 0);
--	/* 16C554 interrupt pins */
--	gpio_request(12, "16C554 irq");
--	gpio_request(13, "16C554 irq");
--	gpio_request(14, "16C554 irq");
--	gpio_request(15, "16C554 irq");
--	set_irq_type(gpio_to_irq(12), IRQ_TYPE_EDGE_RISING);
--	set_irq_type(gpio_to_irq(13), IRQ_TYPE_EDGE_RISING);
--	set_irq_type(gpio_to_irq(14), IRQ_TYPE_EDGE_RISING);
--	set_irq_type(gpio_to_irq(15), IRQ_TYPE_EDGE_RISING);
--
--	platform_add_devices(voiceblue_devices, ARRAY_SIZE(voiceblue_devices));
--	omap_board_config = voiceblue_config;
--	omap_board_config_size = ARRAY_SIZE(voiceblue_config);
--	omap_serial_init();
--	omap1_usb_init(&voiceblue_usb_config);
--	omap_register_i2c_bus(1, 100, NULL, 0);
--
--	/* There is a good chance board is going up, so enable power LED
--	 * (it is connected through invertor) */
--	omap_writeb(0x00, OMAP_LPG1_LCR);
--	omap_writeb(0x00, OMAP_LPG1_PMR);	/* Disable clock */
--}
--
- static void __init voiceblue_map_io(void)
- {
- 	omap1_map_common_io();
-@@ -275,8 +230,17 @@ void voiceblue_wdt_ping(void)
- 	gpio_set_value(0, wdt_gpio_state);
- }
- 
--void voiceblue_reset(void)
-+static void voiceblue_reset(char mode, const char *cmd)
- {
-+	/*
-+	 * Workaround for 5912/1611b bug mentioned in sprz209d.pdf p. 28
-+	 * "Global Software Reset Affects Traffic Controller Frequency".
-+	 */
-+	if (cpu_is_omap5912()) {
-+		omap_writew(omap_readw(DPLL_CTL) & ~(1 << 4), DPLL_CTL);
-+		omap_writew(0x8, ARM_RSTCT1);
-+	}
-+
- 	set_bit(MACHINE_REBOOT, &machine_state);
- 	voiceblue_wdt_enable();
- 	while (1) ;
-@@ -286,6 +250,54 @@ EXPORT_SYMBOL(voiceblue_wdt_enable);
- EXPORT_SYMBOL(voiceblue_wdt_disable);
- EXPORT_SYMBOL(voiceblue_wdt_ping);
- 
-+static void __init voiceblue_init(void)
-+{
-+	/* mux pins for uarts */
-+	omap_cfg_reg(UART1_TX);
-+	omap_cfg_reg(UART1_RTS);
-+	omap_cfg_reg(UART2_TX);
-+	omap_cfg_reg(UART2_RTS);
-+	omap_cfg_reg(UART3_TX);
-+	omap_cfg_reg(UART3_RX);
-+
-+	/* Watchdog */
-+	gpio_request(0, "Watchdog");
-+	/* smc91x reset */
-+	gpio_request(7, "SMC91x reset");
-+	gpio_direction_output(7, 1);
-+	udelay(2);	/* wait at least 100ns */
-+	gpio_set_value(7, 0);
-+	mdelay(50);	/* 50ms until PHY ready */
-+	/* smc91x interrupt pin */
-+	gpio_request(8, "SMC91x irq");
-+	/* 16C554 reset*/
-+	gpio_request(6, "16C554 reset");
-+	gpio_direction_output(6, 0);
-+	/* 16C554 interrupt pins */
-+	gpio_request(12, "16C554 irq");
-+	gpio_request(13, "16C554 irq");
-+	gpio_request(14, "16C554 irq");
-+	gpio_request(15, "16C554 irq");
-+	set_irq_type(gpio_to_irq(12), IRQ_TYPE_EDGE_RISING);
-+	set_irq_type(gpio_to_irq(13), IRQ_TYPE_EDGE_RISING);
-+	set_irq_type(gpio_to_irq(14), IRQ_TYPE_EDGE_RISING);
-+	set_irq_type(gpio_to_irq(15), IRQ_TYPE_EDGE_RISING);
-+
-+	platform_add_devices(voiceblue_devices, ARRAY_SIZE(voiceblue_devices));
-+	omap_board_config = voiceblue_config;
-+	omap_board_config_size = ARRAY_SIZE(voiceblue_config);
-+	omap_serial_init();
-+	omap1_usb_init(&voiceblue_usb_config);
-+	omap_register_i2c_bus(1, 100, NULL, 0);
-+
-+	/* There is a good chance board is going up, so enable power LED
-+	 * (it is connected through invertor) */
-+	omap_writeb(0x00, OMAP_LPG1_LCR);
-+	omap_writeb(0x00, OMAP_LPG1_PMR);	/* Disable clock */
-+
-+	arch_reset = voiceblue_reset;
-+}
-+
- MACHINE_START(VOICEBLUE, "VoiceBlue OMAP5910")
- 	/* Maintainer: Ladislav Michl <michl@2n.cz> */
- 	.boot_params	= 0x10000100,
-diff --git a/arch/arm/mach-omap1/reset.c b/arch/arm/mach-omap1/reset.c
-index e69de29..ad951ee 100644
---- a/arch/arm/mach-omap1/reset.c
-+++ b/arch/arm/mach-omap1/reset.c
-@@ -0,0 +1,25 @@
-+/*
-+ * OMAP1 reset support
-+ */
-+#include <linux/kernel.h>
-+#include <linux/io.h>
-+
-+#include <mach/hardware.h>
-+#include <mach/system.h>
-+#include <plat/prcm.h>
-+
-+void omap1_arch_reset(char mode, const char *cmd)
-+{
-+	/*
-+	 * Workaround for 5912/1611b bug mentioned in sprz209d.pdf p. 28
-+	 * "Global Software Reset Affects Traffic Controller Frequency".
-+	 */
-+	if (cpu_is_omap5912()) {
-+		omap_writew(omap_readw(DPLL_CTL) & ~(1 << 4), DPLL_CTL);
-+		omap_writew(0x8, ARM_RSTCT1);
-+	}
-+
-+	omap_writew(1, ARM_RSTCT1);
-+}
-+
-+void (*arch_reset)(char, const char *) = omap1_arch_reset;
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 679bcd2..6be1438 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -24,6 +24,7 @@
- #include <linux/io.h>
- #include <linux/delay.h>
- 
-+#include <mach/system.h>
- #include <plat/common.h>
- #include <plat/prcm.h>
- #include <plat/irqs.h>
-@@ -57,7 +58,7 @@ u32 omap_prcm_get_reset_sources(void)
- EXPORT_SYMBOL(omap_prcm_get_reset_sources);
- 
- /* Resets clock rates and reboots the system. Only called from system.h */
--void omap_prcm_arch_reset(char mode, const char *cmd)
-+static void omap_prcm_arch_reset(char mode, const char *cmd)
- {
- 	s16 prcm_offs = 0;
- 
-@@ -108,6 +109,8 @@ void omap_prcm_arch_reset(char mode, const char *cmd)
- 	omap2_prm_read_mod_reg(prcm_offs, OMAP2_RM_RSTCTRL); /* OCP barrier */
- }
- 
-+void (*arch_reset)(char, const char *) = omap_prcm_arch_reset;
-+
- /**
-  * omap2_cm_wait_idlest - wait for IDLEST bit to indicate module readiness
-  * @reg: physical address of module IDLEST register
-diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
-index 2fdf8c8..267f43b 100644
---- a/arch/arm/plat-omap/include/plat/prcm.h
-+++ b/arch/arm/plat-omap/include/plat/prcm.h
-@@ -28,7 +28,6 @@
- #define __ASM_ARM_ARCH_OMAP_PRCM_H
- 
- u32 omap_prcm_get_reset_sources(void);
--void omap_prcm_arch_reset(char mode, const char *cmd);
- int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, u8 idlest,
- 			 const char *name);
- 
-diff --git a/arch/arm/plat-omap/include/plat/system.h b/arch/arm/plat-omap/include/plat/system.h
-index d0a119f..c5fa9e9 100644
---- a/arch/arm/plat-omap/include/plat/system.h
-+++ b/arch/arm/plat-omap/include/plat/system.h
-@@ -4,48 +4,14 @@
-  */
- #ifndef __ASM_ARCH_SYSTEM_H
- #define __ASM_ARCH_SYSTEM_H
--#include <linux/clk.h>
- 
--#include <asm/mach-types.h>
--#include <mach/hardware.h>
--
--#include <plat/prcm.h>
--
--#ifndef CONFIG_MACH_VOICEBLUE
--#define voiceblue_reset()		do {} while (0)
--#else
--extern void voiceblue_reset(void);
--#endif
-+#include <asm/proc-fns.h>
- 
- static inline void arch_idle(void)
- {
- 	cpu_do_idle();
- }
- 
--static inline void omap1_arch_reset(char mode, const char *cmd)
--{
--	/*
--	 * Workaround for 5912/1611b bug mentioned in sprz209d.pdf p. 28
--	 * "Global Software Reset Affects Traffic Controller Frequency".
--	 */
--	if (cpu_is_omap5912()) {
--		omap_writew(omap_readw(DPLL_CTL) & ~(1 << 4),
--				 DPLL_CTL);
--		omap_writew(0x8, ARM_RSTCT1);
--	}
--
--	if (machine_is_voiceblue())
--		voiceblue_reset();
--	else
--		omap_writew(1, ARM_RSTCT1);
--}
--
--static inline void arch_reset(char mode, const char *cmd)
--{
--	if (!cpu_class_is_omap2())
--		omap1_arch_reset(mode, cmd);
--	else
--		omap_prcm_arch_reset(mode, cmd);
--}
-+extern void (*arch_reset)(char, const char *);
- 
- #endif
+Will
