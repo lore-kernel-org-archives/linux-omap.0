@@ -1,236 +1,361 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] omap1: Fix booting for 15xx and 730 with omap1_defconfig
- (Re: State of LDP3430 platform)
-Date: Tue, 18 Jan 2011 14:35:36 -0800
-Message-ID: <20110118223536.GT4957@atomide.com>
-References: <20101207083720.GB18336@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1012071745120.13430@utopia.booyaka.com>
- <alpine.DEB.2.00.1012072012000.13430@utopia.booyaka.com>
- <20110115000301.GT4957@atomide.com>
- <alpine.DEB.2.00.1101151237240.32245@utopia.booyaka.com>
- <20110115233744.GA18159@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1101152028580.13225@utopia.booyaka.com>
- <4D3309F9.8090900@gmail.com>
- <alpine.DEB.2.00.1101181234130.13225@utopia.booyaka.com>
- <20110118222613.GS4957@atomide.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v3 4/6] OMAP4: hwmod data: Add McSPI
+Date: Wed, 19 Jan 2011 00:09:36 +0100
+Message-ID: <4D361DB0.3030205@ti.com>
+References: <32203.10.24.255.18.1295274218.squirrel@dbdmail.itg.ti.com> <87wrm35w9g.fsf@ti.com> <AANLkTikjDBHXKgqJwDrrZCY6j6x7adWBvjb-KXzdWbzt@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:12194 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751440Ab1ARWfx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 17:35:53 -0500
-Content-Disposition: inline
-In-Reply-To: <20110118222613.GS4957@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44465 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752345Ab1ARXKB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Jan 2011 18:10:01 -0500
+In-Reply-To: <AANLkTikjDBHXKgqJwDrrZCY6j6x7adWBvjb-KXzdWbzt@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Thomas Weber <thomas.weber.linux@googlemail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, spi-devel-general <spi-devel-general@lists.sourceforge.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, "Varadarajan, Charulatha" <charu@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-For omap15xx and 730 we need to use the MPU timer
-as the 32K timer is not available. For omap16xx
-we want to use the 32K timer because of PM. Fix this
-by allowing to build in both timers.
+Hi Govindraj,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+On 1/18/2011 7:30 AM, Govindraj wrote:
+> On Mon, Jan 17, 2011 at 9:59 PM, Kevin Hilman<khilman@ti.com>  wrote:
+>> "Govindraj.R"<govindraj.raja@ti.com>  writes:
+>>
+>>> Update omap4 hwmod file with McSPI info.
+>>>
+>>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>>> Signed-off-by: Charulatha V<charu@ti.com>
+>>> Signed-off-by: Govindraj.R<govindraj.raja@ti.com>
+>>> Acked-by: Grant Likely<grant.likely@secretlab.ca>
+>>
+>> Shouldn't Benoit be the author of this patch?
+>
+> Sorry my mistake, will give a quick respin and post out a new version
+> today.
 
---- a/arch/arm/mach-omap1/Kconfig
-+++ b/arch/arm/mach-omap1/Kconfig
-@@ -9,6 +9,7 @@ config ARCH_OMAP730
- 	depends on ARCH_OMAP1
- 	bool "OMAP730 Based System"
- 	select CPU_ARM926T
-+	select OMAP_MPU_TIMER
- 	select ARCH_OMAP_OTG
- 
- config ARCH_OMAP850
-@@ -22,6 +23,7 @@ config ARCH_OMAP15XX
- 	default y
- 	bool "OMAP15xx Based System"
- 	select CPU_ARM925T
-+	select OMAP_MPU_TIMER
- 
- config ARCH_OMAP16XX
- 	depends on ARCH_OMAP1
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -3,12 +3,11 @@
- #
- 
- # Common support
--obj-y := io.o id.o sram.o irq.o mux.o flash.o serial.o devices.o dma.o
-+obj-y := io.o id.o sram.o time.o irq.o mux.o flash.o serial.o devices.o dma.o
- obj-y += clock.o clock_data.o opp_data.o
- 
- obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
- 
--obj-$(CONFIG_OMAP_MPU_TIMER)	+= time.o
- obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
- 
- # Power Management
---- a/arch/arm/mach-omap1/time.c
-+++ b/arch/arm/mach-omap1/time.c
-@@ -57,6 +57,8 @@
- 
- #include <plat/common.h>
- 
-+#ifdef CONFIG_OMAP_MPU_TIMER
-+
- #define OMAP_MPU_TIMER_BASE		OMAP_MPU_TIMER1_BASE
- #define OMAP_MPU_TIMER_OFFSET		0x100
- 
-@@ -237,12 +239,7 @@ static void __init omap_init_clocksource(unsigned long rate)
- 		printk(err, clocksource_mpu.name);
- }
- 
--/*
-- * ---------------------------------------------------------------------------
-- * Timer initialization
-- * ---------------------------------------------------------------------------
-- */
--static void __init omap_timer_init(void)
-+static void __init omap_mpu_timer_init(void)
- {
- 	struct clk	*ck_ref = clk_get(NULL, "ck_ref");
- 	unsigned long	rate;
-@@ -257,13 +254,38 @@ static void __init omap_timer_init(void)
- 
- 	omap_init_mpu_timer(rate);
- 	omap_init_clocksource(rate);
--	/*
--	 * XXX Since this file seems to deal mostly with the MPU timer,
--	 * this doesn't seem like the correct place for the sync timer
--	 * clocksource init.
--	 */
--	if (!cpu_is_omap7xx() && !cpu_is_omap15xx())
--		omap_init_clocksource_32k();
-+}
-+
-+#else
-+static inline void omap_mpu_timer_init(void)
-+{
-+	pr_err("Bogus timer, should not happen\n");
-+}
-+#endif	/* CONFIG_OMAP_MPU_TIMER */
-+
-+static inline int omap_32k_timer_usable(void)
-+{
-+	int res = false;
-+
-+	if (cpu_is_omap730() || cpu_is_omap15xx())
-+		return res;
-+
-+#ifdef CONFIG_OMAP_32K_TIMER
-+	res = omap_32k_timer_init();
-+#endif
-+
-+	return res;
-+}
-+
-+/*
-+ * ---------------------------------------------------------------------------
-+ * Timer initialization
-+ * ---------------------------------------------------------------------------
-+ */
-+static void __init omap_timer_init(void)
-+{
-+	if (!omap_32k_timer_usable())
-+		omap_mpu_timer_init();
- }
- 
- struct sys_timer omap_timer = {
---- a/arch/arm/mach-omap1/timer32k.c
-+++ b/arch/arm/mach-omap1/timer32k.c
-@@ -52,10 +52,9 @@
- #include <asm/irq.h>
- #include <asm/mach/irq.h>
- #include <asm/mach/time.h>
-+#include <plat/common.h>
- #include <plat/dmtimer.h>
- 
--struct sys_timer omap_timer;
--
- /*
-  * ---------------------------------------------------------------------------
-  * 32KHz OS timer
-@@ -181,14 +180,14 @@ static __init void omap_init_32k_timer(void)
-  * Timer initialization
-  * ---------------------------------------------------------------------------
-  */
--static void __init omap_timer_init(void)
-+bool __init omap_32k_timer_init(void)
- {
-+	omap_init_clocksource_32k();
-+
- #ifdef CONFIG_OMAP_DM_TIMER
- 	omap_dm_timer_init();
- #endif
- 	omap_init_32k_timer();
--}
- 
--struct sys_timer omap_timer = {
--	.init		= omap_timer_init,
--};
-+	return true;
-+}
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -144,12 +144,9 @@ config OMAP_IOMMU_DEBUG
- config OMAP_IOMMU_IVA2
- 	bool
- 
--choice
--	prompt "System timer"
--	default OMAP_32K_TIMER if !ARCH_OMAP15XX
--
- config OMAP_MPU_TIMER
- 	bool "Use mpu timer"
-+	depends on ARCH_OMAP1
- 	help
- 	  Select this option if you want to use the OMAP mpu timer. This
- 	  timer provides more intra-tick resolution than the 32KHz timer,
-@@ -158,6 +155,7 @@ config OMAP_MPU_TIMER
- config OMAP_32K_TIMER
- 	bool "Use 32KHz timer"
- 	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
-+	default y if (ARCH_OMAP16XX || ARCH_OMAP2PLUS)
- 	help
- 	  Select this option if you want to enable the OMAP 32KHz timer.
- 	  This timer saves power compared to the OMAP_MPU_TIMER, and has
-@@ -165,8 +163,6 @@ config OMAP_32K_TIMER
- 	  intra-tick resolution than OMAP_MPU_TIMER. The 32KHz timer is
- 	  currently only available for OMAP16XX, 24XX, 34XX and OMAP4.
- 
--endchoice
--
- config OMAP3_L2_AUX_SECURE_SAVE_RESTORE
- 	bool "OMAP3 HS/EMU save and restore for L2 AUX control register"
- 	depends on ARCH_OMAP3 && PM
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -36,8 +36,6 @@
- 
- #define OMAP16XX_TIMER_32K_SYNCHRONIZED		0xfffbc410
- 
--#if !(defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP15XX))
--
- #include <linux/clocksource.h>
- 
- /*
-@@ -195,6 +193,3 @@ int __init omap_init_clocksource_32k(void)
- 	}
- 	return 0;
- }
--
--#endif	/* !(defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP15XX)) */
--
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -35,6 +35,7 @@ struct sys_timer;
- 
- extern void omap_map_common_io(void);
- extern struct sys_timer omap_timer;
-+extern bool omap_32k_timer_init(void);
- extern int __init omap_init_clocksource_32k(void);
- 
- extern void omap_reserve(void);
+Since you will respin, could you please fix the position of the data in 
+order to stick to the original one? Same thing for the list at the end.
+
+One flag introduced in 2.6.38 is missing, and the flags are now sorted. 
+See comments below.
+
+If you need to check what should be the final result after the merge of 
+every hwmods series, you can check here:
+git://gitorious.org/omap-pm/linux.git pm-wip/hwmods-omap4-full
+
+>
+> --
+> Thanks,
+> Govindraj.R
+>
+>>
+>> Kevin
+>>
+>>> ---
+>>>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  266 ++++++++++++++++++++++++++++
+>>>   1 files changed, 266 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>> index c2806bd..d4cd695 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>> @@ -24,6 +24,7 @@
+>>>   #include<plat/cpu.h>
+>>>   #include<plat/gpio.h>
+>>>   #include<plat/dma.h>
+>>> +#include<plat/mcspi.h>
+>>>
+>>>   #include "omap_hwmod_common_data.h"
+>>>
+>>> @@ -2001,6 +2002,265 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
+>>>        .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>>>   };
+>>>
+>>> +/*
+>>> + * 'mcspi' class
+>>> + * multichannel serial port interface (mcspi) / master/slave synchronous serial
+>>> + * bus
+>>> + */
+>>> +
+>>> +static struct omap_hwmod_class_sysconfig omap44xx_mcspi_sysc = {
+>>> +     .rev_offs       = 0x0000,
+>>> +     .sysc_offs      = 0x0010,
+>>> +     .sysc_flags     = (SYSC_HAS_SIDLEMODE | SYSC_HAS_EMUFREE |
+>>> +                        SYSC_HAS_SOFTRESET | SYSC_HAS_RESET_STATUS),
+
+The order is slightly different due to a sort that was not done before.
+
+	  .sysc_flags = (SYSC_HAS_EMUFREE | SYSC_HAS_RESET_STATUS |
+			 SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
+
+	>>> +     .idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+
+SIDLE_SMART_WKUP is missing
+
+
+>>> +     .sysc_fields    =&omap_hwmod_sysc_type2,
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_class omap44xx_mcspi_hwmod_class = {
+>>> +     .name = "mcspi",
+>>> +     .sysc =&omap44xx_mcspi_sysc,
+>>> +     .rev = OMAP4_MCSPI_REV,
+>>> +};
+>>> +
+>>> +/* mcspi1 */
+>>> +static struct omap_hwmod omap44xx_mcspi1_hwmod;
+>>> +static struct omap_hwmod_irq_info omap44xx_mcspi1_irqs[] = {
+>>> +     { .irq = 65 + OMAP44XX_IRQ_GIC_START },
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_dma_info omap44xx_mcspi1_sdma_reqs[] = {
+>>> +     { .name = "tx0", .dma_req = 34 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "rx0", .dma_req = 35 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "tx1", .dma_req = 36 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "rx1", .dma_req = 37 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "tx2", .dma_req = 38 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "rx2", .dma_req = 39 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "tx3", .dma_req = 40 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "rx3", .dma_req = 41 + OMAP44XX_DMA_REQ_START },
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_addr_space omap44xx_mcspi1_addrs[] = {
+>>> +     {
+>>> +             .pa_start       = 0x48098000,
+>>> +             .pa_end         = 0x480981ff,
+>>> +             .flags          = ADDR_TYPE_RT
+>>> +     },
+>>> +};
+>>> +
+>>> +/* l4_per ->  mcspi1 */
+>>> +static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi1 = {
+>>> +     .master         =&omap44xx_l4_per_hwmod,
+>>> +     .slave          =&omap44xx_mcspi1_hwmod,
+>>> +     .clk            = "l4_div_ck",
+>>> +     .addr           = omap44xx_mcspi1_addrs,
+>>> +     .addr_cnt       = ARRAY_SIZE(omap44xx_mcspi1_addrs),
+>>> +     .user           = OCP_USER_MPU | OCP_USER_SDMA,
+>>> +};
+>>> +
+>>> +/* mcspi1 slave ports */
+>>> +static struct omap_hwmod_ocp_if *omap44xx_mcspi1_slaves[] = {
+>>> +&omap44xx_l4_per__mcspi1,
+>>> +};
+>>> +
+>>> +static struct omap2_mcspi_dev_attr omap_mcspi1_dev_attr = {
+>>> +     .num_chipselect = 4,
+>>> +};
+>>> +
+>>> +static struct omap_hwmod omap44xx_mcspi1_hwmod = {
+>>> +     .name           = "mcspi1",
+>>> +     .class          =&omap44xx_mcspi_hwmod_class,
+>>> +     .mpu_irqs       = omap44xx_mcspi1_irqs,
+>>> +     .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_mcspi1_irqs),
+>>> +     .sdma_reqs      = omap44xx_mcspi1_sdma_reqs,
+>>> +     .sdma_reqs_cnt  = ARRAY_SIZE(omap44xx_mcspi1_sdma_reqs),
+>>> +     .main_clk       = "mcspi1_fck",
+>>> +     .prcm = {
+>>> +             .omap4 = {
+>>> +                     .clkctrl_reg = OMAP4430_CM_L4PER_MCSPI1_CLKCTRL,
+>>> +             },
+>>> +     },
+>>> +     .slaves         = omap44xx_mcspi1_slaves,
+>>> +     .slaves_cnt     = ARRAY_SIZE(omap44xx_mcspi1_slaves),
+>>> +     .dev_attr       =&omap_mcspi1_dev_attr,
+>>> +     .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>>> +};
+>>> +
+>>> +/* mcspi2 */
+>>> +static struct omap_hwmod omap44xx_mcspi2_hwmod;
+>>> +static struct omap_hwmod_irq_info omap44xx_mcspi2_irqs[] = {
+>>> +     { .irq = 66 + OMAP44XX_IRQ_GIC_START },
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_dma_info omap44xx_mcspi2_sdma_reqs[] = {
+>>> +     { .name = "tx0", .dma_req = 42 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "rx0", .dma_req = 43 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "tx1", .dma_req = 44 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "rx1", .dma_req = 45 + OMAP44XX_DMA_REQ_START },
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_addr_space omap44xx_mcspi2_addrs[] = {
+>>> +     {
+>>> +             .pa_start       = 0x4809a000,
+>>> +             .pa_end         = 0x4809a1ff,
+>>> +             .flags          = ADDR_TYPE_RT
+>>> +     },
+>>> +};
+>>> +
+>>> +/* l4_per ->  mcspi2 */
+>>> +static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi2 = {
+>>> +     .master         =&omap44xx_l4_per_hwmod,
+>>> +     .slave          =&omap44xx_mcspi2_hwmod,
+>>> +     .clk            = "l4_div_ck",
+>>> +     .addr           = omap44xx_mcspi2_addrs,
+>>> +     .addr_cnt       = ARRAY_SIZE(omap44xx_mcspi2_addrs),
+>>> +     .user           = OCP_USER_MPU | OCP_USER_SDMA,
+>>> +};
+>>> +
+>>> +/* mcspi2 slave ports */
+>>> +static struct omap_hwmod_ocp_if *omap44xx_mcspi2_slaves[] = {
+>>> +&omap44xx_l4_per__mcspi2,
+>>> +};
+>>> +
+>>> +static struct omap2_mcspi_dev_attr omap_mcspi2_dev_attr = {
+>>> +     .num_chipselect = 2,
+>>> +};
+>>> +
+>>> +static struct omap_hwmod omap44xx_mcspi2_hwmod = {
+>>> +     .name           = "mcspi2",
+>>> +     .class          =&omap44xx_mcspi_hwmod_class,
+>>> +     .mpu_irqs       = omap44xx_mcspi2_irqs,
+>>> +     .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_mcspi2_irqs),
+>>> +     .sdma_reqs      = omap44xx_mcspi2_sdma_reqs,
+>>> +     .sdma_reqs_cnt  = ARRAY_SIZE(omap44xx_mcspi2_sdma_reqs),
+>>> +     .main_clk       = "mcspi2_fck",
+>>> +     .prcm = {
+>>> +             .omap4 = {
+>>> +                     .clkctrl_reg = OMAP4430_CM_L4PER_MCSPI2_CLKCTRL,
+>>> +             },
+>>> +     },
+>>> +     .slaves         = omap44xx_mcspi2_slaves,
+>>> +     .slaves_cnt     = ARRAY_SIZE(omap44xx_mcspi2_slaves),
+>>> +     .dev_attr       =&omap_mcspi2_dev_attr,
+>>> +     .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>>> +};
+>>> +
+>>> +/* mcspi3 */
+>>> +static struct omap_hwmod omap44xx_mcspi3_hwmod;
+>>> +static struct omap_hwmod_irq_info omap44xx_mcspi3_irqs[] = {
+>>> +     { .irq = 91 + OMAP44XX_IRQ_GIC_START },
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_dma_info omap44xx_mcspi3_sdma_reqs[] = {
+>>> +     { .name = "tx0", .dma_req = 14 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "rx0", .dma_req = 15 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "tx1", .dma_req = 22 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "rx1", .dma_req = 23 + OMAP44XX_DMA_REQ_START },
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_addr_space omap44xx_mcspi3_addrs[] = {
+>>> +     {
+>>> +             .pa_start       = 0x480b8000,
+>>> +             .pa_end         = 0x480b81ff,
+>>> +             .flags          = ADDR_TYPE_RT
+>>> +     },
+>>> +};
+>>> +
+>>> +/* l4_per ->  mcspi3 */
+>>> +static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi3 = {
+>>> +     .master         =&omap44xx_l4_per_hwmod,
+>>> +     .slave          =&omap44xx_mcspi3_hwmod,
+>>> +     .clk            = "l4_div_ck",
+>>> +     .addr           = omap44xx_mcspi3_addrs,
+>>> +     .addr_cnt       = ARRAY_SIZE(omap44xx_mcspi3_addrs),
+>>> +     .user           = OCP_USER_MPU | OCP_USER_SDMA,
+>>> +};
+>>> +
+>>> +/* mcspi3 slave ports */
+>>> +static struct omap_hwmod_ocp_if *omap44xx_mcspi3_slaves[] = {
+>>> +&omap44xx_l4_per__mcspi3,
+>>> +};
+>>> +
+>>> +static struct omap2_mcspi_dev_attr omap_mcspi3_dev_attr = {
+>>> +     .num_chipselect = 2,
+>>> +};
+>>> +
+>>> +static struct omap_hwmod omap44xx_mcspi3_hwmod = {
+>>> +     .name           = "mcspi3",
+>>> +     .class          =&omap44xx_mcspi_hwmod_class,
+>>> +     .mpu_irqs       = omap44xx_mcspi3_irqs,
+>>> +     .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_mcspi3_irqs),
+>>> +     .sdma_reqs      = omap44xx_mcspi3_sdma_reqs,
+>>> +     .sdma_reqs_cnt  = ARRAY_SIZE(omap44xx_mcspi3_sdma_reqs),
+>>> +     .main_clk       = "mcspi3_fck",
+>>> +     .prcm = {
+>>> +             .omap4 = {
+>>> +                     .clkctrl_reg = OMAP4430_CM_L4PER_MCSPI3_CLKCTRL,
+>>> +             },
+>>> +     },
+>>> +     .slaves         = omap44xx_mcspi3_slaves,
+>>> +     .slaves_cnt     = ARRAY_SIZE(omap44xx_mcspi3_slaves),
+>>> +     .dev_attr       =&omap_mcspi3_dev_attr,
+>>> +     .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>>> +};
+>>> +
+>>> +/* mcspi4 */
+>>> +static struct omap_hwmod omap44xx_mcspi4_hwmod;
+>>> +static struct omap_hwmod_irq_info omap44xx_mcspi4_irqs[] = {
+>>> +     { .irq = 48 + OMAP44XX_IRQ_GIC_START },
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_dma_info omap44xx_mcspi4_sdma_reqs[] = {
+>>> +     { .name = "tx0", .dma_req = 69 + OMAP44XX_DMA_REQ_START },
+>>> +     { .name = "rx0", .dma_req = 70 + OMAP44XX_DMA_REQ_START },
+>>> +};
+>>> +
+>>> +static struct omap_hwmod_addr_space omap44xx_mcspi4_addrs[] = {
+>>> +     {
+>>> +             .pa_start       = 0x480ba000,
+>>> +             .pa_end         = 0x480ba1ff,
+>>> +             .flags          = ADDR_TYPE_RT
+>>> +     },
+>>> +};
+>>> +
+>>> +/* l4_per ->  mcspi4 */
+>>> +static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi4 = {
+>>> +     .master         =&omap44xx_l4_per_hwmod,
+>>> +     .slave          =&omap44xx_mcspi4_hwmod,
+>>> +     .clk            = "l4_div_ck",
+>>> +     .addr           = omap44xx_mcspi4_addrs,
+>>> +     .addr_cnt       = ARRAY_SIZE(omap44xx_mcspi4_addrs),
+>>> +     .user           = OCP_USER_MPU | OCP_USER_SDMA,
+>>> +};
+>>> +
+>>> +/* mcspi4 slave ports */
+>>> +static struct omap_hwmod_ocp_if *omap44xx_mcspi4_slaves[] = {
+>>> +&omap44xx_l4_per__mcspi4,
+>>> +};
+>>> +
+>>> +static struct omap2_mcspi_dev_attr omap_mcspi4_dev_attr = {
+>>> +     .num_chipselect = 1,
+>>> +};
+>>> +
+>>> +static struct omap_hwmod omap44xx_mcspi4_hwmod = {
+>>> +     .name           = "mcspi4",
+>>> +     .class          =&omap44xx_mcspi_hwmod_class,
+>>> +     .mpu_irqs       = omap44xx_mcspi4_irqs,
+>>> +     .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_mcspi4_irqs),
+>>> +     .sdma_reqs      = omap44xx_mcspi4_sdma_reqs,
+>>> +     .sdma_reqs_cnt  = ARRAY_SIZE(omap44xx_mcspi4_sdma_reqs),
+>>> +     .main_clk       = "mcspi4_fck",
+>>> +     .prcm = {
+>>> +             .omap4 = {
+>>> +                     .clkctrl_reg = OMAP4430_CM_L4PER_MCSPI4_CLKCTRL,
+>>> +             },
+>>> +     },
+>>> +     .slaves         = omap44xx_mcspi4_slaves,
+>>> +     .slaves_cnt     = ARRAY_SIZE(omap44xx_mcspi4_slaves),
+>>> +     .dev_attr       =&omap_mcspi4_dev_attr,
+>>> +     .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>>> +};
+>>> +
+>>>   static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>>>
+>>>        /* dmm class */
+>>> @@ -2068,6 +2328,12 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>>>        &omap44xx_wd_timer2_hwmod,
+>>>        &omap44xx_wd_timer3_hwmod,
+>>>
+>>> +     /* mcspi class */
+>>> +&omap44xx_mcspi1_hwmod,
+>>> +&omap44xx_mcspi2_hwmod,
+>>> +&omap44xx_mcspi3_hwmod,
+>>> +&omap44xx_mcspi4_hwmod,
+
+mcspi should not be after wd_timer.
+
+Regards,
+Benoit
