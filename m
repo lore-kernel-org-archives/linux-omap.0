@@ -1,108 +1,81 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if doing so would reset an active clockdomain
-Date: Tue, 18 Jan 2011 11:48:29 +0200
-Message-ID: <1295344109-7056-1-git-send-email-tero.kristo@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:51321 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751947Ab1ARImm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Jan 2011 03:42:42 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCHv3 1/2] OMAP3: Devkit8000: Change lcd power pin
+Date: Tue, 18 Jan 2011 14:32:04 +0530
+Message-ID: <AANLkTikK5z7LZCRMBzQ5i_W77HdKfU1iePZR6S_fsKOY@mail.gmail.com>
+References: <1295333932-23935-1-git-send-email-weber@corscience.de> <1295333932-23935-2-git-send-email-weber@corscience.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1295333932-23935-2-git-send-email-weber@corscience.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Weber <weber@corscience.de>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On OMAP3 SoCs, if the CORE powerdomain enters off-mode, many other
-parts of the chip will be reset.  If those parts of the chip are busy,
-the reset will disrupt them, causing unpredictable and generally
-undesirable results.
+On Tue, Jan 18, 2011 at 12:28, Thomas Weber <weber@corscience.de> wrote=
+:
+> This patch fixes a wrongly used lcd enable pin.
+>
+> The Devkit8000 uses twl4030_ledA configured as output gpio only for t=
+he
+> lcd enable line. twl4030_gpio.1 is used through the generic gpio func=
+tions
+> while ledA is used via low level twl4030 calls.
+>
+> Remove the low level calls and use the generic gpio functions for
+> initialization and use of ledA.
+>
+> This also fixes a bug where the lcd would not power down when blankin=
+g.
+>
+> Fix indentation issue. The comment line uses 8 whitespace.
+> This is replaced with one tabulator.
+>
+> Reported-by: Daniel Morsing <daniel.morsing@gmail.com>
+> Signed-off-by: Thomas Weber <weber@corscience.de>
+> ---
+> =A0arch/arm/mach-omap2/board-devkit8000.c | =A0 =A07 ++-----
+> =A01 files changed, 2 insertions(+), 5 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-o=
+map2/board-devkit8000.c
+> index 451e7ff..719f4e5 100644
+> --- a/arch/arm/mach-omap2/board-devkit8000.c
+> +++ b/arch/arm/mach-omap2/board-devkit8000.c
+> @@ -114,9 +114,6 @@ static struct omap2_hsmmc_info mmc[] =3D {
+>
+> =A0static int devkit8000_panel_enable_lcd(struct omap_dss_device *dss=
+dev)
+> =A0{
+> - =A0 =A0 =A0 twl_i2c_write_u8(TWL4030_MODULE_GPIO, 0x80, REG_GPIODAT=
+ADIR1);
+> - =A0 =A0 =A0 twl_i2c_write_u8(TWL4030_MODULE_LED, 0x0, 0x0);
+> -
+> =A0 =A0 =A0 =A0if (gpio_is_valid(dssdev->reset_gpio))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0gpio_set_value_cansleep(dssdev->reset_=
+gpio, 1);
+> =A0 =A0 =A0 =A0return 0;
+> @@ -245,8 +242,8 @@ static int devkit8000_twl_gpio_setup(struct devic=
+e *dev,
+> =A0 =A0 =A0 =A0/* TWL4030_GPIO_MAX + 1 =3D=3D ledB, PMU_STAT (out, ac=
+tive low LED) */
+> =A0 =A0 =A0 =A0gpio_leds[2].gpio =3D gpio + TWL4030_GPIO_MAX + 1;
+>
+> - =A0 =A0 =A0 =A0/* gpio + 1 is "LCD_PWREN" (out, active high) */
+> - =A0 =A0 =A0 devkit8000_lcd_device.reset_gpio =3D gpio + 1;
+> + =A0 =A0 =A0 /* TWL4030_GPIO_MAX + 0 is "LCD_PWREN" (out, active hig=
+h) */
+> + =A0 =A0 =A0 devkit8000_lcd_device.reset_gpio =3D gpio + TWL4030_GPI=
+O_MAX + 0;
+> =A0 =A0 =A0 =A0gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PW=
+REN");
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |   40 +++++++++++++++++++++++++++++++++++-
- 1 files changed, 38 insertions(+), 2 deletions(-)
+Consider checking the return value of gpio_request().
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index f3e043f..d31b858 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -61,7 +61,7 @@ struct omap3_processor_cx {
- struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
- struct omap3_processor_cx current_cx_state;
- struct powerdomain *mpu_pd, *core_pd, *per_pd;
--struct powerdomain *cam_pd;
-+struct powerdomain *cam_pd, *dss_pd, *iva2_pd, *sgx_pd, *usb_pd;
- 
- /*
-  * The latencies/thresholds for various C states have
-@@ -235,7 +235,7 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- {
- 	struct cpuidle_state *new_state = next_valid_state(dev, state);
- 	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
--	u32 cam_state;
-+	u32 cam_state, dss_state, iva2_state, sgx_state, usb_state;
- 	struct omap3_processor_cx *cx;
- 	int ret;
- 
-@@ -256,6 +256,8 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 	 *        its own code.
- 	 */
- 
-+	/* XXX Add CORE-active check here */
-+
- 	/*
- 	 * Prevent idle completely if CAM is active.
- 	 * CAM does not have wakeup capability in OMAP3.
-@@ -275,6 +277,36 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 	    (core_next_state > PWRDM_POWER_RET))
- 		per_next_state = PWRDM_POWER_RET;
- 
-+	/* XXX Add prevent-PER-off check here */
-+
-+	/*
-+	 * If we are attempting CORE off, check if any other powerdomains
-+	 * are at retention or higher. CORE off causes chipwide reset which
-+	 * would reset these domains also.
-+	 */
-+	if (core_next_state == PWRDM_POWER_OFF) {
-+		iva2_state = pwrdm_read_pwrst(iva2_pd);
-+		sgx_state = pwrdm_read_pwrst(sgx_pd);
-+		usb_state = pwrdm_read_pwrst(usb_pd);
-+		dss_state = pwrdm_read_pwrst(dss_pd);
-+
-+		if (cam_state > PWRDM_POWER_OFF ||
-+		    dss_state > PWRDM_POWER_OFF ||
-+		    iva2_state > PWRDM_POWER_OFF ||
-+		    per_next_state > PWRDM_POWER_OFF ||
-+		    sgx_state > PWRDM_POWER_OFF ||
-+		    usb_state > PWRDM_POWER_OFF)
-+			core_next_state = PWRDM_POWER_RET;
-+	}
-+
-+	/* Fallback to new target core/mpu state */
-+	while (cx->core_state < core_next_state) {
-+		state--;
-+		cx = cpuidle_get_statedata(state);
-+	}
-+
-+	new_state = state;
-+
- 	/* Are we changing PER target state? */
- 	if (per_next_state != per_saved_state)
- 		pwrdm_set_next_pwrst(per_pd, per_next_state);
-@@ -489,6 +521,10 @@ int __init omap3_idle_init(void)
- 	core_pd = pwrdm_lookup("core_pwrdm");
- 	per_pd = pwrdm_lookup("per_pwrdm");
- 	cam_pd = pwrdm_lookup("cam_pwrdm");
-+	dss_pd = pwrdm_lookup("dss_pwrdm");
-+	iva2_pd = pwrdm_lookup("iva2_pwrdm");
-+	sgx_pd = pwrdm_lookup("sgx_pwrdm");
-+	usb_pd = pwrdm_lookup("usbhost_pwrdm");
- 
- 	omap_init_power_states();
- 	cpuidle_register_driver(&omap3_idle_driver);
--- 
-1.7.1
-
+> =A0 =A0 =A0 =A0/* Disable until needed */
+> =A0 =A0 =A0 =A0gpio_direction_output(devkit8000_lcd_device.reset_gpio=
+, 0);
+> --
+> 1.7.4.rc2
+>
