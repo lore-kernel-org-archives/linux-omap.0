@@ -1,105 +1,66 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] OMAP: use fncpy to copy the PM code functions to SRAM
-Date: Tue, 18 Jan 2011 13:05:49 +0100
-Message-ID: <AANLkTikPm8_vxjF7P84q7kHq+XSvLyF+jToFt=COs8Mj@mail.gmail.com>
-References: <1295018470-18099-1-git-send-email-j-pihet@ti.com>
-	<20110114155806.GA22505@n2100.arm.linux.org.uk>
-	<AANLkTikz_gSQE5QfO6ZXwbp9w+HTNMtb6RLBY+3Z0XF6@mail.gmail.com>
-	<20110114173400.GB22505@n2100.arm.linux.org.uk>
-	<AANLkTim9At1MZmid1jqqCJAk28BPo0aJEf7QkZM=y4h2@mail.gmail.com>
-	<AANLkTinJPyXKWwbyW05+HUW0LJUxsu=1Exbrr6ut27Kr@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 04/14] ARM: v6k: introduce CPU_V6K option
+Date: Tue, 18 Jan 2011 13:35:59 +0000
+Message-ID: <20110118133559.GC10997@n2100.arm.linux.org.uk>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk> <E1Peuej-0003SV-Dn@rmk-PC.arm.linux.org.uk> <000601cbb6fb$8465c620$8d315260$@deacon@arm.com> <20110118110922.GB10997@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:43503 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751056Ab1ARMFt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 07:05:49 -0500
-Received: by qyk12 with SMTP id 12so6921534qyk.19
-        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 04:05:49 -0800 (PST)
-In-Reply-To: <AANLkTinJPyXKWwbyW05+HUW0LJUxsu=1Exbrr6ut27Kr@mail.gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35580 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751190Ab1ARNgS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 08:36:18 -0500
+Content-Disposition: inline
+In-Reply-To: <20110118110922.GB10997@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Will Deacon <will.deacon@arm.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Dave, Russell,
+On Tue, Jan 18, 2011 at 11:09:22AM +0000, Russell King - ARM Linux wrote:
+> I'd rather not in this patch - this patch adds CPU_V6K as an alias for
+> CPU_V6 - so eveywhere which referenced CPU_V6 becomes (CPU_V6 || CPU_V6K).
+> We could remove it in a later patch though.
 
-On Mon, Jan 17, 2011 at 4:46 PM, Dave Martin <dave.martin@linaro.org> w=
-rote:
-> On Mon, Jan 17, 2011 at 2:01 PM, Jean Pihet <jean.pihet@newoldbits.co=
-m> wrote:
->> On Fri, Jan 14, 2011 at 6:34 PM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->>> On Fri, Jan 14, 2011 at 05:13:01PM +0100, Jean Pihet wrote:
->>>> Is the name 'omap_sram_push' wrong then?
->>>> What about the following?
->>>> @@ -251,9 +251,8 @@ void * omap_sram_push(void * start, unsigned l=
-ong size)
->>>>
->>>> =A0 =A0 =A0 =A0omap_sram_ceil -=3D size;
->>>> =A0 =A0 =A0 =A0omap_sram_ceil =3D ROUND_DOWN(omap_sram_ceil, sizeo=
-f(void *));
->>>> =A0- =A0 =A0 memcpy((void *)omap_sram_ceil, start, size);
->>>> =A0- =A0 =A0 flush_icache_range((unsigned long)omap_sram_ceil,
->>>> =A0- =A0 =A0 =A0 =A0 =A0 =A0 (unsigned long)(omap_sram_ceil + size=
-));
->>>>
->>>> =A0- =A0 =A0 return (void *)omap_sram_ceil;
->>>> =A0+ =A0 =A0return fncpy((void *)omap_sram_ceil, start, size);
->>>
->>> It's more correct, but still missing out on the type safety which w=
-e've
->>> tried to provide with fncpy.
->> IIUC the type of the function is propagated from the 2nd argument
->> (funcp) to the return value, which is fine here. The (void)* is here
->> only to avoid a warning thrown by memcpy.
->
-> I think Russell's argument was that the compiler will not notice if
-> you mismatch the return type and the function to be copied, because
-> the casts to/from void * make the compiler blind to the real types
-> involved. =A0So:
->
-> int f(int);
-> size_t size_of_f;
->
-> void *buffer;
-> int (*_copied_f1)(int);
-> char *(*_copied_f2)(char *);
->
-> _copied_f1 =3D fncpy(buffer, f, size_of_f); /* OK */
-> _copied_f2 =3D fncpy(buffer, f, size_of_f); /* compile error */
-> _copied_f1 =3D omap_sram_push(f, size_of_f); /* OK */
-> _copied_f2 =3D opam_sram_push(f, size_of_f); /* type mismatch, but
-> compilation succeeds */
->
->
-> One way to work around this is would be to make omap_sram_push() a ma=
-cro:
->
-> #define omap_sram_push(funcp, size) \
-> =A0 =A0(typeof(funcp))_do_omap_sram_push((void *)(funcp), size)
->
-> ... where the definition of _do_omap_sram_push() is the same is the
-> existing definition of omap_sram_push(). =A0Providing
-> _do_omap_sram_push() is not called directly, this should now be
-> type-safe.
->
-Ok I reworked the patch from your suggestions. Indeed a few functions
-types mismatch have been spotted and corrected using the fncpy API.
+Here's a follow-up patch to do that.  There's a few other things which
+could do with updating now that we have CPU_Vx* straightened out.  I've
+also recently noticed that the v6 and v7 cache stuff doesn't use the
+direct-call optimization (see commented out bits in cacheflush.h).
 
-New patch sent as '[PATCH v2] OMAP: use fncpy to copy the PM code
-functions to SRAM'.
->
-> Cheers
-> ---Dave
->
+That was because my original V6 support used the block cache operations,
+which had to be run-time tested for presence, and so modified the
+global cpu_cache methods directly.  As the block cache stuff was dropped,
+we should re-enable this optimization.
 
-Thanks,
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That said, I'd rather not add too much to this series as I think it needs
+to go into mainline ASAP - and probably stable as well, even though it's
+on the large side - once properly and fully tested.
+
+8<----
+Subject: [PATCH] ARM: v6k: DMA_CACHE_RWFO isn't appropriate for non-v6k CPUs
+
+Limit DMA_CACHE_RWFO to only v6k SMP CPUs - V6 CPUs aren't SMP capable,
+so the read/write for ownership work-around doesn't apply to them.
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/mm/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
+index 843bc8c..808b832 100644
+--- a/arch/arm/mm/Kconfig
++++ b/arch/arm/mm/Kconfig
+@@ -775,7 +775,7 @@ config NEEDS_SYSCALL_FOR_CMPXCHG
+ 
+ config DMA_CACHE_RWFO
+ 	bool "Enable read/write for ownership DMA cache maintenance"
+-	depends on (CPU_V6 || CPU_V6K) && SMP
++	depends on CPU_V6K && SMP
+ 	default y
+ 	help
+ 	  The Snoop Control Unit on ARM11MPCore does not detect the
+-- 
+1.6.2.5
+
+
