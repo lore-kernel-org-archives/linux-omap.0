@@ -1,138 +1,324 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
-Date: Tue, 18 Jan 2011 14:44:24 +0530
-Message-ID: <AANLkTiko+QoLQn-qA9km-_WNfokrLimt2+D7UGmm_VpV@mail.gmail.com>
-References: <1295336995-15831-1-git-send-email-premi@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 6/7] arm: plat-omap: system.h: move voiceblue
+	definitions into the board header
+Date: Tue, 18 Jan 2011 09:22:03 +0000
+Message-ID: <20110118092203.GA10997@n2100.arm.linux.org.uk>
+References: <1295337165-22934-1-git-send-email-aaro.koskinen@iki.fi> <1295337165-22934-7-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:58679 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753053Ab1ARJPG convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Jan 2011 04:15:06 -0500
-Received: by iwn40 with SMTP id 40so5635108iwn.3
-        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 01:15:04 -0800 (PST)
-In-Reply-To: <1295336995-15831-1-git-send-email-premi@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38555 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752837Ab1ARJWT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 04:22:19 -0500
+Content-Disposition: inline
+In-Reply-To: <1295337165-22934-7-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Couple of minor comments.
+On Tue, Jan 18, 2011 at 09:52:44AM +0200, Aaro Koskinen wrote:
+> Move voiceblue definitions into the board-specific header.
+> 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On Tue, Jan 18, 2011 at 13:19, Sanjeev Premi <premi@ti.com> wrote:
-> This patch adds support for new speed enhanced parts with ARM
-> and IVA running at 720MHz and 520MHz respectively. These parts
-> can be probed at run-time by reading PRODID.SKUID[3:0] at
-> 0x4830A20C [1].
->
-> This patch specifically does following:
-> =A0* Detect devices capable of 720MHz.
-> =A0* Add new OPP
-> =A0* Ensure that OPP is conditionally enabled.
-> =A0* Check for presence of IVA before attempting to enable
-> =A0 the corresponding OPP.
->
-> =A0[1] http://focus.ti.com/lit/ug/spruff1d/spruff1d.pdf
->
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> ---
-> Since v2:
-> 1) pr_xxx() -> dev_xxx() functions - suggested by
-> =A0 Manjunath (manjugk@ti.com)
-> 2) Add check for presense of IVA - earlier planned to
-> =A0 be in a separate patch; but we multiple discussions
-> =A0 on optimizations.
-> 3) Do look-up for hwmod corresponding for iva only if
-> =A0 iva is present. Should save multiple strcmp()s in
-> =A0 _lookup().
->
-> Since v1:
-> 1) Using opp_enable() to enable the OPP after the OPP
-> =A0 table has been initialized.
-> 2) Starting at 3 levels of indent, the statements had
-> =A0 be broken into multiple lines for most of the code.
-> =A0 So, opted to create a new static that enables the
-> =A0 OPPs corresponding to 720MHz.
-> 3) I have only build tested this patch - will be able
-> =A0 to confirm working tomorrow. With any further change,
-> =A0 if needed. (However, functionally nothing has changed.)
->
->
-> =A0arch/arm/mach-omap2/control.h =A0 =A0 =A0 =A0 | =A0 =A07 ++++
-> =A0arch/arm/mach-omap2/id.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 10 +++++
-> =A0arch/arm/mach-omap2/opp3xxx_data.c =A0 =A0| =A0 63 +++++++++++++++=
-+++++++++++++++++-
-> =A0arch/arm/plat-omap/include/plat/cpu.h | =A0 =A02 +
-> =A04 files changed, 81 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/cont=
-rol.h
-> index f0629ae..eebc045 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -365,6 +365,13 @@
-> =A0#define =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0FEAT_NEON =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 0
-> =A0#define =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0FEAT_NEON_NONE =A0 =A0 =A0 =
-=A0 =A01
->
-> +/*
-> + * Product ID register
-> + */
+Let's instead simplify this, and allow other platforms to hook into the
+reset handler if they choose.  This has only been build-tested on my
+omap1 (which includes voiceblue) and omap4 configurations.
 
-Do not use multiline comment style for single line comments
+8<------
+Subject: ARM: OMAP: Allow platforms to hook reset cleanly
 
-> +#define OMAP3_PRODID =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x020C
-> +
-> +#define OMAP3_SKUID_MASK =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x0f
-> +#define =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP3_SKUID_720MHZ =A0 =A0 =A0=
-0x08
->
-> =A0#ifndef __ASSEMBLY__
-> =A0#ifdef CONFIG_ARCH_OMAP2PLUS
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 5f9086c..53fbe01 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -195,6 +195,15 @@ static void __init omap3_check_features(void)
-> =A0 =A0 =A0 =A0 * TODO: Get additional info (where applicable)
-> =A0 =A0 =A0 =A0 * =A0 =A0 =A0 e.g. Size of L2 cache.
-> =A0 =A0 =A0 =A0 */
-> +
-> + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* Does it support 720MHz?
-> + =A0 =A0 =A0 =A0*/
+This adds a clean method to allow platforms to hook into the reset
+code if they require to.
 
-Ditto
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/mach-omap1/Makefile             |    2
+ arch/arm/mach-omap1/board-voiceblue.c    |  106 +++++++++++++++++--------------
+ arch/arm/mach-omap1/reset.c              |   25 +++++++
+ arch/arm/mach-omap2/prcm.c               |    5 +
+ arch/arm/plat-omap/include/plat/prcm.h   |    1
+ arch/arm/plat-omap/include/plat/system.h |   38 -----------
+ 6 files changed, 91 insertions(+), 86 deletions(-)
 
-> + =A0 =A0 =A0 status =3D (OMAP3_SKUID_MASK & read_tap_reg(OMAP3_PRODI=
-D));
-> +
-> + =A0 =A0 =A0 if (status & OMAP3_SKUID_720MHZ) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_features |=3D OMAP3_HAS_720MHZ;
-> + =A0 =A0 =A0 }
-
-No need of { } as there is only one line statement inside the if condit=
-ion.
-
-> =A0}
->
-> =A0static void __init omap3_check_revision(void)
-> @@ -445,6 +454,7 @@ static void __init omap3_cpuinfo(void)
-> =A0 =A0 =A0 =A0OMAP3_SHOW_FEATURE(neon);
-> =A0 =A0 =A0 =A0OMAP3_SHOW_FEATURE(isp);
-> =A0 =A0 =A0 =A0OMAP3_SHOW_FEATURE(192mhz_clk);
-> + =A0 =A0 =A0 OMAP3_SHOW_FEATURE(720mhz);
->
-> =A0 =A0 =A0 =A0printk(")\n");
-> =A0}
-
-<<snip>>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+index 6ee1950..148dc6b 100644
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -4,7 +4,7 @@
+ 
+ # Common support
+ obj-y := io.o id.o sram.o irq.o mux.o flash.o serial.o devices.o dma.o
+-obj-y += clock.o clock_data.o opp_data.o
++obj-y += clock.o clock_data.o opp_data.o reset.o
+ 
+ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+ 
+diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
+index 815a69c..6712817 100644
+--- a/arch/arm/mach-omap1/board-voiceblue.c
++++ b/arch/arm/mach-omap1/board-voiceblue.c
+@@ -26,6 +26,7 @@
+ #include <linux/smc91x.h>
+ 
+ #include <mach/hardware.h>
++#include <mach/system.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+@@ -163,52 +164,6 @@ static void __init voiceblue_init_irq(void)
+ 	omap_init_irq();
+ }
+ 
+-static void __init voiceblue_init(void)
+-{
+-	/* mux pins for uarts */
+-	omap_cfg_reg(UART1_TX);
+-	omap_cfg_reg(UART1_RTS);
+-	omap_cfg_reg(UART2_TX);
+-	omap_cfg_reg(UART2_RTS);
+-	omap_cfg_reg(UART3_TX);
+-	omap_cfg_reg(UART3_RX);
+-
+-	/* Watchdog */
+-	gpio_request(0, "Watchdog");
+-	/* smc91x reset */
+-	gpio_request(7, "SMC91x reset");
+-	gpio_direction_output(7, 1);
+-	udelay(2);	/* wait at least 100ns */
+-	gpio_set_value(7, 0);
+-	mdelay(50);	/* 50ms until PHY ready */
+-	/* smc91x interrupt pin */
+-	gpio_request(8, "SMC91x irq");
+-	/* 16C554 reset*/
+-	gpio_request(6, "16C554 reset");
+-	gpio_direction_output(6, 0);
+-	/* 16C554 interrupt pins */
+-	gpio_request(12, "16C554 irq");
+-	gpio_request(13, "16C554 irq");
+-	gpio_request(14, "16C554 irq");
+-	gpio_request(15, "16C554 irq");
+-	set_irq_type(gpio_to_irq(12), IRQ_TYPE_EDGE_RISING);
+-	set_irq_type(gpio_to_irq(13), IRQ_TYPE_EDGE_RISING);
+-	set_irq_type(gpio_to_irq(14), IRQ_TYPE_EDGE_RISING);
+-	set_irq_type(gpio_to_irq(15), IRQ_TYPE_EDGE_RISING);
+-
+-	platform_add_devices(voiceblue_devices, ARRAY_SIZE(voiceblue_devices));
+-	omap_board_config = voiceblue_config;
+-	omap_board_config_size = ARRAY_SIZE(voiceblue_config);
+-	omap_serial_init();
+-	omap1_usb_init(&voiceblue_usb_config);
+-	omap_register_i2c_bus(1, 100, NULL, 0);
+-
+-	/* There is a good chance board is going up, so enable power LED
+-	 * (it is connected through invertor) */
+-	omap_writeb(0x00, OMAP_LPG1_LCR);
+-	omap_writeb(0x00, OMAP_LPG1_PMR);	/* Disable clock */
+-}
+-
+ static void __init voiceblue_map_io(void)
+ {
+ 	omap1_map_common_io();
+@@ -275,8 +230,17 @@ void voiceblue_wdt_ping(void)
+ 	gpio_set_value(0, wdt_gpio_state);
+ }
+ 
+-void voiceblue_reset(void)
++static void voiceblue_reset(char mode, const char *cmd)
+ {
++	/*
++	 * Workaround for 5912/1611b bug mentioned in sprz209d.pdf p. 28
++	 * "Global Software Reset Affects Traffic Controller Frequency".
++	 */
++	if (cpu_is_omap5912()) {
++		omap_writew(omap_readw(DPLL_CTL) & ~(1 << 4), DPLL_CTL);
++		omap_writew(0x8, ARM_RSTCT1);
++	}
++
+ 	set_bit(MACHINE_REBOOT, &machine_state);
+ 	voiceblue_wdt_enable();
+ 	while (1) ;
+@@ -286,6 +250,54 @@ EXPORT_SYMBOL(voiceblue_wdt_enable);
+ EXPORT_SYMBOL(voiceblue_wdt_disable);
+ EXPORT_SYMBOL(voiceblue_wdt_ping);
+ 
++static void __init voiceblue_init(void)
++{
++	/* mux pins for uarts */
++	omap_cfg_reg(UART1_TX);
++	omap_cfg_reg(UART1_RTS);
++	omap_cfg_reg(UART2_TX);
++	omap_cfg_reg(UART2_RTS);
++	omap_cfg_reg(UART3_TX);
++	omap_cfg_reg(UART3_RX);
++
++	/* Watchdog */
++	gpio_request(0, "Watchdog");
++	/* smc91x reset */
++	gpio_request(7, "SMC91x reset");
++	gpio_direction_output(7, 1);
++	udelay(2);	/* wait at least 100ns */
++	gpio_set_value(7, 0);
++	mdelay(50);	/* 50ms until PHY ready */
++	/* smc91x interrupt pin */
++	gpio_request(8, "SMC91x irq");
++	/* 16C554 reset*/
++	gpio_request(6, "16C554 reset");
++	gpio_direction_output(6, 0);
++	/* 16C554 interrupt pins */
++	gpio_request(12, "16C554 irq");
++	gpio_request(13, "16C554 irq");
++	gpio_request(14, "16C554 irq");
++	gpio_request(15, "16C554 irq");
++	set_irq_type(gpio_to_irq(12), IRQ_TYPE_EDGE_RISING);
++	set_irq_type(gpio_to_irq(13), IRQ_TYPE_EDGE_RISING);
++	set_irq_type(gpio_to_irq(14), IRQ_TYPE_EDGE_RISING);
++	set_irq_type(gpio_to_irq(15), IRQ_TYPE_EDGE_RISING);
++
++	platform_add_devices(voiceblue_devices, ARRAY_SIZE(voiceblue_devices));
++	omap_board_config = voiceblue_config;
++	omap_board_config_size = ARRAY_SIZE(voiceblue_config);
++	omap_serial_init();
++	omap1_usb_init(&voiceblue_usb_config);
++	omap_register_i2c_bus(1, 100, NULL, 0);
++
++	/* There is a good chance board is going up, so enable power LED
++	 * (it is connected through invertor) */
++	omap_writeb(0x00, OMAP_LPG1_LCR);
++	omap_writeb(0x00, OMAP_LPG1_PMR);	/* Disable clock */
++
++	arch_reset = voiceblue_reset;
++}
++
+ MACHINE_START(VOICEBLUE, "VoiceBlue OMAP5910")
+ 	/* Maintainer: Ladislav Michl <michl@2n.cz> */
+ 	.boot_params	= 0x10000100,
+diff --git a/arch/arm/mach-omap1/reset.c b/arch/arm/mach-omap1/reset.c
+index e69de29..ad951ee 100644
+--- a/arch/arm/mach-omap1/reset.c
++++ b/arch/arm/mach-omap1/reset.c
+@@ -0,0 +1,25 @@
++/*
++ * OMAP1 reset support
++ */
++#include <linux/kernel.h>
++#include <linux/io.h>
++
++#include <mach/hardware.h>
++#include <mach/system.h>
++#include <plat/prcm.h>
++
++void omap1_arch_reset(char mode, const char *cmd)
++{
++	/*
++	 * Workaround for 5912/1611b bug mentioned in sprz209d.pdf p. 28
++	 * "Global Software Reset Affects Traffic Controller Frequency".
++	 */
++	if (cpu_is_omap5912()) {
++		omap_writew(omap_readw(DPLL_CTL) & ~(1 << 4), DPLL_CTL);
++		omap_writew(0x8, ARM_RSTCT1);
++	}
++
++	omap_writew(1, ARM_RSTCT1);
++}
++
++void (*arch_reset)(char, const char *) = omap1_arch_reset;
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 679bcd2..6be1438 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -24,6 +24,7 @@
+ #include <linux/io.h>
+ #include <linux/delay.h>
+ 
++#include <mach/system.h>
+ #include <plat/common.h>
+ #include <plat/prcm.h>
+ #include <plat/irqs.h>
+@@ -57,7 +58,7 @@ u32 omap_prcm_get_reset_sources(void)
+ EXPORT_SYMBOL(omap_prcm_get_reset_sources);
+ 
+ /* Resets clock rates and reboots the system. Only called from system.h */
+-void omap_prcm_arch_reset(char mode, const char *cmd)
++static void omap_prcm_arch_reset(char mode, const char *cmd)
+ {
+ 	s16 prcm_offs = 0;
+ 
+@@ -108,6 +109,8 @@ void omap_prcm_arch_reset(char mode, const char *cmd)
+ 	omap2_prm_read_mod_reg(prcm_offs, OMAP2_RM_RSTCTRL); /* OCP barrier */
+ }
+ 
++void (*arch_reset)(char, const char *) = omap_prcm_arch_reset;
++
+ /**
+  * omap2_cm_wait_idlest - wait for IDLEST bit to indicate module readiness
+  * @reg: physical address of module IDLEST register
+diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
+index 2fdf8c8..267f43b 100644
+--- a/arch/arm/plat-omap/include/plat/prcm.h
++++ b/arch/arm/plat-omap/include/plat/prcm.h
+@@ -28,7 +28,6 @@
+ #define __ASM_ARM_ARCH_OMAP_PRCM_H
+ 
+ u32 omap_prcm_get_reset_sources(void);
+-void omap_prcm_arch_reset(char mode, const char *cmd);
+ int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, u8 idlest,
+ 			 const char *name);
+ 
+diff --git a/arch/arm/plat-omap/include/plat/system.h b/arch/arm/plat-omap/include/plat/system.h
+index d0a119f..c5fa9e9 100644
+--- a/arch/arm/plat-omap/include/plat/system.h
++++ b/arch/arm/plat-omap/include/plat/system.h
+@@ -4,48 +4,14 @@
+  */
+ #ifndef __ASM_ARCH_SYSTEM_H
+ #define __ASM_ARCH_SYSTEM_H
+-#include <linux/clk.h>
+ 
+-#include <asm/mach-types.h>
+-#include <mach/hardware.h>
+-
+-#include <plat/prcm.h>
+-
+-#ifndef CONFIG_MACH_VOICEBLUE
+-#define voiceblue_reset()		do {} while (0)
+-#else
+-extern void voiceblue_reset(void);
+-#endif
++#include <asm/proc-fns.h>
+ 
+ static inline void arch_idle(void)
+ {
+ 	cpu_do_idle();
+ }
+ 
+-static inline void omap1_arch_reset(char mode, const char *cmd)
+-{
+-	/*
+-	 * Workaround for 5912/1611b bug mentioned in sprz209d.pdf p. 28
+-	 * "Global Software Reset Affects Traffic Controller Frequency".
+-	 */
+-	if (cpu_is_omap5912()) {
+-		omap_writew(omap_readw(DPLL_CTL) & ~(1 << 4),
+-				 DPLL_CTL);
+-		omap_writew(0x8, ARM_RSTCT1);
+-	}
+-
+-	if (machine_is_voiceblue())
+-		voiceblue_reset();
+-	else
+-		omap_writew(1, ARM_RSTCT1);
+-}
+-
+-static inline void arch_reset(char mode, const char *cmd)
+-{
+-	if (!cpu_class_is_omap2())
+-		omap1_arch_reset(mode, cmd);
+-	else
+-		omap_prcm_arch_reset(mode, cmd);
+-}
++extern void (*arch_reset)(char, const char *);
+ 
+ #endif
