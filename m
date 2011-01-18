@@ -1,279 +1,105 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH v2] OMAP: use fncpy to copy the PM code functions to SRAM
-Date: Tue, 18 Jan 2011 13:02:06 +0100
-Message-ID: <1295352126-29171-1-git-send-email-j-pihet@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] OMAP: use fncpy to copy the PM code functions to SRAM
+Date: Tue, 18 Jan 2011 13:05:49 +0100
+Message-ID: <AANLkTikPm8_vxjF7P84q7kHq+XSvLyF+jToFt=COs8Mj@mail.gmail.com>
+References: <1295018470-18099-1-git-send-email-j-pihet@ti.com>
+	<20110114155806.GA22505@n2100.arm.linux.org.uk>
+	<AANLkTikz_gSQE5QfO6ZXwbp9w+HTNMtb6RLBY+3Z0XF6@mail.gmail.com>
+	<20110114173400.GB22505@n2100.arm.linux.org.uk>
+	<AANLkTim9At1MZmid1jqqCJAk28BPo0aJEf7QkZM=y4h2@mail.gmail.com>
+	<AANLkTinJPyXKWwbyW05+HUW0LJUxsu=1Exbrr6ut27Kr@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:45160 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751662Ab1ARMCV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 07:02:21 -0500
-Received: by wyb28 with SMTP id 28so6026614wyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 04:02:20 -0800 (PST)
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:43503 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056Ab1ARMFt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 07:05:49 -0500
+Received: by qyk12 with SMTP id 12so6921534qyk.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 04:05:49 -0800 (PST)
+In-Reply-To: <AANLkTinJPyXKWwbyW05+HUW0LJUxsu=1Exbrr6ut27Kr@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Jean Pihet <j-pihet@ti.com>
+To: Dave Martin <dave.martin@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-From: Jean Pihet <j-pihet@ti.com>
+Dave, Russell,
 
-The new fncpy API is better suited for copying some
-code to SRAM at runtime. This patch changes the ad-hoc
-code to the more generic fncpy API.
+On Mon, Jan 17, 2011 at 4:46 PM, Dave Martin <dave.martin@linaro.org> w=
+rote:
+> On Mon, Jan 17, 2011 at 2:01 PM, Jean Pihet <jean.pihet@newoldbits.co=
+m> wrote:
+>> On Fri, Jan 14, 2011 at 6:34 PM, Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> wrote:
+>>> On Fri, Jan 14, 2011 at 05:13:01PM +0100, Jean Pihet wrote:
+>>>> Is the name 'omap_sram_push' wrong then?
+>>>> What about the following?
+>>>> @@ -251,9 +251,8 @@ void * omap_sram_push(void * start, unsigned l=
+ong size)
+>>>>
+>>>> =A0 =A0 =A0 =A0omap_sram_ceil -=3D size;
+>>>> =A0 =A0 =A0 =A0omap_sram_ceil =3D ROUND_DOWN(omap_sram_ceil, sizeo=
+f(void *));
+>>>> =A0- =A0 =A0 memcpy((void *)omap_sram_ceil, start, size);
+>>>> =A0- =A0 =A0 flush_icache_range((unsigned long)omap_sram_ceil,
+>>>> =A0- =A0 =A0 =A0 =A0 =A0 =A0 (unsigned long)(omap_sram_ceil + size=
+));
+>>>>
+>>>> =A0- =A0 =A0 return (void *)omap_sram_ceil;
+>>>> =A0+ =A0 =A0return fncpy((void *)omap_sram_ceil, start, size);
+>>>
+>>> It's more correct, but still missing out on the type safety which w=
+e've
+>>> tried to provide with fncpy.
+>> IIUC the type of the function is propagated from the 2nd argument
+>> (funcp) to the return value, which is fine here. The (void)* is here
+>> only to avoid a warning thrown by memcpy.
+>
+> I think Russell's argument was that the compiler will not notice if
+> you mismatch the return type and the function to be copied, because
+> the casts to/from void * make the compiler blind to the real types
+> involved. =A0So:
+>
+> int f(int);
+> size_t size_of_f;
+>
+> void *buffer;
+> int (*_copied_f1)(int);
+> char *(*_copied_f2)(char *);
+>
+> _copied_f1 =3D fncpy(buffer, f, size_of_f); /* OK */
+> _copied_f2 =3D fncpy(buffer, f, size_of_f); /* compile error */
+> _copied_f1 =3D omap_sram_push(f, size_of_f); /* OK */
+> _copied_f2 =3D opam_sram_push(f, size_of_f); /* type mismatch, but
+> compilation succeeds */
+>
+>
+> One way to work around this is would be to make omap_sram_push() a ma=
+cro:
+>
+> #define omap_sram_push(funcp, size) \
+> =A0 =A0(typeof(funcp))_do_omap_sram_push((void *)(funcp), size)
+>
+> ... where the definition of _do_omap_sram_push() is the same is the
+> existing definition of omap_sram_push(). =A0Providing
+> _do_omap_sram_push() is not called directly, this should now be
+> type-safe.
+>
+Ok I reworked the patch from your suggestions. Indeed a few functions
+types mismatch have been spotted and corrected using the fncpy API.
 
-Tested OK on OMAP3 in low power modes (RET/OFF)
-using omap2plus_defconfig with !CONFIG_THUMB2_KERNEL.
-Compile tested on OMAP1/2 using omap1_defconfig.
+New patch sent as '[PATCH v2] OMAP: use fncpy to copy the PM code
+functions to SRAM'.
+>
+> Cheers
+> ---Dave
+>
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap1/pm.h               |    6 +++---
- arch/arm/mach-omap1/sleep.S            |    3 +++
- arch/arm/mach-omap1/sram.S             |    1 +
- arch/arm/mach-omap2/pm.h               |    2 +-
- arch/arm/mach-omap2/sleep24xx.S        |    2 ++
- arch/arm/mach-omap2/sleep34xx.S        |    2 ++
- arch/arm/mach-omap2/sram242x.S         |    3 +++
- arch/arm/mach-omap2/sram243x.S         |    3 +++
- arch/arm/mach-omap2/sram34xx.S         |    1 +
- arch/arm/plat-omap/include/plat/sram.h |   14 +++++++++++++-
- arch/arm/plat-omap/sram.c              |   14 +++++++++-----
- 11 files changed, 41 insertions(+), 10 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/pm.h b/arch/arm/mach-omap1/pm.h
-index 56a6479..cd926dc 100644
---- a/arch/arm/mach-omap1/pm.h
-+++ b/arch/arm/mach-omap1/pm.h
-@@ -123,9 +123,9 @@ extern void allow_idle_sleep(void);
- extern void omap1_pm_idle(void);
- extern void omap1_pm_suspend(void);
- 
--extern void omap7xx_cpu_suspend(unsigned short, unsigned short);
--extern void omap1510_cpu_suspend(unsigned short, unsigned short);
--extern void omap1610_cpu_suspend(unsigned short, unsigned short);
-+extern void omap7xx_cpu_suspend(unsigned long, unsigned long);
-+extern void omap1510_cpu_suspend(unsigned long, unsigned long);
-+extern void omap1610_cpu_suspend(unsigned long, unsigned long);
- extern void omap7xx_idle_loop_suspend(void);
- extern void omap1510_idle_loop_suspend(void);
- extern void omap1610_idle_loop_suspend(void);
-diff --git a/arch/arm/mach-omap1/sleep.S b/arch/arm/mach-omap1/sleep.S
-index ef771ce..c875bdc 100644
---- a/arch/arm/mach-omap1/sleep.S
-+++ b/arch/arm/mach-omap1/sleep.S
-@@ -58,6 +58,7 @@
-  */
- 
- #if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-+	.align	3
- ENTRY(omap7xx_cpu_suspend)
- 
- 	@ save registers on stack
-@@ -137,6 +138,7 @@ ENTRY(omap7xx_cpu_suspend_sz)
- #endif /* CONFIG_ARCH_OMAP730 || CONFIG_ARCH_OMAP850 */
- 
- #ifdef CONFIG_ARCH_OMAP15XX
-+	.align	3
- ENTRY(omap1510_cpu_suspend)
- 
- 	@ save registers on stack
-@@ -211,6 +213,7 @@ ENTRY(omap1510_cpu_suspend_sz)
- #endif /* CONFIG_ARCH_OMAP15XX */
- 
- #if defined(CONFIG_ARCH_OMAP16XX)
-+	.align	3
- ENTRY(omap1610_cpu_suspend)
- 
- 	@ save registers on stack
-diff --git a/arch/arm/mach-omap1/sram.S b/arch/arm/mach-omap1/sram.S
-index 7724e52..692587d 100644
---- a/arch/arm/mach-omap1/sram.S
-+++ b/arch/arm/mach-omap1/sram.S
-@@ -18,6 +18,7 @@
- /*
-  * Reprograms ULPD and CKCTL.
-  */
-+	.align	3
- ENTRY(omap1_sram_reprogram_clock)
- 	stmfd	sp!, {r0 - r12, lr}		@ save registers on stack
- 
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 1c1b0ab..39580e6 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -92,7 +92,7 @@ extern void omap24xx_idle_loop_suspend(void);
- extern void omap24xx_cpu_suspend(u32 dll_ctrl, void __iomem *sdrc_dlla_ctrl,
- 					void __iomem *sdrc_power);
- extern void omap34xx_cpu_suspend(u32 *addr, int save_state);
--extern void save_secure_ram_context(u32 *addr);
-+extern int save_secure_ram_context(u32 *addr);
- extern void omap3_save_scratchpad_contents(void);
- 
- extern unsigned int omap24xx_idle_loop_suspend_sz;
-diff --git a/arch/arm/mach-omap2/sleep24xx.S b/arch/arm/mach-omap2/sleep24xx.S
-index c7780cc..b5071a4 100644
---- a/arch/arm/mach-omap2/sleep24xx.S
-+++ b/arch/arm/mach-omap2/sleep24xx.S
-@@ -47,6 +47,7 @@
-  * Note: This code get's copied to internal SRAM at boot. When the OMAP
-  *	 wakes up it continues execution at the point it went to sleep.
-  */
-+	.align	3
- ENTRY(omap24xx_idle_loop_suspend)
- 	stmfd	sp!, {r0, lr}		@ save registers on stack
- 	mov	r0, #0			@ clear for mcr setup
-@@ -82,6 +83,7 @@ ENTRY(omap24xx_idle_loop_suspend_sz)
-  * The DLL load value is not kept in RETENTION or OFF.	It needs to be restored
-  * at wake
-  */
-+	.align	3
- ENTRY(omap24xx_cpu_suspend)
- 	stmfd	sp!, {r0 - r12, lr}	@ save registers on stack
- 	mov	r3, #0x0		@ clear for mcr call
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 98d8232..951a0be 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -118,6 +118,7 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
- 
- 	.text
- /* Function to call rom code to save secure ram context */
-+	.align	3
- ENTRY(save_secure_ram_context)
- 	stmfd	sp!, {r1-r12, lr}	@ save registers on stack
- 	adr	r3, api_params		@ r3 points to parameters
-@@ -169,6 +170,7 @@ ENTRY(save_secure_ram_context_sz)
-  *   depending on the low power mode (non-OFF vs OFF modes),
-  *   cf. 'Resume path for xxx mode' comments.
-  */
-+	.align	3
- ENTRY(omap34xx_cpu_suspend)
- 	stmfd	sp!, {r0-r12, lr}	@ save registers on stack
- 
-diff --git a/arch/arm/mach-omap2/sram242x.S b/arch/arm/mach-omap2/sram242x.S
-index 055310c..ff9b9db 100644
---- a/arch/arm/mach-omap2/sram242x.S
-+++ b/arch/arm/mach-omap2/sram242x.S
-@@ -39,6 +39,7 @@
- 
- 	.text
- 
-+	.align	3
- ENTRY(omap242x_sram_ddr_init)
- 	stmfd	sp!, {r0 - r12, lr}	@ save registers on stack
- 
-@@ -143,6 +144,7 @@ ENTRY(omap242x_sram_ddr_init_sz)
-  * r0 = [PRCM_FULL | PRCM_HALF] r1 = SDRC_DLLA_CTRL value r2 = [DDR | SDR]
-  * PRCM_FULL = 2, PRCM_HALF = 1, DDR = 1, SDR = 0
-  */
-+	.align	3
- ENTRY(omap242x_sram_reprogram_sdrc)
- 	stmfd	sp!, {r0 - r10, lr}	@ save registers on stack
- 	mov	r3, #0x0		@ clear for mrc call
-@@ -238,6 +240,7 @@ ENTRY(omap242x_sram_reprogram_sdrc_sz)
- /*
-  * Set dividers and pll. Also recalculate DLL value for DDR and unlock mode.
-  */
-+	.align	3
- ENTRY(omap242x_sram_set_prcm)
- 	stmfd	sp!, {r0-r12, lr}	@ regs to stack
- 	adr	r4, pbegin		@ addr of preload start
-diff --git a/arch/arm/mach-omap2/sram243x.S b/arch/arm/mach-omap2/sram243x.S
-index f900758..7673020 100644
---- a/arch/arm/mach-omap2/sram243x.S
-+++ b/arch/arm/mach-omap2/sram243x.S
-@@ -39,6 +39,7 @@
- 
- 	.text
- 
-+	.align	3
- ENTRY(omap243x_sram_ddr_init)
- 	stmfd	sp!, {r0 - r12, lr}	@ save registers on stack
- 
-@@ -143,6 +144,7 @@ ENTRY(omap243x_sram_ddr_init_sz)
-  * r0 = [PRCM_FULL | PRCM_HALF] r1 = SDRC_DLLA_CTRL value r2 = [DDR | SDR]
-  * PRCM_FULL = 2, PRCM_HALF = 1, DDR = 1, SDR = 0
-  */
-+	.align	3
- ENTRY(omap243x_sram_reprogram_sdrc)
- 	stmfd	sp!, {r0 - r10, lr}	@ save registers on stack
- 	mov	r3, #0x0		@ clear for mrc call
-@@ -238,6 +240,7 @@ ENTRY(omap243x_sram_reprogram_sdrc_sz)
- /*
-  * Set dividers and pll. Also recalculate DLL value for DDR and unlock mode.
-  */
-+	.align	3
- ENTRY(omap243x_sram_set_prcm)
- 	stmfd	sp!, {r0-r12, lr}	@ regs to stack
- 	adr	r4, pbegin		@ addr of preload start
-diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index 7f893a2..25011ca 100644
---- a/arch/arm/mach-omap2/sram34xx.S
-+++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -111,6 +111,7 @@
-  * since it will cause the ARM MMU to attempt to walk the page tables.
-  * These crashes may be intermittent.
-  */
-+	.align	3
- ENTRY(omap3_sram_configure_core_dpll)
- 	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
- 
-diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
-index 9967d5e..d673f2c 100644
---- a/arch/arm/plat-omap/include/plat/sram.h
-+++ b/arch/arm/plat-omap/include/plat/sram.h
-@@ -12,7 +12,19 @@
- #define __ARCH_ARM_OMAP_SRAM_H
- 
- #ifndef __ASSEMBLY__
--extern void * omap_sram_push(void * start, unsigned long size);
-+#include <asm/fncpy.h>
-+
-+extern void *omap_sram_push_address(unsigned long size);
-+
-+/* Macro to push a function to the internal SRAM, using the fncpy API */
-+#define omap_sram_push(funcp, size) ({				\
-+	typeof(&funcp) _res = NULL;				\
-+	void *_sram_address = omap_sram_push_address(size);	\
-+	if (_sram_address)					\
-+		_res = fncpy(_sram_address, &funcp, size);	\
-+	_res;							\
-+})
-+
- extern void omap_sram_reprogram_clock(u32 dpllctl, u32 ckctl);
- 
- extern void omap2_sram_ddr_init(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index e26e504..68fcc7d 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -242,7 +242,14 @@ static void __init omap_map_sram(void)
- 	       omap_sram_size - SRAM_BOOTLOADER_SZ);
- }
- 
--void * omap_sram_push(void * start, unsigned long size)
-+/*
-+ * Memory allocator for SRAM: calculates the new ceiling address
-+ * for pushing a function using the fncpy API.
-+ *
-+ * Note that fncpy requires the returned address to be aligned
-+ * to an 8-byte boundary.
-+ */
-+void *omap_sram_push_address(unsigned long size)
- {
- 	if (size > (omap_sram_ceil - (omap_sram_base + SRAM_BOOTLOADER_SZ))) {
- 		printk(KERN_ERR "Not enough space in SRAM\n");
-@@ -250,10 +257,7 @@ void * omap_sram_push(void * start, unsigned long size)
- 	}
- 
- 	omap_sram_ceil -= size;
--	omap_sram_ceil = ROUND_DOWN(omap_sram_ceil, sizeof(void *));
--	memcpy((void *)omap_sram_ceil, start, size);
--	flush_icache_range((unsigned long)omap_sram_ceil,
--		(unsigned long)(omap_sram_ceil + size));
-+	omap_sram_ceil = ROUND_DOWN(omap_sram_ceil, FNCPY_ALIGN);
- 
- 	return (void *)omap_sram_ceil;
- }
--- 
-1.7.2.3
-
+Thanks,
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
