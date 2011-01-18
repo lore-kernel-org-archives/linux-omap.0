@@ -1,96 +1,224 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] omap1: Fix sched_clock for the MPU timer (Re: State of
- LDP3430 platform)
-Date: Tue, 18 Jan 2011 14:26:13 -0800
-Message-ID: <20110118222613.GS4957@atomide.com>
-References: <alpine.DEB.2.00.1012061125400.13430@utopia.booyaka.com>
- <20101207083720.GB18336@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1012071745120.13430@utopia.booyaka.com>
- <alpine.DEB.2.00.1012072012000.13430@utopia.booyaka.com>
- <20110115000301.GT4957@atomide.com>
- <alpine.DEB.2.00.1101151237240.32245@utopia.booyaka.com>
- <20110115233744.GA18159@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1101152028580.13225@utopia.booyaka.com>
- <4D3309F9.8090900@gmail.com>
- <alpine.DEB.2.00.1101181234130.13225@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH RFC] arm: omap3evm: Add support for an MT9M032 based camera board.
+Date: Tue, 18 Jan 2011 23:32:16 +0100
+Message-ID: <1295389936-3238-1-git-send-email-martin@neutronstar.dyndns.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:17337 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751440Ab1ARW03 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 17:26:29 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1101181234130.13225@utopia.booyaka.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:61393 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143Ab1ARWcb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 17:32:31 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Thomas Weber <thomas.weber.linux@googlemail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Martin Hostettler <martin@neutronstar.dyndns.org>
 
-* Paul Walmsley <paul@pwsan.com> [110118 11:35]:
-> 
-> Here's a slightly updated version of this patch, fixing a bug in one of 
-> the comments, and revising the commit message.  There's no functional 
-> difference between this and the previous version of this patch.
+Adds board support for an MT9M032 based camera to omap3evm.
 
-Thanks, here are two patches to fix the MPU timer, and then allow
-compiling in both the MPU timer and the 32KiHz timer.
+Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+---
+ arch/arm/mach-omap2/Makefile                |    1 +
+ arch/arm/mach-omap2/board-omap3evm-camera.c |  177 +++++++++++++++++++++++++++
+ 2 files changed, 178 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
 
-Tony
+This patch depends on the recent not yet mainline media controller framework
+and omap3-isp driver availible at git.linuxtv.org/pinchartl/media.git.
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 18 Jan 2011 13:25:39 -0800
-Subject: [PATCH] omap1: Fix sched_clock for the MPU timer
-
-Otherwise systems using the MPU timer will hang.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap1/time.c
-+++ b/arch/arm/mach-omap1/time.c
-@@ -44,11 +44,14 @@
- #include <linux/clocksource.h>
- #include <linux/clockchips.h>
- #include <linux/io.h>
-+#include <linux/sched.h>
- 
- #include <asm/system.h>
- #include <mach/hardware.h>
- #include <asm/leds.h>
- #include <asm/irq.h>
-+#include <asm/sched_clock.h>
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 60e51bc..5f43cc5 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -132,6 +132,7 @@ obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o \
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
++					   board-omap3evm-camera.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+ 					   hsmmc.o
+diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
+new file mode 100644
+index 0000000..ea82a49
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+@@ -0,0 +1,177 @@
++/*
++ * Copyright (C) 2010-2011 Lund Engineering
++ * Contact: Gil Lund <gwlund@lundeng.com>
++ * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
 +
- #include <asm/mach/irq.h>
- #include <asm/mach/time.h>
- 
-@@ -67,7 +70,7 @@ typedef struct {
- ((volatile omap_mpu_timer_regs_t*)OMAP1_IO_ADDRESS(OMAP_MPU_TIMER_BASE +	\
- 				 (n)*OMAP_MPU_TIMER_OFFSET))
- 
--static inline unsigned long omap_mpu_timer_read(int nr)
-+static inline unsigned long notrace omap_mpu_timer_read(int nr)
- {
- 	volatile omap_mpu_timer_regs_t* timer = omap_mpu_timer_base(nr);
- 	return timer->read_tim;
-@@ -212,11 +215,21 @@ static struct clocksource clocksource_mpu = {
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
- 
-+static DEFINE_CLOCK_DATA(cd);
++#include <linux/i2c.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
 +
-+static void notrace mpu_update_sched_clock(void)
++#include <asm/gpio.h>
++#include <plat/mux.h>
++#include "mux.h"
++
++#include "../../../drivers/media/video/isp/isp.h"
++#include "../../../drivers/media/video/mt9m032.h"
++
++#include "devices.h"
++
++#define EVM_TWL_GPIO_BASE OMAP_MAX_GPIO_LINES
++#define GPIO98_VID_DEC_RES	98
++#define nCAM_VD_SEL		157
++
++#define MT9M032_I2C_BUS_NUM	2
++
++
++enum omap3evmdc_mux {
++	MUX_TVP5146,
++	MUX_CAMERA_SENSOR,
++	MUX_EXP_CAMERA_SENSOR,
++};
++
++/**
++ * omap3evm_set_mux - Sets mux to enable signal routing to
++ *                           different peripherals present on new EVM board
++ * @mux_id: enum, mux id to enable
++ *
++ * Returns 0 for success or a negative error code
++ */
++static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
 +{
-+	u32 cyc = mpu_read(&clocksource_mpu);
-+	update_sched_clock(&cd, cyc, (u32)~0);
++	/* Set GPIO6 = 1 */
++	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
++	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++
++	switch (mux_id) {
++	case MUX_TVP5146:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++		gpio_set_value(nCAM_VD_SEL, 1);
++		break;
++
++	case MUX_CAMERA_SENSOR:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++		gpio_set_value(nCAM_VD_SEL, 0);
++		break;
++
++	case MUX_EXP_CAMERA_SENSOR:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
++		break;
++
++	default:
++		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
++		return -EINVAL;
++	}
++
++	return 0;
 +}
 +
- static void __init omap_init_clocksource(unsigned long rate)
- {
- 	static char err[] __initdata = KERN_ERR
- 			"%s: can't register clocksource!\n";
- 
-+	init_sched_clock(&cd, mpu_update_sched_clock, 32, rate);
++static struct mt9m032_platform_data mt9m032_platform_data = {
++	.ext_clock = 13500000,
++	.pll_pre_div = 6,
++	.pll_mul = 120,
++	.pll_out_div = 5,
++	.invert_pixclock = 1,
++};
 +
- 	setup_irq(INT_TIMER2, &omap_mpu_timer2_irq);
- 	omap_mpu_timer_start(1, ~0, 1);
- 
++static struct i2c_board_info camera_i2c_devices[] = {
++	{
++		I2C_BOARD_INFO(MT9M032_NAME, MT9M032_I2C_ADDR),
++		.platform_data = &mt9m032_platform_data,
++	},
++};
++
++static struct isp_subdev_i2c_board_info camera_i2c_subdevs[] = {
++	{
++		.board_info = &camera_i2c_devices[0],
++		.i2c_adapter_id = MT9M032_I2C_BUS_NUM,
++	},
++	{},
++};
++
++static struct isp_v4l2_subdevs_group camera_subdevs[] = {
++	{
++		.subdevs = camera_i2c_subdevs,
++		.interface = ISP_INTERFACE_PARALLEL,
++		.bus = {
++			.parallel = {
++				.data_lane_shift = 1,
++				.clk_pol = 0,
++				.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
++				.width = 8,
++			}
++		},
++	},
++	{},
++};
++
++static struct isp_platform_data isp_platform_data = {
++	.subdevs = camera_subdevs,
++};
++
++static int __init camera_init(void)
++{
++	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
++	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL") < 0) {
++		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
++		       nCAM_VD_SEL);
++		goto err;
++	}
++	if (gpio_direction_output(nCAM_VD_SEL, 1) < 0) {
++		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_SEL(%d) direction\n",
++		       nCAM_VD_SEL);
++		goto err_vdsel;
++	}
++
++	if (gpio_request(EVM_TWL_GPIO_BASE + 2, "T2_GPIO2") < 0) {
++		pr_err("omap3evm-camera: Failed to get GPIO T2_GPIO2(%d)\n",
++		       EVM_TWL_GPIO_BASE + 2);
++		goto err_vdsel;
++	}
++	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 2, 0) < 0) {
++		pr_err("omap3evm-camera: Failed to set GPIO T2_GPIO2(%d) direction\n",
++		       EVM_TWL_GPIO_BASE + 2);
++		goto err_2;
++	}
++
++	if (gpio_request(EVM_TWL_GPIO_BASE + 8, "nCAM_VD_EN") < 0) {
++		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_EN(%d)\n",
++		       EVM_TWL_GPIO_BASE + 8);
++		goto err_2;
++	}
++	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 8, 0) < 0) {
++		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_EN(%d) direction\n",
++		       EVM_TWL_GPIO_BASE + 8);
++		goto err_8;
++	}
++
++	omap3evm_set_mux(MUX_CAMERA_SENSOR);
++
++	
++	return omap3_init_camera(&isp_platform_data);
++
++err_8:
++	gpio_free(EVM_TWL_GPIO_BASE + 8);
++err_2:
++	gpio_free(EVM_TWL_GPIO_BASE + 2);
++err_vdsel:
++	gpio_free(nCAM_VD_SEL);
++err:
++	return -EINVAL;
++}
++
++device_initcall(camera_init);
+-- 
+1.7.1
+
