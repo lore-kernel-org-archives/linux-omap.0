@@ -1,53 +1,60 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [Query] OMAP: DSS2: Margin for downscaling in clock
- calculations
-Date: Tue, 18 Jan 2011 16:19:29 +0200
-Message-ID: <1295360369.27310.18.camel@tubuntu>
-References: <FCCFB4CDC6E5564B9182F639FC356087035F86FA74@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v2 0/5] Clockdomain split series
+Date: Tue, 18 Jan 2011 19:57:35 +0530
+Message-ID: <1295360860-26490-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:53787 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751668Ab1AROTg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Jan 2011 09:19:36 -0500
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087035F86FA74@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47355 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751742Ab1ARO1t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 09:27:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, b-cousson@ti.com, khilman@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-On Tue, 2011-01-18 at 10:45 +0530, ext Taneja, Archit wrote:
-> Hi,
-> 
-> I was going through the DSS2 code which sets up the FCLK
-> coming from PRCM and the DISPC divivors to get the required pixel
-> clock. 
->  
-> The function dss_calc_clock_div() does a brute force search across
-> all possible values of: a) DPLL divisor whose output goes to DSS, b)
-> DISPC_DIVISOR.LCD, c) DISPC_DIVISOR.pcd
-> 
-> The combination which gives a clock frequency closest to the
-> required pixel clock is chosen.
-> 
-> Hence, it seems that the resultant DISPC_FCLK clock frequency doesn't
-> take into account the extra margin needed for downscaling:
-> 
-> Req dispc_fclk >= pck * hscale_ratio * vscale_ration * K
-> 
-> Do you thing putting a further constraint (like DISPC_FCLK needs to be
-> greater than a given value) should be a part of the calculations to
-> ensure successful scaling?
+This patch series is an effort to split the clockdomain
+framework into platform independent and platform specific parts
+as was done for the powerdomain framework.
 
-It's been a while since I looked at the fclk requirements, but isn't the
-current CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK enough? It is quite hackish and
-static, but a proper implementation is much harder (dynamically changing
-the clocks depending on the scaling).
+This certainlly helps remove the various cpu_is_* checks
+which exist today in the framework and makes
+the code more maintainable and readable.
 
-Or were there some additional restrictions?
+The series is boot tested on OMAP2430/3430/4430SDP platforms.
+Also on OMAP3430SDP, OFF mode in suspend path is validated
+using the omap3_pm_defconfig.
 
- Tomi
+This series is based on latest mainline kernel and
+can be found here
+git://gitorious.org/omap-pm/linux.git clockdomain-split-v2
 
+Version History
+---------------
+v2
+-1- removed wrongly populated sleepdep support for OMAP2
+-2- Fixed error handling in apis
+
+Rajendra Nayak (5):
+  OMAP: clockdomain: Infrastructure to put arch specific code
+  OMAP: clockdomain: Arch specific funcs to handle deps
+  OMAP: clockdomain: Arch specific funcs for sleep/wakeup of clkdm
+  OMAP: clockdomain: Arch specific funcs for hwsup control of clkdm
+  OMAP: clockdomain: Arch specific funcs for clkdm_clk_enable/disable
+
+ arch/arm/mach-omap2/Makefile                     |    3 +
+ arch/arm/mach-omap2/clock.c                      |    6 +-
+ arch/arm/mach-omap2/clockdomain.c                |  410 +++++++---------------
+ arch/arm/mach-omap2/clockdomain.h                |   58 +++-
+ arch/arm/mach-omap2/clockdomain2xxx_3xxx.c       |  270 ++++++++++++++
+ arch/arm/mach-omap2/clockdomain44xx.c            |   77 ++++
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    9 +-
+ arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 +-
+ arch/arm/mach-omap2/cpuidle34xx.c                |    4 +-
+ arch/arm/mach-omap2/io.c                         |    6 +-
+ arch/arm/mach-omap2/pm.c                         |    6 +-
+ arch/arm/mach-omap2/pm24xx.c                     |    8 +-
+ arch/arm/mach-omap2/pm34xx.c                     |    6 +-
+ 13 files changed, 557 insertions(+), 308 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+ create mode 100644 arch/arm/mach-omap2/clockdomain44xx.c
 
