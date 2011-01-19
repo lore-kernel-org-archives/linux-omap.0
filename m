@@ -1,92 +1,243 @@
 From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH RESEND v8 0/7] nand prefetch-irq support and ecc layout chanage
-Date: Wed, 19 Jan 2011 18:54:56 +0530
-Message-ID: <1295443503-14515-1-git-send-email-s-ghorai@ti.com>
+Subject: [PATCH RESEND v8 2/7] omap3: nand: configurable transfer type per board
+Date: Wed, 19 Jan 2011 18:54:58 +0530
+Message-ID: <1295443503-14515-3-git-send-email-s-ghorai@ti.com>
+References: <1295443503-14515-1-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39607 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753228Ab1ASNZM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Jan 2011 08:25:12 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:35320 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753245Ab1ASNZO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 08:25:14 -0500
+In-Reply-To: <1295443503-14515-1-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>
 
-The following set of patches applies on linux-2.6.
+nand transfer type (sDMA, Polled, prefetch) can be select from board file,
+enabling all transfer type in driver, by default.
 
-The main motivations behind this patch series are -
-        1. support NAND I/O in irq mode.
-        2. support of different ECC schema.
-        3. also add support ecc layout as like in romcode ecc layout, but not enabled
+this helps in multi-omap build and to select different transfer type for
+different board.
 
-v8: free_irq() added; usedtimeout for this while loop.
-Rebase and resend of http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41614.html
+Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+---
+ arch/arm/plat-omap/include/plat/nand.h |    7 +++
+ drivers/mtd/nand/Kconfig               |   17 ------
+ drivers/mtd/nand/omap2.c               |   94 ++++++++++++--------------------
+ 3 files changed, 41 insertions(+), 77 deletions(-)
 
-v7: NAND type (x16 or x8) is board specific and not omap specific; this passed form board file.
-    http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41469.html
-
-v6: configurable transfer type from board file; 
-    #define irq number used for nand-irq
-    http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39397.html
-    
-v5: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35860.html
-This address the input as to support the irq_chained in GPMC.
-And resend of
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35848.html
-
-v4: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34882.html
-and resend of
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32689.html
-
-v3: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32071.html
-Rebase on latest codebase and previous patch(posted).
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31963.html
-
-v2: Rebase on latest codebase and previous patch(posted).
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31471.html
-
-v1: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26666.html
-
-Sukumar Ghorai (7):
-  omap3630: nand: fix device size to work in polled mode
-  omap3: nand: configurable transfer type per board
-  omap: gpmc: enable irq mode in gpmc
-  omap3: nand: prefetch in irq mode support
-  omap3: nand: configurable fifo threshold to gain the throughput
-  omap3: nand: ecc layout select from board file
-  omap3: nand: making ecc layout as compatible with romcode ecc
-
- arch/arm/mach-omap2/board-2430sdp.c        |    1 +
- arch/arm/mach-omap2/board-3430sdp.c        |    3 +-
- arch/arm/mach-omap2/board-3630sdp.c        |    4 +-
- arch/arm/mach-omap2/board-4430sdp.c        |    2 +
- arch/arm/mach-omap2/board-am3517evm.c      |    2 +
- arch/arm/mach-omap2/board-apollon.c        |    1 +
- arch/arm/mach-omap2/board-cm-t35.c         |    1 +
- arch/arm/mach-omap2/board-devkit8000.c     |    1 +
- arch/arm/mach-omap2/board-flash.c          |   13 +-
- arch/arm/mach-omap2/board-flash.h          |    4 +-
- arch/arm/mach-omap2/board-generic.c        |    2 +
- arch/arm/mach-omap2/board-h4.c             |    1 +
- arch/arm/mach-omap2/board-igep0020.c       |    1 +
- arch/arm/mach-omap2/board-ldp.c            |    3 +-
- arch/arm/mach-omap2/board-n8x0.c           |    2 +
- arch/arm/mach-omap2/board-omap3beagle.c    |    1 +
- arch/arm/mach-omap2/board-omap3evm.c       |    2 +
- arch/arm/mach-omap2/board-omap3pandora.c   |    2 +
- arch/arm/mach-omap2/board-omap3stalker.c   |    1 +
- arch/arm/mach-omap2/board-omap3touchbook.c |    1 +
- arch/arm/mach-omap2/board-omap4panda.c     |    2 +
- arch/arm/mach-omap2/board-overo.c          |    1 +
- arch/arm/mach-omap2/board-rx51.c           |    1 +
- arch/arm/mach-omap2/board-zoom.c           |    7 +-
- arch/arm/mach-omap2/gpmc-nand.c            |    7 +-
- arch/arm/mach-omap2/gpmc.c                 |   50 ++++-
- arch/arm/mach-omap2/io.c                   |    3 -
- arch/arm/plat-omap/include/plat/gpmc.h     |   17 ++-
- arch/arm/plat-omap/include/plat/irqs.h     |    9 +-
- arch/arm/plat-omap/include/plat/nand.h     |   11 +
- drivers/mtd/nand/Kconfig                   |   17 --
- drivers/mtd/nand/omap2.c                   |  367 +++++++++++++++++++++-------
- 32 files changed, 411 insertions(+), 129 deletions(-)
+diff --git a/arch/arm/plat-omap/include/plat/nand.h b/arch/arm/plat-omap/include/plat/nand.h
+index 6562cd0..78c0bdb 100644
+--- a/arch/arm/plat-omap/include/plat/nand.h
++++ b/arch/arm/plat-omap/include/plat/nand.h
+@@ -10,6 +10,12 @@
+ 
+ #include <linux/mtd/partitions.h>
+ 
++enum nand_io {
++	NAND_OMAP_PREFETCH_POLLED = 0,	/* prefetch polled mode, default */
++	NAND_OMAP_POLLED,		/* polled mode, without prefetch */
++	NAND_OMAP_PREFETCH_DMA		/* prefetch enabled sDMA mode */
++};
++
+ struct omap_nand_platform_data {
+ 	unsigned int		options;
+ 	int			cs;
+@@ -20,6 +26,7 @@ struct omap_nand_platform_data {
+ 	int			(*nand_setup)(void);
+ 	int			(*dev_ready)(struct omap_nand_platform_data *);
+ 	int			dma_channel;
++	enum nand_io		xfer_type;
+ 	unsigned long		phys_base;
+ 	int			devsize;
+ };
+diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+index c895922..178e200 100644
+--- a/drivers/mtd/nand/Kconfig
++++ b/drivers/mtd/nand/Kconfig
+@@ -106,23 +106,6 @@ config MTD_NAND_OMAP2
+ 	help
+           Support for NAND flash on Texas Instruments OMAP2 and OMAP3 platforms.
+ 
+-config MTD_NAND_OMAP_PREFETCH
+-	bool "GPMC prefetch support for NAND Flash device"
+-	depends on MTD_NAND_OMAP2
+-	default y
+-	help
+-	 The NAND device can be accessed for Read/Write using GPMC PREFETCH engine
+-	 to improve the performance.
+-
+-config MTD_NAND_OMAP_PREFETCH_DMA
+-	depends on MTD_NAND_OMAP_PREFETCH
+-	bool "DMA mode"
+-	default n
+-	help
+-	 The GPMC PREFETCH engine can be configured eigther in MPU interrupt mode
+-	 or in DMA interrupt mode.
+-	 Say y for DMA mode or MPU mode will be used
+-
+ config MTD_NAND_IDS
+ 	tristate
+ 
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 7c04cd6..60bac8e 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -96,27 +96,6 @@
+ static const char *part_probes[] = { "cmdlinepart", NULL };
+ #endif
+ 
+-#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
+-static int use_prefetch = 1;
+-
+-/* "modprobe ... use_prefetch=0" etc */
+-module_param(use_prefetch, bool, 0);
+-MODULE_PARM_DESC(use_prefetch, "enable/disable use of PREFETCH");
+-
+-#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH_DMA
+-static int use_dma = 1;
+-
+-/* "modprobe ... use_dma=0" etc */
+-module_param(use_dma, bool, 0);
+-MODULE_PARM_DESC(use_dma, "enable/disable use of DMA");
+-#else
+-static const int use_dma;
+-#endif
+-#else
+-const int use_prefetch;
+-static const int use_dma;
+-#endif
+-
+ struct omap_nand_info {
+ 	struct nand_hw_control		controller;
+ 	struct omap_nand_platform_data	*pdata;
+@@ -324,7 +303,6 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
+ 	}
+ }
+ 
+-#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH_DMA
+ /*
+  * omap_nand_dma_cb: callback on the completion of dma transfer
+  * @lch: logical channel
+@@ -426,14 +404,6 @@ out_copy:
+ 			: omap_write_buf8(mtd, (u_char *) addr, len);
+ 	return 0;
+ }
+-#else
+-static void omap_nand_dma_cb(int lch, u16 ch_status, void *data) {}
+-static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+-					unsigned int len, int is_write)
+-{
+-	return 0;
+-}
+-#endif
+ 
+ /**
+  * omap_read_buf_dma_pref - read data from NAND controller into buffer
+@@ -842,28 +812,13 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		info->nand.chip_delay = 50;
+ 	}
+ 
+-	if (use_prefetch) {
+-
++	switch (pdata->xfer_type) {
++	case NAND_OMAP_PREFETCH_POLLED:
+ 		info->nand.read_buf   = omap_read_buf_pref;
+ 		info->nand.write_buf  = omap_write_buf_pref;
+-		if (use_dma) {
+-			err = omap_request_dma(OMAP24XX_DMA_GPMC, "NAND",
+-				omap_nand_dma_cb, &info->comp, &info->dma_ch);
+-			if (err < 0) {
+-				info->dma_ch = -1;
+-				printk(KERN_WARNING "DMA request failed."
+-					" Non-dma data transfer mode\n");
+-			} else {
+-				omap_set_dma_dest_burst_mode(info->dma_ch,
+-						OMAP_DMA_DATA_BURST_16);
+-				omap_set_dma_src_burst_mode(info->dma_ch,
+-						OMAP_DMA_DATA_BURST_16);
+-
+-				info->nand.read_buf   = omap_read_buf_dma_pref;
+-				info->nand.write_buf  = omap_write_buf_dma_pref;
+-			}
+-		}
+-	} else {
++		break;
++
++	case NAND_OMAP_POLLED:
+ 		if (info->nand.options & NAND_BUSWIDTH_16) {
+ 			info->nand.read_buf   = omap_read_buf16;
+ 			info->nand.write_buf  = omap_write_buf16;
+@@ -871,7 +826,33 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 			info->nand.read_buf   = omap_read_buf8;
+ 			info->nand.write_buf  = omap_write_buf8;
+ 		}
++		break;
++
++	case NAND_OMAP_PREFETCH_DMA:
++		err = omap_request_dma(OMAP24XX_DMA_GPMC, "NAND",
++				omap_nand_dma_cb, &info->comp, &info->dma_ch);
++		if (err < 0) {
++			info->dma_ch = -1;
++			dev_err(&pdev->dev, "DMA request failed!\n");
++			goto out_release_mem_region;
++		} else {
++			omap_set_dma_dest_burst_mode(info->dma_ch,
++					OMAP_DMA_DATA_BURST_16);
++			omap_set_dma_src_burst_mode(info->dma_ch,
++					OMAP_DMA_DATA_BURST_16);
++
++			info->nand.read_buf   = omap_read_buf_dma_pref;
++			info->nand.write_buf  = omap_write_buf_dma_pref;
++		}
++		break;
++
++	default:
++		dev_err(&pdev->dev,
++			"xfer_type(%d) not supported!\n", pdata->xfer_type);
++		err = -EINVAL;
++		goto out_release_mem_region;
+ 	}
++
+ 	info->nand.verify_buf = omap_verify_buf;
+ 
+ #ifdef CONFIG_MTD_NAND_OMAP_HWECC
+@@ -897,6 +878,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++
+ #ifdef CONFIG_MTD_PARTITIONS
+ 	err = parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0);
+ 	if (err > 0)
+@@ -926,7 +908,7 @@ static int omap_nand_remove(struct platform_device *pdev)
+ 							mtd);
+ 
+ 	platform_set_drvdata(pdev, NULL);
+-	if (use_dma)
++	if (info->dma_ch != -1)
+ 		omap_free_dma(info->dma_ch);
+ 
+ 	/* Release NAND device, its internal structures and partitions */
+@@ -947,16 +929,8 @@ static struct platform_driver omap_nand_driver = {
+ 
+ static int __init omap_nand_init(void)
+ {
+-	printk(KERN_INFO "%s driver initializing\n", DRIVER_NAME);
++	pr_info("%s driver initializing\n", DRIVER_NAME);
+ 
+-	/* This check is required if driver is being
+-	 * loaded run time as a module
+-	 */
+-	if ((1 == use_dma) && (0 == use_prefetch)) {
+-		printk(KERN_INFO"Wrong parameters: 'use_dma' can not be 1 "
+-				"without use_prefetch'. Prefetch will not be"
+-				" used in either mode (mpu or dma)\n");
+-	}
+ 	return platform_driver_register(&omap_nand_driver);
+ }
+ 
+-- 
+1.7.0.4
 
