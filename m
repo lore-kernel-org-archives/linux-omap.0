@@ -1,48 +1,34 @@
 From: Thomas Weber <weber@corscience.de>
-Subject: [PATCHv4 0/4] omap3: Devkit8000: misc fixes
-Date: Wed, 19 Jan 2011 09:19:22 +0100
-Message-ID: <1295425166-25540-1-git-send-email-weber@corscience.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:56697 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753659Ab1ASITl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 03:19:41 -0500
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Subject: [PATCHv4 4/4] OMAP3: Devkit8000: Fix indentation of brace
+Date: Wed, 19 Jan 2011 09:19:26 +0100
+Message-ID: <1295425166-25540-5-git-send-email-weber@corscience.de>
+References: <1295425166-25540-1-git-send-email-weber@corscience.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1295425166-25540-1-git-send-email-weber@corscience.de>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Thomas Weber <weber@corscience.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>, charu@ti.com, sshtylyov@mvista.com
+List-Id: linux-omap@vger.kernel.org
 
-Here is a set of misc fixes for the devkit8000.
+Fix indentation of a closing curly brace.
 
-The only really notable one is the lcd enable gpio fix. It gets rid
-of some nasty low level twl4030 calls and replaces them with generic gpio
-calls. It also fixes a bug where the screen would not turn off when
-blanking.
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+ arch/arm/mach-omap2/board-devkit8000.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Changes from v1: 
-	Pull the indention fix into "Change lcd power pin".
-	Change the pin for lcd pwren.
-	Fix the pullup/pulldown configuration after lcd prwen correction.
-
-Changes from v2:
-	Better comment for removing low level functions used for twl4030 gpio
-	Fix indention => indentation in comment
-
-Changed from v3:
-	Use return value of gpio_request.
-	Fix indentation of one curly brace.
-
-Daniel Morsing (1):
-  OMAP3: Devkit8000: Fix tps65930 pullup/pulldown configuration
-
-Thomas Weber (3):
-  OMAP3: Devkit8000: Change lcd power pin
-  OMAP3: Devkit8000: Check return value of gpio_request
-  OMAP3: Devkit8000: Fix indentation
-
- arch/arm/mach-omap2/board-devkit8000.c |   28 ++++++++++++++++++----------
- 1 files changed, 18 insertions(+), 10 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 4ddd81c..a344cd8 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -553,7 +553,7 @@ static void __init omap_dm9000_init(void)
+ 		printk(KERN_ERR "Failed to request GPIO%d for dm9000 IRQ\n",
+ 			OMAP_DM9000_GPIO_IRQ);
+ 		return;
+-		}
++	}
+ 
+ 	gpio_direction_input(OMAP_DM9000_GPIO_IRQ);
+ 
 -- 
 1.7.4.rc2
-
