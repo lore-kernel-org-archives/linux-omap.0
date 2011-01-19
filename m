@@ -1,52 +1,42 @@
-From: Vasiliy Kulikov <segoon@openwall.com>
-Subject: [PATCH v2] arm: mach-omap2: potential NULL dereference
-Date: Wed, 19 Jan 2011 15:57:22 +0300
-Message-ID: <20110119125721.GA9203@albatros>
-References: <1295258922-31242-1-git-send-email-segoon@openwall.com>
- <4D341C35.80506@bfs.de>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: Adio on BeagleBoard XM 2.6.37-rc8
+Date: Wed, 19 Jan 2011 15:02:33 +0200
+Message-ID: <20110119150233.b27475bc.jhnikula@gmail.com>
+References: <AANLkTikPks0AcOpAK6We5zvju9k9qR=9z0-ua7qkKsLt@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:60041 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753014Ab1ASM5a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 07:57:30 -0500
-Content-Disposition: inline
-In-Reply-To: <4D341C35.80506@bfs.de>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:35047 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754249Ab1ASNCn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 08:02:43 -0500
+Received: by fxm20 with SMTP id 20so849220fxm.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 05:02:42 -0800 (PST)
+In-Reply-To: <AANLkTikPks0AcOpAK6We5zvju9k9qR=9z0-ua7qkKsLt@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: walter harms <wharms@bfs.de>, kernel-janitors@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ashok Babu <ashok3d@gmail.com>
+Cc: linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-kzalloc() may fail, if so return -ENOMEM.  Also Walter Harms suggested
-to use kasprintf() instead of kzalloc+strcpy+strcat.
+On Wed, 19 Jan 2011 17:17:11 +0530
+Ashok Babu <ashok3d@gmail.com> wrote:
 
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
----
- Cannot compile this driver, so it is not tested at all.
+> Hi folks,
+> 
+> After upgrading to 2.6.37-rc8, I am not able to play any audio.
+> 
+> Fund that the code in sound/soc/omap/omap-mcbsp.c uses the function
+> "cpu_is_omap343x()" which fails and returns ENODEV.
+> 
+> Does the call should be "cpu_is_omap34xx()" instead ?
+> 
+It looks like so. cpu_is_omap34xx() checks the lowest 8 bits from
+omap_rev (that are 0x34 for omap3x ) and cpu_is_omap343x() checks upper
+12 bits (that are 0x363 for 3630).
 
- arch/arm/mach-omap2/smartreflex.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+Peter: I think cpu_is_omap343x() tests can be replaced by
+cpu_is_omap34xx() in omap-mcbsp.c? 
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 77ecebf..697d8d4 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -260,9 +260,11 @@ static int sr_late_init(struct omap_sr *sr_info)
- 	if (sr_class->class_type == SR_CLASS2 &&
- 		sr_class->notify_flags && sr_info->irq) {
- 
--		name = kzalloc(SMARTREFLEX_NAME_LEN + 1, GFP_KERNEL);
--		strcpy(name, "sr_");
--		strcat(name, sr_info->voltdm->name);
-+		name = kasprintf(GFP_KERNEL, "sr_%s", sr_info->voltdm->name);
-+		if (name == NULL) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
- 		ret = request_irq(sr_info->irq, sr_interrupt,
- 				0, name, (void *)sr_info);
- 		if (ret)
 -- 
-Vasiliy Kulikov
-http://www.openwall.com - bringing security into open computing environments
+Jarkko
