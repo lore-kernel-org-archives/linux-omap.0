@@ -1,118 +1,45 @@
-From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH RESEND v8 7/7] omap3: nand: making ecc layout as compatible with romcode ecc
-Date: Wed, 19 Jan 2011 18:55:03 +0530
-Message-ID: <1295443503-14515-8-git-send-email-s-ghorai@ti.com>
-References: <1295443503-14515-1-git-send-email-s-ghorai@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44054 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754435Ab1ASNZU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Jan 2011 08:25:20 -0500
-In-Reply-To: <1295443503-14515-1-git-send-email-s-ghorai@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Thomas Weber <weber@corscience.de>
+Subject: Re: [PATCHv2] OMAP: Enable Magic SysRq on serial console ttyOx
+Date: Wed, 19 Jan 2011 14:31:56 +0100
+Message-ID: <4D36E7CC.5090303@corscience.de>
+References: <1295426461-12459-1-git-send-email-weber@corscience.de> <AANLkTin0-joNuqxqL79j0wqPk_A5mtAgzEY=X=PeH=+C@mail.gmail.com> <20110119130049.GB9365@m-desktop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110119130049.GB9365@m-desktop>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Govindraj <govindraj.ti@gmail.com>, Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Andrei Emeltchenko <andrei.emeltchenko@nokia.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimalsingh@ti.com>
 
-This patch overrides nand ecc layout and bad block descriptor (for 8-bit
-device) to support hw ecc in romcode layout. So as to have in sync with ecc
-layout throughout; i.e. x-loader, u-boot and kernel.
+Am 19.01.2011 14:00, schrieb G, Manjunath Kondaiah:
+> On Wed, Jan 19, 2011 at 03:01:39PM +0530, Govindraj wrote:
+>> On Wed, Jan 19, 2011 at 2:11 PM, Thomas Weber <weber@corscience.de> wrote:
+>>> Magic SysRq key is not working for OMAP on new serial
+>>> console ttyOx because SUPPORT_SYSRQ is not defined
+>>> for omap-serial.
+>>>
+>>> This patch defines SUPPORT_SYSRQ in omap-serial and
+>>> enables handling of Magic SysRq character.
+>>>
+>>> Signed-off-by: Thomas Weber <weber@corscience.de>
+>>
+>> Looks fine to me.
+>>
+>> Acked-by: Govindraj.R <govindraj.raja@ti.com>
+> I tried to use SysRq key on minicom after applying this patch, it looks
+> like it is not triggering sysrq event.
+> 
+> Am I missing anything?
+> 
+> -Manjunath
+> --
+Hello Manjunath,
 
-This enables to flash x-loader, u-boot, kernel, FS images from kernel itself
-and compatiable with other tools.
+Do you have CONFIG_MAGIC_SYSRQ enabled?
+Magic SysRq key in Kernel Hacking
 
-This patch does not enables this feature by default and need to pass from
-board file to enable for any board.
+I tested it on Devkit8000 (beagle board clone).
 
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
----
- arch/arm/plat-omap/include/plat/gpmc.h |    2 +
- drivers/mtd/nand/omap2.c               |   37 +++++++++++++++++++++++++++++++-
- 2 files changed, 38 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 4626e7a..49aea09 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -90,6 +90,8 @@ enum omap_ecc {
- 		/* 1-bit ecc: stored at end of spare area */
- 	OMAP_ECC_HAMMING_CODE_DEFAULT = 0, /* Default, s/w method */
- 	OMAP_ECC_HAMMING_CODE_HW, /* gpmc to detect the error */
-+		/* 1-bit ecc: stored at begining of spare area as romcode */
-+	OMAP_ECC_HAMMING_CODE_HW_ROMCODE, /* gpmc method & romcode layout */
- };
- 
- /*
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 6d4a42e..4e33972 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -98,6 +98,20 @@
- static const char *part_probes[] = { "cmdlinepart", NULL };
- #endif
- 
-+/* oob info generated runtime depending on ecc algorithm and layout selected */
-+static struct nand_ecclayout omap_oobinfo;
-+/* Define some generic bad / good block scan pattern which are used
-+ * while scanning a device for factory marked good / bad blocks
-+ */
-+static uint8_t scan_ff_pattern[] = { 0xff };
-+static struct nand_bbt_descr bb_descrip_flashbased = {
-+	.options = NAND_BBT_SCANEMPTY | NAND_BBT_SCANALLPAGES,
-+	.offs = 0,
-+	.len = 1,
-+	.pattern = scan_ff_pattern,
-+};
-+
-+
- struct omap_nand_info {
- 	struct nand_hw_control		controller;
- 	struct omap_nand_platform_data	*pdata;
-@@ -914,6 +928,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 	struct omap_nand_info		*info;
- 	struct omap_nand_platform_data	*pdata;
- 	int				err;
-+	int				i, offset;
- 
- 	pdata = pdev->dev.platform_data;
- 	if (pdata == NULL) {
-@@ -1037,7 +1052,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 	/* selsect the ecc type */
- 	if (pdata->ecc_opt == OMAP_ECC_HAMMING_CODE_DEFAULT)
- 		info->nand.ecc.mode = NAND_ECC_SOFT;
--	else if (pdata->ecc_opt == OMAP_ECC_HAMMING_CODE_HW) {
-+	else if ((pdata->ecc_opt == OMAP_ECC_HAMMING_CODE_HW) ||
-+		(pdata->ecc_opt == OMAP_ECC_HAMMING_CODE_HW_ROMCODE)) {
- 		info->nand.ecc.bytes            = 3;
- 		info->nand.ecc.size             = 512;
- 		info->nand.ecc.calculate        = omap_calculate_ecc;
-@@ -1057,6 +1073,25 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	/* rom code layout */
-+	if (pdata->ecc_opt == OMAP_ECC_HAMMING_CODE_HW_ROMCODE) {
-+
-+		if (info->nand.options & NAND_BUSWIDTH_16)
-+			offset = 2;
-+		else {
-+			offset = 1;
-+			info->nand.badblock_pattern = &bb_descrip_flashbased;
-+		}
-+		omap_oobinfo.eccbytes = 3 * (info->mtd.oobsize/16);
-+		for (i = 0; i < omap_oobinfo.eccbytes; i++)
-+			omap_oobinfo.eccpos[i] = i+offset;
-+
-+		omap_oobinfo.oobfree->offset = offset + omap_oobinfo.eccbytes;
-+		omap_oobinfo.oobfree->length = info->mtd.oobsize -
-+					(offset + omap_oobinfo.eccbytes);
-+
-+		info->nand.ecc.layout = &omap_oobinfo;
-+	}
- 
- #ifdef CONFIG_MTD_PARTITIONS
- 	err = parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0);
--- 
-1.7.0.4
-
+Thomas
