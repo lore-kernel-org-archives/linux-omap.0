@@ -1,66 +1,71 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCHv4 3/4] OMAP3: Devkit8000: Check return value of
- gpio_request
-Date: Wed, 19 Jan 2011 14:30:12 +0530
-Message-ID: <20110119090011.GD6197@m-desktop>
-References: <1295425166-25540-1-git-send-email-weber@corscience.de>
- <1295425166-25540-4-git-send-email-weber@corscience.de>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if doing so
+ would reset an active clockdomain
+Date: Wed, 19 Jan 2011 14:33:28 +0530
+Message-ID: <91467096ca191cde5a0d8b69ef0fce00@mail.gmail.com>
+References: <1295344109-7056-1-git-send-email-tero.kristo@nokia.com>
+ <e84561af552e084d0a6c904aabfe46c8@mail.gmail.com> <cff409280dee72a6d3426cc2edf93069@mail.gmail.com>
+ <854C6400F5AA6644BA6FE7953F3E769B036776FE@008-AM1MPN1-012.mgdnok.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1295425166-25540-4-git-send-email-weber@corscience.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Weber <weber@corscience.de>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>, charu@ti.com, sshtylyov@mvista.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:59029 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752593Ab1ASJDc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Jan 2011 04:03:32 -0500
+Received: by bwz14 with SMTP id 14so683410bwz.2
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 01:03:30 -0800 (PST)
+In-Reply-To: <854C6400F5AA6644BA6FE7953F3E769B036776FE@008-AM1MPN1-012.mgdnok.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero.Kristo@nokia.com, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@deeprootsystems.com
 
-On Wed, Jan 19, 2011 at 09:19:25AM +0100, Thomas Weber wrote:
-> The return value of gpio_request is ignored.
-> This patch adds the check of the return value of gpio_request.
-> 
-> Signed-off-by: Thomas Weber <weber@corscience.de>
-> ---
->  arch/arm/mach-omap2/board-devkit8000.c |   16 ++++++++++++++--
->  1 files changed, 14 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-> index 9fb416b..4ddd81c 100644
-> --- a/arch/arm/mach-omap2/board-devkit8000.c
-> +++ b/arch/arm/mach-omap2/board-devkit8000.c
-> @@ -234,6 +234,8 @@ static struct gpio_led gpio_leds[];
->  static int devkit8000_twl_gpio_setup(struct device *dev,
->  		unsigned gpio, unsigned ngpio)
->  {
-> +	int ret;
-> +
->  	omap_mux_init_gpio(29, OMAP_PIN_INPUT);
->  	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
->  	mmc[0].gpio_cd = gpio + 0;
-> @@ -244,13 +246,23 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
->  
->  	/* TWL4030_GPIO_MAX + 0 is "LCD_PWREN" (out, active high) */
->  	devkit8000_lcd_device.reset_gpio = gpio + TWL4030_GPIO_MAX + 0;
-> -	gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
-> +	ret = gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
-> +	if (ret < 0) {
-> +		printk(KERN_ERR "Failed to request GPIO for LCD_PWRN\n");
-> +		return ret;
-> +	}
-> +
->  	/* Disable until needed */
->  	gpio_direction_output(devkit8000_lcd_device.reset_gpio, 0);
->  
->  	/* gpio + 7 is "DVI_PD" (out, active low) */
->  	devkit8000_dvi_device.reset_gpio = gpio + 7;
-> -	gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
-> +	ret = gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
-> +	if (ret < 0) {
-> +		printk(KERN_ERR "Failed to request GPIO for DVI PowerDown\n");
-> +		return ret;
-> +	}
-
-Nak. Why you want this change as seperate patch? Merge this with 1/4
-
--Manjunath
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tero.Kristo@nokia.com
+> Sent: Wednesday, January 19, 2011 2:09 PM
+> To: vishwanath.bs@ti.com; linux-omap@vger.kernel.org
+> Cc: paul@pwsan.com; khilman@deeprootsystems.com
+> Subject: RE: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if
+> doing so would reset an active clockdomain
+>
 [...]
+
+> >> If some parts of the chip are busy, then how can Core domain
+> enter off
+> >> state? The necessary condition for Core to enter low power state
+> is
+> >that
+> >> all the clock domains (including DSS, CAM, IVA, USB, PER etc)
+> should
+> >> have
+> >> idled. Doesn't it mean that all the modules have idled and
+> asserted
+> >> idleack when Core is entering off state?
+> >Besides these, Core off should reset the modules which are only in
+> Core
+> >domain. It should not impact other power domains. Also Core domain
+> >modules
+> >which are reset will restore their context when Core comes out of
+> off
+> >mode. So why are you saying that "If those parts of the chip are
+> busy,
+> >the reset will disrupt them, causing unpredictable and generally
+> >undesirable results."?
+>
+> Core off issues reset to peripheral domains when it wakes up, this
+> is somehow (badly) visible in TRM (look for COREDOMAINWKUP_RST.)
+> When this reset happens, the peripheral domain shows its reset
+> status as being high, but the powerdomain itself has not entered off
+> (previous state can be e.g. RET), thus its context will not be
+> restored.
+>
+Now its clear. Reseting other independent clockdomains is
+certainly bad from CORE PD OFF to ON behavior .
+
+Please add this additional information to change log.
+
+Regards,
+Santosh
