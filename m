@@ -1,63 +1,54 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCHv2] OMAP: Enable Magic SysRq on serial console ttyOx
-Date: Wed, 19 Jan 2011 15:01:39 +0530
-Message-ID: <AANLkTin0-joNuqxqL79j0wqPk_A5mtAgzEY=X=PeH=+C@mail.gmail.com>
-References: <1295426461-12459-1-git-send-email-weber@corscience.de>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] omap3: Add basic support for 720MHz part
+Date: Wed, 19 Jan 2011 15:19:01 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024847400C@dbde02.ent.ti.com>
+References: <1295336995-15831-1-git-send-email-premi@ti.com>
+ <789E54BD-D2B6-4B98-B9B8-19688E415E39@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1295426461-12459-1-git-send-email-weber@corscience.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Weber <weber@corscience.de>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Andrei Emeltchenko <andrei.emeltchenko@nokia.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45480 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753688Ab1ASJtI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 04:49:08 -0500
+In-Reply-To: <789E54BD-D2B6-4B98-B9B8-19688E415E39@dominion.thruhere.net>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: l-o List <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Gopinath, Thara" <thara@ti.com>
 
-On Wed, Jan 19, 2011 at 2:11 PM, Thomas Weber <weber@corscience.de> wro=
-te:
-> Magic SysRq key is not working for OMAP on new serial
-> console ttyOx because SUPPORT_SYSRQ is not defined
-> for omap-serial.
->
-> This patch defines SUPPORT_SYSRQ in omap-serial and
-> enables handling of Magic SysRq character.
->
-> Signed-off-by: Thomas Weber <weber@corscience.de>
+> -----Original Message-----
+> From: Koen Kooi [mailto:koen@dominion.thruhere.net] 
+> Sent: Tuesday, January 18, 2011 9:08 PM
+> To: Premi, Sanjeev
+> Cc: l-o List; Menon, Nishanth; Gopinath, Thara
+> Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
+> 
+[snip]...[snip]
+> 
+> Thanks for the updated patch! 
+> 
+> I'm still having problem using this together with DVFS, the 
+> kernel won't scale beyond 600MHz because 600MHz and 720MHz 
+> share the same voltage. Thara, Nishant, do you have any 
+> suggestions on how to convince the kernel that 2 frequencies 
+> can share the same voltage settings? 
 
-Looks fine to me.
+Koen,
 
-Acked-by: Govindraj.R <govindraj.raja@ti.com>
+I still haven't spent time testing with DVFS.
 
-> ---
-> Changes from v1: Changed comment
->
-> =A0drivers/serial/omap-serial.c | =A0 =A04 ++++
-> =A01 files changed, 4 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/serial/omap-serial.c b/drivers/serial/omap-seria=
-l.c
-> index 1201eff..907be9b 100644
-> --- a/drivers/serial/omap-serial.c
-> +++ b/drivers/serial/omap-serial.c
-> @@ -20,6 +20,10 @@
-> =A0* this driver as required for the omap-platform.
-> =A0*/
->
-> +#if defined(CONFIG_SERIAL_OMAP_CONSOLE) && defined(CONFIG_MAGIC_SYSR=
-Q)
-> +#define SUPPORT_SYSRQ
-> +#endif
-> +
-> =A0#include <linux/module.h>
-> =A0#include <linux/init.h>
-> =A0#include <linux/console.h>
-> --
-> 1.7.4.rc2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at =A0http://www.tux.org/lkml/
->
+There are few issue that need to be resolved with the DVFS
+infra before DVFS can be functional.
+
+Would like this patch to be de-coupled from DVFS discussions.
+It was not the intent of the patch...
+
+Am working to list all the issues and possible solutions for
+the DVFS... getting delayed due to other activities.
+
+~sanjeev
+
+[snip]...[snip]
