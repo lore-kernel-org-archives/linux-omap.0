@@ -1,38 +1,61 @@
 From: Thomas Weber <weber@corscience.de>
-Subject: [PATCHv4 2/4] OMAP3: Devkit8000: Fix tps65930 pullup/pulldown configuration
-Date: Wed, 19 Jan 2011 09:19:24 +0100
-Message-ID: <1295425166-25540-3-git-send-email-weber@corscience.de>
+Subject: [PATCHv4 3/4] OMAP3: Devkit8000: Check return value of gpio_request
+Date: Wed, 19 Jan 2011 09:19:25 +0100
+Message-ID: <1295425166-25540-4-git-send-email-weber@corscience.de>
 References: <1295425166-25540-1-git-send-email-weber@corscience.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1295425166-25540-1-git-send-email-weber@corscience.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Daniel Morsing <daniel.morsing@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Weber <weber@corscience.de>, charu@ti.com, sshtylyov@mvista.com
+Cc: Thomas Weber <weber@corscience.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>, charu@ti.com, sshtylyov@mvista.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Daniel Morsing <daniel.morsing@gmail.com>
+The return value of gpio_request is ignored.
+This patch adds the check of the return value of gpio_request.
 
-gpio7 on the tps65930 is used as an output on the devkit8000 and
-gpio1 is not connected. Remove gpio7 and change gpio1 to pulldown
-
-Signed-off-by: Daniel Morsing <daniel.morsing@gmail.com>
+Signed-off-by: Thomas Weber <weber@corscience.de>
 ---
- arch/arm/mach-omap2/board-devkit8000.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-devkit8000.c |   16 ++++++++++++++--
+ 1 files changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 719f4e5..9fb416b 100644
+index 9fb416b..4ddd81c 100644
 --- a/arch/arm/mach-omap2/board-devkit8000.c
 +++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -262,8 +262,7 @@ static struct twl4030_gpio_platform_data devkit8000_gpio_data = {
- 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
- 	.irq_end	= TWL4030_GPIO_IRQ_END,
- 	.use_leds	= true,
--	.pullups	= BIT(1),
--	.pulldowns	= BIT(2) | BIT(6) | BIT(7) | BIT(8) | BIT(13)
-+	.pulldowns	= BIT(1) | BIT(2) | BIT(6) | BIT(8) | BIT(13)
- 				| BIT(15) | BIT(16) | BIT(17),
- 	.setup		= devkit8000_twl_gpio_setup,
- };
+@@ -234,6 +234,8 @@ static struct gpio_led gpio_leds[];
+ static int devkit8000_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
++	int ret;
++
+ 	omap_mux_init_gpio(29, OMAP_PIN_INPUT);
+ 	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+ 	mmc[0].gpio_cd = gpio + 0;
+@@ -244,13 +246,23 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
+ 
+ 	/* TWL4030_GPIO_MAX + 0 is "LCD_PWREN" (out, active high) */
+ 	devkit8000_lcd_device.reset_gpio = gpio + TWL4030_GPIO_MAX + 0;
+-	gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
++	ret = gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
++	if (ret < 0) {
++		printk(KERN_ERR "Failed to request GPIO for LCD_PWRN\n");
++		return ret;
++	}
++
+ 	/* Disable until needed */
+ 	gpio_direction_output(devkit8000_lcd_device.reset_gpio, 0);
+ 
+ 	/* gpio + 7 is "DVI_PD" (out, active low) */
+ 	devkit8000_dvi_device.reset_gpio = gpio + 7;
+-	gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
++	ret = gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
++	if (ret < 0) {
++		printk(KERN_ERR "Failed to request GPIO for DVI PowerDown\n");
++		return ret;
++	}
++
+ 	/* Disable until needed */
+ 	gpio_direction_output(devkit8000_dvi_device.reset_gpio, 0);
+ 
 -- 
 1.7.4.rc2
