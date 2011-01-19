@@ -1,39 +1,28 @@
-From: Abdoulaye Walsimou GAYE <awg@embtoolkit.org>
-Subject: Re: [HELP-OMAP-SERAIL] beagleboard-xM can't boot up after update
- to kernel-2.6.37
-Date: Wed, 19 Jan 2011 12:07:35 +0100
-Message-ID: <4D36C5F7.4030605@embtoolkit.org>
-References: <AANLkTikFb7WTfCOD_GUnA=RZ22Q5_5QSDRTbcoLMtdYM@mail.gmail.com> <20110119110607.GA30211@legolas.emea.dhcp.ti.com>
+From: Ashok Babu <ashok3d@gmail.com>
+Subject: Adio on BeagleBoard XM 2.6.37-rc8
+Date: Wed, 19 Jan 2011 17:17:11 +0530
+Message-ID: <AANLkTikPks0AcOpAK6We5zvju9k9qR=9z0-ua7qkKsLt@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from walscop001.walsimou.com ([82.228.201.70]:42688 "EHLO
-	bekkor.walsimou.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753650Ab1ASLKo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 06:10:44 -0500
-In-Reply-To: <20110119110607.GA30211@legolas.emea.dhcp.ti.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:63760 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753911Ab1ASLrL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 06:47:11 -0500
+Received: by iwn9 with SMTP id 9so716954iwn.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 03:47:11 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Bob Liu <lliubbo@gmail.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On 01/19/2011 12:06 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Wed, Jan 19, 2011 at 06:57:33PM +0800, Bob Liu wrote:
->   
->> Any ideas?
->>     
-> s/console=ttyS2,115200n8/console=ttyO2,115200n8/
->
-> on your CMDLINE.
->
->   
+Hi folks,
 
-Hi,
-BTW what is major and minor number of ttyO devices?
-This is not documented in devices.txt
+After upgrading to 2.6.37-rc8, I am not able to play any audio.
 
-Thanks,
-AWG
+Fund that the code in sound/soc/omap/omap-mcbsp.c uses the function
+"cpu_is_omap343x()" which fails and returns ENODEV.
+
+Does the call should be "cpu_is_omap34xx()" instead ?
+
+Thanks & Regards
+Ashok
