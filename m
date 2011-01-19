@@ -1,28 +1,47 @@
-From: Ashok Babu <ashok3d@gmail.com>
-Subject: Adio on BeagleBoard XM 2.6.37-rc8
-Date: Wed, 19 Jan 2011 17:17:11 +0530
-Message-ID: <AANLkTikPks0AcOpAK6We5zvju9k9qR=9z0-ua7qkKsLt@mail.gmail.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [HELP-OMAP-SERAIL] beagleboard-xM can't boot up after update
+ to kernel-2.6.37
+Date: Wed, 19 Jan 2011 17:17:54 +0530
+Message-ID: <20110119114754.GB17681@m-desktop>
+References: <AANLkTikFb7WTfCOD_GUnA=RZ22Q5_5QSDRTbcoLMtdYM@mail.gmail.com>
+ <20110119110607.GA30211@legolas.emea.dhcp.ti.com>
+ <4D36C5F7.4030605@embtoolkit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:63760 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753911Ab1ASLrL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 06:47:11 -0500
-Received: by iwn9 with SMTP id 9so716954iwn.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 03:47:11 -0800 (PST)
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:46809 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753636Ab1ASLso (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Jan 2011 06:48:44 -0500
+Received: by gwaa18 with SMTP id a18so238873gwa.24
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 03:48:43 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <4D36C5F7.4030605@embtoolkit.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Abdoulaye Walsimou GAYE <awg@embtoolkit.org>
+Cc: balbi@ti.com, Bob Liu <lliubbo@gmail.com>, linux-omap@vger.kernel.org
 
-Hi folks,
+On Wed, Jan 19, 2011 at 12:07:35PM +0100, Abdoulaye Walsimou GAYE wrote:
+> On 01/19/2011 12:06 PM, Felipe Balbi wrote:
+> > Hi,
+> >
+> > On Wed, Jan 19, 2011 at 06:57:33PM +0800, Bob Liu wrote:
+> >   
+> >> Any ideas?
+> >>     
+> > s/console=ttyS2,115200n8/console=ttyO2,115200n8/
+> >
+> > on your CMDLINE.
+> >
+> >   
+> 
+> Hi,
+> BTW what is major and minor number of ttyO devices?
+> This is not documented in devices.txt
 
-After upgrading to 2.6.37-rc8, I am not able to play any audio.
+There is no need to create this device file manually. It creates
+automatically during bootup in tty_io.c
 
-Fund that the code in sound/soc/omap/omap-mcbsp.c uses the function
-"cpu_is_omap343x()" which fails and returns ENODEV.
-
-Does the call should be "cpu_is_omap34xx()" instead ?
-
-Thanks & Regards
-Ashok
+-Manjunath
