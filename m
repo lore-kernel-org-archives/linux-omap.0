@@ -1,60 +1,64 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] OMAP3: PM: Adding T2 enabling of smartreflex
-Date: Wed, 19 Jan 2011 14:24:06 +0200
-Message-ID: <4D36D7E6.9060605@ti.com>
-References: <1295428078-7822-1-git-send-email-shweta.gulati@ti.com>	<4D36ADB7.3050807@ti.com> <AANLkTinRh+4eBf_Pu8DCAMyc+9D-bMVuV8kxwL5rOsXg@mail.gmail.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCHv4 3/4] OMAP3: Devkit8000: Check return value of gpio_request
+Date: Wed, 19 Jan 2011 15:23:56 +0300
+Message-ID: <4D36D7DC.4020705@ru.mvista.com>
+References: <1295425166-25540-1-git-send-email-weber@corscience.de> <1295425166-25540-4-git-send-email-weber@corscience.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:51931 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752700Ab1ASMYK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Jan 2011 07:24:10 -0500
-Received: by mail-fx0-f44.google.com with SMTP id 9so820685fxm.17
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 04:24:09 -0800 (PST)
-In-Reply-To: <AANLkTinRh+4eBf_Pu8DCAMyc+9D-bMVuV8kxwL5rOsXg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1295425166-25540-4-git-send-email-weber@corscience.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Weber <weber@corscience.de>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>, charu@ti.com, sshtylyov@mvista.com
 List-Id: linux-omap@vger.kernel.org
-To: "Gulati, Shweta" <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, "Premi, Sanjeev" <premi@ti.com>
 
-Gulati, Shweta wrote, on 01/19/2011 02:10 PM:
->      >I cant see how disable_sr is usable, further as discussed in
->     http://marc.info/?l=linux->omap&m=129424774929498&w=2
->     <http://marc.info/?l=linux-omap&m=129424774929498&w=2> we decided to
->     introduce api *if needed*. does any one need it?
+Hello.
+
+On 19-01-2011 11:19, Thomas Weber wrote:
+
+> The return value of gpio_request is ignored.
+> This patch adds the check of the return value of gpio_request.
+
+> Signed-off-by: Thomas Weber<weber@corscience.de>
+> ---
+>   arch/arm/mach-omap2/board-devkit8000.c |   16 ++++++++++++++--
+>   1 files changed, 14 insertions(+), 2 deletions(-)
+
+> diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+> index 9fb416b..4ddd81c 100644
+> --- a/arch/arm/mach-omap2/board-devkit8000.c
+> +++ b/arch/arm/mach-omap2/board-devkit8000.c
+[...]
+> @@ -244,13 +246,23 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
 >
->     There might be some OMAP3xxx chips where for DVFS VMODE or VSEL
->     method is used, for those boards this disable API could be called
->     from Board File,  to make sure the sequence of execution  of
+>   	/* TWL4030_GPIO_MAX + 0 is "LCD_PWREN" (out, active high) */
+>   	devkit8000_lcd_device.reset_gpio = gpio + TWL4030_GPIO_MAX + 0;
+> -	gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
+> +	ret = gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
+> +	if (ret < 0) {
+> +		printk(KERN_ERR "Failed to request GPIO for LCD_PWRN\n");
+> +		return ret;
+> +	}
+> +
+>   	/* Disable until needed */
+>   	gpio_direction_output(devkit8000_lcd_device.reset_gpio, 0);
 >
->      late_init_call of twl_init from omap2_common_pm_late_init does not
-> hamper clearing of this bit I would add a global variable to keep track
-> if Resetting is required or not, will submit V2 with changes.
-Apologies, but a Dumb question:
+>   	/* gpio + 7 is "DVI_PD" (out, active low) */
+>   	devkit8000_dvi_device.reset_gpio = gpio + 7;
+> -	gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
+> +	ret = gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
+> +	if (ret < 0) {
+> +		printk(KERN_ERR "Failed to request GPIO for DVI PowerDown\n");
 
-late_initcall(omap2_common_pm_late_init)
-board files(arch/arm/include/asm/mach/arch.h machine_desc) tend to have 
-the following hooks:
+    You forgot to call:
 
-void                    (*fixup)(struct machine_desc *,
-                                  struct tag *, char **,
-                                  struct meminfo *);
-void                    (*reserve)(void);/* reserve mem blocks  */
-void                    (*map_io)(void);/* IO mapping function  */
-void                    (*init_early)(void);
-void                    (*init_irq)(void);
-struct sys_timer        *timer;         /* system tick timer    */
-void                    (*init_machine (void);
-void                    (*handle_irq)(struct pt_regs *);
+		gpio_free(devkit8000_lcd_device.reset_gpio);
 
-So if i wanted to disable the SR setting, where should I do it?
+> +		return ret;
+> +	}
+> +
+>   	/* Disable until needed */
+>   	gpio_direction_output(devkit8000_dvi_device.reset_gpio, 0);
 
--- 
-Regards,
-Nishanth Menon
-
-PS: could you please fix your mailer when replying on l-o for 
-netetiquette reasons?
+WBR, Sergei
