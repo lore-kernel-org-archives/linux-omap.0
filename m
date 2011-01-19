@@ -1,40 +1,73 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] omap3: Add basic support for 720MHz part
-Date: Wed, 19 Jan 2011 15:49:05 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024847405A@dbde02.ent.ti.com>
-References: <1295336995-15831-1-git-send-email-premi@ti.com>
- <789E54BD-D2B6-4B98-B9B8-19688E415E39@dominion.thruhere.net>
- <4D35C47D.6000102@ti.com> <b8bd13a9f9b383c7db6af63e1aa984be@mail.gmail.com>
- <4F6B1267-93B8-4698-9880-376076825598@dominion.thruhere.net>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: [PATCH] OMAP: DMA: clear interrupt status correctly
+Date: Wed, 19 Jan 2011 12:24:08 +0200
+Message-ID: <4D36BBC8.2000305@nokia.com>
+References: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com>	<20101130132355.13286.77389.sendpatchset@ahunter-work.research.nokia.com>	<541b3a50479779f3e814aa93d506cbdd@mail.gmail.com>	<20101221202914.GK5829@atomide.com> <4D2440E0.7040008@nokia.com> <87mxnfz2f4.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40131 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753820Ab1ASKTO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 05:19:14 -0500
-In-Reply-To: <4F6B1267-93B8-4698-9880-376076825598@dominion.thruhere.net>
-Content-Language: en-US
+Received: from smtp.nokia.com ([147.243.128.26]:53031 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753811Ab1ASKYi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Jan 2011 05:24:38 -0500
+In-Reply-To: <87mxnfz2f4.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, l-o List <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Manjunath Kondaiah G <manjugk@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-> -----Original Message-----
-> From: Koen Kooi [mailto:koen@dominion.thruhere.net] 
-> Sent: Tuesday, January 18, 2011 11:47 PM
-> To: Sripathy, Vishwanath
-> Cc: Menon, Nishanth; Premi, Sanjeev; l-o List; Gopinath, Thara
-> Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
 
-[snip]...[snip]
+ From fffa19df17d73c1ed2e8c65c0b6604ee1dddff84 Mon Sep 17 00:00:00 2001
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Date: Wed, 24 Nov 2010 13:23:21 +0200
+Subject: [PATCH] OMAP: DMA: clear interrupt status correctly
 
-> The TRM[1] chickens out with the OPP definitions:
+When clearing the DMA channel, clear all status bits.
 
-Refer to page 122 of the OMAP3503 datasheet for the OPP definitions:
-http://www.ti.com/litv/pdf/sprs505f
+When handling a DMA interrupt, clear only the interrupt
+status bits that have been read and are passed to the
+channel's interrupt handler, not every status bit.
 
-The nominal voltage for both (VDD1) OPP5 and OPP6 is 1.35V.
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+---
+  arch/arm/plat-omap/dma.c |    7 +++----
+  1 files changed, 3 insertions(+), 4 deletions(-)
 
-~sanjeev
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index c4b2b47..8536308 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -53,7 +53,7 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
+  #endif
+  
+  #define OMAP_DMA_ACTIVE			0x01
+-#define OMAP2_DMA_CSR_CLEAR_MASK	0xffe
++#define OMAP2_DMA_CSR_CLEAR_MASK	0xffffffff
+  
+  #define OMAP_FUNC_MUX_ARM_BASE		(0xfffe1000 + 0xec)
+  
+@@ -1873,7 +1873,7 @@ static int omap2_dma_handle_ch(int ch)
+  		printk(KERN_INFO "DMA misaligned error with device %d\n",
+  		       dma_chan[ch].dev_id);
+  
+-	p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, ch);
++	p->dma_write(status, CSR, ch);
+  	p->dma_write(1 << ch, IRQSTATUS_L0, ch);
+  	/* read back the register to flush the write */
+  	p->dma_read(IRQSTATUS_L0, ch);
+@@ -1893,10 +1893,9 @@ static int omap2_dma_handle_ch(int ch)
+  			OMAP_DMA_CHAIN_INCQHEAD(chain_id);
+  
+  		status = p->dma_read(CSR, ch);
++		p->dma_write(status, CSR, ch);
+  	}
+  
+-	p->dma_write(status, CSR, ch);
+-
+  	if (likely(dma_chan[ch].callback != NULL))
+  		dma_chan[ch].callback(ch, status, dma_chan[ch].data);
+  
+-- 
+1.7.0.4
+
