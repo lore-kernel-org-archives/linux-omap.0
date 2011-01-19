@@ -1,92 +1,54 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCHv2] OMAP: Enable Magic SysRq on serial console ttyOx
-Date: Wed, 19 Jan 2011 19:28:20 +0530
-Message-ID: <AANLkTikjdukQ+kUUR7N11rZ5b=Xd=xLb0-chMrbp5BQ6@mail.gmail.com>
-References: <1295426461-12459-1-git-send-email-weber@corscience.de>
- <AANLkTin0-joNuqxqL79j0wqPk_A5mtAgzEY=X=PeH=+C@mail.gmail.com>
- <20110119130049.GB9365@m-desktop> <4D36E7CC.5090303@corscience.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [RFC 0/3] Use clknames to reference parent/bypass/ref clks
+Date: Wed, 19 Jan 2011 19:44:23 +0530
+Message-ID: <1295446466-23655-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:45089 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850Ab1ASN7I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 08:59:08 -0500
-In-Reply-To: <4D36E7CC.5090303@corscience.de>
+Received: from bear.ext.ti.com ([192.94.94.41]:49530 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754272Ab1ASOOg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Jan 2011 09:14:36 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Weber <weber@corscience.de>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Andrei Emeltchenko <andrei.emeltchenko@nokia.com>, linux-kernel@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@deeprootsystems.com, Rajendra Nayak <rnayak@ti.com>
 
-On Wed, Jan 19, 2011 at 7:01 PM, Thomas Weber <weber@corscience.de> wrote:
-> Am 19.01.2011 14:00, schrieb G, Manjunath Kondaiah:
->> On Wed, Jan 19, 2011 at 03:01:39PM +0530, Govindraj wrote:
->>> On Wed, Jan 19, 2011 at 2:11 PM, Thomas Weber <weber@corscience.de> wrote:
->>>> Magic SysRq key is not working for OMAP on new serial
->>>> console ttyOx because SUPPORT_SYSRQ is not defined
->>>> for omap-serial.
->>>>
->>>> This patch defines SUPPORT_SYSRQ in omap-serial and
->>>> enables handling of Magic SysRq character.
->>>>
->>>> Signed-off-by: Thomas Weber <weber@corscience.de>
->>>
->>> Looks fine to me.
->>>
->>> Acked-by: Govindraj.R <govindraj.raja@ti.com>
->> I tried to use SysRq key on minicom after applying this patch, it looks
->> like it is not triggering sysrq event.
->>
->> Am I missing anything?
->>
->> -Manjunath
->> --
-> Hello Manjunath,
->
-> Do you have CONFIG_MAGIC_SYSRQ enabled?
-> Magic SysRq key in Kernel Hacking
->
-> I tested it on Devkit8000 (beagle board clone).
->
+This RFC series adds support to allow clock
+framework to reference clk parents, reference
+clocks and bypass clocks (for DPLL's) by names
+along with the current support to reference
+them by pointers.
 
-re-setting lsr_break_flag to 0 in receive chars is causing issues
-in getting sysrq key break sequence on omap-serial.c
+Referencing through clk pointers makes it difficult
+to support different revs of a single chip when
+seperate clk nodes, one for each rev have to be modelled,
+and especially when these are non-leaf nodes.
+A case for this exists in the current series as well.
 
-Manju,
+The series is boot tested on 3430sdp and fixes the
+multiple WARN's otherwise seen like the one below
 
-can you try this change on your environment.
-With below change works for me on 3430SDP/4430SDP.
-key sequence I checked.
-[alt + b + t]  => shows trace of tasks running.
-[alt + b + b] => system reboot.
+[    0.000000] ------------[ cut here ]------------
+[    0.000000] WARNING: at arch/arm/mach-omap2/clkt_clksel.c:194 omap2_clksel_recalc+0xd4/0xe4()
+[    0.000000] clock: Could not find fieldval 0 for clock dpll2_fck parent core_ck
+[    0.000000] Modules linked in:
+[    0.000000] [<c006208c>] (unwind_backtrace+0x0/0xe4) from [<c0092bfc>] (warn_slowpath_common+0x4c/0x64)
+[    0.000000] [<c0092bfc>] (warn_slowpath_common+0x4c/0x64) from [<c0092c94>] (warn_slowpath_fmt+0x2c/0x3c)
+[    0.000000] [<c0092c94>] (warn_slowpath_fmt+0x2c/0x3c) from [<c0073dc4>] (omap2_clksel_recalc+0xd4/0xe4)
+[    0.000000] [<c0073dc4>] (omap2_clksel_recalc+0xd4/0xe4) from [<c0077e1c>] (propagate_rate+0x24/0x50)
+[    0.000000] [<c0077e1c>] (propagate_rate+0x24/0x50) from [<c0077e28>] (propagate_rate+0x30/0x50)
+[    0.000000] ---[ end trace 1b75b31a2719ed1d ]---
 
+Rajendra Nayak (3):
+  OMAP: clocks: Use clk names instead of clk pointers
+  OMAP3: PM: Fix CLK_SRC mask for IVA2 and MPU on 3430ES2
+  OMAP4: clocks: Remove unused clksel definitions
 
-diff --git a/drivers/serial/omap-serial.c b/drivers/serial/omap-serial.c
-index 1201eff..6df623e 100644
---- a/drivers/serial/omap-serial.c
-+++ b/drivers/serial/omap-serial.c
-@@ -20,6 +20,10 @@
-  * this driver as required for the omap-platform.
-  */
+ arch/arm/mach-omap2/clock2420_data.c    |   86 +++++++-------
+ arch/arm/mach-omap2/clock2430_data.c    |   88 ++++++++--------
+ arch/arm/mach-omap2/clock3xxx_data.c    |  183 +++++++++++++++++--------------
+ arch/arm/mach-omap2/clock44xx_data.c    |  145 +++++++++++-------------
+ arch/arm/mach-omap2/cm-regbits-34xx.h   |    2 +
+ arch/arm/plat-omap/clock.c              |   48 +++++++-
+ arch/arm/plat-omap/include/plat/clock.h |   11 ++-
+ 7 files changed, 308 insertions(+), 255 deletions(-)
 
-+#if defined(CONFIG_SERIAL_OMAP_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
-+#define SUPPORT_SYSRQ
-+#endif
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/console.h>
-@@ -190,7 +194,6 @@ static inline void receive_chars(struct
-uart_omap_port *up, int *status)
-                        if (up->port.line == up->port.cons->index) {
-                                /* Recover the break flag from console xmit */
-                                lsr |= up->lsr_break_flag;
--                               up->lsr_break_flag = 0;
-                        }
- #endif
-                        if (lsr & UART_LSR_BI)
-
-
---
-Thanks,
-Govindraj.R
