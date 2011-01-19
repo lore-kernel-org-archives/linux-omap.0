@@ -1,64 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: use fncpy to copy the PM code functions to SRAM
-Date: Tue, 18 Jan 2011 15:44:43 -0800
-Message-ID: <20110118234443.GV4957@atomide.com>
-References: <1295018470-18099-1-git-send-email-j-pihet@ti.com>
- <20110114155806.GA22505@n2100.arm.linux.org.uk>
- <AANLkTikz_gSQE5QfO6ZXwbp9w+HTNMtb6RLBY+3Z0XF6@mail.gmail.com>
- <20110114173400.GB22505@n2100.arm.linux.org.uk>
- <AANLkTim9At1MZmid1jqqCJAk28BPo0aJEf7QkZM=y4h2@mail.gmail.com>
- <AANLkTinJPyXKWwbyW05+HUW0LJUxsu=1Exbrr6ut27Kr@mail.gmail.com>
- <AANLkTikPm8_vxjF7P84q7kHq+XSvLyF+jToFt=COs8Mj@mail.gmail.com>
- <20110118234215.GB17398@n2100.arm.linux.org.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] omap2-beagle: Depend upon CONFIG_GPIO_TWL4030
+Date: Wed, 19 Jan 2011 05:45:28 +0200
+Message-ID: <20110119034528.GA2406@legolas.emea.dhcp.ti.com>
+References: <1295299548-22839-1-git-send-email-bgamari.foss@gmail.com>
+ <20110118031038.GA2436@legolas.emea.dhcp.ti.com>
+ <87d3nus4jr.fsf@gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36065 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752099Ab1ARXpD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jan 2011 18:45:03 -0500
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:54513 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752699Ab1ASDpj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Jan 2011 22:45:39 -0500
+Received: by yws5 with SMTP id 5so104853yws.16
+        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 19:45:38 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20110118234215.GB17398@n2100.arm.linux.org.uk>
+In-Reply-To: <87d3nus4jr.fsf@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Ben Gamari <bgamari.foss@gmail.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110118 15:41]:
-> On Tue, Jan 18, 2011 at 01:05:49PM +0100, Jean Pihet wrote:
-> > Dave, Russell,
-> >=20
-> > On Mon, Jan 17, 2011 at 4:46 PM, Dave Martin <dave.martin@linaro.or=
-g> wrote:
-> > > One way to work around this is would be to make omap_sram_push() =
-a macro:
-> > >
-> > > #define omap_sram_push(funcp, size) \
-> > > =C2=A0 =C2=A0(typeof(funcp))_do_omap_sram_push((void *)(funcp), s=
-ize)
-> > >
-> > > ... where the definition of _do_omap_sram_push() is the same is t=
-he
-> > > existing definition of omap_sram_push(). =C2=A0Providing
-> > > _do_omap_sram_push() is not called directly, this should now be
-> > > type-safe.
-> > >
-> > Ok I reworked the patch from your suggestions. Indeed a few functio=
-ns
-> > types mismatch have been spotted and corrected using the fncpy API.
-> >=20
-> > New patch sent as '[PATCH v2] OMAP: use fncpy to copy the PM code
-> > functions to SRAM'.
->=20
-> Looks good, thanks.  Next problem to sort out is who's taking the
-> patches...
+On Tue, Jan 18, 2011 at 08:51:52AM -0500, Ben Gamari wrote:
+> On Tue, 18 Jan 2011 05:10:39 +0200, Felipe Balbi <balbi@ti.com> wrote:
+> > NAK. This is totally bogus. The board doesn't really depend on
+> > GPIO_TWL4030, the MMC driver does.
+> > 
+> I've looked a little more deeply into this and I'm not entirely
+> convinced that what you claim is true. It seems that the only dependency
+> that the MMC module _might_ have on the TWL4030 is for the LDOs, which I
+> believe should be covered in the regulator driver, not GPIO.
+> 
+> In light of this, I think the use of the TWL's GPIO lines for MMC it
+> might be a board specific design decision. In the case of the
+> Beagleboard, they are only TWL GPIO used by the MMC configuration is for
+> .gpio_cd but as far as I could see they could have chosen any GPIO for
+> this. Am I missing something?
 
-You can take them but we should have at least Kevin test and ack them.
+it's all true, still you making a board depend on a driver is inverting
+the dependencies. If you don't enable TWL4030_GPIO, all what will happen
+is that MMC won't work, but that's completely valid if I'm e.g.
+debugging UART of USB.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The point is, being able to disable features I don't want on my kernel
+image, is completely valid, if there's a compile breakage, then fix the
+breakage but don't prevent the board from compiling.
+
+-- 
+balbi
