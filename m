@@ -1,38 +1,40 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if doing so
- would reset an active clockdomain
-Date: Wed, 19 Jan 2011 03:07:38 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101190302260.30900@utopia.booyaka.com>
-References: <1295344109-7056-1-git-send-email-tero.kristo@nokia.com> <e84561af552e084d0a6c904aabfe46c8@mail.gmail.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] omap3: Add basic support for 720MHz part
+Date: Wed, 19 Jan 2011 15:49:05 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024847405A@dbde02.ent.ti.com>
+References: <1295336995-15831-1-git-send-email-premi@ti.com>
+ <789E54BD-D2B6-4B98-B9B8-19688E415E39@dominion.thruhere.net>
+ <4D35C47D.6000102@ti.com> <b8bd13a9f9b383c7db6af63e1aa984be@mail.gmail.com>
+ <4F6B1267-93B8-4698-9880-376076825598@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33497 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753688Ab1ASKHj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 05:07:39 -0500
-In-Reply-To: <e84561af552e084d0a6c904aabfe46c8@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40131 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753820Ab1ASKTO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 05:19:14 -0500
+In-Reply-To: <4F6B1267-93B8-4698-9880-376076825598@dominion.thruhere.net>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Cc: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
+To: Koen Kooi <koen@dominion.thruhere.net>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, l-o List <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
-On Wed, 19 Jan 2011, Vishwanath Sripathy wrote:
+> -----Original Message-----
+> From: Koen Kooi [mailto:koen@dominion.thruhere.net] 
+> Sent: Tuesday, January 18, 2011 11:47 PM
+> To: Sripathy, Vishwanath
+> Cc: Menon, Nishanth; Premi, Sanjeev; l-o List; Gopinath, Thara
+> Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
 
-> If some parts of the chip are busy, then how can Core domain enter off
-> state? The necessary condition for Core to enter low power state is that
-> all the clock domains (including DSS, CAM, IVA, USB, PER etc) should have
-> idled. Doesn't it mean that all the modules have idled and asserted
-> idleack when Core is entering off state?
+[snip]...[snip]
 
-Some modules can operate autonomously from the rest of the system.  For 
-example, McBSP or DSS.  They can indicate that they are idle or in standby 
-while their FIFO(s) are draining or filling.  At this point, the CORE 
-clockdomains can potentially go inactive, even though the module is still 
-operating autonomously.
+> The TRM[1] chickens out with the OPP definitions:
 
-Once the module's FIFO watermark has been reached, the modules can 
-deassert their SIdleAck or deassert MStandby and wake the system back up.
+Refer to page 122 of the OMAP3503 datasheet for the OPP definitions:
+http://www.ti.com/litv/pdf/sprs505f
 
+The nominal voltage for both (VDD1) OPP5 and OPP6 is 1.35V.
 
-- Paul
+~sanjeev
