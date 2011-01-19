@@ -1,30 +1,31 @@
 From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: State of SDP4430 platform
-Date: Wed, 19 Jan 2011 16:26:38 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101191625590.7359@utopia.booyaka.com>
+Date: Wed, 19 Jan 2011 16:27:16 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101191626570.7359@utopia.booyaka.com>
 References: <20110116010936.GA21795@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1101152255100.13225@utopia.booyaka.com> <a40bc7a304b60cef73a3a0cfb84b2ee8@mail.gmail.com> <ceedbf20a12a6e821fda1496b10297a2@mail.gmail.com> <alpine.DEB.2.00.1101171611270.13225@utopia.booyaka.com>
- <AANLkTinYuEoKNQZ_WRQ6Sd1S0CU4OKNGnxc6_Do3BW+M@mail.gmail.com>
+ <AANLkTinYuEoKNQZ_WRQ6Sd1S0CU4OKNGnxc6_Do3BW+M@mail.gmail.com> <alpine.DEB.2.00.1101191625590.7359@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39192 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:39202 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753830Ab1ASX0j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 18:26:39 -0500
-In-Reply-To: <AANLkTinYuEoKNQZ_WRQ6Sd1S0CU4OKNGnxc6_Do3BW+M@mail.gmail.com>
+	with ESMTP id S1753906Ab1ASX1R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 18:27:17 -0500
+In-Reply-To: <alpine.DEB.2.00.1101191625590.7359@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
 
-Hi,
+On Wed, 19 Jan 2011, Paul Walmsley wrote:
 
-On Wed, 19 Jan 2011, Krishnamoorthy, Balaji T wrote:
+> On Wed, 19 Jan 2011, Krishnamoorthy, Balaji T wrote:
+> 
+> > in ES1, timeouts were observed only with RTC.
+> > I2C burst access to IRQ registers and bq24156 were OK
+> 
+> Was an errata generated for this bug?
 
-> in ES1, timeouts were observed only with RTC.
-> I2C burst access to IRQ registers and bq24156 were OK
-
-Was an errata generated for this bug?
-
+er, erratum, pardon me...
 
 - Paul
