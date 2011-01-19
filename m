@@ -1,52 +1,146 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] omap2-beagle: Depend upon CONFIG_GPIO_TWL4030
-Date: Wed, 19 Jan 2011 05:45:28 +0200
-Message-ID: <20110119034528.GA2406@legolas.emea.dhcp.ti.com>
-References: <1295299548-22839-1-git-send-email-bgamari.foss@gmail.com>
- <20110118031038.GA2436@legolas.emea.dhcp.ti.com>
- <87d3nus4jr.fsf@gmail.com>
-Reply-To: balbi@ti.com
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if doing so
+ would reset an active clockdomain
+Date: Wed, 19 Jan 2011 10:09:01 +0530
+Message-ID: <e84561af552e084d0a6c904aabfe46c8@mail.gmail.com>
+References: <1295344109-7056-1-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:54513 "EHLO
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:58332 "EHLO
 	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752699Ab1ASDpj (ORCPT
+	by vger.kernel.org with ESMTP id S1753143Ab1ASEjC (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Jan 2011 22:45:39 -0500
-Received: by yws5 with SMTP id 5so104853yws.16
-        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 19:45:38 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <87d3nus4jr.fsf@gmail.com>
+	Tue, 18 Jan 2011 23:39:02 -0500
+Received: by mail-fx0-f41.google.com with SMTP id 12so415102fxm.28
+        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 20:39:01 -0800 (PST)
+In-Reply-To: <1295344109-7056-1-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Gamari <bgamari.foss@gmail.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Tue, Jan 18, 2011 at 08:51:52AM -0500, Ben Gamari wrote:
-> On Tue, 18 Jan 2011 05:10:39 +0200, Felipe Balbi <balbi@ti.com> wrote:
-> > NAK. This is totally bogus. The board doesn't really depend on
-> > GPIO_TWL4030, the MMC driver does.
-> > 
-> I've looked a little more deeply into this and I'm not entirely
-> convinced that what you claim is true. It seems that the only dependency
-> that the MMC module _might_ have on the TWL4030 is for the LDOs, which I
-> believe should be covered in the regulator driver, not GPIO.
-> 
-> In light of this, I think the use of the TWL's GPIO lines for MMC it
-> might be a board specific design decision. In the case of the
-> Beagleboard, they are only TWL GPIO used by the MMC configuration is for
-> .gpio_cd but as far as I could see they could have chosen any GPIO for
-> this. Am I missing something?
+Tero,
 
-it's all true, still you making a board depend on a driver is inverting
-the dependencies. If you don't enable TWL4030_GPIO, all what will happen
-is that MMC won't work, but that's completely valid if I'm e.g.
-debugging UART of USB.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tero Kristo
+> Sent: Tuesday, January 18, 2011 3:18 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Paul Walmsley; Kevin Hilman
+> Subject: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if doing
+> so would reset an active clockdomain
+>
+> On OMAP3 SoCs, if the CORE powerdomain enters off-mode, many other
+> parts of the chip will be reset.  If those parts of the chip are busy,
+> the reset will disrupt them, causing unpredictable and generally
+> undesirable results.
+If some parts of the chip are busy, then how can Core domain enter off
+state? The necessary condition for Core to enter low power state is that
+all the clock domains (including DSS, CAM, IVA, USB, PER etc) should have
+idled. Doesn't it mean that all the modules have idled and asserted
+idleack when Core is entering off state?
 
-The point is, being able to disable features I don't want on my kernel
-image, is completely valid, if there's a compile breakage, then fix the
-breakage but don't prevent the board from compiling.
-
--- 
-balbi
+Vishwa
+>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+>  arch/arm/mach-omap2/cpuidle34xx.c |   40
+> +++++++++++++++++++++++++++++++++++-
+>  1 files changed, 38 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-
+> omap2/cpuidle34xx.c
+> index f3e043f..d31b858 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -61,7 +61,7 @@ struct omap3_processor_cx {
+>  struct omap3_processor_cx
+> omap3_power_states[OMAP3_MAX_STATES];
+>  struct omap3_processor_cx current_cx_state;
+>  struct powerdomain *mpu_pd, *core_pd, *per_pd;
+> -struct powerdomain *cam_pd;
+> +struct powerdomain *cam_pd, *dss_pd, *iva2_pd, *sgx_pd, *usb_pd;
+>
+>  /*
+>   * The latencies/thresholds for various C states have
+> @@ -235,7 +235,7 @@ static int omap3_enter_idle_bm(struct
+> cpuidle_device *dev,
+>  {
+>  	struct cpuidle_state *new_state = next_valid_state(dev, state);
+>  	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
+> -	u32 cam_state;
+> +	u32 cam_state, dss_state, iva2_state, sgx_state, usb_state;
+>  	struct omap3_processor_cx *cx;
+>  	int ret;
+>
+> @@ -256,6 +256,8 @@ static int omap3_enter_idle_bm(struct
+> cpuidle_device *dev,
+>  	 *        its own code.
+>  	 */
+>
+> +	/* XXX Add CORE-active check here */
+> +
+>  	/*
+>  	 * Prevent idle completely if CAM is active.
+>  	 * CAM does not have wakeup capability in OMAP3.
+> @@ -275,6 +277,36 @@ static int omap3_enter_idle_bm(struct
+> cpuidle_device *dev,
+>  	    (core_next_state > PWRDM_POWER_RET))
+>  		per_next_state = PWRDM_POWER_RET;
+>
+> +	/* XXX Add prevent-PER-off check here */
+> +
+> +	/*
+> +	 * If we are attempting CORE off, check if any other
+> powerdomains
+> +	 * are at retention or higher. CORE off causes chipwide reset
+> which
+> +	 * would reset these domains also.
+> +	 */
+> +	if (core_next_state == PWRDM_POWER_OFF) {
+> +		iva2_state = pwrdm_read_pwrst(iva2_pd);
+> +		sgx_state = pwrdm_read_pwrst(sgx_pd);
+> +		usb_state = pwrdm_read_pwrst(usb_pd);
+> +		dss_state = pwrdm_read_pwrst(dss_pd);
+> +
+> +		if (cam_state > PWRDM_POWER_OFF ||
+> +		    dss_state > PWRDM_POWER_OFF ||
+> +		    iva2_state > PWRDM_POWER_OFF ||
+> +		    per_next_state > PWRDM_POWER_OFF ||
+> +		    sgx_state > PWRDM_POWER_OFF ||
+> +		    usb_state > PWRDM_POWER_OFF)
+> +			core_next_state = PWRDM_POWER_RET;
+> +	}
+> +
+> +	/* Fallback to new target core/mpu state */
+> +	while (cx->core_state < core_next_state) {
+> +		state--;
+> +		cx = cpuidle_get_statedata(state);
+> +	}
+> +
+> +	new_state = state;
+> +
+>  	/* Are we changing PER target state? */
+>  	if (per_next_state != per_saved_state)
+>  		pwrdm_set_next_pwrst(per_pd, per_next_state);
+> @@ -489,6 +521,10 @@ int __init omap3_idle_init(void)
+>  	core_pd = pwrdm_lookup("core_pwrdm");
+>  	per_pd = pwrdm_lookup("per_pwrdm");
+>  	cam_pd = pwrdm_lookup("cam_pwrdm");
+> +	dss_pd = pwrdm_lookup("dss_pwrdm");
+> +	iva2_pd = pwrdm_lookup("iva2_pwrdm");
+> +	sgx_pd = pwrdm_lookup("sgx_pwrdm");
+> +	usb_pd = pwrdm_lookup("usbhost_pwrdm");
+>
+>  	omap_init_power_states();
+>  	cpuidle_register_driver(&omap3_idle_driver);
+> --
+> 1.7.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
