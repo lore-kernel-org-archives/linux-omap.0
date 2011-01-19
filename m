@@ -1,49 +1,89 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: DMA: clear interrupt status correctly
-Date: Wed, 19 Jan 2011 14:44:07 -0800
-Message-ID: <20110119224406.GK4957@atomide.com>
-References: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com>
- <20101130132355.13286.77389.sendpatchset@ahunter-work.research.nokia.com>
- <541b3a50479779f3e814aa93d506cbdd@mail.gmail.com>
- <20101221202914.GK5829@atomide.com>
- <4D2440E0.7040008@nokia.com>
- <87mxnfz2f4.fsf@ti.com>
- <4D36BBC8.2000305@nokia.com>
- <20110119222327.GJ4957@atomide.com>
+Subject: Re: [PATCH 7/7] arm: omap2: clksel: fix compile warning
+Date: Wed, 19 Jan 2011 15:09:39 -0800
+Message-ID: <20110119230939.GL4957@atomide.com>
+References: <1295238680-26738-1-git-send-email-balbi@ti.com>
+ <1295238680-26738-8-git-send-email-balbi@ti.com>
+ <AANLkTimO_Vt+bjS1rP1AwD9iSqd_cNLAZ+tukveOtneD@mail.gmail.com>
+ <20110117081845.GF2812@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31877 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35114 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751775Ab1ASWoU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 17:44:20 -0500
+	with ESMTP id S1753174Ab1ASXJw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 18:09:52 -0500
 Content-Disposition: inline
-In-Reply-To: <20110119222327.GJ4957@atomide.com>
+In-Reply-To: <20110117081845.GF2812@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Manjunath Kondaiah G <manjugk@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-* Tony Lindgren <tony@atomide.com> [110119 14:23]:
-> * Adrian Hunter <adrian.hunter@nokia.com> [110119 02:23]:
-> > 
-> > From fffa19df17d73c1ed2e8c65c0b6604ee1dddff84 Mon Sep 17 00:00:00 2001
-> > From: Adrian Hunter <adrian.hunter@nokia.com>
-> > Date: Wed, 24 Nov 2010 13:23:21 +0200
-> > Subject: [PATCH] OMAP: DMA: clear interrupt status correctly
-> > 
-> > When clearing the DMA channel, clear all status bits.
-> > 
-> > When handling a DMA interrupt, clear only the interrupt
-> > status bits that have been read and are passed to the
-> > channel's interrupt handler, not every status bit.
-> > 
-> > Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> 
-> Thanks, will queue as a fix.
+* Felipe Balbi <balbi@ti.com> [110117 00:18]:
+> Hi,
+>=20
+> On Mon, Jan 17, 2011 at 01:37:41PM +0530, Varadarajan, Charulatha wro=
+te:
+> > On Mon, Jan 17, 2011 at 10:01, Felipe Balbi <balbi@ti.com> wrote:
+> > > Fix the following compile warning:
+> > > arch/arm/mach-omap2/clkt_clksel.c: In function '_get_div_and_fiel=
+dval':
+> > > arch/arm/mach-omap2/clkt_clksel.c:100:35: warning: 'max_clkr' may=
+ be
+> > > used uninitialized in this function
+> > >
+> > > While at that, also add a check to avoid using max_clkr while NUL=
+L.
+> > >
+> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > ---
+> > > =C2=A0arch/arm/mach-omap2/clkt_clksel.c | =C2=A0 =C2=A05 ++++-
+> > > =C2=A01 files changed, 4 insertions(+), 1 deletions(-)
+> > >
+> > > diff --git a/arch/arm/mach-omap2/clkt_clksel.c b/arch/arm/mach-om=
+ap2/clkt_clksel.c
+> > > index a781cd6..baf0b6b 100644
+> > > --- a/arch/arm/mach-omap2/clkt_clksel.c
+> > > +++ b/arch/arm/mach-omap2/clkt_clksel.c
+> > > @@ -97,7 +97,7 @@ static u8 _get_div_and_fieldval(struct clk *src=
+_clk, struct clk *clk,
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0u32 *field_val)
+> > > =C2=A0{
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0const struct clksel *clks;
+> > > - =C2=A0 =C2=A0 =C2=A0 const struct clksel_rate *clkr, *max_clkr;
+> > > + =C2=A0 =C2=A0 =C2=A0 const struct clksel_rate *clkr, *max_clkr =
+=3D NULL;
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0u8 max_div =3D 0;
+> > >
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0clks =3D _get_clksel_by_parent(clk, sr=
+c_clk);
+> > > @@ -123,6 +123,9 @@ static u8 _get_div_and_fieldval(struct clk *s=
+rc_clk, struct clk *clk,
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+> > >
+> > > + =C2=A0 =C2=A0 =C2=A0 if (!max_clkr)
+> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
+> >=20
+> > Would it be more appropriate to move this check after the "if" chec=
+k
+> > of max_div=3D=3D0 and it's warning?
+> > or add a warning before it returns?
+>=20
+> Maybe this return isn't even necessary. max_clkr will be true if max_=
+div
+> is valid, so they cancel each other.
+>=20
+> Tony ?
 
-This did not apply for some reason, I've applied it manually.
-Please check that I got it right in omap-fixes branch soonish.
-Let me know if it needs updating.
+Looks like the max_div test should catch it to me. Paul?
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
