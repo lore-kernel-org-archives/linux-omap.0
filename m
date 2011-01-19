@@ -1,169 +1,79 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if doing so
- would reset an active clockdomain
-Date: Wed, 19 Jan 2011 11:35:40 +0530
-Message-ID: <cff409280dee72a6d3426cc2edf93069@mail.gmail.com>
-References: <1295344109-7056-1-git-send-email-tero.kristo@nokia.com> <e84561af552e084d0a6c904aabfe46c8@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] OMAP: use fncpy to copy the PM code functions to SRAM
+Date: Wed, 19 Jan 2011 09:06:40 +0100
+Message-ID: <AANLkTin=XwKC5LvXimCfkNatLcq=RYqb-32x5HLx0rOa@mail.gmail.com>
+References: <1295018470-18099-1-git-send-email-j-pihet@ti.com>
+	<20110114155806.GA22505@n2100.arm.linux.org.uk>
+	<AANLkTikz_gSQE5QfO6ZXwbp9w+HTNMtb6RLBY+3Z0XF6@mail.gmail.com>
+	<20110114173400.GB22505@n2100.arm.linux.org.uk>
+	<AANLkTim9At1MZmid1jqqCJAk28BPo0aJEf7QkZM=y4h2@mail.gmail.com>
+	<AANLkTinJPyXKWwbyW05+HUW0LJUxsu=1Exbrr6ut27Kr@mail.gmail.com>
+	<AANLkTikPm8_vxjF7P84q7kHq+XSvLyF+jToFt=COs8Mj@mail.gmail.com>
+	<20110118234215.GB17398@n2100.arm.linux.org.uk>
+	<20110118234443.GV4957@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:35442 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753424Ab1ASGFo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Jan 2011 01:05:44 -0500
-Received: by mail-fx0-f42.google.com with SMTP id 11so657741fxm.15
-        for <linux-omap@vger.kernel.org>; Tue, 18 Jan 2011 22:05:43 -0800 (PST)
-In-Reply-To: <e84561af552e084d0a6c904aabfe46c8@mail.gmail.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:33210 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753594Ab1ASIGl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 03:06:41 -0500
+Received: by qyj19 with SMTP id 19so311912qyj.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 00:06:41 -0800 (PST)
+In-Reply-To: <20110118234443.GV4957@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-Tero,
+On Wed, Jan 19, 2011 at 12:44 AM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [110118 15:41]:
+>> On Tue, Jan 18, 2011 at 01:05:49PM +0100, Jean Pihet wrote:
+>> > Dave, Russell,
+>> >
+>> > On Mon, Jan 17, 2011 at 4:46 PM, Dave Martin <dave.martin@linaro.o=
+rg> wrote:
+>> > > One way to work around this is would be to make omap_sram_push()=
+ a macro:
+>> > >
+>> > > #define omap_sram_push(funcp, size) \
+>> > > =A0 =A0(typeof(funcp))_do_omap_sram_push((void *)(funcp), size)
+>> > >
+>> > > ... where the definition of _do_omap_sram_push() is the same is =
+the
+>> > > existing definition of omap_sram_push(). =A0Providing
+>> > > _do_omap_sram_push() is not called directly, this should now be
+>> > > type-safe.
+>> > >
+>> > Ok I reworked the patch from your suggestions. Indeed a few functi=
+ons
+>> > types mismatch have been spotted and corrected using the fncpy API=
+=2E
+>> >
+>> > New patch sent as '[PATCH v2] OMAP: use fncpy to copy the PM code
+>> > functions to SRAM'.
+>>
+>> Looks good, thanks. =A0Next problem to sort out is who's taking the
+>> patches...
+>
+> You can take them but we should have at least Kevin test and ack them=
+=2E
+Sure, this needs some testing on OMAP1 & 2 platforms. It has only been
+compile tested on those (means: compile OK, functions types mismatches
+fixed).
 
-> -----Original Message-----
-> From: Vishwanath Sripathy [mailto:vishwanath.bs@ti.com]
-> Sent: Wednesday, January 19, 2011 10:09 AM
-> To: Tero Kristo; linux-omap@vger.kernel.org
-> Cc: Paul Walmsley; Kevin Hilman
-> Subject: RE: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if
-> doing so would reset an active clockdomain
->
-> Tero,
->
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Tero Kristo
-> > Sent: Tuesday, January 18, 2011 3:18 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: Paul Walmsley; Kevin Hilman
-> > Subject: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if
-> doing
-> > so would reset an active clockdomain
-> >
-> > On OMAP3 SoCs, if the CORE powerdomain enters off-mode, many
-> other
-> > parts of the chip will be reset.  If those parts of the chip are busy,
-> > the reset will disrupt them, causing unpredictable and generally
-> > undesirable results.
-> If some parts of the chip are busy, then how can Core domain enter off
-> state? The necessary condition for Core to enter low power state is that
-> all the clock domains (including DSS, CAM, IVA, USB, PER etc) should
-> have
-> idled. Doesn't it mean that all the modules have idled and asserted
-> idleack when Core is entering off state?
-Besides these, Core off should reset the modules which are only in Core
-domain. It should not impact other power domains. Also Core domain modules
-which are reset will restore their context when Core comes out of off
-mode. So why are you saying that "If those parts of the chip are busy,
-the reset will disrupt them, causing unpredictable and generally
-undesirable results."?
+Anyone with OMAP1 & 2 boards willing to test?
 
-Vishwa
+Thanks,
+Jean
+
 >
-> Vishwa
-> >
-> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> > ---
-> >  arch/arm/mach-omap2/cpuidle34xx.c |   40
-> > +++++++++++++++++++++++++++++++++++-
-> >  1 files changed, 38 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-
-> > omap2/cpuidle34xx.c
-> > index f3e043f..d31b858 100644
-> > --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> > +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> > @@ -61,7 +61,7 @@ struct omap3_processor_cx {
-> >  struct omap3_processor_cx
-> > omap3_power_states[OMAP3_MAX_STATES];
-> >  struct omap3_processor_cx current_cx_state;
-> >  struct powerdomain *mpu_pd, *core_pd, *per_pd;
-> > -struct powerdomain *cam_pd;
-> > +struct powerdomain *cam_pd, *dss_pd, *iva2_pd, *sgx_pd,
-> *usb_pd;
-> >
-> >  /*
-> >   * The latencies/thresholds for various C states have
-> > @@ -235,7 +235,7 @@ static int omap3_enter_idle_bm(struct
-> > cpuidle_device *dev,
-> >  {
-> >  	struct cpuidle_state *new_state = next_valid_state(dev, state);
-> >  	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
-> > -	u32 cam_state;
-> > +	u32 cam_state, dss_state, iva2_state, sgx_state, usb_state;
-> >  	struct omap3_processor_cx *cx;
-> >  	int ret;
-> >
-> > @@ -256,6 +256,8 @@ static int omap3_enter_idle_bm(struct
-> > cpuidle_device *dev,
-> >  	 *        its own code.
-> >  	 */
-> >
-> > +	/* XXX Add CORE-active check here */
-> > +
-> >  	/*
-> >  	 * Prevent idle completely if CAM is active.
-> >  	 * CAM does not have wakeup capability in OMAP3.
-> > @@ -275,6 +277,36 @@ static int omap3_enter_idle_bm(struct
-> > cpuidle_device *dev,
-> >  	    (core_next_state > PWRDM_POWER_RET))
-> >  		per_next_state = PWRDM_POWER_RET;
-> >
-> > +	/* XXX Add prevent-PER-off check here */
-> > +
-> > +	/*
-> > +	 * If we are attempting CORE off, check if any other
-> > powerdomains
-> > +	 * are at retention or higher. CORE off causes chipwide reset
-> > which
-> > +	 * would reset these domains also.
-> > +	 */
-> > +	if (core_next_state == PWRDM_POWER_OFF) {
-> > +		iva2_state = pwrdm_read_pwrst(iva2_pd);
-> > +		sgx_state = pwrdm_read_pwrst(sgx_pd);
-> > +		usb_state = pwrdm_read_pwrst(usb_pd);
-> > +		dss_state = pwrdm_read_pwrst(dss_pd);
-> > +
-> > +		if (cam_state > PWRDM_POWER_OFF ||
-> > +		    dss_state > PWRDM_POWER_OFF ||
-> > +		    iva2_state > PWRDM_POWER_OFF ||
-> > +		    per_next_state > PWRDM_POWER_OFF ||
-> > +		    sgx_state > PWRDM_POWER_OFF ||
-> > +		    usb_state > PWRDM_POWER_OFF)
-> > +			core_next_state = PWRDM_POWER_RET;
-> > +	}
-> > +
-> > +	/* Fallback to new target core/mpu state */
-> > +	while (cx->core_state < core_next_state) {
-> > +		state--;
-> > +		cx = cpuidle_get_statedata(state);
-> > +	}
-> > +
-> > +	new_state = state;
-> > +
-> >  	/* Are we changing PER target state? */
-> >  	if (per_next_state != per_saved_state)
-> >  		pwrdm_set_next_pwrst(per_pd, per_next_state);
-> > @@ -489,6 +521,10 @@ int __init omap3_idle_init(void)
-> >  	core_pd = pwrdm_lookup("core_pwrdm");
-> >  	per_pd = pwrdm_lookup("per_pwrdm");
-> >  	cam_pd = pwrdm_lookup("cam_pwrdm");
-> > +	dss_pd = pwrdm_lookup("dss_pwrdm");
-> > +	iva2_pd = pwrdm_lookup("iva2_pwrdm");
-> > +	sgx_pd = pwrdm_lookup("sgx_pwrdm");
-> > +	usb_pd = pwrdm_lookup("usbhost_pwrdm");
-> >
-> >  	omap_init_power_states();
-> >  	cpuidle_register_driver(&omap3_idle_driver);
-> > --
-> > 1.7.1
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap"
-in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Tony
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
