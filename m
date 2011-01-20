@@ -1,80 +1,49 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK to speed-up
- boot
-Date: Thu, 20 Jan 2011 10:34:38 -0600
-Message-ID: <4D38641E.2000301@gmail.com>
-References: <1295516579-10225-1-git-send-email-santosh.shilimkar@ti.com> <4D385155.4050301@gmail.com> <43c027bd53818ab19bdc1c823aa21ea4@mail.gmail.com>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [PATCH] change acquire/release_console_sem() to
+	console_lock/unlock()
+Date: Thu, 20 Jan 2011 08:34:48 -0800
+Message-ID: <20110120163448.GA30588@suse.de>
+References: <1295539104-13210-1-git-send-email-torbenh@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:40803 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712Ab1ATQem (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 11:34:42 -0500
-Received: by gwj20 with SMTP id 20so221787gwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 20 Jan 2011 08:34:41 -0800 (PST)
-In-Reply-To: <43c027bd53818ab19bdc1c823aa21ea4@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <virtualization-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <1295539104-13210-1-git-send-email-torbenh@gmx.de>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/virtualization>
+List-Post: <mailto:virtualization@lists.linux-foundation.org>
+List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
+Sender: virtualization-bounces@lists.linux-foundation.org
+Errors-To: virtualization-bounces@lists.linux-foundation.org
+To: Torben Hohn <torbenh@gmx.de>
+Cc: xen-devel@lists.xensource.com, Kees Cook <kees.cook@canonical.com>, linux-fbdev@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, James Hogan <james@albanarts.com>, David Airlie <airlied@linux.ie>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, James Morris <jmorris@namei.org>, Grant Likely <grant.likely@secretlab.ca>, Paul Mackerras <paulus@samba.org>, linux-parisc@vger.kernel.org, Magnus Damm <damm@opensource.se>, Jiri Slaby <jslaby@suse.cz>, Dan Williams <dan.j.williams@intel.com>, devel@driverdev.osuosl.org, Guy Martin <gmsoft@tuxicoman.be>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>, Russell King <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@tglx.de>, Wu
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>
 
-On 01/20/2011 09:36 AM, Santosh Shilimkar wrote:
->> -----Original Message-----
->> From: Rob Herring [mailto:robherring2@gmail.com]
->> Sent: Thursday, January 20, 2011 8:44 PM
->> To: Santosh Shilimkar
->> Cc: linux-arm-kernel@lists.infradead.org; Russell King; linux-
->> omap@vger.kernel.org; Linus Walleij
->> Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK
->> to speed-up boot
->>
->> On 01/20/2011 03:42 AM, Santosh Shilimkar wrote:
->>> On some architectures, secondary cores shares clock with primiary
->>> core and hence scale together. Hence secondary core lpj
->> calibration
->>> is not necessary and can be skipped to save considerable time.
->>>
->>> This can speed up the secondary cpu boot and hotplug cpu online
->>> paths.
->>>
->>> Discussion thread:
->>> 	http://www.spinics.net/lists/arm-kernel/msg111124.html
->>>
->>
->> There's already one way to do this with pre-calculated lpj.
->>
-> How about the hot-plug path? This is not for just boot.
+On Thu, Jan 20, 2011 at 04:58:13PM +0100, Torben Hohn wrote:
+> the -rt patches change the console_semaphore to console_mutex.
+> so a quite large chunk of the patches changes all
+> acquire/release_console_sem() to acquire/release_console_mutex()
 
-The path is the same for hotplug and secondary boot, so yes for both. 
-Plus you get the added benefit of speeding up the primary core boot as well.
+Why not just change the functionality of the existing function to be a
+mutex in the rt patches, instead of having to rename it everywhere?
 
->
->> Also, this isn't multi-platform friendly. You could accomplish the
->> same
->> thing using the clock api to get the core frequency of each core and
->> only calculate lpj if the frequency is different.
-> May be but what's wrong with the obvious approach which is
-> completely non-intrusive.
-> Why is not multi-platform friendly ?
-> Archs can choose not to select this option.
+> this commit makes things use more neutral function names
+> which dont make implications about the underlying lock.
+> 
+> the only real change is the return value of console_trylock
+> which is inverted from try_acquire_console_sem()
+> 
+> Signed-off-by: Torben Hohn <torbenh@gmx.de>
+> CC: Thomas Gleixner <tglx@tglx.de>
 
-I meant you can't have single kernel binary with a platform with single 
-core freq and a platform with independent core freq.
+I don't mind this rename, but is it really going to help anything out?
+What's the odds of the -rt portion of this patch ever making it to
+mainline?
 
-Looking at this some more, the only reason to call calibrate_delay is to 
-get a more accurate value. If you have different frequencies per core, 
-you've got bigger problems as loops_per_jiffy value is not per core. So 
-your kconfig option name is misleading. Something like 
-ARCH_WANT_UDELAY_RECALC would be more accurate. To get a more accurate 
-calculation, calibrate_delay only needs to be called by 1 secondary 
-core. Perhaps it could be called from somewhere that is not in the 
-boot/hotplug path or only done once.
+thanks,
 
-Rob
-
->
-> Regards,
-> Santosh
-
+greg k-h
