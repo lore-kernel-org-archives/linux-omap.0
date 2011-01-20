@@ -1,78 +1,40 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: RE: [PATCHv2] OMAP: Enable Magic SysRq on serial console ttyOx
-Date: Thu, 20 Jan 2011 17:49:42 +0530
-Message-ID: <38f2b3af600ce3dfea1e73edec7c81fa@mail.gmail.com>
-References: <1295426461-12459-1-git-send-email-weber@corscience.de>
- <AANLkTin0-joNuqxqL79j0wqPk_A5mtAgzEY=X=PeH=+C@mail.gmail.com>
- <20110119130049.GB9365@m-desktop> <4D36E7CC.5090303@corscience.de>
- <AANLkTikjdukQ+kUUR7N11rZ5b=Xd=xLb0-chMrbp5BQ6@mail.gmail.com> <20110120114855.GD1987@m-desktop>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH] ARM: oprofile: Always allow backtraces
+Date: Thu, 20 Jan 2011 15:31:34 +0300
+Message-ID: <4D382B26.9030801@ru.mvista.com>
+References: <1295470473-1095-1-git-send-email-kauppi@papupata.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110120114855.GD1987@m-desktop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Manjunath Kondaiah G <manjugk@ti.com>, Govindraj <govindraj.ti@gmail.com>
-Cc: Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Govindraj Raja <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Andrei Emeltchenko <andrei.emeltchenko@nokia.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:42087 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752924Ab1ATMcp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 07:32:45 -0500
+Received: by ewy5 with SMTP id 5so186968ewy.19
+        for <linux-omap@vger.kernel.org>; Thu, 20 Jan 2011 04:32:44 -0800 (PST)
+In-Reply-To: <1295470473-1095-1-git-send-email-kauppi@papupata.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ari Kauppi <kauppi@papupata.org>
+Cc: robert.richter@amd.com, Matt Fleming <matt@console-pimps.org>, Will Deacon <will.deacon@arm.com>, Richard Purdie <rpurdie@rpsys.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> > >>>> Magic SysRq key is not working for OMAP on new serial
-> > >>>> console ttyOx because SUPPORT_SYSRQ is not defined
-> > >>>> for omap-serial.
-> > >>>>
-> > >>>> This patch defines SUPPORT_SYSRQ in omap-serial and
-> > >>>> enables handling of Magic SysRq character.
-> > >>>>
-> > >>>> Signed-off-by: Thomas Weber <weber@corscience.de>
-> > >>>
-> > >>> Looks fine to me.
-> > >>>
-> > >>> Acked-by: Govindraj.R <govindraj.raja@ti.com>
-> > >> I tried to use SysRq key on minicom after applying this patch, it
-looks
-> > >> like it is not triggering sysrq event.
-> > >>
-> > >> Am I missing anything?
-> > >>
-> > >> -Manjunath
-> > >> --
-> > > Hello Manjunath,
-> > >
-> > > Do you have CONFIG_MAGIC_SYSRQ enabled?
-> > > Magic SysRq key in Kernel Hacking
-> > >
-> > > I tested it on Devkit8000 (beagle board clone).
-> > >
-> >
-> > re-setting lsr_break_flag to 0 in receive chars is causing issues
-> > in getting sysrq key break sequence on omap-serial.c
-> >
-> > Manju,
-> >
-> > can you try this change on your environment.
-> > With below change works for me on 3430SDP/4430SDP.
-> > key sequence I checked.
-> > [alt + b + t]  => shows trace of tasks running.
-> > [alt + b + b] => system reboot.
->
-> With below patch, it works fine on TeraTerm. However, I am not able to
-> perform the same on minicom.
->
-> Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
->
-> -Manjunath
->
+Hello.
 
-Not sure what you guys are trying out, but I am able to use sysrq
-just fine in minicom (using only Thomas' original patch) - you need
-to send a break sequence, and the way to do this in minicom is to
-do Ctrl-A followed by F.
+On 19-01-2011 23:54, Ari Kauppi wrote:
 
-Works for me, without the "resetting lsr_break_flag to 0" part.
+> Always allow backtrace when using oprofile on ARM, even if a PMU
+> isn't present.
 
-@Govind,
+> Restores functionality originally introduced in
+> 1b7b56982fdcd9d85effd76f3928cf5d6eb26155 by Richard Purdie.
 
-What are the issues you see in getting sysrq key break sequence
-without your change? And how is your change fixing this?
+    You're lacking the commit summary specified in parens which Linus asked to 
+add.
 
+> Signed-off-by: Ari Kauppi<kauppi@papupata.org>
+> Cc: Richard Purdie<rpurdie@rpsys.net>
+> Cc: Will Deacon<will.deacon@arm.com>
+> Cc: Matt Fleming<matt@console-pimps.org>
 
-- Anand
+WBR, Sergei
