@@ -1,43 +1,31 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] omap4: Add board_data and initialise the serial pads
-Date: Thu, 20 Jan 2011 09:33:00 -0800
-Message-ID: <20110120173259.GV4957@atomide.com>
-References: <1295363712-5940-1-git-send-email-r.sricharan@ti.com>
+Subject: Re: [PATCH 0/4] omap4: hsmmc: Adding ADMA support
+Date: Thu, 20 Jan 2011 09:42:27 -0800
+Message-ID: <20110120174226.GX4957@atomide.com>
+References: <1295371591-13610-1-git-send-email-kishore.kadiyala@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55328 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752897Ab1ATRdN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 12:33:13 -0500
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1295363712-5940-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1295371591-13610-1-git-send-email-kishore.kadiyala@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, madhu.cr@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: sricharan <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, santosh.shilimkar@ti.com
 
-Hi,
+* Kishore Kadiyala <kishore.kadiyala@ti.com> [110118 09:19]:
+> This patch series adds support for ADMA on MMC1 & MMC2 controllers on OMAP4.
+> There is no performance improvement observed using ADMA over SDMA.
+> Advantage using ADMA could be reducing contention over SDMA.
+> Also the series includes some cleanup.
 
-* sricharan <r.sricharan@ti.com> [110118 07:11]:
-> Pass the board specific serial pad mux data
-> to the platform level init code.
-> 
-> Signed-off-by: sricharan <r.sricharan@ti.com>
-> ---
-> This is a test patch and not intended for a specific use case.
-> 
-> 1) The support to add the pad data to the device hwmod entry and to use
->    it to dynamically configure the pads based on the state of the
->    hwmod is already present.
-> 
-> 2) But using that for pads that requires only  initialisation and not 
->    dynamic remux, brings in a overhead to iterate over all the
->    hwmod signals of the device for every device enable/idle transitions.
+To me it seems that the only sane way to deal with multiple different
+DMA enginges is to implement them all with drivers/dma/dmaengine.c.
+Otherwise we'll end up with multiple custom ADMA implementations in
+each driver. We need to also make SDMA use the dmaengine code.
 
-The right fix for this problem is to change the mux code to keep a separate
-list for dynamic pads and static pads. That way all the static pads can
-be skipped, and the dynamic list is empty in most cases.
+If the current dmaengine code does not support this, we need to
+improve it to deal with cases like these.
 
 Regards,
 
