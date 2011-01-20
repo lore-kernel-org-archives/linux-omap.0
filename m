@@ -1,49 +1,39 @@
-From: Luke Gong <lukejgong@gmail.com>
-Subject: beagle board cannot suspend to RAM
-Date: Wed, 19 Jan 2011 19:45:51 -0500
-Message-ID: <AANLkTimzk0rw+NrYF1kMtJqzbz4TSRw8UH3nxniG982k@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/7] OMAP compile warning fix
+Date: Wed, 19 Jan 2011 17:25:46 -0800
+Message-ID: <20110120012545.GQ4957@atomide.com>
+References: <1295238680-26738-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:61937 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753052Ab1ATAqD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 19:46:03 -0500
-Received: by wwi17 with SMTP id 17so877930wwi.1
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 16:46:01 -0800 (PST)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:20081 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141Ab1ATBZ6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 20:25:58 -0500
+Content-Disposition: inline
+In-Reply-To: <1295238680-26738-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hello,
+* Felipe Balbi <balbi@ti.com> [110116 20:30]:
+> Hi Tony,
+> 
+> I gave it a shot at dropping a few compile warnings
+> from omap1-only and omap2-only builds.
+> 
+> Following are 7 patches which I came up with. All
+> compile tested with omap1_defconfig and omap2_defconfig
+> (the latter being a result of omap2plus_defconfig -
+> omap3 and omap4 support and adding any other config option
+> which was disabled)
+> 
+> There are a few more warnings to clean up, though. I didn't
+> tackle all of them.
 
-I compiled linux-omap-pm kernel 2.6.32 enabling suspend to RAM. But
-with this new kernel, the board freezes when I try to let it suspend
-to ram. Here is the log:
+Thanks, adding all but the last one into devel-cleanup
+for the next merge window. Let's see what Paul says about
+the last one.
 
-root@beagleboard:~# echo mem > /sys/power/state
-PM: Syncing filesystems ... done.
-Freezing user space processes ... (elapsed 0.00 seconds) done.
-Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
-Suspending console(s) (use no_console_suspend to debug)
-***************************************************************
-
-I list part of config file to enable power management feature as well:
-
-#
-# Power management options
-#
-CONFIG_PM=y
-# CONFIG_PM_DEBUG is not set
-CONFIG_PM_SLEEP=y
-CONFIG_SUSPEND=y
-CONFIG_SUSPEND_FREEZER=y
-# CONFIG_APM_EMULATION is not set
-# CONFIG_PM_RUNTIME is not set
-CONFIG_ARCH_SUSPEND_POSSIBLE=y
-CONFIG_NET=y
-*************************************************************
-
-Any suggestion is appreciated.
---
-Luke
+Tony
