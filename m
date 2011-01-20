@@ -1,32 +1,36 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: NAND flash update via serial debug console
-Date: Thu, 20 Jan 2011 11:11:41 -0700
-Message-ID: <4D387ADD.60104@mlbassoc.com>
-References: <63326177-4F9F-4A5C-BCE4-FDFD182791D6@mac.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Ari Kauppi <kauppi@papupata.org>
+Subject: [PATCH v2 0/3] oprofile: ARM backtraces and few minors
+Date: Thu, 20 Jan 2011 20:57:17 +0200
+Message-ID: <1295549840-17809-1-git-send-email-kauppi@papupata.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:50551 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295Ab1ATSUt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 13:20:49 -0500
-In-Reply-To: <63326177-4F9F-4A5C-BCE4-FDFD182791D6@mac.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:52031 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753842Ab1ATS5u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Jan 2011 13:57:50 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>
+To: Will Deacon <will.deacon@arm.com>, Robert Richter <robert.richter@amd.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Richard Purdie <rpurdie@rpsys.net>, Matt Fleming <matt@console-pimps.org>, Ari Kauppi <kauppi@papupata.org>
 
-On 01/20/2011 10:21 AM, Elvis Dowson wrote:
-> Hi,
->         Is it possible to flash NAND via the serial debug console for OMAP35xx devices?
+This patchset re-enables ARM backtraces with non-PMU capable CPUs.
 
-If you have U-Boot running, you can download whatever you
-need via Y-Modem (loady command) and then update the NAND
-as needed.
+In V2 I have tried to address the comments received for the V1
+patches. arch/sh/oprofile/common.c is untouched but should work
+as earlier.
+
+Compile tested with arm/omap2plus_defconfig (with and without
+CONFIG_HW_PERF_EVENTS).
+
+Ari Kauppi (3):
+  oprofile: Use CONFIG_HW_PERF_EVENTS for oprofile_perf_init and
+    friends
+  oprofile: Provide stubs for oprofile_perf_{init,exit}
+  ARM: oprofile: Always allow backtraces
+
+ arch/arm/oprofile/common.c |   12 ++----------
+ include/linux/oprofile.h   |   13 +++++++++++--
+ 2 files changed, 13 insertions(+), 12 deletions(-)
 
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+1.7.4.rc2.3.g60a2e
+
