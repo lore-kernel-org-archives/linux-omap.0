@@ -1,186 +1,205 @@
-From: Bob Liu <lliubbo@gmail.com>
-Subject: Re: [HELP-OMAP-SERAIL] beagleboard-xM can't boot up after update to kernel-2.6.37
-Date: Thu, 20 Jan 2011 13:32:24 +0800
-Message-ID: <AANLkTimByz+gc8X9uaVfUUGU+V9V-Og2U9xZQhca7P5b@mail.gmail.com>
-References: <AANLkTikFb7WTfCOD_GUnA=RZ22Q5_5QSDRTbcoLMtdYM@mail.gmail.com>
-	<20110119110607.GA30211@legolas.emea.dhcp.ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: RE: [RFC 1/3] OMAP: clocks: Use clk names instead of clk pointers
+Date: Thu, 20 Jan 2011 11:03:38 +0530
+Message-ID: <504b9356bcc91cc2316b1623095e4f64@mail.gmail.com>
+References: <1295446466-23655-1-git-send-email-rnayak@ti.com>
+ <1295446466-23655-2-git-send-email-rnayak@ti.com> <20110119151924.GA3552@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:61790 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753343Ab1ATFcZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 00:32:25 -0500
-Received: by qwa26 with SMTP id 26so227660qwa.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 21:32:24 -0800 (PST)
-In-Reply-To: <20110119110607.GA30211@legolas.emea.dhcp.ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:58398 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752461Ab1ATFdm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Jan 2011 00:33:42 -0500
+Received: by mail-fx0-f49.google.com with SMTP id 19so222626fxm.22
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 21:33:40 -0800 (PST)
+In-Reply-To: <20110119151924.GA3552@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, "G, Manjunath Kondaiah" <manjugk@ti.com>, Abdoulaye Walsimou GAYE <awg@embtoolkit.org>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@deeprootsystems.com
 
-On Wed, Jan 19, 2011 at 7:06 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
+> -----Original Message-----
+> From: Felipe Balbi [mailto:balbi@ti.com]
+> Sent: Wednesday, January 19, 2011 8:49 PM
+> To: Rajendra Nayak
+> Cc: linux-omap@vger.kernel.org; paul@pwsan.com;
+khilman@deeprootsystems.com
+> Subject: Re: [RFC 1/3] OMAP: clocks: Use clk names instead of clk
+pointers
 >
-> On Wed, Jan 19, 2011 at 06:57:33PM +0800, Bob Liu wrote:
->> Any ideas?
+> On Wed, Jan 19, 2011 at 07:44:24PM +0530, Rajendra Nayak wrote:
+> > There are various instances of clk pointers being
+> > embedded within structures in the clock framework
+> > to refer to clk parents, reference clocks, bypass
+> > clocks etc.
+> > The right way to reference these is by their name
+> > and not by embedding direct pointers to these clks.
+> >
+> > Hence make provision to be able to provide clock
+> > names to refer to parents and bypass/ref clks and
+> > populate the clk pointers at runtime.
+> >
+> > This requires the const qualifier to be dropped for
+> > struct clksel within struct clk and hence needs
+> > clksel struct definitions to be changed in all
+> > clock*_data.c files.
 >
-> s/console=ttyS2,115200n8/console=ttyO2,115200n8/
->
-> on your CMDLINE.
->
+> $SUBJECT and this commit log is completely wrong as this patch is only
+> dropping the const from the clock structures.
 
-Yeah, that work! Thanks!
+Did you look at this part of the patch?
 
-But my system still can't enter shell, I have changed /etc/inittab
-from "tty0::respawn:/sbin/getty -L ttyS2 115200 vt102" to
-"tty0::respawn:/sbin/getty -L ttyO2 115200 vt102", and also have added
-ttyO2 to /etc/securetty.
+------->
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index fc62fb5..9bfd193 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -308,6 +308,16 @@ void clk_enable_init_clocks(void)
+ 	}
+ }
 
-Thanks.
++static struct clk *_omap_clk_get_by_name(const char *name)
++{
++	struct clk *c;
++
++	list_for_each_entry(c, &clocks, node)
++		if (!strcmp(c->name, name))
++			return c;
++	return NULL;
++}
++
+ /**
+  * omap_clk_get_by_name - locate OMAP struct clk by its name
+  * @name: name of the struct clk to locate
+@@ -318,21 +328,45 @@ void clk_enable_init_clocks(void)
+  */
+ struct clk *omap_clk_get_by_name(const char *name)
+ {
+-	struct clk *c;
+ 	struct clk *ret = NULL;
 
-The detail log is below:
-===============
-CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7f
-CPU: VIPT nonaliasing data cache, VIPT aliasing instruction cache
-Machine: OMAP3 Beagle Board
-Memory policy: ECC disabled, Data cache writeback
-OMAP3630 ES1.1 (l2cache iva sgx neon isp 192mhz_clk )
-SRAM: Mapped pa 0x40200000 to va 0xfe400000 size: 0x10000
-Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 130048
-Kernel command line: console=ttyO2,115200n8 mpurate=800 vram=12M
-omapfb.mode=dvi:1024x768MR-16@60 omapfb.debug=y omapdss.def_disp=dvi
-root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait
-PID hash table entries: 2048 (order: 1, 8192 bytes)
-Dentry cache hash table entries: 65536 (order: 6, 262144 bytes)
-Inode-cache hash table entries: 32768 (order: 5, 131072 bytes)
-Memory: 512MB = 512MB total
-Memory: 489120k/489120k available, 35168k reserved, 0K highmem
-Virtual kernel memory layout:
-    vector  : 0xffff0000 - 0xffff1000   (   4 kB)
-    fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
-    DMA     : 0xffc00000 - 0xffe00000   (   2 MB)
-    vmalloc : 0xe0800000 - 0xf8000000   ( 376 MB)
-    lowmem  : 0xc0000000 - 0xe0000000   ( 512 MB)
-    modules : 0xbf000000 - 0xc0000000   (  16 MB)
-      .init : 0xc0008000 - 0xc1a61000   (26980 kB)
-      .text : 0xc1a61000 - 0xc1d9e260   (3317 kB)
-      .data : 0xc1da0000 - 0xc1dd4660   ( 210 kB)
-NR_IRQS:402
-Clocking rate (Crystal/Core/MPU): 26.0/332/600 MHz
-Reprogramming SDRC clock to 332000000 Hz
-GPMC revision 5.0
-IRQ: Found an INTC at 0xfa200000 (revision 4.0) with 96 interrupts
-Total of 96 interrupts on 1 active controller
-OMAP GPIO hardware version 2.5
-OMAP clockevent source: GPTIMER12 at 32768 Hz
-Console: colour dummy device 80x30
-Calibrating delay loop... 484.21 BogoMIPS (lpj=1892352)
-pid_max: default: 32768 minimum: 301
-Mount-cache hash table entries: 512
-CPU: Testing write buffer coherency: ok
-regulator: core version 0.5
-regulator: dummy:
-NET: Registered protocol family 16
-OMAP3 Beagle Rev: xM
-Found NAND on CS0
-Registering NAND on CS0
-Unable to get DVI reset GPIO
-Switched to new clocking rate (Crystal/Core/MPU): 26.0/800/332 MHz
-OMAP DMA hardware revision 5.0
-bio: create slab <bio-0> at 0
-SCSI subsystem initialized
-usbcore: registered new interface driver usbfs
-usbcore: registered new interface driver hub
-usbcore: registered new device driver usb
-i2c_omap i2c_omap.1: bus 1 rev4.0 at 2600 kHz
-twl4030: PIH (irq 7) chaining IRQs 368..375
-twl4030: power (irq 373) chaining IRQs 376..383
-twl4030: gpio (irq 368) chaining IRQs 384..401
-regulator: VUSB1V5: 1500 mV normal standby
-regulator: VUSB1V8: 1800 mV normal standby
-regulator: VUSB3V1: 3100 mV normal standby
-twl4030_usb twl4030_usb: Initialized TWL4030 USB module
-regulator: VMMC1: 1850 <--> 3150 mV at 3000 mV normal standby
-regulator: VDAC: 1800 mV normal standby
-regulator: VDVI: 1800 mV normal standby
-regulator: VSIM: 1800 <--> 3000 mV at 1800 mV normal standby
-i2c_omap i2c_omap.3: bus 3 rev4.0 at 100 kHz
-Switching to clocksource 32k_counter
-musb_hdrc: version 6.0, musb-dma, host, debug=0
-musb_hdrc musb_hdrc: incompatible Kconfig role setting
-musb_hdrc: probe of musb_hdrc failed with error -22
-NET: Registered protocol family 2
-IP route cache hash table entries: 4096 (order: 2, 16384 bytes)
-TCP established hash table entries: 16384 (order: 5, 131072 bytes)
-TCP bind hash table entries: 16384 (order: 4, 65536 bytes)
-TCP: Hash tables configured (established 16384 bind 16384)
-TCP reno registered
-UDP hash table entries: 256 (order: 0, 4096 bytes)
-UDP-Lite hash table entries: 256 (order: 0, 4096 bytes)
-NET: Registered protocol family 1
-RPC: Registered udp transport module.
-RPC: Registered tcp transport module.
-RPC: Registered tcp NFSv4.1 backchannel transport module.
-VFS: Disk quotas dquot_6.5.2
-Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
-msgmni has been set to 955
-io scheduler noop registered
-io scheduler deadline registered
-io scheduler cfq registered (default)
-omap-hsuart.0: ttyO0 at MMIO 0x4806a000 (irq = 72) is a OMAP UART0
-omap-hsuart.1: ttyO1 at MMIO 0x4806c000 (irq = 73) is a OMAP UART1
-omap-hsuart.2: ttyO2 at MMIO 0x49020000 (irq = 74) is a OMAP UART2
-console [ttyO2] enabled
-omap-hsuart.3: ttyO3 at MMIO 0x49042000 (irq = 80) is a OMAP UART3
-brd: module loaded
-loop: module loaded
-usbcore: registered new interface driver asix
-usbcore: registered new interface driver cdc_ether
-usbcore: registered new interface driver smsc95xx
-usbcore: registered new interface driver net1080
-usbcore: registered new interface driver cdc_subset
-usbcore: registered new interface driver zaurus
-ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
-ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
-ehci-omap ehci-omap.0: new USB bus registered, assigned bus number 1
-ehci-omap ehci-omap.0: irq 77, io mem 0x48064800
-ehci-omap ehci-omap.0: USB 2.0 started, EHCI 1.00
-usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
-usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
-usb usb1: Product: OMAP-EHCI Host Controller
-usb usb1: Manufacturer: Linux 2.6.37-ADI-2011R1-pre-g02d75de-dirty ehci_hcd
-usb usb1: SerialNumber: ehci-omap.0
-hub 1-0:1.0: USB hub found
-hub 1-0:1.0: 3 ports detected
-usbcore: registered new interface driver cdc_acm
-cdc_acm: v0.26:USB Abstract Control Model driver for USB modems and
-ISDN adapters
-Initializing USB Mass Storage driver...
-usbcore: registered new interface driver usb-storage
-USB Mass Storage support registered.
-TCP cubic registered
-NET: Registered protocol family 17
-NET: Registered protocol family 15
-Registering the dns_resolver key type
-VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev 3
-mmc0: mmc_rescan: trying to init card at 400000 Hz
-Power Management for TI OMAP3.
-regulator_init_complete: incomplete constraints, leaving VDVI on
-regulator_init_complete: incomplete constraints, leaving VDAC on
-Freeing init memory: 26980K
-Initializing random number generator... done.
-Starting network...
-hub 1-0:1.0: unable to enumerate USB device on port 2
-hub 1-0:1.0: unable to enumerate USB device on port 2
-hub 1-0:1.0: unable to enumerate USB device on port 2
-mmc0: host does not support reading read-only switch. assuming write-enable.
-mmc0: new high speed SD card at address 1234
-mmcblk0: mmc0:1234 SA02G 1.83 GiB
- mmcblk0: p1
-=========================
-Can't enter shell...
+ 	mutex_lock(&clocks_mutex);
++	ret = _omap_clk_get_by_name(name);
++	mutex_unlock(&clocks_mutex);
++
++	return ret;
++}
++
++static inline void omap_init_dpll_data_clk_pts(struct dpll_data *dd)
++{
++	if (!dd->clk_ref && dd->clk_ref_name)
++		dd->clk_ref = _omap_clk_get_by_name(dd->clk_ref_name);
++	if (!dd->clk_bypass && dd->clk_bypass_name)
++		dd->clk_bypass =
+_omap_clk_get_by_name(dd->clk_bypass_name);
++}
++
++static inline void omap_init_clksel_clk_pts(struct clksel *clks)
++{
++	if (!clks->parent && clks->parent_name)
++		clks->parent = _omap_clk_get_by_name(clks->parent_name);
++}
++
++void omap_init_clk_pts(void)
++{
++	struct clk *c;
++
++	mutex_lock(&clocks_mutex);
 
+ 	list_for_each_entry(c, &clocks, node) {
+-		if (!strcmp(c->name, name)) {
+-			ret = c;
+-			break;
+-		}
++		if (!c->parent && c->parent_name)
++			c->parent = _omap_clk_get_by_name(c->parent_name);
++		if (c->dpll_data)
++			omap_init_dpll_data_clk_pts(c->dpll_data);
++		if (c->clksel)
++			omap_init_clksel_clk_pts(c->clksel);
+ 	}
+
+ 	mutex_unlock(&clocks_mutex);
+-
+-	return ret;
+ }
+
+ /*
+diff --git a/arch/arm/plat-omap/include/plat/clock.h
+b/arch/arm/plat-omap/include/plat/clock.h
+index 8eb0ada..dc0d9fd 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -85,6 +85,7 @@ struct clksel_rate {
+ /**
+  * struct clksel - available parent clocks, and a pointer to their
+divisors
+  * @parent: struct clk * to a possible parent clock
++ * @parent_name: Name of the possible parent clock
+  * @rates: available divisors for this parent clock
+  *
+  * A struct clksel is always associated with one or more struct clks
+@@ -92,6 +93,7 @@ struct clksel_rate {
+  */
+ struct clksel {
+ 	struct clk		 *parent;
++	const char		 *parent_name;
+ 	const struct clksel_rate *rates;
+ };
+
+@@ -101,7 +103,9 @@ struct clksel {
+  * @mult_mask: mask of the DPLL M bitfield in @mult_div1_reg
+  * @div1_mask: mask of the DPLL N bitfield in @mult_div1_reg
+  * @clk_bypass: struct clk pointer to the clock's bypass clock input
++ * @clk_bypass_name: Name of the clock's bypass clock input
+  * @clk_ref: struct clk pointer to the clock's reference clock input
++ * @clk_ref_name: Name of the clock's reference clock input
+  * @control_reg: register containing the DPLL mode bitfield
+  * @enable_mask: mask of the DPLL mode bitfield in @control_reg
+  * @rate_tolerance: maximum variance allowed from target rate (in Hz)
+@@ -143,7 +147,9 @@ struct dpll_data {
+ 	u32			mult_mask;
+ 	u32			div1_mask;
+ 	struct clk		*clk_bypass;
++	const char		*clk_bypass_name;
+ 	struct clk		*clk_ref;
++	const char		*clk_ref_name;
+ 	void __iomem		*control_reg;
+ 	u32			enable_mask;
+ 	unsigned int		rate_tolerance;
+@@ -230,6 +236,7 @@ struct clk {
+ 	const struct clkops	*ops;
+ 	const char		*name;
+ 	struct clk		*parent;
++	const char		*parent_name;
+ 	struct list_head	children;
+ 	struct list_head	sibling;	/* node for children */
+ 	unsigned long		rate;
+@@ -245,7 +252,7 @@ struct clk {
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+ 	void __iomem		*clksel_reg;
+ 	u32			clksel_mask;
+-	const struct clksel	*clksel;
++	struct clksel		*clksel;
+ 	struct dpll_data	*dpll_data;
+ 	const char		*clkdm_name;
+ 	struct clockdomain	*clkdm;
+@@ -292,7 +299,7 @@ extern void clk_init_cpufreq_table(struct
+cpufreq_frequency_table **table);
+ extern void clk_exit_cpufreq_table(struct cpufreq_frequency_table
+**table);
+ #endif
+ extern struct clk *omap_clk_get_by_name(const char *name);
+-
++extern void omap_init_clk_pts(void);
+ extern const struct clkops clkops_null;
+
+ extern struct clk dummy_ck;
 -- 
-Regards,
---Bob
+1.7.0.4
+
+>
+> --
+> balbi
