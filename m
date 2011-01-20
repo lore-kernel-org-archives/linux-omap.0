@@ -1,67 +1,99 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK to
- speed-up boot
-Date: Thu, 20 Jan 2011 17:21:48 +0100
-Message-ID: <AANLkTin00ULesF4vnCUEQh6A_CLyTrUAwWxk2NN01y5v@mail.gmail.com>
-References: <1295516579-10225-1-git-send-email-santosh.shilimkar@ti.com>
-	<4D385155.4050301@gmail.com>
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+Subject: 2.6.38-rc1-git1 musb undefined references
+Date: Thu, 20 Jan 2011 16:22:01 +0000
+Message-ID: <4D386129.4080206@blueyonder.co.uk>
+Reply-To: sboyce@blueyonder.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:54198 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701Ab1ATQVt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 11:21:49 -0500
-Received: by pva4 with SMTP id 4so125799pva.19
-        for <linux-omap@vger.kernel.org>; Thu, 20 Jan 2011 08:21:48 -0800 (PST)
-In-Reply-To: <4D385155.4050301@gmail.com>
+Received: from smtp-out5.blueyonder.co.uk ([195.188.213.8]:47287 "EHLO
+	smtp-out5.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751739Ab1ATQWZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Jan 2011 11:22:25 -0500
+Received: from [172.23.170.146] (helo=anti-virus03-09)
+	by smtp-out5.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1PfxHE-0005B8-AF
+	for linux-omap@vger.kernel.org; Thu, 20 Jan 2011 16:22:24 +0000
+Received: from [94.173.242.84] (helo=[192.168.10.2])
+	by asmtp-out2.blueyonder.co.uk with esmtp (Exim 4.72)
+	(envelope-from <sboyce@blueyonder.co.uk>)
+	id 1PfxGs-0005qP-BW
+	for linux-omap@vger.kernel.org; Thu, 20 Jan 2011 16:22:02 +0000
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-2011/1/20 Rob Herring <robherring2@gmail.com>:
-> On 01/20/2011 03:42 AM, Santosh Shilimkar wrote:
->>
->> On some architectures, secondary cores shares clock with primiary
->> core and hence scale together. Hence secondary core lpj calibration
->> is not necessary and can be skipped to save considerable time.
->>
->> This can speed up the secondary cpu boot and hotplug cpu online
->> paths.
->>
->> Discussion thread:
->> =A0 =A0 =A0 =A0http://www.spinics.net/lists/arm-kernel/msg111124.htm=
-l
->>
->
-> There's already one way to do this with pre-calculated lpj.
->
-> Also, this isn't multi-platform friendly.
+Cross compiling for Beagleboard on Ubuntu 11.04 x86_64.
+# make-kpkg --revision=0 --append-to-version=-custom --arch=armel 
+--cross-compile=/opt/arm-2010q1/bin/arm-none-linux-gnueabi- kernel-image 
+--initrd
 
-It can be made to be, then -
-skip all Kconfig business (more elegant like this anyway):
+====== making target debian/stamp/build/kernel [new prereqs: vars]======
+This is kernel package version 12.036+nmu1.
+restore_upstream_debianization
+test ! -f scripts/package/builddeb.kpkg-dist || mv -f 
+scripts/package/builddeb.kpkg-dist scripts/package/builddeb
+test ! -f scripts/package/Makefile.kpkg-dist || mv -f 
+scripts/package/Makefile.kpkg-dist scripts/package/Makefile
+/usr/bin/make  EXTRAVERSION=-rc1-git1-custom  ARCH=arm \
+ 
+CROSS_COMPILE=/opt/arm-2010q1/bin/arm-none-linux-gnueabi- zImage
+make[1]: Entering directory `/usr/src/XXX/linux-2.6.38-rc1-git1'
+scripts/kconfig/conf --silentoldconfig Kconfig
+make[1]: Leaving directory `/usr/src/XXX/linux-2.6.38-rc1-git1'
+make[1]: Entering directory `/usr/src/XXX/linux-2.6.38-rc1-git1'
+   CHK     include/linux/version.h
+   CHK     include/generated/utsrelease.h
+make[2]: `include/generated/mach-types.h' is up to date.
+   CALL    scripts/checksyscalls.sh
+   CHK     include/generated/compile.h
+   LD      fs/built-in.o
+   LD      lib/zlib_deflate/built-in.o
+   LD      lib/built-in.o
+   LD      vmlinux.o
+   MODPOST vmlinux.o
+WARNING: modpost: Found 3 section mismatch(es).
+To see full details build your kernel with:
+'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+   GEN     .version
+   CHK     include/generated/compile.h
+   UPD     include/generated/compile.h
+   CC      init/version.o
+   LD      init/built-in.o
+   LD      .tmp_vmlinux1
+drivers/built-in.o: In function `musb_free':
+clkdev.c:(.text+0xf3d08): undefined reference to `dma_controller_destroy'
+drivers/built-in.o: In function `musb_probe':
+clkdev.c:(.init.text+0x64a8): undefined reference to `dma_controller_create'
+make[1]: *** [.tmp_vmlinux1] Error 1
+make[1]: Leaving directory `/usr/src/XXX/linux-2.6.38-rc1-git1'
+make: *** [debian/stamp/build/kernel] Error 2
+root@sdrbox:/usr/src/XXX/linux-2.6.38-rc1-git1#
 
-static inline int skip_secondary_calibrate(void)
-{
-    return machine_is_u8500() ||
-        machine_is_svp8500v1() ||
-        machine_is_svp8500v2() ||
-        machine_is_svp5500() ||
-        machine_is_b5500() ||
-        machine_is_s5500() ||
-        machine_is_omap4_panda();
-}
+root@sdrbox:/usr/src/XXX/linux-2.6.38-rc1-git1# grep OMAP2PLUS .config
+CONFIG_ARCH_OMAP2PLUS=y
+CONFIG_ARCH_OMAP2PLUS_TYPICAL=y
+# CONFIG_USB_MUSB_OMAP2PLUS is not set
+root@sdrbox:/usr/src/XXX/linux-2.6.38-rc1-git1# grep MUSB .config
+CONFIG_USB_MUSB_HDRC=y
+# CONFIG_USB_MUSB_TUSB6010 is not set
+# CONFIG_USB_MUSB_OMAP2PLUS is not set
+CONFIG_USB_MUSB_AM35X=y
+# CONFIG_USB_MUSB_HOST is not set
+# CONFIG_USB_MUSB_PERIPHERAL is not set
+CONFIG_USB_MUSB_OTG=y
+CONFIG_USB_GADGET_MUSB_HDRC=y
+CONFIG_USB_MUSB_HDRC_HCD=y
+# CONFIG_MUSB_PIO_ONLY is not set
+# CONFIG_USB_MUSB_DEBUG is not set
 
-Hm if this multi-platform stuff is desirable we probably need
-a runtime arch_is_omap4(), arch_is_u8500() etc so this machine
-list doesn't grow ridiculously long, but ftm this will work.
+Regards
+Sid.
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Senior Staff Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
-Yours,
-Linus Walleij
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
