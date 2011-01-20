@@ -1,101 +1,48 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] omap3: Add basic support for 720MHz part
-Date: Thu, 20 Jan 2011 16:28:11 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59302485095F6@dbde02.ent.ti.com>
-References: <1295336995-15831-1-git-send-email-premi@ti.com>
- <AANLkTiko+QoLQn-qA9km-_WNfokrLimt2+D7UGmm_VpV@mail.gmail.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH] OMAP: DMA: clear interrupt status correctly
+Date: Thu, 20 Jan 2011 13:10:40 +0200
+Message-ID: <4D381830.8@nokia.com>
+References: <20101130132341.13286.25157.sendpatchset@ahunter-work.research.nokia.com> <20101130132355.13286.77389.sendpatchset@ahunter-work.research.nokia.com> <541b3a50479779f3e814aa93d506cbdd@mail.gmail.com> <20101221202914.GK5829@atomide.com> <4D2440E0.7040008@nokia.com> <87mxnfz2f4.fsf@ti.com> <4D36BBC8.2000305@nokia.com> <20110119222327.GJ4957@atomide.com> <20110119224406.GK4957@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49044 "EHLO arroyo.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.48]:64350 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753142Ab1ATK6U convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 05:58:20 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p0KAwGJP016074
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 20 Jan 2011 04:58:18 -0600
-In-Reply-To: <AANLkTiko+QoLQn-qA9km-_WNfokrLimt2+D7UGmm_VpV@mail.gmail.com>
-Content-Language: en-US
+	id S1755408Ab1ATLK7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Jan 2011 06:10:59 -0500
+In-Reply-To: <20110119224406.GK4957@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Manjunath Kondaiah G <manjugk@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-> -----Original Message-----
-> From: Varadarajan, Charulatha=20
-> Sent: Tuesday, January 18, 2011 2:44 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
->=20
-> Couple of minor comments.
+On 20/01/11 00:44, Tony Lindgren wrote:
+> * Tony Lindgren<tony@atomide.com>  [110119 14:23]:
+>> * Adrian Hunter<adrian.hunter@nokia.com>  [110119 02:23]:
+>>>
+>>>  From fffa19df17d73c1ed2e8c65c0b6604ee1dddff84 Mon Sep 17 00:00:00 2001
+>>> From: Adrian Hunter<adrian.hunter@nokia.com>
+>>> Date: Wed, 24 Nov 2010 13:23:21 +0200
+>>> Subject: [PATCH] OMAP: DMA: clear interrupt status correctly
+>>>
+>>> When clearing the DMA channel, clear all status bits.
+>>>
+>>> When handling a DMA interrupt, clear only the interrupt
+>>> status bits that have been read and are passed to the
+>>> channel's interrupt handler, not every status bit.
+>>>
+>>> Signed-off-by: Adrian Hunter<adrian.hunter@nokia.com>
+>>
+>> Thanks, will queue as a fix.
+>
+> This did not apply for some reason, I've applied it manually.
+> Please check that I got it right in omap-fixes branch soonish.
+> Let me know if it needs updating.
 
-[snip]...[snip]
+Looks fine
 
-> > --- a/arch/arm/mach-omap2/control.h
-> > +++ b/arch/arm/mach-omap2/control.h
-> > @@ -365,6 +365,13 @@
-> > =A0#define =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0FEAT_NEON =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 0
-> > =A0#define =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0FEAT_NEON_NONE =A0 =A0 =A0=
- =A0 =A01
-> >
-> > +/*
-> > + * Product ID register
-> > + */
->=20
-> Do not use multiline comment style for single line comments
+>
+> Tony
+>
 
-[sp] Was only following the multi-line comment stye few lines
-     above...
-
->=20
-> > +#define OMAP3_PRODID =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x020C
-> > +
-> > +#define OMAP3_SKUID_MASK =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x0f
-> > +#define =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP3_SKUID_720MHZ =A0 =A0 =
-=A00x08
-> >
-> > =A0#ifndef __ASSEMBLY__
-> > =A0#ifdef CONFIG_ARCH_OMAP2PLUS
-> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > index 5f9086c..53fbe01 100644
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -195,6 +195,15 @@ static void __init omap3_check_features(void)
-> > =A0 =A0 =A0 =A0 * TODO: Get additional info (where applicable)
-> > =A0 =A0 =A0 =A0 * =A0 =A0 =A0 e.g. Size of L2 cache.
-> > =A0 =A0 =A0 =A0 */
-> > +
-> > + =A0 =A0 =A0 /*
-> > + =A0 =A0 =A0 =A0* Does it support 720MHz?
-> > + =A0 =A0 =A0 =A0*/
->=20
-> Ditto
-
-[sp] Same here.
-     But since the code is quite evident, I will remove the comment
-     altogether.
-
->=20
-> > + =A0 =A0 =A0 status =3D (OMAP3_SKUID_MASK & read_tap_reg(OMAP3_PRO=
-DID));
-> > +
-> > + =A0 =A0 =A0 if (status & OMAP3_SKUID_720MHZ) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_features |=3D OMAP3_HAS_720MHZ;
-> > + =A0 =A0 =A0 }
->=20
-> No need of { } as there is only one line statement inside the=20
-> if condition.
-
-[sp] missed this.
-
-~sanjeev
-
-[snip]...[snip]--
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
