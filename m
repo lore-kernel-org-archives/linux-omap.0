@@ -1,76 +1,67 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: Re: [PATCHv4 3/4] OMAP3: Devkit8000: Check return value of gpio_request
-Date: Thu, 20 Jan 2011 09:46:12 +0100
-Message-ID: <4D37F654.70405@corscience.de>
-References: <1295425166-25540-1-git-send-email-weber@corscience.de> <1295425166-25540-4-git-send-email-weber@corscience.de> <4D36D7DC.4020705@ru.mvista.com>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH v4] ARM: Thumb-2: Symbol manipulation macros for function
+ body copying
+Date: Thu, 20 Jan 2011 09:42:12 +0000
+Message-ID: <AANLkTinPV+v4+T8jPHiVA7=D7tNkoeDrWLQBRhDX5bmV@mail.gmail.com>
+References: <1295039877-7976-1-git-send-email-dave.martin@linaro.org>
+	<87bp3cr0ib.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4D36D7DC.4020705@ru.mvista.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>, charu@ti.com
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:32926 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755171Ab1ATJmN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 04:42:13 -0500
+Received: by eye27 with SMTP id 27so142040eye.19
+        for <linux-omap@vger.kernel.org>; Thu, 20 Jan 2011 01:42:12 -0800 (PST)
+In-Reply-To: <87bp3cr0ib.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-Hello,
-Am 19.01.2011 13:23, schrieb Sergei Shtylyov:
-> Hello.
+On Wed, Jan 19, 2011 at 10:29 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Dave Martin <dave.martin@linaro.org> writes:
 >
-> On 19-01-2011 11:19, Thomas Weber wrote:
->
->> The return value of gpio_request is ignored.
->> This patch adds the check of the return value of gpio_request.
->
->> Signed-off-by: Thomas Weber<weber@corscience.de>
->> ---
->>   arch/arm/mach-omap2/board-devkit8000.c |   16 ++++++++++++++--
->>   1 files changed, 14 insertions(+), 2 deletions(-)
->
->> diff --git a/arch/arm/mach-omap2/board-devkit8000.c
->> b/arch/arm/mach-omap2/board-devkit8000.c
->> index 9fb416b..4ddd81c 100644
->> --- a/arch/arm/mach-omap2/board-devkit8000.c
->> +++ b/arch/arm/mach-omap2/board-devkit8000.c
-> [...]
->> @@ -244,13 +246,23 @@ static int devkit8000_twl_gpio_setup(struct
->> device *dev,
+>> In low-level board support code, there is sometimes a need to
+>> copy a function body to another location at run-time.
 >>
->>       /* TWL4030_GPIO_MAX + 0 is "LCD_PWREN" (out, active high) */
->>       devkit8000_lcd_device.reset_gpio = gpio + TWL4030_GPIO_MAX + 0;
->> -    gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
->> +    ret = gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
->> +    if (ret < 0) {
->> +        printk(KERN_ERR "Failed to request GPIO for LCD_PWRN\n");
->> +        return ret;
->> +    }
->> +
->>       /* Disable until needed */
->>       gpio_direction_output(devkit8000_lcd_device.reset_gpio, 0);
+>> A straightforward call to memcpy doesn't work in Thumb-2,
+>> because bit 0 of external Thumb function symbols is set to 1,
+>> indicating that the function is Thumb. =A0Without corrective
+>> measures, this will cause an off-by-one copy, and the copy
+>> may be called using the wrong instruction set.
 >>
->>       /* gpio + 7 is "DVI_PD" (out, active low) */
->>       devkit8000_dvi_device.reset_gpio = gpio + 7;
->> -    gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
->> +    ret = gpio_request(devkit8000_dvi_device.reset_gpio, "DVI
->> PowerDown");
->> +    if (ret < 0) {
->> +        printk(KERN_ERR "Failed to request GPIO for DVI PowerDown\n");
+>> This patch adds an fncpy() macro to help with such copies.
+>>
+>> Particular care is needed, because C doesn't guarantee any
+>> defined behaviour when casting a function pointer to any other
+>> type. =A0This has been observed to lead to strange optimisation
+>> side-effects when doing the arithmetic which is required in
+>> order to copy/move function bodies correctly in Thumb-2.
+>>
+>> Thanks to Russell King and Nicolas Pitre for their input
+>> on this patch.
+>>
+>> Signed-off-by: Dave Martin <dave.martin@linaro.org>
+>> Tested-by: Jean Pihet <j-pihet@ti.com>
 >
->    You forgot to call:
+> Tested-by: Kevin Hilman <khilman@ti.com>
 >
->         gpio_free(devkit8000_lcd_device.reset_gpio);
+> along with Jean's OMAP patch on:
 >
-Couldn't I use lcd without dvi?
-And shouldn't the gpio then be set to -EINVAL for the gpio_is_valid()
-check in enable_lcd()/disable_lcd() and enable_dvi()/disable_dvi()?
+> OMAP2420/n810: including basic suspend/resume test.
+>
+> OMAP16xx/OSK: boot test only.
+>
+> Kevin
+>
 
-Thomas
->> +        return ret;
->> +    }
->> +
->>       /* Disable until needed */
->>       gpio_direction_output(devkit8000_dvi_device.reset_gpio, 0);
->
-> WBR, Sergei
-> -- 
->
+Thanks
+---Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
