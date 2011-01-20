@@ -1,56 +1,65 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] omap2-beagle: Depend upon CONFIG_GPIO_TWL4030
-Date: Thu, 20 Jan 2011 06:08:25 +0200
-Message-ID: <20110120040825.GB2389@legolas.emea.dhcp.ti.com>
-References: <1295299548-22839-1-git-send-email-bgamari.foss@gmail.com>
- <20110118031038.GA2436@legolas.emea.dhcp.ti.com>
- <87d3nus4jr.fsf@gmail.com>
- <20110119034528.GA2406@legolas.emea.dhcp.ti.com>
- <874o947j9e.fsf@gmail.com>
-Reply-To: balbi@ti.com
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH] arm: fix oops in sched_clock_poll
+Date: Thu, 20 Jan 2011 12:35:22 +0800
+Message-ID: <AANLkTik-cxbwZZ_PfuC8DKqyHSnUM+R56PNXJdrPqSCb@mail.gmail.com>
+References: <1295455641-4791-1-git-send-email-tom.leiming@gmail.com>
+	<20110119165602.GA6335@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:49177 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755018Ab1ATEId (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Jan 2011 23:08:33 -0500
-Received: by yxe42 with SMTP id 42so49351yxe.23
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 20:08:32 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <874o947j9e.fsf@gmail.com>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:38910 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755144Ab1ATEfY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jan 2011 23:35:24 -0500
+Received: by wwi17 with SMTP id 17so1032796wwi.1
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 20:35:22 -0800 (PST)
+In-Reply-To: <20110119165602.GA6335@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Gamari <bgamari.foss@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>, linux-omap@vger.kernel.org
 
-On Wed, Jan 19, 2011 at 03:04:13PM -0500, Ben Gamari wrote:
-> On Wed, 19 Jan 2011 05:45:28 +0200, Felipe Balbi <balbi@ti.com> wrote:
-> > The point is, being able to disable features I don't want on my kernel
-> > image, is completely valid, if there's a compile breakage, then fix the
-> > breakage but don't prevent the board from compiling.
-> > 
-> I understand. That being said, Linus has made it well known that
-> defconfigs will not be an option going forward. Have we found another
+Hi,
 
-I never mentioned defconfigs here.
+2011/1/20 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+> On Thu, Jan 20, 2011 at 12:47:21AM +0800, tom.leiming@gmail.com wrote=
+:
+>> From: Ming Lei <tom.leiming@gmail.com>
+>>
+>> The patch fixes one oops in sched_clock_poll, tested on
+>> beagle xm, follows the oops message:
+>
+>> diff --git a/arch/arm/kernel/sched_clock.c b/arch/arm/kernel/sched_c=
+lock.c
+>> index 9a46370..782dd08 100644
+>> --- a/arch/arm/kernel/sched_clock.c
+>> +++ b/arch/arm/kernel/sched_clock.c
+>> @@ -21,7 +21,9 @@ static void (*sched_clock_update_fn)(void);
+>> =A0static void sched_clock_poll(unsigned long wrap_ticks)
+>> =A0{
+>> =A0 =A0 =A0 mod_timer(&sched_clock_timer, round_jiffies(jiffies + wr=
+ap_ticks));
+>> - =A0 =A0 sched_clock_update_fn();
+>> +
+>> + =A0 =A0 if (sched_clock_update_fn)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 sched_clock_update_fn();
+>
+> It's called here because it's supposed to be initialized by the time =
+this
+> function is called. =A0Please ensure that is the case.
 
-> means of selecting the basic drivers necessary to get a fully functional
-> board? Perhaps a CONFIG_MACH_OMAP3_BEAGLE_CORE option selecting the
-> necessary driver for a fully functional board would be a solution. I
+On omap2,  sched_clock_update_fn is initialized in omap_init_clocksourc=
+e_32k,
+and certainly is after calling sched_clock_poll, so the oops is trigger=
+ed.
 
-I'll leave this for Tony to decide, but I don't like your proposal.
 
-> remember this being discussed several months ago (when Linus started
-> pulling defconfigs out of the tree), but I don't recall there being any
-> replacement proposals. It should be possible to build a functional
-> kernel from the mainline without iterating over all available
-> configuration options.
-
-So you're saying that when you're building a kernel for you
-laptop/desktop you don't have to get a menuconfig and choose the drivers
-you want to compile ? I dare to doubt that.
-
--- 
-balbi
+thanks,
+--=20
+Lei Ming
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
