@@ -1,44 +1,62 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [RESEND PATCH 3/3] arm: Kconfig: allow OMAP to use sparse IRQ numbering
-Date: Thu, 20 Jan 2011 08:43:32 +0200
-Message-ID: <1295505812-5062-4-git-send-email-balbi@ti.com>
-References: <1295505812-5062-1-git-send-email-balbi@ti.com>
+From: Bob Liu <lliubbo@gmail.com>
+Subject: Re: [HELP-OMAP-SERAIL] beagleboard-xM can't boot up after update to kernel-2.6.37
+Date: Thu, 20 Jan 2011 14:44:11 +0800
+Message-ID: <AANLkTim5fx-1oZ+KU3CHbCY=cYheyP-5iC+jZd+jnAML@mail.gmail.com>
+References: <AANLkTikFb7WTfCOD_GUnA=RZ22Q5_5QSDRTbcoLMtdYM@mail.gmail.com>
+	<20110119110607.GA30211@legolas.emea.dhcp.ti.com>
+	<AANLkTimByz+gc8X9uaVfUUGU+V9V-Og2U9xZQhca7P5b@mail.gmail.com>
+	<20110120063021.GE2389@legolas.emea.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:53718 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754269Ab1ATGoD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Jan 2011 01:44:03 -0500
-Received: by mail-yw0-f42.google.com with SMTP id 5so68468yws.1
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 22:44:02 -0800 (PST)
-In-Reply-To: <1295505812-5062-1-git-send-email-balbi@ti.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:50566 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754269Ab1ATGoO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 01:44:14 -0500
+Received: by qyj19 with SMTP id 19so1560784qyj.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 22:44:13 -0800 (PST)
+In-Reply-To: <20110120063021.GE2389@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, "G, Manjunath Kondaiah" <manjugk@ti.com>, Abdoulaye Walsimou GAYE <awg@embtoolkit.org>
 
-Select HAVE_SPARSE_IRQ to allow OMAP to use
-sparse IRQ numbering scheme. The main difference
-is that irq_descs will be added to a radix tree
-instead of a static array.
+On Thu, Jan 20, 2011 at 2:30 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Thu, Jan 20, 2011 at 01:32:24PM +0800, Bob Liu wrote:
+>> On Wed, Jan 19, 2011 at 7:06 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> > Hi,
+>> >
+>> > On Wed, Jan 19, 2011 at 06:57:33PM +0800, Bob Liu wrote:
+>> >> Any ideas?
+>> >
+>> > s/console=ttyS2,115200n8/console=ttyO2,115200n8/
+>> >
+>> > on your CMDLINE.
+>> >
+>>
+>> Yeah, that work! Thanks!
+>>
+>> But my system still can't enter shell, I have changed /etc/inittab
+>> from "tty0::respawn:/sbin/getty -L ttyS2 115200 vt102" to
+>> "tty0::respawn:/sbin/getty -L ttyO2 115200 vt102", and also have added
+>> ttyO2 to /etc/securetty.
+>
+> Add this line to /etc/inittab:
+>
+> 1:2345:respawn:/sbin/getty 115200 ttyO2
+>
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Hi, balbi
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index c231192..d0b5b26 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -858,6 +858,7 @@ config ARCH_DAVINCI
- config ARCH_OMAP
- 	bool "TI OMAP"
- 	select HAVE_CLK
-+	select HAVE_SPARSE_IRQ
- 	select ARCH_REQUIRE_GPIOLIB
- 	select ARCH_HAS_CPUFREQ
- 	select GENERIC_CLOCKEVENTS
+I tried it ,this can't work.
+always show: can't open /dev/1: No such file or directory.
+
+Now I fixed this problem by add major and minor number to struct
+serial_omap_reg in omap-serial.c. The same major minor number as
+8250.c.
+It can enter console now.
+
+Thanks
 -- 
-1.7.4.rc2
-
+Regards,
+--Bob
