@@ -1,44 +1,32 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [HELP-OMAP-SERAIL] beagleboard-xM can't boot up after update
- to kernel-2.6.37
-Date: Thu, 20 Jan 2011 08:50:29 +0200
-Message-ID: <20110120065029.GH2389@legolas.emea.dhcp.ti.com>
-References: <AANLkTikFb7WTfCOD_GUnA=RZ22Q5_5QSDRTbcoLMtdYM@mail.gmail.com>
- <20110119110607.GA30211@legolas.emea.dhcp.ti.com>
- <AANLkTimByz+gc8X9uaVfUUGU+V9V-Og2U9xZQhca7P5b@mail.gmail.com>
- <20110120063321.GA10094@m-desktop>
- <AANLkTi=9yAGvOLyBBHkeNL4-HJgVL2FKqKuW1tpqDoMu@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Thomas Weber <thomas.weber.linux@googlemail.com>
+Subject: Re: [PATCHv4 2/4] OMAP3: Devkit8000: Fix tps65930 pullup/pulldown
+ configuration
+Date: Thu, 20 Jan 2011 07:56:55 +0100
+Message-ID: <4D37DCB7.9010505@gmail.com>
+References: <1295425166-25540-1-git-send-email-weber@corscience.de> <1295425166-25540-3-git-send-email-weber@corscience.de> <20110119222126.GI4957@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:54643 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752481Ab1ATGuj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Jan 2011 01:50:39 -0500
-Received: by yws5 with SMTP id 5so73502yws.30
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 22:50:38 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=9yAGvOLyBBHkeNL4-HJgVL2FKqKuW1tpqDoMu@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110119222126.GI4957@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, charu@ti.com, sshtylyov@mvista.com
 List-Id: linux-omap@vger.kernel.org
-To: Bob Liu <lliubbo@gmail.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, Abdoulaye Walsimou GAYE <awg@embtoolkit.org>
 
-Hi,
-
-On Thu, Jan 20, 2011 at 02:46:47PM +0800, Bob Liu wrote:
-> Yeah, I also think it's file system issue. I added major and minor
-> number to omap-serial driver, it fix the problem temporary.
+Am 19.01.2011 23:21, schrieb Tony Lindgren:
+> * Thomas Weber <weber@corscience.de> [110119 00:18]:
+>> From: Daniel Morsing <daniel.morsing@gmail.com>
+>>
+>> gpio7 on the tps65930 is used as an output on the devkit8000 and
+>> gpio1 is not connected. Remove gpio7 and change gpio1 to pulldown
+>>
+>> Signed-off-by: Daniel Morsing <daniel.morsing@gmail.com>
 > 
-> > No need to edit /etc/inittab with above fs since ttyO2 is mapped to
-> > console device file under /dev
+> I'll queue only this fix for now, looks like the other still need
+> minor changes.
 > 
-> Do you know how to do this map during build a fs?
-> Thanks.
+> Tony
+> --
 
-which FS do you use ? I use a debootstrap generally :-p
-
--- 
-balbi
+Thanks.
