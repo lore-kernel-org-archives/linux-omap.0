@@ -1,61 +1,101 @@
-From: Robert Richter <robert.richter@amd.com>
-Subject: Re: [PATCH] ARM: oprofile: Always allow backtraces
-Date: Thu, 20 Jan 2011 11:46:06 +0100
-Message-ID: <20110120104606.GA18297@erda.amd.com>
-References: <1295470473-1095-1-git-send-email-kauppi@papupata.org>
- <000101cbb886$582f1480$088d3d80$@deacon@arm.com>
- <20110120095239.GT21401@erda.amd.com>
- <alpine.DEB.2.00.1101201213230.14307@lakka.kapsi.fi>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] omap3: Add basic support for 720MHz part
+Date: Thu, 20 Jan 2011 16:28:11 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59302485095F6@dbde02.ent.ti.com>
+References: <1295336995-15831-1-git-send-email-premi@ti.com>
+ <AANLkTiko+QoLQn-qA9km-_WNfokrLimt2+D7UGmm_VpV@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from va3ehsobe005.messaging.microsoft.com ([216.32.180.31]:14615
-	"EHLO VA3EHSOBE005.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752071Ab1ATKqR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Jan 2011 05:46:17 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1101201213230.14307@lakka.kapsi.fi>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49044 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753142Ab1ATK6U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 05:58:20 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p0KAwGJP016074
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 20 Jan 2011 04:58:18 -0600
+In-Reply-To: <AANLkTiko+QoLQn-qA9km-_WNfokrLimt2+D7UGmm_VpV@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ari Kauppi <kauppi@papupata.org>
-Cc: Will Deacon <will.deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matt Fleming <matt@console-pimps.org>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 20.01.11 05:17:16, Ari Kauppi wrote:
+> -----Original Message-----
+> From: Varadarajan, Charulatha=20
+> Sent: Tuesday, January 18, 2011 2:44 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] omap3: Add basic support for 720MHz part
+>=20
+> Couple of minor comments.
 
-> > @@ -91,6 +79,30 @@ static struct frame_tail* user_backtrace(struct frame_tail *tail)
-> > 	return buftail[0].fp-1;
-> > }
+[snip]...[snip]
+
+> > --- a/arch/arm/mach-omap2/control.h
+> > +++ b/arch/arm/mach-omap2/control.h
+> > @@ -365,6 +365,13 @@
+> > =A0#define =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0FEAT_NEON =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 0
+> > =A0#define =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0FEAT_NEON_NONE =A0 =A0 =A0=
+ =A0 =A01
 > >
-> > +#else
+> > +/*
+> > + * Product ID register
+> > + */
+>=20
+> Do not use multiline comment style for single line comments
+
+[sp] Was only following the multi-line comment stye few lines
+     above...
+
+>=20
+> > +#define OMAP3_PRODID =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x020C
 > > +
-> > +static int oprofile_arch_init(struct oprofile_operations *ops)
-> > +{
-> > +	pr_info("oprofile: hardware counters not available\n");
-> > +	return -ENODEV;
-> > +}
+> > +#define OMAP3_SKUID_MASK =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x0f
+> > +#define =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP3_SKUID_720MHZ =A0 =A0 =
+=A00x08
+> >
+> > =A0#ifndef __ASSEMBLY__
+> > =A0#ifdef CONFIG_ARCH_OMAP2PLUS
+> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > index 5f9086c..53fbe01 100644
+> > --- a/arch/arm/mach-omap2/id.c
+> > +++ b/arch/arm/mach-omap2/id.c
+> > @@ -195,6 +195,15 @@ static void __init omap3_check_features(void)
+> > =A0 =A0 =A0 =A0 * TODO: Get additional info (where applicable)
+> > =A0 =A0 =A0 =A0 * =A0 =A0 =A0 e.g. Size of L2 cache.
+> > =A0 =A0 =A0 =A0 */
 > > +
-> > +static void oprofile_arch_exit(void) { }
-> 
-> I guess you mean oprofile_perf_init and oprofile_perf_exit?
+> > + =A0 =A0 =A0 /*
+> > + =A0 =A0 =A0 =A0* Does it support 720MHz?
+> > + =A0 =A0 =A0 =A0*/
+>=20
+> Ditto
 
-Yes, did not compile test it as my arm cross compile chain was broken.
+[sp] Same here.
+     But since the code is quite evident, I will remove the comment
+     altogether.
 
-Maybe we move it to include/linux/oprofile.h.
+>=20
+> > + =A0 =A0 =A0 status =3D (OMAP3_SKUID_MASK & read_tap_reg(OMAP3_PRO=
+DID));
+> > +
+> > + =A0 =A0 =A0 if (status & OMAP3_SKUID_720MHZ) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_features |=3D OMAP3_HAS_720MHZ;
+> > + =A0 =A0 =A0 }
+>=20
+> No need of { } as there is only one line statement inside the=20
+> if condition.
 
-I also observed some mismatches while using CONFIG_HW_PERF_EVENTS and
-CONFIG_PERF_EVENTS, esp. with include/linux/oprofile.h. /arch/sh is
-also affected. We need to review this too.
+[sp] missed this.
 
-> 
-> Also the user_backtrace and frame_tail need to be moved out from the 
-> #ifdef.
+~sanjeev
 
-Yes, thanks.
-
--Robert
-
--- 
-Advanced Micro Devices, Inc.
-Operating System Research Center
-
+[snip]...[snip]--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
