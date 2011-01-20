@@ -1,59 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: omap-mcbsp: Fix building after replacement
-Date: Thu, 20 Jan 2011 10:19:52 -0800
-Message-ID: <20110120181952.GY4957@atomide.com>
-References: <1295532731-5438-1-git-send-email-weber@corscience.de>
- <AANLkTimd--8qbUd7Dnj5dyGiRAZByp_xBUesXN7SPFDj@mail.gmail.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: NAND flash update via serial debug console
+Date: Thu, 20 Jan 2011 11:11:41 -0700
+Message-ID: <4D387ADD.60104@mlbassoc.com>
+References: <63326177-4F9F-4A5C-BCE4-FDFD182791D6@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29761 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295Ab1ATSUI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 13:20:08 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTimd--8qbUd7Dnj5dyGiRAZByp_xBUesXN7SPFDj@mail.gmail.com>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:50551 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753295Ab1ATSUt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 13:20:49 -0500
+In-Reply-To: <63326177-4F9F-4A5C-BCE4-FDFD182791D6@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Poddar, Sourav" <sourav.poddar@ti.com>
-Cc: Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-* Poddar, Sourav <sourav.poddar@ti.com> [110120 07:08]:
-> On Thu, Jan 20, 2011 at 7:42 PM, Thomas Weber <weber@corscience.de> w=
-rote:
-> > Fix building omap-mcbsp after replacing ARCH_OMAP24x0 in
-> > commit 8a9c1aa6a4caa7db1c2fca4b47168af9077e0f95.
-> >
-> >> =C2=A0 omap: Start using CONFIG_SOC_OMAP
-> >>
-> >> =C2=A0 =C2=A0We want to have just CONFIG_ARCH_OMAP2, 3 and 4. The =
-rest
-> >> =C2=A0 =C2=A0are nowadays just subcategories of these.
-> >>
-> >> =C2=A0 =C2=A0Search and replace the following:
-> >>
-> >> =C2=A0 =C2=A0ARCH_OMAP2420 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 SOC_OMAP2420
-> >> =C2=A0 =C2=A0ARCH_OMAP2430 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 SOC_OMAP2430
-> >> =C2=A0 =C2=A0ARCH_OMAP3430 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 SOC_OMAP3430
-> >
->=20
-> I was just about to post a patch for this, but you beat me
-> to it!
->=20
-> > Signed-off-by: Thomas Weber <weber@corscience.de>
->=20
-> Acked-by: Sourav Poddar <sourav.poddar@ti.com>
+On 01/20/2011 10:21 AM, Elvis Dowson wrote:
+> Hi,
+>         Is it possible to flash NAND via the serial debug console for OMAP35xx devices?
 
-Thanks, merging this into the original. Also adding
-applying into linux-omap master.
+If you have U-Boot running, you can download whatever you
+need via Y-Modem (loady command) and then update the NAND
+as needed.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
