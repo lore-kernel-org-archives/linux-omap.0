@@ -1,59 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap2-beagle: Depend upon CONFIG_GPIO_TWL4030
-Date: Thu, 20 Jan 2011 09:27:41 -0800
-Message-ID: <20110120172741.GU4957@atomide.com>
-References: <1295299548-22839-1-git-send-email-bgamari.foss@gmail.com>
- <20110118031038.GA2436@legolas.emea.dhcp.ti.com>
- <87d3nus4jr.fsf@gmail.com>
- <20110119034528.GA2406@legolas.emea.dhcp.ti.com>
- <874o947j9e.fsf@gmail.com>
- <20110120040825.GB2389@legolas.emea.dhcp.ti.com>
+Subject: Re: [RFC] omap4: Add board_data and initialise the serial pads
+Date: Thu, 20 Jan 2011 09:33:00 -0800
+Message-ID: <20110120173259.GV4957@atomide.com>
+References: <1295363712-5940-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38147 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55328 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753109Ab1ATR1y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 12:27:54 -0500
+	with ESMTP id S1752897Ab1ATRdN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 12:33:13 -0500
 Content-Disposition: inline
-In-Reply-To: <20110120040825.GB2389@legolas.emea.dhcp.ti.com>
+In-Reply-To: <1295363712-5940-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Ben Gamari <bgamari.foss@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: sricharan <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, santosh.shilimkar@ti.com
 
-* Felipe Balbi <balbi@ti.com> [110119 20:07]:
-> On Wed, Jan 19, 2011 at 03:04:13PM -0500, Ben Gamari wrote:
-> > On Wed, 19 Jan 2011 05:45:28 +0200, Felipe Balbi <balbi@ti.com> wrote:
-> > > The point is, being able to disable features I don't want on my kernel
-> > > image, is completely valid, if there's a compile breakage, then fix the
-> > > breakage but don't prevent the board from compiling.
-> > > 
-> > I understand. That being said, Linus has made it well known that
-> > defconfigs will not be an option going forward. Have we found another
-> 
-> I never mentioned defconfigs here.
-> 
-> > means of selecting the basic drivers necessary to get a fully functional
-> > board? Perhaps a CONFIG_MACH_OMAP3_BEAGLE_CORE option selecting the
-> > necessary driver for a fully functional board would be a solution. I
-> 
-> I'll leave this for Tony to decide, but I don't like your proposal.
-> 
-> > remember this being discussed several months ago (when Linus started
-> > pulling defconfigs out of the tree), but I don't recall there being any
-> > replacement proposals. It should be possible to build a functional
-> > kernel from the mainline without iterating over all available
-> > configuration options.
-> 
-> So you're saying that when you're building a kernel for you
-> laptop/desktop you don't have to get a menuconfig and choose the drivers
-> you want to compile ? I dare to doubt that.
+Hi,
 
-What we want to do in the long run is build a minimal kernel and make
-everything else loaded as modules from initramfs. In order to do that
-we need to cut down all the dependencies between core omap code and
-the drivers. So I'd stay away from selecting things for boards where
-possible.
+* sricharan <r.sricharan@ti.com> [110118 07:11]:
+> Pass the board specific serial pad mux data
+> to the platform level init code.
+> 
+> Signed-off-by: sricharan <r.sricharan@ti.com>
+> ---
+> This is a test patch and not intended for a specific use case.
+> 
+> 1) The support to add the pad data to the device hwmod entry and to use
+>    it to dynamically configure the pads based on the state of the
+>    hwmod is already present.
+> 
+> 2) But using that for pads that requires only  initialisation and not 
+>    dynamic remux, brings in a overhead to iterate over all the
+>    hwmod signals of the device for every device enable/idle transitions.
+
+The right fix for this problem is to change the mux code to keep a separate
+list for dynamic pads and static pads. That way all the static pads can
+be skipped, and the dynamic list is empty in most cases.
+
+Regards,
 
 Tony
