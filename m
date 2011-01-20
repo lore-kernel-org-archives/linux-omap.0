@@ -1,73 +1,62 @@
-From: Ari Kauppi <kauppi@papupata.org>
-Subject: [PATCH v2 3/3] ARM: oprofile: Always allow backtraces
-Date: Thu, 20 Jan 2011 20:57:20 +0200
-Message-ID: <1295549840-17809-4-git-send-email-kauppi@papupata.org>
-References: <1295549840-17809-1-git-send-email-kauppi@papupata.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37976 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753747Ab1ATS6z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Jan 2011 13:58:55 -0500
-In-Reply-To: <1295549840-17809-1-git-send-email-kauppi@papupata.org>
-Sender: linux-omap-owner@vger.kernel.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] change acquire/release_console_sem() to
+	console_lock/unlock()
+Date: Thu, 20 Jan 2011 12:35:07 -0800
+Message-ID: <20110120123507.ac89c034.akpm@linux-foundation.org>
+References: <1295539104-13210-1-git-send-email-torbenh@gmx.de>
+	<20110120163448.GA30588@suse.de> <20110120165502.GA10832@siel.b>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <virtualization-bounces@lists.linux-foundation.org>
+In-Reply-To: <20110120165502.GA10832@siel.b>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/virtualization>
+List-Post: <mailto:virtualization@lists.linux-foundation.org>
+List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
+Sender: virtualization-bounces@lists.linux-foundation.org
+Errors-To: virtualization-bounces@lists.linux-foundation.org
+To: torbenh <torbenh@gmx.de>
+Cc: xen-devel@lists.xensource.com, Kees Cook <kees.cook@canonical.com>, linux-fbdev@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Sascha Hauer <s.hauer@pengutronix.de>, James Hogan <james@albanarts.com>, David Airlie <airlied@linux.ie>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, James Morris <jmorris@namei.org>, Grant Likely <grant.likely@secretlab.ca>, Paul Mackerras <paulus@samba.org>, linux-parisc@vger.kernel.org, Magnus Damm <damm@opensource.se>, Jiri Slaby <jslaby@suse.cz>, Dan Williams <dan.j.williams@intel.com>, devel@driverdev.osuosl.org, Guy Martin <gmsoft@tuxicoman.be>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>Russell King <l>
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, Robert Richter <robert.richter@amd.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Richard Purdie <rpurdie@rpsys.net>, Matt Fleming <matt@console-pimps.org>, Ari Kauppi <kauppi@papupata.org>
 
-Always allow backtrace when using oprofile on ARM, even if a PMU
-isn't present. Implemented by removing code and using stubs
-provided by <linux/oprofile.h>.
+On Thu, 20 Jan 2011 17:55:02 +0100
+torbenh <torbenh@gmx.de> wrote:
 
-Restores functionality originally introduced in commit
-1b7b56982fdcd9d85effd76f3928cf5d6eb26155 ("oprofile: Always allow
-backtraces on ARM") by Richard Purdie.
+> On Thu, Jan 20, 2011 at 08:34:48AM -0800, Greg KH wrote:
+> > On Thu, Jan 20, 2011 at 04:58:13PM +0100, Torben Hohn wrote:
+> > > the -rt patches change the console_semaphore to console_mutex.
+> > > so a quite large chunk of the patches changes all
+> > > acquire/release_console_sem() to acquire/release_console_mutex()
+> > 
+> > Why not just change the functionality of the existing function to be a
+> > mutex in the rt patches, instead of having to rename it everywhere?
+> 
+> i hope that Thomas already did this in his upcoming -rt series.
+> 
+> > 
+> > > this commit makes things use more neutral function names
+> > > which dont make implications about the underlying lock.
+> > > 
+> > > the only real change is the return value of console_trylock
+> > > which is inverted from try_acquire_console_sem()
+> > > 
+> > > Signed-off-by: Torben Hohn <torbenh@gmx.de>
+> > > CC: Thomas Gleixner <tglx@tglx.de>
+> > 
+> > I don't mind this rename, but is it really going to help anything out?
+> > What's the odds of the -rt portion of this patch ever making it to
+> > mainline?
+> 
+> the -rt portion only changes the semaphore to a mutex.
+> since the console_sem is used with mutex semantics, i dont see any
+> reason, not to merge that portion too. 
+> 
+> i am just trying to shrink the -rt patch to make it more maintanable :)
+> 
 
-Signed-off-by: Ari Kauppi <kauppi@papupata.org>
----
- arch/arm/oprofile/common.c |   12 ++----------
- 1 files changed, 2 insertions(+), 10 deletions(-)
-
-diff --git a/arch/arm/oprofile/common.c b/arch/arm/oprofile/common.c
-index 8aa9744..2b66391 100644
---- a/arch/arm/oprofile/common.c
-+++ b/arch/arm/oprofile/common.c
-@@ -10,8 +10,6 @@
-  */
- 
- #include <linux/cpumask.h>
--#include <linux/err.h>
--#include <linux/errno.h>
- #include <linux/init.h>
- #include <linux/mutex.h>
- #include <linux/oprofile.h>
-@@ -46,6 +44,7 @@ char *op_name_from_perf_id(void)
- 		return NULL;
- 	}
- }
-+#endif
- 
- static int report_trace(struct stackframe *frame, void *d)
- {
-@@ -111,6 +110,7 @@ static void arm_backtrace(struct pt_regs * const regs, unsigned int depth)
- 
- int __init oprofile_arch_init(struct oprofile_operations *ops)
- {
-+	/* provide backtrace support also in timer mode: */
- 	ops->backtrace		= arm_backtrace;
- 
- 	return oprofile_perf_init(ops);
-@@ -120,11 +120,3 @@ void __exit oprofile_arch_exit(void)
- {
- 	oprofile_perf_exit();
- }
--#else
--int __init oprofile_arch_init(struct oprofile_operations *ops)
--{
--	pr_info("oprofile: hardware counters not available\n");
--	return -ENODEV;
--}
--void __exit oprofile_arch_exit(void) {}
--#endif /* CONFIG_HW_PERF_EVENTS */
--- 
-1.7.4.rc2.3.g60a2e
-
+Yeah, I think it's a better name and if we can indeed switch that
+semaphore to a mutex then that's a good thing to do.
