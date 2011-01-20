@@ -1,45 +1,51 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: RE: [RFC 1/3] OMAP: clocks: Use clk names instead of clk pointers
-Date: Thu, 20 Jan 2011 11:58:38 +0530
-Message-ID: <3142d734de48a49dcf7b2e8af0b51b36@mail.gmail.com>
-References: <1295446466-23655-1-git-send-email-rnayak@ti.com>
- <1295446466-23655-2-git-send-email-rnayak@ti.com> <20110119151924.GA3552@legolas.emea.dhcp.ti.com>
- <504b9356bcc91cc2316b1623095e4f64@mail.gmail.com> <20110120062655.GD2389@legolas.emea.dhcp.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [HELP-OMAP-SERAIL] beagleboard-xM can't boot up after update
+ to kernel-2.6.37
+Date: Thu, 20 Jan 2011 08:30:21 +0200
+Message-ID: <20110120063021.GE2389@legolas.emea.dhcp.ti.com>
+References: <AANLkTikFb7WTfCOD_GUnA=RZ22Q5_5QSDRTbcoLMtdYM@mail.gmail.com>
+ <20110119110607.GA30211@legolas.emea.dhcp.ti.com>
+ <AANLkTimByz+gc8X9uaVfUUGU+V9V-Og2U9xZQhca7P5b@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:58497 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752430Ab1ATG2l (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:60885 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751544Ab1ATGa2 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Jan 2011 01:28:41 -0500
-Received: by fxm17 with SMTP id 17so263841fxm.34
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 22:28:39 -0800 (PST)
-In-Reply-To: <20110120062655.GD2389@legolas.emea.dhcp.ti.com>
+	Thu, 20 Jan 2011 01:30:28 -0500
+Received: by mail-gy0-f178.google.com with SMTP id 4so71280gyh.23
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 22:30:28 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <AANLkTimByz+gc8X9uaVfUUGU+V9V-Og2U9xZQhca7P5b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@deeprootsystems.com
+To: Bob Liu <lliubbo@gmail.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, "G, Manjunath Kondaiah" <manjugk@ti.com>, Abdoulaye Walsimou GAYE <awg@embtoolkit.org>
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:balbi@ti.com]
-> Sent: Thursday, January 20, 2011 11:57 AM
-> To: Rajendra Nayak
-> Cc: balbi@ti.com; linux-omap@vger.kernel.org; paul@pwsan.com;
-khilman@deeprootsystems.com
-> Subject: Re: [RFC 1/3] OMAP: clocks: Use clk names instead of clk
-pointers
->
-> Hi,
->
-> On Thu, Jan 20, 2011 at 11:03:38AM +0530, Rajendra Nayak wrote:
-> > Did you look at this part of the patch?
->
-> missed that one. Should you then split: one patch dropping const and
-> another doing the plat/clock.c changes ?
+On Thu, Jan 20, 2011 at 01:32:24PM +0800, Bob Liu wrote:
+> On Wed, Jan 19, 2011 at 7:06 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > Hi,
+> >
+> > On Wed, Jan 19, 2011 at 06:57:33PM +0800, Bob Liu wrote:
+> >> Any ideas?
+> >
+> > s/console=ttyS2,115200n8/console=ttyO2,115200n8/
+> >
+> > on your CMDLINE.
+> >
+> 
+> Yeah, that work! Thanks!
+> 
+> But my system still can't enter shell, I have changed /etc/inittab
+> from "tty0::respawn:/sbin/getty -L ttyS2 115200 vt102" to
+> "tty0::respawn:/sbin/getty -L ttyO2 115200 vt102", and also have added
+> ttyO2 to /etc/securetty.
 
-I could. Will do that in the next spin to avoid confusion.
+Add this line to /etc/inittab:
 
->
-> --
-> balbi
+1:2345:respawn:/sbin/getty 115200 ttyO2
+
+-- 
+balbi
