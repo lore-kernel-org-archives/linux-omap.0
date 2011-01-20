@@ -1,103 +1,67 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: [PATCHv5] OMAP3: Devkit8000: Change lcd power pin
-Date: Thu, 20 Jan 2011 16:41:48 +0100
-Message-ID: <1295538108-26451-1-git-send-email-weber@corscience.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Thomas Weber <weber@corscience.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "open list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>, Daniel Morsing <daniel.morsing@gmail.com>, charu@ti.com, sshtylyov@mvista.com, manjugk@ti.com
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK to
+ speed-up boot
+Date: Thu, 20 Jan 2011 17:21:48 +0100
+Message-ID: <AANLkTin00ULesF4vnCUEQh6A_CLyTrUAwWxk2NN01y5v@mail.gmail.com>
+References: <1295516579-10225-1-git-send-email-santosh.shilimkar@ti.com>
+	<4D385155.4050301@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:54198 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751701Ab1ATQVt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 11:21:49 -0500
+Received: by pva4 with SMTP id 4so125799pva.19
+        for <linux-omap@vger.kernel.org>; Thu, 20 Jan 2011 08:21:48 -0800 (PST)
+In-Reply-To: <4D385155.4050301@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This patch fixes a wrongly used lcd enable pin.
+2011/1/20 Rob Herring <robherring2@gmail.com>:
+> On 01/20/2011 03:42 AM, Santosh Shilimkar wrote:
+>>
+>> On some architectures, secondary cores shares clock with primiary
+>> core and hence scale together. Hence secondary core lpj calibration
+>> is not necessary and can be skipped to save considerable time.
+>>
+>> This can speed up the secondary cpu boot and hotplug cpu online
+>> paths.
+>>
+>> Discussion thread:
+>> =A0 =A0 =A0 =A0http://www.spinics.net/lists/arm-kernel/msg111124.htm=
+l
+>>
+>
+> There's already one way to do this with pre-calculated lpj.
+>
+> Also, this isn't multi-platform friendly.
 
-The Devkit8000 uses twl4030_ledA configured as output gpio only for
-the lcd enable line. twl4030_gpio.1 is used through the generic
-gpio functions while ledA is used via low level twl4030 calls.
+It can be made to be, then -
+skip all Kconfig business (more elegant like this anyway):
 
-This patch removes the low level calls and use the generic gpio functions
-for initialization and use of ledA. This patch also fixes a bug where the
-lcd would not power down when blanking.
+static inline int skip_secondary_calibrate(void)
+{
+    return machine_is_u8500() ||
+        machine_is_svp8500v1() ||
+        machine_is_svp8500v2() ||
+        machine_is_svp5500() ||
+        machine_is_b5500() ||
+        machine_is_s5500() ||
+        machine_is_omap4_panda();
+}
 
-Further this patch fixes an indentation issue. The comment line uses
-eight whitespace and is replaced with a hard tab.
+Hm if this multi-platform stuff is desirable we probably need
+a runtime arch_is_omap4(), arch_is_u8500() etc so this machine
+list doesn't grow ridiculously long, but ftm this will work.
 
-gpio_request + gpio_direction_output are replaced with gpio_request_one.
-The return value of gpio_request_one is used to set the value of the
-gpio to -EINVAL when unsuccessful, so that gpio_is_valid can detect the
-unsuccessful request. But already successful requested gpios are not freed.
-
-Reported-by: Daniel Morsing <daniel.morsing@gmail.com>
-Signed-off-by: Thomas Weber <weber@corscience.de>
----
-Changes from v4:
-	Merge of two patches
-	Use of gpio_request_one instead of gpio_request + gpio_direction_output
-Changes from v3:
-	Use return value of gpio_request
-Changes from v2:
-	Fix indention => indentation
-	Better comment for removing low level functions used for twl4030 gpio
-Changes from v1:
-	Pull the indentation fix into this patch
-	Change the pin for lcd pwren	
-	
- arch/arm/mach-omap2/board-devkit8000.c |   27 ++++++++++++++++-----------
- 1 files changed, 16 insertions(+), 11 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index a5eb955..e4c12fe 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -115,9 +115,6 @@ static struct omap2_hsmmc_info mmc[] = {
- 
- static int devkit8000_panel_enable_lcd(struct omap_dss_device *dssdev)
- {
--	twl_i2c_write_u8(TWL4030_MODULE_GPIO, 0x80, REG_GPIODATADIR1);
--	twl_i2c_write_u8(TWL4030_MODULE_LED, 0x0, 0x0);
--
- 	if (gpio_is_valid(dssdev->reset_gpio))
- 		gpio_set_value_cansleep(dssdev->reset_gpio, 1);
- 	return 0;
-@@ -247,6 +244,8 @@ static struct gpio_led gpio_leds[];
- static int devkit8000_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
-+	int ret;
-+
- 	omap_mux_init_gpio(29, OMAP_PIN_INPUT);
- 	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
- 	mmc[0].gpio_cd = gpio + 0;
-@@ -255,17 +254,23 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
- 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
- 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
- 
--        /* gpio + 1 is "LCD_PWREN" (out, active high) */
--	devkit8000_lcd_device.reset_gpio = gpio + 1;
--	gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
--	/* Disable until needed */
--	gpio_direction_output(devkit8000_lcd_device.reset_gpio, 0);
-+	/* TWL4030_GPIO_MAX + 0 is "LCD_PWREN" (out, active high) */
-+	devkit8000_lcd_device.reset_gpio = gpio + TWL4030_GPIO_MAX + 0;
-+	ret = gpio_request_one(devkit8000_lcd_device.reset_gpio,
-+			GPIOF_DIR_OUT | GPIOF_INIT_LOW, "LCD_PWREN");
-+	if (ret < 0) {
-+		devkit8000_lcd_device.reset_gpio = -EINVAL;
-+		printk(KERN_ERR "Failed to request GPIO for LCD_PWRN\n");
-+	}
- 
- 	/* gpio + 7 is "DVI_PD" (out, active low) */
- 	devkit8000_dvi_device.reset_gpio = gpio + 7;
--	gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
--	/* Disable until needed */
--	gpio_direction_output(devkit8000_dvi_device.reset_gpio, 0);
-+	ret = gpio_request_one(devkit8000_dvi_device.reset_gpio,
-+			GPIOF_DIR_OUT | GPIOF_INIT_LOW, "DVI PowerDown");
-+	if (ret < 0) {
-+		devkit8000_dvi_device.reset_gpio = -EINVAL;
-+		printk(KERN_ERR "Failed to request GPIO for DVI PowerDown\n");
-+	}
- 
- 	return 0;
- }
--- 
-1.7.4.rc2
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
