@@ -1,55 +1,76 @@
-From: Bob Liu <lliubbo@gmail.com>
-Subject: Re: [HELP-OMAP-SERAIL] beagleboard-xM can't boot up after update to kernel-2.6.37
-Date: Thu, 20 Jan 2011 14:58:30 +0800
-Message-ID: <AANLkTinNe76Wq-w78m7tMDY-gfMu7zt6jT7zs_KGL-iG@mail.gmail.com>
-References: <AANLkTikFb7WTfCOD_GUnA=RZ22Q5_5QSDRTbcoLMtdYM@mail.gmail.com>
-	<20110119110607.GA30211@legolas.emea.dhcp.ti.com>
-	<AANLkTimByz+gc8X9uaVfUUGU+V9V-Og2U9xZQhca7P5b@mail.gmail.com>
-	<20110120063321.GA10094@m-desktop>
-	<AANLkTi=9yAGvOLyBBHkeNL4-HJgVL2FKqKuW1tpqDoMu@mail.gmail.com>
-	<20110120065029.GH2389@legolas.emea.dhcp.ti.com>
+From: Thomas Weber <weber@corscience.de>
+Subject: Re: [PATCHv4 3/4] OMAP3: Devkit8000: Check return value of gpio_request
+Date: Thu, 20 Jan 2011 09:46:12 +0100
+Message-ID: <4D37F654.70405@corscience.de>
+References: <1295425166-25540-1-git-send-email-weber@corscience.de> <1295425166-25540-4-git-send-email-weber@corscience.de> <4D36D7DC.4020705@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:41510 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754804Ab1ATG6b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 01:58:31 -0500
-Received: by qwa26 with SMTP id 26so281909qwa.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jan 2011 22:58:31 -0800 (PST)
-In-Reply-To: <20110120065029.GH2389@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4D36D7DC.4020705@ru.mvista.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>, charu@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-omap@vger.kernel.org, Abdoulaye Walsimou GAYE <awg@embtoolkit.org>
 
-On Thu, Jan 20, 2011 at 2:50 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
+Hello,
+Am 19.01.2011 13:23, schrieb Sergei Shtylyov:
+> Hello.
 >
-> On Thu, Jan 20, 2011 at 02:46:47PM +0800, Bob Liu wrote:
->> Yeah, I also think it's file system issue. I added major and minor
->> number to omap-serial driver, it fix the problem temporary.
+> On 19-01-2011 11:19, Thomas Weber wrote:
+>
+>> The return value of gpio_request is ignored.
+>> This patch adds the check of the return value of gpio_request.
+>
+>> Signed-off-by: Thomas Weber<weber@corscience.de>
+>> ---
+>>   arch/arm/mach-omap2/board-devkit8000.c |   16 ++++++++++++++--
+>>   1 files changed, 14 insertions(+), 2 deletions(-)
+>
+>> diff --git a/arch/arm/mach-omap2/board-devkit8000.c
+>> b/arch/arm/mach-omap2/board-devkit8000.c
+>> index 9fb416b..4ddd81c 100644
+>> --- a/arch/arm/mach-omap2/board-devkit8000.c
+>> +++ b/arch/arm/mach-omap2/board-devkit8000.c
+> [...]
+>> @@ -244,13 +246,23 @@ static int devkit8000_twl_gpio_setup(struct
+>> device *dev,
 >>
->> > No need to edit /etc/inittab with above fs since ttyO2 is mapped to
->> > console device file under /dev
+>>       /* TWL4030_GPIO_MAX + 0 is "LCD_PWREN" (out, active high) */
+>>       devkit8000_lcd_device.reset_gpio = gpio + TWL4030_GPIO_MAX + 0;
+>> -    gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
+>> +    ret = gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
+>> +    if (ret < 0) {
+>> +        printk(KERN_ERR "Failed to request GPIO for LCD_PWRN\n");
+>> +        return ret;
+>> +    }
+>> +
+>>       /* Disable until needed */
+>>       gpio_direction_output(devkit8000_lcd_device.reset_gpio, 0);
 >>
->> Do you know how to do this map during build a fs?
->> Thanks.
+>>       /* gpio + 7 is "DVI_PD" (out, active low) */
+>>       devkit8000_dvi_device.reset_gpio = gpio + 7;
+>> -    gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
+>> +    ret = gpio_request(devkit8000_dvi_device.reset_gpio, "DVI
+>> PowerDown");
+>> +    if (ret < 0) {
+>> +        printk(KERN_ERR "Failed to request GPIO for DVI PowerDown\n");
 >
-> which FS do you use ? I use a debootstrap generally :-p
+>    You forgot to call:
 >
+>         gpio_free(devkit8000_lcd_device.reset_gpio);
+>
+Couldn't I use lcd without dvi?
+And shouldn't the gpio then be set to -EINVAL for the gpio_is_valid()
+check in enable_lcd()/disable_lcd() and enable_dvi()/disable_dvi()?
 
-I use buildroot to generate an initramfs :-)
-Of course I made some changes.
-
-If using 8250 serial driver, my fs works well,it can enter console correctly.
-But using omap-serial driver, it can't.
-
-I think there maybe some problem about the ttyO2 node in my fs.
-So I add it to my fs by hand, so i need to know it's major & minor number,
-so I added major &minor number to omap-serial driver.
-It seems working okay now.
-
--- 
-Regards,
---Bob
+Thomas
+>> +        return ret;
+>> +    }
+>> +
+>>       /* Disable until needed */
+>>       gpio_direction_output(devkit8000_dvi_device.reset_gpio, 0);
+>
+> WBR, Sergei
+> -- 
+>
