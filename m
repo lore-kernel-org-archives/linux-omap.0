@@ -1,145 +1,64 @@
-From: Robert Richter <robert.richter@amd.com>
-Subject: Re: [PATCH] ARM: oprofile: Always allow backtraces
-Date: Thu, 20 Jan 2011 10:52:39 +0100
-Message-ID: <20110120095239.GT21401@erda.amd.com>
-References: <1295470473-1095-1-git-send-email-kauppi@papupata.org>
- <000101cbb886$582f1480$088d3d80$@deacon@arm.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: OMAP DSS Enable clocks in dss_setup_partial_planes
+Date: Thu, 20 Jan 2011 15:28:09 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087035F9246DA@dbde02.ent.ti.com>
+References: b3985d3b9ab26a0aac963651376b21ac@mail.gmail.com
+  <fd876042b2837b7dd3eaea2257dcbd6f@mail.gmail.com>
+ <1294413238.3968.110.camel@nubuntu>
+ <78677181845a6577fe0955a1984ac16a@mail.gmail.com>
+ <c08bf1989fbe2e704960116748c416f3@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from va3ehsobe006.messaging.microsoft.com ([216.32.180.16]:5848 "EHLO
-	VA3EHSOBE009.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755242Ab1ATJwp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Jan 2011 04:52:45 -0500
-Content-Disposition: inline
-In-Reply-To: <000101cbb886$582f1480$088d3d80$@deacon@arm.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:59813 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755286Ab1ATJ6T convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 04:58:19 -0500
+In-Reply-To: <c08bf1989fbe2e704960116748c416f3@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: 'Ari Kauppi' <kauppi@papupata.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matt Fleming <matt@console-pimps.org>
+To: Ben Tucker <btucker@mpcdata.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 20.01.11 04:42:24, Will Deacon wrote:
-> Hi Ari,
+Hi,
+
+I am not sure if this is needed. All calls within configure_dispc()
+ensure that clocks are enabled before a register write.
+
+The functions which read/write to registers and don't enable/disable
+clocks have names which start with a "_"(for most cases).
+
+Regards,
+Archit
+
+linux-omap-owner@vger.kernel.org wrote:
+> From 086e3454c8f154cd90a4669899f2179f16ef32cd Mon Sep 17 00:00:00
+> 2001 From: Ben Tucker <btucker@mpc-data.co.uk>
+> Date: Thu, 13 Jan 2011 12:56:45 +0000
+> Subject: [PATCH] OMAP DSS Enable clocks in
+> dss_setup_partial_planes  Enable the interface clocks while
+> calling  configure_dispc().
 > 
-> > Always allow backtrace when using oprofile on ARM, even if a PMU
-> > isn't present.
-> > 
-> > Restores functionality originally introduced in
-> > 1b7b56982fdcd9d85effd76f3928cf5d6eb26155 by Richard Purdie.
+> ---
+>  drivers/video/omap2/dss/manager.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
 > 
-> Well spotted, I'd forgotten we still want this for timer mode.
-> Comments inline.
->  
-> > diff --git a/arch/arm/oprofile/common.c b/arch/arm/oprofile/common.c
-> > index 8aa9744..a23e5ae 100644
-> > --- a/arch/arm/oprofile/common.c
-> > +++ b/arch/arm/oprofile/common.c
-> > @@ -46,6 +46,7 @@ char *op_name_from_perf_id(void)
-> >  		return NULL;
-> >  	}
-> >  }
-> > +#endif
-> > 
-> >  static int report_trace(struct stackframe *frame, void *d)
-> >  {
-> > @@ -109,6 +110,7 @@ static void arm_backtrace(struct pt_regs * const regs, unsigned int depth)
-> >  		tail = user_backtrace(tail);
-> >  }
-> > 
-> > +#ifdef CONFIG_HW_PERF_EVENTS
+> diff --git a/drivers/video/omap2/dss/manager.c
+> b/drivers/video/omap2/dss/manager.c
+> index 545e9b9..cb90dac 100644
+> --- a/drivers/video/omap2/dss/manager.c
+> +++ b/drivers/video/omap2/dss/manager.c
+> @@ -1106,7 +1106,9 @@ void dss_setup_partial_planes(struct
+>         omap_dss_device *dssdev, mc->w = w;
+>         mc->h = h;
 > 
-> Can you reorder the backtrace stuff so that we don't need the extra
-> #endif/#ifdef please?
-
-I would like to go even further, see the diff below.
-
--Robert
-
----
- arch/arm/oprofile/common.c |   45 ++++++++++++++++++++++++-------------------
- 1 files changed, 25 insertions(+), 20 deletions(-)
-
-diff --git a/arch/arm/oprofile/common.c b/arch/arm/oprofile/common.c
-index 8aa9744..916aa2e 100644
---- a/arch/arm/oprofile/common.c
-+++ b/arch/arm/oprofile/common.c
-@@ -47,18 +47,6 @@ char *op_name_from_perf_id(void)
- 	}
- }
- 
--static int report_trace(struct stackframe *frame, void *d)
--{
--	unsigned int *depth = d;
--
--	if (*depth) {
--		oprofile_add_trace(frame->pc);
--		(*depth)--;
--	}
--
--	return *depth == 0;
--}
--
- /*
-  * The registers we're interested in are at the end of the variable
-  * length saved register structure. The fp points at the end of this
-@@ -91,6 +79,30 @@ static struct frame_tail* user_backtrace(struct frame_tail *tail)
- 	return buftail[0].fp-1;
- }
- 
-+#else
-+
-+static int oprofile_arch_init(struct oprofile_operations *ops)
-+{
-+	pr_info("oprofile: hardware counters not available\n");
-+	return -ENODEV;
-+}
-+
-+static void oprofile_arch_exit(void) { }
-+
-+#endif /* CONFIG_HW_PERF_EVENTS */
-+
-+static int report_trace(struct stackframe *frame, void *d)
-+{
-+	unsigned int *depth = d;
-+
-+	if (*depth) {
-+		oprofile_add_trace(frame->pc);
-+		(*depth)--;
-+	}
-+
-+	return *depth == 0;
-+}
-+
- static void arm_backtrace(struct pt_regs * const regs, unsigned int depth)
- {
- 	struct frame_tail *tail = ((struct frame_tail *) regs->ARM_fp) - 1;
-@@ -111,6 +123,7 @@ static void arm_backtrace(struct pt_regs * const regs, unsigned int depth)
- 
- int __init oprofile_arch_init(struct oprofile_operations *ops)
- {
-+	/* provide backtrace support also in timer mode: */
- 	ops->backtrace		= arm_backtrace;
- 
- 	return oprofile_perf_init(ops);
-@@ -120,11 +133,3 @@ void __exit oprofile_arch_exit(void)
- {
- 	oprofile_perf_exit();
- }
--#else
--int __init oprofile_arch_init(struct oprofile_operations *ops)
--{
--	pr_info("oprofile: hardware counters not available\n");
--	return -ENODEV;
--}
--void __exit oprofile_arch_exit(void) {}
--#endif /* CONFIG_HW_PERF_EVENTS */
--- 
-1.7.3.4
-
-
-
--- 
-Advanced Micro Devices, Inc.
-Operating System Research Center
-
+> +       dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);        
+> configure_dispc(); +       dss_clk_disable(DSS_CLK_ICK |
+> DSS_CLK_FCK1); 
+> 
+>         mc->do_manual_update = false;
+> 
+> --
+> 1.7.3.2
