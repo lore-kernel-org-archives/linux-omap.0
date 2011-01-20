@@ -1,116 +1,78 @@
-From: "Gulati, Shweta" <shweta.gulati@ti.com>
-Subject: Re: [PATCH] OMAP3: PM: Adding T2 enabling of smartreflex
-Date: Thu, 20 Jan 2011 18:44:05 +0530
-Message-ID: <AANLkTimOD+wzybZigMOkLm56hU-=rq4fUrErTDpD0H3f@mail.gmail.com>
-References: <1295428078-7822-1-git-send-email-shweta.gulati@ti.com>
-	<4D36ADB7.3050807@ti.com>
-	<AANLkTinRh+4eBf_Pu8DCAMyc+9D-bMVuV8kxwL5rOsXg@mail.gmail.com>
-	<4D36D7E6.9060605@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH v2] OMAP: use fncpy to copy the PM code functions to SRAM
+Date: Thu, 20 Jan 2011 14:14:40 +0100
+Message-ID: <AANLkTimOc8PcEUaC81M=cYdyfbcJChG9ckriCsxHz-4m@mail.gmail.com>
+References: <1295352126-29171-1-git-send-email-j-pihet@ti.com>
+	<87vd1ksq2i.fsf@ti.com>
+	<87mxmwr2un.fsf@ti.com>
+	<20110119221056.GG4957@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:51952 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755539Ab1ATNOH convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Jan 2011 08:14:07 -0500
-Received: by mail-pv0-f174.google.com with SMTP id 4so107662pva.33
-        for <linux-omap@vger.kernel.org>; Thu, 20 Jan 2011 05:14:06 -0800 (PST)
-In-Reply-To: <4D36D7E6.9060605@ti.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:53889 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755565Ab1ATNOl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 08:14:41 -0500
+Received: by qyj19 with SMTP id 19so1902888qyj.19
+        for <linux-omap@vger.kernel.org>; Thu, 20 Jan 2011 05:14:40 -0800 (PST)
+In-Reply-To: <20110119221056.GG4957@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, "Premi, Sanjeev" <premi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Dave Martin <dave.martin@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Wed, Jan 19, 2011 at 5:54 PM, Nishanth Menon <nm@ti.com> wrote:
-> Gulati, Shweta wrote, on 01/19/2011 02:10 PM:
+On Wed, Jan 19, 2011 at 11:10 PM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> * Kevin Hilman <khilman@ti.com> [110119 13:37]:
+>> Kevin Hilman <khilman@ti.com> writes:
 >>
->> =A0 =A0 >I cant see how disable_sr is usable, further as discussed i=
+>> > jean.pihet@newoldbits.com writes:
+>> >
+>> >> From: Jean Pihet <j-pihet@ti.com>
+>> >>
+>> >> The new fncpy API is better suited for copying some
+>> >> code to SRAM at runtime. This patch changes the ad-hoc
+>> >> code to the more generic fncpy API.
+>> >>
+>> >> Tested OK on OMAP3 in low power modes (RET/OFF)
+>> >> using omap2plus_defconfig with !CONFIG_THUMB2_KERNEL.
+>> >> Compile tested on OMAP1/2 using omap1_defconfig.
+>> >>
+>> >> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> >
+>> > Acked-by: Kevin Hilman <khilman@ti.com>
+>> >
+>> > Boot tested on OMAP1 & OMAP2 as well. =A0Note that neither OMAP1 o=
+r OMAP2
+>> > has had working suspend/resume for a long time now, so I did not t=
+est
+>> > suspend/resume.
+>>
+>> For OMAP2:
+>>
+>> Tested-by: Kevin Hilman <khilman@ti.com>
+>>
+>> to test a little more on OMAP2, I just removed the WFI from the
+>> low-level code and tested suspend that way. =A0That's enough to be s=
+ure
+>> the copied code is copied and executed.
+>>
+>> Worked fine on OMAP2420/n810.
+>>
+>> For OMAP1, this didn't work and would require more serious hacking o=
 n
->> =A0 =A0http://marc.info/?l=3Dlinux->omap&m=3D129424774929498&w=3D2
->> =A0 =A0<http://marc.info/?l=3Dlinux-omap&m=3D129424774929498&w=3D2> =
-we decided to
->> =A0 =A0introduce api *if needed*. does any one need it?
->>
->> =A0 =A0There might be some OMAP3xxx chips where for DVFS VMODE or VS=
-EL
->> =A0 =A0method is used, for those boards this disable API could be ca=
-lled
->> =A0 =A0from Board File, =A0to make sure the sequence of execution =A0=
-of
->>
->> =A0 =A0 late_init_call of twl_init from omap2_common_pm_late_init do=
-es not
->> hamper clearing of this bit I would add a global variable to keep tr=
-ack
->> if Resetting is required or not, will submit V2 with changes.
+>> the OMAP1 suspend path, which I currently have no plans to do.
 >
-> Apologies, but a Dumb question:
+> Boots fine on osk5912 and n800 too:
 >
-> late_initcall(omap2_common_pm_late_init)
-> board files(arch/arm/include/asm/mach/arch.h machine_desc) tend to ha=
-ve the
-> following hooks:
+> Tested-by: Tony Lindgren <tony@atomide.com>
 >
-> void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*fixup)(struct machine_d=
-esc *,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struc=
-t tag *, char **,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struc=
-t meminfo *);
-> void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*reserve)(void);/* reser=
-ve mem blocks =A0*/
-> void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*map_io)(void);/* IO map=
-ping function =A0*/
-> void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*init_early)(void);
-> void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*init_irq)(void);
-> struct sys_timer =A0 =A0 =A0 =A0*timer; =A0 =A0 =A0 =A0 /* system tic=
-k timer =A0 =A0*/
-> void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*init_machine (void);
-> void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*handle_irq)(struct pt_r=
-egs *);
->
-> So if i wanted to disable the SR setting, where should I do it?
->
-> --
-> Regards,
-> Nishanth Menon
 
-Nishanth,
-
-I think i could not make my point clear in my previous reply.
-
-There are two APIs added 'omap3_twl_disable_sr' and
-'omap3_twl_enable_sr'. omap3_twl_enable_sr sets SR bit in TWL4030
-registers to make sure VPforceupdate method of voltage scaling works
-properly but there could be some OMAP3xxx chips where VMODE or VSEL
-method of voltage scaling is used (though today these voltage scaling
-methods are not recommended by HW folks). For the boards where
-Vpforceupdate method is used this  'omap3_twl_disable_sr' would not be
-called.  For possible case of platforms where VMODE or VSEL methods
-are used the API 'omap3_twl_disable_sr' will reset this bit.
-The API 'omap3_twl_disable_sr' can be called from board file, to make
-sure the resetting of this bit is not
-overwritten in late_init call of omap3_twl_init(where
-'omap3_twl_enable_sr' is called) I suggested adding a
-global flag which will keep track whether this bit is cleared from
-board file or not.
-Would make these changes in V2.
+Thanks for testing!
 
 Regards,
-Shweta
-> PS: could you please fix your mailer when replying on l-o for netetiq=
-uette
-> reasons?
->
-
-
-
---
-Thanks,
-Regards,
-Shweta
+Jean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
