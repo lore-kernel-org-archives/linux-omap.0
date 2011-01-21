@@ -1,37 +1,55 @@
-From: Linus Walleij <linus.walleij@stericsson.com>
-Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK to
- speed-up boot
-Date: Fri, 21 Jan 2011 15:23:17 +0100
-Message-ID: <AANLkTi=ymmg6siqwxFJyh33VwAy7ZaURcTmUZyOWEz2r@mail.gmail.com>
-References: <1295516579-10225-1-git-send-email-santosh.shilimkar@ti.com>
-	<4D385155.4050301@gmail.com>
-	<43c027bd53818ab19bdc1c823aa21ea4@mail.gmail.com>
-	<4D38641E.2000301@gmail.com>
-	<c1a2c539e2677e9a56d2d3aaaaf34851@mail.gmail.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: Setting MMC_CAP_POWER_OFF_CARD on mmc2 leads to filesystem
+ problems on mmc1
+Date: Fri, 21 Jan 2011 16:49:02 +0200
+Message-ID: <1295621342.1925.139.camel@pimenta>
+References: <E6C3A477-63F7-4BA0-8E6B-A35A53B3AEA1@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:54819 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751473Ab1AUOXR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 09:23:17 -0500
-Received: by pxi15 with SMTP id 15so296122pxi.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 Jan 2011 06:23:17 -0800 (PST)
-In-Reply-To: <c1a2c539e2677e9a56d2d3aaaaf34851@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <E6C3A477-63F7-4BA0-8E6B-A35A53B3AEA1@dominion.thruhere.net>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>, Ohad Ben-Cohen <ohad@wizery.com>
+Cc: l-o List <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "cjb@laptop.org" <cjb@laptop.org>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Rob Herring <robherring2@gmail.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-2011/1/21 Santosh Shilimkar <santosh.shilimkar@ti.com>:
+On Fri, 2011-01-21 at 15:18 +0100, Koen Kooi wrote:
+> Hi,
+> 
+> I'm trying to bring up a wl1271 sdio expansion board on beagle with 2.6.37 and I'm running into a weird problem when enabling MMC_CAP_POWER_OFF_CARD.
+> 
+> My patch basically does:
+> 
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -270,7 +270,7 @@ static struct omap2_hsmmc_info mmc[] = {
+>        {
+>                .name           = "wl1271",
+>                .mmc            = 2,
+> -               .caps           = MMC_CAP_4_BIT_DATA,
+> +               .caps           = MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
+> 
+> And does NOT touch mmc1. But after adding MMC_CAP_POWER_OFF_CARD I get tons of:
+> 
+> [   22.259490] mmcblk0: error -110 sending status comand
+> [   22.264617] mmcblk0: error -110 sending read/write command, response 0x0, card status 0x0
+> [   22.273345] mmcblk0: error -110 transferring data, sector 2338228, nr 3, card status 0x0
+> [   22.281799] end_request: I/O error, dev mmcblk0, sector 2338228
+> [   22.288055] mmcblk0: error -110 sending status comand
+> [   22.293151] mmcblk0: error -110 sending read/write command, response 0x0, card status 0x0
+> [   22.301879] mmcblk0: error -110 transferring data, sector 2338229, nr 2, card status 0x0
+> [   22.310363] end_request: I/O error, dev mmcblk0, sector 2338229
+> 
+> When using mmcblk0p2 as rootfs. Attached is the complete patch. It looks a bit weird because it's using the expansionboard infrastucture I hacked together.
+> 
+> I suspect that mmc2 is turning off the shared regulator, but I have various people claiming this code (minus the expansionboard detection) works with the same regulator setup, so I'm extremely puzzled.
+> 
+> The CC: list was partially generated with the get_maintainer.pl script, apologies if I screwed it up.
 
-> How about below approach?
->
-> -----------------------------------------------------
-> [PATCH] ARM: smp: Skip secondary cpu calibration to speed-up boot
+I think Ohad is the right person to answer this question.
 
-Hey this looks like a good way to do it,
-Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+-- 
+Cheers,
+Luca.
 
-Yours,
-Linus Walleij
