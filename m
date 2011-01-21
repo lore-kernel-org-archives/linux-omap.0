@@ -1,58 +1,48 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [Query] mm: !*pte hit in mm/memory.c:remap_pte_range
-Date: Fri, 21 Jan 2011 10:30:05 +0000
-Message-ID: <20110121103005.GA14142@n2100.arm.linux.org.uk>
-References: <A24693684029E5489D1D202277BE89448521EEAA@dlee02.ent.ti.com>
+From: "Will Deacon" <will.deacon@arm.com>
+Subject: RE: [PATCH v2 3/3] ARM: oprofile: Always allow backtraces
+Date: Fri, 21 Jan 2011 11:27:36 -0000
+Message-ID: <41488.2315592424$1295609547@news.gmane.org>
+References: <1295549840-17809-1-git-send-email-kauppi@papupata.org>
+	<1295549840-17809-4-git-send-email-kauppi@papupata.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39511 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752371Ab1AUKaR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 05:30:17 -0500
-Content-Disposition: inline
-In-Reply-To: <A24693684029E5489D1D202277BE89448521EEAA@dlee02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1295549840-17809-4-git-send-email-kauppi@papupata.org>
+Content-Language: en-gb
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: 'Ari Kauppi' <kauppi@papupata.org>, Robert Richter <robert.richter@amd.com>
+Cc: Matt Fleming <matt@console-pimps.org>, linux-omap@vger.kernel.org, Richard Purdie <rpurdie@rpsys.net>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Jan 20, 2011 at 03:06:30PM -0600, Aguirre, Sergio wrote:
-> And while debugging further, i realized that the point of stall was
-> in mm/memory.c, function:
-> 
-> static int remap_pte_range(struct mm_struct *mm, pmd_t *pmd,
-> 			unsigned long addr, unsigned long end,
-> 			unsigned long pfn, pgprot_t prot)
-> {
-> 	pte_t *pte;
-> 	spinlock_t *ptl;
-> 
-> 	pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
-> 	if (!pte)
-> 		return -ENOMEM;
-> 	arch_enter_lazy_mmu_mode();
-> 	do {
-> 
-> 
-> 		BUG_ON(!pte_none(*pte)); <---******* HERE
-> 
-> 
-> 		set_pte_at(mm, addr, pte, pte_mkspecial(pfn_pte(pfn, prot)));
-> 		pfn++;
-> 	} while (pte++, addr += PAGE_SIZE, addr != end);
-> 	arch_leave_lazy_mmu_mode();
-> 	pte_unmap_unlock(pte - 1, ptl);
-> 	return 0;
-> }
-> 
-> This is in 2.6.35.6 kernel + TI Android kernel changes. [1]
-> 
-> How should i interpret this? Does this mean something specific?
+Hi Ari,
 
-It is asserting that the pte we are about to overwrite was empty.  In
-other words, there is no existing mapping in place at that virtual
-address.
+> Always allow backtrace when using oprofile on ARM, even if a PMU
+> isn't present. Implemented by removing code and using stubs
+> provided by <linux/oprofile.h>.
+> 
+> Restores functionality originally introduced in commit
+> 1b7b56982fdcd9d85effd76f3928cf5d6eb26155 ("oprofile: Always allow
+> backtraces on ARM") by Richard Purdie.
+> 
+> Signed-off-by: Ari Kauppi <kauppi@papupata.org>
+> ---
+>  arch/arm/oprofile/common.c |   12 ++----------
+>  1 files changed, 2 insertions(+), 10 deletions(-)
 
-If there was a pre-existing mapping, you're doing something wrong
-because you're potentially overwriting something else.
+[...]
+
+Providing Robert is happy with the associated changes to
+linux/oprofile.h then this patch looks good to me.
+
+Acked-by: Will Deacon <will.deacon@arm.com>
+
+Will
