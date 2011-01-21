@@ -1,56 +1,58 @@
-From: "Lesly A M" <leslyam@ti.com>
-Subject: Re: OMAP3 - PM - Question - Disabling CLKEN and HFCLKOUT signals
-     from TWL4030 scripts
-Date: Fri, 21 Jan 2011 15:44:27 +0530 (IST)
-Message-ID: <23149.10.24.255.17.1295604867.squirrel@dbdmail.itg.ti.com>
-References: <005301cbb947$6d682730$48387590$@com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [Query] mm: !*pte hit in mm/memory.c:remap_pte_range
+Date: Fri, 21 Jan 2011 10:30:05 +0000
+Message-ID: <20110121103005.GA14142@n2100.arm.linux.org.uk>
+References: <A24693684029E5489D1D202277BE89448521EEAA@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55299 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753467Ab1AUKOa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 05:14:30 -0500
-In-Reply-To: <005301cbb947$6d682730$48387590$@com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39511 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752371Ab1AUKaR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 05:30:17 -0500
+Content-Disposition: inline
+In-Reply-To: <A24693684029E5489D1D202277BE89448521EEAA@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nagendra <nagendra@mistralsolutions.com>
-Cc: linux-omap@vger.kernel.org, ratheesh@mistralsolutions.com
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Nagendra,
+On Thu, Jan 20, 2011 at 03:06:30PM -0600, Aguirre, Sergio wrote:
+> And while debugging further, i realized that the point of stall was
+> in mm/memory.c, function:
+> 
+> static int remap_pte_range(struct mm_struct *mm, pmd_t *pmd,
+> 			unsigned long addr, unsigned long end,
+> 			unsigned long pfn, pgprot_t prot)
+> {
+> 	pte_t *pte;
+> 	spinlock_t *ptl;
+> 
+> 	pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
+> 	if (!pte)
+> 		return -ENOMEM;
+> 	arch_enter_lazy_mmu_mode();
+> 	do {
+> 
+> 
+> 		BUG_ON(!pte_none(*pte)); <---******* HERE
+> 
+> 
+> 		set_pte_at(mm, addr, pte, pte_mkspecial(pfn_pte(pfn, prot)));
+> 		pfn++;
+> 	} while (pte++, addr += PAGE_SIZE, addr != end);
+> 	arch_leave_lazy_mmu_mode();
+> 	pte_unmap_unlock(pte - 1, ptl);
+> 	return 0;
+> }
+> 
+> This is in 2.6.35.6 kernel + TI Android kernel changes. [1]
+> 
+> How should i interpret this? Does this mean something specific?
 
-> Hi All,
->
-> We are working on Power management on OMAP3 (3530) and I am trying to
-> disable CLKEN and HFCLKOUT through TWL4030 power scripts. However we have
-> not been able to achieve this.
->
-> Following are the changes and tests done so far.
->
-> - VAUX1, CLKEN and HFCLKOUT were assigned to P1 group.
-> - Wrote Singular messages to turn on/off these signals in TWL4030 scripts.
-> - We observed that VAUX1 is able to switch ON/OFF properly as per the script
-> but HFCLKOUT and CLKEN are not behaving as expected.
-> - However if we try writing CLKEN_DEV_GRP to zero, CLKEN is going low.
-> - We have made sure that SYS_OFF_MODE and CLK_REQ signals go low during the
-> system OFF mode, LVL_WAKEUP bit enabled in Px_SW_EVENTS, and STS_CHG bit in
-> STS_HW_CONDITIONS is zero.
->
-> Is there anything that I am missing? Kindly let me know.
+It is asserting that the pte we are about to overwrite was empty.  In
+other words, there is no existing mapping in place at that virtual
+address.
 
-Did try probing the sys_clkreq from OMAP?
-Are you sending SLEEP/OFF command in singular msg?
-Also check the HFCLKOUT_REMAP register for SLEEP_STATE[3:0], if using SLEEP cmd.
-
-Regards,
-Lesly A M
-
->
-> Part number of TPS used in our board is TPS65950 BZXNR
->
-> with regards,
-> - Nagendra.
->
-
-
+If there was a pre-existing mapping, you're doing something wrong
+because you're potentially overwriting something else.
