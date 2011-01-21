@@ -1,58 +1,94 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [Query] mm: !*pte hit in mm/memory.c:remap_pte_range
-Date: Fri, 21 Jan 2011 10:57:13 -0600
-Message-ID: <A24693684029E5489D1D202277BE89448521EEB1@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89448521EEAA@dlee02.ent.ti.com>,<20110121103005.GA14142@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK to
+	speed-up boot
+Date: Fri, 21 Jan 2011 17:08:22 +0000
+Message-ID: <20110121170822.GA30823@n2100.arm.linux.org.uk>
+References: <1295516579-10225-1-git-send-email-santosh.shilimkar@ti.com> <4D385155.4050301@gmail.com> <43c027bd53818ab19bdc1c823aa21ea4@mail.gmail.com> <4D38641E.2000301@gmail.com> <c1a2c539e2677e9a56d2d3aaaaf34851@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51718 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754362Ab1AUQ70 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 11:59:26 -0500
-In-Reply-To: <20110121103005.GA14142@n2100.arm.linux.org.uk>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55713 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750786Ab1AURIo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 12:08:44 -0500
+Content-Disposition: inline
+In-Reply-To: <c1a2c539e2677e9a56d2d3aaaaf34851@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Rob Herring <robherring2@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>
 
-Hi Russell,
-
-> ________________________________________
-> From: Russell King - ARM Linux [linux@arm.linux.org.uk]
-> Sent: Friday, January 21, 2011 4:30 AM
-> To: Aguirre, Sergio
-> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
-> Subject: Re: [Query] mm: !*pte hit in mm/memory.c:remap_pte_range
+On Fri, Jan 21, 2011 at 07:13:48PM +0530, Santosh Shilimkar wrote:
+> > -----Original Message-----
+> > From: Rob Herring [mailto:robherring2@gmail.com]
+> > Sent: Thursday, January 20, 2011 10:05 PM
+> > To: Santosh Shilimkar
+> > Cc: linux-arm-kernel@lists.infradead.org; Russell King; linux-
+> > omap@vger.kernel.org; Linus Walleij
+> > Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK
+> > to speed-up boot
 > 
-> On Thu, Jan 20, 2011 at 03:06:30PM -0600, Aguirre, Sergio wrote:
-> > And while debugging further, i realized that the point of stall was
-> > in mm/memory.c, function:
+> [..]
+> 
+> > >>
+> > >> There's already one way to do this with pre-calculated lpj.
+> > >>
+> > > How about the hot-plug path? This is not for just boot.
 > >
-> > static int remap_pte_range(struct mm_struct *mm, pmd_t *pmd,
-> >                       unsigned long addr, unsigned long end,
-> >                       unsigned long pfn, pgprot_t prot)
-> > {
+> > The path is the same for hotplug and secondary boot, so yes for
+> > both.
+> > Plus you get the added benefit of speeding up the primary core boot
+> > as well.
+> >
+> No 'preset_lpj' will not work for the hotplug path when
+> cpufreq is active. It just useful only for boot in
+> its current form.
 
-> >               BUG_ON(!pte_none(*pte)); <---******* HERE
+Indeed, it will end up screwing up the loops_per_jiffy value.  That
+would seem to be a hole on other architectures too.  I wonder if
+anyone has tested hotplug on a cpufreq-scaled system.
 
-> > }
-
-> > How should i interpret this? Does this mean something specific?
+> @@ -332,14 +345,19 @@ void __init smp_cpus_done(unsigned int max_cpus)
+>  	int cpu;
+>  	unsigned long bogosum = 0;
 > 
-> It is asserting that the pte we are about to overwrite was empty.  In
-> other words, there is no existing mapping in place at that virtual
-> address.
+> -	for_each_online_cpu(cpu)
+> -		bogosum += per_cpu(cpu_data, cpu).loops_per_jiffy;
+> +	if (!skip_secondary_calibrate) {
+> +		for_each_online_cpu(cpu)
+> +			bogosum += per_cpu(cpu_data, cpu).loops_per_jiffy;
 > 
-> If there was a pre-existing mapping, you're doing something wrong
-> because you're potentially overwriting something else.
+> -	printk(KERN_INFO "SMP: Total of %d processors activated "
+> -	       "(%lu.%02lu BogoMIPS).\n",
+> -	       num_online_cpus(),
+> -	       bogosum / (500000/HZ),
+> -	       (bogosum / (5000/HZ)) % 100);
+> +		printk(KERN_INFO "SMP: Total of %d processors activated "
+> +		       "(%lu.%02lu BogoMIPS).\n",
+> +			num_online_cpus(),
+> +			bogosum / (500000/HZ),
+> +			(bogosum / (5000/HZ)) % 100);
+> +	} else {
+> +		printk(KERN_INFO "SMP: Total of %d processors
+> activated.\n",
+> +			num_online_cpus());
+> +	}
 
-Ok. I see.
+Hmm.  How about:
 
-Thanks for the detailed explanation. I appreciate it.
+	char bogosum[32];
 
-Regards,
-Sergio
-> 
+	if (!skip_secondary_calibrate) {
+		for_each_online_cpu(cpu)
+			bogosum += per_cpu(cpu_data, cpu).loops_per_jiffy;
+
+		snprintf(bogosum, sizeof(bogosum), " (%lu.%02lu BogoMIPS).\n",
+			bogosum / (500000/HZ), (bogosum / (5000/HZ)) % 100);
+	} else
+		bogosum[0] = '\0';
+
+	pr_info("SMP: Total of %d processors activated%s.\n",
+		num_online_cpus(), bogosum);
+
+Looks neater and more compact and reduces the amount of string space
+required.
