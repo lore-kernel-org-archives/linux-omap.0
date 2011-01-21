@@ -1,137 +1,68 @@
-From: Luke Gong <lukejgong@gmail.com>
-Subject: Re: Fail to suspend to ram: "Class driver suspend failed for cpu0"
-Date: Fri, 21 Jan 2011 10:30:01 -0500
-Message-ID: <AANLkTikKX8u6vkkwnGEbiZOMgqk50t0QmRu=9Pbj-KfL@mail.gmail.com>
-References: <AANLkTin-q5o1x=0Eu1HvwDZxuCAOsGiVySWHBuAW0v+C@mail.gmail.com>
-	<8762tjjidg.fsf@ti.com>
-	<AANLkTikNkyN_qAGMWUrcRp8NzPW4fAYcpo0qiGBKTeDu@mail.gmail.com>
-	<8762tij11t.fsf@ti.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH v4 0/4] Introduce support for TI816X processor series
+Date: Fri, 21 Jan 2011 21:59:34 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036A8DB426@dbde02.ent.ti.com>
+References: <1294677460-18071-1-git-send-email-hemantp@ti.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B036A77D048@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:40373 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753592Ab1AUPaD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 10:30:03 -0500
-Received: by eye27 with SMTP id 27so925602eye.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 Jan 2011 07:30:01 -0800 (PST)
-In-Reply-To: <8762tij11t.fsf@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40642 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880Ab1AUQ3o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 11:29:44 -0500
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B036A77D048@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>
 
-All right. Thank you.
+linux-omap-owner@vger.kernel.org wrote on :
 
-One more question. At this moment, I can wake up the board by
-keyboard. Can I wake it up on LAN?
+> Pedanekar, Hemant wrote on Monday, January 10, 2011 10:08 PM:
+> 
+>> This patch set adds support for TI816X processor series. This series
+>> includes DM8168, C6A816x and AM389x devices.
+>> 
+>> The details can be found at following links:
+>> 
+>> http://focus.ti.com/general/docs/gencontent.tsp?contentId=77960
+>> http://www.ti.com/ww/en/dsp/davinci-netra/index.shtml
+>> 
+>> This series is architecturally closer to the OMAP devices.
+>> Hence, these patches
+>> are being submitted on linux-omap.
+>> 
+>> These patches are tested on OMAP3 EVM with multi-omap build.
+>> 
+>> Note that, additional patches consisting of TI816X specific hwmods, clock
+>> data and DMTIMER changes, are required to enable successful
+>> booting on TI816X EVM.
+>> These patches will follow shortly.
+>> 
+>> The TI816X support is added as part of OMAP3 variant. The approach taken is
+>> in accordance to the discussions in thread related to following post:
+>> http://www.spinics.net/lists/linux-omap/msg41505.html
+>> 
+>> In addition, TI816X specific customizations/optimizations are handled as a
+>> part of build configuration CONFIG_SOC_OMAPTI816X. Discussed here:
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41927.html
+>> 
+>> Hemant Pedanekar (4):
+>>   TI816X: Update common omap platform files
+>>   TI816X: Update common OMAP machine specific sources
+>>   TI816X: Create board support and enable build for TI816X EVM
+>>   TI816X: Add low level debug support
+>> 
+[...]
+> 
+> Tony,
+> Can you please provide the comments on v4 patches? Thanks. -
 
-On Fri, Jan 21, 2011 at 12:09 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Luke Gong <lukejgong@gmail.com> writes:
->
->> Thanks, Kevin.
->>
->> On Thu, Jan 20, 2011 at 5:54 PM, Kevin Hilman <khilman@ti.com> wrote=
-:
->>> Luke Gong <lukejgong@gmail.com> writes:
->>>
->>>> I have a beagle board with OMAP3530. I ported linux-omap-pm2.6.32 =
-to
->>>> this board. When I want to let it suspend to ram,
->>>
->>> This is an old kernel. =A0Any reason you're not using a newer kerne=
-l?
->>
->> I have Angstrom7 with kernel 2.6.32 running on this board. So I
->> selected this old version to test. I might try the latest one.
->>
->
-> You'll have to get support from the folks making the Angstrom kernel =
-as
-> I don't keep track of the kernel baseline they use or the local patch=
-es
-> they apply, so can't help you.
->
-> If you can reproduce on current linux-omap, I'll be glad to help.
->
-> Kevin
->
->
->>>
->>>> it fails and I get
->>>> the message "Class driver suspend failed for cpu0"
->>>
->>> This is the CPUfreq driver failing to suspend, probably because the=
-re is
->>> no CPUfreq driver implemented in your kernel. =A0Try disabling CPU_=
-=46REQ in
->>> your kernel config.
->>
->> It seems can suspend to ram after disabling CPU_FREQ. Here is the lo=
-g:
->>
->> root@beagleboard:~# echo mem > /sys/power/state
->> PM: Syncing filesystems ... done.
->> Freezing user space processes ... (elapsed 0.00 seconds) done.
->> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
->> Suspending console(s) (use no_console_suspend to debug)
->>
->> *************************************************************
->> Once I hit the keyboard, I get:
->>
->> root@beagleboard:~# echo mem > /sys/power/state
->> PM: Syncing filesystems ... done.
->> Freezing user space processes ... (elapsed 0.00 seconds) done.
->> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
->> Suspending console(s) (use no_console_suspend to debug)
->> omapfb omapfb: timeout waiting for FRAME DONE
->> Powerdomain (core_pwrdm) didn't enter target state 1
->> Powerdomain (cam_pwrdm) didn't enter target state 1
->> Powerdomain (per_pwrdm) didn't enter target state 1
->> Could not enter target state in pm_suspend
->> Restarting tasks ... done.
->> root@beagleboard:~#
->> ***************************************************
->>
->> I am just curious why the powerdomain didn't enter target state 1.
->>
->> Another issue is about CPU frequency scaling. Using the original
->> Angstrom7, I can scale CPU frequency. But with the linux-omap-pm
->> kernel, I cannot do it even though I enable this feature in the conf=
-ig
->> file. Is there any solution to support both cpu frequency scaling an=
-d
->> suspend to ram?
->>
->> Thanks again for your help.
->>>
->>> Kevin
->>>
->>>> . Here is the log:
->>>>
->>>> root@beagleboard:~# echo mem > /sys/power/state
->>>> PM: Syncing filesystems ... done.
->>>> Freezing user space processes ... (elapsed 0.00 seconds) done.
->>>> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done=
-=2E
->>>> Suspending console(s) (use no_console_suspend to debug)
->>>> omapfb omapfb: timeout waiting for FRAME DONE
->>>> Class driver suspend failed for cpu0
->>>> Restarting tasks ... done.
->>>>
->>>> *********************************************
->>>>
->>>> Is there any idea to fix this problem? Thanks.
->>>
->
+Tony,
+Do you find this series alright? Please let me know your comments.
+Thanks.
 
-
-
---=20
-Luke
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+   Hemant 
