@@ -1,76 +1,59 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH] omap3: nand: bch ecc support added
-Date: Fri, 21 Jan 2011 13:38:55 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036A8DB15E@dbde02.ent.ti.com>
+From: Kishore Kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH] omap3: nand: bch ecc support added
+Date: Fri, 21 Jan 2011 13:41:53 +0530
+Message-ID: <AANLkTimsD1108ASF3H9Y8pjaTsfv0D33K11KOXDmypvJ@mail.gmail.com>
 References: <1295518680-8737-1-git-send-email-s-ghorai@ti.com>
- <AANLkTin3pRkqLkQ_J1iTtqr0M+iz5V25S9ZwJc9+T0VW@mail.gmail.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B036A8DAF6C@dbde02.ent.ti.com>
- <AANLkTi=0ZuG6i3x4uZ2+R8ZVmvmydrvK2zZQJbLoz=4L@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51720 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751876Ab1AUIJD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 03:09:03 -0500
-In-Reply-To: <AANLkTi=0ZuG6i3x4uZ2+R8ZVmvmydrvK2zZQJbLoz=4L@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41085 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753431Ab1AUIPU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 03:15:20 -0500
+Received: by wyb28 with SMTP id 28so1535648wyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 21 Jan 2011 00:15:19 -0800 (PST)
+In-Reply-To: <1295518680-8737-1-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kamat, Nishant" <nskamat@ti.com>
+To: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 
+Ghorai,
 
+<snip>
 
-> -----Original Message-----
-> From: Vimal Singh [mailto:vimal.newwork@gmail.com]
-> Sent: Friday, January 21, 2011 1:08 PM
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
-> kernel@lists.infradead.org; Kamat, Nishant
-> Subject: Re: [PATCH] omap3: nand: bch ecc support added
-> 
-> On Fri, Jan 21, 2011 at 9:37 AM, Ghorai, Sukumar <s-ghorai@ti.com> wrote:
-> >
-> >> -----Original Message-----
-> >> From: Vimal Singh [mailto:vimal.newwork@gmail.com]
-> >> Sent: Thursday, January 20, 2011 8:47 PM
-> >> To: Ghorai, Sukumar
-> >> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-
-> arm-
-> >> kernel@lists.infradead.org; Kamat, Nishant
-> >> Subject: Re: [PATCH] omap3: nand: bch ecc support added
-> >>
-> >> Hi Ghorai,
-> >>
-> >> I am the initial author of this patch. And I guess this patch still
-> >> uses most of my work.
-> > [Ghorai] I know you are working on it,
-> >
-> > But I think your code was in a shape for -
-> > 1. not for up-streamble shape
-> That's because I never posted it for up-stream.
-> 
-> > 2. non functional,
-> No, it was a working (at least for 8-bit correction) patch on that
-> kernel version (I do not remember the correct version now, may be
-> .29-.30)
-[Ghorai] can you send me the version?
+> =A0#ifdef CONFIG_MTD_PARTITIONS
+> diff --git a/drivers/mtd/nand/omap_bch_decoder.c b/drivers/mtd/nand/o=
+map_bch_decoder.c
+> new file mode 100644
+> index 0000000..da42bda
+> --- /dev/null
+> +++ b/drivers/mtd/nand/omap_bch_decoder.c
+> @@ -0,0 +1,393 @@
+> +/*
+> + * drivers/mtd/nand/omap_omap_bch_decoder.c
+> + *
+> + * Whole BCH ECC Decoder (Post hardware generated syndrome decoding)
+> + *
+> + * Copyright (c) 2007 Texas Instruments
+> + *
+> + * Author: Sukumar Ghorai <s-ghorai@ti.com
+> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Michael Fillinger <m-fillinger@ti.=
+com>
 
-> It did not work for 4-bit, because of known reason. And I guess while
-> posting this patch you should also have mentioned/documented about
-> that. No?
-> 
-> > So can you check this version matching with your original code?
-> > In that case I can add your Signed-off.
-> Yes, you should. I can see this version has got many changes, but
-> original idea is same. 
-[Ghorai] there is no special idea needed to correct the ecc. Only correct algorithm is nedded.
- 
->[Ghorai]And not all code is changed. Does it?
-[Ghorai] can you send me your latest version?
+Vimal was the original author who has created this file
+[No change in file name/directory hierarchy].
+It's not fair to remove Vimal's author and add your's.
 
-> 
-> Regards,
-> Vimal
+Instead you should have kept his name and added your's.
+
+<snip>
+
+Regards,
+Kishore
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
