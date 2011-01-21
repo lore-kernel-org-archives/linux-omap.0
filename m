@@ -1,164 +1,54 @@
-From: "Nagendra" <nagendra@mistralsolutions.com>
-Subject: RE: OMAP3 - PM - Question - Disabling CLKEN and HFCLKOUT signals      from TWL4030 scripts
-Date: Fri, 21 Jan 2011 23:20:23 +0530
-Message-ID: <001501cbb993$b25c0fe0$17142fa0$@com>
-References: <005301cbb947$6d682730$48387590$@com> <23149.10.24.255.17.1295604867.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH RESEND v8 3/7] omap: gpmc: enable irq mode in gpmc
+Date: Fri, 21 Jan 2011 10:40:21 -0800
+Message-ID: <20110121184020.GD11678@atomide.com>
+References: <1295443503-14515-1-git-send-email-s-ghorai@ti.com>
+ <1295443503-14515-4-git-send-email-s-ghorai@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:39793 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754285Ab1AURuY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 12:50:24 -0500
-Received: by mail-fx0-f46.google.com with SMTP id 20so2022168fxm.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 Jan 2011 09:50:23 -0800 (PST)
-In-Reply-To: <23149.10.24.255.17.1295604867.squirrel@dbdmail.itg.ti.com>
-Content-Language: en-us
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:23338 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754717Ab1AUSk2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 13:40:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1295443503-14515-4-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Lesly A M' <leslyam@ti.com>
-Cc: linux-omap@vger.kernel.org, ratheesh@mistralsolutions.com
+To: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 
+* Sukumar Ghorai <s-ghorai@ti.com> [110119 05:24]:
+> add support the irq mode in GPMC.
+> gpmc_init() function move after omap_init_irq() as it has dependecy on irq.
+> 
+> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+> index e066177..527374f 100644
+> --- a/arch/arm/mach-omap2/board-2430sdp.c
+> +++ b/arch/arm/mach-omap2/board-2430sdp.c
+> @@ -146,6 +146,7 @@ static void __init omap_2430sdp_init_irq(void)
+>  	omap2_init_common_infrastructure();
+>  	omap2_init_common_devices(NULL, NULL);
+>  	omap_init_irq();
+> +	gpmc_init();
+>  }
+>  
+>  static struct twl4030_gpio_platform_data sdp2430_gpio_data = {
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+> index 8fb5f43..8304d16 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -335,6 +335,7 @@ static void __init omap_3430sdp_init_irq(void)
+>  	omap2_init_common_infrastructure();
+>  	omap2_init_common_devices(hyb18m512160af6_sdrc_params, NULL);
+>  	omap_init_irq();
+> +	gpmc_init();
+>  }
+...
 
-Please see responses inline below.
+I think I've commented on this before, but why don't you make gpmc_init
+a subsys_initcall? There should be no reason to call this earlier.
+If something does not work because of that, then that issue must be
+fixed.
 
-Hi Nagendra,
-
-> Hi All,
->
-> We are working on Power management on OMAP3 (3530) and I am trying to
-> disable CLKEN and HFCLKOUT through TWL4030 power scripts. However we have
-> not been able to achieve this.
->
-> Following are the changes and tests done so far.
->
-> - VAUX1, CLKEN and HFCLKOUT were assigned to P1 group.
-> - Wrote Singular messages to turn on/off these signals in TWL4030 scripts.
-> - We observed that VAUX1 is able to switch ON/OFF properly as per the
-script
-> but HFCLKOUT and CLKEN are not behaving as expected.
-> - However if we try writing CLKEN_DEV_GRP to zero, CLKEN is going low.
-> - We have made sure that SYS_OFF_MODE and CLK_REQ signals go low during
-the
-> system OFF mode, LVL_WAKEUP bit enabled in Px_SW_EVENTS, and STS_CHG bit
-in
-> STS_HW_CONDITIONS is zero.
->
-> Is there anything that I am missing? Kindly let me know.
-
-Did try probing the sys_clkreq from OMAP?
-<Nagendra> Yes nSLEEP1, nSLEEP2 and SYS_CLK_REQ signals go low during system
-OFF mode.
-
-Are you sending SLEEP/OFF command in singular msg?
-<Nagendra> Yes.
-
-Also check the HFCLKOUT_REMAP register for SLEEP_STATE[3:0], if using SLEEP
-cmd.
-<Nagendra> 
-We are setting SLEEP_STATE field of CLKEN and HFCLKOUT  to OFF mode.
-
-PSP version : 3.0.1.6
-
-Following is the TWL4030 power scripts that we are trying to get CLKEN
-signal to OFF state. This is based on rx51-peripherals.c 
-
------------------------------------------------
-static struct twl4030_ins sleep_on_seq[] __initdata = {
-        {MSG_SINGULAR(DEV_GRP_P1, RES_CLKEN, RES_STATE_OFF), 2},     
-};
-
-static struct twl4030_script sleep_on_script __initdata = {
-        .script = sleep_on_seq,
-        .size   = ARRAY_SIZE(sleep_on_seq),
-        .flags  = TWL4030_SLEEP_SCRIPT,
-};
-
-static struct twl4030_ins wakeup_seq[] __initdata = {
-        {MSG_SINGULAR(DEV_GRP_P1, RES_CLKEN, RES_STATE_ACTIVE), 2},
-};
-
-static struct twl4030_script wakeup_script __initdata = {
-        .script = wakeup_seq,
-        .size   = ARRAY_SIZE(wakeup_seq),
-        .flags  = TWL4030_WAKEUP12_SCRIPT,
-};
-
-static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-        {MSG_SINGULAR(DEV_GRP_P3, RES_CLKEN, RES_STATE_ACTIVE), 2},
-};
-
-static struct twl4030_script wakeup_p3_script __initdata = {
-        .script = wakeup_p3_seq,
-        .size   = ARRAY_SIZE(wakeup_p3_seq),
-        .flags  = TWL4030_WAKEUP3_SCRIPT,
-};
-
-static struct twl4030_ins wrst_seq[] __initdata = {
-/*
- * Reset twl4030.
- * Reset VDD1 regulator.
- * Reset VDD2 regulator.
- * Reset VPLL1 regulator.
- * Enable sysclk output.
- * Reenable twl4030.
- */
-        {MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
-        {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 0, 1, RES_STATE_ACTIVE),
-                0x13},
-        {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 3, RES_STATE_OFF),
-0x13},
-        {MSG_SINGULAR(DEV_GRP_NULL, RES_VDD1, RES_STATE_WRST), 0x13},
-        {MSG_SINGULAR(DEV_GRP_NULL, RES_VDD2, RES_STATE_WRST), 0x13},
-        {MSG_SINGULAR(DEV_GRP_NULL, RES_VPLL1, RES_STATE_WRST), 0x35},
-        {MSG_SINGULAR(DEV_GRP_P3, RES_HFCLKOUT, RES_STATE_ACTIVE), 2},
-        {MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
-};
-
-static struct twl4030_script wrst_script __initdata = {
-        .script = wrst_seq,
-        .size   = ARRAY_SIZE(wrst_seq),
-        .flags  = TWL4030_WRST_SCRIPT,
-};
-
-static struct twl4030_script *twl4030_scripts[] __initdata = {
-        /* wakeup12 script should be loaded before sleep script, otherwise a
-           board might hit retention before loading of wakeup script is
-           completed. This can cause boot failures depending on timing
-issues.
-        */
-        &wakeup_script,
-        &sleep_on_script,
-        &wakeup_p3_script,
-        &wrst_script,
-};
-
-static struct twl4030_resconfig twl4030_rconfig[] __initdata = {
-        { .resource = RES_CLKEN, .devgroup = DEV_GRP_P1,
-          .type = -1, .type2 = -1 , .remap_off = RES_STATE_OFF, .remap_sleep
-= RES_STATE_OFF
-        },
-        { .resource = RES_HFCLKOUT, .devgroup = -1,
-          .type = -1, .type2 = -1, .remap_off = RES_STATE_OFF, .remap_sleep
-= RES_STATE_OFF
-        },
-
-        { 0, 0},
-};
-----------------------------------------------------------
-
-Please let me know your comments.
-
-Regards,
-Lesly A M
-
->
-> Part number of TPS used in our board is TPS65950 BZXNR
->
-> with regards,
-> - Nagendra.
->
-
-
+Tony
