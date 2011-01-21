@@ -1,13 +1,13 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v8 04/18] OMAP3: hwmod data: add DSS DISPC RFBI DSI VENC
-Date: Fri, 21 Jan 2011 20:20:27 +0530
-Message-ID: <1295621441-16678-5-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v8 06/18] OMAP2,3 DSS2 Use Regulator init with driver name
+Date: Fri, 21 Jan 2011 20:20:29 +0530
+Message-ID: <1295621441-16678-7-git-send-email-sumit.semwal@ti.com>
 References: <1295621441-16678-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39144 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39154 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753393Ab1AUOva (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 09:51:30 -0500
+	id S1753572Ab1AUOvi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 09:51:38 -0500
 In-Reply-To: <1295621441-16678-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,543 +16,136 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Hwmod needs database of all IPs in a system. This patch generates the hwmod
-database for Display Sub System applicable for OMAP3430 and
-OMAP36xx.  DSS is also considered as an IP as DISPC, RFBI and named as dss_core.
-For all the IP modules in DSS, same clock is needed for enabling. Hwmod sees
-DSS IPs as independent IPs, so same clock has to be repeated for .main_clk in
-each IP.
+Use driver name in regulator inits needed for display instead of using device
+structure name.
 
-This patch defines separate hwmod databases for OMAP3430ES1 and (OMAP3430ES2 and
-OMAP36xx) as OMAP3430ES1 does not have IDLEST bit to poll on for dss IP, and also
-the firewall regions are different between 3430es1 and later.
-
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  433 ++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/l3_3xxx.h  |   20 ++
- arch/arm/plat-omap/include/plat/l4_3xxx.h  |   10 +
- 3 files changed, 463 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/plat/l3_3xxx.h
+ arch/arm/mach-omap2/board-3430sdp.c      |   11 +++--------
+ arch/arm/mach-omap2/board-cm-t35.c       |   12 ++++--------
+ arch/arm/mach-omap2/board-igep0020.c     |    6 ++----
+ arch/arm/mach-omap2/board-omap3evm.c     |    6 ++----
+ arch/arm/mach-omap2/board-omap3stalker.c |   12 ++++--------
+ 5 files changed, 15 insertions(+), 32 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 8d81813..713165d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -18,6 +18,7 @@
- #include <plat/cpu.h>
- #include <plat/dma.h>
- #include <plat/serial.h>
-+#include <plat/l3_3xxx.h>
- #include <plat/l4_3xxx.h>
- #include <plat/i2c.h>
- #include <plat/gpio.h>
-@@ -44,6 +45,12 @@ static struct omap_hwmod omap3xxx_l3_main_hwmod;
- static struct omap_hwmod omap3xxx_l4_core_hwmod;
- static struct omap_hwmod omap3xxx_l4_per_hwmod;
- static struct omap_hwmod omap3xxx_wd_timer2_hwmod;
-+static struct omap_hwmod omap3430es1_dss_core_hwmod;
-+static struct omap_hwmod omap3xxx_dss_core_hwmod;
-+static struct omap_hwmod omap3xxx_dss_dispc_hwmod;
-+static struct omap_hwmod omap3xxx_dss_dsi1_hwmod;
-+static struct omap_hwmod omap3xxx_dss_rfbi_hwmod;
-+static struct omap_hwmod omap3xxx_dss_venc_hwmod;
- static struct omap_hwmod omap3xxx_i2c1_hwmod;
- static struct omap_hwmod omap3xxx_i2c2_hwmod;
- static struct omap_hwmod omap3xxx_i2c3_hwmod;
-@@ -84,6 +91,19 @@ static struct omap_hwmod_ocp_if *omap3xxx_l3_main_slaves[] = {
- 	&omap3xxx_mpu__l3_main,
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 6f4e7cf..d99902c 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -315,10 +315,8 @@ static struct platform_device sdp3430_dss_device = {
+ 	},
  };
  
-+/* DSS -> l3 */
-+static struct omap_hwmod_ocp_if omap3xxx_dss__l3 = {
-+	.master		= &omap3xxx_dss_core_hwmod,
-+	.slave		= &omap3xxx_l3_main_hwmod,
-+	.fw = {
-+		.omap2 = {
-+			.l3_perm_bit  = OMAP3_L3_CORE_FW_INIT_ID_DSS,
-+			.flags	= OMAP_FIREWALL_L3,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* Master interfaces on the L3 interconnect */
- static struct omap_hwmod_ocp_if *omap3xxx_l3_main_masters[] = {
- 	&omap3xxx_l3_main__l4_core,
-@@ -664,6 +684,410 @@ static struct omap_hwmod_class i2c_class = {
- 	.sysc = &i2c_sysc,
+-static struct regulator_consumer_supply sdp3430_vdda_dac_supply = {
+-	.supply		= "vdda_dac",
+-	.dev		= &sdp3430_dss_device.dev,
+-};
++static struct regulator_consumer_supply sdp3430_vdda_dac_supply =
++	REGULATOR_SUPPLY("vdda_dac", "omap_display");
+ 
+ static struct platform_device *sdp3430_devices[] __initdata = {
+ 	&sdp3430_dss_device,
+@@ -546,10 +544,7 @@ static struct regulator_init_data sdp3430_vdac = {
+ 
+ /* VPLL2 for digital video outputs */
+ static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
+-	{
+-		.supply		= "vdds_dsi",
+-		.dev		= &sdp3430_dss_device.dev,
+-	}
++	REGULATOR_SUPPLY("vdds_dsi", "omap_display"),
  };
  
-+/*
-+ * 'dss' class
-+ * display sub-system
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap3xxx_dss_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap3xxx_dss_hwmod_class = {
-+	.name = "dss",
-+	.sysc = &omap3xxx_dss_sysc,
-+};
-+
-+/* dss */
-+static struct omap_hwmod_irq_info omap3xxx_dss_irqs[] = {
-+	{ .irq = 25 },
-+};
-+
-+static struct omap_hwmod_dma_info omap3xxx_dss_sdma_chs[] = {
-+	{ .name = "dispc", .dma_req = 5 },
-+	{ .name = "dsi1", .dma_req = 74 },
-+};
-+
-+/* dss */
-+/* dss master ports */
-+static struct omap_hwmod_ocp_if *omap3xxx_dss_masters[] = {
-+	&omap3xxx_dss__l3,
-+};
-+
-+static struct omap_hwmod_addr_space omap3xxx_dss_addrs[] = {
-+	{
-+		.pa_start	= 0x48050000,
-+		.pa_end		= 0x480503FF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> dss */
-+static struct omap_hwmod_ocp_if omap3430es1_l4_core__dss = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3430es1_dss_core_hwmod,
-+	.clk		= "dss_ick",
-+	.addr		= omap3xxx_dss_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_dss_addrs),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP3ES1_L4_CORE_FW_DSS_CORE_REGION,
-+			.l4_prot_group = OMAP3_L4_CORE_FW_DSS_PROT_GROUP,
-+			.flags	= OMAP_FIREWALL_L4,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__dss = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_dss_core_hwmod,
-+	.clk		= "dss_ick",
-+	.addr		= omap3xxx_dss_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_dss_addrs),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP3_L4_CORE_FW_DSS_CORE_REGION,
-+			.l4_prot_group = OMAP3_L4_CORE_FW_DSS_PROT_GROUP,
-+			.flags	= OMAP_FIREWALL_L4,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* dss slave ports */
-+static struct omap_hwmod_ocp_if *omap3430es1_dss_slaves[] = {
-+	&omap3430es1_l4_core__dss,
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_dss_slaves[] = {
-+	&omap3xxx_l4_core__dss,
-+};
-+
-+static struct omap_hwmod_opt_clk dss_opt_clks[] = {
-+	{ .role = "tv_clk", .clk = "dss_tv_fck" },
-+	{ .role = "dssclk", .clk = "dss_96m_fck" },
-+	{ .role = "sys_clk", .clk = "dss2_alwon_fck" },
-+};
-+
-+static struct omap_hwmod omap3430es1_dss_core_hwmod = {
-+	.name		= "dss_core",
-+	.class		= &omap3xxx_dss_hwmod_class,
-+	.main_clk	= "dss1_alwon_fck", /* instead of dss_fck */
-+	.mpu_irqs	= omap3xxx_dss_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_dss_irqs),
-+	.sdma_reqs	= omap3xxx_dss_sdma_chs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap3xxx_dss_sdma_chs),
-+
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_DSS1_SHIFT,
-+			.module_offs = OMAP3430_DSS_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_stdby_bit = OMAP3430ES1_ST_DSS_SHIFT,
-+		},
-+	},
-+	.opt_clks	= dss_opt_clks,
-+	.opt_clks_cnt = ARRAY_SIZE(dss_opt_clks),
-+	.slaves		= omap3430es1_dss_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3430es1_dss_slaves),
-+	.masters	= omap3xxx_dss_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap3xxx_dss_masters),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
-+	.flags		= HWMOD_NO_IDLEST,
-+};
-+
-+static struct omap_hwmod omap3xxx_dss_core_hwmod = {
-+	.name		= "dss_core",
-+	.class		= &omap3xxx_dss_hwmod_class,
-+	.main_clk	= "dss1_alwon_fck", /* instead of dss_fck */
-+	.mpu_irqs	= omap3xxx_dss_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_dss_irqs),
-+	.sdma_reqs	= omap3xxx_dss_sdma_chs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap3xxx_dss_sdma_chs),
-+
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_DSS1_SHIFT,
-+			.module_offs = OMAP3430_DSS_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430ES2_ST_DSS_IDLE_SHIFT,
-+			.idlest_stdby_bit = OMAP3430ES2_ST_DSS_STDBY_SHIFT,
-+		},
-+	},
-+	.opt_clks	= dss_opt_clks,
-+	.opt_clks_cnt = ARRAY_SIZE(dss_opt_clks),
-+	.slaves		= omap3xxx_dss_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_dss_slaves),
-+	.masters	= omap3xxx_dss_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap3xxx_dss_masters),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2 |
-+				CHIP_IS_OMAP3630ES1 | CHIP_GE_OMAP3630ES1_1),
-+};
-+
-+/*
-+ * 'dispc' class
-+ * display controller
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap3xxx_dispc_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_CLOCKACTIVITY |
-+			   SYSC_HAS_MIDLEMODE | SYSC_HAS_ENAWAKEUP |
-+			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap3xxx_dispc_hwmod_class = {
-+	.name = "dispc",
-+	.sysc = &omap3xxx_dispc_sysc,
-+};
-+
-+static struct omap_hwmod_addr_space omap3xxx_dss_dispc_addrs[] = {
-+	{
-+		.pa_start	= 0x48050400,
-+		.pa_end		= 0x480507FF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> dss_dispc */
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__dss_dispc = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_dss_dispc_hwmod,
-+	.clk		= "dss_ick",
-+	.addr		= omap3xxx_dss_dispc_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_dss_dispc_addrs),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP3_L4_CORE_FW_DSS_DISPC_REGION,
-+			.l4_prot_group = OMAP3_L4_CORE_FW_DSS_PROT_GROUP,
-+			.flags	= OMAP_FIREWALL_L4,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* dss_dispc slave ports */
-+static struct omap_hwmod_ocp_if *omap3xxx_dss_dispc_slaves[] = {
-+	&omap3xxx_l4_core__dss_dispc,
-+};
-+
-+static struct omap_hwmod omap3xxx_dss_dispc_hwmod = {
-+	.name		= "dss_dispc",
-+	.class		= &omap3xxx_dispc_hwmod_class,
-+	.main_clk	= "dss1_alwon_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_DSS1_SHIFT,
-+			.module_offs = OMAP3430_DSS_MOD,
-+		},
-+	},
-+	.slaves		= omap3xxx_dss_dispc_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_dss_dispc_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
-+				CHIP_GE_OMAP3430ES2 | CHIP_IS_OMAP3630ES1 |
-+				CHIP_GE_OMAP3630ES1_1),
-+	.flags		= HWMOD_NO_IDLEST,
-+};
-+
-+/*
-+ * 'dsi' class
-+ * display serial interface controller
-+ */
-+
-+static struct omap_hwmod_class omap3xxx_dsi_hwmod_class = {
-+	.name = "dsi",
-+};
-+
-+/* dss_dsi1 */
-+static struct omap_hwmod_addr_space omap3xxx_dss_dsi1_addrs[] = {
-+	{
-+		.pa_start	= 0x4804FC00,
-+		.pa_end		= 0x4804FFFF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> dss_dsi1 */
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__dss_dsi1 = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_dss_dsi1_hwmod,
-+	.addr		= omap3xxx_dss_dsi1_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_dss_dsi1_addrs),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP3_L4_CORE_FW_DSS_DSI_REGION,
-+			.l4_prot_group = OMAP3_L4_CORE_FW_DSS_PROT_GROUP,
-+			.flags	= OMAP_FIREWALL_L4,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* dss_dsi1 slave ports */
-+static struct omap_hwmod_ocp_if *omap3xxx_dss_dsi1_slaves[] = {
-+	&omap3xxx_l4_core__dss_dsi1,
-+};
-+
-+static struct omap_hwmod omap3xxx_dss_dsi1_hwmod = {
-+	.name		= "dss_dsi1",
-+	.class		= &omap3xxx_dsi_hwmod_class,
-+	.main_clk	= "dss1_alwon_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_DSS1_SHIFT,
-+			.module_offs = OMAP3430_DSS_MOD,
-+		},
-+	},
-+	.slaves		= omap3xxx_dss_dsi1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_dss_dsi1_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
-+				CHIP_GE_OMAP3430ES2 | CHIP_IS_OMAP3630ES1 |
-+				CHIP_GE_OMAP3630ES1_1),
-+	.flags		= HWMOD_NO_IDLEST,
-+};
-+
-+/*
-+ * 'rfbi' class
-+ * remote frame buffer interface
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap3xxx_rfbi_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap3xxx_rfbi_hwmod_class = {
-+	.name = "rfbi",
-+	.sysc = &omap3xxx_rfbi_sysc,
-+};
-+
-+static struct omap_hwmod_addr_space omap3xxx_dss_rfbi_addrs[] = {
-+	{
-+		.pa_start	= 0x48050800,
-+		.pa_end		= 0x48050BFF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> dss_rfbi */
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__dss_rfbi = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_dss_rfbi_hwmod,
-+	.clk		= "dss_ick",
-+	.addr		= omap3xxx_dss_rfbi_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_dss_rfbi_addrs),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP3_L4_CORE_FW_DSS_RFBI_REGION,
-+			.l4_prot_group = OMAP3_L4_CORE_FW_DSS_PROT_GROUP ,
-+			.flags	= OMAP_FIREWALL_L4,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* dss_rfbi slave ports */
-+static struct omap_hwmod_ocp_if *omap3xxx_dss_rfbi_slaves[] = {
-+	&omap3xxx_l4_core__dss_rfbi,
-+};
-+
-+static struct omap_hwmod omap3xxx_dss_rfbi_hwmod = {
-+	.name		= "dss_rfbi",
-+	.class		= &omap3xxx_rfbi_hwmod_class,
-+	.main_clk	= "dss1_alwon_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_DSS1_SHIFT,
-+			.module_offs = OMAP3430_DSS_MOD,
-+		},
-+	},
-+	.slaves		= omap3xxx_dss_rfbi_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_dss_rfbi_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
-+				CHIP_GE_OMAP3430ES2 | CHIP_IS_OMAP3630ES1 |
-+				CHIP_GE_OMAP3630ES1_1),
-+	.flags		= HWMOD_NO_IDLEST,
-+};
-+
-+/*
-+ * 'venc' class
-+ * video encoder
-+ */
-+
-+static struct omap_hwmod_class omap3xxx_venc_hwmod_class = {
-+	.name = "venc",
-+};
-+
-+/* dss_venc */
-+static struct omap_hwmod_addr_space omap3xxx_dss_venc_addrs[] = {
-+	{
-+		.pa_start	= 0x48050C00,
-+		.pa_end		= 0x48050FFF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> dss_venc */
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__dss_venc = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_dss_venc_hwmod,
-+	.clk		= "dss_tv_fck",
-+	.addr		= omap3xxx_dss_venc_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_dss_venc_addrs),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP3_L4_CORE_FW_DSS_VENC_REGION,
-+			.l4_prot_group = OMAP3_L4_CORE_FW_DSS_PROT_GROUP,
-+			.flags	= OMAP_FIREWALL_L4,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* dss_venc slave ports */
-+static struct omap_hwmod_ocp_if *omap3xxx_dss_venc_slaves[] = {
-+	&omap3xxx_l4_core__dss_venc,
-+};
-+
-+static struct omap_hwmod omap3xxx_dss_venc_hwmod = {
-+	.name		= "dss_venc",
-+	.class		= &omap3xxx_venc_hwmod_class,
-+	.main_clk	= "dss1_alwon_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_DSS1_SHIFT,
-+			.module_offs = OMAP3430_DSS_MOD,
-+		},
-+	},
-+	.slaves		= omap3xxx_dss_venc_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_dss_venc_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
-+				CHIP_GE_OMAP3430ES2 | CHIP_IS_OMAP3630ES1 |
-+				CHIP_GE_OMAP3630ES1_1),
-+	.flags		= HWMOD_NO_IDLEST,
-+};
-+
- /* I2C1 */
+ static struct regulator_init_data sdp3430_vpll2 = {
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 79f87ec..22322d1 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -495,15 +495,11 @@ static struct regulator_consumer_supply cm_t35_vsim_supply = {
+ 	.supply			= "vmmc_aux",
+ };
  
- static struct omap_i2c_dev_attr i2c1_dev_attr = {
-@@ -1368,6 +1792,15 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_uart2_hwmod,
- 	&omap3xxx_uart3_hwmod,
- 	&omap3xxx_uart4_hwmod,
-+	/* dss class */
-+	&omap3430es1_dss_core_hwmod,
-+	&omap3xxx_dss_core_hwmod,
-+	&omap3xxx_dss_dispc_hwmod,
-+	&omap3xxx_dss_dsi1_hwmod,
-+	&omap3xxx_dss_rfbi_hwmod,
-+	&omap3xxx_dss_venc_hwmod,
-+
-+	/* i2c class */
- 	&omap3xxx_i2c1_hwmod,
- 	&omap3xxx_i2c2_hwmod,
- 	&omap3xxx_i2c3_hwmod,
-diff --git a/arch/arm/plat-omap/include/plat/l3_3xxx.h b/arch/arm/plat-omap/include/plat/l3_3xxx.h
-new file mode 100644
-index 0000000..cde1938
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/l3_3xxx.h
-@@ -0,0 +1,20 @@
-+/*
-+ * arch/arm/plat-omap/include/plat/l3_3xxx.h - L3 firewall definitions
-+ *
-+ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Sumit Semwal
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ */
-+#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_L3_3XXX_H
-+#define __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_L3_3XXX_H
-+
-+/* L3 Initiator IDs */
-+/* Display Sub system (DSS) */
-+#define OMAP3_L3_CORE_FW_INIT_ID_DSS			29
-+
-+#endif
-diff --git a/arch/arm/plat-omap/include/plat/l4_3xxx.h b/arch/arm/plat-omap/include/plat/l4_3xxx.h
-index 5e19493..881a858 100644
---- a/arch/arm/plat-omap/include/plat/l4_3xxx.h
-+++ b/arch/arm/plat-omap/include/plat/l4_3xxx.h
-@@ -21,4 +21,14 @@
- #define OMAP3_L4_CORE_FW_I2C3_REGION				73
- #define OMAP3_L4_CORE_FW_I2C3_TA_REGION				74
+-static struct regulator_consumer_supply cm_t35_vdac_supply = {
+-	.supply		= "vdda_dac",
+-	.dev		= &cm_t35_dss_device.dev,
+-};
++static struct regulator_consumer_supply cm_t35_vdac_supply =
++	REGULATOR_SUPPLY("vdda_dac", "omap_display");
  
-+/* Display Sub system (DSS) */
-+#define OMAP3_L4_CORE_FW_DSS_PROT_GROUP				2
-+
-+#define OMAP3_L4_CORE_FW_DSS_DSI_REGION				104
-+#define OMAP3ES1_L4_CORE_FW_DSS_CORE_REGION			3
-+#define OMAP3_L4_CORE_FW_DSS_CORE_REGION			4
-+#define OMAP3_L4_CORE_FW_DSS_DISPC_REGION			4
-+#define OMAP3_L4_CORE_FW_DSS_RFBI_REGION			5
-+#define OMAP3_L4_CORE_FW_DSS_VENC_REGION			6
-+#define OMAP3_L4_CORE_FW_DSS_TA_REGION				7
- #endif
+-static struct regulator_consumer_supply cm_t35_vdvi_supply = {
+-	.supply		= "vdvi",
+-	.dev		= &cm_t35_dss_device.dev,
+-};
++static struct regulator_consumer_supply cm_t35_vdvi_supply =
++	REGULATOR_SUPPLY("vdvi", "omap_display");
+ 
+ /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+ static struct regulator_init_data cm_t35_vmmc1 = {
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 23abfa3..238c69e 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -493,10 +493,8 @@ static struct platform_device igep2_dss_device = {
+ 	},
+ };
+ 
+-static struct regulator_consumer_supply igep2_vpll2_supply = {
+-	.supply	= "vdds_dsi",
+-	.dev	= &igep2_dss_device.dev,
+-};
++static struct regulator_consumer_supply igep2_vpll2_supply =
++	REGULATOR_SUPPLY("vdds_dsi", "omap_display");
+ 
+ static struct regulator_init_data igep2_vpll2 = {
+ 	.constraints = {
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 4ad3c4d..32ac816 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -500,10 +500,8 @@ static struct twl4030_codec_data omap3evm_codec_data = {
+ 	.audio = &omap3evm_audio_data,
+ };
+ 
+-static struct regulator_consumer_supply omap3_evm_vdda_dac_supply = {
+-	.supply		= "vdda_dac",
+-	.dev		= &omap3_evm_dss_device.dev,
+-};
++static struct regulator_consumer_supply omap3_evm_vdda_dac_supply =
++	REGULATOR_SUPPLY("vdda_dac", "omap_display");
+ 
+ /* VDAC for DSS driving S-Video */
+ static struct regulator_init_data omap3_evm_vdac = {
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 51c010c..7b675cb 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -448,10 +448,8 @@ static struct twl4030_codec_data omap3stalker_codec_data = {
+ 	.audio		= &omap3stalker_audio_data,
+ };
+ 
+-static struct regulator_consumer_supply omap3_stalker_vdda_dac_supply = {
+-	.supply		= "vdda_dac",
+-	.dev		= &omap3_stalker_dss_device.dev,
+-};
++static struct regulator_consumer_supply omap3_stalker_vdda_dac_supply =
++	REGULATOR_SUPPLY("vdda_dac", "omap_display");
+ 
+ /* VDAC for DSS driving S-Video */
+ static struct regulator_init_data omap3_stalker_vdac = {
+@@ -469,10 +467,8 @@ static struct regulator_init_data omap3_stalker_vdac = {
+ };
+ 
+ /* VPLL2 for digital video outputs */
+-static struct regulator_consumer_supply omap3_stalker_vpll2_supply = {
+-	.supply		= "vdds_dsi",
+-	.dev		= &omap3_stalker_lcd_device.dev,
+-};
++static struct regulator_consumer_supply omap3_stalker_vpll2_supply =
++	REGULATOR_SUPPLY("vdds_dsi", "omap_display");
+ 
+ static struct regulator_init_data omap3_stalker_vpll2 = {
+ 	.constraints		= {
 -- 
 1.7.1
 
