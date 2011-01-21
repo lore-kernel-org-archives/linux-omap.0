@@ -1,13 +1,13 @@
 From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH 10/13] OMAP3: Add voltage dependency table for VDD1.
-Date: Fri, 21 Jan 2011 19:31:02 +0530
-Message-ID: <1295618465-15234-11-git-send-email-vishwanath.bs@ti.com>
+Subject: [PATCH 07/13] OMAP3: Introduce custom set rate and get rate APIs for scalable devices
+Date: Fri, 21 Jan 2011 19:30:59 +0530
+Message-ID: <1295618465-15234-8-git-send-email-vishwanath.bs@ti.com>
 References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52511 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752764Ab1AUN5r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 08:57:47 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:33517 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751487Ab1AUN5q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 08:57:46 -0500
 In-Reply-To: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,80 +16,121 @@ Cc: patches@linaro.org, Thara Gopinath <thara@ti.com>
 
 From: Thara Gopinath <thara@ti.com>
 
-In OMAP3, for perfomrance reasons when VDD1 is at voltage above
-1.075V, VDD2 should be at 1.15V for perfomrance reasons. This
-patch introduce this cross VDD dependency for OMAP3 VDD1.
+This patch also introduces omap3_mpu_set_rate, omap3_iva_set_rate,
+omap3_l3_set_rate, omap3_mpu_get_rate, omap3_iva_get_rate,
+omap3_l3_get_rate as device specific set rate and get rate
+APIs for OMAP3 mpu, iva and l3_main devices. This patch also
+calls into omap_device_populate_rate_fns during system init to register
+various set_rate and get_rate APIs with the omap device layer
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
-
-This patch has checkpatch warnings for line over 80 chars. It is not fixed for
-code readability.
 ---
- arch/arm/mach-omap2/voltage.c |   42 +++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 40 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/pm.c |   71 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 71 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 92fe20d..8881c0c 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -191,6 +191,39 @@ static struct omap_volt_data omap44xx_vdd_core_volt_data[] = {
- 	VOLT_DATA_DEFINE(0, 0, 0, 0),
- };
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index d5a102c..1b94ad4 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -23,6 +23,9 @@
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+ #include "pm.h"
++#include "cm2xxx_3xxx.h"
++#include "cm-regbits-34xx.h"
++#include "prm.h"
  
-+/* OMAP 3430 MPU Core VDD dependency table */
-+static struct omap_vdd_dep_volt omap34xx_vdd1_vdd2_data[] = {
-+	{.main_vdd_volt = OMAP3430_VDD_MPU_OPP1_UV, .dep_vdd_volt = OMAP4430_VDD_CORE_OPP50_UV},
-+	{.main_vdd_volt = OMAP3430_VDD_MPU_OPP2_UV, .dep_vdd_volt = OMAP4430_VDD_CORE_OPP50_UV},
-+	{.main_vdd_volt = OMAP3430_VDD_MPU_OPP3_UV, .dep_vdd_volt = OMAP4430_VDD_CORE_OPP100_UV},
-+	{.main_vdd_volt = OMAP3430_VDD_MPU_OPP4_UV, .dep_vdd_volt = OMAP4430_VDD_CORE_OPP100_UV},
-+	{.main_vdd_volt = OMAP3430_VDD_MPU_OPP5_UV, .dep_vdd_volt = OMAP4430_VDD_CORE_OPP100_UV},
-+	{.main_vdd_volt = 0, .dep_vdd_volt = 0},
-+};
-+
-+static struct omap_vdd_dep_info omap34xx_vdd1_dep_info[] = {
-+	{
-+		.name	= "core",
-+		.dep_table = omap34xx_vdd1_vdd2_data,
-+	},
-+};
-+
-+/* OMAP 3630 MPU Core VDD dependency table */
-+static struct omap_vdd_dep_volt omap36xx_vdd1_vdd2_data[] = {
-+	{.main_vdd_volt = OMAP3630_VDD_MPU_OPP50_UV, .dep_vdd_volt = OMAP3630_VDD_CORE_OPP50_UV},
-+	{.main_vdd_volt = OMAP3630_VDD_MPU_OPP100_UV, .dep_vdd_volt = OMAP3630_VDD_CORE_OPP100_UV},
-+	{.main_vdd_volt = OMAP3630_VDD_MPU_OPP120_UV, .dep_vdd_volt = OMAP3630_VDD_CORE_OPP100_UV},
-+	{.main_vdd_volt = OMAP3630_VDD_MPU_OPP1G_UV, .dep_vdd_volt = OMAP3630_VDD_CORE_OPP100_UV},
-+	{.main_vdd_volt = 0, .dep_vdd_volt = 0},
-+};
-+
-+static struct omap_vdd_dep_info omap36xx_vdd1_dep_info[] = {
-+	{
-+		.name	= "core",
-+		.dep_table = omap36xx_vdd1_vdd2_data,
-+	},
-+};
-+
- static struct dentry *voltage_dir;
+ static struct omap_device_pm_latency *pm_lats;
  
- /* Init function pointers */
-@@ -696,10 +729,15 @@ static int __init omap3_vdd_data_configure(struct omap_vdd_info *vdd)
+@@ -31,6 +34,8 @@ static struct device *iva_dev;
+ static struct device *l3_dev;
+ static struct device *dsp_dev;
+ 
++static struct clk *dpll1_clk, *dpll2_clk, *dpll3_clk;
++
+ struct device *omap2_get_mpuss_device(void)
+ {
+ 	WARN_ON_ONCE(!mpu_dev);
+@@ -77,6 +82,55 @@ static int _init_omap_device(char *name, struct device **new_dev)
+ 	return 0;
+ }
+ 
++static unsigned long omap3_mpu_get_rate(struct device *dev)
++{
++	return dpll1_clk->rate;
++}
++
++static int omap3_mpu_set_rate(struct device *dev, unsigned long rate)
++{
++	int ret;
++
++	ret = clk_set_rate(dpll1_clk, rate);
++	if (ret) {
++		dev_warn(dev, "%s: Unable to set rate to %ld\n",
++			__func__, rate);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int omap3_iva_set_rate(struct device *dev, unsigned long rate)
++{
++	return clk_set_rate(dpll2_clk, rate);
++}
++
++static unsigned long omap3_iva_get_rate(struct device *dev)
++{
++	return dpll2_clk->rate;
++}
++
++static int omap3_l3_set_rate(struct device *dev, unsigned long rate)
++{
++	int l3_div;
++
++	l3_div = omap2_cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
++			OMAP3430_CLKSEL_L3_MASK;
++
++	return clk_set_rate(dpll3_clk, rate * l3_div);
++}
++
++static unsigned long omap3_l3_get_rate(struct device *dev)
++{
++	int l3_div;
++
++	l3_div = omap2_cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
++			OMAP3430_CLKSEL_L3_MASK;
++	return dpll3_clk->rate / l3_div;
++}
++
++
+ /*
+  * Build omap_devices for processors and bus.
+  */
+@@ -90,6 +144,23 @@ static void omap2_init_processor_devices(void)
+ 	} else {
+ 		_init_omap_device("l3_main", &l3_dev);
  	}
++
++	if (cpu_is_omap34xx()) {
++		dpll1_clk = clk_get(NULL, "dpll1_ck");
++		dpll2_clk = clk_get(NULL, "dpll2_ck");
++		dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
++
++		if (mpu_dev)
++			omap_device_register_dvfs_callbacks(mpu_dev,
++				omap3_mpu_set_rate, omap3_mpu_get_rate);
++		if (iva_dev)
++			omap_device_register_dvfs_callbacks(iva_dev,
++				omap3_iva_set_rate, omap3_iva_get_rate);
++		if (l3_dev)
++			omap_device_register_dvfs_callbacks(l3_dev,
++				omap3_l3_set_rate, omap3_l3_get_rate);
++
++	}
+ }
  
- 	if (!strcmp(vdd->voltdm.name, "mpu")) {
--		if (cpu_is_omap3630())
-+		if (cpu_is_omap3630()) {
- 			vdd->volt_data = omap36xx_vddmpu_volt_data;
--		else
-+			vdd->dep_vdd_info = omap36xx_vdd1_dep_info;
-+			vdd->nr_dep_vdd = ARRAY_SIZE(omap36xx_vdd1_dep_info);
-+		} else {
- 			vdd->volt_data = omap34xx_vddmpu_volt_data;
-+			vdd->dep_vdd_info = omap34xx_vdd1_dep_info;
-+			vdd->nr_dep_vdd = ARRAY_SIZE(omap34xx_vdd1_dep_info);
-+		}
- 
- 		vdd->vp_reg.tranxdone_status = OMAP3430_VP1_TRANXDONE_ST_MASK;
- 		vdd->vc_reg.cmdval_reg = OMAP3_PRM_VC_CMD_VAL_0_OFFSET;
+ /* Types of sleep_switch used in omap_set_pwrdm_state */
 -- 
 1.7.0.4
 
