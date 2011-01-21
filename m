@@ -1,162 +1,188 @@
 From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH 11/13] OMAP2PLUS: Replace voltage values with Macros
-Date: Fri, 21 Jan 2011 19:31:03 +0530
-Message-ID: <1295618465-15234-12-git-send-email-vishwanath.bs@ti.com>
+Subject: [PATCH 05/13] OMAP: Introduce device scale implementation
+Date: Fri, 21 Jan 2011 19:30:57 +0530
+Message-ID: <1295618465-15234-6-git-send-email-vishwanath.bs@ti.com>
 References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60810 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33510 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752647Ab1AUN5r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 08:57:47 -0500
+	id S1752665Ab1AUN5o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 08:57:44 -0500
 In-Reply-To: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Vishwanath BS <vishwanath.bs@ti.com>
+Cc: patches@linaro.org, Vishwanath BS <vishwanath.bs@ti.com>, Thara Gopinath <thara@ti.com>
 
-Currently voltage values on opp tables are hardcoded. As these voltage values
-are anyway defined in voltage.h as macros, opp table can reuse these values.
-This will avoid opp table and voltage layer having conflicting values.
+This patch adds omap_device_scale API  which can be used to generic
+device rate scaling.
+
+Based on original patch from Thara.
 
 Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-This patch has 2 line over 80 char warning. This is kept for readability
-purpose.
+Cc: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/opp3xxx_data.c |   47 ++++++++++++++++++-----------------
- arch/arm/mach-omap2/opp4xxx_data.c |   13 +++++----
- 2 files changed, 31 insertions(+), 29 deletions(-)
+ arch/arm/mach-omap2/dvfs.c             |  116 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/dvfs.h |    7 ++
+ 2 files changed, 123 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index 0486fce..eefd6af 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -19,20 +19,21 @@
- #include <linux/module.h>
- 
- #include <plat/cpu.h>
-+#include <plat/voltage.h>
- 
- #include "omap_opp_data.h"
- 
- static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	/* MPU OPP1 */
--	OPP_INITIALIZER("mpu", true, 125000000, 975000),
-+	OPP_INITIALIZER("mpu", true, 125000000, OMAP3430_VDD_MPU_OPP1_UV),
- 	/* MPU OPP2 */
--	OPP_INITIALIZER("mpu", true, 250000000, 1075000),
-+	OPP_INITIALIZER("mpu", true, 250000000, OMAP3430_VDD_MPU_OPP2_UV),
- 	/* MPU OPP3 */
--	OPP_INITIALIZER("mpu", true, 500000000, 1200000),
-+	OPP_INITIALIZER("mpu", true, 500000000, OMAP3430_VDD_MPU_OPP3_UV),
- 	/* MPU OPP4 */
--	OPP_INITIALIZER("mpu", true, 550000000, 1270000),
-+	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* MPU OPP5 */
--	OPP_INITIALIZER("mpu", true, 600000000, 1350000),
-+	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
- 
- 	/*
- 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-@@ -42,47 +43,47 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	 * impact that frequency will do to the MPU and the whole system in
- 	 * general.
- 	 */
--	OPP_INITIALIZER("l3_main", false, 41500000, 975000),
-+	OPP_INITIALIZER("l3_main", false, 41500000, OMAP3430_VDD_CORE_OPP1_UV),
- 	/* L3 OPP2 */
--	OPP_INITIALIZER("l3_main", true, 83000000, 1050000),
-+	OPP_INITIALIZER("l3_main", true, 83000000, OMAP3430_VDD_CORE_OPP2_UV),
- 	/* L3 OPP3 */
--	OPP_INITIALIZER("l3_main", true, 166000000, 1150000),
-+	OPP_INITIALIZER("l3_main", true, 166000000, OMAP3430_VDD_CORE_OPP3_UV),
- 
- 	/* DSP OPP1 */
--	OPP_INITIALIZER("iva", true, 90000000, 975000),
-+	OPP_INITIALIZER("iva", true, 90000000, OMAP3430_VDD_MPU_OPP1_UV),
- 	/* DSP OPP2 */
--	OPP_INITIALIZER("iva", true, 180000000, 1075000),
-+	OPP_INITIALIZER("iva", true, 180000000, OMAP3430_VDD_MPU_OPP2_UV),
- 	/* DSP OPP3 */
--	OPP_INITIALIZER("iva", true, 360000000, 1200000),
-+	OPP_INITIALIZER("iva", true, 360000000, OMAP3430_VDD_MPU_OPP3_UV),
- 	/* DSP OPP4 */
--	OPP_INITIALIZER("iva", true, 400000000, 1270000),
-+	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* DSP OPP5 */
--	OPP_INITIALIZER("iva", true, 430000000, 1350000),
-+	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
- };
- 
- static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
- 	/* MPU OPP1 - OPP50 */
--	OPP_INITIALIZER("mpu", true,  300000000, 1012500),
-+	OPP_INITIALIZER("mpu", true,  300000000, OMAP3630_VDD_MPU_OPP50_UV),
- 	/* MPU OPP2 - OPP100 */
--	OPP_INITIALIZER("mpu", true,  600000000, 1200000),
-+	OPP_INITIALIZER("mpu", true,  600000000, OMAP3630_VDD_MPU_OPP100_UV),
- 	/* MPU OPP3 - OPP-Turbo */
--	OPP_INITIALIZER("mpu", false, 800000000, 1325000),
-+	OPP_INITIALIZER("mpu", false, 800000000, OMAP3630_VDD_MPU_OPP120_UV),
- 	/* MPU OPP4 - OPP-SB */
--	OPP_INITIALIZER("mpu", false, 1000000000, 1375000),
-+	OPP_INITIALIZER("mpu", false, 1000000000, OMAP3630_VDD_MPU_OPP1G_UV),
- 
- 	/* L3 OPP1 - OPP50 */
--	OPP_INITIALIZER("l3_main", true, 100000000, 1000000),
-+	OPP_INITIALIZER("l3_main", true, 100000000, OMAP3630_VDD_CORE_OPP50_UV),
- 	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
--	OPP_INITIALIZER("l3_main", true, 200000000, 1200000),
-+	OPP_INITIALIZER("l3_main", true, 200000000, OMAP3630_VDD_CORE_OPP100_UV),
- 
- 	/* DSP OPP1 - OPP50 */
--	OPP_INITIALIZER("iva", true,  260000000, 1012500),
-+	OPP_INITIALIZER("iva", true,  260000000, OMAP3630_VDD_MPU_OPP50_UV),
- 	/* DSP OPP2 - OPP100 */
--	OPP_INITIALIZER("iva", true,  520000000, 1200000),
-+	OPP_INITIALIZER("iva", true,  520000000, OMAP3630_VDD_MPU_OPP100_UV),
- 	/* DSP OPP3 - OPP-Turbo */
--	OPP_INITIALIZER("iva", false, 660000000, 1325000),
-+	OPP_INITIALIZER("iva", false, 660000000, OMAP3630_VDD_MPU_OPP120_UV),
- 	/* DSP OPP4 - OPP-SB */
--	OPP_INITIALIZER("iva", false, 800000000, 1375000),
-+	OPP_INITIALIZER("iva", false, 800000000, OMAP3630_VDD_MPU_OPP1G_UV),
- };
+diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-omap2/dvfs.c
+index c9d3894..05a9ce3 100755
+--- a/arch/arm/mach-omap2/dvfs.c
++++ b/arch/arm/mach-omap2/dvfs.c
+@@ -19,6 +19,7 @@
+ #include <plat/common.h>
+ #include <plat/voltage.h>
+ #include <plat/omap_device.h>
++#include <plat/smartreflex.h>
  
  /**
-diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
-index a11fa56..80d08bc 100644
---- a/arch/arm/mach-omap2/opp4xxx_data.c
-+++ b/arch/arm/mach-omap2/opp4xxx_data.c
-@@ -20,22 +20,23 @@
- #include <linux/module.h>
+  * struct omap_dev_user_list - Structure maitain userlist per device
+@@ -585,6 +586,121 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
+ }
  
- #include <plat/cpu.h>
-+#include <plat/voltage.h>
+ /**
++ * omap_device_scale() - Set a new rate at which the device is to operate
++ * @req_dev:	pointer to the device requesting the scaling.
++ * @target_dev:	pointer to the device that is to be scaled
++ * @rate:	the rnew rate for the device.
++ *
++ * This API gets the device opp table associated with this device and
++ * tries putting the device to the requested rate and the voltage domain
++ * associated with the device to the voltage corresponding to the
++ * requested rate. Since multiple devices can be assocciated with a
++ * voltage domain this API finds out the possible voltage the
++ * voltage domain can enter and then decides on the final device
++ * rate. Return 0 on success else the error value
++ */
++int omap_device_scale(struct device *req_dev, struct device *target_dev,
++			unsigned long rate)
++{
++	struct opp *opp;
++	unsigned long volt, freq, min_freq, max_freq;
++	struct omap_vdd_dvfs_info *dvfs_info;
++	struct platform_device *pdev;
++	struct omap_device *od;
++	int ret = 0;
++
++	pdev = container_of(target_dev, struct platform_device, dev);
++	od = container_of(pdev, struct omap_device, pdev);
++
++	/*
++	 * Figure out if the desired frquency lies between the
++	 * maximum and minimum possible for the particular device
++	 */
++	min_freq = 0;
++	if (IS_ERR(opp_find_freq_ceil(target_dev, &min_freq))) {
++		dev_err(target_dev, "%s: Unable to find lowest opp\n",
++						__func__);
++		return -ENODEV;
++	}
++
++	max_freq = ULONG_MAX;
++	if (IS_ERR(opp_find_freq_floor(target_dev, &max_freq))) {
++		dev_err(target_dev, "%s: Unable to find highest opp\n",
++						__func__);
++		return -ENODEV;
++	}
++
++	if (rate < min_freq)
++		freq = min_freq;
++	else if (rate > max_freq)
++		freq = max_freq;
++	else
++		freq = rate;
++
++	opp = opp_find_freq_ceil(target_dev, &freq);
++	if (IS_ERR(opp)) {
++		dev_err(target_dev, "%s: Unable to find OPP for freq%ld\n",
++			__func__, rate);
++		return -ENODEV;
++	}
++
++	/* Get the voltage corresponding to the requested frequency */
++	volt = opp_get_voltage(opp);
++
++	/*
++	 * Call into the voltage layer to get the final voltage possible
++	 * for the voltage domain associated with the device.
++	 */
++
++	if (rate) {
++		dvfs_info = get_dvfs_info(od->hwmods[0]->voltdm);
++
++		ret = omap_dvfs_add_freq_request(dvfs_info, req_dev,
++						target_dev, freq);
++		if (ret) {
++			dev_err(target_dev, "%s: Unable to add frequency request\n",
++				__func__);
++			return ret;
++		}
++
++		ret = omap_dvfs_add_vdd_user(dvfs_info, req_dev, volt);
++		if (ret) {
++			dev_err(target_dev, "%s: Unable to add voltage request\n",
++				__func__);
++			omap_dvfs_remove_freq_request(dvfs_info, req_dev,
++				target_dev);
++			return ret;
++		}
++	} else {
++		dvfs_info = get_dvfs_info(od->hwmods[0]->voltdm);
++
++		ret = omap_dvfs_remove_freq_request(dvfs_info, req_dev,
++				target_dev);
++		if (ret) {
++			dev_err(target_dev, "%s: Unable to remove frequency request\n",
++				__func__);
++			return ret;
++		}
++
++		ret = omap_dvfs_remove_vdd_user(dvfs_info, req_dev);
++		if (ret) {
++			dev_err(target_dev, "%s: Unable to remove voltage request\n",
++				__func__);
++			return ret;
++		}
++	}
++
++	/* Do the actual scaling */
++	ret = omap_dvfs_voltage_scale(dvfs_info);
++	if (!ret)
++		if (omap_device_get_rate(target_dev) >= rate)
++			return 0;
++
++	return ret;
++}
++EXPORT_SYMBOL(omap_device_scale);
++
++/**
+  * omap_dvfs_init() - Initialize omap dvfs layer
+  *
+  * Initalizes omap dvfs layer. It basically allocates memory for
+diff --git a/arch/arm/plat-omap/include/plat/dvfs.h b/arch/arm/plat-omap/include/plat/dvfs.h
+index 1302990..1be2b9d 100644
+--- a/arch/arm/plat-omap/include/plat/dvfs.h
++++ b/arch/arm/plat-omap/include/plat/dvfs.h
+@@ -17,11 +17,18 @@
  
- #include "omap_opp_data.h"
- 
- static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
- 	/* MPU OPP1 - OPP50 */
--	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
-+	OPP_INITIALIZER("mpu", true, 300000000, OMAP4430_VDD_MPU_OPP50_UV),
- 	/* MPU OPP2 - OPP100 */
--	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
-+	OPP_INITIALIZER("mpu", true, 600000000, OMAP4430_VDD_MPU_OPP100_UV),
- 	/* MPU OPP3 - OPP-Turbo */
--	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
-+	OPP_INITIALIZER("mpu", false, 800000000, OMAP4430_VDD_MPU_OPPTURBO_UV),
- 	/* MPU OPP4 - OPP-SB */
--	OPP_INITIALIZER("mpu", false, 1008000000, 1350000),
-+	OPP_INITIALIZER("mpu", false, 1008000000, OMAP4430_VDD_MPU_OPPNITRO_UV),
- 	/* L3 OPP1 - OPP50 */
--	OPP_INITIALIZER("l3_main_1", true, 100000000, 930000),
-+	OPP_INITIALIZER("l3_main_1", true, 100000000, OMAP4430_VDD_CORE_OPP50_UV),
- 	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
--	OPP_INITIALIZER("l3_main_1", true, 200000000, 1100000),
-+	OPP_INITIALIZER("l3_main_1", true, 200000000, OMAP4430_VDD_CORE_OPP100_UV),
- 	/* TODO: add IVA, DSP, aess, fdif, gpu */
- };
- 
+ #ifdef CONFIG_PM
+ int omap_dvfs_register_device(struct voltagedomain *voltdm, struct device *dev);
++int omap_device_scale(struct device *req_dev, struct device *dev,
++			unsigned long rate);
+ #else
+ static inline int omap_dvfs_register_device(struct voltagedomain *voltdm,
+ 		struct device *dev)
+ {
+ 	return -EINVAL;
+ }
++static inline int omap_device_scale(struct device *req_dev, struct devices
++			*target_dev, unsigned long rate);
++{
++	return -EINVAL;
++}
+ #endif
+ #endif
 -- 
 1.7.0.4
 
