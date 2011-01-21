@@ -1,78 +1,167 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK to speed-up
- boot
-Date: Fri, 21 Jan 2011 09:00:04 -0600
-Message-ID: <4D399F74.9050302@gmail.com>
-References: <1295516579-10225-1-git-send-email-santosh.shilimkar@ti.com> <4D385155.4050301@gmail.com> <43c027bd53818ab19bdc1c823aa21ea4@mail.gmail.com> <4D38641E.2000301@gmail.com> <c1a2c539e2677e9a56d2d3aaaaf34851@mail.gmail.com>
+From: Luke Gong <lukejgong@gmail.com>
+Subject: Re: Fail to suspend to ram: "Class driver suspend failed for cpu0"
+Date: Fri, 21 Jan 2011 10:28:05 -0500
+Message-ID: <AANLkTin2S6mBzVOHuRa-VHf7NBdAYp+93Z5T9wRmRdzc@mail.gmail.com>
+References: <AANLkTin-q5o1x=0Eu1HvwDZxuCAOsGiVySWHBuAW0v+C@mail.gmail.com>
+	<8762tjjidg.fsf@ti.com>
+	<AANLkTikNkyN_qAGMWUrcRp8NzPW4fAYcpo0qiGBKTeDu@mail.gmail.com>
+	<e1f3af7f928ead8c7b6cf98100b1e2d1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:45524 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753435Ab1AUPAH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 10:00:07 -0500
-Received: by yib18 with SMTP id 18so547140yib.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 Jan 2011 07:00:06 -0800 (PST)
-In-Reply-To: <c1a2c539e2677e9a56d2d3aaaaf34851@mail.gmail.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:43695 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753979Ab1AUP2I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 10:28:08 -0500
+Received: by ewy5 with SMTP id 5so927471ewy.19
+        for <linux-omap@vger.kernel.org>; Fri, 21 Jan 2011 07:28:06 -0800 (PST)
+In-Reply-To: <e1f3af7f928ead8c7b6cf98100b1e2d1@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-Santosh,
+But at this moment, it seems I cannot use both dvfs and suspend to ram
+simultaneously :(.
 
-On 01/21/2011 07:43 AM, Santosh Shilimkar wrote:
+On Thu, Jan 20, 2011 at 11:23 PM, Vishwanath Sripathy
+<vishwanath.bs@ti.com> wrote:
+> Luke,
+>
 >> -----Original Message-----
->> From: Rob Herring [mailto:robherring2@gmail.com]
->> Sent: Thursday, January 20, 2011 10:05 PM
->> To: Santosh Shilimkar
->> Cc: linux-arm-kernel@lists.infradead.org; Russell King; linux-
->> omap@vger.kernel.org; Linus Walleij
->> Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK
->> to speed-up boot
->
-> [..]
->
->>>>
->>>> There's already one way to do this with pre-calculated lpj.
->>>>
->>> How about the hot-plug path? This is not for just boot.
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Luke Gong
+>> Sent: Friday, January 21, 2011 5:03 AM
+>> To: Kevin Hilman
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: Fail to suspend to ram: "Class driver suspend failed fo=
+r
+>> cpu0"
 >>
->> The path is the same for hotplug and secondary boot, so yes for
->> both.
->> Plus you get the added benefit of speeding up the primary core boot
->> as well.
+>> Thanks, Kevin.
 >>
-> No 'preset_lpj' will not work for the hotplug path when
-> cpufreq is active. It just useful only for boot in
-> its current form.
+>> On Thu, Jan 20, 2011 at 5:54 PM, Kevin Hilman <khilman@ti.com>
+>> wrote:
+>> > Luke Gong <lukejgong@gmail.com> writes:
+>> >
+>> >> I have a beagle board with OMAP3530. I ported linux-omap-
+>> pm2.6.32 to
+>> >> this board. When I want to let it suspend to ram,
+>> >
+>> > This is an old kernel. =A0Any reason you're not using a newer kern=
+el?
+>>
+>> I have Angstrom7 with kernel 2.6.32 running on this board. So I
+>> selected this old version to test. I might try the latest one.
+>>
+>> >
+>> >> it fails and I get
+>> >> the message "Class driver suspend failed for cpu0"
+>> >
+>> > This is the CPUfreq driver failing to suspend, probably because th=
+ere
+> is
+>> > no CPUfreq driver implemented in your kernel. =A0Try disabling
+>> CPU_FREQ in
+>> > your kernel config.
+>>
+>> It seems can suspend to ram after disabling CPU_FREQ. Here is the lo=
+g:
+>>
+>> root@beagleboard:~# echo mem > /sys/power/state
+>> PM: Syncing filesystems ... done.
+>> Freezing user space processes ... (elapsed 0.00 seconds) done.
+>> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+>> Suspending console(s) (use no_console_suspend to debug)
+>>
+>> **********************************************************
+>> ***
+>> Once I hit the keyboard, I get:
+>>
+>> root@beagleboard:~# echo mem > /sys/power/state
+>> PM: Syncing filesystems ... done.
+>> Freezing user space processes ... (elapsed 0.00 seconds) done.
+>> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+>> Suspending console(s) (use no_console_suspend to debug)
+>> omapfb omapfb: timeout waiting for FRAME DONE
+>> Powerdomain (core_pwrdm) didn't enter target state 1
+>> Powerdomain (cam_pwrdm) didn't enter target state 1
+>> Powerdomain (per_pwrdm) didn't enter target state 1
+>> Could not enter target state in pm_suspend
+>> Restarting tasks ... done.
+>> root@beagleboard:~#
+>> ***************************************************
+>>
+>> I am just curious why the powerdomain didn't enter target state 1.
+> It looks like your camera module is not idling upon suspend preventin=
+g per
+> and core to idle. Pls check whether camera driver has implemented
+> suspend/resume hooks properly. OR you can disable camera module and t=
+ry.
+>>
+>> Another issue is about CPU frequency scaling. Using the original
+>> Angstrom7, I can scale CPU frequency. But with the linux-omap-pm
+>> kernel, I cannot do it even though I enable this feature in the conf=
+ig
+>> file. Is there any solution to support both cpu frequency scaling an=
+d
+>> suspend to ram?
+> In current linux-omap-pm branch, DVFS feature is not supported and th=
+is
+> work is under progress. Previously DVFS feature was supported in pm b=
+ranch
+> using SRF and it has been removed sometime back.
+> If you really want cpufreq support, you can pick DVFS patches under r=
+eview
+> available at: https://patchwork.kernel.org/patch/290542/
+>
+> It's also available in the dvfs tree hosted@
+> http://dev.omapzoom.org/?p=3Dthara/omap-dvfs.git;a=3Dshortlog;h=3Dref=
+s/heads/pm-
+> dvfs
+>
+> Vishwa
+>
+>>
+>> Thanks again for your help.
+>> >
+>> > Kevin
+>> >
+>> >> . Here is the log:
+>> >>
+>> >> root@beagleboard:~# echo mem > /sys/power/state
+>> >> PM: Syncing filesystems ... done.
+>> >> Freezing user space processes ... (elapsed 0.00 seconds) done.
+>> >> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) don=
+e.
+>> >> Suspending console(s) (use no_console_suspend to debug)
+>> >> omapfb omapfb: timeout waiting for FRAME DONE
+>> >> Class driver suspend failed for cpu0
+>> >> Restarting tasks ... done.
+>> >>
+>> >> *********************************************
+>> >>
+>> >> Is there any idea to fix this problem? Thanks.
+>> >
+>>
+>>
+>>
+>> --
+>> Luke
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
-Why? If preset_lpj is non-zero, calibrate_delay will effectively be 
-skipped which is the same thing your patch does.
 
-This is the cpfreq loops_per_jiffy adjustment function for SMP:
 
-static inline void adjust_jiffies(unsigned long val, struct 
-cpufreq_freqs *ci)
-{
-	return;
-}
-
-And delay.S uses the global loops_per_jiffy, not the per cpu value. The 
-only place I see the per cpu value get used is /proc/cpuinfo.
-
-Consider the following sequence:
-
-- scale down the cpu freq
-- hot unplug a core
-- hot plug a core
-   - calls calibrate_delay and update the global loops_per_jiffy
-- scale up the cpu freq
-- udelay time is now much too short!!!
-
-So for that reason, I would just remove calibrate_delay unconditionally. 
-Better to have the 1% inaccuracy and longer delays at low frequency than 
-to have too short of a delay at high freq.
-
-Rob
+--=20
+Luke
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
