@@ -1,79 +1,77 @@
-From: Andrew Morton <akpm@linux-foundation.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 Subject: Re: [PATCH] change acquire/release_console_sem() to
 	console_lock/unlock()
-Date: Fri, 21 Jan 2011 00:23:23 -0800
-Message-ID: <20110121002323.e9cbf9ae.akpm@linux-foundation.org>
+Date: Fri, 21 Jan 2011 09:10:06 +0100
+Message-ID: <AANLkTinN2+pNGk1hwrcMhH5qDNZK=Egrw7P6c-cdJTmH@mail.gmail.com>
 References: <1295539104-13210-1-git-send-email-torbenh@gmx.de>
 	<20110120163448.GA30588@suse.de> <20110120165502.GA10832@siel.b>
 	<20110120123507.ac89c034.akpm@linux-foundation.org>
-	<AANLkTinN2+pNGk1hwrcMhH5qDNZK=Egrw7P6c-cdJTmH@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <virtualization-bounces@lists.linux-foundation.org>
-In-Reply-To: <AANLkTinN2+pNGk1hwrcMhH5qDNZK=Egrw7P6c-cdJTmH@mail.gmail.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/virtualization>
-List-Post: <mailto:virtualization@lists.linux-foundation.org>
-List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
-Sender: virtualization-bounces@lists.linux-foundation.org
-Errors-To: virtualization-bounces@lists.linux-foundation.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: linux-fbdev@vger.kernel.org, Greg KH <gregkh@suse.de>, Lars-Peter Clausen <lars@metafoo.de>, James Hogan <james@albanarts.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel.vetter@ffwll.ch>, linux-omap@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, "David S. Miller" <davem@davemloft.net>, Paul Mackerras <paulus@samba.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Kyle McMartin <kyle@mcmartin.ca>, Jiri Slaby <jslaby@suse.cz>, Thomas Gleixner <tglx@linutronix.de>, Caglar Akyuz <caglar@bilkon-kontrol.com.tr>, devel@driverdev.osuosl.org, Alberto Panizzo <maramaopercheseimorto@gmail.com>, Phil Edworthy <phil.edworthy@renesas.com>, xen-devel@lists.xensource.com, Russell King <linux@arm.linux.org.uk>, Kuninor
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <20110120123507.ac89c034.akpm@linux-foundation.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Sender: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fbdev@vger.kernel.org, Greg KH <gregkh@suse.de>, Lars-Peter Clausen <lars@metafoo.de>, James Hogan <james@albanarts.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel.vetter@ffwll.ch>, linux-omap@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, "David S. Miller" <davem@davemloft.net>, Paul Mackerras <paulus@samba.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Kyle McMartin <kyle@mcmartin.ca>, Jiri Slaby <jslaby@suse.cz>, Thomas Gleixner <tglx@linutronix.de>, Caglar Akyuz <caglar@bilkon-kontrol.com.tr>, devel@driverdev.osuosl.org, Alberto Panizzo <maramaopercheseimorto@gmail.com>, Phil Edworthy <phil.edworthy@renesas.com>, xen-devel@lists.xensource.com, Russell King <linux@arm.linux.org.uk>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Wu Zhangjin <wuzhangjin@gmail.com>, Florian
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 21 Jan 2011 09:10:06 +0100 Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-
-> include/linux/mutex.h:
-> 
-> /*
->  * NOTE: mutex_trylock() follows the spin_trylock() convention,
->  *       not the down_trylock() convention!
->  *
->  * Returns 1 if the mutex has been acquired successfully, and 0 on contention.
->  */
-> extern int mutex_trylock(struct mutex *lock);
-> 
-> So that's why the return value was inverted (when treating it as a boolean).
-> I can understand that.
-> 
-> However:
-> 
-> +/**
-> + * console_trylock - try to lock the console system for exclusive use.
-> + *
-> + * Tried to acquire a lock which guarantees that the caller has
-> + * exclusive access to the console system and the console_drivers list.
-> + *
-> + * returns -1 on success, and 0 on failure to acquire the lock.
-> + */
-> +int console_trylock(void)
-> 
-> So this one returns -1 on success, not 1? Why?
-
-Yup.  All callers just test for non-zero, so...
-
---- a/kernel/printk.c~change-acquire-release_console_sem-to-console_lock-unlock-fix-2
-+++ a/kernel/printk.c
-@@ -1058,7 +1058,7 @@ EXPORT_SYMBOL(console_lock);
-  * Tried to acquire a lock which guarantees that the caller has
-  * exclusive access to the console system and the console_drivers list.
-  *
-- * returns -1 on success, and 0 on failure to acquire the lock.
-+ * returns 1 on success, and 0 on failure to acquire the lock.
-  */
- int console_trylock(void)
- {
-@@ -1070,7 +1070,7 @@ int console_trylock(void)
- 	}
- 	console_locked = 1;
- 	console_may_schedule = 0;
--	return -1;
-+	return 1;
- }
- EXPORT_SYMBOL(console_trylock);
- 
-_
+T24gVGh1LCBKYW4gMjAsIDIwMTEgYXQgMjE6MzUsIEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgt
+Zm91bmRhdGlvbi5vcmc+IHdyb3RlOgo+IE9uIFRodSwgMjAgSmFuIDIwMTEgMTc6NTU6MDIgKzAx
+MDAKPiB0b3JiZW5oIDx0b3JiZW5oQGdteC5kZT4gd3JvdGU6Cj4KPj4gT24gVGh1LCBKYW4gMjAs
+IDIwMTEgYXQgMDg6MzQ6NDhBTSAtMDgwMCwgR3JlZyBLSCB3cm90ZToKPj4gPiBPbiBUaHUsIEph
+biAyMCwgMjAxMSBhdCAwNDo1ODoxM1BNICswMTAwLCBUb3JiZW4gSG9obiB3cm90ZToKPj4gPiA+
+IHRoZSAtcnQgcGF0Y2hlcyBjaGFuZ2UgdGhlIGNvbnNvbGVfc2VtYXBob3JlIHRvIGNvbnNvbGVf
+bXV0ZXguCj4+ID4gPiBzbyBhIHF1aXRlIGxhcmdlIGNodW5rIG9mIHRoZSBwYXRjaGVzIGNoYW5n
+ZXMgYWxsCj4+ID4gPiBhY3F1aXJlL3JlbGVhc2VfY29uc29sZV9zZW0oKSB0byBhY3F1aXJlL3Jl
+bGVhc2VfY29uc29sZV9tdXRleCgpCj4+ID4KPj4gPiBXaHkgbm90IGp1c3QgY2hhbmdlIHRoZSBm
+dW5jdGlvbmFsaXR5IG9mIHRoZSBleGlzdGluZyBmdW5jdGlvbiB0byBiZSBhCj4+ID4gbXV0ZXgg
+aW4gdGhlIHJ0IHBhdGNoZXMsIGluc3RlYWQgb2YgaGF2aW5nIHRvIHJlbmFtZSBpdCBldmVyeXdo
+ZXJlPwo+Pgo+PiBpIGhvcGUgdGhhdCBUaG9tYXMgYWxyZWFkeSBkaWQgdGhpcyBpbiBoaXMgdXBj
+b21pbmcgLXJ0IHNlcmllcy4KPj4KPj4gPgo+PiA+ID4gdGhpcyBjb21taXQgbWFrZXMgdGhpbmdz
+IHVzZSBtb3JlIG5ldXRyYWwgZnVuY3Rpb24gbmFtZXMKPj4gPiA+IHdoaWNoIGRvbnQgbWFrZSBp
+bXBsaWNhdGlvbnMgYWJvdXQgdGhlIHVuZGVybHlpbmcgbG9jay4KPj4gPiA+Cj4+ID4gPiB0aGUg
+b25seSByZWFsIGNoYW5nZSBpcyB0aGUgcmV0dXJuIHZhbHVlIG9mIGNvbnNvbGVfdHJ5bG9jawo+
+PiA+ID4gd2hpY2ggaXMgaW52ZXJ0ZWQgZnJvbSB0cnlfYWNxdWlyZV9jb25zb2xlX3NlbSgpCj4+
+ID4gPgo+PiA+ID4gU2lnbmVkLW9mZi1ieTogVG9yYmVuIEhvaG4gPHRvcmJlbmhAZ214LmRlPgo+
+PiA+ID4gQ0M6IFRob21hcyBHbGVpeG5lciA8dGdseEB0Z2x4LmRlPgo+PiA+Cj4+ID4gSSBkb24n
+dCBtaW5kIHRoaXMgcmVuYW1lLCBidXQgaXMgaXQgcmVhbGx5IGdvaW5nIHRvIGhlbHAgYW55dGhp
+bmcgb3V0Pwo+PiA+IFdoYXQncyB0aGUgb2RkcyBvZiB0aGUgLXJ0IHBvcnRpb24gb2YgdGhpcyBw
+YXRjaCBldmVyIG1ha2luZyBpdCB0bwo+PiA+IG1haW5saW5lPwo+Pgo+PiB0aGUgLXJ0IHBvcnRp
+b24gb25seSBjaGFuZ2VzIHRoZSBzZW1hcGhvcmUgdG8gYSBtdXRleC4KPj4gc2luY2UgdGhlIGNv
+bnNvbGVfc2VtIGlzIHVzZWQgd2l0aCBtdXRleCBzZW1hbnRpY3MsIGkgZG9udCBzZWUgYW55Cj4+
+IHJlYXNvbiwgbm90IHRvIG1lcmdlIHRoYXQgcG9ydGlvbiB0b28uCj4+Cj4+IGkgYW0ganVzdCB0
+cnlpbmcgdG8gc2hyaW5rIHRoZSAtcnQgcGF0Y2ggdG8gbWFrZSBpdCBtb3JlIG1haW50YW5hYmxl
+IDopCj4+Cj4KPiBZZWFoLCBJIHRoaW5rIGl0J3MgYSBiZXR0ZXIgbmFtZSBhbmQgaWYgd2UgY2Fu
+IGluZGVlZCBzd2l0Y2ggdGhhdAo+IHNlbWFwaG9yZSB0byBhIG11dGV4IHRoZW4gdGhhdCdzIGEg
+Z29vZCB0aGluZyB0byBkby4KCmluY2x1ZGUvbGludXgvbXV0ZXguaDoKCi8qCiAqIE5PVEU6IG11
+dGV4X3RyeWxvY2soKSBmb2xsb3dzIHRoZSBzcGluX3RyeWxvY2soKSBjb252ZW50aW9uLAogKiAg
+ICAgICBub3QgdGhlIGRvd25fdHJ5bG9jaygpIGNvbnZlbnRpb24hCiAqCiAqIFJldHVybnMgMSBp
+ZiB0aGUgbXV0ZXggaGFzIGJlZW4gYWNxdWlyZWQgc3VjY2Vzc2Z1bGx5LCBhbmQgMCBvbiBjb250
+ZW50aW9uLgogKi8KZXh0ZXJuIGludCBtdXRleF90cnlsb2NrKHN0cnVjdCBtdXRleCAqbG9jayk7
+CgpTbyB0aGF0J3Mgd2h5IHRoZSByZXR1cm4gdmFsdWUgd2FzIGludmVydGVkICh3aGVuIHRyZWF0
+aW5nIGl0IGFzIGEgYm9vbGVhbikuCkkgY2FuIHVuZGVyc3RhbmQgdGhhdC4KCkhvd2V2ZXI6Cgor
+LyoqCisgKiBjb25zb2xlX3RyeWxvY2sgLSB0cnkgdG8gbG9jayB0aGUgY29uc29sZSBzeXN0ZW0g
+Zm9yIGV4Y2x1c2l2ZSB1c2UuCisgKgorICogVHJpZWQgdG8gYWNxdWlyZSBhIGxvY2sgd2hpY2gg
+Z3VhcmFudGVlcyB0aGF0IHRoZSBjYWxsZXIgaGFzCisgKiBleGNsdXNpdmUgYWNjZXNzIHRvIHRo
+ZSBjb25zb2xlIHN5c3RlbSBhbmQgdGhlIGNvbnNvbGVfZHJpdmVycyBsaXN0LgorICoKKyAqIHJl
+dHVybnMgLTEgb24gc3VjY2VzcywgYW5kIDAgb24gZmFpbHVyZSB0byBhY3F1aXJlIHRoZSBsb2Nr
+LgorICovCitpbnQgY29uc29sZV90cnlsb2NrKHZvaWQpCgpTbyB0aGlzIG9uZSByZXR1cm5zIC0x
+IG9uIHN1Y2Nlc3MsIG5vdCAxPyBXaHk/CgpHcntvZXRqZSxlZXRpbmd9cywKCsKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIEdlZXJ0CgotLQpHZWVydCBVeXR0ZXJob2V2ZW4gLS0g
+VGhlcmUncyBsb3RzIG9mIExpbnV4IGJleW9uZCBpYTMyIC0tIGdlZXJ0QGxpbnV4LW02OGsub3Jn
+CgpJbiBwZXJzb25hbCBjb252ZXJzYXRpb25zIHdpdGggdGVjaG5pY2FsIHBlb3BsZSwgSSBjYWxs
+IG15c2VsZiBhIGhhY2tlci4gQnV0CndoZW4gSSdtIHRhbGtpbmcgdG8gam91cm5hbGlzdHMgSSBq
+dXN0IHNheSAicHJvZ3JhbW1lciIgb3Igc29tZXRoaW5nIGxpa2UgdGhhdC4KwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqDCoCDCoMKgIC0tIExpbnVzIFRvcnZhbGRzCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4cHBjLWRl
+diBtYWlsaW5nIGxpc3QKTGludXhwcGMtZGV2QGxpc3RzLm96bGFicy5vcmcKaHR0cHM6Ly9saXN0
+cy5vemxhYnMub3JnL2xpc3RpbmZvL2xpbnV4cHBjLWRldg==
