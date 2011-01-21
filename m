@@ -1,113 +1,52 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCHv2] OMAP: Enable Magic SysRq on serial console ttyOx
-Date: Fri, 21 Jan 2011 13:15:30 +0530
-Message-ID: <20110121074530.GB12307@m-desktop>
-References: <1295426461-12459-1-git-send-email-weber@corscience.de>
- <AANLkTin0-joNuqxqL79j0wqPk_A5mtAgzEY=X=PeH=+C@mail.gmail.com>
- <20110119130049.GB9365@m-desktop>
- <4D36E7CC.5090303@corscience.de>
- <AANLkTikjdukQ+kUUR7N11rZ5b=Xd=xLb0-chMrbp5BQ6@mail.gmail.com>
- <20110120114855.GD1987@m-desktop>
- <38f2b3af600ce3dfea1e73edec7c81fa@mail.gmail.com>
- <AANLkTimxTaU3x9DZvL4dvXs1nTYjCQnbyZLC73SOKrgQ@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [QUERY] [AUDIO][OMAP3 EVM] arecord not working on OMAP3 EVM
+Date: Fri, 21 Jan 2011 09:56:50 +0200
+Message-ID: <4D393C42.1070503@nokia.com>
+References: <FCCFB4CDC6E5564B9182F639FC356087035F9B2239@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:52016 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754171Ab1AUHq1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 02:46:27 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTimxTaU3x9DZvL4dvXs1nTYjCQnbyZLC73SOKrgQ@mail.gmail.com>
+Received: from smtp.nokia.com ([147.243.128.24]:23007 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750882Ab1AUH46 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 02:56:58 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087035F9B2239@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>, Manjunath Kondaiah G <manjugk@ti.com>, Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Govindraj Raja <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Andrei Emeltchenko <andrei.emeltchenko@nokia.com>, linux-kernel@vger.kernel.org
+To: "ext Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
 
-On Fri, Jan 21, 2011 at 12:54:29PM +0530, Govindraj wrote:
-> On Thu, Jan 20, 2011 at 5:49 PM, Anand Gadiyar <gadiyar@ti.com> wrote=
-:
-> >> > >>>> Magic SysRq key is not working for OMAP on new serial
-> >> > >>>> console ttyOx because SUPPORT_SYSRQ is not defined
-> >> > >>>> for omap-serial.
-> >> > >>>>
-> >> > >>>> This patch defines SUPPORT_SYSRQ in omap-serial and
-> >> > >>>> enables handling of Magic SysRq character.
-> >> > >>>>
-> >> > >>>> Signed-off-by: Thomas Weber <weber@corscience.de>
-> >> > >>>
-> >> > >>> Looks fine to me.
-> >> > >>>
-> >> > >>> Acked-by: Govindraj.R <govindraj.raja@ti.com>
-> >> > >> I tried to use SysRq key on minicom after applying this patch=
-, it
-> > looks
-> >> > >> like it is not triggering sysrq event.
-> >> > >>
-> >> > >> Am I missing anything?
-> >> > >>
-> >> > >> -Manjunath
-> >> > >> --
-> >> > > Hello Manjunath,
-> >> > >
-> >> > > Do you have CONFIG_MAGIC_SYSRQ enabled?
-> >> > > Magic SysRq key in Kernel Hacking
-> >> > >
-> >> > > I tested it on Devkit8000 (beagle board clone).
-> >> > >
-> >> >
-> >> > re-setting lsr_break_flag to 0 in receive chars is causing issue=
-s
-> >> > in getting sysrq key break sequence on omap-serial.c
-> >> >
-> >> > Manju,
-> >> >
-> >> > can you try this change on your environment.
-> >> > With below change works for me on 3430SDP/4430SDP.
-> >> > key sequence I checked.
-> >> > [alt + b + t] =A0=3D> shows trace of tasks running.
-> >> > [alt + b + b] =3D> system reboot.
-> >>
-> >> With below patch, it works fine on TeraTerm. However, I am not abl=
-e to
-> >> perform the same on minicom.
-> >>
-> >> Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
-> >>
-> >> -Manjunath
-> >>
-> >
-> > Not sure what you guys are trying out, but I am able to use sysrq
-> > just fine in minicom (using only Thomas' original patch) - you need
-> > to send a break sequence, and the way to do this in minicom is to
-> > do Ctrl-A followed by F.
-> >
-> > Works for me, without the "resetting lsr_break_flag to 0" part.
-> >
-> > @Govind,
-> >
-> > What are the issues you see in getting sysrq key break sequence
-> > without your change? And how is your change fixing this?
->=20
-> Actually I was using teraterm on windows platform.
-> using keyboard to send a break char [alt + b] sometimes
-> i observed that first break char was getting lost and subsequent brea=
-k
-> chars where getting
-> recognized. However using send break option from terterm menu seems t=
-o
-> work most of times.
-> my change can be dropped.
-If it is fixing the issue of losing first break character, what is wron=
-g in
-having this patch?
+On 01/20/11 17:26, ext Koyamangalath, Abhilash wrote:
+> Hi all
+> While testing audio capture (using arecord e,g.),I'm getting only noi=
+se in the (zeroed out) output buffers on the OMAP3 EVM.
+> I have enabled AUXL and AUXR mic inputs through alsamixer, which acco=
+rding to the schematics are connected to the "Audio In"
+> connector on the board, even though the TWL4030 reg list does not all=
+ow me any ways ( or so I think) to specify mic-bias for=20
+> these aux inputs.
 
-Do you see any other issues because of this change?
+Well, it is auxiliary input (line in). You do not need bias for it.
+I do not have access to OMAP3 EVM documentation, but Beagle also have
+AUXL/R as input.
+I guess you need to use correct cable, and correct source for the input
+(stereo jack I suppose).
 
--Manjunath
+> With AUXL and AUXR muted - I get only silence, which seems to make se=
+nse.
+> Is there any basic startup setting I'm missing, maybe specific to OMA=
+P3 EVM?
 
+Beagle?
+
+> Has anyone seen anything like this before, and could provide pointers=
+?
+
+My bet goes for the wrong cable/accessory pair.
+
+--=20
+P=E9ter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
