@@ -1,64 +1,137 @@
 From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH 06/13] OMAP: Disable Smartreflex across DVFS
-Date: Fri, 21 Jan 2011 19:30:58 +0530
-Message-ID: <1295618465-15234-7-git-send-email-vishwanath.bs@ti.com>
+Subject: [PATCH 03/13] OMAP: Implement Basic DVFS
+Date: Fri, 21 Jan 2011 19:30:55 +0530
+Message-ID: <1295618465-15234-4-git-send-email-vishwanath.bs@ti.com>
 References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33512 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33509 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751487Ab1AUN5p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 08:57:45 -0500
+	id S1752647Ab1AUN5o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 08:57:44 -0500
 In-Reply-To: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Thara Gopinath <thara@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
+Cc: patches@linaro.org, Vishwanath BS <vishwanath.bs@ti.com>, Thara Gopinath <thara@ti.com>
 
-From: Thara Gopinath <thara@ti.com>
+This patch introduces an API to perform DVFS for a given voltage domain.
+It takes omap_vdd_dvfs_info pointer as input parameter, computes the highest
+requested voltage for that vdd and scales all the devices in that vdd to the
+requested frequency along with voltage scaling.
 
-This patch disables smartreflex for a particular voltage
-domain when the the voltage domain and the devices belonging
-to it is being scaled and re-enables it back once the scaling
-is done.
+Based on original patch from Thara.
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
 Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/dvfs.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/dvfs.c |   87 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 86 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-omap2/dvfs.c
-index 05a9ce3..1e5492c 100755
+index 8832e4a..cefc2be 100755
 --- a/arch/arm/mach-omap2/dvfs.c
 +++ b/arch/arm/mach-omap2/dvfs.c
-@@ -529,6 +529,9 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
+@@ -21,7 +21,7 @@
+ #include <plat/omap_device.h>
  
- 	curr_volt = omap_voltage_get_nom_volt(voltdm);
+ /**
+- * struct omap_dev_user_list - Structure maitain userlist per devide
++ * struct omap_dev_user_list - Structure maitain userlist per device
+  *
+  * @dev:       The device requesting for a particular frequency
+  * @node:      The list head entry
+@@ -413,6 +413,91 @@ static int omap_dvfs_remove_freq_request(struct omap_vdd_dvfs_info *dvfs_info,
+ }
  
-+	/* Disable smartreflex module across voltage and frequency scaling */
-+	omap_sr_disable(voltdm);
+ /**
++ * omap_dvfs_voltage_scale() : API to scale the devices associated with a
++ *						voltage domain vdd voltage.
++ *
++ * @dvfs_info: omap_vdd_dvfs_info pointer for the required vdd
++ *
++ * This API runs through the list of devices associated with the
++ * voltage domain and scales the device rates to the one requested
++ * by the user or those corresponding to the new voltage of the
++ * voltage domain. Target voltage is the highest voltage in the vdd_user_list.
++ *
++ * Returns 0 on success
++ * else the error value.
++ */
++static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
++{
++	unsigned long curr_volt;
++	int is_volt_scaled = 0;
++	struct omap_vdd_dev_list *temp_dev;
++	struct plist_node *node;
++	int ret = 0;
++	struct voltagedomain *voltdm;
++	unsigned long volt;
 +
- 	if (curr_volt == volt) {
- 		is_volt_scaled = 1;
- 	} else if (curr_volt < volt) {
-@@ -536,6 +539,7 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
- 		if (ret) {
- 			pr_warning("%s: Unable to scale the %s to %ld volt\n",
- 						__func__, voltdm->name, volt);
-+			omap_sr_enable(voltdm);
- 			mutex_unlock(&dvfs_info->scaling_mutex);
- 			return ret;
- 		}
-@@ -570,6 +574,9 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
- 	if (!is_volt_scaled && !ret)
- 		omap_voltage_scale_vdd(voltdm, volt);
- 
-+	/* Enable Smartreflex module */
-+	omap_sr_enable(voltdm);
++	if (!dvfs_info || IS_ERR(dvfs_info)) {
++		pr_warning("%s: VDD specified does not exist!\n", __func__);
++		return -EINVAL;
++	}
 +
- 	mutex_unlock(&dvfs_info->scaling_mutex);
- 
- 	/* calculate the voltages for dependent vdd's */
++	voltdm = dvfs_info->voltdm;
++
++	mutex_lock(&dvfs_info->scaling_mutex);
++
++	/* Find the highest voltage being requested */
++	node = plist_last(&dvfs_info->user_list);
++	volt = node->prio;
++
++	curr_volt = omap_voltage_get_nom_volt(voltdm);
++
++	if (curr_volt == volt) {
++		is_volt_scaled = 1;
++	} else if (curr_volt < volt) {
++		ret = omap_voltage_scale_vdd(voltdm, volt);
++		if (ret) {
++			pr_warning("%s: Unable to scale the %s to %ld volt\n",
++						__func__, voltdm->name, volt);
++			mutex_unlock(&dvfs_info->scaling_mutex);
++			return ret;
++		}
++		is_volt_scaled = 1;
++	}
++
++	list_for_each_entry(temp_dev, &dvfs_info->dev_list, node) {
++		struct device *dev;
++		struct opp *opp;
++		unsigned long freq;
++
++		dev = temp_dev->dev;
++		if (!plist_head_empty(&temp_dev->user_list)) {
++			node = plist_last(&temp_dev->user_list);
++			freq = node->prio;
++		} else {
++			opp = omap_dvfs_find_voltage(dev, volt);
++			if (IS_ERR(opp))
++				continue;
++			freq = opp_get_freq(opp);
++		}
++
++		if (freq == omap_device_get_rate(dev)) {
++			dev_dbg(dev, "%s: Already at the requested"
++				"rate %ld\n", __func__, freq);
++			continue;
++		}
++
++		ret |= omap_device_set_rate(dev, freq);
++	}
++
++	if (!is_volt_scaled && !ret)
++		omap_voltage_scale_vdd(voltdm, volt);
++
++	mutex_unlock(&dvfs_info->scaling_mutex);
++
++	return 0;
++}
++
++/**
+  * omap_dvfs_init() - Initialize omap dvfs layer
+  *
+  * Initalizes omap dvfs layer. It basically allocates memory for
 -- 
 1.7.0.4
 
