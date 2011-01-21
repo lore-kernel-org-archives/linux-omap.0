@@ -1,188 +1,144 @@
 From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH 05/13] OMAP: Introduce device scale implementation
-Date: Fri, 21 Jan 2011 19:30:57 +0530
-Message-ID: <1295618465-15234-6-git-send-email-vishwanath.bs@ti.com>
+Subject: [PATCH 13/13] OMAP: Add DVFS Documentation
+Date: Fri, 21 Jan 2011 19:31:05 +0530
+Message-ID: <1295618465-15234-14-git-send-email-vishwanath.bs@ti.com>
 References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33510 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60808 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752665Ab1AUN5o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 08:57:44 -0500
+	id S1752750Ab1AUN5r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 08:57:47 -0500
 In-Reply-To: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Vishwanath BS <vishwanath.bs@ti.com>, Thara Gopinath <thara@ti.com>
+Cc: patches@linaro.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-This patch adds omap_device_scale API  which can be used to generic
-device rate scaling.
-
-Based on original patch from Thara.
+Add Documentation for DVFS Framework
 
 Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/dvfs.c             |  116 ++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/dvfs.h |    7 ++
- 2 files changed, 123 insertions(+), 0 deletions(-)
+ Documentation/arm/OMAP/omap_dvfs |  111 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 111 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/arm/OMAP/omap_dvfs
 
-diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-omap2/dvfs.c
-index c9d3894..05a9ce3 100755
---- a/arch/arm/mach-omap2/dvfs.c
-+++ b/arch/arm/mach-omap2/dvfs.c
-@@ -19,6 +19,7 @@
- #include <plat/common.h>
- #include <plat/voltage.h>
- #include <plat/omap_device.h>
-+#include <plat/smartreflex.h>
- 
- /**
-  * struct omap_dev_user_list - Structure maitain userlist per device
-@@ -585,6 +586,121 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
- }
- 
- /**
-+ * omap_device_scale() - Set a new rate at which the device is to operate
-+ * @req_dev:	pointer to the device requesting the scaling.
-+ * @target_dev:	pointer to the device that is to be scaled
-+ * @rate:	the rnew rate for the device.
-+ *
-+ * This API gets the device opp table associated with this device and
-+ * tries putting the device to the requested rate and the voltage domain
-+ * associated with the device to the voltage corresponding to the
-+ * requested rate. Since multiple devices can be assocciated with a
-+ * voltage domain this API finds out the possible voltage the
-+ * voltage domain can enter and then decides on the final device
-+ * rate. Return 0 on success else the error value
-+ */
-+int omap_device_scale(struct device *req_dev, struct device *target_dev,
-+			unsigned long rate)
-+{
-+	struct opp *opp;
-+	unsigned long volt, freq, min_freq, max_freq;
-+	struct omap_vdd_dvfs_info *dvfs_info;
-+	struct platform_device *pdev;
-+	struct omap_device *od;
-+	int ret = 0;
+diff --git a/Documentation/arm/OMAP/omap_dvfs b/Documentation/arm/OMAP/omap_dvfs
+new file mode 100644
+index 0000000..b026643
+--- /dev/null
++++ b/Documentation/arm/OMAP/omap_dvfs
+@@ -0,0 +1,111 @@
++*=============*
++* DVFS Framework *
++*=============*
++(C) 2011 Vishwnath BS <vishwanath.bs@ti.com>, Texas Instruments Incorporated
++Contents
++--------
++1. Introduction
++2. Data Structure Organization
++3. DVFS APIs
 +
-+	pdev = container_of(target_dev, struct platform_device, dev);
-+	od = container_of(pdev, struct omap_device, pdev);
++1. Introduction
++===============
++DVFS is a technique that uses the optimal operating frequency and voltage to
++allow a task to be performed in the required amount of time.
++OMAP processors have voltage domains whose voltage can be scaled to
++various levels depending on which the operating frequencies of certain
++devices belonging to the domain will also need to be scaled. This voltage
++frequency tuple is known as Operating Performance Point (OPP). A device
++can have multiple OPP's. Also a voltage domain could be shared between
++multiple devices. Also there could be dependencies between various
++voltage domains for maintaining system performance like VDD<X>
++should be at voltage v1 when VDD<Y> is at voltage v2.
 +
-+	/*
-+	 * Figure out if the desired frquency lies between the
-+	 * maximum and minimum possible for the particular device
-+	 */
-+	min_freq = 0;
-+	if (IS_ERR(opp_find_freq_ceil(target_dev, &min_freq))) {
-+		dev_err(target_dev, "%s: Unable to find lowest opp\n",
-+						__func__);
-+		return -ENODEV;
-+	}
++The design of this framework takes into account all the above mentioned points.
++To summarize the basic design of DVFS framework:-
 +
-+	max_freq = ULONG_MAX;
-+	if (IS_ERR(opp_find_freq_floor(target_dev, &max_freq))) {
-+		dev_err(target_dev, "%s: Unable to find highest opp\n",
-+						__func__);
-+		return -ENODEV;
-+	}
++1. Have device opp tables for each device whose operating frequency can be
++   scaled. This is easy now due to the existance of hwmod layer which
++   allow storing of device specific info. The device opp tables contain
++   the opp pairs (frequency voltage tuples), the voltage domain pointer
++   to which the device belongs to, the device specific set_rate and
++   get_rate API's which will do the actual scaling of the device frequency
++   and retrieve the current device frequency.
++2. Introduce use counting on a per VDD basis. This is to take care multiple
++   requests to scale a VDD. The VDD will be scaled to the maximum of the
++   voltages requested.
++3. Keep track of all scalable devices belonging to a particular voltage
++   domain the voltage layer.
++4. Keep track of frequency requests for each of the device. This will enable
++   to scale individual devices to different frequency (even w/o scaling voltage
++   aka frequency throttling)
++5. Generic dvfs API that can be called by anybody to scale a device opp.
++   This API takes the device pointer and frequency to which the device
++   needs to be scaled to. This API then internally finds out the voltage
++   domain to which the device belongs to and the voltage to which the voltage
++   domain needs to be put to for the device to be scaled to the new frequency
++   from he device opp table. Then this API will add requested frequency into
++   the corresponding target device frequency list and add voltage request to
++   the corresponding vdd. Subsequently it calls voltage scale function which
++   will find out the highest requested voltage for the given vdd and scales
++   the voltage to the required one. It also runs through the list of all
++   scalable devices belonging to this voltage domain and scale them to the
++   appropriate frequencies using the set_rate pointer in the device opp tables.
++6. Handle inter VDD dependecies.
 +
-+	if (rate < min_freq)
-+		freq = min_freq;
-+	else if (rate > max_freq)
-+		freq = max_freq;
-+	else
-+		freq = rate;
 +
-+	opp = opp_find_freq_ceil(target_dev, &freq);
-+	if (IS_ERR(opp)) {
-+		dev_err(target_dev, "%s: Unable to find OPP for freq%ld\n",
-+			__func__, rate);
-+		return -ENODEV;
-+	}
++2.  The Core DVFS data structure:
++=================================
 +
-+	/* Get the voltage corresponding to the requested frequency */
-+	volt = opp_get_voltage(opp);
++ 					|-------------------|			|-------------------|
++ 					|User2 (dev2, freq2)|			|User4 (dev4, freq4)|
++ 					|-------^-----------|			|-------^-----------|
++ 							|								|
++ 					|-------|-----------|			|-------|-----------|
++ 					|User1 (dev1, freq1)|			|User3 (dev3, freq3)|(omap_dev_user_list)
++ 					|-------^-----------|			|-------^-----------|
++                            |                               |
++ 						|---|--------------|             |------------------|
++ 		     |--------->| DEV1 (dev)       |------------>| DEV2 (dev)       |(omap_vdd_dev_list)
++ 			 |			|omap_dev_user_list|			 |omap_dev_user_list|
++ 			 |			|------------------|             |------------------|
++ 			 |
++   |---------|-----------|
++   |       VDD_n         |
++   |  omap_vdd_dev_list  |
++   |  omap_vdd_user_list |(omap_vdd_dvfs_info)
++   |                     |
++   |--------|------------|
++ 			|
++            |           |------------|  |------------|  |--------------|
++            |---------> | vdd_user1  |->|  vdd_user2 |->|   vdd_user3  | (omap_vdd_user_list)
++ 						| (dev, volt)|	| (dev, volt)|  | (dev, volt)  |
++ 						|------------|	|------------|	|--------------|
 +
-+	/*
-+	 * Call into the voltage layer to get the final voltage possible
-+	 * for the voltage domain associated with the device.
-+	 */
++3.  APIs:
++ =====
++ 1. omap_device_scale - Set a new rate at which the device is to operate
 +
-+	if (rate) {
-+		dvfs_info = get_dvfs_info(od->hwmods[0]->voltdm);
++  Examples:
++  1. Simple Device scaling:
++  Suppose module M wants to put device dev1 to frequency f1. Let's say that mdev
++  is the device * for module M. Then this could be achieved by
++  ret = omap_device_scale(mdev, dev1, f1)
++  if (ret)
++  	/* handle error *.
 +
-+		ret = omap_dvfs_add_freq_request(dvfs_info, req_dev,
-+						target_dev, freq);
-+		if (ret) {
-+			dev_err(target_dev, "%s: Unable to add frequency request\n",
-+				__func__);
-+			return ret;
-+		}
++  2. Frequency Throttling
++  Suppose say there are 2 modules M1 and M2 in Voltage domain VDDx.
++  Module M1 wants to set VDDx to OPP100 voltage which means M1 and M2 will
++  be running at OPP100 frequency. Suppose Module M2 wants to run at OPP50
++  frequency (say f2_opp50) instead of OPP100. This can be achieved by
 +
-+		ret = omap_dvfs_add_vdd_user(dvfs_info, req_dev, volt);
-+		if (ret) {
-+			dev_err(target_dev, "%s: Unable to add voltage request\n",
-+				__func__);
-+			omap_dvfs_remove_freq_request(dvfs_info, req_dev,
-+				target_dev);
-+			return ret;
-+		}
-+	} else {
-+		dvfs_info = get_dvfs_info(od->hwmods[0]->voltdm);
++  /* this operation will place M1 and M2 to run at OPP100 */
++  ret = omap_device_scale(mdev1, dev1, f1_opp100);
++  if (ret)
++  	/* handle error *.
 +
-+		ret = omap_dvfs_remove_freq_request(dvfs_info, req_dev,
-+				target_dev);
-+		if (ret) {
-+			dev_err(target_dev, "%s: Unable to remove frequency request\n",
-+				__func__);
-+			return ret;
-+		}
-+
-+		ret = omap_dvfs_remove_vdd_user(dvfs_info, req_dev);
-+		if (ret) {
-+			dev_err(target_dev, "%s: Unable to remove voltage request\n",
-+				__func__);
-+			return ret;
-+		}
-+	}
-+
-+	/* Do the actual scaling */
-+	ret = omap_dvfs_voltage_scale(dvfs_info);
-+	if (!ret)
-+		if (omap_device_get_rate(target_dev) >= rate)
-+			return 0;
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(omap_device_scale);
-+
-+/**
-  * omap_dvfs_init() - Initialize omap dvfs layer
-  *
-  * Initalizes omap dvfs layer. It basically allocates memory for
-diff --git a/arch/arm/plat-omap/include/plat/dvfs.h b/arch/arm/plat-omap/include/plat/dvfs.h
-index 1302990..1be2b9d 100644
---- a/arch/arm/plat-omap/include/plat/dvfs.h
-+++ b/arch/arm/plat-omap/include/plat/dvfs.h
-@@ -17,11 +17,18 @@
- 
- #ifdef CONFIG_PM
- int omap_dvfs_register_device(struct voltagedomain *voltdm, struct device *dev);
-+int omap_device_scale(struct device *req_dev, struct device *dev,
-+			unsigned long rate);
- #else
- static inline int omap_dvfs_register_device(struct voltagedomain *voltdm,
- 		struct device *dev)
- {
- 	return -EINVAL;
- }
-+static inline int omap_device_scale(struct device *req_dev, struct devices
-+			*target_dev, unsigned long rate);
-+{
-+	return -EINVAL;
-+}
- #endif
- #endif
++  /* This operation will bring M2 to run at f2_opp50 w/o decreasing VDDx voltage */
++  ret = omap_device_scale(mdev2, dev2, f2_opp50);
++  if (ret)
++  	/* handle error *.
 -- 
 1.7.0.4
 
