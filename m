@@ -1,462 +1,58 @@
 From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH 04/13] OMAP: Introduce dependent voltage domain support
-Date: Fri, 21 Jan 2011 19:30:56 +0530
-Message-ID: <1295618465-15234-5-git-send-email-vishwanath.bs@ti.com>
+Subject: [PATCH 09/13] OMAP3: Introduce voltage domain info in the hwmod structures.
+Date: Fri, 21 Jan 2011 19:31:01 +0530
+Message-ID: <1295618465-15234-10-git-send-email-vishwanath.bs@ti.com>
 References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33515 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33516 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752669Ab1AUN5p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 08:57:45 -0500
+	id S1752685Ab1AUN5q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 08:57:46 -0500
 In-Reply-To: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Vishwanath BS <vishwanath.bs@ti.com>, Thara Gopinath <thara@ti.com>
+Cc: patches@linaro.org, Thara Gopinath <thara@ti.com>
 
-There could be dependencies between various voltage domains for
-maintaining system performance or hardware limitation reasons
-like VDD<X> should be at voltage v1 when VDD<Y> is at voltage v2.
-This patch introduce dependent vdd information structures in the
-voltage layer which can be used to populate these dependencies
-for a voltage domain. This patch also adds support to scale
-the dependent vdd and the scalable devices belonging to it
-during the scaling of a main vdd through omap_voltage_scale.
+From: Thara Gopinath <thara@ti.com>
 
-As part of this, some of the voltage layer structure definitions are moved from
-voltage.c to voltage.h as it needs to be used in the dvfs layer for dependency
-voltage handling.
+This patch adds voltage domain info in the relevant
+device hwmod structures so as to enable OMAP3 DVFS
+support.
 
-Based on original patch from Thara.
-
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: Thara Gopinath <thara@ti.com>
+Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/dvfs.c                |   87 +++++++++++++++++
- arch/arm/mach-omap2/voltage.c             |  117 -----------------------
- arch/arm/plat-omap/include/plat/voltage.h |  148 +++++++++++++++++++++++++++++
- 3 files changed, 235 insertions(+), 117 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-omap2/dvfs.c
-index cefc2be..c9d3894 100755
---- a/arch/arm/mach-omap2/dvfs.c
-+++ b/arch/arm/mach-omap2/dvfs.c
-@@ -85,6 +85,7 @@ struct omap_vdd_dvfs_info {
- 	struct mutex scaling_mutex; /* dvfs mutex */
- 	struct voltagedomain *voltdm;
- 	struct list_head dev_list;
-+	struct device vdd_device;
- };
- 
- static struct omap_vdd_dvfs_info *omap_dvfs_info_list;
-@@ -98,6 +99,7 @@ static struct voltagedomain omap3_vdd[] = {
- 	.name = "core",
- 	},
- };
-+static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info);
- 
- static int __init omap_dvfs_init(void);
- 
-@@ -412,6 +414,79 @@ static int omap_dvfs_remove_freq_request(struct omap_vdd_dvfs_info *dvfs_info,
- 	return ret;
- }
- 
-+/* Calculate dependency vdd voltage for given vdd voltage */
-+static int calc_dep_vdd_volt(struct device *dev,
-+		struct omap_vdd_info *main_vdd, unsigned long main_volt)
-+{
-+	struct omap_vdd_dep_info *dep_vdds;
-+	int i, ret = 0;
-+
-+	if (!main_vdd->dep_vdd_info) {
-+		pr_debug("%s: No dependent VDD's for vdd_%s\n",
-+			__func__, main_vdd->voltdm.name);
-+		return 0;
-+	}
-+
-+	dep_vdds = main_vdd->dep_vdd_info;
-+
-+	for (i = 0; i < main_vdd->nr_dep_vdd; i++) {
-+		struct omap_vdd_dep_volt *volt_table = dep_vdds[i].dep_table;
-+		int nr_volt = 0;
-+		unsigned long dep_volt = 0, act_volt = 0;
-+
-+		while (volt_table[nr_volt].main_vdd_volt != 0) {
-+			if (volt_table[nr_volt].main_vdd_volt == main_volt) {
-+				dep_volt = volt_table[nr_volt].dep_vdd_volt;
-+				break;
-+			}
-+			nr_volt++;
-+		}
-+		if (!dep_volt) {
-+			pr_warning("%s: Not able to find a matching volt for"
-+				"vdd_%s corresponding to vdd_%s %ld volt\n",
-+				__func__, dep_vdds[i].name,
-+				main_vdd->voltdm.name, main_volt);
-+			ret = -EINVAL;
-+			continue;
-+		}
-+
-+		if (!dep_vdds[i].voltdm)
-+			dep_vdds[i].voltdm =
-+				omap_voltage_domain_lookup(dep_vdds[i].name);
-+
-+		act_volt = dep_volt;
-+
-+		/* See if dep_volt is possible for the vdd*/
-+		ret = omap_dvfs_add_vdd_user(get_dvfs_info(dep_vdds[i].voltdm),
-+				dev, act_volt);
-+	}
-+
-+	return ret;
-+}
-+
-+/* Scale dependent VDD */
-+static int scale_dep_vdd(struct omap_vdd_dvfs_info *vdd_info)
-+{
-+	struct omap_vdd_dep_info *dep_vdds;
-+	int i;
-+	struct omap_vdd_info *main_vdd;
-+	struct voltagedomain *voltdm = vdd_info->voltdm;
-+	main_vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
-+
-+	if (!main_vdd->dep_vdd_info) {
-+		pr_debug("%s: No dependent VDD's for vdd_%s\n",
-+			__func__, main_vdd->voltdm.name);
-+		return 0;
-+	}
-+
-+	dep_vdds = main_vdd->dep_vdd_info;
-+
-+	for (i = 0; i < main_vdd->nr_dep_vdd; i++)
-+		omap_dvfs_voltage_scale(get_dvfs_info(dep_vdds[i].voltdm));
-+
-+	return 0;
-+}
-+
- /**
-  * omap_dvfs_voltage_scale() : API to scale the devices associated with a
-  *						voltage domain vdd voltage.
-@@ -435,6 +510,7 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
- 	int ret = 0;
- 	struct voltagedomain *voltdm;
- 	unsigned long volt;
-+	struct omap_vdd_info *vdd;
- 
- 	if (!dvfs_info || IS_ERR(dvfs_info)) {
- 		pr_warning("%s: VDD specified does not exist!\n", __func__);
-@@ -442,6 +518,7 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
- 	}
- 
- 	voltdm = dvfs_info->voltdm;
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
- 
- 	mutex_lock(&dvfs_info->scaling_mutex);
- 
-@@ -494,6 +571,16 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
- 
- 	mutex_unlock(&dvfs_info->scaling_mutex);
- 
-+	/* calculate the voltages for dependent vdd's */
-+	if (calc_dep_vdd_volt(&dvfs_info->vdd_device, vdd, volt)) {
-+		pr_warning("%s: Error in calculating dependent vdd voltages"
-+			"for vdd_%s\n", __func__, voltdm->name);
-+		return -EINVAL;
-+	}
-+
-+	/* Scale dependent vdds */
-+	scale_dep_vdd(dvfs_info);
-+
- 	return 0;
- }
- 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index ed6079c..92fe20d 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -39,123 +39,6 @@
- #define VP_TRANXDONE_TIMEOUT	300
- #define VOLTAGE_DIR_SIZE	16
- 
--/* Voltage processor register offsets */
--struct vp_reg_offs {
--	u8 vpconfig;
--	u8 vstepmin;
--	u8 vstepmax;
--	u8 vlimitto;
--	u8 vstatus;
--	u8 voltage;
--};
--
--/* Voltage Processor bit field values, shifts and masks */
--struct vp_reg_val {
--	/* PRM module */
--	u16 prm_mod;
--	/* VPx_VPCONFIG */
--	u32 vpconfig_erroroffset;
--	u16 vpconfig_errorgain;
--	u32 vpconfig_errorgain_mask;
--	u8 vpconfig_errorgain_shift;
--	u32 vpconfig_initvoltage_mask;
--	u8 vpconfig_initvoltage_shift;
--	u32 vpconfig_timeouten;
--	u32 vpconfig_initvdd;
--	u32 vpconfig_forceupdate;
--	u32 vpconfig_vpenable;
--	/* VPx_VSTEPMIN */
--	u8 vstepmin_stepmin;
--	u16 vstepmin_smpswaittimemin;
--	u8 vstepmin_stepmin_shift;
--	u8 vstepmin_smpswaittimemin_shift;
--	/* VPx_VSTEPMAX */
--	u8 vstepmax_stepmax;
--	u16 vstepmax_smpswaittimemax;
--	u8 vstepmax_stepmax_shift;
--	u8 vstepmax_smpswaittimemax_shift;
--	/* VPx_VLIMITTO */
--	u8 vlimitto_vddmin;
--	u8 vlimitto_vddmax;
--	u16 vlimitto_timeout;
--	u8 vlimitto_vddmin_shift;
--	u8 vlimitto_vddmax_shift;
--	u8 vlimitto_timeout_shift;
--	/* PRM_IRQSTATUS*/
--	u32 tranxdone_status;
--};
--
--/* Voltage controller registers and offsets */
--struct vc_reg_info {
--	/* PRM module */
--	u16 prm_mod;
--	/* VC register offsets */
--	u8 smps_sa_reg;
--	u8 smps_volra_reg;
--	u8 bypass_val_reg;
--	u8 cmdval_reg;
--	u8 voltsetup_reg;
--	/*VC_SMPS_SA*/
--	u8 smps_sa_shift;
--	u32 smps_sa_mask;
--	/* VC_SMPS_VOL_RA */
--	u8 smps_volra_shift;
--	u32 smps_volra_mask;
--	/* VC_BYPASS_VAL */
--	u8 data_shift;
--	u8 slaveaddr_shift;
--	u8 regaddr_shift;
--	u32 valid;
--	/* VC_CMD_VAL */
--	u8 cmd_on_shift;
--	u8 cmd_onlp_shift;
--	u8 cmd_ret_shift;
--	u8 cmd_off_shift;
--	u32 cmd_on_mask;
--	/* PRM_VOLTSETUP */
--	u8 voltsetup_shift;
--	u32 voltsetup_mask;
--};
--
--/**
-- * omap_vdd_info - Per Voltage Domain info
-- *
-- * @volt_data		: voltage table having the distinct voltages supported
-- *			  by the domain and other associated per voltage data.
-- * @pmic_info		: pmic specific parameters which should be populted by
-- *			  the pmic drivers.
-- * @vp_offs		: structure containing the offsets for various
-- *			  vp registers
-- * @vp_reg		: the register values, shifts, masks for various
-- *			  vp registers
-- * @vc_reg		: structure containing various various vc registers,
-- *			  shifts, masks etc.
-- * @voltdm		: pointer to the voltage domain structure
-- * @debug_dir		: debug directory for this voltage domain.
-- * @curr_volt		: current voltage for this vdd.
-- * @ocp_mod		: The prm module for accessing the prm irqstatus reg.
-- * @prm_irqst_reg	: prm irqstatus register.
-- * @vp_enabled		: flag to keep track of whether vp is enabled or not
-- * @volt_scale		: API to scale the voltage of the vdd.
-- */
--struct omap_vdd_info {
--	struct omap_volt_data *volt_data;
--	struct omap_volt_pmic_info *pmic_info;
--	struct vp_reg_offs vp_offs;
--	struct vp_reg_val vp_reg;
--	struct vc_reg_info vc_reg;
--	struct voltagedomain voltdm;
--	struct dentry *debug_dir;
--	u32 curr_volt;
--	u16 ocp_mod;
--	u8 prm_irqst_reg;
--	bool vp_enabled;
--	u32 (*read_reg) (u16 mod, u8 offset);
--	void (*write_reg) (u32 val, u16 mod, u8 offset);
--	int (*volt_scale) (struct omap_vdd_info *vdd,
--		unsigned long target_volt);
--};
--
- static struct omap_vdd_info *vdd_info;
- /*
-  * Number of scalable voltage domains.
-diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
-index 5bd204e..e0b7f22 100644
---- a/arch/arm/plat-omap/include/plat/voltage.h
-+++ b/arch/arm/plat-omap/include/plat/voltage.h
-@@ -113,6 +113,154 @@ struct omap_volt_pmic_info {
- 	u8 (*uv_to_vsel) (unsigned long uV);
- };
- 
-+/* Voltage processor register offsets */
-+struct vp_reg_offs {
-+	u8 vpconfig;
-+	u8 vstepmin;
-+	u8 vstepmax;
-+	u8 vlimitto;
-+	u8 vstatus;
-+	u8 voltage;
-+};
-+
-+/* Voltage Processor bit field values, shifts and masks */
-+struct vp_reg_val {
-+	/* PRM module */
-+	u16 prm_mod;
-+	/* VPx_VPCONFIG */
-+	u32 vpconfig_erroroffset;
-+	u16 vpconfig_errorgain;
-+	u32 vpconfig_errorgain_mask;
-+	u8 vpconfig_errorgain_shift;
-+	u32 vpconfig_initvoltage_mask;
-+	u8 vpconfig_initvoltage_shift;
-+	u32 vpconfig_timeouten;
-+	u32 vpconfig_initvdd;
-+	u32 vpconfig_forceupdate;
-+	u32 vpconfig_vpenable;
-+	/* VPx_VSTEPMIN */
-+	u8 vstepmin_stepmin;
-+	u16 vstepmin_smpswaittimemin;
-+	u8 vstepmin_stepmin_shift;
-+	u8 vstepmin_smpswaittimemin_shift;
-+	/* VPx_VSTEPMAX */
-+	u8 vstepmax_stepmax;
-+	u16 vstepmax_smpswaittimemax;
-+	u8 vstepmax_stepmax_shift;
-+	u8 vstepmax_smpswaittimemax_shift;
-+	/* VPx_VLIMITTO */
-+	u8 vlimitto_vddmin;
-+	u8 vlimitto_vddmax;
-+	u16 vlimitto_timeout;
-+	u8 vlimitto_vddmin_shift;
-+	u8 vlimitto_vddmax_shift;
-+	u8 vlimitto_timeout_shift;
-+	/* PRM_IRQSTATUS*/
-+	u32 tranxdone_status;
-+};
-+
-+/* Voltage controller registers and offsets */
-+struct vc_reg_info {
-+	/* PRM module */
-+	u16 prm_mod;
-+	/* VC register offsets */
-+	u8 smps_sa_reg;
-+	u8 smps_volra_reg;
-+	u8 bypass_val_reg;
-+	u8 cmdval_reg;
-+	u8 voltsetup_reg;
-+	/*VC_SMPS_SA*/
-+	u8 smps_sa_shift;
-+	u32 smps_sa_mask;
-+	/* VC_SMPS_VOL_RA */
-+	u8 smps_volra_shift;
-+	u32 smps_volra_mask;
-+	/* VC_BYPASS_VAL */
-+	u8 data_shift;
-+	u8 slaveaddr_shift;
-+	u8 regaddr_shift;
-+	u32 valid;
-+	/* VC_CMD_VAL */
-+	u8 cmd_on_shift;
-+	u8 cmd_onlp_shift;
-+	u8 cmd_ret_shift;
-+	u8 cmd_off_shift;
-+	u32 cmd_on_mask;
-+	/* PRM_VOLTSETUP */
-+	u8 voltsetup_shift;
-+	u32 voltsetup_mask;
-+};
-+
-+
-+/**
-+ * omap_vdd_dep_volt - Table containing the parent vdd voltage and the
-+ *			dependent vdd voltage corresponding to it.
-+ *
-+ * @main_vdd_volt	: The main vdd voltage
-+ * @dep_vdd_volt	: The voltage at which the dependent vdd should be
-+ *			  when the main vdd is at <main_vdd_volt> voltage
-+ */
-+struct omap_vdd_dep_volt {
-+	u32 main_vdd_volt;
-+	u32 dep_vdd_volt;
-+};
-+
-+/**
-+ * omap_vdd_dep_info - Dependent vdd info
-+ *
-+ * @name		: Dependent vdd name
-+ * @voltdm		: Dependent vdd pointer
-+ * @dep_table		: Table containing the dependent vdd voltage
-+ *			  corresponding to every main vdd voltage.
-+ */
-+struct omap_vdd_dep_info {
-+	char *name;
-+	struct voltagedomain *voltdm;
-+	struct omap_vdd_dep_volt *dep_table;
-+};
-+
-+
-+/**
-+ * omap_vdd_info - Per Voltage Domain info
-+ *
-+ * @volt_data		: voltage table having the distinct voltages supported
-+ *			  by the domain and other associated per voltage data.
-+ * @pmic_info		: pmic specific parameters which should be populted by
-+ *			  the pmic drivers.
-+ * @vp_offs		: structure containing the offsets for various
-+ *			  vp registers
-+ * @vp_reg		: the register values, shifts, masks for various
-+ *			  vp registers
-+ * @vc_reg		: structure containing various various vc registers,
-+ *			  shifts, masks etc.
-+ * @voltdm		: pointer to the voltage domain structure
-+ * @debug_dir		: debug directory for this voltage domain.
-+ * @curr_volt		: current voltage for this vdd.
-+ * @ocp_mod		: The prm module for accessing the prm irqstatus reg.
-+ * @prm_irqst_reg	: prm irqstatus register.
-+ * @vp_enabled		: flag to keep track of whether vp is enabled or not
-+ * @volt_scale		: API to scale the voltage of the vdd.
-+ */
-+struct omap_vdd_info {
-+	struct omap_volt_data *volt_data;
-+	struct omap_volt_pmic_info *pmic_info;
-+	struct vp_reg_offs vp_offs;
-+	struct vp_reg_val vp_reg;
-+	struct vc_reg_info vc_reg;
-+	struct voltagedomain voltdm;
-+	struct omap_vdd_dep_info *dep_vdd_info;
-+	int nr_dep_vdd;
-+	struct dentry *debug_dir;
-+	u32 curr_volt;
-+	u16 ocp_mod;
-+	u8 prm_irqst_reg;
-+	bool vp_enabled;
-+	u32 (*read_reg) (u16 mod, u8 offset);
-+	void (*write_reg) (u32 val, u16 mod, u8 offset);
-+	int (*volt_scale) (struct omap_vdd_info *vdd,
-+		unsigned long target_volt);
-+};
-+
- unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm);
- void omap_vp_enable(struct voltagedomain *voltdm);
- void omap_vp_disable(struct voltagedomain *voltdm);
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 8d81813..c57f34d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -94,6 +94,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l3_main_masters[] = {
+ static struct omap_hwmod omap3xxx_l3_main_hwmod = {
+ 	.name		= "l3_main",
+ 	.class		= &l3_hwmod_class,
++	.vdd_name	= "core",
+ 	.masters	= omap3xxx_l3_main_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_main_masters),
+ 	.slaves		= omap3xxx_l3_main_slaves,
+@@ -384,6 +385,7 @@ static struct omap_hwmod omap3xxx_mpu_hwmod = {
+ 	.name		= "mpu",
+ 	.class		= &mpu_hwmod_class,
+ 	.main_clk	= "arm_fck",
++	.vdd_name	= "mpu",
+ 	.masters	= omap3xxx_mpu_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap3xxx_mpu_masters),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -412,6 +414,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_iva_masters[] = {
+ static struct omap_hwmod omap3xxx_iva_hwmod = {
+ 	.name		= "iva",
+ 	.class		= &iva_hwmod_class,
++	.vdd_name	= "mpu",
+ 	.masters	= omap3xxx_iva_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap3xxx_iva_masters),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
 -- 
 1.7.0.4
 
