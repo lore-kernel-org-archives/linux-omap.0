@@ -1,49 +1,78 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCHv2] OMAP3: CPUIdle: prevent CORE from going off if doing so
- would reset an active clockdomain
-Date: Fri, 21 Jan 2011 15:34:55 +0530
-Message-ID: <c18e60eda3b57ca0c69f7da8e0c34b38@mail.gmail.com>
-References: <1295606225-11834-1-git-send-email-tero.kristo@nokia.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCHv3] OMAP: Enable Magic SysRq on serial console ttyOx
+Date: Fri, 21 Jan 2011 15:42:57 +0530
+Message-ID: <AANLkTikSznkcNwkVaPswx=zr8FFGQPVMw_AebF9ymZLE@mail.gmail.com>
+References: <1295604084-27761-1-git-send-email-weber@corscience.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:60991 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751827Ab1AUKLT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 05:11:19 -0500
-Received: by bwz12 with SMTP id 12so1420211bwz.13
-        for <linux-omap@vger.kernel.org>; Fri, 21 Jan 2011 02:11:17 -0800 (PST)
-In-Reply-To: <1295606225-11834-1-git-send-email-tero.kristo@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1295604084-27761-1-git-send-email-weber@corscience.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Weber <weber@corscience.de>
+Cc: linux-omap@vger.kernel.org, manjugk@ti.com, gadiyar@ti.com, tony@atomide.com, govindraj@ti.com, gregkh@suse.de, andrei.emeltchenko@nokia.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-> -----Original Message-----
-> From: Tero Kristo [mailto:tero.kristo@nokia.com]
-> Sent: Friday, January 21, 2011 4:07 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Paul Walmsley; Kevin Hilman; Santosh Shilimkar; Vishwanath
-> Sripathy
-> Subject: [PATCHv2] OMAP3: CPUIdle: prevent CORE from going off if
-> doing so would reset an active clockdomain
+On Fri, Jan 21, 2011 at 3:31 PM, Thomas Weber <weber@corscience.de> wro=
+te:
+> Magic SysRq key is not working for OMAP on new serial
+> console ttyOx because SUPPORT_SYSRQ is not defined
+> for omap-serial.
 >
-> On OMAP3 SoCs, if the CORE powerdomain enters off-mode, many other
-> parts of the chip will be reset.  If those parts of the chip are
-> busy,
-> the reset will disrupt them, causing unpredictable and generally
-> undesirable results. This reset is caused by the core domain wakeup
-> (COREDOMAINWKUP_RST), and it can occur for example in a case where
-> some peripheral domain is in retention or inactive state and core
-> enters off. This will result in the peripheral domain being reset.
+> This patch defines SUPPORT_SYSRQ in omap-serial and
+> enables handling of Magic SysRq character.
 >
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+> Further there is an issue of losing first break character.
+> Removing the reset of the lsr_break_flag fixes this issue.
+>
+> Signed-off-by: Thomas Weber <weber@corscience.de>
+
+
+Acked-by: Govindraj.R <govindraj.raja@ti.com>
+Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
+
+
 > ---
-Thanks for update Tero.
-If you like,
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> =A0drivers/serial/omap-serial.c | =A0 =A05 ++++-
+> =A01 files changed, 4 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/serial/omap-serial.c b/drivers/serial/omap-seria=
+l.c
+> index 7f2f010..699b344 100644
+> --- a/drivers/serial/omap-serial.c
+> +++ b/drivers/serial/omap-serial.c
+> @@ -20,6 +20,10 @@
+> =A0* this driver as required for the omap-platform.
+> =A0*/
+>
+> +#if defined(CONFIG_SERIAL_OMAP_CONSOLE) && defined(CONFIG_MAGIC_SYSR=
+Q)
+> +#define SUPPORT_SYSRQ
+> +#endif
+> +
+> =A0#include <linux/module.h>
+> =A0#include <linux/init.h>
+> =A0#include <linux/console.h>
+> @@ -190,7 +194,6 @@ static inline void receive_chars(struct uart_omap=
+_port *up, int *status)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (up->port.line =3D=3D=
+ up->port.cons->index) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Rec=
+over the break flag from console xmit */
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0lsr |=3D=
+ up->lsr_break_flag;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->lsr=
+_break_flag =3D 0;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> =A0#endif
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (lsr & UART_LSR_BI)
+> --
+> 1.7.4.rc2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at =A0http://www.tux.org/lkml/
+>
