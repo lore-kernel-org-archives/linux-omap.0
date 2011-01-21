@@ -1,68 +1,164 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK to
-	speed-up boot
-Date: Fri, 21 Jan 2011 17:15:55 +0000
-Message-ID: <20110121171555.GB30823@n2100.arm.linux.org.uk>
-References: <1295516579-10225-1-git-send-email-santosh.shilimkar@ti.com> <4D385155.4050301@gmail.com> <43c027bd53818ab19bdc1c823aa21ea4@mail.gmail.com> <4D38641E.2000301@gmail.com> <c1a2c539e2677e9a56d2d3aaaaf34851@mail.gmail.com> <4D399F74.9050302@gmail.com>
+From: "Nagendra" <nagendra@mistralsolutions.com>
+Subject: RE: OMAP3 - PM - Question - Disabling CLKEN and HFCLKOUT signals      from TWL4030 scripts
+Date: Fri, 21 Jan 2011 23:20:23 +0530
+Message-ID: <001501cbb993$b25c0fe0$17142fa0$@com>
+References: <005301cbb947$6d682730$48387590$@com> <23149.10.24.255.17.1295604867.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50883 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751515Ab1AURQU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 12:16:20 -0500
-Content-Disposition: inline
-In-Reply-To: <4D399F74.9050302@gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:39793 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754285Ab1AURuY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 12:50:24 -0500
+Received: by mail-fx0-f46.google.com with SMTP id 20so2022168fxm.19
+        for <linux-omap@vger.kernel.org>; Fri, 21 Jan 2011 09:50:23 -0800 (PST)
+In-Reply-To: <23149.10.24.255.17.1295604867.squirrel@dbdmail.itg.ti.com>
+Content-Language: en-us
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>
+To: 'Lesly A M' <leslyam@ti.com>
+Cc: linux-omap@vger.kernel.org, ratheesh@mistralsolutions.com
 
-On Fri, Jan 21, 2011 at 09:00:04AM -0600, Rob Herring wrote:
-> Why? If preset_lpj is non-zero, calibrate_delay will effectively be  
-> skipped which is the same thing your patch does.
 
-Theoretically...
+Please see responses inline below.
 
-You boot.  lpj= sets preset_lpj.  calibrate_delay() sets loops_per_jiffy
-based on preset_lpj which happens to match the boot CPU speed correctly.
+Hi Nagendra,
 
-cpufreq initializes, changes the CPU frequency.  loops_per_jiffy is
-scaled for the new CPU clock rate.
-
-You hot-unplug a CPU, and then hot-plug it back in.  calibrate_delay()
-gets called again, and it again notices preset_lpj is set.  It copies
-this value into loops_per_jiffy, overwriting it with what is now a
-value which is completely wrong for the current CPU run rate.
-
-> This is the cpfreq loops_per_jiffy adjustment function for SMP:
+> Hi All,
 >
-> static inline void adjust_jiffies(unsigned long val, struct  
-> cpufreq_freqs *ci)
-> {
-> 	return;
-> }
-
-That means cpufreq scaling on SMP is broken then...  Why isn't cpufreq
-marked with a !SMP dependence or something similar (eg, depends on
-!SMP || CPU_INDEPENDENT_UDELAY)...  Maybe it should be.
-
-> And delay.S uses the global loops_per_jiffy, not the per cpu value. The  
-> only place I see the per cpu value get used is /proc/cpuinfo.
+> We are working on Power management on OMAP3 (3530) and I am trying to
+> disable CLKEN and HFCLKOUT through TWL4030 power scripts. However we have
+> not been able to achieve this.
 >
-> Consider the following sequence:
+> Following are the changes and tests done so far.
 >
-> - scale down the cpu freq
-> - hot unplug a core
-> - hot plug a core
->   - calls calibrate_delay and update the global loops_per_jiffy
-> - scale up the cpu freq
-> - udelay time is now much too short!!!
+> - VAUX1, CLKEN and HFCLKOUT were assigned to P1 group.
+> - Wrote Singular messages to turn on/off these signals in TWL4030 scripts.
+> - We observed that VAUX1 is able to switch ON/OFF properly as per the
+script
+> but HFCLKOUT and CLKEN are not behaving as expected.
+> - However if we try writing CLKEN_DEV_GRP to zero, CLKEN is going low.
+> - We have made sure that SYS_OFF_MODE and CLK_REQ signals go low during
+the
+> system OFF mode, LVL_WAKEUP bit enabled in Px_SW_EVENTS, and STS_CHG bit
+in
+> STS_HW_CONDITIONS is zero.
 >
-> So for that reason, I would just remove calibrate_delay unconditionally.  
-> Better to have the 1% inaccuracy and longer delays at low frequency than  
-> to have too short of a delay at high freq.
+> Is there anything that I am missing? Kindly let me know.
 
-As you've shown above, it makes not a blind bit of difference whether
-calibrate_delay() is called... on SMP the loops_per_jiffy will be wrong
-as soon as you start scaling no matter what.
+Did try probing the sys_clkreq from OMAP?
+<Nagendra> Yes nSLEEP1, nSLEEP2 and SYS_CLK_REQ signals go low during system
+OFF mode.
+
+Are you sending SLEEP/OFF command in singular msg?
+<Nagendra> Yes.
+
+Also check the HFCLKOUT_REMAP register for SLEEP_STATE[3:0], if using SLEEP
+cmd.
+<Nagendra> 
+We are setting SLEEP_STATE field of CLKEN and HFCLKOUT  to OFF mode.
+
+PSP version : 3.0.1.6
+
+Following is the TWL4030 power scripts that we are trying to get CLKEN
+signal to OFF state. This is based on rx51-peripherals.c 
+
+-----------------------------------------------
+static struct twl4030_ins sleep_on_seq[] __initdata = {
+        {MSG_SINGULAR(DEV_GRP_P1, RES_CLKEN, RES_STATE_OFF), 2},     
+};
+
+static struct twl4030_script sleep_on_script __initdata = {
+        .script = sleep_on_seq,
+        .size   = ARRAY_SIZE(sleep_on_seq),
+        .flags  = TWL4030_SLEEP_SCRIPT,
+};
+
+static struct twl4030_ins wakeup_seq[] __initdata = {
+        {MSG_SINGULAR(DEV_GRP_P1, RES_CLKEN, RES_STATE_ACTIVE), 2},
+};
+
+static struct twl4030_script wakeup_script __initdata = {
+        .script = wakeup_seq,
+        .size   = ARRAY_SIZE(wakeup_seq),
+        .flags  = TWL4030_WAKEUP12_SCRIPT,
+};
+
+static struct twl4030_ins wakeup_p3_seq[] __initdata = {
+        {MSG_SINGULAR(DEV_GRP_P3, RES_CLKEN, RES_STATE_ACTIVE), 2},
+};
+
+static struct twl4030_script wakeup_p3_script __initdata = {
+        .script = wakeup_p3_seq,
+        .size   = ARRAY_SIZE(wakeup_p3_seq),
+        .flags  = TWL4030_WAKEUP3_SCRIPT,
+};
+
+static struct twl4030_ins wrst_seq[] __initdata = {
+/*
+ * Reset twl4030.
+ * Reset VDD1 regulator.
+ * Reset VDD2 regulator.
+ * Reset VPLL1 regulator.
+ * Enable sysclk output.
+ * Reenable twl4030.
+ */
+        {MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
+        {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 0, 1, RES_STATE_ACTIVE),
+                0x13},
+        {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 3, RES_STATE_OFF),
+0x13},
+        {MSG_SINGULAR(DEV_GRP_NULL, RES_VDD1, RES_STATE_WRST), 0x13},
+        {MSG_SINGULAR(DEV_GRP_NULL, RES_VDD2, RES_STATE_WRST), 0x13},
+        {MSG_SINGULAR(DEV_GRP_NULL, RES_VPLL1, RES_STATE_WRST), 0x35},
+        {MSG_SINGULAR(DEV_GRP_P3, RES_HFCLKOUT, RES_STATE_ACTIVE), 2},
+        {MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
+};
+
+static struct twl4030_script wrst_script __initdata = {
+        .script = wrst_seq,
+        .size   = ARRAY_SIZE(wrst_seq),
+        .flags  = TWL4030_WRST_SCRIPT,
+};
+
+static struct twl4030_script *twl4030_scripts[] __initdata = {
+        /* wakeup12 script should be loaded before sleep script, otherwise a
+           board might hit retention before loading of wakeup script is
+           completed. This can cause boot failures depending on timing
+issues.
+        */
+        &wakeup_script,
+        &sleep_on_script,
+        &wakeup_p3_script,
+        &wrst_script,
+};
+
+static struct twl4030_resconfig twl4030_rconfig[] __initdata = {
+        { .resource = RES_CLKEN, .devgroup = DEV_GRP_P1,
+          .type = -1, .type2 = -1 , .remap_off = RES_STATE_OFF, .remap_sleep
+= RES_STATE_OFF
+        },
+        { .resource = RES_HFCLKOUT, .devgroup = -1,
+          .type = -1, .type2 = -1, .remap_off = RES_STATE_OFF, .remap_sleep
+= RES_STATE_OFF
+        },
+
+        { 0, 0},
+};
+----------------------------------------------------------
+
+Please let me know your comments.
+
+Regards,
+Lesly A M
+
+>
+> Part number of TPS used in our board is TPS65950 BZXNR
+>
+> with regards,
+> - Nagendra.
+>
+
+
