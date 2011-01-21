@@ -1,442 +1,314 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v8 02/18] OMAP2420: hwmod data: add DSS DISPC RFBI VENC
-Date: Fri, 21 Jan 2011 20:20:25 +0530
-Message-ID: <1295621441-16678-3-git-send-email-sumit.semwal@ti.com>
-References: <1295621441-16678-1-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v8 00/18] OMAP2,3: hwmod DSS Adaptation
+Date: Fri, 21 Jan 2011 20:20:23 +0530
+Message-ID: <1295621441-16678-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50157 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753393Ab1AUOvZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 09:51:25 -0500
-In-Reply-To: <1295621441-16678-1-git-send-email-sumit.semwal@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58264 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751473Ab1AUOvS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 09:51:18 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
-Cc: Senthilvadivu Guruswamy <svadivu@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
+Cc: Sumit Semwal <sumit.semwal@ti.com>
 
-From: Senthilvadivu Guruswamy <svadivu@ti.com>
+v8 of the DSS hwmod patch series fixes some issues based on findings of 
+Kevin Hilman on beagle.
 
-Hwmod needs database of all IPs in a system. This patch generates the hwmod
-database for OMAP2420 Display Sub System,. Since DSS is also considered as an
-IP as DISPC, RFBI, name it as dss_core.
+The VENC platform driver was not getting registered due to missed device
+name update for vdda_dac regulator in some board files. This was moved from
+'omap_display' device to 'omap_venc' device in patch 14/18.
 
-Acked-by: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |  311 +++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/l3_2xxx.h  |   20 ++
- arch/arm/plat-omap/include/plat/l4_2xxx.h  |   24 +++
- 3 files changed, 354 insertions(+), 1 deletions(-)
+Also, similarly for DSI platform driver, the regulator name 'vdds_dsi' needs two
+instances - one for dpi, and one for dsi.
+
+This version corrects the above two for all board files where 'vdda_dac' and
+'vdds_dsi' regulators are defined. [patches 14/18 and 15/18]
+
+Post this change, boot w/ visible framebuffer and tux was successfully validated
+on beagle, 3430SDP and zoom3.
+
+A patch mentioned in 
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42384.html
+was needed to get OMAP3 to boot up on top of linux-next of 20110115.
+
+OMAP4 hwmod support will be posted after the acceptance of this basic change in
+the dss2 design.
+
+-------------------------------------------------
+[original patch introduction]
+
+This patch series decouples the "Clocks for DSS in hwmod adaptation" changes
+from this series.  Another series would be posted which could be discussed
+w.r.t clocks in DSS across omap2,3.
+
+Removing the SYSCONFIG settings from DSS driver would also be part of these
+clock changes series and not covered in this series as it depends on some of
+the omap_hwmod framework changes w.r.t opt clocks handling.
+
+Summary of the hwmod DSS design:
+================================
+DSS, DISPC, DSI, RFBI, VENC are made as platform drivers each 
+corresponding to the hwmod class in the hwmod database. 
+
+Each of these platform drivers' init / deinit are handled from core.c's
+omap_dss_probe() in the exact sequence as required.
+
+No Hardcoding of silicon data:
+hwmod database abstracts the SOC data like base addr, irq numbers and are
+implemented in this patch series.
+
+Continue to have custom bus for display panels:
+"omap_display" driver continues to be a platform driver that registers the custom
+bus.  It also continues to register the display panels(omap_dss_device) on the
+board to the panel drivers (omap_dss_driver)
+For Eg:  primary lcd device would be registered with lcd panel driver.
+lcd panel driver if it is on a parallel interface would use library functions 
+exported from dpi.o.  if it is on a dsi interface would use library functions
+exported from dsi platform driver(dsi.o).
+
+Clocks:
+Handling of clocks in DSS only is one of the design approaches, that does not
+change the existing implementation.  If each of the DSS HW IPs had to handle
+their own clocks, then corresponding clock changes can be requested in the hwmod
+database as well which is not the current design/implementation.  As stated, 
+this would be handled in another series seperately.
+For Eg: VENC would need 54MCLK which is termed as dss_opt clocks as of now apart
+for the dss main clocks.  Currently VENC driver needs to be aware of this and has to
+use clk_get/put, clk_enable/disable, since VENC hwmod is not aware of 54MCLK.
+
+
+
+Current dss driver:
+-------------------
+1.  Omapdss platform driver
+        - initialises necessary Ips dss, dispc.
+        - also initialises Ips like sdi, dsi, venc, rfbi
+        - creates a custom bus and registers the display devices/drivers
+        connected on the board to the custom bus.
+
+2.  Suspend/resume of omapdss
+        - in turn sends suspend/resume calls for each of the display devices
+        registered to it.
+
+Modified change:
+---------------
+Platform driver for each DSS HW IP in addition to the software "omap_display"
+driver.
+
+Omapdss platform driver
+        - initialises necessary h/w IPs' platform drivers [dss, dispc, dsi, venc, rfbi]
+	  and software libraries like dpi, sdi.
+        - continues to have a custom bus and registers the display devices 
+        and drivers connected on the board to the custom bus.
+        - continues to handle suspend/resume of the display devices registered
+        to the custom bus.
+
+DSS platform driver
+        - initialises DSS IP alone
+	- Handles the clocks related to the DSS and other DSSHW IPs like RFBI,
+	DSI, VENC, DISPC.  Previously this was a part of "omapdss" driver in core.c
+	- Continues to handle the DSS IRQs.
+	- No suspend/resume hooks.
+
+DISPC platform driver
+        - initialises DISPC IP alone
+	- Gets the required clock from DSS platform driver.
+	- No suspend/resume hooks.
+	- Continues to provide DISPC library functions.
+
+DSI platform driver
+        - initialises DSI IP alone
+	- Gets the required clock from DSS platform driver.
+	- No suspend/resume hooks.
+	- Continues to provide DSI library functions.
+
+RFBI, VENC platform drivers
+        - initialises DSI,VENC IPs
+	- Gets the required clock from DSS platform driver.
+	- No suspend/resume hooks.
+	- Continues to provide RFBI and VENC library functions.
+
+Testing:
+---------
+The patches are tested on 2420-n800, 2430sdp, 3630zoom, 3430sdp.
+Complete bootup with penguins on panel is done on 3430sdp.
+For the rest of the mentioned platforms, kernel is built with "OMAP2_DSS"
+and bootup is tested so that base address and clk_get calls are successful.
+
+DSS was built successfully as module, though not tested yet.
+
+Changes since v6:
+-----------------
+* board-zoom-peripherals.c: Added missing change of device name from omapdss to omap_display.
+	Found during testing on OMAP3630 on top of 
+Changes since v5:
+----------------
+1) Following review comments incorporated:
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42031.html
+		Make sure display.c is built when DSS is enabled built-in or as a module.
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42083.html
+		hwmod and omap_device headers moved to patch 8 when they're
+		needed the first time.
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42094.html
+		- latency set to AUTO_ADJUST
+		- extra whitespaces removed.
+		- pdata memset to 0 before use.
+		- if omap_device_build fails, return error.
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42095.html
+		renamed *_deinit_* to *_uninit_*
+
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42171.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42172.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42173.html
+		- added L3 and L4 firewall related data,
+		- corrected handling of .idlest_idle_bit v/w .idlest_stdby_bit
+		- no .idlest_*_bit setting for dependent hwmods
+		- corrected .user to add SDMA
+		- renamed dss_dss to dss_core
+		- hwmod for 3430es1 and later 3xxx are separated out, with some
+		  reuse of data.
+ *	Removed forced-disable of dss clocks from omap_dss_remove.
+
+Changes since v4:
+----------------
+1) Following review comments incorporated:
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41970.html
+		Corrected the clocks to be enabled in omap_dss_probe.
+Changes since v3:
+----------------
+1.) Following review comments incorporated:
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41705.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41683.html
+		Created a new display.c file for dss driver registration 
+		related code.	
+
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41573.html
+		Changed the oh_name/dev_name handling in hwmod usage.
+
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41753.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41718.html
+		removed device_initcall_sync(); init / deinit of each DSS h/w IP
+		platform drivers are done from omap_dss_probe() in sequence.
+
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41754.html
+		clock patches were cleaned up as per review comments.
+
+ *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41756.html
+		printk() => dev_dbg change was separated out.
+
+
+Changes since v2:
+-------------------
+1.) Following review comments incorporated:
+	Split the device/driver name change and registration patches logically.
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41205.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41204.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41203.html
+
+Changes since v1:
+------------------
+1.) Dynamically register for OMAP2,3 specific DSS HW IPs in devices.c
+2.) Following review comments incorporated:
+	Updation of all the board files on l-o dss2 branch as per
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36915.html
+	Comments incorporated in devices.c and display.h as per
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36919.html
+	Comments incorporated in dispc.c, dss.c, dsi.c, venc.c, rfbi.c 
+	so that platform_device is just above platform_driver registrations as per
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36963.html
+3.) Squashed some of the patches to one patch.
+
+Changes since RFC:
+-------------------
+1) All the platform driver registration except DSS, were within the file core.c.
+Registeration of these driver got seperated to its own file.
+2) Usage of regulators by different drivers are implemented.
+For Eg: Regulator used by VENC is moved to venc driver.  But vdda_dac would be 
+needed by DPI and DSI as well.
+4) OMAP2420 and OMAP2430 hwmod database are generated in this v1.
+5) Module support for omapdss driver can continue as the DSS HW IP specific platform
+drivers are decoupled from omapdss driver.
+6) Following review comments incorporated:
+	Changed the hwmod device name from "dss" to "dss_dss"
+	Changed name of core driver from "omapdss" to "omap_display" as it deals with panels.
+	Fixed comments on return values from platform_get_resource/irq functions.
+
+Patch Base:
+===========
+Patch-set rebased and tested w/ Zoom3 (OMAP3630) on top of:
+url = git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+branch "master"
+commit	e8883f8057c0f7c9950fa9f20568f37bfa62f34a
+Description: Add linux-next specific files for 20110115
++
+Patch mentioned in http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42384.html
+[PATCH] OMAP: counter_32k: init clocksource as part of machine timer init
+
+(This patch is required for OMAP bootup w/ 20110115 linux-next)
+
+----------------------------------------------------------------------------
+Senthilvadivu Guruswamy (15):
+  OMAP2420: hwmod data: add DSS DISPC RFBI VENC
+  OMAP2430: hwmod data: add DSS DISPC RFBI VENC
+  OMAP3: hwmod data: add DSS DISPC RFBI DSI VENC
+  OMAP2,3 DSS2 Change driver name to omap_display
+  OMAP2,3 DSS2 Use Regulator init with driver name
+  OMAP2,3: DSS2: board files: replace platform_device_register with
+    omap_display_init()
+  OMAP2,3: DSS2: Build omap_device for each DSS HWIP
+  OMAP2,3: DSS2: DSS: create platform_driver, move init,exit to driver
+  OMAP2,3: DSS2: Move clocks from core driver to dss driver
+  OMAP2,3: DSS2: RFBI: create platform_driver, move init,exit to driver
+  OMAP2,3: DSS2: DISPC: create platform_driver, move init,exit to
+    driver
+  OMAP2,3: DSS2: VENC: create platform_driver, move init,exit to driver
+  OMAP2,3: DSS2: DSI: create platform_driver, move init,exit to driver
+  OMAP2,3: DSS2: Use platform device to get baseaddr
+  OMAP2,3: DSS2: Get DSS IRQ from platform device
+
+Sumit Semwal (3):
+  OMAP2,3: DSS2: remove forced clk-disable from omap_dss_remove
+  OMAP2,3: DSS2: Create new file display.c for central dss driver
+    registration.
+  OMAP2,3: DSS2: replace printk with dev_dbg in init
+
+ arch/arm/mach-omap2/Makefile                 |    3 +
+ arch/arm/mach-omap2/board-3430sdp.c          |   26 +--
+ arch/arm/mach-omap2/board-am3517evm.c        |   16 +-
+ arch/arm/mach-omap2/board-cm-t35.c           |   22 +-
+ arch/arm/mach-omap2/board-devkit8000.c       |   22 +-
+ arch/arm/mach-omap2/board-igep0020.c         |   20 +-
+ arch/arm/mach-omap2/board-omap3beagle.c      |   22 +-
+ arch/arm/mach-omap2/board-omap3evm.c         |   30 +--
+ arch/arm/mach-omap2/board-omap3pandora.c     |   17 +-
+ arch/arm/mach-omap2/board-omap3stalker.c     |   26 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    4 +-
+ arch/arm/mach-omap2/board-rx51-video.c       |   15 +-
+ arch/arm/mach-omap2/board-zoom-display.c     |   15 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   12 +-
+ arch/arm/mach-omap2/clock2420_data.c         |    8 +-
+ arch/arm/mach-omap2/clock2430_data.c         |    8 +-
+ arch/arm/mach-omap2/clock3xxx_data.c         |   14 +-
+ arch/arm/mach-omap2/display.c                |   96 ++++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c   |  311 ++++++++++++++++++-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c   |  284 ++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |  433 +++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/display.h    |   16 +
+ arch/arm/plat-omap/include/plat/l3_2xxx.h    |   20 ++
+ arch/arm/plat-omap/include/plat/l3_3xxx.h    |   20 ++
+ arch/arm/plat-omap/include/plat/l4_2xxx.h    |   24 ++
+ arch/arm/plat-omap/include/plat/l4_3xxx.h    |   10 +
+ drivers/video/omap2/dss/core.c               |  448 ++------------------------
+ drivers/video/omap2/dss/dispc.c              |  114 ++++---
+ drivers/video/omap2/dss/dsi.c                |   78 ++++-
+ drivers/video/omap2/dss/dss.c                |  411 +++++++++++++++++++++++-
+ drivers/video/omap2/dss/dss.h                |   46 ++--
+ drivers/video/omap2/dss/rfbi.c               |  118 ++++---
+ drivers/video/omap2/dss/venc.c               |  125 +++++---
+ 33 files changed, 2049 insertions(+), 785 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/display.c
  create mode 100644 arch/arm/plat-omap/include/plat/l3_2xxx.h
+ create mode 100644 arch/arm/plat-omap/include/plat/l3_3xxx.h
  create mode 100644 arch/arm/plat-omap/include/plat/l4_2xxx.h
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index b85c630..21014de 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -18,7 +18,8 @@
- #include <plat/serial.h>
- #include <plat/i2c.h>
- #include <plat/gpio.h>
--
-+#include <plat/l3_2xxx.h>
-+#include <plat/l4_2xxx.h>
- #include "omap_hwmod_common_data.h"
- 
- #include "cm-regbits-24xx.h"
-@@ -38,6 +39,10 @@ static struct omap_hwmod omap2420_mpu_hwmod;
- static struct omap_hwmod omap2420_iva_hwmod;
- static struct omap_hwmod omap2420_l3_main_hwmod;
- static struct omap_hwmod omap2420_l4_core_hwmod;
-+static struct omap_hwmod omap2420_dss_core_hwmod;
-+static struct omap_hwmod omap2420_dss_dispc_hwmod;
-+static struct omap_hwmod omap2420_dss_rfbi_hwmod;
-+static struct omap_hwmod omap2420_dss_venc_hwmod;
- static struct omap_hwmod omap2420_wd_timer2_hwmod;
- static struct omap_hwmod omap2420_gpio1_hwmod;
- static struct omap_hwmod omap2420_gpio2_hwmod;
-@@ -64,6 +69,19 @@ static struct omap_hwmod_ocp_if *omap2420_l3_main_slaves[] = {
- 	&omap2420_mpu__l3_main,
- };
- 
-+/* DSS -> l3 */
-+static struct omap_hwmod_ocp_if omap2420_dss__l3 = {
-+	.master		= &omap2420_dss_core_hwmod,
-+	.slave		= &omap2420_l3_main_hwmod,
-+	.fw = {
-+		.omap2 = {
-+			.l3_perm_bit  = OMAP2_L3_CORE_FW_CONNID_DSS,
-+			.flags	= OMAP_FIREWALL_L3,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* Master interfaces on the L3 interconnect */
- static struct omap_hwmod_ocp_if *omap2420_l3_main_masters[] = {
- 	&omap2420_l3_main__l4_core,
-@@ -470,6 +488,291 @@ static struct omap_hwmod omap2420_uart3_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
- };
- 
-+/*
-+ * 'dss' class
-+ * display sub-system
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap2420_dss_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap2420_dss_hwmod_class = {
-+	.name = "dss",
-+	.sysc = &omap2420_dss_sysc,
-+};
-+
-+/* dss */
-+static struct omap_hwmod_irq_info omap2420_dss_irqs[] = {
-+	{ .irq = 25 },
-+};
-+
-+static struct omap_hwmod_dma_info omap2420_dss_sdma_chs[] = {
-+	{ .name = "dispc", .dma_req = 5 },
-+};
-+
-+/* dss */
-+/* dss master ports */
-+static struct omap_hwmod_ocp_if *omap2420_dss_masters[] = {
-+	&omap2420_dss__l3,
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_dss_addrs[] = {
-+	{
-+		.pa_start	= 0x48050000,
-+		.pa_end		= 0x480503FF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> dss */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__dss = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_dss_core_hwmod,
-+	.clk		= "dss_ick",
-+	.addr		= omap2420_dss_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_dss_addrs),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP2420_L4_CORE_FW_DSS_CORE_REGION,
-+			.flags	= OMAP_FIREWALL_L4,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* dss slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_dss_slaves[] = {
-+	&omap2420_l4_core__dss,
-+};
-+
-+static struct omap_hwmod_opt_clk dss_opt_clks[] = {
-+	{ .role = "tv_clk", .clk = "dss_54m_fck" },
-+	{ .role = "sys_clk", .clk = "dss2_fck" },
-+};
-+
-+static struct omap_hwmod omap2420_dss_core_hwmod = {
-+	.name		= "dss_core",
-+	.class		= &omap2420_dss_hwmod_class,
-+	.main_clk	= "dss1_fck", /* instead of dss_fck */
-+	.mpu_irqs	= omap2420_dss_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_dss_irqs),
-+	.sdma_reqs	= omap2420_dss_sdma_chs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap2420_dss_sdma_chs),
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_DSS1_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_stdby_bit = OMAP24XX_ST_DSS_SHIFT,
-+		},
-+	},
-+	.opt_clks	= dss_opt_clks,
-+	.opt_clks_cnt = ARRAY_SIZE(dss_opt_clks),
-+	.slaves		= omap2420_dss_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_dss_slaves),
-+	.masters	= omap2420_dss_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap2420_dss_masters),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+	.flags		= HWMOD_NO_IDLEST,
-+};
-+
-+/*
-+ * 'dispc' class
-+ * display controller
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap2420_dispc_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap2420_dispc_hwmod_class = {
-+	.name = "dispc",
-+	.sysc = &omap2420_dispc_sysc,
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_dss_dispc_addrs[] = {
-+	{
-+		.pa_start	= 0x48050400,
-+		.pa_end		= 0x480507FF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> dss_dispc */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__dss_dispc = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_dss_dispc_hwmod,
-+	.clk		= "dss_ick",
-+	.addr		= omap2420_dss_dispc_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_dss_dispc_addrs),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP2420_L4_CORE_FW_DSS_DISPC_REGION,
-+			.flags	= OMAP_FIREWALL_L4,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* dss_dispc slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_dss_dispc_slaves[] = {
-+	&omap2420_l4_core__dss_dispc,
-+};
-+
-+static struct omap_hwmod omap2420_dss_dispc_hwmod = {
-+	.name		= "dss_dispc",
-+	.class		= &omap2420_dispc_hwmod_class,
-+	.main_clk	= "dss1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_DSS1_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_stdby_bit = OMAP24XX_ST_DSS_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_dss_dispc_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_dss_dispc_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+	.flags		= HWMOD_NO_IDLEST,
-+};
-+
-+/*
-+ * 'rfbi' class
-+ * remote frame buffer interface
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap2420_rfbi_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap2420_rfbi_hwmod_class = {
-+	.name = "rfbi",
-+	.sysc = &omap2420_rfbi_sysc,
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_dss_rfbi_addrs[] = {
-+	{
-+		.pa_start	= 0x48050800,
-+		.pa_end		= 0x48050BFF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> dss_rfbi */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__dss_rfbi = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_dss_rfbi_hwmod,
-+	.clk		= "dss_ick",
-+	.addr		= omap2420_dss_rfbi_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_dss_rfbi_addrs),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP2420_L4_CORE_FW_DSS_CORE_REGION,
-+			.flags	= OMAP_FIREWALL_L4,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* dss_rfbi slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_dss_rfbi_slaves[] = {
-+	&omap2420_l4_core__dss_rfbi,
-+};
-+
-+static struct omap_hwmod omap2420_dss_rfbi_hwmod = {
-+	.name		= "dss_rfbi",
-+	.class		= &omap2420_rfbi_hwmod_class,
-+	.main_clk	= "dss1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_DSS1_SHIFT,
-+			.module_offs = CORE_MOD,
-+		},
-+	},
-+	.slaves		= omap2420_dss_rfbi_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_dss_rfbi_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+	.flags		= HWMOD_NO_IDLEST,
-+};
-+
-+/*
-+ * 'venc' class
-+ * video encoder
-+ */
-+
-+static struct omap_hwmod_class omap2420_venc_hwmod_class = {
-+	.name = "venc",
-+};
-+
-+/* dss_venc */
-+static struct omap_hwmod_addr_space omap2420_dss_venc_addrs[] = {
-+	{
-+		.pa_start	= 0x48050C00,
-+		.pa_end		= 0x48050FFF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> dss_venc */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__dss_venc = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_dss_venc_hwmod,
-+	.clk		= "dss_54m_fck",
-+	.addr		= omap2420_dss_venc_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_dss_venc_addrs),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP2420_L4_CORE_FW_DSS_VENC_REGION,
-+			.flags	= OMAP_FIREWALL_L4,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* dss_venc slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_dss_venc_slaves[] = {
-+	&omap2420_l4_core__dss_venc,
-+};
-+
-+static struct omap_hwmod omap2420_dss_venc_hwmod = {
-+	.name		= "dss_venc",
-+	.class		= &omap2420_venc_hwmod_class,
-+	.main_clk	= "dss1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_DSS1_SHIFT,
-+			.module_offs = CORE_MOD,
-+		},
-+	},
-+	.slaves		= omap2420_dss_venc_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_dss_venc_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+	.flags		= HWMOD_NO_IDLEST,
-+};
-+
- /* I2C common */
- static struct omap_hwmod_class_sysconfig i2c_sysc = {
- 	.rev_offs	= 0x00,
-@@ -874,6 +1177,12 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	&omap2420_uart1_hwmod,
- 	&omap2420_uart2_hwmod,
- 	&omap2420_uart3_hwmod,
-+	/* dss class */
-+	&omap2420_dss_core_hwmod,
-+	&omap2420_dss_dispc_hwmod,
-+	&omap2420_dss_rfbi_hwmod,
-+	&omap2420_dss_venc_hwmod,
-+	/* i2c class */
- 	&omap2420_i2c1_hwmod,
- 	&omap2420_i2c2_hwmod,
- 
-diff --git a/arch/arm/plat-omap/include/plat/l3_2xxx.h b/arch/arm/plat-omap/include/plat/l3_2xxx.h
-new file mode 100644
-index 0000000..b8b5641
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/l3_2xxx.h
-@@ -0,0 +1,20 @@
-+/*
-+ * arch/arm/plat-omap/include/plat/l3_2xxx.h - L3 firewall definitions
-+ *
-+ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Sumit Semwal
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ */
-+#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_L3_2XXX_H
-+#define __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_L3_2XXX_H
-+
-+/* L3 CONNIDs */
-+/* Display Sub system (DSS) */
-+#define OMAP2_L3_CORE_FW_CONNID_DSS			8
-+
-+#endif
-diff --git a/arch/arm/plat-omap/include/plat/l4_2xxx.h b/arch/arm/plat-omap/include/plat/l4_2xxx.h
-new file mode 100644
-index 0000000..3f39cf8
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/l4_2xxx.h
-@@ -0,0 +1,24 @@
-+/*
-+ * arch/arm/plat-omap/include/plat/l4_2xxx.h - L4 firewall definitions
-+ *
-+ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Sumit Semwal
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ */
-+#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_L4_2XXX_H
-+#define __ARCH_ARM_PLAT_OMAP_INCLUDE_PLAT_L4_2XXX_H
-+
-+/* L4 CORE */
-+/* Display Sub system (DSS) */
-+#define OMAP2420_L4_CORE_FW_DSS_CORE_REGION			28
-+#define OMAP2420_L4_CORE_FW_DSS_DISPC_REGION			29
-+#define OMAP2420_L4_CORE_FW_DSS_RFBI_REGION			30
-+#define OMAP2420_L4_CORE_FW_DSS_VENC_REGION			31
-+#define OMAP2420_L4_CORE_FW_DSS_TA_REGION			32
-+
-+#endif
--- 
-1.7.1
 
