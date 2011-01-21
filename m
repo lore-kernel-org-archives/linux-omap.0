@@ -1,56 +1,115 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH] omap3: nand: bch ecc support added
-Date: Fri, 21 Jan 2011 13:07:44 +0530
-Message-ID: <AANLkTi=0ZuG6i3x4uZ2+R8ZVmvmydrvK2zZQJbLoz=4L@mail.gmail.com>
-References: <1295518680-8737-1-git-send-email-s-ghorai@ti.com>
- <AANLkTin3pRkqLkQ_J1iTtqr0M+iz5V25S9ZwJc9+T0VW@mail.gmail.com> <2A3DCF3DA181AD40BDE86A3150B27B6B036A8DAF6C@dbde02.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCHv2] OMAP: Enable Magic SysRq on serial console ttyOx
+Date: Fri, 21 Jan 2011 13:15:30 +0530
+Message-ID: <20110121074530.GB12307@m-desktop>
+References: <1295426461-12459-1-git-send-email-weber@corscience.de>
+ <AANLkTin0-joNuqxqL79j0wqPk_A5mtAgzEY=X=PeH=+C@mail.gmail.com>
+ <20110119130049.GB9365@m-desktop>
+ <4D36E7CC.5090303@corscience.de>
+ <AANLkTikjdukQ+kUUR7N11rZ5b=Xd=xLb0-chMrbp5BQ6@mail.gmail.com>
+ <20110120114855.GD1987@m-desktop>
+ <38f2b3af600ce3dfea1e73edec7c81fa@mail.gmail.com>
+ <AANLkTimxTaU3x9DZvL4dvXs1nTYjCQnbyZLC73SOKrgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:39629 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331Ab1AUHiF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 02:38:05 -0500
-Received: by qwa26 with SMTP id 26so1506800qwa.19
-        for <linux-omap@vger.kernel.org>; Thu, 20 Jan 2011 23:38:04 -0800 (PST)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B036A8DAF6C@dbde02.ent.ti.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:52016 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754171Ab1AUHq1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 02:46:27 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTimxTaU3x9DZvL4dvXs1nTYjCQnbyZLC73SOKrgQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kamat, Nishant" <nskamat@ti.com>
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>, Manjunath Kondaiah G <manjugk@ti.com>, Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Govindraj Raja <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Andrei Emeltchenko <andrei.emeltchenko@nokia.com>, linux-kernel@vger.kernel.org
 
-On Fri, Jan 21, 2011 at 9:37 AM, Ghorai, Sukumar <s-ghorai@ti.com> wrote:
->
->> -----Original Message-----
->> From: Vimal Singh [mailto:vimal.newwork@gmail.com]
->> Sent: Thursday, January 20, 2011 8:47 PM
->> To: Ghorai, Sukumar
->> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
->> kernel@lists.infradead.org; Kamat, Nishant
->> Subject: Re: [PATCH] omap3: nand: bch ecc support added
->>
->> Hi Ghorai,
->>
->> I am the initial author of this patch. And I guess this patch still
->> uses most of my work.
-> [Ghorai] I know you are working on it,
->
-> But I think your code was in a shape for -
-> 1. not for up-streamble shape
-That's because I never posted it for up-stream.
+On Fri, Jan 21, 2011 at 12:54:29PM +0530, Govindraj wrote:
+> On Thu, Jan 20, 2011 at 5:49 PM, Anand Gadiyar <gadiyar@ti.com> wrote=
+:
+> >> > >>>> Magic SysRq key is not working for OMAP on new serial
+> >> > >>>> console ttyOx because SUPPORT_SYSRQ is not defined
+> >> > >>>> for omap-serial.
+> >> > >>>>
+> >> > >>>> This patch defines SUPPORT_SYSRQ in omap-serial and
+> >> > >>>> enables handling of Magic SysRq character.
+> >> > >>>>
+> >> > >>>> Signed-off-by: Thomas Weber <weber@corscience.de>
+> >> > >>>
+> >> > >>> Looks fine to me.
+> >> > >>>
+> >> > >>> Acked-by: Govindraj.R <govindraj.raja@ti.com>
+> >> > >> I tried to use SysRq key on minicom after applying this patch=
+, it
+> > looks
+> >> > >> like it is not triggering sysrq event.
+> >> > >>
+> >> > >> Am I missing anything?
+> >> > >>
+> >> > >> -Manjunath
+> >> > >> --
+> >> > > Hello Manjunath,
+> >> > >
+> >> > > Do you have CONFIG_MAGIC_SYSRQ enabled?
+> >> > > Magic SysRq key in Kernel Hacking
+> >> > >
+> >> > > I tested it on Devkit8000 (beagle board clone).
+> >> > >
+> >> >
+> >> > re-setting lsr_break_flag to 0 in receive chars is causing issue=
+s
+> >> > in getting sysrq key break sequence on omap-serial.c
+> >> >
+> >> > Manju,
+> >> >
+> >> > can you try this change on your environment.
+> >> > With below change works for me on 3430SDP/4430SDP.
+> >> > key sequence I checked.
+> >> > [alt + b + t] =A0=3D> shows trace of tasks running.
+> >> > [alt + b + b] =3D> system reboot.
+> >>
+> >> With below patch, it works fine on TeraTerm. However, I am not abl=
+e to
+> >> perform the same on minicom.
+> >>
+> >> Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
+> >>
+> >> -Manjunath
+> >>
+> >
+> > Not sure what you guys are trying out, but I am able to use sysrq
+> > just fine in minicom (using only Thomas' original patch) - you need
+> > to send a break sequence, and the way to do this in minicom is to
+> > do Ctrl-A followed by F.
+> >
+> > Works for me, without the "resetting lsr_break_flag to 0" part.
+> >
+> > @Govind,
+> >
+> > What are the issues you see in getting sysrq key break sequence
+> > without your change? And how is your change fixing this?
+>=20
+> Actually I was using teraterm on windows platform.
+> using keyboard to send a break char [alt + b] sometimes
+> i observed that first break char was getting lost and subsequent brea=
+k
+> chars where getting
+> recognized. However using send break option from terterm menu seems t=
+o
+> work most of times.
+> my change can be dropped.
+If it is fixing the issue of losing first break character, what is wron=
+g in
+having this patch?
 
-> 2. non functional,
-No, it was a working (at least for 8-bit correction) patch on that
-kernel version (I do not remember the correct version now, may be
-.29-.30)
-It did not work for 4-bit, because of known reason. And I guess while
-posting this patch you should also have mentioned/documented about
-that. No?
+Do you see any other issues because of this change?
 
-> So can you check this version matching with your original code?
-> In that case I can add your Signed-off.
-Yes, you should. I can see this version has got many changes, but
-original idea is same. And not all code is changed. Does it?
+-Manjunath
 
-Regards,
-Vimal
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
