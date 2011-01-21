@@ -1,96 +1,78 @@
-From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH 08/13] OMAP3: cpufreq driver changes for DVFS support
-Date: Fri, 21 Jan 2011 19:31:00 +0530
-Message-ID: <1295618465-15234-9-git-send-email-vishwanath.bs@ti.com>
-References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: RE: [QUERY] [AUDIO][OMAP3 EVM] arecord not working on OMAP3 EVM
+Date: Fri, 21 Jan 2011 19:30:38 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087035F9B2821@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC356087035F9B2239@dbde02.ent.ti.com>
+ <4D393C42.1070503@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44721 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45010 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752668Ab1AUN5p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 08:57:45 -0500
-In-Reply-To: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+	id S1752053Ab1AUOAo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 09:00:44 -0500
+In-Reply-To: <4D393C42.1070503@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Vishwanath BS <vishwanath.bs@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
 
-Changes in the omap cpufreq driver for DVFS support.
+Thanks Peter,=20
+Your comment helped.
 
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/plat-omap/cpu-omap.c |   35 ++++++++++++++++++++++++++++++++---
- 1 files changed, 32 insertions(+), 3 deletions(-)
+> -----Original Message-----
+> From: Peter Ujfalusi [mailto:peter.ujfalusi@nokia.com]
+> Sent: Friday, January 21, 2011 1:27 PM
+> To: Koyamangalath, Abhilash
+> Cc: linux-omap@vger.kernel.org; alsa-devel@vger.kernel.org
+> Subject: Re: [QUERY] [AUDIO][OMAP3 EVM] arecord not working on OMAP3 =
+EVM
+>=20
+> On 01/20/11 17:26, ext Koyamangalath, Abhilash wrote:
+> > Hi all
+> > While testing audio capture (using arecord e,g.),I'm getting only n=
+oise
+> in the (zeroed out) output buffers on the OMAP3 EVM.
+> > I have enabled AUXL and AUXR mic inputs through alsamixer, which
+> according to the schematics are connected to the "Audio In"
+> > connector on the board, even though the TWL4030 reg list does not a=
+llow
+> me any ways ( or so I think) to specify mic-bias for
+> > these aux inputs.
+>=20
+> Well, it is auxiliary input (line in). You do not need bias for it.
+> I do not have access to OMAP3 EVM documentation, but Beagle also have
+> AUXL/R as input.
+> I guess you need to use correct cable, and correct source for the inp=
+ut
+> (stereo jack I suppose).
+No need of bias precludes using a MIC, so I tried by connecting a Line-=
+in/out audio cable (a cable with a 3.5 mm audio jack on each end) fed f=
+rom the PC and it worked, thanks. Originally, I had connected a head-ph=
+one mic directly to the audio-in port, which it seems, rather expects a=
+ dc-biased and/or a pre-amplified signal.
 
-diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-index 1c1b80b..d965220 100644
---- a/arch/arm/plat-omap/cpu-omap.c
-+++ b/arch/arm/plat-omap/cpu-omap.c
-@@ -30,10 +30,12 @@
- #include <mach/hardware.h>
- #include <plat/clock.h>
- #include <asm/system.h>
-+#include <asm/cpu.h>
- 
- #if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
- #include <plat/omap-pm.h>
- #include <plat/common.h>
-+#include <plat/dvfs.h>
- #endif
- 
- #define VERY_HI_RATE	900000000
-@@ -85,11 +87,11 @@ static int omap_target(struct cpufreq_policy *policy,
- 		       unsigned int target_freq,
- 		       unsigned int relation)
- {
--#ifdef CONFIG_ARCH_OMAP1
- 	struct cpufreq_freqs freqs;
--#endif
- #if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
- 	unsigned long freq;
-+	int i;
-+	struct cpufreq_freqs freqs_notify;
- 	struct device *mpu_dev = omap2_get_mpuss_device();
- #endif
- 	int ret = 0;
-@@ -116,9 +118,36 @@ static int omap_target(struct cpufreq_policy *policy,
- 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
- 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
- #elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
-+	freqs.old = omap_getspeed(policy->cpu);;
-+	freqs_notify.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
-+	freqs.cpu = policy->cpu;
-+
-+	if (freqs.old == freqs.new)
-+		return ret;
-+
-+	/* pre notifiers */
-+	for_each_cpu(i, policy->cpus) {
-+		freqs.cpu = i;
-+		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
-+	}
-+
-+	/* scale the frequency */
- 	freq = target_freq * 1000;
- 	if (opp_find_freq_ceil(mpu_dev, &freq))
--		omap_pm_cpu_set_freq(freq);
-+		omap_device_scale(mpu_dev, mpu_dev, freq);
-+
-+	/* Update loops per jiffy */
-+	freqs.new = omap_getspeed(policy->cpu);
-+	for_each_cpu(i, policy->cpus)
-+		per_cpu(cpu_data, i).loops_per_jiffy =
-+		cpufreq_scale(per_cpu(cpu_data, i).loops_per_jiffy,
-+				freqs.old, freqs.new);
-+
-+	/* post notifiers */
-+	for_each_cpu(i, policy->cpus) {
-+		freqs.cpu = i;
-+		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
-+	}
- #endif
- 	return ret;
- }
--- 
-1.7.0.4
-
+>=20
+> > With AUXL and AUXR muted - I get only silence, which seems to make
+> sense.
+> > Is there any basic startup setting I'm missing, maybe specific to O=
+MAP3
+> EVM?
+>=20
+> Beagle?
+>=20
+> > Has anyone seen anything like this before, and could provide pointe=
+rs?
+>=20
+> My bet goes for the wrong cable/accessory pair.
+Bang On.
+>=20
+> --
+> P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
