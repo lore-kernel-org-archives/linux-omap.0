@@ -1,55 +1,94 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: Setting MMC_CAP_POWER_OFF_CARD on mmc2 leads to filesystem
- problems on mmc1
-Date: Fri, 21 Jan 2011 16:49:02 +0200
-Message-ID: <1295621342.1925.139.camel@pimenta>
-References: <E6C3A477-63F7-4BA0-8E6B-A35A53B3AEA1@dominion.thruhere.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <E6C3A477-63F7-4BA0-8E6B-A35A53B3AEA1@dominion.thruhere.net>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>, Ohad Ben-Cohen <ohad@wizery.com>
-Cc: l-o List <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "cjb@laptop.org" <cjb@laptop.org>
+From: Sumit Semwal <sumit.semwal@ti.com>
+Subject: [PATCH v8 01/18] OMAP2,3: DSS2: remove forced clk-disable from omap_dss_remove
+Date: Fri, 21 Jan 2011 20:20:24 +0530
+Message-ID: <1295621441-16678-2-git-send-email-sumit.semwal@ti.com>
+References: <1295621441-16678-1-git-send-email-sumit.semwal@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38168 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751473Ab1AUOvV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 09:51:21 -0500
+In-Reply-To: <1295621441-16678-1-git-send-email-sumit.semwal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
+Cc: Sumit Semwal <sumit.semwal@ti.com>
 
-On Fri, 2011-01-21 at 15:18 +0100, Koen Kooi wrote:
-> Hi,
-> 
-> I'm trying to bring up a wl1271 sdio expansion board on beagle with 2.6.37 and I'm running into a weird problem when enabling MMC_CAP_POWER_OFF_CARD.
-> 
-> My patch basically does:
-> 
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -270,7 +270,7 @@ static struct omap2_hsmmc_info mmc[] = {
->        {
->                .name           = "wl1271",
->                .mmc            = 2,
-> -               .caps           = MMC_CAP_4_BIT_DATA,
-> +               .caps           = MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
-> 
-> And does NOT touch mmc1. But after adding MMC_CAP_POWER_OFF_CARD I get tons of:
-> 
-> [   22.259490] mmcblk0: error -110 sending status comand
-> [   22.264617] mmcblk0: error -110 sending read/write command, response 0x0, card status 0x0
-> [   22.273345] mmcblk0: error -110 transferring data, sector 2338228, nr 3, card status 0x0
-> [   22.281799] end_request: I/O error, dev mmcblk0, sector 2338228
-> [   22.288055] mmcblk0: error -110 sending status comand
-> [   22.293151] mmcblk0: error -110 sending read/write command, response 0x0, card status 0x0
-> [   22.301879] mmcblk0: error -110 transferring data, sector 2338229, nr 2, card status 0x0
-> [   22.310363] end_request: I/O error, dev mmcblk0, sector 2338229
-> 
-> When using mmcblk0p2 as rootfs. Attached is the complete patch. It looks a bit weird because it's using the expansionboard infrastucture I hacked together.
-> 
-> I suspect that mmc2 is turning off the shared regulator, but I have various people claiming this code (minus the expansionboard detection) works with the same regulator setup, so I'm extremely puzzled.
-> 
-> The CC: list was partially generated with the get_maintainer.pl script, apologies if I screwed it up.
+As part of omap hwmod changes, DSS will not be the only controller of its
+clocks. hwmod initialization also enables the interface clocks, and
+manages them.
+So, when DSS is built as a module, omap_dss_remove doesn't try to disable
+all clocks that have a higher usecount.
 
-I think Ohad is the right person to answer this question.
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+---
+ drivers/video/omap2/dss/core.c |   46 ++++++---------------------------------
+ 1 files changed, 7 insertions(+), 39 deletions(-)
 
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 8e89f60..ee56859 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -623,7 +623,6 @@ static int omap_dss_remove(struct platform_device *pdev)
+ {
+ 	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
+ 	int i;
+-	int c;
+ 
+ 	dss_uninitialize_debugfs();
+ 
+@@ -638,44 +637,13 @@ static int omap_dss_remove(struct platform_device *pdev)
+ 
+ 	dss_exit();
+ 
+-	/* these should be removed at some point */
+-	c = core.dss_ick->usecount;
+-	if (c > 0) {
+-		DSSERR("warning: dss_ick usecount %d, disabling\n", c);
+-		while (c-- > 0)
+-			clk_disable(core.dss_ick);
+-	}
+-
+-	c = core.dss1_fck->usecount;
+-	if (c > 0) {
+-		DSSERR("warning: dss1_fck usecount %d, disabling\n", c);
+-		while (c-- > 0)
+-			clk_disable(core.dss1_fck);
+-	}
+-
+-	c = core.dss2_fck->usecount;
+-	if (c > 0) {
+-		DSSERR("warning: dss2_fck usecount %d, disabling\n", c);
+-		while (c-- > 0)
+-			clk_disable(core.dss2_fck);
+-	}
+-
+-	c = core.dss_54m_fck->usecount;
+-	if (c > 0) {
+-		DSSERR("warning: dss_54m_fck usecount %d, disabling\n", c);
+-		while (c-- > 0)
+-			clk_disable(core.dss_54m_fck);
+-	}
+-
+-	if (core.dss_96m_fck) {
+-		c = core.dss_96m_fck->usecount;
+-		if (c > 0) {
+-			DSSERR("warning: dss_96m_fck usecount %d, disabling\n",
+-					c);
+-			while (c-- > 0)
+-				clk_disable(core.dss_96m_fck);
+-		}
+-	}
++	/*
++	 * As part of hwmod changes, DSS is not the only controller of dss
++	 * clocks; hwmod framework itself will also enable clocks during hwmod
++	 * init for dss, and autoidle is set in h/w for DSS. Hence, there's no
++	 * need to disable clocks if their usecounts > 1.
++	 */
++	WARN_ON(core.num_clks_enabled > 0);
+ 
+ 	dss_put_clocks();
+ 
 -- 
-Cheers,
-Luca.
+1.7.1
 
