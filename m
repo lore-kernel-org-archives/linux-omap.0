@@ -1,13 +1,13 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v8 10/18] OMAP2,3: DSS2: DSS: create platform_driver, move init,exit to driver
-Date: Fri, 21 Jan 2011 20:20:33 +0530
-Message-ID: <1295621441-16678-11-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v8 12/18] OMAP2,3: DSS2: RFBI: create platform_driver, move init,exit to driver
+Date: Fri, 21 Jan 2011 20:20:35 +0530
+Message-ID: <1295621441-16678-13-git-send-email-sumit.semwal@ti.com>
 References: <1295621441-16678-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38222 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38230 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753835Ab1AUOv4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 09:51:56 -0500
+	id S1753862Ab1AUOwD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 09:52:03 -0500
 In-Reply-To: <1295621441-16678-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -17,170 +17,214 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 Hwmod adaptation design requires each of the DSS HW IP to be a platform driver.
-So a platform_driver of DSS is created and init exit methods are moved from core.c
+So a platform_driver for RFBI is created and init exit methods are moved from core.c
 to its driver probe,remove. pdev member has to be maintained by its own drivers.
 
-DSS platform driver is registered from inside omap_dss_probe, in the order desired.
+RFBI platform driver is registered from inside omap_dss_probe, in the order desired.
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 ---
- drivers/video/omap2/dss/core.c |   19 ++++++-------
- drivers/video/omap2/dss/dss.c  |   55 ++++++++++++++++++++++++++++++++++++++-
- drivers/video/omap2/dss/dss.h  |    4 +-
- 3 files changed, 64 insertions(+), 14 deletions(-)
+ drivers/video/omap2/dss/core.c |    8 ++--
+ drivers/video/omap2/dss/dss.h  |    8 ++--
+ drivers/video/omap2/dss/rfbi.c |  110 ++++++++++++++++++++++++----------------
+ 3 files changed, 74 insertions(+), 52 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 1bbc004..1aace9e 100644
+index bdb952f..d4b3da3 100644
 --- a/drivers/video/omap2/dss/core.c
 +++ b/drivers/video/omap2/dss/core.c
-@@ -517,15 +517,9 @@ static int omap_dss_probe(struct platform_device *pdev)
- 	core.ctx_id = dss_get_ctx_id();
- 	DSSDBG("initial ctx id %u\n", core.ctx_id);
+@@ -201,9 +201,9 @@ static int omap_dss_probe(struct platform_device *pdev)
+ 	/* keep clocks enabled to prevent context saves/restores during init */
+ 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
  
--#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
--	/* DISPC_CONTROL */
--	if (omap_readl(0x48050440) & 1)	/* LCD enabled? */
--		skip_init = 1;
--#endif
--
--	r = dss_init(skip_init);
-+	r = dss_init_platform_driver();
+-	r = rfbi_init();
++	r = rfbi_init_platform_driver();
  	if (r) {
--		DSSERR("Failed to initialize DSS\n");
-+		DSSERR("Failed to initialize DSS platform driver\n");
- 		goto err_dss;
+-		DSSERR("Failed to initialize rfbi\n");
++		DSSERR("Failed to initialize rfbi platform driver\n");
+ 		goto err_rfbi;
  	}
  
-@@ -553,6 +547,11 @@ static int omap_dss_probe(struct platform_device *pdev)
- 		goto err_venc;
- 	}
- 
-+#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
-+	/* DISPC_CONTROL */
-+	if (omap_readl(0x48050440) & 1)	/* LCD enabled? */
-+		skip_init = 1;
-+#endif
- 	if (cpu_is_omap34xx()) {
- 		r = sdi_init(skip_init);
- 		if (r) {
-@@ -610,7 +609,7 @@ err_dispc:
+@@ -285,7 +285,7 @@ err_venc:
+ err_dispc:
+ 	dpi_exit();
  err_dpi:
- 	rfbi_exit();
+-	rfbi_exit();
++	rfbi_uninit_platform_driver();
  err_rfbi:
--	dss_exit();
-+	dss_uninit_platform_driver();
+ 	dss_uninit_platform_driver();
  err_dss:
- 	dss_clk_disable_all_no_ctx();
- 	dss_put_clocks();
-@@ -635,7 +634,7 @@ static int omap_dss_remove(struct platform_device *pdev)
+@@ -303,7 +303,7 @@ static int omap_dss_remove(struct platform_device *pdev)
+ 	venc_exit();
+ 	dispc_exit();
+ 	dpi_exit();
+-	rfbi_exit();
++	rfbi_uninit_platform_driver();
+ 	if (cpu_is_omap34xx()) {
+ 		dsi_exit();
  		sdi_exit();
- 	}
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index c535ee1..0ba4bdb 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -428,8 +428,8 @@ static inline void venc_exit(void)
  
--	dss_exit();
-+	dss_uninit_platform_driver();
+ /* RFBI */
+ #ifdef CONFIG_OMAP2_DSS_RFBI
+-int rfbi_init(void);
+-void rfbi_exit(void);
++int rfbi_init_platform_driver(void);
++void rfbi_uninit_platform_driver(void);
+ void rfbi_dump_regs(struct seq_file *s);
  
- 	/*
- 	 * As part of hwmod changes, DSS is not the only controller of dss
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 77c3621..d130f04 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -59,6 +59,7 @@ struct dss_reg {
- 	dss_write_reg(idx, FLD_MOD(dss_read_reg(idx), val, start, end))
+ int rfbi_configure(int rfbi_module, int bpp, int lines);
+@@ -440,11 +440,11 @@ void rfbi_set_timings(int rfbi_module, struct rfbi_timings *t);
+ unsigned long rfbi_get_max_tx_rate(void);
+ int rfbi_init_display(struct omap_dss_device *display);
+ #else
+-static inline int rfbi_init(void)
++static inline int rfbi_init_platform_driver(void)
+ {
+ 	return 0;
+ }
+-static inline void rfbi_exit(void)
++static inline void rfbi_uninit_platform_driver(void)
+ {
+ }
+ #endif
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index 10a2ffe..a64e119 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -100,6 +100,7 @@ static int rfbi_convert_timings(struct rfbi_timings *t);
+ static void rfbi_get_clk_info(u32 *clk_period, u32 *max_clk_div);
  
  static struct {
 +	struct platform_device *pdev;
- 	void __iomem    *base;
+ 	void __iomem	*base;
  
- 	struct clk	*dpll4_m4_ck;
-@@ -549,7 +550,7 @@ void dss_set_dac_pwrdn_bgz(bool enable)
- 	REG_FLD_MOD(DSS_CONTROL, enable, 5, 5);	/* DAC Power-Down Control */
+ 	unsigned long	l4_khz;
+@@ -957,50 +958,6 @@ void rfbi_dump_regs(struct seq_file *s)
+ #undef DUMPREG
  }
  
--int dss_init(bool skip_init)
-+static int dss_init(bool skip_init)
+-int rfbi_init(void)
+-{
+-	u32 rev;
+-	u32 l;
+-
+-	spin_lock_init(&rfbi.cmd_lock);
+-
+-	init_completion(&rfbi.cmd_done);
+-	atomic_set(&rfbi.cmd_fifo_full, 0);
+-	atomic_set(&rfbi.cmd_pending, 0);
+-
+-	rfbi.base = ioremap(RFBI_BASE, SZ_256);
+-	if (!rfbi.base) {
+-		DSSERR("can't ioremap RFBI\n");
+-		return -ENOMEM;
+-	}
+-
+-	rfbi_enable_clocks(1);
+-
+-	msleep(10);
+-
+-	rfbi.l4_khz = dss_clk_get_rate(DSS_CLK_ICK) / 1000;
+-
+-	/* Enable autoidle and smart-idle */
+-	l = rfbi_read_reg(RFBI_SYSCONFIG);
+-	l |= (1 << 0) | (2 << 3);
+-	rfbi_write_reg(RFBI_SYSCONFIG, l);
+-
+-	rev = rfbi_read_reg(RFBI_REVISION);
+-	printk(KERN_INFO "OMAP RFBI rev %d.%d\n",
+-	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
+-
+-	rfbi_enable_clocks(0);
+-
+-	return 0;
+-}
+-
+-void rfbi_exit(void)
+-{
+-	DSSDBG("rfbi_exit\n");
+-
+-	iounmap(rfbi.base);
+-}
+-
+ int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
  {
  	int r;
- 	u32 rev;
-@@ -629,7 +630,7 @@ fail0:
- 	return r;
+@@ -1056,3 +1013,68 @@ int rfbi_init_display(struct omap_dss_device *dssdev)
+ 	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
+ 	return 0;
  }
- 
--void dss_exit(void)
-+static void dss_exit(void)
- {
- 	if (cpu_is_omap34xx())
- 		clk_put(dss.dpll4_m4_ck);
-@@ -639,3 +640,53 @@ void dss_exit(void)
- 	iounmap(dss.base);
- }
- 
-+/* DSS HW IP initialisation */
-+static int omap_dsshw_probe(struct platform_device *pdev)
++
++/* RFBI HW IP initialisation */
++static int omap_rfbihw_probe(struct platform_device *pdev)
 +{
-+	int r;
-+	int skip_init = 0;
++	u32 rev;
++	u32 l;
 +
-+	dss.pdev = pdev;
++	rfbi.pdev = pdev;
 +
-+#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
-+	/* DISPC_CONTROL */
-+	if (omap_readl(0x48050440) & 1)	/* LCD enabled? */
-+		skip_init = 1;
-+#endif
++	spin_lock_init(&rfbi.cmd_lock);
 +
-+	r = dss_init(skip_init);
-+	if (r) {
-+		DSSERR("Failed to initialize DSS\n");
-+		goto err_dss;
++	init_completion(&rfbi.cmd_done);
++	atomic_set(&rfbi.cmd_fifo_full, 0);
++	atomic_set(&rfbi.cmd_pending, 0);
++
++	rfbi.base = ioremap(RFBI_BASE, SZ_256);
++	if (!rfbi.base) {
++		DSSERR("can't ioremap RFBI\n");
++		return -ENOMEM;
 +	}
 +
-+err_dss:
++	rfbi_enable_clocks(1);
 +
-+	return r;
-+}
++	msleep(10);
 +
-+static int omap_dsshw_remove(struct platform_device *pdev)
-+{
-+	dss_exit();
++	rfbi.l4_khz = dss_clk_get_rate(DSS_CLK_ICK) / 1000;
++
++	/* Enable autoidle and smart-idle */
++	l = rfbi_read_reg(RFBI_SYSCONFIG);
++	l |= (1 << 0) | (2 << 3);
++	rfbi_write_reg(RFBI_SYSCONFIG, l);
++
++	rev = rfbi_read_reg(RFBI_REVISION);
++	printk(KERN_INFO "OMAP RFBI rev %d.%d\n",
++	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
++
++	rfbi_enable_clocks(0);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver omap_dsshw_driver = {
-+	.probe          = omap_dsshw_probe,
-+	.remove         = omap_dsshw_remove,
++static int omap_rfbihw_remove(struct platform_device *pdev)
++{
++	iounmap(rfbi.base);
++	return 0;
++}
++
++static struct platform_driver omap_rfbihw_driver = {
++	.probe          = omap_rfbihw_probe,
++	.remove         = omap_rfbihw_remove,
 +	.driver         = {
-+		.name   = "omap_dss",
++		.name   = "omap_rfbi",
 +		.owner  = THIS_MODULE,
 +	},
 +};
 +
-+int dss_init_platform_driver(void)
++int rfbi_init_platform_driver(void)
 +{
-+	return platform_driver_register(&omap_dsshw_driver);
++	return platform_driver_register(&omap_rfbihw_driver);
 +}
 +
-+void dss_uninit_platform_driver(void)
++void rfbi_uninit_platform_driver(void)
 +{
-+	return platform_driver_unregister(&omap_dsshw_driver);
++	return platform_driver_unregister(&omap_rfbihw_driver);
 +}
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index b394951..37c4544 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -214,8 +214,8 @@ void dss_overlay_setup_l4_manager(struct omap_overlay_manager *mgr);
- void dss_recheck_connections(struct omap_dss_device *dssdev, bool force);
- 
- /* DSS */
--int dss_init(bool skip_init);
--void dss_exit(void);
-+int dss_init_platform_driver(void);
-+void dss_uninit_platform_driver(void);
- 
- void dss_save_context(void);
- void dss_restore_context(void);
 -- 
 1.7.1
 
