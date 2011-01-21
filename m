@@ -1,41 +1,107 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2] omap2: fix DPLL_FREQSEL calculation
-Date: Fri, 21 Jan 2011 05:15:53 +0200
-Message-ID: <20110121031553.GA2448@legolas.emea.dhcp.ti.com>
-References: <87ei8726wf.fsf@vostro.fn.ogness.net>
- <20110120111645.GB2223@legolas.emea.dhcp.ti.com>
- <8739on1wdd.fsf_-_@vostro.fn.ogness.net>
+Subject: Re: 2.6.38-rc1-git1 musb undefined references
+Date: Fri, 21 Jan 2011 05:22:36 +0200
+Message-ID: <20110121032236.GB2448@legolas.emea.dhcp.ti.com>
+References: <4D386129.4080206@blueyonder.co.uk>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:50082 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751739Ab1AUDWn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Jan 2011 22:22:43 -0500
 Content-Disposition: inline
-In-Reply-To: <8739on1wdd.fsf_-_@vostro.fn.ogness.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: John Ogness <john.ogness@linutronix.de>
-Cc: balbi@ti.com, paul@pwsan.com, tony@atomide.com, r-woodruff2@ti.com, linux-kernel@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <4D386129.4080206@blueyonder.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sid Boyce <sboyce@blueyonder.co.uk>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-On Thu, Jan 20, 2011 at 03:29:50PM +0100, John Ogness wrote:
-> On 2011-01-20, Felipe Balbi <balbi@ti.com> wrote:
-> > scripts/get_maintainer.pl would've helped you getting a better Cc
-> > list. I'm adding linux-omap and lakml
-> 
-> Thanks.
-> 
-> After investigating the issue further it seems that I had it
-> backwards. The value of "n" is the value to divide by, not the value
-> that goes in the register. This means that it is _dpll_test_fint()
-> that is doing it incorrectly. Here is a new version of the patch to
-> fix the right function.
+Hi,
 
-you might want to look at Documentation/SubmittingPatches before sending
-these patches. If anyone applies this patch of yours the commitlog will
-have all the comments you've made above. Generally, patches are
-"standalone" emails, without a discussion on them, if you want to add
-comments which aren't supposed to go into commit log, then do so after
-the tear line (---) and before the diff --git line; that way, git will
-know it must drop that part of the comments.
+(please, keep also linux-usb@vger on the Cc list on any patch regarding
+drivers/usb)
+
+On Thu, Jan 20, 2011 at 04:22:01PM +0000, Sid Boyce wrote:
+> Cross compiling for Beagleboard on Ubuntu 11.04 x86_64.
+> # make-kpkg --revision=0 --append-to-version=-custom --arch=armel
+> --cross-compile=/opt/arm-2010q1/bin/arm-none-linux-gnueabi-
+> kernel-image --initrd
+> 
+> ====== making target debian/stamp/build/kernel [new prereqs: vars]======
+> This is kernel package version 12.036+nmu1.
+> restore_upstream_debianization
+> test ! -f scripts/package/builddeb.kpkg-dist || mv -f
+> scripts/package/builddeb.kpkg-dist scripts/package/builddeb
+> test ! -f scripts/package/Makefile.kpkg-dist || mv -f
+> scripts/package/Makefile.kpkg-dist scripts/package/Makefile
+> /usr/bin/make  EXTRAVERSION=-rc1-git1-custom  ARCH=arm \
+> 
+> CROSS_COMPILE=/opt/arm-2010q1/bin/arm-none-linux-gnueabi- zImage
+> make[1]: Entering directory `/usr/src/XXX/linux-2.6.38-rc1-git1'
+> scripts/kconfig/conf --silentoldconfig Kconfig
+> make[1]: Leaving directory `/usr/src/XXX/linux-2.6.38-rc1-git1'
+> make[1]: Entering directory `/usr/src/XXX/linux-2.6.38-rc1-git1'
+>   CHK     include/linux/version.h
+>   CHK     include/generated/utsrelease.h
+> make[2]: `include/generated/mach-types.h' is up to date.
+>   CALL    scripts/checksyscalls.sh
+>   CHK     include/generated/compile.h
+>   LD      fs/built-in.o
+>   LD      lib/zlib_deflate/built-in.o
+>   LD      lib/built-in.o
+>   LD      vmlinux.o
+>   MODPOST vmlinux.o
+> WARNING: modpost: Found 3 section mismatch(es).
+> To see full details build your kernel with:
+> 'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+>   GEN     .version
+>   CHK     include/generated/compile.h
+>   UPD     include/generated/compile.h
+>   CC      init/version.o
+>   LD      init/built-in.o
+>   LD      .tmp_vmlinux1
+> drivers/built-in.o: In function `musb_free':
+> clkdev.c:(.text+0xf3d08): undefined reference to `dma_controller_destroy'
+> drivers/built-in.o: In function `musb_probe':
+> clkdev.c:(.init.text+0x64a8): undefined reference to `dma_controller_create'
+> make[1]: *** [.tmp_vmlinux1] Error 1
+> make[1]: Leaving directory `/usr/src/XXX/linux-2.6.38-rc1-git1'
+> make: *** [debian/stamp/build/kernel] Error 2
+> root@sdrbox:/usr/src/XXX/linux-2.6.38-rc1-git1#
+
+I just compiled 2.6.38-rc1 and it doesn't fail for me.
+
+> root@sdrbox:/usr/src/XXX/linux-2.6.38-rc1-git1# grep OMAP2PLUS .config
+> CONFIG_ARCH_OMAP2PLUS=y
+> CONFIG_ARCH_OMAP2PLUS_TYPICAL=y
+> # CONFIG_USB_MUSB_OMAP2PLUS is not set
+> root@sdrbox:/usr/src/XXX/linux-2.6.38-rc1-git1# grep MUSB .config
+> CONFIG_USB_MUSB_HDRC=y
+> # CONFIG_USB_MUSB_TUSB6010 is not set
+> # CONFIG_USB_MUSB_OMAP2PLUS is not set
+> CONFIG_USB_MUSB_AM35X=y
+> # CONFIG_USB_MUSB_HOST is not set
+> # CONFIG_USB_MUSB_PERIPHERAL is not set
+> CONFIG_USB_MUSB_OTG=y
+> CONFIG_USB_GADGET_MUSB_HDRC=y
+> CONFIG_USB_MUSB_HDRC_HCD=y
+> # CONFIG_MUSB_PIO_ONLY is not set
+> # CONFIG_USB_MUSB_DEBUG is not set
+
+There's a bug on your .config, did you edit by hand ? AM35X doesn't have
+DMA support as of today, that's why we have:
+
+config MUSB_PIO_ONLY
+	bool 'Disable DMA (always use PIO)'
+	depends on USB_MUSB_HDRC
+	default USB_MUSB_TUSB6010 || USB_MUSB_DA8XX || USB_MUSB_AM35X
+
+did you disable PIO only ? I know that's a bit fuzzy still, a few
+patches will be needed to clean up the entire MUSB Kconfig, I apologize
+for that.
 
 -- 
 balbi
