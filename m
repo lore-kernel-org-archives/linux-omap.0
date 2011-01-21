@@ -1,137 +1,162 @@
 From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH 03/13] OMAP: Implement Basic DVFS
-Date: Fri, 21 Jan 2011 19:30:55 +0530
-Message-ID: <1295618465-15234-4-git-send-email-vishwanath.bs@ti.com>
+Subject: [PATCH 11/13] OMAP2PLUS: Replace voltage values with Macros
+Date: Fri, 21 Jan 2011 19:31:03 +0530
+Message-ID: <1295618465-15234-12-git-send-email-vishwanath.bs@ti.com>
 References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33509 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60810 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752647Ab1AUN5o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 08:57:44 -0500
+	id S1752647Ab1AUN5r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 08:57:47 -0500
 In-Reply-To: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Vishwanath BS <vishwanath.bs@ti.com>, Thara Gopinath <thara@ti.com>
+Cc: patches@linaro.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-This patch introduces an API to perform DVFS for a given voltage domain.
-It takes omap_vdd_dvfs_info pointer as input parameter, computes the highest
-requested voltage for that vdd and scales all the devices in that vdd to the
-requested frequency along with voltage scaling.
-
-Based on original patch from Thara.
+Currently voltage values on opp tables are hardcoded. As these voltage values
+are anyway defined in voltage.h as macros, opp table can reuse these values.
+This will avoid opp table and voltage layer having conflicting values.
 
 Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: Thara Gopinath <thara@ti.com>
+This patch has 2 line over 80 char warning. This is kept for readability
+purpose.
 ---
- arch/arm/mach-omap2/dvfs.c |   87 +++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 86 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/opp3xxx_data.c |   47 ++++++++++++++++++-----------------
+ arch/arm/mach-omap2/opp4xxx_data.c |   13 +++++----
+ 2 files changed, 31 insertions(+), 29 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-omap2/dvfs.c
-index 8832e4a..cefc2be 100755
---- a/arch/arm/mach-omap2/dvfs.c
-+++ b/arch/arm/mach-omap2/dvfs.c
-@@ -21,7 +21,7 @@
- #include <plat/omap_device.h>
+diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+index 0486fce..eefd6af 100644
+--- a/arch/arm/mach-omap2/opp3xxx_data.c
++++ b/arch/arm/mach-omap2/opp3xxx_data.c
+@@ -19,20 +19,21 @@
+ #include <linux/module.h>
+ 
+ #include <plat/cpu.h>
++#include <plat/voltage.h>
+ 
+ #include "omap_opp_data.h"
+ 
+ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+ 	/* MPU OPP1 */
+-	OPP_INITIALIZER("mpu", true, 125000000, 975000),
++	OPP_INITIALIZER("mpu", true, 125000000, OMAP3430_VDD_MPU_OPP1_UV),
+ 	/* MPU OPP2 */
+-	OPP_INITIALIZER("mpu", true, 250000000, 1075000),
++	OPP_INITIALIZER("mpu", true, 250000000, OMAP3430_VDD_MPU_OPP2_UV),
+ 	/* MPU OPP3 */
+-	OPP_INITIALIZER("mpu", true, 500000000, 1200000),
++	OPP_INITIALIZER("mpu", true, 500000000, OMAP3430_VDD_MPU_OPP3_UV),
+ 	/* MPU OPP4 */
+-	OPP_INITIALIZER("mpu", true, 550000000, 1270000),
++	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
+ 	/* MPU OPP5 */
+-	OPP_INITIALIZER("mpu", true, 600000000, 1350000),
++	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
+ 
+ 	/*
+ 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
+@@ -42,47 +43,47 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+ 	 * impact that frequency will do to the MPU and the whole system in
+ 	 * general.
+ 	 */
+-	OPP_INITIALIZER("l3_main", false, 41500000, 975000),
++	OPP_INITIALIZER("l3_main", false, 41500000, OMAP3430_VDD_CORE_OPP1_UV),
+ 	/* L3 OPP2 */
+-	OPP_INITIALIZER("l3_main", true, 83000000, 1050000),
++	OPP_INITIALIZER("l3_main", true, 83000000, OMAP3430_VDD_CORE_OPP2_UV),
+ 	/* L3 OPP3 */
+-	OPP_INITIALIZER("l3_main", true, 166000000, 1150000),
++	OPP_INITIALIZER("l3_main", true, 166000000, OMAP3430_VDD_CORE_OPP3_UV),
+ 
+ 	/* DSP OPP1 */
+-	OPP_INITIALIZER("iva", true, 90000000, 975000),
++	OPP_INITIALIZER("iva", true, 90000000, OMAP3430_VDD_MPU_OPP1_UV),
+ 	/* DSP OPP2 */
+-	OPP_INITIALIZER("iva", true, 180000000, 1075000),
++	OPP_INITIALIZER("iva", true, 180000000, OMAP3430_VDD_MPU_OPP2_UV),
+ 	/* DSP OPP3 */
+-	OPP_INITIALIZER("iva", true, 360000000, 1200000),
++	OPP_INITIALIZER("iva", true, 360000000, OMAP3430_VDD_MPU_OPP3_UV),
+ 	/* DSP OPP4 */
+-	OPP_INITIALIZER("iva", true, 400000000, 1270000),
++	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
+ 	/* DSP OPP5 */
+-	OPP_INITIALIZER("iva", true, 430000000, 1350000),
++	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
+ };
+ 
+ static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+ 	/* MPU OPP1 - OPP50 */
+-	OPP_INITIALIZER("mpu", true,  300000000, 1012500),
++	OPP_INITIALIZER("mpu", true,  300000000, OMAP3630_VDD_MPU_OPP50_UV),
+ 	/* MPU OPP2 - OPP100 */
+-	OPP_INITIALIZER("mpu", true,  600000000, 1200000),
++	OPP_INITIALIZER("mpu", true,  600000000, OMAP3630_VDD_MPU_OPP100_UV),
+ 	/* MPU OPP3 - OPP-Turbo */
+-	OPP_INITIALIZER("mpu", false, 800000000, 1325000),
++	OPP_INITIALIZER("mpu", false, 800000000, OMAP3630_VDD_MPU_OPP120_UV),
+ 	/* MPU OPP4 - OPP-SB */
+-	OPP_INITIALIZER("mpu", false, 1000000000, 1375000),
++	OPP_INITIALIZER("mpu", false, 1000000000, OMAP3630_VDD_MPU_OPP1G_UV),
+ 
+ 	/* L3 OPP1 - OPP50 */
+-	OPP_INITIALIZER("l3_main", true, 100000000, 1000000),
++	OPP_INITIALIZER("l3_main", true, 100000000, OMAP3630_VDD_CORE_OPP50_UV),
+ 	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
+-	OPP_INITIALIZER("l3_main", true, 200000000, 1200000),
++	OPP_INITIALIZER("l3_main", true, 200000000, OMAP3630_VDD_CORE_OPP100_UV),
+ 
+ 	/* DSP OPP1 - OPP50 */
+-	OPP_INITIALIZER("iva", true,  260000000, 1012500),
++	OPP_INITIALIZER("iva", true,  260000000, OMAP3630_VDD_MPU_OPP50_UV),
+ 	/* DSP OPP2 - OPP100 */
+-	OPP_INITIALIZER("iva", true,  520000000, 1200000),
++	OPP_INITIALIZER("iva", true,  520000000, OMAP3630_VDD_MPU_OPP100_UV),
+ 	/* DSP OPP3 - OPP-Turbo */
+-	OPP_INITIALIZER("iva", false, 660000000, 1325000),
++	OPP_INITIALIZER("iva", false, 660000000, OMAP3630_VDD_MPU_OPP120_UV),
+ 	/* DSP OPP4 - OPP-SB */
+-	OPP_INITIALIZER("iva", false, 800000000, 1375000),
++	OPP_INITIALIZER("iva", false, 800000000, OMAP3630_VDD_MPU_OPP1G_UV),
+ };
  
  /**
-- * struct omap_dev_user_list - Structure maitain userlist per devide
-+ * struct omap_dev_user_list - Structure maitain userlist per device
-  *
-  * @dev:       The device requesting for a particular frequency
-  * @node:      The list head entry
-@@ -413,6 +413,91 @@ static int omap_dvfs_remove_freq_request(struct omap_vdd_dvfs_info *dvfs_info,
- }
+diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
+index a11fa56..80d08bc 100644
+--- a/arch/arm/mach-omap2/opp4xxx_data.c
++++ b/arch/arm/mach-omap2/opp4xxx_data.c
+@@ -20,22 +20,23 @@
+ #include <linux/module.h>
  
- /**
-+ * omap_dvfs_voltage_scale() : API to scale the devices associated with a
-+ *						voltage domain vdd voltage.
-+ *
-+ * @dvfs_info: omap_vdd_dvfs_info pointer for the required vdd
-+ *
-+ * This API runs through the list of devices associated with the
-+ * voltage domain and scales the device rates to the one requested
-+ * by the user or those corresponding to the new voltage of the
-+ * voltage domain. Target voltage is the highest voltage in the vdd_user_list.
-+ *
-+ * Returns 0 on success
-+ * else the error value.
-+ */
-+static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
-+{
-+	unsigned long curr_volt;
-+	int is_volt_scaled = 0;
-+	struct omap_vdd_dev_list *temp_dev;
-+	struct plist_node *node;
-+	int ret = 0;
-+	struct voltagedomain *voltdm;
-+	unsigned long volt;
-+
-+	if (!dvfs_info || IS_ERR(dvfs_info)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	voltdm = dvfs_info->voltdm;
-+
-+	mutex_lock(&dvfs_info->scaling_mutex);
-+
-+	/* Find the highest voltage being requested */
-+	node = plist_last(&dvfs_info->user_list);
-+	volt = node->prio;
-+
-+	curr_volt = omap_voltage_get_nom_volt(voltdm);
-+
-+	if (curr_volt == volt) {
-+		is_volt_scaled = 1;
-+	} else if (curr_volt < volt) {
-+		ret = omap_voltage_scale_vdd(voltdm, volt);
-+		if (ret) {
-+			pr_warning("%s: Unable to scale the %s to %ld volt\n",
-+						__func__, voltdm->name, volt);
-+			mutex_unlock(&dvfs_info->scaling_mutex);
-+			return ret;
-+		}
-+		is_volt_scaled = 1;
-+	}
-+
-+	list_for_each_entry(temp_dev, &dvfs_info->dev_list, node) {
-+		struct device *dev;
-+		struct opp *opp;
-+		unsigned long freq;
-+
-+		dev = temp_dev->dev;
-+		if (!plist_head_empty(&temp_dev->user_list)) {
-+			node = plist_last(&temp_dev->user_list);
-+			freq = node->prio;
-+		} else {
-+			opp = omap_dvfs_find_voltage(dev, volt);
-+			if (IS_ERR(opp))
-+				continue;
-+			freq = opp_get_freq(opp);
-+		}
-+
-+		if (freq == omap_device_get_rate(dev)) {
-+			dev_dbg(dev, "%s: Already at the requested"
-+				"rate %ld\n", __func__, freq);
-+			continue;
-+		}
-+
-+		ret |= omap_device_set_rate(dev, freq);
-+	}
-+
-+	if (!is_volt_scaled && !ret)
-+		omap_voltage_scale_vdd(voltdm, volt);
-+
-+	mutex_unlock(&dvfs_info->scaling_mutex);
-+
-+	return 0;
-+}
-+
-+/**
-  * omap_dvfs_init() - Initialize omap dvfs layer
-  *
-  * Initalizes omap dvfs layer. It basically allocates memory for
+ #include <plat/cpu.h>
++#include <plat/voltage.h>
+ 
+ #include "omap_opp_data.h"
+ 
+ static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
+ 	/* MPU OPP1 - OPP50 */
+-	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
++	OPP_INITIALIZER("mpu", true, 300000000, OMAP4430_VDD_MPU_OPP50_UV),
+ 	/* MPU OPP2 - OPP100 */
+-	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
++	OPP_INITIALIZER("mpu", true, 600000000, OMAP4430_VDD_MPU_OPP100_UV),
+ 	/* MPU OPP3 - OPP-Turbo */
+-	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
++	OPP_INITIALIZER("mpu", false, 800000000, OMAP4430_VDD_MPU_OPPTURBO_UV),
+ 	/* MPU OPP4 - OPP-SB */
+-	OPP_INITIALIZER("mpu", false, 1008000000, 1350000),
++	OPP_INITIALIZER("mpu", false, 1008000000, OMAP4430_VDD_MPU_OPPNITRO_UV),
+ 	/* L3 OPP1 - OPP50 */
+-	OPP_INITIALIZER("l3_main_1", true, 100000000, 930000),
++	OPP_INITIALIZER("l3_main_1", true, 100000000, OMAP4430_VDD_CORE_OPP50_UV),
+ 	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
+-	OPP_INITIALIZER("l3_main_1", true, 200000000, 1100000),
++	OPP_INITIALIZER("l3_main_1", true, 200000000, OMAP4430_VDD_CORE_OPP100_UV),
+ 	/* TODO: add IVA, DSP, aess, fdif, gpu */
+ };
+ 
 -- 
 1.7.0.4
 
