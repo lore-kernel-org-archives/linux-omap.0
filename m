@@ -1,120 +1,85 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCHv2] OMAP: Enable Magic SysRq on serial console ttyOx
-Date: Fri, 21 Jan 2011 14:38:26 +0530
-Message-ID: <AANLkTim2etyaoeuoXmnpZ3uij8O+bzPW-uq_z-o1CNQ3@mail.gmail.com>
-References: <1295426461-12459-1-git-send-email-weber@corscience.de>
- <AANLkTin0-joNuqxqL79j0wqPk_A5mtAgzEY=X=PeH=+C@mail.gmail.com>
- <20110119130049.GB9365@m-desktop> <4D36E7CC.5090303@corscience.de>
- <AANLkTikjdukQ+kUUR7N11rZ5b=Xd=xLb0-chMrbp5BQ6@mail.gmail.com>
- <20110120114855.GD1987@m-desktop> <38f2b3af600ce3dfea1e73edec7c81fa@mail.gmail.com>
- <AANLkTimxTaU3x9DZvL4dvXs1nTYjCQnbyZLC73SOKrgQ@mail.gmail.com> <20110121074530.GB12307@m-desktop>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if doing so
+ would reset an active clockdomain
+Date: Fri, 21 Jan 2011 09:22:48 +0000
+Message-ID: <854C6400F5AA6644BA6FE7953F3E769B036BD30C@008-AM1MPN1-014.mgdnok.nokia.com>
+References: <1295344109-7056-1-git-send-email-tero.kristo@nokia.com>
+ <e84561af552e084d0a6c904aabfe46c8@mail.gmail.com>
+ <cff409280dee72a6d3426cc2edf93069@mail.gmail.com>
+ <854C6400F5AA6644BA6FE7953F3E769B036776FE@008-AM1MPN1-012.mgdnok.nokia.com>
+ <91467096ca191cde5a0d8b69ef0fce00@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:55815 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753431Ab1AUJIs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 04:08:48 -0500
-In-Reply-To: <20110121074530.GB12307@m-desktop>
+Received: from smtp.nokia.com ([147.243.128.24]:50534 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750810Ab1AUJYp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 04:24:45 -0500
+In-Reply-To: <91467096ca191cde5a0d8b69ef0fce00@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>, Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Govindraj Raja <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Andrei Emeltchenko <andrei.emeltchenko@nokia.com>, linux-kernel@vger.kernel.org
+To: santosh.shilimkar@ti.com, vishwanath.bs@ti.com, linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@deeprootsystems.com
 
-On Fri, Jan 21, 2011 at 1:15 PM, G, Manjunath Kondaiah <manjugk@ti.com>=
- wrote:
-> On Fri, Jan 21, 2011 at 12:54:29PM +0530, Govindraj wrote:
->> On Thu, Jan 20, 2011 at 5:49 PM, Anand Gadiyar <gadiyar@ti.com> wrot=
-e:
->> >> > >>>> Magic SysRq key is not working for OMAP on new serial
->> >> > >>>> console ttyOx because SUPPORT_SYSRQ is not defined
->> >> > >>>> for omap-serial.
->> >> > >>>>
->> >> > >>>> This patch defines SUPPORT_SYSRQ in omap-serial and
->> >> > >>>> enables handling of Magic SysRq character.
->> >> > >>>>
->> >> > >>>> Signed-off-by: Thomas Weber <weber@corscience.de>
->> >> > >>>
->> >> > >>> Looks fine to me.
->> >> > >>>
->> >> > >>> Acked-by: Govindraj.R <govindraj.raja@ti.com>
->> >> > >> I tried to use SysRq key on minicom after applying this patc=
-h, it
->> > looks
->> >> > >> like it is not triggering sysrq event.
->> >> > >>
->> >> > >> Am I missing anything?
->> >> > >>
->> >> > >> -Manjunath
->> >> > >> --
->> >> > > Hello Manjunath,
->> >> > >
->> >> > > Do you have CONFIG_MAGIC_SYSRQ enabled?
->> >> > > Magic SysRq key in Kernel Hacking
->> >> > >
->> >> > > I tested it on Devkit8000 (beagle board clone).
->> >> > >
->> >> >
->> >> > re-setting lsr_break_flag to 0 in receive chars is causing issu=
-es
->> >> > in getting sysrq key break sequence on omap-serial.c
->> >> >
->> >> > Manju,
->> >> >
->> >> > can you try this change on your environment.
->> >> > With below change works for me on 3430SDP/4430SDP.
->> >> > key sequence I checked.
->> >> > [alt + b + t] =A0=3D> shows trace of tasks running.
->> >> > [alt + b + b] =3D> system reboot.
->> >>
->> >> With below patch, it works fine on TeraTerm. However, I am not ab=
-le to
->> >> perform the same on minicom.
->> >>
->> >> Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
->> >>
->> >> -Manjunath
->> >>
->> >
->> > Not sure what you guys are trying out, but I am able to use sysrq
->> > just fine in minicom (using only Thomas' original patch) - you nee=
-d
->> > to send a break sequence, and the way to do this in minicom is to
->> > do Ctrl-A followed by F.
->> >
->> > Works for me, without the "resetting lsr_break_flag to 0" part.
->> >
->> > @Govind,
->> >
->> > What are the issues you see in getting sysrq key break sequence
->> > without your change? And how is your change fixing this?
->>
->> Actually I was using teraterm on windows platform.
->> using keyboard to send a break char [alt + b] sometimes
->> i observed that first break char was getting lost and subsequent bre=
-ak
->> chars where getting
->> recognized. However using send break option from terterm menu seems =
-to
->> work most of times.
->> my change can be dropped.
-> If it is fixing the issue of losing first break character, what is wr=
-ong in
-> having this patch?
+
+
+>-----Original Message-----
+>From: ext Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
+>Sent: 19 January, 2011 11:03
+>To: Kristo Tero (Nokia-MS/Tampere); Vishwanath Sripathy; linux-
+>omap@vger.kernel.org
+>Cc: paul@pwsan.com; khilman@deeprootsystems.com
+>Subject: RE: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if
+>doing so would reset an active clockdomain
 >
-> Do you see any other issues because of this change?
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Tero.Kristo@nokia.com
+>> Sent: Wednesday, January 19, 2011 2:09 PM
+>> To: vishwanath.bs@ti.com; linux-omap@vger.kernel.org
+>> Cc: paul@pwsan.com; khilman@deeprootsystems.com
+>> Subject: RE: [PATCH] OMAP3: CPUIdle: prevent CORE from going off if
+>> doing so would reset an active clockdomain
+>>
+>[...]
+>
+>> >> If some parts of the chip are busy, then how can Core domain
+>> enter off
+>> >> state? The necessary condition for Core to enter low power state
+>> is
+>> >that
+>> >> all the clock domains (including DSS, CAM, IVA, USB, PER etc)
+>> should
+>> >> have
+>> >> idled. Doesn't it mean that all the modules have idled and
+>> asserted
+>> >> idleack when Core is entering off state?
+>> >Besides these, Core off should reset the modules which are only in
+>> Core
+>> >domain. It should not impact other power domains. Also Core domain
+>> >modules
+>> >which are reset will restore their context when Core comes out of
+>> off
+>> >mode. So why are you saying that "If those parts of the chip are
+>> busy,
+>> >the reset will disrupt them, causing unpredictable and generally
+>> >undesirable results."?
+>>
+>> Core off issues reset to peripheral domains when it wakes up, this
+>> is somehow (badly) visible in TRM (look for COREDOMAINWKUP_RST.)
+>> When this reset happens, the peripheral domain shows its reset
+>> status as being high, but the powerdomain itself has not entered off
+>> (previous state can be e.g. RET), thus its context will not be
+>> restored.
+>>
+>Now its clear. Reseting other independent clockdomains is
+>certainly bad from CORE PD OFF to ON behavior .
+>
+>Please add this additional information to change log.
 
-Haven't seen any thing else.
-Will leave it to Thomas to incorporate if he is willing to
-take up the change else will post out this change some time
-later.
+I'll update the patch desc and resend it in a bit.
 
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tero
+
