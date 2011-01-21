@@ -1,51 +1,47 @@
-From: John Ogness <john.ogness@linutronix.de>
-Subject: [PATCH v3] OMAP2/3: clock: fix fint calculation for DPLL_FREQSEL
-Date: Fri, 21 Jan 2011 09:33:33 +0100
-Message-ID: <87y66e3bc2.fsf_-_@vostro.fn.ogness.net>
-References: <87ei8726wf.fsf@vostro.fn.ogness.net>
-	<20110120111645.GB2223@legolas.emea.dhcp.ti.com>
-	<8739on1wdd.fsf_-_@vostro.fn.ogness.net>
-	<20110121031553.GA2448@legolas.emea.dhcp.ti.com>
+From: "Nagendra" <nagendra@mistralsolutions.com>
+Subject: OMAP3 - PM - Question - Disabling CLKEN and HFCLKOUT signals from TWL4030 scripts
+Date: Fri, 21 Jan 2011 14:14:30 +0530
+Message-ID: <005301cbb947$6d682730$48387590$@com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110121031553.GA2448@legolas.emea.dhcp.ti.com> (Felipe Balbi's message of "Fri\, 21 Jan 2011 05\:15\:53 +0200")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:64556 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753431Ab1AUIo1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 03:44:27 -0500
+Received: by gxk9 with SMTP id 9so459145gxk.19
+        for <linux-omap@vger.kernel.org>; Fri, 21 Jan 2011 00:44:26 -0800 (PST)
+Content-Language: en-us
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: ratheesh@mistralsolutions.com
 
-From: John Ogness <john.ogness@linutronix.de>
+Hi All,
 
-In OMAP35X TRM Rev 2010-05 Figure 7-18 "DPLL With EMI Reduction
-Feature", it is shown that the internal frequency is calculated by
-CLK_IN/(N+1). However, the value passed to _dpll_test_fint() is
-already "N+1" since Linux is using the values to divide by. In the
-technical reference manual, "N" is referring to the divider's register
-value (0-127).
+We are working on Power management on OMAP3 (3530) and I am trying to
+disable CLKEN and HFCLKOUT through TWL4030 power scripts. However we have
+not been able to achieve this. 
 
-Signed-off-by: John Ogness <john.ogness@linutronix.de>
----
-patch v3:
-Patch against linux-next-20110121.
-I have improved the commit message so that it is acceptable for the
-git commit log.
+Following are the changes and tests done so far.
 
- arch/arm/mach-omap2/clkt_dpll.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+- VAUX1, CLKEN and HFCLKOUT were assigned to P1 group. 
+- Wrote Singular messages to turn on/off these signals in TWL4030 scripts. 
+- We observed that VAUX1 is able to switch ON/OFF properly as per the script
+but HFCLKOUT and CLKEN are not behaving as expected. 
+- However if we try writing CLKEN_DEV_GRP to zero, CLKEN is going low. 
+- We have made sure that SYS_OFF_MODE and CLK_REQ signals go low during the
+system OFF mode, LVL_WAKEUP bit enabled in Px_SW_EVENTS, and STS_CHG bit in
+STS_HW_CONDITIONS is zero. 
 
-diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
-index 337392c..acb7ae5 100644
---- a/arch/arm/mach-omap2/clkt_dpll.c
-+++ b/arch/arm/mach-omap2/clkt_dpll.c
-@@ -77,7 +77,7 @@ static int _dpll_test_fint(struct clk *clk, u8 n)
- 	dd = clk->dpll_data;
- 
- 	/* DPLL divider must result in a valid jitter correction val */
--	fint = clk->parent->rate / (n + 1);
-+	fint = clk->parent->rate / n;
- 	if (fint < DPLL_FINT_BAND1_MIN) {
- 
- 		pr_debug("rejecting n=%d due to Fint failure, "
--- 
-1.5.6.5
+Is there anything that I am missing? Kindly let me know. 
+
+Part number of TPS used in our board is TPS65950 BZXNR
+
+with regards,
+- Nagendra.
+
+
+
