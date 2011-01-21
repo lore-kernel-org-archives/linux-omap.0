@@ -1,319 +1,285 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v5 6/6] OMAP: runtime: McSPI driver runtime conversion
-Date: Fri, 21 Jan 2011 18:25:47 +0530
-Message-ID: <1295614547-1920-7-git-send-email-govindraj.raja@ti.com>
-References: <1295614547-1920-1-git-send-email-govindraj.raja@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK to
+ speed-up boot
+Date: Fri, 21 Jan 2011 19:13:48 +0530
+Message-ID: <c1a2c539e2677e9a56d2d3aaaaf34851@mail.gmail.com>
+References: <1295516579-10225-1-git-send-email-santosh.shilimkar@ti.com>
+ <4D385155.4050301@gmail.com> <43c027bd53818ab19bdc1c823aa21ea4@mail.gmail.com>
+ <4D38641E.2000301@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=0016e6d9a271b7ebd0049a5b7037
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38221 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754731Ab1AUMkT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 07:40:19 -0500
-In-Reply-To: <1295614547-1920-1-git-send-email-govindraj.raja@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:57621 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750981Ab1AUNnw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 08:43:52 -0500
+Received: by mail-bw0-f48.google.com with SMTP id 8so1665745bwz.21
+        for <linux-omap@vger.kernel.org>; Fri, 21 Jan 2011 05:43:50 -0800 (PST)
+In-Reply-To: <4D38641E.2000301@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Charulatha V <charu@ti.com>
+To: Rob Herring <robherring2@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>
 
-McSPI runtime conversion.
-Changes involves:
-1) remove clock framework apis to use runtime framework apis.
-2) context restore from runtime resume which is a callback for get_sync.
-3) Remove SYSCONFIG(sysc) register handling
-        (a) Remove context save and restore of sysc reg and remove soft reset
-            done from sysc reg as this will be done with hwmod framework.
-        (b) Also cleanup sysc reg bit macros.
-4) Rename the omap2_mcspi_reset function to omap2_mcspi_master_setup
-   function as with hwmod changes soft reset will be done in
-   hwmod framework itself and use the return value from clock
-   enable function to return for failure scenarios.
+--0016e6d9a271b7ebd0049a5b7037
+Content-Type: text/plain; charset=ISO-8859-1
 
-Signed-off-by: Charulatha V <charu@ti.com>
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
-Reviewed-by: Partha Basak <p-basak2@ti.com>
+> -----Original Message-----
+> From: Rob Herring [mailto:robherring2@gmail.com]
+> Sent: Thursday, January 20, 2011 10:05 PM
+> To: Santosh Shilimkar
+> Cc: linux-arm-kernel@lists.infradead.org; Russell King; linux-
+> omap@vger.kernel.org; Linus Walleij
+> Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK
+> to speed-up boot
+
+[..]
+
+> >>
+> >> There's already one way to do this with pre-calculated lpj.
+> >>
+> > How about the hot-plug path? This is not for just boot.
+>
+> The path is the same for hotplug and secondary boot, so yes for
+> both.
+> Plus you get the added benefit of speeding up the primary core boot
+> as well.
+>
+No 'preset_lpj' will not work for the hotplug path when
+cpufreq is active. It just useful only for boot in
+its current form.
+
+> >
+> >> Also, this isn't multi-platform friendly. You could accomplish
+> the
+> >> same
+> >> thing using the clock api to get the core frequency of each core
+> and
+> >> only calculate lpj if the frequency is different.
+> > May be but what's wrong with the obvious approach which is
+> > completely non-intrusive.
+> > Why is not multi-platform friendly ?
+> > Archs can choose not to select this option.
+>
+> I meant you can't have single kernel binary with a platform with
+> single
+> core freq and a platform with independent core freq.
+>
+> Looking at this some more, the only reason to call calibrate_delay
+> is to
+> get a more accurate value. If you have different frequencies per
+> core,
+> you've got bigger problems as loops_per_jiffy value is not per core.
+> So
+> your kconfig option name is misleading. Something like
+> ARCH_WANT_UDELAY_RECALC would be more accurate. To get a more
+> accurate
+> calculation, calibrate_delay only needs to be called by 1 secondary
+> core. Perhaps it could be called from somewhere that is not in the
+> boot/hotplug path or only done once.
+>
+Similar name was there in my earlier version.
+	"ARCH_SKIP_SECONDARY_CALIBRATE"
+I changed it based on Linus W suggestion. I understand your one
+binary point and this patch.
+
+How about below approach?
+
+-----------------------------------------------------
+[PATCH] ARM: smp: Skip secondary cpu calibration to speed-up boot
+
+On some architectures, secondary cores shares clock with primiary
+core and hence scale together. Hence secondary core lpj calibration
+is not necessary and can be skipped to save considerable time.
+
+This can speed up the secondary cpu boot and hotplug cpu online
+paths.
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/spi/omap2_mcspi.c |  120 +++++++++++++++++---------------------------
- 1 files changed, 46 insertions(+), 74 deletions(-)
+ arch/arm/include/asm/smp.h     |    8 ++++++++
+ arch/arm/kernel/smp.c          |   34 ++++++++++++++++++++++++++--------
+ arch/arm/mach-omap2/omap-smp.c |    3 +++
+ 3 files changed, 37 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-index 6018fe4..6a202a1 100644
---- a/drivers/spi/omap2_mcspi.c
-+++ b/drivers/spi/omap2_mcspi.c
-@@ -33,6 +33,7 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/slab.h>
-+#include <linux/pm_runtime.h>
- 
- #include <linux/spi/spi.h>
- 
-@@ -46,7 +47,6 @@
- #define OMAP2_MCSPI_MAX_CTRL 		4
- 
- #define OMAP2_MCSPI_REVISION		0x00
--#define OMAP2_MCSPI_SYSCONFIG		0x10
- #define OMAP2_MCSPI_SYSSTATUS		0x14
- #define OMAP2_MCSPI_IRQSTATUS		0x18
- #define OMAP2_MCSPI_IRQENABLE		0x1c
-@@ -63,13 +63,6 @@
- 
- /* per-register bitmasks: */
- 
--#define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	BIT(4)
--#define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	BIT(2)
--#define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	BIT(0)
--#define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	BIT(1)
--
--#define OMAP2_MCSPI_SYSSTATUS_RESETDONE	BIT(0)
--
- #define OMAP2_MCSPI_MODULCTRL_SINGLE	BIT(0)
- #define OMAP2_MCSPI_MODULCTRL_MS	BIT(2)
- #define OMAP2_MCSPI_MODULCTRL_STEST	BIT(3)
-@@ -122,13 +115,12 @@ struct omap2_mcspi {
- 	spinlock_t		lock;
- 	struct list_head	msg_queue;
- 	struct spi_master	*master;
--	struct clk		*ick;
--	struct clk		*fck;
- 	/* Virtual base address of the controller */
- 	void __iomem		*base;
- 	unsigned long		phys;
- 	/* SPI1 has 4 channels, while SPI2 has 2 */
- 	struct omap2_mcspi_dma	*dma_channels;
-+	struct  device		*dev;
- };
- 
- struct omap2_mcspi_cs {
-@@ -144,7 +136,6 @@ struct omap2_mcspi_cs {
-  * corresponding registers are modified.
+diff --git a/arch/arm/include/asm/smp.h b/arch/arm/include/asm/smp.h
+index 96ed521..7ffdfec 100644
+--- a/arch/arm/include/asm/smp.h
++++ b/arch/arm/include/asm/smp.h
+@@ -69,6 +69,14 @@ asmlinkage void secondary_start_kernel(void);
+ extern void platform_secondary_init(unsigned int cpu);
+
+ /*
++ * Skip the secondary calibration on architectures sharing clock
++ * with primary cpu. Needs to be called for archs inside
++ * platform_secondary_init()
++ */
++extern void secondary_skip_calibrate(void);
++
++
++/*
+  * Initialize cpu_possible map, and enable coherency
   */
- struct omap2_mcspi_regs {
--	u32 sysconfig;
- 	u32 modulctrl;
- 	u32 wakeupenable;
- 	struct list_head cs;
-@@ -268,9 +259,6 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
- 	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
- 			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
- 
--	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
--			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
--
- 	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
- 			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
- 
-@@ -280,20 +268,12 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
- }
- static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
- {
--	clk_disable(mcspi->ick);
--	clk_disable(mcspi->fck);
-+	pm_runtime_put_sync(mcspi->dev);
- }
- 
- static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
- {
--	if (clk_enable(mcspi->ick))
--		return -ENODEV;
--	if (clk_enable(mcspi->fck))
--		return -ENODEV;
--
--	omap2_mcspi_restore_ctx(mcspi);
--
--	return 0;
-+	return pm_runtime_get_sync(mcspi->dev);
- }
- 
- static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit)
-@@ -819,8 +799,9 @@ static int omap2_mcspi_setup(struct spi_device *spi)
- 			return ret;
- 	}
- 
--	if (omap2_mcspi_enable_clocks(mcspi))
--		return -ENODEV;
-+	ret = omap2_mcspi_enable_clocks(mcspi);
-+	if (ret < 0)
-+		return ret;
- 
- 	ret = omap2_mcspi_setup_transfer(spi, NULL);
- 	omap2_mcspi_disable_clocks(mcspi);
-@@ -863,10 +844,11 @@ static void omap2_mcspi_work(struct work_struct *work)
- 	struct omap2_mcspi	*mcspi;
- 
- 	mcspi = container_of(work, struct omap2_mcspi, work);
--	spin_lock_irq(&mcspi->lock);
- 
--	if (omap2_mcspi_enable_clocks(mcspi))
--		goto out;
-+	if (omap2_mcspi_enable_clocks(mcspi) < 0)
-+		return;
+ extern void platform_smp_prepare_cpus(unsigned int);
+diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+index 4539ebc..b20c408 100644
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -55,6 +55,8 @@ enum ipi_msg_type {
+ 	IPI_CPU_STOP,
+ };
+
++static unsigned int skip_secondary_calibrate;
 +
-+	spin_lock_irq(&mcspi->lock);
- 
- 	/* We only enable one channel at a time -- the one whose message is
- 	 * at the head of the queue -- although this controller would gladly
-@@ -979,10 +961,9 @@ static void omap2_mcspi_work(struct work_struct *work)
- 		spin_lock_irq(&mcspi->lock);
- 	}
- 
--	omap2_mcspi_disable_clocks(mcspi);
--
--out:
- 	spin_unlock_irq(&mcspi->lock);
-+
-+	omap2_mcspi_disable_clocks(mcspi);
- }
- 
- static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
-@@ -1063,25 +1044,15 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
- 	return 0;
- }
- 
--static int __init omap2_mcspi_reset(struct omap2_mcspi *mcspi)
-+static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
+ int __cpuinit __cpu_up(unsigned int cpu)
  {
- 	struct spi_master	*master = mcspi->master;
- 	u32			tmp;
-+	int ret = 0;
- 
--	if (omap2_mcspi_enable_clocks(mcspi))
--		return -1;
--
--	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
--			OMAP2_MCSPI_SYSCONFIG_SOFTRESET);
--	do {
--		tmp = mcspi_read_reg(master, OMAP2_MCSPI_SYSSTATUS);
--	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
--
--	tmp = OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
--		OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
--		OMAP2_MCSPI_SYSCONFIG_SMARTIDLE;
--	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG, tmp);
--	omap2_mcspi_ctx[master->bus_num - 1].sysconfig = tmp;
-+	ret = omap2_mcspi_enable_clocks(mcspi);
-+	if (ret < 0)
-+		return ret;
- 
- 	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
- 	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
-@@ -1092,6 +1063,18 @@ static int __init omap2_mcspi_reset(struct omap2_mcspi *mcspi)
- 	return 0;
+ 	struct cpuinfo_arm *ci = &per_cpu(cpu_data, cpu);
+@@ -270,6 +272,16 @@ static void __cpuinit smp_store_cpu_info(unsigned int
+cpuid)
  }
- 
-+static int omap_mcspi_runtime_resume(struct device *dev)
+
+ /*
++ * Skip the secondary calibration on architectures sharing clock
++ * with primary cpu. Needs to be called for archs from
++ * platform_secondary_init()
++ */
++void secondary_skip_calibrate(void)
 +{
-+	struct omap2_mcspi	*mcspi;
-+	struct spi_master	*master;
-+
-+	master = dev_get_drvdata(dev);
-+	mcspi = spi_master_get_devdata(master);
-+	omap2_mcspi_restore_ctx(mcspi);
-+
-+	return 0;
++	skip_secondary_calibrate = 1;
 +}
 +
- 
- static int __init omap2_mcspi_probe(struct platform_device *pdev)
- {
-@@ -1141,34 +1124,22 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
- 	if (!mcspi->base) {
- 		dev_dbg(&pdev->dev, "can't ioremap MCSPI\n");
- 		status = -ENOMEM;
--		goto err1aa;
-+		goto err2;
- 	}
- 
-+	mcspi->dev = &pdev->dev;
- 	INIT_WORK(&mcspi->work, omap2_mcspi_work);
- 
- 	spin_lock_init(&mcspi->lock);
- 	INIT_LIST_HEAD(&mcspi->msg_queue);
- 	INIT_LIST_HEAD(&omap2_mcspi_ctx[master->bus_num - 1].cs);
- 
--	mcspi->ick = clk_get(&pdev->dev, "ick");
--	if (IS_ERR(mcspi->ick)) {
--		dev_dbg(&pdev->dev, "can't get mcspi_ick\n");
--		status = PTR_ERR(mcspi->ick);
--		goto err1a;
--	}
--	mcspi->fck = clk_get(&pdev->dev, "fck");
--	if (IS_ERR(mcspi->fck)) {
--		dev_dbg(&pdev->dev, "can't get mcspi_fck\n");
--		status = PTR_ERR(mcspi->fck);
--		goto err2;
--	}
--
- 	mcspi->dma_channels = kcalloc(master->num_chipselect,
- 			sizeof(struct omap2_mcspi_dma),
- 			GFP_KERNEL);
- 
- 	if (mcspi->dma_channels == NULL)
--		goto err3;
-+		goto err2;
- 
- 	for (i = 0; i < master->num_chipselect; i++) {
- 		char dma_ch_name[14];
-@@ -1198,8 +1169,10 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
- 		mcspi->dma_channels[i].dma_tx_sync_dev = dma_res->start;
- 	}
- 
--	if (omap2_mcspi_reset(mcspi) < 0)
--		goto err4;
-+	pm_runtime_enable(&pdev->dev);
-+
-+	if (status || omap2_mcspi_master_setup(mcspi) < 0)
-+		goto err3;
- 
- 	status = spi_register_master(master);
- 	if (status < 0)
-@@ -1208,17 +1181,13 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
- 	return status;
- 
- err4:
--	kfree(mcspi->dma_channels);
-+	spi_master_put(master);
- err3:
--	clk_put(mcspi->fck);
-+	kfree(mcspi->dma_channels);
- err2:
--	clk_put(mcspi->ick);
--err1a:
--	iounmap(mcspi->base);
--err1aa:
- 	release_mem_region(r->start, (r->end - r->start) + 1);
-+	iounmap(mcspi->base);
- err1:
--	spi_master_put(master);
- 	return status;
- }
- 
-@@ -1234,9 +1203,7 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
- 	mcspi = spi_master_get_devdata(master);
- 	dma_channels = mcspi->dma_channels;
- 
--	clk_put(mcspi->fck);
--	clk_put(mcspi->ick);
--
-+	omap2_mcspi_disable_clocks(mcspi);
- 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	release_mem_region(r->start, (r->end - r->start) + 1);
- 
-@@ -1251,10 +1218,15 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
- /* work with hotplug and coldplug */
- MODULE_ALIAS("platform:omap2_mcspi");
- 
-+static const struct dev_pm_ops omap_mcspi_dev_pm_ops = {
-+	.runtime_resume	= omap_mcspi_runtime_resume,
-+};
-+
- static struct platform_driver omap2_mcspi_driver = {
- 	.driver = {
- 		.name =		"omap2_mcspi",
- 		.owner =	THIS_MODULE,
-+		.pm = &omap_mcspi_dev_pm_ops,
- 	},
- 	.remove =	__exit_p(omap2_mcspi_remove),
- };
--- 
-1.7.1
++/*
+  * This is the secondary CPU boot entry.  We're using this CPUs
+  * idle thread stack, but a set of temporary page tables.
+  */
+@@ -312,7 +324,8 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
+ 	 */
+ 	percpu_timer_setup();
 
+-	calibrate_delay();
++	if (!skip_secondary_calibrate)
++		calibrate_delay();
+
+ 	smp_store_cpu_info(cpu);
+
+@@ -332,14 +345,19 @@ void __init smp_cpus_done(unsigned int max_cpus)
+ 	int cpu;
+ 	unsigned long bogosum = 0;
+
+-	for_each_online_cpu(cpu)
+-		bogosum += per_cpu(cpu_data, cpu).loops_per_jiffy;
++	if (!skip_secondary_calibrate) {
++		for_each_online_cpu(cpu)
++			bogosum += per_cpu(cpu_data, cpu).loops_per_jiffy;
+
+-	printk(KERN_INFO "SMP: Total of %d processors activated "
+-	       "(%lu.%02lu BogoMIPS).\n",
+-	       num_online_cpus(),
+-	       bogosum / (500000/HZ),
+-	       (bogosum / (5000/HZ)) % 100);
++		printk(KERN_INFO "SMP: Total of %d processors activated "
++		       "(%lu.%02lu BogoMIPS).\n",
++			num_online_cpus(),
++			bogosum / (500000/HZ),
++			(bogosum / (5000/HZ)) % 100);
++	} else {
++		printk(KERN_INFO "SMP: Total of %d processors
+activated.\n",
++			num_online_cpus());
++	}
+ }
+
+ void __init smp_prepare_boot_cpu(void)
+diff --git a/arch/arm/mach-omap2/omap-smp.c
+b/arch/arm/mach-omap2/omap-smp.c
+index b66cfe8..7342cd5 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -39,6 +39,9 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
+ 	 */
+ 	gic_secondary_init(0);
+
++	/* Allow to skip secondary CPU calibration */
++	secondary_skip_calibrate();
++
+ 	/*
+ 	 * Synchronise with the boot thread.
+ 	 */
+-- 
+1.6.0.4
+
+--0016e6d9a271b7ebd0049a5b7037
+Content-Type: application/octet-stream;
+	name="0001-ARM-smp-Skip-secondary-cpu-calibration-to-speed-up.patch"
+Content-Disposition: attachment;
+	filename="0001-ARM-smp-Skip-secondary-cpu-calibration-to-speed-up.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: da48af5e6300b15d_0.1
+
+RnJvbSA4YmM1YTI0YjdjYzYwYjU0YzdhYmFlMDZmMWNjMzMxMWUyMGZiODE5IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
+dGkuY29tPgpEYXRlOiBNb24sIDEwIEphbiAyMDExIDAyOjU4OjM5ICswNTMwClN1YmplY3Q6IFtQ
+QVRDSF0gQVJNOiBzbXA6IFNraXAgc2Vjb25kYXJ5IGNwdSBjYWxpYnJhdGlvbiB0byBzcGVlZC11
+cCBib290CgpPbiBzb21lIGFyY2hpdGVjdHVyZXMsIHNlY29uZGFyeSBjb3JlcyBzaGFyZXMgY2xv
+Y2sgd2l0aCBwcmltaWFyeQpjb3JlIGFuZCBoZW5jZSBzY2FsZSB0b2dldGhlci4gSGVuY2Ugc2Vj
+b25kYXJ5IGNvcmUgbHBqIGNhbGlicmF0aW9uCmlzIG5vdCBuZWNlc3NhcnkgYW5kIGNhbiBiZSBz
+a2lwcGVkIHRvIHNhdmUgY29uc2lkZXJhYmxlIHRpbWUuCgpUaGlzIGNhbiBzcGVlZCB1cCB0aGUg
+c2Vjb25kYXJ5IGNwdSBib290IGFuZCBob3RwbHVnIGNwdSBvbmxpbmUKcGF0aHMuCgpTaWduZWQt
+b2ZmLWJ5OiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJAdGkuY29tPgotLS0K
+IGFyY2gvYXJtL2luY2x1ZGUvYXNtL3NtcC5oICAgICB8ICAgIDggKysrKysrKysKIGFyY2gvYXJt
+L2tlcm5lbC9zbXAuYyAgICAgICAgICB8ICAgMzQgKysrKysrKysrKysrKysrKysrKysrKysrKyst
+LS0tLS0tLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwLXNtcC5jIHwgICAgMyArKysKIDMgZmls
+ZXMgY2hhbmdlZCwgMzcgaW5zZXJ0aW9ucygrKSwgOCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQg
+YS9hcmNoL2FybS9pbmNsdWRlL2FzbS9zbXAuaCBiL2FyY2gvYXJtL2luY2x1ZGUvYXNtL3NtcC5o
+CmluZGV4IDk2ZWQ1MjEuLjdmZmRmZWMgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2luY2x1ZGUvYXNt
+L3NtcC5oCisrKyBiL2FyY2gvYXJtL2luY2x1ZGUvYXNtL3NtcC5oCkBAIC02OSw2ICs2OSwxNCBA
+QCBhc21saW5rYWdlIHZvaWQgc2Vjb25kYXJ5X3N0YXJ0X2tlcm5lbCh2b2lkKTsKIGV4dGVybiB2
+b2lkIHBsYXRmb3JtX3NlY29uZGFyeV9pbml0KHVuc2lnbmVkIGludCBjcHUpOwogCiAvKgorICog
+U2tpcCB0aGUgc2Vjb25kYXJ5IGNhbGlicmF0aW9uIG9uIGFyY2hpdGVjdHVyZXMgc2hhcmluZyBj
+bG9jaworICogd2l0aCBwcmltYXJ5IGNwdS4gTmVlZHMgdG8gYmUgY2FsbGVkIGZvciBhcmNocyBp
+bnNpZGUgCisgKiBwbGF0Zm9ybV9zZWNvbmRhcnlfaW5pdCgpCisgKi8KK2V4dGVybiB2b2lkIHNl
+Y29uZGFyeV9za2lwX2NhbGlicmF0ZSh2b2lkKTsKKworCisvKgogICogSW5pdGlhbGl6ZSBjcHVf
+cG9zc2libGUgbWFwLCBhbmQgZW5hYmxlIGNvaGVyZW5jeQogICovCiBleHRlcm4gdm9pZCBwbGF0
+Zm9ybV9zbXBfcHJlcGFyZV9jcHVzKHVuc2lnbmVkIGludCk7CmRpZmYgLS1naXQgYS9hcmNoL2Fy
+bS9rZXJuZWwvc21wLmMgYi9hcmNoL2FybS9rZXJuZWwvc21wLmMKaW5kZXggNDUzOWViYy4uYjIw
+YzQwOCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0va2VybmVsL3NtcC5jCisrKyBiL2FyY2gvYXJtL2tl
+cm5lbC9zbXAuYwpAQCAtNTUsNiArNTUsOCBAQCBlbnVtIGlwaV9tc2dfdHlwZSB7CiAJSVBJX0NQ
+VV9TVE9QLAogfTsKIAorc3RhdGljIHVuc2lnbmVkIGludCBza2lwX3NlY29uZGFyeV9jYWxpYnJh
+dGU7CisKIGludCBfX2NwdWluaXQgX19jcHVfdXAodW5zaWduZWQgaW50IGNwdSkKIHsKIAlzdHJ1
+Y3QgY3B1aW5mb19hcm0gKmNpID0gJnBlcl9jcHUoY3B1X2RhdGEsIGNwdSk7CkBAIC0yNzAsNiAr
+MjcyLDE2IEBAIHN0YXRpYyB2b2lkIF9fY3B1aW5pdCBzbXBfc3RvcmVfY3B1X2luZm8odW5zaWdu
+ZWQgaW50IGNwdWlkKQogfQogCiAvKgorICogU2tpcCB0aGUgc2Vjb25kYXJ5IGNhbGlicmF0aW9u
+IG9uIGFyY2hpdGVjdHVyZXMgc2hhcmluZyBjbG9jaworICogd2l0aCBwcmltYXJ5IGNwdS4gTmVl
+ZHMgdG8gYmUgY2FsbGVkIGZvciBhcmNocyBmcm9tCisgKiBwbGF0Zm9ybV9zZWNvbmRhcnlfaW5p
+dCgpCisgKi8KK3ZvaWQgc2Vjb25kYXJ5X3NraXBfY2FsaWJyYXRlKHZvaWQpCit7CisJc2tpcF9z
+ZWNvbmRhcnlfY2FsaWJyYXRlID0gMTsKK30KKworLyoKICAqIFRoaXMgaXMgdGhlIHNlY29uZGFy
+eSBDUFUgYm9vdCBlbnRyeS4gIFdlJ3JlIHVzaW5nIHRoaXMgQ1BVcwogICogaWRsZSB0aHJlYWQg
+c3RhY2ssIGJ1dCBhIHNldCBvZiB0ZW1wb3JhcnkgcGFnZSB0YWJsZXMuCiAgKi8KQEAgLTMxMiw3
+ICszMjQsOCBAQCBhc21saW5rYWdlIHZvaWQgX19jcHVpbml0IHNlY29uZGFyeV9zdGFydF9rZXJu
+ZWwodm9pZCkKIAkgKi8KIAlwZXJjcHVfdGltZXJfc2V0dXAoKTsKIAotCWNhbGlicmF0ZV9kZWxh
+eSgpOworCWlmICghc2tpcF9zZWNvbmRhcnlfY2FsaWJyYXRlKQorCQljYWxpYnJhdGVfZGVsYXko
+KTsKIAogCXNtcF9zdG9yZV9jcHVfaW5mbyhjcHUpOwogCkBAIC0zMzIsMTQgKzM0NSwxOSBAQCB2
+b2lkIF9faW5pdCBzbXBfY3B1c19kb25lKHVuc2lnbmVkIGludCBtYXhfY3B1cykKIAlpbnQgY3B1
+OwogCXVuc2lnbmVkIGxvbmcgYm9nb3N1bSA9IDA7CiAKLQlmb3JfZWFjaF9vbmxpbmVfY3B1KGNw
+dSkKLQkJYm9nb3N1bSArPSBwZXJfY3B1KGNwdV9kYXRhLCBjcHUpLmxvb3BzX3Blcl9qaWZmeTsK
+KwlpZiAoIXNraXBfc2Vjb25kYXJ5X2NhbGlicmF0ZSkgeworCQlmb3JfZWFjaF9vbmxpbmVfY3B1
+KGNwdSkKKwkJCWJvZ29zdW0gKz0gcGVyX2NwdShjcHVfZGF0YSwgY3B1KS5sb29wc19wZXJfamlm
+Znk7CiAKLQlwcmludGsoS0VSTl9JTkZPICJTTVA6IFRvdGFsIG9mICVkIHByb2Nlc3NvcnMgYWN0
+aXZhdGVkICIKLQkgICAgICAgIiglbHUuJTAybHUgQm9nb01JUFMpLlxuIiwKLQkgICAgICAgbnVt
+X29ubGluZV9jcHVzKCksCi0JICAgICAgIGJvZ29zdW0gLyAoNTAwMDAwL0haKSwKLQkgICAgICAg
+KGJvZ29zdW0gLyAoNTAwMC9IWikpICUgMTAwKTsKKwkJcHJpbnRrKEtFUk5fSU5GTyAiU01QOiBU
+b3RhbCBvZiAlZCBwcm9jZXNzb3JzIGFjdGl2YXRlZCAiCisJCSAgICAgICAiKCVsdS4lMDJsdSBC
+b2dvTUlQUykuXG4iLAorCQkJbnVtX29ubGluZV9jcHVzKCksCisJCQlib2dvc3VtIC8gKDUwMDAw
+MC9IWiksCisJCQkoYm9nb3N1bSAvICg1MDAwL0haKSkgJSAxMDApOworCX0gZWxzZSB7CisJCXBy
+aW50ayhLRVJOX0lORk8gIlNNUDogVG90YWwgb2YgJWQgcHJvY2Vzc29ycyBhY3RpdmF0ZWQuXG4i
+LAorCQkJbnVtX29ubGluZV9jcHVzKCkpOworCX0KIH0KIAogdm9pZCBfX2luaXQgc21wX3ByZXBh
+cmVfYm9vdF9jcHUodm9pZCkKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcC1z
+bXAuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcC1zbXAuYwppbmRleCBiNjZjZmU4Li43MzQy
+Y2Q1IDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXAtc21wLmMKKysrIGIvYXJj
+aC9hcm0vbWFjaC1vbWFwMi9vbWFwLXNtcC5jCkBAIC0zOSw2ICszOSw5IEBAIHZvaWQgX19jcHVp
+bml0IHBsYXRmb3JtX3NlY29uZGFyeV9pbml0KHVuc2lnbmVkIGludCBjcHUpCiAJICovCiAJZ2lj
+X3NlY29uZGFyeV9pbml0KDApOwogCisJLyogQWxsb3cgdG8gc2tpcCBzZWNvbmRhcnkgQ1BVIGNh
+bGlicmF0aW9uICovCisJc2Vjb25kYXJ5X3NraXBfY2FsaWJyYXRlKCk7CisKIAkvKgogCSAqIFN5
+bmNocm9uaXNlIHdpdGggdGhlIGJvb3QgdGhyZWFkLgogCSAqLwotLSAKMS42LjAuNAoK
+--0016e6d9a271b7ebd0049a5b7037--
