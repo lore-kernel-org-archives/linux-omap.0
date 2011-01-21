@@ -1,13 +1,13 @@
 From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH 02/13] OMAP: Introduce device specific set rate and get rate in omap_device structure
-Date: Fri, 21 Jan 2011 19:30:54 +0530
-Message-ID: <1295618465-15234-3-git-send-email-vishwanath.bs@ti.com>
+Subject: [PATCH 06/13] OMAP: Disable Smartreflex across DVFS
+Date: Fri, 21 Jan 2011 19:30:58 +0530
+Message-ID: <1295618465-15234-7-git-send-email-vishwanath.bs@ti.com>
 References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60800 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33512 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751487Ab1AUN5o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 08:57:44 -0500
+	id S1751487Ab1AUN5p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jan 2011 08:57:45 -0500
 In-Reply-To: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,118 +16,49 @@ Cc: patches@linaro.org, Thara Gopinath <thara@ti.com>, Vishwanath BS <vishwanath
 
 From: Thara Gopinath <thara@ti.com>
 
-This patch extends the omap_device structure to contain pointers to scale the
-operating rate of the device and to retrieve the operating rate of the device.
-This patch also adds the three new APIs in the omap device layer
-namely omap_device_set_rate that can be called to set a new operating
-rate for a device, omap_device_get_rate that can be called to retrieve
-the operating frequency for a device and omap_device_register_dvfs_callbacks
-to register the device specific set_rate and get_rate functions.
-The omap_device_set_rate and omap_device_get_rate does some routine error
-checks and finally calls into the device specific set_rate
-and get_rate APIs populated through omap_device_populate_rate_fns.
+This patch disables smartreflex for a particular voltage
+domain when the the voltage domain and the devices belonging
+to it is being scaled and re-enables it back once the scaling
+is done.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 ---
- arch/arm/plat-omap/include/plat/omap_device.h |    9 +++++
- arch/arm/plat-omap/omap_device.c              |   49 +++++++++++++++++++++++++
- 2 files changed, 58 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/dvfs.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index e4c349f..204fb0a 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -50,6 +50,8 @@ extern struct device omap_device_parent;
-  * @hwmods: (one .. many per omap_device)
-  * @hwmods_cnt: ARRAY_SIZE() of @hwmods
-  * @pm_lats: ptr to an omap_device_pm_latency table
-+ * @set_rate: fn ptr to change the operating rate.
-+ * @get_rate: fn ptr to retrieve the current operating rate.
-  * @pm_lats_cnt: ARRAY_SIZE() of what is passed to @pm_lats
-  * @pm_lat_level: array index of the last odpl entry executed - -1 if never
-  * @dev_wakeup_lat: dev wakeup latency in nanoseconds
-@@ -73,6 +75,8 @@ struct omap_device {
- 	s8				pm_lat_level;
- 	u8				hwmods_cnt;
- 	u8				_state;
-+	int (*set_rate)(struct device *dev, unsigned long rate);
-+	unsigned long (*get_rate) (struct device *dev);
- };
+diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-omap2/dvfs.c
+index 05a9ce3..1e5492c 100755
+--- a/arch/arm/mach-omap2/dvfs.c
++++ b/arch/arm/mach-omap2/dvfs.c
+@@ -529,6 +529,9 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
  
- /* Device driver interface (call via platform_data fn ptrs) */
-@@ -107,6 +111,11 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od);
- int omap_device_align_pm_lat(struct platform_device *pdev,
- 			     u32 new_wakeup_lat_limit);
- struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
-+int omap_device_set_rate(struct device *dev, unsigned long freq);
-+unsigned long omap_device_get_rate(struct device *dev);
-+void omap_device_register_dvfs_callbacks(struct device *dev,
-+		int (*set_rate)(struct device *dev, unsigned long rate),
-+		unsigned long (*get_rate) (struct device *dev));
- u32 omap_device_get_context_loss_count(struct platform_device *pdev);
+ 	curr_volt = omap_voltage_get_nom_volt(voltdm);
  
- /* Other */
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index a84e849..4cee430 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -810,6 +810,55 @@ int omap_device_enable_clocks(struct omap_device *od)
- 	return 0;
- }
++	/* Disable smartreflex module across voltage and frequency scaling */
++	omap_sr_disable(voltdm);
++
+ 	if (curr_volt == volt) {
+ 		is_volt_scaled = 1;
+ 	} else if (curr_volt < volt) {
+@@ -536,6 +539,7 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
+ 		if (ret) {
+ 			pr_warning("%s: Unable to scale the %s to %ld volt\n",
+ 						__func__, voltdm->name, volt);
++			omap_sr_enable(voltdm);
+ 			mutex_unlock(&dvfs_info->scaling_mutex);
+ 			return ret;
+ 		}
+@@ -570,6 +574,9 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
+ 	if (!is_volt_scaled && !ret)
+ 		omap_voltage_scale_vdd(voltdm, volt);
  
-+int omap_device_set_rate(struct device *dev, unsigned long freq)
-+{
-+	struct platform_device *pdev;
-+	struct omap_device *od;
++	/* Enable Smartreflex module */
++	omap_sr_enable(voltdm);
 +
-+	pdev = container_of(dev, struct platform_device, dev);
-+	od = _find_by_pdev(pdev);
-+
-+	if (!od->set_rate) {
-+		dev_err(dev, "%s: No set_rate API for scaling device\n",
-+			__func__);
-+		return -ENODATA;
-+	}
-+
-+	return od->set_rate(dev, freq);
-+}
-+
-+unsigned long omap_device_get_rate(struct device *dev)
-+{
-+	struct platform_device *pdev;
-+	struct omap_device *od;
-+
-+	pdev = container_of(dev, struct platform_device, dev);
-+	od = _find_by_pdev(pdev);
-+
-+
-+	if (!od->get_rate) {
-+		dev_err(dev, "%s: No get rate API for the device\n",
-+			__func__);
-+		return 0;
-+	}
-+
-+	return od->get_rate(dev);
-+}
-+
-+void omap_device_register_dvfs_callbacks(struct device *dev,
-+		int (*set_rate)(struct device *dev, unsigned long rate),
-+		unsigned long (*get_rate) (struct device *dev))
-+{
-+	struct platform_device *pdev;
-+	struct omap_device *od;
-+
-+	pdev = container_of(dev, struct platform_device, dev);
-+	od = _find_by_pdev(pdev);
-+
-+	od->set_rate = set_rate;
-+	od->get_rate = get_rate;
-+}
-+
- struct device omap_device_parent = {
- 	.init_name	= "omap",
- 	.parent         = &platform_bus,
+ 	mutex_unlock(&dvfs_info->scaling_mutex);
+ 
+ 	/* calculate the voltages for dependent vdd's */
 -- 
 1.7.0.4
 
