@@ -1,120 +1,115 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v8 07/18] OMAP2,3: DSS2: Create new file display.c for central dss driver registration.
-Date: Fri, 21 Jan 2011 20:20:30 +0530
-Message-ID: <1295621441-16678-8-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v8 09/18] OMAP2,3: DSS2: Build omap_device for each DSS HWIP
+Date: Fri, 21 Jan 2011 20:20:32 +0530
+Message-ID: <1295621441-16678-10-git-send-email-sumit.semwal@ti.com>
 References: <1295621441-16678-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38201 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753600Ab1AUOvo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 09:51:44 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:58317 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753318Ab1AUOvu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jan 2011 09:51:50 -0500
 In-Reply-To: <1295621441-16678-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
-Cc: Sumit Semwal <sumit.semwal@ti.com>, Senthilvadivu Guruswamy <svadivu@ti.com>
+Cc: Senthilvadivu Guruswamy <svadivu@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
 
-A new file display.c is introduced for display driver init, which adds a function
-omap_display_init to do the DSS driver registration. This is the first step in moving
-away registration of DSS from board files into a common place.
+From: Senthilvadivu Guruswamy <svadivu@ti.com>
+
+Looks up the hwmod database for each of the given DSS HW IP and builds
+omap_device which inturn does the platform device register for each of DSS HW IP
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 ---
- arch/arm/mach-omap2/Makefile              |    3 ++
- arch/arm/mach-omap2/display.c             |   46 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/display.h |   11 +++++++
- 3 files changed, 60 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/display.c
+ arch/arm/mach-omap2/display.c             |   50 +++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/display.h |    5 +++
+ 2 files changed, 55 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 1c0c2b0..2e81173 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -242,3 +242,6 @@ obj-y					+= $(smc91x-m) $(smc91x-y)
- 
- smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
- obj-y					+= $(smsc911x-m) $(smsc911x-y)
-+
-+disp-$(CONFIG_OMAP2_DSS)		:= display.o
-+obj-y					+= $(disp-m) $(disp-y)
 diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-new file mode 100644
-index 0000000..6e21cb8
---- /dev/null
+index 6e21cb8..5c0a78b 100644
+--- a/arch/arm/mach-omap2/display.c
 +++ b/arch/arm/mach-omap2/display.c
-@@ -0,0 +1,46 @@
-+/*
-+ * OMAP2plus display device setup / initialization.
-+ *
-+ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Senthilvadivu Guruswamy
-+ *	Sumit Semwal
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/io.h>
-+#include <linux/clk.h>
-+#include <linux/err.h>
-+
-+#include <plat/display.h>
-+
-+static struct platform_device omap_display_device = {
-+	.name          = "omap_display",
-+	.id            = -1,
-+	.dev            = {
-+		.platform_data = NULL,
+@@ -23,6 +23,8 @@
+ #include <linux/err.h>
+ 
+ #include <plat/display.h>
++#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
+ 
+ static struct platform_device omap_display_device = {
+ 	.name          = "omap_display",
+@@ -32,10 +34,58 @@ static struct platform_device omap_display_device = {
+ 	},
+ };
+ 
++static struct omap_device_pm_latency omap_dss_latency[] = {
++	[0] = {
++		.deactivate_func        = omap_device_idle_hwmods,
++		.activate_func          = omap_device_enable_hwmods,
++		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
 +	},
 +};
 +
-+int __init omap_display_init(struct omap_dss_board_info
-+					*board_data)
-+{
-+	int r = 0;
-+	omap_display_device.dev.platform_data = board_data;
+ int __init omap_display_init(struct omap_dss_board_info
+ 					*board_data)
+ {
+ 	int r = 0;
++	struct omap_hwmod *oh;
++	struct omap_device *od;
++	int i;
++	struct omap_display_platform_data pdata;
 +
-+	r = platform_device_register(&omap_display_device);
-+	if (r < 0)
-+		printk(KERN_ERR "Unable to register OMAP-Display device\n");
++	/*
++	 * omap: valid DSS hwmod names
++	 * omap2,3: dss_core, dss_dispc, dss_rfbi, dss_venc
++	 * omap3: dss_dsi1
++	 */
++	char *oh_name[] = {"dss_core", "dss_dispc", "dss_rfbi", "dss_venc", "dss_dsi1"};
++	char *dev_name[] = { "omap_dss", "omap_dispc", "omap_rfbi", "omap_venc", "omap_dsi1" };
++	int oh_count;
 +
-+	return r;
-+}
++	memset(&pdata, 0, sizeof(pdata));
++
++	if (cpu_is_omap24xx())
++		oh_count = ARRAY_SIZE(oh_name) - 1;
++		/* last hwmod dev in oh_name is not available for omap2 */
++	else
++		oh_count = ARRAY_SIZE(oh_name);
++
++	pdata.board_data = board_data;
++	pdata.board_data->get_last_off_on_transaction_id = NULL;
++
++	for (i = 0; i < oh_count; i++) {
++		oh = omap_hwmod_lookup(oh_name[i]);
++		if (!oh) {
++			pr_err("Could not look up %s\n", oh_name[i]);
++			return -ENODEV;
++		}
++		od = omap_device_build(dev_name[i], -1, oh, &pdata,
++				sizeof(struct omap_display_platform_data),
++				omap_dss_latency,
++				ARRAY_SIZE(omap_dss_latency), 0);
++
++		if (WARN((IS_ERR(od)), "Could not build omap_device for %s\n",
++				oh_name[i]))
++			return -ENODEV;
++	}
+ 	omap_display_device.dev.platform_data = board_data;
+ 
+ 	r = platform_device_register(&omap_display_device);
 diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index 537f4e4..0f140ec 100644
+index 0f140ec..2fb057e 100644
 --- a/arch/arm/plat-omap/include/plat/display.h
 +++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -23,6 +23,7 @@
- #include <linux/list.h>
- #include <linux/kobject.h>
- #include <linux/device.h>
-+#include <linux/platform_device.h>
- #include <asm/atomic.h>
+@@ -237,6 +237,11 @@ static inline int omap_display_init(struct omap_dss_board_info *board_data)
+ }
+ #endif
  
- #define DISPC_IRQ_FRAMEDONE		(1 << 0)
-@@ -226,6 +227,16 @@ struct omap_dss_board_info {
- 	struct omap_dss_device *default_device;
- };
- 
-+#if defined(CONFIG_OMAP2_DSS_MODULE) || defined(CONFIG_OMAP2_DSS)
-+/* Init with the board info */
-+extern int omap_display_init(struct omap_dss_board_info *board_data);
-+#else
-+static inline int omap_display_init(struct omap_dss_board_info *board_data)
-+{
-+	return 0;
-+}
-+#endif
++struct omap_display_platform_data {
++	struct omap_dss_board_info *board_data;
++	/* TODO: Additional members to be added when PM is considered */
++};
 +
  struct omap_video_timings {
  	/* Unit: pixels */
