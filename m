@@ -1,107 +1,41 @@
-From: Luke Gong <lukejgong@gmail.com>
-Subject: Re: Fail to suspend to ram: "Class driver suspend failed for cpu0"
-Date: Thu, 20 Jan 2011 18:32:33 -0500
-Message-ID: <AANLkTikNkyN_qAGMWUrcRp8NzPW4fAYcpo0qiGBKTeDu@mail.gmail.com>
-References: <AANLkTin-q5o1x=0Eu1HvwDZxuCAOsGiVySWHBuAW0v+C@mail.gmail.com>
-	<8762tjjidg.fsf@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2] omap2: fix DPLL_FREQSEL calculation
+Date: Fri, 21 Jan 2011 05:15:53 +0200
+Message-ID: <20110121031553.GA2448@legolas.emea.dhcp.ti.com>
+References: <87ei8726wf.fsf@vostro.fn.ogness.net>
+ <20110120111645.GB2223@legolas.emea.dhcp.ti.com>
+ <8739on1wdd.fsf_-_@vostro.fn.ogness.net>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:60781 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755815Ab1ATXcf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jan 2011 18:32:35 -0500
-Received: by wwa36 with SMTP id 36so1260859wwa.1
-        for <linux-omap@vger.kernel.org>; Thu, 20 Jan 2011 15:32:34 -0800 (PST)
-In-Reply-To: <8762tjjidg.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <8739on1wdd.fsf_-_@vostro.fn.ogness.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: John Ogness <john.ogness@linutronix.de>
+Cc: balbi@ti.com, paul@pwsan.com, tony@atomide.com, r-woodruff2@ti.com, linux-kernel@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-Thanks, Kevin.
+On Thu, Jan 20, 2011 at 03:29:50PM +0100, John Ogness wrote:
+> On 2011-01-20, Felipe Balbi <balbi@ti.com> wrote:
+> > scripts/get_maintainer.pl would've helped you getting a better Cc
+> > list. I'm adding linux-omap and lakml
+> 
+> Thanks.
+> 
+> After investigating the issue further it seems that I had it
+> backwards. The value of "n" is the value to divide by, not the value
+> that goes in the register. This means that it is _dpll_test_fint()
+> that is doing it incorrectly. Here is a new version of the patch to
+> fix the right function.
 
-On Thu, Jan 20, 2011 at 5:54 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Luke Gong <lukejgong@gmail.com> writes:
->
->> I have a beagle board with OMAP3530. I ported linux-omap-pm2.6.32 to
->> this board. When I want to let it suspend to ram,
->
-> This is an old kernel. =A0Any reason you're not using a newer kernel?
+you might want to look at Documentation/SubmittingPatches before sending
+these patches. If anyone applies this patch of yours the commitlog will
+have all the comments you've made above. Generally, patches are
+"standalone" emails, without a discussion on them, if you want to add
+comments which aren't supposed to go into commit log, then do so after
+the tear line (---) and before the diff --git line; that way, git will
+know it must drop that part of the comments.
 
-I have Angstrom7 with kernel 2.6.32 running on this board. So I
-selected this old version to test. I might try the latest one.
-
->
->> it fails and I get
->> the message "Class driver suspend failed for cpu0"
->
-> This is the CPUfreq driver failing to suspend, probably because there=
- is
-> no CPUfreq driver implemented in your kernel. =A0Try disabling CPU_FR=
-EQ in
-> your kernel config.
-
-It seems can suspend to ram after disabling CPU_FREQ. Here is the log:
-
-root@beagleboard:~# echo mem > /sys/power/state
-PM: Syncing filesystems ... done.
-=46reezing user space processes ... (elapsed 0.00 seconds) done.
-=46reezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
-Suspending console(s) (use no_console_suspend to debug)
-
-*************************************************************
-Once I hit the keyboard, I get:
-
-root@beagleboard:~# echo mem > /sys/power/state
-PM: Syncing filesystems ... done.
-=46reezing user space processes ... (elapsed 0.00 seconds) done.
-=46reezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
-Suspending console(s) (use no_console_suspend to debug)
-omapfb omapfb: timeout waiting for FRAME DONE
-Powerdomain (core_pwrdm) didn't enter target state 1
-Powerdomain (cam_pwrdm) didn't enter target state 1
-Powerdomain (per_pwrdm) didn't enter target state 1
-Could not enter target state in pm_suspend
-Restarting tasks ... done.
-root@beagleboard:~#
-***************************************************
-
-I am just curious why the powerdomain didn't enter target state 1.
-
-Another issue is about CPU frequency scaling. Using the original
-Angstrom7, I can scale CPU frequency. But with the linux-omap-pm
-kernel, I cannot do it even though I enable this feature in the config
-file. Is there any solution to support both cpu frequency scaling and
-suspend to ram?
-
-Thanks again for your help.
->
-> Kevin
->
->> . Here is the log:
->>
->> root@beagleboard:~# echo mem > /sys/power/state
->> PM: Syncing filesystems ... done.
->> Freezing user space processes ... (elapsed 0.00 seconds) done.
->> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
->> Suspending console(s) (use no_console_suspend to debug)
->> omapfb omapfb: timeout waiting for FRAME DONE
->> Class driver suspend failed for cpu0
->> Restarting tasks ... done.
->>
->> *********************************************
->>
->> Is there any idea to fix this problem? Thanks.
->
-
-
-
---=20
-Luke
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
