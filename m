@@ -1,109 +1,44 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: twl4030: Driver for twl4030 madc module
-Date: Sat, 22 Jan 2011 22:19:33 +0530
-Message-ID: <AANLkTinDVZe0eefrPZsMoUyzqfQOxZsDOaD0VG3OqXyT@mail.gmail.com>
-References: <1294287457-2438-1-git-send-email-j-keerthy@ti.com>
-	<20110106053328.GA7489@ericsson.com>
-	<20110106120713.GD17184@sirena.org.uk>
-	<20110106150430.GA9053@ericsson.com>
-	<20110106202142.GC8018@opensource.wolfsonmicro.com>
-	<1294350903.9786.103.camel@groeck-laptop>
-	<AANLkTinkNNhrq+b5eiE7XrYQUsR2-vVD08btqM81KJA1@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 00/13] OMAP: Basic DVFS Framework
+Date: Sat, 22 Jan 2011 19:18:05 +0200
+Message-ID: <20110122171805.GA14774@legolas.emea.dhcp.ti.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:41672 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750967Ab1AVQtm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 22 Jan 2011 11:49:42 -0500
-Received: by gwj20 with SMTP id 20so836379gwj.19
-        for <linux-omap@vger.kernel.org>; Sat, 22 Jan 2011 08:49:34 -0800 (PST)
-In-Reply-To: <AANLkTinkNNhrq+b5eiE7XrYQUsR2-vVD08btqM81KJA1@mail.gmail.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:45307 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751515Ab1AVRSL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 22 Jan 2011 12:18:11 -0500
+Received: by mail-iy0-f169.google.com with SMTP id 17so2823248iyj.14
+        for <linux-omap@vger.kernel.org>; Sat, 22 Jan 2011 09:18:11 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: sameo@linux.intel.com
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balajitk@ti.com" <balajitk@ti.com>, guenter.roeck@ericsson.com
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org
 
-On Fri, Jan 7, 2011 at 5:42 PM, J, KEERTHY <j-keerthy@ti.com> wrote:
-> On Fri, Jan 7, 2011 at 3:25 AM, Guenter Roeck
-> <guenter.roeck@ericsson.com> wrote:
->> On Thu, 2011-01-06 at 15:21 -0500, Mark Brown wrote:
->>> On Thu, Jan 06, 2011 at 07:04:30AM -0800, Guenter Roeck wrote:
->>> > On Thu, Jan 06, 2011 at 07:07:13AM -0500, Mark Brown wrote:
->>>
->>> > > Why? =A0It's not like hwmon has an unreasonably large core or s=
-imilar.
->>>
->>> > Because it creates an unnecessary dependency, and because it is n=
-ot hwmon's
->>> > responsibility to provide infrastructure for other subsystems or =
-drivers.
->>>
->>> hwmon isn't really doing anything, though. =A0The *driver* is doing
->>> something but it doesn't really impact the core that much. =A0Not t=
-hat I'm
->>> particularly sold on putting the ADC core in here, but total NACK b=
-ased
->>> on that alone seems rather harsh.
->>
->> Possibly. However, I had suggested the following earlier (to the 1st
->> version of the patch):
->>
->>> I commented on this a couple of times below - the driver mixes gene=
-ric
->>> ADC reading functions with hwmon functionality. Generic ADC reading
->>> functionality should be moved into another driver, possibly to mfd.
->>
->> Obviously that was ignored. Maybe someone is willing to listen this =
-time
->> around.
->>
-> I am sorry for not responding on the generic ADC handling part. Since=
- many
-> other ADC drivers are part of hwmon i thought hwmon was the appropria=
-te
-> place. However I can surely split the generic ADC handling part in mf=
-d and
-> only hardware monitoring part in hwmon as suggested.
->
->> I won't let people break modularity just for convenience in a subsys=
-tem
->> I am responsible for. And forcing the hwmon subsystem, and with it a
->> specific hwmon driver, to exist just because the adc functionality i=
-t
->> provides is needed by some other (most likely unrelated) subsystem /
->> driver _does_ break modularity. Worse, it is completely unnecessary =
-to
->> do so. Other twl4030 functionality was extracted into generic code.
->> twl-core.c, twl4030-codec.c, twl4030-irq.c, twl4030-power.c are all =
-in
->> mfd. I fail to see the problem with mfd/twl4030-adc.c.
->>
->> Guenter
->>
->>
->>
->
-> Hello Samuel,
->
-> Is it ok to have the generic ADC functionality in mfd as a separate f=
-ile?
->
-> Regards,
-> Keerthy
->
+Hi,
 
-Hello Samuel,
+On Fri, Jan 21, 2011 at 07:30:52PM +0530, Vishwanath BS wrote:
+> This patch series introduces support for Dynamic Voltage and Frequency Scaling
+> (DVFS) for OMAP devices. 
+> 
+> For detailed design details, refer to DVFS Documentation.
 
-We need your valuable inputs. Can generic ADC functionality can be in
-mfd as a separate file?
+If this is supposed to be used by drivers I would rather not as it's yet
+another OMAP-specific API to use.
 
-Regards and Thanks,
-Keerthy
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Before you reply with "you can pass function pointers via platform_data"
+let me say that even that is a burden, specially on devices which are
+used by several archs.
+
+Why don't you make it more generic like the OPP layer was created ?
+Isn't it better to just build on top of the OPP layer and make this one
+also generic ?
+
+-- 
+balbi
