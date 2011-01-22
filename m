@@ -1,13 +1,13 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v9 17/18] OMAP2,3: DSS2: Use platform device to get baseaddr
-Date: Sat, 22 Jan 2011 15:35:57 +0530
-Message-ID: <1295690758-5845-18-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v9 18/18] OMAP2,3: DSS2: Get DSS IRQ from platform device
+Date: Sat, 22 Jan 2011 15:35:58 +0530
+Message-ID: <1295690758-5845-19-git-send-email-sumit.semwal@ti.com>
 References: <1295690758-5845-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33200 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752132Ab1AVKQW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Jan 2011 05:16:22 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:50968 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752402Ab1AVKQx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 22 Jan 2011 05:16:53 -0500
 In-Reply-To: <1295690758-5845-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,203 +16,55 @@ Cc: linux-arm-kernel@lists.infradead.org, Senthilvadivu Guruswamy <svadivu@ti.co
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-DSS, DISPC, DSI, RFBI, VENC baseaddr can be obtained from platform_get_resource().
-This API in turn picks the right silicon baseaddr from the hwmod database.
-So hardcoding of base addr could be removed.
+DSS IRQ number can be obtained from platform_get_irq().  This API in turn
+picks the right IRQ number belonging to HW IP from the hwmod database.
+So hardcoding of IRQ number could be removed.
 
 Reviewed-by: Paul Walmsley <paul@pwsan.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 Tested-by: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   11 ++++++++---
- drivers/video/omap2/dss/dsi.c   |   12 +++++++++---
- drivers/video/omap2/dss/dss.c   |   11 ++++++++---
- drivers/video/omap2/dss/rfbi.c  |   10 +++++++---
- drivers/video/omap2/dss/venc.c  |   11 ++++++++---
- 5 files changed, 40 insertions(+), 15 deletions(-)
+ drivers/video/omap2/dss/dss.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 1c22cf0..381942d 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -42,8 +42,6 @@
- #include "dss_features.h"
- 
- /* DISPC */
--#define DISPC_BASE			0x48050400
--
- #define DISPC_SZ_REGS			SZ_4K
- 
- struct dispc_reg { u16 idx; };
-@@ -3324,6 +3322,8 @@ int dispc_setup_plane(enum omap_plane plane,
- static int omap_dispchw_probe(struct platform_device *pdev)
- {
- 	u32 rev;
-+	struct resource *dispc_mem;
-+
- 	dispc.pdev = pdev;
- 
- 	spin_lock_init(&dispc.irq_lock);
-@@ -3335,7 +3335,12 @@ static int omap_dispchw_probe(struct platform_device *pdev)
- 
- 	INIT_WORK(&dispc.error_work, dispc_error_worker);
- 
--	dispc.base = ioremap(DISPC_BASE, DISPC_SZ_REGS);
-+	dispc_mem = platform_get_resource(dispc.pdev, IORESOURCE_MEM, 0);
-+	if (!dispc_mem) {
-+		DSSERR("can't get IORESOURCE_MEM DISPC\n");
-+		return -EINVAL;
-+	}
-+	dispc.base = ioremap(dispc_mem->start, resource_size(dispc_mem));
- 	if (!dispc.base) {
- 		DSSERR("can't ioremap DISPC\n");
- 		return -ENOMEM;
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 39a1c04..cab08cb 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -42,8 +42,6 @@
- /*#define VERBOSE_IRQ*/
- #define DSI_CATCH_MISSING_TE
- 
--#define DSI_BASE		0x4804FC00
--
- struct dsi_reg { u16 idx; };
- 
- #define DSI_REG(idx)		((const struct dsi_reg) { idx })
-@@ -3257,6 +3255,7 @@ static int dsi_init(struct platform_device *pdev)
- {
- 	u32 rev;
- 	int r;
-+	struct resource *dsi_mem;
- 
- 	spin_lock_init(&dsi.errors_lock);
- 	dsi.errors = 0;
-@@ -3283,7 +3282,13 @@ static int dsi_init(struct platform_device *pdev)
- 	dsi.te_timer.function = dsi_te_timeout;
- 	dsi.te_timer.data = 0;
- #endif
--	dsi.base = ioremap(DSI_BASE, DSI_SZ_REGS);
-+	dsi_mem = platform_get_resource(dsi.pdev, IORESOURCE_MEM, 0);
-+	if (!dsi_mem) {
-+		DSSERR("can't get IORESOURCE_MEM DSI\n");
-+		r = -EINVAL;
-+		goto err0;
-+	}
-+	dsi.base = ioremap(dsi_mem->start, resource_size(dsi_mem));
- 	if (!dsi.base) {
- 		DSSERR("can't ioremap DSI\n");
- 		r = -ENOMEM;
-@@ -3310,6 +3315,7 @@ err2:
- 	iounmap(dsi.base);
- err1:
- 	destroy_workqueue(dsi.workqueue);
-+err0:
- 	return r;
- }
- 
 diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 8b7972e..4d7a816 100644
+index 4d7a816..22690e9 100644
 --- a/drivers/video/omap2/dss/dss.c
 +++ b/drivers/video/omap2/dss/dss.c
-@@ -34,8 +34,6 @@
- #include <plat/clock.h>
- #include "dss.h"
+@@ -563,7 +563,7 @@ void dss_set_dac_pwrdn_bgz(bool enable)
  
--#define DSS_BASE			0x48050000
--
- #define DSS_SZ_REGS			SZ_512
- 
- struct dss_reg {
-@@ -567,8 +565,15 @@ static int dss_init(bool skip_init)
+ static int dss_init(bool skip_init)
  {
- 	int r;
+-	int r;
++	int r, dss_irq;
  	u32 rev;
-+	struct resource *dss_mem;
+ 	struct resource *dss_mem;
  
--	dss.base = ioremap(DSS_BASE, DSS_SZ_REGS);
-+	dss_mem = platform_get_resource(dss.pdev, IORESOURCE_MEM, 0);
-+	if (!dss_mem) {
-+		DSSERR("can't get IORESOURCE_MEM DSS\n");
-+		r = -EINVAL;
-+		goto fail0;
-+	}
-+	dss.base = ioremap(dss_mem->start, resource_size(dss_mem));
- 	if (!dss.base) {
- 		DSSERR("can't ioremap DSS\n");
- 		r = -ENOMEM;
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 93b13c5..fc665a7 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -36,8 +36,6 @@
- #include <plat/display.h>
- #include "dss.h"
+@@ -609,15 +609,18 @@ static int dss_init(bool skip_init)
+ 	REG_FLD_MOD(DSS_CONTROL, 0, 2, 2);	/* venc clock mode = normal */
+ #endif
  
--#define RFBI_BASE               0x48050800
--
- struct rfbi_reg { u16 idx; };
+-	r = request_irq(INT_24XX_DSS_IRQ,
++	dss_irq = platform_get_irq(dss.pdev, 0);
++	if (dss_irq != -ENXIO) {
++		r = request_irq(dss_irq,
+ 			cpu_is_omap24xx()
+ 			? dss_irq_handler_omap2
+ 			: dss_irq_handler_omap3,
+ 			0, "OMAP DSS", NULL);
  
- #define RFBI_REG(idx)		((const struct rfbi_reg) { idx })
-@@ -1019,6 +1017,7 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
- {
- 	u32 rev;
- 	u32 l;
-+	struct resource *rfbi_mem;
+-	if (r < 0) {
+-		DSSERR("omap2 dss: request_irq failed\n");
+-		goto fail1;
++		if (r < 0) {
++			DSSERR("omap2 dss: request_irq failed\n");
++			goto fail1;
++		}
+ 	}
  
- 	rfbi.pdev = pdev;
- 
-@@ -1028,7 +1027,12 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
- 	atomic_set(&rfbi.cmd_fifo_full, 0);
- 	atomic_set(&rfbi.cmd_pending, 0);
- 
--	rfbi.base = ioremap(RFBI_BASE, SZ_256);
-+	rfbi_mem = platform_get_resource(rfbi.pdev, IORESOURCE_MEM, 0);
-+	if (!rfbi_mem) {
-+		DSSERR("can't get IORESOURCE_MEM RFBI\n");
-+		return -EINVAL;
-+	}
-+	rfbi.base = ioremap(rfbi_mem->start, resource_size(rfbi_mem));
- 	if (!rfbi.base) {
- 		DSSERR("can't ioremap RFBI\n");
- 		return -ENOMEM;
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 3db9061..ea1c87b 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -39,8 +39,6 @@
- 
- #include "dss.h"
- 
--#define VENC_BASE	0x48050C00
--
- /* Venc registers */
- #define VENC_REV_ID				0x00
- #define VENC_STATUS				0x04
-@@ -717,13 +715,20 @@ void venc_dump_regs(struct seq_file *s)
- static int omap_venchw_probe(struct platform_device *pdev)
- {
- 	u8 rev_id;
-+	struct resource *venc_mem;
-+
- 	venc.pdev = pdev;
- 
- 	mutex_init(&venc.venc_lock);
- 
- 	venc.wss_data = 0;
- 
--	venc.base = ioremap(VENC_BASE, SZ_1K);
-+	venc_mem = platform_get_resource(venc.pdev, IORESOURCE_MEM, 0);
-+	if (!venc_mem) {
-+		DSSERR("can't get IORESOURCE_MEM VENC\n");
-+		return -EINVAL;
-+	}
-+	venc.base = ioremap(venc_mem->start, resource_size(venc_mem));
- 	if (!venc.base) {
- 		DSSERR("can't ioremap VENC\n");
- 		return -ENOMEM;
+ 	if (cpu_is_omap34xx()) {
 -- 
 1.7.1
 
