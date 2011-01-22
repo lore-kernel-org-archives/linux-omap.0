@@ -1,122 +1,33 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCHv2] OMAP: Enable Magic SysRq on serial console ttyOx
-Date: Sat, 22 Jan 2011 22:43:46 +0530
-Message-ID: <AANLkTi=DM0u-iLMz-zvyYepZfD0gnuSZoNnZ8HEHrrWw@mail.gmail.com>
-References: <1295426461-12459-1-git-send-email-weber@corscience.de>
- <AANLkTin0-joNuqxqL79j0wqPk_A5mtAgzEY=X=PeH=+C@mail.gmail.com>
- <20110119130049.GB9365@m-desktop> <4D36E7CC.5090303@corscience.de>
- <AANLkTikjdukQ+kUUR7N11rZ5b=Xd=xLb0-chMrbp5BQ6@mail.gmail.com>
- <20110120114855.GD1987@m-desktop> <38f2b3af600ce3dfea1e73edec7c81fa@mail.gmail.com>
- <AANLkTimxTaU3x9DZvL4dvXs1nTYjCQnbyZLC73SOKrgQ@mail.gmail.com>
- <20110121074530.GB12307@m-desktop> <87tyh1bvgt.fsf@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: 2.6.38-rc1-git1 musb undefined references
+Date: Sat, 22 Jan 2011 19:35:08 +0200
+Message-ID: <20110122173508.GB14774@legolas.emea.dhcp.ti.com>
+References: <4D386129.4080206@blueyonder.co.uk>
+ <20110121032236.GB2448@legolas.emea.dhcp.ti.com>
+ <4D3921CF.9070505@blueyonder.co.uk>
+ <4D3B01CD.9030404@blueyonder.co.uk>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87tyh1bvgt.fsf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, Anand Gadiyar <gadiyar@ti.com>, Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Govindraj Raja <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Andrei Emeltchenko <andrei.emeltchenko@nokia.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4D3B01CD.9030404-QgLWrMLu8clzjhtm8Ag3mw@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sid Boyce <sboyce-QgLWrMLu8clzjhtm8Ag3mw@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Jan 22, 2011 at 6:33 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
->
->> On Fri, Jan 21, 2011 at 12:54:29PM +0530, Govindraj wrote:
->>> On Thu, Jan 20, 2011 at 5:49 PM, Anand Gadiyar <gadiyar@ti.com> wro=
-te:
->>> >> > >>>> Magic SysRq key is not working for OMAP on new serial
->>> >> > >>>> console ttyOx because SUPPORT_SYSRQ is not defined
->>> >> > >>>> for omap-serial.
->>> >> > >>>>
->>> >> > >>>> This patch defines SUPPORT_SYSRQ in omap-serial and
->>> >> > >>>> enables handling of Magic SysRq character.
->>> >> > >>>>
->>> >> > >>>> Signed-off-by: Thomas Weber <weber@corscience.de>
->>> >> > >>>
->>> >> > >>> Looks fine to me.
->>> >> > >>>
->>> >> > >>> Acked-by: Govindraj.R <govindraj.raja@ti.com>
->>> >> > >> I tried to use SysRq key on minicom after applying this pat=
-ch, it
->>> > looks
->>> >> > >> like it is not triggering sysrq event.
->>> >> > >>
->>> >> > >> Am I missing anything?
->>> >> > >>
->>> >> > >> -Manjunath
->>> >> > >> --
->>> >> > > Hello Manjunath,
->>> >> > >
->>> >> > > Do you have CONFIG_MAGIC_SYSRQ enabled?
->>> >> > > Magic SysRq key in Kernel Hacking
->>> >> > >
->>> >> > > I tested it on Devkit8000 (beagle board clone).
->>> >> > >
->>> >> >
->>> >> > re-setting lsr_break_flag to 0 in receive chars is causing iss=
-ues
->>> >> > in getting sysrq key break sequence on omap-serial.c
->>> >> >
->>> >> > Manju,
->>> >> >
->>> >> > can you try this change on your environment.
->>> >> > With below change works for me on 3430SDP/4430SDP.
->>> >> > key sequence I checked.
->>> >> > [alt + b + t] =A0=3D> shows trace of tasks running.
->>> >> > [alt + b + b] =3D> system reboot.
->>> >>
->>> >> With below patch, it works fine on TeraTerm. However, I am not a=
-ble to
->>> >> perform the same on minicom.
->>> >>
->>> >> Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
->>> >>
->>> >> -Manjunath
->>> >>
->>> >
->>> > Not sure what you guys are trying out, but I am able to use sysrq
->>> > just fine in minicom (using only Thomas' original patch) - you ne=
-ed
->>> > to send a break sequence, and the way to do this in minicom is to
->>> > do Ctrl-A followed by F.
->>> >
->>> > Works for me, without the "resetting lsr_break_flag to 0" part.
->>> >
->>> > @Govind,
->>> >
->>> > What are the issues you see in getting sysrq key break sequence
->>> > without your change? And how is your change fixing this?
->>>
->>> Actually I was using teraterm on windows platform.
->>> using keyboard to send a break char [alt + b] sometimes
->>> i observed that first break char was getting lost and subsequent br=
-eak
->>> chars where getting
->>> recognized. However using send break option from terterm menu seems=
- to
->>> work most of times.
->>> my change can be dropped.
->> If it is fixing the issue of losing first break character, what is w=
-rong in
->> having this patch?
->>
->> Do you see any other issues because of this change?
->
-> Were you loosing the first break character because of PM? =A0i.e., if=
- the
-> OMAP is in retention or off while idle, we will always loose the firs=
-t
-> character. =A0The first character causes the wakeup, but does not mak=
-e it
-> to the UART.
->
+Hi,
 
-No, even without PM i.e., even without setting sleep_while_idle and tim=
-eouts for
-uart I observed on windows-teraterm sometimes first break char was gett=
-ing lost.
+On Sat, Jan 22, 2011 at 04:11:57PM +0000, Sid Boyce wrote:
+> "make omap2plus_defconfig" corrected the problem, kernel builds up to
+> 2.6.38-rc1-git3 completed.
 
+Thanks, I'll try to cleanup the DMA stuff for next merge window.
+
+-- 
+balbi
 --
-Thanks,
-Govindraj.R
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
