@@ -1,70 +1,70 @@
-From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v9 18/18] OMAP2,3: DSS2: Get DSS IRQ from platform device
-Date: Sat, 22 Jan 2011 15:35:58 +0530
-Message-ID: <1295690758-5845-19-git-send-email-sumit.semwal@ti.com>
-References: <1295690758-5845-1-git-send-email-sumit.semwal@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50968 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752402Ab1AVKQx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 22 Jan 2011 05:16:53 -0500
-In-Reply-To: <1295690758-5845-1-git-send-email-sumit.semwal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: Setting MMC_CAP_POWER_OFF_CARD on mmc2 leads to filesystem
+ problems on mmc1
+Date: Sat, 22 Jan 2011 12:36:05 +0200
+Message-ID: <AANLkTi=H2rJkbZnuuS7jfrXE6WunzhTYKGk+ZFPjOivp@mail.gmail.com>
+References: <E6C3A477-63F7-4BA0-8E6B-A35A53B3AEA1@dominion.thruhere.net> <1295621342.1925.139.camel@pimenta>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1295621342.1925.139.camel@pimenta>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: l-o List <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "cjb@laptop.org" <cjb@laptop.org>, Luciano Coelho <coelho@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Senthilvadivu Guruswamy <svadivu@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
 
-From: Senthilvadivu Guruswamy <svadivu@ti.com>
+Hi Koen,
 
-DSS IRQ number can be obtained from platform_get_irq().  This API in turn
-picks the right IRQ number belonging to HW IP from the hwmod database.
-So hardcoding of IRQ number could be removed.
+On Fri, Jan 21, 2011 at 4:49 PM, Luciano Coelho <coelho@ti.com> wrote:
+>> My patch basically does:
+>>
+>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>> @@ -270,7 +270,7 @@ static struct omap2_hsmmc_info mmc[] =3D {
+>> =A0 =A0 =A0 =A0{
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =A0 =A0 =A0 =A0 =3D "wl1271=
+",
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.mmc =A0 =A0 =A0 =A0 =A0 =A0=3D 2,
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .caps =A0 =A0 =A0 =A0 =A0 =3D MMC_CAP_=
+4_BIT_DATA,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .caps =A0 =A0 =A0 =A0 =A0 =3D MMC_CAP_=
+4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
+>>
+>> And does NOT touch mmc1. But after adding MMC_CAP_POWER_OFF_CARD I g=
+et tons of:
 
-Reviewed-by: Paul Walmsley <paul@pwsan.com>
-Reviewed-by: Kevin Hilman <khilman@ti.com>
-Tested-by: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
----
- drivers/video/omap2/dss/dss.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 4d7a816..22690e9 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -563,7 +563,7 @@ void dss_set_dac_pwrdn_bgz(bool enable)
- 
- static int dss_init(bool skip_init)
- {
--	int r;
-+	int r, dss_irq;
- 	u32 rev;
- 	struct resource *dss_mem;
- 
-@@ -609,15 +609,18 @@ static int dss_init(bool skip_init)
- 	REG_FLD_MOD(DSS_CONTROL, 0, 2, 2);	/* venc clock mode = normal */
- #endif
- 
--	r = request_irq(INT_24XX_DSS_IRQ,
-+	dss_irq = platform_get_irq(dss.pdev, 0);
-+	if (dss_irq != -ENXIO) {
-+		r = request_irq(dss_irq,
- 			cpu_is_omap24xx()
- 			? dss_irq_handler_omap2
- 			: dss_irq_handler_omap3,
- 			0, "OMAP DSS", NULL);
- 
--	if (r < 0) {
--		DSSERR("omap2 dss: request_irq failed\n");
--		goto fail1;
-+		if (r < 0) {
-+			DSSERR("omap2 dss: request_irq failed\n");
-+			goto fail1;
-+		}
+Hmm. The snippet above looks different in your patch.
+
+It seems that you're adding a new mmcbbt array, along with the
+existing mmc one, but still using unchanged board-omap3beagle code,
+and I suspect you have some unhealthy  mmc/mmcbbt references.
+
+Particularly, look at this:
+
+@@ -384,7 +445,14 @@ static int beagle_twl_gpio_setup(struct device *de=
+v,
  	}
- 
- 	if (cpu_is_omap34xx()) {
--- 
-1.7.1
+ 	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+ 	mmc[0].gpio_cd =3D gpio + 0;
++#if defined(CONFIG_WL1271) || defined(CONFIG_WL1271_MODULE)
++	if(!strcmp(expansionboard_name, "fixme-beagletoy"))
++		omap2_hsmmc_init(mmcbbt);
++	else
++		omap2_hsmmc_init(mmc);
++#else
+ 	omap2_hsmmc_init(mmc);
++#endif
 
+ 	/* link regulators to MMC adapters */
+ 	beagle_vmmc1_supply.dev =3D mmc[0].dev;
+
+When WL1271 is configured, and you have your "fixme-beagletoy"
+expansionboard around, you're only initializing mmcbbt, but still
+using mmc for regulators references.
+
+Care to check if fixing that makes your issues go away ?
+
+Thanks,
+Ohad.
