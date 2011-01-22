@@ -1,44 +1,122 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 00/13] OMAP: Basic DVFS Framework
-Date: Sat, 22 Jan 2011 19:18:05 +0200
-Message-ID: <20110122171805.GA14774@legolas.emea.dhcp.ti.com>
-References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
-Reply-To: balbi@ti.com
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCHv2] OMAP: Enable Magic SysRq on serial console ttyOx
+Date: Sat, 22 Jan 2011 22:43:46 +0530
+Message-ID: <AANLkTi=DM0u-iLMz-zvyYepZfD0gnuSZoNnZ8HEHrrWw@mail.gmail.com>
+References: <1295426461-12459-1-git-send-email-weber@corscience.de>
+ <AANLkTin0-joNuqxqL79j0wqPk_A5mtAgzEY=X=PeH=+C@mail.gmail.com>
+ <20110119130049.GB9365@m-desktop> <4D36E7CC.5090303@corscience.de>
+ <AANLkTikjdukQ+kUUR7N11rZ5b=Xd=xLb0-chMrbp5BQ6@mail.gmail.com>
+ <20110120114855.GD1987@m-desktop> <38f2b3af600ce3dfea1e73edec7c81fa@mail.gmail.com>
+ <AANLkTimxTaU3x9DZvL4dvXs1nTYjCQnbyZLC73SOKrgQ@mail.gmail.com>
+ <20110121074530.GB12307@m-desktop> <87tyh1bvgt.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:45307 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751515Ab1AVRSL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 22 Jan 2011 12:18:11 -0500
-Received: by mail-iy0-f169.google.com with SMTP id 17so2823248iyj.14
-        for <linux-omap@vger.kernel.org>; Sat, 22 Jan 2011 09:18:11 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87tyh1bvgt.fsf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, Anand Gadiyar <gadiyar@ti.com>, Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Govindraj Raja <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Andrei Emeltchenko <andrei.emeltchenko@nokia.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, patches@linaro.org
 
-Hi,
+On Sat, Jan 22, 2011 at 6:33 AM, Kevin Hilman <khilman@ti.com> wrote:
+> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+>
+>> On Fri, Jan 21, 2011 at 12:54:29PM +0530, Govindraj wrote:
+>>> On Thu, Jan 20, 2011 at 5:49 PM, Anand Gadiyar <gadiyar@ti.com> wro=
+te:
+>>> >> > >>>> Magic SysRq key is not working for OMAP on new serial
+>>> >> > >>>> console ttyOx because SUPPORT_SYSRQ is not defined
+>>> >> > >>>> for omap-serial.
+>>> >> > >>>>
+>>> >> > >>>> This patch defines SUPPORT_SYSRQ in omap-serial and
+>>> >> > >>>> enables handling of Magic SysRq character.
+>>> >> > >>>>
+>>> >> > >>>> Signed-off-by: Thomas Weber <weber@corscience.de>
+>>> >> > >>>
+>>> >> > >>> Looks fine to me.
+>>> >> > >>>
+>>> >> > >>> Acked-by: Govindraj.R <govindraj.raja@ti.com>
+>>> >> > >> I tried to use SysRq key on minicom after applying this pat=
+ch, it
+>>> > looks
+>>> >> > >> like it is not triggering sysrq event.
+>>> >> > >>
+>>> >> > >> Am I missing anything?
+>>> >> > >>
+>>> >> > >> -Manjunath
+>>> >> > >> --
+>>> >> > > Hello Manjunath,
+>>> >> > >
+>>> >> > > Do you have CONFIG_MAGIC_SYSRQ enabled?
+>>> >> > > Magic SysRq key in Kernel Hacking
+>>> >> > >
+>>> >> > > I tested it on Devkit8000 (beagle board clone).
+>>> >> > >
+>>> >> >
+>>> >> > re-setting lsr_break_flag to 0 in receive chars is causing iss=
+ues
+>>> >> > in getting sysrq key break sequence on omap-serial.c
+>>> >> >
+>>> >> > Manju,
+>>> >> >
+>>> >> > can you try this change on your environment.
+>>> >> > With below change works for me on 3430SDP/4430SDP.
+>>> >> > key sequence I checked.
+>>> >> > [alt + b + t] =A0=3D> shows trace of tasks running.
+>>> >> > [alt + b + b] =3D> system reboot.
+>>> >>
+>>> >> With below patch, it works fine on TeraTerm. However, I am not a=
+ble to
+>>> >> perform the same on minicom.
+>>> >>
+>>> >> Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
+>>> >>
+>>> >> -Manjunath
+>>> >>
+>>> >
+>>> > Not sure what you guys are trying out, but I am able to use sysrq
+>>> > just fine in minicom (using only Thomas' original patch) - you ne=
+ed
+>>> > to send a break sequence, and the way to do this in minicom is to
+>>> > do Ctrl-A followed by F.
+>>> >
+>>> > Works for me, without the "resetting lsr_break_flag to 0" part.
+>>> >
+>>> > @Govind,
+>>> >
+>>> > What are the issues you see in getting sysrq key break sequence
+>>> > without your change? And how is your change fixing this?
+>>>
+>>> Actually I was using teraterm on windows platform.
+>>> using keyboard to send a break char [alt + b] sometimes
+>>> i observed that first break char was getting lost and subsequent br=
+eak
+>>> chars where getting
+>>> recognized. However using send break option from terterm menu seems=
+ to
+>>> work most of times.
+>>> my change can be dropped.
+>> If it is fixing the issue of losing first break character, what is w=
+rong in
+>> having this patch?
+>>
+>> Do you see any other issues because of this change?
+>
+> Were you loosing the first break character because of PM? =A0i.e., if=
+ the
+> OMAP is in retention or off while idle, we will always loose the firs=
+t
+> character. =A0The first character causes the wakeup, but does not mak=
+e it
+> to the UART.
+>
 
-On Fri, Jan 21, 2011 at 07:30:52PM +0530, Vishwanath BS wrote:
-> This patch series introduces support for Dynamic Voltage and Frequency Scaling
-> (DVFS) for OMAP devices. 
-> 
-> For detailed design details, refer to DVFS Documentation.
+No, even without PM i.e., even without setting sleep_while_idle and tim=
+eouts for
+uart I observed on windows-teraterm sometimes first break char was gett=
+ing lost.
 
-If this is supposed to be used by drivers I would rather not as it's yet
-another OMAP-specific API to use.
-
-Before you reply with "you can pass function pointers via platform_data"
-let me say that even that is a burden, specially on devices which are
-used by several archs.
-
-Why don't you make it more generic like the OPP layer was created ?
-Isn't it better to just build on top of the OPP layer and make this one
-also generic ?
-
--- 
-balbi
+--
+Thanks,
+Govindraj.R
