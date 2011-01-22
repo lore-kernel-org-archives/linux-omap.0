@@ -1,69 +1,36 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH RESEND v8 3/7] omap: gpmc: enable irq mode in gpmc
-Date: Sat, 22 Jan 2011 23:24:09 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036A8DB549@dbde02.ent.ti.com>
-References: <1295443503-14515-1-git-send-email-s-ghorai@ti.com>
- <1295443503-14515-4-git-send-email-s-ghorai@ti.com>
- <20110121184020.GD11678@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: smp: Introduce ARCH_HAS_COMMON_CORES_CLOCK
+	tospeed-up boot
+Date: Sat, 22 Jan 2011 21:20:17 +0000
+Message-ID: <20110122212017.GA17725@n2100.arm.linux.org.uk>
+References: <1295516579-10225-1-git-send-email-santosh.shilimkar@ti.com> <4D385155.4050301@gmail.com> <43c027bd53818ab19bdc1c823aa21ea4@mail.gmail.com> <4D38641E.2000301@gmail.com> <c1a2c539e2677e9a56d2d3aaaaf34851@mail.gmail.com> <4D399F74.9050302@gmail.com> <20110121171555.GB30823@n2100.arm.linux.org.uk> <bccc6a7edf66bedd311bc869bfa89ae8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51364 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752488Ab1AVRyT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Jan 2011 12:54:19 -0500
-In-Reply-To: <20110121184020.GD11678@atomide.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35417 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810Ab1AVVUb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Jan 2011 16:20:31 -0500
+Content-Disposition: inline
+In-Reply-To: <bccc6a7edf66bedd311bc869bfa89ae8@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Rob Herring <robherring2@gmail.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-kernel@lists.infradead.org
 
-
-
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Saturday, January 22, 2011 12:10 AM
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
-> kernel@lists.infradead.org
-> Subject: Re: [PATCH RESEND v8 3/7] omap: gpmc: enable irq mode in gpmc
+On Sat, Jan 22, 2011 at 01:14:21PM +0530, Santosh Shilimkar wrote:
+> Surely whichever way we should remove the recalibration otherwise
+> every time secondary cpus spend ~ 200 ms there.
 > 
-> * Sukumar Ghorai <s-ghorai@ti.com> [110119 05:24]:
-> > add support the irq mode in GPMC.
-> > gpmc_init() function move after omap_init_irq() as it has dependecy on
-> irq.
-> >
-[..snip..]
+> Russell,
+> How do you like to address this?
 
-> >
-> >  static struct twl4030_gpio_platform_data sdp2430_gpio_data = {
-> > diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-
-> omap2/board-3430sdp.c
-> > index 8fb5f43..8304d16 100644
-> > --- a/arch/arm/mach-omap2/board-3430sdp.c
-> > +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> > @@ -335,6 +335,7 @@ static void __init omap_3430sdp_init_irq(void)
-> >  	omap2_init_common_infrastructure();
-> >  	omap2_init_common_devices(hyb18m512160af6_sdrc_params, NULL);
-> >  	omap_init_irq();
-> > +	gpmc_init();
-> >  }
-> ...
-> 
-> I think I've commented on this before, but why don't you make gpmc_init
-> a subsys_initcall? There should be no reason to call this earlier.
-> If something does not work because of that, then that issue must be
-> fixed.
+Well, the last piece of the puzzle which needs consideration is that
+omitting the calibration means that it produces user-visible
+/proc/cpuinfo changes.  I can't say what effect that has.  So, I
+think we need to do something about that to ensure that userspace
+won't be impacted should they be using the information in there.
 
-[Ghorai] You suggested the same in previous v5 and v6; and I mentioned 
-the issues [1] that - nand_init()called before subsys_initcall(gpmc_init);
-Let me know if I am missing anything again.
- 
-[1] https://patchwork.kernel.org/patch/212452/
-[2] https://patchwork.kernel.org/patch/359152/
-
-
-> 
-> Tony
+Maybe we need to initialize the secondary CPU bogomips values
+accordingly?  Maybe zero is acceptable to mark that the calculation
+hasn't been done?  Dunno.
