@@ -1,128 +1,114 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2] OMAP3: CPUIdle: prevent CORE from going off if doing so would reset an active clockdomain
-Date: Fri, 21 Jan 2011 16:57:45 -0800
-Message-ID: <8739oldaba.fsf@ti.com>
-References: <1295606225-11834-1-git-send-email-tero.kristo@nokia.com>
+Subject: Re: [PATCHv2] OMAP: Enable Magic SysRq on serial console ttyOx
+Date: Fri, 21 Jan 2011 17:03:46 -0800
+Message-ID: <87tyh1bvgt.fsf@ti.com>
+References: <1295426461-12459-1-git-send-email-weber@corscience.de>
+	<AANLkTin0-joNuqxqL79j0wqPk_A5mtAgzEY=X=PeH=+C@mail.gmail.com>
+	<20110119130049.GB9365@m-desktop> <4D36E7CC.5090303@corscience.de>
+	<AANLkTikjdukQ+kUUR7N11rZ5b=Xd=xLb0-chMrbp5BQ6@mail.gmail.com>
+	<20110120114855.GD1987@m-desktop>
+	<38f2b3af600ce3dfea1e73edec7c81fa@mail.gmail.com>
+	<AANLkTimxTaU3x9DZvL4dvXs1nTYjCQnbyZLC73SOKrgQ@mail.gmail.com>
+	<20110121074530.GB12307@m-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:42231 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750927Ab1AVA5t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jan 2011 19:57:49 -0500
-Received: by pwi7 with SMTP id 7so505658pwi.31
-        for <linux-omap@vger.kernel.org>; Fri, 21 Jan 2011 16:57:49 -0800 (PST)
-In-Reply-To: <1295606225-11834-1-git-send-email-tero.kristo@nokia.com> (Tero
-	Kristo's message of "Fri, 21 Jan 2011 12:37:05 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110121074530.GB12307@m-desktop> (Manjunath Kondaiah G.'s
+	message of "Fri, 21 Jan 2011 13:15:30 +0530")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Govindraj <govindraj.ti@gmail.com>, Anand Gadiyar <gadiyar@ti.com>, Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Govindraj Raja <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Andrei Emeltchenko <andrei.emeltchenko@nokia.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
 
-> On OMAP3 SoCs, if the CORE powerdomain enters off-mode, many other
-> parts of the chip will be reset.  If those parts of the chip are busy,
-> the reset will disrupt them, causing unpredictable and generally
-> undesirable results. This reset is caused by the core domain wakeup
-> (COREDOMAINWKUP_RST), and it can occur for example in a case where
-> some peripheral domain is in retention or inactive state and core
-> enters off. This will result in the peripheral domain being reset.
+> On Fri, Jan 21, 2011 at 12:54:29PM +0530, Govindraj wrote:
+>> On Thu, Jan 20, 2011 at 5:49 PM, Anand Gadiyar <gadiyar@ti.com> wrot=
+e:
+>> >> > >>>> Magic SysRq key is not working for OMAP on new serial
+>> >> > >>>> console ttyOx because SUPPORT_SYSRQ is not defined
+>> >> > >>>> for omap-serial.
+>> >> > >>>>
+>> >> > >>>> This patch defines SUPPORT_SYSRQ in omap-serial and
+>> >> > >>>> enables handling of Magic SysRq character.
+>> >> > >>>>
+>> >> > >>>> Signed-off-by: Thomas Weber <weber@corscience.de>
+>> >> > >>>
+>> >> > >>> Looks fine to me.
+>> >> > >>>
+>> >> > >>> Acked-by: Govindraj.R <govindraj.raja@ti.com>
+>> >> > >> I tried to use SysRq key on minicom after applying this patc=
+h, it
+>> > looks
+>> >> > >> like it is not triggering sysrq event.
+>> >> > >>
+>> >> > >> Am I missing anything?
+>> >> > >>
+>> >> > >> -Manjunath
+>> >> > >> --
+>> >> > > Hello Manjunath,
+>> >> > >
+>> >> > > Do you have CONFIG_MAGIC_SYSRQ enabled?
+>> >> > > Magic SysRq key in Kernel Hacking
+>> >> > >
+>> >> > > I tested it on Devkit8000 (beagle board clone).
+>> >> > >
+>> >> >
+>> >> > re-setting lsr_break_flag to 0 in receive chars is causing issu=
+es
+>> >> > in getting sysrq key break sequence on omap-serial.c
+>> >> >
+>> >> > Manju,
+>> >> >
+>> >> > can you try this change on your environment.
+>> >> > With below change works for me on 3430SDP/4430SDP.
+>> >> > key sequence I checked.
+>> >> > [alt + b + t] =C2=A0=3D> shows trace of tasks running.
+>> >> > [alt + b + b] =3D> system reboot.
+>> >>
+>> >> With below patch, it works fine on TeraTerm. However, I am not ab=
+le to
+>> >> perform the same on minicom.
+>> >>
+>> >> Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
+>> >>
+>> >> -Manjunath
+>> >>
+>> >
+>> > Not sure what you guys are trying out, but I am able to use sysrq
+>> > just fine in minicom (using only Thomas' original patch) - you nee=
+d
+>> > to send a break sequence, and the way to do this in minicom is to
+>> > do Ctrl-A followed by F.
+>> >
+>> > Works for me, without the "resetting lsr_break_flag to 0" part.
+>> >
+>> > @Govind,
+>> >
+>> > What are the issues you see in getting sysrq key break sequence
+>> > without your change? And how is your change fixing this?
+>>=20
+>> Actually I was using teraterm on windows platform.
+>> using keyboard to send a break char [alt + b] sometimes
+>> i observed that first break char was getting lost and subsequent bre=
+ak
+>> chars where getting
+>> recognized. However using send break option from terterm menu seems =
+to
+>> work most of times.
+>> my change can be dropped.
+> If it is fixing the issue of losing first break character, what is wr=
+ong in
+> having this patch?
 >
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+> Do you see any other issues because of this change?
 
-Thanks Tero.
+Were you loosing the first break character because of PM?  i.e., if the
+OMAP is in retention or off while idle, we will always loose the first
+character.  The first character causes the wakeup, but does not make it
+to the UART.
 
-Will add Paul's reviewed-by and Santosh's ack and queue for 2.6.39 in my
-pm-next branch.
+Is the first break character lost if sleep_while_idle =3D=3D 0?
 
 Kevin
-
-> ---
->  arch/arm/mach-omap2/cpuidle34xx.c |   40 +++++++++++++++++++++++++++++++++++-
->  1 files changed, 38 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index f3e043f..d31b858 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -61,7 +61,7 @@ struct omap3_processor_cx {
->  struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
->  struct omap3_processor_cx current_cx_state;
->  struct powerdomain *mpu_pd, *core_pd, *per_pd;
-> -struct powerdomain *cam_pd;
-> +struct powerdomain *cam_pd, *dss_pd, *iva2_pd, *sgx_pd, *usb_pd;
->  
->  /*
->   * The latencies/thresholds for various C states have
-> @@ -235,7 +235,7 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->  {
->  	struct cpuidle_state *new_state = next_valid_state(dev, state);
->  	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
-> -	u32 cam_state;
-> +	u32 cam_state, dss_state, iva2_state, sgx_state, usb_state;
->  	struct omap3_processor_cx *cx;
->  	int ret;
->  
-> @@ -256,6 +256,8 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->  	 *        its own code.
->  	 */
->  
-> +	/* XXX Add CORE-active check here */
-> +
->  	/*
->  	 * Prevent idle completely if CAM is active.
->  	 * CAM does not have wakeup capability in OMAP3.
-> @@ -275,6 +277,36 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->  	    (core_next_state > PWRDM_POWER_RET))
->  		per_next_state = PWRDM_POWER_RET;
->  
-> +	/* XXX Add prevent-PER-off check here */
-> +
-> +	/*
-> +	 * If we are attempting CORE off, check if any other powerdomains
-> +	 * are at retention or higher. CORE off causes chipwide reset which
-> +	 * would reset these domains also.
-> +	 */
-> +	if (core_next_state == PWRDM_POWER_OFF) {
-> +		iva2_state = pwrdm_read_pwrst(iva2_pd);
-> +		sgx_state = pwrdm_read_pwrst(sgx_pd);
-> +		usb_state = pwrdm_read_pwrst(usb_pd);
-> +		dss_state = pwrdm_read_pwrst(dss_pd);
-> +
-> +		if (cam_state > PWRDM_POWER_OFF ||
-> +		    dss_state > PWRDM_POWER_OFF ||
-> +		    iva2_state > PWRDM_POWER_OFF ||
-> +		    per_next_state > PWRDM_POWER_OFF ||
-> +		    sgx_state > PWRDM_POWER_OFF ||
-> +		    usb_state > PWRDM_POWER_OFF)
-> +			core_next_state = PWRDM_POWER_RET;
-> +	}
-> +
-> +	/* Fallback to new target core/mpu state */
-> +	while (cx->core_state < core_next_state) {
-> +		state--;
-> +		cx = cpuidle_get_statedata(state);
-> +	}
-> +
-> +	new_state = state;
-> +
->  	/* Are we changing PER target state? */
->  	if (per_next_state != per_saved_state)
->  		pwrdm_set_next_pwrst(per_pd, per_next_state);
-> @@ -489,6 +521,10 @@ int __init omap3_idle_init(void)
->  	core_pd = pwrdm_lookup("core_pwrdm");
->  	per_pd = pwrdm_lookup("per_pwrdm");
->  	cam_pd = pwrdm_lookup("cam_pwrdm");
-> +	dss_pd = pwrdm_lookup("dss_pwrdm");
-> +	iva2_pd = pwrdm_lookup("iva2_pwrdm");
-> +	sgx_pd = pwrdm_lookup("sgx_pwrdm");
-> +	usb_pd = pwrdm_lookup("usbhost_pwrdm");
->  
->  	omap_init_power_states();
->  	cpuidle_register_driver(&omap3_idle_driver);
