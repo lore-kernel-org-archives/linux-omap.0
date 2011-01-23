@@ -1,16 +1,16 @@
 From: MONEY GRAM TRANSFER <laura.dorialamba@fastwebnet.it>
 Subject: RE
-Date: Sun, 23 Jan 2011 20:27:20 +0100 (CET)
-Message-ID: <14982212.224201295810840592.JavaMail.root__25656.4662246548$1295811406$gmane$org@pr003msr>
+Date: Sun, 23 Jan 2011 21:04:33 +0100 (CET)
+Message-ID: <9095724.228781295813073228.JavaMail.root__4493.44347366623$1295813166$gmane$org@pr003msr>
 Reply-To: moneygram.transfer@zbavitu.net
 Mime-Version: 1.0
 Content-Type: text/plain;charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from aa013-1msr.fastwebnet.it ([62.101.93.133]:59835 "EHLO
-	aa013-1msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752025Ab1AWTgL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Jan 2011 14:36:11 -0500
+Received: from aa011-1msr.fastwebnet.it ([62.101.93.131]:60625 "EHLO
+	aa011-1msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751521Ab1AWUF0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Jan 2011 15:05:26 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
