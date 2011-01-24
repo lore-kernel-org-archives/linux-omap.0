@@ -1,162 +1,90 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC 2/3] OMAP3: PM: Fix CLK_SRC mask for IVA2 and MPU on 3430ES2PLUS
-Date: Mon, 24 Jan 2011 14:09:23 -0800
-Message-ID: <877hdu6jjg.fsf@ti.com>
-References: <1295446466-23655-1-git-send-email-rnayak@ti.com>
-	<1295446466-23655-2-git-send-email-rnayak@ti.com>
-	<1295446466-23655-3-git-send-email-rnayak@ti.com>
+From: Linus Walleij <linus.ml.walleij@gmail.com>
+Subject: Re: [PATCH v1 1/3]mmc: implemented runtime pm for mmc host
+Date: Mon, 24 Jan 2011 23:11:24 +0100
+Message-ID: <AANLkTimZyv9f5b5VxmmYyO3qPrb9Y25-=yUV_GYma3e_@mail.gmail.com>
+References: <20110114082310.GB27523@intel.com>
+	<8250E4885F9967469CAC3FB5CBA2CE69934E7AA2FE@irsmsx501.ger.corp.intel.com>
+	<5D8008F58939784290FAB48F54975198351D4FA654@shsmsx502.ccr.corp.intel.com>
+	<8250E4885F9967469CAC3FB5CBA2CE69934E7AAB20@irsmsx501.ger.corp.intel.com>
+	<5D8008F58939784290FAB48F5497519835247E72AD@shsmsx502.ccr.corp.intel.com>
+	<8250E4885F9967469CAC3FB5CBA2CE69934E7AACCC@irsmsx501.ger.corp.intel.com>
+	<20110120050803.GA5732@void.printf.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:52328 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750892Ab1AXWJ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jan 2011 17:09:28 -0500
-Received: by mail-iy0-f177.google.com with SMTP id 21so4578002iyj.8
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 14:09:26 -0800 (PST)
-In-Reply-To: <1295446466-23655-3-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Wed, 19 Jan 2011 19:44:25 +0530")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:32832 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107Ab1AXWLZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jan 2011 17:11:25 -0500
+In-Reply-To: <20110120050803.GA5732@void.printf.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com
+To: Chris Ball <cjb@laptop.org>
+Cc: "Tardy, Pierre" <pierre.tardy@intel.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-Rajendra Nayak <rnayak@ti.com> writes:
-
-> The IVA2_CLK_SRC and MPU_CLK_SRC for OMAP3430 ES2
-> and above are 3 bit fields.
-> Define new masks for them, and since they are used
-> in a couple of clock nodes, model separate clock
-> nodes for 3430ES1 and 3430ES2+.
-
-This part should probably be separated out as a fix for the -rc cycle.
-
-Kevin
-
-> Also change reference to these new clock nodes
-> from clk pointers to clk name and make a call
-> to omap_init_clk_pts to init the pointers at
-> run time.
+2011/1/20 Chris Ball <cjb@laptop.org>:
+> On Wed, Jan 19, 2011 at 09:45:57AM +0000, Tardy, Pierre wrote:
+>> Chris,
+>> (Sorry for top posting)
+>> Seems we have a intel intern disagreement.
+>>
+>> Could we have maintainer opinion on this ?
 >
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/clock3xxx_data.c  |   39 ++++++++++++++++++++++++++------
->  arch/arm/mach-omap2/cm-regbits-34xx.h |    2 +
->  2 files changed, 33 insertions(+), 8 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-> index 9c87adb..c3a7ff5 100644
-> --- a/arch/arm/mach-omap2/clock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-> @@ -53,10 +53,6 @@
->   * DPLL5 supplies other peripheral clocks (USBHOST, USIM).
->   */
->  
-> -/* Forward declarations for DPLL bypass clocks */
-> -static struct clk dpll1_fck;
-> -static struct clk dpll2_fck;
-> -
->  /* PRM CLOCKS */
->  
->  /* According to timer32k.c, this is a 32768Hz clock, not a 32000Hz clock. */
-> @@ -275,7 +271,7 @@ static struct dpll_data dpll1_dd = {
->  	.mult_div1_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
->  	.mult_mask	= OMAP3430_MPU_DPLL_MULT_MASK,
->  	.div1_mask	= OMAP3430_MPU_DPLL_DIV_MASK,
-> -	.clk_bypass	= &dpll1_fck,
-> +	.clk_bypass_name	= "dpll1_fck",
->  	.clk_ref	= &sys_ck,
->  	.freqsel_mask	= OMAP3430_MPU_DPLL_FREQSEL_MASK,
->  	.control_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKEN_PLL),
-> @@ -347,7 +343,7 @@ static struct dpll_data dpll2_dd = {
->  	.mult_div1_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL1_PLL),
->  	.mult_mask	= OMAP3430_IVA2_DPLL_MULT_MASK,
->  	.div1_mask	= OMAP3430_IVA2_DPLL_DIV_MASK,
-> -	.clk_bypass	= &dpll2_fck,
-> +	.clk_bypass_name	= "dpll2_fck",
->  	.clk_ref	= &sys_ck,
->  	.freqsel_mask	= OMAP3430_IVA2_DPLL_FREQSEL_MASK,
->  	.control_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKEN_PLL),
-> @@ -1077,6 +1073,17 @@ static struct clk dpll1_fck = {
->  	.recalc		= &omap2_clksel_recalc,
->  };
->  
-> +static struct clk dpll1_fck_3430es2 = {
-> +	.name		= "dpll1_fck",
-> +	.ops		= &clkops_null,
-> +	.parent		= &core_ck,
-> +	.init		= &omap2_init_clksel_parent,
-> +	.clksel_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
-> +	.clksel_mask	= OMAP3430ES2_MPU_CLK_SRC_MASK,
-> +	.clksel		= div4_core_clksel,
-> +	.recalc		= &omap2_clksel_recalc,
-> +};
-> +
->  static struct clk mpu_ck = {
->  	.name		= "mpu_ck",
->  	.ops		= &clkops_null,
-> @@ -1133,6 +1140,17 @@ static struct clk dpll2_fck = {
->  	.recalc		= &omap2_clksel_recalc,
->  };
->  
-> +static struct clk dpll2_fck_3430es2 = {
-> +	.name		= "dpll2_fck",
-> +	.ops		= &clkops_null,
-> +	.parent		= &core_ck,
-> +	.init		= &omap2_init_clksel_parent,
-> +	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL1_PLL),
-> +	.clksel_mask	= OMAP3430ES2_IVA2_CLK_SRC_MASK,
-> +	.clksel		= div4_core_clksel,
-> +	.recalc		= &omap2_clksel_recalc,
-> +};
-> +
->  static struct clk iva2_ck = {
->  	.name		= "iva2_ck",
->  	.ops		= &clkops_omap2_dflt_wait,
-> @@ -3261,11 +3279,13 @@ static struct omap_clk omap3xxx_clks[] = {
->  	CLK(NULL,	"clkout2_src_ck", &clkout2_src_ck, CK_3XXX),
->  	CLK(NULL,	"sys_clkout2",	&sys_clkout2,	CK_3XXX),
->  	CLK(NULL,	"corex2_fck",	&corex2_fck,	CK_3XXX),
-> -	CLK(NULL,	"dpll1_fck",	&dpll1_fck,	CK_3XXX),
-> +	CLK(NULL,	"dpll1_fck",	&dpll1_fck,	CK_3430ES1),
-> +	CLK(NULL,	"dpll1_fck",	&dpll1_fck_3430es2,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
->  	CLK(NULL,	"mpu_ck",	&mpu_ck,	CK_3XXX),
->  	CLK(NULL,	"arm_fck",	&arm_fck,	CK_3XXX),
->  	CLK("etb",	"emu_mpu_alwon_ck", &emu_mpu_alwon_ck, CK_3XXX),
-> -	CLK(NULL,	"dpll2_fck",	&dpll2_fck,	CK_34XX | CK_36XX),
-> +	CLK(NULL,	"dpll2_fck",	&dpll2_fck,	CK_3430ES1),
-> +	CLK(NULL,	"dpll2_fck",	&dpll2_fck_3430es2,	CK_3430ES2PLUS | CK_36XX),
->  	CLK(NULL,	"iva2_ck",	&iva2_ck,	CK_34XX | CK_36XX),
->  	CLK(NULL,	"l3_ick",	&l3_ick,	CK_3XXX),
->  	CLK(NULL,	"l4_ick",	&l4_ick,	CK_3XXX),
-> @@ -3535,6 +3555,9 @@ int __init omap3xxx_clk_init(void)
->  			omap2_init_clk_clkdm(c->lk.clk);
->  		}
->  
-> +	/* Initialise clk pointers for parent/ref/bypass clks */
-> +	omap_init_clk_pts();
-> +
->  	recalculate_root_clocks();
->  
->  	pr_info("Clocking rate (Crystal/Core/MPU): %ld.%01ld/%ld/%ld MHz\n",
-> diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-> index b912759..fd80872 100644
-> --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-> +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-> @@ -80,6 +80,7 @@
->  /* CM_CLKSEL1_PLL_IVA2 */
->  #define OMAP3430_IVA2_CLK_SRC_SHIFT			19
->  #define OMAP3430_IVA2_CLK_SRC_MASK			(0x3 << 19)
-> +#define OMAP3430ES2_IVA2_CLK_SRC_MASK			(0x7 << 19)
->  #define OMAP3430_IVA2_DPLL_MULT_SHIFT			8
->  #define OMAP3430_IVA2_DPLL_MULT_MASK			(0x7ff << 8)
->  #define OMAP3430_IVA2_DPLL_DIV_SHIFT			0
-> @@ -125,6 +126,7 @@
->  /* CM_CLKSEL1_PLL_MPU */
->  #define OMAP3430_MPU_CLK_SRC_SHIFT			19
->  #define OMAP3430_MPU_CLK_SRC_MASK			(0x3 << 19)
-> +#define OMAP3430ES2_MPU_CLK_SRC_MASK			(0x7 << 19)
->  #define OMAP3430_MPU_DPLL_MULT_SHIFT			8
->  #define OMAP3430_MPU_DPLL_MULT_MASK			(0x7ff << 8)
->  #define OMAP3430_MPU_DPLL_DIV_SHIFT			0
+> Linus W and Ohad, any input here? =A0Thanks,
+
+What I see is orthogonal purposes altogether. Usually there is
+something like two clocks and two regulators or switches
+available in every sufficiently advanced system:
+
+- One regulator to power the card
+- One clock to clock the card (MCLK)
+- One regulator or switch to power the MMC IP block
+- One clock to clock the MMC IP block
+
+The MMC core regulator handling and the clock gating I
+implemented is about the two first things.
+
+I think this patch is about the two *other* things, if I read it
+right.
+
+So drivers can register PM runtime hooks to its class device
+and that's probably a good thing, but doesn't it conflict with
+the stuff we already have in place all over the core, that
+makes sure that mmc_power_save_host() gets called
+from the mmc bus.
+
+I don't know how that fits with e.g. OMAP where they
+already are doing this with mmc_power_save_host() so I
+would really like input from them on this subject.
+It looks like a duplication of that mechanism, just tied to the
+class device instead of the mmc bus.
+
+=46urther this patch cannot be applied as-is.
+It needs a clause where it will wait for the clock gating to
+be sync:ed *before* calling the suspend hook.
+
+Just pm_generic_runtime_suspend won't do it. *If*
+we have clock gating we certainly want to make sure
+it is gated before this happens. With the current
+mmc_power_save_host() we can do this in the driver
+itself, taking the fact that the clock may be gated into
+account.
+
+The other question, whether the delay hysteresis
+functions in runtime PM can be reused for clock gating
+remains unanswered, the easiest thing to do is cook
+up a patch. AFAICT that involves factoring out the
+code dealing with that from runtime.c and when looking
+at it that doesn't seem easy, it strictly requires a struct
+device to live, and setting up abstract devices inside
+the MMC framework for this doesn't seem like a good
+idea to me.
+
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
