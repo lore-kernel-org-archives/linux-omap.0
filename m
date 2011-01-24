@@ -1,69 +1,66 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [PATCH 02/14] ARM: bitops: switch set/clear/change bitops to use ldrex/strex
-Date: Mon, 24 Jan 2011 14:08:50 +0530
-Message-ID: <AANLkTi=tpnNXm8w9-VFi72nYvXRQV5-jE7Qn9NNk1wLW@mail.gmail.com>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
-	<E1Peue4-0003SN-Gk@rmk-PC.arm.linux.org.uk>
-	<20110123001636.GA20841@n2100.arm.linux.org.uk>
-	<alpine.LFD.2.00.1101222323190.8580@xanadu.home>
-	<20110123093526.GA26120@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 4/5] ARM: scu: Move register defines to header file
+Date: Mon, 24 Jan 2011 14:21:18 +0530
+Message-ID: <1295859080-15259-5-git-send-email-santosh.shilimkar@ti.com>
+References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:38518 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751339Ab1AXIix convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jan 2011 03:38:53 -0500
-Received: by mail-ww0-f54.google.com with SMTP id 31so4176148wwb.11
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 00:38:52 -0800 (PST)
-In-Reply-To: <20110123093526.GA26120@n2100.arm.linux.org.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:38251 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751181Ab1AXIvn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Jan 2011 03:51:43 -0500
+In-Reply-To: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nicolas Pitre <nico@fluxnic.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, ccross@android.com, catalin.marinas@arm.com, linux@arm.linux.org.uk, linus.ml.walleij@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>
 
-On Sun, Jan 23, 2011 at 3:05 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Sat, Jan 22, 2011 at 11:44:59PM -0500, Nicolas Pitre wrote:
->> At least another person did post results:
->>
->> http://mid.gmane.org/20110117094602.GA2622@pulham.picochip.com
->> http://mid.gmane.org/20110117110308.GC2622@pulham.picochip.com
->
-> Slightly different patch - there were three revisions. =A0I can't att=
-ach
-> a tested-by given to a different patch to this one.
->
->> > That means omap2plus_defconfig .38 mainline kernels
->> > (including -stable) will remain potentially dangerous when run on
->> > SMP capable hardware.
->>
->> I must admit that this series looks a bit large for stable IMHO. =A0=
-I
->> think that the fix for stable should limit itself only to prevent SM=
-P
->> from being selected if anything else than CPU_32v6K is selected.
->
-> The first three are the bare minimum required for -stable.
->
+This patch moves SCU register defines from smp_scu.c to smp_scu.h
+so that its available for platforms to use
 
-Boot tested the 14 patch series  with CONFIG_SWP_EMULATE enabled, on
-the following boards :
+The SCU CPU power status registers is used for power management
+on OMAP4.
 
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/include/asm/smp_scu.h |    6 ++++++
+ arch/arm/kernel/smp_scu.c      |    6 ------
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-1. Omap2420 SDP
+diff --git a/arch/arm/include/asm/smp_scu.h b/arch/arm/include/asm/smp_scu.h
+index 2376835..b6f42c9 100644
+--- a/arch/arm/include/asm/smp_scu.h
++++ b/arch/arm/include/asm/smp_scu.h
+@@ -1,6 +1,12 @@
+ #ifndef __ASMARM_ARCH_SCU_H
+ #define __ASMARM_ARCH_SCU_H
+ 
++#define SCU_CTRL		0x00
++#define SCU_CONFIG		0x04
++#define SCU_CPU_STATUS		0x08
++#define SCU_INVALIDATE		0x0c
++#define SCU_FPGA_REVISION	0x10
++
+ unsigned int scu_get_core_count(void __iomem *);
+ void scu_enable(void __iomem *);
+ 
+diff --git a/arch/arm/kernel/smp_scu.c b/arch/arm/kernel/smp_scu.c
+index 9ab4149..ee7bf47 100644
+--- a/arch/arm/kernel/smp_scu.c
++++ b/arch/arm/kernel/smp_scu.c
+@@ -14,12 +14,6 @@
+ #include <asm/smp_scu.h>
+ #include <asm/cacheflush.h>
+ 
+-#define SCU_CTRL		0x00
+-#define SCU_CONFIG		0x04
+-#define SCU_CPU_STATUS		0x08
+-#define SCU_INVALIDATE		0x0c
+-#define SCU_FPGA_REVISION	0x10
+-
+ /*
+  * Get the number of CPU cores from the SCU configuration
+  */
+-- 
+1.6.0.4
 
-2. Omap2430 SDP
-
-3. Omap3430 SDP
-
-4. Omap4 Blaze
-
-Tested by : Sourav Poddar <sourav.poddar@ti.com>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
