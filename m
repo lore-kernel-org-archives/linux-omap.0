@@ -1,111 +1,167 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v5 0/6] OMAP: McSPI: Hwmod adaptation + runtime conversion
-Date: Mon, 24 Jan 2011 14:26:45 -0800
-Message-ID: <87lj2a5462.fsf@ti.com>
-References: <1295614547-1920-1-git-send-email-govindraj.raja@ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCH] OMAP: PM: DMA: Enable runtime pm
+Date: Tue, 25 Jan 2011 05:22:05 +0530
+Message-ID: <20110124235205.GA6351@manju-desktop>
+References: <1295860819-20142-1-git-send-email-manjugk@ti.com>
+ <87d3nm7zb0.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:35279 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752608Ab1AXW0t (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:51878 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751211Ab1AXXwS (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jan 2011 17:26:49 -0500
-Received: by mail-iw0-f172.google.com with SMTP id 40so4938289iwn.31
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 14:26:49 -0800 (PST)
-In-Reply-To: <1295614547-1920-1-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Fri, 21 Jan 2011 18:25:41 +0530")
+	Mon, 24 Jan 2011 18:52:18 -0500
+Received: by iwn8 with SMTP id 8so4797854iwn.20
+        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 15:52:17 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <87d3nm7zb0.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Charulatha V <charu@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-Hi Govindraj,
+Kevin,
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+On Mon, Jan 24, 2011 at 01:43:31PM -0800, Kevin Hilman wrote:
+> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> 
+> > From: Manjunath G Kondaiah <manjugk@ti.com>
+> >
+> > Enable runtime pm and use pm_runtime_get_sync and pm_runtime_put
+> > for OMAP DMA driver.
+> >
+> > Since DMA driver callback will happen from interrupt context and
+> > DMA client driver will release all DMA resources from interrupt
+> > context itself, pm_runtime_put_sync() cannot be used in DMA driver.
+> > Instead, pm_runtime_put() is used which is asynchronous call and
+> > gets executed in work queue.
+> 
+> It's fine that the asynchronous version of put is uses (it's actually
+> preferred.)  However, the description is confusing here.  You talk about
+> driver callbacks here but in the patch, your calling _put() from
+> omap_dma_free(), not from the callback.
 
-> Changes invloves:
-> ----------------
-> 1) Addition of hwmod data for omap2/3/4.
-> 2) McSPI driver hwmod adaptation with cleanup of base address
->    macros and using omap-device API's.
-> 3) Runtime Conversion of McSPI driver.
+All dma client drivers are calling omap_dma_free from callback context. I can
+update this info in patch description if it is useful.
 
-I accidentally replied to the v4 series about the refresh, but this one
-still needs ar refresh.
+> 
+> You're also calling _get() from the request.  That means, as long as the
+> DMA channel is allocated, it will be active.   
+> 
+> Wouldn't it be better to do the 'get' when the channel is started
 
-Specifically, this change from Gregory Clement touches some of the same
-code as your patch:
+No. omap_dma_request will call omap_clear_dma which in turn access all channel
+specific registers for writing zeros.
 
-commit 42ce7fd6319bed8ecb26d656c476365da46b29e9
-Author: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Date:   Wed Dec 29 11:52:53 2010 +0100
+> and the 'put' when the callback has finished, possibly using the
 
-    spi/omap2_mcspi.c: Force CS to be in inactive state after off-mode transition
-    
+after omap_free_dma, none of the dma registers are accessed hence it is safe to
+use _put immediately after free_dma.
+Also, dma driver is not aware of callback completion status since it will be
+executed in client driver.
 
-Kevin
+> 'autosuspend' feature with a timeout so that back-to-back DMA transfers
+> will not have have additional latency between transfers?
+> 
+> > Boot tested on OMAP4 blaze and all applicable tests are executed
+> > along with dma hwmod series.
+> 
+> Any OMAP2 or OMAP3 testing?
+> 
+> > Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> > ---
+> > Discussion and alignment for using runtime API's in DMA can be accessed at:
+> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37819.html
+> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38355.html
+> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38391.html
+> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38400.html
+> >
+> >  arch/arm/plat-omap/dma.c |   18 +++++++++++++++++-
+> >  1 files changed, 17 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> > index c4b2b47..48ee292 100644
+> > --- a/arch/arm/plat-omap/dma.c
+> > +++ b/arch/arm/plat-omap/dma.c
+> > @@ -35,6 +35,7 @@
+> >  #include <linux/io.h>
+> >  #include <linux/slab.h>
+> >  #include <linux/delay.h>
+> > +#include <linux/pm_runtime.h>
+> >  
+> >  #include <asm/system.h>
+> >  #include <mach/hardware.h>
+> > @@ -58,6 +59,7 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
+> >  #define OMAP_FUNC_MUX_ARM_BASE		(0xfffe1000 + 0xec)
+> >  
+> >  static struct omap_system_dma_plat_info *p;
+> > +static struct platform_device           *pd;
+> >  static struct omap_dma_dev_attr *d;
+> >  
+> >  static int enable_1510_mode;
+> > @@ -676,6 +678,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
+> >  	unsigned long flags;
+> >  	struct omap_dma_lch *chan;
+> >  
+> > +	pm_runtime_get_sync(&pd->dev);
+> >  	spin_lock_irqsave(&dma_chan_lock, flags);
+> >  	for (ch = 0; ch < dma_chan_count; ch++) {
+> >  		if (free_ch == -1 && dma_chan[ch].dev_id == -1) {
+> > @@ -686,6 +689,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
+> >  	}
+> >  	if (free_ch == -1) {
+> >  		spin_unlock_irqrestore(&dma_chan_lock, flags);
+> > +		pm_runtime_put(&pd->dev);
+> >  		return -EBUSY;
+> >  	}
+> >  	chan = dma_chan + free_ch;
+> > @@ -779,7 +783,7 @@ void omap_free_dma(int lch)
+> >  		p->dma_write(0, CCR, lch);
+> >  		omap_clear_dma(lch);
+> >  	}
+> > -
+> > +	pm_runtime_put(&pd->dev);
+> >  	spin_lock_irqsave(&dma_chan_lock, flags);
+> >  	dma_chan[lch].dev_id = -1;
+> >  	dma_chan[lch].next_lch = -1;
+> > @@ -1979,6 +1983,7 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
+> >  		return -EINVAL;
+> >  	}
+> >  
+> > +	pd			= pdev;
+> 
+> minor: platform_device pointers are more commonly named pdev
+> 
+> >  	d			= p->dma_attr;
+> >  	errata			= p->errata;
+> >  
+> > @@ -2000,6 +2005,9 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
+> >  		}
+> >  	}
+> >  
+> > +	pm_runtime_enable(&pd->dev);
+> > +	pm_runtime_get_sync(&pd->dev);
+> > +
+> >  	spin_lock_init(&dma_chan_lock);
+> >  	for (ch = 0; ch < dma_chan_count; ch++) {
+> >  		omap_clear_dma(ch);
+> > @@ -2065,6 +2073,14 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
+> >  		dma_chan[1].dev_id = 1;
+> >  	}
+> >  	p->show_dma_caps();
+> > +
+> > +	/*
+> > +	 * Note: If dma channels are reserved through boot paramters,
+> > +	 * then dma device is always enabled.
+> > +	 */
+> > +	if (!omap_dma_reserve_channels)
+> > +		pm_runtime_put(&pd->dev);
+> > +
+> 
+> Readability would be improved if there was an unconditional
+> pm_runtime_put() at the end of this function preceeded by an extra
+> pm_runtime_get() (async version) if reserve_channels has been used.
+ok. I will update.
 
->
-> Changes from v4:
-> ---------------
-> 1) 4430 hwmod file alignment based on Benoit's comments.
->    http://www.spinics.net/lists/arm-kernel/msg111215.html
->    4430 Hwmod file now aligned based on:
->    http://gitorious.org/omap-pm/linux/blobs/pm-wip/
->    hwmods-omap4-full/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->
-> Changes from v3:
-> ---------------
-> 1) Updated proper Author for all patches which was missed
->    in v2. 
-> 2) Modified 4430 hwmod data file so that mcspi data gets
->    updated in proper alphabetical order.
-> 3) Update omap2/3 hwmod dat files with SYSS_HAS_RESET_STATUS
->    flag.
->
-> Changes from v2:
-> ---------------
-> 1) Fixing minor comments and adding ack from Grant Likely.
-> 	https://patchwork.kernel.org/patch/371321/
-> 	https://patchwork.kernel.org/patch/371331/
->
-> Changes from v1:
-> ---------------
-> 1) Fixing patch 5/5 comments for hwmod+runtime
->   Split the patch 5/5 to hwmod adaptation
->   and then runtime conversion
->   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg33387.html
->
-> Testing Updates:
-> ----------------
-> Was tested using data transfer test module available at:
-> http://dev.omapzoom.org/?p=richo/device_driver_test.git;a=blob;f=mcspi/test_code/
-> utils/mcspi_modules/omap_mcspi_datatest.c;
-> h=e42ec10c5c844abdde6a7175a268b379fbbdb655;
-> hb=5d9a755d50e58de861c5e8991f2f607bc49b5dc3
-> This test basically involves MISO <--> MOSI lines looped and data transfer test
-> done using the above test module.
-> System wide suspend and ret/off counts observation, ensured that no behavioral
-> difference with and without this patch series.
->
-> Benoit Cousson (1):
->   OMAP4: hwmod data: Add McSPI
->
-> Charulatha V (4):
->   OMAP2420: hwmod data: Add McSPI
->   OMAP2430: hwmod data: Add McSPI
->   OMAP3: hwmod data: Add McSPI
->   OMAP: devices: Modify McSPI device to adapt to hwmod framework
->
-> Govindraj.R (1):
->   OMAP: runtime: McSPI driver runtime conversion
->
->  arch/arm/mach-omap2/devices.c              |  187 ++++---------------
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c |  156 ++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c |  219 ++++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  280 ++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  267 ++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/mcspi.h    |   11 +
->  drivers/spi/omap2_mcspi.c                  |  224 +++++++---------------
->  7 files changed, 1044 insertions(+), 300 deletions(-)
+-Manjunath
