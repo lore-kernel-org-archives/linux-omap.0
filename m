@@ -1,90 +1,143 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 02/14] ARM: bitops: switch set/clear/change bitops to
-	use ldrex/strex
-Date: Mon, 24 Jan 2011 14:11:12 +0000
-Message-ID: <20110124141112.GM16202@n2100.arm.linux.org.uk>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk> <E1Peue4-0003SN-Gk@rmk-PC.arm.linux.org.uk> <20110123001636.GA20841@n2100.arm.linux.org.uk> <alpine.LFD.2.00.1101222323190.8580@xanadu.home> <20110123093526.GA26120@n2100.arm.linux.org.uk> <AANLkTi=tpnNXm8w9-VFi72nYvXRQV5-jE7Qn9NNk1wLW@mail.gmail.com> <AANLkTinnQLsa4mOV+SLYxeRrwZdc8N36SW9pK6ne+6TQ@mail.gmail.com> <20110124102849.GA18459@n2100.arm.linux.org.uk> <AANLkTikmwDkdiAPoCx+Oz7qhTbpuOTHeam9gSi=WesSa@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: jean.pihet@newoldbits.com
+Subject: [PATCH] perf: add OMAP support for the new power events
+Date: Mon, 24 Jan 2011 15:20:57 +0100
+Message-ID: <1295878857-8983-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46486 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809Ab1AXOL2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jan 2011 09:11:28 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTikmwDkdiAPoCx+Oz7qhTbpuOTHeam9gSi=WesSa@mail.gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:44611 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435Ab1AXOV0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jan 2011 09:21:26 -0500
+Received: by wwa36 with SMTP id 36so4334031wwa.1
+        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 06:21:24 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Poddar, Sourav" <sourav.poddar@ti.com>
-Cc: Nicolas Pitre <nico@fluxnic.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org
+Cc: Jean Pihet <j-pihet@ti.com>
 
-On Mon, Jan 24, 2011 at 07:17:54PM +0530, Poddar, Sourav wrote:
-> On Mon, Jan 24, 2011 at 3:58 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Mon, Jan 24, 2011 at 02:27:24PM +0530, Poddar, Sourav wrote:
-> >> On Mon, Jan 24, 2011 at 2:08 PM, Poddar, Sourav <sourav.poddar@ti.=
-com> wrote:
-> >> > On Sun, Jan 23, 2011 at 3:05 PM, Russell King - ARM Linux
-> >> > <linux@arm.linux.org.uk> wrote:
-> >> >> On Sat, Jan 22, 2011 at 11:44:59PM -0500, Nicolas Pitre wrote:
-> >> >>> At least another person did post results:
-> >> >>>
-> >> >>> http://mid.gmane.org/20110117094602.GA2622@pulham.picochip.com
-> >> >>> http://mid.gmane.org/20110117110308.GC2622@pulham.picochip.com
-> >> >>
-> >> >> Slightly different patch - there were three revisions. =A0I can=
-'t attach
-> >> >> a tested-by given to a different patch to this one.
-> >> >>
-> >> >>> > That means omap2plus_defconfig .38 mainline kernels
-> >> >>> > (including -stable) will remain potentially dangerous when r=
-un on
-> >> >>> > SMP capable hardware.
-> >> >>>
-> >> >>> I must admit that this series looks a bit large for stable IMH=
-O. =A0I
-> >> >>> think that the fix for stable should limit itself only to prev=
-ent SMP
-> >> >>> from being selected if anything else than CPU_32v6K is selecte=
-d.
-> >> >>
-> >> >> The first three are the bare minimum required for -stable.
-> >> >>
-> >> >
-> >>
-> >> =A0Boot tested the 14 patch series =A0with CONFIG_SWP_EMULATE enab=
-led, on
-> >> =A0the following boards :
-> >>
-> >>
-> >> =A0 1. Omap2420 SDP
-> >>
-> >> =A0 2. Omap2430 SDP
-> >>
-> >> =A0 3. Omap3430 SDP
-> >>
-> >> =A0 4. Omap4 Blaze
-> >>
-> >> =A0 Tested-by: Sourav Poddar <sourav.poddar@ti.com>
-> >
-> > Thanks. =A0It's also important to ascertain which filesystems were =
-tested -
-> > could you let me know please?
-> >
->=20
-> It is a custom filesystem on BusyBox v1.17.2.
+From: Jean Pihet <j-pihet@ti.com>
 
-So you wrote code under fs/ for this filesystem?
+The patch adds the new power management trace points for
+the OMAP architecture.
 
-> Please let me know if you need some other
-> information.
+The trace points are for:
+- default idle handler. Since the cpuidle framework is
+  instrumented in the generic way there is no need to
+  add trace points in the OMAP specific cpuidle handler;
+- cpufreq (DVFS),
+- SoC clocks changes (enable, disable, set_rate),
+- change of power domains next power states.
 
-I'm trying to find out what _type_ of filesystem.  ext2, ext3, nfs, cra=
-mfs,
-etc.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tested on OMAP3 with suspend/resume, cpuidle, basic DVFS
+
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/clock.c       |    8 +++++++-
+ arch/arm/mach-omap2/pm34xx.c      |    7 +++++++
+ arch/arm/mach-omap2/powerdomain.c |    8 +++++++-
+ 3 files changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 2a2f152..72af75d 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -22,7 +22,9 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/bitops.h>
++#include <trace/events/power.h>
+ 
++#include <asm/cpu.h>
+ #include <plat/clock.h>
+ #include "clockdomain.h"
+ #include <plat/cpu.h>
+@@ -261,6 +263,7 @@ void omap2_clk_disable(struct clk *clk)
+ 
+ 	pr_debug("clock: %s: disabling in hardware\n", clk->name);
+ 
++	trace_clock_disable(clk->name, 0, smp_processor_id());
+ 	clk->ops->disable(clk);
+ 
+ 	if (clk->clkdm)
+@@ -312,6 +315,7 @@ int omap2_clk_enable(struct clk *clk)
+ 		}
+ 	}
+ 
++	trace_clock_enable(clk->name, 1, smp_processor_id());
+ 	ret = clk->ops->enable(clk);
+ 	if (ret) {
+ 		WARN(1, "clock: %s: could not enable: %d\n", clk->name, ret);
+@@ -349,8 +353,10 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+ 	pr_debug("clock: set_rate for clock %s to rate %ld\n", clk->name, rate);
+ 
+ 	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
+-	if (clk->set_rate)
++	if (clk->set_rate) {
++		trace_clock_set_rate(clk->name, rate, smp_processor_id());
+ 		ret = clk->set_rate(clk, rate);
++	}
+ 
+ 	return ret;
+ }
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 8cbbead..7c5e0ee 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -29,6 +29,7 @@
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/console.h>
++#include <trace/events/power.h>
+ 
+ #include <plat/sram.h>
+ #include "clockdomain.h"
+@@ -518,8 +519,14 @@ static void omap3_pm_idle(void)
+ 	if (omap_irq_pending() || need_resched())
+ 		goto out;
+ 
++	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
++	trace_cpu_idle(1, smp_processor_id());
++
+ 	omap_sram_idle();
+ 
++	trace_power_end(smp_processor_id());
++	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
++
+ out:
+ 	local_fiq_enable();
+ 	local_irq_enable();
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index eaed0df..e1feb50 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -19,12 +19,15 @@
+ #include <linux/list.h>
+ #include <linux/errno.h>
+ #include <linux/string.h>
++#include <trace/events/power.h>
++
+ #include "cm2xxx_3xxx.h"
+ #include "prcm44xx.h"
+ #include "cm44xx.h"
+ #include "prm2xxx_3xxx.h"
+ #include "prm44xx.h"
+ 
++#include <asm/cpu.h>
+ #include <plat/cpu.h>
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+@@ -406,8 +409,11 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ 	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
+ 		 pwrdm->name, pwrst);
+ 
+-	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst)
++	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
++		trace_power_domain_target(pwrdm->name, pwrst,
++					  smp_processor_id());
+ 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
++	}
+ 
+ 	return ret;
+ }
+-- 
+1.7.2.3
+
