@@ -1,87 +1,77 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [PATCH 02/14] ARM: bitops: switch set/clear/change bitops to use ldrex/strex
-Date: Mon, 24 Jan 2011 19:17:54 +0530
-Message-ID: <AANLkTikmwDkdiAPoCx+Oz7qhTbpuOTHeam9gSi=WesSa@mail.gmail.com>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
-	<E1Peue4-0003SN-Gk@rmk-PC.arm.linux.org.uk>
-	<20110123001636.GA20841@n2100.arm.linux.org.uk>
-	<alpine.LFD.2.00.1101222323190.8580@xanadu.home>
-	<20110123093526.GA26120@n2100.arm.linux.org.uk>
-	<AANLkTi=tpnNXm8w9-VFi72nYvXRQV5-jE7Qn9NNk1wLW@mail.gmail.com>
-	<AANLkTinnQLsa4mOV+SLYxeRrwZdc8N36SW9pK6ne+6TQ@mail.gmail.com>
-	<20110124102849.GA18459@n2100.arm.linux.org.uk>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH v4] ARM: Thumb-2: Symbol manipulation macros for function
+ body copying
+Date: Mon, 24 Jan 2011 13:50:49 +0000
+Message-ID: <AANLkTi=K4TC93o8g80heVcvmrN1Cjq+=wnBQ=hfXpzaw@mail.gmail.com>
+References: <1295039877-7976-1-git-send-email-dave.martin@linaro.org>
+	<87bp3cr0ib.fsf@ti.com>
+	<AANLkTinPV+v4+T8jPHiVA7=D7tNkoeDrWLQBRhDX5bmV@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:45090 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752556Ab1AXNr4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jan 2011 08:47:56 -0500
-Received: by mail-ww0-f50.google.com with SMTP id 26so4003361wwf.7
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 05:47:55 -0800 (PST)
-In-Reply-To: <20110124102849.GA18459@n2100.arm.linux.org.uk>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:35070 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751196Ab1AXNuu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jan 2011 08:50:50 -0500
+Received: by ewy5 with SMTP id 5so1814872ewy.19
+        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 05:50:49 -0800 (PST)
+In-Reply-To: <AANLkTinPV+v4+T8jPHiVA7=D7tNkoeDrWLQBRhDX5bmV@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nicolas Pitre <nico@fluxnic.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Mon, Jan 24, 2011 at 3:58 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Mon, Jan 24, 2011 at 02:27:24PM +0530, Poddar, Sourav wrote:
->> On Mon, Jan 24, 2011 at 2:08 PM, Poddar, Sourav <sourav.poddar@ti.co=
-m> wrote:
->> > On Sun, Jan 23, 2011 at 3:05 PM, Russell King - ARM Linux
->> > <linux@arm.linux.org.uk> wrote:
->> >> On Sat, Jan 22, 2011 at 11:44:59PM -0500, Nicolas Pitre wrote:
->> >>> At least another person did post results:
->> >>>
->> >>> http://mid.gmane.org/20110117094602.GA2622@pulham.picochip.com
->> >>> http://mid.gmane.org/20110117110308.GC2622@pulham.picochip.com
->> >>
->> >> Slightly different patch - there were three revisions. =A0I can't=
- attach
->> >> a tested-by given to a different patch to this one.
->> >>
->> >>> > That means omap2plus_defconfig .38 mainline kernels
->> >>> > (including -stable) will remain potentially dangerous when run=
- on
->> >>> > SMP capable hardware.
->> >>>
->> >>> I must admit that this series looks a bit large for stable IMHO.=
- =A0I
->> >>> think that the fix for stable should limit itself only to preven=
-t SMP
->> >>> from being selected if anything else than CPU_32v6K is selected.
->> >>
->> >> The first three are the bare minimum required for -stable.
->> >>
->> >
+On Thu, Jan 20, 2011 at 9:42 AM, Dave Martin <dave.martin@linaro.org> w=
+rote:
+> On Wed, Jan 19, 2011 at 10:29 PM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>> Dave Martin <dave.martin@linaro.org> writes:
 >>
->> =A0Boot tested the 14 patch series =A0with CONFIG_SWP_EMULATE enable=
-d, on
->> =A0the following boards :
+>>> In low-level board support code, there is sometimes a need to
+>>> copy a function body to another location at run-time.
+>>>
+>>> A straightforward call to memcpy doesn't work in Thumb-2,
+>>> because bit 0 of external Thumb function symbols is set to 1,
+>>> indicating that the function is Thumb. =A0Without corrective
+>>> measures, this will cause an off-by-one copy, and the copy
+>>> may be called using the wrong instruction set.
+>>>
+>>> This patch adds an fncpy() macro to help with such copies.
+>>>
+>>> Particular care is needed, because C doesn't guarantee any
+>>> defined behaviour when casting a function pointer to any other
+>>> type. =A0This has been observed to lead to strange optimisation
+>>> side-effects when doing the arithmetic which is required in
+>>> order to copy/move function bodies correctly in Thumb-2.
+>>>
+>>> Thanks to Russell King and Nicolas Pitre for their input
+>>> on this patch.
+>>>
+>>> Signed-off-by: Dave Martin <dave.martin@linaro.org>
+>>> Tested-by: Jean Pihet <j-pihet@ti.com>
 >>
+>> Tested-by: Kevin Hilman <khilman@ti.com>
 >>
->> =A0 1. Omap2420 SDP
+>> along with Jean's OMAP patch on:
 >>
->> =A0 2. Omap2430 SDP
+>> OMAP2420/n810: including basic suspend/resume test.
 >>
->> =A0 3. Omap3430 SDP
+>> OMAP16xx/OSK: boot test only.
 >>
->> =A0 4. Omap4 Blaze
+>> Kevin
 >>
->> =A0 Tested-by: Sourav Poddar <sourav.poddar@ti.com>
 >
-> Thanks. =A0It's also important to ascertain which filesystems were te=
-sted -
-> could you let me know please?
+> Thanks
+> ---Dave
 >
 
-It is a custom filesystem on BusyBox v1.17.2.
-Please let me know if you need some other
-information.
+Any more comments on this patch?
+
+I have no further changes so far.
+
+Cheers
+---Dave
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
