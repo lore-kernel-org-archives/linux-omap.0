@@ -1,75 +1,101 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v4 1/4] TI816X: Update common omap platform files
-Date: Mon, 24 Jan 2011 12:02:44 -0800
-Message-ID: <87aaiq9ijf.fsf@ti.com>
-References: <1294677465-18658-1-git-send-email-hemantp@ti.com>
-	<87oc79evo2.fsf@ti.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B036A8DB4B3@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2: use early init hook
+Date: Mon, 24 Jan 2011 12:17:31 -0800
+Message-ID: <20110124201731.GC13589@atomide.com>
+References: <20110123171344.GH30094@n2100.arm.linux.org.uk>
+ <20110123174814.GI30094@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:42960 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751630Ab1AXUCs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jan 2011 15:02:48 -0500
-Received: by mail-px0-f177.google.com with SMTP id 7so819563pxi.36
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 12:02:48 -0800 (PST)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B036A8DB4B3@dbde02.ent.ti.com>
-	(Hemant Pedanekar's message of "Sat, 22 Jan 2011 07:40:23 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:44958 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751342Ab1AXURz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jan 2011 15:17:55 -0500
+Content-Disposition: inline
+In-Reply-To: <20110123174814.GI30094@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pedanekar, Hemant" <hemantp@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-"Pedanekar, Hemant" <hemantp@ti.com> writes:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110123 09:47]:
+> On Sun, Jan 23, 2011 at 05:13:44PM +0000, Russell King - ARM Linux wrote:
+> > Move non-mapping and non-irq initialization code out of .map_io and
+> > .init_irq respectively into the new init_early hook.
+> > 
+> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > ---
+> > I think I've updated this patch correctly for the new platforms merged
+> > into mainline.
+> 
+> Grr, this breaks on OMAP because some of this stuff wants to do ioremap()
+> and therefore wants the kmem allocators initialized.  That's rather
+> annoying...
 
-> Hi Kevin,
->
-> Hilman, Kevin wrote on Saturday, January 22, 2011 4:01 AM:
->
->> Hi Hemant,
->> 
->> Hemant Pedanekar <hemantp@ti.com> writes:
->> 
->>> This patch updates the common platform files with TI816X support. Also
->>> adds new files for TI816X module base addresses and irq definitions.
->> [...]
->> 
->>> diff --git a/arch/arm/plat-omap/include/plat/irqs-ti816x.h
->> b/arch/arm/plat-omap/include/plat/irqs-ti816x.h
->>> new file mode 100644
->>> index 0000000..3ec5d1b
-> [...]
->>> +#define TI816X_IRQ_SECPUBINT	116
->>> +#define TI816X_IRQ_SECSECINT	117
->>> +#define TI816X_IRQ_SECPUBSWINT	118
->>> +#define TI816X_IRQ_SECSECSWINT	119
->>> +#define TI816X_IRQ_SMRFLX0	120
->>> +#define TI816X_IRQ_SMRFLX1	121
->>> +#define TI816X_IRQ_SYS_MMU	122
->>> +#define TI816X_IRQ_MC_MMU	123
->>> +#define TI816X_IRQ_DMM		124
->>> +
->>> +
->>> +#endif
->> 
->> For new platforms, We don't need to have a list of all the
->> IRQ numbers.
->> 
->> Driver code should always be getting IRQ numbers (and base addresses
->> etc.) from struct resource/platform_data, which is populated
->> from omap_hwmod.
->>
->
-> Are you suggesting to get rid of this file altogether or the IRQs which 
-> may never be used from kernel be removed from this file (and added later
-> If needed)?
->   
-> Or shall I add this file only in hwmod patch which will be submitted later?
+So far tested on zoom3 only, but the following gets it booting
+on top of your patch.
 
-You can get rid of the file altogether.  Even the hwmod data can just
-have IRQ numbers and you shouldn't need to add a header file with the
-defines.
+Want to take this one into your series?  
 
-Kevin 
+Meanwhile, I'll add these both into our omap-testing branch
+for some more testing.
+
+Regards,
+
+Tony
+
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 24 Jan 2011 11:56:37 -0800
+Subject: [PATCH] omap2+: Fix omap_serial_early_init to work with init_early hook
+
+The new init_early hook happens at the end of setup_arch,
+which is too early for kzalloc. However, there's no need
+to call omap_serial_early_init that early, so fix this
+by setting it up as a subsys_initcall.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -400,8 +400,6 @@ void __init omap2_init_common_infrastructure(void)
+ void __init omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs0,
+ 				      struct omap_sdrc_params *sdrc_cs1)
+ {
+-	omap_serial_early_init();
+-
+ 	omap_hwmod_late_init();
+ 
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -655,7 +655,7 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
+ }
+ #endif
+ 
+-void __init omap_serial_early_init(void)
++static int __init omap_serial_early_init(void)
+ {
+ 	int i = 0;
+ 
+@@ -691,7 +691,10 @@ void __init omap_serial_early_init(void)
+ 		 */
+ 		uart->oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
+ 	} while (1);
++
++	return 0;
+ }
++subsys_initcall(omap_serial_early_init);
+ 
+ /**
+  * omap_serial_init_port() - initialize single serial port
+--- a/arch/arm/plat-omap/include/plat/serial.h
++++ b/arch/arm/plat-omap/include/plat/serial.h
+@@ -96,7 +96,6 @@
+ 
+ struct omap_board_data;
+ 
+-extern void __init omap_serial_early_init(void);
+ extern void omap_serial_init(void);
+ extern void omap_serial_init_port(struct omap_board_data *bdata);
+ extern int omap_uart_can_sleep(void);
