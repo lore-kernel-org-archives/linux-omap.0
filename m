@@ -1,96 +1,89 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 3/5] ARM: twd: Add context save restore support
-Date: Mon, 24 Jan 2011 16:46:08 +0530
-Message-ID: <fae59ce4176caaa32c9515eb2e425328@mail.gmail.com>
-References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com>
- <1295859080-15259-4-git-send-email-santosh.shilimkar@ti.com>
- <20110124110609.GJ16202@n2100.arm.linux.org.uk> <20110124111114.GA19409@n2100.arm.linux.org.uk>
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
+Subject: Re: [PATCH 02/14] ARM: bitops: switch set/clear/change bitops to use ldrex/strex
+Date: Mon, 24 Jan 2011 19:17:54 +0530
+Message-ID: <AANLkTikmwDkdiAPoCx+Oz7qhTbpuOTHeam9gSi=WesSa@mail.gmail.com>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+	<E1Peue4-0003SN-Gk@rmk-PC.arm.linux.org.uk>
+	<20110123001636.GA20841@n2100.arm.linux.org.uk>
+	<alpine.LFD.2.00.1101222323190.8580@xanadu.home>
+	<20110123093526.GA26120@n2100.arm.linux.org.uk>
+	<AANLkTi=tpnNXm8w9-VFi72nYvXRQV5-jE7Qn9NNk1wLW@mail.gmail.com>
+	<AANLkTinnQLsa4mOV+SLYxeRrwZdc8N36SW9pK6ne+6TQ@mail.gmail.com>
+	<20110124102849.GA18459@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:56861 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752155Ab1AXLQL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jan 2011 06:16:11 -0500
-Received: by mail-fx0-f45.google.com with SMTP id 12so4217503fxm.32
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 03:16:10 -0800 (PST)
-In-Reply-To: <20110124111114.GA19409@n2100.arm.linux.org.uk>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:45090 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752556Ab1AXNr4 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Jan 2011 08:47:56 -0500
+Received: by mail-ww0-f50.google.com with SMTP id 26so4003361wwf.7
+        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 05:47:55 -0800 (PST)
+In-Reply-To: <20110124102849.GA18459@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, ccross@android.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org
+Cc: Nicolas Pitre <nico@fluxnic.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Monday, January 24, 2011 4:41 PM
-> To: Santosh Shilimkar
-> Cc: linux-arm-kernel@lists.infradead.org; catalin.marinas@arm.com;
-> ccross@android.com; linus.ml.walleij@gmail.com; linux-
-> omap@vger.kernel.org
-> Subject: Re: [PATCH 3/5] ARM: twd: Add context save restore support
+On Mon, Jan 24, 2011 at 3:58 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Mon, Jan 24, 2011 at 02:27:24PM +0530, Poddar, Sourav wrote:
+>> On Mon, Jan 24, 2011 at 2:08 PM, Poddar, Sourav <sourav.poddar@ti.co=
+m> wrote:
+>> > On Sun, Jan 23, 2011 at 3:05 PM, Russell King - ARM Linux
+>> > <linux@arm.linux.org.uk> wrote:
+>> >> On Sat, Jan 22, 2011 at 11:44:59PM -0500, Nicolas Pitre wrote:
+>> >>> At least another person did post results:
+>> >>>
+>> >>> http://mid.gmane.org/20110117094602.GA2622@pulham.picochip.com
+>> >>> http://mid.gmane.org/20110117110308.GC2622@pulham.picochip.com
+>> >>
+>> >> Slightly different patch - there were three revisions. =A0I can't=
+ attach
+>> >> a tested-by given to a different patch to this one.
+>> >>
+>> >>> > That means omap2plus_defconfig .38 mainline kernels
+>> >>> > (including -stable) will remain potentially dangerous when run=
+ on
+>> >>> > SMP capable hardware.
+>> >>>
+>> >>> I must admit that this series looks a bit large for stable IMHO.=
+ =A0I
+>> >>> think that the fix for stable should limit itself only to preven=
+t SMP
+>> >>> from being selected if anything else than CPU_32v6K is selected.
+>> >>
+>> >> The first three are the bare minimum required for -stable.
+>> >>
+>> >
+>>
+>> =A0Boot tested the 14 patch series =A0with CONFIG_SWP_EMULATE enable=
+d, on
+>> =A0the following boards :
+>>
+>>
+>> =A0 1. Omap2420 SDP
+>>
+>> =A0 2. Omap2430 SDP
+>>
+>> =A0 3. Omap3430 SDP
+>>
+>> =A0 4. Omap4 Blaze
+>>
+>> =A0 Tested-by: Sourav Poddar <sourav.poddar@ti.com>
 >
-> On Mon, Jan 24, 2011 at 11:06:09AM +0000, Russell King - ARM Linux
-> wrote:
-> > On Mon, Jan 24, 2011 at 02:21:17PM +0530, Santosh Shilimkar wrote:
-> > > In CPU low power state, local timer looses its register context.
-> This
-> > > patch adds context save restore hooks which can be used by
-> platforms
-> > > appropriately.
-> >
-> > I thought the whole point of CLOCK_EVT_FEAT_C3STOP was that the
-> generic
-> > timer stuff wouldn't rely on it being kept alive?
-> >
-> > Hmm, it looks like we bypass the clockevents code by only setting
-> the
-> > TWD load value at initialization time, not when we switch to
-> periodic
-> > mode.  We really ought to rewrite it whenever we switch back to
-> periodic
-> > mode.
-> >
-> > I suspect fixing that means you won't need this save/restore
-> support.
+> Thanks. =A0It's also important to ascertain which filesystems were te=
+sted -
+> could you let me know please?
 >
-> Untested, but should do what's required.
-:) I was just typing an email and you sent a patch. Will test this
-and update you.
 
->
-> diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
-> index fd91566..60636f4 100644
-> --- a/arch/arm/kernel/smp_twd.c
-> +++ b/arch/arm/kernel/smp_twd.c
-> @@ -36,6 +36,7 @@ static void twd_set_mode(enum clock_event_mode
-> mode,
->  		/* timer load already set up */
->  		ctrl = TWD_TIMER_CONTROL_ENABLE |
-> TWD_TIMER_CONTROL_IT_ENABLE
->  			| TWD_TIMER_CONTROL_PERIODIC;
-> +		__raw_writel(twd_timer_rate / HZ, twd_base +
-> TWD_TIMER_LOAD);
->  		break;
->  	case CLOCK_EVT_MODE_ONESHOT:
->  		/* period set, and timer enabled in 'next_event' hook */
-> @@ -81,7 +82,7 @@ int twd_timer_ack(void)
->
->  static void __cpuinit twd_calibrate_rate(void)
->  {
-> -	unsigned long load, count;
-> +	unsigned long count;
->  	u64 waitjiffies;
->
->  	/*
-> @@ -116,10 +117,6 @@ static void __cpuinit twd_calibrate_rate(void)
->  		printk("%lu.%02luMHz.\n", twd_timer_rate / 1000000,
->  			(twd_timer_rate / 1000000) % 100);
->  	}
-> -
-> -	load = twd_timer_rate / HZ;
-> -
-> -	__raw_writel(load, twd_base + TWD_TIMER_LOAD);
->  }
->
->  /*
+It is a custom filesystem on BusyBox v1.17.2.
+Please let me know if you need some other
+information.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
