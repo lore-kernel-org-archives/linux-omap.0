@@ -1,314 +1,337 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP2+: remove unused UART base addresses from omap_globals
-Date: Mon, 24 Jan 2011 13:54:18 -0800
-Message-ID: <87wrlu6k8l.fsf@ti.com>
-References: <1295649015-26348-1-git-send-email-khilman@ti.com>
-	<20110124064154.GA16582@m-desktop> <20110124074520.GB16582@m-desktop>
+Subject: Re: [PATCH v10 00/18] OMAP2,3: hwmod DSS Adaptation
+Date: Mon, 24 Jan 2011 13:57:59 -0800
+Message-ID: <87mxmq6k2g.fsf@ti.com>
+References: <1295850125-21405-1-git-send-email-sumit.semwal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:57033 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751761Ab1AXVyY (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:60316 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751554Ab1AXV6F (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jan 2011 16:54:24 -0500
-Received: by mail-qy0-f172.google.com with SMTP id 34so3330627qyk.3
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 13:54:24 -0800 (PST)
-In-Reply-To: <20110124074520.GB16582@m-desktop> (Manjunath Kondaiah G.'s
-	message of "Mon, 24 Jan 2011 13:15:20 +0530")
+	Mon, 24 Jan 2011 16:58:05 -0500
+Received: by pzk30 with SMTP id 30so841836pzk.8
+        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 13:58:04 -0800 (PST)
+In-Reply-To: <1295850125-21405-1-git-send-email-sumit.semwal@ti.com> (Sumit
+	Semwal's message of "Mon, 24 Jan 2011 11:51:47 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sumit Semwal <sumit.semwal@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+Sumit Semwal <sumit.semwal@ti.com> writes:
 
-> We need additional changes for removing these macros since omap2+ till
-> omap3 hwmod uart db is not using dma request lines in omap4 way.
+> v10 of the patch series corrects return-error handling from platform_request_irq()
+> based on comments from Sergei Shtylyov and Russell King.
+> [https://patchwork.kernel.org/patch/497911/]
 
-Feel free to send the DMA changes as an additional patch.  This is
-independent of my changes, so can be a separate patch.
+Tony,
 
-Thanks,
+Assuming Tomi is OK with this series, I think these are ready to go into
+omap-testing for some broader testing.
 
 Kevin
 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> index b85c630..7347bbc 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> @@ -366,8 +366,8 @@ static struct omap_hwmod_irq_info uart1_mpu_irqs[] =
-> {
->  };
->  
->  static struct omap_hwmod_dma_info uart1_sdma_reqs[] = {
-> -	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART1_RX, },
-> -	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART1_TX, },
-> +	{ .name = "rx",	.dma_req = 50, },
-> +	{ .name = "tx",	.dma_req = 49, },
->  };
->  
->  static struct omap_hwmod_ocp_if *omap2420_uart1_slaves[] = {
-> @@ -403,8 +403,8 @@ static struct omap_hwmod_irq_info uart2_mpu_irqs[] =
-> {
->  };
->  
->  static struct omap_hwmod_dma_info uart2_sdma_reqs[] = {
-> -	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART2_RX, },
-> -	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART2_TX, },
-> +	{ .name = "rx",	.dma_req = 52, },
-> +	{ .name = "tx",	.dma_req = 51, },
->  };
->  
->  static struct omap_hwmod_ocp_if *omap2420_uart2_slaves[] = {
-> @@ -440,8 +440,8 @@ static struct omap_hwmod_irq_info uart3_mpu_irqs[] =
-> {
->  };
->  
->  static struct omap_hwmod_dma_info uart3_sdma_reqs[] = {
-> -	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART3_RX, },
-> -	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART3_TX, },
-> +	{ .name = "rx",	.dma_req = 54, },
-> +	{ .name = "tx",	.dma_req = 53, },
->  };
->  
->  static struct omap_hwmod_ocp_if *omap2420_uart3_slaves[] = {
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> index 8ecfbcd..1d8c391 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> @@ -365,8 +365,8 @@ static struct omap_hwmod_irq_info uart1_mpu_irqs[] =
-> {
->  };
->  
->  static struct omap_hwmod_dma_info uart1_sdma_reqs[] = {
-> -	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART1_RX, },
-> -	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART1_TX, },
-> +	{ .name = "rx",	.dma_req = 50, },
-> +	{ .name = "tx",	.dma_req = 49, },
->  };
->  
->  static struct omap_hwmod_ocp_if *omap2430_uart1_slaves[] = {
-> @@ -402,8 +402,8 @@ static struct omap_hwmod_irq_info uart2_mpu_irqs[] =
-> {
->  };
->  
->  static struct omap_hwmod_dma_info uart2_sdma_reqs[] = {
-> -	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART2_RX, },
-> -	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART2_TX, },
-> +	{ .name = "rx",	.dma_req = 52, },
-> +	{ .name = "tx",	.dma_req = 51, },
->  };
->  
->  static struct omap_hwmod_ocp_if *omap2430_uart2_slaves[] = {
-> @@ -439,8 +439,8 @@ static struct omap_hwmod_irq_info uart3_mpu_irqs[] =
-> {
->  };
->  
->  static struct omap_hwmod_dma_info uart3_sdma_reqs[] = {
-> -	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART3_RX, },
-> -	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART3_TX, },
-> +	{ .name = "rx",	.dma_req = 54, },
-> +	{ .name = "tx",	.dma_req = 53, },
->  };
->  
->  static struct omap_hwmod_ocp_if *omap2430_uart3_slaves[] = {
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 8d81813..1595cc0 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -518,8 +518,8 @@ static struct omap_hwmod_irq_info uart1_mpu_irqs[] =
-> {
->  };
->  
->  static struct omap_hwmod_dma_info uart1_sdma_reqs[] = {
-> -	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART1_TX, },
-> -	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART1_RX, },
-> +	{ .name = "tx",	.dma_req = 49, },
-> +	{ .name = "rx",	.dma_req = 50, },
->  };
->  
->  static struct omap_hwmod_ocp_if *omap3xxx_uart1_slaves[] = {
-> @@ -555,8 +555,8 @@ static struct omap_hwmod_irq_info uart2_mpu_irqs[] =
-> {
->  };
->  
->  static struct omap_hwmod_dma_info uart2_sdma_reqs[] = {
-> -	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART2_TX, },
-> -	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART2_RX, },
-> +	{ .name = "tx",	.dma_req = 51, },
-> +	{ .name = "rx",	.dma_req = 52, },
->  };
->  
->  static struct omap_hwmod_ocp_if *omap3xxx_uart2_slaves[] = {
-> @@ -592,8 +592,8 @@ static struct omap_hwmod_irq_info uart3_mpu_irqs[] =
-> {
->  };
->  
->  static struct omap_hwmod_dma_info uart3_sdma_reqs[] = {
-> -	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART3_TX, },
-> -	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART3_RX, },
-> +	{ .name = "tx",	.dma_req = 53, },
-> +	{ .name = "rx",	.dma_req = 54, },
->  };
->  
->  static struct omap_hwmod_ocp_if *omap3xxx_uart3_slaves[] = {
-> @@ -629,8 +629,8 @@ static struct omap_hwmod_irq_info uart4_mpu_irqs[] =
-> {
->  };
->  
->  static struct omap_hwmod_dma_info uart4_sdma_reqs[] = {
-> -	{ .name = "rx",	.dma_req = OMAP36XX_DMA_UART4_RX, },
-> -	{ .name = "tx",	.dma_req = OMAP36XX_DMA_UART4_TX, },
-> +	{ .name = "rx",	.dma_req = 82, },
-> +	{ .name = "tx",	.dma_req = 81, },
->  };
->  
->  static struct omap_hwmod_ocp_if *omap3xxx_uart4_slaves[] = {
+> v9 of this patch series adds reviewed-by and acked-by from Kevin Hilman.
+>
+> v8 of the DSS hwmod patch series fixes some issues based on findings of 
+> Kevin Hilman on beagle.
+>
+> The VENC platform driver was not getting registered due to missed device
+> name update for vdda_dac regulator in some board files. This was moved from
+> 'omap_display' device to 'omap_venc' device in patch 14/18.
+>
+> Also, similarly for DSI platform driver, the regulator name 'vdds_dsi' needs two
+> instances - one for dpi, and one for dsi.
+>
+> This version corrects the above two for all board files where 'vdda_dac' and
+> 'vdds_dsi' regulators are defined. [patches 14/18 and 15/18]
+>
+> Post this change, boot w/ visible framebuffer and tux was successfully validated
+> on beagle, 3430SDP and zoom3.
+>
+> A patch mentioned in 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42384.html
+> was needed to get OMAP3 to boot up on top of linux-next of 20110115.
+>
+> OMAP4 hwmod support will be posted after the acceptance of this basic change in
+> the dss2 design.
+>
+> -------------------------------------------------
+> [original patch introduction]
+>
+> This patch series decouples the "Clocks for DSS in hwmod adaptation" changes
+> from this series.  Another series would be posted which could be discussed
+> w.r.t clocks in DSS across omap2,3.
+>
+> Removing the SYSCONFIG settings from DSS driver would also be part of these
+> clock changes series and not covered in this series as it depends on some of
+> the omap_hwmod framework changes w.r.t opt clocks handling.
+>
+> Summary of the hwmod DSS design:
+> ================================
+> DSS, DISPC, DSI, RFBI, VENC are made as platform drivers each 
+> corresponding to the hwmod class in the hwmod database. 
+>
+> Each of these platform drivers' init / deinit are handled from core.c's
+> omap_dss_probe() in the exact sequence as required.
+>
+> No Hardcoding of silicon data:
+> hwmod database abstracts the SOC data like base addr, irq numbers and are
+> implemented in this patch series.
+>
+> Continue to have custom bus for display panels:
+> "omap_display" driver continues to be a platform driver that registers the custom
+> bus.  It also continues to register the display panels(omap_dss_device) on the
+> board to the panel drivers (omap_dss_driver)
+> For Eg:  primary lcd device would be registered with lcd panel driver.
+> lcd panel driver if it is on a parallel interface would use library functions 
+> exported from dpi.o.  if it is on a dsi interface would use library functions
+> exported from dsi platform driver(dsi.o).
+>
+> Clocks:
+> Handling of clocks in DSS only is one of the design approaches, that does not
+> change the existing implementation.  If each of the DSS HW IPs had to handle
+> their own clocks, then corresponding clock changes can be requested in the hwmod
+> database as well which is not the current design/implementation.  As stated, 
+> this would be handled in another series seperately.
+> For Eg: VENC would need 54MCLK which is termed as dss_opt clocks as of now apart
+> for the dss main clocks.  Currently VENC driver needs to be aware of this and has to
+> use clk_get/put, clk_enable/disable, since VENC hwmod is not aware of 54MCLK.
 >
 >
-> On Mon, Jan 24, 2011 at 12:11:54PM +0530, G, Manjunath Kondaiah wrote:
->> Kevin, 
->> How about folding below changes into your patch since the UART dma irq
->> numbers are getting assigned from hwmod database.
->> 
->> -Manjunath
->> 
->> diff --git a/arch/arm/plat-omap/include/plat/dma-44xx.h
->> b/arch/arm/plat-omap/include/plat/dma-44xx.h
->> index 1f767cb..129d147 100644
->> --- a/arch/arm/plat-omap/include/plat/dma-44xx.h
->> +++ b/arch/arm/plat-omap/include/plat/dma-44xx.h
->> @@ -68,14 +68,6 @@
->>  #define OMAP44XX_DMA_SPI2_RX1                  46
->>  #define OMAP44XX_DMA_MMC2_TX                   47
->>  #define OMAP44XX_DMA_MMC2_RX                   48
->> -#define OMAP44XX_DMA_UART1_TX                  49
->> -#define OMAP44XX_DMA_UART1_RX                  50
->> -#define OMAP44XX_DMA_UART2_TX                  51
->> -#define OMAP44XX_DMA_UART2_RX                  52
->> -#define OMAP44XX_DMA_UART3_TX                  53
->> -#define OMAP44XX_DMA_UART3_RX                  54
->> -#define OMAP44XX_DMA_UART4_TX                  55
->> -#define OMAP44XX_DMA_UART4_RX                  56
->>  #define OMAP44XX_DMA_MMC4_TX                   57
->>  #define OMAP44XX_DMA_MMC4_RX                   58
->>  #define OMAP44XX_DMA_MMC5_TX                   59
->> diff --git a/arch/arm/plat-omap/include/plat/dma.h
->> b/arch/arm/plat-omap/include/plat/dma.h
->> index d1c916f..c5be190 100644
->> --- a/arch/arm/plat-omap/include/plat/dma.h
->> +++ b/arch/arm/plat-omap/include/plat/dma.h
->> @@ -159,12 +159,6 @@
->>  #define OMAP24XX_DMA_SPI2_RX1          46      /* S_DMA_45 */
->>  #define OMAP24XX_DMA_MMC2_TX           47      /* S_DMA_46 */
->>  #define OMAP24XX_DMA_MMC2_RX           48      /* S_DMA_47 */
->> -#define OMAP24XX_DMA_UART1_TX          49      /* S_DMA_48 */
->> -#define OMAP24XX_DMA_UART1_RX          50      /* S_DMA_49 */
->> -#define OMAP24XX_DMA_UART2_TX          51      /* S_DMA_50 */
->> -#define OMAP24XX_DMA_UART2_RX          52      /* S_DMA_51 */
->> -#define OMAP24XX_DMA_UART3_TX          53      /* S_DMA_52 */
->> -#define OMAP24XX_DMA_UART3_RX          54      /* S_DMA_53 */
->>  #define OMAP24XX_DMA_USB_W2FC_TX0      55      /* S_DMA_54 */
->>  #define OMAP24XX_DMA_USB_W2FC_RX0      56      /* S_DMA_55 */
->>  #define OMAP24XX_DMA_USB_W2FC_TX1      57      /* S_DMA_56 */
->> @@ -193,8 +187,6 @@
->>  #define OMAP34XX_DMA_USIM_TX           79      /* S_DMA_78 */
->>  #define OMAP34XX_DMA_USIM_RX           80      /* S_DMA_79 */
->>  
->> -#define OMAP36XX_DMA_UART4_TX          81      /* S_DMA_80 */
->> -#define OMAP36XX_DMA_UART4_RX          82      /* S_DMA_81 */
->>  /*----------------------------------------------------------------------------*/
->>  
->>  #define OMAP1_DMA_TOUT_IRQ             (1 << 0)
->> 
->> 
->> On Fri, Jan 21, 2011 at 02:30:15PM -0800, Kevin Hilman wrote:
->> > Now that omap_hwmod + omap_device is used for OMAP UART device and
->> > driver code, we no longer need the UART physical addresses in
->> > omap_globals.
->> > 
->> > Note that the #defines for the base addresses are still left in
->> > <plat/serial.h> since they are used by DEBUG_LL and uncompress code.
->> > 
->> > Build tested for OMAP1 (omap1_defconfig) and OMAP2+ (omap2plus_defconfig)
->> > 
->> > Signed-off-by: Kevin Hilman <khilman@ti.com>
->> > ---
->> > Applies on Tony's for-next branch.
->> > 
->> >  arch/arm/mach-omap2/common.c             |   14 --------------
->> >  arch/arm/plat-omap/include/plat/common.h |    4 ----
->> >  2 files changed, 0 insertions(+), 18 deletions(-)
->> > 
->> > diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
->> > index d5eaee3..8044c8a 100644
->> > --- a/arch/arm/mach-omap2/common.c
->> > +++ b/arch/arm/mach-omap2/common.c
->> > @@ -50,9 +50,6 @@ static struct omap_globals omap242x_globals = {
->> >  	.ctrl	= OMAP242X_CTRL_BASE,
->> >  	.prm	= OMAP2420_PRM_BASE,
->> >  	.cm	= OMAP2420_CM_BASE,
->> > -	.uart1_phys	= OMAP2_UART1_BASE,
->> > -	.uart2_phys	= OMAP2_UART2_BASE,
->> > -	.uart3_phys	= OMAP2_UART3_BASE,
->> >  };
->> >  
->> >  void __init omap2_set_globals_242x(void)
->> > @@ -71,9 +68,6 @@ static struct omap_globals omap243x_globals = {
->> >  	.ctrl	= OMAP243X_CTRL_BASE,
->> >  	.prm	= OMAP2430_PRM_BASE,
->> >  	.cm	= OMAP2430_CM_BASE,
->> > -	.uart1_phys	= OMAP2_UART1_BASE,
->> > -	.uart2_phys	= OMAP2_UART2_BASE,
->> > -	.uart3_phys	= OMAP2_UART3_BASE,
->> >  };
->> >  
->> >  void __init omap2_set_globals_243x(void)
->> > @@ -92,10 +86,6 @@ static struct omap_globals omap3_globals = {
->> >  	.ctrl	= OMAP343X_CTRL_BASE,
->> >  	.prm	= OMAP3430_PRM_BASE,
->> >  	.cm	= OMAP3430_CM_BASE,
->> > -	.uart1_phys	= OMAP3_UART1_BASE,
->> > -	.uart2_phys	= OMAP3_UART2_BASE,
->> > -	.uart3_phys	= OMAP3_UART3_BASE,
->> > -	.uart4_phys	= OMAP3_UART4_BASE,	/* Only on 3630 */
->> >  };
->> >  
->> >  void __init omap2_set_globals_3xxx(void)
->> > @@ -119,10 +109,6 @@ static struct omap_globals omap4_globals = {
->> >  	.prm	= OMAP4430_PRM_BASE,
->> >  	.cm	= OMAP4430_CM_BASE,
->> >  	.cm2	= OMAP4430_CM2_BASE,
->> > -	.uart1_phys	= OMAP4_UART1_BASE,
->> > -	.uart2_phys	= OMAP4_UART2_BASE,
->> > -	.uart3_phys	= OMAP4_UART3_BASE,
->> > -	.uart4_phys	= OMAP4_UART4_BASE,
->> >  };
->> >  
->> >  void __init omap2_set_globals_443x(void)
->> > diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
->> > index 29b2afb..1b8095b 100644
->> > --- a/arch/arm/plat-omap/include/plat/common.h
->> > +++ b/arch/arm/plat-omap/include/plat/common.h
->> > @@ -56,10 +56,6 @@ struct omap_globals {
->> >  	unsigned long   prm;            /* Power and Reset Management */
->> >  	unsigned long   cm;             /* Clock Management */
->> >  	unsigned long   cm2;
->> > -	unsigned long	uart1_phys;
->> > -	unsigned long	uart2_phys;
->> > -	unsigned long	uart3_phys;
->> > -	unsigned long	uart4_phys;
->> >  };
->> >  
->> >  void omap2_set_globals_242x(void);
->> > -- 
->> > 1.7.3.5
->> > 
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Current dss driver:
+> -------------------
+> 1.  Omapdss platform driver
+>         - initialises necessary Ips dss, dispc.
+>         - also initialises Ips like sdi, dsi, venc, rfbi
+>         - creates a custom bus and registers the display devices/drivers
+>         connected on the board to the custom bus.
+>
+> 2.  Suspend/resume of omapdss
+>         - in turn sends suspend/resume calls for each of the display devices
+>         registered to it.
+>
+> Modified change:
+> ---------------
+> Platform driver for each DSS HW IP in addition to the software "omap_display"
+> driver.
+>
+> Omapdss platform driver
+>         - initialises necessary h/w IPs' platform drivers [dss, dispc, dsi, venc, rfbi]
+> 	  and software libraries like dpi, sdi.
+>         - continues to have a custom bus and registers the display devices 
+>         and drivers connected on the board to the custom bus.
+>         - continues to handle suspend/resume of the display devices registered
+>         to the custom bus.
+>
+> DSS platform driver
+>         - initialises DSS IP alone
+> 	- Handles the clocks related to the DSS and other DSSHW IPs like RFBI,
+> 	DSI, VENC, DISPC.  Previously this was a part of "omapdss" driver in core.c
+> 	- Continues to handle the DSS IRQs.
+> 	- No suspend/resume hooks.
+>
+> DISPC platform driver
+>         - initialises DISPC IP alone
+> 	- Gets the required clock from DSS platform driver.
+> 	- No suspend/resume hooks.
+> 	- Continues to provide DISPC library functions.
+>
+> DSI platform driver
+>         - initialises DSI IP alone
+> 	- Gets the required clock from DSS platform driver.
+> 	- No suspend/resume hooks.
+> 	- Continues to provide DSI library functions.
+>
+> RFBI, VENC platform drivers
+>         - initialises DSI,VENC IPs
+> 	- Gets the required clock from DSS platform driver.
+> 	- No suspend/resume hooks.
+> 	- Continues to provide RFBI and VENC library functions.
+>
+> Testing:
+> ---------
+> The patches are tested on 2420-n800, 2430sdp, 3630zoom, 3430sdp.
+> Complete bootup with penguins on panel is done on 3430sdp.
+> For the rest of the mentioned platforms, kernel is built with "OMAP2_DSS"
+> and bootup is tested so that base address and clk_get calls are successful.
+>
+> DSS was built successfully as module, though not tested yet.
+>
+> Changes since v6:
+> -----------------
+> * board-zoom-peripherals.c: Added missing change of device name from omapdss to omap_display.
+> 	Found during testing on OMAP3630 on top of 
+> Changes since v5:
+> ----------------
+> 1) Following review comments incorporated:
+>  *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42031.html
+> 		Make sure display.c is built when DSS is enabled built-in or as a module.
+>  *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42083.html
+> 		hwmod and omap_device headers moved to patch 8 when they're
+> 		needed the first time.
+>  *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42094.html
+> 		- latency set to AUTO_ADJUST
+> 		- extra whitespaces removed.
+> 		- pdata memset to 0 before use.
+> 		- if omap_device_build fails, return error.
+>  *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42095.html
+> 		renamed *_deinit_* to *_uninit_*
+>
+>  *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42171.html
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42172.html
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42173.html
+> 		- added L3 and L4 firewall related data,
+> 		- corrected handling of .idlest_idle_bit v/w .idlest_stdby_bit
+> 		- no .idlest_*_bit setting for dependent hwmods
+> 		- corrected .user to add SDMA
+> 		- renamed dss_dss to dss_core
+> 		- hwmod for 3430es1 and later 3xxx are separated out, with some
+> 		  reuse of data.
+>  *	Removed forced-disable of dss clocks from omap_dss_remove.
+>
+> Changes since v4:
+> ----------------
+> 1) Following review comments incorporated:
+>  *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41970.html
+> 		Corrected the clocks to be enabled in omap_dss_probe.
+> Changes since v3:
+> ----------------
+> 1.) Following review comments incorporated:
+>  *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41705.html
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41683.html
+> 		Created a new display.c file for dss driver registration 
+> 		related code.	
+>
+>  *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41573.html
+> 		Changed the oh_name/dev_name handling in hwmod usage.
+>
+>  *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41753.html
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41718.html
+> 		removed device_initcall_sync(); init / deinit of each DSS h/w IP
+> 		platform drivers are done from omap_dss_probe() in sequence.
+>
+>  *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41754.html
+> 		clock patches were cleaned up as per review comments.
+>
+>  *	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41756.html
+> 		printk() => dev_dbg change was separated out.
+>
+>
+> Changes since v2:
+> -------------------
+> 1.) Following review comments incorporated:
+> 	Split the device/driver name change and registration patches logically.
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41205.html
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41204.html
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41203.html
+>
+> Changes since v1:
+> ------------------
+> 1.) Dynamically register for OMAP2,3 specific DSS HW IPs in devices.c
+> 2.) Following review comments incorporated:
+> 	Updation of all the board files on l-o dss2 branch as per
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36915.html
+> 	Comments incorporated in devices.c and display.h as per
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36919.html
+> 	Comments incorporated in dispc.c, dss.c, dsi.c, venc.c, rfbi.c 
+> 	so that platform_device is just above platform_driver registrations as per
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg36963.html
+> 3.) Squashed some of the patches to one patch.
+>
+> Changes since RFC:
+> -------------------
+> 1) All the platform driver registration except DSS, were within the file core.c.
+> Registeration of these driver got seperated to its own file.
+> 2) Usage of regulators by different drivers are implemented.
+> For Eg: Regulator used by VENC is moved to venc driver.  But vdda_dac would be 
+> needed by DPI and DSI as well.
+> 4) OMAP2420 and OMAP2430 hwmod database are generated in this v1.
+> 5) Module support for omapdss driver can continue as the DSS HW IP specific platform
+> drivers are decoupled from omapdss driver.
+> 6) Following review comments incorporated:
+> 	Changed the hwmod device name from "dss" to "dss_dss"
+> 	Changed name of core driver from "omapdss" to "omap_display" as it deals with panels.
+> 	Fixed comments on return values from platform_get_resource/irq functions.
+>
+> Patch Base:
+> ===========
+> Patch-set rebased and tested w/ Zoom3 (OMAP3630) on top of:
+> url = git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+> branch "master"
+> commit	e8883f8057c0f7c9950fa9f20568f37bfa62f34a
+> Description: Add linux-next specific files for 20110115
+> +
+> Patch mentioned in http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42384.html
+> [PATCH] OMAP: counter_32k: init clocksource as part of machine timer init
+>
+> (This patch is required for OMAP bootup w/ 20110115 linux-next)
+>
+> ----------------------------------------------------------------------------
+>
+> Senthilvadivu Guruswamy (15):
+>   OMAP2420: hwmod data: add DSS DISPC RFBI VENC
+>   OMAP2430: hwmod data: add DSS DISPC RFBI VENC
+>   OMAP3: hwmod data: add DSS DISPC RFBI DSI VENC
+>   OMAP2,3 DSS2 Change driver name to omap_display
+>   OMAP2,3 DSS2 Use Regulator init with driver name
+>   OMAP2,3: DSS2: board files: replace platform_device_register with
+>     omap_display_init()
+>   OMAP2,3: DSS2: Build omap_device for each DSS HWIP
+>   OMAP2,3: DSS2: DSS: create platform_driver, move init,exit to driver
+>   OMAP2,3: DSS2: Move clocks from core driver to dss driver
+>   OMAP2,3: DSS2: RFBI: create platform_driver, move init,exit to driver
+>   OMAP2,3: DSS2: DISPC: create platform_driver, move init,exit to
+>     driver
+>   OMAP2,3: DSS2: VENC: create platform_driver, move init,exit to driver
+>   OMAP2,3: DSS2: DSI: create platform_driver, move init,exit to driver
+>   OMAP2,3: DSS2: Use platform device to get baseaddr
+>   OMAP2,3: DSS2: Get DSS IRQ from platform device
+>
+> Sumit Semwal (3):
+>   OMAP2,3: DSS2: remove forced clk-disable from omap_dss_remove
+>   OMAP2,3: DSS2: Create new file display.c for central dss driver
+>     registration.
+>   OMAP2,3: DSS2: replace printk with dev_dbg in init
+>
+>  arch/arm/mach-omap2/Makefile                 |    3 +
+>  arch/arm/mach-omap2/board-3430sdp.c          |   26 +--
+>  arch/arm/mach-omap2/board-am3517evm.c        |   16 +-
+>  arch/arm/mach-omap2/board-cm-t35.c           |   22 +-
+>  arch/arm/mach-omap2/board-devkit8000.c       |   22 +-
+>  arch/arm/mach-omap2/board-igep0020.c         |   20 +-
+>  arch/arm/mach-omap2/board-omap3beagle.c      |   22 +-
+>  arch/arm/mach-omap2/board-omap3evm.c         |   30 +--
+>  arch/arm/mach-omap2/board-omap3pandora.c     |   17 +-
+>  arch/arm/mach-omap2/board-omap3stalker.c     |   26 +-
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |    4 +-
+>  arch/arm/mach-omap2/board-rx51-video.c       |   15 +-
+>  arch/arm/mach-omap2/board-zoom-display.c     |   15 +-
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |   12 +-
+>  arch/arm/mach-omap2/clock2420_data.c         |    8 +-
+>  arch/arm/mach-omap2/clock2430_data.c         |    8 +-
+>  arch/arm/mach-omap2/clock3xxx_data.c         |   14 +-
+>  arch/arm/mach-omap2/display.c                |   96 ++++++
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c   |  311 ++++++++++++++++++-
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c   |  284 ++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |  433 +++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/display.h    |   16 +
+>  arch/arm/plat-omap/include/plat/l3_2xxx.h    |   20 ++
+>  arch/arm/plat-omap/include/plat/l3_3xxx.h    |   20 ++
+>  arch/arm/plat-omap/include/plat/l4_2xxx.h    |   24 ++
+>  arch/arm/plat-omap/include/plat/l4_3xxx.h    |   10 +
+>  drivers/video/omap2/dss/core.c               |  448 ++------------------------
+>  drivers/video/omap2/dss/dispc.c              |  114 ++++---
+>  drivers/video/omap2/dss/dsi.c                |   78 ++++-
+>  drivers/video/omap2/dss/dss.c                |  419 +++++++++++++++++++++++-
+>  drivers/video/omap2/dss/dss.h                |   46 ++--
+>  drivers/video/omap2/dss/rfbi.c               |  118 ++++---
+>  drivers/video/omap2/dss/venc.c               |  125 +++++---
+>  33 files changed, 2055 insertions(+), 787 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/display.c
+>  create mode 100644 arch/arm/plat-omap/include/plat/l3_2xxx.h
+>  create mode 100644 arch/arm/plat-omap/include/plat/l3_3xxx.h
+>  create mode 100644 arch/arm/plat-omap/include/plat/l4_2xxx.h
