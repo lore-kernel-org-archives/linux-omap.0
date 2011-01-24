@@ -1,93 +1,74 @@
-From: hvaibhav@ti.com
-Subject: [PATCH] OMAP3EVM:FIX: Reset the SMSC911x Ethernet controller in board_init
-Date: Mon, 24 Jan 2011 20:11:48 +0530
-Message-ID: <1295880108-15584-1-git-send-email-hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH] OMAP3EVM: Made backlight GPIO default state to off
+Date: Mon, 24 Jan 2011 20:11:51 +0530
+Message-ID: <AANLkTinbJjrcP0EjjGTSL-9C4n5XTtON7byGq=8Ye0TG@mail.gmail.com>
+References: <hvaibhav@ti.com> <1295879772-14086-1-git-send-email-hvaibhav@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45424 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753088Ab1AXOly (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jan 2011 09:41:54 -0500
-In-Reply-To: <hvaibhav@ti.com>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:51465 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753001Ab1AXOmc convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Jan 2011 09:42:32 -0500
+Received: by mail-gy0-f174.google.com with SMTP id 11so1513480gyb.33
+        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 06:42:32 -0800 (PST)
+In-Reply-To: <1295879772-14086-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: charu@ti.com, khilman@ti.com, tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
+To: hvaibhav@ti.com
+Cc: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com, tony@atomide.com
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Mon, Jan 24, 2011 at 20:06,  <hvaibhav@ti.com> wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+> If you choose default output to DVI, the LCD backlight stays on,
+> since panel->disable function never gets called.
+>
+> So, during init put backlight GPIO to off state and the driver
+> code will decide which output to enable.
+>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/board-omap3evm.c | =A0 =A05 ++++-
+> =A01 files changed, 4 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-oma=
+p2/board-omap3evm.c
+> index 1b8a806..3f5117a 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -448,7 +448,10 @@ static int omap3evm_twl_gpio_setup(struct device=
+ *dev,
+>
+> =A0 =A0 =A0 =A0/* TWL4030_GPIO_MAX + 0 =3D=3D ledA, LCD Backlight con=
+trol */
+> =A0 =A0 =A0 =A0gpio_request(gpio + TWL4030_GPIO_MAX, "EN_LCD_BKL");
 
-With addition of HWMOD support to GPIO, the Ethernet controller
-goes undetected for OMAP35xEVM. So explicitely assert the reset signal to
-Ethernet controller smsc911x -
+Check for the return value and then only proceed
 
-	- GPIO7 (>=RevG version of EVM's)
-	- GPIO64 (<=RevD version of EVM's)
+> - =A0 =A0 =A0 gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+> + =A0 =A0 =A0 if (get_omap3_evm_rev() >=3D OMAP3EVM_BOARD_GEN_2)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_direction_output(gpio + TWL4030_GP=
+IO_MAX, 1);
 
-I have tested this patch on RevG version of EVM with ES3.1 Si.
-This patch is based on intial version from Charulatha V.
+Check for the return value
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
-NOTE: I have not been able to test it on older version of EVM's.
+> + =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_direction_output(gpio + TWL4030_GP=
+IO_MAX, 0);
 
- arch/arm/mach-omap2/board-omap3evm.c |   27 ++++++++++++++++++++++++++-
- 1 files changed, 26 insertions(+), 1 deletions(-)
+Ditto
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 212d88c..336c012 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -124,10 +124,15 @@ static struct platform_device omap3evm_smsc911x_device = {
-
- static inline void __init omap3evm_init_smsc911x(void)
- {
--	int eth_cs;
-+	int eth_cs, eth_rst;
- 	struct clk *l3ck;
- 	unsigned int rate;
-
-+	if (get_omap3_evm_rev() == OMAP3EVM_BOARD_GEN_1)
-+		eth_rst = 64;
-+	else
-+		eth_rst = 7;
-+
- 	eth_cs = OMAP3EVM_SMSC911X_CS;
-
- 	l3ck = clk_get(NULL, "l3_ck");
-@@ -136,6 +141,22 @@ static inline void __init omap3evm_init_smsc911x(void)
- 	else
- 		rate = clk_get_rate(l3ck);
-
-+	/* Configure ethernet controller reset gpio */
-+	if (cpu_is_omap3430()) {
-+		if (gpio_request(eth_rst, "SMSC911x gpio") < 0) {
-+			pr_err(KERN_ERR "Failed to request GPIO7 for smsc911x\n");
-+			return;
-+		}
-+
-+		gpio_direction_output(eth_rst, 1);
-+		/* reset pulse to ethernet controller*/
-+		usleep_range(150, 220);
-+		gpio_set_value(eth_rst, 0);
-+		usleep_range(150, 220);
-+		gpio_set_value(eth_rst, 1);
-+		usleep_range(1, 2);
-+	}
-+
- 	if (gpio_request(OMAP3EVM_ETHR_GPIO_IRQ, "SMSC911x irq") < 0) {
- 		printk(KERN_ERR "Failed to request GPIO%d for smsc911x IRQ\n",
- 			OMAP3EVM_ETHR_GPIO_IRQ);
-@@ -703,6 +724,10 @@ static struct omap_board_mux omap35x_board_mux[] __initdata = {
- 	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
- 				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
- 				OMAP_PIN_OFF_WAKEUPENABLE),
-+	OMAP3_MUX(SYS_BOOT5, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-+				OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(GPMC_WAIT2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-+				OMAP_PIN_OFF_NONE),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
-
+>
+> =A0 =A0 =A0 =A0/* gpio + 7 =3D=3D DVI Enable */
+> =A0 =A0 =A0 =A0gpio_request(gpio + 7, "EN_DVI");
+> --
+> 1.6.2.4
+>
 --
-1.6.2.4
-
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
