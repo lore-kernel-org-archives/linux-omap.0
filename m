@@ -1,74 +1,165 @@
-From: zzz <cooper.zp@gmail.com>
-Subject: Re: Enabling TPS65950 / TWL4030 Real-time clock functions
-Date: Mon, 24 Jan 2011 02:30:29 +0000 (UTC)
-Message-ID: <loom.20110124T032239-959@post.gmane.org>
-References: <4C8A2DCE-F2C2-419C-AD4A-E78BB796BCB8@mac.com> <EAF47CD23C76F840A9E7FCE10091EFAB02B5BF2375@dbde02.ent.ti.com> <B78DF7E1-501F-43A5-AF3F-91E7E9AED466@mac.com> <EAF47CD23C76F840A9E7FCE10091EFAB02B5BF260A@dbde02.ent.ti.com> <DF380C12-AA52-49AB-ACE6-EE084FAFFEB4@mac.com>
+From: "Lesly A M" <leslyam@ti.com>
+Subject: RE: OMAP3 - PM - Question - Disabling CLKEN and HFCLKOUT signals   
+        from TWL4030 scripts
+Date: Mon, 24 Jan 2011 10:52:36 +0530 (IST)
+Message-ID: <44872.10.24.255.17.1295846556.squirrel@dbdmail.itg.ti.com>
+References: <005301cbb947$6d682730$48387590$@com>
+    <23149.10.24.255.17.1295604867.squirrel@dbdmail.itg.ti.com>
+    <001501cbb993$b25c0fe0$17142fa0$@com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:46383 "EHLO lo.gmane.org"
+Received: from comal.ext.ti.com ([198.47.26.152]:46541 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752940Ab1AXDPF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 23 Jan 2011 22:15:05 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1PhCtT-00022w-Um
-	for linux-omap@vger.kernel.org; Mon, 24 Jan 2011 04:15:04 +0100
-Received: from smtp.tnl-group.co.nz ([210.55.22.146])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 04:15:03 +0100
-Received: from cooper.zp by smtp.tnl-group.co.nz with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 04:15:03 +0100
+	id S1751118Ab1AXFWi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Jan 2011 00:22:38 -0500
+In-Reply-To: <001501cbb993$b25c0fe0$17142fa0$@com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Nagendra <nagendra@mistralsolutions.com>
+Cc: linux-omap@vger.kernel.org, ratheesh@mistralsolutions.com
 
-Elvis Dowson <elvis.dowson <at> mac.com> writes:
+Hi Nagendra,
 
-> 
-> Hi Santosh,
-> 
-> On Aug 3, 2009, at 9:46 AM, Shilimkar, Santosh wrote:
-> 
-> >>
-> > Not sure whether I got your question correctly. The software driver  
-> > you already know. Are you asking where to plug the backup battery on  
-> > hardware pins?
-> > I don't have Gumstix Overo hardware but if above is your question  
-> > and schematics are available then it can be traced.
-> 
-> The TPS65950 is on the gumstix overo motherboard, and no schematics  
-> are available for that part. I'll take a look at the TPS65950  
-> datasheet and see if any of the pins are available on the gumstix  
-> Palo43 expansion board, for the battery. I do recall them saying that  
-> battery functions were disabled for safety reasons.
-> 
-> In any case, thanks for your help in pointing me to the correct rtc  
-> driver!
-> 
-> Best regards,
-> 
-> Elvis
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo <at> vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> Hi Nagendra,
+>
+>> Hi All,
+>>
+>> We are working on Power management on OMAP3 (3530) and I am trying to
+>> disable CLKEN and HFCLKOUT through TWL4030 power scripts. However we have
+>> not been able to achieve this.
+>>
+>> Following are the changes and tests done so far.
+>>
+>> - VAUX1, CLKEN and HFCLKOUT were assigned to P1 group.
+>> - Wrote Singular messages to turn on/off these signals in TWL4030 scripts.
+>> - We observed that VAUX1 is able to switch ON/OFF properly as per the
+> script
+>> but HFCLKOUT and CLKEN are not behaving as expected.
+>> - However if we try writing CLKEN_DEV_GRP to zero, CLKEN is going low.
+>> - We have made sure that SYS_OFF_MODE and CLK_REQ signals go low during
+> the
+>> system OFF mode, LVL_WAKEUP bit enabled in Px_SW_EVENTS, and STS_CHG bit
+> in
+>> STS_HW_CONDITIONS is zero.
+>>
+>> Is there anything that I am missing? Kindly let me know.
+>
+> Did try probing the sys_clkreq from OMAP?
+> <Nagendra> Yes nSLEEP1, nSLEEP2 and SYS_CLK_REQ signals go low during system
+> OFF mode.
+>
+> Are you sending SLEEP/OFF command in singular msg?
+> <Nagendra> Yes.
+>
+> Also check the HFCLKOUT_REMAP register for SLEEP_STATE[3:0], if using SLEEP
+> cmd.
+> <Nagendra>
+> We are setting SLEEP_STATE field of CLKEN and HFCLKOUT  to OFF mode.
+>
+> PSP version : 3.0.1.6
+>
+> Following is the TWL4030 power scripts that we are trying to get CLKEN
+> signal to OFF state. This is based on rx51-peripherals.c
+>
+> -----------------------------------------------
+> static struct twl4030_ins sleep_on_seq[] __initdata = {
+>         {MSG_SINGULAR(DEV_GRP_P1, RES_CLKEN, RES_STATE_OFF), 2},
+
+you have to sent sleep cmd to RES_HFCLKOUT also.(* attach HFCLKOUT to P3)
+
+> };
+>
+> static struct twl4030_script sleep_on_script __initdata = {
+>         .script = sleep_on_seq,
+>         .size   = ARRAY_SIZE(sleep_on_seq),
+>         .flags  = TWL4030_SLEEP_SCRIPT,
+> };
+>
+> static struct twl4030_ins wakeup_seq[] __initdata = {
+>         {MSG_SINGULAR(DEV_GRP_P1, RES_CLKEN, RES_STATE_ACTIVE), 2},
+> };
+>
+> static struct twl4030_script wakeup_script __initdata = {
+>         .script = wakeup_seq,
+>         .size   = ARRAY_SIZE(wakeup_seq),
+>         .flags  = TWL4030_WAKEUP12_SCRIPT,
+> };
+>
+> static struct twl4030_ins wakeup_p3_seq[] __initdata = {
+>         {MSG_SINGULAR(DEV_GRP_P3, RES_CLKEN, RES_STATE_ACTIVE), 2},
+
+you have to wakeup cmd to RES_HFCLKOUT also. (* attach HFCLKOUT to P3)
+
+> };
+>
+> static struct twl4030_script wakeup_p3_script __initdata = {
+>         .script = wakeup_p3_seq,
+>         .size   = ARRAY_SIZE(wakeup_p3_seq),
+>         .flags  = TWL4030_WAKEUP3_SCRIPT,
+> };
+>
+> static struct twl4030_ins wrst_seq[] __initdata = {
+> /*
+>  * Reset twl4030.
+>  * Reset VDD1 regulator.
+>  * Reset VDD2 regulator.
+>  * Reset VPLL1 regulator.
+>  * Enable sysclk output.
+>  * Reenable twl4030.
+>  */
+>         {MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
+>         {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 0, 1, RES_STATE_ACTIVE),
+>                 0x13},
+>         {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 3, RES_STATE_OFF),
+> 0x13},
+>         {MSG_SINGULAR(DEV_GRP_NULL, RES_VDD1, RES_STATE_WRST), 0x13},
+>         {MSG_SINGULAR(DEV_GRP_NULL, RES_VDD2, RES_STATE_WRST), 0x13},
+>         {MSG_SINGULAR(DEV_GRP_NULL, RES_VPLL1, RES_STATE_WRST), 0x35},
+>         {MSG_SINGULAR(DEV_GRP_P3, RES_HFCLKOUT, RES_STATE_ACTIVE), 2},
+>         {MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
+> };
+>
+> static struct twl4030_script wrst_script __initdata = {
+>         .script = wrst_seq,
+>         .size   = ARRAY_SIZE(wrst_seq),
+>         .flags  = TWL4030_WRST_SCRIPT,
+> };
+>
+> static struct twl4030_script *twl4030_scripts[] __initdata = {
+>         /* wakeup12 script should be loaded before sleep script, otherwise a
+>            board might hit retention before loading of wakeup script is
+>            completed. This can cause boot failures depending on timing
+> issues.
+>         */
+>         &wakeup_script,
+>         &sleep_on_script,
+>         &wakeup_p3_script,
+>         &wrst_script,
+> };
+>
+> static struct twl4030_resconfig twl4030_rconfig[] __initdata = {
+>         { .resource = RES_CLKEN, .devgroup = DEV_GRP_P1,
+>           .type = -1, .type2 = -1 , .remap_off = RES_STATE_OFF, .remap_sleep
+> = RES_STATE_OFF
+>         },
+>         { .resource = RES_HFCLKOUT, .devgroup = -1,
+>           .type = -1, .type2 = -1, .remap_off = RES_STATE_OFF, .remap_sleep
+> = RES_STATE_OFF
+>         },
+>
+>         { 0, 0},
+> };
+> ----------------------------------------------------------
+
+>> Part number of TPS used in our board is TPS65950 BZXNR
+>>
+
+You are using which code base (mainline kernel) ?
+
+Regards,
+Lesly A M
 
 
-hi there,
-
-if you measure the pin 'Vbackup' after power on the overo, you will see the
-voltage is 3.1V. That means battery backup pin has been enabled in the new
-kernel. here is the link which shows how to use coin cell battery to support the
-internal real time clock.
-
-http://studyard.blogspot.com/2010/12/battery-backup-for-on-overo-board-rtc.html
-
-cheers
 
