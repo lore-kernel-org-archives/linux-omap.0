@@ -1,51 +1,78 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 00/13] OMAP: Basic DVFS Framework
-Date: Mon, 24 Jan 2011 17:29:24 +0200
-Message-ID: <20110124152924.GB2838@legolas.emea.dhcp.ti.com>
-References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
- <20110122171805.GA14774@legolas.emea.dhcp.ti.com>
- <08a041d030691db0dd00737a6342d3d1@mail.gmail.com>
- <20110124061847.GH2756@legolas.emea.dhcp.ti.com>
- <f5a0abe43775faf0ecbb4cf08c842bb7@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] AM/DM37x: DSS mux configuration for >Rev-B processor
+ cards
+Date: Mon, 24 Jan 2011 21:06:53 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404BD65F513@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+	<1295879651-13570-1-git-send-email-hvaibhav@ti.com>
+ <AANLkTikRn4dz_u0CGL5jrsoAoQrF03wp_DBs7XbYAWXa@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:55137 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752993Ab1AXP3c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jan 2011 10:29:32 -0500
-Received: by mail-vw0-f45.google.com with SMTP id 12so1750708vws.18
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 07:29:31 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <f5a0abe43775faf0ecbb4cf08c842bb7@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:47629 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753035Ab1AXPhF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jan 2011 10:37:05 -0500
+In-Reply-To: <AANLkTikRn4dz_u0CGL5jrsoAoQrF03wp_DBs7XbYAWXa@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, patches@linaro.org
+To: satish kumar <gsatish10@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "tony@atomide.com" <tony@atomide.com>
 
-Hi,
 
-On Mon, Jan 24, 2011 at 07:55:21PM +0530, Vishwanath Sripathy wrote:
-> It is not just implementation. Even the underlying design of DVFS is
-> closely coupled with these layers. If we try to split this DVFS framework
-> into generic and OMAP specific part, then the flow will become too
-> cumbersome since there are will be too many interactions between common
-> and OMAP part. Also it will reduce the code readability aspect as well.
-> I do not think it's worth adding some much of complexity and effort just
-> to avoid a driver using platform specific function pointers to call these
-> APIs.
+> From: satish kumar [mailto:gsatish10@gmail.com]=20
+> Sent: Monday, January 24, 2011 8:56 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; tomi.valkeinen@nokia.com; tony@atomid=
+e.com
+> Subject: Re: [PATCH] AM/DM37x: DSS mux configuration for >Rev-B proce=
+ssor > cards
 
-if what you're saying was really true then we wouldn't have generic
-clock API, pm_runtime, pm QoS, CPUFreq, CPUIdle, etc etc. Those are very
-much coupled with the underlying Hardware. In fact, every single thing
-is very much coupled with the underlying hardware. And even so we manage
-to have all of the above plus GPIOLIB, generic IRQ handling (even
-threaded), DMA API (which we don't use yet), etc etc etc.
+> Hi This is satish
 
-So, IMHO, being coupled to underlying HW is not excuse for not making a
-generic API, quite the opposite actually, it should be a motivation.
+Satish,
 
--- 
-balbi
+Very first thing is, no html posting here.=20
+
+> With omap4 processor in =A0samsung board =A0while booting,=A0I am get=
+ting=20
+> following error.
+
+Unfortunately I have not started with OMAP4 yet, so atleast at this poi=
+nt of time will not be able to help you on OMAP4 specific queries.
+
+But yes, DSS point of you I should be able to.
+
+
+> "omapdss MANAGER error: mainclk disabled while tryingmgr_apply,=20
+> returning "
+
+> can you please provide me the solution for the above error.
+
+Which kernel version (OR TI release) are you using? I could not able to=
+ find this error message in mainline code, so it could be custom implem=
+entation.
+
+> I am getting one patch with commit Id: =A0 =A0commit
+> d57f72dd11b63eb514d9ea14f8bf79458eccdd37
+> but it wont removes my error.
+
+This won't help, since I could not able to trace it. Provide complete p=
+atch so that we can help.
+
+Thanks,
+Vaibhav
+
+> thanks in advance
+> Satish.G
+=A0
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
