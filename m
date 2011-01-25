@@ -1,193 +1,80 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP: PM: DMA: Enable runtime pm
-Date: Mon, 24 Jan 2011 16:26:01 -0800
-Message-ID: <871v414yna.fsf@ti.com>
-References: <1295860819-20142-1-git-send-email-manjugk@ti.com>
-	<87d3nm7zb0.fsf@ti.com> <20110124235205.GA6351@manju-desktop>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH v4 1/4] TI816X: Update common omap platform files
+Date: Tue, 25 Jan 2011 06:40:42 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036A986366@dbde02.ent.ti.com>
+References: <1294677465-18658-1-git-send-email-hemantp@ti.com>
+	<87oc79evo2.fsf@ti.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B036A8DB4B3@dbde02.ent.ti.com>
+ <87aaiq9ijf.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:35909 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751458Ab1AYA0I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jan 2011 19:26:08 -0500
-Received: by gwj15 with SMTP id 15so1607811gwj.35
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 16:26:05 -0800 (PST)
-In-Reply-To: <20110124235205.GA6351@manju-desktop> (Manjunath Kondaiah G.'s
-	message of "Tue, 25 Jan 2011 05:22:05 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:40115 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751344Ab1AYBKw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jan 2011 20:10:52 -0500
+In-Reply-To: <87aaiq9ijf.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+Kevin Hilman wrote on Tuesday, January 25, 2011 1:33 AM:
 
-> Kevin,
->
-> On Mon, Jan 24, 2011 at 01:43:31PM -0800, Kevin Hilman wrote:
->> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> "Pedanekar, Hemant" <hemantp@ti.com> writes:
+> 
+>> Hi Kevin,
 >> 
->> > From: Manjunath G Kondaiah <manjugk@ti.com>
->> >
->> > Enable runtime pm and use pm_runtime_get_sync and pm_runtime_put
->> > for OMAP DMA driver.
->> >
->> > Since DMA driver callback will happen from interrupt context and
->> > DMA client driver will release all DMA resources from interrupt
->> > context itself, pm_runtime_put_sync() cannot be used in DMA driver.
->> > Instead, pm_runtime_put() is used which is asynchronous call and
->> > gets executed in work queue.
+>> Hilman, Kevin wrote on Saturday, January 22, 2011 4:01 AM:
 >> 
->> It's fine that the asynchronous version of put is uses (it's actually
->> preferred.)  However, the description is confusing here.  You talk about
->> driver callbacks here but in the patch, your calling _put() from
->> omap_dma_free(), not from the callback.
->
-> All dma client drivers are calling omap_dma_free from callback
-> context. 
-
-Maybe so, but that's not a requirement of the API.  I have a DMA test
-driver that doesn't do that.
-
-It's also legitimate (and IMO, expected) for a client driver to, for
-example do a omap_dma_request() on module load and omap_free_dma() on
-module unload and only use omap_start_dma() + callbacks for xfers.
-It would be nice (and IMO, expected) that the channels would go idle
-between xfers (using the autosuspend feature for timeouts.)
-
-> I can update this info in patch description if it is useful.
->
+>>> Hi Hemant,
+>>> 
+>>> Hemant Pedanekar <hemantp@ti.com> writes:
+>>> 
+>>>> This patch updates the common platform files with TI816X support. Also
+>>>> adds new files for TI816X module base addresses and irq
+> definitions.
+>>> [...]
+>>> 
+>>>> diff --git a/arch/arm/plat-omap/include/plat/irqs-ti816x.h
+>>> b/arch/arm/plat-omap/include/plat/irqs-ti816x.h
+>>>> new file mode 100644
+>>>> index 0000000..3ec5d1b
+>> [...]
+>>>> +#define TI816X_IRQ_SECPUBINT	116
+>>>> +#define TI816X_IRQ_SECSECINT	117
+>>>> +#define TI816X_IRQ_SECPUBSWINT	118
+>>>> +#define TI816X_IRQ_SECSECSWINT	119
+>>>> +#define TI816X_IRQ_SMRFLX0	120
+>>>> +#define TI816X_IRQ_SMRFLX1	121
+>>>> +#define TI816X_IRQ_SYS_MMU	122
+>>>> +#define TI816X_IRQ_MC_MMU	123
+>>>> +#define TI816X_IRQ_DMM		124
+>>>> +
+>>>> +
+>>>> +#endif
+>>> 
+>>> For new platforms, We don't need to have a list of all the IRQ numbers.
+>>> 
+>>> Driver code should always be getting IRQ numbers (and base addresses
+>>> etc.) from struct resource/platform_data, which is populated from
+>>> omap_hwmod. 
+>>> 
 >> 
->> You're also calling _get() from the request.  That means, as long as the
->> DMA channel is allocated, it will be active.   
+>> Are you suggesting to get rid of this file altogether or the IRQs which
+>> may never be used from kernel be removed from this file (and added later
+>> If needed)? 
 >> 
->> Wouldn't it be better to do the 'get' when the channel is started
->
-> No. omap_dma_request will call omap_clear_dma which in turn access all channel
-> specific registers for writing zeros.
+>> Or shall I add this file only in hwmod patch which will be submitted later?
+> 
+> You can get rid of the file altogether.  Even the hwmod data can just
+> have IRQ numbers and you shouldn't need to add a header file with the
+> defines. 
+> 
+> Kevin
 
-Of course, you always have to do get/put around any device access.
+Ok got it. Thanks.
 
->> and the 'put' when the callback has finished, possibly using the
->
-> after omap_free_dma, none of the dma registers are accessed hence it is safe to
-> use _put immediately after free_dma.
-
-Right, but my point above is: what if the user does not call free_dma?
-What if the client will be using the channel again sometime in the
-future, but will be idle.   What I would expect is that the channel
-could go idle until another xfer is initiated rather than waiting for
-the channel to be freed.
-
-> Also, dma driver is not aware of callback completion status since it will be
-> executed in client driver.
-
-Why not?  DMA driver knows when the callback returns.
-
-Kevin
-
->> 'autosuspend' feature with a timeout so that back-to-back DMA transfers
->> will not have have additional latency between transfers?
->> 
->> > Boot tested on OMAP4 blaze and all applicable tests are executed
->> > along with dma hwmod series.
->> 
->> Any OMAP2 or OMAP3 testing?
->> 
->> > Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
->> > ---
->> > Discussion and alignment for using runtime API's in DMA can be accessed at:
->> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37819.html
->> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38355.html
->> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38391.html
->> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38400.html
->> >
->> >  arch/arm/plat-omap/dma.c |   18 +++++++++++++++++-
->> >  1 files changed, 17 insertions(+), 1 deletions(-)
->> >
->> > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
->> > index c4b2b47..48ee292 100644
->> > --- a/arch/arm/plat-omap/dma.c
->> > +++ b/arch/arm/plat-omap/dma.c
->> > @@ -35,6 +35,7 @@
->> >  #include <linux/io.h>
->> >  #include <linux/slab.h>
->> >  #include <linux/delay.h>
->> > +#include <linux/pm_runtime.h>
->> >  
->> >  #include <asm/system.h>
->> >  #include <mach/hardware.h>
->> > @@ -58,6 +59,7 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
->> >  #define OMAP_FUNC_MUX_ARM_BASE		(0xfffe1000 + 0xec)
->> >  
->> >  static struct omap_system_dma_plat_info *p;
->> > +static struct platform_device           *pd;
->> >  static struct omap_dma_dev_attr *d;
->> >  
->> >  static int enable_1510_mode;
->> > @@ -676,6 +678,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
->> >  	unsigned long flags;
->> >  	struct omap_dma_lch *chan;
->> >  
->> > +	pm_runtime_get_sync(&pd->dev);
->> >  	spin_lock_irqsave(&dma_chan_lock, flags);
->> >  	for (ch = 0; ch < dma_chan_count; ch++) {
->> >  		if (free_ch == -1 && dma_chan[ch].dev_id == -1) {
->> > @@ -686,6 +689,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
->> >  	}
->> >  	if (free_ch == -1) {
->> >  		spin_unlock_irqrestore(&dma_chan_lock, flags);
->> > +		pm_runtime_put(&pd->dev);
->> >  		return -EBUSY;
->> >  	}
->> >  	chan = dma_chan + free_ch;
->> > @@ -779,7 +783,7 @@ void omap_free_dma(int lch)
->> >  		p->dma_write(0, CCR, lch);
->> >  		omap_clear_dma(lch);
->> >  	}
->> > -
->> > +	pm_runtime_put(&pd->dev);
->> >  	spin_lock_irqsave(&dma_chan_lock, flags);
->> >  	dma_chan[lch].dev_id = -1;
->> >  	dma_chan[lch].next_lch = -1;
->> > @@ -1979,6 +1983,7 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
->> >  		return -EINVAL;
->> >  	}
->> >  
->> > +	pd			= pdev;
->> 
->> minor: platform_device pointers are more commonly named pdev
->> 
->> >  	d			= p->dma_attr;
->> >  	errata			= p->errata;
->> >  
->> > @@ -2000,6 +2005,9 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
->> >  		}
->> >  	}
->> >  
->> > +	pm_runtime_enable(&pd->dev);
->> > +	pm_runtime_get_sync(&pd->dev);
->> > +
->> >  	spin_lock_init(&dma_chan_lock);
->> >  	for (ch = 0; ch < dma_chan_count; ch++) {
->> >  		omap_clear_dma(ch);
->> > @@ -2065,6 +2073,14 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
->> >  		dma_chan[1].dev_id = 1;
->> >  	}
->> >  	p->show_dma_caps();
->> > +
->> > +	/*
->> > +	 * Note: If dma channels are reserved through boot paramters,
->> > +	 * then dma device is always enabled.
->> > +	 */
->> > +	if (!omap_dma_reserve_channels)
->> > +		pm_runtime_put(&pd->dev);
->> > +
->> 
->> Readability would be improved if there was an unconditional
->> pm_runtime_put() at the end of this function preceeded by an extra
->> pm_runtime_get() (async version) if reserve_channels has been used.
-> ok. I will update.
->
-> -Manjunath
+   Hemant
