@@ -1,82 +1,67 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] OMAP: fix fncpy API call
-Date: Tue, 25 Jan 2011 18:34:29 +0100
-Message-ID: <AANLkTikgdCPEzpfjPMTWy+4cLnUky5GeY4E8LLYkyQmA@mail.gmail.com>
-References: <1295976079-21228-1-git-send-email-j-pihet@ti.com>
-	<AANLkTimzNyx9a+440v6PufmJ94EjcyGZ71ndffEHz5i1@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 2/5] OMAP3EVM: Add vio regulator supply required for ads7846 TSC driver
+Date: Tue, 25 Jan 2011 23:07:38 +0530
+Message-ID: <1295977061-11086-3-git-send-email-hvaibhav@ti.com>
+References: <1295977061-11086-1-git-send-email-hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:44908 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751301Ab1AYRea convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 12:34:30 -0500
-Received: by qwa26 with SMTP id 26so10680qwa.19
-        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 09:34:30 -0800 (PST)
-In-Reply-To: <AANLkTimzNyx9a+440v6PufmJ94EjcyGZ71ndffEHz5i1@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:48289 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753057Ab1AYRht (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 12:37:49 -0500
+In-Reply-To: <1295977061-11086-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-On Tue, Jan 25, 2011 at 6:30 PM, Dave Martin <dave.martin@linaro.org> w=
-rote:
-> On Tue, Jan 25, 2011 at 5:21 PM, =A0<jean.pihet@newoldbits.com> wrote=
-:
->> From: Jean Pihet <j-pihet@ti.com>
->>
->> Fix a potential problem with function types when calling the
->> fncpy API to copy the PM code functions to SRAM.
->>
->> Tested on OMAP3 in low power modes (RET/OFF)
->> using omap2plus_defconfig with !CONFIG_THUMB2_KERNEL.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->> ---
->> =A0arch/arm/plat-omap/include/plat/sram.h | =A0 =A02 +-
->> =A01 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-=
-omap/include/plat/sram.h
->> index d673f2c..6a2166d 100644
->> --- a/arch/arm/plat-omap/include/plat/sram.h
->> +++ b/arch/arm/plat-omap/include/plat/sram.h
->> @@ -21,7 +21,7 @@ extern void *omap_sram_push_address(unsigned long =
-size);
->> =A0 =A0 =A0 =A0typeof(&funcp) _res =3D NULL; =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
->> =A0 =A0 =A0 =A0void *_sram_address =3D omap_sram_push_address(size);=
- =A0 =A0 \
->> =A0 =A0 =A0 =A0if (_sram_address) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 _res =3D fncpy(_sram_address, &funcp, =
-size); =A0 =A0 =A0\
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 _res =3D fncpy(_sram_address, &(funcp)=
-, size); =A0 =A0\
->
-> If you're doing this, you should also have typeof(&(funcp)) above.
-Doh! :p
+Add vio regulator supply, needed for ads7846 touchscreen controller
+driver.
 
-Let me submit a new version asap.
+Tested on OMAP3 (ES3.1 Si) RevG version of EVM.
 
-Jean
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
->
-> Cheers
-> ---Dave
->
->> =A0 =A0 =A0 =A0_res; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
->> =A0})
->>
->> --
->> 1.7.1
->>
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 8d2e413..dcef454 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -571,6 +571,25 @@ static struct regulator_init_data omap3_evm_vpll2 = {
+ 	.consumer_supplies	= &omap3_evm_vpll2_supply,
+ };
+ 
++/* ads7846 on SPI */
++static struct regulator_consumer_supply omap3evm_vio_supply =
++	REGULATOR_SUPPLY("vcc", "spi1.0");
++
++/* VIO for ads7846 */
++static struct regulator_init_data omap3evm_vio = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &omap3evm_vio_supply,
++};
++
+ static struct twl4030_platform_data omap3evm_twldata = {
+ 	.irq_base	= TWL4030_IRQ_BASE,
+ 	.irq_end	= TWL4030_IRQ_END,
+@@ -583,6 +602,7 @@ static struct twl4030_platform_data omap3evm_twldata = {
+ 	.codec		= &omap3evm_codec_data,
+ 	.vdac		= &omap3_evm_vdac,
+ 	.vpll2		= &omap3_evm_vpll2,
++	.vio		= &omap3evm_vio,
+ };
+ 
+ static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
+-- 
+1.6.2.4
+
