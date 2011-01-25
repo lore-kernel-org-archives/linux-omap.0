@@ -1,61 +1,141 @@
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: Re: [PATCH 03/14] ARM: v6k: remove CPU_32v6K dependencies in
- asm/spinlock.h
-Date: Tue, 25 Jan 2011 16:21:08 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1101251618230.8580@xanadu.home>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk> <E1PeueP-0003SR-03@rmk-PC.arm.linux.org.uk> <AANLkTinnhivretaRHpYwCYouk-_jWKZQEo7x4sbheJVL@mail.gmail.com> <20110125165919.GD17286@n2100.arm.linux.org.uk> <AANLkTimK06nJPtQoym3HxXeDD-s4nUrN0vWjp_JcgTjx@mail.gmail.com>
- <20110125174636.GE17286@n2100.arm.linux.org.uk>
+From: "Tardy, Pierre" <pierre.tardy@intel.com>
+Subject: RE: [PATCH v1 1/3]mmc: implemented runtime pm for mmc host
+Date: Tue, 25 Jan 2011 21:34:28 +0000
+Message-ID: <8250E4885F9967469CAC3FB5CBA2CE69934EFA98B2@irsmsx501.ger.corp.intel.com>
+References: <20110114082310.GB27523@intel.com>
+	<8250E4885F9967469CAC3FB5CBA2CE69934E7AA2FE@irsmsx501.ger.corp.intel.com>
+	<5D8008F58939784290FAB48F54975198351D4FA654@shsmsx502.ccr.corp.intel.com>
+	<8250E4885F9967469CAC3FB5CBA2CE69934E7AAB20@irsmsx501.ger.corp.intel.com>
+	<5D8008F58939784290FAB48F5497519835247E72AD@shsmsx502.ccr.corp.intel.com>
+	<8250E4885F9967469CAC3FB5CBA2CE69934E7AACCC@irsmsx501.ger.corp.intel.com>
+	<20110120050803.GA5732@void.printf.net>
+ <AANLkTimZyv9f5b5VxmmYyO3qPrb9Y25-=yUV_GYma3e_@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1734949911-1295990470=:8580"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:37762 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754051Ab1AYVVM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 16:21:12 -0500
-Received: by vws16 with SMTP id 16so150117vws.19
-        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 13:21:11 -0800 (PST)
-In-Reply-To: <20110125174636.GE17286@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimZyv9f5b5VxmmYyO3qPrb9Y25-=yUV_GYma3e_@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: Linus Walleij <linus.ml.walleij@gmail.com>, Chris Ball <cjb@laptop.org>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+> -----Original Message-----
+> From: Linus Walleij [mailto:linus.ml.walleij@gmail.com]
+> Sent: Monday, January 24, 2011 11:11 PM
+> To: Chris Ball
+> Cc: Tardy, Pierre; linux-mmc@vger.kernel.org; Ohad Ben-Cohen; linux-o=
+map Mailing List
+> Subject: Re: [PATCH v1 1/3]mmc: implemented runtime pm for mmc host
+>=20
+> 2011/1/20 Chris Ball <cjb@laptop.org>:
+> > On Wed, Jan 19, 2011 at 09:45:57AM +0000, Tardy, Pierre wrote:
+> >> Chris,
+> >> (Sorry for top posting)
+> >> Seems we have a intel intern disagreement.
+> >>
+> >> Could we have maintainer opinion on this ?
+> >
+> > Linus W and Ohad, any input here? =A0Thanks,
+>=20
+> What I see is orthogonal purposes altogether. Usually there is
+> something like two clocks and two regulators or switches
+> available in every sufficiently advanced system:
+>=20
+> - One regulator to power the card
+> - One clock to clock the card (MCLK)
+> - One regulator or switch to power the MMC IP block
+> - One clock to clock the MMC IP block
+>=20
+> The MMC core regulator handling and the clock gating I
+> implemented is about the two first things.
+>=20
+> I think this patch is about the two *other* things, if I read it
+> right.
 
---8323328-1734949911-1295990470=:8580
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Actually in sdhci, you power off the MMC IP block, you power OFF the MC=
+LK (at least on our platform)
 
-On Tue, 25 Jan 2011, Russell King - ARM Linux wrote:
+I don't know other platform where mmc clock is not controlled more or l=
+ess directlty by the sdhc IP.
 
-> On Tue, Jan 25, 2011 at 05:33:14PM +0000, Dave Martin wrote:
-> > On Tue, Jan 25, 2011 at 4:59 PM, Russell King - ARM Linux
-> > <linux@arm.linux.org.uk> wrote:
-> > > On Tue, Jan 25, 2011 at 04:43:52PM +0000, Dave Martin wrote:
-> > >> A couple of questions on this:
-> > >>
-> > >> 1) I notice these spinlock functions are generally marked inline.
-> > >>
-> > >> Is that likely to happen in modules?  If so, there would be a need to
-> > >> do SMP_ON_UP fixups at module load time -- I don't think that's
-> > >> currently implemented.
-> > >
-> > > No one should be using the arch_* spinlocks directly.  The spinlocks
-> > > are implemented in out of line code in kernel/spinlock.c
-> > 
-> > OK--- do think this is something we need a sanity-check for, or does
-> > this fall into to a category of bad driver implementation which will
-> > get thrown out during peer review?
-> 
-> Hmm, actually it looks like you can end up with configurations where the
-> spinlocks are inlined.
-> 
-> That means we'll have to get rid of the link-time discarding of the
-> .exit sections, and discard them along with the .init sections.
+> Further this patch cannot be applied as-is.
+> It needs a clause where it will wait for the clock gating to
+> be sync:ed *before* calling the suspend hook.
+That's the purpose of those hunks:
 
-... but only when CONFIG_SMP_ON_UP=y.
+iff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+index 8c3769b..27931f6 100644
+--- a/drivers/mmc/host/sdhci.c
++++ b/drivers/mmc/host/sdhci.c
+@@ -20,6 +20,7 @@
+ #include <linux/slab.h>
+ #include <linux/scatterlist.h>
+ #include <linux/regulator/consumer.h>
++#include <linux/pm_runtime.h>
+=20
+ #include <linux/leds.h>
+=20
+@@ -1221,6 +1222,7 @@ static void sdhci_set_ios(struct mmc_host *mmc, s=
+truct mmc_ios *ios)
+ {
+        struct sdhci_host *host;
+        unsigned long flags;
++       unsigned int lastclock;
+        u8 ctrl;
+=20
+        host =3D mmc_priv(mmc);
+@@ -1231,6 +1233,27 @@ static void sdhci_set_ios(struct mmc_host *mmc, =
+struct mmc_ios *ios)
+                goto out;
+=20
+        /*
++        * get/put runtime_pm usage counter at ios->clock transitions
++        * We need to do it before any other chip access, as sdhci coul=
+d
++        * be power gated
++        */
++       lastclock =3D host->iosclock;
++       host->iosclock =3D ios->clock;
++       if (lastclock =3D=3D 0 && ios->clock !=3D 0) {
++               spin_unlock_irqrestore(&host->lock, flags);
++               pm_runtime_get_sync(host->mmc->parent);
++               spin_lock_irqsave(&host->lock, flags);
++       } else if (lastclock !=3D 0 && ios->clock =3D=3D 0) {
++               spin_unlock_irqrestore(&host->lock, flags);
++               pm_runtime_mark_last_busy(host->mmc->parent);
++               pm_runtime_put_autosuspend(host->mmc->parent);
++               spin_lock_irqsave(&host->lock, flags);
++       }
++       /* no need to configure the rest.. */
++       if (host->iosclock =3D=3D 0)
++               goto out;
++
++       /*
+         * Reset the chip on each power off.
+         * Should clear out any weird states.
+         */
+@@ -1303,6 +1326,8 @@ static int sdhci_get_ro(struct mmc_host *mmc)
+
+I'm wondering if this code could be generic to all drivers, and if cloc=
+k gating could not be taking/releasing reference counter on the mmc_bus=
+ whenever there is a clock gating transition?
+We could condition that on some MMC_CAP_POWERGATE_WILL_CLKGATE capabili=
+ty flag.
 
 
-Nicolas
---8323328-1734949911-1295990470=:8580--
+Regards,
+Pierre
+---------------------------------------------------------------------
+Intel Corporation SAS (French simplified joint stock company)
+Registered headquarters: "Les Montalets"- 2, rue de Paris,=20
+92196 Meudon Cedex, France
+Registration Number:  302 456 199 R.C.S. NANTERRE
+Capital: 4,572,000 Euros
+
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
+
