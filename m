@@ -1,58 +1,65 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 02/14] ARM: bitops: switch set/clear/change bitops to
-	use ldrex/strex
-Date: Tue, 25 Jan 2011 14:11:53 +0000
-Message-ID: <20110125141153.GA17286@n2100.arm.linux.org.uk>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk> <E1Peue4-0003SN-Gk@rmk-PC.arm.linux.org.uk> <20110123001636.GA20841@n2100.arm.linux.org.uk> <000601cbbc97$cc6955d0$653c0170$@deacon@arm.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 3/5] ARM: twd: Add context save restore support
+Date: Tue, 25 Jan 2011 15:12:24 +0100 (CET)
+Message-ID: <alpine.LFD.2.00.1101251506360.31804@localhost6.localdomain6>
+References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com> <1295859080-15259-4-git-send-email-santosh.shilimkar@ti.com> <20110124110609.GJ16202@n2100.arm.linux.org.uk> <20110124111114.GA19409@n2100.arm.linux.org.uk>
+ <AANLkTikLDamkp9TgnWRESyx4=698D4NXP=W_M9=abfax@mail.gmail.com> <20110125103231.GD11507@n2100.arm.linux.org.uk> <alpine.LFD.2.00.1101251418260.31804@localhost6.localdomain6> <20110125133752.GI13300@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36770 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753727Ab1AYOMh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 09:12:37 -0500
-Content-Disposition: inline
-In-Reply-To: <000601cbbc97$cc6955d0$653c0170$@deacon@arm.com>
+Received: from www.tglx.de ([62.245.132.106]:45129 "EHLO www.tglx.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753659Ab1AYOM4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 09:12:56 -0500
+In-Reply-To: <20110125133752.GI13300@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: catalin.marinas@arm.com, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 25, 2011 at 01:57:26PM -0000, Will Deacon wrote:
-> Hi Russell,
+On Tue, 25 Jan 2011, Russell King - ARM Linux wrote:
+> On Tue, Jan 25, 2011 at 02:23:10PM +0100, Thomas Gleixner wrote:
+> > In which way? I mean the generic code issues a call to the set_mode
+> > function when we leave the broadcast mode. So what should the generic
+> > code do more ?
 > 
-> Hopefully this isn't too late to be useful.
+> I can't say because these patches only add the hooks, there's no
+> implementation yet which uses the hooks.
 > 
-> > On Mon, Jan 17, 2011 at 07:21:40PM +0000, Russell King - ARM Linux wrote:
-> > > Switch the set/clear/change bitops to use the word-based exclusive
-> > > operations, which are only present in a wider range of ARM architectures
-> > > than the byte-based exclusive operations.
-> > >
-> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > 
-> > As only one person replied to this patch with test information, I'm
-> > not happy to push this into -rc, and hence that prevents it going into
-> > -stable too.  That means omap2plus_defconfig .38 mainline kernels
-> > (including -stable) will remain potentially dangerous when run on
-> > SMP capable hardware.
-> > 
-> > Therefore, I see no alternative at the moment but to purposely cause
-> > builds which cover ARMv6, and ARMv6K or ARMv7 CPUs to save people from
-> > data corruption.
-> > 
-> > Please get your tested-by's to me for at least the first three patches
-> > of this series ASAP.
+> Given the description about _why_ those hooks are necessary, it seems
+> that something is required.  Either we start adding custom hacks to
+> each clockevent driver as is done with this patch, or we get some
+> generic help in place.
 > 
-> I've tested this on the Versatile Express (ca9x4, little endian) with a USB
-> hard drive and ext3 (rw) filesystem. I did a bunch of parallel dds of a 2GB
-> file containing random data whilst the system was fairly loaded. File checksums
-> all passed and the kernel didn't do anything untowards.
-> 
-> Tested-by: Will Deacon <will.deacon@arm.com>
-> 
-> I appreciate this is the same test configuration as the one Nicolas did,
-> but it at least replicates his findings.
+> I'm not thrilled by the custom hack approach - and I thought the
+> clockevent stuff was created to stop this kind of thing happening.
 
-Was this for just the first three or the complete set?
+Yes, and it does the right thing:
 
-Thanks.
+     idle enter (where the cpu local tick device stops)
+
+     	  tick_broadcast_oneshot_control(CLOCK_EVT_NOTIFY_BROADCAST_ENTER)
+
+		clockevents_set_mode(dev, CLOCK_EVT_MODE_SHUTDOWN)
+		tick_broadcast_set_event(dev->next_event, 1)
+
+    idle exit
+
+     	  tick_broadcast_oneshot_control(CLOCK_EVT_NOTIFY_BROADCAST_EXIT)
+
+		clockevents_set_mode(dev, CLOCK_EVT_MODE_ONESHOT)
+		tick_program_event(dev->next_event, 1)
+
+So the generic code has all the calls in place. If a clock chip
+implementation misses to set control registers in the
+CLOCK_EVT_MODE_ONESHOT case, then it's not a short coming of the
+generic code which needs magic hooks in the arch code.
+
+The same applies for the periodic mode switch, which is handled via
+tick_broadcast_on_off().
+
+Am I missing something ?
+
+Thanks,
+
+	tglx
