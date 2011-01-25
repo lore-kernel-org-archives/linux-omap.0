@@ -1,434 +1,71 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 5/5] OMAP: clockdomain: Arch specific funcs for clkdm_clk_enable/disable
-Date: Tue, 25 Jan 2011 17:21:48 +0530
-Message-ID: <1295956308-23860-6-git-send-email-rnayak@ti.com>
-References: <1295956308-23860-1-git-send-email-rnayak@ti.com>
- <1295956308-23860-2-git-send-email-rnayak@ti.com>
- <1295956308-23860-3-git-send-email-rnayak@ti.com>
- <1295956308-23860-4-git-send-email-rnayak@ti.com>
- <1295956308-23860-5-git-send-email-rnayak@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 4/5] ARM: scu: Move register defines to header file
+Date: Tue, 25 Jan 2011 17:32:57 +0530
+Message-ID: <236d45e400a960cc3b32db538b3a79ae@mail.gmail.com>
+References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com>
+ <1295859080-15259-5-git-send-email-santosh.shilimkar@ti.com> <20110125114635.GB13300@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39800 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753047Ab1AYLwH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Jan 2011 06:52:07 -0500
-In-Reply-To: <1295956308-23860-5-git-send-email-rnayak@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:39824 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751895Ab1AYMDA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 07:03:00 -0500
+Received: by mail-fx0-f48.google.com with SMTP id 2so5905674fxm.7
+        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 04:02:59 -0800 (PST)
+In-Reply-To: <20110125114635.GB13300@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, ccross@android.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org
 
-Define the following architecture specific funtions for omap2/3/4
-.clkdm_clk_enable
-.clkdm_clk_disable
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Tuesday, January 25, 2011 5:17 PM
+> To: Santosh Shilimkar
+> Cc: linux-arm-kernel@lists.infradead.org; catalin.marinas@arm.com;
+> ccross@android.com; linus.ml.walleij@gmail.com; linux-
+> omap@vger.kernel.org
+> Subject: Re: [PATCH 4/5] ARM: scu: Move register defines to header
+> file
+>
+> On Mon, Jan 24, 2011 at 02:21:18PM +0530, Santosh Shilimkar wrote:
+> > This patch moves SCU register defines from smp_scu.c to smp_scu.h
+> > so that its available for platforms to use
+> >
+> > The SCU CPU power status registers is used for power management
+> > on OMAP4.
+>
+> Could we instead have an API inside smp_scu.c rather than having
+> each
+> SoC implement its own SCU PM stuff?
+>
+I have similar patch implemented but what it does is just
+prepares the value to be programmed and stores it to a scratchpad.
+I see your point but below patch may now work well. The reason is the SCU
+register needs to accessed at the lowest level. May be even when
+stack is not available. Also this register needs to be cleared in cases
+where the attempted power state is failed for some reason.
 
-Convert the platform-independent framework to call these functions.
-Also rename the api's by removing the omap2_ preamble.
-Hence call omap2_clkdm_k_enable as clkdm_clk_enable and
-omap2_clkdm_clk_disable as clkdm_clk_disable.a
+Also note that this register can be blocked using trust-zone which
+again makes it platform dependent because direct write won't be
+allowed in that case.
 
-Remove unused functions (_enable/_disable_hwsup) and unsed
-headers from clockdomain.c file.
+> Maybe this.  Note that scu_power_mode() needs to be called from a
+> non-
+> preemptible context, which is sane as we don't want to be
+> rescheduled
+> onto a different CPU between scu_power_mode() and the wfi/wfe
+> required
+> to enter the selected mode.
+>
+I would prefer the header export if there is no major
+objection since there is already a possibility of custom
+implementation with trust zone.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clock.c                |    6 +-
- arch/arm/mach-omap2/clockdomain.c          |  131 +++-------------------------
- arch/arm/mach-omap2/clockdomain.h          |    4 +-
- arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |   69 +++++++++++++++
- arch/arm/mach-omap2/clockdomain44xx.c      |   28 ++++++
- 5 files changed, 114 insertions(+), 124 deletions(-)
+On OMAP4, on ES1.0 we need to use a secure API to achieve
+this where as on ES2.0, it can be directly accessed.
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 2a2f152..e9625fc 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -264,7 +264,7 @@ void omap2_clk_disable(struct clk *clk)
- 	clk->ops->disable(clk);
- 
- 	if (clk->clkdm)
--		omap2_clkdm_clk_disable(clk->clkdm, clk);
-+		clkdm_clk_disable(clk->clkdm, clk);
- 
- 	if (clk->parent)
- 		omap2_clk_disable(clk->parent);
-@@ -304,7 +304,7 @@ int omap2_clk_enable(struct clk *clk)
- 	}
- 
- 	if (clk->clkdm) {
--		ret = omap2_clkdm_clk_enable(clk->clkdm, clk);
-+		ret = clkdm_clk_enable(clk->clkdm, clk);
- 		if (ret) {
- 			WARN(1, "clock: %s: could not enable clockdomain %s: "
- 			     "%d\n", clk->name, clk->clkdm->name, ret);
-@@ -322,7 +322,7 @@ int omap2_clk_enable(struct clk *clk)
- 
- oce_err3:
- 	if (clk->clkdm)
--		omap2_clkdm_clk_disable(clk->clkdm, clk);
-+		clkdm_clk_disable(clk->clkdm, clk);
- oce_err2:
- 	if (clk->parent)
- 		omap2_clk_disable(clk->parent);
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 9f1f37b..633567e 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -26,17 +26,8 @@
- 
- #include <linux/bitops.h>
- 
--#include "prm2xxx_3xxx.h"
--#include "prm-regbits-24xx.h"
--#include "cm2xxx_3xxx.h"
--#include "cm-regbits-24xx.h"
--#include "cminst44xx.h"
--#include "prcm44xx.h"
--
- #include <plat/clock.h>
--#include "powerdomain.h"
- #include "clockdomain.h"
--#include <plat/prcm.h>
- 
- /* clkdm_list contains all registered struct clockdomains */
- static LIST_HEAD(clkdm_list);
-@@ -235,58 +226,6 @@ void _clkdm_del_autodeps(struct clockdomain *clkdm)
- 	}
- }
- 
--/**
-- * _enable_hwsup - place a clockdomain into hardware-supervised idle
-- * @clkdm: struct clockdomain *
-- *
-- * Place the clockdomain into hardware-supervised idle mode.  No return
-- * value.
-- *
-- * XXX Should this return an error if the clockdomain does not support
-- * hardware-supervised idle mode?
-- */
--static void _enable_hwsup(struct clockdomain *clkdm)
--{
--	if (cpu_is_omap24xx())
--		omap2xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
--					       clkdm->clktrctrl_mask);
--	else if (cpu_is_omap34xx())
--		omap3xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
--					       clkdm->clktrctrl_mask);
--	else if (cpu_is_omap44xx())
--		return omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
--						       clkdm->cm_inst,
--						       clkdm->clkdm_offs);
--	else
--		BUG();
--}
--
--/**
-- * _disable_hwsup - place a clockdomain into software-supervised idle
-- * @clkdm: struct clockdomain *
-- *
-- * Place the clockdomain @clkdm into software-supervised idle mode.
-- * No return value.
-- *
-- * XXX Should this return an error if the clockdomain does not support
-- * software-supervised idle mode?
-- */
--static void _disable_hwsup(struct clockdomain *clkdm)
--{
--	if (cpu_is_omap24xx())
--		omap2xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
--						clkdm->clktrctrl_mask);
--	else if (cpu_is_omap34xx())
--		omap3xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
--						clkdm->clktrctrl_mask);
--	else if (cpu_is_omap44xx())
--		return omap4_cminst_clkdm_disable_hwsup(clkdm->prcm_partition,
--							clkdm->cm_inst,
--							clkdm->clkdm_offs);
--	else
--		BUG();
--}
--
- /* Public functions */
- 
- /**
-@@ -843,7 +782,7 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
- /* Clockdomain-to-clock framework interface code */
- 
- /**
-- * omap2_clkdm_clk_enable - add an enabled downstream clock to this clkdm
-+ * clkdm_clk_enable - add an enabled downstream clock to this clkdm
-  * @clkdm: struct clockdomain *
-  * @clk: struct clk * of the enabled downstream clock
-  *
-@@ -856,10 +795,8 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
-  * by on-chip processors.  Returns -EINVAL if passed null pointers;
-  * returns 0 upon success or if the clockdomain is in hwsup idle mode.
-  */
--int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
-+int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
- {
--	bool hwsup = false;
--
- 	/*
- 	 * XXX Rewrite this code to maintain a list of enabled
- 	 * downstream clocks for debugging purposes?
-@@ -868,6 +805,9 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
- 	if (!clkdm || !clk)
- 		return -EINVAL;
- 
-+	if (!arch_clkdm || !arch_clkdm->clkdm_clk_enable)
-+		return -EINVAL;
-+
- 	if (atomic_inc_return(&clkdm->usecount) > 1)
- 		return 0;
- 
-@@ -876,31 +816,7 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
- 	pr_debug("clockdomain: clkdm %s: clk %s now enabled\n", clkdm->name,
- 		 clk->name);
- 
--	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
--
--		if (!clkdm->clktrctrl_mask)
--			return 0;
--
--		hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
--						   clkdm->clktrctrl_mask);
--
--	} else if (cpu_is_omap44xx()) {
--
--		hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
--						       clkdm->cm_inst,
--						       clkdm->clkdm_offs);
--
--	}
--
--	if (hwsup) {
--		/* Disable HW transitions when we are changing deps */
--		_disable_hwsup(clkdm);
--		_clkdm_add_autodeps(clkdm);
--		_enable_hwsup(clkdm);
--	} else {
--		clkdm_wakeup(clkdm);
--	}
--
-+	arch_clkdm->clkdm_clk_enable(clkdm);
- 	pwrdm_wait_transition(clkdm->pwrdm.ptr);
- 	pwrdm_clkdm_state_switch(clkdm);
- 
-@@ -908,7 +824,7 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
- }
- 
- /**
-- * omap2_clkdm_clk_disable - remove an enabled downstream clock from this clkdm
-+ * clkdm_clk_disable - remove an enabled downstream clock from this clkdm
-  * @clkdm: struct clockdomain *
-  * @clk: struct clk * of the disabled downstream clock
-  *
-@@ -921,10 +837,8 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
-  * is enabled; or returns 0 upon success or if the clockdomain is in
-  * hwsup idle mode.
-  */
--int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
-+int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
- {
--	bool hwsup = false;
--
- 	/*
- 	 * XXX Rewrite this code to maintain a list of enabled
- 	 * downstream clocks for debugging purposes?
-@@ -933,6 +847,9 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
- 	if (!clkdm || !clk)
- 		return -EINVAL;
- 
-+	if (!arch_clkdm || !arch_clkdm->clkdm_clk_disable)
-+		return -EINVAL;
-+
- #ifdef DEBUG
- 	if (atomic_read(&clkdm->usecount) == 0) {
- 		WARN_ON(1); /* underflow */
-@@ -948,31 +865,7 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
- 	pr_debug("clockdomain: clkdm %s: clk %s now disabled\n", clkdm->name,
- 		 clk->name);
- 
--	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
--
--		if (!clkdm->clktrctrl_mask)
--			return 0;
--
--		hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
--						   clkdm->clktrctrl_mask);
--
--	} else if (cpu_is_omap44xx()) {
--
--		hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
--						       clkdm->cm_inst,
--						       clkdm->clkdm_offs);
--
--	}
--
--	if (hwsup) {
--		/* Disable HW transitions when we are changing deps */
--		_disable_hwsup(clkdm);
--		_clkdm_del_autodeps(clkdm);
--		_enable_hwsup(clkdm);
--	} else {
--		clkdm_sleep(clkdm);
--	}
--
-+	arch_clkdm->clkdm_clk_disable(clkdm);
- 	pwrdm_clkdm_state_switch(clkdm);
- 
- 	return 0;
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 7126658..de52f05 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -173,8 +173,8 @@ void clkdm_deny_idle(struct clockdomain *clkdm);
- int clkdm_wakeup(struct clockdomain *clkdm);
- int clkdm_sleep(struct clockdomain *clkdm);
- 
--int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk);
--int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk);
-+int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk);
-+int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk);
- 
- extern void __init omap2xxx_clockdomains_init(void);
- extern void __init omap3xxx_clockdomains_init(void);
-diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-index 54b0ca9..6bf2b17 100644
---- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-@@ -142,6 +142,71 @@ static void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
- 		_clkdm_del_autodeps(clkdm);
- }
- 
-+static void _enable_hwsup(struct clockdomain *clkdm)
-+{
-+	if (cpu_is_omap24xx())
-+		omap2xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-+					       clkdm->clktrctrl_mask);
-+	else if (cpu_is_omap34xx())
-+		omap3xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-+					       clkdm->clktrctrl_mask);
-+}
-+
-+static void _disable_hwsup(struct clockdomain *clkdm)
-+{
-+	if (cpu_is_omap24xx())
-+		omap2xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-+						clkdm->clktrctrl_mask);
-+	else if (cpu_is_omap34xx())
-+		omap3xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-+						clkdm->clktrctrl_mask);
-+}
-+
-+
-+static int omap2_clkdm_clk_enable(struct clockdomain *clkdm)
-+{
-+	bool hwsup = false;
-+
-+	if (!clkdm->clktrctrl_mask)
-+		return 0;
-+
-+	hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-+				clkdm->clktrctrl_mask);
-+
-+	if (hwsup) {
-+		/* Disable HW transitions when we are changing deps */
-+		_disable_hwsup(clkdm);
-+		_clkdm_add_autodeps(clkdm);
-+		_enable_hwsup(clkdm);
-+	} else {
-+		clkdm_wakeup(clkdm);
-+	}
-+
-+	return 0;
-+}
-+
-+static int omap2_clkdm_clk_disable(struct clockdomain *clkdm)
-+{
-+	bool hwsup = false;
-+
-+	if (!clkdm->clktrctrl_mask)
-+		return 0;
-+
-+	hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-+				clkdm->clktrctrl_mask);
-+
-+	if (hwsup) {
-+		/* Disable HW transitions when we are changing deps */
-+		_disable_hwsup(clkdm);
-+		_clkdm_del_autodeps(clkdm);
-+		_enable_hwsup(clkdm);
-+	} else {
-+		clkdm_sleep(clkdm);
-+	}
-+
-+	return 0;
-+}
-+
- static int omap3_clkdm_sleep(struct clockdomain *clkdm)
- {
- 	omap3xxx_cm_clkdm_force_sleep(clkdm->pwrdm.ptr->prcm_offs,
-@@ -183,6 +248,8 @@ struct clkdm_ops omap2_clkdm_operations = {
- 	.clkdm_wakeup		= omap2_clkdm_wakeup,
- 	.clkdm_allow_idle	= omap2_clkdm_allow_idle,
- 	.clkdm_deny_idle	= omap2_clkdm_deny_idle,
-+	.clkdm_clk_enable	= omap2_clkdm_clk_enable,
-+	.clkdm_clk_disable	= omap2_clkdm_clk_disable,
- };
- 
- struct clkdm_ops omap3_clkdm_operations = {
-@@ -198,4 +265,6 @@ struct clkdm_ops omap3_clkdm_operations = {
- 	.clkdm_wakeup		= omap3_clkdm_wakeup,
- 	.clkdm_allow_idle	= omap3_clkdm_allow_idle,
- 	.clkdm_deny_idle	= omap3_clkdm_deny_idle,
-+	.clkdm_clk_enable	= omap2_clkdm_clk_enable,
-+	.clkdm_clk_disable	= omap2_clkdm_clk_disable,
- };
-diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
-index a46125f..c0ccc47 100644
---- a/arch/arm/mach-omap2/clockdomain44xx.c
-+++ b/arch/arm/mach-omap2/clockdomain44xx.c
-@@ -41,9 +41,37 @@ static void omap4_clkdm_deny_idle(struct clockdomain *clkdm)
- 					clkdm->cm_inst, clkdm->clkdm_offs);
- }
- 
-+static int omap4_clkdm_clk_enable(struct clockdomain *clkdm)
-+{
-+	bool hwsup = false;
-+
-+	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
-+					clkdm->cm_inst, clkdm->clkdm_offs);
-+
-+	if (!hwsup)
-+		clkdm_wakeup(clkdm);
-+
-+	return 0;
-+}
-+
-+static int omap4_clkdm_clk_disable(struct clockdomain *clkdm)
-+{
-+	bool hwsup = false;
-+
-+	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
-+					clkdm->cm_inst, clkdm->clkdm_offs);
-+
-+	if (!hwsup)
-+		clkdm_sleep(clkdm);
-+
-+	return 0;
-+}
-+
- struct clkdm_ops omap4_clkdm_operations = {
- 	.clkdm_sleep		= omap4_clkdm_sleep,
- 	.clkdm_wakeup		= omap4_clkdm_wakeup,
- 	.clkdm_allow_idle	= omap4_clkdm_allow_idle,
- 	.clkdm_deny_idle	= omap4_clkdm_deny_idle,
-+	.clkdm_clk_enable	= omap4_clkdm_clk_enable,
-+	.clkdm_clk_disable	= omap4_clkdm_clk_disable,
- };
--- 
-1.7.0.4
-
+Regards,
+Santosh
