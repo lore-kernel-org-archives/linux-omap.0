@@ -1,36 +1,91 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 0/5] OMAP3EVM: Board bug fixes/enhancements
-Date: Tue, 25 Jan 2011 23:07:36 +0530
-Message-ID: <1295977061-11086-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH 3/5] AM/DM37x: DSS mux configuration for >Rev-B processor cards
+Date: Tue, 25 Jan 2011 23:07:39 +0530
+Message-ID: <1295977061-11086-4-git-send-email-hvaibhav@ti.com>
+References: <1295977061-11086-1-git-send-email-hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48287 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48292 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753057Ab1AYRhs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Jan 2011 12:37:48 -0500
+	id S1753061Ab1AYRhu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 12:37:50 -0500
+In-Reply-To: <1295977061-11086-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-The current linux-omap/master is broken for lots of features/modules
-and also there are few enhancements required with addition of AM/DM37x
-family of devices.
+To support higher resolution (e.g 720P@60), on OMAP36x (AM/DM37x)
+DSS data bus has been muxed with sys_boot pins.
 
-	- Migrate TWL gpio_xxx api to gpio_xx_cansleep
-	- TSC: Driver init fails due to missing VIO regulator
-	- TSC: Wakeup is broken, enable the wakeup capability
-	- DSS: Addition of Mux changes for AM/DM37x
-	- Make Backlight gpio off in default state
+DSS[18-23] => DSS[0-5]
+sys_boot[0,1 3-5] => DSS[18-23]
 
-Note: Resetting the revision of patches since this is first bundled series.
+EVM revision >=RevB adopt this mux changes, which is going to ship outside.
 
-Vaibhav Hiremath (5):
-  OMAP:board-omap3evm: Change TWL related gpio API's to gpio*_cansleep
-  OMAP3EVM: Add vio regulator supply required for ads7846 TSC driver
-  AM/DM37x: DSS mux configuration for >Rev-B processor cards
-  OMAP3EVM: Made backlight GPIO default state to off
-  OMAP3EVM: Set TSC wakeup option in pad config
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   34 ++++++++++++++++++++++++++++++++--
+ 1 files changed, 32 insertions(+), 2 deletions(-)
 
- arch/arm/mach-omap2/board-omap3evm.c |   80 +++++++++++++++++++++++++++++-----
- 1 files changed, 69 insertions(+), 11 deletions(-)
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index dcef454..0d235bc 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -705,7 +705,7 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
+ };
+ 
+ #ifdef CONFIG_OMAP_MUX
+-static struct omap_board_mux board_mux[] __initdata = {
++static struct omap_board_mux omap35x_board_mux[] __initdata = {
+ 	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
+ 				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
+ 				OMAP_PIN_OFF_WAKEUPENABLE),
+@@ -717,6 +717,32 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 				OMAP_PIN_OFF_NONE),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
++
++static struct omap_board_mux omap36x_board_mux[] __initdata = {
++	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
++				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
++				OMAP_PIN_OFF_WAKEUPENABLE),
++	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
++				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW),
++	/* AM/DM37x EVM: DSS data bus muxed with sys_boot */
++	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(DSS_DATA21, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(SYS_BOOT0, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(SYS_BOOT1, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(SYS_BOOT3, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(SYS_BOOT4, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(SYS_BOOT5, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(SYS_BOOT6, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
++
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define omap35x_board_mux	NULL
++#define omap36x_board_mux	NULL
+ #endif
+ 
+ static struct omap_musb_board_data musb_board_data = {
+@@ -728,7 +754,11 @@ static struct omap_musb_board_data musb_board_data = {
+ static void __init omap3_evm_init(void)
+ {
+ 	omap3_evm_get_revision();
+-	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
++
++	if (cpu_is_omap3630())
++		omap3_mux_init(omap36x_board_mux, OMAP_PACKAGE_CBB);
++	else
++		omap3_mux_init(omap35x_board_mux, OMAP_PACKAGE_CBB);
+ 
+ 	omap3_evm_i2c_init();
+ 
+-- 
+1.6.2.4
 
