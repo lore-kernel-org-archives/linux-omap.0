@@ -1,29 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/14] ARM: bitops: switch set/clear/change bitops to
- use ldrex/strex
-Date: Tue, 25 Jan 2011 11:51:18 -0800
-Message-ID: <20110125195118.GS13589@atomide.com>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
- <E1Peue4-0003SN-Gk@rmk-PC.arm.linux.org.uk>
+From: "UNITED NATIONS" <robin@mail.ranksitt.net>
+Subject: INFORMATION ENCLOSED
+Date: Tue, 25 Jan 2011 21:43:59 +0100
+Message-ID: <e2043349a9d3bba65eb1acbe91e844e6.squirrel__15641.5206300609$1295988812$gmane$org@webmail.ucam.ac.ma>
+Reply-To: upgradingadmicenter14@live.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53607 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753133Ab1AYTvi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 14:51:38 -0500
-Content-Disposition: inline
-In-Reply-To: <E1Peue4-0003SN-Gk@rmk-PC.arm.linux.org.uk>
+Received: from 3.ucam.marwan.ma ([196.200.176.3]:56398 "EHLO manar.ucam.ac.ma"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752707Ab1AYUwv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 15:52:51 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110117 11:23]:
-> Switch the set/clear/change bitops to use the word-based exclusive
-> operations, which are only present in a wider range of ARM architectures
-> than the byte-based exclusive operations.
 
-This too been in use for about a week now with ext3 and nfs:
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+
+Your Email ID has just been compensated with the sum of  $500,000.00 USD 
+by the United Nations Organization Of Nigeria and payment will be remitted
+to you via western union money transfer. Note that $5,000 USD has already
+be send to you since last week but we were unable to give you the
+information on phone for the past 7working days but due to bad network
+here, i was not able to get to you on phone.
+
+Here is the western union information to pick up the USD5000.00.
+
+MTCN : 9402 727 310
+SENDER'S NAME: MARYLIN JOHNSON
+TEXT QUESTION: IN GOD
+ANSWER:WE TRUST
+AMOUNT SENT: $5000.00 USD
+COUNTRY:NIGERIA
+
+Thanks
+Mrs. Linda Hall
+
+
