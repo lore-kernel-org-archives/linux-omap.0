@@ -1,58 +1,43 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 4/5] ARM: scu: Move register defines to header file
-Date: Tue, 25 Jan 2011 18:09:09 +0530
-Message-ID: <f2acc7ff1572649863feb3cb0f6c79ee@mail.gmail.com>
-References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com>
- <1295859080-15259-5-git-send-email-santosh.shilimkar@ti.com>
- <20110125114635.GB13300@n2100.arm.linux.org.uk> <236d45e400a960cc3b32db538b3a79ae@mail.gmail.com>
- <20110125121655.GD13300@n2100.arm.linux.org.uk> <20110125122924.GF13300@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 4/5] ARM: scu: Move register defines to header file
+Date: Tue, 25 Jan 2011 12:56:56 +0000
+Message-ID: <20110125125656.GG13300@n2100.arm.linux.org.uk>
+References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com> <1295859080-15259-5-git-send-email-santosh.shilimkar@ti.com> <20110125114635.GB13300@n2100.arm.linux.org.uk> <236d45e400a960cc3b32db538b3a79ae@mail.gmail.com> <20110125121655.GD13300@n2100.arm.linux.org.uk> <4534e82bf14eeea9f96769df760df5ae@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:51537 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750831Ab1AYMjL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Jan 2011 07:39:11 -0500
-Received: by mail-fx0-f45.google.com with SMTP id 12so5616704fxm.32
-        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 04:39:10 -0800 (PST)
-In-Reply-To: <20110125122924.GF13300@n2100.arm.linux.org.uk>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39182 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752810Ab1AYM5a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 07:57:30 -0500
+Content-Disposition: inline
+In-Reply-To: <4534e82bf14eeea9f96769df760df5ae@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: catalin.marinas@arm.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ccross@android.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, ccross@android.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Tuesday, January 25, 2011 5:59 PM
-> To: Santosh Shilimkar
-> Cc: catalin.marinas@arm.com; linus.ml.walleij@gmail.com; linux-
-> omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> ccross@android.com
-> Subject: Re: [PATCH 4/5] ARM: scu: Move register defines to header
-> file
->
-> I did mean to include the updated patch:
+On Tue, Jan 25, 2011 at 06:06:27PM +0530, Santosh Shilimkar wrote:
+> Ok. I missed some information my last email.
+> The SCU power status programming is used to take CPU in/out
+> of coherency as an alternative to SMP bit. We don't
+> have an access to SMP bit on OMAP4. ARM has already
+> confirmed SCU programming is same as SMP bit enable/disable.
+> 
+> I don't know how safe is to use spin lock when one CPU is
+> goes out of coherency after programming the power state. The
+> spin lock release may not even be visible to other CPU.
 
-As said in other email will work towards this.
+Erm, I do hope that's not the case, as that means it is unsafe for CPUs in
+a SMP system to write to this register without them potentially trampling
+over each other.
 
->
->  arch/arm/include/asm/smp_scu.h |    5 +++++
->  arch/arm/kernel/smp_scu.c      |   23 +++++++++++++++++++++++
->  2 files changed, 28 insertions(+), 0 deletions(-)
->
-[....]
+If it is the case, then the solutions are either:
+1. Fix the hardware so that coherency requests only yet turned off
+   when entering the WFI state.
+2. Fix the hardware such that each CPU has a separate register.
 
->
-> If we need a SMC call, that should happen within the spinlock'd
-> region via
-> a function pointer which the platform can set.  I can't code that
-> into this
-> patch until I know what the SMC call requires as arguments (cpu
-> number,
-> power state, or new register value, or mask and bits to set?)
-
-No problem. Will update SMC stuff if needed.
-
-Regards,
-Santosh
+I can't see a software solution to this as we can't use ldrex/strex anything
+but memory regions, and memory regions without coherency won't work.
+Maybe ARM Support can help by suggesting how a 4-CPU system is supposed
+to safely read/modify/write the SCU power control register...
