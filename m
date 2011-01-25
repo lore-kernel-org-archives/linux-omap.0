@@ -1,118 +1,115 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] OMAP3EVM:FIX: Reset the SMSC911x Ethernet controller in
- board_init
-Date: Tue, 25 Jan 2011 20:28:08 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404BD7BE3E6@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
-	<1295880108-15584-1-git-send-email-hvaibhav@ti.com>	<87oc769je4.fsf@ti.com>
-	<19F8576C6E063C45BE387C64729E739404BD7BE119@dbde02.ent.ti.com>
- <87zkqq80ai.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V2] OMAP3EVM:FIX: Reset the smsc911x ethernet controller in board_init
+Date: Tue, 25 Jan 2011 20:52:36 +0530
+Message-ID: <1295968956-10166-1-git-send-email-hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58050 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60885 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751400Ab1AYO6T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 09:58:19 -0500
-In-Reply-To: <87zkqq80ai.fsf@ti.com>
-Content-Language: en-US
+	id S1751435Ab1AYPWk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 10:22:40 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p0PFMbXe004579
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 09:22:39 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Charulatha V <charu@ti.com>
 
-> -----Original Message-----
-> From: Hilman, Kevin
-> Sent: Tuesday, January 25, 2011 2:52 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; Varadarajan, Charulatha; tony@atomide.com
-> Subject: Re: [PATCH] OMAP3EVM:FIX: Reset the SMSC911x Ethernet controller
-> in board_init
-> 
-> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
-> 
-> >> >
-> >> > With addition of HWMOD support to GPIO, the Ethernet controller
-> >> > goes undetected for OMAP35xEVM. So explicitely assert the reset
-> signal
-> >> to
-> >> > Ethernet controller smsc911x -
-> >> >
-> >> > 	- GPIO7 (>=RevG version of EVM's)
-> >> > 	- GPIO64 (<=RevD version of EVM's)
-> >> >
-> >> > I have tested this patch on RevG version of EVM with ES3.1 Si.
-> >> > This patch is based on intial version from Charulatha V.
-> >> >
-> >> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> >>
-> >> This didn't apply cleanly to l-o master, with or without your previous
-> >> patches which touch the EVM board file.
-> >>
-> > [Hiremath, Vaibhav] may be order in which you apply the patches is
-> different, but should have been trivial to fix, right?
-> > I would suggest you to use newer version.
-> 
-> The order of applying doesn't matter.  Applying the original patch alone
-> didn't apply, applying it after the other didn't apply.   V2 doesn't
-> apply cleanly either.
-> 
-[Hiremath, Vaibhav] Kevin, I just started with your note, so that this patch gets applied cleanly and I found that V2 gets applied cleanly on top of below base commit. I just did cherry-pick, and it worked for me cleanly.
+With addition of hwmod support to gpio, the ethernet controller
+goes undetected for OMAP35xEVM. So explicitly assert the reset signal to
+ethernet controller smsc911x -
 
-Other patches I will bundle into series and post it again.
+	- GPIO7 (>=RevG version of EVM's)
+	- GPIO64 (<=RevD version of EVM's)
 
-Thanks,
-Vaibhav
-> Please be sure it applies cleanly to:
-> 
-> commit 5b698d68c1a9ebeae76a0e4ca4dbfdb10357143d
-> Author: Thomas Weber <weber@corscience.de>
-> Date:   Thu Jan 20 14:12:11 2011 +0000
-> 
->     omap: omap-mcbsp: Fix building after replacement
-> 
->     Fix building omap-mcbsp after replacing ARCH_OMAP24x0 in
->     commit 8a9c1aa6a4caa7db1c2fca4b47168af9077e0f95.
-> 
-> 
-> If your series of EVM patches are interdependent, I suggest sending them
-> as a series, so it's clear that they are dependent on each other.
-> Also, please Cc linux-arm-kernel on OMAP patches intended for upstream.
-> 
-> This one (network GPIO) should be separated out though, and go into
-> .38-rc (as well as -stable) since omap3evm is has not been bootable
-> since 2.6.37.
-> 
-> >> > ---
-> >> > NOTE: I have not been able to test it on older version of EVM's.
-> >>
-> >> After manually applying,
-> >>
-> >> Tested-by: Kevin Hilman <khilman@ti.com>
-> >>
-> >> I tested on my rev D board with DHCP + nfs rootfs and it's working well.
-> >>
-> > [Hiremath, Vaibhav] Thanks a lot for validating it.
-> >
-> >> While testing though, I also noticed that the smsc driver is dumping
-> >> some warnings (below) while trying to get the MAC address, resulting in
-> >> not using the actual MAC but generating a random one.
-> >>
-> >> This isn't related to your patch, since it also happens with l-o master,
-> >> but was wondering if you saw the same thing?
-> >>
-> > [Hiremath, Vaibhav] Yes I did see this message, and this is coming from
-> >
-> > #ifdef CONFIG_DEBUG_SPINLOCK
-> > #define SMSC_ASSERT_MAC_LOCK(pdata) \
-> >                 WARN_ON(!spin_is_locked(&pdata->mac_lock))
-> >
-> > And the root-cause is, in __init function we are calling
-> smsc911x_read_mac_address->smsc911x_mac_read without holding mac_lock.
-> >
-> > I will submit the patch to net mailing list for this.
-> 
-> Thanks, please Cc linux-omap as well.
-> 
-> Kevin
+This patch is based on intial version from Charulatha V, reference
+to original discussion -
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35784.html
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Charulatha V <charu@ti.com>
+Tested-by: Kevin Hilman <khilman@ti.com>
+---
+Since Kevin reported that this patch doesn't get applied cleanly,
+so I am reposting it again after making sure that it gets applied cleanly.
+
+ arch/arm/mach-omap2/board-omap3evm.c |   39 +++++++++++++++++++++++++++++++++-
+ 1 files changed, 38 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 323c380..97e0f65 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -58,6 +58,13 @@
+ #define OMAP3EVM_ETHR_ID_REV	0x50
+ #define OMAP3EVM_ETHR_GPIO_IRQ	176
+ #define OMAP3EVM_SMSC911X_CS	5
++/*
++ * Eth Reset signal
++ *	64 = Generation 1 (<=RevD)
++ *	7 = Generation 2 (>=RevE)
++ */
++#define OMAP3EVM_GEN1_ETHR_GPIO_RST	64
++#define OMAP3EVM_GEN2_ETHR_GPIO_RST	7
+
+ static u8 omap3_evm_version;
+
+@@ -124,10 +131,15 @@ static struct platform_device omap3evm_smsc911x_device = {
+
+ static inline void __init omap3evm_init_smsc911x(void)
+ {
+-	int eth_cs;
++	int eth_cs, eth_rst;
+ 	struct clk *l3ck;
+ 	unsigned int rate;
+
++	if (get_omap3_evm_rev() == OMAP3EVM_BOARD_GEN_1)
++		eth_rst = OMAP3EVM_GEN1_ETHR_GPIO_RST;
++	else
++		eth_rst = OMAP3EVM_GEN2_ETHR_GPIO_RST;
++
+ 	eth_cs = OMAP3EVM_SMSC911X_CS;
+
+ 	l3ck = clk_get(NULL, "l3_ck");
+@@ -136,6 +148,27 @@ static inline void __init omap3evm_init_smsc911x(void)
+ 	else
+ 		rate = clk_get_rate(l3ck);
+
++	/* Configure ethernet controller reset gpio */
++	if (cpu_is_omap3430()) {
++		if (gpio_request(eth_rst, "SMSC911x gpio") < 0) {
++			pr_err(KERN_ERR "Failed to request %d for smsc911x\n",
++					eth_rst);
++			return;
++		}
++
++		if (gpio_direction_output(eth_rst, 1) < 0) {
++			pr_err(KERN_ERR "Failed to set direction of %d for" \
++					" smsc911x\n", eth_rst);
++			return;
++		}
++		/* reset pulse to ethernet controller*/
++		usleep_range(150, 220);
++		gpio_set_value(eth_rst, 0);
++		usleep_range(150, 220);
++		gpio_set_value(eth_rst, 1);
++		usleep_range(1, 2);
++	}
++
+ 	if (gpio_request(OMAP3EVM_ETHR_GPIO_IRQ, "SMSC911x irq") < 0) {
+ 		printk(KERN_ERR "Failed to request GPIO%d for smsc911x IRQ\n",
+ 			OMAP3EVM_ETHR_GPIO_IRQ);
+@@ -658,6 +691,10 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 				OMAP_PIN_OFF_WAKEUPENABLE),
+ 	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+ 				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW),
++	OMAP3_MUX(SYS_BOOT5, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
++				OMAP_PIN_OFF_NONE),
++	OMAP3_MUX(GPMC_WAIT2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
++				OMAP_PIN_OFF_NONE),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #endif
+--
+1.6.2.4
+
