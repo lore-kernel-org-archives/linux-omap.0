@@ -1,66 +1,145 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 0/5] Clockdomain split series
-Date: Tue, 25 Jan 2011 17:21:43 +0530
-Message-ID: <1295956308-23860-1-git-send-email-rnayak@ti.com>
+Subject: [PATCH v2 1/5] OMAP: clockdomain: Infrastructure to put arch specific code
+Date: Tue, 25 Jan 2011 17:21:44 +0530
+Message-ID: <1295956308-23860-2-git-send-email-rnayak@ti.com>
+References: <1295956308-23860-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54330 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54331 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751650Ab1AYLwC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752198Ab1AYLwC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 25 Jan 2011 06:52:02 -0500
+In-Reply-To: <1295956308-23860-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-This patch series is an effort to split the clockdomain
-framework into platform independent and platform specific parts
-as was done for the powerdomain framework.
+Put infrastructure in place, so arch specific func pointers
+can be hooked up to the platform-independent part of the
+framework.
+This is in preparation of splitting the clockdomain framework into
+platform-independent part (for all omaps) and platform-specific
+parts.
 
-This certainlly helps remove the various cpu_is_* checks
-which exist today in the framework and makes
-the code more maintainable and readable.
-
-The series is boot tested on OMAP2430/3430/4430SDP platforms.
-Also on OMAP3430SDP, OFF mode in suspend path is validated
-using the omap3_pm_defconfig.
-
-This series is based on mainline 2.6.38-rc2 and
-can be found here
-git://gitorious.org/omap-pm/linux.git clockdomain-split-v2-rc2
-
-Version History
----------------
-v2
--1- removed wrongly populated sleepdep support for OMAP2
--2- Fixed error handling in apis
-
-For a wider review, posting this series with
-linux-arm-kernel list copied.
-This version has no functional diff with the
-earlier one posted here
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42570.html
-
-Rajendra Nayak (5):
-  OMAP: clockdomain: Infrastructure to put arch specific code
-  OMAP: clockdomain: Arch specific funcs to handle deps
-  OMAP: clockdomain: Arch specific funcs for sleep/wakeup of clkdm
-  OMAP: clockdomain: Arch specific funcs for hwsup control of clkdm
-  OMAP: clockdomain: Arch specific funcs for clkdm_clk_enable/disable
-
- arch/arm/mach-omap2/Makefile                     |    3 +
- arch/arm/mach-omap2/clock.c                      |    6 +-
- arch/arm/mach-omap2/clockdomain.c                |  410 +++++++---------------
- arch/arm/mach-omap2/clockdomain.h                |   58 +++-
- arch/arm/mach-omap2/clockdomain2xxx_3xxx.c       |  270 ++++++++++++++
- arch/arm/mach-omap2/clockdomain44xx.c            |   77 ++++
- arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    9 +-
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clockdomain.c                |   10 +++++-
+ arch/arm/mach-omap2/clockdomain.h                |   37 +++++++++++++++++++++-
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    2 +-
  arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 +-
- arch/arm/mach-omap2/cpuidle34xx.c                |    4 +-
- arch/arm/mach-omap2/io.c                         |    6 +-
- arch/arm/mach-omap2/pm.c                         |    6 +-
- arch/arm/mach-omap2/pm24xx.c                     |    8 +-
- arch/arm/mach-omap2/pm34xx.c                     |    6 +-
- 13 files changed, 557 insertions(+), 308 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
- create mode 100644 arch/arm/mach-omap2/clockdomain44xx.c
+ 4 files changed, 47 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index e20b986..3e40184 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -44,6 +44,7 @@ static LIST_HEAD(clkdm_list);
+ /* array of clockdomain deps to be added/removed when clkdm in hwsup mode */
+ static struct clkdm_autodep *autodeps;
+ 
++static struct clkdm_ops *arch_clkdm;
+ 
+ /* Private functions */
+ 
+@@ -292,6 +293,7 @@ static void _disable_hwsup(struct clockdomain *clkdm)
+  * clkdm_init - set up the clockdomain layer
+  * @clkdms: optional pointer to an array of clockdomains to register
+  * @init_autodeps: optional pointer to an array of autodeps to register
++ * @custom_funcs: func pointers for arch specfic implementations
+  *
+  * Set up internal state.  If a pointer to an array of clockdomains
+  * @clkdms was supplied, loop through the list of clockdomains,
+@@ -300,12 +302,18 @@ static void _disable_hwsup(struct clockdomain *clkdm)
+  * @init_autodeps was provided, register those.  No return value.
+  */
+ void clkdm_init(struct clockdomain **clkdms,
+-		struct clkdm_autodep *init_autodeps)
++		struct clkdm_autodep *init_autodeps,
++		struct clkdm_ops *custom_funcs)
+ {
+ 	struct clockdomain **c = NULL;
+ 	struct clockdomain *clkdm;
+ 	struct clkdm_autodep *autodep = NULL;
+ 
++	if (!custom_funcs)
++		WARN(1, "No custom clkdm functions registered\n");
++	else
++		arch_clkdm = custom_funcs;
++
+ 	if (clkdms)
+ 		for (c = clkdms; *c; c++)
+ 			_clkdm_register(*c);
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 9b459c2..71ad265 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -116,7 +116,42 @@ struct clockdomain {
+ 	struct list_head node;
+ };
+ 
+-void clkdm_init(struct clockdomain **clkdms, struct clkdm_autodep *autodeps);
++/**
++ * struct clkdm_ops - Arch specfic function implementations
++ * @clkdm_add_wkdep: Add a wakeup dependency between clk domains
++ * @clkdm_del_wkdep: Delete a wakeup dependency between clk domains
++ * @clkdm_read_wkdep: Read wakeup dependency state between clk domains
++ * @clkdm_clear_all_wkdeps: Remove all wakeup dependencies from the clk domain
++ * @clkdm_add_sleepdep: Add a sleep dependency between clk domains
++ * @clkdm_del_sleepdep: Delete a sleep dependency between clk domains
++ * @clkdm_read_sleepdep: Read sleep dependency state between clk domains
++ * @clkdm_clear_all_sleepdeps: Remove all sleep dependencies from the clk domain
++ * @clkdm_sleep: Force a clockdomain to sleep
++ * @clkdm_wakeup: Force a clockdomain to wakeup
++ * @clkdm_allow_idle: Enable hw supervised idle transitions for clock domain
++ * @clkdm_deny_idle: Disable hw supervised idle transitions for clock domain
++ * @clkdm_clk_enable: Put the clkdm in right state for a clock enable
++ * @clkdm_clk_disable: Put the clkdm in right state for a clock disable
++ */
++struct clkdm_ops {
++	int	(*clkdm_add_wkdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	int	(*clkdm_del_wkdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	int	(*clkdm_read_wkdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	int	(*clkdm_clear_all_wkdeps)(struct clockdomain *clkdm);
++	int	(*clkdm_add_sleepdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	int	(*clkdm_del_sleepdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	int	(*clkdm_read_sleepdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
++	int	(*clkdm_clear_all_sleepdeps)(struct clockdomain *clkdm);
++	int	(*clkdm_sleep)(struct clockdomain *clkdm);
++	int	(*clkdm_wakeup)(struct clockdomain *clkdm);
++	void	(*clkdm_allow_idle)(struct clockdomain *clkdm);
++	void	(*clkdm_deny_idle)(struct clockdomain *clkdm);
++	int	(*clkdm_clk_enable)(struct clockdomain *clkdm);
++	int	(*clkdm_clk_disable)(struct clockdomain *clkdm);
++};
++
++void clkdm_init(struct clockdomain **clkdms, struct clkdm_autodep *autodeps,
++			struct clkdm_ops *custom_funcs);
+ struct clockdomain *clkdm_lookup(const char *name);
+ 
+ int clkdm_for_each(int (*fn)(struct clockdomain *clkdm, void *user),
+diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+index e4a7133..8cab07a 100644
+--- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
++++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+@@ -856,5 +856,5 @@ static struct clockdomain *clockdomains_omap2[] __initdata = {
+ 
+ void __init omap2_clockdomains_init(void)
+ {
+-	clkdm_init(clockdomains_omap2, clkdm_autodeps);
++	clkdm_init(clockdomains_omap2, clkdm_autodeps, NULL);
+ }
+diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-omap2/clockdomains44xx_data.c
+index 51920fc..f04abc5 100644
+--- a/arch/arm/mach-omap2/clockdomains44xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+@@ -307,5 +307,5 @@ static struct clockdomain *clockdomains_omap44xx[] __initdata = {
+ 
+ void __init omap44xx_clockdomains_init(void)
+ {
+-	clkdm_init(clockdomains_omap44xx, NULL);
++	clkdm_init(clockdomains_omap44xx, NULL, NULL);
+ }
+-- 
+1.7.0.4
 
