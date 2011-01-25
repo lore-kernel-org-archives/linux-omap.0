@@ -1,106 +1,343 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 3/5] ARM: twd: Add context save restore support
-Date: Tue, 25 Jan 2011 10:32:31 +0000
-Message-ID: <20110125103231.GD11507@n2100.arm.linux.org.uk>
-References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com> <1295859080-15259-4-git-send-email-santosh.shilimkar@ti.com> <20110124110609.GJ16202@n2100.arm.linux.org.uk> <20110124111114.GA19409@n2100.arm.linux.org.uk> <AANLkTikLDamkp9TgnWRESyx4=698D4NXP=W_M9=abfax@mail.gmail.com>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH v2] OMAP: use fncpy to copy the PM code functions to SRAM
+Date: Tue, 25 Jan 2011 10:33:34 +0000
+Message-ID: <AANLkTin5k7q0Vfy7MGKPSxP3b_h0RUHmKEWTtV7iYbWm@mail.gmail.com>
+References: <1295352126-29171-1-git-send-email-j-pihet@ti.com>
+	<AANLkTinT8YZn3igYBqSdOZURzof3d_hX_QwRccPe=7Vi@mail.gmail.com>
+	<AANLkTi=NO1ewna_rNPwj-kHUtuyo0ay3CdC+mX=Ttq-6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42459 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751400Ab1AYKdO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 05:33:14 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTikLDamkp9TgnWRESyx4=698D4NXP=W_M9=abfax@mail.gmail.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:51408 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752624Ab1AYKdh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 05:33:37 -0500
+Received: by ewy5 with SMTP id 5so2460966ewy.19
+        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 02:33:35 -0800 (PST)
+In-Reply-To: <AANLkTi=NO1ewna_rNPwj-kHUtuyo0ay3CdC+mX=Ttq-6@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@android.com>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, catalin.marinas@arm.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Mon, Jan 24, 2011 at 11:39:13PM -0800, Colin Cross wrote:
-> On Mon, Jan 24, 2011 at 3:11 AM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Mon, Jan 24, 2011 at 11:06:09AM +0000, Russell King - ARM Linux =
-wrote:
-> >> On Mon, Jan 24, 2011 at 02:21:17PM +0530, Santosh Shilimkar wrote:
-> >> > In CPU low power state, local timer looses its register context.=
- This
-> >> > patch adds context save restore hooks which can be used by platf=
-orms
-> >> > appropriately.
-> >>
-> >> I thought the whole point of CLOCK_EVT_FEAT_C3STOP was that the ge=
-neric
-> >> timer stuff wouldn't rely on it being kept alive?
-> >>
-> >> Hmm, it looks like we bypass the clockevents code by only setting =
-the
-> >> TWD load value at initialization time, not when we switch to perio=
-dic
-> >> mode. =A0We really ought to rewrite it whenever we switch back to =
-periodic
-> >> mode.
-> >>
-> >> I suspect fixing that means you won't need this save/restore suppo=
-rt.
-> >
-> > Untested, but should do what's required.
-> >
-> > diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
-> > index fd91566..60636f4 100644
-> > --- a/arch/arm/kernel/smp_twd.c
-> > +++ b/arch/arm/kernel/smp_twd.c
-> > @@ -36,6 +36,7 @@ static void twd_set_mode(enum clock_event_mode mo=
-de,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* timer load already set up */
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ctrl =3D TWD_TIMER_CONTROL_ENABLE | =
-TWD_TIMER_CONTROL_IT_ENABLE
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| TWD_TIMER_CONTROL_=
-PERIODIC;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(twd_timer_rate / HZ, twd=
-_base + TWD_TIMER_LOAD);
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
-> > =A0 =A0 =A0 =A0case CLOCK_EVT_MODE_ONESHOT:
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* period set, and timer enabled in =
-'next_event' hook */
-> > @@ -81,7 +82,7 @@ int twd_timer_ack(void)
-> >
-> > =A0static void __cpuinit twd_calibrate_rate(void)
-> > =A0{
-> > - =A0 =A0 =A0 unsigned long load, count;
-> > + =A0 =A0 =A0 unsigned long count;
-> > =A0 =A0 =A0 =A0u64 waitjiffies;
-> >
-> > =A0 =A0 =A0 =A0/*
-> > @@ -116,10 +117,6 @@ static void __cpuinit twd_calibrate_rate(void)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0printk("%lu.%02luMHz.\n", twd_timer_=
-rate / 1000000,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(twd_timer_rate / 10=
-00000) % 100);
-> > =A0 =A0 =A0 =A0}
-> > -
-> > - =A0 =A0 =A0 load =3D twd_timer_rate / HZ;
-> > -
-> > - =A0 =A0 =A0 __raw_writel(load, twd_base + TWD_TIMER_LOAD);
-> > =A0}
-> >
-> > =A0/*
->=20
-> This doesn't work for oneshot timers if the TWD_TIMER_CONTROL registe=
-r
-> gets reset by cpu idle between twd_set_mode and twd_set_next_event.
-> Shadowing ctrl in a percpu variable and rewriting it during every cal=
-l
-> to twd_set_next_event does work, but that's not much different, and a
-> little less efficient, than just saving and restoring the control and
-> load registers in idle.  It does have the advantage that platforms
-> don't need any extra calls.
+On Mon, Jan 24, 2011 at 5:25 PM, Jean Pihet <jean.pihet@newoldbits.com>=
+ wrote:
+> Hi,
+>
+> On Mon, Jan 24, 2011 at 5:11 PM, Dave Martin <dave.martin@linaro.org>=
+ wrote:
+>> Hi there, I just spotted a couple of things merging your patch...
+>>
+>> On Tue, Jan 18, 2011 at 12:02 PM, =A0<jean.pihet@newoldbits.com> wro=
+te:
+>>> From: Jean Pihet <j-pihet@ti.com>
+>>>
+>>> The new fncpy API is better suited for copying some
+>>> code to SRAM at runtime. This patch changes the ad-hoc
+>>> code to the more generic fncpy API.
+>>>
+>>> Tested OK on OMAP3 in low power modes (RET/OFF)
+>>> using omap2plus_defconfig with !CONFIG_THUMB2_KERNEL.
+>>> Compile tested on OMAP1/2 using omap1_defconfig.
+>>>
+>>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>>> ---
+>>> =A0arch/arm/mach-omap1/pm.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A06 =
++++---
+>>> =A0arch/arm/mach-omap1/sleep.S =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A03 ++=
++
+>>> =A0arch/arm/mach-omap1/sram.S =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A01 +
+>>> =A0arch/arm/mach-omap2/pm.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A02 =
++-
+>>> =A0arch/arm/mach-omap2/sleep24xx.S =A0 =A0 =A0 =A0| =A0 =A02 ++
+>>> =A0arch/arm/mach-omap2/sleep34xx.S =A0 =A0 =A0 =A0| =A0 =A02 ++
+>>> =A0arch/arm/mach-omap2/sram242x.S =A0 =A0 =A0 =A0 | =A0 =A03 +++
+>>> =A0arch/arm/mach-omap2/sram243x.S =A0 =A0 =A0 =A0 | =A0 =A03 +++
+>>> =A0arch/arm/mach-omap2/sram34xx.S =A0 =A0 =A0 =A0 | =A0 =A01 +
+>>> =A0arch/arm/plat-omap/include/plat/sram.h | =A0 14 +++++++++++++-
+>>> =A0arch/arm/plat-omap/sram.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 14 ++=
++++++++-----
+>>> =A011 files changed, 41 insertions(+), 10 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap1/pm.h b/arch/arm/mach-omap1/pm.h
+>>> index 56a6479..cd926dc 100644
+>>> --- a/arch/arm/mach-omap1/pm.h
+>>> +++ b/arch/arm/mach-omap1/pm.h
+>>> @@ -123,9 +123,9 @@ extern void allow_idle_sleep(void);
+>>> =A0extern void omap1_pm_idle(void);
+>>> =A0extern void omap1_pm_suspend(void);
+>>>
+>>> -extern void omap7xx_cpu_suspend(unsigned short, unsigned short);
+>>> -extern void omap1510_cpu_suspend(unsigned short, unsigned short);
+>>> -extern void omap1610_cpu_suspend(unsigned short, unsigned short);
+>>> +extern void omap7xx_cpu_suspend(unsigned long, unsigned long);
+>>> +extern void omap1510_cpu_suspend(unsigned long, unsigned long);
+>>> +extern void omap1610_cpu_suspend(unsigned long, unsigned long);
+>>> =A0extern void omap7xx_idle_loop_suspend(void);
+>>> =A0extern void omap1510_idle_loop_suspend(void);
+>>> =A0extern void omap1610_idle_loop_suspend(void);
+>>> diff --git a/arch/arm/mach-omap1/sleep.S b/arch/arm/mach-omap1/slee=
+p.S
+>>> index ef771ce..c875bdc 100644
+>>> --- a/arch/arm/mach-omap1/sleep.S
+>>> +++ b/arch/arm/mach-omap1/sleep.S
+>>> @@ -58,6 +58,7 @@
+>>> =A0*/
+>>>
+>>> =A0#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap7xx_cpu_suspend)
+>>>
+>>> =A0 =A0 =A0 =A0@ save registers on stack
+>>> @@ -137,6 +138,7 @@ ENTRY(omap7xx_cpu_suspend_sz)
+>>> =A0#endif /* CONFIG_ARCH_OMAP730 || CONFIG_ARCH_OMAP850 */
+>>>
+>>> =A0#ifdef CONFIG_ARCH_OMAP15XX
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap1510_cpu_suspend)
+>>>
+>>> =A0 =A0 =A0 =A0@ save registers on stack
+>>> @@ -211,6 +213,7 @@ ENTRY(omap1510_cpu_suspend_sz)
+>>> =A0#endif /* CONFIG_ARCH_OMAP15XX */
+>>>
+>>> =A0#if defined(CONFIG_ARCH_OMAP16XX)
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap1610_cpu_suspend)
+>>>
+>>> =A0 =A0 =A0 =A0@ save registers on stack
+>>> diff --git a/arch/arm/mach-omap1/sram.S b/arch/arm/mach-omap1/sram.=
+S
+>>> index 7724e52..692587d 100644
+>>> --- a/arch/arm/mach-omap1/sram.S
+>>> +++ b/arch/arm/mach-omap1/sram.S
+>>> @@ -18,6 +18,7 @@
+>>> =A0/*
+>>> =A0* Reprograms ULPD and CKCTL.
+>>> =A0*/
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap1_sram_reprogram_clock)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r0 - r12, lr} =A0 =A0 =A0 =A0 =A0 =A0=
+ @ save registers on stack
+>>>
+>>> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+>>> index 1c1b0ab..39580e6 100644
+>>> --- a/arch/arm/mach-omap2/pm.h
+>>> +++ b/arch/arm/mach-omap2/pm.h
+>>> @@ -92,7 +92,7 @@ extern void omap24xx_idle_loop_suspend(void);
+>>> =A0extern void omap24xx_cpu_suspend(u32 dll_ctrl, void __iomem *sdr=
+c_dlla_ctrl,
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0void __iomem *sdrc_power);
+>>> =A0extern void omap34xx_cpu_suspend(u32 *addr, int save_state);
+>>> -extern void save_secure_ram_context(u32 *addr);
+>>> +extern int save_secure_ram_context(u32 *addr);
+>>> =A0extern void omap3_save_scratchpad_contents(void);
+>>>
+>>> =A0extern unsigned int omap24xx_idle_loop_suspend_sz;
+>>> diff --git a/arch/arm/mach-omap2/sleep24xx.S b/arch/arm/mach-omap2/=
+sleep24xx.S
+>>> index c7780cc..b5071a4 100644
+>>> --- a/arch/arm/mach-omap2/sleep24xx.S
+>>> +++ b/arch/arm/mach-omap2/sleep24xx.S
+>>> @@ -47,6 +47,7 @@
+>>> =A0* Note: This code get's copied to internal SRAM at boot. When th=
+e OMAP
+>>> =A0* =A0 =A0 =A0wakes up it continues execution at the point it wen=
+t to sleep.
+>>> =A0*/
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap24xx_idle_loop_suspend)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r0, lr} =A0 =A0 =A0 =A0 =A0 @ save r=
+egisters on stack
+>>> =A0 =A0 =A0 =A0mov =A0 =A0 r0, #0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+@ clear for mcr setup
+>>> @@ -82,6 +83,7 @@ ENTRY(omap24xx_idle_loop_suspend_sz)
+>>> =A0* The DLL load value is not kept in RETENTION or OFF. It needs t=
+o be restored
+>>> =A0* at wake
+>>> =A0*/
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap24xx_cpu_suspend)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r0 - r12, lr} =A0 =A0 @ save registe=
+rs on stack
+>>> =A0 =A0 =A0 =A0mov =A0 =A0 r3, #0x0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+@ clear for mcr call
+>>> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/=
+sleep34xx.S
+>>> index 98d8232..951a0be 100644
+>>> --- a/arch/arm/mach-omap2/sleep34xx.S
+>>> +++ b/arch/arm/mach-omap2/sleep34xx.S
+>>> @@ -118,6 +118,7 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
+>>>
+>>> =A0 =A0 =A0 =A0.text
+>>> =A0/* Function to call rom code to save secure ram context */
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(save_secure_ram_context)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r1-r12, lr} =A0 =A0 =A0 @ save regis=
+ters on stack
+>>> =A0 =A0 =A0 =A0adr =A0 =A0 r3, api_params =A0 =A0 =A0 =A0 =A0@ r3 p=
+oints to parameters
+>>> @@ -169,6 +170,7 @@ ENTRY(save_secure_ram_context_sz)
+>>> =A0* =A0 depending on the low power mode (non-OFF vs OFF modes),
+>>> =A0* =A0 cf. 'Resume path for xxx mode' comments.
+>>> =A0*/
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap34xx_cpu_suspend)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r0-r12, lr} =A0 =A0 =A0 @ save regis=
+ters on stack
+>>>
+>>> diff --git a/arch/arm/mach-omap2/sram242x.S b/arch/arm/mach-omap2/s=
+ram242x.S
+>>> index 055310c..ff9b9db 100644
+>>> --- a/arch/arm/mach-omap2/sram242x.S
+>>> +++ b/arch/arm/mach-omap2/sram242x.S
+>>> @@ -39,6 +39,7 @@
+>>>
+>>> =A0 =A0 =A0 =A0.text
+>>>
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap242x_sram_ddr_init)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r0 - r12, lr} =A0 =A0 @ save registe=
+rs on stack
+>>>
+>>> @@ -143,6 +144,7 @@ ENTRY(omap242x_sram_ddr_init_sz)
+>>> =A0* r0 =3D [PRCM_FULL | PRCM_HALF] r1 =3D SDRC_DLLA_CTRL value r2 =
+=3D [DDR | SDR]
+>>> =A0* PRCM_FULL =3D 2, PRCM_HALF =3D 1, DDR =3D 1, SDR =3D 0
+>>> =A0*/
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap242x_sram_reprogram_sdrc)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r0 - r10, lr} =A0 =A0 @ save registe=
+rs on stack
+>>> =A0 =A0 =A0 =A0mov =A0 =A0 r3, #0x0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+@ clear for mrc call
+>>> @@ -238,6 +240,7 @@ ENTRY(omap242x_sram_reprogram_sdrc_sz)
+>>> =A0/*
+>>> =A0* Set dividers and pll. Also recalculate DLL value for DDR and u=
+nlock mode.
+>>> =A0*/
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap242x_sram_set_prcm)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r0-r12, lr} =A0 =A0 =A0 @ regs to st=
+ack
+>>> =A0 =A0 =A0 =A0adr =A0 =A0 r4, pbegin =A0 =A0 =A0 =A0 =A0 =A0 =A0@ =
+addr of preload start
+>>> diff --git a/arch/arm/mach-omap2/sram243x.S b/arch/arm/mach-omap2/s=
+ram243x.S
+>>> index f900758..7673020 100644
+>>> --- a/arch/arm/mach-omap2/sram243x.S
+>>> +++ b/arch/arm/mach-omap2/sram243x.S
+>>> @@ -39,6 +39,7 @@
+>>>
+>>> =A0 =A0 =A0 =A0.text
+>>>
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap243x_sram_ddr_init)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r0 - r12, lr} =A0 =A0 @ save registe=
+rs on stack
+>>>
+>>> @@ -143,6 +144,7 @@ ENTRY(omap243x_sram_ddr_init_sz)
+>>> =A0* r0 =3D [PRCM_FULL | PRCM_HALF] r1 =3D SDRC_DLLA_CTRL value r2 =
+=3D [DDR | SDR]
+>>> =A0* PRCM_FULL =3D 2, PRCM_HALF =3D 1, DDR =3D 1, SDR =3D 0
+>>> =A0*/
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap243x_sram_reprogram_sdrc)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r0 - r10, lr} =A0 =A0 @ save registe=
+rs on stack
+>>> =A0 =A0 =A0 =A0mov =A0 =A0 r3, #0x0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+@ clear for mrc call
+>>> @@ -238,6 +240,7 @@ ENTRY(omap243x_sram_reprogram_sdrc_sz)
+>>> =A0/*
+>>> =A0* Set dividers and pll. Also recalculate DLL value for DDR and u=
+nlock mode.
+>>> =A0*/
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap243x_sram_set_prcm)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r0-r12, lr} =A0 =A0 =A0 @ regs to st=
+ack
+>>> =A0 =A0 =A0 =A0adr =A0 =A0 r4, pbegin =A0 =A0 =A0 =A0 =A0 =A0 =A0@ =
+addr of preload start
+>>> diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/s=
+ram34xx.S
+>>> index 7f893a2..25011ca 100644
+>>> --- a/arch/arm/mach-omap2/sram34xx.S
+>>> +++ b/arch/arm/mach-omap2/sram34xx.S
+>>> @@ -111,6 +111,7 @@
+>>> =A0* since it will cause the ARM MMU to attempt to walk the page ta=
+bles.
+>>> =A0* These crashes may be intermittent.
+>>> =A0*/
+>>> + =A0 =A0 =A0 .align =A03
+>>> =A0ENTRY(omap3_sram_configure_core_dpll)
+>>> =A0 =A0 =A0 =A0stmfd =A0 sp!, {r1-r12, lr} =A0 =A0 =A0 @ store regs=
+ to stack
+>>>
+>>> diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat=
+-omap/include/plat/sram.h
+>>> index 9967d5e..d673f2c 100644
+>>> --- a/arch/arm/plat-omap/include/plat/sram.h
+>>> +++ b/arch/arm/plat-omap/include/plat/sram.h
+>>> @@ -12,7 +12,19 @@
+>>> =A0#define __ARCH_ARM_OMAP_SRAM_H
+>>>
+>>> =A0#ifndef __ASSEMBLY__
+>>> -extern void * omap_sram_push(void * start, unsigned long size);
+>>> +#include <asm/fncpy.h>
+>>> +
+>>> +extern void *omap_sram_push_address(unsigned long size);
+>>> +
+>>> +/* Macro to push a function to the internal SRAM, using the fncpy =
+API */
+>>> +#define omap_sram_push(funcp, size) ({ =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 \
+>>> + =A0 =A0 =A0 typeof(&funcp) _res =3D NULL; =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+>>
+>> 1) For fncpy() itself, I decided not to take the address of funcp
+>> inside the macro: the reason for this was that if you do this, the
+>> macro will silently do something silly if called with a function
+>> pointer instead of the function itself -- i.e., some memory starting
+>> at the stored function pointer itself will be copied instead of the
+>> function body.
+>>
+>> Forcing the caller to supply the '&' is a bit ugly, but I decided it
+>> was preferable from a safety standpoint.
+>>
+>> This doesn't necessarily mean that omap_sram_push can't add the '&',
+>> but if you do, you need to be careful how the macro is called. =A0It
+>> will work for all existing uses of omap_sram_push, IIUC.
+> I am OK with that.
+> In the first place it was not obvious that the '&' was needed but the
+> compiler quickly reminded me about it. The type checking is one of th=
+e
+> advantages of the new API.
+>
+>>
+>> 2) Should this be &(funcp)? =A0This will only matter for pretty weir=
+d
+>> uses though. =A0Currently most weird uses won't work properly anyway=
+,
+>> because of (1). =A0So this might not be much of a concern.
+>>
+>>> + =A0 =A0 =A0 void *_sram_address =3D omap_sram_push_address(size);=
+ =A0 =A0 \
+>>> + =A0 =A0 =A0 if (_sram_address) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 _res =3D fncpy(_sram_address, &funcp,=
+ size); =A0 =A0 =A0\
+>>
+>> &(funcp)
+> Yes that is correct but the current code does not have problem since
+> the functions to push have 'non-weird' types.
+> If needed I can change that.
 
-The next question is can we teach the generic time infrastructure about
-this so we don't have to modify every clock event driver for it?  We
-really need to get away from having this kind of knowledge buried down
-in the lowest levels of every driver.
+=46air enough. Because of the way omap_sram_push is used I think this
+isn't a significant risk -- just thought it was worth pointing out.
+
+Cheers
+---Dave
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
