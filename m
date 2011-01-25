@@ -1,99 +1,113 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH] OMAP: PM: DMA: Enable runtime pm
-Date: Tue, 25 Jan 2011 10:13:59 +0530
-Message-ID: <20110125044359.GA29117@m-desktop>
-References: <1295860819-20142-1-git-send-email-manjugk@ti.com>
- <87d3nm7zb0.fsf@ti.com>
- <20110124235205.GA6351@manju-desktop>
- <871v414yna.fsf@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V2] OMAP3EVM: Made backlight GPIO default state to off
+Date: Tue, 25 Jan 2011 10:18:21 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404BD7BE1AA@dbde02.ent.ti.com>
+References: <1295896947-30475-1-git-send-email-hvaibhav@ti.com>
+ <AANLkTi=d-MDTv3_u7O2WKvD597od6pefqpW5O+kdXgPv@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:48688 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752475Ab1AYEpG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jan 2011 23:45:06 -0500
-Received: by yxl31 with SMTP id 31so1802446yxl.0
-        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 20:45:04 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <871v414yna.fsf@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43126 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752475Ab1AYEsc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jan 2011 23:48:32 -0500
+In-Reply-To: <AANLkTi=d-MDTv3_u7O2WKvD597od6pefqpW5O+kdXgPv@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: "Semwal, Sumit" <sumit.semwal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
 
-On Mon, Jan 24, 2011 at 04:26:01PM -0800, Kevin Hilman wrote:
-> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-> 
-> > Kevin,
-> >
-> > On Mon, Jan 24, 2011 at 01:43:31PM -0800, Kevin Hilman wrote:
-> >> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-> >> 
-> >> > From: Manjunath G Kondaiah <manjugk@ti.com>
-> >> >
-> >> > Enable runtime pm and use pm_runtime_get_sync and pm_runtime_put
-> >> > for OMAP DMA driver.
-> >> >
-> >> > Since DMA driver callback will happen from interrupt context and
-> >> > DMA client driver will release all DMA resources from interrupt
-> >> > context itself, pm_runtime_put_sync() cannot be used in DMA driver.
-> >> > Instead, pm_runtime_put() is used which is asynchronous call and
-> >> > gets executed in work queue.
-> >> 
-> >> It's fine that the asynchronous version of put is uses (it's actually
-> >> preferred.)  However, the description is confusing here.  You talk about
-> >> driver callbacks here but in the patch, your calling _put() from
-> >> omap_dma_free(), not from the callback.
-> >
-> > All dma client drivers are calling omap_dma_free from callback
-> > context. 
-> 
-> Maybe so, but that's not a requirement of the API.  I have a DMA test
-> driver that doesn't do that.
-> 
-> It's also legitimate (and IMO, expected) for a client driver to, for
-> example do a omap_dma_request() on module load and omap_free_dma() on
-> module unload and only use omap_start_dma() + callbacks for xfers.
-> It would be nice (and IMO, expected) that the channels would go idle
-> between xfers (using the autosuspend feature for timeouts.)
 
-I can use autosuspend feature which can handle if there is no free_dma and also
-if there is no callback registered by the client.
-
-> 
-> > I can update this info in patch description if it is useful.
+> -----Original Message-----
+> From: Semwal, Sumit
+> Sent: Tuesday, January 25, 2011 8:05 AM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; tony@atomide.com; tomi.valkeinen@noki=
+a.com
+> Subject: Re: [PATCH-V2] OMAP3EVM: Made backlight GPIO default state t=
+o off
+>=20
+> Vaibhav,
+>=20
+> On Tue, Jan 25, 2011 at 12:52 AM, Vaibhav Hiremath <hvaibhav@ti.com>
+> wrote:
+> > If you choose default output to DVI, the LCD backlight used to
+> > stay on, since panel->disable function never gets called.
 > >
-> >> 
-> >> You're also calling _get() from the request.  That means, as long as the
-> >> DMA channel is allocated, it will be active.   
-> >> 
-> >> Wouldn't it be better to do the 'get' when the channel is started
+> > So, during init put backlight GPIO to off state and the driver
+> > code will decide which output to enable.
 > >
-> > No. omap_dma_request will call omap_clear_dma which in turn access all channel
-> > specific registers for writing zeros.
-> 
-> Of course, you always have to do get/put around any device access.
-> 
-> >> and the 'put' when the callback has finished, possibly using the
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > ---
+> > Changes from V1 -
+> > =A0 =A0 =A0 =A0- Added check for return value
 > >
-> > after omap_free_dma, none of the dma registers are accessed hence it is safe to
-> > use _put immediately after free_dma.
-> 
-> Right, but my point above is: what if the user does not call free_dma?
-> What if the client will be using the channel again sometime in the
-> future, but will be idle.   What I would expect is that the channel
-> could go idle until another xfer is initiated rather than waiting for
-> the channel to be freed.
-ok.
-> 
-> > Also, dma driver is not aware of callback completion status since it will be
-> > executed in client driver.
-> 
-> Why not?  DMA driver knows when the callback returns.
+> > =A0arch/arm/mach-omap2/board-omap3evm.c | =A0 15 +++++++++++++--
+> > =A01 files changed, 13 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> omap2/board-omap3evm.c
+> > index 7119380..a888a7d 100644
+> > --- a/arch/arm/mach-omap2/board-omap3evm.c
+> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> > @@ -411,6 +411,8 @@ static struct platform_device leds_gpio =3D {
+> > =A0static int omap3evm_twl_gpio_setup(struct device *dev,
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned gpio, unsigned ngpio)
+> > =A0{
+> > + =A0 =A0 =A0 int r;
+> > +
+> > =A0 =A0 =A0 =A0/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+> > =A0 =A0 =A0 =A0omap_mux_init_gpio(63, OMAP_PIN_INPUT);
+> > =A0 =A0 =A0 =A0mmc[0].gpio_cd =3D gpio + 0;
+> > @@ -426,8 +428,17 @@ static int omap3evm_twl_gpio_setup(struct devi=
+ce
+> *dev,
+> > =A0 =A0 =A0 =A0 */
+> >
+> > =A0 =A0 =A0 =A0/* TWL4030_GPIO_MAX + 0 =3D=3D ledA, LCD Backlight c=
+ontrol */
+> > - =A0 =A0 =A0 gpio_request(gpio + TWL4030_GPIO_MAX, "EN_LCD_BKL");
+> > - =A0 =A0 =A0 gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+> > + =A0 =A0 =A0 r =3D gpio_request(gpio + TWL4030_GPIO_MAX, "EN_LCD_B=
+KL");
+> > + =A0 =A0 =A0 if (r)
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "failed to get lcd_bk=
+l gpio\n");
+> So even if the gpio_request fails, this code prints an error and
+> continues?
+[Hiremath, Vaibhav] yes, that's correct and intended.
 
-You are right. We can get this info from DMA interrupt handler.
-
--Manjunath
-[...]
+Thanks,
+Vaibhav
+> > +
+> > + =A0 =A0 =A0 if (get_omap3_evm_rev() >=3D OMAP3EVM_BOARD_GEN_2)
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 r =3D gpio_direction_output(gpio + TW=
+L4030_GPIO_MAX, 1);
+> > + =A0 =A0 =A0 else
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 r =3D gpio_direction_output(gpio + TW=
+L4030_GPIO_MAX, 0);
+> > +
+> > + =A0 =A0 =A0 if (r)
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "failed to set direct=
+ion of lcd_bkl
+> gpio\n");
+> >
+> > =A0 =A0 =A0 =A0/* gpio + 7 =3D=3D DVI Enable */
+> > =A0 =A0 =A0 =A0gpio_request(gpio + 7, "EN_DVI");
+> > --
+> > 1.6.2.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
+p" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
+l
+> >
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
