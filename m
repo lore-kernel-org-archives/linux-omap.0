@@ -1,46 +1,88 @@
-From: "Will Deacon" <will.deacon@arm.com>
-Subject: RE: [PATCH 02/14] ARM: bitops: switch set/clear/change bitops to	use
-	ldrex/strex
-Date: Tue, 25 Jan 2011 14:19:39 -0000
-Message-ID: <48949.9852680185$1295965237@news.gmane.org>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
-	<E1Peue4-0003SN-Gk@rmk-PC.arm.linux.org.uk>
-	<20110123001636.GA20841@n2100.arm.linux.org.uk>
-	<000601cbbc97$cc6955d0$653c0170$@deacon@arm.com>
-	<20110125141153.GA17286@n2100.arm.linux.org.uk>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 3/5] ARM: twd: Add context save restore support
+Date: Tue, 25 Jan 2011 15:24:49 +0100 (CET)
+Message-ID: <alpine.LFD.2.00.1101251519530.31804@localhost6.localdomain6>
+References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com> <1295859080-15259-4-git-send-email-santosh.shilimkar@ti.com> <20110124110609.GJ16202@n2100.arm.linux.org.uk> <20110124111114.GA19409@n2100.arm.linux.org.uk>
+ <AANLkTikLDamkp9TgnWRESyx4=698D4NXP=W_M9=abfax@mail.gmail.com> <20110125103231.GD11507@n2100.arm.linux.org.uk> <alpine.LFD.2.00.1101251418260.31804@localhost6.localdomain6> <20110125133752.GI13300@n2100.arm.linux.org.uk> <alpine.LFD.2.00.1101251506360.31804@localhost6.localdomain6>
+ <20110125141530.GB17286@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110125141153.GA17286@n2100.arm.linux.org.uk>
-Content-Language: en-gb
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.tglx.de ([62.245.132.106]:59238 "EHLO www.tglx.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753641Ab1AYOZI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 09:25:08 -0500
+In-Reply-To: <20110125141530.GB17286@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: catalin.marinas@arm.com, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> > I've tested this on the Versatile Express (ca9x4, little endian) with a USB
-> > hard drive and ext3 (rw) filesystem. I did a bunch of parallel dds of a 2GB
-> > file containing random data whilst the system was fairly loaded. File checksums
-> > all passed and the kernel didn't do anything untowards.
-> >
-> > Tested-by: Will Deacon <will.deacon@arm.com>
-> >
-> > I appreciate this is the same test configuration as the one Nicolas did,
-> > but it at least replicates his findings.
+On Tue, 25 Jan 2011, Russell King - ARM Linux wrote:
+> On Tue, Jan 25, 2011 at 03:12:24PM +0100, Thomas Gleixner wrote:
+> > On Tue, 25 Jan 2011, Russell King - ARM Linux wrote:
+> > > On Tue, Jan 25, 2011 at 02:23:10PM +0100, Thomas Gleixner wrote:
+> > > > In which way? I mean the generic code issues a call to the set_mode
+> > > > function when we leave the broadcast mode. So what should the generic
+> > > > code do more ?
+> > > 
+> > > I can't say because these patches only add the hooks, there's no
+> > > implementation yet which uses the hooks.
+> > > 
+> > > Given the description about _why_ those hooks are necessary, it seems
+> > > that something is required.  Either we start adding custom hacks to
+> > > each clockevent driver as is done with this patch, or we get some
+> > > generic help in place.
+> > > 
+> > > I'm not thrilled by the custom hack approach - and I thought the
+> > > clockevent stuff was created to stop this kind of thing happening.
+> > 
+> > Yes, and it does the right thing:
+> > 
+> >      idle enter (where the cpu local tick device stops)
+> > 
+> >      	  tick_broadcast_oneshot_control(CLOCK_EVT_NOTIFY_BROADCAST_ENTER)
+> > 
+> > 		clockevents_set_mode(dev, CLOCK_EVT_MODE_SHUTDOWN)
+> > 		tick_broadcast_set_event(dev->next_event, 1)
+> > 
+> >     idle exit
+> > 
+> >      	  tick_broadcast_oneshot_control(CLOCK_EVT_NOTIFY_BROADCAST_EXIT)
+> > 
+> > 		clockevents_set_mode(dev, CLOCK_EVT_MODE_ONESHOT)
+> > 		tick_program_event(dev->next_event, 1)
+> > 
+> > So the generic code has all the calls in place. If a clock chip
+> > implementation misses to set control registers in the
+> > CLOCK_EVT_MODE_ONESHOT case, then it's not a short coming of the
+> > generic code which needs magic hooks in the arch code.
+> > 
+> > The same applies for the periodic mode switch, which is handled via
+> > tick_broadcast_on_off().
+> > 
+> > Am I missing something ?
 > 
-> Was this for just the first three or the complete set?
+> I quote Colin:
+> 
+> | This doesn't work for oneshot timers if the TWD_TIMER_CONTROL register
+> | gets reset by cpu idle between twd_set_mode and twd_set_next_event.
 
-This was for your -devel branch as of last night (head 75c4aa97).
-If I try to extract patches from the mailing list, Exchange destroys
-them :(
+And I fear that he means the twd_set_mode(ONESHOT) call which happens
+during boot/cpuonline.
 
-Will
+The point is that the above function needs to be called from the cpu
+idle code to notify the clock events layer. The correct mechanism is
+clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER/EXIT). The
+existing callers are in:
+
+arch/x86/kernel/process.c
+drivers/acpi/acpi_pad.c
+drivers/acpi/processor_idle.c
+drivers/idle/intel_idle.c
+
+So i'm not surprised, that this wont work on ARM :)
+
+Thanks,
+
+	tglx
