@@ -1,43 +1,82 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 4/5] ARM: scu: Move register defines to header file
-Date: Tue, 25 Jan 2011 12:56:56 +0000
-Message-ID: <20110125125656.GG13300@n2100.arm.linux.org.uk>
-References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com> <1295859080-15259-5-git-send-email-santosh.shilimkar@ti.com> <20110125114635.GB13300@n2100.arm.linux.org.uk> <236d45e400a960cc3b32db538b3a79ae@mail.gmail.com> <20110125121655.GD13300@n2100.arm.linux.org.uk> <4534e82bf14eeea9f96769df760df5ae@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sumit Semwal <sumit.semwal@ti.com>
+Subject: [PATCH v2 0/4] OMAP2PLUS: DSS: Generalize clock names
+Date: Tue, 25 Jan 2011 18:29:54 +0530
+Message-ID: <1295960398-25329-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39182 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752810Ab1AYM5a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 07:57:30 -0500
-Content-Disposition: inline
-In-Reply-To: <4534e82bf14eeea9f96769df760df5ae@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58901 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750831Ab1AYNAO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 08:00:14 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, ccross@android.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org
+To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com
+Cc: Sumit Semwal <sumit.semwal@ti.com>
 
-On Tue, Jan 25, 2011 at 06:06:27PM +0530, Santosh Shilimkar wrote:
-> Ok. I missed some information my last email.
-> The SCU power status programming is used to take CPU in/out
-> of coherency as an alternative to SMP bit. We don't
-> have an access to SMP bit on OMAP4. ARM has already
-> confirmed SCU programming is same as SMP bit enable/disable.
-> 
-> I don't know how safe is to use spin lock when one CPU is
-> goes out of coherency after programming the power state. The
-> spin lock release may not even be visible to other CPU.
+This patch series changes dss clock names to generic role names for all DSS
+clocks across clk APIs, hwmod data, dss driver. 
 
-Erm, I do hope that's not the case, as that means it is unsafe for CPUs in
-a SMP system to write to this register without them potentially trampling
-over each other.
+It also changes the enums used within DSS framework to refer to the clocks
+to make them generic and related to functionality than value.
+eg.	DSS_CLK_TVFCK replaces DSS_CLK_54M,
+	dss_tv_fck replaces dss_54m_fck
 
-If it is the case, then the solutions are either:
-1. Fix the hardware so that coherency requests only yet turned off
-   when entering the WFI state.
-2. Fix the hardware such that each CPU has a separate register.
+This serves as the base for common hwmod DSS opt-clock roles across all OMAP
+platforms, and increases extendability.
 
-I can't see a software solution to this as we can't use ldrex/strex anything
-but memory regions, and memory regions without coherency won't work.
-Maybe ARM Support can help by suggesting how a 4-CPU system is supposed
-to safely read/modify/write the SCU power control register...
+In addition, since ick doesn't exist on OMAP4, the last patch adds a dummy clk
+for the same in clock44xx_data.c.
+
+===
+Note: This is interim change set to enable DSS on OMAP2/3/4 platforms; there is an
+ongoing design discussion for de-centralizing the DSS clock framework handling
+in favour of using pm_runtime APIs directly in each DSS IP.
+
+Once a consensus is reached on that, much of this code will become cleaner, as
+each DSS IP block handles its own clocks using the common clocks framework.
+
+Patch Base:
+===========
+Patch-set rebased and tested w/ Zoom3 (OMAP3630) on top of:
+url = git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+branch "master"
+commit	e8883f8057c0f7c9950fa9f20568f37bfa62f34a
+Description: Add linux-next specific files for 20110115
++
+Patch mentioned in http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42384.html
+[PATCH] OMAP: counter_32k: init clocksource as part of machine timer init
+(This patch is required for OMAP bootup w/ 20110115 linux-next)
++
+DSS hwmod patch series: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42914.html
+
+changes since v1:
+added dummy clk patch for OMAP4.
+--------------------------------------------------------------------------- 
+
+Archit Taneja (2):
+  OMAP2PLUS: DSS2: Generalize naming of PRCM related clock enums in DSS
+    driver
+  OMAP2PLUS: DSS2: Generalize external clock names in struct dss of
+    dss.c
+
+Sumit Semwal (2):
+  OMAP2PLUS: opt-clocks: align dss clock roles and names
+  OMAP4: DSS2: clocks: Add ick as dummy clock
+
+ arch/arm/mach-omap2/clock2420_data.c       |   10 ++-
+ arch/arm/mach-omap2/clock2430_data.c       |   10 ++-
+ arch/arm/mach-omap2/clock3xxx_data.c       |   22 +++--
+ arch/arm/mach-omap2/clock44xx_data.c       |    9 ++-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
+ drivers/video/omap2/dss/core.c             |    4 +-
+ drivers/video/omap2/dss/dispc.c            |   10 +-
+ drivers/video/omap2/dss/dpi.c              |   16 ++--
+ drivers/video/omap2/dss/dsi.c              |   18 ++--
+ drivers/video/omap2/dss/dss.c              |  144 ++++++++++++++--------------
+ drivers/video/omap2/dss/dss.h              |   10 +-
+ drivers/video/omap2/dss/manager.c          |    4 +-
+ drivers/video/omap2/dss/overlay.c          |    4 +-
+ drivers/video/omap2/dss/rfbi.c             |   10 +-
+ drivers/video/omap2/dss/sdi.c              |    8 +-
+ drivers/video/omap2/dss/venc.c             |    8 +-
+ 16 files changed, 156 insertions(+), 133 deletions(-)
+
