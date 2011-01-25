@@ -1,39 +1,66 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 3/5] ARM: twd: Add context save restore support
-Date: Tue, 25 Jan 2011 11:48:48 +0000
-Message-ID: <20110125114848.GC13300@n2100.arm.linux.org.uk>
-References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com> <1295859080-15259-4-git-send-email-santosh.shilimkar@ti.com> <20110124110609.GJ16202@n2100.arm.linux.org.uk> <20110124111114.GA19409@n2100.arm.linux.org.uk> <AANLkTikLDamkp9TgnWRESyx4=698D4NXP=W_M9=abfax@mail.gmail.com> <20110125112946.GA13300@n2100.arm.linux.org.uk> <b4c0d6db681c3fcfaf5d6f39d1022bb7@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v2 0/5] Clockdomain split series
+Date: Tue, 25 Jan 2011 17:21:43 +0530
+Message-ID: <1295956308-23860-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51365 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752653Ab1AYLtF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 06:49:05 -0500
-Content-Disposition: inline
-In-Reply-To: <b4c0d6db681c3fcfaf5d6f39d1022bb7@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54330 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751650Ab1AYLwC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 06:52:02 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Colin Cross <ccross@android.com>, catalin.marinas@arm.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-On Tue, Jan 25, 2011 at 05:10:37PM +0530, Santosh Shilimkar wrote:
-> As I was suspecting the one shot mode wouldn't work it. Collin
-> just confirmed it.
-> To make it fully work it needs control register save restore.
-> And that can be managed within TWD library so that every platform
-> doesn't have to bother of calling it from their idle code.
-> 
-> Do you prefer that as a separate patch or I can post a new version
-> in which can add your fix + per cpu control register shadowing ?
+This patch series is an effort to split the clockdomain
+framework into platform independent and platform specific parts
+as was done for the powerdomain framework.
 
-I said earlier:
-| The next question is can we teach the generic time infrastructure about
-| this so we don't have to modify every clock event driver for it?  We
-| really need to get away from having this kind of knowledge buried down
-| in the lowest levels of every driver.
+This certainlly helps remove the various cpu_is_* checks
+which exist today in the framework and makes
+the code more maintainable and readable.
 
-IOW, if we go into a PM idle mode, when we come back out we need to
-call clockevent set_mode to ensure that the control register is properly
-reset.  I don't think its right to have this kind of knowledge buried
-in each and every clockevent driver.
+The series is boot tested on OMAP2430/3430/4430SDP platforms.
+Also on OMAP3430SDP, OFF mode in suspend path is validated
+using the omap3_pm_defconfig.
+
+This series is based on mainline 2.6.38-rc2 and
+can be found here
+git://gitorious.org/omap-pm/linux.git clockdomain-split-v2-rc2
+
+Version History
+---------------
+v2
+-1- removed wrongly populated sleepdep support for OMAP2
+-2- Fixed error handling in apis
+
+For a wider review, posting this series with
+linux-arm-kernel list copied.
+This version has no functional diff with the
+earlier one posted here
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42570.html
+
+Rajendra Nayak (5):
+  OMAP: clockdomain: Infrastructure to put arch specific code
+  OMAP: clockdomain: Arch specific funcs to handle deps
+  OMAP: clockdomain: Arch specific funcs for sleep/wakeup of clkdm
+  OMAP: clockdomain: Arch specific funcs for hwsup control of clkdm
+  OMAP: clockdomain: Arch specific funcs for clkdm_clk_enable/disable
+
+ arch/arm/mach-omap2/Makefile                     |    3 +
+ arch/arm/mach-omap2/clock.c                      |    6 +-
+ arch/arm/mach-omap2/clockdomain.c                |  410 +++++++---------------
+ arch/arm/mach-omap2/clockdomain.h                |   58 +++-
+ arch/arm/mach-omap2/clockdomain2xxx_3xxx.c       |  270 ++++++++++++++
+ arch/arm/mach-omap2/clockdomain44xx.c            |   77 ++++
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    9 +-
+ arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 +-
+ arch/arm/mach-omap2/cpuidle34xx.c                |    4 +-
+ arch/arm/mach-omap2/io.c                         |    6 +-
+ arch/arm/mach-omap2/pm.c                         |    6 +-
+ arch/arm/mach-omap2/pm24xx.c                     |    8 +-
+ arch/arm/mach-omap2/pm34xx.c                     |    6 +-
+ 13 files changed, 557 insertions(+), 308 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+ create mode 100644 arch/arm/mach-omap2/clockdomain44xx.c
+
