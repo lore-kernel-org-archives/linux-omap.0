@@ -1,141 +1,69 @@
-From: "Tardy, Pierre" <pierre.tardy@intel.com>
-Subject: RE: [PATCH v1 1/3]mmc: implemented runtime pm for mmc host
-Date: Tue, 25 Jan 2011 21:34:28 +0000
-Message-ID: <8250E4885F9967469CAC3FB5CBA2CE69934EFA98B2@irsmsx501.ger.corp.intel.com>
-References: <20110114082310.GB27523@intel.com>
-	<8250E4885F9967469CAC3FB5CBA2CE69934E7AA2FE@irsmsx501.ger.corp.intel.com>
-	<5D8008F58939784290FAB48F54975198351D4FA654@shsmsx502.ccr.corp.intel.com>
-	<8250E4885F9967469CAC3FB5CBA2CE69934E7AAB20@irsmsx501.ger.corp.intel.com>
-	<5D8008F58939784290FAB48F5497519835247E72AD@shsmsx502.ccr.corp.intel.com>
-	<8250E4885F9967469CAC3FB5CBA2CE69934E7AACCC@irsmsx501.ger.corp.intel.com>
-	<20110120050803.GA5732@void.printf.net>
- <AANLkTimZyv9f5b5VxmmYyO3qPrb9Y25-=yUV_GYma3e_@mail.gmail.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: RE: [PATCH 02/14] ARM: bitops: switch set/clear/change bitops to use
+ ldrex/strex
+Date: Tue, 25 Jan 2011 16:38:52 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1101251631540.8580@xanadu.home>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+ <E1Peue4-0003SN-Gk@rmk-PC.arm.linux.org.uk>
+ <20110123001636.GA20841@n2100.arm.linux.org.uk>
+ <000601cbbc97$cc6955d0$653c0170$%deacon@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimZyv9f5b5VxmmYyO3qPrb9Y25-=yUV_GYma3e_@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: Linus Walleij <linus.ml.walleij@gmail.com>, Chris Ball <cjb@laptop.org>
-Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relais.videotron.ca ([24.201.245.36]:11394 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754146Ab1AYViw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 16:38:52 -0500
+Received: from xanadu.home ([66.130.28.92]) by VL-MR-MRZ20.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
+ with ESMTP id <0LFL00FBELGF83C0@VL-MR-MRZ20.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Tue, 25 Jan 2011 16:38:40 -0500 (EST)
+In-reply-to: <000601cbbc97$cc6955d0$653c0170$%deacon@arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Linus Walleij [mailto:linus.ml.walleij@gmail.com]
-> Sent: Monday, January 24, 2011 11:11 PM
-> To: Chris Ball
-> Cc: Tardy, Pierre; linux-mmc@vger.kernel.org; Ohad Ben-Cohen; linux-o=
-map Mailing List
-> Subject: Re: [PATCH v1 1/3]mmc: implemented runtime pm for mmc host
->=20
-> 2011/1/20 Chris Ball <cjb@laptop.org>:
-> > On Wed, Jan 19, 2011 at 09:45:57AM +0000, Tardy, Pierre wrote:
-> >> Chris,
-> >> (Sorry for top posting)
-> >> Seems we have a intel intern disagreement.
-> >>
-> >> Could we have maintainer opinion on this ?
-> >
-> > Linus W and Ohad, any input here? =A0Thanks,
->=20
-> What I see is orthogonal purposes altogether. Usually there is
-> something like two clocks and two regulators or switches
-> available in every sufficiently advanced system:
->=20
-> - One regulator to power the card
-> - One clock to clock the card (MCLK)
-> - One regulator or switch to power the MMC IP block
-> - One clock to clock the MMC IP block
->=20
-> The MMC core regulator handling and the clock gating I
-> implemented is about the two first things.
->=20
-> I think this patch is about the two *other* things, if I read it
-> right.
+On Tue, 25 Jan 2011, Will Deacon wrote:
 
-Actually in sdhci, you power off the MMC IP block, you power OFF the MC=
-LK (at least on our platform)
+> Hi Russell,
+> 
+> Hopefully this isn't too late to be useful.
+> 
+> > On Mon, Jan 17, 2011 at 07:21:40PM +0000, Russell King - ARM Linux wrote:
+> > > Switch the set/clear/change bitops to use the word-based exclusive
+> > > operations, which are only present in a wider range of ARM architectures
+> > > than the byte-based exclusive operations.
+> > >
+> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > 
+> > As only one person replied to this patch with test information, I'm
+> > not happy to push this into -rc, and hence that prevents it going into
+> > -stable too.  That means omap2plus_defconfig .38 mainline kernels
+> > (including -stable) will remain potentially dangerous when run on
+> > SMP capable hardware.
+> > 
+> > Therefore, I see no alternative at the moment but to purposely cause
+> > builds which cover ARMv6, and ARMv6K or ARMv7 CPUs to save people from
+> > data corruption.
+> > 
+> > Please get your tested-by's to me for at least the first three patches
+> > of this series ASAP.
+> 
+> I've tested this on the Versatile Express (ca9x4, little endian) with a USB
+> hard drive and ext3 (rw) filesystem. I did a bunch of parallel dds of a 2GB
+> file containing random data whilst the system was fairly loaded. File checksums
+> all passed and the kernel didn't do anything untowards.
+> 
+> Tested-by: Will Deacon <will.deacon@arm.com>
+> 
+> I appreciate this is the same test configuration as the one Nicolas did,
+> but it at least replicates his findings.
 
-I don't know other platform where mmc clock is not controlled more or l=
-ess directlty by the sdhc IP.
-
-> Further this patch cannot be applied as-is.
-> It needs a clause where it will wait for the clock gating to
-> be sync:ed *before* calling the suspend hook.
-That's the purpose of those hunks:
-
-iff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
-index 8c3769b..27931f6 100644
---- a/drivers/mmc/host/sdhci.c
-+++ b/drivers/mmc/host/sdhci.c
-@@ -20,6 +20,7 @@
- #include <linux/slab.h>
- #include <linux/scatterlist.h>
- #include <linux/regulator/consumer.h>
-+#include <linux/pm_runtime.h>
-=20
- #include <linux/leds.h>
-=20
-@@ -1221,6 +1222,7 @@ static void sdhci_set_ios(struct mmc_host *mmc, s=
-truct mmc_ios *ios)
- {
-        struct sdhci_host *host;
-        unsigned long flags;
-+       unsigned int lastclock;
-        u8 ctrl;
-=20
-        host =3D mmc_priv(mmc);
-@@ -1231,6 +1233,27 @@ static void sdhci_set_ios(struct mmc_host *mmc, =
-struct mmc_ios *ios)
-                goto out;
-=20
-        /*
-+        * get/put runtime_pm usage counter at ios->clock transitions
-+        * We need to do it before any other chip access, as sdhci coul=
-d
-+        * be power gated
-+        */
-+       lastclock =3D host->iosclock;
-+       host->iosclock =3D ios->clock;
-+       if (lastclock =3D=3D 0 && ios->clock !=3D 0) {
-+               spin_unlock_irqrestore(&host->lock, flags);
-+               pm_runtime_get_sync(host->mmc->parent);
-+               spin_lock_irqsave(&host->lock, flags);
-+       } else if (lastclock !=3D 0 && ios->clock =3D=3D 0) {
-+               spin_unlock_irqrestore(&host->lock, flags);
-+               pm_runtime_mark_last_busy(host->mmc->parent);
-+               pm_runtime_put_autosuspend(host->mmc->parent);
-+               spin_lock_irqsave(&host->lock, flags);
-+       }
-+       /* no need to configure the rest.. */
-+       if (host->iosclock =3D=3D 0)
-+               goto out;
-+
-+       /*
-         * Reset the chip on each power off.
-         * Should clear out any weird states.
-         */
-@@ -1303,6 +1326,8 @@ static int sdhci_get_ro(struct mmc_host *mmc)
-
-I'm wondering if this code could be generic to all drivers, and if cloc=
-k gating could not be taking/releasing reference counter on the mmc_bus=
- whenever there is a clock gating transition?
-We could condition that on some MMC_CAP_POWERGATE_WILL_CLKGATE capabili=
-ty flag.
+Well, I did run parallel instances of the git test suite on a Dove board 
+using the sata_mv driver.  Therefore this is still a significant
+difference in configuration which is good.
 
 
-Regards,
-Pierre
----------------------------------------------------------------------
-Intel Corporation SAS (French simplified joint stock company)
-Registered headquarters: "Les Montalets"- 2, rue de Paris,=20
-92196 Meudon Cedex, France
-Registration Number:  302 456 199 R.C.S. NANTERRE
-Capital: 4,572,000 Euros
-
-This e-mail and any attachments may contain confidential material for
-the sole use of the intended recipient(s). Any review or distribution
-by others is strictly prohibited. If you are not the intended
-recipient, please contact the sender and delete all copies.
-
+Nicolas
