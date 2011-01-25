@@ -1,91 +1,58 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 3/5] AM/DM37x: DSS mux configuration for >Rev-B processor cards
-Date: Tue, 25 Jan 2011 23:07:39 +0530
-Message-ID: <1295977061-11086-4-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH 4/5] OMAP3EVM: Made backlight GPIO default state to off
+Date: Tue, 25 Jan 2011 23:07:40 +0530
+Message-ID: <1295977061-11086-5-git-send-email-hvaibhav@ti.com>
 References: <1295977061-11086-1-git-send-email-hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48292 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58814 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753061Ab1AYRhu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Jan 2011 12:37:50 -0500
+	id S1753057Ab1AYRhv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 12:37:51 -0500
 In-Reply-To: <1295977061-11086-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-To support higher resolution (e.g 720P@60), on OMAP36x (AM/DM37x)
-DSS data bus has been muxed with sys_boot pins.
+If you choose default output to DVI, the LCD backlight used to
+stay on, since panel->disable function never gets called.
 
-DSS[18-23] => DSS[0-5]
-sys_boot[0,1 3-5] => DSS[18-23]
-
-EVM revision >=RevB adopt this mux changes, which is going to ship outside.
+So, during init put backlight GPIO to off state and the driver
+code will decide which output to enable.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |   34 ++++++++++++++++++++++++++++++++--
- 1 files changed, 32 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-omap3evm.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index dcef454..0d235bc 100644
+index 0d235bc..2a2efa9 100644
 --- a/arch/arm/mach-omap2/board-omap3evm.c
 +++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -705,7 +705,7 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
- };
- 
- #ifdef CONFIG_OMAP_MUX
--static struct omap_board_mux board_mux[] __initdata = {
-+static struct omap_board_mux omap35x_board_mux[] __initdata = {
- 	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
- 				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
- 				OMAP_PIN_OFF_WAKEUPENABLE),
-@@ -717,6 +717,32 @@ static struct omap_board_mux board_mux[] __initdata = {
- 				OMAP_PIN_OFF_NONE),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
-+
-+static struct omap_board_mux omap36x_board_mux[] __initdata = {
-+	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
-+				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
-+				OMAP_PIN_OFF_WAKEUPENABLE),
-+	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-+				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW),
-+	/* AM/DM37x EVM: DSS data bus muxed with sys_boot */
-+	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(DSS_DATA21, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(SYS_BOOT0, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(SYS_BOOT1, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(SYS_BOOT3, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(SYS_BOOT4, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(SYS_BOOT5, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(SYS_BOOT6, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
-+
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define omap35x_board_mux	NULL
-+#define omap36x_board_mux	NULL
- #endif
- 
- static struct omap_musb_board_data musb_board_data = {
-@@ -728,7 +754,11 @@ static struct omap_musb_board_data musb_board_data = {
- static void __init omap3_evm_init(void)
+@@ -444,6 +444,8 @@ static struct platform_device leds_gpio = {
+ static int omap3evm_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
  {
- 	omap3_evm_get_revision();
--	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
++	int r;
 +
-+	if (cpu_is_omap3630())
-+		omap3_mux_init(omap36x_board_mux, OMAP_PACKAGE_CBB);
-+	else
-+		omap3_mux_init(omap35x_board_mux, OMAP_PACKAGE_CBB);
+ 	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+ 	omap_mux_init_gpio(63, OMAP_PIN_INPUT);
+ 	mmc[0].gpio_cd = gpio + 0;
+@@ -459,8 +461,12 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
+ 	 */
  
- 	omap3_evm_i2c_init();
+ 	/* TWL4030_GPIO_MAX + 0 == ledA, LCD Backlight control */
+-	gpio_request(gpio + TWL4030_GPIO_MAX, "EN_LCD_BKL");
+-	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
++	r = gpio_request(gpio + TWL4030_GPIO_MAX, "EN_LCD_BKL");
++	if (!r)
++		r = gpio_direction_output(gpio + TWL4030_GPIO_MAX,
++			(get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2) ? 1 : 0);
++	if (r)
++		printk(KERN_ERR "failed to get/set lcd_bkl gpio\n");
  
+ 	/* gpio + 7 == DVI Enable */
+ 	gpio_request(gpio + 7, "EN_DVI");
 -- 
 1.6.2.4
 
