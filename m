@@ -1,122 +1,99 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] OMAP3EVM:FIX: Reset the SMSC911x Ethernet controller in
- board_init
-Date: Tue, 25 Jan 2011 10:14:16 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404BD7BE1A1@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
-	<1295880108-15584-1-git-send-email-hvaibhav@ti.com>	<87oc769je4.fsf@ti.com>
-	<19F8576C6E063C45BE387C64729E739404BD7BE119@dbde02.ent.ti.com>
- <87zkqq80ai.fsf@ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCH] OMAP: PM: DMA: Enable runtime pm
+Date: Tue, 25 Jan 2011 10:13:59 +0530
+Message-ID: <20110125044359.GA29117@m-desktop>
+References: <1295860819-20142-1-git-send-email-manjugk@ti.com>
+ <87d3nm7zb0.fsf@ti.com>
+ <20110124235205.GA6351@manju-desktop>
+ <871v414yna.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52613 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752511Ab1AYEo2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jan 2011 23:44:28 -0500
-In-Reply-To: <87zkqq80ai.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:48688 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752475Ab1AYEpG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Jan 2011 23:45:06 -0500
+Received: by yxl31 with SMTP id 31so1802446yxl.0
+        for <linux-omap@vger.kernel.org>; Mon, 24 Jan 2011 20:45:04 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <871v414yna.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-> -----Original Message-----
-> From: Hilman, Kevin
-> Sent: Tuesday, January 25, 2011 2:52 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; Varadarajan, Charulatha; tony@atomide.com
-> Subject: Re: [PATCH] OMAP3EVM:FIX: Reset the SMSC911x Ethernet controller
-> in board_init
+On Mon, Jan 24, 2011 at 04:26:01PM -0800, Kevin Hilman wrote:
+> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
 > 
-> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
-> 
-> >> >
-> >> > With addition of HWMOD support to GPIO, the Ethernet controller
-> >> > goes undetected for OMAP35xEVM. So explicitely assert the reset
-> signal
-> >> to
-> >> > Ethernet controller smsc911x -
-> >> >
-> >> > 	- GPIO7 (>=RevG version of EVM's)
-> >> > 	- GPIO64 (<=RevD version of EVM's)
-> >> >
-> >> > I have tested this patch on RevG version of EVM with ES3.1 Si.
-> >> > This patch is based on intial version from Charulatha V.
-> >> >
-> >> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> >>
-> >> This didn't apply cleanly to l-o master, with or without your previous
-> >> patches which touch the EVM board file.
-> >>
-> > [Hiremath, Vaibhav] may be order in which you apply the patches is
-> different, but should have been trivial to fix, right?
-> > I would suggest you to use newer version.
-> 
-> The order of applying doesn't matter.  Applying the original patch alone
-> didn't apply, applying it after the other didn't apply.   V2 doesn't
-> apply cleanly either.
-> 
-> Please be sure it applies cleanly to:
-> 
-> commit 5b698d68c1a9ebeae76a0e4ca4dbfdb10357143d
-> Author: Thomas Weber <weber@corscience.de>
-> Date:   Thu Jan 20 14:12:11 2011 +0000
-> 
->     omap: omap-mcbsp: Fix building after replacement
-> 
->     Fix building omap-mcbsp after replacing ARCH_OMAP24x0 in
->     commit 8a9c1aa6a4caa7db1c2fca4b47168af9077e0f95.
-> 
-> 
-> If your series of EVM patches are interdependent, I suggest sending them
-> as a series, so it's clear that they are dependent on each other.
-> Also, please Cc linux-arm-kernel on OMAP patches intended for upstream.
-> 
-[Hiremath, Vaibhav] My head is pointing to same commit. But I think you are right, I should have made complete series of patches. Since these patches are functionally/logically not dependent on each other so I did not make it as a series.
-
-Let me create series and send it again.
-
-> This one (network GPIO) should be separated out though, and go into
-> .38-rc (as well as -stable) since omap3evm is has not been bootable
-> since 2.6.37.
-> 
-[Hiremath, Vaibhav] I agree.
-
-> >> > ---
-> >> > NOTE: I have not been able to test it on older version of EVM's.
-> >>
-> >> After manually applying,
-> >>
-> >> Tested-by: Kevin Hilman <khilman@ti.com>
-> >>
-> >> I tested on my rev D board with DHCP + nfs rootfs and it's working well.
-> >>
-> > [Hiremath, Vaibhav] Thanks a lot for validating it.
+> > Kevin,
 > >
-> >> While testing though, I also noticed that the smsc driver is dumping
-> >> some warnings (below) while trying to get the MAC address, resulting in
-> >> not using the actual MAC but generating a random one.
-> >>
-> >> This isn't related to your patch, since it also happens with l-o master,
-> >> but was wondering if you saw the same thing?
-> >>
-> > [Hiremath, Vaibhav] Yes I did see this message, and this is coming from
+> > On Mon, Jan 24, 2011 at 01:43:31PM -0800, Kevin Hilman wrote:
+> >> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> >> 
+> >> > From: Manjunath G Kondaiah <manjugk@ti.com>
+> >> >
+> >> > Enable runtime pm and use pm_runtime_get_sync and pm_runtime_put
+> >> > for OMAP DMA driver.
+> >> >
+> >> > Since DMA driver callback will happen from interrupt context and
+> >> > DMA client driver will release all DMA resources from interrupt
+> >> > context itself, pm_runtime_put_sync() cannot be used in DMA driver.
+> >> > Instead, pm_runtime_put() is used which is asynchronous call and
+> >> > gets executed in work queue.
+> >> 
+> >> It's fine that the asynchronous version of put is uses (it's actually
+> >> preferred.)  However, the description is confusing here.  You talk about
+> >> driver callbacks here but in the patch, your calling _put() from
+> >> omap_dma_free(), not from the callback.
 > >
-> > #ifdef CONFIG_DEBUG_SPINLOCK
-> > #define SMSC_ASSERT_MAC_LOCK(pdata) \
-> >                 WARN_ON(!spin_is_locked(&pdata->mac_lock))
-> >
-> > And the root-cause is, in __init function we are calling
-> smsc911x_read_mac_address->smsc911x_mac_read without holding mac_lock.
-> >
-> > I will submit the patch to net mailing list for this.
+> > All dma client drivers are calling omap_dma_free from callback
+> > context. 
 > 
-> Thanks, please Cc linux-omap as well.
+> Maybe so, but that's not a requirement of the API.  I have a DMA test
+> driver that doesn't do that.
 > 
-[Hiremath, Vaibhav] Will do.
+> It's also legitimate (and IMO, expected) for a client driver to, for
+> example do a omap_dma_request() on module load and omap_free_dma() on
+> module unload and only use omap_start_dma() + callbacks for xfers.
+> It would be nice (and IMO, expected) that the channels would go idle
+> between xfers (using the autosuspend feature for timeouts.)
 
-Thanks,
-Vaibhav
-> Kevin
+I can use autosuspend feature which can handle if there is no free_dma and also
+if there is no callback registered by the client.
+
+> 
+> > I can update this info in patch description if it is useful.
+> >
+> >> 
+> >> You're also calling _get() from the request.  That means, as long as the
+> >> DMA channel is allocated, it will be active.   
+> >> 
+> >> Wouldn't it be better to do the 'get' when the channel is started
+> >
+> > No. omap_dma_request will call omap_clear_dma which in turn access all channel
+> > specific registers for writing zeros.
+> 
+> Of course, you always have to do get/put around any device access.
+> 
+> >> and the 'put' when the callback has finished, possibly using the
+> >
+> > after omap_free_dma, none of the dma registers are accessed hence it is safe to
+> > use _put immediately after free_dma.
+> 
+> Right, but my point above is: what if the user does not call free_dma?
+> What if the client will be using the channel again sometime in the
+> future, but will be idle.   What I would expect is that the channel
+> could go idle until another xfer is initiated rather than waiting for
+> the channel to be freed.
+ok.
+> 
+> > Also, dma driver is not aware of callback completion status since it will be
+> > executed in client driver.
+> 
+> Why not?  DMA driver knows when the callback returns.
+
+You are right. We can get this info from DMA interrupt handler.
+
+-Manjunath
+[...]
