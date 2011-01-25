@@ -1,54 +1,37 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 03/14] ARM: v6k: remove CPU_32v6K dependencies in
-	asm/spinlock.h
-Date: Tue, 25 Jan 2011 16:59:19 +0000
-Message-ID: <20110125165919.GD17286@n2100.arm.linux.org.uk>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk> <E1PeueP-0003SR-03@rmk-PC.arm.linux.org.uk> <AANLkTinnhivretaRHpYwCYouk-_jWKZQEo7x4sbheJVL@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v10 00/18] OMAP2,3: hwmod DSS Adaptation
+Date: Tue, 25 Jan 2011 09:03:32 -0800
+Message-ID: <20110125170331.GM13589@atomide.com>
+References: <1295850125-21405-1-git-send-email-sumit.semwal@ti.com>
+ <87mxmq6k2g.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47564 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752025Ab1AYQ7d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 11:59:33 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25903 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761Ab1AYRDy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 12:03:54 -0500
 Content-Disposition: inline
-In-Reply-To: <AANLkTinnhivretaRHpYwCYouk-_jWKZQEo7x4sbheJVL@mail.gmail.com>
+In-Reply-To: <87mxmq6k2g.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Sumit Semwal <sumit.semwal@ti.com>, tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 25, 2011 at 04:43:52PM +0000, Dave Martin wrote:
-> A couple of questions on this:
+* Kevin Hilman <khilman@ti.com> [110124 13:56]:
+> Sumit Semwal <sumit.semwal@ti.com> writes:
 > 
-> 1) I notice these spinlock functions are generally marked inline.
+> > v10 of the patch series corrects return-error handling from platform_request_irq()
+> > based on comments from Sergei Shtylyov and Russell King.
+> > [https://patchwork.kernel.org/patch/497911/]
 > 
-> Is that likely to happen in modules?  If so, there would be a need to
-> do SMP_ON_UP fixups at module load time -- I don't think that's
-> currently implemented.
+> Tony,
+> 
+> Assuming Tomi is OK with this series, I think these are ready to go into
+> omap-testing for some broader testing.
 
-No one should be using the arch_* spinlocks directly.  The spinlocks
-are implemented in out of line code in kernel/spinlock.c
+I can merge in Tomi's branch for testing once Tomi is happy with them.
 
-> 2) When building with this patch and CONFIG_SMP_ON_UP=y, I've seen
-> vmlinux link errors like this:
-> 
->   LD      .tmp_vmlinux1
-> `.exit.text' referenced in section `.alt.smp.init' of
-> drivers/built-in.o: defined in discarded section `.exit.text' of
-> drivers/built-in.o
-> make: *** [.tmp_vmlinux1] Error 1
-> 
-> I don't know whether this is caused by the patch directly or as a
-> side-effect -- I've only noticed it in the linaro-2.6.37 tree so far.
-> git bisect indentified this above patch as the first one with the
-> error in that case.
-> 
-> I don't understand the section discarding logic too well, so I'm not
-> sure how to fix it for now...
+Regards,
 
-Hmm.  I don't see how that could happen, unless some driver is going
-behind the spinlock APIs, or using our dsb_sev() directly.
-
-I think you need to first track down what's responsible for inserting
-architecture spinlock code into drivers.
+Tony
