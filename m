@@ -1,79 +1,80 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [PATCH 03/14] ARM: v6k: remove CPU_32v6K dependencies in asm/spinlock.h
-Date: Tue, 25 Jan 2011 17:33:14 +0000
-Message-ID: <AANLkTimK06nJPtQoym3HxXeDD-s4nUrN0vWjp_JcgTjx@mail.gmail.com>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
-	<E1PeueP-0003SR-03@rmk-PC.arm.linux.org.uk>
-	<AANLkTinnhivretaRHpYwCYouk-_jWKZQEo7x4sbheJVL@mail.gmail.com>
-	<20110125165919.GD17286@n2100.arm.linux.org.uk>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] OMAP: fix fncpy API call
+Date: Tue, 25 Jan 2011 18:34:29 +0100
+Message-ID: <AANLkTikgdCPEzpfjPMTWy+4cLnUky5GeY4E8LLYkyQmA@mail.gmail.com>
+References: <1295976079-21228-1-git-send-email-j-pihet@ti.com>
+	<AANLkTimzNyx9a+440v6PufmJ94EjcyGZ71ndffEHz5i1@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:59299 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752707Ab1AYRdQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 12:33:16 -0500
-Received: by eye27 with SMTP id 27so21189eye.19
-        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 09:33:15 -0800 (PST)
-In-Reply-To: <20110125165919.GD17286@n2100.arm.linux.org.uk>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:44908 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751301Ab1AYRea convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 12:34:30 -0500
+Received: by qwa26 with SMTP id 26so10680qwa.19
+        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 09:34:30 -0800 (PST)
+In-Reply-To: <AANLkTimzNyx9a+440v6PufmJ94EjcyGZ71ndffEHz5i1@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Dave Martin <dave.martin@linaro.org>
+Cc: linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Tue, Jan 25, 2011 at 4:59 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Tue, Jan 25, 2011 at 04:43:52PM +0000, Dave Martin wrote:
->> A couple of questions on this:
+On Tue, Jan 25, 2011 at 6:30 PM, Dave Martin <dave.martin@linaro.org> w=
+rote:
+> On Tue, Jan 25, 2011 at 5:21 PM, =A0<jean.pihet@newoldbits.com> wrote=
+:
+>> From: Jean Pihet <j-pihet@ti.com>
 >>
->> 1) I notice these spinlock functions are generally marked inline.
+>> Fix a potential problem with function types when calling the
+>> fncpy API to copy the PM code functions to SRAM.
 >>
->> Is that likely to happen in modules? =A0If so, there would be a need=
- to
->> do SMP_ON_UP fixups at module load time -- I don't think that's
->> currently implemented.
+>> Tested on OMAP3 in low power modes (RET/OFF)
+>> using omap2plus_defconfig with !CONFIG_THUMB2_KERNEL.
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> ---
+>> =A0arch/arm/plat-omap/include/plat/sram.h | =A0 =A02 +-
+>> =A01 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-=
+omap/include/plat/sram.h
+>> index d673f2c..6a2166d 100644
+>> --- a/arch/arm/plat-omap/include/plat/sram.h
+>> +++ b/arch/arm/plat-omap/include/plat/sram.h
+>> @@ -21,7 +21,7 @@ extern void *omap_sram_push_address(unsigned long =
+size);
+>> =A0 =A0 =A0 =A0typeof(&funcp) _res =3D NULL; =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+>> =A0 =A0 =A0 =A0void *_sram_address =3D omap_sram_push_address(size);=
+ =A0 =A0 \
+>> =A0 =A0 =A0 =A0if (_sram_address) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 _res =3D fncpy(_sram_address, &funcp, =
+size); =A0 =A0 =A0\
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 _res =3D fncpy(_sram_address, &(funcp)=
+, size); =A0 =A0\
 >
-> No one should be using the arch_* spinlocks directly. =A0The spinlock=
-s
-> are implemented in out of line code in kernel/spinlock.c
+> If you're doing this, you should also have typeof(&(funcp)) above.
+Doh! :p
 
-OK--- do think this is something we need a sanity-check for, or does
-this fall into to a category of bad driver implementation which will
-get thrown out during peer review?
+Let me submit a new version asap.
+
+Jean
 
 >
->> 2) When building with this patch and CONFIG_SMP_ON_UP=3Dy, I've seen
->> vmlinux link errors like this:
->>
->> =A0 LD =A0 =A0 =A0.tmp_vmlinux1
->> `.exit.text' referenced in section `.alt.smp.init' of
->> drivers/built-in.o: defined in discarded section `.exit.text' of
->> drivers/built-in.o
->> make: *** [.tmp_vmlinux1] Error 1
->>
->> I don't know whether this is caused by the patch directly or as a
->> side-effect -- I've only noticed it in the linaro-2.6.37 tree so far=
-=2E
->> git bisect indentified this above patch as the first one with the
->> error in that case.
->>
->> I don't understand the section discarding logic too well, so I'm not
->> sure how to fix it for now...
+> Cheers
+> ---Dave
 >
-> Hmm. =A0I don't see how that could happen, unless some driver is goin=
-g
-> behind the spinlock APIs, or using our dsb_sev() directly.
+>> =A0 =A0 =A0 =A0_res; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+>> =A0})
+>>
+>> --
+>> 1.7.1
+>>
+>>
 >
-> I think you need to first track down what's responsible for inserting
-> architecture spinlock code into drivers.
->
-
-OK, I'll try and do a bit more digging.  I think I have a better idea
-of what to look for now, anyhow.
-
-Cheers
----Dave
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
