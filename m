@@ -1,174 +1,599 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v2 1/4] OMAP2PLUS: opt-clocks: align dss clock roles and names
-Date: Tue, 25 Jan 2011 18:29:55 +0530
-Message-ID: <1295960398-25329-2-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v2 2/4] OMAP2PLUS: DSS2: Generalize naming of PRCM related clock enums in DSS driver
+Date: Tue, 25 Jan 2011 18:29:56 +0530
+Message-ID: <1295960398-25329-3-git-send-email-sumit.semwal@ti.com>
 References: <1295960398-25329-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45802 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59867 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751724Ab1AYNAQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Jan 2011 08:00:16 -0500
+	id S1751724Ab1AYNAW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 08:00:22 -0500
 In-Reply-To: <1295960398-25329-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com
-Cc: Sumit Semwal <sumit.semwal@ti.com>
+Cc: Archit Taneja <archit@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
 
-opt clocks require (NULL, act-clock-name) as entries in clock database,
-so that hwmod can replace it with (dev, role) tuple during hwmod data init.
+From: Archit Taneja <archit@ti.com>
 
-These role names are aligned to be same across OMAP2420, 2430, 3xxx, 44xx
-platforms, and also with dss clk handling code, so clk_get/put/enable/disable
-APIs in dss can use uniform role names.
+enum dss_clock structure is replaced with generic names that
+could be used across OMAP2420, 2430, 3xxx, 44xx platforms.
 
 Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- arch/arm/mach-omap2/clock2420_data.c       |   10 +++++++---
- arch/arm/mach-omap2/clock2430_data.c       |   10 +++++++---
- arch/arm/mach-omap2/clock3xxx_data.c       |   22 +++++++++++++++-------
- arch/arm/mach-omap2/clock44xx_data.c       |    7 ++++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
- drivers/video/omap2/dss/dss.c              |    8 ++++----
- 6 files changed, 40 insertions(+), 19 deletions(-)
+ drivers/video/omap2/dss/core.c    |    4 +-
+ drivers/video/omap2/dss/dispc.c   |   10 +++---
+ drivers/video/omap2/dss/dpi.c     |   16 +++++-----
+ drivers/video/omap2/dss/dsi.c     |   18 +++++-----
+ drivers/video/omap2/dss/dss.c     |   62 ++++++++++++++++++------------------
+ drivers/video/omap2/dss/dss.h     |   10 +++---
+ drivers/video/omap2/dss/manager.c |    4 +-
+ drivers/video/omap2/dss/overlay.c |    4 +-
+ drivers/video/omap2/dss/rfbi.c    |   10 +++---
+ drivers/video/omap2/dss/sdi.c     |    8 ++--
+ drivers/video/omap2/dss/venc.c    |    8 ++--
+ 11 files changed, 77 insertions(+), 77 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index d2abc2f..72a1872 100644
---- a/arch/arm/mach-omap2/clock2420_data.c
-+++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -1787,9 +1787,13 @@ static struct omap_clk omap2420_clks[] = {
- 	CLK(NULL,	"gfx_ick",	&gfx_ick,	CK_242X),
- 	/* DSS domain clocks */
- 	CLK("omap_dss",	"ick",		&dss_ick,	CK_242X),
--	CLK("omap_dss",	"dss1_fck",	&dss1_fck,	CK_242X),
--	CLK("omap_dss",	"dss2_fck",	&dss2_fck,	CK_242X),
--	CLK("omap_dss",	"tv_fck",	&dss_54m_fck,	CK_242X),
-+	CLK("omap_dss",	"fck",		&dss1_fck,	CK_242X),
-+	/*
-+	 * clocks handled via hwmod opt_clk mechanism need dev=NULL,
-+	 * con=clock name as per actual clk structure, NOT role
-+	 */
-+	CLK(NULL,	"dss2_fck",	&dss2_fck,	CK_242X),
-+	CLK(NULL,	"dss_54m_fck",	&dss_54m_fck,	CK_242X),
- 	/* L3 domain clocks */
- 	CLK(NULL,	"core_l3_ck",	&core_l3_ck,	CK_242X),
- 	CLK(NULL,	"ssi_fck",	&ssi_ssr_sst_fck, CK_242X),
-diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-index 663f298..b99f881 100644
---- a/arch/arm/mach-omap2/clock2430_data.c
-+++ b/arch/arm/mach-omap2/clock2430_data.c
-@@ -1891,9 +1891,13 @@ static struct omap_clk omap2430_clks[] = {
- 	CLK(NULL,	"mdm_osc_ck",	&mdm_osc_ck,	CK_243X),
- 	/* DSS domain clocks */
- 	CLK("omap_dss",	"ick",		&dss_ick,	CK_243X),
--	CLK("omap_dss",	"dss1_fck",	&dss1_fck,	CK_243X),
--	CLK("omap_dss",	"dss2_fck",	&dss2_fck,	CK_243X),
--	CLK("omap_dss",	"tv_fck",	&dss_54m_fck,	CK_243X),
-+	CLK("omap_dss",	"fck",		&dss1_fck,	CK_243X),
-+	/*
-+	 * clocks handled via hwmod opt_clk mechanism need dev=NULL,
-+	 * con=clock name as per actual clk structure, NOT role
-+	 */
-+	CLK(NULL,	"dss2_fck",	&dss2_fck,	CK_243X),
-+	CLK(NULL,	"dss_54m_fck",	&dss_54m_fck,	CK_243X),
- 	/* L3 domain clocks */
- 	CLK(NULL,	"core_l3_ck",	&core_l3_ck,	CK_243X),
- 	CLK(NULL,	"ssi_fck",	&ssi_ssr_sst_fck, CK_243X),
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 5c97b93..c32df5d 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3357,13 +3357,21 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK("omap_rng",	"ick",		&rng_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"sha11_ick",	&sha11_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"des1_ick",	&des1_ick,	CK_34XX | CK_36XX),
--	CLK("omap_dss",	"dss1_fck",	&dss1_alwon_fck_3430es1, CK_3430ES1),
--	CLK("omap_dss",	"dss1_fck",	&dss1_alwon_fck_3430es2, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("omap_dss",	"tv_fck",	&dss_tv_fck,	CK_3XXX),
--	CLK("omap_dss",	"video_fck",	&dss_96m_fck,	CK_3XXX),
--	CLK("omap_dss",	"dss2_fck",	&dss2_alwon_fck, CK_3XXX),
--	CLK("omap_dss",	"ick",		&dss_ick_3430es1,	CK_3430ES1),
--	CLK("omap_dss",	"ick",		&dss_ick_3430es2,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-+	/* DSS clocks */
-+	CLK("omap_dss",	"fck",		&dss1_alwon_fck_3430es1, CK_3430ES1),
-+	CLK("omap_dss",	"fck",		&dss1_alwon_fck_3430es2, CK_3430ES2PLUS
-+								| CK_AM35XX),
-+	CLK("omap_dss",	"ick",		&dss_ick_3430es1, CK_3430ES1),
-+	CLK("omap_dss",	"ick",		&dss_ick_3430es2, CK_3430ES2PLUS
-+								| CK_AM35XX),
-+	/*
-+	 * clocks handled via hwmod opt_clk mechanism need dev=NULL,
-+	 * con=clock name as per actual clk structure, NOT role
-+	 */
-+	CLK(NULL,       "dss_tv_fck",   &dss_tv_fck,    CK_3XXX),
-+	CLK(NULL,       "dss_96m_fck",  &dss_96m_fck,   CK_3XXX),
-+	CLK(NULL,       "dss2_alwon_fck",       &dss2_alwon_fck,  CK_3XXX),
-+
- 	CLK(NULL,	"cam_mclk",	&cam_mclk,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"cam_ick",	&cam_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck,	CK_34XX | CK_36XX),
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index e8cb32f..74db324 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3107,11 +3107,16 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
- 	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
- 	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
-+	/* dss clocks */
-+	CLK(NULL,	"fck",				&dss_fck,	CK_443X),
-+	/*
-+	 * clocks handled via hwmod opt_clk mechanism need dev=NULL,
-+	 * con=clock name as per actual clk structure, NOT role
-+	 */
- 	CLK(NULL,	"dss_sys_clk",			&dss_sys_clk,	CK_443X),
- 	CLK(NULL,	"dss_tv_clk",			&dss_tv_clk,	CK_443X),
- 	CLK(NULL,	"dss_dss_clk",			&dss_dss_clk,	CK_443X),
- 	CLK(NULL,	"dss_48mhz_clk",		&dss_48mhz_clk,	CK_443X),
--	CLK(NULL,	"dss_fck",			&dss_fck,	CK_443X),
- 	CLK(NULL,	"efuse_ctrl_cust_fck",		&efuse_ctrl_cust_fck,	CK_443X),
- 	CLK(NULL,	"emif1_fck",			&emif1_fck,	CK_443X),
- 	CLK(NULL,	"emif2_fck",			&emif2_fck,	CK_443X),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 713165d..cb0c624 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -770,7 +770,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_dss_slaves[] = {
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 85add9c..3c4ad3a 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -184,7 +184,7 @@ static int omap_dss_probe(struct platform_device *pdev)
+ 	}
  
- static struct omap_hwmod_opt_clk dss_opt_clks[] = {
- 	{ .role = "tv_clk", .clk = "dss_tv_fck" },
--	{ .role = "dssclk", .clk = "dss_96m_fck" },
-+	{ .role = "video_clk", .clk = "dss_96m_fck" },
- 	{ .role = "sys_clk", .clk = "dss2_alwon_fck" },
- };
+ 	/* keep clocks enabled to prevent context saves/restores during init */
+-	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	r = rfbi_init_platform_driver();
+ 	if (r) {
+@@ -251,7 +251,7 @@ static int omap_dss_probe(struct platform_device *pdev)
+ 			pdata->default_device = dssdev;
+ 	}
+ 
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	return 0;
+ 
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 381942d..cc58208 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -551,9 +551,9 @@ void dispc_restore_context(void)
+ static inline void enable_clocks(bool enable)
+ {
+ 	if (enable)
+-		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 	else
+-		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ }
+ 
+ bool dispc_go_busy(enum omap_channel channel)
+@@ -2311,7 +2311,7 @@ unsigned long dispc_fclk_rate(void)
+ 	unsigned long r = 0;
+ 
+ 	if (dss_get_dispc_clk_source() == DSS_SRC_DSS1_ALWON_FCLK)
+-		r = dss_clk_get_rate(DSS_CLK_FCK1);
++		r = dss_clk_get_rate(DSS_CLK_FCK);
+ 	else
+ #ifdef CONFIG_OMAP2_DSS_DSI
+ 		r = dsi_get_dsi1_pll_rate();
+@@ -2439,7 +2439,7 @@ void dispc_dump_regs(struct seq_file *s)
+ {
+ #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, dispc_read_reg(r))
+ 
+-	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	DUMPREG(DISPC_REVISION);
+ 	DUMPREG(DISPC_SYSCONFIG);
+@@ -2596,7 +2596,7 @@ void dispc_dump_regs(struct seq_file *s)
+ 	DUMPREG(DISPC_VID_PRELOAD(0));
+ 	DUMPREG(DISPC_VID_PRELOAD(1));
+ 
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ #undef DUMPREG
+ }
+ 
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 75fb0a5..746f1b6 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -107,7 +107,7 @@ static int dpi_set_mode(struct omap_dss_device *dssdev)
+ 	bool is_tft;
+ 	int r = 0;
+ 
+-	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	dispc_set_pol_freq(dssdev->manager->id, dssdev->panel.config,
+ 			dssdev->panel.acbi, dssdev->panel.acb);
+@@ -137,7 +137,7 @@ static int dpi_set_mode(struct omap_dss_device *dssdev)
+ 	dispc_set_lcd_timings(dssdev->manager->id, t);
+ 
+ err0:
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 	return r;
+ }
+ 
+@@ -173,14 +173,14 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
+ 			goto err1;
+ 	}
+ 
+-	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	r = dpi_basic_init(dssdev);
+ 	if (r)
+ 		goto err2;
+ 
+ #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+-	dss_clk_enable(DSS_CLK_FCK2);
++	dss_clk_enable(DSS_CLK_SYSCK);
+ 	r = dsi_pll_init(dssdev, 0, 1);
+ 	if (r)
+ 		goto err3;
+@@ -199,10 +199,10 @@ err4:
+ #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+ 	dsi_pll_uninit();
+ err3:
+-	dss_clk_disable(DSS_CLK_FCK2);
++	dss_clk_disable(DSS_CLK_SYSCK);
+ #endif
+ err2:
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 	if (cpu_is_omap34xx())
+ 		regulator_disable(dpi.vdds_dsi_reg);
+ err1:
+@@ -219,10 +219,10 @@ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
+ #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+ 	dss_select_dispc_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
+ 	dsi_pll_uninit();
+-	dss_clk_disable(DSS_CLK_FCK2);
++	dss_clk_disable(DSS_CLK_SYSCK);
+ #endif
+ 
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	if (cpu_is_omap34xx())
+ 		regulator_disable(dpi.vdds_dsi_reg);
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index cab08cb..1802057 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -654,18 +654,18 @@ static void dsi_vc_disable_bta_irq(int channel)
+ static inline void enable_clocks(bool enable)
+ {
+ 	if (enable)
+-		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 	else
+-		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ }
+ 
+ /* source clock for DSI PLL. this could also be PCLKFREE */
+ static inline void dsi_enable_pll_clock(bool enable)
+ {
+ 	if (enable)
+-		dss_clk_enable(DSS_CLK_FCK2);
++		dss_clk_enable(DSS_CLK_SYSCK);
+ 	else
+-		dss_clk_disable(DSS_CLK_FCK2);
++		dss_clk_disable(DSS_CLK_SYSCK);
+ 
+ 	if (enable && dsi.pll_locked) {
+ 		if (wait_for_bit_change(DSI_PLL_STATUS, 1, 1) != 1)
+@@ -741,7 +741,7 @@ static unsigned long dsi_fclk_rate(void)
+ 
+ 	if (dss_get_dsi_clk_source() == DSS_SRC_DSS1_ALWON_FCLK) {
+ 		/* DSI FCLK source is DSS1_ALWON_FCK, which is dss1_fck */
+-		r = dss_clk_get_rate(DSS_CLK_FCK1);
++		r = dss_clk_get_rate(DSS_CLK_FCK);
+ 	} else {
+ 		/* DSI FCLK source is DSI2_PLL_FCLK */
+ 		r = dsi_get_dsi2_pll_rate();
+@@ -821,7 +821,7 @@ static int dsi_calc_clock_rates(struct omap_dss_device *dssdev,
+ 		return -EINVAL;
+ 
+ 	if (cinfo->use_dss2_fck) {
+-		cinfo->clkin = dss_clk_get_rate(DSS_CLK_FCK2);
++		cinfo->clkin = dss_clk_get_rate(DSS_CLK_SYSCK);
+ 		/* XXX it is unclear if highfreq should be used
+ 		 * with DSS2_FCK source also */
+ 		cinfo->highfreq = 0;
+@@ -867,7 +867,7 @@ int dsi_pll_calc_clock_div_pck(bool is_tft, unsigned long req_pck,
+ 	int match = 0;
+ 	unsigned long dss_clk_fck2;
+ 
+-	dss_clk_fck2 = dss_clk_get_rate(DSS_CLK_FCK2);
++	dss_clk_fck2 = dss_clk_get_rate(DSS_CLK_SYSCK);
+ 
+ 	if (req_pck == dsi.cache_req_pck &&
+ 			dsi.cache_cinfo.clkin == dss_clk_fck2) {
+@@ -1319,7 +1319,7 @@ void dsi_dump_regs(struct seq_file *s)
+ {
+ #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, dsi_read_reg(r))
+ 
+-	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	DUMPREG(DSI_REVISION);
+ 	DUMPREG(DSI_SYSCONFIG);
+@@ -1391,7 +1391,7 @@ void dsi_dump_regs(struct seq_file *s)
+ 	DUMPREG(DSI_PLL_CONFIGURATION1);
+ 	DUMPREG(DSI_PLL_CONFIGURATION2);
+ 
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ #undef DUMPREG
+ }
  
 diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index f9390b4..91f8cf7 100644
+index 91f8cf7..2873c30 100644
 --- a/drivers/video/omap2/dss/dss.c
 +++ b/drivers/video/omap2/dss/dss.c
-@@ -758,19 +758,19 @@ static int dss_get_clocks(void)
- 	if (r)
- 		goto err;
+@@ -226,7 +226,7 @@ void dss_dump_clocks(struct seq_file *s)
+ 	unsigned long dpll4_ck_rate;
+ 	unsigned long dpll4_m4_ck_rate;
  
--	r = dss_get_clock(&dss.dss1_fck, "dss1_fck");
-+	r = dss_get_clock(&dss.dss1_fck, "fck");
- 	if (r)
- 		goto err;
+-	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
  
--	r = dss_get_clock(&dss.dss2_fck, "dss2_fck");
-+	r = dss_get_clock(&dss.dss2_fck, "sys_clk");
- 	if (r)
- 		goto err;
+ 	dpll4_ck_rate = clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
+ 	dpll4_m4_ck_rate = clk_get_rate(dss.dpll4_m4_ck);
+@@ -239,21 +239,21 @@ void dss_dump_clocks(struct seq_file *s)
+ 		seq_printf(s, "dss1_alwon_fclk = %lu / %lu  = %lu\n",
+ 			dpll4_ck_rate,
+ 			dpll4_ck_rate / dpll4_m4_ck_rate,
+-			dss_clk_get_rate(DSS_CLK_FCK1));
++			dss_clk_get_rate(DSS_CLK_FCK));
+ 	else
+ 		seq_printf(s, "dss1_alwon_fclk = %lu / %lu * 2 = %lu\n",
+ 			dpll4_ck_rate,
+ 			dpll4_ck_rate / dpll4_m4_ck_rate,
+-			dss_clk_get_rate(DSS_CLK_FCK1));
++			dss_clk_get_rate(DSS_CLK_FCK));
  
--	r = dss_get_clock(&dss.dss_54m_fck, "tv_fck");
-+	r = dss_get_clock(&dss.dss_54m_fck, "tv_clk");
- 	if (r)
- 		goto err;
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ }
  
--	r = dss_get_clock(&dss.dss_96m_fck, "video_fck");
-+	r = dss_get_clock(&dss.dss_96m_fck, "video_clk");
- 	if (r)
- 		goto err;
+ void dss_dump_regs(struct seq_file *s)
+ {
+ #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, dss_read_reg(r))
  
+-	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	DUMPREG(DSS_REVISION);
+ 	DUMPREG(DSS_SYSCONFIG);
+@@ -264,7 +264,7 @@ void dss_dump_regs(struct seq_file *s)
+ 	DUMPREG(DSS_PLL_CONTROL);
+ 	DUMPREG(DSS_SDI_STATUS);
+ 
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ #undef DUMPREG
+ }
+ 
+@@ -349,7 +349,7 @@ int dss_set_clock_div(struct dss_clock_info *cinfo)
+ 
+ int dss_get_clock_div(struct dss_clock_info *cinfo)
+ {
+-	cinfo->fck = dss_clk_get_rate(DSS_CLK_FCK1);
++	cinfo->fck = dss_clk_get_rate(DSS_CLK_FCK);
+ 
+ 	if (cpu_is_omap34xx()) {
+ 		unsigned long prate;
+@@ -390,7 +390,7 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
+ 
+ 	prate = dss_get_dpll4_rate();
+ 
+-	fck = dss_clk_get_rate(DSS_CLK_FCK1);
++	fck = dss_clk_get_rate(DSS_CLK_FCK);
+ 	if (req_pck == dss.cache_req_pck &&
+ 			((cpu_is_omap34xx() && prate == dss.cache_prate) ||
+ 			 dss.cache_dss_cinfo.fck == fck)) {
+@@ -417,7 +417,7 @@ retry:
+ 	if (cpu_is_omap24xx()) {
+ 		struct dispc_clock_info cur_dispc;
+ 		/* XXX can we change the clock on omap2? */
+-		fck = dss_clk_get_rate(DSS_CLK_FCK1);
++		fck = dss_clk_get_rate(DSS_CLK_FCK);
+ 		fck_div = 1;
+ 
+ 		dispc_find_clk_divs(is_tft, req_pck, fck, &cur_dispc);
+@@ -700,7 +700,7 @@ static void save_all_ctx(void)
+ {
+ 	DSSDBG("save context\n");
+ 
+-	dss_clk_enable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_enable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	dss_save_context();
+ 	dispc_save_context();
+@@ -708,7 +708,7 @@ static void save_all_ctx(void)
+ 	dsi_save_context();
+ #endif
+ 
+-	dss_clk_disable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK);
+ }
+ 
+ static void restore_all_ctx(void)
+@@ -806,13 +806,13 @@ unsigned long dss_clk_get_rate(enum dss_clock clk)
+ 	switch (clk) {
+ 	case DSS_CLK_ICK:
+ 		return clk_get_rate(dss.dss_ick);
+-	case DSS_CLK_FCK1:
++	case DSS_CLK_FCK:
+ 		return clk_get_rate(dss.dss1_fck);
+-	case DSS_CLK_FCK2:
++	case DSS_CLK_SYSCK:
+ 		return clk_get_rate(dss.dss2_fck);
+-	case DSS_CLK_54M:
++	case DSS_CLK_TVFCK:
+ 		return clk_get_rate(dss.dss_54m_fck);
+-	case DSS_CLK_96M:
++	case DSS_CLK_VIDFCK:
+ 		return clk_get_rate(dss.dss_96m_fck);
+ 	}
+ 
+@@ -826,13 +826,13 @@ static unsigned count_clk_bits(enum dss_clock clks)
+ 
+ 	if (clks & DSS_CLK_ICK)
+ 		++num_clks;
+-	if (clks & DSS_CLK_FCK1)
++	if (clks & DSS_CLK_FCK)
+ 		++num_clks;
+-	if (clks & DSS_CLK_FCK2)
++	if (clks & DSS_CLK_SYSCK)
+ 		++num_clks;
+-	if (clks & DSS_CLK_54M)
++	if (clks & DSS_CLK_TVFCK)
+ 		++num_clks;
+-	if (clks & DSS_CLK_96M)
++	if (clks & DSS_CLK_VIDFCK)
+ 		++num_clks;
+ 
+ 	return num_clks;
+@@ -844,13 +844,13 @@ static void dss_clk_enable_no_ctx(enum dss_clock clks)
+ 
+ 	if (clks & DSS_CLK_ICK)
+ 		clk_enable(dss.dss_ick);
+-	if (clks & DSS_CLK_FCK1)
++	if (clks & DSS_CLK_FCK)
+ 		clk_enable(dss.dss1_fck);
+-	if (clks & DSS_CLK_FCK2)
++	if (clks & DSS_CLK_SYSCK)
+ 		clk_enable(dss.dss2_fck);
+-	if (clks & DSS_CLK_54M)
++	if (clks & DSS_CLK_TVFCK)
+ 		clk_enable(dss.dss_54m_fck);
+-	if (clks & DSS_CLK_96M)
++	if (clks & DSS_CLK_VIDFCK)
+ 		clk_enable(dss.dss_96m_fck);
+ 
+ 	dss.num_clks_enabled += num_clks;
+@@ -872,13 +872,13 @@ static void dss_clk_disable_no_ctx(enum dss_clock clks)
+ 
+ 	if (clks & DSS_CLK_ICK)
+ 		clk_disable(dss.dss_ick);
+-	if (clks & DSS_CLK_FCK1)
++	if (clks & DSS_CLK_FCK)
+ 		clk_disable(dss.dss1_fck);
+-	if (clks & DSS_CLK_FCK2)
++	if (clks & DSS_CLK_SYSCK)
+ 		clk_disable(dss.dss2_fck);
+-	if (clks & DSS_CLK_54M)
++	if (clks & DSS_CLK_TVFCK)
+ 		clk_disable(dss.dss_54m_fck);
+-	if (clks & DSS_CLK_96M)
++	if (clks & DSS_CLK_VIDFCK)
+ 		clk_disable(dss.dss_96m_fck);
+ 
+ 	dss.num_clks_enabled -= num_clks;
+@@ -902,9 +902,9 @@ static void dss_clk_enable_all_no_ctx(void)
+ {
+ 	enum dss_clock clks;
+ 
+-	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
++	clks = DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_SYSCK | DSS_CLK_TVFCK;
+ 	if (cpu_is_omap34xx())
+-		clks |= DSS_CLK_96M;
++		clks |= DSS_CLK_VIDFCK;
+ 	dss_clk_enable_no_ctx(clks);
+ }
+ 
+@@ -912,9 +912,9 @@ static void dss_clk_disable_all_no_ctx(void)
+ {
+ 	enum dss_clock clks;
+ 
+-	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
++	clks = DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_SYSCK | DSS_CLK_TVFCK;
+ 	if (cpu_is_omap34xx())
+-		clks |= DSS_CLK_96M;
++		clks |= DSS_CLK_VIDFCK;
+ 	dss_clk_disable_no_ctx(clks);
+ }
+ 
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 981d247..4b02e07 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -112,11 +112,11 @@ enum omap_parallel_interface_mode {
+ };
+ 
+ enum dss_clock {
+-	DSS_CLK_ICK	= 1 << 0,
+-	DSS_CLK_FCK1	= 1 << 1,
+-	DSS_CLK_FCK2	= 1 << 2,
+-	DSS_CLK_54M	= 1 << 3,
+-	DSS_CLK_96M	= 1 << 4,
++	DSS_CLK_ICK	= 1 << 0,	/* DSS_L3_ICLK and DSS_L4_ICLK */
++	DSS_CLK_FCK	= 1 << 1,	/* DSS1_ALWON_FCLK */
++	DSS_CLK_SYSCK	= 1 << 2,	/* DSS2_ALWON_FCLK */
++	DSS_CLK_TVFCK	= 1 << 3,	/* DSS_TV_FCLK */
++	DSS_CLK_VIDFCK	= 1 << 4,	/* DSS_96M_FCLK*/
+ };
+ 
+ enum dss_clk_source {
+diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
+index 172d4e6..1f53bf2 100644
+--- a/drivers/video/omap2/dss/manager.c
++++ b/drivers/video/omap2/dss/manager.c
+@@ -1394,7 +1394,7 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
+ 	}
+ 
+ 	r = 0;
+-	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 	if (!dss_cache.irq_enabled) {
+ 		u32 mask;
+ 
+@@ -1407,7 +1407,7 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
+ 		dss_cache.irq_enabled = true;
+ 	}
+ 	configure_dispc();
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	spin_unlock_irqrestore(&dss_cache.lock, flags);
+ 
+diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
+index 456efef..996e9a4 100644
+--- a/drivers/video/omap2/dss/overlay.c
++++ b/drivers/video/omap2/dss/overlay.c
+@@ -490,7 +490,7 @@ static int omap_dss_set_manager(struct omap_overlay *ovl,
+ 
+ 	ovl->manager = mgr;
+ 
+-	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 	/* XXX: on manual update display, in auto update mode, a bug happens
+ 	 * here. When an overlay is first enabled on LCD, then it's disabled,
+ 	 * and the manager is changed to TV, we sometimes get SYNC_LOST_DIGIT
+@@ -499,7 +499,7 @@ static int omap_dss_set_manager(struct omap_overlay *ovl,
+ 	 * but I don't understand how or why. */
+ 	msleep(40);
+ 	dispc_set_channel_out(ovl->id, mgr->id);
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index fc665a7..9e0f196 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -141,9 +141,9 @@ static inline u32 rfbi_read_reg(const struct rfbi_reg idx)
+ static void rfbi_enable_clocks(bool enable)
+ {
+ 	if (enable)
+-		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 	else
+-		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ }
+ 
+ void omap_rfbi_write_command(const void *buf, u32 len)
+@@ -496,7 +496,7 @@ unsigned long rfbi_get_max_tx_rate(void)
+ 	};
+ 
+ 	l4_rate = rfbi.l4_khz / 1000;
+-	dss1_rate = dss_clk_get_rate(DSS_CLK_FCK1) / 1000000;
++	dss1_rate = dss_clk_get_rate(DSS_CLK_FCK) / 1000000;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(ftab); i++) {
+ 		/* Use a window instead of an exact match, to account
+@@ -921,7 +921,7 @@ void rfbi_dump_regs(struct seq_file *s)
+ {
+ #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, rfbi_read_reg(r))
+ 
+-	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	DUMPREG(RFBI_REVISION);
+ 	DUMPREG(RFBI_SYSCONFIG);
+@@ -952,7 +952,7 @@ void rfbi_dump_regs(struct seq_file *s)
+ 	DUMPREG(RFBI_VSYNC_WIDTH);
+ 	DUMPREG(RFBI_HSYNC_WIDTH);
+ 
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ #undef DUMPREG
+ }
+ 
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index b64adf7..8272fc1 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -70,7 +70,7 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 
+ 	/* In case of skip_init sdi_init has already enabled the clocks */
+ 	if (!sdi.skip_init)
+-		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	sdi_basic_init(dssdev);
+ 
+@@ -130,7 +130,7 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 
+ 	return 0;
+ err2:
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 	regulator_disable(sdi.vdds_sdi_reg);
+ err1:
+ 	omap_dss_stop_device(dssdev);
+@@ -145,7 +145,7 @@ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev)
+ 
+ 	dss_sdi_disable();
+ 
+-	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	regulator_disable(sdi.vdds_sdi_reg);
+ 
+@@ -175,7 +175,7 @@ int sdi_init(bool skip_init)
+ 	 * of them until sdi_display_enable is called.
+ 	 */
+ 	if (skip_init)
+-		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index ea1c87b..2adae12 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -391,11 +391,11 @@ static void venc_reset(void)
+ static void venc_enable_clocks(int enable)
+ {
+ 	if (enable)
+-		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M |
+-				DSS_CLK_96M);
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_TVFCK |
++				DSS_CLK_VIDFCK);
+ 	else
+-		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M |
+-				DSS_CLK_96M);
++		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_TVFCK |
++				DSS_CLK_VIDFCK);
+ }
+ 
+ static const struct venc_config *venc_timings_to_config(
 -- 
 1.7.1
 
