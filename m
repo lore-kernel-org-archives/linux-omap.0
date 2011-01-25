@@ -1,210 +1,170 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC 2/3] OMAP3: PM: Fix CLK_SRC mask for IVA2 and MPU on 3430ES2PLUS
-Date: Tue, 25 Jan 2011 07:58:47 -0800
-Message-ID: <87y6690ybs.fsf@ti.com>
-References: <1295446466-23655-1-git-send-email-rnayak@ti.com>
-	<1295446466-23655-2-git-send-email-rnayak@ti.com>
-	<1295446466-23655-3-git-send-email-rnayak@ti.com>
-	<877hdu6jjg.fsf@ti.com>
-	<d1d35c9cad65b4eb1eade2e7bf93125d@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 3/5] ARM: twd: Add context save restore support
+Date: Tue, 25 Jan 2011 21:34:15 +0530
+Message-ID: <68b4be46e93b4017650bc4bf230afef6@mail.gmail.com>
+References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com>
+	<1295859080-15259-4-git-send-email-santosh.shilimkar@ti.com>
+	<20110124110609.GJ16202@n2100.arm.linux.org.uk>
+	<20110124111114.GA19409@n2100.arm.linux.org.uk>
+	<AANLkTikLDamkp9TgnWRESyx4=698D4NXP=W_M9=abfax@mail.gmail.com>
+	<20110125103231.GD11507@n2100.arm.linux.org.uk>
+	<alpine.LFD.2.00.1101251418260.31804@localhost6.localdomain6>
+	<20110125133752.GI13300@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:53154 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751492Ab1AYP6z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Jan 2011 10:58:55 -0500
-Received: by mail-gw0-f43.google.com with SMTP id 17so1755012gwb.16
-        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 07:58:51 -0800 (PST)
-In-Reply-To: <d1d35c9cad65b4eb1eade2e7bf93125d@mail.gmail.com> (Rajendra
-	Nayak's message of "Tue, 25 Jan 2011 12:54:05 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary=001636c5a8605ea19c049aaddef1
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110125133752.GI13300@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>
+Cc: catalin.marinas@arm.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Colin Cross <ccross@android.com>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com
 
-Rajendra Nayak <rnayak@ti.com> writes:
+--001636c5a8605ea19c049aaddef1
+Content-Type: text/plain; charset=ISO-8859-1
 
-> Hi Kevin,
+Russell, Thomas
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Tuesday, January 25, 2011 7:08 PM
+> To: Thomas Gleixner
+> Cc: Colin Cross; Santosh Shilimkar; catalin.marinas@arm.com;
+> linus.ml.walleij@gmail.com; linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [PATCH 3/5] ARM: twd: Add context save restore support
 >
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@ti.com]
->> Sent: Tuesday, January 25, 2011 3:39 AM
->> To: Rajendra Nayak
->> Cc: linux-omap@vger.kernel.org; paul@pwsan.com
->> Subject: Re: [RFC 2/3] OMAP3: PM: Fix CLK_SRC mask for IVA2 and MPU on
-> 3430ES2PLUS
->>
->> Rajendra Nayak <rnayak@ti.com> writes:
->>
->> > The IVA2_CLK_SRC and MPU_CLK_SRC for OMAP3430 ES2
->> > and above are 3 bit fields.
->> > Define new masks for them, and since they are used
->> > in a couple of clock nodes, model separate clock
->> > nodes for 3430ES1 and 3430ES2+.
->>
->> This part should probably be separated out as a fix for the -rc cycle.
+[...]
 >
-> The reason I clubbed this fix here was because it had a dependency on the
-> 'reference by name' approach added by the previous patch.
+> I can't say because these patches only add the hooks, there's no
+> implementation yet which uses the hooks.
 >
-> Else I was looking at creating too many duplicate nodes, since the clock
-> nodes which get added in this patch (dpll1_fck_3430es2/dpll2_fck_3430es2)
-> are part of dpll_data.
+> Given the description about _why_ those hooks are necessary, it
+> seems
+> that something is required.  Either we start adding custom hacks to
+> each clockevent driver as is done with this patch, or we get some
+> generic help in place.
+>
+> I'm not thrilled by the custom hack approach - and I thought the
+> clockevent stuff was created to stop this kind of thing happening.
+>
+> I suggest we defer this until there's a visible use case available.
+Got some time to debug this issue. OMAP idle code already has the
+broad-cast notifiers working for sometime. So I removed the existing
+save restore twd code and just used the below patch which Russell
+posted on this thread.
+And things just work and I guess we are done with this issue !!
+Timer framework is doing all right things with notifiers.
 
-OK, thanks for the clarifiation.  Might help to add that bit of
-description in the changelog, or after the '---' for the sake of
-reviewers.
+Am going to use this patch for my further work and drop the
+save/restore patch. Will update you if there is any other
+issue on this. I should have validated this patch on my own
+earlier :(
 
-Thanks,
+Thanks for the discussion.
 
-Kevin
+-----------------
+>From 9084dd3e68a8528172d97fb49c42437ae873af43 Mon Sep 17 00:00:00 2001
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Date: Tue, 25 Jan 2011 14:26:41 +0530
+Subject: [PATCH] ARM: smp_twd: Always program the loadvalue when switching
+to periodic mode.
 
->>
->> Kevin
->>
->> > Also change reference to these new clock nodes
->> > from clk pointers to clk name and make a call
->> > to omap_init_clk_pts to init the pointers at
->> > run time.
->> >
->> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> > ---
->> >  arch/arm/mach-omap2/clock3xxx_data.c  |   39
-> ++++++++++++++++++++++++++------
->> >  arch/arm/mach-omap2/cm-regbits-34xx.h |    2 +
->> >  2 files changed, 33 insertions(+), 8 deletions(-)
->> >
->> > diff --git a/arch/arm/mach-omap2/clock3xxx_data.c
-> b/arch/arm/mach-omap2/clock3xxx_data.c
->> > index 9c87adb..c3a7ff5 100644
->> > --- a/arch/arm/mach-omap2/clock3xxx_data.c
->> > +++ b/arch/arm/mach-omap2/clock3xxx_data.c
->> > @@ -53,10 +53,6 @@
->> >   * DPLL5 supplies other peripheral clocks (USBHOST, USIM).
->> >   */
->> >
->> > -/* Forward declarations for DPLL bypass clocks */
->> > -static struct clk dpll1_fck;
->> > -static struct clk dpll2_fck;
->> > -
->> >  /* PRM CLOCKS */
->> >
->> >  /* According to timer32k.c, this is a 32768Hz clock, not a 32000Hz
-> clock. */
->> > @@ -275,7 +271,7 @@ static struct dpll_data dpll1_dd = {
->> >  	.mult_div1_reg	= OMAP_CM_REGADDR(MPU_MOD,
-> OMAP3430_CM_CLKSEL1_PLL),
->> >  	.mult_mask	= OMAP3430_MPU_DPLL_MULT_MASK,
->> >  	.div1_mask	= OMAP3430_MPU_DPLL_DIV_MASK,
->> > -	.clk_bypass	= &dpll1_fck,
->> > +	.clk_bypass_name	= "dpll1_fck",
->> >  	.clk_ref	= &sys_ck,
->> >  	.freqsel_mask	= OMAP3430_MPU_DPLL_FREQSEL_MASK,
->> >  	.control_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKEN_PLL),
->> > @@ -347,7 +343,7 @@ static struct dpll_data dpll2_dd = {
->> >  	.mult_div1_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD,
-> OMAP3430_CM_CLKSEL1_PLL),
->> >  	.mult_mask	= OMAP3430_IVA2_DPLL_MULT_MASK,
->> >  	.div1_mask	= OMAP3430_IVA2_DPLL_DIV_MASK,
->> > -	.clk_bypass	= &dpll2_fck,
->> > +	.clk_bypass_name	= "dpll2_fck",
->> >  	.clk_ref	= &sys_ck,
->> >  	.freqsel_mask	= OMAP3430_IVA2_DPLL_FREQSEL_MASK,
->> >  	.control_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD,
-> OMAP3430_CM_CLKEN_PLL),
->> > @@ -1077,6 +1073,17 @@ static struct clk dpll1_fck = {
->> >  	.recalc		= &omap2_clksel_recalc,
->> >  };
->> >
->> > +static struct clk dpll1_fck_3430es2 = {
->> > +	.name		= "dpll1_fck",
->> > +	.ops		= &clkops_null,
->> > +	.parent		= &core_ck,
->> > +	.init		= &omap2_init_clksel_parent,
->> > +	.clksel_reg	= OMAP_CM_REGADDR(MPU_MOD,
-> OMAP3430_CM_CLKSEL1_PLL),
->> > +	.clksel_mask	= OMAP3430ES2_MPU_CLK_SRC_MASK,
->> > +	.clksel		= div4_core_clksel,
->> > +	.recalc		= &omap2_clksel_recalc,
->> > +};
->> > +
->> >  static struct clk mpu_ck = {
->> >  	.name		= "mpu_ck",
->> >  	.ops		= &clkops_null,
->> > @@ -1133,6 +1140,17 @@ static struct clk dpll2_fck = {
->> >  	.recalc		= &omap2_clksel_recalc,
->> >  };
->> >
->> > +static struct clk dpll2_fck_3430es2 = {
->> > +	.name		= "dpll2_fck",
->> > +	.ops		= &clkops_null,
->> > +	.parent		= &core_ck,
->> > +	.init		= &omap2_init_clksel_parent,
->> > +	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD,
-> OMAP3430_CM_CLKSEL1_PLL),
->> > +	.clksel_mask	= OMAP3430ES2_IVA2_CLK_SRC_MASK,
->> > +	.clksel		= div4_core_clksel,
->> > +	.recalc		= &omap2_clksel_recalc,
->> > +};
->> > +
->> >  static struct clk iva2_ck = {
->> >  	.name		= "iva2_ck",
->> >  	.ops		= &clkops_omap2_dflt_wait,
->> > @@ -3261,11 +3279,13 @@ static struct omap_clk omap3xxx_clks[] = {
->> >  	CLK(NULL,	"clkout2_src_ck", &clkout2_src_ck, CK_3XXX),
->> >  	CLK(NULL,	"sys_clkout2",	&sys_clkout2,	CK_3XXX),
->> >  	CLK(NULL,	"corex2_fck",	&corex2_fck,	CK_3XXX),
->> > -	CLK(NULL,	"dpll1_fck",	&dpll1_fck,	CK_3XXX),
->> > +	CLK(NULL,	"dpll1_fck",	&dpll1_fck,	CK_3430ES1),
->> > +	CLK(NULL,	"dpll1_fck",	&dpll1_fck_3430es2,
-> CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
->> >  	CLK(NULL,	"mpu_ck",	&mpu_ck,	CK_3XXX),
->> >  	CLK(NULL,	"arm_fck",	&arm_fck,	CK_3XXX),
->> >  	CLK("etb",	"emu_mpu_alwon_ck", &emu_mpu_alwon_ck, CK_3XXX),
->> > -	CLK(NULL,	"dpll2_fck",	&dpll2_fck,	CK_34XX |
-> CK_36XX),
->> > +	CLK(NULL,	"dpll2_fck",	&dpll2_fck,	CK_3430ES1),
->> > +	CLK(NULL,	"dpll2_fck",	&dpll2_fck_3430es2,
-> CK_3430ES2PLUS | CK_36XX),
->> >  	CLK(NULL,	"iva2_ck",	&iva2_ck,	CK_34XX |
-> CK_36XX),
->> >  	CLK(NULL,	"l3_ick",	&l3_ick,	CK_3XXX),
->> >  	CLK(NULL,	"l4_ick",	&l4_ick,	CK_3XXX),
->> > @@ -3535,6 +3555,9 @@ int __init omap3xxx_clk_init(void)
->> >  			omap2_init_clk_clkdm(c->lk.clk);
->> >  		}
->> >
->> > +	/* Initialise clk pointers for parent/ref/bypass clks */
->> > +	omap_init_clk_pts();
->> > +
->> >  	recalculate_root_clocks();
->> >
->> >  	pr_info("Clocking rate (Crystal/Core/MPU): %ld.%01ld/%ld/%ld
-> MHz\n",
->> > diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h
-> b/arch/arm/mach-omap2/cm-regbits-34xx.h
->> > index b912759..fd80872 100644
->> > --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
->> > +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
->> > @@ -80,6 +80,7 @@
->> >  /* CM_CLKSEL1_PLL_IVA2 */
->> >  #define OMAP3430_IVA2_CLK_SRC_SHIFT			19
->> >  #define OMAP3430_IVA2_CLK_SRC_MASK			(0x3 << 19)
->> > +#define OMAP3430ES2_IVA2_CLK_SRC_MASK			(0x7 <<
-> 19)
->> >  #define OMAP3430_IVA2_DPLL_MULT_SHIFT			8
->> >  #define OMAP3430_IVA2_DPLL_MULT_MASK			(0x7ff <<
-> 8)
->> >  #define OMAP3430_IVA2_DPLL_DIV_SHIFT			0
->> > @@ -125,6 +126,7 @@
->> >  /* CM_CLKSEL1_PLL_MPU */
->> >  #define OMAP3430_MPU_CLK_SRC_SHIFT			19
->> >  #define OMAP3430_MPU_CLK_SRC_MASK			(0x3 << 19)
->> > +#define OMAP3430ES2_MPU_CLK_SRC_MASK			(0x7 <<
-> 19)
->> >  #define OMAP3430_MPU_DPLL_MULT_SHIFT			8
->> >  #define OMAP3430_MPU_DPLL_MULT_MASK			(0x7ff <<
-> 8)
->> >  #define OMAP3430_MPU_DPLL_DIV_SHIFT			0
+Always program the load value when switching to periodic mode so that
+we don't need to save restore twd load register.
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/kernel/smp_twd.c |    7 ++-----
+ 1 files changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
+index fd91566..60636f4 100644
+--- a/arch/arm/kernel/smp_twd.c
++++ b/arch/arm/kernel/smp_twd.c
+@@ -36,6 +36,7 @@ static void twd_set_mode(enum clock_event_mode mode,
+ 		/* timer load already set up */
+ 		ctrl = TWD_TIMER_CONTROL_ENABLE |
+TWD_TIMER_CONTROL_IT_ENABLE
+ 			| TWD_TIMER_CONTROL_PERIODIC;
++		__raw_writel(twd_timer_rate / HZ, twd_base +
+TWD_TIMER_LOAD);
+ 		break;
+ 	case CLOCK_EVT_MODE_ONESHOT:
+ 		/* period set, and timer enabled in 'next_event' hook */
+@@ -81,7 +82,7 @@ int twd_timer_ack(void)
+
+ static void __cpuinit twd_calibrate_rate(void)
+ {
+-	unsigned long load, count;
++	unsigned long count;
+ 	u64 waitjiffies;
+
+ 	/*
+@@ -116,10 +117,6 @@ static void __cpuinit twd_calibrate_rate(void)
+ 		printk("%lu.%02luMHz.\n", twd_timer_rate / 1000000,
+ 			(twd_timer_rate / 1000000) % 100);
+ 	}
+-
+-	load = twd_timer_rate / HZ;
+-
+-	__raw_writel(load, twd_base + TWD_TIMER_LOAD);
+ }
+
+ /*
+-- 
+1.6.0.4
+
+--001636c5a8605ea19c049aaddef1
+Content-Type: application/octet-stream;
+	name="0001-ARM-smp_twd-Always-program-the-loadvalue-when-swit.patch"
+Content-Disposition: attachment;
+	filename="0001-ARM-smp_twd-Always-program-the-loadvalue-when-swit.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: c33e3ae155501f20_0.1
+
+RnJvbSA5MDg0ZGQzZTY4YTg1MjgxNzJkOTdmYjQ5YzQyNDM3YWU4NzNhZjQzIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBSdXNzZWxsIEtpbmcgPHJtaytrZXJuZWxAYXJtLmxpbnV4Lm9y
+Zy51az4KRGF0ZTogVHVlLCAyNSBKYW4gMjAxMSAxNDoyNjo0MSArMDUzMApTdWJqZWN0OiBbUEFU
+Q0hdIEFSTTogc21wX3R3ZDogQWx3YXlzIHByb2dyYW0gdGhlIGxvYWR2YWx1ZSB3aGVuIHN3aXRj
+aGluZyB0byBwZXJpb2RpYyBtb2RlLgoKQWx3YXlzIHByb2dyYW0gdGhlIGxvYWQgdmFsdWUgd2hl
+biBzd2l0Y2hpbmcgdG8gcGVyaW9kaWMgbW9kZSBzbyB0aGF0CndlIGRvbid0IG5lZWQgdG8gc2F2
+ZSByZXN0b3JlIHR3ZCBsb2FkIHJlZ2lzdGVyLgoKU2lnbmVkLW9mZi1ieTogUnVzc2VsbCBLaW5n
+IDxybWsra2VybmVsQGFybS5saW51eC5vcmcudWs+Ci0tLQogYXJjaC9hcm0va2VybmVsL3NtcF90
+d2QuYyB8ICAgIDcgKystLS0tLQogMSBmaWxlcyBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDUg
+ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0va2VybmVsL3NtcF90d2QuYyBiL2Fy
+Y2gvYXJtL2tlcm5lbC9zbXBfdHdkLmMKaW5kZXggZmQ5MTU2Ni4uNjA2MzZmNCAxMDA2NDQKLS0t
+IGEvYXJjaC9hcm0va2VybmVsL3NtcF90d2QuYworKysgYi9hcmNoL2FybS9rZXJuZWwvc21wX3R3
+ZC5jCkBAIC0zNiw2ICszNiw3IEBAIHN0YXRpYyB2b2lkIHR3ZF9zZXRfbW9kZShlbnVtIGNsb2Nr
+X2V2ZW50X21vZGUgbW9kZSwKIAkJLyogdGltZXIgbG9hZCBhbHJlYWR5IHNldCB1cCAqLwogCQlj
+dHJsID0gVFdEX1RJTUVSX0NPTlRST0xfRU5BQkxFIHwgVFdEX1RJTUVSX0NPTlRST0xfSVRfRU5B
+QkxFCiAJCQl8IFRXRF9USU1FUl9DT05UUk9MX1BFUklPRElDOworCQlfX3Jhd193cml0ZWwodHdk
+X3RpbWVyX3JhdGUgLyBIWiwgdHdkX2Jhc2UgKyBUV0RfVElNRVJfTE9BRCk7CiAJCWJyZWFrOwog
+CWNhc2UgQ0xPQ0tfRVZUX01PREVfT05FU0hPVDoKIAkJLyogcGVyaW9kIHNldCwgYW5kIHRpbWVy
+IGVuYWJsZWQgaW4gJ25leHRfZXZlbnQnIGhvb2sgKi8KQEAgLTgxLDcgKzgyLDcgQEAgaW50IHR3
+ZF90aW1lcl9hY2sodm9pZCkKIAogc3RhdGljIHZvaWQgX19jcHVpbml0IHR3ZF9jYWxpYnJhdGVf
+cmF0ZSh2b2lkKQogewotCXVuc2lnbmVkIGxvbmcgbG9hZCwgY291bnQ7CisJdW5zaWduZWQgbG9u
+ZyBjb3VudDsKIAl1NjQgd2FpdGppZmZpZXM7CiAKIAkvKgpAQCAtMTE2LDEwICsxMTcsNiBAQCBz
+dGF0aWMgdm9pZCBfX2NwdWluaXQgdHdkX2NhbGlicmF0ZV9yYXRlKHZvaWQpCiAJCXByaW50aygi
+JWx1LiUwMmx1TUh6LlxuIiwgdHdkX3RpbWVyX3JhdGUgLyAxMDAwMDAwLAogCQkJKHR3ZF90aW1l
+cl9yYXRlIC8gMTAwMDAwMCkgJSAxMDApOwogCX0KLQotCWxvYWQgPSB0d2RfdGltZXJfcmF0ZSAv
+IEhaOwotCi0JX19yYXdfd3JpdGVsKGxvYWQsIHR3ZF9iYXNlICsgVFdEX1RJTUVSX0xPQUQpOwog
+fQogCiAvKgotLSAKMS42LjAuNAoK
+--001636c5a8605ea19c049aaddef1
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--001636c5a8605ea19c049aaddef1--
