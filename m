@@ -1,73 +1,60 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 3/5] ARM: twd: Add context save restore support
-Date: Tue, 25 Jan 2011 19:25:01 +0530
-Message-ID: <35c687f501c0d8d8a4435f7b98850b16@mail.gmail.com>
-References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com>
- <1295859080-15259-4-git-send-email-santosh.shilimkar@ti.com>
- <20110124110609.GJ16202@n2100.arm.linux.org.uk> <20110124111114.GA19409@n2100.arm.linux.org.uk>
- <AANLkTikLDamkp9TgnWRESyx4=698D4NXP=W_M9=abfax@mail.gmail.com>
- <20110125103231.GD11507@n2100.arm.linux.org.uk> <alpine.LFD.2.00.1101251418260.31804@localhost6.localdomain6>
- <20110125133752.GI13300@n2100.arm.linux.org.uk>
+From: "Will Deacon" <will.deacon@arm.com>
+Subject: RE: [PATCH 02/14] ARM: bitops: switch set/clear/change bitops to	use
+	ldrex/strex
+Date: Tue, 25 Jan 2011 13:57:26 -0000
+Message-ID: <5404.43312279439$1295963895@news.gmane.org>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>	<E1Peue4-0003SN-Gk@rmk-PC.arm.linux.org.uk>
+	<20110123001636.GA20841@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:58435 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753208Ab1AYNzF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Jan 2011 08:55:05 -0500
-Received: by mail-fx0-f46.google.com with SMTP id 20so5250171fxm.19
-        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 05:55:03 -0800 (PST)
-In-Reply-To: <20110125133752.GI13300@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110123001636.GA20841@n2100.arm.linux.org.uk>
+Content-Language: en-gb
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Colin Cross <ccross@android.com>, catalin.marinas@arm.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Tuesday, January 25, 2011 7:08 PM
-> To: Thomas Gleixner
-> Cc: Colin Cross; Santosh Shilimkar; catalin.marinas@arm.com;
-> linus.ml.walleij@gmail.com; linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org
-> Subject: Re: [PATCH 3/5] ARM: twd: Add context save restore support
->
-> On Tue, Jan 25, 2011 at 02:23:10PM +0100, Thomas Gleixner wrote:
-> > On Tue, 25 Jan 2011, Russell King - ARM Linux wrote:
+Hi Russell,
 
-[...]
-> > > The next question is can we teach the generic time
-> infrastructure about
-> > > this so we don't have to modify every clock event driver for it?
-> We
-> > > really need to get away from having this kind of knowledge
-> buried down
-> > > in the lowest levels of every driver.
+Hopefully this isn't too late to be useful.
+
+> On Mon, Jan 17, 2011 at 07:21:40PM +0000, Russell King - ARM Linux wrote:
+> > Switch the set/clear/change bitops to use the word-based exclusive
+> > operations, which are only present in a wider range of ARM architectures
+> > than the byte-based exclusive operations.
 > >
-> > In which way? I mean the generic code issues a call to the
-> set_mode
-> > function when we leave the broadcast mode. So what should the
-> generic
-> > code do more ?
->
-> I can't say because these patches only add the hooks, there's no
-> implementation yet which uses the hooks.
->
-> Given the description about _why_ those hooks are necessary, it
-> seems
-> that something is required.  Either we start adding custom hacks to
-> each clockevent driver as is done with this patch, or we get some
-> generic help in place.
->
-> I'm not thrilled by the custom hack approach - and I thought the
-> clockevent stuff was created to stop this kind of thing happening.
->
-> I suggest we defer this until there's a visible use case available.
-Just for clarification. Without the TWD save restore patch the PM
-won't work. So what you mean by visible usecase.
-We need this to be fixed and that's what was done with the my
-patch. Ofcourse it's a custom hack approach but does the job.
+> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> 
+> As only one person replied to this patch with test information, I'm
+> not happy to push this into -rc, and hence that prevents it going into
+> -stable too.  That means omap2plus_defconfig .38 mainline kernels
+> (including -stable) will remain potentially dangerous when run on
+> SMP capable hardware.
+> 
+> Therefore, I see no alternative at the moment but to purposely cause
+> builds which cover ARMv6, and ARMv6K or ARMv7 CPUs to save people from
+> data corruption.
+> 
+> Please get your tested-by's to me for at least the first three patches
+> of this series ASAP.
 
-Regards,
-Santosh
+I've tested this on the Versatile Express (ca9x4, little endian) with a USB
+hard drive and ext3 (rw) filesystem. I did a bunch of parallel dds of a 2GB
+file containing random data whilst the system was fairly loaded. File checksums
+all passed and the kernel didn't do anything untowards.
+
+Tested-by: Will Deacon <will.deacon@arm.com>
+
+I appreciate this is the same test configuration as the one Nicolas did,
+but it at least replicates his findings.
+
+Will
