@@ -1,194 +1,42 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v2 3/4] OMAP2PLUS: DSS2: Generalize external clock names in struct dss of dss.c
-Date: Tue, 25 Jan 2011 18:29:57 +0530
-Message-ID: <1295960398-25329-4-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v2 4/4] OMAP4: DSS2: clocks: Add ick as dummy clock
+Date: Tue, 25 Jan 2011 18:29:58 +0530
+Message-ID: <1295960398-25329-5-git-send-email-sumit.semwal@ti.com>
 References: <1295960398-25329-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59871 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58925 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751724Ab1AYNAY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Jan 2011 08:00:24 -0500
+	id S1751977Ab1AYNAa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 08:00:30 -0500
 In-Reply-To: <1295960398-25329-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com
-Cc: Archit Taneja <archit@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
+Cc: Sumit Semwal <sumit.semwal@ti.com>
 
-From: Archit Taneja <archit@ti.com>
+DSS code uses ick as one of the clocks in clk_get/clk_put. OMAP4 clock database
+doesn't have ick for DSS, so adding ick as dummy clock.
 
-The dss struct in dss.c has omap2/3 specific clock names. Making them generic,
-to increase readability and extendability.
+Once pm_runtime* APIs get introduced in DSS, this will be revisited.
 
 Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dss.c |   82 ++++++++++++++++++++--------------------
- 1 files changed, 41 insertions(+), 41 deletions(-)
+ arch/arm/mach-omap2/clock44xx_data.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 2873c30..c7cdbea 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -64,10 +64,10 @@ static struct {
- 
- 	struct clk	*dpll4_m4_ck;
- 	struct clk	*dss_ick;
--	struct clk	*dss1_fck;
--	struct clk	*dss2_fck;
--	struct clk	*dss_54m_fck;
--	struct clk	*dss_96m_fck;
-+	struct clk	*dss_fck;
-+	struct clk	*dss_sys_clk;
-+	struct clk	*dss_tv_fck;
-+	struct clk	*dss_video_fck;
- 	unsigned	num_clks_enabled;
- 
- 	unsigned long	cache_req_pck;
-@@ -749,28 +749,28 @@ static int dss_get_clocks(void)
- 	int r;
- 
- 	dss.dss_ick = NULL;
--	dss.dss1_fck = NULL;
--	dss.dss2_fck = NULL;
--	dss.dss_54m_fck = NULL;
--	dss.dss_96m_fck = NULL;
-+	dss.dss_fck = NULL;
-+	dss.dss_sys_clk = NULL;
-+	dss.dss_tv_fck = NULL;
-+	dss.dss_video_fck = NULL;
- 
- 	r = dss_get_clock(&dss.dss_ick, "ick");
- 	if (r)
- 		goto err;
- 
--	r = dss_get_clock(&dss.dss1_fck, "fck");
-+	r = dss_get_clock(&dss.dss_fck, "fck");
- 	if (r)
- 		goto err;
- 
--	r = dss_get_clock(&dss.dss2_fck, "sys_clk");
-+	r = dss_get_clock(&dss.dss_sys_clk, "sys_clk");
- 	if (r)
- 		goto err;
- 
--	r = dss_get_clock(&dss.dss_54m_fck, "tv_clk");
-+	r = dss_get_clock(&dss.dss_tv_fck, "tv_clk");
- 	if (r)
- 		goto err;
- 
--	r = dss_get_clock(&dss.dss_96m_fck, "video_clk");
-+	r = dss_get_clock(&dss.dss_video_fck, "video_clk");
- 	if (r)
- 		goto err;
- 
-@@ -779,25 +779,25 @@ static int dss_get_clocks(void)
- err:
- 	if (dss.dss_ick)
- 		clk_put(dss.dss_ick);
--	if (dss.dss1_fck)
--		clk_put(dss.dss1_fck);
--	if (dss.dss2_fck)
--		clk_put(dss.dss2_fck);
--	if (dss.dss_54m_fck)
--		clk_put(dss.dss_54m_fck);
--	if (dss.dss_96m_fck)
--		clk_put(dss.dss_96m_fck);
-+	if (dss.dss_fck)
-+		clk_put(dss.dss_fck);
-+	if (dss.dss_sys_clk)
-+		clk_put(dss.dss_sys_clk);
-+	if (dss.dss_tv_fck)
-+		clk_put(dss.dss_tv_fck);
-+	if (dss.dss_video_fck)
-+		clk_put(dss.dss_video_fck);
- 
- 	return r;
- }
- 
- static void dss_put_clocks(void)
- {
--	if (dss.dss_96m_fck)
--		clk_put(dss.dss_96m_fck);
--	clk_put(dss.dss_54m_fck);
--	clk_put(dss.dss1_fck);
--	clk_put(dss.dss2_fck);
-+	if (dss.dss_video_fck)
-+		clk_put(dss.dss_video_fck);
-+	clk_put(dss.dss_tv_fck);
-+	clk_put(dss.dss_fck);
-+	clk_put(dss.dss_sys_clk);
- 	clk_put(dss.dss_ick);
- }
- 
-@@ -807,13 +807,13 @@ unsigned long dss_clk_get_rate(enum dss_clock clk)
- 	case DSS_CLK_ICK:
- 		return clk_get_rate(dss.dss_ick);
- 	case DSS_CLK_FCK:
--		return clk_get_rate(dss.dss1_fck);
-+		return clk_get_rate(dss.dss_fck);
- 	case DSS_CLK_SYSCK:
--		return clk_get_rate(dss.dss2_fck);
-+		return clk_get_rate(dss.dss_sys_clk);
- 	case DSS_CLK_TVFCK:
--		return clk_get_rate(dss.dss_54m_fck);
-+		return clk_get_rate(dss.dss_tv_fck);
- 	case DSS_CLK_VIDFCK:
--		return clk_get_rate(dss.dss_96m_fck);
-+		return clk_get_rate(dss.dss_video_fck);
- 	}
- 
- 	BUG();
-@@ -845,13 +845,13 @@ static void dss_clk_enable_no_ctx(enum dss_clock clks)
- 	if (clks & DSS_CLK_ICK)
- 		clk_enable(dss.dss_ick);
- 	if (clks & DSS_CLK_FCK)
--		clk_enable(dss.dss1_fck);
-+		clk_enable(dss.dss_fck);
- 	if (clks & DSS_CLK_SYSCK)
--		clk_enable(dss.dss2_fck);
-+		clk_enable(dss.dss_sys_clk);
- 	if (clks & DSS_CLK_TVFCK)
--		clk_enable(dss.dss_54m_fck);
-+		clk_enable(dss.dss_tv_fck);
- 	if (clks & DSS_CLK_VIDFCK)
--		clk_enable(dss.dss_96m_fck);
-+		clk_enable(dss.dss_video_fck);
- 
- 	dss.num_clks_enabled += num_clks;
- }
-@@ -873,13 +873,13 @@ static void dss_clk_disable_no_ctx(enum dss_clock clks)
- 	if (clks & DSS_CLK_ICK)
- 		clk_disable(dss.dss_ick);
- 	if (clks & DSS_CLK_FCK)
--		clk_disable(dss.dss1_fck);
-+		clk_disable(dss.dss_fck);
- 	if (clks & DSS_CLK_SYSCK)
--		clk_disable(dss.dss2_fck);
-+		clk_disable(dss.dss_sys_clk);
- 	if (clks & DSS_CLK_TVFCK)
--		clk_disable(dss.dss_54m_fck);
-+		clk_disable(dss.dss_tv_fck);
- 	if (clks & DSS_CLK_VIDFCK)
--		clk_disable(dss.dss_96m_fck);
-+		clk_disable(dss.dss_video_fck);
- 
- 	dss.num_clks_enabled -= num_clks;
- }
-@@ -925,10 +925,10 @@ static void core_dump_clocks(struct seq_file *s)
- 	int i;
- 	struct clk *clocks[5] = {
- 		dss.dss_ick,
--		dss.dss1_fck,
--		dss.dss2_fck,
--		dss.dss_54m_fck,
--		dss.dss_96m_fck
-+		dss.dss_fck,
-+		dss.dss_sys_clk,
-+		dss.dss_tv_fck,
-+		dss.dss_video_fck
- 	};
- 
- 	seq_printf(s, "- CORE -\n");
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 74db324..8603b1f 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3109,6 +3109,8 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
+ 	/* dss clocks */
+ 	CLK(NULL,	"fck",				&dss_fck,	CK_443X),
++	CLK("omap_dss",	"ick",				&dummy_ck,	CK_443X),
++	/* on OMAP4, ick is a dummy clock */
+ 	/*
+ 	 * clocks handled via hwmod opt_clk mechanism need dev=NULL,
+ 	 * con=clock name as per actual clk structure, NOT role
 -- 
 1.7.1
 
