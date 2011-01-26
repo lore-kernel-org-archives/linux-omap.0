@@ -1,78 +1,71 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH v7] OMAP2+: PM: omap device: API's for handling
- mstandby mode
-Date: Wed, 26 Jan 2011 06:11:28 +0530
-Message-ID: <20110126004128.GA8524@manju-desktop>
-References: <1291298392-28729-1-git-send-email-manjugk@ti.com>
- <4CF8AC8B.9040800@ti.com>
- <20101203092514.GA10048@GLPP-machine>
- <4CF8E03A.4010000@ti.com>
- <20101214014822.GA3858@manju-desktop>
- <20110124093349.GC16582@m-desktop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH] OMAP3: PM: fix save secure RAM to restore MPU power state
+Date: Tue, 25 Jan 2011 16:50:11 -0800
+Message-ID: <1296003011-26427-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:44954 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753167Ab1AZAln (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:54721 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752733Ab1AZAvT (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Jan 2011 19:41:43 -0500
-Received: by mail-iw0-f170.google.com with SMTP id 6so412646iwn.29
-        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 16:41:42 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20110124093349.GC16582@m-desktop>
+	Tue, 25 Jan 2011 19:51:19 -0500
+Received: by pwj9 with SMTP id 9so226216pwj.7
+        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 16:51:18 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, linux-ar
-Cc: adrian.hunter@nokia.com, peter.ujfalusi@nokia.com, tony@atomide.com
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tero Kristo <tero.kristo@nokia.com>
 
-On Mon, Jan 24, 2011 at 03:03:49PM +0530, G, Manjunath Kondaiah wrote:
-> Paul/Benoit,
-> 
-> On Tue, Dec 14, 2010 at 07:18:22AM +0530, G, Manjunath Kondaiah wrote:
-> > Paul/Benoit,
-> > 
-> > On Fri, Dec 03, 2010 at 01:19:06PM +0100, Cousson, Benoit wrote:
-> > > On 12/3/2010 10:47 AM, G, Manjunath Kondaiah wrote:
-> > > >* Cousson, Benoit<b-cousson@ti.com>  [2010-12-03 09:38:35 +0100]:
-> > > 
-> > > [...]
-> > > 
-> > > >>>v7: replaced mutex lock with spin lock. Added use count for controlling
-> > > >>>access to sysconfig registers in case if overlapping request/release API's
-> > > >>>are used.
-> > > >>
-> > > >>I'm not sure it should be done here. I'd rather keep that code in
-> > > >>the DMA, since this is the only user of that feature.
-> > > >
-> > > >Are you referring to spin lock or usage count?
-> > > 
-> > > The spinlock is needed, I was referring to the usage count.
-> > > 
-> > > That being said, the API proposed by Paul (request/release
-> > > ) sound like a get/put, so maybe he had that kind of usage in mind.
-> > > 
-> > > I'm still not convince it should be done at hwmod API level.
-> > > 
-> > > 
-> > > Paul,
-> > > Any thoughts on that?
-> > 
-> > How do we proceed further?
-> Gentle reminder!
-> 
-> Can we please align on this so that DMA sysconfig patches can be
-> upstreamed?
-> 
-> Discussion on this topic can be accessed at:
-> https://patchwork.kernel.org/patch/372231/
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39728.html
+Currently, on HS/EMU devices, MPU power state forced to on during PM
+init by the save secure RAM code.  Rather than forcing the state of
+MPU powerdomain to on, simply read the current value and restore it
+after the ROM code has run.
 
-As there is no response from paul on this topic, I will go ahead with usage
-count logic proposed by Adrian Hunter <adrian.hunter@nokia.com> at:
-https://patchwork.kernel.org/patch/366831/
-Above logic has got:
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+This only affects the !CPUidle case since when CPUidle is enabled, the
+MPU power state is dynamically changed by CPUidle.  In the !CPUidle
+case, MPU power state is initialized once at init and never touched.
 
--Manjunath
+Cc: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+If no objectsions, will be queued in my pm-fixes branch for 2.6.38-rc.
+
+ arch/arm/mach-omap2/pm34xx.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 8cbbead..1916038 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -168,9 +168,10 @@ static void omap3_core_restore_context(void)
+  * once during boot sequence, but this works as we are not using secure
+  * services.
+  */
+-static void omap3_save_secure_ram_context(u32 target_mpu_state)
++static void omap3_save_secure_ram_context(void)
+ {
+ 	u32 ret;
++	int mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
+ 
+ 	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
+ 		/*
+@@ -181,7 +182,7 @@ static void omap3_save_secure_ram_context(u32 target_mpu_state)
+ 		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+ 		ret = _omap_save_secure_sram((u32 *)
+ 				__pa(omap3_secure_ram_storage));
+-		pwrdm_set_next_pwrst(mpu_pwrdm, target_mpu_state);
++		pwrdm_set_next_pwrst(mpu_pwrdm, mpu_next_state);
+ 		/* Following is for error tracking, it should not happen */
+ 		if (ret) {
+ 			printk(KERN_ERR "save_secure_sram() returns %08x\n",
+@@ -1094,7 +1095,7 @@ static int __init omap3_pm_init(void)
+ 		local_fiq_disable();
+ 
+ 		omap_dma_global_context_save();
+-		omap3_save_secure_ram_context(PWRDM_POWER_ON);
++		omap3_save_secure_ram_context();
+ 		omap_dma_global_context_restore();
+ 
+ 		local_irq_enable();
+-- 
+1.7.3.5
+
