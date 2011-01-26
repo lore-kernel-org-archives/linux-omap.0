@@ -1,88 +1,47 @@
-From: Linus Walleij <linus.ml.walleij@gmail.com>
-Subject: Re: [PATCH v1 1/3]mmc: implemented runtime pm for mmc host
-Date: Wed, 26 Jan 2011 20:19:08 +0100
-Message-ID: <AANLkTikXsaU+6rDByji4jsSP4==cvUCBvSxuXug6UmBD@mail.gmail.com>
-References: <20110114082310.GB27523@intel.com>
-	<8250E4885F9967469CAC3FB5CBA2CE69934E7AA2FE@irsmsx501.ger.corp.intel.com>
-	<5D8008F58939784290FAB48F54975198351D4FA654@shsmsx502.ccr.corp.intel.com>
-	<8250E4885F9967469CAC3FB5CBA2CE69934E7AAB20@irsmsx501.ger.corp.intel.com>
-	<5D8008F58939784290FAB48F5497519835247E72AD@shsmsx502.ccr.corp.intel.com>
-	<8250E4885F9967469CAC3FB5CBA2CE69934E7AACCC@irsmsx501.ger.corp.intel.com>
-	<20110120050803.GA5732@void.printf.net>
-	<AANLkTimZyv9f5b5VxmmYyO3qPrb9Y25-=yUV_GYma3e_@mail.gmail.com>
-	<8250E4885F9967469CAC3FB5CBA2CE69934EFA98B2@irsmsx501.ger.corp.intel.com>
-	<AANLkTi=KKfxTRzW1iyLKjM0Ho6x7kYpwGwx7F-gD4EaM@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP3: PM: fix save secure RAM to restore MPU power state
+Date: Wed, 26 Jan 2011 12:48:44 -0800
+Message-ID: <87bp33xufn.fsf@ti.com>
+References: <1296003011-26427-1-git-send-email-khilman@ti.com>
+	<854C6400F5AA6644BA6FE7953F3E769B0376F954@008-AM1MPN1-012.mgdnok.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:51128 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753027Ab1AZTTI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jan 2011 14:19:08 -0500
-In-Reply-To: <AANLkTi=KKfxTRzW1iyLKjM0Ho6x7kYpwGwx7F-gD4EaM@mail.gmail.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:34260 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753725Ab1AZUss (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Jan 2011 15:48:48 -0500
+Received: by mail-yi0-f53.google.com with SMTP id 17so315465yib.12
+        for <linux-omap@vger.kernel.org>; Wed, 26 Jan 2011 12:48:48 -0800 (PST)
+In-Reply-To: <854C6400F5AA6644BA6FE7953F3E769B0376F954@008-AM1MPN1-012.mgdnok.nokia.com>
+	(Tero Kristo's message of "Wed, 26 Jan 2011 09:27:03 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Tardy, Pierre" <pierre.tardy@intel.com>
-Cc: Chris Ball <cjb@laptop.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+To: Tero.Kristo@nokia.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-2011/1/26 Linus Walleij <linus.walleij@linaro.org>:
-> 2011/1/25 Tardy, Pierre <pierre.tardy@intel.com>:
+Hi Tero,
 
->> @@ -1231,6 +1233,27 @@ static void sdhci_set_ios(struct mmc_host *mm=
-c, struct mmc_ios *ios)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out;
+<Tero.Kristo@nokia.com> writes:
+
+>>Currently, on HS/EMU devices, MPU power state forced to on during PM
+>>init by the save secure RAM code.  Rather than forcing the state of
+>>MPU powerdomain to on, simply read the current value and restore it
+>>after the ROM code has run.
 >>
->> =A0 =A0 =A0 =A0/*
->> + =A0 =A0 =A0 =A0* get/put runtime_pm usage counter at ios->clock tr=
-ansitions
->> + =A0 =A0 =A0 =A0* We need to do it before any other chip access, as=
- sdhci could
->> + =A0 =A0 =A0 =A0* be power gated
->> + =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 lastclock =3D host->iosclock;
->> + =A0 =A0 =A0 host->iosclock =3D ios->clock;
->> + =A0 =A0 =A0 if (lastclock =3D=3D 0 && ios->clock !=3D 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irqrestore(&host->lock, fl=
-ags);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(host->mmc->parent)=
-;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irqsave(&host->lock, flags);
->> + =A0 =A0 =A0 } else if (lastclock !=3D 0 && ios->clock =3D=3D 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irqrestore(&host->lock, fl=
-ags);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_mark_last_busy(host->mmc->p=
-arent);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_autosuspend(host->mmc->=
-parent);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irqsave(&host->lock, flags);
->> + =A0 =A0 =A0 }
->> + =A0 =A0 =A0 /* no need to configure the rest.. */
->> + =A0 =A0 =A0 if (host->iosclock =3D=3D 0)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
->> +
->> + =A0 =A0 =A0 /*
->> =A0 =A0 =A0 =A0 * Reset the chip on each power off.
->> =A0 =A0 =A0 =A0 * Should clear out any weird states.
->> =A0 =A0 =A0 =A0 */
+>>This only affects the !CPUidle case since when CPUidle is enabled, the
+>>MPU power state is dynamically changed by CPUidle.  In the !CPUidle
+>>case, MPU power state is initialized once at init and never touched.
+>>
+>>Cc: Tero Kristo <tero.kristo@nokia.com>
+>>Signed-off-by: Kevin Hilman <khilman@ti.com>
+>>---
+>>If no objectsions, will be queued in my pm-fixes branch for 2.6.38-rc.
 >
-> Aha I get it. So it uses the freq shift from the existing clock gate
-> code to hint rpm, that's actually how I envisioned that this would
-> work for this case.
->
-> Now I really started liking this patch.
-> Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+> Looks good to me. Ack, if you need one.
+>  
 
-Which shall be interpreted as for the patch with the above code, not
-the one which is subject for this post I believe.
+Thanks, I was looking for your ack.
 
-Pierre, I can't locate your patches for some reason, care to repost
-them?
-
-Yours,
-Linus Walleij
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
