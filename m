@@ -1,35 +1,78 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 2/4] OMAP4: hwmod: add entries for DMIC driver
-Date: Tue, 25 Jan 2011 16:54:56 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101251654290.16671@utopia.booyaka.com>
-References: <1295992862-6154-1-git-send-email-dlambert@ti.com> <1295992862-6154-3-git-send-email-dlambert@ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCH v7] OMAP2+: PM: omap device: API's for handling
+ mstandby mode
+Date: Wed, 26 Jan 2011 06:11:28 +0530
+Message-ID: <20110126004128.GA8524@manju-desktop>
+References: <1291298392-28729-1-git-send-email-manjugk@ti.com>
+ <4CF8AC8B.9040800@ti.com>
+ <20101203092514.GA10048@GLPP-machine>
+ <4CF8E03A.4010000@ti.com>
+ <20101214014822.GA3858@manju-desktop>
+ <20110124093349.GC16582@m-desktop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42037 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751625Ab1AYXy5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jan 2011 18:54:57 -0500
-In-Reply-To: <1295992862-6154-3-git-send-email-dlambert@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:44954 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753167Ab1AZAln (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jan 2011 19:41:43 -0500
+Received: by mail-iw0-f170.google.com with SMTP id 6so412646iwn.29
+        for <linux-omap@vger.kernel.org>; Tue, 25 Jan 2011 16:41:42 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20110124093349.GC16582@m-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, David Lambert <dlambert@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, linux-ar
+Cc: adrian.hunter@nokia.com, peter.ujfalusi@nokia.com, tony@atomide.com
 
-On Tue, 25 Jan 2011, David Lambert wrote:
-
-> From: Benoit Cousson <b-cousson@ti.com>
+On Mon, Jan 24, 2011 at 03:03:49PM +0530, G, Manjunath Kondaiah wrote:
+> Paul/Benoit,
 > 
-> Adds HWMOD entries for the OMAP DMIC driver and creates
-> a platform device.  The HWMOD entires define the system
-> resource requirements for the drvier such as DMA addresses, channels,
-> and IRQ's.  Placing this information in the HWMOD database allows
-> for more generic drivers to be written and having the specific
-> implementation details defined in HWMOD.
+> On Tue, Dec 14, 2010 at 07:18:22AM +0530, G, Manjunath Kondaiah wrote:
+> > Paul/Benoit,
+> > 
+> > On Fri, Dec 03, 2010 at 01:19:06PM +0100, Cousson, Benoit wrote:
+> > > On 12/3/2010 10:47 AM, G, Manjunath Kondaiah wrote:
+> > > >* Cousson, Benoit<b-cousson@ti.com>  [2010-12-03 09:38:35 +0100]:
+> > > 
+> > > [...]
+> > > 
+> > > >>>v7: replaced mutex lock with spin lock. Added use count for controlling
+> > > >>>access to sysconfig registers in case if overlapping request/release API's
+> > > >>>are used.
+> > > >>
+> > > >>I'm not sure it should be done here. I'd rather keep that code in
+> > > >>the DMA, since this is the only user of that feature.
+> > > >
+> > > >Are you referring to spin lock or usage count?
+> > > 
+> > > The spinlock is needed, I was referring to the usage count.
+> > > 
+> > > That being said, the API proposed by Paul (request/release
+> > > ) sound like a get/put, so maybe he had that kind of usage in mind.
+> > > 
+> > > I'm still not convince it should be done at hwmod API level.
+> > > 
+> > > 
+> > > Paul,
+> > > Any thoughts on that?
+> > 
+> > How do we proceed further?
+> Gentle reminder!
 > 
-> Signed-off-by: David Lambert <dlambert@ti.com>
+> Can we please align on this so that DMA sysconfig patches can be
+> upstreamed?
+> 
+> Discussion on this topic can be accessed at:
+> https://patchwork.kernel.org/patch/372231/
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39728.html
 
-This should have Benoit's Signed-off-by: also.
+As there is no response from paul on this topic, I will go ahead with usage
+count logic proposed by Adrian Hunter <adrian.hunter@nokia.com> at:
+https://patchwork.kernel.org/patch/366831/
+Above logic has got:
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-
-- Paul
+-Manjunath
