@@ -1,53 +1,72 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 2/4] OMAP4: hwmod: add entries for DMIC driver
-Date: Wed, 26 Jan 2011 10:28:45 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1101261028370.16671@utopia.booyaka.com>
-References: <1295992862-6154-1-git-send-email-dlambert@ti.com> <1295992862-6154-3-git-send-email-dlambert@ti.com> <alpine.DEB.2.00.1101251654290.16671@utopia.booyaka.com> <AANLkTi=GFtasMK70zOs-m6FTXchNgxv3ryS1g11sL_2w@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Latest regressions
+Date: Wed, 26 Jan 2011 10:12:16 -0800
+Message-ID: <20110126181215.GC23412@atomide.com>
+References: <20110107115744.GL1198@n2100.arm.linux.org.uk>
+ <20110107165626.GD880@atomide.com>
+ <20110126085848.GB2698@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-9490624-1296062925=:16671"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51753 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752097Ab1AZR2q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jan 2011 12:28:46 -0500
-In-Reply-To: <AANLkTi=GFtasMK70zOs-m6FTXchNgxv3ryS1g11sL_2w@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65180 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754062Ab1AZSMr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jan 2011 13:12:47 -0500
+Content-Disposition: inline
+In-Reply-To: <20110126085848.GB2698@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Lambert, David" <dlambert@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110126 00:57]:
+> On Fri, Jan 07, 2011 at 08:56:26AM -0800, Tony Lindgren wrote:
+> > > diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> > > index e66687b..c203204 100644
+> > > --- a/arch/arm/mach-omap2/io.c
+> > > +++ b/arch/arm/mach-omap2/io.c
+> > > @@ -314,14 +314,13 @@ static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
+> > >  	return omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
+> > >  }
+> > >  
+> > > +void __iomem *omap_irq_base;
+> > > +
+> > >  /*
+> > >   * Initialize asm_irq_base for entry-macro.S
+> > >   */
+> > >  static inline void omap_irq_base_init(void)
+> > >  {
+> > > -	extern void __iomem *omap_irq_base;
+> > > -
+> > > -#ifdef MULTI_OMAP2
+> > >  	if (cpu_is_omap24xx())
+> > >  		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP24XX_IC_BASE);
+> > >  	else if (cpu_is_omap34xx())
+> > > @@ -330,7 +329,6 @@ static inline void omap_irq_base_init(void)
+> > >  		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE);
+> > >  	else
+> > >  		pr_err("Could not initialize omap_irq_base\n");
+> > > -#endif
+> > >  }
+> > >  
+> > >  void __init omap2_init_common_infrastructure(void)
+> > 
+> > This looks good to me.
+> 
+> I notice this one is still there.
 
---155748971-9490624-1296062925=:16671
-Content-Type: TEXT/PLAIN; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Sorry I thought you'll queue this one.
 
-On Wed, 26 Jan 2011, Lambert, David wrote:
+BTW this fixes regression from patch 5d190c40100793a6dfc37bf325677c10f3c80edf
+(omap2+: Initialize omap_irq_base for entry-macro.S from platform code).
+So it should be OK for the -rc cycle:
 
-> On Tue, Jan 25, 2011 at 5:54 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> >
-> > On Tue, 25 Jan 2011, David Lambert wrote:
-> >
-> > > From: Benoit Cousson <b-cousson@ti.com>
-> > >
-> > > Adds HWMOD entries for the OMAP DMIC driver and creates
-> > > a platform device. =A0The HWMOD entires define the system
-> > > resource requirements for the drvier such as DMA addresses, channels,
-> > > and IRQ's. =A0Placing this information in the HWMOD database allows
-> > > for more generic drivers to be written and having the specific
-> > > implementation details defined in HWMOD.
-> > >
-> > > Signed-off-by: David Lambert <dlambert@ti.com>
-> >
-> > This should have Benoit's Signed-off-by: also.
-> >
->=20
-> OK... Benoit has already agreed to it... will it be sufficient if I just=
-=20
-> have him ACK the change here on e-mail?
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Yes.
+Let me know if you want me to take it, in that case I think it's still
+missing your Signed-off-by.
 
-- Paul
---155748971-9490624-1296062925=:16671--
+Regards,
+
+Tony
+Let me know if you want me to queue it.
