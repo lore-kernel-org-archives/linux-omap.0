@@ -1,55 +1,67 @@
-From: "Lambert, David" <dlambert@ti.com>
-Subject: Re: [PATCH v3 2/4] OMAP4: hwmod: add entries for DMIC driver
-Date: Wed, 26 Jan 2011 06:55:39 -0600
-Message-ID: <AANLkTi=GFtasMK70zOs-m6FTXchNgxv3ryS1g11sL_2w@mail.gmail.com>
-References: <1295992862-6154-1-git-send-email-dlambert@ti.com>
- <1295992862-6154-3-git-send-email-dlambert@ti.com> <alpine.DEB.2.00.1101251654290.16671@utopia.booyaka.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH 03/14] ARM: v6k: remove CPU_32v6K dependencies in
+ asm/spinlock.h
+Date: Wed, 26 Jan 2011 10:42:41 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1101261023470.8580@xanadu.home>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+ <E1PeueP-0003SR-03@rmk-PC.arm.linux.org.uk>
+ <AANLkTinnhivretaRHpYwCYouk-_jWKZQEo7x4sbheJVL@mail.gmail.com>
+ <20110125165919.GD17286@n2100.arm.linux.org.uk>
+ <AANLkTimK06nJPtQoym3HxXeDD-s4nUrN0vWjp_JcgTjx@mail.gmail.com>
+ <20110125174636.GE17286@n2100.arm.linux.org.uk>
+ <alpine.LFD.2.00.1101251618230.8580@xanadu.home>
+ <AANLkTi=zVsr8G=eYfp7v_QQvBBDCX+Es+T-4c4Fu=QVF@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:39839 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751997Ab1AZM4D convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Jan 2011 07:56:03 -0500
-Received: by yie19 with SMTP id 19so95534yie.17
-        for <linux-omap@vger.kernel.org>; Wed, 26 Jan 2011 04:56:01 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1101251654290.16671@utopia.booyaka.com>
+Received: from relais.videotron.ca ([24.201.245.36]:9219 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751025Ab1AZPm7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jan 2011 10:42:59 -0500
+Received: from xanadu.home ([66.130.28.92]) by vl-mo-mrz23.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
+ with ESMTP id <0LFM003S1ZMIAJ80@vl-mo-mrz23.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Wed, 26 Jan 2011 10:42:18 -0500 (EST)
+In-reply-to: <AANLkTi=zVsr8G=eYfp7v_QQvBBDCX+Es+T-4c4Fu=QVF@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Dave Martin <dave.martin@linaro.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 25, 2011 at 5:54 PM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> On Tue, 25 Jan 2011, David Lambert wrote:
->
-> > From: Benoit Cousson <b-cousson@ti.com>
+On Wed, 26 Jan 2011, Dave Martin wrote:
+
+> On Tue, Jan 25, 2011 at 9:21 PM, Nicolas Pitre <nicolas.pitre@linaro.org> wrote:
+> > On Tue, 25 Jan 2011, Russell King - ARM Linux wrote:
 > >
-> > Adds HWMOD entries for the OMAP DMIC driver and creates
-> > a platform device. =A0The HWMOD entires define the system
-> > resource requirements for the drvier such as DMA addresses, channel=
-s,
-> > and IRQ's. =A0Placing this information in the HWMOD database allows
-> > for more generic drivers to be written and having the specific
-> > implementation details defined in HWMOD.
+> >> Hmm, actually it looks like you can end up with configurations where the
+> >> spinlocks are inlined.
+> >>
+> >> That means we'll have to get rid of the link-time discarding of the
+> >> .exit sections, and discard them along with the .init sections.
 > >
-> > Signed-off-by: David Lambert <dlambert@ti.com>
->
-> This should have Benoit's Signed-off-by: also.
->
+> > ... but only when CONFIG_SMP_ON_UP=y.
+> 
+> Do we need to consider any other discarded sections?  In vmlinux.lds, I have:
+> 
+>  /* Default discards */
+>  /DISCARD/ : { *(.exit.text) *(.cpuexit.text) *(.memexit.text)
+> *(.exit.data) *(.cpuexit.data) *(.cpuexit.rodata) *(.memexit.data)
+> *(.memexit.rodata) *(.exitcall.exit) *(.discard) *(.discard.*) }
+> 
+> 
+> Alternatively, I wonder .alt.smp.init could make weak references
+> instead of normal references: then if the referenced section is
+> discarded, the reference will revert to 0 and the fixup code can
+> ignore it (at the expense of wasting a bit of space in the fixup table
+> ... but it's no worse than the current situation).  From
+> experimentation, it seems this doesn't work if the referenced symbol
+> is defined in the same file, since the linker resolves the reference
+> before discarding sections, but maybe there's a way around it...
 
-OK... Benoit has already agreed to it... will it be sufficient if I
-just have him ACK the
-change here on e-mail?
+That's strange.  How can the linker resolve the reference if the 
+referenced symbol is not in the same section as the reference source?  
+What happens when the final link completes?
 
---
-David Lambert
-OMAP=99 Multimedia
-214-567-5692
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Nicolas
