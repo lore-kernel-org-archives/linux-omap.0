@@ -1,72 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: Latest regressions
-Date: Wed, 26 Jan 2011 10:12:16 -0800
-Message-ID: <20110126181215.GC23412@atomide.com>
+Date: Wed, 26 Jan 2011 10:15:37 -0800
+Message-ID: <20110126181536.GD23412@atomide.com>
 References: <20110107115744.GL1198@n2100.arm.linux.org.uk>
  <20110107165626.GD880@atomide.com>
- <20110126085848.GB2698@n2100.arm.linux.org.uk>
+ <20110126090157.GA2997@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65180 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19468 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754062Ab1AZSMr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jan 2011 13:12:47 -0500
+	with ESMTP id S1751736Ab1AZSQJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jan 2011 13:16:09 -0500
 Content-Disposition: inline
-In-Reply-To: <20110126085848.GB2698@n2100.arm.linux.org.uk>
+In-Reply-To: <20110126090157.GA2997@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110126 00:57]:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110126 01:00]:
 > On Fri, Jan 07, 2011 at 08:56:26AM -0800, Tony Lindgren wrote:
-> > > diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> > > index e66687b..c203204 100644
-> > > --- a/arch/arm/mach-omap2/io.c
-> > > +++ b/arch/arm/mach-omap2/io.c
-> > > @@ -314,14 +314,13 @@ static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
-> > >  	return omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
-> > >  }
+> > > diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> > > index 17bd639..9eaa28c 100644
+> > > --- a/arch/arm/mach-omap2/mux.c
+> > > +++ b/arch/arm/mach-omap2/mux.c
+> > > @@ -160,7 +160,7 @@ static int __init _omap_mux_get_by_name(struct omap_mux_partition *partition,
+> > >  	struct omap_mux *mux = NULL;
+> > >  	struct omap_mux_entry *e;
+> > >  	const char *mode_name;
+> > > -	int found = 0, found_mode, mode0_len = 0;
+> > > +	int found = 0, found_mode = 0, mode0_len = 0;
+> > >  	struct list_head *muxmodes = &partition->muxmodes;
 > > >  
-> > > +void __iomem *omap_irq_base;
-> > > +
-> > >  /*
-> > >   * Initialize asm_irq_base for entry-macro.S
-> > >   */
-> > >  static inline void omap_irq_base_init(void)
-> > >  {
-> > > -	extern void __iomem *omap_irq_base;
-> > > -
-> > > -#ifdef MULTI_OMAP2
-> > >  	if (cpu_is_omap24xx())
-> > >  		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP24XX_IC_BASE);
-> > >  	else if (cpu_is_omap34xx())
-> > > @@ -330,7 +329,6 @@ static inline void omap_irq_base_init(void)
-> > >  		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE);
-> > >  	else
-> > >  		pr_err("Could not initialize omap_irq_base\n");
-> > > -#endif
-> > >  }
-> > >  
-> > >  void __init omap2_init_common_infrastructure(void)
+> > >  	mode_name = strchr(muxname, '.');
 > > 
-> > This looks good to me.
+> > Ack.
 > 
-> I notice this one is still there.
+> This one is also still there.
 
-Sorry I thought you'll queue this one.
-
-BTW this fixes regression from patch 5d190c40100793a6dfc37bf325677c10f3c80edf
-(omap2+: Initialize omap_irq_base for entry-macro.S from platform code).
-So it should be OK for the -rc cycle:
+I have a similar patch in devel-cleanup branch queued up from Felipe Balbi.
+However, this fixes regression for patch 8419fdbaf2118a0a169441be82f09f7be93a5ca1
+(omap2+: Add omap_mux_get_by_name) so this too should be done for the
+-rc cycle:
 
 Acked-by: Tony Lindgren <tony@atomide.com>
 
-Let me know if you want me to take it, in that case I think it's still
-missing your Signed-off-by.
-
-Regards,
-
-Tony
-Let me know if you want me to queue it.
+Again, let me know if you want me to take it.
