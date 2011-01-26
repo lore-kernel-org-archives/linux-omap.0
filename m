@@ -1,18 +1,22 @@
-From: Sutharsan <sutharsan.tech-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Staging: Westbridge: fix EXPORT_SYMBOL errors reported by
+From: Sutharsan <sutharsan.tech@gmail.com>
+Subject: [PATCH] Staging: Westbridge: fix EXPORT_SYMBOL errors reported by
  checkpatch.pl
-Date: Tue, 25 Jan 2011 21:03:22 -0800
-Message-ID: <1296018202.3623.24.camel@sutharsan-laptop>
+Date: Tue, 25 Jan 2011 21:11:50 -0800
+Message-ID: <1296018710.3623.32.camel@sutharsan-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david.cross-+wT8y+m8/X5BDgjK7y7TUQ@public.gmane.org, srmt-+wT8y+m8/X5BDgjK7y7TUQ@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:61470 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742Ab1AZFLy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jan 2011 00:11:54 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: greg@kroah.com
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, david.cross@cypress.com, srmt@cypress.com
 
-From: Sutharsan Ramamoorthy <srmt-+wT8y+m8/X5BDgjK7y7TUQ@public.gmane.org>
+From: Sutharsan Ramamoorthy <srmt@cypress.com>
 
 This patch fixes errors reported by checkpatch.pl 
 in westbridge device controller driver in the staging tree.
@@ -20,7 +24,7 @@ File containing EXPORT_SYMBOL() macros for all the APIs exported
 by the westbridge software has been removed. EXPORT_SYMBOL() 
 macros are added after the corresponding function definitions.
 
-Signed-off-by: Sutharsan Ramamoorthy <srmt-+wT8y+m8/X5BDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Sutharsan Ramamoorthy <srmt@cypress.com>
 
 ---
 
@@ -811,3 +815,8 @@ diff -uprN -X linux-2.6.37_vanilla/Documentation/dontdiff linux-2.6.37_vanilla/d
  
 -/* API exports include file */
 -#include "cyandevice_export.h"
+-
+ typedef struct cyasdevice {
+ 		/* Handle to the Antioch device */
+ 		cy_as_device_handle			dev_handle;
+
