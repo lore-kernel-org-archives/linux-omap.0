@@ -1,257 +1,72 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCHv5] omap3: Add basic support for 720MHz part
-Date: Thu, 27 Jan 2011 16:41:27 +0530
-Message-ID: <1296126687-1846-1-git-send-email-premi@ti.com>
+From: Sumit Semwal <sumit.semwal@ti.com>
+Subject: [PATCH v3 0/3] OMAP4: hwmod DSS support
+Date: Thu, 27 Jan 2011 16:47:01 +0530
+Message-ID: <1296127024-17507-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35140 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35501 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753891Ab1A0LLj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jan 2011 06:11:39 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p0RBBZbr026224
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 05:11:38 -0600
+	id S1753846Ab1A0LRR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Jan 2011 06:17:17 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com
+Cc: Sumit Semwal <sumit.semwal@ti.com>
 
-This patch adds support for speed enhanced variant of OMAP35x
-processors. These parts allow ARM and IVA running at 720MHz
-and 520MHz respectively.
+This patch series enables support for OMAP4 DSS, and adds hwmod support
+for dss, dispc, dsi1, dsi2, hdmi, rfbi and venc hwmods.
 
-These parts can be detected at runtime by reading contents of
-PRODID.SKUID[3:0] at 0x4830A20C [1].
+In OMAP4 there are severals IPs that can be reached by differents
+interconnect paths depending of the access initiator (MPU vs. SDMA).
 
-This patch specifically does following:
- * Add new OPP to omap34xx_opp_def_list[] - disabled by default.
- * Detect devices capable of running at new OPP.
- * Enable new OPP only if device supports it.
- * Check for presence of IVA before attempting to enable the
-   corresponding OPP.
+In the case of the DSS, both L3 direct path and L4 CFG path can be
+used to access all the DSS IPs.
+dss is also considered as an IP as dispc, rfbi, and named as dss_core.
 
-  [1] http://focus.ti.com/lit/ug/spruff1d/spruff1d.pdf
+TODO:
+This patch doesn't handle the opt clocks via hwmod - there will be a separate
+patch series which will take opt clock roles from hwmod, populate them in
+the device structure, so that the driver can ask for relevant opt-clocks.
 
-It appears from discussions (on this patch) that a variant of
-OMAP3430 supports this OPP but lacks runtime detection. This
-OPP can be enabled for these device by either:
- 1) Setting the bit corresponding to OMAP3_HAS_720MHZ
-    in 'omap3_features'. (Refer changes to id.c)
- 2) Removing check for omap3_has_720mhz() before enabling
-    the OPP. (Refer changes to opp3xxx_data.c)
- 3) Calling opp_enable() for 720MHz/VDD1 and 520MHz/VDD2 in
-    the board file. (Refer changes to opp3xxx_data.c).
-    This should, ideally, be done before omap3_opp_init() is
-    called during device_initcall().
+Also TBD is the migration to pm_runtime APIs, which need to be adapted a little
+for handling DSS-family of clocks completely.
 
-CAUTION: This should be done for identified parts only.
-         Else, the device could be damaged permanently.
+Changes from v2:
+----------------
+1. Corrected author name in patch 3/3.
+2. Added some hwmod data in the database, missed during merge of a couple of patches.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
-Reviewed-by: G, Manjunath Kondaiah <manjugk@ti.com>
----
+Changes from v1:
+----------------
+- dss_dss device is renamed as dss_core as per suggestion from Benoit Cousson.
 
-Since v4:
-  Updated the commit text addressing comments from
-  Kevin Hilman (khilman@ti.com).
-
-Since v3:
-1) Minor changes to comments and braces.
-   
-Since v2:
-1) pr_xxx() -> dev_xxx() functions - suggested by 
-   Manjunath (manjugk@ti.com)
-2) Add check for presense of IVA - earlier planned to
-   be in a separate patch; but we multiple discussions
-   on optimizations.
-3) Do look-up for hwmod corresponding for iva only if
-   iva is present. Should save multiple strcmp()s in
-   _lookup().
-
-Since v1:
-1) Using opp_enable() to enable the OPP after the OPP
-   table has been initialized.
-2) Starting at 3 levels of indent, the statements had
-   be broken into multiple lines for most of the code.
-   So, opted to create a new static that enables the
-   OPPs corresponding to 720MHz.
-3) I have only build tested this patch - will be able
-   to confirm working tomorrow. With any further change,
-   if needed. (However, functionally nothing has changed.)
-
-
- arch/arm/mach-omap2/control.h         |    6 +++
- arch/arm/mach-omap2/id.c              |    5 +++
- arch/arm/mach-omap2/opp3xxx_data.c    |   63 ++++++++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/cpu.h |    2 +
- 4 files changed, 75 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index f0629ae..c338466 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -365,6 +365,12 @@
- #define		FEAT_NEON		0
- #define		FEAT_NEON_NONE		1
- 
-+/* Product ID register */
-+#define OMAP3_PRODID			0x020C
+Patch Base:
+===========
+Patch-set rebased and tested w/ Zoom3 (OMAP3630) on top of:
+url = git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+branch "master"
+commit	e8883f8057c0f7c9950fa9f20568f37bfa62f34a
+Description: Add linux-next specific files for 20110115
 +
-+/* Mask to extract SKU ID from Product ID */
-+#define OMAP3_SKUID_MASK		0x0f
-+#define		OMAP3_SKUID_720MHZ	0x08
- 
- #ifndef __ASSEMBLY__
- #ifdef CONFIG_ARCH_OMAP2PLUS
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 5f9086c..8c4500f 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -191,6 +191,10 @@ static void __init omap3_check_features(void)
- 	if (!cpu_is_omap3505() && !cpu_is_omap3517())
- 		omap3_features |= OMAP3_HAS_IO_WAKEUP;
- 
-+	status = (OMAP3_SKUID_MASK & read_tap_reg(OMAP3_PRODID));
-+	if (status & OMAP3_SKUID_720MHZ)
-+		omap3_features |= OMAP3_HAS_720MHZ;
+Patch mentioned in http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42384.html
+[PATCH] OMAP: counter_32k: init clocksource as part of machine timer init
+(This patch is required for OMAP bootup w/ 20110115 linux-next)
 +
- 	/*
- 	 * TODO: Get additional info (where applicable)
- 	 *       e.g. Size of L2 cache.
-@@ -445,6 +449,7 @@ static void __init omap3_cpuinfo(void)
- 	OMAP3_SHOW_FEATURE(neon);
- 	OMAP3_SHOW_FEATURE(isp);
- 	OMAP3_SHOW_FEATURE(192mhz_clk);
-+	OMAP3_SHOW_FEATURE(720mhz);
- 
- 	printk(")\n");
- }
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index 0486fce..cba17f7 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -17,8 +17,10 @@
-  * GNU General Public License for more details.
-  */
- #include <linux/module.h>
-+#include <linux/opp.h>
- 
- #include <plat/cpu.h>
-+#include <plat/omap_device.h>
- 
- #include "omap_opp_data.h"
- 
-@@ -33,6 +35,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("mpu", true, 550000000, 1270000),
- 	/* MPU OPP5 */
- 	OPP_INITIALIZER("mpu", true, 600000000, 1350000),
-+	/* MPU OPP6 */
-+	OPP_INITIALIZER("mpu", false, 720000000, 1350000),
- 
- 	/*
- 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-@@ -58,6 +62,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("iva", true, 400000000, 1270000),
- 	/* DSP OPP5 */
- 	OPP_INITIALIZER("iva", true, 430000000, 1350000),
-+	/* DSP OPP6 */
-+	OPP_INITIALIZER("iva", false, 520000000, 1350000),
- };
- 
- static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
-@@ -85,6 +91,57 @@ static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
- 	OPP_INITIALIZER("iva", false, 800000000, 1375000),
- };
- 
+DSS hwmod patch series: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42914.html
 +
-+/**
-+ * omap3_opp_enable_720Mhz() - Enable the OPP corresponding to 720MHz
-+ *
-+ * This function would be executed only if the silicon is capable of
-+ * running at the 720MHz.
-+ */
-+static int __init omap3_opp_enable_720Mhz(void)
-+{
-+	int r = -ENODEV;
-+	struct omap_hwmod *oh_mpu = omap_hwmod_lookup("mpu");
-+	struct omap_hwmod *oh_iva;
-+	struct platform_device *pdev;
-+
-+	if (!oh_mpu || !oh_mpu->od) {
-+		goto err;
-+	} else {
-+		pdev = &oh_mpu->od->pdev;
-+
-+		r = opp_enable(&pdev->dev, 720000000);
-+		if (r < 0) {
-+			dev_err(&pdev->dev,
-+				"opp_enable() failed for mpu@720MHz");
-+			goto err;
-+		}
-+	}
-+
-+	if (omap3_has_iva()) {
-+		oh_iva = omap_hwmod_lookup("iva");
-+
-+		if (!oh_iva || !oh_iva->od) {
-+			r = -ENODEV;
-+			goto err;
-+		} else {
-+			pdev = &oh_iva->od->pdev;
-+
-+			r = opp_enable(&pdev->dev, 520000000);
-+			if (r < 0) {
-+				dev_err(&pdev->dev,
-+					"opp_enable() failed for iva@520MHz");
-+				goto err;
-+			}
-+		}
-+	}
-+
-+	dev_info(&pdev->dev, "Enabled OPP corresponding to 720MHz\n");
-+
-+err:
-+	return r;
-+}
-+
- /**
-  * omap3_opp_init() - initialize omap3 opp table
-  */
-@@ -98,10 +155,14 @@ static int __init omap3_opp_init(void)
- 	if (cpu_is_omap3630())
- 		r = omap_init_opp_table(omap36xx_opp_def_list,
- 			ARRAY_SIZE(omap36xx_opp_def_list));
--	else
-+	else {
- 		r = omap_init_opp_table(omap34xx_opp_def_list,
- 			ARRAY_SIZE(omap34xx_opp_def_list));
- 
-+		if (omap3_has_720mhz())
-+			r = omap3_opp_enable_720Mhz();
-+	}
-+
- 	return r;
- }
- device_initcall(omap3_opp_init);
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 73d91ee..e624ee1 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -455,6 +455,7 @@ extern u32 omap3_features;
- #define OMAP3_HAS_ISP			BIT(4)
- #define OMAP3_HAS_192MHZ_CLK		BIT(5)
- #define OMAP3_HAS_IO_WAKEUP		BIT(6)
-+#define OMAP3_HAS_720MHZ		BIT(7)
- 
- #define OMAP3_HAS_FEATURE(feat,flag)			\
- static inline unsigned int omap3_has_ ##feat(void)	\
-@@ -469,5 +470,6 @@ OMAP3_HAS_FEATURE(neon, NEON)
- OMAP3_HAS_FEATURE(isp, ISP)
- OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
- OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
-+OMAP3_HAS_FEATURE(720mhz, 720MHZ)
- 
- #endif
--- 
-1.7.2.2
+patch series: OMAP2PLUS: DSS: Generalize clock names
+ (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg43058.html)
+--------------------------------------------------------
+
+Benoit Cousson (1):
+  OMAP4: hwmod data: add DSS DISPC DSI1,2 RFBI HDMI VENC
+
+Mayuresh Janorkar (2):
+  OMAP2PLUS: DSS2: Add OMAP4 Kconfig support
+  OMAP4: DSS2: Add hwmod device names for OMAP4.
+
+ arch/arm/mach-omap2/display.c              |   21 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  603 ++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/Kconfig            |    6 +-
+ drivers/video/omap2/omapfb/Kconfig         |    6 +-
+ 4 files changed, 623 insertions(+), 13 deletions(-)
 
