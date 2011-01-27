@@ -1,112 +1,98 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v5 1/5] ARM: OMAP3: Update Camera ISP definitions for OMAP3630
-Date: Thu, 27 Jan 2011 13:32:17 +0100
-Message-ID: <1296131541-30092-2-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Raghuveer Murthy <x0075817@ti.com>
+Subject: Re: [PATCH v10 18/18] OMAP2,3: DSS2: Get DSS IRQ from platform device
+Date: Thu, 27 Jan 2011 18:19:21 +0530
+Message-ID: <4D4169D1.20001@ti.com>
+References: <1295850125-21405-1-git-send-email-sumit.semwal@ti.com> <1295850125-21405-19-git-send-email-sumit.semwal@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47346 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753829Ab1A0McX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2011 07:32:23 -0500
-In-Reply-To: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49041 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752725Ab1A0MyK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2011 07:54:10 -0500
+In-Reply-To: <1295850125-21405-19-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
+To: Sumit Semwal <sumit.semwal@ti.com>
+Cc: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
 
-From: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+Hi Sumit,
 
-Add new/changed base address definitions and resources for
-OMAP3630 ISP.
+On Monday 24 January 2011 11:52 AM, Sumit Semwal wrote:
+> From: Senthilvadivu Guruswamy<svadivu@ti.com>
+>
+> DSS IRQ number can be obtained from platform_get_irq().  This API in turn
+> picks the right IRQ number belonging to HW IP from the hwmod database.
+> So hardcoding of IRQ number could be removed.
+>
+> Reviewed-by: Paul Walmsley<paul@pwsan.com>
+> Reviewed-by: Kevin Hilman<khilman@ti.com>
+> Tested-by: Kevin Hilman<khilman@ti.com>
+> Signed-off-by: Senthilvadivu Guruswamy<svadivu@ti.com>
+> Signed-off-by: Sumit Semwal<sumit.semwal@ti.com>
+> ---
+>   drivers/video/omap2/dss/dss.c |   21 ++++++++++++++-------
+>   1 files changed, 14 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+> index 4d7a816..f9390b4 100644
+> --- a/drivers/video/omap2/dss/dss.c
+> +++ b/drivers/video/omap2/dss/dss.c
+> @@ -563,7 +563,7 @@ void dss_set_dac_pwrdn_bgz(bool enable)
+>
+>   static int dss_init(bool skip_init)
+>   {
+> -	int r;
+> +	int r, dss_irq;
+>   	u32 rev;
+>   	struct resource *dss_mem;
+>
+> @@ -609,11 +609,18 @@ static int dss_init(bool skip_init)
+>   	REG_FLD_MOD(DSS_CONTROL, 0, 2, 2);	/* venc clock mode = normal */
+>   #endif
+>
+> -	r = request_irq(INT_24XX_DSS_IRQ,
+> -			cpu_is_omap24xx()
+> -			? dss_irq_handler_omap2
+> -			: dss_irq_handler_omap3,
+> -			0, "OMAP DSS", NULL);
+> +	dss_irq = platform_get_irq(dss.pdev, 0);
+> +	if (dss_irq<  0) {
+> +		DSSERR("omap2 dss: platform_get_irq failed\n");
+> +		r = -ENODEV;
+> +		goto fail1;
+> +	}
+> +
+> +	r = request_irq(dss_irq,
+> +		cpu_is_omap24xx()
+> +		? dss_irq_handler_omap2
+> +		: dss_irq_handler_omap3,
 
-The OMAP3430 CSI2PHY block is same as the OMAP3630 CSIPHY2
-block. But the later name is chosen as it gives more symmetry
-to the names.
+it should be
 
-Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/devices.c              |   28 ++++++++++++++++++++++++----
- arch/arm/plat-omap/include/plat/omap34xx.h |   16 ++++++++++++----
- 2 files changed, 36 insertions(+), 8 deletions(-)
+		cpu_is_omap24xx()
+		? dss_irq_handler_omap3
+		: dss_irq_handler_omap2,
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 5a0c148..d5da345 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -109,13 +109,33 @@ static struct resource omap3isp_resources[] = {
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CSI2A_BASE,
--		.end		= OMAP3430_ISP_CSI2A_END,
-+		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
-+		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CSI2PHY_BASE,
--		.end		= OMAP3430_ISP_CSI2PHY_END,
-+		.start		= OMAP3430_ISP_CSIPHY2_BASE,
-+		.end		= OMAP3430_ISP_CSIPHY2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
-+		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
-+		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSIPHY1_BASE,
-+		.end		= OMAP3630_ISP_CSIPHY1_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
-+		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
-index 98fc8b4..b9e8588 100644
---- a/arch/arm/plat-omap/include/plat/omap34xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap34xx.h
-@@ -56,8 +56,12 @@
- #define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
- #define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
- #define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
--#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
--#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
-+#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
-+#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
-+#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
-+#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
- 
- #define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
- #define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
-@@ -69,8 +73,12 @@
- #define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
- #define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
- #define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
--#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
--#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
-+#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
-+#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
-+#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
-+#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
-+#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
-+#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
- 
- #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
- #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
--- 
-1.7.3.4
+I am seeing a crash on Panda, which gets rectified with this
+change. The root cause is access to DSS_IRQSTATUS register in the
+dss_irq_handler_omap3 handler, which is not valid for OMAP4.
+
+Regards,
+Raghuveer
+
+> +		0, "OMAP DSS", NULL);
+>
+>   	if (r<  0) {
+>   		DSSERR("omap2 dss: request_irq failed\n");
+> @@ -641,7 +648,7 @@ static int dss_init(bool skip_init)
+>   	return 0;
+>
+>   fail2:
+> -	free_irq(INT_24XX_DSS_IRQ, NULL);
+> +	free_irq(dss_irq, NULL);
+>   fail1:
+>   	iounmap(dss.base);
+>   fail0:
 
