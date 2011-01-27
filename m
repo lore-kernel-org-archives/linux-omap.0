@@ -1,73 +1,41 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 0/5] OMAP3EVM: Board bug fixes/enhancements
-Date: Fri, 28 Jan 2011 00:16:07 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404BD7BE82E@dbde02.ent.ti.com>
-References: <1295977061-11086-1-git-send-email-hvaibhav@ti.com>
- <87pqrinq8x.fsf@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 11/14] ARM: v6k: use CPU domain feature if we include
+	support for arch < ARMv6K
+Date: Thu, 27 Jan 2011 18:59:35 +0000
+Message-ID: <20110127185935.GA1651@n2100.arm.linux.org.uk>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk> <E1Peuh2-0003Sx-5e@rmk-PC.arm.linux.org.uk> <AANLkTimN8Gn5a-k4ai7EhMGpqbj_u4Y8fHvUh_actzd+@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45017 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752036Ab1A0SqU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2011 13:46:20 -0500
-In-Reply-To: <87pqrinq8x.fsf@ti.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:32897 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753199Ab1A0S7u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2011 13:59:50 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTimN8Gn5a-k4ai7EhMGpqbj_u4Y8fHvUh_actzd+@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Hilman, Kevin
-> Sent: Friday, January 28, 2011 12:12 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 0/5] OMAP3EVM: Board bug fixes/enhancements
+On Thu, Jan 27, 2011 at 06:14:56PM +0000, Catalin Marinas wrote:
+> On 17 January 2011 19:24, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > Rather than turning off CPU domain switching when the build architecture
+> > includes ARMv6K, thereby causing problems for ARMv6-supporting kernels,
+> > turn it on when it's required to support a CPU architecture.
 > 
-> Vaibhav Hiremath <hvaibhav@ti.com> writes:
+> (sorry, I'm well behind list messages, didn't reply earlier)
 > 
-> > The current linux-omap/master is broken for lots of features/modules
-> > and also there are few enhancements required with addition of AM/DM37x
-> > family of devices.
-> >
-> > 	- Migrate TWL gpio_xxx api to gpio_xx_cansleep
-> > 	- TSC: Driver init fails due to missing VIO regulator
-> > 	- TSC: Wakeup is broken, enable the wakeup capability
-> > 	- DSS: Addition of Mux changes for AM/DM37x
-> > 	- Make Backlight gpio off in default state
-> >
-> > Note: Resetting the revision of patches since this is first bundled
-> series.
-> 
-> Again, please state exactly what tree and commit this applies to, as it
-> does not apply cleanly to l-o master.
-> 
-> Specifically,
-> 
-> > Vaibhav Hiremath (5):
-> >   OMAP:board-omap3evm: Change TWL related gpio API's to gpio*_cansleep
-> >   OMAP3EVM: Add vio regulator supply required for ads7846 TSC driver
-> >   AM/DM37x: DSS mux configuration for >Rev-B processor cards
-> 
-> This one doesn't apply without fuzz.
-> 
-> >   OMAP3EVM: Made backlight GPIO default state to off
-> >   OMAP3EVM: Set TSC wakeup option in pad config
-> 
-> And this one doesn't apply as it seems to apply on top of code that
-> doesn't exist upstream.
-> 
-[Hiremath, Vaibhav] Kevin,
+> Does it mean that we get domains enabled even for ARMv7 when ARMv6 is
+> built in the same kernel? The side effect is that user read-only
+> addresses are writable by the kernel and SWP emulation no longer
+> works.
 
-You should first apply Ethernet-reset patch first, and then all patches will get applied cleanly. I have tested it here at my end. 
+It means that a kernel with ARMv6 through to ARMv7 will have CPU
+domains enabled.  So maybe we want:
 
-Since you already acked Ethernet patch, I thought it will make its way to mainline before all these patches. And also while posting, I posted Ethernet patch again first and then this series.
+config CPU_32v6
+	select CPU_USE_DOMAINS if !CPU_V6K && MMU
 
-
-Thanks,
-Vaibhav
-
-> Kevin
-
+instead?
