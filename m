@@ -1,49 +1,95 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2] ARM: Avoid discarding sections that might have
-	SMP_ON_UP fixups SMP_ON_UP fixups
-Date: Thu, 27 Jan 2011 16:46:01 +0000
-Message-ID: <20110127164601.GD26418@n2100.arm.linux.org.uk>
-References: <alpine.LFD.2.00.1101261617190.8580@xanadu.home> <20110127143709.GA13735@arm.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [query] smartreflex: No PMIC hook to init smartreflex
+Date: Thu, 27 Jan 2011 22:23:59 +0530
+Message-ID: <4D41A327.6040206@ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59302485ADDFE@dbde02.ent.ti.com> <AANLkTinq5OxHo-X1Wd2EmAwb4LPtQNs5c6=xp4GSymvJ@mail.gmail.com> <2dcb8dc49945099cbbc5c4f725d845a5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50669 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751740Ab1A0Qsz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2011 11:48:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20110127143709.GA13735@arm.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:42326 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751953Ab1A0QyO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Jan 2011 11:54:14 -0500
+Received: by mail-ew0-f54.google.com with SMTP id 24so1043870ewy.13
+        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 08:54:13 -0800 (PST)
+In-Reply-To: <2dcb8dc49945099cbbc5c4f725d845a5@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org
 
-On Thu, Jan 27, 2011 at 02:37:09PM +0000, Dave Martin wrote:
-> On Wed, Jan 26, 2011 at 04:31:37PM -0500, Nicolas Pitre wrote:
-> > Since discarded sections are by definition not used, we should at least 
-> > put them into the .init section so to discard them at run time.  And 
-> > only the EXIT_TEXT and EXIT_DATA would need to be kept (see x86 for 
-> > example).
-> > 
-> > 
-> > Nicolas
-> 
-> I'll check up on whether we need to care about writable data.
-> For now I've just attempted to move stuff to .init.
+Vishwanath Sripathy wrote, on 01/27/2011 07:55 PM:
+> Nishant,
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Menon, Nishanth
+>> Sent: Thursday, January 27, 2011 3:06 PM
+>> To: Premi, Sanjeev
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: [query] smartreflex: No PMIC hook to init smartreflex
+>>
+>> Sanjeev,
+>>
+>> On Tue, Jan 25, 2011 at 20:55, Premi, Sanjeev<premi@ti.com>  wrote:
+>>> While building the kernel at 2.6.37, i see this warning for omap3evm -
+>> with omap3630:
+>>>
+>>> Power Management for TI OMAP3.
+>>> sr_init: No PMIC hook to init smartreflex<-- THIS IS THE WARNING.
+>>> smartreflex smartreflex.0: omap_sr_probe: SmartReflex driver
+>> initialized
+>>> smartreflex smartreflex.1: omap_sr_probe: SmartReflex driver
+>> initialized
+>>> SmartReflex Class3 initialized
+>>>
+>>> In the code, i see this comment:
+>>>   /*
+>>>   * sr_init is a late init. If by then a pmic specific API is not
+>>>   * registered either there is no need for anything to be done on
+>>>   * the PMIC side or somebody has forgotten to register a PMIC
+>>>   * handler. Warn for the second condition.
+>>>   */
+>>>   if (sr_pmic_data&&  sr_pmic_data->sr_pmic_init)
+>>>   sr_pmic_data->sr_pmic_init();
+>>>   else
+>>>   pr_warning("%s: No PMIC hook to init smartreflex\n", __func__);
+>>>
+>>> But, I couldn't find any place where PMIC is being registered.
+>>
+>> This is a harmless warning (ideally, we should remove the pr_warning).
+>>   the intent here is to have hook for pmic_init which could be
+>> populated for custom PMICs which may need "something additional" for
+>> Smart reflex enablement. if you look at the sr_pmic_data - it just has
+>> a single api for pmic_init
+>>
+>> e.g. in the case of TWL4030/5030, we might need to set the bit to
+>> switch mode from I2C1 to I2C_SR - e.g. the patch from Shweta[1]
+>>
+>> if Smartreflex AVS was the *only* mechanism in the system, we could
+>> have hooked pmic_init to this bit setting. but since the system can do
+>> voltage scaling (VP forceupdate/vc bypass) independent of SR AVS
+>> block, the patch in [1] does initialization independent of
+>> sr_pmic_data->pmic_init which makes sense.
+>>
+>> in short, my 2cents: the warning is probably something we should
+>> remove from the code.
+> As you mentioned, incase of TWL4030/5030, we do not need any hook. However
+> if some other PMIC is used that genuinely needs this hook, then shouldn't
+> SR throw up this warning? As SR module is independent of PMIC, it cannot
+> distinguish them. So I feel this warning should be present probably
+> reworded better like "No PMIC hook registered to init smartreflex. Either
+> this PM IC does not need SR init or PMIC hook is missing".
 
-You can keep the discarding of the unwind data for exit sections as
-the exit sections don't depend on the unwind data.
+Fair enough - but how do we know if the warning spawns off question such 
+as this thread? aka false alarm? if a platform does need initialization 
+it should be up to the platform porting person rt?
 
-It's all to do with sections being referenced from other sections.  If
-a section being kept references a section being discarded, then the
-linker will error out.  You need to keep any section that is being
-referenced - but you don't need to keep sections which only reference
-those being kept.
+Just that I dont think it makes sense to false flag folks considering 
+that the API is optional.
 
-I'd also prefer to see a 'KEEP_EXIT' macro as I think we can discard
-these sections in more cases than just SMP_ON_UP.  I think it's:
-
-SMP_ON_UP && !DEBUG_SPINLOCK
-
-which requires it.  So if you have spinlock debugging enabled you can
-discard the exit sections.  See include/linux/spinlock.h.
+-- 
+Regards,
+Nishanth Menon
