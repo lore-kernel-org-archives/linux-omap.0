@@ -1,54 +1,109 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 4/4] OMAP4: DSS2: clocks: Add ick as dummy clock
-Date: Thu, 27 Jan 2011 09:46:34 -0800
-Message-ID: <87k4hqp7d1.fsf@ti.com>
-References: <1295960398-25329-1-git-send-email-sumit.semwal@ti.com>
-	<1295960398-25329-5-git-send-email-sumit.semwal@ti.com>
+Subject: Re: [PATCH] omap2+: Fix omap_serial_early_init to work with init_early hook
+Date: Thu, 27 Jan 2011 10:01:08 -0800
+Message-ID: <87ei7yp6or.fsf@ti.com>
+References: <20110123171344.GH30094@n2100.arm.linux.org.uk>
+	<20110123174814.GI30094@n2100.arm.linux.org.uk>
+	<20110124201731.GC13589@atomide.com>
+	<20110124202629.GE13589@atomide.com>
+	<20110124215213.GA27044@n2100.arm.linux.org.uk>
+	<20110125022119.GG13589@atomide.com>
+	<20110125022528.GI13589@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:48734 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751811Ab1A0Rqj (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:35578 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751423Ab1A0SBN (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jan 2011 12:46:39 -0500
-Received: by mail-iy0-f172.google.com with SMTP id 42so1822290iyi.17
-        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 09:46:37 -0800 (PST)
-In-Reply-To: <1295960398-25329-5-git-send-email-sumit.semwal@ti.com> (Sumit
-	Semwal's message of "Tue, 25 Jan 2011 18:29:58 +0530")
+	Thu, 27 Jan 2011 13:01:13 -0500
+Received: by gxk4 with SMTP id 4so782378gxk.35
+        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 10:01:12 -0800 (PST)
+In-Reply-To: <20110125022528.GI13589@atomide.com> (Tony Lindgren's message of
+	"Mon, 24 Jan 2011 18:25:28 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sumit Semwal <sumit.semwal@ti.com>
-Cc: tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Sumit Semwal <sumit.semwal@ti.com> writes:
+Hi Tony,
 
-> DSS code uses ick as one of the clocks in clk_get/clk_put. OMAP4 clock database
-> doesn't have ick for DSS, so adding ick as dummy clock.
->
-> Once pm_runtime* APIs get introduced in DSS, this will be revisited.
->
-> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-> ---
->  arch/arm/mach-omap2/clock44xx_data.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-> index 74db324..8603b1f 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -3109,6 +3109,8 @@ static struct omap_clk omap44xx_clks[] = {
->  	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
->  	/* dss clocks */
->  	CLK(NULL,	"fck",				&dss_fck,	CK_443X),
-> +	CLK("omap_dss",	"ick",				&dummy_ck,	CK_443X),
-> +	/* on OMAP4, ick is a dummy clock */
+Tony Lindgren <tony@atomide.com> writes:
 
-minor nit: the comment should go above the code, and should also state
-it's needed for OMAP2/3 compatibility.
+> The new init_early hook happens at the end of setup_arch,
+> which is too early for kzalloc. However, there's no need
+> to call omap_serial_early_init that early, so fix this
+> by setting it up as a core_initcall.
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>
+
+Tested-by: Kevin Hilman <khilman@ti.com>
+
+I boot tested these on 3430/n900, 3630/Zoom3 and 4430ES1.0/PAB.
 
 Kevin
 
->  	/*
->  	 * clocks handled via hwmod opt_clk mechanism need dev=NULL,
->  	 * con=clock name as per actual clk structure, NOT role
+
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 8f47609..5678c33 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -400,8 +400,6 @@ void __init omap2_init_common_infrastructure(void)
+>  void __init omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs0,
+>  				      struct omap_sdrc_params *sdrc_cs1)
+>  {
+> -	omap_serial_early_init();
+> -
+>  	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+>  		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+>  		_omap2_init_reprogram_sdrc();
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 302da74..539ec9c 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -655,7 +655,7 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
+>  }
+>  #endif
+>  
+> -void __init omap_serial_early_init(void)
+> +static int __init omap_serial_early_init(void)
+>  {
+>  	int i = 0;
+>  
+> @@ -672,7 +672,7 @@ void __init omap_serial_early_init(void)
+>  
+>  		uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
+>  		if (WARN_ON(!uart))
+> -			return;
+> +			return -ENODEV;
+>  
+>  		uart->oh = oh;
+>  		uart->num = i++;
+> @@ -691,7 +691,10 @@ void __init omap_serial_early_init(void)
+>  		 */
+>  		uart->oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
+>  	} while (1);
+> +
+> +	return 0;
+>  }
+> +core_initcall(omap_serial_early_init);
+>  
+>  /**
+>   * omap_serial_init_port() - initialize single serial port
+> diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
+> index cec5d56..a1a118d 100644
+> --- a/arch/arm/plat-omap/include/plat/serial.h
+> +++ b/arch/arm/plat-omap/include/plat/serial.h
+> @@ -96,7 +96,6 @@
+>  
+>  struct omap_board_data;
+>  
+> -extern void __init omap_serial_early_init(void);
+>  extern void omap_serial_init(void);
+>  extern void omap_serial_init_port(struct omap_board_data *bdata);
+>  extern int omap_uart_can_sleep(void);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
