@@ -1,72 +1,69 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH v3 0/3] OMAP4: hwmod DSS support
-Date: Thu, 27 Jan 2011 16:47:01 +0530
-Message-ID: <1296127024-17507-1-git-send-email-sumit.semwal@ti.com>
+Subject: [PATCH v3 1/3] OMAP2PLUS: DSS2: Add OMAP4 Kconfig support
+Date: Thu, 27 Jan 2011 16:47:02 +0530
+Message-ID: <1296127024-17507-2-git-send-email-sumit.semwal@ti.com>
+References: <1296127024-17507-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35501 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58554 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753846Ab1A0LRR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jan 2011 06:17:17 -0500
+	id S1753846Ab1A0LRU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Jan 2011 06:17:20 -0500
+In-Reply-To: <1296127024-17507-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com
-Cc: Sumit Semwal <sumit.semwal@ti.com>
+Cc: Mayuresh Janorkar <mayur@ti.com>
 
-This patch series enables support for OMAP4 DSS, and adds hwmod support
-for dss, dispc, dsi1, dsi2, hdmi, rfbi and venc hwmods.
+From: Mayuresh Janorkar <mayur@ti.com>
 
-In OMAP4 there are severals IPs that can be reached by differents
-interconnect paths depending of the access initiator (MPU vs. SDMA).
+Enable DSS2 and OMAPFB for OMAP4 in Kconfig
 
-In the case of the DSS, both L3 direct path and L4 CFG path can be
-used to access all the DSS IPs.
-dss is also considered as an IP as dispc, rfbi, and named as dss_core.
+Signed-off-by: Mayuresh Janorkar <mayur@ti.com>
+---
+ drivers/video/omap2/dss/Kconfig    |    6 +++---
+ drivers/video/omap2/omapfb/Kconfig |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-TODO:
-This patch doesn't handle the opt clocks via hwmod - there will be a separate
-patch series which will take opt clock roles from hwmod, populate them in
-the device structure, so that the driver can ask for relevant opt-clocks.
-
-Also TBD is the migration to pm_runtime APIs, which need to be adapted a little
-for handling DSS-family of clocks completely.
-
-Changes from v2:
-----------------
-1. Corrected author name in patch 3/3.
-2. Added some hwmod data in the database, missed during merge of a couple of patches.
-
-Changes from v1:
-----------------
-- dss_dss device is renamed as dss_core as per suggestion from Benoit Cousson.
-
-Patch Base:
-===========
-Patch-set rebased and tested w/ Zoom3 (OMAP3630) on top of:
-url = git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
-branch "master"
-commit	e8883f8057c0f7c9950fa9f20568f37bfa62f34a
-Description: Add linux-next specific files for 20110115
-+
-Patch mentioned in http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42384.html
-[PATCH] OMAP: counter_32k: init clocksource as part of machine timer init
-(This patch is required for OMAP bootup w/ 20110115 linux-next)
-+
-DSS hwmod patch series: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42914.html
-+
-patch series: OMAP2PLUS: DSS: Generalize clock names
- (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg43058.html)
---------------------------------------------------------
-
-Benoit Cousson (1):
-  OMAP4: hwmod data: add DSS DISPC DSI1,2 RFBI HDMI VENC
-
-Mayuresh Janorkar (2):
-  OMAP2PLUS: DSS2: Add OMAP4 Kconfig support
-  OMAP4: DSS2: Add hwmod device names for OMAP4.
-
- arch/arm/mach-omap2/display.c              |   21 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  603 ++++++++++++++++++++++++++++
- drivers/video/omap2/dss/Kconfig            |    6 +-
- drivers/video/omap2/omapfb/Kconfig         |    6 +-
- 4 files changed, 623 insertions(+), 13 deletions(-)
+diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
+index 43b6440..0d031b2 100644
+--- a/drivers/video/omap2/dss/Kconfig
++++ b/drivers/video/omap2/dss/Kconfig
+@@ -1,8 +1,8 @@
+ menuconfig OMAP2_DSS
+-        tristate "OMAP2/3 Display Subsystem support (EXPERIMENTAL)"
+-        depends on ARCH_OMAP2 || ARCH_OMAP3
++	tristate "OMAP2+ Display Subsystem support (EXPERIMENTAL)"
++	depends on ARCH_OMAP2PLUS
+         help
+-          OMAP2/3 Display Subsystem support.
++		OMAP2+ Display Subsystem support.
+ 
+ if OMAP2_DSS
+ 
+diff --git a/drivers/video/omap2/omapfb/Kconfig b/drivers/video/omap2/omapfb/Kconfig
+index 65149b2..1da712e 100644
+--- a/drivers/video/omap2/omapfb/Kconfig
++++ b/drivers/video/omap2/omapfb/Kconfig
+@@ -1,5 +1,5 @@
+ menuconfig FB_OMAP2
+-        tristate "OMAP2/3 frame buffer support (EXPERIMENTAL)"
++	 tristate "OMAP2+ frame buffer support (EXPERIMENTAL)"
+         depends on FB && OMAP2_DSS
+ 
+ 	select OMAP2_VRAM
+@@ -8,10 +8,10 @@ menuconfig FB_OMAP2
+         select FB_CFB_COPYAREA
+         select FB_CFB_IMAGEBLIT
+         help
+-          Frame buffer driver for OMAP2/3 based boards.
++		Frame buffer driver for OMAP2+ based boards.
+ 
+ config FB_OMAP2_DEBUG_SUPPORT
+-	bool "Debug support for OMAP2/3 FB"
++	bool "Debug support for OMAP2+ FB"
+ 	default y
+ 	depends on FB_OMAP2
+ 	help
+-- 
+1.7.1
 
