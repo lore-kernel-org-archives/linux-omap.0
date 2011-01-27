@@ -1,63 +1,73 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 5/5] OMAP3EVM: Set TSC wakeup option in pad config
-Date: Thu, 27 Jan 2011 10:42:58 -0800
-Message-ID: <87k4hqnq6l.fsf@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 0/5] OMAP3EVM: Board bug fixes/enhancements
+Date: Fri, 28 Jan 2011 00:16:07 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404BD7BE82E@dbde02.ent.ti.com>
 References: <1295977061-11086-1-git-send-email-hvaibhav@ti.com>
-	<1295977061-11086-6-git-send-email-hvaibhav@ti.com>
+ <87pqrinq8x.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:48394 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751423Ab1A0SnF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jan 2011 13:43:05 -0500
-Received: by pwj5 with SMTP id 5so448490pwj.1
-        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 10:43:01 -0800 (PST)
-In-Reply-To: <1295977061-11086-6-git-send-email-hvaibhav@ti.com> (Vaibhav
-	Hiremath's message of "Tue, 25 Jan 2011 23:07:41 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45017 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752036Ab1A0SqU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2011 13:46:20 -0500
+In-Reply-To: <87pqrinq8x.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Vaibhav Hiremath <hvaibhav@ti.com> writes:
+> -----Original Message-----
+> From: Hilman, Kevin
+> Sent: Friday, January 28, 2011 12:12 AM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 0/5] OMAP3EVM: Board bug fixes/enhancements
+> 
+> Vaibhav Hiremath <hvaibhav@ti.com> writes:
+> 
+> > The current linux-omap/master is broken for lots of features/modules
+> > and also there are few enhancements required with addition of AM/DM37x
+> > family of devices.
+> >
+> > 	- Migrate TWL gpio_xxx api to gpio_xx_cansleep
+> > 	- TSC: Driver init fails due to missing VIO regulator
+> > 	- TSC: Wakeup is broken, enable the wakeup capability
+> > 	- DSS: Addition of Mux changes for AM/DM37x
+> > 	- Make Backlight gpio off in default state
+> >
+> > Note: Resetting the revision of patches since this is first bundled
+> series.
+> 
+> Again, please state exactly what tree and commit this applies to, as it
+> does not apply cleanly to l-o master.
+> 
+> Specifically,
+> 
+> > Vaibhav Hiremath (5):
+> >   OMAP:board-omap3evm: Change TWL related gpio API's to gpio*_cansleep
+> >   OMAP3EVM: Add vio regulator supply required for ads7846 TSC driver
+> >   AM/DM37x: DSS mux configuration for >Rev-B processor cards
+> 
+> This one doesn't apply without fuzz.
+> 
+> >   OMAP3EVM: Made backlight GPIO default state to off
+> >   OMAP3EVM: Set TSC wakeup option in pad config
+> 
+> And this one doesn't apply as it seems to apply on top of code that
+> doesn't exist upstream.
+> 
+[Hiremath, Vaibhav] Kevin,
 
-> Set OMAP_PIN_OFF_WAKEUPENABLE to enable the wake-up
-> functionality from touchscreen controller.
->
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap3evm.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> index 2a2efa9..5eddf93 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -716,7 +716,8 @@ static struct omap_board_mux omap35x_board_mux[] __initdata = {
->  				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
->  				OMAP_PIN_OFF_WAKEUPENABLE),
->  	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-> -				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW),
-> +				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
-> +				OMAP_PIN_OFF_WAKEUPENABLE),
+You should first apply Ethernet-reset patch first, and then all patches will get applied cleanly. I have tested it here at my end. 
 
-This hunk doesn't apply because the code below (SYS_BOOT5, etc.) doesn't
-exist in upstream code.
+Since you already acked Ethernet patch, I thought it will make its way to mainline before all these patches. And also while posting, I posted Ethernet patch again first and then this series.
 
-Kevin
 
->  	OMAP3_MUX(SYS_BOOT5, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
->  				OMAP_PIN_OFF_NONE),
->  	OMAP3_MUX(GPMC_WAIT2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-> @@ -729,7 +730,8 @@ static struct omap_board_mux omap36x_board_mux[] __initdata = {
->  				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
->  				OMAP_PIN_OFF_WAKEUPENABLE),
->  	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-> -				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW),
-> +				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
-> +				OMAP_PIN_OFF_WAKEUPENABLE),
->  	/* AM/DM37x EVM: DSS data bus muxed with sys_boot */
->  	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
->  	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+Thanks,
+Vaibhav
+
+> Kevin
+
