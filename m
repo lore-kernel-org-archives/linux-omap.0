@@ -1,140 +1,257 @@
-From: Shweta Gulati <shweta.gulati@ti.com>
-Subject: [PATCH V3] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
-Date: Thu, 27 Jan 2011 15:46:47 +0530
-Message-ID: <1296123407-3902-1-git-send-email-shweta.gulati@ti.com>
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCHv5] omap3: Add basic support for 720MHz part
+Date: Thu, 27 Jan 2011 16:41:27 +0530
+Message-ID: <1296126687-1846-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54810 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35140 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752678Ab1A0KQx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jan 2011 05:16:53 -0500
+	id S1753891Ab1A0LLj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Jan 2011 06:11:39 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p0RAGo4I024314
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p0RBBZbr026224
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 04:16:52 -0600
+	for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 05:11:38 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Thara Gopinath <thara@ti.com>, Nishanth Menon <nm@ti.com>, Shweta Gulati <shweta.gulati@ti.com>
+Cc: Sanjeev Premi <premi@ti.com>
 
-From: Thara Gopinath <thara@ti.com>
+This patch adds support for speed enhanced variant of OMAP35x
+processors. These parts allow ARM and IVA running at 720MHz
+and 520MHz respectively.
 
-The smartreflex bit on twl4030 specifies if the setting of voltage
-is done over the I2C_SR path. Given that there are platforms that
-do not use I2C_SR path for voltage scaling, a new function
-'omap3_twl_set_sr_bit' with parameter to set/clear SR bit has been
-provided for flexibility. It is called with appropriate param
-for platforms where voltage is not scaled using I2C_SR path
-from board file, to make sure this bit is not overwritten in
-'omap3_twl_init'.
+These parts can be detected at runtime by reading contents of
+PRODID.SKUID[3:0] at 0x4830A20C [1].
 
-This patch is based on LO PM Branch and Smartreflex has been
-tested on OMAP3430 SDP, OMAP3630 SDP and boot tested on
-OMAP2430 SDP.
+This patch specifically does following:
+ * Add new OPP to omap34xx_opp_def_list[] - disabled by default.
+ * Detect devices capable of running at new OPP.
+ * Enable new OPP only if device supports it.
+ * Check for presence of IVA before attempting to enable the
+   corresponding OPP.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+  [1] http://focus.ti.com/lit/ug/spruff1d/spruff1d.pdf
+
+It appears from discussions (on this patch) that a variant of
+OMAP3430 supports this OPP but lacks runtime detection. This
+OPP can be enabled for these device by either:
+ 1) Setting the bit corresponding to OMAP3_HAS_720MHZ
+    in 'omap3_features'. (Refer changes to id.c)
+ 2) Removing check for omap3_has_720mhz() before enabling
+    the OPP. (Refer changes to opp3xxx_data.c)
+ 3) Calling opp_enable() for 720MHz/VDD1 and 520MHz/VDD2 in
+    the board file. (Refer changes to opp3xxx_data.c).
+    This should, ideally, be done before omap3_opp_init() is
+    called during device_initcall().
+
+CAUTION: This should be done for identified parts only.
+         Else, the device could be damaged permanently.
+
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+Reviewed-by: G, Manjunath Kondaiah <manjugk@ti.com>
 ---
- arch/arm/mach-omap2/omap_twl.c |   60 ++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h       |    1 +
- 2 files changed, 61 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index 00e1d2b..8b24839 100644
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -59,8 +59,15 @@
+Since v4:
+  Updated the commit text addressing comments from
+  Kevin Hilman (khilman@ti.com).
+
+Since v3:
+1) Minor changes to comments and braces.
+   
+Since v2:
+1) pr_xxx() -> dev_xxx() functions - suggested by 
+   Manjunath (manjugk@ti.com)
+2) Add check for presense of IVA - earlier planned to
+   be in a separate patch; but we multiple discussions
+   on optimizations.
+3) Do look-up for hwmod corresponding for iva only if
+   iva is present. Should save multiple strcmp()s in
+   _lookup().
+
+Since v1:
+1) Using opp_enable() to enable the OPP after the OPP
+   table has been initialized.
+2) Starting at 3 levels of indent, the statements had
+   be broken into multiple lines for most of the code.
+   So, opted to create a new static that enables the
+   OPPs corresponding to 720MHz.
+3) I have only build tested this patch - will be able
+   to confirm working tomorrow. With any further change,
+   if needed. (However, functionally nothing has changed.)
+
+
+ arch/arm/mach-omap2/control.h         |    6 +++
+ arch/arm/mach-omap2/id.c              |    5 +++
+ arch/arm/mach-omap2/opp3xxx_data.c    |   63 ++++++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/cpu.h |    2 +
+ 4 files changed, 75 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index f0629ae..c338466 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -365,6 +365,12 @@
+ #define		FEAT_NEON		0
+ #define		FEAT_NEON_NONE		1
  
- static bool is_offset_valid;
- static u8 smps_offset;
-+/*
-+ * Flag to ensure Smartreflex bit in TWL
-+ * being cleared in board file is not overwritten.
-+ */
-+static bool __initdata twl_sr_enable_autoinit;
- 
-+#define TWL4030_DCDC_GLOBAL_CFG        0x06
- #define REG_SMPS_OFFSET         0xE0
-+#define SMARTREFLEX_ENABLE     BIT(3)
- 
- static unsigned long twl4030_vsel_to_uv(const u8 vsel)
- {
-@@ -269,6 +276,18 @@ int __init omap3_twl_init(void)
- 		omap3_core_volt_info.vp_vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
- 	}
- 
-+	/*
-+	 * The smartreflex bit on twl4030 specifies if the setting of voltage
-+	 * is done over the I2C_SR path. Since this setting is independent of
-+	 * the actual usage of smartreflex AVS module, we enable TWL SR bit
-+	 * by default irrespective of whether smartreflex AVS module is enabled
-+	 * on the OMAP side or not. This is because without this bit enabled,
-+	 * the voltage scaling through vp forceupdate/bypass mechanism of
-+	 * voltage scaling will not function on TWL over I2C_SR.
-+	 */
-+	if (!twl_sr_enable_autoinit)
-+		omap3_twl_set_sr_bit(true);
++/* Product ID register */
++#define OMAP3_PRODID			0x020C
 +
- 	voltdm = omap_voltage_domain_lookup("mpu");
- 	omap_voltage_register_pmic(voltdm, &omap3_mpu_volt_info);
++/* Mask to extract SKU ID from Product ID */
++#define OMAP3_SKUID_MASK		0x0f
++#define		OMAP3_SKUID_720MHZ	0x08
  
-@@ -277,3 +296,44 @@ int __init omap3_twl_init(void)
+ #ifndef __ASSEMBLY__
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 5f9086c..8c4500f 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -191,6 +191,10 @@ static void __init omap3_check_features(void)
+ 	if (!cpu_is_omap3505() && !cpu_is_omap3517())
+ 		omap3_features |= OMAP3_HAS_IO_WAKEUP;
  
- 	return 0;
++	status = (OMAP3_SKUID_MASK & read_tap_reg(OMAP3_PRODID));
++	if (status & OMAP3_SKUID_720MHZ)
++		omap3_features |= OMAP3_HAS_720MHZ;
++
+ 	/*
+ 	 * TODO: Get additional info (where applicable)
+ 	 *       e.g. Size of L2 cache.
+@@ -445,6 +449,7 @@ static void __init omap3_cpuinfo(void)
+ 	OMAP3_SHOW_FEATURE(neon);
+ 	OMAP3_SHOW_FEATURE(isp);
+ 	OMAP3_SHOW_FEATURE(192mhz_clk);
++	OMAP3_SHOW_FEATURE(720mhz);
+ 
+ 	printk(")\n");
  }
+diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+index 0486fce..cba17f7 100644
+--- a/arch/arm/mach-omap2/opp3xxx_data.c
++++ b/arch/arm/mach-omap2/opp3xxx_data.c
+@@ -17,8 +17,10 @@
+  * GNU General Public License for more details.
+  */
+ #include <linux/module.h>
++#include <linux/opp.h>
+ 
+ #include <plat/cpu.h>
++#include <plat/omap_device.h>
+ 
+ #include "omap_opp_data.h"
+ 
+@@ -33,6 +35,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+ 	OPP_INITIALIZER("mpu", true, 550000000, 1270000),
+ 	/* MPU OPP5 */
+ 	OPP_INITIALIZER("mpu", true, 600000000, 1350000),
++	/* MPU OPP6 */
++	OPP_INITIALIZER("mpu", false, 720000000, 1350000),
+ 
+ 	/*
+ 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
+@@ -58,6 +62,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+ 	OPP_INITIALIZER("iva", true, 400000000, 1270000),
+ 	/* DSP OPP5 */
+ 	OPP_INITIALIZER("iva", true, 430000000, 1350000),
++	/* DSP OPP6 */
++	OPP_INITIALIZER("iva", false, 520000000, 1350000),
+ };
+ 
+ static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+@@ -85,6 +91,57 @@ static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+ 	OPP_INITIALIZER("iva", false, 800000000, 1375000),
+ };
+ 
 +
 +/**
-+ * omap3_twl_set_sr_bit() - Set/Clear SR bit on TWL
-+ * @enable: enable SR mode in twl or not
++ * omap3_opp_enable_720Mhz() - Enable the OPP corresponding to 720MHz
 + *
-+ * If 'enable' is true, enables Smartreflex bit on TWL 4030 to make sure
-+ * voltage scaling through OMAP SR works. Else, the smartreflex bit
-+ * on twl4030 is cleared as there are platforms which use OMAP3 and T2 but
-+ * use Synchronized Scaling Hardware Strategy (ENABLE_VMODE=1) and Direct
-+ * Strategy Software Scaling Mode (ENABLE_VMODE=0), for setting the voltages,
-+ * in those scenarios this bit is to be cleared (enable = false).
-+ *
-+ * Returns 0 on sucess, error is returned if I2C read/write fails.
++ * This function would be executed only if the silicon is capable of
++ * running at the 720MHz.
 + */
-+int __init omap3_twl_set_sr_bit(bool enable)
++static int __init omap3_opp_enable_720Mhz(void)
 +{
-+	u8 temp;
-+	int ret;
-+	if (twl_sr_enable_autoinit)
-+		pr_warning("%s: unexpected multiple calls\n", __func__);
++	int r = -ENODEV;
++	struct omap_hwmod *oh_mpu = omap_hwmod_lookup("mpu");
++	struct omap_hwmod *oh_iva;
++	struct platform_device *pdev;
 +
-+	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
-+				TWL4030_DCDC_GLOBAL_CFG);
-+	if (ret)
++	if (!oh_mpu || !oh_mpu->od) {
 +		goto err;
++	} else {
++		pdev = &oh_mpu->od->pdev;
 +
-+	if (enable)
-+		temp |= SMARTREFLEX_ENABLE;
-+	else
-+		temp &= ~SMARTREFLEX_ENABLE;
-+
-+	ret = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
-+			TWL4030_DCDC_GLOBAL_CFG);
-+	if (!ret) {
-+		twl_sr_enable_autoinit = true;
-+		return 0;
++		r = opp_enable(&pdev->dev, 720000000);
++		if (r < 0) {
++			dev_err(&pdev->dev,
++				"opp_enable() failed for mpu@720MHz");
++			goto err;
++		}
 +	}
++
++	if (omap3_has_iva()) {
++		oh_iva = omap_hwmod_lookup("iva");
++
++		if (!oh_iva || !oh_iva->od) {
++			r = -ENODEV;
++			goto err;
++		} else {
++			pdev = &oh_iva->od->pdev;
++
++			r = opp_enable(&pdev->dev, 520000000);
++			if (r < 0) {
++				dev_err(&pdev->dev,
++					"opp_enable() failed for iva@520MHz");
++				goto err;
++			}
++		}
++	}
++
++	dev_info(&pdev->dev, "Enabled OPP corresponding to 720MHz\n");
++
 +err:
-+	pr_err("%s: Error access to TWL4030 (%d)\n", __func__, ret);
-+	return ret;
++	return r;
 +}
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 39580e6..797bfd1 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -127,6 +127,7 @@ static inline void omap_enable_smartreflex_on_init(void) {}
- #ifdef CONFIG_TWL4030_CORE
- extern int omap3_twl_init(void);
- extern int omap4_twl_init(void);
-+extern int omap3_twl_set_sr_bit(bool enable);
- #else
- static inline int omap3_twl_init(void)
- {
++
+ /**
+  * omap3_opp_init() - initialize omap3 opp table
+  */
+@@ -98,10 +155,14 @@ static int __init omap3_opp_init(void)
+ 	if (cpu_is_omap3630())
+ 		r = omap_init_opp_table(omap36xx_opp_def_list,
+ 			ARRAY_SIZE(omap36xx_opp_def_list));
+-	else
++	else {
+ 		r = omap_init_opp_table(omap34xx_opp_def_list,
+ 			ARRAY_SIZE(omap34xx_opp_def_list));
+ 
++		if (omap3_has_720mhz())
++			r = omap3_opp_enable_720Mhz();
++	}
++
+ 	return r;
+ }
+ device_initcall(omap3_opp_init);
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 73d91ee..e624ee1 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -455,6 +455,7 @@ extern u32 omap3_features;
+ #define OMAP3_HAS_ISP			BIT(4)
+ #define OMAP3_HAS_192MHZ_CLK		BIT(5)
+ #define OMAP3_HAS_IO_WAKEUP		BIT(6)
++#define OMAP3_HAS_720MHZ		BIT(7)
+ 
+ #define OMAP3_HAS_FEATURE(feat,flag)			\
+ static inline unsigned int omap3_has_ ##feat(void)	\
+@@ -469,5 +470,6 @@ OMAP3_HAS_FEATURE(neon, NEON)
+ OMAP3_HAS_FEATURE(isp, ISP)
+ OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+ OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
++OMAP3_HAS_FEATURE(720mhz, 720MHZ)
+ 
+ #endif
 -- 
-1.7.0.4
+1.7.2.2
 
