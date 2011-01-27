@@ -1,78 +1,112 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v5 4/5] omap2: Fix camera resources for multiomap
-Date: Thu, 27 Jan 2011 13:32:20 +0100
-Message-ID: <1296131541-30092-5-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v5 1/5] ARM: OMAP3: Update Camera ISP definitions for OMAP3630
+Date: Thu, 27 Jan 2011 13:32:17 +0100
+Message-ID: <1296131541-30092-2-git-send-email-laurent.pinchart@ideasonboard.com>
 References: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47346 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753829Ab1A0McX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2011 07:32:23 -0500
 In-Reply-To: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: sakari.ailus@maxwell.research.nokia.com
-List-Id: linux-omap@vger.kernel.org
 
-From: Sergio Aguirre <saaguirre@ti.com>
+From: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 
-Make sure the kernel can be compiled with both OMAP2 and OMAP3 camera
-support linked in, and give public symbols proper omap2/omap3 prefixes.
+Add new/changed base address definitions and resources for
+OMAP3630 ISP.
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The OMAP3430 CSI2PHY block is same as the OMAP3630 CSIPHY2
+block. But the later name is chosen as it gives more symmetry
+to the names.
+
+Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/devices.c |   25 ++++++++++++-------------
- 1 files changed, 12 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/devices.c              |   28 ++++++++++++++++++++++++----
+ arch/arm/plat-omap/include/plat/omap34xx.h |   16 ++++++++++++----
+ 2 files changed, 36 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index cc400c7..e799303 100644
+index 5a0c148..d5da345 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
-@@ -38,7 +38,7 @@
- 
- #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
- 
--static struct resource cam_resources[] = {
-+static struct resource omap2cam_resources[] = {
+@@ -109,13 +109,33 @@ static struct resource omap3isp_resources[] = {
+ 		.flags		= IORESOURCE_MEM,
+ 	},
  	{
- 		.start		= OMAP24XX_CAMERA_BASE,
- 		.end		= OMAP24XX_CAMERA_BASE + 0xfff,
-@@ -50,21 +50,12 @@ static struct resource cam_resources[] = {
- 	}
- };
+-		.start		= OMAP3430_ISP_CSI2A_BASE,
+-		.end		= OMAP3430_ISP_CSI2A_END,
++		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
++		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		= OMAP3430_ISP_CSI2PHY_BASE,
+-		.end		= OMAP3430_ISP_CSI2PHY_END,
++		.start		= OMAP3430_ISP_CSIPHY2_BASE,
++		.end		= OMAP3430_ISP_CSIPHY2_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
++		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
++		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSIPHY1_BASE,
++		.end		= OMAP3630_ISP_CSIPHY1_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
++		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
+index 98fc8b4..b9e8588 100644
+--- a/arch/arm/plat-omap/include/plat/omap34xx.h
++++ b/arch/arm/plat-omap/include/plat/omap34xx.h
+@@ -56,8 +56,12 @@
+ #define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
+ #define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
+ #define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
+-#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
+-#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
++#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
++#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
++#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
++#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
++#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
++#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
  
--static struct platform_device omap_cam_device = {
-+static struct platform_device omap2cam_device = {
- 	.name		= "omap24xxcam",
- 	.id		= -1,
--	.num_resources	= ARRAY_SIZE(cam_resources),
--	.resource	= cam_resources,
-+	.num_resources	= ARRAY_SIZE(omap2cam_resources),
-+	.resource	= omap2cam_resources,
- };
--
--static inline void omap_init_camera(void)
--{
--	platform_device_register(&omap_cam_device);
--}
--#else
--static inline void omap_init_camera(void)
--{
--}
- #endif
+ #define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
+ #define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
+@@ -69,8 +73,12 @@
+ #define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
+ #define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
+ #define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
+-#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
+-#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
++#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
++#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
++#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
++#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
++#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
++#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
  
- static struct resource omap3isp_resources[] = {
-@@ -158,6 +149,14 @@ int omap3_init_camera(void *pdata)
- }
- EXPORT_SYMBOL_GPL(omap3_init_camera);
- 
-+static inline void omap_init_camera(void)
-+{
-+#if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-+	if (cpu_is_omap24xx())
-+		platform_device_register(&omap2cam_device);
-+#endif
-+}
-+
- #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
- 
- #define MBOX_REG_SIZE   0x120
+ #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
+ #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
 -- 
 1.7.3.4
+
