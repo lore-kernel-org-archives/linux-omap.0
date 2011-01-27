@@ -1,115 +1,173 @@
-From: Anand S Sawant <sawant@ti.com>
-Subject: [PATCH] omap2plus: smartreflex: add error checking for debugfs_create_*()
-Date: Thu, 27 Jan 2011 17:22:16 +0530
-Message-ID: <1296129136-11116-1-git-send-email-sawant@ti.com>
+From: Nishant Kamat <nskamat@ti.com>
+Subject: RE: [PATCH] ARM: OMAP: Add chip id recognition for OMAP4 ES2.1 and ES2.2
+Date: Thu, 27 Jan 2011 17:17:49 +0530
+Message-ID: <fc07678e79785a0f0c2d76392a050138@mail.gmail.com>
+References: <1295450363-11315-1-git-send-email-nskamat@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60678 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754386Ab1A0Lw0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jan 2011 06:52:26 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p0RBqNUB000629
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 05:52:25 -0600
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:36778 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754013Ab1A0LxH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Jan 2011 06:53:07 -0500
+Received: by wyi11 with SMTP id 11so1936932wyi.38
+        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 03:53:04 -0800 (PST)
+In-Reply-To: <1295450363-11315-1-git-send-email-nskamat@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Anand S Sawant <sawant@ti.com>
+To: Nishant Kamat <nskamat@ti.com>, linux-omap@vger.kernel.org
 
-debugfs_create_*() functions return a struct dentry pointer. In
-omap_sr_probe(), the pointer is checked if the debug entry created
-happens to be a directory. However, it is ignored in case of leaf
-nodes viz. while calling  debugfs_create_file() and
-debugfs_create_x32().
+Hi all,
 
-Replace the unnecessary void casts with appropriate error check
-of the returned struct dentry pointer and provide a warning in
-case of error.
+Any comments on this patch?
 
-Tested on OMAP3630 Zoom3 and OMAP4430 SDP
+Regards,
+Nishant
 
-Reported-by: Nishanth Menon <nm@ti.com>
-Acked-by: Nishanth Menon <nm@ti.com>
-Reviewed-by: Charulatha V <charu@ti.com>
-
-Signed-off-by: Anand S Sawant <sawant@ti.com>
----
-Based on the latest Kevin's PM branch
-
- arch/arm/mach-omap2/smartreflex.c |   41 +++++++++++++++++++++++++++++++-----
- 1 files changed, 35 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 77ecebf..c57f80f 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -822,7 +822,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
- 	struct omap_sr_data *pdata = pdev->dev.platform_data;
- 	struct resource *mem, *irq;
--	struct dentry *vdd_dbg_dir, *dbg_dir, *nvalue_dir;
-+	struct dentry *vdd_dbg_dir, *dbg_dir, *nvalue_dir, *dbg_entry;
- 	struct omap_volt_data *volt_data;
- 	int i, ret = 0;
- 
-@@ -901,14 +901,37 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		return PTR_ERR(dbg_dir);
- 	}
- 
--	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
-+	dbg_entry = debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
- 				(void *)sr_info, &pm_sr_fops);
--	(void) debugfs_create_x32("errweight", S_IRUGO, dbg_dir,
-+	if (IS_ERR(dbg_entry)) {
-+		dev_warn(&pdev->dev,
-+			"%s: Unable to create debugfs entry for autocomp",
-+			__func__);
-+	}
-+
-+	dbg_entry = debugfs_create_x32("errweight", S_IRUGO, dbg_dir,
- 			&sr_info->err_weight);
--	(void) debugfs_create_x32("errmaxlimit", S_IRUGO, dbg_dir,
-+	if (IS_ERR(dbg_entry)) {
-+		dev_warn(&pdev->dev,
-+			"%s: Unable to create debugfs entry for errweight",
-+			__func__);
-+	}
-+
-+	dbg_entry = debugfs_create_x32("errmaxlimit", S_IRUGO, dbg_dir,
- 			&sr_info->err_maxlimit);
--	(void) debugfs_create_x32("errminlimit", S_IRUGO, dbg_dir,
-+	if (IS_ERR(dbg_entry)) {
-+		dev_warn(&pdev->dev,
-+			"%s: Unable to create debugfs entry for errmaxlimit",
-+			__func__);
-+	}
-+
-+	dbg_entry = debugfs_create_x32("errminlimit", S_IRUGO, dbg_dir,
- 			&sr_info->err_minlimit);
-+	if (IS_ERR(dbg_entry)) {
-+		dev_warn(&pdev->dev,
-+			"%s: Unable to create debugfs entry for errminlimit",
-+			__func__);
-+	}
- 
- 	nvalue_dir = debugfs_create_dir("nvalue", dbg_dir);
- 	if (IS_ERR(nvalue_dir)) {
-@@ -940,8 +963,14 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		strcpy(name, "volt_");
- 		sprintf(volt_name, "%d", volt_data[i].volt_nominal);
- 		strcat(name, volt_name);
--		(void) debugfs_create_x32(name, S_IRUGO | S_IWUGO, nvalue_dir,
-+		dbg_entry = debugfs_create_x32(name, S_IRUGO | S_IWUGO,
-+				nvalue_dir,
- 				&(sr_info->nvalue_table[i].nvalue));
-+		if (IS_ERR(dbg_entry)) {
-+			dev_warn(&pdev->dev,
-+				"%s: Unable to create debugfs entry for %s",
-+				__func__, name);
-+		}
- 	}
- 
- 	return ret;
--- 
-1.7.0.4
-
+> -----Original Message-----
+> From: Nishant Kamat [mailto:nskamat@ti.com]
+> Sent: Wednesday, January 19, 2011 8:49 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Nishant Kamat
+> Subject: [PATCH] ARM: OMAP: Add chip id recognition for OMAP4 ES2.1 and
+> ES2.2
+>
+> Allow OMAP4 ES2.1 and ES2.2 revisions to be recognized in the
+> omap4_check_revision() function.
+>
+> Mainly, ES2.1 has fixes that allow LPDDR to be used at 100% OPP
+> (400MHz).
+> ES2.2 additionally has a couple of power management fixes (to reduce
+> leakage), an I2C1 SDA line state fix, and a floating point write
+> corruption fix (cortex erratum).
+>
+> Even though the current mainline support doesn't need to distinguish
+> between ES2.X versions, it's still useful to know the correct silicon
+> rev when issues are reported. Moreover, these id checks can be used by
+> power management code that selects suitable OPPs considering the
+> memory speed limitation on ES2.0.
+>
+> For details about the silicon errata on OMAP4430, refer
+> http://focus.ti.com/pdfs/wtbu/SWPZ009A_OMAP4430_Errata_Public_vA.pdf
+>
+> Signed-off-by: Nishant Kamat <nskamat@ti.com>
+> ---
+>  arch/arm/mach-omap2/id.c              |   31 ++++++++++++++++++++-----
+> ------
+>  arch/arm/plat-omap/include/plat/cpu.h |   16 +++++++++++-----
+>  2 files changed, 31 insertions(+), 16 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 5f9086c..8fd0535 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -6,7 +6,7 @@
+>   * Copyright (C) 2005 Nokia Corporation
+>   * Written by Tony Lindgren <tony@atomide.com>
+>   *
+> - * Copyright (C) 2009 Texas Instruments
+> + * Copyright (C) 2009-11 Texas Instruments
+>   * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
+>   *
+>   * This program is free software; you can redistribute it and/or
+> modify
+> @@ -307,7 +307,7 @@ static void __init omap4_check_revision(void)
+>  	 */
+>  	idcode = read_tap_reg(OMAP_TAP_IDCODE);
+>  	hawkeye = (idcode >> 12) & 0xffff;
+> -	rev = (idcode >> 28) & 0xff;
+> +	rev = (idcode >> 28) & 0xf;
+>
+>  	/*
+>  	 * Few initial ES2.0 samples IDCODE is same as ES1.0
+> @@ -326,22 +326,31 @@ static void __init omap4_check_revision(void)
+>  			omap_chip.oc |= CHIP_IS_OMAP4430ES1;
+>  			break;
+>  		case 1:
+> +		default:
+>  			omap_revision = OMAP4430_REV_ES2_0;
+>  			omap_chip.oc |= CHIP_IS_OMAP4430ES2;
+> +		}
+> +		break;
+> +	case 0xb95c:
+> +		switch (rev) {
+> +		case 3:
+> +			omap_revision = OMAP4430_REV_ES2_1;
+> +			omap_chip.oc |= CHIP_IS_OMAP4430ES2_1;
+>  			break;
+> +		case 4:
+>  		default:
+> -			omap_revision = OMAP4430_REV_ES2_0;
+> -			omap_chip.oc |= CHIP_IS_OMAP4430ES2;
+> -	}
+> -	break;
+> +			omap_revision = OMAP4430_REV_ES2_2;
+> +			omap_chip.oc |= CHIP_IS_OMAP4430ES2_2;
+> +		}
+> +		break;
+>  	default:
+> -		/* Unknown default to latest silicon rev as default*/
+> -		omap_revision = OMAP4430_REV_ES2_0;
+> -		omap_chip.oc |= CHIP_IS_OMAP4430ES2;
+> +		/* Unknown default to latest silicon rev as default */
+> +		omap_revision = OMAP4430_REV_ES2_2;
+> +		omap_chip.oc |= CHIP_IS_OMAP4430ES2_2;
+>  	}
+>
+> -	pr_info("OMAP%04x ES%d.0\n",
+> -			omap_rev() >> 16, ((omap_rev() >> 12) & 0xf) + 1);
+> +	pr_info("OMAP%04x ES%d.%d\n", omap_rev() >> 16,
+> +		((omap_rev() >> 12) & 0xf), ((omap_rev() >> 8) & 0xf));
+>  }
+>
+>  #define OMAP3_SHOW_FEATURE(feat)		\
+> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-
+> omap/include/plat/cpu.h
+> index 3fd8b40..989f9e6 100644
+> --- a/arch/arm/plat-omap/include/plat/cpu.h
+> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> @@ -5,7 +5,7 @@
+>   *
+>   * Copyright (C) 2004, 2008 Nokia Corporation
+>   *
+> - * Copyright (C) 2009 Texas Instruments.
+> + * Copyright (C) 2009-11 Texas Instruments.
+>   *
+>   * Written by Tony Lindgren <tony.lindgren@nokia.com>
+>   *
+> @@ -390,8 +390,10 @@ IS_OMAP_TYPE(3517, 0x3517)
+>  #define OMAP3517_REV(v)		(OMAP35XX_CLASS | (0x3517 << 16) |
+> (v << 8))
+>
+>  #define OMAP443X_CLASS		0x44300044
+> -#define OMAP4430_REV_ES1_0	OMAP443X_CLASS
+> -#define OMAP4430_REV_ES2_0	0x44301044
+> +#define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
+> +#define OMAP4430_REV_ES2_0	(OMAP443X_CLASS | (0x20 << 8))
+> +#define OMAP4430_REV_ES2_1	(OMAP443X_CLASS | (0x21 << 8))
+> +#define OMAP4430_REV_ES2_2	(OMAP443X_CLASS | (0x22 << 8))
+>
+>  /*
+>   * omap_chip bits
+> @@ -419,11 +421,15 @@ IS_OMAP_TYPE(3517, 0x3517)
+>  #define CHIP_IS_OMAP3630ES1_1           (1 << 9)
+>  #define CHIP_IS_OMAP3630ES1_2           (1 << 10)
+>  #define CHIP_IS_OMAP4430ES2		(1 << 11)
+> +#define CHIP_IS_OMAP4430ES2_1		(1 << 12)
+> +#define CHIP_IS_OMAP4430ES2_2		(1 << 13)
+>
+>  #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 |
+> CHIP_IS_OMAP2430)
+>
+> -#define CHIP_IS_OMAP4430		(CHIP_IS_OMAP4430ES1 | \
+> -						 CHIP_IS_OMAP4430ES2)
+> +#define CHIP_IS_OMAP4430		(CHIP_IS_OMAP4430ES1 |		\
+> +					 CHIP_IS_OMAP4430ES2 |		\
+> +					 CHIP_IS_OMAP4430ES2_1 |	\
+> +					 CHIP_IS_OMAP4430ES2_2)
+>
+>  /*
+>   * "GE" here represents "greater than or equal to" in terms of ES
+> --
+> 1.7.1
