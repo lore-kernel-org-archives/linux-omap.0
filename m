@@ -1,109 +1,37 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] omap2+: Fix omap_serial_early_init to work with init_early hook
-Date: Thu, 27 Jan 2011 10:01:08 -0800
-Message-ID: <87ei7yp6or.fsf@ti.com>
-References: <20110123171344.GH30094@n2100.arm.linux.org.uk>
-	<20110123174814.GI30094@n2100.arm.linux.org.uk>
-	<20110124201731.GC13589@atomide.com>
-	<20110124202629.GE13589@atomide.com>
-	<20110124215213.GA27044@n2100.arm.linux.org.uk>
-	<20110125022119.GG13589@atomide.com>
-	<20110125022528.GI13589@atomide.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 11/14] ARM: v6k: use CPU domain feature if we include
+ support for arch < ARMv6K
+Date: Thu, 27 Jan 2011 18:14:56 +0000
+Message-ID: <AANLkTimN8Gn5a-k4ai7EhMGpqbj_u4Y8fHvUh_actzd+@mail.gmail.com>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+	<E1Peuh2-0003Sx-5e@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:35578 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751423Ab1A0SBN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jan 2011 13:01:13 -0500
-Received: by gxk4 with SMTP id 4so782378gxk.35
-        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 10:01:12 -0800 (PST)
-In-Reply-To: <20110125022528.GI13589@atomide.com> (Tony Lindgren's message of
-	"Mon, 24 Jan 2011 18:25:28 -0800")
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:53167 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751373Ab1A0SO4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2011 13:14:56 -0500
+Received: by iyj18 with SMTP id 18so1725116iyj.19
+        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 10:14:56 -0800 (PST)
+In-Reply-To: <E1Peuh2-0003Sx-5e@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Tony,
+On 17 January 2011 19:24, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> Rather than turning off CPU domain switching when the build architecture
+> includes ARMv6K, thereby causing problems for ARMv6-supporting kernels,
+> turn it on when it's required to support a CPU architecture.
 
-Tony Lindgren <tony@atomide.com> writes:
+(sorry, I'm well behind list messages, didn't reply earlier)
 
-> The new init_early hook happens at the end of setup_arch,
-> which is too early for kzalloc. However, there's no need
-> to call omap_serial_early_init that early, so fix this
-> by setting it up as a core_initcall.
->
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
+Does it mean that we get domains enabled even for ARMv7 when ARMv6 is
+built in the same kernel? The side effect is that user read-only
+addresses are writable by the kernel and SWP emulation no longer
+works.
 
-Tested-by: Kevin Hilman <khilman@ti.com>
-
-I boot tested these on 3430/n900, 3630/Zoom3 and 4430ES1.0/PAB.
-
-Kevin
-
-
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 8f47609..5678c33 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -400,8 +400,6 @@ void __init omap2_init_common_infrastructure(void)
->  void __init omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs0,
->  				      struct omap_sdrc_params *sdrc_cs1)
->  {
-> -	omap_serial_early_init();
-> -
->  	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
->  		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
->  		_omap2_init_reprogram_sdrc();
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index 302da74..539ec9c 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -655,7 +655,7 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
->  }
->  #endif
->  
-> -void __init omap_serial_early_init(void)
-> +static int __init omap_serial_early_init(void)
->  {
->  	int i = 0;
->  
-> @@ -672,7 +672,7 @@ void __init omap_serial_early_init(void)
->  
->  		uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
->  		if (WARN_ON(!uart))
-> -			return;
-> +			return -ENODEV;
->  
->  		uart->oh = oh;
->  		uart->num = i++;
-> @@ -691,7 +691,10 @@ void __init omap_serial_early_init(void)
->  		 */
->  		uart->oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
->  	} while (1);
-> +
-> +	return 0;
->  }
-> +core_initcall(omap_serial_early_init);
->  
->  /**
->   * omap_serial_init_port() - initialize single serial port
-> diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-> index cec5d56..a1a118d 100644
-> --- a/arch/arm/plat-omap/include/plat/serial.h
-> +++ b/arch/arm/plat-omap/include/plat/serial.h
-> @@ -96,7 +96,6 @@
->  
->  struct omap_board_data;
->  
-> -extern void __init omap_serial_early_init(void);
->  extern void omap_serial_init(void);
->  extern void omap_serial_init_port(struct omap_board_data *bdata);
->  extern int omap_uart_can_sleep(void);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Catalin
