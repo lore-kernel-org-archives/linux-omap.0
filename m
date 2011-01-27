@@ -1,243 +1,76 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: RE: [PATCH v2 1/4] OMAP2PLUS: opt-clocks: align dss clock roles and names
-Date: Thu, 27 Jan 2011 11:23:59 +0530
-Message-ID: <251c5094ce38ddb6473cc35940e6bcec@mail.gmail.com>
-References: <1295960398-25329-1-git-send-email-sumit.semwal@ti.com> <1295960398-25329-2-git-send-email-sumit.semwal@ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [query] smartreflex: No PMIC hook to init smartreflex
+Date: Thu, 27 Jan 2011 15:05:52 +0530
+Message-ID: <AANLkTinq5OxHo-X1Wd2EmAwb4LPtQNs5c6=xp4GSymvJ@mail.gmail.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59302485ADDFE@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:50157 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750911Ab1A0Gu0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jan 2011 01:50:26 -0500
-Received: by fxm20 with SMTP id 20so2075690fxm.5
-        for <linux-omap@vger.kernel.org>; Wed, 26 Jan 2011 22:50:24 -0800 (PST)
-In-Reply-To: <1295960398-25329-2-git-send-email-sumit.semwal@ti.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:53014 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753522Ab1A0Jnj convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Jan 2011 04:43:39 -0500
+Received: by wwi17 with SMTP id 17so6288773wwi.3
+        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 01:43:37 -0800 (PST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59302485ADDFE@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sumit Semwal <sumit.semwal@ti.com>, tomi.valkeinen@nokia.com, paul@pwsan.com, Kevin Hilman <khilman@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-omap@vger.kernel.org, Benoit
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Sumit,
+Sanjeev,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org
-[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Sumit Semwal
-> Sent: Tuesday, January 25, 2011 6:30 PM
-> To: tomi.valkeinen@nokia.com; paul@pwsan.com; khilman@ti.com;
-hvaibhav@ti.com; linux-omap@vger.kernel.org; b-
-> cousson@ti.com
-> Cc: Sumit Semwal
-> Subject: [PATCH v2 1/4] OMAP2PLUS: opt-clocks: align dss clock roles and
-names
+On Tue, Jan 25, 2011 at 20:55, Premi, Sanjeev <premi@ti.com> wrote:
+> While building the kernel at 2.6.37, i see this warning for omap3evm =
+- with omap3630:
 >
-> opt clocks require (NULL, act-clock-name) as entries in clock database,
-> so that hwmod can replace it with (dev, role) tuple during hwmod data
-init.
+> Power Management for TI OMAP3.
+> sr_init: No PMIC hook to init smartreflex <-- THIS IS THE WARNING.
+> smartreflex smartreflex.0: omap_sr_probe: SmartReflex driver initiali=
+zed
+> smartreflex smartreflex.1: omap_sr_probe: SmartReflex driver initiali=
+zed
+> SmartReflex Class3 initialized
 >
-> These role names are aligned to be same across OMAP2420, 2430, 3xxx,
-44xx
-> platforms, and also with dss clk handling code, so
-clk_get/put/enable/disable
-> APIs in dss can use uniform role names.
+> In the code, i see this comment:
+> =A0/*
+> =A0* sr_init is a late init. If by then a pmic specific API is not
+> =A0* registered either there is no need for anything to be done on
+> =A0* the PMIC side or somebody has forgotten to register a PMIC
+> =A0* handler. Warn for the second condition.
+> =A0*/
+> =A0if (sr_pmic_data && sr_pmic_data->sr_pmic_init)
+> =A0sr_pmic_data->sr_pmic_init();
+> =A0else
+> =A0pr_warning("%s: No PMIC hook to init smartreflex\n", __func__);
 >
-> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-> ---
->  arch/arm/mach-omap2/clock2420_data.c       |   10 +++++++---
->  arch/arm/mach-omap2/clock2430_data.c       |   10 +++++++---
->  arch/arm/mach-omap2/clock3xxx_data.c       |   22
-+++++++++++++++-------
->  arch/arm/mach-omap2/clock44xx_data.c       |    7 ++++++-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
->  drivers/video/omap2/dss/dss.c              |    8 ++++----
->  6 files changed, 40 insertions(+), 19 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock2420_data.c
-b/arch/arm/mach-omap2/clock2420_data.c
-> index d2abc2f..72a1872 100644
-> --- a/arch/arm/mach-omap2/clock2420_data.c
-> +++ b/arch/arm/mach-omap2/clock2420_data.c
-> @@ -1787,9 +1787,13 @@ static struct omap_clk omap2420_clks[] = {
->  	CLK(NULL,	"gfx_ick",	&gfx_ick,	CK_242X),
->  	/* DSS domain clocks */
->  	CLK("omap_dss",	"ick",		&dss_ick,	CK_242X),
-> -	CLK("omap_dss",	"dss1_fck",	&dss1_fck,	CK_242X),
-> -	CLK("omap_dss",	"dss2_fck",	&dss2_fck,	CK_242X),
-> -	CLK("omap_dss",	"tv_fck",	&dss_54m_fck,	CK_242X),
-> +	CLK("omap_dss",	"fck",		&dss1_fck,	CK_242X),
-> +	/*
-> +	 * clocks handled via hwmod opt_clk mechanism need dev=NULL,
-> +	 * con=clock name as per actual clk structure, NOT role
-> +	 */
+> But, I couldn't find any place where PMIC is being registered.
 
-I don't think that's true. The hmmod framework uses the
-omap_clk_get_by_name api which does not look up the
-clkdev table at all. It just looks up the clk->name, so the
-clkdev entries need not be changed with role=clk->name.
-Same applies to all other such instances in this patch.
+This is a harmless warning (ideally, we should remove the pr_warning).
+ the intent here is to have hook for pmic_init which could be
+populated for custom PMICs which may need "something additional" for
+Smart reflex enablement. if you look at the sr_pmic_data - it just has
+a single api for pmic_init
 
+e.g. in the case of TWL4030/5030, we might need to set the bit to
+switch mode from I2C1 to I2C_SR - e.g. the patch from Shweta[1]
+
+if Smartreflex AVS was the *only* mechanism in the system, we could
+have hooked pmic_init to this bit setting. but since the system can do
+voltage scaling (VP forceupdate/vc bypass) independent of SR AVS
+block, the patch in [1] does initialization independent of
+sr_pmic_data->pmic_init which makes sense.
+
+in short, my 2cents: the warning is probably something we should
+remove from the code.
+
+[1] http://marc.info/?l=3Dlinux-omap&m=3D129584746102725&w=3D2
 Regards,
-Rajendra
-
-> +	CLK(NULL,	"dss2_fck",	&dss2_fck,	CK_242X),
-> +	CLK(NULL,	"dss_54m_fck",	&dss_54m_fck,	CK_242X),
->  	/* L3 domain clocks */
->  	CLK(NULL,	"core_l3_ck",	&core_l3_ck,	CK_242X),
->  	CLK(NULL,	"ssi_fck",	&ssi_ssr_sst_fck, CK_242X),
-> diff --git a/arch/arm/mach-omap2/clock2430_data.c
-b/arch/arm/mach-omap2/clock2430_data.c
-> index 663f298..b99f881 100644
-> --- a/arch/arm/mach-omap2/clock2430_data.c
-> +++ b/arch/arm/mach-omap2/clock2430_data.c
-> @@ -1891,9 +1891,13 @@ static struct omap_clk omap2430_clks[] = {
->  	CLK(NULL,	"mdm_osc_ck",	&mdm_osc_ck,	CK_243X),
->  	/* DSS domain clocks */
->  	CLK("omap_dss",	"ick",		&dss_ick,	CK_243X),
-> -	CLK("omap_dss",	"dss1_fck",	&dss1_fck,	CK_243X),
-> -	CLK("omap_dss",	"dss2_fck",	&dss2_fck,	CK_243X),
-> -	CLK("omap_dss",	"tv_fck",	&dss_54m_fck,	CK_243X),
-> +	CLK("omap_dss",	"fck",		&dss1_fck,	CK_243X),
-> +	/*
-> +	 * clocks handled via hwmod opt_clk mechanism need dev=NULL,
-> +	 * con=clock name as per actual clk structure, NOT role
-> +	 */
-> +	CLK(NULL,	"dss2_fck",	&dss2_fck,	CK_243X),
-> +	CLK(NULL,	"dss_54m_fck",	&dss_54m_fck,	CK_243X),
->  	/* L3 domain clocks */
->  	CLK(NULL,	"core_l3_ck",	&core_l3_ck,	CK_243X),
->  	CLK(NULL,	"ssi_fck",	&ssi_ssr_sst_fck, CK_243X),
-> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c
-b/arch/arm/mach-omap2/clock3xxx_data.c
-> index 5c97b93..c32df5d 100644
-> --- a/arch/arm/mach-omap2/clock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-> @@ -3357,13 +3357,21 @@ static struct omap_clk omap3xxx_clks[] = {
->  	CLK("omap_rng",	"ick",		&rng_ick,	CK_34XX |
-CK_36XX),
->  	CLK(NULL,	"sha11_ick",	&sha11_ick,	CK_34XX |
-CK_36XX),
->  	CLK(NULL,	"des1_ick",	&des1_ick,	CK_34XX |
-CK_36XX),
-> -	CLK("omap_dss",	"dss1_fck",	&dss1_alwon_fck_3430es1,
-CK_3430ES1),
-> -	CLK("omap_dss",	"dss1_fck",	&dss1_alwon_fck_3430es2,
-CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-> -	CLK("omap_dss",	"tv_fck",	&dss_tv_fck,	CK_3XXX),
-> -	CLK("omap_dss",	"video_fck",	&dss_96m_fck,	CK_3XXX),
-> -	CLK("omap_dss",	"dss2_fck",	&dss2_alwon_fck, CK_3XXX),
-> -	CLK("omap_dss",	"ick",		&dss_ick_3430es1,
-CK_3430ES1),
-> -	CLK("omap_dss",	"ick",		&dss_ick_3430es2,
-CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-> +	/* DSS clocks */
-> +	CLK("omap_dss",	"fck",		&dss1_alwon_fck_3430es1,
-CK_3430ES1),
-> +	CLK("omap_dss",	"fck",		&dss1_alwon_fck_3430es2,
-CK_3430ES2PLUS
-> +								|
-CK_AM35XX),
-> +	CLK("omap_dss",	"ick",		&dss_ick_3430es1, CK_3430ES1),
-> +	CLK("omap_dss",	"ick",		&dss_ick_3430es2, CK_3430ES2PLUS
-> +								|
-CK_AM35XX),
-> +	/*
-> +	 * clocks handled via hwmod opt_clk mechanism need dev=NULL,
-> +	 * con=clock name as per actual clk structure, NOT role
-> +	 */
-> +	CLK(NULL,       "dss_tv_fck",   &dss_tv_fck,    CK_3XXX),
-> +	CLK(NULL,       "dss_96m_fck",  &dss_96m_fck,   CK_3XXX),
-> +	CLK(NULL,       "dss2_alwon_fck",       &dss2_alwon_fck,
-CK_3XXX),
-> +
->  	CLK(NULL,	"cam_mclk",	&cam_mclk,	CK_34XX |
-CK_36XX),
->  	CLK(NULL,	"cam_ick",	&cam_ick,	CK_34XX |
-CK_36XX),
->  	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck,	CK_34XX |
-CK_36XX),
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c
-b/arch/arm/mach-omap2/clock44xx_data.c
-> index e8cb32f..74db324 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -3107,11 +3107,16 @@ static struct omap_clk omap44xx_clks[] = {
->  	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,
-CK_443X),
->  	CLK(NULL,	"dmic_fck",			&dmic_fck,
-CK_443X),
->  	CLK(NULL,	"dsp_fck",			&dsp_fck,
-CK_443X),
-> +	/* dss clocks */
-> +	CLK(NULL,	"fck",				&dss_fck,
-CK_443X),
-> +	/*
-> +	 * clocks handled via hwmod opt_clk mechanism need dev=NULL,
-> +	 * con=clock name as per actual clk structure, NOT role
-> +	 */
->  	CLK(NULL,	"dss_sys_clk",			&dss_sys_clk,
-CK_443X),
->  	CLK(NULL,	"dss_tv_clk",			&dss_tv_clk,
-CK_443X),
->  	CLK(NULL,	"dss_dss_clk",			&dss_dss_clk,
-CK_443X),
->  	CLK(NULL,	"dss_48mhz_clk",		&dss_48mhz_clk,
-CK_443X),
-> -	CLK(NULL,	"dss_fck",			&dss_fck,
-CK_443X),
->  	CLK(NULL,	"efuse_ctrl_cust_fck",
-&efuse_ctrl_cust_fck,	CK_443X),
->  	CLK(NULL,	"emif1_fck",			&emif1_fck,
-CK_443X),
->  	CLK(NULL,	"emif2_fck",			&emif2_fck,
-CK_443X),
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 713165d..cb0c624 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -770,7 +770,7 @@ static struct omap_hwmod_ocp_if
-*omap3xxx_dss_slaves[] = {
->
->  static struct omap_hwmod_opt_clk dss_opt_clks[] = {
->  	{ .role = "tv_clk", .clk = "dss_tv_fck" },
-> -	{ .role = "dssclk", .clk = "dss_96m_fck" },
-> +	{ .role = "video_clk", .clk = "dss_96m_fck" },
->  	{ .role = "sys_clk", .clk = "dss2_alwon_fck" },
->  };
->
-> diff --git a/drivers/video/omap2/dss/dss.c
-b/drivers/video/omap2/dss/dss.c
-> index f9390b4..91f8cf7 100644
-> --- a/drivers/video/omap2/dss/dss.c
-> +++ b/drivers/video/omap2/dss/dss.c
-> @@ -758,19 +758,19 @@ static int dss_get_clocks(void)
->  	if (r)
->  		goto err;
->
-> -	r = dss_get_clock(&dss.dss1_fck, "dss1_fck");
-> +	r = dss_get_clock(&dss.dss1_fck, "fck");
->  	if (r)
->  		goto err;
->
-> -	r = dss_get_clock(&dss.dss2_fck, "dss2_fck");
-> +	r = dss_get_clock(&dss.dss2_fck, "sys_clk");
->  	if (r)
->  		goto err;
->
-> -	r = dss_get_clock(&dss.dss_54m_fck, "tv_fck");
-> +	r = dss_get_clock(&dss.dss_54m_fck, "tv_clk");
->  	if (r)
->  		goto err;
->
-> -	r = dss_get_clock(&dss.dss_96m_fck, "video_fck");
-> +	r = dss_get_clock(&dss.dss_96m_fck, "video_clk");
->  	if (r)
->  		goto err;
->
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
