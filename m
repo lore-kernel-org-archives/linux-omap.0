@@ -1,84 +1,92 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] i2c: OMAP: fix static suspend vs. runtime suspend
-Date: Thu, 27 Jan 2011 16:18:41 -0800
-Message-ID: <1296173921-4832-1-git-send-email-khilman@ti.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Latest regressions
+Date: Thu, 27 Jan 2011 16:21:15 -0800
+Message-ID: <20110128002115.GO23412@atomide.com>
+References: <20110107115744.GL1198@n2100.arm.linux.org.uk>
+ <20110107165626.GD880@atomide.com>
+ <20110126085848.GB2698@n2100.arm.linux.org.uk>
+ <20110126181215.GC23412@atomide.com>
+ <20110127122245.GB26418@n2100.arm.linux.org.uk>
+ <20110128001829.GN23412@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54576 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752576Ab1A1AVY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2011 19:21:24 -0500
+Content-Disposition: inline
+In-Reply-To: <20110128001829.GN23412@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
 
-When runtime PM is enabled, each OMAP i2c device is suspended after
-each i2c xfer.  However, there are two cases when the static suspend
-methods must be used to ensure the devices are suspended:
+* Tony Lindgren <tony@atomide.com> [110127 16:17]:
+> 
+> Will also post a similar change for omap1.
 
-1) runtime PM is disabled, either at compile time or dynamically
-    via /sys/devices/.../power/control.
-2) an i2c client driver uses i2c during it's suspend callback, thus
-   leaving the i2c driver active (NOTE: runtime suspend transitions are
-   disabled during system suspend, so i2c activity during system
-   suspend will runtime resume the device, but not runtime (re)suspend it.)
+And here's the omap1 related change.
 
-Since the actual work to suspend the device is handled by the
-subsytem, call the bus methods to take care of it.
+Tony
 
-NOTE: This takes care of a known suspend problem on OMAP3 where the
-TWL RTC driver does i2c xfers during its suspend path leaving the i2c
-driver in an active state (since runtime suspend transistions are
-disabled.)
 
-Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
----
-Ben, this is a regression in 2.6.38 so hopefully this can be queued
-in the 2.6.38-rc cycle.  Thanks.
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 27 Jan 2011 15:52:16 -0800
+Subject: [PATCH] omap1: Simplify use of omap_irq_flags
 
- drivers/i2c/busses/i2c-omap.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+Commit 03a9e5126147c9f92aeba4b34f62b15b625087fb
+(omap1: Use asm_irq_flags for entry-macro.S) added support
+for multi-omap builds with addition of the omap_irq_flags.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index b605ff3..0541df9 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1137,12 +1137,40 @@ omap_i2c_remove(struct platform_device *pdev)
- 	return 0;
- }
+Commit 9f9605c2eda9679e6f63c605cbd9cbf6a9a7f3fa
+(omap2+: Fix unused variable warning for omap_irq_base)
+simplified omap2+ entry-macro.S by moving omap_irq_flags
+out of entry-macro.S.
+
+Simplify omap1 entry-macro.S in a similar way to keep the
+code consistent. Based on a similar earlier patch for omap2+
+by Russell King <rmk+kernel@arm.linux.org.uk>.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap1/include/mach/entry-macro.S
++++ b/arch/arm/mach-omap1/include/mach/entry-macro.S
+@@ -14,19 +14,6 @@
+ #include <mach/irqs.h>
+ #include <asm/hardware/gic.h>
  
-+#ifdef CONFIG_SUSPEND
-+static int omap_i2c_suspend(struct device *dev)
-+{
-+	if (!pm_runtime_suspended(dev))
-+		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_suspend)
-+			dev->bus->pm->runtime_suspend(dev);
-+
-+	return 0;
-+}
-+
-+static int omap_i2c_resume(struct device *dev)
-+{
-+	if (!pm_runtime_suspended(dev))
-+		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_resume)
-+			dev->bus->pm->runtime_resume(dev);
-+
-+	return 0;
-+}
-+
-+static struct dev_pm_ops omap_i2c_pm_ops = {
-+	.suspend = omap_i2c_suspend,
-+	.resume = omap_i2c_resume,
-+};
-+#else
-+#define omap_i2c_pm_ops NULL
-+#endif
-+
- static struct platform_driver omap_i2c_driver = {
- 	.probe		= omap_i2c_probe,
- 	.remove		= omap_i2c_remove,
- 	.driver		= {
- 		.name	= "omap_i2c",
- 		.owner	= THIS_MODULE,
-+		.pm     = &omap_i2c_pm_ops,
- 	},
+-/*
+- * We use __glue to avoid errors with multiple definitions of
+- * .globl omap_irq_flags as it's included from entry-armv.S but not
+- * from entry-common.S.
+- */
+-#ifdef __glue
+-		.pushsection .data
+-		.globl	omap_irq_flags
+-omap_irq_flags:
+-		.word	0
+-		.popsection
+-#endif
+-
+  		.macro	disable_fiq
+ 		.endm
+ 
+--- a/arch/arm/mach-omap1/irq.c
++++ b/arch/arm/mach-omap1/irq.c
+@@ -57,6 +57,7 @@ struct omap_irq_bank {
+ 	unsigned long wake_enable;
  };
  
--- 
-1.7.3.5
++void __iomem *omap_irq_flags;
+ static unsigned int irq_bank_count;
+ static struct omap_irq_bank *irq_banks;
+ 
+@@ -176,7 +177,6 @@ static struct irq_chip omap_irq_chip = {
+ 
+ void __init omap_init_irq(void)
+ {
+-	extern unsigned int omap_irq_flags;
+ 	int i, j;
+ 
+ #if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
