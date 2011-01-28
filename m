@@ -1,115 +1,39 @@
 From: sricharan <r.sricharan@ti.com>
-Subject: [PATCH 4/5] omap4: board-omap4panda: Initialise the serial pads
-Date: Fri, 28 Jan 2011 10:38:17 +0530
-Message-ID: <1296191298-17545-5-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH 5/5] omap2+: board-n8x0: Change the flags for the serial pads.
+Date: Fri, 28 Jan 2011 10:38:18 +0530
+Message-ID: <1296191298-17545-6-git-send-email-r.sricharan@ti.com>
 References: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33961 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33962 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751345Ab1A1FGJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Jan 2011 00:06:09 -0500
+	id S1751393Ab1A1FGK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Jan 2011 00:06:10 -0500
 In-Reply-To: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: r.sricharan@ti.com, linux-omap@vger.kernel.org
 Cc: santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com
 
-Use the mux framework to initialise the serial pads.
+The flag for remuxing uart3_rx_irxx pad is changed.
 
 Signed-off-by: sricharan <r.sricharan@ti.com>
 ---
- arch/arm/mach-omap2/board-omap4panda.c |   72 +++++++++++++++++++++++++++++++-
- 1 files changed, 71 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-n8x0.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index b43e3ff..9688ea9 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -370,13 +370,83 @@ static int __init omap4_panda_i2c_init(void)
- 	omap_register_i2c_bus(4, 400, NULL, 0);
- 	return 0;
- }
--
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
-+
-+static struct omap_device_pad serial2_pads[] __initdata = {
-+	{ .name   = "uart2_cts.uart2_cts",
-+	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
-+	  .flags  = OMAP_DEVICE_PAD_REMUX_IDLE,
-+	  .idle   = OMAP_MUX_MODE7,
-+	},
-+	{ .name   = "uart2_rts.uart2_rts",
-+	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart2_rx.uart2_rx",
-+	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart2_tx.uart2_tx",
-+	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
-+	},
-+};
-+
-+static struct omap_device_pad serial3_pads[] __initdata = {
-+	{ .name   = "uart3_cts_rctx.uart3_cts_rctx",
-+	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart3_rts_sd.uart3_rts_sd",
-+	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart3_rx_irrx.uart3_rx_irrx",
-+	  .enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart3_tx_irtx.uart3_tx_irtx",
-+	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
-+	},
-+};
-+
-+static struct omap_device_pad serial4_pads[] __initdata = {
-+	{ .name   = "uart4_rx.uart4_rx",
-+	.enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart4_tx.uart4_tx",
-+	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
-+	},
-+};
-+
-+static struct omap_board_data serial2_data = {
-+	.id             = 1,
-+	.pads           = serial2_pads,
-+	.pads_cnt       = ARRAY_SIZE(serial2_pads),
-+};
-+
-+static struct omap_board_data serial3_data = {
-+	.id             = 2,
-+	.pads           = serial3_pads,
-+	.pads_cnt       = ARRAY_SIZE(serial3_pads),
-+};
-+
-+static struct omap_board_data serial4_data = {
-+	.id             = 3,
-+	.pads           = serial4_pads,
-+	.pads_cnt       = ARRAY_SIZE(serial4_pads),
-+};
-+
-+static inline void board_serial_init(void)
-+{
-+	omap_serial_init_port(&serial2_data);
-+	omap_serial_init_port(&serial3_data);
-+	omap_serial_init_port(&serial4_data);
-+}
- #else
- #define board_mux	NULL
-+
-+static inline void board_serial_init(void)
-+{
-+	omap_serial_init();
-+}
- #endif
- 
- static void __init omap4_panda_init(void)
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index 9b52e2d..bd51356 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -751,7 +751,7 @@ static struct omap_board_mux board_mux[] __initdata = {
+ static struct omap_device_pad serial2_pads[] __initdata = {
+ 	{
+ 		.name	= "uart3_rx_irrx.uart3_rx_irrx",
+-		.flags	= OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAKEUP,
++		.flags	= OMAP_DEVICE_PAD_REMUX_IDLE | OMAP_DEVICE_PAD_WAKEUP,
+ 		.enable	= OMAP_MUX_MODE0,
+ 		.idle	= OMAP_MUX_MODE3	/* Mux as GPIO for idle */
+ 	},
 -- 
 1.7.0.4
 
