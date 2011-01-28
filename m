@@ -1,164 +1,47 @@
-From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v9 5/7] omap3: nand: configurable fifo threshold to gain the throughput
-Date: Fri, 28 Jan 2011 15:42:07 +0530
-Message-ID: <1296209529-22696-6-git-send-email-s-ghorai@ti.com>
-References: <1296209529-22696-1-git-send-email-s-ghorai@ti.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 11/14] ARM: v6k: use CPU domain feature if we include
+ support for arch < ARMv6K
+Date: Fri, 28 Jan 2011 10:46:51 +0000
+Message-ID: <1296211611.1799.15.camel@e102109-lin.cambridge.arm.com>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+	 <E1Peuh2-0003Sx-5e@rmk-PC.arm.linux.org.uk>
+	 <AANLkTimN8Gn5a-k4ai7EhMGpqbj_u4Y8fHvUh_actzd+@mail.gmail.com>
+	 <20110127185935.GA1651@n2100.arm.linux.org.uk>
+	 <1296207966.1799.10.camel@e102109-lin.cambridge.arm.com>
+	 <20110128095953.GA13005@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55545 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753355Ab1A1KM0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Jan 2011 05:12:26 -0500
-In-Reply-To: <1296209529-22696-1-git-send-email-s-ghorai@ti.com>
+Received: from service87.mimecast.com ([94.185.240.25]:35147 "HELO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751482Ab1A1KrE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jan 2011 05:47:04 -0500
+In-Reply-To: <20110128095953.GA13005@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimalsingh@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Configure the FIFO THREASHOLD value different for read and write to keep busy
-both filling and to drain out of FIFO at reading and writing.
+On Fri, 2011-01-28 at 09:59 +0000, Russell King - ARM Linux wrote:
+> On Fri, Jan 28, 2011 at 09:46:06AM +0000, Catalin Marinas wrote:
+> > My point is that we may want SWP_EMULATE disabled (or depending on !
+> > CPU_USE_DOMAINS). With domains enabled every read-only user page is
+> > writeable by the kernel. This has the side-effect that SWP emulation
+> > using LDREX/STREX breaks COW.
+> 
+> Yes, and maybe we should instead just enable the SWP instruction by default
+> on ARMv7, and if SWP emulation is built, disable it at that point.
 
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
----
- arch/arm/mach-omap2/gpmc.c             |   11 +++++++----
- arch/arm/plat-omap/include/plat/gpmc.h |    5 ++++-
- drivers/mtd/nand/omap2.c               |   22 ++++++++++++++--------
- 3 files changed, 25 insertions(+), 13 deletions(-)
+We can't disable the SWP instruction as long as domains are enabled (COW
+not working for in-kernel STREX).
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 382dea8..6741743 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -60,7 +60,6 @@
- #define GPMC_CHUNK_SHIFT	24		/* 16 MB */
- #define GPMC_SECTION_SHIFT	28		/* 128 MB */
- 
--#define PREFETCH_FIFOTHRESHOLD	(0x40 << 8)
- #define CS_NUM_SHIFT		24
- #define ENABLE_PREFETCH		(0x1 << 7)
- #define DMA_MPU_MODE		2
-@@ -606,15 +605,19 @@ EXPORT_SYMBOL(gpmc_nand_write);
- /**
-  * gpmc_prefetch_enable - configures and starts prefetch transfer
-  * @cs: cs (chip select) number
-+ * @fifo_th: fifo threshold to be used for read/ write
-  * @dma_mode: dma mode enable (1) or disable (0)
-  * @u32_count: number of bytes to be transferred
-  * @is_write: prefetch read(0) or write post(1) mode
-  */
--int gpmc_prefetch_enable(int cs, int dma_mode,
-+int gpmc_prefetch_enable(int cs, int fifo_th, int dma_mode,
- 				unsigned int u32_count, int is_write)
- {
- 
--	if (!(gpmc_read_reg(GPMC_PREFETCH_CONTROL))) {
-+	if (fifo_th > PREFETCH_FIFOTHRESHOLD_MAX) {
-+		pr_err("gpmc: fifo threshold is not supported\n");
-+		return -1;
-+	} else if (!(gpmc_read_reg(GPMC_PREFETCH_CONTROL))) {
- 		/* Set the amount of bytes to be prefetched */
- 		gpmc_write_reg(GPMC_PREFETCH_CONFIG2, u32_count);
- 
-@@ -622,7 +625,7 @@ int gpmc_prefetch_enable(int cs, int dma_mode,
- 		 * enable the engine. Set which cs is has requested for.
- 		 */
- 		gpmc_write_reg(GPMC_PREFETCH_CONFIG1, ((cs << CS_NUM_SHIFT) |
--					PREFETCH_FIFOTHRESHOLD |
-+					PREFETCH_FIFOTHRESHOLD(fifo_th) |
- 					ENABLE_PREFETCH |
- 					(dma_mode << DMA_MPU_MODE) |
- 					(0x1 & is_write)));
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 9c060da..a243463 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -83,6 +83,9 @@
- #define GPMC_IRQ_FIFOEVENTENABLE	0x01
- #define GPMC_IRQ_COUNT_EVENT		0x02
- 
-+#define PREFETCH_FIFOTHRESHOLD_MAX	0x40
-+#define PREFETCH_FIFOTHRESHOLD(val)	((val) << 8)
-+
- /*
-  * Note that all values in this struct are in nanoseconds except sync_clk
-  * (which is in picoseconds), while the register values are in gpmc_fck cycles.
-@@ -134,7 +137,7 @@ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
- extern void gpmc_cs_free(int cs);
- extern int gpmc_cs_set_reserved(int cs, int reserved);
- extern int gpmc_cs_reserved(int cs);
--extern int gpmc_prefetch_enable(int cs, int dma_mode,
-+extern int gpmc_prefetch_enable(int cs, int fifo_th, int dma_mode,
- 					unsigned int u32_count, int is_write);
- extern int gpmc_prefetch_reset(int cs);
- extern void omap3_gpmc_save_context(void);
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index fbe8414..f1648fd 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -244,7 +244,8 @@ static void omap_read_buf_pref(struct mtd_info *mtd, u_char *buf, int len)
- 	}
- 
- 	/* configure and start prefetch transfer */
--	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
-+	ret = gpmc_prefetch_enable(info->gpmc_cs,
-+			PREFETCH_FIFOTHRESHOLD_MAX, 0x0, len, 0x0);
- 	if (ret) {
- 		/* PFPW engine is busy, use cpu copy method */
- 		if (info->nand.options & NAND_BUSWIDTH_16)
-@@ -289,7 +290,8 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
- 	}
- 
- 	/*  configure and start prefetch transfer */
--	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x1);
-+	ret = gpmc_prefetch_enable(info->gpmc_cs,
-+			PREFETCH_FIFOTHRESHOLD_MAX, 0x0, len, 0x1);
- 	if (ret) {
- 		/* PFPW engine is busy, use cpu copy method */
- 		if (info->nand.options & NAND_BUSWIDTH_16)
-@@ -345,8 +347,9 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 	int ret;
- 	unsigned long tim, limit;
- 
--	/* The fifo depth is 64 bytes. We have a sync at each frame and frame
--	 * length is 64 bytes.
-+	/* The fifo depth is 64 bytes max.
-+	 * But configure the FIFO-threahold to 32 to get a sync at each frame
-+	 * and frame length is 32 bytes.
- 	 */
- 	int buf_len = len >> 6;
- 
-@@ -387,7 +390,8 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 					OMAP24XX_DMA_GPMC, OMAP_DMA_SRC_SYNC);
- 	}
- 	/*  configure and start prefetch transfer */
--	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x1, len, is_write);
-+	ret = gpmc_prefetch_enable(info->gpmc_cs,
-+			PREFETCH_FIFOTHRESHOLD_MAX, 0x1, len, is_write);
- 	if (ret)
- 		/* PFPW engine is busy, use cpu copy method */
- 		goto out_copy;
-@@ -522,7 +526,8 @@ static void omap_read_buf_irq_pref(struct mtd_info *mtd, u_char *buf, int len)
- 	init_completion(&info->comp);
- 
- 	/*  configure and start prefetch transfer */
--	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
-+	ret = gpmc_prefetch_enable(info->gpmc_cs,
-+			PREFETCH_FIFOTHRESHOLD_MAX/2, 0x0, len, 0x0);
- 	if (ret)
- 		/* PFPW engine is busy, use cpu copy method */
- 		goto out_copy;
-@@ -569,8 +574,9 @@ static void omap_write_buf_irq_pref(struct mtd_info *mtd,
- 	info->buf = (u_char *) buf;
- 	init_completion(&info->comp);
- 
--	/*  configure and start prefetch transfer */
--	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x1);
-+	/* configure and start prefetch transfer : size=24 */
-+	ret = gpmc_prefetch_enable(info->gpmc_cs,
-+			(PREFETCH_FIFOTHRESHOLD_MAX * 3) / 8, 0x0, len, 0x1);
- 	if (ret)
- 		/* PFPW engine is busy, use cpu copy method */
- 		goto out_copy;
+On ARMv7 we could always force R/O kernel/user pages in set_pte_ext
+independent of the domains setting and have early_trap_init() use
+vectors_page() if cpu_architecture() >= 7 (this would actually catch
+ARM11MPCore as well because of the way we interpret CPUID).
+
 -- 
-1.7.0.4
+Catalin
+
 
