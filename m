@@ -1,126 +1,184 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 5/6] omap4: dpll: Add dpll api to control GATE_CTRL
-Date: Fri, 28 Jan 2011 16:34:47 +0530
-Message-ID: <1296212688-21951-6-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 1/6] omap4: powerdomain: Add supported INACTIVE power state
+Date: Fri, 28 Jan 2011 16:34:43 +0530
+Message-ID: <1296212688-21951-2-git-send-email-santosh.shilimkar@ti.com>
 References: <1296212688-21951-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36248 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54313 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754002Ab1A1LFD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752754Ab1A1LFD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 28 Jan 2011 06:05:03 -0500
 In-Reply-To: <1296212688-21951-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
+Cc: khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+On OMAP4, one can explicitly program INACTIVE as the power state of
+the logic area inside the power domain. Techincally PD state programmed
+to ON and if all the clock domains within the PD are idled, is equivalent
+tp PD programmed to INACTIVE and all the clock domains within the PD are
+idled. There won't be any power difference in above two.
 
-On OMAP4, the dpll post divider outputs (MX outputs)
-provide a way to allow/deny autoidle.
-Allowing autoidle would mean that the hw would autogate
-this clock when there is no dependency for it.
-Denying idle would mean that this clock output will be
-forced to stay enabled.
+Since the CPUIDLE C-states explicitly make use of INACTIVE as a PD
+targeted state and also there is some additional latancy involved
+with PD INACTIVE vs PD ON, it's better to support it as an explcit
+PD state.
 
-Add dpll api's to read/allow/deny idle control.
+This patch adds the support to allow explicit PD INACTIVE
+programming if supported.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.h             |    3 ++
- arch/arm/mach-omap2/dpll3xxx.c          |   43 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/clock.h |    1 +
- 3 files changed, 47 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/powerdomain.h           |   12 ++++++++++++
+ arch/arm/mach-omap2/powerdomains44xx_data.c |   26 +++++++++++++-------------
+ 2 files changed, 25 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 896584e..19617f0 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -65,6 +65,9 @@ u32 omap3_dpll_autoidle_read(struct clk *clk);
- int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
- int omap3_noncore_dpll_enable(struct clk *clk);
- void omap3_noncore_dpll_disable(struct clk *clk);
-+int omap4_dpllmx_gatectrl_read(struct clk *clk);
-+void omap4_dpllmx_allow_gatectrl(struct clk *clk);
-+void omap4_dpllmx_deny_gatectrl(struct clk *clk);
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index c66431e..0e15ca7 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -46,6 +46,18 @@
  
- #ifdef CONFIG_OMAP_RESET_CLOCKS
- void omap2_clk_disable_unused(struct clk *clk);
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index f77022b..4ce06d5 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -34,11 +34,14 @@
- #include "clock.h"
- #include "cm2xxx_3xxx.h"
- #include "cm-regbits-34xx.h"
-+#include "cm-regbits-44xx.h"
+ #define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | (1 << PWRDM_POWER_ON))
  
- /* CM_AUTOIDLE_PLL*.AUTO_* bit values */
- #define DPLL_AUTOIDLE_DISABLE			0x0
- #define DPLL_AUTOIDLE_LOW_POWER_STOP		0x1
++#define PWRSTS_RET_INA_ON	((1 << PWRDM_POWER_RET) | \
++				 (1 << PWRDM_POWER_INACTIVE)  | \
++				 (1 << PWRDM_POWER_ON))
++
++#define PWRSTS_OFF_INA_ON	((1 << PWRDM_POWER_OFF) | \
++				 (1 << PWRDM_POWER_INACTIVE)  | \
++				 (1 << PWRDM_POWER_ON))
++
++#define PWRSTS_OFF_RET_INA_ON	((1 << PWRDM_POWER_OFF) | \
++				 (1 << PWRDM_POWER_RET) | \
++				 (1 << PWRDM_POWER_INACTIVE)  | \
++				 (1 << PWRDM_POWER_ON))
  
-+#define DPLL_GATECTRL_DISABLE			0x0
-+
- #define MAX_DPLL_WAIT_TRIES		1000000
+ /* Powerdomain flags */
+ #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware save-and-restore support */
+diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
+index 26d7641..96cde98 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+@@ -36,7 +36,7 @@ static struct powerdomain core_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_CORE_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_RET_ON,
++	.pwrsts		  = PWRSTS_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 5,
+ 	.pwrsts_mem_ret	= {
+@@ -62,7 +62,7 @@ static struct powerdomain gfx_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_GFX_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_OFF_ON,
++	.pwrsts		  = PWRSTS_OFF_INA_ON,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_OFF,	/* gfx_mem */
+@@ -79,7 +79,7 @@ static struct powerdomain abe_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_ABE_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRDM_POWER_OFF,
+ 	.banks		  = 2,
+ 	.pwrsts_mem_ret	= {
+@@ -99,7 +99,7 @@ static struct powerdomain dss_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_DSS_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -117,7 +117,7 @@ static struct powerdomain tesla_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_TESLA_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 3,
+ 	.pwrsts_mem_ret	= {
+@@ -155,7 +155,7 @@ static struct powerdomain cpu0_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU0_INST,
+ 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -172,7 +172,7 @@ static struct powerdomain cpu1_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU1_INST,
+ 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -205,7 +205,7 @@ static struct powerdomain mpu_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_MPU_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 3,
+ 	.pwrsts_mem_ret	= {
+@@ -226,7 +226,7 @@ static struct powerdomain ivahd_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_IVAHD_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRDM_POWER_OFF,
+ 	.banks		  = 4,
+ 	.pwrsts_mem_ret	= {
+@@ -250,7 +250,7 @@ static struct powerdomain cam_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_CAM_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_OFF_ON,
++	.pwrsts		  = PWRSTS_OFF_INA_ON,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_OFF,	/* cam_mem */
+@@ -267,7 +267,7 @@ static struct powerdomain l3init_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_L3INIT_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -285,7 +285,7 @@ static struct powerdomain l4per_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_L4PER_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_RET_ON,
++	.pwrsts		  = PWRSTS_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 2,
+ 	.pwrsts_mem_ret	= {
+@@ -317,7 +317,7 @@ static struct powerdomain cefuse_44xx_pwrdm = {
+ 	.prcm_offs	  = OMAP4430_PRM_CEFUSE_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-	.pwrsts		  = PWRSTS_OFF_ON,
++	.pwrsts		  = PWRSTS_OFF_INA_ON,
+ };
  
- /* Private functions */
-@@ -612,3 +615,43 @@ unsigned long omap3_clkoutx2_recalc(struct clk *clk)
- 		rate = clk->parent->rate * 2;
- 	return rate;
- }
-+
-+int omap4_dpllmx_gatectrl_read(struct clk *clk)
-+{
-+	u32 v;
-+
-+	if (!clk || !(clk->flags & CLOCK_MX_IDLE_CONTROL) || !clk->clksel_reg)
-+		return -EINVAL;
-+
-+	v = __raw_readl(clk->clksel_reg);
-+	v &= OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
-+	v >>= __ffs(OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK);
-+
-+	return v;
-+}
-+
-+void omap4_dpllmx_allow_gatectrl(struct clk *clk)
-+{
-+	u32 v;
-+
-+	if (!clk || !(clk->flags & CLOCK_MX_IDLE_CONTROL) || !clk->clksel_reg)
-+		return;
-+
-+	v = __raw_readl(clk->clksel_reg);
-+	v &= ~OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
-+	v |= __ffs(OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK);
-+	__raw_writel(v, clk->clksel_reg);
-+}
-+
-+void omap4_dpllmx_deny_gatectrl(struct clk *clk)
-+{
-+	u32 v;
-+
-+	if (!clk || !(clk->flags & CLOCK_MX_IDLE_CONTROL) || !clk->clksel_reg)
-+		return;
-+
-+	v = __raw_readl(clk->clksel_reg);
-+	v &= ~OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
-+	v |= DPLL_GATECTRL_DISABLE << __ffs(OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK);
-+	__raw_writel(v, clk->clksel_reg);
-+}
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 8eb0ada..2937f5d 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -177,6 +177,7 @@ struct dpll_data {
- #define CLOCK_NO_IDLE_PARENT	(1 << 2)
- #define ENABLE_ON_INIT		(1 << 3)	/* Enable upon framework init */
- #define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
-+#define CLOCK_MX_IDLE_CONTROL	(1 << 5)
- 
- /**
-  * struct clk - OMAP struct clk
+ /*
 -- 
 1.6.0.4
 
