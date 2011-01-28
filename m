@@ -1,13 +1,13 @@
 From: sricharan <r.sricharan@ti.com>
-Subject: [PATCH 2/5] omap4: board-4430sdp: Initialise the serial pads
-Date: Fri, 28 Jan 2011 10:38:15 +0530
-Message-ID: <1296191298-17545-3-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH 4/5] omap4: board-omap4panda: Initialise the serial pads
+Date: Fri, 28 Jan 2011 10:38:17 +0530
+Message-ID: <1296191298-17545-5-git-send-email-r.sricharan@ti.com>
 References: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46076 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066Ab1A1FGJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jan 2011 00:06:09 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33961 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751345Ab1A1FGJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Jan 2011 00:06:09 -0500
 In-Reply-To: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,14 +18,19 @@ Use the mux framework to initialise the serial pads.
 
 Signed-off-by: sricharan <r.sricharan@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   73 ++++++++++++++++++++++++++++++++++-
- 1 files changed, 72 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-omap4panda.c |   72 +++++++++++++++++++++++++++++++-
+ 1 files changed, 71 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 1cb208b..d77f099 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -537,8 +537,79 @@ static void __init omap_sfh7741prox_init(void)
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b43e3ff..9688ea9 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -370,13 +370,83 @@ static int __init omap4_panda_i2c_init(void)
+ 	omap_register_i2c_bus(4, 400, NULL, 0);
+ 	return 0;
+ }
+-
+ #ifdef CONFIG_OMAP_MUX
  static struct omap_board_mux board_mux[] __initdata = {
  	{ .reg_offset = OMAP_MUX_TERMINATOR },
  };
@@ -64,7 +69,7 @@ index 1cb208b..d77f099 100644
 +
 +static struct omap_device_pad serial4_pads[] __initdata = {
 +	{ .name   = "uart4_rx.uart4_rx",
-+	  .enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
++	.enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
 +	},
 +	{ .name   = "uart4_tx.uart4_tx",
 +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
@@ -72,21 +77,21 @@ index 1cb208b..d77f099 100644
 +};
 +
 +static struct omap_board_data serial2_data = {
-+	.id		= 1,
-+	.pads		= serial2_pads,
-+	.pads_cnt	= ARRAY_SIZE(serial2_pads),
++	.id             = 1,
++	.pads           = serial2_pads,
++	.pads_cnt       = ARRAY_SIZE(serial2_pads),
 +};
 +
 +static struct omap_board_data serial3_data = {
-+	.id		= 2,
-+	.pads		= serial3_pads,
-+	.pads_cnt	= ARRAY_SIZE(serial3_pads),
++	.id             = 2,
++	.pads           = serial3_pads,
++	.pads_cnt       = ARRAY_SIZE(serial3_pads),
 +};
 +
 +static struct omap_board_data serial4_data = {
-+	.id		= 3,
-+	.pads		= serial4_pads,
-+	.pads_cnt	= ARRAY_SIZE(serial4_pads),
++	.id             = 3,
++	.pads           = serial4_pads,
++	.pads_cnt       = ARRAY_SIZE(serial4_pads),
 +};
 +
 +static inline void board_serial_init(void)
@@ -104,16 +109,7 @@ index 1cb208b..d77f099 100644
 +}
  #endif
  
- static void __init omap_4430sdp_init(void)
-@@ -553,7 +624,7 @@ static void __init omap_4430sdp_init(void)
- 	omap4_i2c_init();
- 	omap_sfh7741prox_init();
- 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
--	omap_serial_init();
-+	board_serial_init();
- 	omap4_twl6030_hsmmc_init(mmc);
- 	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
- 	usb_nop_xceiv_register();
+ static void __init omap4_panda_init(void)
 -- 
 1.7.0.4
 
