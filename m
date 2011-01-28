@@ -1,39 +1,46 @@
 From: sricharan <r.sricharan@ti.com>
-Subject: [PATCH 5/5] omap2+: board-n8x0: Change the flags for the serial pads.
-Date: Fri, 28 Jan 2011 10:38:18 +0530
-Message-ID: <1296191298-17545-6-git-send-email-r.sricharan@ti.com>
-References: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH 0/5] omap2+: mux: Add support for static and dynamic pads.
+Date: Fri, 28 Jan 2011 10:38:13 +0530
+Message-ID: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33962 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751393Ab1A1FGK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Jan 2011 00:06:10 -0500
-In-Reply-To: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46077 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751076Ab1A1FGJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jan 2011 00:06:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: r.sricharan@ti.com, linux-omap@vger.kernel.org
 Cc: santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com
 
-The flag for remuxing uart3_rx_irxx pad is changed.
 
-Signed-off-by: sricharan <r.sricharan@ti.com>
----
- arch/arm/mach-omap2/board-n8x0.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+1) The support to add the pad data to the device hwmod entry and to use
+   it to dynamically configure the pads based on the state of the
+   hwmod is already present.
 
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 9b52e2d..bd51356 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -751,7 +751,7 @@ static struct omap_board_mux board_mux[] __initdata = {
- static struct omap_device_pad serial2_pads[] __initdata = {
- 	{
- 		.name	= "uart3_rx_irrx.uart3_rx_irrx",
--		.flags	= OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAKEUP,
-+		.flags	= OMAP_DEVICE_PAD_REMUX_IDLE | OMAP_DEVICE_PAD_WAKEUP,
- 		.enable	= OMAP_MUX_MODE0,
- 		.idle	= OMAP_MUX_MODE3	/* Mux as GPIO for idle */
- 	},
--- 
-1.7.0.4
+2) But using that for pads that requires only initialisation and not
+   dynamic remux, brings in a overhead to iterate over all the
+   hwmod signals of the device for every device enable/idle transitions.
+
+3) By seperating the pads that requires remux as dynamic and the
+   ones that do not as static the above overhead is avoided.
+
+4) This way the static and dynamic pads are initialised, 
+   and only dynamic pads are taken for remuxing.
+
+sricharan (5):
+  omap2+: mux: Seperate the pads of a hwmod as static and dynamic.
+  omap4: board-4430sdp: Initialise the serial pads
+  omap3: board-3430sdp: Initialise the serial pads.
+  omap4: board-omap4panda: Initialise the serial pads
+  omap2+: board-n8x0: Change the flags for the serial pads.
+
+ arch/arm/mach-omap2/board-3430sdp.c          |   86 ++++++++++-
+ arch/arm/mach-omap2/board-4430sdp.c          |   73 +++++++++-
+ arch/arm/mach-omap2/board-n8x0.c             |    2 +-
+ arch/arm/mach-omap2/board-omap4panda.c       |   72 +++++++++-
+ arch/arm/mach-omap2/mux.c                    |  219 +++++++++++++++++++++-----
+ arch/arm/mach-omap2/mux.h                    |   33 ++++-
+ arch/arm/mach-omap2/omap_hwmod.c             |    6 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    7 +-
+ 8 files changed, 441 insertions(+), 57 deletions(-)
 
