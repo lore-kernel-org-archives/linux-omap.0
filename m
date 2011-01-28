@@ -1,155 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Latest regressions
-Date: Thu, 27 Jan 2011 16:18:30 -0800
-Message-ID: <20110128001829.GN23412@atomide.com>
-References: <20110107115744.GL1198@n2100.arm.linux.org.uk>
- <20110107165626.GD880@atomide.com>
- <20110126085848.GB2698@n2100.arm.linux.org.uk>
- <20110126181215.GC23412@atomide.com>
- <20110127122245.GB26418@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49370 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753894Ab1A1ASj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2011 19:18:39 -0500
-Content-Disposition: inline
-In-Reply-To: <20110127122245.GB26418@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] i2c: OMAP: fix static suspend vs. runtime suspend
+Date: Thu, 27 Jan 2011 16:18:41 -0800
+Message-ID: <1296173921-4832-1-git-send-email-khilman@ti.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110127 04:21]:
-> On Wed, Jan 26, 2011 at 10:12:16AM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [110126 00:57]:
-> > > On Fri, Jan 07, 2011 at 08:56:26AM -0800, Tony Lindgren wrote:
-> > > > > diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> > > > > index e66687b..c203204 100644
-> > > > > --- a/arch/arm/mach-omap2/io.c
-> > > > > +++ b/arch/arm/mach-omap2/io.c
-> > > > > @@ -314,14 +314,13 @@ static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
-> > > > >  	return omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
-> > > > >  }
-> > > > >  
-> > > > > +void __iomem *omap_irq_base;
-> > > > > +
-> > > > >  /*
-> > > > >   * Initialize asm_irq_base for entry-macro.S
-> > > > >   */
-> > > > >  static inline void omap_irq_base_init(void)
-> > > > >  {
-> > > > > -	extern void __iomem *omap_irq_base;
-> > > > > -
-> > > > > -#ifdef MULTI_OMAP2
-> > > > >  	if (cpu_is_omap24xx())
-> > > > >  		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP24XX_IC_BASE);
-> > > > >  	else if (cpu_is_omap34xx())
-> > > > > @@ -330,7 +329,6 @@ static inline void omap_irq_base_init(void)
-> > > > >  		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE);
-> > > > >  	else
-> > > > >  		pr_err("Could not initialize omap_irq_base\n");
-> > > > > -#endif
-> > > > >  }
-> > > > >  
-> > > > >  void __init omap2_init_common_infrastructure(void)
-> > > > 
-> > > > This looks good to me.
-> > > 
-> > > I notice this one is still there.
-> > 
-> > Sorry I thought you'll queue this one.
-> > 
-> > BTW this fixes regression from patch 5d190c40100793a6dfc37bf325677c10f3c80edf
-> > (omap2+: Initialize omap_irq_base for entry-macro.S from platform code).
-> > So it should be OK for the -rc cycle:
-> > 
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > Let me know if you want me to take it, in that case I think it's still
-> > missing your Signed-off-by.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> 
-> > Let me know if you want me to queue it.
-> 
-> Yes please.
+When runtime PM is enabled, each OMAP i2c device is suspended after
+each i2c xfer.  However, there are two cases when the static suspend
+methods must be used to ensure the devices are suspended:
 
-OK here's I've queued. I updated the comments a bit.
+1) runtime PM is disabled, either at compile time or dynamically
+    via /sys/devices/.../power/control.
+2) an i2c client driver uses i2c during it's suspend callback, thus
+   leaving the i2c driver active (NOTE: runtime suspend transitions are
+   disabled during system suspend, so i2c activity during system
+   suspend will runtime resume the device, but not runtime (re)suspend it.)
 
-Will also post a similar change for omap1.
+Since the actual work to suspend the device is handled by the
+subsytem, call the bus methods to take care of it.
 
-Tony
+NOTE: This takes care of a known suspend problem on OMAP3 where the
+TWL RTC driver does i2c xfers during its suspend path leaving the i2c
+driver in an active state (since runtime suspend transistions are
+disabled.)
 
+Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+---
+Ben, this is a regression in 2.6.38 so hopefully this can be queued
+in the 2.6.38-rc cycle.  Thanks.
 
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Date: Fri, 7 Jan 2011 11:57:44 +0000
-Subject: [PATCH] omap2+: Fix unused variable warning for omap_irq_base
+ drivers/i2c/busses/i2c-omap.c |   28 ++++++++++++++++++++++++++++
+ 1 files changed, 28 insertions(+), 0 deletions(-)
 
-Commit 5d190c40100793a6dfc37bf325677c10f3c80edf
-(omap2+: Initialize omap_irq_base for entry-macro.S from
-platform code) simplified the handling of omap_irq_base
-for multi-omap builds. However, this patch also introduced
-a build warning for !MULTI_OMAP2 builds:
-
-arch/arm/mach-omap2/io.c: In function 'omap_irq_base_init':
-arch/arm/mach-omap2/io.c:322: warning: unused variable 'omap_irq_base'
-
-Fix this by removing the ifdef. Also simplify things further
-by moving omap_irq_base out of entry-macro.S.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-[tony@atomide.com: updated comments]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap2/include/mach/entry-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/entry-macro.S
-@@ -38,20 +38,6 @@
-  */
- 
- #ifdef MULTI_OMAP2
--
--/*
-- * We use __glue to avoid errors with multiple definitions of
-- * .globl omap_irq_base as it's included from entry-armv.S but not
-- * from entry-common.S.
-- */
--#ifdef __glue
--		.pushsection .data
--		.globl	omap_irq_base
--omap_irq_base:
--		.word	0
--		.popsection
--#endif
--
- 		/*
- 		 * Configure the interrupt base on the first interrupt.
- 		 * See also omap_irq_base_init for setting omap_irq_base.
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -314,14 +314,13 @@ static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
- 	return omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index b605ff3..0541df9 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1137,12 +1137,40 @@ omap_i2c_remove(struct platform_device *pdev)
+ 	return 0;
  }
  
-+void __iomem *omap_irq_base;
++#ifdef CONFIG_SUSPEND
++static int omap_i2c_suspend(struct device *dev)
++{
++	if (!pm_runtime_suspended(dev))
++		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_suspend)
++			dev->bus->pm->runtime_suspend(dev);
 +
- /*
-  * Initialize asm_irq_base for entry-macro.S
-  */
- static inline void omap_irq_base_init(void)
- {
--	extern void __iomem *omap_irq_base;
--
--#ifdef MULTI_OMAP2
- 	if (cpu_is_omap24xx())
- 		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP24XX_IC_BASE);
- 	else if (cpu_is_omap34xx())
-@@ -330,7 +329,6 @@ static inline void omap_irq_base_init(void)
- 		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE);
- 	else
- 		pr_err("Could not initialize omap_irq_base\n");
--#endif
- }
++	return 0;
++}
++
++static int omap_i2c_resume(struct device *dev)
++{
++	if (!pm_runtime_suspended(dev))
++		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_resume)
++			dev->bus->pm->runtime_resume(dev);
++
++	return 0;
++}
++
++static struct dev_pm_ops omap_i2c_pm_ops = {
++	.suspend = omap_i2c_suspend,
++	.resume = omap_i2c_resume,
++};
++#else
++#define omap_i2c_pm_ops NULL
++#endif
++
+ static struct platform_driver omap_i2c_driver = {
+ 	.probe		= omap_i2c_probe,
+ 	.remove		= omap_i2c_remove,
+ 	.driver		= {
+ 		.name	= "omap_i2c",
+ 		.owner	= THIS_MODULE,
++		.pm     = &omap_i2c_pm_ops,
+ 	},
+ };
  
- void __init omap2_init_common_infrastructure(void)
+-- 
+1.7.3.5
