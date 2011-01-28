@@ -1,49 +1,53 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] arm: mach-omap2: voltage: debugfs: fix memory leak
-Date: Fri, 28 Jan 2011 14:15:25 -0800
-Message-ID: <87vd18ad4y.fsf@ti.com>
-References: <1296231851-20632-1-git-send-email-aaro.koskinen@nokia.com>
+From: Peter Barada <peter.barada@logicpd.com>
+Subject: Regulator question regarding I2C devices
+Date: Fri, 28 Jan 2011 17:24:01 -0500
+Message-ID: <4D434201.6060108@logicpd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:46299 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751220Ab1A1WWx (ORCPT
+Received: from 174-46-170-154.static.twtelecom.net ([174.46.170.154]:35438
+	"EHLO edprlnx06.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752290Ab1A1Wdo (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Jan 2011 17:22:53 -0500
-Received: by mail-yi0-f50.google.com with SMTP id 1so1460814yic.37
-        for <linux-omap@vger.kernel.org>; Fri, 28 Jan 2011 14:22:53 -0800 (PST)
-In-Reply-To: <1296231851-20632-1-git-send-email-aaro.koskinen@nokia.com> (Aaro
-	Koskinen's message of "Fri, 28 Jan 2011 18:24:11 +0200")
+	Fri, 28 Jan 2011 17:33:44 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Peter Barada <peter.barada@logicpd.com>
 
-Aaro Koskinen <aaro.koskinen@nokia.com> writes:
+I have a tsc2004 touch controller on I2C3 that is powered by vaux1, and since its probed I have to turn the power on before it can be probed.  I've created:
 
-> The temporary string holding the directory name to be created should
-> be released.
->
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+static struct regulator_consumer_supply dm3730logic_vaux1_supply = {
+    .supply            = "vaux1",
+};
 
-Thanks, queuing in pm-fixes  for 2.6.38.
+/* VAUX1 for touch chip */
+static struct regulator_init_data dm3730logic_vaux1 = {
+    .constraints = {
+        .min_uV        = 3000000,
+        .max_uV        = 3000000,
+        .apply_uV    = true,
+        .valid_modes_mask    = REGULATOR_MODE_NORMAL
+                    | REGULATOR_MODE_STANDBY,
+        .valid_ops_mask        = REGULATOR_CHANGE_MODE
+                    | REGULATOR_CHANGE_STATUS,
+    },
+    .num_consumer_supplies    = 1,
+    .consumer_supplies    = &dm3730logic_vaux1_supply,
+};
 
-Kevin
+and listed it in the twldata initializer
+    .vaux1        = &dm3730logic_vaux1,
 
-> ---
->  arch/arm/mach-omap2/voltage.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-> index ed6079c..12be525 100644
-> --- a/arch/arm/mach-omap2/voltage.c
-> +++ b/arch/arm/mach-omap2/voltage.c
-> @@ -471,6 +471,7 @@ static void __init vdd_debugfs_init(struct omap_vdd_info *vdd)
->  	strcat(name, vdd->voltdm.name);
->  
->  	vdd->debug_dir = debugfs_create_dir(name, voltage_dir);
-> +	kfree(name);
->  	if (IS_ERR(vdd->debug_dir)) {
->  		pr_warning("%s: Unable to create debugfs directory for"
->  			" vdd_%s\n", __func__, vdd->voltdm.name);
+But it never gets enabled...  How can I tell the kernel to turn the regulator on?
+
+If I try to call regulator_get() right before the call to omap_register_i2c_bus for I2C3, regulator_get returns a NULL due to regulator_map_list being empty.  If I look in sys/class/regulator I see VAUX1 listed (as regulator.4), but there are no users.
+
+Any suggestions on how I can turn on vaux1 so the tsc2004 touch controller is visible to by the I2C system?
+
+Thanks in advance!
+
+-- 
+Peter Barada
+peter.barada@logicpd.com
+
