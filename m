@@ -1,60 +1,76 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [RFC/PATCH] nohz/sched: delay going tickless when CPU is loaded
-Date: Fri, 28 Jan 2011 13:03:16 -0800
-Message-ID: <1296248596-22478-1-git-send-email-khilman@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Nicole Chalhoub <n-chalhoub@ti.com>, Vincent Bour <v-bour@ti.com>, Arjan van de Ven <arjan@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH] OMAP3630: PM: don't warn the user with a trace in case of PM34XX_ERRATUM
+Date: Fri, 28 Jan 2011 14:10:40 -0800
+Message-ID: <871v3wbrxb.fsf@ti.com>
+References: <1296187053-22186-1-git-send-email-ricardo.salveti@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:51777 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751912Ab1A1WKx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Jan 2011 17:10:53 -0500
+Received: by mail-gx0-f176.google.com with SMTP id 4so1481680gxk.7
+        for <linux-omap@vger.kernel.org>; Fri, 28 Jan 2011 14:10:44 -0800 (PST)
+In-Reply-To: <1296187053-22186-1-git-send-email-ricardo.salveti@canonical.com>
+	(Ricardo Salveti de Araujo's message of "Fri, 28 Jan 2011 01:57:33
+	-0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Nicole Chalhoub <n-chalhoub@ti.com>
+Ricardo Salveti de Araujo <ricardo.salveti@canonical.com> writes:
 
-One criterion of C-states selection is based on the load factor.  High
-load prevents deep C-states.  The load is evaluated and updated at
-each scheduler tick, and thus not updated when in tickless mode.  As a
-result, the CPU load calculated on the tick just before entering
-tickless is used for idle decisions.
+> In case in user has a OMAP3630 < ES1.2 the kernel should warn the user
+> about the ERRATUM, but using printk instead of WARN_ON is already
+> enough, as there is nothing else the user can do besides changing the
+> board.
 
-When a high load is evaluated on a tick happening on a burst of
-activity, this load value is kept until the next tick, which could
-take few ms to happen if going tickless.
+I agree, it doesn't need a full backtrace.
 
-This patch ensures that the load is taken into consideration before
-going tickless.  Rather than going tickless and entering a shallow
-sleep state, the decison to go tickless is slightly delayed so that
-the idle governor will tend to favor deeper sleep states.
+Minor comment below...
+> Signed-off-by: Ricar
+do Salveti de Araujo <ricardo.salveti@canonical.com>
+> ---
+>  arch/arm/mach-omap2/cpuidle34xx.c |    2 +-
+>  arch/arm/mach-omap2/pm34xx.c      |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+> index f7b22a1..abb9be0 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -464,7 +464,7 @@ void omap_init_power_states(void)
+>  	if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583)) {
+>  		omap3_power_states[OMAP3_STATE_C7].valid = 0;
+>  		cpuidle_params_table[OMAP3_STATE_C7].valid = 0;
+> -		WARN_ONCE(1, "%s: core off state C7 disabled due to i583\n",
+> +		printk(KERN_WARNING "%s: core off state C7 disabled due to i583\n",
+>  				__func__);
 
-Delaying NOHZ decisions until the load is zero improved the load
-estimation on our ARM/OMAP4 platform where HZ =128 and increased the
-time spent in deep C-states (~50% of idle time in C-states deeper than
-C1).  A power saving of ~20mA at battery level is observed during MP3
-playback on OMAP4/Blaze board.
+Please use pr_warn() instead.
 
-Signed-off-by: Nicole Chalhoub <n-chalhoub@ti.com>
-Signed-off-by: Vincent Bour <v-bour@ti.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-[khilman@ti.com: minor edits/changes to changelog]
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Applies to v2.6.38-rc2
+>  	}
+>  }
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index a4aa192..983b543 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -927,7 +927,7 @@ void omap3_pm_off_mode_enable(int enable)
+>  				pwrst->pwrdm == core_pwrdm &&
+>  				state == PWRDM_POWER_OFF) {
+>  			pwrst->next_state = PWRDM_POWER_RET;
+> -			WARN_ONCE(1,
+> +			printk(KERN_WARNING
+>  				"%s: Core OFF disabled due to errata i583\n",
+>  				__func__);
 
- kernel/time/tick-sched.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ditto
 
-diff --git a/kernel/time/tick-sched.c b/kernel/time/tick-sched.c
-index 3e216e0..96cb512 100644
---- a/kernel/time/tick-sched.c
-+++ b/kernel/time/tick-sched.c
-@@ -325,7 +325,7 @@ void tick_nohz_stop_sched_tick(int inidle)
- 	} while (read_seqretry(&xtime_lock, seq));
- 
- 	if (rcu_needs_cpu(cpu) || printk_needs_cpu(cpu) ||
--	    arch_needs_cpu(cpu)) {
-+	    arch_needs_cpu(cpu) || this_cpu_load()) {
- 		next_jiffies = last_jiffies + 1;
- 		delta_jiffies = 1;
- 	} else {
--- 
-1.7.3.5
+>  		} else {
+
+Thanks,
+
+Kevin
