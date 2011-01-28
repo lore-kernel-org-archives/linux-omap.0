@@ -1,102 +1,53 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH] OMAP: hwmod: Do not expect an entry in clkdev to add alias for opt_clks
-Date: Fri, 28 Jan 2011 16:47:55 +0530
-Message-ID: <1296213475-23460-1-git-send-email-rnayak@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH v10 00/18] OMAP2,3: hwmod DSS Adaptation
+Date: Fri, 28 Jan 2011 14:01:40 +0200
+Message-ID: <1296216100.22621.6.camel@tubuntu>
+References: <1295850125-21405-1-git-send-email-sumit.semwal@ti.com>
+	 <87mxmq6k2g.fsf@ti.com>  <20110125170331.GM13589@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37196 "EHLO comal.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.48]:59385 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753827Ab1A1LSA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Jan 2011 06:18:00 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p0SBHuXk027659
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 28 Jan 2011 05:17:58 -0600
+	id S1754562Ab1A1MBu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Jan 2011 07:01:50 -0500
+In-Reply-To: <20110125170331.GM13589@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Sumit Semwal <sumit.semwal@ti.com>, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The _add_optional_clock_alias function expects an entry
-already existing in the clkdev table in the form of
-<dev-id=NULL, con-id=role> which might not be the case
-always.
+On Tue, 2011-01-25 at 09:03 -0800, ext Tony Lindgren wrote:
+> * Kevin Hilman <khilman@ti.com> [110124 13:56]:
+> > Sumit Semwal <sumit.semwal@ti.com> writes:
+> > 
+> > > v10 of the patch series corrects return-error handling from platform_request_irq()
+> > > based on comments from Sergei Shtylyov and Russell King.
+> > > [https://patchwork.kernel.org/patch/497911/]
+> > 
+> > Tony,
+> > 
+> > Assuming Tomi is OK with this series, I think these are ready to go into
+> > omap-testing for some broader testing.
+> 
+> I can merge in Tomi's branch for testing once Tomi is happy with them.
 
-Instead, just check if an entry already exists in clkdev
-in the <dev-id=dev_name, con-id=role> form, else go ahead
-and add one.
+I've applied the patch set to my tree:
 
-Remove any assumption of an entry already existing in clkdev
-table in any form.
+git://gitorious.org/linux-omap-dss2/linux.git master
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Reported-by: Sumit Semwal <sumit.semwal@ti.com>
----
- arch/arm/plat-omap/omap_device.c |   25 +++++++++++++++++++------
- 1 files changed, 19 insertions(+), 6 deletions(-)
+It compiles, but due to this being my last day in Nokia, I don't have
+equipment to test it. It's also missing my signed-offs.
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 57adb27..80d4f35 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -83,9 +83,11 @@
- #include <linux/err.h>
- #include <linux/io.h>
- #include <linux/clk.h>
-+#include <linux/clkdev.h>
- 
- #include <plat/omap_device.h>
- #include <plat/omap_hwmod.h>
-+#include <plat/clock.h>
- 
- /* These parameters are passed to _omap_device_{de,}activate() */
- #define USE_WAKEUP_LAT			0
-@@ -244,7 +246,7 @@ static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
-  *
-  * For every optional clock present per hwmod per omap_device, this function
-  * adds an entry in the clocks list of the form <dev-id=dev_name, con-id=role>
-- * if an entry is already present in it with the form <dev-id=NULL, con-id=role>
-+ * if it does not exist already.
-  *
-  * The function is called from inside omap_device_build_ss(), after
-  * omap_device_register.
-@@ -258,21 +260,32 @@ static void _add_optional_clock_alias(struct omap_device *od,
- 				      struct omap_hwmod *oh)
- {
- 	int i;
-+	struct clk_lookup *l;
-+	struct omap_hwmod_opt_clk *oc;
- 
- 	for (i = 0; i < oh->opt_clks_cnt; i++) {
--		struct omap_hwmod_opt_clk *oc;
--		int r;
-+		struct clk *r;
- 
- 		oc = &oh->opt_clks[i];
- 
- 		if (!oc->_clk)
- 			continue;
- 
--		r = clk_add_alias(oc->role, dev_name(&od->pdev.dev),
--				  (char *)oc->clk, &od->pdev.dev);
--		if (r)
-+		r = clk_get_sys(dev_name(&od->pdev.dev), oc->role);
-+		if (!IS_ERR(r))
-+			continue; /* clkdev entry exists */
-+
-+		r = omap_clk_get_by_name((char *)oc->clk);
-+		if (IS_ERR(r)) {
- 			pr_err("omap_device: %s: clk_add_alias for %s failed\n",
- 			       dev_name(&od->pdev.dev), oc->role);
-+			continue;
-+		}
-+
-+		l = clkdev_alloc(r, oc->role, dev_name(&od->pdev.dev));
-+		if (!l)
-+			return;
-+		clkdev_add(l);
- 	}
- }
- 
--- 
-1.7.0.4
+I haven't been able to review the latest versions of the patch set, so
+these patches may not be the final versions. However, everything looked
+pretty good a few versions ago, so I don't expect any bigger changes.
+
+It's up to Tony if he wants to merge the branch, even if it may not be
+the very final version. I will get back to these patches when my
+situation clears up, which may take a bit over a week or so.
+
+ Tomi
+
 
