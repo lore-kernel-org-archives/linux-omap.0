@@ -1,71 +1,119 @@
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Subject: Re: [PATCH v2 4/4] OMAP4: DSS2: clocks: Add ick as dummy clock
-Date: Fri, 28 Jan 2011 10:29:07 +0530
-Message-ID: <AANLkTimD_JBR8wcKnxyFGVDjHhigAhhUqPJNnKC=PvhS@mail.gmail.com>
-References: <1295960398-25329-1-git-send-email-sumit.semwal@ti.com>
- <1295960398-25329-5-git-send-email-sumit.semwal@ti.com> <87k4hqp7d1.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: sricharan <r.sricharan@ti.com>
+Subject: [PATCH 2/5] omap4: board-4430sdp: Initialise the serial pads
+Date: Fri, 28 Jan 2011 10:38:15 +0530
+Message-ID: <1296191298-17545-3-git-send-email-r.sricharan@ti.com>
+References: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:55392 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754772Ab1A1E7a convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jan 2011 23:59:30 -0500
-Received: by mail-bw0-f44.google.com with SMTP id 12so3080342bwz.17
-        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 20:59:28 -0800 (PST)
-In-Reply-To: <87k4hqp7d1.fsf@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46076 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751066Ab1A1FGJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jan 2011 00:06:09 -0500
+In-Reply-To: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com
+To: r.sricharan@ti.com, linux-omap@vger.kernel.org
+Cc: santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com
 
-On Thu, Jan 27, 2011 at 11:16 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Sumit Semwal <sumit.semwal@ti.com> writes:
->
->> DSS code uses ick as one of the clocks in clk_get/clk_put. OMAP4 clo=
-ck database
->> doesn't have ick for DSS, so adding ick as dummy clock.
->>
->> Once pm_runtime* APIs get introduced in DSS, this will be revisited.
->>
->> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 =A02 ++
->> =A01 files changed, 2 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-om=
-ap2/clock44xx_data.c
->> index 74db324..8603b1f 100644
->> --- a/arch/arm/mach-omap2/clock44xx_data.c
->> +++ b/arch/arm/mach-omap2/clock44xx_data.c
->> @@ -3109,6 +3109,8 @@ static struct omap_clk omap44xx_clks[] =3D {
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "dsp_fck", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0&dsp_fck, =A0 =A0 =A0 CK_443X),
->> =A0 =A0 =A0 /* dss clocks */
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "fck", =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0&dss_fck, =A0 =A0 =A0 CK_443X),
->> + =A0 =A0 CLK("omap_dss", "ick", =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> + =A0 =A0 /* on OMAP4, ick is a dummy clock */
->
-> minor nit: the comment should go above the code, and should also stat=
-e
-> it's needed for OMAP2/3 compatibility.
-Sure, thanks! Will update in next version.
-~Sumit.
->
-> Kevin
->
->> =A0 =A0 =A0 /*
->> =A0 =A0 =A0 =A0* clocks handled via hwmod opt_clk mechanism need dev=
-=3DNULL,
->> =A0 =A0 =A0 =A0* con=3Dclock name as per actual clk structure, NOT r=
-ole
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Use the mux framework to initialise the serial pads.
+
+Signed-off-by: sricharan <r.sricharan@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |   73 ++++++++++++++++++++++++++++++++++-
+ 1 files changed, 72 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 1cb208b..d77f099 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -537,8 +537,79 @@ static void __init omap_sfh7741prox_init(void)
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
++
++static struct omap_device_pad serial2_pads[] __initdata = {
++	{ .name   = "uart2_cts.uart2_cts",
++	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
++	  .flags  = OMAP_DEVICE_PAD_REMUX_IDLE,
++	  .idle   = OMAP_MUX_MODE7,
++	},
++	{ .name   = "uart2_rts.uart2_rts",
++	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++	{ .name   = "uart2_rx.uart2_rx",
++	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
++	},
++	{ .name   = "uart2_tx.uart2_tx",
++	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++};
++
++static struct omap_device_pad serial3_pads[] __initdata = {
++	{ .name   = "uart3_cts_rctx.uart3_cts_rctx",
++	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
++	},
++	{ .name   = "uart3_rts_sd.uart3_rts_sd",
++	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++	{ .name   = "uart3_rx_irrx.uart3_rx_irrx",
++	  .enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
++	},
++	{ .name   = "uart3_tx_irtx.uart3_tx_irtx",
++	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++};
++
++static struct omap_device_pad serial4_pads[] __initdata = {
++	{ .name   = "uart4_rx.uart4_rx",
++	  .enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
++	},
++	{ .name   = "uart4_tx.uart4_tx",
++	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++};
++
++static struct omap_board_data serial2_data = {
++	.id		= 1,
++	.pads		= serial2_pads,
++	.pads_cnt	= ARRAY_SIZE(serial2_pads),
++};
++
++static struct omap_board_data serial3_data = {
++	.id		= 2,
++	.pads		= serial3_pads,
++	.pads_cnt	= ARRAY_SIZE(serial3_pads),
++};
++
++static struct omap_board_data serial4_data = {
++	.id		= 3,
++	.pads		= serial4_pads,
++	.pads_cnt	= ARRAY_SIZE(serial4_pads),
++};
++
++static inline void board_serial_init(void)
++{
++	omap_serial_init_port(&serial2_data);
++	omap_serial_init_port(&serial3_data);
++	omap_serial_init_port(&serial4_data);
++}
+ #else
+ #define board_mux	NULL
++
++static inline void board_serial_init(void)
++{
++	omap_serial_init();
++}
+ #endif
+ 
+ static void __init omap_4430sdp_init(void)
+@@ -553,7 +624,7 @@ static void __init omap_4430sdp_init(void)
+ 	omap4_i2c_init();
+ 	omap_sfh7741prox_init();
+ 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+-	omap_serial_init();
++	board_serial_init();
+ 	omap4_twl6030_hsmmc_init(mmc);
+ 	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
+ 	usb_nop_xceiv_register();
+-- 
+1.7.0.4
+
