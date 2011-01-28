@@ -1,116 +1,63 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH v3 1/4] ASoC: DMIC: Adding the OMAP DMIC driver
-Date: Fri, 28 Jan 2011 14:15:36 +0530
-Message-ID: <AANLkTikZExkXPSzD3OrhZgC2pdoL5Lw8AqK6Ocso0mnq@mail.gmail.com>
-References: <1295992862-6154-1-git-send-email-dlambert@ti.com> <1295992862-6154-2-git-send-email-dlambert@ti.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 11/14] ARM: v6k: use CPU domain feature if we include
+ support for arch < ARMv6K
+Date: Fri, 28 Jan 2011 09:46:06 +0000
+Message-ID: <1296207966.1799.10.camel@e102109-lin.cambridge.arm.com>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+	 <E1Peuh2-0003Sx-5e@rmk-PC.arm.linux.org.uk>
+	 <AANLkTimN8Gn5a-k4ai7EhMGpqbj_u4Y8fHvUh_actzd+@mail.gmail.com>
+	 <20110127185935.GA1651@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:40977 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755070Ab1A1IqR convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Jan 2011 03:46:17 -0500
-Received: by ywe10 with SMTP id 10so1101282ywe.5
-        for <linux-omap@vger.kernel.org>; Fri, 28 Jan 2011 00:46:16 -0800 (PST)
-In-Reply-To: <1295992862-6154-2-git-send-email-dlambert@ti.com>
+Received: from service87.mimecast.com ([94.185.240.25]:50113 "HELO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751529Ab1A1JqS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jan 2011 04:46:18 -0500
+In-Reply-To: <20110127185935.GA1651@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Lambert <dlambert@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-<<snip>>
+On Thu, 2011-01-27 at 18:59 +0000, Russell King - ARM Linux wrote:
+> On Thu, Jan 27, 2011 at 06:14:56PM +0000, Catalin Marinas wrote:
+> > On 17 January 2011 19:24, Russell King - ARM Linux
+> > <linux@arm.linux.org.uk> wrote:
+> > > Rather than turning off CPU domain switching when the build architecture
+> > > includes ARMv6K, thereby causing problems for ARMv6-supporting kernels,
+> > > turn it on when it's required to support a CPU architecture.
+> >
+> > (sorry, I'm well behind list messages, didn't reply earlier)
+> >
+> > Does it mean that we get domains enabled even for ARMv7 when ARMv6 is
+> > built in the same kernel? The side effect is that user read-only
+> > addresses are writable by the kernel and SWP emulation no longer
+> > works.
+> 
+> It means that a kernel with ARMv6 through to ARMv7 will have CPU
+> domains enabled.  So maybe we want:
+> 
+> config CPU_32v6
+>         select CPU_USE_DOMAINS if !CPU_V6K && MMU
+> 
+> instead?
 
-> +
-> +static int omap_dmic_set_dai_sysclk(struct snd_soc_dai *dai,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- int clk_id, unsigned int freq,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- int dir)
-> +{
-> + =A0 =A0 =A0 struct omap_dmic *dmic =3D snd_soc_dai_get_drvdata(dai)=
-;
-> + =A0 =A0 =A0 struct clk *dmic_clk, *parent_clk;
-> + =A0 =A0 =A0 int ret =3D 0;
-> +
-> + =A0 =A0 =A0 dmic_clk =3D clk_get(NULL, "dmic_fck");
+Does this mean that we could still configure a kernel to run on CPU_V6
+with domains disabled? The vectors page becomes read-only and setting
+the TLS would fail.
 
-It is preferred to use device pointer. instead of NULL.
-(Applicable elsewhere)
+My point is that we may want SWP_EMULATE disabled (or depending on !
+CPU_USE_DOMAINS). With domains enabled every read-only user page is
+writeable by the kernel. This has the side-effect that SWP emulation
+using LDREX/STREX breaks COW.
 
-> + =A0 =A0 =A0 if (IS_ERR(dmic_clk))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
-> +
-> + =A0 =A0 =A0 switch (clk_id) {
-> + =A0 =A0 =A0 case OMAP_DMIC_SYSCLK_PAD_CLKS:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 parent_clk =3D clk_get(NULL, "pad_clks_=
-ck");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(parent_clk)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENODEV;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_par;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 case OMAP_DMIC_SYSCLK_SLIMBLUS_CLKS:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 parent_clk =3D clk_get(NULL, "slimbus_c=
-lk");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(parent_clk)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENODEV;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_par;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 case OMAP_DMIC_SYSCLK_SYNC_MUX_CLKS:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 parent_clk =3D clk_get(NULL, "dmic_sync=
-_mux_ck");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(parent_clk)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENODEV;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_par;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 default:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dai->dev, "clk_id not supported=
- %d\n", clk_id);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EINVAL;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_par;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 if (dmic->sysclk !=3D clk_id) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* reparent not allowed if a stream is =
-ongoing */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (dmic->active > 1) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EBUSY;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_busy;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* disable clock while reparenting */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (dmic->active =3D=3D 1)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(dmi=
-c->dev);
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D clk_set_parent(dmic_clk, parent=
-_clk);
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (dmic->active =3D=3D 1)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(dmi=
-c->dev);
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dmic->sysclk =3D clk_id;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 dmic->clk_freq =3D clk_get_rate(dmic_clk);
-> +
-> +err_busy:
-> + =A0 =A0 =A0 clk_put(parent_clk);
-> +err_par:
-> + =A0 =A0 =A0 clk_put(dmic_clk);
-> +
-> + =A0 =A0 =A0 return ret;
-> +}
-> +
+We could change early_trap_init() to always use the vectors_page rather
+than the high mapping and determine at run-time (patch the code) whether
+set_pte_ext sets R/W kernel permissions for RO user pages.
 
-<<snip>>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Catalin
+
+
