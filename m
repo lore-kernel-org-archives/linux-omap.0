@@ -1,62 +1,129 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RESEND v8 3/7] omap: gpmc: enable irq mode in gpmc
-Date: Fri, 28 Jan 2011 08:51:58 -0800
-Message-ID: <20110128165158.GU23412@atomide.com>
-References: <1295443503-14515-1-git-send-email-s-ghorai@ti.com>
- <1295443503-14515-4-git-send-email-s-ghorai@ti.com>
- <20110121184020.GD11678@atomide.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B036A8DB549@dbde02.ent.ti.com>
- <20110125165735.GL13589@atomide.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B036AA2EC2E@dbde02.ent.ti.com>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: RE: [PATCH 4/5] omap4: board-omap4panda: Initialise the serial pads
+Date: Sat, 29 Jan 2011 02:23:01 +0530
+Message-ID: <2d8db7abba67b9f29041e0f3512fa98b@mail.gmail.com>
+References: <1296191298-17545-1-git-send-email-r.sricharan@ti.com> <1296191298-17545-5-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33396 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754883Ab1A1QwG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jan 2011 11:52:06 -0500
-Content-Disposition: inline
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B036AA2EC2E@dbde02.ent.ti.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:43666 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751282Ab1A1UxE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Jan 2011 15:53:04 -0500
+Received: by mail-ww0-f47.google.com with SMTP id 39so4561897wwb.16
+        for <linux-omap@vger.kernel.org>; Fri, 28 Jan 2011 12:53:04 -0800 (PST)
+In-Reply-To: <1296191298-17545-5-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, paul@pwsan.com
 
-* Ghorai, Sukumar <s-ghorai@ti.com> [110128 00:14]:
-> 
-> 
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Tuesday, January 25, 2011 10:28 PM
-> > To: Ghorai, Sukumar
-> > Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
-> > kernel@lists.infradead.org
-> > Subject: Re: [PATCH RESEND v8 3/7] omap: gpmc: enable irq mode in gpmc
-> > 
-> > * Ghorai, Sukumar <s-ghorai@ti.com> [110122 09:53]:
-> > > >
-> > > > I think I've commented on this before, but why don't you make
-> > gpmc_init
-> > > > a subsys_initcall? There should be no reason to call this earlier.
-> > > > If something does not work because of that, then that issue must be
-> > > > fixed.
-> > >
-> > > [Ghorai] You suggested the same in previous v5 and v6; and I mentioned
-> > > the issues [1] that - nand_init()called before
-> > subsys_initcall(gpmc_init);
-> > > Let me know if I am missing anything again.
-> > 
-> > There should not be any need to call nand_init early either. We want
-> > to initialize as much as possible late so we have proper console
-> > error messages.
-> 
-> [Ghorai] thanks...
-> changed to postcore_initcall() and it solved the problem I mentioned earlier. And it simplifies the overall modification in different board files.
-> postcore_initcall(gpmc_init);
+Sricharan wrote:
+> Use the mux framework to initialise the serial pads.
+>
+> Signed-off-by: sricharan <r.sricharan@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap4panda.c |   72
++++++++++++++++++++++++++++++++-
+>  1 files changed, 71 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c
+> b/arch/arm/mach-omap2/board-omap4panda.c
+> index b43e3ff..9688ea9 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -370,13 +370,83 @@ static int __init omap4_panda_i2c_init(void)
+>  	omap_register_i2c_bus(4, 400, NULL, 0);
+>  	return 0;
+>  }
+> -
+>  #ifdef CONFIG_OMAP_MUX
+>  static struct omap_board_mux board_mux[] __initdata = {
+>  	{ .reg_offset = OMAP_MUX_TERMINATOR },
+>  };
+> +
+> +static struct omap_device_pad serial2_pads[] __initdata = {
+> +	{ .name   = "uart2_cts.uart2_cts",
+> +	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
+> +	  .flags  = OMAP_DEVICE_PAD_REMUX_IDLE,
+> +	  .idle   = OMAP_MUX_MODE7,
+> +	},
+> +	{ .name   = "uart2_rts.uart2_rts",
+> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+> +	},
+> +	{ .name   = "uart2_rx.uart2_rx",
+> +	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
+> +	},
+> +	{ .name   = "uart2_tx.uart2_tx",
+> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+> +	},
+> +};
+> +
+> +static struct omap_device_pad serial3_pads[] __initdata = {
+> +	{ .name   = "uart3_cts_rctx.uart3_cts_rctx",
+> +	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
+> +	},
+> +	{ .name   = "uart3_rts_sd.uart3_rts_sd",
+> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+> +	},
+> +	{ .name   = "uart3_rx_irrx.uart3_rx_irrx",
+> +	  .enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
+> +	},
+> +	{ .name   = "uart3_tx_irtx.uart3_tx_irtx",
+> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+> +	},
+> +};
+> +
+> +static struct omap_device_pad serial4_pads[] __initdata = {
+> +	{ .name   = "uart4_rx.uart4_rx",
+> +	.enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
+> +	},
+> +	{ .name   = "uart4_tx.uart4_tx",
+> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+> +	},
+> +};
+> +
+> +static struct omap_board_data serial2_data = {
+> +	.id             = 1,
+> +	.pads           = serial2_pads,
+> +	.pads_cnt       = ARRAY_SIZE(serial2_pads),
+> +};
+> +
+> +static struct omap_board_data serial3_data = {
+> +	.id             = 2,
+> +	.pads           = serial3_pads,
+> +	.pads_cnt       = ARRAY_SIZE(serial3_pads),
+> +};
+> +
+> +static struct omap_board_data serial4_data = {
+> +	.id             = 3,
+> +	.pads           = serial4_pads,
+> +	.pads_cnt       = ARRAY_SIZE(serial4_pads),
+> +};
+> +
+> +static inline void board_serial_init(void)
+> +{
+> +	omap_serial_init_port(&serial2_data);
+> +	omap_serial_init_port(&serial3_data);
+> +	omap_serial_init_port(&serial4_data);
+> +}
+>  #else
+>  #define board_mux	NULL
+> +
+> +static inline void board_serial_init(void)
+> +{
+> +	omap_serial_init();
+> +}
+>  #endif
+>
+>  static void __init omap4_panda_init(void)
 
-OK great. I will check the order of initcalls anyways over next few
-weeks, so whatever works for the initcall is fine for now.
+You are changing the behavior with this patch.
+Original code configured all 4 UARTs, while it
+appears that your patch changes this to skip UART1.
 
-Regards,
+This is not explained in the changelog. Is this
+a deliberate change? Why would you want to do this?
 
-Tony
+- Anand
