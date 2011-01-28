@@ -1,56 +1,102 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 11/14] ARM: v6k: use CPU domain feature if we include
-	support for arch < ARMv6K
-Date: Fri, 28 Jan 2011 11:06:29 +0000
-Message-ID: <20110128110629.GB13005@n2100.arm.linux.org.uk>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk> <E1Peuh2-0003Sx-5e@rmk-PC.arm.linux.org.uk> <AANLkTimN8Gn5a-k4ai7EhMGpqbj_u4Y8fHvUh_actzd+@mail.gmail.com> <20110127185935.GA1651@n2100.arm.linux.org.uk> <1296207966.1799.10.camel@e102109-lin.cambridge.arm.com> <20110128095953.GA13005@n2100.arm.linux.org.uk> <1296211611.1799.15.camel@e102109-lin.cambridge.arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH] OMAP: hwmod: Do not expect an entry in clkdev to add alias for opt_clks
+Date: Fri, 28 Jan 2011 16:47:55 +0530
+Message-ID: <1296213475-23460-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59430 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753522Ab1A1LHH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jan 2011 06:07:07 -0500
-Content-Disposition: inline
-In-Reply-To: <1296211611.1799.15.camel@e102109-lin.cambridge.arm.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37196 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753827Ab1A1LSA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Jan 2011 06:18:00 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p0SBHuXk027659
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 28 Jan 2011 05:17:58 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Rajendra Nayak <rnayak@ti.com>
 
-On Fri, Jan 28, 2011 at 10:46:51AM +0000, Catalin Marinas wrote:
-> On Fri, 2011-01-28 at 09:59 +0000, Russell King - ARM Linux wrote:
-> > On Fri, Jan 28, 2011 at 09:46:06AM +0000, Catalin Marinas wrote:
-> > > My point is that we may want SWP_EMULATE disabled (or depending on !
-> > > CPU_USE_DOMAINS). With domains enabled every read-only user page is
-> > > writeable by the kernel. This has the side-effect that SWP emulation
-> > > using LDREX/STREX breaks COW.
-> > 
-> > Yes, and maybe we should instead just enable the SWP instruction by default
-> > on ARMv7, and if SWP emulation is built, disable it at that point.
-> 
-> We can't disable the SWP instruction as long as domains are enabled (COW
-> not working for in-kernel STREX).
-> 
-> On ARMv7 we could always force R/O kernel/user pages in set_pte_ext
-> independent of the domains setting and have early_trap_init() use
-> vectors_page() if cpu_architecture() >= 7 (this would actually catch
-> ARM11MPCore as well because of the way we interpret CPUID).
+The _add_optional_clock_alias function expects an entry
+already existing in the clkdev table in the form of
+<dev-id=NULL, con-id=role> which might not be the case
+always.
 
-What about a kernel covering ARMv6 too?  Writing to an aliased mapping
-of the vectors page (as required for TLS emulation) will require
-additional cache maintainence on every context switch.
+Instead, just check if an entry already exists in clkdev
+in the <dev-id=dev_name, con-id=role> form, else go ahead
+and add one.
 
-1. SWP emulation requires domain support turned off
-2. We can't turn domains off without creating a vectors page alias
-3. We can't have a separate vectors alias with ARMv6 VIPT aliasing caches
-   without additional cache maintainence.
+Remove any assumption of an entry already existing in clkdev
+table in any form.
 
-I don't think overloading the context switch with yet more conditionals
-based on yet more TLS combinations is a practical solution.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Reported-by: Sumit Semwal <sumit.semwal@ti.com>
+---
+ arch/arm/plat-omap/omap_device.c |   25 +++++++++++++++++++------
+ 1 files changed, 19 insertions(+), 6 deletions(-)
 
-So, ARMv6 TLS emulation, and SWP emulation are incompatible with each
-other.
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 57adb27..80d4f35 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -83,9 +83,11 @@
+ #include <linux/err.h>
+ #include <linux/io.h>
+ #include <linux/clk.h>
++#include <linux/clkdev.h>
+ 
+ #include <plat/omap_device.h>
+ #include <plat/omap_hwmod.h>
++#include <plat/clock.h>
+ 
+ /* These parameters are passed to _omap_device_{de,}activate() */
+ #define USE_WAKEUP_LAT			0
+@@ -244,7 +246,7 @@ static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
+  *
+  * For every optional clock present per hwmod per omap_device, this function
+  * adds an entry in the clocks list of the form <dev-id=dev_name, con-id=role>
+- * if an entry is already present in it with the form <dev-id=NULL, con-id=role>
++ * if it does not exist already.
+  *
+  * The function is called from inside omap_device_build_ss(), after
+  * omap_device_register.
+@@ -258,21 +260,32 @@ static void _add_optional_clock_alias(struct omap_device *od,
+ 				      struct omap_hwmod *oh)
+ {
+ 	int i;
++	struct clk_lookup *l;
++	struct omap_hwmod_opt_clk *oc;
+ 
+ 	for (i = 0; i < oh->opt_clks_cnt; i++) {
+-		struct omap_hwmod_opt_clk *oc;
+-		int r;
++		struct clk *r;
+ 
+ 		oc = &oh->opt_clks[i];
+ 
+ 		if (!oc->_clk)
+ 			continue;
+ 
+-		r = clk_add_alias(oc->role, dev_name(&od->pdev.dev),
+-				  (char *)oc->clk, &od->pdev.dev);
+-		if (r)
++		r = clk_get_sys(dev_name(&od->pdev.dev), oc->role);
++		if (!IS_ERR(r))
++			continue; /* clkdev entry exists */
++
++		r = omap_clk_get_by_name((char *)oc->clk);
++		if (IS_ERR(r)) {
+ 			pr_err("omap_device: %s: clk_add_alias for %s failed\n",
+ 			       dev_name(&od->pdev.dev), oc->role);
++			continue;
++		}
++
++		l = clkdev_alloc(r, oc->role, dev_name(&od->pdev.dev));
++		if (!l)
++			return;
++		clkdev_add(l);
+ 	}
+ }
+ 
+-- 
+1.7.0.4
 
-So either we don't have the SWP instruction at all on ARMv6+, or we have
-it enabled in hardware, or we don't and use the emulation where possible.
