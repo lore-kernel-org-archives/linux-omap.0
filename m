@@ -1,59 +1,155 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH-V2] OMAP3EVM:FIX: Reset the smsc911x ethernet controller in board_init
-Date: Thu, 27 Jan 2011 12:08:16 -0800
-Message-ID: <87d3nikt3j.fsf@ti.com>
-References: <1295968956-10166-1-git-send-email-hvaibhav@ti.com>
-	<19F8576C6E063C45BE387C64729E739404BD7BE3F4@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Latest regressions
+Date: Thu, 27 Jan 2011 16:18:30 -0800
+Message-ID: <20110128001829.GN23412@atomide.com>
+References: <20110107115744.GL1198@n2100.arm.linux.org.uk>
+ <20110107165626.GD880@atomide.com>
+ <20110126085848.GB2698@n2100.arm.linux.org.uk>
+ <20110126181215.GC23412@atomide.com>
+ <20110127122245.GB26418@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:42135 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752752Ab1A0UIU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jan 2011 15:08:20 -0500
-Received: by mail-yw0-f50.google.com with SMTP id 21so842474ywc.23
-        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2011 12:08:19 -0800 (PST)
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404BD7BE3F4@dbde02.ent.ti.com>
-	(Vaibhav Hiremath's message of "Tue, 25 Jan 2011 20:58:44 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49370 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753894Ab1A1ASj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2011 19:18:39 -0500
+Content-Disposition: inline
+In-Reply-To: <20110127122245.GB26418@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
 
-"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110127 04:21]:
+> On Wed, Jan 26, 2011 at 10:12:16AM -0800, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [110126 00:57]:
+> > > On Fri, Jan 07, 2011 at 08:56:26AM -0800, Tony Lindgren wrote:
+> > > > > diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> > > > > index e66687b..c203204 100644
+> > > > > --- a/arch/arm/mach-omap2/io.c
+> > > > > +++ b/arch/arm/mach-omap2/io.c
+> > > > > @@ -314,14 +314,13 @@ static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
+> > > > >  	return omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
+> > > > >  }
+> > > > >  
+> > > > > +void __iomem *omap_irq_base;
+> > > > > +
+> > > > >  /*
+> > > > >   * Initialize asm_irq_base for entry-macro.S
+> > > > >   */
+> > > > >  static inline void omap_irq_base_init(void)
+> > > > >  {
+> > > > > -	extern void __iomem *omap_irq_base;
+> > > > > -
+> > > > > -#ifdef MULTI_OMAP2
+> > > > >  	if (cpu_is_omap24xx())
+> > > > >  		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP24XX_IC_BASE);
+> > > > >  	else if (cpu_is_omap34xx())
+> > > > > @@ -330,7 +329,6 @@ static inline void omap_irq_base_init(void)
+> > > > >  		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE);
+> > > > >  	else
+> > > > >  		pr_err("Could not initialize omap_irq_base\n");
+> > > > > -#endif
+> > > > >  }
+> > > > >  
+> > > > >  void __init omap2_init_common_infrastructure(void)
+> > > > 
+> > > > This looks good to me.
+> > > 
+> > > I notice this one is still there.
+> > 
+> > Sorry I thought you'll queue this one.
+> > 
+> > BTW this fixes regression from patch 5d190c40100793a6dfc37bf325677c10f3c80edf
+> > (omap2+: Initialize omap_irq_base for entry-macro.S from platform code).
+> > So it should be OK for the -rc cycle:
+> > 
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > Let me know if you want me to take it, in that case I think it's still
+> > missing your Signed-off-by.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> 
+> > Let me know if you want me to queue it.
+> 
+> Yes please.
 
->> -----Original Message-----
->> From: Hiremath, Vaibhav
->> Sent: Tuesday, January 25, 2011 8:53 PM
->> To: linux-omap@vger.kernel.org
->> Cc: Hiremath, Vaibhav; Varadarajan, Charulatha
->> Subject: [PATCH-V2] OMAP3EVM:FIX: Reset the smsc911x ethernet controller
->> in board_init
->> 
->> With addition of hwmod support to gpio, the ethernet controller
->> goes undetected for OMAP35xEVM. So explicitly assert the reset signal to
->> ethernet controller smsc911x -
->> 
->> 	- GPIO7 (>=RevG version of EVM's)
->> 	- GPIO64 (<=RevD version of EVM's)
->> 
->> This patch is based on intial version from Charulatha V, reference
->> to original discussion -
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35784.html
->> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> Signed-off-by: Charulatha V <charu@ti.com>
->> Tested-by: Kevin Hilman <khilman@ti.com>
->> ---
->> Since Kevin reported that this patch doesn't get applied cleanly,
->> so I am reposting it again after making sure that it gets applied cleanly.
->> 
-> [Hiremath, Vaibhav] Oops, missed linux-arm-kernel list, adding here.
->
-> Not sure whether I need to repost keeping linux-arm-kernel?
->
+OK here's I've queued. I updated the comments a bit.
 
-Also, did you post the smc911x driver fix yet that is needed for testing
-with newer kernels?
+Will also post a similar change for omap1.
 
-Kevin
+Tony
+
+
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Date: Fri, 7 Jan 2011 11:57:44 +0000
+Subject: [PATCH] omap2+: Fix unused variable warning for omap_irq_base
+
+Commit 5d190c40100793a6dfc37bf325677c10f3c80edf
+(omap2+: Initialize omap_irq_base for entry-macro.S from
+platform code) simplified the handling of omap_irq_base
+for multi-omap builds. However, this patch also introduced
+a build warning for !MULTI_OMAP2 builds:
+
+arch/arm/mach-omap2/io.c: In function 'omap_irq_base_init':
+arch/arm/mach-omap2/io.c:322: warning: unused variable 'omap_irq_base'
+
+Fix this by removing the ifdef. Also simplify things further
+by moving omap_irq_base out of entry-macro.S.
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+[tony@atomide.com: updated comments]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/include/mach/entry-macro.S
++++ b/arch/arm/mach-omap2/include/mach/entry-macro.S
+@@ -38,20 +38,6 @@
+  */
+ 
+ #ifdef MULTI_OMAP2
+-
+-/*
+- * We use __glue to avoid errors with multiple definitions of
+- * .globl omap_irq_base as it's included from entry-armv.S but not
+- * from entry-common.S.
+- */
+-#ifdef __glue
+-		.pushsection .data
+-		.globl	omap_irq_base
+-omap_irq_base:
+-		.word	0
+-		.popsection
+-#endif
+-
+ 		/*
+ 		 * Configure the interrupt base on the first interrupt.
+ 		 * See also omap_irq_base_init for setting omap_irq_base.
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -314,14 +314,13 @@ static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
+ 	return omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
+ }
+ 
++void __iomem *omap_irq_base;
++
+ /*
+  * Initialize asm_irq_base for entry-macro.S
+  */
+ static inline void omap_irq_base_init(void)
+ {
+-	extern void __iomem *omap_irq_base;
+-
+-#ifdef MULTI_OMAP2
+ 	if (cpu_is_omap24xx())
+ 		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP24XX_IC_BASE);
+ 	else if (cpu_is_omap34xx())
+@@ -330,7 +329,6 @@ static inline void omap_irq_base_init(void)
+ 		omap_irq_base = OMAP2_L4_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE);
+ 	else
+ 		pr_err("Could not initialize omap_irq_base\n");
+-#endif
+ }
+ 
+ void __init omap2_init_common_infrastructure(void)
