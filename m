@@ -1,42 +1,65 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: [PATCH] video: omap24xxcam: Fix compilation
-Date: Mon, 31 Jan 2011 13:16:09 +0100
-Message-ID: <1296476169-10862-1-git-send-email-weber@corscience.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Thomas Weber <weber@corscience.de>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 0/2] OMAP: omap_device: API to  modify SYSCONFIG register
+Date: Mon, 31 Jan 2011 18:04:46 +0530
+Message-ID: <1296477288-26253-1-git-send-email-kishon@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37585 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755342Ab1AaMic (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Jan 2011 07:38:32 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: charu@ti.com, shubhrajyoti@ti.com, b-cousson@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, p-basak2@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 
-Add linux/sched.h because of missing declaration of TASK_NORMAL.
+Certain peripherals require autoidle bits to be disabled before performing
+some operations. This patch series provides APIs in omap_device layer to
+modify the SYSCONFIG register.
 
-This patch fixes the following error:
+Since current implementation of PM run time framework does not support
+changing sysconfig settings during middle of the on going operation,
+these APIs will support the same.
 
-drivers/media/video/omap24xxcam.c: In function
-'omap24xxcam_vbq_complete':
-drivers/media/video/omap24xxcam.c:415: error: 'TASK_NORMAL' undeclared
-(first use in this function)
-drivers/media/video/omap24xxcam.c:415: error: (Each undeclared
-identifier is reported only once
-drivers/media/video/omap24xxcam.c:415: error: for each function it
-appears in.)
+For e.g McBSP 2 and 3 in OMAP3 has sidetone feature which requires
+autoidle to be disabled before starting the sidetone.
 
-Signed-off-by: Thomas Weber <weber@corscience.de>
----
- drivers/media/video/omap24xxcam.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+McBSP also requires the SYSCONFIG to be in NOIDLE when ELEMENTSYNCH
+mode is selected for DMA operation.
 
-diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
-index 0175527..f6626e8 100644
---- a/drivers/media/video/omap24xxcam.c
-+++ b/drivers/media/video/omap24xxcam.c
-@@ -36,6 +36,7 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/slab.h>
-+#include <linux/sched.h>
- 
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
--- 
-1.7.4.rc3
+Created on top of linux OMAP master (linux-omap-2.6 :master)
+Tested on OMAP4430, OMAP3430 and OMAP2430 SDP boards. Verified that this patch
+series does not break the OMAP1 build.
+
+V2:
+Mutex is replaced with spinlock.
+
+V1:
+* Creates 3 separate API's to change the idle mode to NOIDLE, SMARTIDLE
+ and FORCEIDLE and one more API to change the idlemode to default value
+ based on the hwmod flag. This change is done to align with the discussion
+ on [3]
+
+* Added hwmod mutex in omap hwmod APIs that modifies SYSCONFIG register.
+
+* omap_hwmod_set_slave_idlemode() is not modified to take true/false kind-of
+argument since 3 states are associated with SIDLE bits (force, no and smart).
+
+These changes were made to align with Benoit's and Paul's comments for a
+similar patch written by Manjunath [1] for changing MSTANDBY bits.
+
+The discussions that happened for the RFC patch can be found at [2]
+
+[1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39647.html
+[2]: https://patchwork.kernel.org/patch/134371/
+[3]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39615.html
+
+Kishon Vijay Abraham I (2):
+  OMAP: hwmod: API to handle autoidle mode
+  OMAP: omap_device: API to modify AUTOIDLE and SMARTIDLE bits
+
+ arch/arm/mach-omap2/omap_hwmod.c              |   36 +++++
+ arch/arm/plat-omap/include/plat/omap_device.h |    6 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
+ arch/arm/plat-omap/omap_device.c              |  176 +++++++++++++++++++++++++
+ 4 files changed, 219 insertions(+), 0 deletions(-)
+
