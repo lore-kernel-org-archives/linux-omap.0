@@ -1,171 +1,123 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
-Date: Mon, 31 Jan 2011 11:36:49 +0100
-Message-ID: <AANLkTinRZyVBu=c3cHBQ7OmJv3U8717_w8Haig4R=ZQh@mail.gmail.com>
-References: <1294935563-14426-1-git-send-email-j-pihet@ti.com>
-	<b52b65db02da68b3febc0c9cf1e99040@mail.gmail.com>
-	<9215f5d7252a4b60f58c3e14a9d46f59@mail.gmail.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [lm-sensors] [PATCH v3] hwmon: twl4030: Driver for twl4030
+ madc module
+Date: Mon, 31 Jan 2011 11:43:47 +0100
+Message-ID: <20110131104346.GA5954@sortiz-mobl>
+References: <1294287457-2438-1-git-send-email-j-keerthy@ti.com>
+ <20110106053328.GA7489@ericsson.com>
+ <20110106120713.GD17184@sirena.org.uk>
+ <20110106150430.GA9053@ericsson.com>
+ <20110106202142.GC8018@opensource.wolfsonmicro.com>
+ <1294350903.9786.103.camel@groeck-laptop>
+ <AANLkTinkNNhrq+b5eiE7XrYQUsR2-vVD08btqM81KJA1@mail.gmail.com>
+ <AANLkTinDVZe0eefrPZsMoUyzqfQOxZsDOaD0VG3OqXyT@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:40907 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755303Ab1AaKgu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Jan 2011 05:36:50 -0500
-Received: by qyk12 with SMTP id 12so5983255qyk.19
-        for <linux-omap@vger.kernel.org>; Mon, 31 Jan 2011 02:36:49 -0800 (PST)
-In-Reply-To: <9215f5d7252a4b60f58c3e14a9d46f59@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:52356 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751543Ab1AaKnv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Jan 2011 05:43:51 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTinDVZe0eefrPZsMoUyzqfQOxZsDOaD0VG3OqXyT@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Jean Pihet-XID <j-pihet@ti.com>
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balajitk@ti.com" <balajitk@ti.com>, guenter.roeck@ericsson.com
 
-Hi Santosh,
+Hi Keerthy,
 
-On Sun, Jan 30, 2011 at 6:57 AM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
->> -----Original Message-----
->> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
->> Sent: Saturday, January 29, 2011 10:45 PM
->> To: jean.pihet@newoldbits.com; linux-omap@vger.kernel.org
->> Cc: Jean Pihet-XID
->> Subject: RE: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
->>
->> Jean,
->> > -----Original Message-----
->> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> > owner@vger.kernel.org] On Behalf Of jean.pihet@newoldbits.com
->> > Sent: Thursday, January 13, 2011 9:49 PM
->> > To: linux-omap@vger.kernel.org
->> > Cc: Jean Pihet
->> > Subject: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
->> >
->> > From: Jean Pihet <j-pihet@ti.com>
->> >
->> > Most of the ASM sleep code (in arch/arm/mach-omap2/sleep34xx.S)
->> > is copied to internal SRAM and run from there.
->> > However only a small part of the code really needs to run from
->> > internal SRAM.
->> >
->> > This fix lets most of the ASM idle code run from the DDR
->> > in order to minimize the SRAM usage. No performance
->> > loss or gain can be measured with a 32KHz clock period.
->> >
->> > The only pieces of code that are mandatory in SRAM
->> > are:
->> > - the i443 erratum WA,
->> > - the i581 erratum WA,
->> > - the security extension code.
->> >
->> > SRAM usage:
->> > - original code:
->> > =A0 . 560 bytes for omap3_sram_configure_core_dpll (used by DVFS),
->> > =A0 . 1368 bytes for omap_sram_idle (used by suspend/resume in
->> > RETention),
->> > =A0 . 124 bytes for es3_sdrc_fix (used by suspend/resume in OFF mo=
-de
->> > on ES3.x),
->> > =A0 . 108 bytes for save_secure_ram_context (used on HS parts).
->> >
->> > With this fix the usage for suspend/resume in RETention goes down
->> > 312 bytes, so the
->> > gain in SRAM usage for suspend/resume is > 1KB.
->> >
->> > Tested on OMAP3EVM, Beagleboard (ES2.x) and N900 (ES3.1)
->> > in idle with full RET and OFF modes.
->> >
->> > Signed-off-by: Jean Pihet <j-pihet@ti.com>
->> > ---
->> > =A0arch/arm/mach-omap2/pm.h =A0 =A0 =A0 =A0| =A0 19 ++-
->> > =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0| =A0 19 ++-
->> > =A0arch/arm/mach-omap2/sleep34xx.S | =A0299 ++++++++++++++++++++++=
-+---
->> --
->> > -----------
->> > =A03 files changed, 200 insertions(+), 137 deletions(-)
->> >
->> [...]
->>
->> > diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-
->> > omap2/sleep34xx.S
->> > index 98d8232..ced85b5 100644
->> > --- a/arch/arm/mach-omap2/sleep34xx.S
->> > +++ b/arch/arm/mach-omap2/sleep34xx.S
->> > @@ -163,8 +163,10 @@ ENTRY(save_secure_ram_context_sz)
->> > =A0 *
->> > =A0 *
->> > =A0 * Notes:
->> > - * - this code gets copied to internal SRAM at boot and after
->> wake-
->> > up
->> > - * =A0 from OFF mode. The execution pointer in SRAM is
->> > _omap_sram_idle.
->> > + * - only the minimum set of functions gets copied to internal
->> SRAM
->> > at boot
->> > + * =A0 and after wake-up from OFF mode, cf. omap_push_sram_idle.
->> The
->> > function
->> > + * =A0 pointers in SDRAM or SRAM are called depending on the
->> desired
->> > low power
->> > + * =A0 target state.
->> > =A0 * - when the OMAP wakes up it continues at different execution
->> > points
->> > =A0 * =A0 depending on the low power mode (non-OFF vs OFF modes),
->> > =A0 * =A0 cf. 'Resume path for xxx mode' comments.
->> > @@ -181,9 +183,15 @@ ENTRY(omap34xx_cpu_suspend)
->> > =A0 =A0 =A0* =A0 3 - Both L1 and L2 lost
->> > =A0 =A0 =A0*/
->> >
->> > - =A0 /* Directly jump to WFI is the context save is not required =
-*/
->> > - =A0 cmp =A0 =A0 r1, #0x0
->> > - =A0 beq =A0 =A0 omap3_do_wfi
->> > + =A0 /*
->> > + =A0 =A0* For OFF mode: save context and jump to WFI in SDRAM
->> > (omap3_do_wfi)
->> > + =A0 =A0* For non-OFF modes: jump to the WFI code in SRAM
->> > (omap3_do_wfi_sram)
->>
->> Why is this distinction? For non-low power modes
->> it should be even safer to issue WFI from DDR itself.
->>
->> Do I miss any errata here ?
-=46or non-OFF modes the erratum ID i581 WA forces us to restore the SDR=
-C
-state before accessing the SDRAM, cf. wait_sdrc_ok that implements
-that. Given that the non-OFF mode triggering WFI needs to be run from
-SRAM.
+On Sat, Jan 22, 2011 at 10:19:33PM +0530, J, KEERTHY wrote:
+> On Fri, Jan 7, 2011 at 5:42 PM, J, KEERTHY <j-keerthy@ti.com> wrote:
+> > On Fri, Jan 7, 2011 at 3:25 AM, Guenter Roeck
+> > <guenter.roeck@ericsson.com> wrote:
+> >> On Thu, 2011-01-06 at 15:21 -0500, Mark Brown wrote:
+> >>> On Thu, Jan 06, 2011 at 07:04:30AM -0800, Guenter Roeck wrote:
+> >>> > On Thu, Jan 06, 2011 at 07:07:13AM -0500, Mark Brown wrote:
+> >>>
+> >>> > > Why? =A0It's not like hwmon has an unreasonably large core or=
+ similar.
+> >>>
+> >>> > Because it creates an unnecessary dependency, and because it is=
+ not hwmon's
+> >>> > responsibility to provide infrastructure for other subsystems o=
+r drivers.
+> >>>
+> >>> hwmon isn't really doing anything, though. =A0The *driver* is doi=
+ng
+> >>> something but it doesn't really impact the core that much. =A0Not=
+ that I'm
+> >>> particularly sold on putting the ADC core in here, but total NACK=
+ based
+> >>> on that alone seems rather harsh.
+> >>
+> >> Possibly. However, I had suggested the following earlier (to the 1=
+st
+> >> version of the patch):
+> >>
+> >>> I commented on this a couple of times below - the driver mixes ge=
+neric
+> >>> ADC reading functions with hwmon functionality. Generic ADC readi=
+ng
+> >>> functionality should be moved into another driver, possibly to mf=
+d.
+> >>
+> >> Obviously that was ignored. Maybe someone is willing to listen thi=
+s time
+> >> around.
+> >>
+> > I am sorry for not responding on the generic ADC handling part. Sin=
+ce many
+> > other ADC drivers are part of hwmon i thought hwmon was the appropr=
+iate
+> > place. However I can surely split the generic ADC handling part in =
+mfd and
+> > only hardware monitoring part in hwmon as suggested.
+> >
+> >> I won't let people break modularity just for convenience in a subs=
+ystem
+> >> I am responsible for. And forcing the hwmon subsystem, and with it=
+ a
+> >> specific hwmon driver, to exist just because the adc functionality=
+ it
+> >> provides is needed by some other (most likely unrelated) subsystem=
+ /
+> >> driver _does_ break modularity. Worse, it is completely unnecessar=
+y to
+> >> do so. Other twl4030 functionality was extracted into generic code=
+=2E
+> >> twl-core.c, twl4030-codec.c, twl4030-irq.c, twl4030-power.c are al=
+l in
+> >> mfd. I fail to see the problem with mfd/twl4030-adc.c.
+> >>
+> >> Guenter
+> >>
+> >>
+> >>
+> >
+> > Hello Samuel,
+> >
+> > Is it ok to have the generic ADC functionality in mfd as a separate=
+ file?
+> >
+> > Regards,
+> > Keerthy
+> >
+>=20
+> Hello Samuel,
+>=20
+> We need your valuable inputs. Can generic ADC functionality can be in
+> mfd as a separate file?
+If it's really generic and doesn't mix hwmon stuff in the middle, then =
+yes.
 
-> Looking further into code, I also noticed that the
-> DDR self refresh is attempted for every WFI. This
-> certainly isn't correct and should be attempted only
-> if core OFF or RET is attempted. Putting DDR to
-> self refresh comes with latency cost and you
-> certainly don't want to incur that for lower C states
-> where may be just MPU hits lower states.
-The DDR self refresh is enabled at each WFI but not necessarily hit.
-It is actually triggered by the CORE idle request which depends on the
-settings, the dependencies, the HW states... For example the CORE
-state depends on the MPU state so if the MPU stays ON running
-instructions the CORE will stay ON as well.
+Cheers,
+Samuel.
 
-Also the code in wait_sdrc_ok will exit quicker if the CORE DPLL is
-already locked, e.g. if the CORE did not hit a low power state. Since
-the actual CORE hit state is unknow after wake-up from WFI the
-wait_sdrc_ok code always run at wake-up from MPU RET.
-
-Does that makes sense?
-
->
-> Regards,
-> Santosh
->
-
-Thanks,
-Jean
+--=20
+Intel Open Source Technology Centre
+http://oss.intel.com/
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
