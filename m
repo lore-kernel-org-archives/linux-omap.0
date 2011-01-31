@@ -1,174 +1,34 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 12/13] ASoC: McBSP: get hw params from McBSP driver
-Date: Mon, 31 Jan 2011 20:20:36 +0530
-Message-ID: <1296485437-12806-13-git-send-email-kishon@ti.com>
-References: <1296485437-12806-1-git-send-email-kishon@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] [PATCH] i2c: OMAP: fix static suspend vs. runtime
+ suspend
+Date: Mon, 31 Jan 2011 10:13:13 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1101311010580.1931-100000@iolanthe.rowland.org>
+References: <1a4ad626f3cb73267847e8ac7bd47545@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35570 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755922Ab1AaO4g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Jan 2011 09:56:36 -0500
-In-Reply-To: <1296485437-12806-1-git-send-email-kishon@ti.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:40745 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752016Ab1AaPNO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Jan 2011 10:13:14 -0500
+In-Reply-To: <1a4ad626f3cb73267847e8ac7bd47545@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, paul@pwsan.com, charu@ti.com, shubhrajyoti@ti.com, b-cousson@ti.com, khilman@deeprootsystems.com, p-basak2@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Ben Dooks <ben-linux@fluff.org>, linux-i2c@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Removed the use of macros to obtain base address and DMA channel number.
-Instead use the McBSP driver API's that passes base address and DMA
-channel number to the client driver.
+On Mon, 31 Jan 2011, Rajendra Nayak wrote:
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>
----
- sound/soc/omap/omap-mcbsp.c |  126 ++-----------------------------------------
- 1 files changed, 4 insertions(+), 122 deletions(-)
+> Can you elaborate a bit more on how/why runtime PM transitions
+> are disabled during system suspend, and how is it taken care
+> of that a runtime resume of a device works however a subsequent
+> runtime (re)suspend does not?
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index ede6afd..2175f09 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -69,110 +69,6 @@ static struct omap_mcbsp_data mcbsp_data[NUM_LINKS];
-  */
- static struct omap_pcm_dma_data omap_mcbsp_dai_dma_params[NUM_LINKS][2];
- 
--#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX)
--static const int omap1_dma_reqs[][2] = {
--	{ OMAP_DMA_MCBSP1_TX, OMAP_DMA_MCBSP1_RX },
--	{ OMAP_DMA_MCBSP2_TX, OMAP_DMA_MCBSP2_RX },
--	{ OMAP_DMA_MCBSP3_TX, OMAP_DMA_MCBSP3_RX },
--};
--static const unsigned long omap1_mcbsp_port[][2] = {
--	{ OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DXR1,
--	  OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DRR1 },
--	{ OMAP1510_MCBSP2_BASE + OMAP_MCBSP_REG_DXR1,
--	  OMAP1510_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1 },
--	{ OMAP1510_MCBSP3_BASE + OMAP_MCBSP_REG_DXR1,
--	  OMAP1510_MCBSP3_BASE + OMAP_MCBSP_REG_DRR1 },
--};
--#else
--static const int omap1_dma_reqs[][2] = {};
--static const unsigned long omap1_mcbsp_port[][2] = {};
--#endif
--
--#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
--static const int omap24xx_dma_reqs[][2] = {
--	{ OMAP24XX_DMA_MCBSP1_TX, OMAP24XX_DMA_MCBSP1_RX },
--	{ OMAP24XX_DMA_MCBSP2_TX, OMAP24XX_DMA_MCBSP2_RX },
--#if defined(CONFIG_SOC_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
--	{ OMAP24XX_DMA_MCBSP3_TX, OMAP24XX_DMA_MCBSP3_RX },
--	{ OMAP24XX_DMA_MCBSP4_TX, OMAP24XX_DMA_MCBSP4_RX },
--	{ OMAP24XX_DMA_MCBSP5_TX, OMAP24XX_DMA_MCBSP5_RX },
--#endif
--};
--#else
--static const int omap24xx_dma_reqs[][2] = {};
--#endif
--
--#if defined(CONFIG_ARCH_OMAP4)
--static const int omap44xx_dma_reqs[][2] = {
--	{ OMAP44XX_DMA_MCBSP1_TX, OMAP44XX_DMA_MCBSP1_RX },
--	{ OMAP44XX_DMA_MCBSP2_TX, OMAP44XX_DMA_MCBSP2_RX },
--	{ OMAP44XX_DMA_MCBSP3_TX, OMAP44XX_DMA_MCBSP3_RX },
--	{ OMAP44XX_DMA_MCBSP4_TX, OMAP44XX_DMA_MCBSP4_RX },
--};
--#else
--static const int omap44xx_dma_reqs[][2] = {};
--#endif
--
--#if defined(CONFIG_SOC_OMAP2420)
--static const unsigned long omap2420_mcbsp_port[][2] = {
--	{ OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DXR1,
--	  OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DRR1 },
--	{ OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR1,
--	  OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1 },
--};
--#else
--static const unsigned long omap2420_mcbsp_port[][2] = {};
--#endif
--
--#if defined(CONFIG_SOC_OMAP2430)
--static const unsigned long omap2430_mcbsp_port[][2] = {
--	{ OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DRR },
--	{ OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR },
--	{ OMAP2430_MCBSP3_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP2430_MCBSP3_BASE + OMAP_MCBSP_REG_DRR },
--	{ OMAP2430_MCBSP4_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP2430_MCBSP4_BASE + OMAP_MCBSP_REG_DRR },
--	{ OMAP2430_MCBSP5_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP2430_MCBSP5_BASE + OMAP_MCBSP_REG_DRR },
--};
--#else
--static const unsigned long omap2430_mcbsp_port[][2] = {};
--#endif
--
--#if defined(CONFIG_ARCH_OMAP3)
--static const unsigned long omap34xx_mcbsp_port[][2] = {
--	{ OMAP34XX_MCBSP1_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP34XX_MCBSP1_BASE + OMAP_MCBSP_REG_DRR },
--	{ OMAP34XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP34XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR },
--	{ OMAP34XX_MCBSP3_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP34XX_MCBSP3_BASE + OMAP_MCBSP_REG_DRR },
--	{ OMAP34XX_MCBSP4_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP34XX_MCBSP4_BASE + OMAP_MCBSP_REG_DRR },
--	{ OMAP34XX_MCBSP5_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP34XX_MCBSP5_BASE + OMAP_MCBSP_REG_DRR },
--};
--#else
--static const unsigned long omap34xx_mcbsp_port[][2] = {};
--#endif
--
--#if defined(CONFIG_ARCH_OMAP4)
--static const unsigned long omap44xx_mcbsp_port[][2] = {
--	{ OMAP44XX_MCBSP1_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP44XX_MCBSP1_BASE + OMAP_MCBSP_REG_DRR },
--	{ OMAP44XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP44XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR },
--	{ OMAP44XX_MCBSP3_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP44XX_MCBSP3_BASE + OMAP_MCBSP_REG_DRR },
--	{ OMAP44XX_MCBSP4_BASE + OMAP_MCBSP_REG_DXR,
--	  OMAP44XX_MCBSP4_BASE + OMAP_MCBSP_REG_DRR },
--};
--#else
--static const unsigned long omap44xx_mcbsp_port[][2] = {};
--#endif
--
- static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
- {
- 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-@@ -346,24 +242,10 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 	unsigned int format, div, framesize, master;
- 
- 	dma_data = &omap_mcbsp_dai_dma_params[cpu_dai->id][substream->stream];
--	if (cpu_class_is_omap1()) {
--		dma = omap1_dma_reqs[bus_id][substream->stream];
--		port = omap1_mcbsp_port[bus_id][substream->stream];
--	} else if (cpu_is_omap2420()) {
--		dma = omap24xx_dma_reqs[bus_id][substream->stream];
--		port = omap2420_mcbsp_port[bus_id][substream->stream];
--	} else if (cpu_is_omap2430()) {
--		dma = omap24xx_dma_reqs[bus_id][substream->stream];
--		port = omap2430_mcbsp_port[bus_id][substream->stream];
--	} else if (cpu_is_omap343x()) {
--		dma = omap24xx_dma_reqs[bus_id][substream->stream];
--		port = omap34xx_mcbsp_port[bus_id][substream->stream];
--	 } else if (cpu_is_omap44xx()) {
--		dma = omap44xx_dma_reqs[bus_id][substream->stream];
--		port = omap44xx_mcbsp_port[bus_id][substream->stream];
--	} else {
--		return -ENODEV;
--	}
-+
-+	dma = omap_mcbsp_dma_ch_params(bus_id, substream->stream);
-+	port = omap_mcbsp_dma_reg_params(bus_id, substream->stream);
-+
- 	switch (params_format(params)) {
- 	case SNDRV_PCM_FORMAT_S16_LE:
- 		dma_data->data_type = OMAP_DMA_DATA_TYPE_S16;
--- 
-1.7.0.4
+I'll answer for Kevin.  This is done by the PM core, in order to 
+prevent runtime power transitions from interfering with a system power 
+transition.  The PM core increments the device's usage_count; this 
+prevents the device from being runtime-suspended but it allows 
+runtime-resume calls to go through.
+
+Alan Stern
 
