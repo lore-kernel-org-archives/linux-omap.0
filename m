@@ -1,123 +1,66 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v4 1/4] drivers: hwspinlock: add framework
-Date: Mon, 31 Jan 2011 15:38:31 -0800
-Message-ID: <20110131153831.dca62146.akpm@linux-foundation.org>
-References: <1296470024-26854-1-git-send-email-ohad@wizery.com>
-	<1296470024-26854-2-git-send-email-ohad@wizery.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv3] OMAP: Enable Magic SysRq on serial console ttyOx
+Date: Mon, 31 Jan 2011 15:54:11 -0800
+Message-ID: <87vd141vfg.fsf@ti.com>
+References: <1295604084-27761-1-git-send-email-weber@corscience.de>
+	<AANLkTikSznkcNwkVaPswx=zr8FFGQPVMw_AebF9ymZLE@mail.gmail.com>
+	<8739oi7z4m.fsf@ti.com>
+	<AANLkTi=HxnPVu83CpodFA4rLipcz1Oie2co49S1=+1M6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1296470024-26854-2-git-send-email-ohad@wizery.com>
+In-Reply-To: <AANLkTi=HxnPVu83CpodFA4rLipcz1Oie2co49S1=+1M6@mail.gmail.com>
+	(Thomas Weber's message of "Mon, 31 Jan 2011 22:31:09 +0100")
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@ti.com>, Arnd Bergmann <arnd@arndb.de>, Paul Walmsley <paul@pwsan.com>, Hari Kanigeri <hari.kanigeri@gmail.com>, Simon Que <simonque@gmail.com>
+To: Thomas Weber <thomas.weber.linux@googlemail.com>
+Cc: Govindraj <govindraj.ti@gmail.com>, Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, manjugk@ti.com, gadiyar@ti.com, tony@atomide.com, govindraj@ti.com, gregkh@suse.de, andrei.emeltchenko@nokia.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 31 Jan 2011 12:33:41 +0200
-Ohad Ben-Cohen <ohad@wizery.com> wrote:
+Thomas Weber <thomas.weber.linux@googlemail.com> writes:
 
-> Add a platform-independent hwspinlock framework.
-> 
-> Hardware spinlock devices are needed, e.g., in order to access data
-> that is shared between remote processors, that otherwise have no
-> alternative mechanism to accomplish synchronization and mutual exclusion
-> operations.
-> 
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> Cc: Hari Kanigeri <h-kanigeri2@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> ---
->  Documentation/hwspinlock.txt         |  299 ++++++++++++++++++
->  drivers/Kconfig                      |    2 +
->  drivers/Makefile                     |    2 +
->  drivers/hwspinlock/Kconfig           |   13 +
->  drivers/hwspinlock/Makefile          |    5 +
->  drivers/hwspinlock/hwspinlock.h      |   61 ++++
->  drivers/hwspinlock/hwspinlock_core.c |  557 ++++++++++++++++++++++++++++++++++
->  include/linux/hwspinlock.h           |  298 ++++++++++++++++++
-
-It's a little irritating having two hwspinlock.h's. 
-hwspinlock_internal.h wold be a conventional approach.  But it's not a
-big deal.
-
+> On Mon, Jan 24, 2011 at 10:47 PM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>> Govindraj <govindraj.ti@gmail.com> writes:
+>>
+>>> On Fri, Jan 21, 2011 at 3:31 PM, Thomas Weber <weber@corscience.de>=
+ wrote:
+>>>> Magic SysRq key is not working for OMAP on new serial
+>>>> console ttyOx because SUPPORT_SYSRQ is not defined
+>>>> for omap-serial.
+>>>>
+>>>> This patch defines SUPPORT_SYSRQ in omap-serial and
+>>>> enables handling of Magic SysRq character.
+>>>>
+>>>> Further there is an issue of losing first break character.
+>>>> Removing the reset of the lsr_break_flag fixes this issue.
+>>>>
+>>>> Signed-off-by: Thomas Weber <weber@corscience.de>
+>>>
+>>>
+>>> Acked-by: Govindraj.R <govindraj.raja@ti.com>
+>>> Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
+>>>
+>>
+>> Acked-by: Kevin Hilman <khilman@ti.com>
+>>
+>> Greg, this one should go for .38-rc. =C2=A0 Feel free to merge, or w=
+e can
+>> take it through the OMAP tree with your ack.
+>>
+>> Thanks,
+>>
+>> Kevin
+>>
+>> --
 >
-> ...
+> Hello,
+> should I rebase this patch, because it does not apply after movement
+> of driver/serial to driver/tty/serial?
 >
-> +/*
-> + * A radix tree is used to maintain the available hwspinlock instances.
-> + * The tree associates hwspinlock pointers with their integer key id,
-> + * and provides easy-to-use API which makes the hwspinlock core code simple
-> + * and easy to read.
-> + *
-> + * Radix trees are quick on lookups, and reasonably efficient in terms of
-> + * storage, especially with high density usages such as this framework
-> + * requires (a continuous range of integer keys, beginning with zero, is
-> + * used as the ID's of the hwspinlock instances).
-> + *
-> + * The radix tree API supports tagging items in the tree, which this
-> + * framework uses to mark unused hwspinlock instances (see the
-> + * HWSPINLOCK_UNUSED tag above). As a result, the process of querying the
-> + * tree, looking for an unused hwspinlock instance, is now reduced to a
-> + * single radix tree API call.
-> + */
 
-Nice comment!
+Yes, please rebase.
 
-> +static RADIX_TREE(hwspinlock_tree, GFP_KERNEL);
-> +
->
-> ...
->
-> +/**
-> + * __hwspin_lock_timeout() - lock an hwspinlock with timeout limit
-> + * @hwlock: the hwspinlock to be locked
-> + * @timeout: timeout value in jiffies
+Thanks,
 
-hm, why in jiffies?
-
-The problem here is that lazy programmers will use
-
-	hwspin_lock_timeout(lock, 10, ...)
-
-and their code will work happily with HZ=100 but will explode with HZ=1000.
-
-IOW, this interface *requires* that all callers perform a
-seconds-to-jiffies conversion before calling hwspin_lock_timeout().  So
-why not reduce their effort and their ability to make mistakes by
-defining the API to take seconds?
-
-
-> + * @mode: mode which controls whether local interrupts are disabled or not
-> + * @flags: a pointer to where the caller's interrupt state will be saved at (if
-> + *         requested)
-> + *
-> + * This function locks the given @hwlock. If the @hwlock
-> + * is already taken, the function will busy loop waiting for it to
-> + * be released, but give up when @timeout jiffies have elapsed. If @timeout
-> + * is %MAX_SCHEDULE_TIMEOUT, the function will never give up (therefore if a
-> + * faulty remote core never releases the @hwlock, it will deadlock).
-> + *
-> + * Upon a successful return from this function, preemption is disabled
-> + * (and possibly local interrupts, too), so the caller must not sleep,
-> + * and is advised to release the hwspinlock as soon as possible.
-> + * This is required in order to minimize remote cores polling on the
-> + * hardware interconnect.
-> + *
-> + * The user decides whether local interrupts are disabled or not, and if yes,
-> + * whether he wants their previous state to be saved. It is up to the user
-> + * to choose the appropriate @mode of operation, exactly the same way users
-> + * should decide between spin_lock, spin_lock_irq and spin_lock_irqsave.
-> + *
-> + * Returns 0 when the @hwlock was successfully taken, and an appropriate
-> + * error code otherwise (most notably -ETIMEDOUT if the @hwlock is still
-> + * busy after @timeout meets jiffies). The function will never sleep.
-> + */
->
-> ...
->
+Kevin
