@@ -1,167 +1,261 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 11/13] OMAP: McBSP: APIs to pass DMA params from McBSP driver to client drivers
-Date: Mon, 31 Jan 2011 20:20:35 +0530
-Message-ID: <1296485437-12806-12-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 13/13] OMAP: hwmod: Removal of macros for data that is obtained from hwmod database
+Date: Mon, 31 Jan 2011 20:20:37 +0530
+Message-ID: <1296485437-12806-14-git-send-email-kishon@ti.com>
 References: <1296485437-12806-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44048 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48533 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755908Ab1AaO4a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Jan 2011 09:56:30 -0500
+	id S1755922Ab1AaO4i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Jan 2011 09:56:38 -0500
 In-Reply-To: <1296485437-12806-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 Cc: lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, paul@pwsan.com, charu@ti.com, shubhrajyoti@ti.com, b-cousson@ti.com, khilman@deeprootsystems.com, p-basak2@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 
-After McBSP driver is hwmod adapted, the information about the hw would be
-obtained from the hwmod database by the mcbsp driver. Since DMA programming is
-handled by the client driver, APIs are provided to pass the DMA channel number
-and base address of data register required by the client driver for DMA
-programming.
+Information like base address and DMA channel nubers should no longer
+be obtained using macros. These information should be obtained from
+hwmod database. Hence the macros that define the base address are removed.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Charulatha V <charu@ti.com>
 ---
- arch/arm/mach-omap2/mcbsp.c             |    2 +
- arch/arm/plat-omap/include/plat/mcbsp.h |    7 +++
- arch/arm/plat-omap/mcbsp.c              |   64 +++++++++++++++++++++++++++++++
- 3 files changed, 73 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap1/mcbsp.c             |   64 +++++++++++++++---------------
+ arch/arm/plat-omap/include/plat/mcbsp.h |   50 +-----------------------
+ 2 files changed, 33 insertions(+), 81 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index e232a49..3e87527 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -125,6 +125,8 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
- 		return -ENOMEM;
- 	}
- 
-+	pdata->mcbsp_config_type = oh->class->rev;
-+
- 	if (oh->class->rev == MCBSP_CONFIG_TYPE3) {
- 		if (id == 2)
- 			pdata->buffer_size = 0x500; /*FIFO size is 1024 + 256*/
+diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
+index 2b89ebd..d90f649 100644
+--- a/arch/arm/mach-omap1/mcbsp.c
++++ b/arch/arm/mach-omap1/mcbsp.c
+@@ -83,14 +83,14 @@ struct resource omap7xx_mcbsp_res[][6] = {
+ 	{
+ 		{
+ 			.name  = "mpu",
+-			.start = OMAP7XX_MCBSP1_BASE,
+-			.end   = OMAP7XX_MCBSP1_BASE + SZ_256,
++			.start = 0xfffb1000,
++			.end   = 0xfffb10ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+ 			.name  = "dma",
+-			.start = OMAP7XX_MCBSP1_BASE,
+-			.end   = OMAP7XX_MCBSP1_BASE + SZ_256,
++			.start = 0xfffb1000,
++			.end   = 0xfffb10ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+@@ -117,14 +117,14 @@ struct resource omap7xx_mcbsp_res[][6] = {
+ 	{
+ 		{
+ 			.name  = "mpu",
+-			.start = OMAP7XX_MCBSP2_BASE,
+-			.end   = OMAP7XX_MCBSP2_BASE + SZ_256,
++			.start = 0xfffb1800,
++			.end   = 0xfffb18ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+ 			.name  = "dma",
+-			.start = OMAP7XX_MCBSP2_BASE,
+-			.end   = OMAP7XX_MCBSP2_BASE + SZ_256,
++			.start = 0xfffb1800,
++			.end   = 0xfffb18ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+@@ -172,14 +172,14 @@ struct resource omap15xx_mcbsp_res[][6] = {
+ 	{
+ 		{
+ 			.name  = "mpu",
+-			.start = OMAP1510_MCBSP1_BASE,
+-			.end   = OMAP1510_MCBSP1_BASE + SZ_256,
++			.start = 0xe1011800,
++			.end   = 0xe10118ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+ 			.name  = "dma",
+-			.start = OMAP1510_MCBSP1_BASE,
+-			.end   = OMAP1510_MCBSP1_BASE + SZ_256,
++			.start = 0xe1011800,
++			.end   = 0xe10118ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+@@ -206,14 +206,14 @@ struct resource omap15xx_mcbsp_res[][6] = {
+ 	{
+ 		{
+ 			.name  = "mpu",
+-			.start = OMAP1510_MCBSP2_BASE,
+-			.end   = OMAP1510_MCBSP2_BASE + SZ_256,
++			.start = 0xfffb1000,
++			.end   = 0xfffb10ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+ 			.name  = "dma",
+-			.start = OMAP1510_MCBSP2_BASE,
+-			.end   = OMAP1510_MCBSP2_BASE + SZ_256,
++			.start = 0xfffb1000,
++			.end   = 0xfffb10ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+@@ -240,14 +240,14 @@ struct resource omap15xx_mcbsp_res[][6] = {
+ 	{
+ 		{
+ 			.name  = "mpu",
+-			.start = OMAP1510_MCBSP3_BASE,
+-			.end   = OMAP1510_MCBSP3_BASE + SZ_256,
++			.start = 0xe1017000,
++			.end   = 0xe10170ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+ 			.name  = "dma",
+-			.start = OMAP1510_MCBSP3_BASE,
+-			.end   = OMAP1510_MCBSP3_BASE + SZ_256,
++			.start = 0xe1017000,
++			.end   = 0xe10170ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+@@ -298,14 +298,14 @@ struct resource omap16xx_mcbsp_res[][6] = {
+ 	{
+ 		{
+ 			.name  = "mpu",
+-			.start = OMAP1610_MCBSP1_BASE,
+-			.end   = OMAP1610_MCBSP1_BASE + SZ_256,
++			.start = 0xe1011800,
++			.end   = 0xe10118ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+ 			.name  = "dma",
+-			.start = OMAP1610_MCBSP1_BASE,
+-			.end   = OMAP1610_MCBSP1_BASE + SZ_256,
++			.start = 0xe1011800,
++			.end   = 0xe10118ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+@@ -332,14 +332,14 @@ struct resource omap16xx_mcbsp_res[][6] = {
+ 	{
+ 		{
+ 			.name  = "mpu",
+-			.start = OMAP1610_MCBSP2_BASE,
+-			.end   = OMAP1610_MCBSP2_BASE + SZ_256,
++			.start = 0xfffb1000,
++			.end   = 0xfffb10ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+ 			.name  = "dma",
+-			.start = OMAP1610_MCBSP2_BASE,
+-			.end   = OMAP1610_MCBSP2_BASE + SZ_256,
++			.start = 0xfffb1000,
++			.end   = 0xfffb10ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+@@ -366,14 +366,14 @@ struct resource omap16xx_mcbsp_res[][6] = {
+ 	{
+ 		{
+ 			.name  = "mpu",
+-			.start = OMAP1610_MCBSP3_BASE,
+-			.end   = OMAP1610_MCBSP3_BASE + SZ_256,
++			.start = 0xe1017000,
++			.end   = 0xe10170ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
+ 			.name  = "dma",
+-			.start = OMAP1610_MCBSP3_BASE,
+-			.end   = OMAP1610_MCBSP3_BASE + SZ_256,
++			.start = 0xe1017000,
++			.end   = 0xe10170ff,
+ 			.flags = IORESOURCE_MEM,
+ 		},
+ 		{
 diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 75c176c..54058a3 100644
+index 54058a3..2c827ef 100644
 --- a/arch/arm/plat-omap/include/plat/mcbsp.h
 +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -81,6 +81,8 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+@@ -41,41 +41,7 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ #define MCBSP_CONFIG_TYPE3	0x3
+ #define MCBSP_CONFIG_TYPE4	0x4
+ 
+-#define OMAP7XX_MCBSP1_BASE	0xfffb1000
+-#define OMAP7XX_MCBSP2_BASE	0xfffb1800
+-
+-#define OMAP1510_MCBSP1_BASE	0xe1011800
+-#define OMAP1510_MCBSP2_BASE	0xfffb1000
+-#define OMAP1510_MCBSP3_BASE	0xe1017000
+-
+-#define OMAP1610_MCBSP1_BASE	0xe1011800
+-#define OMAP1610_MCBSP2_BASE	0xfffb1000
+-#define OMAP1610_MCBSP3_BASE	0xe1017000
+-
+-#define OMAP24XX_MCBSP1_BASE	0x48074000
+-#define OMAP24XX_MCBSP2_BASE	0x48076000
+-#define OMAP2430_MCBSP3_BASE	0x4808c000
+-#define OMAP2430_MCBSP4_BASE	0x4808e000
+-#define OMAP2430_MCBSP5_BASE	0x48096000
+-
+-#define OMAP34XX_MCBSP1_BASE	0x48074000
+-#define OMAP34XX_MCBSP2_BASE	0x49022000
+-#define OMAP34XX_MCBSP2_ST_BASE	0x49028000
+-#define OMAP34XX_MCBSP3_BASE	0x49024000
+-#define OMAP34XX_MCBSP3_ST_BASE	0x4902A000
+-#define OMAP34XX_MCBSP3_BASE	0x49024000
+-#define OMAP34XX_MCBSP4_BASE	0x49026000
+-#define OMAP34XX_MCBSP5_BASE	0x48096000
+-
+-#define OMAP44XX_MCBSP1_BASE	0x40122000
+-#define OMAP44XX_MCBSP1_DMA_BASE	0x49022000
+-#define OMAP44XX_MCBSP2_BASE	0x40124000
+-#define OMAP44XX_MCBSP2_DMA_BASE	0x49024000
+-#define OMAP44XX_MCBSP3_BASE	0x40126000
+-#define OMAP44XX_MCBSP3_DMA_BASE	0x49026000
+-#define OMAP44XX_MCBSP4_BASE	0x48096000
+-
+-#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
++#ifdef CONFIG_ARCH_OMAP1
+ 
+ #define OMAP_MCBSP_REG_DRR2	0x00
  #define OMAP_MCBSP_REG_DRR1	0x02
- #define OMAP_MCBSP_REG_DXR2	0x04
- #define OMAP_MCBSP_REG_DXR1	0x06
-+#define OMAP_MCBSP_REG_DRR	0x02
-+#define OMAP_MCBSP_REG_DXR	0x06
- #define OMAP_MCBSP_REG_SPCR2	0x08
- #define OMAP_MCBSP_REG_SPCR1	0x0a
- #define OMAP_MCBSP_REG_RCR2	0x0c
-@@ -437,6 +439,7 @@ struct omap_mcbsp_platform_data {
- 	unsigned long phys_base_st;
- 	u16 buffer_size;
+@@ -115,13 +81,6 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ #define OMAP_MCBSP_REG_XCCR	0x00
+ #define OMAP_MCBSP_REG_RCCR	0x00
+ 
+-#define AUDIO_MCBSP_DATAWRITE	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DXR1)
+-#define AUDIO_MCBSP_DATAREAD	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DRR1)
+-
+-#define AUDIO_MCBSP		OMAP_MCBSP1
+-#define AUDIO_DMA_TX		OMAP_DMA_MCBSP1_TX
+-#define AUDIO_DMA_RX		OMAP_DMA_MCBSP1_RX
+-
+ #else
+ 
+ #define OMAP_MCBSP_REG_DRR2	0x00
+@@ -177,13 +136,6 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ #define OMAP_ST_REG_SFIRCR	0x28
+ #define OMAP_ST_REG_SSELCR	0x2C
+ 
+-#define AUDIO_MCBSP_DATAWRITE	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR1)
+-#define AUDIO_MCBSP_DATAREAD	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1)
+-
+-#define AUDIO_MCBSP		OMAP_MCBSP2
+-#define AUDIO_DMA_TX		OMAP24XX_DMA_MCBSP2_TX
+-#define AUDIO_DMA_RX		OMAP24XX_DMA_MCBSP2_RX
+-
  #endif
-+	unsigned int mcbsp_config_type;
- };
  
- struct omap_mcbsp_st_data {
-@@ -487,6 +490,7 @@ struct omap_mcbsp {
- 	u16 max_rx_thres;
- #endif
- 	void *reg_cache;
-+	unsigned int mcbsp_config_type;
- };
- 
- /**
-@@ -555,6 +559,9 @@ int omap_mcbsp_set_io_type(unsigned int id, omap_mcbsp_io_type_t io_type);
- void omap2_mcbsp1_mux_clkr_src(u8 mux);
- void omap2_mcbsp1_mux_fsr_src(u8 mux);
- 
-+int omap_mcbsp_dma_ch_params(unsigned int id, unsigned int stream);
-+int omap_mcbsp_dma_reg_params(unsigned int id, unsigned int stream);
-+
- #ifdef CONFIG_ARCH_OMAP3
- /* Sidetone specific API */
- int omap_st_set_chgain(unsigned int id, int channel, s16 chgain);
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 63938a2..1626e02 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -229,6 +229,69 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
- }
- EXPORT_SYMBOL(omap_mcbsp_config);
- 
-+/**
-+ * omap_mcbsp_dma_params - returns the dma channel number
-+ * @id - mcbsp id
-+ * @stream - indicates the direction of data flow (rx or tx)
-+ *
-+ * Returns the dma channel number for the rx channel or tx channel
-+ * based on the value of @stream for the requested mcbsp given by @id
-+ */
-+int omap_mcbsp_dma_ch_params(unsigned int id, unsigned int stream)
-+{
-+	struct omap_mcbsp *mcbsp;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	if (stream)
-+		return mcbsp->dma_rx_sync;
-+	else
-+		return mcbsp->dma_tx_sync;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_dma_ch_params);
-+
-+/**
-+ * omap_mcbsp_dma_reg_params - returns the address of mcbsp data register
-+ * @id - mcbsp id
-+ * @stream - indicates the direction of data flow (rx or tx)
-+ *
-+ * Returns the address of mcbsp data transmit register or data receive register
-+ * to be used by DMA for transferring/receiving data based on the value of
-+ * @stream for the requested mcbsp given by @id
-+ */
-+int omap_mcbsp_dma_reg_params(unsigned int id, unsigned int stream)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	int data_reg;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	data_reg = mcbsp->phys_dma_base;
-+
-+	if (mcbsp->mcbsp_config_type < MCBSP_CONFIG_TYPE2) {
-+		if (stream)
-+			data_reg += OMAP_MCBSP_REG_DRR1;
-+		else
-+			data_reg += OMAP_MCBSP_REG_DXR1;
-+	} else {
-+		if (stream)
-+			data_reg += OMAP_MCBSP_REG_DRR;
-+		else
-+			data_reg += OMAP_MCBSP_REG_DXR;
-+	}
-+
-+	return data_reg;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_dma_reg_params);
-+
- #ifdef CONFIG_ARCH_OMAP3
- static struct omap_device *find_omap_device_by_dev(struct device *dev)
- {
-@@ -1870,6 +1933,7 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 	mcbsp->pdata = pdata;
- 	mcbsp->dev = &pdev->dev;
- 	mcbsp_ptr[id] = mcbsp;
-+	mcbsp->mcbsp_config_type = pdata->mcbsp_config_type;
- 	platform_set_drvdata(pdev, mcbsp);
- 	pm_runtime_enable(mcbsp->dev);
- 
+ /************************** McBSP SPCR1 bit definitions ***********************/
 -- 
 1.7.0.4
 
