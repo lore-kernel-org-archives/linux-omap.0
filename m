@@ -1,49 +1,56 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: OMAP PM fixes for 2.6.38-rc3
-Date: Mon, 31 Jan 2011 13:12:22 -0800
-Message-ID: <87aaig93rd.fsf@ti.com>
+From: Thomas Weber <thomas.weber.linux@googlemail.com>
+Subject: Re: [PATCHv3] OMAP: Enable Magic SysRq on serial console ttyOx
+Date: Mon, 31 Jan 2011 22:31:09 +0100
+Message-ID: <AANLkTi=HxnPVu83CpodFA4rLipcz1Oie2co49S1=+1M6@mail.gmail.com>
+References: <1295604084-27761-1-git-send-email-weber@corscience.de>
+	<AANLkTikSznkcNwkVaPswx=zr8FFGQPVMw_AebF9ymZLE@mail.gmail.com>
+	<8739oi7z4m.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:44051 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753840Ab1AaVMa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Jan 2011 16:12:30 -0500
-Received: by mail-yx0-f179.google.com with SMTP id 7so2193464yxs.10
-        for <linux-omap@vger.kernel.org>; Mon, 31 Jan 2011 13:12:25 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8739oi7z4m.fsf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Govindraj <govindraj.ti@gmail.com>, Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, manjugk@ti.com, gadiyar@ti.com, tony@atomide.com, govindraj@ti.com, gregkh@suse.de, andrei.emeltchenko@nokia.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony,
+On Mon, Jan 24, 2011 at 10:47 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Govindraj <govindraj.ti@gmail.com> writes:
+>
+>> On Fri, Jan 21, 2011 at 3:31 PM, Thomas Weber <weber@corscience.de> =
+wrote:
+>>> Magic SysRq key is not working for OMAP on new serial
+>>> console ttyOx because SUPPORT_SYSRQ is not defined
+>>> for omap-serial.
+>>>
+>>> This patch defines SUPPORT_SYSRQ in omap-serial and
+>>> enables handling of Magic SysRq character.
+>>>
+>>> Further there is an issue of losing first break character.
+>>> Removing the reset of the lsr_break_flag fixes this issue.
+>>>
+>>> Signed-off-by: Thomas Weber <weber@corscience.de>
+>>
+>>
+>> Acked-by: Govindraj.R <govindraj.raja@ti.com>
+>> Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
+>>
+>
+> Acked-by: Kevin Hilman <khilman@ti.com>
+>
+> Greg, this one should go for .38-rc. =A0 Feel free to merge, or we ca=
+n
+> take it through the OMAP tree with your ack.
+>
+> Thanks,
+>
+> Kevin
+>
+> --
 
-Please pull the following small set of PM-related fixes for 2.6.38-rc.
+Hello,
+should I rebase this patch, because it does not apply after movement
+of driver/serial to driver/tty/serial?
 
-Kevin
-
-The following changes since commit 1bae4ce27c9c90344f23c65ea6966c50ffeae2f5:
-
-  Linux 2.6.38-rc2 (2011-01-21 19:01:34 -0800)
-
-are available in the git repository at:
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_2.6.38/pm-fixes
-
-Aaro Koskinen (1):
-      arm: mach-omap2: voltage: debugfs: fix memory leak
-
-Julia Lawall (1):
-      OMAP: PM: SmartReflex: Add missing IS_ERR test
-
-Kevin Hilman (1):
-      OMAP3: PM: fix save secure RAM to restore MPU power state
-
-Stefan Weil (2):
-      OMAP: PM: SmartReflex: Fix possible memory leak
-      OMAP: PM: SmartReflex: Fix possible null pointer read access
-
- arch/arm/mach-omap2/pm34xx.c      |    7 ++++---
- arch/arm/mach-omap2/smartreflex.c |   11 +++++------
- arch/arm/mach-omap2/voltage.c     |    1 +
- 3 files changed, 10 insertions(+), 9 deletions(-)
+Thomas
