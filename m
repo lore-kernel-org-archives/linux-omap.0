@@ -1,71 +1,68 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2] OMAP3630: PM: don't warn the user with a trace in case of PM34XX_ERRATUM
-Date: Mon, 31 Jan 2011 14:22:54 -0800
-Message-ID: <87k4hk7lxd.fsf@ti.com>
-References: <1296480925-25463-1-git-send-email-ricardo.salveti@canonical.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] MAINTAINERS: add entry for OMAP powerdomain/clockdomain
+ per-SoC layer support
+Date: Mon, 31 Jan 2011 16:02:11 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101310955300.16671@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1434103111-1296493040=:16671"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:37055 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754113Ab1AaWXB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Jan 2011 17:23:01 -0500
-Received: by mail-yi0-f51.google.com with SMTP id 12so2670081yib.24
-        for <linux-omap@vger.kernel.org>; Mon, 31 Jan 2011 14:23:00 -0800 (PST)
-In-Reply-To: <1296480925-25463-1-git-send-email-ricardo.salveti@canonical.com>
-	(Ricardo Salveti de Araujo's message of "Mon, 31 Jan 2011 11:35:25
-	-0200")
+Received: from utopia.booyaka.com ([72.9.107.138]:38719 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756690Ab1AaXCM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Jan 2011 18:02:12 -0500
+Content-ID: <alpine.DEB.2.00.1101311600310.16671@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, tony@atomide.com, b-cousson@ti.com
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Ricardo Salveti de Araujo <ricardo.salveti@canonical.com> writes:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> In case in user has a OMAP3630 < ES1.2 the kernel should warn the user
-> about the ERRATUM, but using pr_warn instead of WARN_ON is already
-> enough, as there is nothing else the user can do besides changing the
-> board.
->
-> Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+--155748971-1434103111-1296493040=:16671
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1101311600311.16671@utopia.booyaka.com>
 
-Thanks, queuing for 2.6.39 in my for_2.6.39/pm-misc branch.
 
-Kevin
+Add Rajendra Nayak and myself as maintainers for the OMAP
+powerdomain/clockdomain per-SoC layer code.
 
-> ---
-> v1->v2:
-> * Use pr_warn instead of printk (Kevin Hilman)
->
->  arch/arm/mach-omap2/cpuidle34xx.c |    2 +-
->  arch/arm/mach-omap2/pm34xx.c      |    3 +--
->  2 files changed, 2 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index f7b22a1..876eeca 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -464,7 +464,7 @@ void omap_init_power_states(void)
->  	if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583)) {
->  		omap3_power_states[OMAP3_STATE_C7].valid = 0;
->  		cpuidle_params_table[OMAP3_STATE_C7].valid = 0;
-> -		WARN_ONCE(1, "%s: core off state C7 disabled due to i583\n",
-> +		pr_warn("%s: core off state C7 disabled due to i583\n",
->  				__func__);
->  	}
->  }
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index a4aa192..88f09da 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -927,8 +927,7 @@ void omap3_pm_off_mode_enable(int enable)
->  				pwrst->pwrdm == core_pwrdm &&
->  				state == PWRDM_POWER_OFF) {
->  			pwrst->next_state = PWRDM_POWER_RET;
-> -			WARN_ONCE(1,
-> -				"%s: Core OFF disabled due to errata i583\n",
-> +			pr_warn("%s: Core OFF disabled due to errata i583\n",
->  				__func__);
->  		} else {
->  			pwrst->next_state = state;
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Beno=EEt Cousson <b-cousson@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+---
+
+This patch is being sent for comment only; Tony will probably queue=20
+this up with the rest of the OMAP patches in the .39 window.
+
+ MAINTAINERS |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 55592f8..d203d8b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4451,6 +4451,16 @@ L:=09linux-omap@vger.kernel.org
+ S:=09Maintained
+ F:=09arch/arm/*omap*/*pm*
+=20
++OMAP POWERDOMAIN/CLOCKDOMAIN SOC ADAPTATION LAYER SUPPORT
++M:=09Rajendra Nayak <rnayak@ti.com>
++M:=09Paul Walmsley <paul@pwsan.com>
++L:=09linux-omap@vger.kernel.org
++S:=09Maintained
++F:=09arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
++F:=09arch/arm/mach-omap2/powerdomain44xx.c
++F:=09arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
++F:=09arch/arm/mach-omap2/clockdomain44xx.c
++
+ OMAP AUDIO SUPPORT
+ M:=09Jarkko Nikula <jhnikula@gmail.com>
+ L:=09alsa-devel@alsa-project.org (subscribers-only)
+--=20
+1.7.2.3
+--155748971-1434103111-1296493040=:16671--
