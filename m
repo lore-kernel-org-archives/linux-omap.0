@@ -1,21 +1,20 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: RE: [PATCH 1/5] omap2+: mux: Seperate the pads of a hwmod as static
- and dynamic.
-Date: Mon, 31 Jan 2011 19:50:16 +0530
-Message-ID: <3daf21c18eb0a304c3284540a1efcb32@mail.gmail.com>
+Subject: RE: [PATCH 4/5] omap4: board-omap4panda: Initialise the serial pads
+Date: Mon, 31 Jan 2011 19:50:25 +0530
+Message-ID: <beda98b63a8333b832189ddd5e0f57f7@mail.gmail.com>
 References: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
- <1296191298-17545-2-git-send-email-r.sricharan@ti.com> <d52d24e46279799c2019f7c297a4e627@mail.gmail.com>
+ <1296191298-17545-5-git-send-email-r.sricharan@ti.com> <2d8db7abba67b9f29041e0f3512fa98b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:47677 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750858Ab1AaOUU (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:33195 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751434Ab1AaOUa (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Jan 2011 09:20:20 -0500
-Received: by mail-bw0-f51.google.com with SMTP id 10so5571185bwz.38
-        for <linux-omap@vger.kernel.org>; Mon, 31 Jan 2011 06:20:19 -0800 (PST)
-In-Reply-To: <d52d24e46279799c2019f7c297a4e627@mail.gmail.com>
+	Mon, 31 Jan 2011 09:20:30 -0500
+Received: by mail-bw0-f50.google.com with SMTP id 12so5702278bwg.23
+        for <linux-omap@vger.kernel.org>; Mon, 31 Jan 2011 06:20:29 -0800 (PST)
+In-Reply-To: <2d8db7abba67b9f29041e0f3512fa98b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Anand Gadiyar <gadiyar@ti.com>, linux-omap@vger.kernel.org
@@ -23,74 +22,124 @@ Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, paul@pwsan.c
 
 >-----Original Message-----
 >From: Anand Gadiyar [mailto:gadiyar@ti.com]
->Sent: Saturday, January 29, 2011 2:19 AM
+>Sent: Saturday, January 29, 2011 2:23 AM
 >To: Sricharan R; linux-omap@vger.kernel.org
 >Cc: Santosh Shilimkar; tony@atomide.com; paul@pwsan.com
->Subject: RE: [PATCH 1/5] omap2+: mux: Seperate the pads of a hwmod as
->static and dynamic.
+>Subject: RE: [PATCH 4/5] omap4: board-omap4panda: Initialise the serial
+>pads
 >
->sricharan wrote:
+>Sricharan wrote:
+>> Use the mux framework to initialise the serial pads.
 >>
->> 1) All the pads of a hwmod for the device are classified
->>    as static/dynamic. If a pad requires remuxing during
->>    the device transitions between enable/idle transitions
->>    then it is added to the dynamic list, static otherwise.
+>> Signed-off-by: sricharan <r.sricharan@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/board-omap4panda.c |   72
+>+++++++++++++++++++++++++++++++-
+>>  1 files changed, 71 insertions(+), 1 deletions(-)
 >>
->> 2) Both the static/dynamic pads of a hwmod are initialised
->>    when the device gets enabled. When the device transitions
->>    between enable/idle the dynamic pads are remuxed and
->>    static pads are skipped.
+>> diff --git a/arch/arm/mach-omap2/board-omap4panda.c
+>> b/arch/arm/mach-omap2/board-omap4panda.c
+>> index b43e3ff..9688ea9 100644
+>> --- a/arch/arm/mach-omap2/board-omap4panda.c
+>> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+>> @@ -370,13 +370,83 @@ static int __init omap4_panda_i2c_init(void)
+>>  	omap_register_i2c_bus(4, 400, NULL, 0);
+>>  	return 0;
+>>  }
+>> -
+>>  #ifdef CONFIG_OMAP_MUX
+>>  static struct omap_board_mux board_mux[] __initdata = {
+>>  	{ .reg_offset = OMAP_MUX_TERMINATOR },
+>>  };
+>> +
+>> +static struct omap_device_pad serial2_pads[] __initdata = {
+>> +	{ .name   = "uart2_cts.uart2_cts",
+>> +	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
+>> +	  .flags  = OMAP_DEVICE_PAD_REMUX_IDLE,
+>> +	  .idle   = OMAP_MUX_MODE7,
+>> +	},
+>> +	{ .name   = "uart2_rts.uart2_rts",
+>> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+>> +	},
+>> +	{ .name   = "uart2_rx.uart2_rx",
+>> +	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
+>> +	},
+>> +	{ .name   = "uart2_tx.uart2_tx",
+>> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+>> +	},
+>> +};
+>> +
+>> +static struct omap_device_pad serial3_pads[] __initdata = {
+>> +	{ .name   = "uart3_cts_rctx.uart3_cts_rctx",
+>> +	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
+>> +	},
+>> +	{ .name   = "uart3_rts_sd.uart3_rts_sd",
+>> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+>> +	},
+>> +	{ .name   = "uart3_rx_irrx.uart3_rx_irrx",
+>> +	  .enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
+>> +	},
+>> +	{ .name   = "uart3_tx_irtx.uart3_tx_irtx",
+>> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+>> +	},
+>> +};
+>> +
+>> +static struct omap_device_pad serial4_pads[] __initdata = {
+>> +	{ .name   = "uart4_rx.uart4_rx",
+>> +	.enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
+>> +	},
+>> +	{ .name   = "uart4_tx.uart4_tx",
+>> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+>> +	},
+>> +};
+>> +
+>> +static struct omap_board_data serial2_data = {
+>> +	.id             = 1,
+>> +	.pads           = serial2_pads,
+>> +	.pads_cnt       = ARRAY_SIZE(serial2_pads),
+>> +};
+>> +
+>> +static struct omap_board_data serial3_data = {
+>> +	.id             = 2,
+>> +	.pads           = serial3_pads,
+>> +	.pads_cnt       = ARRAY_SIZE(serial3_pads),
+>> +};
+>> +
+>> +static struct omap_board_data serial4_data = {
+>> +	.id             = 3,
+>> +	.pads           = serial4_pads,
+>> +	.pads_cnt       = ARRAY_SIZE(serial4_pads),
+>> +};
+>> +
+>> +static inline void board_serial_init(void)
+>> +{
+>> +	omap_serial_init_port(&serial2_data);
+>> +	omap_serial_init_port(&serial3_data);
+>> +	omap_serial_init_port(&serial4_data);
+>> +}
+>>  #else
+>>  #define board_mux	NULL
+>> +
+>> +static inline void board_serial_init(void)
+>> +{
+>> +	omap_serial_init();
+>> +}
+>>  #endif
 >>
->> 3) When the driver gets removed both the static and the
->>    dynamic pads are muxed to safe mode as default.
->>
+>>  static void __init omap4_panda_init(void)
 >
->I haven't taken a look at the code. I do have a few
->concerns (which may really be non-issues, but I'm
->pointing them out anyway):
+>You are changing the behavior with this patch.
+>Original code configured all 4 UARTs, while it
+>appears that your patch changes this to skip UART1.
 >
->- Not all pads have a safe mode.
->--- And why would you want statically muxed pads to be remuxed
->into safe mode anyway? What is the advantage of such a change,
->as against leaving them in a functional mode?
-There is an option to mux the pads to different mode
-than safe mode when the driver is removed. Those which
-do not specify are put to safe mode.
-
-With safe mode, the pins becomes a input with no functional
-interface connected to it. This avoids the either omap
-or outside device seeing any false logic from the pin.
-
+>This is not explained in the changelog. Is this
+>a deliberate change? Why would you want to do this?
 >
->- Many signals are muxed on more than one pad.
->- Many peripherals need pads to be configured in different
->  mux modes depending on the way a board is wired up.
->
->
->With this, moving pad info to hwmod databases does not sound
->useful to me. Maybe I do not understand the need for this
->change, in place of what we have today.
->
+I see that UART1 is not muxed out and all uart1 pads
+are all used for alternate functionalities.
+So I did not initialize UART1.
 
-The structure for containing the mux data is part of hwmod
-for the device.
-
-The hwmod is not static and it is dynamically
-populated during the device init, with the
-data being passed from board files if it is different across
-boards.
-
-The device state transitions (enable/idle) passes the through
-the hwmod layer, which takes caring of muxing the pins
-right way for each transition.
-
-This helps to mux correctly the
-1) shared pins
-2) Initialsing the pads
-3) Remux only pads that require change during enable/idle
-   transitions.
-4) Put the pads to safemode( default) when the driver is
-   unplugged.
-
+However, there was a mistake with serial2 mux
+which I have corrected in version2.
 
 >- Anand
