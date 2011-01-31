@@ -1,59 +1,32 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] arm: Fix possible memory leak
-Date: Mon, 31 Jan 2011 08:20:55 -0800
-Message-ID: <87zkqh82oo.fsf@ti.com>
-References: <1296415587-4524-1-git-send-email-weil@mail.berlios.de>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [linux-pm] [PATCH] i2c: OMAP: fix static suspend vs. runtime
+ suspend
+Date: Mon, 31 Jan 2011 11:22:50 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1101311119190.1931-100000@iolanthe.rowland.org>
+References: <877hdl9hsn.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1296415587-4524-1-git-send-email-weil@mail.berlios.de> (Stefan
-	Weil's message of "Sun, 30 Jan 2011 20:26:27 +0100")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stefan Weil <weil@mail.berlios.de>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <877hdl9hsn.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux-pm mailing list <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Stefan Weil <weil@mail.berlios.de> writes:
+On Mon, 31 Jan 2011, Kevin Hilman wrote:
 
-> sr_info was allocated and needs a kfree before returning.
->
-> This error was reported by cppcheck:
-> arch/arm/mach-omap2/smartreflex.c:837: error: Memory leak: sr_info
->
-> To: Tony Lindgren <tony@atomide.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Stefan Weil <weil@mail.berlios.de>
+> I understand how this works, but frankly I'm still a bit fuzzy on why.
+> 
+> I guess I'm still missing a good understanding of what "interfering with a
+> system power transition" means, and why a runtime suspend qualifies as
+> interfering but not a runtime resume.
 
-Thanks, will queue this for 2.6.38-rc in my pm-fixes branch.
+These are good questions.  Rafael implemented this design originally; 
+my contribution was only to warn him of the potential for problems.  
+Therefore he should explain the rationale for the design.
 
-Kevin
+> More specifically, the reason for $SUBJECT patch is precisely because a
+> runtime resume is allowed, a runtime suspend is not, and thus a system
+> power transititon is prevented.
 
-> ---
->  arch/arm/mach-omap2/smartreflex.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-> index af39d17..07324607 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -832,7 +832,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->
->  	if (!pdata) {
->  		dev_err(&pdev->dev, "%s: platform data missing\n", __func__);
-> -		return -EINVAL;
-> +		ret = -EINVAL;
-> +		goto err_free_devinfo;
->  	}
->
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> --
-> 1.7.2.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Alan Stern
