@@ -1,45 +1,48 @@
-From: David Cohen <david.cohen@nokia.com>
-Subject: [PATCH 1/2] OMAP: Add generic IOMMU errors code
-Date: Mon, 31 Jan 2011 19:25:07 +0200
-Message-ID: <1296494708-17569-2-git-send-email-david.cohen@nokia.com>
-References: <1296494708-17569-1-git-send-email-david.cohen@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP: powerdomain: remove unused func declaration
+Date: Mon, 31 Jan 2011 10:46:46 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1101311045410.10420@utopia.booyaka.com>
+References: <1295446960-24358-1-git-send-email-rnayak@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:64871 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756222Ab1AaRZc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Jan 2011 12:25:32 -0500
-In-Reply-To: <1296494708-17569-1-git-send-email-david.cohen@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:58695 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752227Ab1AaRqr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Jan 2011 12:46:47 -0500
+In-Reply-To: <1295446960-24358-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, David Cohen <david.cohen@nokia.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com
 
-Generic IOMMU errors code are necessary to handle errors on generic
-layer.
+On Wed, 19 Jan 2011, Rajendra Nayak wrote:
 
-Signed-off-by: David Cohen <david.cohen@nokia.com>
----
- arch/arm/plat-omap/include/plat/iommu.h |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+> Trivial fix to remove the unused function declaration
+> from the powerdomain header.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/powerdomain.h |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+> index c66431e..0b7a357 100644
+> --- a/arch/arm/mach-omap2/powerdomain.h
+> +++ b/arch/arm/mach-omap2/powerdomain.h
+> @@ -165,7 +165,6 @@ struct pwrdm_ops {
+>  	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
+>  };
+>  
+> -void pwrdm_fw_init(void);
+>  void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_ops *custom_funcs);
+>  
+>  struct powerdomain *pwrdm_lookup(const char *name);
+> -- 
+> 1.7.0.4
 
-diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
-index 69230d6..c653fd7 100644
---- a/arch/arm/plat-omap/include/plat/iommu.h
-+++ b/arch/arm/plat-omap/include/plat/iommu.h
-@@ -109,6 +109,13 @@ struct iommu_platform_data {
- 	u32 da_end;
- };
- 
-+/* IOMMU errors */
-+#define IOMMU_ERR_TLB_MISS		(1 << 0)
-+#define IOMMU_ERR_TRANS_FAULT		(1 << 1)
-+#define IOMMU_ERR_EMU_MISS		(1 << 2)
-+#define IOMMU_ERR_TBLWALK_FAULT		(1 << 3)
-+#define IOMMU_ERR_MULTIHIT_FAULT	(1 << 4)
-+
- #if defined(CONFIG_ARCH_OMAP1)
- #error "iommu for this processor not implemented yet"
- #else
--- 
-1.7.1
+For the archives, this patch was queued for 2.6.39 as part of the 
+pwrdm_clkdm_a_2.6.39 branch on git://git.pwsan.com/linux-2.6
 
+
+- Paul
