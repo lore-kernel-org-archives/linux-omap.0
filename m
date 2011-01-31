@@ -1,173 +1,185 @@
-From: Andrushka <stanv@altlinux.ru>
-Subject: Change ARM core rate.
-Date: Mon, 31 Jan 2011 11:11:25 +0300
-Message-ID: <AANLkTimXNnxyG7V-bckTWHniY1w8646DYcj_SjOgXqUP@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH v4 0/4] Introduce hardware spinlock framework
+Date: Mon, 31 Jan 2011 12:33:40 +0200
+Message-ID: <1296470024-26854-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:60580 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751616Ab1AaIL0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Jan 2011 03:11:26 -0500
-Received: by yxt3 with SMTP id 3so1861745yxt.19
-        for <linux-omap@vger.kernel.org>; Mon, 31 Jan 2011 00:11:26 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Grant Likely <grant.likely@secretlab.ca>, Simon Que <simonque@gmail.com>, Suman Anna <s-anna@ti.com>, Hari Kanigeri <hari.kanigeri@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hello.
+OMAP4 introduces a Hardware Spinlock device, which provides hardware
+assistance for synchronization and mutual exclusion between heterogeneous
+processors and those not operating under a single, shared operating system
+(e.g. OMAP4 has dual Cortex-A9, dual Cortex-M3 and a C64x+ DSP).
 
-I have Davinci DM365 board, but I can't find more suitable
-mail-listing to ask my qustion.
+The intention of this hardware device is to allow remote processors,
+that have no alternative mechanism to accomplish synchronization and mutual
+exclusion operations, to share resources (such as memory and/or any other
+hardware resource).
 
-I have written Linux kernel module.
-Main purpose: change ARM core rate.
-Davinci DM365 has two PLL: PLL1 and PLL2.
+This patch set adds hwspinlock framework that makes it possible
+for drivers to use those hwspinlock devices and stay platform-independent.
 
-ARM core can be feed by:
-* PLLC1SYSCLK1 - fixed all time, equal to 243000 kHz.
-* PLLC2SYSCLK2 - that one I can change.
+Currently there are two use cases for this hwspinlock interface:
 
-Lower borde ARM core freq =3D=3D 121500 kHz (must be > pll1_sysclk4 CFG=
-/DMA bus).
-Higher borde ARM core freq =3D=3D 300000 kHz.
+1. Inter-processor communications: on OMAP4, cpu-intensive multimedia
+tasks are offloaded by the host to the remote M3 and/or C64x+ slave
+processors.
 
-To change ARM core freq I do next steps:
-1. switch ARM core to PLLC2SYSCLK2
-2. reset & configure PLL2.
-3. switch back to PLLC2SYSCLK2.
-4. call adjust_jiffies() ( snatch from cpufreq.c)
+To achieve fast message-based communications, a minimal kernel support
+is needed to deliver messages arriving from a remote processor to the
+appropriate user process.
 
-Now I come to standstill.
+This communication is based on a simple data structure that is shared between
+the remote processors, and access to it is synchronized using the hwspinlock
+module (remote processor directly places new messages in this shared data
+structure).
 
-I got several working configurations, and several not working.
-I can't undestand why some of them works, and some not.
+2. On some OMAP4 boards, the I2C bus is shared between the A9 and the M3,
+and the hwspinlock is used to synchronize access to it.
 
-Stable work. Switch between next rates work all times:
-272000 (kHz), mul=3D17, div=3D2
-204000 (kHz), mul=3D17, div=3D3
-252000 (kHz), mul=3D21, div=3D3
-201600 (kHz), mul=3D21, div=3D4
-200000 (kHz), mul=3D25, div=3D5
-249600 (kHz), mul=3D26, div=3D4
-259200 (kHz), mul=3D27, div=3D4
-268800 (kHz), mul=3D28, div=3D4
-278400 (kHz), mul=3D29, div=3D4
-232000 (kHz), mul=3D29, div=3D5
-205714 (kHz), mul=3D30, div=3D6
-297600 (kHz), mul=3D31, div=3D4
-248000 (kHz), mul=3D31, div=3D5
-212571 (kHz), mul=3D31, div=3D6
-186000 (kHz), mul=3D31, div=3D7
+While (2) can get away with an omap-specific hwspinlock implementation,
+(1) is by no means omap-specific, and a common hwspinlock interface is
+needed to keep it generic, in hopes that it will be useful for other
+platforms as well.
 
-Don't work - (completely instantaneously hang system):
+Additional users, besides OMAP4:
 
-144000 (kHz), mul=3D3, div=3D0
-180000 (kHz), mul=3D15, div=3D3
-136000 (kHz), mul=3D17, div=3D5
-126000 (kHz), mul=3D21, div=3D7
-157714 (kHz), mul=3D23, div=3D6
-171428 (kHz), mul=3D25, div=3D6
-133333 (kHz), mul=3D25, div=3D8
-178285 (kHz), mul=3D26, div=3D6
-162000 (kHz), mul=3D27, div=3D7
-174000 (kHz), mul=3D29, div=3D7
-165333 (kHz), mul=3D31, div=3D8
-158400 (kHz), mul=3D33, div=3D9
-296000 (kHz), mul=3D37, div=3D5
-203076 (kHz), mul=3D55, div=3D12
-299076 (kHz), mul=3D81, div=3D12
+* Davinci Netra (DM8168) has the same hwspinlock device, and will probably
+use the same host implementation (this is untested since hardware is
+not available yet, but the specs looks identical).
 
-Can anybody comment this behaviour?
+* Platforms (such as omap3530 and omapl1xx) that have no such hardware
+support, but would still need to achieve multi-core synchronization (to
+communicate with their DSP).
 
+The only way to achieve mutual exclusion on those platforms is by
+using a shared-memory synchronization algorithm such as Peterson's
+Algorithm.
 
-If frequency =3D=3D 222 000 kHz than system behave quite unstable.
-And give next messages:
+We would still need the same hwspinlock framework for that - the busy
+looping, the timeout, the various locking schemes, the lock resource
+allocation - are all still valid. The only difference would be the
+actual lock implementation, therefore we will add another host
+implementation for these platforms.
 
+* The C6474, a multi-core DSP device, have Linux running on one
+of its cores, and hardware support for synchronization (the C6474
+has a richer hardware module that would need more than the hwspinlock
+framework offer today - it also supports queuing, owner semantics and
+interrupt notification to let a processor know when it acquires a
+lock, so it wouldn't have to spin..).  Disclaimer: it will probably
+take some time until c6x support is merged upstream, but this is
+something that is being actively worked on. For additional information,
+see http://focus.ti.com/docs/prod/folders/print/tms320c6474.html and
+http://www.linux-c6x.org/wiki/index.php/Main_Page
 
-Backtrace:
-=D0=93=E2=80=9E<c0074c9c>=D0=93=D1=9A (add_to_page_cache_lru+0x0/0xac) =
-from =D0=93=E2=80=9E<c0074dbc>=D0=93=D1=9A
-(grab_cache_page_write_begin+0x74/0x9c)
- r5:c46d4268 r4:c03dc480
-=D0=93=E2=80=9E<c0074d48>=D0=93=D1=9A (grab_cache_page_write_begin+0x0/=
-0x9c) from
-=D0=93=E2=80=9E<c00f35b8>=D0=93=D1=9A (ext3_write_begin+0x80/0x240)
-=D0=93=E2=80=9E<c00f3538>=D0=93=D1=9A (ext3_write_begin+0x0/0x240) from=
- =D0=93=E2=80=9E<c0073d10>=D0=93=D1=9A
-(generic_file_buffered_write+0xf0/0x258)
-=D0=93=E2=80=9E<c0073c20>=D0=93=D1=9A (generic_file_buffered_write+0x0/=
-0x258) from
-=D0=93=E2=80=9E<c0075e64>=D0=93=D1=9A (__generic_file_aio_write+0x4a8/0=
-x4f8)
-=D0=93=E2=80=9E<c00759bc>=D0=93=D1=9A (__generic_file_aio_write+0x0/0x4=
-f8) from
-=D0=93=E2=80=9E<c0075f28>=D0=93=D1=9A (generic_file_aio_write+0x74/0xdc=
-)
-=D0=93=E2=80=9E<c0075eb4>=D0=93=D1=9A (generic_file_aio_write+0x0/0xdc)=
- from =D0=93=E2=80=9E<c009dc1c>=D0=93=D1=9A
-(do_sync_readv_writev+0x98/0xe4)
-=D0=93=E2=80=9E<c009db84>=D0=93=D1=9A (do_sync_readv_writev+0x0/0xe4) f=
-rom =D0=93=E2=80=9E<c009e2e4>=D0=93=D1=9A
-(do_readv_writev+0xb4/0x190)
-=D0=93=E2=80=9E<c009e230>=D0=93=D1=9A (do_readv_writev+0x0/0x190) from =
-=D0=93=E2=80=9E<c009e42c>=D0=93=D1=9A
-(vfs_writev+0x6c/0x7c)
-=D0=93=E2=80=9E<c009e3c0>=D0=93=D1=9A (vfs_writev+0x0/0x7c) from =D0=93=
-=E2=80=9E<c009e510>=D0=93=D1=9A (sys_writev+0x44/0x70)
- r5:00000000 r4:0030063f
-=D0=93=E2=80=9E<c009e4cc>=D0=93=D1=9A (sys_writev+0x0/0x70) from =D0=93=
-=E2=80=9E<c0028f60>=D0=93=D1=9A
-(ret_fast_syscall+0x0/0x2c)
+v3->v4:
+- Rebased to 2.6.38-rc2
+- Added Tony's Acked-by
+- Use hweight (akpm)
 
+v2->v3:
+- Remove the timeout-less _lock API variant (Tony)
+- s/state->io_base/io_base/ (Ionut)
+- Remove the "generic" wording (David)
+- s/hwspinlock_/hwspin_lock_/ (Mugdha)
+- Use MAX_SCHEDULE_TIMEOUT to indicate no timeout (Mugdha)
+- Be more verbose on egregious API misuse (Olof)
+- locking API misuse is BUG_ON material (Russell)
 
-Backtrace:
-=D0=93=E2=80=9E<c002c2a4>=D0=93=D1=9A (dump_backtrace+0x0/0x10c) from =D0=
-=93=E2=80=9E<c029d478>=D0=93=D1=9A
-(dump_stack+0x18/0x1c)
- r7:00000000 r6:c3446738 r5:00017000 r4:00000000
-=D0=93=E2=80=9E<c029d460>=D0=93=D1=9A (dump_stack+0x0/0x1c) from =D0=93=
-=E2=80=9E<c0036c74>=D0=93=D1=9A
-(__schedule_bug+0x54/0x60)
-=D0=93=E2=80=9E<c0036c20>=D0=93=D1=9A (__schedule_bug+0x0/0x60) from =D0=
-=93=E2=80=9E<c029d6ec>=D0=93=D1=9A
-(schedule+0x68/0x3c4)
- r4:c34bed4c
-=D0=93=E2=80=9E<c029d684>=D0=93=D1=9A (schedule+0x0/0x3c4) from =D0=93=E2=
-=80=9E<c00370b8>=D0=93=D1=9A
-(__cond_resched+0x18/0x24)
-=D0=93=E2=80=9E<c00370a0>=D0=93=D1=9A (__cond_resched+0x0/0x24) from =D0=
-=93=E2=80=9E<c029db58>=D0=93=D1=9A
-(_cond_resched+0x30/0x40)
-=D0=93=E2=80=9E<c029db28>=D0=93=D1=9A (_cond_resched+0x0/0x40) from =D0=
-=93=E2=80=9E<c008b0ec>=D0=93=D1=9A
-(unmap_vmas+0x5d8/0x6a0)
-=D0=93=E2=80=9E<c008ab14>=D0=93=D1=9A (unmap_vmas+0x0/0x6a0) from =D0=93=
-=E2=80=9E<c008dd68>=D0=93=D1=9A (exit_mmap+0xd4/0x208)
-=D0=93=E2=80=9E<c008dc94>=D0=93=D1=9A (exit_mmap+0x0/0x208) from =D0=93=
-=E2=80=9E<c003be60>=D0=93=D1=9A (mmput+0x40/0xf0)
- r8:00000000 r7:c34bec34 r6:c3442320 r5:00000000 r4:c34bec00
-=D0=93=E2=80=9E<c003be20>=D0=93=D1=9A (mmput+0x0/0xf0) from =D0=93=E2=80=
-=9E<c0040144>=D0=93=D1=9A (exit_mm+0x124/0x130)
- r5:c34bec00 r4:00000000
-=D0=93=E2=80=9E<c0040020>=D0=93=D1=9A (exit_mm+0x0/0x130) from =D0=93=E2=
-=80=9E<c0041bec>=D0=93=D1=9A (do_exit+0x190/0x65c)
- r7:c49c3bd8 r6:c3442320 r5:c3442320 r4:0000000b
-=D0=93=E2=80=9E<c0041a5c>=D0=93=D1=9A (do_exit+0x0/0x65c) from =D0=93=E2=
-=80=9E<c002c7e0>=D0=93=D1=9A (die+0x1c4/0x1f4)
-=D0=93=E2=80=9E<c002c61c>=D0=93=D1=9A (die+0x0/0x1f4) from =D0=93=E2=80=
-=9E<c002c858>=D0=93=D1=9A (bad_mode+0x48/0x70)
-=D0=93=E2=80=9E<c002c810>=D0=93=D1=9A (bad_mode+0x0/0x70) from =D0=93=E2=
-=80=9E<c00744f8>=D0=93=D1=9A (find_get_page+0x30/0xb0)
- r4:c03dc480
-BUG: scheduling while atomic: syslogd/1411/0x40000002
+  Note: Russell also suggested compiling out NULL checks on ARM.
+  I've posted an initial proposal for this (see
+  https://lkml.org/lkml/2010/11/29/96), which I'm going to resubmit
+  separately. If accepted, I'll adopt hwspinlocks to use it.
 
+v1->v2:
+- Convert to a generic interface (Tony)
+- API should silently succeed if framework isn't built (Greg)
+- Don't use ERR_PTR pattern (Grant)
+- Use tristate, fix and extend commentary (Kevin)
+- Provide API flexibility regarding irq handling (Arnd, Grant)
 
-Main question is:
-Why some frequencies are stable, and other does not?
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  Note: after reviewing OMAP's L4 access times, and comparing them with
+  external memory latencies, I can say that there is no notable difference.
+  Because of that, we can safely treat the hwspinlock like we do
+  with regular spinlocks: preemption should be disabled, but whether
+  to disable interrupts or not is up to the caller.
+
+  So despite the TRM's recommendation to always disable local interrupts
+  when taking an OMAP Hardware Spinlock, I have decided to allow callers
+  not to do that (by providing the full extent of hwspin_lock(),
+  hwspin_lock_irq() and hwspin_lock_irqsave() API).
+
+  Just like regular spinlocks, it's up to the callers to decide whether
+  interrupts should be disabled or not.
+
+  Sleeping, btw, is still prohibited of course.
+
+Contributions:
+
+Previous versions of an omap-specific hwspinlock driver circulated in
+linux-omap several times, and received substantial attention and contribution
+from many developers (see [1][2][3][4][5][6]):
+
+Simon Que did the initial implementation and pushed several iterations
+Benoit Cousson provided extensive review, help, improvements and hwmod support
+Hari Kanigeri helped out when Simon was away
+Sanjeev Premi, Santosh Shilimkar and Nishanth Menon did lots of review
+
+I'd like to thank Benoit Cousson, Steve Krueger, Hari Kanigeri,
+Nourredine Hamoudi and Richard Woodruff for useful discussions about
+the OMAP Spinlock requirements and use-cases.
+
+Relevant linux-omap threads:
+
+[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/38755
+[2] http://thread.gmane.org/gmane.linux.ports.arm.omap/38917
+[3] http://thread.gmane.org/gmane.linux.ports.arm.omap/39187
+[4] http://thread.gmane.org/gmane.linux.ports.arm.omap/39365
+[5] http://thread.gmane.org/gmane.linux.ports.arm.omap/39815
+[6] http://thread.gmane.org/gmane.linux.ports.arm.omap/40901
+
+Benoit Cousson (1):
+  OMAP4: hwmod data: Add hwspinlock
+
+Ohad Ben-Cohen (1):
+  drivers: hwspinlock: add framework
+
+Simon Que (2):
+  drivers: hwspinlock: add OMAP implementation
+  omap: add hwspinlock device
+
+ Documentation/hwspinlock.txt               |  299 +++++++++++++++
+ arch/arm/mach-omap2/Makefile               |    1 +
+ arch/arm/mach-omap2/hwspinlock.c           |   63 ++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   63 ++++
+ drivers/Kconfig                            |    2 +
+ drivers/Makefile                           |    2 +
+ drivers/hwspinlock/Kconfig                 |   22 ++
+ drivers/hwspinlock/Makefile                |    6 +
+ drivers/hwspinlock/hwspinlock.h            |   61 +++
+ drivers/hwspinlock/hwspinlock_core.c       |  557 ++++++++++++++++++++++++++++
+ drivers/hwspinlock/omap_hwspinlock.c       |  231 ++++++++++++
+ include/linux/hwspinlock.h                 |  298 +++++++++++++++
+ 12 files changed, 1605 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwspinlock.txt
+ create mode 100644 arch/arm/mach-omap2/hwspinlock.c
+ create mode 100644 drivers/hwspinlock/Kconfig
+ create mode 100644 drivers/hwspinlock/Makefile
+ create mode 100644 drivers/hwspinlock/hwspinlock.h
+ create mode 100644 drivers/hwspinlock/hwspinlock_core.c
+ create mode 100644 drivers/hwspinlock/omap_hwspinlock.c
+ create mode 100644 include/linux/hwspinlock.h
