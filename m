@@ -1,46 +1,39 @@
-From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Subject: RE: [linux-pm] [PATCH] i2c: OMAP: fix static suspend vs. runtime suspend
-Date: Mon, 31 Jan 2011 20:58:29 +0530
-Message-ID: <266a2f0ec446d693cf9583681ca346e0@mail.gmail.com>
-References: <1a4ad626f3cb73267847e8ac7bd47545@mail.gmail.com> <Pine.LNX.4.44L0.1101311010580.1931-100000@iolanthe.rowland.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 10/13] OMAP3: Add voltage dependency table for VDD1.
+Date: Mon, 31 Jan 2011 07:38:01 -0800
+Message-ID: <87sjw99j8m.fsf@ti.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+	<1295618465-15234-11-git-send-email-vishwanath.bs@ti.com>
+	<87hbcsblet.fsf@ti.com>
+	<ac935694980943538946b0bf4911af63@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1101311010580.1931-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:32769 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756023Ab1AaPiI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Jan 2011 10:38:08 -0500
+Received: by mail-gw0-f53.google.com with SMTP id 10so2553400gwb.26
+        for <linux-omap@vger.kernel.org>; Mon, 31 Jan 2011 07:38:06 -0800 (PST)
+In-Reply-To: <ac935694980943538946b0bf4911af63@mail.gmail.com> (Vishwanath
+	Sripathy's message of "Sun, 30 Jan 2011 18:29:07 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
 
-> -----Original Message-----
-> From: Alan Stern [mailto:stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org]
-> Sent: Monday, January 31, 2011 8:43 PM
-> To: Rajendra Nayak
-> Cc: Kevin Hilman; Ben Dooks; linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-
-> omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> Subject: Re: [linux-pm] [PATCH] i2c: OMAP: fix static suspend vs.
-runtime suspend
->
-> On Mon, 31 Jan 2011, Rajendra Nayak wrote:
->
-> > Can you elaborate a bit more on how/why runtime PM transitions
-> > are disabled during system suspend, and how is it taken care
-> > of that a runtime resume of a device works however a subsequent
-> > runtime (re)suspend does not?
->
-> I'll answer for Kevin.  This is done by the PM core, in order to
-> prevent runtime power transitions from interfering with a system power
-> transition.  The PM core increments the device's usage_count; this
-> prevents the device from being runtime-suspended but it allows
-> runtime-resume calls to go through.
+Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
 
-Thanks, I did remember seeing the pm_runtime_get_noresume()
-in dpm_prepare(). Just did not correlate it was the same Kevin
-was trying to say.
+[...]
 
-Regards,
-Rajendra
+> Regarding 34xx testing, I did try to test it on 3430 SDP. However
+> image was not booting up when I used pm branch.  I see that with
+> latest pm-core branch image boots up where as with pm branch it does
+> not. Is this a known issue?
 
->
-> Alan Stern
+I don't have a 3430SDP, but it boots for me on 3430/n900, 3530/omap3evm
+and 3630/zoom3.
+
+Kevin
+
