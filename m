@@ -1,48 +1,49 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: [linux-pm] [PATCH] i2c: OMAP: fix static suspend vs. runtime suspend
-Date: Mon, 31 Jan 2011 19:19:48 +0100
-Message-ID: <201101311919.49225.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1101311119190.1931-100000@iolanthe.rowland.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: OMAP PM fixes for 2.6.38-rc3
+Date: Mon, 31 Jan 2011 13:12:22 -0800
+Message-ID: <87aaig93rd.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1101311119190.1931-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux-pm mailing list <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:44051 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753840Ab1AaVMa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Jan 2011 16:12:30 -0500
+Received: by mail-yx0-f179.google.com with SMTP id 7so2193464yxs.10
+        for <linux-omap@vger.kernel.org>; Mon, 31 Jan 2011 13:12:25 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Monday, January 31, 2011, Alan Stern wrote:
-> On Mon, 31 Jan 2011, Kevin Hilman wrote:
-> 
-> > I understand how this works, but frankly I'm still a bit fuzzy on why.
-> > 
-> > I guess I'm still missing a good understanding of what "interfering with a
-> > system power transition" means, and why a runtime suspend qualifies as
-> > interfering but not a runtime resume.
-> 
-> These are good questions.  Rafael implemented this design originally; 
-> my contribution was only to warn him of the potential for problems.  
-> Therefore he should explain the rationale for the design.
+Tony,
 
-The reason why runtime resume is allowed during system power transitions is
-because in some cases during system suspend we simply have to resume devices
-that were previously runtime-suspended (for example, the PCI bus type does
-that).
+Please pull the following small set of PM-related fixes for 2.6.38-rc.
 
-The reason why runtime suspend is not allowed during system power transitions
-if the following race:
+Kevin
 
-- A device has been suspended via a system suspend callback.
-- The runtime PM framework executes a (scheduled) suspend on that device,
-  not knowing that it's already been suspended, which potentially results in
-  accessing the device's registers in a low-power state.
+The following changes since commit 1bae4ce27c9c90344f23c65ea6966c50ffeae2f5:
 
-Now, it can be avoided if every driver does the right thing and checks whether
-the device is already suspended in its runtime suspend callback, but that would
-kind of defeat the purpose of the runtime PM framework, at least partially.
+  Linux 2.6.38-rc2 (2011-01-21 19:01:34 -0800)
 
-Thanks,
-Rafael
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_2.6.38/pm-fixes
+
+Aaro Koskinen (1):
+      arm: mach-omap2: voltage: debugfs: fix memory leak
+
+Julia Lawall (1):
+      OMAP: PM: SmartReflex: Add missing IS_ERR test
+
+Kevin Hilman (1):
+      OMAP3: PM: fix save secure RAM to restore MPU power state
+
+Stefan Weil (2):
+      OMAP: PM: SmartReflex: Fix possible memory leak
+      OMAP: PM: SmartReflex: Fix possible null pointer read access
+
+ arch/arm/mach-omap2/pm34xx.c      |    7 ++++---
+ arch/arm/mach-omap2/smartreflex.c |   11 +++++------
+ arch/arm/mach-omap2/voltage.c     |    1 +
+ 3 files changed, 10 insertions(+), 9 deletions(-)
