@@ -1,142 +1,180 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH 2/2] OMAP: Cleanup IOMMU error messages
-Date: Mon, 31 Jan 2011 21:16:30 -0600
-Message-ID: <AANLkTinC+6ypf3+7NTc32Jj8jXE3MnZf-mvQ-aLKyP-7@mail.gmail.com>
-References: <1296494708-17569-1-git-send-email-david.cohen@nokia.com>
-	<1296494708-17569-3-git-send-email-david.cohen@nokia.com>
+From: "Gulati, Shweta" <shweta.gulati@ti.com>
+Subject: Re: [query] smartreflex: No PMIC hook to init smartreflex
+Date: Tue, 1 Feb 2011 10:20:03 +0530
+Message-ID: <AANLkTim7ThQ3g4_RPcbMRFJKpsVPj8RDL1YjvJH2oTb8@mail.gmail.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59302485ADDFE@dbde02.ent.ti.com>
+	<AANLkTinq5OxHo-X1Wd2EmAwb4LPtQNs5c6=xp4GSymvJ@mail.gmail.com>
+	<2dcb8dc49945099cbbc5c4f725d845a5@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59302486D6245@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:38058 "EHLO
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:59570 "EHLO
 	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753581Ab1BADQb convert rfc822-to-8bit
+	by vger.kernel.org with ESMTP id S1751789Ab1BAEuH convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Jan 2011 22:16:31 -0500
-Received: by mail-yi0-f48.google.com with SMTP id 17so2501561yib.35
-        for <linux-omap@vger.kernel.org>; Mon, 31 Jan 2011 19:16:30 -0800 (PST)
-In-Reply-To: <1296494708-17569-3-git-send-email-david.cohen@nokia.com>
+	Mon, 31 Jan 2011 23:50:07 -0500
+Received: by mail-px0-f171.google.com with SMTP id 4so939996pxi.16
+        for <linux-omap@vger.kernel.org>; Mon, 31 Jan 2011 20:50:04 -0800 (PST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59302486D6245@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Cohen <david.cohen@nokia.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi David,
+Sanjeev,
 
-On Mon, Jan 31, 2011 at 11:25 AM, David Cohen <david.cohen@nokia.com> w=
-rote:
-> IOMMU error messages are duplicated. They're printed on IOMMU specifi=
-c
-> layer for OMAP2,3 and once again on the above layer. With this patch,
-> the error message is printed on the above layer only.
-
-So, you say they are duplicated, previously the type of fault was
-printed in the omap2,3 code and the addresses involving the error
-printed on plat code... with this patch both messages are printed on
-plat code, I don't see where the duplication/fix is about.
-
-AFAIK, your patch removes this line:
-
- -       dev_err(obj->dev, "%s:\tda:%08x ", __func__, da);
-
-Which I assume is the one being printed again in plat code, right?
-
-> Signed-off-by: David Cohen <david.cohen@nokia.com>
-> ---
-> =A0arch/arm/mach-omap2/iommu2.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 33 +++++=
-++++++++--------------
-> =A0arch/arm/plat-omap/include/plat/iommu.h | =A0 =A02 +-
-> =A0arch/arm/plat-omap/iommu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 36 +++=
-+++++++++++++++++----------
-> =A03 files changed, 41 insertions(+), 30 deletions(-)
+On Mon, Jan 31, 2011 at 9:50 PM, Premi, Sanjeev <premi@ti.com> wrote:
+>> -----Original Message-----
+>> From: Vishwanath Sripathy [mailto:vishwanath.bs@ti.com]
+>> Sent: Thursday, January 27, 2011 7:56 PM
+>> To: Menon, Nishanth; Premi, Sanjeev
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: RE: [query] smartreflex: No PMIC hook to init smartreflex
+>>
+>> Nishant,
+>>
+>> > -----Original Message-----
+>> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> > owner@vger.kernel.org] On Behalf Of Menon, Nishanth
+>> > Sent: Thursday, January 27, 2011 3:06 PM
+>> > To: Premi, Sanjeev
+>> > Cc: linux-omap@vger.kernel.org
+>> > Subject: Re: [query] smartreflex: No PMIC hook to init smartreflex
+>> >
+>> > Sanjeev,
+>> >
+>> > On Tue, Jan 25, 2011 at 20:55, Premi, Sanjeev <premi@ti.com> wrote=
+:
+>> > > While building the kernel at 2.6.37, i see this warning
+>> for omap3evm -
+>> > with omap3630:
+>> > >
+>> > > Power Management for TI OMAP3.
+>> > > sr_init: No PMIC hook to init smartreflex <-- THIS IS THE WARNIN=
+G.
+>> > > smartreflex smartreflex.0: omap_sr_probe: SmartReflex driver
+>> > initialized
+>> > > smartreflex smartreflex.1: omap_sr_probe: SmartReflex driver
+>> > initialized
+>> > > SmartReflex Class3 initialized
+>> > >
+>> > > In the code, i see this comment:
+>> > > =A0/*
+>> > > =A0* sr_init is a late init. If by then a pmic specific API is n=
+ot
+>> > > =A0* registered either there is no need for anything to be done =
+on
+>> > > =A0* the PMIC side or somebody has forgotten to register a PMIC
+>> > > =A0* handler. Warn for the second condition.
+>> > > =A0*/
+>> > > =A0if (sr_pmic_data && sr_pmic_data->sr_pmic_init)
+>> > > =A0sr_pmic_data->sr_pmic_init();
+>> > > =A0else
+>> > > =A0pr_warning("%s: No PMIC hook to init smartreflex\n", __func__=
+);
+>> > >
+>> > > But, I couldn't find any place where PMIC is being registered.
+>> >
+>> > This is a harmless warning (ideally, we should remove the
+>> pr_warning).
+>> > =A0the intent here is to have hook for pmic_init which could be
+>> > populated for custom PMICs which may need "something additional" f=
+or
+>> > Smart reflex enablement. if you look at the sr_pmic_data -
+>> it just has
+>> > a single api for pmic_init
+>> >
+>> > e.g. in the case of TWL4030/5030, we might need to set the bit to
+>> > switch mode from I2C1 to I2C_SR - e.g. the patch from Shweta[1]
+>> >
+>> > if Smartreflex AVS was the *only* mechanism in the system, we coul=
+d
+>> > have hooked pmic_init to this bit setting. but since the
+>> system can do
+>> > voltage scaling (VP forceupdate/vc bypass) independent of SR AVS
+>> > block, the patch in [1] does initialization independent of
+>> > sr_pmic_data->pmic_init which makes sense.
+>> >
+>> > in short, my 2cents: the warning is probably something we should
+>> > remove from the code.
+>> As you mentioned, incase of TWL4030/5030, we do not need any
+>> hook. However
+>> if some other PMIC is used that genuinely needs this hook,
+>> then shouldn't
+>> SR throw up this warning? As SR module is independent of
+>> PMIC, it cannot
 >
-> diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu=
-2.c
-> index 14ee686..bb3d75b 100644
-> --- a/arch/arm/mach-omap2/iommu2.c
-> +++ b/arch/arm/mach-omap2/iommu2.c
-> @@ -143,33 +143,32 @@ static void omap2_iommu_set_twl(struct iommu *o=
-bj, bool on)
-> =A0 =A0 =A0 =A0__iommu_set_twl(obj, false);
-> =A0}
 >
-> -static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
-> +static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra, u32 *io=
-mmu_errs)
-> =A0{
-> - =A0 =A0 =A0 int i;
-> + =A0 =A0 =A0 u32 errs =3D 0;
-> =A0 =A0 =A0 =A0u32 stat, da;
-> - =A0 =A0 =A0 const char *err_msg[] =3D {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "tlb miss",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "translation fault",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "emulation miss",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "table walk fault",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "multi hit fault",
-> - =A0 =A0 =A0 };
-
-AFAIU, this code living in mach-omap2, means that this errors are
-common for omap2,3,4 which they are. Does moving them to plat code
-implies that all omap platforms expect these errors?
-
-> =A0 =A0 =A0 =A0stat =3D iommu_read_reg(obj, MMU_IRQSTATUS);
-> =A0 =A0 =A0 =A0stat &=3D MMU_IRQ_MASK;
-> - =A0 =A0 =A0 if (!stat)
-> + =A0 =A0 =A0 if (!stat) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 *iommu_errs =3D 0;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
-> + =A0 =A0 =A0 }
+> I possibly see different arguments from your description:
+> 1) This is hook is not needed for TWL4030/5030.
+> =A0 But still, still hook is needed for another PMIC.
+ True.
+struct  'sr_pmic_data' is generic way of handling all Pmic.
+The pmic needs to register to SR which it does  by API 'sr_pmic_init'.
+Today this API just enables SR bit "CFG_ENABLE_SRFLX" in TWL
+PM module registers which is redundant in case of TWL chips as SR bit
+is already set in 'omap_twl_init' API in file omap_twl.c
+But in future if this API 'sr_pmic_init' has some other functionality o=
+r
+in case when Pmic is not TWL family chip then the initialization done b=
+y
+'sr_pmic_init' is necessary.
+> 2) It is okay to warn user for non-existent hook that is not
+> =A0 really needed... in hope that there could be a different PMIC.
 >
-> =A0 =A0 =A0 =A0da =3D iommu_read_reg(obj, MMU_FAULT_AD);
-> =A0 =A0 =A0 =A0*ra =3D da;
+> 3) Despite saying that SR is independent of PMIC, we assume it as
+> =A0 default and don't go thru the "plugin" route.
 >
-> - =A0 =A0 =A0 dev_err(obj->dev, "%s:\tda:%08x ", __func__, da);
-> -
-> - =A0 =A0 =A0 for (i =3D 0; i < ARRAY_SIZE(err_msg); i++) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & (1 << i))
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk("%s ", err_msg[i=
-]);
-> - =A0 =A0 =A0 }
-> - =A0 =A0 =A0 printk("\n");
-> + =A0 =A0 =A0 if (stat & MMU_IRQ_TLBMISS)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D IOMMU_ERR_TLB_MISS;
-> + =A0 =A0 =A0 if (stat & MMU_IRQ_TRANSLATIONFAULT)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D IOMMU_ERR_TRANS_FAULT;
-> + =A0 =A0 =A0 if (stat & MMU_IRQ_EMUMISS)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D IOMMU_ERR_EMU_MISS;
-> + =A0 =A0 =A0 if (stat & MMU_IRQ_TABLEWALKFAULT)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D IOMMU_ERR_TBLWALK_FAULT;
-> + =A0 =A0 =A0 if (stat & MMU_IRQ_MULTIHITFAULT)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D IOMMU_ERR_MULTIHIT_FAULT;
-> + =A0 =A0 =A0 *iommu_errs =3D errs;
-
-Is there any point in doing this?
-
-Basically: *iommu_errs =3D stat, given that the mask values and the
-error defines are the same for each case.
-
-Besides I haven't seen two errors trigger a single interrupt.
-
-=2E..
+> Something seems to be missing in the argument. I haven't been able
+> to spend more time on this since last mail (also reason for late
+> response); but:
 >
-> - =A0 =A0 =A0 iopte =3D iopte_offset(iopgd, da);
-> -
-> - =A0 =A0 =A0 dev_err(obj->dev, "%s: da:%08x pgd:%p *pgd:%08x pte:%p =
-*pte:%08x\n",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, da, iopgd, *iopgd, iopte, *io=
-pte);
-> + =A0 =A0 =A0 for (i =3D 0; i < ARRAY_SIZE(err_msg); i++) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (errs & (1 << i))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_CONT " %s",=
- err_msg[i]);
-> + =A0 =A0 =A0 }
-> + =A0 =A0 =A0 printk("\n");
+> 1) When user adds the hook - for different PMIC, this warning/info
+> =A0 would go away. But not for current default systems.
+If some other PMIC is registered then ideally this warning shouldn't co=
+me
+and if it comes it hampers SR role but for TWL4030/TWL5030 this warning
+is harmless.
+> 2) By keeping TWL4030 as default, we are possibly not telling the
+> =A0 person keen on replacing the PMIC what should be done?
+>
+> If SR is really PMIC independent, then warning is right only if
+> TWL4030 is also 'plugged-in' as any other PMIC is expected to be.
+>
+>> distinguish them. So I feel this warning should be present probably
+>> reworded better like "No PMIC hook registered to init
+>> smartreflex. Either
+>> this PM IC does not need SR init or PMIC hook is missing".
+>
+> This wording - as is - would again be misleading.
+>
+> ~sanjeev
+>
+>> Vishwa
+>> >
+>> > [1] http://marc.info/?l=3Dlinux-omap&m=3D129584746102725&w=3D2
+>> > Regards,
+>> > Nishanth Menon
+>> > --
+>> > To unsubscribe from this list: send the line "unsubscribe
+>> linux-omap" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
-I think we should get rid of the "printks".
 
+--=20
+Thanks,
 Regards,
-
-Omar
+Shweta
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
