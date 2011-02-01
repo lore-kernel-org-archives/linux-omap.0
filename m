@@ -1,82 +1,43 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [PATCH v2] OMAP: fix fncpy API call
-Date: Tue, 1 Feb 2011 16:36:06 +0000
-Message-ID: <AANLkTinU5Msop=Lg7iuSfNZXa+7NQCwcrN2hB1a1T9Ds@mail.gmail.com>
-References: <1295977686-22765-1-git-send-email-j-pihet@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] OMAP: hwmod: Do not expect an entry in clkdev to add
+ alias for opt_clks
+Date: Tue, 1 Feb 2011 09:53:06 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102010948320.15746@utopia.booyaka.com>
+References: <1296213475-23460-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1101311606030.16671@utopia.booyaka.com> <997a6c2b061aee29cd2d0c755d4ad80c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:45145 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291Ab1BAQgI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 11:36:08 -0500
-Received: by eye27 with SMTP id 27so3239080eye.19
-        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 08:36:07 -0800 (PST)
-In-Reply-To: <1295977686-22765-1-git-send-email-j-pihet@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:58296 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751585Ab1BAQxH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 11:53:07 -0500
+In-Reply-To: <997a6c2b061aee29cd2d0c755d4ad80c@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Jan 25, 2011 at 5:48 PM,  <jean.pihet@newoldbits.com> wrote:
-> From: Jean Pihet <j-pihet@ti.com>
->
-> Fix a potential problem with function types when calling the
-> fncpy API to copy the PM code functions to SRAM.
->
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> ---
-> =A0arch/arm/plat-omap/include/plat/sram.h | =A0 =A04 ++--
-> =A01 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-o=
-map/include/plat/sram.h
-> index d673f2c..f500fc3 100644
-> --- a/arch/arm/plat-omap/include/plat/sram.h
-> +++ b/arch/arm/plat-omap/include/plat/sram.h
-> @@ -18,10 +18,10 @@ extern void *omap_sram_push_address(unsigned long=
- size);
->
-> =A0/* Macro to push a function to the internal SRAM, using the fncpy =
-API */
-> =A0#define omap_sram_push(funcp, size) ({ =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 \
-> - =A0 =A0 =A0 typeof(&funcp) _res =3D NULL; =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
-> + =A0 =A0 =A0 typeof(&(funcp)) _res =3D NULL; =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
-> =A0 =A0 =A0 =A0void *_sram_address =3D omap_sram_push_address(size); =
-=A0 =A0 \
-> =A0 =A0 =A0 =A0if (_sram_address) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 _res =3D fncpy(_sram_address, &funcp, s=
-ize); =A0 =A0 =A0\
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 _res =3D fncpy(_sram_address, &(funcp),=
- size); =A0 =A0\
-> =A0 =A0 =A0 =A0_res; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
-> =A0})
+On Tue, 1 Feb 2011, Rajendra Nayak wrote:
 
-I believe this is sound, though I'm not yet in a position to test it fu=
-lly.
+> One other thing I was thinking of is if the function name
+> _add_optional_clock_alias need to be changed to something like
+> _add_optional_clock_clkdev since we are adding a new clkdev entry,
+> if it does not exist, and no longer adding an 'alias' for an existing
+> entry.
 
-When I have the OMAP kernel building with Thumb-2 again I will follow u=
-p.
+Fine with me.
 
-Cheers
----Dave
+> Also, the adding of an entry in clkdev is today done for
+> optional clocks alone. Is there any reason why we should not do
+> this at runtime for all main clks and interface clks also.
+> That way we get rid of all dependencies with the static clkdev
+> table, and we might infact not need one if all entries are added
+> runtime.
+
+Heh, you've just uncovered my "secret" plan.  It seemed best to me to wait 
+until all of the hwmod conversions were done to avoid alarming certain 
+people who might be consulting the static clkdev table in 
+mach-omap2/clock*_data.c as a platform reference...
 
 
-Reviewed-by: Dave Martin <dave.martin@linaro.org>
-
->
-> --
-> 1.7.1
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
