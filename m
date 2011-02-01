@@ -1,71 +1,123 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
-Date: Tue, 1 Feb 2011 17:01:03 +0530
-Message-ID: <782caeeca19758b50d370c17db11c78a@mail.gmail.com>
-References: <1294935563-14426-1-git-send-email-j-pihet@ti.com><b52b65db02da68b3febc0c9cf1e99040@mail.gmail.com><9215f5d7252a4b60f58c3e14a9d46f59@mail.gmail.com><AANLkTinRZyVBu=c3cHBQ7OmJv3U8717_w8Haig4R=ZQh@mail.gmail.com><86b8aab234e1451170c0937e2ab786e5@mail.gmail.com>
- <AANLkTinPxJigu8Nc5J04ciQ_c_Kw9R2xS7s1jaiqeM+F@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH v2 09/13] OMAP: McBSP: use omap_device APIs
+ to modify SYSCONFIG
+Date: Tue, 01 Feb 2011 14:19:03 +0200
+Message-ID: <4D47FA37.1060001@nokia.com>
+References: <1296485437-12806-1-git-send-email-kishon@ti.com>
+	<1296485437-12806-10-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:34933 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751290Ab1BALbJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 06:31:09 -0500
-Received: by mail-gy0-f180.google.com with SMTP id 6so2970806gya.11
-        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 03:31:05 -0800 (PST)
-In-Reply-To: <AANLkTinPxJigu8Nc5J04ciQ_c_Kw9R2xS7s1jaiqeM+F@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1296485437-12806-10-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Kishon Vijay Abraham I <kishon@ti.com>
+Cc: alsa-devel@alsa-project.org, b-cousson@ti.com, khilman@deeprootsystems.com, broonie@opensource.wolfsonmicro.com, paul@pwsan.com, p-basak2@ti.com, lrg@slimlogic.co.uk, linux-omap@vger.kernel.org, shubhrajyoti@ti.com, charu@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, Jean Pihet-XID <j-pihet@ti.com>
 
-> -----Original Message-----
-> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
-> Sent: Tuesday, February 01, 2011 4:53 PM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; Jean Pihet-XID
-> Subject: Re: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
->
+Hi,
 
-[...]
-> >> Does that makes sense?
-> >>
-> > Actually not. Rather I will separate only the scenario's
-> > where CORE low power targets are attempted and only have
-> > that code run from SRAM.
-> >
-> > There are scenario's where CORE can be active because MODEM,
-> > DSP and MPU can still hit RET, OFF. And here, the errata
-> > isn't applicable.
-> >
-> > Unless I missed something here, I think in the code we check
-> > the the CORE attempted state and based on that we can do a
-> > normal WFI from DDR (no self rfersh) or WFI from
-> > SRAM with self refresh enabled.
-> No. Only the MPU attempted state is checked (this actually is the
-> 'save_state' parameter passed to omap_cpu_suspend).
-> So it makes sense to check the CORE attempted state in order to
-> decide
-> to run the WFI from internal SRAM or DDR.
->
-> The MPU attempted state is used to decide whether to save the
-> MPU/L1/L2 context.
->
-Looks like you miss-understood my point. As I understand from
-errata, as long as core clock domain can idle with core
-dpll divider auto idle enabled, the errata is applicable.
+On 01/31/2011 04:50 PM, ext Kishon Vijay Abraham I wrote:
+> McBSP2/3 in OMAP3 has sidetone feature which requires autoidle
+> to be disabled before starting the sidetone. Also SYSCONFIG
+> register has to be set with smart idle or no idle depending on the
+> dma op mode (threshold or element sync). For doing these operations
+> dynamically at runtime, omap_device APIs are used to modify SYSCONFIG reg=
+ister.
+> =
 
-So the only check needed is to see if the core clockdomain
-hw_auto or sw sleep is enabled.
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  arch/arm/plat-omap/mcbsp.c |   66 +++++++++++++++++++++++---------------=
+-----
+>  1 files changed, 35 insertions(+), 31 deletions(-)
+> =
 
-If it is suppose to be not idle(we force few C-states
-where CORE inactive is avoided for faster response),
-we can execute WFI from DDR with not enabling
-self refresh.
+> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
 
-Rest of the scenario can follow the SRAM path.
+...
 
-Hope this is clear to you.
+>  static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+>  {
+> +	struct omap_device *od;
+> +
+> +	od =3D find_omap_device_by_dev(mcbsp->dev);
+>  	/*
+>  	 * Enable wakup behavior, smart idle and all wakeups
+>  	 * REVISIT: some wakeups may be unnecessary
+>  	 */
+>  	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+> -		u16 syscon;
+> -
+> -		syscon =3D MCBSP_READ(mcbsp, SYSCON);
+> -		syscon &=3D ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
+> -
+> -		if (mcbsp->dma_op_mode =3D=3D MCBSP_DMA_MODE_THRESHOLD) {
+> -			syscon |=3D (ENAWAKEUP | SIDLEMODE(0x02) |
+> -					CLOCKACTIVITY(0x02));
+> +		if (mcbsp->dma_op_mode !=3D MCBSP_DMA_MODE_THRESHOLD)
+> +			omap_device_noidle(od);
+> +		else
 
-Regards,
-Santosh
+Would it make sense to call here:
+omap_device_smartidle(od); ?
+What happens, if we configure McBSP to element mode, play a sample,
+configure it to threshold?
+I think we should explicitly as for smartidle, when we suppose to be in
+smartidle.
+
+>  			MCBSP_WRITE(mcbsp, WAKEUPEN, XRDYEN | RRDYEN);
+> -		} else {
+> -			syscon |=3D SIDLEMODE(0x01);
+> -		}
+> -
+> -		MCBSP_WRITE(mcbsp, SYSCON, syscon);
+>  	}
+>  }
+>  =
+
+>  static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
+>  {
+> +	struct omap_device *od;
+> +
+> +	od =3D find_omap_device_by_dev(mcbsp->dev);
+> +
+>  	/*
+>  	 * Disable wakup behavior, smart idle and all wakeups
+>  	 */
+>  	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+> -		u16 syscon;
+> -
+> -		syscon =3D MCBSP_READ(mcbsp, SYSCON);
+> -		syscon &=3D ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
+>  		/*
+>  		 * HW bug workaround - If no_idle mode is taken, we need to
+>  		 * go to smart_idle before going to always_idle, or the
+>  		 * device will not hit retention anymore.
+>  		 */
+> -		syscon |=3D SIDLEMODE(0x02);
+> -		MCBSP_WRITE(mcbsp, SYSCON, syscon);
+> -
+> -		syscon &=3D ~(SIDLEMODE(0x03));
+> -		MCBSP_WRITE(mcbsp, SYSCON, syscon);
+> -
+> +		omap_device_default_idle(od);
+>  		MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
+
+Hrm, it would be better to do it as the comment said:
+omap_device_smartidle(od);
+omap_device_forceidle(od);
+
+BTW: what is the default_idle in case of McBSP?
+
+-- =
+
+P=E9ter
