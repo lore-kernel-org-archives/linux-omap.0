@@ -1,61 +1,40 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v4 1/4] drivers: hwspinlock: add framework
-Date: Mon, 31 Jan 2011 22:38:59 -0800
-Message-ID: <20110131223859.27169db0.akpm@linux-foundation.org>
-References: <1296470024-26854-1-git-send-email-ohad@wizery.com>
-	<1296470024-26854-2-git-send-email-ohad@wizery.com>
-	<20110131153831.dca62146.akpm@linux-foundation.org>
-	<AANLkTik-fgCF_W0-DBE6UVTpjqF6Jf=u7bQYkcweEegQ@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2] musb: am35x: fix compile error due to control apis
+Date: Tue, 1 Feb 2011 09:26:43 +0200
+Message-ID: <20110201072643.GK2675@legolas.emea.dhcp.ti.com>
+References: <1291623211-959-1-git-send-email-ajay.gupta@ti.com>
+ <87fwsqm3b2.fsf@gmail.com>
+ <87k4hu8fvx.fsf@gmail.com>
+ <20110127044810.GJ2429@legolas.emea.dhcp.ti.com>
+ <877hdq8r50.fsf@gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTik-fgCF_W0-DBE6UVTpjqF6Jf=u7bQYkcweEegQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@ti.com>, Arnd Bergmann <arnd@arndb.de>, Paul Walmsley <paul@pwsan.com>, Hari Kanigeri <hari.kanigeri@gmail.com>, Simon Que <simonque@gmail.com>, Russell King <rmk@arm.linux.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:36407 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752080Ab1BAH0s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 02:26:48 -0500
+Content-Disposition: inline
+In-Reply-To: <877hdq8r50.fsf@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ben Gamari <bgamari.foss@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Tue, 1 Feb 2011 08:20:13 +0200 Ohad Ben-Cohen <ohad@wizery.com> wrote:
+On Thu, Jan 27, 2011 at 07:31:23AM -0500, Ben Gamari wrote:
+> On Thu, 27 Jan 2011 06:48:10 +0200, Felipe Balbi <balbi@ti.com> wrote:
+> > sorry, quite busy at the moment, but here's one answer. Check this
+> > commit:
+> > 
+> > commit a9c037832e9624e240c5019d0e01e9352e8f638d
+> > ...
+> 
+> Thanks for the reply! So I take it that omap's usb_musb_init takes care
+> of all of the new *_board_data fields now and therefore no board changes
+> are necessary?
 
-> On Tue, Feb 1, 2011 at 1:38 AM, Andrew Morton <akpm@linux-foundation.org> wrote:
-> > It's a little irritating having two hwspinlock.h's.
-> > hwspinlock_internal.h wold be a conventional approach. __But it's not a
-> > big deal.
-> ...
-> 
-> >> +/**
-> >> + * __hwspin_lock_timeout() - lock an hwspinlock with timeout limit
-> >> + * @hwlock: the hwspinlock to be locked
-> >> + * @timeout: timeout value in jiffies
-> >
-> > hm, why in jiffies?
-> >
-> > The problem here is that lazy programmers will use
-> >
-> > __ __ __ __hwspin_lock_timeout(lock, 10, ...)
-> >
-> > and their code will work happily with HZ=100 but will explode with HZ=1000.
-> >
-> > IOW, this interface *requires* that all callers perform a
-> > seconds-to-jiffies conversion before calling hwspin_lock_timeout(). __So
-> > why not reduce their effort and their ability to make mistakes by
-> > defining the API to take seconds?
-> 
-> I considered that, but then decided to use jiffies in order to be
-> consistent with wait_event_timeout/schedule_timeout (although I don't
-> return the remaining jiffies in case the lock is taken before the
-> timeout elapses), and also to allow user-selected granularity.
-> 
-> But I do kind of like the idea of not using jiffies. We can probably
-> even move to msecs, since anyway this is an error condition, and
-> people who needs a quick check should just use the trylock() version.
-> 
-> I'll do a quick respin of the patches with that and the
-> hwspinlock_internal.h comment above.
+correct.
 
-OK..
-
-The patch series looks OK to me.  But there isn't a lot of point in me
-putting them into my tree.  Maybe Tony or Russell or Greg can grab them
-if they like the look of it all?
+-- 
+balbi
