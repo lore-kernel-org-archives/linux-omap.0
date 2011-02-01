@@ -1,57 +1,80 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [alsa-devel] [PATCH v2 00/13] OMAP: McBSP: hwmod adaptation
- and runtime conversion
-Date: Tue, 01 Feb 2011 17:58:17 +0000
-Message-ID: <1296583097.3327.83.camel@odin>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH v2 13/13] OMAP: hwmod: Removal of macros for data that
+ is obtained from hwmod database
+Date: Tue, 1 Feb 2011 20:07:13 +0200
+Message-ID: <20110201200713.34fdb4fc.jhnikula@gmail.com>
 References: <1296485437-12806-1-git-send-email-kishon@ti.com>
-	 <20110201195326.b3c9f5f5.jhnikula@gmail.com>
+	<1296485437-12806-14-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:59514 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477Ab1BAR6l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 12:58:41 -0500
-Received: by ewy5 with SMTP id 5so3292738ewy.19
-        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 09:58:40 -0800 (PST)
-In-Reply-To: <20110201195326.b3c9f5f5.jhnikula@gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:48105 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752235Ab1BASHS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 13:07:18 -0500
+Received: by fxm20 with SMTP id 20so7084148fxm.19
+        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 10:07:17 -0800 (PST)
+In-Reply-To: <1296485437-12806-14-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, alsa-devel@alsa-project.org, b-cousson@ti.com, khilman@deeprootsystems.com, broonie@opensource.wolfsonmicro.com, paul@pwsan.com, p-basak2@ti.com, linux-omap@vger.kernel.org, shubhrajyoti@ti.com, charu@ti.com
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, paul@pwsan.com, charu@ti.com, shubhrajyoti@ti.com, b-cousson@ti.com, khilman@deeprootsystems.com, p-basak2@ti.com
 
-On Tue, 2011-02-01 at 19:53 +0200, Jarkko Nikula wrote:
-> On Mon, 31 Jan 2011 20:20:24 +0530
-> Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> 
-> > Modify OMAP McBSP driver to use omap hwmod framework and pm runtime  APIs.
-> > 
-> > Created on top of linux OMAP master (linux-omap-2.6 :master)
-> > Did digital loopback testing on OMAP4430, OMAP3430 and OMAP2430 SDP boards.
-> > Verified that this patch series does not break the OMAP1 build.
-> > 
-> > Patch series modifies audio layer and hence would appreciate the help of
-> > some audio guy to test this series.
-> > 
-> > Patch series requires the following patch to be present
-> > http://permalink.gmane.org/gmane.linux.ports.arm.omap/51132
-> > http://permalink.gmane.org/gmane.linux.ports.arm.omap/51133
-> > http://permalink.gmane.org/gmane.linux.ports.arm.omap/51134
-> > 
-> Generally I don't see any major show stopper here in audio point of
-> view after fixing those few minor details. I tested and Beagle plays
-> fine and N810 too with some tweaks (not related to this set).
-> 
-> Mark, Liam: is it ok if the 12/13 goes together with rest of the set
-> via linux-omap when ready?
-> 
+On Mon, 31 Jan 2011 20:20:37 +0530
+Kishon Vijay Abraham I <kishon@ti.com> wrote:
 
-Yep, that should be OK.
+> Information like base address and DMA channel nubers should no longer
+> be obtained using macros. These information should be obtained from
+> hwmod database. Hence the macros that define the base address are removed.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Charulatha V <charu@ti.com>
+> ---
+>  arch/arm/mach-omap1/mcbsp.c             |   64 +++++++++++++++---------------
+>  arch/arm/plat-omap/include/plat/mcbsp.h |   50 +-----------------------
+>  2 files changed, 33 insertions(+), 81 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
+> index 2b89ebd..d90f649 100644
+> --- a/arch/arm/mach-omap1/mcbsp.c
+> +++ b/arch/arm/mach-omap1/mcbsp.c
+> @@ -83,14 +83,14 @@ struct resource omap7xx_mcbsp_res[][6] = {
+>  	{
+>  		{
+>  			.name  = "mpu",
+> -			.start = OMAP7XX_MCBSP1_BASE,
+> -			.end   = OMAP7XX_MCBSP1_BASE + SZ_256,
+> +			.start = 0xfffb1000,
+> +			.end   = 0xfffb10ff,
 
-Liam
+For these changes I don't see immediate reason as they reduce
+readability. Is this better to do outside of this set together with a
+patch that adds these into hwmod database etc?
+
+> -#define AUDIO_MCBSP_DATAWRITE	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DXR1)
+> -#define AUDIO_MCBSP_DATAREAD	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DRR1)
+> -
+> -#define AUDIO_MCBSP		OMAP_MCBSP1
+> -#define AUDIO_DMA_TX		OMAP_DMA_MCBSP1_TX
+> -#define AUDIO_DMA_RX		OMAP_DMA_MCBSP1_RX
+> -
+>  #else
+>  
+>  #define OMAP_MCBSP_REG_DRR2	0x00
+> @@ -177,13 +136,6 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+>  #define OMAP_ST_REG_SFIRCR	0x28
+>  #define OMAP_ST_REG_SSELCR	0x2C
+>  
+> -#define AUDIO_MCBSP_DATAWRITE	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR1)
+> -#define AUDIO_MCBSP_DATAREAD	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1)
+> -
+> -#define AUDIO_MCBSP		OMAP_MCBSP2
+> -#define AUDIO_DMA_TX		OMAP24XX_DMA_MCBSP2_TX
+> -#define AUDIO_DMA_RX		OMAP24XX_DMA_MCBSP2_RX
+> -
+These looks things that can be removed immediately and independently
+from this set.
+
 -- 
-Freelance Developer, SlimLogic Ltd
-ASoC and Voltage Regulator Maintainer.
-http://www.slimlogic.co.uk
-
+Jarkko
