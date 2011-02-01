@@ -1,198 +1,104 @@
-From: David Cohen <david.cohen@nokia.com>
-Subject: Re: [PATCH 2/2] OMAP: Cleanup IOMMU error messages
-Date: Tue, 1 Feb 2011 10:41:24 +0200
-Message-ID: <20110201084124.GA3499@esdhcp04381.research.nokia.com>
-References: <1296494708-17569-1-git-send-email-david.cohen@nokia.com>
- <1296494708-17569-3-git-send-email-david.cohen@nokia.com>
- <AANLkTinC+6ypf3+7NTc32Jj8jXE3MnZf-mvQ-aLKyP-7@mail.gmail.com>
+From: OMAP Admin <omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: pandaboard.org and omappedia.org
+Date: Tue, 1 Feb 2011 14:58:40 +0530
+Message-ID: <AANLkTimhbpvWKKehXKYSMxdHkbJ-MyuoUvkC+cUAhEQk@mail.gmail.com>
+Reply-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:41221 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751293Ab1BAIhW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Feb 2011 03:37:22 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTinC+6ypf3+7NTc32Jj8jXE3MnZf-mvQ-aLKyP-7@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/alternative; boundary=0022152d6f6172d6d4049b352800
+Return-path: <pandaboard+bncCLqk7M3TEhDLpJ_qBBoEnC2SHA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Post: <http://groups.google.com/group/pandaboard/post?hl=en_US>, <mailto:pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:pandaboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/pandaboard?hl=en_US>
+Sender: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
+ <mailto:pandaboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
+ <mailto:pandaboard+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapdiscuss-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapzoom-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapandroid-discussion-GQPhjZDXxwGtG0bUXCXiUA@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-On Mon, Jan 31, 2011 at 09:16:30PM -0600, ext Ramirez Luna, Omar wrote:
-> Hi David,
+--0022152d6f6172d6d4049b352800
+Content-Type: text/plain; charset=ISO-8859-1
 
-Hi Ramirez,
+A strange problem is detected with accessing http://pandaboard.org,
+http://omiio.org and http://omappedia.org.
 
-Thanks for the comments.
+*What is the problem?*
+          If you access the above mentioned URLs as http://pandaboard.org,
+http://omiio.org and http://omappedia.org then you get a dialogue box asking
+you to save the file.
+          The problem happens only when you are accessing root level URLs
+(meaning the URLs mentioned above).
+          The issue happens on certain machines. Yet certain other machines
+don't see the problem.
+          If you are accessing the above mentioned sites with extra paths
+added to the URL then you don't see the issue, you get the content fine.
 
->=20
-> On Mon, Jan 31, 2011 at 11:25 AM, David Cohen <david.cohen@nokia.com>=
- wrote:
-> > IOMMU error messages are duplicated. They're printed on IOMMU speci=
-fic
-> > layer for OMAP2,3 and once again on the above layer. With this patc=
-h,
-> > the error message is printed on the above layer only.
->=20
-> So, you say they are duplicated, previously the type of fault was
-> printed in the omap2,3 code and the addresses involving the error
-> printed on plat code... with this patch both messages are printed on
-> plat code, I don't see where the duplication/fix is about.
->=20
+*What is the work-around?*
+          As a work-around you can access the above mentioned Root level
+URLs as below:
+                     http://pandaboard.org/index.php
+                     http://omiio.org/index.php
+                     http://omappedia.org/index.php
+          You can navigate to any content you want once the content is
+served to you by accessing the above mentioned work-around.
 
-A little bit of my context:
+*What is the final solution?*
+         We would need to take the server down for maintenance and work on
+it.
+         We will schedule a down-time in a day or two and let you know in
+advance.
+         We tried various solutions to fix the problem but unfortunately it
+needs a downtime.
+         Apologize for the inconvenience.
+         Please stay tuned for more on this.
 
-I'm working on OMAP3ISP driver. Due to hw or sw issues, iommu errors
-(mainly iommu faults) are not so rare to happen. e.g. I have 2 hw issue=
-s
-being workarounded on ISP H3A submodule (one of those a bit serious)
-which may lead to iommu faults.
-With the current implementation, the error messages are a bit useless
-and much "heavy". For each "fault", 2 error lines are printed to show t=
-he
-same error. On ISP context, usually it will happen *many* times in a
-row, making the device not usable even to debug the issue. And the bad
-side is we cannot get anything out of those messages which could help t=
-o
-point out where is the problem. As sometimes it's difficult to reproduc=
-e it,
-we loose a good chance to show a bit more useful data about the trigger=
-ed
-error.
+Please contact omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org if you have any questions/ concerns/
+suggestions or thoughts.
 
-My main intentions are:
- - Get rid of one line.
- - TODO: Print something useful to let developers to *know* what is
-   going on.
- - TODO: Avoid to flood console to let it able to debug.
+Thank you for your patience while we fix the problem.
 
-> AFAIK, your patch removes this line:
->=20
->  -       dev_err(obj->dev, "%s:\tda:%08x ", __func__, da);
->=20
-> Which I assume is the one being printed again in plat code, right?
+OMAP Admin Team
 
-Yes.
+--0022152d6f6172d6d4049b352800
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
->=20
-> > Signed-off-by: David Cohen <david.cohen@nokia.com>
-> > ---
-> > =A0arch/arm/mach-omap2/iommu2.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 33 +++=
-++++++++++--------------
-> > =A0arch/arm/plat-omap/include/plat/iommu.h | =A0 =A02 +-
-> > =A0arch/arm/plat-omap/iommu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 36 +=
-+++++++++++++++++++----------
-> > =A03 files changed, 41 insertions(+), 30 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iom=
-mu2.c
-> > index 14ee686..bb3d75b 100644
-> > --- a/arch/arm/mach-omap2/iommu2.c
-> > +++ b/arch/arm/mach-omap2/iommu2.c
-> > @@ -143,33 +143,32 @@ static void omap2_iommu_set_twl(struct iommu =
-*obj, bool on)
-> > =A0 =A0 =A0 =A0__iommu_set_twl(obj, false);
-> > =A0}
-> >
-> > -static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
-> > +static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra, u32 *=
-iommu_errs)
-> > =A0{
-> > - =A0 =A0 =A0 int i;
-> > + =A0 =A0 =A0 u32 errs =3D 0;
-> > =A0 =A0 =A0 =A0u32 stat, da;
-> > - =A0 =A0 =A0 const char *err_msg[] =3D {
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "tlb miss",
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "translation fault",
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "emulation miss",
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "table walk fault",
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "multi hit fault",
-> > - =A0 =A0 =A0 };
->=20
-> AFAIU, this code living in mach-omap2, means that this errors are
-> common for omap2,3,4 which they are. Does moving them to plat code
-> implies that all omap platforms expect these errors?
+A strange problem is detected with accessing <a href=3D"http://pandaboard.o=
+rg">http://pandaboard.org</a>, <a href=3D"http://omiio.org">http://omiio.or=
+g</a> and <a href=3D"http://omappedia.org">http://omappedia.org</a>.<br><br=
+><b>What is the problem?</b><br>
+=A0=A0=A0=A0=A0=A0=A0=A0=A0 If you access the above mentioned URLs as <a hr=
+ef=3D"http://pandaboard.org">http://pandaboard.org</a>, <a href=3D"http://o=
+miio.org">http://omiio.org</a> and <a href=3D"http://omappedia.org">http://=
+omappedia.org</a> then you get a dialogue box asking you to save the file.<=
+br>
+=A0=A0=A0=A0=A0=A0=A0=A0=A0 The problem happens only when you are accessing=
+ root level URLs (meaning the URLs mentioned above).<br>=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0 The issue happens on certain machines. Yet certain other machines=
+ don&#39;t see the problem.<br>=A0=A0=A0=A0=A0=A0=A0=A0=A0 If you are acces=
+sing the above mentioned sites with extra paths added to the URL then you d=
+on&#39;t see the issue, you get the content fine.<br>
+<br><b>What is the work-around?</b><br>=A0=A0=A0=A0=A0=A0=A0=A0=A0 As a wor=
+k-around you can access the above mentioned Root level URLs as below:<br>=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 <a href=3D"htt=
+p://pandaboard.org/index.php">http://pandaboard.org/index.php</a><br>
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 <a href=3D"htt=
+p://omiio.org/index.php">http://omiio.org/index.php</a><br>=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 <a href=3D"http://omappedia.o=
+rg/index.php">http://omappedia.org/index.php</a><br>=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0 You can navigate to any content you want once the content is served =
+to you by accessing the above mentioned work-around.<br>
+<br><b>What is the final solution?</b><br>=A0=A0=A0=A0=A0=A0=A0=A0 We would=
+ need to take the server down for maintenance and work on it.<br>=A0=A0=A0=
+=A0=A0=A0=A0=A0 We will schedule a down-time in a day or two and let you kn=
+ow in advance.<br>=A0=A0=A0=A0=A0=A0=A0=A0 We tried various solutions to fi=
+x the problem but unfortunately it needs a downtime.<br>
+=A0=A0=A0=A0=A0=A0=A0=A0 Apologize for the inconvenience.<br>=A0 =A0 =A0 =
+=A0=A0 Please stay tuned for more on this.<br><br>Please contact <a href=3D=
+"mailto:omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org">omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a> if you have any questions/=
+ concerns/ suggestions or thoughts.<br>
+<br>Thank you for your patience while we fix the problem.<br><br>OMAP Admin=
+ Team <br><br>
 
-That's true. I can work on a different approach.
-
->=20
-> > =A0 =A0 =A0 =A0stat =3D iommu_read_reg(obj, MMU_IRQSTATUS);
-> > =A0 =A0 =A0 =A0stat &=3D MMU_IRQ_MASK;
-> > - =A0 =A0 =A0 if (!stat)
-> > + =A0 =A0 =A0 if (!stat) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 *iommu_errs =3D 0;
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
-> > + =A0 =A0 =A0 }
-> >
-> > =A0 =A0 =A0 =A0da =3D iommu_read_reg(obj, MMU_FAULT_AD);
-> > =A0 =A0 =A0 =A0*ra =3D da;
-> >
-> > - =A0 =A0 =A0 dev_err(obj->dev, "%s:\tda:%08x ", __func__, da);
-> > -
-> > - =A0 =A0 =A0 for (i =3D 0; i < ARRAY_SIZE(err_msg); i++) {
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & (1 << i))
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk("%s ", err_msg=
-[i]);
-> > - =A0 =A0 =A0 }
-> > - =A0 =A0 =A0 printk("\n");
-> > + =A0 =A0 =A0 if (stat & MMU_IRQ_TLBMISS)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D IOMMU_ERR_TLB_MISS;
-> > + =A0 =A0 =A0 if (stat & MMU_IRQ_TRANSLATIONFAULT)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D IOMMU_ERR_TRANS_FAULT;
-> > + =A0 =A0 =A0 if (stat & MMU_IRQ_EMUMISS)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D IOMMU_ERR_EMU_MISS;
-> > + =A0 =A0 =A0 if (stat & MMU_IRQ_TABLEWALKFAULT)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D IOMMU_ERR_TBLWALK_FAULT;
-> > + =A0 =A0 =A0 if (stat & MMU_IRQ_MULTIHITFAULT)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D IOMMU_ERR_MULTIHIT_FAULT;
-> > + =A0 =A0 =A0 *iommu_errs =3D errs;
->=20
-> Is there any point in doing this?
->=20
-> Basically: *iommu_errs =3D stat, given that the mask values and the
-> error defines are the same for each case.
-
-True. But can I assume a specific register value will always match to
-the "generic" layer?
-
->=20
-> Besides I haven't seen two errors trigger a single interrupt.
-
-Me neither, but the current implementation assumes it can happen and my
-concern is to not change it here.
-
->=20
-> ...
-> >
-> > - =A0 =A0 =A0 iopte =3D iopte_offset(iopgd, da);
-> > -
-> > - =A0 =A0 =A0 dev_err(obj->dev, "%s: da:%08x pgd:%p *pgd:%08x pte:%=
-p *pte:%08x\n",
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, da, iopgd, *iopgd, iopte, *=
-iopte);
-> > + =A0 =A0 =A0 for (i =3D 0; i < ARRAY_SIZE(err_msg); i++) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (errs & (1 << i))
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_CONT " %s=
-", err_msg[i]);
-> > + =A0 =A0 =A0 }
-> > + =A0 =A0 =A0 printk("\n");
->=20
-> I think we should get rid of the "printks".
-
-By working on a different approach for the printed messages, yes.
-
-Regards,
-
-David
-
->=20
-> Regards,
->=20
-> Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--0022152d6f6172d6d4049b352800--
