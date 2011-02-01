@@ -1,68 +1,71 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: RE: handling clock nodes with both parent and divider selection
-Date: Tue, 1 Feb 2011 16:58:15 +0530
-Message-ID: <a42717ae46ffbd2f8b30cca9ad559d93@mail.gmail.com>
-References: <045d24bba9bbbe9fa47f0f8aa9901b7e@mail.gmail.com> <alpine.DEB.2.00.1101311610060.16671@utopia.booyaka.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
+Date: Tue, 1 Feb 2011 17:01:03 +0530
+Message-ID: <782caeeca19758b50d370c17db11c78a@mail.gmail.com>
+References: <1294935563-14426-1-git-send-email-j-pihet@ti.com><b52b65db02da68b3febc0c9cf1e99040@mail.gmail.com><9215f5d7252a4b60f58c3e14a9d46f59@mail.gmail.com><AANLkTinRZyVBu=c3cHBQ7OmJv3U8717_w8Haig4R=ZQh@mail.gmail.com><86b8aab234e1451170c0937e2ab786e5@mail.gmail.com>
+ <AANLkTinPxJigu8Nc5J04ciQ_c_Kw9R2xS7s1jaiqeM+F@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:48545 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750951Ab1BAL2T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 06:28:19 -0500
-Received: by mail-fx0-f42.google.com with SMTP id 11so6902933fxm.29
-        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 03:28:18 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1101311610060.16671@utopia.booyaka.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:34933 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751290Ab1BALbJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 06:31:09 -0500
+Received: by mail-gy0-f180.google.com with SMTP id 6so2970806gya.11
+        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 03:31:05 -0800 (PST)
+In-Reply-To: <AANLkTinPxJigu8Nc5J04ciQ_c_Kw9R2xS7s1jaiqeM+F@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
-
-Hi Paul,
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, Jean Pihet-XID <j-pihet@ti.com>
 
 > -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Tuesday, February 01, 2011 4:43 AM
-> To: Rajendra Nayak
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: handling clock nodes with both parent and divider selection
+> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
+> Sent: Tuesday, February 01, 2011 4:53 PM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; Jean Pihet-XID
+> Subject: Re: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
 >
-> On Mon, 31 Jan 2011, Rajendra Nayak wrote:
->
-> > Hi Paul,
+
+[...]
+> >> Does that makes sense?
+> >>
+> > Actually not. Rather I will separate only the scenario's
+> > where CORE low power targets are attempted and only have
+> > that code run from SRAM.
 > >
-> > On OMAP4, some aux clk nodes (part of SCRM) have control
-> > for both parent and divider selection. Is there a way in the
-> > current clock framework for OMAP's to handle this?
+> > There are scenario's where CORE can be active because MODEM,
+> > DSP and MPU can still hit RET, OFF. And here, the errata
+> > isn't applicable.
+> >
+> > Unless I missed something here, I think in the code we check
+> > the the CORE attempted state and based on that we can do a
+> > normal WFI from DDR (no self rfersh) or WFI from
+> > SRAM with self refresh enabled.
+> No. Only the MPU attempted state is checked (this actually is the
+> 'save_state' parameter passed to omap_cpu_suspend).
+> So it makes sense to check the CORE attempted state in order to
+> decide
+> to run the WFI from internal SRAM or DDR.
 >
-> For these clocks on OMAP3, we split the clock into two struct clks.  For
-> example, clkout2_src_ck handles source selection, and sys_clkout2
-handles
-> rate selection.  clock3xxx_data.c has the details.
-
-Ok, that's pretty much how I was thinking of handling it too. Did'nt know
-this is already done for a few nodes on OMAP3.
-The only downside of this approach, I feel, is that the users of these
-clks
-(aux clks on omap4) would have to deal with 2 different nodes, one for
-source selection and another for divider.
-
+> The MPU attempted state is used to decide whether to save the
+> MPU/L1/L2 context.
 >
-> At some point in the future, hopefully we'll be able to split all of the
-> multiplexers and dividers into their own struct clks, or struct
-omap_clks,
-> or something, so we don't have to implement these hacks.  As I
-understand
-> it, that would be closer to the actual hardware, anyway.  The right time
-> to do that would be after the clktype conversion...
+Looks like you miss-understood my point. As I understand from
+errata, as long as core clock domain can idle with core
+dpll divider auto idle enabled, the errata is applicable.
 
-Ok, I am not completely sure what clktype conversion means, but will wait
-for
-it.
+So the only check needed is to see if the core clockdomain
+hw_auto or sw sleep is enabled.
+
+If it is suppose to be not idle(we force few C-states
+where CORE inactive is avoided for faster response),
+we can execute WFI from DDR with not enabling
+self refresh.
+
+Rest of the scenario can follow the SRAM path.
+
+Hope this is clear to you.
 
 Regards,
-Rajendra
-
->
->
-> - Paul
+Santosh
