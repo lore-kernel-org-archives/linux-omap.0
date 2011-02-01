@@ -1,57 +1,28 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: [PATCHv4] OMAP: Enable Magic SysRq on serial console ttyOx
-Date: Tue,  1 Feb 2011 08:30:41 +0100
-Message-ID: <1296545441-17070-1-git-send-email-weber@corscience.de>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v4 1/4] drivers: hwspinlock: add framework
+Date: Tue, 1 Feb 2011 09:36:22 +0200
+Message-ID: <AANLkTinJLAT0B61Eu1Chn9k9rmbHXa1ZNcedo_m8TZp3@mail.gmail.com>
+References: <1296470024-26854-1-git-send-email-ohad@wizery.com>
+ <1296470024-26854-2-git-send-email-ohad@wizery.com> <20110131153831.dca62146.akpm@linux-foundation.org>
+ <AANLkTik-fgCF_W0-DBE6UVTpjqF6Jf=u7bQYkcweEegQ@mail.gmail.com> <20110131223859.27169db0.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110131223859.27169db0.akpm@linux-foundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Thomas Weber <weber@corscience.de>, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, open list <linux-kernel@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@ti.com>, Arnd Bergmann <arnd@arndb.de>, Paul Walmsley <paul@pwsan.com>, Hari Kanigeri <hari.kanigeri@gmail.com>, Simon Que <simonque@gmail.com>, Russell King <rmk@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Magic SysRq key is not working for OMAP on new serial
-console ttyOx because SUPPORT_SYSRQ is not defined
-for omap-serial.
+On Tue, Feb 1, 2011 at 8:38 AM, Andrew Morton <akpm@linux-foundation.org> wrote:
+>> I'll do a quick respin of the patches with that and the
+>> hwspinlock_internal.h comment above.
+>
+> OK..
+>
+> The patch series looks OK to me.
 
-This patch defines SUPPORT_SYSRQ in omap-serial and
-enables handling of Magic SysRq character.
+Can I add your Acked-by on the non-omap parts when I respin the series ?
 
-Further there is an issue of losing first break character.
-Removing the reset of the lsr_break_flag fixes this issue.
-
-Signed-off-by: Thomas Weber <weber@corscience.de>
-Acked-by: Govindraj.R <govindraj.raja@ti.com>
-Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
-Acked-by: Kevin Hilman <khilman@ti.com>
----
-v3->v4
-	Rebased to 2.6.38-rc2 after move of drivers/serial to drivers/tty/serial
-	Added Acked-by and Tested-by
-
- drivers/tty/serial/omap-serial.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 7f2f010..699b344 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -20,6 +20,10 @@
-  * this driver as required for the omap-platform.
-  */
- 
-+#if defined(CONFIG_SERIAL_OMAP_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
-+#define SUPPORT_SYSRQ
-+#endif
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/console.h>
-@@ -190,7 +194,6 @@ static inline void receive_chars(struct uart_omap_port *up, int *status)
- 			if (up->port.line == up->port.cons->index) {
- 				/* Recover the break flag from console xmit */
- 				lsr |= up->lsr_break_flag;
--				up->lsr_break_flag = 0;
- 			}
- #endif
- 			if (lsr & UART_LSR_BI)
--- 
-1.7.4.rc3
+Thanks,
+Ohad.
