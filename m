@@ -1,39 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: mach-omap2: board-rm680: fix rm680_vemmc
- regulator constraints
-Date: Tue, 1 Feb 2011 15:52:38 -0800
-Message-ID: <20110201235238.GK3358@atomide.com>
-References: <1296574588-23588-1-git-send-email-aaro.koskinen@nokia.com>
- <20110201202725.804aa011.jhnikula@gmail.com>
+Subject: Re: [PATCH 1/4] omap1: remove duplicated #include
+Date: Tue, 1 Feb 2011 15:53:28 -0800
+Message-ID: <20110201235328.GL3358@atomide.com>
+References: <1296223478-728-1-git-send-email-weiyi.huang@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11362 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:12699 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751307Ab1BAXwy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 18:52:54 -0500
+	with ESMTP id S1751266Ab1BAXxo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 18:53:44 -0500
 Content-Disposition: inline
-In-Reply-To: <20110201202725.804aa011.jhnikula@gmail.com>
+In-Reply-To: <1296223478-728-1-git-send-email-weiyi.huang@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Huang Weiyi <weiyi.huang@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Jarkko Nikula <jhnikula@gmail.com> [110201 10:26]:
-> On Tue,  1 Feb 2011 17:36:28 +0200
-> Aaro Koskinen <aaro.koskinen@nokia.com> wrote:
+* Huang Weiyi <weiyi.huang@gmail.com> [110128 06:03]:
+> Remove duplicated #include('s) in
+>   arch/arm/mach-omap1/time.c
 > 
-> > With the commit 757902513019e6ee469791ff76f954b19ca8d036 fixed voltage
-> > regulator setup will fail if there are voltage constraints defined. This
-> > made MMC unusable on this board. Fix by just deleting those redundant
-> > constraints.
-> > 
-> True. Before there were a test min_uV == max_uV && ops->set_voltage and
-> now min_uV == max_uV followed by test for ops->set_voltage that returns
-> EINVAL if not set (NULL for fixed voltage regulator obviously).
+> Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
+> ---
+>  arch/arm/mach-omap1/time.c |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
 > 
-> Reviewed-by: Jarkko Nikula <jhnikula@gmail.com>
+> diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
+> index f83fc33..6885d2f 100644
+> --- a/arch/arm/mach-omap1/time.c
+> +++ b/arch/arm/mach-omap1/time.c
+> @@ -44,7 +44,6 @@
+>  #include <linux/clocksource.h>
+>  #include <linux/clockchips.h>
+>  #include <linux/io.h>
+> -#include <linux/sched.h>
+>  
+>  #include <asm/system.h>
+>  #include <mach/hardware.h>
 
-Thanks adding into devel-fixes.
+Thanks queuing this as a fix for the -rc cycle.
 
 Tony
