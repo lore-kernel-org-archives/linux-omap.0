@@ -1,35 +1,51 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Pandaboard boot problem
-Date: Tue, 1 Feb 2011 19:30:25 +0100
-Message-ID: <AANLkTikCjuhHJbvK6YL40mYq2Yt99UCob4bHKRqPRToW@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH v2 00/13] OMAP: McBSP: hwmod adaptation and
+ runtime conversion
+Date: Tue, 01 Feb 2011 21:44:03 +0200
+Message-ID: <4D486283.6000107@nokia.com>
+References: <1296485437-12806-1-git-send-email-kishon@ti.com>
+	<20110201195326.b3c9f5f5.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:58520 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754486Ab1BASa0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 13:30:26 -0500
-Received: by qwa26 with SMTP id 26so6994915qwa.19
-        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 10:30:26 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20110201195326.b3c9f5f5.jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: alsa-devel@alsa-project.org, b-cousson@ti.com, khilman@deeprootsystems.com, broonie@opensource.wolfsonmicro.com, paul@pwsan.com, Kishon Vijay Abraham I <kishon@ti.com>, p-basak2@ti.com, charu@ti.com, linux-omap@vger.kernel.org, shubhrajyoti@ti.com, lrg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hi!
+On 02/01/2011 07:53 PM, ext Jarkko Nikula wrote:
+> On Mon, 31 Jan 2011 20:20:24 +0530
+> Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> 
+>> Modify OMAP McBSP driver to use omap hwmod framework and pm runtime  APIs.
+>>
+>> Created on top of linux OMAP master (linux-omap-2.6 :master)
+>> Did digital loopback testing on OMAP4430, OMAP3430 and OMAP2430 SDP boards.
+>> Verified that this patch series does not break the OMAP1 build.
+>>
+>> Patch series modifies audio layer and hence would appreciate the help of
+>> some audio guy to test this series.
+>>
+>> Patch series requires the following patch to be present
+>> http://permalink.gmane.org/gmane.linux.ports.arm.omap/51132
+>> http://permalink.gmane.org/gmane.linux.ports.arm.omap/51133
+>> http://permalink.gmane.org/gmane.linux.ports.arm.omap/51134
+>>
+> Generally I don't see any major show stopper here in audio point of
+> view after fixing those few minor details. I tested and Beagle plays
+> fine and N810 too with some tweaks (not related to this set).
 
-I have a problem with a Pandaboard hanging a few seconds after the
-kernel boot, likely due to the watchdog firing.
-The kernel boots fine, mounts the root FS (initramfs) and the shell
-prompt works OK.
+I have not tested the series on HW, but it looks OK for me as well.
 
-Board details: Panda A1, OMAP4430 ES2
-Kernel details: l-o tree master, using the omap2plus_defconfig +
-initramfs. WDOG is enabled in the config.
-
->From some investigation I can see that PM runtime disables the wdog
-(omap_device_idle). Is that intented?
-
-Any thought?
-
-Thanks,
-Jean
+All:
+Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
