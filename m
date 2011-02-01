@@ -1,71 +1,61 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 1/6] omap4: powerdomain: Add supported INACTIVE power state
-Date: Tue, 1 Feb 2011 11:59:25 +0530
-Message-ID: <30bccb5d133f92cdbf1a4aa75ba54e7b@mail.gmail.com>
-References: <1296212688-21951-1-git-send-email-santosh.shilimkar@ti.com>
- <1296212688-21951-2-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1101311613230.16671@utopia.booyaka.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v4 1/4] drivers: hwspinlock: add framework
+Date: Mon, 31 Jan 2011 22:38:59 -0800
+Message-ID: <20110131223859.27169db0.akpm@linux-foundation.org>
+References: <1296470024-26854-1-git-send-email-ohad@wizery.com>
+	<1296470024-26854-2-git-send-email-ohad@wizery.com>
+	<20110131153831.dca62146.akpm@linux-foundation.org>
+	<AANLkTik-fgCF_W0-DBE6UVTpjqF6Jf=u7bQYkcweEegQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:38049 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750849Ab1BAG32 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 01:29:28 -0500
-Received: by mail-gx0-f169.google.com with SMTP id 5so2972657gxk.0
-        for <linux-omap@vger.kernel.org>; Mon, 31 Jan 2011 22:29:27 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1101311613230.16671@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTik-fgCF_W0-DBE6UVTpjqF6Jf=u7bQYkcweEegQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@ti.com>, Arnd Bergmann <arnd@arndb.de>, Paul Walmsley <paul@pwsan.com>, Hari Kanigeri <hari.kanigeri@gmail.com>, Simon Que <simonque@gmail.com>, Russell King <rmk@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Tuesday, February 01, 2011 4:44 AM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; khilman@ti.com; b-cousson@ti.com;
-> rnayak@ti.com; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 1/6] omap4: powerdomain: Add supported INACTIVE
-> power state
->
-> Hello Santosh,
->
-> On Fri, 28 Jan 2011, Santosh Shilimkar wrote:
->
-> > On OMAP4, one can explicitly program INACTIVE as the power state
-> of
-> > the logic area inside the power domain. Techincally PD state
-> programmed
-> > to ON and if all the clock domains within the PD are idled, is
-> equivalent
-> > tp PD programmed to INACTIVE and all the clock domains within the
-> PD are
-> > idled. There won't be any power difference in above two.
+On Tue, 1 Feb 2011 08:20:13 +0200 Ohad Ben-Cohen <ohad@wizery.com> wrote:
+
+> On Tue, Feb 1, 2011 at 1:38 AM, Andrew Morton <akpm@linux-foundation.org> wrote:
+> > It's a little irritating having two hwspinlock.h's.
+> > hwspinlock_internal.h wold be a conventional approach. __But it's not a
+> > big deal.
+> ...
+> 
+> >> +/**
+> >> + * __hwspin_lock_timeout() - lock an hwspinlock with timeout limit
+> >> + * @hwlock: the hwspinlock to be locked
+> >> + * @timeout: timeout value in jiffies
 > >
-> > Since the CPUIDLE C-states explicitly make use of INACTIVE as a PD
-> > targeted state and also there is some additional latancy involved
-> > with PD INACTIVE vs PD ON, it's better to support it as an explcit
-> > PD state.
+> > hm, why in jiffies?
 > >
-> > This patch adds the support to allow explicit PD INACTIVE
-> > programming if supported.
->
-> What does the hardware do when the powerdomain is programmed to
-> INACTIVE?
-> Does it actually force the clockdomains idle?
->
-No. It doesn't force it. The power domain to hit INACTIVE, the
-clockdomain within the power domain needs to idle and it is
-still a prerequisite. With INACTIVE being programmed, we could
-issue a sleep transition.
+> > The problem here is that lazy programmers will use
+> >
+> > __ __ __ __hwspin_lock_timeout(lock, 10, ...)
+> >
+> > and their code will work happily with HZ=100 but will explode with HZ=1000.
+> >
+> > IOW, this interface *requires* that all callers perform a
+> > seconds-to-jiffies conversion before calling hwspin_lock_timeout(). __So
+> > why not reduce their effort and their ability to make mistakes by
+> > defining the API to take seconds?
+> 
+> I considered that, but then decided to use jiffies in order to be
+> consistent with wait_event_timeout/schedule_timeout (although I don't
+> return the remaining jiffies in case the lock is taken before the
+> timeout elapses), and also to allow user-selected granularity.
+> 
+> But I do kind of like the idea of not using jiffies. We can probably
+> even move to msecs, since anyway this is an error condition, and
+> people who needs a quick check should just use the trylock() version.
+> 
+> I'll do a quick respin of the patches with that and the
+> hwspinlock_internal.h comment above.
 
-PD_ON:
-No power transition, only clocks are gated. Power domain stays ON.
+OK..
 
-PD_INA:
-Power domain transitions to INACTIVE state. All logic and
-memory stay powered. This state allows for a voltage
-sleep transition.
-
-Regards,
-Santosh
+The patch series looks OK to me.  But there isn't a lot of point in me
+putting them into my tree.  Maybe Tony or Russell or Greg can grab them
+if they like the look of it all?
