@@ -1,30 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 4/5] omap2: Fix camera resources for multiomap
-Date: Tue, 1 Feb 2011 15:37:08 -0800
-Message-ID: <20110201233707.GI3358@atomide.com>
-References: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1296131541-30092-5-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] arm: mach-omap2: mux: free allocated memory on error
+ exit
+Date: Tue, 1 Feb 2011 15:52:17 -0800
+Message-ID: <20110201235217.GJ3358@atomide.com>
+References: <1296226255-5694-1-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39321 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10905 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751846Ab1BAXhX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 18:37:23 -0500
+	with ESMTP id S1751307Ab1BAXwh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 18:52:37 -0500
 Content-Disposition: inline
-In-Reply-To: <1296131541-30092-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1296226255-5694-1-git-send-email-aaro.koskinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [110127 04:38]:
-> From: Sergio Aguirre <saaguirre@ti.com>
+* Aaro Koskinen <aaro.koskinen@nokia.com> [110128 06:47]:
+> Free allocated memory on error exit.
 > 
-> Make sure the kernel can be compiled with both OMAP2 and OMAP3 camera
-> support linked in, and give public symbols proper omap2/omap3 prefixes.
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+> ---
+>  arch/arm/mach-omap2/mux.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index df8d2f2..18aea0c 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -1000,6 +1000,7 @@ int __init omap_mux_init(const char *name, u32 flags,
+>  	if (!partition->base) {
+>  		pr_err("%s: Could not ioremap mux partition at 0x%08x\n",
+>  			__func__, partition->phys);
+> +		kfree(partition);
+>  		return -ENODEV;
+>  	}
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Thanks, adding into devel-fixes for the -rc cycle.
+
+Tony
