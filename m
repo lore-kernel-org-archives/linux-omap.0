@@ -1,70 +1,41 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH v4 1/4] drivers: hwspinlock: add framework
-Date: Tue, 1 Feb 2011 06:17:25 -0800
-Message-ID: <20110201141725.GB28833@kroah.com>
-References: <1296470024-26854-1-git-send-email-ohad@wizery.com>
- <1296470024-26854-2-git-send-email-ohad@wizery.com>
- <20110131153831.dca62146.akpm@linux-foundation.org>
- <AANLkTik-fgCF_W0-DBE6UVTpjqF6Jf=u7bQYkcweEegQ@mail.gmail.com>
- <20110131223859.27169db0.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110131223859.27169db0.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@ti.com>, Arnd Bergmann <arnd@arndb.de>, Paul Walmsley <paul@pwsan.com>, Hari Kanigeri <hari.kanigeri@gmail.com>, Simon Que <simonque@gmail.com>, Russell King <rmk@arm.linux.org.uk>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH] arm: mach-omap2: board-rm680: fix rm680_vemmc regulator constraints
+Date: Tue,  1 Feb 2011 17:36:28 +0200
+Message-ID: <1296574588-23588-1-git-send-email-aaro.koskinen@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.26]:56601 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750998Ab1BAPeG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Feb 2011 10:34:06 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 
-On Mon, Jan 31, 2011 at 10:38:59PM -0800, Andrew Morton wrote:
-> On Tue, 1 Feb 2011 08:20:13 +0200 Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> 
-> > On Tue, Feb 1, 2011 at 1:38 AM, Andrew Morton <akpm@linux-foundation.org> wrote:
-> > > It's a little irritating having two hwspinlock.h's.
-> > > hwspinlock_internal.h wold be a conventional approach. __But it's not a
-> > > big deal.
-> > ...
-> > 
-> > >> +/**
-> > >> + * __hwspin_lock_timeout() - lock an hwspinlock with timeout limit
-> > >> + * @hwlock: the hwspinlock to be locked
-> > >> + * @timeout: timeout value in jiffies
-> > >
-> > > hm, why in jiffies?
-> > >
-> > > The problem here is that lazy programmers will use
-> > >
-> > > __ __ __ __hwspin_lock_timeout(lock, 10, ...)
-> > >
-> > > and their code will work happily with HZ=100 but will explode with HZ=1000.
-> > >
-> > > IOW, this interface *requires* that all callers perform a
-> > > seconds-to-jiffies conversion before calling hwspin_lock_timeout(). __So
-> > > why not reduce their effort and their ability to make mistakes by
-> > > defining the API to take seconds?
-> > 
-> > I considered that, but then decided to use jiffies in order to be
-> > consistent with wait_event_timeout/schedule_timeout (although I don't
-> > return the remaining jiffies in case the lock is taken before the
-> > timeout elapses), and also to allow user-selected granularity.
-> > 
-> > But I do kind of like the idea of not using jiffies. We can probably
-> > even move to msecs, since anyway this is an error condition, and
-> > people who needs a quick check should just use the trylock() version.
-> > 
-> > I'll do a quick respin of the patches with that and the
-> > hwspinlock_internal.h comment above.
-> 
-> OK..
-> 
-> The patch series looks OK to me.  But there isn't a lot of point in me
-> putting them into my tree.  Maybe Tony or Russell or Greg can grab them
-> if they like the look of it all?
+With the commit 757902513019e6ee469791ff76f954b19ca8d036 fixed voltage
+regulator setup will fail if there are voltage constraints defined. This
+made MMC unusable on this board. Fix by just deleting those redundant
+constraints.
 
-As it's an arm-specific thing, it should probably go through Russell's
-tree.
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ arch/arm/mach-omap2/board-rm680.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-thanks,
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index cb77be7..39a71bb 100644
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ b/arch/arm/mach-omap2/board-rm680.c
+@@ -40,9 +40,6 @@ static struct regulator_consumer_supply rm680_vemmc_consumers[] = {
+ static struct regulator_init_data rm680_vemmc = {
+ 	.constraints =	{
+ 		.name			= "rm680_vemmc",
+-		.min_uV			= 2900000,
+-		.max_uV			= 2900000,
+-		.apply_uV		= 1,
+ 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+ 					| REGULATOR_MODE_STANDBY,
+ 		.valid_ops_mask		= REGULATOR_CHANGE_STATUS
+-- 
+1.5.6.5
 
-greg k-h
