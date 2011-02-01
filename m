@@ -1,104 +1,80 @@
-From: OMAP Admin <omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: pandaboard.org and omappedia.org
-Date: Tue, 1 Feb 2011 14:58:40 +0530
-Message-ID: <AANLkTimhbpvWKKehXKYSMxdHkbJ-MyuoUvkC+cUAhEQk@mail.gmail.com>
-Reply-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH v2] OMAP: fix fncpy API call
+Date: Tue, 1 Feb 2011 10:37:06 +0100
+Message-ID: <AANLkTim-TrFh7FqVo2wPPWNQGRRzTWL46SfQof0QCJ96@mail.gmail.com>
+References: <1295977686-22765-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary=0022152d6f6172d6d4049b352800
-Return-path: <pandaboard+bncCLqk7M3TEhDLpJ_qBBoEnC2SHA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Post: <http://groups.google.com/group/pandaboard/post?hl=en_US>, <mailto:pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:pandaboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/pandaboard?hl=en_US>
-Sender: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
- <mailto:pandaboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
- <mailto:pandaboard+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapdiscuss-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapzoom-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapandroid-discussion-GQPhjZDXxwGtG0bUXCXiUA@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: linux-omap@vger.kernel.org
-
---0022152d6f6172d6d4049b352800
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:57961 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751935Ab1BAJhH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 04:37:07 -0500
+Received: by qwa26 with SMTP id 26so6475285qwa.19
+        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 01:37:06 -0800 (PST)
+In-Reply-To: <1295977686-22765-1-git-send-email-j-pihet@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Jean Pihet <j-pihet@ti.com>
 
-A strange problem is detected with accessing http://pandaboard.org,
-http://omiio.org and http://omappedia.org.
+On Tue, Jan 25, 2011 at 6:48 PM,  <jean.pihet@newoldbits.com> wrote:
+> From: Jean Pihet <j-pihet@ti.com>
+>
+> Fix a potential problem with function types when calling the
+> fncpy API to copy the PM code functions to SRAM.
+>
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> ---
+> =A0arch/arm/plat-omap/include/plat/sram.h | =A0 =A04 ++--
+> =A01 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-o=
+map/include/plat/sram.h
+> index d673f2c..f500fc3 100644
+> --- a/arch/arm/plat-omap/include/plat/sram.h
+> +++ b/arch/arm/plat-omap/include/plat/sram.h
+> @@ -18,10 +18,10 @@ extern void *omap_sram_push_address(unsigned long=
+ size);
+>
+> =A0/* Macro to push a function to the internal SRAM, using the fncpy =
+API */
+> =A0#define omap_sram_push(funcp, size) ({ =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 \
+> - =A0 =A0 =A0 typeof(&funcp) _res =3D NULL; =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+> + =A0 =A0 =A0 typeof(&(funcp)) _res =3D NULL; =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+> =A0 =A0 =A0 =A0void *_sram_address =3D omap_sram_push_address(size); =
+=A0 =A0 \
+> =A0 =A0 =A0 =A0if (_sram_address) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 _res =3D fncpy(_sram_address, &funcp, s=
+ize); =A0 =A0 =A0\
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 _res =3D fncpy(_sram_address, &(funcp),=
+ size); =A0 =A0\
+> =A0 =A0 =A0 =A0_res; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+> =A0})
+>
 
-*What is the problem?*
-          If you access the above mentioned URLs as http://pandaboard.org,
-http://omiio.org and http://omappedia.org then you get a dialogue box asking
-you to save the file.
-          The problem happens only when you are accessing root level URLs
-(meaning the URLs mentioned above).
-          The issue happens on certain machines. Yet certain other machines
-don't see the problem.
-          If you are accessing the above mentioned sites with extra paths
-added to the URL then you don't see the issue, you get the content fine.
+Dave, Tony,
+Are you OK with this version?
 
-*What is the work-around?*
-          As a work-around you can access the above mentioned Root level
-URLs as below:
-                     http://pandaboard.org/index.php
-                     http://omiio.org/index.php
-                     http://omappedia.org/index.php
-          You can navigate to any content you want once the content is
-served to you by accessing the above mentioned work-around.
+If so can it added to the tree? It is a follow-up of commit
+021222e9988acbf3bb6fabffc667bab0bb207c54
+'omap: use fncpy to copy the PM code functions to SRAM'.
 
-*What is the final solution?*
-         We would need to take the server down for maintenance and work on
-it.
-         We will schedule a down-time in a day or two and let you know in
-advance.
-         We tried various solutions to fix the problem but unfortunately it
-needs a downtime.
-         Apologize for the inconvenience.
-         Please stay tuned for more on this.
+Thanks,
+Jean
 
-Please contact omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org if you have any questions/ concerns/
-suggestions or thoughts.
-
-Thank you for your patience while we fix the problem.
-
-OMAP Admin Team
-
---0022152d6f6172d6d4049b352800
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-A strange problem is detected with accessing <a href=3D"http://pandaboard.o=
-rg">http://pandaboard.org</a>, <a href=3D"http://omiio.org">http://omiio.or=
-g</a> and <a href=3D"http://omappedia.org">http://omappedia.org</a>.<br><br=
-><b>What is the problem?</b><br>
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 If you access the above mentioned URLs as <a hr=
-ef=3D"http://pandaboard.org">http://pandaboard.org</a>, <a href=3D"http://o=
-miio.org">http://omiio.org</a> and <a href=3D"http://omappedia.org">http://=
-omappedia.org</a> then you get a dialogue box asking you to save the file.<=
-br>
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 The problem happens only when you are accessing=
- root level URLs (meaning the URLs mentioned above).<br>=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0 The issue happens on certain machines. Yet certain other machines=
- don&#39;t see the problem.<br>=A0=A0=A0=A0=A0=A0=A0=A0=A0 If you are acces=
-sing the above mentioned sites with extra paths added to the URL then you d=
-on&#39;t see the issue, you get the content fine.<br>
-<br><b>What is the work-around?</b><br>=A0=A0=A0=A0=A0=A0=A0=A0=A0 As a wor=
-k-around you can access the above mentioned Root level URLs as below:<br>=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 <a href=3D"htt=
-p://pandaboard.org/index.php">http://pandaboard.org/index.php</a><br>
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 <a href=3D"htt=
-p://omiio.org/index.php">http://omiio.org/index.php</a><br>=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 <a href=3D"http://omappedia.o=
-rg/index.php">http://omappedia.org/index.php</a><br>=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0 You can navigate to any content you want once the content is served =
-to you by accessing the above mentioned work-around.<br>
-<br><b>What is the final solution?</b><br>=A0=A0=A0=A0=A0=A0=A0=A0 We would=
- need to take the server down for maintenance and work on it.<br>=A0=A0=A0=
-=A0=A0=A0=A0=A0 We will schedule a down-time in a day or two and let you kn=
-ow in advance.<br>=A0=A0=A0=A0=A0=A0=A0=A0 We tried various solutions to fi=
-x the problem but unfortunately it needs a downtime.<br>
-=A0=A0=A0=A0=A0=A0=A0=A0 Apologize for the inconvenience.<br>=A0 =A0 =A0 =
-=A0=A0 Please stay tuned for more on this.<br><br>Please contact <a href=3D=
-"mailto:omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org">omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a> if you have any questions/=
- concerns/ suggestions or thoughts.<br>
-<br>Thank you for your patience while we fix the problem.<br><br>OMAP Admin=
- Team <br><br>
-
---0022152d6f6172d6d4049b352800--
+> --
+> 1.7.1
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
