@@ -1,40 +1,72 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH v2 02/13] OMAP: McBSP: Convert McBSP to platform device
- model
-Date: Tue, 01 Feb 2011 14:33:47 +0200
-Message-ID: <4D47FDAB.5060407@nokia.com>
-References: <1296485437-12806-1-git-send-email-kishon@ti.com> <1296485437-12806-3-git-send-email-kishon@ti.com>
+Subject: Re: [PATCH v2 04/13] OMAP2430: hwmod data: Add McBSP
+Date: Tue, 01 Feb 2011 14:39:49 +0200
+Message-ID: <4D47FF15.5000603@nokia.com>
+References: <1296485437-12806-1-git-send-email-kishon@ti.com>
+	<1296485437-12806-5-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:21575 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752348Ab1BAM14 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Feb 2011 07:27:56 -0500
-In-Reply-To: <1296485437-12806-3-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1296485437-12806-5-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: ext Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, paul@pwsan.com, charu@ti.com, shubhrajyoti@ti.com, b-cousson@ti.com, khilman@deeprootsystems.com, p-basak2@ti.com
+Cc: alsa-devel@alsa-project.org, b-cousson@ti.com, khilman@deeprootsystems.com, broonie@opensource.wolfsonmicro.com, paul@pwsan.com, p-basak2@ti.com, lrg@slimlogic.co.uk, linux-omap@vger.kernel.org, shubhrajyoti@ti.com, charu@ti.com
+List-Id: linux-omap@vger.kernel.org
+
+Looks, but:
 
 On 01/31/2011 04:50 PM, ext Kishon Vijay Abraham I wrote:
-> Implement McBSP as platform device and add support for
-> registering through platform device layer using resource
-> structures.
-> 
-> Later in this patch series, OMAP2+ McBSP driver would be modified to
-> use hwmod framework after populating the omap2+ hwmod database.
-> 
+> From: Charulatha V <charu@ti.com>
+> =
+
+> Add McBSP hwmod data for OMAP2430.
+> =
+
+> Added a revision member inorder to facilitate the driver to
+> differentiate between mcbsp in different omap.
+> =
+
+> Signed-off-by: Charulatha V <charu@ti.com>
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 > ---
->  arch/arm/mach-omap1/mcbsp.c             |  383 ++++++++++++++---
->  arch/arm/mach-omap2/mcbsp.c             |  704 +++++++++++++++++++++++++-----
->  arch/arm/plat-omap/devices.c            |   10 +-
->  arch/arm/plat-omap/include/plat/mcbsp.h |   14 +-
->  arch/arm/plat-omap/mcbsp.c              |   60 +++-
->  5 files changed, 966 insertions(+), 205 deletions(-)
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |  417 ++++++++++++++++++++++=
+++++++
+>  arch/arm/plat-omap/include/plat/mcbsp.h    |    2 +
+>  2 files changed, 419 insertions(+), 0 deletions(-)
+> =
 
-Looks good,
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-o=
+map2/omap_hwmod_2430_data.c
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+...
+
+>  	/* dma_system class*/
+>  	&omap2430_dma_system_hwmod,
+> +
+> +	/*mcbsp class*/
+
+Missing spaces around the comment text
+
+> +	&omap2430_mcbsp1_hwmod,
+> +	&omap2430_mcbsp2_hwmod,
+> +	&omap2430_mcbsp3_hwmod,
+> +	&omap2430_mcbsp4_hwmod,
+> +	&omap2430_mcbsp5_hwmod,
+>  	NULL,
+>  };
+>  =
+
+
+-- =
+
+P=E9ter
