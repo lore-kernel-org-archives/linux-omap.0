@@ -1,45 +1,55 @@
-From: Sutharsan <sutharsan.tech@gmail.com>
-Subject: [PATCH] Staging: Westbridge: added ioremap_nocache instead of
- phys_to_virt
-Date: Tue, 01 Feb 2011 22:45:04 -0800
-Message-ID: <1296629104.3592.26.camel@sutharsan-laptop>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: Setting MMC_CAP_POWER_OFF_CARD on mmc2 leads to filesystem
+ problems on mmc1
+Date: Wed, 2 Feb 2011 10:01:34 +0200
+Message-ID: <AANLkTik_pkpe=d4QyLdVmtbvGKTk+k1beRrzKXyeMAND@mail.gmail.com>
+References: <E6C3A477-63F7-4BA0-8E6B-A35A53B3AEA1@dominion.thruhere.net>
+ <1295621342.1925.139.camel@pimenta> <AANLkTi=H2rJkbZnuuS7jfrXE6WunzhTYKGk+ZFPjOivp@mail.gmail.com>
+ <EC9B76BF-F0F4-4F8C-9C6D-5CE311B2785C@dominion.thruhere.net>
+ <AANLkTi=xPhi1Bho-8qhRup=fG02ybNzipq7Z-iQrqT1B@mail.gmail.com> <20110202001155.GO3358@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:52612 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752548Ab1BBGpN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Feb 2011 01:45:13 -0500
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:54592 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753522Ab1BBIBy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Feb 2011 03:01:54 -0500
+In-Reply-To: <20110202001155.GO3358@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: greg@kroah.com
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, david.cross@cypress.com, srmt@cypress.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, l-o List <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "cjb@laptop.org" <cjb@laptop.org>, Luciano Coelho <coelho@ti.com>
 
-From: Sutharsan Ramamoorthy <srmt@cypress.com>
+On Wed, Feb 2, 2011 at 2:11 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Ohad Ben-Cohen <ohad@wizery.com> [110122 07:47]:
+>> On Sat, Jan 22, 2011 at 5:30 PM, Koen Kooi <koen@dominion.thruhere.n=
+et> wrote:
+>> > That was indeed the problem, not I get:
+>> >
+>> > [ =A0 35.417053] wl1271: firmware booted (Rev 6.1.0.0.343)
+>> >
+>> > and
+>> >
+>> > root@beagleboard-xm-next:~# ifconfig wlan0 hw eth 00:11:22:33:44:5=
+5
+>> > root@beagleboard-xm-next:~# iwlist wlan0 scanning | grep ESSID | w=
+c -l
+>> > 13
+>> >
+>> > That get's me a lot further!
+>>
+>> Cool !
+>
+> Hmm, do we need to still patch something for the -rc cycle for this?
 
-This patch removes phys_to_virt() and adds ioremap_nocache() for
-memory mapping the GPMC registers.
+I don't think so; the problem wasn't in the existing mainline code,
+but in the new functionality developed (adding support for the
+beagletoy expansion board), so this is not -rc material.
 
-Signed-off-by: Sutharsan Ramamoorthy <srmt@cypress.com>
-
----
-
-diff -uprN -X linux-2.6.37_vanilla/Documentation/dontdiff linux-2.6.37_vanilla/drivers/staging/westbridge/astoria/arch/arm/mach-omap2/cyashalomap_kernel.c linux-2.6.37-ptov/drivers/staging/westbridge/astoria/arch/arm/mach-omap2/cyashalomap_kernel.c
---- linux-2.6.37_vanilla/drivers/staging/westbridge/astoria/arch/arm/mach-omap2/cyashalomap_kernel.c	2010-11-29 20:42:04.000000000 -0800
-+++ linux-2.6.37-ptov/drivers/staging/westbridge/astoria/arch/arm/mach-omap2/cyashalomap_kernel.c	2011-02-01 16:00:31.214861085 -0800
-@@ -347,11 +347,8 @@ static int cy_as_hal_gpmc_init(void)
- 	u32 tmp32;
- 	int err;
- 	struct gpmc_timings	timings;
--	/*
--	 * get GPMC i/o registers base(already been i/o mapped
--	 * in kernel, no need for separate i/o remap)
--	 */
--	gpmc_base = phys_to_virt(OMAP34XX_GPMC_BASE);
-+
-+	gpmc_base = (u32)ioremap_nocache(OMAP34XX_GPMC_BASE, BLKSZ_4K);
- 	DBGPRN(KERN_INFO "kernel has gpmc_base=%x , val@ the base=%x",
- 		gpmc_base, __raw_readl(gpmc_base)
- 	);
-
+Thanks
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
