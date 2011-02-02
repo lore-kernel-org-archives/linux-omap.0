@@ -1,323 +1,311 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v6 4/6] OMAP4: hwmod data: Add McSPI
-Date: Wed,  2 Feb 2011 17:52:13 +0530
-Message-ID: <1296649335-31756-5-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v6 6/6] OMAP: runtime: McSPI driver runtime conversion
+Date: Wed,  2 Feb 2011 17:52:15 +0530
+Message-ID: <1296649335-31756-7-git-send-email-govindraj.raja@ti.com>
 References: <1296649335-31756-1-git-send-email-govindraj.raja@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54697 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54710 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752853Ab1BBMEg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Feb 2011 07:04:36 -0500
+	id S1752853Ab1BBMEj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Feb 2011 07:04:39 -0500
 In-Reply-To: <1296649335-31756-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Charulatha V <charu@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Charulatha V <charu@ti.com>
 
-From: Benoit Cousson <b-cousson@ti.com>
+McSPI runtime conversion.
+Changes involves:
+1) remove clock framework apis to use runtime framework apis.
+2) context restore from runtime resume which is a callback for get_sync.
+3) Remove SYSCONFIG(sysc) register handling
+        (a) Remove context save and restore of sysc reg and remove soft reset
+            done from sysc reg as this will be done with hwmod framework.
+        (b) Also cleanup sysc reg bit macros.
+4) Rename the omap2_mcspi_reset function to omap2_mcspi_master_setup
+   function as with hwmod changes soft reset will be done in
+   hwmod framework itself and use the return value from clock
+   enable function to return for failure scenarios.
 
-Update omap4 hwmod file with McSPI info.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Charulatha V <charu@ti.com>
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Reviewed-by: Partha Basak <p-basak2@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  267 ++++++++++++++++++++++++++++
- 1 files changed, 267 insertions(+), 0 deletions(-)
+ drivers/spi/omap2_mcspi.c |  116 ++++++++++++++++----------------------------
+ 1 files changed, 42 insertions(+), 74 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index c2806bd..9554685 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -24,6 +24,7 @@
- #include <plat/cpu.h>
- #include <plat/gpio.h>
- #include <plat/dma.h>
-+#include <plat/mcspi.h>
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index 38b6f66..e160621 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -33,6 +33,7 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
++#include <linux/pm_runtime.h>
  
- #include "omap_hwmod_common_data.h"
+ #include <linux/spi/spi.h>
  
-@@ -1435,6 +1436,266 @@ static struct omap_hwmod omap44xx_iva_hwmod = {
+@@ -46,7 +47,6 @@
+ #define OMAP2_MCSPI_MAX_CTRL 		4
+ 
+ #define OMAP2_MCSPI_REVISION		0x00
+-#define OMAP2_MCSPI_SYSCONFIG		0x10
+ #define OMAP2_MCSPI_SYSSTATUS		0x14
+ #define OMAP2_MCSPI_IRQSTATUS		0x18
+ #define OMAP2_MCSPI_IRQENABLE		0x1c
+@@ -63,13 +63,6 @@
+ 
+ /* per-register bitmasks: */
+ 
+-#define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	BIT(4)
+-#define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	BIT(2)
+-#define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	BIT(0)
+-#define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	BIT(1)
+-
+-#define OMAP2_MCSPI_SYSSTATUS_RESETDONE	BIT(0)
+-
+ #define OMAP2_MCSPI_MODULCTRL_SINGLE	BIT(0)
+ #define OMAP2_MCSPI_MODULCTRL_MS	BIT(2)
+ #define OMAP2_MCSPI_MODULCTRL_STEST	BIT(3)
+@@ -122,13 +115,12 @@ struct omap2_mcspi {
+ 	spinlock_t		lock;
+ 	struct list_head	msg_queue;
+ 	struct spi_master	*master;
+-	struct clk		*ick;
+-	struct clk		*fck;
+ 	/* Virtual base address of the controller */
+ 	void __iomem		*base;
+ 	unsigned long		phys;
+ 	/* SPI1 has 4 channels, while SPI2 has 2 */
+ 	struct omap2_mcspi_dma	*dma_channels;
++	struct  device		*dev;
  };
  
- /*
-+ * 'mcspi' class
-+ * multichannel serial port interface (mcspi) / master/slave synchronous serial
-+ * bus
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap44xx_mcspi_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.sysc_flags     = (SYSC_HAS_EMUFREE | SYSC_HAS_RESET_STATUS |
-+			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   SIDLE_SMART_WKUP),
-+	.sysc_fields	= &omap_hwmod_sysc_type2,
-+};
-+
-+static struct omap_hwmod_class omap44xx_mcspi_hwmod_class = {
-+	.name = "mcspi",
-+	.sysc = &omap44xx_mcspi_sysc,
-+	.rev = OMAP4_MCSPI_REV,
-+};
-+
-+/* mcspi1 */
-+static struct omap_hwmod omap44xx_mcspi1_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_mcspi1_irqs[] = {
-+	{ .irq = 65 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_dma_info omap44xx_mcspi1_sdma_reqs[] = {
-+	{ .name = "tx0", .dma_req = 34 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "rx0", .dma_req = 35 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "tx1", .dma_req = 36 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "rx1", .dma_req = 37 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "tx2", .dma_req = 38 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "rx2", .dma_req = 39 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "tx3", .dma_req = 40 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "rx3", .dma_req = 41 + OMAP44XX_DMA_REQ_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_mcspi1_addrs[] = {
-+	{
-+		.pa_start	= 0x48098000,
-+		.pa_end		= 0x480981ff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_per -> mcspi1 */
-+static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi1 = {
-+	.master		= &omap44xx_l4_per_hwmod,
-+	.slave		= &omap44xx_mcspi1_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_mcspi1_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_mcspi1_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mcspi1 slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_mcspi1_slaves[] = {
-+	&omap44xx_l4_per__mcspi1,
-+};
-+
-+static struct omap2_mcspi_dev_attr omap_mcspi1_dev_attr = {
-+	.num_chipselect = 4,
-+};
-+
-+static struct omap_hwmod omap44xx_mcspi1_hwmod = {
-+	.name		= "mcspi1",
-+	.class		= &omap44xx_mcspi_hwmod_class,
-+	.mpu_irqs	= omap44xx_mcspi1_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi1_irqs),
-+	.sdma_reqs	= omap44xx_mcspi1_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi1_sdma_reqs),
-+	.main_clk	= "mcspi1_fck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI1_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_mcspi1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi1_slaves),
-+	.dev_attr       = &omap_mcspi1_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* mcspi2 */
-+static struct omap_hwmod omap44xx_mcspi2_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_mcspi2_irqs[] = {
-+	{ .irq = 66 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_dma_info omap44xx_mcspi2_sdma_reqs[] = {
-+	{ .name = "tx0", .dma_req = 42 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "rx0", .dma_req = 43 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "tx1", .dma_req = 44 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "rx1", .dma_req = 45 + OMAP44XX_DMA_REQ_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_mcspi2_addrs[] = {
-+	{
-+		.pa_start	= 0x4809a000,
-+		.pa_end		= 0x4809a1ff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_per -> mcspi2 */
-+static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi2 = {
-+	.master		= &omap44xx_l4_per_hwmod,
-+	.slave		= &omap44xx_mcspi2_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_mcspi2_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_mcspi2_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mcspi2 slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_mcspi2_slaves[] = {
-+	&omap44xx_l4_per__mcspi2,
-+};
-+
-+static struct omap2_mcspi_dev_attr omap_mcspi2_dev_attr = {
-+	.num_chipselect = 2,
-+};
-+
-+static struct omap_hwmod omap44xx_mcspi2_hwmod = {
-+	.name		= "mcspi2",
-+	.class		= &omap44xx_mcspi_hwmod_class,
-+	.mpu_irqs	= omap44xx_mcspi2_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi2_irqs),
-+	.sdma_reqs	= omap44xx_mcspi2_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi2_sdma_reqs),
-+	.main_clk	= "mcspi2_fck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI2_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_mcspi2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi2_slaves),
-+	.dev_attr       = &omap_mcspi2_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* mcspi3 */
-+static struct omap_hwmod omap44xx_mcspi3_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_mcspi3_irqs[] = {
-+	{ .irq = 91 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_dma_info omap44xx_mcspi3_sdma_reqs[] = {
-+	{ .name = "tx0", .dma_req = 14 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "rx0", .dma_req = 15 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "tx1", .dma_req = 22 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "rx1", .dma_req = 23 + OMAP44XX_DMA_REQ_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_mcspi3_addrs[] = {
-+	{
-+		.pa_start	= 0x480b8000,
-+		.pa_end		= 0x480b81ff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_per -> mcspi3 */
-+static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi3 = {
-+	.master		= &omap44xx_l4_per_hwmod,
-+	.slave		= &omap44xx_mcspi3_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_mcspi3_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_mcspi3_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mcspi3 slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_mcspi3_slaves[] = {
-+	&omap44xx_l4_per__mcspi3,
-+};
-+
-+static struct omap2_mcspi_dev_attr omap_mcspi3_dev_attr = {
-+	.num_chipselect = 2,
-+};
-+
-+static struct omap_hwmod omap44xx_mcspi3_hwmod = {
-+	.name		= "mcspi3",
-+	.class		= &omap44xx_mcspi_hwmod_class,
-+	.mpu_irqs	= omap44xx_mcspi3_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi3_irqs),
-+	.sdma_reqs	= omap44xx_mcspi3_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi3_sdma_reqs),
-+	.main_clk	= "mcspi3_fck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI3_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_mcspi3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi3_slaves),
-+	.dev_attr       = &omap_mcspi3_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* mcspi4 */
-+static struct omap_hwmod omap44xx_mcspi4_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_mcspi4_irqs[] = {
-+	{ .irq = 48 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_dma_info omap44xx_mcspi4_sdma_reqs[] = {
-+	{ .name = "tx0", .dma_req = 69 + OMAP44XX_DMA_REQ_START },
-+	{ .name = "rx0", .dma_req = 70 + OMAP44XX_DMA_REQ_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_mcspi4_addrs[] = {
-+	{
-+		.pa_start	= 0x480ba000,
-+		.pa_end		= 0x480ba1ff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_per -> mcspi4 */
-+static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi4 = {
-+	.master		= &omap44xx_l4_per_hwmod,
-+	.slave		= &omap44xx_mcspi4_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_mcspi4_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_mcspi4_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mcspi4 slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_mcspi4_slaves[] = {
-+	&omap44xx_l4_per__mcspi4,
-+};
-+
-+static struct omap2_mcspi_dev_attr omap_mcspi4_dev_attr = {
-+	.num_chipselect = 1,
-+};
-+
-+static struct omap_hwmod omap44xx_mcspi4_hwmod = {
-+	.name		= "mcspi4",
-+	.class		= &omap44xx_mcspi_hwmod_class,
-+	.mpu_irqs	= omap44xx_mcspi4_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi4_irqs),
-+	.sdma_reqs	= omap44xx_mcspi4_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi4_sdma_reqs),
-+	.main_clk	= "mcspi4_fck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI4_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_mcspi4_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi4_slaves),
-+	.dev_attr       = &omap_mcspi4_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/*
-  * 'mpu' class
-  * mpu sub-system
+ struct omap2_mcspi_cs {
+@@ -144,7 +136,6 @@ struct omap2_mcspi_cs {
+  * corresponding registers are modified.
   */
-@@ -2050,6 +2311,12 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_iva_seq0_hwmod,
- 	&omap44xx_iva_seq1_hwmod,
+ struct omap2_mcspi_regs {
+-	u32 sysconfig;
+ 	u32 modulctrl;
+ 	u32 wakeupenable;
+ 	struct list_head cs;
+@@ -268,9 +259,6 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
+ 	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
+ 			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
  
-+	/* mcspi class */
-+	&omap44xx_mcspi1_hwmod,
-+	&omap44xx_mcspi2_hwmod,
-+	&omap44xx_mcspi3_hwmod,
-+	&omap44xx_mcspi4_hwmod,
+-	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
+-			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
+-
+ 	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
+ 			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
+ 
+@@ -280,20 +268,12 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
+ }
+ static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
+ {
+-	clk_disable(mcspi->ick);
+-	clk_disable(mcspi->fck);
++	pm_runtime_put_sync(mcspi->dev);
+ }
+ 
+ static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
+ {
+-	if (clk_enable(mcspi->ick))
+-		return -ENODEV;
+-	if (clk_enable(mcspi->fck))
+-		return -ENODEV;
+-
+-	omap2_mcspi_restore_ctx(mcspi);
+-
+-	return 0;
++	return pm_runtime_get_sync(mcspi->dev);
+ }
+ 
+ static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit)
+@@ -819,8 +799,9 @@ static int omap2_mcspi_setup(struct spi_device *spi)
+ 			return ret;
+ 	}
+ 
+-	if (omap2_mcspi_enable_clocks(mcspi))
+-		return -ENODEV;
++	ret = omap2_mcspi_enable_clocks(mcspi);
++	if (ret < 0)
++		return ret;
+ 
+ 	ret = omap2_mcspi_setup_transfer(spi, NULL);
+ 	omap2_mcspi_disable_clocks(mcspi);
+@@ -863,10 +844,11 @@ static void omap2_mcspi_work(struct work_struct *work)
+ 	struct omap2_mcspi	*mcspi;
+ 
+ 	mcspi = container_of(work, struct omap2_mcspi, work);
+-	spin_lock_irq(&mcspi->lock);
+ 
+-	if (omap2_mcspi_enable_clocks(mcspi))
+-		goto out;
++	if (omap2_mcspi_enable_clocks(mcspi) < 0)
++		return;
 +
- 	/* mpu class */
- 	&omap44xx_mpu_hwmod,
++	spin_lock_irq(&mcspi->lock);
  
+ 	/* We only enable one channel at a time -- the one whose message is
+ 	 * at the head of the queue -- although this controller would gladly
+@@ -979,10 +961,9 @@ static void omap2_mcspi_work(struct work_struct *work)
+ 		spin_lock_irq(&mcspi->lock);
+ 	}
+ 
+-	omap2_mcspi_disable_clocks(mcspi);
+-
+-out:
+ 	spin_unlock_irq(&mcspi->lock);
++
++	omap2_mcspi_disable_clocks(mcspi);
+ }
+ 
+ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
+@@ -1058,25 +1039,15 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
+ 	return 0;
+ }
+ 
+-static int __init omap2_mcspi_reset(struct omap2_mcspi *mcspi)
++static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
+ {
+ 	struct spi_master	*master = mcspi->master;
+ 	u32			tmp;
++	int ret = 0;
+ 
+-	if (omap2_mcspi_enable_clocks(mcspi))
+-		return -1;
+-
+-	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
+-			OMAP2_MCSPI_SYSCONFIG_SOFTRESET);
+-	do {
+-		tmp = mcspi_read_reg(master, OMAP2_MCSPI_SYSSTATUS);
+-	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
+-
+-	tmp = OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
+-		OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
+-		OMAP2_MCSPI_SYSCONFIG_SMARTIDLE;
+-	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG, tmp);
+-	omap2_mcspi_ctx[master->bus_num - 1].sysconfig = tmp;
++	ret = omap2_mcspi_enable_clocks(mcspi);
++	if (ret < 0)
++		return ret;
+ 
+ 	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
+ 	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
+@@ -1087,6 +1058,18 @@ static int __init omap2_mcspi_reset(struct omap2_mcspi *mcspi)
+ 	return 0;
+ }
+ 
++static int omap_mcspi_runtime_resume(struct device *dev)
++{
++	struct omap2_mcspi	*mcspi;
++	struct spi_master	*master;
++
++	master = dev_get_drvdata(dev);
++	mcspi = spi_master_get_devdata(master);
++	omap2_mcspi_restore_ctx(mcspi);
++
++	return 0;
++}
++
+ 
+ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ {
+@@ -1136,34 +1119,22 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ 	if (!mcspi->base) {
+ 		dev_dbg(&pdev->dev, "can't ioremap MCSPI\n");
+ 		status = -ENOMEM;
+-		goto err1aa;
++		goto err2;
+ 	}
+ 
++	mcspi->dev = &pdev->dev;
+ 	INIT_WORK(&mcspi->work, omap2_mcspi_work);
+ 
+ 	spin_lock_init(&mcspi->lock);
+ 	INIT_LIST_HEAD(&mcspi->msg_queue);
+ 	INIT_LIST_HEAD(&omap2_mcspi_ctx[master->bus_num - 1].cs);
+ 
+-	mcspi->ick = clk_get(&pdev->dev, "ick");
+-	if (IS_ERR(mcspi->ick)) {
+-		dev_dbg(&pdev->dev, "can't get mcspi_ick\n");
+-		status = PTR_ERR(mcspi->ick);
+-		goto err1a;
+-	}
+-	mcspi->fck = clk_get(&pdev->dev, "fck");
+-	if (IS_ERR(mcspi->fck)) {
+-		dev_dbg(&pdev->dev, "can't get mcspi_fck\n");
+-		status = PTR_ERR(mcspi->fck);
+-		goto err2;
+-	}
+-
+ 	mcspi->dma_channels = kcalloc(master->num_chipselect,
+ 			sizeof(struct omap2_mcspi_dma),
+ 			GFP_KERNEL);
+ 
+ 	if (mcspi->dma_channels == NULL)
+-		goto err3;
++		goto err2;
+ 
+ 	for (i = 0; i < master->num_chipselect; i++) {
+ 		char dma_ch_name[14];
+@@ -1193,8 +1164,10 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ 		mcspi->dma_channels[i].dma_tx_sync_dev = dma_res->start;
+ 	}
+ 
+-	if (omap2_mcspi_reset(mcspi) < 0)
+-		goto err4;
++	pm_runtime_enable(&pdev->dev);
++
++	if (status || omap2_mcspi_master_setup(mcspi) < 0)
++		goto err3;
+ 
+ 	status = spi_register_master(master);
+ 	if (status < 0)
+@@ -1203,17 +1176,13 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ 	return status;
+ 
+ err4:
+-	kfree(mcspi->dma_channels);
++	spi_master_put(master);
+ err3:
+-	clk_put(mcspi->fck);
++	kfree(mcspi->dma_channels);
+ err2:
+-	clk_put(mcspi->ick);
+-err1a:
+-	iounmap(mcspi->base);
+-err1aa:
+ 	release_mem_region(r->start, (r->end - r->start) + 1);
++	iounmap(mcspi->base);
+ err1:
+-	spi_master_put(master);
+ 	return status;
+ }
+ 
+@@ -1229,9 +1198,7 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
+ 	mcspi = spi_master_get_devdata(master);
+ 	dma_channels = mcspi->dma_channels;
+ 
+-	clk_put(mcspi->fck);
+-	clk_put(mcspi->ick);
+-
++	omap2_mcspi_disable_clocks(mcspi);
+ 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	release_mem_region(r->start, (r->end - r->start) + 1);
+ 
+@@ -1282,6 +1249,7 @@ static int omap2_mcspi_resume(struct device *dev)
+ 
+ static const struct dev_pm_ops omap2_mcspi_pm_ops = {
+ 	.resume = omap2_mcspi_resume,
++	.runtime_resume	= omap_mcspi_runtime_resume,
+ };
+ 
+ static struct platform_driver omap2_mcspi_driver = {
 -- 
 1.7.1
 
