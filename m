@@ -1,52 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Setting MMC_CAP_POWER_OFF_CARD on mmc2 leads to filesystem
- problems on mmc1
-Date: Tue, 1 Feb 2011 16:11:55 -0800
-Message-ID: <20110202001155.GO3358@atomide.com>
-References: <E6C3A477-63F7-4BA0-8E6B-A35A53B3AEA1@dominion.thruhere.net>
- <1295621342.1925.139.camel@pimenta>
- <AANLkTi=H2rJkbZnuuS7jfrXE6WunzhTYKGk+ZFPjOivp@mail.gmail.com>
- <EC9B76BF-F0F4-4F8C-9C6D-5CE311B2785C@dominion.thruhere.net>
- <AANLkTi=xPhi1Bho-8qhRup=fG02ybNzipq7Z-iQrqT1B@mail.gmail.com>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [PATCHv4] OMAP: Enable Magic SysRq on serial console ttyOx
+Date: Tue, 1 Feb 2011 16:12:17 -0800
+Message-ID: <20110202001217.GA19277@suse.de>
+References: <1296545441-17070-1-git-send-email-weber@corscience.de>
+ <87ei7ryavx.fsf@ti.com>
+ <20110201222342.GA19137@suse.de>
+ <87oc6vnyfj.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54035 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751266Ab1BBAMR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 19:12:17 -0500
+Received: from cantor.suse.de ([195.135.220.2]:35939 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751522Ab1BBAYZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Feb 2011 19:24:25 -0500
 Content-Disposition: inline
-In-Reply-To: <AANLkTi=xPhi1Bho-8qhRup=fG02ybNzipq7Z-iQrqT1B@mail.gmail.com>
+In-Reply-To: <87oc6vnyfj.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, l-o List <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "cjb@laptop.org" <cjb@laptop.org>, Luciano Coelho <coelho@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>, open list <linux-kernel@vger.kernel.org>, Thomas Weber <weber@corscience.de>
 
-* Ohad Ben-Cohen <ohad@wizery.com> [110122 07:47]:
-> On Sat, Jan 22, 2011 at 5:30 PM, Koen Kooi <koen@dominion.thruhere.ne=
-t> wrote:
-> > That was indeed the problem, not I get:
+On Tue, Feb 01, 2011 at 03:10:40PM -0800, Kevin Hilman wrote:
+> Greg KH <gregkh@suse.de> writes:
+> 
+> > On Tue, Feb 01, 2011 at 08:31:30AM -0800, Kevin Hilman wrote:
+> >> Thomas Weber <weber@corscience.de> writes:
+> >> 
+> >> > Magic SysRq key is not working for OMAP on new serial
+> >> > console ttyOx because SUPPORT_SYSRQ is not defined
+> >> > for omap-serial.
+> >> >
+> >> > This patch defines SUPPORT_SYSRQ in omap-serial and
+> >> > enables handling of Magic SysRq character.
+> >> >
+> >> > Further there is an issue of losing first break character.
+> >> > Removing the reset of the lsr_break_flag fixes this issue.
+> >> >
+> >> > Signed-off-by: Thomas Weber <weber@corscience.de>
+> >> > Acked-by: Govindraj.R <govindraj.raja@ti.com>
+> >> > Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
+> >> > Acked-by: Kevin Hilman <khilman@ti.com>
+> >> 
+> >> Greg,
+> >> 
+> >> Will you be taking this?  If you prefer, we can take it via OMAP tree
+> >> with your ack.
 > >
-> > [ =C2=A0 35.417053] wl1271: firmware booted (Rev 6.1.0.0.343)
+> > I can take it if it's not a problem for you.  Or if you want to, please
+> > add:
+> > 	Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+> > to the patch.
 > >
-> > and
-> >
-> > root@beagleboard-xm-next:~# ifconfig wlan0 hw eth 00:11:22:33:44:55
-> > root@beagleboard-xm-next:~# iwlist wlan0 scanning | grep ESSID | wc=
- -l
-> > 13
-> >
-> > That get's me a lot further!
->=20
-> Cool !
+> > Let me know which is easier for you.
+> 
+> Since there are no dependencies on arch/arm/*omap*, you can merge it.
 
-Hmm, do we need to still patch something for the -rc cycle for this?
-If so, please let me know.
+Ok, will do.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+
+greg k-h
