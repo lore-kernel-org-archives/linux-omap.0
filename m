@@ -1,19 +1,19 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 4/5] omap4: board-omap4panda: Initialise the serial pads
-Date: Tue, 01 Feb 2011 17:12:16 -0800
-Message-ID: <874o8nnssv.fsf@ti.com>
-References: <1296483782-21950-1-git-send-email-r.sricharan@ti.com>
+Subject: Re: [PATCH v2 3/5] omap3: board-3430sdp: Initialise the serial pads.
+Date: Tue, 01 Feb 2011 17:13:03 -0800
+Message-ID: <87wrljme74.fsf@ti.com>
+References: <1296483770-21915-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:42760 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752681Ab1BBBMV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 20:12:21 -0500
-Received: by mail-yw0-f43.google.com with SMTP id 5so2859523yws.30
-        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 17:12:19 -0800 (PST)
-In-Reply-To: <1296483782-21950-1-git-send-email-r.sricharan@ti.com>
-	(sricharan's message of "Mon, 31 Jan 2011 19:53:02 +0530")
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:59725 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752334Ab1BBBNK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 20:13:10 -0500
+Received: by mail-gy0-f177.google.com with SMTP id 4so4294648gyg.22
+        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 17:13:06 -0800 (PST)
+In-Reply-To: <1296483770-21915-1-git-send-email-r.sricharan@ti.com>
+	(sricharan's message of "Mon, 31 Jan 2011 19:52:50 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: sricharan <r.sricharan@ti.com>
@@ -21,44 +21,56 @@ Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com, paul
 
 sricharan <r.sricharan@ti.com> writes:
 
-> Removed the remux flags for serial2 cts which was
-> kept for testing. Passed the serial data to serial
-> init.
+> Corrected a checkpatch warning.
 
-This is a description of what changed since v1, not a description of the
-patch.  This kind of version history should go after the '---' for the
-benefit of reviewers.  Please add a description of this patch here.
+This is not a changelog.  This is a patch version history, which belongs
+after the '---'
 
-> Tested this on omap4panda.
->
+Kevin
+
 > Signed-off-by: sricharan <r.sricharan@ti.com>
 > ---
->  arch/arm/mach-omap2/board-omap4panda.c |   72 +++++++++++++++++++++++++++++++-
->  1 files changed, 70 insertions(+), 2 deletions(-)
+>  arch/arm/mach-omap2/board-3430sdp.c |   86 ++++++++++++++++++++++++++++++++++-
+>  1 files changed, 85 insertions(+), 1 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index b43e3ff..1c65420 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -370,13 +370,81 @@ static int __init omap4_panda_i2c_init(void)
->  	omap_register_i2c_bus(4, 400, NULL, 0);
->  	return 0;
->  }
-> -
->  #ifdef CONFIG_OMAP_MUX
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+> index 3b39ef1..896fcde 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -663,6 +663,90 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
 >  static struct omap_board_mux board_mux[] __initdata = {
 >  	{ .reg_offset = OMAP_MUX_TERMINATOR },
 >  };
 > +
+> +static struct omap_device_pad serial1_pads[] __initdata = {
+> +	{ .name   = "uart1_cts.uart1_cts",
+> +	  .enable = OMAP_PIN_INPUT|
+> +		    OMAP_PIN_OFF_INPUT_PULLDOWN |
+> +		    OMAP_MUX_MODE0,
+> +	},
+> +	{ .name   = "uart1_rts.uart1_rts",
+> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+> +	},
+> +	{ .name   = "uart1_rx.uart1_rx",
+> +	  .enable = OMAP_PIN_INPUT | OMAP_PIN_OFF_INPUT_PULLDOWN |
+> +		    OMAP_MUX_MODE0,
+> +	},
+> +	{ .name   = "uart1_tx.uart1_tx",
+> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
+> +	},
+> +};
+> +
 > +static struct omap_device_pad serial2_pads[] __initdata = {
 > +	{ .name   = "uart2_cts.uart2_cts",
-> +	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
+> +	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_INPUT_PULLDOWN |
+> +		    OMAP_MUX_MODE0,
 > +	},
 > +	{ .name   = "uart2_rts.uart2_rts",
 > +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
 > +	},
 > +	{ .name   = "uart2_rx.uart2_rx",
-> +	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
+> +	  .enable = OMAP_PIN_INPUT | OMAP_PIN_OFF_INPUT_PULLDOWN |
+> +		    OMAP_MUX_MODE0,
 > +	},
 > +	{ .name   = "uart2_tx.uart2_tx",
 > +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
@@ -67,81 +79,61 @@ benefit of reviewers.  Please add a description of this patch here.
 > +
 > +static struct omap_device_pad serial3_pads[] __initdata = {
 > +	{ .name   = "uart3_cts_rctx.uart3_cts_rctx",
-> +	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
+> +	  .enable = OMAP_PIN_INPUT_PULLDOWN |
+> +		    OMAP_PIN_OFF_INPUT_PULLDOWN | OMAP_MUX_MODE0,
 > +	},
 > +	{ .name   = "uart3_rts_sd.uart3_rts_sd",
 > +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
 > +	},
 > +	{ .name   = "uart3_rx_irrx.uart3_rx_irrx",
-> +	  .enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
+> +	  .enable = OMAP_PIN_INPUT | OMAP_PIN_OFF_INPUT_PULLDOWN |
+> +		    OMAP_MUX_MODE0,
 > +	},
 > +	{ .name   = "uart3_tx_irtx.uart3_tx_irtx",
 > +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
 > +	},
 > +};
 > +
-> +static struct omap_device_pad serial4_pads[] __initdata = {
-> +	{ .name   = "uart4_rx.uart4_rx",
-> +	.enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
-> +	},
-> +	{ .name   = "uart4_tx.uart4_tx",
-> +	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
-> +	},
+> +static struct omap_board_data serial1_data = {
+> +	.id		= 0,
+> +	.pads		= serial1_pads,
+> +	.pads_cnt	= ARRAY_SIZE(serial1_pads),
 > +};
 > +
 > +static struct omap_board_data serial2_data = {
-> +	.id             = 1,
-> +	.pads           = serial2_pads,
-> +	.pads_cnt       = ARRAY_SIZE(serial2_pads),
+> +	.id		= 1,
+> +	.pads		= serial2_pads,
+> +	.pads_cnt	= ARRAY_SIZE(serial2_pads),
 > +};
 > +
 > +static struct omap_board_data serial3_data = {
-> +	.id             = 2,
-> +	.pads           = serial3_pads,
-> +	.pads_cnt       = ARRAY_SIZE(serial3_pads),
-> +};
-> +
-> +static struct omap_board_data serial4_data = {
-> +	.id             = 3,
-> +	.pads           = serial4_pads,
-> +	.pads_cnt       = ARRAY_SIZE(serial4_pads),
+> +	.id		= 2,
+> +	.pads		= serial3_pads,
+> +	.pads_cnt	= ARRAY_SIZE(serial3_pads),
 > +};
 > +
 > +static inline void board_serial_init(void)
 > +{
+> +	omap_serial_init_port(&serial1_data);
 > +	omap_serial_init_port(&serial2_data);
 > +	omap_serial_init_port(&serial3_data);
-> +	omap_serial_init_port(&serial4_data);
 > +}
->  #else
->  #define board_mux	NULL
+> +#else
+> +#define board_mux	NULL
 > +
 > +static inline void board_serial_init(void)
 > +{
 > +	omap_serial_init();
 > +}
 >  #endif
-
-As Anand pointed out in your earlier version,  this patch also contains
-a functional change, namely not initializing UART1.
-
-In addition to Anand's, it introduces a potentially confusing and
-unexpected difference with and without CONFIG_MUX.  When CONFIG_MUX is
-enabled, you get UART2,3 & 4 initialized, and with !CONFIG_MUX you all UARTs.
-
-In my opinion, this patch should continue to initialize all UARTs.  If
-you want to leave out the init of UART1, introduce it as a separate
-patch please.
-
-Kevin
-
->  static void __init omap4_panda_init(void)
-> @@ -389,7 +457,7 @@ static void __init omap4_panda_init(void)
 >  
->  	omap4_panda_i2c_init();
->  	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+>  /*
+> @@ -804,7 +888,7 @@ static void __init omap_3430sdp_init(void)
+>  	spi_register_board_info(sdp3430_spi_board_info,
+>  				ARRAY_SIZE(sdp3430_spi_board_info));
+>  	ads7846_dev_init();
 > -	omap_serial_init();
 > +	board_serial_init();
->  	omap4_twl6030_hsmmc_init(mmc);
->  	/* OMAP4 Panda uses internal transceiver so register nop transceiver */
->  	usb_nop_xceiv_register();
+>  	usb_musb_init(&musb_board_data);
+>  	board_smc91x_init();
+>  	board_flash_init(sdp_flash_partitions, chip_sel_3430);
