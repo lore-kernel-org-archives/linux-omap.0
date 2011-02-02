@@ -1,62 +1,67 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCHv4] OMAP: Enable Magic SysRq on serial console ttyOx
-Date: Tue, 1 Feb 2011 16:12:17 -0800
-Message-ID: <20110202001217.GA19277@suse.de>
-References: <1296545441-17070-1-git-send-email-weber@corscience.de>
- <87ei7ryavx.fsf@ti.com>
- <20110201222342.GA19137@suse.de>
- <87oc6vnyfj.fsf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP
+ boot failure)
+Date: Tue, 1 Feb 2011 17:10:07 -0800
+Message-ID: <20110202011006.GP3358@atomide.com>
+References: <20110106170805.GE1198@n2100.arm.linux.org.uk>
+ <20110106180030.GA8249@n2100.arm.linux.org.uk>
+ <20110106182023.GV7771@atomide.com>
+ <20110106203238.GH1198@n2100.arm.linux.org.uk>
+ <20110106204053.GA7771@atomide.com>
+ <20110107161230.GR1198@n2100.arm.linux.org.uk>
+ <20110110185209.GC4957@atomide.com>
+ <20110111231611.GX4957@atomide.com>
+ <3c13ae6d9e13b94548bfcaaced7681e8@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:35939 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751522Ab1BBAYZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Feb 2011 19:24:25 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52028 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752476Ab1BBBKh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 20:10:37 -0500
 Content-Disposition: inline
-In-Reply-To: <87oc6vnyfj.fsf@ti.com>
+In-Reply-To: <3c13ae6d9e13b94548bfcaaced7681e8@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>, open list <linux-kernel@vger.kernel.org>, Thomas Weber <weber@corscience.de>
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On Tue, Feb 01, 2011 at 03:10:40PM -0800, Kevin Hilman wrote:
-> Greg KH <gregkh@suse.de> writes:
+* Anand Gadiyar <gadiyar@ti.com> [110201 04:54]:
 > 
-> > On Tue, Feb 01, 2011 at 08:31:30AM -0800, Kevin Hilman wrote:
-> >> Thomas Weber <weber@corscience.de> writes:
-> >> 
-> >> > Magic SysRq key is not working for OMAP on new serial
-> >> > console ttyOx because SUPPORT_SYSRQ is not defined
-> >> > for omap-serial.
-> >> >
-> >> > This patch defines SUPPORT_SYSRQ in omap-serial and
-> >> > enables handling of Magic SysRq character.
-> >> >
-> >> > Further there is an issue of losing first break character.
-> >> > Removing the reset of the lsr_break_flag fixes this issue.
-> >> >
-> >> > Signed-off-by: Thomas Weber <weber@corscience.de>
-> >> > Acked-by: Govindraj.R <govindraj.raja@ti.com>
-> >> > Tested-by: Manjunath G Kondaiah <manjugk@ti.com>
-> >> > Acked-by: Kevin Hilman <khilman@ti.com>
-> >> 
-> >> Greg,
-> >> 
-> >> Will you be taking this?  If you prefer, we can take it via OMAP tree
-> >> with your ack.
-> >
-> > I can take it if it's not a problem for you.  Or if you want to, please
-> > add:
-> > 	Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
-> > to the patch.
-> >
-> > Let me know which is easier for you.
+> I believe this fix is fixing your reboot issue, but it's breaking
+> EHCI support on the SDP.
 > 
-> Since there are no dependencies on arch/arm/*omap*, you can merge it.
+> The MODE4 above should really be MODE3 - all GPIOs are on MODE3.
+> By changing
+> 
+> The patch snippet below fixes EHCI on the SDP, but I believe that
+> making this change will reintroduce the "board reboots" issue
+> you originally reported. Could you check and tell me if this
+> is the case?
 
-Ok, will do.
+Hmm sorry looks like I made a typo there. That should be fixed.
+ 
+> Just curious - is your board a Blaze, or an SDP?
 
-thanks,
+It's a ES1.0 blaze, with the patch below it reboots early
+during the boot. I also have to disable omap_l2_cache_init
+on this board to get it to boot.
+ 
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c
+> b/arch/arm/mach-omap2/board-4430sdp.c
+> index 07d1b20..ab9fb4d 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -554,7 +554,7 @@ static void __init omap_sfh7741prox_init(void)
+> 
+>  #ifdef CONFIG_OMAP_MUX
+>  static struct omap_board_mux board_mux[] __initdata = {
+> -	OMAP4_MUX(USBB2_ULPITLL_CLK, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
+> +	OMAP4_MUX(USBB2_ULPITLL_CLK, OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT),
+>  	{ .reg_offset = OMAP_MUX_TERMINATOR },
+>  };
+>  #else
 
-greg k-h
+Maybe there should be a check for ES1.0 for the USB also?
+
+Tony
