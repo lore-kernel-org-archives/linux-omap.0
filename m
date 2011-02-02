@@ -1,36 +1,105 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 2/2] arm: Kconfig: allow OMAP to use sparse IRQ numbering
-Date: Wed,  2 Feb 2011 18:31:55 +0200
-Message-ID: <1296664315-32108-3-git-send-email-balbi@ti.com>
-References: <1296664315-32108-1-git-send-email-balbi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1296664315-32108-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>
+From: Grant Erickson <marathon96@gmail.com>
+Subject: Re: ARM Architecture and GENERIC_CMOS_UPDATE
+Date: Wed, 02 Feb 2011 08:57:46 -0800
+Message-ID: <C96ECD0A.239F7%marathon96@gmail.com>
+References: <20110201223252.GG3358@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:38328 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754452Ab1BBQ5y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Feb 2011 11:57:54 -0500
+Received: by iwn9 with SMTP id 9so160588iwn.19
+        for <linux-omap@vger.kernel.org>; Wed, 02 Feb 2011 08:57:53 -0800 (PST)
+In-Reply-To: <20110201223252.GG3358@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Select HAVE_SPARSE_IRQ to allow OMAP to use
-sparse IRQ numbering scheme. The main difference
-is that irq_descs will be added to a radix tree
-instead of a static array.
+On 2/1/11 2:32 PM, Tony Lindgren wrote:
+> * Grant Erickson <marathon96@gmail.com> [110128 16:34]:
+>> Is there any reason, to date, that the ARM architecture has not had the
+>> following kernel configuration option?
+>> 
+>> config GENERIC_CMOS_UPDATE
+>>    def_bool y
+> 
+> Looks like it would just require implementing update_persitent_clock.
+> No idea why it's not done for ARM , maybe send some patches for that?
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Tony:
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 09a5c11..2ca24ad 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -857,6 +857,7 @@ config ARCH_DAVINCI
- config ARCH_OMAP
- 	bool "TI OMAP"
- 	select HAVE_CLK
-+	select HAVE_SPARSE_IRQ
- 	select ARCH_REQUIRE_GPIOLIB
- 	select ARCH_HAS_CPUFREQ
- 	select GENERIC_CLOCKEVENTS
--- 
-1.7.4.rc2
+Thanks for the confirmation. For the time being, for my 2.6.32 kernel, I
+added the following to my board-specific file:
+
+#if defined(CONFIG_GENERIC_CMOS_UPDATE) && defined(CONFIG_RTC_LIB)
+/**
+ * update_persistent_clock - set the hardware clock time to system time
+ * @now: the current system wall clock time.
+ *
+ * This routine attempts to access the primary hardware real-time
+ * clock and, if successful, sets it to the current system wall clock
+ * time.
+ *
+ * This generation (2.6.32) of ARM kernel has an alternative function
+ * do_set_rtc in linux/arch/arm/kernel/time.c that does something
+ * similar; however, in a more awkward and non-standard way. So much
+ * so, that in 2.6.36 kernels, it's gone away entirely.
+ *
+ * This more or less matches what is in linux/arch/sparc/kernel/time_64.c
+ *
+ * Returns 0 if the real-time clock was successfully set to the system
+ * wall clock time; otherwise, < 0 on error.
+ */
+int update_persistent_clock(struct timespec now)
+{
+    const char * name = "rtc0";
+    struct rtc_device *rtc;
+    int err = -ENODEV;
+
+    rtc = rtc_class_open(name);
+
+    if (rtc) {
+        err = rtc_set_mmss(rtc, now.tv_sec);
+        rtc_class_close(rtc);
+    }
+
+    return err;
+}
+#endif /* defined(CONFIG_GENERIC_CMOS_UPDATE) && defined(CONFIG_RTC_LIB) */
+
+and changed arch/arm/kernel/time.c as follows:
+
+--- a/linux/arch/arm/kernel/time.c
++++ b/linux/arch/arm/kernel/time.c
+@@ -89,6 +89,9 @@ static unsigned long dummy_gettimeoffset(void)
+ }
+ #endif
+ 
++#if defined(CONFIG_GENERIC_CMOS_UPDATE)
++static inline void do_set_rtc(void) { return; }
++#else /* !defined(CONFIG_GENERIC_CMOS_UPDATE) */
+ static unsigned long next_rtc_update;
+ 
+ /*
+@@ -118,6 +121,7 @@ static inline void do_set_rtc(void)
+    else
+        next_rtc_update = xtime.tv_sec + 660;
+ }
++#endif /* defined(CONFIG_GENERIC_CMOS_UPDATE) */
+ 
+ #ifdef CONFIG_LEDS
+ 
+The long-term solution probably involves adding a function pointer member
+field for each machine description with a generic, default function that
+does something akin to the above board-specific approach.
+
+Comments welcomed.
+
+-Grant
+
+
