@@ -1,105 +1,62 @@
-From: Grant Erickson <marathon96@gmail.com>
-Subject: Re: ARM Architecture and GENERIC_CMOS_UPDATE
-Date: Wed, 02 Feb 2011 08:57:46 -0800
-Message-ID: <C96ECD0A.239F7%marathon96@gmail.com>
-References: <20110201223252.GG3358@atomide.com>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: RE: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP boot failure)
+Date: Thu, 3 Feb 2011 00:13:43 +0530
+Message-ID: <3d41cb89c4a3a3fa93ded7aa9dfaa14d@mail.gmail.com>
+References: <20110106170805.GE1198@n2100.arm.linux.org.uk> <20110106180030.GA8249@n2100.arm.linux.org.uk>
+ <20110106182023.GV7771@atomide.com> <20110106203238.GH1198@n2100.arm.linux.org.uk>
+ <20110106204053.GA7771@atomide.com> <20110107161230.GR1198@n2100.arm.linux.org.uk>
+ <20110110185209.GC4957@atomide.com> <20110111231611.GX4957@atomide.com>
+ <3c13ae6d9e13b94548bfcaaced7681e8@mail.gmail.com> <20110202011006.GP3358@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:38328 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754452Ab1BBQ5y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Feb 2011 11:57:54 -0500
-Received: by iwn9 with SMTP id 9so160588iwn.19
-        for <linux-omap@vger.kernel.org>; Wed, 02 Feb 2011 08:57:53 -0800 (PST)
-In-Reply-To: <20110201223252.GG3358@atomide.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:58791 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754772Ab1BBSxT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Feb 2011 13:53:19 -0500
+Received: by mail-iw0-f178.google.com with SMTP id 19so278274iwr.23
+        for <linux-omap@vger.kernel.org>; Wed, 02 Feb 2011 10:53:14 -0800 (PST)
+In-Reply-To: <20110202011006.GP3358@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On 2/1/11 2:32 PM, Tony Lindgren wrote:
-> * Grant Erickson <marathon96@gmail.com> [110128 16:34]:
->> Is there any reason, to date, that the ARM architecture has not had the
->> following kernel configuration option?
->> 
->> config GENERIC_CMOS_UPDATE
->>    def_bool y
-> 
-> Looks like it would just require implementing update_persitent_clock.
-> No idea why it's not done for ARM , maybe send some patches for that?
+Tony Lindgren wrote:
+> * Anand Gadiyar <gadiyar@ti.com> [110201 04:54]:
+> >
+> > I believe this fix is fixing your reboot issue, but it's breaking
+> > EHCI support on the SDP.
+> >
+> > The MODE4 above should really be MODE3 - all GPIOs are on MODE3.
+> > By changing
+> >
+> > The patch snippet below fixes EHCI on the SDP, but I believe that
+> > making this change will reintroduce the "board reboots" issue
+> > you originally reported. Could you check and tell me if this
+> > is the case?
+>
+> Hmm sorry looks like I made a typo there. That should be fixed.
+>
+> > Just curious - is your board a Blaze, or an SDP?
+>
+> It's a ES1.0 blaze, with the patch below it reboots early
+> during the boot. I also have to disable omap_l2_cache_init
+> on this board to get it to boot.
+>
 
-Tony:
+...
 
-Thanks for the confirmation. For the time being, for my 2.6.32 kernel, I
-added the following to my board-specific file:
+> Maybe there should be a check for ES1.0 for the USB also?
 
-#if defined(CONFIG_GENERIC_CMOS_UPDATE) && defined(CONFIG_RTC_LIB)
-/**
- * update_persistent_clock - set the hardware clock time to system time
- * @now: the current system wall clock time.
- *
- * This routine attempts to access the primary hardware real-time
- * clock and, if successful, sets it to the current system wall clock
- * time.
- *
- * This generation (2.6.32) of ARM kernel has an alternative function
- * do_set_rtc in linux/arch/arm/kernel/time.c that does something
- * similar; however, in a more awkward and non-standard way. So much
- * so, that in 2.6.36 kernels, it's gone away entirely.
- *
- * This more or less matches what is in linux/arch/sparc/kernel/time_64.c
- *
- * Returns 0 if the real-time clock was successfully set to the system
- * wall clock time; otherwise, < 0 on error.
- */
-int update_persistent_clock(struct timespec now)
-{
-    const char * name = "rtc0";
-    struct rtc_device *rtc;
-    int err = -ENODEV;
+Looks like a bug on the Blaze boards. There's a large capacitor
+on the rails that starts charging when we try to power the USB PHY.
+The inrush current is quite high and this causes the reboot.
 
-    rtc = rtc_class_open(name);
-
-    if (rtc) {
-        err = rtc_set_mmss(rtc, now.tv_sec);
-        rtc_class_close(rtc);
-    }
-
-    return err;
-}
-#endif /* defined(CONFIG_GENERIC_CMOS_UPDATE) && defined(CONFIG_RTC_LIB) */
-
-and changed arch/arm/kernel/time.c as follows:
-
---- a/linux/arch/arm/kernel/time.c
-+++ b/linux/arch/arm/kernel/time.c
-@@ -89,6 +89,9 @@ static unsigned long dummy_gettimeoffset(void)
- }
- #endif
- 
-+#if defined(CONFIG_GENERIC_CMOS_UPDATE)
-+static inline void do_set_rtc(void) { return; }
-+#else /* !defined(CONFIG_GENERIC_CMOS_UPDATE) */
- static unsigned long next_rtc_update;
- 
- /*
-@@ -118,6 +121,7 @@ static inline void do_set_rtc(void)
-    else
-        next_rtc_update = xtime.tv_sec + 660;
- }
-+#endif /* defined(CONFIG_GENERIC_CMOS_UPDATE) */
- 
- #ifdef CONFIG_LEDS
- 
-The long-term solution probably involves adding a function pointer member
-field for each machine description with a generic, default function that
-does something akin to the above board-specific approach.
-
-Comments welcomed.
-
--Grant
+The capacitor is on the big motherboard called the application
+board, so it's independent of the silicon rev. I'm not sure
+which revs are affected - I'll try and find out more about the
+issue to see if I can come up with a better fix.
 
 
+- Anand
