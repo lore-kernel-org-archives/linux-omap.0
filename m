@@ -1,60 +1,107 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap4: panda: remove usb_nop_xceiv_register(v1)
-Date: Wed, 2 Feb 2011 13:57:49 +0200
-Message-ID: <20110202115749.GD5370@legolas.emea.dhcp.ti.com>
-References: <1294236201-4114-1-git-send-email-tom.leiming@gmail.com>
- <20110202113717.GC5370@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH v6 0/6] OMAP: McSPI: Hwmod adaptation + runtime conversion
+Date: Wed,  2 Feb 2011 17:52:09 +0530
+Message-ID: <1296649335-31756-1-git-send-email-govindraj.raja@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:36570 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752993Ab1BBL5z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Feb 2011 06:57:55 -0500
-Received: by mail-gw0-f50.google.com with SMTP id a20so3453694gwa.37
-        for <linux-omap@vger.kernel.org>; Wed, 02 Feb 2011 03:57:54 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20110202113717.GC5370@legolas.emea.dhcp.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55839 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752853Ab1BBMEf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Feb 2011 07:04:35 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: tom.leiming@gmail.com, tony@atomide.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Charulatha V <charu@ti.com>
 
-On Wed, Feb 02, 2011 at 01:37:17PM +0200, Felipe Balbi wrote:
-> Tony,
-> 
-> On Wed, Jan 05, 2011 at 10:03:21PM +0800, tom.leiming@gmail.com wrote:
-> > From: Ming Lei <tom.leiming@gmail.com>
-> > 
-> > Panda uses both twl6030 otg phy(vbus, id) and internal
-> > phy(data lines, DP/DM), so removes usb_nop_xceiv_register to make
-> > twl6030 otg driver working since current otg code only supports
-> > one global transceiver. Otherwise, musb doesn't work without
-> > the remove.
-> > 
-> > Reviewd-by: Felipe Balbi <balbi@ti.com>
-> > Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-> 
-> Care to queue this together with your fixes
+Changes invloves:
+----------------
+1) Addition of hwmod data for omap2/3/4.
+2) McSPI driver hwmod adaptation with cleanup of base address
+   macros and using omap-device API's.
+3) Runtime Conversion of McSPI driver.
 
-Without this patch, MUSB doesn't work on pandaboard.
+Changes from v5:
+---------------
+Rebased on top of 2.6.38-rc3 as per Kevin's comments.
+http://www.spinics.net/lists/arm-kernel/msg112112.html
 
-if you want in a pull request form, here it is:
+Changes from v4:
+---------------
+1) 4430 hwmod file alignment based on Benoit's comments.
+   http://www.spinics.net/lists/arm-kernel/msg111215.html
+   4430 Hwmod file now aligned based on:
+   http://gitorious.org/omap-pm/linux/blobs/pm-wip/
+   hwmods-omap4-full/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 
-The following changes since commit ebf53826e105f488f4f628703a108e98940d1dc5:
+Changes from v3:
+---------------
+1) Updated proper Author for all patches which was missed
+   in v2. 
+2) Modified 4430 hwmod data file so that mcspi data gets
+   updated in proper alphabetical order.
+3) Update omap2/3 hwmod dat files with SYSS_HAS_RESET_STATUS
+   flag.
 
-  Linux 2.6.38-rc3 (2011-02-01 13:05:49 +1000)
+Changes from v2:
+---------------
+1) Fixing minor comments and adding ack from Grant Likely.
+	https://patchwork.kernel.org/patch/371321/
+	https://patchwork.kernel.org/patch/371331/
 
-are available in the git repository at:
-  git://gitorious.org/usb/usb.git for-tony
+Changes from v1:
+---------------
+1) Fixing patch 5/5 comments for hwmod+runtime
+  Split the patch 5/5 to hwmod adaptation
+  and then runtime conversion
+  http://www.mail-archive.com/linux-omap@vger.kernel.org/msg33387.html
 
-Ming Lei (1):
-      arm: omap4: panda: remove usb_nop_xceiv_register(v1)
+Testing Updates:
+----------------
+Was tested using data transfer test module available at:
+http://dev.omapzoom.org/?p=richo/device_driver_test.git;a=blob;f=mcspi/test_code/
+utils/mcspi_modules/omap_mcspi_datatest.c;
+h=e42ec10c5c844abdde6a7175a268b379fbbdb655;
+hb=5d9a755d50e58de861c5e8991f2f607bc49b5dc3
+This test basically involves MISO <--> MOSI lines looped and data transfer test
+done using the above test module.
+System wide suspend and ret/off counts observation, ensured that no behavioral
+difference with and without this patch series.
 
- arch/arm/mach-omap2/board-omap4panda.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+Testing procedure involves:
+---------------------------
+Loopback test based on SPI interface available from
+board expansion connector.
+MISO <---> MOSI
 
+Platforms used where:
+--------------------
+Using the above mentioned test module we had done some
+data transfer tests.
+1) OMAP2430 SDP.
+2) OMAP3 (OMAP3430/3630SDP, ZOOM boards zoom2/3).
+3) OMAP4430 SDP.
+   [Along with loopback test basic Ethernet functionality
+   was checked which is over SPI interface].
+   Blaze-Board(OMAP4430) Boot tested with ethernet interface.
+4) Boot tested on 2420/n800.
 
--- 
-balbi
+Benoit Cousson (1):
+  OMAP4: hwmod data: Add McSPI
+
+Charulatha V (4):
+  OMAP2420: hwmod data: Add McSPI
+  OMAP2430: hwmod data: Add McSPI
+  OMAP3: hwmod data: Add McSPI
+  OMAP: devices: Modify McSPI device to adapt to hwmod framework
+
+Govindraj.R (1):
+  OMAP: runtime: McSPI driver runtime conversion
+
+ arch/arm/mach-omap2/devices.c              |  187 ++++---------------
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |  156 ++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |  219 ++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  280 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  267 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/mcspi.h    |   11 +
+ drivers/spi/omap2_mcspi.c                  |  220 +++++++---------------
+ 7 files changed, 1040 insertions(+), 300 deletions(-)
+
