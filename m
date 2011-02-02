@@ -1,58 +1,115 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP boot failure)
-Date: Wed, 2 Feb 2011 11:35:41 +0530
-Message-ID: <81ed58d7158cfa16007e141d0ac1f74c@mail.gmail.com>
-References: <20110106170805.GE1198@n2100.arm.linux.org.uk> <20110106180030.GA8249@n2100.arm.linux.org.uk>
- <20110106182023.GV7771@atomide.com> <20110106203238.GH1198@n2100.arm.linux.org.uk>
- <20110106204053.GA7771@atomide.com> <20110107161230.GR1198@n2100.arm.linux.org.uk>
- <20110110185209.GC4957@atomide.com> <20110111231611.GX4957@atomide.com>
- <3c13ae6d9e13b94548bfcaaced7681e8@mail.gmail.com> <20110202011006.GP3358@atomide.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v2 13/13] OMAP: hwmod: Removal of macros for data that is
+ obtained from hwmod database
+Date: Wed, 2 Feb 2011 11:45:25 +0530
+Message-ID: <AANLkTi=CiA5hHbBgGFbER2u37vW2_pFbQ+x98wpVL-HM@mail.gmail.com>
+References: <1296485437-12806-1-git-send-email-kishon@ti.com>
+	<1296485437-12806-14-git-send-email-kishon@ti.com>
+	<20110201200713.34fdb4fc.jhnikula@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:50667 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752421Ab1BBGFn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Feb 2011 01:05:43 -0500
-Received: by yib17 with SMTP id 17so4748592yib.40
-        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 22:05:42 -0800 (PST)
-In-Reply-To: <20110202011006.GP3358@atomide.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:38544 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752421Ab1BBGP0 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Feb 2011 01:15:26 -0500
+Received: by mail-iy0-f169.google.com with SMTP id 17so7086827iyj.14
+        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 22:15:25 -0800 (PST)
+In-Reply-To: <20110201200713.34fdb4fc.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Anand Gadiyar <gadiyar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, paul@pwsan.com, charu@ti.com, shubhrajyoti@ti.com, b-cousson@ti.com, khilman@deeprootsystems.com, p-basak2@ti.com
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Wednesday, February 02, 2011 6:40 AM
-> To: Anand Gadiyar
-> Cc: Russell King - ARM Linux; linux-arm-kernel@lists.infradead.org;
-> linux-omap@vger.kernel.org; Keshava Munegowda; Santosh Shilimkar;
-> Felipe Balbi
-> Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re:
-> 4430SDP boot failure)
+On Tue, Feb 1, 2011 at 11:37 PM, Jarkko Nikula <jhnikula@gmail.com> wro=
+te:
+> On Mon, 31 Jan 2011 20:20:37 +0530
+> Kishon Vijay Abraham I <kishon@ti.com> wrote:
 >
-> * Anand Gadiyar <gadiyar@ti.com> [110201 04:54]:
-> >
-> > I believe this fix is fixing your reboot issue, but it's breaking
-> > EHCI support on the SDP.
-> >
-> > The MODE4 above should really be MODE3 - all GPIOs are on MODE3.
-> > By changing
-> >
-> > The patch snippet below fixes EHCI on the SDP, but I believe that
-> > making this change will reintroduce the "board reboots" issue
-> > you originally reported. Could you check and tell me if this
-> > is the case?
+>> Information like base address and DMA channel nubers should no longe=
+r
+>> be obtained using macros. These information should be obtained from
+>> hwmod database. Hence the macros that define the base address are re=
+moved.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> Signed-off-by: Charulatha V <charu@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap1/mcbsp.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 64 ++++=
++++++++++++---------------
+>> =A0arch/arm/plat-omap/include/plat/mcbsp.h | =A0 50 +---------------=
+--------
+>> =A02 files changed, 33 insertions(+), 81 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp=
+=2Ec
+>> index 2b89ebd..d90f649 100644
+>> --- a/arch/arm/mach-omap1/mcbsp.c
+>> +++ b/arch/arm/mach-omap1/mcbsp.c
+>> @@ -83,14 +83,14 @@ struct resource omap7xx_mcbsp_res[][6] =3D {
+>> =A0 =A0 =A0 {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0=3D "mpu",
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .start =3D OMAP7XX_MCBSP1_=
+BASE,
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .end =A0 =3D OMAP7XX_MCBSP=
+1_BASE + SZ_256,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .start =3D 0xfffb1000,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .end =A0 =3D 0xfffb10ff,
 >
-> Hmm sorry looks like I made a typo there. That should be fixed.
+> For these changes I don't see immediate reason as they reduce
+> readability.
+
+ Maybe I should leave without modifying these resources. The main
+purpose of doing this
+  is to remove macros defined in mcbsp.h so that the client drivers
+don't use it directly.
+
+>Is this better to do outside of this set together with a
+> patch that adds these into hwmod database etc?
+
+ OMAP1 does not have hwmod database.
+
 >
-> > Just curious - is your board a Blaze, or an SDP?
+>> -#define AUDIO_MCBSP_DATAWRITE =A0 =A0 =A0 =A0(OMAP1510_MCBSP1_BASE =
++ OMAP_MCBSP_REG_DXR1)
+>> -#define AUDIO_MCBSP_DATAREAD (OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG=
+_DRR1)
+>> -
+>> -#define AUDIO_MCBSP =A0 =A0 =A0 =A0 =A0OMAP_MCBSP1
+>> -#define AUDIO_DMA_TX =A0 =A0 =A0 =A0 OMAP_DMA_MCBSP1_TX
+>> -#define AUDIO_DMA_RX =A0 =A0 =A0 =A0 OMAP_DMA_MCBSP1_RX
+>> -
+>> =A0#else
+>>
+>> =A0#define OMAP_MCBSP_REG_DRR2 =A00x00
+>> @@ -177,13 +136,6 @@ static struct platform_device omap_mcbsp##port_=
+nr =3D { =A0 =A0\
+>> =A0#define OMAP_ST_REG_SFIRCR =A0 0x28
+>> =A0#define OMAP_ST_REG_SSELCR =A0 0x2C
+>>
+>> -#define AUDIO_MCBSP_DATAWRITE =A0 =A0 =A0 =A0(OMAP24XX_MCBSP2_BASE =
++ OMAP_MCBSP_REG_DXR1)
+>> -#define AUDIO_MCBSP_DATAREAD (OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG=
+_DRR1)
+>> -
+>> -#define AUDIO_MCBSP =A0 =A0 =A0 =A0 =A0OMAP_MCBSP2
+>> -#define AUDIO_DMA_TX =A0 =A0 =A0 =A0 OMAP24XX_DMA_MCBSP2_TX
+>> -#define AUDIO_DMA_RX =A0 =A0 =A0 =A0 OMAP24XX_DMA_MCBSP2_RX
+>> -
+> These looks things that can be removed immediately and independently
+> from this set.
+
+  ok.
+
 >
-> It's a ES1.0 blaze, with the patch below it reboots early
-> during the boot. I also have to disable omap_l2_cache_init
-> on this board to get it to boot.
+> --
+> Jarkko
 >
-Do you still get this problem with 'omap_l2_cache_init' ?
-As reported earlier, we don't see this issue on ES1.0
-SDP.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
