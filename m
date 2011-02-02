@@ -1,20 +1,21 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: RE: handling clock nodes with both parent and divider selection
-Date: Wed, 2 Feb 2011 09:38:21 +0530
-Message-ID: <d1eefcbf311a0a741569c792c860d227@mail.gmail.com>
-References: <045d24bba9bbbe9fa47f0f8aa9901b7e@mail.gmail.com>
- <alpine.DEB.2.00.1101311610060.16671@utopia.booyaka.com> <a42717ae46ffbd2f8b30cca9ad559d93@mail.gmail.com>
- <alpine.DEB.2.00.1102010931530.16671@utopia.booyaka.com>
+Subject: RE: [PATCH] OMAP: hwmod: Do not expect an entry in clkdev to add
+ alias for opt_clks
+Date: Wed, 2 Feb 2011 09:40:45 +0530
+Message-ID: <64895f98b88c90709eb4f571d0582407@mail.gmail.com>
+References: <1296213475-23460-1-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.1101311606030.16671@utopia.booyaka.com> <997a6c2b061aee29cd2d0c755d4ad80c@mail.gmail.com>
+ <alpine.DEB.2.00.1102010948320.15746@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:55389 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751295Ab1BBEI0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 23:08:26 -0500
-Received: by fxm19 with SMTP id 19so7868687fxm.8
-        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 20:08:23 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1102010931530.16671@utopia.booyaka.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:36534 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752125Ab1BBEKr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2011 23:10:47 -0500
+Received: by mail-fx0-f43.google.com with SMTP id 18so8408723fxm.2
+        for <linux-omap@vger.kernel.org>; Tue, 01 Feb 2011 20:10:46 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1102010948320.15746@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
@@ -22,38 +23,37 @@ Cc: linux-omap@vger.kernel.org
 
 > -----Original Message-----
 > From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Tuesday, February 01, 2011 10:03 PM
+> Sent: Tuesday, February 01, 2011 10:23 PM
 > To: Rajendra Nayak
 > Cc: linux-omap@vger.kernel.org
-> Subject: RE: handling clock nodes with both parent and divider selection
+> Subject: RE: [PATCH] OMAP: hwmod: Do not expect an entry in clkdev to
+add alias for opt_clks
 >
 > On Tue, 1 Feb 2011, Rajendra Nayak wrote:
 >
-> > > -----Original Message-----
-> > > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > > Sent: Tuesday, February 01, 2011 4:43 AM
-> >
-> > > At some point in the future, hopefully we'll be able to split all of
-the
-> > > multiplexers and dividers into their own struct clks, or struct
-> > omap_clks,
-> > > or something, so we don't have to implement these hacks.  As I
-> > understand
-> > > it, that would be closer to the actual hardware, anyway.  The right
-time
-> > > to do that would be after the clktype conversion...
-> >
-> > Ok, I am not completely sure what clktype conversion means, but will
-> > wait for it.
+> > One other thing I was thinking of is if the function name
+> > _add_optional_clock_alias need to be changed to something like
+> > _add_optional_clock_clkdev since we are adding a new clkdev entry,
+> > if it does not exist, and no longer adding an 'alias' for an existing
+> > entry.
 >
-> I'd suggest not waiting for it, but implementing something now, similar
-to
-> OMAP3, if it won't be too big of a hack.
+> Fine with me.
+>
+> > Also, the adding of an entry in clkdev is today done for
+> > optional clocks alone. Is there any reason why we should not do
+> > this at runtime for all main clks and interface clks also.
+> > That way we get rid of all dependencies with the static clkdev
+> > table, and we might infact not need one if all entries are added
+> > runtime.
+>
+> Heh, you've just uncovered my "secret" plan.  It seemed best to me to
+wait
+> until all of the hwmod conversions were done to avoid alarming certain
+> people who might be consulting the static clkdev table in
+> mach-omap2/clock*_data.c as a platform reference...
 
-Yup, I will. I just meant to say will wait for your patches to see what
-clktype conversion meant, since I did not know of it.
-Did not mean to say will wait for it to add the divider control
-for aux clks :)
+Ok, sounds good to me, thanks.
+Will repost this one with the mentioned changes.
 
 >
 >
