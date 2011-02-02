@@ -1,62 +1,114 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: RE: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP boot failure)
-Date: Thu, 3 Feb 2011 00:13:43 +0530
-Message-ID: <3d41cb89c4a3a3fa93ded7aa9dfaa14d@mail.gmail.com>
-References: <20110106170805.GE1198@n2100.arm.linux.org.uk> <20110106180030.GA8249@n2100.arm.linux.org.uk>
- <20110106182023.GV7771@atomide.com> <20110106203238.GH1198@n2100.arm.linux.org.uk>
- <20110106204053.GA7771@atomide.com> <20110107161230.GR1198@n2100.arm.linux.org.uk>
- <20110110185209.GC4957@atomide.com> <20110111231611.GX4957@atomide.com>
- <3c13ae6d9e13b94548bfcaaced7681e8@mail.gmail.com> <20110202011006.GP3358@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH v5 3/5] OMAP4: hwmod data: add mailbox data
+Date: Wed,  2 Feb 2011 13:27:21 -0600
+Message-ID: <1296674843-12718-4-git-send-email-omar.ramirez@ti.com>
+References: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:58791 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754772Ab1BBSxT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Feb 2011 13:53:19 -0500
-Received: by mail-iw0-f178.google.com with SMTP id 19so278274iwr.23
-        for <linux-omap@vger.kernel.org>; Wed, 02 Feb 2011 10:53:14 -0800 (PST)
-In-Reply-To: <20110202011006.GP3358@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60474 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750873Ab1BBTij (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Feb 2011 14:38:39 -0500
+In-Reply-To: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <b-cousson@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Tony Lindgren wrote:
-> * Anand Gadiyar <gadiyar@ti.com> [110201 04:54]:
-> >
-> > I believe this fix is fixing your reboot issue, but it's breaking
-> > EHCI support on the SDP.
-> >
-> > The MODE4 above should really be MODE3 - all GPIOs are on MODE3.
-> > By changing
-> >
-> > The patch snippet below fixes EHCI on the SDP, but I believe that
-> > making this change will reintroduce the "board reboots" issue
-> > you originally reported. Could you check and tell me if this
-> > is the case?
->
-> Hmm sorry looks like I made a typo there. That should be fixed.
->
-> > Just curious - is your board a Blaze, or an SDP?
->
-> It's a ES1.0 blaze, with the patch below it reboots early
-> during the boot. I also have to disable omap_l2_cache_init
-> on this board to get it to boot.
->
+From: Benoit Cousson <b-cousson@ti.com>
 
-...
+Mailbox hwmod data for omap4.
 
-> Maybe there should be a check for ES1.0 for the USB also?
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   67 ++++++++++++++++++++++++++++
+ 1 files changed, 67 insertions(+), 0 deletions(-)
 
-Looks like a bug on the Blaze boards. There's a large capacitor
-on the rails that starts charging when we try to power the USB PHY.
-The inrush current is quite high and this causes the reboot.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index c2806bd..c495669 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2001,6 +2001,70 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+ 
++/*
++ * 'mailbox' class
++ * mailbox module allowing communication between the on-chip processors
++ * using a queued mailbox-interrupt mechanism.
++ */
++
++static struct omap_hwmod_class_sysconfig omap44xx_mailbox_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.sysc_flags	= (SYSC_HAS_RESET_STATUS | SYSC_HAS_SIDLEMODE |
++			   SYSC_HAS_SOFTRESET),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type2,
++};
++
++static struct omap_hwmod_class omap44xx_mailbox_hwmod_class = {
++	.name = "mailbox",
++	.sysc = &omap44xx_mailbox_sysc,
++};
++
++/* mailbox */
++static struct omap_hwmod omap44xx_mailbox_hwmod;
++static struct omap_hwmod_irq_info omap44xx_mailbox_irqs[] = {
++	{ .name = "mbox", .irq = 26 + OMAP44XX_IRQ_GIC_START, },
++};
++
++static struct omap_hwmod_addr_space omap44xx_mailbox_addrs[] = {
++	{
++		.pa_start	= 0x4a0f4000,
++		.pa_end		= 0x4a0f41ff,
++		.flags		= ADDR_TYPE_RT,
++	},
++};
++
++/* l4_cfg -> mailbox */
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__mailbox = {
++	.master		= &omap44xx_l4_cfg_hwmod,
++	.slave		= &omap44xx_mailbox_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_mailbox_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_mailbox_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mailbox slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_mailbox_slaves[] = {
++	&omap44xx_l4_cfg__mailbox,
++};
++
++static struct omap_hwmod omap44xx_mailbox_hwmod = {
++	.name		= "mailbox",
++	.class		= &omap44xx_mailbox_hwmod_class,
++	.mpu_irqs	= omap44xx_mailbox_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mailbox_irqs),
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4CFG_MAILBOX_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_mailbox_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_mailbox_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
+ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 
+ 	/* dmm class */
+@@ -2068,6 +2132,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_wd_timer2_hwmod,
+ 	&omap44xx_wd_timer3_hwmod,
+ 
++	/* mailbox class */
++	&omap44xx_mailbox_hwmod,
++
+ 	NULL,
+ };
+ 
+-- 
+1.7.1
 
-The capacitor is on the big motherboard called the application
-board, so it's independent of the silicon rev. I'm not sure
-which revs are affected - I'll try and find out more about the
-issue to see if I can come up with a better fix.
-
-
-- Anand
