@@ -1,143 +1,43 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v5 5/5] OMAP: mailbox: use runtime pm for clk and sysc handling
-Date: Wed,  2 Feb 2011 13:27:23 -0600
-Message-ID: <1296674843-12718-6-git-send-email-omar.ramirez@ti.com>
-References: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP
+ boot failure)
+Date: Wed, 2 Feb 2011 11:48:56 -0800
+Message-ID: <20110202194855.GA3322@atomide.com>
+References: <20110106180030.GA8249@n2100.arm.linux.org.uk>
+ <20110106182023.GV7771@atomide.com>
+ <20110106203238.GH1198@n2100.arm.linux.org.uk>
+ <20110106204053.GA7771@atomide.com>
+ <20110107161230.GR1198@n2100.arm.linux.org.uk>
+ <20110110185209.GC4957@atomide.com>
+ <20110111231611.GX4957@atomide.com>
+ <3c13ae6d9e13b94548bfcaaced7681e8@mail.gmail.com>
+ <20110202011006.GP3358@atomide.com>
+ <81ed58d7158cfa16007e141d0ac1f74c@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36246 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751682Ab1BBTiu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Feb 2011 14:38:50 -0500
-In-Reply-To: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38165 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750966Ab1BBTtN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Feb 2011 14:49:13 -0500
+Content-Disposition: inline
+In-Reply-To: <81ed58d7158cfa16007e141d0ac1f74c@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Felipe Balbi <balbi@ti.com>
 
-Use runtime pm APIs to enable/disable mailbox clocks and
-to configure SYSC register.
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [110201 22:04]:
+> >
+> > It's a ES1.0 blaze, with the patch below it reboots early
+> > during the boot. I also have to disable omap_l2_cache_init
+> > on this board to get it to boot.
+> >
+> Do you still get this problem with 'omap_l2_cache_init' ?
+> As reported earlier, we don't see this issue on ES1.0
+> SDP.
 
-Based on the patch sent by Felipe Contreras:
-https://patchwork.kernel.org/patch/101662/
+Yeah I do, it rarely makes it to the userspace. Works reliably
+if I disable omap_l2_cache_init.
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- arch/arm/mach-omap2/mailbox.c |   67 ++++-------------------------------------
- 1 files changed, 6 insertions(+), 61 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 394413d..4a387e2 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -14,12 +14,11 @@
- #include <linux/err.h>
- #include <linux/platform_device.h>
- #include <linux/io.h>
-+#include <linux/pm_runtime.h>
- #include <plat/mailbox.h>
- #include <mach/irqs.h>
- 
- #define MAILBOX_REVISION		0x000
--#define MAILBOX_SYSCONFIG		0x010
--#define MAILBOX_SYSSTATUS		0x014
- #define MAILBOX_MESSAGE(m)		(0x040 + 4 * (m))
- #define MAILBOX_FIFOSTATUS(m)		(0x080 + 4 * (m))
- #define MAILBOX_MSGSTATUS(m)		(0x0c0 + 4 * (m))
-@@ -33,17 +32,6 @@
- #define MAILBOX_IRQ_NEWMSG(m)		(1 << (2 * (m)))
- #define MAILBOX_IRQ_NOTFULL(m)		(1 << (2 * (m) + 1))
- 
--/* SYSCONFIG: register bit definition */
--#define AUTOIDLE	(1 << 0)
--#define SOFTRESET	(1 << 1)
--#define SMARTIDLE	(2 << 3)
--#define OMAP4_SOFTRESET	(1 << 0)
--#define OMAP4_NOIDLE	(1 << 2)
--#define OMAP4_SMARTIDLE	(2 << 2)
--
--/* SYSSTATUS: register bit definition */
--#define RESETDONE	(1 << 0)
--
- #define MBOX_REG_SIZE			0x120
- 
- #define OMAP4_MBOX_REG_SIZE		0x130
-@@ -70,8 +58,6 @@ struct omap_mbox2_priv {
- 	unsigned long irqdisable;
- };
- 
--static struct clk *mbox_ick_handle;
--
- static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
- 				  omap_mbox_type_t irq);
- 
-@@ -89,53 +75,13 @@ static inline void mbox_write_reg(u32 val, size_t ofs)
- static int omap2_mbox_startup(struct omap_mbox *mbox)
- {
- 	u32 l;
--	unsigned long timeout;
- 
--	mbox_ick_handle = clk_get(NULL, "mailboxes_ick");
--	if (IS_ERR(mbox_ick_handle)) {
--		printk(KERN_ERR "Could not get mailboxes_ick: %ld\n",
--			PTR_ERR(mbox_ick_handle));
--		return PTR_ERR(mbox_ick_handle);
--	}
--	clk_enable(mbox_ick_handle);
--
--	if (cpu_is_omap44xx()) {
--		mbox_write_reg(OMAP4_SOFTRESET, MAILBOX_SYSCONFIG);
--		timeout = jiffies + msecs_to_jiffies(20);
--		do {
--			l = mbox_read_reg(MAILBOX_SYSCONFIG);
--			if (!(l & OMAP4_SOFTRESET))
--				break;
--		} while (!time_after(jiffies, timeout));
--
--		if (l & OMAP4_SOFTRESET) {
--			pr_err("Can't take mailbox out of reset\n");
--			return -ENODEV;
--		}
--	} else {
--		mbox_write_reg(SOFTRESET, MAILBOX_SYSCONFIG);
--		timeout = jiffies + msecs_to_jiffies(20);
--		do {
--			l = mbox_read_reg(MAILBOX_SYSSTATUS);
--			if (l & RESETDONE)
--				break;
--		} while (!time_after(jiffies, timeout));
--
--		if (!(l & RESETDONE)) {
--			pr_err("Can't take mailbox out of reset\n");
--			return -ENODEV;
--		}
--	}
-+	pm_runtime_enable(mbox->dev->parent);
-+	pm_runtime_get_sync(mbox->dev->parent);
- 
- 	l = mbox_read_reg(MAILBOX_REVISION);
- 	pr_debug("omap mailbox rev %d.%d\n", (l & 0xf0) >> 4, (l & 0x0f));
- 
--	if (cpu_is_omap44xx())
--		l = OMAP4_SMARTIDLE;
--	else
--		l = SMARTIDLE | AUTOIDLE;
--	mbox_write_reg(l, MAILBOX_SYSCONFIG);
--
- 	omap2_mbox_enable_irq(mbox, IRQ_RX);
- 
- 	return 0;
-@@ -143,9 +89,8 @@ static int omap2_mbox_startup(struct omap_mbox *mbox)
- 
- static void omap2_mbox_shutdown(struct omap_mbox *mbox)
- {
--	clk_disable(mbox_ick_handle);
--	clk_put(mbox_ick_handle);
--	mbox_ick_handle = NULL;
-+	pm_runtime_put_sync(mbox->dev->parent);
-+	pm_runtime_disable(mbox->dev->parent);
- }
- 
- /* Mailbox FIFO handle functions */
--- 
-1.7.1
-
+Tony
