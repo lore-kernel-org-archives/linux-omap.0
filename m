@@ -1,76 +1,69 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCHv2 1/2] ads7846: OMAP3: Removal of warnings backtrace in
- bootup
-Date: Thu, 03 Feb 2011 15:00:45 +0200
-Message-ID: <4D4AA6FD.1010405@compulab.co.il>
-References: <1296726514-32146-1-git-send-email-sourav.poddar@ti.com>	<4D4A7F13.8080502@compulab.co.il> <4D4A80D3.2060407@compulab.co.il>	<AANLkTi=U1qo=udB=tMyuA2HcnCS4EmreaVDbw2vQ9dY8@mail.gmail.com>	<4D4A8DA0.1010806@compulab.co.il> <AANLkTikgJck30XBMJN-8v2Di0pykHkxP8d_mRrZnYUs_@mail.gmail.com>
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
+Subject: Re: [PATCHv2 2/2] Input: ads7846 - configure pendown gpio as input
+Date: Thu, 3 Feb 2011 18:31:24 +0530
+Message-ID: <AANLkTi=m1o2Fsw1OvCmZWJxmok2KCtCZp3F4aM7KmPch@mail.gmail.com>
+References: <1296726530-32199-1-git-send-email-sourav.poddar@ti.com>
+	<20110203095845.GK23561@legolas.emea.dhcp.ti.com>
+	<AANLkTi=J5dJ4N4_57fh0_HKmqfyo6C_tMs3BrnXHWQjq@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:40800 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756388Ab1BCNA4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Feb 2011 08:00:56 -0500
-In-Reply-To: <AANLkTikgJck30XBMJN-8v2Di0pykHkxP8d_mRrZnYUs_@mail.gmail.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:49156 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756388Ab1BCNBZ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Feb 2011 08:01:25 -0500
+In-Reply-To: <AANLkTi=J5dJ4N4_57fh0_HKmqfyo6C_tMs3BrnXHWQjq@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: gadiyar@ti.com, dmitry.torokhov@gmail.com, balbi@ti.com, linux-input@vger.kernel.org, "Poddar, Sourav" <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, charu@ti.com, LW@KARO-electronics.deSourav Poddar <sourav.poddar@ti.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: dmitry.torokhov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com, linux-input@vger.kernel.org, balbi@ti.com
 
-Hi,
-
-On 02/03/11 13:28, ABRAHAM, KISHON VIJAY wrote:
-
-> On Thu, Feb 3, 2011 at 4:42 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
+On Thu, Feb 3, 2011 at 3:34 PM, Varadarajan, Charulatha <charu@ti.com> =
+wrote:
+> Sourav,
+>
+> On Thu, Feb 3, 2011 at 15:28, Felipe Balbi <balbi@ti.com> wrote:
+>> On Thu, Feb 03, 2011 at 03:18:50PM +0530, Sourav Poddar wrote:
+>>> The ads7846 driver requests a gpio to detect pendown events,
+>>> but does not configure its direction. Configure this gpio
+>>> as an input after requesting it.
+>>>
+>>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+>>> ---
+>>> changes between v2 and v1: Added return error support in v2.
+>>>
+>>> drivers/input/touchscreen/ads7846.c | =A0 =A07 +++++++
+>>> 1 files changed, 7 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/to=
+uchscreen/ads7846.c
+>>> index 036f245..f30768b 100644
+>>> --- a/drivers/input/touchscreen/ads7846.c
+>>> +++ b/drivers/input/touchscreen/ads7846.c
+>>> @@ -962,6 +962,13 @@ static int __devinit ads7846_setup_pendown(str=
+uct spi_device *spi, struct ads784
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return err;
+>>> =A0 =A0 =A0 }
+>>>
+>>> + =A0 =A0 err =3D gpio_direction_input(pdata->gpio_pendown);
+>>> + =A0 =A0 if (err) {
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&spi->dev, "failed to configure p=
+endown GPIO input direction %d\n",
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->gpio_pendown);
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 return err;
 >>
->> On 02/03/11 13:00, Poddar, Sourav wrote:
->>
->>> On Thu, Feb 3, 2011 at 3:47 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
->>>> if (pdata->get_pendown_state) {
->>>>        ts->get_pendown_state = pdata->get_pendown_state;
->>>>        ts->gpio_pendown = -1;
->>>>        return 0;
->>>> }
->>> Yes we can do so .I initialise it at a place where other variables
->>>  where initialised.
->>>
->>>>> Also, why don't we use -EINVAL for the invalid gpio number instead of -1 constant?
->>>>>
->>>  I used -1 because conditional check done in probe ads7846_probe function
->>>  used this value.
->>>
->>>   err_free_gpio:
->>>         if (ts->gpio_pendown != -1)
->>>                 gpio_free(ts->gpio_pendown);
->>>
->> Well I understand that and that's why in my proposal I used -1 also, but
->> I thought we can make it even better if we switch to -EINVAL
->> (though wanted to check if there are any reasonable objections)
->> and while you are at this, may be you are willing also to submit a patch for this?
->   I guess instead of -EINVAL, -EIO should be initialized to
-> ts->gpio_pendown since that
->   would be more appropriate for gpio
-
-Well, the common practice is to use -EINVAL for gpio _numbers_,
-I have not seen anyone using -EIO for this.
-
->  and as Balbi suggested it would
-> be better to use
->   gpio_is_valid() for checking this error condition.
-
-Of course gpio_is_valid() should be used for testing the gpio.
-The -EINVAL in turn should be used for _setting_ the invalid value for that gpio.
-My suggestion for -EINVAL is related to the initialization:
-
-if (pdata->get_pendown_state) {
-       ts->get_pendown_state = pdata->get_pendown_state;
-       ts->gpio_pendown = -EINVAL;
-       return 0;
-}
-
-
--- 
-Regards,
-Igor.
-
+>> and now you miss a gpio_free().
+>
+> My question to your previous version is still unanswered.
+> Would it be relevant to add gpio_set_debounce() for this
+> gpio?
+>
+ I was also wondering that.I too think that just a request and then an
+ configuring direction would do.But,I am not so sure about this one.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
