@@ -1,60 +1,155 @@
 From: Raghuveer Murthy <raghuveer.murthy@ti.com>
-Subject: [PATCH 0/4] OMAP4: DSS2: Adding fclk support for DPI interface
-Date: Thu,  3 Feb 2011 19:26:55 +0530
-Message-ID: <1296741419-9037-1-git-send-email-raghuveer.murthy@ti.com>
+Subject: [PATCH 2/4] OMAP: DSS: Renaming the dpll clk pointer in struct dss
+Date: Thu,  3 Feb 2011 19:26:57 +0530
+Message-ID: <1296741419-9037-3-git-send-email-raghuveer.murthy@ti.com>
+References: <1296741419-9037-1-git-send-email-raghuveer.murthy@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36321 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36323 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756419Ab1BCOC0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1756421Ab1BCOC0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 3 Feb 2011 09:02:26 -0500
+In-Reply-To: <1296741419-9037-1-git-send-email-raghuveer.murthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomba@iki.fi
 Cc: linux-omap@vger.kernel.org
 
-- Adding dss_feature for DPLL fclk
-- Enabling pixel clock generation for DPI interface
+The dss clk pointer dpll4_m4_ck is renamed to dpll_per_mx_ck, to be
+generic for OMAP3xxx and OMAP44xx platforms. Variable and function
+names containing dpll4/ dpll4_m4 are also renamed.
 
------------------------------------------------------
-Base
-----
-url = git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-branch "master"
-commit 1bae4ce27c9c90344f23c65ea6966c50ffeae2f5
-tag 2.6.38-rc2
+Signed-off-by: Raghuveer Murthy <raghuveer.murthy@ti.com>
+---
+ drivers/video/omap2/dss/dss.c |   43 +++++++++++++++++++++--------------------
+ 1 files changed, 22 insertions(+), 21 deletions(-)
 
-Applies over:
--------------
-1.
-Patch mentioned in http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42384.html
-[PATCH] OMAP: counter_32k: init clocksource as part of machine timer init
-(This patch is required for OMAP bootup)
-
-2.
-v10 of OMAP2,3 DSS2 HWMOD
-https://patchwork.kernel.org/patch/500191/
-
-3.
-v3 of DSS2: Generalize clock names
-https://patchwork.kernel.org/patch/520191/
-
-4.
-v3 of DSS2: OMAP4 DSS HWMOD :
-https://patchwork.kernel.org/patch/511211/
-
-5.
-OMAP: DSS2: Common IRQ handler for all OMAPs
-https://patchwork.kernel.org/patch/526241/
----------------------------------------------------------
-
-Raghuveer Murthy (4):
-  OMAP: DSS2: Add dss_feature for variable DPLL fclk
-  OMAP: DSS: Renaming the dpll clk pointer in struct dss
-  OMAP: DSS2: Using dss_features to clean cpu checks for clocks
-  OMAP: DSS2: Get OMAP4 DPLL fclk for DPI interface
-
- drivers/video/omap2/dss/dss.c          |   85 +++++++++++++++++--------------
- drivers/video/omap2/dss/dss_features.c |    9 ++-
- drivers/video/omap2/dss/dss_features.h |    3 +
- 3 files changed, 56 insertions(+), 41 deletions(-)
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 24d6f98..add82e6 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -64,7 +64,8 @@ static struct {
+ 	int             ctx_id;
+ 	int		irq;
+ 
+-	struct clk	*dpll4_m4_ck;
++	/* Points to DPLL4_M4 in OMAP3xxx, and DPLL_PER_M5 in OMAP44xx */
++	struct clk	*dpll_per_mx_ck;
+ 	struct clk	*dss_ick;
+ 	struct clk	*dss_fck;
+ 	struct clk	*dss_sys_clk;
+@@ -225,27 +226,27 @@ void dss_sdi_disable(void)
+ 
+ void dss_dump_clocks(struct seq_file *s)
+ {
+-	unsigned long dpll4_ck_rate;
+-	unsigned long dpll4_m4_ck_rate;
++	unsigned long dpll_per_ck_rate;
++	unsigned long dpll_per_mx_ck_rate;
+ 
+ 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+-	dpll4_ck_rate = clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
+-	dpll4_m4_ck_rate = clk_get_rate(dss.dpll4_m4_ck);
++	dpll_per_ck_rate = clk_get_rate(clk_get_parent(dss.dpll_per_mx_ck));
++	dpll_per_mx_ck_rate = clk_get_rate(dss.dpll_per_mx_ck);
+ 
+ 	seq_printf(s, "- DSS -\n");
+ 
+-	seq_printf(s, "dpll4_ck %lu\n", dpll4_ck_rate);
++	seq_printf(s, "dpll_per_ck %lu\n", dpll_per_ck_rate);
+ 
+ 	if (cpu_is_omap3630())
+ 		seq_printf(s, "dss1_alwon_fclk = %lu / %lu  = %lu\n",
+-			dpll4_ck_rate,
+-			dpll4_ck_rate / dpll4_m4_ck_rate,
++			dpll_per_ck_rate,
++			dpll_per_ck_rate / dpll_per_mx_ck_rate,
+ 			dss_clk_get_rate(DSS_CLK_FCK));
+ 	else
+ 		seq_printf(s, "dss1_alwon_fclk = %lu / %lu * 2 = %lu\n",
+-			dpll4_ck_rate,
+-			dpll4_ck_rate / dpll4_m4_ck_rate,
++			dpll_per_ck_rate,
++			dpll_per_ck_rate / dpll_per_mx_ck_rate,
+ 			dss_clk_get_rate(DSS_CLK_FCK));
+ 
+ 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+@@ -323,7 +324,7 @@ int dss_calc_clock_rates(struct dss_clock_info *cinfo)
+ 						cinfo->fck_div == 0)
+ 		return -EINVAL;
+ 
+-	prate = clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
++	prate = clk_get_rate(clk_get_parent(dss.dpll_per_mx_ck));
+ 
+ 	cinfo->fck = prate / cinfo->fck_div;
+ 
+@@ -336,10 +337,10 @@ int dss_set_clock_div(struct dss_clock_info *cinfo)
+ 	int r;
+ 
+ 	if (cpu_is_omap34xx()) {
+-		prate = clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
++		prate = clk_get_rate(clk_get_parent(dss.dpll_per_mx_ck));
+ 		DSSDBG("dpll4_m4 = %ld\n", prate);
+ 
+-		r = clk_set_rate(dss.dpll4_m4_ck, prate / cinfo->fck_div);
++		r = clk_set_rate(dss.dpll_per_mx_ck, prate / cinfo->fck_div);
+ 		if (r)
+ 			return r;
+ 	}
+@@ -355,7 +356,7 @@ int dss_get_clock_div(struct dss_clock_info *cinfo)
+ 
+ 	if (cpu_is_omap34xx()) {
+ 		unsigned long prate;
+-		prate = clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
++		prate = clk_get_rate(clk_get_parent(dss.dpll_per_mx_ck));
+ 		if (cpu_is_omap3630())
+ 			cinfo->fck_div = prate / (cinfo->fck);
+ 		else
+@@ -367,10 +368,10 @@ int dss_get_clock_div(struct dss_clock_info *cinfo)
+ 	return 0;
+ }
+ 
+-unsigned long dss_get_dpll4_rate(void)
++unsigned long dss_get_dpll_per_rate(void)
+ {
+ 	if (cpu_is_omap34xx())
+-		return clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
++		return clk_get_rate(clk_get_parent(dss.dpll_per_mx_ck));
+ 	else
+ 		return 0;
+ }
+@@ -390,7 +391,7 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
+ 	int match = 0;
+ 	int min_fck_per_pck;
+ 
+-	prate = dss_get_dpll4_rate();
++	prate = dss_get_dpll_per_rate();
+ 
+ 	fck = dss_clk_get_rate(DSS_CLK_FCK);
+ 	if (req_pck == dss.cache_req_pck &&
+@@ -620,10 +621,10 @@ static int dss_init(bool skip_init)
+ 	}
+ 
+ 	if (cpu_is_omap34xx()) {
+-		dss.dpll4_m4_ck = clk_get(NULL, "dpll4_m4_ck");
+-		if (IS_ERR(dss.dpll4_m4_ck)) {
++		dss.dpll_per_mx_ck = clk_get(NULL, "dpll4_m4_ck");
++		if (IS_ERR(dss.dpll_per_mx_ck)) {
+ 			DSSERR("Failed to get dpll4_m4_ck\n");
+-			r = PTR_ERR(dss.dpll4_m4_ck);
++			r = PTR_ERR(dss.dpll_per_mx_ck);
+ 			goto fail2;
+ 		}
+ 	}
+@@ -650,7 +651,7 @@ fail0:
+ static void dss_exit(void)
+ {
+ 	if (cpu_is_omap34xx())
+-		clk_put(dss.dpll4_m4_ck);
++		clk_put(dss.dpll_per_mx_ck);
+ 
+ 	free_irq(dss.irq, NULL);
+ 
+-- 
+1.7.0.4
 
