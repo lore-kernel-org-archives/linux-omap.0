@@ -1,53 +1,151 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: Re: [PATCH v3 2/2] Input: ads7846: use gpio_request_one to
- configure pendown_gpio
-Date: Thu, 3 Feb 2011 18:05:07 +0100
-Message-ID: <20110203170507.GG6508@pengutronix.de>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v3 2/2] Input: ads7846: use gpio_request_one to configure
+ pendown_gpio
+Date: Thu, 3 Feb 2011 09:19:53 -0800
+Message-ID: <20110203171953.GA13997@core.coreip.homeip.net>
 References: <1296746506-12221-1-git-send-email-sourav.poddar@ti.com>
+ <20110203165405.GB12802@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oyqLL/JqMvClXZi1"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1296746506-12221-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: LW@karo-electronics.de, Dmitry Torokhov <dtor@mail.ru>, balbi@ti.com, charu@ti.com, grinberg@compulab.co.il, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
-List-Id: linux-omap@vger.kernel.org
-
-
---oyqLL/JqMvClXZi1
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:34011 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756620Ab1BCRUG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 12:20:06 -0500
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20110203165405.GB12802@core.coreip.homeip.net>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: LW@karo-electronics.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, gadiyar@ti.com, charu@ti.com, grinberg@compulab.co.il, balbi@ti.com
 
-On Thu, Feb 03, 2011 at 08:51:46PM +0530, Sourav Poddar wrote:
-> The ads7846 driver requests a gpio but does not currently
-> configure it explicitly as an input. Use gpio_request_one
-> to request and configure it at one shot.
->=20
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> Cc: Dmitry Torokhov <dtor@mail.ru>
+On Thu, Feb 03, 2011 at 08:54:05AM -0800, Dmitry Torokhov wrote:
+> On Thu, Feb 03, 2011 at 08:51:46PM +0530, Sourav Poddar wrote:
+> > The ads7846 driver requests a gpio but does not currently
+> > configure it explicitly as an input. Use gpio_request_one
+> > to request and configure it at one shot.
+> > 
+> > Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> > Cc: Dmitry Torokhov <dtor@mail.ru>
+> 
+> Will apply this one, the other one is a bit messy IMO, will have to
+> think about it.
+> 
 
-Since the two are won't be merged
+Something like below should do I think.
 
-Acked-by: Wolfram Sang <w.sang@pengutronix.de>
+-- 
+Dmitry
 
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
---oyqLL/JqMvClXZi1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Input: ads7846 - check proper condition when freeing gpio
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-iEYEARECAAYFAk1K4EMACgkQD27XaX1/VRvL2ACgyaw9m7zC0HDAzxdyzdtVMErH
-MgIAn3ut6eBPvzyMTAjzs9gtPlkSWaED
-=LAs2
------END PGP SIGNATURE-----
+When driver uses custom pendown detection method gpio_pendown is not
+set up and so we should not try to free it, otherwise we are presented
+with:
 
---oyqLL/JqMvClXZi1--
+------------[ cut here ]------------
+WARNING: at drivers/gpio/gpiolib.c:1258 gpio_free+0x100/0x12c()
+Modules linked in:
+[<c0061208>] (unwind_backtrace+0x0/0xe4) from [<c0091f58>](warn_slowpath_common+0x4c/0x64)
+[<c0091f58>] (warn_slowpath_common+0x4c/0x64) from [<c0091f88>](warn_slowpath_null+0x18/0x1c)
+[<c0091f88>] (warn_slowpath_null+0x18/0x1c) from [<c024e610>](gpio_free+0x100/0x12c)
+[<c024e610>] (gpio_free+0x100/0x12c) from [<c03e9fbc>](ads7846_probe+0xa38/0xc5c)
+[<c03e9fbc>] (ads7846_probe+0xa38/0xc5c) from [<c02cff14>](spi_drv_probe+0x18/0x1c)
+[<c02cff14>] (spi_drv_probe+0x18/0x1c) from [<c028bca4>](driver_probe_device+0xc8/0x184)
+[<c028bca4>] (driver_probe_device+0xc8/0x184) from [<c028bdc8>](__driver_attach+0x68/0x8c)
+[<c028bdc8>] (__driver_attach+0x68/0x8c) from [<c028b4c8>](bus_for_each_dev+0x48/0x74)
+[<c028b4c8>] (bus_for_each_dev+0x48/0x74) from [<c028ae08>](bus_add_driver+0xa0/0x220)
+[<c028ae08>] (bus_add_driver+0xa0/0x220) from [<c028c0c0>](driver_register+0xa8/0x134)
+[<c028c0c0>] (driver_register+0xa8/0x134) from [<c0050550>](do_one_initcall+0xcc/0x1a4)
+[<c0050550>] (do_one_initcall+0xcc/0x1a4) from [<c00084e4>](kernel_init+0x14c/0x214)
+[<c00084e4>] (kernel_init+0x14c/0x214) from [<c005b494>](kernel_thread_exit+0x0/0x8)
+---[ end trace 4053287f8a5ec18f ]---
+
+Also rearrange ads7846_setup_pendown() to have only one exit point
+returning success.
+
+Reported-by: Sourav Poddar <sourav.poddar@ti.com>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
+
+ drivers/input/touchscreen/ads7846.c |   39 ++++++++++++++++++++---------------
+ 1 files changed, 22 insertions(+), 17 deletions(-)
+
+
+diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
+index 0e9492d..b1217e1 100644
+--- a/drivers/input/touchscreen/ads7846.c
++++ b/drivers/input/touchscreen/ads7846.c
+@@ -946,30 +946,30 @@ static int __devinit ads7846_setup_pendown(struct spi_device *spi, struct ads784
+ 	struct ads7846_platform_data *pdata = spi->dev.platform_data;
+ 	int err;
+ 
+-	/* REVISIT when the irq can be triggered active-low, or if for some
++	/*
++	 * REVISIT when the irq can be triggered active-low, or if for some
+ 	 * reason the touchscreen isn't hooked up, we don't need to access
+ 	 * the pendown state.
+ 	 */
+-	if (!pdata->get_pendown_state && !gpio_is_valid(pdata->gpio_pendown)) {
+-		dev_err(&spi->dev, "no get_pendown_state nor gpio_pendown?\n");
+-		return -EINVAL;
+-	}
+ 
+ 	if (pdata->get_pendown_state) {
+ 		ts->get_pendown_state = pdata->get_pendown_state;
+-		return 0;
+-	}
++	} else if (gpio_is_valid(pdata->gpio_pendown)) {
++
++		err = gpio_request_one(pdata->gpio_pendown, GPIOF_DIR_IN,
++							"ads7846_pendown");
++		if (err) {
++			dev_err(&spi->dev, "failed to request pendown GPIO%d\n",
++				pdata->gpio_pendown);
++			return err;
++		}
+ 
+-	err = gpio_request_one(pdata->gpio_pendown, GPIOF_DIR_IN,
+-						"ads7846_pendown");
+-	if (err) {
+-		dev_err(&spi->dev, "failed to request pendown GPIO%d\n",
+-			pdata->gpio_pendown);
+-		return err;
++		ts->gpio_pendown = pdata->gpio_pendown;
++	} else {
++		dev_err(&spi->dev, "no get_pendown_state nor gpio_pendown?\n");
++		return -EINVAL;
+ 	}
+ 
+-	ts->gpio_pendown = pdata->gpio_pendown;
+-
+ 	return 0;
+ }
+ 
+@@ -1359,7 +1359,7 @@ static int __devinit ads7846_probe(struct spi_device *spi)
+  err_put_regulator:
+ 	regulator_put(ts->reg);
+  err_free_gpio:
+-	if (ts->gpio_pendown != -1)
++	if (!ts->get_pendown_state)
+ 		gpio_free(ts->gpio_pendown);
+  err_cleanup_filter:
+ 	if (ts->filter_cleanup)
+@@ -1389,8 +1389,13 @@ static int __devexit ads7846_remove(struct spi_device *spi)
+ 	regulator_disable(ts->reg);
+ 	regulator_put(ts->reg);
+ 
+-	if (ts->gpio_pendown != -1)
++	if (!ts->get_pendown_state) {
++		/*
++		 * If we are not using specialized pendown method we must
++		 * have been relying on gpio we set up ourselves.
++		 */
+ 		gpio_free(ts->gpio_pendown);
++	}
+ 
+ 	if (ts->filter_cleanup)
+ 		ts->filter_cleanup(ts->filter_data);
