@@ -1,238 +1,70 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v2 5/5] ARM: omap3: Thumb-2 compatibility for sleep34xx.S
-Date: Fri, 4 Feb 2011 00:17:16 +0530
-Message-ID: <618c7a93466b507f522e424bd99566da@mail.gmail.com>
-References: <1296756161-26092-1-git-send-email-dave.martin@linaro.org> <1296756161-26092-6-git-send-email-dave.martin@linaro.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v2 1/5] ARM: omap4: Correct definition of do_wfi() for
+	CONFIG_THUMB2_KERNEL
+Date: Thu, 3 Feb 2011 19:07:58 +0000
+Message-ID: <20110203190758.GA15004@n2100.arm.linux.org.uk>
+References: <1296756161-26092-1-git-send-email-dave.martin@linaro.org> <1296756161-26092-2-git-send-email-dave.martin@linaro.org> <b0242fa556f17e47222fa7f30a36d75b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:46226 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932331Ab1BCSrU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 13:47:20 -0500
-Received: by mail-gw0-f46.google.com with SMTP id 20so734277gwj.5
-        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 10:47:19 -0800 (PST)
-In-Reply-To: <1296756161-26092-6-git-send-email-dave.martin@linaro.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34110 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932430Ab1BCTIU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 14:08:20 -0500
+Content-Disposition: inline
+In-Reply-To: <b0242fa556f17e47222fa7f30a36d75b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Jean Pihet-XID <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, Jean Pihet-XID <j-pihet@ti.com>
 
-> -----Original Message-----
-> From: Dave Martin [mailto:dave.martin@linaro.org]
-> Sent: Thursday, February 03, 2011 11:33 PM
-> To: linux-arm-kernel@lists.infradead.org
-> Cc: Dave Martin; Tony Lindgren; Santosh Shilimkar; Jean Pihet;
-> linux-omap@vger.kernel.org; Nicolas Pitre
-> Subject: [PATCH v2 5/5] ARM: omap3: Thumb-2 compatibility for
-> sleep34xx.S
->
->  * Use BSYM() to get the correct Thumb branch address
->    for adr <Rd>, <label>
->
->  * Fix an out-of-range ADR when building for ARM
->
->  * Correctly call es3_sdrc_fix as Thumb when copied to SRAM.
->
->  * Remove deprecated/undefined PC-relative stores
->
->  * Add the required ENDPROC() directive for each ENTRY().
->
->  * .align before data words
->
-> Signed-off-by: Dave Martin <dave.martin@linaro.org>
+On Fri, Feb 04, 2011 at 12:09:34AM +0530, Santosh Shilimkar wrote:
+> > -----Original Message-----
+> > From: Dave Martin [mailto:dave.martin@linaro.org]
+> > Sent: Thursday, February 03, 2011 11:33 PM
+> > To: linux-arm-kernel@lists.infradead.org
+> > Cc: Dave Martin; Tony Lindgren; Santosh Shilimkar; Jean Pihet;
+> > linux-omap@vger.kernel.org; Nicolas Pitre
+> > Subject: [PATCH v2 1/5] ARM: omap4: Correct definition of do_wfi()
+> > for CONFIG_THUMB2_KERNEL
+> >
+> > For the Thumb-2 case, the "wfi" mnemonic is used, since in this
+> > case the tools will necessarily be new enough to support it.
+> >
+> > Signed-off-by: Dave Martin <dave.martin@linaro.org>
+> 
+> I guess, we discussed this patch in your previous post.
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> 
+> > ---
+> >  arch/arm/mach-omap2/include/mach/omap4-common.h |    5 +++++
+> >  1 files changed, 5 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h
+> > b/arch/arm/mach-omap2/include/mach/omap4-common.h
+> > index 5b0270b..68ce058 100644
+> > --- a/arch/arm/mach-omap2/include/mach/omap4-common.h
+> > +++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+> > @@ -17,8 +17,13 @@
+> >   * wfi used in low power code. Directly opcode is used instead
+> >   * of instruction to avoid mulit-omap build break
+> >   */
+> > +#ifdef CONFIG_THUMB2_KERNEL
+> > +#define do_wfi()			\
+> > +		__asm__ __volatile__ ("wfi" : : : "memory")
+> > +#else
+> >  #define do_wfi()			\
+> >  		__asm__ __volatile__ (".word	0xe320f003" : : :
+> > "memory")
+> > +#endif
 
-Change looks ok to me. Will test OFF mode with this tomorrow
-but looking at the change it should work.
-Will ack this patch after testing the same.
+We actually have this:
 
-> ---
->  arch/arm/mach-omap2/sleep34xx.S |   42
-> +++++++++++++++++++++++++++++---------
->  1 files changed, 32 insertions(+), 10 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-
-> omap2/sleep34xx.S
-> index 4032a8e..ef73429 100644
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -80,8 +80,10 @@
->  /* Function call to get the restore pointer for resume from OFF */
->  ENTRY(get_restore_pointer)
->  	stmfd	sp!, {lr}	@ save registers on stack
-> -	adr	r0, restore
-> +	adr	r0, BSYM(restore)
->  	ldmfd	sp!, {pc}	@ restore regs and return
-> +ENDPROC(get_restore_pointer)
-> +	.align
->  ENTRY(get_restore_pointer_sz)
->  	.word	. - get_restore_pointer
->
-> @@ -89,8 +91,10 @@ ENTRY(get_restore_pointer_sz)
->  /* Function call to get the restore pointer for 3630 resume from
-> OFF */
->  ENTRY(get_omap3630_restore_pointer)
->  	stmfd	sp!, {lr}	@ save registers on stack
-> -	adr	r0, restore_3630
-> +	adr	r0, BSYM(restore_3630)
->  	ldmfd	sp!, {pc}	@ restore regs and return
-> +ENDPROC(get_omap3630_restore_pointer)
-> +	.align
->  ENTRY(get_omap3630_restore_pointer_sz)
->  	.word	. - get_omap3630_restore_pointer
->
-> @@ -98,8 +102,10 @@ ENTRY(get_omap3630_restore_pointer_sz)
->  /* Function call to get the restore pointer for ES3 to resume from
-> OFF */
->  ENTRY(get_es3_restore_pointer)
->  	stmfd	sp!, {lr}	@ save registers on stack
-> -	adr	r0, restore_es3
-> +	adr	r0, BSYM(restore_es3)
->  	ldmfd	sp!, {pc}	@ restore regs and return
-> +ENDPROC(get_es3_restore_pointer)
-> +	.align
->  ENTRY(get_es3_restore_pointer_sz)
->  	.word	. - get_es3_restore_pointer
->
-> @@ -113,8 +119,11 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
->  	stmfd	sp!, {lr}	@ save registers on stack
->  	/* Setup so that we will disable and enable l2 */
->  	mov	r1, #0x1
-> -	str	r1, l2dis_3630
-> + ARM(	adrl	r2, l2dis_3630	)	@ may be out of range for
-> adr in ARM
-> + THUMB(	adr	r2, l2dis_3630	)	@ Thumb has more range,
-> but not adrl
-> +	str	r1, [r2]
->  	ldmfd	sp!, {pc}	@ restore regs and return
-> +ENDPROC(enable_omap3630_toggle_l2_on_restore)
->
->  	.text
->  /* Function to call rom code to save secure ram context */
-> @@ -139,12 +148,14 @@ ENTRY(save_secure_ram_context)
->  	nop
->  	nop
->  	ldmfd	sp!, {r1-r12, pc}
-> +	.align
->  sram_phy_addr_mask:
->  	.word	SRAM_BASE_P
->  high_mask:
->  	.word	0xffff
->  api_params:
->  	.word	0x4, 0x0, 0x0, 0x1, 0x1
-> +ENDPROC(save_secure_ram_context)
->  ENTRY(save_secure_ram_context_sz)
->  	.word	. - save_secure_ram_context
->
-> @@ -279,8 +290,7 @@ clean_l2:
->  	 *  - 'might' have to copy address, load and jump to it
->  	 */
->  	ldr	r1, kernel_flush
-> -	mov	lr, pc
-> -	bx	r1
-> +	blx	r1
->
->  omap3_do_wfi:
->  	ldr	r4, sdrc_power		@ read the SDRC_POWER register
-> @@ -346,8 +356,8 @@ restore_es3:
->  	and	r4, r4, #0x3
->  	cmp	r4, #0x0	@ Check if previous power state of CORE is
-> OFF
->  	bne	restore
-> -	adr	r0, es3_sdrc_fix
-> -	ldr	r1, sram_base
-> +	adr	r0, es3_sdrc_fix	@ Not using BSYM clears the Thumb
-bit.
-> +	ldr	r1, sram_base	@ Must be 8-byte aligned to preserve
-> alignment.
->  	ldr	r2, es3_sdrc_fix_sz
->  	mov	r2, r2, ror #2
->  copy_to_sram:
-> @@ -356,6 +366,7 @@ copy_to_sram:
->  	subs	r2, r2, #0x1	@ num_words--
->  	bne	copy_to_sram
->  	ldr	r1, sram_base
-> + THUMB(	orr	r1, r1, #BSYM(es3_sdrc_fix) & 1 )
->  	blx	r1
->  	b	restore
->
-> @@ -438,6 +449,7 @@ skipl2dis:
->  #endif
->  	b	logic_l1_restore
->
-> +	.align
->  l2_inv_api_params:
->  	.word	0x1, 0x00
->  l2_inv_gp:
-> @@ -607,6 +619,7 @@ usettbr0:
->
->  /* This function implements the erratum ID i443 WA, applies to 34xx
-> >= ES3.0 */
->  	.text
-> +	.align	3
->  ENTRY(es3_sdrc_fix)
->  	ldr	r4, sdrc_syscfg		@ get config addr
->  	ldr	r5, [r4]		@ get value
-> @@ -634,6 +647,7 @@ ENTRY(es3_sdrc_fix)
->  	str	r5, [r4]		@ kick off refreshes
->  	bx	lr
->
-> +	.align
->  sdrc_syscfg:
->  	.word	SDRC_SYSCONFIG_P
->  sdrc_mr_0:
-> @@ -648,6 +662,7 @@ sdrc_emr2_1:
->  	.word	SDRC_EMR2_1_P
->  sdrc_manual_1:
->  	.word	SDRC_MANUAL_1_P
-> +ENDPROC(es3_sdrc_fix)
->  ENTRY(es3_sdrc_fix_sz)
->  	.word	. - es3_sdrc_fix
->
-> @@ -682,6 +697,10 @@ wait_sdrc_ready:
->  	bic	r5, r5, #0x40
->  	str	r5, [r4]
->
-> +@ PC-relative stores lead to undefined behaviour in Thumb-2: use a
-> r7 as a
-> +@ base instead.
-> +@ Be careful not to clobber r7 when maintaing this code.
-> +
->  is_dll_in_lock_mode:
->  	/* Is dll in lock mode? */
->  	ldr	r4, sdrc_dlla_ctrl
-> @@ -689,10 +708,11 @@ is_dll_in_lock_mode:
->  	tst	r5, #0x4
->  	bxne	lr			@ Return if locked
->  	/* wait till dll locks */
-> +	adr	r7, kick_counter
->  wait_dll_lock_timed:
->  	ldr	r4, wait_dll_lock_counter
->  	add	r4, r4, #1
-> -	str	r4, wait_dll_lock_counter
-> +	str	r4, [r7, #wait_dll_lock_counter - kick_counter]
->  	ldr	r4, sdrc_dlla_status
->  	/* Wait 20uS for lock */
->  	mov	r6, #8
-> @@ -718,9 +738,10 @@ kick_dll:
->  	dsb
->  	ldr	r4, kick_counter
->  	add	r4, r4, #1
-> -	str	r4, kick_counter
-> +	str	r4, [r7]		@ kick_counter
->  	b	wait_dll_lock_timed
->
-> +	.align
->  cm_idlest1_core:
->  	.word	CM_IDLEST1_CORE_V
->  cm_idlest_ckgen:
-> @@ -763,6 +784,7 @@ kick_counter:
->  	.word	0
->  wait_dll_lock_counter:
->  	.word	0
-> +ENDPROC(omap34xx_cpu_suspend)
->
->  ENTRY(omap34xx_cpu_suspend_sz)
->  	.word	. - omap34xx_cpu_suspend
-> --
-> 1.7.1
+#if __LINUX_ARM_ARCH__ >= 7 ||          \
+        (__LINUX_ARM_ARCH__ == 6 && defined(CONFIG_CPU_32v6K))
+#define sev()   __asm__ __volatile__ ("sev" : : : "memory")
+#define wfe()   __asm__ __volatile__ ("wfe" : : : "memory")
+#define wfi()   __asm__ __volatile__ ("wfi" : : : "memory")
+#endif
+
+in asm/system.h, so maybe it should be using wfe() from asm/system.h ?
