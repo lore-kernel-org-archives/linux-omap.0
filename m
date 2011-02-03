@@ -1,50 +1,38 @@
-From: OMAP Admin <omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: omappedia.org wiki
-Date: Thu, 3 Feb 2011 17:27:28 +0530
-Message-ID: <AANLkTin7wSAMOCog79XsK2-R3LhYx4sguZYfL6Gd=3Vo@mail.gmail.com>
-Reply-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] omap3sdp: clean regulator supply mapping in board
+ file
+Date: Thu, 3 Feb 2011 14:03:01 +0200
+Message-ID: <20110203120301.GL23561@legolas.emea.dhcp.ti.com>
+References: <1296732705-12818-1-git-send-email-rnayak@ti.com>
+ <1296732705-12818-2-git-send-email-rnayak@ti.com>
+ <1296732705-12818-3-git-send-email-rnayak@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary=00221540147e43caea049b5f78f2
-Return-path: <pandaboard+bncCLqk7M3TEhCqsKrqBBoEaDke5A-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Post: <http://groups.google.com/group/pandaboard/post?hl=en_US>, <mailto:pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:pandaboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/pandaboard?hl=en_US>
-Sender: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
- <mailto:pandaboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
- <mailto:pandaboard+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapdiscuss-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapzoom-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapandroid-discussion-GQPhjZDXxwGtG0bUXCXiUA@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:56974 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756331Ab1BCMDG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 07:03:06 -0500
+Received: by fxm12 with SMTP id 12so1073856fxm.28
+        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 04:03:04 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1296732705-12818-3-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
---00221540147e43caea049b5f78f2
-Content-Type: text/plain; charset=ISO-8859-1
+On Thu, Feb 03, 2011 at 05:01:45PM +0530, Rajendra Nayak wrote:
+> clean the regulator supply mapping data in the 3430sdp
+> board file (which is spread all over) by moving all
+> of them together.
+> Also use the REGULATOR_SUPPLY macro and remove instances
+> of mapping dev pointers at run time.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-All,
+same comment is valid for this patch.
 
-We are being hit by spammers on our wiki.
-Last week we enabled captcha on new user registration.
-That did not stop the spammers.
-Today we saw spammers deleting content from our main page.
-
-To prevent and discourage spammers we have enabled captcha on all edits.
-Apologize for the inconvenience it may cause to you.
-
-If you have any questions please feel free to email omapadm-Re5JQEeQqe9fmgfxC/sS/w@public.gmane.org
-
-
-OMAP Admin Team
-
---00221540147e43caea049b5f78f2
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-All,<br><br>We are being hit by spammers on our wiki.<br>Last week we enabl=
-ed captcha on new user registration.<br>That did not stop the spammers.<br>=
-Today we saw spammers deleting content from our main page.<br><br>To preven=
-t and discourage spammers we have enabled captcha on all edits.<br>
-Apologize for the inconvenience it may cause to you.<br><br>If you have any=
- questions please feel free to email <a href=3D"mailto:omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org">o=
-mapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a>.<br><br><br>OMAP Admin Team<br>
-
---00221540147e43caea049b5f78f2--
+-- 
+balbi
