@@ -1,79 +1,50 @@
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/7] usb: otg: OMAP4430: Add phy_suspend function pointer to twl4030_usb_data
-Date: Thu,  3 Feb 2011 15:19:44 +0530
-Message-ID: <1296726587-10530-4-git-send-email-hemahk@ti.com>
-References: <yes>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <yes>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2 2/2] Input: ads7846 - configure pendown gpio as input
+Date: Thu, 3 Feb 2011 11:58:45 +0200
+Message-ID: <20110203095845.GK23561@legolas.emea.dhcp.ti.com>
+References: <1296726530-32199-1-git-send-email-sourav.poddar@ti.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:38623 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755479Ab1BCJ6t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 04:58:49 -0500
+Content-Disposition: inline
+In-Reply-To: <1296726530-32199-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: dmitry.torokhov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, charu@ti.com, gadiyar@ti.com, linux-input@vger.kernel.org, balbi@ti.com
 
-Introduce the .phy_suspend function pointer to twl4030_usb_data structure.
-assign the function to it for both sdp board and panda boards.
-This will be used by the twl6030-usb transceiver driver.
+On Thu, Feb 03, 2011 at 03:18:50PM +0530, Sourav Poddar wrote:
+> The ads7846 driver requests a gpio to detect pendown events,
+> but does not configure its direction. Configure this gpio
+> as an input after requesting it.
+> 
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> ---
+> changes between v2 and v1: Added return error support in v2. 
+>  
+> drivers/input/touchscreen/ads7846.c |    7 +++++++
+> 1 files changed, 7 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
+> index 036f245..f30768b 100644
+> --- a/drivers/input/touchscreen/ads7846.c
+> +++ b/drivers/input/touchscreen/ads7846.c
+> @@ -962,6 +962,13 @@ static int __devinit ads7846_setup_pendown(struct spi_device *spi, struct ads784
+>  		return err;
+>  	}
+>  
+> +	err = gpio_direction_input(pdata->gpio_pendown);
+> +	if (err) {
+> +		dev_err(&spi->dev, "failed to configure pendown GPIO input direction %d\n",
+> +			pdata->gpio_pendown);
+> +		return err;
 
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- arch/arm/mach-omap2/board-4430sdp.c    |    1 +
- arch/arm/mach-omap2/board-omap4panda.c |    1 +
- arch/arm/plat-omap/include/plat/usb.h  |    1 +
- include/linux/i2c/twl.h                |    2 ++
- 4 files changed, 5 insertions(+)
+and now you miss a gpio_free().
 
-Index: linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/board-4430sdp.c
-+++ linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
-@@ -272,6 +272,7 @@ static struct twl4030_usb_data omap4_usb
- 	.phy_exit	= omap4430_phy_exit,
- 	.phy_power	= omap4430_phy_power,
- 	.phy_set_clock	= omap4430_phy_set_clk,
-+	.phy_suspend	= omap4430_phy_suspend,
- };
- 
- static struct omap2_hsmmc_info mmc[] = {
-Index: linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/board-omap4panda.c
-+++ linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-@@ -153,6 +153,7 @@ static struct twl4030_usb_data omap4_usb
- 	.phy_exit	= omap4430_phy_exit,
- 	.phy_power	= omap4430_phy_power,
- 	.phy_set_clock	= omap4430_phy_set_clk,
-+	.phy_suspend	= omap4430_phy_suspend,
- };
- 
- static struct omap2_hsmmc_info mmc[] = {
-Index: linux-2.6/arch/arm/plat-omap/include/plat/usb.h
-===================================================================
---- linux-2.6.orig/arch/arm/plat-omap/include/plat/usb.h
-+++ linux-2.6/arch/arm/plat-omap/include/plat/usb.h
-@@ -88,6 +88,7 @@ extern int omap4430_phy_power(struct dev
- extern int omap4430_phy_set_clk(struct device *dev, int on);
- extern int omap4430_phy_init(struct device *dev);
- extern int omap4430_phy_exit(struct device *dev);
-+extern int omap4430_phy_suspend(struct device *dev, int suspend);
- 
- #endif
- 
-Index: linux-2.6/include/linux/i2c/twl.h
-===================================================================
---- linux-2.6.orig/include/linux/i2c/twl.h
-+++ linux-2.6/include/linux/i2c/twl.h
-@@ -600,6 +600,8 @@ struct twl4030_usb_data {
- 	int		(*phy_power)(struct device *dev, int iD, int on);
- 	/* enable/disable  phy clocks */
- 	int		(*phy_set_clock)(struct device *dev, int on);
-+	/* suspend/resume of phy */
-+	int		(*phy_suspend)(struct device *dev, int suspend);
- };
- 
- struct twl4030_ins {
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
