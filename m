@@ -1,68 +1,132 @@
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 6/7] usb: otg: TWL6030 Save the last event in otg_transceiver
-Date: Thu,  3 Feb 2011 15:19:46 +0530
-Message-ID: <1296726587-10530-6-git-send-email-hemahk@ti.com>
+From: Hema HK <hemahk@ti.com>
+Subject: [PATCH 7/7] usb: musb: OMAP4430: Fix usb device detection if connected during boot
+Date: Thu,  3 Feb 2011 15:19:47 +0530
+Message-ID: <1296726587-10530-7-git-send-email-hemahk@ti.com>
 References: <yes>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43406 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756090Ab1BCJuM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Feb 2011 04:50:12 -0500
 In-Reply-To: <yes>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>, Felipe Balbi <balbi@ti.com>
 
-Save the last event in the otg_transceiver so that it can used in the
-musb driver and gadget driver to configure the musb and enable the 
-vbus for host mode and OTG mode, if the device is connected during boot.
+OMAP4430 is embedded with UTMI PHY. This PHY does not support the
+OTG features like ID pin detection and VBUS detection. This function
+is exported to an external companion chip TWL6030. Software must retrieve
+the OTG HNP and SRP status from the TWL6030 and configure the bits inside
+the control module that drive the related USBOTGHS UTMI interface signals.
+It must also read back the UTMI signals needed to configure the TWL6030 
+OTG module.
 
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Can find more details in the TRM[1].
+[1]:http://focus.ti.com/pdfs/wtbu/OMAP4430_ES2.0_Public_TRM_vJ.pdf
+
+In OMAP4430 musb driver VBUS and ID notifications are received from the
+transceiver driver. If the cable/device is connected during boot,
+notifications from transceiver driver will be missed till musb driver
+is loaded.
+Patch to configure the transceiver in the platform_enable/disable
+functions and enable the vbus in the gadget driver based on the 
+last_event of the otg_transceiver.
+
+Signed-off-by: Hema HK <hemahk@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
 ---
-[Reusing some part of the patch[1] posted by Arnaud Mandy]
-[1] http://permalink.gmane.org/gmane.linux.usb.general/37123
----
- drivers/usb/otg/twl6030-usb.c |    3 +++
- include/linux/usb/otg.h       |    1 +
- 2 files changed, 4 insertions(+)
+ drivers/usb/musb/musb_gadget.c |    4 +++
+ drivers/usb/musb/omap2430.c    |   49 ++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 48 insertions(+), 5 deletions(-)
 
-Index: linux-2.6/drivers/usb/otg/twl6030-usb.c
+Index: linux-2.6/drivers/usb/musb/musb_gadget.c
 ===================================================================
---- linux-2.6.orig/drivers/usb/otg/twl6030-usb.c
-+++ linux-2.6/drivers/usb/otg/twl6030-usb.c
-@@ -265,11 +265,13 @@ static irqreturn_t twl6030_usb_irq(int i
- 			twl->otg.default_a = false;
- 			twl->otg.state = OTG_STATE_B_IDLE;
- 			twl->linkstat = status;
-+			twl->otg.last_event = status;
- 			blocking_notifier_call_chain(&twl->otg.notifier,
- 						status, twl->otg.gadget);
- 		} else {
- 			status = USB_EVENT_NONE;
- 			twl->linkstat = status;
-+			twl->otg.last_event = status;
- 			blocking_notifier_call_chain(&twl->otg.notifier,
- 						status, twl->otg.gadget);
- 			if (twl->asleep) {
-@@ -302,6 +304,7 @@ static irqreturn_t twl6030_usbotg_irq(in
- 		twl->otg.default_a = true;
- 		twl->otg.state = OTG_STATE_A_IDLE;
- 		twl->linkstat = status;
-+		twl->otg.last_event = status;
- 		blocking_notifier_call_chain(&twl->otg.notifier, status,
- 							twl->otg.gadget);
- 	} else  {
-Index: linux-2.6/include/linux/usb/otg.h
+--- linux-2.6.orig/drivers/usb/musb/musb_gadget.c
++++ linux-2.6/drivers/usb/musb/musb_gadget.c
+@@ -1855,6 +1855,10 @@ int usb_gadget_probe_driver(struct usb_g
+ 			} else {
+ 				hcd->self.uses_pio_for_control = 1;
+ 			}
++
++			if ((musb->xceiv->last_event == USB_EVENT_ID)
++						&& musb->xceiv->set_vbus)
++				otg_set_vbus(musb->xceiv, 1);
+ 		}
+ 	}
+ 
+Index: linux-2.6/drivers/usb/musb/omap2430.c
 ===================================================================
---- linux-2.6.orig/include/linux/usb/otg.h
-+++ linux-2.6/include/linux/usb/otg.h
-@@ -66,6 +66,7 @@ struct otg_transceiver {
+--- linux-2.6.orig/drivers/usb/musb/omap2430.c
++++ linux-2.6/drivers/usb/musb/omap2430.c
+@@ -350,16 +350,55 @@ static int omap2430_musb_init(struct mus
+ 	if (status)
+ 		DBG(1, "notification register failed\n");
  
- 	u8			default_a;
- 	enum usb_otg_state	state;
-+	enum usb_xceiv_events	last_event;
+-	/* check whether cable is already connected */
+-	if (musb->xceiv->state ==OTG_STATE_B_IDLE)
+-		musb_otg_notifications(&musb->nb, 1,
+-					musb->xceiv->gadget);
+-
+ 	setup_timer(&musb_idle_timer, musb_do_idle, (unsigned long) musb);
  
- 	struct usb_bus		*host;
- 	struct usb_gadget	*gadget;
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	return 0;
+ }
+ 
++static void omap2430_musb_enable(struct musb *musb)
++{
++	u8		devctl;
++	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
++	struct device *dev = musb->controller;
++	struct musb_hdrc_platform_data *pdata = dev->platform_data;
++	struct omap_musb_board_data *data = pdata->board_data;
++
++	switch (musb->xceiv->last_event) {
++
++	case USB_EVENT_ID:
++		otg_init(musb->xceiv);
++		if (data->interface_type == MUSB_INTERFACE_UTMI) {
++			devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
++			/* start the session */
++			devctl |= MUSB_DEVCTL_SESSION;
++			musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
++			while (musb_readb(musb->mregs, MUSB_DEVCTL) & 0x80) {
++				cpu_relax();
++
++				if (time_after(jiffies, timeout)) {
++					dev_err(musb->controller,
++					"configured as A device timeout");
++					break;
++				}
++			}
++		}
++		break;
++
++	case USB_EVENT_VBUS:
++		otg_init(musb->xceiv);
++		break;
++
++	default:
++		break;
++	}
++}
++
++static void omap2430_musb_disable(struct musb *musb)
++{
++	if (musb->xceiv->last_event)
++		otg_shutdown(musb->xceiv);
++}
++
+ static int omap2430_musb_exit(struct musb *musb)
+ {
+ 
+@@ -377,6 +416,9 @@ static const struct musb_platform_ops om
+ 	.try_idle	= omap2430_musb_try_idle,
+ 
+ 	.set_vbus	= omap2430_musb_set_vbus,
++
++	.enable		= omap2430_musb_enable,
++	.disable	= omap2430_musb_disable,
+ };
+ 
+ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
