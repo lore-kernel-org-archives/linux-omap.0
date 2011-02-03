@@ -1,91 +1,49 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH] ARM: omap1/nokia770: mark some functions __init
-Date: Thu, 3 Feb 2011 09:15:08 +0100
-Message-ID: <20110203081508.GC30452@pengutronix.de>
-References: <20100902054630.GB14214@pengutronix.de>
- <1283408230-22652-1-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP boot failure)
+Date: Thu, 3 Feb 2011 14:13:19 +0530
+Message-ID: <cace62268ad657586f07ecbb0e6a99ab@mail.gmail.com>
+References: <20110106180030.GA8249@n2100.arm.linux.org.uk> <20110106182023.GV7771@atomide.com>
+ <20110106203238.GH1198@n2100.arm.linux.org.uk> <20110106204053.GA7771@atomide.com>
+ <20110107161230.GR1198@n2100.arm.linux.org.uk> <20110110185209.GC4957@atomide.com>
+ <20110111231611.GX4957@atomide.com> <3c13ae6d9e13b94548bfcaaced7681e8@mail.gmail.com>
+ <20110202011006.GP3358@atomide.com> <81ed58d7158cfa16007e141d0ac1f74c@mail.gmail.com>
+ <20110202194855.GA3322@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34555 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753992Ab1BCIPJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 03:15:09 -0500
-Content-Disposition: inline
-In-Reply-To: <1283408230-22652-1-git-send-email-u.kleine-koenig@pengutronix.de>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:51043 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755360Ab1BCInW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 03:43:22 -0500
+Received: by mail-gx0-f173.google.com with SMTP id 28so412990gxk.32
+        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 00:43:22 -0800 (PST)
+In-Reply-To: <20110202194855.GA3322@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Anand Gadiyar <gadiyar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Felipe Balbi <balbi@ti.com>
 
-Hey Tony,
-
-this patch below is now 4 months old and I didn't get any feedback.  (T=
-hough I
-somehow missed to cc linux-omap@vger.kernel.org before, sorry for that.=
-)
-
-There are two more patches in this thread that are not yet
-applied/commented.  Should I resend?
-
-Best regards
-Uwe
-
-On Thu, Sep 02, 2010 at 08:17:10AM +0200, Uwe Kleine-K=F6nig wrote:
-> These are only called from omap_nokia770_init which is in .init.text,=
- too.
->=20
-> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-> ---
->  arch/arm/mach-omap1/board-nokia770.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-oma=
-p1/board-nokia770.c
-> index 51a4539..09b3f46 100644
-> --- a/arch/arm/mach-omap1/board-nokia770.c
-> +++ b/arch/arm/mach-omap1/board-nokia770.c
-> @@ -112,7 +112,7 @@ static struct mipid_platform_data nokia770_mipid_=
-platform_data =3D {
->  	.shutdown =3D mipid_shutdown,
->  };
-> =20
-> -static void mipid_dev_init(void)
-> +static void __init mipid_dev_init(void)
->  {
->  	const struct omap_lcd_config *conf;
-> =20
-> @@ -123,7 +123,7 @@ static void mipid_dev_init(void)
->  	}
->  }
-> =20
-> -static void ads7846_dev_init(void)
-> +static void __init ads7846_dev_init(void)
->  {
->  	if (gpio_request(ADS7846_PENDOWN_GPIO, "ADS7846 pendown") < 0)
->  		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
-> @@ -167,7 +167,7 @@ static struct hwa742_platform_data nokia770_hwa74=
-2_platform_data =3D {
->  	.te_connected		=3D 1,
->  };
-> =20
-> -static void hwa742_dev_init(void)
-> +static void __init hwa742_dev_init(void)
->  {
->  	clk_add_alias("hwa_sys_ck", NULL, "bclk", NULL);
->  	omapfb_set_ctrl_platform_data(&nokia770_hwa742_platform_data);
-> --=20
-> 1.7.1
-
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Thursday, February 03, 2011 1:19 AM
+> To: Santosh Shilimkar
+> Cc: Anand Gadiyar; Russell King - ARM Linux; linux-arm-
+> kernel@lists.infradead.org; linux-omap@vger.kernel.org; Keshava
+> Munegowda; Felipe Balbi
+> Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re:
+> 4430SDP boot failure)
+>
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110201 22:04]:
+> > >
+> > > It's a ES1.0 blaze, with the patch below it reboots early
+> > > during the boot. I also have to disable omap_l2_cache_init
+> > > on this board to get it to boot.
+> > >
+> > Do you still get this problem with 'omap_l2_cache_init' ?
+> > As reported earlier, we don't see this issue on ES1.0
+> > SDP.
+>
+> Yeah I do, it rarely makes it to the userspace. Works reliably
+> if I disable omap_l2_cache_init.
+>
+Ok. I shall try few experiments and try to reproduce it
