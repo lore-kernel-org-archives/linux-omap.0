@@ -1,63 +1,154 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: Re: [PATCH v3 2/2] Input: ads7846: use gpio_request_one to
- configure pendown_gpio
-Date: Thu, 3 Feb 2011 23:12:07 +0100
-Message-ID: <20110203221207.GA1437@pengutronix.de>
-References: <1296746506-12221-1-git-send-email-sourav.poddar@ti.com>
- <20110203165405.GB12802@core.coreip.homeip.net>
- <20110203171953.GA13997@core.coreip.homeip.net>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 02/13] OMAP: Introduce device specific set rate and get rate in omap_device structure
+Date: Thu, 03 Feb 2011 15:46:37 -0800
+Message-ID: <87bp2sznoi.fsf@ti.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+	<1295618465-15234-3-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8t9RHnE3ZwKMSgU+"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110203171953.GA13997@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, balbi@ti.com, charu@ti.com, grinberg@compulab.co.il, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, LW@karo-electronics.de, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
-List-Id: linux-omap@vger.kernel.org
-
-
---8t9RHnE3ZwKMSgU+
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:45426 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752368Ab1BCXqm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 18:46:42 -0500
+Received: by ywc21 with SMTP id 21so933673ywc.7
+        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 15:46:41 -0800 (PST)
+In-Reply-To: <1295618465-15234-3-git-send-email-vishwanath.bs@ti.com>
+	(Vishwanath BS's message of "Fri, 21 Jan 2011 19:30:54 +0530")
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
 
-On Thu, Feb 03, 2011 at 09:19:53AM -0800, Dmitry Torokhov wrote:
-> On Thu, Feb 03, 2011 at 08:54:05AM -0800, Dmitry Torokhov wrote:
-> > On Thu, Feb 03, 2011 at 08:51:46PM +0530, Sourav Poddar wrote:
-> > > The ads7846 driver requests a gpio but does not currently
-> > > configure it explicitly as an input. Use gpio_request_one
-> > > to request and configure it at one shot.
-> > >=20
-> > > Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> > > Cc: Dmitry Torokhov <dtor@mail.ru>
-> >=20
-> > Will apply this one, the other one is a bit messy IMO, will have to
-> > think about it.
-> >=20
->=20
-> Something like below should do I think.
+Vishwanath BS <vishwanath.bs@ti.com> writes:
 
-Yeah, that was what I was suggesting, too
+> From: Thara Gopinath <thara@ti.com>
+>
+> This patch extends the omap_device structure to contain pointers to scale the
+> operating rate of the device and to retrieve the operating rate of the device.
+> This patch also adds the three new APIs in the omap device layer
+> namely omap_device_set_rate that can be called to set a new operating
+> rate for a device, omap_device_get_rate that can be called to retrieve
+> the operating frequency for a device and omap_device_register_dvfs_callbacks
+> to register the device specific set_rate and get_rate functions.
+> The omap_device_set_rate and omap_device_get_rate does some routine error
+> checks and finally calls into the device specific set_rate
+> and get_rate APIs populated through omap_device_populate_rate_fns.
+>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> ---
+>  arch/arm/plat-omap/include/plat/omap_device.h |    9 +++++
+>  arch/arm/plat-omap/omap_device.c              |   49 +++++++++++++++++++++++++
+>  2 files changed, 58 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+> index e4c349f..204fb0a 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -50,6 +50,8 @@ extern struct device omap_device_parent;
+>   * @hwmods: (one .. many per omap_device)
+>   * @hwmods_cnt: ARRAY_SIZE() of @hwmods
+>   * @pm_lats: ptr to an omap_device_pm_latency table
+> + * @set_rate: fn ptr to change the operating rate.
+> + * @get_rate: fn ptr to retrieve the current operating rate.
+>   * @pm_lats_cnt: ARRAY_SIZE() of what is passed to @pm_lats
+>   * @pm_lat_level: array index of the last odpl entry executed - -1 if never
+>   * @dev_wakeup_lat: dev wakeup latency in nanoseconds
+> @@ -73,6 +75,8 @@ struct omap_device {
+>  	s8				pm_lat_level;
+>  	u8				hwmods_cnt;
+>  	u8				_state;
+> +	int (*set_rate)(struct device *dev, unsigned long rate);
+> +	unsigned long (*get_rate) (struct device *dev);
+>  };
+>  
+>  /* Device driver interface (call via platform_data fn ptrs) */
+> @@ -107,6 +111,11 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od);
+>  int omap_device_align_pm_lat(struct platform_device *pdev,
+>  			     u32 new_wakeup_lat_limit);
+>  struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
+> +int omap_device_set_rate(struct device *dev, unsigned long freq);
+> +unsigned long omap_device_get_rate(struct device *dev);
+> +void omap_device_register_dvfs_callbacks(struct device *dev,
+> +		int (*set_rate)(struct device *dev, unsigned long rate),
+> +		unsigned long (*get_rate) (struct device *dev));
+>  u32 omap_device_get_context_loss_count(struct platform_device *pdev);
+>  
+>  /* Other */
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index a84e849..4cee430 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -810,6 +810,55 @@ int omap_device_enable_clocks(struct omap_device *od)
+>  	return 0;
+>  }
+>  
+> +int omap_device_set_rate(struct device *dev, unsigned long freq)
+> +{
+> +	struct platform_device *pdev;
+> +	struct omap_device *od;
+> +
+> +	pdev = container_of(dev, struct platform_device, dev);
 
-Acked-by: Wolfram Sang <w.sang@pengutronix.de>
+There is a macro for this in device.h:
 
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+      pdev = to_platform_device(dev)
 
---8t9RHnE3ZwKMSgU+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+This needs to be fixed all over this series.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+> +	od = _find_by_pdev(pdev);
+> +
+> +	if (!od->set_rate) {
+> +		dev_err(dev, "%s: No set_rate API for scaling device\n",
+> +			__func__);
+> +		return -ENODATA;
+> +	}
+> +
+> +	return od->set_rate(dev, freq);
+> +}
+> +
+> +unsigned long omap_device_get_rate(struct device *dev)
+> +{
+> +	struct platform_device *pdev;
+> +	struct omap_device *od;
+> +
+> +	pdev = container_of(dev, struct platform_device, dev);
+> +	od = _find_by_pdev(pdev);
 
-iEYEARECAAYFAk1LKDcACgkQD27XaX1/VRsTBgCgpmNTxEDcvug/ol5r38B/UWS9
-aF4AnRVTPRD1cmCTNp2io1eTjzO/KyA0
-=fY9g
------END PGP SIGNATURE-----
+Should also check here for a valid omap_device, but making sure its
+parent is omap_device_parent.
 
---8t9RHnE3ZwKMSgU+--
+> +
+> +
+> +	if (!od->get_rate) {
+> +		dev_err(dev, "%s: No get rate API for the device\n",
+> +			__func__);
+> +		return 0;
+> +	}
+> +
+> +	return od->get_rate(dev);
+> +}
+> +
+> +void omap_device_register_dvfs_callbacks(struct device *dev,
+> +		int (*set_rate)(struct device *dev, unsigned long rate),
+> +		unsigned long (*get_rate) (struct device *dev))
+> +{
+> +	struct platform_device *pdev;
+> +	struct omap_device *od;
+> +
+> +	pdev = container_of(dev, struct platform_device, dev);
+> +	od = _find_by_pdev(pdev);
+> +
+
+and here
+
+> +	od->set_rate = set_rate;
+> +	od->get_rate = get_rate;
+> +}
+> +
+>  struct device omap_device_parent = {
+>  	.init_name	= "omap",
+>  	.parent         = &platform_bus,
+
+Kevin
