@@ -1,72 +1,86 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Subject: RE: [PATCH 1/6] omap4: powerdomain: Add supported INACTIVE power state
-Date: Thu, 3 Feb 2011 14:25:39 +0530
-Message-ID: <6552cf1963f333b1ddba0b9bbd5acb22@mail.gmail.com>
-References: <1296212688-21951-1-git-send-email-santosh.shilimkar@ti.com>
- <1296212688-21951-2-git-send-email-santosh.shilimkar@ti.com>
- <alpine.DEB.2.00.1101311613230.16671@utopia.booyaka.com> <30bccb5d133f92cdbf1a4aa75ba54e7b@mail.gmail.com>
- <alpine.DEB.2.00.1102021430460.7672@utopia.booyaka.com>
+Date: Thu, 3 Feb 2011 14:30:10 +0530
+Message-ID: <7f9f718bd21a8c81eba2fa3d8b60b700@mail.gmail.com>
+References: <1296212688-21951-1-git-send-email-santosh.shilimkar@ti.com><1296212688-21951-2-git-send-email-santosh.shilimkar@ti.com><87pqrbmdwx.fsf@ti.com><bcc7ec64222e616309287af8eb23d659@mail.gmail.com>
+ <87aaieazyb.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:45108 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754767Ab1BCIzo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 03:55:44 -0500
-Received: by mail-yw0-f46.google.com with SMTP id 7so112538ywo.19
-        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 00:55:43 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1102021430460.7672@utopia.booyaka.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:57889 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755149Ab1BCJAN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 04:00:13 -0500
+Received: by mail-gx0-f178.google.com with SMTP id 25so411856gxk.23
+        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 01:00:12 -0800 (PST)
+In-Reply-To: <87aaieazyb.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 
 > -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Thursday, February 03, 2011 3:11 AM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; Kevin Hilman; Benoit Cousson;
-> Rajendra Nayak; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [PATCH 1/6] omap4: powerdomain: Add supported INACTIVE
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Thursday, February 03, 2011 2:58 AM
+> To: Rajendra Nayak
+> Cc: Santosh Shilimkar; linux-omap@vger.kernel.org; paul@pwsan.com;
+> Benoit Cousson; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 1/6] omap4: powerdomain: Add supported INACTIVE
 > power state
 >
-> On Tue, 1 Feb 2011, Santosh Shilimkar wrote:
+> Rajendra Nayak <rnayak@ti.com> writes:
 >
-> > > -----Original Message-----
-> > > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > > Sent: Tuesday, February 01, 2011 4:44 AM
-> > >
-> > > What does the hardware do when the powerdomain is programmed to
-> > > INACTIVE?
-> > > Does it actually force the clockdomains idle?
+> > Hi Kevin,
 > >
-> > No. It doesn't force it. The power domain to hit INACTIVE, the
-> > clockdomain within the power domain needs to idle and it is
-> > still a prerequisite. With INACTIVE being programmed, we could
-> > issue a sleep transition.
+> >> -----Original Message-----
+> >> From: Kevin Hilman [mailto:khilman@ti.com]
+> >> Sent: Wednesday, February 02, 2011 6:49 AM
+> >> To: Santosh Shilimkar
+> >> Cc: linux-omap@vger.kernel.org; paul@pwsan.com; b-cousson@ti.com;
+> > rnayak@ti.com; linux-arm-
+> >> kernel@lists.infradead.org
+> >> Subject: Re: [PATCH 1/6] omap4: powerdomain: Add supported
+> INACTIVE
+> > power state
+> >>
+> >> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+> >>
+> >> > On OMAP4, one can explicitly program INACTIVE as the power
+> state of
+> >> > the logic area inside the power domain. Techincally PD state
+> > programmed
+> >> > to ON and if all the clock domains within the PD are idled, is
+> > equivalent
+> >> > tp PD programmed to INACTIVE and all the clock domains within
+> the PD
+> > are
+> >> > idled. There won't be any power difference in above two.
+> >> >
+> >> > Since the CPUIDLE C-states explicitly make use of INACTIVE as a
+> PD
+> >> > targeted state
+> >>
+> >> I think you're referring to code that is not upstream here.  I'm
+> not
+> >> aware of any C-states targetting INACTIVE.
 > >
-> > PD_ON:
-> > No power transition, only clocks are gated. Power domain stays ON.
-> >
-> > PD_INA:
-> > Power domain transitions to INACTIVE state. All logic and
-> > memory stay powered. This state allows for a voltage
-> > sleep transition.
+> > On OMAP3, C2/3/4 have target state as CORE inactive, while C1 is
+> > CORE active.
 >
-> Okay.  So programming an OMAP4 powerdomain to INACTIVE is equivalent
-> to
-> programming an OMAP3 powerdomain to ON with the
-> PRM_VOLTCTRL.AUTO_SLEEP
-> bit to 1?
+> I see what you're saying now.
 >
-> Are there any other dependencies with the
-> PRM_VOLTCTRL_AUTO_CTRL_VDD*
-> registers, e.g., does the appropriate VDD bitfield there need to be
-> set to
-> 0x1 also to allow the sleep transition to occur?
+> However, from a code point of view, all of those C-states are
+> programmed
+> to PWRDM_POWER_ON.
 >
-If we plan to do sleep transions, then DEVICE PRM needs to be
-programmed for voltage level and the control bit enable.
+> Therefore the changelog is not accurate.  Specifically the use of
+> "explicitly" is wrong, because the use of INACTIVE is most certainly
+> not explicit.
+>
+Ok. The 'explicit' came from OMAP4 where you could program it. I agree
+the code is not there in mainline to show this.
+
+I can drop the explicit from change log if it helps.
 
 Regards,
 Santosh
