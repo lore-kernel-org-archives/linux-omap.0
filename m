@@ -1,113 +1,97 @@
-From: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/5 v5] OMAP2430: hwmod data: Add USBOTG
-Date: Thu, 3 Feb 2011 11:24:48 +0530
-Message-ID: <3b6a23e346e75947e09f70dae78f2d88@mail.gmail.com>
-References: <1291991739-21705-1-git-send-email-hemahk@ti.com> <1291991739-21705-2-git-send-email-hemahk@ti.com>
+From: Hema Kalliguddi <hemahk@ti.com>
+Subject: RE: [PATCH 3/5 v5] OMAP4430: hwmod data: Adding USBOTG
+Date: Thu, 3 Feb 2011 11:25:42 +0530
+Message-ID: <cdf356a102d5f52fce139c5e89e32ef9@mail.gmail.com>
+References: <1291991739-21705-1-git-send-email-hemahk@ti.com> <1291991739-21705-4-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1291991739-21705-2-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:49481 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751797Ab1BCFzo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 00:55:44 -0500
+In-Reply-To: <1291991739-21705-4-git-send-email-hemahk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hema Kalliguddi <hemahk@ti.com>, linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
 Hi,
 
 >-----Original Message-----
->From: Hema HK [mailto:hemahk-l0cyMroinI0@public.gmane.org]
+>From: Hema HK [mailto:hemahk@ti.com]
 >Sent: Friday, December 10, 2010 8:06 PM
->To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Hema HK; Felipe Balbi; Tony
->Lindgren; Kevin Hilman; Cousson, Benoit; Paul Walmsley
->Subject: [PATCH 1/5 v5] OMAP2430: hwmod data: Add USBOTG
+>To: linux-usb@vger.kernel.org
+>Cc: linux-omap@vger.kernel.org; Cousson, Benoit; Hema HK;
+>Felipe Balbi; Tony Lindgren; Kevin Hilman; Paul Walmsley
+>Subject: [PATCH 3/5 v5] OMAP4430: hwmod data: Adding USBOTG
 >
->OMAP2430 hwmod data structures are populated with base
->address, L3 and L4
+>From: Cousson, Benoit <b-cousson@ti.com>
+>
+>OMAP4 hwmod data structures are populated with base address, L3 and L4
 >interface clocks, IRQs and sysconfig register details.
 >
 >As per OMAP USBOTG specification, need to configure the USBOTG
 >to smart idle/standby or no idle/standby during data transfer and
->force idle/standby when not in use to support retention and off-mode.
->By setting HWMOD_SWSUP_SIDLE and HWMOD_SWSUP_MSTANDBY flags, framework
+>force idle/standby when not in use to support retention and offmode.
+>By setting HWMOD_SWSUP_SIDLE and HWMOD_SWSUP_MSTANDBY flags,framework
 >will take care of configuring to no idle/standby when module is enabled
->and force idle/standby when suspended.
+>and force idle/standby when idled.
 >
->Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
->Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
->Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
->Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+>Signed-off-by: Cousson, Benoit <b-cousson@ti.com>
+>Signed-off-by: Hema HK <hemahk@ti.com>
+>Cc: Felipe Balbi <balbi@ti.com>
+>Cc: Tony Lindgren <tony@atomide.com>
+>Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>Cc: Cousson, Benoit <b-cousson@ti.com>
+>Cc: Paul Walmsley <paul@pwsan.com>
 >---
-> arch/arm/mach-omap2/omap_hwmod_2430_data.c |   97
+> arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   94
 >+++++++++++++++++++++++++++++
-> 1 file changed, 97 insertions(+)
+> 1 file changed, 94 insertions(+)
 >
->Index: usb/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+>Index: usb/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 >===================================================================
->--- usb.orig/arch/arm/mach-omap2/omap_hwmod_2430_data.c
->+++ usb/arch/arm/mach-omap2/omap_hwmod_2430_data.c
->@@ -77,6 +77,15 @@ static struct omap_hwmod omap2430_l4_wku
-> static struct omap_hwmod omap2430_uart1_hwmod;
-> static struct omap_hwmod omap2430_uart2_hwmod;
-> static struct omap_hwmod omap2430_uart3_hwmod;
->+static struct omap_hwmod omap2430_usbhsotg_hwmod;
->+
->+/* l3_core -> usbhsotg  interface */
->+static struct omap_hwmod_ocp_if omap2430_usbhsotg__l3 = {
->+	.master		= &omap2430_usbhsotg_hwmod,
->+	.slave		= &omap2430_l3_main_hwmod,
->+	.clk		= "core_l3_ck",
->+	.user		= OCP_USER_MPU,
->+};
+>--- usb.orig/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>+++ usb/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>@@ -47,6 +47,7 @@ static struct omap_hwmod omap44xx_l4_per
+> static struct omap_hwmod omap44xx_l4_wkup_hwmod;
+> static struct omap_hwmod omap44xx_mpu_hwmod;
+> static struct omap_hwmod omap44xx_mpu_private_hwmod;
+>+static struct omap_hwmod omap44xx_usb_otg_hs_hwmod;
 >
-> /* L4_CORE -> L4_WKUP interface */
-> static struct omap_hwmod_ocp_if omap2430_l4_core__l4_wkup = {
->@@ -139,6 +148,35 @@ static struct omap_hwmod_ocp_if omap2_l4
+> /*
+>  * Interconnects omap_hwmod structures
+>@@ -223,10 +224,19 @@ static struct omap_hwmod_ocp_if omap44xx
 > 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 > };
 >
->+/*
->+* usbhsotg interface data
->+*/
->+static struct omap_hwmod_addr_space omap2430_usbhsotg_addrs[] = {
->+	{
->+		.pa_start	= OMAP243X_HS_BASE,
->+		.pa_end		= OMAP243X_HS_BASE + SZ_4K - 1,
->+		.flags		= ADDR_TYPE_RT
->+	},
+>+/* usb_otg_hs -> l3_main_2 */
+>+static struct omap_hwmod_ocp_if omap44xx_usb_otg_hs__l3_main_2 = {
+>+	.master		= &omap44xx_usb_otg_hs_hwmod,
+>+	.slave		= &omap44xx_l3_main_2_hwmod,
+>+	.clk		= "l3_div_ck",
+>+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 >+};
 >+
->+/*  l4_core ->usbhsotg  interface */
->+static struct omap_hwmod_ocp_if omap2430_l4_core__usbhsotg = {
->+	.master		= &omap2430_l4_core_hwmod,
->+	.slave		= &omap2430_usbhsotg_hwmod,
->+	.clk		= "usb_l4_ick",
->+	.addr		= omap2430_usbhsotg_addrs,
->+	.addr_cnt	= ARRAY_SIZE(omap2430_usbhsotg_addrs),
->+	.user		= OCP_USER_MPU,
->+};
->+
->+static struct omap_hwmod_ocp_if *omap2430_usbhsotg_masters[] = {
->+	&omap2430_usbhsotg__l3,
->+};
->+
->+static struct omap_hwmod_ocp_if *omap2430_usbhsotg_slaves[] = {
->+	&omap2430_l4_core__usbhsotg,
->+};
->+
-> /* Slave interfaces on the L4_CORE interconnect */
-> static struct omap_hwmod_ocp_if *omap2430_l4_core_slaves[] = {
-> 	&omap2430_l3_main__l4_core,
->@@ -418,6 +456,62 @@ static struct omap_hwmod omap2430_uart3_
-> 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+> /* l3_main_2 slave ports */
+> static struct omap_hwmod_ocp_if *omap44xx_l3_main_2_slaves[] = {
+> 	&omap44xx_l3_main_1__l3_main_2,
+> 	&omap44xx_l4_cfg__l3_main_2,
+>+	&omap44xx_usb_otg_hs__l3_main_2,
+> };
+>
+> static struct omap_hwmod omap44xx_l3_main_2_hwmod = {
+>@@ -811,6 +821,87 @@ static struct omap_hwmod omap44xx_uart4_
+> 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
 > };
 >
 >+/*
->+ * usbhsotg
+>+ * 'usb_otg_hs' class
+>+ * high-speed on-the-go universal serial bus (usb_otg_hs) controller
 >+ */
->+static struct omap_hwmod_class_sysconfig omap2430_usbhsotg_sysc = {
+>+
+>+static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
 >+	.rev_offs	= 0x0400,
 >+	.sysc_offs	= 0x0404,
 >+	.syss_offs	= 0x0408,
@@ -120,67 +104,87 @@ Hi,
 >+	.sysc_fields	= &omap_hwmod_sysc_type1,
 >+};
 >+
->+static struct omap_hwmod_class usbotg_class = {
->+	.name = "usbotg",
->+	.sysc = &omap2430_usbhsotg_sysc,
+>+static struct omap_hwmod_class omap44xx_usb_otg_hs_hwmod_class = {
+>+	.name = "usb_otg_hs",
+>+	.sysc = &omap44xx_usb_otg_hs_sysc,
 >+};
 >+
 >+/* usb_otg_hs */
->+static struct omap_hwmod_irq_info omap2430_usbhsotg_mpu_irqs[] = {
->+
->+	{ .name = "mc", .irq = 92 },
->+	{ .name = "dma", .irq = 93 },
+>+static struct omap_hwmod_irq_info omap44xx_usb_otg_hs_irqs[] = {
+>+	{ .name = "mc", .irq = 92 + OMAP44XX_IRQ_GIC_START },
+>+	{ .name = "dma", .irq = 93 + OMAP44XX_IRQ_GIC_START },
 >+};
 >+
->+static struct omap_hwmod omap2430_usbhsotg_hwmod = {
+>+/* usb_otg_hs master ports */
+>+static struct omap_hwmod_ocp_if *omap44xx_usb_otg_hs_masters[] = {
+>+	&omap44xx_usb_otg_hs__l3_main_2,
+>+};
+>+
+>+static struct omap_hwmod_addr_space omap44xx_usb_otg_hs_addrs[] = {
+>+	{
+>+		.pa_start	= OMAP44XX_HSUSB_OTG_BASE,
+>+		.pa_end		= OMAP44XX_HSUSB_OTG_BASE + SZ_4K - 1,
+>+		.flags		= ADDR_TYPE_RT
+>+	},
+>+};
+>+
+>+/* l4_cfg -> usb_otg_hs */
+>+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_otg_hs = {
+>+	.master		= &omap44xx_l4_cfg_hwmod,
+>+	.slave		= &omap44xx_usb_otg_hs_hwmod,
+>+	.clk		= "l4_div_ck",
+>+	.addr		= omap44xx_usb_otg_hs_addrs,
+>+	.addr_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_addrs),
+>+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>+};
+>+
+>+/* usb_otg_hs slave ports */
+>+static struct omap_hwmod_ocp_if *omap44xx_usb_otg_hs_slaves[] = {
+>+	&omap44xx_l4_cfg__usb_otg_hs,
+>+};
+>+
+>+static struct omap_hwmod_opt_clk usb_otg_hs_opt_clks[] = {
+>+	{ .role = "xclk", .clk = "otg_60m_gfclk_ck" },
+>+};
+>+
+>+static struct omap_hwmod omap44xx_usb_otg_hs_hwmod = {
 >+	.name		= "usb_otg_hs",
->+	.mpu_irqs	= omap2430_usbhsotg_mpu_irqs,
->+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_usbhsotg_mpu_irqs),
->+	.main_clk	= "usbhs_ick",
->+	.prcm		= {
->+		.omap2 = {
->+			.prcm_reg_id = 1,
->+			.module_bit = OMAP2430_EN_USBHS_MASK,
->+			.module_offs = CORE_MOD,
->+			.idlest_reg_id = 1,
->+			.idlest_idle_bit = OMAP2430_ST_USBHS_SHIFT,
+>+	.class		= &omap44xx_usb_otg_hs_hwmod_class,
+>+	.mpu_irqs	= omap44xx_usb_otg_hs_irqs,
+>+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_irqs),
+>+	.main_clk	= "usb_otg_hs_ick",
+>+	.prcm = {
+>+		.omap4 = {
+>+			.clkctrl_reg =
+>OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
 >+		},
 >+	},
->+	.masters	= omap2430_usbhsotg_masters,
->+	.masters_cnt	= ARRAY_SIZE(omap2430_usbhsotg_masters),
->+	.slaves		= omap2430_usbhsotg_slaves,
->+	.slaves_cnt	= ARRAY_SIZE(omap2430_usbhsotg_slaves),
->+	.class		= &usbotg_class,
->+	/*
->+	 * Erratum ID: i479  idle_req / idle_ack mechanism potentially
->+	 * broken when autoidle is enabled
->+	 * workaround is to disable the autoidle bit at module level.
->+	 */
->+	.flags		= HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE
->+				| HWMOD_SWSUP_MSTANDBY,
->+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>+	.opt_clks	= usb_otg_hs_opt_clks,
+>+	.opt_clks_cnt = ARRAY_SIZE(usb_otg_hs_opt_clks),
+>+	.slaves		= omap44xx_usb_otg_hs_slaves,
+>+	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_slaves),
+>+	.masters	= omap44xx_usb_otg_hs_masters,
+>+	.masters_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_masters),
+>+	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+>+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
 >+};
 >+
-> static __initdata struct omap_hwmod *omap2430_hwmods[] = {
-> 	&omap2430_l3_main_hwmod,
-> 	&omap2430_l4_core_hwmod,
->@@ -428,6 +522,9 @@ static __initdata struct omap_hwmod *oma
-> 	&omap2430_uart1_hwmod,
-> 	&omap2430_uart2_hwmod,
-> 	&omap2430_uart3_hwmod,
+> static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+> 	/* dmm class */
+> 	&omap44xx_dmm_hwmod,
+>@@ -840,6 +931,9 @@ static __initdata struct omap_hwmod *oma
+> 	&omap44xx_uart2_hwmod,
+> 	&omap44xx_uart3_hwmod,
+> 	&omap44xx_uart4_hwmod,
 >+
->+	/* usbotg class*/
->+	&omap2430_usbhsotg_hwmod,
+>+	/* hsusb otg class */
+>+	&omap44xx_usb_otg_hs_hwmod,
 > 	NULL,
 > };
+>
 >
 
 Any comments?
 
 Regards,
 Hema
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
