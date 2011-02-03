@@ -1,91 +1,98 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v2 1/5] ARM: omap4: Correct definition of do_wfi() forCONFIG_THUMB2_KERNEL
-Date: Fri, 4 Feb 2011 01:00:46 +0530
-Message-ID: <d813cf9e0b404d0243c3973841baa6dc@mail.gmail.com>
-References: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
- <1296756161-26092-2-git-send-email-dave.martin@linaro.org>
- <b0242fa556f17e47222fa7f30a36d75b@mail.gmail.com> <20110203190758.GA15004@n2100.arm.linux.org.uk>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH v9 0/7] nand prefetch-irq support and ecc layout chanage
+Date: Fri, 4 Feb 2011 01:06:34 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036AB6B036@dbde02.ent.ti.com>
+References: <1296209529-22696-1-git-send-email-s-ghorai@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:44419 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756554Ab1BCTcE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 14:32:04 -0500
-Received: by mail-yw0-f52.google.com with SMTP id 9so656731ywf.11
-        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 11:32:01 -0800 (PST)
-In-Reply-To: <20110203190758.GA15004@n2100.arm.linux.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:56520 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756491Ab1BCTgn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 14:36:43 -0500
+In-Reply-To: <1296209529-22696-1-git-send-email-s-ghorai@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, Jean Pihet-XID <j-pihet@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+ 
 > -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Friday, February 04, 2011 12:38 AM
-> To: Santosh Shilimkar
-> Cc: Dave Martin; linux-arm-kernel@lists.infradead.org; Tony
-> Lindgren; Nicolas Pitre; linux-omap@vger.kernel.org; Jean Pihet-XID
-> Subject: Re: [PATCH v2 1/5] ARM: omap4: Correct definition of
-> do_wfi() forCONFIG_THUMB2_KERNEL
->
-> On Fri, Feb 04, 2011 at 12:09:34AM +0530, Santosh Shilimkar wrote:
-> > > -----Original Message-----
-> > > From: Dave Martin [mailto:dave.martin@linaro.org]
-> > > Sent: Thursday, February 03, 2011 11:33 PM
-> > > To: linux-arm-kernel@lists.infradead.org
-> > > Cc: Dave Martin; Tony Lindgren; Santosh Shilimkar; Jean Pihet;
-> > > linux-omap@vger.kernel.org; Nicolas Pitre
-> > > Subject: [PATCH v2 1/5] ARM: omap4: Correct definition of
-> do_wfi()
-> > > for CONFIG_THUMB2_KERNEL
-> > >
-> > > For the Thumb-2 case, the "wfi" mnemonic is used, since in this
-> > > case the tools will necessarily be new enough to support it.
-> > >
-> > > Signed-off-by: Dave Martin <dave.martin@linaro.org>
-> >
-> > I guess, we discussed this patch in your previous post.
-> > Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >
-> > > ---
-> > >  arch/arm/mach-omap2/include/mach/omap4-common.h |    5 +++++
-> > >  1 files changed, 5 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h
-> > > b/arch/arm/mach-omap2/include/mach/omap4-common.h
-> > > index 5b0270b..68ce058 100644
-> > > --- a/arch/arm/mach-omap2/include/mach/omap4-common.h
-> > > +++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
-> > > @@ -17,8 +17,13 @@
-> > >   * wfi used in low power code. Directly opcode is used instead
-> > >   * of instruction to avoid mulit-omap build break
-> > >   */
-> > > +#ifdef CONFIG_THUMB2_KERNEL
-> > > +#define do_wfi()			\
-> > > +		__asm__ __volatile__ ("wfi" : : : "memory")
-> > > +#else
-> > >  #define do_wfi()			\
-> > >  		__asm__ __volatile__ (".word	0xe320f003" : : :
-> > > "memory")
-> > > +#endif
->
-> We actually have this:
->
-> #if __LINUX_ARM_ARCH__ >= 7 ||          \
->         (__LINUX_ARM_ARCH__ == 6 && defined(CONFIG_CPU_32v6K))
-> #define sev()   __asm__ __volatile__ ("sev" : : : "memory")
-> #define wfe()   __asm__ __volatile__ ("wfe" : : : "memory")
-> #define wfi()   __asm__ __volatile__ ("wfi" : : : "memory")
-> #endif
->
-> in asm/system.h, so maybe it should be using wfe() from asm/system.h
-> ?
-I assume you mean wfi here.
-The problem is, omap2plus build breaks because it builds
-CPU_32v6 and CPU_32v7 as well which doesn't support the wfi
-instruction. Hence I used opcode directly to keep build
-working.
-
-Regards,
-Santosh
+> From: Ghorai, Sukumar
+> Sent: Friday, January 28, 2011 3:42 PM
+> To: linux-omap@vger.kernel.org
+> Cc: linux-mtd@lists.infradead.org; linux-arm-kernel@lists.infradead.org;
+> Ghorai, Sukumar
+> Subject: [PATCH v9 0/7] nand prefetch-irq support and ecc layout chanage
+> 
+> The following set of patches applies on linux-2.6.
+> 
+> The main motivations behind this patch series are -
+>         1. support NAND I/O in irq mode.
+>         2. support of different ECC schema.
+>         3. also add support ecc layout as like in romcode ecc layout, but
+> not enabled
+> 
+> v9: gpmc_init() changed to postcore_initcall(gpmc_init);
+> 
+> v8: free_irq() added; used timeout for while(tight loop)
+> And resend of http://www.mail-archive.com/linux-
+> omap@vger.kernel.org/msg41614.html
+> 
+> v7: NAND type (x16 or x8) is board specific and not omap specific; this
+> passed form board file.
+>     http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41469.html
+> 
+> v6: configurable transfer type from board file;
+>     #define irq number used for nand-irq
+>     http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39397.html
+> 
+> v5: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35860.html
+> This address the input as to support the irq_chained in GPMC.
+> And resend of
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35848.html
+> 
+> v4: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34882.html
+> and resend of
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32689.html
+> 
+> v3: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32071.html
+> Rebase on latest codebase and previous patch(posted).
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31963.html
+> 
+> v2: Rebase on latest codebase and previous patch(posted).
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31471.html
+> 
+> v1: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26666.html
+> 
+> Sukumar Ghorai (7):
+>   omap3630: nand: fix device size to work in polled mode
+>   omap3: nand: configurable transfer type per board
+>   omap: gpmc: enable irq mode in gpmc
+>   omap3: nand: prefetch in irq mode support
+>   omap3: nand: configurable fifo threshold to gain the throughput
+>   omap3: nand: ecc layout select from board file
+>   omap3: nand: making ecc layout as compatible with romcode ecc
+> 
+>  arch/arm/mach-omap2/board-3430sdp.c    |    2 +-
+>  arch/arm/mach-omap2/board-3630sdp.c    |    3 +-
+>  arch/arm/mach-omap2/board-flash.c      |   13 +-
+>  arch/arm/mach-omap2/board-flash.h      |    4 +-
+>  arch/arm/mach-omap2/board-ldp.c        |    2 +-
+>  arch/arm/mach-omap2/board-zoom.c       |    5 +-
+>  arch/arm/mach-omap2/gpmc-nand.c        |    7 +-
+>  arch/arm/mach-omap2/gpmc.c             |   56 +++++-
+>  arch/arm/mach-omap2/io.c               |    2 -
+>  arch/arm/plat-omap/include/plat/gpmc.h |   18 ++-
+>  arch/arm/plat-omap/include/plat/irqs.h |    9 +-
+>  arch/arm/plat-omap/include/plat/nand.h |   11 +
+>  drivers/mtd/nand/Kconfig               |   17 --
+>  drivers/mtd/nand/omap2.c               |  367 ++++++++++++++++++++++++---
+> -----
+>  14 files changed, 386 insertions(+), 130 deletions(-)
+Tony,
+In this version I have addressed all inputs on previous versions.
+Please check if it's possible to push all theses in any of your testing
+branch!
