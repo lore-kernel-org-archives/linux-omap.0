@@ -1,93 +1,117 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: [PATCH v2 4/5] ARM: omap3: Thumb-2 compatibility for sram34xx.S
-Date: Thu,  3 Feb 2011 18:02:40 +0000
-Message-ID: <1296756161-26092-5-git-send-email-dave.martin@linaro.org>
-References: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH V2] OMAP3: PM: Set/reset T2 bit for Smartreflex on TWL.
+Date: Thu, 03 Feb 2011 10:05:40 -0800
+Message-ID: <87mxmd2du3.fsf@ti.com>
+References: <1295847446-20667-1-git-send-email-shweta.gulati@ti.com>
+	<87wrljnzri.fsf@ti.com> <4D48C1A4.6040600@ti.com>
+	<87y65y9kw4.fsf@ti.com> <4D4A023D.8030908@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:52235 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756682Ab1BCSD4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 13:03:56 -0500
-Received: by wyb28 with SMTP id 28so1413060wyb.19
-        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 10:03:55 -0800 (PST)
-In-Reply-To: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:41780 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756418Ab1BCSFp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 13:05:45 -0500
+Received: by pwj6 with SMTP id 6so374781pwj.18
+        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 10:05:44 -0800 (PST)
+In-Reply-To: <4D4A023D.8030908@ti.com> (Nishanth Menon's message of "Thu, 03
+	Feb 2011 06:47:49 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Dave Martin <dave.martin@linaro.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: Shweta Gulati <shweta.gulati@ti.com>, linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>
 
- * Remove deprecated/undefined PC-relative stores
- * Add the required ENDPROC() directive for each ENTRY().
- * .align before data words
+Nishanth Menon <nm@ti.com> writes:
 
-Signed-off-by: Dave Martin <dave.martin@linaro.org>
----
- arch/arm/mach-omap2/sram34xx.S |   28 ++++++++++++++++++++--------
- 1 files changed, 20 insertions(+), 8 deletions(-)
+> Kevin Hilman wrote, on 02/03/2011 03:09 AM:
+>> Nishanth Menon<nm@ti.com>  writes:
+>>
+>>> Kevin Hilman wrote, on 02/02/2011 04:11 AM:
+>>>> Shweta Gulati<shweta.gulati@ti.com>   writes:
+>>>>
+>>>>> From: Thara Gopinath<thara@ti.com>
+>>>>>
+>>>>> The smartreflex bit on twl4030 needs to be enabled by default irrespective
+>>>>> of whether smartreflex module is enabled on the OMAP side or not.
+>>>>> This is because without this bit enabled the voltage scaling through
+>>>>> vp forceupdate does not function properly on OMAP3.API added
+>>>>> 'omap3_twl_set_sr_bit' with parameter to set/clear SR bit. It is cleared
+>>>>> for platforms where voltage is not scaled using vpforceupdate
+>>>>> or vc_bypass Method. In those cases 'omap3_twl_set_sr_bit' is called
+>>>>> from board file, to make sure this bit is not overwritten in
+>>>>> 'omap3_twl_init', a flag 'twl_sr_enable'
+>>>>> is added.
+>>>>
+>>>> As Sanjeev pointed out, the use of 'irrespective' above is confusing, in
+>>>> fact the whole changelog is kind of confusing.
+>>>>
+>>>> The changelog states that it has to always be enabled, but then goes on
+>>>> to describe the situation(s) where it would be disabled.
+>>>>
+>>>> Here's my rephrasing of how I understand the above changelog
+>>>>
+>>>> - enable: *always* be enabled
+>>>> - enable: needed for VP force update
+>>>> - disable: platforms using VP forced update or VP bypass
+>>>>
+>>>> -ECONFUSED
+>>>>
+>>>> Kevin
+>>>
+>>> How about this as the commit log?
+>>>
+>>> The smartreflex bit on twl4030 specifies if the setting of voltage
+>>> is done over the I2C_SR path. Given that there are platforms that
+>>> do not use I2C_SR path for voltage scaling, a new function
+>>> 'omap3_twl_set_sr_bit' with parameter to set/clear SR bit has been
+>>> provided for flexibility.
+>>
+>> So far so good.
+>>
+>>> It is called with appropriate param
+>>> for platforms where voltage is not scaled using I2C_SR path
+>>> from board file, to make sure this bit is not overwritten in
+>>> 'omap3_twl_init'.
+>>
+>> -ENOPARSE
+> k, How about this:
+> Voltage control on TWL can be done using VMODE/I2C1/I2C_SR. Since
+> almost all platforms use I2C_SR on omap3, omap3_twl_init by default
+> defaults expects that OMAP's I2C_SR is plugged in to TWL's I2C and
+> calls omap3_twl_set_sr_bit. On platforms where I2C_SR is not
+> connected, the board files are expected to call
+> omap3_twl_set_sr_bit(false) to ensure that I2C_SR path is not set for
+> voltage control and prevent the default behavior of omap3_twl_init.
 
-diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index 7f893a2..829d235 100644
---- a/arch/arm/mach-omap2/sram34xx.S
-+++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -116,24 +116,34 @@ ENTRY(omap3_sram_configure_core_dpll)
- 
- 					@ pull the extra args off the stack
- 					@  and store them in SRAM
-+
-+@ PC-relative stores lead to undefined behaviour in Thumb-2: use a r7 as a
-+@ base instead.
-+@ Be careful not to clobber r7 when maintaing this file.
-+ THUMB(	adr	r7, omap3_sram_configure_core_dpll			)
-+	.macro strtext Rt:req, label:req
-+ ARM(	str	\Rt, \label						)
-+ THUMB(	str	\Rt, [r7, \label - omap3_sram_configure_core_dpll]	)
-+	.endm
-+
- 	ldr	r4, [sp, #52]
--	str     r4, omap_sdrc_rfr_ctrl_0_val
-+	strtext	r4, omap_sdrc_rfr_ctrl_0_val
- 	ldr	r4, [sp, #56]
--	str     r4, omap_sdrc_actim_ctrl_a_0_val
-+	strtext	r4, omap_sdrc_actim_ctrl_a_0_val
- 	ldr	r4, [sp, #60]
--	str     r4, omap_sdrc_actim_ctrl_b_0_val
-+	strtext	r4, omap_sdrc_actim_ctrl_b_0_val
- 	ldr	r4, [sp, #64]
--	str     r4, omap_sdrc_mr_0_val
-+	strtext	r4, omap_sdrc_mr_0_val
- 	ldr	r4, [sp, #68]
--	str     r4, omap_sdrc_rfr_ctrl_1_val
-+	strtext	r4, omap_sdrc_rfr_ctrl_1_val
- 	cmp	r4, #0			@ if SDRC_RFR_CTRL_1 is 0,
- 	beq	skip_cs1_params		@  do not use cs1 params
- 	ldr	r4, [sp, #72]
--	str     r4, omap_sdrc_actim_ctrl_a_1_val
-+	strtext	r4, omap_sdrc_actim_ctrl_a_1_val
- 	ldr	r4, [sp, #76]
--	str     r4, omap_sdrc_actim_ctrl_b_1_val
-+	strtext	r4, omap_sdrc_actim_ctrl_b_1_val
- 	ldr	r4, [sp, #80]
--	str     r4, omap_sdrc_mr_1_val
-+	strtext	r4, omap_sdrc_mr_1_val
- skip_cs1_params:
- 	mrc	p15, 0, r8, c1, c0, 0	@ read ctrl register
- 	bic	r10, r8, #0x800		@ clear Z-bit, disable branch prediction
-@@ -271,6 +281,7 @@ skip_cs1_prog:
- 	ldr	r12, [r11]		@ posted-write barrier for SDRC
- 	bx	lr
- 
-+	.align
- omap3_sdrc_power:
- 	.word OMAP34XX_SDRC_REGADDR(SDRC_POWER)
- omap3_cm_clksel1_pll:
-@@ -319,6 +330,7 @@ omap3_sdrc_dlla_ctrl:
- 	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
- core_m2_mask_val:
- 	.word 0x07FFFFFF
-+ENDPROC(omap3_sram_configure_core_dpll)
- 
- ENTRY(omap3_sram_configure_core_dpll_sz)
- 	.word	. - omap3_sram_configure_core_dpll
--- 
-1.7.1
+Nice, thanks.
 
+>>
+>>>
+>>>
+>>>>
+>>>>> This patch is based on LO PM Branch and Smartreflex has been
+>>>>> tested on OMAP3430 SDP, OMAP3630 SDP and boot tested on
+>>>>> OMAP2430 SDP.
+>>>
+>>> this belongs into the diffstat.
+>>>
+>>> Attached is a modified version of this patch - i'vent tested it
+>>> though.. but basically improves the logic a little:
+>>>
+>>> *) made the comments more generic to ensure that this is more of
+>>> I2C_SR path as far as TWL is concerned(yes, from OMAP perspective it
+>>> is vp forceupdate/bypass), but it is more of an OMAP problem than
+>>> omap_twl.c problem.
+>>> *) modified the function call sequences to prevent rentry even if
+>>> board file calls with various other params
+>>> *) shifted to using bool
+>>> *) use init and initdata to free up the space once we are done with
+>>> init sequence
+>>
+>> All good changes, but I don't think they're incorporated in V3.
+>
+> could you be more clear inline on v3?
+
+Will look closer at v4.
+
+Kevin
