@@ -1,109 +1,555 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCHv2 1/2] ads7846: OMAP3: Removal of warnings backtrace in
- bootup
-Date: Thu, 03 Feb 2011 12:17:55 +0200
-Message-ID: <4D4A80D3.2060407@compulab.co.il>
-References: <1296726514-32146-1-git-send-email-sourav.poddar@ti.com> <4D4A7F13.8080502@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <4D4A7F13.8080502@compulab.co.il>
-Sender: linux-input-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: dmitry.torokhov@gmail.com, balbi@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, charu@ti.com, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFT/RFC/PATCH 01/13] cbus: retu: get rid of retu-user.c
+Date: Thu,  3 Feb 2011 12:20:16 +0200
+Message-ID: <1296728428-26399-2-git-send-email-balbi@ti.com>
+References: <1296728428-26399-1-git-send-email-balbi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:47085 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756130Ab1BCKUi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 05:20:38 -0500
+Received: by fxm12 with SMTP id 12so1076525fxm.32
+        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 02:20:35 -0800 (PST)
+In-Reply-To: <1296728428-26399-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-Hi again,
+Drop that non-standard of accessing Retu
+as it's bypassing all the correct layers.
 
-On 02/03/11 12:10, Igor Grinberg wrote:
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/cbus/Kconfig     |    7 -
+ drivers/cbus/Makefile    |    1 -
+ drivers/cbus/retu-user.c |  424 ----------------------------------------------
+ drivers/cbus/retu.c      |   19 --
+ drivers/cbus/retu.h      |    5 -
+ 5 files changed, 0 insertions(+), 456 deletions(-)
+ delete mode 100644 drivers/cbus/retu-user.c
 
-> Hi,
->
-> On 02/03/11 11:48, Sourav Poddar wrote:
->
->> gpio_pendown in ads7846_probe is not getting initalized (defaulted to 0)
->> resulting in gpio_free to be called without a gpio_request. This
->> results in the following backtrace in bootup.
->>
->> ------------[ cut here ]------------
->> WARNING: at drivers/gpio/gpiolib.c:1258 gpio_free+0x100/0x12c()
->> Modules linked in:
->> [<c0061208>] (unwind_backtrace+0x0/0xe4) from [<c0091f58>]
->> 	(warn_slowpath_common+0x4c/0x64)
->> [<c0091f58>] (warn_slowpath_common+0x4c/0x64) from [<c0091f88>]
->> 	(warn_slowpath_null+0x18/0x1c)
->> [<c0091f88>] (warn_slowpath_null+0x18/0x1c) from [<c024e610>]
->> 	(gpio_free+0x100/0x12c)
->> [<c024e610>] (gpio_free+0x100/0x12c) from [<c03e9fbc>]
->> 	(ads7846_probe+0xa38/0xc5c)
->> [<c03e9fbc>] (ads7846_probe+0xa38/0xc5c) from [<c02cff14>]
->> 	(spi_drv_probe+0x18/0x1c)
->> [<c02cff14>] (spi_drv_probe+0x18/0x1c) from [<c028bca4>]
->> 	(driver_probe_device+0xc8/0x184)
->> [<c028bca4>] (driver_probe_device+0xc8/0x184) from [<c028bdc8>]
->> 	(__driver_attach+0x68/0x8c)
->> [<c028bdc8>] (__driver_attach+0x68/0x8c) from [<c028b4c8>]
->> 	(bus_for_each_dev+0x48/0x74)
->> [<c028b4c8>] (bus_for_each_dev+0x48/0x74) from [<c028ae08>]
->> 	(bus_add_driver+0xa0/0x220)
->> [<c028ae08>] (bus_add_driver+0xa0/0x220) from [<c028c0c0>]
->> 	(driver_register+0xa8/0x134)
->> [<c028c0c0>] (driver_register+0xa8/0x134) from [<c0050550>]
->> 	(do_one_initcall+0xcc/0x1a4)
->> [<c0050550>] (do_one_initcall+0xcc/0x1a4) from [<c00084e4>]
->> 	(kernel_init+0x14c/0x214)
->> [<c00084e4>] (kernel_init+0x14c/0x214) from [<c005b494>]
->> 	(kernel_thread_exit+0x0/0x8)
->> ---[ end trace 4053287f8a5ec18f ]---
->>
->> Initializing gpio_pendown in ads7846_probe to -1 before
->> ads7846_setup_pendown function removes the above backtrace
->> warning.
->>
->> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  drivers/input/touchscreen/ads7846.c |    1 +
->>  1 files changed, 1 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
->> index 14ea54b..036f245 100644
->> --- a/drivers/input/touchscreen/ads7846.c
->> +++ b/drivers/input/touchscreen/ads7846.c
->> @@ -1221,6 +1221,7 @@ static int __devinit ads7846_probe(struct spi_device *spi)
->>  	ts->input = input_dev;
->>  	ts->vref_mv = pdata->vref_mv;
->>  	ts->swap_xy = pdata->swap_xy;
->> +	ts->gpio_pendown = -1;
-> Wouldn't it be better putting this into ads7846_setup_pendown() function?
-> This will keep the whole gpio_pendown initialization code close together.
-> Something like:
->
-> if (pdata->get_pendown_state) {
-> <http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=drivers/input/touchscreen/ads7846.c;h=14ea54b78e4648b0ac8a3403440f6f5d120dfdd9;hb=HEAD#l954>        ts->get_pendown_state = pdata->get_pendown_state;
->         ts->gpio_pendown = -1;
-> <http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=drivers/input/touchscreen/ads7846.c;h=14ea54b78e4648b0ac8a3403440f6f5d120dfdd9;hb=HEAD#l955>        return 0;
-> <http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=drivers/input/touchscreen/ads7846.c;h=14ea54b78e4648b0ac8a3403440f6f5d120dfdd9;hb=HEAD#l956>}
-
-Sorry for the above links (this is embarrassing, but I've got played by my email client),
-I meant of course:
-
-if (pdata->get_pendown_state) {
-        ts->get_pendown_state = pdata->get_pendown_state;
-        ts->gpio_pendown = -1;
-        return 0;
-}
-
-
->
-> Also, why don't we use -EINVAL for the invalid gpio number instead of -1 constant?
->
->>  
->>  	mutex_init(&ts->lock);
->>  	init_waitqueue_head(&ts->wait);
-
+diff --git a/drivers/cbus/Kconfig b/drivers/cbus/Kconfig
+index c6b39fb..9a827a2 100644
+--- a/drivers/cbus/Kconfig
++++ b/drivers/cbus/Kconfig
+@@ -49,13 +49,6 @@ config CBUS_RETU
+ 
+ 	  If you want Retu support, you should say Y here.
+ 
+-config CBUS_RETU_USER
+-	depends on CBUS_RETU
+-	bool "Support for Retu user space functions"
+-	---help---
+-	  If you want support for Retu's user space read/write etc. functions,
+-	  you should say Y here.
+-
+ config CBUS_RETU_POWERBUTTON
+ 	depends on CBUS_RETU
+ 	bool "Support for Retu power button"
+diff --git a/drivers/cbus/Makefile b/drivers/cbus/Makefile
+index 347c2a4..0ad112f 100644
+--- a/drivers/cbus/Makefile
++++ b/drivers/cbus/Makefile
+@@ -10,5 +10,4 @@ obj-$(CONFIG_CBUS_RETU_POWERBUTTON) += retu-pwrbutton.o
+ obj-$(CONFIG_CBUS_RETU_RTC)	+= retu-rtc.o
+ obj-$(CONFIG_CBUS_RETU_WDT)	+= retu-wdt.o
+ obj-$(CONFIG_CBUS_TAHVO_USER)	+= tahvo-user.o
+-obj-$(CONFIG_CBUS_RETU_USER)	+= retu-user.o
+ obj-$(CONFIG_CBUS_RETU_HEADSET)	+= retu-headset.o
+diff --git a/drivers/cbus/retu-user.c b/drivers/cbus/retu-user.c
+deleted file mode 100644
+index c36f356..0000000
+--- a/drivers/cbus/retu-user.c
++++ /dev/null
+@@ -1,424 +0,0 @@
+-/**
+- * drivers/cbus/retu-user.c
+- *
+- * Retu user space interface functions
+- *
+- * Copyright (C) 2004, 2005 Nokia Corporation
+- *
+- * Written by Mikko Ylinen <mikko.k.ylinen@nokia.com>
+- *
+- * This file is subject to the terms and conditions of the GNU General
+- * Public License. See the file "COPYING" in the main directory of this
+- * archive for more details.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- */
+-
+-#include <linux/types.h>
+-#include <linux/kernel.h>
+-#include <linux/slab.h>
+-#include <linux/interrupt.h>
+-#include <linux/module.h>
+-#include <linux/init.h>
+-#include <linux/fs.h>
+-#include <linux/miscdevice.h>
+-#include <linux/poll.h>
+-#include <linux/list.h>
+-#include <linux/spinlock.h>
+-#include <linux/sched.h>
+-#include <linux/mutex.h>
+-
+-#include <asm/uaccess.h>
+-
+-#include "retu.h"
+-
+-#include "user_retu_tahvo.h"
+-
+-/* Maximum size of IRQ node buffer/pool */
+-#define RETU_MAX_IRQ_BUF_LEN	16
+-
+-#define PFX			"retu-user: "
+-
+-/* Bitmap for marking the interrupt sources as having the handlers */
+-static u32 retu_irq_bits;
+-
+-/* For allowing only one user process to subscribe to the retu interrupts */
+-static struct file *retu_irq_subscr = NULL;
+-
+-/* For poll and IRQ passing */
+-struct retu_irq {
+-	u32 id;
+-	struct list_head node;
+-};
+-
+-static spinlock_t retu_irqs_lock;
+-static struct retu_irq *retu_irq_block;
+-static LIST_HEAD(retu_irqs);
+-static LIST_HEAD(retu_irqs_reserve);
+-
+-/* Wait queue - used when user wants to read the device */
+-DECLARE_WAIT_QUEUE_HEAD(retu_user_waitqueue);
+-
+-/* Semaphore to protect irq subscription sequence */
+-static struct mutex retu_mutex;
+-
+-/* This array specifies RETU register types (read/write/toggle) */
+-static const u8 retu_access_bits[] = {
+-	1,
+-	4,
+-	3,
+-	3,
+-	1,
+-	3,
+-	3,
+-	0,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	4,
+-	4,
+-	3,
+-	0,
+-	0,
+-	0,
+-	0,
+-	1,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3,
+-	3
+-};
+-
+-/*
+- * The handler for all RETU interrupts.
+- *
+- * arg is the interrupt source in RETU.
+- */
+-static void retu_user_irq_handler(unsigned long arg)
+-{
+-	struct retu_irq *irq;
+-
+-	retu_ack_irq(arg);
+-
+-	spin_lock(&retu_irqs_lock);
+-	if (list_empty(&retu_irqs_reserve)) {
+-		spin_unlock(&retu_irqs_lock);
+-		return;
+-	}
+-	irq = list_entry((&retu_irqs_reserve)->next, struct retu_irq, node);
+-	irq->id = arg;
+-	list_move_tail(&irq->node, &retu_irqs);
+-	spin_unlock(&retu_irqs_lock);
+-
+-	/* wake up waiting thread */
+-	wake_up(&retu_user_waitqueue);
+-}
+-
+-/*
+- * This routine sets up the interrupt handler and marks an interrupt source
+- * in RETU as a candidate for signal delivery to the user process.
+- */
+-static int retu_user_subscribe_to_irq(int id, struct file *filp)
+-{
+-	int ret;
+-
+-	mutex_lock(&retu_mutex);
+-	if ((retu_irq_subscr != NULL) && (retu_irq_subscr != filp)) {
+-		mutex_unlock(&retu_mutex);
+-		return -EBUSY;
+-	}
+-	/* Store the file pointer of the first user process registering IRQs */
+-	retu_irq_subscr = filp;
+-	mutex_unlock(&retu_mutex);
+-
+-	if (retu_irq_bits & (1 << id))
+-		return 0;
+-
+-	ret = retu_request_irq(id, retu_user_irq_handler, id, "");
+-	if (ret < 0)
+-		return ret;
+-
+-	/* Mark that this interrupt has a handler */
+-	retu_irq_bits |= 1 << id;
+-
+-	return 0;
+-}
+-
+-/*
+- * Unregisters all RETU interrupt handlers.
+- */
+-static void retu_unreg_irq_handlers(void)
+-{
+-	int id;
+-
+-	if (!retu_irq_bits)
+-		return;
+-
+-	for (id = 0; id < MAX_RETU_IRQ_HANDLERS; id++)
+-		if (retu_irq_bits & (1 << id))
+-			retu_free_irq(id);
+-
+-	retu_irq_bits = 0;
+-}
+-
+-/*
+- * Write to RETU register.
+- * Returns 0 upon success, a negative error value otherwise.
+- */
+-static int retu_user_write_with_mask(u32 field, u16 value)
+-{
+-	u32 mask;
+-	u32 reg;
+-	u_short tmp;
+-	unsigned long flags;
+-
+-	mask = MASK(field);
+-	reg = REG(field);
+-
+-	/* Detect bad mask and reg */
+-	if (mask == 0 || reg > RETU_REG_MAX ||
+-	    retu_access_bits[reg] == READ_ONLY) {
+-		printk(KERN_ERR PFX "invalid arguments (reg=%#x, mask=%#x)\n",
+-		       reg, mask);
+-		return -EINVAL;
+-	}
+-
+-	/* Justify value according to mask */
+-	while (!(mask & 1)) {
+-		value = value << 1;
+-		mask = mask >> 1;
+-	}
+-
+-	spin_lock_irqsave(&retu_lock, flags);
+-	if (retu_access_bits[reg] == TOGGLE) {
+-		/* No need to detect previous content of register */
+-		tmp = 0;
+-	} else {
+-		/* Read current value of register */
+-		tmp = retu_read_reg(reg);
+-	}
+-
+-	/* Generate new value */
+-	tmp = (tmp & ~MASK(field)) | (value & MASK(field));
+-	/* Write data to RETU */
+-	retu_write_reg(reg, tmp);
+-	spin_unlock_irqrestore(&retu_lock, flags);
+-
+-	return 0;
+-}
+-
+-/*
+- * Read RETU register.
+- */
+-static u32 retu_user_read_with_mask(u32 field)
+-{
+-	u_short value;
+-	u32 mask, reg;
+-
+-	mask = MASK(field);
+-	reg = REG(field);
+-
+-	/* Detect bad mask and reg */
+-	if (mask == 0 || reg > RETU_REG_MAX) {
+-		printk(KERN_ERR PFX "invalid arguments (reg=%#x, mask=%#x)\n",
+-		       reg, mask);
+-		return -EINVAL;
+-	}
+-
+-	/* Read the register */
+-	value = retu_read_reg(reg) & mask;
+-
+-	/* Right justify value */
+-	while (!(mask & 1)) {
+-		value = value >> 1;
+-		mask = mask >> 1;
+-	}
+-
+-	return value;
+-}
+-
+-/*
+- * Close device
+- */
+-static int retu_close(struct inode *inode, struct file *filp)
+-{
+-	/* Unregister all interrupts that have been registered */
+-	if (retu_irq_subscr == filp) {
+-		retu_unreg_irq_handlers();
+-		retu_irq_subscr = NULL;
+-	}
+-
+-	return 0;
+-}
+-
+-/*
+- * Device control (ioctl)
+- */
+-static long retu_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+-{
+-	struct retu_tahvo_write_parms par;
+-	int ret;
+-
+-	switch (cmd) {
+-	case URT_IOCT_IRQ_SUBSCR:
+-		return retu_user_subscribe_to_irq(arg, filp);
+-	case RETU_IOCH_READ:
+-		return retu_user_read_with_mask(arg);
+-	case RETU_IOCX_WRITE:
+-		ret = copy_from_user(&par, (void __user *) arg, sizeof(par));
+-		if (ret)
+-			printk(KERN_ERR "copy_from_user failed: %d\n", ret);
+-		par.result = retu_user_write_with_mask(par.field, par.value);
+-		ret = copy_to_user((void __user *) arg, &par, sizeof(par));
+-		if (ret)
+-			printk(KERN_ERR "copy_to_user failed: %d\n", ret);
+-		break;
+-	case RETU_IOCH_ADC_READ:
+-		return retu_read_adc(arg);
+-	default:
+-		return -ENOIOCTLCMD;
+-	}
+-	return 0;
+-}
+-
+-/*
+- * Read from device
+- */
+-static ssize_t retu_read(struct file *filp, char *buf, size_t count,
+-			 loff_t * offp)
+-{
+-	struct retu_irq *irq;
+-
+-	u32 nr, i;
+-
+-	/* read not permitted if neither filp nor anyone has registered IRQs */
+-	if (retu_irq_subscr != filp)
+-		return -EPERM;
+-
+-	if ((count < sizeof(u32)) || ((count % sizeof(u32)) != 0))
+-		return -EINVAL;
+-
+-	nr = count / sizeof(u32);
+-
+-	for (i = 0; i < nr; i++) {
+-		unsigned long flags;
+-		u32 irq_id;
+-		int ret;
+-
+-		ret = wait_event_interruptible(retu_user_waitqueue,
+-					       !list_empty(&retu_irqs));
+-		if (ret < 0)
+-			return ret;
+-
+-		spin_lock_irqsave(&retu_irqs_lock, flags);
+-		irq = list_entry((&retu_irqs)->next, struct retu_irq, node);
+-		irq_id = irq->id;
+-		list_move(&irq->node, &retu_irqs_reserve);
+-		spin_unlock_irqrestore(&retu_irqs_lock, flags);
+-
+-		ret = copy_to_user(buf + i * sizeof(irq_id), &irq_id,
+-				   sizeof(irq_id));
+-		if (ret)
+-			printk(KERN_ERR "copy_to_user failed: %d\n", ret);
+-	}
+-
+-	return count;
+-}
+-
+-/*
+- * Poll method
+- */
+-static unsigned retu_poll(struct file *filp, struct poll_table_struct *pt)
+-{
+-	if (!list_empty(&retu_irqs))
+-		return POLLIN;
+-
+-	poll_wait(filp, &retu_user_waitqueue, pt);
+-
+-	if (!list_empty(&retu_irqs))
+-		return POLLIN;
+-	else
+-		return 0;
+-}
+-
+-static struct file_operations retu_user_fileops = {
+-	.owner = THIS_MODULE,
+-	.unlocked_ioctl = retu_ioctl,
+-	.read = retu_read,
+-	.release = retu_close,
+-	.poll = retu_poll
+-};
+-
+-static struct miscdevice retu_device = {
+-	.minor = MISC_DYNAMIC_MINOR,
+-	.name = "retu",
+-	.fops = &retu_user_fileops
+-};
+-
+-/*
+- * Initialization
+- *
+- * @return 0 if successful, error value otherwise.
+- */
+-int retu_user_init(void)
+-{
+-	struct retu_irq *irq;
+-	int res, i;
+-
+-	irq = kzalloc(sizeof(*irq) * RETU_MAX_IRQ_BUF_LEN, GFP_KERNEL);
+-	if (irq == NULL) {
+-		printk(KERN_ERR PFX "kzalloc failed\n");
+-		return -ENOMEM;
+-	}
+-
+-	for (i = 0; i < RETU_MAX_IRQ_BUF_LEN; i++)
+-		list_add(&irq[i].node, &retu_irqs_reserve);
+-
+-	retu_irq_block = irq;
+-
+-	spin_lock_init(&retu_irqs_lock);
+-	mutex_init(&retu_mutex);
+-
+-	/* Request a misc device */
+-	res = misc_register(&retu_device);
+-	if (res < 0) {
+-		printk(KERN_ERR PFX "unable to register misc device for %s\n",
+-		       retu_device.name);
+-		kfree(irq);
+-		return res;
+-	}
+-
+-	return 0;
+-}
+-
+-/*
+- * Cleanup.
+- */
+-void retu_user_cleanup(void)
+-{
+-	/* Unregister our misc device */
+-	misc_deregister(&retu_device);
+-	/* Unregister and disable all RETU interrupts used by this module */
+-	retu_unreg_irq_handlers();
+-	kfree(retu_irq_block);
+-}
+-
+-MODULE_DESCRIPTION("Retu ASIC user space functions");
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Mikko Ylinen");
+diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
+index a2977c9..f44d770 100644
+--- a/drivers/cbus/retu.c
++++ b/drivers/cbus/retu.c
+@@ -376,10 +376,6 @@ static int retu_allocate_children(struct device *parent)
+ 	if (!child)
+ 		return -ENOMEM;
+ 
+-	child = retu_allocate_child("retu-user", parent);
+-	if (!child)
+-		return -ENOMEM;
+-
+ 	child = retu_allocate_child("retu-wdt", parent);
+ 	if (!child)
+ 		return -ENOMEM;
+@@ -428,21 +424,9 @@ static int __init retu_probe(struct platform_device *pdev)
+ 	/* Register power off function */
+ 	pm_power_off = retu_power_off;
+ 
+-#ifdef CONFIG_CBUS_RETU_USER
+-	/* Initialize user-space interface */
+-	if (retu_user_init() < 0) {
+-		dev_err(&pdev->dev, "Unable to initialize driver\n");
+-		free_irq(irq, 0);
+-		return ret;
+-	}
+-#endif
+-
+ 	ret = retu_allocate_children(&pdev->dev);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "Unable to allocate Retu children\n");
+-#ifdef CONFIG_CBUS_RETU_USER
+-		retu_user_cleanup();
+-#endif
+ 		retu_write_reg(RETU_REG_IMR, 0xffff);
+ 		free_irq(irq, 0);
+ 		tasklet_kill(&retu_tasklet);
+@@ -458,9 +442,6 @@ static int __exit retu_remove(struct platform_device *pdev)
+ 
+ 	irq = platform_get_irq(pdev, 0);
+ 
+-#ifdef CONFIG_CBUS_RETU_USER
+-	retu_user_cleanup();
+-#endif
+ 	/* Mask all RETU interrupts */
+ 	retu_write_reg(RETU_REG_IMR, 0xffff);
+ 	free_irq(irq, 0);
+diff --git a/drivers/cbus/retu.h b/drivers/cbus/retu.h
+index cf3cf20..f459768 100644
+--- a/drivers/cbus/retu.h
++++ b/drivers/cbus/retu.h
+@@ -68,11 +68,6 @@ void retu_enable_irq(int id);
+ void retu_disable_irq(int id);
+ void retu_ack_irq(int id);
+ 
+-#ifdef CONFIG_CBUS_RETU_USER
+-int retu_user_init(void);
+-void retu_user_cleanup(void);
+-#endif
+-
+ extern spinlock_t retu_lock;
+ 
+ #endif /* __DRIVERS_CBUS_RETU_H */
 -- 
-Regards,
-Igor.
+1.7.4.rc2
 
