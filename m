@@ -1,66 +1,50 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/2] omap3sdp: Fix regulator mapping for ads7846 TS
- controller
-Date: Thu, 3 Feb 2011 13:56:13 +0200
-Message-ID: <20110203115613.GK23561@legolas.emea.dhcp.ti.com>
-References: <1296732705-12818-1-git-send-email-rnayak@ti.com>
- <1296732705-12818-2-git-send-email-rnayak@ti.com>
-Reply-To: balbi@ti.com
+From: OMAP Admin <omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: omappedia.org wiki
+Date: Thu, 3 Feb 2011 17:27:28 +0530
+Message-ID: <AANLkTin7wSAMOCog79XsK2-R3LhYx4sguZYfL6Gd=3Vo@mail.gmail.com>
+Reply-To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:41877 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756289Ab1BCL4R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 06:56:17 -0500
-Received: by mail-fx0-f41.google.com with SMTP id 12so1066631fxm.28
-        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 03:56:16 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1296732705-12818-2-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/alternative; boundary=00221540147e43caea049b5f78f2
+Return-path: <pandaboard+bncCLqk7M3TEhCqsKrqBBoEaDke5A-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Post: <http://groups.google.com/group/pandaboard/post?hl=en_US>, <mailto:pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:pandaboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/pandaboard?hl=en_US>
+Sender: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
+ <mailto:pandaboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/pandaboard/subscribe?hl=en_US>,
+ <mailto:pandaboard+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: pandaboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapdiscuss-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapzoom-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, omapandroid-discussion-GQPhjZDXxwGtG0bUXCXiUA@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-Hi,
+--00221540147e43caea049b5f78f2
+Content-Type: text/plain; charset=ISO-8859-1
 
-On Thu, Feb 03, 2011 at 05:01:44PM +0530, Rajendra Nayak wrote:
-> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-> index d4e41ef..dcdc718 100644
-> --- a/arch/arm/mach-omap2/board-3430sdp.c
-> +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -427,6 +427,10 @@ static struct twl4030_madc_platform_data sdp3430_madc_data = {
->  	.irq_line	= 1,
->  };
->  
-> +/* ads7846 on SPI */
-> +static struct regulator_consumer_supply sdp3430_vaux3_supply =
-> +	REGULATOR_SUPPLY("vcc", "spi1.0");
-> +
->  /*
->   * Apply all the fixed voltages since most versions of U-Boot
->   * don't bother with that initialization.
-> @@ -469,6 +473,8 @@ static struct regulator_init_data sdp3430_vaux3 = {
->  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
->  					| REGULATOR_CHANGE_STATUS,
->  	},
-> +	.num_consumer_supplies		= 1,
-> +	.consumer_supplies		= &sdp3430_vaux3_supply,
->  };
+All,
 
-this is not the expected way of using the regulator framework, you
-should have:
+We are being hit by spammers on our wiki.
+Last week we enabled captcha on new user registration.
+That did not stop the spammers.
+Today we saw spammers deleting content from our main page.
 
-static struct regulator_consumer_supply sdp3430_vaux3_supplies[] =
-	{ REGULATOR_SUPPLY("vcc", "spi1.0"), },
-};
+To prevent and discourage spammers we have enabled captcha on all edits.
+Apologize for the inconvenience it may cause to you.
 
-...
+If you have any questions please feel free to email omapadm-Re5JQEeQqe9fmgfxC/sS/w@public.gmane.org
 
-.num_consume_supplies	= ARRAY_SIZE(sdp3430_vaux3_supplies),
-.consumer_supplies	= sdp3430_vaux3_supplies,
 
-or something similar. (completely untested though).
+OMAP Admin Team
 
--- 
-balbi
+--00221540147e43caea049b5f78f2
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+All,<br><br>We are being hit by spammers on our wiki.<br>Last week we enabl=
+ed captcha on new user registration.<br>That did not stop the spammers.<br>=
+Today we saw spammers deleting content from our main page.<br><br>To preven=
+t and discourage spammers we have enabled captcha on all edits.<br>
+Apologize for the inconvenience it may cause to you.<br><br>If you have any=
+ questions please feel free to email <a href=3D"mailto:omapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org">o=
+mapadm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a>.<br><br><br>OMAP Admin Team<br>
+
+--00221540147e43caea049b5f78f2--
