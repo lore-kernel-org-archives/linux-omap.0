@@ -1,7 +1,7 @@
 From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 5/7] usb: otg: TWL6030: Introduce the twl6030_phy_suspend function.
-Date: Thu,  3 Feb 2011 15:19:45 +0530
-Message-ID: <1296726587-10530-5-git-send-email-hemahk@ti.com>
+Subject: [PATCH 6/7] usb: otg: TWL6030 Save the last event in otg_transceiver
+Date: Thu,  3 Feb 2011 15:19:46 +0530
+Message-ID: <1296726587-10530-6-git-send-email-hemahk@ti.com>
 References: <yes>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <yes>
@@ -10,58 +10,58 @@ To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Introduce the twl6030_phy_suspend function and assign to otg.set_suspend
-function pointer.
-This function is used by the musb-omap2430 platform driver
-during suspend/resume.
+Save the last event in the otg_transceiver so that it can used in the
+musb driver and gadget driver to configure the musb and enable the 
+vbus for host mode and OTG mode, if the device is connected during boot.
 
 Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/otg/twl6030-usb.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+[Reusing some part of the patch[1] posted by Arnaud Mandy]
+[1] http://permalink.gmane.org/gmane.linux.usb.general/37123
+---
+ drivers/usb/otg/twl6030-usb.c |    3 +++
+ include/linux/usb/otg.h       |    1 +
+ 2 files changed, 4 insertions(+)
 
 Index: linux-2.6/drivers/usb/otg/twl6030-usb.c
 ===================================================================
 --- linux-2.6.orig/drivers/usb/otg/twl6030-usb.c
 +++ linux-2.6/drivers/usb/otg/twl6030-usb.c
-@@ -177,6 +177,20 @@ static void twl6030_phy_shutdown(struct 
- 	pdata->phy_power(twl->dev, 0, 0);
- }
+@@ -265,11 +265,13 @@ static irqreturn_t twl6030_usb_irq(int i
+ 			twl->otg.default_a = false;
+ 			twl->otg.state = OTG_STATE_B_IDLE;
+ 			twl->linkstat = status;
++			twl->otg.last_event = status;
+ 			blocking_notifier_call_chain(&twl->otg.notifier,
+ 						status, twl->otg.gadget);
+ 		} else {
+ 			status = USB_EVENT_NONE;
+ 			twl->linkstat = status;
++			twl->otg.last_event = status;
+ 			blocking_notifier_call_chain(&twl->otg.notifier,
+ 						status, twl->otg.gadget);
+ 			if (twl->asleep) {
+@@ -302,6 +304,7 @@ static irqreturn_t twl6030_usbotg_irq(in
+ 		twl->otg.default_a = true;
+ 		twl->otg.state = OTG_STATE_A_IDLE;
+ 		twl->linkstat = status;
++		twl->otg.last_event = status;
+ 		blocking_notifier_call_chain(&twl->otg.notifier, status,
+ 							twl->otg.gadget);
+ 	} else  {
+Index: linux-2.6/include/linux/usb/otg.h
+===================================================================
+--- linux-2.6.orig/include/linux/usb/otg.h
++++ linux-2.6/include/linux/usb/otg.h
+@@ -66,6 +66,7 @@ struct otg_transceiver {
  
-+static int twl6030_phy_suspend(struct otg_transceiver *x, int suspend)
-+{
-+	struct twl6030_usb *twl;
-+	struct device *dev;
-+	struct twl4030_usb_data *pdata;
-+
-+	twl = xceiv_to_twl(x);
-+	dev  = twl->dev;
-+	pdata = dev->platform_data;
-+	pdata->phy_suspend(twl->dev, suspend);
-+
-+	return 0;
-+}
-+
- static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
- {
+ 	u8			default_a;
+ 	enum usb_otg_state	state;
++	enum usb_xceiv_events	last_event;
  
-@@ -388,6 +402,7 @@ static int __devinit twl6030_usb_probe(s
- 	twl->otg.set_vbus	= twl6030_set_vbus;
- 	twl->otg.init		= twl6030_phy_init;
- 	twl->otg.shutdown	= twl6030_phy_shutdown;
-+	twl->otg.set_suspend	= twl6030_phy_suspend;
- 
- 	/* init spinlock for workqueue */
- 	spin_lock_init(&twl->lock);
-@@ -432,6 +447,7 @@ static int __devinit twl6030_usb_probe(s
- 
- 	twl->asleep = 0;
- 	pdata->phy_init(dev);
-+	twl6030_phy_suspend(&twl->otg, 0);
- 	twl6030_enable_irq(&twl->otg);
- 	dev_info(&pdev->dev, "Initialized TWL6030 USB module\n");
- 
+ 	struct usb_bus		*host;
+ 	struct usb_gadget	*gadget;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
