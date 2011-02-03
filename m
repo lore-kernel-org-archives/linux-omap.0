@@ -1,117 +1,212 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH V2] OMAP3: PM: Set/reset T2 bit for Smartreflex on TWL.
-Date: Thu, 03 Feb 2011 10:05:40 -0800
-Message-ID: <87mxmd2du3.fsf@ti.com>
-References: <1295847446-20667-1-git-send-email-shweta.gulati@ti.com>
-	<87wrljnzri.fsf@ti.com> <4D48C1A4.6040600@ti.com>
-	<87y65y9kw4.fsf@ti.com> <4D4A023D.8030908@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Dave Martin <dave.martin@linaro.org>
+Subject: [PATCH v2 5/5] ARM: omap3: Thumb-2 compatibility for sleep34xx.S
+Date: Thu,  3 Feb 2011 18:02:41 +0000
+Message-ID: <1296756161-26092-6-git-send-email-dave.martin@linaro.org>
+References: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:41780 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756418Ab1BCSFp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 13:05:45 -0500
-Received: by pwj6 with SMTP id 6so374781pwj.18
-        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 10:05:44 -0800 (PST)
-In-Reply-To: <4D4A023D.8030908@ti.com> (Nishanth Menon's message of "Thu, 03
-	Feb 2011 06:47:49 +0530")
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:45058 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932141Ab1BCSS7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 13:18:59 -0500
+Received: by wyb28 with SMTP id 28so1427798wyb.19
+        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 10:18:58 -0800 (PST)
+In-Reply-To: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Shweta Gulati <shweta.gulati@ti.com>, linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Dave Martin <dave.martin@linaro.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
 
-Nishanth Menon <nm@ti.com> writes:
+ * Use BSYM() to get the correct Thumb branch address
+   for adr <Rd>, <label>
 
-> Kevin Hilman wrote, on 02/03/2011 03:09 AM:
->> Nishanth Menon<nm@ti.com>  writes:
->>
->>> Kevin Hilman wrote, on 02/02/2011 04:11 AM:
->>>> Shweta Gulati<shweta.gulati@ti.com>   writes:
->>>>
->>>>> From: Thara Gopinath<thara@ti.com>
->>>>>
->>>>> The smartreflex bit on twl4030 needs to be enabled by default irrespective
->>>>> of whether smartreflex module is enabled on the OMAP side or not.
->>>>> This is because without this bit enabled the voltage scaling through
->>>>> vp forceupdate does not function properly on OMAP3.API added
->>>>> 'omap3_twl_set_sr_bit' with parameter to set/clear SR bit. It is cleared
->>>>> for platforms where voltage is not scaled using vpforceupdate
->>>>> or vc_bypass Method. In those cases 'omap3_twl_set_sr_bit' is called
->>>>> from board file, to make sure this bit is not overwritten in
->>>>> 'omap3_twl_init', a flag 'twl_sr_enable'
->>>>> is added.
->>>>
->>>> As Sanjeev pointed out, the use of 'irrespective' above is confusing, in
->>>> fact the whole changelog is kind of confusing.
->>>>
->>>> The changelog states that it has to always be enabled, but then goes on
->>>> to describe the situation(s) where it would be disabled.
->>>>
->>>> Here's my rephrasing of how I understand the above changelog
->>>>
->>>> - enable: *always* be enabled
->>>> - enable: needed for VP force update
->>>> - disable: platforms using VP forced update or VP bypass
->>>>
->>>> -ECONFUSED
->>>>
->>>> Kevin
->>>
->>> How about this as the commit log?
->>>
->>> The smartreflex bit on twl4030 specifies if the setting of voltage
->>> is done over the I2C_SR path. Given that there are platforms that
->>> do not use I2C_SR path for voltage scaling, a new function
->>> 'omap3_twl_set_sr_bit' with parameter to set/clear SR bit has been
->>> provided for flexibility.
->>
->> So far so good.
->>
->>> It is called with appropriate param
->>> for platforms where voltage is not scaled using I2C_SR path
->>> from board file, to make sure this bit is not overwritten in
->>> 'omap3_twl_init'.
->>
->> -ENOPARSE
-> k, How about this:
-> Voltage control on TWL can be done using VMODE/I2C1/I2C_SR. Since
-> almost all platforms use I2C_SR on omap3, omap3_twl_init by default
-> defaults expects that OMAP's I2C_SR is plugged in to TWL's I2C and
-> calls omap3_twl_set_sr_bit. On platforms where I2C_SR is not
-> connected, the board files are expected to call
-> omap3_twl_set_sr_bit(false) to ensure that I2C_SR path is not set for
-> voltage control and prevent the default behavior of omap3_twl_init.
+ * Fix an out-of-range ADR when building for ARM
 
-Nice, thanks.
+ * Correctly call es3_sdrc_fix as Thumb when copied to SRAM.
 
->>
->>>
->>>
->>>>
->>>>> This patch is based on LO PM Branch and Smartreflex has been
->>>>> tested on OMAP3430 SDP, OMAP3630 SDP and boot tested on
->>>>> OMAP2430 SDP.
->>>
->>> this belongs into the diffstat.
->>>
->>> Attached is a modified version of this patch - i'vent tested it
->>> though.. but basically improves the logic a little:
->>>
->>> *) made the comments more generic to ensure that this is more of
->>> I2C_SR path as far as TWL is concerned(yes, from OMAP perspective it
->>> is vp forceupdate/bypass), but it is more of an OMAP problem than
->>> omap_twl.c problem.
->>> *) modified the function call sequences to prevent rentry even if
->>> board file calls with various other params
->>> *) shifted to using bool
->>> *) use init and initdata to free up the space once we are done with
->>> init sequence
->>
->> All good changes, but I don't think they're incorporated in V3.
->
-> could you be more clear inline on v3?
+ * Remove deprecated/undefined PC-relative stores
 
-Will look closer at v4.
+ * Add the required ENDPROC() directive for each ENTRY().
 
-Kevin
+ * .align before data words
+
+Signed-off-by: Dave Martin <dave.martin@linaro.org>
+---
+ arch/arm/mach-omap2/sleep34xx.S |   42 +++++++++++++++++++++++++++++---------
+ 1 files changed, 32 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index 4032a8e..ef73429 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -80,8 +80,10 @@
+ /* Function call to get the restore pointer for resume from OFF */
+ ENTRY(get_restore_pointer)
+ 	stmfd	sp!, {lr}	@ save registers on stack
+-	adr	r0, restore
++	adr	r0, BSYM(restore)
+ 	ldmfd	sp!, {pc}	@ restore regs and return
++ENDPROC(get_restore_pointer)
++	.align
+ ENTRY(get_restore_pointer_sz)
+ 	.word	. - get_restore_pointer
+ 
+@@ -89,8 +91,10 @@ ENTRY(get_restore_pointer_sz)
+ /* Function call to get the restore pointer for 3630 resume from OFF */
+ ENTRY(get_omap3630_restore_pointer)
+ 	stmfd	sp!, {lr}	@ save registers on stack
+-	adr	r0, restore_3630
++	adr	r0, BSYM(restore_3630)
+ 	ldmfd	sp!, {pc}	@ restore regs and return
++ENDPROC(get_omap3630_restore_pointer)
++	.align
+ ENTRY(get_omap3630_restore_pointer_sz)
+ 	.word	. - get_omap3630_restore_pointer
+ 
+@@ -98,8 +102,10 @@ ENTRY(get_omap3630_restore_pointer_sz)
+ /* Function call to get the restore pointer for ES3 to resume from OFF */
+ ENTRY(get_es3_restore_pointer)
+ 	stmfd	sp!, {lr}	@ save registers on stack
+-	adr	r0, restore_es3
++	adr	r0, BSYM(restore_es3)
+ 	ldmfd	sp!, {pc}	@ restore regs and return
++ENDPROC(get_es3_restore_pointer)
++	.align
+ ENTRY(get_es3_restore_pointer_sz)
+ 	.word	. - get_es3_restore_pointer
+ 
+@@ -113,8 +119,11 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
+ 	stmfd	sp!, {lr}	@ save registers on stack
+ 	/* Setup so that we will disable and enable l2 */
+ 	mov	r1, #0x1
+-	str	r1, l2dis_3630
++ ARM(	adrl	r2, l2dis_3630	)	@ may be out of range for adr in ARM
++ THUMB(	adr	r2, l2dis_3630	)	@ Thumb has more range, but not adrl
++	str	r1, [r2]
+ 	ldmfd	sp!, {pc}	@ restore regs and return
++ENDPROC(enable_omap3630_toggle_l2_on_restore)
+ 
+ 	.text
+ /* Function to call rom code to save secure ram context */
+@@ -139,12 +148,14 @@ ENTRY(save_secure_ram_context)
+ 	nop
+ 	nop
+ 	ldmfd	sp!, {r1-r12, pc}
++	.align
+ sram_phy_addr_mask:
+ 	.word	SRAM_BASE_P
+ high_mask:
+ 	.word	0xffff
+ api_params:
+ 	.word	0x4, 0x0, 0x0, 0x1, 0x1
++ENDPROC(save_secure_ram_context)
+ ENTRY(save_secure_ram_context_sz)
+ 	.word	. - save_secure_ram_context
+ 
+@@ -279,8 +290,7 @@ clean_l2:
+ 	 *  - 'might' have to copy address, load and jump to it
+ 	 */
+ 	ldr	r1, kernel_flush
+-	mov	lr, pc
+-	bx	r1
++	blx	r1
+ 
+ omap3_do_wfi:
+ 	ldr	r4, sdrc_power		@ read the SDRC_POWER register
+@@ -346,8 +356,8 @@ restore_es3:
+ 	and	r4, r4, #0x3
+ 	cmp	r4, #0x0	@ Check if previous power state of CORE is OFF
+ 	bne	restore
+-	adr	r0, es3_sdrc_fix
+-	ldr	r1, sram_base
++	adr	r0, es3_sdrc_fix	@ Not using BSYM clears the Thumb bit.
++	ldr	r1, sram_base	@ Must be 8-byte aligned to preserve alignment.
+ 	ldr	r2, es3_sdrc_fix_sz
+ 	mov	r2, r2, ror #2
+ copy_to_sram:
+@@ -356,6 +366,7 @@ copy_to_sram:
+ 	subs	r2, r2, #0x1	@ num_words--
+ 	bne	copy_to_sram
+ 	ldr	r1, sram_base
++ THUMB(	orr	r1, r1, #BSYM(es3_sdrc_fix) & 1 )
+ 	blx	r1
+ 	b	restore
+ 
+@@ -438,6 +449,7 @@ skipl2dis:
+ #endif
+ 	b	logic_l1_restore
+ 
++	.align
+ l2_inv_api_params:
+ 	.word	0x1, 0x00
+ l2_inv_gp:
+@@ -607,6 +619,7 @@ usettbr0:
+ 
+ /* This function implements the erratum ID i443 WA, applies to 34xx >= ES3.0 */
+ 	.text
++	.align	3
+ ENTRY(es3_sdrc_fix)
+ 	ldr	r4, sdrc_syscfg		@ get config addr
+ 	ldr	r5, [r4]		@ get value
+@@ -634,6 +647,7 @@ ENTRY(es3_sdrc_fix)
+ 	str	r5, [r4]		@ kick off refreshes
+ 	bx	lr
+ 
++	.align
+ sdrc_syscfg:
+ 	.word	SDRC_SYSCONFIG_P
+ sdrc_mr_0:
+@@ -648,6 +662,7 @@ sdrc_emr2_1:
+ 	.word	SDRC_EMR2_1_P
+ sdrc_manual_1:
+ 	.word	SDRC_MANUAL_1_P
++ENDPROC(es3_sdrc_fix)
+ ENTRY(es3_sdrc_fix_sz)
+ 	.word	. - es3_sdrc_fix
+ 
+@@ -682,6 +697,10 @@ wait_sdrc_ready:
+ 	bic	r5, r5, #0x40
+ 	str	r5, [r4]
+ 
++@ PC-relative stores lead to undefined behaviour in Thumb-2: use a r7 as a
++@ base instead.
++@ Be careful not to clobber r7 when maintaing this code.
++
+ is_dll_in_lock_mode:
+ 	/* Is dll in lock mode? */
+ 	ldr	r4, sdrc_dlla_ctrl
+@@ -689,10 +708,11 @@ is_dll_in_lock_mode:
+ 	tst	r5, #0x4
+ 	bxne	lr			@ Return if locked
+ 	/* wait till dll locks */
++	adr	r7, kick_counter
+ wait_dll_lock_timed:
+ 	ldr	r4, wait_dll_lock_counter
+ 	add	r4, r4, #1
+-	str	r4, wait_dll_lock_counter
++	str	r4, [r7, #wait_dll_lock_counter - kick_counter]
+ 	ldr	r4, sdrc_dlla_status
+ 	/* Wait 20uS for lock */
+ 	mov	r6, #8
+@@ -718,9 +738,10 @@ kick_dll:
+ 	dsb
+ 	ldr	r4, kick_counter
+ 	add	r4, r4, #1
+-	str	r4, kick_counter
++	str	r4, [r7]		@ kick_counter
+ 	b	wait_dll_lock_timed
+ 
++	.align
+ cm_idlest1_core:
+ 	.word	CM_IDLEST1_CORE_V
+ cm_idlest_ckgen:
+@@ -763,6 +784,7 @@ kick_counter:
+ 	.word	0
+ wait_dll_lock_counter:
+ 	.word	0
++ENDPROC(omap34xx_cpu_suspend)
+ 
+ ENTRY(omap34xx_cpu_suspend_sz)
+ 	.word	. - omap34xx_cpu_suspend
+-- 
+1.7.1
+
