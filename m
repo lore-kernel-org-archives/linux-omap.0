@@ -1,57 +1,186 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH 2/2] Input: ads7846 - configure pendown gpio as input
-Date: Thu, 3 Feb 2011 10:57:05 +0530
-Message-ID: <AANLkTi=H6bJMv4_FnC9ZNXYFetttp1cOCA97+uJmnMi8@mail.gmail.com>
-References: <1296660646-28168-1-git-send-email-sourav.poddar@ti.com>
+From: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 1/5 v5] OMAP2430: hwmod data: Add USBOTG
+Date: Thu, 3 Feb 2011 11:24:48 +0530
+Message-ID: <3b6a23e346e75947e09f70dae78f2d88@mail.gmail.com>
+References: <1291991739-21705-1-git-send-email-hemahk@ti.com> <1291991739-21705-2-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:52882 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750713Ab1BCF1t convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Feb 2011 00:27:49 -0500
-In-Reply-To: <1296660646-28168-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1291991739-21705-2-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org
 
-On Wed, Feb 2, 2011 at 21:00, Sourav Poddar <sourav.poddar@ti.com> wrot=
-e:
-> The ads7846 driver requests a gpio to detect pendown events,
-> but does not configure its direction. Configure this gpio
-> as an input after requesting it.
+Hi,
+
+>-----Original Message-----
+>From: Hema HK [mailto:hemahk-l0cyMroinI0@public.gmane.org]
+>Sent: Friday, December 10, 2010 8:06 PM
+>To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Hema HK; Felipe Balbi; Tony
+>Lindgren; Kevin Hilman; Cousson, Benoit; Paul Walmsley
+>Subject: [PATCH 1/5 v5] OMAP2430: hwmod data: Add USBOTG
+>
+>OMAP2430 hwmod data structures are populated with base
+>address, L3 and L4
+>interface clocks, IRQs and sysconfig register details.
+>
+>As per OMAP USBOTG specification, need to configure the USBOTG
+>to smart idle/standby or no idle/standby during data transfer and
+>force idle/standby when not in use to support retention and off-mode.
+>By setting HWMOD_SWSUP_SIDLE and HWMOD_SWSUP_MSTANDBY flags, framework
+>will take care of configuring to no idle/standby when module is enabled
+>and force idle/standby when suspended.
+>
+>Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+>Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+>Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+>Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
+>Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+>---
+> arch/arm/mach-omap2/omap_hwmod_2430_data.c |   97
+>+++++++++++++++++++++++++++++
+> 1 file changed, 97 insertions(+)
+>
+>Index: usb/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+>===================================================================
+>--- usb.orig/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+>+++ usb/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+>@@ -77,6 +77,15 @@ static struct omap_hwmod omap2430_l4_wku
+> static struct omap_hwmod omap2430_uart1_hwmod;
+> static struct omap_hwmod omap2430_uart2_hwmod;
+> static struct omap_hwmod omap2430_uart3_hwmod;
+>+static struct omap_hwmod omap2430_usbhsotg_hwmod;
+>+
+>+/* l3_core -> usbhsotg  interface */
+>+static struct omap_hwmod_ocp_if omap2430_usbhsotg__l3 = {
+>+	.master		= &omap2430_usbhsotg_hwmod,
+>+	.slave		= &omap2430_l3_main_hwmod,
+>+	.clk		= "core_l3_ck",
+>+	.user		= OCP_USER_MPU,
+>+};
+>
+> /* L4_CORE -> L4_WKUP interface */
+> static struct omap_hwmod_ocp_if omap2430_l4_core__l4_wkup = {
+>@@ -139,6 +148,35 @@ static struct omap_hwmod_ocp_if omap2_l4
+> 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> };
+>
+>+/*
+>+* usbhsotg interface data
+>+*/
+>+static struct omap_hwmod_addr_space omap2430_usbhsotg_addrs[] = {
+>+	{
+>+		.pa_start	= OMAP243X_HS_BASE,
+>+		.pa_end		= OMAP243X_HS_BASE + SZ_4K - 1,
+>+		.flags		= ADDR_TYPE_RT
+>+	},
+>+};
+>+
+>+/*  l4_core ->usbhsotg  interface */
+>+static struct omap_hwmod_ocp_if omap2430_l4_core__usbhsotg = {
+>+	.master		= &omap2430_l4_core_hwmod,
+>+	.slave		= &omap2430_usbhsotg_hwmod,
+>+	.clk		= "usb_l4_ick",
+>+	.addr		= omap2430_usbhsotg_addrs,
+>+	.addr_cnt	= ARRAY_SIZE(omap2430_usbhsotg_addrs),
+>+	.user		= OCP_USER_MPU,
+>+};
+>+
+>+static struct omap_hwmod_ocp_if *omap2430_usbhsotg_masters[] = {
+>+	&omap2430_usbhsotg__l3,
+>+};
+>+
+>+static struct omap_hwmod_ocp_if *omap2430_usbhsotg_slaves[] = {
+>+	&omap2430_l4_core__usbhsotg,
+>+};
+>+
+> /* Slave interfaces on the L4_CORE interconnect */
+> static struct omap_hwmod_ocp_if *omap2430_l4_core_slaves[] = {
+> 	&omap2430_l3_main__l4_core,
+>@@ -418,6 +456,62 @@ static struct omap_hwmod omap2430_uart3_
+> 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+> };
+>
+>+/*
+>+ * usbhsotg
+>+ */
+>+static struct omap_hwmod_class_sysconfig omap2430_usbhsotg_sysc = {
+>+	.rev_offs	= 0x0400,
+>+	.sysc_offs	= 0x0404,
+>+	.syss_offs	= 0x0408,
+>+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
+>+			  SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
+>+			  SYSC_HAS_AUTOIDLE),
+>+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+>+			  MSTANDBY_FORCE | MSTANDBY_NO |
+>MSTANDBY_SMART),
+>+	.sysc_fields	= &omap_hwmod_sysc_type1,
+>+};
+>+
+>+static struct omap_hwmod_class usbotg_class = {
+>+	.name = "usbotg",
+>+	.sysc = &omap2430_usbhsotg_sysc,
+>+};
+>+
+>+/* usb_otg_hs */
+>+static struct omap_hwmod_irq_info omap2430_usbhsotg_mpu_irqs[] = {
+>+
+>+	{ .name = "mc", .irq = 92 },
+>+	{ .name = "dma", .irq = 93 },
+>+};
+>+
+>+static struct omap_hwmod omap2430_usbhsotg_hwmod = {
+>+	.name		= "usb_otg_hs",
+>+	.mpu_irqs	= omap2430_usbhsotg_mpu_irqs,
+>+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_usbhsotg_mpu_irqs),
+>+	.main_clk	= "usbhs_ick",
+>+	.prcm		= {
+>+		.omap2 = {
+>+			.prcm_reg_id = 1,
+>+			.module_bit = OMAP2430_EN_USBHS_MASK,
+>+			.module_offs = CORE_MOD,
+>+			.idlest_reg_id = 1,
+>+			.idlest_idle_bit = OMAP2430_ST_USBHS_SHIFT,
+>+		},
+>+	},
+>+	.masters	= omap2430_usbhsotg_masters,
+>+	.masters_cnt	= ARRAY_SIZE(omap2430_usbhsotg_masters),
+>+	.slaves		= omap2430_usbhsotg_slaves,
+>+	.slaves_cnt	= ARRAY_SIZE(omap2430_usbhsotg_slaves),
+>+	.class		= &usbotg_class,
+>+	/*
+>+	 * Erratum ID: i479  idle_req / idle_ack mechanism potentially
+>+	 * broken when autoidle is enabled
+>+	 * workaround is to disable the autoidle bit at module level.
+>+	 */
+>+	.flags		= HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE
+>+				| HWMOD_SWSUP_MSTANDBY,
+>+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>+};
+>+
+> static __initdata struct omap_hwmod *omap2430_hwmods[] = {
+> 	&omap2430_l3_main_hwmod,
+> 	&omap2430_l4_core_hwmod,
+>@@ -428,6 +522,9 @@ static __initdata struct omap_hwmod *oma
+> 	&omap2430_uart1_hwmod,
+> 	&omap2430_uart2_hwmod,
+> 	&omap2430_uart3_hwmod,
+>+
+>+	/* usbotg class*/
+>+	&omap2430_usbhsotg_hwmod,
+> 	NULL,
+> };
 >
 
-NACK to this patch too for similar reasons as in patch1 of this series.
+Any comments?
 
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
-> =A0drivers/input/touchscreen/ads7846.c | =A0 =A01 +
-> =A01 files changed, 1 insertions(+), 0 deletions(-)
+Regards,
+Hema
 >
-> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touc=
-hscreen/ads7846.c
-> index 036f245..c001ce5 100644
-> --- a/drivers/input/touchscreen/ads7846.c
-> +++ b/drivers/input/touchscreen/ads7846.c
-> @@ -962,6 +962,7 @@ static int __devinit ads7846_setup_pendown(struct=
- spi_device *spi, struct ads784
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return err;
-> =A0 =A0 =A0 =A0}
->
-> + =A0 =A0 =A0 gpio_direction_input(pdata->gpio_pendown);
-> =A0 =A0 =A0 =A0ts->gpio_pendown =3D pdata->gpio_pendown;
->
-> =A0 =A0 =A0 =A0return 0;
-> --
-> 1.7.0.4
->
-> --
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
