@@ -1,63 +1,45 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH v3 1/2] ads7846: fix gpio free without requesting
-Date: Thu, 03 Feb 2011 18:29:03 +0200
-Message-ID: <4D4AD7CF.7040103@compulab.co.il>
-References: <1296746486-12168-1-git-send-email-sourav.poddar@ti.com> <20110203154705.GE6508@pengutronix.de>
+From: Adam Wozniak <awozniak@irobot.com>
+Subject: spin_lock_irqsave and ISP interrupts on OMAP 3530
+Date: Thu, 03 Feb 2011 08:31:51 -0800
+Message-ID: <4D4AD877.8070702@irobot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20110203154705.GE6508@pengutronix.de>
-Sender: linux-input-owner@vger.kernel.org
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, LW@karo-electronics.de, Dmitry Torokhov <dtor@mail.ru>, balbi@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, charu@ti.com, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp1.irobot.com ([206.83.81.187]:24300 "EHLO smtp1.irobot.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756002Ab1BCQrL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Feb 2011 11:47:11 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi,
+I'm hoping I'm just not understanding something and this isn't as broke 
+as I fear it is.
 
-On 02/03/11 17:47, Wolfram Sang wrote:
+I'm using the ISP on an OMAP3530, linux 2.6.32.  I've got some kernel 
+code I want to lock in both the process context and the ISP interrupt 
+context, so I'm using a spinlock.  As I understand it, locking the 
+spinlock should disable all interrupts.  However, I'm still seeing the 
+ISP interrupt happen when I've got the spinlock locked in the process 
+context.
 
-> On Thu, Feb 03, 2011 at 08:51:26PM +0530, Sourav Poddar wrote:
->> gpio_pendown in ads7846_probe is not getting initalized (defaulted to 0)
->> resulting in gpio_free being called without a gpio_request. This
->> results in the following backtrace in bootup (at least on an OMAP3430 SDP).
-> I wonder if it makes sense to merge both patches under the name of "fix
-> gpio-handling" or similar. Not sure, though...
+i.e. somewhere I've got the code below, and my Warning is tripping.  Is 
+this broken, or am I not understanding something?
 
-I'd rather not do that, because this patch fixes the request/free problem
-and the second is changing the functionality (e.g. configures the gpio as input)
+int am_i_locked = 0;
+spinlock_t my_spinlock = SPIN_LOCK_UNLOCKED;
 
->> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
->> index 14ea54b..ce5baee 100644
->> --- a/drivers/input/touchscreen/ads7846.c
->> +++ b/drivers/input/touchscreen/ads7846.c
->> @@ -952,6 +952,7 @@ static int __devinit ads7846_setup_pendown(struct spi_device *spi, struct ads784
->>  
->>  	if (pdata->get_pendown_state) {
->>  		ts->get_pendown_state = pdata->get_pendown_state;
->> +		ts->gpio_pendown = -EINVAL;
->>  		return 0;
->>  	}
-> Will probably work, but maybe it is better to reorganize the code to
-> just have one success-exit-point. That would be mean adding an else
-> branch to this if-block.
+void foo(void) {
+     /* function could be called from process context, or could be 
+called from omap34xx_isp_isr (interrupt context) */
+     unsigned long flags;
+     spin_lock_irqsave(&my_spinlock, flags);
+     WARN_ON(am_i_locked);
+     am_i_locked++;
 
-This is something that can be done, though I fear the code readability
-will suffer. Is it worth?
+     /* do some stuff */
 
->>  
->> @@ -1353,7 +1354,7 @@ static int __devinit ads7846_probe(struct spi_device *spi)
->>   err_put_regulator:
->>  	regulator_put(ts->reg);
->>   err_free_gpio:
->> -	if (ts->gpio_pendown != -1)
->> +	if (gpio_is_valid(ts->gpio_pendown))
-> You could do the same in the remove-path.
-
-You mean, _should_... ;)
-Otherwise, the patch is not complete.
-
--- 
-Regards,
-Igor.
-
+     am_i_locked--;
+     spin_unlock_irqrestore(&my_spinlock, flags);
+}
