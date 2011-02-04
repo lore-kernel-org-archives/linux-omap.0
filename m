@@ -1,51 +1,37 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 03/20] mach-omap2: smartreflex: world-writable debugfs voltage files
-Date: Fri, 04 Feb 2011 14:54:14 -0800
-Message-ID: <87zkqbjtrd.fsf@ti.com>
-References: <cover.1296818921.git.segoon@openwall.com>
-	<96a2b24548af3a68fde712c68b49e856e53ea1fc.1296818921.git.segoon@openwall.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] omap: Fix DEBUG_LL code for p2v changes (Re: Fwd: [RFC
+	4/5] ARM: P2V: introduce phys_to_virt/virt_to_phys runtime patching)
+Date: Fri, 4 Feb 2011 23:46:20 +0000
+Message-ID: <20110204234620.GB8821@n2100.arm.linux.org.uk>
+References: <20110118183252.GJ16980@n2100.arm.linux.org.uk> <20110118203706.GR4957@atomide.com> <20110204011538.GN3322@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <96a2b24548af3a68fde712c68b49e856e53ea1fc.1296818921.git.segoon@openwall.com>
-	(Vasiliy Kulikov's message of "Fri, 4 Feb 2011 15:23:20 +0300")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vasiliy Kulikov <segoon@openwall.com>
-Cc: linux-kernel@vger.kernel.org, security@kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48488 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752992Ab1BDXq1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 18:46:27 -0500
+Content-Disposition: inline
+In-Reply-To: <20110204011538.GN3322@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Vasiliy Kulikov <segoon@openwall.com> writes:
+On Thu, Feb 03, 2011 at 05:15:39PM -0800, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [110118 12:36]:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [110118 10:32]:
+> > > A warning for OMAP.
+> > > 
+> > > Your use of the __virt_to_phys() in assembly code for the debug stuff
+> > > will break with this patch... please ensure that it is resolved by the
+> > > next merge window.
+> > 
+> > Sure thanks. I'm aware of this series, will take care of it.
+> 
+> Here's a minimal fix for your p2v branch. Will send more DEBUG_LL
+> related patches in a separate series.
 
-> Don't allow everybody to change voltage settings.
->
-> Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-> ---
->  Cannot compile the driver, so it is not tested at all.
+Could you please provide some acks/tested bys for the p2v stuff?
 
-Acked-by: Kevin Hilman <khilman@ti.com>
-
-
->  arch/arm/mach-omap2/smartreflex.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-> index c37e823..95ac336 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -900,7 +900,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->  		return PTR_ERR(dbg_dir);
->  	}
->  
-> -	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
-> +	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUSR, dbg_dir,
->  				(void *)sr_info, &pm_sr_fops);
->  	(void) debugfs_create_x32("errweight", S_IRUGO, dbg_dir,
->  			&sr_info->err_weight);
-> @@ -939,7 +939,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->  		strcpy(name, "volt_");
->  		sprintf(volt_name, "%d", volt_data[i].volt_nominal);
->  		strcat(name, volt_name);
-> -		(void) debugfs_create_x32(name, S_IRUGO | S_IWUGO, nvalue_dir,
-> +		(void) debugfs_create_x32(name, S_IRUGO | S_IWUSR, nvalue_dir,
->  				&(sr_info->nvalue_table[i].nvalue));
->  	}
+Thanks.
