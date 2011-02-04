@@ -1,13 +1,13 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 7/9] omap4: dpll: Add dpll api to control GATE_CTRL
-Date: Fri,  4 Feb 2011 15:29:02 +0530
-Message-ID: <1296813544-25170-8-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 5/9] omap: clocks: Add allow_idle/deny_idle support in clkops
+Date: Fri,  4 Feb 2011 15:29:00 +0530
+Message-ID: <1296813544-25170-6-git-send-email-santosh.shilimkar@ti.com>
 References: <1296813544-25170-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55878 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55881 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754850Ab1BDJ7U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Feb 2011 04:59:20 -0500
+	id S1754852Ab1BDJ7W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Feb 2011 04:59:22 -0500
 In-Reply-To: <1296813544-25170-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,96 +16,95 @@ Cc: khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, linux-arm-k
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-On OMAP4, the dpll post divider outputs (MX outputs)
-provide a way to allow/deny hardware level autogating.
-Allowing autoidle would mean that the hw would autogate
-this clock when there is no dependency for it.
-Denying idle would mean that this clock output will be
-forced to stay enabled.
+On OMAP various clock nodes (dpll's, mx post dividers, interface clocks)
+support hardware level autogating which can be controlled from
+software.
+Support such functionality by adding two new function pointer
+allow_idle and deny_idle in the clkops structure.
 
-Add dpll api's to read/allow/deny idle control
-for these dpll mx postdividers.
+These function pointers can be populated for any clock
+node which supports hardware level autogating.
 
-NOTE: The gatectrl bit set to 0 allows gatectrl,
-and the bit set to 1 denies gatectrl.
+Also add 2 new functions (omap_clk_enable_auotidle and
+omap_clk_disable_autoidle) which can be called from
+architecture specific PM core code, if hardware level
+autogating (for all supported clock nodes) is to be
+enabled or disabled.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clock.h    |    3 ++
- arch/arm/mach-omap2/dpll3xxx.c |   42 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 45 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/clock.c              |   26 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/clock.h |    6 ++++++
+ 2 files changed, 32 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 2a939e5..c450d69 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -65,6 +65,9 @@ u32 omap3_dpll_autoidle_read(struct clk *clk);
- int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
- int omap3_noncore_dpll_enable(struct clk *clk);
- void omap3_noncore_dpll_disable(struct clk *clk);
-+int omap4_dpllmx_gatectrl_read(struct clk *clk);
-+void omap4_dpllmx_allow_gatectrl(struct clk *clk);
-+void omap4_dpllmx_deny_gatectrl(struct clk *clk);
- 
- #ifdef CONFIG_OMAP_RESET_CLOCKS
- void omap2_clk_disable_unused(struct clk *clk);
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index f77022b..4571e94 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -34,6 +34,7 @@
- #include "clock.h"
- #include "cm2xxx_3xxx.h"
- #include "cm-regbits-34xx.h"
-+#include "cm-regbits-44xx.h"
- 
- /* CM_AUTOIDLE_PLL*.AUTO_* bit values */
- #define DPLL_AUTOIDLE_DISABLE			0x0
-@@ -612,3 +613,44 @@ unsigned long omap3_clkoutx2_recalc(struct clk *clk)
- 		rate = clk->parent->rate * 2;
- 	return rate;
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index fc62fb5..6889c5a 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -335,6 +335,32 @@ struct clk *omap_clk_get_by_name(const char *name)
+ 	return ret;
  }
-+
-+/* Supported only on OMAP4 */
-+int omap4_dpllmx_gatectrl_read(struct clk *clk)
+ 
++void omap_clk_enable_autoidle(void)
 +{
-+	u32 v;
++	struct clk *c;
 +
-+	if (!clk || !clk->clksel_reg || !cpu_is_omap44xx())
-+		return -EINVAL;
++	mutex_lock(&clocks_mutex);
 +
-+	v = __raw_readl(clk->clksel_reg);
-+	v &= OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
-+	v >>= __ffs(OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK);
++	list_for_each_entry(c, &clocks, node)
++		if (c->ops->allow_idle)
++			c->ops->allow_idle(c);
 +
-+	return v;
++	mutex_unlock(&clocks_mutex);
 +}
 +
-+void omap4_dpllmx_allow_gatectrl(struct clk *clk)
++void omap_clk_disable_autoidle(void)
 +{
-+	u32 v;
++	struct clk *c;
 +
-+	if (!clk || !clk->clksel_reg || !cpu_is_omap44xx())
-+		return;
++	mutex_lock(&clocks_mutex);
 +
-+	v = __raw_readl(clk->clksel_reg);
-+	/* Clear the bit to allow gatectrl */
-+	v &= ~OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
-+	__raw_writel(v, clk->clksel_reg);
++	list_for_each_entry(c, &clocks, node)
++		if (c->ops->deny_idle)
++			c->ops->deny_idle(c);
++
++	mutex_unlock(&clocks_mutex);
 +}
 +
-+void omap4_dpllmx_deny_gatectrl(struct clk *clk)
-+{
-+	u32 v;
-+
-+	if (!clk || !clk->clksel_reg || !cpu_is_omap44xx())
-+		return;
-+
-+	v = __raw_readl(clk->clksel_reg);
-+	/* Set the bit to deny gatectrl */
-+	v |= OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
-+	__raw_writel(v, clk->clksel_reg);
-+}
+ /*
+  * Low level helpers
+  */
+diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+index 8eb0ada..167f1e0 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -25,6 +25,8 @@ struct clockdomain;
+  * @disable: fn ptr that enables the current clock in hardware
+  * @find_idlest: function returning the IDLEST register for the clock's IP blk
+  * @find_companion: function returning the "companion" clk reg for the clock
++ * @allow_idle: fn ptr that enables autoidle for the current clock in hardware
++ * @deny_idle: fn ptr that disables autoidle for the current clock in hardware
+  *
+  * A "companion" clk is an accompanying clock to the one being queried
+  * that must be enabled for the IP module connected to the clock to
+@@ -42,6 +44,8 @@ struct clkops {
+ 					       u8 *, u8 *);
+ 	void			(*find_companion)(struct clk *, void __iomem **,
+ 						  u8 *);
++	void			(*allow_idle)(struct clk *);
++	void			(*deny_idle)(struct clk *);
+ };
+ 
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+@@ -292,6 +296,8 @@ extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
+ extern void clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
+ #endif
+ extern struct clk *omap_clk_get_by_name(const char *name);
++extern void omap_clk_enable_autoidle(void);
++extern void omap_clk_disable_autoidle(void);
+ 
+ extern const struct clkops clkops_null;
+ 
 -- 
 1.6.0.4
 
