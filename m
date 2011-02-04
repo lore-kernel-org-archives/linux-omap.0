@@ -1,45 +1,37 @@
-From: Linus Walleij <linus.walleij@stericsson.com>
-Subject: Re: [rtc-linux] [PATCH 00/20] world-writable files in sysfs and
-	debugfs
-Date: Fri, 4 Feb 2011 14:11:36 +0100
-Message-ID: <AANLkTik9FkP==O7athEugN4gLrnh7qyg_pPRR3MZ0La7@mail.gmail.com>
-References: <cover.1296818921.git.segoon@openwall.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH] arm: mach-omap2: board-rm680: fix rm680_vemmc regulator
+ constraints
+Date: Fri, 04 Feb 2011 16:31:40 +0300
+Message-ID: <4D4BFFBC.4040606@ru.mvista.com>
+References: <1296574588-23588-1-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <cover.1296818921.git.segoon@openwall.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: rtc-linux@googlegroups.com
-Cc: Mike Christie <michaelc@cs.wisc.edu>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, platform-driver-x86@vger.kernel.org, socketcan-core@lists.berlios.de, Corentin Chary <corentincj@iksaif.net>, "James E.J. Bottomley" <James.Bottomley@suse.de>, Julia Lawall <julia@diku.dk>, Russell King <linux@arm.linux.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, linux-scsi@vger.kernel.org, Karol Kozimor <sziwan@users.sourceforge.net>, Kevin Hilman <khilman@deeprootsystems.com>, Luca Risolia <luca.risolia@studio.unibo.it>, open-iscsi@googlegroups.com, Wolfgang Grandegger <wg@grandegger.com>, Matthew Garrett <mjg@redhat.com>, acpi4asus-user@lists.sourceforge.net, Carlos Corbacho <carlos@strangeworlds.co.uk>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alessandro Zummo <a.zummo@>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:64100 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751559Ab1BDNcy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 08:32:54 -0500
+Received: by fxm20 with SMTP id 20so2408762fxm.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 05:32:53 -0800 (PST)
+In-Reply-To: <1296574588-23588-1-git-send-email-aaro.koskinen@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-2011/2/4 Vasiliy Kulikov <segoon@openwall.com>:
+Hello.
 
-> The search was made with trivial shell commands:
->
-> find | xargs grep S_IWUGO
-> find | xargs grep S_IWOTH
+On 01-02-2011 18:36, Aaro Koskinen wrote:
 
-We only use our debugfs entries as root so it shouldn't matter much, this
-is way better, thanks for fixing.
+> With the commit 757902513019e6ee469791ff76f954b19ca8d036 fixed voltage
 
-> =A0mach-ux500: mbox-db5500: world-writable sysfs fifo file
-> =A0mfd: ab3100: world-writable debugfs *_priv files
-> =A0mfd: ab3500: world-writable debugfs register-* files
-> =A0mfd: ab8500: world-writable debugfs register-* files
+    Please also specify the commit summary in parens, as asked by Linus.
 
-Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+> regulator setup will fail if there are voltage constraints defined. This
+> made MMC unusable on this board. Fix by just deleting those redundant
+> constraints.
 
-For these.
+> Signed-off-by: Aaro Koskinen<aaro.koskinen@nokia.com>
 
-Yours,
-Linus Walleij
+WBR, Sergei
