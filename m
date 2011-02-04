@@ -1,53 +1,65 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH 0/2] Allow using machine ID for DEBUG_LL macros
-Date: Thu, 03 Feb 2011 22:39:33 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1102032235150.12104@xanadu.home>
-References: <20110204012008.26298.16341.stgit@baageli.muru.com>
- <alpine.LFD.2.00.1102032057070.12104@xanadu.home>
- <20110204031307.GS3322@atomide.com>
+From: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 4/7] usb: otg: OMAP4430: Add phy_suspend function pointer
+ to twl4030_usb_data
+Date: Fri, 4 Feb 2011 10:53:14 +0530
+Message-ID: <f830c17b24f9087216551324996e4efa@mail.gmail.com>
+References: <yes> <1296726587-10530-4-git-send-email-hemahk@ti.com> <4D4AB187.50406@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:27913 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751901Ab1BDDje (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 22:39:34 -0500
-Received: from xanadu.home ([66.130.28.92]) by vl-mo-mrz24.ip.videotron.ca
- (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
- with ESMTP id <0LG200K0QQ587XF0@vl-mo-mrz24.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Thu, 03 Feb 2011 22:39:08 -0500 (EST)
-In-reply-to: <20110204031307.GS3322@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4D4AB187.50406-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thu, 3 Feb 2011, Tony Lindgren wrote:
+ Hi,
 
-> * Nicolas Pitre <nico@fluxnic.net> [110203 18:01]:
-> > On Thu, 3 Feb 2011, Tony Lindgren wrote:
-> > 
-> > > Hi all,
-> > > 
-> > > Here are two patches that allow using machine ID for DEBUG_LL
-> > > macros by adding a new macro inituart.
-> > 
-> > This won't work with the device tree support as the machine ID is then 
-> > replaced with a catch-it-all-with-dt-support machine ID.
-> 
-> Hmm, maybe for device tree we could only have it initialized later
-> on by setting up custom early_printk in early_printk.c based on the
-> device tree data or machine ID?
-> 
-> It won't work very early then though.. If we want it to work early
-> we could allocate some fixed memory chunk for addruart etc functions
-> for which the bootloader just passes addresses.
+>-----Original Message-----
+>From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org]
+>Sent: Thursday, February 03, 2011 7:16 PM
+>To: Hema HK
+>Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+>Felipe Balbi; Tony Lindgren
+>Subject: Re: [PATCH 4/7] usb: otg: OMAP4430: Add phy_suspend
+>function pointer to twl4030_usb_data
+>
+>Hello.
+>
+>On 03-02-2011 12:49, Hema HK wrote:
+>
+>> Introduce the .phy_suspend function pointer to
+>twl4030_usb_data structure.
+>> assign the function to it for both sdp board and panda boards.
+>> This will be used by the twl6030-usb transceiver driver.
+>
+>> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
+>> Cc: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
+>> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>
+>> Index: linux-2.6/arch/arm/plat-omap/include/plat/usb.h
+>> ===================================================================
+>> --- linux-2.6.orig/arch/arm/plat-omap/include/plat/usb.h
+>> +++ linux-2.6/arch/arm/plat-omap/include/plat/usb.h
+>> @@ -88,6 +88,7 @@ extern int omap4430_phy_power(struct dev
+>>   extern int omap4430_phy_set_clk(struct device *dev, int on);
+>>   extern int omap4430_phy_init(struct device *dev);
+>>   extern int omap4430_phy_exit(struct device *dev);
+>> +extern int omap4430_phy_suspend(struct device *dev, int suspend);
+>
+>    And where it it defined? Why this doesn't happen in this patch?
+>
+This is defined in the previous patch. This could have been done in
+previous patch
+also, but it is just that extern is done only when using.
 
-Nah... Let's keep relationship between the kernel and bootloaders to a 
-strict minimum.  If necessary we'll find a way to extract that info from 
-the dtb in assembly.  I'd suggest just continuing this excellent cleanup 
-for the time being.
+Regards,
+Hema
 
 
-Nicolas
+>WBR, Sergei
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
