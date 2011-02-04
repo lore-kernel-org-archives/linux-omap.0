@@ -1,54 +1,87 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/2] ARM: Add inituart macro to initialize DEBUG_LL
-	serial port based on the machine ID
-Date: Fri, 4 Feb 2011 12:32:20 +0000
-Message-ID: <20110204123220.GG15004@n2100.arm.linux.org.uk>
-References: <20110204012008.26298.16341.stgit@baageli.muru.com> <20110204012207.26298.16649.stgit@baageli.muru.com> <20110204083934.GB15004@n2100.arm.linux.org.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: World writeable MUX
+Date: Fri, 4 Feb 2011 14:43:52 +0200
+Message-ID: <20110204124352.GH30543@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="l76fUT7nc3MelDdI"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33145 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751637Ab1BDMc2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 07:32:28 -0500
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:35974 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751586Ab1BDMnz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 07:43:55 -0500
+Received: by mail-fx0-f47.google.com with SMTP id 17so2342181fxm.34
+        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 04:43:54 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20110204083934.GB15004@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Fri, Feb 04, 2011 at 08:39:34AM +0000, Russell King - ARM Linux wrote:
-> Can't we just hard-configure the virtual/physical address at build
-> time and be done with it?
-> 
-> I've given up with the current state of affairs which tries to use the
-> platform ID to select the UART to use as it never seems to work, and I
-> have a couple of patches which hard-code the address at compile time -
-> one for the SDP4430 board and one for the LDP3430 board.
-> 
-> If it's complicated, then it probably won't work.  Keep it simple.
-> That's especially true for debugging code, otherwise you need extra
-> debugging code to debug why the debugging code doesn't work.
 
-There's another good reason to hard-configure the UART port rather
-than select it by ID.
+--l76fUT7nc3MelDdI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The common usage scenario: you're bringing up a new board.  You know
-you're going to have your console connected to UART2.  So, no matter
-what you want your debug messages to come out of UART2 even if the
-machine ID is wrong.
+Hi Tony,
 
-By detecting the UART port from the machine number, you immediately
-lose that ability, and therefore the confidence, that "if I build the
-kernel for X with LL debug enabled, and monitor port Y, I will get
-messages out of port Y, and not some other random port Z which I'd to
-solder wires to to monitor."
+I saw a few patches floating around regarding world writeable sysfs
+files and decided to grep around arch/arm/*omap* to try and see if we
+were safe. Turns out anyone can change MUX entries via the debugfs
+interface:
 
-In other words, no messages on the monitored port changes from "we didn't
-get into the kernel, or something early in the kernel boot before the C
-code went wrong" to "... or maybe the debugging code failed to get the
-right port too."
+static void __init omap_mux_dbg_create_entry(
+				struct omap_mux_partition *partition,
+				struct dentry *mux_dbg_dir)
+{
+	struct omap_mux_entry *e;
 
-It is invaluable to know that the debugging code will always talk to
-the same UART which you're monitoring.
+	list_for_each_entry(e, &partition->muxmodes, node) {
+		struct omap_mux *m = &e->mux;
+
+		(void)debugfs_create_file(m->muxnames[0], S_IWUGO, mux_dbg_dir,
+					  m, &omap_mux_dbg_signal_fops);
+	}
+}
+
+is that really expected ? I guess not, attached there's a small patch to
+fix that one.
+
+-- 
+balbi
+
+--l76fUT7nc3MelDdI
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-arm-omap2-fix-a-world-writeable-debugfs-file.diff"
+
+>From d3e0b6d3ddd82b1f9ab0299105cb8bf29d142ac4 Mon Sep 17 00:00:00 2001
+From: Felipe Balbi <balbi@ti.com>
+Date: Fri, 4 Feb 2011 14:42:16 +0200
+Subject: [PATCH] arm: omap2: fix a world writeable debugfs file
+Organization: Texas Instruments\n
+
+don't allow anyone to fiddle with the mux settings.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/mux.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index fae49d1..2727e58 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -605,7 +605,7 @@ static void __init omap_mux_dbg_create_entry(
+ 	list_for_each_entry(e, &partition->muxmodes, node) {
+ 		struct omap_mux *m = &e->mux;
+ 
+-		(void)debugfs_create_file(m->muxnames[0], S_IWUGO, mux_dbg_dir,
++		(void)debugfs_create_file(m->muxnames[0], S_IWUSR, mux_dbg_dir,
+ 					  m, &omap_mux_dbg_signal_fops);
+ 	}
+ }
+-- 
+1.7.4.rc2
+
+
+--l76fUT7nc3MelDdI--
