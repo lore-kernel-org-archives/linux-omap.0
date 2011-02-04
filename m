@@ -1,51 +1,53 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH v3 2/2] Input: ads7846: use gpio_request_one to
- configure pendown_gpio
-Date: Fri, 4 Feb 2011 19:46:18 +0530
-Message-ID: <20110204141618.GE2070@m-desktop>
-References: <1296746506-12221-1-git-send-email-sourav.poddar@ti.com>
- <20110203165405.GB12802@core.coreip.homeip.net>
- <20110203171953.GA13997@core.coreip.homeip.net>
- <20110204133250.GB2070@m-desktop>
- <20110204140847.GA3178@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110204140847.GA3178@pengutronix.de>
-Sender: linux-input-owner@vger.kernel.org
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, balbi@ti.com, charu@ti.com, grinberg@compulab.co.il, linux-input@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, LW@karo-electronics.de, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
+From: Dave Martin <dave.martin@linaro.org>
+Subject: [PATCH] ARM: Define wfi(), wfe(), sev() macros for pre-v7 processors
+Date: Fri,  4 Feb 2011 14:20:43 +0000
+Message-ID: <1296829243-21313-1-git-send-email-dave.martin@linaro.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:65517 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752266Ab1BDOUw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 09:20:52 -0500
+Received: by wyb28 with SMTP id 28so2294467wyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 06:20:51 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Dave Martin <dave.martin@linaro.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, Russell King <linux@arm.linux.org.uk>
 
-On Fri, Feb 04, 2011 at 03:08:47PM +0100, Wolfram Sang wrote:
-> On Fri, Feb 04, 2011 at 07:02:50PM +0530, G, Manjunath Kondaiah wrote:
-> > On Thu, Feb 03, 2011 at 09:19:53AM -0800, Dmitry Torokhov wrote:
-> > > On Thu, Feb 03, 2011 at 08:54:05AM -0800, Dmitry Torokhov wrote:
-> > > > On Thu, Feb 03, 2011 at 08:51:46PM +0530, Sourav Poddar wrote:
-> > > > > The ads7846 driver requests a gpio but does not currently
-> > > > > configure it explicitly as an input. Use gpio_request_one
-> > > > > to request and configure it at one shot.
-> > > > > 
-> > > > > Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> > > > > Cc: Dmitry Torokhov <dtor@mail.ru>
-> > > > 
-> > > > Will apply this one, the other one is a bit messy IMO, will have to
-> > > > think about it.
-> > > > 
-> > > 
-> > > Something like below should do I think.
-> > Patch looks good but it applies only on top of previous patch:
-> > https://patchwork.kernel.org/patch/529941/
-> > 
-> > Why to have two patches for this fix?
-> 
-> http://www.spinics.net/lists/linux-omap/msg45167.html
-My point here is: 
-1. The first patch only replaces gpio_request with gpio_request_one
-2. Rest of the things are handled in 2nd patch posted by dmitry
+Pre-v7 processors don't have wfe/sev, so these are defined for
+consistency as empty barrier asms.
 
-What is harm in merging both the patches? I don't think it affects
-readability.
+For v6, wfi is architected as a defined MCR instruction, so
+use that definition.
 
--Manjunath
+Doing a no-op instead of wfi() is probably bad, so for older
+processors than v6, wfi() is not defined.  If needed, some CPU-
+specific wfi() will have to be defined elsewhere.
+
+Signed-off-by: Dave Martin <dave.martin@linaro.org>
+---
+ arch/arm/include/asm/system.h |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/include/asm/system.h b/arch/arm/include/asm/system.h
+index 97f6d60..0e1cae3 100644
+--- a/arch/arm/include/asm/system.h
++++ b/arch/arm/include/asm/system.h
+@@ -129,7 +129,14 @@ extern unsigned int user_debug;
+ #define sev()	__asm__ __volatile__ ("sev" : : : "memory")
+ #define wfe()	__asm__ __volatile__ ("wfe" : : : "memory")
+ #define wfi()	__asm__ __volatile__ ("wfi" : : : "memory")
++#else /* __LINUX_ARM_ARCH__ < 7 */
++#define sev()	__asm__ __volatile__ ("" : : : "memory")
++#define wfe()	__asm__ __volatile__ ("" : : : "memory")
++#if __LINUX_ARM_ARCH__ == 6
++#define wfi()	__asm__ __volatile__ ("mcr p15, 0, %0, c7, c5, 4" \
++					: : "r" (0) : "memory")
+ #endif
++#endif /* __LINUX_ARM_ARCH__ < 7 */
+ 
+ #if __LINUX_ARM_ARCH__ >= 7
+ #define isb() __asm__ __volatile__ ("isb" : : : "memory")
+-- 
+1.7.1
+
