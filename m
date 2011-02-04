@@ -1,20 +1,20 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 05/13] OMAP: Introduce device scale implementation
-Date: Fri, 04 Feb 2011 08:04:31 -0800
-Message-ID: <87d3n7u6pc.fsf@ti.com>
+Subject: Re: [PATCH 06/13] OMAP: Disable Smartreflex across DVFS
+Date: Fri, 04 Feb 2011 08:06:26 -0800
+Message-ID: <871v3nu6m5.fsf@ti.com>
 References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
-	<1295618465-15234-6-git-send-email-vishwanath.bs@ti.com>
+	<1295618465-15234-7-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:57987 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753145Ab1BDQEk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 11:04:40 -0500
-Received: by mail-yi0-f41.google.com with SMTP id 25so998190yia.28
-        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 08:04:36 -0800 (PST)
-In-Reply-To: <1295618465-15234-6-git-send-email-vishwanath.bs@ti.com>
-	(Vishwanath BS's message of "Fri, 21 Jan 2011 19:30:57 +0530")
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:41642 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752938Ab1BDQGj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 11:06:39 -0500
+Received: by mail-yw0-f43.google.com with SMTP id 5so973503yws.16
+        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 08:06:29 -0800 (PST)
+In-Reply-To: <1295618465-15234-7-git-send-email-vishwanath.bs@ti.com>
+	(Vishwanath BS's message of "Fri, 21 Jan 2011 19:30:58 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Vishwanath BS <vishwanath.bs@ti.com>
@@ -22,205 +22,62 @@ Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com
 
 Vishwanath BS <vishwanath.bs@ti.com> writes:
 
-> This patch adds omap_device_scale API  which can be used to generic
-> device rate scaling.
-
-I would've expected a new omap_device_* API to be part of the
-omap_device layer, not added here.
-
-> Based on original patch from Thara.
+> From: Thara Gopinath <thara@ti.com>
 >
+> This patch disables smartreflex for a particular voltage
+> domain when the the voltage domain and the devices belonging
+> to it is being scaled and re-enables it back once the scaling
+> is done.
+
+Should also describe why.
+
+> Signed-off-by: Thara Gopinath <thara@ti.com>
 > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> Cc: Thara Gopinath <thara@ti.com>
 > ---
->  arch/arm/mach-omap2/dvfs.c             |  116 ++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/dvfs.h |    7 ++
->  2 files changed, 123 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/dvfs.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-omap2/dvfs.c
-> index c9d3894..05a9ce3 100755
+> index 05a9ce3..1e5492c 100755
 > --- a/arch/arm/mach-omap2/dvfs.c
 > +++ b/arch/arm/mach-omap2/dvfs.c
-> @@ -19,6 +19,7 @@
->  #include <plat/common.h>
->  #include <plat/voltage.h>
->  #include <plat/omap_device.h>
-> +#include <plat/smartreflex.h>
+> @@ -529,6 +529,9 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
 >  
->  /**
->   * struct omap_dev_user_list - Structure maitain userlist per device
-> @@ -585,6 +586,121 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
->  }
+>  	curr_volt = omap_voltage_get_nom_volt(voltdm);
 >  
->  /**
-> + * omap_device_scale() - Set a new rate at which the device is to operate
-> + * @req_dev:	pointer to the device requesting the scaling.
-> + * @target_dev:	pointer to the device that is to be scaled
-> + * @rate:	the rnew rate for the device.
-> + *
-> + * This API gets the device opp table associated with this device and
-> + * tries putting the device to the requested rate and the voltage domain
-> + * associated with the device to the voltage corresponding to the
-> + * requested rate. Since multiple devices can be assocciated with a
-> + * voltage domain this API finds out the possible voltage the
-> + * voltage domain can enter and then decides on the final device
-> + * rate. Return 0 on success else the error value
-> + */
+> +	/* Disable smartreflex module across voltage and frequency scaling */
 
-Here would be a good place to describe why both the requesting device
-and the target device need to be tracked.
+comment redundant
 
-> +int omap_device_scale(struct device *req_dev, struct device *target_dev,
-> +			unsigned long rate)
-> +{
-> +	struct opp *opp;
-> +	unsigned long volt, freq, min_freq, max_freq;
-> +	struct omap_vdd_dvfs_info *dvfs_info;
-> +	struct platform_device *pdev;
-> +	struct omap_device *od;
-> +	int ret = 0;
+> +	omap_sr_disable(voltdm);
 > +
-> +	pdev = container_of(target_dev, struct platform_device, dev);
-> +	od = container_of(pdev, struct omap_device, pdev);
-> +
-> +	/*
-> +	 * Figure out if the desired frquency lies between the
-> +	 * maximum and minimum possible for the particular device
-> +	 */
-> +	min_freq = 0;
-> +	if (IS_ERR(opp_find_freq_ceil(target_dev, &min_freq))) {
-> +		dev_err(target_dev, "%s: Unable to find lowest opp\n",
-> +						__func__);
-> +		return -ENODEV;
-> +	}
-> +
-> +	max_freq = ULONG_MAX;
-> +	if (IS_ERR(opp_find_freq_floor(target_dev, &max_freq))) {
-> +		dev_err(target_dev, "%s: Unable to find highest opp\n",
-> +						__func__);
-> +		return -ENODEV;
-> +	}
-> +
-> +	if (rate < min_freq)
-> +		freq = min_freq;
-> +	else if (rate > max_freq)
-> +		freq = max_freq;
-> +	else
-> +		freq = rate;
-> +
+>  	if (curr_volt == volt) {
+>  		is_volt_scaled = 1;
+>  	} else if (curr_volt < volt) {
+> @@ -536,6 +539,7 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
+>  		if (ret) {
+>  			pr_warning("%s: Unable to scale the %s to %ld volt\n",
+>  						__func__, voltdm->name, volt);
+> +			omap_sr_enable(voltdm);
 
-OK, frome here on, I would expect the adjusted value 'freq' to be used
-instead of 'rate', but that is not the case below.
+Would probably be cleaner to make this error path 'goto' the end where
+the SR enable and mutex_unlock are already being done.
 
-> +	opp = opp_find_freq_ceil(target_dev, &freq);
-> +	if (IS_ERR(opp)) {
-> +		dev_err(target_dev, "%s: Unable to find OPP for freq%ld\n",
-> +			__func__, rate);
-> +		return -ENODEV;
-> +	}
-> +
-> +	/* Get the voltage corresponding to the requested frequency */
-> +	volt = opp_get_voltage(opp);
-> +
-> +	/*
-> +	 * Call into the voltage layer to get the final voltage possible
-> +	 * for the voltage domain associated with the device.
-> +	 */
-
-This comment doesn't match the following code.
-
-> +	if (rate) {
-
-Why is rate used here, and not freq?
-
-> +		dvfs_info = get_dvfs_info(od->hwmods[0]->voltdm);
-> +
-> +		ret = omap_dvfs_add_freq_request(dvfs_info, req_dev,
-> +						target_dev, freq);
-> +		if (ret) {
-> +			dev_err(target_dev, "%s: Unable to add frequency request\n",
-> +				__func__);
-> +			return ret;
-> +		}
-> +
-> +		ret = omap_dvfs_add_vdd_user(dvfs_info, req_dev, volt);
-> +		if (ret) {
-> +			dev_err(target_dev, "%s: Unable to add voltage request\n",
-> +				__func__);
-> +			omap_dvfs_remove_freq_request(dvfs_info, req_dev,
-> +				target_dev);
-> +			return ret;
-> +		}
-> +	} else {
-
-The function comments don't describe this case.  Namely, that if you
-pass in rate = 0, it removes any previous requests for the requesting
-device.
-
-> +		dvfs_info = get_dvfs_info(od->hwmods[0]->voltdm);
-> +
-> +		ret = omap_dvfs_remove_freq_request(dvfs_info, req_dev,
-> +				target_dev);
-> +		if (ret) {
-> +			dev_err(target_dev, "%s: Unable to remove frequency request\n",
-> +				__func__);
-> +			return ret;
-> +		}
-> +
-> +		ret = omap_dvfs_remove_vdd_user(dvfs_info, req_dev);
-> +		if (ret) {
-> +			dev_err(target_dev, "%s: Unable to remove voltage request\n",
-> +				__func__);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	/* Do the actual scaling */
-> +	ret = omap_dvfs_voltage_scale(dvfs_info);
-
-ok
-
-> +	if (!ret)
-> +		if (omap_device_get_rate(target_dev) >= rate)
-> +			return 0;
-> +
-
-but this bit needs some explanation.  IIUC: if the _voltage_scale()
-fails (which also scales the frequency) but the frequency was
-sucessfully changed, then return success.
-
-Also 'rate' is used here where 'freq' would be expected.
-
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL(omap_device_scale);
-> +
-> +/**
->   * omap_dvfs_init() - Initialize omap dvfs layer
->   *
->   * Initalizes omap dvfs layer. It basically allocates memory for
-> diff --git a/arch/arm/plat-omap/include/plat/dvfs.h b/arch/arm/plat-omap/include/plat/dvfs.h
-> index 1302990..1be2b9d 100644
-> --- a/arch/arm/plat-omap/include/plat/dvfs.h
-> +++ b/arch/arm/plat-omap/include/plat/dvfs.h
-> @@ -17,11 +17,18 @@
+>  			mutex_unlock(&dvfs_info->scaling_mutex);
+>  			return ret;
+>  		}
+> @@ -570,6 +574,9 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
+>  	if (!is_volt_scaled && !ret)
+>  		omap_voltage_scale_vdd(voltdm, volt);
 >  
->  #ifdef CONFIG_PM
->  int omap_dvfs_register_device(struct voltagedomain *voltdm, struct device *dev);
-> +int omap_device_scale(struct device *req_dev, struct device *dev,
-> +			unsigned long rate);
->  #else
->  static inline int omap_dvfs_register_device(struct voltagedomain *voltdm,
->  		struct device *dev)
->  {
->  	return -EINVAL;
->  }
-> +static inline int omap_device_scale(struct device *req_dev, struct devices
-> +			*target_dev, unsigned long rate);
-> +{
-> +	return -EINVAL;
-> +}
->  #endif
->  #endif
+> +	/* Enable Smartreflex module */
+
+comment redundant
+
+> +	omap_sr_enable(voltdm);
+> +
+>  	mutex_unlock(&dvfs_info->scaling_mutex);
+>  
+>  	/* calculate the voltages for dependent vdd's */
 
 Kevin
