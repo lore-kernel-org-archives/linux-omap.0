@@ -1,44 +1,59 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/2] ARM: Add inituart macro to initialize DEBUG_LL
-	serial port based on the machine ID
-Date: Fri, 4 Feb 2011 08:39:34 +0000
-Message-ID: <20110204083934.GB15004@n2100.arm.linux.org.uk>
-References: <20110204012008.26298.16341.stgit@baageli.muru.com> <20110204012207.26298.16649.stgit@baageli.muru.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH] OMAP: McBSP: Remove unused audio macros in mcbsp.h
+Date: Fri,  4 Feb 2011 14:45:09 +0530
+Message-ID: <1296810909-24737-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44051 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752429Ab1BDIjr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 03:39:47 -0500
-Content-Disposition: inline
-In-Reply-To: <20110204012207.26298.16649.stgit@baageli.muru.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48464 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753606Ab1BDJSz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 04:18:55 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-On Thu, Feb 03, 2011 at 05:22:07PM -0800, Tony Lindgren wrote:
-> Allow machine specific init of the DEBUG_LL serial port. This is needed
-> to debug kernels built with support for multiple machines compiled in
-> without recompiling the kernel.
-> 
-> As some SoCs need to use variables to store the port address and LSR
-> register configuration, we must call inituart again after clearing
-> the BSS.
-> 
-> If variables are being used for for inituart and addruart, this setup
-> won't work properly for debugging the uncompress code without patching
-> arch/arm/boot/compressed/head.S for the machine in question.
+Some macros defined in mcbsp.h related to audio, which are never being used
+is removed.
 
-Can't we just hard-configure the virtual/physical address at build
-time and be done with it?
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Reviewed-by: Charulatha V <charu@ti.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>
+---
+ arch/arm/plat-omap/include/plat/mcbsp.h |   14 --------------
+ 1 files changed, 0 insertions(+), 14 deletions(-)
 
-I've given up with the current state of affairs which tries to use the
-platform ID to select the UART to use as it never seems to work, and I
-have a couple of patches which hard-code the address at compile time -
-one for the SDP4430 board and one for the LDP3430 board.
+diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
+index b87d83c..6ecf105 100644
+--- a/arch/arm/plat-omap/include/plat/mcbsp.h
++++ b/arch/arm/plat-omap/include/plat/mcbsp.h
+@@ -106,13 +106,6 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ #define OMAP_MCBSP_REG_XCCR	0x00
+ #define OMAP_MCBSP_REG_RCCR	0x00
+ 
+-#define AUDIO_MCBSP_DATAWRITE	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DXR1)
+-#define AUDIO_MCBSP_DATAREAD	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DRR1)
+-
+-#define AUDIO_MCBSP		OMAP_MCBSP1
+-#define AUDIO_DMA_TX		OMAP_DMA_MCBSP1_TX
+-#define AUDIO_DMA_RX		OMAP_DMA_MCBSP1_RX
+-
+ #else
+ 
+ #define OMAP_MCBSP_REG_DRR2	0x00
+@@ -168,13 +161,6 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ #define OMAP_ST_REG_SFIRCR	0x28
+ #define OMAP_ST_REG_SSELCR	0x2C
+ 
+-#define AUDIO_MCBSP_DATAWRITE	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR1)
+-#define AUDIO_MCBSP_DATAREAD	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1)
+-
+-#define AUDIO_MCBSP		OMAP_MCBSP2
+-#define AUDIO_DMA_TX		OMAP24XX_DMA_MCBSP2_TX
+-#define AUDIO_DMA_RX		OMAP24XX_DMA_MCBSP2_RX
+-
+ #endif
+ 
+ /************************** McBSP SPCR1 bit definitions ***********************/
+-- 
+1.7.0.4
 
-If it's complicated, then it probably won't work.  Keep it simple.
-That's especially true for debugging code, otherwise you need extra
-debugging code to debug why the debugging code doesn't work.
