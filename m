@@ -1,99 +1,61 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: [PATCH v3 3/5] ARM: omap3: Remove hand-encoded SMC instructions
-Date: Fri,  4 Feb 2011 14:21:45 +0000
-Message-ID: <1296829307-21439-4-git-send-email-dave.martin@linaro.org>
-References: <1296829307-21439-1-git-send-email-dave.martin@linaro.org>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH v3 2/2] Input: ads7846: use gpio_request_one to configure
+ pendown_gpio
+Date: Fri, 04 Feb 2011 16:47:09 +0200
+Message-ID: <4D4C116D.4080408@compulab.co.il>
+References: <1296746506-12221-1-git-send-email-sourav.poddar@ti.com> <20110203165405.GB12802@core.coreip.homeip.net> <20110203171953.GA13997@core.coreip.homeip.net> <20110204133250.GB2070@m-desktop> <20110204140847.GA3178@pengutronix.de> <20110204141618.GE2070@m-desktop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:50610 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267Ab1BDOYZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 09:24:25 -0500
-Received: by wwa36 with SMTP id 36so2405520wwa.1
-        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 06:24:24 -0800 (PST)
-In-Reply-To: <1296829307-21439-1-git-send-email-dave.martin@linaro.org>
+Received: from compulab.co.il ([67.18.134.219]:50051 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751082Ab1BDOr0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Feb 2011 09:47:26 -0500
+In-Reply-To: <20110204141618.GE2070@m-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Dave Martin <dave.martin@linaro.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, balbi@ti.com, charu@ti.com, linux-input@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, LW@karo-electronics.de, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
 
-For various reasons, Linux now only officially supports being built
-with tools which are new enough to understand the SMC instruction.
 
-Replacing the hand-encoded instructions when the mnemonic also
-allows for correct assembly in Thumb-2 (otherwise, the result is
-random data in the middle of the code).
 
-The Makefile already ensures that this file is built with a high
-enough gcc -march= flag (armv7-a).
+On 02/04/11 16:16, G, Manjunath Kondaiah wrote:
 
-Signed-off-by: Dave Martin <dave.martin@linaro.org>
-Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/sleep34xx.S |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+> On Fri, Feb 04, 2011 at 03:08:47PM +0100, Wolfram Sang wrote:
+>> On Fri, Feb 04, 2011 at 07:02:50PM +0530, G, Manjunath Kondaiah wrote:
+>>> On Thu, Feb 03, 2011 at 09:19:53AM -0800, Dmitry Torokhov wrote:
+>>>> On Thu, Feb 03, 2011 at 08:54:05AM -0800, Dmitry Torokhov wrote:
+>>>>> On Thu, Feb 03, 2011 at 08:51:46PM +0530, Sourav Poddar wrote:
+>>>>>> The ads7846 driver requests a gpio but does not currently
+>>>>>> configure it explicitly as an input. Use gpio_request_one
+>>>>>> to request and configure it at one shot.
+>>>>>>
+>>>>>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+>>>>>> Cc: Dmitry Torokhov <dtor@mail.ru>
+>>>>> Will apply this one, the other one is a bit messy IMO, will have to
+>>>>> think about it.
+>>>>>
+>>>> Something like below should do I think.
+>>> Patch looks good but it applies only on top of previous patch:
+>>> https://patchwork.kernel.org/patch/529941/
+>>>
+>>> Why to have two patches for this fix?
+>> http://www.spinics.net/lists/linux-omap/msg45167.html
+> My point here is: 
+> 1. The first patch only replaces gpio_request with gpio_request_one
+> 2. Rest of the things are handled in 2nd patch posted by dmitry
+>
+> What is harm in merging both the patches? I don't think it affects
+> readability.
 
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 98d8232..2c4671f 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -133,7 +133,7 @@ ENTRY(save_secure_ram_context)
- 	mov	r6, #0xff
- 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
- 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
--	.word	0xE1600071		@ call SMI monitor (smi #1)
-+	smc	1			@ call SMI monitor (smi #1)
- 	nop
- 	nop
- 	nop
-@@ -408,7 +408,7 @@ skipl2dis:
- 	adr	r3, l2_inv_api_params	@ r3 points to dummy parameters
- 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
- 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
--	.word	0xE1600071		@ call SMI monitor (smi #1)
-+	smc	#1			@ call SMI monitor (smi #1)
- 	/* Write to Aux control register to set some bits */
- 	mov	r0, #42			@ set service ID for PPA
- 	mov	r12, r0			@ copy secure Service ID in r12
-@@ -419,7 +419,7 @@ skipl2dis:
- 	ldr	r3, [r4, #0xBC]		@ r3 points to parameters
- 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
- 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
--	.word	0xE1600071		@ call SMI monitor (smi #1)
-+	smc	#1			@ call SMI monitor (smi #1)
- 
- #ifdef CONFIG_OMAP3_L2_AUX_SECURE_SAVE_RESTORE
- 	/* Restore L2 aux control register */
-@@ -434,7 +434,7 @@ skipl2dis:
- 	adds	r3, r3, #8		@ r3 points to parameters
- 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
- 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
--	.word	0xE1600071		@ call SMI monitor (smi #1)
-+	smc	#1			@ call SMI monitor (smi #1)
- #endif
- 	b	logic_l1_restore
- 
-@@ -443,18 +443,18 @@ l2_inv_api_params:
- l2_inv_gp:
- 	/* Execute smi to invalidate L2 cache */
- 	mov r12, #0x1			@ set up to invalidate L2
--	.word 0xE1600070		@ Call SMI monitor (smieq)
-+	smc	#0			@ Call SMI monitor (smieq)
- 	/* Write to Aux control register to set some bits */
- 	ldr	r4, scratchpad_base
- 	ldr	r3, [r4,#0xBC]
- 	ldr	r0, [r3,#4]
- 	mov	r12, #0x3
--	.word	0xE1600070		@ Call SMI monitor (smieq)
-+	smc	#0			@ Call SMI monitor (smieq)
- 	ldr	r4, scratchpad_base
- 	ldr	r3, [r4,#0xBC]
- 	ldr	r0, [r3,#12]
- 	mov	r12, #0x2
--	.word	0xE1600070		@ Call SMI monitor (smieq)
-+	smc	#0			@ Call SMI monitor (smieq)
- logic_l1_restore:
- 	ldr	r1, l2dis_3630
- 	cmp	r1, #0x1		@ Test if L2 re-enable needed on 3630
+Because the changes introduced by the patches are from different nature.
+As stated in the link above, one is a functional change (gpio setup change)
+and second is fixing the imbalance in request - free calls.
+The impact is not readability, but bad bisect-ability.
+
+
 -- 
-1.7.1
+Regards,
+Igor.
 
