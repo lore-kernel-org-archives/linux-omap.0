@@ -1,73 +1,24 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 0/5] ARM: Few patches for PM enablement.
-Date: Fri, 4 Feb 2011 15:49:11 +0530
-Message-ID: <f804b2179a222189b71c9429285de723@mail.gmail.com>
-References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH RFC] arm: omap3evm: Add support for an MT9M032 based
+	camera board.
+Date: Fri, 4 Feb 2011 10:29:43 +0000
+Message-ID: <20110204102943.GC15004@n2100.arm.linux.org.uk>
+References: <1295389936-3238-1-git-send-email-martin@neutronstar.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:34353 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754551Ab1BDKTO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 05:19:14 -0500
-Received: by mail-yi0-f54.google.com with SMTP id 19so942955yie.41
-        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 02:19:13 -0800 (PST)
-In-Reply-To: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46534 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754303Ab1BDK34 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 05:29:56 -0500
+Content-Disposition: inline
+In-Reply-To: <1295389936-3238-1-git-send-email-martin@neutronstar.dyndns.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, ccross@android.com, catalin.marinas@arm.com, linus.ml.walleij@gmail.com, linux-arm-kernel@lists.infradead.org
+To: Martin Hostettler <martin@neutronstar.dyndns.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 
-Russell,
-> -----Original Message-----
-> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
-> Sent: Monday, January 24, 2011 2:21 PM
-> To: linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org; ccross@android.com;
-> catalin.marinas@arm.com; linux@arm.linux.org.uk;
-> linus.ml.walleij@gmail.com; Santosh Shilimkar
-> Subject: [PATCH 0/5] ARM: Few patches for PM enablement.
->
-> The series consist of few patches to address some common PM issues
-> on Cortex-A9 based ARM SoCs. The skip calibration on secondary cores
-> is still under discussion.
-> On OMAP, the GIC save restore is done differently and hence that
-> part isn't included. Collin already have a patch for the same which
-> should address other SOCs.
->
-> The following changes since commit
-> 1bae4ce27c9c90344f23c65ea6966c50ffeae2f5:
->   Linus Torvalds (1):
->         Linux 2.6.38-rc2
->
-I want to repost this series with update as disussed on the
-list.
+On Tue, Jan 18, 2011 at 11:32:16PM +0100, Martin Hostettler wrote:
+> +#include <asm/gpio.h>
 
->       ARM: gic: Add hooks for architecture specific extensions
-I am adding set_type and ack as an additional hooks reuested
-by Collin.
-
->       ARM: gic: Add distributor and interface enable/disable
-> accessory api
-No change
-
->       ARM: twd: Add context save restore support
-Will drop this patch and add your patch instead.
-
->       ARM: scu: Move register defines to header file
-Same for this too. Your version instead of this patch.
-
->       ARM: smp: Skip secondary cpu calibration to speed-up boot
-Your last comment on this one was
-"I still point out that this will be a user visible change in
-/proc/cpuinfo."
-Are you ok with this patch if platforms like OMAP are
-ok with this visible change. This patch currently affecting
-only OMAP.
-
-Do you have any more points on this series ?
-
-Thanks for review.
-
-Regards,
-Santosh
+Please use linux/gpio.h in future.
