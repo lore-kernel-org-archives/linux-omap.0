@@ -1,68 +1,66 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH v3 2/2] Input: ads7846: use gpio_request_one to
- configure pendown_gpio
-Date: Fri, 4 Feb 2011 20:45:32 +0530
-Message-ID: <20110204151532.GF2070@m-desktop>
-References: <1296746506-12221-1-git-send-email-sourav.poddar@ti.com>
- <20110203165405.GB12802@core.coreip.homeip.net>
- <20110203171953.GA13997@core.coreip.homeip.net>
- <20110204133250.GB2070@m-desktop>
- <20110204140847.GA3178@pengutronix.de>
- <20110204141618.GE2070@m-desktop>
- <4D4C116D.4080408@compulab.co.il>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 04/13] OMAP: Introduce dependent voltage domain support
+Date: Fri, 04 Feb 2011 07:37:23 -0800
+Message-ID: <87wrlfvmj0.fsf@ti.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+	<1295618465-15234-5-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:52643 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750863Ab1BDPQ6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 10:16:58 -0500
-Content-Disposition: inline
-In-Reply-To: <4D4C116D.4080408@compulab.co.il>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:46785 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751539Ab1BDPh2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 10:37:28 -0500
+Received: by gwaa20 with SMTP id a20so963286gwa.10
+        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 07:37:26 -0800 (PST)
+In-Reply-To: <1295618465-15234-5-git-send-email-vishwanath.bs@ti.com>
+	(Vishwanath BS's message of "Fri, 21 Jan 2011 19:30:56 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, Wolfram Sang <w.sang@pengutronix.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, balbi@ti.com, charu@ti.com, linux-input@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, LW@karo-electronics.de, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
 
-On Fri, Feb 04, 2011 at 04:47:09PM +0200, Igor Grinberg wrote:
-> 
-> 
-> On 02/04/11 16:16, G, Manjunath Kondaiah wrote:
-> 
-> > On Fri, Feb 04, 2011 at 03:08:47PM +0100, Wolfram Sang wrote:
-> >> On Fri, Feb 04, 2011 at 07:02:50PM +0530, G, Manjunath Kondaiah wrote:
-> >>> On Thu, Feb 03, 2011 at 09:19:53AM -0800, Dmitry Torokhov wrote:
-> >>>> On Thu, Feb 03, 2011 at 08:54:05AM -0800, Dmitry Torokhov wrote:
-> >>>>> On Thu, Feb 03, 2011 at 08:51:46PM +0530, Sourav Poddar wrote:
-> >>>>>> The ads7846 driver requests a gpio but does not currently
-> >>>>>> configure it explicitly as an input. Use gpio_request_one
-> >>>>>> to request and configure it at one shot.
-> >>>>>>
-> >>>>>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> >>>>>> Cc: Dmitry Torokhov <dtor@mail.ru>
-> >>>>> Will apply this one, the other one is a bit messy IMO, will have to
-> >>>>> think about it.
-> >>>>>
-> >>>> Something like below should do I think.
-> >>> Patch looks good but it applies only on top of previous patch:
-> >>> https://patchwork.kernel.org/patch/529941/
-> >>>
-> >>> Why to have two patches for this fix?
-> >> http://www.spinics.net/lists/linux-omap/msg45167.html
-> > My point here is: 
-> > 1. The first patch only replaces gpio_request with gpio_request_one
-> > 2. Rest of the things are handled in 2nd patch posted by dmitry
-> >
-> > What is harm in merging both the patches? I don't think it affects
-> > readability.
-> 
-> Because the changes introduced by the patches are from different nature.
-> As stated in the link above, one is a functional change (gpio setup change)
-> and second is fixing the imbalance in request - free calls.
-> The impact is not readability, but bad bisect-ability.
+Vishwanath BS <vishwanath.bs@ti.com> writes:
 
-ok. But the patch2(dmitry's patch) is doing more than what it is mentioned in
-patch description. It checks for validity of gpio, comment correction
-etc which needs to be updated in the patch description.
+> There could be dependencies between various voltage domains for
+> maintaining system performance or hardware limitation reasons
+> like VDD<X> should be at voltage v1 when VDD<Y> is at voltage v2.
+> This patch introduce dependent vdd information structures in the
+> voltage layer which can be used to populate these dependencies
+> for a voltage domain. This patch also adds support to scale
+> the dependent vdd and the scalable devices belonging to it
+> during the scaling of a main vdd through omap_voltage_scale.
+>
+> As part of this, some of the voltage layer structure definitions are moved from
+> voltage.c to voltage.h as it needs to be used in the dvfs layer for dependency
+> voltage handling.
 
--Manjunath
+IMO, it would be cleaner to keep this in the voltage layer, and create
+and API for dependencies.  
+
+> Based on original patch from Thara.
+>
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> Cc: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/mach-omap2/dvfs.c                |   87 +++++++++++++++++
+>  arch/arm/mach-omap2/voltage.c             |  117 -----------------------
+>  arch/arm/plat-omap/include/plat/voltage.h |  148 +++++++++++++++++++++++++++++
+>  3 files changed, 235 insertions(+), 117 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-omap2/dvfs.c
+> index cefc2be..c9d3894 100755
+> --- a/arch/arm/mach-omap2/dvfs.c
+> +++ b/arch/arm/mach-omap2/dvfs.c
+> @@ -85,6 +85,7 @@ struct omap_vdd_dvfs_info {
+>  	struct mutex scaling_mutex; /* dvfs mutex */
+>  	struct voltagedomain *voltdm;
+>  	struct list_head dev_list;
+> +	struct device vdd_device;
+
+It's not clear what the usage of this device is for.
+
+It is never initialized, but seems to be used as a dummy device when
+calcluating dependencies.   Needs clarification.
+
+Kevin
