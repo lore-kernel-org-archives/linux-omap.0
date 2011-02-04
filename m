@@ -1,110 +1,83 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 2/5] omap: Use inituart to configure the debug serial port
- based on machine ID
-Date: Fri, 4 Feb 2011 14:04:57 +0200
-Message-ID: <AANLkTik7ommf_4HuahAxhMdaY-h-1JGsFfDzt2826d95@mail.gmail.com>
-References: <20110204012317.26410.55157.stgit@baageli.muru.com>
-	<20110204012707.26410.28508.stgit@baageli.muru.com>
+From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: [PATCH 00/20] world-writable files in sysfs and debugfs
+Date: Fri, 4 Feb 2011 15:22:29 +0300
+Message-ID: <cover.1296818921.git.segoon@openwall.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:50116 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751120Ab1BDME6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 07:04:58 -0500
-Received: by pzk35 with SMTP id 35so393636pzk.19
-        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 04:04:58 -0800 (PST)
-In-Reply-To: <20110204012707.26410.28508.stgit@baageli.muru.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Mike Christie <michaelc@cs.wisc.edu>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, platform-driver-x86@vger.kernel.org, socketcan-core@lists.berlios.de, Corentin Chary <corentincj@iksaif.net>, "James E.J. Bottomley" <James.Bottomley@suse.de>, Julia Lawall <julia@diku.dk>, Russell King <linux@arm.linux.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, linux-scsi@vger.kernel.org, Karol Kozimor <sziwan@users.sourceforge.net>, Kevin Hilman <khilman@deeprootsystems.com>, Luca Risolia <luca.risolia@studio.unibo.it>, open-iscsi@googlegroups.com, Wolfgang Grandegger <wg@grandegger.com>, Matthew Garrett <mjg@redhat.com>, acpi4asus-user@lists.sourceforge.net, rtc-linux@googlegroups.com, Carlos Corbacho <carlos@strangeworlds.co.uk>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, Feb 4, 2011 at 3:27 AM, Tony Lindgren <tony@atomide.com> wrote:
-> Set the debug serial port based on machine ID. Note that most
-> of the patch is just trivial checking for the machine ID.
->
-> Also note that this code won't work for debugging the uncompress code=
-=2E
->
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
+The search was made with trivial shell commands:
 
-<snip>
-> diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/ar=
-m/mach-omap2/include/mach/debug-macro.S
-> index 336a838..45c29e3 100644
-> --- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-> +++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-<snip>
+find | xargs grep S_IWUGO
+find | xargs grep S_IWOTH
 
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* omap3 based boards using uart3 */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldr =A0 =A0 \v, =3DMACH_TYPE_CM_T35
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmp =A0 =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_CM_T3517
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_CRANEBOARD
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_DEVKIT8000
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_IGEP0020
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_IGEP0030
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_NOKIA_RM680
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_NOKIA_RX51
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_OMAP3517EVM
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_OMAP3_BEAGLE
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_OMAP3_PANDOR=
-A
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_OMAP_LDP
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_OVERO
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldrne =A0 \v, =3DMACH_TYPE_TOUCHBOOK
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmpne =A0 \id, \v
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldreq =A0 \v, =3DOMAP3_UART3_BASE
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 streq =A0 \v, [\a, #0] =A0 =A0 =A0 =A0 =
-=A0 =A0@ save port phys addr
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ldreq =A0 \v, =3D(OMAP3_UART3_BASE + OM=
-AP2_L4_IO_OFFSET)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 streq =A0 \v, [\a, #4] =A0 =A0 =A0 =A0 =
-=A0 =A0@ save port virt addr
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 beq =A0 =A0 999f
+I didn't precisely investigate how exactly one may damage the
+system/hardware because of issues number, maybe the harm is very limited
+in case of some of these drivers.
 
-This looks a bit wasteful not only because of repeated CMPs, but also
-LDRs are generating a large literal pool. Maybe something like that be
-better:
+One suspicious file is ./staging/speakup/speakup.h, but it explitly calls
+macros as world-writable.  I didn't check what speakup's world-writable
+files provide because it requires some knowledge about the hardware.
 
-    adr     r0, uart3_machines
-0:
-    ldrh    \v, [r0], #2
-    tst     \v, \v
-    beq     999f                    @ end of list
-    cmp     \id, \v
-    bne     0b
-    ldr     \v, =3DOMAP3_UART3_BASE
-    str     \v, [\a, #0]            @ save port phys addr
-    ldr     \v, =3D(OMAP3_UART3_BASE + OMAP2_L4_IO_OFFSET)
-    str     \v, [\a, #4]            @ save port virt addr
-    b       999f
 
-    uart3_machines:
-    .short MACH_TYPE_CM_T35
-    .short MACH_TYPE_CM_T3517
-    ...
-    .short 0
+Vasiliy Kulikov (20):
+  mach-omap2: mux: world-writable debugfs files
+  mach-omap2: pm: world-writable debugfs timer files
+  mach-omap2: smartreflex: world-writable debugfs voltage files
+  mach-ux500: mbox-db5500: world-writable sysfs fifo file
+  leds: lp5521: world-writable sysfs engine* files
+  leds: lp5523: world-writable engine* sysfs files
+  video: sn9c102: world-wirtable sysfs files
+  mfd: ab3100: world-writable debugfs *_priv files
+  mfd: ab3500: world-writable debugfs register-* files
+  mfd: ab8500: world-writable debugfs register-* files
+  misc: ep93xx_pwm: world-writable sysfs files
+  net: can: at91_can: world-writable sysfs files
+  net: can: janz-ican3: world-writable sysfs termination file
+  platform: x86: acer-wmi: world-writable sysfs threeg file
+  platform: x86: asus_acpi: world-writable procfs files
+  platform: x86: tc1100-wmi: world-writable sysfs wireless and jogdial files
+  rtc: rtc-ds1511: world-writable sysfs nvram file
+  scsi: aic94xx: world-writable sysfs update_bios file
+  scsi: iscsi: world-writable sysfs priv_sess file
+  fs: ubifs: world-writable debugfs dump_* files
 
-of course this needs an extra register..
+ arch/arm/mach-omap2/mux.c                  |    2 +-
+ arch/arm/mach-omap2/pm-debug.c             |    8 ++++----
+ arch/arm/mach-omap2/smartreflex.c          |    4 ++--
+ arch/arm/mach-ux500/mbox-db5500.c          |    2 +-
+ drivers/leds/leds-lp5521.c                 |   14 +++++++-------
+ drivers/leds/leds-lp5523.c                 |   20 ++++++++++----------
+ drivers/media/video/sn9c102/sn9c102_core.c |    6 +++---
+ drivers/mfd/ab3100-core.c                  |    4 ++--
+ drivers/mfd/ab3550-core.c                  |    6 +++---
+ drivers/mfd/ab8500-debugfs.c               |    6 +++---
+ drivers/misc/ep93xx_pwm.c                  |    6 +++---
+ drivers/net/can/at91_can.c                 |    2 +-
+ drivers/net/can/janz-ican3.c               |    2 +-
+ drivers/platform/x86/acer-wmi.c            |    2 +-
+ drivers/platform/x86/asus_acpi.c           |    8 +-------
+ drivers/platform/x86/tc1100-wmi.c          |    2 +-
+ drivers/rtc/rtc-ds1511.c                   |    2 +-
+ drivers/scsi/aic94xx/aic94xx_init.c        |    2 +-
+ drivers/scsi/scsi_transport_iscsi.c        |    2 +-
+ fs/ubifs/debug.c                           |    6 +++---
+ 20 files changed, 50 insertions(+), 56 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Vasiliy Kulikov
+http://www.openwall.com - bringing security into open computing environments
