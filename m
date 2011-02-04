@@ -1,84 +1,68 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 01/13] OMAP: hwmod: Add member 'name' to omap_hwmod_addr_space
- struct
-Date: Fri, 4 Feb 2011 21:21:48 +0100
-Message-ID: <4D4C5FDC.7050008@ti.com>
-References: <1296485437-12806-1-git-send-email-kishon@ti.com>	<1296485437-12806-2-git-send-email-kishon@ti.com> <8762szpor3.fsf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/5] omap: Add support for CONFIG_AUTO_ZRELADDR for
+ DEBUG_LL
+Date: Fri, 4 Feb 2011 12:24:11 -0800
+Message-ID: <20110204202411.GA20795@atomide.com>
+References: <20110204012317.26410.55157.stgit@baageli.muru.com>
+ <20110204012709.26410.78100.stgit@baageli.muru.com>
+ <alpine.LFD.2.00.1102032205140.12104@xanadu.home>
+ <20110204170249.GV3322@atomide.com>
+ <alpine.LFD.2.00.1102041445360.12104@xanadu.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40489 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752112Ab1BDUV4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Feb 2011 15:21:56 -0500
-In-Reply-To: <8762szpor3.fsf@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13577 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752112Ab1BDUYh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 15:24:37 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1102041445360.12104@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "paul@pwsan.com" <paul@pwsan.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 2/4/2011 8:45 PM, Hilman, Kevin wrote:
-> Kishon Vijay Abraham I<kishon@ti.com>  writes:
->
->> Adds a structure member 'name' to 'omap_hwmod_addr_space' structure.
->> The drivers can use platform_get_resource_byname() to get resource of
->> type 'IORESOURCE_MEM' by name so that it need not rely on the order to get
->> the proper resource.
->>
->> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> ---
->>   arch/arm/mach-omap2/omap_hwmod.c             |    1 +
->>   arch/arm/plat-omap/include/plat/omap_hwmod.h |    4 +++-
->>   2 files changed, 4 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->> index 709543a..7bd4900 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -1898,6 +1898,7 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
->>   		os = oh->slaves[i];
->>
->>   		for (j = 0; j<  os->addr_cnt; j++) {
->> +			(res + r)->name = (os->addr + j)->name;
->>   			(res + r)->start = (os->addr + j)->pa_start;
->>   			(res + r)->end = (os->addr + j)->pa_end;
->>   			(res + r)->flags = IORESOURCE_MEM;
->> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> index 76f0274..85899a7 100644
->> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> @@ -178,7 +178,8 @@ struct omap_hwmod_omap2_firewall {
->>   #define ADDR_TYPE_RT		(1<<  1)
->>
->>   /**
->> - * struct omap_hwmod_addr_space - MPU address space handled by the hwmod
->> + * struct omap_hwmod_addr_space - address space handled by the hwmod
->
-> Any reason you modified the comment here?
+* Nicolas Pitre <nico@fluxnic.net> [110204 12:14]:
+> 
+> Just create a get_config_ptr macro or similar and the trickery will be 
+> nicely encapsulated.  You'd have:
+> 
+> 	.macro get_config_ptr ptr, tmp
+> 	b	9002f
+> 	.align
+> 9001:	.long	.
+> 	.long	uart_param_storage
+> 9002:	adr	\ptr, 9001b
+> 	ldr	\tmp, [\ptr]
+> 	sub	\tmp, \tmp, \ptr
+> 	ldr	\ptr, [\ptr, #4]
+> 	sub	\ptr, \ptr, \tmp
+> 	.endm
+> 
+> 	.macro addruart rp, rv
+> 	get_config_ptr \rv
+> 	ldr	\rp, [\rv]
+> 	ldr	\rv, [\rv, #4]
+> 	.endm
+> 
+> And for the other macros, you get the hardware address to use already, 
+> but you can still use get_config_ptr for extra config values you 
+> need if necessary.
 
-The idea of that patch is to allow hwmod to provide address space 
-accessible from SDMA (though L3). Hence the suppression of the MPU.
-In the future, we might even be able to provide the address for the DSP 
-or the IPU viewpoint
+Thanks, will try that out next week. That might run into problems with
+busyuart as it only has rd register to play with.
+ 
+> > In that case the mapping of IO space for the serial port in head.S
+> > would have to be changed as that relies on rx containing the port
+> > IO address..
+> 
+> Yes, and I'm not sure if it is worth changing that at this point when it 
+> is possible to do it without introducing such a change which would 
+> affect all machines again.
 
-Regards,
-Benoit
+Agreed, let's see how far we can get with the existing setup.
 
->
-> Kevin
->
->> + * @name: name of the address space
->>    * @pa_start: starting physical address
->>    * @pa_end: ending physical address
->>    * @flags: (see omap_hwmod_addr_space.flags macros above)
->> @@ -187,6 +188,7 @@ struct omap_hwmod_omap2_firewall {
->>    * structure.  GPMC is one example.
->>    */
->>   struct omap_hwmod_addr_space {
->> +	const char *name;
->>   	u32 pa_start;
->>   	u32 pa_end;
->>   	u8 flags;
+What might need to be done is to save and restore rx in
+busyuart to be able to use your macro above.
 
+Tony
