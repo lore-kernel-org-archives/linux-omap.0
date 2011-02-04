@@ -1,173 +1,72 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 11/13] OMAP2PLUS: Replace voltage values with Macros
-Date: Fri, 04 Feb 2011 08:44:15 -0800
-Message-ID: <87zkqbrbq8.fsf@ti.com>
-References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
-	<1295618465-15234-12-git-send-email-vishwanath.bs@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: Add inituart macro to initialize DEBUG_LL
+ serial port based on the machine ID
+Date: Fri, 4 Feb 2011 08:44:37 -0800
+Message-ID: <20110204164436.GT3322@atomide.com>
+References: <20110204012008.26298.16341.stgit@baageli.muru.com>
+ <20110204012207.26298.16649.stgit@baageli.muru.com>
+ <20110204083934.GB15004@n2100.arm.linux.org.uk>
+ <20110204123220.GG15004@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:34387 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751812Ab1BDQoT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 11:44:19 -0500
-Received: by pwj6 with SMTP id 6so598386pwj.12
-        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 08:44:18 -0800 (PST)
-In-Reply-To: <1295618465-15234-12-git-send-email-vishwanath.bs@ti.com>
-	(Vishwanath BS's message of "Fri, 21 Jan 2011 19:31:03 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28399 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751812Ab1BDQpI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 11:45:08 -0500
+Content-Disposition: inline
+In-Reply-To: <20110204123220.GG15004@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, patches@linaro.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Vishwanath BS <vishwanath.bs@ti.com> writes:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110204 04:31]:
+> On Fri, Feb 04, 2011 at 08:39:34AM +0000, Russell King - ARM Linux wrote:
+> > Can't we just hard-configure the virtual/physical address at build
+> > time and be done with it?
+> > 
+> > I've given up with the current state of affairs which tries to use the
+> > platform ID to select the UART to use as it never seems to work, and I
+> > have a couple of patches which hard-code the address at compile time -
+> > one for the SDP4430 board and one for the LDP3430 board.
+> > 
+> > If it's complicated, then it probably won't work.  Keep it simple.
+> > That's especially true for debugging code, otherwise you need extra
+> > debugging code to debug why the debugging code doesn't work.
+> 
+> There's another good reason to hard-configure the UART port rather
+> than select it by ID.
+> 
+> The common usage scenario: you're bringing up a new board.  You know
+> you're going to have your console connected to UART2.  So, no matter
+> what you want your debug messages to come out of UART2 even if the
+> machine ID is wrong.
 
-> Currently voltage values on opp tables are hardcoded. As these voltage values
-> are anyway defined in voltage.h as macros, opp table can reuse these values.
-> This will avoid opp table and voltage layer having conflicting values.
+Yes that's an important debugging case too. Another common use
+case is "this kernel boots on machines a and b, but fails to boot
+on c and d".
+ 
+> By detecting the UART port from the machine number, you immediately
+> lose that ability, and therefore the confidence, that "if I build the
+> kernel for X with LL debug enabled, and monitor port Y, I will get
+> messages out of port Y, and not some other random port Z which I'd to
+> solder wires to to monitor."
 
-ok
+True, but that easily also leads to confusion on why some kernel only
+boots on one machine. So maybe we can do something that can easily be
+selected in Kconfig for forcing certain port?
+ 
+> In other words, no messages on the monitored port changes from "we didn't
+> get into the kernel, or something early in the kernel boot before the C
+> code went wrong" to "... or maybe the debugging code failed to get the
+> right port too."
+> 
+> It is invaluable to know that the debugging code will always talk to
+> the same UART which you're monitoring.
 
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> This patch has 2 line over 80 char warning. This is kept for readability
-> purpose.
+I'll take a look how we can allow forcing the uart easily.
 
-This comment should be after the '---'
+Regards,
 
-Kevin
-
-> ---
->  arch/arm/mach-omap2/opp3xxx_data.c |   47 ++++++++++++++++++-----------------
->  arch/arm/mach-omap2/opp4xxx_data.c |   13 +++++----
->  2 files changed, 31 insertions(+), 29 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-> index 0486fce..eefd6af 100644
-> --- a/arch/arm/mach-omap2/opp3xxx_data.c
-> +++ b/arch/arm/mach-omap2/opp3xxx_data.c
-> @@ -19,20 +19,21 @@
->  #include <linux/module.h>
->  
->  #include <plat/cpu.h>
-> +#include <plat/voltage.h>
->  
->  #include "omap_opp_data.h"
->  
->  static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
->  	/* MPU OPP1 */
-> -	OPP_INITIALIZER("mpu", true, 125000000, 975000),
-> +	OPP_INITIALIZER("mpu", true, 125000000, OMAP3430_VDD_MPU_OPP1_UV),
->  	/* MPU OPP2 */
-> -	OPP_INITIALIZER("mpu", true, 250000000, 1075000),
-> +	OPP_INITIALIZER("mpu", true, 250000000, OMAP3430_VDD_MPU_OPP2_UV),
->  	/* MPU OPP3 */
-> -	OPP_INITIALIZER("mpu", true, 500000000, 1200000),
-> +	OPP_INITIALIZER("mpu", true, 500000000, OMAP3430_VDD_MPU_OPP3_UV),
->  	/* MPU OPP4 */
-> -	OPP_INITIALIZER("mpu", true, 550000000, 1270000),
-> +	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
->  	/* MPU OPP5 */
-> -	OPP_INITIALIZER("mpu", true, 600000000, 1350000),
-> +	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
->  
->  	/*
->  	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-> @@ -42,47 +43,47 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
->  	 * impact that frequency will do to the MPU and the whole system in
->  	 * general.
->  	 */
-> -	OPP_INITIALIZER("l3_main", false, 41500000, 975000),
-> +	OPP_INITIALIZER("l3_main", false, 41500000, OMAP3430_VDD_CORE_OPP1_UV),
->  	/* L3 OPP2 */
-> -	OPP_INITIALIZER("l3_main", true, 83000000, 1050000),
-> +	OPP_INITIALIZER("l3_main", true, 83000000, OMAP3430_VDD_CORE_OPP2_UV),
->  	/* L3 OPP3 */
-> -	OPP_INITIALIZER("l3_main", true, 166000000, 1150000),
-> +	OPP_INITIALIZER("l3_main", true, 166000000, OMAP3430_VDD_CORE_OPP3_UV),
->  
->  	/* DSP OPP1 */
-> -	OPP_INITIALIZER("iva", true, 90000000, 975000),
-> +	OPP_INITIALIZER("iva", true, 90000000, OMAP3430_VDD_MPU_OPP1_UV),
->  	/* DSP OPP2 */
-> -	OPP_INITIALIZER("iva", true, 180000000, 1075000),
-> +	OPP_INITIALIZER("iva", true, 180000000, OMAP3430_VDD_MPU_OPP2_UV),
->  	/* DSP OPP3 */
-> -	OPP_INITIALIZER("iva", true, 360000000, 1200000),
-> +	OPP_INITIALIZER("iva", true, 360000000, OMAP3430_VDD_MPU_OPP3_UV),
->  	/* DSP OPP4 */
-> -	OPP_INITIALIZER("iva", true, 400000000, 1270000),
-> +	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
->  	/* DSP OPP5 */
-> -	OPP_INITIALIZER("iva", true, 430000000, 1350000),
-> +	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
->  };
->  
->  static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
->  	/* MPU OPP1 - OPP50 */
-> -	OPP_INITIALIZER("mpu", true,  300000000, 1012500),
-> +	OPP_INITIALIZER("mpu", true,  300000000, OMAP3630_VDD_MPU_OPP50_UV),
->  	/* MPU OPP2 - OPP100 */
-> -	OPP_INITIALIZER("mpu", true,  600000000, 1200000),
-> +	OPP_INITIALIZER("mpu", true,  600000000, OMAP3630_VDD_MPU_OPP100_UV),
->  	/* MPU OPP3 - OPP-Turbo */
-> -	OPP_INITIALIZER("mpu", false, 800000000, 1325000),
-> +	OPP_INITIALIZER("mpu", false, 800000000, OMAP3630_VDD_MPU_OPP120_UV),
->  	/* MPU OPP4 - OPP-SB */
-> -	OPP_INITIALIZER("mpu", false, 1000000000, 1375000),
-> +	OPP_INITIALIZER("mpu", false, 1000000000, OMAP3630_VDD_MPU_OPP1G_UV),
->  
->  	/* L3 OPP1 - OPP50 */
-> -	OPP_INITIALIZER("l3_main", true, 100000000, 1000000),
-> +	OPP_INITIALIZER("l3_main", true, 100000000, OMAP3630_VDD_CORE_OPP50_UV),
->  	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
-> -	OPP_INITIALIZER("l3_main", true, 200000000, 1200000),
-> +	OPP_INITIALIZER("l3_main", true, 200000000, OMAP3630_VDD_CORE_OPP100_UV),
->  
->  	/* DSP OPP1 - OPP50 */
-> -	OPP_INITIALIZER("iva", true,  260000000, 1012500),
-> +	OPP_INITIALIZER("iva", true,  260000000, OMAP3630_VDD_MPU_OPP50_UV),
->  	/* DSP OPP2 - OPP100 */
-> -	OPP_INITIALIZER("iva", true,  520000000, 1200000),
-> +	OPP_INITIALIZER("iva", true,  520000000, OMAP3630_VDD_MPU_OPP100_UV),
->  	/* DSP OPP3 - OPP-Turbo */
-> -	OPP_INITIALIZER("iva", false, 660000000, 1325000),
-> +	OPP_INITIALIZER("iva", false, 660000000, OMAP3630_VDD_MPU_OPP120_UV),
->  	/* DSP OPP4 - OPP-SB */
-> -	OPP_INITIALIZER("iva", false, 800000000, 1375000),
-> +	OPP_INITIALIZER("iva", false, 800000000, OMAP3630_VDD_MPU_OPP1G_UV),
->  };
->  
->  /**
-> diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
-> index a11fa56..80d08bc 100644
-> --- a/arch/arm/mach-omap2/opp4xxx_data.c
-> +++ b/arch/arm/mach-omap2/opp4xxx_data.c
-> @@ -20,22 +20,23 @@
->  #include <linux/module.h>
->  
->  #include <plat/cpu.h>
-> +#include <plat/voltage.h>
->  
->  #include "omap_opp_data.h"
->  
->  static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
->  	/* MPU OPP1 - OPP50 */
-> -	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
-> +	OPP_INITIALIZER("mpu", true, 300000000, OMAP4430_VDD_MPU_OPP50_UV),
->  	/* MPU OPP2 - OPP100 */
-> -	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
-> +	OPP_INITIALIZER("mpu", true, 600000000, OMAP4430_VDD_MPU_OPP100_UV),
->  	/* MPU OPP3 - OPP-Turbo */
-> -	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
-> +	OPP_INITIALIZER("mpu", false, 800000000, OMAP4430_VDD_MPU_OPPTURBO_UV),
->  	/* MPU OPP4 - OPP-SB */
-> -	OPP_INITIALIZER("mpu", false, 1008000000, 1350000),
-> +	OPP_INITIALIZER("mpu", false, 1008000000, OMAP4430_VDD_MPU_OPPNITRO_UV),
->  	/* L3 OPP1 - OPP50 */
-> -	OPP_INITIALIZER("l3_main_1", true, 100000000, 930000),
-> +	OPP_INITIALIZER("l3_main_1", true, 100000000, OMAP4430_VDD_CORE_OPP50_UV),
->  	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
-> -	OPP_INITIALIZER("l3_main_1", true, 200000000, 1100000),
-> +	OPP_INITIALIZER("l3_main_1", true, 200000000, OMAP4430_VDD_CORE_OPP100_UV),
->  	/* TODO: add IVA, DSP, aess, fdif, gpu */
->  };
+Tony
