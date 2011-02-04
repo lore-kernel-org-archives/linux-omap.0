@@ -1,45 +1,54 @@
-From: Vasiliy Kulikov <segoon@openwall.com>
-Subject: [PATCH 03/20] mach-omap2: smartreflex: world-writable debugfs voltage files
-Date: Fri,  4 Feb 2011 15:23:20 +0300
-Message-ID: <96a2b24548af3a68fde712c68b49e856e53ea1fc.1296818921.git.segoon@openwall.com>
-References: <cover.1296818921.git.segoon@openwall.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1296818921.git.segoon@openwall.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: security@kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/2] ARM: Add inituart macro to initialize DEBUG_LL
+	serial port based on the machine ID
+Date: Fri, 4 Feb 2011 12:32:20 +0000
+Message-ID: <20110204123220.GG15004@n2100.arm.linux.org.uk>
+References: <20110204012008.26298.16341.stgit@baageli.muru.com> <20110204012207.26298.16649.stgit@baageli.muru.com> <20110204083934.GB15004@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33145 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751637Ab1BDMc2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 07:32:28 -0500
+Content-Disposition: inline
+In-Reply-To: <20110204083934.GB15004@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Don't allow everybody to change voltage settings.
+On Fri, Feb 04, 2011 at 08:39:34AM +0000, Russell King - ARM Linux wrote:
+> Can't we just hard-configure the virtual/physical address at build
+> time and be done with it?
+> 
+> I've given up with the current state of affairs which tries to use the
+> platform ID to select the UART to use as it never seems to work, and I
+> have a couple of patches which hard-code the address at compile time -
+> one for the SDP4430 board and one for the LDP3430 board.
+> 
+> If it's complicated, then it probably won't work.  Keep it simple.
+> That's especially true for debugging code, otherwise you need extra
+> debugging code to debug why the debugging code doesn't work.
 
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
----
- Cannot compile the driver, so it is not tested at all.
+There's another good reason to hard-configure the UART port rather
+than select it by ID.
 
- arch/arm/mach-omap2/smartreflex.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+The common usage scenario: you're bringing up a new board.  You know
+you're going to have your console connected to UART2.  So, no matter
+what you want your debug messages to come out of UART2 even if the
+machine ID is wrong.
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index c37e823..95ac336 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -900,7 +900,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		return PTR_ERR(dbg_dir);
- 	}
- 
--	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
-+	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUSR, dbg_dir,
- 				(void *)sr_info, &pm_sr_fops);
- 	(void) debugfs_create_x32("errweight", S_IRUGO, dbg_dir,
- 			&sr_info->err_weight);
-@@ -939,7 +939,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		strcpy(name, "volt_");
- 		sprintf(volt_name, "%d", volt_data[i].volt_nominal);
- 		strcat(name, volt_name);
--		(void) debugfs_create_x32(name, S_IRUGO | S_IWUGO, nvalue_dir,
-+		(void) debugfs_create_x32(name, S_IRUGO | S_IWUSR, nvalue_dir,
- 				&(sr_info->nvalue_table[i].nvalue));
- 	}
- 
--- 
-1.7.0.4
+By detecting the UART port from the machine number, you immediately
+lose that ability, and therefore the confidence, that "if I build the
+kernel for X with LL debug enabled, and monitor port Y, I will get
+messages out of port Y, and not some other random port Z which I'd to
+solder wires to to monitor."
+
+In other words, no messages on the monitored port changes from "we didn't
+get into the kernel, or something early in the kernel boot before the C
+code went wrong" to "... or maybe the debugging code failed to get the
+right port too."
+
+It is invaluable to know that the debugging code will always talk to
+the same UART which you're monitoring.
