@@ -1,47 +1,226 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RFC] serial: omap-serial: Enable the UART wake-up bits always
-Date: Fri, 4 Feb 2011 17:47:01 +0200
-Message-ID: <20110204174701.4dcf290a.jhnikula@gmail.com>
-References: <1295884282-16562-1-git-send-email-jhnikula@gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 05/13] OMAP: Introduce device scale implementation
+Date: Fri, 04 Feb 2011 08:04:31 -0800
+Message-ID: <87d3n7u6pc.fsf@ti.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+	<1295618465-15234-6-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1295884282-16562-1-git-send-email-jhnikula@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:57987 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753145Ab1BDQEk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 11:04:40 -0500
+Received: by mail-yi0-f41.google.com with SMTP id 25so998190yia.28
+        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 08:04:36 -0800 (PST)
+In-Reply-To: <1295618465-15234-6-git-send-email-vishwanath.bs@ti.com>
+	(Vishwanath BS's message of "Fri, 21 Jan 2011 19:30:57 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
 
-On Mon, 24 Jan 2011 17:51:22 +0200
-Jarkko Nikula <jhnikula@gmail.com> wrote:
+Vishwanath BS <vishwanath.bs@ti.com> writes:
 
-> OMAP can do also dynamic idling so wake-up enable register should be set
-> also while system is running. If UART_OMAP_WER is not set, then for instance
-> the RX activity cannot wake up the UART port that is sleeping.
-> 
-> This RX wake-up feature was working when the 8250 driver was used instead
-> of omap-serial. Reason for this is that the 8250 doesn't set the
-> UART_OMAP_WER and then arch/arm/mach-omap2/pm34xx.c ends up saving and
-> restoring the reset default which is the same than value
-> OMAP_UART_WER_MOD_WKUP here.
-> 
-> Fix this by moving the conditional UART_OMAP_WER write from serial_omap_pm
-> into serial_omap_startup where wake-up bits are set unconditionally.
-> 
-> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-> Cc: Govindraj.R <govindraj.raja@ti.com>
+> This patch adds omap_device_scale API  which can be used to generic
+> device rate scaling.
+
+I would've expected a new omap_device_* API to be part of the
+omap_device layer, not added here.
+
+> Based on original patch from Thara.
+>
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> Cc: Thara Gopinath <thara@ti.com>
 > ---
-> This problem has been here since 2.6.37 when the omap-serial was switched
-> into use so this patch is for 2.6.39.
-> ---
-For omap folks:
+>  arch/arm/mach-omap2/dvfs.c             |  116 ++++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/dvfs.h |    7 ++
+>  2 files changed, 123 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-omap2/dvfs.c
+> index c9d3894..05a9ce3 100755
+> --- a/arch/arm/mach-omap2/dvfs.c
+> +++ b/arch/arm/mach-omap2/dvfs.c
+> @@ -19,6 +19,7 @@
+>  #include <plat/common.h>
+>  #include <plat/voltage.h>
+>  #include <plat/omap_device.h>
+> +#include <plat/smartreflex.h>
+>  
+>  /**
+>   * struct omap_dev_user_list - Structure maitain userlist per device
+> @@ -585,6 +586,121 @@ static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
+>  }
+>  
+>  /**
+> + * omap_device_scale() - Set a new rate at which the device is to operate
+> + * @req_dev:	pointer to the device requesting the scaling.
+> + * @target_dev:	pointer to the device that is to be scaled
+> + * @rate:	the rnew rate for the device.
+> + *
+> + * This API gets the device opp table associated with this device and
+> + * tries putting the device to the requested rate and the voltage domain
+> + * associated with the device to the voltage corresponding to the
+> + * requested rate. Since multiple devices can be assocciated with a
+> + * voltage domain this API finds out the possible voltage the
+> + * voltage domain can enter and then decides on the final device
+> + * rate. Return 0 on success else the error value
+> + */
 
-1. This patch is coming through tty tree
-http://git.kernel.org/?p=linux/kernel/git/gregkh/tty-2.6.git;a=commit;h=78841462d72fe7038cb7ea48adecc6fc395f2dc5
+Here would be a good place to describe why both the requesting device
+and the target device need to be tracked.
 
-2. This patch helps those boards that don't have UART RTS signal (e.g.
-BeagleBoard) and thus padconf wakeup mechanism is not available.
+> +int omap_device_scale(struct device *req_dev, struct device *target_dev,
+> +			unsigned long rate)
+> +{
+> +	struct opp *opp;
+> +	unsigned long volt, freq, min_freq, max_freq;
+> +	struct omap_vdd_dvfs_info *dvfs_info;
+> +	struct platform_device *pdev;
+> +	struct omap_device *od;
+> +	int ret = 0;
+> +
+> +	pdev = container_of(target_dev, struct platform_device, dev);
+> +	od = container_of(pdev, struct omap_device, pdev);
+> +
+> +	/*
+> +	 * Figure out if the desired frquency lies between the
+> +	 * maximum and minimum possible for the particular device
+> +	 */
+> +	min_freq = 0;
+> +	if (IS_ERR(opp_find_freq_ceil(target_dev, &min_freq))) {
+> +		dev_err(target_dev, "%s: Unable to find lowest opp\n",
+> +						__func__);
+> +		return -ENODEV;
+> +	}
+> +
+> +	max_freq = ULONG_MAX;
+> +	if (IS_ERR(opp_find_freq_floor(target_dev, &max_freq))) {
+> +		dev_err(target_dev, "%s: Unable to find highest opp\n",
+> +						__func__);
+> +		return -ENODEV;
+> +	}
+> +
+> +	if (rate < min_freq)
+> +		freq = min_freq;
+> +	else if (rate > max_freq)
+> +		freq = max_freq;
+> +	else
+> +		freq = rate;
+> +
 
--- 
-Jarkko
+OK, frome here on, I would expect the adjusted value 'freq' to be used
+instead of 'rate', but that is not the case below.
+
+> +	opp = opp_find_freq_ceil(target_dev, &freq);
+> +	if (IS_ERR(opp)) {
+> +		dev_err(target_dev, "%s: Unable to find OPP for freq%ld\n",
+> +			__func__, rate);
+> +		return -ENODEV;
+> +	}
+> +
+> +	/* Get the voltage corresponding to the requested frequency */
+> +	volt = opp_get_voltage(opp);
+> +
+> +	/*
+> +	 * Call into the voltage layer to get the final voltage possible
+> +	 * for the voltage domain associated with the device.
+> +	 */
+
+This comment doesn't match the following code.
+
+> +	if (rate) {
+
+Why is rate used here, and not freq?
+
+> +		dvfs_info = get_dvfs_info(od->hwmods[0]->voltdm);
+> +
+> +		ret = omap_dvfs_add_freq_request(dvfs_info, req_dev,
+> +						target_dev, freq);
+> +		if (ret) {
+> +			dev_err(target_dev, "%s: Unable to add frequency request\n",
+> +				__func__);
+> +			return ret;
+> +		}
+> +
+> +		ret = omap_dvfs_add_vdd_user(dvfs_info, req_dev, volt);
+> +		if (ret) {
+> +			dev_err(target_dev, "%s: Unable to add voltage request\n",
+> +				__func__);
+> +			omap_dvfs_remove_freq_request(dvfs_info, req_dev,
+> +				target_dev);
+> +			return ret;
+> +		}
+> +	} else {
+
+The function comments don't describe this case.  Namely, that if you
+pass in rate = 0, it removes any previous requests for the requesting
+device.
+
+> +		dvfs_info = get_dvfs_info(od->hwmods[0]->voltdm);
+> +
+> +		ret = omap_dvfs_remove_freq_request(dvfs_info, req_dev,
+> +				target_dev);
+> +		if (ret) {
+> +			dev_err(target_dev, "%s: Unable to remove frequency request\n",
+> +				__func__);
+> +			return ret;
+> +		}
+> +
+> +		ret = omap_dvfs_remove_vdd_user(dvfs_info, req_dev);
+> +		if (ret) {
+> +			dev_err(target_dev, "%s: Unable to remove voltage request\n",
+> +				__func__);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	/* Do the actual scaling */
+> +	ret = omap_dvfs_voltage_scale(dvfs_info);
+
+ok
+
+> +	if (!ret)
+> +		if (omap_device_get_rate(target_dev) >= rate)
+> +			return 0;
+> +
+
+but this bit needs some explanation.  IIUC: if the _voltage_scale()
+fails (which also scales the frequency) but the frequency was
+sucessfully changed, then return success.
+
+Also 'rate' is used here where 'freq' would be expected.
+
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(omap_device_scale);
+> +
+> +/**
+>   * omap_dvfs_init() - Initialize omap dvfs layer
+>   *
+>   * Initalizes omap dvfs layer. It basically allocates memory for
+> diff --git a/arch/arm/plat-omap/include/plat/dvfs.h b/arch/arm/plat-omap/include/plat/dvfs.h
+> index 1302990..1be2b9d 100644
+> --- a/arch/arm/plat-omap/include/plat/dvfs.h
+> +++ b/arch/arm/plat-omap/include/plat/dvfs.h
+> @@ -17,11 +17,18 @@
+>  
+>  #ifdef CONFIG_PM
+>  int omap_dvfs_register_device(struct voltagedomain *voltdm, struct device *dev);
+> +int omap_device_scale(struct device *req_dev, struct device *dev,
+> +			unsigned long rate);
+>  #else
+>  static inline int omap_dvfs_register_device(struct voltagedomain *voltdm,
+>  		struct device *dev)
+>  {
+>  	return -EINVAL;
+>  }
+> +static inline int omap_device_scale(struct device *req_dev, struct devices
+> +			*target_dev, unsigned long rate);
+> +{
+> +	return -EINVAL;
+> +}
+>  #endif
+>  #endif
+
+Kevin
