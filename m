@@ -1,65 +1,141 @@
-From: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 4/7] usb: otg: OMAP4430: Add phy_suspend function pointer
- to twl4030_usb_data
-Date: Fri, 4 Feb 2011 10:53:14 +0530
-Message-ID: <f830c17b24f9087216551324996e4efa@mail.gmail.com>
-References: <yes> <1296726587-10530-4-git-send-email-hemahk@ti.com> <4D4AB187.50406@ru.mvista.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D4AB187.50406-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Shweta Gulati <shweta.gulati@ti.com>
+Subject: [PATCH V4] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
+Date: Fri,  4 Feb 2011 11:17:34 +0530
+Message-ID: <1296798454-23755-1-git-send-email-shweta.gulati@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60403 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751121Ab1BDFrl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Feb 2011 00:47:41 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p145lcX7020191
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 3 Feb 2011 23:47:40 -0600
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Thara Gopinath <thara@ti.com>, Nishanth Menon <nm@ti.com>, Shweta Gulati <shweta.gulati@ti.com>
 
- Hi,
+From: Thara Gopinath <thara@ti.com>
 
->-----Original Message-----
->From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org]
->Sent: Thursday, February 03, 2011 7:16 PM
->To: Hema HK
->Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
->Felipe Balbi; Tony Lindgren
->Subject: Re: [PATCH 4/7] usb: otg: OMAP4430: Add phy_suspend
->function pointer to twl4030_usb_data
->
->Hello.
->
->On 03-02-2011 12:49, Hema HK wrote:
->
->> Introduce the .phy_suspend function pointer to
->twl4030_usb_data structure.
->> assign the function to it for both sdp board and panda boards.
->> This will be used by the twl6030-usb transceiver driver.
->
->> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
->> Cc: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
->> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->
->> Index: linux-2.6/arch/arm/plat-omap/include/plat/usb.h
->> ===================================================================
->> --- linux-2.6.orig/arch/arm/plat-omap/include/plat/usb.h
->> +++ linux-2.6/arch/arm/plat-omap/include/plat/usb.h
->> @@ -88,6 +88,7 @@ extern int omap4430_phy_power(struct dev
->>   extern int omap4430_phy_set_clk(struct device *dev, int on);
->>   extern int omap4430_phy_init(struct device *dev);
->>   extern int omap4430_phy_exit(struct device *dev);
->> +extern int omap4430_phy_suspend(struct device *dev, int suspend);
->
->    And where it it defined? Why this doesn't happen in this patch?
->
-This is defined in the previous patch. This could have been done in
-previous patch
-also, but it is just that extern is done only when using.
+Voltage control on TWL can be done using VMODE/I2C1/I2C_SR.
+Since almost all platforms use I2C_SR on omap3, omap3_twl_init by
+default expects that OMAP's I2C_SR is plugged in to TWL's I2C
+and calls omap3_twl_set_sr_bit. On platforms where I2C_SR is not connected,
+the board files are expected to call omap3_twl_set_sr_bit(false) to
+ensure that I2C_SR path is not set for voltage control and prevent
+the default behavior of omap3_twl_init.
 
-Regards,
-Hema
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+---
 
+This patch is based on LO PM Branch and Smartreflex has been
+tested on OMAP3430 SDP, OMAP3630 SDP and boot tested on
+OMAP2430 SDP.
 
->WBR, Sergei
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/mach-omap2/omap_twl.c |   61 ++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h       |    1 +
+ 2 files changed, 62 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index 00e1d2b..87e07da 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -59,8 +59,15 @@
+ 
+ static bool is_offset_valid;
+ static u8 smps_offset;
++/*
++ * Flag to ensure Smartreflex bit in TWL
++ * being cleared in board file is not overwritten.
++ */
++static bool __initdata twl_sr_enable_autoinit;
+ 
++#define TWL4030_DCDC_GLOBAL_CFG        0x06
+ #define REG_SMPS_OFFSET         0xE0
++#define SMARTREFLEX_ENABLE     BIT(3)
+ 
+ static unsigned long twl4030_vsel_to_uv(const u8 vsel)
+ {
+@@ -269,6 +276,18 @@ int __init omap3_twl_init(void)
+ 		omap3_core_volt_info.vp_vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
+ 	}
+ 
++	/*
++	 * The smartreflex bit on twl4030 specifies if the setting of voltage
++	 * is done over the I2C_SR path. Since this setting is independent of
++	 * the actual usage of smartreflex AVS module, we enable TWL SR bit
++	 * by default irrespective of whether smartreflex AVS module is enabled
++	 * on the OMAP side or not. This is because without this bit enabled,
++	 * the voltage scaling through vp forceupdate/bypass mechanism of
++	 * voltage scaling will not function on TWL over I2C_SR.
++	 */
++	if (!twl_sr_enable_autoinit)
++		omap3_twl_set_sr_bit(true);
++
+ 	voltdm = omap_voltage_domain_lookup("mpu");
+ 	omap_voltage_register_pmic(voltdm, &omap3_mpu_volt_info);
+ 
+@@ -277,3 +296,45 @@ int __init omap3_twl_init(void)
+ 
+ 	return 0;
+ }
++
++/**
++ * omap3_twl_set_sr_bit() - Set/Clear SR bit on TWL
++ * @enable: enable SR mode in twl or not
++ *
++ * If 'enable' is true, enables Smartreflex bit on TWL 4030 to make sure
++ * voltage scaling through OMAP SR works. Else, the smartreflex bit
++ * on twl4030 is cleared as there are platforms which use OMAP3 and T2 but
++ * use Synchronized Scaling Hardware Strategy (ENABLE_VMODE=1) and Direct
++ * Strategy Software Scaling Mode (ENABLE_VMODE=0), for setting the voltages,
++ * in those scenarios this bit is to be cleared (enable = false).
++ *
++ * Returns 0 on sucess, error is returned if I2C read/write fails.
++ */
++int __init omap3_twl_set_sr_bit(bool enable)
++{
++	u8 temp;
++	int ret;
++	if (twl_sr_enable_autoinit)
++		pr_warning("%s: unexpected multiple calls\n", __func__);
++
++	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
++					TWL4030_DCDC_GLOBAL_CFG);
++	if (ret)
++		goto err;
++
++	if (enable)
++		temp |= SMARTREFLEX_ENABLE;
++	else
++		temp &= ~SMARTREFLEX_ENABLE;
++
++	ret = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
++					TWL4030_DCDC_GLOBAL_CFG);
++	if (!ret) {
++		twl_sr_enable_autoinit = true;
++		return 0;
++	}
++err:
++	pr_err("%s: Error access to TWL4030 (%d)\n", __func__, ret);
++	return ret;
++}
++
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 39580e6..797bfd1 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -127,6 +127,7 @@ static inline void omap_enable_smartreflex_on_init(void) {}
+ #ifdef CONFIG_TWL4030_CORE
+ extern int omap3_twl_init(void);
+ extern int omap4_twl_init(void);
++extern int omap3_twl_set_sr_bit(bool enable);
+ #else
+ static inline int omap3_twl_init(void)
+ {
+-- 
+1.7.0.4
+
