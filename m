@@ -1,28 +1,108 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 4/5] ARM: scu: Move register defines to header file
-Date: Fri, 4 Feb 2011 10:41:13 +0000
-Message-ID: <20110204104113.GD15004@n2100.arm.linux.org.uk>
-References: <1295859080-15259-1-git-send-email-santosh.shilimkar@ti.com> <1295859080-15259-5-git-send-email-santosh.shilimkar@ti.com> <20110125114635.GB13300@n2100.arm.linux.org.uk> <236d45e400a960cc3b32db538b3a79ae@mail.gmail.com> <20110125121655.GD13300@n2100.arm.linux.org.uk> <4534e82bf14eeea9f96769df760df5ae@mail.gmail.com> <20110125125656.GG13300@n2100.arm.linux.org.uk> <20110125130422.GH13300@n2100.arm.linux.org.uk> <20110125130611.GA15663@n2100.arm.linux.org.uk> <627ff975140c8e4afbad281105b29d35@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v2 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
+Date: Fri, 4 Feb 2011 16:15:03 +0530
+Message-ID: <36192288611a2912eca9abc99a4353ff@mail.gmail.com>
+References: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48628 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603Ab1BDKla (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 05:41:30 -0500
-Content-Disposition: inline
-In-Reply-To: <627ff975140c8e4afbad281105b29d35@mail.gmail.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:55722 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751161Ab1BDKpV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 05:45:21 -0500
+Received: by yib17 with SMTP id 17so959823yib.12
+        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 02:45:04 -0800 (PST)
+In-Reply-To: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: catalin.marinas@arm.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ccross@android.com
+To: Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Jean Pihet-XID <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
 
-On Tue, Jan 25, 2011 at 11:53:35PM +0530, Santosh Shilimkar wrote:
-> After fixing the 3rd version for base address break, I was able to
-> use this patch and test it. Seems to work. SMC related stuff can
-> be ignored because OMAP4 ES1.0 doesn't have functional PM hardware
-> support.
+Dave,
+> -----Original Message-----
+> From: Dave Martin [mailto:dave.martin@linaro.org]
+> Sent: Thursday, February 03, 2011 11:33 PM
+> To: linux-arm-kernel@lists.infradead.org
+> Cc: Dave Martin; Tony Lindgren; Santosh Shilimkar; Jean Pihet;
+> linux-omap@vger.kernel.org; Nicolas Pitre
+> Subject: [PATCH v2 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
+>
+> This set of patches, along with some other patches under
+> discussion on alkml, should enable omap3 and omap4 kernels to be
+> built with CONFIG_THUMB2_KERNEL.
+>
+> This patch set builds on recent cleanup done by the omap
+> maintainers.
+>
+> It is also more aggressive than my last post: all affected
+> low-level code is now built in Thumb-2.  At least some of this
+> code definitely works, but whether the Secure firmware can talk
+> to Thumb-2 code properly is unproven:
+> in particular, I could use some help/advice from the omap
+> community for validating that the low-level power management
+> interactions actually work with this patch set.
+>
+> I've done simple "does it boot?" testing by building a single
+> kernel with CONFIG_SMP_ON_UP and CONFIG_THUMB2_KERNEL enabled
+> which works on Beagle xM A2 and Panda A1.
 
-I think I'd prefer to do as the other functions do, and pass in the
-scu base address from the platform code.  It's potentially more
-efficient for platforms which have a fixed SCU base address.
+I have boot tested this series on OMAP3430 and OMAP4430. Also
+tested the RETENTION and OFF mode in suspend on OMAP3.
+I couldn't test the DVFS because it isn't in mainline yet
+but the changes doesn't looks to break anything.
+
+So if you like, you can add
+Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+
+>
+> The patches can be found, along with a buildable working tree,
+> in the following repo:
+>
+> git://git.linaro.org/people/dmart/linux-2.6-arm.git
+>
+>  * arm/omap-thumb2: has the patches proposed here
+>  * arm/omap-thumb2+merged: additionally has some patches cherry-
+>         picked from other trees which are needed in order for the
+>         patches on arm/omap-thumb2 to work usefully.
+>  * dirty/arm/omap-thumb2+merged: buildable test tree, which adds
+>         2 local patches to work around a toolchain bug.
+>
+> A working kernel config for this tree is here:
+> http://people.linaro.org/~dmart/arm_omap-thumb2+v2_config :
+>
+>   CONFIG_SMP_ON_UP=y
+>   CONFIG_THUMB2_KERNEL=y
+>   CONFIG_SERIAL_OMAP=n (to avoid garbage on xM; for Panda use
+> console=ttyS2)
+>
+> (The config is derived from the linaro omap config and so turns on
+> loads of modules -- don't feel you have to build them all...)
+>
+>
+> Cherry-picked patches originated from Russell's devel tree
+> and Tony Lindgren's omap-testing tree:
+>
+> http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-
+> arm.git devel
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-
+> 2.6.git omap-testing
+>
+>
+> Dave Martin (5):
+>   ARM: omap4: Correct definition of do_wfi() for
+> CONFIG_THUMB2_KERNEL
+>   ARM: omap4: Convert END() to ENDPROC() for correct linkage with
+>     CONFIG_THUMB2_KERNEL
+>   ARM: omap3: Remove hand-encoded SMC instructions
+>   ARM: omap3: Thumb-2 compatibility for sram34xx.S
+>   ARM: omap3: Thumb-2 compatibility for sleep34xx.S
+>
+>  arch/arm/mach-omap2/include/mach/omap4-common.h |    5 ++
+>  arch/arm/mach-omap2/omap-headsmp.S              |    2 +-
+>  arch/arm/mach-omap2/omap44xx-smc.S              |    8 ++--
+>  arch/arm/mach-omap2/sleep34xx.S                 |   56
+> ++++++++++++++++-------
+>  arch/arm/mach-omap2/sram34xx.S                  |   28 ++++++++---
+>  5 files changed, 69 insertions(+), 30 deletions(-)
