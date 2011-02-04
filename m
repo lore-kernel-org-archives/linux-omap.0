@@ -1,68 +1,46 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 09/13] OMAP3: Introduce voltage domain info in the hwmod structures.
-Date: Fri, 04 Feb 2011 08:10:21 -0800
-Message-ID: <87k4hfsrv6.fsf@ti.com>
-References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
-	<1295618465-15234-10-git-send-email-vishwanath.bs@ti.com>
+From: "Jeff Graham" <Jeff.Graham@brukeroptics.com>
+Subject: general kernel building questions
+Date: Fri, 4 Feb 2011 11:39:13 -0500
+Message-ID: <F752F64AD8BC1D42B49B877FEE3CD3490139166B@USTED.BOPTUS.OPTIK.LAN>
+Reply-To: <jeg@brukeroptics.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:36388 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752104Ab1BDQK3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 11:10:29 -0500
-Received: by mail-pz0-f47.google.com with SMTP id 12so424719pzk.6
-        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 08:10:28 -0800 (PST)
-In-Reply-To: <1295618465-15234-10-git-send-email-vishwanath.bs@ti.com>
-	(Vishwanath BS's message of "Fri, 21 Jan 2011 19:31:01 +0530")
+Received: from mx1.bruker.com ([173.13.75.234]:49867 "EHLO mx1.bruker.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751711Ab1BDQkE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 11:40:04 -0500
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
+To: linux-omap@vger.kernel.org
 
-Vishwanath BS <vishwanath.bs@ti.com> writes:
+Hello,
 
-> From: Thara Gopinath <thara@ti.com>
->
-> This patch adds voltage domain info in the relevant
-> device hwmod structures so as to enable OMAP3 DVFS
-> support.
+I have an Overo Fire board (OMAP 3530) and also a Mistral DM3730 EVM
+board.
 
-Has there been work yet on the autogen scripts to auto-generate this for
-OMAP4?
+I would like to try some of the newer kernels on each, and maybe some
+patches mentioned in this list. I could be a tester for these once I
+figure out how to update bootloaders and build and install kernels. Is
+there a how-to guide somewhere?
 
-Kevin
+So some newb questions if I may:
 
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 8d81813..c57f34d 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -94,6 +94,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l3_main_masters[] = {
->  static struct omap_hwmod omap3xxx_l3_main_hwmod = {
->  	.name		= "l3_main",
->  	.class		= &l3_hwmod_class,
-> +	.vdd_name	= "core",
->  	.masters	= omap3xxx_l3_main_masters,
->  	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_main_masters),
->  	.slaves		= omap3xxx_l3_main_slaves,
-> @@ -384,6 +385,7 @@ static struct omap_hwmod omap3xxx_mpu_hwmod = {
->  	.name		= "mpu",
->  	.class		= &mpu_hwmod_class,
->  	.main_clk	= "arm_fck",
-> +	.vdd_name	= "mpu",
->  	.masters	= omap3xxx_mpu_masters,
->  	.masters_cnt	= ARRAY_SIZE(omap3xxx_mpu_masters),
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> @@ -412,6 +414,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_iva_masters[] = {
->  static struct omap_hwmod omap3xxx_iva_hwmod = {
->  	.name		= "iva",
->  	.class		= &iva_hwmod_class,
-> +	.vdd_name	= "mpu",
->  	.masters	= omap3xxx_iva_masters,
->  	.masters_cnt	= ARRAY_SIZE(omap3xxx_iva_masters),
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+1. Where do I grab the latest kernels that have some chance at
+stability?
+
+2. Where are the def config files?
+
+3. I know how to apply kernel patches, but where are the patches and how
+to I git specific ones?
+
+4. Will 2.6.37, 2.6.38 mainline (currently rc3), linux-next and/or
+snapshot from kernel.org work?
+
+5. How quickly do the patches mentioned in this list land there?
+
+Thanks
+
