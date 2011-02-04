@@ -1,117 +1,84 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH 3/5] omap: Add support for CONFIG_AUTO_ZRELADDR for DEBUG_LL
-Date: Fri, 04 Feb 2011 15:16:00 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1102041445360.12104@xanadu.home>
-References: <20110204012317.26410.55157.stgit@baageli.muru.com>
- <20110204012709.26410.78100.stgit@baageli.muru.com>
- <alpine.LFD.2.00.1102032205140.12104@xanadu.home>
- <20110204170249.GV3322@atomide.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 01/13] OMAP: hwmod: Add member 'name' to omap_hwmod_addr_space
+ struct
+Date: Fri, 4 Feb 2011 21:21:48 +0100
+Message-ID: <4D4C5FDC.7050008@ti.com>
+References: <1296485437-12806-1-git-send-email-kishon@ti.com>	<1296485437-12806-2-git-send-email-kishon@ti.com> <8762szpor3.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:41997 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751787Ab1BDUQB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 15:16:01 -0500
-Received: from xanadu.home ([66.130.28.92]) by vl-mo-mrz23.ip.videotron.ca
- (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
- with ESMTP id <0LG400J3C09Z6QC0@vl-mo-mrz23.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Fri, 04 Feb 2011 15:15:36 -0500 (EST)
-In-reply-to: <20110204170249.GV3322@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:40489 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752112Ab1BDUV4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Feb 2011 15:21:56 -0500
+In-Reply-To: <8762szpor3.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "paul@pwsan.com" <paul@pwsan.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-On Fri, 4 Feb 2011, Tony Lindgren wrote:
+On 2/4/2011 8:45 PM, Hilman, Kevin wrote:
+> Kishon Vijay Abraham I<kishon@ti.com>  writes:
+>
+>> Adds a structure member 'name' to 'omap_hwmod_addr_space' structure.
+>> The drivers can use platform_get_resource_byname() to get resource of
+>> type 'IORESOURCE_MEM' by name so that it need not rely on the order to get
+>> the proper resource.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/omap_hwmod.c             |    1 +
+>>   arch/arm/plat-omap/include/plat/omap_hwmod.h |    4 +++-
+>>   2 files changed, 4 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>> index 709543a..7bd4900 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>> @@ -1898,6 +1898,7 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
+>>   		os = oh->slaves[i];
+>>
+>>   		for (j = 0; j<  os->addr_cnt; j++) {
+>> +			(res + r)->name = (os->addr + j)->name;
+>>   			(res + r)->start = (os->addr + j)->pa_start;
+>>   			(res + r)->end = (os->addr + j)->pa_end;
+>>   			(res + r)->flags = IORESOURCE_MEM;
+>> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> index 76f0274..85899a7 100644
+>> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> @@ -178,7 +178,8 @@ struct omap_hwmod_omap2_firewall {
+>>   #define ADDR_TYPE_RT		(1<<  1)
+>>
+>>   /**
+>> - * struct omap_hwmod_addr_space - MPU address space handled by the hwmod
+>> + * struct omap_hwmod_addr_space - address space handled by the hwmod
+>
+> Any reason you modified the comment here?
 
-> * Nicolas Pitre <nico@fluxnic.net> [110203 19:32]:
-> > On Thu, 3 Feb 2011, Tony Lindgren wrote:
-> > 
-> > > This way we can have the debug-macro.S be common for omap1 and omap2+
-> > > and get sensible error messages booting the wrong zImage with
-> > > CONFIG_AUTO_ZRELADDR selected. Note that this does not seem to work
-> > > with u-boot and uImage.
-> ...
->  
-> > Gaaaaah!  This is horrible.
-> 
-> -ENOREGISTERS :)
->  
-> > OK, you do want to store data in memory, right?  So the best way to 
-> > always be position independent, even cross section, is to do the 
-> > following (inspired by RMK's trick in the p2v series):
-> > 
-> > 	.data
-> > 
-> > foo:	.word	0	@ value for sput
-> > 	.word	0	@ value for nik
-> > 
-> > 	.text
-> > 
-> > bar:	.word	.
-> > 	.word	foo
-> > 
-> > sputnik:
-> > 
-> > 	adr	r0, bar		@ get relative address of bar
-> > 	ldr	r1, [r0]	@ get absolute address of bar
-> > 	sub	r1, r1, r0	@ difference between abs and rel address
-> > 	ldr	r0, [r0, #4]	@ get absolute address of foo
-> > 	sub	r0, r0, r1	@ turn that into a relative address
-> > 
-> > 	ldmia	r0, {r1, r2}	@ retrieve sput and nik
-> > 	add	r0, r1, r2
-> > 	mov	pc, lr
-> > 
-> > This code is totally position independent, so it works whether or not 
-> > the MMU is active.  Therefore a similar technique in your macro (you 
-> > could even put it into a macro for it) would allow you to get rid of the 
-> > mrc and test for MMU active, get rid of the #ifdef, and not be limited 
-> > to a 128 MB mask, etc.  And it is just one word longer than your 
-> > shortest version i.e. 2 constants + 5 instructions vs 4 instructions + 2 
-> > literal pool entries.
-> 
-> I think if we keep the address of the memory location in rx instead of
-> the port address value, then this could be done.
-> 
-> That would limit all the trickery to inituart only. Then addruart and
-> busyuart could just do ldr from the memory location to get the port
-> data without any trickery.
+The idea of that patch is to allow hwmod to provide address space 
+accessible from SDMA (though L3). Hence the suppression of the MPU.
+In the future, we might even be able to provide the address for the DSP 
+or the IPU viewpoint
 
-Just create a get_config_ptr macro or similar and the trickery will be 
-nicely encapsulated.  You'd have:
+Regards,
+Benoit
 
-	.macro get_config_ptr ptr, tmp
-	b	9002f
-	.align
-9001:	.long	.
-	.long	uart_param_storage
-9002:	adr	\ptr, 9001b
-	ldr	\tmp, [\ptr]
-	sub	\tmp, \tmp, \ptr
-	ldr	\ptr, [\ptr, #4]
-	sub	\ptr, \ptr, \tmp
-	.endm
+>
+> Kevin
+>
+>> + * @name: name of the address space
+>>    * @pa_start: starting physical address
+>>    * @pa_end: ending physical address
+>>    * @flags: (see omap_hwmod_addr_space.flags macros above)
+>> @@ -187,6 +188,7 @@ struct omap_hwmod_omap2_firewall {
+>>    * structure.  GPMC is one example.
+>>    */
+>>   struct omap_hwmod_addr_space {
+>> +	const char *name;
+>>   	u32 pa_start;
+>>   	u32 pa_end;
+>>   	u8 flags;
 
-	.macro addruart rp, rv
-	get_config_ptr \rv
-	ldr	\rp, [\rv]
-	ldr	\rv, [\rv, #4]
-	.endm
-
-And for the other macros, you get the hardware address to use already, 
-but you can still use get_config_ptr for extra config values you 
-need if necessary.
-
-> In that case the mapping of IO space for the serial port in head.S
-> would have to be changed as that relies on rx containing the port
-> IO address..
-
-Yes, and I'm not sure if it is worth changing that at this point when it 
-is possible to do it without introducing such a change which would 
-affect all machines again.
-
-
-Nicolas
