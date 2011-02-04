@@ -1,103 +1,173 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [PATCH v2 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
-Date: Fri, 4 Feb 2011 16:41:49 +0000
-Message-ID: <20110204164149.GB21122@arm.com>
-References: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
- <36192288611a2912eca9abc99a4353ff@mail.gmail.com>
- <AANLkTi=sPeQPfcGzrLSB=9-V805y6pnU4gA5QgqMSwWe@mail.gmail.com>
- <9ae36f6f04c9c1cf58fb4938dc78d6bf@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 11/13] OMAP2PLUS: Replace voltage values with Macros
+Date: Fri, 04 Feb 2011 08:44:15 -0800
+Message-ID: <87zkqbrbq8.fsf@ti.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+	<1295618465-15234-12-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:49209 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab1BDQmB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 11:42:01 -0500
-Received: by wwa36 with SMTP id 36so2547437wwa.1
-        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 08:42:00 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <9ae36f6f04c9c1cf58fb4938dc78d6bf@mail.gmail.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:34387 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751812Ab1BDQoT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 11:44:19 -0500
+Received: by pwj6 with SMTP id 6so598386pwj.12
+        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 08:44:18 -0800 (PST)
+In-Reply-To: <1295618465-15234-12-git-send-email-vishwanath.bs@ti.com>
+	(Vishwanath BS's message of "Fri, 21 Jan 2011 19:31:03 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Jean Pihet-XID <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org
 
-On Fri, Feb 04, 2011 at 04:46:57PM +0530, Santosh Shilimkar wrote:
-> > -----Original Message-----
-> > From: Dave Martin [mailto:dave.martin@linaro.org]
-> > Sent: Friday, February 04, 2011 4:33 PM
-> > To: Santosh Shilimkar
-> > Cc: linux-arm-kernel@lists.infradead.org; Tony Lindgren; Jean Pihet=
--
-> > XID; linux-omap@vger.kernel.org; Nicolas Pitre
-> > Subject: Re: [PATCH v2 0/5] ARM: omap[34]: Thumb-2 compatibility
-> > fixes
-> >
-> > On Fri, Feb 4, 2011 at 10:45 AM, Santosh Shilimkar
-> > <santosh.shilimkar@ti.com> wrote:
-> > > Dave,
-> > >> -----Original Message-----
-> > >> From: Dave Martin [mailto:dave.martin@linaro.org]
-> > >> Sent: Thursday, February 03, 2011 11:33 PM
-> > >> To: linux-arm-kernel@lists.infradead.org
-> > >> Cc: Dave Martin; Tony Lindgren; Santosh Shilimkar; Jean Pihet;
-> > >> linux-omap@vger.kernel.org; Nicolas Pitre
-> > >> Subject: [PATCH v2 0/5] ARM: omap[34]: Thumb-2 compatibility
-> > fixes
-> > >>
-> > >> This set of patches, along with some other patches under
-> > >> discussion on alkml, should enable omap3 and omap4 kernels to be
-> > >> built with CONFIG_THUMB2_KERNEL.
-> > >>
-> > >> This patch set builds on recent cleanup done by the omap
-> > >> maintainers.
-> > >>
-> > >> It is also more aggressive than my last post: all affected
-> > >> low-level code is now built in Thumb-2. =A0At least some of this
-> > >> code definitely works, but whether the Secure firmware can talk
-> > >> to Thumb-2 code properly is unproven:
-> > >> in particular, I could use some help/advice from the omap
-> > >> community for validating that the low-level power management
-> > >> interactions actually work with this patch set.
-> > >>
-> > >> I've done simple "does it boot?" testing by building a single
-> > >> kernel with CONFIG_SMP_ON_UP and CONFIG_THUMB2_KERNEL enabled
-> > >> which works on Beagle xM A2 and Panda A1.
-> > >
-> > > I have boot tested this series on OMAP3430 and OMAP4430. Also
-> > > tested the RETENTION and OFF mode in suspend on OMAP3.
-> >
-> > Which tree did you use to test this?  It didn't seem to work for me
-> > --
-> > sometimes the system wouldn't suspend, complaining about USB suspen=
-d
-> > errors; and other times I couldn't bring it out of suspend (by
-> > poking
-> > a USB input device).
-> >
-> > I might be doing something wrong...
-> >
-> I should have mentioned this.
-> Used Kevins pm branch to test these features.
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.g=
-it
+Vishwanath BS <vishwanath.bs@ti.com> writes:
 
-Have you tried this kernel on Beagle xM with CONFIG_SMP and
-CONFIG_SMP_ON_UP enabled?  For me it hangs just after
-"Uncompressing Linux ... ok, booting the kernel".
+> Currently voltage values on opp tables are hardcoded. As these voltage values
+> are anyway defined in voltage.h as macros, opp table can reuse these values.
+> This will avoid opp table and voltage layer having conflicting values.
 
-I haven't worked out why this happens as yet.
+ok
 
-Also, I'm still not sure I'm testing the power management
-features correctly.  Do you know what config options I need to poke?
-Also, how do I resume after echo mem >/sys/power/state?
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> This patch has 2 line over 80 char warning. This is kept for readability
+> purpose.
 
-Cheers
----Dave
+This comment should be after the '---'
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/opp3xxx_data.c |   47 ++++++++++++++++++-----------------
+>  arch/arm/mach-omap2/opp4xxx_data.c |   13 +++++----
+>  2 files changed, 31 insertions(+), 29 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+> index 0486fce..eefd6af 100644
+> --- a/arch/arm/mach-omap2/opp3xxx_data.c
+> +++ b/arch/arm/mach-omap2/opp3xxx_data.c
+> @@ -19,20 +19,21 @@
+>  #include <linux/module.h>
+>  
+>  #include <plat/cpu.h>
+> +#include <plat/voltage.h>
+>  
+>  #include "omap_opp_data.h"
+>  
+>  static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+>  	/* MPU OPP1 */
+> -	OPP_INITIALIZER("mpu", true, 125000000, 975000),
+> +	OPP_INITIALIZER("mpu", true, 125000000, OMAP3430_VDD_MPU_OPP1_UV),
+>  	/* MPU OPP2 */
+> -	OPP_INITIALIZER("mpu", true, 250000000, 1075000),
+> +	OPP_INITIALIZER("mpu", true, 250000000, OMAP3430_VDD_MPU_OPP2_UV),
+>  	/* MPU OPP3 */
+> -	OPP_INITIALIZER("mpu", true, 500000000, 1200000),
+> +	OPP_INITIALIZER("mpu", true, 500000000, OMAP3430_VDD_MPU_OPP3_UV),
+>  	/* MPU OPP4 */
+> -	OPP_INITIALIZER("mpu", true, 550000000, 1270000),
+> +	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
+>  	/* MPU OPP5 */
+> -	OPP_INITIALIZER("mpu", true, 600000000, 1350000),
+> +	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
+>  
+>  	/*
+>  	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
+> @@ -42,47 +43,47 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+>  	 * impact that frequency will do to the MPU and the whole system in
+>  	 * general.
+>  	 */
+> -	OPP_INITIALIZER("l3_main", false, 41500000, 975000),
+> +	OPP_INITIALIZER("l3_main", false, 41500000, OMAP3430_VDD_CORE_OPP1_UV),
+>  	/* L3 OPP2 */
+> -	OPP_INITIALIZER("l3_main", true, 83000000, 1050000),
+> +	OPP_INITIALIZER("l3_main", true, 83000000, OMAP3430_VDD_CORE_OPP2_UV),
+>  	/* L3 OPP3 */
+> -	OPP_INITIALIZER("l3_main", true, 166000000, 1150000),
+> +	OPP_INITIALIZER("l3_main", true, 166000000, OMAP3430_VDD_CORE_OPP3_UV),
+>  
+>  	/* DSP OPP1 */
+> -	OPP_INITIALIZER("iva", true, 90000000, 975000),
+> +	OPP_INITIALIZER("iva", true, 90000000, OMAP3430_VDD_MPU_OPP1_UV),
+>  	/* DSP OPP2 */
+> -	OPP_INITIALIZER("iva", true, 180000000, 1075000),
+> +	OPP_INITIALIZER("iva", true, 180000000, OMAP3430_VDD_MPU_OPP2_UV),
+>  	/* DSP OPP3 */
+> -	OPP_INITIALIZER("iva", true, 360000000, 1200000),
+> +	OPP_INITIALIZER("iva", true, 360000000, OMAP3430_VDD_MPU_OPP3_UV),
+>  	/* DSP OPP4 */
+> -	OPP_INITIALIZER("iva", true, 400000000, 1270000),
+> +	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
+>  	/* DSP OPP5 */
+> -	OPP_INITIALIZER("iva", true, 430000000, 1350000),
+> +	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
+>  };
+>  
+>  static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+>  	/* MPU OPP1 - OPP50 */
+> -	OPP_INITIALIZER("mpu", true,  300000000, 1012500),
+> +	OPP_INITIALIZER("mpu", true,  300000000, OMAP3630_VDD_MPU_OPP50_UV),
+>  	/* MPU OPP2 - OPP100 */
+> -	OPP_INITIALIZER("mpu", true,  600000000, 1200000),
+> +	OPP_INITIALIZER("mpu", true,  600000000, OMAP3630_VDD_MPU_OPP100_UV),
+>  	/* MPU OPP3 - OPP-Turbo */
+> -	OPP_INITIALIZER("mpu", false, 800000000, 1325000),
+> +	OPP_INITIALIZER("mpu", false, 800000000, OMAP3630_VDD_MPU_OPP120_UV),
+>  	/* MPU OPP4 - OPP-SB */
+> -	OPP_INITIALIZER("mpu", false, 1000000000, 1375000),
+> +	OPP_INITIALIZER("mpu", false, 1000000000, OMAP3630_VDD_MPU_OPP1G_UV),
+>  
+>  	/* L3 OPP1 - OPP50 */
+> -	OPP_INITIALIZER("l3_main", true, 100000000, 1000000),
+> +	OPP_INITIALIZER("l3_main", true, 100000000, OMAP3630_VDD_CORE_OPP50_UV),
+>  	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
+> -	OPP_INITIALIZER("l3_main", true, 200000000, 1200000),
+> +	OPP_INITIALIZER("l3_main", true, 200000000, OMAP3630_VDD_CORE_OPP100_UV),
+>  
+>  	/* DSP OPP1 - OPP50 */
+> -	OPP_INITIALIZER("iva", true,  260000000, 1012500),
+> +	OPP_INITIALIZER("iva", true,  260000000, OMAP3630_VDD_MPU_OPP50_UV),
+>  	/* DSP OPP2 - OPP100 */
+> -	OPP_INITIALIZER("iva", true,  520000000, 1200000),
+> +	OPP_INITIALIZER("iva", true,  520000000, OMAP3630_VDD_MPU_OPP100_UV),
+>  	/* DSP OPP3 - OPP-Turbo */
+> -	OPP_INITIALIZER("iva", false, 660000000, 1325000),
+> +	OPP_INITIALIZER("iva", false, 660000000, OMAP3630_VDD_MPU_OPP120_UV),
+>  	/* DSP OPP4 - OPP-SB */
+> -	OPP_INITIALIZER("iva", false, 800000000, 1375000),
+> +	OPP_INITIALIZER("iva", false, 800000000, OMAP3630_VDD_MPU_OPP1G_UV),
+>  };
+>  
+>  /**
+> diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
+> index a11fa56..80d08bc 100644
+> --- a/arch/arm/mach-omap2/opp4xxx_data.c
+> +++ b/arch/arm/mach-omap2/opp4xxx_data.c
+> @@ -20,22 +20,23 @@
+>  #include <linux/module.h>
+>  
+>  #include <plat/cpu.h>
+> +#include <plat/voltage.h>
+>  
+>  #include "omap_opp_data.h"
+>  
+>  static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
+>  	/* MPU OPP1 - OPP50 */
+> -	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
+> +	OPP_INITIALIZER("mpu", true, 300000000, OMAP4430_VDD_MPU_OPP50_UV),
+>  	/* MPU OPP2 - OPP100 */
+> -	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
+> +	OPP_INITIALIZER("mpu", true, 600000000, OMAP4430_VDD_MPU_OPP100_UV),
+>  	/* MPU OPP3 - OPP-Turbo */
+> -	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
+> +	OPP_INITIALIZER("mpu", false, 800000000, OMAP4430_VDD_MPU_OPPTURBO_UV),
+>  	/* MPU OPP4 - OPP-SB */
+> -	OPP_INITIALIZER("mpu", false, 1008000000, 1350000),
+> +	OPP_INITIALIZER("mpu", false, 1008000000, OMAP4430_VDD_MPU_OPPNITRO_UV),
+>  	/* L3 OPP1 - OPP50 */
+> -	OPP_INITIALIZER("l3_main_1", true, 100000000, 930000),
+> +	OPP_INITIALIZER("l3_main_1", true, 100000000, OMAP4430_VDD_CORE_OPP50_UV),
+>  	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
+> -	OPP_INITIALIZER("l3_main_1", true, 200000000, 1100000),
+> +	OPP_INITIALIZER("l3_main_1", true, 200000000, OMAP4430_VDD_CORE_OPP100_UV),
+>  	/* TODO: add IVA, DSP, aess, fdif, gpu */
+>  };
