@@ -1,77 +1,120 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 01/13] OMAP: hwmod: Add member 'name' to omap_hwmod_addr_space struct
-Date: Fri, 04 Feb 2011 14:16:09 -0800
-Message-ID: <87d3n7la3a.fsf@ti.com>
-References: <1296485437-12806-1-git-send-email-kishon@ti.com>
-	<1296485437-12806-2-git-send-email-kishon@ti.com>
-	<8762szpor3.fsf@ti.com> <4D4C5FDC.7050008@ti.com>
+Subject: Re: [PATCH v6 0/6] OMAP: McSPI: Hwmod adaptation + runtime conversion
+Date: Fri, 04 Feb 2011 14:28:49 -0800
+Message-ID: <878vxvl9i6.fsf@ti.com>
+References: <1296649335-31756-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:52231 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751749Ab1BDWQO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 17:16:14 -0500
-Received: by gwaa20 with SMTP id a20so1108385gwa.10
-        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 14:16:13 -0800 (PST)
-In-Reply-To: <4D4C5FDC.7050008@ti.com> (Benoit Cousson's message of "Fri, 4
-	Feb 2011 21:21:48 +0100")
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:42108 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751222Ab1BDW2y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 17:28:54 -0500
+Received: by mail-gw0-f52.google.com with SMTP id 11so1183134gwb.11
+        for <linux-omap@vger.kernel.org>; Fri, 04 Feb 2011 14:28:53 -0800 (PST)
+In-Reply-To: <1296649335-31756-1-git-send-email-govindraj.raja@ti.com>
+	(Govindraj R.'s message of "Wed, 2 Feb 2011 17:52:09 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "paul@pwsan.com" <paul@pwsan.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Charulatha V <charu@ti.com>
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-> On 2/4/2011 8:45 PM, Hilman, Kevin wrote:
->> Kishon Vijay Abraham I<kishon@ti.com>  writes:
->>
->>> Adds a structure member 'name' to 'omap_hwmod_addr_space' structure.
->>> The drivers can use platform_get_resource_byname() to get resource of
->>> type 'IORESOURCE_MEM' by name so that it need not rely on the order to get
->>> the proper resource.
->>>
->>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
->>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->>> ---
->>>   arch/arm/mach-omap2/omap_hwmod.c             |    1 +
->>>   arch/arm/plat-omap/include/plat/omap_hwmod.h |    4 +++-
->>>   2 files changed, 4 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->>> index 709543a..7bd4900 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>> @@ -1898,6 +1898,7 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
->>>   		os = oh->slaves[i];
->>>
->>>   		for (j = 0; j<  os->addr_cnt; j++) {
->>> +			(res + r)->name = (os->addr + j)->name;
->>>   			(res + r)->start = (os->addr + j)->pa_start;
->>>   			(res + r)->end = (os->addr + j)->pa_end;
->>>   			(res + r)->flags = IORESOURCE_MEM;
->>> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
->>> index 76f0274..85899a7 100644
->>> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
->>> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
->>> @@ -178,7 +178,8 @@ struct omap_hwmod_omap2_firewall {
->>>   #define ADDR_TYPE_RT		(1<<  1)
->>>
->>>   /**
->>> - * struct omap_hwmod_addr_space - MPU address space handled by the hwmod
->>> + * struct omap_hwmod_addr_space - address space handled by the hwmod
->>
->> Any reason you modified the comment here?
+> Changes invloves:
+> ----------------
+> 1) Addition of hwmod data for omap2/3/4.
+> 2) McSPI driver hwmod adaptation with cleanup of base address
+>    macros and using omap-device API's.
+> 3) Runtime Conversion of McSPI driver.
 >
-> The idea of that patch is to allow hwmod to provide address space
-> accessible from SDMA (though L3). Hence the suppression of the MPU.
-> In the future, we might even be able to provide the address for the
-> DSP or the IPU viewpoint
+> Changes from v5:
+> ---------------
+> Rebased on top of 2.6.38-rc3 as per Kevin's comments.
+> http://www.spinics.net/lists/arm-kernel/msg112112.html
+
+Thanks.
+
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+
+
+> Changes from v4:
+
+> 1) 4430 hwmod file alignment based on Benoit's comments.
+>    http://www.spinics.net/lists/arm-kernel/msg111215.html
+>    4430 Hwmod file now aligned based on:
+>    http://gitorious.org/omap-pm/linux/blobs/pm-wip/
+>    hwmods-omap4-full/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 >
-
-OK, this rationale is missing from the changelog, and seems very much
-unrelated to $SUBJECT patch.
-
-Kevin
-
-
+> Changes from v3:
+> ---------------
+> 1) Updated proper Author for all patches which was missed
+>    in v2. 
+> 2) Modified 4430 hwmod data file so that mcspi data gets
+>    updated in proper alphabetical order.
+> 3) Update omap2/3 hwmod dat files with SYSS_HAS_RESET_STATUS
+>    flag.
+>
+> Changes from v2:
+> ---------------
+> 1) Fixing minor comments and adding ack from Grant Likely.
+> 	https://patchwork.kernel.org/patch/371321/
+> 	https://patchwork.kernel.org/patch/371331/
+>
+> Changes from v1:
+> ---------------
+> 1) Fixing patch 5/5 comments for hwmod+runtime
+>   Split the patch 5/5 to hwmod adaptation
+>   and then runtime conversion
+>   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg33387.html
+>
+> Testing Updates:
+> ----------------
+> Was tested using data transfer test module available at:
+> http://dev.omapzoom.org/?p=richo/device_driver_test.git;a=blob;f=mcspi/test_code/
+> utils/mcspi_modules/omap_mcspi_datatest.c;
+> h=e42ec10c5c844abdde6a7175a268b379fbbdb655;
+> hb=5d9a755d50e58de861c5e8991f2f607bc49b5dc3
+> This test basically involves MISO <--> MOSI lines looped and data transfer test
+> done using the above test module.
+> System wide suspend and ret/off counts observation, ensured that no behavioral
+> difference with and without this patch series.
+>
+> Testing procedure involves:
+> ---------------------------
+> Loopback test based on SPI interface available from
+> board expansion connector.
+> MISO <---> MOSI
+>
+> Platforms used where:
+> --------------------
+> Using the above mentioned test module we had done some
+> data transfer tests.
+> 1) OMAP2430 SDP.
+> 2) OMAP3 (OMAP3430/3630SDP, ZOOM boards zoom2/3).
+> 3) OMAP4430 SDP.
+>    [Along with loopback test basic Ethernet functionality
+>    was checked which is over SPI interface].
+>    Blaze-Board(OMAP4430) Boot tested with ethernet interface.
+> 4) Boot tested on 2420/n800.
+>
+> Benoit Cousson (1):
+>   OMAP4: hwmod data: Add McSPI
+>
+> Charulatha V (4):
+>   OMAP2420: hwmod data: Add McSPI
+>   OMAP2430: hwmod data: Add McSPI
+>   OMAP3: hwmod data: Add McSPI
+>   OMAP: devices: Modify McSPI device to adapt to hwmod framework
+>
+> Govindraj.R (1):
+>   OMAP: runtime: McSPI driver runtime conversion
+>
+>  arch/arm/mach-omap2/devices.c              |  187 ++++---------------
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |  156 ++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |  219 ++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  280 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  267 ++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/mcspi.h    |   11 +
+>  drivers/spi/omap2_mcspi.c                  |  220 +++++++---------------
+>  7 files changed, 1040 insertions(+), 300 deletions(-)
