@@ -1,47 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: World writeable MUX
-Date: Fri, 4 Feb 2011 11:53:21 -0800
-Message-ID: <20110204195321.GZ3322@atomide.com>
-References: <20110204124352.GH30543@legolas.emea.dhcp.ti.com>
+Subject: Re: [PATCH 01/20] mach-omap2: mux: world-writable debugfs files
+Date: Fri, 4 Feb 2011 12:09:47 -0800
+Message-ID: <20110204200947.GB3322@atomide.com>
+References: <cover.1296818921.git.segoon@openwall.com>
+ <1aa2fe44c18b9f24eb52a1be98d017f1f568e6bb.1296818921.git.segoon@openwall.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45699 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752424Ab1BDTxq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Feb 2011 14:53:46 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20110204124352.GH30543@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1aa2fe44c18b9f24eb52a1be98d017f1f568e6bb.1296818921.git.segoon@openwall.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vasiliy Kulikov <segoon@openwall.com>
+Cc: linux-kernel@vger.kernel.org, security@kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Felipe Balbi <balbi@ti.com> [110204 04:42]:
-> Hi Tony,
+* Vasiliy Kulikov <segoon@openwall.com> [110204 04:21]:
+> Do not create mux debugfs files as world-writable.
 > 
-> I saw a few patches floating around regarding world writeable sysfs
-> files and decided to grep around arch/arm/*omap* to try and see if we
-> were safe. Turns out anyone can change MUX entries via the debugfs
-> interface:
-> 
-> static void __init omap_mux_dbg_create_entry(
-> 				struct omap_mux_partition *partition,
-> 				struct dentry *mux_dbg_dir)
-> {
-> 	struct omap_mux_entry *e;
-> 
-> 	list_for_each_entry(e, &partition->muxmodes, node) {
-> 		struct omap_mux *m = &e->mux;
-> 
-> 		(void)debugfs_create_file(m->muxnames[0], S_IWUGO, mux_dbg_dir,
-> 					  m, &omap_mux_dbg_signal_fops);
-> 	}
-> }
-> 
-> is that really expected ? I guess not, attached there's a small patch to
-> fix that one.
+> Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+> ---
+>  Cannot compile the driver, so it is not tested at all.
 
-Heh, no it should not be like that, thanks will queue as a fix.
+Thanks, will queue this as a fix for the -rc cycle.
 
 Tony
+ 
+>  arch/arm/mach-omap2/mux.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 98148b6..6c84659 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -605,7 +605,7 @@ static void __init omap_mux_dbg_create_entry(
+>  	list_for_each_entry(e, &partition->muxmodes, node) {
+>  		struct omap_mux *m = &e->mux;
+>  
+> -		(void)debugfs_create_file(m->muxnames[0], S_IWUGO, mux_dbg_dir,
+> +		(void)debugfs_create_file(m->muxnames[0], S_IWUSR, mux_dbg_dir,
+>  					  m, &omap_mux_dbg_signal_fops);
+>  	}
+>  }
+> -- 
+> 1.7.0.4
+> 
