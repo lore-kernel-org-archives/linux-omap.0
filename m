@@ -1,173 +1,153 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 03/13] OMAP: Implement Basic DVFS
-Date: Thu, 03 Feb 2011 17:14:21 -0800
-Message-ID: <87mxmcy51u.fsf@ti.com>
-References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
-	<1295618465-15234-4-git-send-email-vishwanath.bs@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] omap: Fix DEBUG_LL code for p2v changes (Re: Fwd: [RFC
+ 4/5] ARM: P2V: introduce phys_to_virt/virt_to_phys runtime patching)
+Date: Thu, 3 Feb 2011 17:15:39 -0800
+Message-ID: <20110204011538.GN3322@atomide.com>
+References: <20110118183252.GJ16980@n2100.arm.linux.org.uk>
+ <20110118203706.GR4957@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="ZGiS0Q5IWpPtfppv"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:39571 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753657Ab1BDBOZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 20:14:25 -0500
-Received: by mail-gy0-f173.google.com with SMTP id 5so826139gye.4
-        for <linux-omap@vger.kernel.org>; Thu, 03 Feb 2011 17:14:24 -0800 (PST)
-In-Reply-To: <1295618465-15234-4-git-send-email-vishwanath.bs@ti.com>
-	(Vishwanath BS's message of "Fri, 21 Jan 2011 19:30:55 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60221 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753585Ab1BDBQB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Feb 2011 20:16:01 -0500
+Content-Disposition: inline
+In-Reply-To: <20110118203706.GR4957@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
 
-Vishwanath BS <vishwanath.bs@ti.com> writes:
 
-> This patch introduces an API to perform DVFS for a given voltage domain.
-> It takes omap_vdd_dvfs_info pointer as input parameter, computes the highest
-> requested voltage for that vdd and scales all the devices in that vdd to the
-> requested frequency along with voltage scaling.
->
-> Based on original patch from Thara.
->
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> Cc: Thara Gopinath <thara@ti.com>
-> ---
->  arch/arm/mach-omap2/dvfs.c |   87 +++++++++++++++++++++++++++++++++++++++++++-
->  1 files changed, 86 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-omap2/dvfs.c
-> index 8832e4a..cefc2be 100755
-> --- a/arch/arm/mach-omap2/dvfs.c
-> +++ b/arch/arm/mach-omap2/dvfs.c
-> @@ -21,7 +21,7 @@
->  #include <plat/omap_device.h>
->  
->  /**
-> - * struct omap_dev_user_list - Structure maitain userlist per devide
-> + * struct omap_dev_user_list - Structure maitain userlist per device
+--ZGiS0Q5IWpPtfppv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-this typo should be done in the original patch, not here.
+* Tony Lindgren <tony@atomide.com> [110118 12:36]:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [110118 10:32]:
+> > A warning for OMAP.
+> > 
+> > Your use of the __virt_to_phys() in assembly code for the debug stuff
+> > will break with this patch... please ensure that it is resolved by the
+> > next merge window.
+> 
+> Sure thanks. I'm aware of this series, will take care of it.
 
->   *
->   * @dev:       The device requesting for a particular frequency
->   * @node:      The list head entry
-> @@ -413,6 +413,91 @@ static int omap_dvfs_remove_freq_request(struct omap_vdd_dvfs_info *dvfs_info,
->  }
->  
->  /**
-> + * omap_dvfs_voltage_scale() : API to scale the devices associated with a
-> + *						voltage domain vdd voltage.
+Here's a minimal fix for your p2v branch. Will send more DEBUG_LL
+related patches in a separate series.
 
-This function scales both voltage and frequency, so the name
-voltage_scale() is a bit misleading.
+Regards,
 
-> + * @dvfs_info: omap_vdd_dvfs_info pointer for the required vdd
-> + *
-> + * This API runs through the list of devices associated with the
-> + * voltage domain and scales the device rates to the one requested
-> + * by the user or those corresponding to the new voltage of the
-> + * voltage domain. Target voltage is the highest voltage in the vdd_user_list.
-> + *
-> + * Returns 0 on success
-> + * else the error value.
-> + */
-> +static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info *dvfs_info)
-> +{
-> +	unsigned long curr_volt;
-> +	int is_volt_scaled = 0;
+Tony
 
-should be a bool
+--ZGiS0Q5IWpPtfppv
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="inituart-omap-p2v.patch"
 
-> +	struct omap_vdd_dev_list *temp_dev;
-> +	struct plist_node *node;
-> +	int ret = 0;
-> +	struct voltagedomain *voltdm;
-> +	unsigned long volt;
-> +
-> +	if (!dvfs_info || IS_ERR(dvfs_info)) {
-> +		pr_warning("%s: VDD specified does not exist!\n", __func__);
-> +		return -EINVAL;
-> +	}
-> +
-> +	voltdm = dvfs_info->voltdm;
-> +
-> +	mutex_lock(&dvfs_info->scaling_mutex);
-> +
-> +	/* Find the highest voltage being requested */
-> +	node = plist_last(&dvfs_info->user_list);
-> +	volt = node->prio;
-> +
-> +	curr_volt = omap_voltage_get_nom_volt(voltdm);
-> +
-> +	if (curr_volt == volt) {
-> +		is_volt_scaled = 1;
-> +	} else if (curr_volt < volt) {
-> +		ret = omap_voltage_scale_vdd(voltdm, volt);
-> +		if (ret) {
-> +			pr_warning("%s: Unable to scale the %s to %ld volt\n",
-> +						__func__, voltdm->name, volt);
-> +			mutex_unlock(&dvfs_info->scaling_mutex);
-> +			return ret;
-> +		}
-> +		is_volt_scaled = 1;
-> +	}
-> +
-> +	list_for_each_entry(temp_dev, &dvfs_info->dev_list, node) {
-> +		struct device *dev;
-> +		struct opp *opp;
-> +		unsigned long freq;
-> +
-> +		dev = temp_dev->dev;
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 3 Feb 2011 15:17:44 -0800
+Subject: [PATCH] omap: Fix DEBUG_LL code for p2v changes
 
-if you're doing this assignment here, might as well make 'dev' the
-iterator instead of temp_dev.
+These are needed for CONFIG_ARM_PATCH_PHYS_VIRT to work.
 
-This section would benefit with some comments.  If I understand the code
-correctly, something like:
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-If a frequency has been requested, use the highest requested frequency.
+--- a/arch/arm/mach-omap1/include/mach/debug-macro.S
++++ b/arch/arm/mach-omap1/include/mach/debug-macro.S
+@@ -17,6 +17,9 @@
+ 
+ #include <plat/serial.h>
+ 
++#define omap_uart_v2p(x)	((x) - PAGE_OFFSET + PLAT_PHYS_OFFSET)
++#define omap_uart_p2v(x)	((x) - PLAT_PHYS_OFFSET + PAGE_OFFSET)
++
+ 		.pushsection .data
+ omap_uart_phys:	.word	0x0
+ omap_uart_virt:	.word	0x0
+@@ -33,7 +36,7 @@ omap_uart_virt:	.word	0x0
+ 		/* Use omap_uart_phys/virt if already configured */
+ 9:		mrc	p15, 0, \rp, c1, c0
+ 		tst	\rp, #1			@ MMU enabled?
+-		ldreq	\rp, =__virt_to_phys(omap_uart_phys)	@ MMU not enabled
++		ldreq	\rp, =omap_uart_v2p(omap_uart_phys)	@ MMU disabled
+ 		ldrne	\rp, =omap_uart_phys	@ MMU enabled
+ 		add	\rv, \rp, #4		@ omap_uart_virt
+ 		ldr	\rp, [\rp, #0]
+@@ -46,7 +49,7 @@ omap_uart_virt:	.word	0x0
+ 		mrc	p15, 0, \rp, c1, c0
+ 		tst	\rp, #1			@ MMU enabled?
+ 		ldreq	\rp, =OMAP_UART_INFO	@ MMU not enabled
+-		ldrne	\rp, =__phys_to_virt(OMAP_UART_INFO)	@ MMU enabled
++		ldrne	\rp, =omap_uart_p2v(OMAP_UART_INFO)	@ MMU enabled
+ 		ldr	\rp, [\rp, #0]
+ 
+ 		/* Select the UART to use based on the UART1 scratchpad value */
+@@ -73,7 +76,7 @@ omap_uart_virt:	.word	0x0
+ 98:		add	\rp, \rp, #0xff000000	@ phys base
+ 		mrc	p15, 0, \rv, c1, c0
+ 		tst	\rv, #1			@ MMU enabled?
+-		ldreq	\rv, =__virt_to_phys(omap_uart_phys)	@ MMU not enabled
++		ldreq	\rv, =omap_uart_v2p(omap_uart_phys)	@ MMU disabled
+ 		ldrne	\rv, =omap_uart_phys	@ MMU enabled
+ 		str	\rp, [\rv, #0]
+ 		sub	\rp, \rp, #0xff000000	@ phys base
+--- a/arch/arm/mach-omap2/include/mach/debug-macro.S
++++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
+@@ -19,6 +19,9 @@
+ 
+ #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
+ 
++#define omap_uart_v2p(x)	((x) - PAGE_OFFSET + PLAT_PHYS_OFFSET)
++#define omap_uart_p2v(x)	((x) - PLAT_PHYS_OFFSET + PAGE_OFFSET)
++
+ 		.pushsection .data
+ omap_uart_phys:	.word	0
+ omap_uart_virt:	.word	0
+@@ -36,7 +39,7 @@ omap_uart_lsr:	.word	0
+ 		/* Use omap_uart_phys/virt if already configured */
+ 10:		mrc	p15, 0, \rp, c1, c0
+ 		tst	\rp, #1			@ MMU enabled?
+-		ldreq	\rp, =__virt_to_phys(omap_uart_phys)	@ MMU not enabled
++		ldreq	\rp, =omap_uart_v2p(omap_uart_phys)	@ MMU disabled
+ 		ldrne	\rp, =omap_uart_phys	@ MMU enabled
+ 		add	\rv, \rp, #4		@ omap_uart_virt
+ 		ldr	\rp, [\rp, #0]
+@@ -49,7 +52,7 @@ omap_uart_lsr:	.word	0
+ 		mrc	p15, 0, \rp, c1, c0
+ 		tst	\rp, #1			@ MMU enabled?
+ 		ldreq	\rp, =OMAP_UART_INFO	@ MMU not enabled
+-		ldrne	\rp, =__phys_to_virt(OMAP_UART_INFO)	@ MMU enabled
++		ldrne	\rp, =omap_uart_p2v(OMAP_UART_INFO)	@ MMU enabled
+ 		ldr	\rp, [\rp, #0]
+ 
+ 		/* Select the UART to use based on the UART1 scratchpad value */
+@@ -94,7 +97,7 @@ omap_uart_lsr:	.word	0
+ 95:		ldr	\rp, =ZOOM_UART_BASE
+ 		mrc	p15, 0, \rv, c1, c0
+ 		tst	\rv, #1			@ MMU enabled?
+-		ldreq	\rv, =__virt_to_phys(omap_uart_phys)	@ MMU not enabled
++		ldreq	\rv, =omap_uart_v2p(omap_uart_phys)	@ MMU disabled
+ 		ldrne	\rv, =omap_uart_phys	@ MMU enabled
+ 		str	\rp, [\rv, #0]
+ 		ldr	\rp, =ZOOM_UART_VIRT
+@@ -109,7 +112,7 @@ omap_uart_lsr:	.word	0
+ 98:		add	\rp, \rp, #0x48000000	@ phys base
+ 		mrc	p15, 0, \rv, c1, c0
+ 		tst	\rv, #1			@ MMU enabled?
+-		ldreq	\rv, =__virt_to_phys(omap_uart_phys)	@ MMU not enabled
++		ldreq	\rv, =omap_uart_v2p(omap_uart_phys)	@ MMU disabled
+ 		ldrne	\rv, =omap_uart_phys	@ MMU enabled
+ 		str	\rp, [\rv, #0]
+ 		sub	\rp, \rp, #0x48000000	@ phys base
+@@ -131,7 +134,7 @@ omap_uart_lsr:	.word	0
+ 		.macro	busyuart,rd,rx
+ 1001:		mrc	p15, 0, \rd, c1, c0
+ 		tst	\rd, #1			@ MMU enabled?
+-		ldreq	\rd, =__virt_to_phys(omap_uart_lsr)	@ MMU not enabled
++		ldreq	\rd, =omap_uart_v2p(omap_uart_lsr)	@ MMU disabled
+ 		ldrne	\rd, =omap_uart_lsr	@ MMU enabled
+ 		ldr	\rd, [\rd, #0]
+ 		ldrb	\rd, [\rx, \rd]
 
-> +		if (!plist_head_empty(&temp_dev->user_list)) {
-> +			node = plist_last(&temp_dev->user_list);
-> +			freq = node->prio;
-
-otherwise check if device has OPP for this voltage
-
-> +		} else {
-> +			opp = omap_dvfs_find_voltage(dev, volt);
-> +			if (IS_ERR(opp))
-> +				continue;
-
-This needs a comment to, but I'm not sure I understand what's going on
-here.  What it seems like:
-
-if this device has no OPP for this voltage, just silently move on to the
-next device?   doesn't seem quite right, but not sure I fully grok the
-failure modes of omap_dvfs_find_voltage()
-
-Kevin
-
-> +			freq = opp_get_freq(opp);
-> +		}
-> +
-> +		if (freq == omap_device_get_rate(dev)) {
-> +			dev_dbg(dev, "%s: Already at the requested"
-> +				"rate %ld\n", __func__, freq);
-> +			continue;
-> +		}
-> +
-> +		ret |= omap_device_set_rate(dev, freq);
-> +	}
-> +
-> +	if (!is_volt_scaled && !ret)
-> +		omap_voltage_scale_vdd(voltdm, volt);
-> +
-> +	mutex_unlock(&dvfs_info->scaling_mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +/**
->   * omap_dvfs_init() - Initialize omap dvfs layer
->   *
->   * Initalizes omap dvfs layer. It basically allocates memory for
+--ZGiS0Q5IWpPtfppv--
