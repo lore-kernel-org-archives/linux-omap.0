@@ -1,112 +1,96 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [PATCH v3 2/2] Input: ads7846: use gpio_request_one to configure pendown_gpio
-Date: Sat, 5 Feb 2011 12:29:58 +0530
-Message-ID: <AANLkTimQS_dNcaeTqqR=7vqFcGi-CtmH_ynrPyt4p1uK@mail.gmail.com>
-References: <1296746506-12221-1-git-send-email-sourav.poddar@ti.com>
-	<20110203165405.GB12802@core.coreip.homeip.net>
-	<20110203171953.GA13997@core.coreip.homeip.net>
-	<20110204133250.GB2070@m-desktop>
-	<20110204140847.GA3178@pengutronix.de>
-	<20110204141618.GE2070@m-desktop>
-	<4D4C116D.4080408@compulab.co.il>
-	<AANLkTi=23s6jxGFVM9vUr3XopgPnSyfie2Ywj-PcKHSF@mail.gmail.com>
-	<4D4C1B83.3020000@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Anand S Sawant <sawant@ti.com>
+Subject: [PATCH] omap2plus: smartreflex: remove sr debug directory in omap_sr_remove()
+Date: Sat,  5 Feb 2011 19:02:24 +0530
+Message-ID: <1296912744-4768-1-git-send-email-sawant@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:51185 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751056Ab1BEHAC convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 5 Feb 2011 02:00:02 -0500
-In-Reply-To: <4D4C1B83.3020000@compulab.co.il>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39572 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751279Ab1BENcc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 5 Feb 2011 08:32:32 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p15DWTcZ010787
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Sat, 5 Feb 2011 07:32:31 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, Wolfram Sang <w.sang@pengutronix.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, balbi@ti.com, charu@ti.com, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, LW@karo-electronics.de, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
+To: linux-omap@vger.kernel.org
+Cc: Anand S Sawant <sawant@ti.com>
 
-On Fri, Feb 4, 2011 at 9:00 PM, Igor Grinberg <grinberg@compulab.co.il>=
- wrote:
->
->
-> On 02/04/11 17:11, Poddar, Sourav wrote:
->
->> On Fri, Feb 4, 2011 at 8:17 PM, Igor Grinberg <grinberg@compulab.co.=
-il> wrote:
->>>
->>> On 02/04/11 16:16, G, Manjunath Kondaiah wrote:
->>>
->>>> On Fri, Feb 04, 2011 at 03:08:47PM +0100, Wolfram Sang wrote:
->>>>> On Fri, Feb 04, 2011 at 07:02:50PM +0530, G, Manjunath Kondaiah w=
-rote:
->>>>>> On Thu, Feb 03, 2011 at 09:19:53AM -0800, Dmitry Torokhov wrote:
->>>>>>> On Thu, Feb 03, 2011 at 08:54:05AM -0800, Dmitry Torokhov wrote=
-:
->>>>>>>> On Thu, Feb 03, 2011 at 08:51:46PM +0530, Sourav Poddar wrote:
->>>>>>>>> The ads7846 driver requests a gpio but does not currently
->>>>>>>>> configure it explicitly as an input. Use gpio_request_one
->>>>>>>>> to request and configure it at one shot.
->>>>>>>>>
->>>>>>>>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
->>>>>>>>> Cc: Dmitry Torokhov <dtor@mail.ru>
->>>>>>>> Will apply this one, the other one is a bit messy IMO, will ha=
-ve to
->>>>>>>> think about it.
->>>>>>>>
->>>>>>> Something like below should do I think.
->>>>>> Patch looks good but it applies only on top of previous patch:
->>>>>> https://patchwork.kernel.org/patch/529941/
->>>>>>
->>>>>> Why to have two patches for this fix?
->>>>> http://www.spinics.net/lists/linux-omap/msg45167.html
->>>> My point here is:
->>>> 1. The first patch only replaces gpio_request with gpio_request_on=
-e
->>>> 2. Rest of the things are handled in 2nd patch posted by dmitry
->>>>
->>>> What is harm in merging both the patches? I don't think it affects
->>>> readability.
->>> Because the changes introduced by the patches are from different na=
-ture.
->>> As stated in the link above, one is a functional change (gpio setup=
- change)
->>> and second is fixing the imbalance in request - free calls.
->>> The impact is not readability, but bad bisect-ability.
->> =A0 Dmitry's patch fixes both the problems(request/free and directio=
-n)
->> =A0 in a single patch itself.Now there is no need of merging any pat=
-ches.
->> =A0 Just that Dmitry's patch need to be rebased over the top of HEAD=
-=2E (Currently,
->> =A0 its on top of my patch series).
->
-> Well, here you have missed the point of direction:
-> ...
->
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 err =3D gpio_request_one(pdata->gpio_pe=
-ndown, GPIOF_DIR_IN,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "ads7846_pendown");
->
-> ...
->
-> - =A0 =A0 =A0 err =3D gpio_request_one(pdata->gpio_pendown, GPIOF_DIR=
-_IN,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 "ads7846_pendown");
-> ...
->
->
-> It does not deal with direction, but only with request - free balance=
-=2E
-> The gpio direction is fixed by your patch.
->
+omap_sr_probe() creates the smartreflex debug directory and its
+underlying nvalue debug directory. These directories are removed in
+omap_sr_remove().
 
-gpio_request_one is a different API which calls  gpio_direction_input
-for configuring the direction.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Basic smartreflex functionality tested on OMAP3630 Zoom3 & OMAP4430 SDP
+
+Signed-off-by: Anand S Sawant <sawant@ti.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |   24 ++++++++++++++----------
+ 1 files changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index d7deadf..57df5cf 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -54,6 +54,7 @@ struct omap_sr {
+ 	struct list_head		node;
+ 	struct omap_sr_nvalue_table	*nvalue_table;
+ 	struct voltagedomain		*voltdm;
++	struct dentry			*dbg_dir;
+ };
+ 
+ /* sr_list contains all the instances of smartreflex module */
+@@ -822,7 +823,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
+ 	struct omap_sr_data *pdata = pdev->dev.platform_data;
+ 	struct resource *mem, *irq;
+-	struct dentry *vdd_dbg_dir, *dbg_dir, *nvalue_dir;
++	struct dentry *vdd_dbg_dir, *nvalue_dir;
+ 	struct omap_volt_data *volt_data;
+ 	int i, ret = 0;
+ 
+@@ -894,23 +895,24 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	if (!vdd_dbg_dir)
+ 		return -EINVAL;
+ 
+-	dbg_dir = debugfs_create_dir("smartreflex", vdd_dbg_dir);
+-	if (IS_ERR(dbg_dir)) {
++	sr_info->dbg_dir = debugfs_create_dir("smartreflex", vdd_dbg_dir);
++	if (IS_ERR(sr_info->dbg_dir)) {
+ 		dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
+ 			__func__);
+-		return PTR_ERR(dbg_dir);
++		return PTR_ERR(sr_info->dbg_dir);
+ 	}
+ 
+-	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
+-				(void *)sr_info, &pm_sr_fops);
+-	(void) debugfs_create_x32("errweight", S_IRUGO, dbg_dir,
++	/* Using S_IWUSR to fix checkpatch warning */
++	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUSR,
++			sr_info->dbg_dir, (void *)sr_info, &pm_sr_fops);
++	(void) debugfs_create_x32("errweight", S_IRUGO, sr_info->dbg_dir,
+ 			&sr_info->err_weight);
+-	(void) debugfs_create_x32("errmaxlimit", S_IRUGO, dbg_dir,
++	(void) debugfs_create_x32("errmaxlimit", S_IRUGO, sr_info->dbg_dir,
+ 			&sr_info->err_maxlimit);
+-	(void) debugfs_create_x32("errminlimit", S_IRUGO, dbg_dir,
++	(void) debugfs_create_x32("errminlimit", S_IRUGO, sr_info->dbg_dir,
+ 			&sr_info->err_minlimit);
+ 
+-	nvalue_dir = debugfs_create_dir("nvalue", dbg_dir);
++	nvalue_dir = debugfs_create_dir("nvalue", sr_info->dbg_dir);
+ 	if (IS_ERR(nvalue_dir)) {
+ 		dev_err(&pdev->dev, "%s: Unable to create debugfs directory"
+ 			"for n-values\n", __func__);
+@@ -974,6 +976,8 @@ static int __devexit omap_sr_remove(struct platform_device *pdev)
+ 
+ 	if (sr_info->autocomp_active)
+ 		sr_stop_vddautocomp(sr_info);
++	if (sr_info->dbg_dir)
++		debugfs_remove_recursive(sr_info->dbg_dir);
+ 
+ 	list_del(&sr_info->node);
+ 	iounmap(sr_info->base);
+-- 
+1.7.0.4
+
