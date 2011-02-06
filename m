@@ -1,102 +1,74 @@
-From: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Subject: Re: [PATCH] i2c: OMAP: fix static suspend vs. runtime suspend
-Date: Sat, 5 Feb 2011 16:08:43 +0000
-Message-ID: <20110205160843.GD15795@trinity.fluff.org>
-References: <1296173921-4832-1-git-send-email-khilman@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH v3 2/2] Input: ads7846: use gpio_request_one to configure
+ pendown_gpio
+Date: Sun, 06 Feb 2011 09:31:28 +0200
+Message-ID: <4D4E4E50.4030709@compulab.co.il>
+References: <1296746506-12221-1-git-send-email-sourav.poddar@ti.com>	<20110203165405.GB12802@core.coreip.homeip.net>	<20110203171953.GA13997@core.coreip.homeip.net>	<20110204133250.GB2070@m-desktop>	<20110204140847.GA3178@pengutronix.de>	<20110204141618.GE2070@m-desktop>	<4D4C116D.4080408@compulab.co.il>	<AANLkTi=23s6jxGFVM9vUr3XopgPnSyfie2Ywj-PcKHSF@mail.gmail.com>	<4D4C1B83.3020000@compulab.co.il> <AANLkTimQS_dNcaeTqqR=7vqFcGi-CtmH_ynrPyt4p1uK@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1296173921-4832-1-git-send-email-khilman-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimQS_dNcaeTqqR=7vqFcGi-CtmH_ynrPyt4p1uK@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "Poddar, Sourav" <sourav.poddar@ti.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, Wolfram Sang <w.sang@pengutronix.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, balbi@ti.com, charu@ti.com, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, LW@karo-electronics.de, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 27, 2011 at 04:18:41PM -0800, Kevin Hilman wrote:
-> When runtime PM is enabled, each OMAP i2c device is suspended after
-> each i2c xfer.  However, there are two cases when the static suspend
-> methods must be used to ensure the devices are suspended:
-> 
-> 1) runtime PM is disabled, either at compile time or dynamically
->     via /sys/devices/.../power/control.
-> 2) an i2c client driver uses i2c during it's suspend callback, thus
->    leaving the i2c driver active (NOTE: runtime suspend transitions are
->    disabled during system suspend, so i2c activity during system
->    suspend will runtime resume the device, but not runtime (re)suspend it.)
-> 
-> Since the actual work to suspend the device is handled by the
-> subsytem, call the bus methods to take care of it.
-> 
-> NOTE: This takes care of a known suspend problem on OMAP3 where the
-> TWL RTC driver does i2c xfers during its suspend path leaving the i2c
-> driver in an active state (since runtime suspend transistions are
-> disabled.)
-> 
-> Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-> ---
-> Ben, this is a regression in 2.6.38 so hopefully this can be queued
-> in the 2.6.38-rc cycle.  Thanks.
+> On Fri, Feb 4, 2011 at 9:00 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
+>>
+>> On 02/04/11 17:11, Poddar, Sourav wrote:
+>>
+>>> On Fri, Feb 4, 2011 at 8:17 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
+>>>> On 02/04/11 16:16, G, Manjunath Kondaiah wrote:
+>>>>
+>>>>> On Fri, Feb 04, 2011 at 03:08:47PM +0100, Wolfram Sang wrote:
+>>>>>> On Fri, Feb 04, 2011 at 07:02:50PM +0530, G, Manjunath Kondaiah wrote:
+>>>>>>> On Thu, Feb 03, 2011 at 09:19:53AM -0800, Dmitry Torokhov wrote:
+>>>>>>>> On Thu, Feb 03, 2011 at 08:54:05AM -0800, Dmitry Torokhov wrote:
+>>>>>>>>> Something like below should do I think. 
+>>>>>>> Patch looks good but it applies only on top of previous patch:
+>>>>>>> https://patchwork.kernel.org/patch/529941/
+>>>>>>>
+>>>>>>> Why to have two patches for this fix?
+>>>>>> http://www.spinics.net/lists/linux-omap/msg45167.html
+>>>>> My point here is:
+>>>>> 1. The first patch only replaces gpio_request with gpio_request_one
+>>>>> 2. Rest of the things are handled in 2nd patch posted by dmitry
+>>>>>
+>>>>> What is harm in merging both the patches? I don't think it affects
+>>>>> readability.
+>>>> Because the changes introduced by the patches are from different nature.
+>>>> As stated in the link above, one is a functional change (gpio setup change)
+>>>> and second is fixing the imbalance in request - free calls.
+>>>> The impact is not readability, but bad bisect-ability.
+>>>   Dmitry's patch fixes both the problems(request/free and direction)
+>>>   in a single patch itself.Now there is no need of merging any patches.
+>>>   Just that Dmitry's patch need to be rebased over the top of HEAD. (Currently,
+>>>   its on top of my patch series).
+>> Well, here you have missed the point of direction:
+>> ...
+>>
+>> +               err = gpio_request_one(pdata->gpio_pendown, GPIOF_DIR_IN,
+>> +                                                       "ads7846_pendown");
+>>
+>> ...
+>>
+>> -       err = gpio_request_one(pdata->gpio_pendown, GPIOF_DIR_IN,
+>> -                                               "ads7846_pendown");
+>> ...
+>>
+>>
+>> It does not deal with direction, but only with request - free balance.
+>> The gpio direction is fixed by your patch.
+>>
+> gpio_request_one is a different API which calls  gpio_direction_input
+> for configuring the direction.
 
-Ok, after all the discussions should I keep it in my -rc queue?
- 
->  drivers/i2c/busses/i2c-omap.c |   28 ++++++++++++++++++++++++++++
->  1 files changed, 28 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index b605ff3..0541df9 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1137,12 +1137,40 @@ omap_i2c_remove(struct platform_device *pdev)
->  	return 0;
->  }
->  
-> +#ifdef CONFIG_SUSPEND
-> +static int omap_i2c_suspend(struct device *dev)
-> +{
-> +	if (!pm_runtime_suspended(dev))
-> +		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_suspend)
-> +			dev->bus->pm->runtime_suspend(dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static int omap_i2c_resume(struct device *dev)
-> +{
-> +	if (!pm_runtime_suspended(dev))
-> +		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_resume)
-> +			dev->bus->pm->runtime_resume(dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct dev_pm_ops omap_i2c_pm_ops = {
-> +	.suspend = omap_i2c_suspend,
-> +	.resume = omap_i2c_resume,
-> +};
-> +#else
-> +#define omap_i2c_pm_ops NULL
-> +#endif
-> +
->  static struct platform_driver omap_i2c_driver = {
->  	.probe		= omap_i2c_probe,
->  	.remove		= omap_i2c_remove,
->  	.driver		= {
->  		.name	= "omap_i2c",
->  		.owner	= THIS_MODULE,
-> +		.pm     = &omap_i2c_pm_ops,
->  	},
->  };
->  
-> -- 
-> 1.7.3.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That is exactly the point :)
+Your patch has added the gpio_request_one() and thus changed the gpio direction.
+This patch only moves it around.
 
 -- 
-Ben Dooks, ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/ben/
+Regards,
+Igor.
 
-Large Hadron Colada: A large Pina Colada that makes the universe disappear.
