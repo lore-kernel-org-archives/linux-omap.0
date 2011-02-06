@@ -1,83 +1,93 @@
-From: Gregoire Gentil <gregoire@gentil.com>
+From: Grant Erickson <marathon96@gmail.com>
 Subject: Re: How to completely switch off LCD backlight
-Date: Sun, 06 Feb 2011 10:41:07 -0800
-Message-ID: <1297017667.21804.5.camel@gregoire-laptop>
-References: <C9741AB5.23E3E%marathon96@gmail.com>
-	 <4732E696-B597-4BCE-A0E9-E60E30A7F94D@mac.com>
-Reply-To: gregoire@gentil.com
+Date: Sun, 06 Feb 2011 10:58:09 -0800
+Message-ID: <C9742F41.23E44%marathon96@gmail.com>
+References: <4732E696-B597-4BCE-A0E9-E60E30A7F94D@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.polytechnique.org ([129.104.30.34]:54483 "EHLO
-	mx1.polytechnique.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753303Ab1BFSvV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Feb 2011 13:51:21 -0500
+Received: from mail-px0-f174.google.com ([209.85.212.174]:40820 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753496Ab1BFS6Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Feb 2011 13:58:25 -0500
+Received: by pxi15 with SMTP id 15so758637pxi.19
+        for <linux-omap@vger.kernel.org>; Sun, 06 Feb 2011 10:58:25 -0800 (PST)
 In-Reply-To: <4732E696-B597-4BCE-A0E9-E60E30A7F94D@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Grant Erickson <marathon96@gmail.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-If you are not using it, put .reset_gpio =3D 96 in your board file for =
-the
-DSS2 structure. Then echo 1/0 > .../fb0/blank will do the trick to turn
-on/off your screen,
-
-Gr=C3=A9goire
-
-On Sun, 2011-02-06 at 21:53 +0400, Elvis Dowson wrote:
-> Hi Grant,
->                     Thanks for the reply.=20
->=20
+On 2/6/11 9:53 AM, Elvis Dowson wrote:
 > On Feb 6, 2011, at 9:30 PM, Grant Erickson wrote:
-> >=20
-> > The following script should be instructive:
-> >=20
-> >    device=3D"/sys/devices/platform/pwm-backlight.0/backlight/pwm-ba=
-cklight.0"
->=20
+>> The following script should be instructive:
+>> 
+>>    device="/sys/devices/platform/pwm-backlight.0/backlight/pwm-backlight.0"
+> 
 > For me, this is located in /sys/class/backlight/beagleboard
->=20
+> 
 > and bl_power is located in /sys/class/backlight/beagleboard
->=20
-> >    power=3D"${device}/bl_power"
-> >    brightness=3D"${device}/brightness"
-> >    max=3D"${device}/max_brightness"
-> >=20
-> >=20
-> >    disable_backlight () {
-> >        echo 1 > ${power}
-> >    }
-> >=20
-> >    enable_backlight () {
-> >        echo 0 > ${power}
-> >    }
->=20
+> 
+>>    power="${device}/bl_power"
+>>    brightness="${device}/brightness"
+>>    max="${device}/max_brightness"
+>> 
+>> 
+>>    disable_backlight () {
+>>        echo 1 > ${power}
+>>    }
+>> 
+>>    enable_backlight () {
+>>        echo 0 > ${power}
+>>    }
+> 
 > I did try
->=20
+> 
 > echo 1 > bl_power
->=20
-> but there was no effect. GPIO 96 from the OMAP3503 is physically conn=
-ected to LCD LED backlight enable, which I think is what would be used =
-to turn the backlight on/off.=20
->=20
-> Where can I specify the mapping of GPIO 96 to the bl_power file, so t=
-hat the LCD backlight can be switched off?
->=20
+> 
+> but there was no effect. GPIO 96 from the OMAP3503 is physically connected to
+> LCD LED backlight enable, which I think is what would be used to turn the
+> backlight on/off.
+> 
+> Where can I specify the mapping of GPIO 96 to the bl_power file, so that the
+> LCD backlight can be switched off?
+
+Elvis:
+
+If you are using the generic pwm-bl.c driver and you are using something
+akin to:
+
+    http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38559.html
+
+handle the PWM, then you likely need to perform gpio_set_value in your
+platform-specific notify callback.
+
+When using the pwm-bl.c driver (or likely any other than uses the generic
+backlight class), bl_power toggles the on/off state of the backlight YET
+preserves the current brightness level of the backlight.
+
+So, if your backlight is on at 50% and you turn it off with bl_power, when
+you turn it back on again with bl_power, it'll return to 50%.
+
+In the pwm-bl.c driver, this all happens with pwm-config(). So, in your
+notify callback, when you get a brightness value of zero, you'll call
+gpio_set_value(96, 0)--assuming your enable signal is active high. Likewise,
+when you get a brightness value of non-zero, you'll call gpio_set_value(96,
+1)--again, assuming your enable signal is active high.
+
+The generic PWM device is then handling the level then the enable GPIO is
+asserted (which, again, you are controlling in your notify callback).
+
+Best,
+
+Grant
+
+> 
 > Elvis
->=20
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
