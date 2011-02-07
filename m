@@ -1,136 +1,97 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v2 1/9] omap4: powerdomain: Add supported INACTIVE power state
-Date: Tue, 8 Feb 2011 12:11:38 +0530
-Message-ID: <eeb0b3adcb43ef0e79ab2ef160f2090c@mail.gmail.com>
-References: <1296813544-25170-1-git-send-email-santosh.shilimkar@ti.com>
- <1296813544-25170-2-git-send-email-santosh.shilimkar@ti.com>
- <alpine.DEB.2.00.1102061335400.7672@utopia.booyaka.com> <9cb5f3c283cc93d27be0c727f6f3bafa@mail.gmail.com>
- <alpine.DEB.2.00.1102071801540.21991@utopia.booyaka.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v2 01/13] OMAP: hwmod: Add member 'name' to
+ omap_hwmod_addr_space struct
+Date: Mon, 7 Feb 2011 11:32:06 +0530
+Message-ID: <AANLkTinVYk8gdvMMfEh=79R_gvt1FqsorEuhmPToX=38@mail.gmail.com>
+References: <1296485437-12806-1-git-send-email-kishon@ti.com>
+	<1296485437-12806-2-git-send-email-kishon@ti.com>
+	<8762szpor3.fsf@ti.com> <4D4C5FDC.7050008@ti.com>
+	<87d3n7la3a.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:58393 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750923Ab1BHGll (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 01:41:41 -0500
-Received: by mail-gy0-f179.google.com with SMTP id 8so2230267gyg.38
-        for <linux-omap@vger.kernel.org>; Mon, 07 Feb 2011 22:41:40 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1102071801540.21991@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <87d3n7la3a.fsf@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Basak, Partha" <p-basak2@ti.com>, "Varadarajan,
+	Charulatha" <charu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Tuesday, February 08, 2011 7:02 AM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; Kevin Hilman; Benoit Cousson;
-> Rajendra Nayak; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [PATCH v2 1/9] omap4: powerdomain: Add supported
-> INACTIVE power state
+On Sat, Feb 5, 2011 at 3:46 AM, Kevin Hilman <khilman@ti.com> wrote:
+> "Cousson, Benoit" <b-cousson@ti.com> writes:
 >
-> On Mon, 7 Feb 2011, Santosh Shilimkar wrote:
+>> On 2/4/2011 8:45 PM, Hilman, Kevin wrote:
+>>> Kishon Vijay Abraham I<kishon@ti.com> =A0writes:
+>>>
+>>>> Adds a structure member 'name' to 'omap_hwmod_addr_space' structure.
+>>>> The drivers can use platform_get_resource_byname() to get resource of
+>>>> type 'IORESOURCE_MEM' by name so that it need not rely on the order to=
+ get
+>>>> the proper resource.
+>>>>
+>>>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>>>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>>>> ---
+>>>> =A0 arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A0=
+1 +
+>>>> =A0 arch/arm/plat-omap/include/plat/omap_hwmod.h | =A0 =A04 +++-
+>>>> =A0 2 files changed, 4 insertions(+), 1 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/om=
+ap_hwmod.c
+>>>> index 709543a..7bd4900 100644
+>>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>>>> @@ -1898,6 +1898,7 @@ int omap_hwmod_fill_resources(struct omap_hwmod =
+*oh, struct resource *res)
+>>>> =A0 =A0 =A0 =A0 =A0 =A0 os =3D oh->slaves[i];
+>>>>
+>>>> =A0 =A0 =A0 =A0 =A0 =A0 for (j =3D 0; j< =A0os->addr_cnt; j++) {
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (res + r)->name =3D (os->addr + =
+j)->name;
+>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (res + r)->start =3D (os->addr=
+ + j)->pa_start;
+>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (res + r)->end =3D (os->addr +=
+ j)->pa_end;
+>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (res + r)->flags =3D IORESOURC=
+E_MEM;
+>>>> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/p=
+lat-omap/include/plat/omap_hwmod.h
+>>>> index 76f0274..85899a7 100644
+>>>> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>>>> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>>>> @@ -178,7 +178,8 @@ struct omap_hwmod_omap2_firewall {
+>>>> =A0 #define ADDR_TYPE_RT =A0 =A0 =A0 =A0 =A0 =A0 =A0(1<< =A01)
+>>>>
+>>>> =A0 /**
+>>>> - * struct omap_hwmod_addr_space - MPU address space handled by the hw=
+mod
+>>>> + * struct omap_hwmod_addr_space - address space handled by the hwmod
+>>>
+>>> Any reason you modified the comment here?
+>>
+>> The idea of that patch is to allow hwmod to provide address space
+>> accessible from SDMA (though L3). Hence the suppression of the MPU.
+>> In the future, we might even be able to provide the address for the
+>> DSP or the IPU viewpoint
+>>
 >
-> > > -----Original Message-----
-> > > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > > Sent: Monday, February 07, 2011 2:12 AM
-> > >
-> > > Continuing the discussion here:
-> > >
-> > >    http://www.mail-archive.com/linux-
-> > > omap@vger.kernel.org/msg43509.html
-> > >
-> > > 1. It appears that the OMAP4 powerdomain ON-ACTIVE state is a
-> new
-> > > state
-> > > for OMAP4, and does not exist as such on previous chips (unless
-> the
-> > > PRM_VOLTCTRL.AUTO_* bits are all disabled)
-> > >
-> > Actually it's not new state but more of convention change. ON-
-> ACTIVE
-> > is like ON in OMAP3.
->
-> Hmm, based on our earlier list mails, that seems confusing.  Setting
-> an
-> OMAP3 powerdomain next-power-state to 'ON' in OMAP3 allows voltage
-> domain
-> transitions to the SLEEP level.  But setting an OMAP4 powerdomain
-> next-power-state to 'ON-ACTIVE' does not allow voltage domain
-> transitions to the SLEEP level.  And setting an OMAP4 powerdomain
-> next-power-state to 'ON-INACTIVE' does allow voltage domain
-> transitions to
-> the SLEEP level.  Is that correct?
->
-You have point. And you are absolutely correct.
+> OK, this rationale is missing from the changelog, and seems very much
+> unrelated to $SUBJECT patch.
 
-> If that's correct, then OMAP4 ON-ACTIVE is a functionally new
-> powerdomain
-> next-power-state setting, and OMAP4 ON-INACTIVE is the same state as
-> OMAP3
-> ON.  Unless there's something obvious that I'm missing?
->
-> > > 2. It also appears that the OMAP4 powerdomain ON-INACTIVE state
-> > > is equivalent to the OMAP3 powerdomain ON state (again, assuming
-> > > that the
-> > > PRM_VOLTCTRL.AUTO_SLEEP bit is set on OMAP3).
-> > >
-> > This is correct.
-> >
-> > > Could you please comment on whether these statements are true or
-> > > false?
-> > >
-> >
-> > Just to summarise my undertsnaing of this here.
-> > On OMAP3 too, we had possibility of being in a one of the
-> > Two state when programmed to PD ON state.
-> > ON-ACTIVE or ON-INACTIVE. The PD status registers just
-> > says INACTIVE or ON based on the clodomains states within PD.
->
-> Right, but when 'ON' is written into an OMAP3 powerdomain's
-> next-power-state bits, voltage domain transitions are allowed.  So
-> I'm
-> just trying to confirm that OMAP3 ON state is functionally
-> equivalent to
-> the OMAP4 ON-INACTIVE state, and not functionally equivalent to the
-> OMAP4
-> ON-ACTIVE state.
->
-Yep. This is indeed the case.
+   ok. Will change it in the next version.
 
-> We have to ensure that the core code-internal meaning of the (ON,
-> INACTIVE, RET, OFF) states doesn't vary across SoC types.  Otherwise
-> "ON"
-> on OMAP4 won't mean "ON" on OMAP3, and the goal is for the core code
-> to be SoC-independent.
 >
-Agree.
-
-> One way to do that would be to add a small mapping layer for the
-> powerdomain set-next-power-state code to:
+> Kevin
 >
-> - allow programming INACTIVE on OMAP3, by ensuring that, when all
->   powerdomains in a voltage domain are in INACTIVE, that AUTO_SLEEP
->   is set to 1, and then setting the hardware next-power-state to ON;
-> and
 >
-> - allow programming ON on OMAP3, by ensuring that AUTO_SLEEP is set
->   to 0, and setting the hardware next-power-state to ON.
 >
-> On OMAP4, presumably it wouldn't be needed to mess with the
-> AUTO_SLEEP
-> bit.
->
-> Probably to make that work cleanly, either clockdomains or
-> powerdomains
-> would need to be associated with voltage domains; and some kind of
-> counter
-> would need to be implemented in the voltage domains to indicate when
-> it is
-> appropriate to write to the AUTO_SLEEP bit.
->
-Sounds right approach.
-
-Regards,
-Santosh
