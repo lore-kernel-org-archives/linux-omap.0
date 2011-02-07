@@ -1,180 +1,81 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH 02/13] OMAP: Introduce device specific set rate and get
- rate in omap_device structure
-Date: Mon, 7 Feb 2011 19:06:39 +0530
-Message-ID: <78ffb1b74319d069e760c6db91b17009@mail.gmail.com>
-References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com><1295618465-15234-3-git-send-email-vishwanath.bs@ti.com>
- <87bp2sznoi.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCHv2] arm: mach-omap2: smartreflex: fix another memory leak
+Date: Mon,  7 Feb 2011 16:08:04 +0200
+Message-ID: <1297087684-19967-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:60241 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751938Ab1BGNgl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 08:36:41 -0500
-Received: by mail-fx0-f44.google.com with SMTP id 9so5208350fxm.31
-        for <linux-omap@vger.kernel.org>; Mon, 07 Feb 2011 05:36:40 -0800 (PST)
-In-Reply-To: <87bp2sznoi.fsf@ti.com>
+Received: from smtp.nokia.com ([147.243.1.47]:52990 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752838Ab1BGOFg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Feb 2011 09:05:36 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: vishwanath.bs@ti.com, Aaro Koskinen <aaro.koskinen@nokia.com>
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@ti.com]
-> Sent: Friday, February 04, 2011 5:17 AM
-> To: Vishwanath BS
-> Cc: linux-omap@vger.kernel.org; patches@linaro.org; Thara Gopinath
-> Subject: Re: [PATCH 02/13] OMAP: Introduce device specific set rate and
-> get rate in omap_device structure
->
-> Vishwanath BS <vishwanath.bs@ti.com> writes:
->
-> > From: Thara Gopinath <thara@ti.com>
-> >
-> > This patch extends the omap_device structure to contain pointers to
-> scale the
-> > operating rate of the device and to retrieve the operating rate of the
-> device.
-> > This patch also adds the three new APIs in the omap device layer
-> > namely omap_device_set_rate that can be called to set a new
-> operating
-> > rate for a device, omap_device_get_rate that can be called to retrieve
-> > the operating frequency for a device and
-> omap_device_register_dvfs_callbacks
-> > to register the device specific set_rate and get_rate functions.
-> > The omap_device_set_rate and omap_device_get_rate does some
-> routine error
-> > checks and finally calls into the device specific set_rate
-> > and get_rate APIs populated through omap_device_populate_rate_fns.
-> >
-> > Signed-off-by: Thara Gopinath <thara@ti.com>
-> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> > ---
-> >  arch/arm/plat-omap/include/plat/omap_device.h |    9 +++++
-> >  arch/arm/plat-omap/omap_device.c              |   49
-> +++++++++++++++++++++++++
-> >  2 files changed, 58 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/include/plat/omap_device.h
-> b/arch/arm/plat-omap/include/plat/omap_device.h
-> > index e4c349f..204fb0a 100644
-> > --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> > +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> > @@ -50,6 +50,8 @@ extern struct device omap_device_parent;
-> >   * @hwmods: (one .. many per omap_device)
-> >   * @hwmods_cnt: ARRAY_SIZE() of @hwmods
-> >   * @pm_lats: ptr to an omap_device_pm_latency table
-> > + * @set_rate: fn ptr to change the operating rate.
-> > + * @get_rate: fn ptr to retrieve the current operating rate.
-> >   * @pm_lats_cnt: ARRAY_SIZE() of what is passed to @pm_lats
-> >   * @pm_lat_level: array index of the last odpl entry executed - -1 if
-> never
-> >   * @dev_wakeup_lat: dev wakeup latency in nanoseconds
-> > @@ -73,6 +75,8 @@ struct omap_device {
-> >  	s8				pm_lat_level;
-> >  	u8				hwmods_cnt;
-> >  	u8				_state;
-> > +	int (*set_rate)(struct device *dev, unsigned long rate);
-> > +	unsigned long (*get_rate) (struct device *dev);
-> >  };
-> >
-> >  /* Device driver interface (call via platform_data fn ptrs) */
-> > @@ -107,6 +111,11 @@ void __iomem
-> *omap_device_get_rt_va(struct omap_device *od);
-> >  int omap_device_align_pm_lat(struct platform_device *pdev,
-> >  			     u32 new_wakeup_lat_limit);
-> >  struct powerdomain *omap_device_get_pwrdm(struct omap_device
-> *od);
-> > +int omap_device_set_rate(struct device *dev, unsigned long freq);
-> > +unsigned long omap_device_get_rate(struct device *dev);
-> > +void omap_device_register_dvfs_callbacks(struct device *dev,
-> > +		int (*set_rate)(struct device *dev, unsigned long rate),
-> > +		unsigned long (*get_rate) (struct device *dev));
-> >  u32 omap_device_get_context_loss_count(struct platform_device
-> *pdev);
-> >
-> >  /* Other */
-> > diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-
-> omap/omap_device.c
-> > index a84e849..4cee430 100644
-> > --- a/arch/arm/plat-omap/omap_device.c
-> > +++ b/arch/arm/plat-omap/omap_device.c
-> > @@ -810,6 +810,55 @@ int omap_device_enable_clocks(struct
-> omap_device *od)
-> >  	return 0;
-> >  }
-> >
-> > +int omap_device_set_rate(struct device *dev, unsigned long freq)
-> > +{
-> > +	struct platform_device *pdev;
-> > +	struct omap_device *od;
-> > +
-> > +	pdev = container_of(dev, struct platform_device, dev);
->
-> There is a macro for this in device.h:
->
->       pdev = to_platform_device(dev)
->
-> This needs to be fixed all over this series.
-OK. Will fix it in next vesion.
->
-> > +	od = _find_by_pdev(pdev);
-> > +
-> > +	if (!od->set_rate) {
-> > +		dev_err(dev, "%s: No set_rate API for scaling device\n",
-> > +			__func__);
-> > +		return -ENODATA;
-> > +	}
-> > +
-> > +	return od->set_rate(dev, freq);
-> > +}
-> > +
-> > +unsigned long omap_device_get_rate(struct device *dev)
-> > +{
-> > +	struct platform_device *pdev;
-> > +	struct omap_device *od;
-> > +
-> > +	pdev = container_of(dev, struct platform_device, dev);
-> > +	od = _find_by_pdev(pdev);
->
-> Should also check here for a valid omap_device, but making sure its
-> parent is omap_device_parent.
-OK
->
-> > +
-> > +
-> > +	if (!od->get_rate) {
-> > +		dev_err(dev, "%s: No get rate API for the device\n",
-> > +			__func__);
-> > +		return 0;
-> > +	}
-> > +
-> > +	return od->get_rate(dev);
-> > +}
-> > +
-> > +void omap_device_register_dvfs_callbacks(struct device *dev,
-> > +		int (*set_rate)(struct device *dev, unsigned long rate),
-> > +		unsigned long (*get_rate) (struct device *dev))
-> > +{
-> > +	struct platform_device *pdev;
-> > +	struct omap_device *od;
-> > +
-> > +	pdev = container_of(dev, struct platform_device, dev);
-> > +	od = _find_by_pdev(pdev);
-> > +
->
-> and here
-OK
+Temporary strings with volt_* file names should be released after the
+debugfs entries are created. While at it, also simplify the string
+allocation, and use just snprintf() to create the name.
 
-Vishwa
->
-> > +	od->set_rate = set_rate;
-> > +	od->get_rate = get_rate;
-> > +}
-> > +
-> >  struct device omap_device_parent = {
-> >  	.init_name	= "omap",
-> >  	.parent         = &platform_bus,
->
-> Kevin
+The patch eliminates kmemleak reports with the following stack trace
+(multiple objects depending on HW):
+
+unreferenced object 0xcedbc5a0 (size 64):
+  comm "swapper", pid 1, jiffies 4294929375 (age 423.734s)
+  hex dump (first 32 bytes):
+    76 6f 6c 74 5f 39 37 35 30 30 30 00 00 00 00 00  volt_975000.....
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<c012fee0>] create_object+0x104/0x208
+    [<c012dbc8>] kmem_cache_alloc_trace+0xf0/0x17c
+    [<c0013f64>] omap_sr_probe+0x314/0x420
+    [<c02a1724>] platform_drv_probe+0x18/0x1c
+    [<c02a088c>] driver_probe_device+0xc8/0x188
+    [<c02a09b4>] __driver_attach+0x68/0x8c
+    [<c02a00ac>] bus_for_each_dev+0x44/0x74
+    [<c029f9e0>] bus_add_driver+0xa0/0x228
+    [<c02a0cac>] driver_register+0xa8/0x130
+    [<c02a1b2c>] platform_driver_probe+0x18/0x8c
+    [<c0013c1c>] sr_init+0x40/0x74
+    [<c005a554>] do_one_initcall+0xc8/0x1a0
+    [<c00084f4>] kernel_init+0x150/0x218
+    [<c0065d64>] kernel_thread_exit+0x0/0x8
+    [<ffffffff>] 0xffffffff
+
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+
+v2: Get rid of kmalloc().
+
+ arch/arm/mach-omap2/smartreflex.c |   15 +++------------
+ 1 files changed, 3 insertions(+), 12 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 77ecebf..e54db84 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -927,19 +927,10 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	for (i = 0; i < sr_info->nvalue_count; i++) {
+-		char *name;
+-		char volt_name[32];
+-
+-		name = kzalloc(NVALUE_NAME_LEN + 1, GFP_KERNEL);
+-		if (!name) {
+-			dev_err(&pdev->dev, "%s: Unable to allocate memory"
+-				" for n-value directory name\n",  __func__);
+-			return -ENOMEM;
+-		}
++		char name[NVALUE_NAME_LEN + 1];
+ 
+-		strcpy(name, "volt_");
+-		sprintf(volt_name, "%d", volt_data[i].volt_nominal);
+-		strcat(name, volt_name);
++		snprintf(name, sizeof(name), "volt_%d",
++			 volt_data[i].volt_nominal);
+ 		(void) debugfs_create_x32(name, S_IRUGO | S_IWUGO, nvalue_dir,
+ 				&(sr_info->nvalue_table[i].nvalue));
+ 	}
+-- 
+1.5.6.5
+
