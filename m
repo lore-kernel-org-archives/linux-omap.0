@@ -1,33 +1,153 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH 0/4] Fix 104MHz support for OMAP OneNAND
-Date: Mon,  7 Feb 2011 10:46:57 +0200
-Message-ID: <1297068421-14430-1-git-send-email-adrian.hunter@nokia.com>
+Subject: [PATCH 2/4] OMAP: OneNAND: determine frequency in one place
+Date: Mon,  7 Feb 2011 10:46:59 +0200
+Message-ID: <1297068421-14430-3-git-send-email-adrian.hunter@nokia.com>
+References: <1297068421-14430-1-git-send-email-adrian.hunter@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:36796 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:36836 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753031Ab1BGIrI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Feb 2011 03:47:08 -0500
+	id S1753168Ab1BGIrL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Feb 2011 03:47:11 -0500
+In-Reply-To: <1297068421-14430-1-git-send-email-adrian.hunter@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd Mailing List <linux-mtd@lists.infradead.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-Hi
+OneNAND frequency is determined when calculating
+GPMC timings.  Return that value instead of determining it
+again in the OMAP OneNAND driver.
 
-Adrian Hunter (3):
-      OMAP: OneNAND: fix 104MHz support
-      OMAP: OneNAND: determine frequency in one place
-      OMAP: OneNAND: let boards determine OneNAND frequency
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+---
+ arch/arm/mach-omap2/gpmc-onenand.c        |   10 ++++++----
+ arch/arm/plat-omap/include/plat/onenand.h |    2 +-
+ drivers/mtd/onenand/omap2.c               |   28 +++++-----------------------
+ 3 files changed, 12 insertions(+), 28 deletions(-)
 
-Roman Tereshonkov (1):
-      mtd: OneNAND: OMAP2: increase multiblock erase verify timeout
-
- arch/arm/mach-omap2/gpmc-onenand.c        |  113 +++++++++++++++++++++--------
- arch/arm/plat-omap/include/plat/onenand.h |   10 +++-
- drivers/mtd/onenand/omap2.c               |   36 ++-------
- include/linux/mtd/onenand_regs.h          |    1 +
- 4 files changed, 100 insertions(+), 60 deletions(-)
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index 3a4307b..46786a6 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -123,7 +123,7 @@ static void set_onenand_cfg(void __iomem *onenand_base, int latency,
  
-Regards
-Adrian
+ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+ 					void __iomem *onenand_base,
+-					int freq)
++					int *freq_ptr)
+ {
+ 	struct gpmc_timings t;
+ 	const int t_cer  = 15;
+@@ -136,7 +136,7 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+ 	int tick_ns, div, fclk_offset_ns, fclk_offset, gpmc_clk_ns, latency;
+ 	int first_time = 0, hf = 0, vhf = 0, sync_read = 0, sync_write = 0;
+ 	int err, ticks_cez;
+-	int cs = cfg->cs;
++	int cs = cfg->cs, freq = *freq_ptr;
+ 	u32 reg;
+ 
+ 	if (cfg->flags & ONENAND_SYNC_READ) {
+@@ -330,16 +330,18 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+ 
+ 	set_onenand_cfg(onenand_base, latency, sync_read, sync_write, hf, vhf);
+ 
++	*freq_ptr = freq;
++
+ 	return 0;
+ }
+ 
+-static int gpmc_onenand_setup(void __iomem *onenand_base, int freq)
++static int gpmc_onenand_setup(void __iomem *onenand_base, int *freq_ptr)
+ {
+ 	struct device *dev = &gpmc_onenand_device.dev;
+ 
+ 	/* Set sync timings in GPMC */
+ 	if (omap2_onenand_set_sync_mode(gpmc_onenand_data, onenand_base,
+-			freq) < 0) {
++			freq_ptr) < 0) {
+ 		dev_err(dev, "Unable to set synchronous mode\n");
+ 		return -EINVAL;
+ 	}
+diff --git a/arch/arm/plat-omap/include/plat/onenand.h b/arch/arm/plat-omap/include/plat/onenand.h
+index affe87e..86118dc 100644
+--- a/arch/arm/plat-omap/include/plat/onenand.h
++++ b/arch/arm/plat-omap/include/plat/onenand.h
+@@ -20,7 +20,7 @@ struct omap_onenand_platform_data {
+ 	int			gpio_irq;
+ 	struct mtd_partition	*parts;
+ 	int			nr_parts;
+-	int                     (*onenand_setup)(void __iomem *, int freq);
++	int			(*onenand_setup)(void __iomem *, int *freq_ptr);
+ 	int			dma_channel;
+ 	u8			flags;
+ 	u8			regulator_can_sleep;
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index ac31f46..3e1bb95 100644
+--- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -63,7 +63,7 @@ struct omap2_onenand {
+ 	struct completion dma_done;
+ 	int dma_channel;
+ 	int freq;
+-	int (*setup)(void __iomem *base, int freq);
++	int (*setup)(void __iomem *base, int *freq_ptr);
+ 	struct regulator *regulator;
+ };
+ 
+@@ -581,7 +581,7 @@ static int __adjust_timing(struct device *dev, void *data)
+ 
+ 	/* DMA is not in use so this is all that is needed */
+ 	/* Revisit for OMAP3! */
+-	ret = c->setup(c->onenand.base, c->freq);
++	ret = c->setup(c->onenand.base, &c->freq);
+ 
+ 	return ret;
+ }
+@@ -673,7 +673,7 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (pdata->onenand_setup != NULL) {
+-		r = pdata->onenand_setup(c->onenand.base, c->freq);
++		r = pdata->onenand_setup(c->onenand.base, &c->freq);
+ 		if (r < 0) {
+ 			dev_err(&pdev->dev, "Onenand platform setup failed: "
+ 				"%d\n", r);
+@@ -718,8 +718,8 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	dev_info(&pdev->dev, "initializing on CS%d, phys base 0x%08lx, virtual "
+-		 "base %p\n", c->gpmc_cs, c->phys_base,
+-		 c->onenand.base);
++		 "base %p, freq %d MHz\n", c->gpmc_cs, c->phys_base,
++		 c->onenand.base, c->freq);
+ 
+ 	c->pdev = pdev;
+ 	c->mtd.name = dev_name(&pdev->dev);
+@@ -754,24 +754,6 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
+ 	if ((r = onenand_scan(&c->mtd, 1)) < 0)
+ 		goto err_release_regulator;
+ 
+-	switch ((c->onenand.version_id >> 4) & 0xf) {
+-	case 0:
+-		c->freq = 40;
+-		break;
+-	case 1:
+-		c->freq = 54;
+-		break;
+-	case 2:
+-		c->freq = 66;
+-		break;
+-	case 3:
+-		c->freq = 83;
+-		break;
+-	case 4:
+-		c->freq = 104;
+-		break;
+-	}
+-
+ #ifdef CONFIG_MTD_PARTITIONS
+ 	r = parse_mtd_partitions(&c->mtd, part_probes, &c->parts, 0);
+ 	if (r > 0)
+-- 
+1.7.0.4
 
