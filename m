@@ -1,63 +1,46 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 4/5] ARM: scu: Move register defines to header file
-Date: Mon, 7 Feb 2011 16:00:19 +0530
-Message-ID: <b9722c3df469f7733373c6009909596b@mail.gmail.com>
-References: <20110125125656.GG13300@n2100.arm.linux.org.uk>
- <20110125130422.GH13300@n2100.arm.linux.org.uk> <20110125130611.GA15663@n2100.arm.linux.org.uk>
- <627ff975140c8e4afbad281105b29d35@mail.gmail.com> <20110204104113.GD15004@n2100.arm.linux.org.uk>
- <c703383234131695d040a1e5b8a79413@mail.gmail.com> <20110204113053.GF15004@n2100.arm.linux.org.uk>
- <247f9ef444eeb8ca59de74837a3e9c62@mail.gmail.com> <20110207101829.GA32431@n2100.arm.linux.org.uk>
- <9a00af58d2fc4d1792c382d02068c865@mail.gmail.com> <20110207102347.GB32431@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [PATCH] OMAP1: PM: fix omap1 build
+Date: Mon,  7 Feb 2011 17:52:38 +0530
+Message-ID: <1297081358-8294-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:45270 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753406Ab1BGKaV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 05:30:21 -0500
-Received: by iwb12 with SMTP id 12so4702220iwb.38
-        for <linux-omap@vger.kernel.org>; Mon, 07 Feb 2011 02:30:20 -0800 (PST)
-In-Reply-To: <20110207102347.GB32431@n2100.arm.linux.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38503 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750753Ab1BGMYN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Feb 2011 07:24:13 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: catalin.marinas@arm.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ccross@android.com
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Monday, February 07, 2011 3:54 PM
-> To: Santosh Shilimkar
-> Cc: catalin.marinas@arm.com; linus.ml.walleij@gmail.com; linux-
-> omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> ccross@android.com
-> Subject: Re: [PATCH 4/5] ARM: scu: Move register defines to header
-> file
->
-> On Mon, Feb 07, 2011 at 03:51:04PM +0530, Santosh Shilimkar wrote:
-> > > > > +int scu_power_mode(void __iomem *scu_base, unsigned int
-> mode)
-> > > > > +{
-> > > > > +	unsigned int val;
-> > > > > +	int cpu = smp_processor_id();
-> > > > > +	int shift;
-> > > > shift is unused with this version now so I am removing it.
-> > >
-> > > Yes, I noticed that - it's gone in the version I merged into my
-> > > tree.
-> > Ok.
-> > Did you also merged twd patch of yours ?
->
-> Both:
->
->     ARM: twd: ensure timer reload is reprogrammed on entry to
-> periodic mode
->     ARM: twd: fix display of twd frequency
->
-> are in mainline.  They both qualify as bug fixes, so go in during -
-> rc periods.
+The omap1_defconfig build on pm branch throughs below build error:
 
-Nice.
-Thanks for pushing it early.
+  CC      drivers/i2c/busses/i2c-omap.o
+drivers/i2c/busses/i2c-omap.c:1173: error: lvalue required as unary '&' operand
+make[3]: *** [drivers/i2c/busses/i2c-omap.o] Error 1
+make[2]: *** [drivers/i2c/busses] Error 2
+make[1]: *** [drivers/i2c] Error 2
+make: *** [drivers] Error 2
 
-Regards,
-Santosh
+Fix above build error. Boot tested on omap1710(h3) board.
+
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 0541df9..8db456f 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1170,7 +1170,7 @@ static struct platform_driver omap_i2c_driver = {
+ 	.driver		= {
+ 		.name	= "omap_i2c",
+ 		.owner	= THIS_MODULE,
+-		.pm     = &omap_i2c_pm_ops,
++		.pm     = omap_i2c_pm_ops,
+ 	},
+ };
+ 
+-- 
+1.7.1
+
