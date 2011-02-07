@@ -1,19 +1,27 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 00/20] world-writable files in sysfs and debugfs
-Date: Mon, 7 Feb 2011 19:38:28 +0000
-Message-ID: <20110207193828.GB19838@srcf.ucam.org>
-References: <20110204140033.GA31184@albatros>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [OFF TOPIC] OMAP5 announced
+Date: Mon, 7 Feb 2011 23:24:03 +0200
+Message-ID: <20110207212403.GE2719@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:40258 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752388Ab1BGVYI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 16:24:08 -0500
+Received: by mail-bw0-f50.google.com with SMTP id 12so6708900bwg.37
+        for <linux-omap@vger.kernel.org>; Mon, 07 Feb 2011 13:24:06 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20110204140033.GA31184@albatros>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Vasiliy Kulikov <segoon@openwall.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, socketcan-core@lists.berlios.de, netdev@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, rtc-linux@googlegroups.com, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, linux-mtd@lists.infradead.org, security@kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Thanks, I've applied the x86 platform driver ones.
+Hi,
+
+OMAP5 was just announced, here you can get some more info about it:
+
+http://multivu.prnewswire.com/mnr/texasinstruments/39161/
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+balbi
