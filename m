@@ -1,97 +1,43 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH] OMAP4:Fix -EINVAL for vana, vcxio, vdac
-Date: Mon,  7 Feb 2011 20:59:59 +0530
-Message-ID: <1297092599-428-1-git-send-email-balajitk@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: Fix DEBUG_LL code for p2v changes (Re: Fwd: [RFC
+ 4/5] ARM: P2V: introduce phys_to_virt/virt_to_phys runtime patching)
+Date: Mon, 7 Feb 2011 07:51:23 -0800
+Message-ID: <20110207155123.GC20795@atomide.com>
+References: <20110118183252.GJ16980@n2100.arm.linux.org.uk>
+ <20110118203706.GR4957@atomide.com>
+ <20110204011538.GN3322@atomide.com>
+ <20110204234620.GB8821@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50081 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754068Ab1BGP2a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Feb 2011 10:28:30 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34416 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754076Ab1BGPwE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 10:52:04 -0500
+Content-Disposition: inline
+In-Reply-To: <20110204234620.GB8821@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: linux@arm.linux.org.uk, Balaji T K <balajitk@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
 
-Fixed regulators in twl6030 do not have set_voltage hook.
-Regulator core returns -22 if set_voltage is NULL and apply_uV is set
-while applying the constraint to set voltage resulting in failure during probe
-of these regulators.
-Do not set apply_uV for fixed regulators which don't have set_voltage.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110204 15:45]:
+> On Thu, Feb 03, 2011 at 05:15:39PM -0800, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [110118 12:36]:
+> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [110118 10:32]:
+> > > > A warning for OMAP.
+> > > > 
+> > > > Your use of the __virt_to_phys() in assembly code for the debug stuff
+> > > > will break with this patch... please ensure that it is resolved by the
+> > > > next merge window.
+> > > 
+> > > Sure thanks. I'm aware of this series, will take care of it.
+> > 
+> > Here's a minimal fix for your p2v branch. Will send more DEBUG_LL
+> > related patches in a separate series.
+> 
+> Could you please provide some acks/tested bys for the p2v stuff?
 
-machine_constraints_voltage: VANA: failed to apply 2100000uV constraint
-twl_reg twl_reg.43: can't register VANA, -22
-twl_reg: probe of twl_reg.43 failed with error -22
-machine_constraints_voltage: VCXIO: failed to apply 1800000uV constraint
-twl_reg twl_reg.44: can't register VCXIO, -22
-twl_reg: probe of twl_reg.44 failed with error -22
-machine_constraints_voltage: VDAC: failed to apply 1800000uV constraint
-twl_reg twl_reg.45: can't register VDAC, -22
-twl_reg: probe of twl_reg.45 failed with error -22
+Sorry was out of town for the weekend, will reply with acks.
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
----
-Boot tested on OMAP4SDP with omap2plus_defconfig
-
- arch/arm/mach-omap2/board-4430sdp.c    |    3 ---
- arch/arm/mach-omap2/board-omap4panda.c |    3 ---
- 2 files changed, 0 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 07d1b20..1b16525 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -434,7 +434,6 @@ static struct regulator_init_data sdp4430_vana = {
- 	.constraints = {
- 		.min_uV			= 2100000,
- 		.max_uV			= 2100000,
--		.apply_uV		= true,
- 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
- 					| REGULATOR_MODE_STANDBY,
- 		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
-@@ -446,7 +445,6 @@ static struct regulator_init_data sdp4430_vcxio = {
- 	.constraints = {
- 		.min_uV			= 1800000,
- 		.max_uV			= 1800000,
--		.apply_uV		= true,
- 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
- 					| REGULATOR_MODE_STANDBY,
- 		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
-@@ -458,7 +456,6 @@ static struct regulator_init_data sdp4430_vdac = {
- 	.constraints = {
- 		.min_uV			= 1800000,
- 		.max_uV			= 1800000,
--		.apply_uV		= true,
- 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
- 					| REGULATOR_MODE_STANDBY,
- 		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index e001a04..3686533 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -305,7 +305,6 @@ static struct regulator_init_data omap4_panda_vana = {
- 	.constraints = {
- 		.min_uV			= 2100000,
- 		.max_uV			= 2100000,
--		.apply_uV		= true,
- 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
- 					| REGULATOR_MODE_STANDBY,
- 		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
-@@ -317,7 +316,6 @@ static struct regulator_init_data omap4_panda_vcxio = {
- 	.constraints = {
- 		.min_uV			= 1800000,
- 		.max_uV			= 1800000,
--		.apply_uV		= true,
- 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
- 					| REGULATOR_MODE_STANDBY,
- 		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
-@@ -329,7 +327,6 @@ static struct regulator_init_data omap4_panda_vdac = {
- 	.constraints = {
- 		.min_uV			= 1800000,
- 		.max_uV			= 1800000,
--		.apply_uV		= true,
- 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
- 					| REGULATOR_MODE_STANDBY,
- 		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
--- 
-1.7.0.4
-
+Tony
