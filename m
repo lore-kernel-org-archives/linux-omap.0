@@ -1,166 +1,54 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH 3/4] OMAP: OneNAND: let boards determine OneNAND frequency
-Date: Mon,  7 Feb 2011 10:47:00 +0200
-Message-ID: <1297068421-14430-4-git-send-email-adrian.hunter@nokia.com>
+Subject: [PATCH 4/4] mtd: OneNAND: OMAP2: increase multiblock erase verify timeout
+Date: Mon,  7 Feb 2011 10:47:01 +0200
+Message-ID: <1297068421-14430-5-git-send-email-adrian.hunter@nokia.com>
 References: <1297068421-14430-1-git-send-email-adrian.hunter@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:36859 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:36881 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753228Ab1BGIrN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Feb 2011 03:47:13 -0500
+	id S1753228Ab1BGIrO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Feb 2011 03:47:14 -0500
 In-Reply-To: <1297068421-14430-1-git-send-email-adrian.hunter@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd Mailing List <linux-mtd@lists.infradead.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-OneNAND version ID may not give the highest frequency
-supported and some OneNAND's have setup times that are
-clock dependent.  Let the board provide that information.
+From: Roman Tereshonkov <roman.tereshonkov@nokia.com>
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+The current multiblock erase verify read timeout 100us is the maximum
+for none-error case. If errors happen during multibock erase then
+the specification recommends to run multiblock erase verify command
+with maximum timeout 10ms (see specs. for KFM4G16Q2A and KFN8G16Q2A).
+
+For the most common non-error case we wait 100us in udelay polling
+loop. In case of timeout the interrupt mode is used to wait for the
+command end.
+
+Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
 ---
- arch/arm/mach-omap2/gpmc-onenand.c        |   80 +++++++++++++++++++++--------
- arch/arm/plat-omap/include/plat/onenand.h |    8 +++
- 2 files changed, 67 insertions(+), 21 deletions(-)
+ drivers/mtd/onenand/omap2.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index 46786a6..d776ded 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -121,6 +121,47 @@ static void set_onenand_cfg(void __iomem *onenand_base, int latency,
- 	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
- }
- 
-+static int omap2_onenand_get_freq(struct omap_onenand_platform_data *cfg,
-+				  void __iomem *onenand_base, bool *clk_dep)
-+{
-+	u16 ver = readw(onenand_base + ONENAND_REG_VERSION_ID);
-+	int freq = 0;
-+
-+	if (cfg->get_freq) {
-+		struct onenand_freq_info fi;
-+
-+		fi.maf_id = readw(onenand_base + ONENAND_REG_MANUFACTURER_ID);
-+		fi.dev_id = readw(onenand_base + ONENAND_REG_DEVICE_ID);
-+		fi.ver_id = ver;
-+		freq = cfg->get_freq(&fi, clk_dep);
-+		if (freq)
-+			return freq;
-+	}
-+
-+	switch ((ver >> 4) & 0xf) {
-+	case 0:
-+		freq = 40;
-+		break;
-+	case 1:
-+		freq = 54;
-+		break;
-+	case 2:
-+		freq = 66;
-+		break;
-+	case 3:
-+		freq = 83;
-+		break;
-+	case 4:
-+		freq = 104;
-+		break;
-+	default:
-+		freq = 54;
-+		break;
-+	}
-+
-+	return freq;
-+}
-+
- static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 					void __iomem *onenand_base,
- 					int *freq_ptr)
-@@ -138,6 +179,7 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 	int err, ticks_cez;
- 	int cs = cfg->cs, freq = *freq_ptr;
- 	u32 reg;
-+	bool clk_dep = false;
- 
- 	if (cfg->flags & ONENAND_SYNC_READ) {
- 		sync_read = 1;
-@@ -152,27 +194,7 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 		err = omap2_onenand_set_async_mode(cs, onenand_base);
- 		if (err)
- 			return err;
--		reg = readw(onenand_base + ONENAND_REG_VERSION_ID);
--		switch ((reg >> 4) & 0xf) {
--		case 0:
--			freq = 40;
--			break;
--		case 1:
--			freq = 54;
--			break;
--		case 2:
--			freq = 66;
--			break;
--		case 3:
--			freq = 83;
--			break;
--		case 4:
--			freq = 104;
--			break;
--		default:
--			freq = 54;
--			break;
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index 3e1bb95..ec26399 100644
+--- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -148,11 +148,9 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int state)
+ 			wait_err("controller error", state, ctrl, intr);
+ 			return -EIO;
+ 		}
+-		if ((intr & intr_flags) != intr_flags) {
+-			wait_err("timeout", state, ctrl, intr);
+-			return -EIO;
 -		}
-+		freq = omap2_onenand_get_freq(cfg, onenand_base, &clk_dep);
- 		first_time = 1;
+-		return 0;
++		if ((intr & intr_flags) == intr_flags)
++			return 0;
++		/* Continue in wait for interrupt branch */
  	}
  
-@@ -232,6 +254,22 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 	else
- 		latency = 4;
- 
-+	if (clk_dep) {
-+		if (gpmc_clk_ns < 12) { /* >83Mhz */
-+			t_ces   = 3;
-+			t_avds  = 4;
-+		} else if (gpmc_clk_ns < 15) { /* >66Mhz */
-+			t_ces   = 5;
-+			t_avds  = 4;
-+		} else if (gpmc_clk_ns < 25) { /* >40Mhz */
-+			t_ces   = 6;
-+			t_avds  = 5;
-+		} else {
-+			t_ces   = 7;
-+			t_avds  = 7;
-+		}
-+	}
-+
- 	if (first_time)
- 		set_onenand_cfg(onenand_base, latency,
- 					sync_read, sync_write, hf, vhf);
-diff --git a/arch/arm/plat-omap/include/plat/onenand.h b/arch/arm/plat-omap/include/plat/onenand.h
-index 86118dc..cbe897c 100644
---- a/arch/arm/plat-omap/include/plat/onenand.h
-+++ b/arch/arm/plat-omap/include/plat/onenand.h
-@@ -15,12 +15,20 @@
- #define ONENAND_SYNC_READ	(1 << 0)
- #define ONENAND_SYNC_READWRITE	(1 << 1)
- 
-+struct onenand_freq_info {
-+	u16			maf_id;
-+	u16			dev_id;
-+	u16			ver_id;
-+};
-+
- struct omap_onenand_platform_data {
- 	int			cs;
- 	int			gpio_irq;
- 	struct mtd_partition	*parts;
- 	int			nr_parts;
- 	int			(*onenand_setup)(void __iomem *, int *freq_ptr);
-+	int		(*get_freq)(const struct onenand_freq_info *freq_info,
-+				    bool *clk_dep);
- 	int			dma_channel;
- 	u8			flags;
- 	u8			regulator_can_sleep;
+ 	if (state != FL_READING) {
 -- 
 1.7.0.4
 
