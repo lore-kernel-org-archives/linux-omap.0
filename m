@@ -1,153 +1,125 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH 2/4] OMAP: OneNAND: determine frequency in one place
-Date: Mon,  7 Feb 2011 10:46:59 +0200
-Message-ID: <1297068421-14430-3-git-send-email-adrian.hunter@nokia.com>
+Subject: [PATCH 1/4] OMAP: OneNAND: fix 104MHz support
+Date: Mon,  7 Feb 2011 10:46:58 +0200
+Message-ID: <1297068421-14430-2-git-send-email-adrian.hunter@nokia.com>
 References: <1297068421-14430-1-git-send-email-adrian.hunter@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:36836 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:36806 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753168Ab1BGIrL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Feb 2011 03:47:11 -0500
+	id S1753168Ab1BGIrJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Feb 2011 03:47:09 -0500
 In-Reply-To: <1297068421-14430-1-git-send-email-adrian.hunter@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd Mailing List <linux-mtd@lists.infradead.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-OneNAND frequency is determined when calculating
-GPMC timings.  Return that value instead of determining it
-again in the OMAP OneNAND driver.
+104MHz needs a latency of 8 clock cycles and the VHF
+flag must be set.  Also t_rdyo is specified as
+"not applicable" so pick a lower value, and force at
+least 1 clk between AVD High to OE Low.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 ---
- arch/arm/mach-omap2/gpmc-onenand.c        |   10 ++++++----
- arch/arm/plat-omap/include/plat/onenand.h |    2 +-
- drivers/mtd/onenand/omap2.c               |   28 +++++-----------------------
- 3 files changed, 12 insertions(+), 28 deletions(-)
+ arch/arm/mach-omap2/gpmc-onenand.c |   23 +++++++++++++++++------
+ include/linux/mtd/onenand_regs.h   |    1 +
+ 2 files changed, 18 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index 3a4307b..46786a6 100644
+index 3a7d25f..3a4307b 100644
 --- a/arch/arm/mach-omap2/gpmc-onenand.c
 +++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -123,7 +123,7 @@ static void set_onenand_cfg(void __iomem *onenand_base, int latency,
+@@ -94,7 +94,7 @@ static int omap2_onenand_set_async_mode(int cs, void __iomem *onenand_base)
+ }
  
- static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 					void __iomem *onenand_base,
--					int freq)
-+					int *freq_ptr)
+ static void set_onenand_cfg(void __iomem *onenand_base, int latency,
+-				int sync_read, int sync_write, int hf)
++				int sync_read, int sync_write, int hf, int vhf)
  {
- 	struct gpmc_timings t;
- 	const int t_cer  = 15;
-@@ -136,7 +136,7 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 	int tick_ns, div, fclk_offset_ns, fclk_offset, gpmc_clk_ns, latency;
- 	int first_time = 0, hf = 0, vhf = 0, sync_read = 0, sync_write = 0;
- 	int err, ticks_cez;
--	int cs = cfg->cs;
-+	int cs = cfg->cs, freq = *freq_ptr;
  	u32 reg;
  
- 	if (cfg->flags & ONENAND_SYNC_READ) {
-@@ -330,16 +330,18 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+@@ -114,6 +114,10 @@ static void set_onenand_cfg(void __iomem *onenand_base, int latency,
+ 		reg |= ONENAND_SYS_CFG1_HF;
+ 	else
+ 		reg &= ~ONENAND_SYS_CFG1_HF;
++	if (vhf)
++		reg |= ONENAND_SYS_CFG1_VHF;
++	else
++		reg &= ~ONENAND_SYS_CFG1_VHF;
+ 	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
+ }
  
- 	set_onenand_cfg(onenand_base, latency, sync_read, sync_write, hf, vhf);
+@@ -130,7 +134,7 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+ 	const int t_wph  = 30;
+ 	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
+ 	int tick_ns, div, fclk_offset_ns, fclk_offset, gpmc_clk_ns, latency;
+-	int first_time = 0, hf = 0, sync_read = 0, sync_write = 0;
++	int first_time = 0, hf = 0, vhf = 0, sync_read = 0, sync_write = 0;
+ 	int err, ticks_cez;
+ 	int cs = cfg->cs;
+ 	u32 reg;
+@@ -180,7 +184,7 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+ 		t_avdh  = 2;
+ 		t_ach   = 3;
+ 		t_aavdh = 6;
+-		t_rdyo  = 9;
++		t_rdyo  = 6;
+ 		break;
+ 	case 83:
+ 		min_gpmc_clk_period = 12000; /* 83 MHz */
+@@ -217,7 +221,11 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+ 	gpmc_clk_ns = gpmc_ticks_to_ns(div);
+ 	if (gpmc_clk_ns < 15) /* >66Mhz */
+ 		hf = 1;
+-	if (hf)
++	if (gpmc_clk_ns < 12) /* >83Mhz */
++		vhf = 1;
++	if (vhf)
++		latency = 8;
++	else if (hf)
+ 		latency = 6;
+ 	else if (gpmc_clk_ns >= 25) /* 40 MHz*/
+ 		latency = 3;
+@@ -226,7 +234,7 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
  
-+	*freq_ptr = freq;
-+
+ 	if (first_time)
+ 		set_onenand_cfg(onenand_base, latency,
+-					sync_read, sync_write, hf);
++					sync_read, sync_write, hf, vhf);
+ 
+ 	if (div == 1) {
+ 		reg = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG2);
+@@ -264,6 +272,9 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+ 	/* Read */
+ 	t.adv_rd_off = gpmc_ticks_to_ns(fclk_offset + gpmc_ns_to_ticks(t_avdh));
+ 	t.oe_on = gpmc_ticks_to_ns(fclk_offset + gpmc_ns_to_ticks(t_ach));
++	/* Force at least 1 clk between AVD High to OE Low */
++	if (t.oe_on <= t.adv_rd_off)
++		t.oe_on = t.adv_rd_off + gpmc_round_ns_to_ticks(1);
+ 	t.access = gpmc_ticks_to_ns(fclk_offset + (latency + 1) * div);
+ 	t.oe_off = t.access + gpmc_round_ns_to_ticks(1);
+ 	t.cs_rd_off = t.oe_off;
+@@ -317,7 +328,7 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+ 	if (err)
+ 		return err;
+ 
+-	set_onenand_cfg(onenand_base, latency, sync_read, sync_write, hf);
++	set_onenand_cfg(onenand_base, latency, sync_read, sync_write, hf, vhf);
+ 
  	return 0;
  }
+diff --git a/include/linux/mtd/onenand_regs.h b/include/linux/mtd/onenand_regs.h
+index cd6f3b4..d60130f 100644
+--- a/include/linux/mtd/onenand_regs.h
++++ b/include/linux/mtd/onenand_regs.h
+@@ -168,6 +168,7 @@
+ #define ONENAND_SYS_CFG1_INT		(1 << 6)
+ #define ONENAND_SYS_CFG1_IOBE		(1 << 5)
+ #define ONENAND_SYS_CFG1_RDY_CONF	(1 << 4)
++#define ONENAND_SYS_CFG1_VHF		(1 << 3)
+ #define ONENAND_SYS_CFG1_HF		(1 << 2)
+ #define ONENAND_SYS_CFG1_SYNC_WRITE	(1 << 1)
  
--static int gpmc_onenand_setup(void __iomem *onenand_base, int freq)
-+static int gpmc_onenand_setup(void __iomem *onenand_base, int *freq_ptr)
- {
- 	struct device *dev = &gpmc_onenand_device.dev;
- 
- 	/* Set sync timings in GPMC */
- 	if (omap2_onenand_set_sync_mode(gpmc_onenand_data, onenand_base,
--			freq) < 0) {
-+			freq_ptr) < 0) {
- 		dev_err(dev, "Unable to set synchronous mode\n");
- 		return -EINVAL;
- 	}
-diff --git a/arch/arm/plat-omap/include/plat/onenand.h b/arch/arm/plat-omap/include/plat/onenand.h
-index affe87e..86118dc 100644
---- a/arch/arm/plat-omap/include/plat/onenand.h
-+++ b/arch/arm/plat-omap/include/plat/onenand.h
-@@ -20,7 +20,7 @@ struct omap_onenand_platform_data {
- 	int			gpio_irq;
- 	struct mtd_partition	*parts;
- 	int			nr_parts;
--	int                     (*onenand_setup)(void __iomem *, int freq);
-+	int			(*onenand_setup)(void __iomem *, int *freq_ptr);
- 	int			dma_channel;
- 	u8			flags;
- 	u8			regulator_can_sleep;
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index ac31f46..3e1bb95 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -63,7 +63,7 @@ struct omap2_onenand {
- 	struct completion dma_done;
- 	int dma_channel;
- 	int freq;
--	int (*setup)(void __iomem *base, int freq);
-+	int (*setup)(void __iomem *base, int *freq_ptr);
- 	struct regulator *regulator;
- };
- 
-@@ -581,7 +581,7 @@ static int __adjust_timing(struct device *dev, void *data)
- 
- 	/* DMA is not in use so this is all that is needed */
- 	/* Revisit for OMAP3! */
--	ret = c->setup(c->onenand.base, c->freq);
-+	ret = c->setup(c->onenand.base, &c->freq);
- 
- 	return ret;
- }
-@@ -673,7 +673,7 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 	}
- 
- 	if (pdata->onenand_setup != NULL) {
--		r = pdata->onenand_setup(c->onenand.base, c->freq);
-+		r = pdata->onenand_setup(c->onenand.base, &c->freq);
- 		if (r < 0) {
- 			dev_err(&pdev->dev, "Onenand platform setup failed: "
- 				"%d\n", r);
-@@ -718,8 +718,8 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 	}
- 
- 	dev_info(&pdev->dev, "initializing on CS%d, phys base 0x%08lx, virtual "
--		 "base %p\n", c->gpmc_cs, c->phys_base,
--		 c->onenand.base);
-+		 "base %p, freq %d MHz\n", c->gpmc_cs, c->phys_base,
-+		 c->onenand.base, c->freq);
- 
- 	c->pdev = pdev;
- 	c->mtd.name = dev_name(&pdev->dev);
-@@ -754,24 +754,6 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 	if ((r = onenand_scan(&c->mtd, 1)) < 0)
- 		goto err_release_regulator;
- 
--	switch ((c->onenand.version_id >> 4) & 0xf) {
--	case 0:
--		c->freq = 40;
--		break;
--	case 1:
--		c->freq = 54;
--		break;
--	case 2:
--		c->freq = 66;
--		break;
--	case 3:
--		c->freq = 83;
--		break;
--	case 4:
--		c->freq = 104;
--		break;
--	}
--
- #ifdef CONFIG_MTD_PARTITIONS
- 	r = parse_mtd_partitions(&c->mtd, part_probes, &c->parts, 0);
- 	if (r > 0)
 -- 
 1.7.0.4
 
