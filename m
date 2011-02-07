@@ -1,96 +1,209 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: omapfb: no driver for display
-Date: Sat, 19 Feb 2011 15:41:05 +0800
-Message-ID: <AANLkTik_H0vAEjB8tOyJNC4oDS1+Tp5ick0mq4jhhqMV@mail.gmail.com>
-References: <AANLkTi=f=SKE=QR97ttPnBrpW=2wNGd03+q4agmu6Uap@mail.gmail.com>
-	<AANLkTikpCcpkjb8i_8Gk5ey1FtgsaUenmKNDhrtjLqon@mail.gmail.com>
-	<AANLkTinoLOyqBCMNKbpcJMhZHnncX1T07nbfsTThA_a4@mail.gmail.com>
-	<4D5DF547.7010703@ti.com>
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [PATCH 03/13] OMAP: Implement Basic DVFS
+Date: Mon, 7 Feb 2011 19:48:13 +0530
+Message-ID: <da15cb476bc1779775448cc5dcd372f3@mail.gmail.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com><1295618465-15234-4-git-send-email-vishwanath.bs@ti.com>
+ <87mxmcy51u.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:59323 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751348Ab1BSHlG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2011 02:41:06 -0500
-Received: by yib18 with SMTP id 18so1928925yib.19
-        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 23:41:06 -0800 (PST)
-In-Reply-To: <4D5DF547.7010703@ti.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:58349 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752693Ab1BGOSO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 09:18:14 -0500
+Received: by mail-fx0-f46.google.com with SMTP id 20so5859632fxm.5
+        for <linux-omap@vger.kernel.org>; Mon, 07 Feb 2011 06:18:13 -0800 (PST)
+In-Reply-To: <87mxmcy51u.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: archit taneja <archit@ti.com>
-Cc: Sung Hee Park <shpark7@stanford.edu>, Bryan Wu <bryan.wu@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
 
-Hi,
-
-2011/2/18 archit taneja <archit@ti.com>:
-> Hi,
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Friday, February 04, 2011 6:44 AM
+> To: Vishwanath BS
+> Cc: linux-omap@vger.kernel.org; patches@linaro.org; Thara Gopinath
+> Subject: Re: [PATCH 03/13] OMAP: Implement Basic DVFS
 >
-> On Friday 18 February 2011 09:46 AM, Sung Hee Park wrote:
->>
->> Bryan,
->>
->> I've already tried that patch but didn't work. The omapdss is not
->> showing any error message, but omapfb still does.
->>
->> Thanks,
->> Sung Hee
->>
->> On Thu, Feb 17, 2011 at 7:46 PM, Bryan Wu<bryan.wu@canonical.com> =A0=
-wrote:
->>>
->>> Sung Hee,
->>>
->>> Could you please try the patch I forwarded to L-O yesterday?
->>> https://patchwork.kernel.org/patch/569501/
->>>
->>> Thanks,
->>> -Bryan
->>>
->>> On Fri, Feb 18, 2011 at 11:17 AM, Sung Hee Park<shpark7@stanford.ed=
-u>
->>> =A0wrote:
->>>>
->>>> Hi,
->>>>
->>>> I found my frame buffer is not working while I'm testing the linux
->>>> kernel 2.6.38-rc5 on omap3evm, which used to work fine with 2.6.37=
-=2E
->>>>
->>>> Kernel command line: mem=3D128M console=3DttyO0,115200n8 noinitrd =
-rw
->>>> root=3D/dev/mmcblk0p2 rootfstype=3Dext3 rootwait omapfb.rot
->>>> ate=3D3 omapfb.vrfb=3Dy vram=3D8M earlyprintk=3Dserial,uart0,11520=
-0n8
->>>> omapdss.debug=3D1 omapfb.debug=3D1
->>>> OMAPFB: omapfb_init
->>>> OMAPFB: omapfb_probe
->>>> omapfb omapfb: no driver for display
->>>> omapfb omapfb: failed to setup omapfb
+> Vishwanath BS <vishwanath.bs@ti.com> writes:
 >
-> It looks like an issue with what you have selected in the menuconfig.=
- Could
-> you ensure you have DPI and VENC selected, and in displays Generic DP=
-I panel
-> and sharp-ls panel selected.
+> > This patch introduces an API to perform DVFS for a given voltage
+> domain.
+> > It takes omap_vdd_dvfs_info pointer as input parameter, computes
+> the highest
+> > requested voltage for that vdd and scales all the devices in that vdd
+to
+> the
+> > requested frequency along with voltage scaling.
+> >
+> > Based on original patch from Thara.
+> >
+> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> > Cc: Thara Gopinath <thara@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/dvfs.c |   87
+> +++++++++++++++++++++++++++++++++++++++++++-
+> >  1 files changed, 86 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-
+> omap2/dvfs.c
+> > index 8832e4a..cefc2be 100755
+> > --- a/arch/arm/mach-omap2/dvfs.c
+> > +++ b/arch/arm/mach-omap2/dvfs.c
+> > @@ -21,7 +21,7 @@
+> >  #include <plat/omap_device.h>
+> >
+> >  /**
+> > - * struct omap_dev_user_list - Structure maitain userlist per devide
+> > + * struct omap_dev_user_list - Structure maitain userlist per device
+>
+> this typo should be done in the original patch, not here.
+OK
+>
+> >   *
+> >   * @dev:       The device requesting for a particular frequency
+> >   * @node:      The list head entry
+> > @@ -413,6 +413,91 @@ static int
+> omap_dvfs_remove_freq_request(struct omap_vdd_dvfs_info *dvfs_info,
+> >  }
+> >
+> >  /**
+> > + * omap_dvfs_voltage_scale() : API to scale the devices associated
+> with a
+> > + *						voltage domain vdd
+voltage.
+>
+> This function scales both voltage and frequency, so the name
+> voltage_scale() is a bit misleading.
+Does omap_dvfs_do_dvfs look good?
+>
+> > + * @dvfs_info: omap_vdd_dvfs_info pointer for the required vdd
+> > + *
+> > + * This API runs through the list of devices associated with the
+> > + * voltage domain and scales the device rates to the one requested
+> > + * by the user or those corresponding to the new voltage of the
+> > + * voltage domain. Target voltage is the highest voltage in the
+> vdd_user_list.
+> > + *
+> > + * Returns 0 on success
+> > + * else the error value.
+> > + */
+> > +static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info
+> *dvfs_info)
+> > +{
+> > +	unsigned long curr_volt;
+> > +	int is_volt_scaled = 0;
+>
+> should be a bool
+ok
+>
+> > +	struct omap_vdd_dev_list *temp_dev;
+> > +	struct plist_node *node;
+> > +	int ret = 0;
+> > +	struct voltagedomain *voltdm;
+> > +	unsigned long volt;
+> > +
+> > +	if (!dvfs_info || IS_ERR(dvfs_info)) {
+> > +		pr_warning("%s: VDD specified does not exist!\n",
+> __func__);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	voltdm = dvfs_info->voltdm;
+> > +
+> > +	mutex_lock(&dvfs_info->scaling_mutex);
+> > +
+> > +	/* Find the highest voltage being requested */
+> > +	node = plist_last(&dvfs_info->user_list);
+> > +	volt = node->prio;
+> > +
+> > +	curr_volt = omap_voltage_get_nom_volt(voltdm);
+> > +
+> > +	if (curr_volt == volt) {
+> > +		is_volt_scaled = 1;
+> > +	} else if (curr_volt < volt) {
+> > +		ret = omap_voltage_scale_vdd(voltdm, volt);
+> > +		if (ret) {
+> > +			pr_warning("%s: Unable to scale the %s to %ld
+> volt\n",
+> > +						__func__, voltdm->name,
+> volt);
+> > +			mutex_unlock(&dvfs_info->scaling_mutex);
+> > +			return ret;
+> > +		}
+> > +		is_volt_scaled = 1;
+> > +	}
+> > +
+> > +	list_for_each_entry(temp_dev, &dvfs_info->dev_list, node) {
+> > +		struct device *dev;
+> > +		struct opp *opp;
+> > +		unsigned long freq;
+> > +
+> > +		dev = temp_dev->dev;
+>
+> if you're doing this assignment here, might as well make 'dev' the
+> iterator instead of temp_dev.
+temp_dev holds pointer to omap_vdd_dev_list where as dev points to actual
+device pointer. Hence this assignment.
+>
+> This section would benefit with some comments.  If I understand the
+> code
+> correctly, something like:
+>
+> If a frequency has been requested, use the highest requested frequency.
+>
+> > +		if (!plist_head_empty(&temp_dev->user_list)) {
+> > +			node = plist_last(&temp_dev->user_list);
+> > +			freq = node->prio;
+>
+> otherwise check if device has OPP for this voltage
+>
+> > +		} else {
+> > +			opp = omap_dvfs_find_voltage(dev, volt);
+> > +			if (IS_ERR(opp))
+> > +				continue;
+>
+> This needs a comment to, but I'm not sure I understand what's going on
+> here.  What it seems like:
+>
+> if this device has no OPP for this voltage, just silently move on to the
+> next device?   doesn't seem quite right, but not sure I fully grok the
+> failure modes of omap_dvfs_find_voltage()
+Yes, your understanding is right. omap_dvfs_find_voltage will return error
+if the device does not have an OPP table.
+Typically devices should not register with a vdd (using
+omap_dvfs_register_device) if it has no OPP table associated with it. So
+ideally we should not hit this error case. But only exception so far is SR
+driver. SR hwmod has vdd_name field set so as to get voltagedomain
+pointers. But SR does not have any opp table. So there is no harm in
+ignoring the error and moving to next device.
 
-Even after enabling all this options above, there is still the failure
-message on my pandaboard(2.6.38-rc5-next-20110217):
-
-[    0.000000] Kernel command line: console=3DttyO2,115200n8 vram=3D16M
-root=3D/dev/mmcblk0p2 rw earlyprintk rootfstype=3Dext3 rootwait
-=2E.....
-[    2.847625] omapfb omapfb: no displays
-[    2.851562] omapfb omapfb: failed to setup omapfb
-[    2.856719] omapfb: probe of omapfb failed with error -22
-
-
-thanks,
---=20
-Lei Ming
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Vishwa
+>
+> Kevin
+>
+> > +			freq = opp_get_freq(opp);
+> > +		}
+> > +
+> > +		if (freq == omap_device_get_rate(dev)) {
+> > +			dev_dbg(dev, "%s: Already at the requested"
+> > +				"rate %ld\n", __func__, freq);
+> > +			continue;
+> > +		}
+> > +
+> > +		ret |= omap_device_set_rate(dev, freq);
+> > +	}
+> > +
+> > +	if (!is_volt_scaled && !ret)
+> > +		omap_voltage_scale_vdd(voltdm, volt);
+> > +
+> > +	mutex_unlock(&dvfs_info->scaling_mutex);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +/**
+> >   * omap_dvfs_init() - Initialize omap dvfs layer
+> >   *
+> >   * Initalizes omap dvfs layer. It basically allocates memory for
