@@ -1,27 +1,41 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [OFF TOPIC] OMAP5 announced
-Date: Mon, 7 Feb 2011 23:24:03 +0200
-Message-ID: <20110207212403.GE2719@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: State of SDP4430 platform
+Date: Mon, 7 Feb 2011 16:49:18 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102071647100.21991@utopia.booyaka.com>
+References: <20110116010936.GA21795@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1101152255100.13225@utopia.booyaka.com> <a40bc7a304b60cef73a3a0cfb84b2ee8@mail.gmail.com> <ceedbf20a12a6e821fda1496b10297a2@mail.gmail.com> <alpine.DEB.2.00.1101171611270.13225@utopia.booyaka.com>
+ <AANLkTinYuEoKNQZ_WRQ6Sd1S0CU4OKNGnxc6_Do3BW+M@mail.gmail.com> <alpine.DEB.2.00.1101191625590.7359@utopia.booyaka.com> <alpine.DEB.2.00.1101191626570.7359@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:40258 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752388Ab1BGVYI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 16:24:08 -0500
-Received: by mail-bw0-f50.google.com with SMTP id 12so6708900bwg.37
-        for <linux-omap@vger.kernel.org>; Mon, 07 Feb 2011 13:24:06 -0800 (PST)
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:42620 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755177Ab1BGXtT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 18:49:19 -0500
+In-Reply-To: <alpine.DEB.2.00.1101191626570.7359@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
 
-Hi,
+Balaji,
 
-OMAP5 was just announced, here you can get some more info about it:
+On Wed, 19 Jan 2011, Paul Walmsley wrote:
 
-http://multivu.prnewswire.com/mnr/texasinstruments/39161/
+> On Wed, 19 Jan 2011, Paul Walmsley wrote:
+> 
+> > On Wed, 19 Jan 2011, Krishnamoorthy, Balaji T wrote:
+> > 
+> > > in ES1, timeouts were observed only with RTC.
+> > > I2C burst access to IRQ registers and bq24156 were OK
+> > 
+> > Was an errata generated for this bug?
+> 
+> er, erratum, pardon me...
 
--- 
-balbi
+Is an erratum present for this bug?
+
+Also, will you generate a patch for this to at least warn the user when 
+this situation occurs?
+
+
+- Paul
