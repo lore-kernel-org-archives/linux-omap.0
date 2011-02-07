@@ -1,39 +1,77 @@
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Subject: Re: [RFC 1/5] ARM: P2V: separate PHYS_OFFSET from platform definitions
-Date: Mon, 7 Feb 2011 17:36:04 +0100
-Message-ID: <20110207163604.GJ26656@game.jcrosoft.org>
-References: <20110104202052.GE24935@n2100.arm.linux.org.uk>
-	<E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v2.6.38-rc3
+Date: Mon, 7 Feb 2011 08:50:25 -0800
+Message-ID: <20110207165024.GL20795@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59325 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752428Ab1BGQu3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 11:50:29 -0500
 Content-Disposition: inline
-In-Reply-To: <E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Viresh Kumar <viresh.kumar@st.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-sh@vger.kernel.org, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Magnus Damm <magnus.damm@gmail.com>, Scott Branden <sbranden@broadcom.com>, Marc Singer <elf@buici.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Sascha Hauer <kernel@pengutronix.de>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>, Ryan Mallon <ryan@bluewatersys.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.o
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 20:22 Tue 04 Jan     , Russell King - ARM Linux wrote:
-> This uncouple PHYS_OFFSET from the platform definitions, thereby
-> facilitating run-time computation of the physical memory offset.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  arch/arm/include/asm/memory.h                  |    2 ++
->  arch/arm/kernel/tcm.c                          |    2 +-
->  arch/arm/mach-aaec2000/include/mach/memory.h   |    2 +-
->  arch/arm/mach-at91/include/mach/memory.h       |    2 +-
-Acked-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Hi Linus,
 
-Best Regards,
-J.
+Please pull omap fixes from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+This is mostly board specific and PM related fixes.
+
+Regards,
+
+Tony
+
+
+The following changes since commit ebf53826e105f488f4f628703a108e98940d1dc5:
+
+  Linux 2.6.38-rc3 (2011-02-01 13:05:49 +1000)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Aaro Koskinen (3):
+      arm: mach-omap2: voltage: debugfs: fix memory leak
+      arm: mach-omap2: board-rm680: fix rm680_vemmc regulator constraints
+      arm: mach-omap2: mux: free allocated memory on error exit
+
+Huang Weiyi (1):
+      omap1: remove duplicated #include
+
+Julia Lawall (1):
+      OMAP: PM: SmartReflex: Add missing IS_ERR test
+
+Kevin Hilman (1):
+      OMAP3: PM: fix save secure RAM to restore MPU power state
+
+Marek Vasut (1):
+      OMAP1: Fix non-working LCD on OMAP310
+
+Ming Lei (1):
+      arm: omap4: panda: remove usb_nop_xceiv_register(v1)
+
+Stefan Weil (2):
+      OMAP: PM: SmartReflex: Fix possible memory leak
+      OMAP: PM: SmartReflex: Fix possible null pointer read access
+
+Thomas Weber (1):
+      OMAP3: Devkit8000: Change lcd power pin
+
+Tony Lindgren (1):
+      Merge branch 'for_2.6.38/pm-fixes' of ssh://master.kernel.org/.../khilman/linux-omap-pm into devel-fixes
+
+ arch/arm/mach-omap1/lcd_dma.c          |   24 ++++++++++++------------
+ arch/arm/mach-omap1/time.c             |    1 -
+ arch/arm/mach-omap2/board-devkit8000.c |   27 ++++++++++++++++-----------
+ arch/arm/mach-omap2/board-omap4panda.c |    2 --
+ arch/arm/mach-omap2/board-rm680.c      |    3 ---
+ arch/arm/mach-omap2/mux.c              |    1 +
+ arch/arm/mach-omap2/pm34xx.c           |    7 ++++---
+ arch/arm/mach-omap2/smartreflex.c      |   11 +++++------
+ arch/arm/mach-omap2/voltage.c          |    1 +
+ 9 files changed, 39 insertions(+), 38 deletions(-)
