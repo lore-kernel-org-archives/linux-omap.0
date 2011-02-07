@@ -1,155 +1,62 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [PATCH v2] OMAP: PM: DMA: Enable runtime pm
-Date: Mon,  7 Feb 2011 18:08:06 +0530
-Message-ID: <1297082286-8449-1-git-send-email-manjugk@ti.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH] arm: mach-omap2: smartreflex: fix another memory leak
+Date: Mon,  7 Feb 2011 14:57:51 +0200
+Message-ID: <1297083471-6341-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55863 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751597Ab1BGMjm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 07:39:42 -0500
+Received: from smtp.nokia.com ([147.243.128.24]:54013 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751954Ab1BGMzA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Feb 2011 07:55:00 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, tony@atomide.com
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 
-From: Manjunath G Kondaiah <manjugk@ti.com>
+Temporary strings with volt_* file names should be released after the
+debugfs entries are created.
 
-Enable runtime pm and use pm_runtime_get_sync and pm_runtime_put_autosuspend
-for OMAP DMA driver.
+The patch eliminates kmemleak reports with the following stack trace
+(multiple objects depending on HW):
 
-The DMA driver uses auto suspend feature of runtime pm framework through
-which the clock gets disabled automatically if there is no activity for
-more than one second.
+unreferenced object 0xcedbc5a0 (size 64):
+  comm "swapper", pid 1, jiffies 4294929375 (age 423.734s)
+  hex dump (first 32 bytes):
+    76 6f 6c 74 5f 39 37 35 30 30 30 00 00 00 00 00  volt_975000.....
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<c012fee0>] create_object+0x104/0x208
+    [<c012dbc8>] kmem_cache_alloc_trace+0xf0/0x17c
+    [<c0013f64>] omap_sr_probe+0x314/0x420
+    [<c02a1724>] platform_drv_probe+0x18/0x1c
+    [<c02a088c>] driver_probe_device+0xc8/0x188
+    [<c02a09b4>] __driver_attach+0x68/0x8c
+    [<c02a00ac>] bus_for_each_dev+0x44/0x74
+    [<c029f9e0>] bus_add_driver+0xa0/0x228
+    [<c02a0cac>] driver_register+0xa8/0x130
+    [<c02a1b2c>] platform_driver_probe+0x18/0x8c
+    [<c0013c1c>] sr_init+0x40/0x74
+    [<c005a554>] do_one_initcall+0xc8/0x1a0
+    [<c00084f4>] kernel_init+0x150/0x218
+    [<c0065d64>] kernel_thread_exit+0x0/0x8
+    [<ffffffff>] 0xffffffff
 
-Testing:
-Compile: omap1_defconfig and omap2plus_defconfig
-Boot: OMAP1710(H3), OMAP2420(H4), OMAP3630(Zoom3), OMAP4(Blaze)
-
-On zoom3 core retention is tested with following steps:
-echo 1 > /debug/pm_debug/sleep_while_idle
-echo 1 > /debug/pm_debug/enable_off_mode
-echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
-echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
-echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
-echo 5 > /sys/devices/platform/omap/omap_uart.3/sleep_timeout
-
-It is observed that(on pm branch), core retention count gets increasing if the
-board is left idle for more than 5 seconds. However, it doesnot enter off mode
-(even without DMA runtime changes).
-
-Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 ---
- arch/arm/plat-omap/dma.c |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 2ec3b5d..6bfe25c 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -35,6 +35,7 @@
- #include <linux/io.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
-+#include <linux/pm_runtime.h>
- 
- #include <asm/system.h>
- #include <mach/hardware.h>
-@@ -59,6 +60,7 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
- 
- static struct omap_system_dma_plat_info *p;
- static struct omap_dma_dev_attr *d;
-+static struct device *dev;
- 
- static int enable_1510_mode;
- static u32 errata;
-@@ -676,6 +678,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
- 	unsigned long flags;
- 	struct omap_dma_lch *chan;
- 
-+	pm_runtime_get_sync(dev);
- 	spin_lock_irqsave(&dma_chan_lock, flags);
- 	for (ch = 0; ch < dma_chan_count; ch++) {
- 		if (free_ch == -1 && dma_chan[ch].dev_id == -1) {
-@@ -686,6 +689,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
- 	}
- 	if (free_ch == -1) {
- 		spin_unlock_irqrestore(&dma_chan_lock, flags);
-+		pm_runtime_put_autosuspend(dev);
- 		return -EBUSY;
- 	}
- 	chan = dma_chan + free_ch;
-@@ -743,6 +747,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 77ecebf..61aebed 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -942,6 +942,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 		strcat(name, volt_name);
+ 		(void) debugfs_create_x32(name, S_IRUGO | S_IWUGO, nvalue_dir,
+ 				&(sr_info->nvalue_table[i].nvalue));
++		kfree(name);
  	}
  
- 	*dma_ch_out = free_ch;
-+	pm_runtime_put_autosuspend(dev);
- 
- 	return 0;
- }
-@@ -871,6 +876,8 @@ void omap_start_dma(int lch)
- {
- 	u32 l;
- 
-+	pm_runtime_get_sync(dev);
-+
- 	/*
- 	 * The CPC/CDAC register needs to be initialized to zero
- 	 * before starting dma transfer.
-@@ -1805,6 +1812,8 @@ static int omap1_dma_handle_ch(int ch)
- 	if (likely(dma_chan[ch].callback != NULL))
- 		dma_chan[ch].callback(ch, csr, dma_chan[ch].data);
- 
-+	pm_runtime_mark_last_busy(dev);
-+	pm_runtime_put_autosuspend(dev);
- 	return 1;
- }
- 
-@@ -1899,6 +1908,8 @@ static int omap2_dma_handle_ch(int ch)
- 	if (likely(dma_chan[ch].callback != NULL))
- 		dma_chan[ch].callback(ch, status, dma_chan[ch].data);
- 
-+	pm_runtime_mark_last_busy(dev);
-+	pm_runtime_put_autosuspend(dev);
- 	return 0;
- }
- 
-@@ -1978,6 +1989,7 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
-+	dev			= &pdev->dev;
- 	d			= p->dma_attr;
- 	errata			= p->errata;
- 
-@@ -1999,6 +2011,11 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	pm_runtime_use_autosuspend(dev);
-+	pm_runtime_set_autosuspend_delay(dev, 1000);
-+	pm_runtime_enable(dev);
-+	pm_runtime_get_sync(dev);
-+
- 	spin_lock_init(&dma_chan_lock);
- 	for (ch = 0; ch < dma_chan_count; ch++) {
- 		omap_clear_dma(ch);
-@@ -2064,6 +2081,16 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
- 		dma_chan[1].dev_id = 1;
- 	}
- 	p->show_dma_caps();
-+
-+	/*
-+	 * Note: If dma channels are reserved through boot paramters,
-+	 * then dma device is always enabled.
-+	 */
-+	if (omap_dma_reserve_channels)
-+		pm_runtime_get(dev);
-+
-+	pm_runtime_put_autosuspend(dev);
-+
- 	return 0;
- 
- exit_dma_irq_fail:
+ 	return ret;
 -- 
-1.7.1
+1.5.6.5
 
