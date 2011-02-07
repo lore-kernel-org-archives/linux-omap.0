@@ -1,44 +1,39 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-Date: Mon, 7 Feb 2011 08:15:13 -0800
-Message-ID: <20110207081513.90c299ed.rdunlap@xenotime.net>
-References: <1297068547-10635-1-git-send-email-weber@corscience.de>
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Subject: Re: [RFC 1/5] ARM: P2V: separate PHYS_OFFSET from platform definitions
+Date: Mon, 7 Feb 2011 17:36:04 +0100
+Message-ID: <20110207163604.GJ26656@game.jcrosoft.org>
+References: <20110104202052.GE24935@n2100.arm.linux.org.uk>
+	<E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1297068547-10635-1-git-send-email-weber@corscience.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Weber <weber@corscience.de>
-Cc: linux-omap@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Viresh Kumar <viresh.kumar@st.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-sh@vger.kernel.org, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Magnus Damm <magnus.damm@gmail.com>, Scott Branden <sbranden@broadcom.com>, Marc Singer <elf@buici.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Sascha Hauer <kernel@pengutronix.de>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>, Ryan Mallon <ryan@bluewatersys.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.o
 List-Id: linux-omap@vger.kernel.org
 
-On Mon,  7 Feb 2011 09:49:07 +0100 Thomas Weber wrote:
-
-> Add linux/sched.h because of missing declaration of TASK_NORMAL.
+On 20:22 Tue 04 Jan     , Russell King - ARM Linux wrote:
+> This uncouple PHYS_OFFSET from the platform definitions, thereby
+> facilitating run-time computation of the physical memory offset.
 > 
-> This patch fixes the following error:
-> 
-> drivers/media/video/omap24xxcam.c: In function
-> 'omap24xxcam_vbq_complete':
-> drivers/media/video/omap24xxcam.c:415: error: 'TASK_NORMAL' undeclared
-> (first use in this function)
-> drivers/media/video/omap24xxcam.c:415: error: (Each undeclared
-> identifier is reported only once
-> drivers/media/video/omap24xxcam.c:415: error: for each function it
-> appears in.)
-> 
-> Signed-off-by: Thomas Weber <weber@corscience.de>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 > ---
->  drivers/media/video/omap24xxcam.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
+>  arch/arm/include/asm/memory.h                  |    2 ++
+>  arch/arm/kernel/tcm.c                          |    2 +-
+>  arch/arm/mach-aaec2000/include/mach/memory.h   |    2 +-
+>  arch/arm/mach-at91/include/mach/memory.h       |    2 +-
+Acked-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
 
-Hi,
-
-Please use media: or multimedia: or media/video: in the subject line,
-not just video:.  video: traditionally is used for drivers/video/,
-not drivers/media/video.
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Best Regards,
+J.
