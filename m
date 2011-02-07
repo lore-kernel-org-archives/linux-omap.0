@@ -1,44 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 1/5] ARM: P2V: separate PHYS_OFFSET from platform definitions
-Date: Mon, 7 Feb 2011 07:57:17 -0800
-Message-ID: <20110207155717.GE20795@atomide.com>
-References: <20110104202052.GE24935@n2100.arm.linux.org.uk>
-	<E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
-	<AANLkTi=qtRP1tAs1wPnGugE2rGBTERgHuUKKBWhbs=ST@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] perf: add OMAP support for the new power events
+Date: Mon, 7 Feb 2011 17:05:37 +0100
+Message-ID: <AANLkTim7H_RZ2pSjSuYB1nCUkDx5K59r_i2JuSpjHVuK@mail.gmail.com>
+References: <1295878857-8983-1-git-send-email-j-pihet@ti.com>
+	<8d92d0aaa1ed67af244e8b50f9de372e@mail.gmail.com>
+	<AANLkTikJY2bf=ryXFAkJNZVU2A38wvEAmxipy8gJTow1@mail.gmail.com>
+	<03564f8422854f071ee2c8caaa007ea3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=qtRP1tAs1wPnGugE2rGBTERgHuUKKBWhbs=ST@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: Viresh Kumar <viresh.kumar@st.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Erik Gilling <konkers@android.com>, linux-sh@vger.kernel.org, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Marc Singer <elf@buici.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Jiandong Zheng <jdzheng@broadcom.com>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, Olof Johansson <olof@lixom.net>, Ryan Mallon <ryan@bluewatersys.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:55020 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751318Ab1BGQFj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 11:05:39 -0500
+Received: by qwa26 with SMTP id 26so3531703qwa.19
+        for <linux-omap@vger.kernel.org>; Mon, 07 Feb 2011 08:05:38 -0800 (PST)
+In-Reply-To: <03564f8422854f071ee2c8caaa007ea3@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org, Jean Pihet-XID <j-pihet@ti.com>
 
-KiBNYWdudXMgRGFtbSA8bWFnbnVzLmRhbW1AZ21haWwuY29tPiBbMTEwMTA1IDIxOjEwXToKPiBP
-biBXZWQsIEphbiA1LCAyMDExIGF0IDU6MjIgQU0sIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eAo+
-IDxsaW51eEBhcm0ubGludXgub3JnLnVrPiB3cm90ZToKPiA+IFRoaXMgdW5jb3VwbGUgUEhZU19P
-RkZTRVQgZnJvbSB0aGUgcGxhdGZvcm0gZGVmaW5pdGlvbnMsIHRoZXJlYnkKPiA+IGZhY2lsaXRh
-dGluZyBydW4tdGltZSBjb21wdXRhdGlvbiBvZiB0aGUgcGh5c2ljYWwgbWVtb3J5IG9mZnNldC4K
-PiA+Cj4gPiBTaWduZWQtb2ZmLWJ5OiBSdXNzZWxsIEtpbmcgPHJtaytrZXJuZWxAYXJtLmxpbnV4
-Lm9yZy51az4KPiA+IC0tLQo+ID4gwqBhcmNoL2FybS9pbmNsdWRlL2FzbS9tZW1vcnkuaCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoHwgwqAgwqAyICsrCj4gPiDCoGFyY2gvYXJtL2tlcm5lbC90
-Y20uYyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHwgwqAgwqAyICstCj4g
-Li4uCj4gPiDCoGFyY2gvYXJtL21hY2gtc2htb2JpbGUvaW5jbHVkZS9tYWNoL21lbW9yeS5oIMKg
-IHwgwqAgwqAyICstCj4gCj4gQXBwbGllZCBvbiB0b3Agb2Ygc2gtMi42IGdpdCBjNDIyYTU5OTJl
-OWNhMDcyZThlNDcyZWU4ZjUxODY0OWZiMDc0NzBlCj4gYW5kIHN1Y2Nlc3NmdWxseSBib290ZWQg
-b24gYSBzaDczNzItYmFzZWQgTWFja2VyZWwgYm9hcmQuCj4gCj4gQWNrZWQtYnk6IE1hZ251cyBE
-YW1tIDxkYW1tQG9wZW5zb3VyY2Uuc2U+CgpBY2tlZC1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBh
-dG9taWRlLmNvbT4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMu
-aW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xpbnV4LWFybS1rZXJuZWwK
+Hi Santosh, Tony,
+
+On Wed, Jan 26, 2011 at 11:06 AM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+>> -----Original Message-----
+>> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
+>> Sent: Wednesday, January 26, 2011 3:20 PM
+>> To: Santosh Shilimkar
+>> Cc: Thomas Renninger; linux-omap@vger.kernel.org; Jean Pihet-XID
+>> Subject: Re: [PATCH] perf: add OMAP support for the new power events
+>>
+> [...]
+>
+>> > We need to track the actual power domain transitions as well
+>> > at hardware level.
+>> Agree
+>>
+>> > Can you please look at "pwrdm_pre_transition()" and
+>> > "pwrdm_post_transition()"
+>> > This code keep track of it using the next power state
+>> > and prev-power state.
+>> The current API only has 'trace_power_domain_target' which tracks
+>> the
+>> desired target state.
+>> I think we need an extra tracer 'trace_power_domain_hitstate' so
+>> that
+>> the trace parser can compare the desired ('target') and actually hit
+>> ('hitstate') states.
+>>
+> We use next state and previous state. 'hitstate' doesn't sound
+> well that's really secondary.
+>
+> Do you plan to add that additional trace then ?
+Yes that is idea, although adding new events in the power trace API
+has been proved as quite difficult to get accepted. In any case this
+will be done separately (iow it is not part of this patch).
+
+Also this patch also supports OMAP4 since the changes are in the
+generic PM frameworks. Thanks to the OMAP PM arch guys ;p
+
+Is the patch OK? If so can it be queued in the l-o tree?
+
+>
+> Regards,
+> Santosh
+>
+
+Regards,
+Jean
