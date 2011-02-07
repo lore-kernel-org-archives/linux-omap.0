@@ -1,40 +1,52 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 03/20] mach-omap2: smartreflex: world-writable debugfs
- voltage files
-Date: Mon, 7 Feb 2011 11:03:15 +0530
-Message-ID: <AANLkTinMBQZa+-_T4O1dOZcUGjOM4748J+m_WmEV=LXW@mail.gmail.com>
-References: <cover.1296818921.git.segoon@openwall.com> <96a2b24548af3a68fde712c68b49e856e53ea1fc.1296818921.git.segoon@openwall.com>
- <87zkqbjtrd.fsf@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: State of SDP4430 platform
+Date: Mon, 7 Feb 2011 11:35:00 +0530
+Message-ID: <db3a1ff9033b3a83b93c42a2857812e1@mail.gmail.com>
+References: <20110116010936.GA21795@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.1101152255100.13225@utopia.booyaka.com> <a40bc7a304b60cef73a3a0cfb84b2ee8@mail.gmail.com>
+ <ceedbf20a12a6e821fda1496b10297a2@mail.gmail.com> <20110206094919.GA11707@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87zkqbjtrd.fsf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Vasiliy Kulikov <segoon@openwall.com>, linux-kernel@vger.kernel.org, security@kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:33330 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751854Ab1BGGFD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 01:05:03 -0500
+Received: by mail-iy0-f180.google.com with SMTP id 42so2828524iyh.25
+        for <linux-omap@vger.kernel.org>; Sun, 06 Feb 2011 22:05:02 -0800 (PST)
+In-Reply-To: <20110206094919.GA11707@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-On Sat, Feb 5, 2011 at 04:24, Kevin Hilman <khilman@ti.com> wrote:
-> Vasiliy Kulikov <segoon@openwall.com> writes:
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Sunday, February 06, 2011 3:19 PM
+> To: Santosh Shilimkar
+> Cc: Paul Walmsley; linux-omap@vger.kernel.org
+> Subject: Re: State of SDP4430 platform
 >
->> Don't allow everybody to change voltage settings.
->>
->> Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
->> ---
->> =A0Cannot compile the driver, so it is not tested at all.
+> On Mon, Jan 17, 2011 at 03:37:34PM +0530, Santosh Shilimkar wrote:
+> > The I2C timeout issue I could reproduce on my ES1.0 board. It's
+> ES1.0
+> > specific issue because I2C burst mode wasn't fuctional on it. Twl
+> RTC
+> > driver uses I2C burst mode and hence it times out. Other TWL I2C
+> > module has no such issue.
+> > The pull work-around we tried was not reliable hence it was
+> dropped.
+> >
+> > In short the TWL RTC driver won't function on ES1.0. Apart from
+> that
+> > rest of the I2C clients should work as usual.
 >
-> Acked-by: Kevin Hilman <khilman@ti.com>
-Also fixes the checkpatch warning:
-scripts/checkpatch.pl -f arch/arm/mach-omap2/smartreflex.c
-WARNING: Exporting world writable files is usually an error. Consider
-more restrictive permissions.
-#903: FILE: arm/mach-omap2/smartreflex.c:903:
-+	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
-
-total: 0 errors, 1 warnings, 1028 lines checked
-
-Acked-by: Nishanth Menon <nm@ti.com>
+> The ES2.2 OMAP4 arrived on Friday.  Fitting it resulted in no change
+> to the I2C timeouts:
+>
+Good that finally the tile reached you. Will have somebody look at
+this. Meanwhile, can you send your .config? With the regular
+omap2plus defconfig, we didn't see the issue last time.
 
 Regards,
-Nishanth Menon
+Santosh
