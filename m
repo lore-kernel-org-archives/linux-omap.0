@@ -1,33 +1,67 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3] OMAP2/3: clock: fix fint calculation for
- DPLL_FREQSEL
-Date: Mon, 7 Feb 2011 20:09:34 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102072008480.21991@utopia.booyaka.com>
-References: <87ei8726wf.fsf@vostro.fn.ogness.net> <20110120111645.GB2223@legolas.emea.dhcp.ti.com> <8739on1wdd.fsf_-_@vostro.fn.ogness.net> <20110121031553.GA2448@legolas.emea.dhcp.ti.com> <87y66e3bc2.fsf_-_@vostro.fn.ogness.net>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: RE: [PATCH v2 4/9] omap: clocks: Add checks to see if enable/disable
+ ops are supported
+Date: Tue, 8 Feb 2011 08:55:52 +0530
+Message-ID: <85772086dbd5bbd435fe7779ded71b3b@mail.gmail.com>
+References: <1296813544-25170-1-git-send-email-santosh.shilimkar@ti.com>
+ <1296813544-25170-5-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1102071846570.21991@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87y66e3bc2.fsf_-_@vostro.fn.ogness.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: John Ogness <john.ogness@linutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:43861 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754138Ab1BHD0V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 22:26:21 -0500
+Received: by fxm11 with SMTP id 11so5355992fxm.1
+        for <linux-omap@vger.kernel.org>; Mon, 07 Feb 2011 19:26:18 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1102071846570.21991@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Fri, 21 Jan 2011, John Ogness wrote:
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Tuesday, February 08, 2011 7:18 AM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; khilman@ti.com; b-cousson@ti.com;
+rnayak@ti.com; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [PATCH v2 4/9] omap: clocks: Add checks to see if
+enable/disable ops are supported
+>
+> On Fri, 4 Feb 2011, Santosh Shilimkar wrote:
+>
+> > From: Rajendra Nayak <rnayak@ti.com>
+> >
+> > Check if enable/disable operations are supported for a given
+> > clock node before attempting to call them.
+> >
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/clock.c |   14 +++++++++-----
+> >  1 files changed, 9 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> > index 2a2f152..5c08c18 100644
+> > --- a/arch/arm/mach-omap2/clock.c
+> > +++ b/arch/arm/mach-omap2/clock.c
+> > @@ -261,7 +261,8 @@ void omap2_clk_disable(struct clk *clk)
+> >
+> >  	pr_debug("clock: %s: disabling in hardware\n", clk->name);
+> >
+> > -	clk->ops->disable(clk);
+> > +	if (clk->ops && clk->ops->enable)
+> > +		clk->ops->disable(clk);
+>
+> Shouldn't that read:
+>
+>     if (clk->ops && clk->ops->disable)
+>
+> ?
 
-> From: John Ogness <john.ogness@linutronix.de>
-> 
-> In OMAP35X TRM Rev 2010-05 Figure 7-18 "DPLL With EMI Reduction
-> Feature", it is shown that the internal frequency is calculated by
-> CLK_IN/(N+1). However, the value passed to _dpll_test_fint() is
-> already "N+1" since Linux is using the values to divide by. In the
-> technical reference manual, "N" is referring to the divider's register
-> value (0-127).
-> 
-> Signed-off-by: John Ogness <john.ogness@linutronix.de>
+Oops.. I guess it should. Will fix that and repost.
 
-Thanks for the patch, John.  Probably this should go into the -rc series 
-since it could affect system stability, so will queue it there.
-
-
-- Paul
+>
+>
+> - Paul
