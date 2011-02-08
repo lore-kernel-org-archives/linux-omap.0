@@ -1,114 +1,69 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 6/7] omap4: dpll: Add dpll api to control GATE_CTRL
-Date: Tue,  8 Feb 2011 15:40:37 +0530
-Message-ID: <1297159838-30282-7-git-send-email-rnayak@ti.com>
-References: <1297159838-30282-1-git-send-email-rnayak@ti.com>
- <1297159838-30282-2-git-send-email-rnayak@ti.com>
- <1297159838-30282-3-git-send-email-rnayak@ti.com>
- <1297159838-30282-4-git-send-email-rnayak@ti.com>
- <1297159838-30282-5-git-send-email-rnayak@ti.com>
- <1297159838-30282-6-git-send-email-rnayak@ti.com>
+Subject: [PATCH 0/7] clock/dpll autoidle support
+Date: Tue,  8 Feb 2011 15:40:31 +0530
+Message-ID: <1297159838-30282-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34562 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56873 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753045Ab1BHKKx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Feb 2011 05:10:53 -0500
-In-Reply-To: <1297159838-30282-6-git-send-email-rnayak@ti.com>
+	id S1753045Ab1BHKKv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Feb 2011 05:10:51 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, b-cousson@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-On OMAP4, the dpll post divider outputs (MX outputs)
-provide a way to allow/deny hardware level autogating.
-Allowing autoidle would mean that the hw would autogate
-this clock when there is no dependency for it.
-Denying idle would mean that this clock output will be
-forced to stay enabled.
+OMAP has various clock nodes and dpll's
+which support hardware level autoidle.
+Enabling hardware level autoidle provides
+better power savings without much software
+intervention.
 
-Add dpll api's to read/allow/deny idle control
-for these dpll mx postdividers.
+This series does the following to help enable
+hardware level autoidling using clock framework
+for some of these nodes on OMAP3 and OMAP4
 
-NOTE: The gatectrl bit set to 0 allows gatectrl,
-and the bit set to 1 denies gatectrl.
+-1- Adds support for providing function pointers
+for enabling/disabling autoidle in clkops
+-2- Populates these in clkops for all OMAP3/4 dplls
+-3- Enables all dpll autoidle late in boot on OMAP3 and OMAP4
+-4- Adds support for mx postdivider autoidle (present
+only on OMAP4) and enables it late in OMAP4 boot
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/clock.h    |    3 ++
- arch/arm/mach-omap2/dpll3xxx.c |   42 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 45 insertions(+), 0 deletions(-)
+Some of the patches in this series were earlier posted
+and discussed as part of another series here
+http://marc.info/?l=linux-omap&m=129681356402594&w=2
+They are now posted as a seperate series as discussed
+here
+http://marc.info/?l=linux-omap&m=129713867702170&w=2
 
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 2a939e5..c450d69 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -65,6 +65,9 @@ u32 omap3_dpll_autoidle_read(struct clk *clk);
- int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
- int omap3_noncore_dpll_enable(struct clk *clk);
- void omap3_noncore_dpll_disable(struct clk *clk);
-+int omap4_dpllmx_gatectrl_read(struct clk *clk);
-+void omap4_dpllmx_allow_gatectrl(struct clk *clk);
-+void omap4_dpllmx_deny_gatectrl(struct clk *clk);
- 
- #ifdef CONFIG_OMAP_RESET_CLOCKS
- void omap2_clk_disable_unused(struct clk *clk);
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index f77022b..4571e94 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -34,6 +34,7 @@
- #include "clock.h"
- #include "cm2xxx_3xxx.h"
- #include "cm-regbits-34xx.h"
-+#include "cm-regbits-44xx.h"
- 
- /* CM_AUTOIDLE_PLL*.AUTO_* bit values */
- #define DPLL_AUTOIDLE_DISABLE			0x0
-@@ -612,3 +613,44 @@ unsigned long omap3_clkoutx2_recalc(struct clk *clk)
- 		rate = clk->parent->rate * 2;
- 	return rate;
- }
-+
-+/* Supported only on OMAP4 */
-+int omap4_dpllmx_gatectrl_read(struct clk *clk)
-+{
-+	u32 v;
-+
-+	if (!clk || !clk->clksel_reg || !cpu_is_omap44xx())
-+		return -EINVAL;
-+
-+	v = __raw_readl(clk->clksel_reg);
-+	v &= OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
-+	v >>= __ffs(OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK);
-+
-+	return v;
-+}
-+
-+void omap4_dpllmx_allow_gatectrl(struct clk *clk)
-+{
-+	u32 v;
-+
-+	if (!clk || !clk->clksel_reg || !cpu_is_omap44xx())
-+		return;
-+
-+	v = __raw_readl(clk->clksel_reg);
-+	/* Clear the bit to allow gatectrl */
-+	v &= ~OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
-+	__raw_writel(v, clk->clksel_reg);
-+}
-+
-+void omap4_dpllmx_deny_gatectrl(struct clk *clk)
-+{
-+	u32 v;
-+
-+	if (!clk || !clk->clksel_reg || !cpu_is_omap44xx())
-+		return;
-+
-+	v = __raw_readl(clk->clksel_reg);
-+	/* Set the bit to deny gatectrl */
-+	v |= OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
-+	__raw_writel(v, clk->clksel_reg);
-+}
--- 
-1.7.0.4
+The patches are boot tested on OMAP3430sdp and
+OMAP4430sdp.
+
+The following changes since commit 100b33c8bd8a3235fd0b7948338d6cbb3db3c63d:
+  Linus Torvalds (1):
+        Linux 2.6.38-rc4
+
+are available in the git repository at:
+
+ git://gitorious.org/omap-pm/linux.git dpll-autoidle
+
+Rajendra Nayak (7):
+  omap: clock: Check for enable/disable ops support
+  omap3: dpll: Populate clkops for dpll1_ck
+  omap: clock: Add allow_idle/deny_idle support in clkops
+  omap: dpll: Add allow_idle/deny_idle support for all DPLL's
+  omap: dpll: Enable all OMAP3/4 dpll autoidle late at boot
+  omap4: dpll: Add dpll api to control GATE_CTRL
+  omap4: dpll: Enable auto gate control for all MX postdividers
+
+ arch/arm/mach-omap2/clock.c             |   25 ++++++++++++++---
+ arch/arm/mach-omap2/clock.h             |    5 +++
+ arch/arm/mach-omap2/clock3xxx_data.c    |    4 +-
+ arch/arm/mach-omap2/clock44xx_data.c    |   42 +++++++++++++++---------------
+ arch/arm/mach-omap2/dpll3xxx.c          |   42 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm34xx.c            |   18 +++----------
+ arch/arm/mach-omap2/pm44xx.c            |    4 +++
+ arch/arm/plat-omap/clock.c              |   26 +++++++++++++++++++
+ arch/arm/plat-omap/include/plat/clock.h |    6 ++++
+ 9 files changed, 130 insertions(+), 42 deletions(-)
 
