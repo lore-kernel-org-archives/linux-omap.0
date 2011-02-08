@@ -1,101 +1,100 @@
 From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [PATCH v2] ARM: Define wfi() macro for v6 processors
-Date: Tue, 8 Feb 2011 17:15:40 +0000
-Message-ID: <AANLkTi=G2h0cV-iLczCtcUzWn7vpa0GDOhr=PArhFQLy@mail.gmail.com>
-References: <1297162885-2975-1-git-send-email-dave.martin@linaro.org>
-	<201102081617.59092.arnd@arndb.de>
-	<20110208163229.GC6188@n2100.arm.linux.org.uk>
-	<201102081758.14606.arnd@arndb.de>
+Subject: Re: [PATCH v2 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
+Date: Tue, 8 Feb 2011 17:40:40 +0000
+Message-ID: <AANLkTiknZ1VrA_OuqY=0AihNWiEdMkHA_zyVKQLg70+w@mail.gmail.com>
+References: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
+	<36192288611a2912eca9abc99a4353ff@mail.gmail.com>
+	<AANLkTi=sPeQPfcGzrLSB=9-V805y6pnU4gA5QgqMSwWe@mail.gmail.com>
+	<9ae36f6f04c9c1cf58fb4938dc78d6bf@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:50449 "EHLO
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:46905 "EHLO
 	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755130Ab1BHRPl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 12:15:41 -0500
-Received: by eye27 with SMTP id 27so3104794eye.19
-        for <linux-omap@vger.kernel.org>; Tue, 08 Feb 2011 09:15:40 -0800 (PST)
-In-Reply-To: <201102081758.14606.arnd@arndb.de>
+	with ESMTP id S1755275Ab1BHRkm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 12:40:42 -0500
+Received: by eye27 with SMTP id 27so3128214eye.19
+        for <linux-omap@vger.kernel.org>; Tue, 08 Feb 2011 09:40:41 -0800 (PST)
+In-Reply-To: <9ae36f6f04c9c1cf58fb4938dc78d6bf@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nicolas.pitre@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Jean Pihet-XID <j-pihet@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Jean Pihet-XID <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
 
-On Tue, Feb 8, 2011 at 4:58 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Tuesday 08 February 2011 17:32:29 Russell King - ARM Linux wrote:
->> On Tue, Feb 08, 2011 at 04:17:58PM +0100, Arnd Bergmann wrote:
->> > On Tuesday 08 February 2011, Dave Martin wrote:
->> > > CFLAGS_cpu_specific_object.o =A0 =A0 =A0 =A0+=3D -march=3Darmv7-=
-a
->> > >
->> > > Whether it's safe to do it depends on whether code from that fil=
+Hi Santosh,
+
+[...]
+
+>> Which tree did you use to test this? =A0It didn't seem to work for m=
 e
->> > > could ever get run on other processors. =A0I'm not so sure of th=
-e answer
->> > > to that..., but perhaps someone else has a better idea.
+>> --
+>> sometimes the system wouldn't suspend, complaining about USB suspend
+>> errors; and other times I couldn't bring it out of suspend (by
+>> poking
+>> a USB input device).
+>>
+>> I might be doing something wrong...
+>>
+> I should have mentioned this.
+> Used Kevins pm branch to test these features.
+> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.g=
+it
+>
+>> > I couldn't test the DVFS because it isn't in mainline yet
+>> > but the changes doesn't looks to break anything.
 >> >
->> > We already do this a lot from arch/arm/mm/Makefile, and those
->> > files are typically just one function per file, so they can easily
->> > be proven to be safe that way.
+>> > So if you like, you can add
+>> > Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> > Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> >
 >>
->> No, we do that with assembly files. =A0It doesn't work soo well with
->> C files as we really don't want GCC itself to generate v7 instructio=
-ns
->> unless we explicitly ask for them.
+>> Thanks, that's great.
 >>
->> The other issue here is that somtimes generating code with different
->> -march options leads to the linker refusing to link them together...
->
-> Ok, I see. Is that a bug in existing toolchains, or something more
-> fundamental?
->
-> I would have expected that you could at least mix all compiler option=
-s
-> that don't impact the ABI or the instruction set like -mthumb.
->
-> Also, I think we can still build with e.g. "-march=3Darmv6 -Wa,-march=
-=3Darmv7",
-> which should tell the compiler to only emit armv6 instructions, but m=
-ake
-> the assembler more permissive for inline assembly.
+>> If there some other tree with DVFS working which I could try? =A0Eve=
+n
+>> if
+>> these patches don't apply, I may be able to test whether the changes
+>> should work.
+>>
+> DVFS support is getting added and one series was posted by Vishwa.
+> The link for the same is :
+> http://www.spinics.net/lists/linux-omap/msg44393.html
 
-I think you can usually mix options provided the ABI isn't affected.
-It could be interesting to try it just to see what happens...
+I'm still having problems testing basic power management...
 
-I've seen this work, but I haven't tried it on a large scale such as
-building the kernel...
+I'm using this config:
+http://people.linaro.org/~dmart/arm_omap-thumb2+v2_config
 
-I think the major problems in the past have usually between
-OABI<->EABI, non-interworking<->interworking, non-PIC<->PIC and
-floating-point ABI clashes, particularly regarding compiler helper
-libs like libgcc.  I expect none of these are likely to affect the
-kernel, particularly since the kernel has its own libgcc (I think).
+=2E.. and Kevin's pm tree with my patches on top.
 
-Possibly EABI toolchains are better at handling this than the for old
-ABI, but it's still not ideal: for example, if you build this with
--march=3Darmv6
 
-void fancy() {
-    if(have_arch_v7()) {
-        asm(".arch v7-a\n\t"
-               /* ... fancy stuff ... */
-               ".arch v6");
-    } else {
-        /* C implementation of fancy stuff */
-    }
-}
+However, even building without CONFIG_THUMB2_KERNEL, Beagle xM doesn't
+seem to suspend properly:
 
-=2E.. the object is marked as requiring v7, since some v7 instructions
-were emitted.  Really, the object only requires v6, but that
-conclusion requires knowledge the tools don't have.  (Note that tools
-guys I've talked to don't much like changing .arch mid-file, but from
-my PoV it should be reasonable except for the problem of knowing what
-=2Earch to restore to afterwards.)
+Linux xm-1 2.6.38-rc2+ #19 SMP Tue Feb 8 14:02:24 GMT 2011 armv7l GNU/L=
+inux
 
-If vmlinux ends up stamped as requiring v7, that has no effect
-whatsoever on whether the kernel works.  That's down to what the
-actual code does, as in the above example.
+#
+# [  302.446228] SysRq : Changing Loglevel
+[  302.449951] Loglevel set to 9
+echo mem >/sys/power/state &
+[1] 545
+# [  306.525177] PM: Syncing filesystems ... done.
+[  308.989715] mmc0: card 1234 removed
+#
+#
+#
+#
+#
+# jobs
+[1]+  Running                 echo mem > /sys/power/state &
+#
+
+The SD card gets suspended, but nothing else seems to happen, and I
+can't resume the system.
+
+Am I doing something wrong?
 
 Cheers
 ---Dave
