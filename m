@@ -1,66 +1,35 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v5 0/5] omap: mailbox: hwmod support
-Date: Tue, 08 Feb 2011 15:44:24 -0800
-Message-ID: <87ei7igkh3.fsf@ti.com>
-References: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/3] OMAP4 static dependency support
+Date: Tue, 8 Feb 2011 16:49:49 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102081644200.21991@utopia.booyaka.com>
+References: <1297084631-27474-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:40035 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755535Ab1BHXo2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 18:44:28 -0500
-Received: by mail-px0-f173.google.com with SMTP id 16so1553724pxi.4
-        for <linux-omap@vger.kernel.org>; Tue, 08 Feb 2011 15:44:27 -0800 (PST)
-In-Reply-To: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com> (Omar
-	Ramirez Luna's message of "Wed, 2 Feb 2011 13:27:18 -0600")
+Received: from utopia.booyaka.com ([72.9.107.138]:45682 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752924Ab1BHXtu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 18:49:50 -0500
+In-Reply-To: <1297084631-27474-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-Omar Ramirez Luna <omar.ramirez@ti.com> writes:
+On Mon, 7 Feb 2011, Rajendra Nayak wrote:
 
-> Mailbox hwmod support for OMAP 2,3,4.
->
-> This was tested on OMAP3 (3430, 3630), minor testing
-> was made on OMAP4.
->
-> No testing on OMAP2 since I don't have the hardware.
+> OMAP4 supports 2 type of domain dependency between clock
+> domains. 
 
-Reviewed-by: Kevin Hilman <khilman@ti.com>
+Thanks, queued for 2.6.39 in the 'clkdm_statdep_omap4_2.6.39' branch of 
+git://git.pwsan.com/linux-2.6
 
-But still needs sanity testing on OMAP2.
+I made a few minor changes to patch 3/3, will post those in reply to that 
+patch.  
 
-Kevin
+These patches are also added as part of the current integration branch 
+'integration-2.6.39' of git://git.pwsan.com/linux-integration - a stable 
+tag with these changes is tag 'integration-2.6.39-20110208-007'.
 
-> Highlights from v5 include the comments received from
-> previous version v4[1].
->
-> Benoit Cousson (1):
->   OMAP4: hwmod data: add mailbox data
->
-> Felipe Contreras (2):
->   OMAP3: hwmod data: add mailbox data
->   OMAP: mailbox: build device using omap_device/omap_hwmod
->
-> Omar Ramirez Luna (1):
->   OMAP: mailbox: use runtime pm for clk and sysc handling
->
-> omar ramirez (1):
->   OMAP2: hwmod data: add mailbox data
->
->  arch/arm/mach-omap2/devices.c              |   98 +++++-----------------------
->  arch/arm/mach-omap2/mailbox.c              |   67 ++-----------------
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c |   74 +++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c |   73 +++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   72 ++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   67 +++++++++++++++++++
->  6 files changed, 308 insertions(+), 143 deletions(-)
->
-> ---
-> [1] http://bit.ly/gfLaIs
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+- Paul
