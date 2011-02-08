@@ -1,87 +1,46 @@
-From: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
-Subject: [PATCH v2 2/2] omap3: beaglexm: fix DVI initialization
-Date: Tue,  8 Feb 2011 17:43:55 -0200
-Message-ID: <1297194235-7376-3-git-send-email-ricardo.salveti@canonical.com>
-References: <1297194235-7376-1-git-send-email-ricardo.salveti@canonical.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: RE: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
+Date: Tue, 08 Feb 2011 15:43:14 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1102081537010.14920@xanadu.home>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+ <0557426516de482c1769a50fa0b5f17a@mail.gmail.com>
+ <20110208164747.GD6188@n2100.arm.linux.org.uk>
+ <78d0134576ace6be5874871076cf0c10@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:60546 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754125Ab1BHTop (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 14:44:45 -0500
-In-Reply-To: <1297194235-7376-1-git-send-email-ricardo.salveti@canonical.com>
+Received: from relais.videotron.ca ([24.201.245.36]:34921 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755328Ab1BHUnP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 15:43:15 -0500
+Received: from xanadu.home ([66.130.28.92]) by vl-mh-mrz25.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
+ with ESMTP id <0LGB003D6G6CZJB0@vl-mh-mrz25.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Tue, 08 Feb 2011 15:42:12 -0500 (EST)
+In-reply-to: <78d0134576ace6be5874871076cf0c10@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: charu@ti.com, Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Function beagle_twl_gpio_setup is called after beagle_display_init, what
-lets reset_gpio with an invalid value at the time it request the gpio.
-As a side effect the DVI reset GPIO is not properly set.
+On Tue, 8 Feb 2011, Santosh Shilimkar wrote:
 
-Also removing old code that powers down DVI in a hardcoded way, as it's
-not necessary anymore.
+> > I think it's probably going to be better to _purposely_ break the 
+> > OMAP build when it covers v6 and v7 CPUs in these kernels as I don't 
+> > think it's sanely fixable given where we are.
 
-Tested with Beagle-xM and C4.
+Agreed.  At least making SMP unavailable when both v6 and v7 are 
+configured should be small and good enough for 2.6.38-rc5.
 
-Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
----
- arch/arm/mach-omap2/board-omap3beagle.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+> Any alternative possible other than breaking the omap2plus build?
+> It's quite useful to have one build which covers majority of the
+> omap machines.
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 685ac06..1a21002 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -52,6 +52,9 @@
- 
- #define NAND_BLOCK_SIZE		SZ_128K
- 
-+#define BEAGLE_DVI_RESET_GPIO		170
-+#define BEAGLE_XM_DVI_RESET_GPIO	129
-+
- /*
-  * OMAP3 Beagle revision
-  * Run time detection of Beagle revision is done by reading GPIO.
-@@ -248,6 +251,14 @@ static void __init beagle_display_init(void)
- {
- 	int r;
- 
-+	/* DVI reset GPIO is different between beagle revisions */
-+	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
-+		beagle_dvi_device.reset_gpio = BEAGLE_XM_DVI_RESET_GPIO;
-+	else
-+		beagle_dvi_device.reset_gpio = BEAGLE_DVI_RESET_GPIO;
-+
-+	omap_mux_init_gpio(beagle_dvi_device.reset_gpio, OMAP_PIN_OUTPUT);
-+
- 	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
- 	if (r < 0) {
- 		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
-@@ -324,12 +335,6 @@ static int beagle_twl_gpio_setup(struct device *dev,
- 	else
- 		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
- 
--	/* DVI reset GPIO is different between beagle revisions */
--	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
--		beagle_dvi_device.reset_gpio = 129;
--	else
--		beagle_dvi_device.reset_gpio = 170;
--
- 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
- 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
- 
-@@ -620,11 +625,6 @@ static void __init omap3_beagle_init(void)
- 			ARRAY_SIZE(omap3_beagle_devices));
- 	omap_serial_init();
- 
--	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
--	gpio_request(170, "DVI_nPD");
--	/* REVISIT leave DVI powered down until it's needed ... */
--	gpio_direction_output(170, true);
--
- 	usb_musb_init(&musb_board_data);
- 	usb_ehci_init(&ehci_pdata);
- 	omap3beagle_flash_init();
--- 
-1.7.2.3
+Just merge this patch series in your testing tree, or create two configs 
+(two builds) instead of only (a broken) one.
 
+Or use linux-next for testing which would be even more beneficial.
+
+
+Nicolas
