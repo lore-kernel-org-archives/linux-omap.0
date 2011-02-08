@@ -1,93 +1,95 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 4/7] omap: dpll: Add allow_idle/deny_idle support for all DPLL's
-Date: Tue,  8 Feb 2011 15:40:35 +0530
-Message-ID: <1297159838-30282-5-git-send-email-rnayak@ti.com>
+Subject: [PATCH 5/7] omap: dpll: Enable all OMAP3/4 dpll autoidle late at boot
+Date: Tue,  8 Feb 2011 15:40:36 +0530
+Message-ID: <1297159838-30282-6-git-send-email-rnayak@ti.com>
 References: <1297159838-30282-1-git-send-email-rnayak@ti.com>
  <1297159838-30282-2-git-send-email-rnayak@ti.com>
  <1297159838-30282-3-git-send-email-rnayak@ti.com>
  <1297159838-30282-4-git-send-email-rnayak@ti.com>
+ <1297159838-30282-5-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59044 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753045Ab1BHKK4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Feb 2011 05:10:56 -0500
-In-Reply-To: <1297159838-30282-4-git-send-email-rnayak@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51005 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753130Ab1BHKKx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 05:10:53 -0500
+In-Reply-To: <1297159838-30282-5-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, b-cousson@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-All OMAP3/4 dpll's support hardware level autogating.
-Populate allow_idle/deny_idle function pointers for all
-DPLL's in clkops.
+Enable all dpll autoidle for OMAP4 and OMAP3 (OMAP3
+already had dpll autoidle turned on, but was done
+using low level cm accessor apis).
+On OMAP3, replace the cm accessor apis doing this
+with the now available support for doing this in
+clock framework, using omap_clk_enable_autoidle().
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clock.c          |    8 +++++++-
- arch/arm/mach-omap2/clock.h          |    1 +
- arch/arm/mach-omap2/clock3xxx_data.c |    2 +-
- arch/arm/mach-omap2/clock44xx_data.c |    2 +-
- 4 files changed, 10 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |   18 ++++--------------
+ arch/arm/mach-omap2/pm44xx.c |    4 ++++
+ 2 files changed, 8 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index e0f017d..909e3c5 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -377,10 +377,16 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- const struct clkops clkops_omap3_noncore_dpll_ops = {
- 	.enable		= omap3_noncore_dpll_enable,
- 	.disable	= omap3_noncore_dpll_disable,
-+	.allow_idle	= omap3_dpll_allow_idle,
-+	.deny_idle	= omap3_dpll_deny_idle,
- };
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 2f864e4..5a101fa 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -38,6 +38,7 @@
+ #include <plat/prcm.h>
+ #include <plat/gpmc.h>
+ #include <plat/dma.h>
++#include <plat/clock.h>
  
--#endif
-+const struct clkops clkops_omap3_core_dpll_ops = {
-+	.allow_idle	= omap3_dpll_allow_idle,
-+	.deny_idle	= omap3_dpll_deny_idle,
-+};
+ #include <asm/tlbflush.h>
  
-+#endif
+@@ -814,21 +815,10 @@ static void __init prcm_setup_regs(void)
+ 	omap_ctrl_writel(OMAP3430_AUTOIDLE_MASK, OMAP2_CONTROL_SYSCONFIG);
  
- /*
-  * OMAP2+ clock reset and init functions
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 896584e..2a939e5 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -146,5 +146,6 @@ extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table)
+ 	/*
+-	 * Set all plls to autoidle. This is needed until autoidle is
+-	 * enabled by clockfw
++	 * Set all plls to autoidle.
++	 * TODO: Add all the iclk autoidles in here as well.
+ 	 */
+-	omap2_cm_write_mod_reg(1 << OMAP3430_AUTO_IVA2_DPLL_SHIFT,
+-			 OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
+-	omap2_cm_write_mod_reg(1 << OMAP3430_AUTO_MPU_DPLL_SHIFT,
+-			 MPU_MOD,
+-			 CM_AUTOIDLE2);
+-	omap2_cm_write_mod_reg((1 << OMAP3430_AUTO_PERIPH_DPLL_SHIFT) |
+-			 (1 << OMAP3430_AUTO_CORE_DPLL_SHIFT),
+-			 PLL_MOD,
+-			 CM_AUTOIDLE);
+-	omap2_cm_write_mod_reg(1 << OMAP3430ES2_AUTO_PERIPH2_DPLL_SHIFT,
+-			 PLL_MOD,
+-			 CM_AUTOIDLE2);
++	omap_clk_enable_autoidle();
+ 
+ 	/*
+ 	 * Enable control of expternal oscillator through
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 76cfff2..8431d41 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -15,6 +15,7 @@
+ #include <linux/list.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
++#include <plat/clock.h>
+ 
+ #include "powerdomain.h"
+ #include <mach/omap4-common.h>
+@@ -111,6 +112,9 @@ static int __init omap4_pm_init(void)
+ 		pr_err("Failed to setup powerdomains\n");
+ 		goto err2;
+ 	}
++
++	/* Enable autoidle for all clks which support it*/
++	omap_clk_enable_autoidle();
  #endif
  
- extern const struct clkops clkops_omap3_noncore_dpll_ops;
-+extern const struct clkops clkops_omap3_core_dpll_ops;
- 
- #endif
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 3e9d721..7cf89f8 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -429,7 +429,7 @@ static struct dpll_data dpll3_dd = {
- 
- static struct clk dpll3_ck = {
- 	.name		= "dpll3_ck",
--	.ops		= &clkops_null,
-+	.ops		= &clkops_omap3_core_dpll_ops,
- 	.parent		= &sys_ck,
- 	.dpll_data	= &dpll3_dd,
- 	.round_rate	= &omap2_dpll_round_rate,
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index de9ec8d..b843b6e 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -443,7 +443,7 @@ static struct clk dpll_core_ck = {
- 	.parent		= &sys_clkin_ck,
- 	.dpll_data	= &dpll_core_dd,
- 	.init		= &omap2_init_dpll_parent,
--	.ops		= &clkops_null,
-+	.ops		= &clkops_omap3_core_dpll_ops,
- 	.recalc		= &omap3_dpll_recalc,
- };
- 
+ #ifdef CONFIG_SUSPEND
 -- 
 1.7.0.4
 
