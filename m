@@ -1,59 +1,62 @@
-From: Mohamed Thalib H <mohamed@e-consystems.com>
-Subject: Re: Does omap git have support for overo board.
-Date: Tue, 08 Feb 2011 17:56:19 +0530
-Message-ID: <4D51366B.9040000@e-consystems.com>
-References: <4D512702.9040708@e-consystems.com> <DC9EC8FD-4BE1-48DB-B97F-7CAF1AEAA333@mac.com>
-Reply-To: mohamed@e-consystems.com
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v2] ARM: Define wfi() macro for v6 processors
+Date: Tue, 8 Feb 2011 18:01:20 +0530
+Message-ID: <99745ad4c4f07cc2eb0ac9241cf23956@mail.gmail.com>
+References: <1297162885-2975-1-git-send-email-dave.martin@linaro.org>
+ <20110208110808.GA22877@n2100.arm.linux.org.uk> <201102081311.52004.arnd@arndb.de>
+ <20110208122205.GA5903@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp7.myhsphere.biz ([204.10.105.69]:47178 "EHLO
-	mail9.myhsphere.biz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754213Ab1BHM0X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 07:26:23 -0500
-In-Reply-To: <DC9EC8FD-4BE1-48DB-B97F-7CAF1AEAA333@mac.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:52874 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751040Ab1BHMbX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 07:31:23 -0500
+Received: by mail-wy0-f182.google.com with SMTP id 19so5773149wyf.27
+        for <linux-omap@vger.kernel.org>; Tue, 08 Feb 2011 04:31:22 -0800 (PST)
+In-Reply-To: <20110208122205.GA5903@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>, balbi@ti.com
-Cc: linux-omap@vger.kernel.org
+To: Dave Martin <dave.martin@linaro.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Jean Pihet-XID <j-pihet@ti.com>
 
-Hi Elvis and balbi
+> -----Original Message-----
+> From: Dave Martin [mailto:dave.martin@linaro.org]
+> Sent: Tuesday, February 08, 2011 5:52 PM
+> To: Arnd Bergmann
+> Cc: linux-arm-kernel@lists.infradead.org; Russell King - ARM Linux;
+> Nicolas Pitre; Tony Lindgren; Santosh Shilimkar; linux-
+> omap@vger.kernel.org; Jean Pihet
+> Subject: Re: [PATCH v2] ARM: Define wfi() macro for v6 processors
+>
+> > > On Tue, Feb 08, 2011 at 11:01:25AM +0000, Dave Martin wrote:
+> > > > For v6, wfi is architected as a defined MCR instruction, so
+> > > > use that definition.
+>
+> [...]
+>
+> On Tue, Feb 08, 2011 at 01:11:51PM +0100, Arnd Bergmann wrote:
+> > I don't see any users of the sev/wfe/wfi macros in the current
+> kernel,
+> > so removing them seems like a good strategy to avoid people from
+> > using them incorrectly.
+> >
+> > If the definitions differ between v5/v6/v7 CPUs, any common code
+> > using them would need to do either binary patching of some sort
+> > or abstract the difference between the CPU in some other way.
+> >
+> > Dave, what code do you have in mind as a possible user?
+>
+> The OMAP BSP has its own version of this, which I'm suggesting
+> to port to the more generic macros in system.h, now that they
+> exist.
+>
+Omap 'sev' version is removed some time back. We were keeping
+WFI opcode version because of V6 and V7 compatibility issue. With
+resent CPU_32v6K from Russell, that should also get addressed.
 
+I shall remove the omap wfi version as soon as RMK's series is
+merged.
 
-On Tuesday 08 February 2011 05:34 PM, Elvis Dowson wrote:
-> On Feb 8, 2011, at 3:20 PM, Mohamed Thalib H wrote:
->
->> Hi all,
->>
->> I have pull the latest git from "http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary". But couldn't find config file for overo . So I used "omap2plus_defconfig" and made sure the overo board is selected.
->>
->> But the board didn't boot. It stopped after uncompressing kernel .
->>
->> Bytes transferred = 3011064 (2df1f8 hex)
->> ## Booting kernel from Legacy Image at 82000000 ...
->>    Image Name:   Linux-2.6.38-rc2-13606-g448e9a6-
->>    Image Type:   ARM Linux Kernel Image (uncompressed)
->>    Data Size:    3011000 Bytes =  2.9 MB
->>    Load Address: 80008000
->>    Entry Point:  80008000
->>    Verifying Checksum ... OK
->>    Loading Kernel Image ... OK
->> OK
->>
->> Starting kernel ...
->>
->> Uncompressing Linux... done, booting the kernel.<---- Hangs after this.
->>
->> Does the mainline has the support for overo board. Or am I missing something.
-> You'll have to change the bootargs to reflect the change in serial ports from ttyS to ttyO, that's why it appears to hang. This change was made to linux-2.6.37 onwards.
->
-> Apart from that you will have to change the /etc/inittab file as follows:
->
-> O:2345:respawn:/sbin/getty 115200 ttyO2
->
-> Best regards,
->
-> Elvis Dowson
-> --
-Thanks for the help.. I will try that...
+Regards,
+Santosh
