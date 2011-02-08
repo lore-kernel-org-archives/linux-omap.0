@@ -1,45 +1,59 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [PATCH v2] ARM: Define wfi() macro for v6 processors
-Date: Tue, 8 Feb 2011 12:22:06 +0000
-Message-ID: <20110208122205.GA5903@arm.com>
-References: <1297162885-2975-1-git-send-email-dave.martin@linaro.org>
- <20110208110808.GA22877@n2100.arm.linux.org.uk>
- <201102081311.52004.arnd@arndb.de>
+From: Mohamed Thalib H <mohamed@e-consystems.com>
+Subject: Re: Does omap git have support for overo board.
+Date: Tue, 08 Feb 2011 17:56:19 +0530
+Message-ID: <4D51366B.9040000@e-consystems.com>
+References: <4D512702.9040708@e-consystems.com> <DC9EC8FD-4BE1-48DB-B97F-7CAF1AEAA333@mac.com>
+Reply-To: mohamed@e-consystems.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:53487 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757Ab1BHMWR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 07:22:17 -0500
-Received: by wyb28 with SMTP id 28so5636720wyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 08 Feb 2011 04:22:16 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <201102081311.52004.arnd@arndb.de>
+Received: from smtp7.myhsphere.biz ([204.10.105.69]:47178 "EHLO
+	mail9.myhsphere.biz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754213Ab1BHM0X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 07:26:23 -0500
+In-Reply-To: <DC9EC8FD-4BE1-48DB-B97F-7CAF1AEAA333@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Elvis Dowson <elvis.dowson@mac.com>, balbi@ti.com
+Cc: linux-omap@vger.kernel.org
 
-> > On Tue, Feb 08, 2011 at 11:01:25AM +0000, Dave Martin wrote:
-> > > For v6, wfi is architected as a defined MCR instruction, so
-> > > use that definition.
+Hi Elvis and balbi
 
-[...]
 
-On Tue, Feb 08, 2011 at 01:11:51PM +0100, Arnd Bergmann wrote:
-> I don't see any users of the sev/wfe/wfi macros in the current kernel,
-> so removing them seems like a good strategy to avoid people from
-> using them incorrectly.
-> 
-> If the definitions differ between v5/v6/v7 CPUs, any common code
-> using them would need to do either binary patching of some sort
-> or abstract the difference between the CPU in some other way.
-> 
-> Dave, what code do you have in mind as a possible user?
-
-The OMAP BSP has its own version of this, which I'm suggesting
-to port to the more generic macros in system.h, now that they
-exist.
-
----Dave
+On Tuesday 08 February 2011 05:34 PM, Elvis Dowson wrote:
+> On Feb 8, 2011, at 3:20 PM, Mohamed Thalib H wrote:
+>
+>> Hi all,
+>>
+>> I have pull the latest git from "http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary". But couldn't find config file for overo . So I used "omap2plus_defconfig" and made sure the overo board is selected.
+>>
+>> But the board didn't boot. It stopped after uncompressing kernel .
+>>
+>> Bytes transferred = 3011064 (2df1f8 hex)
+>> ## Booting kernel from Legacy Image at 82000000 ...
+>>    Image Name:   Linux-2.6.38-rc2-13606-g448e9a6-
+>>    Image Type:   ARM Linux Kernel Image (uncompressed)
+>>    Data Size:    3011000 Bytes =  2.9 MB
+>>    Load Address: 80008000
+>>    Entry Point:  80008000
+>>    Verifying Checksum ... OK
+>>    Loading Kernel Image ... OK
+>> OK
+>>
+>> Starting kernel ...
+>>
+>> Uncompressing Linux... done, booting the kernel.<---- Hangs after this.
+>>
+>> Does the mainline has the support for overo board. Or am I missing something.
+> You'll have to change the bootargs to reflect the change in serial ports from ttyS to ttyO, that's why it appears to hang. This change was made to linux-2.6.37 onwards.
+>
+> Apart from that you will have to change the /etc/inittab file as follows:
+>
+> O:2345:respawn:/sbin/getty 115200 ttyO2
+>
+> Best regards,
+>
+> Elvis Dowson
+> --
+Thanks for the help.. I will try that...
