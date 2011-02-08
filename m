@@ -1,51 +1,68 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v2] ARM: Define wfi() macro for v6 processors
-Date: Tue, 8 Feb 2011 17:58:14 +0100
-Message-ID: <201102081758.14606.arnd@arndb.de>
-References: <1297162885-2975-1-git-send-email-dave.martin@linaro.org> <201102081617.59092.arnd@arndb.de> <20110208163229.GC6188@n2100.arm.linux.org.uk>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
+Date: Tue, 8 Feb 2011 22:28:33 +0530
+Message-ID: <78d0134576ace6be5874871076cf0c10@mail.gmail.com>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+ <0557426516de482c1769a50fa0b5f17a@mail.gmail.com> <20110208164747.GD6188@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:50351 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752900Ab1BHQ6T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 11:58:19 -0500
-In-Reply-To: <20110208163229.GC6188@n2100.arm.linux.org.uk>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:45376 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755128Ab1BHQ6g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 11:58:36 -0500
+Received: by mail-wy0-f169.google.com with SMTP id 26so5871214wyj.28
+        for <linux-omap@vger.kernel.org>; Tue, 08 Feb 2011 08:58:35 -0800 (PST)
+In-Reply-To: <20110208164747.GD6188@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Dave Martin <dave.martin@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nicolas.pitre@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Jean Pihet-XID <j-pihet@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tuesday 08 February 2011 17:32:29 Russell King - ARM Linux wrote:
-> On Tue, Feb 08, 2011 at 04:17:58PM +0100, Arnd Bergmann wrote:
-> > On Tuesday 08 February 2011, Dave Martin wrote:
-> > > CFLAGS_cpu_specific_object.o        += -march=armv7-a
-> > > 
-> > > Whether it's safe to do it depends on whether code from that file
-> > > could ever get run on other processors.  I'm not so sure of the answer
-> > > to that..., but perhaps someone else has a better idea.
-> > 
-> > We already do this a lot from arch/arm/mm/Makefile, and those
-> > files are typically just one function per file, so they can easily
-> > be proven to be safe that way.
-> 
-> No, we do that with assembly files.  It doesn't work soo well with
-> C files as we really don't want GCC itself to generate v7 instructions
-> unless we explicitly ask for them.
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Tuesday, February 08, 2011 10:18 PM
+> To: Santosh Shilimkar
+> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
 >
-> The other issue here is that somtimes generating code with different
-> -march options leads to the linker refusing to link them together...
+> On Tue, Feb 08, 2011 at 10:06:20PM +0530, Santosh Shilimkar wrote:
+> > Have tested this series on OMAP4430 and OMAP3430.
+> > Don't know if it helps to push some of these patches to be part
+> > of rc cycles. At least the SMP specific fixes should get merged
+> > otherwise, builds like omap2plus_defconfig won't be running
+> > right configuration on SMP machine.
+>
+> It's _too_ _late_ in the rc cycle for a fix of this size.  As I've
+> said
+> (several times) it was only possible for rc1.  That boat has been
+> missed
+> as we're now on rc4.  We could see 2.6.38 in as little as two weeks
+> time.
+>
+>  27 files changed, 183 insertions(+), 197 deletions(-)
+>
+> is too big.
+>
+Ok. Sorry about delay in testing out these patches.
 
-Ok, I see. Is that a bug in existing toolchains, or something more
-fundamental?
+> There's still the outstanding question over:
+>
+>   ARM: v6k: use CPU domain feature if we include support for arch <
+> ARMv6K
+>
+> which remains unsettled.
+>
+> I think it's probably going to be better to _purposely_ break the
+> OMAP
+> build when it covers v6 and v7 CPUs in these kernels as I don't
+> think it's
+> sanely fixable given where we are.  Again, that's something I _did_
+> point out at the time.
+>
+Any alternative possible other than breaking the omap2plus build?
+It's quite useful to have one build which covers majority of the
+omap machines.
 
-I would have expected that you could at least mix all compiler options
-that don't impact the ABI or the instruction set like -mthumb.
-
-Also, I think we can still build with e.g. "-march=armv6 -Wa,-march=armv7",
-which should tell the compiler to only emit armv6 instructions, but make
-the assembler more permissive for inline assembly.
-
-	Arnd
+Regards,
+Santosh
