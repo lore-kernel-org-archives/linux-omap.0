@@ -1,856 +1,668 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH 01/13] OMAP: Introduce accessory APIs for DVFS
-Date: Tue, 8 Feb 2011 16:52:40 +0530
-Message-ID: <3febc6b67a44427808992af8e95e3c9a@mail.gmail.com>
-References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com><1295618465-15234-2-git-send-email-vishwanath.bs@ti.com>
- <87wrli2aes.fsf@ti.com>
+From: Wan ZongShun <mcuos.com@gmail.com>
+Subject: Re: [RFC 1/5] ARM: P2V: separate PHYS_OFFSET from platform definitions
+Date: Tue, 8 Feb 2011 19:22:42 +0800
+Message-ID: <AANLkTimQGqnf-jOSRpODr9F_GMDyu8ymKZi9TOhXJ_CS@mail.gmail.com>
+References: <20110104202052.GE24935@n2100.arm.linux.org.uk>
+	<E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:56300 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752734Ab1BHLWs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 06:22:48 -0500
-Received: by fxm12 with SMTP id 12so6135872fxm.4
-        for <linux-omap@vger.kernel.org>; Tue, 08 Feb 2011 03:22:45 -0800 (PST)
-In-Reply-To: <87wrli2aes.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Viresh Kumar <viresh.kumar@st.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Erik Gilling <konkers@android.com>, linux-sh@vger.kernel.org, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Magnus Damm <magnus.damm@gmail.com>, Marc Singer <elf@buici.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Jiandong Zheng <jdzheng@broadcom.com>, linux-arm-msm@vger.kernel.org, Olof Johansson <olof@lixom.net>, Ryan Mallon <ryan@bluewatersys.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Daniel
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@ti.com]
-> Sent: Thursday, February 03, 2011 6:37 AM
-> To: Vishwanath BS
-> Cc: linux-omap@vger.kernel.org; patches@linaro.org; Thara Gopinath
-> Subject: Re: [PATCH 01/13] OMAP: Introduce accessory APIs for DVFS
->
-> Vishwanath BS <vishwanath.bs@ti.com> writes:
->
-> > This patch introduces accessory APIs for DVFS.
->
-> Actually, it begins the implementation of a DVFS layer.
->
-> > Data structures added:
-> > 1. omap_dev_user_list: This structure maintains list of frequency
-> requests per
-> >    device basis. When a device needs to be scaled to a particular
-> frequency,
-> >    This list is searched to find the maximum request for a given
-device.
-> >    If noone has placed any request, device frequency is obtained from
-> device
-> >    opp table.
-> > 2. omap_vdd_dev_list: This strcucture stores device list per vdd
-basis.
-> >    Whenever a device is registered with a vdd, it is added to this
-list.
-> > 3. omap_vdd_user_list: User list of devices associated with each
-> voltage domain
-> >    instance. The user list is implemented using plist structure with
-> priority
-> >    node populated with the voltage values.
-> > 4. omap_vdd_dvfs_info: This structure is used to abstract DVFS
-> related
-> >    information per VDD basis. It holds pointer to corresponding vdd's
-> >    voltagedomain instance and pointer to user list.
->
-> The terms "user" and dev/device are rather overloaded here and
-> elsewhere
-> in the code, and makes for rather difficult reading.
->
-> I have an idea (or two) to rework these data structures and how they're
-> stored/connected, but I need to think on it a little more.  More on that
-> tomorrow...
->
-> > Following APIs have been added to operate on above data structures:
-> > 1. omap_dvfs_add_vdd_user - API to add a user into
-> omap_vdd_user_list
-> > 2. omap_vdd_user_list - API to remove a user from
-> omap_vdd_user_list
->
-> huh?  cut and paste error?  I think this was supposed to be
-> _remove_vdd_user() ?
-oops..sorry for the typo. Will fix it.
->
-> > 3. omap_dvfs_register_device - API to register a device with vdd
-> > 4. omap_dvfs_add_freq_request - API to add a frequency request into
-> >    omap_dev_user_list
-> > 5. omap_dvfs_remove_freq_request - API to remove a frequency
-> request from
-> >    omap_dev_user_list
-> > 6. omap_dvfs_find_voltage - API to find the opp corresponding to
-> given voltage
->
-> I think function naming needs rework for consistency.  For example, to
-> request a frequency you call _add_freq_request(), but to add a voltage
-> you call _add_vdd_user(), not very reader friendly
->
-> How about simply:
->
->     omap_dvfs_request_freq()
->     omap_dvfs_request_volt()
->
-> with remove equivalents.
->
-> Actually, looking more at the functions in this patch, the frequency and
-> voltage functions here are basically identical.  There really isn't any
-> good reason to have separate functions for frequency and voltage.  How
-> about:
->
->     omap_dvfs_add_request(dvfs_info, class, req_dev, target_dev);
->     omap_dvfs_remove_request(dvfs_info, class, req_dev, target_dev);
->
-> where class = OMAP_DVFS_FREQ | OMAP_DVFS_VOLT.  This way, based
-> on the
-> class, you can add the requests to the separate lists, but bulk
-> of the function is the same.
-I am not sure if this is a good idea to club them into the same function.
-If you look at those functions, common thing done by them is adding to the
-list. But actually the way the list is found and the actual list being
-added are completely different.
-Voltage request is added to the user list per VDD.
-Frequency request is added to user list per device and we have device list
-per vdd. That is the reason why target_dev is needed while adding
-frequency request and is not needed while adding voltage request.
-I feel clubbing these 2 functions will make function bulky and more
-unreadable. I can rename these 2 functions like the way you suggested.
->
-> >
-> > DVFS layer is initialized and basic data structures are allocated and
-> > initialized as part of this.
-> >
-> > This patch is based on Thara's previous DVFS implementation, but with
-> major
-> > rework.
-> >
->
-> Minor comment on acronyms.   In the comments throughout, please
-> capitalize acronyms like DVFS, VDD, etc.  Currently, it is mixed between
-> upper and lower-case.
-OK. Will fix it in next version.
->
-> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> > Cc: Thara Gopinath <thara@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/Makefile           |    2 +-
-> >  arch/arm/mach-omap2/dvfs.c             |  456
-> ++++++++++++++++++++++++++++++++
-> >  arch/arm/plat-omap/include/plat/dvfs.h |   27 ++
-> >  arch/arm/plat-omap/omap_device.c       |    9 +
-> >  4 files changed, 493 insertions(+), 1 deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/dvfs.c
-> >  create mode 100644 arch/arm/plat-omap/include/plat/dvfs.h
-> >
-> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-
-> omap2/Makefile
-> > index 4ab82f6..bb2e2bc 100644
-> > --- a/arch/arm/mach-omap2/Makefile
-> > +++ b/arch/arm/mach-omap2/Makefile
-> > @@ -61,7 +61,7 @@ ifeq ($(CONFIG_PM),y)
-> >  obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
-> >  obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o
-> voltage.o
-> >  obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
-> voltage.o \
-> > -					   cpuidle34xx.o pm_bus.o
-> > +					   cpuidle34xx.o pm_bus.o dvfs.o
-> >  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o voltage.o
-> pm_bus.o
-> >  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
-> >  obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o
-> smartreflex.o
-> > diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-
-> omap2/dvfs.c
-> > new file mode 100644
-> > index 0000000..8832e4a
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/dvfs.c
-> > @@ -0,0 +1,456 @@
-> > +/*
-> > + * OMAP3/OMAP4 DVFS Management Routines
-> > + *
-> > + * Author: Vishwanath BS	<vishwanath.bs@ti.com>
-> > + *
-> > + * Copyright (C) 2011 Texas Instruments, Inc.
-> > + * Vishwanath BS <vishwanath.bs@ti.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#include <linux/err.h>
-> > +#include <linux/spinlock.h>
-> > +#include <linux/plist.h>
-> > +#include <linux/slab.h>
-> > +#include <linux/opp.h>
-> > +#include <plat/common.h>
-> > +#include <plat/voltage.h>
-> > +#include <plat/omap_device.h>
-> > +
-> > +/**
-> > + * struct omap_dev_user_list - Structure maitain userlist per devide
->
-> typos: maintain, device
->
-> the latter typo you fix in a follow up patch, but should be fixed here.
-ok
-
->
-> > + *
-> > + * @dev:       The device requesting for a particular frequency
-> > + * @node:      The list head entry
-> > + * @freq:      frequency being requested
-> > + *
-> > + * Using this structure, user list (requesting dev * and frequency)
-for
-> > + * each device is maintained. This is how we can have different
-> devices
-> > + * at different frequencies (to support frequency locking and
-> throttling).
-> > + * Even if one of the devices in a given vdd has locked it's
-frequency,
-> > + * other's can still scale their frequency using this list.
-> > + * If no one has placed a frequency request for a device, then device
-> is
-> > + * set to the frequency from it's opp table.
-> > + */
-> > +struct omap_dev_user_list {
-> > +		struct device *dev;
-> > +		struct plist_node node;
-> > +		u32 freq;
->
-> extra indentation
-ok
->
-> > +};
-> > +
-> > +/**
-> > + * struct omap_vdd_dev_list - Device list per vdd
-> > + *
-> > + * @dev:	The device belonging to a particular vdd
-> > + * @node:	The list head entry
->
-> and the other entries?
-Will fix it
->
-> > + */
-> > +struct omap_vdd_dev_list {
-> > +	struct device *dev;
-> > +	struct list_head node;
-> > +	struct plist_head user_list;
-> > +	spinlock_t user_lock; /* spinlock for plist */
->
-> comment redundant
-ok
->
-> > +};
-> > +
-> > +/**
-> > + * struct omap_vdd_user_list - The per vdd user list
-> > + *
-> > + * @dev:	The device asking for the vdd to be set at a particular
-> > + *			voltage
-> > + * @node:	The list head entry
-> > + * @volt:	The voltage requested by the device <dev>
-> > + */
-> > +struct omap_vdd_user_list {
-> > +	struct device *dev;
-> > +	struct plist_node node;
-> > +	u32 volt;
-> > +};
->
-> This struct is identical to omap_dev_user_list above, except
-> s/freq/volt/.  You probably just need a single struct using 'val'
-> instead of freq/volt.
-Make sense. I will keep a single struct as you suggested.
->
-> That being said, why is the frequency struct called 'dev_user_list' and
-> the voltage table called 'vdd_user_list'.  This alone renders the
-> resulting code unreadable.
-dev_user_list - device user list, referring to frequency requests related
-to the device.
-vdd_user_list - voltage requests related to the given vdd.
-I will club these 2 and create a single structure with the name
-omap_opp_req_list.
->
->
-> > +/**
-> > + * struct omap_vdd_dvfs_info - The per vdd dvfs info
-> > + *
-> > + * @user_lock:	spinlock for plist operations
-> > + * @user_list:	The vdd user list
-> > + * @scaling_mutex:	Mutex for protecting dvfs data structures for
-> a vdd
-> > + * @voltdm: Voltage domains for which dvfs info stored
->
-> missing some entries here
-ok. Will fix it.
->
-> > + * This is a fundamental structure used to store all the required
-> > + * DVFS related information for a vdd.
-> > + */
-> > +struct omap_vdd_dvfs_info {
-> > +	spinlock_t user_lock; /* spin lock */
->
-> comment redundant
-I added this because checkpatch was giving a warning saying mutex added
-w/o comments.>
-> > +	struct plist_head user_list;
-> > +	struct mutex scaling_mutex; /* dvfs mutex */
->
-> ditto
-Same reason.
->
-> > +	struct voltagedomain *voltdm;
-> > +	struct list_head dev_list;
-> > +};
-> > +
-> > +static struct omap_vdd_dvfs_info *omap_dvfs_info_list;
-> > +static int omap_nr_vdd;
-> > +
-> > +static struct voltagedomain omap3_vdd[] = {
-> > +	{
-> > +	.name = "mpu",
-> > +	},
-> > +	{
-> > +	.name = "core",
-> > +	},
-> > +};
->
-> indentation
-ok
->
-> > +static int __init omap_dvfs_init(void);
-> > +
-> > +static struct omap_vdd_dvfs_info *get_dvfs_info(struct
-> voltagedomain *voltdm)
-> > +{
-> > +	int i;
->
-> insert blank line
-ok
->
-> > +	if (!voltdm || !omap_dvfs_info_list)
-> > +		return NULL;
-> > +
-> > +	for (i = 0; i < omap_nr_vdd; i++)
-> > +		if (omap_dvfs_info_list[i].voltdm == voltdm)
-> > +			return &omap_dvfs_info_list[i];
-> > +
-> > +	pr_warning("%s: unable find dvfs info for vdd %s\n",
-> > +			__func__, voltdm->name);
-> > +	return NULL;
-> > +}
-> > +
-> > +/**
-> > + * omap_dvfs_find_voltage() - search for given voltage
-> > + * @dev:	device pointer associated with the opp type
-> > + * @volt:	voltage to search for
-> > + *
-> > + * Searches for exact match in the opp list and returns handle to the
-> matching
->
-> comment doesn't match code.  OPP lookup is done using the 'ceil'
-> version, which is not an exact match, and the voltage check uses '>='
-> not '=='.
-Ok. Will fix the comment.
->
-> > + * opp if found, else returns ERR_PTR in case of error and should be
-> handled
-> > + * using IS_ERR. If there are multiple opps with same voltage, it
-will
-> return
-> > + * the first available entry.
->
-> More specifically, it will return the one with the lowest frequency.
-Yes.
->
-> > + */
-> > +static struct opp *omap_dvfs_find_voltage(struct device *dev,
-> > +		unsigned long volt)
-> > +{
-> > +	struct opp *opp = ERR_PTR(-ENODEV);
-> > +	unsigned long f = 0;
-> > +
-> > +	do {
-> > +		opp = opp_find_freq_ceil(dev, &f);
-> > +		if (IS_ERR(opp))
-> > +			break;
-> > +		if (opp_get_voltage(opp) >= volt)
-> > +			break;
-> > +		f++;
-> > +	} while (1);
-> > +
-> > +	return opp;
-> > +}
-> > +
-> > +/**
-> > + * omap_dvfs_add_vdd_user() - Add a voltage request
-> > + * @dvfs_info: omap_vdd_dvfs_info pointer for the required vdd
-> > + * @dev: device making the request
-> > + * @volt: requesting voltage in uV
-> > + *
-> > + * Adds the given devices' voltage request into corresponding
-> > + * vdd's omap_vdd_dvfs_info user list (plist). This list is used
-> > + * to find the maximum voltage request for a given vdd.
-> > + *
-> > + * Returns 0 on success.
-> > + */
-> > +static int omap_dvfs_add_vdd_user(struct omap_vdd_dvfs_info
-> *dvfs_info,
-> > +		struct device *dev, unsigned long volt)
-> > +{
-> > +	struct omap_vdd_user_list *user = NULL, *temp_user;
-> > +	struct plist_node *node;
-> > +
-> > +	if (!dvfs_info || IS_ERR(dvfs_info)) {
-> > +		dev_warn(dev, "%s: VDD specified does not exist!\n",
-> __func__);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	mutex_lock(&dvfs_info->scaling_mutex);
-> > +
-> > +	plist_for_each_entry(temp_user, &dvfs_info->user_list, node) {
-> > +		if (temp_user->dev == dev) {
-> > +			user = temp_user;
-> > +			break;
-> > +		}
-> > +	}
-> > +
-> > +	if (!user) {
-> > +		user = kzalloc(sizeof(struct omap_vdd_user_list),
-> GFP_KERNEL);
-> > +		if (!user) {
-> > +			dev_err(dev, "%s: Unable to creat a new user for
-> vdd_%s\n",
-> > +				__func__, dvfs_info->voltdm->name);
-> > +			mutex_unlock(&dvfs_info->scaling_mutex);
-> > +			return -ENOMEM;
-> > +		}
-> > +		user->dev = dev;
-> > +	} else {
-> > +		plist_del(&user->node, &dvfs_info->user_list);
-> > +	}
-> > +
-> > +	plist_node_init(&user->node, volt);
-> > +	plist_add(&user->node, &dvfs_info->user_list);
-> > +	node = plist_last(&dvfs_info->user_list);
-> > +	user->volt = node->prio;
-> > +
-> > +	mutex_unlock(&dvfs_info->scaling_mutex);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +/**
-> > + * omap_dvfs_remove_vdd_user() - Remove a voltage request
-> > + * @dvfs_info: omap_vdd_dvfs_info pointer for the required vdd
-> > + * @dev: device making the request
-> > + *
-> > + * Removes the given devices' voltage request from corresponding
-> > + * vdd's omap_vdd_dvfs_info user list (plist).
-> > + *
-> > + * Returns 0 on success.
-> > + */
-> > +static int omap_dvfs_remove_vdd_user(struct omap_vdd_dvfs_info
-> *dvfs_info,
-> > +		struct device *dev)
-> > +{
-> > +	struct omap_vdd_user_list *user = NULL, *temp_user;
-> > +	int ret = 0;
-> > +
-> > +	if (!dvfs_info || IS_ERR(dvfs_info)) {
-> > +		dev_err(dev, "%s: VDD specified does not exist!\n",
-> __func__);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	mutex_lock(&dvfs_info->scaling_mutex);
-> > +
-> > +	plist_for_each_entry(temp_user, &dvfs_info->user_list, node) {
-> > +		if (temp_user->dev == dev) {
-> > +			user = temp_user;
-> > +			break;
-> > +		}
-> > +	}
-> > +
-> > +	if (user)
-> > +		plist_del(&user->node, &dvfs_info->user_list);
-> > +	else {
-> > +		dev_err(dev, "%s: Unable to find the user for vdd_%s\n",
-> > +					__func__, dvfs_info->voltdm-
-> >name);
-> > +		ret = -ENOMEM;
-> > +	}
-> > +	mutex_unlock(&dvfs_info->scaling_mutex);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +/**
-> > + * omap_dvfs_register_device - Add a device into voltage domain
-> > + * @voltdm:	voltage domain to which the device is to be added
-> > + * @dev:	Device to be added
-> > + *
-> > + * This API will add a given device into user_list of corresponding
-> > + * vdd's omap_vdd_dvfs_info strucure. This list is traversed to scale
-> > + * frequencies of all the devices on a given vdd. This api is called
-> > + * while hwmod db is built for an omap_device.
-> > + *
-> > + * Returns 0 on success.
-> > + */
-> > +int omap_dvfs_register_device(struct voltagedomain *voltdm, struct
-> device *dev)
-> > +{
-> > +	struct omap_vdd_dev_list *temp_dev;
->
-> The point of using the 'temp_' names is for temporary iterators.  Here,
-> you're using it as the dev_list throughout.  Just call it dev_list.
-ok
->
-> > +	struct omap_vdd_dvfs_info *dvfs_info = get_dvfs_info(voltdm);
-> > +
-> > +	if (!voltdm || IS_ERR(voltdm) || !dvfs_info) {
-> > +		dev_warn(dev, "%s: VDD specified does not exist!\n",
-> __func__);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	list_for_each_entry(temp_dev, &dvfs_info->dev_list, node) {
-> > +		if (temp_dev->dev == dev) {
-> > +			dev_warn(dev, "%s: Device already added to
-> vdee_%s\n",
->
-> s/vdee/VDD/ ?
->
-> You might be seeing device already added for devices with multiple
-> hwmods per omap_device.  More on this below.
->
-> > +				__func__, dvfs_info->voltdm->name);
-> > +			return -EINVAL;
-> > +		}
-> > +	}
-> > +
-> > +	temp_dev = kzalloc(sizeof(struct omap_vdd_dev_list),
-> GFP_KERNEL);
-> > +	if (!temp_dev) {
-> > +		dev_err(dev, "%s: Unable to creat a new device for
-> vdd_%s\n",
-> > +			__func__, dvfs_info->voltdm->name);
-> > +		return -ENOMEM;
-> > +	}
-> > +
-> > +	/* Initialize priority ordered list */
-> > +	spin_lock_init(&temp_dev->user_lock);
-> > +	plist_head_init(&temp_dev->user_list, &temp_dev->user_lock);
-> > +
-> > +	temp_dev->dev = dev;
-> > +	list_add(&temp_dev->node, &dvfs_info->dev_list);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +/**
-> > + * omap_dvfs_add_freq_request() - add a requested device
-> frequency
-> > + *
-> > + *
-> > + * @dvfs_info: omap_vdd_dvfs_info pointer for the required vdd
-> > + * @req_dev: device making the request
-> > + * @target_dev: target device for which frequency request is being
-> made
-> > + * @freq:	target device frequency
-> > + *
-> > + * This API adds a requested frequency into target's device frequency
-> list.
->
-> more documentation needed for the reasoning behind why both a
-> requesting
-> device and a target device are needed.  Also, whey they are needed for
-> frequency and not voltage.  That might affect my idea above about
-> having
-> the same function for adding freq/voltage requests.  Even so, the core
-> part of these functions is identical, so some common functions should
-> probably be used.
-I already addressed this in one of the previous comments. Will add more
-comments in function comments.
->
-> > + * Returns 0 on success.
-> > + */
-> > +static int omap_dvfs_add_freq_request(struct omap_vdd_dvfs_info
-> *dvfs_info,
-> > +	struct device *req_dev, struct device *target_dev, unsigned long
-> freq)
-> > +{
-> > +	struct omap_dev_user_list *dev_user = NULL, *tmp_user;
-> > +	struct omap_vdd_dev_list *temp_dev;
->
-> 	struct omap_vdd_dev_list *dev_list;
->
-> > +	if (!dvfs_info || IS_ERR(dvfs_info)) {
-> > +		dev_warn(target_dev, "%s: VDD specified does not
-> exist!\n",
-> > +			__func__);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	mutex_lock(&dvfs_info->scaling_mutex);
-> > +
-> > +	list_for_each_entry(temp_dev, &dvfs_info->dev_list, node) {
-> > +		if (temp_dev->dev == target_dev)
->
-> 			dev_list = temp_dev;
->
-> > +			break;
-> > +	}
-> > +	if (temp_dev->dev != target_dev) {
->
-> 	if (!dev_list) {
->
-> > +		dev_warn(target_dev, "%s: target_dev does not exist!\n",
-> > +			__func__);
-> > +		mutex_unlock(&dvfs_info->scaling_mutex);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	plist_for_each_entry(tmp_user, &temp_dev->user_list, node) {
-> > +		if (tmp_user->dev == req_dev) {
-> > +			dev_user = tmp_user;
-> > +			break;
-> > +		}
-> > +	}
-> > +
-> > +	if (!dev_user) {
-> > +		dev_user = kzalloc(sizeof(struct omap_dev_user_list),
-> > +					GFP_KERNEL);
-> > +		if (!dev_user) {
-> > +			dev_err(target_dev, "%s: Unable to creat a new
-> user for vdd_%s\n",
-> > +				__func__, dvfs_info->voltdm->name);
-> > +			mutex_unlock(&dvfs_info->scaling_mutex);
-> > +			return -ENOMEM;
-> > +		}
-> > +		dev_user->dev = req_dev;
-> > +	} else {
-> > +		plist_del(&dev_user->node, &temp_dev->user_list);
-> > +	}
-> > +
-> > +	plist_node_init(&dev_user->node, freq);
-> > +	plist_add(&dev_user->node, &temp_dev->user_list);
-> > +
-> > +	mutex_unlock(&dvfs_info->scaling_mutex);
-> > +	return 0;
-> > +}
-> > +
-> > +/**
-> > + * omap_dvfs_remove_freq_request() - Remove the requested
-> device frequency
-> > + *
-> > + * @dvfs_info: omap_vdd_dvfs_info pointer for the required vdd
-> > + * @req_dev: device removing the request
-> > + * @target_dev: target device from which frequency request is being
-> removed
-> > + *
-> > + * This API removes a requested frequency from target's device
-> frequency list.
-> > + *
-> > + * Returns 0 on success.
-> > + */
-> > +
-> > +static int omap_dvfs_remove_freq_request(struct
-> omap_vdd_dvfs_info *dvfs_info,
-> > +	struct device *req_dev, struct device *target_dev)
-> > +{
-> > +	struct omap_dev_user_list *dev_user = NULL, *tmp_user;
-> > +	int ret = 0;
-> > +	struct omap_vdd_dev_list *temp_dev;
-> > +
-> > +	if (!dvfs_info || IS_ERR(dvfs_info)) {
-> > +		dev_warn(target_dev, "%s: VDD specified does not
-> exist!\n",
-> > +			__func__);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	mutex_lock(&dvfs_info->scaling_mutex);
-> > +
-> > +	list_for_each_entry(temp_dev, &dvfs_info->dev_list, node) {
-> > +		if (temp_dev->dev == target_dev)
-> > +			break;
-> > +	}
-> > +
-> > +	if (temp_dev->dev != target_dev) {
-> > +		dev_warn(target_dev, "%s: target_dev does not exist!\n",
-> > +			__func__);
-> > +		mutex_unlock(&dvfs_info->scaling_mutex);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	plist_for_each_entry(tmp_user, &temp_dev->user_list, node) {
-> > +		if (tmp_user->dev == req_dev) {
-> > +			dev_user = tmp_user;
-> > +			break;
-> > +		}
-> > +	}
-> > +
-> > +	if (dev_user)
-> > +		plist_del(&dev_user->node, &temp_dev->user_list);
-> > +	else {
-> > +		dev_err(target_dev, "%s: Unable to remove the user for
-> vdd_%s\n",
-> > +				__func__, dvfs_info->voltdm->name);
-> > +			ret = -EINVAL;
-> > +		}
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +/**
-> > + * omap_dvfs_init() - Initialize omap dvfs layer
-> > + *
-> > + * Initalizes omap dvfs layer. It basically allocates memory for
-> > + * omap_dvfs_info_list and  populates voltdm pointer inside
-> > + * omap_vdd_dvfs_info structure for all the VDDs.
-> > + *
-> > + * Returns 0 on success.
-> > + */
-> > +static int __init omap_dvfs_init()
-> > +{
-> > +	int i;
-> > +	struct voltagedomain *vdd_list;
->
-> insert blank line
-ok
->
-> > +	if (cpu_is_omap34xx()) {
-> > +		omap_nr_vdd = 2;
->
-> use ARRAY_SIZE(omap3_vdd)
-ok
->
-> > +		vdd_list = omap3_vdd;
-> > +	}
->
-> else?
-Should throw error and return. Will fix it.
->
-> > +	omap_dvfs_info_list = kzalloc(omap_nr_vdd *
-> > +			sizeof(struct omap_vdd_dvfs_info), GFP_KERNEL);
-> > +	if (!omap_dvfs_info_list) {
-> > +		pr_warning("%s: Unable to allocate memory for vdd_list",
-> > +			__func__);
-> > +		return -ENOMEM;
-> > +	}
-> > +
-> > +	for (i = 0; i < omap_nr_vdd; i++) {
-> > +		omap_dvfs_info_list[i].voltdm =
-> > +			omap_voltage_domain_lookup(vdd_list[i].name);
-> > +		/* Init the plist */
->
-> comments redundant
->
-> > +		spin_lock_init(&omap_dvfs_info_list[i].user_lock);
-> > +		plist_head_init(&omap_dvfs_info_list[i].user_list,
-> > +
-&omap_dvfs_info_list[i].user_lock);
->
-> ditto
->
-> > +		/* Init the DVFS mutex */
-> > +		mutex_init(&omap_dvfs_info_list[i].scaling_mutex);
-> > +		/* Init the device list */
->
-> ditto
-ok
->
-> > +		INIT_LIST_HEAD(&omap_dvfs_info_list[i].dev_list);
->
->
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +core_initcall(omap_dvfs_init);
-> > diff --git a/arch/arm/plat-omap/include/plat/dvfs.h b/arch/arm/plat-
-> omap/include/plat/dvfs.h
-> > new file mode 100644
-> > index 0000000..1302990
-> > --- /dev/null
-> > +++ b/arch/arm/plat-omap/include/plat/dvfs.h
-> > @@ -0,0 +1,27 @@
-> > +/*
-> > + * OMAP3/OMAP4 DVFS Management Routines
-> > + *
-> > + * Author: Vishwanath BS	<vishwanath.bs@ti.com>
-> > + *
-> > + * Copyright (C) 2011 Texas Instruments, Inc.
-> > + * Vishwanath BS <vishwanath.bs@ti.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#ifndef __ARCH_ARM_MACH_OMAP2_DVFS_H
-> > +#define __ARCH_ARM_MACH_OMAP2_DVFS_H
-> > +#include <plat/voltage.h>
-> > +
-> > +#ifdef CONFIG_PM
-> > +int omap_dvfs_register_device(struct voltagedomain *voltdm, struct
-> device *dev);
-> > +#else
-> > +static inline int omap_dvfs_register_device(struct voltagedomain
-> *voltdm,
-> > +		struct device *dev)
-> > +{
-> > +	return -EINVAL;
-> > +}
-> > +#endif
-> > +#endif
-> > diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-
-> omap/omap_device.c
-> > index 57adb27..a84e849 100644
-> > --- a/arch/arm/plat-omap/omap_device.c
-> > +++ b/arch/arm/plat-omap/omap_device.c
-> > @@ -86,6 +86,7 @@
-> >
-> >  #include <plat/omap_device.h>
-> >  #include <plat/omap_hwmod.h>
-> > +#include <plat/dvfs.h>
-> >
-> >  /* These parameters are passed to _omap_device_{de,}activate() */
-> >  #define USE_WAKEUP_LAT			0
-> > @@ -481,6 +482,14 @@ struct omap_device
-> *omap_device_build_ss(const char *pdev_name, int pdev_id,
-> >  	for (i = 0; i < oh_cnt; i++) {
-> >  		hwmods[i]->od = od;
-> >  		_add_optional_clock_alias(od, hwmods[i]);
-> > +		if (!is_early_device && hwmods[i]->vdd_name) {
-> > +			struct omap_hwmod *oh = hwmods[i];
-> > +			struct voltagedomain *voltdm;
-> > +
-> > +			voltdm = omap_voltage_domain_lookup(oh-
-> >vdd_name);
-> > +			if (!omap_dvfs_register_device(voltdm, &od-
-> >pdev.dev))
-> > +				oh->voltdm = voltdm;
-> > +		}
->
-> This should be taken out of the for loop.  Otherwise, if an omap_device
-> has multiple hwmods, then the same devices is registered with DVFS
-> twice.
-OK understood. Will fix it.
-
-Vishwa
->
-> >  	}
-> >
-> >  	if (ret)
->
-> Kevin
+MjAxMS8xLzUgUnVzc2VsbCBLaW5nIC0gQVJNIExpbnV4IDxsaW51eEBhcm0ubGludXgub3JnLnVr
+PjoKPiBUaGlzIHVuY291cGxlIFBIWVNfT0ZGU0VUIGZyb20gdGhlIHBsYXRmb3JtIGRlZmluaXRp
+b25zLCB0aGVyZWJ5Cj4gZmFjaWxpdGF0aW5nIHJ1bi10aW1lIGNvbXB1dGF0aW9uIG9mIHRoZSBw
+aHlzaWNhbCBtZW1vcnkgb2Zmc2V0Lgo+Cj4gU2lnbmVkLW9mZi1ieTogUnVzc2VsbCBLaW5nIDxy
+bWsra2VybmVsQGFybS5saW51eC5vcmcudWs+Cj4gLS0tCj4gwqBhcmNoL2FybS9pbmNsdWRlL2Fz
+bS9tZW1vcnkuaCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHwgwqAgwqAyICsrCj4gwqBhcmNo
+L2FybS9rZXJuZWwvdGNtLmMgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqB8
+IMKgIMKgMiArLQo+IMKgYXJjaC9hcm0vbWFjaC1hYWVjMjAwMC9pbmNsdWRlL21hY2gvbWVtb3J5
+LmggwqAgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21hY2gtYXQ5MS9pbmNsdWRlL21hY2gvbWVt
+b3J5LmggwqAgwqAgwqAgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21hY2gtYmNtcmluZy9pbmNs
+dWRlL21hY2gvaGFyZHdhcmUuaCDCoHwgwqAgwqAyICstCj4gwqBhcmNoL2FybS9tYWNoLWJjbXJp
+bmcvaW5jbHVkZS9tYWNoL21lbW9yeS5oIMKgIMKgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21h
+Y2gtY2xwczcxMXgvaW5jbHVkZS9tYWNoL21lbW9yeS5oIMKgIHwgwqAgwqAyICstCj4gwqBhcmNo
+L2FybS9tYWNoLWNuczN4eHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oIMKgIMKgfCDCoCDCoDIgKy0K
+PiDCoGFyY2gvYXJtL21hY2gtZGF2aW5jaS9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAgwqB8IMKg
+IMKgNCArKy0tCj4gwqBhcmNoL2FybS9tYWNoLWRvdmUvaW5jbHVkZS9tYWNoL21lbW9yeS5oIMKg
+IMKgIMKgIHwgwqAgwqAyICstCj4gwqBhcmNoL2FybS9tYWNoLWVic2ExMTAvaW5jbHVkZS9tYWNo
+L21lbW9yeS5oIMKgIMKgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21hY2gtZXA5M3h4L2luY2x1
+ZGUvbWFjaC9tZW1vcnkuaCDCoCDCoCB8IMKgIDEwICsrKysrLS0tLS0KPiDCoGFyY2gvYXJtL21h
+Y2gtZm9vdGJyaWRnZS9pbmNsdWRlL21hY2gvbWVtb3J5LmggfCDCoCDCoDIgKy0KPiDCoGFyY2gv
+YXJtL21hY2gtaDcyMHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oIMKgIMKgIMKgfCDCoCDCoDIgKy0K
+PiDCoGFyY2gvYXJtL21hY2gtaW50ZWdyYXRvci9pbmNsdWRlL21hY2gvbWVtb3J5LmggfCDCoCDC
+oDIgKy0KPiDCoGFyY2gvYXJtL21hY2gtaW9wMTN4eC9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAg
+wqB8IMKgIMKgMiArLQo+IMKgYXJjaC9hcm0vbWFjaC1pb3AzMngvaW5jbHVkZS9tYWNoL21lbW9y
+eS5oIMKgIMKgIHwgwqAgwqAyICstCj4gwqBhcmNoL2FybS9tYWNoLWlvcDMzeC9pbmNsdWRlL21h
+Y2gvbWVtb3J5LmggwqAgwqAgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21hY2gtaXhwMjAwMC9p
+bmNsdWRlL21hY2gvbWVtb3J5LmggwqAgwqB8IMKgIMKgMiArLQo+IMKgYXJjaC9hcm0vbWFjaC1p
+eHAyM3h4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaCDCoCDCoHwgwqAgwqAyICstCj4gwqBhcmNoL2Fy
+bS9tYWNoLWl4cDR4eC9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAgwqAgfCDCoCDCoDIgKy0KPiDC
+oGFyY2gvYXJtL21hY2gta2lya3dvb2QvaW5jbHVkZS9tYWNoL21lbW9yeS5oIMKgIHwgwqAgwqAy
+ICstCj4gwqBhcmNoL2FybS9tYWNoLWtzODY5NS9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAgwqAg
+fCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21hY2gtbGg3YTQweC9pbmNsdWRlL21hY2gvbWVtb3J5
+LmggwqAgwqB8IMKgIMKgMiArLQo+IMKgYXJjaC9hcm0vbWFjaC1sb2tpL2luY2x1ZGUvbWFjaC9t
+ZW1vcnkuaCDCoCDCoCDCoCB8IMKgIMKgMiArLQo+IMKgYXJjaC9hcm0vbWFjaC1scGMzMnh4L2lu
+Y2x1ZGUvbWFjaC9tZW1vcnkuaCDCoCDCoHwgwqAgwqAyICstCj4gwqBhcmNoL2FybS9tYWNoLW1t
+cC9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAgwqAgwqAgwqB8IMKgIMKgMiArLQo+IMKgYXJjaC9h
+cm0vbWFjaC1tc20vYm9hcmQtbXNtN3gzMC5jIMKgIMKgIMKgIMKgIMKgIMKgIMKgfCDCoCDCoDIg
+Ky0KPiDCoGFyY2gvYXJtL21hY2gtbXNtL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCDCoCDCoCDCoCDC
+oHwgwqAgMTAgKysrKystLS0tLQo+IMKgYXJjaC9hcm0vbWFjaC1tdjc4eHgwL2luY2x1ZGUvbWFj
+aC9tZW1vcnkuaCDCoCDCoHwgwqAgwqAyICstCj4gwqBhcmNoL2FybS9tYWNoLW14My9tYWNoLWt6
+bV9hcm0xMV8wMS5jIMKgIMKgIMKgIMKgIMKgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21hY2gt
+bmV0eC9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAgwqAgwqAgfCDCoCDCoDIgKy0KPiDCoGFyY2gv
+YXJtL21hY2gtbm9tYWRpay9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAgwqB8IMKgIMKgMiArLQo+
+IMKgYXJjaC9hcm0vbWFjaC1uczl4eHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oIMKgIMKgIHwgwqAg
+wqAyICstCj4gwqBhcmNoL2FybS9tYWNoLW51YzkzeC9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAg
+wqAgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21hY2gtb3Jpb241eC9pbmNsdWRlL21hY2gvbWVt
+b3J5LmggwqAgwqB8IMKgIMKgMiArLQo+IMKgYXJjaC9hcm0vbWFjaC1wbng0MDA4L2luY2x1ZGUv
+bWFjaC9tZW1vcnkuaCDCoCDCoHwgwqAgwqAyICstCj4gwqBhcmNoL2FybS9tYWNoLXB4YS9pbmNs
+dWRlL21hY2gvbWVtb3J5LmggwqAgwqAgwqAgwqB8IMKgIMKgMiArLQo+IMKgYXJjaC9hcm0vbWFj
+aC1yZWFsdmlldy9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAgfCDCoCDCoDQgKystLQo+IMKgYXJj
+aC9hcm0vbWFjaC1ycGMvaW5jbHVkZS9tYWNoL21lbW9yeS5oIMKgIMKgIMKgIMKgfCDCoCDCoDIg
+Ky0KPiDCoGFyY2gvYXJtL21hY2gtczNjMjQwMC9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAgwqB8
+IMKgIMKgMiArLQo+IMKgYXJjaC9hcm0vbWFjaC1zM2MyNDEwL2luY2x1ZGUvbWFjaC9tZW1vcnku
+aCDCoCDCoHwgwqAgwqAyICstCj4gwqBhcmNoL2FybS9tYWNoLXMzYzI0YTAvaW5jbHVkZS9tYWNo
+L21lbW9yeS5oIMKgIMKgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21hY2gtczNjNjR4eC9pbmNs
+dWRlL21hY2gvbWVtb3J5LmggwqAgwqB8IMKgIMKgMiArLQo+IMKgYXJjaC9hcm0vbWFjaC1zNXA2
+NDQyL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCDCoCDCoHwgwqAgwqAyICstCj4gwqBhcmNoL2FybS9t
+YWNoLXM1cDY0eDAvaW5jbHVkZS9tYWNoL21lbW9yeS5oIMKgIMKgfCDCoCDCoDIgKy0KPiDCoGFy
+Y2gvYXJtL21hY2gtczVwYzEwMC9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAgwqB8IMKgIMKgMiAr
+LQo+IMKgYXJjaC9hcm0vbWFjaC1zNXB2MjEwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCDCoCDCoHwg
+wqAgwqAyICstCj4gwqBhcmNoL2FybS9tYWNoLXM1cHYzMTAvaW5jbHVkZS9tYWNoL21lbW9yeS5o
+IMKgIMKgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21hY2gtc2ExMTAwL2luY2x1ZGUvbWFjaC9t
+ZW1vcnkuaCDCoCDCoCB8IMKgIMKgMiArLQo+IMKgYXJjaC9hcm0vbWFjaC1zaGFyay9pbmNsdWRl
+L21hY2gvbWVtb3J5LmggwqAgwqAgwqB8IMKgIMKgMiArLQo+IMKgYXJjaC9hcm0vbWFjaC1zaG1v
+YmlsZS9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21h
+Y2gtdGVncmEvaW5jbHVkZS9tYWNoL21lbW9yeS5oIMKgIMKgIMKgfCDCoCDCoDIgKy0KPiDCoGFy
+Y2gvYXJtL21hY2gtdTMwMC9pbmNsdWRlL21hY2gvbWVtb3J5LmggwqAgwqAgwqAgfCDCoCDCoDYg
+KysrLS0tCj4gwqBhcmNoL2FybS9tYWNoLXUzMDAvdTMwMC5jIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21hY2gtdXg1MDAvaW5jbHVkZS9t
+YWNoL21lbW9yeS5oIMKgIMKgIMKgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL21hY2gtdmVyc2F0
+aWxlL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCDCoHwgwqAgwqAyICstCj4gwqBhcmNoL2FybS9tYWNo
+LXZleHByZXNzL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCDCoCB8IMKgIMKgMiArLQo+IMKgYXJjaC9h
+cm0vbWFjaC13OTB4OTAwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCDCoCDCoHwgwqAgwqAyICstCj4g
+wqBhcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L21lbW9yeS5oIMKgIMKgIMKgIHwgwqAg
+wqA0ICsrLS0KPiDCoGFyY2gvYXJtL3BsYXQtc3BlYXIvaW5jbHVkZS9wbGF0L21lbW9yeS5oIMKg
+IMKgIMKgfCDCoCDCoDIgKy0KPiDCoGFyY2gvYXJtL3BsYXQtc3RtcDN4eHgvaW5jbHVkZS9tYWNo
+L21lbW9yeS5oIMKgIHwgwqAgwqAyICstCj4gwqBhcmNoL2FybS9wbGF0LXRjYy9pbmNsdWRlL21h
+Y2gvbWVtb3J5LmggwqAgwqAgwqAgwqB8IMKgIMKgMiArLQo+IMKgNjMgZmlsZXMgY2hhbmdlZCwg
+NzcgaW5zZXJ0aW9ucygrKSwgNzUgZGVsZXRpb25zKC0pCj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9h
+cm0vaW5jbHVkZS9hc20vbWVtb3J5LmggYi9hcmNoL2FybS9pbmNsdWRlL2FzbS9tZW1vcnkuaAo+
+IGluZGV4IDIzYzJlOGUuLjAwYjA0YWUgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vaW5jbHVkZS9h
+c20vbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9pbmNsdWRlL2FzbS9tZW1vcnkuaAo+IEBAIC0y
+NCw2ICsyNCw4IEBACj4gwqAqLwo+IMKgI2RlZmluZSBVTCh4KSBfQUMoeCwgVUwpCj4KPiArI2Rl
+ZmluZSBQSFlTX09GRlNFVCDCoCDCoFBMQVRfUEhZU19PRkZTRVQKPiArCj4gwqAjaWZkZWYgQ09O
+RklHX01NVQo+Cj4gwqAvKgo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9rZXJuZWwvdGNtLmMgYi9h
+cmNoL2FybS9rZXJuZWwvdGNtLmMKPiBpbmRleCAyNjY4NWMyLi5mNWNmNjYwIDEwMDY0NAo+IC0t
+LSBhL2FyY2gvYXJtL2tlcm5lbC90Y20uYwo+ICsrKyBiL2FyY2gvYXJtL2tlcm5lbC90Y20uYwo+
+IEBAIC0xNSw3ICsxNSw3IEBACj4gwqAjaW5jbHVkZSA8bGludXgvc3RyaW5nLmg+IC8qIG1lbWNw
+eSAqLwo+IMKgI2luY2x1ZGUgPGFzbS9jcHV0eXBlLmg+Cj4gwqAjaW5jbHVkZSA8YXNtL21hY2gv
+bWFwLmg+Cj4gLSNpbmNsdWRlIDxtYWNoL21lbW9yeS5oPgo+ICsjaW5jbHVkZSA8YXNtL21lbW9y
+eS5oPgo+IMKgI2luY2x1ZGUgInRjbS5oIgo+Cj4gwqBzdGF0aWMgc3RydWN0IGdlbl9wb29sICp0
+Y21fcG9vbDsKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1hYWVjMjAwMC9pbmNsdWRlL21h
+Y2gvbWVtb3J5LmggYi9hcmNoL2FybS9tYWNoLWFhZWMyMDAwL2luY2x1ZGUvbWFjaC9tZW1vcnku
+aAo+IGluZGV4IDRmOTNjNTYuLjRhMTBiZjAgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1h
+YWVjMjAwMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLWFhZWMy
+MDAwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IEBAIC0xMiw2ICsxMiw2IEBACj4gwqAjZGVmaW5l
+IF9fQVNNX0FSQ0hfTUVNT1JZX0gKPgo+Cj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqBVTCgw
+eGYwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgVUwoMHhmMDAw
+MDAwMCkKPgo+IMKgI2VuZGlmIC8qIF9fQVNNX0FSQ0hfTUVNT1JZX0ggKi8KPiBkaWZmIC0tZ2l0
+IGEvYXJjaC9hcm0vbWFjaC1hdDkxL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21h
+Y2gtYXQ5MS9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCAxNGY0ZWY0Li5jMmNmZTUwIDEw
+MDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtYXQ5MS9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiAr
+KysgYi9hcmNoL2FybS9tYWNoLWF0OTEvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTIzLDYg
+KzIzLDYgQEAKPgo+IMKgI2luY2x1ZGUgPG1hY2gvaGFyZHdhcmUuaD4KPgo+IC0jZGVmaW5lIFBI
+WVNfT0ZGU0VUIMKgIMKgKEFUOTFfU0RSQU1fQkFTRSkKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZG
+U0VUIMKgIMKgIMKgIChBVDkxX1NEUkFNX0JBU0UpCj4KPiDCoCNlbmRpZgo+IGRpZmYgLS1naXQg
+YS9hcmNoL2FybS9tYWNoLWJjbXJpbmcvaW5jbHVkZS9tYWNoL2hhcmR3YXJlLmggYi9hcmNoL2Fy
+bS9tYWNoLWJjbXJpbmcvaW5jbHVkZS9tYWNoL2hhcmR3YXJlLmgKPiBpbmRleCA0NDdlYjM0Li44
+YmYzNTY0IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtYmNtcmluZy9pbmNsdWRlL21hY2gv
+aGFyZHdhcmUuaAo+ICsrKyBiL2FyY2gvYXJtL21hY2gtYmNtcmluZy9pbmNsdWRlL21hY2gvaGFy
+ZHdhcmUuaAo+IEBAIC0zMSw3ICszMSw3IEBACj4gwqAqIMKgKl9TSVpFIMKgaXMgdGhlIHNpemUg
+b2YgdGhlIHJlZ2lvbgo+IMKgKiDCoCpfQkFTRSDCoGlzIHRoZSB2aXJ0dWFsIGFkZHJlc3MKPiDC
+oCovCj4gLSNkZWZpbmUgUkFNX1NUQVJUIMKgIMKgIMKgIMKgIMKgIMKgIMKgIFBIWVNfT0ZGU0VU
+Cj4gKyNkZWZpbmUgUkFNX1NUQVJUIMKgIMKgIMKgIMKgIMKgIMKgIMKgIFBMQVRfUEhZU19PRkZT
+RVQKPgo+IMKgI2RlZmluZSBSQU1fU0laRSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoChDRkdfR0xP
+QkFMX1JBTV9TSVpFLUNGR19HTE9CQUxfUkFNX1NJWkVfUkVTRVJWRUQpCj4gwqAjZGVmaW5lIFJB
+TV9CQVNFIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgUEFHRV9PRkZTRVQKPiBkaWZmIC0tZ2l0IGEv
+YXJjaC9hcm0vbWFjaC1iY21yaW5nL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21h
+Y2gtYmNtcmluZy9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCAxMTRmOTQyLi4xNTE2MmU0
+IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtYmNtcmluZy9pbmNsdWRlL21hY2gvbWVtb3J5
+LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLWJjbXJpbmcvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4g
+QEAgLTIzLDcgKzIzLDcgQEAKPiDCoCogZmlsZXMuIMKgVXNlIHZpcnRfdG9fcGh5cy9waHlzX3Rv
+X3ZpcnQvX19wYS9fX3ZhIGluc3RlYWQuCj4gwqAqLwo+Cj4gLSNkZWZpbmUgUEhZU19PRkZTRVQg
+Q0ZHX0dMT0JBTF9SQU1fQkFTRQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgQ0ZHX0dMT0JB
+TF9SQU1fQkFTRQo+Cj4gwqAvKgo+IMKgKiBNYXhpbXVtIERNQSBtZW1vcnkgYWxsb3dlZCBpcyAx
+NE0KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1jbHBzNzExeC9pbmNsdWRlL21hY2gvbWVt
+b3J5LmggYi9hcmNoL2FybS9tYWNoLWNscHM3MTF4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IGlu
+ZGV4IGY0NWM4ZTguLjNhMDMyYTYgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1jbHBzNzEx
+eC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLWNscHM3MTF4L2lu
+Y2x1ZGUvbWFjaC9tZW1vcnkuaAo+IEBAIC0yMyw3ICsyMyw3IEBACj4gwqAvKgo+IMKgKiBQaHlz
+aWNhbCBEUkFNIG9mZnNldC4KPiDCoCovCj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqBVTCgw
+eGMwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgVUwoMHhjMDAw
+MDAwMCkKPgo+IMKgI2lmICFkZWZpbmVkKENPTkZJR19BUkNIX0NEQjg5NzEyKSAmJiAhZGVmaW5l
+ZCAoQ09ORklHX0FSQ0hfQVVUQ1BVMTIpCj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1j
+bnMzeHh4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtY25zM3h4eC9pbmNs
+dWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCAzYjZiNzY5Li5kYzE2YzVjIDEwMDY0NAo+IC0tLSBh
+L2FyY2gvYXJtL21hY2gtY25zM3h4eC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNo
+L2FybS9tYWNoLWNuczN4eHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTEzLDcgKzEzLDcg
+QEAKPiDCoC8qCj4gwqAqIFBoeXNpY2FsIERSQU0gb2Zmc2V0Lgo+IMKgKi8KPiAtI2RlZmluZSBQ
+SFlTX09GRlNFVCDCoCDCoCDCoCDCoCDCoCDCoFVMKDB4MDAwMDAwMDApCj4gKyNkZWZpbmUgUExB
+VF9QSFlTX09GRlNFVCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBVTCgweDAwMDAwMDAwKQo+Cj4gwqAj
+ZGVmaW5lIF9fcGh5c190b19idXMoeCkgwqAgwqAgwqAgKCh4KSArIFBIWVNfT0ZGU0VUKQo+IMKg
+I2RlZmluZSBfX2J1c190b19waHlzKHgpIMKgIMKgIMKgICgoeCkgLSBQSFlTX09GRlNFVCkKPiBk
+aWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1kYXZpbmNpL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBi
+L2FyY2gvYXJtL21hY2gtZGF2aW5jaS9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCAyMmVi
+OTdjLi43ODgyMjcyIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtZGF2aW5jaS9pbmNsdWRl
+L21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLWRhdmluY2kvaW5jbHVkZS9tYWNo
+L21lbW9yeS5oCj4gQEAgLTI2LDkgKzI2LDkgQEAKPiDCoCNpZiBkZWZpbmVkKENPTkZJR19BUkNI
+X0RBVklOQ0lfREE4WFgpICYmIGRlZmluZWQoQ09ORklHX0FSQ0hfREFWSU5DSV9ETXgpCj4gwqAj
+ZXJyb3IgQ2Fubm90IGVuYWJsZSBEYVZpbmNpIGFuZCBEQThYWCBwbGF0Zm9ybXMgY29uY3VycmVu
+dGx5Cj4gwqAjZWxpZiBkZWZpbmVkKENPTkZJR19BUkNIX0RBVklOQ0lfREE4WFgpCj4gLSNkZWZp
+bmUgUEhZU19PRkZTRVQgREE4WFhfRERSX0JBU0UKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VU
+IERBOFhYX0REUl9CQVNFCj4gwqAjZWxzZQo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIERBVklOQ0lf
+RERSX0JBU0UKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIERBVklOQ0lfRERSX0JBU0UKPiDC
+oCNlbmRpZgo+Cj4gwqAjZGVmaW5lIEREUjJfU0RSQ1JfT0ZGU0VUIMKgIMKgIMKgMHhjCj4gZGlm
+ZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtZG92ZS9pbmNsdWRlL21hY2gvbWVtb3J5LmggYi9hcmNo
+L2FybS9tYWNoLWRvdmUvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gaW5kZXggZDY2ODcyMC4uYmJj
+OTNmZSAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLWRvdmUvaW5jbHVkZS9tYWNoL21lbW9y
+eS5oCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1kb3ZlL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IEBA
+IC01LDYgKzUsNiBAQAo+IMKgI2lmbmRlZiBfX0FTTV9BUkNIX01FTU9SWV9ICj4gwqAjZGVmaW5l
+IF9fQVNNX0FSQ0hfTUVNT1JZX0gKPgo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgIMKgIMKg
+IMKgIMKgVUwoMHgwMDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIFVMKDB4MDAwMDAwMDApCj4KPiDCoCNlbmRpZgo+IGRpZmYgLS1naXQgYS9h
+cmNoL2FybS9tYWNoLWVic2ExMTAvaW5jbHVkZS9tYWNoL21lbW9yeS5oIGIvYXJjaC9hcm0vbWFj
+aC1lYnNhMTEwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IGluZGV4IDBjYTY2ZDAuLjhlNDkwNjYg
+MTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1lYnNhMTEwL2luY2x1ZGUvbWFjaC9tZW1vcnku
+aAo+ICsrKyBiL2FyY2gvYXJtL21hY2gtZWJzYTExMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBA
+QCAtMTksNyArMTksNyBAQAo+IMKgLyoKPiDCoCogUGh5c2ljYWwgRFJBTSBvZmZzZXQuCj4gwqAq
+Lwo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgVUwoMHgwMDAwMDAwMCkKPiArI2RlZmluZSBQ
+TEFUX1BIWVNfT0ZGU0VUIMKgIMKgIMKgIFVMKDB4MDAwMDAwMDApCj4KPiDCoC8qCj4gwqAqIENh
+Y2hlIGZsdXNoaW5nIGFyZWEgLSBTUkFNCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtZXA5
+M3h4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtZXA5M3h4L2luY2x1ZGUv
+bWFjaC9tZW1vcnkuaAo+IGluZGV4IDU1NDA2NGUuLmM5NDAwY2YgMTAwNjQ0Cj4gLS0tIGEvYXJj
+aC9hcm0vbWFjaC1lcDkzeHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gKysrIGIvYXJjaC9hcm0v
+bWFjaC1lcDkzeHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTYsMTUgKzYsMTUgQEAKPiDC
+oCNkZWZpbmUgX19BU01fQVJDSF9NRU1PUllfSAo+Cj4gwqAjaWYgZGVmaW5lZChDT05GSUdfRVA5
+M1hYX1NEQ0UzX1NZTkNfUEhZU19PRkZTRVQpCj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqAg
+wqAgwqAgwqAgwqBVTCgweDAwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgVUwoMHgwMDAwMDAwMCkKPiDCoCNlbGlmIGRlZmluZWQoQ09ORklH
+X0VQOTNYWF9TRENFMF9QSFlTX09GRlNFVCkKPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoCDC
+oCDCoCDCoCDCoFVMKDB4YzAwMDAwMDApCj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNFVCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCBVTCgweGMwMDAwMDAwKQo+IMKgI2VsaWYgZGVmaW5lZChDT05GSUdf
+RVA5M1hYX1NEQ0UxX1BIWVNfT0ZGU0VUKQo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgIMKg
+IMKgIMKgIMKgVUwoMHhkMDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIFVMKDB4ZDAwMDAwMDApCj4gwqAjZWxpZiBkZWZpbmVkKENPTkZJR19F
+UDkzWFhfU0RDRTJfUEhZU19PRkZTRVQpCj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqAgwqAg
+wqAgwqAgwqBVTCgweGUwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgVUwoMHhlMDAwMDAwMCkKPiDCoCNlbGlmIGRlZmluZWQoQ09ORklHX0VQ
+OTNYWF9TRENFM19BU1lOQ19QSFlTX09GRlNFVCkKPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDC
+oCDCoCDCoCDCoCDCoFVMKDB4ZjAwMDAwMDApCj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNFVCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCBVTCgweGYwMDAwMDAwKQo+IMKgI2Vsc2UKPiDCoCNlcnJvciAi
+S2NvbmZpZyBidWc6IE5vIEVQOTN4eCBQSFlTX09GRlNFVCBzZXQiCj4gwqAjZW5kaWYKPiBkaWZm
+IC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1mb290YnJpZGdlL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBi
+L2FyY2gvYXJtL21hY2gtZm9vdGJyaWRnZS9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCA4
+ZDY0ZjQ1Li41YzZkZjM3IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtZm9vdGJyaWRnZS9p
+bmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLWZvb3RicmlkZ2UvaW5j
+bHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTYyLDcgKzYyLDcgQEAgZXh0ZXJuIHVuc2lnbmVkIGxv
+bmcgX19idXNfdG9fcGZuKHVuc2lnbmVkIGxvbmcpOwo+IMKgLyoKPiDCoCogUGh5c2ljYWwgRFJB
+TSBvZmZzZXQuCj4gwqAqLwo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgIMKgIMKgIMKgIMKg
+VUwoMHgwMDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIFVMKDB4MDAwMDAwMDApCj4KPiDCoCNkZWZpbmUgRkxVU0hfQkFTRV9QSFlTIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgMHg1MDAwMDAwMAo+Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21h
+Y2gtaDcyMHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oIGIvYXJjaC9hcm0vbWFjaC1oNzIweC9pbmNs
+dWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCBlZjRjMWUyLi45ZDM2ODc2IDEwMDY0NAo+IC0tLSBh
+L2FyY2gvYXJtL21hY2gtaDcyMHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gKysrIGIvYXJjaC9h
+cm0vbWFjaC1oNzIweC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBAQCAtNyw3ICs3LDcgQEAKPiDC
+oCNpZm5kZWYgX19BU01fQVJDSF9NRU1PUllfSAo+IMKgI2RlZmluZSBfX0FTTV9BUkNIX01FTU9S
+WV9ICj4KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoFVMKDB4NDAwMDAwMDApCj4gKyNkZWZp
+bmUgUExBVF9QSFlTX09GRlNFVCDCoCDCoCDCoCBVTCgweDQwMDAwMDAwKQo+IMKgLyoKPiDCoCog
+VGhpcyBpcyB0aGUgbWF4aW11bSBETUEgYWRkcmVzcyB0aGF0IGNhbiBiZSBETUFkIHRvLgo+IMKg
+KiBUaGVyZSBzaG91bGQgbm90IGJlIG1vcmUgdGhhbiAoMHhkMDAwMDAwMCAtIDB4YzAwMDAwMDAp
+Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtaW50ZWdyYXRvci9pbmNsdWRlL21hY2gvbWVt
+b3J5LmggYi9hcmNoL2FybS9tYWNoLWludGVncmF0b3IvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4g
+aW5kZXggOTkxZjI0ZC4uMzM0ZDVlMiAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLWludGVn
+cmF0b3IvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1pbnRlZ3Jh
+dG9yL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IEBAIC0yMyw3ICsyMyw3IEBACj4gwqAvKgo+IMKg
+KiBQaHlzaWNhbCBEUkFNIG9mZnNldC4KPiDCoCovCj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAg
+wqBVTCgweDAwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgVUwo
+MHgwMDAwMDAwMCkKPgo+IMKgI2RlZmluZSBCVVNfT0ZGU0VUIMKgIMKgIFVMKDB4ODAwMDAwMDAp
+Cj4gwqAjZGVmaW5lIF9fdmlydF90b19idXMoeCkgwqAgwqAgwqAgKCh4KSAtIFBBR0VfT0ZGU0VU
+ICsgQlVTX09GRlNFVCkKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1pb3AxM3h4L2luY2x1
+ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtaW9wMTN4eC9pbmNsdWRlL21hY2gvbWVt
+b3J5LmgKPiBpbmRleCAzYWQ0NTUzLi4xYWZhOTllIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21h
+Y2gtaW9wMTN4eC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLWlv
+cDEzeHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTYsNyArNiw3IEBACj4gwqAvKgo+IMKg
+KiBQaHlzaWNhbCBEUkFNIG9mZnNldC4KPiDCoCovCj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAg
+wqBVTCgweDAwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgVUwo
+MHgwMDAwMDAwMCkKPgo+IMKgI2lmbmRlZiBfX0FTU0VNQkxZX18KPgo+IGRpZmYgLS1naXQgYS9h
+cmNoL2FybS9tYWNoLWlvcDMyeC9pbmNsdWRlL21hY2gvbWVtb3J5LmggYi9hcmNoL2FybS9tYWNo
+LWlvcDMyeC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCBjMzBmNjQ1Li4xNjljYzIzIDEw
+MDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtaW9wMzJ4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+
+ICsrKyBiL2FyY2gvYXJtL21hY2gtaW9wMzJ4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IEBAIC04
+LDYgKzgsNiBAQAo+IMKgLyoKPiDCoCogUGh5c2ljYWwgRFJBTSBvZmZzZXQuCj4gwqAqLwo+IC0j
+ZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgVUwoMHhhMDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BI
+WVNfT0ZGU0VUIMKgIMKgIMKgIFVMKDB4YTAwMDAwMDApCj4KPiDCoCNlbmRpZgo+IGRpZmYgLS1n
+aXQgYS9hcmNoL2FybS9tYWNoLWlvcDMzeC9pbmNsdWRlL21hY2gvbWVtb3J5LmggYi9hcmNoL2Fy
+bS9tYWNoLWlvcDMzeC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCBhMzBhOTZhLi44ZTFk
+YWY3IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtaW9wMzN4L2luY2x1ZGUvbWFjaC9tZW1v
+cnkuaAo+ICsrKyBiL2FyY2gvYXJtL21hY2gtaW9wMzN4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+
+IEBAIC04LDYgKzgsNiBAQAo+IMKgLyoKPiDCoCogUGh5c2ljYWwgRFJBTSBvZmZzZXQuCj4gwqAq
+Lwo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgVUwoMHgwMDAwMDAwMCkKPiArI2RlZmluZSBQ
+TEFUX1BIWVNfT0ZGU0VUIMKgIMKgIMKgIFVMKDB4MDAwMDAwMDApCj4KPiDCoCNlbmRpZgo+IGRp
+ZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLWl4cDIwMDAvaW5jbHVkZS9tYWNoL21lbW9yeS5oIGIv
+YXJjaC9hcm0vbWFjaC1peHAyMDAwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IGluZGV4IDk4ZTM0
+NzEuLjVmMGM0ZmQgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1peHAyMDAwL2luY2x1ZGUv
+bWFjaC9tZW1vcnkuaAo+ICsrKyBiL2FyY2gvYXJtL21hY2gtaXhwMjAwMC9pbmNsdWRlL21hY2gv
+bWVtb3J5LmgKPiBAQCAtMTMsNyArMTMsNyBAQAo+IMKgI2lmbmRlZiBfX0FTTV9BUkNIX01FTU9S
+WV9ICj4gwqAjZGVmaW5lIF9fQVNNX0FSQ0hfTUVNT1JZX0gKPgo+IC0jZGVmaW5lIFBIWVNfT0ZG
+U0VUIMKgIMKgVUwoMHgwMDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKg
+IMKgIFVMKDB4MDAwMDAwMDApCj4KPiDCoCNpbmNsdWRlIDxtYWNoL2l4cDIwMDAtcmVncy5oPgo+
+Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtaXhwMjN4eC9pbmNsdWRlL21hY2gvbWVtb3J5
+LmggYi9hcmNoL2FybS9tYWNoLWl4cDIzeHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gaW5kZXgg
+NmVmNjVkOC4uNmNmMDcwNCAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLWl4cDIzeHgvaW5j
+bHVkZS9tYWNoL21lbW9yeS5oCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1peHAyM3h4L2luY2x1ZGUv
+bWFjaC9tZW1vcnkuaAo+IEBAIC0xNyw3ICsxNyw3IEBACj4gwqAvKgo+IMKgKiBQaHlzaWNhbCBE
+UkFNIG9mZnNldC4KPiDCoCovCj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqAgwqAgwqAgwqAg
+wqAoMHgwMDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgICgweDAwMDAwMDAwKQo+Cj4gwqAjZGVmaW5lIElYUDIzWFhfUENJX1NEUkFNX09GRlNF
+VCAoKigodm9sYXRpbGUgaW50ICopSVhQMjNYWF9QQ0lfU0RSQU1fQkFSKSAmIDB4ZmZmZmZmZjAp
+Cj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1peHA0eHgvaW5jbHVkZS9tYWNoL21lbW9y
+eS5oIGIvYXJjaC9hcm0vbWFjaC1peHA0eHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gaW5kZXgg
+MDEzNmVhYS4uNmQzODhjOSAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLWl4cDR4eC9pbmNs
+dWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLWl4cDR4eC9pbmNsdWRlL21h
+Y2gvbWVtb3J5LmgKPiBAQCAtMTIsNyArMTIsNyBAQAo+IMKgLyoKPiDCoCogUGh5c2ljYWwgRFJB
+TSBvZmZzZXQuCj4gwqAqLwo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgVUwoMHgwMDAwMDAw
+MCkKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKgIMKgIFVMKDB4MDAwMDAwMDApCj4K
+PiDCoCNpZiAhZGVmaW5lZChfX0FTU0VNQkxZX18pICYmIGRlZmluZWQoQ09ORklHX1BDSSkKPgo+
+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLWtpcmt3b29kL2luY2x1ZGUvbWFjaC9tZW1vcnku
+aCBiL2FyY2gvYXJtL21hY2gta2lya3dvb2QvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gaW5kZXgg
+NDU0MzFlMS4uNDYwMGI0NCAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLWtpcmt3b29kL2lu
+Y2x1ZGUvbWFjaC9tZW1vcnkuaAo+ICsrKyBiL2FyY2gvYXJtL21hY2gta2lya3dvb2QvaW5jbHVk
+ZS9tYWNoL21lbW9yeS5oCj4gQEAgLTUsNiArNSw2IEBACj4gwqAjaWZuZGVmIF9fQVNNX0FSQ0hf
+TUVNT1JZX0gKPiDCoCNkZWZpbmUgX19BU01fQVJDSF9NRU1PUllfSAo+Cj4gLSNkZWZpbmUgUEhZ
+U19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqBVTCgweDAwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRf
+UEhZU19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqAgwqAgVUwoMHgwMDAwMDAwMCkKPgo+IMKgI2Vu
+ZGlmCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gta3M4Njk1L2luY2x1ZGUvbWFjaC9tZW1v
+cnkuaCBiL2FyY2gvYXJtL21hY2gta3M4Njk1L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IGluZGV4
+IGJhY2U5YTYuLmY3ZTFiOWIgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1rczg2OTUvaW5j
+bHVkZS9tYWNoL21lbW9yeS5oCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1rczg2OTUvaW5jbHVkZS9t
+YWNoL21lbW9yeS5oCj4gQEAgLTE4LDcgKzE4LDcgQEAKPiDCoC8qCj4gwqAqIFBoeXNpY2FsIFNS
+QU0gb2Zmc2V0Lgo+IMKgKi8KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoCDCoCDCoCDCoCDC
+oEtTODY5NV9TRFJBTV9QQQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgS1M4Njk1X1NEUkFNX1BBCj4KPiDCoCNpZm5kZWYgX19BU1NFTUJMWV9fCj4KPiBk
+aWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1saDdhNDB4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBi
+L2FyY2gvYXJtL21hY2gtbGg3YTQweC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCBlZGI4
+ZjVmLi5mNzdiZGU4IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtbGg3YTQweC9pbmNsdWRl
+L21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLWxoN2E0MHgvaW5jbHVkZS9tYWNo
+L21lbW9yeS5oCj4gQEAgLTE3LDcgKzE3LDcgQEAKPiDCoC8qCj4gwqAqIFBoeXNpY2FsIERSQU0g
+b2Zmc2V0Lgo+IMKgKi8KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoFVMKDB4YzAwMDAwMDAp
+Cj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNFVCDCoCDCoCDCoCBVTCgweGMwMDAwMDAwKQo+Cj4g
+wqAvKgo+IMKgKiBTcGFyc2VtZW0gdmVyc2lvbiBvZiB0aGUgYWJvdmUKPiBkaWZmIC0tZ2l0IGEv
+YXJjaC9hcm0vbWFjaC1sb2tpL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gt
+bG9raS9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCAyZWQ3ZTZlLi42NjM2NjY1IDEwMDY0
+NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtbG9raS9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysg
+Yi9hcmNoL2FybS9tYWNoLWxva2kvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTUsNiArNSw2
+IEBACj4gwqAjaWZuZGVmIF9fQVNNX0FSQ0hfTUVNT1JZX0gKPiDCoCNkZWZpbmUgX19BU01fQVJD
+SF9NRU1PUllfSAo+Cj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqBVTCgw
+eDAwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgVUwoMHgwMDAwMDAwMCkKPgo+IMKgI2VuZGlmCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21h
+Y2gtbHBjMzJ4eC9pbmNsdWRlL21hY2gvbWVtb3J5LmggYi9hcmNoL2FybS9tYWNoLWxwYzMyeHgv
+aW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gaW5kZXggMDQ0ZTFhYy4uYTY0N2RkNiAxMDA2NDQKPiAt
+LS0gYS9hcmNoL2FybS9tYWNoLWxwYzMyeHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gKysrIGIv
+YXJjaC9hcm0vbWFjaC1scGMzMnh4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IEBAIC0yMiw2ICsy
+Miw2IEBACj4gwqAvKgo+IMKgKiBQaHlzaWNhbCBEUkFNIG9mZnNldCBvZiBiYW5rIDAKPiDCoCov
+Cj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqBVTCgweDgwMDAwMDAwKQo+ICsjZGVmaW5lIFBM
+QVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgVUwoMHg4MDAwMDAwMCkKPgo+IMKgI2VuZGlmCj4gZGlm
+ZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtbW1wL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gv
+YXJtL21hY2gtbW1wL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IGluZGV4IGJkYjIxZDcuLmQ2OGI1
+MGEgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1tbXAvaW5jbHVkZS9tYWNoL21lbW9yeS5o
+Cj4gKysrIGIvYXJjaC9hcm0vbWFjaC1tbXAvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTks
+NiArOSw2IEBACj4gwqAjaWZuZGVmIF9fQVNNX01BQ0hfTUVNT1JZX0gKPiDCoCNkZWZpbmUgX19B
+U01fTUFDSF9NRU1PUllfSAo+Cj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqBVTCgweDAwMDAw
+MDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgVUwoMHgwMDAwMDAwMCkK
+Pgo+IMKgI2VuZGlmIC8qIF9fQVNNX01BQ0hfTUVNT1JZX0ggKi8KPiBkaWZmIC0tZ2l0IGEvYXJj
+aC9hcm0vbWFjaC1tc20vYm9hcmQtbXNtN3gzMC5jIGIvYXJjaC9hcm0vbWFjaC1tc20vYm9hcmQt
+bXNtN3gzMC5jCj4gaW5kZXggMDUyNDFkZi4uMTkzMWUwNyAxMDA2NDQKPiAtLS0gYS9hcmNoL2Fy
+bS9tYWNoLW1zbS9ib2FyZC1tc203eDMwLmMKPiArKysgYi9hcmNoL2FybS9tYWNoLW1zbS9ib2Fy
+ZC1tc203eDMwLmMKPiBAQCAtMjUsMTEgKzI1LDExIEBACj4KPiDCoCNpbmNsdWRlIDxhc20vbWFj
+aC10eXBlcy5oPgo+IMKgI2luY2x1ZGUgPGFzbS9tYWNoL2FyY2guaD4KPiArI2luY2x1ZGUgPGFz
+bS9tZW1vcnkuaD4KPiDCoCNpbmNsdWRlIDxhc20vc2V0dXAuaD4KPgo+IMKgI2luY2x1ZGUgPG1h
+Y2gvZ3Bpby5oPgo+IMKgI2luY2x1ZGUgPG1hY2gvYm9hcmQuaD4KPiAtI2luY2x1ZGUgPG1hY2gv
+bWVtb3J5Lmg+Cj4gwqAjaW5jbHVkZSA8bWFjaC9tc21faW9tYXAuaD4KPiDCoCNpbmNsdWRlIDxt
+YWNoL2RtYS5oPgo+Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtbXNtL2luY2x1ZGUvbWFj
+aC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtbXNtL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IGlu
+ZGV4IDA3MGUxN2QuLjE3Njg3NWQgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1tc20vaW5j
+bHVkZS9tYWNoL21lbW9yeS5oCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1tc20vaW5jbHVkZS9tYWNo
+L21lbW9yeS5oCj4gQEAgLTE4LDE1ICsxOCwxNSBAQAo+Cj4gwqAvKiBwaHlzaWNhbCBvZmZzZXQg
+b2YgUkFNICovCj4gwqAjaWYgZGVmaW5lZChDT05GSUdfQVJDSF9RU0Q4WDUwKSAmJiBkZWZpbmVk
+KENPTkZJR19NU01fU09DX1JFVl9BKQo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgIMKgIMKg
+IMKgIMKgVUwoMHgwMDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIFVMKDB4MDAwMDAwMDApCj4gwqAjZWxpZiBkZWZpbmVkKENPTkZJR19BUkNI
+X1FTRDhYNTApCj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqBVTCgweDIw
+MDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+VUwoMHgyMDAwMDAwMCkKPiDCoCNlbGlmIGRlZmluZWQoQ09ORklHX0FSQ0hfTVNNN1gzMCkKPiAt
+I2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoCDCoCDCoCDCoCDCoFVMKDB4MDAyMDAwMDApCj4gKyNk
+ZWZpbmUgUExBVF9QSFlTX09GRlNFVCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBVTCgweDAwMjAwMDAw
+KQo+IMKgI2VsaWYgZGVmaW5lZChDT05GSUdfQVJDSF9NU004WDYwKQo+IC0jZGVmaW5lIFBIWVNf
+T0ZGU0VUIMKgIMKgIMKgIMKgIMKgIMKgVUwoMHg0MDIwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BI
+WVNfT0ZGU0VUIMKgIMKgIMKgIMKgIMKgIMKgIMKgIFVMKDB4NDAyMDAwMDApCj4gwqAjZWxzZQo+
+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgIMKgIMKgIMKgIMKgVUwoMHgxMDAwMDAwMCkKPiAr
+I2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKgIMKgIMKgIMKgIMKgIMKgIFVMKDB4MTAwMDAw
+MDApCj4gwqAjZW5kaWYKPgo+IMKgI2VuZGlmCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gt
+bXY3OHh4MC9pbmNsdWRlL21hY2gvbWVtb3J5LmggYi9hcmNoL2FybS9tYWNoLW12Nzh4eDAvaW5j
+bHVkZS9tYWNoL21lbW9yeS5oCj4gaW5kZXggZTY2MzA0Mi4uYTY0OGM1MSAxMDA2NDQKPiAtLS0g
+YS9hcmNoL2FybS9tYWNoLW12Nzh4eDAvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gKysrIGIvYXJj
+aC9hcm0vbWFjaC1tdjc4eHgwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IEBAIC01LDYgKzUsNiBA
+QAo+IMKgI2lmbmRlZiBfX0FTTV9BUkNIX01FTU9SWV9ICj4gwqAjZGVmaW5lIF9fQVNNX0FSQ0hf
+TUVNT1JZX0gKPgo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgIMKgIMKgIMKgIMKgVUwoMHgw
+MDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IFVMKDB4MDAwMDAwMDApCj4KPiDCoCNlbmRpZgo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNo
+LW14My9tYWNoLWt6bV9hcm0xMV8wMS5jIGIvYXJjaC9hcm0vbWFjaC1teDMvbWFjaC1rem1fYXJt
+MTFfMDEuYwo+IGluZGV4IDA0MmNkNTYuLmQ4ZWJkZTggMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0v
+bWFjaC1teDMvbWFjaC1rem1fYXJtMTFfMDEuYwo+ICsrKyBiL2FyY2gvYXJtL21hY2gtbXgzL21h
+Y2gta3ptX2FybTExXzAxLmMKPiBAQCAtMjcsNiArMjcsNyBAQAo+Cj4gwqAjaW5jbHVkZSA8YXNt
+L2lycS5oPgo+IMKgI2luY2x1ZGUgPGFzbS9tYWNoLXR5cGVzLmg+Cj4gKyNpbmNsdWRlIDxhc20v
+bWVtb3J5Lmg+Cj4gwqAjaW5jbHVkZSA8YXNtL3NldHVwLmg+Cj4gwqAjaW5jbHVkZSA8YXNtL21h
+Y2gvYXJjaC5oPgo+IMKgI2luY2x1ZGUgPGFzbS9tYWNoL2lycS5oPgo+IEBAIC0zNiw3ICszNyw2
+IEBACj4gwqAjaW5jbHVkZSA8bWFjaC9jbG9jay5oPgo+IMKgI2luY2x1ZGUgPG1hY2gvY29tbW9u
+Lmg+Cj4gwqAjaW5jbHVkZSA8bWFjaC9pb211eC1teDMuaD4KPiAtI2luY2x1ZGUgPG1hY2gvbWVt
+b3J5Lmg+Cj4KPiDCoCNpbmNsdWRlICJkZXZpY2VzLWlteDMxLmgiCj4gwqAjaW5jbHVkZSAiZGV2
+aWNlcy5oIgo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW5ldHgvaW5jbHVkZS9tYWNoL21l
+bW9yeS5oIGIvYXJjaC9hcm0vbWFjaC1uZXR4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IGluZGV4
+IDlhMzYzZjIuLjU5NTYxNDkgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1uZXR4L2luY2x1
+ZGUvbWFjaC9tZW1vcnkuaAo+ICsrKyBiL2FyY2gvYXJtL21hY2gtbmV0eC9pbmNsdWRlL21hY2gv
+bWVtb3J5LmgKPiBAQCAtMjAsNyArMjAsNyBAQAo+IMKgI2lmbmRlZiBfX0FTTV9BUkNIX01FTU9S
+WV9ICj4gwqAjZGVmaW5lIF9fQVNNX0FSQ0hfTUVNT1JZX0gKPgo+IC0jZGVmaW5lIFBIWVNfT0ZG
+U0VUIFVMKDB4ODAwMDAwMDApCj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNFVCBVTCgweDgwMDAw
+MDAwKQo+Cj4gwqAjZW5kaWYKPgo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW5vbWFkaWsv
+aW5jbHVkZS9tYWNoL21lbW9yeS5oIGIvYXJjaC9hcm0vbWFjaC1ub21hZGlrL2luY2x1ZGUvbWFj
+aC9tZW1vcnkuaAo+IGluZGV4IDFlNTY4OWQuLmQzMzI1MjEgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9h
+cm0vbWFjaC1ub21hZGlrL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+ICsrKyBiL2FyY2gvYXJtL21h
+Y2gtbm9tYWRpay9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBAQCAtMjMsNiArMjMsNiBAQAo+IMKg
+LyoKPiDCoCogUGh5c2ljYWwgRFJBTSBvZmZzZXQuCj4gwqAqLwo+IC0jZGVmaW5lIFBIWVNfT0ZG
+U0VUIMKgIMKgVUwoMHgwMDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKg
+IMKgIFVMKDB4MDAwMDAwMDApCj4KPiDCoCNlbmRpZgo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9t
+YWNoLW5zOXh4eC9pbmNsdWRlL21hY2gvbWVtb3J5LmggYi9hcmNoL2FybS9tYWNoLW5zOXh4eC9p
+bmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCA2MTA3MTkzLi41YzY1YWVlIDEwMDY0NAo+IC0t
+LSBhL2FyY2gvYXJtL21hY2gtbnM5eHh4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+ICsrKyBiL2Fy
+Y2gvYXJtL21hY2gtbnM5eHh4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IEBAIC0xOSw2ICsxOSw2
+IEBACj4gwqAjZGVmaW5lIE5TOVhYWF9DUzJTVEFUX0xFTkdUSCDCoFVMKDB4MTAwMCkKPiDCoCNk
+ZWZpbmUgTlM5WFhYX0NTM1NUQVRfTEVOR1RIIMKgVUwoMHgxMDAwKQo+Cj4gLSNkZWZpbmUgUEhZ
+U19PRkZTRVQgwqAgwqBVTCgweDAwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQg
+wqAgwqAgwqAgVUwoMHgwMDAwMDAwMCkKPgo+IMKgI2VuZGlmCj4gZGlmZiAtLWdpdCBhL2FyY2gv
+YXJtL21hY2gtbnVjOTN4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtbnVj
+OTN4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IGluZGV4IDMyM2FiMGQuLmVmOTg2NGIgMTAwNjQ0
+Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1udWM5M3gvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gKysr
+IGIvYXJjaC9hcm0vbWFjaC1udWM5M3gvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTE2LDYg
+KzE2LDYgQEAKPiDCoCNpZm5kZWYgX19BU01fQVJDSF9NRU1PUllfSAo+IMKgI2RlZmluZSBfX0FT
+TV9BUkNIX01FTU9SWV9ICj4KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoFVMKDB4MDAwMDAw
+MDApCj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNFVCDCoCDCoCDCoCBVTCgweDAwMDAwMDAwKQo+
+Cj4gwqAjZW5kaWYKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vcmlvbjV4L2luY2x1ZGUv
+bWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtb3Jpb241eC9pbmNsdWRlL21hY2gvbWVtb3J5
+LmgKPiBpbmRleCA1MmEyOTU1Li42NzY5OTE3IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gt
+b3Jpb241eC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLW9yaW9u
+NXgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTcsNiArNyw2IEBACj4gwqAjaWZuZGVmIF9f
+QVNNX0FSQ0hfTUVNT1JZX0gKPiDCoCNkZWZpbmUgX19BU01fQVJDSF9NRU1PUllfSAo+Cj4gLSNk
+ZWZpbmUgUEhZU19PRkZTRVQgwqAgwqBVTCgweDAwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZ
+U19PRkZTRVQgwqAgwqAgwqAgVUwoMHgwMDAwMDAwMCkKPgo+IMKgI2VuZGlmCj4gZGlmZiAtLWdp
+dCBhL2FyY2gvYXJtL21hY2gtcG54NDAwOC9pbmNsdWRlL21hY2gvbWVtb3J5LmggYi9hcmNoL2Fy
+bS9tYWNoLXBueDQwMDgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gaW5kZXggMGU4NzcwMC4uMTI3
+NWRiNiAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLXBueDQwMDgvaW5jbHVkZS9tYWNoL21l
+bW9yeS5oCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1wbng0MDA4L2luY2x1ZGUvbWFjaC9tZW1vcnku
+aAo+IEBAIC0xNiw2ICsxNiw2IEBACj4gwqAvKgo+IMKgKiBQaHlzaWNhbCBEUkFNIG9mZnNldC4K
+PiDCoCovCj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqBVTCgweDgwMDAwMDAwKQo+ICsjZGVm
+aW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgVUwoMHg4MDAwMDAwMCkKPgo+IMKgI2VuZGlm
+Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtcHhhL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBi
+L2FyY2gvYXJtL21hY2gtcHhhL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IGluZGV4IDkyMzYxYTYu
+LjdmNjg3MjQgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1weGEvaW5jbHVkZS9tYWNoL21l
+bW9yeS5oCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1weGEvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4g
+QEAgLTE1LDcgKzE1LDcgQEAKPiDCoC8qCj4gwqAqIFBoeXNpY2FsIERSQU0gb2Zmc2V0Lgo+IMKg
+Ki8KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoFVMKDB4YTAwMDAwMDApCj4gKyNkZWZpbmUg
+UExBVF9QSFlTX09GRlNFVCDCoCDCoCDCoCBVTCgweGEwMDAwMDAwKQo+Cj4gwqAjaWYgIWRlZmlu
+ZWQoX19BU1NFTUJMWV9fKSAmJiBkZWZpbmVkKENPTkZJR19NQUNIX0FSTUNPUkUpICYmIGRlZmlu
+ZWQoQ09ORklHX1BDSSkKPiDCoHZvaWQgY214Mnh4X3BjaV9hZGp1c3Rfem9uZXModW5zaWduZWQg
+bG9uZyAqc2l6ZSwgdW5zaWduZWQgbG9uZyAqaG9sZXMpOwo+IGRpZmYgLS1naXQgYS9hcmNoL2Fy
+bS9tYWNoLXJlYWx2aWV3L2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtcmVh
+bHZpZXcvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gaW5kZXggNWRhZmMxNS4uZTA1ZmMyYyAxMDA2
+NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLXJlYWx2aWV3L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+
+ICsrKyBiL2FyY2gvYXJtL21hY2gtcmVhbHZpZXcvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAg
+LTI0LDkgKzI0LDkgQEAKPiDCoCogUGh5c2ljYWwgRFJBTSBvZmZzZXQuCj4gwqAqLwo+IMKgI2lm
+ZGVmIENPTkZJR19SRUFMVklFV19ISUdIX1BIWVNfT0ZGU0VUCj4gLSNkZWZpbmUgUEhZU19PRkZT
+RVQgwqAgwqAgwqAgwqAgwqAgwqBVTCgweDcwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19P
+RkZTRVQgwqAgwqAgwqAgwqAgwqAgwqAgwqAgVUwoMHg3MDAwMDAwMCkKPiDCoCNlbHNlCj4gLSNk
+ZWZpbmUgUEhZU19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqBVTCgweDAwMDAwMDAwKQo+ICsjZGVm
+aW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqAgwqAgVUwoMHgwMDAwMDAwMCkK
+PiDCoCNlbmRpZgo+Cj4gwqAjaWYgIWRlZmluZWQoX19BU1NFTUJMWV9fKSAmJiBkZWZpbmVkKENP
+TkZJR19aT05FX0RNQSkKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1ycGMvaW5jbHVkZS9t
+YWNoL21lbW9yeS5oIGIvYXJjaC9hcm0vbWFjaC1ycGMvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4g
+aW5kZXggNzgxOTFiZi4uMThhMjIxMCAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLXJwYy9p
+bmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLXJwYy9pbmNsdWRlL21h
+Y2gvbWVtb3J5LmgKPiBAQCAtMjEsNyArMjEsNyBAQAo+IMKgLyoKPiDCoCogUGh5c2ljYWwgRFJB
+TSBvZmZzZXQuCj4gwqAqLwo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgVUwoMHgxMDAwMDAw
+MCkKPiArI2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKgIMKgIFVMKDB4MTAwMDAwMDApCj4K
+PiDCoC8qCj4gwqAqIENhY2hlIGZsdXNoaW5nIGFyZWEgLSBST00KPiBkaWZmIC0tZ2l0IGEvYXJj
+aC9hcm0vbWFjaC1zM2MyNDAwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gt
+czNjMjQwMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCBjZjU5MDFmLi4zZjMzNjcwIDEw
+MDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtczNjMjQwMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgK
+PiArKysgYi9hcmNoL2FybS9tYWNoLXMzYzI0MDAvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAg
+LTE1LDYgKzE1LDYgQEAKPiDCoCNpZm5kZWYgX19BU01fQVJDSF9NRU1PUllfSAo+IMKgI2RlZmlu
+ZSBfX0FTTV9BUkNIX01FTU9SWV9ICj4KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoFVMKDB4
+MEMwMDAwMDApCj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNFVCDCoCDCoCDCoCBVTCgweDBDMDAw
+MDAwKQo+Cj4gwqAjZW5kaWYKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1zM2MyNDEwL2lu
+Y2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtczNjMjQxMC9pbmNsdWRlL21hY2gv
+bWVtb3J5LmgKPiBpbmRleCA2ZjFlNTg3Li5mOTJiOTdiIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJt
+L21hY2gtczNjMjQxMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNo
+LXMzYzI0MTAvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTExLDYgKzExLDYgQEAKPiDCoCNp
+Zm5kZWYgX19BU01fQVJDSF9NRU1PUllfSAo+IMKgI2RlZmluZSBfX0FTTV9BUkNIX01FTU9SWV9I
+Cj4KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoFVMKDB4MzAwMDAwMDApCj4gKyNkZWZpbmUg
+UExBVF9QSFlTX09GRlNFVCDCoCDCoCDCoCBVTCgweDMwMDAwMDAwKQo+Cj4gwqAjZW5kaWYKPiBk
+aWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1zM2MyNGEwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBi
+L2FyY2gvYXJtL21hY2gtczNjMjRhMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCA3ZDc0
+ZmQ1Li43ZDIwOGE3IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtczNjMjRhMC9pbmNsdWRl
+L21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLXMzYzI0YTAvaW5jbHVkZS9tYWNo
+L21lbW9yeS5oCj4gQEAgLTExLDcgKzExLDcgQEAKPiDCoCNpZm5kZWYgX19BU01fQVJDSF8yNEEw
+X01FTU9SWV9ICj4gwqAjZGVmaW5lIF9fQVNNX0FSQ0hfMjRBMF9NRU1PUllfSCBfX0ZJTEVfXwo+
+Cj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgVUwoMHgxMDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BI
+WVNfT0ZGU0VUIFVMKDB4MTAwMDAwMDApCj4KPiDCoCNkZWZpbmUgX192aXJ0X3RvX2J1cyh4KSBf
+X3ZpcnRfdG9fcGh5cyh4KQo+IMKgI2RlZmluZSBfX2J1c190b192aXJ0KHgpIF9fcGh5c190b192
+aXJ0KHgpCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtczNjNjR4eC9pbmNsdWRlL21hY2gv
+bWVtb3J5LmggYi9hcmNoL2FybS9tYWNoLXMzYzY0eHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4g
+aW5kZXggNDJjYzU0ZS4uNDc2MGNkYSAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLXMzYzY0
+eHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1zM2M2NHh4L2lu
+Y2x1ZGUvbWFjaC9tZW1vcnkuaAo+IEBAIC0xMyw3ICsxMyw3IEBACj4gwqAjaWZuZGVmIF9fQVNN
+X0FSQ0hfTUVNT1JZX0gKPiDCoCNkZWZpbmUgX19BU01fQVJDSF9NRU1PUllfSAo+Cj4gLSNkZWZp
+bmUgUEhZU19PRkZTRVQgwqAgwqAgVUwoMHg1MDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BIWVNf
+T0ZGU0VUIMKgIMKgIFVMKDB4NTAwMDAwMDApCj4KPiDCoCNkZWZpbmUgQ09OU0lTVEVOVF9ETUFf
+U0laRSDCoCDCoFNaXzhNCj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1zNXA2NDQyL2lu
+Y2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtczVwNjQ0Mi9pbmNsdWRlL21hY2gv
+bWVtb3J5LmgKPiBpbmRleCA5ZGRkODc3Li5jZmUyNTlkIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJt
+L21hY2gtczVwNjQ0Mi9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNo
+LXM1cDY0NDIvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTEzLDcgKzEzLDcgQEAKPiDCoCNp
+Zm5kZWYgX19BU01fQVJDSF9NRU1PUllfSAo+IMKgI2RlZmluZSBfX0FTTV9BUkNIX01FTU9SWV9I
+Cj4KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoCDCoCDCoCDCoCDCoFVMKDB4MjAwMDAwMDAp
+Cj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNFVCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBVTCgweDIw
+MDAwMDAwKQo+IMKgI2RlZmluZSBDT05TSVNURU5UX0RNQV9TSVpFIMKgIMKgU1pfOE0KPgo+IMKg
+I2VuZGlmIC8qIF9fQVNNX0FSQ0hfTUVNT1JZX0ggKi8KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0v
+bWFjaC1zNXA2NHgwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtczVwNjR4
+MC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCAxYjAzNmIwLi4zNjVhNmViIDEwMDY0NAo+
+IC0tLSBhL2FyY2gvYXJtL21hY2gtczVwNjR4MC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysg
+Yi9hcmNoL2FybS9tYWNoLXM1cDY0eDAvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTEzLDcg
+KzEzLDcgQEAKPiDCoCNpZm5kZWYgX19BU01fQVJDSF9NRU1PUllfSAo+IMKgI2RlZmluZSBfX0FT
+TV9BUkNIX01FTU9SWV9IIF9fRklMRV9fCj4KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoCDC
+oCDCoCDCoCDCoFVMKDB4MjAwMDAwMDApCj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNFVCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCBVTCgweDIwMDAwMDAwKQo+IMKgI2RlZmluZSBDT05TSVNURU5UX0RN
+QV9TSVpFIMKgIMKgU1pfOE0KPgo+IMKgI2VuZGlmIC8qIF9fQVNNX0FSQ0hfTUVNT1JZX0ggKi8K
+PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1zNXBjMTAwL2luY2x1ZGUvbWFjaC9tZW1vcnku
+aCBiL2FyY2gvYXJtL21hY2gtczVwYzEwMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCA0
+YjYwZDE4Li5iZGE0ZTc5IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtczVwYzEwMC9pbmNs
+dWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLXM1cGMxMDAvaW5jbHVkZS9t
+YWNoL21lbW9yeS5oCj4gQEAgLTEzLDYgKzEzLDYgQEAKPiDCoCNpZm5kZWYgX19BU01fQVJDSF9N
+RU1PUllfSAo+IMKgI2RlZmluZSBfX0FTTV9BUkNIX01FTU9SWV9ICj4KPiAtI2RlZmluZSBQSFlT
+X09GRlNFVCDCoCDCoCDCoCDCoCDCoCDCoFVMKDB4MjAwMDAwMDApCj4gKyNkZWZpbmUgUExBVF9Q
+SFlTX09GRlNFVCDCoCDCoCDCoCBVTCgweDIwMDAwMDAwKQo+Cj4gwqAjZW5kaWYKPiBkaWZmIC0t
+Z2l0IGEvYXJjaC9hcm0vbWFjaC1zNXB2MjEwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gv
+YXJtL21hY2gtczVwdjIxMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCBkNTAzZTBjLi43
+YjVmY2YwIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtczVwdjIxMC9pbmNsdWRlL21hY2gv
+bWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLXM1cHYyMTAvaW5jbHVkZS9tYWNoL21lbW9y
+eS5oCj4gQEAgLTEzLDcgKzEzLDcgQEAKPiDCoCNpZm5kZWYgX19BU01fQVJDSF9NRU1PUllfSAo+
+IMKgI2RlZmluZSBfX0FTTV9BUkNIX01FTU9SWV9ICj4KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDC
+oCDCoCDCoCDCoCDCoCDCoFVMKDB4MjAwMDAwMDApCj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNF
+VCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBVTCgweDIwMDAwMDAwKQo+IMKgI2RlZmluZSBDT05TSVNU
+RU5UX0RNQV9TSVpFIMKgIMKgKFNaXzhNICsgU1pfNE0gKyBTWl8yTSkKPgo+IMKgLyoKPiBkaWZm
+IC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1zNXB2MzEwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2Fy
+Y2gvYXJtL21hY2gtczVwdjMxMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCAxZGZmYjQ4
+Li40NzBiMDFiIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtczVwdjMxMC9pbmNsdWRlL21h
+Y2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLXM1cHYzMTAvaW5jbHVkZS9tYWNoL21l
+bW9yeS5oCj4gQEAgLTEzLDcgKzEzLDcgQEAKPiDCoCNpZm5kZWYgX19BU01fQVJDSF9NRU1PUllf
+SAo+IMKgI2RlZmluZSBfX0FTTV9BUkNIX01FTU9SWV9IIF9fRklMRV9fCj4KPiAtI2RlZmluZSBQ
+SFlTX09GRlNFVCDCoCDCoCDCoCDCoCDCoCDCoFVMKDB4NDAwMDAwMDApCj4gKyNkZWZpbmUgUExB
+VF9QSFlTX09GRlNFVCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBVTCgweDQwMDAwMDAwKQo+Cj4gwqAv
+KiBNYXhpbXVtIG9mIDI1Nk1pQiBpbiBvbmUgYmFuayAqLwo+IMKgI2RlZmluZSBNQVhfUEhZU01F
+TV9CSVRTIMKgIMKgIMKgIDMyCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtc2ExMTAwL2lu
+Y2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtc2ExMTAwL2luY2x1ZGUvbWFjaC9t
+ZW1vcnkuaAo+IGluZGV4IDEyOGExZGYuLmE0NGRhNmEgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0v
+bWFjaC1zYTExMDAvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1z
+YTExMDAvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTEyLDcgKzEyLDcgQEAKPiDCoC8qCj4g
+wqAqIFBoeXNpY2FsIERSQU0gb2Zmc2V0IGlzIDB4YzAwMDAwMDAgb24gdGhlIFNBMTEwMAo+IMKg
+Ki8KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoFVMKDB4YzAwMDAwMDApCj4gKyNkZWZpbmUg
+UExBVF9QSFlTX09GRlNFVCDCoCDCoCDCoCBVTCgweGMwMDAwMDAwKQo+Cj4gwqAjaWZuZGVmIF9f
+QVNTRU1CTFlfXwo+Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtc2hhcmsvaW5jbHVkZS9t
+YWNoL21lbW9yeS5oIGIvYXJjaC9hcm0vbWFjaC1zaGFyay9pbmNsdWRlL21hY2gvbWVtb3J5LmgK
+PiBpbmRleCBkOWM0ODEyLi45YWZiMTcwIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtc2hh
+cmsvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1zaGFyay9pbmNs
+dWRlL21hY2gvbWVtb3J5LmgKPiBAQCAtMTUsNyArMTUsNyBAQAo+IMKgLyoKPiDCoCogUGh5c2lj
+YWwgRFJBTSBvZmZzZXQuCj4gwqAqLwo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgIFVMKDB4
+MDgwMDAwMDApCj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNFVCDCoCDCoCBVTCgweDA4MDAwMDAw
+KQo+Cj4gwqAjaWZuZGVmIF9fQVNTRU1CTFlfXwo+Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21h
+Y2gtc2htb2JpbGUvaW5jbHVkZS9tYWNoL21lbW9yeS5oIGIvYXJjaC9hcm0vbWFjaC1zaG1vYmls
+ZS9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCAzNzc1ODRlLi5hZDAwYzNjIDEwMDY0NAo+
+IC0tLSBhL2FyY2gvYXJtL21hY2gtc2htb2JpbGUvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gKysr
+IGIvYXJjaC9hcm0vbWFjaC1zaG1vYmlsZS9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBAQCAtMSw3
+ICsxLDcgQEAKPiDCoCNpZm5kZWYgX19BU01fTUFDSF9NRU1PUllfSAo+IMKgI2RlZmluZSBfX0FT
+TV9NQUNIX01FTU9SWV9ICj4KPiAtI2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoFVMKENPTkZJR19N
+RU1PUllfU1RBUlQpCj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNFVCDCoCDCoCDCoCBVTChDT05G
+SUdfTUVNT1JZX1NUQVJUKQo+IMKgI2RlZmluZSBNRU1fU0laRSDCoCDCoCDCoCBVTChDT05GSUdf
+TUVNT1JZX1NJWkUpCj4KPiDCoC8qIERNQSBtZW1vcnkgYXQgMHhmNjAwMDAwMCAtIDB4ZmZkZmZm
+ZmYgKi8KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC10ZWdyYS9pbmNsdWRlL21hY2gvbWVt
+b3J5LmggYi9hcmNoL2FybS9tYWNoLXRlZ3JhL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IGluZGV4
+IDYxNTFiYWIuLjUzN2RiM2EgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC10ZWdyYS9pbmNs
+dWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLXRlZ3JhL2luY2x1ZGUvbWFj
+aC9tZW1vcnkuaAo+IEBAIC0yMiw3ICsyMiw3IEBACj4gwqAjZGVmaW5lIF9fTUFDSF9URUdSQV9N
+RU1PUllfSAo+Cj4gwqAvKiBwaHlzaWNhbCBvZmZzZXQgb2YgUkFNICovCj4gLSNkZWZpbmUgUEhZ
+U19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqBVTCgwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZT
+RVQgwqAgwqAgwqAgwqAgwqAgwqAgwqAgVUwoMCkKPgo+IMKgI2VuZGlmCj4KPiBkaWZmIC0tZ2l0
+IGEvYXJjaC9hcm0vbWFjaC11MzAwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21h
+Y2gtdTMwMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBpbmRleCBiZjEzNGJjLi44ODhlMmUzIDEw
+MDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtdTMwMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiAr
+KysgYi9hcmNoL2FybS9tYWNoLXUzMDAvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTE1LDE3
+ICsxNSwxNyBAQAo+Cj4gwqAjaWZkZWYgQ09ORklHX01BQ0hfVTMwMF9EVUFMX1JBTQo+Cj4gLSNk
+ZWZpbmUgUEhZU19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqBVTCgweDQ4MDAwMDAwKQo+ICsjZGVm
+aW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqAgwqAgVUwoMHg0ODAwMDAwMCkK
+PiDCoCNkZWZpbmUgQk9PVF9QQVJBTVNfT0ZGU0VUIMKgIMKgIChQSFlTX09GRlNFVCArIDB4MTAw
+KQo+Cj4gwqAjZWxzZQo+Cj4gwqAjaWZkZWYgQ09ORklHX01BQ0hfVTMwMF8yTUJfQUxJR05NRU5U
+X0ZJWAo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUICgweDI4MDAwMDAwICsgXAo+ICsjZGVmaW5lIFBM
+QVRfUEhZU19PRkZTRVQgKDB4MjgwMDAwMDAgKyBcCj4gwqAgwqAgwqAgwqAgwqAgwqAgKENPTkZJ
+R19NQUNIX1UzMDBfQUNDRVNTX01FTV9TSVpFIC0gXAo+IMKgIMKgIMKgIMKgIMKgIMKgIChDT05G
+SUdfTUFDSF9VMzAwX0FDQ0VTU19NRU1fU0laRSAmIDEpKSoxMDI0KjEwMjQpCj4gwqAjZWxzZQo+
+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUICgweDI4MDAwMDAwICsgXAo+ICsjZGVmaW5lIFBMQVRfUEhZ
+U19PRkZTRVQgKDB4MjgwMDAwMDAgKyBcCj4gwqAgwqAgwqAgwqAgwqAgwqAgKENPTkZJR19NQUNI
+X1UzMDBfQUNDRVNTX01FTV9TSVpFICsgwqAgwqAgwqAgwqBcCj4gwqAgwqAgwqAgwqAgwqAgwqAg
+KENPTkZJR19NQUNIX1UzMDBfQUNDRVNTX01FTV9TSVpFICYgMSkpKjEwMjQqMTAyNCkKPiDCoCNl
+bmRpZgo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLXUzMDAvdTMwMC5jIGIvYXJjaC9hcm0v
+bWFjaC11MzAwL3UzMDAuYwo+IGluZGV4IDA3YzM1YTguLjQ4YjNiN2YgMTAwNjQ0Cj4gLS0tIGEv
+YXJjaC9hcm0vbWFjaC11MzAwL3UzMDAuYwo+ICsrKyBiL2FyY2gvYXJtL21hY2gtdTMwMC91MzAw
+LmMKPiBAQCAtMTksOSArMTksOSBAQAo+IMKgI2luY2x1ZGUgPGxpbnV4L2lvLmg+Cj4gwqAjaW5j
+bHVkZSA8bWFjaC9oYXJkd2FyZS5oPgo+IMKgI2luY2x1ZGUgPG1hY2gvcGxhdGZvcm0uaD4KPiAt
+I2luY2x1ZGUgPG1hY2gvbWVtb3J5Lmg+Cj4gwqAjaW5jbHVkZSA8YXNtL21hY2gtdHlwZXMuaD4K
+PiDCoCNpbmNsdWRlIDxhc20vbWFjaC9hcmNoLmg+Cj4gKyNpbmNsdWRlIDxhc20vbWVtb3J5Lmg+
+Cj4KPiDCoHN0YXRpYyB2b2lkIF9faW5pdCB1MzAwX3Jlc2VydmUodm9pZCkKPiDCoHsKPiBkaWZm
+IC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC11eDUwMC9pbmNsdWRlL21hY2gvbWVtb3J5LmggYi9hcmNo
+L2FybS9tYWNoLXV4NTAwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+IGluZGV4IDUxMDU3MWEuLjJl
+ZjY5N2EgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vbWFjaC11eDUwMC9pbmNsdWRlL21hY2gvbWVt
+b3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLXV4NTAwL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+
+IEBAIC0xMiw3ICsxMiw3IEBACj4gwqAvKgo+IMKgKiBQaHlzaWNhbCBEUkFNIG9mZnNldC4KPiDC
+oCovCj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqBVTCgweDAwMDAwMDAwKQo+ICsjZGVmaW5l
+IFBMQVRfUEhZU19PRkZTRVQgwqAgwqAgwqAgVUwoMHgwMDAwMDAwMCkKPiDCoCNkZWZpbmUgQlVT
+X09GRlNFVCDCoCDCoCBVTCgweDAwMDAwMDAwKQo+Cj4gwqAjZW5kaWYKPiBkaWZmIC0tZ2l0IGEv
+YXJjaC9hcm0vbWFjaC12ZXJzYXRpbGUvaW5jbHVkZS9tYWNoL21lbW9yeS5oIGIvYXJjaC9hcm0v
+bWFjaC12ZXJzYXRpbGUvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gaW5kZXggNzlhZWFiOC4uZGFj
+YzlkOCAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLXZlcnNhdGlsZS9pbmNsdWRlL21hY2gv
+bWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLXZlcnNhdGlsZS9pbmNsdWRlL21hY2gvbWVt
+b3J5LmgKPiBAQCAtMjMsNiArMjMsNiBAQAo+IMKgLyoKPiDCoCogUGh5c2ljYWwgRFJBTSBvZmZz
+ZXQuCj4gwqAqLwo+IC0jZGVmaW5lIFBIWVNfT0ZGU0VUIMKgIMKgVUwoMHgwMDAwMDAwMCkKPiAr
+I2RlZmluZSBQTEFUX1BIWVNfT0ZGU0VUIMKgIMKgIMKgIFVMKDB4MDAwMDAwMDApCj4KPiDCoCNl
+bmRpZgo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLXZleHByZXNzL2luY2x1ZGUvbWFjaC9t
+ZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtdmV4cHJlc3MvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4g
+aW5kZXggYmUyODIzMi4uNWI3ZmNkNCAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLXZleHBy
+ZXNzL2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+ICsrKyBiL2FyY2gvYXJtL21hY2gtdmV4cHJlc3Mv
+aW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTIwLDYgKzIwLDYgQEAKPiDCoCNpZm5kZWYgX19B
+U01fQVJDSF9NRU1PUllfSAo+IMKgI2RlZmluZSBfX0FTTV9BUkNIX01FTU9SWV9ICj4KPiAtI2Rl
+ZmluZSBQSFlTX09GRlNFVCDCoCDCoCDCoCDCoCDCoCDCoFVMKDB4NjAwMDAwMDApCj4gKyNkZWZp
+bmUgUExBVF9QSFlTX09GRlNFVCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBVTCgweDYwMDAwMDAwKQo+
+Cj4gwqAjZW5kaWYKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC13OTB4OTAwL2luY2x1ZGUv
+bWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL21hY2gtdzkweDkwMC9pbmNsdWRlL21hY2gvbWVtb3J5
+LmgKPiBpbmRleCA5NzFiODA3Li5mMDI5MDViIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gt
+dzkweDkwMC9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2FybS9tYWNoLXc5MHg5
+MDAvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTE4LDYgKzE4LDYgQEAKPiDCoCNpZm5kZWYg
+X19BU01fQVJDSF9NRU1PUllfSAo+IMKgI2RlZmluZSBfX0FTTV9BUkNIX01FTU9SWV9ICj4KPiAt
+I2RlZmluZSBQSFlTX09GRlNFVCDCoCDCoFVMKDB4MDAwMDAwMDApCj4gKyNkZWZpbmUgUExBVF9Q
+SFlTX09GRlNFVCDCoCDCoCDCoCBVTCgweDAwMDAwMDAwKQo+Cj4gwqAjZW5kaWYKPiBkaWZmIC0t
+Z2l0IGEvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC9tZW1vcnkuaCBiL2FyY2gvYXJt
+L3BsYXQtb21hcC9pbmNsdWRlL3BsYXQvbWVtb3J5LmgKPiBpbmRleCBmOGQ5MjJmLi5lNjcyMGFh
+IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL3BsYXQvbWVtb3J5LmgK
+PiArKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L21lbW9yeS5oCj4gQEAgLTM3
+LDkgKzM3LDkgQEAKPiDCoCogUGh5c2ljYWwgRFJBTSBvZmZzZXQuCj4gwqAqLwo+IMKgI2lmIGRl
+ZmluZWQoQ09ORklHX0FSQ0hfT01BUDEpCj4gLSNkZWZpbmUgUEhZU19PRkZTRVQgwqAgwqAgwqAg
+wqAgwqAgwqBVTCgweDEwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19PRkZTRVQgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgVUwoMHgxMDAwMDAwMCkKPiDCoCNlbHNlCj4gLSNkZWZpbmUgUEhZU19P
+RkZTRVQgwqAgwqAgwqAgwqAgwqAgwqBVTCgweDgwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZ
+U19PRkZTRVQgwqAgwqAgwqAgwqAgwqAgwqAgwqAgVUwoMHg4MDAwMDAwMCkKPiDCoCNlbmRpZgo+
+Cj4gwqAvKgo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LXNwZWFyL2luY2x1ZGUvcGxhdC9t
+ZW1vcnkuaCBiL2FyY2gvYXJtL3BsYXQtc3BlYXIvaW5jbHVkZS9wbGF0L21lbW9yeS5oCj4gaW5k
+ZXggMjdhNGFiYS4uN2UzNTk5ZSAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9wbGF0LXNwZWFyL2lu
+Y2x1ZGUvcGxhdC9tZW1vcnkuaAo+ICsrKyBiL2FyY2gvYXJtL3BsYXQtc3BlYXIvaW5jbHVkZS9w
+bGF0L21lbW9yeS5oCj4gQEAgLTE1LDYgKzE1LDYgQEAKPiDCoCNkZWZpbmUgX19QTEFUX01FTU9S
+WV9ICj4KPiDCoC8qIFBoeXNpY2FsIERSQU0gb2Zmc2V0ICovCj4gLSNkZWZpbmUgUEhZU19PRkZT
+RVQgwqAgwqAgwqAgwqAgwqAgwqBVTCgweDAwMDAwMDAwKQo+ICsjZGVmaW5lIFBMQVRfUEhZU19P
+RkZTRVQgwqAgwqAgwqAgwqAgwqAgwqAgwqAgVUwoMHgwMDAwMDAwMCkKPgo+IMKgI2VuZGlmIC8q
+IF9fUExBVF9NRU1PUllfSCAqLwo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LXN0bXAzeHh4
+L2luY2x1ZGUvbWFjaC9tZW1vcnkuaCBiL2FyY2gvYXJtL3BsYXQtc3RtcDN4eHgvaW5jbHVkZS9t
+YWNoL21lbW9yeS5oCj4gaW5kZXggN2I4NzVhMC4uNjFmYTU0OCAxMDA2NDQKPiAtLS0gYS9hcmNo
+L2FybS9wbGF0LXN0bXAzeHh4L2luY2x1ZGUvbWFjaC9tZW1vcnkuaAo+ICsrKyBiL2FyY2gvYXJt
+L3BsYXQtc3RtcDN4eHgvaW5jbHVkZS9tYWNoL21lbW9yeS5oCj4gQEAgLTE3LDYgKzE3LDYgQEAK
+PiDCoC8qCj4gwqAqIFBoeXNpY2FsIERSQU0gb2Zmc2V0Lgo+IMKgKi8KPiAtI2RlZmluZSBQSFlT
+X09GRlNFVCDCoCDCoFVMKDB4NDAwMDAwMDApCj4gKyNkZWZpbmUgUExBVF9QSFlTX09GRlNFVCDC
+oCDCoCDCoCBVTCgweDQwMDAwMDAwKQo+Cj4gwqAjZW5kaWYKPiBkaWZmIC0tZ2l0IGEvYXJjaC9h
+cm0vcGxhdC10Y2MvaW5jbHVkZS9tYWNoL21lbW9yeS5oIGIvYXJjaC9hcm0vcGxhdC10Y2MvaW5j
+bHVkZS9tYWNoL21lbW9yeS5oCj4gaW5kZXggY2Q5MWJhOC4uMjhhNmUwYyAxMDA2NDQKPiAtLS0g
+YS9hcmNoL2FybS9wbGF0LXRjYy9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiArKysgYi9hcmNoL2Fy
+bS9wbGF0LXRjYy9pbmNsdWRlL21hY2gvbWVtb3J5LmgKPiBAQCAtMTMsNiArMTMsNiBAQAo+IMKg
+LyoKPiDCoCogUGh5c2ljYWwgRFJBTSBvZmZzZXQuCj4gwqAqLwo+IC0jZGVmaW5lIFBIWVNfT0ZG
+U0VUIMKgIMKgIMKgIMKgIMKgIMKgVUwoMHgyMDAwMDAwMCkKPiArI2RlZmluZSBQTEFUX1BIWVNf
+T0ZGU0VUIMKgIMKgIMKgIMKgIMKgIMKgIMKgIFVMKDB4MjAwMDAwMDApCj4KPiDCoCNlbmRpZgo+
+IC0tCj4gMS42LjIuNQo+Cj4KCkFja2VkLWJ5OiBXYW4gWm9uZ1NodW4gPG1jdW9zLmNvbUBnbWFp
+bC5jb20+CgpUaGFua3MhCi0tIAoqbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbWFpbCBh
+ZGRyOmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwp5b3UgY2FuIHN1YnNjcmli
+ZSBieToKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1h
+cm0ta2VybmVsCgoqIGxpbnV4LWFybS1OVUM5MDAgbWFpbGluZyBsaXN0Cm1haWwgYWRkcjpOVUM5
+MDBAZ29vZ2xlZ3JvdXBzLmNvbQptYWluIHdlYjogaHR0cHM6Ly9ncm91cHMuZ29vZ2xlLmNvbS9n
+cm91cC9OVUM5MDAKeW91IGNhbiBzdWJzY3JpYmUgaXQgYnkgc2VuZGluZyBtZSBtYWlsOgptY3Vv
+cy5jb21AZ21haWwuY29tCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxp
+c3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9saW51eC1hcm0ta2VybmVsCg==
