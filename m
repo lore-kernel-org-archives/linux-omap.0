@@ -1,105 +1,49 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [PATCH v2 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
-Date: Tue, 8 Feb 2011 17:40:40 +0000
-Message-ID: <AANLkTiknZ1VrA_OuqY=0AihNWiEdMkHA_zyVKQLg70+w@mail.gmail.com>
-References: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
-	<36192288611a2912eca9abc99a4353ff@mail.gmail.com>
-	<AANLkTi=sPeQPfcGzrLSB=9-V805y6pnU4gA5QgqMSwWe@mail.gmail.com>
-	<9ae36f6f04c9c1cf58fb4938dc78d6bf@mail.gmail.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] i2c: OMAP: fix static suspend vs. runtime suspend
+Date: Tue, 08 Feb 2011 10:31:41 -0800
+Message-ID: <87d3n2nzsi.fsf@ti.com>
+References: <1296173921-4832-1-git-send-email-khilman@ti.com>
+	<20110205160843.GD15795@trinity.fluff.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:46905 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755275Ab1BHRkm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 12:40:42 -0500
-Received: by eye27 with SMTP id 27so3128214eye.19
-        for <linux-omap@vger.kernel.org>; Tue, 08 Feb 2011 09:40:41 -0800 (PST)
-In-Reply-To: <9ae36f6f04c9c1cf58fb4938dc78d6bf@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110205160843.GD15795-SMNkleLxa3Z6Wcw2j4pizdi2O/JbrIOy@public.gmane.org> (Ben Dooks's message
+	of "Sat, 5 Feb 2011 16:08:43 +0000")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Jean Pihet-XID <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
 
-Hi Santosh,
+Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org> writes:
 
-[...]
-
->> Which tree did you use to test this? =A0It didn't seem to work for m=
-e
->> --
->> sometimes the system wouldn't suspend, complaining about USB suspend
->> errors; and other times I couldn't bring it out of suspend (by
->> poking
->> a USB input device).
->>
->> I might be doing something wrong...
->>
-> I should have mentioned this.
-> Used Kevins pm branch to test these features.
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.g=
-it
+> On Thu, Jan 27, 2011 at 04:18:41PM -0800, Kevin Hilman wrote:
+>> When runtime PM is enabled, each OMAP i2c device is suspended after
+>> each i2c xfer.  However, there are two cases when the static suspend
+>> methods must be used to ensure the devices are suspended:
+>> 
+>> 1) runtime PM is disabled, either at compile time or dynamically
+>>     via /sys/devices/.../power/control.
+>> 2) an i2c client driver uses i2c during it's suspend callback, thus
+>>    leaving the i2c driver active (NOTE: runtime suspend transitions are
+>>    disabled during system suspend, so i2c activity during system
+>>    suspend will runtime resume the device, but not runtime (re)suspend it.)
+>> 
+>> Since the actual work to suspend the device is handled by the
+>> subsytem, call the bus methods to take care of it.
+>> 
+>> NOTE: This takes care of a known suspend problem on OMAP3 where the
+>> TWL RTC driver does i2c xfers during its suspend path leaving the i2c
+>> driver in an active state (since runtime suspend transistions are
+>> disabled.)
+>> 
+>> Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+>> ---
+>> Ben, this is a regression in 2.6.38 so hopefully this can be queued
+>> in the 2.6.38-rc cycle.  Thanks.
 >
->> > I couldn't test the DVFS because it isn't in mainline yet
->> > but the changes doesn't looks to break anything.
->> >
->> > So if you like, you can add
->> > Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> > Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> >
->>
->> Thanks, that's great.
->>
->> If there some other tree with DVFS working which I could try? =A0Eve=
-n
->> if
->> these patches don't apply, I may be able to test whether the changes
->> should work.
->>
-> DVFS support is getting added and one series was posted by Vishwa.
-> The link for the same is :
-> http://www.spinics.net/lists/linux-omap/msg44393.html
+> Ok, after all the discussions should I keep it in my -rc queue?
+>  
 
-I'm still having problems testing basic power management...
+Yes, please.
 
-I'm using this config:
-http://people.linaro.org/~dmart/arm_omap-thumb2+v2_config
-
-=2E.. and Kevin's pm tree with my patches on top.
-
-
-However, even building without CONFIG_THUMB2_KERNEL, Beagle xM doesn't
-seem to suspend properly:
-
-Linux xm-1 2.6.38-rc2+ #19 SMP Tue Feb 8 14:02:24 GMT 2011 armv7l GNU/L=
-inux
-
-#
-# [  302.446228] SysRq : Changing Loglevel
-[  302.449951] Loglevel set to 9
-echo mem >/sys/power/state &
-[1] 545
-# [  306.525177] PM: Syncing filesystems ... done.
-[  308.989715] mmc0: card 1234 removed
-#
-#
-#
-#
-#
-# jobs
-[1]+  Running                 echo mem > /sys/power/state &
-#
-
-The SD card gets suspended, but nothing else seems to happen, and I
-can't resume the system.
-
-Am I doing something wrong?
-
-Cheers
----Dave
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
