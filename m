@@ -1,70 +1,38 @@
-From: Mohamed Thalib H <mohamed@e-consystems.com>
-Subject: Re: Does omap git have support for overo board.
-Date: Tue, 08 Feb 2011 18:08:33 +0530
-Message-ID: <4D513949.1010905@e-consystems.com>
-References: <4D512702.9040708@e-consystems.com> <DC9EC8FD-4BE1-48DB-B97F-7CAF1AEAA333@mac.com> <4D51366B.9040000@e-consystems.com>
-Reply-To: mohamed@e-consystems.com
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v2] ARM: Define wfi() macro for v6 processors
+Date: Tue, 8 Feb 2011 13:53:20 +0100
+Message-ID: <201102081353.20390.arnd@arndb.de>
+References: <1297162885-2975-1-git-send-email-dave.martin@linaro.org> <201102081311.52004.arnd@arndb.de> <20110208121334.GB22877@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp7.myhsphere.biz ([204.10.105.69]:45240 "EHLO
-	mail9.myhsphere.biz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751286Ab1BHMik (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 07:38:40 -0500
-In-Reply-To: <4D51366B.9040000@e-consystems.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:64056 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519Ab1BHMxe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 07:53:34 -0500
+In-Reply-To: <20110208121334.GB22877@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>, balbi@ti.com
-Cc: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-It works!
-Thanks.
+On Tuesday 08 February 2011, Russell King - ARM Linux wrote:
+> > I don't see any users of the sev/wfe/wfi macros in the current kernel,
+> > so removing them seems like a good strategy to avoid people from
+> > using them incorrectly.
+> 
+> That's because they've only just been added.  See the massive 63-patch set
+> from Viresh which has been posting to this mailing list.
 
+Ok, I see. At least that version seems ok because the code is cpu
+specific already.
 
-> Hi Elvis and balbi
->
->
-> On Tuesday 08 February 2011 05:34 PM, Elvis Dowson wrote:
->>
->>> Hi all,
->>>
->>> I have pull the latest git from 
->>> "http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary". 
->>> But couldn't find config file for overo . So I used 
->>> "omap2plus_defconfig" and made sure the overo board is selected.
->>>
->>> But the board didn't boot. It stopped after uncompressing kernel .
->>>
->>> Bytes transferred = 3011064 (2df1f8 hex)
->>> ## Booting kernel from Legacy Image at 82000000 ...
->>>    Image Name:   Linux-2.6.38-rc2-13606-g448e9a6-
->>>    Image Type:   ARM Linux Kernel Image (uncompressed)
->>>    Data Size:    3011000 Bytes =  2.9 MB
->>>    Load Address: 80008000
->>>    Entry Point:  80008000
->>>    Verifying Checksum ... OK
->>>    Loading Kernel Image ... OK
->>> OK
->>>
->>> Starting kernel ...
->>>
->>> Uncompressing Linux... done, booting the kernel.<---- Hangs after this.
->>>
->>> Does the mainline has the support for overo board. Or am I missing 
->>> something.
->> You'll have to change the bootargs to reflect the change in serial 
->> ports from ttyS to ttyO, that's why it appears to hang. This change 
->> was made to linux-2.6.37 onwards.
->>
->> Apart from that you will have to change the /etc/inittab file as 
->> follows:
->>
->> O:2345:respawn:/sbin/getty 115200 ttyO2
->>
->> Best regards,
->>
->> Elvis Dowson
->> -- 
-> Thanks for the help.. I will try that...
->
+The omap do_wfi macro is specifically meant to avoid the multi-cpu
+case by using the hexadecimal notation, so it can still be used while
+building a kernel for ARMv6 or lower. Dave's version seems to have
+the opposite intention here (choosing one version per arch level),
+so it wouldn't be a replacement.
+
+	Arnd
