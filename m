@@ -1,44 +1,114 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 2/7] omap3: dpll: Populate clkops for dpll1_ck
-Date: Tue,  8 Feb 2011 15:40:33 +0530
-Message-ID: <1297159838-30282-3-git-send-email-rnayak@ti.com>
+Subject: [PATCH 6/7] omap4: dpll: Add dpll api to control GATE_CTRL
+Date: Tue,  8 Feb 2011 15:40:37 +0530
+Message-ID: <1297159838-30282-7-git-send-email-rnayak@ti.com>
 References: <1297159838-30282-1-git-send-email-rnayak@ti.com>
  <1297159838-30282-2-git-send-email-rnayak@ti.com>
+ <1297159838-30282-3-git-send-email-rnayak@ti.com>
+ <1297159838-30282-4-git-send-email-rnayak@ti.com>
+ <1297159838-30282-5-git-send-email-rnayak@ti.com>
+ <1297159838-30282-6-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59042 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34562 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753051Ab1BHKKx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753045Ab1BHKKx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 8 Feb 2011 05:10:53 -0500
-In-Reply-To: <1297159838-30282-2-git-send-email-rnayak@ti.com>
+In-Reply-To: <1297159838-30282-6-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, b-cousson@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-DPLL1 on omap3 is very similar to the rest of
-the non-core dpll's.
-Hence populate clkops_omap3_noncore_dpll_ops
-as the clkops for it, instead of the
-currently populated clkops_null.
+On OMAP4, the dpll post divider outputs (MX outputs)
+provide a way to allow/deny hardware level autogating.
+Allowing autoidle would mean that the hw would autogate
+this clock when there is no dependency for it.
+Denying idle would mean that this clock output will be
+forced to stay enabled.
+
+Add dpll api's to read/allow/deny idle control
+for these dpll mx postdividers.
+
+NOTE: The gatectrl bit set to 0 allows gatectrl,
+and the bit set to 1 denies gatectrl.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clock3xxx_data.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/clock.h    |    3 ++
+ arch/arm/mach-omap2/dpll3xxx.c |   42 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 403a4a1..3e9d721 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -296,7 +296,7 @@ static struct dpll_data dpll1_dd = {
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 2a939e5..c450d69 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -65,6 +65,9 @@ u32 omap3_dpll_autoidle_read(struct clk *clk);
+ int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
+ int omap3_noncore_dpll_enable(struct clk *clk);
+ void omap3_noncore_dpll_disable(struct clk *clk);
++int omap4_dpllmx_gatectrl_read(struct clk *clk);
++void omap4_dpllmx_allow_gatectrl(struct clk *clk);
++void omap4_dpllmx_deny_gatectrl(struct clk *clk);
  
- static struct clk dpll1_ck = {
- 	.name		= "dpll1_ck",
--	.ops		= &clkops_null,
-+	.ops		= &clkops_omap3_noncore_dpll_ops,
- 	.parent		= &sys_ck,
- 	.dpll_data	= &dpll1_dd,
- 	.round_rate	= &omap2_dpll_round_rate,
+ #ifdef CONFIG_OMAP_RESET_CLOCKS
+ void omap2_clk_disable_unused(struct clk *clk);
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index f77022b..4571e94 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -34,6 +34,7 @@
+ #include "clock.h"
+ #include "cm2xxx_3xxx.h"
+ #include "cm-regbits-34xx.h"
++#include "cm-regbits-44xx.h"
+ 
+ /* CM_AUTOIDLE_PLL*.AUTO_* bit values */
+ #define DPLL_AUTOIDLE_DISABLE			0x0
+@@ -612,3 +613,44 @@ unsigned long omap3_clkoutx2_recalc(struct clk *clk)
+ 		rate = clk->parent->rate * 2;
+ 	return rate;
+ }
++
++/* Supported only on OMAP4 */
++int omap4_dpllmx_gatectrl_read(struct clk *clk)
++{
++	u32 v;
++
++	if (!clk || !clk->clksel_reg || !cpu_is_omap44xx())
++		return -EINVAL;
++
++	v = __raw_readl(clk->clksel_reg);
++	v &= OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
++	v >>= __ffs(OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK);
++
++	return v;
++}
++
++void omap4_dpllmx_allow_gatectrl(struct clk *clk)
++{
++	u32 v;
++
++	if (!clk || !clk->clksel_reg || !cpu_is_omap44xx())
++		return;
++
++	v = __raw_readl(clk->clksel_reg);
++	/* Clear the bit to allow gatectrl */
++	v &= ~OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
++	__raw_writel(v, clk->clksel_reg);
++}
++
++void omap4_dpllmx_deny_gatectrl(struct clk *clk)
++{
++	u32 v;
++
++	if (!clk || !clk->clksel_reg || !cpu_is_omap44xx())
++		return;
++
++	v = __raw_readl(clk->clksel_reg);
++	/* Set the bit to deny gatectrl */
++	v |= OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
++	__raw_writel(v, clk->clksel_reg);
++}
 -- 
 1.7.0.4
 
