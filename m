@@ -1,58 +1,51 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v2] ARM: Define wfi() macro for v6 processors
-Date: Wed, 9 Feb 2011 11:07:54 +0100
-Message-ID: <201102091107.54917.arnd@arndb.de>
-References: <1297162885-2975-1-git-send-email-dave.martin@linaro.org>
-	<201102081642.52774.arnd@arndb.de>
-	<AANLkTimDTVypBFCoO9G72TzKToAThdXm_aEi56O+w9nY@mail.gmail.com>
+From: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+Subject: Re: [PATCH v2 2/2] omap3: beaglexm: fix DVI initialization
+Date: Wed, 09 Feb 2011 09:47:09 -0200
+Message-ID: <1297252029.15396.4.camel@evatp>
+References: <1297194235-7376-1-git-send-email-ricardo.salveti@canonical.com>
+	 <1297194235-7376-3-git-send-email-ricardo.salveti@canonical.com>
+	 <AANLkTin9VRwgMyw9LUr691n++QByq14JGdARwN3ZVqW0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <AANLkTimDTVypBFCoO9G72TzKToAThdXm_aEi56O+w9nY@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from adelie.canonical.com ([91.189.90.139]:56816 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752952Ab1BILrQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Feb 2011 06:47:16 -0500
+In-Reply-To: <AANLkTin9VRwgMyw9LUr691n++QByq14JGdARwN3ZVqW0@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, charu@ti.com
 
-On Tuesday 08 February 2011, Dave Martin wrote:
-> I have a (possibly silly) question ... are the definitions in
-> arm/system.h intended to be fully generic, or not?  Some features
-> suggest an attempt at genericness, but not everything there is
-> generic.  Maybe I have misconstrued the purpose of this header.
+On Wed, 2011-02-09 at 12:23 +0530, G, Manjunath Kondaiah wrote:
+> On Wed, Feb 9, 2011 at 1:13 AM, Ricardo Salveti de Araujo
+> <ricardo.salveti@canonical.com> wrote:
+> > Function beagle_twl_gpio_setup is called after beagle_display_init, what
+> > lets reset_gpio with an invalid value at the time it request the gpio.
+> > As a side effect the DVI reset GPIO is not properly set.
+> >
+> > Also removing old code that powers down DVI in a hardcoded way, as it's
+> > not necessary anymore.
+> >
+> > Tested with Beagle-xM and C4.
+> 
+> Surprised to see if this code works on C4 since there is gpio_request
+> for gpio_170 in the beagle init code
+> (linux omap master branch) which is before beagle_display_init()
+> 
+>         omap_mux_init_gpio(170, OMAP_PIN_INPUT);
+>         gpio_request(170, "DVI_nPD");
+>         /* REVISIT leave DVI powered down until it's needed ... */
+>         gpio_direction_output(170, true);
+> 
+> The second gpio_request(for 170) should fail in beagle_display_init.
+> Pls check and confirm.
 
-asm/system.h contains an ill-defined set of random stuff derived
-from what used to be in there in the old days Linux-1.x and
-whatever the individual architectures added to it.
+That's why this part is also removed at my patch.
 
-There have been previous attempts to reduce the common stuff
-and leave only architecture-specific definitions in there, but
-it still contains for all architectures at least:
+Cheers,
+--
+Ricardo Salveti de Araujo
 
-* switch_to()
-* mb() and friends
-* cmpxchg() and friends
-
-These are hard to change, because each architecture has slightly
-different rules for recursive header file inclusion, so you end
-up breaking stuff when you touch them.
-
-The other declarations and macros are arch specific, so we could
-move them to a different place or change them if there is a good
-reason to do that.
-
-I personally think it would be good to have at least cmpxchg and
-everything related to it in a separate header, like a few
-architectures do (x86, sh, alpha, mips), but I don't see too
-much value in doing that just on ARM while leaving the other
-architectures alone.
-
-	Arnd
