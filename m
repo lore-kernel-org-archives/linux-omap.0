@@ -1,80 +1,63 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
-Date: Wed, 9 Feb 2011 15:30:36 +0530
-Message-ID: <80a27c86473cf29a9fa5e68aa29eef46@mail.gmail.com>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk><0557426516de482c1769a50fa0b5f17a@mail.gmail.com><20110208164747.GD6188@n2100.arm.linux.org.uk><78d0134576ace6be5874871076cf0c10@mail.gmail.com><alpine.LFD.2.00.1102081537010.14920@xanadu.home><20110209003537.GQ20795@atomide.com><54f225541194205f01fe9f03b5110d16@mail.gmail.com>
- <AANLkTin2zB32YVPZkr48gSOjm0N-WDnZFScysKC8ZTiv@mail.gmail.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
+Date: Wed, 9 Feb 2011 10:01:33 +0000
+Message-ID: <AANLkTimGa-Y6ddHknGe9Gar7+mWPuA_T2+6VL6ecfgxD@mail.gmail.com>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+	<0557426516de482c1769a50fa0b5f17a@mail.gmail.com>
+	<20110208164747.GD6188@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:54559 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753463Ab1BIKA5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Feb 2011 05:00:57 -0500
-Received: by wwj40 with SMTP id 40so7226445wwj.15
-        for <linux-omap@vger.kernel.org>; Wed, 09 Feb 2011 02:00:55 -0800 (PST)
-In-Reply-To: <AANLkTin2zB32YVPZkr48gSOjm0N-WDnZFScysKC8ZTiv@mail.gmail.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:46063 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753814Ab1BIKBe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Feb 2011 05:01:34 -0500
+Received: by iwn9 with SMTP id 9so6626029iwn.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 Feb 2011 02:01:33 -0800 (PST)
+In-Reply-To: <20110208164747.GD6188@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Nicolas Pitre <nico@fluxnic.net>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: Dave Martin [mailto:dave.martin@linaro.org]
-> Sent: Wednesday, February 09, 2011 3:18 PM
-> To: Santosh Shilimkar
-> Cc: Tony Lindgren; Nicolas Pitre; linux-omap@vger.kernel.org;
-> Russell King - ARM Linux; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
+On 8 February 2011 16:47, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Tue, Feb 08, 2011 at 10:06:20PM +0530, Santosh Shilimkar wrote:
+>> Have tested this series on OMAP4430 and OMAP3430.
+>> Don't know if it helps to push some of these patches to be part
+>> of rc cycles. At least the SMP specific fixes should get merged
+>> otherwise, builds like omap2plus_defconfig won't be running
+>> right configuration on SMP machine.
 >
-> On Wed, Feb 9, 2011 at 6:04 AM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com> wrote:
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> >> Sent: Wednesday, February 09, 2011 6:06 AM
-> >> To: Nicolas Pitre
-> >> Cc: Santosh Shilimkar; Russell King - ARM Linux; linux-
-> >> omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> >> Subject: Re: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
-> >>
-> >> * Nicolas Pitre <nico@fluxnic.net> [110208 12:41]:
-> >> > On Tue, 8 Feb 2011, Santosh Shilimkar wrote:
-> >> >
-> >> > > > I think it's probably going to be better to _purposely_
-> break
-> >> the
-> >> > > > OMAP build when it covers v6 and v7 CPUs in these kernels
-> as I
-> >> don't
-> >> > > > think it's sanely fixable given where we are.
-> >> >
-> >> > Agreed. =A0At least making SMP unavailable when both v6 and v7
-> are
-> >> > configured should be small and good enough for 2.6.38-rc5.
-> >>
-> >> That's probably the best solution as then we can still do boot
-> >> testing on all omap2plus_defconfig boards.
-> >>
-> > Just to be clear, are we saying disable SMP from omap2plus build.
-> > If the v6, v7 is not fixable then, we also need a SMP
-> > config for OMAP. Just boot test with SMP disable config for
-> > OMAP4 is not enough.
+> It's _too_ _late_ in the rc cycle for a fix of this size. =C2=A0As I'=
+ve said
+> (several times) it was only possible for rc1. =C2=A0That boat has bee=
+n missed
+> as we're now on rc4. =C2=A0We could see 2.6.38 in as little as two we=
+eks time.
 >
-> You could also have a "v7+" unified kernel -- i.e., supporting
-> OMAP3+4+SMP.
-> This is what we currently do in Linaro, since we're focusing on v7
-> and above.
+> =C2=A027 files changed, 183 insertions(+), 197 deletions(-)
 >
-This sounds good way forward considering future OMAP architectures
-as well.
+> is too big.
+>
+> There's still the outstanding question over:
+>
+> =C2=A0ARM: v6k: use CPU domain feature if we include support for arch=
+ < ARMv6K
 
-But I let Tony comment on this idea.
+Could we make the domains usage a run-time feature based on the
+architecture version? For ARMv7, we need to have the vectors page
+read-only anyway if the SWP emulation is enabled (and I posted a
+simple patch in a reply to your email).
 
-Regards,
-Santosh
+The issue I see is that ARM11MPCore is reported as v7 though we still
+use domains on this processor (we could always remove the domains if
+TLS register is available or use some more precise architecture
+version identification).
+
+--=20
+Catalin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
