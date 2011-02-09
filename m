@@ -1,47 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
-Date: Wed, 9 Feb 2011 08:24:21 -0800
-Message-ID: <20110209162421.GU20795@atomide.com>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
- <0557426516de482c1769a50fa0b5f17a@mail.gmail.com>
- <20110208164747.GD6188@n2100.arm.linux.org.uk>
- <78d0134576ace6be5874871076cf0c10@mail.gmail.com>
- <alpine.LFD.2.00.1102081537010.14920@xanadu.home>
- <20110209003537.GQ20795@atomide.com>
- <54f225541194205f01fe9f03b5110d16@mail.gmail.com>
- <AANLkTin2zB32YVPZkr48gSOjm0N-WDnZFScysKC8ZTiv@mail.gmail.com>
- <80a27c86473cf29a9fa5e68aa29eef46@mail.gmail.com>
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [PATCH 03/13] OMAP: Implement Basic DVFS
+Date: Wed, 9 Feb 2011 21:54:47 +0530
+Message-ID: <0b1874d1e5cbf4292aaccccd14231fd1@mail.gmail.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com><1295618465-15234-4-git-send-email-vishwanath.bs@ti.com><87mxmcy51u.fsf@ti.com><da15cb476bc1779775448cc5dcd372f3@mail.gmail.com>
+ <87sjvxdwrf.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65016 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753442Ab1BIQY4 (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:33987 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752586Ab1BIQY4 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Feb 2011 11:24:56 -0500
-Content-Disposition: inline
-In-Reply-To: <80a27c86473cf29a9fa5e68aa29eef46@mail.gmail.com>
+Received: by mail-fx0-f53.google.com with SMTP id 11so389067fxm.26
+        for <linux-omap@vger.kernel.org>; Wed, 09 Feb 2011 08:24:54 -0800 (PST)
+In-Reply-To: <87sjvxdwrf.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Dave Martin <dave.martin@linaro.org>, Nicolas Pitre <nico@fluxnic.net>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [110209 01:59]:
-> > From: Dave Martin [mailto:dave.martin@linaro.org]
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Wednesday, February 09, 2011 9:30 PM
+> To: Vishwanath Sripathy
+> Cc: linux-omap@vger.kernel.org; patches@linaro.org; Thara Gopinath
+> Subject: Re: [PATCH 03/13] OMAP: Implement Basic DVFS
+>
+> Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
+>
+> >> This needs a comment to, but I'm not sure I understand what's going
+> on
+> >> here.  What it seems like:
+> >>
+> >> if this device has no OPP for this voltage, just silently move on to
+the
+> >> next device?   doesn't seem quite right, but not sure I fully grok
+the
+> >> failure modes of omap_dvfs_find_voltage()
 > >
-> > You could also have a "v7+" unified kernel -- i.e., supporting
-> > OMAP3+4+SMP.
-> > This is what we currently do in Linaro, since we're focusing on v7
-> > and above.
-> >
-> This sounds good way forward considering future OMAP architectures
-> as well.
-> 
-> But I let Tony comment on this idea.
+> > Yes, your understanding is right. omap_dvfs_find_voltage will return
+> error
+> > if the device does not have an OPP table.
+> > Typically devices should not register with a vdd (using
+> > omap_dvfs_register_device) if it has no OPP table associated with it.
+> So
+> > ideally we should not hit this error case. But only exception so far
+is SR
+> > driver. SR hwmod has vdd_name field set so as to get voltagedomain
+> > pointers. But SR does not have any opp table. So there is no harm in
+> > ignoring the error and moving to next device.
+>
+> And what happens when other devices add voltage domains but don't
+> have
+> OPP tables?
+If someone does not have a OPP table, that means it's not a scalable
+device, so there is no need to scale that device.
 
-AFAIK these issues will be hopefully sorted out by the time the
-next merge window opens. For the -rc cycle, disabling SMP in
-config if ARMv6 is selected should do the trick.
-
-Regards,
-
-Tony
+Vishwa
+>
+> The point is that this error handling is 1) difficult to understand upon
+> first (or fifth) read and 2) very fragile with other changes.
+>
+> Kevin
