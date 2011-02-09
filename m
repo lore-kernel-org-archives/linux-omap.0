@@ -1,85 +1,28 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: [PATCH v4 2/5] ARM: omap4: Convert END() to ENDPROC() for correct linkage with CONFIG_THUMB2_KERNEL
-Date: Wed,  9 Feb 2011 15:01:20 +0000
-Message-ID: <1297263683-10621-3-git-send-email-dave.martin@linaro.org>
-References: <1297263683-10621-1-git-send-email-dave.martin@linaro.org>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH 0/2] OMAP4: enable clk32kg in TWL6030
+Date: Wed,  9 Feb 2011 21:06:51 +0530
+Message-ID: <1297265811-21901-1-git-send-email-balajitk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:56209 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755235Ab1BIPDZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Feb 2011 10:03:25 -0500
-Received: by wyb28 with SMTP id 28so266976wyb.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 Feb 2011 07:03:24 -0800 (PST)
-In-Reply-To: <1297263683-10621-1-git-send-email-dave.martin@linaro.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60439 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751138Ab1BIPet (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Feb 2011 10:34:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Dave Martin <dave.martin@linaro.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, sameo@linux.intel.com, Balaji T K <balajitk@ti.com>
 
-Code marked with ENTRY() also needs a matching ENDPROC() directive,
-in order to ensure that the type and instruction set of the
-symbol are correctly annotated.
+add clk32kg to twl-regulator
+add clk32kg board data to Blaze and Panda
 
-ENDPROC() tags the affected symbol as a function symbol, which will
-ensure that link-time fixups don't accidentally switch to the
-wrong instruction set.
+Balaji T K (2):
+  regulator: twl: add clk32kg to twl-regulator
+  OMAP4: add clk32kg data to omap4panda and blaze board file
 
-Signed-off-by: Dave Martin <dave.martin@linaro.org>
-Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/omap-headsmp.S |    2 +-
- arch/arm/mach-omap2/omap44xx-smc.S |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-index 6ae937a..4ee6aec 100644
---- a/arch/arm/mach-omap2/omap-headsmp.S
-+++ b/arch/arm/mach-omap2/omap-headsmp.S
-@@ -45,5 +45,5 @@ hold:	ldr	r12,=0x103
- 	 * should now contain the SVC stack for this core
- 	 */
- 	b	secondary_startup
--END(omap_secondary_startup)
-+ENDPROC(omap_secondary_startup)
- 
-diff --git a/arch/arm/mach-omap2/omap44xx-smc.S b/arch/arm/mach-omap2/omap44xx-smc.S
-index 1980dc3..e69d37d 100644
---- a/arch/arm/mach-omap2/omap44xx-smc.S
-+++ b/arch/arm/mach-omap2/omap44xx-smc.S
-@@ -29,7 +29,7 @@ ENTRY(omap_smc1)
- 	dsb
- 	smc	#0
- 	ldmfd   sp!, {r2-r12, pc}
--END(omap_smc1)
-+ENDPROC(omap_smc1)
- 
- ENTRY(omap_modify_auxcoreboot0)
- 	stmfd   sp!, {r1-r12, lr}
-@@ -37,7 +37,7 @@ ENTRY(omap_modify_auxcoreboot0)
- 	dsb
- 	smc	#0
- 	ldmfd   sp!, {r1-r12, pc}
--END(omap_modify_auxcoreboot0)
-+ENDPROC(omap_modify_auxcoreboot0)
- 
- ENTRY(omap_auxcoreboot_addr)
- 	stmfd   sp!, {r2-r12, lr}
-@@ -45,7 +45,7 @@ ENTRY(omap_auxcoreboot_addr)
- 	dsb
- 	smc	#0
- 	ldmfd   sp!, {r2-r12, pc}
--END(omap_auxcoreboot_addr)
-+ENDPROC(omap_auxcoreboot_addr)
- 
- ENTRY(omap_read_auxcoreboot0)
- 	stmfd   sp!, {r2-r12, lr}
-@@ -54,4 +54,4 @@ ENTRY(omap_read_auxcoreboot0)
- 	smc	#0
- 	mov	r0, r0, lsr #9
- 	ldmfd   sp!, {r2-r12, pc}
--END(omap_read_auxcoreboot0)
-+ENDPROC(omap_read_auxcoreboot0)
--- 
-1.7.1
+ arch/arm/mach-omap2/board-4430sdp.c    |   10 ++++++++++
+ arch/arm/mach-omap2/board-omap4panda.c |   10 ++++++++++
+ drivers/mfd/twl-core.c                 |    4 ++++
+ drivers/regulator/twl-regulator.c      |    3 ++-
+ include/linux/i2c/twl.h                |    2 ++
+ 5 files changed, 28 insertions(+), 1 deletions(-)
 
