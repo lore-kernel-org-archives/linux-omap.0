@@ -1,66 +1,297 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv5] omap3: Add basic support for 720MHz part
-Date: Tue, 08 Feb 2011 17:02:43 -0800
-Message-ID: <1297213363.10580.84.camel@vence>
-References: <1296126687-1846-1-git-send-email-premi@ti.com>
+From: Hema Kalliguddi <hemahk@ti.com>
+Subject: RE: [PATCH 5/5 v5] usb: musb: Using runtime pm APIs for musb.
+Date: Wed, 9 Feb 2011 09:53:03 +0530
+Message-ID: <5df55397e83dda813c8ca6cc514273c6@mail.gmail.com>
+References: <1291991739-21705-1-git-send-email-hemahk@ti.com>
+ <1291991739-21705-6-git-send-email-hemahk@ti.com> <1297210098.10580.32.camel@vence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:42654 "EHLO
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:47398 "EHLO
 	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755036Ab1BIBCr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 20:02:47 -0500
-Received: by mail-pz0-f41.google.com with SMTP id 27so1489858pzk.14
-        for <linux-omap@vger.kernel.org>; Tue, 08 Feb 2011 17:02:46 -0800 (PST)
-In-Reply-To: <1296126687-1846-1-git-send-email-premi@ti.com>
+	by vger.kernel.org with ESMTP id S1756306Ab1BIEXF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Feb 2011 23:23:05 -0500
+In-Reply-To: <1297210098.10580.32.camel@vence>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Thu, 2011-01-27 at 16:41 +0530, Sanjeev Premi wrote:
-> This patch adds support for speed enhanced variant of OMAP35x
-> processors. These parts allow ARM and IVA running at 720MHz
-> and 520MHz respectively.
-> 
-> These parts can be detected at runtime by reading contents of
-> PRODID.SKUID[3:0] at 0x4830A20C [1].
-> 
-> This patch specifically does following:
->  * Add new OPP to omap34xx_opp_def_list[] - disabled by default.
->  * Detect devices capable of running at new OPP.
->  * Enable new OPP only if device supports it.
->  * Check for presence of IVA before attempting to enable the
->    corresponding OPP.
-> 
->   [1] http://focus.ti.com/lit/ug/spruff1d/spruff1d.pdf
-> 
-> It appears from discussions (on this patch) that a variant of
-> OMAP3430 supports this OPP but lacks runtime detection. This
-> OPP can be enabled for these device by either:
->  1) Setting the bit corresponding to OMAP3_HAS_720MHZ
->     in 'omap3_features'. (Refer changes to id.c)
->  2) Removing check for omap3_has_720mhz() before enabling
->     the OPP. (Refer changes to opp3xxx_data.c)
->  3) Calling opp_enable() for 720MHz/VDD1 and 520MHz/VDD2 in
->     the board file. (Refer changes to opp3xxx_data.c).
->     This should, ideally, be done before omap3_opp_init() is
->     called during device_initcall().
-> 
-> CAUTION: This should be done for identified parts only.
->          Else, the device could be damaged permanently.
-> 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> Reviewed-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Kevin,
 
-Looks good.
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman@ti.com]
+>Sent: Wednesday, February 09, 2011 5:38 AM
+>To: Hema HK
+>Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org;
+>Felipe Balbi; Tony Lindgren; Cousson, Benoit; Paul Walmsley
+>Subject: Re: [PATCH 5/5 v5] usb: musb: Using runtime pm APIs for musb.
+>
+>On Fri, 2010-12-10 at 20:05 +0530, Hema HK wrote:
+>> Calling runtime pm APIs pm_runtime_put_sync() and
+>pm_runtime_get_sync()
+>> for enabling/disabling the clocks, sysconfig settings.
+>>
+>> enable clock, configure no-idle/standby when active and
+>configure force idle/standby
+>> and disable clock when idled. This is taken care by the
+>runtime framework when
+>> driver calls the pm_runtime_get_sync and pm_runtime_put_sync APIs.
+>> Need to configure MUSB into force standby and force idle
+>mode when usb not used
+>>
+>> Signed-off-by: Hema HK <hemahk@ti.com>
+>> Cc: Felipe Balbi <balbi@ti.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>> Cc: Cousson, Benoit <b-cousson@ti.com>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>> ---
+>>
+>>  drivers/usb/musb/musb_core.h |    2 -
+>>  drivers/usb/musb/omap2430.c  |   80
+>+++++++++++--------------------------------
+>>  2 files changed, 23 insertions(+), 59 deletions(-)
+>>
+>> Index: usb/drivers/usb/musb/omap2430.c
+>> ===================================================================
+>> --- usb.orig/drivers/usb/musb/omap2430.c
+>> +++ usb/drivers/usb/musb/omap2430.c
+>> @@ -33,6 +33,8 @@
+>>  #include <linux/io.h>
+>>  #include <linux/platform_device.h>
+>>  #include <linux/dma-mapping.h>
+>> +#include <linux/pm_runtime.h>
+>> +#include <linux/err.h>
+>>
+>>  #include "musb_core.h"
+>>  #include "omap2430.h"
+>> @@ -40,7 +42,6 @@
+>>  struct omap2430_glue {
+>>  	struct device		*dev;
+>>  	struct platform_device	*musb;
+>> -	struct clk		*clk;
+>>  };
+>>  #define glue_to_musb(g)		platform_get_drvdata(g->musb)
+>>
+>> @@ -216,20 +217,12 @@ static inline void omap2430_low_level_ex
+>>  	l = musb_readl(musb->mregs, OTG_FORCESTDBY);
+>>  	l |= ENABLEFORCE;	/* enable MSTANDBY */
+>>  	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
+>> -
+>> -	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
+>> -	l |= ENABLEWAKEUP;	/* enable wakeup */
+>> -	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
+>>  }
+>>
+>>  static inline void omap2430_low_level_init(struct musb *musb)
+>>  {
+>>  	u32 l;
+>>
+>> -	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
+>> -	l &= ~ENABLEWAKEUP;	/* disable wakeup */
+>> -	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
+>> -
+>>  	l = musb_readl(musb->mregs, OTG_FORCESTDBY);
+>>  	l &= ~ENABLEFORCE;	/* disable MSTANDBY */
+>>  	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
+>> @@ -307,21 +300,6 @@ static int omap2430_musb_init(struct mus
+>>
+>>  	omap2430_low_level_init(musb);
+>>
+>> -	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
+>> -	l &= ~ENABLEWAKEUP;	/* disable wakeup */
+>> -	l &= ~NOSTDBY;		/* remove possible nostdby */
+>> -	l |= SMARTSTDBY;	/* enable smart standby */
+>> -	l &= ~AUTOIDLE;		/* disable auto idle */
+>> -	l &= ~NOIDLE;		/* remove possible noidle */
+>> -	l |= SMARTIDLE;		/* enable smart idle */
+>> -	/*
+>> -	 * MUSB AUTOIDLE don't work in 3430.
+>> -	 * Workaround by Richard Woodruff/TI
+>> -	 */
+>> -	if (!cpu_is_omap3430())
+>> -		l |= AUTOIDLE;		/* enable auto idle */
+>> -	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
+>> -
+>>  	l = musb_readl(musb->mregs, OTG_INTERFSEL);
+>>
+>>  	if (data->interface_type == MUSB_INTERFACE_UTMI) {
+>> @@ -384,7 +362,7 @@ static int __init omap2430_probe(struct
+>>  	struct musb_hdrc_platform_data	*pdata =
+>pdev->dev.platform_data;
+>>  	struct platform_device		*musb;
+>>  	struct omap2430_glue		*glue;
+>> -	struct clk			*clk;
+>> +	int				status = 0;
+>>
+>>  	int				ret = -ENOMEM;
+>>
+>> @@ -400,26 +378,12 @@ static int __init omap2430_probe(struct
+>>  		goto err1;
+>>  	}
+>>
+>> -	clk = clk_get(&pdev->dev, "ick");
+>> -	if (IS_ERR(clk)) {
+>> -		dev_err(&pdev->dev, "failed to get clock\n");
+>> -		ret = PTR_ERR(clk);
+>> -		goto err2;
+>> -	}
+>> -
+>> -	ret = clk_enable(clk);
+>> -	if (ret) {
+>> -		dev_err(&pdev->dev, "failed to enable clock\n");
+>> -		goto err3;
+>> -	}
+>> -
+>>  	musb->dev.parent		= &pdev->dev;
+>>  	musb->dev.dma_mask		= &omap2430_dmamask;
+>>  	musb->dev.coherent_dma_mask	= omap2430_dmamask;
+>>
+>>  	glue->dev			= &pdev->dev;
+>>  	glue->musb			= musb;
+>> -	glue->clk			= clk;
+>>
+>>  	pdata->platform_ops		= &omap2430_ops;
+>>
+>> @@ -429,28 +393,30 @@ static int __init omap2430_probe(struct
+>>  			pdev->num_resources);
+>>  	if (ret) {
+>>  		dev_err(&pdev->dev, "failed to add resources\n");
+>> -		goto err4;
+>> +		goto err2;
+>>  	}
+>>
+>>  	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+>>  	if (ret) {
+>>  		dev_err(&pdev->dev, "failed to add platform_data\n");
+>> -		goto err4;
+>> +		goto err2;
+>>  	}
+>>
+>>  	ret = platform_device_add(musb);
+>>  	if (ret) {
+>>  		dev_err(&pdev->dev, "failed to register musb device\n");
+>> -		goto err4;
+>> +		goto err2;
+>>  	}
+>>
+>> -	return 0;
+>> +	pm_runtime_enable(&pdev->dev);
+>> +	if (pm_runtime_get_sync(&pdev->dev)) {
+>> +		dev_err(&pdev->dev, "pm_runtime_get_sync FAILED");
+>> +		pm_runtime_disable(&pdev->dev);
+>> +		goto err2;
+>> +	}
+>>
+>> -err4:
+>> -	clk_disable(clk);
+>> +	return 0;
+>>
+>> -err3:
+>> -	clk_put(clk);
+>>
+>>  err2:
+>>  	platform_device_put(musb);
+>> @@ -468,8 +434,8 @@ static int __exit omap2430_remove(struct
+>>
+>>  	platform_device_del(glue->musb);
+>>  	platform_device_put(glue->musb);
+>> -	clk_disable(glue->clk);
+>> -	clk_put(glue->clk);
+>> +	pm_runtime_put_sync(&pdev->dev);
+>> +	pm_runtime_disable(&pdev->dev);
+>>  	kfree(glue);
+>>
+>>  	return 0;
+>> @@ -478,13 +444,11 @@ static int __exit omap2430_remove(struct
+>>  #ifdef CONFIG_PM
+>>  static void omap2430_save_context(struct musb *musb)
+>>  {
+>> -	musb->context.otg_sysconfig = musb_readl(musb->mregs,
+>OTG_SYSCONFIG);
+>>  	musb->context.otg_forcestandby =
+>musb_readl(musb->mregs, OTG_FORCESTDBY);
+>>  }
+>>
+>>  static void omap2430_restore_context(struct musb *musb)
+>>  {
+>> -	musb_writel(musb->mregs, OTG_SYSCONFIG,
+>musb->context.otg_sysconfig);
+>>  	musb_writel(musb->mregs, OTG_FORCESTDBY,
+>musb->context.otg_forcestandby);
+>>  }
+>>
+>> @@ -496,8 +460,11 @@ static int omap2430_suspend(struct devic
+>>  	omap2430_low_level_exit(musb);
+>>  	otg_set_suspend(musb->xceiv, 1);
+>>  	omap2430_save_context(musb);
+>> -	clk_disable(glue->clk);
+>>
+>> +	if (pm_runtime_put_sync(dev)) {
+>> +		dev_err(dev, "pm_runtime_put_sync FAILED");
+>> +		return -EINVAL;
+>> +	}
+>
+>runtime suspend transitions are disabled when system suspend/resume is
+>happening, so if the device is not already runtime suspended, this call
+>will have no effect, and the OTG block will be active during suspend
+>(preventing it's powerdomain from hitting retention/off.)
+>
+>What is needed here is a direct call into the bus runtime methods.  See
+>the similar patch I did for i2c:
+>
 
-Sanjeev, please post one more time Cc'ing the linux-arm-kernel ML:
-linux-arm-kernel@lists.infradead.org
+Thanks for the info. Yesterday while testing the power management I
+realized this.
+And I changed it as per your I2C patch. I will send the new version
+of patch soon on this.
 
-Thanks,
+Regards,
+Hema
+>	http://marc.info/?l=linux-omap&m=129617401612954&w=2
+>
+>Kevin
+>
+>
+>
+>>  	return 0;
+>>  }
+>>
+>> @@ -505,14 +472,11 @@ static int omap2430_resume(struct device
+>>  {
+>>  	struct omap2430_glue		*glue = dev_get_drvdata(dev);
+>>  	struct musb			*musb = glue_to_musb(glue);
+>> -	int				ret;
+>>
+>> -	ret = clk_enable(glue->clk);
+>> -	if (ret) {
+>> -		dev_err(dev, "faled to enable clock\n");
+>> -		return ret;
+>> +	if (pm_runtime_get_sync(dev)) {
+>> +		dev_err(dev, "pm_runtime_get_sync FAILED");
+>> +		return -EINVAL;
+>>  	}
+>> -
+>>  	omap2430_low_level_init(musb);
+>>  	omap2430_restore_context(musb);
+>>  	otg_set_suspend(musb->xceiv, 0);
+>> Index: usb/drivers/usb/musb/musb_core.h
+>> ===================================================================
+>> --- usb.orig/drivers/usb/musb/musb_core.h
+>> +++ usb/drivers/usb/musb/musb_core.h
+>> @@ -360,7 +360,7 @@ struct musb_context_registers {
+>>
+>>  #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
+>>      defined(CONFIG_ARCH_OMAP4)
+>> -	u32 otg_sysconfig, otg_forcestandby;
+>> +	u32 otg_forcestandby;
+>>  #endif
+>>  	u8 power;
+>>  	u16 intrtxe, intrrxe;
+>
+>
 
-Kevin
-
-
+Regards,
+Hema
+>
