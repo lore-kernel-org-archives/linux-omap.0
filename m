@@ -1,41 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/13] OMAP: McBSP: hwmod adaptation and
- runtime conversion
-Date: Wed, 9 Feb 2011 10:22:37 -0800
-Message-ID: <20110209182237.GY20795@atomide.com>
-References: <1296485437-12806-1-git-send-email-kishon@ti.com>
-	<20110201195326.b3c9f5f5.jhnikula@gmail.com>
-	<20110201212717.GA12101@opensource.wolfsonmicro.com>
+Subject: Re: ARM Architecture and GENERIC_CMOS_UPDATE
+Date: Wed, 9 Feb 2011 10:27:36 -0800
+Message-ID: <20110209182736.GZ20795@atomide.com>
+References: <20110201223252.GG3358@atomide.com>
+ <C96ECD0A.239F7%marathon96@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13483 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755650Ab1BIS2B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Feb 2011 13:28:01 -0500
 Content-Disposition: inline
-In-Reply-To: <20110201212717.GA12101@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, b-cousson@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, Kishon Vijay Abraham I <kishon@ti.com>, p-basak2@ti.com, charu@ti.com, linux-omap@vger.kernel.org, shubhrajyoti@ti.com, lrg@slimlogic.co.uk
+In-Reply-To: <C96ECD0A.239F7%marathon96@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Erickson <marathon96@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [110201 13:25]:
-> On Tue, Feb 01, 2011 at 07:53:26PM +0200, Jarkko Nikula wrote:
+* Grant Erickson <marathon96@gmail.com> [110202 08:56]:
+> On 2/1/11 2:32 PM, Tony Lindgren wrote:
+> > * Grant Erickson <marathon96@gmail.com> [110128 16:34]:
+>  
+> The long-term solution probably involves adding a function pointer member
+> field for each machine description with a generic, default function that
+> does something akin to the above board-specific approach.
 > 
-> > Mark, Liam: is it ok if the 12/13 goes together with rest of the set
-> > via linux-omap when ready?
-> 
-> I already acked it.
+> Comments welcomed.
 
-OK assuming the next series is OK I'll queue it. Still need Paul's
-ack on the hwmod name addition.
-
-Regards,
+Maybe ask about that on LKML and LAKML? There may be some rtc related
+changes queued up too..
 
 Tony
