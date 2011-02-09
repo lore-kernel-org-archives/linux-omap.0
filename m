@@ -1,49 +1,58 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 03/13] OMAP: Implement Basic DVFS
-Date: Wed, 09 Feb 2011 07:59:32 -0800
-Message-ID: <87sjvxdwrf.fsf@ti.com>
-References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
-	<1295618465-15234-4-git-send-email-vishwanath.bs@ti.com>
-	<87mxmcy51u.fsf@ti.com>
-	<da15cb476bc1779775448cc5dcd372f3@mail.gmail.com>
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: Re: [PATCH v4 1/5] ARM: omap4: Provide do_wfi() for Thumb-2
+Date: Wed, 9 Feb 2011 11:19:40 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1102091118390.14920@xanadu.home>
+References: <1297263683-10621-1-git-send-email-dave.martin@linaro.org> <1297263683-10621-2-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:44562 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751419Ab1BIP7k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Feb 2011 10:59:40 -0500
-Received: by mail-iy0-f176.google.com with SMTP id 26so310157iyb.35
-        for <linux-omap@vger.kernel.org>; Wed, 09 Feb 2011 07:59:36 -0800 (PST)
-In-Reply-To: <da15cb476bc1779775448cc5dcd372f3@mail.gmail.com> (Vishwanath
-	Sripathy's message of "Mon, 7 Feb 2011 19:48:13 +0530")
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:54873 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752544Ab1BIQTp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Feb 2011 11:19:45 -0500
+Received: by vws16 with SMTP id 16so198536vws.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 Feb 2011 08:19:44 -0800 (PST)
+In-Reply-To: <1297263683-10621-2-git-send-email-dave.martin@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
+To: Dave Martin <dave.martin@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org
 
-Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
+On Wed, 9 Feb 2011, Dave Martin wrote:
 
->> This needs a comment to, but I'm not sure I understand what's going on
->> here.  What it seems like:
->>
->> if this device has no OPP for this voltage, just silently move on to the
->> next device?   doesn't seem quite right, but not sure I fully grok the
->> failure modes of omap_dvfs_find_voltage()
->
-> Yes, your understanding is right. omap_dvfs_find_voltage will return error
-> if the device does not have an OPP table.
-> Typically devices should not register with a vdd (using
-> omap_dvfs_register_device) if it has no OPP table associated with it. So
-> ideally we should not hit this error case. But only exception so far is SR
-> driver. SR hwmod has vdd_name field set so as to get voltagedomain
-> pointers. But SR does not have any opp table. So there is no harm in
-> ignoring the error and moving to next device.
+> For CONFIG_THUMB2_KERNEL, the existing definition of do_wfi() will
+> insert invalid code into the instruction stream.
+> 
+> Any assembler which can assemble Thumb-2 is guaranteed to accept
+> the "wfi" mnemonic, so for the Thumb-2 case, just use the mnemonic.
+> 
+> The ARM case is left as-is.
+> 
+> Signed-off-by: Dave Martin <dave.martin@linaro.org>
+> ---
+>  arch/arm/mach-omap2/include/mach/omap4-common.h |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
+> index 5b0270b..de441c0 100644
+> --- a/arch/arm/mach-omap2/include/mach/omap4-common.h
+> +++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+> @@ -17,8 +17,12 @@
+>   * wfi used in low power code. Directly opcode is used instead
+>   * of instruction to avoid mulit-omap build break
 
-And what happens when other devices add voltage domains but don't have
-OPP tables?
+Might be a good idea to fix the typo above while at it.
 
-The point is that this error handling is 1) difficult to understand upon
-first (or fifth) read and 2) very fragile with other changes.
 
-Kevin
+> +#ifdef CONFIG_THUMB2_KERNEL
+> +#define do_wfi() __asm__ __volatile__ ("wfi" : : : "memory")
+> +#else
+>  #define do_wfi()			\
+>  		__asm__ __volatile__ (".word	0xe320f003" : : : "memory")
+> +#endif
+>  
+>  #ifdef CONFIG_CACHE_L2X0
+>  extern void __iomem *l2cache_base;
+> -- 
+> 1.7.1
+> 
