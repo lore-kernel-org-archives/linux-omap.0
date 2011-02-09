@@ -1,108 +1,75 @@
-From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH v5 4/4] TI816X: Add low level debug support
-Date: Wed,  9 Feb 2011 22:26:47 +0530
-Message-ID: <1297270607-32641-1-git-send-email-hemantp@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
+Date: Wed, 9 Feb 2011 09:48:53 -0800
+Message-ID: <20110209174853.GV20795@atomide.com>
+References: <20110208164747.GD6188@n2100.arm.linux.org.uk>
+ <78d0134576ace6be5874871076cf0c10@mail.gmail.com>
+ <alpine.LFD.2.00.1102081537010.14920@xanadu.home>
+ <20110209003537.GQ20795@atomide.com>
+ <54f225541194205f01fe9f03b5110d16@mail.gmail.com>
+ <AANLkTin2zB32YVPZkr48gSOjm0N-WDnZFScysKC8ZTiv@mail.gmail.com>
+ <80a27c86473cf29a9fa5e68aa29eef46@mail.gmail.com>
+ <20110209162421.GU20795@atomide.com>
+ <20110209163204.GB11460@n2100.arm.linux.org.uk>
+ <alpine.LFD.2.00.1102091143020.14920@xanadu.home>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51891 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754148Ab1BIQ45 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Feb 2011 11:56:57 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61447 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754686Ab1BIRt2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Feb 2011 12:49:28 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1102091143020.14920@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, Hemant Pedanekar <hemantp@ti.com>
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This patch adds support for low level debugging on TI816X boards. Currently the
-support for UART3 console on TI816X EVM is added.
+* Nicolas Pitre <nicolas.pitre@linaro.org> [110209 08:44]:
+> On Wed, 9 Feb 2011, Russell King - ARM Linux wrote:
+> 
+> > On Wed, Feb 09, 2011 at 08:24:21AM -0800, Tony Lindgren wrote:
+> > > * Santosh Shilimkar <santosh.shilimkar@ti.com> [110209 01:59]:
+> > > > > From: Dave Martin [mailto:dave.martin@linaro.org]
+> > > > >
+> > > > > You could also have a "v7+" unified kernel -- i.e., supporting
+> > > > > OMAP3+4+SMP.
+> > > > > This is what we currently do in Linaro, since we're focusing on v7
+> > > > > and above.
+> > > > >
+> > > > This sounds good way forward considering future OMAP architectures
+> > > > as well.
+> > > > 
+> > > > But I let Tony comment on this idea.
+> > > 
+> > > AFAIK these issues will be hopefully sorted out by the time the
+> > > next merge window opens. For the -rc cycle, disabling SMP in
+> > > config if ARMv6 is selected should do the trick.
+> > 
+> > That's not soo easy - as we don't know in the Kconfig whether we include
+> > ARMv6 rather than ARMv6K.  It's exactly the same problem I ran into which
+> > inflated the v6v7 patchset.
+> > 
+> > Maybe the best thing to do is:
+> > 
+> > config CPU_32v6K
+> >         bool "Support ARM V6K processor extensions" if !SMP
+> >         depends on CPU_V6 || CPU_V7
+> >         default y if SMP && !(ARCH_MX3 || ARCH_OMAP2)
+> > 
+> > drop the ' && !(ARCH_MX3 || ARCH_OMAP2)' and just let people run into the
+> > resulting undefined instruction traps if they try to run the kernel on
+> > V6 non-K hardware.  Not ideal, but I don't see any other 'simple' solution
+> > to this.
+> 
+> This should be good enough.  We're looking for a temporary stopgate 
+> solution to prevent people from corrupting their data, and the real fix 
+> will be available in the next kernel.
 
-Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
----
- arch/arm/mach-omap2/include/mach/debug-macro.S |   12 ++++++++++++
- arch/arm/plat-omap/include/plat/serial.h       |    8 ++++++++
- arch/arm/plat-omap/include/plat/uncompress.h   |    7 +++++++
- 3 files changed, 27 insertions(+), 0 deletions(-)
+OK. This patch will be needed anyways for the real fixes. And no temporary
+apply-undo type patching needed. The only drawback is that omap2420 and
+2430 won't boot with omap2plus_defconfig, but that will be only for a
+few weeks.
 
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index 6a4d413..e1b0f17 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -69,6 +69,12 @@ omap_uart_lsr:	.word	0
- 		beq	34f			@ configure OMAP3UART4
- 		cmp	\rp, #OMAP4UART4	@ only on 44xx
- 		beq	44f			@ configure OMAP4UART4
-+		cmp	\rp, #TI816XUART1	@ ti816x UART offsets different
-+		beq	81f			@ configure UART1
-+		cmp	\rp, #TI816XUART2	@ ti816x UART offsets different
-+		beq	82f			@ configure UART2
-+		cmp	\rp, #TI816XUART3	@ ti816x UART offsets different
-+		beq	83f			@ configure UART3
- 		cmp	\rp, #ZOOM_UART		@ only on zoom2/3
- 		beq	95f			@ configure ZOOM_UART
- 
-@@ -91,6 +97,12 @@ omap_uart_lsr:	.word	0
- 		b	98f
- 44:		mov	\rp, #UART_OFFSET(OMAP4_UART4_BASE)
- 		b	98f
-+81:		mov	\rp, #UART_OFFSET(TI816X_UART1_BASE)
-+		b	98f
-+82:		mov	\rp, #UART_OFFSET(TI816X_UART2_BASE)
-+		b	98f
-+83:		mov	\rp, #UART_OFFSET(TI816X_UART3_BASE)
-+		b	98f
- 95:		ldr	\rp, =ZOOM_UART_BASE
- 		mrc	p15, 0, \rv, c1, c0
- 		tst	\rv, #1			@ MMU enabled?
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index cec5d56..4102bf4 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -51,6 +51,11 @@
- #define OMAP4_UART3_BASE	0x48020000
- #define OMAP4_UART4_BASE	0x4806e000
- 
-+/* TI816X serial ports */
-+#define TI816X_UART1_BASE	0x48020000
-+#define TI816X_UART2_BASE	0x48022000
-+#define TI816X_UART3_BASE	0x48024000
-+
- /* External port on Zoom2/3 */
- #define ZOOM_UART_BASE		0x10000000
- #define ZOOM_UART_VIRT		0xfa400000
-@@ -81,6 +86,9 @@
- #define OMAP4UART2		OMAP2UART2
- #define OMAP4UART3		43
- #define OMAP4UART4		44
-+#define TI816XUART1		81
-+#define TI816XUART2		82
-+#define TI816XUART3		83
- #define ZOOM_UART		95		/* Only on zoom2/3 */
- 
- /* This is only used by 8250.c for omap1510 */
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index ad98b85..30b891c 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -93,6 +93,10 @@ static inline void flush(void)
- #define DEBUG_LL_ZOOM(mach)						\
- 	_DEBUG_LL_ENTRY(mach, ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
- 
-+#define DEBUG_LL_TI816X(p, mach)					\
-+	_DEBUG_LL_ENTRY(mach, TI816X_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		TI816XUART##p)
-+
- static inline void __arch_decomp_setup(unsigned long arch_id)
- {
- 	int port = 0;
-@@ -166,6 +170,9 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		DEBUG_LL_ZOOM(omap_zoom2);
- 		DEBUG_LL_ZOOM(omap_zoom3);
- 
-+		/* TI8168 base boards using UART3 */
-+		DEBUG_LL_TI816X(3, ti8168evm);
-+
- 	} while (0);
- }
- 
--- 
-1.7.3.5
-
+Acked-by: Tony Lindgren <tony@atomide.com>
