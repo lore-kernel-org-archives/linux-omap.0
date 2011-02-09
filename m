@@ -1,48 +1,73 @@
-From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Subject: Re: [PATCH 2/2] OMAP4: add clk32kg data to omap4panda and blaze board file
-Date: Wed, 9 Feb 2011 22:15:56 +0530
-Message-ID: <AANLkTikj6kipoipkvLxLg31w6LSGcKUWadvV3F=gqvUn@mail.gmail.com>
-References: <1297265851-21999-1-git-send-email-balajitk@ti.com>
-	<20110209154509.GH24042@opensource.wolfsonmicro.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Hemant Pedanekar <hemantp@ti.com>
+Subject: [PATCH v5 0/4] Introduce support for TI816X processor series
+Date: Wed,  9 Feb 2011 22:25:06 +0530
+Message-ID: <1297270506-32385-1-git-send-email-hemantp@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:49382 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752105Ab1BIQp6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Feb 2011 11:45:58 -0500
-Received: by mail-qy0-f182.google.com with SMTP id 36so280482qyk.20
-        for <linux-omap@vger.kernel.org>; Wed, 09 Feb 2011 08:45:57 -0800 (PST)
-In-Reply-To: <20110209154509.GH24042@opensource.wolfsonmicro.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47382 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752586Ab1BIQzm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Feb 2011 11:55:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk, sameo@linux.intel.com
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, Hemant Pedanekar <hemantp@ti.com>
 
-On Wed, Feb 9, 2011 at 9:15 PM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Wed, Feb 09, 2011 at 09:07:31PM +0530, Balaji T K wrote:
->
->> + =A0 =A0 .constraints =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 .valid_modes_mask =A0 =A0 =A0 =3D REGULATO=
-R_MODE_NORMAL
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | REGULATOR_MODE_STANDBY,
->> + =A0 =A0 =A0 =A0 =A0 =A0 .valid_ops_mask =A0 =A0 =A0 =A0 =3D REGULA=
-TOR_CHANGE_MODE
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 | REGULATOR_CHANGE_STATUS,
->
-> Does this really support mode setting?
->
+This patch set adds support for TI816X processor series. This series includes
+DM8168, C6A816x and AM389x devices.
 
-No, It didn't support mode setting.
-will update valid_ops_mask for REGULATOR_CHANGE_STATUS only
-and remove valid_modes_mask
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The details can be found at following links:
+
+http://focus.ti.com/general/docs/gencontent.tsp?contentId=77960
+http://www.ti.com/ww/en/dsp/davinci-netra/index.shtml
+
+This series is architecturally closer to the OMAP devices. Hence, these patches
+are being submitted on linux-omap.
+
+These patches are tested on OMAP3 EVM with multi-omap build.
+
+Note that, additional patches consisting of TI816X specific hwmods, clock data
+and DMTIMER changes, are required to enable successful booting on TI816X EVM.
+These patches will follow shortly.
+
+The TI816X support is added as part of OMAP3 variant. The approach taken is in
+accordance to the discussions in thread related to following post:
+http://www.spinics.net/lists/linux-omap/msg41505.html
+
+In addition, TI816X specific customizations/optimizations are handled as a part
+of build configuration CONFIG_SOC_OMAPTI816X. Discussed here:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41927.html
+
+Hemant Pedanekar (4):
+  TI816X: Update common omap platform files
+  TI816X: Update common OMAP machine specific sources
+  TI816X: Create board support and enable build for TI816X EVM
+  TI816X: Add low level debug support
+
+ arch/arm/mach-omap2/Kconfig                    |   16 +++++++
+ arch/arm/mach-omap2/Makefile                   |    1 +
+ arch/arm/mach-omap2/board-ti8168evm.c          |   57 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock3xxx_data.c           |    5 ++-
+ arch/arm/mach-omap2/common.c                   |   21 +++++++++
+ arch/arm/mach-omap2/control.h                  |    6 +++
+ arch/arm/mach-omap2/id.c                       |   33 +++++++++++++-
+ arch/arm/mach-omap2/include/mach/debug-macro.S |   12 +++++
+ arch/arm/mach-omap2/include/mach/entry-macro.S |   13 +++++
+ arch/arm/mach-omap2/io.c                       |   13 +++++-
+ arch/arm/mach-omap2/irq.c                      |    5 ++-
+ arch/arm/mach-omap2/serial.c                   |    8 ++--
+ arch/arm/plat-omap/include/plat/clkdev_omap.h  |    1 +
+ arch/arm/plat-omap/include/plat/clock.h        |    1 +
+ arch/arm/plat-omap/include/plat/common.h       |    1 +
+ arch/arm/plat-omap/include/plat/cpu.h          |   22 +++++++++
+ arch/arm/plat-omap/include/plat/hardware.h     |    1 +
+ arch/arm/plat-omap/include/plat/serial.h       |    8 +++
+ arch/arm/plat-omap/include/plat/ti816x.h       |   27 +++++++++++
+ arch/arm/plat-omap/include/plat/uncompress.h   |    7 +++
+ arch/arm/plat-omap/io.c                        |    5 ++-
+ 21 files changed, 253 insertions(+), 10 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-ti8168evm.c
+ create mode 100644 arch/arm/plat-omap/include/plat/ti816x.h
+
+-- 
+1.7.3.5
+
