@@ -1,209 +1,180 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH 03/13] OMAP: Implement Basic DVFS
-Date: Mon, 7 Feb 2011 19:48:13 +0530
-Message-ID: <da15cb476bc1779775448cc5dcd372f3@mail.gmail.com>
-References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com><1295618465-15234-4-git-send-email-vishwanath.bs@ti.com>
- <87mxmcy51u.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 4/5 v5] OMAP2+: musb: HWMOD adaptation for musb.
+Date: Thu, 10 Feb 2011 08:42:29 -0800
+Message-ID: <87hbcbx2mi.fsf@ti.com>
+References: <1291991739-21705-1-git-send-email-hemahk@ti.com>
+	<1291991739-21705-5-git-send-email-hemahk@ti.com>
+	<1297209792.10580.28.camel@vence>
+	<ccae5231e5a765988953567b6911e48f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:58349 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752693Ab1BGOSO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Feb 2011 09:18:14 -0500
-Received: by mail-fx0-f46.google.com with SMTP id 20so5859632fxm.5
-        for <linux-omap@vger.kernel.org>; Mon, 07 Feb 2011 06:18:13 -0800 (PST)
-In-Reply-To: <87mxmcy51u.fsf@ti.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:39414 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750820Ab1BJQmd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Feb 2011 11:42:33 -0500
+In-Reply-To: <ccae5231e5a765988953567b6911e48f@mail.gmail.com> (Hema
+	Kalliguddi's message of "Thu, 10 Feb 2011 19:04:16 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
+To: Hema Kalliguddi <hemahk@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@ti.com]
-> Sent: Friday, February 04, 2011 6:44 AM
-> To: Vishwanath BS
-> Cc: linux-omap@vger.kernel.org; patches@linaro.org; Thara Gopinath
-> Subject: Re: [PATCH 03/13] OMAP: Implement Basic DVFS
->
-> Vishwanath BS <vishwanath.bs@ti.com> writes:
->
-> > This patch introduces an API to perform DVFS for a given voltage
-> domain.
-> > It takes omap_vdd_dvfs_info pointer as input parameter, computes
-> the highest
-> > requested voltage for that vdd and scales all the devices in that vdd
-to
-> the
-> > requested frequency along with voltage scaling.
-> >
-> > Based on original patch from Thara.
-> >
-> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> > Cc: Thara Gopinath <thara@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/dvfs.c |   87
-> +++++++++++++++++++++++++++++++++++++++++++-
-> >  1 files changed, 86 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-
-> omap2/dvfs.c
-> > index 8832e4a..cefc2be 100755
-> > --- a/arch/arm/mach-omap2/dvfs.c
-> > +++ b/arch/arm/mach-omap2/dvfs.c
-> > @@ -21,7 +21,7 @@
-> >  #include <plat/omap_device.h>
-> >
-> >  /**
-> > - * struct omap_dev_user_list - Structure maitain userlist per devide
-> > + * struct omap_dev_user_list - Structure maitain userlist per device
->
-> this typo should be done in the original patch, not here.
-OK
->
-> >   *
-> >   * @dev:       The device requesting for a particular frequency
-> >   * @node:      The list head entry
-> > @@ -413,6 +413,91 @@ static int
-> omap_dvfs_remove_freq_request(struct omap_vdd_dvfs_info *dvfs_info,
-> >  }
-> >
-> >  /**
-> > + * omap_dvfs_voltage_scale() : API to scale the devices associated
-> with a
-> > + *						voltage domain vdd
-voltage.
->
-> This function scales both voltage and frequency, so the name
-> voltage_scale() is a bit misleading.
-Does omap_dvfs_do_dvfs look good?
->
-> > + * @dvfs_info: omap_vdd_dvfs_info pointer for the required vdd
-> > + *
-> > + * This API runs through the list of devices associated with the
-> > + * voltage domain and scales the device rates to the one requested
-> > + * by the user or those corresponding to the new voltage of the
-> > + * voltage domain. Target voltage is the highest voltage in the
-> vdd_user_list.
-> > + *
-> > + * Returns 0 on success
-> > + * else the error value.
-> > + */
-> > +static int omap_dvfs_voltage_scale(struct omap_vdd_dvfs_info
-> *dvfs_info)
-> > +{
-> > +	unsigned long curr_volt;
-> > +	int is_volt_scaled = 0;
->
-> should be a bool
-ok
->
-> > +	struct omap_vdd_dev_list *temp_dev;
-> > +	struct plist_node *node;
-> > +	int ret = 0;
-> > +	struct voltagedomain *voltdm;
-> > +	unsigned long volt;
-> > +
-> > +	if (!dvfs_info || IS_ERR(dvfs_info)) {
-> > +		pr_warning("%s: VDD specified does not exist!\n",
-> __func__);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	voltdm = dvfs_info->voltdm;
-> > +
-> > +	mutex_lock(&dvfs_info->scaling_mutex);
-> > +
-> > +	/* Find the highest voltage being requested */
-> > +	node = plist_last(&dvfs_info->user_list);
-> > +	volt = node->prio;
-> > +
-> > +	curr_volt = omap_voltage_get_nom_volt(voltdm);
-> > +
-> > +	if (curr_volt == volt) {
-> > +		is_volt_scaled = 1;
-> > +	} else if (curr_volt < volt) {
-> > +		ret = omap_voltage_scale_vdd(voltdm, volt);
-> > +		if (ret) {
-> > +			pr_warning("%s: Unable to scale the %s to %ld
-> volt\n",
-> > +						__func__, voltdm->name,
-> volt);
-> > +			mutex_unlock(&dvfs_info->scaling_mutex);
-> > +			return ret;
-> > +		}
-> > +		is_volt_scaled = 1;
-> > +	}
-> > +
-> > +	list_for_each_entry(temp_dev, &dvfs_info->dev_list, node) {
-> > +		struct device *dev;
-> > +		struct opp *opp;
-> > +		unsigned long freq;
-> > +
-> > +		dev = temp_dev->dev;
->
-> if you're doing this assignment here, might as well make 'dev' the
-> iterator instead of temp_dev.
-temp_dev holds pointer to omap_vdd_dev_list where as dev points to actual
-device pointer. Hence this assignment.
->
-> This section would benefit with some comments.  If I understand the
-> code
-> correctly, something like:
->
-> If a frequency has been requested, use the highest requested frequency.
->
-> > +		if (!plist_head_empty(&temp_dev->user_list)) {
-> > +			node = plist_last(&temp_dev->user_list);
-> > +			freq = node->prio;
->
-> otherwise check if device has OPP for this voltage
->
-> > +		} else {
-> > +			opp = omap_dvfs_find_voltage(dev, volt);
-> > +			if (IS_ERR(opp))
-> > +				continue;
->
-> This needs a comment to, but I'm not sure I understand what's going on
-> here.  What it seems like:
->
-> if this device has no OPP for this voltage, just silently move on to the
-> next device?   doesn't seem quite right, but not sure I fully grok the
-> failure modes of omap_dvfs_find_voltage()
-Yes, your understanding is right. omap_dvfs_find_voltage will return error
-if the device does not have an OPP table.
-Typically devices should not register with a vdd (using
-omap_dvfs_register_device) if it has no OPP table associated with it. So
-ideally we should not hit this error case. But only exception so far is SR
-driver. SR hwmod has vdd_name field set so as to get voltagedomain
-pointers. But SR does not have any opp table. So there is no harm in
-ignoring the error and moving to next device.
+Hema Kalliguddi <hemahk@ti.com> writes:
 
-Vishwa
+>  Kevin,
 >
-> Kevin
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Wednesday, February 09, 2011 5:33 AM
+>>To: Hema HK
+>>Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org;
+>>Felipe Balbi; Tony Lindgren; Cousson, Benoit; Paul Walmsley
+>>Subject: Re: [PATCH 4/5 v5] OMAP2+: musb: HWMOD adaptation for musb.
+>>
+>>On Fri, 2010-12-10 at 20:05 +0530, Hema HK wrote:
+>>> Using omap_device_build API instead of platform_device_register for
+>>> OMAP2430,OMAP34xx and OMAP4430 musb device registration.
+>>> The device specific resources defined in centralized
+>>> database will be used.
+>>>
+>>> Signed-off-by: Hema HK <hemahk@ti.com>
+>>> Cc: Felipe Balbi <balbi@ti.com>
+>>> Cc: Tony Lindgren <tony@atomide.com>
+>>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>>> Cc: Cousson, Benoit <b-cousson@ti.com>
+>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>> ---
+>>>  arch/arm/mach-omap2/usb-musb.c |   76
+>>+++++++++++++++++++++++++++++------------
+>>>  1 file changed, 55 insertions(+), 21 deletions(-)
+>>>
+>>> Index: usb/arch/arm/mach-omap2/usb-musb.c
+>>> ===================================================================
+>>> --- usb.orig/arch/arm/mach-omap2/usb-musb.c
+>>> +++ usb/arch/arm/mach-omap2/usb-musb.c
+>>> @@ -31,9 +31,12 @@
+>>>  #include <mach/am35xx.h>
+>>>  #include <plat/usb.h>
+>>>  #include "control.h"
+>>> +#include <plat/omap_device.h>
+>>>
+>>>  #if defined(CONFIG_USB_MUSB_OMAP2PLUS) || defined
+>>(CONFIG_USB_MUSB_AM35X)
+>>>
+>>> +static const char name[] = "musb-omap2430";
+>>> +
+>>>  static void am35x_musb_reset(void)
+>>>  {
+>>>  	u32	regval;
+>>> @@ -170,7 +173,7 @@ static struct musb_hdrc_platform_data mu
+>>>  static u64 musb_dmamask = DMA_BIT_MASK(32);
+>>>
+>>>  static struct platform_device musb_device = {
+>>> -	.name		= "musb-omap2430",
+>>> +	.name		= "musb-am35x",
+>>
+>>Should be in AM35x specific code.
+>>
+>>>  	.id		= -1,
+>>>  	.dev = {
+>>>  		.dma_mask		= &musb_dmamask,
+>>> @@ -181,26 +184,23 @@ static struct platform_device musb_devic
+>>>  	.resource	= musb_resources,
+>>>  };
+>>>
+>>> +static struct omap_device_pm_latency omap_musb_latency[] = {
+>>> +	{
+>>> +		.deactivate_func = omap_device_idle_hwmods,
+>>> +		.activate_func   = omap_device_enable_hwmods,
+>>> +		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+>>> +	},
+>>> +};
+>>> +
+>>>  void __init usb_musb_init(struct omap_musb_board_data *board_data)
+>>>  {
+>>> -	if (cpu_is_omap243x()) {
+>>> -		musb_resources[0].start = OMAP243X_HS_BASE;
+>>> -	} else if (cpu_is_omap3517() || cpu_is_omap3505()) {
+>>> -		musb_device.name = "musb-am35x";
+>>> -		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
+>>> -		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+>>> -		board_data->set_phy_power = am35x_musb_phy_power;
+>>> -		board_data->clear_irq = am35x_musb_clear_irq;
+>>> -		board_data->set_mode = am35x_musb_set_mode;
+>>> -		board_data->reset = am35x_musb_reset;
+>>> -	} else if (cpu_is_omap34xx()) {
+>>> -		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+>>> -	} else if (cpu_is_omap44xx()) {
+>>> -		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
+>>> -		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
+>>> -		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
+>>> -	}
+>>> -	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
+>>> +	struct omap_hwmod *oh;
+>>> +	struct omap_device *od;
+>>> +	struct platform_device *pdev;
+>>> +	struct device	*dev;
+>>> +	int bus_id = -1;
+>>> +	const char *oh_name = "usb_otg_hs";
+>>> +	struct musb_hdrc_platform_data *pdata;
+>>>
+>>>  	/*
+>>>  	 * REVISIT: This line can be removed once all the
+>>platforms using
+>>> @@ -212,8 +212,42 @@ void __init usb_musb_init(struct omap_mu
+>>>  	musb_plat.mode = board_data->mode;
+>>>  	musb_plat.extvbus = board_data->extvbus;
+>>>
+>>> -	if (platform_device_register(&musb_device) < 0)
+>>> -		printk(KERN_ERR "Unable to register HS-USB
+>>(MUSB) device\n");
+>>> +	if (cpu_is_omap3517() || cpu_is_omap3505()) {
+>>> +		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
+>>> +		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+>>> +		board_data->set_phy_power = am35x_musb_phy_power;
+>>> +		board_data->clear_irq = am35x_musb_clear_irq;
+>>> +		board_data->set_mode = am35x_musb_set_mode;
+>>> +		board_data->reset = am35x_musb_reset;
+>>> +		musb_resources[0].end = musb_resources[0].start
+>>+ SZ_4K - 1;
+>>> +
+>>> +		if (platform_device_register(&musb_device) < 0)
+>>> +			printk(KERN_ERR "Unable to register HS-USB \
+>>> +					(MUSB) device\n");
+>>
+>>The need for  'if cpu_is_*' here should be a red flag indicating a
+>>problem with this code.
+>>
+>>The goal of hwmod was to be able to get rid of this kind of cpu_is_*
+>>cruft.  At least the base and IRQ stuff should not be needed
+>>here.  What
+>>is needed is hwmod data for AM35x where it is different from the
+>>"normal" OMAP3.
 >
-> > +			freq = opp_get_freq(opp);
-> > +		}
-> > +
-> > +		if (freq == omap_device_get_rate(dev)) {
-> > +			dev_dbg(dev, "%s: Already at the requested"
-> > +				"rate %ld\n", __func__, freq);
-> > +			continue;
-> > +		}
-> > +
-> > +		ret |= omap_device_set_rate(dev, freq);
-> > +	}
-> > +
-> > +	if (!is_volt_scaled && !ret)
-> > +		omap_voltage_scale_vdd(voltdm, volt);
-> > +
-> > +	mutex_unlock(&dvfs_info->scaling_mutex);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +/**
-> >   * omap_dvfs_init() - Initialize omap dvfs layer
-> >   *
-> >   * Initalizes omap dvfs layer. It basically allocates memory for
+> This file shared between the OMAP3 and AM35x.
+> Since there is no HWMOD adaptation done for AM35x we have to live this
+> till
+> that is done.
+>
+>>
+>>I'm not exactly sure what the rest of these pdata function pointers are
+>>doing here since there seems to be an AM35x specific version of the
+>>driver in drivers/usb/musb, but that part isn't for me to decide.
+>>
+> There was discussion with Felipe and Benoit on this
+> and decided to go with cpu check till the HWMOD adaption is done for
+> AM35x.
+
+If we allow this now, then nobody will create a hwmod for AM35x.
+
+Felipe will make the final decision, but my recommendation is to not
+merge this as is.
+
+Note that this series does not need to add omap_hwmod data entries for
+all AM35x IPs that are different.  Just add one for the OTG block
+Adding a hwmod entry for the OTG block on AM35x should be trivial, and
+much preferred to this workaround.
+
+Kevin
