@@ -1,51 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 2/4] TI816X: Update common OMAP machine specific
- sources
-Date: Thu, 10 Feb 2011 09:02:02 -0800
-Message-ID: <20110210170202.GK20795@atomide.com>
-References: <1297270570-32492-1-git-send-email-hemantp@ti.com>
- <20110210014557.GG20795@atomide.com>
- <20110210014826.GH20795@atomide.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B036ACA3CB4@dbde02.ent.ti.com>
+From: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
+Subject: Re: [PATCH 3/5] OMAP3: hwmod data: Add HSMMC
+Date: Thu, 10 Feb 2011 22:32:31 +0530
+Message-ID: <AANLkTik+pjfrNfYpKf8b0Q-x_fVCBOfHDZJ0tuu2zG61@mail.gmail.com>
+References: <1296660462-28489-1-git-send-email-kishore.kadiyala@ti.com>
+ <1296660462-28489-4-git-send-email-kishore.kadiyala@ti.com> <87mxm6jh11.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51050 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756529Ab1BJRCk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Feb 2011 12:02:40 -0500
-Content-Disposition: inline
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B036ACA3CB4@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <87mxm6jh11.fsf@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, cjb@laptop.org, madhu.cr@ti.com, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Pedanekar, Hemant" <hemantp@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>
 
-* Pedanekar, Hemant <hemantp@ti.com> [110209 20:42]:
-> Tony Lindgren wrote on Thursday, February 10, 2011 7:18 AM:
-> 
-> > * Tony Lindgren <tony@atomide.com> [110209 17:45]:
-> >> 
-> >> We should just have separate struct map_desc omapti816x_io_desc[] then.
-> >> Maybe have a common struct map_desc omap3_io_desc[] and then separate
-> >> omap3xxx_io_desc and omapti816x_io_desc?
-> > 
-> > Oh and this will work just fine for map_io without having cpu_is_omap
-> > macros working yet because we call set_globals from the board
-> > file with
-> > the processor class data.
-> > 
-> > Tony
-> 
-> So probably I need to create another function (ti816x_map_common_io()) to
-> map just the L4 slow region and call it from board file (after set globals)
-> as distinguishing between OMAP3xxx and TI816X is not possible at that time
-> inside omap34xx_map_common_io() as they both have same class.
-> 
-> Does this approach look ok?
+Hi Kevin,
 
-Yes that's the way to go if the io regions are different.
+On Wed, Feb 9, 2011 at 4:00 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Kishore Kadiyala <kishore.kadiyala@ti.com> writes:
+>
+>> From: Paul Walmsley <paul@pwsan.com>
+>>
+>> Update the omap3 hwmod data with the HSMMC info.
+>>
+>> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+>> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+>
+> [...]
+>
+> Just notcied a minor issue below, which was probably inherited from m=
+y
+> original hacks on this code...
+>
+>> +static struct omap_hwmod omap3xxx_mmc1_hwmod =3D {
+>> + =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "mmc1_hwmod",
+>> + =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D mmc1_mpu_irqs,
+>> + =A0 =A0 .mpu_irqs_cnt =A0 =3D ARRAY_SIZE(mmc1_mpu_irqs),
+>> + =A0 =A0 .sdma_reqs =A0 =A0 =A0=3D mmc1_sdma_reqs,
+>> + =A0 =A0 .sdma_reqs_cnt =A0=3D ARRAY_SIZE(mmc1_sdma_reqs),
+>> + =A0 =A0 .opt_clks =A0 =A0 =A0 =3D mmc1_opt_clks,
+>> + =A0 =A0 .opt_clks_cnt =A0 =3D ARRAY_SIZE(mmc1_opt_clks),
+>> + =A0 =A0 .main_clk =A0 =A0 =A0 =3D "mmchs1_fck",
+>> + =A0 =A0 .prcm =A0 =A0 =A0 =A0 =A0 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .omap2 =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_offs =3D CORE_MOD,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .prcm_reg_id =3D 1,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_bit =3D OMAP3430_G=
+RPSEL_MMC1_SHIFT,
+>
+> Thee GRPSEL bit isn't the right bit here, and should be the
+> EN_MMC1_SHIFT value. =A0I realize, they're probably the same bitfield=
+, but
+> this should be consistent with the other hwmods.
+
+OK, I will make changes as mentioned in omap_hwmod_3xxx_data.c.
+
+>
+> Same issue with other MMC hwmods.
+
+The rest of the hwmods for MMC are updated with *EN_MMC* .
 
 Regards,
+Kishore
 
-Tony
+>
+> Kevin
+>
