@@ -1,241 +1,87 @@
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 5/5 v6] usb: musb: Using runtime pm APIs for musb.
-Date: Thu, 10 Feb 2011 19:38:01 +0530
-Message-ID: <1297346881-13438-6-git-send-email-hemahk@ti.com>
-References: <1297346881-13438-1-git-send-email-hemahk@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1297346881-13438-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH] ARM: Avoid discarding sections that might have SMP_ON_UP fixups
+Date: Thu, 10 Feb 2011 14:11:34 +0000
+Message-ID: <AANLkTin3+4pwxQRz1J_1B6dJxJm0_5ou0OWteDFZNbo9@mail.gmail.com>
+References: <E1PeueP-0003SR-03@rmk-PC.arm.linux.org.uk>
+	<AANLkTinnhivretaRHpYwCYouk-_jWKZQEo7x4sbheJVL@mail.gmail.com>
+	<20110125165919.GD17286@n2100.arm.linux.org.uk>
+	<AANLkTimK06nJPtQoym3HxXeDD-s4nUrN0vWjp_JcgTjx@mail.gmail.com>
+	<20110125174636.GE17286@n2100.arm.linux.org.uk>
+	<alpine.LFD.2.00.1101251618230.8580@xanadu.home>
+	<AANLkTi=zVsr8G=eYfp7v_QQvBBDCX+Es+T-4c4Fu=QVF@mail.gmail.com>
+	<20110126124452.GB4232@n2100.arm.linux.org.uk>
+	<20110126172535.GA15983@arm.com>
+	<20110209142211.GA11460@n2100.arm.linux.org.uk>
+	<20110210125624.GA3652@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:33080 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756423Ab1BJOLg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Feb 2011 09:11:36 -0500
+Received: by wwa36 with SMTP id 36so1426453wwa.1
+        for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 06:11:34 -0800 (PST)
+In-Reply-To: <20110210125624.GA3652@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Calling runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync()
-for enabling/disabling the clocks, sysconfig settings.
+On Thu, Feb 10, 2011 at 12:56 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Wed, Feb 09, 2011 at 02:22:11PM +0000, Russell King - ARM Linux wr=
+ote:
+>> On Wed, Jan 26, 2011 at 05:25:35PM +0000, Dave P. Martin wrote:
+>> > SMP_ON_UP fixups lead to vmlinux link errors if those sections are
+>> > discarded at link-time. =A0In particular this may happen for built=
+-in
+>> > __exit stuff.
+>> >
+>> > This patch modifies the vmlinux linker script to reduce the amount
+>> > of discarded sections, and tries to make sure that __exit sections
+>> > are kept in.
+>> >
+>> > This is a hack and probably wrong! =A0Further discussion is needed=
+=2E
+>>
+>> Can you send the configuration which you see this problem with?
+>> I've tried to build a kernel which inlines the spinlocks, but I find
+>> that's not possible, so I'm doubting whether any fix is required for
+>> mainline.
+>
+> Any news on this, or can it not be reproduced?
+>
 
-Enable clock, configure no-idle/standby when active and configure force idle/standby
-and disable clock when idled. This is taken care by the runtime framework when
-driver calls the pm_runtime_get_sync and pm_runtime_put_sync APIs.
-Need to configure MUSB into force standby and force idle mode when usb not used
+Hi, apologies-- didn't see my mail for a bit.
 
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
----
- drivers/usb/musb/musb_core.h |    2 -
- drivers/usb/musb/omap2430.c  |   79 +++++++++++--------------------------------
- 2 files changed, 22 insertions(+), 59 deletions(-)
+I get the problem with this tree and config (which builds with
+SMP_ON_UP and THUMB2_KERNEL for omap3/4):
 
-Index: linux-2.6/drivers/usb/musb/musb_core.h
-===================================================================
---- linux-2.6.orig/drivers/usb/musb/musb_core.h
-+++ linux-2.6/drivers/usb/musb/musb_core.h
-@@ -360,7 +360,7 @@ struct musb_context_registers {
- 
- #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
-     defined(CONFIG_ARCH_OMAP4)
--	u32 otg_sysconfig, otg_forcestandby;
-+	u32 otg_forcestandby;
- #endif
- 	u8 power;
- 	u16 intrtxe, intrrxe;
-Index: linux-2.6/drivers/usb/musb/omap2430.c
-===================================================================
---- linux-2.6.orig/drivers/usb/musb/omap2430.c
-+++ linux-2.6/drivers/usb/musb/omap2430.c
-@@ -33,6 +33,8 @@
- #include <linux/io.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/err.h>
- 
- #include "musb_core.h"
- #include "omap2430.h"
-@@ -40,7 +42,6 @@
- struct omap2430_glue {
- 	struct device		*dev;
- 	struct platform_device	*musb;
--	struct clk		*clk;
- };
- #define glue_to_musb(g)		platform_get_drvdata(g->musb)
- 
-@@ -216,20 +217,12 @@ static inline void omap2430_low_level_ex
- 	l = musb_readl(musb->mregs, OTG_FORCESTDBY);
- 	l |= ENABLEFORCE;	/* enable MSTANDBY */
- 	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
--
--	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
--	l |= ENABLEWAKEUP;	/* enable wakeup */
--	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
- }
- 
- static inline void omap2430_low_level_init(struct musb *musb)
- {
- 	u32 l;
- 
--	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
--	l &= ~ENABLEWAKEUP;	/* disable wakeup */
--	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
--
- 	l = musb_readl(musb->mregs, OTG_FORCESTDBY);
- 	l &= ~ENABLEFORCE;	/* disable MSTANDBY */
- 	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
-@@ -309,21 +302,6 @@ static int omap2430_musb_init(struct mus
- 
- 	omap2430_low_level_init(musb);
- 
--	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
--	l &= ~ENABLEWAKEUP;	/* disable wakeup */
--	l &= ~NOSTDBY;		/* remove possible nostdby */
--	l |= SMARTSTDBY;	/* enable smart standby */
--	l &= ~AUTOIDLE;		/* disable auto idle */
--	l &= ~NOIDLE;		/* remove possible noidle */
--	l |= SMARTIDLE;		/* enable smart idle */
--	/*
--	 * MUSB AUTOIDLE don't work in 3430.
--	 * Workaround by Richard Woodruff/TI
--	 */
--	if (!cpu_is_omap3430())
--		l |= AUTOIDLE;		/* enable auto idle */
--	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
--
- 	l = musb_readl(musb->mregs, OTG_INTERFSEL);
- 
- 	if (data->interface_type == MUSB_INTERFACE_UTMI) {
-@@ -386,7 +364,7 @@ static int __init omap2430_probe(struct 
- 	struct musb_hdrc_platform_data	*pdata = pdev->dev.platform_data;
- 	struct platform_device		*musb;
- 	struct omap2430_glue		*glue;
--	struct clk			*clk;
-+	int				status = 0;
- 
- 	int				ret = -ENOMEM;
- 
-@@ -402,26 +380,12 @@ static int __init omap2430_probe(struct 
- 		goto err1;
- 	}
- 
--	clk = clk_get(&pdev->dev, "ick");
--	if (IS_ERR(clk)) {
--		dev_err(&pdev->dev, "failed to get clock\n");
--		ret = PTR_ERR(clk);
--		goto err2;
--	}
--
--	ret = clk_enable(clk);
--	if (ret) {
--		dev_err(&pdev->dev, "failed to enable clock\n");
--		goto err3;
--	}
--
- 	musb->dev.parent		= &pdev->dev;
- 	musb->dev.dma_mask		= &omap2430_dmamask;
- 	musb->dev.coherent_dma_mask	= omap2430_dmamask;
- 
- 	glue->dev			= &pdev->dev;
- 	glue->musb			= musb;
--	glue->clk			= clk;
- 
- 	pdata->platform_ops		= &omap2430_ops;
- 
-@@ -431,28 +395,30 @@ static int __init omap2430_probe(struct 
- 			pdev->num_resources);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to add resources\n");
--		goto err4;
-+		goto err2;
- 	}
- 
- 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to add platform_data\n");
--		goto err4;
-+		goto err2;
- 	}
- 
- 	ret = platform_device_add(musb);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to register musb device\n");
--		goto err4;
-+		goto err2;
- 	}
- 
--	return 0;
-+	pm_runtime_enable(&pdev->dev);
-+	if (pm_runtime_get_sync(&pdev->dev) < 0) {
-+		dev_err(&pdev->dev, "pm_runtime_get_sync FAILED");
-+		pm_runtime_disable(&pdev->dev);
-+		goto err2;
-+	}
- 
--err4:
--	clk_disable(clk);
-+	return 0;
- 
--err3:
--	clk_put(clk);
- 
- err2:
- 	platform_device_put(musb);
-@@ -470,8 +436,8 @@ static int __exit omap2430_remove(struct
- 
- 	platform_device_del(glue->musb);
- 	platform_device_put(glue->musb);
--	clk_disable(glue->clk);
--	clk_put(glue->clk);
-+	pm_runtime_put_sync(&pdev->dev);
-+	pm_runtime_disable(&pdev->dev);
- 	kfree(glue);
- 
- 	return 0;
-@@ -480,13 +446,11 @@ static int __exit omap2430_remove(struct
- #ifdef CONFIG_PM
- static void omap2430_save_context(struct musb *musb)
- {
--	musb->context.otg_sysconfig = musb_readl(musb->mregs, OTG_SYSCONFIG);
- 	musb->context.otg_forcestandby = musb_readl(musb->mregs, OTG_FORCESTDBY);
- }
- 
- static void omap2430_restore_context(struct musb *musb)
- {
--	musb_writel(musb->mregs, OTG_SYSCONFIG, musb->context.otg_sysconfig);
- 	musb_writel(musb->mregs, OTG_FORCESTDBY, musb->context.otg_forcestandby);
- }
- 
-@@ -498,8 +462,10 @@ static int omap2430_suspend(struct devic
- 	omap2430_low_level_exit(musb);
- 	otg_set_suspend(musb->xceiv, 1);
- 	omap2430_save_context(musb);
--	clk_disable(glue->clk);
- 
-+	if (!pm_runtime_suspended(dev))
-+		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_suspend)
-+				dev->bus->pm->runtime_suspend(dev);
- 	return 0;
- }
- 
-@@ -507,13 +473,10 @@ static int omap2430_resume(struct device
- {
- 	struct omap2430_glue		*glue = dev_get_drvdata(dev);
- 	struct musb			*musb = glue_to_musb(glue);
--	int				ret;
- 
--	ret = clk_enable(glue->clk);
--	if (ret) {
--		dev_err(dev, "faled to enable clock\n");
--		return ret;
--	}
-+	if (!pm_runtime_suspended(dev))
-+		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_resume)
-+			dev->bus->pm->runtime_resume(dev);
- 
- 	omap2430_low_level_init(musb);
- 	omap2430_restore_context(musb);
+Tree: git://git.linaro.org/people/dmart/linux-2.6-arm.git
+dirty/arm/omap-thumb2+merged
+Config: http://people.linaro.org/~dmart/arm_omap-thumb2+v2_config
+
+I haven't identified the precise combination of options which causes
+the problem, and I don't really understand what the clean solution
+would be -- it's on my list of stuff to look at, but not at the top.
+
+Other people not enabling THUMB2_KERNEL have also had the problem
+(though I guess that shouldn't make a difference anyway).
+
+I suggested a patch on the binutils mailing list to add a way for
+putting fixups in separate, sensibly-named sections which would allow
+for a proper fix to this class of problem, but I haven't had any
+significant feedback on that ... anyway, that would not be available
+on most people's toolchains for a while even if it got accepted --
+see:
+http://cygwin.com/ml/binutils/2011-02/msg00004.html
+
+Cheers
+---Dave
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
