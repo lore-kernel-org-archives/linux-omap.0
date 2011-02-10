@@ -1,30 +1,41 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v5 0/5] omap: mailbox: hwmod support
-Date: Thu, 10 Feb 2011 08:01:34 +0200 (EET)
-Message-ID: <20110210.080134.54852186899891738.Hiroshi.DOYU@nokia.com>
-References: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
-	<20110209183219.GA20795@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 1/4] OMAP2PLUS: clocks: Align DSS clock names and
+ roles
+Date: Wed, 9 Feb 2011 23:22:33 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102092321580.21991@utopia.booyaka.com>
+References: <1296491266-6949-1-git-send-email-sumit.semwal@ti.com> <1296491266-6949-2-git-send-email-sumit.semwal@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:31367 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751069Ab1BJGBf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Feb 2011 01:01:35 -0500
-In-Reply-To: <20110209183219.GA20795@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:60898 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751155Ab1BJGWe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Feb 2011 01:22:34 -0500
+In-Reply-To: <1296491266-6949-2-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: b-cousson@ti.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, omar.ramirez@ti.com
+To: Sumit Semwal <sumit.semwal@ti.com>
+Cc: tomi.valkeinen@nokia.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com
 
-From: ext Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 0/5] omap: mailbox: hwmod support
-Date: Wed, 9 Feb 2011 10:32:19 -0800
+On Mon, 31 Jan 2011, Sumit Semwal wrote:
 
-> * Omar Ramirez Luna <omar.ramirez@ti.com> [110202 11:37]:
->> Mailbox hwmod support for OMAP 2,3,4.
+> Currently, clock database has <dev, clock-name> tuples for DSS2. Because of
+> this, the clock names are different across different OMAP platforms.
 > 
-> Hiroshi, any comments on these?
+> This patch aligns the DSS2 clock names and roles across OMAP 2420, 2430, 3xxx,
+> 44xx platforms in the clock databases, hwmod databases for opt-clocks, and DSS
+> clock handling.
+> 
+> This ensures that clk_get/put/enable/disable APIs in DSS can use uniform role
+> names.
+> 
+> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 
-Well, I haven't followed hwmod much. If Kevin is ok, ok for me.
+Based on a quick glance, this is 
+
+Acked-by: Paul Walmsley <paul@pwsan.com>
+
+Tomi or Tony, feel free to take this
+
+
+- Paul
