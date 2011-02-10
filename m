@@ -1,176 +1,79 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH v2] OMAP: PM: DMA: Enable runtime pm
-Date: Fri, 11 Feb 2011 00:18:52 +0530
-Message-ID: <20110210184809.GA2196@manju-desktop>
-References: <1297082286-8449-1-git-send-email-manjugk@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: Avoid discarding sections that might have
+	SMP_ON_UP fixups
+Date: Thu, 10 Feb 2011 19:11:25 +0000
+Message-ID: <20110210191125.GA12582@n2100.arm.linux.org.uk>
+References: <alpine.LFD.2.00.1101251618230.8580@xanadu.home> <AANLkTi=zVsr8G=eYfp7v_QQvBBDCX+Es+T-4c4Fu=QVF@mail.gmail.com> <20110126124452.GB4232@n2100.arm.linux.org.uk> <20110126172535.GA15983@arm.com> <20110209142211.GA11460@n2100.arm.linux.org.uk> <20110210125624.GA3652@n2100.arm.linux.org.uk> <AANLkTin3+4pwxQRz1J_1B6dJxJm0_5ou0OWteDFZNbo9@mail.gmail.com> <AANLkTinjAHLCMJja8q=bPhRBuoR2DCO_NjDw1qNi5MrU@mail.gmail.com> <20110210144617.GD3652@n2100.arm.linux.org.uk> <AANLkTiks_8hXd=7cKN0jNw=1QGcb=5ZyFu1sEFc0G=Px@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:55516 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750917Ab1BJStS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Feb 2011 13:49:18 -0500
-Received: by mail-iy0-f170.google.com with SMTP id 14so2086074iym.15
-        for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 10:49:09 -0800 (PST)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54128 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755870Ab1BJTLe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Feb 2011 14:11:34 -0500
 Content-Disposition: inline
-In-Reply-To: <1297082286-8449-1-git-send-email-manjugk@ti.com>
+In-Reply-To: <AANLkTiks_8hXd=7cKN0jNw=1QGcb=5ZyFu1sEFc0G=Px@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, tony@atomide.com
+To: Dave Martin <dave.martin@linaro.org>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Kevin,
-Do you have any comments on these changes. I am planning to have these changes
-as part of new dma series(runtime support+mstandby mode api changes+removing
-redundant code). I am in the process of testing all the above changes on all 
-the omap boards.
+On Thu, Feb 10, 2011 at 06:29:41PM +0000, Dave Martin wrote:
+> On Thu, Feb 10, 2011 at 2:46 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Thu, Feb 10, 2011 at 02:13:13PM +0000, Dave Martin wrote:
+> >> Note that this tree contains some extra patches (though I believe
+> >> nothing is there which should cause the problem), and does not con=
+tain
+> >> everything from rmk/devel -- so it's possible this has been fixed =
+in
+> >> the meantime or no longer occurs for some other reason...
+> >
+> > No need - I now have some modules which contain SMP alternatives, s=
+o we
+> > do need to fix the module loader for this, and keep the SMP alterna=
+tives
+> > replacement code around. =A0It's not worth eliminating the code as =
+if we
+> > include an informative printk() to say why we're refusing to load t=
+he
+> > module, the string would be larger than the code it eliminates. =A0=
+So, I
+> > think we need to merge the patch below to avoid run-time problems.
+>=20
+> I thought the problem was not caused by removal of the fixup code, bu=
+t
+> rather by the removal of code referenced by fixups?
 
--Manjunath
+It is.  But:
 
-On Mon, Feb 07, 2011 at 06:08:06PM +0530, G, Manjunath Kondaiah wrote:
-> From: Manjunath G Kondaiah <manjugk@ti.com>
-> 
-> Enable runtime pm and use pm_runtime_get_sync and pm_runtime_put_autosuspend
-> for OMAP DMA driver.
-> 
-> The DMA driver uses auto suspend feature of runtime pm framework through
-> which the clock gets disabled automatically if there is no activity for
-> more than one second.
-> 
-> Testing:
-> Compile: omap1_defconfig and omap2plus_defconfig
-> Boot: OMAP1710(H3), OMAP2420(H4), OMAP3630(Zoom3), OMAP4(Blaze)
-> 
-> On zoom3 core retention is tested with following steps:
-> echo 1 > /debug/pm_debug/sleep_while_idle
-> echo 1 > /debug/pm_debug/enable_off_mode
-> echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
-> echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
-> echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
-> echo 5 > /sys/devices/platform/omap/omap_uart.3/sleep_timeout
-> 
-> It is observed that(on pm branch), core retention count gets increasing if the
-> board is left idle for more than 5 seconds. However, it doesnot enter off mode
-> (even without DMA runtime changes).
-> 
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> ---
->  arch/arm/plat-omap/dma.c |   27 +++++++++++++++++++++++++++
->  1 files changed, 27 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 2ec3b5d..6bfe25c 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -35,6 +35,7 @@
->  #include <linux/io.h>
->  #include <linux/slab.h>
->  #include <linux/delay.h>
-> +#include <linux/pm_runtime.h>
->  
->  #include <asm/system.h>
->  #include <mach/hardware.h>
-> @@ -59,6 +60,7 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
->  
->  static struct omap_system_dma_plat_info *p;
->  static struct omap_dma_dev_attr *d;
-> +static struct device *dev;
->  
->  static int enable_1510_mode;
->  static u32 errata;
-> @@ -676,6 +678,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
->  	unsigned long flags;
->  	struct omap_dma_lch *chan;
->  
-> +	pm_runtime_get_sync(dev);
->  	spin_lock_irqsave(&dma_chan_lock, flags);
->  	for (ch = 0; ch < dma_chan_count; ch++) {
->  		if (free_ch == -1 && dma_chan[ch].dev_id == -1) {
-> @@ -686,6 +689,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
->  	}
->  	if (free_ch == -1) {
->  		spin_unlock_irqrestore(&dma_chan_lock, flags);
-> +		pm_runtime_put_autosuspend(dev);
->  		return -EBUSY;
->  	}
->  	chan = dma_chan + free_ch;
-> @@ -743,6 +747,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
->  	}
->  
->  	*dma_ch_out = free_ch;
-> +	pm_runtime_put_autosuspend(dev);
->  
->  	return 0;
->  }
-> @@ -871,6 +876,8 @@ void omap_start_dma(int lch)
->  {
->  	u32 l;
->  
-> +	pm_runtime_get_sync(dev);
-> +
->  	/*
->  	 * The CPC/CDAC register needs to be initialized to zero
->  	 * before starting dma transfer.
-> @@ -1805,6 +1812,8 @@ static int omap1_dma_handle_ch(int ch)
->  	if (likely(dma_chan[ch].callback != NULL))
->  		dma_chan[ch].callback(ch, csr, dma_chan[ch].data);
->  
-> +	pm_runtime_mark_last_busy(dev);
-> +	pm_runtime_put_autosuspend(dev);
->  	return 1;
->  }
->  
-> @@ -1899,6 +1908,8 @@ static int omap2_dma_handle_ch(int ch)
->  	if (likely(dma_chan[ch].callback != NULL))
->  		dma_chan[ch].callback(ch, status, dma_chan[ch].data);
->  
-> +	pm_runtime_mark_last_busy(dev);
-> +	pm_runtime_put_autosuspend(dev);
->  	return 0;
->  }
->  
-> @@ -1978,6 +1989,7 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
->  		return -EINVAL;
->  	}
->  
-> +	dev			= &pdev->dev;
->  	d			= p->dma_attr;
->  	errata			= p->errata;
->  
-> @@ -1999,6 +2011,11 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
->  		}
->  	}
->  
-> +	pm_runtime_use_autosuspend(dev);
-> +	pm_runtime_set_autosuspend_delay(dev, 1000);
-> +	pm_runtime_enable(dev);
-> +	pm_runtime_get_sync(dev);
-> +
->  	spin_lock_init(&dma_chan_lock);
->  	for (ch = 0; ch < dma_chan_count; ch++) {
->  		omap_clear_dma(ch);
-> @@ -2064,6 +2081,16 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
->  		dma_chan[1].dev_id = 1;
->  	}
->  	p->show_dma_caps();
-> +
-> +	/*
-> +	 * Note: If dma channels are reserved through boot paramters,
-> +	 * then dma device is always enabled.
-> +	 */
-> +	if (omap_dma_reserve_channels)
-> +		pm_runtime_get(dev);
-> +
-> +	pm_runtime_put_autosuspend(dev);
-> +
->  	return 0;
->  
->  exit_dma_irq_fail:
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+arm-linux-objdump -h sound/core/snd-timer.ko
+
+sound/core/snd-timer.ko:     file format elf32-littlearm
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00002f34  00000000  00000000  00000034  2**2
+                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
+  1 .exit.text    00000070  00000000  00000000  00002f68  2**2
+                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
+  2 .init.text    000001b4  00000000  00000000  00002fd8  2**2
+                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
+  3 .rodata       000000bc  00000000  00000000  0000318c  2**2
+                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, DATA
+  4 .rodata.str1.1 00000156  00000000  00000000  00003248  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  5 .alt.smp.init 00000088  00000000  00000000  0000339e  2**0
+                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, DATA
+=2E..
+
+Here we have a module which contains the spin_unlock assembly, which
+contains the SMP alternatives.  If we insert that into a kernel also
+built with SMP alternatives support, but which is running on a UP
+system, we need to run these fixups as well when the module is loaded.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
