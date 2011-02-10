@@ -1,138 +1,128 @@
 From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 0/1] omap3: pm: CM_AUTOIDLE_PLL isn't restored on wakeup from off state
-Date: Thu, 10 Feb 2011 21:32:03 +0530
-Message-ID: <1297353724-11665-1-git-send-email-premi@ti.com>
+Subject: [PATCH 1/1] omap3: Save and restore CM_AUTOIDLE_PLL across off mode
+Date: Thu, 10 Feb 2011 21:32:04 +0530
+Message-ID: <1297353724-11665-2-git-send-email-premi@ti.com>
+References: <1297353724-11665-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53426 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751147Ab1BJQCU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Feb 2011 11:02:20 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:33351 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756354Ab1BJQC0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Feb 2011 11:02:26 -0500
+In-Reply-To: <1297353724-11665-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Sanjeev Premi <premi@ti.com>
 
-The value of AUTO_PERIPH_DPLL is being lost after resuming from
-the off state. More details on problem and cause in PATCH 1/1.
+As per commit "bb33cc58", ROM code is expected to restore
+context related to CORE domain. As part of this change,
+CM_AUTOIDLE_PLL is neither saved nor restored.
 
-The problem was found recently in 2.6.32 kernel version and exists
-on the latest pm branch at:
-    commit 448e9a675e2cfb173fc47083058cf254ccc114a0
-    Merge: c1e460d f11bdd3
-    Author: Kevin Hilman <khilman@ti.com>
-    Date:   Fri Jan 28 14:38:47 2011 -0800
+This results in loosing the value of AUTO_PERIPH_DPLL.
 
-        rebuild PM from branches
+The concern of setting the AUTOIDLE flag before the DPLL
+is locked seems valid. Hence, the restoration of this
+register is delayed until after the context of PER
+domain is restored.
 
-The shell script below was used to validate the patch on 2.6.32 for
-over 8hrs on OMAP3EVM. The same script has been running after the
-patch for past 1 hour on the same EVM.
+The patch has been verified on OMAP3EVM by checking value
+of CM_AUTOIDLE_PLL register across the suspend/resume
+sequence (using devmem) with flags sleep_while_idle and
+enable_off_mode set to 1.
 
-**** test.sh ****
-
-#!/bin/sh
-
-if [ ! -d /dbg ]; then
-	mkdir /dbg
-fi
-
-mount -t debugfs debugfs /dbg
-
-echo 1 > /dbg/pm_debug/enable_off_mode
-echo 1 > /dbg/pm_debug/sleep_while_idle
-echo 5 > /dbg/pm_debug/wakeup_timer_seconds
-
-while :
-do
-	before=`devmem 0x48004D30`
-	echo mem > /sys/power/state
-	after=`devmem 0x48004D30`
-
-	sleep 2
-	echo ""
-	echo "CM_AUTOIDLE_PLL: before=$before after=$after"
-	echo ""
-	sleep 1
-done
-
-**** Before ****
-
-[root@OMAP3EVM /]# ./test.sh
-[   48.089172] PM: Syncing filesystems ... done.
-[   48.110656] Freezing user space processes ... (elapsed 0.01 seconds) done.
-[   48.135009] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
-[   48.175598] ------------[ cut here ]------------
-    [snip]...removing warning text. Not related to current context...[/snip]
-[   48.421356] ---[ end trace 16d570308536c978 ]---
-[   48.532165] PM: suspend of devices complete after 361.805 msecs
-    [snip]...removed more verbose text...[/snip]
-[   55.311767] PM: resume of devices complete after 501.922 msecs
-[   55.321807] Restarting tasks ... done.
-
-CM_AUTOIDLE_PLL: before=0x00000009 after=0x00000001
-
-[   59.374603] PM: Syncing filesystems ... done.
-[   59.380798] Freezing user space processes ... (elapsed 0.01 seconds) done.
-    [snip]...removed more verbose text...[/snip]
-[   65.085968] PM: resume of devices complete after 501.953 msecs
-[   65.095642] Restarting tasks ... done.
-
-CM_AUTOIDLE_PLL: before=0x00000001 after=0x00000001
-
-[   69.148101] PM: Syncing filesystems ... done.
-[   69.154235] Freezing user space processes ... (elapsed 0.01 seconds) done.
-    [snip]...removed more verbose text...[/snip]
-[   74.860839] PM: resume of devices complete after 501.922 msecs
-[   74.870544] Restarting tasks ... done.
-
-CM_AUTOIDLE_PLL: before=0x00000001 after=0x00000001
-
-**** After ****
-
-[root@OMAP3EVM /]# ./test.sh
-[   60.737579] PM: Syncing filesystems ... done.
-[   60.758941] Freezing user space processes ... (elapsed 0.01 seconds) done.
-[   60.783233] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
-[   60.819396] omap_device: omap_i2c.1: new worst case activate latency 0: 152587
-[   60.831573] ------------[ cut here ]------------
-[   60.836547] WARNING: at arch/arm/plat-omap/omap-pm-noop.c:326 omap_pm_get_dev_context_loss_count+0x64/0xb8()
-    [snip]...removing warning text. Not related to current context...[/snip]
-[   61.077392] ---[ end trace 79ed0d21d6b0de0a ]---
-[   61.187927] omap_device: omap_i2c.1: new worst case deactivate latency 0: 61035
-[   61.196136] PM: suspend of devices complete after 377.311 msecs
-[   61.204650] PM: late suspend of devices complete after 2.258 msecs
-[   61.211639] PM: Resume timer in 5.000 secs (163840 ticks at 32768 ticks/sec.)
-[   61.219299] omap_device: omap_uart.2: new worst case deactivate latency 0: 91552
-[   66.214691] Successfully put all powerdomains to target state
-[   66.222106] PM: early resume of devices complete after 1.220 msecs
-[   66.730926] PM: resume of devices complete after 501.983 msecs
-[   66.740997] Restarting tasks ... done.
-[   66.782165] omap_device: omap_uart.0: new worst case activate latency 0: 61035
-
-CM_AUTOIDLE_PLL: before=0x00000009 after=0x00000009
-
-[   70.794433] PM: Syncing filesystems ... done.
-[   70.800598] Freezing user space processes ... (elapsed 0.01 seconds) done.
-    [snip]...removed more verbose text...[/snip]
-[   76.505432] PM: resume of devices complete after 501.892 msecs
-[   76.515197] Restarting tasks ... done.
-
-CM_AUTOIDLE_PLL: before=0x00000009 after=0x00000009
-
-[   80.567687] PM: Syncing filesystems ... done.
-[   80.573822] Freezing user space processes ... (elapsed 0.01 seconds) done.
-    [snip]...removed more verbose text...[/snip]
-[   86.272399] PM: resume of devices complete after 501.953 msecs
-[   86.282165] Restarting tasks ... done.
-
-
-Sanjeev Premi (1):
-  omap3: Save and restore CM_AUTOIDLE_PLL across off mode
-
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
  arch/arm/mach-omap2/cm2xxx_3xxx.c |   13 +++++++++++++
  arch/arm/mach-omap2/pm34xx.c      |   25 ++++++++++++++++++++++++-
  2 files changed, 37 insertions(+), 1 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx.c b/arch/arm/mach-omap2/cm2xxx_3xxx.c
+index 96954aa..a775d8a 100644
+--- a/arch/arm/mach-omap2/cm2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/cm2xxx_3xxx.c
+@@ -178,6 +178,7 @@ struct omap3_cm_regs {
+ 	u32 per_cm_clksel;
+ 	u32 emu_cm_clksel;
+ 	u32 emu_cm_clkstctrl;
++	u32 pll_cm_autoidle;
+ 	u32 pll_cm_autoidle2;
+ 	u32 pll_cm_clksel4;
+ 	u32 pll_cm_clksel5;
+@@ -250,6 +251,8 @@ void omap3_cm_save_context(void)
+ 		omap2_cm_read_mod_reg(OMAP3430_EMU_MOD, CM_CLKSEL1);
+ 	cm_context.emu_cm_clkstctrl =
+ 		omap2_cm_read_mod_reg(OMAP3430_EMU_MOD, OMAP2_CM_CLKSTCTRL);
++	cm_context.pll_cm_autoidle =
++		 omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
+ 	cm_context.pll_cm_autoidle2 =
+ 		omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE2);
+ 	cm_context.pll_cm_clksel4 =
+@@ -468,4 +471,14 @@ void omap3_cm_restore_context(void)
+ 	omap2_cm_write_mod_reg(cm_context.cm_clkout_ctrl, OMAP3430_CCR_MOD,
+ 			       OMAP3_CM_CLKOUT_CTRL_OFFSET);
+ }
++
++
++/**
++ * Returns the value corresponding to CM_AUTOIDLE_PLL from the most recent
++ * context saved before entering the OFF mode.
++ */
++u32 stored_cm_autoidle_pll(void)
++{
++	return cm_context.pll_cm_autoidle;
++}
+ #endif
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 8bb85fb..25bd230 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -91,6 +91,8 @@ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+ static struct powerdomain *core_pwrdm, *per_pwrdm;
+ static struct powerdomain *cam_pwrdm;
+ 
++extern u32 stored_cm_autoidle_pll(void);
++
+ static inline void omap3_per_save_context(void)
+ {
+ 	omap_gpio_save_context();
+@@ -163,6 +165,25 @@ static void omap3_core_restore_context(void)
+ 	omap_dma_global_context_restore();
+ }
+ 
++/**
++ * Restore the contents of CM_AUTOIDLE_PLL register.
++ *
++ * The implementation below restores AUTO_CORE_DPLL as 'good' redundancy.
++ */
++static void pll_mod_restore_autoidle(void)
++{
++	u32 ctx = stored_cm_autoidle_pll();
++	u32 val = omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
++
++	if (ctx & OMAP3430_AUTO_CORE_DPLL_MASK)
++		val |= ctx & OMAP3430_AUTO_CORE_DPLL_MASK;
++
++	if (ctx & OMAP3430_AUTO_PERIPH_DPLL_MASK)
++		val |= ctx & OMAP3430_AUTO_PERIPH_DPLL_MASK;
++
++	omap2_cm_write_mod_reg(val, PLL_MOD, CM_AUTOIDLE);
++}
++
+ /*
+  * FIXME: This function should be called before entering off-mode after
+  * OMAP3 secure services have been accessed. Currently it is only called
+@@ -488,8 +509,10 @@ void omap_sram_idle(void)
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
+ 		omap2_gpio_resume_after_idle();
+-		if (per_prev_state == PWRDM_POWER_OFF)
++		if (per_prev_state == PWRDM_POWER_OFF) {
+ 			omap3_per_restore_context();
++			pll_mod_restore_autoidle();
++		}
+ 		omap_uart_resume_idle(2);
+ 		omap_uart_resume_idle(3);
+ 	}
 -- 
 1.7.2.2
 
