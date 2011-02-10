@@ -1,130 +1,168 @@
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: Subject: [PATCH 0/5 v6]usb: musb: hwmod and runtime pm support for musb
-Date: Thu, 10 Feb 2011 19:37:56 +0530
-Message-ID: <1297346881-13438-1-git-send-email-hemahk@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+From: Hema HK <hemahk@ti.com>
+Subject: [PATCH 3/5 v6] OMAP4430: hwmod data: Adding USBOTG
+Date: Thu, 10 Feb 2011 19:37:59 +0530
+Message-ID: <1297346881-13438-4-git-send-email-hemahk@ti.com>
+References: <1297346881-13438-1-git-send-email-hemahk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41040 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756232Ab1BJOIY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Feb 2011 09:08:24 -0500
+In-Reply-To: <1297346881-13438-1-git-send-email-hemahk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, Hema HK <hemahk@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-This patch series makes OMAP2PLUS musb module implemented
-in HWMOD FW way. It also implements musb driver to
-use the runtime pm apis.
+OMAP4 hwmod data structures are populated with base address, L3 and L4
+interface clocks, IRQs and sysconfig register details.
 
-As per the OMAP usbotg specification[1] musb sysconfig register
-has to be set to force idle and force standby when not used
-and set smart idle/standby or no idle/standby during operation.
-otherwise core-off will be prevented by musb.
+As per OMAP USBOTG specification, need to configure the USBOTG
+to smart idle/standby or no idle/standby during data transfer and
+force idle/standby when not in use to support retention and offmode.
+By setting HWMOD_SWSUP_SIDLE and HWMOD_SWSUP_MSTANDBY flags,framework
+will take care of configuring to no idle/standby when module is enabled
+and force idle/standby when idled.
 
-[1]: http://focus.ti.com/pdfs/wtbu/SWPU223D_Final_EPDF_06_07_2010.pdf
-
-This patch series is based on V2.6.38-rc4 + [1] +[2]
-
-[1] https://patchwork.kernel.org/patch/513461
-[2] http://www.spinics.net/lists/linux-usb/msg40575.html
-
-with this patch series tested musb functionality like testusb, masstorage
-OMAP4430SDP, OMAP3430SDP, and OMAP3630 zoom3.
-
-Tested global suspend resume for offmode and retention on OMAP3630Zoom3.
-Idle path retention and offmode validation is not done with these patch series.
-
-
-Version History:
----------------
-
-Version V6
-
-Calling runtime_pm_suspend in the pm_ops function was not effective.
-So using the bus runtime methods directly in the pm_ops suspend/resume
-functions.
-
-Version V5:
-
-Fixed review comments from Felipe.
-
-
-Version V4:
-
-Rebased the changes based on the re-orgnized patches submitted by Felipe.
-Fixed review comments received for V3.
-Dropped the idlepath  power management patch with this series.
-
-Some of the links for V3 review comments:
-
-https://patchwork.kernel.org/patch/199482/
-http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg35488.html
-http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg33201.html
-http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg35387.html
-
-Version V3
-
-Added the patch for adding the hwmod database for OMAP2430.
-Re-arranged the patches in such a way that first migrate the musb driver
-to use the runtime PM apis and then added a patch to support offmode in idle path.
-Calling the runtime PM apis before disbaling the interupts in the idle path.
-Added the #ifdef CONFIG_PM_RUNTIME  check in the musb core driver for calling 
-the runtime PM APIs as non-omap platforms may not have the runtime pm enabled
-and clk_enable/disable should be called for them.
-
-Optimized the context save restore of musb registers only if the next state is
-going to offmode and previous state was offmode.
-
-Some of the links for V2 review comments
-----------------------------------------
-http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg34068.html
-http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg32024.html
-http://www.spinics.net/lists/linux-usb/msg35562.html
-http://www.spinics.net/lists/linux-usb/msg35720.html
-
-Vesrion v2:
-
-Fixed review comments.
-Removed the omap_hwmod.h inclusion from musb.h file which was 
-breaking the non-omap platform build.
-Using the runtime pm apis in the idle path(interrupts disabled).
-Added the omap4 hwmod data base.
-
-Version v1:
-initial version of the patch series.
-
-Some of the links for v1
-------------------------
-
-http://www.spinics.net/lists/linux-usb/msg34570.html
-http://www.spinics.net/lists/linux-omap/msg34568.html
-http://www.spinics.net/lists/linux-usb/msg34544.html
-http://www.spinics.net/lists/linux-usb/msg34540.html
-http://www.spinics.net/lists/linux-usb/msg34589.html
-http://www.spinics.net/lists/linux-usb/msg34554.html
-http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg32973.html
-
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Cousson, Benoit <b-cousson@ti.com>
+Signed-off-by: Hema HK <hemahk@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Cousson, Benoit <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   93 +++++++++++++++++++++++++++++
+ 1 file changed, 93 insertions(+)
 
-Cousson, Benoit (1):
-   OMAP4430: hwmod data: Adding USBOTG
-
-Hema HK (4):
-  OMAP2430: hwmod data: Add USBOTG
-  OMAP3xxx: hwmod data: Add USBOTG
-  OMAP2+: musb: HWMOD adaptation for musb.
-  usb: musb: Using runtime pm APIs for musb.
-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   98 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  101 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   93 +++++++++++++++++++++++++
- arch/arm/mach-omap2/usb-musb.c             |   76 +++++++++++++++------
- drivers/usb/musb/musb_core.h               |    2 +-
- drivers/usb/musb/omap2430.c                |   79 ++++++----------------
- 6 files changed, 369 insertions(+), 80 deletions(-)
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: linux-2.6/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ linux-2.6/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -55,6 +55,7 @@ static struct omap_hwmod omap44xx_l4_per
+ static struct omap_hwmod omap44xx_l4_wkup_hwmod;
+ static struct omap_hwmod omap44xx_mpu_hwmod;
+ static struct omap_hwmod omap44xx_mpu_private_hwmod;
++static struct omap_hwmod omap44xx_usb_otg_hs_hwmod;
+ 
+ /*
+  * Interconnects omap_hwmod structures
+@@ -286,12 +287,21 @@ static struct omap_hwmod_ocp_if omap44xx
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* usb_otg_hs -> l3_main_2 */
++static struct omap_hwmod_ocp_if omap44xx_usb_otg_hs__l3_main_2 = {
++	.master		= &omap44xx_usb_otg_hs_hwmod,
++	.slave		= &omap44xx_l3_main_2_hwmod,
++	.clk		= "l3_div_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* l3_main_2 slave ports */
+ static struct omap_hwmod_ocp_if *omap44xx_l3_main_2_slaves[] = {
+ 	&omap44xx_dma_system__l3_main_2,
+ 	&omap44xx_iva__l3_main_2,
+ 	&omap44xx_l3_main_1__l3_main_2,
+ 	&omap44xx_l4_cfg__l3_main_2,
++	&omap44xx_usb_otg_hs__l3_main_2,
+ };
+ 
+ static struct omap_hwmod omap44xx_l3_main_2_hwmod = {
+@@ -2001,6 +2011,87 @@ static struct omap_hwmod omap44xx_wd_tim
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+ 
++/*
++ * 'usb_otg_hs' class
++ * high-speed on-the-go universal serial bus (usb_otg_hs) controller
++ */
++
++static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
++	.rev_offs	= 0x0400,
++	.sysc_offs	= 0x0404,
++	.syss_offs	= 0x0408,
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
++			  SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
++			  SYSC_HAS_AUTOIDLE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			  MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap44xx_usb_otg_hs_hwmod_class = {
++	.name = "usb_otg_hs",
++	.sysc = &omap44xx_usb_otg_hs_sysc,
++};
++
++/* usb_otg_hs */
++static struct omap_hwmod_irq_info omap44xx_usb_otg_hs_irqs[] = {
++	{ .name = "mc", .irq = 92 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "dma", .irq = 93 + OMAP44XX_IRQ_GIC_START },
++};
++
++/* usb_otg_hs master ports */
++static struct omap_hwmod_ocp_if *omap44xx_usb_otg_hs_masters[] = {
++	&omap44xx_usb_otg_hs__l3_main_2,
++};
++
++static struct omap_hwmod_addr_space omap44xx_usb_otg_hs_addrs[] = {
++	{
++		.pa_start	= OMAP44XX_HSUSB_OTG_BASE,
++		.pa_end		= OMAP44XX_HSUSB_OTG_BASE + SZ_4K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_cfg -> usb_otg_hs */
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_otg_hs = {
++	.master		= &omap44xx_l4_cfg_hwmod,
++	.slave		= &omap44xx_usb_otg_hs_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_usb_otg_hs_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* usb_otg_hs slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_usb_otg_hs_slaves[] = {
++	&omap44xx_l4_cfg__usb_otg_hs,
++};
++
++static struct omap_hwmod_opt_clk usb_otg_hs_opt_clks[] = {
++	{ .role = "xclk", .clk = "otg_60m_gfclk_ck" },
++};
++
++static struct omap_hwmod omap44xx_usb_otg_hs_hwmod = {
++	.name		= "usb_otg_hs",
++	.class		= &omap44xx_usb_otg_hs_hwmod_class,
++	.mpu_irqs	= omap44xx_usb_otg_hs_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_irqs),
++	.main_clk	= "usb_otg_hs_ick",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
++		},
++	},
++	.opt_clks	= usb_otg_hs_opt_clks,
++	.opt_clks_cnt = ARRAY_SIZE(usb_otg_hs_opt_clks),
++	.slaves		= omap44xx_usb_otg_hs_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_slaves),
++	.masters	= omap44xx_usb_otg_hs_masters,
++	.masters_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_masters),
++	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
+ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 
+ 	/* dmm class */
+@@ -2068,6 +2159,8 @@ static __initdata struct omap_hwmod *oma
+ 	&omap44xx_wd_timer2_hwmod,
+ 	&omap44xx_wd_timer3_hwmod,
+ 
++	/* hsusb otg class */
++	&omap44xx_usb_otg_hs_hwmod,
+ 	NULL,
+ };
+ 
