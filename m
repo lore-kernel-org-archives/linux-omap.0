@@ -1,41 +1,35 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 1/4] OMAP2PLUS: clocks: Align DSS clock names and
- roles
-Date: Wed, 9 Feb 2011 23:22:33 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102092321580.21991@utopia.booyaka.com>
-References: <1296491266-6949-1-git-send-email-sumit.semwal@ti.com> <1296491266-6949-2-git-send-email-sumit.semwal@ti.com>
+From: "Janorkar, Mayuresh" <mayur@ti.com>
+Subject: linux-omap tree
+Date: Thu, 10 Feb 2011 11:57:02 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB0323A187DC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60898 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751155Ab1BJGWe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Feb 2011 01:22:34 -0500
-In-Reply-To: <1296491266-6949-2-git-send-email-sumit.semwal@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:32900 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750721Ab1BJG1H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Feb 2011 01:27:07 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1A6R3l0006211
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 00:27:05 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1A6R3rZ011030
+	for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 11:57:03 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sumit Semwal <sumit.semwal@ti.com>
-Cc: tomi.valkeinen@nokia.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 31 Jan 2011, Sumit Semwal wrote:
+Hi!
 
-> Currently, clock database has <dev, clock-name> tuples for DSS2. Because of
-> this, the clock names are different across different OMAP platforms.
-> 
-> This patch aligns the DSS2 clock names and roles across OMAP 2420, 2430, 3xxx,
-> 44xx platforms in the clock databases, hwmod databases for opt-clocks, and DSS
-> clock handling.
-> 
-> This ensures that clk_get/put/enable/disable APIs in DSS can use uniform role
-> names.
-> 
-> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+I am not able to find linux-omap tree on git.kernel.org.
+But linux-omap-pm is present.
 
-Based on a quick glance, this is 
+Something might have gone wrong while maintaining the tree.
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+Is there any other place where the tree is being mirrored?
 
-Tomi or Tony, feel free to take this
-
-
-- Paul
+-Thanks,
+Mayuresh
