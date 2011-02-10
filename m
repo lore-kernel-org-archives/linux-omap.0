@@ -1,127 +1,73 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 1/4] cbus: retu: pass IRQ via struct resource
-Date: Thu, 10 Feb 2011 12:21:18 +0200
-Message-ID: <1297333281-29853-2-git-send-email-balbi@ti.com>
+Subject: [PATCH 2/4] cbus: retu: headset: grab IRQ via struct resource
+Date: Thu, 10 Feb 2011 12:21:19 +0200
+Message-ID: <1297333281-29853-3-git-send-email-balbi@ti.com>
 References: <1297333281-29853-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:44861 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755992Ab1BJKVd (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:50585 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755992Ab1BJKVg (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Feb 2011 05:21:33 -0500
-Received: by mail-fx0-f49.google.com with SMTP id 19so1263863fxm.36
-        for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 02:21:32 -0800 (PST)
+	Thu, 10 Feb 2011 05:21:36 -0500
+Received: by mail-fx0-f44.google.com with SMTP id 9so1397669fxm.31
+        for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 02:21:35 -0800 (PST)
 In-Reply-To: <1297333281-29853-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-that's the preferred way to pass resources
-to drivers anyway.
+now that we pass IRQ via struct resource, we can
+simply use it.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/cbus/retu.c |   42 +++++++++++++++++++++++++++++++++++-------
- 1 files changed, 35 insertions(+), 7 deletions(-)
+ drivers/cbus/retu-headset.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index fa666fe..6134781 100644
---- a/drivers/cbus/retu.c
-+++ b/drivers/cbus/retu.c
-@@ -306,12 +306,24 @@ static void retu_power_off(void)
- 	for (;;);
- }
+diff --git a/drivers/cbus/retu-headset.c b/drivers/cbus/retu-headset.c
+index 661534c..acf5cbe7 100644
+--- a/drivers/cbus/retu-headset.c
++++ b/drivers/cbus/retu-headset.c
+@@ -45,6 +45,7 @@ struct retu_headset {
+ 	unsigned			pressed;
+ 	struct timer_list		enable_timer;
+ 	struct timer_list		detect_timer;
++	int				irq;
+ };
  
-+static struct resource generic_resources[] = {
-+	{
-+		.start	= -EINVAL,	/* fixed later */
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+	{
-+		.start	= -EINVAL,	/* fixed later */
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
- /**
-  * retu_allocate_child - Allocates one Retu child
-  * @name: name of new child
-  * @parent: parent device for this child
-  */
--static struct device *retu_allocate_child(char *name, struct device *parent)
-+static struct device *retu_allocate_child(char *name, struct device *parent,
-+		int irq_base, int irq1, int irq2, int num)
+ static void retu_headset_set_bias(int enable)
+@@ -219,6 +220,7 @@ static void retu_headset_detect_timer(unsigned long arg)
+ static int __init retu_headset_probe(struct platform_device *pdev)
  {
- 	struct platform_device		*pdev;
- 	int				status;
-@@ -324,6 +336,18 @@ static struct device *retu_allocate_child(char *name, struct device *parent)
+ 	struct retu_headset *hs;
++	int irq;
+ 	int r;
  
- 	pdev->dev.parent = parent;
+ 	hs = kzalloc(sizeof(*hs), GFP_KERNEL);
+@@ -258,8 +260,11 @@ static int __init retu_headset_probe(struct platform_device *pdev)
+ 	setup_timer(&hs->detect_timer, retu_headset_detect_timer,
+ 		    (unsigned long) hs);
  
-+	if (num) {
-+		generic_resources[0].start = irq_base + irq1;
-+		generic_resources[1].start = irq_base + irq2;
+-	r = request_threaded_irq(CBUS_RETU_IRQ_BASE + RETU_INT_HOOK, NULL,
+-			retu_headset_hook_interrupt, 0, "hookdet", hs);
++	irq = platform_get_irq(pdev, 0);
++	hs->irq = irq;
 +
-+		status = platform_device_add_resources(pdev,
-+				generic_resources, num);
-+		if (status < 0) {
-+			dev_dbg(parent, "can't add resources to %s\n", name);
-+			goto err;
-+		}
-+	}
-+
- 	status = platform_device_add(pdev);
- 	if (status < 0) {
- 		dev_dbg(parent, "can't add %s\n", name);
-@@ -334,29 +358,33 @@ static struct device *retu_allocate_child(char *name, struct device *parent)
++	r = request_threaded_irq(irq, NULL, retu_headset_hook_interrupt, 0,
++			"hookdet", hs);
+ 	if (r != 0) {
+ 		dev_err(&pdev->dev, "hookdet IRQ not available\n");
+ 		goto err6;
+@@ -290,7 +295,7 @@ static int retu_headset_remove(struct platform_device *pdev)
+ 	device_remove_file(&pdev->dev, &dev_attr_enable_det);
+ 	retu_headset_disable(hs);
+ 	retu_headset_det_disable(hs);
+-	free_irq(CBUS_RETU_IRQ_BASE + RETU_INT_HOOK, hs);
++	free_irq(hs->irq, hs);
+ 	input_unregister_device(hs->idev);
+ 	input_free_device(hs->idev);
  
- err:
- 	platform_device_put(pdev);
-+
- 	return NULL;
- }
- 
- /**
-  * retu_allocate_children - Allocates Retu's children
-  */
--static int retu_allocate_children(struct device *parent)
-+static int retu_allocate_children(struct device *parent, int irq_base)
- {
- 	struct device	*child;
- 
--	child = retu_allocate_child("retu-pwrbutton", parent);
-+	child = retu_allocate_child("retu-pwrbutton", parent, irq_base,
-+			RETU_INT_PWR, -1, 1);
- 	if (!child)
- 		return -ENOMEM;
- 
--	child = retu_allocate_child("retu-headset", parent);
-+	child = retu_allocate_child("retu-headset", parent, irq_base,
-+			RETU_INT_HOOK, -1, 1);
- 	if (!child)
- 		return -ENOMEM;
- 
--	child = retu_allocate_child("retu-rtc", parent);
-+	child = retu_allocate_child("retu-rtc", parent, irq_base,
-+			RETU_INT_RTCS, RETU_INT_RTCA, 2);
- 	if (!child)
- 		return -ENOMEM;
- 
--	child = retu_allocate_child("retu-wdt", parent);
-+	child = retu_allocate_child("retu-wdt", parent, -1, -1, -1, 0);
- 	if (!child)
- 		return -ENOMEM;
- 
-@@ -423,7 +451,7 @@ static int __init retu_probe(struct platform_device *pdev)
- 	/* Register power off function */
- 	pm_power_off = retu_power_off;
- 
--	ret = retu_allocate_children(&pdev->dev);
-+	ret = retu_allocate_children(&pdev->dev, retu->irq_base);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "Unable to allocate Retu children\n");
- 		goto err2;
 -- 
 1.7.4.rc2
 
