@@ -1,45 +1,70 @@
-From: "Pedanekar, Hemant" <hemantp@ti.com>
-Subject: RE: [PATCH v5 2/4] TI816X: Update common OMAP machine specific
- sources
-Date: Thu, 10 Feb 2011 10:13:47 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036ACA3CB4@dbde02.ent.ti.com>
-References: <1297270570-32492-1-git-send-email-hemantp@ti.com>
- <20110210014557.GG20795@atomide.com> <20110210014826.GH20795@atomide.com>
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
+Subject: Re: [PATCH v5 0/5] omap: mailbox: hwmod support
+Date: Thu, 10 Feb 2011 11:04:41 +0530
+Message-ID: <AANLkTimah86Mj37rCMYnuprUfeP1XwmxcNBD9S=8g6_N@mail.gmail.com>
+References: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48523 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755228Ab1BJEn4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Feb 2011 23:43:56 -0500
-In-Reply-To: <20110210014826.GH20795@atomide.com>
-Content-Language: en-US
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:59776 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751073Ab1BJFen convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Feb 2011 00:34:43 -0500
+Received: by wwi17 with SMTP id 17so953469wwi.12
+        for <linux-omap@vger.kernel.org>; Wed, 09 Feb 2011 21:34:41 -0800 (PST)
+In-Reply-To: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, lo <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, lak <linux-arm-kernel@lists.infradead.org>
 
-Tony Lindgren wrote on Thursday, February 10, 2011 7:18 AM:
+On Thu, Feb 3, 2011 at 12:57 AM, Omar Ramirez Luna <omar.ramirez@ti.com=
+> wrote:
+> Mailbox hwmod support for OMAP 2,3,4.
+>
+> This was tested on OMAP3 (3430, 3630), minor testing
+> was made on OMAP4.
+>
+> No testing on OMAP2 since I don't have the hardware.
+>
+> Highlights from v5 include the comments received from
+> previous version v4[1].
+>
+> Benoit Cousson (1):
+> =A0OMAP4: hwmod data: add mailbox data
+>
+> Felipe Contreras (2):
+> =A0OMAP3: hwmod data: add mailbox data
+> =A0OMAP: mailbox: build device using omap_device/omap_hwmod
+>
+> Omar Ramirez Luna (1):
+> =A0OMAP: mailbox: use runtime pm for clk and sysc handling
+>
+> omar ramirez (1):
+> =A0OMAP2: hwmod data: add mailbox data
+>
+> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 98 =
++++++-----------------------
+> =A0arch/arm/mach-omap2/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 67 =
+++-----------------
+> =A0arch/arm/mach-omap2/omap_hwmod_2420_data.c | =A0 74 ++++++++++++++=
++++++++
+> =A0arch/arm/mach-omap2/omap_hwmod_2430_data.c | =A0 73 ++++++++++++++=
++++++++
+> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0 72 ++++++++++++++=
+++++++
+> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0 67 ++++++++++++++=
++++++
+> =A06 files changed, 308 insertions(+), 143 deletions(-)
 
-> * Tony Lindgren <tony@atomide.com> [110209 17:45]:
->> 
->> We should just have separate struct map_desc omapti816x_io_desc[] then.
->> Maybe have a common struct map_desc omap3_io_desc[] and then separate
->> omap3xxx_io_desc and omapti816x_io_desc?
-> 
-> Oh and this will work just fine for map_io without having cpu_is_omap
-> macros working yet because we call set_globals from the board
-> file with
-> the processor class data.
-> 
-> Tony
+Boot tested mainline v2.6.38-rc4 along with this 5 patch series on
+Omap 2420,2430 SDPs.
 
-So probably I need to create another function (ti816x_map_common_io()) to
-map just the L4 slow region and call it from board file (after set globals)
-as distinguishing between OMAP3xxx and TI816X is not possible at that time
-inside omap34xx_map_common_io() as they both have same class.
-
-Does this approach look ok?
-Thanks.
-   Hemant
+Tested-by: Sourav Poddar<sourav.poddar@ti.com>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
