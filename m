@@ -1,51 +1,36 @@
-From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Subject: Re: [PATCH v2 0/5] OMAP: HSMMC: hwmod adaptation
-Date: Thu, 10 Feb 2011 19:59:42 +0530
-Message-ID: <AANLkTin7znqTB5FQyD1w1puiwDbx9QMTFSUvJz53VU8m@mail.gmail.com>
-References: <1297198431-23779-1-git-send-email-kishore.kadiyala@ti.com>
-	<20110208234400.GO20795@atomide.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/2] omap: rx51: mark reserved memory earlier
+Date: Thu, 10 Feb 2011 16:40:25 +0200
+Message-ID: <AANLkTikPp6hin3FAYNJG33_ac295UpJZy+146Et+b=fJ@mail.gmail.com>
+References: <AANLkTik_6byuzkZ+mKunTi6HJTHu49C4XGebfTjCaEeE@mail.gmail.com>
+	<1287146784-5517-2-git-send-email-felipe.contreras@gmail.com>
+	<1289568492.3297.277.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:38217 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756535Ab1BJO3p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Feb 2011 09:29:45 -0500
-In-Reply-To: <20110208234400.GO20795@atomide.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:47035 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755829Ab1BJOk1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Feb 2011 09:40:27 -0500
+Received: by fxm20 with SMTP id 20so1542034fxm.19
+        for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 06:40:26 -0800 (PST)
+In-Reply-To: <1289568492.3297.277.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, madhu.cr@ti.com, khilman@deeprootsystems.com, paul@pwsan.com
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, "mike@compulab.co.il" <mike@compulab.co.il>, Russell King <linux@arm.linux.org.uk>
 
-On Wed, Feb 9, 2011 at 5:14 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Kishore Kadiyala <kishore.kadiyala@ti.com> [110208 12:45]:
->> Adding hwmod data for hsmmc device on OMAP2420/OMAP2430/OMAP3/OMAP4.
->> Adapting the omap_hsmmc driver to hwmod framework
->>
->> V2:
->> ---
->> Updated hwmod data for OMAP2420 & OMAP2430.
->>
->> The patch series is rebased on v2.6.38-rc4 and tested on OMAP4430SDP,
->> OMAP3430SDP & OMAP2430SDP.
->>
->> For OMAP2430SDP validation, the patch series has dependency on
->> https://patchwork.kernel.org/patch/538301/
+On Fri, Nov 12, 2010 at 3:28 PM, Tomi Valkeinen
+<tomi.valkeinen@nokia.com> wrote:
+> On Fri, 2010-10-15 at 14:46 +0200, ext Felipe Contreras wrote:
+>> So that omap_vram_set_sdram_vram() is called before
+>> omap_vram_reserve_sdram_memblock().
 >
-> No luck on 2430sdp with these and the above patch applied:
-Hi Tony,
+> Is this still valid after the latest memblock stuff? I presume it is.
+> I'm not able to test this, and you said you didn't test it, so I'm a bit
+> uneasy about applying =).
 
-Can you let us know your SDP board version.
+This has been tested on other boards. Can you apply?
 
-2430sdp VG5.1.0 + SD card on MMC1 slot worked for me with 2.6.38-rc3
-
->
-> # dmesg | grep -i mmc
-> omap_hwmod: mmc1_hwmod: cannot clk_get opt_clk mmchsdb_fck
-> omap_hwmod: mmchs2_fck: missing clockdomain for mmchs2_fck.
-> omap_hwmod: mmc2_hwmod: cannot clk_get opt_clk mmchsdb_fck
-> omap_hwmod: mmc1_hwmod: softreset failed (waited 10000 usec)
-> omap_hwmod: mmc2_hwmod: softreset failed (waited 10000 usec)
-> print_constraints: VMMC1: 1850 <--> 3150 mV at 3150 mV normal standby
->
+-- 
+Felipe Contreras
