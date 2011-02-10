@@ -1,95 +1,74 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 5/7] omap: dpll: Enable all OMAP3/4 dpll autoidle late at boot
-Date: Thu, 10 Feb 2011 14:46:38 +0530
-Message-ID: <1297329400-5936-6-git-send-email-rnayak@ti.com>
-References: <1297329400-5936-1-git-send-email-rnayak@ti.com>
- <1297329400-5936-2-git-send-email-rnayak@ti.com>
- <1297329400-5936-3-git-send-email-rnayak@ti.com>
- <1297329400-5936-4-git-send-email-rnayak@ti.com>
- <1297329400-5936-5-git-send-email-rnayak@ti.com>
+Subject: [PATCH v2 0/7] clock/dpll autoidle support
+Date: Thu, 10 Feb 2011 14:46:33 +0530
+Message-ID: <1297329400-5936-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40984 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40985 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752431Ab1BJJQx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753918Ab1BJJQx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 10 Feb 2011 04:16:53 -0500
-In-Reply-To: <1297329400-5936-5-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, b-cousson@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Enable all dpll autoidle for OMAP4 and OMAP3 (OMAP3
-already had dpll autoidle turned on, but was done
-using low level cm accessor apis).
-On OMAP3, replace the cm accessor apis doing this
-with the now available support for doing this in
-clock framework, using omap_clk_enable_autoidle().
+OMAP has various clock nodes and dpll's
+which support hardware level autoidle.
+Enabling hardware level autoidle provides
+better power savings without much software
+intervention.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |   18 ++++--------------
- arch/arm/mach-omap2/pm44xx.c |    4 ++++
- 2 files changed, 8 insertions(+), 14 deletions(-)
+This series does the following to help enable
+hardware level autoidling using clock framework
+for some of these nodes on OMAP3 and OMAP4
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 2f864e4..5a101fa 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -38,6 +38,7 @@
- #include <plat/prcm.h>
- #include <plat/gpmc.h>
- #include <plat/dma.h>
-+#include <plat/clock.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -814,21 +815,10 @@ static void __init prcm_setup_regs(void)
- 	omap_ctrl_writel(OMAP3430_AUTOIDLE_MASK, OMAP2_CONTROL_SYSCONFIG);
- 
- 	/*
--	 * Set all plls to autoidle. This is needed until autoidle is
--	 * enabled by clockfw
-+	 * Set all plls to autoidle.
-+	 * TODO: Add all the iclk autoidles in here as well.
- 	 */
--	omap2_cm_write_mod_reg(1 << OMAP3430_AUTO_IVA2_DPLL_SHIFT,
--			 OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
--	omap2_cm_write_mod_reg(1 << OMAP3430_AUTO_MPU_DPLL_SHIFT,
--			 MPU_MOD,
--			 CM_AUTOIDLE2);
--	omap2_cm_write_mod_reg((1 << OMAP3430_AUTO_PERIPH_DPLL_SHIFT) |
--			 (1 << OMAP3430_AUTO_CORE_DPLL_SHIFT),
--			 PLL_MOD,
--			 CM_AUTOIDLE);
--	omap2_cm_write_mod_reg(1 << OMAP3430ES2_AUTO_PERIPH2_DPLL_SHIFT,
--			 PLL_MOD,
--			 CM_AUTOIDLE2);
-+	omap_clk_enable_autoidle();
- 
- 	/*
- 	 * Enable control of expternal oscillator through
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 76cfff2..8431d41 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -15,6 +15,7 @@
- #include <linux/list.h>
- #include <linux/err.h>
- #include <linux/slab.h>
-+#include <plat/clock.h>
- 
- #include "powerdomain.h"
- #include <mach/omap4-common.h>
-@@ -111,6 +112,9 @@ static int __init omap4_pm_init(void)
- 		pr_err("Failed to setup powerdomains\n");
- 		goto err2;
- 	}
-+
-+	/* Enable autoidle for all clks which support it*/
-+	omap_clk_enable_autoidle();
- #endif
- 
- #ifdef CONFIG_SUSPEND
--- 
-1.7.0.4
+-1- Adds support for providing function pointers
+for enabling/disabling autoidle in clkops
+-2- Populates these in clkops for all OMAP3/4 dplls
+-3- Enables all dpll autoidle late in boot on OMAP3 and OMAP4
+-4- Adds support for mx postdivider autoidle (present
+only on OMAP4) and enables it late in OMAP4 boot
+
+Some of the patches in this series were earlier posted
+and discussed as part of another series here
+http://marc.info/?l=linux-omap&m=129681356402594&w=2
+They are now posted as a seperate series as discussed
+here
+http://marc.info/?l=linux-omap&m=129713867702170&w=2
+
+The patches are boot tested on OMAP3430sdp and
+OMAP4430sdp.
+
+The following changes since commit 100b33c8bd8a3235fd0b7948338d6cbb3db3c63d:
+  Linus Torvalds (1):
+        Linux 2.6.38-rc4
+
+are available in the git repository at:
+
+ git://gitorious.org/omap-pm/linux.git dpll-autoidle-v2
+
+Changes in v2:
+-1- Added support for clkout_x2 autogating
+-2- Populated dpll_usb_clkdcoldo_ck's missing
+clksel register
+
+Rajendra Nayak (7):
+  omap: clock: Check for enable/disable ops support
+  omap3: dpll: Populate clkops for dpll1_ck
+  omap: clock: Add allow_idle/deny_idle support in clkops
+  omap: dpll: Add allow_idle/deny_idle support for all DPLL's
+  omap: dpll: Enable all OMAP3/4 dpll autoidle late at boot
+  omap4: dpll: Add dpll api to control GATE_CTRL
+  omap4: dpll: Enable auto gate control for all MX postdividers
+
+ arch/arm/mach-omap2/clock.c             |   25 +++++++++++---
+ arch/arm/mach-omap2/clock.h             |    5 +++
+ arch/arm/mach-omap2/clock3xxx_data.c    |    4 +-
+ arch/arm/mach-omap2/clock44xx_data.c    |   54 +++++++++++++++++------------
+ arch/arm/mach-omap2/dpll3xxx.c          |   57 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm34xx.c            |   18 ++-------
+ arch/arm/mach-omap2/pm44xx.c            |    4 ++
+ arch/arm/plat-omap/clock.c              |   26 ++++++++++++++
+ arch/arm/plat-omap/include/plat/clock.h |    7 ++++
+ 9 files changed, 156 insertions(+), 44 deletions(-)
 
