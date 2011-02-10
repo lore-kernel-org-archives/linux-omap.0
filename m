@@ -1,138 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFT/RFC/PATCH 00/13] CBUS meets GENIRQ
-Date: Wed, 9 Feb 2011 18:43:49 -0800
-Message-ID: <20110210024349.GI20795@atomide.com>
-References: <1296728428-26399-1-git-send-email-balbi@ti.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH v5 2/4] TI816X: Update common OMAP machine specific
+ sources
+Date: Thu, 10 Feb 2011 10:13:47 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036ACA3CB4@dbde02.ent.ti.com>
+References: <1297270570-32492-1-git-send-email-hemantp@ti.com>
+ <20110210014557.GG20795@atomide.com> <20110210014826.GH20795@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14660 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754125Ab1BJCoS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Feb 2011 21:44:18 -0500
-Content-Disposition: inline
-In-Reply-To: <1296728428-26399-1-git-send-email-balbi@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48523 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755228Ab1BJEn4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Feb 2011 23:43:56 -0500
+In-Reply-To: <20110210014826.GH20795@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>
 
-* Felipe Balbi <balbi@ti.com> [110203 02:20]:
-> Hi Tony,
+Tony Lindgren wrote on Thursday, February 10, 2011 7:18 AM:
+
+> * Tony Lindgren <tony@atomide.com> [110209 17:45]:
+>> 
+>> We should just have separate struct map_desc omapti816x_io_desc[] then.
+>> Maybe have a common struct map_desc omap3_io_desc[] and then separate
+>> omap3xxx_io_desc and omapti816x_io_desc?
 > 
-> When you have some extra time, could you run these on N810
-> to check whether I'm on the right path ? After these patches
-> all CBUS drivers are using standard request_threaded_irq()
-> calls. It's one step closer into getting those in mainline.
+> Oh and this will work just fine for map_io without having cpu_is_omap
+> macros working yet because we call set_globals from the board
+> file with
+> the processor class data.
+> 
+> Tony
 
-Cool sorry it took a while, this is starting to look like
-it will be pretty close to be posted for merging :)
+So probably I need to create another function (ti816x_map_common_io()) to
+map just the L4 slow region and call it from board file (after set globals)
+as distinguishing between OMAP3xxx and TI816X is not possible at that time
+inside omap34xx_map_common_io() as they both have same class.
 
-I guess we should move files around to have:
-
-drivers/mfd/cbus-retu.c
-drivers/mfd/cbus-tahvo.c
-
-drivers/rtc/rtc-cbus-retu.c
-...
-
-Anything else remaining to do?
-
-Also the following patch was needed to get this to boot
-with interrupts working. Maybe you have a better plan
-for getting the retu irq_base?
-
-Anyways, since n8x0 boots and stays up, we know it's
-working, so I've pushed them all to the cbus branch.
-
-Regards,
-
-Tony
-
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 9 Feb 2011 18:36:16 -0800
-Subject: [PATCH] cbus: Fix nested interrupts for retu
-
-We need to add the retu irq base number to the interrupt
-number for children.
-
-This could be done by passing the interrupt base for
-children in platform_data also I guess.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/drivers/cbus/retu-headset.c
-+++ b/drivers/cbus/retu-headset.c
-@@ -258,7 +258,7 @@ static int __init retu_headset_probe(struct platform_device *pdev)
- 	setup_timer(&hs->detect_timer, retu_headset_detect_timer,
- 		    (unsigned long) hs);
- 
--	r = request_threaded_irq(RETU_INT_HOOK, NULL,
-+	r = request_threaded_irq(CBUS_RETU_IRQ_BASE + RETU_INT_HOOK, NULL,
- 			retu_headset_hook_interrupt, 0, "hookdet", hs);
- 	if (r != 0) {
- 		dev_err(&pdev->dev, "hookdet IRQ not available\n");
-@@ -290,7 +290,7 @@ static int retu_headset_remove(struct platform_device *pdev)
- 	device_remove_file(&pdev->dev, &dev_attr_enable_det);
- 	retu_headset_disable(hs);
- 	retu_headset_det_disable(hs);
--	free_irq(RETU_INT_HOOK, hs);
-+	free_irq(CBUS_RETU_IRQ_BASE + RETU_INT_HOOK, hs);
- 	input_unregister_device(hs->idev);
- 	input_free_device(hs->idev);
- 
---- a/drivers/cbus/retu-pwrbutton.c
-+++ b/drivers/cbus/retu-pwrbutton.c
-@@ -83,7 +83,7 @@ static int __init retubutton_probe(struct platform_device *pdev)
- 		goto err0;
- 	}
- 
--	pwr->irq = RETU_INT_PWR;
-+	pwr->irq = CBUS_RETU_IRQ_BASE + RETU_INT_PWR;
- 	platform_set_drvdata(pdev, pwr);
- 
- 	ret = request_threaded_irq(pwr->irq, NULL, retubutton_irq, 0,
---- a/drivers/cbus/retu-rtc.c
-+++ b/drivers/cbus/retu-rtc.c
-@@ -88,15 +88,15 @@ static int retu_rtc_init_irq(struct retu_rtc *rtc)
- {
- 	int ret;
- 
--	ret = request_threaded_irq(RETU_INT_RTCS, NULL, retu_rtc_interrupt,
-+	ret = request_threaded_irq(CBUS_RETU_IRQ_BASE + RETU_INT_RTCS, NULL, retu_rtc_interrupt,
- 			0, "RTCS", rtc);
- 	if (ret != 0)
- 		return ret;
- 
--	ret = request_threaded_irq(RETU_INT_RTCA, NULL, retu_rtc_interrupt,
-+	ret = request_threaded_irq(CBUS_RETU_IRQ_BASE + RETU_INT_RTCA, NULL, retu_rtc_interrupt,
- 			0, "RTCA", rtc);
- 	if (ret != 0) {
--		free_irq(RETU_INT_RTCS, rtc);
-+		free_irq(CBUS_RETU_IRQ_BASE + RETU_INT_RTCS, rtc);
- 		return ret;
- 	}
- 
-@@ -235,8 +235,8 @@ static int __init retu_rtc_probe(struct platform_device *pdev)
- 	return 0;
- 
- err2:
--	free_irq(RETU_INT_RTCS, rtc);
--	free_irq(RETU_INT_RTCA, rtc);
-+	free_irq(CBUS_RETU_IRQ_BASE + RETU_INT_RTCS, rtc);
-+	free_irq(CBUS_RETU_IRQ_BASE + RETU_INT_RTCA, rtc);
- 
- err1:
- 	kfree(rtc);
-@@ -249,8 +249,8 @@ static int __devexit retu_rtc_remove(struct platform_device *pdev)
- {
- 	struct retu_rtc		*rtc = platform_get_drvdata(pdev);
- 
--	free_irq(RETU_INT_RTCS, rtc);
--	free_irq(RETU_INT_RTCA, rtc);
-+	free_irq(CBUS_RETU_IRQ_BASE + RETU_INT_RTCS, rtc);
-+	free_irq(CBUS_RETU_IRQ_BASE + RETU_INT_RTCA, rtc);
- 	rtc_device_unregister(rtc->rtc);
- 	kfree(rtc);
- 
+Does this approach look ok?
+Thanks.
+   Hemant
