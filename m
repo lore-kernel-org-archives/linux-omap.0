@@ -1,72 +1,95 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFT/RFC/PATCH 00/13] CBUS meets GENIRQ
-Date: Thu, 10 Feb 2011 11:14:47 +0200
-Message-ID: <20110210091447.GA3580@legolas.emea.dhcp.ti.com>
-References: <1296728428-26399-1-git-send-email-balbi@ti.com>
- <20110210024349.GI20795@atomide.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v2 5/7] omap: dpll: Enable all OMAP3/4 dpll autoidle late at boot
+Date: Thu, 10 Feb 2011 14:46:38 +0530
+Message-ID: <1297329400-5936-6-git-send-email-rnayak@ti.com>
+References: <1297329400-5936-1-git-send-email-rnayak@ti.com>
+ <1297329400-5936-2-git-send-email-rnayak@ti.com>
+ <1297329400-5936-3-git-send-email-rnayak@ti.com>
+ <1297329400-5936-4-git-send-email-rnayak@ti.com>
+ <1297329400-5936-5-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:37379 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751238Ab1BJJOw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Feb 2011 04:14:52 -0500
-Received: by fxm20 with SMTP id 20so1221573fxm.19
-        for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 01:14:50 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20110210024349.GI20795@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40984 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752431Ab1BJJQx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Feb 2011 04:16:53 -0500
+In-Reply-To: <1297329400-5936-5-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, b-cousson@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+Enable all dpll autoidle for OMAP4 and OMAP3 (OMAP3
+already had dpll autoidle turned on, but was done
+using low level cm accessor apis).
+On OMAP3, replace the cm accessor apis doing this
+with the now available support for doing this in
+clock framework, using omap_clk_enable_autoidle().
 
-On Wed, Feb 09, 2011 at 06:43:49PM -0800, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [110203 02:20]:
-> > Hi Tony,
-> > 
-> > When you have some extra time, could you run these on N810
-> > to check whether I'm on the right path ? After these patches
-> > all CBUS drivers are using standard request_threaded_irq()
-> > calls. It's one step closer into getting those in mainline.
-> 
-> Cool sorry it took a while, this is starting to look like
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |   18 ++++--------------
+ arch/arm/mach-omap2/pm44xx.c |    4 ++++
+ 2 files changed, 8 insertions(+), 14 deletions(-)
 
-no problem ;-)
-
-> it will be pretty close to be posted for merging :)
-
-yeah, I guess so too.
-
-> I guess we should move files around to have:
-> 
-> drivers/mfd/cbus-retu.c
-> drivers/mfd/cbus-tahvo.c
-> 
-> drivers/rtc/rtc-cbus-retu.c
-
-sure we gotta do that.
-
-> Anything else remaining to do?
-
-there are a few things remaining still. The drivers aren't as good as
-I'd like them to be yet.
-
-> Also the following patch was needed to get this to boot
-> with interrupts working. Maybe you have a better plan
-> for getting the retu irq_base?
-
-That's on my TODO list, I need to pass IRQ number via pdata.
-
-> Anyways, since n8x0 boots and stays up, we know it's
-> working, so I've pushed them all to the cbus branch.
-
-Cool thanks. I'll update my local cbus branch based on yours and try to
-find some time to play with the last few stuff. Maybe I'll have some
-small time during the weekend which I could use to play with it.
-
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 2f864e4..5a101fa 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -38,6 +38,7 @@
+ #include <plat/prcm.h>
+ #include <plat/gpmc.h>
+ #include <plat/dma.h>
++#include <plat/clock.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -814,21 +815,10 @@ static void __init prcm_setup_regs(void)
+ 	omap_ctrl_writel(OMAP3430_AUTOIDLE_MASK, OMAP2_CONTROL_SYSCONFIG);
+ 
+ 	/*
+-	 * Set all plls to autoidle. This is needed until autoidle is
+-	 * enabled by clockfw
++	 * Set all plls to autoidle.
++	 * TODO: Add all the iclk autoidles in here as well.
+ 	 */
+-	omap2_cm_write_mod_reg(1 << OMAP3430_AUTO_IVA2_DPLL_SHIFT,
+-			 OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
+-	omap2_cm_write_mod_reg(1 << OMAP3430_AUTO_MPU_DPLL_SHIFT,
+-			 MPU_MOD,
+-			 CM_AUTOIDLE2);
+-	omap2_cm_write_mod_reg((1 << OMAP3430_AUTO_PERIPH_DPLL_SHIFT) |
+-			 (1 << OMAP3430_AUTO_CORE_DPLL_SHIFT),
+-			 PLL_MOD,
+-			 CM_AUTOIDLE);
+-	omap2_cm_write_mod_reg(1 << OMAP3430ES2_AUTO_PERIPH2_DPLL_SHIFT,
+-			 PLL_MOD,
+-			 CM_AUTOIDLE2);
++	omap_clk_enable_autoidle();
+ 
+ 	/*
+ 	 * Enable control of expternal oscillator through
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 76cfff2..8431d41 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -15,6 +15,7 @@
+ #include <linux/list.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
++#include <plat/clock.h>
+ 
+ #include "powerdomain.h"
+ #include <mach/omap4-common.h>
+@@ -111,6 +112,9 @@ static int __init omap4_pm_init(void)
+ 		pr_err("Failed to setup powerdomains\n");
+ 		goto err2;
+ 	}
++
++	/* Enable autoidle for all clks which support it*/
++	omap_clk_enable_autoidle();
+ #endif
+ 
+ #ifdef CONFIG_SUSPEND
 -- 
-balbi
+1.7.0.4
+
