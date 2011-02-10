@@ -1,48 +1,69 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 4/5] ARM: scu: Move register defines to header file
-Date: Thu, 10 Feb 2011 21:56:06 +0530
-Message-ID: <c91b2ffa73132a815908f0c85888e140@mail.gmail.com>
-References: <20110125125656.GG13300@n2100.arm.linux.org.uk>
- <20110125130422.GH13300@n2100.arm.linux.org.uk> <20110125130611.GA15663@n2100.arm.linux.org.uk>
- <627ff975140c8e4afbad281105b29d35@mail.gmail.com> <20110204104113.GD15004@n2100.arm.linux.org.uk>
- <c703383234131695d040a1e5b8a79413@mail.gmail.com> <20110204113053.GF15004@n2100.arm.linux.org.uk>
- <247f9ef444eeb8ca59de74837a3e9c62@mail.gmail.com> <20110207101829.GA32431@n2100.arm.linux.org.uk>
- <06aa531b67f240da586a7b56238d56b2@mail.gmail.com> <20110210161350.GA9350@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 04/13] OMAP: Introduce dependent voltage domain support
+Date: Thu, 10 Feb 2011 08:36:45 -0800
+Message-ID: <87sjvvx2w2.fsf@ti.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+	<1295618465-15234-5-git-send-email-vishwanath.bs@ti.com>
+	<87wrlfvmj0.fsf@ti.com>
+	<c01ecc9572c8137857b195c0168f7207@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:37858 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750820Ab1BJQ0N (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:49424 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750820Ab1BJQgt (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Feb 2011 11:26:13 -0500
-Received: by mail-wy0-f174.google.com with SMTP id 28so1515405wyb.19
-        for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 08:26:08 -0800 (PST)
-In-Reply-To: <20110210161350.GA9350@n2100.arm.linux.org.uk>
+	Thu, 10 Feb 2011 11:36:49 -0500
+Received: by mail-gy0-f172.google.com with SMTP id 12so700302gyd.17
+        for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 08:36:48 -0800 (PST)
+In-Reply-To: <c01ecc9572c8137857b195c0168f7207@mail.gmail.com> (Vishwanath
+	Sripathy's message of "Mon, 7 Feb 2011 20:04:55 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: catalin.marinas@arm.com, linus.ml.walleij@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ccross@android.com
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, Thara Gopinath <thara@ti.com>
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Thursday, February 10, 2011 9:44 PM
-> To: Santosh Shilimkar
-> Cc: catalin.marinas@arm.com; linus.ml.walleij@gmail.com; linux-
-> omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> ccross@android.com
-> Subject: Re: [PATCH 4/5] ARM: scu: Move register defines to header
-> file
+Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
+
+[...]
+
+>> > diff --git a/arch/arm/mach-omap2/dvfs.c b/arch/arm/mach-
+>> omap2/dvfs.c
+>> > index cefc2be..c9d3894 100755
+>> > --- a/arch/arm/mach-omap2/dvfs.c
+>> > +++ b/arch/arm/mach-omap2/dvfs.c
+>> > @@ -85,6 +85,7 @@ struct omap_vdd_dvfs_info {
+>> >  	struct mutex scaling_mutex; /* dvfs mutex */
+>> >  	struct voltagedomain *voltdm;
+>> >  	struct list_head dev_list;
+>> > +	struct device vdd_device;
+>>
+>> It's not clear what the usage of this device is for.
+>>
+>> It is never initialized, but seems to be used as a dummy device when
+>> calcluating dependencies.   Needs clarification.
 >
-> On Thu, Feb 10, 2011 at 08:19:19PM +0530, Santosh Shilimkar wrote:
-> > This patch will need below update so that the smp_scu.h
-> > header can be included from assembly files. Will you
-> > fold this into your patch or you want me to
-> > send below as separate patch ?
->
-> Folded.
+> This device is used for placing voltage request (omap_dvfs_add_vdd_user)
+> when dealing with dependent vdds. Eg: while scaling MPU VDD, we also scale
+> CORE VDD. So while placing voltage request for CORE VDD, this vdd_device
+> of MPU is used as the requesting device so that this request is stored as
+> a separate user.
 
-Thanks.
+I was able to follow how it was used, and why.   But it is still not
+clear to the reader.
 
-Regards,
-Santosh
+First, the device is never initialized, so it's essentially a dummy
+device that remains initialized by default to all zeros.   So, any
+attempt to use any device APIs (e.g. dev_name, etc.) on this will not
+behave as expected.
+
+Second, the reason for this device and the need for the request to be
+stored as a separate user are not clear in the code and don't exist in
+the comments.
+
+Kevin
+
+
+
+
+
