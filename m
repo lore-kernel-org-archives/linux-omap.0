@@ -1,48 +1,203 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
-Date: Thu, 10 Feb 2011 13:16:51 +0000
-Message-ID: <20110210131651.GC3652@n2100.arm.linux.org.uk>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk> <0557426516de482c1769a50fa0b5f17a@mail.gmail.com> <20110208164747.GD6188@n2100.arm.linux.org.uk> <AANLkTimGa-Y6ddHknGe9Gar7+mWPuA_T2+6VL6ecfgxD@mail.gmail.com> <20110210130430.GB3652@n2100.arm.linux.org.uk> <1297343555.9306.9.camel@e102109-lin.cambridge.arm.com>
+From: Hema Kalliguddi <hemahk@ti.com>
+Subject: RE: [PATCH 4/5 v5] OMAP2+: musb: HWMOD adaptation for musb.
+Date: Thu, 10 Feb 2011 19:04:16 +0530
+Message-ID: <ccae5231e5a765988953567b6911e48f@mail.gmail.com>
+References: <1291991739-21705-1-git-send-email-hemahk@ti.com>
+ <1291991739-21705-5-git-send-email-hemahk@ti.com> <1297209792.10580.28.camel@vence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46379 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751147Ab1BJNRQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Feb 2011 08:17:16 -0500
-Content-Disposition: inline
-In-Reply-To: <1297343555.9306.9.camel@e102109-lin.cambridge.arm.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:52231 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751450Ab1BJNeS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Feb 2011 08:34:18 -0500
+In-Reply-To: <1297209792.10580.28.camel@vence>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Thu, Feb 10, 2011 at 01:12:35PM +0000, Catalin Marinas wrote:
-> On Thu, 2011-02-10 at 13:04 +0000, Russell King - ARM Linux wrote:
-> > On Wed, Feb 09, 2011 at 10:01:33AM +0000, Catalin Marinas wrote:
-> > > Could we make the domains usage a run-time feature based on the
-> > > architecture version? For ARMv7, we need to have the vectors page
-> > > read-only anyway if the SWP emulation is enabled (and I posted a
-> > > simple patch in a reply to your email).
-> > >
-> > > The issue I see is that ARM11MPCore is reported as v7 though we still
-> > > use domains on this processor (we could always remove the domains if
-> > > TLS register is available or use some more precise architecture
-> > > version identification).
-> > 
-> > We could also do the below, which I think is more logical - SWP emulation
-> > requires that CPU domains aren't enabled, so let's make that explicit
-> > in the Kconfig.
-> 
-> This may work but it is to restrictive IMHO.
+ Kevin,
 
-At this point I really don't care - mainly because of the lack of support
-from the community for sorting out these problems and testing solutions
-to them.
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>Sent: Wednesday, February 09, 2011 5:33 AM
+>To: Hema HK
+>Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org;
+>Felipe Balbi; Tony Lindgren; Cousson, Benoit; Paul Walmsley
+>Subject: Re: [PATCH 4/5 v5] OMAP2+: musb: HWMOD adaptation for musb.
+>
+>On Fri, 2010-12-10 at 20:05 +0530, Hema HK wrote:
+>> Using omap_device_build API instead of platform_device_register for
+>> OMAP2430,OMAP34xx and OMAP4430 musb device registration.
+>> The device specific resources defined in centralized
+>> database will be used.
+>>
+>> Signed-off-by: Hema HK <hemahk@ti.com>
+>> Cc: Felipe Balbi <balbi@ti.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>> Cc: Cousson, Benoit <b-cousson@ti.com>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>> ---
+>>  arch/arm/mach-omap2/usb-musb.c |   76
+>+++++++++++++++++++++++++++++------------
+>>  1 file changed, 55 insertions(+), 21 deletions(-)
+>>
+>> Index: usb/arch/arm/mach-omap2/usb-musb.c
+>> ===================================================================
+>> --- usb.orig/arch/arm/mach-omap2/usb-musb.c
+>> +++ usb/arch/arm/mach-omap2/usb-musb.c
+>> @@ -31,9 +31,12 @@
+>>  #include <mach/am35xx.h>
+>>  #include <plat/usb.h>
+>>  #include "control.h"
+>> +#include <plat/omap_device.h>
+>>
+>>  #if defined(CONFIG_USB_MUSB_OMAP2PLUS) || defined
+>(CONFIG_USB_MUSB_AM35X)
+>>
+>> +static const char name[] = "musb-omap2430";
+>> +
+>>  static void am35x_musb_reset(void)
+>>  {
+>>  	u32	regval;
+>> @@ -170,7 +173,7 @@ static struct musb_hdrc_platform_data mu
+>>  static u64 musb_dmamask = DMA_BIT_MASK(32);
+>>
+>>  static struct platform_device musb_device = {
+>> -	.name		= "musb-omap2430",
+>> +	.name		= "musb-am35x",
+>
+>Should be in AM35x specific code.
+>
+>>  	.id		= -1,
+>>  	.dev = {
+>>  		.dma_mask		= &musb_dmamask,
+>> @@ -181,26 +184,23 @@ static struct platform_device musb_devic
+>>  	.resource	= musb_resources,
+>>  };
+>>
+>> +static struct omap_device_pm_latency omap_musb_latency[] = {
+>> +	{
+>> +		.deactivate_func = omap_device_idle_hwmods,
+>> +		.activate_func   = omap_device_enable_hwmods,
+>> +		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+>> +	},
+>> +};
+>> +
+>>  void __init usb_musb_init(struct omap_musb_board_data *board_data)
+>>  {
+>> -	if (cpu_is_omap243x()) {
+>> -		musb_resources[0].start = OMAP243X_HS_BASE;
+>> -	} else if (cpu_is_omap3517() || cpu_is_omap3505()) {
+>> -		musb_device.name = "musb-am35x";
+>> -		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
+>> -		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+>> -		board_data->set_phy_power = am35x_musb_phy_power;
+>> -		board_data->clear_irq = am35x_musb_clear_irq;
+>> -		board_data->set_mode = am35x_musb_set_mode;
+>> -		board_data->reset = am35x_musb_reset;
+>> -	} else if (cpu_is_omap34xx()) {
+>> -		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+>> -	} else if (cpu_is_omap44xx()) {
+>> -		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
+>> -		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
+>> -		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
+>> -	}
+>> -	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
+>> +	struct omap_hwmod *oh;
+>> +	struct omap_device *od;
+>> +	struct platform_device *pdev;
+>> +	struct device	*dev;
+>> +	int bus_id = -1;
+>> +	const char *oh_name = "usb_otg_hs";
+>> +	struct musb_hdrc_platform_data *pdata;
+>>
+>>  	/*
+>>  	 * REVISIT: This line can be removed once all the
+>platforms using
+>> @@ -212,8 +212,42 @@ void __init usb_musb_init(struct omap_mu
+>>  	musb_plat.mode = board_data->mode;
+>>  	musb_plat.extvbus = board_data->extvbus;
+>>
+>> -	if (platform_device_register(&musb_device) < 0)
+>> -		printk(KERN_ERR "Unable to register HS-USB
+>(MUSB) device\n");
+>> +	if (cpu_is_omap3517() || cpu_is_omap3505()) {
+>> +		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
+>> +		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+>> +		board_data->set_phy_power = am35x_musb_phy_power;
+>> +		board_data->clear_irq = am35x_musb_clear_irq;
+>> +		board_data->set_mode = am35x_musb_set_mode;
+>> +		board_data->reset = am35x_musb_reset;
+>> +		musb_resources[0].end = musb_resources[0].start
+>+ SZ_4K - 1;
+>> +
+>> +		if (platform_device_register(&musb_device) < 0)
+>> +			printk(KERN_ERR "Unable to register HS-USB \
+>> +					(MUSB) device\n");
+>
+>The need for  'if cpu_is_*' here should be a red flag indicating a
+>problem with this code.
+>
+>The goal of hwmod was to be able to get rid of this kind of cpu_is_*
+>cruft.  At least the base and IRQ stuff should not be needed
+>here.  What
+>is needed is hwmod data for AM35x where it is different from the
+>"normal" OMAP3.
 
-It's the simplest solution for the corner we find ourselves in with all
-this crap, and avoids any possibility of any side effects caused by having
-different behaviours from the same kernel.
+This file shared between the OMAP3 and AM35x.
+Since there is no HWMOD adaptation done for AM35x we have to live this
+till
+that is done.
 
-I've merged it into my tree and I'm intending to push it upstream.  We can
-then readdress it later once we have the real v6v7 crap fixed.
+>
+>I'm not exactly sure what the rest of these pdata function pointers are
+>doing here since there seems to be an AM35x specific version of the
+>driver in drivers/usb/musb, but that part isn't for me to decide.
+>
+There was discussion with Felipe and Benoit on this
+and decided to go with cpu check till the HWMOD adaption is done for
+AM35x.
+
+Regards,
+Hema
+
+>Kevin
+>
+>
+>> +	} else {
+>> +		oh = omap_hwmod_lookup(oh_name);
+>> +		if (!oh) {
+>> +			pr_err("Could not look up %s\n", oh_name);
+>> +			return;
+>> +	 	}
+>> +
+>> +		pdata = &musb_plat;
+>> +		od = omap_device_build(name, bus_id, oh, pdata,
+>> +				       sizeof(*pdata),
+>omap_musb_latency,
+>> +				
+>ARRAY_SIZE(omap_musb_latency), false);
+>> +		if (IS_ERR(od)) {
+>> +			pr_err("Could not build omap_device for
+>%s %s\n",
+>> +							name, oh_name);
+>> +			return;
+>> +		}
+>> +
+>> +		pdev = &od->pdev;
+>> +		dev = &pdev->dev;
+>> +		get_device(dev);
+>> +		dev->dma_mask = &musb_dmamask;
+>> +		dev->coherent_dma_mask = musb_dmamask;
+>> +		put_device(dev);
+>> +	}
+>>  }
+>>
+>>  #else
+>
+>
+>
