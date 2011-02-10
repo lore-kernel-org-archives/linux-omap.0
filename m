@@ -1,57 +1,38 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: RE: [PATCH 0/5] omap2+: mux: Add support for static and dynamic pads.
-Date: Thu, 10 Feb 2011 17:34:38 +0530
-Message-ID: <c60d5c8bd1c40f9b67889f0682a4158a@mail.gmail.com>
-References: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: Avoid discarding sections that might have
+	SMP_ON_UP fixups
+Date: Thu, 10 Feb 2011 12:56:24 +0000
+Message-ID: <20110210125624.GA3652@n2100.arm.linux.org.uk>
+References: <E1PeueP-0003SR-03@rmk-PC.arm.linux.org.uk> <AANLkTinnhivretaRHpYwCYouk-_jWKZQEo7x4sbheJVL@mail.gmail.com> <20110125165919.GD17286@n2100.arm.linux.org.uk> <AANLkTimK06nJPtQoym3HxXeDD-s4nUrN0vWjp_JcgTjx@mail.gmail.com> <20110125174636.GE17286@n2100.arm.linux.org.uk> <alpine.LFD.2.00.1101251618230.8580@xanadu.home> <AANLkTi=zVsr8G=eYfp7v_QQvBBDCX+Es+T-4c4Fu=QVF@mail.gmail.com> <20110126124452.GB4232@n2100.arm.linux.org.uk> <20110126172535.GA15983@arm.com> <20110209142211.GA11460@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:41091 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753609Ab1BJMEl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Feb 2011 07:04:41 -0500
-Received: by mail-bw0-f48.google.com with SMTP id 8so2114623bwz.35
-        for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 04:04:40 -0800 (PST)
-In-Reply-To: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38360 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750766Ab1BJM4e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Feb 2011 07:56:34 -0500
+Content-Disposition: inline
+In-Reply-To: <20110209142211.GA11460@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: "Dave P. Martin" <dave.martin@linaro.org>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+On Wed, Feb 09, 2011 at 02:22:11PM +0000, Russell King - ARM Linux wrote:
+> On Wed, Jan 26, 2011 at 05:25:35PM +0000, Dave P. Martin wrote:
+> > SMP_ON_UP fixups lead to vmlinux link errors if those sections are
+> > discarded at link-time.  In particular this may happen for built-in
+> > __exit stuff.
+> > 
+> > This patch modifies the vmlinux linker script to reduce the amount
+> > of discarded sections, and tries to make sure that __exit sections
+> > are kept in.
+> > 
+> > This is a hack and probably wrong!  Further discussion is needed.  
+> 
+> Can you send the configuration which you see this problem with?
+> I've tried to build a kernel which inlines the spinlocks, but I find
+> that's not possible, so I'm doubting whether any fix is required for
+> mainline.
 
->-----Original Message-----
->From: sricharan [mailto:r.sricharan@ti.com]
->Sent: Friday, January 28, 2011 10:38 AM
->To: r.sricharan@ti.com; linux-omap@vger.kernel.org
->Cc: santosh.shilimkar@ti.com; tony@atomide.com; paul@pwsan.com
->Subject: [PATCH 0/5] omap2+: mux: Add support for static and dynamic
-pads.
->
->
->1) The support to add the pad data to the device hwmod entry and to use
->   it to dynamically configure the pads based on the state of the
->   hwmod is already present.
->
->2) But using that for pads that requires only initialisation and not
->   dynamic remux, brings in a overhead to iterate over all the
->   hwmod signals of the device for every device enable/idle transitions.
->
->3) By seperating the pads that requires remux as dynamic and the
->   ones that do not as static the above overhead is avoided.
->
->4) This way the static and dynamic pads are initialised,
->   and only dynamic pads are taken for remuxing.
->
->sricharan (5):
->  omap2+: mux: Seperate the pads of a hwmod as static and dynamic.
->  omap4: board-4430sdp: Initialise the serial pads
->  omap3: board-3430sdp: Initialise the serial pads.
->  omap4: board-omap4panda: Initialise the serial pads
->  omap2+: board-n8x0: Change the flags for the serial pads.
->
-Any comments on this??
-
-Thanks,
-  Sricharan
+Any news on this, or can it not be reproduced?
