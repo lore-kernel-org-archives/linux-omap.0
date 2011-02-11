@@ -1,94 +1,31 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [PATCH v2 5/5] ARM: omap3: Thumb-2 compatibility for sleep34xx.S
-Date: Fri, 11 Feb 2011 09:43:45 +0000
-Message-ID: <AANLkTimMdFPpjdO_A1yyYUpSnSbo9gkn_-D5132KWKyQ@mail.gmail.com>
-References: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
-	<1296756161-26092-6-git-send-email-dave.martin@linaro.org>
-	<87d3mzh6vq.fsf@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: Avoid discarding sections that might have
+	SMP_ON_UP fixups
+Date: Fri, 11 Feb 2011 10:13:45 +0000
+Message-ID: <20110211101345.GA23785@n2100.arm.linux.org.uk>
+References: <20110126124452.GB4232@n2100.arm.linux.org.uk> <20110126172535.GA15983@arm.com> <20110209142211.GA11460@n2100.arm.linux.org.uk> <20110210125624.GA3652@n2100.arm.linux.org.uk> <AANLkTin3+4pwxQRz1J_1B6dJxJm0_5ou0OWteDFZNbo9@mail.gmail.com> <AANLkTinjAHLCMJja8q=bPhRBuoR2DCO_NjDw1qNi5MrU@mail.gmail.com> <20110210144617.GD3652@n2100.arm.linux.org.uk> <AANLkTiks_8hXd=7cKN0jNw=1QGcb=5ZyFu1sEFc0G=Px@mail.gmail.com> <20110210191125.GA12582@n2100.arm.linux.org.uk> <AANLkTim0RRw-xHQYTdHLCXCS_GXkaCiW8y9Fz=jMmwPa@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:37048 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934Ab1BKJnr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Feb 2011 04:43:47 -0500
-Received: by wyb28 with SMTP id 28so2281788wyb.19
-        for <linux-omap@vger.kernel.org>; Fri, 11 Feb 2011 01:43:46 -0800 (PST)
-In-Reply-To: <87d3mzh6vq.fsf@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38976 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107Ab1BKKNx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Feb 2011 05:13:53 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTim0RRw-xHQYTdHLCXCS_GXkaCiW8y9Fz=jMmwPa@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
+To: Dave Martin <dave.martin@linaro.org>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Feb 10, 2011 at 10:17 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Dave Martin <dave.martin@linaro.org> writes:
->
->> =A0* Use BSYM() to get the correct Thumb branch address
->> =A0 =A0for adr <Rd>, <label>
->>
->> =A0* Fix an out-of-range ADR when building for ARM
->>
->> =A0* Correctly call es3_sdrc_fix as Thumb when copied to SRAM.
->>
->> =A0* Remove deprecated/undefined PC-relative stores
->>
->> =A0* Add the required ENDPROC() directive for each ENTRY().
->>
->> =A0* .align before data words
->>
->> Signed-off-by: Dave Martin <dave.martin@linaro.org>
->
-> I'm attempting to test this series with OMAP PM, but some changes her=
-e
-> don't compile for me.
->
-> My toolchain is: gcc version 4.5.1 (Sourcery G++ Lite 2010.09-50)
->
-> First, I merged your arm/omap-thumb2+merged branch with my pm branch
-> from git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap=
--pm.git
->
-> There were some minor conflicts here, but they looked simple enough a=
-nd
-> I just resolved in favor of your branch.
+On Fri, Feb 11, 2011 at 09:33:56AM +0000, Dave Martin wrote:
+> Agreed -- actually, I suspected we might need to support this.  But I
+> don't think solving this problem (= keeping the fixup implementation
+> in memory and enhancing the module loader) solved the
+> fixups-referencing-sections-discarded-from-vmlinux problem.  These
+> seem to be two separate issues.  I am filing to understand something?
 
-Thanks for giving it a try.
-
->
-> Trying to build with CONFIG_THUMB2_KERNEL=3Dy, I ran into a compile
-> problem...
->
->
-
-[...]
-
->> + =A0 =A0 adr =A0 =A0 r0, es3_sdrc_fix =A0 =A0 =A0 =A0@ Not using BS=
-YM clears the Thumb bit.
->
-> This fails to compile:
->
-> /work/kernel/omap/pm/arch/arm/mach-omap2/sleep34xx.S: Assembler messa=
-ges:
-> /work/kernel/omap/pm/arch/arm/mach-omap2/sleep34xx.S:361: Error: inva=
-lid immediate for address calculation (value =3D 0x00000004)
-
-Unfortunately, this is caused by a bug in the assembler.
-arch/arm/kernel/relocate_kernel.S also suffers from the same bug when
-built with CONFIG_THUMB2_KERNEL.
-
-If you had got as far a linking, it's likely you would hit a
-'reference to discarded section problem' error in the linker, due to
-discarding of some sections referenced by SMP_ON_UP fixups.
-
-If you merge the 3 extra patches from dirty/arm/omap-thumb2+merged it
-should resolve these issues, but how to fix these things upstream is
-still under discussion.
-
-Cheers
----Dave
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+They are separate, but related issues.  They both ultimately have the
+same cause - the placement of the spinlock code inline rather than
+out of line, resulting in fixups appearing all over the place rather
+than just in kernel/spinlock.o.
