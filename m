@@ -1,42 +1,57 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] i2c-omap: Double clear of ARDY status in IRQ handler
-Date: Fri, 11 Feb 2011 12:15:18 +0530
-Message-ID: <1297406718-24147-1-git-send-email-j-keerthy@ti.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] omap3: fix compile-time warnings
+Date: Fri, 11 Feb 2011 14:35:00 +0530
+Message-ID: <1297415100-15912-1-git-send-email-premi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:55544 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750727Ab1BKJFQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Feb 2011 04:05:16 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-From: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+This patch fixes these warnings when building kernel for OMAP3EVM
+only.
 
-ProDB00017052 - ARDY interrupt reasserted after being cleared.
-This errata caused intermittent i2c instabilty(1 error per 3 hours) on several
-customer platforms. After applying the workaround the intermittent errors were
-not seen. This is not captured in the usual errata documents.
+  CC      arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.o
+arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c:95: warning:
+ 'dsp_24xx_wkdeps' defined but not used
+arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c:119: warning:
+ 'mpu_24xx_wkdeps' defined but not used
+arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c:147: warning:
+ 'core_24xx_wkdeps' defined but not used
 
-The workaround is to have a double clear of ARDY status in
-irq handler.
+The problem should be noticed when building for other OMAP3
+platforms (only) as well.
 
-Signed-off-by: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Sanjeev Premi <premi@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 445de08..9bcefae 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -851,7 +851,8 @@ complete:
- 					OMAP_I2C_STAT_AL)) {
- 			omap_i2c_ack_stat(dev, stat &
- 				(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
--				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-+				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR |
-+				OMAP_I2C_STAT_ARDY));
- 			omap_i2c_complete_cmd(dev, err);
- 			return IRQ_HANDLED;
- 		}
+diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+index e6f0d18..8134bb3 100644
+--- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
++++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+@@ -89,6 +89,8 @@ static struct clkdm_dep gfx_sgx_wkdeps[] = {
+ 
+ /* 24XX-specific possible dependencies */
+ 
++#ifdef CONFIG_ARCH_OMAP2
++
+ /* Wakeup dependency source arrays */
+ 
+ /* 2420/2430 PM_WKDEP_DSP: CORE, MPU, WKUP */
+@@ -168,6 +170,7 @@ static struct clkdm_dep core_24xx_wkdeps[] = {
+ 	{ NULL },
+ };
+ 
++#endif /* CONFIG_ARCH_OMAP2 */
+ 
+ /* 2430-specific possible wakeup dependencies */
+ 
 -- 
-1.7.0.4
+1.7.2.2
+
