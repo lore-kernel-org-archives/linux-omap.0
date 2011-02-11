@@ -1,84 +1,74 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH v8 3/3] OMAP4:keypad: PM runtime
-Date: Fri, 11 Feb 2011 22:48:36 +0530
-Message-ID: <4D556F6C.6040203@ti.com>
-References: <1293429106-16543-1-git-send-email-shubhrajyoti@ti.com> <1293429106-16543-2-git-send-email-shubhrajyoti@ti.com> <1293429106-16543-3-git-send-email-shubhrajyoti@ti.com> <1293429106-16543-4-git-send-email-shubhrajyoti@ti.com> <4D50FF42.1070401@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <4D50FF42.1070401@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+From: Hemant Pedanekar <hemantp@ti.com>
+Subject: [PATCH v6 0/4] Introduce support for TI816X processor series
+Date: Fri, 11 Feb 2011 23:03:49 +0530
+Message-ID: <1297445629-26119-1-git-send-email-hemantp@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41383 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752146Ab1BKReN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Feb 2011 12:34:13 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, Hemant Pedanekar <hemantp@ti.com>
 
-Missed adding linux omap
+This patch set adds support for TI816X processor series. This series includes
+DM8168, C6A816x and AM389x devices.
 
-On Tuesday 08 February 2011 02:00 PM, Shubhrajyoti wrote:
-> Hello,
-> Any comments/suggestions.
->
-> Thanks,
->
-> On Monday 27 December 2010 11:21 AM, shubhrajyoti@ti.com wrote:
->> From: Abraham Arce<x0066660@ti.com>
->>
->> Enable Runtime PM functionality in OMAP4 driver based on the 
->> following assumptions
->>
->> A minimal pm runtime get/put approach is implemented in probe/remove 
->> calls
->> respectively.
->>
->> - Keyboard controller in wakeup domain so it is always on and
->>    power impact may be minimal
->> - In OMAP4 the device control is at module/device level and ick/fclk 
->> level control is
->>    difficult so cutting of clocks will prevent interrupts.
->>
->> Signed-off-by: Abraham Arce<x0066660@ti.com>
->> Cc: Kevin Hilman<khilman@deeprootsystems.com>
->> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
->> ---
->>   drivers/input/keyboard/omap4-keypad.c |    8 ++++++++
->>   1 files changed, 8 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/input/keyboard/omap4-keypad.c 
->> b/drivers/input/keyboard/omap4-keypad.c
->> index 45bd097..fcfbb9b 100644
->> --- a/drivers/input/keyboard/omap4-keypad.c
->> +++ b/drivers/input/keyboard/omap4-keypad.c
->> @@ -29,6 +29,7 @@
->>   #include<linux/io.h>
->>   #include<linux/input.h>
->>   #include<linux/slab.h>
->> +#include<linux/pm_runtime.h>
->>
->>   #include<plat/omap4-keypad.h>
->>
->> @@ -239,6 +240,9 @@ static int __devinit omap4_keypad_probe(struct 
->> platform_device *pdev)
->>       matrix_keypad_build_keymap(pdata->keymap_data, row_shift,
->>               input_dev->keycode, input_dev->keybit);
->>
->> +    pm_runtime_enable(&pdev->dev);
->> +    pm_runtime_get_sync(&pdev->dev);
->> +
->>       omap4_keypad_config(keypad_data);
->>
->>       error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
->> @@ -278,6 +282,10 @@ static int __devexit omap4_keypad_remove(struct 
->> platform_device *pdev)
->>       struct resource *res;
->>
->>       free_irq(keypad_data->irq, keypad_data);
->> +
->> +    pm_runtime_put_sync(&pdev->dev);
->> +    pm_runtime_disable(&pdev->dev);
->> +
->>       input_unregister_device(keypad_data->input);
->>
->>       iounmap(keypad_data->base);
->
+The details can be found at following links:
+
+http://focus.ti.com/general/docs/gencontent.tsp?contentId=77960
+http://www.ti.com/ww/en/dsp/davinci-netra/index.shtml
+
+This series is architecturally closer to the OMAP devices. Hence, these patches
+are being submitted on linux-omap.
+
+These patches are tested on OMAP3 EVM with multi-omap build.
+
+Note that, additional patches consisting of TI816X specific hwmods, clock data
+and DMTIMER changes, are required to enable successful booting on TI816X EVM.
+These patches will follow shortly.
+
+The TI816X support is added as part of OMAP3 variant. The approach taken is in
+accordance to the discussions in thread related to following post:
+http://www.spinics.net/lists/linux-omap/msg41505.html
+
+In addition, TI816X specific customizations/optimizations are handled as a part
+of build configuration CONFIG_SOC_OMAPTI816X. Discussed here:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41927.html
+
+Hemant Pedanekar (4):
+  TI816X: Update common omap platform files
+  TI816X: Update common OMAP machine specific sources
+  TI816X: Create board support and enable build for TI816X EVM
+  TI816X: Add low level debug support
+
+ arch/arm/mach-omap2/Kconfig                    |   10 ++++
+ arch/arm/mach-omap2/Makefile                   |    1 +
+ arch/arm/mach-omap2/board-ti8168evm.c          |   57 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock3xxx_data.c           |    5 ++-
+ arch/arm/mach-omap2/common.c                   |   21 +++++++++
+ arch/arm/mach-omap2/control.h                  |    6 +++
+ arch/arm/mach-omap2/id.c                       |   33 +++++++++++++-
+ arch/arm/mach-omap2/include/mach/debug-macro.S |   12 +++++
+ arch/arm/mach-omap2/include/mach/entry-macro.S |   13 +++++
+ arch/arm/mach-omap2/io.c                       |   22 +++++++++-
+ arch/arm/mach-omap2/irq.c                      |    5 ++-
+ arch/arm/mach-omap2/serial.c                   |    8 ++--
+ arch/arm/plat-omap/include/plat/clkdev_omap.h  |    1 +
+ arch/arm/plat-omap/include/plat/clock.h        |    1 +
+ arch/arm/plat-omap/include/plat/common.h       |    1 +
+ arch/arm/plat-omap/include/plat/cpu.h          |   18 +++++++
+ arch/arm/plat-omap/include/plat/hardware.h     |    1 +
+ arch/arm/plat-omap/include/plat/io.h           |    8 +++
+ arch/arm/plat-omap/include/plat/serial.h       |    8 +++
+ arch/arm/plat-omap/include/plat/ti816x.h       |   27 +++++++++++
+ arch/arm/plat-omap/include/plat/uncompress.h   |    7 +++
+ arch/arm/plat-omap/io.c                        |    5 ++-
+ 22 files changed, 260 insertions(+), 10 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-ti8168evm.c
+ create mode 100644 arch/arm/plat-omap/include/plat/ti816x.h
+
+-- 
+1.7.3.5
 
