@@ -1,29 +1,36 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 2/2] OMAP4: add clk32kg data to omap4panda and blaze
- board file
-Date: Fri, 11 Feb 2011 11:19:23 +0000
-Message-ID: <20110211111923.GG7180@opensource.wolfsonmicro.com>
-References: <1297343726-4603-1-git-send-email-balajitk@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [v3,1/3] OMAP2PLUS: DSS2: Add OMAP4 Kconfig support
+Date: Fri, 11 Feb 2011 14:06:03 +0200
+Message-ID: <1297425963.9552.305.camel@deskari>
+References: <1296127024-17507-2-git-send-email-sumit.semwal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40685 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752069Ab1BKLTC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Feb 2011 06:19:02 -0500
-Content-Disposition: inline
-In-Reply-To: <1297343726-4603-1-git-send-email-balajitk@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56999 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752719Ab1BKMGM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Feb 2011 07:06:12 -0500
+In-Reply-To: <1296127024-17507-2-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk, sameo@linux.intel.com
+To: Sumit Semwal <sumit.semwal@ti.com>
+Cc: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, Mayuresh Janorkar <mayur@ti.com>
 
-On Thu, Feb 10, 2011 at 06:45:26PM +0530, Balaji T K wrote:
-> In Blaze and Panda, 32KHz clock - CLK32KG to WLAN is supplied
-> from Phoenix TWL6030.
-> Add CLK32KG platform data to blaze and omap4panda board file.
+Hi,
+
+On Thu, 2011-01-27 at 11:17 +0000, Sumit Semwal wrote:
+> From: Mayuresh Janorkar <mayur@ti.com>
 > 
-> Signed-off-by: Balaji T K <balajitk@ti.com>
+> Enable DSS2 and OMAPFB for OMAP4 in Kconfig
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+The indentation in this patch seems to be a bit inconsistent with the
+current Kconfigs. For example, you use two tabs in the help lines, and
+the current files use either one tab and 2 spaces, or 10 spaces.
+
+Please stick to the current indentation, or change the indentation for
+the whole file in a separate patch.
+
+ Tomi
+
+
