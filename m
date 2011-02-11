@@ -1,35 +1,86 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
-Date: Fri, 11 Feb 2011 21:07:33 +0000
-Message-ID: <20110211210733.GC31529@n2100.arm.linux.org.uk>
-References: <20110117192050.GE23331@n2100.arm.linux.org.uk> <0557426516de482c1769a50fa0b5f17a@mail.gmail.com> <20110208164747.GD6188@n2100.arm.linux.org.uk> <AANLkTimGa-Y6ddHknGe9Gar7+mWPuA_T2+6VL6ecfgxD@mail.gmail.com> <20110210130430.GB3652@n2100.arm.linux.org.uk> <1297343555.9306.9.camel@e102109-lin.cambridge.arm.com> <alpine.LFD.2.00.1102111543010.14920@xanadu.home>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: [PATCH] PM: Allow pm_runtime_suspend() to succeed during system suspend
+Date: Fri, 11 Feb 2011 22:25:53 +0100
+Message-ID: <201102112225.54140.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1101311119190.1931-100000@iolanthe.rowland.org> <201102112100.23996.rjw@sisk.pl> <87ei7e9uhy.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47310 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758107Ab1BKVHw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Feb 2011 16:07:52 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1102111543010.14920@xanadu.home>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87ei7e9uhy.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Feb 11, 2011 at 03:45:51PM -0500, Nicolas Pitre wrote:
-> The patch below is making the code more straight forward regardless of 
-> any swp emulation issues.
+On Friday, February 11, 2011, Kevin Hilman wrote:
+> "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> writes:
+> 
+> > On Monday, January 31, 2011, Rafael J. Wysocki wrote:
+> >> On Monday, January 31, 2011, Alan Stern wrote:
+> >> > On Mon, 31 Jan 2011, Kevin Hilman wrote:
+> >> > 
+> >> > > I understand how this works, but frankly I'm still a bit fuzzy on why.
+> >> > > 
+> >> > > I guess I'm still missing a good understanding of what "interfering with a
+> >> > > system power transition" means, and why a runtime suspend qualifies as
+> >> > > interfering but not a runtime resume.
+> >> > 
+> >> > These are good questions.  Rafael implemented this design originally; 
+> >> > my contribution was only to warn him of the potential for problems.  
+> >> > Therefore he should explain the rationale for the design.
+> >> 
+> >> The reason why runtime resume is allowed during system power transitions is
+> >> because in some cases during system suspend we simply have to resume devices
+> >> that were previously runtime-suspended (for example, the PCI bus type does
+> >> that).
+> >> 
+> >> The reason why runtime suspend is not allowed during system power transitions
+> >> if the following race:
+> >> 
+> >> - A device has been suspended via a system suspend callback.
+> >> - The runtime PM framework executes a (scheduled) suspend on that device,
+> >>   not knowing that it's already been suspended, which potentially results in
+> >>   accessing the device's registers in a low-power state.
+> >> 
+> >> Now, it can be avoided if every driver does the right thing and checks whether
+> >> the device is already suspended in its runtime suspend callback, but that would
+> >> kind of defeat the purpose of the runtime PM framework, at least partially.
+> >
+> > In fact, I've just realized that the above race cannot really occur, because
+> > pm_wq is freezable, so I'm proposing the following change.
+> >
+> > Of course, it still doesn't prevent user space from disabling the runtime PM
+> > framework's helpers via /sys/devices/.../power/control.
+> >
+> > Thanks,
+> > Rafael
+> >
+> >
+> > ---
+> > From: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
+> > Subject: PM: Allow pm_runtime_suspend() to succeed during system suspend
+> >
+> > The dpm_prepare() function increments the runtime PM reference
+> > counters of all devices to prevent pm_runtime_suspend() from
+> > executing subsystem-level callbacks.  However, this was supposed to
+> > guard against a specific race condition that cannot happen, because
+> > the power management workqueue is freezable, so pm_runtime_suspend()
+> > can only be called synchronously during system suspend and we can
+> > rely on subsystems and device drivers to avoid doing that
+> > unnecessarily.
+> >
+> > Make dpm_prepare() drop the runtime PM reference to each device
+> > after making sure that runtime resume is not pending for it.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
+> > ---
+> 
+> Yes!
+> 
+> Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
 
-I don't know where you get that idea from.  What it does is make a kernel
-built with a standard set of options have differing behaviour on v7 and
-pre-v7 architectures.
+Well, I hope you realize that it doesn't help you a lot?
 
-On v7 architectures, the vectors page and user pages all become read only
-to SVC mode.  On pre-v7 architectures on the same kernel, they are read-
-write to SVC mode.
-
-What we have now is that these pages are only read-only when CPU domains
-are turned off - for everything.  So we know that if CPU domains are
-enabled, it's read/write, otherwise it's read only.  That's more
-straight forward than what this patch creates IMHO.
+Rafael
