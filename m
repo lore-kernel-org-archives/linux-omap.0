@@ -1,42 +1,55 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: omapfb with 18bpp display
-Date: Fri, 11 Feb 2011 11:28:56 +0100
-Message-ID: <AANLkTimaph1aKT4TvNE5isWbwO+S51piYw2nAyrHOx_2@mail.gmail.com>
+From: Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] i2c-omap: Double clear of ARDY status in IRQ handler
+Date: Fri, 11 Feb 2011 12:50:59 +0200
+Message-ID: <20110211125059.04f17162.jhnikula@gmail.com>
+References: <1297406718-24147-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:56628 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752324Ab1BKK26 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Feb 2011 05:28:58 -0500
-Received: by vws16 with SMTP id 16so1535556vws.19
-        for <linux-omap@vger.kernel.org>; Fri, 11 Feb 2011 02:28:57 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1297406718-24147-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hi,
+On Fri, 11 Feb 2011 12:15:18 +0530
+Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> wrote:
 
-I'm trying to figure out why my display which have 18bpp doesn't show
-properly colors.
-As I can understand from DSS when I set 18bpp 24bpp is used just 2
-data bit aren't connected
-so everything should be fine. Anyway my tux looks little bit red ;).
-Any ideas? I use old 2.6.29-rc3 kernel.
+> From: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+> 
+> ProDB00017052 - ARDY interrupt reasserted after being cleared.
+> This errata caused intermittent i2c instabilty(1 error per 3 hours) on several
+> customer platforms. After applying the workaround the intermittent errors were
+> not seen. This is not captured in the usual errata documents.
+> 
+> The workaround is to have a double clear of ARDY status in
+> irq handler.
+> 
+> Signed-off-by: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 445de08..9bcefae 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -851,7 +851,8 @@ complete:
+>  					OMAP_I2C_STAT_AL)) {
+>  			omap_i2c_ack_stat(dev, stat &
+>  				(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+> -				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+> +				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR |
+> +				OMAP_I2C_STAT_ARDY));
 
-Thanks in advance,
+Most probably this is correct but I was just wondering are there any use
+for ARDY interrupt (register access ready) anyway and is the ARDY here
+caused by omap_i2c_write_reg for STAT_NACK in a few lines above.
 
-Marek
-
+Just my 2 cents about possible further patches (while this having the
+priority as fixes the issue).
 
 -- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
-
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-icq: 290551086
-web: http://open-nandra.com
+Jarkko
