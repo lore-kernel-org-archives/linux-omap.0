@@ -1,199 +1,686 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: RE: [PATCH 3/3] OMAP4: clockdomain: Add wkup/sleep dependency support
-Date: Fri, 11 Feb 2011 09:34:58 +0530
-Message-ID: <3754d10e94217aa81846aa1d41fe0a9d@mail.gmail.com>
-References: <1297084631-27474-1-git-send-email-rnayak@ti.com>
- <1297084631-27474-2-git-send-email-rnayak@ti.com> <1297084631-27474-3-git-send-email-rnayak@ti.com>
- <1297084631-27474-4-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1102101905160.21991@utopia.booyaka.com>
+Subject: RE: [PATCH v2 2/5] OMAP: clockdomain: Arch specific funcs to handle deps
+Date: Fri, 11 Feb 2011 09:41:53 +0530
+Message-ID: <c691112212f446c45663eb0bcdfaaeeb@mail.gmail.com>
+References: <1295956308-23860-1-git-send-email-rnayak@ti.com>
+ <1295956308-23860-2-git-send-email-rnayak@ti.com> <1295956308-23860-3-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.1102101840200.21991@utopia.booyaka.com> <alpine.DEB.2.00.1102101908540.21991@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:50545 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750971Ab1BKEFC (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:45547 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750710Ab1BKEL4 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Feb 2011 23:05:02 -0500
-Received: by mail-fx0-f45.google.com with SMTP id 12so2397237fxm.32
-        for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 20:05:00 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1102101905160.21991@utopia.booyaka.com>
+	Thu, 10 Feb 2011 23:11:56 -0500
+Received: by mail-fx0-f54.google.com with SMTP id 16so2353915fxm.41
+        for <linux-omap@vger.kernel.org>; Thu, 10 Feb 2011 20:11:55 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1102101908540.21991@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
-
-Hi Kevin/Paul,
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
 > -----Original Message-----
 > From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Friday, February 11, 2011 7:36 AM
+> Sent: Friday, February 11, 2011 7:40 AM
 > To: Rajendra Nayak
-> Cc: linux-omap@vger.kernel.org; khilman@ti.com; b-cousson@ti.com;
-linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 3/3] OMAP4: clockdomain: Add wkup/sleep dependency
-support
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+khilman@ti.com; b-cousson@ti.com
+> Subject: Re: [PATCH v2 2/5] OMAP: clockdomain: Arch specific funcs to
+handle deps
 >
-> Hi
 >
-> On Mon, 7 Feb 2011, Rajendra Nayak wrote:
->
-> > Add OMAP4 platform specific implementation to support clkdm
-> > wkup and sleep dependencies a.k.a static dependencies.
-> >
-> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->
-> This patch had a similar bug to the OMAP2/3 variants; updated patch
-> follows -
+> One other minor change; also modified the wkdep_src/sleepdep_src clkdm
+> resolve loops in clkdm_init() to avoid re-resolving clockdomains that
+have
+> already been looked up.  Updated patch follows.
 
-Thanks for fixing this. I have one comment below...
+Thanks, looks good.
 
 >
 >
 > - Paul
 >
-> From: Rajendra Nayak <rnayak@ti.com>
-> Date: Thu, 10 Feb 2011 18:58:04 -0700
-> Subject: [PATCH] OMAP4: clockdomain: Add wkup/sleep dependency support
 >
-> Add OMAP4 platform specific implementation to support clkdm
-> wkup and sleep dependencies a.k.a static dependencies.
+> From 22e63ae70ee061de0171c99ee336957b5e9a11ea Mon Sep 17 00:00:00 2001
+> From: Rajendra Nayak <rnayak@ti.com>
+> Date: Tue, 8 Feb 2011 14:25:34 -0700
+> Subject: [PATCH] OMAP: clockdomain: Arch specific funcs to handle deps
+>
+> Define the following architecture specific funtions for omap2/3
+> .clkdm_add_wkdep
+> .clkdm_del_wkdep
+> .clkdm_read_wkdep
+> .clkdm_clear_all_wkdeps
+> .clkdm_add_sleepdep
+> .clkdm_del_sleepdep
+> .clkdm_read_sleepdep
+> .clkdm_clear_all_sleepdeps
+>
+> Convert the platform-independent framework to call these functions.
+> With this also move the clkdm lookups for all wkdep_srcs and
+> sleepdep_srcs at clkdm_init.
 >
 > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> [paul@pwsan.com: removed comment about PRM; zero-prefixed STATICDEP
->  register offset; fixed loop termination condition in
->  omap4_clkdm_clear_all_wkup_sleep_deps(); thanks to Kevin Hilman for
-finding
->  and helping fix this bug]
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> [paul@pwsan.com: fixed loop termination conditions in
+omap*_clkdm_clear_all_*();
+>  thanks to Kevin Hilman for finding and helping fix those bugs; also
+>  avoid re-resolving clockdomains during init]
+> Cc: Kevin Hilman <khilman@ti.com>
 > Signed-off-by: Paul Walmsley <paul@pwsan.com>
 > ---
->  arch/arm/mach-omap2/clockdomain44xx.c |   58
-+++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/cm44xx.h          |    1 +
->  2 files changed, 59 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/Makefile                     |    2 +
+>  arch/arm/mach-omap2/clockdomain.c                |  164
++++++++++++----------
+>  arch/arm/mach-omap2/clockdomain.h                |    6 +-
+>  arch/arm/mach-omap2/clockdomain2xxx_3xxx.c       |  126
++++++++++++++++++
+>  arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    9 +-
+>  arch/arm/mach-omap2/io.c                         |    6 +-
+>  6 files changed, 229 insertions(+), 84 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
 >
-> diff --git a/arch/arm/mach-omap2/clockdomain44xx.c
-b/arch/arm/mach-omap2/clockdomain44xx.c
-> index c0ccc47..e6fd8da 100644
-> --- a/arch/arm/mach-omap2/clockdomain44xx.c
-> +++ b/arch/arm/mach-omap2/clockdomain44xx.c
-> @@ -12,8 +12,58 @@
->   * published by the Free Software Foundation.
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 1c0c2b0..6b2824d 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -102,8 +102,10 @@ obj-$(CONFIG_ARCH_OMAP4)		+=
+$(powerdomain-common) \
+>
+>  # PRCM clockdomain control
+>  obj-$(CONFIG_ARCH_OMAP2)		+= clockdomain.o \
+> +					   clockdomain2xxx_3xxx.o \
+>  					   clockdomains2xxx_3xxx_data.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= clockdomain.o \
+> +					   clockdomain2xxx_3xxx.o \
+>  					   clockdomains2xxx_3xxx_data.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= clockdomain.o \
+>  					   clockdomains44xx_data.o
+> diff --git a/arch/arm/mach-omap2/clockdomain.c
+b/arch/arm/mach-omap2/clockdomain.c
+> index f70b06a..ee73927 100644
+> --- a/arch/arm/mach-omap2/clockdomain.c
+> +++ b/arch/arm/mach-omap2/clockdomain.c
+> @@ -308,6 +308,7 @@ void clkdm_init(struct clockdomain **clkdms,
+>  	struct clockdomain **c = NULL;
+>  	struct clockdomain *clkdm;
+>  	struct clkdm_autodep *autodep = NULL;
+> +	struct clkdm_dep *cd;
+>
+>  	if (!custom_funcs)
+>  		WARN(1, "No custom clkdm functions registered\n");
+> @@ -333,7 +334,22 @@ void clkdm_init(struct clockdomain **clkdms,
+>  		else if (clkdm->flags & CLKDM_CAN_DISABLE_AUTO)
+>  			omap2_clkdm_deny_idle(clkdm);
+>
+> +		for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
+> +			if (!omap_chip_is(cd->omap_chip))
+> +				continue;
+> +			if (cd->clkdm)
+> +				continue;
+> +			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
+> +		}
+>  		clkdm_clear_all_wkdeps(clkdm);
+> +
+> +		for (cd = clkdm->sleepdep_srcs; cd && cd->clkdm_name;
+cd++) {
+> +			if (!omap_chip_is(cd->omap_chip))
+> +				continue;
+> +			if (cd->clkdm)
+> +				continue;
+> +			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
+> +		}
+>  		clkdm_clear_all_sleepdeps(clkdm);
+>  	}
+>  }
+> @@ -430,6 +446,7 @@ struct powerdomain *clkdm_get_pwrdm(struct
+clockdomain *clkdm)
+>  int clkdm_add_wkdep(struct clockdomain *clkdm1, struct clockdomain
+*clkdm2)
+>  {
+>  	struct clkdm_dep *cd;
+> +	int ret = 0;
+>
+>  	if (!cpu_is_omap24xx() && !cpu_is_omap34xx()) {
+>  		pr_err("clockdomain: %s/%s: %s: not yet implemented\n",
+> @@ -441,21 +458,26 @@ int clkdm_add_wkdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+>  		return -EINVAL;
+>
+>  	cd = _clkdm_deps_lookup(clkdm2, clkdm1->wkdep_srcs);
+> -	if (IS_ERR(cd)) {
+> +	if (IS_ERR(cd))
+> +		ret = PTR_ERR(cd);
+> +
+> +	if (!arch_clkdm || !arch_clkdm->clkdm_add_wkdep)
+> +		ret = -EINVAL;
+> +
+> +	if (ret) {
+>  		pr_debug("clockdomain: hardware cannot set/clear wake up
+of "
+>  			 "%s when %s wakes up\n", clkdm1->name,
+clkdm2->name);
+> -		return PTR_ERR(cd);
+> +		return ret;
+>  	}
+>
+>  	if (atomic_inc_return(&cd->wkdep_usecount) == 1) {
+>  		pr_debug("clockdomain: hardware will wake up %s when %s
+wakes "
+>  			 "up\n", clkdm1->name, clkdm2->name);
+>
+> -		omap2_prm_set_mod_reg_bits((1 << clkdm2->dep_bit),
+> -				     clkdm1->pwrdm.ptr->prcm_offs,
+PM_WKDEP);
+> +		ret = arch_clkdm->clkdm_add_wkdep(clkdm1, clkdm2);
+>  	}
+>
+> -	return 0;
+> +	return ret;
+>  }
+>
+>  /**
+> @@ -471,6 +493,7 @@ int clkdm_add_wkdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+>  int clkdm_del_wkdep(struct clockdomain *clkdm1, struct clockdomain
+*clkdm2)
+>  {
+>  	struct clkdm_dep *cd;
+> +	int ret = 0;
+>
+>  	if (!cpu_is_omap24xx() && !cpu_is_omap34xx()) {
+>  		pr_err("clockdomain: %s/%s: %s: not yet implemented\n",
+> @@ -482,21 +505,26 @@ int clkdm_del_wkdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+>  		return -EINVAL;
+>
+>  	cd = _clkdm_deps_lookup(clkdm2, clkdm1->wkdep_srcs);
+> -	if (IS_ERR(cd)) {
+> +	if (IS_ERR(cd))
+> +		ret = PTR_ERR(cd);
+> +
+> +	if (!arch_clkdm || !arch_clkdm->clkdm_del_wkdep)
+> +		ret = -EINVAL;
+> +
+> +	if (ret) {
+>  		pr_debug("clockdomain: hardware cannot set/clear wake up
+of "
+>  			 "%s when %s wakes up\n", clkdm1->name,
+clkdm2->name);
+> -		return PTR_ERR(cd);
+> +		return ret;
+>  	}
+>
+>  	if (atomic_dec_return(&cd->wkdep_usecount) == 0) {
+>  		pr_debug("clockdomain: hardware will no longer wake up %s
+"
+>  			 "after %s wakes up\n", clkdm1->name,
+clkdm2->name);
+>
+> -		omap2_prm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
+> -				       clkdm1->pwrdm.ptr->prcm_offs,
+PM_WKDEP);
+> +		ret = arch_clkdm->clkdm_del_wkdep(clkdm1, clkdm2);
+>  	}
+>
+> -	return 0;
+> +	return ret;
+>  }
+>
+>  /**
+> @@ -516,6 +544,7 @@ int clkdm_del_wkdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+>  int clkdm_read_wkdep(struct clockdomain *clkdm1, struct clockdomain
+*clkdm2)
+>  {
+>  	struct clkdm_dep *cd;
+> +	int ret = 0;
+>
+>  	if (!clkdm1 || !clkdm2)
+>  		return -EINVAL;
+> @@ -527,15 +556,20 @@ int clkdm_read_wkdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+>  	}
+>
+>  	cd = _clkdm_deps_lookup(clkdm2, clkdm1->wkdep_srcs);
+> -	if (IS_ERR(cd)) {
+> +	if (IS_ERR(cd))
+> +		ret = PTR_ERR(cd);
+> +
+> +	if (!arch_clkdm || !arch_clkdm->clkdm_read_wkdep)
+> +		ret = -EINVAL;
+> +
+> +	if (ret) {
+>  		pr_debug("clockdomain: hardware cannot set/clear wake up
+of "
+>  			 "%s when %s wakes up\n", clkdm1->name,
+clkdm2->name);
+> -		return PTR_ERR(cd);
+> +		return ret;
+>  	}
+>
+>  	/* XXX It's faster to return the atomic wkdep_usecount */
+> -	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
+PM_WKDEP,
+> -				       (1 << clkdm2->dep_bit));
+> +	return arch_clkdm->clkdm_read_wkdep(clkdm1, clkdm2);
+>  }
+>
+>  /**
+> @@ -550,9 +584,6 @@ int clkdm_read_wkdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
 >   */
->
-> +#include <linux/kernel.h>
->  #include "clockdomain.h"
->  #include "cminst44xx.h"
-> +#include "cm44xx.h"
-> +
-> +static int omap4_clkdm_add_wkup_sleep_dep(struct clockdomain *clkdm1,
-> +					struct clockdomain *clkdm2)
-> +{
-> +	omap4_cminst_set_inst_reg_bits((1 << clkdm2->dep_bit),
-> +					clkdm1->prcm_partition,
-> +					clkdm1->cm_inst,
-clkdm1->clkdm_offs +
-> +					OMAP4_CM_STATICDEP);
-> +	return 0;
-> +}
-> +
-> +static int omap4_clkdm_del_wkup_sleep_dep(struct clockdomain *clkdm1,
-> +					struct clockdomain *clkdm2)
-> +{
-> +	omap4_cminst_clear_inst_reg_bits((1 << clkdm2->dep_bit),
-> +					clkdm1->prcm_partition,
-> +					clkdm1->cm_inst,
-clkdm1->clkdm_offs +
-> +					OMAP4_CM_STATICDEP);
-> +	return 0;
-> +}
-> +
-> +static int omap4_clkdm_read_wkup_sleep_dep(struct clockdomain *clkdm1,
-> +					struct clockdomain *clkdm2)
-> +{
-> +	return omap4_cminst_read_inst_reg_bits(clkdm1->prcm_partition,
-> +					clkdm1->cm_inst,
-clkdm1->clkdm_offs +
-> +					OMAP4_CM_STATICDEP,
-> +					(1 << clkdm2->dep_bit));
-> +}
-> +
-> +static int omap4_clkdm_clear_all_wkup_sleep_deps(struct clockdomain
+>  int clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
+>  {
+> -	struct clkdm_dep *cd;
+> -	u32 mask = 0;
+> -
+>  	if (!cpu_is_omap24xx() && !cpu_is_omap34xx()) {
+>  		pr_err("clockdomain: %s: %s: not yet implemented\n",
+>  		       clkdm->name, __func__);
+> @@ -562,21 +593,10 @@ int clkdm_clear_all_wkdeps(struct clockdomain
 *clkdm)
+>  	if (!clkdm)
+>  		return -EINVAL;
+>
+> -	for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
+> -		if (!omap_chip_is(cd->omap_chip))
+> -			continue;
+> -
+> -		if (!cd->clkdm && cd->clkdm_name)
+> -			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
+> -
+> -		/* PRM accesses are slow, so minimize them */
+> -		mask |= 1 << cd->clkdm->dep_bit;
+> -		atomic_set(&cd->wkdep_usecount, 0);
+> -	}
+> -
+> -	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
+PM_WKDEP);
+> +	if (!arch_clkdm || !arch_clkdm->clkdm_clear_all_wkdeps)
+> +		return -EINVAL;
+>
+> -	return 0;
+> +	return arch_clkdm->clkdm_clear_all_wkdeps(clkdm);
+>  }
+>
+>  /**
+> @@ -594,31 +614,33 @@ int clkdm_clear_all_wkdeps(struct clockdomain
+*clkdm)
+>  int clkdm_add_sleepdep(struct clockdomain *clkdm1, struct clockdomain
+*clkdm2)
+>  {
+>  	struct clkdm_dep *cd;
+> -
+> -	if (!cpu_is_omap34xx())
+> -		return -EINVAL;
+> +	int ret = 0;
+>
+>  	if (!clkdm1 || !clkdm2)
+>  		return -EINVAL;
+>
+>  	cd = _clkdm_deps_lookup(clkdm2, clkdm1->sleepdep_srcs);
+> -	if (IS_ERR(cd)) {
+> +	if (IS_ERR(cd))
+> +		ret = PTR_ERR(cd);
+> +
+> +	if (!arch_clkdm || !arch_clkdm->clkdm_add_sleepdep)
+> +		ret = -EINVAL;
+> +
+> +	if (ret) {
+>  		pr_debug("clockdomain: hardware cannot set/clear sleep "
+>  			 "dependency affecting %s from %s\n",
+clkdm1->name,
+>  			 clkdm2->name);
+> -		return PTR_ERR(cd);
+> +		return ret;
+>  	}
+>
+>  	if (atomic_inc_return(&cd->sleepdep_usecount) == 1) {
+>  		pr_debug("clockdomain: will prevent %s from sleeping if %s
+"
+>  			 "is active\n", clkdm1->name, clkdm2->name);
+>
+> -		omap2_cm_set_mod_reg_bits((1 << clkdm2->dep_bit),
+> -				    clkdm1->pwrdm.ptr->prcm_offs,
+> -				    OMAP3430_CM_SLEEPDEP);
+> +		ret = arch_clkdm->clkdm_add_sleepdep(clkdm1, clkdm2);
+>  	}
+>
+> -	return 0;
+> +	return ret;
+>  }
+>
+>  /**
+> @@ -636,19 +658,23 @@ int clkdm_add_sleepdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+>  int clkdm_del_sleepdep(struct clockdomain *clkdm1, struct clockdomain
+*clkdm2)
+>  {
+>  	struct clkdm_dep *cd;
+> -
+> -	if (!cpu_is_omap34xx())
+> -		return -EINVAL;
+> +	int ret = 0;
+>
+>  	if (!clkdm1 || !clkdm2)
+>  		return -EINVAL;
+>
+>  	cd = _clkdm_deps_lookup(clkdm2, clkdm1->sleepdep_srcs);
+> -	if (IS_ERR(cd)) {
+> +	if (IS_ERR(cd))
+> +		ret = PTR_ERR(cd);
+> +
+> +	if (!arch_clkdm || !arch_clkdm->clkdm_del_sleepdep)
+> +		ret = -EINVAL;
+> +
+> +	if (ret) {
+>  		pr_debug("clockdomain: hardware cannot set/clear sleep "
+>  			 "dependency affecting %s from %s\n",
+clkdm1->name,
+>  			 clkdm2->name);
+> -		return PTR_ERR(cd);
+> +		return ret;
+>  	}
+>
+>  	if (atomic_dec_return(&cd->sleepdep_usecount) == 0) {
+> @@ -656,12 +682,10 @@ int clkdm_del_sleepdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+>  			 "sleeping if %s is active\n", clkdm1->name,
+>  			 clkdm2->name);
+>
+> -		omap2_cm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
+> -				      clkdm1->pwrdm.ptr->prcm_offs,
+> -				      OMAP3430_CM_SLEEPDEP);
+> +		ret = arch_clkdm->clkdm_del_sleepdep(clkdm1, clkdm2);
+>  	}
+>
+> -	return 0;
+> +	return ret;
+>  }
+>
+>  /**
+> @@ -683,25 +707,27 @@ int clkdm_del_sleepdep(struct clockdomain *clkdm1,
+struct clockdomain *clkdm2)
+>  int clkdm_read_sleepdep(struct clockdomain *clkdm1, struct clockdomain
+*clkdm2)
+>  {
+>  	struct clkdm_dep *cd;
+> -
+> -	if (!cpu_is_omap34xx())
+> -		return -EINVAL;
+> +	int ret = 0;
+>
+>  	if (!clkdm1 || !clkdm2)
+>  		return -EINVAL;
+>
+>  	cd = _clkdm_deps_lookup(clkdm2, clkdm1->sleepdep_srcs);
+> -	if (IS_ERR(cd)) {
+> +	if (IS_ERR(cd))
+> +		ret = PTR_ERR(cd);
+> +
+> +	if (!arch_clkdm || !arch_clkdm->clkdm_read_sleepdep)
+> +		ret = -EINVAL;
+> +
+> +	if (ret) {
+>  		pr_debug("clockdomain: hardware cannot set/clear sleep "
+>  			 "dependency affecting %s from %s\n",
+clkdm1->name,
+>  			 clkdm2->name);
+> -		return PTR_ERR(cd);
+> +		return ret;
+>  	}
+>
+>  	/* XXX It's faster to return the atomic sleepdep_usecount */
+> -	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
+> -				       OMAP3430_CM_SLEEPDEP,
+> -				       (1 << clkdm2->dep_bit));
+> +	return arch_clkdm->clkdm_read_sleepdep(clkdm1, clkdm2);
+>  }
+>
+>  /**
+> @@ -716,31 +742,13 @@ int clkdm_read_sleepdep(struct clockdomain
+*clkdm1, struct clockdomain *clkdm2)
+>   */
+>  int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
+>  {
+> -	struct clkdm_dep *cd;
+> -	u32 mask = 0;
+> -
+> -	if (!cpu_is_omap34xx())
+> -		return -EINVAL;
+> -
+>  	if (!clkdm)
+>  		return -EINVAL;
+>
+> -	for (cd = clkdm->sleepdep_srcs; cd && cd->clkdm_name; cd++) {
+> -		if (!omap_chip_is(cd->omap_chip))
+> -			continue;
+> -
+> -		if (!cd->clkdm && cd->clkdm_name)
+> -			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
+> -
+> -		/* PRM accesses are slow, so minimize them */
+> -		mask |= 1 << cd->clkdm->dep_bit;
+> -		atomic_set(&cd->sleepdep_usecount, 0);
+> -	}
+> -
+> -	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
+> -			       OMAP3430_CM_SLEEPDEP);
+> +	if (!arch_clkdm || !arch_clkdm->clkdm_clear_all_sleepdeps)
+> +		return -EINVAL;
+>
+> -	return 0;
+> +	return arch_clkdm->clkdm_clear_all_sleepdeps(clkdm);
+>  }
+>
+>  /**
+> diff --git a/arch/arm/mach-omap2/clockdomain.h
+b/arch/arm/mach-omap2/clockdomain.h
+> index 71ad265..90b6d6a 100644
+> --- a/arch/arm/mach-omap2/clockdomain.h
+> +++ b/arch/arm/mach-omap2/clockdomain.h
+> @@ -176,7 +176,11 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm);
+>  int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk);
+>  int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk
+*clk);
+>
+> -extern void __init omap2_clockdomains_init(void);
+> +extern void __init omap2xxx_clockdomains_init(void);
+> +extern void __init omap3xxx_clockdomains_init(void);
+>  extern void __init omap44xx_clockdomains_init(void);
+>
+> +extern struct clkdm_ops omap2_clkdm_operations;
+> +extern struct clkdm_ops omap3_clkdm_operations;
+> +
+>  #endif
+> diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+> new file mode 100644
+> index 0000000..38dd903
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+> @@ -0,0 +1,126 @@
+> +/*
+> + * OMAP2 and OMAP3 clockdomain control
+> + *
+> + * Copyright (C) 2008-2010 Texas Instruments, Inc.
+> + * Copyright (C) 2008-2010 Nokia Corporation
+> + *
+> + * Derived from mach-omap2/clockdomain.c written by Paul Walmsley
+> + * Rajendra Nayak <rnayak@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/types.h>
+> +#include <plat/prcm.h>
+> +#include "prm.h"
+> +#include "prm2xxx_3xxx.h"
+> +#include "cm.h"
+> +#include "cm2xxx_3xxx.h"
+> +#include "cm-regbits-24xx.h"
+> +#include "cm-regbits-34xx.h"
+> +#include "clockdomain.h"
+> +
+> +static int omap2_clkdm_add_wkdep(struct clockdomain *clkdm1,
+> +						struct clockdomain
+*clkdm2)
+> +{
+> +	omap2_prm_set_mod_reg_bits((1 << clkdm2->dep_bit),
+> +				clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
+> +	return 0;
+> +}
+> +
+> +static int omap2_clkdm_del_wkdep(struct clockdomain *clkdm1,
+> +						 struct clockdomain
+*clkdm2)
+> +{
+> +	omap2_prm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
+> +				clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
+> +	return 0;
+> +}
+> +
+> +static int omap2_clkdm_read_wkdep(struct clockdomain *clkdm1,
+> +						 struct clockdomain
+*clkdm2)
+> +{
+> +	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
+> +				PM_WKDEP, (1 << clkdm2->dep_bit));
+> +}
+> +
+> +static int omap2_clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
 > +{
 > +	struct clkdm_dep *cd;
 > +	u32 mask = 0;
 > +
 > +	for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
-
-My initial version actually did have a check for cd->clkdm_name instead
-of cd->clkdm, and then I ran into aborts when a clkdm, though
-belonging to the right chip version, failed lookup (in clkdm_init) and
-left
-the cd->clkdm pointer NULL. This however was due to the fact that the
-clkdm_name populated was'nt matching the actual name, but that got
-me thinking if its better to look for populated pointers instead of names.
-I however seemed to have missed the point that there also could be a
-cd->clkdm populated as NULL for non supported CHIP rev's.
-
 > +		if (!omap_chip_is(cd->omap_chip))
 > +			continue;
 > +
-
-Would it make sense to add an additional check here to avoid
-an abort in case of mismatches in clkdm_name populated and
-lookup's failing in clkdm_init?
-
-Something like...
-
-		If (cd->clkdm) {
-			|= 1 << cd->clkdm->dep_bit;
-			atomic_set(&cd->wkdep_usecount, 0);
-		}
-
-Regards
-Rajendra
-
+> +		/* PRM accesses are slow, so minimize them */
 > +		mask |= 1 << cd->clkdm->dep_bit;
 > +		atomic_set(&cd->wkdep_usecount, 0);
 > +	}
 > +
-> +	omap4_cminst_clear_inst_reg_bits(mask, clkdm->prcm_partition,
-> +					clkdm->cm_inst, clkdm->clkdm_offs
-+
-> +					OMAP4_CM_STATICDEP);
+> +	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
+> +				 PM_WKDEP);
 > +	return 0;
 > +}
+> +
+> +static int omap3_clkdm_add_sleepdep(struct clockdomain *clkdm1,
+> +						 struct clockdomain
+*clkdm2)
+> +{
+> +	omap2_cm_set_mod_reg_bits((1 << clkdm2->dep_bit),
+> +				clkdm1->pwrdm.ptr->prcm_offs,
+> +				OMAP3430_CM_SLEEPDEP);
+> +	return 0;
+> +}
+> +
+> +static int omap3_clkdm_del_sleepdep(struct clockdomain *clkdm1,
+> +						 struct clockdomain
+*clkdm2)
+> +{
+> +	omap2_cm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
+> +				clkdm1->pwrdm.ptr->prcm_offs,
+> +				OMAP3430_CM_SLEEPDEP);
+> +	return 0;
+> +}
+> +
+> +static int omap3_clkdm_read_sleepdep(struct clockdomain *clkdm1,
+> +						 struct clockdomain
+*clkdm2)
+> +{
+> +	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
+> +				OMAP3430_CM_SLEEPDEP, (1 <<
+clkdm2->dep_bit));
+> +}
+> +
+> +static int omap3_clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
+> +{
+> +	struct clkdm_dep *cd;
+> +	u32 mask = 0;
+> +
+> +	for (cd = clkdm->sleepdep_srcs; cd && cd->clkdm_name; cd++) {
+> +		if (!omap_chip_is(cd->omap_chip))
+> +			continue;
+> +
+> +		/* PRM accesses are slow, so minimize them */
+> +		mask |= 1 << cd->clkdm->dep_bit;
+> +		atomic_set(&cd->sleepdep_usecount, 0);
+> +	}
+> +	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
+> +				OMAP3430_CM_SLEEPDEP);
+> +	return 0;
+> +}
+> +
+> +struct clkdm_ops omap2_clkdm_operations = {
+> +	.clkdm_add_wkdep	= omap2_clkdm_add_wkdep,
+> +	.clkdm_del_wkdep	= omap2_clkdm_del_wkdep,
+> +	.clkdm_read_wkdep	= omap2_clkdm_read_wkdep,
+> +	.clkdm_clear_all_wkdeps	= omap2_clkdm_clear_all_wkdeps,
+> +};
+> +
+> +struct clkdm_ops omap3_clkdm_operations = {
+> +	.clkdm_add_wkdep	= omap2_clkdm_add_wkdep,
+> +	.clkdm_del_wkdep	= omap2_clkdm_del_wkdep,
+> +	.clkdm_read_wkdep	= omap2_clkdm_read_wkdep,
+> +	.clkdm_clear_all_wkdeps	= omap2_clkdm_clear_all_wkdeps,
+> +	.clkdm_add_sleepdep	= omap3_clkdm_add_sleepdep,
+> +	.clkdm_del_sleepdep	= omap3_clkdm_del_sleepdep,
+> +	.clkdm_read_sleepdep	= omap3_clkdm_read_sleepdep,
+> +	.clkdm_clear_all_sleepdeps	= omap3_clkdm_clear_all_sleepdeps,
+> +};
+> diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+b/arch/arm/mach-
+> omap2/clockdomains2xxx_3xxx_data.c
+> index 8cab07a..f85de72 100644
+> --- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+> @@ -854,7 +854,12 @@ static struct clockdomain *clockdomains_omap2[]
+__initdata = {
+>  	NULL,
+>  };
 >
->  static int omap4_clkdm_sleep(struct clockdomain *clkdm)
+> -void __init omap2_clockdomains_init(void)
+> +void __init omap2xxx_clockdomains_init(void)
 >  {
-> @@ -68,6 +118,14 @@ static int omap4_clkdm_clk_disable(struct
-clockdomain *clkdm)
+> -	clkdm_init(clockdomains_omap2, clkdm_autodeps, NULL);
+> +	clkdm_init(clockdomains_omap2, clkdm_autodeps,
+&omap2_clkdm_operations);
+> +}
+> +
+> +void __init omap3xxx_clockdomains_init(void)
+> +{
+> +	clkdm_init(clockdomains_omap2, clkdm_autodeps,
+&omap3_clkdm_operations);
 >  }
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index c203204..89cbba2 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -337,15 +337,15 @@ void __init omap2_init_common_infrastructure(void)
 >
->  struct clkdm_ops omap4_clkdm_operations = {
-> +	.clkdm_add_wkdep	= omap4_clkdm_add_wkup_sleep_dep,
-> +	.clkdm_del_wkdep	= omap4_clkdm_del_wkup_sleep_dep,
-> +	.clkdm_read_wkdep	= omap4_clkdm_read_wkup_sleep_dep,
-> +	.clkdm_clear_all_wkdeps	= omap4_clkdm_clear_all_wkup_sleep_deps,
-> +	.clkdm_add_sleepdep	= omap4_clkdm_add_wkup_sleep_dep,
-> +	.clkdm_del_sleepdep	= omap4_clkdm_del_wkup_sleep_dep,
-> +	.clkdm_read_sleepdep	= omap4_clkdm_read_wkup_sleep_dep,
-> +	.clkdm_clear_all_sleepdeps	=
-omap4_clkdm_clear_all_wkup_sleep_deps,
->  	.clkdm_sleep		= omap4_clkdm_sleep,
->  	.clkdm_wakeup		= omap4_clkdm_wakeup,
->  	.clkdm_allow_idle	= omap4_clkdm_allow_idle,
-> diff --git a/arch/arm/mach-omap2/cm44xx.h b/arch/arm/mach-omap2/cm44xx.h
-> index 48fc3f4..0b87ec8 100644
-> --- a/arch/arm/mach-omap2/cm44xx.h
-> +++ b/arch/arm/mach-omap2/cm44xx.h
-> @@ -21,6 +21,7 @@
->  #include "cm.h"
->
->  #define OMAP4_CM_CLKSTCTRL				0x0000
-> +#define OMAP4_CM_STATICDEP				0x0004
->
->  /* Function prototypes */
->  # ifndef __ASSEMBLER__
+>  	if (cpu_is_omap242x()) {
+>  		omap2xxx_powerdomains_init();
+> -		omap2_clockdomains_init();
+> +		omap2xxx_clockdomains_init();
+>  		omap2420_hwmod_init();
+>  	} else if (cpu_is_omap243x()) {
+>  		omap2xxx_powerdomains_init();
+> -		omap2_clockdomains_init();
+> +		omap2xxx_clockdomains_init();
+>  		omap2430_hwmod_init();
+>  	} else if (cpu_is_omap34xx()) {
+>  		omap3xxx_powerdomains_init();
+> -		omap2_clockdomains_init();
+> +		omap3xxx_clockdomains_init();
+>  		omap3xxx_hwmod_init();
+>  	} else if (cpu_is_omap44xx()) {
+>  		omap44xx_powerdomains_init();
 > --
 > 1.7.2.3
