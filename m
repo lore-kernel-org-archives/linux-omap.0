@@ -1,168 +1,74 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [v3,1/4] OMAP2PLUS: clocks: Align DSS clock names and roles
-Date: Fri, 11 Feb 2011 14:46:50 +0200
-Message-ID: <1297428410.9552.319.camel@deskari>
-References: <1296491266-6949-2-git-send-email-sumit.semwal@ti.com>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH v2 5/5] ARM: omap3: Thumb-2 compatibility for sleep34xx.S
+Date: Fri, 11 Feb 2011 13:49:03 +0000
+Message-ID: <AANLkTi=0ikmWaVSoerb71ZK=_fBETO54nTvYu-hGAPBR@mail.gmail.com>
+References: <1296756161-26092-1-git-send-email-dave.martin@linaro.org>
+	<1296756161-26092-6-git-send-email-dave.martin@linaro.org>
+	<87d3mzh6vq.fsf@ti.com>
+	<87ei7fe8mk.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36979 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753783Ab1BKMq5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Feb 2011 07:46:57 -0500
-In-Reply-To: <1296491266-6949-2-git-send-email-sumit.semwal@ti.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:37002 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756214Ab1BKNvM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Feb 2011 08:51:12 -0500
+Received: by eye27 with SMTP id 27so1323126eye.19
+        for <linux-omap@vger.kernel.org>; Fri, 11 Feb 2011 05:51:10 -0800 (PST)
+In-Reply-To: <87ei7fe8mk.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sumit Semwal <sumit.semwal@ti.com>
-Cc: tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
 
-Hi,
+On Fri, Feb 11, 2011 at 12:07 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Kevin Hilman <khilman@ti.com> writes:
+>
+>> Dave Martin <dave.martin@linaro.org> writes:
+>>
+>>> =A0* Use BSYM() to get the correct Thumb branch address
+>>> =A0 =A0for adr <Rd>, <label>
+>>>
+>>> =A0* Fix an out-of-range ADR when building for ARM
+>>>
+>>> =A0* Correctly call es3_sdrc_fix as Thumb when copied to SRAM.
+>>>
+>>> =A0* Remove deprecated/undefined PC-relative stores
+>>>
+>>> =A0* Add the required ENDPROC() directive for each ENTRY().
+>>>
+>>> =A0* .align before data words
+>>>
+>>> Signed-off-by: Dave Martin <dave.martin@linaro.org>
+>>
+>> I'm attempting to test this series with OMAP PM, but some changes he=
+re
+>> don't compile for me.
+>>
+>> My toolchain is: gcc version 4.5.1 (Sourcery G++ Lite 2010.09-50)
+>>
+>> First, I merged your arm/omap-thumb2+merged branch with my pm branch
+>> from git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-oma=
+p-pm.git
+>
+> Sorry for the confusion, this patch should've been in reply to your v=
+4
+> version, since I merged with your 'arm/omap-thumb2+merged' branch fro=
+m
+> today.
 
-This patch set looks good, no comments from me. I'll take this to my
-tree.
+If you are able to test off mode with CONFIG_THUMB2_KERNEL enabled,
+that would be great.
 
- Tomi
+I have some evidence that the resume path may be working in Thumb-2,
+but I think I'm being bitten by erratum i583 (I have to disable the
+workaround to even attempt to test off mode on Beagle xM)
 
-On Mon, 2011-01-31 at 16:27 +0000, Sumit Semwal wrote:
-> Currently, clock database has <dev, clock-name> tuples for DSS2. Because of
-> this, the clock names are different across different OMAP platforms.
-> 
-> This patch aligns the DSS2 clock names and roles across OMAP 2420, 2430, 3xxx,
-> 44xx platforms in the clock databases, hwmod databases for opt-clocks, and DSS
-> clock handling.
-> 
-> This ensures that clk_get/put/enable/disable APIs in DSS can use uniform role
-> names.
-> 
-> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-> Acked-by: Paul Walmsley <paul@pwsan.com>
-> 
-> ---
-> arch/arm/mach-omap2/clock2420_data.c       |    6 +++---
->  arch/arm/mach-omap2/clock2430_data.c       |    6 +++---
->  arch/arm/mach-omap2/clock3xxx_data.c       |   10 +++++-----
->  arch/arm/mach-omap2/clock44xx_data.c       |   10 +++++-----
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
->  drivers/video/omap2/dss/dss.c              |    8 ++++----
->  6 files changed, 21 insertions(+), 21 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-> index d2abc2f..3c1712b 100644
-> --- a/arch/arm/mach-omap2/clock2420_data.c
-> +++ b/arch/arm/mach-omap2/clock2420_data.c
-> @@ -1787,9 +1787,9 @@ static struct omap_clk omap2420_clks[] = {
->  	CLK(NULL,	"gfx_ick",	&gfx_ick,	CK_242X),
->  	/* DSS domain clocks */
->  	CLK("omap_dss",	"ick",		&dss_ick,	CK_242X),
-> -	CLK("omap_dss",	"dss1_fck",	&dss1_fck,	CK_242X),
-> -	CLK("omap_dss",	"dss2_fck",	&dss2_fck,	CK_242X),
-> -	CLK("omap_dss",	"tv_fck",	&dss_54m_fck,	CK_242X),
-> +	CLK("omap_dss",	"fck",		&dss1_fck,	CK_242X),
-> +	CLK("omap_dss",	"sys_clk",	&dss2_fck,	CK_242X),
-> +	CLK("omap_dss",	"tv_clk",	&dss_54m_fck,	CK_242X),
->  	/* L3 domain clocks */
->  	CLK(NULL,	"core_l3_ck",	&core_l3_ck,	CK_242X),
->  	CLK(NULL,	"ssi_fck",	&ssi_ssr_sst_fck, CK_242X),
-> diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-> index 663f298..136171c 100644
-> --- a/arch/arm/mach-omap2/clock2430_data.c
-> +++ b/arch/arm/mach-omap2/clock2430_data.c
-> @@ -1891,9 +1891,9 @@ static struct omap_clk omap2430_clks[] = {
->  	CLK(NULL,	"mdm_osc_ck",	&mdm_osc_ck,	CK_243X),
->  	/* DSS domain clocks */
->  	CLK("omap_dss",	"ick",		&dss_ick,	CK_243X),
-> -	CLK("omap_dss",	"dss1_fck",	&dss1_fck,	CK_243X),
-> -	CLK("omap_dss",	"dss2_fck",	&dss2_fck,	CK_243X),
-> -	CLK("omap_dss",	"tv_fck",	&dss_54m_fck,	CK_243X),
-> +	CLK("omap_dss",	"fck",		&dss1_fck,	CK_243X),
-> +	CLK("omap_dss",	"sys_clk",	&dss2_fck,	CK_243X),
-> +	CLK("omap_dss",	"tv_clk",	&dss_54m_fck,	CK_243X),
->  	/* L3 domain clocks */
->  	CLK(NULL,	"core_l3_ck",	&core_l3_ck,	CK_243X),
->  	CLK(NULL,	"ssi_fck",	&ssi_ssr_sst_fck, CK_243X),
-> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-> index 5c97b93..414de70 100644
-> --- a/arch/arm/mach-omap2/clock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-> @@ -3357,11 +3357,11 @@ static struct omap_clk omap3xxx_clks[] = {
->  	CLK("omap_rng",	"ick",		&rng_ick,	CK_34XX | CK_36XX),
->  	CLK(NULL,	"sha11_ick",	&sha11_ick,	CK_34XX | CK_36XX),
->  	CLK(NULL,	"des1_ick",	&des1_ick,	CK_34XX | CK_36XX),
-> -	CLK("omap_dss",	"dss1_fck",	&dss1_alwon_fck_3430es1, CK_3430ES1),
-> -	CLK("omap_dss",	"dss1_fck",	&dss1_alwon_fck_3430es2, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-> -	CLK("omap_dss",	"tv_fck",	&dss_tv_fck,	CK_3XXX),
-> -	CLK("omap_dss",	"video_fck",	&dss_96m_fck,	CK_3XXX),
-> -	CLK("omap_dss",	"dss2_fck",	&dss2_alwon_fck, CK_3XXX),
-> +	CLK("omap_dss",	"fck",		&dss1_alwon_fck_3430es1, CK_3430ES1),
-> +	CLK("omap_dss",	"fck",		&dss1_alwon_fck_3430es2, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-> +	CLK("omap_dss",	"tv_clk",	&dss_tv_fck,	CK_3XXX),
-> +	CLK("omap_dss",	"video_clk",	&dss_96m_fck,	CK_3XXX),
-> +	CLK("omap_dss",	"sys_clk",	&dss2_alwon_fck, CK_3XXX),
->  	CLK("omap_dss",	"ick",		&dss_ick_3430es1,	CK_3430ES1),
->  	CLK("omap_dss",	"ick",		&dss_ick_3430es2,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
->  	CLK(NULL,	"cam_mclk",	&cam_mclk,	CK_34XX | CK_36XX),
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-> index e8cb32f..9bd3ae5 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -3107,11 +3107,11 @@ static struct omap_clk omap44xx_clks[] = {
->  	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
->  	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
->  	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
-> -	CLK(NULL,	"dss_sys_clk",			&dss_sys_clk,	CK_443X),
-> -	CLK(NULL,	"dss_tv_clk",			&dss_tv_clk,	CK_443X),
-> -	CLK(NULL,	"dss_dss_clk",			&dss_dss_clk,	CK_443X),
-> -	CLK(NULL,	"dss_48mhz_clk",		&dss_48mhz_clk,	CK_443X),
-> -	CLK(NULL,	"dss_fck",			&dss_fck,	CK_443X),
-> +	CLK("omap_dss",	"sys_clk",			&dss_sys_clk,	CK_443X),
-> +	CLK("omap_dss",	"tv_clk",			&dss_tv_clk,	CK_443X),
-> +	CLK("omap_dss",	"dss_clk",			&dss_dss_clk,	CK_443X),
-> +	CLK("omap_dss",	"video_clk",			&dss_48mhz_clk,	CK_443X),
-> +	CLK("omap_dss",	"fck",				&dss_fck,	CK_443X),
->  	CLK(NULL,	"efuse_ctrl_cust_fck",		&efuse_ctrl_cust_fck,	CK_443X),
->  	CLK(NULL,	"emif1_fck",			&emif1_fck,	CK_443X),
->  	CLK(NULL,	"emif2_fck",			&emif2_fck,	CK_443X),
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 713165d..cb0c624 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -770,7 +770,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_dss_slaves[] = {
->  
->  static struct omap_hwmod_opt_clk dss_opt_clks[] = {
->  	{ .role = "tv_clk", .clk = "dss_tv_fck" },
-> -	{ .role = "dssclk", .clk = "dss_96m_fck" },
-> +	{ .role = "video_clk", .clk = "dss_96m_fck" },
->  	{ .role = "sys_clk", .clk = "dss2_alwon_fck" },
->  };
->  
-> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-> index f9390b4..91f8cf7 100644
-> --- a/drivers/video/omap2/dss/dss.c
-> +++ b/drivers/video/omap2/dss/dss.c
-> @@ -758,19 +758,19 @@ static int dss_get_clocks(void)
->  	if (r)
->  		goto err;
->  
-> -	r = dss_get_clock(&dss.dss1_fck, "dss1_fck");
-> +	r = dss_get_clock(&dss.dss1_fck, "fck");
->  	if (r)
->  		goto err;
->  
-> -	r = dss_get_clock(&dss.dss2_fck, "dss2_fck");
-> +	r = dss_get_clock(&dss.dss2_fck, "sys_clk");
->  	if (r)
->  		goto err;
->  
-> -	r = dss_get_clock(&dss.dss_54m_fck, "tv_fck");
-> +	r = dss_get_clock(&dss.dss_54m_fck, "tv_clk");
->  	if (r)
->  		goto err;
->  
-> -	r = dss_get_clock(&dss.dss_96m_fck, "video_fck");
-> +	r = dss_get_clock(&dss.dss_96m_fck, "video_clk");
->  	if (r)
->  		goto err;
->  
-
-
+Cheers
+---Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
