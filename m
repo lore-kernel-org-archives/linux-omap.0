@@ -1,62 +1,28 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: Avoid discarding sections that might have
-	SMP_ON_UP fixups
-Date: Fri, 11 Feb 2011 16:05:00 +0000
-Message-ID: <20110211160500.GA31529@n2100.arm.linux.org.uk>
-References: <20110209142211.GA11460@n2100.arm.linux.org.uk> <20110210125624.GA3652@n2100.arm.linux.org.uk> <AANLkTin3+4pwxQRz1J_1B6dJxJm0_5ou0OWteDFZNbo9@mail.gmail.com> <AANLkTinjAHLCMJja8q=bPhRBuoR2DCO_NjDw1qNi5MrU@mail.gmail.com> <20110210144617.GD3652@n2100.arm.linux.org.uk> <AANLkTiks_8hXd=7cKN0jNw=1QGcb=5ZyFu1sEFc0G=Px@mail.gmail.com> <20110210191125.GA12582@n2100.arm.linux.org.uk> <AANLkTim0RRw-xHQYTdHLCXCS_GXkaCiW8y9Fz=jMmwPa@mail.gmail.com> <20110211101345.GA23785@n2100.arm.linux.org.uk> <AANLkTikFkZH6KK_KUgXaaKyQM6eZOh-ki3xdtS2fk8zN@mail.gmail.com>
+Subject: [PATCH] Generic CPU save/restore PM support
+Date: Fri, 11 Feb 2011 16:16:26 +0000
+Message-ID: <20110211161626.GA31356@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58269 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34495 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757380Ab1BKQFK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Feb 2011 11:05:10 -0500
+	with ESMTP id S1756811Ab1BKQQn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Feb 2011 11:16:43 -0500
 Content-Disposition: inline
-In-Reply-To: <AANLkTikFkZH6KK_KUgXaaKyQM6eZOh-ki3xdtS2fk8zN@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Eric Miao <eric.y.miao@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, Feb 11, 2011 at 10:52:17AM +0000, Dave Martin wrote:
-> On Fri, Feb 11, 2011 at 10:13 AM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Fri, Feb 11, 2011 at 09:33:56AM +0000, Dave Martin wrote:
-> >> Agreed -- actually, I suspected we might need to support this. =A0=
-But I
-> >> don't think solving this problem (=3D keeping the fixup implementa=
-tion
-> >> in memory and enhancing the module loader) solved the
-> >> fixups-referencing-sections-discarded-from-vmlinux problem. =A0The=
-se
-> >> seem to be two separate issues. =A0I am filing to understand somet=
-hing?
-> >
-> > They are separate, but related issues. =A0They both ultimately have=
- the
-> > same cause - the placement of the spinlock code inline rather than
-> > out of line, resulting in fixups appearing all over the place rathe=
-r
-> > than just in kernel/spinlock.o.
->=20
-> I guess what I want to understand is whether I (or someone) still
-> need(s) to sort out the vmlinux.lds issue.
+The following patch series implements infrastructure to save/restore
+CPU state on suspend/resume PM events, and updates SA11x0, PXA and
+Samsung platforms to use this.
 
-Yes we do - if you build your kernel you should find that your link
-fails because of discarded sections being referenced.
+Only only ARM920, ARM926, SA11x0, XScale, XScale3, V6 and V7 CPUs are
+supported.
 
-> If we're keeping inline spinlocks (I currently assume "yes"), then th=
-e
-> vmlinux.lds issue still needs fixing.  Is that correct?  However, if
-> we get rid of inline spinlocks we won't have the problem, though ther=
-e
-> may be some performance impact -- hard to judge how significant.
+I've build-tested this for Assabet, PXA, and S3C2410, and boot tested
+on Assabet.
 
-I don't see that we can get rid of inline spinlocks - it's controlled
-by stuff external to the arch.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please send your acks/tested bys etc.
