@@ -1,118 +1,115 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] PM: Allow pm_runtime_suspend() to succeed during system suspend
-Date: Fri, 11 Feb 2011 12:38:49 -0800
-Message-ID: <87ei7e9uhy.fsf@ti.com>
-References: <Pine.LNX.4.44L0.1101311119190.1931-100000@iolanthe.rowland.org>
-	<201101311919.49225.rjw@sisk.pl> <201102112100.23996.rjw@sisk.pl>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH 00/14] Fix issues with ARMv6+v6k+v7 kernels
+Date: Fri, 11 Feb 2011 15:45:51 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.1102111543010.14920@xanadu.home>
+References: <20110117192050.GE23331@n2100.arm.linux.org.uk>
+ <0557426516de482c1769a50fa0b5f17a@mail.gmail.com>
+ <20110208164747.GD6188@n2100.arm.linux.org.uk>
+ <AANLkTimGa-Y6ddHknGe9Gar7+mWPuA_T2+6VL6ecfgxD@mail.gmail.com>
+ <20110210130430.GB3652@n2100.arm.linux.org.uk>
+ <1297343555.9306.9.camel@e102109-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201102112100.23996.rjw-KKrjLPT3xs0@public.gmane.org> (Rafael J. Wysocki's message of
-	"Fri, 11 Feb 2011 21:00:23 +0100")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relais.videotron.ca ([24.201.245.36]:23980 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758146Ab1BKUp6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Feb 2011 15:45:58 -0500
+Received: from xanadu.home ([66.130.28.92]) by vl-mh-mrz21.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
+ with ESMTP id <0LGH006C20BQPD40@vl-mh-mrz21.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Fri, 11 Feb 2011 15:45:26 -0500 (EST)
+In-reply-to: <1297343555.9306.9.camel@e102109-lin.cambridge.arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-"Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> writes:
+On Thu, 10 Feb 2011, Catalin Marinas wrote:
 
-> On Monday, January 31, 2011, Rafael J. Wysocki wrote:
->> On Monday, January 31, 2011, Alan Stern wrote:
->> > On Mon, 31 Jan 2011, Kevin Hilman wrote:
->> > 
->> > > I understand how this works, but frankly I'm still a bit fuzzy on why.
->> > > 
->> > > I guess I'm still missing a good understanding of what "interfering with a
->> > > system power transition" means, and why a runtime suspend qualifies as
->> > > interfering but not a runtime resume.
->> > 
->> > These are good questions.  Rafael implemented this design originally; 
->> > my contribution was only to warn him of the potential for problems.  
->> > Therefore he should explain the rationale for the design.
->> 
->> The reason why runtime resume is allowed during system power transitions is
->> because in some cases during system suspend we simply have to resume devices
->> that were previously runtime-suspended (for example, the PCI bus type does
->> that).
->> 
->> The reason why runtime suspend is not allowed during system power transitions
->> if the following race:
->> 
->> - A device has been suspended via a system suspend callback.
->> - The runtime PM framework executes a (scheduled) suspend on that device,
->>   not knowing that it's already been suspended, which potentially results in
->>   accessing the device's registers in a low-power state.
->> 
->> Now, it can be avoided if every driver does the right thing and checks whether
->> the device is already suspended in its runtime suspend callback, but that would
->> kind of defeat the purpose of the runtime PM framework, at least partially.
->
-> In fact, I've just realized that the above race cannot really occur, because
-> pm_wq is freezable, so I'm proposing the following change.
->
-> Of course, it still doesn't prevent user space from disabling the runtime PM
-> framework's helpers via /sys/devices/.../power/control.
->
-> Thanks,
-> Rafael
->
->
-> ---
-> From: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
-> Subject: PM: Allow pm_runtime_suspend() to succeed during system suspend
->
-> The dpm_prepare() function increments the runtime PM reference
-> counters of all devices to prevent pm_runtime_suspend() from
-> executing subsystem-level callbacks.  However, this was supposed to
-> guard against a specific race condition that cannot happen, because
-> the power management workqueue is freezable, so pm_runtime_suspend()
-> can only be called synchronously during system suspend and we can
-> rely on subsystems and device drivers to avoid doing that
-> unnecessarily.
->
-> Make dpm_prepare() drop the runtime PM reference to each device
-> after making sure that runtime resume is not pending for it.
->
-> Signed-off-by: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
-> ---
+> On Thu, 2011-02-10 at 13:04 +0000, Russell King - ARM Linux wrote:
+> > On Wed, Feb 09, 2011 at 10:01:33AM +0000, Catalin Marinas wrote:
+> > > Could we make the domains usage a run-time feature based on the
+> > > architecture version? For ARMv7, we need to have the vectors page
+> > > read-only anyway if the SWP emulation is enabled (and I posted a
+> > > simple patch in a reply to your email).
+> > >
+> > > The issue I see is that ARM11MPCore is reported as v7 though we still
+> > > use domains on this processor (we could always remove the domains if
+> > > TLS register is available or use some more precise architecture
+> > > version identification).
+> > 
+> > We could also do the below, which I think is more logical - SWP emulation
+> > requires that CPU domains aren't enabled, so let's make that explicit
+> > in the Kconfig.
+> 
+> This may work but it is to restrictive IMHO. SWP emulation only requires
+> that RO user pages are also RO for the kernel. And there is a simple fix
+> for this:
+> 
 
-Yes!
+The patch below is making the code more straight forward regardless of 
+any swp emulation issues.
 
-Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
 
-
->  drivers/base/power/main.c |   10 +++-------
->  1 file changed, 3 insertions(+), 7 deletions(-)
->
-> Index: linux-2.6/drivers/base/power/main.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/base/power/main.c
-> +++ linux-2.6/drivers/base/power/main.c
-> @@ -669,7 +669,6 @@ static void dpm_complete(pm_message_t st
->  		mutex_unlock(&dpm_list_mtx);
+> diff --git a/arch/arm/kernel/traps.c b/arch/arm/kernel/traps.c
+> index ee57640..6e0b349 100644
+> --- a/arch/arm/kernel/traps.c
+> +++ b/arch/arm/kernel/traps.c
+> @@ -758,17 +758,21 @@ static void __init kuser_get_tls_init(unsigned long vectors)
 >  
->  		device_complete(dev, state);
-> -		pm_runtime_put_sync(dev);
+>  void __init early_trap_init(void)
+>  {
+> -#if defined(CONFIG_CPU_USE_DOMAINS)
+> -	unsigned long vectors = CONFIG_VECTORS_BASE;
+> -#else
+> -	unsigned long vectors = (unsigned long)vectors_page;
+> -#endif
+> +	unsigned long vectors;
+>  	extern char __stubs_start[], __stubs_end[];
+>  	extern char __vectors_start[], __vectors_end[];
+>  	extern char __kuser_helper_start[], __kuser_helper_end[];
+>  	int kuser_sz = __kuser_helper_end - __kuser_helper_start;
 >  
->  		mutex_lock(&dpm_list_mtx);
->  		put_device(dev);
-> @@ -1005,12 +1004,9 @@ static int dpm_prepare(pm_message_t stat
->  		if (pm_runtime_barrier(dev) && device_may_wakeup(dev))
->  			pm_wakeup_event(dev, 0);
+>  	/*
+> +	 * On ARMv7, user RO pages are mapped as kernel RO.
+> +	 */
+> +	if (cpu_architecture() >= 7)
+> +		vectors = (unsigned long)vectors_page;
+> +	else
+> +		vectors = CONFIG_VECTORS_BASE;
+> +
+> +	/*
+>  	 * Copy the vectors, stubs and kuser helpers (in entry-armv.S)
+>  	 * into the vector page, mapped at 0xffff0000, and ensure these
+>  	 * are visible to the instruction stream.
+> diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+> index 0c1172b..5f51592 100644
+> --- a/arch/arm/mm/proc-v7.S
+> +++ b/arch/arm/mm/proc-v7.S
+> @@ -146,11 +146,6 @@ ENTRY(cpu_v7_set_pte_ext)
 >  
-> -		if (pm_wakeup_pending()) {
-> -			pm_runtime_put_sync(dev);
-> -			error = -EBUSY;
-> -		} else {
-> -			error = device_prepare(dev, state);
-> -		}
-> +		pm_runtime_put_sync(dev);
-> +		error = pm_wakeup_pending() ?
-> +				-EBUSY : device_prepare(dev, state);
+>  	tst	r1, #L_PTE_USER
+>  	orrne	r3, r3, #PTE_EXT_AP1
+> -#ifdef CONFIG_CPU_USE_DOMAINS
+> -	@ allow kernel read/write access to read-only user pages
+> -	tstne	r3, #PTE_EXT_APX
+> -	bicne	r3, r3, #PTE_EXT_APX | PTE_EXT_AP0
+> -#endif
 >  
->  		mutex_lock(&dpm_list_mtx);
->  		if (error) {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  	tst	r1, #L_PTE_XN
+>  	orrne	r3, r3, #PTE_EXT_XN
+> 
+> 
+> -- 
+> Catalin
+> 
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
