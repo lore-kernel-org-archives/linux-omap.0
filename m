@@ -1,72 +1,108 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v4 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
-Date: Fri, 11 Feb 2011 15:31:20 -0800
-Message-ID: <87pqqy6tdj.fsf@ti.com>
-References: <1297263683-10621-1-git-send-email-dave.martin@linaro.org>
+Subject: Re: [PATCH] PM: Allow pm_runtime_suspend() to succeed during system suspend
+Date: Fri, 11 Feb 2011 15:45:23 -0800
+Message-ID: <87aai26sq4.fsf@ti.com>
+References: <Pine.LNX.4.44L0.1101311119190.1931-100000@iolanthe.rowland.org>
+	<201102112100.23996.rjw@sisk.pl> <87ei7e9uhy.fsf@ti.com>
+	<201102112225.54140.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:50484 "EHLO
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:57462 "EHLO
 	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756892Ab1BKXbZ (ORCPT
+	by vger.kernel.org with ESMTP id S1756856Ab1BKXp1 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Feb 2011 18:31:25 -0500
-Received: by gyh4 with SMTP id 4so1701699gyh.23
-        for <linux-omap@vger.kernel.org>; Fri, 11 Feb 2011 15:31:23 -0800 (PST)
-In-Reply-To: <1297263683-10621-1-git-send-email-dave.martin@linaro.org> (Dave
-	Martin's message of "Wed, 9 Feb 2011 15:01:18 +0000")
+	Fri, 11 Feb 2011 18:45:27 -0500
+In-Reply-To: <201102112225.54140.rjw@sisk.pl> (Rafael J. Wysocki's message of
+	"Fri, 11 Feb 2011 22:25:53 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm@lists.linux-foundation.org, Alan Stern <stern@rowland.harvard.edu>, linux-i2c@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Dave,
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-Dave Martin <dave.martin@linaro.org> writes:
+> On Friday, February 11, 2011, Kevin Hilman wrote:
+>> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+>> 
+>> > On Monday, January 31, 2011, Rafael J. Wysocki wrote:
+>> >> On Monday, January 31, 2011, Alan Stern wrote:
+>> >> > On Mon, 31 Jan 2011, Kevin Hilman wrote:
+>> >> > 
+>> >> > > I understand how this works, but frankly I'm still a bit fuzzy on why.
+>> >> > > 
+>> >> > > I guess I'm still missing a good understanding of what "interfering with a
+>> >> > > system power transition" means, and why a runtime suspend qualifies as
+>> >> > > interfering but not a runtime resume.
+>> >> > 
+>> >> > These are good questions.  Rafael implemented this design originally; 
+>> >> > my contribution was only to warn him of the potential for problems.  
+>> >> > Therefore he should explain the rationale for the design.
+>> >> 
+>> >> The reason why runtime resume is allowed during system power transitions is
+>> >> because in some cases during system suspend we simply have to resume devices
+>> >> that were previously runtime-suspended (for example, the PCI bus type does
+>> >> that).
+>> >> 
+>> >> The reason why runtime suspend is not allowed during system power transitions
+>> >> if the following race:
+>> >> 
+>> >> - A device has been suspended via a system suspend callback.
+>> >> - The runtime PM framework executes a (scheduled) suspend on that device,
+>> >>   not knowing that it's already been suspended, which potentially results in
+>> >>   accessing the device's registers in a low-power state.
+>> >> 
+>> >> Now, it can be avoided if every driver does the right thing and checks whether
+>> >> the device is already suspended in its runtime suspend callback, but that would
+>> >> kind of defeat the purpose of the runtime PM framework, at least partially.
+>> >
+>> > In fact, I've just realized that the above race cannot really occur, because
+>> > pm_wq is freezable, so I'm proposing the following change.
+>> >
+>> > Of course, it still doesn't prevent user space from disabling the runtime PM
+>> > framework's helpers via /sys/devices/.../power/control.
+>> >
+>> > Thanks,
+>> > Rafael
+>> >
+>> >
+>> > ---
+>> > From: Rafael J. Wysocki <rjw@sisk.pl>
+>> > Subject: PM: Allow pm_runtime_suspend() to succeed during system suspend
+>> >
+>> > The dpm_prepare() function increments the runtime PM reference
+>> > counters of all devices to prevent pm_runtime_suspend() from
+>> > executing subsystem-level callbacks.  However, this was supposed to
+>> > guard against a specific race condition that cannot happen, because
+>> > the power management workqueue is freezable, so pm_runtime_suspend()
+>> > can only be called synchronously during system suspend and we can
+>> > rely on subsystems and device drivers to avoid doing that
+>> > unnecessarily.
+>> >
+>> > Make dpm_prepare() drop the runtime PM reference to each device
+>> > after making sure that runtime resume is not pending for it.
+>> >
+>> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+>> > ---
+>> 
+>> Yes!
+>> 
+>> Acked-by: Kevin Hilman <khilman@ti.com>
+>
+> Well, I hope you realize that it doesn't help you a lot?
+>
 
-> This set of patches, along with some other patches under
-> discussion on alkml, should enable omap3 and omap4 kernels to be
-> built with CONFIG_THUMB2_KERNEL.
+If you mean that because we still have to implement system PM methods
+because of /sys/devices/.../power/control, I agree.
 
-OK, I tried some more testing with your 'dirty' branch merged with my PM
-branch.
+If something else, please explain.
 
-Compiled in ARM mode, everything worked as expected on my 3530/omap3evm,
-including off-mode (in suspend and idle).  My 3630 (Zoom3) also can't do
-CORE off due to i583, but MPU, PER etc. all can hit off.
+But to me it is still very helpful in terms of consistency and what
+driver writers would expect to happen if they used pm_runtime_suspend()
+in their system suspend method.
 
-To rebuild in Thumb-2 mode, I disabled OMAP2 support and added Thumb-2
-mode:
-
-   CONFIG_ARCH_OMAP2=n
-   CONFIG_THUMB2_KERNEL=y
-
-then tested on 3530/omap3evm.  Testing suspend/resume to retention
-seemed to work fine.  However, enabling retention during idle[1] hung
-someplace (didn't debug further.)
-
-I also tried off-mode, and suspend/resume to off didn't even work.
-
-I didn't have time to debug this any further, so this is just to report
-raw test results.
-
-Hope that helps,
+Thanks,
 
 Kevin
 
 
-[1] Here's what's needed to attempt low-power states during idle
-
-# UART timeouts: omap-serial (4th UART only on OMAP36xx and OMAP4)
-echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout 
-echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout 
-echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout 
-echo 5 > /sys/devices/platform/omap/omap_uart.3/sleep_timeout 
-
-# enable low-power states during idle
-echo 1 > /debug/pm_debug/sleep_while_idle  
-
-
-[2] to enable off-mode
-
-echo 1 > /debug/pm_debug/enable_off_mode
