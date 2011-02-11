@@ -1,39 +1,84 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH] omap3: cpuidle: Add description field to each C-state.
-Date: Fri, 11 Feb 2011 19:07:23 +0200
-Message-ID: <20110211190723.b93bcb60.jhnikula@gmail.com>
-References: <1297437132-1005-1-git-send-email-santosh.shilimkar@ti.com>
-	<1297437132-1005-2-git-send-email-santosh.shilimkar@ti.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCH v8 3/3] OMAP4:keypad: PM runtime
+Date: Fri, 11 Feb 2011 22:48:36 +0530
+Message-ID: <4D556F6C.6040203@ti.com>
+References: <1293429106-16543-1-git-send-email-shubhrajyoti@ti.com> <1293429106-16543-2-git-send-email-shubhrajyoti@ti.com> <1293429106-16543-3-git-send-email-shubhrajyoti@ti.com> <1293429106-16543-4-git-send-email-shubhrajyoti@ti.com> <4D50FF42.1070401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:61312 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756787Ab1BKRH1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Feb 2011 12:07:27 -0500
-Received: by bwz15 with SMTP id 15so3404434bwz.19
-        for <linux-omap@vger.kernel.org>; Fri, 11 Feb 2011 09:07:26 -0800 (PST)
-In-Reply-To: <1297437132-1005-2-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <4D50FF42.1070401@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Shubhrajyoti <shubhrajyoti@ti.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Fri, 11 Feb 2011 20:42:12 +0530
-Santosh Shilimkar <santosh.shilimkar@ti.com> wrote:
+Missed adding linux omap
 
-> Add a description field to each idle C-state. This helps to give
-> better data with PowerTop and one don't have to refer to the code
-> to link what Cx means from system point of view while analysing
-> PowerTop data.
-> 
-> No functional change.
-> 
-Out of curiosity what powertop version is required to get these handy
-descriptions visible?
+On Tuesday 08 February 2011 02:00 PM, Shubhrajyoti wrote:
+> Hello,
+> Any comments/suggestions.
+>
+> Thanks,
+>
+> On Monday 27 December 2010 11:21 AM, shubhrajyoti@ti.com wrote:
+>> From: Abraham Arce<x0066660@ti.com>
+>>
+>> Enable Runtime PM functionality in OMAP4 driver based on the 
+>> following assumptions
+>>
+>> A minimal pm runtime get/put approach is implemented in probe/remove 
+>> calls
+>> respectively.
+>>
+>> - Keyboard controller in wakeup domain so it is always on and
+>>    power impact may be minimal
+>> - In OMAP4 the device control is at module/device level and ick/fclk 
+>> level control is
+>>    difficult so cutting of clocks will prevent interrupts.
+>>
+>> Signed-off-by: Abraham Arce<x0066660@ti.com>
+>> Cc: Kevin Hilman<khilman@deeprootsystems.com>
+>> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
+>> ---
+>>   drivers/input/keyboard/omap4-keypad.c |    8 ++++++++
+>>   1 files changed, 8 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/input/keyboard/omap4-keypad.c 
+>> b/drivers/input/keyboard/omap4-keypad.c
+>> index 45bd097..fcfbb9b 100644
+>> --- a/drivers/input/keyboard/omap4-keypad.c
+>> +++ b/drivers/input/keyboard/omap4-keypad.c
+>> @@ -29,6 +29,7 @@
+>>   #include<linux/io.h>
+>>   #include<linux/input.h>
+>>   #include<linux/slab.h>
+>> +#include<linux/pm_runtime.h>
+>>
+>>   #include<plat/omap4-keypad.h>
+>>
+>> @@ -239,6 +240,9 @@ static int __devinit omap4_keypad_probe(struct 
+>> platform_device *pdev)
+>>       matrix_keypad_build_keymap(pdata->keymap_data, row_shift,
+>>               input_dev->keycode, input_dev->keybit);
+>>
+>> +    pm_runtime_enable(&pdev->dev);
+>> +    pm_runtime_get_sync(&pdev->dev);
+>> +
+>>       omap4_keypad_config(keypad_data);
+>>
+>>       error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
+>> @@ -278,6 +282,10 @@ static int __devexit omap4_keypad_remove(struct 
+>> platform_device *pdev)
+>>       struct resource *res;
+>>
+>>       free_irq(keypad_data->irq, keypad_data);
+>> +
+>> +    pm_runtime_put_sync(&pdev->dev);
+>> +    pm_runtime_disable(&pdev->dev);
+>> +
+>>       input_unregister_device(keypad_data->input);
+>>
+>>       iounmap(keypad_data->base);
+>
 
-As I see these in /sys/devices/system/cpu/cpu0/cpuidle/stateX/desc it's
-fair to give my tested by
-
-Tested-by: Jarkko Nikula <jhnikula@gmail.com>
