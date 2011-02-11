@@ -1,55 +1,66 @@
-From: Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] i2c-omap: Double clear of ARDY status in IRQ handler
-Date: Fri, 11 Feb 2011 12:50:59 +0200
-Message-ID: <20110211125059.04f17162.jhnikula@gmail.com>
-References: <1297406718-24147-1-git-send-email-j-keerthy@ti.com>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH] ARM: Avoid discarding sections that might have SMP_ON_UP fixups
+Date: Fri, 11 Feb 2011 10:52:17 +0000
+Message-ID: <AANLkTikFkZH6KK_KUgXaaKyQM6eZOh-ki3xdtS2fk8zN@mail.gmail.com>
+References: <20110126124452.GB4232@n2100.arm.linux.org.uk>
+	<20110126172535.GA15983@arm.com>
+	<20110209142211.GA11460@n2100.arm.linux.org.uk>
+	<20110210125624.GA3652@n2100.arm.linux.org.uk>
+	<AANLkTin3+4pwxQRz1J_1B6dJxJm0_5ou0OWteDFZNbo9@mail.gmail.com>
+	<AANLkTinjAHLCMJja8q=bPhRBuoR2DCO_NjDw1qNi5MrU@mail.gmail.com>
+	<20110210144617.GD3652@n2100.arm.linux.org.uk>
+	<AANLkTiks_8hXd=7cKN0jNw=1QGcb=5ZyFu1sEFc0G=Px@mail.gmail.com>
+	<20110210191125.GA12582@n2100.arm.linux.org.uk>
+	<AANLkTim0RRw-xHQYTdHLCXCS_GXkaCiW8y9Fz=jMmwPa@mail.gmail.com>
+	<20110211101345.GA23785@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1297406718-24147-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:51524 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750848Ab1BKKwS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Feb 2011 05:52:18 -0500
+Received: by wyb28 with SMTP id 28so2335084wyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 11 Feb 2011 02:52:17 -0800 (PST)
+In-Reply-To: <20110211101345.GA23785@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 11 Feb 2011 12:15:18 +0530
-Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> wrote:
+On Fri, Feb 11, 2011 at 10:13 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Fri, Feb 11, 2011 at 09:33:56AM +0000, Dave Martin wrote:
+>> Agreed -- actually, I suspected we might need to support this. =A0Bu=
+t I
+>> don't think solving this problem (=3D keeping the fixup implementati=
+on
+>> in memory and enhancing the module loader) solved the
+>> fixups-referencing-sections-discarded-from-vmlinux problem. =A0These
+>> seem to be two separate issues. =A0I am filing to understand somethi=
+ng?
+>
+> They are separate, but related issues. =A0They both ultimately have t=
+he
+> same cause - the placement of the spinlock code inline rather than
+> out of line, resulting in fixups appearing all over the place rather
+> than just in kernel/spinlock.o.
 
-> From: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
-> 
-> ProDB00017052 - ARDY interrupt reasserted after being cleared.
-> This errata caused intermittent i2c instabilty(1 error per 3 hours) on several
-> customer platforms. After applying the workaround the intermittent errors were
-> not seen. This is not captured in the usual errata documents.
-> 
-> The workaround is to have a double clear of ARDY status in
-> irq handler.
-> 
-> Signed-off-by: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 445de08..9bcefae 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -851,7 +851,8 @@ complete:
->  					OMAP_I2C_STAT_AL)) {
->  			omap_i2c_ack_stat(dev, stat &
->  				(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
-> -				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-> +				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR |
-> +				OMAP_I2C_STAT_ARDY));
+I guess what I want to understand is whether I (or someone) still
+need(s) to sort out the vmlinux.lds issue.
 
-Most probably this is correct but I was just wondering are there any use
-for ARDY interrupt (register access ready) anyway and is the ARDY here
-caused by omap_i2c_write_reg for STAT_NACK in a few lines above.
+If we're keeping inline spinlocks (I currently assume "yes"), then the
+vmlinux.lds issue still needs fixing.  Is that correct?  However, if
+we get rid of inline spinlocks we won't have the problem, though there
+may be some performance impact -- hard to judge how significant.
 
-Just my 2 cents about possible further patches (while this having the
-priority as fixes the issue).
+Apologies if I'm being dense here...
 
--- 
-Jarkko
+Cheers
+---Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
