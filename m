@@ -1,113 +1,104 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] omap2plus: smartreflex: remove sr debug directory in omap_sr_remove()
-Date: Fri, 11 Feb 2011 15:50:46 -0800
-Message-ID: <87wrl65dwp.fsf@ti.com>
-References: <1296912744-4768-1-git-send-email-sawant@ti.com>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: [PATCH] PM: Allow pm_runtime_suspend() to succeed during system suspend
+Date: Sat, 12 Feb 2011 01:00:49 +0100
+Message-ID: <201102120100.49255.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1101311119190.1931-100000@iolanthe.rowland.org> <201102112225.54140.rjw@sisk.pl> <87aai26sq4.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:57044 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756887Ab1BKXut (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Feb 2011 18:50:49 -0500
-Received: by mail-iy0-f169.google.com with SMTP id 20so3193820iyi.0
-        for <linux-omap@vger.kernel.org>; Fri, 11 Feb 2011 15:50:48 -0800 (PST)
-In-Reply-To: <1296912744-4768-1-git-send-email-sawant@ti.com> (Anand
-	S. Sawant's message of "Sat, 5 Feb 2011 19:02:24 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87aai26sq4.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand S Sawant <sawant@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-Hi Anand,
+On Saturday, February 12, 2011, Kevin Hilman wrote:
+> "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> writes:
+> 
+> > On Friday, February 11, 2011, Kevin Hilman wrote:
+> >> "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> writes:
+> >> 
+> >> > On Monday, January 31, 2011, Rafael J. Wysocki wrote:
+> >> >> On Monday, January 31, 2011, Alan Stern wrote:
+> >> >> > On Mon, 31 Jan 2011, Kevin Hilman wrote:
+> >> >> > 
+> >> >> > > I understand how this works, but frankly I'm still a bit fuzzy on why.
+> >> >> > > 
+> >> >> > > I guess I'm still missing a good understanding of what "interfering with a
+> >> >> > > system power transition" means, and why a runtime suspend qualifies as
+> >> >> > > interfering but not a runtime resume.
+> >> >> > 
+> >> >> > These are good questions.  Rafael implemented this design originally; 
+> >> >> > my contribution was only to warn him of the potential for problems.  
+> >> >> > Therefore he should explain the rationale for the design.
+> >> >> 
+> >> >> The reason why runtime resume is allowed during system power transitions is
+> >> >> because in some cases during system suspend we simply have to resume devices
+> >> >> that were previously runtime-suspended (for example, the PCI bus type does
+> >> >> that).
+> >> >> 
+> >> >> The reason why runtime suspend is not allowed during system power transitions
+> >> >> if the following race:
+> >> >> 
+> >> >> - A device has been suspended via a system suspend callback.
+> >> >> - The runtime PM framework executes a (scheduled) suspend on that device,
+> >> >>   not knowing that it's already been suspended, which potentially results in
+> >> >>   accessing the device's registers in a low-power state.
+> >> >> 
+> >> >> Now, it can be avoided if every driver does the right thing and checks whether
+> >> >> the device is already suspended in its runtime suspend callback, but that would
+> >> >> kind of defeat the purpose of the runtime PM framework, at least partially.
+> >> >
+> >> > In fact, I've just realized that the above race cannot really occur, because
+> >> > pm_wq is freezable, so I'm proposing the following change.
+> >> >
+> >> > Of course, it still doesn't prevent user space from disabling the runtime PM
+> >> > framework's helpers via /sys/devices/.../power/control.
+> >> >
+> >> > Thanks,
+> >> > Rafael
+> >> >
+> >> >
+> >> > ---
+> >> > From: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
+> >> > Subject: PM: Allow pm_runtime_suspend() to succeed during system suspend
+> >> >
+> >> > The dpm_prepare() function increments the runtime PM reference
+> >> > counters of all devices to prevent pm_runtime_suspend() from
+> >> > executing subsystem-level callbacks.  However, this was supposed to
+> >> > guard against a specific race condition that cannot happen, because
+> >> > the power management workqueue is freezable, so pm_runtime_suspend()
+> >> > can only be called synchronously during system suspend and we can
+> >> > rely on subsystems and device drivers to avoid doing that
+> >> > unnecessarily.
+> >> >
+> >> > Make dpm_prepare() drop the runtime PM reference to each device
+> >> > after making sure that runtime resume is not pending for it.
+> >> >
+> >> > Signed-off-by: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
+> >> > ---
+> >> 
+> >> Yes!
+> >> 
+> >> Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+> >
+> > Well, I hope you realize that it doesn't help you a lot?
+> >
+> 
+> If you mean that because we still have to implement system PM methods
+> because of /sys/devices/.../power/control, I agree.
 
-Anand S Sawant <sawant@ti.com> writes:
-
-> omap_sr_probe() creates the smartreflex debug directory and its
-> underlying nvalue debug directory. These directories are removed in
-> omap_sr_remove().
+Yes, I meant that.
+ 
+> If something else, please explain.
 >
-> Basic smartreflex functionality tested on OMAP3630 Zoom3 & OMAP4430 SDP
->
-> Signed-off-by: Anand S Sawant <sawant@ti.com>
+> But to me it is still very helpful in terms of consistency and what
+> driver writers would expect to happen if they used pm_runtime_suspend()
+> in their system suspend method.
 
-Looks good.
+OK
 
-Please repost with the linux-arm-kernel list in CC:
-linux-arm-kernel@lists.infradead.org.  Thend, unless there are other
-comments/objections, I'll queue this for 2.6.39.
-
-Also, can summarize on which platforms this was tested.  Just curious:
-Were you able to build SR as a module to test this?
-
-Kevin
-
-> ---
->  arch/arm/mach-omap2/smartreflex.c |   24 ++++++++++++++----------
->  1 files changed, 14 insertions(+), 10 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-> index d7deadf..57df5cf 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -54,6 +54,7 @@ struct omap_sr {
->  	struct list_head		node;
->  	struct omap_sr_nvalue_table	*nvalue_table;
->  	struct voltagedomain		*voltdm;
-> +	struct dentry			*dbg_dir;
->  };
->  
->  /* sr_list contains all the instances of smartreflex module */
-> @@ -822,7 +823,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->  	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
->  	struct omap_sr_data *pdata = pdev->dev.platform_data;
->  	struct resource *mem, *irq;
-> -	struct dentry *vdd_dbg_dir, *dbg_dir, *nvalue_dir;
-> +	struct dentry *vdd_dbg_dir, *nvalue_dir;
->  	struct omap_volt_data *volt_data;
->  	int i, ret = 0;
->  
-> @@ -894,23 +895,24 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->  	if (!vdd_dbg_dir)
->  		return -EINVAL;
->  
-> -	dbg_dir = debugfs_create_dir("smartreflex", vdd_dbg_dir);
-> -	if (IS_ERR(dbg_dir)) {
-> +	sr_info->dbg_dir = debugfs_create_dir("smartreflex", vdd_dbg_dir);
-> +	if (IS_ERR(sr_info->dbg_dir)) {
->  		dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
->  			__func__);
-> -		return PTR_ERR(dbg_dir);
-> +		return PTR_ERR(sr_info->dbg_dir);
->  	}
->  
-> -	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
-> -				(void *)sr_info, &pm_sr_fops);
-> -	(void) debugfs_create_x32("errweight", S_IRUGO, dbg_dir,
-> +	/* Using S_IWUSR to fix checkpatch warning */
-> +	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUSR,
-> +			sr_info->dbg_dir, (void *)sr_info, &pm_sr_fops);
-> +	(void) debugfs_create_x32("errweight", S_IRUGO, sr_info->dbg_dir,
->  			&sr_info->err_weight);
-> -	(void) debugfs_create_x32("errmaxlimit", S_IRUGO, dbg_dir,
-> +	(void) debugfs_create_x32("errmaxlimit", S_IRUGO, sr_info->dbg_dir,
->  			&sr_info->err_maxlimit);
-> -	(void) debugfs_create_x32("errminlimit", S_IRUGO, dbg_dir,
-> +	(void) debugfs_create_x32("errminlimit", S_IRUGO, sr_info->dbg_dir,
->  			&sr_info->err_minlimit);
->  
-> -	nvalue_dir = debugfs_create_dir("nvalue", dbg_dir);
-> +	nvalue_dir = debugfs_create_dir("nvalue", sr_info->dbg_dir);
->  	if (IS_ERR(nvalue_dir)) {
->  		dev_err(&pdev->dev, "%s: Unable to create debugfs directory"
->  			"for n-values\n", __func__);
-> @@ -974,6 +976,8 @@ static int __devexit omap_sr_remove(struct platform_device *pdev)
->  
->  	if (sr_info->autocomp_active)
->  		sr_stop_vddautocomp(sr_info);
-> +	if (sr_info->dbg_dir)
-> +		debugfs_remove_recursive(sr_info->dbg_dir);
->  
->  	list_del(&sr_info->node);
->  	iounmap(sr_info->base);
+Thanks,
+Rafael
