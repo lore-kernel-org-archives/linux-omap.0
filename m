@@ -1,26 +1,49 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/6] ARM: move cache/processor/fault glue to separate
-	include files
-Date: Sat, 12 Feb 2011 09:48:25 +0000
-Message-ID: <20110212094825.GA15837@n2100.arm.linux.org.uk>
-References: <20110211161626.GA31356@n2100.arm.linux.org.uk> <E1Pnvgc-0002yU-Gr@rmk-PC.arm.linux.org.uk> <AANLkTimZOGkgjudvxeaOMJz=p2peZAt6Zf-sFjrz66YL@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: David Cohen <dacohen@gmail.com>
+Subject: [PATCH] omap iommu: print module name on error messages
+Date: Sat, 12 Feb 2011 12:02:29 +0200
+Message-ID: <1297504949-26233-1-git-send-email-dacohen@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43866 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751035Ab1BLJsp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Feb 2011 04:48:45 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTimZOGkgjudvxeaOMJz=p2peZAt6Zf-sFjrz66YL@mail.gmail.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:41797 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739Ab1BLKCm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Feb 2011 05:02:42 -0500
+Received: by ewy5 with SMTP id 5so1713465ewy.19
+        for <linux-omap@vger.kernel.org>; Sat, 12 Feb 2011 02:02:40 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@google.com>
-Cc: Eric Miao <eric.y.miao@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Hiroshi.DOYU@nokia.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, David Cohen <dacohen@gmail.com>
 
-On Fri, Feb 11, 2011 at 06:52:14PM -0800, Colin Cross wrote:
-> Acked-by: Colin Cross <ccross@android.com>
-> 
-> Tested on Tegra 2.
+OMAP IOMMU generic layer doesn't need ot print function name during
+error messages. Print module name instead which is more useful.
 
-Thanks, I'll take these as Tested-by's.
+Signed-off-by: David Cohen <dacohen@gmail.com>
+---
+ arch/arm/plat-omap/iommu.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index b1107c0..f55f458 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -806,7 +806,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+ 	iopgd = iopgd_offset(obj, da);
+ 
+ 	if (!iopgd_is_table(*iopgd)) {
+-		dev_err(obj->dev, "%s: da:%08x pgd:%p *pgd:%08x\n", __func__,
++		dev_err(obj->dev, "%s: da:%08x pgd:%p *pgd:%08x\n", obj->name,
+ 			da, iopgd, *iopgd);
+ 		return IRQ_NONE;
+ 	}
+@@ -814,7 +814,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+ 	iopte = iopte_offset(iopgd, da);
+ 
+ 	dev_err(obj->dev, "%s: da:%08x pgd:%p *pgd:%08x pte:%p *pte:%08x\n",
+-		__func__, da, iopgd, *iopgd, iopte, *iopte);
++		obj->name, da, iopgd, *iopgd, iopte, *iopte);
+ 
+ 	return IRQ_NONE;
+ }
+-- 
+1.7.1
+
