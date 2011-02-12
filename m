@@ -1,78 +1,39 @@
-From: Mohamed Thalib H <mohamed@e-consystems.com>
-Subject: Re: How to enable dvfs in omap.
-Date: Sat, 12 Feb 2011 16:42:54 +0530
-Message-ID: <4D566B36.8000008@e-consystems.com>
-References: <4D5665D4.2030902@e-consystems.com> <e4a5bc05ba60bfbabb5338354a1bd69e@mail.gmail.com>
-Reply-To: mohamed@e-consystems.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 4/5] omap2plus: omap4: Set NR_CPU to 2 instead of default 4
+Date: Sat, 12 Feb 2011 16:59:46 +0530
+Message-ID: <1297510187-31547-5-git-send-email-santosh.shilimkar@ti.com>
+References: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp7.myhsphere.biz ([204.10.105.69]:40108 "EHLO
-	mail9.myhsphere.biz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751051Ab1BLLM6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Feb 2011 06:12:58 -0500
-In-Reply-To: <e4a5bc05ba60bfbabb5338354a1bd69e@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:46374 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751988Ab1BLL36 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 12 Feb 2011 06:29:58 -0500
+In-Reply-To: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: OMAP-KML <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Santosh,
+The omap2plus_defconfig picks default NR_CPU value as 4 which isn't
+correct for OMAP4430. Available CPUs are ony 2, so fix the same.
 
-Thanks for the help .
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/configs/omap2plus_defconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Regareds,
-Mohamed Thalib H.
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index ae890ca..019fb7c 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -58,6 +58,7 @@ CONFIG_ARM_ERRATA_411920=y
+ CONFIG_NO_HZ=y
+ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_SMP=y
++CONFIG_NR_CPUS=2
+ # CONFIG_LOCAL_TIMERS is not set
+ CONFIG_AEABI=y
+ CONFIG_LEDS=y
+-- 
+1.6.0.4
 
-On Saturday 12 February 2011 04:27 PM, Santosh Shilimkar wrote:
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Mohamed Thalib H
->> Sent: Saturday, February 12, 2011 4:20 PM
->> To: OMAP-KML
->> Subject: How to enable dvfs in omap.
->>
->> Hi all,
->>
->> I am using omap 2.6.37 running overo board. I have enabled the
->> following
->> option in the kernel menunconfig,
->>
->>
->> CPU Power Management --->
->> =E2=94=82 =E2=94=82 [*] CPU Frequency scaling
->> =E2=94=82 =E2=94=82 [ ] Enable CPUfreq debugging
->> =E2=94=82 =E2=94=82<*>  CPU frequency translation statistics
->> =E2=94=82 =E2=94=82 [*] CPU frequency translation statistics details
->> =E2=94=82 =E2=94=82 Default CPUFreq governor (ondemand) --->
->> =E2=94=82 =E2=94=82 -*- 'performance' governor
->> =E2=94=82 =E2=94=82<M>  'powersave' governor
->> =E2=94=82 =E2=94=82<*>  'userspace' governor for userspace frequency=
- scaling
->> =E2=94=82 =E2=94=82 -*- 'ondemand' cpufreq policy governor
->> =E2=94=82 =E2=94=82<*>  'conservative' cpufreq governor
->> =E2=94=82 =E2=94=82 [ ] CPU idle PM support
->>
->>
->> but still I could find the sys and entry in
->> /sys/devices/system/cpu/cpufreq/ directory. Could some one help me
->> to enable DVFS.
->>
-> That's because tts not supported yet.
-> You may want to look at this[1] series which is in progress
-> to enable the support.
->
->
-> Regards,
-> Santosh
->
-> [1] [PATCH 00/13] OMAP: Basic DVFS Framework
->   http://www.spinics.net/lists/linux-omap/msg44393.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
