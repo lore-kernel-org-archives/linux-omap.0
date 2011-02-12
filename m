@@ -1,104 +1,86 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: [PATCH] PM: Allow pm_runtime_suspend() to succeed during system suspend
-Date: Sat, 12 Feb 2011 01:00:49 +0100
-Message-ID: <201102120100.49255.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1101311119190.1931-100000@iolanthe.rowland.org> <201102112225.54140.rjw@sisk.pl> <87aai26sq4.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP1: PM: fix omap1 build
+Date: Fri, 11 Feb 2011 16:13:14 -0800
+Message-ID: <87oc6i5cv9.fsf@ti.com>
+References: <1297081358-8294-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87aai26sq4.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:46629 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752298Ab1BLANS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Feb 2011 19:13:18 -0500
+Received: by gwaa20 with SMTP id a20so1713025gwa.23
+        for <linux-omap@vger.kernel.org>; Fri, 11 Feb 2011 16:13:17 -0800 (PST)
+In-Reply-To: <1297081358-8294-1-git-send-email-manjugk@ti.com> (Manjunath
+	Kondaiah G.'s message of "Mon, 7 Feb 2011 17:52:38 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Saturday, February 12, 2011, Kevin Hilman wrote:
-> "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> writes:
-> 
-> > On Friday, February 11, 2011, Kevin Hilman wrote:
-> >> "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> writes:
-> >> 
-> >> > On Monday, January 31, 2011, Rafael J. Wysocki wrote:
-> >> >> On Monday, January 31, 2011, Alan Stern wrote:
-> >> >> > On Mon, 31 Jan 2011, Kevin Hilman wrote:
-> >> >> > 
-> >> >> > > I understand how this works, but frankly I'm still a bit fuzzy on why.
-> >> >> > > 
-> >> >> > > I guess I'm still missing a good understanding of what "interfering with a
-> >> >> > > system power transition" means, and why a runtime suspend qualifies as
-> >> >> > > interfering but not a runtime resume.
-> >> >> > 
-> >> >> > These are good questions.  Rafael implemented this design originally; 
-> >> >> > my contribution was only to warn him of the potential for problems.  
-> >> >> > Therefore he should explain the rationale for the design.
-> >> >> 
-> >> >> The reason why runtime resume is allowed during system power transitions is
-> >> >> because in some cases during system suspend we simply have to resume devices
-> >> >> that were previously runtime-suspended (for example, the PCI bus type does
-> >> >> that).
-> >> >> 
-> >> >> The reason why runtime suspend is not allowed during system power transitions
-> >> >> if the following race:
-> >> >> 
-> >> >> - A device has been suspended via a system suspend callback.
-> >> >> - The runtime PM framework executes a (scheduled) suspend on that device,
-> >> >>   not knowing that it's already been suspended, which potentially results in
-> >> >>   accessing the device's registers in a low-power state.
-> >> >> 
-> >> >> Now, it can be avoided if every driver does the right thing and checks whether
-> >> >> the device is already suspended in its runtime suspend callback, but that would
-> >> >> kind of defeat the purpose of the runtime PM framework, at least partially.
-> >> >
-> >> > In fact, I've just realized that the above race cannot really occur, because
-> >> > pm_wq is freezable, so I'm proposing the following change.
-> >> >
-> >> > Of course, it still doesn't prevent user space from disabling the runtime PM
-> >> > framework's helpers via /sys/devices/.../power/control.
-> >> >
-> >> > Thanks,
-> >> > Rafael
-> >> >
-> >> >
-> >> > ---
-> >> > From: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
-> >> > Subject: PM: Allow pm_runtime_suspend() to succeed during system suspend
-> >> >
-> >> > The dpm_prepare() function increments the runtime PM reference
-> >> > counters of all devices to prevent pm_runtime_suspend() from
-> >> > executing subsystem-level callbacks.  However, this was supposed to
-> >> > guard against a specific race condition that cannot happen, because
-> >> > the power management workqueue is freezable, so pm_runtime_suspend()
-> >> > can only be called synchronously during system suspend and we can
-> >> > rely on subsystems and device drivers to avoid doing that
-> >> > unnecessarily.
-> >> >
-> >> > Make dpm_prepare() drop the runtime PM reference to each device
-> >> > after making sure that runtime resume is not pending for it.
-> >> >
-> >> > Signed-off-by: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
-> >> > ---
-> >> 
-> >> Yes!
-> >> 
-> >> Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-> >
-> > Well, I hope you realize that it doesn't help you a lot?
-> >
-> 
-> If you mean that because we still have to implement system PM methods
-> because of /sys/devices/.../power/control, I agree.
+Hi Manju,
 
-Yes, I meant that.
- 
-> If something else, please explain.
+"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+
+> The omap1_defconfig build on pm branch throughs below build error:
 >
-> But to me it is still very helpful in terms of consistency and what
-> driver writers would expect to happen if they used pm_runtime_suspend()
-> in their system suspend method.
+>   CC      drivers/i2c/busses/i2c-omap.o
+> drivers/i2c/busses/i2c-omap.c:1173: error: lvalue required as unary '&' operand
+> make[3]: *** [drivers/i2c/busses/i2c-omap.o] Error 1
+> make[2]: *** [drivers/i2c/busses] Error 2
+> make[1]: *** [drivers/i2c] Error 2
+> make: *** [drivers] Error 2
+>
+> Fix above build error. Boot tested on omap1710(h3) board.
+>
+> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 0541df9..8db456f 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1170,7 +1170,7 @@ static struct platform_driver omap_i2c_driver = {
+>  	.driver		= {
+>  		.name	= "omap_i2c",
+>  		.owner	= THIS_MODULE,
+> -		.pm     = &omap_i2c_pm_ops,
+> +		.pm     = omap_i2c_pm_ops,
+>  	},
+>  };
 
-OK
+This might fix the compile on OMAP1, but it then breaks the build for
+OMAP2+ when CONFIG_PM is enabled.
+
+This isn't really an OMAP1 issue, rather it's a !CONFIG_PM issue.
+
+The right fix will be to make the #else clause of the #ifdef CONFIG_PM
+correct for all OMAPs.
+
+Also, please Cc Ben Dooks and the linux-i2c list on I2C driver patches
+(MAINTAINERS entry below.)
 
 Thanks,
-Rafael
+
+Kevin
+
+
+
+
+I2C SUBSYSTEM
+M:	"Jean Delvare (PC drivers, core)" <khali@linux-fr.org>
+M:	"Ben Dooks (embedded platforms)" <ben-linux@fluff.org>
+L:	linux-i2c@vger.kernel.org
+W:	http://i2c.wiki.kernel.org/
+T:	quilt kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-i2c/
+T:	git git://git.fluff.org/bjdooks/linux.git
+S:	Maintained
+F:	Documentation/i2c/
+F:	drivers/i2c/
+F:	include/linux/i2c.h
+F:	include/linux/i2c-*.h
+
