@@ -1,125 +1,238 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 3/5] ARM: l2x0: Errata fix for flush by Way operation can cause data corruption
-Date: Sat, 12 Feb 2011 16:59:45 +0530
-Message-ID: <1297510187-31547-4-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 1/5] ARM: smp: Select local timers vs dummy timer support runtime
+Date: Sat, 12 Feb 2011 16:59:43 +0530
+Message-ID: <1297510187-31547-2-git-send-email-santosh.shilimkar@ti.com>
 References: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39794 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46420 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753167Ab1BLLaE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 12 Feb 2011 06:30:04 -0500
+	id S1752245Ab1BLLam (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 12 Feb 2011 06:30:42 -0500
 In-Reply-To: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@codeaurora.org>, Bryan Huntsman <bryanh@codeaurora.org>, Kukjin Kim <kgene.kim@samsung.com>, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, Colin Cross <ccross@android.com>, Erik Gilling <konkers@android.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Linus Walleij <linus.walleij@stericsson.com>
 
-PL310 implements the Clean & Invalidate by Way L2 cache maintenance
-operation (offset 0x7FC). This operation runs in background so that
-PL310 can handle normal accesses while it is in progress. Under very
-rare circumstances, due to this erratum, write data can be lost when
-PL310 treats a cacheable write transaction during a Clean & Invalidate
-by Way operation.
+The current code support of dummy timers in absence of local
+timer is compile time. This is an attempt to convert it to runtime
+so that on few SOC version if the local timers aren't supported
+kernel can switch to dummy timers. OMAP4430 ES1.0 does suffer from
+this limitation.
 
-Workaround:
-Disable Write-Back and Cache Linefill (Debug Control Register)
-Clean & Invalidate by Way (0x7FC)
-Re-enable Write-Back and Cache Linefill (Debug Control Register)
+This patch should not have any functional impact on affected
+files.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: David Brown <davidb@codeaurora.org>
+Cc: Daniel Walker <dwalker@codeaurora.org>
+Cc: Bryan Huntsman <bryanh@codeaurora.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Magnus Damm <magnus.damm@gmail.com>
+Cc: Colin Cross <ccross@android.com>
+Cc: Erik Gilling <konkers@android.com>
+Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
 ---
- arch/arm/Kconfig            |   11 +++++++++++
- arch/arm/mach-omap2/Kconfig |    1 +
- arch/arm/mm/cache-l2x0.c    |   16 ++++++++++------
- 3 files changed, 22 insertions(+), 6 deletions(-)
+ arch/arm/include/asm/localtimer.h   |    8 +++++++-
+ arch/arm/kernel/smp.c               |    7 +++----
+ arch/arm/mach-msm/timer.c           |    3 ++-
+ arch/arm/mach-omap2/timer-mpu.c     |    3 ++-
+ arch/arm/mach-realview/localtimer.c |    3 ++-
+ arch/arm/mach-s5pv310/localtimer.c  |    3 ++-
+ arch/arm/mach-shmobile/localtimer.c |    3 ++-
+ arch/arm/mach-tegra/localtimer.c    |    3 ++-
+ arch/arm/mach-ux500/localtimer.c    |    3 ++-
+ arch/arm/mach-vexpress/localtimer.c |    3 ++-
+ 10 files changed, 26 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 5cff165..2e6b879 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1177,6 +1177,17 @@ config ARM_ERRATA_743622
- 	  visible impact on the overall performance or power consumption of the
- 	  processor.
+diff --git a/arch/arm/include/asm/localtimer.h b/arch/arm/include/asm/localtimer.h
+index 6bc63ab..080d74f 100644
+--- a/arch/arm/include/asm/localtimer.h
++++ b/arch/arm/include/asm/localtimer.h
+@@ -44,8 +44,14 @@ int local_timer_ack(void);
+ /*
+  * Setup a local timer interrupt for a CPU.
+  */
+-void local_timer_setup(struct clock_event_device *);
++int local_timer_setup(struct clock_event_device *);
  
-+config PL310_ERRATA_727915
-+	bool "Background Clean & Invalidate by Way operation can cause data corruption"
-+	depends on CACHE_L2X0 && ARCH_OMAP4
-+	help
-+	  PL310 implements the Clean & Invalidate by Way L2 cache maintenance
-+	  operation (offset 0x7FC). This operation runs in background so that
-+	  PL310 can handle normal accesses while it is in progress. Under very
-+	  rare circumstances, due to this erratum, write data can be lost when
-+	  PL310 treats a cacheable write transaction during a Clean &
-+	  Invalidate by Way operation Note that this errata uses Texas
-+	  Instrument's secure monitor api to implement the work around.
- endmenu
- 
- source "arch/arm/common/Kconfig"
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index f285dd7..1f0ff75 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -46,6 +46,7 @@ config ARCH_OMAP4
- 	select ARM_GIC
- 	select LOCAL_TIMERS
- 	select PL310_ERRATA_588369
-+	select PL310_ERRATA_727915
- 	select ARM_ERRATA_720789
- 	select ARCH_HAS_OPP
- 	select PM_OPP if PM
-diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index 170c9bb..c7c8fbe 100644
---- a/arch/arm/mm/cache-l2x0.c
-+++ b/arch/arm/mm/cache-l2x0.c
-@@ -67,7 +67,7 @@ static inline void l2x0_inv_line(unsigned long addr)
- 	writel_relaxed(addr, base + L2X0_INV_LINE_PA);
- }
- 
--#ifdef CONFIG_PL310_ERRATA_588369
-+#if defined(CONFIG_PL310_ERRATA_588369) || defined(CONFIG_PL310_ERRATA_727915)
- static void debug_writel(unsigned long val)
- {
- 	extern void omap_smc1(u32 fn, u32 arg);
-@@ -78,7 +78,14 @@ static void debug_writel(unsigned long val)
- 	 */
- 	omap_smc1(0x100, val);
- }
 +#else
-+/* Optimised out for non-errata case */
-+static inline void debug_writel(unsigned long val)
++
++static inline int local_timer_setup(struct clock_event_device *evt)
 +{
++	return -ENXIO;
 +}
-+#endif
+ #endif
  
-+#ifdef CONFIG_PL310_ERRATA_588369
- static inline void l2x0_flush_line(unsigned long addr)
+ #endif
+diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+index 4539ebc..7b9cc53 100644
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -474,13 +474,12 @@ static void smp_timer_broadcast(const struct cpumask *mask)
+ #define smp_timer_broadcast	NULL
+ #endif
+ 
+-#ifndef CONFIG_LOCAL_TIMERS
+ static void broadcast_timer_set_mode(enum clock_event_mode mode,
+ 	struct clock_event_device *evt)
  {
- 	void __iomem *base = l2x0_base;
-@@ -91,11 +98,6 @@ static inline void l2x0_flush_line(unsigned long addr)
- }
- #else
- 
--/* Optimised out for non-errata case */
--static inline void debug_writel(unsigned long val)
--{
--}
--
- static inline void l2x0_flush_line(unsigned long addr)
- {
- 	void __iomem *base = l2x0_base;
-@@ -119,9 +121,11 @@ static void l2x0_flush_all(void)
- 
- 	/* clean all ways */
- 	spin_lock_irqsave(&l2x0_lock, flags);
-+	debug_writel(0x03);
- 	writel_relaxed(l2x0_way_mask, l2x0_base + L2X0_CLEAN_INV_WAY);
- 	cache_wait_way(l2x0_base + L2X0_CLEAN_INV_WAY, l2x0_way_mask);
- 	cache_sync();
-+	debug_writel(0x00);
- 	spin_unlock_irqrestore(&l2x0_lock, flags);
  }
  
+-static void local_timer_setup(struct clock_event_device *evt)
++static void dummy_timer_setup(struct clock_event_device *evt)
+ {
+ 	evt->name	= "dummy_timer";
+ 	evt->features	= CLOCK_EVT_FEAT_ONESHOT |
+@@ -492,7 +491,6 @@ static void local_timer_setup(struct clock_event_device *evt)
+ 
+ 	clockevents_register_device(evt);
+ }
+-#endif
+ 
+ void __cpuinit percpu_timer_setup(void)
+ {
+@@ -502,7 +500,8 @@ void __cpuinit percpu_timer_setup(void)
+ 	evt->cpumask = cpumask_of(cpu);
+ 	evt->broadcast = smp_timer_broadcast;
+ 
+-	local_timer_setup(evt);
++	if (local_timer_setup(evt))
++		dummy_timer_setup(evt);
+ }
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+diff --git a/arch/arm/mach-msm/timer.c b/arch/arm/mach-msm/timer.c
+index c105d28..ae85aa9 100644
+--- a/arch/arm/mach-msm/timer.c
++++ b/arch/arm/mach-msm/timer.c
+@@ -255,7 +255,7 @@ static void __init msm_timer_init(void)
+ }
+ 
+ #ifdef CONFIG_SMP
+-void __cpuinit local_timer_setup(struct clock_event_device *evt)
++int __cpuinit local_timer_setup(struct clock_event_device *evt)
+ {
+ 	struct msm_clock *clock = &msm_clocks[MSM_GLOBAL_TIMER];
+ 
+@@ -287,6 +287,7 @@ void __cpuinit local_timer_setup(struct clock_event_device *evt)
+ 	gic_enable_ppi(clock->irq.irq);
+ 
+ 	clockevents_register_device(evt);
++	return 0;
+ }
+ 
+ inline int local_timer_ack(void)
+diff --git a/arch/arm/mach-omap2/timer-mpu.c b/arch/arm/mach-omap2/timer-mpu.c
+index 954682e..09c73dc 100644
+--- a/arch/arm/mach-omap2/timer-mpu.c
++++ b/arch/arm/mach-omap2/timer-mpu.c
+@@ -26,9 +26,10 @@
+ /*
+  * Setup the local clock events for a CPU.
+  */
+-void __cpuinit local_timer_setup(struct clock_event_device *evt)
++int __cpuinit local_timer_setup(struct clock_event_device *evt)
+ {
+ 	evt->irq = OMAP44XX_IRQ_LOCALTIMER;
+ 	twd_timer_setup(evt);
++	return 0;
+ }
+ 
+diff --git a/arch/arm/mach-realview/localtimer.c b/arch/arm/mach-realview/localtimer.c
+index 60b4e11..aca29ce 100644
+--- a/arch/arm/mach-realview/localtimer.c
++++ b/arch/arm/mach-realview/localtimer.c
+@@ -19,8 +19,9 @@
+ /*
+  * Setup the local clock events for a CPU.
+  */
+-void __cpuinit local_timer_setup(struct clock_event_device *evt)
++int __cpuinit local_timer_setup(struct clock_event_device *evt)
+ {
+ 	evt->irq = IRQ_LOCALTIMER;
+ 	twd_timer_setup(evt);
++	return 0;
+ }
+diff --git a/arch/arm/mach-s5pv310/localtimer.c b/arch/arm/mach-s5pv310/localtimer.c
+index 2784036..8239c6a 100644
+--- a/arch/arm/mach-s5pv310/localtimer.c
++++ b/arch/arm/mach-s5pv310/localtimer.c
+@@ -18,8 +18,9 @@
+ /*
+  * Setup the local clock events for a CPU.
+  */
+-void __cpuinit local_timer_setup(struct clock_event_device *evt)
++int __cpuinit local_timer_setup(struct clock_event_device *evt)
+ {
+ 	evt->irq = IRQ_LOCALTIMER;
+ 	twd_timer_setup(evt);
++	return 0;
+ }
+diff --git a/arch/arm/mach-shmobile/localtimer.c b/arch/arm/mach-shmobile/localtimer.c
+index 2111c28..ad9ccc9 100644
+--- a/arch/arm/mach-shmobile/localtimer.c
++++ b/arch/arm/mach-shmobile/localtimer.c
+@@ -18,8 +18,9 @@
+ /*
+  * Setup the local clock events for a CPU.
+  */
+-void __cpuinit local_timer_setup(struct clock_event_device *evt)
++int __cpuinit local_timer_setup(struct clock_event_device *evt)
+ {
+ 	evt->irq = 29;
+ 	twd_timer_setup(evt);
++	return 0;
+ }
+diff --git a/arch/arm/mach-tegra/localtimer.c b/arch/arm/mach-tegra/localtimer.c
+index f81ca7c..e91d681 100644
+--- a/arch/arm/mach-tegra/localtimer.c
++++ b/arch/arm/mach-tegra/localtimer.c
+@@ -18,8 +18,9 @@
+ /*
+  * Setup the local clock events for a CPU.
+  */
+-void __cpuinit local_timer_setup(struct clock_event_device *evt)
++int __cpuinit local_timer_setup(struct clock_event_device *evt)
+ {
+ 	evt->irq = IRQ_LOCALTIMER;
+ 	twd_timer_setup(evt);
++	return 0;
+ }
+diff --git a/arch/arm/mach-ux500/localtimer.c b/arch/arm/mach-ux500/localtimer.c
+index 2288f6a..5ba1133 100644
+--- a/arch/arm/mach-ux500/localtimer.c
++++ b/arch/arm/mach-ux500/localtimer.c
+@@ -21,8 +21,9 @@
+ /*
+  * Setup the local clock events for a CPU.
+  */
+-void __cpuinit local_timer_setup(struct clock_event_device *evt)
++int __cpuinit local_timer_setup(struct clock_event_device *evt)
+ {
+ 	evt->irq = IRQ_LOCALTIMER;
+ 	twd_timer_setup(evt);
++	return 0;
+ }
+diff --git a/arch/arm/mach-vexpress/localtimer.c b/arch/arm/mach-vexpress/localtimer.c
+index c0e3a59..e5adbfa 100644
+--- a/arch/arm/mach-vexpress/localtimer.c
++++ b/arch/arm/mach-vexpress/localtimer.c
+@@ -19,8 +19,9 @@
+ /*
+  * Setup the local clock events for a CPU.
+  */
+-void __cpuinit local_timer_setup(struct clock_event_device *evt)
++int __cpuinit local_timer_setup(struct clock_event_device *evt)
+ {
+ 	evt->irq = IRQ_LOCALTIMER;
+ 	twd_timer_setup(evt);
++	return 0;
+ }
 -- 
 1.6.0.4
 
