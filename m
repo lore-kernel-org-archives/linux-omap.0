@@ -1,97 +1,69 @@
-From: Mohamed Thalib H <mohamed@e-consystems.com>
-Subject: Re: How to enable dvfs in omap.
-Date: Sat, 12 Feb 2011 17:51:32 +0530
-Message-ID: <4D567B4C.5030502@e-consystems.com>
-References: <4D5665D4.2030902@e-consystems.com> <e4a5bc05ba60bfbabb5338354a1bd69e@mail.gmail.com> <4D566B36.8000008@e-consystems.com> <4D567436.2090602@ti.com>
-Reply-To: mohamed@e-consystems.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: State of LDP3430 platform
+Date: Sat, 12 Feb 2011 16:02:16 +0000
+Message-ID: <20110212160216.GA22694@n2100.arm.linux.org.uk>
+References: <20101206125526.GC31777@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp7.myhsphere.biz ([204.10.105.69]:44873 "EHLO
-	mail9.myhsphere.biz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753548Ab1BLMVg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Feb 2011 07:21:36 -0500
-In-Reply-To: <4D567436.2090602@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45642 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751014Ab1BLQCX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Feb 2011 11:02:23 -0500
+Content-Disposition: inline
+In-Reply-To: <20101206125526.GC31777@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, OMAP-KML <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
 
+Another LDP3430 report...
 
-On Saturday 12 February 2011 05:21 PM, Nishanth Menon wrote:
-> Mohamed Thalib H wrote, on 02/12/2011 04:42 PM:
->> Hi Santosh,
->>
->> Thanks for the help .
->>
->> Regareds,
->> Mohamed Thalib H.
->>
->> On Saturday 12 February 2011 04:27 PM, Santosh Shilimkar wrote:
->>>> -----Original Message-----
->>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->>>> owner@vger.kernel.org] On Behalf Of Mohamed Thalib H
->>>> Sent: Saturday, February 12, 2011 4:20 PM
->>>> To: OMAP-KML
->>>> Subject: How to enable dvfs in omap.
->>>>
->>>> Hi all,
->>>>
->>>> I am using omap 2.6.37 running overo board. I have enabled the
->>>> following
->>>> option in the kernel menunconfig,
->>>>
->>>>
->>>> CPU Power Management --->
->>>> =E2=94=82 =E2=94=82 [*] CPU Frequency scaling
->>>> =E2=94=82 =E2=94=82 [ ] Enable CPUfreq debugging
->>>> =E2=94=82 =E2=94=82<*> CPU frequency translation statistics
->>>> =E2=94=82 =E2=94=82 [*] CPU frequency translation statistics detai=
-ls
->>>> =E2=94=82 =E2=94=82 Default CPUFreq governor (ondemand) --->
->>>> =E2=94=82 =E2=94=82 -*- 'performance' governor
->>>> =E2=94=82 =E2=94=82<M> 'powersave' governor
->>>> =E2=94=82 =E2=94=82<*> 'userspace' governor for userspace frequenc=
-y scaling
->>>> =E2=94=82 =E2=94=82 -*- 'ondemand' cpufreq policy governor
->>>> =E2=94=82 =E2=94=82<*> 'conservative' cpufreq governor
->>>> =E2=94=82 =E2=94=82 [ ] CPU idle PM support
->>>>
->>>>
->>>> but still I could find the sys and entry in
->>>> /sys/devices/system/cpu/cpufreq/ directory. Could some one help me
->>>> to enable DVFS.
->>>>
->>> That's because tts not supported yet.
->>> You may want to look at this[1] series which is in progress
->>> to enable the support.
->>>
->>>
->>> Regards,
->>> Santosh
->>>
->>> [1] [PATCH 00/13] OMAP: Basic DVFS Framework
->>> http://www.spinics.net/lists/linux-omap/msg44393.html
->
-> if you are interested,
-> I rebased the last set with k.org and fixes from pm tree for=20
-> development for smartreflex class 1.5 here:
-> http://gitorious.org/linux-omap-nm-sr/linux-omap-sr/commits/dvfs
->
-> git://gitorious.org/linux-omap-nm-sr/linux-omap-sr.git
-> branch: dvfs
->
->
-Thanks for your help Nishanth,
+The LDP3430 seems to be getting there, but:
 
-Surely I will pull the git and checkout..
+1. LCD screen seems wrong.  The X display looks rather large, and
+   flickery - looks like the LCD timing parameters are wrong.  Some
+   text disappears off the RHS.
 
-Regards,
-Thalib.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+   fbset reports:
+	mode "240x320-510"
+		# D: 48.001 MHz, H: 168.424 kHz, V: 510.375 Hz
+		geometry 240 320 240 320 16
+		timings 20833 3 39 2 7 3 1
+		accel false
+		rgba 5/11,6/5,5/0,0/0
+
+   kernel config:
+	CONFIG_FB_OMAP=y
+	CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
+
+   with the supplied kernel:
+	mode "640x480-64"
+		# D: 21.601 MHz, H: 31.396 kHz, V: 63.813 Hz
+		geometry 640 480 640 640 16
+		timings 46295 40 4 8 2 4 2
+		accel false
+		rgba 5/11,6/5,5/0,0/0
+   so the LCD timings in the kernel appear to be wrong for the panel
+   on the LDP.  What is 'CONFIG_FB_OMAP_LCD_VGA'?  There's *no* help
+   for this configuration option so god only knows what it's right
+   setting should be.  Please give it some help text to explain what
+   it is and what it does.
+
+2. Keyboard - numeric keys produce wrong ascii for their labelled
+   function.  This is from /dev/tty1 with X running:
+
+	1 gives nothing	2 gives 4	3 gives 7
+	4 gives 2	5 gives 5	6 gives 8
+	7 gives 3	8 gives nothing	9 gives 9
+	* gives nothing	0 gives E	# gives nothing
+
+   off-hook (green phone) gives 0
+   on-hook (red phone) gives <1b><5b><31><39><7e>
+
+   Killing X and then running evtest on /dev/input/event1 doesn't
+   return any events, neither does reading /dev/tty1 for the twl4030
+   keypad - the numeric keys are completely dead.  /proc/interrupts
+   shows no new interrupt counts when pressing the key for
+   'twl4030_keypad'.  Unbinding/rebinding the twl4030 driver doesn't
+   sort it out, neither does restarting X.
