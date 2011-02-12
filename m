@@ -1,84 +1,31 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: State of LDP3430 platform
-Date: Sat, 12 Feb 2011 16:10:53 +0000
-Message-ID: <20110212161053.GA23481@n2100.arm.linux.org.uk>
-References: <20101206125526.GC31777@n2100.arm.linux.org.uk> <20110212160216.GA22694@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Daniel Morsing <daniel.morsing@gmail.com>
+Subject: [PATCH 0/2] Add recommended bpp for omap dss2 generic dpi panels
+Date: Sat, 12 Feb 2011 18:02:08 +0100
+Message-ID: <1297530130-10355-1-git-send-email-daniel.morsing@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45288 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750903Ab1BLQK6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Feb 2011 11:10:58 -0500
-Content-Disposition: inline
-In-Reply-To: <20110212160216.GA22694@n2100.arm.linux.org.uk>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:54555 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750948Ab1BLRCE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Feb 2011 12:02:04 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomba@iki.fi>
+Cc: Bryan Wu <bryan.wu@canonical.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Daniel Morsing <daniel.morsing@gmail.com>
 
-On Sat, Feb 12, 2011 at 04:02:16PM +0000, Russell King - ARM Linux wrote:
-> Another LDP3430 report...
-> 
-> The LDP3430 seems to be getting there, but:
-> 
-> 1. LCD screen seems wrong.  The X display looks rather large, and
->    flickery - looks like the LCD timing parameters are wrong.  Some
->    text disappears off the RHS.
-> 
->    fbset reports:
-> 	mode "240x320-510"
-> 		# D: 48.001 MHz, H: 168.424 kHz, V: 510.375 Hz
-> 		geometry 240 320 240 320 16
-> 		timings 20833 3 39 2 7 3 1
-> 		accel false
-> 		rgba 5/11,6/5,5/0,0/0
-> 
->    kernel config:
-> 	CONFIG_FB_OMAP=y
-> 	CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
-> 
->    with the supplied kernel:
-> 	mode "640x480-64"
-> 		# D: 21.601 MHz, H: 31.396 kHz, V: 63.813 Hz
-> 		geometry 640 480 640 640 16
-> 		timings 46295 40 4 8 2 4 2
-> 		accel false
-> 		rgba 5/11,6/5,5/0,0/0
->    so the LCD timings in the kernel appear to be wrong for the panel
->    on the LDP.  What is 'CONFIG_FB_OMAP_LCD_VGA'?  There's *no* help
->    for this configuration option so god only knows what it's right
->    setting should be.  Please give it some help text to explain what
->    it is and what it does.
+This series adds a mechanism for specifying a recommended bpp for
+generic dss2 dpi panels and adds a panel that uses this feature.
 
-LCD works better with FB_OMAP_LCD_VGA set, but why is this necessary?
+The panel added is the 4.3 inch display that is sold with the
+Devkit8000.
 
-> 2. Keyboard - numeric keys produce wrong ascii for their labelled
->    function.  This is from /dev/tty1 with X running:
-> 
-> 	1 gives nothing	2 gives 4	3 gives 7
-> 	4 gives 2	5 gives 5	6 gives 8
-> 	7 gives 3	8 gives nothing	9 gives 9
-> 	* gives nothing	0 gives E	# gives nothing
-> 
->    off-hook (green phone) gives 0
->    on-hook (red phone) gives <1b><5b><31><39><7e>
-> 
->    Killing X and then running evtest on /dev/input/event1 doesn't
->    return any events, neither does reading /dev/tty1 for the twl4030
->    keypad - the numeric keys are completely dead.  /proc/interrupts
->    shows no new interrupt counts when pressing the key for
->    'twl4030_keypad'.  Unbinding/rebinding the twl4030 driver doesn't
->    sort it out, neither does restarting X.
+Daniel Morsing (2):
+  omap: dss2: Add recommended bpp option for generic dpi panels
+  omap3: devkit8000: Add and use 4.3 inch display
 
-3. Touchscreen is dead, presumably because no devices are bound to
-   ads7846 SPI driver.
+ arch/arm/mach-omap2/board-devkit8000.c           |    2 +-
+ drivers/video/omap2/displays/panel-generic-dpi.c |   41 ++++++++++++++++++++++
+ 2 files changed, 42 insertions(+), 1 deletions(-)
 
-ls -al /sys/bus/spi/devices/
-total 0
-drwxr-xr-x  2 root root 0 Jan  1 01:02 .
-drwxr-xr-x  4 root root 0 Jan  1 01:02 ..
-lrwxrwxrwx  1 root root 0 Jan  1 01:02 spi1.0 -> ../../../devices/platform/omap2_mcspi.1/spi1.0
+-- 
+1.7.4
 
-is the only SPI device which appears, but is unbound.  I'm sure this used
-to work at some point.
