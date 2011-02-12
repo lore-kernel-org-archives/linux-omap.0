@@ -1,56 +1,125 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 0/5] ARM: omap4 related fixes for 2.6.39
-Date: Sat, 12 Feb 2011 16:59:42 +0530
-Message-ID: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 3/5] ARM: l2x0: Errata fix for flush by Way operation can cause data corruption
+Date: Sat, 12 Feb 2011 16:59:45 +0530
+Message-ID: <1297510187-31547-4-git-send-email-santosh.shilimkar@ti.com>
+References: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34418 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751988Ab1BLLaA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Feb 2011 06:30:00 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:39794 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753167Ab1BLLaE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 12 Feb 2011 06:30:04 -0500
+In-Reply-To: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Catalin Marinas <catalin.marinas@arm.com>
 
-The series mainly does below
-	- Makes ARM local timers selection runtime instead of compile time.
-	- Enables the LOCAL_TIMER support for OMAP4430
-	- Add and enable PL310 Errata for flush by Way
-	- Fixes the NR_CPU value in omap2plus config
-	- Removes the un-necessary omap44xx_sram_init FIXME
+PL310 implements the Clean & Invalidate by Way L2 cache maintenance
+operation (offset 0x7FC). This operation runs in background so that
+PL310 can handle normal accesses while it is in progress. Under very
+rare circumstances, due to this erratum, write data can be lost when
+PL310 treats a cacheable write transaction during a Clean & Invalidate
+by Way operation.
 
-Boot tested on OMAP4430 ES1.0 and ES2.X silicons.
+Workaround:
+Disable Write-Back and Cache Linefill (Debug Control Register)
+Clean & Invalidate by Way (0x7FC)
+Re-enable Write-Back and Cache Linefill (Debug Control Register)
 
-The following changes since commit 100b33c8bd8a3235fd0b7948338d6cbb3db3c63d:
-  Linus Torvalds (1):
-        Linux 2.6.38-rc4
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+---
+ arch/arm/Kconfig            |   11 +++++++++++
+ arch/arm/mach-omap2/Kconfig |    1 +
+ arch/arm/mm/cache-l2x0.c    |   16 ++++++++++------
+ 3 files changed, 22 insertions(+), 6 deletions(-)
 
-are available in the git repository at:
-
-  git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap4-misc_for.39
-
-Santosh Shilimkar (5):
-  ARM: smp: Select local timers vs dummy timer support runtime
-  omap4: Enable ARM local timers with OMAP4430 es1.0 exception
-  ARM: l2x0: Errata fix for flush by Way operation can cause data
-    corruption
-  omap2plus: omap4: Set NR_CPU to 2 instead of default 4
-  omap4: Remove 'FIXME: omap44xx_sram_init not implemented'
-
- arch/arm/Kconfig                     |   11 +++++++++++
- arch/arm/configs/omap2plus_defconfig |    1 +
- arch/arm/include/asm/localtimer.h    |    8 +++++++-
- arch/arm/kernel/smp.c                |    7 +++----
- arch/arm/mach-msm/timer.c            |    3 ++-
- arch/arm/mach-omap2/Kconfig          |    2 ++
- arch/arm/mach-omap2/timer-mpu.c      |    7 ++++++-
- arch/arm/mach-realview/localtimer.c  |    3 ++-
- arch/arm/mach-s5pv310/localtimer.c   |    3 ++-
- arch/arm/mach-shmobile/localtimer.c  |    3 ++-
- arch/arm/mach-tegra/localtimer.c     |    3 ++-
- arch/arm/mach-ux500/localtimer.c     |    3 ++-
- arch/arm/mach-vexpress/localtimer.c  |    3 ++-
- arch/arm/mm/cache-l2x0.c             |   16 ++++++++++------
- arch/arm/plat-omap/sram.c            |   16 ----------------
- 15 files changed, 54 insertions(+), 35 deletions(-)
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 5cff165..2e6b879 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1177,6 +1177,17 @@ config ARM_ERRATA_743622
+ 	  visible impact on the overall performance or power consumption of the
+ 	  processor.
+ 
++config PL310_ERRATA_727915
++	bool "Background Clean & Invalidate by Way operation can cause data corruption"
++	depends on CACHE_L2X0 && ARCH_OMAP4
++	help
++	  PL310 implements the Clean & Invalidate by Way L2 cache maintenance
++	  operation (offset 0x7FC). This operation runs in background so that
++	  PL310 can handle normal accesses while it is in progress. Under very
++	  rare circumstances, due to this erratum, write data can be lost when
++	  PL310 treats a cacheable write transaction during a Clean &
++	  Invalidate by Way operation Note that this errata uses Texas
++	  Instrument's secure monitor api to implement the work around.
+ endmenu
+ 
+ source "arch/arm/common/Kconfig"
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index f285dd7..1f0ff75 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -46,6 +46,7 @@ config ARCH_OMAP4
+ 	select ARM_GIC
+ 	select LOCAL_TIMERS
+ 	select PL310_ERRATA_588369
++	select PL310_ERRATA_727915
+ 	select ARM_ERRATA_720789
+ 	select ARCH_HAS_OPP
+ 	select PM_OPP if PM
+diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+index 170c9bb..c7c8fbe 100644
+--- a/arch/arm/mm/cache-l2x0.c
++++ b/arch/arm/mm/cache-l2x0.c
+@@ -67,7 +67,7 @@ static inline void l2x0_inv_line(unsigned long addr)
+ 	writel_relaxed(addr, base + L2X0_INV_LINE_PA);
+ }
+ 
+-#ifdef CONFIG_PL310_ERRATA_588369
++#if defined(CONFIG_PL310_ERRATA_588369) || defined(CONFIG_PL310_ERRATA_727915)
+ static void debug_writel(unsigned long val)
+ {
+ 	extern void omap_smc1(u32 fn, u32 arg);
+@@ -78,7 +78,14 @@ static void debug_writel(unsigned long val)
+ 	 */
+ 	omap_smc1(0x100, val);
+ }
++#else
++/* Optimised out for non-errata case */
++static inline void debug_writel(unsigned long val)
++{
++}
++#endif
+ 
++#ifdef CONFIG_PL310_ERRATA_588369
+ static inline void l2x0_flush_line(unsigned long addr)
+ {
+ 	void __iomem *base = l2x0_base;
+@@ -91,11 +98,6 @@ static inline void l2x0_flush_line(unsigned long addr)
+ }
+ #else
+ 
+-/* Optimised out for non-errata case */
+-static inline void debug_writel(unsigned long val)
+-{
+-}
+-
+ static inline void l2x0_flush_line(unsigned long addr)
+ {
+ 	void __iomem *base = l2x0_base;
+@@ -119,9 +121,11 @@ static void l2x0_flush_all(void)
+ 
+ 	/* clean all ways */
+ 	spin_lock_irqsave(&l2x0_lock, flags);
++	debug_writel(0x03);
+ 	writel_relaxed(l2x0_way_mask, l2x0_base + L2X0_CLEAN_INV_WAY);
+ 	cache_wait_way(l2x0_base + L2X0_CLEAN_INV_WAY, l2x0_way_mask);
+ 	cache_sync();
++	debug_writel(0x00);
+ 	spin_unlock_irqrestore(&l2x0_lock, flags);
+ }
+ 
+-- 
+1.6.0.4
 
