@@ -1,65 +1,51 @@
-From: Colin Cross <ccross@google.com>
-Subject: Re: [PATCH 6/6] ARM: pm: allow generic sleep code to be used with SMP
- CPU idle
-Date: Sun, 13 Feb 2011 13:59:54 -0800
-Message-ID: <AANLkTimmSbs7Q_068ERWeKUFV_1Fyxvj37e3r21LZYCL@mail.gmail.com>
-References: <20110211161626.GA31356@n2100.arm.linux.org.uk>
-	<E1PnviF-0002yt-EC@rmk-PC.arm.linux.org.uk>
+From: Ben Gamari <bgamari.foss@gmail.com>
+Subject: Re: [PATCH] mcspi: Add support for GPIO chip select lines
+Date: Sun, 13 Feb 2011 17:07:54 -0500
+Message-ID: <87bp2fwptx.fsf@gmail.com>
+References: <1b68c6791001272033q60dd31dbif4de285cd9bac83d@mail.gmail.com> <1292954195-20204-2-git-send-email-bgamari.foss@gmail.com> <AANLkTi=L+ZfwVy+O=oAXx8EHGisCdW1Pg4U+dQa4ZzEN@mail.gmail.com> <871v58xf0k.fsf@gmail.com> <AANLkTi=d_xkhksY=qzUOmjYYs8OkX13+8_4byZtnX9i5@mail.gmail.com> <87y67fx5vb.fsf@gmail.com> <20101224032819.GC2491@angua.secretlab.ca> <878vzfr9h7.fsf@gmail.com> <20110212083324.GA17755@angua.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:52932 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755061Ab1BMV77 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Feb 2011 16:59:59 -0500
-Received: from kpbe15.cbf.corp.google.com (kpbe15.cbf.corp.google.com [172.25.105.79])
-	by smtp-out.google.com with ESMTP id p1DLxuTe004775
-	for <linux-omap@vger.kernel.org>; Sun, 13 Feb 2011 13:59:57 -0800
-Received: from vws11 (vws11.prod.google.com [10.241.21.139])
-	by kpbe15.cbf.corp.google.com with ESMTP id p1DLxtj6028882
-	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Sun, 13 Feb 2011 13:59:55 -0800
-Received: by vws11 with SMTP id 11so3232854vws.15
-        for <linux-omap@vger.kernel.org>; Sun, 13 Feb 2011 13:59:55 -0800 (PST)
-In-Reply-To: <E1PnviF-0002yt-EC@rmk-PC.arm.linux.org.uk>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:57810 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752638Ab1BMWIA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Feb 2011 17:08:00 -0500
+Received: by qwa26 with SMTP id 26so2708815qwa.19
+        for <linux-omap@vger.kernel.org>; Sun, 13 Feb 2011 14:08:00 -0800 (PST)
+In-Reply-To: <20110212083324.GA17755@angua.secretlab.ca>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Eric Miao <eric.y.miao@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: beagleboard <beagleboard@googlegroups.com>, linux-omap <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Michael Hennerich <michael.hennerich@analog.com>, spi-devel-general <spi-devel-general@lists.sourceforge.net>, Eric Miao <eric.miao@canonical.com>
 
-On Fri, Feb 11, 2011 at 8:19 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> Allow the generic sleep code to be used with SMP CPU idle by storing
-> N CPU stack pointers rather than just one.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
-> =A0arch/arm/kernel/sleep.S | =A0 26 +++++++++++++++++++++++++-
-> =A01 files changed, 25 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
-> index 9f106fa..e10618f 100644
-> --- a/arch/arm/kernel/sleep.S
-> +++ b/arch/arm/kernel/sleep.S
+On Sat, 12 Feb 2011 01:33:24 -0700, Grant Likely <grant.likely@secretlab.ca> wrote:
+> (Sorry for the really laggy reply)
+> 
+No worries, I was just starting to think about this again myself.
 
-<snip>
+> I don't see it being that big a deal.  gpio drivers are pretty
+> lightweight and it is fine to have domain-specific limitations on how
+> gpios for a particular "gpio controller" behave.  In your example, if
+> the hardware doesn't support enabling 2 CS pins at once, then you make
+> a choice, either setting one when the other is already set simply does
+> not work; or it could reset the other state.  Either choice would be
+> fine.  The SPI driver must do the right thing regardless and deselect
+> the previous CS line before enabling a new one.
+> 
+Having now finally having had a chance to implement a gpio_chip driver,
+I agree. It's quite simple and seems to fill the need pretty well
 
-> @@ -107,4 +129,6 @@ ENTRY(cpu_resume)
-> =A0ENDPROC(cpu_resume)
->
-> =A0sleep_save_sp:
-> - =A0 =A0 =A0 .word =A0 0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 @ preserve stack phys ptr here
-> + =A0 =A0 =A0 .rept =A0 CONFIG_NR_CPUS
-> + =A0 =A0 =A0 .long =A0 0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 @ preserve stack phys ptr here
-> + =A0 =A0 =A0 .endr
+> The other alternative would be to implement a new SPI chipselect
+> common infrastructure, but IMO, that would just end up looking like a
+> duplication of the gpio infrastructure.
+> 
+I think you are probably right. GPIO seems to be a good fit.
 
-This doesn't compile on CONFIG_SMP=3Dn, CONFIG_NR_CPUS is undefined.
-Including linux/threads.h will provide a default definition.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Patch coming shortly.  I use spi_board_info.controller_data to pass the
+gpio number to the controller which doesn't seem like the best way
+forward, but I wasn't sure how else to proceed. Also, since the gpio
+numbers are dynamically determined spi_board_info.controller_data must
+be filled in at runtime, which is also a bit of a bummer (although not
+easily solved as far as I can tell). Let me know what you think.
+
+ - Ben
