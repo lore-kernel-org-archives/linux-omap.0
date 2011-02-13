@@ -1,46 +1,24 @@
-From: Paul Compaore <paulcompaore12@gmail.com>
-Subject: My Dear Good Friend.
-Date: Sun, 13 Feb 2011 13:31:49 +0900 (KST)
-Message-ID: <538235.44697.qm@web70808.mail.kr3.yahoo.com>
-Reply-To: paulcompaore14@gmail.com
+From: "@Motorola" <raquezada@ideay.net.ni>
+Subject: "Winner"
+Date: Sun, 13 Feb 2011 07:26:16 -0600 (CST)
+Message-ID: <2046746477.193642.1297603576175.JavaMail.root__36631.5802712508$1297604136$gmane$org@mailbox.ideay.net.ni>
+Reply-To: "@Motorola" <yorkshirebank.online@accountant.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm1-vm1.bullet.mail.kr3.yahoo.com ([111.67.240.243]:47903 "HELO
-	nm1-vm1.bullet.mail.kr3.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753705Ab1BMEb5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 12 Feb 2011 23:31:57 -0500
+Received: from mail.ideay.net.ni ([186.1.31.6]:42374 "EHLO mail.ideay.net.ni"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754485Ab1BMNfD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Feb 2011 08:35:03 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-My Dear Good Friend.
-
-Compliment of the season, how are you and your family? Hope All is well. I am Mr.Paul Compaore, the accountant general in the accounts unit of Bib Bank Burkina (BIB-BF) Ouagadougou Burkina Faso. I got your contact from the Burkina Faso chambers of commerce have some fund to claim in my bank Which will be of benefit to both of us.
-
-I want you to be an inheritor of the fund, the fund is in a Doormat account and with your bank information and my Documentation certifies you as the inheritor/beneficiary Since I am an insider and working in the same bank, the Transfer will be processed legally and successfully and I will Be coming down to your country for disbursement.
-
-The amount of money involved is ($11.3m) which I want you to Claim for further transfer out of the country to your bank Account, all to our financial benefit. This is very great opportunity as it will take a maximum of 7 banking Working days to be concluded.
-
-I as an insider will do my duties perfectly well concerning this transaction for security reasons. This is confidential for successful conclusion and hitch-free transaction. Contact me immediately for further details and mutual Relationship and we will decide together on how to disburse The funds and percentage as well, my private email Address:( paulcompaore14@gmail.com )
-
-If you are interested and capable to handle this business transaction, come up with the information's shown below:- 
-
-1). Your full name: 
-2). Your contact cell phone number: 
-3). Your age: 
-4). Your sex: 
-5). Your occupations: 
-6). Your country and city:
-
-As soon as possible all these information's is submitted to me immediately i will send you full details of this business transaction on the receipt of your response.Reply to my private email: paulcompaore12@gmail.com
-
-Yours truly.
-Mr.Paul Compaore
-Banque Internationale Du Burkina (BIB)
-Burkina (BIB-BF)
-
-
-      
+You Won =C2=A3400,000.00GBP  from Motorola Promotion 2011. Contact York=
+shire Bank (yorkshirebank.online@accountant.com) with your Name,Address=
+,Country,Phone Number,
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
