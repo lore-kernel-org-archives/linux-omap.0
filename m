@@ -1,18 +1,18 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH v6 07/10] omap3isp: CCP2/CSI2 receivers
-Date: Mon, 14 Feb 2011 14:37:39 +0200
-Message-ID: <20110214123739.GZ2549@legolas.emea.dhcp.ti.com>
+Date: Mon, 14 Feb 2011 14:38:38 +0200
+Message-ID: <20110214123838.GA2549@legolas.emea.dhcp.ti.com>
 References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
  <1297686097-9804-8-git-send-email-laurent.pinchart@ideasonboard.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:35863 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753359Ab1BNMhp (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:38589 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753690Ab1BNMin (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:37:45 -0500
+	Mon, 14 Feb 2011 07:38:43 -0500
 Content-Disposition: inline
 In-Reply-To: <1297686097-9804-8-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -45,43 +45,23 @@ On Mon, Feb 14, 2011 at 01:21:34PM +0100, Laurent Pinchart wrote:
 > Signed-off-by: Pallavi Kulkarni <p-kulkarni@ti.com>
 > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-checkpatch still complains a bit about this one:
+CHECK: usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt
++		udelay(10);
+CHECK: multiple assignments should be avoided
+#1552: FILE: drivers/media/video/omap3-isp/ispcsi2.c:212:
++	ctx->ping_addr = ctx->pong_addr = addr;
 
-CHECK: struct mutex definition without comment
-#1368: FILE: drivers/media/video/omap3-isp/ispqueue.h:157:
-+	struct mutex lock;
-
-CHECK: spinlock_t definition without comment
-#1369: FILE: drivers/media/video/omap3-isp/ispqueue.h:158:
-+	spinlock_t irqlock;
-
-WARNING: please, no space before tabs
-#2723: FILE: drivers/media/video/omap3-isp/ispvideo.h:49:
-+ * ^Ibits. Identical to @code if the format is 10 bits wide or less.$
-
-WARNING: please, no space before tabs
-#2725: FILE: drivers/media/video/omap3-isp/ispvideo.h:51:
-+ * ^Iformat. Identical to @code if the format is not DPCM compressed.$
-
-CHECK: spinlock_t definition without comment
-#2762: FILE: drivers/media/video/omap3-isp/ispvideo.h:88:
-+	spinlock_t lock;
-
-CHECK: struct mutex definition without comment
-#2823: FILE: drivers/media/video/omap3-isp/ispvideo.h:149:
-+	struct mutex mutex;
-
-CHECK: struct mutex definition without comment
-#2840: FILE: drivers/media/video/omap3-isp/ispvideo.h:166:
-+	struct mutex stream_lock;
-
-total: 0 errors, 2 warnings, 5 checks, 2806 lines checked
+CHECK: usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt
++			udelay(100);
+CHECK: usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt
++		udelay(100);
+CHECK: usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt
++		udelay(50);
+total: 0 errors, 0 warnings, 5 checks, 3074 lines checked
 
 /home/balbi/tst.diff has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
-
-does it make sense to fix those ?
 
 -- 
 balbi
