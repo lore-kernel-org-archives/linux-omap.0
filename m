@@ -1,69 +1,97 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: OMAP3 & USB NFS root
-Date: Mon, 14 Feb 2011 16:02:16 +0200
-Message-ID: <20110214140216.GJ2549@legolas.emea.dhcp.ti.com>
-References: <1297691206.2951.8.camel@deskari>
- <20110214134842.GH2549@legolas.emea.dhcp.ti.com>
- <1297692039.2951.10.camel@deskari>
-Reply-To: balbi@ti.com
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v10 18/18] OMAP2,3: DSS2: Get DSS IRQ from platform
+ device
+Date: Mon, 14 Feb 2011 16:09:33 +0200
+Message-ID: <1297692573.2951.16.camel@deskari>
+References: <1295850125-21405-1-git-send-email-sumit.semwal@ti.com>
+	 <1295850125-21405-19-git-send-email-sumit.semwal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:34452 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754839Ab1BNOCW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 09:02:22 -0500
-Received: by bwz10 with SMTP id 10so5737325bwz.24
-        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 06:02:19 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1297692039.2951.10.camel@deskari>
+Received: from comal.ext.ti.com ([198.47.26.152]:48934 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754581Ab1BNOJm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Feb 2011 09:09:42 -0500
+In-Reply-To: <1295850125-21405-19-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Sumit Semwal <sumit.semwal@ti.com>, archit@ti.com
+Cc: paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Senthilvadivu Guruswamy <svadivu@ti.com>
 
-On Mon, Feb 14, 2011 at 04:00:39PM +0200, Tomi Valkeinen wrote:
-> On Mon, 2011-02-14 at 07:48 -0600, Balbi, Felipe wrote:
-> > On Mon, Feb 14, 2011 at 03:46:46PM +0200, Tomi Valkeinen wrote:
-> > > Hi,
-> > > 
-> > > I've been trying to get USB ethernet gadget driver working so that I can
-> > > use NFS root to boot my board (overo or beagle).
-> > > 
-> > > With 2.6.37 I did get it work, but only after I enabled host mode and
-> > > set the driver mode to OTG. With just USB peripheral mode it didn't seem
-> > > to work.
-> > > 
-> > > With 2.6.38-rc4 I don't seem to get it working at all, not matter what
-> > > config options I have tried.
-> > > 
-> > > And when I say "not working" I mean I don't get any output about USB
-> > > when the kernel is waiting for the rootfs. Not even if I unplug and plug
-> > > the USB cable. And the PC's kernel messages don't show anything when the
-> > > board's kernel boots up.
-> > > 
-> > > I've attached the configs I have tried.
-> > 
-> > try this patch:
-> > 
-> > commit d5f42190e7cf11b20face63ee96f26c7d2067b63
-> > Author: Ming Lei <tom.leiming@gmail.com>
-> > Date:   Wed Jan 5 22:03:21 2011 +0800
-> > 
-> >     arm: omap4: panda: remove usb_nop_xceiv_register(v1)
-> >     
-> >     Panda uses both twl6030 otg phy(vbus, id) and internal
-> >     phy(data lines, DP/DM), so removes usb_nop_xceiv_register to make
-> >     twl6030 otg driver working since current otg code only supports
-> >     one global transceiver. Otherwise, musb doesn't work without
-> >     the remove.
+Hi,
+
+On Mon, 2011-01-24 at 11:52 +0530, ext Sumit Semwal wrote:
+> From: Senthilvadivu Guruswamy <svadivu@ti.com>
 > 
-> I don't use Panda (yet, damn fedex...), but Overo or Beagle.
+> DSS IRQ number can be obtained from platform_get_irq().  This API in turn
+> picks the right IRQ number belonging to HW IP from the hwmod database.
+> So hardcoding of IRQ number could be removed.
+> 
+> Reviewed-by: Paul Walmsley <paul@pwsan.com>
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> Tested-by: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+> ---
+>  drivers/video/omap2/dss/dss.c |   21 ++++++++++++++-------
+>  1 files changed, 14 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+> index 4d7a816..f9390b4 100644
+> --- a/drivers/video/omap2/dss/dss.c
+> +++ b/drivers/video/omap2/dss/dss.c
+> @@ -563,7 +563,7 @@ void dss_set_dac_pwrdn_bgz(bool enable)
+>  
+>  static int dss_init(bool skip_init)
+>  {
+> -	int r;
+> +	int r, dss_irq;
+>  	u32 rev;
+>  	struct resource *dss_mem;
+>  
+> @@ -609,11 +609,18 @@ static int dss_init(bool skip_init)
+>  	REG_FLD_MOD(DSS_CONTROL, 0, 2, 2);	/* venc clock mode = normal */
+>  #endif
+>  
+> -	r = request_irq(INT_24XX_DSS_IRQ,
+> -			cpu_is_omap24xx()
+> -			? dss_irq_handler_omap2
+> -			: dss_irq_handler_omap3,
+> -			0, "OMAP DSS", NULL);
+> +	dss_irq = platform_get_irq(dss.pdev, 0);
+> +	if (dss_irq < 0) {
+> +		DSSERR("omap2 dss: platform_get_irq failed\n");
+> +		r = -ENODEV;
+> +		goto fail1;
+> +	}
+> +
+> +	r = request_irq(dss_irq,
+> +		cpu_is_omap24xx()
+> +		? dss_irq_handler_omap2
+> +		: dss_irq_handler_omap3,
+> +		0, "OMAP DSS", NULL);
+>  
+>  	if (r < 0) {
+>  		DSSERR("omap2 dss: request_irq failed\n");
+> @@ -641,7 +648,7 @@ static int dss_init(bool skip_init)
+>  	return 0;
+>  
+>  fail2:
+> -	free_irq(INT_24XX_DSS_IRQ, NULL);
+> +	free_irq(dss_irq, NULL);
 
-ah, ok. So it's another problem. I don't have beagle, but I have an old
-overo here. Will try tomorrow to see what's going on. Thanks for the
-report.
+You change this free_irq, as you should, but you missed another a few
+lines later.
 
--- 
-balbi
+Archit fixes it in his "OMAP: DSS2: Common IRQ handler for all OMAPs"
+patch silently, but I think it should be fixed here already, as the
+patches haven't been pulled to anywhere yet.
+
+Perhaps you could use the same method as Archit used, create a new field
+"irq" in the dss struct which can be used in the dss_exit's free_irq
+call.
+
+ Tomi
+
+
