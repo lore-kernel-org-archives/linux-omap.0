@@ -1,68 +1,49 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v6 04/10] omap2: Fix camera resources for multiomap
-Date: Mon, 14 Feb 2011 15:41:16 +0200
-Message-ID: <20110214134116.GG2549@legolas.emea.dhcp.ti.com>
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1297686097-9804-5-git-send-email-laurent.pinchart@ideasonboard.com>
- <20110214123559.GY2549@legolas.emea.dhcp.ti.com>
- <201102141419.24953.laurent.pinchart@ideasonboard.com>
-Reply-To: balbi@ti.com
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [PATCH 08/13] OMAP3: cpufreq driver changes for DVFS support
+Date: Mon, 14 Feb 2011 19:12:54 +0530
+Message-ID: <b962d997079b52b8fed7d08af3a6842c@mail.gmail.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+ <1295618465-15234-9-git-send-email-vishwanath.bs@ti.com> <AANLkTinKFYHLSZBMxukb7dT6tenozmVHBm6JR4FCSbak@mail.gmail.com>
+ <0a4ab0bfef880f12edb62915a3592104@mail.gmail.com> <AANLkTikHGQvYf-YbWncp=qwH5bTpyDCTxeRByyy23VDE@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:40124 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754148Ab1BNNlW (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:50686 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754222Ab1BNNmz (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 08:41:22 -0500
-Content-Disposition: inline
-In-Reply-To: <201102141419.24953.laurent.pinchart@ideasonboard.com>
+	Mon, 14 Feb 2011 08:42:55 -0500
+Received: by mail-fx0-f47.google.com with SMTP id 17so5142755fxm.20
+        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 05:42:54 -0800 (PST)
+In-Reply-To: <AANLkTikHGQvYf-YbWncp=qwH5bTpyDCTxeRByyy23VDE@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: balbi@ti.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
+To: Nishanth Menon <nm@ti.com>
+Cc: Gery Kahn <geryk@ti.com>, linux-omap@vger.kernel.org, patches@linaro.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi,
+> -----Original Message-----
+> From: Menon, Nishanth [mailto:nm@ti.com]
+> Sent: Monday, February 14, 2011 6:33 PM
+> To: Vishwanath Sripathy
+> Cc: Gery Kahn; linux-omap@vger.kernel.org; patches@linaro.org;
+> Santosh Shilimkar
+> Subject: Re: [PATCH 08/13] OMAP3: cpufreq driver changes for DVFS
+> support
+>
+> On Mon, Feb 14, 2011 at 18:19, Vishwanath Sripathy
+> <vishwanath.bs@ti.com> wrote:
+>
+> >> Is there solution for the issue?
+> > Yes this is an issue if CONFIG_SMP is disabled. We probably will need
+> to
+> > put this code under #ifdef CONFIG_SMP till lpj is handled for SMP in
+> > generic cpufreq code itself .
+> >
+> Apologies, I am not clear, but how'd we handle the non smp case here?
+For non SMP case, lpj is updated in common cpufreq code (in adjust_jiffies
+function).
 
-On Mon, Feb 14, 2011 at 02:19:24PM +0100, Laurent Pinchart wrote:
-> Thanks for the review.
-
-np.
-
-> On Monday 14 February 2011 13:35:59 Felipe Balbi wrote:
-> > On Mon, Feb 14, 2011 at 01:21:31PM +0100, Laurent Pinchart wrote:
-> > > diff --git a/arch/arm/mach-omap2/devices.c
-> > > b/arch/arm/mach-omap2/devices.c index 4cf48ea..5d844bd 100644
-> > > --- a/arch/arm/mach-omap2/devices.c
-> > > +++ b/arch/arm/mach-omap2/devices.c
-> > > @@ -38,7 +38,7 @@
-> > > 
-> > >  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-> > > 
-> > > -static struct resource cam_resources[] = {
-> > > +static struct resource omap2cam_resources[] = {
-> > 
-> > should this be __initdata ??
-> 
-> The resources will be used when the OMAP3 ISP module is loaded. Won't they be 
-> discared if marked as __initdata ?
-
-I believe driver core makes a copy of those, no ? not sure.
-
-> > > @@ -158,6 +149,14 @@ int omap3_init_camera(void *pdata)
-> > > 
-> > >  }
-> > >  EXPORT_SYMBOL_GPL(omap3_init_camera);
-> > > 
-> > > +static inline void omap_init_camera(void)
-> > 
-> > why inline ? also, should this be marked __init ?
-> 
-> I suppose because it was inline, so it has been kept as inline. The function 
-> is used in a single place, so the compiler will probably auto-inline it. Is it 
-> an issue to keep it as inline ?
-
-not really, you can forget about this comment ;-)
-
--- 
-balbi
+Vishwa
+>
+> Regards,
+> Nishanth Menon
