@@ -1,18 +1,18 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH v2 3/7] omap: clock: Add allow_idle/deny_idle support in
- clkops
-Date: Mon, 14 Feb 2011 09:50:11 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102140949120.21991@utopia.booyaka.com>
-References: <1297329400-5936-1-git-send-email-rnayak@ti.com> <1297329400-5936-2-git-send-email-rnayak@ti.com> <1297329400-5936-3-git-send-email-rnayak@ti.com> <1297329400-5936-4-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1102121643250.21991@utopia.booyaka.com>
- <ab30a208ca55e9295e25b8c3495dfa31@mail.gmail.com>
+Subject: RE: [PATCH v2 4/7] omap: dpll: Add allow_idle/deny_idle support for
+ all DPLL's
+Date: Mon, 14 Feb 2011 09:51:10 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102140950300.21991@utopia.booyaka.com>
+References: <1297329400-5936-1-git-send-email-rnayak@ti.com> <1297329400-5936-2-git-send-email-rnayak@ti.com> <1297329400-5936-3-git-send-email-rnayak@ti.com> <1297329400-5936-4-git-send-email-rnayak@ti.com> <1297329400-5936-5-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.1102121727140.21991@utopia.booyaka.com> <813a909da6bafa7ce0c15fa77d9d25b9@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42174 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42194 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755509Ab1BNQuM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 11:50:12 -0500
-In-Reply-To: <ab30a208ca55e9295e25b8c3495dfa31@mail.gmail.com>
+	with ESMTP id S1756051Ab1BNQvL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 11:51:11 -0500
+In-Reply-To: <813a909da6bafa7ce0c15fa77d9d25b9@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rajendra Nayak <rnayak@ti.com>
@@ -20,18 +20,20 @@ Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman 
 
 On Mon, 14 Feb 2011, Rajendra Nayak wrote:
 
-> A couple of issues on the clk_autoidle_a_2.6.39 branch:
-> -1- There seems to be a missing fix which causes an abort
-> at boot on omap4
-> http://marc.info/?l=linux-omap&m=129768574027232&w=2
+> Yes, the autogen scripts are updated, however they are
+> currently in a separate branch (dpll-gatectrl).
+> Will merge them into master soon.
 
-This should be fixed now that this branch is rebased on your first two 
-clock patches.
+OK, great.
 
-> -2- There is a trivial fix (Patch below) needed which otherwise
-> breaks build
+> No real reason for not adding OMAP2 dpll autoidle support.
+> Its just that I started off trying to do this for OMAP4, and
+> then found me touching some omap3 stuff and hence
+> also did it for OMAP3.(For some reason I thought there
+> were no DPLL's in OMAP2).
 
-Thanks for this, I've folded this fix into the original patch.
+That's fine, I have some patches in progress that enable this for the 
+OMAP2 DPLL and APLLs.
 
 
 - Paul
