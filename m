@@ -1,38 +1,32 @@
-From: David Brown <davidb@codeaurora.org>
-Subject: Re: [PATCH 1/5] ARM: smp: Select local timers vs dummy timer support runtime
-Date: Mon, 14 Feb 2011 20:15:02 -0800
-Message-ID: <8yalj1idjcp.fsf@huya.qualcomm.com>
-References: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com>
-	<1297510187-31547-2-git-send-email-santosh.shilimkar@ti.com>
+From: "Mr. Gadson" <derrgds@mail.com>
+Subject: Mon, Feb 14
+Date: Tue, 15 Feb 2011 02:06:53 +0300 (MSK)
+Message-ID: <201102142306.p1EN6qPE050837@n-n.ru>
+Reply-To: derrgdsn@aol.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:55653 "EHLO
-	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751398Ab1BOEPD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 23:15:03 -0500
+Received: from n-n.ru ([188.120.32.29]:62853 "EHLO n-n.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752690Ab1BOEXU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Feb 2011 23:23:20 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Russell King <linux@arm.linux.org.uk>, Daniel Walker <dwalker@codeaurora.org>, Bryan Huntsman <bryanh@codeaurora.org>, Kukjin Kim <kgene.kim@samsung.com>, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, Colin Cross <ccross@android.com>, Erik Gilling <konkers@android.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Linus Walleij <linus.walleij@stericsson.com>
+To: linux-omap@vger.kernel.org
 
-Let's try this again from the correct email address...
+Hello,
 
-On Sat, Feb 12 2011, Santosh Shilimkar wrote:
+Please, I seek your help in receiving a contract payment, if you would be kind enough to grant me permission, I will be glad to give you the details. I am ready to offer you 30% of the total amount for your input.
 
-> The current code support of dummy timers in absence of local
-> timer is compile time. This is an attempt to convert it to runtime
-> so that on few SOC version if the local timers aren't supported
-> kernel can switch to dummy timers. OMAP4430 ES1.0 does suffer from
-> this limitation.
->
-> This patch should not have any functional impact on affected
-> files.
->
->  arch/arm/mach-msm/timer.c           |    3 ++-
 
-Acked-by: David Brown <davidb@codeaurora.org>
 
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+If you are interested, get back to me with the following details that would be use to process the contract payment legally on your name.
+
+Your Full names Your Physical Address Your Direct Tell Number.
+
+Regards 
+Mr. Gadson
+
+
+
