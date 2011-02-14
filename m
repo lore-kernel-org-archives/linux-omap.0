@@ -1,46 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] RETU fetch IRQ via struct resource
-Date: Mon, 14 Feb 2011 15:22:42 -0800
-Message-ID: <20110214232242.GS20795@atomide.com>
-References: <1297333281-29853-1-git-send-email-balbi@ti.com>
- <20110214190001.GT2549@legolas.emea.dhcp.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH RESEND v6 2/4] TI816X: Update common OMAP machine specific sources
+Date: Mon, 14 Feb 2011 15:27:35 -0800
+Message-ID: <87tyg6xkm0.fsf@ti.com>
+References: <1297695819-27027-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40097 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753440Ab1BNXWs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 18:22:48 -0500
-Content-Disposition: inline
-In-Reply-To: <20110214190001.GT2549@legolas.emea.dhcp.ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:50529 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752147Ab1BNX1o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Feb 2011 18:27:44 -0500
+Received: by gyf1 with SMTP id 1so3110884gyf.7
+        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 15:27:40 -0800 (PST)
+In-Reply-To: <1297695819-27027-1-git-send-email-hemantp@ti.com> (Hemant
+	Pedanekar's message of "Mon, 14 Feb 2011 20:33:39 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Hemant Pedanekar <hemantp@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-* Felipe Balbi <balbi@ti.com> [110214 10:58]:
-> Hi,
-> 
-> On Thu, Feb 10, 2011 at 12:21:17PM +0200, Felipe Balbi wrote:
-> > here are 4 very quick patches to grab IRQ
-> > via struct resource. Now all these changes
-> > need to be ported to Tahvo. I'm not sure
-> > I'll have any time to look at that for a
-> > while, though.
+Hemant Pedanekar <hemantp@ti.com> writes:
 
-OK, great those four are working. I've applied them
-to the cbus branch.
- 
-> Want me to re-send all patches or you can pull from my cbus branch to
-> test ?
+[...]
 
-Hmm well maybe send the new ones? Then I can pull assuming you
-rebase on the cbus branch. That's usable now too and up to v2.6.38-rc4.
- 
-> Any taker for fixing tahvo ? All you have to do is port the changes done
-> in retu to tahvo. Tahvo is a lot simpler than retu though.
+> @@ -402,7 +422,7 @@ void __init omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs0,
+>  
+>  	omap_hwmod_late_init();
+>  
+> -	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+> +	if (omap3_has_sdrc()) {
+>  		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+>  		_omap2_init_reprogram_sdrc();
+>  	}
 
-It will be at least few weeks before I can do anything except
-look and merge patches..
+At first glance, this one doesn't look quite right.  Will 
+omap3_has_sdrc()  be true on 24xx?   Please confirm.
 
-Tony
+Kevin
+
+
