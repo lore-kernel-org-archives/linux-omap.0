@@ -1,69 +1,59 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH v6 03/10] omap3: Add function to register omap3isp
- platform device structure
-Date: Mon, 14 Feb 2011 17:15:10 +0200
-Message-ID: <AANLkTikm3jHwCJnQTz4yRRRUj_ar6WgHLEerxEBDEO0g@mail.gmail.com>
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<1297686097-9804-4-git-send-email-laurent.pinchart@ideasonboard.com>
-	<20110214123430.GX2549@legolas.emea.dhcp.ti.com>
-	<201102141407.09449.laurent.pinchart@ideasonboard.com>
-	<20110214131829.GC2549@legolas.emea.dhcp.ti.com>
+From: "Kahn, Gery" <geryk@ti.com>
+Subject: Re: [PATCH 08/13] OMAP3: cpufreq driver changes for DVFS support
+Date: Mon, 14 Feb 2011 17:35:36 +0200
+Message-ID: <AANLkTinzjCD0UvgbwXGjzwY7JUyKESD_0FakLvm6UMJT@mail.gmail.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+	<1295618465-15234-9-git-send-email-vishwanath.bs@ti.com>
+	<AANLkTinKFYHLSZBMxukb7dT6tenozmVHBm6JR4FCSbak@mail.gmail.com>
+	<0a4ab0bfef880f12edb62915a3592104@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:35453 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754319Ab1BNPPM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 10:15:12 -0500
-In-Reply-To: <20110214131829.GC2549@legolas.emea.dhcp.ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:53481 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753628Ab1BNPfn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Feb 2011 10:35:43 -0500
+Received: by mail-vx0-f177.google.com with SMTP id 2so2595720vxd.8
+        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 07:35:39 -0800 (PST)
+In-Reply-To: <0a4ab0bfef880f12edb62915a3592104@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Mon, Feb 14, 2011 at 3:18 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
+Hi Vishwanath,
 
-Hi
-
->
-> On Mon, Feb 14, 2011 at 02:07:08PM +0100, Laurent Pinchart wrote:
->> > > diff --git a/arch/arm/mach-omap2/devices.h
->> > > b/arch/arm/mach-omap2/devices.h new file mode 100644
->> > > index 0000000..12ddb8a
->> > > --- /dev/null
->> > > +++ b/arch/arm/mach-omap2/devices.h
->> > > @@ -0,0 +1,17 @@
->> > > +/*
->> > > + * arch/arm/mach-omap2/devices.h
->> > > + *
->> > > + * OMAP2 platform device setup/initialization
->> > > + *
->> > > + * This program is free software; you can redistribute it and/or modify
->> > > + * it under the terms of the GNU General Public License as published by
->> > > + * the Free Software Foundation; either version 2 of the License, or
->> > > + * (at your option) any later version.
->> > > + */
->> > > +
->> > > +#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
->> > > +#define __ARCH_ARM_MACH_OMAP_DEVICES_H
->> > > +
->> > > +int omap3_init_camera(void *pdata);
->> >
->> > missing extern ?
+On Mon, Feb 14, 2011 at 14:49, Vishwanath Sripathy <vishwanath.bs@ti.com> wrote:
 >>
->> Is that mandatory ? Many (most ?) headers in the kernel don't use the extern
->> keyword when declaring functions.
+>> I took those patches and applied to my .38-rc4 with help from Nishanth
+>> Menon.
+>>
+>> There is problem appeared during compilation:
+>>
+>> arch/arm/plat-omap/cpu-omap.c:142: error: 'struct cpuinfo_arm' has no
+>> member named 'loops_per_jiffy'
+>>
+>> My kernel is for Zoom3 board (OMAP3630-GP rev 2, CPU-OPP2 L3-
+>> 200MHz)
+>> Looking at the source, arch/arm/include/asm/cpu.h
+>> loops_per_jiffy is under CONFIG_SMP and since the omap2plus_defconfig
+>> builds for OMAP4 as well by default, I am guessing this bug was not
+>> immediately visible...
+>>
+>> Is there solution for the issue?
+> Yes this is an issue if CONFIG_SMP is disabled. We probably will need to
+> put this code under #ifdef CONFIG_SMP till lpj is handled for SMP in
+> generic cpufreq code itself .
 >
-> maybe not mandatory, worth checking what sparse would say though :-p
-
-sparse is not complaining.
-
-Br,
-
-David
-
+I tried to go this way, but it doesn't help. It may demand additional changes.
+> Vishwa
+>>
+>> Regards,
+>> Gery
 >
-> --
-> balbi
-> --
+BTW,
+i found that this patch provides CPU in 1GHz for omap36xx
+is there solution for running omap36xx with 1.2GHz?
+
+Gery
