@@ -1,77 +1,66 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: OMAP3 & USB NFS root
-Date: Mon, 14 Feb 2011 15:48:42 +0200
-Message-ID: <20110214134842.GH2549@legolas.emea.dhcp.ti.com>
-References: <1297691206.2951.8.camel@deskari>
-Reply-To: balbi@ti.com
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v6 04/10] omap2: Fix camera resources for multiomap
+Date: Mon, 14 Feb 2011 14:50:31 +0100
+Message-ID: <201102141450.31975.laurent.pinchart@ideasonboard.com>
+References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com> <201102141419.24953.laurent.pinchart@ideasonboard.com> <20110214134116.GG2549@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:40715 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753364Ab1BNNsv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 08:48:51 -0500
-Received: by mail-bw0-f53.google.com with SMTP id 12so7739643bwg.40
-        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 05:48:50 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1297691206.2951.8.camel@deskari>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45687 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752058Ab1BNNu1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 08:50:27 -0500
+In-Reply-To: <20110214134116.GG2549@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: balbi@ti.com
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
 
-On Mon, Feb 14, 2011 at 03:46:46PM +0200, Tomi Valkeinen wrote:
-> Hi,
-> 
-> I've been trying to get USB ethernet gadget driver working so that I can
-> use NFS root to boot my board (overo or beagle).
-> 
-> With 2.6.37 I did get it work, but only after I enabled host mode and
-> set the driver mode to OTG. With just USB peripheral mode it didn't seem
-> to work.
-> 
-> With 2.6.38-rc4 I don't seem to get it working at all, not matter what
-> config options I have tried.
-> 
-> And when I say "not working" I mean I don't get any output about USB
-> when the kernel is waiting for the rootfs. Not even if I unplug and plug
-> the USB cable. And the PC's kernel messages don't show anything when the
-> board's kernel boots up.
-> 
-> I've attached the configs I have tried.
+Hi Felipe,
 
-try this patch:
+On Monday 14 February 2011 14:41:16 Felipe Balbi wrote:
+> On Mon, Feb 14, 2011 at 02:19:24PM +0100, Laurent Pinchart wrote:
+> > On Monday 14 February 2011 13:35:59 Felipe Balbi wrote:
+> > > On Mon, Feb 14, 2011 at 01:21:31PM +0100, Laurent Pinchart wrote:
+> > > > diff --git a/arch/arm/mach-omap2/devices.c
+> > > > b/arch/arm/mach-omap2/devices.c index 4cf48ea..5d844bd 100644
+> > > > --- a/arch/arm/mach-omap2/devices.c
+> > > > +++ b/arch/arm/mach-omap2/devices.c
+> > > > @@ -38,7 +38,7 @@
+> > > > 
+> > > >  #if defined(CONFIG_VIDEO_OMAP2) ||
+> > > >  defined(CONFIG_VIDEO_OMAP2_MODULE)
+> > > > 
+> > > > -static struct resource cam_resources[] = {
+> > > > +static struct resource omap2cam_resources[] = {
+> > > 
+> > > should this be __initdata ??
+> > 
+> > The resources will be used when the OMAP3 ISP module is loaded. Won't
+> > they be discared if marked as __initdata ?
+> 
+> I believe driver core makes a copy of those, no ? not sure.
 
-commit d5f42190e7cf11b20face63ee96f26c7d2067b63
-Author: Ming Lei <tom.leiming@gmail.com>
-Date:   Wed Jan 5 22:03:21 2011 +0800
+Not that I know of, but I may be wrong.
 
-    arm: omap4: panda: remove usb_nop_xceiv_register(v1)
-    
-    Panda uses both twl6030 otg phy(vbus, id) and internal
-    phy(data lines, DP/DM), so removes usb_nop_xceiv_register to make
-    twl6030 otg driver working since current otg code only supports
-    one global transceiver. Otherwise, musb doesn't work without
-    the remove.
-    
-    Reviewd-by: Felipe Balbi <balbi@ti.com>
-    Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-    Signed-off-by: Felipe Balbi <balbi@ti.com>
-
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index e001a04..e944025 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -409,8 +409,6 @@ static void __init omap4_panda_init(void)
-        platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
-        omap_serial_init();
-        omap4_twl6030_hsmmc_init(mmc);
--       /* OMAP4 Panda uses internal transceiver so register nop transceiver */
--       usb_nop_xceiv_register();
-        omap4_ehci_init();
-        usb_musb_init(&musb_board_data);
- }
+> > > > @@ -158,6 +149,14 @@ int omap3_init_camera(void *pdata)
+> > > > 
+> > > >  }
+> > > >  EXPORT_SYMBOL_GPL(omap3_init_camera);
+> > > > 
+> > > > +static inline void omap_init_camera(void)
+> > > 
+> > > why inline ? also, should this be marked __init ?
+> > 
+> > I suppose because it was inline, so it has been kept as inline. The
+> > function is used in a single place, so the compiler will probably
+> > auto-inline it. Is it an issue to keep it as inline ?
+> 
+> not really, you can forget about this comment ;-)
 
 -- 
-balbi
+Regards,
+
+Laurent Pinchart
