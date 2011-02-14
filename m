@@ -1,58 +1,69 @@
 From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH v6 04/10] omap2: Fix camera resources for multiomap
-Date: Mon, 14 Feb 2011 17:11:05 +0200
-Message-ID: <AANLkTin-vJuDUWeMOpQktnkHgTTXGxqm4+se1p90y1YT@mail.gmail.com>
+Subject: Re: [PATCH v6 03/10] omap3: Add function to register omap3isp
+ platform device structure
+Date: Mon, 14 Feb 2011 17:15:10 +0200
+Message-ID: <AANLkTikm3jHwCJnQTz4yRRRUj_ar6WgHLEerxEBDEO0g@mail.gmail.com>
 References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<201102141419.24953.laurent.pinchart@ideasonboard.com>
-	<20110214134116.GG2549@legolas.emea.dhcp.ti.com>
-	<201102141450.31975.laurent.pinchart@ideasonboard.com>
+	<1297686097-9804-4-git-send-email-laurent.pinchart@ideasonboard.com>
+	<20110214123430.GX2549@legolas.emea.dhcp.ti.com>
+	<201102141407.09449.laurent.pinchart@ideasonboard.com>
+	<20110214131829.GC2549@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <201102141450.31975.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: balbi@ti.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:35453 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754319Ab1BNPPM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 10:15:12 -0500
+In-Reply-To: <20110214131829.GC2549@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
 
-On Mon, Feb 14, 2011 at 3:50 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Felipe,
+On Mon, Feb 14, 2011 at 3:18 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
 
-Hello,
+Hi
 
 >
-> On Monday 14 February 2011 14:41:16 Felipe Balbi wrote:
->> On Mon, Feb 14, 2011 at 02:19:24PM +0100, Laurent Pinchart wrote:
->> > On Monday 14 February 2011 13:35:59 Felipe Balbi wrote:
->> > > On Mon, Feb 14, 2011 at 01:21:31PM +0100, Laurent Pinchart wrote=
-:
->> > > > diff --git a/arch/arm/mach-omap2/devices.c
->> > > > b/arch/arm/mach-omap2/devices.c index 4cf48ea..5d844bd 100644
->> > > > --- a/arch/arm/mach-omap2/devices.c
->> > > > +++ b/arch/arm/mach-omap2/devices.c
->> > > > @@ -38,7 +38,7 @@
->> > > >
->> > > > =C2=A0#if defined(CONFIG_VIDEO_OMAP2) ||
->> > > > =C2=A0defined(CONFIG_VIDEO_OMAP2_MODULE)
->> > > >
->> > > > -static struct resource cam_resources[] =3D {
->> > > > +static struct resource omap2cam_resources[] =3D {
->> > >
->> > > should this be __initdata ??
+> On Mon, Feb 14, 2011 at 02:07:08PM +0100, Laurent Pinchart wrote:
+>> > > diff --git a/arch/arm/mach-omap2/devices.h
+>> > > b/arch/arm/mach-omap2/devices.h new file mode 100644
+>> > > index 0000000..12ddb8a
+>> > > --- /dev/null
+>> > > +++ b/arch/arm/mach-omap2/devices.h
+>> > > @@ -0,0 +1,17 @@
+>> > > +/*
+>> > > + * arch/arm/mach-omap2/devices.h
+>> > > + *
+>> > > + * OMAP2 platform device setup/initialization
+>> > > + *
+>> > > + * This program is free software; you can redistribute it and/or modify
+>> > > + * it under the terms of the GNU General Public License as published by
+>> > > + * the Free Software Foundation; either version 2 of the License, or
+>> > > + * (at your option) any later version.
+>> > > + */
+>> > > +
+>> > > +#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
+>> > > +#define __ARCH_ARM_MACH_OMAP_DEVICES_H
+>> > > +
+>> > > +int omap3_init_camera(void *pdata);
 >> >
->> > The resources will be used when the OMAP3 ISP module is loaded. Wo=
-n't
->> > they be discared if marked as __initdata ?
+>> > missing extern ?
 >>
->> I believe driver core makes a copy of those, no ? not sure.
+>> Is that mandatory ? Many (most ?) headers in the kernel don't use the extern
+>> keyword when declaring functions.
 >
-> Not that I know of, but I may be wrong.
+> maybe not mandatory, worth checking what sparse would say though :-p
 
-I don't think omap2cam_resources would be used at all.
-AFAIK, it belongs to omap2xxcam, isn't it? :)
+sparse is not complaining.
 
 Br,
 
 David
+
+>
+> --
+> balbi
+> --
