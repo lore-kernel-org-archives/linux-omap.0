@@ -1,54 +1,59 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v6 03/10] omap3: Add function to register omap3isp
- platform device structure
-Date: Mon, 14 Feb 2011 15:18:29 +0200
-Message-ID: <20110214131829.GC2549@legolas.emea.dhcp.ti.com>
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1297686097-9804-4-git-send-email-laurent.pinchart@ideasonboard.com>
- <20110214123430.GX2549@legolas.emea.dhcp.ti.com>
- <201102141407.09449.laurent.pinchart@ideasonboard.com>
-Reply-To: balbi@ti.com
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v6 04/10] omap2: Fix camera resources for multiomap
+Date: Mon, 14 Feb 2011 14:19:24 +0100
+Message-ID: <201102141419.24953.laurent.pinchart@ideasonboard.com>
+References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com> <1297686097-9804-5-git-send-email-laurent.pinchart@ideasonboard.com> <20110214123559.GY2549@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201102141407.09449.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: balbi@ti.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35942 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755083Ab1BNNTU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 08:19:20 -0500
+In-Reply-To: <20110214123559.GY2549@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
 
-Hi,
+Hi Felipe,
 
-On Mon, Feb 14, 2011 at 02:07:08PM +0100, Laurent Pinchart wrote:
-> > > diff --git a/arch/arm/mach-omap2/devices.h
-> > > b/arch/arm/mach-omap2/devices.h new file mode 100644
-> > > index 0000000..12ddb8a
-> > > --- /dev/null
-> > > +++ b/arch/arm/mach-omap2/devices.h
-> > > @@ -0,0 +1,17 @@
-> > > +/*
-> > > + * arch/arm/mach-omap2/devices.h
-> > > + *
-> > > + * OMAP2 platform device setup/initialization
-> > > + *
-> > > + * This program is free software; you can redistribute it and/or modify
-> > > + * it under the terms of the GNU General Public License as published by
-> > > + * the Free Software Foundation; either version 2 of the License, or
-> > > + * (at your option) any later version.
-> > > + */
-> > > +
-> > > +#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
-> > > +#define __ARCH_ARM_MACH_OMAP_DEVICES_H
-> > > +
-> > > +int omap3_init_camera(void *pdata);
+Thanks for the review.
+
+On Monday 14 February 2011 13:35:59 Felipe Balbi wrote:
+> On Mon, Feb 14, 2011 at 01:21:31PM +0100, Laurent Pinchart wrote:
+> > diff --git a/arch/arm/mach-omap2/devices.c
+> > b/arch/arm/mach-omap2/devices.c index 4cf48ea..5d844bd 100644
+> > --- a/arch/arm/mach-omap2/devices.c
+> > +++ b/arch/arm/mach-omap2/devices.c
+> > @@ -38,7 +38,7 @@
 > > 
-> > missing extern ?
+> >  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+> > 
+> > -static struct resource cam_resources[] = {
+> > +static struct resource omap2cam_resources[] = {
 > 
-> Is that mandatory ? Many (most ?) headers in the kernel don't use the extern 
-> keyword when declaring functions.
+> should this be __initdata ??
 
-maybe not mandatory, worth checking what sparse would say though :-p
+The resources will be used when the OMAP3 ISP module is loaded. Won't they be 
+discared if marked as __initdata ?
+
+> > @@ -158,6 +149,14 @@ int omap3_init_camera(void *pdata)
+> > 
+> >  }
+> >  EXPORT_SYMBOL_GPL(omap3_init_camera);
+> > 
+> > +static inline void omap_init_camera(void)
+> 
+> why inline ? also, should this be marked __init ?
+
+I suppose because it was inline, so it has been kept as inline. The function 
+is used in a single place, so the compiler will probably auto-inline it. Is it 
+an issue to keep it as inline ?
 
 -- 
-balbi
+Regards,
+
+Laurent Pinchart
