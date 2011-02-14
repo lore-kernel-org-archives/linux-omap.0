@@ -1,52 +1,34 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] omap: dmtimer: Enable autoidle
-Date: Mon, 14 Feb 2011 15:28:56 -0800
-Message-ID: <87oc6exkjr.fsf@ti.com>
-References: <1297704375-25873-1-git-send-email-tero.kristo@nokia.com>
+Subject: Re: [PATCH RESEND v6 0/4] Introduce support for TI816X processor series
+Date: Mon, 14 Feb 2011 15:33:45 -0800
+Message-ID: <87k4h2xkbq.fsf@ti.com>
+References: <1297695791-26940-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:52626 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751217Ab1BNX3F (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:44008 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752381Ab1BNXdy (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 18:29:05 -0500
-Received: by mail-yw0-f43.google.com with SMTP id 5so2322364yws.30
-        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 15:29:04 -0800 (PST)
-In-Reply-To: <1297704375-25873-1-git-send-email-tero.kristo@nokia.com> (Tero
-	Kristo's message of "Mon, 14 Feb 2011 19:26:15 +0200")
+	Mon, 14 Feb 2011 18:33:54 -0500
+Received: by mail-yx0-f180.google.com with SMTP id 30so3572416yxd.25
+        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 15:33:54 -0800 (PST)
+In-Reply-To: <1297695791-26940-1-git-send-email-hemantp@ti.com> (Hemant
+	Pedanekar's message of "Mon, 14 Feb 2011 20:33:11 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Hemant Pedanekar <hemantp@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+Hemant Pedanekar <hemantp@ti.com> writes:
 
-> This will save some power.
+> (Resending v6 with cc: linux-arm-kernel)
 >
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> This patch set adds support for TI816X processor series. This series includes
+> DM8168, C6A816x and AM389x devices.
 
-Please report which platforms this was tested with.
+[...]
 
-Also, please Cc linux-arm-kernel.
+Other than the minor comment/confirmation on PATCH 2/4, this series
 
-Thanks,
-
-Kevin
-
-> ---
->  arch/arm/plat-omap/dmtimer.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> index 1d706cf..949becc 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -341,6 +341,7 @@ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
->  	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_OCP_CFG_REG);
->  	l |= 0x02 << 3;  /* Set to smart-idle mode */
->  	l |= 0x2 << 8;   /* Set clock activity to perserve f-clock on idle */
-> +	l |= 0x1 << 0;   /* Set autoidle */
->  
->  	/*
->  	 * Enable wake-up on OMAP2 CPUs.
+Reviewed-by: Kevin Hilman <khilman@ti.com>
