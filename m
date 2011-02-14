@@ -1,131 +1,66 @@
-From: "Gulati, Shweta" <shweta.gulati@ti.com>
-Subject: Re: [PATCH] OMAP: Fix Memory Leaks in Smartreflex driver.
-Date: Mon, 14 Feb 2011 14:29:52 +0530
-Message-ID: <AANLkTikd9o421P-JQczT29Aj36hB6jgdpZwypArG2BRk@mail.gmail.com>
-References: <1297165948-28386-1-git-send-email-shweta.gulati@ti.com>
+From: "Kahn, Gery" <geryk@ti.com>
+Subject: Re: How to enable dvfs in omap.
+Date: Mon, 14 Feb 2011 11:06:56 +0200
+Message-ID: <AANLkTi=br=3BuzhK4JkQQzfWAL+tGqDL7ScRe_ENd2_D@mail.gmail.com>
+References: <4D5665D4.2030902@e-consystems.com>
+	<e4a5bc05ba60bfbabb5338354a1bd69e@mail.gmail.com>
+	<4D566B36.8000008@e-consystems.com>
+	<4D567436.2090602@ti.com>
+	<AANLkTin3MZNATS4XuY5qU3f7C=f9KogV+1A2_vZTxF-_@mail.gmail.com>
+	<4D57FC2E.3090400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:57257 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752298Ab1BNI7z convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 03:59:55 -0500
-Received: by bwz12 with SMTP id 12so5063278bwz.13
-        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 00:59:52 -0800 (PST)
-In-Reply-To: <1297165948-28386-1-git-send-email-shweta.gulati@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:40153 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752268Ab1BNJG5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Feb 2011 04:06:57 -0500
+Received: by mail-vw0-f49.google.com with SMTP id 5so2750058vws.36
+        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 01:06:56 -0800 (PST)
+In-Reply-To: <4D57FC2E.3090400@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Shweta Gulati <shweta.gulati@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: mohamed@e-consystems.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, OMAP-KML <linux-omap@vger.kernel.org>
 
-Any comments on this Patch??
-On Tue, Feb 8, 2011 at 5:22 PM, Shweta Gulati <shweta.gulati@ti.com> wr=
-ote:
-> This Patch frees all the dynamically allocated memory
-> which couldn't have been released in some error hitting cases.
+Dear Nishanth,
+
+On Sun, Feb 13, 2011 at 17:43, Nishanth Menon <nm@ti.com> wrote:
+> Kahn, Gery wrote, on 02/13/2011 08:39 PM:
+>>
+>> Thank you for the git.
+>> The pull worked good without problem.
+>>
+>> During compilation i found such problem:
+>>
+>> arch/arm/plat-omap/cpu-omap.c:142: error: 'struct
 >
-> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/smartreflex.c | =A0 18 ++++++++++++------
-> =A01 files changed, 12 insertions(+), 6 deletions(-)
+> ' has no
+>>
+>> member named 'loops_per_jiffy'
+>>
+>> Is there solution for the issue?
+>>
+> Aaah.. one possibility is that you may have disabled CONFIG_SMP in your
+> defconfig
 >
-> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/=
-smartreflex.c
-> index d7deadf..a904625 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -282,6 +282,7 @@ error:
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(&sr_info->pdev->dev, "%s: ERRO=
-R in registering"
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"interrupt handler. Sm=
-artreflex will"
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"not function as desir=
-ed\n", __func__);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(name);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0kfree(sr_info);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ret;
-> =A0}
-> @@ -880,7 +881,7 @@ static int __init omap_sr_probe(struct platform_d=
-evice *pdev)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D sr_late_init(sr_info);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (ret) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_warning("%s: Error =
-in SR late init\n", __func__);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_release_region=
-;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> =A0 =A0 =A0 =A0}
+> well.. baselined to 2.6.38-rc4, it builds fine for me. I am using the
+> omap2plus_defconfig
+> http://pastebin.mozilla.org/1055575 (for output from savedefconfig)
 >
-> @@ -891,14 +892,17 @@ static int __init omap_sr_probe(struct platform=
-_device *pdev)
-> =A0 =A0 =A0 =A0 * not try to create rest of the debugfs entries.
-> =A0 =A0 =A0 =A0 */
-> =A0 =A0 =A0 =A0vdd_dbg_dir =3D omap_voltage_get_dbgdir(sr_info->voltd=
-m);
-> - =A0 =A0 =A0 if (!vdd_dbg_dir)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> + =A0 =A0 =A0 if (!vdd_dbg_dir) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EINVAL;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_release_region;
-> + =A0 =A0 =A0 }
+> Looking at the source, arch/arm/include/asm/cpu.h
+> loops_per_jiffy is under CONFIG_SMP and since the omap2plus_defconfig builds
+> for OMAP4 as well by default, I am guessing this bug was not immediately
+> visible.. You may want to comment on the appropriate patch from Vishwa for
+> this. might as well remove the loops_per_jiffy outside the CONFIG_SMP
 >
-> =A0 =A0 =A0 =A0dbg_dir =3D debugfs_create_dir("smartreflex", vdd_dbg_=
-dir);
-> =A0 =A0 =A0 =A0if (IS_ERR(dbg_dir)) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(&pdev->dev, "%s: Unable to cre=
-ate debugfs directory\n",
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0__func__);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(dbg_dir);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PTR_ERR(dbg_dir);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_release_region;
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0(void) debugfs_create_file("autocomp", S_IRUGO | S_IWU=
-GO, dbg_dir,
-> @@ -914,7 +918,8 @@ static int __init omap_sr_probe(struct platform_d=
-evice *pdev)
-> =A0 =A0 =A0 =A0if (IS_ERR(nvalue_dir)) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(&pdev->dev, "%s: Unable to cre=
-ate debugfs directory"
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"for n-values\n", __fu=
-nc__);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(nvalue_dir);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PTR_ERR(nvalue_dir);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_release_region;
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0omap_voltage_get_volttable(sr_info->voltdm, &volt_data=
-);
-> @@ -923,7 +928,8 @@ static int __init omap_sr_probe(struct platform_d=
-evice *pdev)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0" corresponding vdd vd=
-d_%s. Cannot create debugfs"
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"entries for n-values\=
-n",
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0__func__, sr_info->vol=
-tdm->name);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODATA;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENODATA;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_release_region;
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0for (i =3D 0; i < sr_info->nvalue_count; i++) {
+This is good idea. Thank you.
 > --
-> 1.7.0.4
+> Regards,
+> Nishanth Menon
 >
->
 
+Did you able to run cpu at 1.2GHz at Zoom3 ?
 
-
---=20
-Thanks,
-Regards,
-Shweta
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Gery
