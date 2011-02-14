@@ -1,7 +1,7 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Subject: Re: [PATCH v6 07/10] omap3isp: CCP2/CSI2 receivers
-Date: Mon, 14 Feb 2011 14:25:41 +0100
-Message-ID: <201102141425.42043.laurent.pinchart@ideasonboard.com>
+Date: Mon, 14 Feb 2011 14:32:31 +0100
+Message-ID: <201102141432.32071.laurent.pinchart@ideasonboard.com>
 References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com> <1297686097-9804-8-git-send-email-laurent.pinchart@ideasonboard.com> <20110214123739.GZ2549@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -51,7 +51,9 @@ On Monday 14 February 2011 13:37:39 Felipe Balbi wrote:
 > CHECK: spinlock_t definition without comment
 > #1369: FILE: drivers/media/video/omap3-isp/ispqueue.h:158:
 > +	spinlock_t irqlock;
-> 
+
+Those two have a kerneldoc comment in front of the structure definition.
+
 > WARNING: please, no space before tabs
 > #2723: FILE: drivers/media/video/omap3-isp/ispvideo.h:49:
 > + * ^Ibits. Identical to @code if the format is 10 bits wide or less.$
@@ -79,8 +81,6 @@ On Monday 14 February 2011 13:37:39 Felipe Balbi wrote:
 > CHECKPATCH in MAINTAINERS.
 > 
 > does it make sense to fix those ?
-
-I guess it does :-) I'll fix them.
 
 -- 
 Regards,
