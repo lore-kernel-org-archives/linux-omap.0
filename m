@@ -1,94 +1,100 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2] arm: mach-omap2: smartreflex: fix another memory leak
-Date: Mon, 14 Feb 2011 14:38:42 -0800
-Message-ID: <87bp2ez1fx.fsf@ti.com>
-References: <1297087684-19967-1-git-send-email-aaro.koskinen@nokia.com>
+Subject: Re: [PATCH] OMAP: Fix Memory Leaks in Smartreflex driver.
+Date: Mon, 14 Feb 2011 14:46:16 -0800
+Message-ID: <877hd2z13b.fsf@ti.com>
+References: <1297165948-28386-1-git-send-email-shweta.gulati@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:49440 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750948Ab1BNWiy (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:32968 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751082Ab1BNWqn (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 17:38:54 -0500
-Received: by mail-gw0-f49.google.com with SMTP id 20so2307388gwj.8
-        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 14:38:52 -0800 (PST)
-In-Reply-To: <1297087684-19967-1-git-send-email-aaro.koskinen@nokia.com> (Aaro
-	Koskinen's message of "Mon, 7 Feb 2011 16:08:04 +0200")
+	Mon, 14 Feb 2011 17:46:43 -0500
+Received: by pvh11 with SMTP id 11so1032903pvh.32
+        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 14:46:19 -0800 (PST)
+In-Reply-To: <1297165948-28386-1-git-send-email-shweta.gulati@ti.com> (Shweta
+	Gulati's message of "Tue, 8 Feb 2011 17:22:28 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, vishwanath.bs@ti.com
+To: Shweta Gulati <shweta.gulati@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Aaro Koskinen <aaro.koskinen@nokia.com> writes:
+Shweta Gulati <shweta.gulati@ti.com> writes:
 
-> Temporary strings with volt_* file names should be released after the
-> debugfs entries are created. While at it, also simplify the string
-> allocation, and use just snprintf() to create the name.
+> This Patch frees all the dynamically allocated memory
+> which couldn't have been released in some error hitting cases.
 >
-> The patch eliminates kmemleak reports with the following stack trace
-> (multiple objects depending on HW):
->
-> unreferenced object 0xcedbc5a0 (size 64):
->   comm "swapper", pid 1, jiffies 4294929375 (age 423.734s)
->   hex dump (first 32 bytes):
->     76 6f 6c 74 5f 39 37 35 30 30 30 00 00 00 00 00  volt_975000.....
->     00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
->   backtrace:
->     [<c012fee0>] create_object+0x104/0x208
->     [<c012dbc8>] kmem_cache_alloc_trace+0xf0/0x17c
->     [<c0013f64>] omap_sr_probe+0x314/0x420
->     [<c02a1724>] platform_drv_probe+0x18/0x1c
->     [<c02a088c>] driver_probe_device+0xc8/0x188
->     [<c02a09b4>] __driver_attach+0x68/0x8c
->     [<c02a00ac>] bus_for_each_dev+0x44/0x74
->     [<c029f9e0>] bus_add_driver+0xa0/0x228
->     [<c02a0cac>] driver_register+0xa8/0x130
->     [<c02a1b2c>] platform_driver_probe+0x18/0x8c
->     [<c0013c1c>] sr_init+0x40/0x74
->     [<c005a554>] do_one_initcall+0xc8/0x1a0
->     [<c00084f4>] kernel_init+0x150/0x218
->     [<c0065d64>] kernel_thread_exit+0x0/0x8
->     [<ffffffff>] 0xffffffff
->
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-> ---
->
-> v2: Get rid of kmalloc().
+> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
 
-Replied to the wrong patch earlier.
-
-Just to be clear, I'm queuing v2 for the 2.6.38-rc cycle.
+Looks fine for 2.6.38-rc cycle.  Please repost with linux-arm-kernel in
+Cc, and I'll queue it up.
 
 Kevin
 
->  arch/arm/mach-omap2/smartreflex.c |   15 +++------------
->  1 files changed, 3 insertions(+), 12 deletions(-)
+> ---
+>  arch/arm/mach-omap2/smartreflex.c |   18 ++++++++++++------
+>  1 files changed, 12 insertions(+), 6 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-> index 77ecebf..e54db84 100644
+> index d7deadf..a904625 100644
 > --- a/arch/arm/mach-omap2/smartreflex.c
 > +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -927,19 +927,10 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+> @@ -282,6 +282,7 @@ error:
+>  		dev_err(&sr_info->pdev->dev, "%s: ERROR in registering"
+>  			"interrupt handler. Smartreflex will"
+>  			"not function as desired\n", __func__);
+> +		kfree(name);
+>  		kfree(sr_info);
+>  		return ret;
+>  }
+> @@ -880,7 +881,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>  		ret = sr_late_init(sr_info);
+>  		if (ret) {
+>  			pr_warning("%s: Error in SR late init\n", __func__);
+> -			return ret;
+> +			goto err_release_region;
+>  		}
+>  	}
+>  
+> @@ -891,14 +892,17 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>  	 * not try to create rest of the debugfs entries.
+>  	 */
+>  	vdd_dbg_dir = omap_voltage_get_dbgdir(sr_info->voltdm);
+> -	if (!vdd_dbg_dir)
+> -		return -EINVAL;
+> +	if (!vdd_dbg_dir) {
+> +		ret = -EINVAL;
+> +		goto err_release_region;
+> +	}
+>  
+>  	dbg_dir = debugfs_create_dir("smartreflex", vdd_dbg_dir);
+>  	if (IS_ERR(dbg_dir)) {
+>  		dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
+>  			__func__);
+> -		return PTR_ERR(dbg_dir);
+> +		ret = PTR_ERR(dbg_dir);
+> +		goto err_release_region;
+>  	}
+>  
+>  	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
+> @@ -914,7 +918,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>  	if (IS_ERR(nvalue_dir)) {
+>  		dev_err(&pdev->dev, "%s: Unable to create debugfs directory"
+>  			"for n-values\n", __func__);
+> -		return PTR_ERR(nvalue_dir);
+> +		ret = PTR_ERR(nvalue_dir);
+> +		goto err_release_region;
+>  	}
+>  
+>  	omap_voltage_get_volttable(sr_info->voltdm, &volt_data);
+> @@ -923,7 +928,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>  			" corresponding vdd vdd_%s. Cannot create debugfs"
+>  			"entries for n-values\n",
+>  			__func__, sr_info->voltdm->name);
+> -		return -ENODATA;
+> +		ret = -ENODATA;
+> +		goto err_release_region;
 >  	}
 >  
 >  	for (i = 0; i < sr_info->nvalue_count; i++) {
-> -		char *name;
-> -		char volt_name[32];
-> -
-> -		name = kzalloc(NVALUE_NAME_LEN + 1, GFP_KERNEL);
-> -		if (!name) {
-> -			dev_err(&pdev->dev, "%s: Unable to allocate memory"
-> -				" for n-value directory name\n",  __func__);
-> -			return -ENOMEM;
-> -		}
-> +		char name[NVALUE_NAME_LEN + 1];
->  
-> -		strcpy(name, "volt_");
-> -		sprintf(volt_name, "%d", volt_data[i].volt_nominal);
-> -		strcat(name, volt_name);
-> +		snprintf(name, sizeof(name), "volt_%d",
-> +			 volt_data[i].volt_nominal);
->  		(void) debugfs_create_x32(name, S_IRUGO | S_IWUGO, nvalue_dir,
->  				&(sr_info->nvalue_table[i].nvalue));
->  	}
