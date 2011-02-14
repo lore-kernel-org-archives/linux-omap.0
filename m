@@ -1,58 +1,38 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/4] OMAP4: DSS2: Adding fclk support for DPI interface
-Date: Mon, 14 Feb 2011 18:02:22 +0200
-Message-ID: <1297699342.2951.62.camel@deskari>
-References: <1296741419-9037-1-git-send-email-raghuveer.murthy@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH] omap: dmtimer: Enable autoidle
+Date: Mon, 14 Feb 2011 19:26:15 +0200
+Message-ID: <1297704375-25873-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47214 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755835Ab1BNQCX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 11:02:23 -0500
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1EG2N5N003510
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 10:02:23 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1EG2MDl010163
-	for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 10:02:23 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1EG2MlG014503
-	for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 10:02:22 -0600 (CST)
-In-Reply-To: <1296741419-9037-1-git-send-email-raghuveer.murthy@ti.com>
+Received: from smtp.nokia.com ([147.243.1.48]:35756 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753452Ab1BNQXt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Feb 2011 11:23:49 -0500
+Received: from sokoban.nmp.nokia.com (sokoban.nmp.nokia.com [172.22.215.13])
+	by mgw-sa02.nokia.com (Switch-3.4.3/Switch-3.4.3) with ESMTP id p1EGNlk8022321
+	for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 18:23:47 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Murthy, Raghuveer" <raghuveer.murthy@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi,
+This will save some power.
 
-On Thu, 2011-02-03 at 07:56 -0600, Murthy, Raghuveer wrote:
-> - Adding dss_feature for DPLL fclk
-> - Enabling pixel clock generation for DPI interface
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+---
+ arch/arm/plat-omap/dmtimer.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-A bit more description what the patch set is about would be nice. Also,
-one line patch descriptions are a bit too short for anything else than
-the most trivial patches.
-
-Now to the actual patch contents:
-
-DPLL is not a feature of the DSS, and I don't think we should have
-dss_features for that. In fact, I think the whole DPLL code should be
-moved from DSS to somewhere under arch/arm.
-
-In a perfect world DSS could just set the dss_fck to whatever rate it
-requires, but as the clock rate can only be set to certain rates, and we
-need a precise control for the rate, some other method has to be in
-place.
-
-I am not sure what this method should be. Perhaps there is something in
-the clock framework that could help us here, or perhaps we just need a
-bunch of function pointers in the DSS's platform data which can be used
-to configure the clock.
-
- Tomi
-
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 1d706cf..949becc 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -341,6 +341,7 @@ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
+ 	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_OCP_CFG_REG);
+ 	l |= 0x02 << 3;  /* Set to smart-idle mode */
+ 	l |= 0x2 << 8;   /* Set clock activity to perserve f-clock on idle */
++	l |= 0x1 << 0;   /* Set autoidle */
+ 
+ 	/*
+ 	 * Enable wake-up on OMAP2 CPUs.
+-- 
+1.7.1
 
