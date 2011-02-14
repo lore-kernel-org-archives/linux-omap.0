@@ -1,172 +1,145 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH 08/13] OMAP3: cpufreq driver changes for DVFS support
-Date: Mon, 14 Feb 2011 18:19:49 +0530
-Message-ID: <0a4ab0bfef880f12edb62915a3592104@mail.gmail.com>
-References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com><1295618465-15234-9-git-send-email-vishwanath.bs@ti.com>
- <AANLkTinKFYHLSZBMxukb7dT6tenozmVHBm6JR4FCSbak@mail.gmail.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCH v6 00/10] OMAP3 ISP driver
+Date: Mon, 14 Feb 2011 13:56:19 +0100
+Message-ID: <201102141356.19903.hansverk@cisco.com>
+References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:37795 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753902Ab1BNMtm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:49:42 -0500
-Received: by mail-fx0-f48.google.com with SMTP id 2so5563315fxm.7
-        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 04:49:41 -0800 (PST)
-In-Reply-To: <AANLkTinKFYHLSZBMxukb7dT6tenozmVHBm6JR4FCSbak@mail.gmail.com>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:19729 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752058Ab1BNMzx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 07:55:53 -0500
+In-Reply-To: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gery Kahn <geryk@ti.com>
-Cc: linux-omap@vger.kernel.org, patches@linaro.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
 
-> -----Original Message-----
-> From: Kahn, Gery [mailto:geryk@ti.com]
-> Sent: Monday, February 14, 2011 3:04 PM
-> To: Vishwanath BS
-> Cc: linux-omap@vger.kernel.org; patches@linaro.org; Santosh Shilimkar
-> Subject: Re: [PATCH 08/13] OMAP3: cpufreq driver changes for DVFS
-> support
->
-> Dear Vishwanath,
->
-> On Fri, Jan 21, 2011 at 16:01, Vishwanath BS <vishwanath.bs@ti.com>
-> wrote:
-> > Changes in the omap cpufreq driver for DVFS support.
-> >
-> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > ---
-> > =A0arch/arm/plat-omap/cpu-omap.c | =A0 35
-> ++++++++++++++++++++++++++++++++---
-> > =A01 files changed, 32 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-
-> omap/cpu-omap.c
-> > index 1c1b80b..d965220 100644
-> > --- a/arch/arm/plat-omap/cpu-omap.c
-> > +++ b/arch/arm/plat-omap/cpu-omap.c
-> > @@ -30,10 +30,12 @@
-> > =A0#include <mach/hardware.h>
-> > =A0#include <plat/clock.h>
-> > =A0#include <asm/system.h>
-> > +#include <asm/cpu.h>
-> >
-> > =A0#if defined(CONFIG_ARCH_OMAP3) &&
-> !defined(CONFIG_OMAP_PM_NONE)
-> > =A0#include <plat/omap-pm.h>
-> > =A0#include <plat/common.h>
-> > +#include <plat/dvfs.h>
-> > =A0#endif
-> >
-> > =A0#define VERY_HI_RATE =A0 900000000
-> > @@ -85,11 +87,11 @@ static int omap_target(struct cpufreq_policy
-> *policy,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsigned int target_fre=
-q,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsigned int relation)
-> > =A0{
-> > -#ifdef CONFIG_ARCH_OMAP1
-> > =A0 =A0 =A0 =A0struct cpufreq_freqs freqs;
-> > -#endif
-> > =A0#if defined(CONFIG_ARCH_OMAP3) &&
-> !defined(CONFIG_OMAP_PM_NONE)
-> > =A0 =A0 =A0 =A0unsigned long freq;
-> > + =A0 =A0 =A0 int i;
-> > + =A0 =A0 =A0 struct cpufreq_freqs freqs_notify;
-> > =A0 =A0 =A0 =A0struct device *mpu_dev =3D omap2_get_mpuss_device();
-> > =A0#endif
-> > =A0 =A0 =A0 =A0int ret =3D 0;
-> > @@ -116,9 +118,36 @@ static int omap_target(struct cpufreq_policy
-> *policy,
-> > =A0 =A0 =A0 =A0ret =3D clk_set_rate(mpu_clk, freqs.new * 1000);
-> > =A0 =A0 =A0 =A0cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE=
-);
-> > =A0#elif defined(CONFIG_ARCH_OMAP3) &&
-> !defined(CONFIG_OMAP_PM_NONE)
-> > + =A0 =A0 =A0 freqs.old =3D omap_getspeed(policy->cpu);;
-> > + =A0 =A0 =A0 freqs_notify.new =3D clk_round_rate(mpu_clk, target_f=
-req *
-> 1000) / 1000;
-> > + =A0 =A0 =A0 freqs.cpu =3D policy->cpu;
-> > +
-> > + =A0 =A0 =A0 if (freqs.old =3D=3D freqs.new)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> > +
-> > + =A0 =A0 =A0 /* pre notifiers */
-> > + =A0 =A0 =A0 for_each_cpu(i, policy->cpus) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 freqs.cpu =3D i;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpufreq_notify_transition(&freqs, CPU=
-=46REQ_PRECHANGE);
-> > + =A0 =A0 =A0 }
-> > +
-> > + =A0 =A0 =A0 /* scale the frequency */
-> > =A0 =A0 =A0 =A0freq =3D target_freq * 1000;
-> > =A0 =A0 =A0 =A0if (opp_find_freq_ceil(mpu_dev, &freq))
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_pm_cpu_set_freq(freq);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_device_scale(mpu_dev, mpu_dev, f=
-req);
-> > +
-> > + =A0 =A0 =A0 /* Update loops per jiffy */
-> > + =A0 =A0 =A0 freqs.new =3D omap_getspeed(policy->cpu);
-> > + =A0 =A0 =A0 for_each_cpu(i, policy->cpus)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 per_cpu(cpu_data, i).loops_per_jiffy =
-=3D
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpufreq_scale(per_cpu(cpu_data, i).lo=
-ops_per_jiffy,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 freqs=
-=2Eold, freqs.new);
-> > +
-> > + =A0 =A0 =A0 /* post notifiers */
-> > + =A0 =A0 =A0 for_each_cpu(i, policy->cpus) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 freqs.cpu =3D i;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpufreq_notify_transition(&freqs,
-> CPUFREQ_POSTCHANGE);
-> > + =A0 =A0 =A0 }
-> > =A0#endif
-> > =A0 =A0 =A0 =A0return ret;
-> > =A0}
-> > --
-> > 1.7.0.4
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p"
-in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
-> >
->
-> I took those patches and applied to my .38-rc4 with help from Nishant=
-h
-> Menon.
->
-> There is problem appeared during compilation:
->
-> arch/arm/plat-omap/cpu-omap.c:142: error: 'struct cpuinfo_arm' has no
-> member named 'loops_per_jiffy'
->
-> My kernel is for Zoom3 board (OMAP3630-GP rev 2, CPU-OPP2 L3-
-> 200MHz)
-> Looking at the source, arch/arm/include/asm/cpu.h
-> loops_per_jiffy is under CONFIG_SMP and since the omap2plus_defconfig
-> builds for OMAP4 as well by default, I am guessing this bug was not
-> immediately visible...
->
-> Is there solution for the issue?
-Yes this is an issue if CONFIG_SMP is disabled. We probably will need t=
-o
-put this code under #ifdef CONFIG_SMP till lpj is handled for SMP in
-generic cpufreq code itself .
+This patch series is
 
-Vishwa
->
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+Regards,
+
+	Hans
+
+On Monday, February 14, 2011 13:21:27 Laurent Pinchart wrote:
+> Hi everybody,
+> 
+> Here's the sixth version of the OMAP3 ISP driver patches, updated to
+> 2.6.38-rc4 and the latest changes in the media controller and sub-device 
+APIs.
+> 
+> You can find the patches in http://git.linuxtv.org/pinchartl/media.git as
+> usual (media-0005-omap3isp).
+> 
+> David Cohen (1):
+>   omap3isp: Statistics
+> 
+> Laurent Pinchart (5):
+>   omap3: Add function to register omap3isp platform device structure
+>   omap3isp: Video devices and buffers queue
+>   omap3isp: CCP2/CSI2 receivers
+>   omap3isp: CCDC, preview engine and resizer
+>   omap3isp: Kconfig and Makefile
+> 
+> Sakari Ailus (1):
+>   omap3isp: OMAP3 ISP core
+> 
+> Sergio Aguirre (2):
+>   omap3: Remove unusued ISP CBUFF resource
+>   omap2: Fix camera resources for multiomap
+> 
+> Tuukka Toivonen (1):
+>   ARM: OMAP3: Update Camera ISP definitions for OMAP3630
+> 
+>  arch/arm/mach-omap2/devices.c                      |   64 +-
+>  arch/arm/mach-omap2/devices.h                      |   17 +
+>  arch/arm/plat-omap/include/plat/omap34xx.h         |   16 +-
+>  drivers/media/video/Kconfig                        |   13 +
+>  drivers/media/video/Makefile                       |    2 +
+>  drivers/media/video/omap3-isp/Makefile             |   13 +
+>  drivers/media/video/omap3-isp/cfa_coef_table.h     |   61 +
+>  drivers/media/video/omap3-isp/gamma_table.h        |   90 +
+>  drivers/media/video/omap3-isp/isp.c                | 2220 
++++++++++++++++++++
+>  drivers/media/video/omap3-isp/isp.h                |  427 ++++
+>  drivers/media/video/omap3-isp/ispccdc.c            | 2268 
+++++++++++++++++++++
+>  drivers/media/video/omap3-isp/ispccdc.h            |  219 ++
+>  drivers/media/video/omap3-isp/ispccp2.c            | 1173 ++++++++++
+>  drivers/media/video/omap3-isp/ispccp2.h            |   98 +
+>  drivers/media/video/omap3-isp/ispcsi2.c            | 1316 ++++++++++++
+>  drivers/media/video/omap3-isp/ispcsi2.h            |  166 ++
+>  drivers/media/video/omap3-isp/ispcsiphy.c          |  247 +++
+>  drivers/media/video/omap3-isp/ispcsiphy.h          |   74 +
+>  drivers/media/video/omap3-isp/isph3a.h             |  117 +
+>  drivers/media/video/omap3-isp/isph3a_aewb.c        |  374 ++++
+>  drivers/media/video/omap3-isp/isph3a_af.c          |  429 ++++
+>  drivers/media/video/omap3-isp/isphist.c            |  520 +++++
+>  drivers/media/video/omap3-isp/isphist.h            |   40 +
+>  drivers/media/video/omap3-isp/isppreview.c         | 2113 
+++++++++++++++++++
+>  drivers/media/video/omap3-isp/isppreview.h         |  214 ++
+>  drivers/media/video/omap3-isp/ispqueue.c           | 1153 ++++++++++
+>  drivers/media/video/omap3-isp/ispqueue.h           |  187 ++
+>  drivers/media/video/omap3-isp/ispreg.h             | 1589 ++++++++++++++
+>  drivers/media/video/omap3-isp/ispresizer.c         | 1693 +++++++++++++++
+>  drivers/media/video/omap3-isp/ispresizer.h         |  147 ++
+>  drivers/media/video/omap3-isp/ispstat.c            | 1092 ++++++++++
+>  drivers/media/video/omap3-isp/ispstat.h            |  169 ++
+>  drivers/media/video/omap3-isp/ispvideo.c           | 1264 +++++++++++
+>  drivers/media/video/omap3-isp/ispvideo.h           |  202 ++
+>  drivers/media/video/omap3-isp/luma_enhance_table.h |   42 +
+>  drivers/media/video/omap3-isp/noise_filter_table.h |   30 +
+>  include/linux/Kbuild                               |    1 +
+>  include/linux/omap3isp.h                           |  646 ++++++
+>  38 files changed, 20478 insertions(+), 28 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/devices.h
+>  create mode 100644 drivers/media/video/omap3-isp/Makefile
+>  create mode 100644 drivers/media/video/omap3-isp/cfa_coef_table.h
+>  create mode 100644 drivers/media/video/omap3-isp/gamma_table.h
+>  create mode 100644 drivers/media/video/omap3-isp/isp.c
+>  create mode 100644 drivers/media/video/omap3-isp/isp.h
+>  create mode 100644 drivers/media/video/omap3-isp/ispccdc.c
+>  create mode 100644 drivers/media/video/omap3-isp/ispccdc.h
+>  create mode 100644 drivers/media/video/omap3-isp/ispccp2.c
+>  create mode 100644 drivers/media/video/omap3-isp/ispccp2.h
+>  create mode 100644 drivers/media/video/omap3-isp/ispcsi2.c
+>  create mode 100644 drivers/media/video/omap3-isp/ispcsi2.h
+>  create mode 100644 drivers/media/video/omap3-isp/ispcsiphy.c
+>  create mode 100644 drivers/media/video/omap3-isp/ispcsiphy.h
+>  create mode 100644 drivers/media/video/omap3-isp/isph3a.h
+>  create mode 100644 drivers/media/video/omap3-isp/isph3a_aewb.c
+>  create mode 100644 drivers/media/video/omap3-isp/isph3a_af.c
+>  create mode 100644 drivers/media/video/omap3-isp/isphist.c
+>  create mode 100644 drivers/media/video/omap3-isp/isphist.h
+>  create mode 100644 drivers/media/video/omap3-isp/isppreview.c
+>  create mode 100644 drivers/media/video/omap3-isp/isppreview.h
+>  create mode 100644 drivers/media/video/omap3-isp/ispqueue.c
+>  create mode 100644 drivers/media/video/omap3-isp/ispqueue.h
+>  create mode 100644 drivers/media/video/omap3-isp/ispreg.h
+>  create mode 100644 drivers/media/video/omap3-isp/ispresizer.c
+>  create mode 100644 drivers/media/video/omap3-isp/ispresizer.h
+>  create mode 100644 drivers/media/video/omap3-isp/ispstat.c
+>  create mode 100644 drivers/media/video/omap3-isp/ispstat.h
+>  create mode 100644 drivers/media/video/omap3-isp/ispvideo.c
+>  create mode 100644 drivers/media/video/omap3-isp/ispvideo.h
+>  create mode 100644 drivers/media/video/omap3-isp/luma_enhance_table.h
+>  create mode 100644 drivers/media/video/omap3-isp/noise_filter_table.h
+>  create mode 100644 include/linux/omap3isp.h
+> 
+> -- 
 > Regards,
-> Gery
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Laurent Pinchart
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
