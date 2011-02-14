@@ -1,88 +1,32 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v6 07/10] omap3isp: CCP2/CSI2 receivers
-Date: Mon, 14 Feb 2011 14:32:31 +0100
-Message-ID: <201102141432.32071.laurent.pinchart@ideasonboard.com>
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com> <1297686097-9804-8-git-send-email-laurent.pinchart@ideasonboard.com> <20110214123739.GZ2549@legolas.emea.dhcp.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH] omap iommu: print module name on error messages
+Date: Mon, 14 Feb 2011 15:41:30 +0200 (EET)
+Message-ID: <20110214.154130.1019130951550611673.Hiroshi.DOYU@nokia.com>
+References: <1297504949-26233-1-git-send-email-dacohen@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20110214123739.GZ2549@legolas.emea.dhcp.ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.47]:55442 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755424Ab1BNNl0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Feb 2011 08:41:26 -0500
+In-Reply-To: <1297504949-26233-1-git-send-email-dacohen@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dacohen@gmail.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-Hi Felipe,
+From: ext David Cohen <dacohen@gmail.com>
+Subject: [PATCH] omap iommu: print module name on error messages
+Date: Sat, 12 Feb 2011 12:02:29 +0200
 
-On Monday 14 February 2011 13:37:39 Felipe Balbi wrote:
-> On Mon, Feb 14, 2011 at 01:21:34PM +0100, Laurent Pinchart wrote:
-> > The OMAP3 ISP CCP2 and CSI2 receivers provide an interface to connect
-> > serial MIPI sensors to the device.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > Signed-off-by: David Cohen <dacohen@gmail.com>
-> > Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> > Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
-> > Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
-> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> > Signed-off-by: Antti Koskipaa <akoskipa@gmail.com>
-> > Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
-> > Signed-off-by: RaniSuneela <r-m@ti.com>
-> > Signed-off-by: Atanas Filipov <afilipov@mm-sol.com>
-> > Signed-off-by: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
-> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > Signed-off-by: Nayden Kanchev <nkanchev@mm-sol.com>
-> > Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
-> > Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-> > Signed-off-by: Dominic Curran <dcurran@ti.com>
-> > Signed-off-by: Ilkka Myllyperkio <ilkka.myllyperkio@sofica.fi>
-> > Signed-off-by: Pallavi Kulkarni <p-kulkarni@ti.com>
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> checkpatch still complains a bit about this one:
-> 
-> CHECK: struct mutex definition without comment
-> #1368: FILE: drivers/media/video/omap3-isp/ispqueue.h:157:
-> +	struct mutex lock;
-> 
-> CHECK: spinlock_t definition without comment
-> #1369: FILE: drivers/media/video/omap3-isp/ispqueue.h:158:
-> +	spinlock_t irqlock;
+> OMAP IOMMU generic layer doesn't need ot print function name during
+> error messages. Print module name instead which is more useful.
 
-Those two have a kerneldoc comment in front of the structure definition.
+Agree. This makes more sense.
 
-> WARNING: please, no space before tabs
-> #2723: FILE: drivers/media/video/omap3-isp/ispvideo.h:49:
-> + * ^Ibits. Identical to @code if the format is 10 bits wide or less.$
-> 
-> WARNING: please, no space before tabs
-> #2725: FILE: drivers/media/video/omap3-isp/ispvideo.h:51:
-> + * ^Iformat. Identical to @code if the format is not DPCM compressed.$
-> 
-> CHECK: spinlock_t definition without comment
-> #2762: FILE: drivers/media/video/omap3-isp/ispvideo.h:88:
-> +	spinlock_t lock;
-> 
-> CHECK: struct mutex definition without comment
-> #2823: FILE: drivers/media/video/omap3-isp/ispvideo.h:149:
-> +	struct mutex mutex;
-> 
-> CHECK: struct mutex definition without comment
-> #2840: FILE: drivers/media/video/omap3-isp/ispvideo.h:166:
-> +	struct mutex stream_lock;
-> 
-> total: 0 errors, 2 warnings, 5 checks, 2806 lines checked
-> 
-> /home/balbi/tst.diff has style problems, please review.  If any of these
-> errors are false positives report them to the maintainer, see
-> CHECKPATCH in MAINTAINERS.
-> 
-> does it make sense to fix those ?
-
--- 
-Regards,
-
-Laurent Pinchart
+> Signed-off-by: David Cohen <dacohen@gmail.com>
+> ---
+>  arch/arm/plat-omap/iommu.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
