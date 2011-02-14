@@ -1,79 +1,76 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v5 3/5] OMAP4: hwmod data: add mailbox data
-Date: Mon, 14 Feb 2011 16:00:57 +0100
-Message-ID: <4D5943A9.8010205@ti.com>
-References: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com> <1296674843-12718-4-git-send-email-omar.ramirez@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Hemant Pedanekar <hemantp@ti.com>
+Subject: [PATCH RESEND v6 0/4] Introduce support for TI816X processor series
+Date: Mon, 14 Feb 2011 20:33:11 +0530
+Message-ID: <1297695791-26940-1-git-send-email-hemantp@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48549 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52612 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754615Ab1BNPBN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 10:01:13 -0500
-In-Reply-To: <1296674843-12718-4-git-send-email-omar.ramirez@ti.com>
+	id S1755625Ab1BNPD3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Feb 2011 10:03:29 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Hemant Pedanekar <hemantp@ti.com>
 
-Hi Omar,
+(Resending v6 with cc: linux-arm-kernel)
 
-I found one minor change wrt to the original that I'd like to understand 
-better.
+This patch set adds support for TI816X processor series. This series includes
+DM8168, C6A816x and AM389x devices.
 
-On 2/2/2011 8:27 PM, Ramirez Luna, Omar wrote:
-> From: Benoit Cousson<b-cousson@ti.com>
->
-> Mailbox hwmod data for omap4.
->
-> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
-> Signed-off-by: Omar Ramirez Luna<omar.ramirez@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   67 ++++++++++++++++++++++++++++
->   1 files changed, 67 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index c2806bd..c495669 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -2001,6 +2001,70 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
->   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
->   };
->
-> +/*
-> + * 'mailbox' class
-> + * mailbox module allowing communication between the on-chip processors
-> + * using a queued mailbox-interrupt mechanism.
-> + */
-> +
-> +static struct omap_hwmod_class_sysconfig omap44xx_mailbox_sysc = {
-> +	.rev_offs	= 0x0000,
-> +	.sysc_offs	= 0x0010,
-> +	.sysc_flags	= (SYSC_HAS_RESET_STATUS | SYSC_HAS_SIDLEMODE |
-> +			   SYSC_HAS_SOFTRESET),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.sysc_fields	=&omap_hwmod_sysc_type2,
-> +};
-> +
-> +static struct omap_hwmod_class omap44xx_mailbox_hwmod_class = {
-> +	.name = "mailbox",
-> +	.sysc =&omap44xx_mailbox_sysc,
-> +};
-> +
-> +/* mailbox */
-> +static struct omap_hwmod omap44xx_mailbox_hwmod;
-> +static struct omap_hwmod_irq_info omap44xx_mailbox_irqs[] = {
-> +	{ .name = "mbox", .irq = 26 + OMAP44XX_IRQ_GIC_START, },
+The details can be found at following links:
 
-The original entry was unnamed since it is an unique entry and thus does 
-not need to be differentiate on this platform.
+http://focus.ti.com/general/docs/gencontent.tsp?contentId=77960
+http://www.ti.com/ww/en/dsp/davinci-netra/index.shtml
 
-	{ .irq = 26 + OMAP44XX_IRQ_GIC_START },
+This series is architecturally closer to the OMAP devices. Hence, these patches
+are being submitted on linux-omap.
 
-Do you really need to have a name here? The strategy being to provide a 
-name only if more than one entry exist.
-It is perfectibility doable, I'm just trying to understand your rational.
+These patches are tested on OMAP3 EVM with multi-omap build.
 
-Thanks,
-Benoit
+Note that, additional patches consisting of TI816X specific hwmods, clock data
+and DMTIMER changes, are required to enable successful booting on TI816X EVM.
+These patches will follow shortly.
+
+The TI816X support is added as part of OMAP3 variant. The approach taken is in
+accordance to the discussions in thread related to following post:
+http://www.spinics.net/lists/linux-omap/msg41505.html
+
+In addition, TI816X specific customizations/optimizations are handled as a part
+of build configuration CONFIG_SOC_OMAPTI816X. Discussed here:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41927.html
+
+Hemant Pedanekar (4):
+  TI816X: Update common omap platform files
+  TI816X: Update common OMAP machine specific sources
+  TI816X: Create board support and enable build for TI816X EVM
+  TI816X: Add low level debug support
+
+ arch/arm/mach-omap2/Kconfig                    |   10 ++++
+ arch/arm/mach-omap2/Makefile                   |    1 +
+ arch/arm/mach-omap2/board-ti8168evm.c          |   57 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock3xxx_data.c           |    5 ++-
+ arch/arm/mach-omap2/common.c                   |   21 +++++++++
+ arch/arm/mach-omap2/control.h                  |    6 +++
+ arch/arm/mach-omap2/id.c                       |   33 +++++++++++++-
+ arch/arm/mach-omap2/include/mach/debug-macro.S |   12 +++++
+ arch/arm/mach-omap2/include/mach/entry-macro.S |   13 +++++
+ arch/arm/mach-omap2/io.c                       |   22 +++++++++-
+ arch/arm/mach-omap2/irq.c                      |    5 ++-
+ arch/arm/mach-omap2/serial.c                   |    8 ++--
+ arch/arm/plat-omap/include/plat/clkdev_omap.h  |    1 +
+ arch/arm/plat-omap/include/plat/clock.h        |    1 +
+ arch/arm/plat-omap/include/plat/common.h       |    1 +
+ arch/arm/plat-omap/include/plat/cpu.h          |   18 +++++++
+ arch/arm/plat-omap/include/plat/hardware.h     |    1 +
+ arch/arm/plat-omap/include/plat/io.h           |    8 +++
+ arch/arm/plat-omap/include/plat/serial.h       |    8 +++
+ arch/arm/plat-omap/include/plat/ti816x.h       |   27 +++++++++++
+ arch/arm/plat-omap/include/plat/uncompress.h   |    7 +++
+ arch/arm/plat-omap/io.c                        |    5 ++-
+ 22 files changed, 260 insertions(+), 10 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-ti8168evm.c
+ create mode 100644 arch/arm/plat-omap/include/plat/ti816x.h
+
+-- 
+1.7.3.5
+
