@@ -1,32 +1,68 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH] omap iommu: print module name on error messages
-Date: Mon, 14 Feb 2011 15:41:30 +0200 (EET)
-Message-ID: <20110214.154130.1019130951550611673.Hiroshi.DOYU@nokia.com>
-References: <1297504949-26233-1-git-send-email-dacohen@gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v6 04/10] omap2: Fix camera resources for multiomap
+Date: Mon, 14 Feb 2011 15:41:16 +0200
+Message-ID: <20110214134116.GG2549@legolas.emea.dhcp.ti.com>
+References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1297686097-9804-5-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20110214123559.GY2549@legolas.emea.dhcp.ti.com>
+ <201102141419.24953.laurent.pinchart@ideasonboard.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:55442 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755424Ab1BNNl0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 08:41:26 -0500
-In-Reply-To: <1297504949-26233-1-git-send-email-dacohen@gmail.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:40124 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754148Ab1BNNlW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Feb 2011 08:41:22 -0500
+Content-Disposition: inline
+In-Reply-To: <201102141419.24953.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dacohen@gmail.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: balbi@ti.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
 
-From: ext David Cohen <dacohen@gmail.com>
-Subject: [PATCH] omap iommu: print module name on error messages
-Date: Sat, 12 Feb 2011 12:02:29 +0200
+Hi,
 
-> OMAP IOMMU generic layer doesn't need ot print function name during
-> error messages. Print module name instead which is more useful.
+On Mon, Feb 14, 2011 at 02:19:24PM +0100, Laurent Pinchart wrote:
+> Thanks for the review.
 
-Agree. This makes more sense.
+np.
 
-> Signed-off-by: David Cohen <dacohen@gmail.com>
-> ---
->  arch/arm/plat-omap/iommu.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
+> On Monday 14 February 2011 13:35:59 Felipe Balbi wrote:
+> > On Mon, Feb 14, 2011 at 01:21:31PM +0100, Laurent Pinchart wrote:
+> > > diff --git a/arch/arm/mach-omap2/devices.c
+> > > b/arch/arm/mach-omap2/devices.c index 4cf48ea..5d844bd 100644
+> > > --- a/arch/arm/mach-omap2/devices.c
+> > > +++ b/arch/arm/mach-omap2/devices.c
+> > > @@ -38,7 +38,7 @@
+> > > 
+> > >  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+> > > 
+> > > -static struct resource cam_resources[] = {
+> > > +static struct resource omap2cam_resources[] = {
+> > 
+> > should this be __initdata ??
+> 
+> The resources will be used when the OMAP3 ISP module is loaded. Won't they be 
+> discared if marked as __initdata ?
+
+I believe driver core makes a copy of those, no ? not sure.
+
+> > > @@ -158,6 +149,14 @@ int omap3_init_camera(void *pdata)
+> > > 
+> > >  }
+> > >  EXPORT_SYMBOL_GPL(omap3_init_camera);
+> > > 
+> > > +static inline void omap_init_camera(void)
+> > 
+> > why inline ? also, should this be marked __init ?
+> 
+> I suppose because it was inline, so it has been kept as inline. The function 
+> is used in a single place, so the compiler will probably auto-inline it. Is it 
+> an issue to keep it as inline ?
+
+not really, you can forget about this comment ;-)
+
+-- 
+balbi
