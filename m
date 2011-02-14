@@ -1,108 +1,58 @@
-From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH RESEND v6 4/4] TI816X: Add low level debug support
-Date: Mon, 14 Feb 2011 20:34:17 +0530
-Message-ID: <1297695857-27113-1-git-send-email-hemantp@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42832 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755565Ab1BNPEZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 10:04:25 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH v6 04/10] omap2: Fix camera resources for multiomap
+Date: Mon, 14 Feb 2011 17:11:05 +0200
+Message-ID: <AANLkTin-vJuDUWeMOpQktnkHgTTXGxqm4+se1p90y1YT@mail.gmail.com>
+References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<201102141419.24953.laurent.pinchart@ideasonboard.com>
+	<20110214134116.GG2549@legolas.emea.dhcp.ti.com>
+	<201102141450.31975.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <201102141450.31975.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: balbi@ti.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Hemant Pedanekar <hemantp@ti.com>
 
-This patch adds support for low level debugging on TI816X boards. Currently the
-support for UART3 console on TI816X EVM is added.
+On Mon, Feb 14, 2011 at 3:50 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Felipe,
 
-Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
----
- arch/arm/mach-omap2/include/mach/debug-macro.S |   12 ++++++++++++
- arch/arm/plat-omap/include/plat/serial.h       |    8 ++++++++
- arch/arm/plat-omap/include/plat/uncompress.h   |    7 +++++++
- 3 files changed, 27 insertions(+), 0 deletions(-)
+Hello,
 
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index 6a4d413..e1b0f17 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -69,6 +69,12 @@ omap_uart_lsr:	.word	0
- 		beq	34f			@ configure OMAP3UART4
- 		cmp	\rp, #OMAP4UART4	@ only on 44xx
- 		beq	44f			@ configure OMAP4UART4
-+		cmp	\rp, #TI816XUART1	@ ti816x UART offsets different
-+		beq	81f			@ configure UART1
-+		cmp	\rp, #TI816XUART2	@ ti816x UART offsets different
-+		beq	82f			@ configure UART2
-+		cmp	\rp, #TI816XUART3	@ ti816x UART offsets different
-+		beq	83f			@ configure UART3
- 		cmp	\rp, #ZOOM_UART		@ only on zoom2/3
- 		beq	95f			@ configure ZOOM_UART
- 
-@@ -91,6 +97,12 @@ omap_uart_lsr:	.word	0
- 		b	98f
- 44:		mov	\rp, #UART_OFFSET(OMAP4_UART4_BASE)
- 		b	98f
-+81:		mov	\rp, #UART_OFFSET(TI816X_UART1_BASE)
-+		b	98f
-+82:		mov	\rp, #UART_OFFSET(TI816X_UART2_BASE)
-+		b	98f
-+83:		mov	\rp, #UART_OFFSET(TI816X_UART3_BASE)
-+		b	98f
- 95:		ldr	\rp, =ZOOM_UART_BASE
- 		mrc	p15, 0, \rv, c1, c0
- 		tst	\rv, #1			@ MMU enabled?
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index cec5d56..4102bf4 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -51,6 +51,11 @@
- #define OMAP4_UART3_BASE	0x48020000
- #define OMAP4_UART4_BASE	0x4806e000
- 
-+/* TI816X serial ports */
-+#define TI816X_UART1_BASE	0x48020000
-+#define TI816X_UART2_BASE	0x48022000
-+#define TI816X_UART3_BASE	0x48024000
-+
- /* External port on Zoom2/3 */
- #define ZOOM_UART_BASE		0x10000000
- #define ZOOM_UART_VIRT		0xfa400000
-@@ -81,6 +86,9 @@
- #define OMAP4UART2		OMAP2UART2
- #define OMAP4UART3		43
- #define OMAP4UART4		44
-+#define TI816XUART1		81
-+#define TI816XUART2		82
-+#define TI816XUART3		83
- #define ZOOM_UART		95		/* Only on zoom2/3 */
- 
- /* This is only used by 8250.c for omap1510 */
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index ad98b85..30b891c 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -93,6 +93,10 @@ static inline void flush(void)
- #define DEBUG_LL_ZOOM(mach)						\
- 	_DEBUG_LL_ENTRY(mach, ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
- 
-+#define DEBUG_LL_TI816X(p, mach)					\
-+	_DEBUG_LL_ENTRY(mach, TI816X_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		TI816XUART##p)
-+
- static inline void __arch_decomp_setup(unsigned long arch_id)
- {
- 	int port = 0;
-@@ -166,6 +170,9 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		DEBUG_LL_ZOOM(omap_zoom2);
- 		DEBUG_LL_ZOOM(omap_zoom3);
- 
-+		/* TI8168 base boards using UART3 */
-+		DEBUG_LL_TI816X(3, ti8168evm);
-+
- 	} while (0);
- }
- 
--- 
-1.7.3.5
+>
+> On Monday 14 February 2011 14:41:16 Felipe Balbi wrote:
+>> On Mon, Feb 14, 2011 at 02:19:24PM +0100, Laurent Pinchart wrote:
+>> > On Monday 14 February 2011 13:35:59 Felipe Balbi wrote:
+>> > > On Mon, Feb 14, 2011 at 01:21:31PM +0100, Laurent Pinchart wrote=
+:
+>> > > > diff --git a/arch/arm/mach-omap2/devices.c
+>> > > > b/arch/arm/mach-omap2/devices.c index 4cf48ea..5d844bd 100644
+>> > > > --- a/arch/arm/mach-omap2/devices.c
+>> > > > +++ b/arch/arm/mach-omap2/devices.c
+>> > > > @@ -38,7 +38,7 @@
+>> > > >
+>> > > > =C2=A0#if defined(CONFIG_VIDEO_OMAP2) ||
+>> > > > =C2=A0defined(CONFIG_VIDEO_OMAP2_MODULE)
+>> > > >
+>> > > > -static struct resource cam_resources[] =3D {
+>> > > > +static struct resource omap2cam_resources[] =3D {
+>> > >
+>> > > should this be __initdata ??
+>> >
+>> > The resources will be used when the OMAP3 ISP module is loaded. Wo=
+n't
+>> > they be discared if marked as __initdata ?
+>>
+>> I believe driver core makes a copy of those, no ? not sure.
+>
+> Not that I know of, but I may be wrong.
 
+I don't think omap2cam_resources would be used at all.
+AFAIK, it belongs to omap2xxcam, isn't it? :)
+
+Br,
+
+David
