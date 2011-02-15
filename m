@@ -1,121 +1,162 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [PATCH v4 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
-Date: Tue, 15 Feb 2011 10:45:16 +0000
-Message-ID: <AANLkTinz1055v7x0y2W_AYkbj+9h7z_cGtF4xn4=pkQ7@mail.gmail.com>
-References: <1297263683-10621-1-git-send-email-dave.martin@linaro.org>
-	<87pqqy6tdj.fsf@ti.com>
-	<20110214131750.GA2869@arm.com>
-	<alpine.LFD.2.00.1102140950580.14920@xanadu.home>
-	<20110214153726.GA20144@arm.com>
-	<87zkpyxl64.fsf@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: OMAP: DSS2: Common IRQ handler for all OMAPs
+Date: Tue, 15 Feb 2011 11:50:04 +0100
+Message-ID: <4D5A5A5C.4070909@ti.com>
+References: <1296636990-24775-1-git-send-email-archit@ti.com> <1297693307.2951.25.camel@deskari> <20110214143001.GK2549@legolas.emea.dhcp.ti.com> <4D5A00E8.4060701@ti.com> <1297754826.2289.9.camel@deskari> <4D5A39AE.3030006@ti.com> <1297759057.2289.40.camel@deskari> <4D5A4670.9030405@ti.com> <4D5A5410.1010300@ti.com> <AANLkTikZXdrjXMq811LR8dQ0eq-QDDUb=pUdBDghWD3E@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:34114 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754209Ab1BOKpR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 05:45:17 -0500
-Received: by wyb28 with SMTP id 28so11715wyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 02:45:16 -0800 (PST)
-In-Reply-To: <87zkpyxl64.fsf@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51441 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752960Ab1BOKuI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 05:50:08 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1FAo7vk014678
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 04:50:07 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1FAo7Cl026237
+	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 04:50:07 -0600 (CST)
+In-Reply-To: <AANLkTikZXdrjXMq811LR8dQ0eq-QDDUb=pUdBDghWD3E@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org
+To: "Semwal, Sumit" <sumit.semwal@ti.com>
+Cc: "Taneja, Archit" <archit@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 
-On Mon, Feb 14, 2011 at 11:15 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Hi Dave,
+Hi Sumit,
+
+On 2/15/2011 11:28 AM, Semwal, Sumit wrote:
+> Hi Benoit,
 >
-> Dave Martin <dave.martin@linaro.org> writes:
+> On Tue, Feb 15, 2011 at 3:53 PM, Cousson, Benoit<b-cousson@ti.com>  wrote:
+>> Hi Archit,
+>>
+>> On 2/15/2011 10:25 AM, Taneja, Archit wrote:
+>>>
+>>> Copying Benoit,
+>>>
+>>> On Tuesday 15 February 2011 02:07 PM, Valkeinen, Tomi wrote:
+>>>>
+>>>> On Tue, 2011-02-15 at 02:30 -0600, Taneja, Archit wrote:
+>>>>>
+>>>>> Hi,
+>>>>>
+>>>>> On Tuesday 15 February 2011 12:57 PM, Valkeinen, Tomi wrote:
+>>>>>
+>>>>> <snip>
+>>>>>
+>>>>>> I meant something like this:
+>>>>>>
+>>>>>> dispc.c:
+>>>>>>
+>>>>>> dispc_init()
+>>>>>> {
+>>>>>>         /* did we have a pdev for dispc? if not, this needs to be
+>>>>>> dss.pdev */
+>>>>>>         request_irq(platform_get_irq(dispc.pdev, 0), irq_handler,
+>>>>>> IRQF_SHARED, "dispc irq", foo);
+>>>>>> }
+>>>>>>
+>>>>>> irq_handler()
+>>>>>> {
+>>>>>>         if (irq_can_be_shared) {
+>>>>>>                 check if the irq is for us. exit if not;
+>>>>>>         }
+>>>>>>
+>>>>>>         handle;
+>>>>>> }
+>>>>>>
+>>>>>> dsi.c:
+>>>>>>
+>>>>>> dsi_init()
+>>>>>> {
+>>>>>>         request_irq(platform_get_irq(dsi.pdev, 0), irq_handler,
+>>>>>> IRQF_SHARED, "dsi irq", foo);
+>>>>>> }
+>>>>>>
+>>>>>> irq_handler()
+>>>>>> {
+>>>>>>         if (irq_can_be_shared) {
+>>>>>>                 check if the irq is for us. exit if not;
+>>>>>>         }
+>>>>>>
+>>>>>>         handle;
+>>>>>> }
+>>>>>>
+>>>>>
+>>>>> This approach looks clean, but isn't IRQF_SHARED used the other way
+>>>>> around. One irq line and multiple handlers?
+>>>>
+>>>> That is the case here, isn't it (on omap3)? One interrupt line (the DSS
+>>>> irq, the same returned both from dsi.pdev and dispc.pdev), and two
+>>>> handlers, one in dispc and one in dsi? Or what do you mean?
+>>>>
+>>>> On omap2 there's no dsi code ran, so dispc is the only one requesting
+>>>> the irq, and thus IRQF_SHARED is extra. In omap4 there are separate irq
+>>>> lines (dsi.pdev and dispc.pdev return different irqs), and so
+>>>> IRQF_SHARED is again extra. But I don't see any harm in IRQF_SHARED even
+>>>> in omap2/4.
+>>>>
+>>>>    Tomi
+>>>>
+>>>
+>>> Benoit,
+>>>
+>>> Is it okay to have the same irq entry for 2 different hwmods?
+>>> This requirement comes from OMAP3 where dispc and dsi have a common irq
+>>> line, where as on OMAP4 dispc and dsi have separate irq lines.
+>>
+>> Well, no. I explained that in one of my comment about hwmod modification.
+>> The hwmod data are reflecting the exact HW capabilities.
+>> So, if there is a change in the HW, the hwmod will be different.
+>> It is up to the driver to adapt to this change.
+> I guess what Archit wanted to say is, for hw IPs DISPC and DSI, on
+> OMAP3, have a common IRQ line, so could both their hwmod databases
+> have the same IRQ added for them? This would us call, for a common IRQ
+> line shared w/ DISPC and DSI, like
+> mentioned in Tomi's sample code above.
+
+OK, thanks for the clarification, actually I missed a little bit the 
+point :-(
+
+So in fact the 2 modules share that same IRQ today, and you just want to 
+populate both hwmod with the same input.
+If this is a real OR between the two IRQ lines, meaning the dispc cannot 
+mask the dsi IRQ or the opposite, then having the same IRQ number in the 
+two different hwmods is a correct representation of the HW.
+
+Then both devices with get the same IRQ number during the 
+platform_get_irq, so if the driver is aware of that it is fine.
+
+> How is hwmod data for these cases handled today? [shared IRQ,
+> different platform devices?]
+
+I don't think we have such case today at least on OMAP4. Or maybe it is 
+just not properly documented, so only one hwmod is mapped to the IRQ line.
+
+Regards,
+Benoit
+
 >
->> On Mon, Feb 14, 2011 at 10:00:23AM -0500, Nicolas Pitre wrote:
->>> On Mon, 14 Feb 2011, Dave Martin wrote:
->>>
->>> > @@ -289,8 +297,20 @@ clean_l2:
->>> > =A0 =A0 * =A0- should be faster and will change with kernel
->>> > =A0 =A0 * =A0- 'might' have to copy address, load and jump to it
->>> > =A0 =A0 */
->>> > +#ifdef CONFIG_THUMB2_KERNEL
->>> > + =A0/* kernel is non-interworking : must do this from Thumb */
->>> > + =A0adr =A0 =A0 r1, . + 1
->>> > + =A0bx =A0 =A0 =A0r1
->>> > + =A0.thumb
->>> > +#endif
->>> > =A0 =A0ldr =A0 =A0 r1, kernel_flush
->>>
->>> Didn't you mean this instead:
->>>
->>> =A0 =A0 =A0/* kernel is non-interworking : must do this from Thumb =
-*/
->>> =A0 =A0 =A0adr =A0 =A0 r1, 1f + 1
->>> =A0 =A0 =A0bx =A0 =A0 =A0r1
->>> =A0 =A0 =A0.thumb
->>> 1: =A0 ldr =A0 =A0 r1, kernel_flush
->>> =A0 =A0 =A0...
+> Best regards,
+> ~Sumit.
 >>
->> Note that this is intended as an experimental hack, not a real patch
->> (apologies if I didn't make that clear...)
+>> The driver has to evolve to handle properly the new HW capabilities while
+>> keeping the old stuff working.
 >>
->> Well, actually I meant "add r1, pc, #1" ... which means I was too
->> busy trying to be clever... oops!
+>>> We basically want to get rid of a central dss irq handler (hence, remove
+>>> irq entries for dss_core hwmod) and instead have separate irq handlers
+>>> for each module which may or may not share an irq line.
 >>
->> That is of course exactly equivalent to your code...
+>> Then you need to hack your driver but not the hwmod data:-(
 >>
->>>
->>> ?
->>>
->>> > =A0 =A0blx =A0 =A0 r1
->>> > +#ifdef CONFIG_THUMB2_KERNEL
->>> > + =A0.align
->>> > + =A0bx =A0 =A0 =A0pc
->>> > + =A0nop
->>> > + =A0.arm
->>>
->>> Also here, the .align has the potential to introduce a zero halfwor=
-d in
->>> the instruction stream before the bx. =A0What about:
->>>
->>> =A0 =A0 =A0adr =A0 =A0 r3, 1f
->>> =A0 =A0 =A0bx =A0 =A0 =A0r3
->>> =A0 =A0 =A0.align
->>> =A0 =A0 =A0.arm
->>> 1: =A0 ...
+>> Regards,
+>> Benoit
 >>
->> .align inserts a 16-bit nop when misaligned in Thumb in a text secti=
-on,
->> and a word-aligned bx pc is a specific architecturally allowed way
->> to do an inline switch to ARM. =A0The linker uses this trick for PLT
->> veneers etc.
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >>
->> A nicer fix for doing this sort of call from low-level code which
->> might be ARM is to convert arch/arm/mm/*-v7.S to use "bx lr" to retu=
-rn.
->>
->> Generally, we can do this for all arches >=3D v5, without any
->> incompatibility. =A0However, since the need for it will be rare and =
-it
->> will generate patch noise for not much real benefit,
->> I haven't proposed this.
->>
->> Updated patch below.
->
-> I tested the updated patch on top of your "dirty" branch I tested wit=
-h
-> last week, and now see off-mode working just fine.
 
-Thanks for testing-- that's great news.
-
-I will have a think about whether the patch can be tidied up to revert
-most of the code back to Thumb, though that isn't essential.  If I've
-understood what's going on correctly, I think only the restore entry
-points, SMC call sites and the entry to omap3_sram_configure_core_dpll
-could need to be ARM; the rest shouldn't really make any difference...
-
-Cheers
----Dave
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
