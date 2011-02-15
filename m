@@ -1,68 +1,28 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCHv2] omap2/3: dmtimer: Enable autoidle
-Date: Tue, 15 Feb 2011 21:07:53 +0530
-Message-ID: <6038d98e9a2eb2129200f5e08560cf7e@mail.gmail.com>
-References: <1297787428-5717-1-git-send-email-tero.kristo@nokia.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/2] OMAP2+: IOMMU: change OMAP2+ error message to
+	dev_dbg()
+Date: Tue, 15 Feb 2011 15:51:55 +0000
+Message-ID: <20110215155155.GE11199@n2100.arm.linux.org.uk>
+References: <1297776033-8579-1-git-send-email-dacohen@gmail.com> <1297776033-8579-2-git-send-email-dacohen@gmail.com> <4D5A81D8.2080800@ru.mvista.com> <20110215142923.GC11199@n2100.arm.linux.org.uk> <AANLkTin++DGAGT9-nahy1Qm7ASbGm=JjNuPZWZ6XUbcX@mail.gmail.com> <20110215144457.GD11199@n2100.arm.linux.org.uk> <AANLkTin=4z0o6=J9f-1mszvGrpaRMgCMk=Ckh5+9j6EQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:57943 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751483Ab1BOPit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 10:38:49 -0500
-Received: by mail-ww0-f42.google.com with SMTP id 17so3206240wwi.1
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 07:38:47 -0800 (PST)
-In-Reply-To: <1297787428-5717-1-git-send-email-tero.kristo@nokia.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48399 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754097Ab1BOPwI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 10:52:08 -0500
+Content-Disposition: inline
+In-Reply-To: <AANLkTin=4z0o6=J9f-1mszvGrpaRMgCMk=Ckh5+9j6EQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: David Cohen <dacohen@gmail.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, tony@atomide.com, linux-omap@vger.kernel.org, Hiroshi.DOYU@nokia.com, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tero Kristo
-> Sent: Tuesday, February 15, 2011 10:00 PM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Subject: [PATCHv2] omap2/3: dmtimer: Enable autoidle
->
-> This saves some power. OMAP4 version should check for GPT module ID,
-> as
-> autoidle is only supported on a subset of these.
->
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> ---
->  arch/arm/plat-omap/dmtimer.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-
-> omap/dmtimer.c
-> index 1d706cf..ee9f6eb 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -342,6 +342,10 @@ static void omap_dm_timer_reset(struct
-> omap_dm_timer *timer)
->  	l |= 0x02 << 3;  /* Set to smart-idle mode */
->  	l |= 0x2 << 8;   /* Set clock activity to perserve f-clock on
-> idle */
->
-> +	/* Enable autoidle on OMAP2 / OMAP3 */
-> +	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-> +		l |= 0x1 << 0;
-> +
-We should get rid of this CPU checks. How about adding a flag
-and populating it on init for the architectures it supports.
+On Tue, Feb 15, 2011 at 04:50:29PM +0200, David Cohen wrote:
+> That could be my choice.
+> I'm not planing to resend this patch, but how good/bad it sounds to
+> you to have dev_dbg_cont() for such situation?
 
-
->  	/*
->  	 * Enable wake-up on OMAP2 CPUs.
->  	 */
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That doesn't help when the message gets corrupted by another thread,
+so I'd much prefer the "format line then print" approach rather than
+the blah_CONT stuff.
