@@ -1,41 +1,48 @@
 From: David Cohen <dacohen@gmail.com>
-Subject: [PATCH 0/2] IOMMU fault callback support
-Date: Tue, 15 Feb 2011 15:20:31 +0200
-Message-ID: <1297776033-8579-1-git-send-email-dacohen@gmail.com>
+Subject: [PATCH 1/2] OMAP2+: IOMMU: change OMAP2+ error message to dev_dbg()
+Date: Tue, 15 Feb 2011 15:20:32 +0200
+Message-ID: <1297776033-8579-2-git-send-email-dacohen@gmail.com>
+References: <1297776033-8579-1-git-send-email-dacohen@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:47794 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:47795 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751241Ab1BONPh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753357Ab1BONPh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 15 Feb 2011 08:15:37 -0500
+In-Reply-To: <1297776033-8579-1-git-send-email-dacohen@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi.DOYU@nokia.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-Hi,
+IOMMU upper layer is already printing error message. OMAP2+ specific
+layer may print error message only for debug purpose.
 
-This patch set adds fault callback support to allow IOMMU users to debug or
-react when a fault happens.
-IOMMU faults might be very difficult to reproduce and then to figure out
-the source of the problem. Currently IOMMU driver prints not so useful
-debug message and does not notice user about such issue.
-With a fault callback, IOMMU user may debug much more useful information
-and/or react to go back to a valid state.
-
-Br,
-
-David
+Signed-off-by: David Cohen <dacohen@gmail.com>
 ---
+ arch/arm/mach-omap2/iommu2.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-David Cohen (2):
-  OMAP2+: IOMMU: change OMAP2+ error message to dev_dbg()
-  OMAP: IOMMU: add support to callback during fault handling
-
- arch/arm/mach-omap2/iommu2.c            |   27 ++++++++++++++++----
- arch/arm/plat-omap/include/plat/iommu.h |   15 ++++++++++-
- arch/arm/plat-omap/iommu.c              |   41 ++++++++++++++++++++++++++++---
- 3 files changed, 72 insertions(+), 11 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
+index 14ee686..4244a07 100644
+--- a/arch/arm/mach-omap2/iommu2.c
++++ b/arch/arm/mach-omap2/iommu2.c
+@@ -163,13 +163,13 @@ static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
+ 	da = iommu_read_reg(obj, MMU_FAULT_AD);
+ 	*ra = da;
+ 
+-	dev_err(obj->dev, "%s:\tda:%08x ", __func__, da);
++	dev_dbg(obj->dev, "%s:\tda:%08x ", __func__, da);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(err_msg); i++) {
+ 		if (stat & (1 << i))
+-			printk("%s ", err_msg[i]);
++			printk(KERN_DEBUG "%s ", err_msg[i]);
+ 	}
+-	printk("\n");
++	printk(KERN_DEBUG "\n");
+ 
+ 	iommu_write_reg(obj, stat, MMU_IRQSTATUS);
+ 
 -- 
 1.7.2.3
 
