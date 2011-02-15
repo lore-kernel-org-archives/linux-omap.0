@@ -1,198 +1,102 @@
-From: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 4/5 v6] OMAP2+: musb: HWMOD adaptation for musb. registration
-Date: Tue, 15 Feb 2011 12:00:43 +0530
-Message-ID: <d833dfc47fcd0315bbb5978826aa7c20@mail.gmail.com>
-References: <1297346881-13438-1-git-send-email-hemahk@ti.com><1297346881-13438-5-git-send-email-hemahk@ti.com>
- <87vd0mw3u9.fsf@ti.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v2 0/2] OMAP: omap_device: API to modify SYSCONFIG register
+Date: Tue, 15 Feb 2011 12:08:38 +0530
+Message-ID: <AANLkTin0kLETwO1MfYLqAoMxfs876mzvvV-HPQz=is1s@mail.gmail.com>
+References: <1296477288-26253-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87vd0mw3u9.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:38606 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751005Ab1BOGij convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 01:38:39 -0500
+Received: by gyd8 with SMTP id 8so2392891gyd.6
+        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 22:38:38 -0800 (PST)
+In-Reply-To: <1296477288-26253-1-git-send-email-kishon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com
+Cc: charu@ti.com, shubhrajyoti@ti.com, p-basak2@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 
-Kevin,
+Kevin, Paul, Benoit,
 
->-----Original Message-----
->From: Kevin Hilman [mailto:khilman-l0cyMroinI0@public.gmane.org]
->Sent: Tuesday, February 15, 2011 5:45 AM
->To: Hema HK
->Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
->Felipe Balbi; Tony Lindgren; Cousson, Benoit; Paul Walmsley
->Subject: Re: [PATCH 4/5 v6] OMAP2+: musb: HWMOD adaptation for
->musb. registration
+Do you have any comments for this patch series?
+
+-Kishon
+
+On Mon, Jan 31, 2011 at 6:04 PM, Kishon Vijay Abraham I <kishon@ti.com>=
+ wrote:
+> Certain peripherals require autoidle bits to be disabled before perfo=
+rming
+> some operations. This patch series provides APIs in omap_device layer=
+ to
+> modify the SYSCONFIG register.
 >
->Hema HK <hemahk-l0cyMroinI0@public.gmane.org> writes:
+> Since current implementation of PM run time framework does not suppor=
+t
+> changing sysconfig settings during middle of the on going operation,
+> these APIs will support the same.
 >
->> Using omap_device_build API instead of platform_device_register for
->> OMAP2430,OMAP34xx and OMAP4430 musb device registration.
->> The device specific resources defined in centralized
->> database will be used.
+> For e.g McBSP 2 and 3 in OMAP3 has sidetone feature which requires
+> autoidle to be disabled before starting the sidetone.
 >
->Except for AM35x.
+> McBSP also requires the SYSCONFIG to be in NOIDLE when ELEMENTSYNCH
+> mode is selected for DMA operation.
 >
->NACK, for same reasons as previous version of this patch.
+> Created on top of linux OMAP master (linux-omap-2.6 :master)
+> Tested on OMAP4430, OMAP3430 and OMAP2430 SDP boards. Verified that t=
+his patch
+> series does not break the OMAP1 build.
 >
-AM35x boot is already broken with existing HWmod changes done for V2.6.38
-release.
-I think Ajay's team is debugging this issue.
-Since there is no separate CHIP revision for AM35x compared to OMAP3430
-today,
-there will be conflict to add OMAP3 usbotg and AM35x usbotg together.
-
-I think we should go for OMAP3 HWmod independent of the AM35x.
-If required we should have 2 separate platform file as there is very less
-shared code in usb-musb.c file between the OMAP2+ and AM35x.
-
-Ajay/Felipe,
-
-Any comments on this?
-
-Regards,
-Hema
-
->Kevin
+> V2:
+> Mutex is replaced with spinlock.
 >
->> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
->> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
->> Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
->> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
->> ---
->>  arch/arm/mach-omap2/usb-musb.c |   76
->+++++++++++++++++++++++++++++------------
->>  1 file changed, 55 insertions(+), 21 deletions(-)
->>
->> Index: linux-2.6/arch/arm/mach-omap2/usb-musb.c
->> ===================================================================
->> --- linux-2.6.orig/arch/arm/mach-omap2/usb-musb.c
->> +++ linux-2.6/arch/arm/mach-omap2/usb-musb.c
->> @@ -31,9 +31,12 @@
->>  #include <mach/am35xx.h>
->>  #include <plat/usb.h>
->>  #include "control.h"
->> +#include <plat/omap_device.h>
->>
->>  #if defined(CONFIG_USB_MUSB_OMAP2PLUS) || defined
->(CONFIG_USB_MUSB_AM35X)
->>
->> +static const char name[] = "musb-omap2430";
->> +
->>  static void am35x_musb_reset(void)
->>  {
->>  	u32	regval;
->> @@ -170,7 +173,7 @@ static struct musb_hdrc_platform_data mu
->>  static u64 musb_dmamask = DMA_BIT_MASK(32);
->>
->>  static struct platform_device musb_device = {
->> -	.name		= "musb-omap2430",
->> +	.name		= "musb-am35x",
->>  	.id		= -1,
->>  	.dev = {
->>  		.dma_mask		= &musb_dmamask,
->> @@ -181,26 +184,23 @@ static struct platform_device musb_devic
->>  	.resource	= musb_resources,
->>  };
->>
->> +static struct omap_device_pm_latency omap_musb_latency[] = {
->> +	{
->> +		.deactivate_func = omap_device_idle_hwmods,
->> +		.activate_func   = omap_device_enable_hwmods,
->> +		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
->> +	},
->> +};
->> +
->>  void __init usb_musb_init(struct omap_musb_board_data *board_data)
->>  {
->> -	if (cpu_is_omap243x()) {
->> -		musb_resources[0].start = OMAP243X_HS_BASE;
->> -	} else if (cpu_is_omap3517() || cpu_is_omap3505()) {
->> -		musb_device.name = "musb-am35x";
->> -		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
->> -		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
->> -		board_data->set_phy_power = am35x_musb_phy_power;
->> -		board_data->clear_irq = am35x_musb_clear_irq;
->> -		board_data->set_mode = am35x_musb_set_mode;
->> -		board_data->reset = am35x_musb_reset;
->> -	} else if (cpu_is_omap34xx()) {
->> -		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
->> -	} else if (cpu_is_omap44xx()) {
->> -		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
->> -		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
->> -		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
->> -	}
->> -	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
->> +	struct omap_hwmod *oh;
->> +	struct omap_device *od;
->> +	struct platform_device *pdev;
->> +	struct device	*dev;
->> +	int bus_id = -1;
->> +	const char *oh_name = "usb_otg_hs";
->> +	struct musb_hdrc_platform_data *pdata;
->>
->>  	/*
->>  	 * REVISIT: This line can be removed once all the
->platforms using
->> @@ -212,8 +212,42 @@ void __init usb_musb_init(struct omap_mu
->>  	musb_plat.mode = board_data->mode;
->>  	musb_plat.extvbus = board_data->extvbus;
->>
->> -	if (platform_device_register(&musb_device) < 0)
->> -		printk(KERN_ERR "Unable to register HS-USB
->(MUSB) device\n");
->> +	if (cpu_is_omap3517() || cpu_is_omap3505()) {
->> +		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
->> +		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
->> +		board_data->set_phy_power = am35x_musb_phy_power;
->> +		board_data->clear_irq = am35x_musb_clear_irq;
->> +		board_data->set_mode = am35x_musb_set_mode;
->> +		board_data->reset = am35x_musb_reset;
->> +		musb_resources[0].end = musb_resources[0].start
->+ SZ_4K - 1;
->> +
->> +		if (platform_device_register(&musb_device) < 0)
->> +			printk(KERN_ERR "Unable to register HS-USB \
->> +					(MUSB) device\n");
->> +	} else {
->> +		oh = omap_hwmod_lookup(oh_name);
->> +		if (!oh) {
->> +			pr_err("Could not look up %s\n", oh_name);
->> +			return;
->> +		}
->> +
->> +		pdata = &musb_plat;
->> +		od = omap_device_build(name, bus_id, oh, pdata,
->> +				       sizeof(*pdata),
->omap_musb_latency,
->> +				
->ARRAY_SIZE(omap_musb_latency), false);
->> +		if (IS_ERR(od)) {
->> +			pr_err("Could not build omap_device for
->%s %s\n",
->> +							name, oh_name);
->> +			return;
->> +		}
->> +
->> +		pdev = &od->pdev;
->> +		dev = &pdev->dev;
->> +		get_device(dev);
->> +		dev->dma_mask = &musb_dmamask;
->> +		dev->coherent_dma_mask = musb_dmamask;
->> +		put_device(dev);
->> +	}
->>  }
->>
->>  #else
->> --
->> To unsubscribe from this list: send the line "unsubscribe
->linux-omap" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> V1:
+> * Creates 3 separate API's to change the idle mode to NOIDLE, SMARTID=
+LE
+> =A0and FORCEIDLE and one more API to change the idlemode to default v=
+alue
+> =A0based on the hwmod flag. This change is done to align with the dis=
+cussion
+> =A0on [3]
+>
+> * Added hwmod mutex in omap hwmod APIs that modifies SYSCONFIG regist=
+er.
+>
+> * omap_hwmod_set_slave_idlemode() is not modified to take true/false =
+kind-of
+> argument since 3 states are associated with SIDLE bits (force, no and=
+ smart).
+>
+> These changes were made to align with Benoit's and Paul's comments fo=
+r a
+> similar patch written by Manjunath [1] for changing MSTANDBY bits.
+>
+> The discussions that happened for the RFC patch can be found at [2]
+>
+> [1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39647.=
+html
+> [2]: https://patchwork.kernel.org/patch/134371/
+> [3]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39615.=
+html
+>
+> Kishon Vijay Abraham I (2):
+> =A0OMAP: hwmod: API to handle autoidle mode
+> =A0OMAP: omap_device: API to modify AUTOIDLE and SMARTIDLE bits
+>
+> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =
+36 +++++
+> =A0arch/arm/plat-omap/include/plat/omap_device.h | =A0 =A06 +
+> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h =A0| =A0 =A01 +
+> =A0arch/arm/plat-omap/omap_device.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A01=
+76 +++++++++++++++++++++++++
+> =A04 files changed, 219 insertions(+), 0 deletions(-)
+>
 >
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
