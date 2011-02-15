@@ -1,62 +1,135 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] omap: dmtimer: Enable autoidle
-Date: Tue, 15 Feb 2011 08:14:17 -0800
-Message-ID: <87ipwluvfq.fsf@ti.com>
-References: <1297704375-25873-1-git-send-email-tero.kristo@nokia.com>
-	<87oc6exkjr.fsf@ti.com>
-	<854C6400F5AA6644BA6FE7953F3E769B037E9BDD@008-AM1MPN1-014.mgdnok.nokia.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB03745CA4C6@dbde02.ent.ti.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB03745CA4D8@dbde02.ent.ti.com>
-	<854C6400F5AA6644BA6FE7953F3E769B037E9D2C@008-AM1MPN1-014.mgdnok.nokia.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB03745CA4F7@dbde02.ent.ti.com>
-	<854C6400F5AA6644BA6FE7953F3E769B037E9EA3@008-AM1MPN1-014.mgdnok.nokia.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB03745CA5D1@dbde02.ent.ti.com>
+Subject: Re: [PATCH v4 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
+Date: Tue, 15 Feb 2011 08:15:20 -0800
+Message-ID: <87ei79uvdz.fsf@ti.com>
+References: <1297263683-10621-1-git-send-email-dave.martin@linaro.org>
+	<87pqqy6tdj.fsf@ti.com> <20110214131750.GA2869@arm.com>
+	<alpine.LFD.2.00.1102140950580.14920@xanadu.home>
+	<20110214153726.GA20144@arm.com> <87zkpyxl64.fsf@ti.com>
+	<AANLkTinz1055v7x0y2W_AYkbj+9h7z_cGtF4xn4=pkQ7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:57086 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750994Ab1BOQOV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 11:14:21 -0500
-Received: by mail-qw0-f47.google.com with SMTP id 2so252672qwi.20
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 08:14:20 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03745CA5D1@dbde02.ent.ti.com>
-	(Tarun Kanti DebBarma's message of "Tue, 15 Feb 2011 18:11:16 +0530")
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:35712 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751392Ab1BOQPZ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 11:15:25 -0500
+Received: by mail-qw0-f52.google.com with SMTP id 4so249454qwi.11
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 08:15:24 -0800 (PST)
+In-Reply-To: <AANLkTinz1055v7x0y2W_AYkbj+9h7z_cGtF4xn4=pkQ7@mail.gmail.com>
+	(Dave Martin's message of "Tue, 15 Feb 2011 10:45:16 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "Tero.Kristo@nokia.com" <Tero.Kristo@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Dave Martin <dave.martin@linaro.org>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org
 
-"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+Dave Martin <dave.martin@linaro.org> writes:
 
-> [...]
->> >> >> >
->> >> >> > Should this be changed to apply only on that one? I don't know
->> >about
->> >> >> > OMAP4, but I think this should work on OMAP2 at least based on
->> >spec.
->> >> >> It works on OMAP2 and OMAP4.
->> >> >Ok, on OMAP4 I should have clarified further.
->> >> >AUTOIDLE is present only for millisecond timers: 1,2,10.
->> >> >The reset of the timers do not have this bit.
->> >>
->> >> Does it matter if the bit is set on the timers that don't have it or
->> >does
->> >> the HW just ignore it? Or should we enumerate the timers that support
->> >it
->> >> on omap4?
->> >For other timers it happens to be SOFTRESET bit. So HW would not ignore.
->> 
->> Ok, so this one should only be implemented for omap2/3 or added logic is
->> needed for omap4.
-> YES.
+> On Mon, Feb 14, 2011 at 11:15 PM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>> Hi Dave,
+>>
+>> Dave Martin <dave.martin@linaro.org> writes:
+>>
+>>> On Mon, Feb 14, 2011 at 10:00:23AM -0500, Nicolas Pitre wrote:
+>>>> On Mon, 14 Feb 2011, Dave Martin wrote:
+>>>>
+>>>> > @@ -289,8 +297,20 @@ clean_l2:
+>>>> > =C2=A0 =C2=A0 * =C2=A0- should be faster and will change with ke=
+rnel
+>>>> > =C2=A0 =C2=A0 * =C2=A0- 'might' have to copy address, load and j=
+ump to it
+>>>> > =C2=A0 =C2=A0 */
+>>>> > +#ifdef CONFIG_THUMB2_KERNEL
+>>>> > + =C2=A0/* kernel is non-interworking : must do this from Thumb =
+*/
+>>>> > + =C2=A0adr =C2=A0 =C2=A0 r1, . + 1
+>>>> > + =C2=A0bx =C2=A0 =C2=A0 =C2=A0r1
+>>>> > + =C2=A0.thumb
+>>>> > +#endif
+>>>> > =C2=A0 =C2=A0ldr =C2=A0 =C2=A0 r1, kernel_flush
+>>>>
+>>>> Didn't you mean this instead:
+>>>>
+>>>> =C2=A0 =C2=A0 =C2=A0/* kernel is non-interworking : must do this f=
+rom Thumb */
+>>>> =C2=A0 =C2=A0 =C2=A0adr =C2=A0 =C2=A0 r1, 1f + 1
+>>>> =C2=A0 =C2=A0 =C2=A0bx =C2=A0 =C2=A0 =C2=A0r1
+>>>> =C2=A0 =C2=A0 =C2=A0.thumb
+>>>> 1: =C2=A0 ldr =C2=A0 =C2=A0 r1, kernel_flush
+>>>> =C2=A0 =C2=A0 =C2=A0...
+>>>
+>>> Note that this is intended as an experimental hack, not a real patc=
+h
+>>> (apologies if I didn't make that clear...)
+>>>
+>>> Well, actually I meant "add r1, pc, #1" ... which means I was too
+>>> busy trying to be clever... oops!
+>>>
+>>> That is of course exactly equivalent to your code...
+>>>
+>>>>
+>>>> ?
+>>>>
+>>>> > =C2=A0 =C2=A0blx =C2=A0 =C2=A0 r1
+>>>> > +#ifdef CONFIG_THUMB2_KERNEL
+>>>> > + =C2=A0.align
+>>>> > + =C2=A0bx =C2=A0 =C2=A0 =C2=A0pc
+>>>> > + =C2=A0nop
+>>>> > + =C2=A0.arm
+>>>>
+>>>> Also here, the .align has the potential to introduce a zero halfwo=
+rd in
+>>>> the instruction stream before the bx. =C2=A0What about:
+>>>>
+>>>> =C2=A0 =C2=A0 =C2=A0adr =C2=A0 =C2=A0 r3, 1f
+>>>> =C2=A0 =C2=A0 =C2=A0bx =C2=A0 =C2=A0 =C2=A0r3
+>>>> =C2=A0 =C2=A0 =C2=A0.align
+>>>> =C2=A0 =C2=A0 =C2=A0.arm
+>>>> 1: =C2=A0 ...
+>>>
+>>> .align inserts a 16-bit nop when misaligned in Thumb in a text sect=
+ion,
+>>> and a word-aligned bx pc is a specific architecturally allowed way
+>>> to do an inline switch to ARM. =C2=A0The linker uses this trick for=
+ PLT
+>>> veneers etc.
+>>>
+>>> A nicer fix for doing this sort of call from low-level code which
+>>> might be ARM is to convert arch/arm/mm/*-v7.S to use "bx lr" to ret=
+urn.
+>>>
+>>> Generally, we can do this for all arches >=3D v5, without any
+>>> incompatibility. =C2=A0However, since the need for it will be rare =
+and it
+>>> will generate patch noise for not much real benefit,
+>>> I haven't proposed this.
+>>>
+>>> Updated patch below.
+>>
+>> I tested the updated patch on top of your "dirty" branch I tested wi=
+th
+>> last week, and now see off-mode working just fine.
 >
+> Thanks for testing-- that's great news.
+>
+> I will have a think about whether the patch can be tidied up to rever=
+t
+> most of the code back to Thumb, though that isn't essential.  If I've
+> understood what's going on correctly, I think only the restore entry
+> points, SMC call sites and the entry to omap3_sram_configure_core_dpl=
+l
+> could need to be ARM; the rest shouldn't really make any difference..=
+=2E
 
-Tarun is autoidle feature handled in your hwmod conversion series?
-
-If not, this should be implemented as a patch on top of your series
-since we will know which timers have this capability.
+Yes, that sounds right.
 
 Kevin
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
