@@ -1,147 +1,71 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v2 1/1] OMAP: IOMMU: add support to callback during
- fault handling
-Date: Tue, 15 Feb 2011 16:48:22 +0200 (EET)
-Message-ID: <20110215.164822.811675675026794737.Hiroshi.DOYU@nokia.com>
-References: <1297780591-15613-1-git-send-email-dacohen@gmail.com>
-	<1297780591-15613-2-git-send-email-dacohen@gmail.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH 1/2] OMAP2+: IOMMU: change OMAP2+ error message to dev_dbg()
+Date: Tue, 15 Feb 2011 16:50:29 +0200
+Message-ID: <AANLkTin=4z0o6=J9f-1mszvGrpaRMgCMk=Ckh5+9j6EQ@mail.gmail.com>
+References: <1297776033-8579-1-git-send-email-dacohen@gmail.com>
+	<1297776033-8579-2-git-send-email-dacohen@gmail.com>
+	<4D5A81D8.2080800@ru.mvista.com>
+	<20110215142923.GC11199@n2100.arm.linux.org.uk>
+	<AANLkTin++DGAGT9-nahy1Qm7ASbGm=JjNuPZWZ6XUbcX@mail.gmail.com>
+	<20110215144457.GD11199@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:19563 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751362Ab1BOOsU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 09:48:20 -0500
-In-Reply-To: <1297780591-15613-2-git-send-email-dacohen@gmail.com>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:42130 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751736Ab1BOOua convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 09:50:30 -0500
+Received: by wwi17 with SMTP id 17so3156256wwi.1
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 06:50:29 -0800 (PST)
+In-Reply-To: <20110215144457.GD11199@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dacohen@gmail.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, tony@atomide.com, linux-omap@vger.kernel.org, Hiroshi.DOYU@nokia.com, linux-arm-kernel@lists.infradead.org
 
-Hi David,
+On Tue, Feb 15, 2011 at 4:44 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Tue, Feb 15, 2011 at 04:36:26PM +0200, David Cohen wrote:
+>> But pr_cont() would be wrong in case of DEBUG isn't set, isn't it?
+>
+> Yes. =C2=A0One other solution you could do is:
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0char buf[80], *p =3D buf;
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0buf[0] =3D '\0';
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 0; i < ARRAY_SIZE(err_msg); i++=
+)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (stat & (1 =
+<< i))
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0p +=3D scnprintf(p, sizeof(buf) - (p - buf),
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0"=
+ %s", err_msg[i]);
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0dev_dbg(obj->dev, "%s: da:%08x%s\n", __fun=
+c__, da, buf);
+>
+> which means that you're then printing the entire string in one go -
+> and there's no chance for another message to come in the middle of it=
+=2E
+>
+> Note that I've placed the ' ' at the beginning of the format string s=
+o
+> that we don't end up with useless trailing space in messages. =C2=A0M=
+inor
+> point but it's easy to do here.
 
-Sorry for a bit late reply....
+That could be my choice.
+I'm not planing to resend this patch, but how good/bad it sounds to
+you to have dev_dbg_cont() for such situation?
 
-From: David Cohen <dacohen@gmail.com>
-Subject: [PATCH v2 1/1] OMAP: IOMMU: add support to callback during fault handling
-Date: Tue, 15 Feb 2011 16:36:31 +0200
+Br,
 
-> Add support to register a callback for IOMMU fault situations. Drivers using
-> IOMMU module might want to be informed when such errors happen in order to
-> debug it or react.
-> 
-> Signed-off-by: David Cohen <dacohen@gmail.com>
-> ---
->  arch/arm/mach-omap2/iommu2.c            |   21 +++++++++++++--
->  arch/arm/plat-omap/include/plat/iommu.h |   15 ++++++++++-
->  arch/arm/plat-omap/iommu.c              |   41 ++++++++++++++++++++++++++++---
->  3 files changed, 69 insertions(+), 8 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
-> index 14ee686..504310d 100644
-> --- a/arch/arm/mach-omap2/iommu2.c
-> +++ b/arch/arm/mach-omap2/iommu2.c
-> @@ -143,10 +143,10 @@ static void omap2_iommu_set_twl(struct iommu *obj, bool on)
->  	__iommu_set_twl(obj, false);
->  }
->  
-> -static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
-> +static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra, u32 *iommu_errs)
->  {
->  	int i;
-> -	u32 stat, da;
-> +	u32 stat, da, errs;
->  	const char *err_msg[] =	{
->  		"tlb miss",
->  		"translation fault",
-> @@ -157,8 +157,10 @@ static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
->  
->  	stat = iommu_read_reg(obj, MMU_IRQSTATUS);
->  	stat &= MMU_IRQ_MASK;
-> -	if (!stat)
-> +	if (!stat) {
-> +		*iommu_errs = 0;
->  		return 0;
-> +	}
->  
->  	da = iommu_read_reg(obj, MMU_FAULT_AD);
->  	*ra = da;
-> @@ -171,6 +173,19 @@ static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
->  	}
->  	printk("\n");
->  
-> +	errs = 0;
-> +	if (stat & MMU_IRQ_TLBMISS)
-> +		errs |= OMAP_IOMMU_ERR_TLB_MISS;
-> +	if (stat & MMU_IRQ_TRANSLATIONFAULT)
-> +		errs |= OMAP_IOMMU_ERR_TRANS_FAULT;
-> +	if (stat & MMU_IRQ_EMUMISS)
-> +		errs |= OMAP_IOMMU_ERR_EMU_MISS;
-> +	if (stat & MMU_IRQ_TABLEWALKFAULT)
-> +		errs |= OMAP_IOMMU_ERR_TBLWALK_FAULT;
-> +	if (stat & MMU_IRQ_MULTIHITFAULT)
-> +		errs |= OMAP_IOMMU_ERR_MULTIHIT_FAULT;
-> +	*iommu_errs = errs;
-> +
->  	iommu_write_reg(obj, stat, MMU_IRQSTATUS);
->  
->  	return stat;
-> diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
-> index 19cbb5e..5a2475f 100644
-> --- a/arch/arm/plat-omap/include/plat/iommu.h
-> +++ b/arch/arm/plat-omap/include/plat/iommu.h
-> @@ -31,6 +31,7 @@ struct iommu {
->  	struct clk	*clk;
->  	void __iomem	*regbase;
->  	struct device	*dev;
-> +	void		*fault_cb_priv;
->  
->  	unsigned int	refcount;
->  	struct mutex	iommu_lock;	/* global for this whole object */
-> @@ -48,6 +49,7 @@ struct iommu {
->  	struct mutex		mmap_lock; /* protect mmap */
->  
->  	int (*isr)(struct iommu *obj);
-> +	void (*fault_cb)(struct iommu *obj, u32 da, u32 iommu_errs, void *priv);
-
-What about making use of (*isr)() for fault call back as well?
-
-Basic concept is that, client can decide how to deal with iommu
-fault. For example, for advanced case, client wants daynamic loading of
-TLB(or PTE), or for ISP case, clients just want more appropriate fault
-reporting. This (*isr)() could be used in such flexibility.
-
-   785   *      Device IOMMU generic operations
-   786   */
-   787  static irqreturn_t iommu_fault_handler(int irq, void *data)
-   788  {
-   789          u32 stat, da;
-   790          u32 *iopgd, *iopte;
-   791          int err = -EIO;
-   792          struct iommu *obj = data;
-   793  
-   794          if (!obj->refcount)
-   795                  return IRQ_NONE;
-   796  
-   797          /* Dynamic loading TLB or PTE */
-   798          if (obj->isr)
-   799                  err = obj->isr(obj);
-   800  
-   801          if (!err)
-   802                  return IRQ_HANDLED;
-   803  
-   804          clk_enable(obj->clk);
-   805          stat = iommu_report_fault(obj, &da);
-   806          clk_disable(obj->clk);
-   807          if (!stat)
-   808                  return IRQ_HANDLED;
-   809  
-   810          iommu_disable(obj);
-
-I guess that this modifying the above code could make (*isr)()
-flexible to be used for any purpose for clients? For me, having both
-following may be a bit residual.
-
->  	int (*isr)(struct iommu *obj);
-> +	void (*fault_cb)(struct iommu *obj, u32 da, u32 iommu_errs, void *priv);
+David
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
