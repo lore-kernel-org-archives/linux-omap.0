@@ -1,94 +1,100 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH V4] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
-Date: Tue, 15 Feb 2011 22:00:20 +0530
-Message-ID: <bf1e2a72d8f16365df684cd5add00eee@mail.gmail.com>
-References: <1297756738-2696-1-git-send-email-shweta.gulati@ti.com> <20110215171652.601c9c68.jhnikula@gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP: Fix Memory Leaks in Smartreflex driver
+Date: Tue, 15 Feb 2011 08:39:47 -0800
+Message-ID: <8739npuu98.fsf@ti.com>
+References: <1297757430-3059-1-git-send-email-shweta.gulati@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:47097 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751408Ab1BOQaW (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47444 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754174Ab1BOQju (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 11:30:22 -0500
-Received: by mail-yi0-f46.google.com with SMTP id 18so164751yib.33
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 08:30:21 -0800 (PST)
-In-Reply-To: <20110215171652.601c9c68.jhnikula@gmail.com>
+	Tue, 15 Feb 2011 11:39:50 -0500
+Received: by mail-pz0-f51.google.com with SMTP id 34so56741pzk.38
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 08:39:49 -0800 (PST)
+In-Reply-To: <1297757430-3059-1-git-send-email-shweta.gulati@ti.com> (Shweta
+	Gulati's message of "Tue, 15 Feb 2011 13:40:30 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>, Shweta Gulati <shweta.gulati@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Thara Gopinath <thara@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Shweta Gulati <shweta.gulati@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-arm-
-> kernel-bounces@lists.infradead.org] On Behalf Of Jarkko Nikula
-> Sent: Tuesday, February 15, 2011 8:47 PM
-> To: Shweta Gulati
-> Cc: Nishanth Menon; Thara Gopinath; linux-omap@vger.kernel.org;
-> linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH V4] OMAP3: PM: Set/clear T2 bit for Smartreflex on
-> TWL
->
-> On Tue, 15 Feb 2011 13:28:58 +0530
-> Shweta Gulati <shweta.gulati@ti.com> wrote:
->
-> > This patch is based on LO PM Branch and Smartreflex has been
-> > tested on OMAP3430 SDP, OMAP3630 SDP and boot tested on
-> > OMAP2430 SDP.
-> >
-> I saw this was working on N900 (kind of special instrumentation
-> setup) after enabling /sys/kernel/debug/voltage/[vdd_core |
-> vdd_mpu]/smartreflex/autocomp. Few comments below.
->
-> > @@ -269,6 +276,18 @@ int __init omap3_twl_init(void)
-> >  		omap3_core_volt_info.vp_vddmax =
-> OMAP3630_VP2_VLIMITTO_VDDMAX;
-> >  	}
-> ...
-> > +	if (!twl_sr_enable_autoinit)
-> > +		omap3_twl_set_sr_bit(true);
-> ...
-> > +int __init omap3_twl_set_sr_bit(bool enable)
-> > +{
-> > +	u8 temp;
-> > +	int ret;
-> > +	if (twl_sr_enable_autoinit)
-> > +		pr_warning("%s: unexpected multiple calls\n", __func__);
-> > +
-> > +	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
-> > +					TWL4030_DCDC_GLOBAL_CFG);
-> > +	if (ret)
-> > +		goto err;
-> > +
-> > +	if (enable)
-> > +		temp |= SMARTREFLEX_ENABLE;
-> > +	else
-> > +		temp &= ~SMARTREFLEX_ENABLE;
-> > +
-> > +	ret = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
-> > +				TWL4030_DCDC_GLOBAL_CFG);
->
-> Would it make more sense to set only the flag here and do the register
-> writes when omap3_twl_init is executing? Then it's not so strict when
-> the board code calls this function.
-What if board code calls this function after twl_init is executed? Then
-you will not clear the bit right?
-Intention of this function is to make sure the bit is set/cleared when it
-is called.
+Shweta Gulati <shweta.gulati@ti.com> writes:
 
-vishwa
+> This Patch frees all the dynamically allocated memory
+> which couldn't have been released in some error hitting cases.
 >
-> > +	if (!ret) {
-> > +		twl_sr_enable_autoinit = true;
-> > +		return 0;
+> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+> Cc: linux-arm-kernel@lists.infradead.org
+
+Thanks, queuing as a fix for 2.6.38-rc (branch: for_2.6.38/pm-fixes)
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/smartreflex.c |   18 ++++++++++++------
+>  1 files changed, 12 insertions(+), 6 deletions(-)
 >
-> Should this be twl_sr_enable_autoinit = enable (if going to do
-> register write here)?
->
-> --
-> Jarkko
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+> index a1f532e..5af8829 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -284,6 +284,7 @@ error:
+>  		dev_err(&sr_info->pdev->dev, "%s: ERROR in registering"
+>  			"interrupt handler. Smartreflex will"
+>  			"not function as desired\n", __func__);
+> +		kfree(name);
+>  		kfree(sr_info);
+>  		return ret;
+>  }
+> @@ -881,7 +882,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>  		ret = sr_late_init(sr_info);
+>  		if (ret) {
+>  			pr_warning("%s: Error in SR late init\n", __func__);
+> -			return ret;
+> +			goto err_release_region;
+>  		}
+>  	}
+>  
+> @@ -892,14 +893,17 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>  	 * not try to create rest of the debugfs entries.
+>  	 */
+>  	vdd_dbg_dir = omap_voltage_get_dbgdir(sr_info->voltdm);
+> -	if (!vdd_dbg_dir)
+> -		return -EINVAL;
+> +	if (!vdd_dbg_dir) {
+> +		ret = -EINVAL;
+> +		goto err_release_region;
+> +	}
+>  
+>  	dbg_dir = debugfs_create_dir("smartreflex", vdd_dbg_dir);
+>  	if (IS_ERR(dbg_dir)) {
+>  		dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
+>  			__func__);
+> -		return PTR_ERR(dbg_dir);
+> +		ret = PTR_ERR(dbg_dir);
+> +		goto err_release_region;
+>  	}
+>  
+>  	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUSR, dbg_dir,
+> @@ -915,7 +919,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>  	if (IS_ERR(nvalue_dir)) {
+>  		dev_err(&pdev->dev, "%s: Unable to create debugfs directory"
+>  			"for n-values\n", __func__);
+> -		return PTR_ERR(nvalue_dir);
+> +		ret = PTR_ERR(nvalue_dir);
+> +		goto err_release_region;
+>  	}
+>  
+>  	omap_voltage_get_volttable(sr_info->voltdm, &volt_data);
+> @@ -924,7 +929,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>  			" corresponding vdd vdd_%s. Cannot create debugfs"
+>  			"entries for n-values\n",
+>  			__func__, sr_info->voltdm->name);
+> -		return -ENODATA;
+> +		ret = -ENODATA;
+> +		goto err_release_region;
+>  	}
+>  
+>  	for (i = 0; i < sr_info->nvalue_count; i++) {
