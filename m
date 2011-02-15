@@ -1,119 +1,29 @@
-From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH v7 3/4] TI816X: Create board support and enable build for TI816X EVM
-Date: Tue, 15 Feb 2011 23:06:08 +0530
-Message-ID: <1297791368-32042-1-git-send-email-hemantp@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v7 0/4] Introduce support for TI816X processor series
+Date: Tue, 15 Feb 2011 09:48:00 -0800
+Message-ID: <87tyg5rxyn.fsf@ti.com>
+References: <1297791319-31891-1-git-send-email-hemantp@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50138 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755862Ab1BORgQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 12:36:16 -0500
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:40741 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755188Ab1BORsF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 12:48:05 -0500
+Received: by mail-qw0-f52.google.com with SMTP id 4so390295qwi.25
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 09:48:03 -0800 (PST)
+In-Reply-To: <1297791319-31891-1-git-send-email-hemantp@ti.com> (Hemant
+	Pedanekar's message of "Tue, 15 Feb 2011 23:05:19 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Hemant Pedanekar <hemantp@ti.com>
+To: Hemant Pedanekar <hemantp@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-This patch adds minimal support and build configuration for TI816X EVM.
+Hemant Pedanekar <hemantp@ti.com> writes:
 
-Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
-Reviewed-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/Kconfig           |    5 +++
- arch/arm/mach-omap2/Makefile          |    1 +
- arch/arm/mach-omap2/board-ti8168evm.c |   57 +++++++++++++++++++++++++++++++++
- 3 files changed, 63 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-ti8168evm.c
+> This patch set adds support for TI816X processor series. This series includes
+> DM8168, C6A816x and AM389x devices.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 6a4cfc2..9b4e78f 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -299,6 +299,11 @@ config MACH_OMAP_3630SDP
- 	default y
- 	select OMAP_PACKAGE_CBP
- 
-+config MACH_TI8168EVM
-+	bool "TI8168 Evaluation Module"
-+	depends on SOC_OMAPTI816X
-+	default y
-+
- config MACH_OMAP_4430SDP
- 	bool "OMAP 4430 SDP board"
- 	default y
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 742ca67..ec24999 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -224,6 +224,7 @@ obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
- 
- obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o \
- 					   hsmmc.o
-+obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
- # Platform specific device init code
- usbfs-$(CONFIG_ARCH_OMAP_OTG)		:= usb-fs.o
- obj-y					+= $(usbfs-m) $(usbfs-y)
-diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
-new file mode 100644
-index 0000000..6282cc4
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-ti8168evm.c
-@@ -0,0 +1,57 @@
-+/*
-+ * Code for TI8168 EVM.
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+
-+#include <mach/hardware.h>
-+#include <asm/mach-types.h>
-+#include <asm/mach/arch.h>
-+#include <asm/mach/map.h>
-+
-+#include <plat/irqs.h>
-+#include <plat/board.h>
-+#include <plat/common.h>
-+
-+static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
-+};
-+
-+static void __init ti8168_evm_init_irq(void)
-+{
-+	omap_board_config = ti8168_evm_config;
-+	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
-+	omap2_init_common_infrastructure();
-+	omap2_init_common_devices(NULL, NULL);
-+	omap_init_irq();
-+}
-+
-+static void __init ti8168_evm_init(void)
-+{
-+	omap_serial_init();
-+}
-+
-+static void __init ti8168_evm_map_io(void)
-+{
-+	omap2_set_globals_ti816x();
-+	omapti816x_map_common_io();
-+}
-+
-+MACHINE_START(TI8168EVM, "ti8168evm")
-+	/* Maintainer: Texas Instruments */
-+	.boot_params	= 0x80000100,
-+	.map_io		= ti8168_evm_map_io,
-+	.init_irq	= ti8168_evm_init_irq,
-+	.timer		= &omap_timer,
-+	.init_machine	= ti8168_evm_init,
-+MACHINE_END
--- 
-1.7.3.5
+Acked-by: Kevin Hilman <khilman@ti.com>
 
