@@ -1,87 +1,159 @@
-From: "J, KEERTHY" <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] i2c-omap: Double clear of ARDY status in IRQ handler
-Date: Tue, 15 Feb 2011 10:13:58 +0530
-Message-ID: <AANLkTikdDsq0mku6Jakq-cxA3jYYHQ7CL0sjwJ6wzXNh@mail.gmail.com>
-References: <1297406718-24147-1-git-send-email-j-keerthy@ti.com>
-	<877hd2xivn.fsf@ti.com>
+From: "Sawant, Anand" <sawant@ti.com>
+Subject: Re: [PATCH] omap2plus: smartreflex: remove sr debug directory in omap_sr_remove()
+Date: Tue, 15 Feb 2011 10:56:17 +0530
+Message-ID: <AANLkTik3h6ovXAkcU0xMPGEi93L0TqN45s0hpHGwj6CG@mail.gmail.com>
+References: <1296912744-4768-1-git-send-email-sawant@ti.com>
+	<87wrl65dwp.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <877hd2xivn.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:47188 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751076Ab1BOF0S convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 00:26:18 -0500
+Received: by mail-yx0-f170.google.com with SMTP id 33so2563002yxt.29
+        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 21:26:17 -0800 (PST)
+In-Reply-To: <87wrl65dwp.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Tue, Feb 15, 2011 at 5:35 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
-> Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> writes:
->
->> From: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
->>
->> ProDB00017052 - ARDY interrupt reasserted after being cleared.
->
->> This errata caused intermittent i2c instabilty(1 error per 3 hours) =
-on several
->> customer platforms. After applying the workaround the intermittent e=
-rrors were
->> not seen. This is not captured in the usual errata documents.
->
-> This (presumably internal) ProDB number above is meaningless in the
-> public changelog. =A0In lieu of a public erratum number, just summari=
-ze
-> the erratum/instability seen, references to other relevant public
-> errata (if any) would be useful too. =A0 IOW, "instability" isn't qui=
-te
-> accurate enough. =A0A more detailed description of the problem/instab=
-ility
-> is needed.
->
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org
 
 Kevin,
 
-Yes the ProDB number is internal. I will remove it from the change log.
-I will add a more detailed description of the problem.
-
---=20
-Regards and Thanks,
-Keerthy
-
-
-> Thanks,
+On Sat, Feb 12, 2011 at 5:20 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Hi Anand,
 >
+> Anand S Sawant <sawant@ti.com> writes:
+>
+>> omap_sr_probe() creates the smartreflex debug directory and its
+>> underlying nvalue debug directory. These directories are removed in
+>> omap_sr_remove().
+>>
+>> Basic smartreflex functionality tested on OMAP3630 Zoom3 & OMAP4430 =
+SDP
+>>
+>> Signed-off-by: Anand S Sawant <sawant@ti.com>
+>
+> Looks good.
+>
+> Please repost with the linux-arm-kernel list in CC:
+> linux-arm-kernel@lists.infradead.org. =A0Thend, unless there are othe=
+r
+> comments/objections, I'll queue this for 2.6.39.
+>
+
+Thanks, will repost.
+
+> Also, can summarize on which platforms this was tested.
+
+I tested SR functionality at the default OPP on 3630 Zoom3 &
+OMAP4430 SDP.
+
+> Just curious:
+> Were you able to build SR as a module to test this?
+>
+
+No.
+
+Best Regards,
+
+Anand S Sawant
 > Kevin
 >
->>
->> The workaround is to have a double clear of ARDY status in
->> irq handler.
->>
->> Signed-off-by: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 >> ---
->> =A0drivers/i2c/busses/i2c-omap.c | =A0 =A03 ++-
->> =A01 files changed, 2 insertions(+), 1 deletions(-)
+>> =A0arch/arm/mach-omap2/smartreflex.c | =A0 24 ++++++++++++++--------=
+--
+>> =A01 files changed, 14 insertions(+), 10 deletions(-)
 >>
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-=
-omap.c
->> index 445de08..9bcefae 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -851,7 +851,8 @@ complete:
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 OMAP_I2C_STAT_AL)) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_ack_stat(dev, s=
-tat &
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (OMAP_I2=
-C_STAT_RRDY | OMAP_I2C_STAT_RDR |
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_S=
-TAT_XRDY | OMAP_I2C_STAT_XDR));
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_S=
-TAT_XRDY | OMAP_I2C_STAT_XDR |
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_S=
-TAT_ARDY));
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_complete_cmd(de=
-v, err);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_HANDLED;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2=
+/smartreflex.c
+>> index d7deadf..57df5cf 100644
+>> --- a/arch/arm/mach-omap2/smartreflex.c
+>> +++ b/arch/arm/mach-omap2/smartreflex.c
+>> @@ -54,6 +54,7 @@ struct omap_sr {
+>> =A0 =A0 =A0 struct list_head =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0node;
+>> =A0 =A0 =A0 struct omap_sr_nvalue_table =A0 =A0 *nvalue_table;
+>> =A0 =A0 =A0 struct voltagedomain =A0 =A0 =A0 =A0 =A0 =A0*voltdm;
+>> + =A0 =A0 struct dentry =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *dbg_dir=
+;
+>> =A0};
+>>
+>> =A0/* sr_list contains all the instances of smartreflex module */
+>> @@ -822,7 +823,7 @@ static int __init omap_sr_probe(struct platform_=
+device *pdev)
+>> =A0 =A0 =A0 struct omap_sr *sr_info =3D kzalloc(sizeof(struct omap_s=
+r), GFP_KERNEL);
+>> =A0 =A0 =A0 struct omap_sr_data *pdata =3D pdev->dev.platform_data;
+>> =A0 =A0 =A0 struct resource *mem, *irq;
+>> - =A0 =A0 struct dentry *vdd_dbg_dir, *dbg_dir, *nvalue_dir;
+>> + =A0 =A0 struct dentry *vdd_dbg_dir, *nvalue_dir;
+>> =A0 =A0 =A0 struct omap_volt_data *volt_data;
+>> =A0 =A0 =A0 int i, ret =3D 0;
+>>
+>> @@ -894,23 +895,24 @@ static int __init omap_sr_probe(struct platfor=
+m_device *pdev)
+>> =A0 =A0 =A0 if (!vdd_dbg_dir)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>>
+>> - =A0 =A0 dbg_dir =3D debugfs_create_dir("smartreflex", vdd_dbg_dir)=
+;
+>> - =A0 =A0 if (IS_ERR(dbg_dir)) {
+>> + =A0 =A0 sr_info->dbg_dir =3D debugfs_create_dir("smartreflex", vdd=
+_dbg_dir);
+>> + =A0 =A0 if (IS_ERR(sr_info->dbg_dir)) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "%s: Unable to creat=
+e debugfs directory\n",
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(dbg_dir);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(sr_info->dbg_dir);
+>> =A0 =A0 =A0 }
+>>
+>> - =A0 =A0 (void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, =
+dbg_dir,
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (void *)sr=
+_info, &pm_sr_fops);
+>> - =A0 =A0 (void) debugfs_create_x32("errweight", S_IRUGO, dbg_dir,
+>> + =A0 =A0 /* Using S_IWUSR to fix checkpatch warning */
+>> + =A0 =A0 (void) debugfs_create_file("autocomp", S_IRUGO | S_IWUSR,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sr_info->dbg_dir, (void *)=
+sr_info, &pm_sr_fops);
+>> + =A0 =A0 (void) debugfs_create_x32("errweight", S_IRUGO, sr_info->d=
+bg_dir,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &sr_info->err_weight);
+>> - =A0 =A0 (void) debugfs_create_x32("errmaxlimit", S_IRUGO, dbg_dir,
+>> + =A0 =A0 (void) debugfs_create_x32("errmaxlimit", S_IRUGO, sr_info-=
+>dbg_dir,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &sr_info->err_maxlimit);
+>> - =A0 =A0 (void) debugfs_create_x32("errminlimit", S_IRUGO, dbg_dir,
+>> + =A0 =A0 (void) debugfs_create_x32("errminlimit", S_IRUGO, sr_info-=
+>dbg_dir,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &sr_info->err_minlimit);
+>>
+>> - =A0 =A0 nvalue_dir =3D debugfs_create_dir("nvalue", dbg_dir);
+>> + =A0 =A0 nvalue_dir =3D debugfs_create_dir("nvalue", sr_info->dbg_d=
+ir);
+>> =A0 =A0 =A0 if (IS_ERR(nvalue_dir)) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "%s: Unable to creat=
+e debugfs directory"
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "for n-values\n", __func=
+__);
+>> @@ -974,6 +976,8 @@ static int __devexit omap_sr_remove(struct platf=
+orm_device *pdev)
+>>
+>> =A0 =A0 =A0 if (sr_info->autocomp_active)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 sr_stop_vddautocomp(sr_info);
+>> + =A0 =A0 if (sr_info->dbg_dir)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 debugfs_remove_recursive(sr_info->dbg_dir)=
+;
+>>
+>> =A0 =A0 =A0 list_del(&sr_info->node);
+>> =A0 =A0 =A0 iounmap(sr_info->base);
 >
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
