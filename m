@@ -1,157 +1,97 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 09/15] cbus: retu: search and replace
-Date: Tue, 15 Feb 2011 10:45:56 +0200
-Message-ID: <1297759562-25682-10-git-send-email-balbi@ti.com>
-References: <1297759562-25682-1-git-send-email-balbi@ti.com>
+From: archit taneja <archit@ti.com>
+Subject: Re: OMAP: DSS2: Common IRQ handler for all OMAPs
+Date: Tue, 15 Feb 2011 14:17:56 +0530
+Message-ID: <4D5A3DBC.9070506@ti.com>
+References: <1296636990-24775-1-git-send-email-archit@ti.com>	 <1297693307.2951.25.camel@deskari>	 <20110214143001.GK2549@legolas.emea.dhcp.ti.com>  <4D5A00E8.4060701@ti.com>	 <1297754826.2289.9.camel@deskari>  <4D5A39AE.3030006@ti.com> <1297759057.2289.40.camel@deskari>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:58615 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754140Ab1BOIrA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 03:47:00 -0500
-Received: by mail-gx0-f169.google.com with SMTP id 5so2484753gxk.28
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 00:46:59 -0800 (PST)
-In-Reply-To: <1297759562-25682-1-git-send-email-balbi@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48578 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754140Ab1BOIrE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 03:47:04 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1F8l0l0019139
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 02:47:03 -0600
+In-Reply-To: <1297759057.2289.40.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-replace all occurrences of retu_read_reg
-and retu_write_reg with the internal functions
-__retu_read_reg and __retu_write_reg on retu.c
+Hi,
 
-Achieved with the following vim command:
+On Tuesday 15 February 2011 02:07 PM, Valkeinen, Tomi wrote:
+> On Tue, 2011-02-15 at 02:30 -0600, Taneja, Archit wrote:
+>> Hi,
+>>
+>> On Tuesday 15 February 2011 12:57 PM, Valkeinen, Tomi wrote:
+>>
+>> <snip>
+>>
+>>> I meant something like this:
+>>>
+>>> dispc.c:
+>>>
+>>> dispc_init()
+>>> {
+>>> 	/* did we have a pdev for dispc? if not, this needs to be dss.pdev */
+>>> 	request_irq(platform_get_irq(dispc.pdev, 0), irq_handler, IRQF_SHARED, "dispc irq", foo);
+>>> }
+>>>
+>>> irq_handler()
+>>> {
+>>> 	if (irq_can_be_shared) {
+>>> 		check if the irq is for us. exit if not;
+>>> 	}
+>>>
+>>> 	handle;
+>>> }
+>>>
+>>> dsi.c:
+>>>
+>>> dsi_init()
+>>> {
+>>> 	request_irq(platform_get_irq(dsi.pdev, 0), irq_handler, IRQF_SHARED, "dsi irq", foo);
+>>> }
+>>>
+>>> irq_handler()
+>>> {
+>>> 	if (irq_can_be_shared) {
+>>> 		check if the irq is for us. exit if not;
+>>> 	}
+>>>
+>>> 	handle;
+>>> }
+>>>
+>>
+>> This approach looks clean, but isn't IRQF_SHARED used the other way
+>> around. One irq line and multiple handlers?
+>
+> That is the case here, isn't it (on omap3)? One interrupt line (the DSS
+> irq, the same returned both from dsi.pdev and dispc.pdev), and two
+> handlers, one in dispc and one in dsi? Or what do you mean?
 
-:%s/\<retu_\(read\|write\)_reg(/__retu_\1_reg(retu, /gc
+Okay, so for OMAP3 we should populate dsi.pdev and dispc.pdev in such a 
+way that they return the single irq line number for DSS. And for OMAP4,
+the separate line numbers will go for the modules anyway.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/cbus/retu.c |   41 +++++++++++++++++++++++------------------
- 1 files changed, 23 insertions(+), 18 deletions(-)
+How do differentiate with the common handler now? It will be dirty if we 
+have checks on the irq_line. Could we pass the pdev as the arg to 
+differentiate the source?
 
-diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index 7e4b7e5..c798b58 100644
---- a/drivers/cbus/retu.c
-+++ b/drivers/cbus/retu.c
-@@ -126,10 +126,10 @@ void retu_set_clear_reg_bits(unsigned reg, u16 set, u16 clear)
- 	u16			w;
- 
- 	mutex_lock(&retu->mutex);
--	w = retu_read_reg(reg);
-+	w = __retu_read_reg(retu, reg);
- 	w &= ~clear;
- 	w |= set;
--	retu_write_reg(reg, w);
-+	__retu_write_reg(retu, reg, w);
- 	mutex_unlock(&retu->mutex);
- }
- EXPORT_SYMBOL_GPL(retu_set_clear_reg_bits);
-@@ -150,18 +150,18 @@ int retu_read_adc(int channel)
- 	mutex_lock(&retu->mutex);
- 
- 	if ((channel == 8) && retu->is_vilma) {
--		int scr = retu_read_reg(RETU_REG_ADCSCR);
--		int ch = (retu_read_reg(RETU_REG_ADCR) >> 10) & 0xf;
-+		int scr = __retu_read_reg(retu, RETU_REG_ADCSCR);
-+		int ch = (__retu_read_reg(retu, RETU_REG_ADCR) >> 10) & 0xf;
- 		if (((scr & 0xff) != 0) && (ch != 8))
--			retu_write_reg (RETU_REG_ADCSCR, (scr & ~0xff));
-+			__retu_write_reg(retu, RETU_REG_ADCSCR, (scr & ~0xff));
- 	}
- 
- 	/* Select the channel and read result */
--	retu_write_reg(RETU_REG_ADCR, channel << 10);
--	res = retu_read_reg(RETU_REG_ADCR) & 0x3ff;
-+	__retu_write_reg(retu, RETU_REG_ADCR, channel << 10);
-+	res = __retu_read_reg(retu, RETU_REG_ADCR) & 0x3ff;
- 
- 	if (retu->is_vilma)
--		retu_write_reg(RETU_REG_ADCR, (1 << 13));
-+		__retu_write_reg(retu, RETU_REG_ADCR, (1 << 13));
- 
- 	/* Unlock retu */
- 	mutex_unlock(&retu->mutex);
-@@ -179,8 +179,8 @@ static irqreturn_t retu_irq_handler(int irq, void *_retu)
- 	u16			idr;
- 	u16			imr;
- 
--	idr = retu_read_reg(RETU_REG_IDR);
--	imr = retu_read_reg(RETU_REG_IMR);
-+	idr = __retu_read_reg(retu, RETU_REG_IDR);
-+	imr = __retu_read_reg(retu, RETU_REG_IMR);
- 	idr &= ~imr;
- 
- 	if (!idr) {
-@@ -240,12 +240,12 @@ static void retu_bus_sync_unlock(struct irq_data *data)
- 	struct retu		*retu = irq_data_get_irq_chip_data(data);
- 
- 	if (retu->mask_pending) {
--		retu_write_reg(RETU_REG_IMR, retu->mask);
-+		__retu_write_reg(retu, RETU_REG_IMR, retu->mask);
- 		retu->mask_pending = false;
- 	}
- 
- 	if (retu->ack_pending) {
--		retu_write_reg(RETU_REG_IDR, retu->ack);
-+		__retu_write_reg(retu, RETU_REG_IDR, retu->ack);
- 		retu->ack_pending = false;
- 	}
- 
-@@ -309,10 +309,15 @@ static void retu_irq_exit(struct retu *retu)
-  */
- static void retu_power_off(void)
- {
-+	struct retu		*retu = the_retu;
-+	unsigned		reg;
-+
-+	reg = __retu_read_reg(retu, RETU_REG_CC1);
-+
- 	/* Ignore power button state */
--	retu_write_reg(RETU_REG_CC1, retu_read_reg(RETU_REG_CC1) | 2);
-+	__retu_write_reg(retu, RETU_REG_CC1, reg | 2);
- 	/* Expire watchdog immediately */
--	retu_write_reg(RETU_REG_WATCHDOG, 0);
-+	__retu_write_reg(retu, RETU_REG_WATCHDOG, 0);
- 	/* Wait for poweroff*/
- 	for (;;);
- }
-@@ -438,7 +443,7 @@ static int __init retu_probe(struct platform_device *pdev)
- 
- 	retu_irq_init(retu);
- 
--	rev = retu_read_reg(RETU_REG_ASICR) & 0xff;
-+	rev = __retu_read_reg(retu, RETU_REG_ASICR) & 0xff;
- 	if (rev & (1 << 7))
- 		retu->is_vilma = true;
- 
-@@ -447,7 +452,7 @@ static int __init retu_probe(struct platform_device *pdev)
- 			(rev >> 4) & 0x07, rev & 0x0f);
- 
- 	/* Mask all RETU interrupts */
--	retu_write_reg(RETU_REG_IMR, 0xffff);
-+	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
- 
- 	ret = request_threaded_irq(irq, NULL, retu_irq_handler, 0,
- 			  "retu", retu);
-@@ -470,7 +475,7 @@ static int __init retu_probe(struct platform_device *pdev)
- 	return 0;
- 
- err2:
--	retu_write_reg(RETU_REG_IMR, 0xffff);
-+	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
- 	free_irq(irq, retu);
- 
- err1:
-@@ -489,7 +494,7 @@ static int __exit retu_remove(struct platform_device *pdev)
- 	irq = platform_get_irq(pdev, 0);
- 
- 	/* Mask all RETU interrupts */
--	retu_write_reg(RETU_REG_IMR, 0xffff);
-+	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
- 	free_irq(irq, retu);
- 	retu_irq_exit(retu);
- 	kfree(retu);
--- 
-1.7.4.rc2
+>
+> On omap2 there's no dsi code ran, so dispc is the only one requesting
+> the irq, and thus IRQF_SHARED is extra. In omap4 there are separate irq
+> lines (dsi.pdev and dispc.pdev return different irqs), and so
+> IRQF_SHARED is again extra. But I don't see any harm in IRQF_SHARED even
+> in omap2/4.
+>
+>   Tomi
+>
+>
 
+Regards,
+Archit
