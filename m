@@ -1,67 +1,53 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: hwmod: multi-omap: disabling smartreflex on AM3517
-Date: Tue, 15 Feb 2011 13:47:59 +0100
-Message-ID: <4D5A75FF.5040703@ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB5930248A017D9@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 1/6] arm: omap: i2c: fix compile warning
+Date: Tue, 15 Feb 2011 14:49:11 +0200
+Message-ID: <1297774156-23312-2-git-send-email-balbi@ti.com>
+References: <1297774156-23312-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39187 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754652Ab1BOMsD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 07:48:03 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1FCm2WV001043
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 06:48:02 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1FCm24f026421
-	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 06:48:02 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1FCm2xm014751
-	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 06:48:02 -0600 (CST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930248A017D9@dbde02.ent.ti.com>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:36443 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754853Ab1BOMt2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 07:49:28 -0500
+Received: by ywa8 with SMTP id 8so61878ywa.4
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 04:49:27 -0800 (PST)
+In-Reply-To: <1297774156-23312-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-Hi Sanjeev,
+Fix the following compile warning:
+arch/arm/plat-omap/i2c.c:120:13: warning:
+'omap_pm_set_max_mpu_wakeup_lat_compat' defined but not used
+arch/arm/plat-omap/i2c.c:125:38: warning: 'omap_i2c_latency'
+defined but not used
 
-On 2/15/2011 12:51 PM, Premi, Sanjeev wrote:
-> AM3517 doesn't support SmartReflex.
->
-> However, these HWMODS are defined in omap3xxxx_hwmods[]:
-> 	&omap34xx_sr1_hwmod,
-> 	&omap34xx_sr2_hwmod,
-> 	&omap36xx_sr1_hwmod,
-> 	&omap36xx_sr2_hwmod,
->
-> (similar definition in l4_slaves as well)
->
-> This leads to crash when booting the kernel on AM3517EVM during
-> _setup().
->
-> I see the field .omap_chip being initialized; but not used.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/plat-omap/i2c.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Yes, it is. During the hwmod initialization (omap_hwmod_init), only the 
-hwmods that match the correct chip version are kept.
-I guess that your problem is that AM3517 is probably seen as a regular 
-3430 for the moment.
-
-> If I were to use this - along with cpu_is_omap3517(), I would need
-> to define a new flag e.g. CHIP_IS_AM3517 and add it to almost all
-> devices defined in omap_hwmod_3xxx_data.c.
->
-> Before going all out on making changes, wanted to check if there is
-> a better way. Has this/similar possibility been considered earlier?
-
-Well, this is the best way to do that for my point of view. This 
-.omap_chip field was done for that purpose.
-During device init, the sr code will do query for the smartreflex hwmod 
-and will failed, thus avoiding to do further initialization.
-
-Regards,
-Benoit
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index a4f8003..3341ca4 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -112,6 +112,7 @@ static inline int omap1_i2c_add_bus(int bus_id)
+ }
+ 
+ 
++#ifdef CONFIG_ARCH_OMAP2PLUS
+ /*
+  * XXX This function is a temporary compatibility wrapper - only
+  * needed until the I2C driver can be converted to call
+@@ -130,7 +131,6 @@ static struct omap_device_pm_latency omap_i2c_latency[] = {
+ 	},
+ };
+ 
+-#ifdef CONFIG_ARCH_OMAP2PLUS
+ static inline int omap2_i2c_add_bus(int bus_id)
+ {
+ 	int l;
+-- 
+1.7.4.rc2
 
