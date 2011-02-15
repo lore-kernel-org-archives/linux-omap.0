@@ -1,109 +1,119 @@
 From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH v7 4/4] TI816X: Add low level debug support
-Date: Tue, 15 Feb 2011 23:06:17 +0530
-Message-ID: <1297791377-32079-1-git-send-email-hemantp@ti.com>
+Subject: [PATCH v7 3/4] TI816X: Create board support and enable build for TI816X EVM
+Date: Tue, 15 Feb 2011 23:06:08 +0530
+Message-ID: <1297791368-32042-1-git-send-email-hemantp@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50494 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50138 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755313Ab1BORga (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 12:36:30 -0500
+	id S1755862Ab1BORgQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 12:36:16 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Hemant Pedanekar <hemantp@ti.com>
 
-This patch adds support for low level debugging on TI816X boards. Currently the
-support for UART3 console on TI816X EVM is added.
+This patch adds minimal support and build configuration for TI816X EVM.
 
 Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/include/mach/debug-macro.S |   12 ++++++++++++
- arch/arm/plat-omap/include/plat/serial.h       |    8 ++++++++
- arch/arm/plat-omap/include/plat/uncompress.h   |    7 +++++++
- 3 files changed, 27 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Kconfig           |    5 +++
+ arch/arm/mach-omap2/Makefile          |    1 +
+ arch/arm/mach-omap2/board-ti8168evm.c |   57 +++++++++++++++++++++++++++++++++
+ 3 files changed, 63 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-ti8168evm.c
 
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index 6a4d413..e1b0f17 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -69,6 +69,12 @@ omap_uart_lsr:	.word	0
- 		beq	34f			@ configure OMAP3UART4
- 		cmp	\rp, #OMAP4UART4	@ only on 44xx
- 		beq	44f			@ configure OMAP4UART4
-+		cmp	\rp, #TI816XUART1	@ ti816x UART offsets different
-+		beq	81f			@ configure UART1
-+		cmp	\rp, #TI816XUART2	@ ti816x UART offsets different
-+		beq	82f			@ configure UART2
-+		cmp	\rp, #TI816XUART3	@ ti816x UART offsets different
-+		beq	83f			@ configure UART3
- 		cmp	\rp, #ZOOM_UART		@ only on zoom2/3
- 		beq	95f			@ configure ZOOM_UART
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 6a4cfc2..9b4e78f 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -299,6 +299,11 @@ config MACH_OMAP_3630SDP
+ 	default y
+ 	select OMAP_PACKAGE_CBP
  
-@@ -91,6 +97,12 @@ omap_uart_lsr:	.word	0
- 		b	98f
- 44:		mov	\rp, #UART_OFFSET(OMAP4_UART4_BASE)
- 		b	98f
-+81:		mov	\rp, #UART_OFFSET(TI816X_UART1_BASE)
-+		b	98f
-+82:		mov	\rp, #UART_OFFSET(TI816X_UART2_BASE)
-+		b	98f
-+83:		mov	\rp, #UART_OFFSET(TI816X_UART3_BASE)
-+		b	98f
- 95:		ldr	\rp, =ZOOM_UART_BASE
- 		mrc	p15, 0, \rv, c1, c0
- 		tst	\rv, #1			@ MMU enabled?
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index cec5d56..4102bf4 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -51,6 +51,11 @@
- #define OMAP4_UART3_BASE	0x48020000
- #define OMAP4_UART4_BASE	0x4806e000
- 
-+/* TI816X serial ports */
-+#define TI816X_UART1_BASE	0x48020000
-+#define TI816X_UART2_BASE	0x48022000
-+#define TI816X_UART3_BASE	0x48024000
++config MACH_TI8168EVM
++	bool "TI8168 Evaluation Module"
++	depends on SOC_OMAPTI816X
++	default y
 +
- /* External port on Zoom2/3 */
- #define ZOOM_UART_BASE		0x10000000
- #define ZOOM_UART_VIRT		0xfa400000
-@@ -81,6 +86,9 @@
- #define OMAP4UART2		OMAP2UART2
- #define OMAP4UART3		43
- #define OMAP4UART4		44
-+#define TI816XUART1		81
-+#define TI816XUART2		82
-+#define TI816XUART3		83
- #define ZOOM_UART		95		/* Only on zoom2/3 */
+ config MACH_OMAP_4430SDP
+ 	bool "OMAP 4430 SDP board"
+ 	default y
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 742ca67..ec24999 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -224,6 +224,7 @@ obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
  
- /* This is only used by 8250.c for omap1510 */
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index ad98b85..30b891c 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -93,6 +93,10 @@ static inline void flush(void)
- #define DEBUG_LL_ZOOM(mach)						\
- 	_DEBUG_LL_ENTRY(mach, ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
- 
-+#define DEBUG_LL_TI816X(p, mach)					\
-+	_DEBUG_LL_ENTRY(mach, TI816X_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		TI816XUART##p)
+ obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o \
+ 					   hsmmc.o
++obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
+ # Platform specific device init code
+ usbfs-$(CONFIG_ARCH_OMAP_OTG)		:= usb-fs.o
+ obj-y					+= $(usbfs-m) $(usbfs-y)
+diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
+new file mode 100644
+index 0000000..6282cc4
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-ti8168evm.c
+@@ -0,0 +1,57 @@
++/*
++ * Code for TI8168 EVM.
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#include <linux/kernel.h>
++#include <linux/init.h>
 +
- static inline void __arch_decomp_setup(unsigned long arch_id)
- {
- 	int port = 0;
-@@ -166,6 +170,9 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		DEBUG_LL_ZOOM(omap_zoom2);
- 		DEBUG_LL_ZOOM(omap_zoom3);
- 
-+		/* TI8168 base boards using UART3 */
-+		DEBUG_LL_TI816X(3, ti8168evm);
++#include <mach/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
 +
- 	} while (0);
- }
- 
++#include <plat/irqs.h>
++#include <plat/board.h>
++#include <plat/common.h>
++
++static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
++};
++
++static void __init ti8168_evm_init_irq(void)
++{
++	omap_board_config = ti8168_evm_config;
++	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
++	omap2_init_common_infrastructure();
++	omap2_init_common_devices(NULL, NULL);
++	omap_init_irq();
++}
++
++static void __init ti8168_evm_init(void)
++{
++	omap_serial_init();
++}
++
++static void __init ti8168_evm_map_io(void)
++{
++	omap2_set_globals_ti816x();
++	omapti816x_map_common_io();
++}
++
++MACHINE_START(TI8168EVM, "ti8168evm")
++	/* Maintainer: Texas Instruments */
++	.boot_params	= 0x80000100,
++	.map_io		= ti8168_evm_map_io,
++	.init_irq	= ti8168_evm_init_irq,
++	.timer		= &omap_timer,
++	.init_machine	= ti8168_evm_init,
++MACHINE_END
 -- 
 1.7.3.5
 
