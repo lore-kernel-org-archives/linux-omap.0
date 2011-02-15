@@ -1,82 +1,67 @@
 From: =?UTF-8?q?Arve=20Hj=C3=B8nnev=C3=A5g?= <arve@android.com>
-Subject: [PATCH 4/8] ARM: etm: Allow range selection
-Date: Mon, 14 Feb 2011 22:11:12 -0800
-Message-ID: <1297750276-12475-4-git-send-email-arve@android.com>
+Subject: [PATCH 7/8] ARM: etm: Return the entire trace buffer if it is empty after reset
+Date: Mon, 14 Feb 2011 22:11:15 -0800
+Message-ID: <1297750276-12475-7-git-send-email-arve@android.com>
 References: <1296701663-12168-1-git-send-email-arve@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1296701663-12168-1-git-send-email-arve@android.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>, =?UTF-8?q?Arve=20Hj=C3=B8nnev=C3=A5g?= <arve@android.com>, Jason Wessel <jason.wessel@windriver.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, =?UTF-8?q?Arve=20Hj=C3=B8nnev=C3=A5g?= <arve@android.com>, Russell King <linux@arm.linux.org.uk>, Alexander Shishkin <virtuoso@slind.org>, Jason Wessel <jason.wessel@windriver.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-VHJhY2Uga2VybmVsIHRleHQgc2VnbWVudCBieSBkZWZhdWx0IGFzIGJlZm9yZSwgYWxsb3cgdHJh
-Y2luZyBvZiBvdGhlcgpyYW5nZXMgYnkgd3JpdGluZyBhIHJhbmdlIHRvIC9zeXMvZGV2aWNlcy9l
-dG0vdHJhY2VfcmFuZ2UsIG9yIHRvIHRyYWNlCmV2ZXJ5dGhpbmcgYnkgd3JpdGluZyAwIDAuCgpT
-aWduZWQtb2ZmLWJ5OiBBcnZlIEhqw7hubmV2w6VnIDxhcnZlQGFuZHJvaWQuY29tPgotLS0KIGFy
-Y2gvYXJtL2tlcm5lbC9ldG0uYyB8ICAgNDkgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKy0tLQogMSBmaWxlcyBjaGFuZ2VkLCA0NiBpbnNlcnRpb25zKCspLCAz
-IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2tlcm5lbC9ldG0uYyBiL2FyY2gv
-YXJtL2tlcm5lbC9ldG0uYwppbmRleCBiYzdkOGYyLi44YTFjNDIyIDEwMDY0NAotLS0gYS9hcmNo
-L2FybS9rZXJuZWwvZXRtLmMKKysrIGIvYXJjaC9hcm0va2VybmVsL2V0bS5jCkBAIC00MCwxMiAr
-NDAsMTcgQEAgc3RydWN0IHRyYWNlY3R4IHsKIAl1bnNpZ25lZCBsb25nCWZsYWdzOwogCWludAkJ
-bmNtcHBhaXJzOwogCWludAkJZXRtX3BvcnRzejsKKwl1bnNpZ25lZCBsb25nCXJhbmdlX3N0YXJ0
-OworCXVuc2lnbmVkIGxvbmcJcmFuZ2VfZW5kOwogCXN0cnVjdCBkZXZpY2UJKmRldjsKIAlzdHJ1
-Y3QgY2xrCSplbXVfY2xrOwogCXN0cnVjdCBtdXRleAltdXRleDsKIH07CiAKLXN0YXRpYyBzdHJ1
-Y3QgdHJhY2VjdHggdHJhY2VyOworc3RhdGljIHN0cnVjdCB0cmFjZWN0eCB0cmFjZXIgPSB7CisJ
-LnJhbmdlX3N0YXJ0ID0gKHVuc2lnbmVkIGxvbmcpX3N0ZXh0LAorCS5yYW5nZV9lbmQgPSAodW5z
-aWduZWQgbG9uZylfZXRleHQsCit9OwogCiBzdGF0aWMgaW5saW5lIGJvb2wgdHJhY2VfaXNydW5u
-aW5nKHN0cnVjdCB0cmFjZWN0eCAqdCkKIHsKQEAgLTExNSw4ICsxMjAsMTIgQEAgc3RhdGljIGlu
-dCB0cmFjZV9zdGFydChzdHJ1Y3QgdHJhY2VjdHggKnQpCiAJCXJldHVybiAtRUZBVUxUOwogCX0K
-IAotCWV0bV9zZXR1cF9hZGRyZXNzX3JhbmdlKHQsIDEsICh1bnNpZ25lZCBsb25nKV9zdGV4dCwK
-LQkJCSh1bnNpZ25lZCBsb25nKV9ldGV4dCwgMCwgMCk7CisJaWYgKHQtPnJhbmdlX3N0YXJ0IHx8
-IHQtPnJhbmdlX2VuZCkKKwkJZXRtX3NldHVwX2FkZHJlc3NfcmFuZ2UodCwgMSwKKwkJCQkJdC0+
-cmFuZ2Vfc3RhcnQsIHQtPnJhbmdlX2VuZCwgMCwgMCk7CisJZWxzZQorCQlldG1fd3JpdGVsKHQs
-IEVUTVRFX0lOQ0xFWENMLCBFVE1SX1RSQUNFRU5DVFJMKTsKKwogCWV0bV93cml0ZWwodCwgMCwg
-RVRNUl9UUkFDRUVOQ1RSTDIpOwogCWV0bV93cml0ZWwodCwgMCwgRVRNUl9UUkFDRVNTQ1RSTCk7
-CiAJZXRtX3dyaXRlbCh0LCAweDZmLCBFVE1SX1RSQUNFRU5FVlQpOwpAQCAtNTI1LDYgKzUzNCwz
-NSBAQCBzdGF0aWMgc3NpemVfdCB0cmFjZV9tb2RlX3N0b3JlKHN0cnVjdCBrb2JqZWN0ICprb2Jq
-LAogc3RhdGljIHN0cnVjdCBrb2JqX2F0dHJpYnV0ZSB0cmFjZV9tb2RlX2F0dHIgPQogCV9fQVRU
-Uih0cmFjZV9tb2RlLCAwNjQ0LCB0cmFjZV9tb2RlX3Nob3csIHRyYWNlX21vZGVfc3RvcmUpOwog
-CitzdGF0aWMgc3NpemVfdCB0cmFjZV9yYW5nZV9zaG93KHN0cnVjdCBrb2JqZWN0ICprb2JqLAor
-CQkJCSAgc3RydWN0IGtvYmpfYXR0cmlidXRlICphdHRyLAorCQkJCSAgY2hhciAqYnVmKQorewor
-CXJldHVybiBzcHJpbnRmKGJ1ZiwgIiUwOGx4ICUwOGx4XG4iLAorCQkJdHJhY2VyLnJhbmdlX3N0
-YXJ0LCB0cmFjZXIucmFuZ2VfZW5kKTsKK30KKworc3RhdGljIHNzaXplX3QgdHJhY2VfcmFuZ2Vf
-c3RvcmUoc3RydWN0IGtvYmplY3QgKmtvYmosCisJCQkJICAgc3RydWN0IGtvYmpfYXR0cmlidXRl
-ICphdHRyLAorCQkJCSAgIGNvbnN0IGNoYXIgKmJ1Ziwgc2l6ZV90IG4pCit7CisJdW5zaWduZWQg
-bG9uZyByYW5nZV9zdGFydCwgcmFuZ2VfZW5kOworCisJaWYgKHNzY2FuZihidWYsICIlbHggJWx4
-IiwgJnJhbmdlX3N0YXJ0LCAmcmFuZ2VfZW5kKSAhPSAyKQorCQlyZXR1cm4gLUVJTlZBTDsKKwor
-CW11dGV4X2xvY2soJnRyYWNlci5tdXRleCk7CisJdHJhY2VyLnJhbmdlX3N0YXJ0ID0gcmFuZ2Vf
-c3RhcnQ7CisJdHJhY2VyLnJhbmdlX2VuZCA9IHJhbmdlX2VuZDsKKwltdXRleF91bmxvY2soJnRy
-YWNlci5tdXRleCk7CisKKwlyZXR1cm4gbjsKK30KKworCitzdGF0aWMgc3RydWN0IGtvYmpfYXR0
-cmlidXRlIHRyYWNlX3JhbmdlX2F0dHIgPQorCV9fQVRUUih0cmFjZV9yYW5nZSwgMDY0NCwgdHJh
-Y2VfcmFuZ2Vfc2hvdywgdHJhY2VfcmFuZ2Vfc3RvcmUpOworCiBzdGF0aWMgaW50IF9faW5pdCBl
-dG1fcHJvYmUoc3RydWN0IGFtYmFfZGV2aWNlICpkZXYsIHN0cnVjdCBhbWJhX2lkICppZCkKIHsK
-IAlzdHJ1Y3QgdHJhY2VjdHggKnQgPSAmdHJhY2VyOwpAQCAtNTc2LDYgKzYxNCwxMCBAQCBzdGF0
-aWMgaW50IF9faW5pdCBldG1fcHJvYmUoc3RydWN0IGFtYmFfZGV2aWNlICpkZXYsIHN0cnVjdCBh
-bWJhX2lkICppZCkKIAlpZiAocmV0KQogCQlkZXZfZGJnKCZkZXYtPmRldiwgIkZhaWxlZCB0byBj
-cmVhdGUgdHJhY2VfbW9kZSBpbiBzeXNmc1xuIik7CiAKKwlyZXQgPSBzeXNmc19jcmVhdGVfZmls
-ZSgmZGV2LT5kZXYua29iaiwgJnRyYWNlX3JhbmdlX2F0dHIuYXR0cik7CisJaWYgKHJldCkKKwkJ
-ZGV2X2RiZygmZGV2LT5kZXYsICJGYWlsZWQgdG8gY3JlYXRlIHRyYWNlX3JhbmdlIGluIHN5c2Zz
-XG4iKTsKKwogCWRldl9kYmcodC0+ZGV2LCAiRVRNIEFNQkEgZHJpdmVyIGluaXRpYWxpemVkLlxu
-Iik7CiAKIG91dDoKQEAgLTYwNSw2ICs2NDcsNyBAQCBzdGF0aWMgaW50IGV0bV9yZW1vdmUoc3Ry
-dWN0IGFtYmFfZGV2aWNlICpkZXYpCiAJc3lzZnNfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2LmtvYmos
-ICZ0cmFjZV9ydW5uaW5nX2F0dHIuYXR0cik7CiAJc3lzZnNfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2
-LmtvYmosICZ0cmFjZV9pbmZvX2F0dHIuYXR0cik7CiAJc3lzZnNfcmVtb3ZlX2ZpbGUoJmRldi0+
-ZGV2LmtvYmosICZ0cmFjZV9tb2RlX2F0dHIuYXR0cik7CisJc3lzZnNfcmVtb3ZlX2ZpbGUoJmRl
-di0+ZGV2LmtvYmosICZ0cmFjZV9yYW5nZV9hdHRyLmF0dHIpOwogCiAJcmV0dXJuIDA7CiB9Ci0t
-IAoxLjcuMy4xCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5p
-bmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8v
-bGludXgtYXJtLWtlcm5lbAo=
+On some SOCs the read and write pointer are reset when the chip
+resets, but the trace buffer content is preserved. If the status
+bits indicates that the buffer is empty and we have never started
+tracing, assume the buffer is full instead. This can be useful
+if the system rebooted from a watchdog reset.
+
+Signed-off-by: Arve Hj=C3=B8nnev=C3=A5g <arve@android.com>
+---
+ arch/arm/kernel/etm.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/kernel/etm.c b/arch/arm/kernel/etm.c
+index 8126beb..4ad1257 100644
+--- a/arch/arm/kernel/etm.c
++++ b/arch/arm/kernel/etm.c
+@@ -44,6 +44,7 @@ struct tracectx {
+ 	unsigned long	range_end;
+ 	unsigned long	data_range_start;
+ 	unsigned long	data_range_end;
++	bool		dump_initial_etb;
+ 	struct device	*dev;
+ 	struct clk	*emu_clk;
+ 	struct mutex	mutex;
+@@ -105,6 +106,7 @@ static int trace_start(struct tracectx *t)
+=20
+ 	etb_unlock(t);
+=20
++	t->dump_initial_etb =3D false;
+ 	etb_writel(t, 0, ETBR_WRITEADDR);
+ 	etb_writel(t, 0, ETBR_FORMATTERCTRL);
+ 	etb_writel(t, 1, ETBR_CTRL);
+@@ -311,6 +313,8 @@ static ssize_t etb_read(struct file *file, char __u=
+ser *data,
+ 	etb_unlock(t);
+=20
+ 	total =3D etb_getdatalen(t);
++	if (total =3D=3D 0 && t->dump_initial_etb)
++		total =3D t->etb_bufsz;
+ 	if (total =3D=3D t->etb_bufsz)
+ 		first =3D etb_readl(t, ETBR_WRITEADDR);
+=20
+@@ -385,6 +389,7 @@ static int __init etb_probe(struct amba_device *dev=
+, struct amba_id *id)
+ 		goto out_release;
+ 	}
+=20
++	t->dump_initial_etb =3D true;
+ 	amba_set_drvdata(dev, t);
+=20
+ 	etb_unlock(t);
+--=20
+1.7.3.1
