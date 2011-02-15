@@ -1,62 +1,67 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: OMAP: DSS2: Common IRQ handler for all OMAPs
-Date: Tue, 15 Feb 2011 18:13:30 +0530
-Message-ID: <4D5A74F2.1060100@ti.com>
-References: <1296636990-24775-1-git-send-email-archit@ti.com> <1297693307.2951.25.camel@deskari> <20110214143001.GK2549@legolas.emea.dhcp.ti.com> <4D5A00E8.4060701@ti.com> <1297754826.2289.9.camel@deskari> <4D5A39AE.3030006@ti.com> <1297759057.2289.40.camel@deskari> <4D5A4670.9030405@ti.com> <4D5A5410.1010300@ti.com> <AANLkTikZXdrjXMq811LR8dQ0eq-QDDUb=pUdBDghWD3E@mail.gmail.com> <4D5A5A5C.4070909@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: hwmod: multi-omap: disabling smartreflex on AM3517
+Date: Tue, 15 Feb 2011 13:47:59 +0100
+Message-ID: <4D5A75FF.5040703@ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB5930248A017D9@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59928 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39187 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753293Ab1BOMmg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 07:42:36 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1FCgXxK020354
+	id S1754652Ab1BOMsD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 07:48:03 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1FCm2WV001043
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 06:42:35 -0600
-In-Reply-To: <4D5A5A5C.4070909@ti.com>
+	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 06:48:02 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1FCm24f026421
+	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 06:48:02 -0600 (CST)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1FCm2xm014751
+	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 06:48:02 -0600 (CST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930248A017D9@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Sanjeev,
 
-<snip>
-
->>>>
->>>> Is it okay to have the same irq entry for 2 different hwmods?
->>>> This requirement comes from OMAP3 where dispc and dsi have a common irq
->>>> line, where as on OMAP4 dispc and dsi have separate irq lines.
->>>
->>> Well, no. I explained that in one of my comment about hwmod modification.
->>> The hwmod data are reflecting the exact HW capabilities.
->>> So, if there is a change in the HW, the hwmod will be different.
->>> It is up to the driver to adapt to this change.
->> I guess what Archit wanted to say is, for hw IPs DISPC and DSI, on
->> OMAP3, have a common IRQ line, so could both their hwmod databases
->> have the same IRQ added for them? This would us call, for a common IRQ
->> line shared w/ DISPC and DSI, like
->> mentioned in Tomi's sample code above.
+On 2/15/2011 12:51 PM, Premi, Sanjeev wrote:
+> AM3517 doesn't support SmartReflex.
 >
-> OK, thanks for the clarification, actually I missed a little bit the
-> point :-(
+> However, these HWMODS are defined in omap3xxxx_hwmods[]:
+> 	&omap34xx_sr1_hwmod,
+> 	&omap34xx_sr2_hwmod,
+> 	&omap36xx_sr1_hwmod,
+> 	&omap36xx_sr2_hwmod,
 >
-> So in fact the 2 modules share that same IRQ today, and you just want to
-> populate both hwmod with the same input.
-> If this is a real OR between the two IRQ lines, meaning the dispc cannot
-> mask the dsi IRQ or the opposite, then having the same IRQ number in the
-> two different hwmods is a correct representation of the HW.
+> (similar definition in l4_slaves as well)
+>
+> This leads to crash when booting the kernel on AM3517EVM during
+> _setup().
+>
+> I see the field .omap_chip being initialized; but not used.
 
-There is a real OR between the 2 irq lines in OMAP3, as there is no 
-DSS_IRQENABLE, but there is a DSS_IRQSTATUS.
+Yes, it is. During the hwmod initialization (omap_hwmod_init), only the 
+hwmods that match the correct chip version are kept.
+I guess that your problem is that AM3517 is probably seen as a regular 
+3430 for the moment.
 
-You can mask one of DISPC or DSI by zeroing all the bits in 
-DISPC_IRQENABLE or DSI_IRQENABLE respectively. But there is no higher 
-level register to mask them.
+> If I were to use this - along with cpu_is_omap3517(), I would need
+> to define a new flag e.g. CHIP_IS_AM3517 and add it to almost all
+> devices defined in omap_hwmod_3xxx_data.c.
+>
+> Before going all out on making changes, wanted to check if there is
+> a better way. Has this/similar possibility been considered earlier?
 
-<snip>
+Well, this is the best way to do that for my point of view. This 
+.omap_chip field was done for that purpose.
+During device init, the sr code will do query for the smartreflex hwmod 
+and will failed, thus avoiding to do further initialization.
 
 Regards,
-Archit
+Benoit
+
