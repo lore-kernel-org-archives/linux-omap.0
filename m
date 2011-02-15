@@ -1,99 +1,93 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH 1/2] OMAP2+: IOMMU: change OMAP2+ error message to dev_dbg()
-Date: Tue, 15 Feb 2011 15:44:27 +0200
-Message-ID: <AANLkTinQX59iyX1La=99Urgh5_JF0iZacBDqQz1VQfhi@mail.gmail.com>
-References: <1297776033-8579-1-git-send-email-dacohen@gmail.com>
-	<1297776033-8579-2-git-send-email-dacohen@gmail.com>
-	<4D5A81D8.2080800@ru.mvista.com>
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: Re: [PATCH 4/8] ARM: etm: Allow range selection
+Date: Tue, 15 Feb 2011 15:50:54 +0200
+Message-ID: <20110215135054.GD18248@shisha.kicks-ass.net>
+References: <1296701663-12168-1-git-send-email-arve@android.com>
+	<1297750276-12475-4-git-send-email-arve@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64398 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751102Ab1BONo2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 08:44:28 -0500
-Received: by wyb28 with SMTP id 28so176540wyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 05:44:27 -0800 (PST)
-In-Reply-To: <4D5A81D8.2080800@ru.mvista.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1297750276-12475-4-git-send-email-arve@android.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arve =?utf-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, Jason Wessel <jason.wessel@windriver.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Hiroshi.DOYU@nokia.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Feb 15, 2011 at 3:38 PM, Sergei Shtylyov <sshtylyov@mvista.com>=
- wrote:
-> Hello.
-
-Hi,
-
->
-> On 15-02-2011 16:20, David Cohen wrote:
->
->> IOMMU upper layer is already printing error message. OMAP2+ specific
->> layer may print error message only for debug purpose.
->
->> Signed-off-by: David Cohen<dacohen@gmail.com>
->> ---
->> =C2=A0arch/arm/mach-omap2/iommu2.c | =C2=A0 =C2=A06 +++---
->> =C2=A01 files changed, 3 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iomm=
-u2.c
->> index 14ee686..4244a07 100644
->> --- a/arch/arm/mach-omap2/iommu2.c
->> +++ b/arch/arm/mach-omap2/iommu2.c
->> @@ -163,13 +163,13 @@ static u32 omap2_iommu_fault_isr(struct iommu =
-*obj,
->> u32 *ra)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0da =3D iommu_read_reg(obj, MMU_FAULT_AD);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0*ra =3D da;
->>
->> - =C2=A0 =C2=A0 =C2=A0 dev_err(obj->dev, "%s:\tda:%08x ", __func__, =
-da);
->> + =C2=A0 =C2=A0 =C2=A0 dev_dbg(obj->dev, "%s:\tda:%08x ", __func__, =
-da);
->
-> =C2=A0 Note that dev_dbg() will only print something if either DEBUG =
-or
-> CONFIG_DYNAMIC_DEBUG are defined...
-
-That's my plan.
-
->
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 0; i< =C2=A0ARRAY_SIZE(err_msg=
-); i++) {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (stat & (1=
-<< =C2=A0i))
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 printk("%s ", err_msg[i]);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 printk(KERN_DEBUG "%s ", err_msg[i]);
->
-> =C2=A0 ... unlike printk(KERN_DEBUG...). You probably want to use pr_=
-debug()
-> instead.
->
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->> - =C2=A0 =C2=A0 =C2=A0 printk("\n");
->> + =C2=A0 =C2=A0 =C2=A0 printk(KERN_DEBUG "\n");
->
-> =C2=A0 Here too... Although wait, it should be KERN_CONT instead! Deb=
-ug levels
-> are only attributed to the whole lines.
-
-But your observation is correct. I'll resend it with KERN_CONT instead.
-
-Regards,
-
-David
-
->
-> WBR, Sergei
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gTW9uLCBGZWIgMTQsIDIwMTEgYXQgMTA6MTE6MTJQTSAtMDgwMCwgQXJ2ZSBIasO4bm5ldsOl
+ZyB3cm90ZToKPiBUcmFjZSBrZXJuZWwgdGV4dCBzZWdtZW50IGJ5IGRlZmF1bHQgYXMgYmVmb3Jl
+LCBhbGxvdyB0cmFjaW5nIG9mIG90aGVyCj4gcmFuZ2VzIGJ5IHdyaXRpbmcgYSByYW5nZSB0byAv
+c3lzL2RldmljZXMvZXRtL3RyYWNlX3JhbmdlLCBvciB0byB0cmFjZQo+IGV2ZXJ5dGhpbmcgYnkg
+d3JpdGluZyAwIDAuCgpTaW5jZSB5b3UncmUgYWRkaW5nIHRoaXMsIEkgdGhpbmsgaXQgbWlnaHQg
+bWFrZSBzZW5zZSB0byBhZGQgYSAzcmQgb3B0aW9uYWwKY3R4IGlkIGZpZWxkLCBzbyB0aGF0IHVz
+ZXJzcGFjZSB0cmFjaW5nIGlzIGFsc28gcG9zc2libGUsIGVzcGVjaWFsbHkgd2hlbgpvbi1jaGlw
+IEVUQiBzaXplcyBpbmNyZWFzZSB0byBzb21ldGhpbmcgbW9yZSBzZW5zaWJsZSB0aGFuIHdoYXQg
+dGhleSBhcmUKdGhlc2UgZGF5cy4KClRoYW5rcyEKCj4gCj4gU2lnbmVkLW9mZi1ieTogQXJ2ZSBI
+asO4bm5ldsOlZyA8YXJ2ZUBhbmRyb2lkLmNvbT4KPiAtLS0KPiAgYXJjaC9hcm0va2VybmVsL2V0
+bS5jIHwgICA0OSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+LS0tCj4gIDEgZmlsZXMgY2hhbmdlZCwgNDYgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkK
+PiAKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0va2VybmVsL2V0bS5jIGIvYXJjaC9hcm0va2VybmVs
+L2V0bS5jCj4gaW5kZXggYmM3ZDhmMi4uOGExYzQyMiAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9r
+ZXJuZWwvZXRtLmMKPiArKysgYi9hcmNoL2FybS9rZXJuZWwvZXRtLmMKPiBAQCAtNDAsMTIgKzQw
+LDE3IEBAIHN0cnVjdCB0cmFjZWN0eCB7Cj4gIAl1bnNpZ25lZCBsb25nCWZsYWdzOwo+ICAJaW50
+CQluY21wcGFpcnM7Cj4gIAlpbnQJCWV0bV9wb3J0c3o7Cj4gKwl1bnNpZ25lZCBsb25nCXJhbmdl
+X3N0YXJ0Owo+ICsJdW5zaWduZWQgbG9uZwlyYW5nZV9lbmQ7Cj4gIAlzdHJ1Y3QgZGV2aWNlCSpk
+ZXY7Cj4gIAlzdHJ1Y3QgY2xrCSplbXVfY2xrOwo+ICAJc3RydWN0IG11dGV4CW11dGV4Owo+ICB9
+Owo+ICAKPiAtc3RhdGljIHN0cnVjdCB0cmFjZWN0eCB0cmFjZXI7Cj4gK3N0YXRpYyBzdHJ1Y3Qg
+dHJhY2VjdHggdHJhY2VyID0gewo+ICsJLnJhbmdlX3N0YXJ0ID0gKHVuc2lnbmVkIGxvbmcpX3N0
+ZXh0LAo+ICsJLnJhbmdlX2VuZCA9ICh1bnNpZ25lZCBsb25nKV9ldGV4dCwKPiArfTsKPiAgCj4g
+IHN0YXRpYyBpbmxpbmUgYm9vbCB0cmFjZV9pc3J1bm5pbmcoc3RydWN0IHRyYWNlY3R4ICp0KQo+
+ICB7Cj4gQEAgLTExNSw4ICsxMjAsMTIgQEAgc3RhdGljIGludCB0cmFjZV9zdGFydChzdHJ1Y3Qg
+dHJhY2VjdHggKnQpCj4gIAkJcmV0dXJuIC1FRkFVTFQ7Cj4gIAl9Cj4gIAo+IC0JZXRtX3NldHVw
+X2FkZHJlc3NfcmFuZ2UodCwgMSwgKHVuc2lnbmVkIGxvbmcpX3N0ZXh0LAo+IC0JCQkodW5zaWdu
+ZWQgbG9uZylfZXRleHQsIDAsIDApOwo+ICsJaWYgKHQtPnJhbmdlX3N0YXJ0IHx8IHQtPnJhbmdl
+X2VuZCkKPiArCQlldG1fc2V0dXBfYWRkcmVzc19yYW5nZSh0LCAxLAo+ICsJCQkJCXQtPnJhbmdl
+X3N0YXJ0LCB0LT5yYW5nZV9lbmQsIDAsIDApOwo+ICsJZWxzZQo+ICsJCWV0bV93cml0ZWwodCwg
+RVRNVEVfSU5DTEVYQ0wsIEVUTVJfVFJBQ0VFTkNUUkwpOwo+ICsKPiAgCWV0bV93cml0ZWwodCwg
+MCwgRVRNUl9UUkFDRUVOQ1RSTDIpOwo+ICAJZXRtX3dyaXRlbCh0LCAwLCBFVE1SX1RSQUNFU1ND
+VFJMKTsKPiAgCWV0bV93cml0ZWwodCwgMHg2ZiwgRVRNUl9UUkFDRUVORVZUKTsKPiBAQCAtNTI1
+LDYgKzUzNCwzNSBAQCBzdGF0aWMgc3NpemVfdCB0cmFjZV9tb2RlX3N0b3JlKHN0cnVjdCBrb2Jq
+ZWN0ICprb2JqLAo+ICBzdGF0aWMgc3RydWN0IGtvYmpfYXR0cmlidXRlIHRyYWNlX21vZGVfYXR0
+ciA9Cj4gIAlfX0FUVFIodHJhY2VfbW9kZSwgMDY0NCwgdHJhY2VfbW9kZV9zaG93LCB0cmFjZV9t
+b2RlX3N0b3JlKTsKPiAgCj4gK3N0YXRpYyBzc2l6ZV90IHRyYWNlX3JhbmdlX3Nob3coc3RydWN0
+IGtvYmplY3QgKmtvYmosCj4gKwkJCQkgIHN0cnVjdCBrb2JqX2F0dHJpYnV0ZSAqYXR0ciwKPiAr
+CQkJCSAgY2hhciAqYnVmKQo+ICt7Cj4gKwlyZXR1cm4gc3ByaW50ZihidWYsICIlMDhseCAlMDhs
+eFxuIiwKPiArCQkJdHJhY2VyLnJhbmdlX3N0YXJ0LCB0cmFjZXIucmFuZ2VfZW5kKTsKPiArfQo+
+ICsKPiArc3RhdGljIHNzaXplX3QgdHJhY2VfcmFuZ2Vfc3RvcmUoc3RydWN0IGtvYmplY3QgKmtv
+YmosCj4gKwkJCQkgICBzdHJ1Y3Qga29ial9hdHRyaWJ1dGUgKmF0dHIsCj4gKwkJCQkgICBjb25z
+dCBjaGFyICpidWYsIHNpemVfdCBuKQo+ICt7Cj4gKwl1bnNpZ25lZCBsb25nIHJhbmdlX3N0YXJ0
+LCByYW5nZV9lbmQ7Cj4gKwo+ICsJaWYgKHNzY2FuZihidWYsICIlbHggJWx4IiwgJnJhbmdlX3N0
+YXJ0LCAmcmFuZ2VfZW5kKSAhPSAyKQo+ICsJCXJldHVybiAtRUlOVkFMOwo+ICsKPiArCW11dGV4
+X2xvY2soJnRyYWNlci5tdXRleCk7Cj4gKwl0cmFjZXIucmFuZ2Vfc3RhcnQgPSByYW5nZV9zdGFy
+dDsKPiArCXRyYWNlci5yYW5nZV9lbmQgPSByYW5nZV9lbmQ7Cj4gKwltdXRleF91bmxvY2soJnRy
+YWNlci5tdXRleCk7Cj4gKwo+ICsJcmV0dXJuIG47Cj4gK30KPiArCj4gKwo+ICtzdGF0aWMgc3Ry
+dWN0IGtvYmpfYXR0cmlidXRlIHRyYWNlX3JhbmdlX2F0dHIgPQo+ICsJX19BVFRSKHRyYWNlX3Jh
+bmdlLCAwNjQ0LCB0cmFjZV9yYW5nZV9zaG93LCB0cmFjZV9yYW5nZV9zdG9yZSk7Cj4gKwo+ICBz
+dGF0aWMgaW50IF9faW5pdCBldG1fcHJvYmUoc3RydWN0IGFtYmFfZGV2aWNlICpkZXYsIHN0cnVj
+dCBhbWJhX2lkICppZCkKPiAgewo+ICAJc3RydWN0IHRyYWNlY3R4ICp0ID0gJnRyYWNlcjsKPiBA
+QCAtNTc2LDYgKzYxNCwxMCBAQCBzdGF0aWMgaW50IF9faW5pdCBldG1fcHJvYmUoc3RydWN0IGFt
+YmFfZGV2aWNlICpkZXYsIHN0cnVjdCBhbWJhX2lkICppZCkKPiAgCWlmIChyZXQpCj4gIAkJZGV2
+X2RiZygmZGV2LT5kZXYsICJGYWlsZWQgdG8gY3JlYXRlIHRyYWNlX21vZGUgaW4gc3lzZnNcbiIp
+Owo+ICAKPiArCXJldCA9IHN5c2ZzX2NyZWF0ZV9maWxlKCZkZXYtPmRldi5rb2JqLCAmdHJhY2Vf
+cmFuZ2VfYXR0ci5hdHRyKTsKPiArCWlmIChyZXQpCj4gKwkJZGV2X2RiZygmZGV2LT5kZXYsICJG
+YWlsZWQgdG8gY3JlYXRlIHRyYWNlX3JhbmdlIGluIHN5c2ZzXG4iKTsKPiArCj4gIAlkZXZfZGJn
+KHQtPmRldiwgIkVUTSBBTUJBIGRyaXZlciBpbml0aWFsaXplZC5cbiIpOwo+ICAKPiAgb3V0Ogo+
+IEBAIC02MDUsNiArNjQ3LDcgQEAgc3RhdGljIGludCBldG1fcmVtb3ZlKHN0cnVjdCBhbWJhX2Rl
+dmljZSAqZGV2KQo+ICAJc3lzZnNfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2LmtvYmosICZ0cmFjZV9y
+dW5uaW5nX2F0dHIuYXR0cik7Cj4gIAlzeXNmc19yZW1vdmVfZmlsZSgmZGV2LT5kZXYua29iaiwg
+JnRyYWNlX2luZm9fYXR0ci5hdHRyKTsKPiAgCXN5c2ZzX3JlbW92ZV9maWxlKCZkZXYtPmRldi5r
+b2JqLCAmdHJhY2VfbW9kZV9hdHRyLmF0dHIpOwo+ICsJc3lzZnNfcmVtb3ZlX2ZpbGUoJmRldi0+
+ZGV2LmtvYmosICZ0cmFjZV9yYW5nZV9hdHRyLmF0dHIpOwo+ICAKPiAgCXJldHVybiAwOwo+ICB9
+Cj4gLS0gCj4gMS43LjMuMQo+IAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5l
+bEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4v
+bGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
