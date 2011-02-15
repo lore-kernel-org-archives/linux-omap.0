@@ -1,46 +1,80 @@
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [2/7 v2] usb: otg: Remove one unnecessary I2C read request.
-Date: Tue, 15 Feb 2011 15:12:33 +0530
-Message-ID: <1297762958-26199-2-git-send-email-hemahk@ti.com>
+From: Hema HK <hemahk@ti.com>
+Subject: [3/7 v2] usb: otg: OMAP4430: Introducing suspend function for power management
+Date: Tue, 15 Feb 2011 15:12:34 +0530
+Message-ID: <1297762958-26199-3-git-send-email-hemahk@ti.com>
 References: <1297762958-26199-1-git-send-email-hemahk@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1297762958-26199-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48231 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754624Ab1BOJnU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 04:43:20 -0500
+In-Reply-To: <1297762958-26199-1-git-send-email-hemahk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, "Kalliguddi, Hema" <hemahk@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-From: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
+From: Kalliguddi, Hema <hemahk@ti.com>
 
-To get the ID status there was an I2C read transfer. Removed this I2C
-read transfer as this info can be used from existing variable(linkstat).
+Introduced the suspend/resume function for the OMAP4430 internal PHY.
+This will be used by the twl6030-usb transceiver driver.
+Moved the clock enable/disable function calls and power on/off of the PHY
+code from power on/off functions to suspend/resume function.
 
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Hema HK <hemahk@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 
 ---
-drivers/usb/otg/twl6030-usb.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+arch/arm/mach-omap2/omap_phy_internal.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Index: linux-2.6/drivers/usb/otg/twl6030-usb.c
+Index: linux-2.6/arch/arm/mach-omap2/omap_phy_internal.c
 ===================================================================
---- linux-2.6.orig/drivers/usb/otg/twl6030-usb.c
-+++ linux-2.6/drivers/usb/otg/twl6030-usb.c
-@@ -149,7 +149,6 @@ static int twl6030_set_phy_clk(struct ot
- 
- static int twl6030_phy_init(struct otg_transceiver *x)
+--- linux-2.6.orig/arch/arm/mach-omap2/omap_phy_internal.c
++++ linux-2.6/arch/arm/mach-omap2/omap_phy_internal.c
+@@ -103,13 +103,6 @@ int omap4430_phy_set_clk(struct device *
+ int omap4430_phy_power(struct device *dev, int ID, int on)
  {
--	u8 hw_state;
- 	struct twl6030_usb *twl;
- 	struct device *dev;
- 	struct twl4030_usb_data *pdata;
-@@ -158,9 +157,7 @@ static int twl6030_phy_init(struct otg_t
- 	dev  = twl->dev;
- 	pdata = dev->platform_data;
+ 	if (on) {
+-		/* enabled the clocks */
+-		omap4430_phy_set_clk(dev, 1);
+-		/* power on the phy */
+-		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
+-			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+-			mdelay(200);
+-		}
+ 		if (ID)
+ 			/* enable VBUS valid, IDDIG groung */
+ 			__raw_writel(AVALID | VBUSVALID, ctrl_base +
+@@ -125,10 +118,25 @@ int omap4430_phy_power(struct device *de
+ 		/* Enable session END and IDIG to high impedence. */
+ 		__raw_writel(SESSEND | IDDIG, ctrl_base +
+ 					USBOTGHS_CONTROL);
++	}
++	return 0;
++}
++
++int omap4430_phy_suspend(struct device *dev, int suspend)
++{
++	if (suspend) {
+ 		/* Disable the clocks */
+ 		omap4430_phy_set_clk(dev, 0);
+ 		/* Power down the phy */
+ 		__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
++	} else {
++		/* Enable the internel phy clcoks */
++		omap4430_phy_set_clk(dev, 1);
++		/* power on the phy */
++		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
++			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
++			mdelay(200);
++		}
+ 	}
  
--	hw_state = twl6030_readb(twl, TWL6030_MODULE_ID0, STS_HW_CONDITIONS);
+ 	return 0;
