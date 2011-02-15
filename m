@@ -1,40 +1,35 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv2] omap2/3: dmtimer: Enable autoidle
-Date: Tue, 15 Feb 2011 18:30:28 +0200
-Message-ID: <1297787428-5717-1-git-send-email-tero.kristo@nokia.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH V4] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
+Date: Tue, 15 Feb 2011 17:29:31 +0200
+Message-ID: <20110215172931.3a6e45a8.jhnikula@gmail.com>
+References: <1297756738-2696-1-git-send-email-shweta.gulati@ti.com>
+	<20110215171652.601c9c68.jhnikula@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:24497 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753214Ab1BOP2O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 10:28:14 -0500
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:60054 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751198Ab1BOP3J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 10:29:09 -0500
+Received: by eye27 with SMTP id 27so143502eye.19
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 07:29:08 -0800 (PST)
+In-Reply-To: <20110215171652.601c9c68.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Shweta Gulati <shweta.gulati@ti.com>
+Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>, Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org
 
-This saves some power. OMAP4 version should check for GPT module ID, as
-autoidle is only supported on a subset of these.
+On Tue, 15 Feb 2011 17:16:52 +0200
+Jarkko Nikula <jhnikula@gmail.com> wrote:
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/plat-omap/dmtimer.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+> Would it make more sense to set only the flag here and do the register
+> writes when omap3_twl_init is executing? Then it's not so strict when
+> the board code calls this function.
+> 
+Probably discussed earlier but would it make more sense to have flag in
+struct twl4030_platform_data and to do registers writes in twl-core?
+Looks suspicious to have i2c_writes under arch/arm/.
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 1d706cf..ee9f6eb 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -342,6 +342,10 @@ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
- 	l |= 0x02 << 3;  /* Set to smart-idle mode */
- 	l |= 0x2 << 8;   /* Set clock activity to perserve f-clock on idle */
- 
-+	/* Enable autoidle on OMAP2 / OMAP3 */
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+		l |= 0x1 << 0;
-+
- 	/*
- 	 * Enable wake-up on OMAP2 CPUs.
- 	 */
 -- 
-1.7.1
-
+Jarkko
