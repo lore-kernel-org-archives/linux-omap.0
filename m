@@ -1,46 +1,88 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/5 v6] OMAP2+: musb: HWMOD adaptation for musb.
- registration
-Date: Tue, 15 Feb 2011 10:32:36 +0200
-Message-ID: <20110215083235.GG2570@legolas.emea.dhcp.ti.com>
-References: <1297346881-13438-1-git-send-email-hemahk@ti.com>
- <1297346881-13438-5-git-send-email-hemahk@ti.com>
- <87vd0mw3u9.fsf@ti.com>
-Reply-To: balbi@ti.com
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: OMAP: DSS2: Common IRQ handler for all OMAPs
+Date: Tue, 15 Feb 2011 10:37:37 +0200
+Message-ID: <1297759057.2289.40.camel@deskari>
+References: <1296636990-24775-1-git-send-email-archit@ti.com>
+	 <1297693307.2951.25.camel@deskari>
+	 <20110214143001.GK2549@legolas.emea.dhcp.ti.com>  <4D5A00E8.4060701@ti.com>
+	 <1297754826.2289.9.camel@deskari>  <4D5A39AE.3030006@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:58798 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754469Ab1BOIcn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 03:32:43 -0500
-Content-Disposition: inline
-In-Reply-To: <87vd0mw3u9.fsf@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47821 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754469Ab1BOIhl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 03:37:41 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1F8beqx024389
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 02:37:40 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1F8bel1001186
+	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 02:37:40 -0600 (CST)
+In-Reply-To: <4D5A39AE.3030006@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Hema HK <hemahk@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Feb 14, 2011 at 04:15:10PM -0800, Kevin Hilman wrote:
-> Hema HK <hemahk@ti.com> writes:
+On Tue, 2011-02-15 at 02:30 -0600, Taneja, Archit wrote:
+> Hi,
 > 
-> > Using omap_device_build API instead of platform_device_register for
-> > OMAP2430,OMAP34xx and OMAP4430 musb device registration.
-> > The device specific resources defined in centralized
-> > database will be used.
+> On Tuesday 15 February 2011 12:57 PM, Valkeinen, Tomi wrote:
 > 
-> Except for AM35x.
+> <snip>
 > 
-> NACK, for same reasons as previous version of this patch.
+> > I meant something like this:
+> >
+> > dispc.c:
+> >
+> > dispc_init()
+> > {
+> > 	/* did we have a pdev for dispc? if not, this needs to be dss.pdev */
+> > 	request_irq(platform_get_irq(dispc.pdev, 0), irq_handler, IRQF_SHARED, "dispc irq", foo);
+> > }
+> >
+> > irq_handler()
+> > {
+> > 	if (irq_can_be_shared) {
+> > 		check if the irq is for us. exit if not;
+> > 	}
+> >
+> > 	handle;
+> > }
+> >
+> > dsi.c:
+> >
+> > dsi_init()
+> > {
+> > 	request_irq(platform_get_irq(dsi.pdev, 0), irq_handler, IRQF_SHARED, "dsi irq", foo);
+> > }
+> >
+> > irq_handler()
+> > {
+> > 	if (irq_can_be_shared) {
+> > 		check if the irq is for us. exit if not;
+> > 	}
+> >
+> > 	handle;
+> > }
+> >
+> 
+> This approach looks clean, but isn't IRQF_SHARED used the other way 
+> around. One irq line and multiple handlers?
 
-Does it really make sense to hold on omap2plus HWMOD conversion because
-of AM35x ? I mean, I understand it would be better to get all fixed up,
-but loose another merge window for that ?
+That is the case here, isn't it (on omap3)? One interrupt line (the DSS
+irq, the same returned both from dsi.pdev and dispc.pdev), and two
+handlers, one in dispc and one in dsi? Or what do you mean?
 
-Can we get omap2plus in and AM35x on the next merge window ? At least
-omap2plus would have been converted to hwmod and would be using
-pm_runtime as we want.
+On omap2 there's no dsi code ran, so dispc is the only one requesting
+the irq, and thus IRQF_SHARED is extra. In omap4 there are separate irq
+lines (dsi.pdev and dispc.pdev return different irqs), and so
+IRQF_SHARED is again extra. But I don't see any harm in IRQF_SHARED even
+in omap2/4.
 
--- 
-balbi
+ Tomi
+
+
