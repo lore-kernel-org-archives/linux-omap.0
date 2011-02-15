@@ -1,35 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: Move omap2_check_revision and omap_sram_init out
- of map_io
-Date: Mon, 14 Feb 2011 17:53:20 -0800
-Message-ID: <20110215015320.GX20795@atomide.com>
-References: <20110123171344.GH30094@n2100.arm.linux.org.uk>
- <20110123174814.GI30094@n2100.arm.linux.org.uk>
- <20110124201731.GC13589@atomide.com>
- <20110214234520.GT20795@atomide.com>
- <20110214235238.GU20795@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V4] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
+Date: Tue, 15 Feb 2011 08:48:34 +0530
+Message-ID: <4D59F08A.7080907@ti.com>
+References: <1296798454-23755-1-git-send-email-shweta.gulati@ti.com>	<AANLkTin6my7MgZHSUx44EYmaAG8nrmjNsrQ-26H0vtUk@mail.gmail.com> <87y65iz22v.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63758 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751995Ab1BOBxh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 20:53:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20110214235238.GU20795@atomide.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:46185 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751192Ab1BODSl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Feb 2011 22:18:41 -0500
+Received: by mail-yw0-f48.google.com with SMTP id 21so2600081ywc.21
+        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 19:18:40 -0800 (PST)
+In-Reply-To: <87y65iz22v.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Shweta Gulati <shweta.gulati@ti.com>, linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>, Sanjeev Premi <premi@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [110214 15:51]:
-> With the early init changes we just want to map IO in map_io.
-> Both omap2_check_revision and omap_sram_init can be moved to
-> happen later in omap2_init_common_infrastructure.
-> 
-> Note that now we can now remove _omap2_map_common_io and remove
-> the extra flushes too as devicemaps_init will take care of it.
+Kevin Hilman wrote, on 02/15/2011 03:54 AM:
+> "Menon, Nishanth"<nm@ti.com>  writes:
+>
+>> On Fri, Feb 4, 2011 at 11:17, Shweta Gulati<shweta.gulati@ti.com>  wrote:
+>>> From: Thara Gopinath<thara@ti.com>
+>>>
+>> Gentle ping - folks after 8 days no comments, does this rev address
+>> all previous comments? if so, it might be good to get some acks ;)
+>
+> Gentle reminder.  Patchwork[1] keeps a queue of patches pending
+> review/merge etc.  If it's in patchwork it will get reviewed, most
+> likely in the order it was received.
+>
+> There are lots of going on recently, so we have a good sized queue in
+> patchwork.
 
-Hmm this one seems to need a bit more work, won't work on 2420.
+Ofcourse, the intent of the ping here was for other reviewers of patches 
+from v2/v3 of this patch to provide their inputs so that we can move 
+this forward. Btw, other than maintainer,  I am not completely sure if 
+ML based reviewers review based on patchworks sequencing ;).
 
-Tony
+-- 
+Regards,
+Nishanth Menon
