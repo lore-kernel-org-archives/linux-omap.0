@@ -1,209 +1,72 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH v2 1/1] OMAP: IOMMU: add support to callback during fault handling
-Date: Tue, 15 Feb 2011 17:10:32 +0200
-Message-ID: <AANLkTikK0zAYtSaA1LCdkn2t4_XiTH_DmESEzw8MLvfU@mail.gmail.com>
-References: <1297780591-15613-1-git-send-email-dacohen@gmail.com>
-	<1297780591-15613-2-git-send-email-dacohen@gmail.com>
-	<20110215.164822.811675675026794737.Hiroshi.DOYU@nokia.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH V4] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
+Date: Tue, 15 Feb 2011 17:16:52 +0200
+Message-ID: <20110215171652.601c9c68.jhnikula@gmail.com>
+References: <1297756738-2696-1-git-send-email-shweta.gulati@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:62310 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755113Ab1BOPKd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 10:10:33 -0500
-Received: by wyb28 with SMTP id 28so260462wyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 07:10:32 -0800 (PST)
-In-Reply-To: <20110215.164822.811675675026794737.Hiroshi.DOYU@nokia.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:40481 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751106Ab1BOPQc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 10:16:32 -0500
+Received: by ewy5 with SMTP id 5so130209ewy.19
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 07:16:31 -0800 (PST)
+In-Reply-To: <1297756738-2696-1-git-send-email-shweta.gulati@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: Shweta Gulati <shweta.gulati@ti.com>
+Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>, Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Tue, Feb 15, 2011 at 4:48 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> =
-wrote:
-> Hi David,
+On Tue, 15 Feb 2011 13:28:58 +0530
+Shweta Gulati <shweta.gulati@ti.com> wrote:
 
-Hi Hiroshi,
+> This patch is based on LO PM Branch and Smartreflex has been
+> tested on OMAP3430 SDP, OMAP3630 SDP and boot tested on
+> OMAP2430 SDP.
+> 
+I saw this was working on N900 (kind of special instrumentation
+setup) after enabling /sys/kernel/debug/voltage/[vdd_core |
+vdd_mpu]/smartreflex/autocomp. Few comments below.
 
->
-> Sorry for a bit late reply....
+> @@ -269,6 +276,18 @@ int __init omap3_twl_init(void)
+>  		omap3_core_volt_info.vp_vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
+>  	}
+...
+> +	if (!twl_sr_enable_autoinit)
+> +		omap3_twl_set_sr_bit(true);
+...
+> +int __init omap3_twl_set_sr_bit(bool enable)
+> +{
+> +	u8 temp;
+> +	int ret;
+> +	if (twl_sr_enable_autoinit)
+> +		pr_warning("%s: unexpected multiple calls\n", __func__);
+> +
+> +	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
+> +					TWL4030_DCDC_GLOBAL_CFG);
+> +	if (ret)
+> +		goto err;
+> +
+> +	if (enable)
+> +		temp |= SMARTREFLEX_ENABLE;
+> +	else
+> +		temp &= ~SMARTREFLEX_ENABLE;
+> +
+> +	ret = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
+> +				TWL4030_DCDC_GLOBAL_CFG);
 
-You're just in time. :)
+Would it make more sense to set only the flag here and do the register
+writes when omap3_twl_init is executing? Then it's not so strict when
+the board code calls this function.
 
->
-> From: David Cohen <dacohen@gmail.com>
-> Subject: [PATCH v2 1/1] OMAP: IOMMU: add support to callback during f=
-ault handling
-> Date: Tue, 15 Feb 2011 16:36:31 +0200
->
->> Add support to register a callback for IOMMU fault situations. Drive=
-rs using
->> IOMMU module might want to be informed when such errors happen in or=
-der to
->> debug it or react.
->>
->> Signed-off-by: David Cohen <dacohen@gmail.com>
->> ---
->> =C2=A0arch/arm/mach-omap2/iommu2.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0| =C2=A0 21 +++++++++++++--
->> =C2=A0arch/arm/plat-omap/include/plat/iommu.h | =C2=A0 15 ++++++++++=
--
->> =C2=A0arch/arm/plat-omap/iommu.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0| =C2=A0 41 ++++++++++++++++++++++++++++---
->> =C2=A03 files changed, 69 insertions(+), 8 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iomm=
-u2.c
->> index 14ee686..504310d 100644
->> --- a/arch/arm/mach-omap2/iommu2.c
->> +++ b/arch/arm/mach-omap2/iommu2.c
->> @@ -143,10 +143,10 @@ static void omap2_iommu_set_twl(struct iommu *=
-obj, bool on)
->> =C2=A0 =C2=A0 =C2=A0 __iommu_set_twl(obj, false);
->> =C2=A0}
->>
->> -static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
->> +static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra, u32 *i=
-ommu_errs)
->> =C2=A0{
->> =C2=A0 =C2=A0 =C2=A0 int i;
->> - =C2=A0 =C2=A0 u32 stat, da;
->> + =C2=A0 =C2=A0 u32 stat, da, errs;
->> =C2=A0 =C2=A0 =C2=A0 const char *err_msg[] =3D {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "tlb miss",
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "translation fault"=
-,
->> @@ -157,8 +157,10 @@ static u32 omap2_iommu_fault_isr(struct iommu *=
-obj, u32 *ra)
->>
->> =C2=A0 =C2=A0 =C2=A0 stat =3D iommu_read_reg(obj, MMU_IRQSTATUS);
->> =C2=A0 =C2=A0 =C2=A0 stat &=3D MMU_IRQ_MASK;
->> - =C2=A0 =C2=A0 if (!stat)
->> + =C2=A0 =C2=A0 if (!stat) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 *iommu_errs =3D 0;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
->> + =C2=A0 =C2=A0 }
->>
->> =C2=A0 =C2=A0 =C2=A0 da =3D iommu_read_reg(obj, MMU_FAULT_AD);
->> =C2=A0 =C2=A0 =C2=A0 *ra =3D da;
->> @@ -171,6 +173,19 @@ static u32 omap2_iommu_fault_isr(struct iommu *=
-obj, u32 *ra)
->> =C2=A0 =C2=A0 =C2=A0 }
->> =C2=A0 =C2=A0 =C2=A0 printk("\n");
->>
->> + =C2=A0 =C2=A0 errs =3D 0;
->> + =C2=A0 =C2=A0 if (stat & MMU_IRQ_TLBMISS)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IOMMU_ERR=
-_TLB_MISS;
->> + =C2=A0 =C2=A0 if (stat & MMU_IRQ_TRANSLATIONFAULT)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IOMMU_ERR=
-_TRANS_FAULT;
->> + =C2=A0 =C2=A0 if (stat & MMU_IRQ_EMUMISS)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IOMMU_ERR=
-_EMU_MISS;
->> + =C2=A0 =C2=A0 if (stat & MMU_IRQ_TABLEWALKFAULT)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IOMMU_ERR=
-_TBLWALK_FAULT;
->> + =C2=A0 =C2=A0 if (stat & MMU_IRQ_MULTIHITFAULT)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IOMMU_ERR=
-_MULTIHIT_FAULT;
->> + =C2=A0 =C2=A0 *iommu_errs =3D errs;
->> +
->> =C2=A0 =C2=A0 =C2=A0 iommu_write_reg(obj, stat, MMU_IRQSTATUS);
->>
->> =C2=A0 =C2=A0 =C2=A0 return stat;
->> diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat=
--omap/include/plat/iommu.h
->> index 19cbb5e..5a2475f 100644
->> --- a/arch/arm/plat-omap/include/plat/iommu.h
->> +++ b/arch/arm/plat-omap/include/plat/iommu.h
->> @@ -31,6 +31,7 @@ struct iommu {
->> =C2=A0 =C2=A0 =C2=A0 struct clk =C2=A0 =C2=A0 =C2=A0*clk;
->> =C2=A0 =C2=A0 =C2=A0 void __iomem =C2=A0 =C2=A0*regbase;
->> =C2=A0 =C2=A0 =C2=A0 struct device =C2=A0 *dev;
->> + =C2=A0 =C2=A0 void =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*fault=
-_cb_priv;
->>
->> =C2=A0 =C2=A0 =C2=A0 unsigned int =C2=A0 =C2=A0refcount;
->> =C2=A0 =C2=A0 =C2=A0 struct mutex =C2=A0 =C2=A0iommu_lock; =C2=A0 =C2=
-=A0 /* global for this whole object */
->> @@ -48,6 +49,7 @@ struct iommu {
->> =C2=A0 =C2=A0 =C2=A0 struct mutex =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0mmap_lock; /* protect mmap */
->>
->> =C2=A0 =C2=A0 =C2=A0 int (*isr)(struct iommu *obj);
->> + =C2=A0 =C2=A0 void (*fault_cb)(struct iommu *obj, u32 da, u32 iomm=
-u_errs, void *priv);
->
-> What about making use of (*isr)() for fault call back as well?
->
-> Basic concept is that, client can decide how to deal with iommu
-> fault. For example, for advanced case, client wants daynamic loading =
-of
-> TLB(or PTE), or for ISP case, clients just want more appropriate faul=
-t
-> reporting. This (*isr)() could be used in such flexibility.
+> +	if (!ret) {
+> +		twl_sr_enable_autoinit = true;
+> +		return 0;
 
-In this case, it seems we can re-use it.
+Should this be twl_sr_enable_autoinit = enable (if going to do
+register write here)?
 
->
-> =C2=A0 785 =C2=A0 * =C2=A0 =C2=A0 =C2=A0Device IOMMU generic operatio=
-ns
-> =C2=A0 786 =C2=A0 */
-> =C2=A0 787 =C2=A0static irqreturn_t iommu_fault_handler(int irq, void=
- *data)
-> =C2=A0 788 =C2=A0{
-> =C2=A0 789 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0u32 stat, da;
-> =C2=A0 790 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0u32 *iopgd, *iopte;
-> =C2=A0 791 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0int err =3D -EIO;
-> =C2=A0 792 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0struct iommu *obj =3D da=
-ta;
-> =C2=A0 793
-> =C2=A0 794 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!obj->refcount)
-> =C2=A0 795 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0return IRQ_NONE;
-> =C2=A0 796
-> =C2=A0 797 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Dynamic loading TLB o=
-r PTE */
-> =C2=A0 798 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (obj->isr)
-> =C2=A0 799 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0err =3D obj->isr(obj);
-> =C2=A0 800
-> =C2=A0 801 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!err)
-> =C2=A0 802 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0return IRQ_HANDLED;
-> =C2=A0 803
-> =C2=A0 804 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0clk_enable(obj->clk);
-> =C2=A0 805 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0stat =3D iommu_report_fa=
-ult(obj, &da);
-> =C2=A0 806 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0clk_disable(obj->clk);
-> =C2=A0 807 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!stat)
-> =C2=A0 808 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0return IRQ_HANDLED;
-> =C2=A0 809
-> =C2=A0 810 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0iommu_disable(obj);
->
-> I guess that this modifying the above code could make (*isr)()
-> flexible to be used for any purpose for clients? For me, having both
-> following may be a bit residual.
-
-I agree. We need to add 'void *isr_priv' to iommu struct and the
-function to register isr.
-I'll send a v3 soon.
-
-Regards,
-
-David
-
->
->> =C2=A0 =C2=A0 =C2=A0 int (*isr)(struct iommu *obj);
->> + =C2=A0 =C2=A0 void (*fault_cb)(struct iommu *obj, u32 da, u32 iomm=
-u_errs, void *priv);
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jarkko
