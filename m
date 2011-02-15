@@ -1,79 +1,63 @@
 From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH 1/2] OMAP2+: IOMMU: change OMAP2+ error message to dev_dbg()
-Date: Tue, 15 Feb 2011 16:08:32 +0200
-Message-ID: <AANLkTim3+PFgJUU_-YqOt1M5NkSyHo6wUwF_XwC9MWSP@mail.gmail.com>
+Subject: Re: [PATCH 1/2] OMAP2+: IOMMU: change OMAP2+ error message to
+	dev_dbg()
+Date: Tue, 15 Feb 2011 16:21:28 +0200
+Message-ID: <AANLkTimCnK3gia4=EQ4ZDhhwgned3J0OGM+1Sqo_+e=t@mail.gmail.com>
 References: <1297776033-8579-1-git-send-email-dacohen@gmail.com>
 	<1297776033-8579-2-git-send-email-dacohen@gmail.com>
 	<4D5A81D8.2080800@ru.mvista.com>
 	<AANLkTinQX59iyX1La=99Urgh5_JF0iZacBDqQz1VQfhi@mail.gmail.com>
 	<20110215155948.32b564d5.jhnikula@gmail.com>
+	<AANLkTim3+PFgJUU_-YqOt1M5NkSyHo6wUwF_XwC9MWSP@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:61983 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754809Ab1BOOIe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 09:08:34 -0500
-Received: by wwa36 with SMTP id 36so216213wwa.1
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 06:08:33 -0800 (PST)
-In-Reply-To: <20110215155948.32b564d5.jhnikula@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <AANLkTim3+PFgJUU_-YqOt1M5NkSyHo6wUwF_XwC9MWSP@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, tony@atomide.com, linux-omap@vger.kernel.org, Hiroshi.DOYU@nokia.com, linux-arm-kernel@lists.infradead.org
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, Hiroshi.DOYU@nokia.com, linux-arm-kernel@lists.infradead.org, Sergei Shtylyov <sshtylyov@mvista.com>
+List-Id: linux-omap@vger.kernel.org
 
-On Tue, Feb 15, 2011 at 3:59 PM, Jarkko Nikula <jhnikula@gmail.com> wro=
-te:
-> On Tue, 15 Feb 2011 15:44:27 +0200
-> David Cohen <dacohen@gmail.com> wrote:
->
->> >> @@ -163,13 +163,13 @@ static u32 omap2_iommu_fault_isr(struct iom=
-mu *obj,
->> >> u32 *ra)
->> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0da =3D iommu_read_reg(obj, MMU_FAULT_A=
-D);
->> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0*ra =3D da;
->> >>
->> >> - =C2=A0 =C2=A0 =C2=A0 dev_err(obj->dev, "%s:\tda:%08x ", __func_=
-_, da);
->> >> + =C2=A0 =C2=A0 =C2=A0 dev_dbg(obj->dev, "%s:\tda:%08x ", __func_=
-_, da);
->> >
->> > =C2=A0 Note that dev_dbg() will only print something if either DEB=
-UG or
->> > CONFIG_DYNAMIC_DEBUG are defined...
->>
->> That's my plan.
->>
-> So it's sure that a developer won't need these error dumps when
-> receiving an error report? I.e. IOMMU upper level errors give enough
-> information to start doing own debugging?
-
-Yes, developers do need this information.
-But it's a bit useless tell only we've got an iommu fault, due to many
-places might be causing it. My purpose is to let the debug
-responsibility to IOMMU users. They have access to the iovmm layer as
-well and can provide a much more useful information.
-e.g. OMAP3 ISP has many submodules using IOMMU. With a fault callback,
-it can dump all the iovm areas and the faulty 'da' too. It might
-indicate which submodule was responsible for the issue.
-
-Of course we can just let this debug messages the way they are and
-print this redundant information. But IMO it's not necessary.
-
-Regards,
-
-David
-
->
-> Just my 2 cents.
->
-> --
-> Jarkko
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVHVlLCBGZWIgMTUsIDIwMTEgYXQgNDowOCBQTSwgRGF2aWQgQ29oZW4gPGRhY29oZW5AZ21h
+aWwuY29tPiB3cm90ZToKPiBPbiBUdWUsIEZlYiAxNSwgMjAxMSBhdCAzOjU5IFBNLCBKYXJra28g
+TmlrdWxhIDxqaG5pa3VsYUBnbWFpbC5jb20+IHdyb3RlOgo+PiBPbiBUdWUsIDE1IEZlYiAyMDEx
+IDE1OjQ0OjI3ICswMjAwCj4+IERhdmlkIENvaGVuIDxkYWNvaGVuQGdtYWlsLmNvbT4gd3JvdGU6
+Cj4+Cj4+PiA+PiBAQCAtMTYzLDEzICsxNjMsMTMgQEAgc3RhdGljIHUzMiBvbWFwMl9pb21tdV9m
+YXVsdF9pc3Ioc3RydWN0IGlvbW11ICpvYmosCj4+PiA+PiB1MzIgKnJhKQo+Pj4gPj4gwqAgwqAg
+wqAgwqBkYSA9IGlvbW11X3JlYWRfcmVnKG9iaiwgTU1VX0ZBVUxUX0FEKTsKPj4+ID4+IMKgIMKg
+IMKgIMKgKnJhID0gZGE7Cj4+PiA+Pgo+Pj4gPj4gLSDCoCDCoCDCoCBkZXZfZXJyKG9iai0+ZGV2
+LCAiJXM6XHRkYTolMDh4ICIsIF9fZnVuY19fLCBkYSk7Cj4+PiA+PiArIMKgIMKgIMKgIGRldl9k
+Ymcob2JqLT5kZXYsICIlczpcdGRhOiUwOHggIiwgX19mdW5jX18sIGRhKTsKPj4+ID4KPj4+ID4g
+wqAgTm90ZSB0aGF0IGRldl9kYmcoKSB3aWxsIG9ubHkgcHJpbnQgc29tZXRoaW5nIGlmIGVpdGhl
+ciBERUJVRyBvcgo+Pj4gPiBDT05GSUdfRFlOQU1JQ19ERUJVRyBhcmUgZGVmaW5lZC4uLgo+Pj4K
+Pj4+IFRoYXQncyBteSBwbGFuLgo+Pj4KPj4gU28gaXQncyBzdXJlIHRoYXQgYSBkZXZlbG9wZXIg
+d29uJ3QgbmVlZCB0aGVzZSBlcnJvciBkdW1wcyB3aGVuCj4+IHJlY2VpdmluZyBhbiBlcnJvciBy
+ZXBvcnQ/IEkuZS4gSU9NTVUgdXBwZXIgbGV2ZWwgZXJyb3JzIGdpdmUgZW5vdWdoCj4+IGluZm9y
+bWF0aW9uIHRvIHN0YXJ0IGRvaW5nIG93biBkZWJ1Z2dpbmc/Cj4KPiBZZXMsIGRldmVsb3BlcnMg
+ZG8gbmVlZCB0aGlzIGluZm9ybWF0aW9uLgo+IEJ1dCBpdCdzIGEgYml0IHVzZWxlc3MgdGVsbCBv
+bmx5IHdlJ3ZlIGdvdCBhbiBpb21tdSBmYXVsdCwgZHVlIHRvIG1hbnkKPiBwbGFjZXMgbWlnaHQg
+YmUgY2F1c2luZyBpdC4gTXkgcHVycG9zZSBpcyB0byBsZXQgdGhlIGRlYnVnCj4gcmVzcG9uc2li
+aWxpdHkgdG8gSU9NTVUgdXNlcnMuIFRoZXkgaGF2ZSBhY2Nlc3MgdG8gdGhlIGlvdm1tIGxheWVy
+IGFzCj4gd2VsbCBhbmQgY2FuIHByb3ZpZGUgYSBtdWNoIG1vcmUgdXNlZnVsIGluZm9ybWF0aW9u
+Lgo+IGUuZy4gT01BUDMgSVNQIGhhcyBtYW55IHN1Ym1vZHVsZXMgdXNpbmcgSU9NTVUuIFdpdGgg
+YSBmYXVsdCBjYWxsYmFjaywKPiBpdCBjYW4gZHVtcCBhbGwgdGhlIGlvdm0gYXJlYXMgYW5kIHRo
+ZSBmYXVsdHkgJ2RhJyB0b28uIEl0IG1pZ2h0Cj4gaW5kaWNhdGUgd2hpY2ggc3VibW9kdWxlIHdh
+cyByZXNwb25zaWJsZSBmb3IgdGhlIGlzc3VlLgo+Cj4gT2YgY291cnNlIHdlIGNhbiBqdXN0IGxl
+dCB0aGlzIGRlYnVnIG1lc3NhZ2VzIHRoZSB3YXkgdGhleSBhcmUgYW5kCj4gcHJpbnQgdGhpcyBy
+ZWR1bmRhbnQgaW5mb3JtYXRpb24uIEJ1dCBJTU8gaXQncyBub3QgbmVjZXNzYXJ5LgoKSW5kZWVk
+LCB3ZSBjYW4gbGVhdmUgdGhpcyBkaXNjdXNzaW9uIGZvciBmdXR1cmUuIE15IG1haW4gcHVycG9z
+ZSBub3cKaXMgdGhlIGZhdWx0IGNhbGxiYWNrLiBJJ2xsIGRyb3AgdGhpcyBwYXRjaCAxLzIgZm9y
+IG5vdy4KClJlZ2FyZHMsCgpEYXZpZAoKPgo+IFJlZ2FyZHMsCj4KPiBEYXZpZAo+Cj4+Cj4+IEp1
+c3QgbXkgMiBjZW50cy4KPj4KPj4gLS0KPj4gSmFya2tvCj4+Cj4KCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBs
+aXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5m
+cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
