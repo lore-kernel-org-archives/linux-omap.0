@@ -1,88 +1,43 @@
-From: Shweta Gulati <shweta.gulati@ti.com>
-Subject: [PATCH] OMAP: Fix Memory Leaks in Smartreflex driver
-Date: Tue, 15 Feb 2011 13:40:30 +0530
-Message-ID: <1297757430-3059-1-git-send-email-shweta.gulati@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46795 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751393Ab1BOILA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 03:11:00 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Panduranga Mallireddy <panduranga_mallireddy@ti.com>
+Subject: [PATCH v2 2/5] omap: select REGULATOR_FIXED_VOLTAGE by default for panda and sdp4430
+Date: Tue, 15 Feb 2011 03:40:33 -0500
+Message-ID: <1297759236-25323-3-git-send-email-panduranga_mallireddy@ti.com>
+References: <1297759236-25323-1-git-send-email-panduranga_mallireddy@ti.com>
+ <1297759236-25323-2-git-send-email-panduranga_mallireddy@ti.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1297759236-25323-2-git-send-email-panduranga_mallireddy@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: coelho@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Cc: ohad@wizery.com, benzyg@ti.com, pradeepgurumath@ti.com, vishalm@ti.com, x-boudet@ti.com, naveen_jain@ti.com, pavan_savoy@ti.com, manjunatha_halli@ti.com, tony@atomide.com, cjb@laptop.org, Panduranga Mallireddy <panduranga_mallireddy@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Shweta Gulati <shweta.gulati@ti.com>, linux-arm-kernel@lists.infradead.org
 
-This Patch frees all the dynamically allocated memory
-which couldn't have been released in some error hitting cases.
-
-Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org
+Power to the wl12xx wlan device is controlled by a fixed regulator.
+Boards that have the wl12xx should select REGULATOR_FIXED_VOLTAGE.
+Signed-off-by: Panduranga Mallireddy <panduranga_mallireddy@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   18 ++++++++++++------
- 1 files changed, 12 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/Kconfig |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index a1f532e..5af8829 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -284,6 +284,7 @@ error:
- 		dev_err(&sr_info->pdev->dev, "%s: ERROR in registering"
- 			"interrupt handler. Smartreflex will"
- 			"not function as desired\n", __func__);
-+		kfree(name);
- 		kfree(sr_info);
- 		return ret;
- }
-@@ -881,7 +882,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		ret = sr_late_init(sr_info);
- 		if (ret) {
- 			pr_warning("%s: Error in SR late init\n", __func__);
--			return ret;
-+			goto err_release_region;
- 		}
- 	}
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 1a2cf62..eeaeb3b 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -300,6 +300,7 @@ config MACH_OMAP_4430SDP
+ 	depends on ARCH_OMAP4
+ 	select OMAP_PACKAGE_CBL
+ 	select OMAP_PACKAGE_CBS
++	select REGULATOR_FIXED_VOLTAGE
  
-@@ -892,14 +893,17 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 	 * not try to create rest of the debugfs entries.
- 	 */
- 	vdd_dbg_dir = omap_voltage_get_dbgdir(sr_info->voltdm);
--	if (!vdd_dbg_dir)
--		return -EINVAL;
-+	if (!vdd_dbg_dir) {
-+		ret = -EINVAL;
-+		goto err_release_region;
-+	}
+ config MACH_OMAP4_PANDA
+ 	bool "OMAP4 Panda Board"
+@@ -307,6 +308,7 @@ config MACH_OMAP4_PANDA
+ 	depends on ARCH_OMAP4
+ 	select OMAP_PACKAGE_CBL
+ 	select OMAP_PACKAGE_CBS
++	select REGULATOR_FIXED_VOLTAGE
  
- 	dbg_dir = debugfs_create_dir("smartreflex", vdd_dbg_dir);
- 	if (IS_ERR(dbg_dir)) {
- 		dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
- 			__func__);
--		return PTR_ERR(dbg_dir);
-+		ret = PTR_ERR(dbg_dir);
-+		goto err_release_region;
- 	}
- 
- 	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUSR, dbg_dir,
-@@ -915,7 +919,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 	if (IS_ERR(nvalue_dir)) {
- 		dev_err(&pdev->dev, "%s: Unable to create debugfs directory"
- 			"for n-values\n", __func__);
--		return PTR_ERR(nvalue_dir);
-+		ret = PTR_ERR(nvalue_dir);
-+		goto err_release_region;
- 	}
- 
- 	omap_voltage_get_volttable(sr_info->voltdm, &volt_data);
-@@ -924,7 +929,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 			" corresponding vdd vdd_%s. Cannot create debugfs"
- 			"entries for n-values\n",
- 			__func__, sr_info->voltdm->name);
--		return -ENODATA;
-+		ret = -ENODATA;
-+		goto err_release_region;
- 	}
- 
- 	for (i = 0; i < sr_info->nvalue_count; i++) {
+ config OMAP3_EMU
+ 	bool "OMAP3 debugging peripherals"
 -- 
-1.7.0.4
+1.5.6.3
 
