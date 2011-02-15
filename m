@@ -1,93 +1,1030 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: Re: [PATCH 4/8] ARM: etm: Allow range selection
-Date: Tue, 15 Feb 2011 15:50:54 +0200
-Message-ID: <20110215135054.GD18248@shisha.kicks-ass.net>
-References: <1296701663-12168-1-git-send-email-arve@android.com>
-	<1297750276-12475-4-git-send-email-arve@android.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 2/2] OMAP: PM: implement devices wakeup latency
+ constraints APIs
+Date: Tue, 15 Feb 2011 14:52:28 +0100
+Message-ID: <AANLkTi=-3K0CryCYfSS1n7oPr7fdweszZY7wpt=Ci69B@mail.gmail.com>
+References: <1297365807-12143-1-git-send-email-j-pihet@ti.com>
+	<1297365807-12143-3-git-send-email-j-pihet@ti.com>
+	<b34afc47bcc37fa68315718cdbcd19e1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1297750276-12475-4-git-send-email-arve@android.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arve =?utf-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, Jason Wessel <jason.wessel@windriver.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:63734 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752960Ab1BONxM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 08:53:12 -0500
+Received: by qwa26 with SMTP id 26so136425qwa.19
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 05:53:11 -0800 (PST)
+In-Reply-To: <b34afc47bcc37fa68315718cdbcd19e1@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, paul@pwsan.com, Vibhore Vardhan <vvardhan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, Jean Pihet-XID <j-pihet@ti.com>
 
-T24gTW9uLCBGZWIgMTQsIDIwMTEgYXQgMTA6MTE6MTJQTSAtMDgwMCwgQXJ2ZSBIasO4bm5ldsOl
-ZyB3cm90ZToKPiBUcmFjZSBrZXJuZWwgdGV4dCBzZWdtZW50IGJ5IGRlZmF1bHQgYXMgYmVmb3Jl
-LCBhbGxvdyB0cmFjaW5nIG9mIG90aGVyCj4gcmFuZ2VzIGJ5IHdyaXRpbmcgYSByYW5nZSB0byAv
-c3lzL2RldmljZXMvZXRtL3RyYWNlX3JhbmdlLCBvciB0byB0cmFjZQo+IGV2ZXJ5dGhpbmcgYnkg
-d3JpdGluZyAwIDAuCgpTaW5jZSB5b3UncmUgYWRkaW5nIHRoaXMsIEkgdGhpbmsgaXQgbWlnaHQg
-bWFrZSBzZW5zZSB0byBhZGQgYSAzcmQgb3B0aW9uYWwKY3R4IGlkIGZpZWxkLCBzbyB0aGF0IHVz
-ZXJzcGFjZSB0cmFjaW5nIGlzIGFsc28gcG9zc2libGUsIGVzcGVjaWFsbHkgd2hlbgpvbi1jaGlw
-IEVUQiBzaXplcyBpbmNyZWFzZSB0byBzb21ldGhpbmcgbW9yZSBzZW5zaWJsZSB0aGFuIHdoYXQg
-dGhleSBhcmUKdGhlc2UgZGF5cy4KClRoYW5rcyEKCj4gCj4gU2lnbmVkLW9mZi1ieTogQXJ2ZSBI
-asO4bm5ldsOlZyA8YXJ2ZUBhbmRyb2lkLmNvbT4KPiAtLS0KPiAgYXJjaC9hcm0va2VybmVsL2V0
-bS5jIHwgICA0OSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-LS0tCj4gIDEgZmlsZXMgY2hhbmdlZCwgNDYgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkK
-PiAKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0va2VybmVsL2V0bS5jIGIvYXJjaC9hcm0va2VybmVs
-L2V0bS5jCj4gaW5kZXggYmM3ZDhmMi4uOGExYzQyMiAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9r
-ZXJuZWwvZXRtLmMKPiArKysgYi9hcmNoL2FybS9rZXJuZWwvZXRtLmMKPiBAQCAtNDAsMTIgKzQw
-LDE3IEBAIHN0cnVjdCB0cmFjZWN0eCB7Cj4gIAl1bnNpZ25lZCBsb25nCWZsYWdzOwo+ICAJaW50
-CQluY21wcGFpcnM7Cj4gIAlpbnQJCWV0bV9wb3J0c3o7Cj4gKwl1bnNpZ25lZCBsb25nCXJhbmdl
-X3N0YXJ0Owo+ICsJdW5zaWduZWQgbG9uZwlyYW5nZV9lbmQ7Cj4gIAlzdHJ1Y3QgZGV2aWNlCSpk
-ZXY7Cj4gIAlzdHJ1Y3QgY2xrCSplbXVfY2xrOwo+ICAJc3RydWN0IG11dGV4CW11dGV4Owo+ICB9
-Owo+ICAKPiAtc3RhdGljIHN0cnVjdCB0cmFjZWN0eCB0cmFjZXI7Cj4gK3N0YXRpYyBzdHJ1Y3Qg
-dHJhY2VjdHggdHJhY2VyID0gewo+ICsJLnJhbmdlX3N0YXJ0ID0gKHVuc2lnbmVkIGxvbmcpX3N0
-ZXh0LAo+ICsJLnJhbmdlX2VuZCA9ICh1bnNpZ25lZCBsb25nKV9ldGV4dCwKPiArfTsKPiAgCj4g
-IHN0YXRpYyBpbmxpbmUgYm9vbCB0cmFjZV9pc3J1bm5pbmcoc3RydWN0IHRyYWNlY3R4ICp0KQo+
-ICB7Cj4gQEAgLTExNSw4ICsxMjAsMTIgQEAgc3RhdGljIGludCB0cmFjZV9zdGFydChzdHJ1Y3Qg
-dHJhY2VjdHggKnQpCj4gIAkJcmV0dXJuIC1FRkFVTFQ7Cj4gIAl9Cj4gIAo+IC0JZXRtX3NldHVw
-X2FkZHJlc3NfcmFuZ2UodCwgMSwgKHVuc2lnbmVkIGxvbmcpX3N0ZXh0LAo+IC0JCQkodW5zaWdu
-ZWQgbG9uZylfZXRleHQsIDAsIDApOwo+ICsJaWYgKHQtPnJhbmdlX3N0YXJ0IHx8IHQtPnJhbmdl
-X2VuZCkKPiArCQlldG1fc2V0dXBfYWRkcmVzc19yYW5nZSh0LCAxLAo+ICsJCQkJCXQtPnJhbmdl
-X3N0YXJ0LCB0LT5yYW5nZV9lbmQsIDAsIDApOwo+ICsJZWxzZQo+ICsJCWV0bV93cml0ZWwodCwg
-RVRNVEVfSU5DTEVYQ0wsIEVUTVJfVFJBQ0VFTkNUUkwpOwo+ICsKPiAgCWV0bV93cml0ZWwodCwg
-MCwgRVRNUl9UUkFDRUVOQ1RSTDIpOwo+ICAJZXRtX3dyaXRlbCh0LCAwLCBFVE1SX1RSQUNFU1ND
-VFJMKTsKPiAgCWV0bV93cml0ZWwodCwgMHg2ZiwgRVRNUl9UUkFDRUVORVZUKTsKPiBAQCAtNTI1
-LDYgKzUzNCwzNSBAQCBzdGF0aWMgc3NpemVfdCB0cmFjZV9tb2RlX3N0b3JlKHN0cnVjdCBrb2Jq
-ZWN0ICprb2JqLAo+ICBzdGF0aWMgc3RydWN0IGtvYmpfYXR0cmlidXRlIHRyYWNlX21vZGVfYXR0
-ciA9Cj4gIAlfX0FUVFIodHJhY2VfbW9kZSwgMDY0NCwgdHJhY2VfbW9kZV9zaG93LCB0cmFjZV9t
-b2RlX3N0b3JlKTsKPiAgCj4gK3N0YXRpYyBzc2l6ZV90IHRyYWNlX3JhbmdlX3Nob3coc3RydWN0
-IGtvYmplY3QgKmtvYmosCj4gKwkJCQkgIHN0cnVjdCBrb2JqX2F0dHJpYnV0ZSAqYXR0ciwKPiAr
-CQkJCSAgY2hhciAqYnVmKQo+ICt7Cj4gKwlyZXR1cm4gc3ByaW50ZihidWYsICIlMDhseCAlMDhs
-eFxuIiwKPiArCQkJdHJhY2VyLnJhbmdlX3N0YXJ0LCB0cmFjZXIucmFuZ2VfZW5kKTsKPiArfQo+
-ICsKPiArc3RhdGljIHNzaXplX3QgdHJhY2VfcmFuZ2Vfc3RvcmUoc3RydWN0IGtvYmplY3QgKmtv
-YmosCj4gKwkJCQkgICBzdHJ1Y3Qga29ial9hdHRyaWJ1dGUgKmF0dHIsCj4gKwkJCQkgICBjb25z
-dCBjaGFyICpidWYsIHNpemVfdCBuKQo+ICt7Cj4gKwl1bnNpZ25lZCBsb25nIHJhbmdlX3N0YXJ0
-LCByYW5nZV9lbmQ7Cj4gKwo+ICsJaWYgKHNzY2FuZihidWYsICIlbHggJWx4IiwgJnJhbmdlX3N0
-YXJ0LCAmcmFuZ2VfZW5kKSAhPSAyKQo+ICsJCXJldHVybiAtRUlOVkFMOwo+ICsKPiArCW11dGV4
-X2xvY2soJnRyYWNlci5tdXRleCk7Cj4gKwl0cmFjZXIucmFuZ2Vfc3RhcnQgPSByYW5nZV9zdGFy
-dDsKPiArCXRyYWNlci5yYW5nZV9lbmQgPSByYW5nZV9lbmQ7Cj4gKwltdXRleF91bmxvY2soJnRy
-YWNlci5tdXRleCk7Cj4gKwo+ICsJcmV0dXJuIG47Cj4gK30KPiArCj4gKwo+ICtzdGF0aWMgc3Ry
-dWN0IGtvYmpfYXR0cmlidXRlIHRyYWNlX3JhbmdlX2F0dHIgPQo+ICsJX19BVFRSKHRyYWNlX3Jh
-bmdlLCAwNjQ0LCB0cmFjZV9yYW5nZV9zaG93LCB0cmFjZV9yYW5nZV9zdG9yZSk7Cj4gKwo+ICBz
-dGF0aWMgaW50IF9faW5pdCBldG1fcHJvYmUoc3RydWN0IGFtYmFfZGV2aWNlICpkZXYsIHN0cnVj
-dCBhbWJhX2lkICppZCkKPiAgewo+ICAJc3RydWN0IHRyYWNlY3R4ICp0ID0gJnRyYWNlcjsKPiBA
-QCAtNTc2LDYgKzYxNCwxMCBAQCBzdGF0aWMgaW50IF9faW5pdCBldG1fcHJvYmUoc3RydWN0IGFt
-YmFfZGV2aWNlICpkZXYsIHN0cnVjdCBhbWJhX2lkICppZCkKPiAgCWlmIChyZXQpCj4gIAkJZGV2
-X2RiZygmZGV2LT5kZXYsICJGYWlsZWQgdG8gY3JlYXRlIHRyYWNlX21vZGUgaW4gc3lzZnNcbiIp
-Owo+ICAKPiArCXJldCA9IHN5c2ZzX2NyZWF0ZV9maWxlKCZkZXYtPmRldi5rb2JqLCAmdHJhY2Vf
-cmFuZ2VfYXR0ci5hdHRyKTsKPiArCWlmIChyZXQpCj4gKwkJZGV2X2RiZygmZGV2LT5kZXYsICJG
-YWlsZWQgdG8gY3JlYXRlIHRyYWNlX3JhbmdlIGluIHN5c2ZzXG4iKTsKPiArCj4gIAlkZXZfZGJn
-KHQtPmRldiwgIkVUTSBBTUJBIGRyaXZlciBpbml0aWFsaXplZC5cbiIpOwo+ICAKPiAgb3V0Ogo+
-IEBAIC02MDUsNiArNjQ3LDcgQEAgc3RhdGljIGludCBldG1fcmVtb3ZlKHN0cnVjdCBhbWJhX2Rl
-dmljZSAqZGV2KQo+ICAJc3lzZnNfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2LmtvYmosICZ0cmFjZV9y
-dW5uaW5nX2F0dHIuYXR0cik7Cj4gIAlzeXNmc19yZW1vdmVfZmlsZSgmZGV2LT5kZXYua29iaiwg
-JnRyYWNlX2luZm9fYXR0ci5hdHRyKTsKPiAgCXN5c2ZzX3JlbW92ZV9maWxlKCZkZXYtPmRldi5r
-b2JqLCAmdHJhY2VfbW9kZV9hdHRyLmF0dHIpOwo+ICsJc3lzZnNfcmVtb3ZlX2ZpbGUoJmRldi0+
-ZGV2LmtvYmosICZ0cmFjZV9yYW5nZV9hdHRyLmF0dHIpOwo+ICAKPiAgCXJldHVybiAwOwo+ICB9
-Cj4gLS0gCj4gMS43LjMuMQo+IAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5l
-bEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4v
-bGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+Hi Vishwa,
+
+On Tue, Feb 15, 2011 at 10:35 AM, Vishwanath Sripathy
+<vishwanath.bs@ti.com> wrote:
+>> -----Original Message-----
+>> From: jean.pihet@newoldbits.com [mailto:jean.pihet@newoldbits.com]
+>> Sent: Friday, February 11, 2011 12:53 AM
+>> To: khilman@ti.com; paul@pwsan.com; Vibhore Vardhan; Santosh
+>> Shilimkar; Vishwanath BS; rnayak@ti.com
+>> Cc: linux-omap@vger.kernel.org; Jean Pihet; Vibhore Vardhan
+>> Subject: [PATCH 2/2] OMAP: PM: implement devices wakeup latency
+>> constraints APIs
+>>
+>> From: Jean Pihet <j-pihet@ti.com>
+>>
+>> Implement OMAP PM layer omap_pm_set_max_dev_wakeup_lat API by
+>> creating similar APIs at the omap_device and omap_hwmod levels. The
+>> omap_hwmod level call is the layer with access to the powerdomain
+>> core, so it is the place where the powerdomain is queried to set and
+>> release the constraints.
+>>
+>> NOTE: only works for devices which have been converted to use
+>> =A0 =A0 =A0 omap_device/omap_hwmod.
+>>
+>> Longer term, we could possibly remove this API from the OMAP PM laye=
+r,
+>> and instead directly use the omap_device level API.
+>>
+>> Based on Vibhore's original patch , adapted to omap_device and
+>> omap_hwmod frameworks.
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> Cc: Vibhore Vardhan <vvardhan@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 62 +++++++++-
+>> =A0arch/arm/mach-omap2/powerdomain.c =A0 =A0 =A0 =A0 =A0 =A0 | =A017=
+6
+>> ++++++++++++++++++++++++-
+>> =A0arch/arm/mach-omap2/powerdomain.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 3=
+1 +++++
+>> =A0arch/arm/mach-omap2/powerdomains3xxx_data.c =A0 | =A0 60
+>> +++++++++
+>> =A0arch/arm/plat-omap/include/plat/omap_device.h | =A0 =A02 +
+>> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h =A0| =A0 =A02 +
+>> =A0arch/arm/plat-omap/omap-pm-constraints.c =A0 =A0 =A0| =A0101 ++++=
+++---------
+>> =A0arch/arm/plat-omap/omap_device.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 28 ++++
+>> =A08 files changed, 399 insertions(+), 63 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-
+>> omap2/omap_hwmod.c
+>> index e282e35..0dc096f 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>> @@ -142,6 +142,7 @@
+>> =A0#include "powerdomain.h"
+>> =A0#include <plat/clock.h>
+>> =A0#include <plat/omap_hwmod.h>
+>> +#include <plat/omap_device.h>
+>> =A0#include <plat/prcm.h>
+>>
+>> =A0#include "cm2xxx_3xxx.h"
+>> @@ -2198,10 +2199,69 @@ ohsps_unlock:
+>> =A0}
+>>
+>> =A0/**
+>> + * omap_hwmod_set_max_dev_wakeup_lat - set a device wake-up
+>> constraint
+>> + * @oh: struct omap_hwmod *
+>> + * @req_oh: struct omap_hwmod *
+> Need to explain what this parameters mean.
+Ok, will add a description here. Basically oh corresponds to the
+device (and so the power domain) to set a constraint on and req_oh is
+the constraint requester. oh is used to determine which power domain
+to set a constraint on, req_oh is used to record the requester for
+later update or removal of a constraint.
+
+>> + * @t: wakeup latency constraint (us). -1 removes the existing
+>> constraint
+>> + *
+>> + * Query the powerdomain of @oh to set/release the wake-up
+>> constraint
+>> + *
+>> + * Returns -EINVAL if @oh or @req_oh have no power domain, or the
+>> return
+>> + * code from the pwrdm function
+>> (pwrdm_wakeuplat_set/release_constraint)
+>> + * of the powerdomain assocated with @oh.
+>> + */
+>> +int omap_hwmod_set_max_dev_wakeup_lat(struct omap_hwmod
+>> *req_oh,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ struct omap_hwmod *oh, long t)
+>> +{
+>> + =A0 =A0 struct device *req_dev;
+>> + =A0 =A0 struct platform_device *pdev;
+>> + =A0 =A0 struct powerdomain *pwrdm;
+>> + =A0 =A0 int ret =3D 0;
+>> +
+>> + =A0 =A0 pwrdm =3D omap_hwmod_get_pwrdm(oh);
+>> +
+>> + =A0 =A0 /* Catch devices with undefined powerdomains */
+>> + =A0 =A0 if (!pwrdm) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("omap_hwmod: Error: could not find =
+parent "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "powerdomain for %s\n", oh=
+->name);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 pdev =3D &(req_oh->od->pdev);
+>> + =A0 =A0 if (pdev =3D=3D NULL) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("omap_hwmod: Error: pdev not found =
+for oh %s\n",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 req_dev =3D &(pdev->dev);
+>> + =A0 =A0 if (req_dev =3D=3D NULL) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("omap_hwmod: Error: device not foun=
+d for oh
+>> %s\n",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 }
+> If I understand correctly, req_dev is used for keeping track of diffe=
+rent
+> requests. If so, why can't you directly pass req_dev as an input para=
+m
+> instead of deriving it from pdev.
+The layering in the API is as follows: caller -> omap-pm ->
+omap_device -> omap_hwmod -> powerdomain. The  parameters types are
+passed accordingly.
+
+Note: I will rename pdev to req_pdev to make it clear that the
+parameter relates to the requester.
+
+>> +
+>> + =A0 =A0 /* Call set/release_constraint for the given pwrdm */
+>> + =A0 =A0 if (t =3D=3D -1) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("omap_hwmod: remove max device la=
+tency
+>> constraint: "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"oh %s, pwrdm %s, req b=
+y oh %s\n",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name, pwrdm->name, =
+req_oh->name);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D pwrdm_wakeuplat_release_constraint=
+(pwrdm,
+>> req_dev);
+>> + =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("omap_hwmod: add max device laten=
+cy
+>> constraint: "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"oh %s, t =3D %ld usec,=
+ pwrdm %s, req by oh
+>> %s\n",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name, t, pwrdm->nam=
+e, req_oh->name);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D pwrdm_wakeuplat_set_constraint(pwr=
+dm, req_dev,
+>> t);
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 return 0;
+>> +}
+>> +
+>> +/**
+>> =A0 * omap_hwmod_get_context_loss_count - get lost context count
+>> =A0 * @oh: struct omap_hwmod *
+>> =A0 *
+>> - * Query the powerdomain of of @oh to get the context loss
+>> + * Query the powerdomain of @oh to get the context loss
+>> =A0 * count for this device.
+>> =A0 *
+>> =A0 * Returns the context loss count of the powerdomain assocated wi=
+th
+>> @oh
+>> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-
+>> omap2/powerdomain.c
+>> index eaed0df..3ed3bea 100644
+>> --- a/arch/arm/mach-omap2/powerdomain.c
+>> +++ b/arch/arm/mach-omap2/powerdomain.c
+>> @@ -19,16 +19,19 @@
+>> =A0#include <linux/list.h>
+>> =A0#include <linux/errno.h>
+>> =A0#include <linux/string.h>
+>> +#include <linux/slab.h>
+>> +
+>> +#include <plat/cpu.h>
+>> +#include <plat/prcm.h>
+>> +
+>> =A0#include "cm2xxx_3xxx.h"
+>> =A0#include "prcm44xx.h"
+>> =A0#include "cm44xx.h"
+>> =A0#include "prm2xxx_3xxx.h"
+>> =A0#include "prm44xx.h"
+>>
+>> -#include <plat/cpu.h>
+>> =A0#include "powerdomain.h"
+>> =A0#include "clockdomain.h"
+>> -#include <plat/prcm.h>
+>>
+>> =A0#include "pm.h"
+>>
+>> @@ -103,6 +106,13 @@ static int _pwrdm_register(struct powerdomain
+>> *pwrdm)
+>> =A0 =A0 =A0 pwrdm->state =3D pwrdm_read_pwrst(pwrdm);
+>> =A0 =A0 =A0 pwrdm->state_counter[pwrdm->state] =3D 1;
+>>
+>> + =A0 =A0 /* Initialize priority ordered list for wakeup latency con=
+straint
+> */
+>> + =A0 =A0 spin_lock_init(&pwrdm->wakeuplat_lock);
+>> + =A0 =A0 plist_head_init(&pwrdm->wakeuplat_dev_list, &pwrdm-
+>> >wakeuplat_lock);
+>> +
+>> + =A0 =A0 /* res_mutex protects res_list add and del ops */
+>> + =A0 =A0 mutex_init(&pwrdm->wakeuplat_mutex);
+>> +
+>> =A0 =A0 =A0 pr_debug("powerdomain: registered %s\n", pwrdm->name);
+>>
+>> =A0 =A0 =A0 return 0;
+>> @@ -176,6 +186,62 @@ static int _pwrdm_post_transition_cb(struct
+>> powerdomain *pwrdm, void *unused)
+>> =A0 =A0 =A0 return 0;
+>> =A0}
+>>
+>> +/**
+>> + * pwrdm_wakeuplat_update_pwrst - Update power domain power
+>> state if needed
+>> + * @pwrdm: struct powerdomain * to which requesting device belongs
+>> to
+>> + *
+>> + * Finds minimum latency value from all entries in the list and
+>> + * the power domain power state needing the constraint. Programs
+>> + * new state if it is different from current power state.
+>> + */
+>> +static void pwrdm_wakeuplat_update_pwrst(struct powerdomain
+>> *pwrdm)
+>> +{
+>> + =A0 =A0 struct plist_node *node;
+>> + =A0 =A0 int new_state;
+>> + =A0 =A0 unsigned long min_latency =3D -1;
+>> +
+>> + =A0 =A0 if (!plist_head_empty(&pwrdm->wakeuplat_dev_list)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 node =3D plist_last(&pwrdm->wakeuplat_dev_=
+list);
+> Wouldn't plist_last return the node with highest latency? I think you=
+ are
+> looking for lowest latency.
+Yes indeed. We need the strongest constraint, so the lowest allowed
+wake-up latency value.
+
+>> + =A0 =A0 =A0 =A0 =A0 =A0 min_latency =3D node->prio;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 /* Find power state with wakeup latency < minimum constrai=
+nt.
+>> */
+>> + =A0 =A0 for (new_state =3D 0x0; new_state < PWRDM_MAX_PWRSTS;
+>> new_state++) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (min_latency =3D=3D -1 ||
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm->wakeup_lat[new_state] <=3D =
+min_latency)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 switch (new_state) {
+>> + =A0 =A0 case PWRDM_FUNC_PWRST_OFF:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_OFF;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 case PWRDM_FUNC_PWRST_OSWR:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_O=
+=46F);
+>> + =A0 =A0 case PWRDM_FUNC_PWRST_CSWR:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_RET;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 case PWRDM_FUNC_PWRST_ON:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_ON;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 default:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_warn("powerdomain: requested latency co=
+nstraint not "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "supported %s set to ON st=
+ate\n", pwrdm->name);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_ON;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 if (pwrdm_read_pwrst(pwrdm) !=3D new_state) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap34xx())
+> Why this cpu check here?
+Only 34xx has support for the latency constraints. The other platforms
+have the wakeup latency values set as '0', which means that OFF mode
+will always be chosen as preferred state. Is it allowed to set the
+pwrdm_state in this case?
+
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_set_pwrdm_state(pwrdm=
+, new_state);
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 pr_debug("powerdomain: %s pwrst: curr=3D %d, prev=3D %d ne=
+xt=3D
+>> %d "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0"wkuplat_min=3D %lu, set_state=3D %d\n"=
+, pwrdm->name,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0pwrdm_read_pwrst(pwrdm),
+>> pwrdm_read_prev_pwrst(pwrdm),
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0pwrdm_read_next_pwrst(pwrdm), min_laten=
+cy,
+>> new_state);
+>> +}
+>> +
+>> =A0/* Public functions */
+>>
+>> =A0/**
+>> @@ -911,6 +977,112 @@ int pwrdm_post_transition(void)
+>> =A0}
+>>
+>> =A0/**
+>> + * pwrdm_wakeuplat_set_constraint - Set powerdomain wakeup
+>> latency constraint
+>> + * @pwrdm: struct powerdomain * to which requesting device belongs
+>> to
+>> + * @dev: struct device * of requesting device
+>> + * @t: wakeup latency constraint in microseconds
+>> + *
+>> + * Adds new entry to powerdomain's wakeup latency constraint list.
+>> + * If the requesting device already exists in the list, old value i=
+s
+>> + * overwritten. Checks whether current power state is still adequat=
+e.
+>> + * Returns -EINVAL if the powerdomain or device pointer is NULL,
+>> + * or -ENOMEM if kmalloc fails, or returns 0 upon success.
+>> + */
+>> +int pwrdm_wakeuplat_set_constraint(struct powerdomain *pwrdm,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0str=
+uct device *req_dev, unsigned long
+> t)
+>> +{
+>> + =A0 =A0 struct =A0wakeuplat_dev_list *user;
+>> + =A0 =A0 int found =3D 0, ret =3D 0;
+>> +
+>> + =A0 =A0 if (!pwrdm || !req_dev) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "powerdomain: %s: invalid paramete=
+r(s)",
+>> __func__);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 mutex_lock(&pwrdm->wakeuplat_mutex);
+>> +
+>> + =A0 =A0 plist_for_each_entry(user, &pwrdm->wakeuplat_dev_list, nod=
+e) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (user->dev =3D=3D req_dev) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 found =3D 1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 /* Add new entry to the list or update existing request */
+>> + =A0 =A0 if (found && user->constraint_us =3D=3D t) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto exit_set;
+>> + =A0 =A0 } else if (!found) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 user =3D kzalloc(sizeof(struct wakeuplat_d=
+ev_list),
+>> GFP_KERNEL);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (!user) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("powerdomain: FATAL=
+ ERROR: kzalloc
+>> failed\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENOMEM;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto exit_set;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 =A0 =A0 =A0 user->dev =3D req_dev;
+>> + =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 plist_del(&user->node, &pwrdm->wakeuplat_d=
+ev_list);
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 plist_node_init(&user->node, t);
+>> + =A0 =A0 plist_add(&user->node, &pwrdm->wakeuplat_dev_list);
+>> + =A0 =A0 user->node.prio =3D user->constraint_us =3D t;
+>> +
+>> + =A0 =A0 pwrdm_wakeuplat_update_pwrst(pwrdm);
+>> +
+>> +exit_set:
+>> + =A0 =A0 mutex_unlock(&pwrdm->wakeuplat_mutex);
+>> +
+>> + =A0 =A0 return ret;
+>> +}
+>> +
+>> +/**
+>> + * pwrdm_wakeuplat_release_constraint - Release powerdomain
+>> wkuplat constraint
+>> + * @pwrdm: struct powerdomain * to which requesting device belongs
+>> to
+>> + * @req_dev: struct device * of requesting device
+>> + *
+>> + * Removes device's entry from powerdomain's wakeup latency
+>> constraint list.
+>> + * Checks whether current power state is still adequate.
+>> + * Returns -EINVAL if the powerdomain or device pointer is NULL or
+>> + * no such entry exists in the list, or returns 0 upon success.
+>> + */
+>> +int pwrdm_wakeuplat_release_constraint(struct powerdomain *pwrdm,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0struct device *req_dev)
+>> +{
+>> + =A0 =A0 struct wakeuplat_dev_list *user;
+>> + =A0 =A0 int found =3D 0, ret =3D 0;
+>> +
+>> + =A0 =A0 if (!pwrdm || !req_dev) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "powerdomain: %s: invalid paramete=
+r(s)",
+>> __func__);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 mutex_lock(&pwrdm->wakeuplat_mutex);
+>> +
+>> + =A0 =A0 plist_for_each_entry(user, &pwrdm->wakeuplat_dev_list, nod=
+e) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (user->dev =3D=3D req_dev) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 found =3D 1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 if (!found) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("OMAP PM: Error: no prior constrain=
+t to
+> release\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EINVAL;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto exit_rls;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 plist_del(&user->node, &pwrdm->wakeuplat_dev_list);
+>> + =A0 =A0 kfree(user);
+>> +
+>> + =A0 =A0 pwrdm_wakeuplat_update_pwrst(pwrdm);
+>> +
+>> +exit_rls:
+>> + =A0 =A0 mutex_unlock(&pwrdm->wakeuplat_mutex);
+>> +
+>> + =A0 =A0 return ret;
+>> +}
+>> +
+>> +/**
+>> =A0 * pwrdm_get_context_loss_count - get powerdomain's context loss
+>> count
+>> =A0 * @pwrdm: struct powerdomain * to wait for
+>> =A0 *
+>> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-
+>> omap2/powerdomain.h
+>> index c66431e..d4189d8 100644
+>> --- a/arch/arm/mach-omap2/powerdomain.h
+>> +++ b/arch/arm/mach-omap2/powerdomain.h
+>> @@ -19,6 +19,9 @@
+>>
+>> =A0#include <linux/types.h>
+>> =A0#include <linux/list.h>
+>> +#include <linux/plist.h>
+>> +#include <linux/mutex.h>
+>> +#include <linux/spinlock.h>
+>>
+>> =A0#include <linux/atomic.h>
+>>
+>> @@ -46,6 +49,15 @@
+>>
+>> =A0#define PWRSTS_OFF_RET_ON =A0 =A0(PWRSTS_OFF_RET | (1 <<
+>> PWRDM_POWER_ON))
+>>
+>> +/* Powerdomain functional power states */
+>> +#define PWRDM_FUNC_PWRST_OFF 0x0
+>> +#define PWRDM_FUNC_PWRST_OSWR =A0 =A0 =A0 =A00x1
+>> +#define PWRDM_FUNC_PWRST_CSWR =A0 =A0 =A0 =A00x2
+>> +#define PWRDM_FUNC_PWRST_ON =A00x3
+>> +
+>> +#define PWRDM_MAX_FUNC_PWRSTS =A0 =A0 =A0 =A04
+>> +
+>> +#define UNSUP_STATE =A0 =A0 =A0 =A0 =A0-1
+>>
+>> =A0/* Powerdomain flags */
+>> =A0#define PWRDM_HAS_HDWR_SAR =A0 (1 << 0) /* hardware save-and-
+>> restore support */
+>> @@ -96,6 +108,10 @@ struct powerdomain;
+>> =A0 * @state_counter:
+>> =A0 * @timer:
+>> =A0 * @state_timer:
+>> + * @wakeup_lat: Wakeup latencies for possible powerdomain power
+>> states
+Will add a comment about the ordering (latency values must be sorted
+in decremental order).
+
+>> + * @wakeuplat_lock: spinlock for plist
+>> + * @wakeuplat_dev_list: plist_head linking all devices placing
+>> constraint
+>> + * @wakeuplat_mutex: mutex to protect per powerdomain list ops
+>> =A0 *
+>> =A0 * @prcm_partition possible values are defined in mach-
+>> omap2/prcm44xx.h.
+>> =A0 */
+>> @@ -121,6 +137,16 @@ struct powerdomain {
+>> =A0 =A0 =A0 s64 timer;
+>> =A0 =A0 =A0 s64 state_timer[PWRDM_MAX_PWRSTS];
+>> =A0#endif
+>> + =A0 =A0 const u32 wakeup_lat[PWRDM_MAX_FUNC_PWRSTS];
+>> + =A0 =A0 spinlock_t wakeuplat_lock;
+>> + =A0 =A0 struct plist_head wakeuplat_dev_list;
+>> + =A0 =A0 struct mutex wakeuplat_mutex;
+>> +};
+>> +
+>> +struct wakeuplat_dev_list {
+>> + =A0 =A0 struct device *dev;
+>> + =A0 =A0 unsigned long constraint_us;
+>> + =A0 =A0 struct plist_node node;
+>> =A0};
+>>
+>> =A0/**
+>> @@ -211,6 +237,11 @@ int pwrdm_clkdm_state_switch(struct
+>> clockdomain *clkdm);
+>> =A0int pwrdm_pre_transition(void);
+>> =A0int pwrdm_post_transition(void);
+>> =A0int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
+>> +
+>> +int pwrdm_wakeuplat_set_constraint(struct powerdomain *pwrdm,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0str=
+uct device *dev, unsigned long t);
+>> +int pwrdm_wakeuplat_release_constraint(struct powerdomain *pwrdm,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0struct device *dev);
+>> =A0u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+>>
+>> =A0extern void omap2xxx_powerdomains_init(void);
+>> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> index e1bec56..4f7e44d 100644
+>> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> @@ -52,6 +52,12 @@ static struct powerdomain iva2_pwrdm =3D {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [2] =3D PWRSTS_OFF_ON,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [3] =3D PWRDM_POWER_ON,
+>> =A0 =A0 =A0 },
+>> + =A0 =A0 .wakeup_lat =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 1100,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 350,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> + =A0 =A0 },
+>> =A0};
+>>
+>> =A0static struct powerdomain mpu_3xxx_pwrdm =3D {
+>> @@ -68,6 +74,12 @@ static struct powerdomain mpu_3xxx_pwrdm =3D {
+>> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRSTS_OFF_ON,
+>> =A0 =A0 =A0 },
+>> + =A0 =A0 .wakeup_lat =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 95,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 45,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> + =A0 =A0 },
+>> =A0};
+>>
+>> =A0/*
+>> @@ -98,6 +110,12 @@ static struct powerdomain
+>> core_3xxx_pre_es3_1_pwrdm =3D {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRSTS_OFF_RET_ON, /* MEM1ONSTAT=
+E */
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [1] =3D PWRSTS_OFF_RET_ON, /* MEM2ONSTAT=
+E */
+>> =A0 =A0 =A0 },
+>> + =A0 =A0 .wakeup_lat =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 100,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 60,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> + =A0 =A0 },
+>> =A0};
+>>
+>> =A0static struct powerdomain core_3xxx_es3_1_pwrdm =3D {
+>> @@ -121,6 +139,12 @@ static struct powerdomain
+>> core_3xxx_es3_1_pwrdm =3D {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRSTS_OFF_RET_ON, /* MEM1ONSTAT=
+E */
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [1] =3D PWRSTS_OFF_RET_ON, /* MEM2ONSTAT=
+E */
+>> =A0 =A0 =A0 },
+>> + =A0 =A0 .wakeup_lat =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 100,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 60,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> + =A0 =A0 },
+>> =A0};
+>>
+>> =A0static struct powerdomain dss_pwrdm =3D {
+>> @@ -136,6 +160,12 @@ static struct powerdomain dss_pwrdm =3D {
+>> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONSTATE=
+ */
+>> =A0 =A0 =A0 },
+>> + =A0 =A0 .wakeup_lat =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 70,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 20,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> + =A0 =A0 },
+>> =A0};
+>>
+>> =A0/*
+>> @@ -157,6 +187,12 @@ static struct powerdomain sgx_pwrdm =3D {
+>> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONSTATE=
+ */
+>> =A0 =A0 =A0 },
+>> + =A0 =A0 .wakeup_lat =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 1000,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D UNSUP_STATE,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> + =A0 =A0 },
+>> =A0};
+>>
+>> =A0static struct powerdomain cam_pwrdm =3D {
+>> @@ -172,6 +208,12 @@ static struct powerdomain cam_pwrdm =3D {
+>> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONSTATE=
+ */
+>> =A0 =A0 =A0 },
+>> + =A0 =A0 .wakeup_lat =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 850,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 35,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> + =A0 =A0 },
+>> =A0};
+>>
+>> =A0static struct powerdomain per_pwrdm =3D {
+>> @@ -187,6 +229,12 @@ static struct powerdomain per_pwrdm =3D {
+>> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONSTATE=
+ */
+>> =A0 =A0 =A0 },
+>> + =A0 =A0 .wakeup_lat =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 200,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 110,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> + =A0 =A0 },
+>> =A0};
+>>
+>> =A0static struct powerdomain emu_pwrdm =3D {
+>> @@ -201,6 +249,12 @@ static struct powerdomain neon_pwrdm =3D {
+>> =A0 =A0 =A0 .omap_chip =A0 =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMA=
+P3430),
+>> =A0 =A0 =A0 .pwrsts =A0 =A0 =A0 =A0 =A0 =3D PWRSTS_OFF_RET_ON,
+>> =A0 =A0 =A0 .pwrsts_logic_ret =3D PWRDM_POWER_RET,
+>> + =A0 =A0 .wakeup_lat =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 200,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 35,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> + =A0 =A0 },
+>> =A0};
+>>
+>> =A0static struct powerdomain usbhost_pwrdm =3D {
+>> @@ -223,6 +277,12 @@ static struct powerdomain usbhost_pwrdm =3D {
+>> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONSTATE=
+ */
+>> =A0 =A0 =A0 },
+>> + =A0 =A0 .wakeup_lat =3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 800,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 150,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> + =A0 =A0 },
+>> =A0};
+>>
+>> =A0static struct powerdomain dpll1_pwrdm =3D {
+>> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h
+>> b/arch/arm/plat-omap/include/plat/omap_device.h
+>> index e4c349f..5da6b47 100644
+>> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+>> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+>> @@ -107,6 +107,8 @@ void __iomem *omap_device_get_rt_va(struct
+>> omap_device *od);
+>> =A0int omap_device_align_pm_lat(struct platform_device *pdev,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0u32 new_wakeu=
+p_lat_limit);
+>> =A0struct powerdomain *omap_device_get_pwrdm(struct omap_device
+>> *od);
+>> +int omap_device_set_max_dev_wakeup_lat(struct platform_device
+>> *req_pdev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0struct platform_device *pdev, long
+> t);
+>> =A0u32 omap_device_get_context_loss_count(struct platform_device
+>> *pdev);
+>>
+>> =A0/* Other */
+>> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> index 1eee85a..0fbb974 100644
+>> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> @@ -587,6 +587,8 @@ int omap_hwmod_for_each_by_class(const char
+>> *classname,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0void =
+*user);
+>>
+>> =A0int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8
+>> state);
+>> +int omap_hwmod_set_max_dev_wakeup_lat(struct omap_hwmod
+>> *req_oh,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ struct omap_hwmod *oh, long t);
+>> =A0u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+>>
+>> =A0/*
+>> diff --git a/arch/arm/plat-omap/omap-pm-constraints.c b/arch/arm/pla=
+t-
+>> omap/omap-pm-constraints.c
+>> index c8b4e4c..7ae855f 100644
+>> --- a/arch/arm/plat-omap/omap-pm-constraints.c
+>> +++ b/arch/arm/plat-omap/omap-pm-constraints.c
+>> @@ -24,6 +24,7 @@
+>> =A0/* Interface documentation is in mach/omap-pm.h */
+>> =A0#include <plat/omap-pm.h>
+>> =A0#include <plat/omap_device.h>
+>> +#include <plat/common.h>
+>>
+>> =A0static bool off_mode_enabled;
+>> =A0static u32 dummy_context_loss_counter;
+>> @@ -32,34 +33,6 @@ static u32 dummy_context_loss_counter;
+>> =A0 * Device-driver-originated constraints (via board-*.c files)
+>> =A0 */
+>>
+>> -int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
+>> -{
+>> - =A0 =A0 if (!dev || t < -1) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "OMAP PM: %s: invalid parameter(s)=
+",
+>> __func__);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> - =A0 =A0 };
+>> -
+>> - =A0 =A0 if (t =3D=3D -1)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: remove max MPU wakeup l=
+atency
+>> constraint: "
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s\n", dev_name(de=
+v));
+>> - =A0 =A0 else
+>> - =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: add max MPU wakeup late=
+ncy
+>> constraint: "
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s, t =3D %ld usec=
+\n", dev_name(dev), t);
+>> -
+>> - =A0 =A0 /*
+>> - =A0 =A0 =A0* For current Linux, this needs to map the MPU to a
+>> - =A0 =A0 =A0* powerdomain, then go through the list of current max =
+lat
+>> - =A0 =A0 =A0* constraints on the MPU and find the smallest. =A0If
+>> - =A0 =A0 =A0* the latency constraint has changed, the code should
+>> - =A0 =A0 =A0* recompute the state to enter for the next powerdomain
+>> - =A0 =A0 =A0* state.
+>> - =A0 =A0 =A0*
+>> - =A0 =A0 =A0* TI CDP code can call constraint_set here.
+>> - =A0 =A0 =A0*/
+>> -
+>> - =A0 =A0 return 0;
+>> -}
+>> -
+>> =A0int omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id,
+>> unsigned long r)
+>> =A0{
+>> =A0 =A0 =A0 if (!dev || (agent_id !=3D OCP_INITIATOR_AGENT &&
+>> @@ -87,62 +60,70 @@ int omap_pm_set_min_bus_tput(struct device
+>> *dev, u8 agent_id, unsigned long r)
+>> =A0 =A0 =A0 return 0;
+>> =A0}
+>>
+>> +/*
+>> + * omap_pm_set_max_dev_wakeup_lat - set/release devices wake-up
+>> latency
+>> + * constraints
+>> + */
+>> =A0int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct
+>> device *dev,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0l=
+ong t)
+>> =A0{
+>> + =A0 =A0 struct platform_device *pdev, *req_pdev;
+>> + =A0 =A0 int ret =3D 0;
+>> +
+>> =A0 =A0 =A0 if (!req_dev || !dev || t < -1) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "OMAP PM: %s: invalid parameter(=
+s)",
+>> __func__);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 /* Look for the platform devices */
+>> + =A0 =A0 pdev =3D container_of(dev, struct platform_device, dev);
+>
+> You could perhaps use macro to_platform_device instead of using
+> container_of.
+Yes that is better.
+
+>
+>> + =A0 =A0 req_pdev =3D container_of(req_dev, struct platform_device,=
+ dev);
+Same here.
+
+>> +
+>> + =A0 =A0 /* Try to catch non platform devices. */
+>> + =A0 =A0 if ((pdev->name =3D=3D NULL) || (req_pdev->name =3D=3D NUL=
+L)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("OMAP-PM set_wakeup_lat: Error: pla=
+tform devices
+>> "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"not valid\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 /* Call the omap_device API */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D omap_device_set_max_dev_wakeup_lat=
+(req_pdev,
+>> pdev, t);
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 return ret;
+>> +}
+>> +
+>> +int omap_pm_set_max_mpu_wakeup_lat(struct device *req_dev, long
+>> t)
+>> +{
+>> + =A0 =A0 if (!req_dev || t < -1) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "OMAP PM: %s: invalid parameter(s)=
+",
+>> __func__);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> =A0 =A0 =A0 };
+>>
+>> =A0 =A0 =A0 if (t =3D=3D -1)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: remove max device laten=
+cy
+>> constraint: "
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s\n", dev_name(de=
+v));
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: remove max MPU wakeup l=
+atency
+>> constraint: "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s\n", dev_name(re=
+q_dev));
+>> =A0 =A0 =A0 else
+>> - =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: add max device latency =
+constraint: "
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s, t =3D %ld usec=
+\n", dev_name(dev), t);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: add max MPU wakeup late=
+ncy
+>> constraint: "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s, t =3D %ld usec=
+\n", dev_name(req_dev), t);
+>>
+>> - =A0 =A0 /*
+>> - =A0 =A0 =A0* For current Linux, this needs to map the device to a
+>> - =A0 =A0 =A0* powerdomain, then go through the list of current max =
+lat
+>> - =A0 =A0 =A0* constraints on that powerdomain and find the smallest=
+=2E =A0If
+>> - =A0 =A0 =A0* the latency constraint has changed, the code should
+>> - =A0 =A0 =A0* recompute the state to enter for the next powerdomain
+>> - =A0 =A0 =A0* state. =A0Conceivably, this code should also determin=
+e
+>> - =A0 =A0 =A0* whether to actually disable the device clocks or not,
+>> - =A0 =A0 =A0* depending on how long it takes to re-enable the clock=
+s.
+>> - =A0 =A0 =A0*
+>> - =A0 =A0 =A0* TI CDP code can call constraint_set here.
+>> - =A0 =A0 =A0*/
+>> + =A0 =A0 omap_pm_set_max_dev_wakeup_lat(req_dev,
+>> omap2_get_mpuss_device(), t);
+>>
+>> =A0 =A0 =A0 return 0;
+>> =A0}
+>>
+>> -int omap_pm_set_max_sdma_lat(struct device *dev, long t)
+>> +int omap_pm_set_max_sdma_lat(struct device *req_dev, long t)
+>> =A0{
+>> - =A0 =A0 if (!dev || t < -1) {
+>> + =A0 =A0 if (!req_dev || t < -1) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "OMAP PM: %s: invalid parameter(=
+s)",
+>> __func__);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> =A0 =A0 =A0 };
+>>
+>> =A0 =A0 =A0 if (t =3D=3D -1)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: remove max DMA latenc=
+y constraint:
+>> "
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s\n", dev_name(de=
+v));
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s\n", dev_name(re=
+q_dev));
+>> =A0 =A0 =A0 else
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: add max DMA latency c=
+onstraint: "
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s, t =3D %ld usec=
+\n", dev_name(dev), t);
+>> -
+>> - =A0 =A0 /*
+>> - =A0 =A0 =A0* For current Linux PM QOS params, this code should sca=
+n the
+>> - =A0 =A0 =A0* list of maximum CPU and DMA latencies and select the
+>> - =A0 =A0 =A0* smallest, then set cpu_dma_latency pm_qos_param
+>> - =A0 =A0 =A0* accordingly.
+>> - =A0 =A0 =A0*
+>> - =A0 =A0 =A0* For future Linux PM QOS params, with separate CPU and=
+ DMA
+>> - =A0 =A0 =A0* latency params, this code should just set the dma_lat=
+ency
+>> param.
+>> - =A0 =A0 =A0*
+>> - =A0 =A0 =A0* TI CDP code can call constraint_set here.
+>> - =A0 =A0 =A0*/
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s, t =3D %ld usec=
+\n", dev_name(req_dev), t);
+>>
+>> =A0 =A0 =A0 return 0;
+>> =A0}
+>> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-
+>> omap/omap_device.c
+>> index 57adb27..1fe93d3 100644
+>> --- a/arch/arm/plat-omap/omap_device.c
+>> +++ b/arch/arm/plat-omap/omap_device.c
+>> @@ -280,6 +280,34 @@ static void _add_optional_clock_alias(struct
+>> omap_device *od,
+>> =A0/* Public functions for use by core code */
+>>
+>> =A0/**
+>> + * omap_device_set_max_dev_wakeup_lat - set/release a device
+>> constraint
+>> + * @od: struct omap_device *
+>> + * @req_od: struct omap_device *
+>> + *
+>> + * Using the primary hwmod, set/release a device constraint for the
+>> pdev
+>> + * device, requested by the req_pdev device.
+>> + *
+>> + * If any hwmods exist for the omap_device assoiated with @pdev and
+>> @req_pdev,
+>> + * set/release the constraint for the corresponding hwmods, otherwi=
+se
+>> return
+>> + * -EINVAL.
+>> + */
+>> +int omap_device_set_max_dev_wakeup_lat(struct platform_device
+>> *req_pdev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0struct platform_device *pdev, long
+> t)
+>> +{
+>> + =A0 =A0 struct omap_device *od, *req_od;
+>> + =A0 =A0 u32 ret =3D -EINVAL;
+>> +
+>> + =A0 =A0 od =3D _find_by_pdev(pdev);
+>> + =A0 =A0 req_od =3D _find_by_pdev(req_pdev);
+>> +
+>> + =A0 =A0 if ((od->hwmods_cnt) && (req_od->hwmods_cnt))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D omap_hwmod_set_max_dev_wakeup_lat(=
+req_od-
+>> >hwmods[0],
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 od->hwmods[0], t);
+>> +
+>> + =A0 =A0 return ret;
+>> +}
+>> +
+>> +/**
+>> =A0 * omap_device_get_context_loss_count - get lost context count
+>> =A0 * @od: struct omap_device *
+>> =A0 *
+> Vishwa
+>> --
+>> 1.7.2.3
+>
+
+Thanks for the review, I will resubmit the patch asap.
+
+Regards,
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
