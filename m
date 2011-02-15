@@ -1,116 +1,69 @@
-From: Panduranga Mallireddy <panduranga_mallireddy@ti.com>
-Subject: [PATCH v2 5/5] OMAP: hsmmc: Enable MMC4 and MMC5 on OMAP4 platforms
-Date: Tue, 15 Feb 2011 03:40:36 -0500
-Message-ID: <1297759236-25323-6-git-send-email-panduranga_mallireddy@ti.com>
-References: <1297759236-25323-1-git-send-email-panduranga_mallireddy@ti.com>
- <1297759236-25323-2-git-send-email-panduranga_mallireddy@ti.com>
- <1297759236-25323-3-git-send-email-panduranga_mallireddy@ti.com>
- <1297759236-25323-4-git-send-email-panduranga_mallireddy@ti.com>
- <1297759236-25323-5-git-send-email-panduranga_mallireddy@ti.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH] omap: dmtimer: Enable autoidle
+Date: Tue, 15 Feb 2011 08:16:52 +0000
+Message-ID: <854C6400F5AA6644BA6FE7953F3E769B037E9BDD@008-AM1MPN1-014.mgdnok.nokia.com>
+References: <1297704375-25873-1-git-send-email-tero.kristo@nokia.com>
+ <87oc6exkjr.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46657 "EHLO bear.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.48]:54767 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752937Ab1BOIPH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 03:15:07 -0500
-In-Reply-To: <1297759236-25323-5-git-send-email-panduranga_mallireddy@ti.com>
+	id S1754125Ab1BOIRh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 03:17:37 -0500
+In-Reply-To: <87oc6exkjr.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: coelho@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
-Cc: ohad@wizery.com, benzyg@ti.com, pradeepgurumath@ti.com, vishalm@ti.com, x-boudet@ti.com, naveen_jain@ti.com, pavan_savoy@ti.com, manjunatha_halli@ti.com, tony@atomide.com, cjb@laptop.org, Kishore Kadiyala <kishore.kadiyala@ti.com>, Panduranga Mallireddy <panduranga_mallireddy@ti.com>
+To: khilman@ti.com
+Cc: linux-omap@vger.kernel.org
 
-From: Kishore Kadiyala <kishore.kadiyala@ti.com>
 
-OMAP4 supports up to 5 MMC controllers, but only 3 of these were
-initialized. MMC5 is used by wl12xx chip. So initialize MMC4 and MMC5.
 
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Signed-off-by: Panduranga Mallireddy <panduranga_mallireddy@ti.com>
----
- arch/arm/mach-omap2/hsmmc.c   |    5 +++++
- drivers/mmc/host/omap_hsmmc.c |   24 ++++++++++++++++++++----
- 2 files changed, 25 insertions(+), 4 deletions(-)
+>-----Original Message-----
+>From: ext Kevin Hilman [mailto:khilman@ti.com]
+>Sent: 15 February, 2011 01:29
+>To: Kristo Tero (Nokia-MS/Tampere)
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: [PATCH] omap: dmtimer: Enable autoidle
+>
+>Tero Kristo <tero.kristo@nokia.com> writes:
+>
+>> This will save some power.
+>>
+>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>
+>Please report which platforms this was tested with.
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index 8f1a484..3c0809f 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -348,6 +348,11 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- 				mmc->slots[0].after_set_reg = NULL;
- 			}
- 			break;
-+		case 4:
-+		case 5:
-+			mmc->slots[0].before_set_reg = NULL;
-+			mmc->slots[0].after_set_reg = NULL;
-+			break;
- 		default:
- 			pr_err("MMC%d configuration not supported!\n", c->mmc);
- 			kfree(mmc);
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index f59f8da..2525071 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -260,7 +260,7 @@ static int omap_hsmmc_1_set_power(struct device *dev, int slot, int power_on,
- 	return ret;
- }
- 
--static int omap_hsmmc_23_set_power(struct device *dev, int slot, int power_on,
-+static int omap_hsmmc_235_set_power(struct device *dev, int slot, int power_on,
- 				   int vdd)
- {
- 	struct omap_hsmmc_host *host =
-@@ -316,6 +316,12 @@ static int omap_hsmmc_23_set_power(struct device *dev, int slot, int power_on,
- 	return ret;
- }
- 
-+static int omap_hsmmc_4_set_power(struct device *dev, int slot, int power_on,
-+					int vdd)
-+{
-+	return 0;
-+}
-+
- static int omap_hsmmc_1_set_sleep(struct device *dev, int slot, int sleep,
- 				  int vdd, int cardsleep)
- {
-@@ -326,7 +332,7 @@ static int omap_hsmmc_1_set_sleep(struct device *dev, int slot, int sleep,
- 	return regulator_set_mode(host->vcc, mode);
- }
- 
--static int omap_hsmmc_23_set_sleep(struct device *dev, int slot, int sleep,
-+static int omap_hsmmc_235_set_sleep(struct device *dev, int slot, int sleep,
- 				   int vdd, int cardsleep)
- {
- 	struct omap_hsmmc_host *host =
-@@ -365,6 +371,12 @@ static int omap_hsmmc_23_set_sleep(struct device *dev, int slot, int sleep,
- 		return regulator_enable(host->vcc_aux);
- }
- 
-+static int omap_hsmmc_4_set_sleep(struct device *dev, int slot, int sleep,
-+					int vdd, int cardsleep)
-+{
-+	return 0;
-+}
-+
- static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
- {
- 	struct regulator *reg;
-@@ -379,10 +391,14 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
- 		break;
- 	case OMAP_MMC2_DEVID:
- 	case OMAP_MMC3_DEVID:
-+	case OMAP_MMC5_DEVID:
- 		/* Off-chip level shifting, or none */
--		mmc_slot(host).set_power = omap_hsmmc_23_set_power;
--		mmc_slot(host).set_sleep = omap_hsmmc_23_set_sleep;
-+		mmc_slot(host).set_power = omap_hsmmc_235_set_power;
-+		mmc_slot(host).set_sleep = omap_hsmmc_235_set_sleep;
- 		break;
-+	case OMAP_MMC4_DEVID:
-+		mmc_slot(host).set_power = omap_hsmmc_4_set_power;
-+		mmc_slot(host).set_sleep = omap_hsmmc_4_set_sleep;
- 	default:
- 		pr_err("MMC%d configuration not supported!\n", host->id);
- 		return -EINVAL;
--- 
-1.5.6.3
+Tested only on OMAP3.
 
+Should this be changed to apply only on that one? I don't know about OMAP4, but I think this should work on OMAP2 at least based on spec.
+
+
+>
+>Also, please Cc linux-arm-kernel.
+>
+>Thanks,
+>
+>Kevin
+>
+>> ---
+>>  arch/arm/plat-omap/dmtimer.c |    1 +
+>>  1 files changed, 1 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-
+>omap/dmtimer.c
+>> index 1d706cf..949becc 100644
+>> --- a/arch/arm/plat-omap/dmtimer.c
+>> +++ b/arch/arm/plat-omap/dmtimer.c
+>> @@ -341,6 +341,7 @@ static void omap_dm_timer_reset(struct
+>omap_dm_timer *timer)
+>>  	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_OCP_CFG_REG);
+>>  	l |= 0x02 << 3;  /* Set to smart-idle mode */
+>>  	l |= 0x2 << 8;   /* Set clock activity to perserve f-clock on idle
+>*/
+>> +	l |= 0x1 << 0;   /* Set autoidle */
+>>
+>>  	/*
+>>  	 * Enable wake-up on OMAP2 CPUs.
