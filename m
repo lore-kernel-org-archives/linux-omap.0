@@ -1,57 +1,50 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v5 3/5] OMAP4: hwmod data: add mailbox data
-Date: Tue, 15 Feb 2011 23:05:46 +0100
-Message-ID: <4D5AF8BA.8080403@ti.com>
-References: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>	<1296674843-12718-4-git-send-email-omar.ramirez@ti.com>	<4D5943A9.8010205@ti.com> <AANLkTinA2a60TSM7qDC1LQiRaUTs0DR3bDMv+oVsVOE0@mail.gmail.com>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: [PATCH 4/8] ARM: etm: Allow range selection
+Date: Tue, 15 Feb 2011 15:04:31 -0800
+Message-ID: <AANLkTim776VyU_LioTL2-pOjskVDeU4BpFuw6CxGUXRT@mail.gmail.com>
+References: <1296701663-12168-1-git-send-email-arve@android.com>
+	<1297750276-12475-4-git-send-email-arve@android.com>
+	<20110215135054.GD18248@shisha.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36957 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755865Ab1BOWF7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 17:05:59 -0500
-In-Reply-To: <AANLkTinA2a60TSM7qDC1LQiRaUTs0DR3bDMv+oVsVOE0@mail.gmail.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:50472 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755482Ab1BOXEd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 18:04:33 -0500
+In-Reply-To: <20110215135054.GD18248@shisha.kicks-ass.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
+To: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Jason Wessel <jason.we>
 
-Hi Omar,
-
-On 2/15/2011 10:55 PM, Ramirez Luna, Omar wrote:
-> Hi Benoit,
+On Tue, Feb 15, 2011 at 5:50 AM, Alexander Shishkin <virtuoso@slind.org=
+> wrote:
+> On Mon, Feb 14, 2011 at 10:11:12PM -0800, Arve Hj=F8nnev=E5g wrote:
+>> Trace kernel text segment by default as before, allow tracing of oth=
+er
+>> ranges by writing a range to /sys/devices/etm/trace_range, or to tra=
+ce
+>> everything by writing 0 0.
 >
-> On Mon, Feb 14, 2011 at 9:00 AM, Cousson, Benoit<b-cousson@ti.com>  wrote:
->>> +static struct omap_hwmod_irq_info omap44xx_mailbox_irqs[] = {
->>> +       { .name = "mbox", .irq = 26 + OMAP44XX_IRQ_GIC_START, },
->>
->> The original entry was unnamed since it is an unique entry and thus does not
->> need to be differentiate on this platform.
->>
->>         { .irq = 26 + OMAP44XX_IRQ_GIC_START },
->>
->> Do you really need to have a name here? The strategy being to provide a name
->> only if more than one entry exist.
->> It is perfectibility doable, I'm just trying to understand your rational.
+> Since you're adding this, I think it might make sense to add a 3rd op=
+tional
+> ctx id field, so that userspace tracing is also possible, especially =
+when
+> on-chip ETB sizes increase to something more sensible than what they =
+are
+> these days.
 >
-> It is this way instead of plain platform_get_irq because omap2420 has
-> two interrupt sources to MPU and mailbox driver uses
-> platform_get_irq_byname to get the irq number.
 
-This is what I was thinking, except that on OMAP2420 the names are:
-+	{ .name = "dsp", .irq = 26, },
-+	{ .name = "iva", .irq = 34, },
+That might be useful, but I think it can be added later. My main
+motivation for adding this is so we can turn off the filtering. We
+want to use tracing in combination with a hardware watchdog to debug
+hard lockups and we don't want any filtering in this case.
 
-and on OMAP2430 and OMAP3
-+	{ .name = "dsp", .irq = 26, },
-
-so why is it named "mbox" on OMAP4?
-
-If you have to do several platform_get_irq_byname to get this one, I'd 
-prefer to get rid of that name for OMAP4. It will make mailbox irq 
-consistent with the other hwmods.
-
-Thanks,
-Benoit
-
+--=20
+Arve Hj=F8nnev=E5g
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
