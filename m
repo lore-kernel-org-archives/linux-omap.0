@@ -1,46 +1,49 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 5/5 v6] usb: musb: Using runtime pm APIs for musb.
-Date: Mon, 14 Feb 2011 16:42:02 -0800
-Message-ID: <87oc6ew2lh.fsf@ti.com>
-References: <1297346881-13438-1-git-send-email-hemahk@ti.com>
-	<1297346881-13438-6-git-send-email-hemahk@ti.com>
-	<20110210142605.GR3580@legolas.emea.dhcp.ti.com>
-	<98ff144ea4e715250c54712ebbfb494f@mail.gmail.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH RESEND v6 2/4] TI816X: Update common OMAP machine
+ specific sources
+Date: Tue, 15 Feb 2011 06:39:27 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B036AD56F51@dbde02.ent.ti.com>
+References: <1297695819-27027-1-git-send-email-hemantp@ti.com>
+ <87tyg6xkm0.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:39643 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752396Ab1BOAmL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 19:42:11 -0500
-In-Reply-To: <98ff144ea4e715250c54712ebbfb494f@mail.gmail.com> (Hema
-	Kalliguddi's message of "Thu, 10 Feb 2011 22:09:45 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:34149 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751082Ab1BOBJm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 20:09:42 -0500
+In-Reply-To: <87tyg6xkm0.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hema Kalliguddi <hemahk@ti.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hema Kalliguddi <hemahk@ti.com> writes:
+Hilman, Kevin wrote on Tuesday, February 15, 2011 4:58 AM:
 
-[...]
+> Hemant Pedanekar <hemantp@ti.com> writes:
+> 
+> [...]
+> 
+>> @@ -402,7 +422,7 @@ void __init
+> omap2_init_common_devices(struct omap_sdrc_params *sdrc_cs0,
+>> 
+>>  	omap_hwmod_late_init();
+>> 
+>> -	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+>> +	if (omap3_has_sdrc()) {
+>>  		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+>>  		_omap2_init_reprogram_sdrc();
+>>  	}
+> 
+> At first glance, this one doesn't look quite right.  Will
+> omap3_has_sdrc()  be true on 24xx?   Please confirm.
+> 
+> Kevin
 
->>On Thu, Feb 10, 2011 at 07:38:01PM +0530, Hema HK wrote:
->>> Calling runtime pm APIs pm_runtime_put_sync() and
->>pm_runtime_get_sync()
->>> for enabling/disabling the clocks, sysconfig settings.
->>>
->>> Enable clock, configure no-idle/standby when active and
->>configure force idle/standby
->>> and disable clock when idled. This is taken care by the
->>runtime framework when
->>> driver calls the pm_runtime_get_sync and pm_runtime_put_sync APIs.
->>
->>does it have to be the _sync() ??
-> Yes. Because immediately after this I access the registers.
->
+You are right, this is incorrect as there is no 'features' set for
+omap24xx. I will send new version with cpu_is_omap24xx() check retained.
 
-What about the put?
-
-Kevin
- 
+Thanks.
+   Hemant
