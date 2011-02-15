@@ -1,170 +1,125 @@
 From: =?UTF-8?q?Arve=20Hj=C3=B8nnev=C3=A5g?= <arve@android.com>
-Subject: [PATCH 6/8] ARM: etm: Add some missing locks and error checks
-Date: Mon, 14 Feb 2011 22:11:14 -0800
-Message-ID: <1297750276-12475-6-git-send-email-arve@android.com>
+Subject: [PATCH 5/8] ARM: etm: Configure data tracing
+Date: Mon, 14 Feb 2011 22:11:13 -0800
+Message-ID: <1297750276-12475-5-git-send-email-arve@android.com>
 References: <1296701663-12168-1-git-send-email-arve@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1296701663-12168-1-git-send-email-arve@android.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, =?UTF-8?q?Arve=20Hj=C3=B8nnev=C3=A5g?= <arve@android.com>, Russell King <linux@arm.linux.org.uk>, Alexander Shishkin <virtuoso@slind.org>, Jason Wessel <jason.wessel@windriver.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>, =?UTF-8?q?Arve=20Hj=C3=B8nnev=C3=A5g?= <arve@android.com>, Jason Wessel <jason.wessel@windriver.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-It is not safe to call etm_lock or etb_lock without holding the
-mutex since another thread may also have unlocked the registers.
-
-Also add some missing checks for valid etb_regs in the etm sysfs
-entries.
-
-Signed-off-by: Arve Hj=C3=B8nnev=C3=A5g <arve@android.com>
----
- arch/arm/kernel/etm.c |   57 +++++++++++++++++++++++++++++++++--------=
--------
- 1 files changed, 39 insertions(+), 18 deletions(-)
-
-diff --git a/arch/arm/kernel/etm.c b/arch/arm/kernel/etm.c
-index 96b1abb..8126beb 100644
---- a/arch/arm/kernel/etm.c
-+++ b/arch/arm/kernel/etm.c
-@@ -263,8 +263,13 @@ static void etm_dump(void)
-=20
- static void sysrq_etm_dump(int key)
- {
-+	if (!mutex_trylock(&tracer.mutex)) {
-+		printk(KERN_INFO "Tracing hardware busy\n");
-+		return;
-+	}
- 	dev_dbg(tracer.dev, "Dumping ETB buffer\n");
- 	etm_dump();
-+	mutex_unlock(&tracer.mutex);
- }
-=20
- static struct sysrq_key_op sysrq_etm_op =3D {
-@@ -373,6 +378,7 @@ static int __init etb_probe(struct amba_device *dev=
-, struct amba_id *id)
- 	if (ret)
- 		goto out;
-=20
-+	mutex_lock(&t->mutex);
- 	t->etb_regs =3D ioremap_nocache(dev->res.start, resource_size(&dev->r=
-es));
- 	if (!t->etb_regs) {
- 		ret =3D -ENOMEM;
-@@ -381,6 +387,16 @@ static int __init etb_probe(struct amba_device *de=
-v, struct amba_id *id)
-=20
- 	amba_set_drvdata(dev, t);
-=20
-+	etb_unlock(t);
-+	t->etb_bufsz =3D etb_readl(t, ETBR_DEPTH);
-+	dev_dbg(&dev->dev, "Size: %x\n", t->etb_bufsz);
-+
-+	/* make sure trace capture is disabled */
-+	etb_writel(t, 0, ETBR_CTRL);
-+	etb_writel(t, 0x1000, ETBR_FORMATTERCTRL);
-+	etb_lock(t);
-+	mutex_unlock(&t->mutex);
-+
- 	etb_miscdev.parent =3D &dev->dev;
-=20
- 	ret =3D misc_register(&etb_miscdev);
-@@ -394,25 +410,19 @@ static int __init etb_probe(struct amba_device *d=
-ev, struct amba_id *id)
- 	else
- 		clk_enable(t->emu_clk);
-=20
--	etb_unlock(t);
--	t->etb_bufsz =3D etb_readl(t, ETBR_DEPTH);
--	dev_dbg(&dev->dev, "Size: %x\n", t->etb_bufsz);
--
--	/* make sure trace capture is disabled */
--	etb_writel(t, 0, ETBR_CTRL);
--	etb_writel(t, 0x1000, ETBR_FORMATTERCTRL);
--	etb_lock(t);
--
- 	dev_dbg(&dev->dev, "ETB AMBA driver initialized.\n");
-=20
- out:
- 	return ret;
-=20
- out_unmap:
-+	mutex_lock(&t->mutex);
- 	amba_set_drvdata(dev, NULL);
- 	iounmap(t->etb_regs);
-+	t->etb_regs =3D NULL;
-=20
- out_release:
-+	mutex_unlock(&t->mutex);
- 	amba_release_regions(dev);
-=20
- 	return ret;
-@@ -474,7 +484,10 @@ static ssize_t trace_running_store(struct kobject =
-*kobj,
- 		return -EINVAL;
-=20
- 	mutex_lock(&tracer.mutex);
--	ret =3D value ? trace_start(&tracer) : trace_stop(&tracer);
-+	if (!tracer.etb_regs)
-+		ret =3D -ENODEV;
-+	else
-+		ret =3D value ? trace_start(&tracer) : trace_stop(&tracer);
- 	mutex_unlock(&tracer.mutex);
-=20
- 	return ret ? : n;
-@@ -490,18 +503,25 @@ static ssize_t trace_info_show(struct kobject *ko=
-bj,
- 	u32 etb_wa, etb_ra, etb_st, etb_fc, etm_ctrl, etm_st;
- 	int datalen;
-=20
--	etb_unlock(&tracer);
--	datalen =3D etb_getdatalen(&tracer);
--	etb_wa =3D etb_readl(&tracer, ETBR_WRITEADDR);
--	etb_ra =3D etb_readl(&tracer, ETBR_READADDR);
--	etb_st =3D etb_readl(&tracer, ETBR_STATUS);
--	etb_fc =3D etb_readl(&tracer, ETBR_FORMATTERCTRL);
--	etb_lock(&tracer);
-+	mutex_lock(&tracer.mutex);
-+	if (tracer.etb_regs) {
-+		etb_unlock(&tracer);
-+		datalen =3D etb_getdatalen(&tracer);
-+		etb_wa =3D etb_readl(&tracer, ETBR_WRITEADDR);
-+		etb_ra =3D etb_readl(&tracer, ETBR_READADDR);
-+		etb_st =3D etb_readl(&tracer, ETBR_STATUS);
-+		etb_fc =3D etb_readl(&tracer, ETBR_FORMATTERCTRL);
-+		etb_lock(&tracer);
-+	} else {
-+		etb_wa =3D etb_ra =3D etb_st =3D etb_fc =3D ~0;
-+		datalen =3D -1;
-+	}
-=20
- 	etm_unlock(&tracer);
- 	etm_ctrl =3D etm_readl(&tracer, ETMR_CTRL);
- 	etm_st =3D etm_readl(&tracer, ETMR_STATUS);
- 	etm_lock(&tracer);
-+	mutex_unlock(&tracer.mutex);
-=20
- 	return sprintf(buf, "Trace buffer len: %d\nComparator pairs: %d\n"
- 			"ETBR_WRITEADDR:\t%08x\n"
-@@ -651,7 +671,6 @@ static int __init etm_probe(struct amba_device *dev=
-, struct amba_id *id)
-=20
- 	amba_set_drvdata(dev, t);
-=20
--	mutex_init(&t->mutex);
- 	t->dev =3D &dev->dev;
- 	t->flags =3D TRACER_CYCLE_ACC | TRACER_TRACE_DATA;
- 	t->etm_portsz =3D 1;
-@@ -745,6 +764,8 @@ static int __init etm_init(void)
- {
- 	int retval;
-=20
-+	mutex_init(&tracer.mutex);
-+
- 	retval =3D amba_driver_register(&etb_driver);
- 	if (retval) {
- 		printk(KERN_ERR "Failed to register etb\n");
---=20
-1.7.3.1
+VGhlIG9sZCBjb2RlIGVuYWJsZWQgZGF0YSB0cmFjaW5nLCBidXQgZGlkIG5vdCBjb25maWd1cmUg
+dGhlCnJhbmdlLiBXZSBub3cgY29uZmlndXJlIGl0IHRvIHRyYWNlIGFsbCBkYXRhIGFkZHJlc3Nl
+cyBieSBkZWZhdWx0LAphbmQgYWRkIGEgdHJhY2VfZGF0YV9yYW5nZSBhdHRyaWJ1dGUgdG8gY2hh
+bmdlIHRoZSByYW5nZSBvciBkaXNhYmxlCmRhdGEgdHJhY2luZy4KClNpZ25lZC1vZmYtYnk6IEFy
+dmUgSGrDuG5uZXbDpWcgPGFydmVAYW5kcm9pZC5jb20+Ci0tLQogYXJjaC9hcm0vaW5jbHVkZS9h
+c20vaGFyZHdhcmUvY29yZXNpZ2h0LmggfCAgIDEwICsrKy0KIGFyY2gvYXJtL2tlcm5lbC9ldG0u
+YyAgICAgICAgICAgICAgICAgICAgIHwgICA3NyArKysrKysrKysrKysrKysrKysrKysrKysrKyst
+CiAyIGZpbGVzIGNoYW5nZWQsIDgzIGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pCgpkaWZm
+IC0tZ2l0IGEvYXJjaC9hcm0vaW5jbHVkZS9hc20vaGFyZHdhcmUvY29yZXNpZ2h0LmggYi9hcmNo
+L2FybS9pbmNsdWRlL2FzbS9oYXJkd2FyZS9jb3Jlc2lnaHQuaAppbmRleCA3ZWNkNzkzLi42ZWE1
+MDdmIDEwMDY0NAotLS0gYS9hcmNoL2FybS9pbmNsdWRlL2FzbS9oYXJkd2FyZS9jb3Jlc2lnaHQu
+aAorKysgYi9hcmNoL2FybS9pbmNsdWRlL2FzbS9oYXJkd2FyZS9jb3Jlc2lnaHQuaApAQCAtMTcs
+OSArMTcsMTEgQEAKICNkZWZpbmUgVFJBQ0VSX0FDQ0VTU0VEX0JJVAkwCiAjZGVmaW5lIFRSQUNF
+Ul9SVU5OSU5HX0JJVAkxCiAjZGVmaW5lIFRSQUNFUl9DWUNMRV9BQ0NfQklUCTIKKyNkZWZpbmUg
+VFJBQ0VSX1RSQUNFX0RBVEFfQklUCTMKICNkZWZpbmUgVFJBQ0VSX0FDQ0VTU0VECQlCSVQoVFJB
+Q0VSX0FDQ0VTU0VEX0JJVCkKICNkZWZpbmUgVFJBQ0VSX1JVTk5JTkcJCUJJVChUUkFDRVJfUlVO
+TklOR19CSVQpCiAjZGVmaW5lIFRSQUNFUl9DWUNMRV9BQ0MJQklUKFRSQUNFUl9DWUNMRV9BQ0Nf
+QklUKQorI2RlZmluZSBUUkFDRVJfVFJBQ0VfREFUQQlCSVQoVFJBQ0VSX1RSQUNFX0RBVEFfQklU
+KQogCiAjZGVmaW5lIFRSQUNFUl9USU1FT1VUIDEwMDAwCiAKQEAgLTExMyw4ICsxMTUsMTQgQEAK
+ICNkZWZpbmUgRVRNUl9UUkFDRUVOQ1RSTAkweDI0CiAjZGVmaW5lIEVUTVRFX0lOQ0xFWENMCQlC
+SVQoMjQpCiAjZGVmaW5lIEVUTVJfVFJBQ0VFTkVWVAkJMHgyMAorCisjZGVmaW5lIEVUTVJfVklF
+V0RBVEFFVlQJMHgzMAorI2RlZmluZSBFVE1SX1ZJRVdEQVRBQ1RSTDEJMHgzNAorI2RlZmluZSBF
+VE1SX1ZJRVdEQVRBQ1RSTDIJMHgzOAorI2RlZmluZSBFVE1SX1ZJRVdEQVRBQ1RSTDMJMHgzYwor
+I2RlZmluZSBFVE1WREMzX0VYQ0xPTkxZCUJJVCgxNikKKwogI2RlZmluZSBFVE1DVFJMX09QVFMJ
+CShFVE1DVFJMX0RPX0NQUlQgfCBcCi0JCQkJRVRNQ1RSTF9EQVRBX0RPX0FERFIgfCBcCiAJCQkJ
+RVRNQ1RSTF9CUkFOQ0hfT1VUUFVUIHwgXAogCQkJCUVUTUNUUkxfRE9fQ09OVEVYVElEKQogCmRp
+ZmYgLS1naXQgYS9hcmNoL2FybS9rZXJuZWwvZXRtLmMgYi9hcmNoL2FybS9rZXJuZWwvZXRtLmMK
+aW5kZXggOGExYzQyMi4uOTZiMWFiYiAxMDA2NDQKLS0tIGEvYXJjaC9hcm0va2VybmVsL2V0bS5j
+CisrKyBiL2FyY2gvYXJtL2tlcm5lbC9ldG0uYwpAQCAtNDIsNiArNDIsOCBAQCBzdHJ1Y3QgdHJh
+Y2VjdHggewogCWludAkJZXRtX3BvcnRzejsKIAl1bnNpZ25lZCBsb25nCXJhbmdlX3N0YXJ0Owog
+CXVuc2lnbmVkIGxvbmcJcmFuZ2VfZW5kOworCXVuc2lnbmVkIGxvbmcJZGF0YV9yYW5nZV9zdGFy
+dDsKKwl1bnNpZ25lZCBsb25nCWRhdGFfcmFuZ2VfZW5kOwogCXN0cnVjdCBkZXZpY2UJKmRldjsK
+IAlzdHJ1Y3QgY2xrCSplbXVfY2xrOwogCXN0cnVjdCBtdXRleAltdXRleDsKQEAgLTgzLDggKzg1
+LDE1IEBAIHN0YXRpYyBpbnQgZXRtX3NldHVwX2FkZHJlc3NfcmFuZ2Uoc3RydWN0IHRyYWNlY3R4
+ICp0LCBpbnQgbiwKIAlldG1fd3JpdGVsKHQsIGZsYWdzLCBFVE1SX0NPTVBfQUNDX1RZUEUobiAq
+IDIgKyAxKSk7CiAJZXRtX3dyaXRlbCh0LCBlbmQsIEVUTVJfQ09NUF9WQUwobiAqIDIgKyAxKSk7
+CiAKLQlmbGFncyA9IGV4Y2x1ZGUgPyBFVE1URV9JTkNMRVhDTCA6IDA7Ci0JZXRtX3dyaXRlbCh0
+LCBmbGFncyB8ICgxIDw8IG4pLCBFVE1SX1RSQUNFRU5DVFJMKTsKKwlpZiAoZGF0YSkgeworCQlm
+bGFncyA9IGV4Y2x1ZGUgPyBFVE1WREMzX0VYQ0xPTkxZIDogMDsKKwkJaWYgKGV4Y2x1ZGUpCisJ
+CQluICs9IDg7CisJCWV0bV93cml0ZWwodCwgZmxhZ3MgfCBCSVQobiksIEVUTVJfVklFV0RBVEFD
+VFJMMyk7CisJfSBlbHNlIHsKKwkJZmxhZ3MgPSBleGNsdWRlID8gRVRNVEVfSU5DTEVYQ0wgOiAw
+OworCQlldG1fd3JpdGVsKHQsIGZsYWdzIHwgKDEgPDwgbiksIEVUTVJfVFJBQ0VFTkNUUkwpOwor
+CX0KIAogCXJldHVybiAwOwogfQpAQCAtMTA4LDYgKzExNyw5IEBAIHN0YXRpYyBpbnQgdHJhY2Vf
+c3RhcnQoc3RydWN0IHRyYWNlY3R4ICp0KQogCWlmICh0LT5mbGFncyAmIFRSQUNFUl9DWUNMRV9B
+Q0MpCiAJCXYgfD0gRVRNQ1RSTF9DWUNMRUFDQ1VSQVRFOwogCisJaWYgKHQtPmZsYWdzICYgVFJB
+Q0VSX1RSQUNFX0RBVEEpCisJCXYgfD0gRVRNQ1RSTF9EQVRBX0RPX0FERFI7CisKIAlldG1fdW5s
+b2NrKHQpOwogCiAJZXRtX3dyaXRlbCh0LCB2LCBFVE1SX0NUUkwpOwpAQCAtMTMwLDYgKzE0Miwx
+NyBAQCBzdGF0aWMgaW50IHRyYWNlX3N0YXJ0KHN0cnVjdCB0cmFjZWN0eCAqdCkKIAlldG1fd3Jp
+dGVsKHQsIDAsIEVUTVJfVFJBQ0VTU0NUUkwpOwogCWV0bV93cml0ZWwodCwgMHg2ZiwgRVRNUl9U
+UkFDRUVORVZUKTsKIAorCWV0bV93cml0ZWwodCwgMCwgRVRNUl9WSUVXREFUQUNUUkwxKTsKKwll
+dG1fd3JpdGVsKHQsIDAsIEVUTVJfVklFV0RBVEFDVFJMMik7CisKKwlpZiAodC0+ZGF0YV9yYW5n
+ZV9zdGFydCB8fCB0LT5kYXRhX3JhbmdlX2VuZCkKKwkJZXRtX3NldHVwX2FkZHJlc3NfcmFuZ2Uo
+dCwgMiwgdC0+ZGF0YV9yYW5nZV9zdGFydCwKKwkJCQkJdC0+ZGF0YV9yYW5nZV9lbmQsIDAsIDEp
+OworCWVsc2UKKwkJZXRtX3dyaXRlbCh0LCBFVE1WREMzX0VYQ0xPTkxZLCBFVE1SX1ZJRVdEQVRB
+Q1RSTDMpOworCisJZXRtX3dyaXRlbCh0LCAweDZmLCBFVE1SX1ZJRVdEQVRBRVZUKTsKKwogCXYg
+Jj0gfkVUTUNUUkxfUFJPR1JBTTsKIAl2IHw9IEVUTUNUUkxfUE9SVFNFTDsKIApAQCAtNTYzLDYg
+KzU4Niw0OCBAQCBzdGF0aWMgc3NpemVfdCB0cmFjZV9yYW5nZV9zdG9yZShzdHJ1Y3Qga29iamVj
+dCAqa29iaiwKIHN0YXRpYyBzdHJ1Y3Qga29ial9hdHRyaWJ1dGUgdHJhY2VfcmFuZ2VfYXR0ciA9
+CiAJX19BVFRSKHRyYWNlX3JhbmdlLCAwNjQ0LCB0cmFjZV9yYW5nZV9zaG93LCB0cmFjZV9yYW5n
+ZV9zdG9yZSk7CiAKK3N0YXRpYyBzc2l6ZV90IHRyYWNlX2RhdGFfcmFuZ2Vfc2hvdyhzdHJ1Y3Qg
+a29iamVjdCAqa29iaiwKKwkJCQkgIHN0cnVjdCBrb2JqX2F0dHJpYnV0ZSAqYXR0ciwKKwkJCQkg
+IGNoYXIgKmJ1ZikKK3sKKwl1bnNpZ25lZCBsb25nIHJhbmdlX3N0YXJ0OworCXU2NCByYW5nZV9l
+bmQ7CisJbXV0ZXhfbG9jaygmdHJhY2VyLm11dGV4KTsKKwlyYW5nZV9zdGFydCA9IHRyYWNlci5k
+YXRhX3JhbmdlX3N0YXJ0OworCXJhbmdlX2VuZCA9IHRyYWNlci5kYXRhX3JhbmdlX2VuZDsKKwlp
+ZiAoIXJhbmdlX2VuZCAmJiAodHJhY2VyLmZsYWdzICYgVFJBQ0VSX1RSQUNFX0RBVEEpKQorCQly
+YW5nZV9lbmQgPSAweDEwMDAwMDAwMFVMTDsKKwltdXRleF91bmxvY2soJnRyYWNlci5tdXRleCk7
+CisJcmV0dXJuIHNwcmludGYoYnVmLCAiJTA4bHggJTA4bGx4XG4iLCByYW5nZV9zdGFydCwgcmFu
+Z2VfZW5kKTsKK30KKworc3RhdGljIHNzaXplX3QgdHJhY2VfZGF0YV9yYW5nZV9zdG9yZShzdHJ1
+Y3Qga29iamVjdCAqa29iaiwKKwkJCQkgICBzdHJ1Y3Qga29ial9hdHRyaWJ1dGUgKmF0dHIsCisJ
+CQkJICAgY29uc3QgY2hhciAqYnVmLCBzaXplX3QgbikKK3sKKwl1bnNpZ25lZCBsb25nIHJhbmdl
+X3N0YXJ0OworCXU2NCByYW5nZV9lbmQ7CisKKwlpZiAoc3NjYW5mKGJ1ZiwgIiVseCAlbGx4Iiwg
+JnJhbmdlX3N0YXJ0LCAmcmFuZ2VfZW5kKSAhPSAyKQorCQlyZXR1cm4gLUVJTlZBTDsKKworCW11
+dGV4X2xvY2soJnRyYWNlci5tdXRleCk7CisJdHJhY2VyLmRhdGFfcmFuZ2Vfc3RhcnQgPSByYW5n
+ZV9zdGFydDsKKwl0cmFjZXIuZGF0YV9yYW5nZV9lbmQgPSAodW5zaWduZWQgbG9uZylyYW5nZV9l
+bmQ7CisJaWYgKHJhbmdlX2VuZCkKKwkJdHJhY2VyLmZsYWdzIHw9IFRSQUNFUl9UUkFDRV9EQVRB
+OworCWVsc2UKKwkJdHJhY2VyLmZsYWdzICY9IH5UUkFDRVJfVFJBQ0VfREFUQTsKKwltdXRleF91
+bmxvY2soJnRyYWNlci5tdXRleCk7CisKKwlyZXR1cm4gbjsKK30KKworCitzdGF0aWMgc3RydWN0
+IGtvYmpfYXR0cmlidXRlIHRyYWNlX2RhdGFfcmFuZ2VfYXR0ciA9CisJX19BVFRSKHRyYWNlX2Rh
+dGFfcmFuZ2UsIDA2NDQsCisJCXRyYWNlX2RhdGFfcmFuZ2Vfc2hvdywgdHJhY2VfZGF0YV9yYW5n
+ZV9zdG9yZSk7CisKIHN0YXRpYyBpbnQgX19pbml0IGV0bV9wcm9iZShzdHJ1Y3QgYW1iYV9kZXZp
+Y2UgKmRldiwgc3RydWN0IGFtYmFfaWQgKmlkKQogewogCXN0cnVjdCB0cmFjZWN0eCAqdCA9ICZ0
+cmFjZXI7CkBAIC01ODgsNyArNjUzLDcgQEAgc3RhdGljIGludCBfX2luaXQgZXRtX3Byb2JlKHN0
+cnVjdCBhbWJhX2RldmljZSAqZGV2LCBzdHJ1Y3QgYW1iYV9pZCAqaWQpCiAKIAltdXRleF9pbml0
+KCZ0LT5tdXRleCk7CiAJdC0+ZGV2ID0gJmRldi0+ZGV2OwotCXQtPmZsYWdzID0gVFJBQ0VSX0NZ
+Q0xFX0FDQzsKKwl0LT5mbGFncyA9IFRSQUNFUl9DWUNMRV9BQ0MgfCBUUkFDRVJfVFJBQ0VfREFU
+QTsKIAl0LT5ldG1fcG9ydHN6ID0gMTsKIAogCWV0bV91bmxvY2sodCk7CkBAIC02MTgsNiArNjgz
+LDExIEBAIHN0YXRpYyBpbnQgX19pbml0IGV0bV9wcm9iZShzdHJ1Y3QgYW1iYV9kZXZpY2UgKmRl
+diwgc3RydWN0IGFtYmFfaWQgKmlkKQogCWlmIChyZXQpCiAJCWRldl9kYmcoJmRldi0+ZGV2LCAi
+RmFpbGVkIHRvIGNyZWF0ZSB0cmFjZV9yYW5nZSBpbiBzeXNmc1xuIik7CiAKKwlyZXQgPSBzeXNm
+c19jcmVhdGVfZmlsZSgmZGV2LT5kZXYua29iaiwgJnRyYWNlX2RhdGFfcmFuZ2VfYXR0ci5hdHRy
+KTsKKwlpZiAocmV0KQorCQlkZXZfZGJnKCZkZXYtPmRldiwKKwkJCSJGYWlsZWQgdG8gY3JlYXRl
+IHRyYWNlX2RhdGFfcmFuZ2UgaW4gc3lzZnNcbiIpOworCiAJZGV2X2RiZyh0LT5kZXYsICJFVE0g
+QU1CQSBkcml2ZXIgaW5pdGlhbGl6ZWQuXG4iKTsKIAogb3V0OgpAQCAtNjQ4LDYgKzcxOCw3IEBA
+IHN0YXRpYyBpbnQgZXRtX3JlbW92ZShzdHJ1Y3QgYW1iYV9kZXZpY2UgKmRldikKIAlzeXNmc19y
+ZW1vdmVfZmlsZSgmZGV2LT5kZXYua29iaiwgJnRyYWNlX2luZm9fYXR0ci5hdHRyKTsKIAlzeXNm
+c19yZW1vdmVfZmlsZSgmZGV2LT5kZXYua29iaiwgJnRyYWNlX21vZGVfYXR0ci5hdHRyKTsKIAlz
+eXNmc19yZW1vdmVfZmlsZSgmZGV2LT5kZXYua29iaiwgJnRyYWNlX3JhbmdlX2F0dHIuYXR0cik7
+CisJc3lzZnNfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2LmtvYmosICZ0cmFjZV9kYXRhX3JhbmdlX2F0
+dHIuYXR0cik7CiAKIAlyZXR1cm4gMDsKIH0KLS0gCjEuNy4zLjEKCgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcg
+bGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
+ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
