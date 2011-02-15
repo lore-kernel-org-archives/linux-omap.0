@@ -1,32 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v7 0/4] Introduce support for TI816X processor series
-Date: Tue, 15 Feb 2011 09:57:16 -0800
-Message-ID: <20110215175716.GZ20795@atomide.com>
-References: <1297791319-31891-1-git-send-email-hemantp@ti.com>
- <87tyg5rxyn.fsf@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v7 3/4] TI816X: Create board support and enable build
+	for TI816X EVM
+Date: Tue, 15 Feb 2011 18:01:39 +0000
+Message-ID: <20110215180139.GF11199@n2100.arm.linux.org.uk>
+References: <1297791368-32042-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40528 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752266Ab1BOR5d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 12:57:33 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58568 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755720Ab1BOSBu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 13:01:50 -0500
 Content-Disposition: inline
-In-Reply-To: <87tyg5rxyn.fsf@ti.com>
+In-Reply-To: <1297791368-32042-1-git-send-email-hemantp@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Hemant Pedanekar <hemantp@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Hemant Pedanekar <hemantp@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-* Kevin Hilman <khilman@ti.com> [110215 09:46]:
-> Hemant Pedanekar <hemantp@ti.com> writes:
-> 
-> > This patch set adds support for TI816X processor series. This series includes
-> > DM8168, C6A816x and AM389x devices.
-> 
-> Acked-by: Kevin Hilman <khilman@ti.com>
+On Tue, Feb 15, 2011 at 11:06:08PM +0530, Hemant Pedanekar wrote:
+> +static void __init ti8168_evm_init_irq(void)
+> +{
+> +	omap_board_config = ti8168_evm_config;
+> +	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
+> +	omap2_init_common_infrastructure();
+> +	omap2_init_common_devices(NULL, NULL);
+> +	omap_init_irq();
+> +}
 
-Will queue for the upcoming merge window.
-
-Tony
- 
+What here can use the new init_early hook in the machine record?
