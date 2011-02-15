@@ -1,63 +1,100 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [5/7 v2] usb: otg: TWL6030: Introduce the twl6030_phy_suspend
- function.
-Date: Tue, 15 Feb 2011 15:22:17 +0300
-Message-ID: <4D5A6FF9.8000709@ru.mvista.com>
-References: <1297762958-26199-1-git-send-email-hemahk@ti.com> <1297762958-26199-5-git-send-email-hemahk@ti.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH] omap: dmtimer: Enable autoidle
+Date: Tue, 15 Feb 2011 12:29:57 +0000
+Message-ID: <854C6400F5AA6644BA6FE7953F3E769B037E9EA3@008-AM1MPN1-014.mgdnok.nokia.com>
+References: <1297704375-25873-1-git-send-email-tero.kristo@nokia.com>
+ <87oc6exkjr.fsf@ti.com>
+ <854C6400F5AA6644BA6FE7953F3E769B037E9BDD@008-AM1MPN1-014.mgdnok.nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03745CA4C6@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03745CA4D8@dbde02.ent.ti.com>
+ <854C6400F5AA6644BA6FE7953F3E769B037E9D2C@008-AM1MPN1-014.mgdnok.nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03745CA4F7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1297762958-26199-5-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.48]:64254 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754568Ab1BOMba convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 07:31:30 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03745CA4F7@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tarun.kanti@ti.com, khilman@ti.com
+Cc: linux-omap@vger.kernel.org
 
-Hello.
 
-On 15-02-2011 12:42, Hema HK wrote:
 
-> From: Kalliguddi, Hema<hemahk-l0cyMroinI0@public.gmane.org>
-
-> Introduce the twl6030_phy_suspend function and assign to otg.set_suspend
-> function pointer.
-> This function is used by the musb-omap2430 platform driver
-> during suspend/resume.
-
-> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
-> Cc: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
-
-[...]
-
-> Index: linux-2.6/drivers/usb/otg/twl6030-usb.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/usb/otg/twl6030-usb.c
-> +++ linux-2.6/drivers/usb/otg/twl6030-usb.c
-> @@ -177,6 +177,20 @@ static void twl6030_phy_shutdown(struct
->   	pdata->phy_power(twl->dev, 0, 0);
->   }
+>-----Original Message-----
+>From: ext DebBarma, Tarun Kanti [mailto:tarun.kanti@ti.com]
+>Sent: 15 February, 2011 11:52
+>To: Kristo Tero (Nokia-MS/Tampere); Hilman, Kevin
+>Cc: linux-omap@vger.kernel.org
+>Subject: RE: [PATCH] omap: dmtimer: Enable autoidle
 >
-> +static int twl6030_phy_suspend(struct otg_transceiver *x, int suspend)
-> +{
-> +	struct twl6030_usb *twl;
-> +	struct device *dev;
-> +	struct twl4030_usb_data *pdata;
-> +
-> +	twl = xceiv_to_twl(x);
-> +	dev  = twl->dev;
-> +	pdata = dev->platform_data;
+>[...]
+>> >> >
+>> >> > Should this be changed to apply only on that one? I don't know
+>about
+>> >> > OMAP4, but I think this should work on OMAP2 at least based on
+>spec.
+>> >> It works on OMAP2 and OMAP4.
+>> >Ok, on OMAP4 I should have clarified further.
+>> >AUTOIDLE is present only for millisecond timers: 1,2,10.
+>> >The reset of the timers do not have this bit.
+>>
+>> Does it matter if the bit is set on the timers that don't have it or
+>does
+>> the HW just ignore it? Or should we enumerate the timers that support
+>it
+>> on omap4?
+>For other timers it happens to be SOFTRESET bit. So HW would not ignore.
 
-    Why not do all the above in the intializers?
+Ok, so this one should only be implemented for omap2/3 or added logic is needed for omap4.
 
-> +	pdata->phy_suspend(twl->dev, suspend);
-> +
-> +	return 0;
-> +}
-> +
-
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>--
+>Tarun
+>> >>
+>> >> >
+>> >> >
+>> >> > >
+>> >> > >Also, please Cc linux-arm-kernel.
+>> >> > >
+>> >> > >Thanks,
+>> >> > >
+>> >> > >Kevin
+>> >> > >
+>> >> > >> ---
+>> >> > >>  arch/arm/plat-omap/dmtimer.c |    1 +
+>> >> > >>  1 files changed, 1 insertions(+), 0 deletions(-)
+>> >> > >>
+>> >> > >> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-
+>> >> > >omap/dmtimer.c
+>> >> > >> index 1d706cf..949becc 100644
+>> >> > >> --- a/arch/arm/plat-omap/dmtimer.c
+>> >> > >> +++ b/arch/arm/plat-omap/dmtimer.c
+>> >> > >> @@ -341,6 +341,7 @@ static void omap_dm_timer_reset(struct
+>> >> > >omap_dm_timer *timer)
+>> >> > >>  	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_OCP_CFG_REG);
+>> >> > >>  	l |= 0x02 << 3;  /* Set to smart-idle mode */
+>> >> > >>  	l |= 0x2 << 8;   /* Set clock activity to perserve f-clock
+>> >on
+>> >> idle
+>> >> > >*/
+>> >> > >> +	l |= 0x1 << 0;   /* Set autoidle */
+>> >> > >>
+>> >> > >>  	/*
+>> >> > >>  	 * Enable wake-up on OMAP2 CPUs.
+>> >> > --
+>> >> > To unsubscribe from this list: send the line "unsubscribe linux-
+>> >omap" in
+>> >> > the body of a message to majordomo@vger.kernel.org
+>> >> > More majordomo info at  http://vger.kernel.org/majordomo-
+>info.html
+>> >> --
+>> >> To unsubscribe from this list: send the line "unsubscribe linux-
+>omap"
+>> >in
+>> >> the body of a message to majordomo@vger.kernel.org
+>> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
