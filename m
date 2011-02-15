@@ -1,92 +1,62 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH] omap: dmtimer: Enable autoidle
-Date: Tue, 15 Feb 2011 18:11:16 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03745CA5D1@dbde02.ent.ti.com>
-References: <1297704375-25873-1-git-send-email-tero.kristo@nokia.com>
- <87oc6exkjr.fsf@ti.com>
- <854C6400F5AA6644BA6FE7953F3E769B037E9BDD@008-AM1MPN1-014.mgdnok.nokia.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB03745CA4C6@dbde02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB03745CA4D8@dbde02.ent.ti.com>
- <854C6400F5AA6644BA6FE7953F3E769B037E9D2C@008-AM1MPN1-014.mgdnok.nokia.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB03745CA4F7@dbde02.ent.ti.com>
- <854C6400F5AA6644BA6FE7953F3E769B037E9EA3@008-AM1MPN1-014.mgdnok.nokia.com>
+From: archit taneja <archit@ti.com>
+Subject: Re: OMAP: DSS2: Common IRQ handler for all OMAPs
+Date: Tue, 15 Feb 2011 18:13:30 +0530
+Message-ID: <4D5A74F2.1060100@ti.com>
+References: <1296636990-24775-1-git-send-email-archit@ti.com> <1297693307.2951.25.camel@deskari> <20110214143001.GK2549@legolas.emea.dhcp.ti.com> <4D5A00E8.4060701@ti.com> <1297754826.2289.9.camel@deskari> <4D5A39AE.3030006@ti.com> <1297759057.2289.40.camel@deskari> <4D5A4670.9030405@ti.com> <4D5A5410.1010300@ti.com> <AANLkTikZXdrjXMq811LR8dQ0eq-QDDUb=pUdBDghWD3E@mail.gmail.com> <4D5A5A5C.4070909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59832 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59928 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753293Ab1BOMlZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 07:41:25 -0500
-In-Reply-To: <854C6400F5AA6644BA6FE7953F3E769B037E9EA3@008-AM1MPN1-014.mgdnok.nokia.com>
-Content-Language: en-US
+	id S1753293Ab1BOMmg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 07:42:36 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1FCgXxK020354
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 06:42:35 -0600
+In-Reply-To: <4D5A5A5C.4070909@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Tero.Kristo@nokia.com" <Tero.Kristo@nokia.com>, "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 
-[...]
-> >> >> >
-> >> >> > Should this be changed to apply only on that one? I don't know
-> >about
-> >> >> > OMAP4, but I think this should work on OMAP2 at least based on
-> >spec.
-> >> >> It works on OMAP2 and OMAP4.
-> >> >Ok, on OMAP4 I should have clarified further.
-> >> >AUTOIDLE is present only for millisecond timers: 1,2,10.
-> >> >The reset of the timers do not have this bit.
-> >>
-> >> Does it matter if the bit is set on the timers that don't have it or
-> >does
-> >> the HW just ignore it? Or should we enumerate the timers that support
-> >it
-> >> on omap4?
-> >For other timers it happens to be SOFTRESET bit. So HW would not ignore.
-> 
-> Ok, so this one should only be implemented for omap2/3 or added logic is
-> needed for omap4.
-YES.
+Hi,
 
-> >> >>
-> >> >> >
-> >> >> >
-> >> >> > >
-> >> >> > >Also, please Cc linux-arm-kernel.
-> >> >> > >
-> >> >> > >Thanks,
-> >> >> > >
-> >> >> > >Kevin
-> >> >> > >
-> >> >> > >> ---
-> >> >> > >>  arch/arm/plat-omap/dmtimer.c |    1 +
-> >> >> > >>  1 files changed, 1 insertions(+), 0 deletions(-)
-> >> >> > >>
-> >> >> > >> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-
-> >> >> > >omap/dmtimer.c
-> >> >> > >> index 1d706cf..949becc 100644
-> >> >> > >> --- a/arch/arm/plat-omap/dmtimer.c
-> >> >> > >> +++ b/arch/arm/plat-omap/dmtimer.c
-> >> >> > >> @@ -341,6 +341,7 @@ static void omap_dm_timer_reset(struct
-> >> >> > >omap_dm_timer *timer)
-> >> >> > >>  	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_OCP_CFG_REG);
-> >> >> > >>  	l |= 0x02 << 3;  /* Set to smart-idle mode */
-> >> >> > >>  	l |= 0x2 << 8;   /* Set clock activity to perserve f-clock
-> >> >on
-> >> >> idle
-> >> >> > >*/
-> >> >> > >> +	l |= 0x1 << 0;   /* Set autoidle */
-> >> >> > >>
-> >> >> > >>  	/*
-> >> >> > >>  	 * Enable wake-up on OMAP2 CPUs.
-> >> >> > --
-> >> >> > To unsubscribe from this list: send the line "unsubscribe linux-
-> >> >omap" in
-> >> >> > the body of a message to majordomo@vger.kernel.org
-> >> >> > More majordomo info at  http://vger.kernel.org/majordomo-
-> >info.html
-> >> >> --
-> >> >> To unsubscribe from this list: send the line "unsubscribe linux-
-> >omap"
-> >> >in
-> >> >> the body of a message to majordomo@vger.kernel.org
-> >> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+<snip>
+
+>>>>
+>>>> Is it okay to have the same irq entry for 2 different hwmods?
+>>>> This requirement comes from OMAP3 where dispc and dsi have a common irq
+>>>> line, where as on OMAP4 dispc and dsi have separate irq lines.
+>>>
+>>> Well, no. I explained that in one of my comment about hwmod modification.
+>>> The hwmod data are reflecting the exact HW capabilities.
+>>> So, if there is a change in the HW, the hwmod will be different.
+>>> It is up to the driver to adapt to this change.
+>> I guess what Archit wanted to say is, for hw IPs DISPC and DSI, on
+>> OMAP3, have a common IRQ line, so could both their hwmod databases
+>> have the same IRQ added for them? This would us call, for a common IRQ
+>> line shared w/ DISPC and DSI, like
+>> mentioned in Tomi's sample code above.
+>
+> OK, thanks for the clarification, actually I missed a little bit the
+> point :-(
+>
+> So in fact the 2 modules share that same IRQ today, and you just want to
+> populate both hwmod with the same input.
+> If this is a real OR between the two IRQ lines, meaning the dispc cannot
+> mask the dsi IRQ or the opposite, then having the same IRQ number in the
+> two different hwmods is a correct representation of the HW.
+
+There is a real OR between the 2 irq lines in OMAP3, as there is no 
+DSS_IRQENABLE, but there is a DSS_IRQSTATUS.
+
+You can mask one of DISPC or DSI by zeroing all the bits in 
+DISPC_IRQENABLE or DSI_IRQENABLE respectively. But there is no higher 
+level register to mask them.
+
+<snip>
+
+Regards,
+Archit
