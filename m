@@ -1,88 +1,67 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP: DSS2: Common IRQ handler for all OMAPs
-Date: Tue, 15 Feb 2011 10:37:37 +0200
-Message-ID: <1297759057.2289.40.camel@deskari>
-References: <1296636990-24775-1-git-send-email-archit@ti.com>
-	 <1297693307.2951.25.camel@deskari>
-	 <20110214143001.GK2549@legolas.emea.dhcp.ti.com>  <4D5A00E8.4060701@ti.com>
-	 <1297754826.2289.9.camel@deskari>  <4D5A39AE.3030006@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 00/15] More cleanups
+Date: Tue, 15 Feb 2011 10:45:47 +0200
+Message-ID: <1297759562-25682-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47821 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754469Ab1BOIhl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 03:37:41 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1F8beqx024389
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 02:37:40 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1F8bel1001186
-	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 02:37:40 -0600 (CST)
-In-Reply-To: <4D5A39AE.3030006@ti.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:55565 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751178Ab1BOIqP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 03:46:15 -0500
+Received: by gxk21 with SMTP id 21so2414887gxk.10
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 00:46:13 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-On Tue, 2011-02-15 at 02:30 -0600, Taneja, Archit wrote:
-> Hi,
-> 
-> On Tuesday 15 February 2011 12:57 PM, Valkeinen, Tomi wrote:
-> 
-> <snip>
-> 
-> > I meant something like this:
-> >
-> > dispc.c:
-> >
-> > dispc_init()
-> > {
-> > 	/* did we have a pdev for dispc? if not, this needs to be dss.pdev */
-> > 	request_irq(platform_get_irq(dispc.pdev, 0), irq_handler, IRQF_SHARED, "dispc irq", foo);
-> > }
-> >
-> > irq_handler()
-> > {
-> > 	if (irq_can_be_shared) {
-> > 		check if the irq is for us. exit if not;
-> > 	}
-> >
-> > 	handle;
-> > }
-> >
-> > dsi.c:
-> >
-> > dsi_init()
-> > {
-> > 	request_irq(platform_get_irq(dsi.pdev, 0), irq_handler, IRQF_SHARED, "dsi irq", foo);
-> > }
-> >
-> > irq_handler()
-> > {
-> > 	if (irq_can_be_shared) {
-> > 		check if the irq is for us. exit if not;
-> > 	}
-> >
-> > 	handle;
-> > }
-> >
-> 
-> This approach looks clean, but isn't IRQF_SHARED used the other way 
-> around. One irq line and multiple handlers?
+We're almost there. retu.c looks very nice now.
 
-That is the case here, isn't it (on omap3)? One interrupt line (the DSS
-irq, the same returned both from dsi.pdev and dispc.pdev), and two
-handlers, one in dispc and one in dsi? Or what do you mean?
+The bulk effort is now on its children:
 
-On omap2 there's no dsi code ran, so dispc is the only one requesting
-the irq, and thus IRQF_SHARED is extra. In omap4 there are separate irq
-lines (dsi.pdev and dispc.pdev return different irqs), and so
-IRQF_SHARED is again extra. But I don't see any harm in IRQF_SHARED even
-in omap2/4.
+. retu-headset.c
+	. should use jack framework
+	. should use dev_pm_ops
+	. some cleanups wouldn't hurt
 
- Tomi
+. retu-rtc.c
+	. needs suspend/resume (?)
 
+. retu-wdt.c
+	. needs suspend/resume (?)
+
+patches also available at [1] for convenience
+
+[1] git://gitorious.org/usb/usb.git cbus
+
+Felipe Balbi (15):
+  cbus: retu: drop retu_get_status
+  cbus: retu: replace BUG_ON with WARN
+  cbus: retu: drop the unnecessary spinlock_t
+  cbus: retu: drop unused PFX macro
+  arm: omap: cbus: add IDs for Retu and Tahvo
+  arm: omap: pass Retu ID via platform_data
+  cbus: retu: use the devid from platform_data
+  cbus: retu: introduce internal read/write functions
+  cbus: retu: search and replace
+  cbus: retu: pwrbutton: save device pointer on our structure
+  cbus: retu: pass the child device pointer to all retu functions
+  cbus: retu: headset: don't save pdev pointer
+  cbus: retu: replace EXPORT_SYMBOL with EXPORT_SYMBOL_GPL
+  cbus: retu: tabify retu initialization
+  cbus: retu: set pm_power_off to NULL when removing retu
+
+ arch/arm/mach-omap1/board-nokia770.c   |    1 +
+ arch/arm/mach-omap2/board-n8x0.c       |    1 +
+ arch/arm/plat-omap/include/plat/cbus.h |    4 +
+ drivers/cbus/retu-headset.c            |   35 ++++---
+ drivers/cbus/retu-pwrbutton.c          |    4 +-
+ drivers/cbus/retu-rtc.c                |   34 +++----
+ drivers/cbus/retu-wdt.c                |   15 +---
+ drivers/cbus/retu.c                    |  160 +++++++++++++++++++-------------
+ drivers/cbus/retu.h                    |   10 +-
+ 9 files changed, 146 insertions(+), 118 deletions(-)
+
+-- 
+1.7.4.rc2
 
