@@ -1,53 +1,60 @@
-From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 5/5 v6] usb: musb: Using runtime pm APIs for musb.
-Date: Tue, 15 Feb 2011 09:31:45 +0530
-Message-ID: <AANLkTinO0uThn=xOwsdhy8F-1p-eHvdT1+a+BOyLtK9R@mail.gmail.com>
-References: <1297346881-13438-1-git-send-email-hemahk@ti.com>
-	<1297346881-13438-6-git-send-email-hemahk@ti.com>
-	<20110210142605.GR3580@legolas.emea.dhcp.ti.com>
-	<98ff144ea4e715250c54712ebbfb494f@mail.gmail.com>
-	<87oc6ew2lh.fsf@ti.com>
+From: Colin Cross <ccross@google.com>
+Subject: Re: [PATCH 2/6] ARM: pm: add generic CPU suspend/resume support
+Date: Mon, 14 Feb 2011 20:11:23 -0800
+Message-ID: <AANLkTi=JF1c-aFHpSZ-XECLEPSMsFihXT+w3=NXdYn8L@mail.gmail.com>
+References: <20110211161626.GA31356@n2100.arm.linux.org.uk>
+	<E1Pnvgw-0002yZ-M0@rmk-PC.arm.linux.org.uk>
+	<AANLkTi=6zLxGxabBE4-+qGyRt7-219KE=4CB0jf9D=LG@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87oc6ew2lh.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([74.125.121.67]:45630 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751398Ab1BOEL1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Feb 2011 23:11:27 -0500
+Received: from wpaz13.hot.corp.google.com (wpaz13.hot.corp.google.com [172.24.198.77])
+	by smtp-out.google.com with ESMTP id p1F4BPf8008783
+	for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 20:11:25 -0800
+Received: from yxt3 (yxt3.prod.google.com [10.190.5.195])
+	by wpaz13.hot.corp.google.com with ESMTP id p1F4BNhl010745
+	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
+	for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 20:11:24 -0800
+Received: by yxt3 with SMTP id 3so2507473yxt.33
+        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 20:11:23 -0800 (PST)
+In-Reply-To: <AANLkTi=6zLxGxabBE4-+qGyRt7-219KE=4CB0jf9D=LG@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Eric Miao <eric.y.miao@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Feb 15, 2011 at 6:12 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
-> Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org> writes:
+On Mon, Feb 14, 2011 at 5:21 PM, Colin Cross <ccross@google.com> wrote:
+> On Fri, Feb 11, 2011 at 8:17 AM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+>> This adds core support for saving and restoring CPU coprocessor
+>> registers for suspend/resume support. =A0This contains support for s=
+uspend
+>> with ARM920, ARM926, SA11x0, PXA25x, PXA27x, PXA3xx, V6 and V7 CPUs.
 >
-> [...]
+> I would like to use cpu_suspend in a case where the L2 is still
+> enabled. =A0When cpu_resume is called, the MMU and cache bits in SCTL=
+R
+> are disabled, so the reads skip the L2 cache, and the data that was
+> saved (sleep_save_sp and *sleep_save_sp) is not read back.
 >
->>>On Thu, Feb 10, 2011 at 07:38:01PM +0530, Hema HK wrote:
->>>> Calling runtime pm APIs pm_runtime_put_sync() and
->>>pm_runtime_get_sync()
->>>> for enabling/disabling the clocks, sysconfig settings.
->>>>
->>>> Enable clock, configure no-idle/standby when active and
->>>configure force idle/standby
->>>> and disable clock when idled. This is taken care by the
->>>runtime framework when
->>>> driver calls the pm_runtime_get_sync and pm_runtime_put_sync APIs.
->>>
->>>does it have to be the _sync() ??
->> Yes. Because immediately after this I access the registers.
->>
->
-> What about the put?
+> Is it possible to call the outer_cache functions from cpu_suspend to
+> flush sleep_save_sp and the saved data?
 
-Put can be async. I will send the patch with changes.
+Even with a cache flush, cpu_resume_turn_on_mmu fails because the page
+table modification, done with the cache off, ends up in memory, but
+the L2 contains the old value.  When the MMU and cache are enabled,
+the 1:1 mapping disappears.  The page table would need to be
+invalidated during suspend.
 
-Regards,
-Hema
-
->
-> Kevin
->
->
+I can avoid the problem entirely by leaving the MMU on and skipping
+cpu_resume when the CPU does not go through reset.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
