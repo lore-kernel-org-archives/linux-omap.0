@@ -1,60 +1,65 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] i2c-omap: Double clear of ARDY status in IRQ handler
-Date: Mon, 14 Feb 2011 16:05:00 -0800
-Message-ID: <877hd2xivn.fsf@ti.com>
-References: <1297406718-24147-1-git-send-email-j-keerthy@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] omap3: pm: Use exported set_cr() instead of a custom one.
+Date: Mon, 14 Feb 2011 16:08:10 -0800
+Message-ID: <871v3axiqd.fsf@ti.com>
+References: <1297437132-1005-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1297406718-24147-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org> (Keerthy's
-	message of "Fri, 11 Feb 2011 12:15:18 +0530")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:34256 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753692Ab1BOAIO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Feb 2011 19:08:14 -0500
+Received: by mail-gx0-f178.google.com with SMTP id 25so2816490gxk.23
+        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 16:08:13 -0800 (PST)
+In-Reply-To: <1297437132-1005-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Fri, 11 Feb 2011 20:42:11 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> writes:
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> From: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+> Remove the custom restore_control_register() and use the exported
+> set_cr() instead to set the system control register(SCTRL) value.
 >
-> ProDB00017052 - ARDY interrupt reasserted after being cleared.
+> No functional change.
+>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
 
-> This errata caused intermittent i2c instabilty(1 error per 3 hours) on several
-> customer platforms. After applying the workaround the intermittent errors were
-> not seen. This is not captured in the usual errata documents.
-
-This (presumably internal) ProDB number above is meaningless in the
-public changelog.  In lieu of a public erratum number, just summarize
-the erratum/instability seen, references to other relevant public
-errata (if any) would be useful too.   IOW, "instability" isn't quite
-accurate enough.  A more detailed description of the problem/instability
-is needed.
-
-Thanks,
+Tested/validated on ?
 
 Kevin
 
->
-> The workaround is to have a double clear of ARDY status in
-> irq handler.
->
-> Signed-off-by: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 > ---
->  drivers/i2c/busses/i2c-omap.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
+>  arch/arm/mach-omap2/pm34xx.c |    7 +------
+>  1 files changed, 1 insertions(+), 6 deletions(-)
 >
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 445de08..9bcefae 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -851,7 +851,8 @@ complete:
->  					OMAP_I2C_STAT_AL)) {
->  			omap_i2c_ack_stat(dev, stat &
->  				(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
-> -				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-> +				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR |
-> +				OMAP_I2C_STAT_ARDY));
->  			omap_i2c_complete_cmd(dev, err);
->  			return IRQ_HANDLED;
->  		}
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 2f864e4..63a3e1d 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -311,11 +311,6 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> -static void restore_control_register(u32 val)
+> -{
+> -	__asm__ __volatile__ ("mcr p15, 0, %0, c1, c0, 0" : : "r" (val));
+> -}
+> -
+>  /* Function to restore the table entry that was modified for enabling MMU */
+>  static void restore_table_entry(void)
+>  {
+> @@ -337,7 +332,7 @@ static void restore_table_entry(void)
+>  	control_reg_value = __raw_readl(scratchpad_address
+>  					+ OMAP343X_CONTROL_REG_VALUE_OFFSET);
+>  	/* This will enable caches and prediction */
+> -	restore_control_register(control_reg_value);
+> +	set_cr(control_reg_value);
+>  }
+>  
+>  void omap_sram_idle(void)
