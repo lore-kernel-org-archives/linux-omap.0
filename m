@@ -1,40 +1,56 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: [PATCH v2] OMAP: IOMMU: add missing function declaration
-Date: Tue, 15 Feb 2011 13:31:13 +0200
-Message-ID: <1297769473-24052-1-git-send-email-dacohen@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:59373 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754574Ab1BOL0a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 06:26:30 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+Date: Tue, 15 Feb 2011 13:28:19 +0200
+Message-ID: <4D5A6353.7040907@maxwell.research.nokia.com>
+References: <1297068547-10635-1-git-send-email-weber@corscience.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1297068547-10635-1-git-send-email-weber@corscience.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Weber <weber@corscience.de>
+Cc: linux-omap@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi.DOYU@nokia.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-Declaration of exported function 'iopgtable_lookup_entry' is missing from
-header file. Currently we have a sparse warning as it's not being used
-externally. Adding its declaration to avoid such warning and allow its usage
-in future.
+Thomas Weber wrote:
+> Add linux/sched.h because of missing declaration of TASK_NORMAL.
+> 
+> This patch fixes the following error:
+> 
+> drivers/media/video/omap24xxcam.c: In function
+> 'omap24xxcam_vbq_complete':
+> drivers/media/video/omap24xxcam.c:415: error: 'TASK_NORMAL' undeclared
+> (first use in this function)
+> drivers/media/video/omap24xxcam.c:415: error: (Each undeclared
+> identifier is reported only once
+> drivers/media/video/omap24xxcam.c:415: error: for each function it
+> appears in.)
+> 
+> Signed-off-by: Thomas Weber <weber@corscience.de>
 
-Signed-off-by: David Cohen <dacohen@gmail.com>
----
- arch/arm/plat-omap/include/plat/iommu.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Thanks, Thomas!
 
-diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
-index 69230d6..19cbb5e 100644
---- a/arch/arm/plat-omap/include/plat/iommu.h
-+++ b/arch/arm/plat-omap/include/plat/iommu.h
-@@ -154,6 +154,8 @@ extern void flush_iotlb_range(struct iommu *obj, u32 start, u32 end);
- extern void flush_iotlb_all(struct iommu *obj);
- 
- extern int iopgtable_store_entry(struct iommu *obj, struct iotlb_entry *e);
-+extern void iopgtable_lookup_entry(struct iommu *obj, u32 da, u32 **ppgd,
-+				   u32 **ppte);
- extern size_t iopgtable_clear_entry(struct iommu *obj, u32 iova);
- 
- extern int iommu_set_da_range(struct iommu *obj, u32 start, u32 end);
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+> ---
+>  drivers/media/video/omap24xxcam.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
+> index 0175527..f6626e8 100644
+> --- a/drivers/media/video/omap24xxcam.c
+> +++ b/drivers/media/video/omap24xxcam.c
+> @@ -36,6 +36,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+>  #include <linux/slab.h>
+> +#include <linux/sched.h>
+>  
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-ioctl.h>
+
+
 -- 
-1.7.2.3
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
