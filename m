@@ -1,87 +1,97 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH] omap: dmtimer: Enable autoidle
-Date: Tue, 15 Feb 2011 14:50:02 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03745CA4C6@dbde02.ent.ti.com>
-References: <1297704375-25873-1-git-send-email-tero.kristo@nokia.com>
- <87oc6exkjr.fsf@ti.com>
- <854C6400F5AA6644BA6FE7953F3E769B037E9BDD@008-AM1MPN1-014.mgdnok.nokia.com>
+From: archit taneja <archit@ti.com>
+Subject: Re: OMAP: DSS2: Common IRQ handler for all OMAPs
+Date: Tue, 15 Feb 2011 14:55:04 +0530
+Message-ID: <4D5A4670.9030405@ti.com>
+References: <1296636990-24775-1-git-send-email-archit@ti.com>	 <1297693307.2951.25.camel@deskari>	 <20110214143001.GK2549@legolas.emea.dhcp.ti.com>  <4D5A00E8.4060701@ti.com>	 <1297754826.2289.9.camel@deskari>  <4D5A39AE.3030006@ti.com> <1297759057.2289.40.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57490 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50424 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753787Ab1BOJUR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 04:20:17 -0500
-In-Reply-To: <854C6400F5AA6644BA6FE7953F3E769B037E9BDD@008-AM1MPN1-014.mgdnok.nokia.com>
-Content-Language: en-US
+	id S1754450Ab1BOJYM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 04:24:12 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1F9O8ZJ030619
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 03:24:11 -0600
+In-Reply-To: <1297759057.2289.40.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Tero.Kristo@nokia.com" <Tero.Kristo@nokia.com>, "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tero.Kristo@nokia.com
-> Sent: Tuesday, February 15, 2011 1:47 PM
-> To: Hilman, Kevin
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: [PATCH] omap: dmtimer: Enable autoidle
-> 
-> 
-> 
-> >-----Original Message-----
-> >From: ext Kevin Hilman [mailto:khilman@ti.com]
-> >Sent: 15 February, 2011 01:29
-> >To: Kristo Tero (Nokia-MS/Tampere)
-> >Cc: linux-omap@vger.kernel.org
-> >Subject: Re: [PATCH] omap: dmtimer: Enable autoidle
-> >
-> >Tero Kristo <tero.kristo@nokia.com> writes:
-> >
-> >> This will save some power.
-> >>
-> >> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> >
-> >Please report which platforms this was tested with.
-> 
-> Tested only on OMAP3.
-> 
-> Should this be changed to apply only on that one? I don't know about
-> OMAP4, but I think this should work on OMAP2 at least based on spec.
-It works on OMAP2 and OMAP4.
---
-Tarun
+Copying Benoit,
 
-> 
-> 
-> >
-> >Also, please Cc linux-arm-kernel.
-> >
-> >Thanks,
-> >
-> >Kevin
-> >
-> >> ---
-> >>  arch/arm/plat-omap/dmtimer.c |    1 +
-> >>  1 files changed, 1 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-
-> >omap/dmtimer.c
-> >> index 1d706cf..949becc 100644
-> >> --- a/arch/arm/plat-omap/dmtimer.c
-> >> +++ b/arch/arm/plat-omap/dmtimer.c
-> >> @@ -341,6 +341,7 @@ static void omap_dm_timer_reset(struct
-> >omap_dm_timer *timer)
-> >>  	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_OCP_CFG_REG);
-> >>  	l |= 0x02 << 3;  /* Set to smart-idle mode */
-> >>  	l |= 0x2 << 8;   /* Set clock activity to perserve f-clock on idle
-> >*/
-> >> +	l |= 0x1 << 0;   /* Set autoidle */
-> >>
-> >>  	/*
-> >>  	 * Enable wake-up on OMAP2 CPUs.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tuesday 15 February 2011 02:07 PM, Valkeinen, Tomi wrote:
+> On Tue, 2011-02-15 at 02:30 -0600, Taneja, Archit wrote:
+>> Hi,
+>>
+>> On Tuesday 15 February 2011 12:57 PM, Valkeinen, Tomi wrote:
+>>
+>> <snip>
+>>
+>>> I meant something like this:
+>>>
+>>> dispc.c:
+>>>
+>>> dispc_init()
+>>> {
+>>> 	/* did we have a pdev for dispc? if not, this needs to be dss.pdev */
+>>> 	request_irq(platform_get_irq(dispc.pdev, 0), irq_handler, IRQF_SHARED, "dispc irq", foo);
+>>> }
+>>>
+>>> irq_handler()
+>>> {
+>>> 	if (irq_can_be_shared) {
+>>> 		check if the irq is for us. exit if not;
+>>> 	}
+>>>
+>>> 	handle;
+>>> }
+>>>
+>>> dsi.c:
+>>>
+>>> dsi_init()
+>>> {
+>>> 	request_irq(platform_get_irq(dsi.pdev, 0), irq_handler, IRQF_SHARED, "dsi irq", foo);
+>>> }
+>>>
+>>> irq_handler()
+>>> {
+>>> 	if (irq_can_be_shared) {
+>>> 		check if the irq is for us. exit if not;
+>>> 	}
+>>>
+>>> 	handle;
+>>> }
+>>>
+>>
+>> This approach looks clean, but isn't IRQF_SHARED used the other way
+>> around. One irq line and multiple handlers?
+>
+> That is the case here, isn't it (on omap3)? One interrupt line (the DSS
+> irq, the same returned both from dsi.pdev and dispc.pdev), and two
+> handlers, one in dispc and one in dsi? Or what do you mean?
+>
+> On omap2 there's no dsi code ran, so dispc is the only one requesting
+> the irq, and thus IRQF_SHARED is extra. In omap4 there are separate irq
+> lines (dsi.pdev and dispc.pdev return different irqs), and so
+> IRQF_SHARED is again extra. But I don't see any harm in IRQF_SHARED even
+> in omap2/4.
+>
+>   Tomi
+>
+
+Benoit,
+
+Is it okay to have the same irq entry for 2 different hwmods?
+This requirement comes from OMAP3 where dispc and dsi have a common irq 
+line, where as on OMAP4 dispc and dsi have separate irq lines.
+
+We basically want to get rid of a central dss irq handler (hence, remove 
+irq entries for dss_core hwmod) and instead have separate irq handlers 
+for each module which may or may not share an irq line.
+
+Regards,
+Archit
