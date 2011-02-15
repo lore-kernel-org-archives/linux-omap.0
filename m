@@ -1,88 +1,136 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP: DSS2: Common IRQ handler for all OMAPs
-Date: Tue, 15 Feb 2011 09:45:11 +0200
-Message-ID: <1297755911.2289.28.camel@deskari>
-References: <1296636990-24775-1-git-send-email-archit@ti.com>
-	 <1297693307.2951.25.camel@deskari>
-	 <20110214143001.GK2549@legolas.emea.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Shweta Gulati <shweta.gulati@ti.com>
+Subject: [PATCH V4] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
+Date: Tue, 15 Feb 2011 13:28:58 +0530
+Message-ID: <1297756738-2696-1-git-send-email-shweta.gulati@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42100 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:42861 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750982Ab1BOHpP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 02:45:15 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1F7jE87024503
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 01:45:14 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1F7jEfA015065
-	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 01:45:14 -0600 (CST)
-In-Reply-To: <20110214143001.GK2549@legolas.emea.dhcp.ti.com>
+	with ESMTP id S1751894Ab1BOIBJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 03:01:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: "Taneja, Archit" <archit@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Thara Gopinath <thara@ti.com>, Nishanth Menon <nm@ti.com>, Shweta Gulati <shweta.gulati@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Mon, 2011-02-14 at 08:30 -0600, Balbi, Felipe wrote:
-> Hi,
-> 
-> On Mon, Feb 14, 2011 at 04:21:47PM +0200, Tomi Valkeinen wrote:
-> > On Wed, 2011-02-02 at 08:56 +0000, archit taneja wrote:
-> > > OMAP2 has an irq line dedicated for DISPC interrupts, there is no DSI
-> > > on omap2.
-> > > OMAP3 has a common irq line for DISPC and DSI interrupts.
-> > > OMAP4 has seperate irq lines for DISPC and DSI Interrupts.
-> > > 
-> > > Use dss_features to have a common DSS irq handler for all OMAP revisions.
-> > > 
-> > > Also, use a member of the global dss structure to store the irq number
-> > > as it is used in 2 functions.
-> > 
-> > It's good to remove the cpu_is_xxxx() calls, but I'm not quite sure
-> > about this patch...
-> > 
-> > Could we use shared interrupt handlers here, so that dss.c would handle
-> > only DISPC interrupts (or should it be even in dispc.c?) and dsi.c would
-> > handle DSI interrupts?
-> > 
-> > On OMAP3 both dss.c and dsi.c would register to the same interrupt, and
-> > they would need to check if the interrupt was really for them. On OMAP4
-> > the code could be the same, even though the check is unnecessary.
-> > 
-> > Also, as I mentioned in the email I sent some minutes ago, this patch
-> > fixes the free_irq call in dss_exit. Things like that should never be
-> > fixed silently, even if it's trivial like in this case.
-> 
-> does it make sense to install an irq_chip for that ? I mean, can you
-> mask/unmask dss and or dsi IRQs ? If you can, then it might make sense
-> to take a look into GENIRQ and install an irq_chip for that. Then both
-> dsi and dss would be able to use standard request_irq() API.
-> 
-> Take a look at drivers/mfd/twl*irq.c and drivers/cbus/retu.c (the last
-> one on linux-omap only) there are examples of how that should be
-> implemented. Actually twl*irq.c is wrong, as it bypasses the threaded
-> IRQ stuff. I have some patches for those, but I'm not sure they are
-> working correctly yet, needs more testing. My twl4030-irq patches are
-> available at [1] for reference.
+From: Thara Gopinath <thara@ti.com>
 
-I'm not familiar with genirq/irq_chip. But yes, as Archit said, we can
-mask/unmask DSS interrupts. I mean, there's only one interrupt line, but
-DSS has irqstatus and irqenable registers that can be used.
+Voltage control on TWL can be done using VMODE/I2C1/I2C_SR.
+Since almost all platforms use I2C_SR on omap3, omap3_twl_init by
+default expects that OMAP's I2C_SR is plugged in to TWL's I2C
+and calls omap3_twl_set_sr_bit. On platforms where I2C_SR is not connected,
+the board files are expected to call omap3_twl_set_sr_bit(false) to
+ensure that I2C_SR path is not set for voltage control and prevent
+the default behavior of omap3_twl_init.
 
-If I understood correctly, irq_chip could be used to manage DSS and DSI
-interrupts, but I don't know right away what that would mean in
-practice, and would it make things easier or not. But this could be
-something that needs more study, as there's a custom isr handling system
-in DSS, and it would be nice if that could be replaced with genirq.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
+---
+This patch is based on LO PM Branch and Smartreflex has been
+tested on OMAP3430 SDP, OMAP3630 SDP and boot tested on
+OMAP2430 SDP.
 
-But I guess the main problem still remains with genirqs also: we have
-one interrupt line on omap3, used by two separate modules. And one irq
-on omap2, used by one module, and two irqs on omap4, used by two
-modules.
+ arch/arm/mach-omap2/omap_twl.c |   60 ++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h       |    1 +
+ 2 files changed, 61 insertions(+), 0 deletions(-)
 
- Tomi
-
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index 00e1d2b..b341c36 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -59,8 +59,15 @@
+ 
+ static bool is_offset_valid;
+ static u8 smps_offset;
++/*
++ * Flag to ensure Smartreflex bit in TWL
++ * being cleared in board file is not overwritten.
++ */
++static bool __initdata twl_sr_enable_autoinit;
+ 
++#define TWL4030_DCDC_GLOBAL_CFG        0x06
+ #define REG_SMPS_OFFSET         0xE0
++#define SMARTREFLEX_ENABLE     BIT(3)
+ 
+ static unsigned long twl4030_vsel_to_uv(const u8 vsel)
+ {
+@@ -269,6 +276,18 @@ int __init omap3_twl_init(void)
+ 		omap3_core_volt_info.vp_vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
+ 	}
+ 
++	/*
++	 * The smartreflex bit on twl4030 specifies if the setting of voltage
++	 * is done over the I2C_SR path. Since this setting is independent of
++	 * the actual usage of smartreflex AVS module, we enable TWL SR bit
++	 * by default irrespective of whether smartreflex AVS module is enabled
++	 * on the OMAP side or not. This is because without this bit enabled,
++	 * the voltage scaling through vp forceupdate/bypass mechanism of
++	 * voltage scaling will not function on TWL over I2C_SR.
++	 */
++	if (!twl_sr_enable_autoinit)
++		omap3_twl_set_sr_bit(true);
++
+ 	voltdm = omap_voltage_domain_lookup("mpu");
+ 	omap_voltage_register_pmic(voltdm, &omap3_mpu_volt_info);
+ 
+@@ -277,3 +296,44 @@ int __init omap3_twl_init(void)
+ 
+ 	return 0;
+ }
++
++/**
++ * omap3_twl_set_sr_bit() - Set/Clear SR bit on TWL
++ * @enable: enable SR mode in twl or not
++ *
++ * If 'enable' is true, enables Smartreflex bit on TWL 4030 to make sure
++ * voltage scaling through OMAP SR works. Else, the smartreflex bit
++ * on twl4030 is cleared as there are platforms which use OMAP3 and T2 but
++ * use Synchronized Scaling Hardware Strategy (ENABLE_VMODE=1) and Direct
++ * Strategy Software Scaling Mode (ENABLE_VMODE=0), for setting the voltages,
++ * in those scenarios this bit is to be cleared (enable = false).
++ *
++ * Returns 0 on sucess, error is returned if I2C read/write fails.
++ */
++int __init omap3_twl_set_sr_bit(bool enable)
++{
++	u8 temp;
++	int ret;
++	if (twl_sr_enable_autoinit)
++		pr_warning("%s: unexpected multiple calls\n", __func__);
++
++	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
++					TWL4030_DCDC_GLOBAL_CFG);
++	if (ret)
++		goto err;
++
++	if (enable)
++		temp |= SMARTREFLEX_ENABLE;
++	else
++		temp &= ~SMARTREFLEX_ENABLE;
++
++	ret = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
++				TWL4030_DCDC_GLOBAL_CFG);
++	if (!ret) {
++		twl_sr_enable_autoinit = true;
++		return 0;
++	}
++err:
++	pr_err("%s: Error access to TWL4030 (%d)\n", __func__, ret);
++	return ret;
++}
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 39580e6..797bfd1 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -127,6 +127,7 @@ static inline void omap_enable_smartreflex_on_init(void) {}
+ #ifdef CONFIG_TWL4030_CORE
+ extern int omap3_twl_init(void);
+ extern int omap4_twl_init(void);
++extern int omap3_twl_set_sr_bit(bool enable);
+ #else
+ static inline int omap3_twl_init(void)
+ {
+-- 
+1.7.0.4
 
