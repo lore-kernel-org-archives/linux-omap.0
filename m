@@ -1,209 +1,74 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v9 10/11] OMAP: dmtimer: pm_runtime support
-Date: Tue, 15 Feb 2011 09:14:40 -0800
-Message-ID: <8762slte2n.fsf@ti.com>
-References: <1297423040-19917-1-git-send-email-tarun.kanti@ti.com>
-	<1297423040-19917-11-git-send-email-tarun.kanti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hemant Pedanekar <hemantp@ti.com>
+Subject: [PATCH v7 0/4] Introduce support for TI816X processor series
+Date: Tue, 15 Feb 2011 23:05:19 +0530
+Message-ID: <1297791319-31891-1-git-send-email-hemantp@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:33226 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752579Ab1BOROo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 12:14:44 -0500
-Received: by mail-qy0-f171.google.com with SMTP id 32so2242876qyk.16
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 09:14:43 -0800 (PST)
-In-Reply-To: <1297423040-19917-11-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Fri, 11 Feb 2011 16:47:19 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:58163 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755267Ab1BORfe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 12:35:34 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, Partha Basak <p-basak2@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Hemant Pedanekar <hemantp@ti.com>
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+This patch set adds support for TI816X processor series. This series includes
+DM8168, C6A816x and AM389x devices.
 
-> Add pm_runtime support to dmtimer. Since dmtimer is used during
-> early boot before pm_runtime is initialized completely there are
-> provisions to enable/disable clocks directly in the code during
-> early boot.
->
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> [p-basak2@ti.com: added pm_runtime logic in probe()]
-> Signed-off-by: Partha Basak <p-basak2@ti.com>
-> Reviewed-by: Varadarajan, Charulatha <charu@ti.com>
-> Acked-by: Cousson, Benoit <b-cousson@ti.com>
-> ---
->  arch/arm/plat-omap/dmtimer.c |   60 +++++++++++++++++++++++++++++++++++------
->  1 files changed, 51 insertions(+), 9 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> index ed4aada..4de473b 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -39,6 +39,7 @@
->  #include <linux/delay.h>
->  #include <linux/io.h>
->  #include <linux/slab.h>
-> +#include <linux/pm_runtime.h>
->  #include <linux/err.h>
->  #include <linux/platform_device.h>
->  #include <plat/dmtimer.h>
-> @@ -211,13 +212,16 @@ static void omap_dm_timer_prepare(struct omap_dm_timer *timer)
->  {
->  	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
->  
-> -	timer->fclk = clk_get(&timer->pdev->dev, "fck");
-> -	if (WARN_ON_ONCE(IS_ERR_OR_NULL(timer->fclk))) {
-> -		dev_err(&timer->pdev->dev, ": No fclk handle.\n");
-> -		return;
-> +	if (!pdata->is_omap16xx) {
-> +		timer->fclk = clk_get(&timer->pdev->dev, "fck");
-> +		if (WARN_ON_ONCE(IS_ERR_OR_NULL(timer->fclk))) {
-> +			dev_err(&timer->pdev->dev, ": No fclk handle.\n");
-> +			return;
-> +		}
->  	}
->  
-> -	omap_dm_timer_enable(timer);
-> +	if (!pdata->is_omap16xx)
-> +		omap_dm_timer_enable(timer);
->  
->  	if (pdata->dm_timer_reset)
->  		pdata->dm_timer_reset(timer);
-> @@ -289,10 +293,22 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_free);
->  
->  void omap_dm_timer_enable(struct omap_dm_timer *timer)
->  {
-> +	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-> +
->  	if (timer->enabled)
->  		return;
->  
-> -	clk_enable(timer->fclk);
-> +	if (unlikely(pdata->is_early_init)) {
-> +		clk_enable(timer->fclk);
-> +		timer->enabled = 1;
-> +		return;
-> +	}
-> +
-> +	if (pm_runtime_get_sync(&timer->pdev->dev) < 0) {
-> +		dev_err(&timer->pdev->dev, "%s: pm_runtime_get_sync() FAILED\n",
-> +			__func__);
-> +		return;
-> +	}
->  
->  	timer->enabled = 1;
->  }
-> @@ -300,10 +316,22 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_enable);
->  
->  void omap_dm_timer_disable(struct omap_dm_timer *timer)
->  {
-> +	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-> +
->  	if (!timer->enabled)
->  		return;
->  
-> -	clk_disable(timer->fclk);
-> +	if (unlikely(pdata->is_early_init)) {
-> +		clk_disable(timer->fclk);
-> +		timer->enabled = 0;
-> +		return;
-> +	}
-> +
-> +	if (pm_runtime_put_sync(&timer->pdev->dev) < 0) {
-> +		dev_err(&timer->pdev->dev, "%s: pm_runtime_put_sync() FAILED\n",
-> +			__func__);
-> +		return;
-> +	}
->  
->  	timer->enabled = 0;
->  }
-> @@ -422,10 +450,12 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
->  	if (source < 0 || source >= 3)
->  		return -EINVAL;
->  
-> -	omap_dm_timer_disable(timer);
-> +	if (!pdata->is_omap16xx)
-> +		omap_dm_timer_disable(timer);
->  	/* change the timer clock source */
->  	ret = pdata->set_timer_src(timer->pdev, source);
-> -	omap_dm_timer_enable(timer);
-> +	if (!pdata->is_omap16xx)
-> +		omap_dm_timer_enable(timer);
->  
->  	/*
->  	 * When the functional clock disappears, too quick writes seem
-> @@ -597,11 +627,21 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
->  		return -ENODEV;
->  	}
->  
-> +	/* OMAP2+
+The details can be found at following links:
 
-please fix multi-line comment style
+http://focus.ti.com/general/docs/gencontent.tsp?contentId=77960
+http://www.ti.com/ww/en/dsp/davinci-netra/index.shtml
 
-> +	 * Early timers are already registered and in list.
-> +	 * What we need to do during second phase of probe
-> +	 * is to assign the newly allocated/configured pdev
-> +	 * to timer->pdev. We also call pm_runtime_enable()
-> +	 * for each device because it could not be called
-> +	 * during early boot because pm_runtime framework
-> +	 * was not yet up and running.
-> +	 */
->  	spin_lock_irqsave(&dm_timer_lock, flags);
->  	list_for_each_entry(timer, &omap_timer_list, node)
->  		if (!pdata->is_early_init && timer->id == pdev->id) {
->  			timer->pdev = pdev;
->  			spin_unlock_irqrestore(&dm_timer_lock, flags);
-> +			pm_runtime_enable(&pdev->dev);
->  			dev_dbg(&pdev->dev, "Regular Probed\n");
->  			return 0;
->  		}
+This series is architecturally closer to the OMAP devices. Hence, these patches
+are being submitted on linux-omap.
 
-> @@ -652,6 +692,8 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
->  		pdata->dm_timer_read_reg = omap_dm_timer_read_reg;
->  		pdata->dm_timer_write_reg = omap_dm_timer_write_reg;
->  		pdata->is_early_init = 0;
-> +		pm_runtime_enable(&pdev->dev);
-> +		dev_dbg(&pdev->dev, " pm_runtime enabled\n");
->  	}
->  
->  	timer->id = pdev->id;
+These patches are tested on OMAP3 EVM with multi-omap build.
 
-Somehow, you need to also update runtime PM for early timers that were
-enabled.  For the PM runtime userspace info to be correct, I think you
-also need to do a 'get' here if the timer has also been enabled.
+Note that, additional patches consisting of TI816X specific hwmods, clock data
+and DMTIMER changes, are required to enable successful booting on TI816X EVM.
+These patches will follow shortly.
 
-Otherwise, upon boot, checking runtime PM sysfs it looks like no timers
-are active, or ever have been active:
+The TI816X support is added as part of OMAP3 variant. The approach taken is in
+accordance to the discussions in thread related to following post:
+http://www.spinics.net/lists/linux-omap/msg41505.html
 
+In addition, TI816X specific customizations/optimizations are handled as a part
+of build configuration CONFIG_SOC_OMAPTI816X. Discussed here:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41927.html
 
-/ # cat /sys/devices/platform/omap/omap_timer.*/power/runtime_status            
-suspended                                                                       
-suspended                                                                       
-suspended                                                                       
-suspended                                                                       
-suspended                                                                       
-suspended                                                                       
-suspended                                                                       
-suspended                                                                       
-suspended                                                                       
-suspended                                                                       
-suspended                                                                       
-suspended                                                                       
-/ # cat /sys/devices/platform/omap/omap_timer.*/power/runtime_active_time       
-0                                                                               
-0                                                                               
-0                                                                               
-0                                                                               
-0                                                                               
-0                                                                               
-0                                                                               
-0                                                                               
-0                                                                               
-0                                                                               
-0                                                                               
-0                                                                               
-/ # 
+Hemant Pedanekar (4):
+  TI816X: Update common omap platform files
+  TI816X: Update common OMAP machine specific sources
+  TI816X: Create board support and enable build for TI816X EVM
+  TI816X: Add low level debug support
 
-Kevin
+ arch/arm/mach-omap2/Kconfig                    |   10 ++++
+ arch/arm/mach-omap2/Makefile                   |    1 +
+ arch/arm/mach-omap2/board-ti8168evm.c          |   57 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock3xxx_data.c           |    5 ++-
+ arch/arm/mach-omap2/common.c                   |   21 +++++++++
+ arch/arm/mach-omap2/control.h                  |    6 +++
+ arch/arm/mach-omap2/id.c                       |   33 +++++++++++++-
+ arch/arm/mach-omap2/include/mach/debug-macro.S |   12 +++++
+ arch/arm/mach-omap2/include/mach/entry-macro.S |   13 +++++
+ arch/arm/mach-omap2/io.c                       |   22 +++++++++-
+ arch/arm/mach-omap2/irq.c                      |    5 ++-
+ arch/arm/mach-omap2/serial.c                   |    8 ++--
+ arch/arm/plat-omap/include/plat/clkdev_omap.h  |    1 +
+ arch/arm/plat-omap/include/plat/clock.h        |    1 +
+ arch/arm/plat-omap/include/plat/common.h       |    1 +
+ arch/arm/plat-omap/include/plat/cpu.h          |   18 +++++++
+ arch/arm/plat-omap/include/plat/hardware.h     |    1 +
+ arch/arm/plat-omap/include/plat/io.h           |    8 +++
+ arch/arm/plat-omap/include/plat/serial.h       |    8 +++
+ arch/arm/plat-omap/include/plat/ti816x.h       |   27 +++++++++++
+ arch/arm/plat-omap/include/plat/uncompress.h   |    7 +++
+ arch/arm/plat-omap/io.c                        |    5 ++-
+ 22 files changed, 260 insertions(+), 10 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-ti8168evm.c
+ create mode 100644 arch/arm/plat-omap/include/plat/ti816x.h
+
+-- 
+1.7.3.5
+
