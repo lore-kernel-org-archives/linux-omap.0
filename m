@@ -1,65 +1,62 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 4/5 v6] OMAP2+: musb: HWMOD adaptation for musb. registration
-Date: Tue, 15 Feb 2011 08:12:11 -0800
-Message-ID: <87r5b9uvj8.fsf@ti.com>
-References: <1297346881-13438-1-git-send-email-hemahk@ti.com>
-	<1297346881-13438-5-git-send-email-hemahk@ti.com>
-	<87vd0mw3u9.fsf@ti.com>
-	<20110215083235.GG2570@legolas.emea.dhcp.ti.com>
+Subject: Re: [PATCH] omap: dmtimer: Enable autoidle
+Date: Tue, 15 Feb 2011 08:14:17 -0800
+Message-ID: <87ipwluvfq.fsf@ti.com>
+References: <1297704375-25873-1-git-send-email-tero.kristo@nokia.com>
+	<87oc6exkjr.fsf@ti.com>
+	<854C6400F5AA6644BA6FE7953F3E769B037E9BDD@008-AM1MPN1-014.mgdnok.nokia.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03745CA4C6@dbde02.ent.ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03745CA4D8@dbde02.ent.ti.com>
+	<854C6400F5AA6644BA6FE7953F3E769B037E9D2C@008-AM1MPN1-014.mgdnok.nokia.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03745CA4F7@dbde02.ent.ti.com>
+	<854C6400F5AA6644BA6FE7953F3E769B037E9EA3@008-AM1MPN1-014.mgdnok.nokia.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03745CA5D1@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:51814 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753171Ab1BOQMP (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:57086 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750994Ab1BOQOV (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 11:12:15 -0500
-In-Reply-To: <20110215083235.GG2570@legolas.emea.dhcp.ti.com> (Felipe Balbi's
-	message of "Tue, 15 Feb 2011 10:32:36 +0200")
+	Tue, 15 Feb 2011 11:14:21 -0500
+Received: by mail-qw0-f47.google.com with SMTP id 2so252672qwi.20
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 08:14:20 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03745CA5D1@dbde02.ent.ti.com>
+	(Tarun Kanti DebBarma's message of "Tue, 15 Feb 2011 18:11:16 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Hema HK <hemahk@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "Tero.Kristo@nokia.com" <Tero.Kristo@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Felipe,
+"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 
-Felipe Balbi <balbi@ti.com> writes:
-
-> On Mon, Feb 14, 2011 at 04:15:10PM -0800, Kevin Hilman wrote:
->> Hema HK <hemahk@ti.com> writes:
+> [...]
+>> >> >> >
+>> >> >> > Should this be changed to apply only on that one? I don't know
+>> >about
+>> >> >> > OMAP4, but I think this should work on OMAP2 at least based on
+>> >spec.
+>> >> >> It works on OMAP2 and OMAP4.
+>> >> >Ok, on OMAP4 I should have clarified further.
+>> >> >AUTOIDLE is present only for millisecond timers: 1,2,10.
+>> >> >The reset of the timers do not have this bit.
+>> >>
+>> >> Does it matter if the bit is set on the timers that don't have it or
+>> >does
+>> >> the HW just ignore it? Or should we enumerate the timers that support
+>> >it
+>> >> on omap4?
+>> >For other timers it happens to be SOFTRESET bit. So HW would not ignore.
 >> 
->> > Using omap_device_build API instead of platform_device_register for
->> > OMAP2430,OMAP34xx and OMAP4430 musb device registration.
->> > The device specific resources defined in centralized
->> > database will be used.
->> 
->> Except for AM35x.
->> 
->> NACK, for same reasons as previous version of this patch.
+>> Ok, so this one should only be implemented for omap2/3 or added logic is
+>> needed for omap4.
+> YES.
 >
-> Does it really make sense to hold on omap2plus HWMOD conversion because
-> of AM35x ? I mean, I understand it would be better to get all fixed up,
-> but loose another merge window for that ?
->
-> Can we get omap2plus in and AM35x on the next merge window ? At least
-> omap2plus would have been converted to hwmod and would be using
-> pm_runtime as we want.
 
-Well, you get to decide as you're the maintainer of this stuff. ;)
+Tarun is autoidle feature handled in your hwmod conversion series?
 
-If you merge it, I suggest at least fixing the changelog to make it
-clear that not all devices are using hwmod. 
-
-That being said, how difficult is it to add the hwmod data for the AM35x
-OTG block?   Just added it to the exising OMAP3 data using CHIP_IS* to
-marke it as AM35x, and you can at least get rid of the base address and
-IRQ number hacks for AM35x in this code.
-
-Separating out the pdata function pointer hooks is a different matter
-which is also ugly, but I don't feel as strongly about.
+If not, this should be implemented as a patch on top of your series
+since we will know which timers have this capability.
 
 Kevin
-
-
-
 
