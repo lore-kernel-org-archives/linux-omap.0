@@ -1,46 +1,53 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V4] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
-Date: Tue, 15 Feb 2011 08:48:34 +0530
-Message-ID: <4D59F08A.7080907@ti.com>
-References: <1296798454-23755-1-git-send-email-shweta.gulati@ti.com>	<AANLkTin6my7MgZHSUx44EYmaAG8nrmjNsrQ-26H0vtUk@mail.gmail.com> <87y65iz22v.fsf@ti.com>
+From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 5/5 v6] usb: musb: Using runtime pm APIs for musb.
+Date: Tue, 15 Feb 2011 09:31:45 +0530
+Message-ID: <AANLkTinO0uThn=xOwsdhy8F-1p-eHvdT1+a+BOyLtK9R@mail.gmail.com>
+References: <1297346881-13438-1-git-send-email-hemahk@ti.com>
+	<1297346881-13438-6-git-send-email-hemahk@ti.com>
+	<20110210142605.GR3580@legolas.emea.dhcp.ti.com>
+	<98ff144ea4e715250c54712ebbfb494f@mail.gmail.com>
+	<87oc6ew2lh.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:46185 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751192Ab1BODSl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Feb 2011 22:18:41 -0500
-Received: by mail-yw0-f48.google.com with SMTP id 21so2600081ywc.21
-        for <linux-omap@vger.kernel.org>; Mon, 14 Feb 2011 19:18:40 -0800 (PST)
-In-Reply-To: <87y65iz22v.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87oc6ew2lh.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Shweta Gulati <shweta.gulati@ti.com>, linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>, Sanjeev Premi <premi@ti.com>
 
-Kevin Hilman wrote, on 02/15/2011 03:54 AM:
-> "Menon, Nishanth"<nm@ti.com>  writes:
+On Tue, Feb 15, 2011 at 6:12 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
+> Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org> writes:
 >
->> On Fri, Feb 4, 2011 at 11:17, Shweta Gulati<shweta.gulati@ti.com>  wrote:
->>> From: Thara Gopinath<thara@ti.com>
+> [...]
+>
+>>>On Thu, Feb 10, 2011 at 07:38:01PM +0530, Hema HK wrote:
+>>>> Calling runtime pm APIs pm_runtime_put_sync() and
+>>>pm_runtime_get_sync()
+>>>> for enabling/disabling the clocks, sysconfig settings.
+>>>>
+>>>> Enable clock, configure no-idle/standby when active and
+>>>configure force idle/standby
+>>>> and disable clock when idled. This is taken care by the
+>>>runtime framework when
+>>>> driver calls the pm_runtime_get_sync and pm_runtime_put_sync APIs.
 >>>
->> Gentle ping - folks after 8 days no comments, does this rev address
->> all previous comments? if so, it might be good to get some acks ;)
+>>>does it have to be the _sync() ??
+>> Yes. Because immediately after this I access the registers.
+>>
 >
-> Gentle reminder.  Patchwork[1] keeps a queue of patches pending
-> review/merge etc.  If it's in patchwork it will get reviewed, most
-> likely in the order it was received.
->
-> There are lots of going on recently, so we have a good sized queue in
-> patchwork.
+> What about the put?
 
-Ofcourse, the intent of the ping here was for other reviewers of patches 
-from v2/v3 of this patch to provide their inputs so that we can move 
-this forward. Btw, other than maintainer,  I am not completely sure if 
-ML based reviewers review based on patchworks sequencing ;).
+Put can be async. I will send the patch with changes.
 
--- 
 Regards,
-Nishanth Menon
+Hema
+
+>
+> Kevin
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
