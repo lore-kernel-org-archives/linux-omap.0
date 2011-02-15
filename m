@@ -1,125 +1,198 @@
-From: =?UTF-8?q?Arve=20Hj=C3=B8nnev=C3=A5g?= <arve@android.com>
-Subject: [PATCH 5/8] ARM: etm: Configure data tracing
-Date: Mon, 14 Feb 2011 22:11:13 -0800
-Message-ID: <1297750276-12475-5-git-send-email-arve@android.com>
-References: <1296701663-12168-1-git-send-email-arve@android.com>
+From: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 4/5 v6] OMAP2+: musb: HWMOD adaptation for musb. registration
+Date: Tue, 15 Feb 2011 12:00:43 +0530
+Message-ID: <d833dfc47fcd0315bbb5978826aa7c20@mail.gmail.com>
+References: <1297346881-13438-1-git-send-email-hemahk@ti.com><1297346881-13438-5-git-send-email-hemahk@ti.com>
+ <87vd0mw3u9.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1296701663-12168-1-git-send-email-arve@android.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>, =?UTF-8?q?Arve=20Hj=C3=B8nnev=C3=A5g?= <arve@android.com>, Jason Wessel <jason.wessel@windriver.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87vd0mw3u9.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIG9sZCBjb2RlIGVuYWJsZWQgZGF0YSB0cmFjaW5nLCBidXQgZGlkIG5vdCBjb25maWd1cmUg
-dGhlCnJhbmdlLiBXZSBub3cgY29uZmlndXJlIGl0IHRvIHRyYWNlIGFsbCBkYXRhIGFkZHJlc3Nl
-cyBieSBkZWZhdWx0LAphbmQgYWRkIGEgdHJhY2VfZGF0YV9yYW5nZSBhdHRyaWJ1dGUgdG8gY2hh
-bmdlIHRoZSByYW5nZSBvciBkaXNhYmxlCmRhdGEgdHJhY2luZy4KClNpZ25lZC1vZmYtYnk6IEFy
-dmUgSGrDuG5uZXbDpWcgPGFydmVAYW5kcm9pZC5jb20+Ci0tLQogYXJjaC9hcm0vaW5jbHVkZS9h
-c20vaGFyZHdhcmUvY29yZXNpZ2h0LmggfCAgIDEwICsrKy0KIGFyY2gvYXJtL2tlcm5lbC9ldG0u
-YyAgICAgICAgICAgICAgICAgICAgIHwgICA3NyArKysrKysrKysrKysrKysrKysrKysrKysrKyst
-CiAyIGZpbGVzIGNoYW5nZWQsIDgzIGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pCgpkaWZm
-IC0tZ2l0IGEvYXJjaC9hcm0vaW5jbHVkZS9hc20vaGFyZHdhcmUvY29yZXNpZ2h0LmggYi9hcmNo
-L2FybS9pbmNsdWRlL2FzbS9oYXJkd2FyZS9jb3Jlc2lnaHQuaAppbmRleCA3ZWNkNzkzLi42ZWE1
-MDdmIDEwMDY0NAotLS0gYS9hcmNoL2FybS9pbmNsdWRlL2FzbS9oYXJkd2FyZS9jb3Jlc2lnaHQu
-aAorKysgYi9hcmNoL2FybS9pbmNsdWRlL2FzbS9oYXJkd2FyZS9jb3Jlc2lnaHQuaApAQCAtMTcs
-OSArMTcsMTEgQEAKICNkZWZpbmUgVFJBQ0VSX0FDQ0VTU0VEX0JJVAkwCiAjZGVmaW5lIFRSQUNF
-Ul9SVU5OSU5HX0JJVAkxCiAjZGVmaW5lIFRSQUNFUl9DWUNMRV9BQ0NfQklUCTIKKyNkZWZpbmUg
-VFJBQ0VSX1RSQUNFX0RBVEFfQklUCTMKICNkZWZpbmUgVFJBQ0VSX0FDQ0VTU0VECQlCSVQoVFJB
-Q0VSX0FDQ0VTU0VEX0JJVCkKICNkZWZpbmUgVFJBQ0VSX1JVTk5JTkcJCUJJVChUUkFDRVJfUlVO
-TklOR19CSVQpCiAjZGVmaW5lIFRSQUNFUl9DWUNMRV9BQ0MJQklUKFRSQUNFUl9DWUNMRV9BQ0Nf
-QklUKQorI2RlZmluZSBUUkFDRVJfVFJBQ0VfREFUQQlCSVQoVFJBQ0VSX1RSQUNFX0RBVEFfQklU
-KQogCiAjZGVmaW5lIFRSQUNFUl9USU1FT1VUIDEwMDAwCiAKQEAgLTExMyw4ICsxMTUsMTQgQEAK
-ICNkZWZpbmUgRVRNUl9UUkFDRUVOQ1RSTAkweDI0CiAjZGVmaW5lIEVUTVRFX0lOQ0xFWENMCQlC
-SVQoMjQpCiAjZGVmaW5lIEVUTVJfVFJBQ0VFTkVWVAkJMHgyMAorCisjZGVmaW5lIEVUTVJfVklF
-V0RBVEFFVlQJMHgzMAorI2RlZmluZSBFVE1SX1ZJRVdEQVRBQ1RSTDEJMHgzNAorI2RlZmluZSBF
-VE1SX1ZJRVdEQVRBQ1RSTDIJMHgzOAorI2RlZmluZSBFVE1SX1ZJRVdEQVRBQ1RSTDMJMHgzYwor
-I2RlZmluZSBFVE1WREMzX0VYQ0xPTkxZCUJJVCgxNikKKwogI2RlZmluZSBFVE1DVFJMX09QVFMJ
-CShFVE1DVFJMX0RPX0NQUlQgfCBcCi0JCQkJRVRNQ1RSTF9EQVRBX0RPX0FERFIgfCBcCiAJCQkJ
-RVRNQ1RSTF9CUkFOQ0hfT1VUUFVUIHwgXAogCQkJCUVUTUNUUkxfRE9fQ09OVEVYVElEKQogCmRp
-ZmYgLS1naXQgYS9hcmNoL2FybS9rZXJuZWwvZXRtLmMgYi9hcmNoL2FybS9rZXJuZWwvZXRtLmMK
-aW5kZXggOGExYzQyMi4uOTZiMWFiYiAxMDA2NDQKLS0tIGEvYXJjaC9hcm0va2VybmVsL2V0bS5j
-CisrKyBiL2FyY2gvYXJtL2tlcm5lbC9ldG0uYwpAQCAtNDIsNiArNDIsOCBAQCBzdHJ1Y3QgdHJh
-Y2VjdHggewogCWludAkJZXRtX3BvcnRzejsKIAl1bnNpZ25lZCBsb25nCXJhbmdlX3N0YXJ0Owog
-CXVuc2lnbmVkIGxvbmcJcmFuZ2VfZW5kOworCXVuc2lnbmVkIGxvbmcJZGF0YV9yYW5nZV9zdGFy
-dDsKKwl1bnNpZ25lZCBsb25nCWRhdGFfcmFuZ2VfZW5kOwogCXN0cnVjdCBkZXZpY2UJKmRldjsK
-IAlzdHJ1Y3QgY2xrCSplbXVfY2xrOwogCXN0cnVjdCBtdXRleAltdXRleDsKQEAgLTgzLDggKzg1
-LDE1IEBAIHN0YXRpYyBpbnQgZXRtX3NldHVwX2FkZHJlc3NfcmFuZ2Uoc3RydWN0IHRyYWNlY3R4
-ICp0LCBpbnQgbiwKIAlldG1fd3JpdGVsKHQsIGZsYWdzLCBFVE1SX0NPTVBfQUNDX1RZUEUobiAq
-IDIgKyAxKSk7CiAJZXRtX3dyaXRlbCh0LCBlbmQsIEVUTVJfQ09NUF9WQUwobiAqIDIgKyAxKSk7
-CiAKLQlmbGFncyA9IGV4Y2x1ZGUgPyBFVE1URV9JTkNMRVhDTCA6IDA7Ci0JZXRtX3dyaXRlbCh0
-LCBmbGFncyB8ICgxIDw8IG4pLCBFVE1SX1RSQUNFRU5DVFJMKTsKKwlpZiAoZGF0YSkgeworCQlm
-bGFncyA9IGV4Y2x1ZGUgPyBFVE1WREMzX0VYQ0xPTkxZIDogMDsKKwkJaWYgKGV4Y2x1ZGUpCisJ
-CQluICs9IDg7CisJCWV0bV93cml0ZWwodCwgZmxhZ3MgfCBCSVQobiksIEVUTVJfVklFV0RBVEFD
-VFJMMyk7CisJfSBlbHNlIHsKKwkJZmxhZ3MgPSBleGNsdWRlID8gRVRNVEVfSU5DTEVYQ0wgOiAw
-OworCQlldG1fd3JpdGVsKHQsIGZsYWdzIHwgKDEgPDwgbiksIEVUTVJfVFJBQ0VFTkNUUkwpOwor
-CX0KIAogCXJldHVybiAwOwogfQpAQCAtMTA4LDYgKzExNyw5IEBAIHN0YXRpYyBpbnQgdHJhY2Vf
-c3RhcnQoc3RydWN0IHRyYWNlY3R4ICp0KQogCWlmICh0LT5mbGFncyAmIFRSQUNFUl9DWUNMRV9B
-Q0MpCiAJCXYgfD0gRVRNQ1RSTF9DWUNMRUFDQ1VSQVRFOwogCisJaWYgKHQtPmZsYWdzICYgVFJB
-Q0VSX1RSQUNFX0RBVEEpCisJCXYgfD0gRVRNQ1RSTF9EQVRBX0RPX0FERFI7CisKIAlldG1fdW5s
-b2NrKHQpOwogCiAJZXRtX3dyaXRlbCh0LCB2LCBFVE1SX0NUUkwpOwpAQCAtMTMwLDYgKzE0Miwx
-NyBAQCBzdGF0aWMgaW50IHRyYWNlX3N0YXJ0KHN0cnVjdCB0cmFjZWN0eCAqdCkKIAlldG1fd3Jp
-dGVsKHQsIDAsIEVUTVJfVFJBQ0VTU0NUUkwpOwogCWV0bV93cml0ZWwodCwgMHg2ZiwgRVRNUl9U
-UkFDRUVORVZUKTsKIAorCWV0bV93cml0ZWwodCwgMCwgRVRNUl9WSUVXREFUQUNUUkwxKTsKKwll
-dG1fd3JpdGVsKHQsIDAsIEVUTVJfVklFV0RBVEFDVFJMMik7CisKKwlpZiAodC0+ZGF0YV9yYW5n
-ZV9zdGFydCB8fCB0LT5kYXRhX3JhbmdlX2VuZCkKKwkJZXRtX3NldHVwX2FkZHJlc3NfcmFuZ2Uo
-dCwgMiwgdC0+ZGF0YV9yYW5nZV9zdGFydCwKKwkJCQkJdC0+ZGF0YV9yYW5nZV9lbmQsIDAsIDEp
-OworCWVsc2UKKwkJZXRtX3dyaXRlbCh0LCBFVE1WREMzX0VYQ0xPTkxZLCBFVE1SX1ZJRVdEQVRB
-Q1RSTDMpOworCisJZXRtX3dyaXRlbCh0LCAweDZmLCBFVE1SX1ZJRVdEQVRBRVZUKTsKKwogCXYg
-Jj0gfkVUTUNUUkxfUFJPR1JBTTsKIAl2IHw9IEVUTUNUUkxfUE9SVFNFTDsKIApAQCAtNTYzLDYg
-KzU4Niw0OCBAQCBzdGF0aWMgc3NpemVfdCB0cmFjZV9yYW5nZV9zdG9yZShzdHJ1Y3Qga29iamVj
-dCAqa29iaiwKIHN0YXRpYyBzdHJ1Y3Qga29ial9hdHRyaWJ1dGUgdHJhY2VfcmFuZ2VfYXR0ciA9
-CiAJX19BVFRSKHRyYWNlX3JhbmdlLCAwNjQ0LCB0cmFjZV9yYW5nZV9zaG93LCB0cmFjZV9yYW5n
-ZV9zdG9yZSk7CiAKK3N0YXRpYyBzc2l6ZV90IHRyYWNlX2RhdGFfcmFuZ2Vfc2hvdyhzdHJ1Y3Qg
-a29iamVjdCAqa29iaiwKKwkJCQkgIHN0cnVjdCBrb2JqX2F0dHJpYnV0ZSAqYXR0ciwKKwkJCQkg
-IGNoYXIgKmJ1ZikKK3sKKwl1bnNpZ25lZCBsb25nIHJhbmdlX3N0YXJ0OworCXU2NCByYW5nZV9l
-bmQ7CisJbXV0ZXhfbG9jaygmdHJhY2VyLm11dGV4KTsKKwlyYW5nZV9zdGFydCA9IHRyYWNlci5k
-YXRhX3JhbmdlX3N0YXJ0OworCXJhbmdlX2VuZCA9IHRyYWNlci5kYXRhX3JhbmdlX2VuZDsKKwlp
-ZiAoIXJhbmdlX2VuZCAmJiAodHJhY2VyLmZsYWdzICYgVFJBQ0VSX1RSQUNFX0RBVEEpKQorCQly
-YW5nZV9lbmQgPSAweDEwMDAwMDAwMFVMTDsKKwltdXRleF91bmxvY2soJnRyYWNlci5tdXRleCk7
-CisJcmV0dXJuIHNwcmludGYoYnVmLCAiJTA4bHggJTA4bGx4XG4iLCByYW5nZV9zdGFydCwgcmFu
-Z2VfZW5kKTsKK30KKworc3RhdGljIHNzaXplX3QgdHJhY2VfZGF0YV9yYW5nZV9zdG9yZShzdHJ1
-Y3Qga29iamVjdCAqa29iaiwKKwkJCQkgICBzdHJ1Y3Qga29ial9hdHRyaWJ1dGUgKmF0dHIsCisJ
-CQkJICAgY29uc3QgY2hhciAqYnVmLCBzaXplX3QgbikKK3sKKwl1bnNpZ25lZCBsb25nIHJhbmdl
-X3N0YXJ0OworCXU2NCByYW5nZV9lbmQ7CisKKwlpZiAoc3NjYW5mKGJ1ZiwgIiVseCAlbGx4Iiwg
-JnJhbmdlX3N0YXJ0LCAmcmFuZ2VfZW5kKSAhPSAyKQorCQlyZXR1cm4gLUVJTlZBTDsKKworCW11
-dGV4X2xvY2soJnRyYWNlci5tdXRleCk7CisJdHJhY2VyLmRhdGFfcmFuZ2Vfc3RhcnQgPSByYW5n
-ZV9zdGFydDsKKwl0cmFjZXIuZGF0YV9yYW5nZV9lbmQgPSAodW5zaWduZWQgbG9uZylyYW5nZV9l
-bmQ7CisJaWYgKHJhbmdlX2VuZCkKKwkJdHJhY2VyLmZsYWdzIHw9IFRSQUNFUl9UUkFDRV9EQVRB
-OworCWVsc2UKKwkJdHJhY2VyLmZsYWdzICY9IH5UUkFDRVJfVFJBQ0VfREFUQTsKKwltdXRleF91
-bmxvY2soJnRyYWNlci5tdXRleCk7CisKKwlyZXR1cm4gbjsKK30KKworCitzdGF0aWMgc3RydWN0
-IGtvYmpfYXR0cmlidXRlIHRyYWNlX2RhdGFfcmFuZ2VfYXR0ciA9CisJX19BVFRSKHRyYWNlX2Rh
-dGFfcmFuZ2UsIDA2NDQsCisJCXRyYWNlX2RhdGFfcmFuZ2Vfc2hvdywgdHJhY2VfZGF0YV9yYW5n
-ZV9zdG9yZSk7CisKIHN0YXRpYyBpbnQgX19pbml0IGV0bV9wcm9iZShzdHJ1Y3QgYW1iYV9kZXZp
-Y2UgKmRldiwgc3RydWN0IGFtYmFfaWQgKmlkKQogewogCXN0cnVjdCB0cmFjZWN0eCAqdCA9ICZ0
-cmFjZXI7CkBAIC01ODgsNyArNjUzLDcgQEAgc3RhdGljIGludCBfX2luaXQgZXRtX3Byb2JlKHN0
-cnVjdCBhbWJhX2RldmljZSAqZGV2LCBzdHJ1Y3QgYW1iYV9pZCAqaWQpCiAKIAltdXRleF9pbml0
-KCZ0LT5tdXRleCk7CiAJdC0+ZGV2ID0gJmRldi0+ZGV2OwotCXQtPmZsYWdzID0gVFJBQ0VSX0NZ
-Q0xFX0FDQzsKKwl0LT5mbGFncyA9IFRSQUNFUl9DWUNMRV9BQ0MgfCBUUkFDRVJfVFJBQ0VfREFU
-QTsKIAl0LT5ldG1fcG9ydHN6ID0gMTsKIAogCWV0bV91bmxvY2sodCk7CkBAIC02MTgsNiArNjgz
-LDExIEBAIHN0YXRpYyBpbnQgX19pbml0IGV0bV9wcm9iZShzdHJ1Y3QgYW1iYV9kZXZpY2UgKmRl
-diwgc3RydWN0IGFtYmFfaWQgKmlkKQogCWlmIChyZXQpCiAJCWRldl9kYmcoJmRldi0+ZGV2LCAi
-RmFpbGVkIHRvIGNyZWF0ZSB0cmFjZV9yYW5nZSBpbiBzeXNmc1xuIik7CiAKKwlyZXQgPSBzeXNm
-c19jcmVhdGVfZmlsZSgmZGV2LT5kZXYua29iaiwgJnRyYWNlX2RhdGFfcmFuZ2VfYXR0ci5hdHRy
-KTsKKwlpZiAocmV0KQorCQlkZXZfZGJnKCZkZXYtPmRldiwKKwkJCSJGYWlsZWQgdG8gY3JlYXRl
-IHRyYWNlX2RhdGFfcmFuZ2UgaW4gc3lzZnNcbiIpOworCiAJZGV2X2RiZyh0LT5kZXYsICJFVE0g
-QU1CQSBkcml2ZXIgaW5pdGlhbGl6ZWQuXG4iKTsKIAogb3V0OgpAQCAtNjQ4LDYgKzcxOCw3IEBA
-IHN0YXRpYyBpbnQgZXRtX3JlbW92ZShzdHJ1Y3QgYW1iYV9kZXZpY2UgKmRldikKIAlzeXNmc19y
-ZW1vdmVfZmlsZSgmZGV2LT5kZXYua29iaiwgJnRyYWNlX2luZm9fYXR0ci5hdHRyKTsKIAlzeXNm
-c19yZW1vdmVfZmlsZSgmZGV2LT5kZXYua29iaiwgJnRyYWNlX21vZGVfYXR0ci5hdHRyKTsKIAlz
-eXNmc19yZW1vdmVfZmlsZSgmZGV2LT5kZXYua29iaiwgJnRyYWNlX3JhbmdlX2F0dHIuYXR0cik7
-CisJc3lzZnNfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2LmtvYmosICZ0cmFjZV9kYXRhX3JhbmdlX2F0
-dHIuYXR0cik7CiAKIAlyZXR1cm4gMDsKIH0KLS0gCjEuNy4zLjEKCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcg
-bGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
-ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+Kevin,
+
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman-l0cyMroinI0@public.gmane.org]
+>Sent: Tuesday, February 15, 2011 5:45 AM
+>To: Hema HK
+>Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+>Felipe Balbi; Tony Lindgren; Cousson, Benoit; Paul Walmsley
+>Subject: Re: [PATCH 4/5 v6] OMAP2+: musb: HWMOD adaptation for
+>musb. registration
+>
+>Hema HK <hemahk-l0cyMroinI0@public.gmane.org> writes:
+>
+>> Using omap_device_build API instead of platform_device_register for
+>> OMAP2430,OMAP34xx and OMAP4430 musb device registration.
+>> The device specific resources defined in centralized
+>> database will be used.
+>
+>Except for AM35x.
+>
+>NACK, for same reasons as previous version of this patch.
+>
+AM35x boot is already broken with existing HWmod changes done for V2.6.38
+release.
+I think Ajay's team is debugging this issue.
+Since there is no separate CHIP revision for AM35x compared to OMAP3430
+today,
+there will be conflict to add OMAP3 usbotg and AM35x usbotg together.
+
+I think we should go for OMAP3 HWmod independent of the AM35x.
+If required we should have 2 separate platform file as there is very less
+shared code in usb-musb.c file between the OMAP2+ and AM35x.
+
+Ajay/Felipe,
+
+Any comments on this?
+
+Regards,
+Hema
+
+>Kevin
+>
+>> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+>> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+>> Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
+>> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+>> ---
+>>  arch/arm/mach-omap2/usb-musb.c |   76
+>+++++++++++++++++++++++++++++------------
+>>  1 file changed, 55 insertions(+), 21 deletions(-)
+>>
+>> Index: linux-2.6/arch/arm/mach-omap2/usb-musb.c
+>> ===================================================================
+>> --- linux-2.6.orig/arch/arm/mach-omap2/usb-musb.c
+>> +++ linux-2.6/arch/arm/mach-omap2/usb-musb.c
+>> @@ -31,9 +31,12 @@
+>>  #include <mach/am35xx.h>
+>>  #include <plat/usb.h>
+>>  #include "control.h"
+>> +#include <plat/omap_device.h>
+>>
+>>  #if defined(CONFIG_USB_MUSB_OMAP2PLUS) || defined
+>(CONFIG_USB_MUSB_AM35X)
+>>
+>> +static const char name[] = "musb-omap2430";
+>> +
+>>  static void am35x_musb_reset(void)
+>>  {
+>>  	u32	regval;
+>> @@ -170,7 +173,7 @@ static struct musb_hdrc_platform_data mu
+>>  static u64 musb_dmamask = DMA_BIT_MASK(32);
+>>
+>>  static struct platform_device musb_device = {
+>> -	.name		= "musb-omap2430",
+>> +	.name		= "musb-am35x",
+>>  	.id		= -1,
+>>  	.dev = {
+>>  		.dma_mask		= &musb_dmamask,
+>> @@ -181,26 +184,23 @@ static struct platform_device musb_devic
+>>  	.resource	= musb_resources,
+>>  };
+>>
+>> +static struct omap_device_pm_latency omap_musb_latency[] = {
+>> +	{
+>> +		.deactivate_func = omap_device_idle_hwmods,
+>> +		.activate_func   = omap_device_enable_hwmods,
+>> +		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+>> +	},
+>> +};
+>> +
+>>  void __init usb_musb_init(struct omap_musb_board_data *board_data)
+>>  {
+>> -	if (cpu_is_omap243x()) {
+>> -		musb_resources[0].start = OMAP243X_HS_BASE;
+>> -	} else if (cpu_is_omap3517() || cpu_is_omap3505()) {
+>> -		musb_device.name = "musb-am35x";
+>> -		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
+>> -		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+>> -		board_data->set_phy_power = am35x_musb_phy_power;
+>> -		board_data->clear_irq = am35x_musb_clear_irq;
+>> -		board_data->set_mode = am35x_musb_set_mode;
+>> -		board_data->reset = am35x_musb_reset;
+>> -	} else if (cpu_is_omap34xx()) {
+>> -		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+>> -	} else if (cpu_is_omap44xx()) {
+>> -		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
+>> -		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
+>> -		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
+>> -	}
+>> -	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
+>> +	struct omap_hwmod *oh;
+>> +	struct omap_device *od;
+>> +	struct platform_device *pdev;
+>> +	struct device	*dev;
+>> +	int bus_id = -1;
+>> +	const char *oh_name = "usb_otg_hs";
+>> +	struct musb_hdrc_platform_data *pdata;
+>>
+>>  	/*
+>>  	 * REVISIT: This line can be removed once all the
+>platforms using
+>> @@ -212,8 +212,42 @@ void __init usb_musb_init(struct omap_mu
+>>  	musb_plat.mode = board_data->mode;
+>>  	musb_plat.extvbus = board_data->extvbus;
+>>
+>> -	if (platform_device_register(&musb_device) < 0)
+>> -		printk(KERN_ERR "Unable to register HS-USB
+>(MUSB) device\n");
+>> +	if (cpu_is_omap3517() || cpu_is_omap3505()) {
+>> +		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
+>> +		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+>> +		board_data->set_phy_power = am35x_musb_phy_power;
+>> +		board_data->clear_irq = am35x_musb_clear_irq;
+>> +		board_data->set_mode = am35x_musb_set_mode;
+>> +		board_data->reset = am35x_musb_reset;
+>> +		musb_resources[0].end = musb_resources[0].start
+>+ SZ_4K - 1;
+>> +
+>> +		if (platform_device_register(&musb_device) < 0)
+>> +			printk(KERN_ERR "Unable to register HS-USB \
+>> +					(MUSB) device\n");
+>> +	} else {
+>> +		oh = omap_hwmod_lookup(oh_name);
+>> +		if (!oh) {
+>> +			pr_err("Could not look up %s\n", oh_name);
+>> +			return;
+>> +		}
+>> +
+>> +		pdata = &musb_plat;
+>> +		od = omap_device_build(name, bus_id, oh, pdata,
+>> +				       sizeof(*pdata),
+>omap_musb_latency,
+>> +				
+>ARRAY_SIZE(omap_musb_latency), false);
+>> +		if (IS_ERR(od)) {
+>> +			pr_err("Could not build omap_device for
+>%s %s\n",
+>> +							name, oh_name);
+>> +			return;
+>> +		}
+>> +
+>> +		pdev = &od->pdev;
+>> +		dev = &pdev->dev;
+>> +		get_device(dev);
+>> +		dev->dma_mask = &musb_dmamask;
+>> +		dev->coherent_dma_mask = musb_dmamask;
+>> +		put_device(dev);
+>> +	}
+>>  }
+>>
+>>  #else
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe
+>linux-omap" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
