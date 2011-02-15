@@ -1,71 +1,46 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: OMAP: DSS2: Common IRQ handler for all OMAPs
-Date: Tue, 15 Feb 2011 14:00:38 +0530
-Message-ID: <4D5A39AE.3030006@ti.com>
-References: <1296636990-24775-1-git-send-email-archit@ti.com>	 <1297693307.2951.25.camel@deskari>	 <20110214143001.GK2549@legolas.emea.dhcp.ti.com>  <4D5A00E8.4060701@ti.com> <1297754826.2289.9.camel@deskari>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 4/5 v6] OMAP2+: musb: HWMOD adaptation for musb.
+ registration
+Date: Tue, 15 Feb 2011 10:32:36 +0200
+Message-ID: <20110215083235.GG2570@legolas.emea.dhcp.ti.com>
+References: <1297346881-13438-1-git-send-email-hemahk@ti.com>
+ <1297346881-13438-5-git-send-email-hemahk@ti.com>
+ <87vd0mw3u9.fsf@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44305 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754469Ab1BOI3p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 03:29:45 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1F8Tg3m029621
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 02:29:44 -0600
-In-Reply-To: <1297754826.2289.9.camel@deskari>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:58798 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754469Ab1BOIcn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 03:32:43 -0500
+Content-Disposition: inline
+In-Reply-To: <87vd0mw3u9.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Hema HK <hemahk@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
+On Mon, Feb 14, 2011 at 04:15:10PM -0800, Kevin Hilman wrote:
+> Hema HK <hemahk@ti.com> writes:
+> 
+> > Using omap_device_build API instead of platform_device_register for
+> > OMAP2430,OMAP34xx and OMAP4430 musb device registration.
+> > The device specific resources defined in centralized
+> > database will be used.
+> 
+> Except for AM35x.
+> 
+> NACK, for same reasons as previous version of this patch.
 
-On Tuesday 15 February 2011 12:57 PM, Valkeinen, Tomi wrote:
+Does it really make sense to hold on omap2plus HWMOD conversion because
+of AM35x ? I mean, I understand it would be better to get all fixed up,
+but loose another merge window for that ?
 
-<snip>
+Can we get omap2plus in and AM35x on the next merge window ? At least
+omap2plus would have been converted to hwmod and would be using
+pm_runtime as we want.
 
-> I meant something like this:
->
-> dispc.c:
->
-> dispc_init()
-> {
-> 	/* did we have a pdev for dispc? if not, this needs to be dss.pdev */
-> 	request_irq(platform_get_irq(dispc.pdev, 0), irq_handler, IRQF_SHARED, "dispc irq", foo);
-> }
->
-> irq_handler()
-> {
-> 	if (irq_can_be_shared) {
-> 		check if the irq is for us. exit if not;
-> 	}
->
-> 	handle;
-> }
->
-> dsi.c:
->
-> dsi_init()
-> {
-> 	request_irq(platform_get_irq(dsi.pdev, 0), irq_handler, IRQF_SHARED, "dsi irq", foo);
-> }
->
-> irq_handler()
-> {
-> 	if (irq_can_be_shared) {
-> 		check if the irq is for us. exit if not;
-> 	}
->
-> 	handle;
-> }
->
-
-This approach looks clean, but isn't IRQF_SHARED used the other way 
-around. One irq line and multiple handlers?
-
-Regards,
-Archit
-
+-- 
+balbi
