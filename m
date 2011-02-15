@@ -1,92 +1,63 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [4/7 v2] usb: otg: OMAP4430: Add phy_suspend function pointer
- to
-Date: Tue, 15 Feb 2011 15:18:40 +0300
-Message-ID: <4D5A6F20.5060109@ru.mvista.com>
-References: <1297762958-26199-1-git-send-email-hemahk@ti.com> <1297762958-26199-4-git-send-email-hemahk@ti.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [5/7 v2] usb: otg: TWL6030: Introduce the twl6030_phy_suspend
+ function.
+Date: Tue, 15 Feb 2011 15:22:17 +0300
+Message-ID: <4D5A6FF9.8000709@ru.mvista.com>
+References: <1297762958-26199-1-git-send-email-hemahk@ti.com> <1297762958-26199-5-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:36406 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754574Ab1BOMT5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 07:19:57 -0500
-In-Reply-To: <1297762958-26199-4-git-send-email-hemahk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1297762958-26199-5-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Hema HK <hemahk@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
 Hello.
 
 On 15-02-2011 12:42, Hema HK wrote:
 
-    The subject seems incomplete.
+> From: Kalliguddi, Hema<hemahk-l0cyMroinI0@public.gmane.org>
 
-> From: Kalliguddi, Hema<hemahk@ti.com>
+> Introduce the twl6030_phy_suspend function and assign to otg.set_suspend
+> function pointer.
+> This function is used by the musb-omap2430 platform driver
+> during suspend/resume.
 
-> Introduce the .phy_suspend function pointer to twl4030_usb_data structure.
-> assign the function to it for both sdp board and panda boards.
-> This will be used by the twl6030-usb transceiver driver.
-
-> Signed-off-by: Hema HK<hemahk@ti.com>
-> Cc: Felipe Balbi<balbi@ti.com>
-> Cc: Tony Lindgren<tony@atomide.com>
+> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
+> Cc: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
 
 [...]
 
-> Index: linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
+> Index: linux-2.6/drivers/usb/otg/twl6030-usb.c
 > ===================================================================
-> --- linux-2.6.orig/arch/arm/mach-omap2/board-4430sdp.c
-> +++ linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -272,6 +272,7 @@ static struct twl4030_usb_data omap4_usb
->   	.phy_exit	= omap4430_phy_exit,
->   	.phy_power	= omap4430_phy_power,
->   	.phy_set_clock	= omap4430_phy_set_clk,
-> +	.phy_suspend	= omap4430_phy_suspend,
->   };
+> --- linux-2.6.orig/drivers/usb/otg/twl6030-usb.c
+> +++ linux-2.6/drivers/usb/otg/twl6030-usb.c
+> @@ -177,6 +177,20 @@ static void twl6030_phy_shutdown(struct
+>   	pdata->phy_power(twl->dev, 0, 0);
+>   }
 >
->   static struct omap2_hsmmc_info mmc[] = {
-> Index: linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-> ===================================================================
-> --- linux-2.6.orig/arch/arm/mach-omap2/board-omap4panda.c
-> +++ linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -153,6 +153,7 @@ static struct twl4030_usb_data omap4_usb
->   	.phy_exit	= omap4430_phy_exit,
->   	.phy_power	= omap4430_phy_power,
->   	.phy_set_clock	= omap4430_phy_set_clk,
-> +	.phy_suspend	= omap4430_phy_suspend,
->   };
->
->   static struct omap2_hsmmc_info mmc[] = {
-> Index: linux-2.6/arch/arm/plat-omap/include/plat/usb.h
-> ===================================================================
-> --- linux-2.6.orig/arch/arm/plat-omap/include/plat/usb.h
-> +++ linux-2.6/arch/arm/plat-omap/include/plat/usb.h
-> @@ -88,6 +88,7 @@ extern int omap4430_phy_power(struct dev
->   extern int omap4430_phy_set_clk(struct device *dev, int on);
->   extern int omap4430_phy_init(struct device *dev);
->   extern int omap4430_phy_exit(struct device *dev);
-> +extern int omap4430_phy_suspend(struct device *dev, int suspend);
+> +static int twl6030_phy_suspend(struct otg_transceiver *x, int suspend)
+> +{
+> +	struct twl6030_usb *twl;
+> +	struct device *dev;
+> +	struct twl4030_usb_data *pdata;
+> +
+> +	twl = xceiv_to_twl(x);
+> +	dev  = twl->dev;
+> +	pdata = dev->platform_data;
 
-    I think this *extern* declaration should be a part of the previous patch.
+    Why not do all the above in the intializers?
 
->   #endif
->
-> Index: linux-2.6/include/linux/i2c/twl.h
-> ===================================================================
-> --- linux-2.6.orig/include/linux/i2c/twl.h
-> +++ linux-2.6/include/linux/i2c/twl.h
-> @@ -600,6 +600,8 @@ struct twl4030_usb_data {
->   	int		(*phy_power)(struct device *dev, int iD, int on);
->   	/* enable/disable  phy clocks */
->   	int		(*phy_set_clock)(struct device *dev, int on);
-> +	/* suspend/resume of phy */
-> +	int		(*phy_suspend)(struct device *dev, int suspend);
->   };
-
-    I'd make the above the only change in this patch, and add all the other 
-changes into the previous patch (which then I'd change places with that one).
+> +	pdata->phy_suspend(twl->dev, suspend);
+> +
+> +	return 0;
+> +}
+> +
 
 WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
