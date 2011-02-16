@@ -1,80 +1,61 @@
-From: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: RE:
-Date: Wed, 16 Feb 2011 17:47:10 +0530
-Message-ID: <3897a14de7c3109761d242f2b6e54eb2@mail.gmail.com>
-References: <1297857190-27449-1-git-send-email-hemahk@ti.com> <4D5BBC61.2000905@ru.mvista.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
+ OMAP data
+Date: Wed, 16 Feb 2011 13:57:29 +0200
+Message-ID: <20110216115729.GA29817@besouro.research.nokia.com>
+References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
+ <AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D5BBC61.2000905-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Linus Walleij <linus.walleij@linaro.org>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, santosh.shilimkar@ti.com, Ambresh <a0393775@ti.com>, felipe.balbi@nokia.com, Jouni Hogander <jouni.hogander@nokia.com>, Paul Mundt <lethal@linux-sh.org>, Lee Jones <Lee.Jones@linaro.org>, maxime.coquelin-nonst@stericsson.com, Jonas =?utf-8?B?77+9YmVyZw==?= <jonas.aberg@stericsson.com>, ext Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
- Hi,
->-----Original Message-----
->From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org]
->Sent: Wednesday, February 16, 2011 5:31 PM
->To: Hema HK
->Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->Subject: Re:
->
->On 16-02-2011 14:53, Hema HK wrote:
->
->> From: Hema HK<hemahk-l0cyMroinI0@public.gmane.org
->
->> Moved all the board specific internal PHY functions out of
->usb_musb.c file
->> as this file is shared between the OMAP2+ and AM35xx platforms.
->> There exists a file which has the functions specific to internal PHY
->> used for OMAP4 platform. Moved all phy specific functions to
->this file
->> and passing these functions through board data in the board file.
->
->> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
->
->> Index: linux-2.6/arch/arm/mach-omap2/board-am3517evm.c
->> ===================================================================
->> --- linux-2.6.orig/arch/arm/mach-omap2/board-am3517evm.c
->> +++ linux-2.6/arch/arm/mach-omap2/board-am3517evm.c
->> @@ -409,6 +409,10 @@ static struct omap_musb_board_data musb_
->>   	.interface_type         = MUSB_INTERFACE_ULPI,
->>   	.mode                   = MUSB_OTG,
->>   	.power                  = 500,
->> +	.set_phy_power		= am35x_musb_phy_power,
->> +	.clear_irq		= am35x_musb_clear_irq,
->> +	.set_mode		= am35x_musb_set_mode,
->> +	.reset			= am35x_musb_reset,
->>   };
->>
->>   static __init void am3517_evm_musb_init(void)
->[...]
->> Index: linux-2.6/arch/arm/mach-omap2/Makefile
->> ===================================================================
->> --- linux-2.6.orig/arch/arm/mach-omap2/Makefile
->> +++ linux-2.6/arch/arm/mach-omap2/Makefile
->> @@ -218,7 +218,8 @@ obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board
->>   					   hsmmc.o \
->>   					   omap_phy_internal.o
->>
->> -obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
->> +obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o \
->> +					   omap_phy_internal.o \
->>
->>   obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
->
->    Doesn't the above board needs board data modified as well?
+Hello Linus,
 
-There is no "musb_board_data" for the above board file.
+On Tue, Feb 15, 2011 at 01:58:00PM +0100, ext Linus Walleij wrote:
+> 2010/5/11 Eduardo Valentin <eduardo.valentin@nokia.com>:
+> 
+> > Here is the version 5 of the change to export OMAP data to userspace
+> > (name, revision, id code, production id and die id).
+> >
+> > Basically, this version is still attempting to create a new file under /proc.
+> > It is the /proc/socinfo, which should be used to export bits which are SoC specific
+> > (not CPU related, nor machine related).
+> >
+> > So, differences between previous version are:
+> > - merged patch 02/04 with 03/04 to avoid compilation breakages.
+> > - simplified the seq_file usage by using the single_open and single_release functions
+> > - exported a function to register a seq_operation .show callback
+> > - adapted the changes accordingly
+> >
+> > As usual, comments are welcome.
+> 
+> Eduardo, what has happened to this patchset?
 
-Regards,
-Hema
+Got forgotten :-(. Unfortunately I didn't pushed it hard enough.
 
->
->WBR, Sergei
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Now we need something similar for arch/arm/mach-ux500 and I was sort of
+> hoping that this infrastructure would be in place already... wrong I was.
+
+Right.
+
+> 
+> Do you want help in picking it up and try to polish it up?
+
+Yeah, but it would need a refactoring. IIRC, result of last discussion was that
+we should not mess with /proc. So, maybe moving back to something under sysfs.
+Perhaps /sys/devices/soc or so?
+
+> 
+> Yours,
+> Linus Walleij
+
+-- 
+Eduardo Valentin
