@@ -1,76 +1,89 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [3/4] OMAP: DSS2: Adding macro for DISPC_DIVISOR register
-Date: Wed, 16 Feb 2011 17:43:05 +0200
-Message-ID: <1297870985.14556.14.camel@deskari>
-References: <1296742161-9395-4-git-send-email-raghuveer.murthy@ti.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 3/5] ARM: l2x0: Errata fix for flush by Way operation can
+ cause data corruption
+Date: Wed, 16 Feb 2011 15:53:48 +0000
+Message-ID: <AANLkTikEjTgisftQV46djrOP8iWMFV267v-efHsVf_Nd@mail.gmail.com>
+References: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com>
+	<1297510187-31547-4-git-send-email-santosh.shilimkar@ti.com>
+	<AANLkTimkqZ5datA+7shggbWz3+j=TDg5beUkQK=b1AmK@mail.gmail.com>
+	<13596bec9184b117d6a1d02da8e017bf@mail.gmail.com>
+	<AANLkTimjXG5-kEW=1vodnGo3Ct_xOS_HihdqN0TeL9ba@mail.gmail.com>
+	<33573d5cfc91cf45dc58ee861cccc2ae@mail.gmail.com>
+	<4dfaffa99292bf8e36791ea9a68de75e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34873 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751755Ab1BPPnI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 10:43:08 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1GFh7u9027666
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 09:43:07 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1GFh7X5019343
-	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 09:43:07 -0600 (CST)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1GFh7FJ019940
-	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 09:43:07 -0600 (CST)
-In-Reply-To: <1296742161-9395-4-git-send-email-raghuveer.murthy@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:43052 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751696Ab1BPPxs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 10:53:48 -0500
+Received: by iyj8 with SMTP id 8so1349707iyj.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 07:53:48 -0800 (PST)
+In-Reply-To: <4dfaffa99292bf8e36791ea9a68de75e@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Raghuveer Murthy <raghuveer.murthy@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Andrei Warkentin <andreiw@motorola.com>, Kevin Hilman <khilman@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org
 
-On Thu, 2011-02-03 at 14:09 +0000, Raghuveer Murthy wrote:
-> Added macro for DISPC_DIVISOR. This is different from DISPC_DIVISOR1 and
-> DISPC_DIVISOR2. OMAP4 supports all the above 3 registers.
-> 
-> DISPC_DIVISOR1 and DISPC_DIVISOR2 registers are accessed through
-> DISPC_DIVISORo(ch) macro
-> 
-> Signed-off-by: Raghuveer Murthy <raghuveer.murthy@ti.com>
-> 
-> ---
-> drivers/video/omap2/dss/dispc.c |   11 +++++++++++
->  1 files changed, 11 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-> index e52a413..6225d12 100644
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -132,6 +132,17 @@ struct dispc_reg { u16 idx; };
->  
->  #define DISPC_VID_PRELOAD(n)		DISPC_REG(0x230 + (n)*0x04)
->  
-> +/*
-> + * The OMAP4 DISPC_DIVISOR1 is backward compatible to OMAP3xxx DISPC_DIVISOR.
-> + * However DISPC_DIVISOR is also provided in OMAP4, to control DISPC_CORE_CLK.
-> + * This allows DISPC_CORE_CLK to be independent of logical clock dividers (lcd)
-> + * of LCD1 (primary) and LCD2 (secondary) displays.
-> + *
-> + * To derive pixel clocks for Primary and Secondary LCD channels, configure the
-> + * lcd and pcd in DISPC_DIVISOR1 and DISPC_DIVISOR2 respectively, using the
-> + * DISPC_DIVISORo(ch).
-> + */
-> +#define DISPC_DIVISOR			DISPC_REG(0x0804)
->  
->  #define DISPC_IRQ_MASK_ERROR            (DISPC_IRQ_GFX_FIFO_UNDERFLOW | \
->  					 DISPC_IRQ_OCP_ERR | \
+On 15 February 2011 07:14, Santosh Shilimkar <santosh.shilimkar@ti.com>=
+ wrote:
+> --- a/arch/arm/Kconfig
+> +++ b/arch/arm/Kconfig
+> @@ -1140,7 +1140,7 @@ config ARM_ERRATA_742231
+>
+> =C2=A0config PL310_ERRATA_588369
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0bool "Clean & Invalidate maintenance opera=
+tions do not invalidate
+> clean lines"
+> - =C2=A0 =C2=A0 =C2=A0 depends on CACHE_L2X0 && ARCH_OMAP4
+> + =C2=A0 =C2=A0 =C2=A0 depends on CACHE_L2X0 && CACHE_PL310
 
-See my comment about comments in previous mail.
+It can just depend on CACHE_PL310 as this depends on CACHE_L2X0.
 
-I think you should merge this and the next patch. There's not much point
-in adding a single line define, which is not used (yet).
+> +config PL310_ERRATA_727915
+> + =C2=A0 =C2=A0 =C2=A0 bool "Background Clean & Invalidate by Way ope=
+ration can cause
+> data corruption"
+> + =C2=A0 =C2=A0 =C2=A0 depends on CACHE_L2X0 && CACHE_PL310
 
-How about the debug output from debug/omapdss/clk file? Does it print
-sensible things on OMAP4 after these patches?
+Same here.
 
- Tomi
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -45,7 +45,10 @@ config ARCH_OMAP4
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0select CPU_V7
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0select ARM_GIC
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0select LOCAL_TIMERS
+> + =C2=A0 =C2=A0 =C2=A0 select CACHE_L2X0
 
+CACHE_L2X0 has a long dependency list. You could add ARCH_OMAP4 in
+there or just change the other platforms to select a HAVE_CACHE_L2X0.
+Ideally we would like this option to be selectable in config just in
+case you want to debug some issues.
 
+> --- a/arch/arm/mach-omap2/omap4-common.c
+> +++ b/arch/arm/mach-omap2/omap4-common.c
+> @@ -52,6 +52,12 @@ static void omap4_l2x0_disable(void)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0omap_smc1(0x102, 0x0);
+> =C2=A0}
+>
+> +static void omap4_l2x0_set_debug(unsigned long val)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 /* Program PL310 L2 Cache controller debug reg=
+ister */
+> + =C2=A0 =C2=A0 =C2=A0 omap_smc1(0x100, val);
+> +}
+
+This part together with the Kconfig changes for OMAP4 could be a
+separate patch, OMAP-specific.
+
+The rest seems fine.
+
+--=20
+Catalin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
