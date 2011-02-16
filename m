@@ -1,46 +1,130 @@
-From: Bob Liu <lliubbo@gmail.com>
-Subject: Re: [PATCH] arm: omap3beagle: init musb default role by Kconfig
-Date: Wed, 16 Feb 2011 10:07:26 +0800
-Message-ID: <AANLkTik-tZKZ-0G1RBXD0rz1O4=wLXtHd2wTD-61dLm0@mail.gmail.com>
-References: <1297760100-7200-1-git-send-email-lliubbo@gmail.com>
-	<20110215112350.GM2570@legolas.emea.dhcp.ti.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH] i2c-omap: Double clear of ARDY status in IRQ handler
+Date: Wed, 16 Feb 2011 09:30:17 +0530
+Message-ID: <AANLkTikXO0DS3oM8q+pMDhQ9u=b7RrNBh5W3pa1YyLZX@mail.gmail.com>
+References: <1297406718-24147-1-git-send-email-j-keerthy@ti.com>
+	<877hd2xivn.fsf@ti.com>
+	<AANLkTikdDsq0mku6Jakq-cxA3jYYHQ7CL0sjwJ6wzXNh@mail.gmail.com>
+	<20110215235222.GL15795@trinity.fluff.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:47201 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932963Ab1BPCH0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2011 21:07:26 -0500
-Received: by qwa26 with SMTP id 26so733896qwa.19
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 18:07:26 -0800 (PST)
-In-Reply-To: <20110215112350.GM2570@legolas.emea.dhcp.ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:38161 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755797Ab1BPEAT convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 23:00:19 -0500
+In-Reply-To: <20110215235222.GL15795@trinity.fluff.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, archit@ti.com, tony@atomide.com, adrian.hunter@nokia.com
+To: Ben Dooks <ben-i2c@fluff.org>
+Cc: Kevin Hilman <khilman@ti.com>, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Richard woodruff <r-woodruff2@ti.com>
 
-On Tue, Feb 15, 2011 at 7:23 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
+On Wed, Feb 16, 2011 at 5:22 AM, Ben Dooks <ben-i2c@fluff.org> wrote:
+> On Tue, Feb 15, 2011 at 10:13:58AM +0530, J, KEERTHY wrote:
+>> On Tue, Feb 15, 2011 at 5:35 AM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>> > Keerthy <j-keerthy@ti.com> writes:
+>> >
+>> >> From: Richard woodruff <r-woodruff2@ti.com>
+>> >>
+>> >> ProDB00017052 - ARDY interrupt reasserted after being cleared.
+>> >
+>> >> This errata caused intermittent i2c instabilty(1 error per 3 hour=
+s) on several
+>> >> customer platforms. After applying the workaround the intermitten=
+t errors were
+>> >> not seen. This is not captured in the usual errata documents.
+>> >
+>> > This (presumably internal) ProDB number above is meaningless in th=
+e
+>> > public changelog. =A0In lieu of a public erratum number, just summ=
+arize
+>> > the erratum/instability seen, references to other relevant public
+>> > errata (if any) would be useful too. =A0 IOW, "instability" isn't =
+quite
+>> > accurate enough. =A0A more detailed description of the problem/ins=
+tability
+>> > is needed.
+>> >
+>>
+>> Kevin,
+>>
+>> Yes the ProDB number is internal. I will remove it from the change l=
+og.
+>> I will add a more detailed description of the problem.
 >
-> On Tue, Feb 15, 2011 at 04:55:00PM +0800, Bob Liu wrote:
->> Currently musb is initialized to OTG mode by default in musb_board_data, it's
->> better to init it depending on Kconfig.
->
-> what's the problem in always keeping OTG ? that board is wired for OTG
-> anyway.
+> Leave it in a comment at the most, it might be useful, otherwise plea=
+se
+> respond to Kevin's review and then it'll be ready to merge.
 >
 
-Yeah, but it's better if user can make their choices by themselves.
-Or mask the other choices in Kconfig if keeping OTG.
-Currently user can select HOST-only mode in Kconfig, but will receive
-compiler error.
-In my opinion, this should be consist.
+Ben,
 
-Another problem is if keeping in OTG mode, my board can't recognize usb device.
-HOST-only mode works fine, I am still debugging on it.
-But I think it's not related with current topic.
+I will add a more detailed description.
 
-Thanks
--- 
-Regards,
---Bob
+--=20
+Regards and Thanks,
+Keerthy
+
+>> --
+>> Regards and Thanks,
+>> Keerthy
+>>
+>>
+>> > Thanks,
+>> >
+>> > Kevin
+>> >
+>> >>
+>> >> The workaround is to have a double clear of ARDY status in
+>> >> irq handler.
+>> >>
+>> >> Signed-off-by: Richard woodruff <r-woodruff2@ti.com>
+>> >> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> >> ---
+>> >> =A0drivers/i2c/busses/i2c-omap.c | =A0 =A03 ++-
+>> >> =A01 files changed, 2 insertions(+), 1 deletions(-)
+>> >>
+>> >> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i=
+2c-omap.c
+>> >> index 445de08..9bcefae 100644
+>> >> --- a/drivers/i2c/busses/i2c-omap.c
+>> >> +++ b/drivers/i2c/busses/i2c-omap.c
+>> >> @@ -851,7 +851,8 @@ complete:
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 OMAP_I2C_STAT_AL)) {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_ack_stat(dev=
+, stat &
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (OMAP=
+_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2=
+C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2=
+C_STAT_XRDY | OMAP_I2C_STAT_XDR |
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2=
+C_STAT_ARDY));
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_complete_cmd=
+(dev, err);
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_HANDLED;
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> >
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-i2c"=
+ in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+> --
+> Ben Dooks, ben@fluff.org, http://www.fluff.org/ben/
+>
+> Large Hadron Colada: A large Pina Colada that makes the universe disa=
+ppear.
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
