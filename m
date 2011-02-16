@@ -1,69 +1,49 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [RESEND][PATCH v2] OMAP: DSS: Adding two APIs for panel-taal:
- check_timings and set_timings
-Date: Wed, 16 Feb 2011 15:57:38 +0200
-Message-ID: <1297864658.988.21.camel@deskari>
-References: <1297864482-16903-1-git-send-email-mayur@ti.com>
+From: Daniel Morsing <daniel.morsing@gmail.com>
+Subject: Re: [PATCH 0/2] Add recommended bpp for omap dss2 generic dpi
+ panels
+Date: Wed, 16 Feb 2011 15:06:33 +0100
+Message-ID: <1297865193.8777.8.camel@morsing>
+References: <1297530130-10355-1-git-send-email-daniel.morsing@gmail.com>
+	 <1297861914.988.1.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55409 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753877Ab1BPN5l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 08:57:41 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1GDve95023976
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 07:57:40 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1GDvdI9028229
-	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 07:57:39 -0600 (CST)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1GDvdNR016745
-	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 07:57:39 -0600 (CST)
-In-Reply-To: <1297864482-16903-1-git-send-email-mayur@ti.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:61999 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754652Ab1BPOGC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 09:06:02 -0500
+In-Reply-To: <1297861914.988.1.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Janorkar, Mayuresh" <mayur@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Bryan Wu <bryan.wu@canonical.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Tomi
 
-On Wed, 2011-02-16 at 07:54 -0600, Janorkar, Mayuresh wrote:
-> check_timings and set_timings APIS are not present for panel-taal.
+On Wed, 2011-02-16 at 15:11 +0200, Tomi Valkeinen wrote:
+> Hi,
 > 
-> OMAPFB provides a bootarg omapfb.mode for setting mode parameters which include display,
-> resolution, bits-per-pixel.
+> On Sat, 2011-02-12 at 11:02 -0600, Daniel Morsing wrote:
+> > The panel added is the 4.3 inch display that is sold with the
+> > Devkit8000.
 > 
-> OMAPFB expects panel driver to have check_timings and set_timings APIs.
-> These are checked by omapfb in case we wish to set default mode through bootargs.
-> e.g.: omapfb.mode="lcd:864x480-16" (display device:width X height - bits per pixel)
+> Hmm. Devkit8000's panel is connected with 24 datalines, according to the
+> board file. Why do you want to use 16 bpp format for that?
 > 
-> omapfb_set_def_mode function in omapfb-main.c essentially needs these functions
-> otherwise it would return -EINVAL and default mode sent through bootargs
-> would be ignored.
+>  Tomi
+> 
 
-I don't like this patch. You cannot change the timings for Taal, so
-those added functions look quite hacky.
+Running the panel at 24 bpp or specifying 16 datalines causes color
+distortion.
 
-The reason for this patch isn't clear from the description (it should).
-If I guess correctly, the point of the patch is to be able to change the
-default color format via boot arguments when using taal panel?
+The only way I've been able to run the panel without color distortion,
+is with 24 datalines and 16 bpp.
 
-If so, I think the change should be in the omapfb driver. Perhaps the
-omapfb driver should:
+I'm not well versed in displays, so I might be making a mistake
+somewhere. The BSP for the devkit8000 doesn't include a datasheet for
+the panel, so I can't look into what's causing this weirdness.
 
-1. check if check_timings & set_timings exist
-2. if they do exist, do the same thing as the code does now
-3. if they don't, use get_timings to verify that the given resolution is
-correct
-
-That wouldn't be perfect either, but I guess it should do the job. But
-this is again something where FB framework and OMAP HW do not quite
-match, and we end up with hacky solution, no matter what we do. But we
-can try to keep the hacks in the omapfb driver =).
-
- Tomi
-
+Regards,
+Daniel Morsing
 
