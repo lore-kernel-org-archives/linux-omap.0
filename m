@@ -1,51 +1,72 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH V4] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
-Date: Wed, 16 Feb 2011 14:31:12 +0200
-Message-ID: <20110216143112.6f756a94.jhnikula@gmail.com>
-References: <1297756738-2696-1-git-send-email-shweta.gulati@ti.com>
-	<20110215171652.601c9c68.jhnikula@gmail.com>
-	<20110215172931.3a6e45a8.jhnikula@gmail.com>
-	<AANLkTi=3PCBOvFtd1T-=tDjXcs+_0opKqxVps+StCZqf@mail.gmail.com>
-	<20110216134523.ba5d3917.jhnikula@gmail.com>
-	<AANLkTiniGdh2_=eFjSaLsQ4VVG1Eh0F=0Tex-KNKspBf@mail.gmail.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: Re: [PATCH 0/2] twl4030-madc driver
+Date: Wed, 16 Feb 2011 18:00:59 +0530
+Message-ID: <AANLkTin6BAL-iVZWmagzfFadrYpj5AsoRVU9evE-V+ur@mail.gmail.com>
+References: <1297859166-8267-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:37131 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755697Ab1BPMaq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 07:30:46 -0500
-Received: by eye27 with SMTP id 27so722588eye.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 04:30:44 -0800 (PST)
-In-Reply-To: <AANLkTiniGdh2_=eFjSaLsQ4VVG1Eh0F=0Tex-KNKspBf@mail.gmail.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:44288 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755530Ab1BPMbB convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 07:31:01 -0500
+Received: by mail-gw0-f54.google.com with SMTP id 21so604225gwj.41
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 04:31:00 -0800 (PST)
+In-Reply-To: <1297859166-8267-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gulati, Shweta" <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>, Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org
+To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com
+Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, j-keerthy@ti.com, linux-omap@vger.kernel.org
 
-On Wed, 16 Feb 2011 17:24:30 +0530
-"Gulati, Shweta" <shweta.gulati@ti.com> wrote:
+Hello all,
 
-> > Note proof of concept patch only. I omitted the comments and don't do
-> > explicit SR disable and I'd clean up the error paths in twl4030_power_init
-> > a bit before this (e.g. printing error codes). Not sure either is the
-> > twl4030-power.c right place for this or core.
-> You missed commit log which says that "T2 bit is required to enable I2C_SR
-> path of voltage control" it is not at all enabling SR, voltage scale
-> APIs VPforceupdate/ VCbypass
-> needs this path to be enabled.
-> And calling APIs twl_i2c_read/write in driver codebase does n't ensure correct
-> ordering of flag changes and twl_read/write.
+I will resend once again the right set. I apologise.
 
-Ah, yeah. I forgot to comment that I tried shortly also to run this
-enable code from workqueue ~60 s after bootup and indeed SR didn't work
-if those autocomp sysfs nodes were set before setting the TWL SR bit and
-I believe same holds for voltage scaling too as you say.
+Regards,
+Keerthy
+On Wed, Feb 16, 2011 at 5:56 PM, Keerthy <j-keerthy@ti.com> wrote:
+> MADC(Monitoring ADC) driver enables monitoring analog signals using
+> analog-to-digital conversion (ADC) on the input source.
+> The previous discussion concluded in keeping the generic ADC
+> functionality and the hwmon separate. The discussion can be found her=
+e:
+>
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
+>
+> Keerthy (2):
+> =A0mfd: twl4030: Driver for twl4030 madc module
+> =A0hwmon: twl4030: Hwmon Driver for TWL4030 MADC
+>
+> =A0Documentation/hwmon/twl4030-madc-hwmon | =A0 45 ++
+> =A0drivers/hwmon/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 10 =
++
+> =A0drivers/hwmon/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A01 =
++
+> =A0drivers/hwmon/twl4030-madc-hwmon.c =A0 =A0 | =A0155 +++++++
+> =A0drivers/mfd/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 1=
+0 +
+> =A0drivers/mfd/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A0=
+1 +
+> =A0drivers/mfd/twl4030-madc.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0721 ++++++=
+++++++++++++++++++++++++++
+> =A0include/linux/i2c/twl4030-madc.h =A0 =A0 =A0 | =A0132 ++++++
+> =A08 files changed, 1075 insertions(+), 0 deletions(-)
+> =A0create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
+> =A0create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
+> =A0create mode 100644 drivers/mfd/twl4030-madc.c
+> =A0create mode 100644 include/linux/i2c/twl4030-madc.h
+>
+>
 
-What I'm thinking is there actually need for some higher level
-control for these that quarantees the right order independently from
-when each module are initialized.
 
--- 
-Jarkko
+
+--=20
+Regards and Thanks,
+Keerthy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
