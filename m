@@ -1,53 +1,57 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH 2/2] omap4: 4430sdp: mux GPIO_157 to safe mode
-Date: Wed, 16 Feb 2011 16:47:20 +0530
-Message-ID: <1297855040-1337-2-git-send-email-gadiyar@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/2] omap4: 4430sdp: drop ehci support
+Date: Wed, 16 Feb 2011 13:26:31 +0200
+Message-ID: <20110216112631.GA2497@legolas.emea.dhcp.ti.com>
 References: <1297855040-1337-1-git-send-email-gadiyar@ti.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47816 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752313Ab1BPLRa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 06:17:30 -0500
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:58699 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754761Ab1BPL0g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 06:26:36 -0500
+Received: by mail-bw0-f48.google.com with SMTP id 8so1550961bwz.21
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 03:26:35 -0800 (PST)
+Content-Disposition: inline
 In-Reply-To: <1297855040-1337-1-git-send-email-gadiyar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Anand Gadiyar <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keshava Munegowda <keshava_mgowda@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Commit 7d4ca85a5 (omap4: Fix ULPI PHY init for ES1.0 SDP)
-changed the mux mode of the pad for GPIO_157 to HSI_MODE
-by accident - the original intent was to mux it properly
-to solve a board reboot problem.
+On Wed, Feb 16, 2011 at 04:47:19PM +0530, Anand Gadiyar wrote:
+> Most revisions of the OMAP4 Blaze/SDP platform do not have
+> the EHCI signals routed by default. The pads are routed
+> for the alternate HSI functionality instead, and explicit
+> board modifications are needed to route the signals to
+> the USB PHY on the board.
+> 
+> Also, turning on the PHY connected to the EHCI port causes
+> a board reboot during bootup due to an unintended short
+> on the rails - this affects many initial revisions of the
+> board, and needs a minor board mod to fix (or as a
+> workaround, one should not attempt to power on the
+> USB PHY).
+> 
+> Given that these boards need explicit board mods to even
+> get EHCI working (separate from the accidental short above),
+> we should not attempt to enable EHCI by default.
+> 
+> So drop the EHCI support from the board files for the
+> Blaze/SDP platforms.
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> Cc: Keshava Munegowda <keshava_mgowda@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
 
-The board reboot is caused by a bug on many revs of the
-board that causes an accidental short circuilt when this
-pad is driven high. To ensure this never happens (even
-with misbehaving bootloaders), mux the pad to safe mode instead.
+Tony, if you want to queue this one directly, here's my:
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-Index: linux-omap-usb/arch/arm/mach-omap2/board-4430sdp.c
-===================================================================
---- linux-omap-usb.orig/arch/arm/mach-omap2/board-4430sdp.c
-+++ linux-omap-usb/arch/arm/mach-omap2/board-4430sdp.c
-@@ -543,7 +543,15 @@ static void __init omap_sfh7741prox_init
- 
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
--	OMAP4_MUX(USBB2_ULPITLL_CLK, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
-+	/*
-+	 * USBB2_ULPITLL_CLK/GPIO_157 controls the circuitry
-+	 * that turns on the PHY connected to the EHCI port.
-+	 * several revisions of the Blaze are affected by
-+	 * an accidental short-circuit that causes a reboot
-+	 * if this pad is driven high. So, explicitly configure
-+	 * the pad in safe mode to ensure this never happens
-+	 */
-+	OMAP4_MUX(USBB2_ULPITLL_CLK, OMAP_MUX_MODE7),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
- #else
+if you wish, I can send you a pull request as well. I already have
+another patch for you anyway.
+
+-- 
+balbi
