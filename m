@@ -1,60 +1,44 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 6/6 v2] cbus: retu: set pm_power_off to NULL when removing retu
-Date: Wed, 16 Feb 2011 22:01:21 +0200
-Message-ID: <1297886481-26098-7-git-send-email-balbi@ti.com>
-References: <1297886481-26098-1-git-send-email-balbi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 00/11] OMAP2+: clock: add clockfw autoidle for iclks,
+ OMAP2xxx
+Date: Wed, 16 Feb 2011 15:14:15 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102161510410.29817@utopia.booyaka.com>
+References: <20110216065030.22089.61217.stgit@twilight.localdomain> <b83b1717e83fc907a1caf589cc53badf@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:47801 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754168Ab1BPUI6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 15:08:58 -0500
-Received: by bwz12 with SMTP id 12so1821693bwz.13
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 12:08:55 -0800 (PST)
-In-Reply-To: <1297886481-26098-1-git-send-email-balbi@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:59054 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752039Ab1BPWOQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 17:14:16 -0500
+In-Reply-To: <b83b1717e83fc907a1caf589cc53badf@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-we need to clear pm_power_off otherwise we
-will have kernel trying to call an unexistent
-function.
+Hi Rajendra
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/cbus/retu.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+On Wed, 16 Feb 2011, Rajendra Nayak wrote:
 
-diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index a4c565b..0ca58b7 100644
---- a/drivers/cbus/retu.c
-+++ b/drivers/cbus/retu.c
-@@ -489,6 +489,7 @@ static int __init retu_probe(struct platform_device *pdev)
- 	return 0;
- 
- err2:
-+	pm_power_off = NULL;
- 	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
- 	free_irq(retu->irq, retu);
- 
-@@ -504,13 +505,15 @@ static int __exit retu_remove(struct platform_device *pdev)
- {
- 	struct retu		*retu = platform_get_drvdata(pdev);
- 
-+	pm_power_off = NULL;
-+	the_retu = NULL;
-+
- 	/* Mask all RETU interrupts */
- 	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
- 
- 	free_irq(retu->irq, retu);
- 	retu_irq_exit(retu);
- 	kfree(retu);
--	the_retu = NULL;
- 
- 	return 0;
- }
--- 
-1.7.4.rc2
+> > -----Original Message-----
+> > From: linux-arm-kernel-bounces@lists.infradead.org
+> [mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf
+> > Of Paul Walmsley
+> > Sent: Wednesday, February 16, 2011 12:23 PM
+> >
+> > This series also ensures that all clock autoidle is disabled during
+> > boot and only re-enabled if CONFIG_PM is enabled.
+> 
+> This does not seem to be the case. Maybe something like the
+> below patch is what is missing..
 
+Thanks for the review, you are absolutely right.  Rather than the patch 
+you sent, and since mach-omap2/pm.c is compiled in even if !CONFIG_PM, 
+I'd propose a different approach.  Until we can sort out the 
+CONFIG_PM/pm.c issue, probably it would make more sense to move the 
+autoidle-enable as part of CONFIG_OMAP_RESET_CLOCKS.  Will send a patch in 
+reply to the original thread.
+
+
+- Paul
