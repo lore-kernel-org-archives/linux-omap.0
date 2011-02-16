@@ -1,45 +1,48 @@
 From: Shweta Gulati <shweta.gulati@ti.com>
-Subject: [PATCH 0/3]: Update OPP Table and Voltage Rail Values
-Date: Wed, 16 Feb 2011 11:46:35 +0530
-Message-ID: <1297836995-8747-1-git-send-email-shweta.gulati@ti.com>
+Subject: [PATCH 1/3] OMAP4: Revise MPU Voltage rail values.
+Date: Wed, 16 Feb 2011 11:47:26 +0530
+Message-ID: <1297837046-8831-1-git-send-email-shweta.gulati@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41554 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60955 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752311Ab1BPGQl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 01:16:41 -0500
+	id S1751270Ab1BPGRb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 01:17:31 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1G6Gc9Z008384
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1G6HRhc003816
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 00:16:40 -0600
+	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 00:17:30 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Shweta Gulati <shweta.gulati@ti.com>
 
-The series mainly does below:
+MPU voltage rail values are updated according to
+latest OMAP4430 Data Manual Operating Condition Addendum.
 
-OMAP4 only
-       - Update MPU VOltage rail values for all OPPs
-       - Enable OPP-Nitro and OPP-Turbo for all boards
-OMAP2PLUS
-       -Replace hardcoded Voltage values in OPP Table
-        with Voltage Macros.
+Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+---
+ arch/arm/plat-omap/include/plat/voltage.h |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-Baseline:
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-Branch: pm
-
-Tested on OMAP4430 SDP, OMAP3630 SDP and OMAP3430 SDP.
-
-Shweta Gulati (2):
-  OMAP4: Revise MPU Voltage rail values.
-  OMAP4: Enable Turbo and Nitro OPP for OMAP4
-
-Vishwanath BS (1):
-  OMAP2+: Replace Voltage values with Macros.
-
- arch/arm/mach-omap2/opp3xxx_data.c        |   47 +++++++++++++++--------------
- arch/arm/mach-omap2/opp4xxx_data.c        |   13 ++++----
- arch/arm/plat-omap/include/plat/voltage.h |    8 ++--
- 3 files changed, 35 insertions(+), 33 deletions(-)
+diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+index 5bd204e..4d9bab1 100644
+--- a/arch/arm/plat-omap/include/plat/voltage.h
++++ b/arch/arm/plat-omap/include/plat/voltage.h
+@@ -46,10 +46,10 @@
+ #define OMAP3630_VDD_CORE_OPP50_UV		1000000
+ #define OMAP3630_VDD_CORE_OPP100_UV		1200000
+ 
+-#define OMAP4430_VDD_MPU_OPP50_UV		930000
+-#define OMAP4430_VDD_MPU_OPP100_UV		1100000
+-#define OMAP4430_VDD_MPU_OPPTURBO_UV		1260000
+-#define OMAP4430_VDD_MPU_OPPNITRO_UV		1350000
++#define OMAP4430_VDD_MPU_OPP50_UV		1025000
++#define OMAP4430_VDD_MPU_OPP100_UV		1200000
++#define OMAP4430_VDD_MPU_OPPTURBO_UV		1313000
++#define OMAP4430_VDD_MPU_OPPNITRO_UV		1375000
+ 
+ #define OMAP4430_VDD_IVA_OPP50_UV		930000
+ #define OMAP4430_VDD_IVA_OPP100_UV		1100000
+-- 
+1.7.0.4
 
