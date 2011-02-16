@@ -1,108 +1,58 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH v2 5/7] omap: dpll: Enable all OMAP3/4 dpll autoidle late
- at boot
-Date: Wed, 16 Feb 2011 15:37:26 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102161531460.29817@utopia.booyaka.com>
-References: <1297329400-5936-1-git-send-email-rnayak@ti.com> <1297329400-5936-2-git-send-email-rnayak@ti.com> <1297329400-5936-3-git-send-email-rnayak@ti.com> <1297329400-5936-4-git-send-email-rnayak@ti.com> <1297329400-5936-5-git-send-email-rnayak@ti.com>
- <1297329400-5936-6-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1102121741340.21991@utopia.booyaka.com> <ee3e93f406daf1a283b8d551f57933e3@mail.gmail.com>
+Subject: RE: [PATCH 00/11] OMAP2+: clock: add clockfw autoidle for iclks,
+ OMAP2xxx
+Date: Wed, 16 Feb 2011 16:05:16 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102161551400.29817@utopia.booyaka.com>
+References: <20110216065030.22089.61217.stgit@twilight.localdomain> <43af56d25809fa616f0e17d7e641ebc0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51239 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:50204 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346Ab1BPWh1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 17:37:27 -0500
-In-Reply-To: <ee3e93f406daf1a283b8d551f57933e3@mail.gmail.com>
+	with ESMTP id S1754047Ab1BPXFR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 18:05:17 -0500
+In-Reply-To: <43af56d25809fa616f0e17d7e641ebc0@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On Wed, 16 Feb 2011, Rajendra Nayak wrote:
 
-Hi
+> Boot-tested on 3430sdp/4430sdp, with CONFIG_PM and with !CONFIG_PM.
+> suspend-offmode tested on 3430sdp and suspend-retmode on 4430sdp (with
+> some out-of-tree patches)
 
-After Rajendra's E-mail here:
+Thanks, will add Tested-by:s.
 
-   http://marc.info/?l=linux-arm-kernel&m=129785498406128&w=2
+> Dynamic idle testing on 3430sdp showed me some very jerky debug console 
+> the moment a 'echo 1 > /debug/pm_debug/sleep_while_idle' is done. This 
+> however seems to be the case even on 2.6.38-rc4 and not related to the 
+> current patch series.
 
-upon looking further, mach-omap2/pm.c is compiled in for !CONFIG_PM.  
-This will be dealt with in a separate patch, but in the meantime, I 
-propose we enable clock autoidle if CONFIG_OMAP_RESET_CLOCKS is set.  
-(Really this config option should be called CONFIG_OMAP_DONT_BREAK_CLOCKFW 
-or CONFIG_OMAP_MAKE_POWER_MANAGEMENT_WORK, but all that, too, is a matter 
-for another patch.)
+Does enabling CONFIG_OMAP2_DSS resolve the problem you're seeing?
 
-Here's what I'm proposing to use as a replacement; comments welcome.  The 
-clk_autoidle_a_2.6.39 branch has been updated accordingly.
+> Will debug further, but seems to some 3430sdp specific issue, since you 
+> did not see it on Beagleboard and seems it is not seen on OMAP3 zoom's 
+> either. Just out of curiosity, what dynamic-idle state where you able to 
+> achieve on Beagle?
+
+Full chip off.  I use omap2plus_defconfig, sometimes with CONFIG_OMAP2_DSS 
+depending on personal mood and what's being tested.  I boot to a shell and 
+run the commands at the end of this message (some of which are probably 
+superfluous).
 
 
 - Paul
 
-From: Paul Walmsley <paul@pwsan.com>
-Date: Mon, 14 Feb 2011 09:39:11 -0700
-Subject: [PATCH] OMAP2+: clock: autoidle as many clocks as possible if CONFIG_OMAP_RESET_CLOCKS
 
-Attempt to enable autoidle for as many clocks as possible in the
-OMAP2+-common CONFIG_OMAP_RESET_CLOCKS code.  Currently, this only
-enables DPLL autoidle for OMAP3/4 DPLLs; but future patches will
-enable autoidle for other clocks and the OMAP2 DPLL/APLLs.
+echo 1 > /debug/pm_debug/sleep_while_idle
+echo 1 > /debug/pm_debug/enable_off_mode
+echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
+echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
+echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
+echo enabled > /sys/devices/platform/omap/omap_uart.0/tty/ttyO0/power/wakeup
+echo enabled > /sys/devices/platform/omap/omap_uart.1/tty/ttyO1/power/wakeup
+echo enabled > /sys/devices/platform/omap/omap_uart.2/tty/ttyO2/power/wakeup
 
-In the long run, we should probably get rid of
-CONFIG_OMAP_RESET_CLOCKS, and unconditionally run the code that it
-selects.  Otherwise, the state of the clock tree won't match the
-hardware state - this could result in clocks being enabled or disabled
-unpredictably.
-
-Based on a patch by Rajendra Nayak <rnayak@ti.com> that did this in
-the pm34xx.c/pm44xx.c code.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |   17 -----------------
- arch/arm/plat-omap/clock.c   |    1 +
- 2 files changed, 1 insertions(+), 17 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 2f864e4..1fe2e73 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -814,23 +814,6 @@ static void __init prcm_setup_regs(void)
- 	omap_ctrl_writel(OMAP3430_AUTOIDLE_MASK, OMAP2_CONTROL_SYSCONFIG);
- 
- 	/*
--	 * Set all plls to autoidle. This is needed until autoidle is
--	 * enabled by clockfw
--	 */
--	omap2_cm_write_mod_reg(1 << OMAP3430_AUTO_IVA2_DPLL_SHIFT,
--			 OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
--	omap2_cm_write_mod_reg(1 << OMAP3430_AUTO_MPU_DPLL_SHIFT,
--			 MPU_MOD,
--			 CM_AUTOIDLE2);
--	omap2_cm_write_mod_reg((1 << OMAP3430_AUTO_PERIPH_DPLL_SHIFT) |
--			 (1 << OMAP3430_AUTO_CORE_DPLL_SHIFT),
--			 PLL_MOD,
--			 CM_AUTOIDLE);
--	omap2_cm_write_mod_reg(1 << OMAP3430ES2_AUTO_PERIPH2_DPLL_SHIFT,
--			 PLL_MOD,
--			 CM_AUTOIDLE2);
--
--	/*
- 	 * Enable control of expternal oscillator through
- 	 * sys_clkreq. In the long run clock framework should
- 	 * take care of this.
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 0ae0eae..2770ddd 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -446,6 +446,7 @@ static int __init clk_disable_unused(void)
- 	return 0;
- }
- late_initcall(clk_disable_unused);
-+late_initcall(omap_clk_enable_autoidle_all);
- #endif
- 
- int __init clk_init(struct clk_functions * custom_clocks)
--- 
-1.7.2.3
 
