@@ -1,66 +1,40 @@
-From: Raghuveer Murthy <x0075817@ti.com>
-Subject: Re: [PATCH 0/4] OMAP4: DSS2: Adding fclk support for DPI interface
-Date: Wed, 16 Feb 2011 14:27:26 +0530
-Message-ID: <4D5B9176.5060000@ti.com>
-References: <1296741419-9037-1-git-send-email-raghuveer.murthy@ti.com> <1297699342.2951.62.camel@deskari>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] arm: omap3beagle: init musb default role by Kconfig
+Date: Wed, 16 Feb 2011 11:02:01 +0200
+Message-ID: <20110216090201.GM2497@legolas.emea.dhcp.ti.com>
+References: <1297760100-7200-1-git-send-email-lliubbo@gmail.com>
+ <20110215112350.GM2570@legolas.emea.dhcp.ti.com>
+ <AANLkTik-tZKZ-0G1RBXD0rz1O4=wLXtHd2wTD-61dLm0@mail.gmail.com>
+ <20110216080506.GC2497@legolas.emea.dhcp.ti.com>
+ <AANLkTikjhkhQzDDVazEr8wP7JHnnonGs8GFytA=QaE6c@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42831 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754055Ab1BPJCC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 04:02:02 -0500
-In-Reply-To: <1297699342.2951.62.camel@deskari>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:43157 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754055Ab1BPJCH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 04:02:07 -0500
+Received: by bwz4 with SMTP id 4so1239593bwz.11
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 01:02:05 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <AANLkTikjhkhQzDDVazEr8wP7JHnnonGs8GFytA=QaE6c@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "paul@pwsan.com" <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Murthy, Raghuveer" <raghuveer.murthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Bob Liu <lliubbo@gmail.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, archit@ti.com, tony@atomide.com, adrian.hunter@nokia.com
 
-On Monday 14 February 2011 09:32 PM, Valkeinen, Tomi wrote:
-> Hi,
->
-> On Thu, 2011-02-03 at 07:56 -0600, Murthy, Raghuveer wrote:
->> - Adding dss_feature for DPLL fclk
->> - Enabling pixel clock generation for DPI interface
->
-> A bit more description what the patch set is about would be nice. Also,
-> one line patch descriptions are a bit too short for anything else than
-> the most trivial patches.
->
-> Now to the actual patch contents:
->
-> DPLL is not a feature of the DSS, and I don't think we should have
-> dss_features for that. In fact, I think the whole DPLL code should be
-> moved from DSS to somewhere under arch/arm.
->
-> In a perfect world DSS could just set the dss_fck to whatever rate it
-> requires, but as the clock rate can only be set to certain rates, and we
-> need a precise control for the rate, some other method has to be in
-> place.
->
-> I am not sure what this method should be. Perhaps there is something in
-> the clock framework that could help us here, or perhaps we just need a
-> bunch of function pointers in the DSS's platform data which can be used
-> to configure the clock.
->
->   Tomi
->
->
+Hi,
 
-Hi Paul, Benoit,
+On Wed, Feb 16, 2011 at 04:49:34PM +0800, Bob Liu wrote:
+> > I can be related. Try this:
+> 
+> Yeah, it works. Thanks, sorry for the noise
+> .
+> BTW: Is the below patch which about musb_core.c will be merged into mainline ?
 
-DPLL_PER post divider output for DSS core functional clock can be 
-changed in OMAP3xxx and OMAP4430, based on the requested pixel clock for 
-a given display resolution.
+I thinking on doing that, yes.
 
-Additionally, the number of dividers available for DPLL_PER post 
-dividors for DSS has increased from 16 to 32, from OMAP3630 onwards.
-
-Both these are added as dss_features.
-
-Given the above comments from Tomi, can the same be included as part of 
-the clock framework?
-
-Regards,
-Raghuveer
+-- 
+balbi
