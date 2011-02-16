@@ -1,47 +1,50 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 0/6] CBUS Third try
-Date: Wed, 16 Feb 2011 22:01:15 +0200
-Message-ID: <1297886481-26098-1-git-send-email-balbi@ti.com>
+Subject: [PATCH 1/6] cbus: retu: wdt: save dev in retu_wdt_dev
+Date: Wed, 16 Feb 2011 22:01:16 +0200
+Message-ID: <1297886481-26098-2-git-send-email-balbi@ti.com>
+References: <1297886481-26098-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:43286 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751365Ab1BPUB0 (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:45675 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753135Ab1BPUBa (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 15:01:26 -0500
-Received: by mail-bw0-f46.google.com with SMTP id 15so1042070bwz.33
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 12:01:25 -0800 (PST)
+	Wed, 16 Feb 2011 15:01:30 -0500
+Received: by mail-bw0-f46.google.com with SMTP id 15so1042836bwz.33
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 12:01:28 -0800 (PST)
+In-Reply-To: <1297886481-26098-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-Hi Tony,
+commit 6b8074b00d90b191227dc875b90b272c51f7d6eb
+(cbus: Make retu watchdog behave like a standard
+Linux watchdog) introduced struct retu_wdt_dev
+with a field to save struct device *dev, but never
+got the point of saving the pointer into that
+structure.
 
-here are the fixes for CBUS RETU.
+Fix this very old bug so we can actually start
+passing child device pointers to retu read/write
+operations.
 
-Just one patch added, no other differences. My cbus
-branch has been updated for convenience:
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/cbus/retu-wdt.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-git://gitorious.org/usb/usb.git cbus
-
-(I'm starting to think usb.git isn't a good name for that tree)
-
-Felipe Balbi (6):
-  cbus: retu: wdt: save dev in retu_wdt_dev
-  cbus: retu: pass the child device pointer to all retu functions
-  cbus: retu: headset: don't save pdev pointer
-  cbus: retu: replace EXPORT_SYMBOL with EXPORT_SYMBOL_GPL
-  cbus: retu: tabify retu initialization
-  cbus: retu: set pm_power_off to NULL when removing retu
-
- drivers/cbus/retu-headset.c   |   35 +++++++++++--------
- drivers/cbus/retu-pwrbutton.c |    2 +-
- drivers/cbus/retu-rtc.c       |   28 ++++++++--------
- drivers/cbus/retu-wdt.c       |    8 ++--
- drivers/cbus/retu.c           |   73 ++++++++++++++++++++++++----------------
- drivers/cbus/retu.h           |    9 +++--
- 6 files changed, 88 insertions(+), 67 deletions(-)
-
+diff --git a/drivers/cbus/retu-wdt.c b/drivers/cbus/retu-wdt.c
+index 423216c..f6ff9ad 100644
+--- a/drivers/cbus/retu-wdt.c
++++ b/drivers/cbus/retu-wdt.c
+@@ -258,6 +258,7 @@ static int __init retu_wdt_probe(struct platform_device *pdev)
+ 	if (!wdev)
+ 		return -ENOMEM;
+ 
++	wdev->dev = &pdev->dev;
+ 	wdev->users = 0;
+ 
+ 	ret = device_create_file(&pdev->dev, &dev_attr_period);
 -- 
 1.7.4.rc2
 
