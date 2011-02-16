@@ -1,52 +1,57 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2] i2c-omap: Double clear of ARDY status in IRQ handler
-Date: Wed, 16 Feb 2011 10:24:16 +0530
-Message-ID: <1297832056-28142-1-git-send-email-j-keerthy@ti.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [v3,1/3] OMAP2PLUS: DSS2: Add OMAP4 Kconfig support
+Date: Wed, 16 Feb 2011 10:26:48 +0530
+Message-ID: <AANLkTi=cgwfiUW+VwSqU3e6NizxWhYGUuDj7WwZTAxHq@mail.gmail.com>
+References: <1296127024-17507-2-git-send-email-sumit.semwal@ti.com> <1297425963.9552.305.camel@deskari>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:33294 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752656Ab1BPE5K convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 23:57:10 -0500
+Received: by gxk19 with SMTP id 19so451915gxk.11
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 20:57:08 -0800 (PST)
+In-Reply-To: <1297425963.9552.305.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Mayuresh Janorkar <mayur@ti.com>
 
-From: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+Hi Tomi,
 
-This errata occurs when the ARDY interrupt generation is enabled.
-At the begining of every new transaction the ARDY interrupt is cleared.
+Sent an updated one; apologies for double posting, as I posted the
+first one with your earlier email Id.
 
-On continuous i2c transactions where after clearing the ARDY bit from
-I2C_STAT register (clearing the interrupt), the IRQ line is reasserted and the
-I2C_STAT[ARDY] bit set again on 1. In fact, the ARDY status bit is not cleared
-at the write access to I2C_STAT[ARDY] and only the IRQ line is deasserted and
-then reasserted. This is not captured in the usual errata documents.
+Best regards,
+~Sumit.
 
-The workaround is to have a double clear of ARDY status in irq handler.
-
-Signed-off-by: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index b605ff3..5b35cf4 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -847,11 +847,15 @@ complete:
- 			dev_err(dev->dev, "Arbitration lost\n");
- 			err |= OMAP_I2C_STAT_AL;
- 		}
-+		/* 
-+		 * ProDB0017052: Clear ARDY bit twice
-+		 */ 
- 		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
- 					OMAP_I2C_STAT_AL)) {
- 			omap_i2c_ack_stat(dev, stat &
- 				(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
--				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-+				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR |
-+				OMAP_I2C_STAT_ARDY));
- 			omap_i2c_complete_cmd(dev, err);
- 			return IRQ_HANDLED;
- 		}
--- 
-1.7.0.4
+On Fri, Feb 11, 2011 at 5:36 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> Hi,
+>
+> On Thu, 2011-01-27 at 11:17 +0000, Sumit Semwal wrote:
+>> From: Mayuresh Janorkar <mayur@ti.com>
+>>
+>> Enable DSS2 and OMAPFB for OMAP4 in Kconfig
+>
+> The indentation in this patch seems to be a bit inconsistent with the
+> current Kconfigs. For example, you use two tabs in the help lines, an=
+d
+> the current files use either one tab and 2 spaces, or 10 spaces.
+>
+> Please stick to the current indentation, or change the indentation fo=
+r
+> the whole file in a separate patch.
+>
+> =A0Tomi
+>
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
