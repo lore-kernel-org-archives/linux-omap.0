@@ -1,134 +1,113 @@
 From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH 2/3] OMAP3 PM: Update only enabled C states
-Date: Wed, 16 Feb 2011 14:31:13 +0530
-Message-ID: <1297846874-18286-3-git-send-email-vishwanath.bs@ti.com>
+Subject: [PATCH 3/3] OMAP36xx PM: Updated C state latencies for OMAP3630
+Date: Wed, 16 Feb 2011 14:31:14 +0530
+Message-ID: <1297846874-18286-4-git-send-email-vishwanath.bs@ti.com>
 References: <1297846874-18286-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49635 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49637 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754343Ab1BPI6Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 03:58:16 -0500
+	id S1755636Ab1BPI6R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 03:58:17 -0500
 In-Reply-To: <1297846874-18286-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: patches@linaro.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-Currently function omap3_cpuidle_update_states updates valid flag of all the C 
-states which includes the one which are disabled at init. So it's not really 
-possible to selectively disable some of the C states using valid flag.
-This is fixed now by adding another flag called enabled which will be 
-initialized at omap_init_power_states. So update_states will operated only on 
-enabled C states.
+This patch has changes to update the C state latencies for OMAP3630 and
+disables the useless C-States, keeping only the optimized ones with their
+corresponding measured latencies. Only 4 C-states are kept instead of 7
+C-States:
+* C1 . MPU WFI clock gated + Core autogating
+* C3 . MPU CSWR + Core inactive
+* C5 . MPU CSWR + Core CSWR
+* C7 . MPU OFF + Core OFF
+
+Thanks to Nicole Chaloub<n-chalhoub@ti.com> and Vincent Bour <v-bour@ti.com>
+for their investigation.
+
+Tested on ZOOM3 board using latest pm branch.
 
 Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   29 +++++++++++++++++++++++------
- 1 files changed, 23 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/board-3630sdp.c |   19 +++++++++++++++++++
+ arch/arm/mach-omap2/board-zoom.c    |   19 +++++++++++++++++++
+ 2 files changed, 38 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 1e4ec7f..40c020a
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -51,6 +51,7 @@
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+index 6264564..8d05fc9
+--- a/arch/arm/mach-omap2/board-3630sdp.c
++++ b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -25,6 +25,24 @@
+ #include "board-flash.h"
+ #include "mux.h"
+ #include "sdram-hynix-h8mbx00u0mer-0em.h"
++#include "pm.h"
++
++static struct cpuidle_params omap36xx_cpuidle_params_table[] = {
++	/* C1 */
++	{1, 74, 78, 152},
++	/* C2 */
++	{0, 165, 90, 255},
++	/* C3 */
++	{1, 163, 180, 345},
++	/* C4 */
++	{0, 2852, 605, 3457},
++	/* C5 */
++	{1, 800, 366, 2120},
++	/* C6 */
++	{0, 4080, 801, 4881},
++	/* C7 */
++	{1, 4300, 8794, 159000},
++};
  
- struct omap3_processor_cx {
- 	u8 valid;
-+	u8 enabled;
- 	u8 type;
- 	u32 sleep_latency;
- 	u32 wakeup_latency;
-@@ -341,12 +342,13 @@ void omap3_cpuidle_update_states(u32 mpu_deepest_state, u32 core_deepest_state)
+ #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
  
- 	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
- 		struct omap3_processor_cx *cx = &omap3_power_states[i];
--
--		if ((cx->mpu_state >= mpu_deepest_state) &&
--		    (cx->core_state >= core_deepest_state)) {
--			cx->valid = 1;
--		} else {
--			cx->valid = 0;
-+		if (cx->enabled) {
-+			if ((cx->mpu_state >= mpu_deepest_state) &&
-+			    (cx->core_state >= core_deepest_state)) {
-+				cx->valid = 1;
-+			} else {
-+				cx->valid = 0;
-+			}
- 		}
- 	}
+@@ -212,6 +230,7 @@ static void __init omap_sdp_init(void)
+ 	board_flash_init(sdp_flash_partitions, chip_sel_sdp);
+ 	enable_board_wakeup_source();
+ 	usb_ehci_init(&ehci_pdata);
++	omap3_pm_init_cpuidle(omap36xx_cpuidle_params_table);
  }
-@@ -387,6 +389,8 @@ void omap_init_power_states(void)
- 	/* C1 . MPU WFI + Core active */
- 	omap3_power_states[OMAP3_STATE_C1].valid =
- 			cpuidle_params_table[OMAP3_STATE_C1].valid;
-+	omap3_power_states[OMAP3_STATE_C1].enabled =
-+			cpuidle_params_table[OMAP3_STATE_C1].valid;
- 	omap3_power_states[OMAP3_STATE_C1].type = OMAP3_STATE_C1;
- 	omap3_power_states[OMAP3_STATE_C1].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C1].sleep_latency;
-@@ -401,6 +405,8 @@ void omap_init_power_states(void)
- 	/* C2 . MPU WFI + Core inactive */
- 	omap3_power_states[OMAP3_STATE_C2].valid =
- 			cpuidle_params_table[OMAP3_STATE_C2].valid;
-+	omap3_power_states[OMAP3_STATE_C2].enabled =
-+			cpuidle_params_table[OMAP3_STATE_C2].valid;
- 	omap3_power_states[OMAP3_STATE_C2].type = OMAP3_STATE_C2;
- 	omap3_power_states[OMAP3_STATE_C2].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C2].sleep_latency;
-@@ -416,6 +422,8 @@ void omap_init_power_states(void)
- 	/* C3 . MPU CSWR + Core inactive */
- 	omap3_power_states[OMAP3_STATE_C3].valid =
- 			cpuidle_params_table[OMAP3_STATE_C3].valid;
-+	omap3_power_states[OMAP3_STATE_C3].enabled =
-+			cpuidle_params_table[OMAP3_STATE_C3].valid;
- 	omap3_power_states[OMAP3_STATE_C3].type = OMAP3_STATE_C3;
- 	omap3_power_states[OMAP3_STATE_C3].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C3].sleep_latency;
-@@ -431,6 +439,8 @@ void omap_init_power_states(void)
- 	/* C4 . MPU OFF + Core inactive */
- 	omap3_power_states[OMAP3_STATE_C4].valid =
- 			cpuidle_params_table[OMAP3_STATE_C4].valid;
-+	omap3_power_states[OMAP3_STATE_C4].enabled =
-+			cpuidle_params_table[OMAP3_STATE_C4].valid;
- 	omap3_power_states[OMAP3_STATE_C4].type = OMAP3_STATE_C4;
- 	omap3_power_states[OMAP3_STATE_C4].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C4].sleep_latency;
-@@ -446,6 +456,8 @@ void omap_init_power_states(void)
- 	/* C5 . MPU CSWR + Core CSWR*/
- 	omap3_power_states[OMAP3_STATE_C5].valid =
- 			cpuidle_params_table[OMAP3_STATE_C5].valid;
-+	omap3_power_states[OMAP3_STATE_C5].enabled =
-+			cpuidle_params_table[OMAP3_STATE_C5].valid;
- 	omap3_power_states[OMAP3_STATE_C5].type = OMAP3_STATE_C5;
- 	omap3_power_states[OMAP3_STATE_C5].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C5].sleep_latency;
-@@ -461,6 +473,8 @@ void omap_init_power_states(void)
- 	/* C6 . MPU OFF + Core CSWR */
- 	omap3_power_states[OMAP3_STATE_C6].valid =
- 			cpuidle_params_table[OMAP3_STATE_C6].valid;
-+	omap3_power_states[OMAP3_STATE_C6].enabled =
-+			cpuidle_params_table[OMAP3_STATE_C6].valid;
- 	omap3_power_states[OMAP3_STATE_C6].type = OMAP3_STATE_C6;
- 	omap3_power_states[OMAP3_STATE_C6].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C6].sleep_latency;
-@@ -476,6 +490,8 @@ void omap_init_power_states(void)
- 	/* C7 . MPU OFF + Core OFF */
- 	omap3_power_states[OMAP3_STATE_C7].valid =
- 			cpuidle_params_table[OMAP3_STATE_C7].valid;
-+	omap3_power_states[OMAP3_STATE_C7].enabled =
-+			cpuidle_params_table[OMAP3_STATE_C7].valid;
- 	omap3_power_states[OMAP3_STATE_C7].type = OMAP3_STATE_C7;
- 	omap3_power_states[OMAP3_STATE_C7].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C7].sleep_latency;
-@@ -495,6 +511,7 @@ void omap_init_power_states(void)
- 	 */
- 	if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583)) {
- 		omap3_power_states[OMAP3_STATE_C7].valid = 0;
-+		omap3_power_states[OMAP3_STATE_C7].enabled = 0;
- 		cpuidle_params_table[OMAP3_STATE_C7].valid = 0;
- 		pr_warn("%s: core off state C7 disabled due to i583\n",
- 				__func__);
+ 
+ MACHINE_START(OMAP_3630SDP, "OMAP 3630SDP board")
+diff --git a/arch/arm/mach-omap2/board-zoom.c b/arch/arm/mach-omap2/board-zoom.c
+index e26754c..6bd364a
+--- a/arch/arm/mach-omap2/board-zoom.c
++++ b/arch/arm/mach-omap2/board-zoom.c
+@@ -30,6 +30,24 @@
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "sdram-hynix-h8mbx00u0mer-0em.h"
++#include "pm.h"
++
++static struct cpuidle_params omap36xx_cpuidle_params_table[] = {
++	/* C1 */
++	{1, 74, 78, 152},
++	/* C2 */
++	{0, 165, 90, 255},
++	/* C3 */
++	{1, 163, 180, 345},
++	/* C4 */
++	{0, 2852, 605, 3457},
++	/* C5 */
++	{1, 800, 366, 2120},
++	/* C6 */
++	{0, 4080, 801, 4881},
++	/* C7 */
++	{1, 4300, 8794, 159000},
++};
+ 
+ #define ZOOM3_EHCI_RESET_GPIO		64
+ 
+@@ -126,6 +144,7 @@ static void __init omap_zoom_init(void)
+ 		usb_ehci_init(&ehci_pdata);
+ 	}
+ 
++	omap3_pm_init_cpuidle(omap36xx_cpuidle_params_table);
+ 	board_nand_init(zoom_nand_partitions,
+ 			ARRAY_SIZE(zoom_nand_partitions), ZOOM_NAND_CS);
+ 	zoom_debugboard_init();
 -- 
 1.7.0.4
 
