@@ -1,113 +1,84 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v10 11/11] OMAP: dmtimer: add timeout to low-level routines
-Date: Wed, 16 Feb 2011 18:30:20 +0530
-Message-ID: <1297861220-831-12-git-send-email-tarun.kanti@ti.com>
-References: <1297861220-831-1-git-send-email-tarun.kanti@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:32922 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753974Ab1BPM5y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 07:57:54 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1GCvowt023889
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 06:57:53 -0600
-In-Reply-To: <1297861220-831-1-git-send-email-tarun.kanti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 6/6 v7] usb: musb: Using runtime pm APIs for musb.
+Date: Wed, 16 Feb 2011 15:56:39 +0300
+Message-ID: <4D5BC987.7090207@ru.mvista.com>
+References: <1297859298-27861-1-git-send-email-hemahk@ti.com> <1297859298-27861-7-git-send-email-hemahk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1297859298-27861-7-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-The low-level read and write access routines wait on
-write-pending register in posted mode to make sure that
-previous write is complete on respective registers.
-This waiting is done in an infinite while loop. Now it
-is being modified to use timeout instead.
+Hello.
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Reviewed-by: Varadarajan, Charulatha <charu@ti.com>
-Acked-by: Cousson, Benoit <b-cousson@ti.com>
----
- arch/arm/plat-omap/dmtimer.c |   33 +++++++++++++++++++++++++--------
- 1 files changed, 25 insertions(+), 8 deletions(-)
+On 16-02-2011 15:28, Hema HK wrote:
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index fcac422..a39d5ba 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -43,6 +43,7 @@
- #include <linux/err.h>
- #include <linux/platform_device.h>
- #include <plat/dmtimer.h>
-+#include <plat/common.h>
- 
- /* register offsets */
- #define _OMAP_TIMER_ID_OFFSET		0x00
-@@ -153,6 +154,8 @@
- #define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
- 		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
- 
-+#define MAX_WRITE_PEND_WAIT		10000 /* 10ms timeout delay */
-+
- static LIST_HEAD(omap_timer_list);
- static DEFINE_SPINLOCK(dm_timer_lock);
- 
-@@ -168,16 +171,23 @@ static DEFINE_SPINLOCK(dm_timer_lock);
- static inline u32 omap_dm_timer_read_reg(struct omap_dm_timer *timer, u32 reg)
- {
- 	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-+	int i = 0;
- 
- 	if (reg >= OMAP_TIMER_WAKEUP_EN_REG)
- 		reg += pdata->func_offset;
- 	else if (reg >= OMAP_TIMER_STAT_REG)
- 		reg += pdata->intr_offset;
- 
--	if (timer->posted)
--		while (readl(timer->io_base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
--				& (reg >> WPSHIFT))
--			cpu_relax();
-+	if (timer->posted) {
-+		omap_test_timeout(!(readl(timer->io_base +
-+			((OMAP_TIMER_WRITE_PEND_REG +
-+			pdata->func_offset) & 0xff)) & (reg >> WPSHIFT)),
-+			MAX_WRITE_PEND_WAIT, i);
-+
-+		if (WARN_ON_ONCE(i == MAX_WRITE_PEND_WAIT))
-+			pr_err(": read timeout\n");
-+	}
-+
- 	return readl(timer->io_base + (reg & 0xff));
- }
- 
-@@ -195,16 +205,23 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
- 						u32 value)
- {
- 	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-+	int i = 0;
- 
- 	if (reg >= OMAP_TIMER_WAKEUP_EN_REG)
- 		reg += pdata->func_offset;
- 	else if (reg >= OMAP_TIMER_STAT_REG)
- 		reg += pdata->intr_offset;
- 
--	if (timer->posted)
--		while (readl(timer->io_base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
--				& (reg >> WPSHIFT))
--			cpu_relax();
-+	if (timer->posted) {
-+		omap_test_timeout(!(readl(timer->io_base +
-+			((OMAP_TIMER_WRITE_PEND_REG +
-+			pdata->func_offset) & 0xff)) & (reg >> WPSHIFT)),
-+			MAX_WRITE_PEND_WAIT, i);
-+
-+		if (WARN_ON(i == MAX_WRITE_PEND_WAIT))
-+			pr_err(": write timeout\n");
-+	}
-+
- 	writel(value, timer->io_base + (reg & 0xff));
- }
- 
--- 
-1.6.0.4
+> Calling runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync()
+> for enabling/disabling the clocks, sysconfig settings.
 
+> Enable clock, configure no-idle/standby when active and configure force idle/standby
+> and disable clock when idled. This is taken care by the runtime framework when
+> driver calls the pm_runtime_get_sync and pm_runtime_put_sync APIs.
+> Need to configure MUSB into force standby and force idle mode when usb not used
+
+> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+> Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
+> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+[...]
+
+> Index: linux-2.6/drivers/usb/musb/omap2430.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/usb/musb/omap2430.c
+> +++ linux-2.6/drivers/usb/musb/omap2430.c
+[...]
+> @@ -498,8 +463,10 @@ static int omap2430_suspend(struct devic
+>   	omap2430_low_level_exit(musb);
+>   	otg_set_suspend(musb->xceiv, 1);
+>   	omap2430_save_context(musb);
+> -	clk_disable(glue->clk);
+>
+> +	if (!pm_runtime_suspended(dev))
+> +		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_suspend)
+
+    Could be collapsed into single *if*...
+
+> +				dev->bus->pm->runtime_suspend(dev);
+
+    The above line is over-indented.
+
+>   	return 0;
+>   }
+>
+> @@ -507,13 +474,10 @@ static int omap2430_resume(struct device
+>   {
+>   	struct omap2430_glue		*glue = dev_get_drvdata(dev);
+>   	struct musb			*musb = glue_to_musb(glue);
+> -	int				ret;
+>
+> -	ret = clk_enable(glue->clk);
+> -	if (ret) {
+> -		dev_err(dev, "faled to enable clock\n");
+> -		return ret;
+> -	}
+> +	if (!pm_runtime_suspended(dev))
+> +		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_resume)
+
+    Could be collapsed into single *if*...
+
+> +			dev->bus->pm->runtime_resume(dev);
+>
+>   	omap2430_low_level_init(musb);
+>   	omap2430_restore_context(musb);
+
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
