@@ -1,175 +1,119 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 05/11] OMAP2+: clock: add interface clock type code with
-	autoidle support
-Date: Tue, 15 Feb 2011 23:52:48 -0700
-Message-ID: <20110216065247.22089.10049.stgit@twilight.localdomain>
+Subject: [PATCH 01/11] OMAP2+: clock: disable autoidle on all clocks during
+	clock init
+Date: Tue, 15 Feb 2011 23:52:43 -0700
+Message-ID: <20110216065239.22089.24784.stgit@twilight.localdomain>
 References: <20110216065030.22089.61217.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47515 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47505 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752039Ab1BPGyD (ORCPT
+	with ESMTP id S1751281Ab1BPGyD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 01:54:03 -0500
 In-Reply-To: <20110216065030.22089.61217.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Add interface clock type code with autoidle enable/disable support.
-The clkops structures created in this file will be used for all
-OMAP2/3 interface clocks with autoidle support.  They will enable the
-clock framework to control interface clock autoidle directly.
+Disable autoidle on all clocks during clock framework initialization.
+(If CONFIG_PM is set, autoidle is re-enabled for all clocks later in
+the boot process.)
+
+The principle behind this patch, and some similar patches, is that the
+kernel should start with all power management features disabled.
+Later in the boot process, the PM code, if compiled in with CONFIG_PM,
+enables or re-enables power management features.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/Makefile    |    6 ++-
- arch/arm/mach-omap2/clkt_iclk.c |   73 +++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/clock.h     |    9 ++++-
- 3 files changed, 85 insertions(+), 3 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clkt_iclk.c
+ arch/arm/mach-omap2/clock2420_data.c |    3 +++
+ arch/arm/mach-omap2/clock2430_data.c |    3 +++
+ arch/arm/mach-omap2/clock3xxx.c      |    3 ---
+ arch/arm/mach-omap2/clock3xxx_data.c |    6 +++++-
+ arch/arm/mach-omap2/clock44xx_data.c |    3 +++
+ 5 files changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 41cb404..a28ba5a 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -107,19 +107,21 @@ obj-$(CONFIG_ARCH_OMAP3)		+= clockdomain.o \
- 					   clockdomains2xxx_3xxx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= clockdomain.o \
- 					   clockdomains44xx_data.o
-+
- # Clock framework
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o \
- 					   clkt2xxx_sys.o \
- 					   clkt2xxx_dpllcore.o \
- 					   clkt2xxx_virt_prcm_set.o \
- 					   clkt2xxx_apll.o clkt2xxx_osc.o \
--					   clkt2xxx_dpll.o
-+					   clkt2xxx_dpll.o clkt_iclk.o
- obj-$(CONFIG_ARCH_OMAP2420)		+= clock2420_data.o
- obj-$(CONFIG_ARCH_OMAP2430)		+= clock2430.o clock2430_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+= $(clock-common) clock3xxx.o \
- 					   clock34xx.o clkt34xx_dpll3m2.o \
- 					   clock3517.o clock36xx.o \
--					   dpll3xxx.o clock3xxx_data.o
-+					   dpll3xxx.o clock3xxx_data.o \
-+					   clkt_iclk.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o \
- 					   dpll3xxx.o dpll44xx.o
+diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+index 0a992bc..ee73e14 100644
+--- a/arch/arm/mach-omap2/clock2420_data.c
++++ b/arch/arm/mach-omap2/clock2420_data.c
+@@ -1913,6 +1913,9 @@ int __init omap2420_clk_init(void)
+ 		omap2_init_clk_clkdm(c->lk.clk);
+ 	}
  
-diff --git a/arch/arm/mach-omap2/clkt_iclk.c b/arch/arm/mach-omap2/clkt_iclk.c
-new file mode 100644
-index 0000000..dd8a6d3
---- /dev/null
-+++ b/arch/arm/mach-omap2/clkt_iclk.c
-@@ -0,0 +1,73 @@
-+/*
-+ * OMAP2/3 interface clock control
-+ *
-+ * Copyright (C) 2011 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#undef DEBUG
++	/* Disable autoidle on all clocks; let the PM code enable it later */
++	omap_clk_disable_autoidle_all();
 +
-+#include <linux/kernel.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+
-+#include <plat/clock.h>
-+#include <plat/prcm.h>
-+
-+#include "clock.h"
-+#include "clock2xxx.h"
-+#include "cm2xxx_3xxx.h"
-+#include "cm-regbits-24xx.h"
-+
-+/* Private functions */
-+
-+/* XXX */
-+void omap2_clkt_iclk_allow_idle(struct clk *clk)
-+{
-+	u32 v, r;
-+
-+	r = ((__force u32)clk->enable_reg ^ (CM_AUTOIDLE ^ CM_ICLKEN));
-+
-+	v = __raw_readl((__force void __iomem *)r);
-+	v |= (1 << clk->enable_bit);
-+	__raw_writel(v, (__force void __iomem *)r);
-+}
-+
-+/* XXX */
-+void omap2_clkt_iclk_deny_idle(struct clk *clk)
-+{
-+	u32 v, r;
-+
-+	r = ((__force u32)clk->enable_reg ^ (CM_AUTOIDLE ^ CM_ICLKEN));
-+
-+	v = __raw_readl((__force void __iomem *)r);
-+	v &= ~(1 << clk->enable_bit);
-+	__raw_writel(v, (__force void __iomem *)r);
-+}
-+
-+/* Public data */
-+
-+const struct clkops clkops_omap2_iclk_dflt_wait = {
-+	.enable		= omap2_dflt_clk_enable,
-+	.disable	= omap2_dflt_clk_disable,
-+	.find_companion	= omap2_clk_dflt_find_companion,
-+	.find_idlest	= omap2_clk_dflt_find_idlest,
-+	.allow_idle	= omap2_clkt_iclk_allow_idle,
-+	.deny_idle	= omap2_clkt_iclk_deny_idle,
-+};
-+
-+const struct clkops clkops_omap2_iclk_dflt = {
-+	.enable		= omap2_dflt_clk_enable,
-+	.disable	= omap2_dflt_clk_disable,
-+	.allow_idle	= omap2_clkt_iclk_allow_idle,
-+	.deny_idle	= omap2_clkt_iclk_deny_idle,
-+};
-+
-+const struct clkops clkops_omap2_iclk_idle_only = {
-+	.allow_idle	= omap2_clkt_iclk_allow_idle,
-+	.deny_idle	= omap2_clkt_iclk_deny_idle,
-+};
-+
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 9972d89..5008f14 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -2,7 +2,7 @@
-  *  linux/arch/arm/mach-omap2/clock.h
-  *
-  *  Copyright (C) 2005-2009 Texas Instruments, Inc.
-- *  Copyright (C) 2004-2009 Nokia Corporation
-+ *  Copyright (C) 2004-2011 Nokia Corporation
-  *
-  *  Contacts:
-  *  Richard Woodruff <r-woodruff2@ti.com>
-@@ -86,6 +86,10 @@ long omap2_clksel_round_rate(struct clk *clk, unsigned long target_rate);
- int omap2_clksel_set_rate(struct clk *clk, unsigned long rate);
- int omap2_clksel_set_parent(struct clk *clk, struct clk *new_parent);
+ 	/* Check the MPU rate set by bootloader */
+ 	clkrate = omap2xxx_clk_get_core_rate(&dpll_ck);
+ 	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+index c047dcd..a1298e5 100644
+--- a/arch/arm/mach-omap2/clock2430_data.c
++++ b/arch/arm/mach-omap2/clock2430_data.c
+@@ -2028,6 +2028,9 @@ int __init omap2430_clk_init(void)
+ 		omap2_init_clk_clkdm(c->lk.clk);
+ 	}
  
-+/* clkt_iclk.c public functions */
-+extern void omap2_clkt_iclk_allow_idle(struct clk *clk);
-+extern void omap2_clkt_iclk_deny_idle(struct clk *clk);
++	/* Disable autoidle on all clocks; let the PM code enable it later */
++	omap_clk_disable_autoidle_all();
 +
- u32 omap2_get_dpll_rate(struct clk *clk);
- void omap2_init_dpll_parent(struct clk *clk);
+ 	/* Check the MPU rate set by bootloader */
+ 	clkrate = omap2xxx_clk_get_core_rate(&dpll_ck);
+ 	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+diff --git a/arch/arm/mach-omap2/clock3xxx.c b/arch/arm/mach-omap2/clock3xxx.c
+index e9f66b6..952c3e0 100644
+--- a/arch/arm/mach-omap2/clock3xxx.c
++++ b/arch/arm/mach-omap2/clock3xxx.c
+@@ -65,9 +65,6 @@ void __init omap3_clk_lock_dpll5(void)
+ 	clk_set_rate(dpll5_clk, DPLL5_FREQ_FOR_USBHOST);
+ 	clk_enable(dpll5_clk);
  
-@@ -148,6 +152,9 @@ extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table)
- #define omap2_clk_exit_cpufreq_table	0
- #endif
+-	/* Enable autoidle to allow it to enter low power bypass */
+-	omap3_dpll_allow_idle(dpll5_clk);
+-
+ 	/* Program dpll5_m2_clk divider for no division */
+ 	dpll5_m2_clk = clk_get(NULL, "dpll5_m2_ck");
+ 	clk_enable(dpll5_m2_clk);
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 7cf89f8..0021559 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3535,6 +3535,9 @@ int __init omap3xxx_clk_init(void)
+ 			omap2_init_clk_clkdm(c->lk.clk);
+ 		}
  
-+extern const struct clkops clkops_omap2_iclk_dflt_wait;
-+extern const struct clkops clkops_omap2_iclk_dflt;
-+extern const struct clkops clkops_omap2_iclk_idle_only;
- extern const struct clkops clkops_omap2xxx_dpll_ops;
- extern const struct clkops clkops_omap3_noncore_dpll_ops;
- extern const struct clkops clkops_omap3_core_dpll_ops;
++	/* Disable autoidle on all clocks; let the PM code enable it later */
++	omap_clk_disable_autoidle_all();
++
+ 	recalculate_root_clocks();
+ 
+ 	pr_info("Clocking rate (Crystal/Core/MPU): %ld.%01ld/%ld/%ld MHz\n",
+@@ -3548,7 +3551,8 @@ int __init omap3xxx_clk_init(void)
+ 	clk_enable_init_clocks();
+ 
+ 	/*
+-	 * Lock DPLL5 and put it in autoidle.
++	 * Lock DPLL5 -- here only until other device init code can
++	 * handle this
+ 	 */
+ 	if (omap_rev() >= OMAP3430_REV_ES2_0)
+ 		omap3_clk_lock_dpll5();
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index dcbe105..2795342 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3309,6 +3309,9 @@ int __init omap4xxx_clk_init(void)
+ 			omap2_init_clk_clkdm(c->lk.clk);
+ 		}
+ 
++	/* Disable autoidle on all clocks; let the PM code enable it later */
++	omap_clk_disable_autoidle_all();
++
+ 	recalculate_root_clocks();
+ 
+ 	/*
 
 
